@@ -809,7 +809,7 @@ indentation (target) is in green, current indentation is in red."
 ;;; Search
 
 (defun treesit-search-forward-goto
-    (predicate side &optional all backward up)
+    (predicate side &optional all backward)
   "Search forward for a node and move to it.
 
 Stops at the first node after point that matches PREDICATE.
@@ -822,7 +822,7 @@ otherwise return nil.  SIDE controls whether we move to the start
 or end of the matches node, it can be either \\='start or
 \\='end.
 
-ALL, BACKWARD, and UP are the same as in `treesit-search-forward'."
+ALL and BACKWARD are the same as in `treesit-search-forward'."
   (let ((node (treesit-node-at (point)))
         (start (point)))
     ;; Often the EOF (point-max) is a newline, and `treesit-node-at'
@@ -837,7 +837,7 @@ ALL, BACKWARD, and UP are the same as in `treesit-search-forward'."
                          (>= (point) start)
                        (<= (point) start)))
       (setq node (treesit-search-forward
-                  node predicate all backward up))
+                  node predicate all backward))
       (if-let ((pos (pcase side
                       ('start (treesit-node-start node))
                       ('end (treesit-node-end node)))))

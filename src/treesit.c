@@ -2342,6 +2342,35 @@ treesit_traverse_sibling_helper (TSNode node, bool forward, bool named)
     }
 }
 
+/* Return the first/last named/unamed child of NODE.  FORWARD controls
+   the direction and NAMED controls the nameness.  */
+static TSNode
+treesit_traverse_child_helper (TSNode node, bool forward, bool named)
+{
+  if (forward)
+    {
+      if (named)
+	return ts_node_named_child(node, 0);
+      else
+	return ts_node_child(node, 0);
+    }
+  else
+    {
+      if (named)
+	{
+	  uint32_t count = ts_node_named_child_count (node);
+	  uint32_t idx = count == 0 ? 0 : count - 1;
+	  return ts_node_named_child (node, idx);
+	}
+      else
+	{
+	  uint32_t count = ts_node_child_count (node);
+	  uint32_t idx = count == 0 ? 0 : count - 1;
+	  return ts_node_child (node, idx);
+	}
+    }
+}
+
 /* Return true if NODE matches PRED.  PRED can be a string or a
    function.  This function doesn't check for PRED's type.  */
 static bool
@@ -2416,41 +2445,47 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
 /* Go thought the whole tree linearly depth first, starting from
    START.  PRED, PARSER, NAMED, FORWARD are the same as in
    ts_search_subtre.  If UP_ONLY is true, never go to children, only
-   sibling and parents.  If SKIP_START is true, don'tt match
-   START.  */
+   sibling and parents.  */
 static bool
 treesit_search_forward (TSNode *start, Lisp_Object pred, Lisp_Object parser,
-			bool named, bool forward, bool up_only, bool skip_start)
+			bool named, bool forward)
 {
   TSNode node = *start;
 
-  if (!up_only
-      && treesit_search_dfs (start, pred, parser, named, forward, 0, true,
-			     skip_start))
-    return true;
+  /* We don't search for subtree and always search from the leaf
+     nodes.  This way repeated call of this function traverses each
+     node in the tree once and only once:
 
-  TSNode next = treesit_traverse_sibling_helper (node, forward, named);
-  while (ts_node_is_null (next))
+     (while node (setq node (treesit-search-forward node)))
+  */
+  while (true)
     {
-      node = ts_node_parent (node);
-      if (ts_node_is_null (node))
-	return false;
-
-      if (treesit_traverse_match_predicate (node, pred, parser))
+      TSNode next = treesit_traverse_sibling_helper (node, forward, named);
+      while (ts_node_is_null (next))
 	{
-	  *start = node;
-	  return true;
+	  /* There is no next sibling, go to parent.  */
+	  node = ts_node_parent (node);
+	  if (ts_node_is_null (node))
+	    return false;
+
+	  if (treesit_traverse_match_predicate (node, pred, parser))
+	    {
+	      *start = node;
+	      return true;
+	    }
+	  next = treesit_traverse_sibling_helper (node, forward, named);
 	}
-      next = treesit_traverse_sibling_helper (node, forward, named);
+      /* We are at the next sibling, deep dive into the first leaf
+	 node.  */
+      TSNode next_next = ts_node_child (next, 0);
+      while (!ts_node_is_null (next_next))
+	{
+	  next = next_next;
+	  next_next = treesit_traverse_child_helper (next, forward, named);
+	}
+      /* At this point NEXT is a leaf node.  */
+      node = next;
     }
-  if (treesit_search_forward (&next, pred, parser, named, forward, up_only,
-			      false))
-    {
-      *start = next;
-      return true;
-    }
-  else
-    return false;
 }
 
 DEFUN ("treesit-search-subtree",
@@ -2500,7 +2535,7 @@ Return the first matched node, or nil if none matches.  */)
 
 DEFUN ("treesit-search-forward",
        Ftreesit_search_forward,
-       Streesit_search_forward, 2, 5, 0,
+       Streesit_search_forward, 2, 4, 0,
        doc: /* Search for node matching PREDICATE in the parse tree of START.
 
 Start traversing the tree from node START, and match PREDICATE with
@@ -2513,36 +2548,35 @@ for all nodes.  If BACKWARD is non-nil, search backwards.
 
 Return the first matched node, or nil if none matches.
 
-For a tree like below,  where START is marked by 1, traverse in the
-order of numbers:
+For a tree like below, where START is marked by 1, traverse as
+numbered:
                 16
                 |
-       3--------4-----------8
+       3--------7-----------15
        |        |           |
-  o--o-+--1  5--+--6    9---+-----12
-  |  |    |        |    |         |
-  o  o    2        7  +-+-+    +--+--+
+  o--1-+--2  4--+--6    10--+-----14
+  |  |             |    |         |
+  o  o             5  +-+-+    +--+--+
                       |   |    |  |  |
-                      10  11   13 14 15
+                      8   9    11 12 13
 
-If UP is non-nil, only traverse siblings and parents of START.  In that
-case, only the nodes 1, 3, 4, 8, and 16 would be traversed.  */)
+Note that this function doesn't traverse the subtree of START, and it
+always traverse leaf nodes first, then upwards.  */)
   (Lisp_Object start, Lisp_Object predicate, Lisp_Object all,
-   Lisp_Object backward, Lisp_Object up)
+   Lisp_Object backward)
 {
   CHECK_TS_NODE (start);
   CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
 	      list3 (Qor, Qstringp, Qfunctionp), predicate);
   CHECK_SYMBOL (all);
   CHECK_SYMBOL (backward);
-  CHECK_SYMBOL (up);
 
   treesit_initialize ();
 
   TSNode treesit_start = XTS_NODE (start)->node;
   Lisp_Object parser = XTS_NODE (start)->parser;
   if (treesit_search_forward (&treesit_start, predicate, parser, NILP (all),
-			      NILP (backward), !NILP (up), true))
+			      NILP (backward)))
     return make_treesit_node (parser, treesit_start);
   else
     return Qnil;

@@ -650,7 +650,7 @@ must be a number that limits the tree traversal to that many levels
 down the tree.
 @end defun
 
-@defun treesit-search-forward start predicate &optional all backward up
+@defun treesit-search-forward start predicate &optional all backward
 While @code{treesit-search-subtree} traverses the subtree of a node,
 this function usually starts with a leaf node and traverses every node
 comes after it in terms of buffer position.  It is useful for
@@ -665,32 +665,31 @@ or a function.  For a tree like the below where @var{start} is marked
 
 @example
 @group
-              o
+              16
               |
-     3--------4-----------8
+     3--------7-----------15
      |        |           |
-o--o-+--1  5--+--6    9---+-----12
-|  |    |        |    |         |
-o  o    2        7  +-+-+    +--+--+
+o--1-+--2  4--+--6    10--+-----14
+|  |             |    |         |
+o  o             5  +-+-+    +--+--+
                     |   |    |  |  |
-                    10  11   13 14 15
+                    8   9    11 12 13
 @end group
+
+Note that this function doesn't traverse the subtree of @var{start},
+and it always traverse leaf nodes first, then upwards.
 @end example
 
 Like @code{treesit-search-subtree}, this function only searches for
 named nodes by default, but if @var{all} is non-@code{nil}, it
 searches for all nodes.  If @var{backward} is non-@code{nil}, it
 searches backwards.
-
-If @var{up} is non-@code{nil}, this function will only traverse to
-siblings and parents.  In that case, only the nodes marked by 1, 3, 4,
-and 8 above would be traversed.
 @end defun
 
-@defun treesit-search-forward-goto predicate side &optional all backward up
+@defun treesit-search-forward-goto predicate side &optional all backward
 This function moves point to the beginning or end of the next node in
 the buffer that matches @var{predicate}.  Arguments @var{predicate},
-@var{all}, @var{backward}, and @var{up} are the same as in
+@var{all} and @var{backward} are the same as in
 @code{treesit-search-forward}.  @var{side} controls on which side of
 the matched node we stop: it can be @code{start} or @code{end}.
 @c FIXME: Wouldn't it be convenient to make SIDE optional argument,
