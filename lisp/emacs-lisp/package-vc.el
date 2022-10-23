@@ -44,11 +44,11 @@
 
 (eval-when-compile (require 'rx))
 (eval-when-compile (require 'inline))
+(eval-when-compile (require 'map))
 (require 'package)
 (require 'lisp-mnt)
 (require 'vc)
 (require 'seq)
-(require 'map)
 (require 'xdg)
 
 (defgroup package-vc nil
