@@ -56,7 +56,7 @@
   :group 'package
   :version "29.1")
 
-(defcustom package-vc-heusitic-alist
+(defcustom package-vc-heuristic-alist
   `((,(rx bos "http" (? "s") "://"
           (or (: (? "www.") "github.com"
                  "/" (+ (or alnum "-" "." "_"))
@@ -104,7 +104,7 @@
 (defcustom package-vc-default-backend 'Git
   "Default VC backend used when cloning a package repository.
 If no repository type was specified or could be guessed by
-`package-vc-heusitic-alist', the VC backend denoted by this
+`package-vc-heuristic-alist', the VC backend denoted by this
 symbol is used.  The value must be a member of
 `vc-handled-backends' that implements the `clone' function."
   :type `(choice ,@(mapcar (lambda (b) (list 'const b))
@@ -360,7 +360,7 @@ the `:brach' attribute in PKG-SPEC."
       ;; Clone the repository into `repo-dir' if necessary
       (unless (file-exists-p repo-dir)
         (make-directory (file-name-directory repo-dir) t)
-        (let ((backend (or (and url (alist-get url package-vc-heusitic-alist
+        (let ((backend (or (and url (alist-get url package-vc-heuristic-alist
                                                nil nil #'string-match-p))
                            package-vc-default-backend)))
           (unless (vc-clone url backend repo-dir (or rev branch))
@@ -382,7 +382,7 @@ the `:brach' attribute in PKG-SPEC."
          ;; pointing towards a repository, and use that as a backup
          (and-let* ((extras (package-desc-extras (cadr pkg)))
                     (url (alist-get :url extras))
-                    (backend (alist-get url package-vc-heusitic-alist
+                    (backend (alist-get url package-vc-heuristic-alist
                                         nil nil #'string-match-p))))))
    package-archive-contents))
 
@@ -424,7 +424,7 @@ be requested using REV."
   (cond
    ((and-let* ((stringp name-or-url)
                (backend (alist-get name-or-url
-                                   package-vc-heusitic-alist
+                                   package-vc-heuristic-alist
                                    nil nil #'string-match-p)))
       (package-vc-unpack
        (package-desc-create
