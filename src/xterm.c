@@ -7735,6 +7735,28 @@ x_set_gtk_user_time (struct frame *f, Time time)
 
 #endif
 
+#if !defined USE_GTK || defined HAVE_XFIXES
+
+/* Create and return a special window for receiving events such as
+   selection notify events, and reporting user time.  The window is an
+   1x1 unmapped override-redirect InputOnly window at -1, -1 relative
+   to the parent, which should prevent it from doing anything.  */
+
+static Window
+x_create_special_window (struct x_display_info *dpyinfo,
+			 Window parent_window)
+{
+  XSetWindowAttributes attrs;
+
+  attrs.override_redirect = True;
+
+  return XCreateWindow (dpyinfo->display, parent_window,
+			-1, -1, 1, 1, 0, CopyFromParent, InputOnly,
+			CopyFromParent, CWOverrideRedirect, &attrs);
+}
+
+#endif
+
 /* Not needed on GTK because GTK handles reporting the user time
    itself.  */
 
@@ -7745,7 +7767,6 @@ x_update_frame_user_time_window (struct frame *f)
 {
   struct x_output *output;
   struct x_display_info *dpyinfo;
-  XSetWindowAttributes attrs;
 
   output = FRAME_X_OUTPUT (f);
   dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -7787,12 +7808,16 @@ x_update_frame_user_time_window (struct frame *f)
       if (output->user_time_window == FRAME_OUTER_WINDOW (f)
 	  || output->user_time_window == None)
 	{
-	  memset (&attrs, 0, sizeof attrs);
+	  /* Create a "user time" window that is used to report user
+	     activity on a given frame.  This is used in preference to
+	     _NET_WM_USER_TIME, as using a separate window allows the
+	     window manager to express interest in other properties
+	     while only reading the user time when necessary, thereby
+	     improving battery life by not involving the window
+	     manager in each key press.  */
 
 	  output->user_time_window
-	    = XCreateWindow (dpyinfo->display, FRAME_X_WINDOW (f),
-			     -1, -1, 1, 1, 0, 0, InputOnly,
-			     CopyFromParent, 0, &attrs);
+	    = x_create_special_window (dpyinfo, FRAME_X_WINDOW (f));
 
 	  XDeleteProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
 			   dpyinfo->Xatom_net_wm_user_time);
@@ -28802,27 +28827,6 @@ xi_check_toolkit (Display *display)
 
 #endif
 
-#ifdef HAVE_XFIXES
-
-/* Create and return a special window for receiving events such as
-   selection notify events.  The window is an 1x1 unmapped
-   override-redirect InputOnly window at -1, -1, which should prevent
-   it from doing anything.  */
-
-static Window
-x_create_special_window (struct x_display_info *dpyinfo)
-{
-  XSetWindowAttributes attrs;
-
-  attrs.override_redirect = True;
-
-  return XCreateWindow (dpyinfo->display, dpyinfo->root_window,
-			-1, -1, 1, 1, 0, CopyFromParent, InputOnly,
-			CopyFromParent, CWOverrideRedirect, &attrs);
-}
-
-#endif
-
 /* Open a connection to X display DISPLAY_NAME, and return the
    structure that describes the open display.  If obtaining the XCB
    connection or toolkit-specific display fails, return NULL.  Signal
@@ -29838,7 +29842,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
       dpyinfo->n_monitored_selections = num_fast_selections;
       dpyinfo->selection_tracking_window
-	= x_create_special_window (dpyinfo);
+	= x_create_special_window (dpyinfo, dpyinfo->root_window);
       dpyinfo->monitored_selections
 	= xmalloc (num_fast_selections
 		   * sizeof *dpyinfo->monitored_selections);

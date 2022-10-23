@@ -295,8 +295,7 @@ struct xi_device_t
 };
 #endif
 
-Status x_parse_color (struct frame *f, const char *color_name,
-		      XColor *color);
+extern Status x_parse_color (struct frame *, const char *, XColor *);
 
 struct x_failable_request
 {
