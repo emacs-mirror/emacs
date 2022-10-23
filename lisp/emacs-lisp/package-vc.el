@@ -102,10 +102,13 @@
   :version "29.1")
 
 (defcustom package-vc-default-backend 'Git
-  "VC backend to use as a fallback."
-  :type `(choice
-          ,@(mapcar (lambda (b) (list 'const b))
-                    vc-handled-backends))
+  "Default VC backend used when cloning a package repository.
+If no repository type was specified or could be guessed by
+`package-vc-heusitic-alist', the VC backend denoted by this
+symbol is used.  The value must be a member of
+`vc-handled-backends' that implements the `clone' function."
+  :type `(choice ,@(mapcar (lambda (b) (list 'const b))
+                           vc-handled-backends))
   :version "29.1")
 
 (defvar package-vc-archive-spec-alist nil
@@ -357,8 +360,9 @@ the `:brach' attribute in PKG-SPEC."
       ;; Clone the repository into `repo-dir' if necessary
       (unless (file-exists-p repo-dir)
         (make-directory (file-name-directory repo-dir) t)
-        (let ((backend (and url (alist-get url package-vc-heusitic-alist
-                                           nil nil #'string-match-p))))
+        (let ((backend (or (and url (alist-get url package-vc-heusitic-alist
+                                               nil nil #'string-match-p))
+                           package-vc-default-backend)))
           (unless (vc-clone url backend repo-dir (or rev branch))
             (error "Failed to clone %s from %s" name url))))
 
