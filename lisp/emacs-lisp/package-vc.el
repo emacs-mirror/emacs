@@ -329,6 +329,13 @@ The output is written out into PKG-FILE."
    (cons (package-desc-name pkg-desc)
          package-selected-packages)))
 
+(defun package-vc-guess-backend (url)
+  "Guess the VC backend for URL.
+This function will internally query `package-vc-heuristic-alist'
+and return nil if no reasonable guess can be made."
+  (and url (alist-get url package-vc-heuristic-alist
+                      nil nil #'string-match-p)))
+
 (defun package-vc-unpack (pkg-desc pkg-spec &optional rev)
   "Install the package described by PKG-DESC.
 PKG-SPEC is a package specification is a property list describing
@@ -360,8 +367,7 @@ the `:brach' attribute in PKG-SPEC."
       ;; Clone the repository into `repo-dir' if necessary
       (unless (file-exists-p repo-dir)
         (make-directory (file-name-directory repo-dir) t)
-        (let ((backend (or (and url (alist-get url package-vc-heuristic-alist
-                                               nil nil #'string-match-p))
+        (let ((backend (or (package-vc-guess-backend url)
                            package-vc-default-backend)))
           (unless (vc-clone url backend repo-dir (or rev branch))
             (error "Failed to clone %s from %s" name url))))
@@ -382,8 +388,7 @@ the `:brach' attribute in PKG-SPEC."
          ;; pointing towards a repository, and use that as a backup
          (and-let* ((extras (package-desc-extras (cadr pkg)))
                     (url (alist-get :url extras))
-                    (backend (alist-get url package-vc-heuristic-alist
-                                        nil nil #'string-match-p))))))
+                    ((package-vc-guess-backend url))))))
    package-archive-contents))
 
 (defun package-vc-update (pkg-desc)
@@ -423,9 +428,7 @@ be requested using REV."
   (package--archives-initialize)
   (cond
    ((and-let* ((stringp name-or-url)
-               (backend (alist-get name-or-url
-                                   package-vc-heuristic-alist
-                                   nil nil #'string-match-p)))
+               (backend (package-vc-guess-backend name-or-url)))
       (package-vc-unpack
        (package-desc-create
         :name (or name (intern (file-name-base name-or-url)))
