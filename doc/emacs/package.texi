@@ -549,28 +549,29 @@ bugs.
   One way to do this is to use @code{package-vc-install}, to fetch the
 source code for a package directly from source.  The command will also
 automatically ensure that all files are byte-compiled and auto-loaded,
-just like with a regular package.  From this point on the package can
-be regarded just like any other package, that can be updated (using
-@code{package-update}), deleted (using @code{package-delete}) and
-viewed in the package listing.
+just like with a regular package.  Packages installed this way behave
+just like any other package.  You can update them using
+@code{package-update} or @code{package-update-all} and delete them
+again using @code{package-delete}.  They are even displayed in the
+regular package listing.
 
 @findex package-report-bug
 @findex package-vc-prepare-patch
   With the source checkout, you might want to reproduce a bug against
 the current development head or implement a new feature to scratch an
-itch.  If the package metadata indicates that a maintainer can be
-contacted via Email, you can use the command @code{package-report-bug}
-to report a bug that will include all the user options that you have
-customised.  Patches can be sent out using
-@code{package-vc-prepare-patch}, that makes use of
-@code{vc-prepare-patch} under the hold (@pxref{Preparing Patches}).
+itch.  If the package metadata indicates how to contact the
+maintainer, you can use the command @code{package-report-bug} to
+report a bug via Email.  This report will include all the user options
+that you have customised.  If you have made a change you wish to share
+with the maintainers, first commit your changes then use the command
+@code{package-vc-prepare-patch} to share it.  @xref{Preparing Patches}.
 
 @findex package-vc-link-directory
 @findex package-vc-refresh
   If you maintain your own packages you might want to use a local
-checkout instead of cloning a remote repository.  This can be done
-using @code{package-vc-link-directory}, that creates a symbolic link
+checkout instead of cloning a remote repository.  You can do this by
+using @code{package-vc-link-directory}, which creates a symbolic link
 from the package directory (@pxref{Package Files}) to your checkout
-and initialises the code.  Note that if changes are made such as
-adding autoloads, you should use @code{package-vc-refresh} to repeat
-the initialisation.
+and initialises the code.  Note that you might have to use
+@code{package-vc-refresh} to repeat the initialisation and update the
+autoloads.
