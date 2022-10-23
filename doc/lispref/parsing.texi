@@ -406,7 +406,7 @@ returns non-@code{nil} if it is, @code{nil} otherwise.
 
 There is no need to explicitly parse a buffer, because parsing is done
 automatically and lazily.  A parser only parses when a Lisp program
-queris for a node in its syntax tree.  Therefore, when a parser is
+queries for a node in its syntax tree.  Therefore, when a parser is
 first created, it doesn't parse the buffer; it waits until the Lisp
 program queries for a node for the first time.  Similarly, when some
 change is made in the buffer, a parser doesn't re-parse immediately.
@@ -644,20 +644,14 @@ does.
 
 By default, this function only traverses named nodes, but if @var{all}
 is non-@code{nil}, it traverses all the nodes.  If @var{backward} is
-non-nil, it traverses backwards (meaning visiting the last child first
+non-@code{nil}, it traverses backwards (i.e., it visits the last child first
 when traversing down the tree).  If @var{limit} is non-@code{nil}, it
 must be a number that limits the tree traversal to that many levels
 down the tree.
 @end defun
 
 @defun treesit-search-forward start predicate &optional all backward
-While @code{treesit-search-subtree} traverses the subtree of a node,
-this function usually starts with a leaf node and traverses every node
-comes after it in terms of buffer position.  It is useful for
-answering questions like ``what is the first node after @var{start} in
-the buffer that satisfies some condition?''
-
-Like @code{treesit-search-subtree}, this function also traverse the
+Like @code{treesit-search-subtree}, this function also traverses the
 parse tree and matches each node with @var{predicate} (except for
 @var{start}), where @var{predicate} can be a (case-insensitive) regexp
 or a function.  For a tree like the below where @var{start} is marked
@@ -675,15 +669,24 @@ o  o             5  +-+-+    +--+--+
                     |   |    |  |  |
                     8   9    11 12 13
 @end group
+@end example
 
 Note that this function doesn't traverse the subtree of @var{start},
 and it always traverse leaf nodes first, then upwards.
-@end example
 
 Like @code{treesit-search-subtree}, this function only searches for
 named nodes by default, but if @var{all} is non-@code{nil}, it
 searches for all nodes.  If @var{backward} is non-@code{nil}, it
 searches backwards.
+
+@c FIXME: Still not very clear: the difference between ``traverse
+@c a subtree of a node'' and ``traverse every node that comes after
+@c it''.
+While @code{treesit-search-subtree} traverses the subtree of a node,
+this function usually starts with a leaf node and traverses every node
+that comes after it in the buffer position order.  It is useful for
+answering questions like ``what is the first node after @var{start} in
+the buffer that satisfies some condition?''
 @end defun
 
 @defun treesit-search-forward-goto predicate side &optional all backward
@@ -1172,11 +1175,11 @@ names in other patterns.
 
 @heading S-expression patterns
 
-@cindex patterns as sexps
+@cindex tree-sitter patterns as sexps
 @cindex patterns, tree-sitter, in sexp form
 Besides strings, Emacs provides a s-expression based syntax for
-patterns.  It largely resembles the string-based syntax.  For example,
-the following query
+tree-sitter patterns.  It largely resembles the string-based syntax.
+For example, the following query
 
 @example
 @group

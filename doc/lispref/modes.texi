@@ -3904,16 +3904,31 @@ variables with regexp-based font lock, it uses similar customization
 schemes.  The tree-sitter counterpart of @var{font-lock-keywords} is
 @var{treesit-font-lock-settings}.
 
-In general, tree-sitter fontification works like the following: a Lisp
-program provides a @dfn{query} consisting of @dfn{patterns} with
-@dfn{capture names}.  Tree-sitter finds the nodes in the parse tree
-that match these patterns, tags the corresponding capture names onto
-the nodes, and returns them to the Lisp program.  The Lisp program
-takes theses nodes and highlights the corresponding buffer text of
-each node depending on the tagged capture name of the node.  For
-example, a node tagged @code{font-lock-keyword} would simply be
-highlighted in @code{font-lock-keyword} face.  For more information on
-queries, patterns and capture names, @pref{Pattern Matching}.
+@cindex tree-sitter fontifications, overview
+@cindex fontifications with tree-sitter, overview
+In general, tree-sitter fontification works as follows:
+
+@itemize @bullet
+@item
+A Lisp program (usually, part of a major mode) provides a @dfn{query}
+consisting of @dfn{patterns}, each pattern associated with a
+@dfn{capture name}.
+
+@item
+The tree-sitter library finds the nodes in the parse tree
+that match these patterns, tags the nodes with the corresponding
+capture names, and returns them to the Lisp program.
+
+@item
+The Lisp program uses the returned nodes to highlight the portions of
+buffer text corresponding to each node as appropriate, using the
+tagged capture names of the nodes to determine the correct
+fontification.  For example, a node tagged @code{font-lock-keyword}
+would be highlighted in @code{font-lock-keyword} face.
+@end itemize
+
+For more information about queries, patterns, and capture names, see
+@ref{Pattern Matching}.
 
 @defun treesit-font-lock-rules :keyword value query...
 This function is used to set @var{treesit-font-lock-settings}.  It
@@ -3957,7 +3972,7 @@ Other keywords are optional:
 
 Lisp programs mark patterns in the query with capture names (names
 that starts with @code{@@}), and tree-sitter will return matched nodes
-with capture names tagged onto them.  For the purpose of
+tagged with those same capture names.  For the purpose of
 fontification, capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified
 with that face.  Capture names can also be function names, in which
@@ -4010,7 +4025,7 @@ A list of settings for tree-sitter based font lock.  The exact format
 of this variable is considered internal.  One should always use
 @code{treesit-font-lock-rules} to set this variable.
 @c Because the format is internal, we don't document them here.
-@c Though We do have explanations in the docstring.
+@c Though we do have it explained in the docstring.
 @end defvar
 
 Multi-language major modes should provide range functions in
@@ -4805,37 +4820,41 @@ available default functions are:
 
 @ftable @code
 @item no-node
+@c FIXME: How many arguments does no-node accept, and what are thos
+@c arguments?
 This matcher is a function that matches the case where @var{node} is
 @code{nil}, i.e., there is no node that starts at @var{bol}.  This is
 the case when @var{bol} is on an empty line or inside a multi-line
 string, etc.
 
 @item parent-is
-This matcher is a function of one argument, @var{type}; it return a
-function that given @w{@code{(@var{node} @var{parent} @var{bol})}},
-matches if @var{parent}'s type is @var{type}.
+This matcher is a function of one argument, @var{type}; it returns a
+function that is called with 3 arguments: @var{node}, @var{parent},
+and @var{bol}, and returns non-@code{nil} (i.e., a match) if
+@var{parent}'s type is @var{type}.
 
 @item node-is
 This matcher is a function of one argument, @var{type}; it returns a
-function that given @w{@code{(@var{node} @var{parent} @var{bol})}},
-matches if @var{node}'s type is @var{type}.
+function that is called with 3 arguments: @var{node}, @var{parent},
+and @var{bol}, and returns non-@code{nil} if @var{node}'s type is
+@var{type}.
 
 @item query
 This matcher is a function of one argument, @var{query}; it returns a
-function that given @w{@code{(@var{node} @var{parent} @var{bol})}},
-matches if querying @var{parent} with @var{query} captures @var{node}
-(@pxref{Pattern Matching}).
+function that is called with 3 arguments: @var{node}, @var{parent},
+and @var{bol}, and returns non-@code{nil} if querying @var{parent}
+with @var{query} captures @var{node} (@pxref{Pattern Matching}).
 
 @item match
 This matcher is a function of 5 arguments: @var{node-type},
 @var{parent-type}, @var{node-field}, @var{node-index-min}, and
-@var{node-index-max}).  It returns a function that given
-@w{@code{(@var{node} @var{parent} @var{bol})}}, matches if
-@var{node}'s type is @var{node-type}, @var{parent}'s type is
-@var{parent-type}, @var{node}'s field name in @var{parent} is
+@var{node-index-max}).  It returns a function that is called with 3
+arguments: @var{node}, @var{parent}, and @var{bol}, and returns
+non-@code{nil} if @var{node}'s type is @var{node-type}, @var{parent}'s
+type is @var{parent-type}, @var{node}'s field name in @var{parent} is
 @var{node-field}, and @var{node}'s index among its siblings is between
 @var{node-index-min} and @var{node-index-max}.  If the value of an
-argument is @code{nil}, this matcher doesn't check for that argument.
+argument is @code{nil}, this matcher doesn't check that argument.
 For example, to match the first child where parent is
 @code{argument_list}, use
 
@@ -4844,30 +4863,32 @@ For example, to match the first child where parent is
 @end example
 
 @item first-sibling
-This anchor is a function that given @w{@code{(@var{node} @var{parent}
-@var{bol})}}, returns the start of the first child of @var{parent}.
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of the first child
+of @var{parent}.
 
 @item parent
-This anchor is a function that given @w{@code{(@var{node} @var{parent}
-@var{bol})}}, returns the start of @var{parent}.
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of @var{parent}.
 
 @item parent-bol
-This anchor is a function that given @w{@code{(@var{node} @var{parent}
-@var{bol})}}, returns the first non-space character on the line of
-@var{parent}.
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the first non-space character
+on the line of @var{parent}.
 
 @item prev-sibling
-This anchor is a function that given @w{@code{(@var{node} @var{parent}
-@var{bol})}}, returns the start of the previous sibling of @var{node}.
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of the previous
+sibling of @var{node}.
 
 @item no-indent
-This anchor is a function that given @w{@code{(@var{node} @var{parent}
-@var{bol})}}, returns the start of @var{node}.
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of @var{node}.
 
 @item prev-line
-This anchor is a function that given @w{@code{(@var{node} @var{parent}
-@var{bol})}}, returns the first non-whitespace charater on the
-previous line.
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the first non-whitespace
+charater on the previous line.
 @end ftable
 
 @end defvar
