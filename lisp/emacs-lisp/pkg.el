@@ -120,7 +120,10 @@ NAMES must be a list of package objects or valid package names."
   (mapcar #'(lambda (name) (pkg--find-or-make-package name))
           names))
 
-(defun pkg-package-or-lose (name)
+(defun pkg--package-or-lose (name)
+  "Return the package denoted by NAME.
+If NAME is a package, return that.
+Otherwise, NAME must be the name of a registered package."
   (if (packagep name)
       name
     (let ((pkg-name (pkg--stringify-name name "package")))
@@ -147,9 +150,13 @@ NAMES must be a list of package objects or valid package names."
         (package-%nicknames package)))
 
 (defun pkg--package-or-default (package)
+  "Return the package object denoted by PACKAGE.
+If PACKAGE is a package object, return that.
+If PACKAGE is nil, return the current package.
+Otherwise assume that "
   (cond ((packagep package) package)
         ((null package) *package*)
-        (t (pkg-package-or-lose package))))
+        (t (pkg--package-or-lose package))))
 
 (defun pkg--symbol-listify (thing)
   (cond ((listp thing)
@@ -161,6 +168,7 @@ NAMES must be a list of package objects or valid package names."
          (list thing))
 	(t
 	 (error "%s is neither a symbol nor a list of symbols" thing))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                        Basic stuff
@@ -212,23 +220,29 @@ but is what Common Lisp implementations usually do."
 
 ;;;###autoload
 (defun package-name (package)
-  (package-%name (pkg-package-or-lose package)))
+  "Return the name of PACKAGE.
+If PACKAGE is not a package object already, it must the name of a
+registered package."
+  (package-%name (pkg--package-or-lose package)))
 
 ;;;###autoload
 (defun package-nicknames (package)
-  (package-%nicknames (pkg-package-or-lose package)))
+  "Return the list of nickname strings of PACKAGE.
+If PACKAGE is not a package object already, it must the name of a
+registered package."
+  (package-%nicknames (pkg--package-or-lose package)))
 
 ;;;###autoload
 (defun package-shadowing-symbols (package)
-  (package-%shadowing-symbols (pkg-package-or-lose package)))
+  (package-%shadowing-symbols (pkg--package-or-lose package)))
 
 ;;;###autoload
 (defun package-use-list (package)
-  (package-%use-list (pkg-package-or-lose package)))
+  (package-%use-list (pkg--package-or-lose package)))
 
 ;;;###autoload
 (defun package-used-by-list (package)
-  (let ((package (pkg-package-or-lose package))
+  (let ((package (pkg--package-or-lose package))
         ((used-by ())))
     (dolist (p (list-all-packages))
       (when (memq package (package-%use-list p))
@@ -237,6 +251,14 @@ but is what Common Lisp implementations usually do."
 
 ;;;###autoload
 (defun find-package (package)
+  "Find and return the package for PACKAGE.
+If PACKAGE is a package object, return that.
+
+Otherwise, PACKAGE must be a package name, and that name
+is lookup up in the package registry and the result is
+returned if found.
+
+Value is nil if no package with the given name is found. "
   (if (packagep package)
       package
     (let ((name (pkg--stringify-name package "package name")))
@@ -244,27 +266,51 @@ but is what Common Lisp implementations usually do."
 
 ;;;###autoload
 (defun delete-package (package)
+  "Delete PACKAGE.
+
+If PACKAGE is an already deleted package, return nil.
+
+If PACKAGE is a package that is not already deleted, or PACKAGE
+is a package name that is registered, delete that package by
+removing it from the package registry, and return t.
+
+An attempt to delete one of the standard packages results in an
+error."
   (if (and (packagep package)
            (null (package-%name package)))
       nil
-    (let ((package (pkg-package-or-lose package)))
+    (let ((package (pkg--package-or-lose package)))
       (when (or (eq package *emacs-package*)
                 (eq package *keyword-package*))
-        (error "Cannot delete standard package"))
+        (error "Cannot delete a standard package"))
       (pkg--remove-from-registry package)
       (setf (package-%name package) nil)
       t)))
 
 ;;;###autoload
 (defun rename-package (package new-name &optional new-nicknames)
-  (let ((package (pkg-package-or-lose package)))
+  "Replace name and nicknames of PACKAGE with NEW-NAME and NEW-NICKNAMES.
+
+PACKAGE must be a package object, or name a registered package.
+Deleted packages cannot be renamed.
+
+NEW-NAME must be a valid package name, a string, symbol, or
+character.
+
+Optional NEW-NICKSNAMES must be a list of valid package names.
+
+Value is the renamed package object."
+  (let ((package (pkg--package-or-lose package))
+        (new-name (pkg--stringify-name new-name "package name"))
+        (new-nicknames (pkg--stringify-names new-nicknames
+                                             "package nickname")))
     (unless (package-%name package)
-      ;; That's what CLHS says, and SBCL does...
-      (error "Cannot rename deleted package"))
+      (error "Package %s is deleted"))
     (pkg--remove-from-registry package)
     (setf (package-%nicknames package) new-nicknames)
     (setf (package-%name package) new-name)
-    (pkg--add-to-registry package)))
+    (pkg--add-to-registry package)
+    package))
 
 
 ;;; Here...
@@ -528,5 +574,7 @@ but is what Common Lisp implementations usually do."
 ;;        (pkg-defpackage ,(pkg--stringify-name package "package") ',nicknames ',size
 ;; 		       ',shadows ',shadowing-imports ',(if use-p use :default)
 ;; 		       ',imports ',interns ',exports ',doc))))
+
+(provide 'pkg)
 
 ;;; pkg.el ends here

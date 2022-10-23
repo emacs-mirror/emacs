@@ -48,6 +48,8 @@
 
 (ert-deftest pkg-tests-standard-packages ()
   (should (packagep (find-package "emacs")))
+  (should (packagep (find-package 'emacs)))
+  (should (packagep (find-package :emacs)))
   (should (packagep (find-package "keyword")))
   (should (packagep (find-package "")))
   (should (eq (find-package "keyword") (find-package ""))))
@@ -86,6 +88,21 @@
     ;; Duplicates removed, order-preserving.
     (should (equal (package-nicknames x) '("y" "z")))))
 
+(ert-deftest pkg-tests-package-name ()
+  (should (equal (package-name (make-package "x")) "x"))
+  (should (equal (package-name (make-package :x)) "x"))
+  (should (equal (package-name "emacs") "emacs"))
+  (let ((p (make-package "x")))
+    (delete-package p)
+    (should (null (package-name p))))
+  (should-error (package-name 1)))
+
+(ert-deftest pkg-tests-package-nicknames ()
+  (let ((nicknames '(("a" "b") (?a :b))))
+    (dolist (n nicknames)
+      (let ((p (make-package "x" :nicknames n)))
+        (should (equal (package-nicknames p) '("a" "b")))))))
+
 (ert-deftest pkg-tests-list-all-packages ()
   (let ((all (list-all-packages)))
     (should (cl-every #'packagep all))
@@ -93,17 +110,10 @@
     (should (memq (find-package "keyword") all))
     (should (memq (find-package "") all))))
 
-;; (ert-deftest pkg-tests-package-use-list ()
-;;   (should nil))
-
-;; (ert-deftest pkg-tests-package-used-by-list ()
-;;   (should nil))
-
-;; (ert-deftest pkg-tests-package-shadowing-symbols ()
-;;   (should nil))
-
 (ert-deftest pkg-tests-package-find-package ()
   (with-packages (x)
+    ;; If called with a package, returns that package.
+    (should (eq (find-package x) x))
     (package-%register x)
     (should-error (find-package 1.0))
     (should (eq (find-package 'x) x))
@@ -124,32 +134,20 @@
     (should (null (package-name x)))
     (should (not (find-package 'x)))))
 
-;;   (with-packages (x)
-;;     (package-%register x)
-;;     (should (delete-package "x"))
-;;     (should-error (delete-package "x")))
-;;   (let ((original (list-all-packages)))
-;;     (with-packages ((x :nicknames '(y)))
-;;       (should (delete-package x))
-;;       (should (null (delete-package x)))
-;;       (should (not (find-package 'x)))
-;;       (should (not (find-package 'y))))))
-
-;; (ert-deftest pkg-tests-rename-package ()
-;;   (with-packages (x y)
-;;     (should (eq x (rename-package x 'a '(b))))
-;;     (should (not (find-package 'x)))
-;;     (should (eq (find-package 'a) x))
-;;     (should (eq (find-package 'b) x))
-;;     ;; Can't rename to an existing name or nickname.
-;;     (should-error (rename-package y 'a))
-;;     (should-error (rename-package y 'c :nicknames '("b")))
-;;     ;; Original package name and nicknames are unchanged.
-;;     (should (equal (package-name x) "a"))
-;;     (should (equal (package-nicknames x) '("b")))
-;;     ;; Can't rename deleted package.
-;;     (should (delete-package x))
-;;     (should-error (rename-package x 'd))))
+(ert-deftest pkg-tests-rename-package ()
+  (with-packages (x y)
+    (package-%register x)
+    (should (find-package 'x))
+    (should (eq x (rename-package x 'a '(b))))
+    (should (not (find-package 'x)))
+    (should (eq (find-package 'a) x))
+    (should (eq (find-package 'b) x))
+    ;; Can't rename to an existing name or nickname.
+    (should-error (rename-package y 'a))
+    (should-error (rename-package y 'c :nicknames '("b")))
+    ;; Can't rename deleted package.
+    (should (delete-package x))
+    (should-error (rename-package x 'd))))
 
 ;; (ert-deftest pkg-tests-find-symbol ()
 ;;   (should nil))
