@@ -2934,7 +2934,7 @@ for which LSP on-type-formatting should be requested."
        (let ((active-param (or activeParameter sig-help-active-param))
              params-start params-end)
          ;; Ad-hoc attempt to parse label as <name>(<params>)
-         (when (looking-at "\\([^(]+\\)(\\([^)]+\\))")
+         (when (looking-at "\\([^(]*\\)(\\([^)]+\\))")
            (setq params-start (match-beginning 2) params-end (match-end 2))
            (add-face-text-property (match-beginning 1) (match-end 1)
                                    'font-lock-function-name-face))
