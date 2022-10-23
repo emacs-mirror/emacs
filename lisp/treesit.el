@@ -101,7 +101,7 @@ Return the root node of the syntax tree."
   (treesit-parser-language
    (treesit-node-parser node)))
 
-(defun treesit-node-at (pos &optional parser-or-lang named)
+(defun treesit-node-at (pos &optional parser-or-lang named largest)
   "Return the smallest node that starts at or after buffer position POS.
 
 \"Starts at or after POS\" means the start of the node is greater or
@@ -112,7 +112,10 @@ Return nil if none find.  If NAMED is non-nil, only look for named node.
 If PARSER-OR-LANG is nil, use the first parser in
 \(`treesit-parser-list'); if PARSER-OR-LANG is a parser, use
 that parser; if PARSER-OR-LANG is a language, find a parser using
-that language in the current buffer, and use that."
+that language in the current buffer, and use that.
+
+If LARGEST is non-nil, return the largest node instead of the
+smallest."
   (let ((node (if (treesit-parser-p parser-or-lang)
                   (treesit-parser-root-node parser-or-lang)
                 (treesit-buffer-root-node parser-or-lang)))
@@ -121,7 +124,11 @@ that language in the current buffer, and use that."
     (while (setq next (treesit-node-first-child-for-pos
                        node pos named))
       (setq node next))
-    node))
+    (if (not largest)
+        node
+      (treesit-parent-while
+       node (lambda (n) (eq (treesit-node-start n)
+                            (treesit-node-start node)))))))
 
 (defun treesit-node-on (beg end &optional parser-or-lang named)
   "Return the smallest node covering BEG to END.
