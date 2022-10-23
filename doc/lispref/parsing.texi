@@ -95,7 +95,7 @@ This means Emacs could not find the language definition library.
 @item (symbol-error @var{error-msg})
 This means Emacs could not find in the library the expected function
 that every language definition library should export.
-@item (version_mismatch @var{error-msg})
+@item (version-mismatch @var{error-msg})
 This means the version of language definition library is incompatible
 with that of the tree-sitter library.
 @end table
@@ -253,7 +253,7 @@ syntax tree effectively, you need to consult the @dfn{grammar file}.
 The grammar file is usually @file{grammar.js} in a language
 definition's project repository.  The link to a language definition's
 home page can be found on
-@uref{https://tree-sitter.github.io/tree-sitter, the tree-sitter's
+@uref{https://tree-sitter.github.io/tree-sitter, tree-sitter's
 homepage}.
 
 The grammar definition is written in JavaScript.  For example, the
@@ -405,11 +405,11 @@ returns non-@code{nil} if it is, @code{nil} otherwise.
 @end defun
 
 There is no need to explicitly parse a buffer, because parsing is done
-automatically and lazily.  A parser only parses when the mode queris
-for a node in its syntax tree.  Therefore, when a parser is first
-created, it doesn't parse the buffer; it waits until the mode queries
-for a node for the first time.  Similarly, when some change is made in
-the buffer, a parser doesn't re-parse immediately.
+automatically and lazily.  A parser only parses when a Lisp program
+queris for a node in its syntax tree.  Therefore, when a parser is
+first created, it doesn't parse the buffer; it waits until the Lisp
+program queries for a node for the first time.  Similarly, when some
+change is made in the buffer, a parser doesn't re-parse immediately.
 
 @vindex treesit-buffer-too-large
 When a parser does parse, it checks for the size of the buffer.
@@ -510,7 +510,7 @@ Example:
 @group
 ;; Find the node at point in a C parser's syntax tree.
 (treesit-node-at (point) 'c)
-  @result{} #<treesit-node from 1 to 4 in *scratch*>
+  @result{} #<treesit-node (primitive_type) in *scratch*>
 @end group
 @end example
 @end defun
@@ -606,7 +606,7 @@ This function finds the child of @var{node} whose field name is
 @group
 ;; Get the child that has "body" as its field name.
 (treesit-child-by-field-name node "body")
-  @result{} #<treesit-node from 3 to 11 in *scratch*>
+  @result{} #<treesit-node (compound_statement) in *scratch*>
 @end group
 @end example
 @end defun
@@ -644,20 +644,24 @@ does.
 
 By default, this function only traverses named nodes, but if @var{all}
 is non-@code{nil}, it traverses all the nodes.  If @var{backward} is
-@c FIXME: What does it mean to ``traverse backward''?
-non-nil, it traverses backwards.  If @var{limit} is non-@code{nil}, it
+non-nil, it traverses backwards (meaning visiting the last child first
+when traversing down the tree).  If @var{limit} is non-@code{nil}, it
 must be a number that limits the tree traversal to that many levels
 down the tree.
 @end defun
 
 @defun treesit-search-forward start predicate &optional all backward up
-@c FIXME: Explain better what is the differencve between this function
-@c and the previous one.
-This function is somewhat similar to @code{treesit-search-subtree}.
-It also traverse the parse tree and matches each node with
-@var{predicate} (except for @var{start}), where @var{predicate} can be
-a (case-insensitive) regexp or a function.  For a tree like the below
-where @var{start} is marked 1, this function traverses as numbered:
+While @code{treesit-search-subtree} traverses the subtree of a node,
+this function usually starts with a leaf node and traverses every node
+comes after it in terms of buffer position.  It is useful for
+answering questions like ``what is the first node after @var{start} in
+the buffer that satisfies some condition?''
+
+Like @code{treesit-search-subtree}, this function also traverse the
+parse tree and matches each node with @var{predicate} (except for
+@var{start}), where @var{predicate} can be a (case-insensitive) regexp
+or a function.  For a tree like the below where @var{start} is marked
+1, this function traverses as numbered:
 
 @example
 @group
@@ -830,7 +834,7 @@ is not yet in its final form.
 
 @cindex tree-sitter extra node
 @cindex extra node, tree-sitter
-A node can be ``extra'': extra nodes represent things like comments,
+A node can be ``extra'': such nodes represent things like comments,
 which can appear anywhere in the text.
 
 @cindex tree-sitter node that has changes
@@ -1007,9 +1011,9 @@ root node with @var{query}, and returns the result.
 
 @heading More query syntax
 
-Besides node type and capture, tree-sitter's query syntax can express
-anonymous node, field name, wildcard, quantification, grouping,
-alternation, anchor, and predicate.
+Besides node type and capture, tree-sitter's pattern syntax can
+express anonymous node, field name, wildcard, quantification,
+grouping, alternation, anchor, and predicate.
 
 @subheading Anonymous node
 
@@ -1022,9 +1026,9 @@ pattern matching (and capturing) keyword @code{return} would be
 
 @subheading Wild card
 
-In a query pattern, @samp{(_)} matches any named node, and @samp{_}
-matches any named and anonymous node.  For example, to capture any
-named child of a @code{binary_expression} node, the pattern would be
+In a pattern, @samp{(_)} matches any named node, and @samp{_} matches
+any named and anonymous node.  For example, to capture any named child
+of a @code{binary_expression} node, the pattern would be
 
 @example
 (binary_expression (_) @@in_biexp)
@@ -1032,10 +1036,10 @@ named child of a @code{binary_expression} node, the pattern would be
 
 @subheading Field name
 
-It is possible to capture child nodes that have specific field names:
+It is possible to capture child nodes that have specific field names.
+In the pattern below, @code{declarator} and @code{body} are field
+names, indicated by the colon following them.
 
-@c FIXME: The significance of ``:'' should be explained, and also what
-@c are ``declarator'' and ``body''.
 @example
 @group
 (function_definition
@@ -1059,7 +1063,6 @@ Tree-sitter recognizes quantification operators @samp{*}, @samp{+} and
 @samp{*} matches the preceding pattern zero or more times, @samp{+}
 matches one or more times, and @samp{?} matches zero or one time.
 
-@c FIXME: ``pattern'' or :''query''?  Or maybe ``query pattern''?
 For example, the following pattern matches @code{type_declaration}
 nodes that has @emph{zero or more} @code{long} keyword.
 
@@ -1087,9 +1090,9 @@ express a comma separated list of identifiers, one could write
 @subheading Alternation
 
 Again, similar to regular expressions, we can express ``match anyone
-from this group of patterns'' in the query pattern.  The syntax is a
-list of patterns enclosed in square brackets.  For example, to capture
-some keywords in C, the query pattern would be
+from this group of patterns'' in a pattern.  The syntax is a list of
+patterns enclosed in square brackets.  For example, to capture some
+keywords in C, the pattern would be
 
 @example
 @group
@@ -1136,7 +1139,7 @@ nodes.
 @subheading Predicate
 
 It is possible to add predicate constraints to a pattern.  For
-example, with the following query pattern:
+example, with the following pattern:
 
 @example
 @group
@@ -1170,11 +1173,11 @@ names in other patterns.
 
 @heading S-expression patterns
 
-@cindex query patterns as sexps
+@cindex patterns as sexps
 @cindex patterns, tree-sitter, in sexp form
-Besides strings, Emacs provides a s-expression based syntax for query
+Besides strings, Emacs provides a s-expression based syntax for
 patterns.  It largely resembles the string-based syntax.  For example,
-the following pattern
+the following query
 
 @example
 @group

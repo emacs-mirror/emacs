@@ -3904,10 +3904,17 @@ variables with regexp-based font lock, it uses similar customization
 schemes.  The tree-sitter counterpart of @var{font-lock-keywords} is
 @var{treesit-font-lock-settings}.
 
-@c FIXME: The ``query'' part here and thereafter comes ``out of the
-@c blue''.  There should be some text here explaining what those
-@c ``queries'' are and how are they related to fontifications, or a
-@c cross-reference to another place with such an explanation.
+In general, tree-sitter fontification works like the following: a Lisp
+program provides a @dfn{query} consisting of @dfn{patterns} with
+@dfn{capture names}.  Tree-sitter finds the nodes in the parse tree
+that match these patterns, tags the corresponding capture names onto
+the nodes, and returns them to the Lisp program.  The Lisp program
+takes theses nodes and highlights the corresponding buffer text of
+each node depending on the tagged capture name of the node.  For
+example, a node tagged @code{font-lock-keyword} would simply be
+highlighted in @code{font-lock-keyword} face.  For more information on
+queries, patterns and capture names, @pref{Pattern Matching}.
+
 @defun treesit-font-lock-rules :keyword value query...
 This function is used to set @var{treesit-font-lock-settings}.  It
 takes care of compiling queries and other post-processing, and outputs
@@ -3948,9 +3955,10 @@ Other keywords are optional:
 @item @tab @code{keep} @tab Fill-in regions without an existing face
 @end multitable
 
-@c FIXME: The ``capture names'' part should be expl,ained before it is
-@c first used: what it is and how it's related to fontifications.
-Capture names in @var{query} should be face names like
+Lisp programs mark patterns in the query with capture names (names
+that starts with @code{@@}), and tree-sitter will return matched nodes
+with capture names tagged onto them.  For the purpose of
+fontification, capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified
 with that face.  Capture names can also be function names, in which
 case the function is called with 3 arguments: @var{start}, @var{end},
@@ -3966,9 +3974,8 @@ is a list that represents a decoration level.
 @code{font-lock-maximum-decoration} controls which levels are
 activated.
 
-@c FIXME: This should be rewritten using our style: ``each element of
-@c the list is a list of the form (FOO BAR BAZ), where FOO...'' etc.
-Inside each sublist are feature symbols, which correspond to the
+Each element of the list is a list of the form @w{@code{(@var{feature}
+@dots{})}}, where each @var{feature} corresponds to the
 @code{:feature} value of a query defined in
 @code{treesit-font-lock-rules}.  Removing a feature symbol from this
 list disables the corresponding query during font-lock.
@@ -3992,40 +3999,18 @@ For example, the value of this variable could be:
 Major modes should set this variable before calling
 @code{treesit-font-lock-enable}.
 
-@c FIXME: ``for further changes''?  This should clarify when this
-@c function has to be called.
 @findex treesit-font-lock-recompute-features
-In addition, for further changes to this variable to take effect, call
-@code{treesit-font-lock-recompute-features}.
+For this variable to take effect, a Lisp program should call
+@code{treesit-font-lock-recompute-features} (which resets
+@code{treesit-font-lock-settings} accordingly).
 @end defvar
 
 @defvar treesit-font-lock-settings
 A list of settings for tree-sitter based font lock.  The exact format
 of this variable is considered internal.  One should always use
 @code{treesit-font-lock-rules} to set this variable.
-
-@c FIXME: If the format is considered ``internal'', why do we need to
-@c describe it here?
-Each @var{setting} is of form
-
-@example
-(@var{query} @var{enable} @var{feature} @var{override})
-@end example
-
-@var{query} must be a compiled query (@pxref{Pattern Matching}).
-
-For @var{setting} to be activated for font-lock, @var{enable} must be
-@code{t}.  To disable this @var{setting}, set @var{enable} to
-@code{nil}.
-
-@var{feature} is the ``feature name'' of the query, users can control
-which features are enabled with @code{font-lock-maximum-decoration}
-and @code{treesit-font-lock-feature-list}.
-
-@var{override} is the override flag for this query.  Its value can be
-@code{t}, @code{nil}, @code{append}, @code{prepend}, or @code{keep}.
-@c FIXME: See where?
-See more in @code{treesit-font-lock-rules}.
+@c Because the format is internal, we don't document them here.
+@c Though We do have explanations in the docstring.
 @end defvar
 
 Multi-language major modes should provide range functions in
@@ -4790,27 +4775,26 @@ a list of the form: @w{@code{(@var{language} . @var{rules})}}, where
 @var{language} is a language symbol, and @var{rules} is a list of the
 form @w{@code{(@var{matcher} @var{anchor} @var{offset})}}.
 
-@c FIXME: ``node''?
-First, Emacs passes the node at point to @var{matcher}; if it returns
-non-@code{nil}, this rule is applicable.  Then Emacs passes the node
-to @var{anchor}, which returns a buffer position.  Emacs takes the
-column number of that position, adds @var{offset} to it, and the
-result is the indentation column for the current line.
+First, Emacs passes the smallest tree-sitter node at the beginning of
+the current line to @var{matcher}; if it returns non-@code{nil}, this
+rule is applicable.  Then Emacs passes the node to @var{anchor}, which
+returns a buffer position.  Emacs takes the column number of that
+position, adds @var{offset} to it, and the result is the indentation
+column for the current line.
 
 The @var{matcher} and @var{anchor} are functions, and Emacs provides
 convenient defaults for them.
 
-@c FIXME: Clarify the following description.  In particular, how to
-@c find/compute ``the largest node'' and its ``parent''?
 Each @var{matcher} or @var{anchor} is a function that takes three
 arguments: @var{node}, @var{parent}, and @var{bol}.  The argument
 @var{bol} is the buffer position whose indentation is required: the
 position of the first non-whitespace character after the beginning of
 the line.  The argument @var{node} is the largest (highest-in-tree)
 node that starts at that position; and @var{parent} is the parent of
-@var{node}.  @var{matcher} should return non-@code{nil} if the rule is
-applicable, and @var{anchor} should return a buffer position that is
-the basis of the indentation.
+@var{node}.  Emacs finds @var{bol}, @var{node} and @var{parent} and
+passes them to each @var{matcher} and @var{anchor}.  @var{matcher}
+should return non-@code{nil} if the rule is applicable, and
+@var{anchor} should return a buffer position.
 @end defvar
 
 @defvar treesit-simple-indent-presets
@@ -4821,63 +4805,69 @@ available default functions are:
 
 @ftable @code
 @item no-node
-This matcher is a symbol that matches the case where @var{node} is
+This matcher is a function that matches the case where @var{node} is
 @code{nil}, i.e., there is no node that starts at @var{bol}.  This is
 the case when @var{bol} is on an empty line or inside a multi-line
 string, etc.
 
 @item parent-is
-This matcher is a function of one argument, @var{type}; it matches if
-the type of the parent node is @var{type}.
+This matcher is a function of one argument, @var{type}; it return a
+function that given @w{@code{(@var{node} @var{parent} @var{bol})}},
+matches if @var{parent}'s type is @var{type}.
 
 @item node-is
-This matcher is a function of one argument, @var{type}; it matches if
-the node's type is @var{type}.
+This matcher is a function of one argument, @var{type}; it returns a
+function that given @w{@code{(@var{node} @var{parent} @var{bol})}},
+matches if @var{node}'s type is @var{type}.
 
-@c FIXME: The description of this matcher is unclear.  What is
-@c ``parent'' and what does it mean ``captures NODE''?
 @item query
-This matcher is a function of one argument, @var{query}; it matches if
-querying @var{parent} with @var{query} captures @var{node}.  The
-capture name does not matter.   @c Why is this bit important?
+This matcher is a function of one argument, @var{query}; it returns a
+function that given @w{@code{(@var{node} @var{parent} @var{bol})}},
+matches if querying @var{parent} with @var{query} captures @var{node}
+(@pxref{Pattern Matching}).
 
 @item match
 This matcher is a function of 5 arguments: @var{node-type},
 @var{parent-type}, @var{node-field}, @var{node-index-min}, and
-@var{node-index-max}).  It matches if @var{node}'s type is @var{node-type},
-@var{parent}'s type is @var{parent-type}, @var{node}'s field name in
-@var{parent} is @var{node-field}, and @var{node}'s index among its
-siblings is between @var{node-index-min} and @var{node-index-max}.  If
-@c FIXME: ``constraint''?
-the value of a constraint is nil, this matcher doesn't check for that
-constraint.  For example, to match the first child where parent is
+@var{node-index-max}).  It returns a function that given
+@w{@code{(@var{node} @var{parent} @var{bol})}}, matches if
+@var{node}'s type is @var{node-type}, @var{parent}'s type is
+@var{parent-type}, @var{node}'s field name in @var{parent} is
+@var{node-field}, and @var{node}'s index among its siblings is between
+@var{node-index-min} and @var{node-index-max}.  If the value of an
+argument is @code{nil}, this matcher doesn't check for that argument.
+For example, to match the first child where parent is
 @code{argument_list}, use
 
 @example
 (match nil "argument_list" nil nil 0 0)
 @end example
 
-@c FIXME: ``PARENT''? is that an argument of the anchor function
 @item first-sibling
-This anchor returns the start of the first child of @var{parent}.
+This anchor is a function that given @w{@code{(@var{node} @var{parent}
+@var{bol})}}, returns the start of the first child of @var{parent}.
 
 @item parent
-This anchor returns the start of @var{parent}. @c FIXME: Likewise.
+This anchor is a function that given @w{@code{(@var{node} @var{parent}
+@var{bol})}}, returns the start of @var{parent}.
 
 @item parent-bol
-This anchor returns the first non-space character on the line of
+This anchor is a function that given @w{@code{(@var{node} @var{parent}
+@var{bol})}}, returns the first non-space character on the line of
 @var{parent}.
 
-@c FIXME: ``NODE''?
 @item prev-sibling
-This anchor returns the start of the previous sibling of @var{node}.
+This anchor is a function that given @w{@code{(@var{node} @var{parent}
+@var{bol})}}, returns the start of the previous sibling of @var{node}.
 
 @item no-indent
-This anchor returns the start of @var{node}, i.e., no indent. @c ???
+This anchor is a function that given @w{@code{(@var{node} @var{parent}
+@var{bol})}}, returns the start of @var{node}.
 
 @item prev-line
-This anchor returns the first non-whitespace charater on the previous
-line.
+This anchor is a function that given @w{@code{(@var{node} @var{parent}
+@var{bol})}}, returns the first non-whitespace charater on the
+previous line.
 @end ftable
 
 @end defvar
