@@ -919,6 +919,7 @@ interval_tree_remove_fix (struct itree_tree *tree,
 	      interval_tree_rotate_left (tree, parent);
 	      other = parent->right;
             }
+          eassume (other != NULL);
 
           if (null_safe_is_black (other->left) /* 2.a */
               && null_safe_is_black (other->right))
@@ -956,6 +957,7 @@ interval_tree_remove_fix (struct itree_tree *tree,
 	      interval_tree_rotate_right (tree, parent);
 	      other = parent->left;
             }
+          eassume (other != NULL);
 
           if (null_safe_is_black (other->right) /* 2.b */
               && null_safe_is_black (other->left))
