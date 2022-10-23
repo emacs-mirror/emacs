@@ -265,12 +265,20 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
 
 /* Find all the overlays in the current buffer that touch position POS.
    Return the number found, and store them in a vector in VEC
-   of length LEN.  */
+   of length LEN.
+
+   Note: this can return overlays that do not touch POS.  The caller
+   should filter these out. */
 
 static ptrdiff_t
 overlays_around (ptrdiff_t pos, Lisp_Object *vec, ptrdiff_t len)
 {
-  return overlays_in (pos - 1, pos, false, &vec, &len, false, false, NULL);
+  /* Find all potentially rear-advance overlays at (POS - 1).  Find
+     all overlays at POS, so end at (POS + 1).  Find even empty
+     overlays, which due to the way 'overlays-in' works implies that
+     we might also fetch empty overlays starting at (POS + 1).  */
+  return overlays_in (pos - 1, pos + 1, false, &vec, &len,
+		      true, false, NULL);
 }
 
 DEFUN ("get-pos-property", Fget_pos_property, Sget_pos_property, 2, 3, 0,
@@ -333,7 +341,9 @@ at POSITION.  */)
 	      if ((OVERLAY_START (ol) == posn
 		   && OVERLAY_FRONT_ADVANCE_P (ol))
 		  || (OVERLAY_END (ol) == posn
-		      && ! OVERLAY_REAR_ADVANCE_P (ol)))
+		      && ! OVERLAY_REAR_ADVANCE_P (ol))
+		  || OVERLAY_START (ol) > posn
+		  || OVERLAY_END (ol) < posn)
 		; /* The overlay will not cover a char inserted at point.  */
 	      else
 		{
