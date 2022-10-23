@@ -809,8 +809,8 @@ indentation (target) is in green, current indentation is in red."
 ;;; Search
 
 (defun treesit-search-forward-goto
-    (predicate side &optional all backward)
-  "Search forward for a node and move to it.
+    (predicate &optional start backward all)
+  "Search forward for a node and move to its end position.
 
 Stops at the first node after point that matches PREDICATE.
 PREDICATE can be either a regexp that matches against each node's
@@ -818,35 +818,40 @@ type case-insensitively, or a function that takes a node and
 returns nil/non-nil for match/no match.
 
 If a node matches, move to that node and return the node,
-otherwise return nil.  SIDE controls whether we move to the start
-or end of the matches node, it can be either \\='start or
-\\='end.
+otherwise return nil.  If START is non-nil, stop at the
+beginning rather than the end of a node.
 
-ALL and BACKWARD are the same as in `treesit-search-forward'."
+BACKWARD and ALL are the same as in `treesit-search-forward'."
   (let ((node (treesit-node-at (point)))
-        (start (point)))
+        (start-pos (point)))
     ;; Often the EOF (point-max) is a newline, and `treesit-node-at'
     ;; will return nil at that point (which is fair).  But we need a
     ;; node as the starting point to traverse the tree.  So we try to
     ;; use the node before point.
     (when (and (not node) (eq (point) (point-max)))
       (setq node (treesit-node-at (max (1- (point)) (point-min)))))
-    ;; When searching forward, it is possible for (point) < start,
-    ;; because `treesit-search-forward' goes to parents.
+    ;; When searching forward and stopping at beginnings, or search
+    ;; backward stopping at ends, it is possible to "roll back" in
+    ;; position.  Take three nodes N1, N2, N3 as an example, if we
+    ;; start at N3, search for forward for beginning, and N1 matches,
+    ;; we would stop at beg of N1, which is backwards!  So we skip N1.
+    ;;
+    ;;   |<--------N1------->|
+    ;;   |<--N2-->| |<--N3-->|
     (while (and node (if backward
-                         (>= (point) start)
-                       (<= (point) start)))
+                         (>= (point) start-pos)
+                       (<= (point) start-pos)))
       (setq node (treesit-search-forward
-                  node predicate all backward))
-      (if-let ((pos (pcase side
-                      ('start (treesit-node-start node))
-                      ('end (treesit-node-end node)))))
+                  node predicate backward all))
+      (if-let ((pos (if start
+                        (treesit-node-start node)
+                      (treesit-node-end node))))
           (goto-char pos)))
     ;; If we made reverse progress, go back to where we started.
     (when (if backward
-              (>= (point) start)
-            (<= (point) start))
-      (goto-char start))
+              (>= (point) start-pos)
+            (<= (point) start-pos))
+      (goto-char start-pos))
     node))
 
 ;;; Navigation
@@ -867,17 +872,17 @@ ARG is the same as in `beginning-of-defun."
         ;; Go backward.
         (while (and (> arg 0)
                     (treesit-search-forward-goto
-                     treesit-defun-type-regexp 'start nil t))
+                     treesit-defun-type-regexp t t))
           (setq arg (1- arg)))
       ;; Go forward.
       (while (and (< arg 0)
                   (treesit-search-forward-goto
-                   treesit-defun-type-regexp 'start))
+                   treesit-defun-type-regexp t t))
         (setq arg (1+ arg))))))
 
 (defun treesit-end-of-defun ()
   "Tree-sitter `end-of-defun' function."
-  (treesit-search-forward-goto treesit-defun-type-regexp 'end))
+  (treesit-search-forward-goto treesit-defun-type-regexp))
 
 ;;; Imenu
 

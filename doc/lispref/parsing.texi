@@ -633,7 +633,7 @@ is non-@code{nil}, it looks for smallest named child.
 
 @heading Searching for node
 
-@defun treesit-search-subtree node predicate &optional all backward limit
+@defun treesit-search-subtree node predicate &optional backward all limit
 This function traverses the subtree of @var{node} (including
 @var{node} itself), looking for a node for which @var{predicate}
 returns non-@code{nil}.  @var{predicate} is a regexp that is matched
@@ -650,7 +650,7 @@ must be a number that limits the tree traversal to that many levels
 down the tree.
 @end defun
 
-@defun treesit-search-forward start predicate &optional all backward
+@defun treesit-search-forward start predicate &optional backward all
 Like @code{treesit-search-subtree}, this function also traverses the
 parse tree and matches each node with @var{predicate} (except for
 @var{start}), where @var{predicate} can be a (case-insensitive) regexp
@@ -691,15 +691,13 @@ answering questions like ``what is the first node after @var{start} in
 the buffer that satisfies some condition?''
 @end defun
 
-@defun treesit-search-forward-goto predicate side &optional all backward
-This function moves point to the beginning or end of the next node in
-the buffer that matches @var{predicate}.  Arguments @var{predicate},
-@var{all} and @var{backward} are the same as in
-@code{treesit-search-forward}.  @var{side} controls on which side of
-the matched node we stop: it can be @code{start} or @code{end}.
-@c FIXME: Wouldn't it be convenient to make SIDE optional argument,
-@c and by default stop and the beginning (or end), whichever happens
-@c most frequently?
+@defun treesit-search-forward-goto predicate &optional start backward all
+This function moves point to the start or end of the next node in
+the buffer that matches @var{predicate}.  If @var{start} is
+non-nil, stop at the beginning rather than the end of a node.
+
+Arguments @var{predicate}, @var{backward} and @var{all} are the same
+as in @code{treesit-search-forward}.
 @end defun
 
 @defun treesit-induce-sparse-tree root predicate &optional process-fn limit

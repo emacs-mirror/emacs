@@ -2503,8 +2503,8 @@ all nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
 non-nil, only traverse nodes up to that number of levels down in the tree.
 
 Return the first matched node, or nil if none matches.  */)
-  (Lisp_Object node, Lisp_Object predicate, Lisp_Object all,
-   Lisp_Object backward, Lisp_Object limit)
+  (Lisp_Object node, Lisp_Object predicate, Lisp_Object backward,
+   Lisp_Object all, Lisp_Object limit)
 {
   CHECK_TS_NODE (node);
   CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
@@ -2563,8 +2563,8 @@ numbered from 1 to 12:
 
 Note that this function doesn't traverse the subtree of START, and it
 always traverse leaf nodes first, then upwards.  */)
-  (Lisp_Object start, Lisp_Object predicate, Lisp_Object all,
-   Lisp_Object backward)
+  (Lisp_Object start, Lisp_Object predicate, Lisp_Object backward,
+   Lisp_Object all)
 {
   CHECK_TS_NODE (start);
   CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
