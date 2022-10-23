@@ -260,7 +260,7 @@ captured node.  Capture names don't matter."
 
 (defvar-local treesit-range-functions nil
   "A list of range functions.
-Font-locking and indenting code uses functions in this alist to
+Font-locking and indenting code uses functions in this list to
 set correct ranges for a language parser before using it.
 
 The signature of each function should be
