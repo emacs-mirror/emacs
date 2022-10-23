@@ -26,13 +26,13 @@
 
 ;;; TODO:
 
-;; - Allow for automatic updating                               TODO
-;;   * Detect merge conflicts                                   TODO
-;;   * Check if there are upstream changes                      TODO
-;; - Allow finding revisions that bump the version tag          TODO
+;; - Allow for automatic updating
+;;   * Detect merge conflicts
+;;   * Check if there are upstream changes
+;; - Allow finding revisions that bump the version tag
 ;;   * Allow for `package-vc-install' to use the version
 ;;     of the package if already installed.
-;; - Allow for ELPA specifications to be respected without      TODO
+;; - Allow for ELPA specifications to be respected without
 ;;   endangering the user with arbitrary code execution
 
 ;;; Code:
