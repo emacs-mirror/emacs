@@ -138,7 +138,7 @@ with \".el\" concatenated to the end.
 
 All other values are ignored.")
 
-(defun pacakge-vc-desc->spec (pkg-desc &optional name)
+(defun package-vc-desc->spec (pkg-desc &optional name)
   "Retrieve the package specification for PKG-DESC.
 The optional argument NAME can be used to override the default
 name for PKG-DESC."
@@ -153,7 +153,7 @@ name for PKG-DESC."
 If no package specification can be determined, the function will
 return nil."
   (inline-letevals (pkg-desc prop)
-    (inline-quote (plist-get (pacakge-vc-desc->spec ,pkg-desc) ,prop))))
+    (inline-quote (plist-get (package-vc-desc->spec ,pkg-desc) ,prop))))
 
 (defun package-vc--read-archive-data (archive)
   "Update `package-vc-archive-spec-alist' with the contents of ARCHIVE.
@@ -219,7 +219,7 @@ The output is written out into PKG-FILE."
             (or (package-desc-summary pkg-desc)
                 (and-let* ((pkg (cadr (assq name package-archive-contents))))
                   (package-desc-summary pkg))
-                (and-let* ((pkg-spec (pacakge-vc-desc->spec pkg-desc))
+                (and-let* ((pkg-spec (package-vc-desc->spec pkg-desc))
                            (main-file (plist-get pkg-spec :main-file)))
                   (lm-summary main-file))
                 (and-let* ((main-file (expand-file-name
@@ -303,7 +303,7 @@ The output is written out into PKG-FILE."
     (package-vc-generate-description-file pkg-desc pkg-file)
 
     ;; Detect a manual
-    (when-let ((pkg-spec (pacakge-vc-desc->spec pkg-desc))
+    (when-let ((pkg-spec (package-vc-desc->spec pkg-desc))
                ((executable-find "install-info")))
       (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
         (package-vc-build-documentation pkg-desc doc-file))))
@@ -382,7 +382,7 @@ the `:brach' attribute in PKG-SPEC."
   "Generate a list of packages with VC data."
   (seq-filter
    (lambda (pkg)
-     (or (pacakge-vc-desc->spec (cadr pkg))
+     (or (package-vc-desc->spec (cadr pkg))
          ;; If we have no explicit VC data, we can try a kind of
          ;; heuristic and use the URL header, that might already be
          ;; pointing towards a repository, and use that as a backup
@@ -440,7 +440,7 @@ be requested using REV."
        (let ((copy (copy-package-desc (cadr desc))))
          (setf (package-desc-kind copy) 'vc)
          copy)
-       (or (pacakge-vc-desc->spec (cadr desc))
+       (or (package-vc-desc->spec (cadr desc))
            (user-error "Package has no VC data"))
        rev)))
    ((user-error "Unknown package to fetch: %s" name-or-url))))
