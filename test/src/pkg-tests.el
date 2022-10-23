@@ -45,9 +45,8 @@
   (should-error (make-package))
   (should-error (make-package 1.0))
   (should-error (make-package "x" :hansi 1))
-  ;; Comment out because of bug#58714 in calls to cl-defun.
-  ;; (should-error (make-package "x" :nicknames))
-  ;; (should-error (make-package "x" :use))
+  (should-error (make-package "x" :nicknames))
+  (should-error (make-package "x" :use))
   (should-error (make-package "x" :nicknames 1))
   (should-error (make-package "x" :use 1)))
 
