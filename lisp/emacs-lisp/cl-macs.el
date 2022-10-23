@@ -656,6 +656,8 @@ its argument list allows full Common Lisp conventions."
 		   (check `(while ,var
                              (cond
                               ((memq (car ,var) ',(append keys allow))
+                               (unless (cdr ,var)
+                                 (error "Missing argument for %s" (car ,var)))
                                (setq ,var (cdr (cdr ,var))))
                               ((car (cdr (memq (quote ,@allow) ,restarg)))
                                (setq ,var nil))
