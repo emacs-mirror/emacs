@@ -1109,6 +1109,49 @@ with parameters from the *Messages* buffer modification."
 
 
 ;; +==========================================================================+
+;; | get-pos-property
+;; +==========================================================================+
+
+(ert-deftest get-pos-property-overlay-beg ()
+  "Test `get-pos-property' at the beginning of an overlay.
+Regression test for bug#58706."
+  (with-temp-buffer
+    (insert (make-string 10000 ?x))
+    (let ((overlay (make-overlay 9999 10001)))
+      (overlay-put overlay 'forty-two 42))
+    (should (equal 42 (get-pos-property 9999 'forty-two)))))
+
+(ert-deftest get-pos-property-overlay-empty-rear-advance ()
+  "Test `get-pos-property' at the end of an empty rear-advance overlay.
+Regression test for bug#58706."
+  (with-temp-buffer
+    (insert (make-string 10000 ?x))
+    (let ((overlay (make-overlay 9999 9999 nil nil t)))
+      (overlay-put overlay 'forty-two 42))
+    (should (equal 42 (get-pos-property 9999 'forty-two)))))
+
+(ert-deftest get-pos-property-overlay-past-rear-advance ()
+  "Test `get-pos-property' past the end of an empty rear-advance overlay.
+Regression test for bug#58706."
+  (with-temp-buffer
+    (insert (make-string 10000 ?x))
+    (let ((overlay (make-overlay 9998 9998 nil nil t)))
+      (overlay-put overlay 'forty-two 42))
+    (should (equal nil (get-pos-property 9999 'forty-two)))))
+
+(ert-deftest get-pos-property-overlay-at-narrowed-end ()
+  "Test `get-pos-property' at the end of a narrowed region.
+Regression test for bug#58706."
+  (with-temp-buffer
+    (insert (make-string 11000 ?x))
+    (narrow-to-region 9998 10000)
+    (let ((overlay (make-overlay 10000 10000 nil t nil)))
+      (overlay-put overlay 'forty-two 42))
+    (should (equal nil (get-pos-property 9999 'forty-two)))))
+
+;; FIXME: add more `get-pos-property' tests
+
+;; +==========================================================================+
 ;; | get-char-property(-and-overlay)
 ;; +==========================================================================+
 
