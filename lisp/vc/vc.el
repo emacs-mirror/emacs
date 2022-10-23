@@ -585,11 +585,14 @@
 ;;   properties are omitted, `point-min' and `point-max' will
 ;;   respectively be used instead.
 ;;
-;; - clone (remote directory)
+;; - clone (remote directory rev)
 ;;
 ;;   Attempt to clone a REMOTE repository, into a local DIRECTORY.
 ;;   Returns a string with the directory with the contents of the
-;;   repository if successful, otherwise nil.
+;;   repository if successful, otherwise nil.  With a non-nil value
+;;   for REV the backend will attempt to check out a specific
+;;   revision, if possible without first checking out the default
+;;   branch.
 
 ;;; Changes from the pre-25.1 API:
 ;;
