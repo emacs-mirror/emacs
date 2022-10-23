@@ -2548,17 +2548,18 @@ for all nodes.  If BACKWARD is non-nil, search backwards.
 
 Return the first matched node, or nil if none matches.
 
-For a tree like below, where START is marked by 1, traverse as
-numbered:
-                16
-                |
-       3--------7-----------15
-       |        |           |
-  o--1-+--2  4--+--6    10--+-----14
-  |  |             |    |         |
-  o  o             5  +-+-+    +--+--+
-                      |   |    |  |  |
-                      8   9    11 12 13
+For a tree like below, where START is marked by S, traverse as
+numbered from 1 to 12:
+
+		12
+		|
+       S--------3----------11
+       |        |          |
+  o--o-+--o  1--+--2    6--+-----10
+  |  |                  |        |
+  o  o                +-+-+   +--+--+
+		      |   |   |  |  |
+		      4   5   7  8  9
 
 Note that this function doesn't traverse the subtree of START, and it
 always traverse leaf nodes first, then upwards.  */)

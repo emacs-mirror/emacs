@@ -655,19 +655,19 @@ Like @code{treesit-search-subtree}, this function also traverses the
 parse tree and matches each node with @var{predicate} (except for
 @var{start}), where @var{predicate} can be a (case-insensitive) regexp
 or a function.  For a tree like the below where @var{start} is marked
-1, this function traverses as numbered:
+S, this function traverses as numbered from 1 to 12:
 
 @example
 @group
-              16
+              12
               |
-     3--------7-----------15
-     |        |           |
-o--1-+--2  4--+--6    10--+-----14
-|  |             |    |         |
-o  o             5  +-+-+    +--+--+
-                    |   |    |  |  |
-                    8   9    11 12 13
+     S--------3----------11
+     |        |          |
+o--o-+--o  1--+--2    6--+-----10
+|  |                  |        |
+o  o                +-+-+   +--+--+
+                    |   |   |  |  |
+                    4   5   7  8  9
 @end group
 @end example
 
@@ -679,12 +679,14 @@ named nodes by default, but if @var{all} is non-@code{nil}, it
 searches for all nodes.  If @var{backward} is non-@code{nil}, it
 searches backwards.
 
-@c FIXME: Still not very clear: the difference between ``traverse
-@c a subtree of a node'' and ``traverse every node that comes after
-@c it''.
 While @code{treesit-search-subtree} traverses the subtree of a node,
-this function usually starts with a leaf node and traverses every node
-that comes after it in the buffer position order.  It is useful for
+this function starts with node @var{start} and traverses every node
+that comes after it in the buffer position order, i.e., nodes with
+start positions greater than the end position of @var{start}.
+
+In the tree shown above, @code{treesit-search-subtree} traverses node
+S (@var{start}) and nodes marked with @code{o}, where this function
+traverses the nodes marked with numbers.  This function is useful for
 answering questions like ``what is the first node after @var{start} in
 the buffer that satisfies some condition?''
 @end defun

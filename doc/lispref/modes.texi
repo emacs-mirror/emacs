@@ -4820,12 +4820,11 @@ available default functions are:
 
 @ftable @code
 @item no-node
-@c FIXME: How many arguments does no-node accept, and what are thos
-@c arguments?
-This matcher is a function that matches the case where @var{node} is
-@code{nil}, i.e., there is no node that starts at @var{bol}.  This is
-the case when @var{bol} is on an empty line or inside a multi-line
-string, etc.
+This matcher is a function that is called with 3 arguments:
+@var{node}, @var{parent}, and @var{bol}, and returns non-@code{nil},
+indicating a match, if @var{node} is @code{nil}, i.e., there is no
+node that starts at @var{bol}.  This is the case when @var{bol} is on
+an empty line or inside a multi-line string, etc.
 
 @item parent-is
 This matcher is a function of one argument, @var{type}; it returns a
