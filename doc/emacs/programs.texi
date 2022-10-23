@@ -1419,7 +1419,7 @@ displaying all of the documentation texts concatenated together.
 This abnormal hook's value is a list of functions that can produce
 documentation for the symbol at point as appropriate for the current
 buffer's major-mode.  These functions act as a collection of backends
-for ElDoc.  Major mode register their documentation lookup functions
+for ElDoc.  Major modes register their documentation lookup functions
 with ElDoc by adding their functions to the buffer-local value of this
 variable.
 @end vtable
