@@ -41,17 +41,10 @@
 	   (progn ,@(nreverse makes) ,@body)
 	 ,@(nreverse deletions)))))
 
-(ert-deftest pkg-tests-make-package-invalid ()
-  (should-error (make-package))
-  (should-error (make-package 1.0))
-  (should-error (make-package "x" :hansi 1))
-  (should-error (make-package "x" :nicknames))
-  (should-error (make-package "x" :use))
-  (should-error (make-package "x" :nicknames 1))
-  (should-error (make-package "x" :use 1)))
-
 (ert-deftest pkg-tests-packagep ()
-  (packagep (make-package "x")))
+  (should (packagep (make-package "x")))
+  (should (not (packagep "emacs")))
+  (should (not (packagep nil))))
 
 (ert-deftest pkg-tests-standard-packages ()
   (should (packagep (find-package "emacs")))
@@ -59,13 +52,46 @@
   (should (packagep (find-package "")))
   (should (eq (find-package "keyword") (find-package ""))))
 
+(ert-deftest pkg-tests-make-package ()
+  ;; Valid package names
+  (dolist (name '(?a "a" :a a))
+    (let ((p (make-package name)))
+      (should (packagep p))
+      (should (equal (package-name p) "a"))))
+  (should (packagep (make-package nil)))
+  ;; Invalid package names
+  (dolist (name '(1.0 (a)))
+    (should-error (make-package name)))
+  ;; Otherwise invalid forms.
+  (should-error (make-package))
+  (should-error (make-package 1.0))
+  (should-error (make-package :hansi 1))
+  (should-error (make-package "x" :hansi 1))
+  (should-error (make-package "x" :nicknames))
+  (should-error (make-package "x" :use))
+  (should-error (make-package "x" :nicknames 1))
+  (should-error (make-package "x" :use 1)))
+
 (ert-deftest pkg-tests-make-package-nicknames ()
+  ;; Valid nicknames
+  (dolist (nickname '("a" b ?c))
+    (should (packagep (make-package "x" :nicknames (list nickname)))))
+  ;; Invalid nicknames
+  (dolist (nickname '(1.0))
+    (should-error (packagep (make-package "x" :nicknames (list nickname)))))
   (with-packages ((x :nicknames '(x z)))
     ;; Package name allowed in nicknames.
     (should (equal (package-nicknames x) '("x" "z"))))
   (with-packages ((x :nicknames '(y y z)))
     ;; Duplicates removed, order-preserving.
     (should (equal (package-nicknames x) '("y" "z")))))
+
+(ert-deftest pkg-tests-list-all-packages ()
+  (let ((all (list-all-packages)))
+    (should (cl-every #'packagep all))
+    (should (memq (find-package "emacs") all))
+    (should (memq (find-package "keyword") all))
+    (should (memq (find-package "") all))))
 
 ;; (ert-deftest pkg-tests-package-use-list ()
 ;;   (should nil))
@@ -75,13 +101,6 @@
 
 ;; (ert-deftest pkg-tests-package-shadowing-symbols ()
 ;;   (should nil))
-
-(ert-deftest pkg-tests-list-all-packages ()
-  (let ((all (list-all-packages)))
-    (should (seq-every-p #'packagep all))
-    (should (memq (find-package "emacs") all))
-    (should (memq (find-package "keyword") all))
-    (should (memq (find-package "") all))))
 
 (ert-deftest pkg-tests-package-find-package ()
   (with-packages (x)

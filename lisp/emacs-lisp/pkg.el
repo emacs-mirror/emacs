@@ -64,20 +64,27 @@ Each argument is of the form (:key . set)."
 	            (error "Parameters %s and %s must be disjoint \
 but have common elements %s" key1 key2 common))))
 
-(defun pkg-stringify-name (name kind)
+(defun pkg--stringify-name (name kind)
+  "Return a string for string designator NAME.
+If NAME is a string, return that.
+If NAME is a symbol, return its symbol name.
+If NAME is a character, return what 'char-to-string' returns.
+KIND is the kind of name we are processing, for error messages."
   (cl-typecase name
     (string name)
     (symbol (cl-symbol-name name))
     (base-char (char-to-string name))
-    (t (error "Bogus %s name: %s" kind name))))
+    (t (error "Bogus %s: %s" kind name))))
 
-(defun pkg-stringify-names (names kind)
+(defun pkg--stringify-names (names kind)
+  "Transform a list of string designators to a list of strings.
+Duplicates are removed from the result list."
   (cl-remove-duplicates
-   (mapcar (lambda (name) (pkg-stringify-name name kind)) names)
+   (mapcar #'(lambda (name) (pkg--stringify-name name kind)) names)
    :test #'equal))
 
 (defun pkg-package-namify (n)
-  (pkg-stringify-name n "package"))
+  (pkg--stringify-name n "package"))
 
 (defun pkg-find-package (name)
   (gethash name *package-registry* nil))
@@ -93,24 +100,30 @@ but have common elements %s" key1 key2 common))))
 	(t
 	 (error "%s is neither a symbol nor a list of symbols" thing))))
 
-(defun pkg-find-or-make-package (name)
-  (if (packagep name)
-      (progn
-	(unless (package-%name name)
-	  (error "Can't do anything with deleted package: %s" name))
-	name)
-    (let* ((name (pkg-stringify-name name "package name")))
-      (or (pkg-find-package name)
-	  (make-package name)))))
+(cl-defun pkg--find-or-make-package (name)
+  "Find or make a package named NAME.
+If NAME is a package object, return that.  Otherwise, if NAME can
+be found with 'find-package' return that.  Otherwise, make a new
+package with name NAME."
+  (cond ((packagep name)
+         (unless (package-%name name)
+           (error "Can't do anything with deleted package: %s" name))
+         name)
+        (t
+         (let* ((name (pkg--stringify-name name "package name")))
+           (or (pkg-find-package name)
+	       (make-package name))))))
 
-(defun pkg-packages-from-names (names)
-  (mapcar (lambda (name) (pkg-find-or-make-package name))
+(defun pkg--packages-from-names (names)
+  "Return a list of packages object for NAMES.
+NAMES must be a list of package objects or valid package names."
+  (mapcar #'(lambda (name) (pkg--find-or-make-package name))
           names))
 
 (defun pkg-package-or-lose (name)
   (if (packagep name)
       name
-    (let ((pkg-name (pkg-stringify-name name "package")))
+    (let ((pkg-name (pkg--stringify-name name "package")))
       (or (find-package pkg-name)
           (error "No package %s found" name)))))
 
@@ -155,16 +168,47 @@ but have common elements %s" key1 key2 common))))
 
 ;;;###autoload
 
-(cl-defun make-package (name &key nicknames use (size 0))
-  "tbd"
+(cl-defun make-package (name &key nicknames use (size 10))
+  "Create and return a new package with name NAME.
+
+NAME must be a string designator, that is a string, a symbol, or
+a character.  If it is a symbol, the symbol's name will be used
+as package name.  If a character, the character's string
+representation will be used ('char-to-string').
+
+NICKNAMES specifies a list of string designators for additional
+names which may be used to refer to the package.  Default is nil.
+
+USE specifies zero or more packages the external symbols of which
+are to be inherited by the package.  See also function
+'use-package'.  All packages in the use-list must be either
+package objects or they are looked up in the package registry
+with 'find-package'.  If they are not found, a new package with
+the given name is created.
+
+SIZE gives the size to use for the symbol table of the new
+package.  Default is 10.
+
+Please note that the newly created package is not automaticall
+registered in the package registry, that is it will not be found
+under its names by 'find-package'.  Use 'register-package' to
+register the package.  This deviates from the CLHS specification,
+but is what Common Lisp implementations usually do."
   (cl-check-type size natnum)
-  (let* ((name (pkg-stringify-name name "package name"))
-         (nicknames (pkg-stringify-names nicknames "package nickname"))
-         (use (pkg-packages-from-names use))
+  (let* ((name (pkg--stringify-name name "package name"))
+         (nicknames (pkg--stringify-names nicknames "package nickname"))
+         (use (pkg--packages-from-names use))
          (package (make-%package name size)))
     (setf (package-%nicknames package) nicknames
           (package-%use-list package) use)
     package))
+
+;;;###autoload
+(defun list-all-packages ()
+  "Return a fresh list of all registered packages."
+  (let ((all ()))
+    (maphash (lambda (_ p) (push p all)) *package-registry*)
+    (cl-remove-duplicates all)))
 
 ;;;###autoload
 (defun package-name (package)
@@ -192,18 +236,10 @@ but have common elements %s" key1 key2 common))))
     used-by))
 
 ;;;###autoload
-(defun list-all-packages ()
-  (let ((all ()))
-    (maphash (lambda (_name package)
-               (cl-pushnew package all))
-             *package-registry*)
-    all))
-
-;;;###autoload
 (defun find-package (package)
   (if (packagep package)
       package
-    (let ((name (pkg-stringify-name package "package name")))
+    (let ((name (pkg--stringify-name package "package name")))
       (gethash name *package-registry*))))
 
 ;;;###autoload
@@ -436,7 +472,7 @@ but have common elements %s" key1 key2 common))))
 ;; 	(error "Bogus DEFPACKAGE option: %s" option))
 ;;       (cl-case (car option)
 ;; 	(:nicknames
-;; 	 (setf nicknames (pkg-stringify-names (cdr option) "package")))
+;; 	 (setf nicknames (pkg--stringify-names (cdr option) "package")))
 ;; 	(:size
 ;; 	 (cond (size
 ;; 		(error "Can't specify :SIZE twice."))
@@ -447,11 +483,11 @@ but have common elements %s" key1 key2 common))))
 ;; 		(error "Bogus :SIZE, must be a positive integer: %s"
 ;;                        (cl-second option)))))
 ;; 	(:shadow
-;; 	 (let ((new (pkg-stringify-names (cdr option) "symbol")))
+;; 	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
 ;; 	   (setf shadows (append shadows new))))
 ;; 	(:shadowing-import-from
-;; 	 (let ((package-name (pkg-stringify-name (cl-second option) "package"))
-;; 	       (names (pkg-stringify-names (cddr option) "symbol")))
+;; 	 (let ((package-name (pkg--stringify-name (cl-second option) "package"))
+;; 	       (names (pkg--stringify-names (cddr option) "symbol")))
 ;; 	   (let ((assoc (cl-assoc package-name shadowing-imports
 ;; 			          :test #'string=)))
 ;; 	     (if assoc
@@ -459,22 +495,22 @@ but have common elements %s" key1 key2 common))))
 ;; 	       (setf shadowing-imports
 ;; 		     (cl-acons package-name names shadowing-imports))))))
 ;; 	(:use
-;; 	 (let ((new (pkg-stringify-names (cdr option) "package")))
+;; 	 (let ((new (pkg--stringify-names (cdr option) "package")))
 ;; 	   (setf use (cl-delete-duplicates (nconc use new) :test #'string=))
 ;; 	   (setf use-p t)))
 ;; 	(:import-from
-;; 	 (let ((package-name (pkg-stringify-name (cl-second option) "package"))
-;; 	       (names (pkg-stringify-names (cddr option) "symbol")))
+;; 	 (let ((package-name (pkg--stringify-name (cl-second option) "package"))
+;; 	       (names (pkg--stringify-names (cddr option) "symbol")))
 ;; 	   (let ((assoc (cl-assoc package-name imports
 ;; 			          :test #'string=)))
 ;; 	     (if assoc
 ;; 		 (setf (cdr assoc) (append (cdr assoc) names))
 ;; 	       (setf imports (cl-acons package-name names imports))))))
 ;; 	(:intern
-;; 	 (let ((new (pkg-stringify-names (cdr option) "symbol")))
+;; 	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
 ;; 	   (setf interns (append interns new))))
 ;; 	(:export
-;; 	 (let ((new (pkg-stringify-names (cdr option) "symbol")))
+;; 	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
 ;; 	   (setf exports (append exports new))))
 ;; 	(:documentation
 ;; 	 (when doc
@@ -489,7 +525,7 @@ but have common elements %s" key1 key2 common))))
 ;; 		        `(:shadowing-import-from
 ;;                           ,@(apply 'append (mapcar 'cl-rest shadowing-imports))))
 ;;     `(cl-eval-when (compile load eval)
-;;        (pkg-defpackage ,(pkg-stringify-name package "package") ',nicknames ',size
+;;        (pkg-defpackage ,(pkg--stringify-name package "package") ',nicknames ',size
 ;; 		       ',shadows ',shadowing-imports ',(if use-p use :default)
 ;; 		       ',imports ',interns ',exports ',doc))))
 
