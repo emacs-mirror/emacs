@@ -34,6 +34,11 @@
 ;;     of the package if already installed.
 ;; - Allow for ELPA specifications to be respected without
 ;;   endangering the user with arbitrary code execution
+;; - Allow maintaining patches that are ported back onto regular
+;;   packages and maintained between versions.
+;; - Allow locking the specific revisions of sourced packages
+;;  (comparable to `package-selected-packages') so that specific
+;;  revisions can be re-installed.
 
 ;;; Code:
 
