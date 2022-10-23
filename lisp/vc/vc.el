@@ -3560,24 +3560,25 @@ to provide the `find-revision' operation instead."
   (interactive)
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
 
-(defun vc-clone (backend remote &optional directory)
+(defun vc-clone (remote &optional backend directory rev)
   "Use BACKEND to clone REMOTE into DIRECTORY.
 If successful, returns the a string with the directory of the
 checkout.  If BACKEND is nil, iterate through every known backend
-in `vc-handled-backends' until one succeeds."
+in `vc-handled-backends' until one succeeds.  If REV is non-nil,
+it indicates a specific revision to check out."
   (unless directory
     (setq directory default-directory))
   (if backend
       (progn
         (unless (memq backend vc-handled-backends)
           (error "Unknown VC backend %s" backend))
-        (vc-call-backend backend 'clone remote directory))
+        (vc-call-backend backend 'clone remote directory rev))
     (catch 'ok
       (dolist (backend vc-handled-backends)
         (ignore-error vc-not-supported
           (when-let ((res (vc-call-backend
                            backend 'clone
-                           remote directory)))
+                           remote directory rev)))
             (throw 'ok res)))))))
 
 

@@ -1268,8 +1268,10 @@ This prompts for a branch to merge from."
       (add-hook 'after-save-hook #'vc-git-resolve-when-done nil 'local))
     (vc-message-unresolved-conflicts buffer-file-name)))
 
-(defun vc-git-clone (remote directory)
-  (vc-git--out-ok "clone" remote directory)
+(defun vc-git-clone (remote directory rev)
+  (if rev
+      (vc-git--out-ok "clone" "--branch" rev remote directory)
+    (vc-git--out-ok "clone" remote directory))
   directory)
 
 ;;; HISTORY FUNCTIONS

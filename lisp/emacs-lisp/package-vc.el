@@ -336,8 +336,7 @@ the `:brach' attribute in PKG-SPEC."
       (if (yes-or-no-p "Overwrite previous checkout?")
           (package--delete-directory pkg-dir pkg-desc)
         (error "There already exists a checkout for %s" name)))
-    (pcase-let* ((extras (package-desc-extras pkg-desc))
-                 ((map :url :branch :lisp-dir) pkg-spec)
+    (pcase-let* (((map :url :branch :lisp-dir) pkg-spec)
                  (repo-dir
                   (if (null lisp-dir)
                       pkg-dir
@@ -353,18 +352,15 @@ the `:brach' attribute in PKG-SPEC."
       ;; Clone the repository into `repo-dir' if necessary
       (unless (file-exists-p repo-dir)
         (make-directory (file-name-directory repo-dir) t)
-        (unless (vc-clone (or (alist-get :vc-backend extras)
-                              package-vc-default-backend)
-                          url repo-dir)
-          (error "Failed to clone %s from %s" name url)))
+        (let ((backend (and url (alist-get url package-vc-heusitic-alist
+                                           nil nil #'string-match-p))))
+          (unless (vc-clone url backend repo-dir (or rev branch))
+            (error "Failed to clone %s from %s" name url))))
 
       (unless (eq pkg-dir repo-dir)
         ;; Link from the right position in `repo-dir' to the package
         ;; directory in the ELPA store.
-        (make-symbolic-link (file-name-concat repo-dir lisp-dir) pkg-dir))
-      (when-let* ((default-directory repo-dir) (rev (or rev branch)))
-        (vc-retrieve-tag pkg-dir rev)))
-
+        (make-symbolic-link (file-name-concat repo-dir lisp-dir) pkg-dir)))
     (package-vc-unpack-1 pkg-desc pkg-dir)))
 
 (defun package-vc-sourced-packages-list ()
