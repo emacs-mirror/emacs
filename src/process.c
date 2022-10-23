@@ -2859,7 +2859,7 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
 
   CHECK_SYMBOL (opt);
 
-  name = SSDATA (SYMBOL_NAME (opt));
+  name = SSDATA (LISP_SYMBOL_NAME (opt));
   for (sopt = socket_options; sopt->name; sopt++)
     if (strcmp (name, sopt->name) == 0)
       break;
