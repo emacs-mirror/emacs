@@ -1721,8 +1721,8 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
   if (! NILP (AREF (font, FONT_FOUNDRY_INDEX)))
     {
       int len = snprintf (p, lim - p, ":foundry=%s",
-			  SSDATA (SYMBOL_NAME (AREF (font,
-						     FONT_FOUNDRY_INDEX))));
+			  SSDATA (LISP_SYMBOL_NAME (AREF (font,
+							  FONT_FOUNDRY_INDEX))));
       if (! (0 <= len && len < lim - p))
 	return -1;
       p += len;
@@ -1731,7 +1731,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
     if (! NILP (styles[i]))
       {
 	int len = snprintf (p, lim - p, ":%s=%s", style_names[i],
-			    SSDATA (SYMBOL_NAME (styles[i])));
+			    SSDATA (LISP_SYMBOL_NAME (styles[i])));
 	if (! (0 <= len && len < lim - p))
 	  return -1;
 	p += len;
@@ -3517,7 +3517,7 @@ font_filter_properties (Lisp_Object font,
       {
         Lisp_Object key = XCAR (XCAR (it));
         Lisp_Object val = XCDR (XCAR (it));
-        char *keystr = SSDATA (SYMBOL_NAME (key));
+        char *keystr = SSDATA (LISP_SYMBOL_NAME (key));
 
         if (strcmp (boolean_properties[i], keystr) == 0)
           {
@@ -3542,7 +3542,7 @@ font_filter_properties (Lisp_Object font,
       {
         Lisp_Object key = XCAR (XCAR (it));
         Lisp_Object val = XCDR (XCAR (it));
-        char *keystr = SSDATA (SYMBOL_NAME (key));
+        char *keystr = SSDATA (LISP_SYMBOL_NAME (key));
         if (strcmp (non_boolean_properties[i], keystr) == 0)
           Ffont_put (font, key, val);
       }
