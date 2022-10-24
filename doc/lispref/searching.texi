@@ -1052,8 +1052,12 @@ customization.
 @subsubsection Constructs in @code{rx} regexps
 
 The various forms in @code{rx} regexps are described below.  The
-shorthand @var{rx} represents any @code{rx} form, and @var{rx}@dots{}
-means zero or more @code{rx} forms.  These are all valid arguments to
+shorthand @var{rx} represents any @code{rx} form.  @var{rx}@dots{}
+means zero or more @code{rx} forms and, unless stated otherwise,
+matches these forms in sequence as if wrapped in a @code{(seq @dots{})}
+subform.
+
+These are all valid arguments to
 the @code{rx} macro.  Where the corresponding string
 regexp syntax is given, @var{A}, @var{B}, @dots{} are string regexp
 subexpressions.
