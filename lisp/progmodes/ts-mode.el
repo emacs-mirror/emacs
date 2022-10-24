@@ -276,6 +276,7 @@
                       "function_declaration"
                       "lexical_declaration")))
   ;; Font-lock.
+  (setq-local font-lock-defaults '(nil))
   (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
 
