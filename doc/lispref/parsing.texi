@@ -567,11 +567,16 @@ This function returns the immediate parent of @var{node}.
 @defun treesit-node-child node n &optional named
 This function returns the @var{n}'th child of @var{node}.  If
 @var{named} is non-@code{nil}, it counts only named nodes
-(@pxref{tree-sitter named node, named node}).  For example, in a node
-that represents a string @code{"text"}, there are three children
-nodes: the opening quote @code{"}, the string text @code{text}, and
-the closing quote @code{"}.  Among these nodes, the first child is the
-opening quote @code{"}, and the first named child is the string text.
+(@pxref{tree-sitter named node, named node}).
+
+For example, in a node that represents a string @code{"text"}, there
+are three children nodes: the opening quote @code{"}, the string text
+@code{text}, and the closing quote @code{"}.  Among these nodes, the
+first child is the opening quote @code{"}, and the first named child
+is the string text.
+
+This function returns @code{nil} if there is no @var{n}'th child.
+@var{n} could be negative, e.g., -1 represents the last child.
 @end defun
 
 @defun treesit-node-children node &optional named
@@ -880,7 +885,11 @@ of @var{node} as a child of its parent.
 
 @defun treesit-node-field-name-for-child node n
 This function returns the field name of the @var{n}'th child of
-@var{node}.
+@var{node}.  It returns @code{nil} if there is no @var{n}'th child, or
+the @var{n}'th child doesn't have a field name.
+
+Note that @var{n} counts both named and anonymous child.  And @var{n}
+could be negative, e.g., -1 represents the last child.
 @end defun
 
 @defun treesit-child-count node &optional named

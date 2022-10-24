@@ -1529,20 +1529,36 @@ DEFUN ("treesit-node-child",
        Ftreesit_node_child, Streesit_node_child, 2, 3, 0,
        doc: /* Return the Nth child of NODE.
 
-Return nil if there is no Nth child.  If NAMED is non-nil, look for named
-child only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
+Return nil if there is no Nth child.  If NAMED is non-nil, look for
+named child only.  NAMED defaults to nil.  If NODE is nil, return
+nil.
+
+N could be negative, e.g., -1 represents the last child.  */)
   (Lisp_Object node, Lisp_Object n, Lisp_Object named)
 {
   if (NILP (node)) return Qnil;
   treesit_check_node (node);
-  treesit_check_positive_integer (n);
+  CHECK_INTEGER (n);
   EMACS_INT idx = XFIXNUM (n);
-  if (idx > UINT32_MAX)
-    xsignal1 (Qargs_out_of_range, n);
+
   treesit_initialize ();
 
   TSNode treesit_node = XTS_NODE (node)->node;
   TSNode child;
+
+  /* Process negative index.  */
+  if (idx < 0)
+    {
+      if (NILP (named))
+	idx = ts_node_child_count (treesit_node) + idx;
+      else
+	idx = ts_node_named_child_count (treesit_node) + idx;
+    }
+  if (idx < 0)
+    return Qnil;
+  if (idx > UINT32_MAX)
+    xsignal1 (Qargs_out_of_range, n);
+
   if (NILP (named))
     child = ts_node_child (treesit_node, (uint32_t) idx);
   else
@@ -1606,19 +1622,30 @@ DEFUN ("treesit-node-field-name-for-child",
        doc: /* Return the field name of the Nth child of NODE.
 
 Return nil if there's no Nth child, or if it has no field.
-If NODE is nil, return nil.  */)
+If NODE is nil, return nil.
+
+N counts all children, i.e., named ones and anonymous ones.
+
+N could be negative, e.g., -1 represents the last child.  */)
   (Lisp_Object node, Lisp_Object n)
 {
   if (NILP (node))
     return Qnil;
   treesit_check_node (node);
-  treesit_check_positive_integer (n);
+  CHECK_INTEGER (n);
   EMACS_INT idx = XFIXNUM (n);
-  if (idx > UINT32_MAX)
-    xsignal1 (Qargs_out_of_range, n);
   treesit_initialize ();
 
   TSNode treesit_node = XTS_NODE (node)->node;
+
+  /* Process negative index.  */
+  if (idx < 0)
+    idx = ts_node_child_count (treesit_node) + idx;
+  if (idx < 0)
+    return Qnil;
+  if (idx > UINT32_MAX)
+    xsignal1 (Qargs_out_of_range, n);
+
   const char *name
     = ts_node_field_name_for_child (treesit_node, (uint32_t) idx);
 
