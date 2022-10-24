@@ -1059,8 +1059,8 @@ subform.
 
 These are all valid arguments to the @code{rx} macro.  All forms are
 defined by their described semantics; the corresponding string regexps
-is provided for orientation, where @var{A}, @var{B}, @dots{}  denote
-(suitably bracketed) string regexp subexpressions.
+are provided for ease of understanding only.  @var{A}, @var{B}, @dots{}
+denote (suitably bracketed) string regexp subexpressions therein.
 
 @subsubheading Literals
 
