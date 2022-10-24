@@ -298,6 +298,21 @@ in-order.  START and END are passed to each range function."
   (dolist (range-fn treesit-range-functions)
     (funcall range-fn (or start (point-min)) (or end (point-max)))))
 
+(defun treesit-parser-range-on (parser beg &optional end)
+  "Check if PARSER's range covers the portion between BEG and END.
+
+If it does, return the range covering that portion in the form
+of (RANGE-BEG . RANGE-END), if not, return nil.  If nil or
+omitted, default END to BEG."
+  (let ((ranges (treesit-parser-included-ranges parser))
+        (end (or end beg)))
+    (if (null ranges)
+        (cons (point-min) (point-max))
+      (cl-loop for rng in ranges
+               if (<= (car rng) beg end (cdr rng))
+               return rng
+               finally return nil))))
+
 ;;; Font-lock
 
 (define-error 'treesit-font-lock-error
