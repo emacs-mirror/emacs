@@ -221,18 +221,16 @@ pkg_package_or_default (Lisp_Object designator)
  ***********************************************************************/
 
 /* Find a symbol with name NAME in PACKAGE or one of the packages it
-   inherits from.  Value is Qunbound if no symbol is found.  SEEN is a
-   list of packages that have already been checked, to prevent infinte
-   recursion.  If STATUS is not null, return in it the status of the
-   symbol, one of :internal, :external, :inhertied.  */
+   inherits from (use-package).  Value is the symbol found, or
+   Qunbound if no symbol is found.  If STATUS is not null, return in
+   it the status of the symbol, one of :internal, :external,
+   :inhertied.  */
 
-static Lisp_Object
-pkg_find_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen,
-		  Lisp_Object *status)
+Lisp_Object
+pkg_find_symbol (Lisp_Object name, Lisp_Object package, Lisp_Object *status)
 {
   eassert (STRINGP (name));
   eassert (PACKAGEP (package));
-  eassert (CONSP (seen) || NILP (seen));
 
   Lisp_Object symbol = Qunbound;
   if (status)
@@ -240,7 +238,7 @@ pkg_find_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen,
 
   const struct Lisp_Package *pkg = XPACKAGE (package);
   struct Lisp_Hash_Table *h = XHASH_TABLE (PACKAGE_SYMBOLS (package));
-  ptrdiff_t i = hash_lookup (h, name, NULL);
+  const ptrdiff_t i = hash_lookup (h, name, NULL);
   if (i >= 0)
     {
       symbol = HASH_KEY (h, i);
@@ -249,34 +247,22 @@ pkg_find_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen,
     }
   else
     {
-      if (status)
-	*status = QCinherited;
       Lisp_Object tail = pkg->use_list;
       FOR_EACH_TAIL (tail)
 	{
 	  const Lisp_Object used_package = XCAR (tail);
-	  if (NILP (Fmemq (used_package, seen)))
+	  struct Lisp_Hash_Table *h = XHASH_TABLE (PACKAGE_SYMBOLS (used_package));
+	  const ptrdiff_t i = hash_lookup (h, name, NULL);
+	  if (i >= 0 && EQ (HASH_VALUE (h, i), QCexternal))
 	    {
-	      seen = Fcons (used_package, seen);
-	      symbol = pkg_find_symbol1 (name, used_package, seen, NULL);
-	      if (!EQ (symbol, Qunbound))
-		return symbol;
+	      if (status)
+		*status = QCinherited;
+	      return HASH_KEY (h, i);
 	    }
 	}
     }
 
   return symbol;
-}
-
-/* Find a symbol with name NAME in PACKAGE or one of the packages it
-   inherits from.  Value is Qunbound if no symbol is found.  If STATUS
-   is not null, return in it the status of the symbol, one of
-   :internal, :external, :inhertied.  */
-
-Lisp_Object
-pkg_find_symbol (Lisp_Object name, Lisp_Object package, Lisp_Object *status)
-{
-  return pkg_find_symbol1 (name, package, Qnil, status);
 }
 
 /* Add SYMBOL to package PACKAGE.  Value is SYMBOL.  The symbol gets status STATUS

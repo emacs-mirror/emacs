@@ -120,6 +120,14 @@ NAMES must be a list of package objects or valid package names."
   (mapcar #'(lambda (name) (pkg--find-or-make-package name))
           names))
 
+(defun pkg--listify-packages (packages)
+  "Return a list of packages for PACKAGES.
+If PACKAGES is not a list, make it a list.  Then, find or make
+packages for packages named in the list and return the result."
+  (let ((packages (if (listp packages) packages (list packages))))
+    (cl-remove-duplicates (mapcar #'pkg--find-or-make-package
+                                  packages))))
+
 (defun pkg--package-or-lose (name)
   "Return the package denoted by NAME.
 If NAME is a package, return that.
@@ -384,8 +392,7 @@ Value is the renamed package object."
 (defun import (symbols &optional package)
   (let ((package (pkg--package-or-default package))
         (symbols (pkg--symbol-listify symbols)))
-    (list package symbols)
-    (error "not yet implemented")))
+    (list package symbols)))
 
 ;;;###autoload
 (defun shadow (_symbols &optional package)
@@ -398,15 +405,22 @@ Value is the renamed package object."
   (error "not yet implemented"))
 
 ;;;###autoload
-(defun use-package (_use package)
-  (setq package (pkg--package-or-default package))
-  (cl-pushnew (package-%use-list package) package))
+(defun use-package (use &optional package)
+  (let* ((package (pkg--package-or-default package))
+         (use (pkg--listify-packages use)))
+    (setf (package-%use-list package)
+          (cl-union (package-%use-list package)
+                    use))
+    t))
 
 ;;;###autoload
-(defun unuse-package (_unuse package)
-  (setq package (pkg--package-or-default package))
-  (setf (package-%use-list package)
-        (delq package (package-%use-list package))))
+(defun unuse-package (unuse &optional package)
+  (let* ((package (pkg--package-or-default package))
+         (unuse (pkg--listify-packages unuse)))
+    (setf (package-%use-list package)
+          (cl-intersection (package-%use-list package)
+                           unuse))
+    t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            defpackage

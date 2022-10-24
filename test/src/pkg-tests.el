@@ -149,6 +149,11 @@
     (should (delete-package x))
     (should-error (rename-package x 'd))))
 
+(ert-deftest pkg-tests-use-package ()
+  (with-packages (x y)
+    (let ((ax (intern "a" x)))
+      (use-package x y))))
+
 ;; (ert-deftest pkg-tests-find-symbol ()
 ;;   (should nil))
 
