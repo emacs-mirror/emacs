@@ -10074,7 +10074,7 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
   if (! CONSP (val))
     return NULL;
 
-  format = image_spec_value (spec, QCformat, NULL);
+  format = image_spec_value (spec, intern (":format"), NULL);
   val = Fcar_safe (Fcdr_safe (Fassq (format, val)));
   if (! STRINGP (val))
     return NULL;
