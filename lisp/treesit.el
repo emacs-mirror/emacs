@@ -101,7 +101,7 @@ Return the root node of the syntax tree."
   (treesit-parser-language
    (treesit-node-parser node)))
 
-(defun treesit-node-at (pos &optional parser-or-lang named largest)
+(defun treesit-node-at (pos &optional parser-or-lang named largest strict)
   "Return the smallest node that starts at or after buffer position POS.
 
 \"Starts at or after POS\" means the start of the node is greater or
@@ -115,20 +115,38 @@ that parser; if PARSER-OR-LANG is a language, find a parser using
 that language in the current buffer, and use that.
 
 If LARGEST is non-nil, return the largest node instead of the
-smallest."
-  (let ((node (if (treesit-parser-p parser-or-lang)
-                  (treesit-parser-root-node parser-or-lang)
-                (treesit-buffer-root-node parser-or-lang)))
-        next)
-    ;; This is very fast so no need for C implementation.
-    (while (setq next (treesit-node-first-child-for-pos
-                       node pos named))
-      (setq node next))
-    (if (not largest)
-        node
-      (treesit-parent-while
-       node (lambda (n) (eq (treesit-node-start n)
-                            (treesit-node-start node)))))))
+smallest.
+
+If POS is after all the text in the buffer, i.e., there is no
+node after POS, return the last leaf node in the parse tree, even
+though that node is before POS.  If STRICT is non-nil, return nil
+in this case."
+  (let* ((root (if (treesit-parser-p parser-or-lang)
+                   (treesit-parser-root-node parser-or-lang)
+                 (treesit-buffer-root-node parser-or-lang)))
+         (node root)
+         next)
+    (when node
+      ;; This is very fast so no need for C implementation.
+      (while (setq next (treesit-node-first-child-for-pos
+                         node pos named))
+        (setq node next))
+      ;; If we are at the end of buffer or after all the text, we will
+      ;; end up with NODE = root node.  For convenience, return the last
+      ;; leaf node in the tree.
+      (if (treesit-node-eq node root)
+          (if strict
+              nil
+            (while (setq next (treesit-node-child node -1 named))
+              (setq node next))
+            node)
+        ;; If LARGEST non-nil, find the largest node that has the same
+        ;; starting point as NODE.
+        (if (not largest)
+            node
+          (treesit-parent-while
+           node (lambda (n) (eq (treesit-node-start n)
+                                (treesit-node-start node)))))))))
 
 (defun treesit-node-on (beg end &optional parser-or-lang named)
   "Return the smallest node covering BEG to END.

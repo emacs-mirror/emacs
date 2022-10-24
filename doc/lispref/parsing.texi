@@ -504,6 +504,12 @@ that.
 If @var{named} is non-@code{nil}, this function looks for a named node
 only (@pxref{tree-sitter named node, named node}).
 
+When @var{pos} is after all the text in the buffer, technically there
+is no node after @var{pos}.  But for convenience, this function will
+return the last leaf node in the parse tree.  If @var{strict} is
+non-nil, this function will strictly comply to the semantics and
+return @var{nil}.
+
 Example:
 
 @example
