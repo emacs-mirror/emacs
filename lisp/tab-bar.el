@@ -33,7 +33,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'seq))
+  (require 'seq)
+  (require 'icons))
 
 
 (defgroup tab-bar nil
@@ -156,7 +157,6 @@ For easier selection of tabs by their numbers, consider customizing
 (defun tab-bar--load-buttons ()
   "Load the icons for the tab buttons."
   (require 'icons)
-
   (unless (iconp 'tab-bar-new)
     (define-icon tab-bar-new nil
       `((image "tabs/new.xpm"
