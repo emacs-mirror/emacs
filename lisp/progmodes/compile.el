@@ -175,7 +175,7 @@ and a string describing how the process finished.")
 (defvar compilation-num-warnings-found 0)
 (defvar compilation-num-infos-found 0)
 
-(defconst compilation-mode-line-errors
+(defvar compilation-mode-line-errors
   '(" [" (:propertize (:eval (int-to-string compilation-num-errors-found))
                       face compilation-error
                       help-echo "Number of errors so far")
