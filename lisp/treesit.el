@@ -834,10 +834,10 @@ indentation (target) is in green, current indentation is in red."
 ;;; Search
 
 (defun treesit-search-forward-goto
-    (predicate &optional start backward all)
+    (node predicate &optional start backward all)
   "Search forward for a node and move to its end position.
 
-Stops at the first node after point that matches PREDICATE.
+Stops at the first node after NODE that matches PREDICATE.
 PREDICATE can be either a regexp that matches against each node's
 type case-insensitively, or a function that takes a node and
 returns nil/non-nil for match/no match.
@@ -846,20 +846,20 @@ If a node matches, move to that node and return the node,
 otherwise return nil.  If START is non-nil, stop at the
 beginning rather than the end of a node.
 
+This function guarantees that the matched node it returns makes
+progress in terms of buffer position: the start/end position of
+the returned node is always greater than that of NODE.
+
 BACKWARD and ALL are the same as in `treesit-search-forward'."
-  (let ((node (treesit-node-at (point)))
-        (start-pos (point)))
-    ;; Often the EOF (point-max) is a newline, and `treesit-node-at'
-    ;; will return nil at that point (which is fair).  But we need a
-    ;; node as the starting point to traverse the tree.  So we try to
-    ;; use the node before point.
-    (when (and (not node) (eq (point) (point-max)))
-      (setq node (treesit-node-at (max (1- (point)) (point-min)))))
+  (when-let ((start-pos (if start
+                            (treesit-node-start node)
+                          (treesit-node-end node))))
     ;; When searching forward and stopping at beginnings, or search
     ;; backward stopping at ends, it is possible to "roll back" in
     ;; position.  Take three nodes N1, N2, N3 as an example, if we
     ;; start at N3, search for forward for beginning, and N1 matches,
-    ;; we would stop at beg of N1, which is backwards!  So we skip N1.
+    ;; we would stop at beg of N1, which is backwards!  So we skip N1
+    ;; and keep going.
     ;;
     ;;   |<--------N1------->|
     ;;   |<--N2-->| |<--N3-->|

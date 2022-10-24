@@ -702,10 +702,14 @@ answering questions like ``what is the first node after @var{start} in
 the buffer that satisfies some condition?''
 @end defun
 
-@defun treesit-search-forward-goto predicate &optional start backward all
-This function moves point to the start or end of the next node in
-the buffer that matches @var{predicate}.  If @var{start} is
-non-nil, stop at the beginning rather than the end of a node.
+@defun treesit-search-forward-goto node predicate &optional start backward all
+This function moves point to the start or end of the next node after
+@var{node} in the buffer that matches @var{predicate}.  If @var{start}
+is non-nil, stop at the beginning rather than the end of a node.
+
+This function guarantees that the matched node it returns makes
+progress in terms of buffer position: the start/end position of the
+returned node is always greater than that of @var{node}.
 
 Arguments @var{predicate}, @var{backward} and @var{all} are the same
 as in @code{treesit-search-forward}.
