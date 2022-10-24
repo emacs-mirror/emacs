@@ -1057,10 +1057,10 @@ means zero or more @code{rx} forms and, unless stated otherwise,
 matches these forms in sequence as if wrapped in a @code{(seq @dots{})}
 subform.
 
-These are all valid arguments to
-the @code{rx} macro.  Where the corresponding string
-regexp syntax is given, @var{A}, @var{B}, @dots{} are string regexp
-subexpressions.
+These are all valid arguments to the @code{rx} macro.  All forms are
+defined by their described semantics; the corresponding string regexps
+is provided for orientation, where @var{A}, @var{B}, @dots{}  denote
+(suitably bracketed) string regexp subexpressions.
 
 @subsubheading Literals
 
