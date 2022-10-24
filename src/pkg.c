@@ -865,6 +865,16 @@ DEFUN ("package-%register", Fpackage_percent_register,
   return package;
 }
 
+DEFUN ("package-%set-symbol-package", Fpackage_percent_set_symbol_package,
+       Spackage_percent_set_symbol_package, 2, 2, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object symbol, Lisp_Object package)
+{
+  CHECK_SYMBOL (symbol);
+  CHECK_PACKAGE (package);
+  XSYMBOL (symbol)->u.s.package = package;
+  return symbol;
+}
+
 
 /***********************************************************************
 			    Initialization
@@ -949,6 +959,7 @@ syms_of_pkg (void)
   defsubr (&Spackage_percent_set_nicknames);
   defsubr (&Spackage_percent_set_shadowing_symbols);
   defsubr (&Spackage_percent_set_status);
+  defsubr (&Spackage_percent_set_symbol_package);
   defsubr (&Spackage_percent_set_use_list);
   defsubr (&Spackage_percent_shadowing_symbols);
   defsubr (&Spackage_percent_symbols);

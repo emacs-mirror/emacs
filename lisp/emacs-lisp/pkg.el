@@ -242,6 +242,9 @@ registered package."
 
 ;;;###autoload
 (defun package-shadowing-symbols (package)
+  "Return the list of shadowing symbols of PACKAGE.
+If PACKAGE is not a package object already, it must the name of a
+registered package."
   (package-%shadowing-symbols (pkg--package-or-lose package)))
 
 ;;;###autoload
@@ -395,9 +398,23 @@ Value is the renamed package object."
     (list package symbols)))
 
 ;;;###autoload
-(defun shadow (_symbols &optional package)
-  (setq package (pkg--package-or-default package))
-  (error "not yet implemented"))
+(defun shadow (symbols &optional package)
+  "Make an internal symbol in PACKAGE with the same name as each of the
+  specified SYMBOLS, adding the new symbols to the Package-Shadowing-Symbols.
+  If a symbol with the given name is already present in PACKAGE, then
+  the existing symbol is placed in the shadowing symbols list if it is
+  not already present."
+  (let* ((package (pkg--package-or-lose package)))
+    (dolist (name (mapcar #'string
+			  (if (listp symbols) symbols (list symbols))))
+      (cl-multiple-value-bind (sym status) (find-symbol name package)
+	(when (or (not status) (eq status :inherited))
+	  (setq sym (make-symbol name))
+	  (package-%set-symbol-package sym package)
+          (puthash sym :internal (package-%symbols package)))
+	(cl-pushnew s (package-%shadowing-symbols package)))))
+  t)
+
 
 ;;;###autoload
 (defun shadowing-import (_symbols &optional package)

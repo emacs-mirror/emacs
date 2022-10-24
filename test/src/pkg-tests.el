@@ -151,7 +151,7 @@
 
 (ert-deftest pkg-tests-use-package ()
   (with-packages (x y)
-    (let ((ax (intern "a" x)))
+    (let ((_a (intern "a" x)))
       (use-package x y))))
 
 ;; (ert-deftest pkg-tests-find-symbol ()
