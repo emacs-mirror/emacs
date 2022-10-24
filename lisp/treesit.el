@@ -889,25 +889,47 @@ This is used by `treesit-beginning-of-defun' and friends.  Bind
 it buffer-locally and `treesit-mode' will use it for navigating
 defun's.")
 
+(defun treesit--find-top-level-match (node type)
+  "Return the top-level parent of NODE matching TYPE.
+TYPE is a regexp, this function matches TYPE with each parent's
+type."
+  (cl-loop for cursor = (treesit-node-parent node)
+           then (treesit-node-parent cursor)
+           while cursor
+           if (string-match-p type (treesit-node-type cursor))
+           do (setq node cursor)
+           finally return node))
+
 (defun treesit-beginning-of-defun (&optional arg)
   "Tree-sitter `beginning-of-defun' function.
 ARG is the same as in `beginning-of-defun."
-  (let ((arg (or arg 1)))
+  (let ((arg (or arg 1))
+        (node (treesit-node-at (point))))
     (if (> arg 0)
         ;; Go backward.
         (while (and (> arg 0)
-                    (treesit-search-forward-goto
-                     treesit-defun-type-regexp t t))
+                    (setq node (treesit-search-forward-goto
+                                node treesit-defun-type-regexp t t)))
+          (setq node (treesit--find-top-level-match
+                      node treesit-defun-type-regexp))
           (setq arg (1- arg)))
       ;; Go forward.
       (while (and (< arg 0)
-                  (treesit-search-forward-goto
-                   treesit-defun-type-regexp t t))
-        (setq arg (1+ arg))))))
+                  (setq node (treesit-search-forward-goto
+                              node treesit-defun-type-regexp t t)))
+        (setq node (treesit--find-top-level-match
+                    node treesit-defun-type-regexp))
+        (setq arg (1+ arg))))
+    (goto-char (treesit-node-start node))))
 
 (defun treesit-end-of-defun ()
   "Tree-sitter `end-of-defun' function."
-  (treesit-search-forward-goto treesit-defun-type-regexp))
+  ;; Why not simply get the largest node at point: when point is at
+  ;; (point-min), that gives us the root node.
+  (let ((node (treesit--find-top-level-match
+               (treesit-node-at (point))
+               treesit-defun-type-regexp)))
+    (goto-char (treesit-node-end node))))
 
 ;;; Imenu
 
