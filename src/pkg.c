@@ -224,7 +224,7 @@ pkg_package_or_default (Lisp_Object designator)
    inherits from (use-package).  Value is the symbol found, or
    Qunbound if no symbol is found.  If STATUS is not null, return in
    it the status of the symbol, one of :internal, :external,
-   :inhertied.  */
+   :inhertied, or nil if the symbol was not found.  */
 
 Lisp_Object
 pkg_find_symbol (Lisp_Object name, Lisp_Object package, Lisp_Object *status)
@@ -232,37 +232,32 @@ pkg_find_symbol (Lisp_Object name, Lisp_Object package, Lisp_Object *status)
   eassert (STRINGP (name));
   eassert (PACKAGEP (package));
 
-  Lisp_Object symbol = Qunbound;
-  if (status)
-    *status = Qnil;
-
-  const struct Lisp_Package *pkg = XPACKAGE (package);
   struct Lisp_Hash_Table *h = XHASH_TABLE (PACKAGE_SYMBOLS (package));
-  const ptrdiff_t i = hash_lookup (h, name, NULL);
+  ptrdiff_t i = hash_lookup (h, name, NULL);
   if (i >= 0)
     {
-      symbol = HASH_KEY (h, i);
       if (status)
 	*status = HASH_VALUE (h, i);
+      return HASH_KEY (h, i);
     }
-  else
+
+  Lisp_Object tail = PACKAGE_USE_LIST (package);
+  FOR_EACH_TAIL (tail)
     {
-      Lisp_Object tail = pkg->use_list;
-      FOR_EACH_TAIL (tail)
+      const Lisp_Object used_package = XCAR (tail);
+      h = XHASH_TABLE (PACKAGE_SYMBOLS (used_package));
+      i = hash_lookup (h, name, NULL);
+      if (i >= 0 && EQ (HASH_VALUE (h, i), QCexternal))
 	{
-	  const Lisp_Object used_package = XCAR (tail);
-	  struct Lisp_Hash_Table *h = XHASH_TABLE (PACKAGE_SYMBOLS (used_package));
-	  const ptrdiff_t i = hash_lookup (h, name, NULL);
-	  if (i >= 0 && EQ (HASH_VALUE (h, i), QCexternal))
-	    {
-	      if (status)
-		*status = QCinherited;
-	      return HASH_KEY (h, i);
-	    }
+	  if (status)
+	    *status = QCinherited;
+	  return HASH_KEY (h, i);
 	}
     }
 
-  return symbol;
+  if (status)
+    *status = Qnil;
+  return Qunbound;
 }
 
 /* Add SYMBOL to package PACKAGE.  Value is SYMBOL.  The symbol gets status STATUS
@@ -791,6 +786,8 @@ DEFUN ("package-%set-name", Fpackage_percent_set_name, Spackage_percent_set_name
   CHECK_PACKAGE (package);
   if (!NILP (name))
     CHECK_STRING (name);
+  if (EQ (package, Vemacs_package) || EQ (package, Vkeyword_package))
+    error ("Cannot change name of standard package");
   return XPACKAGE (package)->name = name;
 }
 
@@ -870,7 +867,8 @@ DEFUN ("package-%set-symbol-package", Fpackage_percent_set_symbol_package,
   (Lisp_Object symbol, Lisp_Object package)
 {
   CHECK_SYMBOL (symbol);
-  CHECK_PACKAGE (package);
+  if (!NILP (package))
+    CHECK_PACKAGE (package);
   XSYMBOL (symbol)->u.s.package = package;
   return symbol;
 }
