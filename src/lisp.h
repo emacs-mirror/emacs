@@ -2268,6 +2268,12 @@ PACKAGE_NAMEX (Lisp_Object package)
   return XPACKAGE (package)->name;
 }
 
+INLINE Lisp_Object
+PACKAGE_USE_LIST (Lisp_Object package)
+{
+  return XPACKAGE (package)->use_list;
+}
+
 extern void init_pkg_once (void);
 extern void init_pkg (void);
 extern void syms_of_pkg (void);

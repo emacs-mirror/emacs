@@ -2230,14 +2230,20 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
       print_c_string (":", printcharfun);
       check_number_p = false;
     }
-  else if (EQ (package, Vearmuffs_package))
-    ;
   else if (NILP (package))
     {
       if (!NILP (Vprint_gensym))
 	print_c_string ("#:", printcharfun);
     }
-  else
+  else if (NILP (PACKAGE_NAMEX (package)))
+    {
+      /* This should not happen normally, because delete-package
+	 should un-home symbols.  But it can if we have a bug
+	 in pkg.el which a test catches.  */
+      print_c_string ("#<deleted package>:", printcharfun);
+      check_number_p = false;
+    }
+  else if (!EQ (package, Vearmuffs_package))
     {
       /* If the symbol is accessible, it need not be qualified.  */
       Lisp_Object status;
