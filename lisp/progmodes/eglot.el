@@ -81,7 +81,8 @@
 ;;   in place during Eglot's LSP-enriched tenure over a project.  Even
 ;;   so, some of those decisions will invariably aggravate a minority
 ;;   of Emacs power users, but these users can use `eglot-stay-out-of'
-;;   and `eglot-managed-mode-hook' to quench their OCD.
+;;   and `eglot-managed-mode-hook' to adjust things to their
+;;   preferences.
 ;;
 ;; * On occasion, to enable new features, Eglot can have soft
 ;;   dependencies on popular libraries that are not in Emacs core.
