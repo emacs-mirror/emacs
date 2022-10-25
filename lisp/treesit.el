@@ -88,11 +88,18 @@ Return the root node of the syntax tree."
     (treesit-parser-root-node
      (treesit-parser-create language))))
 
+(defvar-local treesit-language-at-point-function nil
+  "A function that returns the language at point.
+This is used by `treesit-language-at', which is used by various
+functions to determine which parser to use at point.
+
+The function is called with the position of point.")
+
 (defun treesit-language-at (pos)
-  "Return the language used at position POS."
-  (cl-loop for parser in (treesit-parser-list)
-           if (treesit-node-on pos pos parser)
-           return (treesit-parser-language parser)))
+  "Return the language at POS.
+Assumes parser ranges are up-to-date."
+  (when treesit-language-at-point-function
+    (funcall treesit-language-at-point-function pos)))
 
 (defun treesit-set-ranges (parser-or-lang ranges)
   "Set the ranges of PARSER-OR-LANG to RANGES."
@@ -790,9 +797,12 @@ of the current line.")
                 (skip-chars-forward " \t")
                 (point)))
          (smallest-node
-          (cl-loop for parser in (treesit-parser-list)
-                   for node = (treesit-node-at bol parser)
-                   if node return node))
+          (cond ((null (treesit-parser-list)) nil)
+                ((eq 1 (length (treesit-parser-list)))
+                 (treesit-node-at bol))
+                ((treesit-language-at (point))
+                 (treesit-node-at bol (treesit-language-at (point))))
+                (t (treesit-node-at bol))))
          (node (treesit-parent-while
                 smallest-node
                 (lambda (node)

@@ -1407,13 +1407,6 @@ Like other query functions, this function raises the
 @code{treesit-query-error} error if @var{query} is malformed.
 @end defun
 
-@defun treesit-language-at pos
-This function tries to figure out which language is responsible for
-the text at buffer position @var{pos}.  It goes over each parser in
-@code{(treesit-parser-list)} to find a parser whose ranges cover
-@var{pos}.
-@end defun
-
 @defvar treesit-range-functions
 This variable holds the list of range functions.  Font-locking and
 indenting code use functions in this list to set correct ranges for
@@ -1438,6 +1431,19 @@ This function is used by font-lock and indentation to update ranges
 before using any parser.  Each range function in
 @var{treesit-range-functions} is called in-order.  Arguments
 @var{start} and @var{end} are passed to each range function.
+@end defun
+
+@vindex treesit-language-at-point-function
+@defun treesit-language-at pos
+This function tries to figure out which language is responsible for
+the text at buffer position @var{pos}.  Under the hood it just calls
+@code{treesit-language-at-point-function}.
+
+Various Lisp programs use this function.  For example, the indentation
+program uses this function to determine which language's rule to use
+in a multi-language buffer.  So it is important to provide
+@code{treesit-language-at-point-function} for a multi-language major
+mode.
 @end defun
 
 @heading An example
