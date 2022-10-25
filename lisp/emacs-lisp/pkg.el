@@ -194,8 +194,6 @@ normally, or else if an explcit return occurs the value it transfers."
   (declare (indent 1))
   (cl-with-gensyms (flet-name)
     `(cl-block nil
-       ;; PKG-FIXME: This gives a warning about VAR being unused even
-       ;; if it is used.  Check what that is.
        (cl-flet ((,flet-name (,var)
 		   (cl-tagbody ,@body)))
 	 (let* ((package (pkg--package-or-lose ,package)))
@@ -205,9 +203,10 @@ normally, or else if an explcit return occurs the value it transfers."
 	     (maphash (lambda (k v)
 			(when (eq v :external)
 			  (,flet-name k)))
-		      (package-%symbols p))
+		      (package-%symbols p)))))
        (let ((,var nil))
-	 ,result-form)))))))
+         ,var
+	 ,result-form))))
 
 ;;;###autoload
 (cl-defmacro do-external-symbols ((var &optional (package '*package*) result-form)
