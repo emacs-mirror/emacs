@@ -281,6 +281,13 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     Until now, just \"ssh\"-based, \"sshfs\"-based and
     \"adb\"-based methods do.
 
+  * `tramp-config-check'
+    A function to be called with one argument, VEC.  It should
+    return a string which is used to check, whether the
+    configuration of the remote host has been changed (which
+    would require to flush the cache data).  This string is kept
+    as connection property \"config-check-data\".
+
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
     the file; this might be the absolute filename of scp or the name of

@@ -2517,6 +2517,12 @@ the user requesting such a connection, and not of the user who is the
 target.  This has always been needed, just the password prompt and the
 related 'auth-sources' entry were wrong.
 
++++
+*** New user option 'tramp-completion-use-cache'.
+During user and host name completion in the minibuffer, results from
+Tramp's connection cache are taken into account.  This can be disabled
+by setting the user option 'tramp-completion-use-cache' to nil.
+
 ** Browse URL
 
 ---

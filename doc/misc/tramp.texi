@@ -925,12 +925,6 @@ Integration for containers in Kubernetes pods.  The host name is a pod
 name returned by @samp{kubectl get pods}.  The first container in a
 pod is used.
 
-@samp{kubectl get pods} returns pods in the current context and
-namespace.  Current namespace can be changed with @samp{kubectl config
-set-context --current --namespace=<name>}.  After invoking this or
-other command which modifies Kubernetes environment outside of Emacs,
-call @code{tramp-cleanup-all-connections} to reset Tramp cache data.
-
 This method does not support user names.
 
 @end table
@@ -3538,9 +3532,14 @@ the @file{~/.authinfo.gpg} authentication file.  The user option
 @code{tramp-completion-use-auth-sources} controls, whether such a
 search is performed during completion.
 
+@vindex tramp-completion-use-cache
 Remote hosts previously visited or hosts whose connections are kept
 persistently (@pxref{Connection caching}) will be included in the
-completion lists.
+completion lists.  If you want to suppress this completion because
+there are invalid entries in the persistency file, for example if the
+host configuration changes often, or if you plug your laptop to
+different networks frequently, you can set the user option
+@code{tramp-completion-use-cache} to nil.
 
 After remote host name completion comes completion of file names on
 the remote host.  It works the same as with local host file completion
