@@ -1143,7 +1143,6 @@ static Window x_get_window_below (Display *, Window, int, int, int *, int *);
 #ifndef USE_TOOLKIT_SCROLL_BARS
 static void x_scroll_bar_redraw (struct scroll_bar *);
 #endif
-static void x_translate_coordinates (struct frame *, int, int, int *, int *);
 
 /* Global state maintained during a drag-and-drop operation.  */
 
@@ -13658,7 +13657,7 @@ x_compute_root_window_offset (struct frame *f, int root_x, int root_y,
    many cases while handling events, which would otherwise result in
    slowdowns over slow network connections.  */
 
-static void
+void
 x_translate_coordinates (struct frame *f, int root_x, int root_y,
 			 int *x_out, int *y_out)
 {
@@ -13729,6 +13728,31 @@ x_translate_coordinates_to_root (struct frame *f, int x, int y,
       output->root_x = *x_out - x;
       output->root_y = *y_out - y;
     }
+}
+
+/* Do x-translate-coordinates, but try to avoid a roundtrip to the X
+   server at the cost of not returning `child', which most callers
+   have no reason to use.  */
+
+Lisp_Object
+x_handle_translate_coordinates (struct frame *f, Lisp_Object dest_window,
+				int source_x, int source_y)
+{
+  if (NILP (dest_window))
+    {
+      /* We are translating coordinates from a frame to the root
+	 window.  Avoid a roundtrip if possible by using cached
+	 coordinates.  */
+
+      if (!FRAME_X_OUTPUT (f)->window_offset_certain_p)
+	return Qnil;
+
+      return list3 (make_fixnum (source_x + FRAME_X_OUTPUT (f)->root_x),
+		    make_fixnum (source_y + FRAME_X_OUTPUT (f)->root_y),
+		    Qnil);
+    }
+
+  return Qnil;
 }
 
 /* The same, but for an XIDeviceEvent.  */
@@ -20826,7 +20850,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					      event->xbutton.time);
 		      }
 		    else if (x_dnd_last_seen_window != None
-			&& x_dnd_last_protocol_version != -1)
+			     && x_dnd_last_protocol_version != -1)
 		      {
 			x_dnd_pending_finish_target = x_dnd_last_seen_toplevel;
 			x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;

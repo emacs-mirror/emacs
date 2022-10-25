@@ -7913,7 +7913,7 @@ Otherwise, the return value is a vector with the following fields:
 
 DEFUN ("x-translate-coordinates", Fx_translate_coordinates,
        Sx_translate_coordinates,
-       1, 5, 0, doc: /* Translate coordinates from FRAME.
+       1, 6, 0, doc: /* Translate coordinates from FRAME.
 Translate the given coordinates SOURCE-X and SOURCE-Y from
 SOURCE-WINDOW's coordinate space to that of DEST-WINDOW, on FRAME.
 
@@ -7929,16 +7929,21 @@ Return a list of (X Y CHILD) if the given coordinates are on the same
 screen, or nil otherwise, where X and Y are the coordinates in
 DEST-WINDOW's coordinate space, and CHILD is the window ID of any
 mapped child in DEST-WINDOW at those coordinates, or nil if there is
-no such window.  */)
+no such window.  If REQUIRE-CHILD is nil, avoid fetching CHILD if it
+would result in an avoidable request to the X server, thereby
+improving performance when the X connection is over a slow network.
+Otherwise, always obtain the mapped child window from the X
+server.  */)
   (Lisp_Object frame, Lisp_Object source_window,
    Lisp_Object dest_window, Lisp_Object source_x,
-   Lisp_Object source_y)
+   Lisp_Object source_y, Lisp_Object require_child)
 {
   struct x_display_info *dpyinfo;
   struct frame *source_frame;
   int dest_x, dest_y;
   Window child_return, src, dest;
   Bool rc;
+  Lisp_Object temp_result;
 
   dpyinfo = check_x_display_info (frame);
   dest_x = 0;
@@ -7956,12 +7961,25 @@ no such window.  */)
       dest_y = XFIXNUM (source_y);
     }
 
+  source_frame = NULL;
+
   if (!NILP (source_window))
     CONS_TO_INTEGER (source_window, Window, src);
   else
     {
       source_frame = decode_window_system_frame (frame);
       src = FRAME_X_WINDOW (source_frame);
+    }
+
+  /* If require_child is nil, try to avoid an avoidable roundtrip to
+     the X server.  */
+  if (NILP (require_child) && source_frame)
+    {
+      temp_result
+	= x_handle_translate_coordinates (source_frame, dest_window, dest_x,
+					  dest_y);
+      if (!NILP (temp_result))
+	return temp_result;
     }
 
   if (!src)
