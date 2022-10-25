@@ -4876,7 +4876,7 @@ If the optional argument @var{no-pad} is non-@code{nil} then this
 function doesn't generate the padding.
 @end defun
 
-@deffn Command base64-decode-region beg end &optional base64url
+@deffn Command base64-decode-region beg end &optional base64url ignore-invalid
 This function converts the region from @var{beg} to @var{end} from base
 64 code into the corresponding decoded text.  It returns the length of
 the decoded text.
@@ -4885,9 +4885,11 @@ The decoding functions ignore newline characters in the encoded text.
 
 If optional argument @var{base64url} is non-@code{nil}, then padding
 is optional, and the URL variant of base 64 encoding is used.
+If optional argument @var{ignore-invalid} is non-@code{nil}, then any
+unrecognized characters are ignored.
 @end deffn
 
-@defun base64-decode-string string &optional base64url
+@defun base64-decode-string string &optional base64url ignore-invalid
 This function converts the string @var{string} from base 64 code into
 the corresponding decoded text.  It returns a unibyte string containing the
 decoded text.
@@ -4897,6 +4899,8 @@ The decoding functions ignore newline characters in the encoded text.
 
 If optional argument @var{base64url} is non-@code{nil}, then padding
 is optional, and the URL variant of base 64 encoding is used.
+If optional argument @var{ignore-invalid} is non-@code{nil}, then any
+unrecognized characters are ignored.
 @end defun
 
 @node Checksum/Hash
