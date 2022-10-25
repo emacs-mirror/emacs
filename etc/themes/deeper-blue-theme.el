@@ -21,8 +21,11 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme deeper-blue
-  "Face colors using a deep blue background.")
+  "Face colors using a deep blue background."
+  :background-mode 'dark
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

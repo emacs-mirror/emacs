@@ -156,7 +156,8 @@ line about point in the selected window only."
   :group 'hl-line
   ;; If the global mode is switched on, then `M-x hl-line-mode' should
   ;; switch the mode off in this buffer.
-  (when global-hl-line-mode
+  (when (and global-hl-line-mode
+             (eq arg 'toggle))
     (setq hl-line-mode nil)
     (setq-local global-hl-line-mode nil)
     (global-hl-line-unhighlight))

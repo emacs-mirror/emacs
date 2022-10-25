@@ -430,6 +430,12 @@ compile-always:
 	find $(lisp) -name '*.elc' $(FIND_DELETE)
 	$(MAKE) compile
 
+.PHONY: trampolines
+trampolines: compile
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	$(emacs) -l comp -f comp-compile-all-trampolines
+endif
+
 .PHONY: backup-compiled-files compile-after-backup
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already

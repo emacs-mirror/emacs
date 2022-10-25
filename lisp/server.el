@@ -1589,14 +1589,19 @@ specifically for the clients and did not exist before their request for it."
     (server-buffer-done (current-buffer))))
 
 (defun server-kill-emacs-query-function ()
-  "Ask before exiting Emacs if it has live clients.
+  "Ask before exiting Emacs if it has other live clients.
 A \"live client\" is a client with at least one live buffer
-associated with it."
-  (or (not (seq-some (lambda (proc)
-                       (seq-some #'buffer-live-p
-                                 (process-get proc 'buffers)))
-                     server-clients))
-      (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
+associated with it.  These clients were (probably) started by
+external processes that are waiting for some buffers to be
+edited.  If there are any other clients, we don't want to fail
+their waiting processes, so ask the user to be sure."
+  (let ((this-client (frame-parameter nil 'client)))
+    (or (not (seq-some (lambda (proc)
+                         (unless (eq proc this-client)
+                           (seq-some #'buffer-live-p
+                                     (process-get proc 'buffers))))
+                       server-clients))
+        (yes-or-no-p "This Emacs session has other clients; exit anyway? "))))
 
 (defun server-kill-buffer ()
   "Remove the current buffer from its clients' buffer list.

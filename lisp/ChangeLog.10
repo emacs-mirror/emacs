@@ -9490,7 +9490,7 @@
 	toolbar/rescan.pbm, toolbar/rescan.xpm, toolbar/show.pbm,
 	toolbar/show.xpm, toolbar/widen.pbm, toolbar/widen.xpm:
 	Upgraded to mh-e version 6.1.1.  Full ChangeLog available in
-	http://prdownloads.sourceforge.net/mh-e/mh-e-6.1.tgz?download .
+	https://prdownloads.sourceforge.net/mh-e/mh-e-6.1.tgz?download .
 	There were no user-visible changes in 6.1.1 from 6.1--only the
 	section of the Makefile that installs the files into Emacs was changed.
 

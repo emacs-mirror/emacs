@@ -249,17 +249,60 @@ trailing newlines removed.  Otherwise, this behaves as follows:
 It might be different from \(getenv \"PATH\"), when
 `default-directory' points to a remote host.")
 
-(defun eshell-get-path ()
+(make-obsolete-variable 'eshell-path-env 'eshell-get-path "29.1")
+
+(defvar-local eshell-path-env-list nil)
+
+(connection-local-set-profile-variables
+ 'eshell-connection-default-profile
+ '((eshell-path-env-list . nil)))
+
+(connection-local-set-profiles
+ '(:application eshell)
+ 'eshell-connection-default-profile)
+
+(defun eshell-get-path (&optional literal-p)
   "Return $PATH as a list.
-Add the current directory on MS-Windows."
-  (eshell-parse-colon-path
-   (if (eshell-under-windows-p)
-       (concat "." path-separator eshell-path-env)
-     eshell-path-env)))
+If LITERAL-P is nil, return each directory of the path as a full,
+possibly-remote file name; on MS-Windows, add the current
+directory as the first directory in the path as well.
+
+If LITERAL-P is non-nil, return the local part of each directory,
+as the $PATH was actually specified."
+  (with-connection-local-application-variables 'eshell
+    (let ((remote (file-remote-p default-directory))
+          (path
+           (or eshell-path-env-list
+               ;; If not already cached, get the path from
+               ;; `exec-path', removing the last element, which is
+               ;; `exec-directory'.
+               (setq-connection-local eshell-path-env-list
+                                      (butlast (exec-path))))))
+      (when (and (not literal-p)
+                 (not remote)
+                 (eshell-under-windows-p))
+        (push "." path))
+      (if (and remote (not literal-p))
+          (mapcar (lambda (x) (file-name-concat remote x)) path)
+        path))))
+
+(defun eshell-set-path (path)
+  "Set the Eshell $PATH to PATH.
+PATH can be either a list of directories or a string of
+directories separated by `path-separator'."
+  (with-connection-local-application-variables 'eshell
+    (setq-connection-local
+     eshell-path-env-list
+     (if (listp path)
+	 path
+       ;; Don't use `parse-colon-path' here, since we don't want
+       ;; the additonal translations it does on each element.
+       (split-string path (path-separator))))))
 
 (defun eshell-parse-colon-path (path-env)
   "Split string with `parse-colon-path'.
 Prepend remote identification of `default-directory', if any."
+  (declare (obsolete nil "29.1"))
   (let ((remote (file-remote-p default-directory)))
     (if remote
 	(mapcar
@@ -412,7 +455,7 @@ list."
   ;; runs while point is in the minibuffer and the users attempt
   ;; to use completion.  Don't ask me.
   (condition-case nil
-      (sit-for 0 0)
+      (sit-for 0)
     (error nil)))
 
 (defun eshell-read-passwd-file (file)

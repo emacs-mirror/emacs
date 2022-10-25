@@ -527,12 +527,12 @@
       `(menu-item "Paste" yank
                   :enable (funcall
                            ',(lambda ()
-                               (and (or
+                               (and (not buffer-read-only)
+                                    (or
                                      (gui-backend-selection-exists-p 'CLIPBOARD)
                                      (if (featurep 'ns) ; like paste-from-menu
                                          (cdr yank-menu)
-                                       kill-ring))
-                                    (not buffer-read-only))))
+                                       kill-ring)))))
                   :help "Paste (yank) text most recently cut/copied"
                   :keys ,(lambda ()
                            (if cua-mode
@@ -1846,6 +1846,10 @@ mail status in mode line"))
                   semantic-mode
                   :help "Toggle automatic parsing in source code buffers (Semantic mode)"
                   :button (:toggle . (bound-and-true-p semantic-mode))))
+
+    (bindings--define-key menu [eglot]
+      '(menu-item "Language Server Support (Eglot)" eglot
+                  :help "Start language server suitable for this buffer's major-mode"))
 
     (bindings--define-key menu [ede]
       '(menu-item "Project Support (EDE)"

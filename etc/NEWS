@@ -356,6 +356,11 @@ previous 'C-x ='.
 
 ** Eshell
 
+*** Eshell's PATH is now derived from 'exec-path'.
+For consistency with remote connections, Eshell now uses 'exec-path'
+to determine the execution path on the local system, instead of using
+the PATH environment variable directly.
+
 ---
 *** 'source' and '.' no longer accept the '--help' option.
 This is for compatibility with the shell versions of these commands,
@@ -815,22 +820,6 @@ This means Emacs built with GNUstep or built on macOS is now able to
 display different faces and images inside tooltips when the
 'use-system-tooltips' user option is nil.
 
-** Connection-local variables
-
-+++
-*** Some connection-local variables are now user options.
-The variables 'connection-local-profile-alist' and
-'connection-local-criteria-alist' are now user options, in order to
-make it more convenient to inspect and modify them.
-
-+++
-*** The default connection-local application can be changed temporarily.
-Running 'with-connection-local-variables' defaults to application
-'tramp'.  This can be changed by let-binding
-'connection-local-default-application' to another symbol.  This is
-useful when running code in a buffer where Tramp has already set some
-connection-local variables.
-
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
 When enabled, and if your mouse supports it, you can scroll the
@@ -1024,6 +1013,12 @@ The apropos commands will now select the apropos window if
 If the symbol at point is a keymap, 'describe-keymap' suggests it as
 the default candidate.
 
+---
+*** New command 'help-quick' displays an overview of common commands.
+The command pops up a buffer at the bottom of the screen with a few
+helpful commands for various tasks.  You can toggle the display using
+'C-h q'.
+
 ** Outline Mode
 
 +++
@@ -1041,15 +1036,11 @@ or is itself too long.
 +++
 *** New user option 'outline-minor-mode-use-buttons'.
 If non-nil, Outline Minor Mode will use buttons to hide/show outlines
-in addition to the ellipsis.  The default is nil in editing modes, but
-non-nil in 'help-mode' and its derivatives.
-
-+++
-*** New user option 'outline-minor-mode-use-margins'.
-If non-nil, Outline Minor Mode will use the window margins to
-hide/show outlines in addition to the ellipsis.  The default is
-non-nil in 'special-mode' and its derivatives, and it can be used in
-editing modes.
+in addition to the ellipsis.  The default is nil, but in 'help-mode'
+it has the value 'insert' that inserts the buttons directly to the
+buffer where you can use 'RET' to cycle outline visibility.  When
+the value is 'in-margins', Outline Minor Mode uses the window margins
+to hide/show outlines.
 
 ** Windows
 
@@ -1338,6 +1329,7 @@ Mende Kikakui script and language environment
 Wancho script and language environment
 Toto script and language environment
 Gothic script and language environment
+Coptic script and language environment
 
 ---
 *** The "Oriya" language environment was renamed to "Odia".
@@ -1361,6 +1353,16 @@ The default input method for the Tamil language environment is now
 change the input method's translation rules, customize the user option
 'tamil-translation-rules'.
 
+---
+*** New tamil99 input method for the Tamil language.
+This supports the keyboard layout specifically designed for the Tamil
+language.
+
+---
+*** New input method 'slovak-qwerty'.
+This is a variant of the 'slovak' input method, which corresponds to
+the QWERTY Slovak keyboards.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
@@ -1374,6 +1376,11 @@ the ecomplete database.
 ---
 *** New user option 'ecomplete-auto-select'.
 If non-nil and there's only one matching option, auto-select that.
+
+---
+*** New user option 'ecomplete-filter-regexp'.
+If non-nil, this user option describes what entries not to add to the
+database stored on disk.
 
 ** Dired
 
@@ -1626,7 +1633,7 @@ This mode adds some highlighting, fixes the 'M-q' command, and has
 commands for doing maintenance of the Emacs NEWS files.  In addition,
 this mode turns on 'outline-minor-mode', and thus displays
 customizable icons (see 'icon-preference') in the margins.  To
-disable these icons, customize 'outline-minor-mode-use-margins' to a
+disable these icons, set 'outline-minor-mode-use-buttons' to a
 nil value.
 
 ---
@@ -1864,6 +1871,24 @@ Git commands display summary lines.  See the two new user options
 *** New 'log-edit-headers-separator' face.
 It is used to style the line that separates the 'log-edit' headers
 from the 'log-edit' summary.
+
+---
+*** The function 'vc-read-revision' accepts a new MULTIPLE argument.
+If non-nil, multiple revisions can be queried.  This is done using
+'completing-read-multiple'.
+
+---
+*** New function 'vc-read-multiple-revisions'.
+This function invokes 'vc-read-revision' with a non-nil value for
+MULTIPLE.
+
++++
+*** New command 'vc-prepare-patch'.
+Patches for any version control system can be prepared using VC.  The
+command will query what commits to send and will compose messages for
+your mail user agent.  The behavior of 'vc-prepare-patch' can be
+modified by the user options 'vc-prepare-patches-separately' and
+'vc-default-patch-addressee'.
 
 ** Message
 
@@ -2571,7 +2596,7 @@ otherwise be returned.
 *** Concatenating Eshell expansions now works more similarly to other shells.
 When concatenating an Eshell expansion that returns a list, "adjacent"
 elements of each operand are now concatenated together,
-e.g. '$list("a" "b")c' returns '("a" "bc")'.  See the "(eshell)
+e.g. '$(list "a" "b")c' returns '("a" "bc")'.  See the "(eshell)
 Expansion" node in the Eshell manual for more details.
 
 +++
@@ -2731,6 +2756,13 @@ name.
 * New Modes and Packages in Emacs 29.1
 
 +++
+** Eglot: Emacs Client for the Language Server Protocol.
+Emacs now comes with the Eglot package, which enhances various Emacs
+features, such as completion, documentation, error detection, etc.,
+based on data provided by language servers using the Language Server
+Protocol (LSP).
+
++++
 ** New commands 'image-crop' and 'image-cut.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'i c' and 'i x' (respectively)
@@ -2815,6 +2847,11 @@ In addition, files are scanned in a slightly different way.
 Previously, ';;;###' specs inside a top-level form (i.e., something
 like '(when ... ;;;### ...)' would be ignored.  They are now parsed as
 normal.
+
+---
+** Themes have special autoload cookies.
+All build-in themes are scraped for ';;;###theme-autoload' cookies
+that are loaded along with the regular auto-loaded code.
 
 +++
 ** 'buffer-modified-p' has been extended.
@@ -3129,6 +3166,13 @@ The following generalized variables have been made obsolete:
 * Lisp Changes in Emacs 29.1
 
 +++
+** New accessor function 'file-attribute-file-identifier'.
+It returns the list of the inode number and device identifier
+retrieved by 'file-attributes'.  This value can be used to identify a
+file uniquely.  The device identifier can be a single number or (for
+remote files) a cons of 2 numbers.
+
++++
 ** New macro 'while-let'.
 This is like 'when-let', but repeats until a binding form is nil.
 
@@ -3176,6 +3220,33 @@ map, including a special formatting spec to list available keys.
 TIMEOUT is the idle time after which to deactivate the transient map.
 The default timeout value can be defined by the new variable
 'set-transient-map-timeout'.
+
+** Connection-local variables
+
++++
+*** Some connection-local variables are now user options.
+The variables 'connection-local-profile-alist' and
+'connection-local-criteria-alist' are now user options, in order to
+make it more convenient to inspect and modify them.
+
++++
+*** New function 'connection-local-update-profile-variables'.
+This function allows to modify the settings of an existing
+connection-local profile.
+
++++
+*** New macro 'with-connection-local-application-variables'.
+This macro works like 'with-connection-local-variables', but it allows
+to use another application but 'tramp'.  This is useful when running
+code in a buffer where Tramp has already set some connection-local
+variables.
+
++++
+*** New macro 'setq-connection-local'.
+This allows dynamically setting variable values for a particular
+connection within the body of 'with-connection-local-{application-}variables'.
+See the "(elisp) Connection Local Variables" node in the Lisp
+Reference manual for more information.
 
 +++
 ** 'plist-get', 'plist-put' and 'plist-member' are no longer limited to 'eq'.

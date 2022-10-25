@@ -580,7 +580,7 @@ you are going to be editing AWK files, @file{README} describes how to
 configure your (X)Emacs so that @ccmode{} will supersede the obsolete
 @code{awk-mode.el} which might have been supplied with your (X)Emacs.
 @ccmode{} might not work with older versions of Emacs or XEmacs.  See
-the @ccmode{} release notes at @uref{http://cc-mode.sourceforge.net}
+the @ccmode{} release notes at @uref{https://cc-mode.sourceforge.net}
 for the latest information on Emacs version and package compatibility
 (@pxref{Updating CC Mode}).
 
@@ -3170,7 +3170,7 @@ E. Jones' Filladapt package@footnote{It's available from
 lack a feature that makes it work suboptimally when
 @code{c-comment-prefix-regexp} matches the empty string (which it does
 by default).  A patch for that is available from
-@uref{http://cc-mode.sourceforge.net/,, the CC Mode web site}.},
+@uref{https://cc-mode.sourceforge.net/,, the CC Mode web site}.},
 @c 2005/11/22:  The above is still believed to be the case.
 which handles things like bulleted lists nicely.  There's a convenience
 function @code{c-setup-filladapt} that tunes the relevant variables in
@@ -7583,7 +7583,7 @@ have old versions of @ccmode{} and so should be upgraded.  Access to the
 compatibility, etc.@: are all available on the web site:
 
 @quotation
-@uref{http://cc-mode.sourceforge.net/}
+@uref{https://cc-mode.sourceforge.net/}
 @end quotation
 
 
@@ -7617,7 +7617,7 @@ the GNU Bug Tracker at @url{https://debbugs.gnu.org}, then sends it on
 to @email{bug-cc-mode@@gnu.org}.  You can also send reports, other
 questions, and suggestions (kudos?@: @t{;-)} to that address.  It's a
 mailing list which you can join or browse an archive of; see the web site at
-@uref{http://cc-mode.sourceforge.net/} for further details.
+@uref{https://cc-mode.sourceforge.net/} for further details.
 
 @cindex announcement mailing list
 If you want to get announcements of new @ccmode{} releases, send the

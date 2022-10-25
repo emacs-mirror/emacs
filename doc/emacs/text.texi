@@ -998,15 +998,14 @@ major mode's special commands.  (The variable
 
 @vindex outline-minor-mode-use-buttons
   If @code{outline-minor-mode-use-buttons} is non-@code{nil}, Outline
-minor mode will use buttons (at the start of the header lines) in
-addition to ellipsis to show that a section is hidden.  Using
-@kbd{RET} (or clicking on the button with a mouse) will toggle
-displaying the section.
-
-@vindex outline-minor-mode-use-margins
-  If @code{outline-minor-mode-use-margins} is non-@code{nil}, Outline
-minor mode will use the window margins in addition to ellipsis to show
-that a section is hidden.
+minor mode will use buttons at the beginning of the heading lines, in
+addition to ellipsis, to show that a section is hidden.  Clicking the
+mouse on the button toggles display of the section.  If the value of
+this variable is @code{insert}, the buttons are inserted directly into
+the buffer text, so @key{RET} on the button will also toggle display
+of the section, like a mouse click does.  If the value is
+@code{in-margins}, Outline minor mode will use the window margins to
+indicate that a section is hidden.
 
 @vindex outline-minor-mode-cycle
   If the @code{outline-minor-mode-cycle} user option is

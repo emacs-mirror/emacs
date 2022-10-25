@@ -285,8 +285,7 @@ Point is left at the end of the arguments."
     (save-restriction
       (goto-char beg)
       (narrow-to-region beg end)
-      (let ((inhibit-point-motion-hooks t)
-	    (args (list t))
+      (let ((args (list t))
 	    delim)
         (with-silent-modifications
           (remove-text-properties (point-min) (point-max)

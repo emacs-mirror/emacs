@@ -344,7 +344,7 @@ in compilation warnings about unused variables.
              ;; FIXME: This let often leads to "unused var" warnings.
              `((let ((,var ,counter)) ,@(cddr spec)))))))
 
-(defmacro declare (&rest _specs)
+(defmacro declare (&rest specs)
   "Do not evaluate any arguments, and return nil.
 If a `declare' form appears as the first form in the body of a
 `defun' or `defmacro' form, SPECS specifies various additional
@@ -355,8 +355,16 @@ The possible values of SPECS are specified by
 `defun-declarations-alist' and `macro-declarations-alist'.
 
 For more information, see info node `(elisp)Declare Form'."
-  ;; FIXME: edebug spec should pay attention to defun-declarations-alist.
-  nil)
+  ;; `declare' is handled directly by `defun/defmacro' rather than here.
+  ;; If we get here, it's because there's a `declare' somewhere not attached
+  ;; to a `defun/defmacro', i.e. a `declare' which doesn't do what it's
+  ;; intended to do.
+  (let ((form `(declare . ,specs)))  ;; FIXME: WIBNI we had &whole?
+    (macroexp-warn-and-return
+     (format-message "Stray `declare' form: %S" form)
+     ;; Make a "unique" harmless form to circumvent
+     ;; the cache in `macroexp-warn-and-return'.
+     `(progn ',form nil) nil 'compile-only)))
 
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
@@ -1837,7 +1845,12 @@ be a list of the form returned by `event-start' and `event-end'."
 (set-advertised-calling-convention 'time-convert '(time form) "29.1")
 
 ;;;; Obsolescence declarations for variables, and aliases.
-
+(make-obsolete-variable
+ 'inhibit-point-motion-hooks
+ "use `cursor-intangible-mode' or `cursor-sensor-mode' instead"
+ ;; It's been announced as obsolete in NEWS and in the docstring since Emacs-25,
+ ;; but it's only been marked for compilation warnings since Emacs-29.
+ "25.1")
 (make-obsolete-variable 'redisplay-dont-pause nil "24.5")
 (make-obsolete-variable 'operating-system-release nil "28.1")
 (make-obsolete-variable 'inhibit-changing-match-data 'save-match-data "29.1")
@@ -3257,7 +3270,14 @@ An obsolete, but still supported form is
 where the optional arg MILLISECONDS specifies an additional wait period,
 in milliseconds; this was useful when Emacs was built without
 floating point support."
-  (declare (advertised-calling-convention (seconds &optional nodisp) "22.1"))
+  (declare (advertised-calling-convention (seconds &optional nodisp) "22.1")
+           (compiler-macro
+            (lambda (form)
+              (if (not (or (numberp nodisp) obsolete)) form
+                (macroexp-warn-and-return
+                 "Obsolete calling convention for 'sit-for'"
+                 `(,(car form) (+ ,seconds (/ (or ,nodisp 0) 1000.0)) ,obsolete)
+                 '(obsolete sit-for))))))
   ;; This used to be implemented in C until the following discussion:
   ;; https://lists.gnu.org/r/emacs-devel/2006-07/msg00401.html
   ;; Then it was moved here using an implementation based on an idle timer,

@@ -21,8 +21,11 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme misterioso
-  "Predominantly blue/cyan faces on a dark cyan background.")
+  "Predominantly blue/cyan faces on a dark cyan background."
+  :background-mode 'dark
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89))))
 

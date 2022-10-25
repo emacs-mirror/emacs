@@ -1851,7 +1851,9 @@ to enable or disable the buffer-local minor mode @var{mode} in all (or
 some; see below) buffers.  It also executes the @var{body} forms.  To
 turn on the minor mode in a buffer, it uses the function
 @var{turn-on}; to turn off the minor mode, it calls @var{mode} with
-@minus{}1 as argument.
+@minus{}1 as argument.  (The function @var{turn-on} is a separate
+function so it could determine whether to enable the minor mode or not
+when it is not a priori clear that it should always be enabled.)
 
 Globally enabling the mode also affects buffers subsequently created
 by visiting files, and buffers that use a major mode other than
@@ -3146,9 +3148,10 @@ match found by @var{matcher} acts as the anchor for further searches
 specified by @var{anchored-highlighter}.  @var{anchored-highlighter}
 is a list of the following form:
 
+@c Don't wrap the line in the next @example, because that tends to
+@c produce ugly indentation in Info
 @example
-(@var{anchored-matcher} @var{pre-form} @var{post-form}
-                        @var{subexp-highlighters}@dots{})
+(@var{anchored-matcher} @var{pre-form} @var{post-form} @var{subexp-highlighters}@dots{})
 @end example
 
 Here, @var{anchored-matcher}, like @var{matcher}, is either a regular

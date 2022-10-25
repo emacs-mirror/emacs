@@ -275,8 +275,7 @@ nested routine.")
   (declare (debug t))
   `(save-excursion
      (save-match-data
-      (let ((inhibit-point-motion-hooks t)
-            (deactivate-mark nil))
+      (let ((deactivate-mark nil))
         (progn ,@forms)))))
 
 

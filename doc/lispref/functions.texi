@@ -533,6 +533,44 @@ Instead, use the @code{advertised-calling-convention} declaration
 compiler emit a warning message when it compiles Lisp programs which
 use the deprecated calling convention.
 
+@cindex computed documentation string
+@kindex :documentation
+Documentation strings are usually static, but occasionally it can be
+necessary to generate them dynamically.  In some cases you can do so
+by writing a macro which generates at compile time the code of the
+function, including the desired documentation string.  But you can
+also generate the docstring dynamically by writing
+@code{(:documentation @var{form})} instead of the documentation
+string.  This will evaluate @var{form} at run-time when the function
+is defined and use it as the documentation string@footnote{This only
+works in code using @code{lexical-binding}.}.  You can also compute
+the documentation string on the fly when it is requested, by setting
+the @code{function-documentation} property of the function's symbol to
+a Lisp form that evaluates to a string.
+
+For example:
+@example
+@group
+(defun adder (x)
+  (lambda (y)
+    (:documentation (format "Add %S to the argument Y." x))
+    (+ x y)))
+(defalias 'adder5 (adder 5))
+(documentation 'adder5)
+    @result{} "Add 5 to the argument Y."
+@end group
+
+@group
+(put 'adder5 'function-documentation
+     '(concat (documentation (symbol-function 'adder5) 'raw)
+              "  Consulted at " (format-time-string "%H:%M:%S")))
+(documentation 'adder5)
+    @result{} "Add 5 to the argument Y.  Consulted at 15:52:13"
+(documentation 'adder5)
+    @result{} "Add 5 to the argument Y.  Consulted at 15:52:18"
+@end group
+@end example
+
 @node Function Names
 @section Naming a Function
 @cindex function definition

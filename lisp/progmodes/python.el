@@ -3413,15 +3413,25 @@ detecting a prompt at the end of the buffer."
   "Send STRING to PROCESS and inhibit output.
 Return the output."
   (or process (setq process (python-shell-get-process-or-error)))
-  (cl-letf (((process-filter process)
-             (lambda (_proc str)
-               (with-current-buffer (process-buffer process)
-                 (python-shell-output-filter str))))
-            (python-shell-output-filter-in-progress t)
-            (inhibit-quit t))
+  (cl-letf* (((process-filter process)
+              (lambda (_proc str)
+                (with-current-buffer (process-buffer process)
+                  (python-shell-output-filter str))))
+             (python-shell-output-filter-in-progress t)
+             (inhibit-quit t)
+             (buffer (process-buffer process))
+             (last-prompt (cond ((boundp 'comint-last-prompt-overlay)
+                                 'comint-last-prompt-overlay)
+                                ((boundp 'comint-last-prompt)
+                                 'comint-last-prompt)))
+             (last-prompt-value (buffer-local-value last-prompt buffer)))
     (or
      (with-local-quit
-       (python-shell-send-string string process)
+       (unwind-protect
+           (python-shell-send-string string process)
+         (when (not (null last-prompt))
+           (with-current-buffer buffer
+             (set last-prompt last-prompt-value))))
        (while python-shell-output-filter-in-progress
          ;; `python-shell-output-filter' takes care of setting
          ;; `python-shell-output-filter-in-progress' to NIL after it
@@ -3430,7 +3440,7 @@ Return the output."
        (prog1
            python-shell-output-filter-buffer
          (setq python-shell-output-filter-buffer nil)))
-     (with-current-buffer (process-buffer process)
+     (with-current-buffer buffer
        (comint-interrupt-subjob)))))
 
 (defun python-shell-internal-send-string (string)
@@ -4059,7 +4069,8 @@ With argument MSG show activation/deactivation message."
 Optional argument PROCESS forces completions to be retrieved
 using that one instead of current buffer's process."
   (setq process (or process (get-buffer-process (current-buffer))))
-  (let* ((line-start (if (derived-mode-p 'inferior-python-mode)
+  (let* ((is-shell-buffer (derived-mode-p 'inferior-python-mode))
+         (line-start (if is-shell-buffer
                          ;; Working on a shell buffer: use prompt end.
                          (cdr (python-util-comint-last-prompt))
                        (line-beginning-position)))
@@ -4069,15 +4080,18 @@ using that one instead of current buffer's process."
                  (buffer-substring-no-properties line-start (point)))
             (buffer-substring-no-properties line-start (point))))
          (start
-          (save-excursion
-            (if (not (re-search-backward
-                      (python-rx
-                       (or whitespace open-paren close-paren string-delimiter simple-operator))
-                      line-start
-                      t 1))
-                line-start
-              (forward-char (length (match-string-no-properties 0)))
-              (point))))
+          (if (< (point) line-start)
+              (point)
+            (save-excursion
+              (if (not (re-search-backward
+                        (python-rx
+                         (or whitespace open-paren close-paren
+                             string-delimiter simple-operator))
+                        line-start
+                        t 1))
+                  line-start
+                (forward-char (length (match-string-no-properties 0)))
+                (point)))))
          (end (point))
          (prompt-boundaries
           (with-current-buffer (process-buffer process)
@@ -4090,7 +4104,11 @@ using that one instead of current buffer's process."
          (completion-fn
           (with-current-buffer (process-buffer process)
             (cond ((or (null prompt)
-                       (< (point) (cdr prompt-boundaries)))
+                       (and is-shell-buffer
+                            (< (point) (cdr prompt-boundaries)))
+                       (and (not is-shell-buffer)
+                            (string-match-p
+                             python-shell-prompt-pdb-regexp prompt)))
                    #'ignore)
                   ((or (not python-shell-completion-native-enable)
                        ;; Even if native completion is enabled, for

@@ -52,14 +52,14 @@
 # make bootstrap
 #      Removes all the compiled files to force a new bootstrap from a
 #      clean slate, and then build in the normal way.  If the FAST Make
-#      variable is set, then the config.cache file isn't removed.  This
-#      allows you to say
+#      variable is set, then the autom4te.cache directory and the
+#      config.cache file are not removed.  This lets you say
 #
 #      ./configure -C
 #      make FAST=true bootstrap
 #
 #      and use the cached results from the configure run, which is much
-#      faster.
+#      faster though it does not work in general.
 #
 # make docs
 #      Make Emacs documentation files from their sources; requires makeinfo.
@@ -529,6 +529,11 @@ lisp: src
 # These targets should be "${SUBDIR} without 'src'".
 lib lib-src lisp nt: Makefile
 	$(MAKE) -C $@ all
+
+trampolines: src lisp
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	$(MAKE) -C lisp trampolines
+endif
 
 # Pass an unexpanded $srcdir to src's Makefile, which then
 # expands it using its own value of srcdir (which points to the
@@ -1035,7 +1040,7 @@ bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
 	rm -rf native-lisp/ lisp/leim/ja-dic/
 ifndef FAST
-	rm -f config.cache
+	rm -fr autom4te.cache config.cache
 endif
 	${top_bootclean}
 

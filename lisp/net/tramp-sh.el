@@ -789,8 +789,8 @@ use strict;
 use warnings;
 use POSIX qw(getgroups);
 
-my ($user, $passwd, $uid, $gid) = getpwuid $< ;
-my $group = getgrgid $gid ;
+my ( $uid, $user ) = ( $>, scalar getpwuid $> );
+my ( $gid, $group ) = ( $), scalar getgrgid $) );
 my @groups = map { $_ . \"(\" . getgrgid ($_) . \")\" } getgroups ();
 
 printf \"uid=%%d(%%s) gid=%%d(%%s) groups=%%s\\n\",
@@ -2827,11 +2827,14 @@ the result will be a local, non-Tramp, file name."
   ;; Handle empty NAME.
   (when (zerop (length name)) (setq name "."))
   ;; On MS Windows, some special file names are not returned properly
-  ;; by `file-name-absolute-p'.
-  (if (and (eq system-type 'windows-nt)
-	   (string-match-p
-	    (tramp-compat-rx bol (| (: alpha ":") (: (literal null-device) eol)))
-	    name))
+  ;; by `file-name-absolute-p'.  If `tramp-syntax' is `simplified',
+  ;; there could be the falso positive "/:".
+  (if (or (and (eq system-type 'windows-nt)
+	       (string-match-p
+		(tramp-compat-rx bol (| (: alpha ":") (: (literal null-device) eol)))
+		name))
+	  (and (not (tramp-tramp-file-p name))
+	       (not (tramp-tramp-file-p dir))))
       (tramp-run-real-handler #'expand-file-name (list name dir))
     ;; Unless NAME is absolute, concat DIR and NAME.
     (unless (file-name-absolute-p name)

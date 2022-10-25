@@ -2147,29 +2147,33 @@ Make backspaces delete the previous character."
 	    (goto-char (process-mark process))
 	    (set-marker comint-last-output-start (point))
 
+            ;; Before we call `comint--mark-as-output' later,
+            ;; redisplay can be called.  We mark the inserted text as
+            ;; output early, to prevent redisplay from fontifying it
+            ;; as input in case of `comint-fontify-input-mode'.
+            (put-text-property 0 (length string) 'field 'output string)
+
 	    ;; insert-before-markers is a bad thing. XXX
 	    ;; Luckily we don't have to use it any more, we use
 	    ;; window-point-insertion-type instead.
-	    (make-local-variable 'jit-lock-mode)
-	    (let ((jit-lock-mode nil))
-	      (insert string)
+	    (insert string)
 
-	      ;; Advance process-mark
-	      (set-marker (process-mark process) (point))
+	    ;; Advance process-mark
+	    (set-marker (process-mark process) (point))
 
-	      (unless comint-inhibit-carriage-motion
+	    (unless comint-inhibit-carriage-motion
 	      ;; Interpret any carriage motion characters (newline, backspace)
 	      (comint-carriage-motion comint-last-output-start (point)))
 
-	      ;; Run these hooks with point where the user had it.
-	      (goto-char saved-point)
-	      (run-hook-with-args 'comint-output-filter-functions string)
-	      (set-marker saved-point (point))
+	    ;; Run these hooks with point where the user had it.
+	    (goto-char saved-point)
+	    (run-hook-with-args 'comint-output-filter-functions string)
+	    (set-marker saved-point (point))
 
-	      (goto-char (process-mark process)) ; In case a filter moved it.
+	    (goto-char (process-mark process)) ; In case a filter moved it.
 
-	      (unless comint-use-prompt-regexp
-                (comint--mark-as-output comint-last-output-start (point))))
+	    (unless comint-use-prompt-regexp
+              (comint--mark-as-output comint-last-output-start (point)))
 
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.

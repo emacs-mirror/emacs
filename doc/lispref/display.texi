@@ -548,7 +548,7 @@ previous example as follows:
 @end example
 @end defmac
 
-@defmac dolist-with-progress-reporter (var count [result]) reporter-or-message body@dots{}
+@defmac dolist-with-progress-reporter (var list [result]) reporter-or-message body@dots{}
 This is another convenience macro that works the same way as @code{dolist}
 does, but also reports loop progress using the functions described
 above.  As in @code{dotimes-with-progress-reporter},

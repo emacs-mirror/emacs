@@ -1324,6 +1324,20 @@ stream.  Standard error output is discarded."
           (match-string 1)
         (error "Cannot determine Bzr repository URL")))))
 
+(defun vc-bzr-prepare-patch (rev)
+  (with-current-buffer (generate-new-buffer " *vc-bzr-prepare-patch*")
+    (vc-bzr-command
+     "send" t 0 '()
+     "--revision" (concat (vc-bzr-previous-revision nil rev) ".." rev)
+     "--output" "-")
+    (let (subject)
+      ;; Extract the subject line
+      (goto-char (point-min))
+      (search-forward-regexp "^[^#].*")
+      (setq subject (match-string 0))
+      ;; Return the extracted data
+      (list :subject subject :buffer (current-buffer)))))
+
 (provide 'vc-bzr)
 
 ;;; vc-bzr.el ends here

@@ -5,7 +5,7 @@
 ;; Author: Christoph Wedler <Christoph.Wedler@sap.com>
 ;; Keywords: languages, ANTLR, code generator
 ;; Version: 2.2c
-;; URL: http://antlr-mode.sourceforge.net/
+;; URL: https://antlr-mode.sourceforge.net/
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +29,7 @@
 ;; supported options and various other things like running ANTLR from within
 ;; Emacs.
 
-;; For details, check <http://antlr-mode.sourceforge.net/> or, if you prefer
+;; For details, check <https://antlr-mode.sourceforge.net/> or, if you prefer
 ;; the manual style, follow all commands mentioned in the documentation of
 ;; `antlr-mode'.  ANTLR is a LL(k)-based recognition tool which generates
 ;; lexers, parsers and tree transformers in Java, C++ or Sather and can be
@@ -83,14 +83,6 @@
   (require 'easymenu))
 (require 'cc-mode)
 
-;; More compile-time-macros
-(eval-when-compile
-  (defmacro save-buffer-state-x (&rest body) ; similar to EMACS/lazy-lock.el
-    (declare (debug t) (indent 0))
-    `(let ((inhibit-point-motion-hooks t))
-       (with-silent-modifications
-         ,@body))))
-
 (defvar outline-level)
 (defvar imenu-use-markers)
 (defvar imenu-create-index-function)
@@ -114,12 +106,12 @@
   "Major mode for ANTLR grammar files."
   :group 'languages
   :link '(emacs-commentary-link "antlr-mode.el")
-  :link '(url-link "http://antlr-mode.sourceforge.net/")
+  :link '(url-link "https://antlr-mode.sourceforge.net/")
   :prefix "antlr-")
 
 (defconst antlr-version "2.2c"
   "ANTLR major mode version number.
-Check <http://antlr-mode.sourceforge.net/> for the newest.")
+Check <https://antlr-mode.sourceforge.net/> for the newest.")
 
 
 ;;;===========================================================================
@@ -1320,7 +1312,7 @@ actions if ARG is 0 or negative.  See `antlr-action-visibility'.
 
 Display a message unless optional argument SILENT is non-nil."
   (interactive "p")
-  (save-buffer-state-x
+  (with-silent-modifications
     (if (> arg 0)
 	(let ((regexp (if (= arg 1) "[]}]" "}"))
 	      (diff (and antlr-action-visibility

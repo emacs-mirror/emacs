@@ -228,7 +228,8 @@ thin (i.e. 1-dot width) space."
                      (sample-text . "Hanifi Rohingya (𐴌𐴟𐴇𐴥𐴝𐴚𐴒𐴙𐴝 𐴇𐴝𐴕𐴞𐴉𐴞 𐴓𐴠𐴑𐴤𐴝)	𐴀𐴝𐴏𐴓𐴝𐴀𐴡𐴤𐴛𐴝𐴓𐴝𐴙𐴑𐴟𐴔")
                      (documentation . "\
 Rohingya language and its script Hanifi Rohingya are supported
-in this language environment.")))
+in this language environment."))
+ '("Misc"))
 
 ;; Hanifi Rohingya composition rules
 (set-char-table-range
@@ -251,7 +252,8 @@ in this language environment.")))
                 (sample-text . "Kharoṣṭhī (𐨑𐨪𐨆𐨛𐨁)	𐨣𐨨𐨲𐨪𐨆 𐨐𐨪𐨅𐨨𐨁")
 	        (documentation . "\
 Language environment for Gāndhārī, Sanskrit, and other languages
-using the Kharoṣṭhī script.")))
+using the Kharoṣṭhī script."))
+ '("Misc"))
 
 (let ((consonant     "[\U00010A00\U00010A10-\U00010A35]")
       (vowel         "[\U00010A01-\U00010A06]")
@@ -281,7 +283,8 @@ using the Kharoṣṭhī script.")))
            (sample-text . "Adlam (𞤀𞤣𞤤𞤢𞤥)	𞤅𞤢𞤤𞤢𞥄𞤥")
            (documentation . "\
 Fulani language and its script Adlam are supported
-in this language environment.")))
+in this language environment."))
+ '("Misc"))
 
 ;; Adlam composition rules
 (set-char-table-range
@@ -303,7 +306,8 @@ in this language environment.")))
                    (sample-text . "Mende Kikakui (𞠀𞠁𞠂)	𞠛𞠉")
                    (documentation . "\
 Mende language and its script Kikakui are supported
-in this language environment.")))
+in this language environment."))
+ '("Misc"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Gothic
@@ -317,7 +321,23 @@ in this language environment.")))
             (sample-text . "Gothic (𐌲𐌿𐍄𐌹𐍃𐌺𐌰)	𐌷𐌰𐌹𐌻𐍃 / 𐌷𐌰𐌹𐌻𐌰")
             (documentation . "\
 Ancient Gothic language using the Gothic script is supported in this
-language environment.")))
+language environment."))
+ '("Misc"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Coptic
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Coptic" '((charset unicode)
+            (coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "coptic")
+            (sample-text . "Coptic (ⲘⲉⲧⲢⲉⲙ̀ⲛⲭⲏⲙⲓ)	Ⲛⲟⲩϥⲣⲓ")
+            (documentation . "\
+Coptic language using the Coptic script is supported in this
+language environment."))
+ '("Misc"))
 
 (provide 'misc-lang)
 

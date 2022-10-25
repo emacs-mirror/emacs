@@ -966,7 +966,7 @@ detailed description of this mode.
              (if gdb-active-process
                  (gdb-gud-context-command "-exec-continue")
                "-exec-run")))
-   "C-v" "Start or continue execution.  Use a prefix to specify arguments.")
+   "\C-v" "Start or continue execution.  Use a prefix to specify arguments.")
 
   ;; For debugging Emacs only.
   (gud-def gud-pp

@@ -763,6 +763,11 @@ See a list of available Info commands in `Info-mode'."
                     (read-file-name "Info file name: " nil nil t))
                 (if (numberp current-prefix-arg)
                     (format "*info*<%s>" current-prefix-arg))))
+  (when file-or-node
+    ;; Info node names don't contain newlines, so allow for easier use
+    ;; of names that might have been wrapped (in emails, etc.).
+    (setq file-or-node
+          (string-replace "\n" " " file-or-node)))
   (info-setup file-or-node
 	      (pop-to-buffer-same-window (or buffer "*info*"))))
 
@@ -2476,7 +2481,6 @@ Table of contents is created from the tree structure of menus."
            (sections '(("Top" "Top")))
            nodes subfiles)
       (while (or main-file subfiles)
-        ;; (or main-file (message "Searching subfile %s..." (car subfiles)))
         (erase-buffer)
         (info-insert-file-contents (or main-file (car subfiles)))
         (goto-char (point-min))
@@ -2535,7 +2539,6 @@ Table of contents is created from the tree structure of menus."
               (setq subfiles (nreverse subfiles)
                     main-file nil))
           (setq subfiles (cdr subfiles))))
-      (message "")
       (nreverse nodes))))
 
 (defun Info-toc-nodes (filename)

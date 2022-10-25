@@ -5,7 +5,7 @@
 ;; Author: Fabrice Niessen <(concat "fniessen" at-sign "pirilampo.org")>
 ;; Contributor: Thibault Polge <(concat "thibault" at-sign "thb.lt")>
 ;; URL: https://github.com/fniessen/emacs-leuven-dark-theme
-;; Version: 20220202.1126
+;; Version: 20221010.1208
 ;; Keywords: color theme
 
 ;; This file is part of GNU Emacs.
@@ -93,11 +93,15 @@ CONTROL can be a number, nil, or t.  When t, use DEFAULT-HEIGHT."
 
 ;;; Theme Faces.
 
+;;;###theme-autoload
 (deftheme leuven-dark
   "Face colors with a light background.
 Basic, Font Lock, Isearch, Gnus, Message, Org mode, Diff, Ediff,
 Flyspell, Semantic, and Ansi-Color faces are included -- and much
-more...")
+more..."
+  :background-mode 'dark
+  :family 'leuven
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89)))
 

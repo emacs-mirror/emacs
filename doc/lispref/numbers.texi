@@ -1238,6 +1238,9 @@ any given seed, the @code{random} function always generates the same
 sequence of numbers.  By default, Emacs initializes the random seed at
 startup, in such a way that the sequence of values of @code{random}
 (with overwhelming likelihood) differs in each Emacs run.
+The random seed is typically initialized from system entropy;
+however, on obsolescent platforms lacking entropy pools,
+the seed is taken from less-random volatile data such as the current time.
 
   Sometimes you want the random number sequence to be repeatable.  For
 example, when debugging a program whose behavior depends on the random
@@ -1256,12 +1259,45 @@ nonnegative and less than @var{limit}.  Otherwise, the value might be
 any fixnum, i.e., any integer from @code{most-negative-fixnum} through
 @code{most-positive-fixnum} (@pxref{Integer Basics}).
 
-If @var{limit} is @code{t}, it means to choose a new seed as if Emacs
-were restarting, typically from the system entropy.  On systems
-lacking entropy pools, choose the seed from less-random volatile data
-such as the current time.
-
 If @var{limit} is a string, it means to choose a new seed based on the
-string's contents.
+string's contents.  This causes later calls to @code{random} to return
+a reproducible sequence of results.
+
+If @var{limit} is @code{t}, it means to choose a new seed as if Emacs
+were restarting.  This causes later calls to @code{random} to return
+an unpredictable sequence of results.
 
 @end defun
+
+If you need a random nonce for cryptographic purposes, using
+@code{random} is typically not the best approach, for several reasons:
+
+@itemize @bullet
+@item
+Although you can use @code{(random t)} to consult system entropy,
+doing so can adversely affect other parts of your program that benefit
+from reproducible results.
+
+@item
+The system-dependent pseudo-random number generator (PRNG) used by
+@code{random} is not necessarily suitable for cryptography.
+
+@item
+A call to @code{(random t)} does not give direct access to system
+entropy; the entropy is passed through the system-dependent PRNG, thus
+possibly biasing the results.
+
+@item
+On typical platforms the random seed contains only 32 bits, which is
+typically narrower than an Emacs fixnum, and is not nearly enough for
+cryptographic purposes.
+
+@item
+A @code{(random t)} call leaves information about the nonce scattered
+about Emacs's internal state, increasing the size of the internal
+attack surface.
+
+@item
+On obsolescent platforms lacking entropy pools, @code{(random t)} is
+seeded from a cryptographically weak source.
+@end itemize

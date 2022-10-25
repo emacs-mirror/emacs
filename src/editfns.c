@@ -3551,10 +3551,15 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		      || float_conversion || conversion == 'i'
 		      || conversion == 'o' || conversion == 'x'
 		      || conversion == 'X'))
-	    error ("Invalid format operation %%%c",
-		   multibyte_format
-		   ? STRING_CHAR ((unsigned char *) format - 1)
-		   : *((unsigned char *) format - 1));
+	    {
+	      unsigned char *p = (unsigned char *) format - 1;
+	      if (multibyte_format)
+		error ("Invalid format operation %%%c", STRING_CHAR (p));
+	      else
+		error (*p <= 127 ? "Invalid format operation %%%c"
+		                 : "Invalid format operation char #o%03o",
+		       *p);
+	    }
 	  else if (! (FIXNUMP (arg) || ((BIGNUMP (arg) || FLOATP (arg))
 					&& conversion != 'c')))
 	    error ("Format specifier doesn't match argument type");

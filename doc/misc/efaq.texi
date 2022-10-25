@@ -3622,13 +3622,13 @@ To build Emacs from source for MS-DOS, see the instructions in the file
 on plain DOS, and also on all versions of MS-Windows from version 3.X
 onwards, including Windows XP and Vista. Pre-built binaries may be
 available at
-@uref{http://www.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
+@uref{https://www.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
 
 For a list of other implementations of Emacs (and Emacs
 look-alikes), consult the list of ``Emacs implementations and literature,''
 available at
 
-@uref{http://www.finseth.com/emacs.html}
+@uref{https://www.finseth.com/emacs.html}
 
 Note that while many of these programs look similar to Emacs, they often
 lack certain features, such as the Emacs Lisp extension language.
@@ -3757,7 +3757,7 @@ Various spell-checkers are compatible with Emacs, including:
 @table @b
 
 @item Hunspell
-@uref{http://hunspell.sourceforge.net/}
+@uref{https://hunspell.github.io/}
 
 @item GNU Aspell
 @uref{http://aspell.net/}

@@ -120,14 +120,15 @@
   (should (apropos-true-hit "foo bar baz" '("foo" "bar"))))
 
 (ert-deftest apropos-tests-format-plist ()
-  (setplist 'foo '(a 1 b (2 3) c nil))
-  (apropos-parse-pattern '("b"))
-  (should (equal (apropos-format-plist 'foo ", ")
-                 "a 1, b (2 3), c nil"))
-  (should (equal (apropos-format-plist 'foo ", " t)
-                 "b (2 3)"))
-  (apropos-parse-pattern '("d"))
-  (should-not (apropos-format-plist 'foo ", " t)))
+  (let ((foo (make-symbol "foo")))
+    (setplist foo '(a 1 b (2 3) c nil))
+    (apropos-parse-pattern '("b"))
+    (should (equal (apropos-format-plist foo ", ")
+                   "a 1, b (2 3), c nil"))
+    (should (equal (apropos-format-plist foo ", " t)
+                   "b (2 3)"))
+    (apropos-parse-pattern '("d"))
+    (should-not (apropos-format-plist foo ", " t))))
 
 (provide 'apropos-tests)
 ;;; apropos-tests.el ends here

@@ -72,7 +72,7 @@ using large fonts, at the price of a larger memory footprint.
 ** The version number of CC Mode has been changed from 5.33 to
 5.32.99, although the software itself hasn't changed.  This aims to
 reduce confusion with the standalone CC Mode 5.33 (available from
-http://cc-mode.sourceforge.net), which is a more mature version than
+https://cc-mode.sourceforge.net), which is a more mature version than
 the one included in Emacs 25.2.
 
 

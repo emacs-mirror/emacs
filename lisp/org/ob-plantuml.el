@@ -30,7 +30,7 @@
 
 ;;; Requirements:
 
-;; plantuml     | http://plantuml.sourceforge.net/
+;; plantuml     | https://plantuml.com/
 ;; plantuml.jar | `org-plantuml-jar-path' should point to the jar file (when exec mode is `jar')
 
 ;;; Code:

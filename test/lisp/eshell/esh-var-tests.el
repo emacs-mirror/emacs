@@ -23,8 +23,10 @@
 
 ;;; Code:
 
+(require 'tramp)
 (require 'ert)
 (require 'esh-mode)
+(require 'esh-var)
 (require 'eshell)
 
 (require 'eshell-tests-helpers
@@ -440,6 +442,150 @@ inside double-quotes"
                                "000"))
 
 
+;; Variable-related commands
+
+(ert-deftest esh-var-test/set/env-var ()
+  "Test that `set' with a string variable name sets an environment variable."
+  (with-temp-eshell
+   (eshell-match-command-output "set VAR hello" "hello\n")
+   (should (equal (getenv "VAR") "hello")))
+  (should-not (equal (getenv "VAR") "hello")))
+
+(ert-deftest esh-var-test/set/symbol ()
+  "Test that `set' with a symbol variable name sets a Lisp variable."
+  (let (eshell-test-value)
+    (eshell-command-result-equal "set #'eshell-test-value hello"
+                                 "hello")
+    (should (equal eshell-test-value "hello"))))
+
+(ert-deftest esh-var-test/unset/env-var ()
+  "Test that `unset' with a string variable name unsets an env var."
+  (let ((process-environment (cons "VAR=value" process-environment)))
+    (with-temp-eshell
+     (eshell-match-command-output "unset VAR" "\\`\\'")
+     (should (equal (getenv "VAR") nil)))
+    (should (equal (getenv "VAR") "value"))))
+
+(ert-deftest esh-var-test/unset/symbol ()
+  "Test that `unset' with a symbol variable name unsets a Lisp variable."
+  (let ((eshell-test-value "value"))
+    (eshell-command-result-equal "unset #'eshell-test-value" nil)
+    (should (equal eshell-test-value nil))))
+
+(ert-deftest esh-var-test/setq ()
+  "Test that `setq' sets Lisp variables."
+  (let (eshell-test-value)
+    (eshell-command-result-equal "setq eshell-test-value hello"
+                                 "hello")
+    (should (equal eshell-test-value "hello"))))
+
+(ert-deftest esh-var-test/export ()
+  "Test that `export' sets environment variables."
+  (with-temp-eshell
+   (eshell-match-command-output "export VAR=hello" "\\`\\'")
+   (should (equal (getenv "VAR") "hello"))))
+
+(ert-deftest esh-var-test/local-variables ()
+  "Test that \"VAR=value command\" temporarily sets variables."
+  (with-temp-eshell
+   (push "VAR=value" process-environment)
+   (eshell-match-command-output "VAR=hello env" "VAR=hello\n")
+   (should (equal (getenv "VAR") "value"))))
+
+
+;; Variable aliases
+
+(ert-deftest esh-var-test/alias/function ()
+  "Test using a variable alias defined as a function."
+  (with-temp-eshell
+   (push `("ALIAS" ,(lambda () "value") nil t) eshell-variable-aliases-list)
+   (eshell-match-command-output "echo $ALIAS" "value\n")
+   (eshell-match-command-output "set ALIAS hello"
+                                "Variable `ALIAS' is not settable\n"
+                                nil t)))
+
+(ert-deftest esh-var-test/alias/function-pair ()
+  "Test using a variable alias defined as a pair of getter/setter functions."
+  (with-temp-eshell
+   (let ((eshell-test-value "value"))
+     (push `("ALIAS" (,(lambda () eshell-test-value)
+                      . (lambda (_ value)
+                          (setq eshell-test-value (upcase value))))
+             nil t)
+           eshell-variable-aliases-list)
+     (eshell-match-command-output "echo $ALIAS" "value\n")
+     (eshell-match-command-output "set ALIAS hello" "HELLO\n")
+     (should (equal eshell-test-value "HELLO")))))
+
+(ert-deftest esh-var-test/alias/string ()
+  "Test using a variable alias defined as a string.
+This should get/set the aliased environment variable."
+  (with-temp-eshell
+   (let ((eshell-test-value "lisp-value"))
+     (push "eshell-test-value=env-value" process-environment)
+     (push `("ALIAS" "eshell-test-value") eshell-variable-aliases-list)
+     (eshell-match-command-output "echo $ALIAS" "env-value\n")
+     (eshell-match-command-output "set ALIAS hello" "hello\n")
+     (should (equal (getenv "eshell-test-value") "hello"))
+     (should (equal eshell-test-value "lisp-value")))))
+
+(ert-deftest esh-var-test/alias/string/prefer-lisp ()
+  "Test using a variable alias defined as a string.
+This sets `eshell-prefer-lisp-variables' to t and should get/set
+the aliased Lisp variable."
+  (with-temp-eshell
+   (let ((eshell-test-value "lisp-value")
+         (eshell-prefer-lisp-variables t))
+     (push "eshell-test-value=env-value" process-environment)
+     (push `("ALIAS" "eshell-test-value") eshell-variable-aliases-list)
+     (eshell-match-command-output "echo $ALIAS" "lisp-value\n")
+     (eshell-match-command-output "set ALIAS hello" "hello\n")
+     (should (equal (car process-environment) "eshell-test-value=env-value"))
+     (should (equal eshell-test-value "hello")))))
+
+(ert-deftest esh-var-test/alias/symbol ()
+  "Test using a variable alias defined as a symbol.
+This should get/set the value bound to the symbol."
+  (with-temp-eshell
+   (let ((eshell-test-value "value"))
+     (push '("ALIAS" eshell-test-value) eshell-variable-aliases-list)
+     (eshell-match-command-output "echo $ALIAS" "value\n")
+     (eshell-match-command-output "set ALIAS hello" "hello\n")
+     (should (equal eshell-test-value "hello")))))
+
+(ert-deftest esh-var-test/alias/symbol-pair ()
+  "Test using a variable alias defined as a pair of symbols.
+This should get the value bound to the symbol, but fail to set
+it, since the setter is nil."
+  (with-temp-eshell
+   (let ((eshell-test-value "value"))
+     (push '("ALIAS" (eshell-test-value . nil)) eshell-variable-aliases-list)
+     (eshell-match-command-output "echo $ALIAS" "value\n")
+     (eshell-match-command-output "set ALIAS hello"
+                                "Variable `ALIAS' is not settable\n"
+                                nil t))))
+
+(ert-deftest esh-var-test/alias/export ()
+  "Test that `export' properly sets variable aliases."
+  (with-temp-eshell
+   (let ((eshell-test-value "value"))
+     (push `("ALIAS" (,(lambda () eshell-test-value)
+                      . (lambda (_ value) (setq eshell-test-value value)))
+             nil t)
+           eshell-variable-aliases-list)
+     (eshell-match-command-output "export ALIAS=hello" "\\`\\'")
+     (should (equal eshell-test-value "hello")))))
+
+(ert-deftest esh-var-test/alias/local-variables ()
+  "Test that \"VAR=value cmd\" temporarily sets read-only variable aliases."
+  (with-temp-eshell
+   (let ((eshell-test-value "value"))
+     (push `("ALIAS" ,(lambda () eshell-test-value) t t)
+           eshell-variable-aliases-list)
+     (eshell-match-command-output "ALIAS=hello env" "ALIAS=hello\n")
+     (should (equal eshell-test-value "value")))))
+
+
 ;; Built-in variables
 
 (ert-deftest esh-var-test/lines-var ()
@@ -465,6 +611,65 @@ inside double-quotes"
    (eshell-match-command-output "echo $INSIDE_EMACS[, 1]"
                                 "eshell")))
 
+(ert-deftest esh-var-test/path-var/local-directory ()
+  "Test using $PATH in a local directory."
+  (let ((expected-path (string-join (eshell-get-path t) (path-separator))))
+    (with-temp-eshell
+     (eshell-match-command-output "echo $PATH" (regexp-quote expected-path)))))
+
+(ert-deftest esh-var-test/path-var/remote-directory ()
+  "Test using $PATH in a remote directory."
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let* ((default-directory ert-remote-temporary-file-directory)
+         (expected-path (string-join (eshell-get-path t) (path-separator))))
+    (with-temp-eshell
+     (eshell-match-command-output "echo $PATH" (regexp-quote expected-path)))))
+
+(ert-deftest esh-var-test/path-var/set ()
+  "Test setting $PATH."
+  (let* ((path-to-set-list '("/some/path" "/other/path"))
+         (path-to-set (string-join path-to-set-list (path-separator))))
+    (with-temp-eshell
+     (eshell-match-command-output (concat "set PATH " path-to-set)
+                                  (concat path-to-set "\n"))
+     (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
+     (should (equal (eshell-get-path t) path-to-set-list)))))
+
+(ert-deftest esh-var-test/path-var/set-locally ()
+  "Test setting $PATH temporarily for a single command."
+  (let* ((path-to-set-list '("/some/path" "/other/path"))
+         (path-to-set (string-join path-to-set-list (path-separator))))
+    (with-temp-eshell
+     (eshell-match-command-output (concat "set PATH " path-to-set)
+                                  (concat path-to-set "\n"))
+     (eshell-match-command-output "PATH=/local/path env"
+                                  "PATH=/local/path\n")
+     ;; After the last command, the previous $PATH value should be restored.
+     (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
+     (should (equal (eshell-get-path t) path-to-set-list)))))
+
+(ert-deftest esh-var-test/path-var/preserve-across-hosts ()
+  "Test that $PATH can be set independently on multiple hosts."
+  (let ((local-directory default-directory)
+        local-path remote-path)
+    (with-temp-eshell
+     ;; Set the $PATH on localhost.
+     (eshell-insert-command "set PATH /local/path")
+     (setq local-path (eshell-last-output))
+     ;; `cd' to a remote host and set the $PATH there too.
+     (eshell-insert-command
+      (format "cd %s" ert-remote-temporary-file-directory))
+     (eshell-insert-command "set PATH /remote/path")
+     (setq remote-path (eshell-last-output))
+     ;; Return to localhost and check that $PATH is the value we set
+     ;; originally.
+     (eshell-insert-command (format "cd %s" local-directory))
+     (eshell-match-command-output "echo $PATH" (regexp-quote local-path))
+     ;; ... and do the same for the remote host.
+     (eshell-insert-command
+      (format "cd %s" ert-remote-temporary-file-directory))
+     (eshell-match-command-output "echo $PATH" (regexp-quote remote-path)))))
+
 (ert-deftest esh-var-test/last-status-var-lisp-command ()
   "Test using the \"last exit status\" ($?) variable with a Lisp command"
   (with-temp-eshell
@@ -472,9 +677,8 @@ inside double-quotes"
                                 "t\n0\n")
    (eshell-match-command-output "zerop 1; echo $?"
                                 "0\n")
-   (let ((debug-on-error nil))
-     (eshell-match-command-output "zerop foo; echo $?"
-                                  "1\n"))))
+   (eshell-match-command-output "zerop foo; echo $?"
+                                "1\n" nil t)))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form ()
   "Test using the \"last exit status\" ($?) variable with a Lisp form"
@@ -484,9 +688,8 @@ inside double-quotes"
                                   "t\n0\n")
      (eshell-match-command-output "(zerop 1); echo $?"
                                   "2\n")
-     (let ((debug-on-error nil))
-       (eshell-match-command-output "(zerop \"foo\"); echo $?"
-                                    "1\n")))))
+     (eshell-match-command-output "(zerop \"foo\"); echo $?"
+                                  "1\n" nil t))))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form-2 ()
   "Test using the \"last exit status\" ($?) variable with a Lisp form.
@@ -497,9 +700,8 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                   "0\n")
      (eshell-match-command-output "(zerop 0); echo $?"
                                   "0\n")
-     (let ((debug-on-error nil))
-       (eshell-match-command-output "(zerop \"foo\"); echo $?"
-                                    "1\n")))))
+     (eshell-match-command-output "(zerop \"foo\"); echo $?"
+                                  "1\n" nil t))))
 
 (ert-deftest esh-var-test/last-status-var-ext-cmd ()
   "Test using the \"last exit status\" ($?) variable with an external command"

@@ -2956,7 +2956,7 @@ unchanged."
   (or dir (setq dir default-directory))
   ;; This case comes into play if default-directory is set to
   ;; use ~.
-  (if (and (> (length dir) 0) (= (aref dir 0) ?~))
+  (if (string-match-p "\\(\\`\\|:\\)~" dir)
       (setq dir (expand-file-name dir)))
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))

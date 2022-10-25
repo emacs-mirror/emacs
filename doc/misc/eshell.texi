@@ -439,11 +439,6 @@ Print the current local time as a human-readable string.  This command
 is similar to, but slightly different from, the GNU Coreutils
 @command{date} command.
 
-@item define
-@cmindex define
-Define a variable alias.
-@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
-
 @item diff
 @cmindex diff
 Compare files using Emacs's internal @code{diff} (not to be confused
@@ -699,10 +694,18 @@ used for comparing lists of strings.
 This command can be loaded as part of the eshell-xtra module, which is
 disabled by default.
 
+@item set
+@cmindex set
+Set variable values, using the function @code{set} like a command
+(@pxref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}).
+A variable name can be a symbol, in which case it refers to a Lisp
+variable, or a string, referring to an environment variable
+(@pxref{Arguments}).
+
 @item setq
 @cmindex setq
-Set variable values, using the function @code{setq} like a command.
-@xref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}.
+Set variable values, using the function @code{setq} like a command
+(@pxref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}).
 
 @item source
 @cmindex source
@@ -748,7 +751,9 @@ disabled by default.
 
 @item unset
 @cmindex unset
-Unset an environment variable.
+Unset one or more variables.  As with @command{set}, a variable name
+can be a symbol, in which case it refers to a Lisp variable, or a
+string, referring to an environment variable.
 
 @item wait
 @cmindex wait
@@ -886,12 +891,35 @@ For example, you could handle a subset of the options for the
 
 @node Variables
 @section Variables
-Since Eshell is just an Emacs @acronym{REPL}@footnote{
+@vindex eshell-prefer-lisp-variables
+Since Eshell is a combination of an Emacs @acronym{REPL}@footnote{
 Short for ``Read-Eval-Print Loop''.
-}
-, it does not have its own scope, and simply stores variables the same
-you would in an Elisp program.  Eshell provides a command version of
-@code{setq} for convenience.
+} and a command shell, it can refer to variables from two different
+sources: ordinary Emacs Lisp variables, as well as environment
+variables.  By default, when using a variable in Eshell, it will first
+look in the list of built-in variables, then in the list of
+environment variables, and finally in the list of Lisp variables.  If
+you would prefer to use Lisp variables over environment variables, you
+can set @code{eshell-prefer-lisp-variables} to @code{t}.
+
+You can set variables in a few different ways.  To set a Lisp
+variable, you can use the command @samp{setq @var{name} @var{value}},
+which works much like its Lisp counterpart (@pxref{Setting Variables,
+, , elisp, The Emacs Lisp Reference Manual}).  To set an environment
+variable, use @samp{export @var{name}=@var{value}}.  You can also use
+@samp{set @var{variable} @var{value}}, which sets a Lisp variable if
+@var{variable} is a symbol, or an environment variable if it's a
+string (@pxref{Arguments}).  Finally, you can temporarily set
+environment variables for a single command with
+@samp{@var{name}=@var{value} @var{command} @dots{}}.  This is
+equivalent to:
+
+@example
+@{
+  export @var{name}=@var{value}
+  @var{command} @dots{}
+@}
+@end example
 
 @subsection Built-in variables
 Eshell knows a few built-in variables:
@@ -913,6 +941,16 @@ current working directory from before the last @code{cd} command).
 When using @code{$-}, you can also access older directories in the
 directory ring via subscripting, e.g.@: @samp{$-[1]} refers to the
 working directory @emph{before} the previous one.
+
+@vindex $PATH
+@item $PATH
+This specifies the directories to search for executable programs.  Its
+value is a string, separated by @code{":"} for Unix and GNU systems,
+and @code{";"} for MS systems.  This variable is connection-aware, so
+whenever you change the current directory to a different host
+(@pxref{Remote Files, , , emacs, The GNU Emacs Manual}),
+the value will automatically update to reflect the search path on that
+host.
 
 @vindex $_
 @item $_
@@ -1138,7 +1176,7 @@ a number if possible.
 
 @item one or both (non-@code{nil}) lists
 Concatenate ``adjacent'' elements of each value (possibly converting
-back to a number as above).  For example, @samp{$list("a" "b")c}
+back to a number as above).  For example, @samp{$(list "a" "b")c}
 returns @samp{("a" "bc")}.
 
 @item anything else

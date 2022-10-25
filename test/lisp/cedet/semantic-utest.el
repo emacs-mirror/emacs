@@ -609,7 +609,6 @@ INSERTME is the text to be inserted after the deletion."
   (semantic-utest-generic (semantic-utest-fname "phptest.php") semantic-utest-PHP-buffer-contents semantic-utest-PHP-name-contents '("fun1") "fun2" "%^@")
   )
 
-;look at http://mfgames.com/linux/csharp-mode
 (ert-deftest semantic-utest-Csharp() ;; hmm i don't even know how to edit a scharp file. need a csharp mode implementation i suppose
   (skip-unless (featurep 'csharp-mode))
   (semantic-utest-generic (semantic-utest-fname "csharptest.cs") semantic-utest-Csharp-buffer-contents  semantic-utest-Csharp-name-contents   '("fun2") "//1" "//deleted line")

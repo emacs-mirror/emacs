@@ -66,7 +66,7 @@
 ;;
 ;;
 ;; As of March 2009 Firefox users follow the steps documented on
-;; http://kb.mozillazine.org/Register_protocol, Opera setup is described here:
+;; https://kb.mozillazine.org/Register_protocol, Opera setup is described here:
 ;; http://www.opera.com/support/kb/view/535/
 ;;
 ;;

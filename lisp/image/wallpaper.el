@@ -26,7 +26,8 @@
 ;; desktop background.
 ;;
 ;; On GNU/Linux and other Unix-like systems, it uses an external
-;; command to set the desktop background.
+;; command to set the desktop background.  This should work seamlessly
+;; on both X and Wayland.
 ;;
 ;; Finding an external command to use is obviously a bit tricky to get
 ;; right, as there is no lack of platforms, window managers, desktop
@@ -94,9 +95,11 @@ the image file to set the wallpaper to.")
                   (args (if (or (listp args-raw) (symbolp args-raw))
                             args-raw
                           (string-split args-raw)))
-                  (predicate (plist-get rest-plist :predicate))))
+                  (predicate (plist-get rest-plist :predicate))
+                  (init-action (plist-get rest-plist :init-action))
+                  (detach (plist-get rest-plist :detach))))
                (:copier wallpaper-setter-copy))
-  "Structure containing a command to set the wallpaper.
+  "Structure containing a method to set the wallpaper.
 
 NAME is a description of the setter (e.g. the name of the Desktop
 Environment).
@@ -106,14 +109,40 @@ COMMAND is the executable to run to set the wallpaper.
 ARGS is the default list of command line arguments for COMMAND.
 
 PREDICATE is a function that will be called without any arguments
-and returns non-nil if this setter should be used."
+and returns non-nil if this setter should be used.
+
+INIT-ACTION is a function that will be called without any
+arguments before trying to set the wallpaper.
+
+DETACH, if non-nil, means that the wallpaper process should
+continue running even after exiting Emacs."
   name
   command
   args
-  (predicate #'always))
+  (predicate #'always)
+  init-action
+  detach)
 
 ;;;###autoload
 (put 'wallpaper-setter-create 'lisp-indent-function 1)
+
+(defun wallpaper--init-action-kill (process-name)
+  "Return kill function for `init-action' of a `wallpaper-setter' structure.
+The returned function kills any process named PROCESS-NAME owned
+by the current effective user id."
+  (lambda ()
+    (when-let ((procs
+                (seq-filter (lambda (p) (let-alist p
+                                     (and (= .euid (user-uid))
+                                          (equal .comm process-name))))
+                            (mapcar (lambda (pid)
+                                      (cons (cons 'pid pid)
+                                            (process-attributes pid)))
+                                    (list-system-processes)))))
+      (dolist (proc procs)
+        (let-alist proc
+          (when (y-or-n-p (format "Kill \"%s\" process with PID %d?" .comm .pid))
+            (signal-process .pid 'TERM)))))))
 
 (defmacro wallpaper--default-methods-create (&rest items)
   "Helper macro for defining `wallpaper--default-setters'."
@@ -198,12 +227,16 @@ and returns non-nil if this setter should be used."
     "swaybg" "-o * -i %f -m fill"
     :predicate (lambda ()
                  (and (getenv "WAYLAND_DISPLAY")
-                      (getenv "SWAYSOCK"))))
+                      (getenv "SWAYSOCK")))
+    :init-action (wallpaper--init-action-kill "swaybg")
+    :detach t)
 
    ("wbg"
     "wbg" "%f"
     :predicate (lambda ()
-                 (getenv "WAYLAND_DISPLAY")))
+                 (getenv "WAYLAND_DISPLAY"))
+    :init-action (wallpaper--init-action-kill "wbg")
+    :detach t)
 
    ;; X general.
    ("GraphicsMagick"
@@ -257,7 +290,8 @@ order in which they appear.")
 
 (defun wallpaper--find-setter ()
   (when (wallpaper--use-default-set-function-p)
-    (or wallpaper--current-setter
+    (or (and (wallpaper-setter-p wallpaper--current-setter)
+             wallpaper--current-setter)
         (setq wallpaper--current-setter
               (catch 'found
                 (dolist (setter wallpaper--default-setters)
@@ -440,9 +474,10 @@ FILE is the image file name."
   (format-spec
    format
    `((?f . ,(expand-file-name file))
-     (?F . ,(mapconcat #'url-hexify-string
-                       (file-name-split file)
-                       "/"))
+     (?F . ,(lambda ()
+              (mapconcat #'url-hexify-string
+                         (file-name-split file)
+                         "/")))
      (?h . ,(lambda ()
               (wallpaper--get-height-or-width
                "height"
@@ -454,22 +489,25 @@ FILE is the image file name."
                #'display-pixel-width
                wallpaper-default-width)))
      ;; screen number
-     (?S . ,(let ((display (frame-parameter (selected-frame) 'display)))
-              (if (and display
-                       (string-match (rx ":" (+ (in "0-9")) "."
-                                         (group (+ (in "0-9"))) eos)
-                                     display))
-                  (match-string 1 display)
-                "0")))
+     (?S . ,(lambda ()
+              (let ((display (frame-parameter (selected-frame) 'display)))
+                (if (and display
+                         (string-match (rx ":" (+ (in "0-9")) "."
+                                           (group (+ (in "0-9"))) eos)
+                                       display))
+                    (match-string 1 display)
+                  "0"))))
      ;; monitor name
      (?M . ,#'wallpaper--x-monitor-name)
      ;; workspace
-     (?W . ,(or (and (fboundp 'x-window-property)
-                     (display-graphic-p)
-                     (number-to-string
-                      (or (x-window-property "_NET_CURRENT_DESKTOP" nil "CARDINAL" 0 nil t)
-                          (x-window-property "WIN_WORKSPACE" nil "CARDINAL" 0 nil t))))
-                "0")))))
+     (?W . ,(lambda ()
+              (or (and (fboundp 'x-window-property)
+                       (display-graphic-p)
+                       (number-to-string
+                        (or (x-window-property "_NET_CURRENT_DESKTOP" nil "CARDINAL" 0 nil t)
+                            (x-window-property "WIN_WORKSPACE" nil "CARDINAL" 0 nil t)
+                            0)))
+                  "0"))))))
 
 (defun wallpaper-default-set-function (file)
   "Set the wallpaper to FILE using a command.
@@ -482,28 +520,36 @@ This is the default function for `wallpaper-set-function'."
          (real-args (mapcar (lambda (arg) (wallpaper--format-arg arg file))
                             args))
          (bufname (format " *wallpaper-%s*" (random)))
-         (process
-          (and wallpaper-command
-               (apply #'start-process "set-wallpaper" bufname
-                      wallpaper-command real-args))))
-    (unless wallpaper-command
-      (error "Couldn't find a suitable command for setting the wallpaper"))
+         (setter (and (wallpaper-setter-p wallpaper--current-setter)
+                      (equal (wallpaper-setter-command wallpaper--current-setter)
+                             wallpaper-command)
+                      wallpaper--current-setter))
+         (init-action (and setter (wallpaper-setter-init-action setter)))
+         (detach (and setter (wallpaper-setter-detach setter)))
+         process)
+    (when init-action
+      (funcall init-action))
     (wallpaper-debug "Using command: \"%s %s\""
-            wallpaper-command (string-join real-args " "))
-    (setf (process-sentinel process)
-          (lambda (process status)
-            (unwind-protect
-                (if (and (eq (process-status process) 'exit)
-                         (zerop (process-exit-status process)))
-                    (message "Desktop wallpaper changed to %s"
-                             (abbreviate-file-name file))
-                  (message "command \"%s %s\": %S"
-                           (string-join (process-command process) " ")
-                           (string-replace "\n" "" status)
-                           (with-current-buffer (process-buffer process)
-                             (string-clean-whitespace (buffer-string)))))
-              (ignore-errors
-                (kill-buffer (process-buffer process))))))
+                     wallpaper-command (string-join real-args " "))
+    (if detach
+        (apply #'call-process wallpaper-command nil 0 nil real-args)
+      (setq process
+            (apply #'start-process "set-wallpaper" bufname
+                   wallpaper-command real-args))
+      (setf (process-sentinel process)
+            (lambda (process status)
+              (unwind-protect
+                  (if (and (eq (process-status process) 'exit)
+                           (zerop (process-exit-status process)))
+                      (message "Desktop wallpaper changed to %s"
+                               (abbreviate-file-name file))
+                    (message "command \"%s %s\": %S"
+                             (string-join (process-command process) " ")
+                             (string-replace "\n" "" status)
+                             (with-current-buffer (process-buffer process)
+                               (string-clean-whitespace (buffer-string)))))
+                (ignore-errors
+                  (kill-buffer (process-buffer process)))))))
     process))
 
 ;;;###autoload

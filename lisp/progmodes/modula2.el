@@ -65,39 +65,36 @@
   "Column for aligning the end of a comment, in Modula-2."
   :type 'integer)
 
-;;; Added by TEP
-(defvar m2-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; FIXME: Many of those bindings are contrary to coding conventions.
-    (define-key map "\C-cb" #'m2-begin)
-    (define-key map "\C-cc" #'m2-case)
-    (define-key map "\C-cd" #'m2-definition)
-    (define-key map "\C-ce" #'m2-else)
-    (define-key map "\C-cf" #'m2-for)
-    (define-key map "\C-ch" #'m2-header)
-    (define-key map "\C-ci" #'m2-if)
-    (define-key map "\C-cm" #'m2-module)
-    (define-key map "\C-cl" #'m2-loop)
-    (define-key map "\C-co" #'m2-or)
-    (define-key map "\C-cp" #'m2-procedure)
-    (define-key map "\C-c\C-w" #'m2-with)
-    (define-key map "\C-cr" #'m2-record)
-    (define-key map "\C-cs" #'m2-stdio)
-    (define-key map "\C-ct" #'m2-type)
-    (define-key map "\C-cu" #'m2-until)
-    (define-key map "\C-cv" #'m2-var)
-    (define-key map "\C-cw" #'m2-while)
-    (define-key map "\C-cx" #'m2-export)
-    (define-key map "\C-cy" #'m2-import)
-    (define-key map "\C-c{" #'m2-begin-comment)
-    (define-key map "\C-c}" #'m2-end-comment)
-    (define-key map "\C-c\C-z" #'suspend-emacs)
-    (define-key map "\C-c\C-v" #'m2-visit)
-    (define-key map "\C-c\C-t" #'m2-toggle)
-    (define-key map "\C-c\C-l" #'m2-link)
-    (define-key map "\C-c\C-c" #'m2-compile)
-    map)
-  "Keymap used in Modula-2 mode.")
+(defvar-keymap m2-mode-map
+  :doc "Keymap used in Modula-2 mode."
+  ;; FIXME: Many of those bindings are contrary to coding conventions.
+  "C-c b"   #'m2-begin
+  "C-c c"   #'m2-case
+  "C-c d"   #'m2-definition
+  "C-c e"   #'m2-else
+  "C-c f"   #'m2-for
+  "C-c h"   #'m2-header
+  "C-c i"   #'m2-if
+  "C-c m"   #'m2-module
+  "C-c l"   #'m2-loop
+  "C-c o"   #'m2-or
+  "C-c p"   #'m2-procedure
+  "C-c C-w" #'m2-with
+  "C-c r"   #'m2-record
+  "C-c s"   #'m2-stdio
+  "C-c t"   #'m2-type
+  "C-c u"   #'m2-until
+  "C-c v"   #'m2-var
+  "C-c w"   #'m2-while
+  "C-c x"   #'m2-export
+  "C-c y"   #'m2-import
+  "C-c {"   #'m2-begin-comment
+  "C-c }"   #'m2-end-comment
+  "C-c C-z" #'suspend-emacs
+  "C-c C-v" #'m2-visit
+  "C-c C-t" #'m2-toggle
+  "C-c C-l" #'m2-link
+  "C-c C-c" #'m2-compile)
 
 (defcustom m2-indent 5
   "This variable gives the indentation in Modula-2 mode."

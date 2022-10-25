@@ -646,15 +646,12 @@ parts of the list.
 The OFFSET argument is added to/taken away from the index that will be
 used.  This is really only useful with `first' and `last', for
 accessing absolute argument positions."
-  (setq index
-	(if (eq index 'first)
-	    0
-	  (if (eq index 'last)
-	      pcomplete-last
-	    (- pcomplete-index (or index 0)))))
-  (if offset
-      (setq index (+ index offset)))
-  (nth index pcomplete-args))
+  (nth (+ (pcase index
+	   ('first 0)
+	   ('last  pcomplete-last)
+	   (_      (- pcomplete-index (or index 0))))
+	  (or offset 0))
+       pcomplete-args))
 
 (defun pcomplete-begin (&optional index offset)
   "Return the beginning position of the INDEXth argument.

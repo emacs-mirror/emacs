@@ -1,7 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
 ;;      Bengt Martensson <bengt@mathematik.uni-Bremen.de>
@@ -29,14 +28,13 @@
 
 ;;; Commentary:
 
-;;  Major mode for editing and validating BibTeX files.
+;; Major mode for editing and validating BibTeX files.
 
-;;  Usage:
-;;  See documentation for `bibtex-mode' or type "M-x describe-mode"
-;;  when you are in BibTeX mode.
+;; See documentation for `bibtex-mode' or type `M-x describe-mode'
+;; when you are in BibTeX mode.
 
-;;  Todo:
-;;  Distribute texinfo file.
+;; Todo:
+;; Distribute texinfo file.
 
 ;;; Code:
 
@@ -1548,65 +1546,65 @@ Set this variable before loading BibTeX mode."
     st)
   "Syntax table used in BibTeX mode buffers.")
 
-(defvar bibtex-mode-map
-  (let ((km (make-sparse-keymap)))
-    ;; The Key `C-c&' is reserved for reftex.el
-    (define-key km "\t" 'bibtex-find-text)
-    (define-key km "\n" 'bibtex-next-field)
-    (define-key km [remap forward-paragraph] 'bibtex-next-entry)
-    (define-key km [remap backward-paragraph] 'bibtex-previous-entry)
-    (define-key km "\M-\t" 'completion-at-point)
-    (define-key km "\C-c\"" 'bibtex-remove-delimiters)
-    (define-key km "\C-c{" 'bibtex-remove-delimiters)
-    (define-key km "\C-c}" 'bibtex-remove-delimiters)
-    (define-key km "\C-c\C-c" 'bibtex-clean-entry)
-    (define-key km "\C-c\C-q" 'bibtex-fill-entry)
-    (define-key km "\C-c\C-s" 'bibtex-search-entry)
-    (define-key km "\C-c\C-x" 'bibtex-search-crossref)
-    (define-key km "\C-c\C-t" 'bibtex-copy-summary-as-kill)
-    (define-key km "\C-c?" 'bibtex-print-help-message)
-    (define-key km "\C-c\C-p" 'bibtex-pop-previous)
-    (define-key km "\C-c\C-n" 'bibtex-pop-next)
-    (define-key km "\C-c\C-k" 'bibtex-kill-field)
-    (define-key km "\C-c\M-k" 'bibtex-copy-field-as-kill)
-    (define-key km "\C-c\C-w" 'bibtex-kill-entry)
-    (define-key km "\C-c\M-w" 'bibtex-copy-entry-as-kill)
-    (define-key km "\C-c\C-y" 'bibtex-yank)
-    (define-key km "\C-c\M-y" 'bibtex-yank-pop)
-    (define-key km "\C-c\C-d" 'bibtex-empty-field)
-    (define-key km "\C-c\C-f" 'bibtex-make-field)
-    (define-key km "\C-c\C-u" 'bibtex-entry-update)
-    (define-key km "\C-c$" 'bibtex-ispell-abstract)
-    (define-key km "\M-\C-a" 'bibtex-beginning-of-entry)
-    (define-key km "\M-\C-e" 'bibtex-end-of-entry)
-    (define-key km "\C-\M-l" 'bibtex-reposition-window)
-    (define-key km "\C-\M-h" 'bibtex-mark-entry)
-    (define-key km "\C-c\C-b" 'bibtex-entry)
-    (define-key km "\C-c\C-rn" 'bibtex-narrow-to-entry)
-    (define-key km "\C-c\C-rw" 'widen)
-    (define-key km "\C-c\C-l" 'bibtex-url)
-    (define-key km "\C-c\C-a" 'bibtex-search-entries)
-    (define-key km "\C-c\C-o" 'bibtex-remove-OPT-or-ALT)
-    (define-key km "\C-c\C-e\C-i" 'bibtex-InProceedings)
-    (define-key km "\C-c\C-ei" 'bibtex-InCollection)
-    (define-key km "\C-c\C-eI" 'bibtex-InBook)
-    (define-key km "\C-c\C-e\C-a" 'bibtex-Article)
-    (define-key km "\C-c\C-e\C-b" 'bibtex-InBook)
-    (define-key km "\C-c\C-eb" 'bibtex-Book)
-    (define-key km "\C-c\C-eB" 'bibtex-Booklet)
-    (define-key km "\C-c\C-e\C-c" 'bibtex-InCollection)
-    (define-key km "\C-c\C-e\C-m" 'bibtex-Manual)
-    (define-key km "\C-c\C-em" 'bibtex-MastersThesis)
-    (define-key km "\C-c\C-eM" 'bibtex-Misc)
-    (define-key km "\C-c\C-e\C-p" 'bibtex-InProceedings)
-    (define-key km "\C-c\C-ep" 'bibtex-Proceedings)
-    (define-key km "\C-c\C-eP" 'bibtex-PhdThesis)
-    (define-key km "\C-c\C-e\M-p" 'bibtex-Preamble)
-    (define-key km "\C-c\C-e\C-s" 'bibtex-String)
-    (define-key km "\C-c\C-e\C-t" 'bibtex-TechReport)
-    (define-key km "\C-c\C-e\C-u" 'bibtex-Unpublished)
-    km)
-  "Keymap used in BibTeX mode.")
+(defvar-keymap bibtex-mode-map
+  :doc "Keymap used in BibTeX mode."
+  ;; The Key `C-c &' is reserved for reftex.el
+  "TAB"         #'bibtex-find-text
+  "C-j"         #'bibtex-next-field
+  "M-TAB"       #'completion-at-point
+  "C-c \""      #'bibtex-remove-delimiters
+  "C-c {"       #'bibtex-remove-delimiters
+  "C-c }"       #'bibtex-remove-delimiters
+  "C-c C-c"     #'bibtex-clean-entry
+  "C-c C-q"     #'bibtex-fill-entry
+  "C-c C-s"     #'bibtex-search-entry
+  "C-c C-x"     #'bibtex-search-crossref
+  "C-c C-t"     #'bibtex-copy-summary-as-kill
+  "C-c ?"       #'bibtex-print-help-message
+  "C-c C-p"     #'bibtex-pop-previous
+  "C-c C-n"     #'bibtex-pop-next
+  "C-c C-k"     #'bibtex-kill-field
+  "C-c M-k"     #'bibtex-copy-field-as-kill
+  "C-c C-w"     #'bibtex-kill-entry
+  "C-c M-w"     #'bibtex-copy-entry-as-kill
+  "C-c C-y"     #'bibtex-yank
+  "C-c M-y"     #'bibtex-yank-pop
+  "C-c C-d"     #'bibtex-empty-field
+  "C-c C-f"     #'bibtex-make-field
+  "C-c C-u"     #'bibtex-entry-update
+  "C-c $"       #'bibtex-ispell-abstract
+  "C-M-a"       #'bibtex-beginning-of-entry
+  "C-M-e"       #'bibtex-end-of-entry
+  "C-M-l"       #'bibtex-reposition-window
+  "C-M-h"       #'bibtex-mark-entry
+  "C-c C-b"     #'bibtex-entry
+  "C-c C-r n"   #'bibtex-narrow-to-entry
+  "C-c C-r w"   #'widen
+  "C-c C-l"     #'bibtex-url
+  "C-c C-a"     #'bibtex-search-entries
+  "C-c C-o"     #'bibtex-remove-OPT-or-ALT
+  ;; Most below functions seem to be undefined, which makes the
+  ;; byte-compiler warn if we quote them with #'.
+  "C-c C-e TAB" 'bibtex-InProceedings
+  "C-c C-e i"   'bibtex-InCollection
+  "C-c C-e I"   'bibtex-InBook
+  "C-c C-e C-a" 'bibtex-Article
+  "C-c C-e C-b" 'bibtex-InBook
+  "C-c C-e b"   'bibtex-Book
+  "C-c C-e B"   'bibtex-Booklet
+  "C-c C-e C-c" 'bibtex-InCollection
+  "C-c C-e RET" 'bibtex-Manual
+  "C-c C-e m"   'bibtex-MastersThesis
+  "C-c C-e M"   'bibtex-Misc
+  "C-c C-e C-p" 'bibtex-InProceedings
+  "C-c C-e p"   'bibtex-Proceedings
+  "C-c C-e P"   'bibtex-PhdThesis
+  "C-c C-e M-p" #'bibtex-Preamble
+  "C-c C-e C-s" #'bibtex-String
+  "C-c C-e C-t" 'bibtex-TechReport
+  "C-c C-e C-u" 'bibtex-Unpublished
+  "<remap> <forward-paragraph>"  #'bibtex-next-entry
+  "<remap> <backward-paragraph>" #'bibtex-previous-entry)
 
 (easy-menu-define bibtex-edit-menu bibtex-mode-map
   "BibTeX-Edit Menu in BibTeX mode."

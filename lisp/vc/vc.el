@@ -574,6 +574,16 @@
 ;;   containing FILE-OR-DIR.  The optional REMOTE-NAME specifies the
 ;;   remote (in Git parlance) whose URL is to be returned.  It has
 ;;   only a meaning for distributed VCS and is ignored otherwise.
+;;
+;; - prepare-patch (rev)
+;;
+;;   Prepare a patch and return a property list with the keys
+;;   `:subject' indicating the patch message as a string, `:buffer'
+;;   with a buffer object that contains the entire patch message and
+;;   `:body-start' and `:body-end' demarcating what part of said
+;;   buffer should be inserted into an inline patch.  If the two last
+;;   properties are omitted, `point-min' and `point-max' will
+;;   respectively be used instead.
 
 ;;; Changes from the pre-25.1 API:
 ;;
@@ -1673,6 +1683,50 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
    backend
    patch-string))
 
+(defun vc-default-checkin-patch (_backend patch-string comment)
+  (pcase-let* ((`(,backend ,files) (with-temp-buffer
+                                     (insert patch-string)
+                                     (diff-vc-deduce-fileset)))
+               (tmpdir (make-temp-file "vc-checkin-patch" t)))
+    (dolist (f files)
+      (make-directory (file-name-directory (expand-file-name f tmpdir)) t)
+      (copy-file (expand-file-name f)
+                 (expand-file-name f tmpdir)))
+    (unwind-protect
+        (progn
+          (dolist (f files)
+            (with-current-buffer (find-file-noselect f)
+              (vc-revert-file buffer-file-name)))
+          (with-temp-buffer
+            ;; Trying to support CVS too.  Assuming that vc-diff
+            ;; there will usually have diff root in default-directory.
+            (when (vc-find-backend-function backend 'root)
+              (setq-local default-directory
+                          (vc-call-backend backend 'root (car files))))
+            (unless (eq 0
+                        (call-process-region patch-string
+                                             nil
+                                             "patch"
+                                             nil
+                                             t
+                                             nil
+                                             "-p1"
+                                             "-r" null-device
+                                             "--no-backup-if-mismatch"
+                                             "-i" "-"))
+              (user-error "Patch failed: %s" (buffer-string))))
+          (dolist (f files)
+            (with-current-buffer (get-file-buffer f)
+              (revert-buffer t t t)))
+          (vc-call-backend backend 'checkin files comment))
+      (dolist (f files)
+        (copy-file (expand-file-name f tmpdir)
+                   (expand-file-name f)
+                   t)
+        (with-current-buffer (get-file-buffer f)
+          (revert-buffer t t t)))
+      (delete-directory tmpdir t))))
+
 ;;; Additional entry points for examining version histories
 
 ;; (defun vc-default-diff-tree (backend dir rev1 rev2)
@@ -1910,7 +1964,14 @@ Return t if the buffer had changes, nil otherwise."
 (defvar vc-revision-history nil
   "History for `vc-read-revision'.")
 
-(defun vc-read-revision (prompt &optional files backend default initial-input)
+(defun vc-read-revision (prompt &optional files backend default initial-input multiple)
+  "Query the user for a revision using PROMPT.
+All subsequent arguments are optional.  FILES may specify a file
+set to restrict the revisions to.  BACKEND is a VC backend as
+listed in `vc-handled-backends'.  DEFAULT and INITIAL-INPUT are
+handled as defined by `completing-read'.  If MULTIPLE is non-nil,
+the user may be prompted for multiple revisions.  If possible
+this means that `completing-read-multiple' will be used."
   (cond
    ((null files)
     (let ((vc-fileset (vc-deduce-fileset t))) ;FIXME: why t?  --Stef
@@ -1923,9 +1984,20 @@ Return t if the buffer had changes, nil otherwise."
          (completion-table
           (vc-call-backend backend 'revision-completion-table files)))
     (if completion-table
-        (completing-read prompt completion-table
-                         nil nil initial-input 'vc-revision-history default)
-      (read-string prompt initial-input nil default))))
+        (funcall
+         (if multiple #'completing-read-multiple #'completing-read)
+         prompt completion-table nil nil initial-input 'vc-revision-history default)
+      (let ((answer (read-string prompt initial-input nil default)))
+        (if multiple
+            (split-string answer "[ \t]*,[ \t]*")
+          answer)))))
+
+(defun vc-read-multiple-revisions (prompt &optional files backend default initial-input)
+  "Query the user for multiple revisions.
+This is equivalent to invoking `vc-read-revision' with t for
+MULTIPLE.  The arguments PROMPT, FILES, BACKEND, DEFAULT and
+INITIAL-INPUT are passed on to `vc-read-revision' directly."
+  (vc-read-revision prompt files backend default initial-input t))
 
 (defun vc-diff-build-argument-list-internal (&optional fileset)
   "Build argument list for calling internal diff functions."
@@ -3263,6 +3335,112 @@ immediately after this one."
     (setq vc-filter-command-function
           (lambda (&rest args)
             (apply #'vc-user-edit-command (apply old args))))))
+
+(defcustom vc-prepare-patches-separately t
+  "Whether `vc-prepare-patch' should generate a separate message for each patch.
+If nil, `vc-prepare-patch' creates a single email message by attaching
+all the patches to the body of that message.  If non-nil, each patch
+will be sent out in a separate message, and the messages will be
+prepared sequentially."
+  :type 'boolean
+  :safe #'booleanp
+  :version "29.1")
+
+(defcustom vc-default-patch-addressee nil
+  "Default addressee for `vc-prepare-patch'.
+If nil, no default will be used.  This option may be set locally."
+  :type '(choice (const :tag "No default" nil)
+                 (string :tag "Addressee"))
+  :safe #'stringp
+  :version "29.1")
+
+(declare-function message--name-table "message" (orig-string))
+(declare-function mml-attach-buffer "mml"
+                  (buffer &optional type description disposition))
+(declare-function log-view-get-marked "log-view" ())
+
+(defun vc-default-prepare-patch (_backend rev)
+  (let ((backend (vc-backend buffer-file-name)))
+    (with-current-buffer (generate-new-buffer " *vc-default-prepare-patch*")
+      (vc-diff-internal
+       nil (list backend) rev
+       (vc-call-backend backend 'previous-revision
+                        buffer-file-name rev)
+       nil t)
+      (list :subject (concat "Patch for "
+                             (file-name-nondirectory
+                              (directory-file-name
+                               (vc-root-dir))))
+            :buffer (current-buffer)))))
+
+;;;###autoload
+(defun vc-prepare-patch (addressee subject revisions)
+  "Compose an Email sending patches for REVISIONS to ADDRESSEE.
+If `vc-prepare-patches-separately' is nil, SUBJECT will be used
+as the default subject for the message (and it will be prompted
+for when called interactively).  Otherwise a separate message
+will be composed for each revision, with SUBJECT derived from the
+invidividual commits.
+
+When invoked interactively in a Log View buffer with marked
+revisions, those revisions will be used."
+  (interactive
+   (let ((revs (vc-read-multiple-revisions
+                "Revisions: " nil nil nil
+                (or (and-let* ((revs (log-view-get-marked)))
+                      (mapconcat #'identity revs ","))
+                    (and-let* ((file (buffer-file-name)))
+                      (vc-working-revision file)))))
+         to)
+     (require 'message)
+     (while (null (setq to (completing-read-multiple
+                            (format-prompt
+                             "Addressee"
+                             vc-default-patch-addressee)
+                            (message--name-table "")
+                            nil nil nil nil
+                            vc-default-patch-addressee)))
+       (message "At least one addressee required.")
+       (sit-for blink-matching-delay))
+     (list (string-join to ", ")
+           (and (not vc-prepare-patches-separately)
+                (read-string "Subject: " "[PATCH] " nil nil t))
+           revs)))
+  (save-current-buffer
+    (vc-ensure-vc-buffer)
+    (let ((patches (mapcar (lambda (rev)
+                             (vc-call-backend
+                              (vc-responsible-backend default-directory)
+                              'prepare-patch rev))
+                           revisions)))
+      (if vc-prepare-patches-separately
+          (dolist (patch (reverse patches)
+                         (message "Prepared %d patch%s..." (length patches)
+                                  (if (length> patches 1) "es" "")))
+            (compose-mail addressee
+                          (plist-get patch :subject)
+                          nil nil nil nil
+                          `((kill-buffer ,(plist-get patch :buffer))))
+            (rfc822-goto-eoh) (forward-line)
+            (save-excursion             ;don't jump to the end
+              (insert-buffer-substring
+               (plist-get patch :buffer)
+               (plist-get patch :body-start)
+               (plist-get patch :body-end))))
+        (compose-mail addressee subject nil nil nil nil
+                      (mapcar
+                       (lambda (p)
+                         (list #'kill-buffer (plist-get p :buffer)))
+                       patches))
+        (rfc822-goto-eoh)
+        (forward-line)
+        (save-excursion
+          (dolist (patch patches)
+            (mml-attach-buffer (buffer-name (plist-get patch :buffer))
+                               "text/x-patch"
+                               (plist-get patch :subject)
+                               "attachment")))
+        (open-line 2)))))
 
 (defun vc-default-responsible-p (_backend _file)
   "Indicate whether BACKEND is responsible for FILE.

@@ -209,10 +209,7 @@ Linum mode is a buffer-local minor mode."
             (overlay-put ov 'before-string
                          (propertize " " 'display `((margin left-margin) ,str)))
             (overlay-put ov 'linum-str str))))
-      ;; Text may contain those nasty intangible properties, but that
-      ;; shouldn't prevent us from counting those lines.
-      (let ((inhibit-point-motion-hooks t))
-        (forward-line))
+      (forward-line)
       (setq line (1+ line)))
     (when (display-graphic-p)
       (setq width (ceiling

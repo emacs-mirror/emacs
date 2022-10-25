@@ -194,7 +194,7 @@ This can be either \"inline\" or \"attachment\".")
      nil)
     (verbatim-marks
      ;; slrn-style verbatim marks, see
-     ;; http://slrn.sourceforge.net/docs/slrn-manual-6.html#process_verbatim_marks
+     ;; https://slrn.sourceforge.net/docs/slrn-manual-6.html#process_verbatim_marks
      "^#v\\+"
      "^#v\\-$"
      ,(lambda () (mm-uu-verbatim-marks-extract 0 0))

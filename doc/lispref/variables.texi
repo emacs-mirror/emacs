@@ -2239,8 +2239,25 @@ still respecting file-local variables (@pxref{File Local Variables}).
 @cindex connection local variables
 
   Connection-local variables provide a general mechanism for different
-variable settings in buffers with a remote connection.  They are bound
+variable settings in buffers with a remote connection (@pxref{Remote
+Files,, Remote Files, emacs, The GNU Emacs Manual}).  They are bound
 and set depending on the remote connection a buffer is dedicated to.
+
+@menu
+* Connection Local Profiles::            Storing variable settings to
+                                         apply to connections.
+* Applying Connection Local Variables::  Using connection-local values
+                                         in your code.
+@end menu
+
+@node Connection Local Profiles
+@subsection Connection Local Profiles
+@cindex connection local profiles
+
+  Emacs uses connection-local profiles to store the variable settings
+to apply to particular connections.  You can then associate these with
+remote connections by defining the criteria when they should apply,
+using @code{connection-local-set-profiles}.
 
 @defun connection-local-set-profile-variables profile variables
 This function defines a set of variable settings for the connection
@@ -2311,13 +2328,13 @@ always applies.  Example:
 @example
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "localhost")
+  '(:application tramp :protocol "ssh" :machine "localhost")
   'remote-bash 'remote-null-device)
 @end group
 
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "sudo"
+  '(:application tramp :protocol "sudo"
     :user "root" :machine "localhost")
   'remote-ksh 'remote-null-device)
 @end group
@@ -2329,13 +2346,13 @@ Therefore, the example above would be equivalent to
 @example
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "localhost")
+  '(:application tramp :protocol "ssh" :machine "localhost")
   'remote-bash)
 @end group
 
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "sudo"
+  '(:application tramp :protocol "sudo"
     :user "root" :machine "localhost")
   'remote-ksh)
 @end group
@@ -2356,6 +2373,14 @@ names.  The function @code{connection-local-set-profiles} updates this
 list.
 @end deffn
 
+@node Applying Connection Local Variables
+@subsection Applying Connection Local Variables
+@cindex connection local variables, applying
+
+  When writing connection-aware code, you'll need to collect, and
+possibly apply, any connection-local variables.  There are several
+ways to do this, as described below.
+
 @defun hack-connection-local-variables criteria
 This function collects applicable connection-local variables
 associated with @var{criteria} in
@@ -2365,7 +2390,7 @@ Example:
 @example
 @group
 (hack-connection-local-variables
-  '(:application 'tramp :protocol "ssh" :machine "localhost"))
+  '(:application tramp :protocol "ssh" :machine "localhost"))
 @end group
 
 @group
@@ -2384,40 +2409,12 @@ This function looks for connection-local variables according to
 @var{criteria}, and immediately applies them in the current buffer.
 @end defun
 
-@defmac with-connection-local-variables &rest body
-All connection-local variables, which are specified by
-@code{default-directory}, are applied.
+@defmac with-connection-local-application-variables application &rest body
+Apply all connection-local variables for @code{application}, which are
+specified by @code{default-directory}.
 
 After that, @var{body} is executed, and the connection-local variables
 are unwound.  Example:
-
-@example
-@group
-(connection-local-set-profile-variables
-  'remote-perl
-  '((perl-command-name . "/usr/local/bin/perl")
-    (perl-command-switch . "-e %s")))
-@end group
-
-@group
-(connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "remotehost")
-  'remote-perl)
-@end group
-
-@group
-(let ((default-directory "/ssh:remotehost:/working/dir/"))
-  (with-connection-local-variables
-    do something useful))
-@end group
-@end example
-@end defmac
-
-@defvar connection-local-default-application
-The default application, a symbol, to be applied in
-@code{with-connection-local-variables}.  It defaults to @code{tramp},
-but in case you want to overwrite Tramp's settings temporarily, you
-could let-bind it like
 
 @example
 @group
@@ -2429,17 +2426,74 @@ could let-bind it like
 
 @group
 (connection-local-set-profiles
-  '(:application 'my-app :protocol "ssh" :machine "remotehost")
+  '(:application my-app :protocol "ssh" :machine "remotehost")
   'my-remote-perl)
 @end group
 
 @group
-(let ((default-directory "/ssh:remotehost:/working/dir/")
-      (connection-local-default-application 'my-app))
-  (with-connection-local-variables
+(let ((default-directory "/ssh:remotehost:/working/dir/"))
+  (with-connection-local-application-variables 'my-app
     do something useful))
 @end group
 @end example
+@end defmac
+
+@defvar connection-local-default-application
+The default application, a symbol, to be applied in
+@code{with-connection-local-variables}.  It defaults to @code{tramp},
+but you can let-bind it to change the application temporarily
+(@pxref{Local Variables}).
+
+This variable must not be changed globally.
+@end defvar
+
+@defmac with-connection-local-variables &rest body
+This is equivalent to
+@code{with-connection-local-application-variables}, but uses
+@code{connection-local-default-application} for the application.
+@end defmac
+
+@defmac setq-connection-local [symbol form]@dots{}
+This macro sets each @var{symbol} connection-locally to the result of
+evaluating the corresponding @var{form}, using the connection-local
+profile specified in @code{connection-local-profile-name-for-setq}; if
+the profile name is @code{nil}, this macro will just set the variables
+normally, as with @code{setq} (@pxref{Setting Variables}).
+
+For example, you can use this macro in combination with
+@code{with-connection-local-variables} or
+@code{with-connection-local-application-variables} to lazily
+initialize connection-local settings:
+
+@example
+@group
+(defvar my-app-variable nil)
+
+(connection-local-set-profile-variables
+ 'my-app-connection-default-profile
+ '((my-app-variable . nil)))
+
+(connection-local-set-profiles
+ '(:application my-app)
+ 'my-app-connection-default-profile)
+@end group
+
+@group
+(defun my-app-get-variable ()
+  (with-connection-local-application-variables 'my-app
+    (or my-app-variable
+        (setq-connection-local my-app-variable
+                               do something useful))))
+@end group
+@end example
+@end defmac
+
+@defvar connection-local-profile-name-for-setq
+The connection-local profile name, a symbol, to use when setting
+variables via @code{setq-connection-local}.  This is let-bound in the
+body of @code{with-connection-local-variables}, but you can also
+let-bind it yourself if you'd like to set variables on a different
+profile.
 
 This variable must not be changed globally.
 @end defvar

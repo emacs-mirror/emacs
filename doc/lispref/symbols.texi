@@ -718,9 +718,9 @@ byte-compiling any of the two files has equivalent results.  The
 shorthands @code{snu-split} and @code{snu-lines} used in the second
 version are @emph{not} interned in the obarray.  This is easily seen
 by moving point to the location where the shorthands are used and
-waiting for ElDoc (@pxref{Lisp Doc, , Local Variables in Files, emacs,
-The GNU Emacs Manual}) to hint at the true full name of the symbol
-under point in the echo area.
+waiting for ElDoc (@pxref{Programming Language Doc, , Local Variables
+in Files, emacs, The GNU Emacs Manual}) to hint at the true full name
+of the symbol under point in the echo area.
 
 Since @code{read-symbol-shorthands} is a file-local variable, it is
 possible that multiple libraries depending on

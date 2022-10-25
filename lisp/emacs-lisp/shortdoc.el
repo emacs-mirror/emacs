@@ -897,6 +897,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (seq-drop-while #'numberp '(1 2 c d 5)))
   (seq-filter
    :eval (seq-filter #'numberp '(a b 3 4 f 6)))
+  (seq-keep
+   :eval (seq-keep #'cl-digit-char-p '(?6 ?a ?7)))
   (seq-remove
    :eval (seq-remove #'numberp '(1 2 c d 5)))
   (seq-remove-at-position

@@ -112,7 +112,7 @@ buffer.")
     (define-key map "v" 'describe-variable)
     (define-key map "w" 'where-is)
     (define-key map "x" 'describe-command)
-    (define-key map "q" 'help-quit)
+    (define-key map "q" 'help-quit-or-quick)
     map)
   "Keymap for characters following the Help key.")
 
@@ -125,10 +125,145 @@ buffer.")
 (defvar help-button-cache nil)
 
 
+
+(defvar help-quick-sections
+  '(("File"
+     (save-buffers-kill-terminal . "exit")
+     (find-file . "find")
+     (write-file . "write")
+     (save-buffer . "save")
+     (save-some-buffers . "all"))
+    ("Buffer"
+     (kill-buffer . "kill")
+     (list-buffers . "list")
+     (switch-to-buffer . "switch")
+     (goto-line . "goto line")
+     (read-only-mode . "read only"))
+    ("Window"
+     (delete-window . "only other")
+     (delete-other-windows . "only this")
+     (split-window-below . "split vert.")
+     (split-window-right . "split horiz.")
+     (other-window . "other window"))
+    ("Mark & Kill"
+     (set-mark-command . "mark")
+     (kill-line . "kill line")
+     (kill-ring-save . "kill region")
+     (yank . "yank")
+     (exchange-point-and-mark . "swap"))
+    ("Projects"
+     (project-switch-project . "switch")
+     (project-find-file . "find file")
+     (project-find-regexp . "search")
+     (project-query-replace-regexp . "search & replace")
+     (project-compile . "compile"))
+    ("Misc."
+     (undo . "undo")
+     (isearch-forward . "search")
+     (isearch-backward . "reverse search")
+     (query-replace . "search & replace")
+     (fill-paragraph . "reformat"))))
+
+(declare-function prop-match-value "text-property-search" (match))
+
+;; Inspired by a mg fork (https://github.com/troglobit/mg)
+(defun help-quick ()
+  "Display a quick-help buffer."
+  (interactive)
+  (with-current-buffer (get-buffer-create "*Quick Help*")
+    (let ((inhibit-read-only t) (padding 2) blocks)
+
+      ;; Go through every section and prepare a text-rectangle to be
+      ;; inserted later.
+      (dolist (section help-quick-sections)
+        (let ((max-key-len 0) (max-cmd-len 0) keys)
+          (dolist (ent (reverse (cdr section)))
+            (catch 'skip
+              (let* ((bind (where-is-internal (car ent) nil t))
+                     (key (if bind
+                              (propertize
+                               (key-description bind)
+                               'face 'help-key-binding)
+                            (throw 'skip nil))))
+                (setq max-cmd-len (max (length (cdr ent)) max-cmd-len)
+                      max-key-len (max (length key) max-key-len))
+                (push (list key (cdr ent) (car ent)) keys))))
+          (when keys
+            (let ((fmt (format "%%-%ds %%-%ds%s" max-key-len max-cmd-len
+                               (make-string padding ?\s)))
+                  (width (+ max-key-len 1 max-cmd-len padding)))
+              (push `(,width
+                      ,(propertize
+                        (concat
+                         (car section)
+                         (make-string (- width (length (car section))) ?\s))
+                        'face 'bold)
+                      ,@(mapcar (lambda (ent)
+                                  (format fmt
+                                          (propertize
+                                           (car ent)
+                                           'quick-help-cmd
+                                           (caddr ent))
+                                          (cadr ent)))
+                                keys))
+                    blocks)))))
+
+      ;; Insert each rectangle in order until they don't fit into the
+      ;; frame any more, in which case the next sections are inserted
+      ;; in a new "line".
+      (erase-buffer)
+      (dolist (block (nreverse blocks))
+        (when (> (+ (car block) (current-column)) (frame-width))
+          (goto-char (point-max))
+          (newline 2))
+        (save-excursion
+          (insert-rectangle (cdr block)))
+        (end-of-line))
+      (delete-trailing-whitespace)
+
+      (save-excursion
+        (goto-char (point-min))
+        (while-let ((match (text-property-search-forward 'quick-help-cmd)))
+          (make-text-button (prop-match-beginning match)
+                            (prop-match-end match)
+                            'mouse-face 'highlight
+                            'button t
+                            'keymap button-map
+                            'action #'describe-symbol
+                            'button-data (prop-match-value match)))))
+
+    (help-mode)
+
+    ;; Display the buffer at the bottom of the frame...
+    (with-selected-window (display-buffer-at-bottom (current-buffer) '())
+      ;; ... mark it as dedicated to prevent focus from being stolen
+      (set-window-dedicated-p (selected-window) t)
+      ;; ... and shrink it immediately.
+      (fit-window-to-buffer))
+    (message
+     (substitute-command-keys "Toggle the quick help buffer using \\[help-quit-or-quick]."))))
+
+(defalias 'cheat-sheet #'help-quick)
+
 (defun help-quit ()
   "Just exit from the Help command's command loop."
   (interactive)
   nil)
+
+(defun help-quit-or-quick ()
+  "Call `help-quit' or  `help-quick' depending on the context."
+  (interactive)
+  (cond
+   (help-buffer-under-preparation
+    ;; FIXME: There should be a better way to detect if we are in the
+    ;;        help command loop.
+    (help-quit))
+   ((and-let* ((window (get-buffer-window "*Quick Help*")))
+      (quit-window t window)
+      ;; Clear the message we may have gotten from `C-h' and then
+      ;; waiting before hitting `q'.
+      (message "")))
+   ((help-quick))))
 
 (defvar help-return-method nil
   "What to do to \"exit\" the help buffer.
@@ -279,6 +414,7 @@ Do not call this in the scope of `with-help-window'."
        ("describe-package" "Describe a specific Emacs package")
        ""
        ("help-with-tutorial" "Start the Emacs tutorial")
+       ("help-quick-or-quit" "Display the quick help buffer.")
        ("view-echo-area-messages"
         "Show recent messages (from echo area)")
        ("view-lossage" ,(format "Show last %d input keystrokes (lossage)"
@@ -608,7 +744,8 @@ or a buffer name."
           (setq-local outline-heading-end-regexp ":\n")
           (setq-local outline-level (lambda () 1))
           (setq-local outline-minor-mode-cycle t
-                      outline-minor-mode-highlight t)
+                      outline-minor-mode-highlight t
+                      outline-minor-mode-use-buttons 'insert)
           (outline-minor-mode 1)
           (save-excursion
             (goto-char (point-min))

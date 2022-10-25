@@ -32,7 +32,7 @@
 
 ;; matlab.el required for interactive emacs sessions and matlab-mode
 ;; major mode for source code editing buffer
-;; http://matlab-emacs.sourceforge.net/
+;; https://matlab-emacs.sourceforge.net/
 
 ;;; Code:
 (require 'ob)

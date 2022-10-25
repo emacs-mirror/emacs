@@ -215,11 +215,16 @@
 (eval-and-compile
   (defconst perl--syntax-exp-intro-keywords
     '("split" "if" "unless" "until" "while" "print" "printf"
-      "grep" "map" "not" "or" "and" "for" "foreach" "return"))
+      "grep" "map" "not" "or" "and" "for" "foreach" "return" "die"
+      "warn" "eval"))
 
   (defconst perl--syntax-exp-intro-regexp
     (concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
             (regexp-opt perl--syntax-exp-intro-keywords)
+            ;; A HERE document as an argument to printf?
+            ;; when printing to a filehandle.
+            "\\|printf?[ \t]*\\$?[_[:alpha:]][_[:alnum:]]*"
+            "\\|=>"
             "\\|[?:.,;|&*=!~({[]"
             "\\|[^-+][-+]"    ;Bug#42168: `+' is intro but `++' isn't!
             "\\|\\(^\\)\\)[ \t\n]*")))
@@ -335,7 +340,7 @@
         "<<\\(~\\)?[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\)"
         ;; The <<EOF case which needs perl--syntax-exp-intro-regexp, to
         ;; disambiguate with the left-bitshift operator.
-        "\\|" perl--syntax-exp-intro-regexp "<<\\(?2:\\sw+\\)\\)"
+        "\\|" perl--syntax-exp-intro-regexp "<<\\(?1:~\\)?\\(?2:\\sw+\\)\\)"
         ".*\\(\n\\)")
        (4 (let* ((eol (match-beginning 4))
                  (st (get-text-property eol 'syntax-table))

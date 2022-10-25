@@ -6,31 +6,31 @@ copyright.html.
 The names, URLs, and dates for these files are as follows.
 
 BidiBrackets.txt
-http://www.unicode.org/Public/UNIDATA/BidiBrackets.txt
+https://www.unicode.org/Public/UNIDATA/BidiBrackets.txt
 2021-06-30
 
 BidiMirroring.txt
-http://www.unicode.org/Public/UNIDATA/BidiMirroring.txt
+https://www.unicode.org/Public/UNIDATA/BidiMirroring.txt
 2021-08-08
 
 Blocks.txt
-http://www.unicode.org/Public/8.0.0/ucd/Blocks.txt
+https://www.unicode.org/Public/8.0.0/ucd/Blocks.txt
 2021-01-22
 
 IVD_Sequences.txt
-http://www.unicode.org/ivd/
+https://www.unicode.org/ivd/
 2020-11-06
 
 NormalizationTest.txt
-http://www.unicode.org/Public/UNIDATA/NormalizationTest.txt
+https://www.unicode.org/Public/UNIDATA/NormalizationTest.txt
 2021-05-28
 
 SpecialCasing.txt
-http://unicode.org/Public/UNIDATA/SpecialCasing.txt
+https://unicode.org/Public/UNIDATA/SpecialCasing.txt
 2021-03-08
 
 UnicodeData.txt
-http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
+https://www.unicode.org/Public/UNIDATA/UnicodeData.txt
 2021-07-06
 
 emoji-data.txt

@@ -1330,7 +1330,7 @@ details.
 
 However, what you really want is the Insidious Big Brother
 Database bbdb.  Get it from
-@uref{http://bbdb.sourceforge.net/, bbdb's website}.
+@uref{https://bbdb.sourceforge.net/, bbdb's website}.
 Now place the following in @file{~/.gnus.el}, to activate bbdb for Gnus:
 
 @example
@@ -1782,13 +1782,13 @@ when you're online.
 Let's talk about Unix systems first: For the news part,
 the easiest solution is a small nntp server like
 @uref{https://www.leafnode.org/, Leafnode} or
-@uref{http://patrik.iki.fi/sn/, sn},
+@uref{https://patrik.iki.fi/sn/, sn},
 of course you can also install a full featured news
 server like
 @uref{https://www.isc.org/othersoftware/, inn}.
 Then you want to fetch your Mail, popular choices
 are @uref{https://www.fetchmail.info/, fetchmail}
-and @uref{http://pyropus.ca/software/getmail/, getmail}.
+and @uref{https://pyropus.ca/software/getmail/, getmail}.
 You should tell those to write the mail to your disk and
 Gnus to read it from there.  Last but not least the mail
 sending part: This can be done with every MTA like

@@ -8045,7 +8045,7 @@ to a string containing the default command and options (default
 @findex gnus-summary-muttprint
 @vindex gnus-summary-muttprint-program
 Save the current article into muttprint.  That is, print it using the
-external program @uref{http://muttprint.sourceforge.net/,
+external program @uref{https://muttprint.sourceforge.net/,
 Muttprint}.  The program name and options to use is controlled by the
 variable @code{gnus-summary-muttprint-program}.
 (@code{gnus-summary-muttprint}).
@@ -9343,7 +9343,7 @@ Use Gnus rendered based on w3m.
 Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
 
 @item w3m-standalone
-Use @uref{http://w3m.sourceforge.net/, w3m}.
+Use @uref{https://w3m.sourceforge.net/, w3m}.
 
 @item links
 Use @uref{http://links.twibright.com/, Links}.
@@ -13602,7 +13602,7 @@ Here's the method for a public spool:
 If you are behind a firewall and only have access to the @acronym{NNTP}
 server from the firewall machine, you can instruct Gnus to @code{rlogin}
 on the firewall machine and connect with
-@uref{http://netcat.sourceforge.net/, netcat} from there to the
+@uref{https://netcat.sourceforge.net/, netcat} from there to the
 @acronym{NNTP} server.
 Doing this can be rather fiddly, but your virtual server definition
 should probably look something like this:
@@ -23794,7 +23794,7 @@ On a GNU/Linux system, the @code{display} program is included in the
 ImageMagick package.  For external conversion programs look for packages
 with names like @code{netpbm}, @code{libgr-progs} and @code{compface}.
 On Windows, you may use the packages @code{netpbm} and @code{compface}
-from @url{http://gnuwin32.sourceforge.net}.  You need to add the
+from @url{https://gnuwin32.sourceforge.net}.  You need to add the
 @code{bin} directory to your @code{PATH} environment variable.
 @c In fact only the following DLLs and binaries seem to be required:
 @c compface1.dll uncompface.exe libnetpbm10.dll icontopbm.exe
@@ -26911,9 +26911,16 @@ Gnus 5.10 on May 1st 2003 (24 releases).
 
 On the January 4th 2004, No Gnus was begun.
 
+Gnus 5.11 was bundled with GNU Emacs 22.1 in June 2007.
+
+A version of No Gnus was released as Gnus 5.13 with GNU Emacs 23.1 in
+July 2009.
+
 On April 19, 2010 Gnus development was moved to Git.
 
 On the January 31th 2012, Ma Gnus was begun.
+
+Since then, Gnus has only been released together with Emacs.
 
 If you happen upon a version of Gnus that has a prefixed name---``(ding)
 Gnus'', ``September Gnus'', ``Red Gnus'', ``Quassia Gnus'',
@@ -29080,8 +29087,9 @@ moving articles to a group that has not turned auto-expire on.
 @subsubsection Ma Gnus
 @cindex Ma Gnus
 
-I'm sure there will be lots of text here.  It's really spelled 真
-Gnus.
+It's really spelled 真Gnus.  Ma Gnus was the code name for the
+development version of Gnus started in 2012.  These days, Gnus is only
+released together with Emacs.
 
 New features in Ma Gnus:
 
@@ -29110,6 +29118,8 @@ The new hooks @code{gnus-gcc-pre-body-encode-hook} and
 @code{gnus-gcc-post-body-encode-hook} are run before/after encoding
 the message body of the Gcc copy of a sent message.
 @xref{Archived Messages}.
+
+For more recent changes, see the Emacs @file{NEWS} files.
 
 @end itemize
 

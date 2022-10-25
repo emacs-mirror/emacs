@@ -2067,7 +2067,7 @@ dump_interval_tree (struct dump_context *ctx,
 static dump_off
 dump_string (struct dump_context *ctx, const struct Lisp_String *string)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_String_C2CAF90352)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_String_03B2DF1C8E)
 # error "Lisp_String changed. See CHECK_STRUCTS comment in config.h."
 #endif
   /* If we have text properties, write them _after_ the string so that

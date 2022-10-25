@@ -4702,14 +4702,13 @@ Search happens in `native-comp-eln-load-path'.
 (autoload 'native-compile "comp" "\
 Compile FUNCTION-OR-FILE into native code.
 This is the synchronous entry-point for the Emacs Lisp native
-compiler.
-FUNCTION-OR-FILE is a function symbol, a form, or the filename of
-an Emacs Lisp source file.
-If OUTPUT is non-nil, use it as the filename for the compiled
-object.
-If FUNCTION-OR-FILE is a filename, return the filename of the
-compiled object.  If FUNCTION-OR-FILE is a function symbol or a
-form, return the compiled function.
+compiler.  FUNCTION-OR-FILE is a function symbol, a form, or the
+filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
+it as the filename for the compiled object.  If FUNCTION-OR-FILE
+is a filename, if the compilation was successful return the
+filename of the compiled object.  If FUNCTION-OR-FILE is a
+function symbol or a form, if the compilation was successful
+return the compiled function.
 
 (fn FUNCTION-OR-FILE &optional OUTPUT)")
 (autoload 'batch-native-compile "comp" "\
@@ -4960,8 +4959,6 @@ evaluate `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
-\\{compilation-shell-minor-mode-map}
-
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile" "\
 Toggle Compilation minor mode.
@@ -4984,8 +4981,6 @@ evaluate `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
-
-\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile" "\
@@ -8371,7 +8366,7 @@ A second call of this function without changing point inserts the next match.
 A call with prefix PREFIX reads the symbol to insert from the minibuffer with
 completion.
 
-(fn PREFIX)" t)
+(fn PREFIX)" '("P"))
 (autoload 'ebrowse-tags-loop-continue "ebrowse" "\
 Repeat last operation on files in tree.
 FIRST-TIME non-nil means this is not a repetition, but the first time.
@@ -9920,7 +9915,7 @@ When present, ID should be an opaque object used to identify the
 connection unequivocally.  This is rarely needed and not available
 interactively.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" t)
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" '((erc-select-read-args)))
 (defalias 'erc-select #'erc)
 (autoload 'erc-tls "erc" "\
 ERC is a powerful, modular, and extensible IRC client.
@@ -9967,7 +9962,7 @@ symbol composed of letters from the Latin alphabet.)  This option is
 generally unneeded, however.  See info node `(erc) Connecting' for use
 cases.  Not available interactively.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" t)
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" '((let ((erc-default-port erc-default-port-tls)) (erc-select-read-args))))
 (autoload 'erc-handle-irc-url "erc" "\
 Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
 If ERC is already connected to HOST:PORT, simply /join CHANNEL.
@@ -10183,9 +10178,7 @@ it has to be wrapped in `(eval (quote ...))'.
 If NAME is already defined as a test and Emacs is running
 in batch mode, an error is signalled.
 
-(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil t)
-(function-put 'ert-deftest 'doc-string-elt 3)
-(function-put 'ert-deftest 'lisp-indent-function 2)
+(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil 'macro)
 (autoload 'ert-run-tests-batch "ert" "\
 Run the tests specified by SELECTOR, printing results to the terminal.
 
@@ -11720,6 +11713,17 @@ VARIABLES list of the connection profile.  The list is processed
 in order.
 
 (fn PROFILE VARIABLES)")
+(autoload 'connection-local-update-profile-variables "files-x" "\
+Update the variable settings for PROFILE in-place.
+VARIABLES is a list that declares connection-local variables for
+the connection profile.  An element in VARIABLES is an alist
+whose elements are of the form (VAR . VALUE).
+
+Unlike `connection-local-set-profile-variables' (which see), this
+function preserves the values of any existing variable
+definitions that aren't listed in VARIABLES.
+
+(fn PROFILE VARIABLES)")
 (autoload 'hack-connection-local-variables-apply "files-x" "\
 Apply connection-local variables identified by CRITERIA.
 Other local variables, like file-local and dir-local variables,
@@ -11731,11 +11735,38 @@ Apply connection-local variables according to `default-directory'.
 Execute BODY, and unwind connection-local variables.
 
 (fn &rest BODY)" nil t)
+(autoload 'with-connection-local-application-variables "files-x" "\
+Apply connection-local variables for APPLICATION in `default-directory'.
+Execute BODY, and unwind connection-local variables.
+
+(fn APPLICATION &rest BODY)" nil t)
+(function-put 'with-connection-local-application-variables 'lisp-indent-function 1)
 (autoload 'with-connection-local-variables-1 "files-x" "\
 Apply connection-local variables according to `default-directory'.
 Call BODY-FUN with no args, and then unwind connection-local variables.
 
 (fn BODY-FUN)")
+(autoload 'setq-connection-local "files-x" "\
+Set each VARIABLE connection-locally to VALUE.
+
+When `connection-local-profile-name-for-setq' is set, assign each
+variable's value on that connection profile, and set that profile
+for `connection-local-criteria'.  You can use this in combination
+with `with-connection-local-variables', as in
+
+  (with-connection-local-variables
+    (setq-connection-local VARIABLE VALUE))
+
+If there's no connection-local profile to use, just set the
+variables normally, as with `setq'.
+
+The variables are literal symbols and should not be quoted.  The
+second VALUE is not computed until after the first VARIABLE is
+set, and so on; each VALUE can use the new value of variables set
+earlier in the `setq-connection-local'.  The return value of the
+`setq-connection-local' form is the value of the last VALUE.
+
+(fn [VARIABLE VALUE]...)" nil t)
 (autoload 'path-separator "files-x" "\
 The connection-local value of `path-separator'.")
 (autoload 'null-device "files-x" "\
@@ -12260,8 +12291,6 @@ evaluate `flymake-mode'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
-
-\\{flymake-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake" "\
@@ -15397,7 +15426,7 @@ it is disabled.
 
 ;;; Generated autoloads from progmodes/hideshow.el
 
-(defvar hs-special-modes-alist (mapcar 'purecopy '((c-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil))) "\
+(defvar hs-special-modes-alist (mapcar #'purecopy '((c-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil))) "\
 Alist for initializing the hideshow variables for different modes.
 Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC
@@ -15888,8 +15917,7 @@ inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
 `ibuffer-recompile-formats'.
 
-(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil t)
-(function-put 'define-ibuffer-column 'lisp-indent-function 'defun)
+(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil 'macro)
 (autoload 'define-ibuffer-sorter "ibuf-macs" "\
 Define a method of sorting named NAME.
 DOCUMENTATION is the documentation of the function, which will be called
@@ -15900,9 +15928,7 @@ For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
-(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil t)
-(function-put 'define-ibuffer-sorter 'lisp-indent-function 1)
-(function-put 'define-ibuffer-sorter 'doc-string-elt 2)
+(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil 'macro)
 (autoload 'define-ibuffer-op "ibuf-macs" "\
 Generate a function which operates on a buffer.
 OP becomes the name of the function; if it doesn't begin with
@@ -15941,9 +15967,7 @@ BODY define the operation; they are forms to evaluate per each
 marked buffer.  BODY is evaluated with `buf' bound to the
 buffer object.
 
-(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil t)
-(function-put 'define-ibuffer-op 'lisp-indent-function 2)
-(function-put 'define-ibuffer-op 'doc-string-elt 3)
+(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil 'macro)
 (autoload 'define-ibuffer-filter "ibuf-macs" "\
 Define a filter named NAME.
 DOCUMENTATION is the documentation of the function.
@@ -15958,9 +15982,7 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
-(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil t)
-(function-put 'define-ibuffer-filter 'lisp-indent-function 2)
-(function-put 'define-ibuffer-filter 'doc-string-elt 2)
+(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil 'macro)
 (register-definition-prefixes "ibuf-macs" '("ibuffer-"))
 
 
@@ -18726,6 +18748,7 @@ This scans for ;;;###autoload forms and related things.
 The first element on the command line should be the (main)
 loaddefs.el output file, and the rest are the directories to
 use.")
+ (load "theme-loaddefs.el" t)
 (register-definition-prefixes "loaddefs-gen" '("autoload-" "generated-autoload-" "loaddefs-generate--" "no-update-autoloads"))
 
 
@@ -18847,6 +18870,8 @@ done.  Otherwise, this function will use the current buffer.
 Major mode for browsing CVS log output.
 
 (fn)" t)
+(autoload 'log-view-get-marked "log-view" "\
+Return the list of tags for the marked log entries.")
 (register-definition-prefixes "log-view" '("log-view-"))
 
 
@@ -24534,7 +24559,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 8 1)) package--builtin-versions)
+(push (purecopy '(project 0 8 2)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -25596,8 +25621,6 @@ evaluate `rectangle-mark-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
-\\{rectangle-mark-mode-map}
-
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
 
@@ -25926,6 +25949,9 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t)
+(autoload 'repeat-exit "repeat" "\
+Exit the repeating sequence.
+This function can be used to force exit of repetition while it's active." t)
 (register-definition-prefixes "repeat" '("describe-repeat-maps" "repeat-"))
 
 
@@ -29436,6 +29462,8 @@ PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If PROMPT is nil, no help text
 will be inserted.
 
+Also see `read-string-from-buffer'.
+
 (fn PROMPT STRING SUCCESS-CALLBACK &key ABORT-CALLBACK)")
 (autoload 'read-string-from-buffer "string-edit" "\
 Switch to a new buffer to edit STRING in a recursive edit.
@@ -29444,6 +29472,8 @@ The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or 
 PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If nil, no prompt will be
 inserted in the buffer.
+
+Also see `string-edit'.
 
 (fn PROMPT STRING)")
 (register-definition-prefixes "string-edit" '("string-edit-"))
@@ -32000,14 +32030,14 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 (register-definition-prefixes "tramp-compat" '("tramp-"))
 
 
+;;; Generated autoloads from net/tramp-container.el
+
+(register-definition-prefixes "tramp-container" '("tramp-"))
+
+
 ;;; Generated autoloads from net/tramp-crypt.el
 
 (register-definition-prefixes "tramp-crypt" '("tramp-crypt-"))
-
-
-;;; Generated autoloads from net/tramp-docker.el
-
-(register-definition-prefixes "tramp-docker" '("tramp-docker-"))
 
 
 ;;; Generated autoloads from net/tramp-ftp.el
@@ -32740,6 +32770,10 @@ if it had been inserted from a file named URL.
 
 
 (fn URL &optional VISIT BEG END REPLACE)")
+(autoload 'url-insert-file-contents-literally "url-handlers" "\
+Insert the data retrieved from URL literally in the current buffer.
+
+(fn URL)")
 (register-definition-prefixes "url-handlers" '("url-"))
 
 
@@ -33440,11 +33474,13 @@ Show the change log for BRANCH root in a window.
 (autoload 'vc-log-incoming "vc" "\
 Show log of changes that will be received with pull from REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name.
 
 (fn &optional REMOTE-LOCATION)" t)
 (autoload 'vc-log-outgoing "vc" "\
 Show log of changes that will be sent with a push operation to REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name.
 
 (fn &optional REMOTE-LOCATION)" t)
 (autoload 'vc-log-search "vc" "\
@@ -33571,6 +33607,18 @@ log entries should be gathered.
 Request editing the next VC shell command before execution.
 This is a prefix command.  It affects only a VC command executed
 immediately after this one." t)
+(autoload 'vc-prepare-patch "vc" "\
+Compose an Email sending patches for REVISIONS to ADDRESSEE.
+If `vc-prepare-patches-separately' is nil, SUBJECT will be used
+as the default subject for the message (and it will be prompted
+for when called interactively).  Otherwise a separate message
+will be composed for each revision, with SUBJECT derived from the
+invidividual commits.
+
+When invoked interactively in a Log View buffer with marked
+revisions, those revisions will be used.
+
+(fn ADDRESSEE SUBJECT REVISIONS)" t)
 (register-definition-prefixes "vc" '("vc-" "with-vc-properties"))
 
 
@@ -34565,10 +34613,6 @@ Convert Vietnamese characters of the current buffer to `VIQR' mnemonics." t)
 
 ;;; Generated autoloads from view.el
 
-(defvar view-remove-frame-by-deleting t "\
-Determine how View mode removes a frame no longer needed.
-If nil, make an icon of the frame.  If non-nil, delete the frame.")
-(custom-autoload 'view-remove-frame-by-deleting "view" t)
 (defvar-local view-mode nil "\
 Non-nil if View mode is enabled.
 Don't change this variable directly, you must change it by one of the
@@ -36122,7 +36166,13 @@ Extract file name from an yenc header.")
 ;;; Generated autoloads from play/zone.el
 
 (autoload 'zone "zone" "\
-Zone out, completely." t)
+Zone out, completely.
+With a prefix argument the user is prompted for a program to run.
+When called from Lisp the optional argument PGM can be used to
+run a specific program.  The program must be a member of
+`zone-programs'.
+
+(fn &optional PGM)" t)
 (register-definition-prefixes "zone" '("zone-"))
 
 ;;; End of scraped data

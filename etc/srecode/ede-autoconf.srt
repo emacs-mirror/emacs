@@ -38,7 +38,7 @@ template ede-empty :project
 {{comment_prefix}} by EDE when this file is updated.
 {{comment_prefix}}
 {{comment_prefix}} EDE is the Emacs Development Environment.
-{{comment_prefix}} http://cedet.sourceforge.net/ede.shtml
+{{comment_prefix}} https://cedet.sourceforge.net/ede.shtml
 {{comment_prefix}}
 {{comment_prefix}} Process this file with autoconf to produce a configure script
 

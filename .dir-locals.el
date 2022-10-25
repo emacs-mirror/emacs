@@ -1,4 +1,4 @@
-;;; Directory Local Variables
+;;; Directory Local Variables         -*- no-byte-compile: t; -*-
 ;;; For more information see (info "(emacs) Directory Variables")
 
 ((nil . ((tab-width . 8)

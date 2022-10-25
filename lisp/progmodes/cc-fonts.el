@@ -1141,12 +1141,28 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	       (while (and (< (point) id-end)
 			   (re-search-forward c-opt-identifier-prefix-key id-end t))
 		 (c-forward-syntactic-ws limit))))
-	   (when (not (get-text-property (point) 'face))
+	   ;; Only apply the face when the text doesn't have one yet.
+	   ;; Exception: The "" in C++'s operator"" will already wrongly have
+	   ;; string face.
+	   (when (memq (get-text-property (point) 'face)
+		       '(nil font-lock-string-face))
 	     (c-put-font-lock-face (point) id-end
 				   (cond
 				    ((not (memq types '(nil t))) types)
 				    (is-function 'font-lock-function-name-face)
-				    (t 'font-lock-variable-name-face))))))
+				    (t 'font-lock-variable-name-face))))
+	   ;; Fontify any _tag in C++'s operator"" _tag.
+	   (when (and
+		  (c-major-mode-is 'c++-mode)
+		  (equal (buffer-substring-no-properties id-start id-end)
+			 "\"\""))
+	     (goto-char id-end)
+	     (c-forward-syntactic-ws limit)
+	     (when (c-on-identifier)
+	       (c-put-font-lock-face
+		(point)
+		(progn (c-forward-over-token) (point))
+		font-lock-function-name-face)))))
        (and template-class
 	    (eq init-char ?=)		; C++ "<class X = Y>"?
 	    (progn
@@ -1181,8 +1197,21 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; arguments lists (i.e. lists enclosed by <...>) is more strict about what
   ;; characters it allows within the list.
   (let ((type (and (> match-pos (point-min))
-		   (c-get-char-property (1- match-pos) 'c-type))))
-    (cond ((not (memq (char-before match-pos) '(?\( ?, ?\[ ?< ?{)))
+		   (c-get-char-property (1- match-pos) 'c-type)))
+	id-pos)
+    (cond
+     ;; Are we just after something like "(foo((bar))" ?
+     ((and (eq (char-before match-pos) ?\))
+	   (c-go-list-backward match-pos)
+	   (progn
+	     (c-backward-syntactic-ws)
+	     (and (setq id-pos (c-on-identifier))
+		  (goto-char id-pos)
+		  (progn
+		    (c-backward-syntactic-ws)
+		    (eq (char-before) ?\()))))
+      (c-get-fontification-context (point) not-front-decl toplev))
+	  ((not (memq (char-before match-pos) '(?\( ?, ?\[ ?< ?{)))
 	   (cons (and toplev 'top) nil))
 	  ;; A control flow expression or a decltype
 	  ((and (eq (char-before match-pos) ?\()

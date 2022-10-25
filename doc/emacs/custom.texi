@@ -667,6 +667,16 @@ type @kbd{M-x disable-theme}.
 the @file{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
 anywhere in Emacs and enter the theme name.
 
+@findex theme-choose-variant
+Some themes have variants (most often just two: light and dark).  You
+can switch to another variant using @kbd{M-x theme-choose-variant}.
+If the currently active theme has only one other variant, it will be
+selected; if there are more variants, the command will prompt you
+which one to switch to.
+
+Note that @code{theme-choose-variant} only works if a single theme
+is active.
+
 @node Creating Custom Themes
 @subsection Creating Custom Themes
 @cindex custom themes, creating
@@ -1261,7 +1271,7 @@ mode: my-new
 disable a minor mode in a local variables list, use the @code{eval}
 keyword with a Lisp expression that runs the mode command
 (@pxref{Minor Modes}).  For example, the following local variables
-list enables ElDoc mode (@pxref{Lisp Doc}) by calling
+list enables ElDoc mode (@pxref{Programming Language Doc}) by calling
 @code{eldoc-mode} with no argument (calling it with an argument of 1
 would do the same), and disables Font Lock mode (@pxref{Font Lock}) by
 calling @code{font-lock-mode} with an argument of @minus{}1.
@@ -2810,6 +2820,24 @@ file which use such strings, possibly leading Emacs to decode those
 strings incorrectly.  You should then avoid adding Emacs Lisp code
 that modifies the coding system in other ways, such as calls to
 @code{set-language-environment}.
+
+  An alternative to using non-@acronym{ASCII} characters directly is
+to use one of the character escape syntaxes described in
+@pxref{General Escape Syntax,,, elisp, The Emacs Lisp Reference
+Manual}, as they allow all Unicode codepoints to be specified using
+only @acronym{ASCII} characters.
+
+  To bind non-@acronym{ASCII} keys, you must use a vector (@pxref{Init
+Rebinding}).  The string syntax cannot be used, since the
+non-@acronym{ASCII} characters will be interpreted as meta keys.  For
+instance:
+
+@example
+(global-set-key [?@var{char}] 'some-function)
+@end example
+
+@noindent
+Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 
 @node Early Init File
 @subsection The Early Init File

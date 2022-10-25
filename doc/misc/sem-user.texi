@@ -621,7 +621,7 @@ Run the Semantic idle work function with debugging turned on.
 Semantic Idle Summary mode is a minor mode that displays a short
 summary of the symbol at point, such as its function prototype, in the
 echo area.  Its functionality is similar to what ElDoc mode provides
-for Emacs Lisp (@pxref{Lisp Doc,,,emacs,Emacs manual}).
+for Emacs Lisp (@pxref{Programming Language Doc,,,emacs,Emacs manual}).
 
 @deffn global-semantic-idle-summary-mode &optional arg
 This command toggles Semantic Idle Summary mode in all

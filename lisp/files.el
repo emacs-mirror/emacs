@@ -208,9 +208,10 @@ if the file has changed on disk and you have not edited the buffer."
   :group 'find-file)
 
 (defvar-local buffer-file-number nil
-  "The device number and file number of the file visited in the current buffer.
-The value is a list of the form (FILENUM DEVNUM).
-This pair of numbers uniquely identifies the file.
+  "The inode number and the device of the file visited in the current buffer.
+The value is a list of the form (INODENUM DEVICE), where DEVICE can be
+either a single number or a cons cell of two numbers.
+This tuple of numbers uniquely identifies the file.
 If the buffer is visiting a new file, the value is nil.")
 (put 'buffer-file-number 'permanent-local t)
 
@@ -2163,7 +2164,7 @@ If there is no such live buffer, return nil."
             (setq list (cdr list)))
           found)
         (let* ((attributes (file-attributes truename))
-               (number (nthcdr 10 attributes))
+               (number (file-attribute-file-identifier attributes))
                (list (buffer-list)) found)
           (and buffer-file-numbers-unique
                (car-safe number)       ;Make sure the inode is not just nil.
@@ -2366,7 +2367,7 @@ the various files."
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
 	     (attributes (file-attributes truename))
-	     (number (nthcdr 10 attributes))
+	     (number (file-attribute-file-identifier attributes))
 	     ;; Find any buffer for a file that has same truename.
 	     (other (and (not buf)
                          (find-buffer-visiting
@@ -4744,7 +4745,7 @@ the old visited file has been renamed to the new name FILENAME."
 	      (setq buffer-file-name truename))))
     (setq buffer-file-number
 	  (if filename
-	      (nthcdr 10 (file-attributes buffer-file-name))
+	      (file-attribute-file-identifier (file-attributes buffer-file-name))
 	    nil))
     ;; write-file-functions is normally used for things like ftp-find-file
     ;; that visit things that are not local files as if they were files.
@@ -5733,7 +5734,8 @@ Before and after saving the buffer, this function runs
 		  (setq save-buffer-coding-system last-coding-system-used)
 	        (setq buffer-file-coding-system last-coding-system-used))
 	      (setq buffer-file-number
-		    (nthcdr 10 (file-attributes buffer-file-name)))
+		    (file-attribute-file-identifier
+                     (file-attributes buffer-file-name)))
 	      (if setmodes
 		  (condition-case ()
 		      (progn
@@ -6344,9 +6346,10 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
 	     (equal f1-attr f2-attr))))))
 
 (defun file-in-directory-p (file dir)
-  "Return non-nil if FILE is in DIR or a subdirectory of DIR.
-A directory is considered to be \"in\" itself.
-Return nil if DIR is not an existing directory."
+  "Return non-nil if DIR is a parent directory of FILE.
+Value is non-nil if FILE is inside DIR or inside a subdirectory of DIR.
+A directory is considered to be a \"parent\" of itself.
+DIR must be an existing directory, otherwise the function returns nil."
   (let ((handler (or (find-file-name-handler file 'file-in-directory-p)
                      (find-file-name-handler dir  'file-in-directory-p))))
     (if handler
@@ -8657,8 +8660,15 @@ It is a nonnegative integer."
 
 (defsubst file-attribute-device-number (attributes)
   "The file system device number in ATTRIBUTES returned by `file-attributes'.
-It is an integer."
+It is an integer or a cons cell of integers."
   (nth 11 attributes))
+
+(defsubst file-attribute-file-identifier (attributes)
+  "The inode and device numbers in ATTRIBUTES returned by `file-attributes'.
+The value is a list of the form (INODENUM DEVICE), where DEVICE could be
+either a single number or a cons cell of two numbers.
+This tuple of numbers uniquely identifies the file."
+  (nthcdr 10 attributes))
 
 (defun file-attribute-collect (attributes &rest attr-names)
   "Return a sublist of ATTRIBUTES returned by `file-attributes'.
@@ -8666,10 +8676,10 @@ ATTR-NAMES are symbols with the selected attribute names.
 
 Valid attribute names are: type, link-number, user-id, group-id,
 access-time, modification-time, status-change-time, size, modes,
-inode-number and device-number."
+inode-number, device-number and file-number."
   (let ((all '(type link-number user-id group-id access-time
                modification-time status-change-time
-               size modes inode-number device-number))
+               size modes inode-number device-number file-number))
         result)
     (while attr-names
       (let ((attr (pop attr-names)))

@@ -2,12 +2,12 @@
 # Date: 2021-08-17, 19:34:01 GMT
 # © 2021 Unicode®, Inc.
 # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
-# For terms of use, see http://www.unicode.org/terms_of_use.html
+# For terms of use, see https://www.unicode.org/terms_of_use.html
 #
 # Unicode IDNA Compatible Preprocessing for UTS #46
 # Version: 14.0.0
 #
-# For documentation and usage, see http://www.unicode.org/reports/tr46
+# For documentation and usage, see https://www.unicode.org/reports/tr46
 #
 # Test cases for verifying UTS #46 conformance.
 #

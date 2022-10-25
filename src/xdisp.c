@@ -20165,7 +20165,20 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	   from point.  */
 	centering_position = window_box_height (w) / 2;
     }
-  move_it_vertically_backward (&it, centering_position);
+  if (current_buffer->long_line_optimizations_p
+      && it.line_wrap == TRUNCATE)
+    {
+      /* For very long and truncated lines, go back using a simplified
+	 method, which ignored any inaccuracies due to line-height
+	 differences, display properties/overlays, etc.  */
+      int nlines = centering_position / frame_line_height;
+
+      while (nlines-- && IT_CHARPOS (it) > BEGV)
+	back_to_previous_visible_line_start (&it);
+      reseat_1 (&it, it.current.pos, true);
+    }
+  else
+    move_it_vertically_backward (&it, centering_position);
 
   eassert (IT_CHARPOS (it) >= BEGV);
 
@@ -34899,7 +34912,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || (defined (USE_GTK) && !defined (HAVE_PGTK)) || defined (HAVE_NS) || defined (MSDOS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS) || defined (MSDOS)
   if (popup_activated ())
     return;
 #endif

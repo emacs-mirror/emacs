@@ -31,10 +31,21 @@
 (require 'eshell)
 
 (defvar eshell-history-file-name nil)
+(defvar eshell-last-dir-ring-file-name nil)
 
 (defvar eshell-test--max-subprocess-time 5
   "The maximum amount of time to wait for a subprocess to finish, in seconds.
 See `eshell-wait-for-subprocess'.")
+
+(defun eshell-tests-remote-accessible-p ()
+  "Return if a test involving remote files can proceed.
+If using this function, be sure to load `tramp' near the
+beginning of the test file."
+  (ignore-errors
+    (and
+     (file-remote-p ert-remote-temporary-file-directory)
+     (file-directory-p ert-remote-temporary-file-directory)
+     (file-writable-p ert-remote-temporary-file-directory))))
 
 (defmacro with-temp-eshell (&rest body)
   "Evaluate BODY in a temporary Eshell buffer."
@@ -44,6 +55,7 @@ See `eshell-wait-for-subprocess'.")
               ;; back on $HISTFILE.
               (process-environment (cons "HISTFILE" process-environment))
               (eshell-history-file-name nil)
+              (eshell-last-dir-ring-file-name nil)
               (eshell-buffer (eshell t)))
          (unwind-protect
              (with-current-buffer eshell-buffer
@@ -83,26 +95,39 @@ After inserting, call FUNC.  If FUNC is nil, instead call
   (insert-and-inherit command)
   (funcall (or func 'eshell-send-input)))
 
+(defun eshell-last-input ()
+  "Return the input of the last Eshell command."
+  (buffer-substring-no-properties
+   eshell-last-input-start eshell-last-input-end))
+
+(defun eshell-last-output ()
+  "Return the output of the last Eshell command."
+  (buffer-substring-no-properties
+   (eshell-beginning-of-output) (eshell-end-of-output)))
+
 (defun eshell-match-output (regexp)
   "Test whether the output of the last command matches REGEXP."
-  (string-match-p
-    regexp (buffer-substring-no-properties
-            (eshell-beginning-of-output) (eshell-end-of-output))))
+  (string-match-p regexp (eshell-last-output)))
 
 (defun eshell-match-output--explainer (regexp)
   "Explain the result of `eshell-match-output'."
   `(mismatched-output
-    (command ,(buffer-substring-no-properties
-               eshell-last-input-start eshell-last-input-end))
-    (output ,(buffer-substring-no-properties
-              (eshell-beginning-of-output) (eshell-end-of-output)))
+    (command ,(eshell-last-input))
+    (output ,(eshell-last-output))
     (regexp ,regexp)))
 
 (put 'eshell-match-output 'ert-explainer #'eshell-match-output--explainer)
 
-(defun eshell-match-command-output (command regexp &optional func)
-  "Insert a COMMAND at the end of the buffer and match the output with REGEXP."
-  (eshell-insert-command command func)
+(defun eshell-match-command-output (command regexp &optional func
+                                            ignore-errors)
+  "Insert a COMMAND at the end of the buffer and match the output with REGEXP.
+FUNC is the function to call after inserting the text (see
+`eshell-insert-command').
+
+If IGNORE-ERRORS is non-nil, ignore any errors signaled when
+inserting the command."
+  (let ((debug-on-error (and (not ignore-errors) debug-on-error)))
+    (eshell-insert-command command func))
   (eshell-wait-for-subprocess)
   (should (eshell-match-output regexp)))
 

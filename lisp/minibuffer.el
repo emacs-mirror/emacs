@@ -1239,9 +1239,9 @@ pair of a group title string and a list of group candidate strings."
   :version "28.1")
 
 (defface completions-group-separator
-  '((t :inherit shadow :strike-through t))
+  '((t :inherit shadow :underline t))
   "Face used for the separator lines between the candidate groups."
-  :version "28.1")
+  :version "29.1")
 
 (defun completion--cycle-threshold (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))

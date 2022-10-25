@@ -2465,9 +2465,13 @@ Also see `suggest-key-bindings'."
 
 (defun execute-extended-command--shorter (name typed)
   (let ((candidates '())
+        commands
         (max (length typed))
         (len 1)
         binding)
+    ;; Precompute a list of commands once to avoid repeated `commandp' testing
+    ;; of symbols in the `completion-try-completion' call inside the loop below
+    (mapatoms (lambda (s) (when (commandp s) (push s commands))))
     (while (and (not binding)
                 (progn
                   (unless candidates
@@ -2480,8 +2484,8 @@ Also see `suggest-key-bindings'."
       (input-pending-p)    ;Dummy call to trigger input-processing, bug#23002.
       (let ((candidate (pop candidates)))
         (when (equal name
-                       (car-safe (completion-try-completion
-                                  candidate obarray 'commandp len)))
+                     (car-safe (completion-try-completion
+                                candidate commands nil len)))
           (setq binding candidate))))
     binding))
 
@@ -3526,8 +3530,6 @@ Return what remains of the list."
         ;; In a writable buffer, enable undoing read-only text that is
         ;; so because of text properties.
         (inhibit-read-only t)
-        ;; Don't let `intangible' properties interfere with undo.
-        (inhibit-point-motion-hooks t)
         ;; We use oldlist only to check for EQ.  ++kfs
         (oldlist buffer-undo-list)
         (did-apply nil)
@@ -7839,7 +7841,9 @@ If NOERROR, don't signal an error if we can't move that many lines."
 (defun line-move-1 (arg &optional noerror _to-end)
   ;; Don't run any point-motion hooks, and disregard intangibility,
   ;; for intermediate positions.
-  (let ((inhibit-point-motion-hooks t)
+  (with-suppressed-warnings ((obsolete inhibit-point-motion-hooks))
+  (let ((outer-ipmh inhibit-point-motion-hooks)
+	(inhibit-point-motion-hooks t)
 	(opoint (point))
 	(orig-arg arg))
     (if (consp temporary-goal-column)
@@ -7951,20 +7955,20 @@ If NOERROR, don't signal an error if we can't move that many lines."
 	     ;; point-left-hooks.
 	     (let* ((npoint (prog1 (line-end-position)
 			      (goto-char opoint)))
-		    (inhibit-point-motion-hooks nil))
+		    (inhibit-point-motion-hooks outer-ipmh))
 	       (goto-char npoint)))
 	    ((< arg 0)
 	     ;; If we did not move up as far as desired,
 	     ;; at least go to beginning of line.
 	     (let* ((npoint (prog1 (line-beginning-position)
 			      (goto-char opoint)))
-		    (inhibit-point-motion-hooks nil))
+		    (inhibit-point-motion-hooks outer-ipmh))
 	       (goto-char npoint)))
 	    (t
 	     (line-move-finish (or goal-column temporary-goal-column)
-			       opoint (> orig-arg 0)))))))
+			       opoint (> orig-arg 0) (not outer-ipmh))))))))
 
-(defun line-move-finish (column opoint forward)
+(defun line-move-finish (column opoint forward &optional not-ipmh)
   (let ((repeat t))
     (while repeat
       ;; Set REPEAT to t to repeat the whole thing.
@@ -8015,42 +8019,44 @@ If NOERROR, don't signal an error if we can't move that many lines."
 	;; unnecessarily.  Note that we move *forward* past intangible
 	;; text when the initial and final points are the same.
 	(goto-char new)
-	(let ((inhibit-point-motion-hooks nil))
-	  (goto-char new)
+	(with-suppressed-warnings ((obsolete inhibit-point-motion-hooks))
+	  (let ((inhibit-point-motion-hooks (not not-ipmh)))
+	    (goto-char new)
 
-	  ;; If intangibility moves us to a different (later) place
-	  ;; in the same line, use that as the destination.
-	  (if (<= (point) line-end)
-	      (setq new (point))
-	    ;; If that position is "too late",
-	    ;; try the previous allowable position.
-	    ;; See if it is ok.
-	    (backward-char)
-	    (if (if forward
-		    ;; If going forward, don't accept the previous
-		    ;; allowable position if it is before the target line.
-		    (< line-beg (point))
-		  ;; If going backward, don't accept the previous
-		  ;; allowable position if it is still after the target line.
-		  (<= (point) line-end))
-		(setq new (point))
-	      ;; As a last resort, use the end of the line.
-	      (setq new line-end))))
+	    ;; If intangibility moves us to a different (later) place
+	    ;; in the same line, use that as the destination.
+	    (if (<= (point) line-end)
+	        (setq new (point))
+	      ;; If that position is "too late",
+	      ;; try the previous allowable position.
+	      ;; See if it is ok.
+	      (backward-char)
+	      (if (if forward
+		      ;; If going forward, don't accept the previous
+		      ;; allowable position if it is before the target line.
+		      (< line-beg (point))
+		    ;; If going backward, don't accept the previous
+		    ;; allowable position if it is still after the target line.
+		    (<= (point) line-end))
+		  (setq new (point))
+		;; As a last resort, use the end of the line.
+		(setq new line-end)))))
 
 	;; Now move to the updated destination, processing fields
 	;; as well as intangibility.
 	(goto-char opoint)
-	(let ((inhibit-point-motion-hooks nil))
-	  (goto-char
-	   ;; Ignore field boundaries if the initial and final
-	   ;; positions have the same `field' property, even if the
-	   ;; fields are non-contiguous.  This seems to be "nicer"
-	   ;; behavior in many situations.
-	   (if (eq (get-char-property new 'field)
-	   	   (get-char-property opoint 'field))
-	       new
-	     (constrain-to-field new opoint t t
-				 'inhibit-line-move-field-capture))))
+	(with-suppressed-warnings ((obsolete inhibit-point-motion-hooks))
+	  (let ((inhibit-point-motion-hooks (not not-ipmh)))
+	    (goto-char
+	     ;; Ignore field boundaries if the initial and final
+	     ;; positions have the same `field' property, even if the
+	     ;; fields are non-contiguous.  This seems to be "nicer"
+	     ;; behavior in many situations.
+	     (if (eq (get-char-property new 'field)
+		     (get-char-property opoint 'field))
+		 new
+	       (constrain-to-field new opoint t t
+				   'inhibit-line-move-field-capture)))))
 
 	;; If all this moved us to a different line,
 	;; retry everything within that new line.

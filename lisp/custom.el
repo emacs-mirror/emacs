@@ -1152,9 +1152,11 @@ list, in which A occurs before B if B was defined with a
 ;;   (provide-theme 'THEME)
 
 
-(defmacro deftheme (theme &optional doc)
+(defmacro deftheme (theme &optional doc &rest properties)
   "Declare THEME to be a Custom theme.
 The optional argument DOC is a doc string describing the theme.
+PROPERTIES are interpreted as a property list that will be stored
+in the `theme-properties' property for THEME.
 
 Any theme `foo' should be defined in a file called `foo-theme.el';
 see `custom-make-theme-feature' for more information."
@@ -1164,18 +1166,25 @@ see `custom-make-theme-feature' for more information."
     ;; It is better not to use backquote in this file,
     ;; because that makes a bootstrapping problem
     ;; if you need to recompile all the Lisp files using interpreted code.
-    (list 'custom-declare-theme (list 'quote theme) (list 'quote feature) doc)))
+    (list 'custom-declare-theme (list 'quote theme) (list 'quote feature) doc
+          (cons 'list properties))))
 
-(defun custom-declare-theme (theme feature &optional doc)
+(defun custom-declare-theme (theme feature &optional doc properties)
   "Like `deftheme', but THEME is evaluated as a normal argument.
-FEATURE is the feature this theme provides.  Normally, this is a symbol
-created from THEME by `custom-make-theme-feature'."
+FEATURE is the feature this theme provides.  Normally, this is a
+symbol created from THEME by `custom-make-theme-feature'.  The
+optional argument DOC may contain the documentation for THEME.
+The optional argument PROPERTIES may contain a property list of
+attributes associated with THEME."
   (unless (custom-theme-name-valid-p theme)
     (error "Custom theme cannot be named %S" theme))
   (unless (memq theme custom-known-themes)
     (push theme custom-known-themes))
   (put theme 'theme-feature feature)
-  (when doc (put theme 'theme-documentation doc)))
+  (when doc
+    (put theme 'theme-documentation doc))
+  (when properties
+    (put theme 'theme-properties properties)))
 
 (defun custom-make-theme-feature (theme)
   "Given a symbol THEME, create a new symbol by appending \"-theme\".
@@ -1371,6 +1380,58 @@ Return t if THEME was successfully loaded, nil otherwise."
   (unless no-enable
     (enable-theme theme))
   t)
+
+(defun theme-list-variants (theme &rest list)
+  "Return a list of theme variants for THEME.
+By default this will use all known custom themes (see
+`custom-available-themes') to check for variants.  This can be
+restricted if the optional argument LIST containing a list of
+theme symbols to consider."
+  (let* ((properties (get theme 'theme-properties))
+         (family (plist-get properties :family)))
+    (seq-filter
+     (lambda (variant)
+       (and (eq (plist-get (get variant 'theme-properties) :family)
+                family)
+            (not (eq variant theme))))
+     (or list (custom-available-themes)))))
+
+(defun theme-choose-variant (&optional no-confirm no-enable)
+  "Switch from the current theme to one of its variants.
+The current theme will be disabled before variant is enabled.  If
+the current theme has only one variant, switch to that variant
+without prompting, otherwise prompt for the variant to select.
+See `load-theme' for the meaning of NO-CONFIRM and NO-ENABLE."
+  (interactive)
+  (let ((active-color-schemes
+         (seq-filter
+          (lambda (theme)
+            ;; FIXME: As most themes currently do not have a `:kind'
+            ;; tag, it is assumed that a theme is a color scheme by
+            ;; default.  This should be reconsidered in the future.
+            (memq (plist-get (get theme 'theme-properties) :kind)
+                  '(color-scheme nil)))
+          custom-enabled-themes)))
+    (cond
+     ((length= active-color-schemes 0)
+      (user-error "No theme is active, cannot toggle"))
+     ((length> active-color-schemes 1)
+      (user-error "More than one theme active, cannot unambiguously toggle")))
+    (let* ((theme (car active-color-schemes))
+           (family (plist-get (get theme 'theme-properties) :family)))
+      (unless family
+        (error "Theme `%s' does not have any known variants" theme))
+      (let* ((variants (theme-list-variants theme))
+             (choice (cond
+                      ((null variants)
+                       (error "`%s' has no variants" theme))
+                      ((length= variants 1)
+                       (car variants))
+                      ((intern (completing-read "Load custom theme: " variants))))))
+        (disable-theme theme)
+        (load-theme choice no-confirm no-enable)))))
+
+(defalias 'toggle-theme #'theme-choose-variant)
 
 (defun custom-theme-load-confirm (hash)
   "Query the user about loading a Custom theme that may not be safe.

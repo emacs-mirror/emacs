@@ -43,6 +43,37 @@ always located at the beginning of buffer."
        (goto-char (point-min))
        ,@body)))
 
+(defun python-tests-shell-wait-for-prompt ()
+  "Wait for the prompt in the shell buffer."
+  (python-shell-with-shell-buffer
+    (while (not (if-let ((prompt (python-util-comint-last-prompt)))
+                    (python-shell-comint-end-of-output-p
+                     (buffer-substring-no-properties
+                      (car prompt) (cdr prompt)))))
+      (sit-for 0.1))))
+
+(defmacro python-tests-with-temp-buffer-with-shell (contents &rest body)
+  "Create a `python-mode' enabled temp buffer with CONTENTS and `run-python'.
+BODY is code to be executed within the temp buffer.  Point is
+always located at the beginning of buffer.  Native completion is
+turned off.  Shell buffer will be killed on exit."
+  (declare (indent 1) (debug t))
+  `(with-temp-buffer
+     (let ((python-indent-guess-indent-offset nil)
+           (python-shell-completion-native-enable nil))
+       (python-mode)
+       (unwind-protect
+           (progn
+             (run-python nil t)
+             (insert ,contents)
+             (goto-char (point-min))
+             (python-tests-shell-wait-for-prompt)
+             ,@body)
+         (when (python-shell-get-buffer)
+           (python-shell-with-shell-buffer
+             (let (kill-buffer-hook kill-buffer-query-functions)
+               (kill-buffer))))))))
+
 (defmacro python-tests-with-temp-file (contents &rest body)
   "Create a `python-mode' enabled file with CONTENTS.
 BODY is code to be executed within the temp buffer.  Point is
@@ -4365,6 +4396,32 @@ def foo():
          (python-shell-interpreter "/some/path/to/bin/pypy"))
     (should (python-shell-completion-native-interpreter-disabled-p))))
 
+(ert-deftest python-shell-completion-at-point-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   ""
+   (python-shell-with-shell-buffer
+     (insert "import abc")
+     (comint-send-input)
+     (python-tests-shell-wait-for-prompt)
+     (insert "abc.")
+     (should (nth 2 (python-shell-completion-at-point)))
+     (end-of-line 0)
+     (should-not (nth 2 (python-shell-completion-at-point))))))
+
+(ert-deftest python-shell-completion-at-point-native-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   ""
+   (python-shell-completion-native-turn-on)
+   (python-shell-with-shell-buffer
+     (insert "import abc")
+     (comint-send-input)
+     (python-tests-shell-wait-for-prompt)
+     (insert "abc.")
+     (should (nth 2 (python-shell-completion-at-point)))
+     (end-of-line 0)
+     (should-not (nth 2 (python-shell-completion-at-point))))))
 
 
 
@@ -4372,6 +4429,119 @@ def foo():
 
 
 ;;; Symbol completion
+
+(ert-deftest python-completion-at-point-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (goto-char (point-max))
+     (insert "abc.")
+     (should (completion-at-point))
+     (insert "A")
+     (should (completion-at-point)))))
+
+(ert-deftest python-completion-at-point-2 ()
+  "Should work regardless of the point in the Shell buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (python-shell-with-shell-buffer
+       (goto-char (point-min)))
+     (goto-char (point-max))
+     (insert "abc.")
+     (should (completion-at-point)))))
+
+(ert-deftest python-completion-at-point-pdb-1 ()
+  "Should not complete PDB commands in Python buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import pdb
+
+pdb.set_trace()
+print('Hello')
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (goto-char (point-max))
+     (insert "u")
+     (should-not (nth 2 (python-completion-at-point))))))
+
+(ert-deftest python-completion-at-point-native-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-completion-native-turn-on)
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (goto-char (point-max))
+     (insert "abc.")
+     (should (completion-at-point))
+     (insert "A")
+     (should (completion-at-point)))))
+
+(ert-deftest python-completion-at-point-native-2 ()
+  "Should work regardless of the point in the Shell buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-completion-native-turn-on)
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (python-shell-with-shell-buffer
+       (goto-char (point-min)))
+     (goto-char (point-max))
+     (insert "abc.")
+     (should (completion-at-point)))))
+
+(ert-deftest python-completion-at-point-native-with-ffap-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-completion-native-turn-on)
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (goto-char (point-max))
+     (insert "abc.")
+     ;; This is called when FFAP is enabled and a find-file function is called.
+     (python-ffap-module-path "abc.")
+     (should (completion-at-point)))))
+
+(ert-deftest python-completion-at-point-native-with-eldoc-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-completion-native-turn-on)
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (goto-char (point-max))
+     (insert "abc.")
+     ;; This is called by idle-timer when ElDoc is enabled.
+     (python-eldoc-function)
+     (should (completion-at-point)))))
 
 
 ;;; Fill paragraph

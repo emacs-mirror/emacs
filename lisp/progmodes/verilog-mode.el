@@ -3409,7 +3409,8 @@ A change is considered significant if it affects the buffer text
 in any way that isn't completely restored again.  Any
 user-visible changes to the buffer must not be within a
 `verilog-save-buffer-state'."
-  `(let ((inhibit-point-motion-hooks t)
+  `(let (,@(unless (>= emacs-major-version 25)
+             '((inhibit-point-motion-hooks t)))
          (verilog-no-change-functions t))
      ,(if (fboundp 'with-silent-modifications)
           `(with-silent-modifications ,@body)
@@ -3455,11 +3456,13 @@ For insignificant changes, see instead `verilog-save-buffer-state'."
       (run-hook-with-args 'before-change-functions (point-min) (point-max))
       (unwind-protect
           ;; Must inhibit and restore hooks before restoring font-lock
-          (let* ((inhibit-point-motion-hooks t)
+          (let* (,@(unless (>= emacs-major-version 25)
+                     '((inhibit-point-motion-hooks t) ;Obsolete since 25.1
+                       ;; XEmacs and pre-Emacs 21 ignore
+                       ;; `inhibit-modification-hooks'.
+                       before-change-functions after-change-functions))
                  (inhibit-modification-hooks t)
-                 (verilog-no-change-functions t)
-                 ;; XEmacs and pre-Emacs 21 ignore inhibit-modification-hooks.
-                 before-change-functions after-change-functions)
+                 (verilog-no-change-functions t))
             (progn ,@body))
         ;; Unwind forms
         (run-hook-with-args 'after-change-functions (point-min) (point-max)

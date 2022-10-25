@@ -341,7 +341,6 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
     (let ((buffer-read-only nil)
 	  (alist gnus-cite-prefix-alist)
 	  (faces gnus-cite-face-list)
-	  (inhibit-point-motion-hooks t)
 	  face entry prefix skip numbers number face-alist)
       ;; Loop through citation prefixes.
       (while alist
@@ -462,7 +461,6 @@ text (i.e., computer code and the like) will not be folded."
   (interactive "P" gnus-article-mode gnus-summary-mode)
   (with-current-buffer gnus-article-buffer
     (let ((buffer-read-only nil)
-	  (inhibit-point-motion-hooks t)
 	  (marks (gnus-dissect-cited-text))
 	  (adaptive-fill-mode nil)
 	  (fill-column (if width (prefix-numeric-value width) fill-column)))
@@ -536,7 +534,6 @@ always hide."
   (with-current-buffer gnus-article-buffer
     (let ((buffer-read-only nil)
           marks
-          (inhibit-point-motion-hooks t)
           (props (nconc (list 'article-type 'cite)
                         gnus-hidden-properties))
           (point (point-min))
@@ -613,7 +610,6 @@ means show, nil means toggle."
 	 (start (cadr args))
 	 (hidden
 	  (text-property-any beg (1- end) 'article-type 'cite))
-	 (inhibit-point-motion-hooks t)
 	 buffer-read-only)
     (when (or (null arg)
 	      (zerop arg)
@@ -673,7 +669,6 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(let ((start (point))
 	      (atts gnus-cite-attribution-alist)
 	      (buffer-read-only nil)
-	      (inhibit-point-motion-hooks t)
 	      (hidden 0)
 	      total)
 	  (goto-char (point-max))
@@ -731,13 +726,12 @@ See also the documentation for `gnus-article-highlight-citation'."
 (defun gnus-cite-parse-wrapper ()
   ;; Wrap chopped gnus-cite-parse.
   (article-goto-body)
-  (let ((inhibit-point-motion-hooks t))
-    (save-excursion
-      (gnus-cite-parse-attributions))
-    (save-excursion
-      (gnus-cite-parse))
-    (save-excursion
-      (gnus-cite-connect-attributions))))
+  (save-excursion
+    (gnus-cite-parse-attributions))
+  (save-excursion
+    (gnus-cite-parse))
+  (save-excursion
+    (gnus-cite-connect-attributions)))
 
 (defun gnus-cite-parse ()
   ;; Parse and connect citation prefixes and attribution lines.
@@ -1020,8 +1014,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 (defun gnus-cite-add-face (number prefix face)
   ;; At line NUMBER, ignore PREFIX and add FACE to the rest of the line.
   (when face
-    (let ((inhibit-point-motion-hooks t)
-	  from to overlay)
+    (let (from to overlay)
       (goto-char (point-min))
       (when (zerop (forward-line (1- number)))
 	(forward-char (length prefix))
@@ -1041,7 +1034,6 @@ See also the documentation for `gnus-article-highlight-citation'."
     (gnus-cite-parse-maybe nil t)
     (let ((buffer-read-only nil)
 	  (numbers (cdr (assoc prefix gnus-cite-prefix-alist)))
-	  (inhibit-point-motion-hooks t)
 	  number)
       (while numbers
 	(setq number (car numbers)

@@ -488,17 +488,12 @@ not be enclosed in { } or ( )."
 
 
 (defconst makefile-imake-font-lock-keywords
-  (append
-   (makefile-make-font-lock-keywords
-    makefile-var-use-regex
-    makefile-statements
-    t
-    nil
-    '("^XCOMM.*$" . font-lock-comment-face)
-    '("XVAR\\(?:use\\|def\\)[0-9]" 0 font-lock-keyword-face prepend)
-    '("@@" . font-lock-preprocessor-face)
-    )
-   cpp-font-lock-keywords))
+  (append (list '("XCOMM.*$" . font-lock-comment-face)
+                '("XVAR\\(?:use\\|def\\)[0-9]" 0
+                  font-lock-keyword-face prepend)
+                '("@@" . font-lock-preprocessor-face))
+          cpp-font-lock-keywords
+          makefile-font-lock-keywords))
 
 
 (defconst makefile-syntax-propertize-function
@@ -932,7 +927,9 @@ Makefile mode can be configured by modifying the following variables:
   :syntax-table makefile-imake-mode-syntax-table
   (setq-local syntax-propertize-function nil)
   (setq font-lock-defaults
-        `(makefile-imake-font-lock-keywords ,@(cdr font-lock-defaults))))
+        `(makefile-imake-font-lock-keywords ,@(cdr font-lock-defaults)))
+  (setq-local comment-start "XCOMM")
+  (setq-local comment-start-skip "XCOMM[ \t]*"))
 
 
 
