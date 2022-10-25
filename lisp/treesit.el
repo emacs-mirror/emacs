@@ -592,10 +592,7 @@ If LOUDLY is non-nil, message some debugging information."
 (defvar treesit--indent-verbose nil
   "If non-nil, log progress when indenting.")
 
-;; This is not bound locally like we normally do with major-mode
-;; stuff, because for tree-sitter, a buffer could contain more than
-;; one language.
-(defvar treesit-simple-indent-rules nil
+(defvar-local treesit-simple-indent-rules nil
   "A list of indent rule settings.
 Each indent rule setting should be (LANGUAGE . RULES),
 where LANGUAGE is a language symbol, and RULES is a list of
