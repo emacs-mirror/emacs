@@ -161,11 +161,18 @@ Otherwise, NAME must be the name of a registered package."
   (mapc (lambda (name) (puthash name package *package-registry*))
         (package-%nicknames package)))
 
-(defun pkg--remove-from-registry (package)
+(cl-defun pkg--remove-from-registry (package)
   "Remove PACKAGE from the package registry."
-  (remhash (package-%name package) *package-registry*)
-  (mapc (lambda (name) (remhash name *package-registry*))
-        (package-%nicknames package)))
+  ;; Note that an unregistered package might have the same name or
+  ;; nickname as a registered package.  Prevent deleting such a
+  ;; package from unregistering some other package.
+  (let ((names ()))
+    (maphash (lambda (n p)
+               (when (eq p package)
+                 (push n names)))
+             *package-registry*)
+    (dolist (n names)
+      (remhash n *package-registry*))))
 
 (defun pkg--package-or-default (package)
   "Return the package object denoted by PACKAGE.
