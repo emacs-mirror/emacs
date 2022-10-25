@@ -448,6 +448,26 @@ visible_end.)"
     ;; `treesit-search-forward-goto'
     ))
 
+(ert-deftest treesit-misc ()
+  "Misc helper functions."
+  (let ((settings '((t 0 t)
+                    (c-mode 1 t)
+                    (text-mode 2 nil)
+                    (prog-mode 3 t)
+                    (fundamental-mode 4 t))))
+    ;; `treesit--setting-for-mode'.
+    ;; Exact match.
+    (should (eq 1 (treesit--setting-for-mode 'c-mode settings)))
+    ;; Inherit from t.
+    (should (eq 0 (treesit--setting-for-mode 'non-exist settings)))
+    ;; Inherit from prog-mode rather than fundamental-mode.
+    (require 'elisp-mode)
+    (should (eq 3 (treesit--setting-for-mode 'emacs-lisp-mode settings)))
+    ;; Not inherit from text-mode.
+    (require 'outline)
+    (should (not (eq 2 (treesit--setting-for-mode 'outline-mode settings))))
+    ))
+
 ;; TODO
 ;; - Functions in treesit.el
 ;; - treesit-load-name-override-list

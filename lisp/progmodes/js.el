@@ -3609,19 +3609,7 @@ This function can be used as a value in `which-func-functions'"
   :group 'js
   ;; Ensure all CC Mode "lang variables" are set to valid values.
   (c-init-language-vars js-mode)
-  (setq-local indent-line-function #'js-indent-line)
-  (setq-local beginning-of-defun-function #'js-beginning-of-defun)
-  (setq-local end-of-defun-function #'js-end-of-defun)
   (setq-local open-paren-in-column-0-is-defun-start nil)
-  (setq-local font-lock-defaults
-              (list js--font-lock-keywords nil nil nil nil
-                    '(font-lock-syntactic-face-function
-                      . js-font-lock-syntactic-face-function)))
-  (setq-local syntax-propertize-function #'js-syntax-propertize)
-  (add-hook 'syntax-propertize-extend-region-functions
-            #'syntax-propertize-multiline 'append 'local)
-  (add-hook 'syntax-propertize-extend-region-functions
-            #'js--syntax-propertize-extend-region 'append 'local)
   (setq-local prettify-symbols-alist js--prettify-symbols-alist)
 
   (setq-local parse-sexp-ignore-comments t)
@@ -3633,9 +3621,6 @@ This function can be used as a value in `which-func-functions'"
   (setq-local comment-end "")
   (setq-local fill-paragraph-function #'js-fill-paragraph)
   (setq-local normal-auto-fill-function #'js-do-auto-fill)
-
-  ;; Parse cache
-  (add-hook 'before-change-functions #'js--flush-caches t t)
 
   ;; Frameworks
   (js--update-quick-match-re)
@@ -3688,17 +3673,40 @@ This function can be used as a value in `which-func-functions'"
   ;; calls to syntax-propertize wherever it's really needed.
   ;;(syntax-propertize (point-max))
 
-  ;; Tree-sitter support.
-  (setq-local treesit-mode-supported t)
-  (setq-local treesit-required-languages '(javascript))
-  (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
-  (setq-local treesit-defun-type-regexp
-              (rx (or "class_declaration"
-                      "method_definition"
-                      "function_declaration"
-                      "lexical_declaration")))
-  (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
-  (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full))))
+  (cond
+   ;; Tree-sitter.
+   ((treesit-ready-p 'js-mode 'javascript)
+    ;; Indent.
+    (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
+    ;; Navigation.
+    (setq-local treesit-defun-type-regexp
+                (rx (or "class_declaration"
+                        "method_definition"
+                        "function_declaration"
+                        "lexical_declaration")))
+    ;; Fontification.
+    (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
+    (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
+    (treesit-major-mode-setup))
+   ;; Elisp.
+   (t
+    ;; Ensure all CC Mode "lang variables" are set to valid values
+    ;; (continued).
+    (setq-local indent-line-function #'js-indent-line)
+    (setq-local beginning-of-defun-function #'js-beginning-of-defun)
+    (setq-local end-of-defun-function #'js-end-of-defun)
+    (setq-local font-lock-defaults
+                (list js--font-lock-keywords nil nil nil nil
+                      '(font-lock-syntactic-face-function
+                        . js-font-lock-syntactic-face-function)))
+    (setq-local syntax-propertize-function #'js-syntax-propertize)
+    (add-hook 'syntax-propertize-extend-region-functions
+              #'syntax-propertize-multiline 'append 'local)
+    (add-hook 'syntax-propertize-extend-region-functions
+              #'js--syntax-propertize-extend-region 'append 'local)
+
+    ;; Parse cache
+    (add-hook 'before-change-functions #'js--flush-caches t t))))
 
 (defvar js-json--treesit-font-lock-settings
   (treesit-font-lock-rules
@@ -3737,11 +3745,12 @@ This function can be used as a value in `which-func-functions'"
   ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
   (setq-local syntax-propertize-function #'ignore)
 
-  ;; Tree-sitter support.
-  (setq-local treesit-mode-supported t)
-  (setq-local treesit-required-languages '(json))
-  (setq-local treesit-simple-indent-rules js--json-treesit-indent-rules)
-  (setq-local treesit-font-lock-settings js-json--treesit-font-lock-settings))
+  (cond
+   ;; Tree-sitter.
+   ((treesit-ready-p 'js-json-mode 'json)
+    (setq-local treesit-simple-indent-rules js--json-treesit-indent-rules)
+    (setq-local treesit-font-lock-settings js-json--treesit-font-lock-settings)
+    (treesit-major-mode-setup))))
 
 ;; Since we made JSX support available and automatically-enabled in
 ;; the base `js-mode' (for ease of use), now `js-jsx-mode' simply

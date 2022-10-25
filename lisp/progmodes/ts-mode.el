@@ -260,29 +260,26 @@
   :group 'typescript
   :syntax-table ts-mode--syntax-table
 
-  ;; Treesit-mode.
-  (setq-local treesit-mode-supported t)
-  (setq-local treesit-required-languages '(tsx))
-  ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
-  (setq-local comment-end "")
-  ;; Indent.
-  (setq-local treesit-simple-indent-rules ts-mode--indent-rules)
-  ;; Navigation.
-  (setq-local treesit-defun-type-regexp
-              (rx (or "class_declaration"
-                      "method_definition"
-                      "function_declaration"
-                      "lexical_declaration")))
-  ;; Font-lock.
-  (setq-local font-lock-defaults '(nil))
-  (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
-  (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
-
   (cond
-   ((treesit-ready-p '(tsx))
-    (treesit-mode))
+   ((treesit-ready-p nil 'tsx)
+    ;; Tree-sitter.
+    ;; Comments.
+    (setq-local comment-start "// ")
+    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
+    (setq-local comment-end "")
+    ;; Indent.
+    (setq-local treesit-simple-indent-rules ts-mode--indent-rules)
+    ;; Navigation.
+    (setq-local treesit-defun-type-regexp
+                (rx (or "class_declaration"
+                        "method_definition"
+                        "function_declaration"
+                        "lexical_declaration")))
+    ;; Font-lock.
+    (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
+    (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
+    (treesit-major-mode-setup))
+   ;; Elisp.
    (t
     (js-mode)
     (message "Tree-sitter for TypeScript isn't available, falling back to `js-mode'"))))

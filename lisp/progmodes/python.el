@@ -6391,15 +6391,6 @@ Add import for undefined name `%s' (empty to skip): "
 
   (setq-local forward-sexp-function python-forward-sexp-function)
 
-  (setq-local font-lock-defaults
-              `(,python-font-lock-keywords
-                nil nil nil nil
-                (font-lock-syntactic-face-function
-                 . python-font-lock-syntactic-face-function)))
-
-  (setq-local syntax-propertize-function
-              python-syntax-propertize-function)
-
   (setq-local indent-line-function #'python-indent-line-function)
   (setq-local indent-region-function #'python-indent-region)
   ;; Because indentation is not redundant, we cannot safely reindent code.
@@ -6424,13 +6415,8 @@ Add import for undefined name `%s' (empty to skip): "
   (add-hook 'post-self-insert-hook
             #'python-indent-post-self-insert-function 'append 'local)
 
-  (setq-local imenu-create-index-function
-              #'python-imenu-create-index)
-
   (setq-local add-log-current-defun-function
               #'python-info-current-defun)
-
-  (add-hook 'which-func-functions #'python-info-current-defun nil t)
 
   (setq-local skeleton-further-elements
               '((abbrev-mode nil)
@@ -6479,13 +6465,27 @@ Add import for undefined name `%s' (empty to skip): "
 
   (add-hook 'flymake-diagnostic-functions #'python-flymake nil t)
 
-  (setq-local treesit-mode-supported t)
-  (setq-local treesit-required-languages '(python))
-  (setq-local treesit-font-lock-feature-list
-              '((basic) (moderate) (elaborate)))
-  (setq-local treesit-font-lock-settings python--treesit-settings)
-  (setq-local treesit-imenu-function
-              #'python-imenu-treesit-create-index))
+  (cond
+   ;; Tree-sitter.
+   ((treesit-ready-p 'python-mode 'python)
+    (setq-local treesit-font-lock-feature-list
+                '((basic) (moderate) (elaborate)))
+    (setq-local treesit-font-lock-settings python--treesit-settings)
+    (setq-local imenu-create-index-function
+                #'python-imenu-treesit-create-index)
+    (treesit-major-mode-setup))
+   ;; Elisp.
+   (t
+    (setq-local font-lock-defaults
+                `(,python-font-lock-keywords
+                  nil nil nil nil
+                  (font-lock-syntactic-face-function
+                   . python-font-lock-syntactic-face-function)))
+    (setq-local syntax-propertize-function
+                python-syntax-propertize-function)
+    (setq-local imenu-create-index-function
+                #'python-imenu-create-index)
+    (add-hook 'which-func-functions #'python-info-current-defun nil t))))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code

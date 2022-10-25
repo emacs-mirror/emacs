@@ -50,6 +50,34 @@ indent, imenu, etc."
 
 (declare-function treesit-available-p "treesit.c")
 
+(defcustom treesit-settings '((t nil t))
+  "Tree-sitter toggle settings for major modes.
+
+A list of (MODE ACTIVATE INHERIT).  MODE is a major mode, ACTIVATE
+can be one of the following:
+
+  demand => Demand the use of tree-sitter, warn if it can't activate
+  t => Enable if available
+  nil => Don't enable
+
+If INHERIT is t, the setting for MODE is inherited by all its
+derived modes.  For a derived mode, closer ancestor mode's
+setting takes higher precedence.
+
+A special MODE, t, is considered the ancestor of every mode, and
+its INHERIT flag is ignored."
+  :type '(repeat
+          (list :tag "Setting"
+                (symbol :tag "Mode")
+                (choice :tag "Activate"
+                        (const :tag "No" nil)
+                        (const :tag "Yes" t)
+                        (const :tag "Demand" demand))
+                (choice :tag "Inherit"
+                        (const :tag "Yes" t)
+                        (const :tag "No" nil))))
+  :version "29.1")
+
 ;;; Parser API supplement
 
 (defun treesit-parse-string (string language)
@@ -891,9 +919,7 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
   "A regexp that matches the node type of defun nodes.
 For example, \"(function|class)_definition\".
 
-This is used by `treesit-beginning-of-defun' and friends.  Bind
-it buffer-locally and `treesit-mode' will use it for navigating
-defun's.")
+This is used by `treesit-beginning-of-defun' and friends.")
 
 (defun treesit--find-top-level-match (node type)
   "Return the top-level parent of NODE matching TYPE.
@@ -947,136 +973,119 @@ to `imenu-create-index-function'.")
 
 ;;; Activating tree-sitter
 
-(defvar-local treesit-mode-supported nil
-  "Set this variable to t to indicate support for `treesit-mode'.")
+(defun treesit--setting-for-mode (mode settings)
+  "Get the setting for MODE in SETTINGS.
+MODE is a major mode symbol.  SETTINGS should be `treesit-settings'."
+  ;;    A setting for exactly this MODE.  The shape is (FLAG INHERIT).
+  (let ((self (alist-get mode settings))
+        ;; Fallback setting, shape is (FLAG INHERIT).
+        (fallback (alist-get t settings))
+        ;; Settings for ancestor modes of MODE.  Its shape is
+        ;; ((MODE . FLAG)...)
+        (applicable (cl-loop for setting in settings
+                             for m = (nth 0 setting)
+                             for flag = (nth 1 setting)
+                             for inherit = (nth 2 setting)
+                             if (and (not (eq m t))
+                                     (not (eq m mode))
+                                     inherit
+                                     (provided-mode-derived-p mode m))
+                             collect (cons m flag))))
+    (cond
+     (self (car self))
+     ((null applicable) (car fallback))
+     (t
+      ;; After sort, the most specific setting is at the top.
+      (setq applicable
+            (cl-sort applicable
+                     (lambda (a b)
+                       ;; Major mode inheritance has a total ordering
+                       ;; right?
+                       (provided-mode-derived-p (car a) (car b)))))
+      (cdar applicable)))))
 
-(defvar-local treesit-required-languages nil
-  "A list of languages this major mode need for tree-sitter.")
+(defun treesit-ready-p (mode language &optional quiet)
+  "Check that tree-sitter is ready to be used for MODE.
 
-(defun treesit-ready-p (languages &optional report)
-  "Check that tree-sitter is ready to be used.
+Checks the user setting in `treesit-settings', if user sets
+`demand' for MODE, and tree-sitter is not ready, emit a warning
+and return nil.  If user chose to activate tree-sitter for MODE
+and tree-sitter is ready, return non-nil.  If QUIET is t, no
+warning is emitted in any case, if quiet is `message', message
+instead of emitting warning.
 
-If tree-sitter is not ready and REPORT non-nil, emit a warning or
-message.  Emit a warning if REPORT is `warn', message if REPORT
-is `message'.
+If MODE is nil, don't check for user setting and assume the
+setting is t.
 
-LANGUAGES is a list of languages we want check for availability."
-  (let (msg)
+LANGUAGE is languages symbol we want check for availability.  It
+can also be a list of language symbols."
+  (let ((language-list (if (consp language)
+                           language
+                         (list language)))
+        (activate (if mode
+                      (treesit--setting-for-mode mode treesit-settings)
+                    t))
+        msg)
     ;; Check for each condition and set MSG.
-    (catch 'term
-      (when (not treesit-mode-supported)
-        (setq msg "this major mode doesn't support it")
-        (throw 'term nil))
-      (when (not (treesit-available-p))
-        (setq msg "tree-sitter library is not built with Emacs")
-        (throw 'term nil))
-      (when (> (buffer-size) treesit-max-buffer-size)
-        (setq msg "buffer larger than `treesit-max-buffer-size'")
-        (throw 'term nil))
-      (dolist (lang languages)
-        (pcase-let ((`(,available . ,err)
-                     (treesit-language-available-p lang t)))
-          (when (not available)
-            (setq msg (format "language definition for %s is unavailable (%s): %s"
-                              lang (nth 0 err)
-                              (string-join
-                               (mapcar (lambda (x) (format "%s" x))
-                                       (cdr err))
-                               " ")))
-            (throw 'term nil)))))
-    ;; Decide if all conditions met and whether emit a warning.
-    (if (not msg)
-        t
-      (setq msg (concat "Cannot activate tree-sitter, because " msg))
-      (pcase report
-        ('warn (display-warning 'treesit msg))
-        ('message (message "%s" msg)))
-      nil)))
+    (if (null activate)
+        nil
+      (catch 'term
+        (when (not (treesit-available-p))
+          (setq msg "tree-sitter library is not compiled with Emacs")
+          (throw 'term nil))
+        (when (> (buffer-size) treesit-max-buffer-size)
+          (setq msg "buffer larger than `treesit-max-buffer-size'")
+          (throw 'term nil))
+        (dolist (lang language-list)
+          (pcase-let ((`(,available . ,err)
+                       (treesit-language-available-p lang t)))
+            (when (not available)
+              (setq msg (format "language definition for %s is unavailable (%s): %s"
+                                lang (nth 0 err)
+                                (string-join
+                                 (mapcar (lambda (x) (format "%s" x))
+                                         (cdr err))
+                                 " ")))
+              (throw 'term nil)))))
+      ;; Decide if all conditions met and whether emit a warning.
+      (if (not msg)
+          t
+        (when (eq activate 'demand)
+          (setq msg (concat "Cannot activate tree-sitter, because " msg))
+          (pcase quiet
+            ('nil (display-warning 'treesit msg))
+            ('message (message "%s" msg))))
+        nil))))
 
-(defvar-local treesit--local-variable-backup nil
-  "An alist of (VAR . VALUE) that backs up pre-treesit-mode values.")
-
-(defun treesit--backup-local-variable (variable value &optional restore)
-  "Backup VARIABLE's value and set it to VALUE.
-If RESTORE is non-nil, ignore VALUE and restore the backup (if
-there is any)."
-  (if restore
-      (when-let ((value (alist-get variable
-                                   treesit--local-variable-backup)))
-        (set variable value))
-    ;; Set.
-    (make-variable-buffer-local variable)
-    (setf (alist-get variable treesit--local-variable-backup)
-          (symbol-value variable))
-    (set variable value)))
-
-;;;###autoload
-(define-minor-mode treesit-mode
+(defun treesit-major-mode-setup ()
   "Activate tree-sitter to power major-mode features.
 
-This mode is merely a SUGGESTION of turning on tree-sitter,
-actual activation of tree-sitter functionalities depends on
-whether the major mode supports tree-sitter, availability of
-specific tree-sitter language definition, etc."
-  :version "29.1"
-  :group 'treesit
-  (if treesit-mode
-      (when (treesit-ready-p treesit-required-languages 'warn)
-        ;; Font-lock.
-        (setq-local treesit--local-variable-backup nil)
-        ;; NOTE: If anyone other than the major mode added stuff to
-        ;; `font-lock-keywords', they would need to re-add them after
-        ;; `treesit-mode' turns on.
-        (when treesit-font-lock-settings
-          (treesit--backup-local-variable 'font-lock-keywords-only t)
-          (treesit--backup-local-variable 'font-lock-keywords nil)
-          (treesit--backup-local-variable
-           'font-lock-fontify-region-function
-           #'treesit-font-lock-fontify-region)
-          (treesit-font-lock-recompute-features))
-        ;; Indent.
-        (when treesit-simple-indent-rules
-          (treesit--backup-local-variable
-           'indent-line-function #'treesit-indent))
-        ;; Navigation.
-        (when treesit-defun-type-regexp
-          (treesit--backup-local-variable
-           'beginning-of-defun-function #'treesit-beginning-of-defun)
-          (treesit--backup-local-variable
-           'end-of-defun-function #'treesit-end-of-defun))
-        ;; Imenu.
-        (when treesit-imenu-function
-          (treesit--backup-local-variable
-           'imenu-create-index-function treesit-imenu-function)))
-    ;; Font-lock.
-    (treesit--backup-local-variable 'font-lock-keywords nil t)
-    (treesit--backup-local-variable 'font-lock-keywords-only nil t)
-    (treesit--backup-local-variable
-     'font-lock-fontify-region-function nil t)
-    ;; Indent.
-    (treesit--backup-local-variable 'indent-line-function nil t)
-    ;; Navigation.
-    (treesit--backup-local-variable 'beginning-of-defun-function nil t)
-    (treesit--backup-local-variable 'end-of-defun-function nil t)
-    ;; Imenu.
-    (treesit--backup-local-variable 'imenu-create-index-function nil t)
-    ))
+If `treesit-font-lock-settings' is non-nil, setup fontification and
+enable `font-lock-mode'.
 
-(defun global-treesit-mode--turn-on ()
-  "Function used to determine whether to turn on `treesit-mode'.
-Called in every buffer if `global-treesit-mode' is on."
-  ;; Check tree-sitter readiness and don't emit warnings.
-  (when (and treesit-mode-supported
-             (treesit-ready-p treesit-required-languages))
-    (treesit-mode)))
+If `treesit-simple-indent-rules' is non-nil, setup indentation.
 
-;;;###autoload
-(define-globalized-minor-mode global-treesit-mode treesit-mode
-  global-treesit-mode--turn-on
-  :version "29.1"
-  :group 'treesit
-  :predicate t
-  nil)
+If `treesit-defun-type-regexp' is non-nil, setup
+`beginning/end-of-defun' functions."
+  ;; Font-lock.
+  (when treesit-font-lock-settings
+    ;; `font-lock-mode' wouldn't setup properly if
+    ;; `font-lock-defaults' is nil, see `font-lock-specified-p'.
+    ;; And we disable syntax-table-based font-lock by setting the
+    ;; KEYWORD-ONLY flag to t, so syntax-table-based font-lock
+    ;; doesn't override tree-sitter's fontification.
+    (setq-local font-lock-defaults '(nil t))
+    (setq-local font-lock-fontify-region-function
+                #'treesit-font-lock-fontify-region)
+    (font-lock-mode 1)
+    (treesit-font-lock-recompute-features))
+  ;; Indent.
+  (when treesit-simple-indent-rules
+    (setq-local indent-line-function #'treesit-indent))
+  ;; Navigation.
+  (when treesit-defun-type-regexp
+    (setq-local beginning-of-defun-function #'treesit-beginning-of-defun)
+    (setq-local end-of-defun-function #'treesit-end-of-defun)))
 
 ;;; Debugging
 
