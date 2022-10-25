@@ -323,13 +323,15 @@ never reconnect automatically after unexpected server shutdowns,
 crashes or network failures.  A positive integer number says to
 only autoreconnect if the previous successful connection attempt
 lasted more than that many seconds."
-  :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
+  :type '(choice (const :tag "Reconnect automatically" t)
+                 (const :tag "Never reconnect" nil)
                  (integer :tag "Number of seconds")))
 
 (defcustom eglot-connect-timeout 30
   "Number of seconds before timing out LSP connection attempts.
 If nil, never time out."
-  :type 'number)
+  :type '(choice (number :tag "Number of seconds")
+                 (const  :tag "Never time out" nil)))
 
 (defcustom eglot-sync-connect 3
   "Control blocking of LSP connection attempts.
@@ -337,8 +339,9 @@ If t, block for `eglot-connect-timeout' seconds.  A positive
 integer number means block for that many seconds, and then wait
 for the connection in the background.  nil has the same meaning
 as 0, i.e. don't block at all."
-  :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
-                 (integer :tag "Number of seconds")))
+  :type '(choice (const :tag "Block for `eglot-connect-timeout' seconds" t)
+                 (const :tag "Never block" nil)
+                 (integer :tag "Number of seconds to block")))
 
 (defcustom eglot-autoshutdown nil
   "If non-nil, shut down server after killing last managed buffer."
@@ -363,7 +366,7 @@ done by `eglot-reconnect'."
 (defcustom eglot-confirm-server-initiated-edits 'confirm
   "Non-nil if server-initiated edits should be confirmed with user."
   :type '(choice (const :tag "Don't show confirmation prompt" nil)
-                 (symbol :tag "Show confirmation prompt" 'confirm)))
+                 (const :tag "Show confirmation prompt" confirm)))
 
 (defcustom eglot-extend-to-xref nil
   "If non-nil, activate Eglot in cross-referenced non-project files."
