@@ -44,6 +44,8 @@
 (gv-define-simple-setter package-%name package-%set-name)
 (gv-define-simple-setter package-%nicknames package-%set-nicknames)
 (gv-define-simple-setter package-%use-list package-%set-use-list)
+(gv-define-simple-setter package-%shadowing-symbols
+                         package-%set-shadowing-symbols)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -68,7 +70,7 @@ but have common elements %s" key1 key2 common))))
   "Return a string for string designator NAME.
 If NAME is a string, return that.
 If NAME is a symbol, return its symbol name.
-If NAME is a character, return what 'char-to-string' returns.
+If NAME is a character, return what `char-to-string' returns.
 KIND is the kind of name we are processing, for error messages."
   (cl-typecase name
     (string name)
@@ -84,16 +86,24 @@ Duplicates are removed from the result list."
    :test #'equal))
 
 (defun pkg-package-namify (n)
+  "Return N as a package name."
   (pkg--stringify-name n "package"))
 
 (defun pkg-find-package (name)
+  "Return the package with NAME in the package registry.
+Value is nil if no package is found."
   (gethash name *package-registry* nil))
 
 (defun pkg--symbol-listify (thing)
+  "Return a list of symbols for THING.
+If THING is a list, check that all elements of the list are
+symbols, and return THING.
+If THING is a symbol, return a list that contains THING only.
+Otherwise, signal an error."
   (cond ((listp thing)
 	 (dolist (s thing)
 	   (unless (symbolp s)
-             (error "%s is not a symbol") s))
+             (error "%s is not a symbol" s)))
 	 thing)
 	((symbolp thing)
          (list thing))
@@ -103,7 +113,7 @@ Duplicates are removed from the result list."
 (cl-defun pkg--find-or-make-package (name)
   "Find or make a package named NAME.
 If NAME is a package object, return that.  Otherwise, if NAME can
-be found with 'find-package' return that.  Otherwise, make a new
+be found with `find-package' return that.  Otherwise, make a new
 package with name NAME."
   (cond ((packagep name)
          (unless (package-%name name)
@@ -166,17 +176,6 @@ Otherwise assume that "
         ((null package) *package*)
         (t (pkg--package-or-lose package))))
 
-(defun pkg--symbol-listify (thing)
-  (cond ((listp thing)
-	 (dolist (s thing)
-	   (unless (symbolp s)
-             (error "%s is not a symbol" s)))
-	 thing)
-	((symbolp thing)
-         (list thing))
-	(t
-	 (error "%s is neither a symbol nor a list of symbols" thing))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Macros
@@ -193,13 +192,14 @@ PACKAGE, or the current package if PACKAGE is not specified.
 Return what RESULT-FORM evaluates to, if specified, and the loop ends
 normally, or else if an explcit return occurs the value it transfers."
   (declare (indent 1))
-  (let ((flet-name (gensym "do-symbols-")))
+  (cl-with-gensyms (flet-name)
     `(cl-block nil
+       ;; PKG-FIXME: This gives a warning about VAR being unused even
+       ;; if it is used.  Check what that is.
        (cl-flet ((,flet-name (,var)
 		   (cl-tagbody ,@body)))
-	 (let* ((package (pkg--package-or-lose ,package))
-		(shadows (package-%shadowing-symbols package)))
-	   (maphash (lambda (k v) (,flet-name k))
+	 (let* ((package (pkg--package-or-lose ,package)))
+	   (maphash (lambda (k _v) (,flet-name k))
 		    (package-%symbols package))
 	   (dolist (p (package-%use-list package))
 	     (maphash (lambda (k v)
@@ -219,7 +219,7 @@ PACKAGE, or the current package if PACKAGE is not specified.
 
 Return what RESULT-FORM evaluates to, if specified, and the loop ends
 normally, or else if an explcit return occurs the value it transfers."
-  (let ((flet-name (gensym "do-symbols-")))
+  (cl-with-gensyms (flet-name)
     `(cl-block nil
        (cl-flet ((,flet-name (,var)
 		   (cl-tagbody ,@body)))
@@ -241,7 +241,7 @@ PACKAGE, or the current package if PACKAGE is not specified.
 
 Return what RESULT-FORM evaluates to, if specified, and the loop ends
 normally, or else if an explcit return occurs the value it transfers."
-  (let ((flet-name (gensym "do-symbols-")))
+  (cl-with-gensyms (flet-name)
     `(cl-block nil
        (cl-flet ((,flet-name (,var)
 		   (cl-tagbody ,@body)))
@@ -264,16 +264,16 @@ normally, or else if an explcit return occurs the value it transfers."
 NAME must be a string designator, that is a string, a symbol, or
 a character.  If it is a symbol, the symbol's name will be used
 as package name.  If a character, the character's string
-representation will be used ('char-to-string').
+representation will be used (`char-to-string').
 
 NICKNAMES specifies a list of string designators for additional
 names which may be used to refer to the package.  Default is nil.
 
 USE specifies zero or more packages the external symbols of which
 are to be inherited by the package.  See also function
-'use-package'.  All packages in the use-list must be either
+`use-package'.  All packages in the use-list must be either
 package objects or they are looked up in the package registry
-with 'find-package'.  If they are not found, a new package with
+with `find-package'.  If they are not found, a new package with
 the given name is created.
 
 SIZE gives the size to use for the symbol table of the new
@@ -281,7 +281,7 @@ package.  Default is 10.
 
 Please note that the newly created package is not automaticall
 registered in the package registry, that is it will not be found
-under its names by 'find-package'.  Use 'register-package' to
+under its names by `find-package'.  Use `register-package' to
 register the package.  This deviates from the CLHS specification,
 but is what Common Lisp implementations usually do."
   (cl-check-type size natnum)
@@ -327,8 +327,9 @@ registered package."
 
 ;;;###autoload
 (defun package-used-by-list (package)
+  "Return a list of packages using PACKAGE."
   (let ((package (pkg--package-or-lose package))
-        ((used-by ())))
+        (used-by ()))
     (dolist (p (list-all-packages))
       (when (memq package (package-%use-list p))
         (cl-pushnew p used-by)))
@@ -397,7 +398,7 @@ Value is the renamed package object."
         (new-nicknames (pkg--stringify-names new-nicknames
                                              "package nickname")))
     (unless (package-%name package)
-      (error "Package %s is deleted"))
+      (error "Package is deleted"))
     (pkg--remove-from-registry package)
     (setf (package-%nicknames package) new-nicknames)
     (setf (package-%name package) new-name)
@@ -416,7 +417,7 @@ Value is the renamed package object."
       (cl-multiple-value-bind (_s status)
 	  (find-symbol (cl-symbol-name sym) package)
         (unless (or (eq :external status)
-                    (memq (sym syms)))
+                    (memq sym syms))
           (push sym syms))))
 
     ;; Find symbols and packages with conflicts.
@@ -453,10 +454,10 @@ Value is the renamed package object."
       (when missing
 	(error "These symbols are not accessible in the %s package: %s"
                (package-%name package)
-               missing)))
+               missing))
 
-    ;; Import
-    (import imports package)
+      ;; Import
+      (import imports package))
 
     ;; And now, three pages later, we export the suckers.
     (dolist (sym syms)
@@ -490,7 +491,7 @@ Value is the renamed package object."
 	  (setq sym (make-symbol name))
 	  (package-%set-symbol-package sym package)
           (puthash sym :internal (package-%symbols package)))
-	(cl-pushnew s (package-%shadowing-symbols package)))))
+	(cl-pushnew sym (package-%shadowing-symbols package)))))
   t)
 
 
