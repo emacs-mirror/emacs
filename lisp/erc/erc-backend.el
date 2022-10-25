@@ -1122,8 +1122,37 @@ See also `erc-server-send'."
 
 ;;;; Handling responses
 
+(defcustom erc-tags-format 'overridable
+  "Shape of the `tags' alist in `erc-response' objects.
+When set to `legacy', pre-5.5 parsing behavior takes effect for
+the tags portion of every message.  The resulting alist contains
+conses of the form (STRING . LIST), in which LIST is comprised of
+at most one, possibly empty string.  When set to nil, ERC only
+parses tags if an active module defines an implementation.  It
+otherwise ignores them.  In such cases, each alist element is a
+cons of a symbol and an optional, nonempty string.
+
+With the default value of `overridable', ERC behaves as it does
+with `legacy' except that it emits a warning whenever first
+encountering a message containing tags in a given Emacs session.
+But it only does so when a module implementing overriding,
+non-legacy behavior isn't already active in the current network
+context.
+
+Note that future bundled modules providing IRCv3 functionality
+will not be compatible with the legacy format.  User code should
+eventually transition to expecting this \"5.5+ variant\" and set
+this option to nil."
+  :package-version '(ERC . "5.4.1") ; FIXME increment on next release
+  :type '(choice (const nil)
+                 (const legacy)
+                 (const overridable)))
+
 (defun erc-parse-tags (string)
   "Parse IRCv3 tags list in STRING to a (tag . value) alist."
+  (erc--parse-message-tags string))
+
+(defun erc--parse-tags (string)
   (let ((tags)
         (tag-strings (split-string string ";")))
     (dolist (tag-string tag-strings tags)
@@ -1132,6 +1161,28 @@ See also `erc-server-send'."
                   pair
                 `(,pair))
               tags)))))
+
+;; A benefit of this function being internal is not having to define a
+;; separate method just to ensure an `erc-tags-format' value of
+;; `legacy' always wins.  A downside is that module code must take
+;; care to preserve that promise manually.
+
+(cl-defgeneric erc--parse-message-tags (string)
+  "Parse STRING into an alist of (TAG . VALUE) conses.
+Expect TAG to be a symbol and VALUE nil or a nonempty string.
+Don't split composite raw-input values containing commas;
+instead, leave them as a single string."
+  (when erc-tags-format
+    (unless (or (eq erc-tags-format 'legacy)
+                (get 'erc-parse-tags 'erc-v3-warned-p))
+      (put 'erc-parse-tags 'erc-v3-warned-p t)
+      (display-warning
+       'ERC
+       (concat
+        "Legacy ERC tags behavior is currently in effect, but other modules,"
+        " including those bundled with ERC, may override this in future"
+        " releases.  See `erc-tags-format' for more info.")))
+    (erc--parse-tags string)))
 
 (defun erc-parse-server-response (proc string)
   "Parse and act upon a complete line from an IRC server.
@@ -1142,9 +1193,9 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
       (let* ((tag-list (when (eq (aref string 0) ?@)
                          (substring string 1
                                     (string-search " " string))))
-             (msg (make-erc-response :unparsed string :tags (when tag-list
-                                                              (erc-parse-tags
-                                                               tag-list))))
+             (msg (make-erc-response :unparsed string :tags
+                                     (when tag-list
+                                       (erc--parse-message-tags tag-list))))
              (string (if tag-list
                          (substring string (+ 1 (string-search " " string)))
                        string))
