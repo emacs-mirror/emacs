@@ -1078,7 +1078,7 @@ MANAGED-MAJOR-MODE, which matters to a minority of servers.
 
 INTERACTIVE is t if called interactively."
   (interactive (append (eglot--guess-contact t) '(t)))
-  (setq managed-major-mode (eglot--ensure-list managed-mode))
+  (setq managed-major-mode (eglot--ensure-list managed-major-mode))
   (let* ((current-server (eglot-current-server))
          (live-p (and current-server (jsonrpc-running-p current-server))))
     (if (and live-p
