@@ -1632,6 +1632,8 @@ and just return it.  PROMPT shouldn't end with a question mark."
   (cl-loop for (k _v) on plist by #'cddr collect k))
 
 (defun eglot--ensure-list (x) (if (listp x) x (list x)))
+(when (fboundp 'ensure-list)            ; Emacs 28 or later
+  (define-obsolete-function-alias 'eglot--ensure-list #'ensure-list "29.1"))
 
 
 ;;; Minor modes
