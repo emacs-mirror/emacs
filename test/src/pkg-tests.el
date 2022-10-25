@@ -132,7 +132,13 @@
     (should (delete-package x))
     (should (null (delete-package x)))
     (should (null (package-name x)))
-    (should (not (find-package 'x)))))
+    (should (not (find-package 'x))))
+  ;; Symbols whose home package is a package that is deleted, become
+  ;; uninterned.
+  (with-packages (x)
+    (let ((sym (intern "a" x)))
+      (delete-package x)
+      (should (null (symbol-package sym))))))
 
 (ert-deftest pkg-tests-rename-package ()
   (with-packages (x y)
@@ -151,8 +157,18 @@
 
 (ert-deftest pkg-tests-use-package ()
   (with-packages (x y)
-    (let ((_a (intern "a" x)))
-      (use-package x y))))
+    (let ((sym-a (intern "a" x)))
+      (should (eq (symbol-package sym-a) x))
+      (use-package x y)
+      (cl-multiple-value-bind (sym status)
+          (find-symbol "a" y)
+        (should (null sym))
+        (when nil
+          (export sym-a x)
+          (cl-multiple-value-bind (sym status)
+              (find-symbol "a" y)
+            (should (eq sym sym-a))
+            (should (eq status :inherited))))))))
 
 ;; (ert-deftest pkg-tests-find-symbol ()
 ;;   (should nil))

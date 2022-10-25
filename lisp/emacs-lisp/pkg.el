@@ -179,11 +179,85 @@ Otherwise assume that "
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                  Macros
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;###autoload
+(cl-defmacro do-symbols ((var &optional (package '*package*) result-form)
+			 &body body)
+  "Loop over symbols in a package.
+
+Evaluate BODY with VAR bound to each symbol accessible in the given
+PACKAGE, or the current package if PACKAGE is not specified.
+
+Return what RESULT-FORM evaluates to, if specified, and the loop ends
+normally, or else if an explcit return occurs the value it transfers."
+  (declare (indent 1))
+  (let ((flet-name (gensym "do-symbols-")))
+    `(cl-block nil
+       (cl-flet ((,flet-name (,var)
+		   (cl-tagbody ,@body)))
+	 (let* ((package (pkg--package-or-lose ,package))
+		(shadows (package-%shadowing-symbols package)))
+	   (maphash (lambda (k v) (,flet-name k))
+		    (package-%symbols package))
+	   (dolist (p (package-%use-list package))
+	     (maphash (lambda (k v)
+			(when (eq v :external)
+			  (,flet-name k)))
+		      (package-%symbols p))
+       (let ((,var nil))
+	 ,result-form)))))))
+
+;;;###autoload
+(cl-defmacro do-external-symbols ((var &optional (package '*package*) result-form)
+			          &body body)
+  "Loop over external symbols in a package.
+
+Evaluate BODY with VAR bound to each symbol accessible in the given
+PACKAGE, or the current package if PACKAGE is not specified.
+
+Return what RESULT-FORM evaluates to, if specified, and the loop ends
+normally, or else if an explcit return occurs the value it transfers."
+  (let ((flet-name (gensym "do-symbols-")))
+    `(cl-block nil
+       (cl-flet ((,flet-name (,var)
+		   (cl-tagbody ,@body)))
+	 (let* ((package (pkg--package-or-lose ,package))
+		(shadows (package-%shadowing-symbols package)))
+	   (maphash (lambda (k v)
+		      (when (eq v :external)
+			(,flet-name k)))
+		    (package-%symbols package))))
+       (let ((,var nil))
+	 ,result-form))))
+
+;;;###autoload
+(cl-defmacro do-all-symbols ((var &optional result-form) &body body)
+  "Loop over all symbols in all registered packages.
+
+Evaluate BODY with VAR bound to each symbol accessible in the given
+PACKAGE, or the current package if PACKAGE is not specified.
+
+Return what RESULT-FORM evaluates to, if specified, and the loop ends
+normally, or else if an explcit return occurs the value it transfers."
+  (let ((flet-name (gensym "do-symbols-")))
+    `(cl-block nil
+       (cl-flet ((,flet-name (,var)
+		   (cl-tagbody ,@body)))
+         (dolist (package (list-all-packages))
+	   (maphash (lambda (k _v)
+		      (,flet-name k))
+		    (package-%symbols package))))
+       (let ((,var nil))
+	 ,result-form))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                        Basic stuff
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
-
 (cl-defun make-package (name &key nicknames use (size 10))
   "Create and return a new package with name NAME.
 
@@ -285,6 +359,10 @@ If PACKAGE is a package that is not already deleted, or PACKAGE
 is a package name that is registered, delete that package by
 removing it from the package registry, and return t.
 
+After this operation completes, the home package of any symbol
+whose home package had previously been package is set to nil.
+That is, these symbols are now considered uninterned symbols.
+
 An attempt to delete one of the standard packages results in an
 error."
   (if (and (packagep package)
@@ -296,6 +374,9 @@ error."
         (error "Cannot delete a standard package"))
       (pkg--remove-from-registry package)
       (setf (package-%name package) nil)
+      (do-symbols (sym package)
+        (when (eq (symbol-package sym) package)
+          (package-%set-symbol-package sym nil)))
       t)))
 
 ;;;###autoload
@@ -322,9 +403,6 @@ Value is the renamed package object."
     (setf (package-%name package) new-name)
     (pkg--add-to-registry package)
     package))
-
-
-;;; Here...
 
 ;;;###autoload
 (defun export (symbols &optional package)
@@ -438,76 +516,6 @@ Value is the renamed package object."
           (cl-intersection (package-%use-list package)
                            unuse))
     t))
-
-;;;###autoload
-(cl-defmacro do-symbols ((var &optional (package '*package*) result-form)
-			 &body body)
-  "Loop over symbols in a package.
-
-Evaluate BODY with VAR bound to each symbol accessible in the given
-PACKAGE, or the current package if PACKAGE is not specified.
-
-Return what RESULT-FORM evaluates to, if specified, and the loop ends
-normally, or else if an explcit return occurs the value it transfers."
-  (declare (indent 1))
-  (let ((flet-name (gensym "do-symbols-")))
-    `(cl-block nil
-       (cl-flet ((,flet-name (,var)
-		   (cl-tagbody ,@body)))
-	 (let* ((package (pkg--package-or-lose ,package))
-		(shadows (package-%shadowing-symbols package)))
-	   (maphash (lambda (k v) (,flet-name k))
-		    (package-%symbols package))
-	   (dolist (p (package-%use-list package))
-	     (maphash (lambda (k v)
-			(when (eq v :external)
-			  (,flet-name k)))
-		      (package-%symbols p))
-       (let ((,var nil))
-	 ,result-form)))))))
-
-;;;###autoload
-(cl-defmacro do-external-symbols ((var &optional (package '*package*) result-form)
-			          &body body)
-  "Loop over external symbols in a package.
-
-Evaluate BODY with VAR bound to each symbol accessible in the given
-PACKAGE, or the current package if PACKAGE is not specified.
-
-Return what RESULT-FORM evaluates to, if specified, and the loop ends
-normally, or else if an explcit return occurs the value it transfers."
-  (let ((flet-name (gensym "do-symbols-")))
-    `(cl-block nil
-       (cl-flet ((,flet-name (,var)
-		   (cl-tagbody ,@body)))
-	 (let* ((package (pkg--package-or-lose ,package))
-		(shadows (package-%shadowing-symbols package)))
-	   (maphash (lambda (k v)
-		      (when (eq v :external)
-			(,flet-name k)))
-		    (package-%symbols package))))
-       (let ((,var nil))
-	 ,result-form))))
-
-;;;###autoload
-(cl-defmacro do-all-symbols ((var &optional result-form) &body body)
-  "Loop over all symbols in all registered packages.
-
-Evaluate BODY with VAR bound to each symbol accessible in the given
-PACKAGE, or the current package if PACKAGE is not specified.
-
-Return what RESULT-FORM evaluates to, if specified, and the loop ends
-normally, or else if an explcit return occurs the value it transfers."
-  (let ((flet-name (gensym "do-symbols-")))
-    `(cl-block nil
-       (cl-flet ((,flet-name (,var)
-		   (cl-tagbody ,@body)))
-         (dolist (package (list-all-packages))
-	   (maphash (lambda (k _v)
-		      (,flet-name k))
-		    (package-%symbols package))))
-       (let ((,var nil))
-	 ,result-form))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            defpackage
