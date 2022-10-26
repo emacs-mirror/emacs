@@ -1,6 +1,6 @@
 ;;; bind-chord.el --- key-chord binding helper for use-package-chords  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2019 Justin Talbott
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; Keywords: convenience, tools, extensions

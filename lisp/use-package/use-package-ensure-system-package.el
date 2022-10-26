@@ -1,6 +1,6 @@
 ;;; use-package-ensure-system-package.el --- auto install system packages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 Justin Talbott
+;; Copyright (C) 2022 Free Software Foundation, Inc.
 
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; Keywords: convenience, tools, extensions
