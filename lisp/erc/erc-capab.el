@@ -62,7 +62,7 @@
 ;; You can customize the prefix and the face used to display it,
 ;; `erc-capab-identify-unidentified'.  If the value of
 ;; `erc-capab-identify-prefix' is nil or you disable this module (see
-;; `erc-capab-identify-disable'), no prefix will be inserted, but the
+;; `erc-capab-identify-activated'), no prefix will be inserted, but the
 ;; flag sent by the server will still be stripped.
 
 ;;; Code:

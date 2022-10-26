@@ -1360,8 +1360,9 @@ default) no filter is applied."
     flymake-mode-line-warning-counter
     flymake-mode-line-note-counter "]")
   "Mode-line construct for formatting Flymake diagnostic counters.
-This is a suitable place for placing the `flymake-error-counter',
-`flymake-warning-counter' and `flymake-note-counter' constructs.
+This is a suitable place for placing the `flymake-mode-line-error-counter',
+`flymake-mode-line-warning-counter' and `flymake-mode-line-note-counter'
+constructs.
 Separating each of these with space is not necessary."
   :type '(repeat (choice string symbol)))
 

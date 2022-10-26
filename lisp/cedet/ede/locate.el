@@ -172,7 +172,7 @@ You cannot create projects for the baseclass."
 (defclass ede-locate-locate (ede-locate-base)
   ()
   "EDE Locator using the locate command.
-Configure the Emacs `locate-program' variable to also
+Configure the Emacs `locate-command' variable to also
 configure the use of EDE locate.")
 
 (cl-defmethod ede-locate-ok-in-project ((_loc (subclass ede-locate-locate))

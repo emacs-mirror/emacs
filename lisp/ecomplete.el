@@ -190,7 +190,7 @@ FORCE is non-nil, use TEXT exactly as is."
 If CHOOSE, allow the user to choose interactively between the
 matches.
 
-Auto-select when `ecomplete-message-display-abbrev-auto-select' is
+Auto-select when `ecomplete-auto-select' is
 non-nil and there is only a single completion option available."
   (let* ((matches (ecomplete-get-matches type word))
          (match-list (and matches (split-string matches "\n")))

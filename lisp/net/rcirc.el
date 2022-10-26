@@ -1049,7 +1049,7 @@ Each element has the form (TYPE HANDLE), where TYPE is a string
 and HANDLE is either the symbol `immediate' or `deferred'.
 Messages in an immediate batch are handled just like regular
 messages, while deferred messages are stored in
-`rcirc-batch-messages'.")
+`rcirc-batched-messages'.")
 
 (defvar-local rcirc-batch-attributes nil
   "Alist mapping batch IDs to parameters.")

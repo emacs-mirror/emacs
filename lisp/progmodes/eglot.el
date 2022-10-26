@@ -618,7 +618,7 @@ Honour `eglot-strict-mode'."
 (cl-defmacro eglot--dcase (obj &rest clauses)
   "Like `pcase', but for the LSP object OBJ.
 CLAUSES is a list (DESTRUCTURE FORMS...) where DESTRUCTURE is
-treated as in `eglot-dbind'."
+treated as in `eglot--dbind'."
   (declare (indent 1) (debug (sexp &rest (sexp &rest form))))
   (let ((obj-once (make-symbol "obj-once")))
     `(let ((,obj-once ,obj))
@@ -2464,7 +2464,7 @@ may be called multiple times (respecting the protocol of
 (defun eglot-xref-backend () "Eglot xref backend." 'eglot)
 
 (defvar eglot--temp-location-buffers (make-hash-table :test #'equal)
-  "Helper variable for `eglot--handling-xrefs'.")
+  "Helper variable for `eglot--collecting-xrefs'.")
 
 (defvar eglot-xref-lessp-function #'ignore
   "Compare two `xref-item' objects for sorting.")

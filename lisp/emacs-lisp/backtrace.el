@@ -753,7 +753,7 @@ property for use by navigation."
 
 (defun backtrace--line-length-or-nil ()
   "Return `backtrace-line-length' if valid, nil else."
-  ;; mirror the logic in `cl-print-to-string-with-limits'
+  ;; mirror the logic in `cl-print-to-string-with-limit'
   (and (natnump backtrace-line-length)
        (not (zerop backtrace-line-length))
        backtrace-line-length))

@@ -3501,7 +3501,7 @@ Optional support for popup buttons is also implemented here."
 
 (cl-defmethod transient-format-description ((obj transient-child))
   "The `description' slot may be a function, in which case that is
-called inside the correct buffer (see `transient-insert-group')
+called inside the correct buffer (see `transient--insert-group')
 and its value is returned to the caller."
   (and-let* ((desc (oref obj description)))
     (if (functionp desc)
