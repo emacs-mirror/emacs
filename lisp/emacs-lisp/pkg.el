@@ -264,7 +264,8 @@ normally, or else if an explcit return occurs the value it transfers."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
-(cl-defun make-package (name &key nicknames use (size 10))
+(cl-defun make-package (name &key nicknames use (size 10)
+                             (register nil))
   "Create and return a new package with name NAME.
 
 NAME must be a string designator, that is a string, a symbol, or
@@ -285,6 +286,9 @@ the given name is created.
 SIZE gives the size to use for the symbol table of the new
 package.  Default is 10.
 
+REGISTER if true means register the package in the package
+registry.
+
 Please note that the newly created package is not automaticall
 registered in the package registry, that is it will not be found
 under its names by `find-package'.  Use `register-package' to
@@ -297,6 +301,8 @@ but is what Common Lisp implementations usually do."
          (package (make-%package name size)))
     (setf (package-%nicknames package) nicknames
           (package-%use-list package) use)
+    (when register
+      (register-package package))
     package))
 
 (defun register-package (package)

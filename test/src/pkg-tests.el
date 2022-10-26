@@ -72,7 +72,15 @@
   (should-error (make-package "x" :nicknames))
   (should-error (make-package "x" :use))
   (should-error (make-package "x" :nicknames 1))
-  (should-error (make-package "x" :use 1)))
+  (should-error (make-package "x" :use 1))
+  ;; Registering package
+  (let ((p (make-package "x" :nicknames '(y) :register t)))
+    (unwind-protect
+        (progn
+          (should (packagep p))
+          (should (eq (find-package "x") p))
+          (should (eq (find-package "y") p)))
+      (delete-package p))))
 
 (ert-deftest pkg-tests-make-package-nicknames ()
   ;; Valid nicknames
