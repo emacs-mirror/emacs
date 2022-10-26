@@ -2469,7 +2469,7 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
     }
 }
 
-/* Go thought the whole tree linearly depth first, starting from
+/* Go thought the whole tree linearly, leaf-first, starting from
    START.  PRED, PARSER, NAMED, FORWARD are the same as in
    ts_search_subtre.  If UP_ONLY is true, never go to children, only
    sibling and parents.  */
