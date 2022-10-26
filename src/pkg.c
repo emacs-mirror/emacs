@@ -331,6 +331,14 @@ pkg_intern_symbol1 (const Lisp_Object name, Lisp_Object package,
       XSYMBOL (symbol)->u.s.declared_special = true;
       pkg_add_symbol (symbol, QCexternal, Vkeyword_package);
     }
+  else if (EQ (package, Vemacs_package))
+    {
+      /* Special-case package "emacs" because nothing exists yet
+	 exporting symbols from that package.  */
+      if (status)
+	*status = QCexternal;
+      pkg_add_symbol (symbol, QCexternal, package);
+    }
   else
     {
       if (status)
