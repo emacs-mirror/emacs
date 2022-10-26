@@ -328,6 +328,14 @@ You may want to include buffer names such as *Help*, *Apropos*,
     map)
   "Keymap for Winner mode.")
 
+(defvar-keymap winner-repeat-map
+  :doc "Keymap to repeat winner key sequences.  Used in `repeat-mode'."
+  "<left>"  #'winner-undo
+  "<right>" #'winner-redo)
+
+(put #'winner-undo 'repeat-map 'winner-repeat-map)
+(put #'winner-redo 'repeat-map 'winner-repeat-map)
+
 
 ;;;###autoload
 (define-minor-mode winner-mode
