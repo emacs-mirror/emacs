@@ -975,7 +975,19 @@ and DOC describes the way this style of completion works.")
 (defconst completion--styles-type
   `(repeat :tag "insert a new menu to add more styles"
            (choice ,@(mapcar (lambda (x) (list 'const (car x)))
-                             completion-styles-alist))))
+                             completion-styles-alist)
+                   (symbol :tag "Other"
+                           :validate
+                           ,(lambda (widget)
+                              (let ((value (widget-value widget)))
+                                (if (assq value completion-styles-alist)
+                                    nil    ; Valid.
+                                  (widget-put
+                                   widget :error
+                                   (format "Invalid completion style: %S"
+                                           value))
+                                  widget)))))))
+
 (defconst completion--cycling-threshold-type
   '(choice (const :tag "No cycling" nil)
            (const :tag "Always cycle" t)
