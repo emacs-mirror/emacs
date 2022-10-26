@@ -18917,8 +18917,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      x_real_positions (f, &f->left_pos, &f->top_pos);
 
 	      /* Perhaps reparented due to a WM restart.  Reset this.  */
-	      FRAME_DISPLAY_INFO (f)->wm_type = X_WMTYPE_UNKNOWN;
-	      FRAME_DISPLAY_INFO (f)->net_supported_window = 0;
+	      dpyinfo->wm_type = X_WMTYPE_UNKNOWN;
+	      dpyinfo->net_supported_window = 0;
 
 #ifndef USE_GTK
 	      /* The window manager could have restarted and the new
@@ -19387,7 +19387,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           *finish = X_EVENT_DROP;
 #endif
 
-          xkey.state |= x_emacs_to_x_modifiers (FRAME_DISPLAY_INFO (f),
+          xkey.state |= x_emacs_to_x_modifiers (dpyinfo,
 						extra_keyboard_modifiers);
           modifiers = xkey.state;
 
@@ -19504,7 +19504,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  /* Common for all keysym input events.  */
 	  XSETFRAME (inev.ie.frame_or_window, f);
 	  inev.ie.modifiers
-	    = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), modifiers);
+	    = x_x_to_emacs_modifiers (dpyinfo, modifiers);
 	  inev.ie.timestamp = xkey.time;
 
 	  /* First deal with keysyms which have defined
@@ -23832,8 +23832,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    xi_compute_root_window_offset_pinch (any, pev);
 
 		  inev.ie.kind = PINCH_EVENT;
-		  inev.ie.modifiers = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (any),
-							      pev->mods.effective);
+		  inev.ie.modifiers
+		    = x_x_to_emacs_modifiers (dpyinfo, pev->mods.effective);
+
 		  XSETINT (inev.ie.x, lrint (pev->event_x));
 		  XSETINT (inev.ie.y, lrint (pev->event_y));
 		  XSETFRAME (inev.ie.frame_or_window, any);
