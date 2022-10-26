@@ -136,6 +136,12 @@ The main file of the project, relevant to gather package
 metadata.  If not given, the assumed default is the package named
 with \".el\" concatenated to the end.
 
+        `:release-rev' (string)
+
+A revision string indicating the revision used for the current
+release in the package archive.  If missing or nil, no release
+was made.
+
 All other values are ignored.")
 
 (defun package-vc-desc->spec (pkg-desc &optional name)
@@ -414,7 +420,9 @@ guess the name of the package using `file-name-base'.  This can
 be overridden by manually passing the optional NAME.  Otherwise
 NAME-OR-URL is taken to be a package name, and the package
 metadata will be consulted for the URL.  An explicit revision can
-be requested using REV."
+be requested using REV.  If the command is invoked with a prefix
+argument, the revision used for the last release in the package
+archive is used."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -424,7 +432,12 @@ be requested using REV."
             (input (completing-read
                     "Fetch package source (name or URL): " packages))
             (name (file-name-base input)))
-       (list input (intern (string-remove-prefix "emacs-" name))))))
+       (list input (intern (string-remove-prefix "emacs-" name))
+             (and current-prefix-arg
+                  (or (package-vc-query-spec
+                       (cadr (assoc input package-archive-contents #'string=))
+                       :release-rev)
+                      (user-error "No release revision was found")))))))
   (package--archives-initialize)
   (cond
    ((and-let* ((stringp name-or-url)
