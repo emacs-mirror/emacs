@@ -1883,6 +1883,9 @@ See `completing-read' for a description of arguments and usage."
    (t (complete-with-action
        code Info-read-node-completion-table string predicate))))
 
+(defvar Info-minibuf-history nil
+  "History for `Info-read-node-name'.")
+
 ;; Arrange to highlight the proper letters in the completion list buffer.
 (defun Info-read-node-name (prompt &optional default)
   "Read an Info node name with completion, prompting with PROMPT.
