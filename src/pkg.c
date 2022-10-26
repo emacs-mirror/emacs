@@ -941,7 +941,7 @@ syms_of_pkg (void)
 		     doc: /* The keyword package.  For internal use only.  */);
   DEFVAR_LISP_NOPRO ("*package*", Vearmuffs_package,
 		     doc: /* The current package.  */);
-
+  Fmake_variable_buffer_local (Qearmuffs_package);
   DEFVAR_LISP_NOPRO ("package-prefixes", Vpackage_prefixes,
 		     doc: /* */);
   Fmake_variable_buffer_local (Qpackage_prefixes);
