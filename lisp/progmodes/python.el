@@ -6473,6 +6473,10 @@ Add import for undefined name `%s' (empty to skip): "
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)
+    (setq-local treesit-defun-type-regexp (rx bol
+                                              (or "function" "class")
+                                              "_definition"
+                                              eol))
     (treesit-major-mode-setup))
    ;; Elisp.
    (t
