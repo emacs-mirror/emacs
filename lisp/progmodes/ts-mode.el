@@ -278,6 +278,10 @@
     ;; Font-lock.
     (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
+    ;; Imenu.
+    (setq-local imenu-create-index-function #'js--treesit-imenu)
+    ;; Which-func (use imenu).
+    (setq-local which-func-functions nil)
     (treesit-major-mode-setup))
    ;; Elisp.
    (t

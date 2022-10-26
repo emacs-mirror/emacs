@@ -3601,6 +3601,99 @@ This function can be used as a value in `which-func-functions'"
              do (setq node (treesit-node-parent node))
              finally return  (string-join name-list "."))))
 
+(defun js--treesit-imenu-top-level-p (node)
+  "Return t if NODE is top-level, nil otherwise.
+Being top-level means there is no parent of NODE that has the
+same type."
+  (when node
+    (catch 'term
+      (let ((type (treesit-node-type node)))
+        (while (setq node (treesit-node-parent node))
+          (when (equal (treesit-node-type node) type)
+            (throw 'term nil))))
+      t)))
+
+;; Keep this private since we might later change it or generalize it.
+(defvar js--treesit-imenu-type-alist
+  '((variable . "V")
+    (function . "F")
+    (class . "C")
+    (method . "M"))
+  "Maps imenu label types to their \"symbol\".
+Symbols are prefixed to each label in imenu (see
+`js--treesit-imenu-label').")
+
+(defun js--treesit-imenu-label (type name)
+  "Format label for imenu.
+TYPE can be `variable', `function', `class', `method'.
+NAME is a string."
+  (format "%s %s" (alist-get type js--treesit-imenu-type-alist)
+          name))
+
+(defun js--treesit-imenu-1 (node)
+  "Given a sparse tree, create an imenu alist.
+
+NODE is the root node of the tree returned by
+`treesit-induce-sparse-tree' (not a tree-sitter node, its car is
+a tree-sitter node).  Walk that tree and return an imenu alist.
+
+Return a list of ENTRY where
+
+ENTRY := (NAME . MARKER)
+       | (NAME . ((JUMP-LABEL . MARKER)
+                  ENTRY
+                  ...)
+
+NAME is the function/class's name, JUMP-LABEL is like \"*function
+definition*\"."
+  (let* ((ts-node (car node))
+         (children (cdr node))
+         (subtrees (mapcan #'js--treesit-imenu-1
+                           children))
+         (type (pcase (treesit-node-type ts-node)
+                 ("lexical_declaration" 'variable)
+                 ("class_declaration" 'class)
+                 ("method_definition" 'method)
+                 ("function_declaration" 'function)))
+         ;; The root of the tree could have a nil ts-node.
+         (name (when ts-node
+                 (let ((ts-node-1
+                        (if (eq type 'variable)
+                            (treesit-search-subtree
+                             ts-node "variable_declarator" nil nil 1)
+                          ts-node)))
+                   (treesit-node-text
+                    (treesit-node-child-by-field-name
+                     ts-node-1 "name")
+                    t))))
+         (marker (when ts-node
+                   (set-marker (make-marker)
+                               (treesit-node-start ts-node)))))
+    (cond
+     ((null ts-node)
+      subtrees)
+     ((and (eq type 'variable)
+           (not (js--treesit-imenu-top-level-p ts-node)))
+      nil)
+     (subtrees
+      (let ((parent-label (js--treesit-imenu-label type name))
+            (jump-label ""))
+        `((,parent-label
+           ,(cons jump-label marker)
+           ,@subtrees))))
+     (t (let ((label (js--treesit-imenu-label type name)))
+          (list (cons label marker)))))))
+
+(defun js--treesit-imenu ()
+  "Return Imenu alist for the current buffer."
+  (let* ((node (treesit-buffer-root-node))
+         (tree (treesit-induce-sparse-tree
+                node (rx (or "class_declaration"
+                             "method_definition"
+                             "function_declaration"
+                             "lexical_declaration")))))
+    (js--treesit-imenu-1 tree)))
+
 ;;; Main Function
 
 ;;;###autoload
@@ -3679,6 +3772,7 @@ This function can be used as a value in `which-func-functions'"
   (cond
    ;; Tree-sitter.
    ((treesit-ready-p 'js-mode 'javascript)
+    (treesit-parser-create 'javascript)
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
     ;; Navigation.
@@ -3690,6 +3784,11 @@ This function can be used as a value in `which-func-functions'"
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
+    ;; Imenu
+    (setq-local imenu-create-index-function
+                #'js--treesit-imenu)
+    ;; Which-func (use imenu).
+    (setq-local which-func-functions nil)
     (treesit-major-mode-setup))
    ;; Elisp.
    (t
