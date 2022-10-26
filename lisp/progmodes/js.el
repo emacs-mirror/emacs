@@ -3622,6 +3622,9 @@ This function can be used as a value in `which-func-functions'"
   (setq-local fill-paragraph-function #'js-fill-paragraph)
   (setq-local normal-auto-fill-function #'js-do-auto-fill)
 
+  ;; Parse cache
+  (add-hook 'before-change-functions #'js--flush-caches t t)
+
   ;; Frameworks
   (js--update-quick-match-re)
 
@@ -3704,9 +3707,7 @@ This function can be used as a value in `which-func-functions'"
               #'syntax-propertize-multiline 'append 'local)
     (add-hook 'syntax-propertize-extend-region-functions
               #'js--syntax-propertize-extend-region 'append 'local)
-
-    ;; Parse cache
-    (add-hook 'before-change-functions #'js--flush-caches t t))))
+    )))
 
 (defvar js-json--treesit-font-lock-settings
   (treesit-font-lock-rules
