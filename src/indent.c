@@ -637,6 +637,11 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
 	    scan_byte = CHAR_TO_BYTE (scan);
 	  if (scan >= end)
 	    goto endloop;
+	  /* We may have over-stepped cmp_it.stop_pos while skipping
+	     the invisible text.  If so, update cmp_it.stop_pos.  */
+	  if (scan > cmp_it.stop_pos && cmp_it.id < 0)
+	    composition_reseat_it (&cmp_it, scan, scan_byte, end,
+				   w, -1, NULL, Qnil);
 	}
 
       /* Test reaching the goal column.  We do this after skipping
@@ -1358,6 +1363,9 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 	      pos = newpos;
 	      pos_byte = CHAR_TO_BYTE (pos);
 	    }
+	  if (newpos > cmp_it.stop_pos && cmp_it.id < 0)
+	    composition_reseat_it (&cmp_it, pos, pos_byte, to,
+				   win, -1, NULL, Qnil);
 
 	  rarely_quit (++quit_count);
 	}
