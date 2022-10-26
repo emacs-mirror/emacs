@@ -2455,7 +2455,8 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
       for (int offset = 0; offset < count; offset++)
 	{
 	  uint32_t idx = forward ? offset : count - offset - 1;
-	  TSNode child = ts_node_child (node, idx);
+	  TSNode child =
+	    named ? ts_node_named_child (node, idx) : ts_node_child (node, idx);
 
 	  if (!ts_node_is_null (child)
 	      && treesit_search_dfs (&child, pred, parser, named,
