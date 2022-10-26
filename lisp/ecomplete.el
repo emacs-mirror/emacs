@@ -88,7 +88,8 @@ string that was matched."
 
 (defcustom ecomplete-filter-regexp nil
   "Regular expression of addresses that should not be stored by ecomplete."
-  :type 'regexp
+  :type '(choice (const :tag "None" nil)
+                 (regexp :tag "Regexp"))
   :version "29.1")
 
 ;;; Internal variables.
