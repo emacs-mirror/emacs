@@ -6693,8 +6693,7 @@ comment at the start of cc-engine.el for more info."
 	  ;; syntactic ws.
 	  (when (and cfd-match-pos (< cfd-match-pos syntactic-pos))
 	    (goto-char syntactic-pos)
-	    (c-forward-syntactic-ws
-	     (min (+ (point) 2000) (point-max)))
+	    (c-forward-syntactic-ws cfd-limit)
 	    (and cfd-continue-pos
 		 (< cfd-continue-pos (point))
 		 (setq cfd-token-pos (point))))
@@ -6735,8 +6734,7 @@ comment at the start of cc-engine.el for more info."
 			;; can't be nested, and that's already been done in
 			;; `c-find-decl-prefix-search'.
 			(when (> cfd-continue-pos cfd-token-pos)
-			  (c-forward-syntactic-ws
-			   (min (+ (point) 2000) (point-max)))
+			  (c-forward-syntactic-ws cfd-limit)
 			  (setq cfd-token-pos (point)))
 
 			;; Continue if the following token fails the
