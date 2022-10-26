@@ -133,7 +133,7 @@ see its function help for a description of the format."
             names)))
 
 (defun tramp-kubernetes--current-context-data (vec)
-  "Return Kubernetes current context data as JSONPATH string."
+  "Return Kubernetes current context data as JSON string."
   (with-temp-buffer
     (when (zerop
 	   (tramp-call-process

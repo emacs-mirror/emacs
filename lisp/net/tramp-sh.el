@@ -4473,7 +4473,7 @@ process to set up.  VEC specifies the connection."
   ;; yes, this is a strong indication that we must expire all
   ;; connection properties.  We start again with
   ;; `tramp-maybe-open-connection', it will be caught there.  The same
-  ;; check will be applied with the function kept in`tramp-config-check'.
+  ;; check will be applied with the function kept in `tramp-config-check'.
   (tramp-message vec 5 "Checking system information")
   (let* ((old-uname (tramp-get-connection-property vec "uname"))
 	 (uname
