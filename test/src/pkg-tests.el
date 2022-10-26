@@ -82,6 +82,33 @@
           (should (eq (find-package "y") p)))
       (delete-package p))))
 
+(ert-deftest pkg-tests-read ()
+  (with-packages ((x :register t))
+    (let* ((package-prefixes nil)
+           (sym (read "x::y")))
+      (should (symbolp sym))
+      (should (equal (symbol-name sym) "x::y"))
+      (should (eq (symbol-package sym) *emacs-package*))
+
+      (setq sym (read ":b"))
+      (should (keywordp sym))
+      (should (equal (cl-symbol-name sym) "b"))
+      (should (equal (symbol-name sym) ":b"))
+      (should (eq (symbol-package sym) *keyword-package*))))
+
+  (with-packages ((x :register t))
+    (let* ((package-prefixes t)
+           (sym (read "x::y")))
+      (should (symbolp sym))
+      (should (equal (symbol-name sym) "y"))
+      (should (eq (symbol-package sym) x))
+
+      (setq sym (read ":a"))
+      (should (keywordp sym))
+      (should (equal (cl-symbol-name sym) "a"))
+      (should (equal (symbol-name sym) ":a"))
+      (should (eq (symbol-package sym) *keyword-package*)))))
+
 (ert-deftest pkg-tests-make-package-nicknames ()
   ;; Valid nicknames
   (dolist (nickname '("a" b ?c))

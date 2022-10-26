@@ -650,8 +650,13 @@ pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, bool external)
     }
 
   if (EQ (found, Qunbound))
-    pkg_error ("Symbol '%s' is not accessible in package '%s'",
-	       SDATA (name), SDATA (PACKAGE_NAMEX (package)));
+    {
+      if (external)
+	pkg_error ("Symbol '%s' is not accessible in package '%s'",
+		   SDATA (name), SDATA (PACKAGE_NAMEX (package)));
+      /* Access with x::y. intern y into x.  */
+      return pkg_intern_symbol (name, package, NULL);
+    }
 
   /* Check if the symbol is accesible in the package as external
      symbol.  PKG-FIXME: Check what to do for inherited symbols.  */
