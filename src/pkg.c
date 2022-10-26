@@ -922,6 +922,12 @@ init_pkg_once (void)
   XPACKAGE (Vkeyword_package)->nicknames = Fcons (build_string (""), Qnil);
   pkg_register_package (Vkeyword_package);
 
+  staticpro (&Vemacs_user_package);
+  Vemacs_user_package = pkg_make_package (build_string ("emacs-user"),
+					  make_fixnum (1000));
+  XPACKAGE (Vemacs_user_package)->use_list = Fcons (Vemacs_package, Qnil);
+  pkg_register_package (Vemacs_user_package);
+
   staticpro (&Vearmuffs_package);
   Vearmuffs_package = Vemacs_package;
   XSYMBOL (Qearmuffs_package)->u.s.declared_special = true;
@@ -942,6 +948,8 @@ syms_of_pkg (void)
 		     doc: /* The package registry.  For internal use only.  */);
   DEFVAR_LISP_NOPRO ("*emacs-package*", Vemacs_package,
 		     doc: /* The Emacs package.  For internal use only.  */);
+  DEFVAR_LISP_NOPRO ("*emacs-user-package*", Vemacs_user_package,
+		     doc: /* The Emacs user package.  For internal use only.  */);
   DEFVAR_LISP_NOPRO ("*keyword-package*", Vkeyword_package,
 		     doc: /* The keyword package.  For internal use only.  */);
   DEFVAR_LISP_NOPRO ("*package*", Vearmuffs_package,
