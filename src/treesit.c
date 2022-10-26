@@ -2504,7 +2504,7 @@ treesit_search_forward (TSNode *start, Lisp_Object pred, Lisp_Object parser,
 	}
       /* We are at the next sibling, deep dive into the first leaf
 	 node.  */
-      TSNode next_next = ts_node_child (next, 0);
+      TSNode next_next = treesit_traverse_child_helper (next, forward, named);
       while (!ts_node_is_null (next_next))
 	{
 	  next = next_next;
