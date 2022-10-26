@@ -41,10 +41,7 @@ The following commands are available:\\<widget-keymap>
 \\[widget-forward]		Move to next button or editable field.
 \\[widget-backward]		Move to previous button or editable field.
 \\[widget-button-click]	Activate button under the mouse pointer.
-\\[widget-button-press]		Activate button under point.
-
-Entry to this mode calls the value of `gnus-custom-mode-hook'
-if that value is non-nil."
+\\[widget-button-press]		Activate button under point."
   (use-local-map widget-keymap)
   ;; Emacs stuff:
   (when (and (facep 'custom-button-face)
