@@ -13334,7 +13334,10 @@ unwind_format_mode_line (Lisp_Object vector)
 	  if (!EQ (frame, WINDOW_FRAME (XWINDOW (old_window))))
 	    Fselect_window (target_frame_window, Qt);
 
-	  if (!NILP (old_top_frame) && !EQ (old_top_frame, frame))
+	  if (!NILP (old_top_frame) && !EQ (old_top_frame, frame)
+	      /* This could've been destroyed during the formatting,
+		 possibly because the terminal was deleted.  */
+	      && FRAME_LIVE_P (XFRAME (old_top_frame)))
 	    Fselect_frame (old_top_frame, Qt);
 	}
 
@@ -13437,6 +13440,7 @@ void
 gui_consider_frame_title (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
+  Lisp_Object format_data;
 
   if ((FRAME_WINDOW_P (f)
        || FRAME_MINIBUF_ONLY_P (f)
@@ -13481,15 +13485,19 @@ gui_consider_frame_title (Lisp_Object frame)
       specbind (Qinhibit_redisplay, Qt);
 
       /* Switch to the buffer of selected window of the frame.  Set up
-	 mode_line_target so that display_mode_element will output into
-	 mode_line_noprop_buf; then display the title.  */
-      record_unwind_protect (unwind_format_mode_line,
-			     format_mode_line_unwind_data
-			     (f, current_buffer, selected_window, false));
+	 mode_line_target so that display_mode_element will output
+	 into mode_line_noprop_buf; then display the title.  Save the
+	 original frame and selected window, and possibly the topmost
+	 frame of the tty (for tty frames) into a vector; it will be
+	 restored later.  */
+
+      format_data = format_mode_line_unwind_data (f, current_buffer,
+						  selected_window,
+						  false);
+      record_unwind_protect (unwind_format_mode_line, format_data);
 
       Fselect_window (f->selected_window, Qt);
-      set_buffer_internal_1
-	(XBUFFER (XWINDOW (f->selected_window)->contents));
+      set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->contents));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
 
       mode_line_target = MODE_LINE_TITLE;
@@ -13502,8 +13510,9 @@ gui_consider_frame_title (Lisp_Object frame)
       /* Make sure that any raw bytes in the title are properly
          represented by their multibyte sequences.  */
       ptrdiff_t nchars = 0;
-      len = str_as_multibyte ((unsigned char *)title,
-			      mode_line_noprop_buf_end - title, len, &nchars);
+      len = str_as_multibyte ((unsigned char *) title,
+			      mode_line_noprop_buf_end - title,
+			      len, &nchars);
       unbind_to (count, Qnil);
 
       /* Set the title only if it's changed.  This avoids consing in
