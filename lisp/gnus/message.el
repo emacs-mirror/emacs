@@ -4385,7 +4385,7 @@ it is left unchanged."
                      (setq method (or (cdr server) res))
                      (throw 'exit nil))))
                 ((and (stringp (car server))
-                      (string= (car server) from))
+                      (string-equal-ignore-case (car server) from))
                  (setq method (cdr server))
                  (throw 'exit nil)))))
       (when method
