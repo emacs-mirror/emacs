@@ -299,6 +299,16 @@ but is what Common Lisp implementations usually do."
           (package-%use-list package) use)
     package))
 
+(defun register-package (package)
+  "Register PACKAGE in the package registry.
+Signal an error if the name or one of the nicknames of PACKAGE
+conflicts with a name already present in the registry.
+Value is PACKAGE."
+  (let ((package (pkg--package-or-lose package)))
+    (pkg--check-name-conflicts package)
+    (pkg--add-to-registry package)
+    package))
+
 ;;;###autoload
 (defun list-all-packages ()
   "Return a fresh list of all registered packages."
