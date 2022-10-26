@@ -1311,7 +1311,7 @@ With prefix argument ARG, restart the Prolog process if running before."
     (prolog-mode-variables)
     ))
 
-(defun prolog-inferior-guess-flavor (&optional ignored)
+(defun prolog-inferior-guess-flavor (&optional _ignored)
   (setq-local prolog-system
               (when (or (numberp prolog-system) (markerp prolog-system))
                 (save-excursion

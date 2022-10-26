@@ -130,8 +130,6 @@ Returns a form where all lambdas don't have any free variables."
     (prog1 (cconv-convert form nil nil) ; Env initially empty.
       (cl-assert (null cconv-freevars-alist)))))
 
-(defconst cconv--dummy-var (make-symbol "ignored"))
-
 (defun cconv--set-diff (s1 s2)
   "Return elements of set S1 that are not in set S2."
   (let ((res '()))

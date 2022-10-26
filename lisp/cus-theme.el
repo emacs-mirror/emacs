@@ -142,7 +142,7 @@ remove them from your saved Custom file.\n\n")
     (widget-create 'push-button
 		   :tag " Revert "
 		   :help-echo "Revert this buffer to its original state."
-		   :action (lambda (&rest ignored) (revert-buffer)))
+                   :action (lambda (&rest _ignored) (revert-buffer)))
 
     (widget-insert "\n\nTheme name : ")
     (setq custom-theme-name
