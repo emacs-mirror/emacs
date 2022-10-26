@@ -892,9 +892,10 @@ progress in terms of buffer position: the start/end position of
 the returned node is always greater than that of NODE.
 
 BACKWARD and ALL are the same as in `treesit-search-forward'."
-  (when-let ((start-pos (if start
-                            (treesit-node-start node)
-                          (treesit-node-end node))))
+  (when-let* ((start-pos (if start
+                             (treesit-node-start node)
+                           (treesit-node-end node)))
+              (current-pos start-pos))
     ;; When searching forward and stopping at beginnings, or search
     ;; backward stopping at ends, it is possible to "roll back" in
     ;; position.  Take three nodes N1, N2, N3 as an example, if we
@@ -905,19 +906,21 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
     ;;   |<--------N1------->|
     ;;   |<--N2-->| |<--N3-->|
     (while (and node (if backward
-                         (>= (point) start-pos)
-                       (<= (point) start-pos)))
+                         (>= current-pos start-pos)
+                       (<= current-pos start-pos)))
       (setq node (treesit-search-forward
                   node predicate backward all))
-      (if-let ((pos (if start
-                        (treesit-node-start node)
-                      (treesit-node-end node))))
-          (goto-char pos)))
-    ;; If we made reverse progress, go back to where we started.
-    (when (if backward
-              (>= (point) start-pos)
-            (<= (point) start-pos))
-      (goto-char start-pos))
+      (setq current-pos (if start
+                            (treesit-node-start node)
+                          (treesit-node-end node))))
+    (cond
+     ;; When there is a match and match made progress, go to the
+     ;; result position.
+     ((and node
+           (if backward
+               (< current-pos (point))
+             (> current-pos (point))))
+      (goto-char current-pos)))
     node))
 
 ;;; Navigation
@@ -955,11 +958,13 @@ ARG is the same as in `beginning-of-defun."
       ;; Go forward.
       (while (and (< arg 0)
                   (setq node (treesit-search-forward-goto
-                              node treesit-defun-type-regexp t t)))
+                              node treesit-defun-type-regexp)))
         (setq node (treesit--find-top-level-match
                     node treesit-defun-type-regexp))
         (setq arg (1+ arg))))
-    (goto-char (treesit-node-start node))))
+    (when node
+      (goto-char (treesit-node-start node))
+      t)))
 
 (defun treesit-end-of-defun ()
   "Tree-sitter `end-of-defun' function."
