@@ -886,6 +886,19 @@ DEFUN ("package-%set-symbol-package", Fpackage_percent_set_symbol_package,
   return symbol;
 }
 
+DEFUN ("watch-*package*", Fwatch_earmuffs_package, Swatch_earmuffs_package,
+       4, 4, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object symbol, Lisp_Object newval, Lisp_Object operation,
+   Lisp_Object where)
+{
+  if (!PACKAGEP (newval))
+    error ("%s must be bound or set to a package object",
+	   SDATA (SYMBOL_NAME (symbol)));
+  return Qnil;
+}
+
+
+
 
 /***********************************************************************
 			    Initialization
@@ -912,6 +925,8 @@ init_pkg_once (void)
   DEFSYM (Qpackage_registry, "package-registry");
   DEFSYM (Qpackagep, "packagep");
   DEFSYM (Qsymbol_packages, "symbol-packages");
+  DEFSYM (Qsymbol_packages, "symbol-packages");
+  DEFSYM (Qwatch_earmuffs_package, "watch-*package*");
 
   staticpro (&Vpackage_registry);
   Vpackage_registry = make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE,
@@ -952,21 +967,6 @@ init_pkg_once (void)
 void
 syms_of_pkg (void)
 {
-  DEFVAR_LISP_NOPRO ("*package-registry*", Vpackage_registry,
-		     doc: /* The package registry.  For internal use only.  */);
-  DEFVAR_LISP_NOPRO ("*emacs-package*", Vemacs_package,
-		     doc: /* The Emacs package.  For internal use only.  */);
-  DEFVAR_LISP_NOPRO ("*emacs-user-package*", Vemacs_user_package,
-		     doc: /* The Emacs user package.  For internal use only.  */);
-  DEFVAR_LISP_NOPRO ("*keyword-package*", Vkeyword_package,
-		     doc: /* The keyword package.  For internal use only.  */);
-  DEFVAR_LISP_NOPRO ("*package*", Vearmuffs_package,
-		     doc: /* The current package.  */);
-  Fmake_variable_buffer_local (Qearmuffs_package);
-  DEFVAR_LISP_NOPRO ("package-prefixes", Vpackage_prefixes,
-		     doc: /* */);
-  Fmake_variable_buffer_local (Qpackage_prefixes);
-
   defsubr (&Scl_intern);
   defsubr (&Scl_unintern);
   defsubr (&Sfind_symbol);
@@ -985,6 +985,23 @@ syms_of_pkg (void)
   defsubr (&Spackage_percent_use_list);
   defsubr (&Spackagep);
   defsubr (&Spkg_read);
+  defsubr (&Swatch_earmuffs_package);
+
+  DEFVAR_LISP_NOPRO ("*package-registry*", Vpackage_registry,
+		     doc: /* The package registry.  For internal use only.  */);
+  DEFVAR_LISP_NOPRO ("*emacs-package*", Vemacs_package,
+		     doc: /* The Emacs package.  For internal use only.  */);
+  DEFVAR_LISP_NOPRO ("*emacs-user-package*", Vemacs_user_package,
+		     doc: /* The Emacs user package.  For internal use only.  */);
+  DEFVAR_LISP_NOPRO ("*keyword-package*", Vkeyword_package,
+		     doc: /* The keyword package.  For internal use only.  */);
+  DEFVAR_LISP_NOPRO ("*package*", Vearmuffs_package,
+		     doc: /* The current package.  */);
+  Fmake_variable_buffer_local (Qearmuffs_package);
+  Fadd_variable_watcher (Qearmuffs_package, Fsymbol_function (Qwatch_earmuffs_package));
+  DEFVAR_LISP_NOPRO ("package-prefixes", Vpackage_prefixes,
+		     doc: /* */);
+  Fmake_variable_buffer_local (Qpackage_prefixes);
 
   Fmake_variable_buffer_local (Qpackage_prefixes);
 
