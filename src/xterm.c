@@ -17868,6 +17868,7 @@ x_coords_from_dnd_message (struct x_display_info *dpyinfo,
 static void
 x_handle_wm_state (struct frame *f, struct input_event *ie)
 {
+  struct x_display_info *dpyinfo;
   Atom type;
   int format;
   unsigned long nitems, bytes_after;
@@ -17875,10 +17876,11 @@ x_handle_wm_state (struct frame *f, struct input_event *ie)
   unsigned long *state;
 
   data = NULL;
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (XGetWindowProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			  FRAME_DISPLAY_INFO (f)->Xatom_wm_state, 0, 2,
-			  False, AnyPropertyType, &type, &format, &nitems,
+			  dpyinfo->Xatom_wm_state, 0, 2, False,
+			  AnyPropertyType, &type, &format, &nitems,
 			  &bytes_after, &data) != Success)
     return;
 
@@ -17901,6 +17903,20 @@ x_handle_wm_state (struct frame *f, struct input_event *ie)
       f->output_data.x->has_been_visible = true;
 
       ie->kind = DEICONIFY_EVENT;
+      XSETFRAME (ie->frame_or_window, f);
+    }
+  else if (state[0] == IconicState
+	   /* _NET_WM_STATE_HIDDEN should be used if the window
+	      manager supports that.  */
+	   && !x_wm_supports (f, dpyinfo->Xatom_net_wm_state_hidden))
+    {
+      /* The frame is actually iconified right now.  Mark it as
+	 such.  */
+
+      SET_FRAME_VISIBLE (f, 0);
+      SET_FRAME_ICONIFIED (f, true);
+
+      ie->kind = ICONIFY_EVENT;
       XSETFRAME (ie->frame_or_window, f);
     }
 
