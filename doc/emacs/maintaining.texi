@@ -3298,7 +3298,7 @@ according to @code{bug-reference-setup-from-mail-alist},
 and @code{bug-reference-maybe-setup-from-irc} which does the setup
 according to @code{bug-reference-setup-from-irc-alist}.
 @end itemize
-A setup function should return non-nil if it could setup bug-reference
+A setup function should return non-@code{nil} if it could setup bug-reference
 mode which is the case if the last thing the function does is calling
 one of the helper functions above.
 

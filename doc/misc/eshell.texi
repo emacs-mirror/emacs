@@ -800,12 +800,12 @@ command-line switch:
 
 @table @var
 @item short
-This element, if non-nil, should be a character to be used as a short
+This element, if non-@code{nil}, should be a character to be used as a short
 switch, like @code{-@var{short}}.  At least one of this element and
-@var{long} must be non-nil.
+@var{long} must be non-@code{nil}.
 
 @item long
-This element, if non-nil, should be a string to be used as a long
+This element, if non-@code{nil}, should be a string to be used as a long
 switch, like @code{--@var{long}}.
 
 @item value

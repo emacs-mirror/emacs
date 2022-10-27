@@ -1525,7 +1525,7 @@ Some commands leave the region active after execution in such a way that
 it interferes with selective undo of that command.  To make @code{undo}
 ignore the active region when invoked immediately after such a command,
 set the property @code{undo-inhibit-region} of the command's function
-symbol to a non-nil value.  @xref{Standard Properties}.
+symbol to a non-@code{nil} value.  @xref{Standard Properties}.
 
 @node Maintaining Undo
 @section Maintaining Undo Lists
@@ -5926,7 +5926,7 @@ methods if these concepts apply to the transport.  If they do, then
 any system resources (e.g.@: processes, timers, etc.) used to listen for
 messages on the wire should be released in @code{jsonrpc-shutdown},
 i.e.@: they should only be needed while @code{jsonrpc-running-p} is
-non-nil.
+non-@code{nil}.
 
 @end enumerate
 

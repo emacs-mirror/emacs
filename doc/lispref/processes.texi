@@ -507,7 +507,7 @@ string describing this signal.
 Since there are processes violating this rule, returning exit codes
 greater than 128 which are not bound to a signal, @code{process-file}
 returns always the exit code as natural number for remote processes.
-Setting this user option to non-nil forces @code{process-file} to
+Setting this user option to non-@code{nil} forces @code{process-file} to
 interpret such exit codes as signals, and to return a corresponding
 string.
 @end defopt

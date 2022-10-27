@@ -1294,12 +1294,12 @@ Match any character that has whitespace syntax
 
 @item @code{lower}, @code{lower-case}
 Match anything lower-case, as determined by the current case table.
-If @code{case-fold-search} is non-nil, this also matches any
+If @code{case-fold-search} is non-@code{nil}, this also matches any
 upper-case letter.
 
 @item @code{upper}, @code{upper-case}
 Match anything upper-case, as determined by the current case table.
-If @code{case-fold-search} is non-nil, this also matches any
+If @code{case-fold-search} is non-@code{nil}, this also matches any
 lower-case letter.
 
 @item @code{graph}, @code{graphic}

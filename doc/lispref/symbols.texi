@@ -794,7 +794,7 @@ this case.
 @end defvar
 
 @defvar print-symbols-bare
-When bound to non-nil, the Lisp printer prints only the bare symbol of
+When bound to non-@code{nil}, the Lisp printer prints only the bare symbol of
 a symbol with position, ignoring the position.
 @end defvar
 

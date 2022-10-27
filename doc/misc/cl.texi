@@ -4051,7 +4051,7 @@ following keywords can be used:
 
 @table @code
 @item :read-only
-A non-nil value means the slot should not be @code{setf}-able;
+A non-@code{nil} value means the slot should not be @code{setf}-able;
 the slot's value is determined when the object is created and does
 not change afterward.
 

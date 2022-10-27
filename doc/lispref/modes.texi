@@ -198,7 +198,7 @@ on the hook.  The optional argument @var{depth} lets you indicate where the
 function should be inserted in the list: it should then be a number
 between -100 and 100 where the higher the value, the closer to the end of the
 list the function should go.  The @var{depth} defaults to 0 and for backward
-compatibility when @var{depth} is a non-nil symbol it is interpreted as a depth
+compatibility when @var{depth} is a non-@code{nil} symbol it is interpreted as a depth
 of 90.  Furthermore, when @var{depth} is strictly greater than 0 the function
 is added @emph{after} rather than before functions of the same depth.
 One should never use a depth of 100 (or -100), because one can never be
@@ -1256,7 +1256,7 @@ will be a vector for the ID at @var{pos}.  If there is no entry at
 
 @vindex tabulated-list-use-header-line
 @defun tabulated-list-header-overlay-p &optional POS
-This @code{defsubst} returns non-nil if there is a fake header at
+This @code{defsubst} returns non-@code{nil} if there is a fake header at
 @var{pos}.  A fake header is used if
 @code{tabulated-list-use-header-line} is @code{nil} to put the column
 names at the beginning of the buffer.  If omitted or @code{nil},
@@ -1269,7 +1269,7 @@ This function puts @var{tag} in the padding area of the current line.
 The padding area can be empty space at the beginning of the line, the
 width of which is governed by @code{tabulated-list-padding}.
 @var{tag} should be a string, with a length less than or equal to
-@code{tabulated-list-padding}.  If @var{advance} is non-nil, this
+@code{tabulated-list-padding}.  If @var{advance} is non-@code{nil}, this
 function advances point by one line.
 @end defun
 
@@ -1284,7 +1284,7 @@ This function changes the tabulated list entry at point, setting
 the name of the column to change.  @var{desc} is the new column
 descriptor, which is inserted via @code{tabulated-list-print-col}.
 
-If @var{change-entry-data} is non-nil, this function modifies the
+If @var{change-entry-data} is non-@code{nil}, this function modifies the
 underlying data (usually the column descriptor in the list
 @code{tabulated-list-entries}) by setting the column descriptor of the
 vector to @code{desc}.

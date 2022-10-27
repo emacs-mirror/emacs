@@ -172,7 +172,7 @@ is fetched for the very first time.
 @vindex newsticker-obsolete-item-max-age
 @item newsticker-keep-obsolete-items
 Obsolete headlines are removed immediately unless
-@code{newsticker-keep-obsolete-items} is non-nil in which case they
+@code{newsticker-keep-obsolete-items} is non-@code{nil} in which case they
 are kept until @code{newsticker-obsolete-item-max-age} is reached.
 
 @vindex newsticker-automatically-mark-items-as-old

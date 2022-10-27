@@ -2191,7 +2191,7 @@ foo& bar
 
 @defvar c-asymmetry-fontification-flag
 @vindex asymmetry-fontification-flag @r{(c-)}
-When @code{c-asymmetry-fontification-flag} is non-nil (which it is by
+When @code{c-asymmetry-fontification-flag} is non-@code{nil} (which it is by
 default), code like the above, with white space either before or after
 the operator, but not both, is fontified as a declaration.  When the
 variable is nil, such a construct gets the default face.

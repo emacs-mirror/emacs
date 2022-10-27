@@ -10497,7 +10497,7 @@ normally, but it'll make this command work a whole lot faster.  Of
 course, it'll make group entry somewhat slow.
 
 @vindex gnus-refer-thread-use-search
-If @code{gnus-refer-thread-use-search} is non-nil then those backends
+If @code{gnus-refer-thread-use-search} is non-@code{nil} then those backends
 that know how to find threads directly will search not just in the
 current group but all groups on the same server.
 
@@ -10515,7 +10515,7 @@ is true and the initial referral starts from a summary buffer for a
 non-virtual group this may not be possible.  In this case a new
 summary buffer is created holding a virtual group with the result of
 the thread search.)  If @code{gnus-refer-thread-limit-to-thread} is
-non-nil then the summary buffer will be limited to articles in the
+non-@code{nil} then the summary buffer will be limited to articles in the
 thread.
 
 @item M-^ (Summary)
@@ -21569,7 +21569,7 @@ Search Groups}).
 Search queries can be specified one of two ways: either using the
 syntax of the engine responsible for the group you're searching, or
 using Gnus' generalized search syntax.  Set the option
-@code{gnus-search-use-parsed-queries} to a non-nil value to used the
+@code{gnus-search-use-parsed-queries} to a non-@code{nil} value to used the
 generalized syntax.  The advantage of this syntax is that, if you have
 multiple backends indexed by different engines, you don't need to
 remember which one you're searching---it's also possible to issue the
@@ -26329,7 +26329,7 @@ size, it will reject insertion of new entries.
 @end defvar
 
 @defvar gnus-registry-register-all
-If this option is non-nil, the registry will register all messages, as
+If this option is non-@code{nil}, the registry will register all messages, as
 you see them.  This is important to making split-to-parent and
 Message-ID references work correctly, as the registry needs to know
 where all messages are, but it can slow down group opening and the
@@ -26429,7 +26429,7 @@ have to put a rule like this:
 
 in your fancy split setup.
 
-If @code{gnus-registry-register-all} is non-nil (the default), the
+If @code{gnus-registry-register-all} is non-@code{nil} (the default), the
 registry will perform splitting for all messages.  If it is nil,
 splitting will only happen for children of messages you've explicitly
 registered.
@@ -26508,7 +26508,7 @@ Store @code{value} under @code{key} for message @code{id}.
 
 @defun gnus-registry-get-id-key (id key)
 Get the data under @code{key} for message @code{id}.  If the option
-@code{gnus-registry-register-all} is non-nil, this function will also
+@code{gnus-registry-register-all} is non-@code{nil}, this function will also
 create an entry for @code{id} if one doesn't exist.
 @end defun
 
@@ -26633,7 +26633,7 @@ connections after the system resumes.  On systems compiled with D-Bus
 support (check the value of @code{(featurep 'dbusbind)}), Gnus can
 register a D-Bus signal to automatically close all server connections
 before the system goes to sleep.  To enable this, set
-@code{gnus-dbus-close-on-sleep} to a non-nil value.
+@code{gnus-dbus-close-on-sleep} to a non-@code{nil} value.
 
 For more information about D-Bus and Emacs, @pxref{Top,,, dbus, D-Bus integration in Emacs}.
 

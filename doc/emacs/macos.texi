@@ -159,7 +159,7 @@ dialogue on quitting.
 @vindex ns-auto-hide-menu-bar
 @item ns-auto-hide-menu-bar
 This variable specifies whether the macOS menu bar is hidden when an
-Emacs frame is selected.  If non-nil the menu bar is not shown unless
+Emacs frame is selected.  If non-@code{nil} the menu bar is not shown unless
 the mouse pointer is moved near to the top of the screen.
 
 @vindex ns-use-native-fullscreen
@@ -178,14 +178,14 @@ These variables only apply to macOS 10.7 (Lion) and above.
 @item ns-use-mwheel-acceleration
 This variable controls whether Emacs ignores the system mousewheel
 acceleration.  When nil each `click' of the mousewheel will correspond
-exactly with one mousewheel event.  When non-nil, the default, each
+exactly with one mousewheel event.  When non-@code{nil}, the default, each
 `click' may correspond with more than one mousewheel event, depending
 on the user's input.
 
 @vindex ns-use-mwheel-momentum
 @item ns-use-mwheel-momentum
 This variable controls whether Emacs ignores the system `momentum'
-when scrolling using a trackpad.  When non-nil, the default, scrolling
+when scrolling using a trackpad.  When non-@code{nil}, the default, scrolling
 rapidly may result in the buffer continuing to scroll for a short
 while after the user has lifted their fingers off the trackpad.
 

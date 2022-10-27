@@ -268,7 +268,7 @@ argument is @code{nil}, the allowed characters are those specified as
 @dfn{unreserved characters} by RFC 3986 (see the variable
 @code{url-unreserved-chars}).  Otherwise, @var{allowed-chars} should
 be either a list of allowed chars, or a vector whose Nth element is
-non-nil if character N is allowed.
+non-@code{nil} if character N is allowed.
 @end defun
 
 @defun url-unhex-string string &optional allow-newlines
