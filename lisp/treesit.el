@@ -1,6 +1,6 @@
 ;;; treesit.el --- tree-sitter utilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -18,13 +18,13 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
-;; This file is the lisp counterpart of treesit.c, together they
+
+;; This file is the Lisp counterpart of treesit.c.  Together they
 ;; provide tree-sitter integration for Emacs.  This file contains
 ;; convenient functions that are more idiomatic and flexible than the
 ;; exposed C API of tree-sitter.  It also contains frameworks for
-;; integrating tree-sitter with font-lock, indent, activate/deactivate
-;; tree-sitter, debugging tree-sitter, etc.
+;; integrating tree-sitter with font-lock, indentation, activating and
+;; deactivating tree-sitter, debugging tree-sitter, etc.
 
 ;;; Code:
 
@@ -53,12 +53,13 @@ indent, imenu, etc."
 (defcustom treesit-settings '((t nil t))
   "Tree-sitter toggle settings for major modes.
 
-A list of (MODE ACTIVATE INHERIT).  MODE is a major mode, ACTIVATE
-can be one of the following:
+A list of (MODE ACTIVATE INHERIT) where MODE is a major mode, and
+ACTIVATE can be one of the following:
 
-  demand => Demand the use of tree-sitter, warn if it can't activate
-  t => Enable if available
-  nil => Don't enable
+  `demand'  Demand the use of tree-sitter, and warn if it can't
+            be activated.
+  t         Enable tree-sitter if it is available.
+  nil       Don't enable tree-sitter.
 
 If INHERIT is t, the setting for MODE is inherited by all its
 derived modes.  For a derived mode, closer ancestor mode's
@@ -93,13 +94,13 @@ Return the root node of the syntax tree."
 This is used by `treesit-language-at', which is used by various
 functions to determine which parser to use at point.
 
-The function is called with the position of point.")
+The function is called with one argument, the position of point.")
 
-(defun treesit-language-at (pos)
-  "Return the language at POS.
+(defun treesit-language-at (position)
+  "Return the language at POSITION.
 Assumes parser ranges are up-to-date."
   (when treesit-language-at-point-function
-    (funcall treesit-language-at-point-function pos)))
+    (funcall treesit-language-at-point-function position)))
 
 (defun treesit-set-ranges (parser-or-lang ranges)
   "Set the ranges of PARSER-OR-LANG to RANGES."
@@ -127,7 +128,7 @@ Assumes parser ranges are up-to-date."
 ;;; Node API supplement
 
 (defun treesit-node-buffer (node)
-  "Return the buffer in where NODE belongs."
+  "Return the buffer in which NODE belongs."
   (treesit-parser-buffer
    (treesit-node-parser node)))
 
@@ -139,13 +140,14 @@ Assumes parser ranges are up-to-date."
 (defun treesit-node-at (pos &optional parser-or-lang named strict)
   "Return the smallest node that starts at or after buffer position POS.
 
-\"Starts at or after POS\" means the start of the node is greater or
-equal than POS.
+\"Starts at or after POS\" means the start of the node is greater
+than or equal to POS.
 
-Return nil if none find.  If NAMED is non-nil, only look for named node.
+Return nil if none was found.  If NAMED is non-nil, only look for
+named node.
 
 If PARSER-OR-LANG is nil, use the first parser in
-\(`treesit-parser-list'); if PARSER-OR-LANG is a parser, use
+`treesit-parser-list'; if PARSER-OR-LANG is a parser, use
 that parser; if PARSER-OR-LANG is a language, find a parser using
 that language in the current buffer, and use that.
 
@@ -178,16 +180,16 @@ in this case."
   "Return the smallest node covering BEG to END.
 
 BEWARE!  Calling this function on an empty line that is not
-inside any top-level construct (function definition, etc) most
+inside any top-level construct (function definition, etc.) most
 probably will give you the root node, because the root node is
 the smallest node that covers that empty line.  You probably want
 to use `treesit-node-at' instead.
 
-Return nil if none find.  If NAMED non-nil, only look for named
-node.
+Return nil if none was found.  If NAMED is non-nil, only look for
+named node.
 
 If PARSER-OR-LANG is nil, use the first parser in
-(`treesit-parser-list'); if PARSER-OR-LANG is a parser, use
+`treesit-parser-list'; if PARSER-OR-LANG is a parser, use
 that parser; if PARSER-OR-LANG is a language, find a parser using
 that language in the current buffer, and use that."
   (let ((root (if (treesit-parser-p parser-or-lang)
@@ -196,7 +198,7 @@ that language in the current buffer, and use that."
     (treesit-node-descendant-for-range root beg (or end beg) named)))
 
 (defun treesit-node-top-level-p (node &optional type)
-  "Return non-nil if NODE is top-level, nil otherwise.
+  "Return non-nil if NODE is top-level, and nil otherwise.
 Being top-level means there is no parent of NODE that has the
 same type.
 
@@ -213,8 +215,10 @@ If TYPE is non-nil, match each parent's type with TYPE as a regexp."
 
 (defun treesit-buffer-root-node (&optional language)
   "Return the root node of the current buffer.
-Use the first parser in (`treesit-parser-list'), if LANGUAGE is
-non-nil, use the first parser for LANGUAGE."
+Use the first parser in `treesit-parser-list'.
+
+If optional argument LANGUAGE is non-nil, use the first parser
+for LANGUAGE."
   (if-let ((parser
             (or (if language
                     (or (treesit-parser-create language)
@@ -224,9 +228,10 @@ non-nil, use the first parser for LANGUAGE."
       (treesit-parser-root-node parser)))
 
 (defun treesit-filter-child (node pred &optional named)
-  "Return children of NODE that satisfies PRED.
-PRED is a function that takes one argument, the child node.  If
-NAMED non-nil, only search for named node."
+  "Return children of NODE that satisfies predicate PRED.
+PRED is a function that takes one argument, the child node.
+If optional argument NAMED is non-nil, only search for named
+node."
   (let ((child (treesit-node-child node 0 named))
         result)
     (while child
@@ -237,7 +242,8 @@ NAMED non-nil, only search for named node."
 
 (defun treesit-node-text (node &optional no-property)
   "Return the buffer (or string) content corresponding to NODE.
-If NO-PROPERTY is non-nil, remove text properties."
+If optional argument NO-PROPERTY is non-nil, remove text
+properties."
   (when node
     (with-current-buffer (treesit-node-buffer node)
       (if no-property
@@ -250,8 +256,8 @@ If NO-PROPERTY is non-nil, remove text properties."
 
 (defun treesit-parent-until (node pred)
   "Return the closest parent of NODE that satisfies PRED.
-Return nil if none found.  PRED should be a function that takes
-one argument, the parent node."
+Return nil if none was found.  PRED should be a function that
+takes one argument, the parent node."
   (let ((node (treesit-node-parent node)))
     (while (and node (not (funcall pred node)))
       (setq node (treesit-node-parent node)))
@@ -259,8 +265,8 @@ one argument, the parent node."
 
 (defun treesit-parent-while (node pred)
   "Return the furthest parent of NODE that satisfies PRED.
-Return nil if none found.  PRED should be a function that takes
-one argument, the parent node."
+Return nil if none was found.  PRED should be a function that
+takes one argument, the parent node."
   (let ((last nil))
     (while (and node (funcall pred node))
       (setq last node
@@ -373,7 +379,7 @@ Inside each sublist are feature symbols, which corresponds to the
 Removing a feature symbol from this list disables the
 corresponding query during font-lock.
 
-Common feature names (for general programming language) include
+Common feature names (for general programming languages) include
 function-name, type, variable-name (LHS of assignments), builtin,
 constant, keyword, string-interpolation, comment, doc, string,
 operator, preprocessor, escape-sequence, key (in key-value
@@ -399,7 +405,7 @@ Matching' for how to write a query and compile it.
 For SETTING to be activated for font-lock, ENABLE must be t.  To
 disable this SETTING, set ENABLE to nil.
 
-FEATURE is the \"feature name\" of the query, users can control
+FEATURE is the \"feature name\" of the query.  Users can control
 which features are enabled with `font-lock-maximum-decoration'
 and `treesit-font-lock-feature-list'.
 
@@ -513,7 +519,7 @@ ignored.
 
 (defun treesit-font-lock-recompute-features ()
   "Enable/disable font-lock settings according to decoration level.
-Sets the ENABLE flag for each setting in
+Set the ENABLE flag for each setting in
 `treesit-font-lock-settings', according to
 `treesit-font-lock-feature-list' and
 `font-lock-maximum-decoration'."
@@ -535,7 +541,7 @@ Sets the ENABLE flag for each setting in
 (defun treesit-font-lock-fontify-region
     (start end &optional loudly)
   "Fontify the region between START and END.
-If LOUDLY is non-nil, message some debugging information."
+If LOUDLY is non-nil, display some debugging information."
   (treesit-update-ranges start end)
   (font-lock-unfontify-region start end)
   (dolist (setting treesit-font-lock-settings)
@@ -954,7 +960,7 @@ indentation (target) is in green, current indentation is in red."
     (node predicate &optional start backward all)
   "Search forward for a node and move to its end position.
 
-Stops at the first node after NODE that matches PREDICATE.
+Stop at the first node after NODE that matches PREDICATE.
 PREDICATE can be either a regexp that matches against each node's
 type case-insensitively, or a function that takes a node and
 returns nil/non-nil for match/no match.
@@ -1020,7 +1026,7 @@ type."
 
 (defun treesit-beginning-of-defun (&optional arg)
   "Tree-sitter `beginning-of-defun' function.
-ARG is the same as in `beginning-of-defun."
+ARG is the same as in `beginning-of-defun'."
   (let ((arg (or arg 1))
         (node (treesit-node-at (point))))
     (if (> arg 0)
@@ -1105,8 +1111,8 @@ instead of emitting warning.
 If MODE is nil, don't check for user setting and assume the
 setting is t.
 
-LANGUAGE is languages symbol we want check for availability.  It
-can also be a list of language symbols."
+LANGUAGE is the language symbol we want check for availability.
+It can also be a list of language symbols."
   (let ((language-list (if (consp language)
                            language
                          (list language)))
@@ -1178,14 +1184,14 @@ If `treesit-defun-type-regexp' is non-nil, setup
 ;;; Debugging
 
 (defvar-local treesit--inspect-name nil
-  "treesit-inspect-mode uses this to show node name in mode-line.")
+  "Used by `treesit-inspect-mode' to show node name in mode-line.")
 
 (defun treesit-inspect-node-at-point (&optional arg)
   "Show information of the node at point.
 If called interactively, show in echo area, otherwise set
 `treesit--inspect-name' (which will appear in the mode-line
 if `treesit-inspect-mode' is enabled).  Uses the first parser
-in (`treesit-parser-list')."
+in `treesit-parser-list'."
   (interactive "p")
   ;; NODE-LIST contains all the node that starts at point.
   (let* ((node-list
@@ -1230,7 +1236,7 @@ in (`treesit-parser-list')."
         (message "No node at point")))))
 
 (define-minor-mode treesit-inspect-mode
-  "Shows the node that _starts_ at point in the mode-line.
+  "Show the node that _starts_ at point in the mode-line.
 
 The mode-line displays
 
@@ -1241,11 +1247,11 @@ have their beginning at point.  And PARENT is the parent of
 CHILD.
 
 If no node starts at point, i.e., point is in the middle of a
-node, then we just display the smallest node that spans point and
+node, then just display the smallest node that spans point and
 its immediate parent.
 
 This minor mode doesn't create parsers on its own.  It simply
-uses the first parser in (`treesit-parser-list')."
+uses the first parser in `treesit-parser-list'."
   :lighter nil
   (if treesit-inspect-mode
       (progn
@@ -1261,7 +1267,7 @@ uses the first parser in (`treesit-parser-list')."
 
 (defun treesit-query-validate (language query)
   "Check if QUERY is valid for LANGUAGE.
-If QUERY is invalid, display the query in a popup buffer, jumps
+If QUERY is invalid, display the query in a popup buffer, jump
 to the offending pattern and highlight the pattern."
   (cl-assert (or (consp query) (stringp query)))
   (let ((buf (get-buffer-create "*tree-sitter check query*")))
