@@ -148,19 +148,6 @@ Otherwise, NAME must be the name of a registered package."
       (or (find-package pkg-name)
           (error "No package %s found" name)))))
 
-(defun pkg--check-name-conflicts (package)
-  (cl-flet ((check (name)
-              (when (gethash name *package-registry*)
-                (error "%s conflicts with existing package" name))))
-    (check (package-%name package))
-    (dolist (n (package-%nicknames package)) (check n))))
-
-(defun pkg--add-to-registry (package)
-  (pkg--check-name-conflicts package)
-  (puthash (package-%name package) package *package-registry*)
-  (mapc (lambda (name) (puthash name package *package-registry*))
-        (package-%nicknames package)))
-
 (cl-defun pkg--remove-from-registry (package)
   "Remove PACKAGE from the package registry."
   ;; Note that an unregistered package might have the same name or
@@ -311,9 +298,15 @@ Signal an error if the name or one of the nicknames of PACKAGE
 conflicts with a name already present in the registry.
 Value is PACKAGE."
   (let ((package (pkg--package-or-lose package)))
-    (pkg--check-name-conflicts package)
-    (pkg--add-to-registry package)
-    package))
+    (cl-flet ((check (name)
+                (when (gethash name *package-registry*)
+                  (error "%s conflicts with existing package" name))))
+      (check (package-%name package))
+      (mapc #'check (package-%nicknames package))
+      (puthash (package-%name package) package *package-registry*)
+      (mapc (lambda (name) (puthash name package *package-registry*))
+            (package-%nicknames package))
+      package)))
 
 ;;;###autoload
 (defun list-all-packages ()
@@ -424,7 +417,7 @@ Value is the renamed package object."
     (pkg--remove-from-registry package)
     (setf (package-%nicknames package) new-nicknames)
     (setf (package-%name package) new-name)
-    (pkg--add-to-registry package)
+    (register-package package)
     package))
 
 ;;;###autoload
