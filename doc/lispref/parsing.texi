@@ -59,7 +59,7 @@ source files that mix multiple programming languages.
 @cindex language argument, for tree-sitter
 Tree-sitter relies on language definitions to parse text in that
 language.  In Emacs, a language definition is represented by a symbol.
-For example, C language definition is represented as the symbol
+For example, the C language definition is represented as the symbol
 @code{c}, and @code{c} can be passed to tree-sitter functions as the
 @var{language} argument.
 
@@ -91,12 +91,12 @@ that signal could be one of the following:
 
 @table @code
 @item (not-found @var{error-msg} @dots{})
-This means Emacs could not find the language definition library.
+This means that Emacs could not find the language definition library.
 @item (symbol-error @var{error-msg})
-This means Emacs could not find in the library the expected function
+This means that Emacs could not find in the library the expected function
 that every language definition library should export.
 @item (version-mismatch @var{error-msg})
-This means the version of language definition library is incompatible
+This means that the version of language definition library is incompatible
 with that of the tree-sitter library.
 @end table
 
@@ -324,7 +324,7 @@ alias(preprocessor_call_exp, call_expression)
 @end example
 
 @noindent
-makes any node matched by @code{preprocessor_call_exp} to appear as
+makes any node matched by @code{preprocessor_call_exp} appear as
 @code{call_expression}.
 @end table
 
@@ -362,7 +362,7 @@ section.
 
 This section describes how to create and configure a tree-sitter
 parser.  In Emacs, each tree-sitter parser is associated with a
-buffer.  As the user edits the buffer, the associated parser and the
+buffer.  As the user edits the buffer, the associated parser and
 syntax tree are automatically kept up-to-date.
 
 @defvar treesit-max-buffer-size
@@ -401,7 +401,7 @@ This function returns the language used by @var{parser}.
 
 @defun treesit-parser-p object
 This function checks if @var{object} is a tree-sitter parser, and
-returns non-@code{nil} if it is, @code{nil} otherwise.
+returns non-@code{nil} if it is, and @code{nil} otherwise.
 @end defun
 
 There is no need to explicitly parse a buffer, because parsing is done
@@ -476,7 +476,7 @@ node is higher up in the syntax tree, it contains many smaller nodes
 as its children, and therefore spans a larger portion of text.
 
 When a function cannot find a node, it returns @code{nil}.  For
-convenience, all the functions that take a node as argument and return
+convenience, all functions that take a node as argument and return
 a node, also accept the node argument of @code{nil} and in that case
 just return @code{nil}.
 
@@ -587,7 +587,7 @@ This function returns @code{nil} if there is no @var{n}'th child.
 
 @defun treesit-node-children node &optional named
 This function returns all of @var{node}'s children as a list.  If
-@var{named} is non-@code{nil}, then it retrieves only named nodes.
+@var{named} is non-@code{nil}, it retrieves only named nodes.
 @end defun
 
 @defun treesit-next-sibling node &optional named
@@ -1575,7 +1575,7 @@ convenient and idiomatic:
 
 @itemize
 @item
-Instead of using byte positions, the ELisp API uses character
+Instead of using byte positions, the Emacs Lisp API uses character
 positions.
 @item
 Null nodes are converted to nil.
