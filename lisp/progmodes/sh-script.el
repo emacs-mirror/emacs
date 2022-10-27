@@ -148,6 +148,7 @@
   (require 'let-alist)
   (require 'subr-x))
 (require 'executable)
+(require 'treesit)
 
 (autoload 'comint-completion-at-point "comint")
 (autoload 'comint-filename-completion "comint")
@@ -1534,13 +1535,6 @@ with your script for an edit-interpret-debug cycle."
   ;; we can't look if previous line ended with `\'
   (setq-local comint-prompt-regexp "^[ \t]*")
   (setq-local imenu-case-fold-search nil)
-  (setq font-lock-defaults
-	`((sh-font-lock-keywords
-	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
-	  nil nil
-	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-	  (font-lock-syntactic-face-function
-	   . ,#'sh-font-lock-syntactic-face-function)))
   (setq-local syntax-propertize-function #'sh-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
@@ -1587,7 +1581,27 @@ with your script for an edit-interpret-debug cycle."
    nil nil)
   (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
   (add-hook 'hack-local-variables-hook
-    #'sh-after-hack-local-variables nil t))
+    #'sh-after-hack-local-variables nil t)
+
+  (cond
+   ;; Tree-sitter
+   ((treesit-ready-p 'sh-mode 'bash)
+    (setq-local treesit-font-lock-feature-list
+                '((comments functions strings heredocs)
+                  (variables keywords commands decl-commands)
+                  (constants operators builtin-variables)))
+    (setq-local treesit-font-lock-settings
+                sh-mode--treesit-settings)
+    (treesit-major-mode-setup))
+   ;; Elisp.
+   (t
+    (setq font-lock-defaults
+          `((sh-font-lock-keywords
+             sh-font-lock-keywords-1 sh-font-lock-keywords-2)
+            nil nil
+            ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
+            (font-lock-syntactic-face-function
+             . ,#'sh-font-lock-syntactic-face-function))))))
 
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
@@ -3191,6 +3205,122 @@ member of `flymake-diagnostic-functions'."
       (process-send-region sh--shellcheck-process (point-min) (point-max))
       (process-send-eof sh--shellcheck-process))))
 
-(provide 'sh-script)
+;;; Tree-sitter font-lock
 
+(defvar sh-mode--treesit-operators
+  '("|" "|&" "||" "&&" ">" ">>" "<" "<<" "<<-" "<<<" "==" "!=" ";"
+    ";;" ";&" ";;&")
+  "List of `sh-mode' operator to fontify")
+
+(defvar sh-mode--treesit-keywords
+  '("case" "do" "done" "elif" "else" "esac" "export" "fi" "for"
+    "function" "if" "in" "unset" "while" "then")
+  "Minimal list of keywords that belong to tree-sitter-bash's grammar.
+
+Some reserved words are not recognize to keep the grammar
+simpler. Those are identified with regex-based filtered queries.
+
+See `sh-mode--treesit-other-keywords' and
+`sh-mode--treesit-settings').")
+
+(defun sh-mode--treesit-other-keywords ()
+  "Returns a list `others' of key/reserved words to be fontified with
+regex-based queries as they are not part of tree-sitter-bash's
+grammar.
+
+See `sh-mode--treesit-other-keywords' and
+`sh-mode--treesit-settings')."
+  (let ((minimal sh-mode--treesit-keywords)
+        (all (append (sh-feature sh-leading-keywords)
+                     (sh-feature sh-other-keywords)))
+        (others))
+    (dolist (keyword all others)
+      (if (not (member keyword minimal))
+          (setq others (cons keyword others))))))
+
+(defun sh-mode--treesit-fontify-decl-command (node override _start _end)
+  "Fontifies only the name of declaration_command nodes.
+
+This is used instead of `font-lock-builtion-face' directly because
+otherwise the whole command, including the variable assignment part,
+is fontified with with `font-lock-builtin-face'. An alternative to
+this would be to declaration_command to have a `name:' field."
+  (let* ((maybe-decl-cmd (treesit-node-parent node))
+         (node-type (treesit-node-type maybe-decl-cmd)))
+    (when (string= node-type "declaration_command")
+      (let* ((name-node (car (treesit-node-children maybe-decl-cmd)))
+             (name-beg (treesit-node-start name-node))
+             (name-end (treesit-node-end name-node)))
+        (put-text-property name-beg
+                           name-end
+                           'face
+                           font-lock-builtin-face)))))
+
+(defvar sh-mode--treesit-settings
+  (treesit-font-lock-rules
+   :feature 'comments
+   :language 'bash
+   '((comment) @font-lock-comment-face)
+   :feature 'functions
+   :language 'bash
+   '((function_definition name: (word) @font-lock-function-name-face))
+   :feature 'strings
+   :language 'bash
+   '([(string) (raw_string)] @font-lock-string-face)
+   :feature 'heredocs
+   :language 'bash
+   '([(heredoc_start) (heredoc_body)] @sh-heredoc)
+   :feature 'variables
+   :language 'bash
+   '((variable_name) @font-lock-variable-name-face)
+   :feature 'keywords
+   :language 'bash
+   `(;; keywords
+     [ ,@sh-mode--treesit-keywords ] @font-lock-keyword-face
+     ;; reserved words
+     (command_name
+      ((word) @font-lock-keyword-face
+       (:match
+        ,(rx-to-string
+            `(seq bol
+                  (or ,@(sh-mode--treesit-other-keywords))
+                  eol))
+        @font-lock-keyword-face))))
+   :feature 'commands
+   :language 'bash
+   `(;; function/non-builtin command calls
+     (command_name (word) @font-lock-function-name-face)
+     ;; builtin commands
+     (command_name
+      ((word) @font-lock-builtin-face
+       (:match ,(let ((builtins
+                       (sh-feature sh-builtins)))
+                  (rx-to-string
+                   `(seq bol
+                         (or ,@builtins)
+                         eol)))
+               @font-lock-builtin-face))))
+   :feature 'decl-commands
+   :language 'bash
+   '(;; declaration commands
+     (declaration_command _ @sh-mode--treesit-fontify-decl-command))
+   :feature 'constants
+   :language 'bash
+   '((case_item value: (word) @font-lock-constant-face)
+     (file_descriptor) @font-lock-constant-face)
+   :feature 'operators
+   :language 'bash
+   `([ ,@sh-mode--treesit-operators ] @font-lock-builtin-face)
+   :feature 'builtin-variables
+   :language 'bash
+   `(((special_variable_name) @font-lock-builtin-face
+      (:match ,(let ((builtin-vars (sh-feature sh-variables)))
+                 (rx-to-string
+                  `(seq bol
+                        (or ,@builtin-vars)
+                        eol)))
+              @font-lock-builtin-face))))
+  "Tree-sitter font-lock settings for `sh-mode'.")
+
+(provide 'sh-script)
 ;;; sh-script.el ends here
