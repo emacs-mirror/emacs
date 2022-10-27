@@ -1217,7 +1217,7 @@ Subkeymaps may be modified but are not canonicalized."
 
 (defun keyboard-translate (from to)
   "Translate character FROM to TO on the current terminal.
-This is a legacy function; see `keymap-translate' for the
+This is a legacy function; see `key-translate' for the
 recommended function to use instead.
 
 This function creates a `keyboard-translate-table' if necessary
