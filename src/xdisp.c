@@ -18926,7 +18926,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
 		     && MATRIX_ROW_END_CHARPOS (row) == PT
 		     && row < MATRIX_MODE_LINE_ROW (w->current_matrix)
-		     && MATRIX_ROW_START_CHARPOS (row+1) == PT
+		     && MATRIX_ROW_START_CHARPOS (row+1) >= PT
 		     && !cursor_row_p (row))
 		++row;
 
@@ -19023,7 +19023,12 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 		 rc = CURSOR_MOVEMENT_SUCCESS;
 	    }
 
-	  if (PT < MATRIX_ROW_START_CHARPOS (row)
+	  if ((PT < MATRIX_ROW_START_CHARPOS (row)
+	       && (row == MATRIX_FIRST_TEXT_ROW (w->current_matrix)
+		   /* Don't give up if point is inside invisible text
+		      at the beginning of its glyph row.  */
+		   || (MATRIX_ROW_END_CHARPOS (row-1)
+		       == MATRIX_ROW_START_CHARPOS (row))))
 	      || PT > MATRIX_ROW_END_CHARPOS (row))
 	    {
 	      /* if PT is not in the glyph row, give up.  */
@@ -19105,12 +19110,23 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 		 continuation lines' rows is implemented for
 		 bidi-reordered rows.  */
 	      bool rv = false;
+	      bool pt_invis = false;
+	      Lisp_Object val = get_char_property_and_overlay (make_fixnum (PT),
+							       Qinvisible,
+							       Qnil, NULL);
+
+	      if (TEXT_PROP_MEANS_INVISIBLE (val) != 0)
+		pt_invis = true;
 
 	      do
 		{
 		  bool at_zv_p = false, exact_match_p = false;
 
-		  if (MATRIX_ROW_START_CHARPOS (row) <= PT
+		  /* If point is in invisible text, we cannot assume
+		     it must be after row's start position, since the
+		     row could have invisible text at its beginning
+		     where point is located.  */
+		  if ((pt_invis || MATRIX_ROW_START_CHARPOS (row) <= PT)
 		      && PT <= MATRIX_ROW_END_CHARPOS (row)
 		      && cursor_row_p (row))
 		    rv |= set_cursor_from_row (w, row, w->current_matrix,
@@ -19142,16 +19158,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 			     invisible text?  In that case, we trust
 			     'set_cursor_from_row' to do its job and
 			     find the best position for the cursor.  */
-			  if (!exact_match_p)
-			    {
-			      Lisp_Object val =
-				get_char_property_and_overlay (make_fixnum (PT),
-							       Qinvisible,
-							       Qnil, NULL);
-
-			      if (TEXT_PROP_MEANS_INVISIBLE (val) != 0)
-				exact_match_p = true;
-			    }
+			  if (!exact_match_p && pt_invis)
+			    exact_match_p = true;
 			}
 		      if (at_zv_p || exact_match_p)
 			{
