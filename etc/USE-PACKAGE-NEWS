@@ -1,5 +1,9 @@
 # Changes
 
+## 2.4.2
+
+This release prepares for inclusion to GNU ELPA and includes no other changes
+
 ## 2.4.1
 
 This is mostly a bug-fix release:
