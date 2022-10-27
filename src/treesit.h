@@ -30,7 +30,7 @@ INLINE_HEADER_BEGIN
 struct Lisp_TS_Parser
 {
   union vectorlike_header header;
-  /* A symbol represents the language this parser uses.  See the
+  /* A symbol representing the language this parser uses.  See the
      manual for more explanation.  */
   Lisp_Object language_symbol;
   /* The buffer associated with this parser.  */
@@ -50,7 +50,7 @@ struct Lisp_TS_Parser
   /* These two positions record the buffer byte position (1-based) of
      the "visible region" that tree-sitter sees.  Unlike markers,
      These two positions do not change as the user inserts and deletes
-     text around them. Before re-parse, we move these positions to
+     text around them.  Before re-parse, we move these positions to
      match BUF_BEGV_BYTE and BUF_ZV_BYTE.  Note that we don't need to
      synchronize these positions when retrieving them in a function
      that involves a node: if the node is not outdated, these
@@ -74,7 +74,7 @@ struct Lisp_TS_Node
   /* This prevents gc from collecting the tree before the node is done
      with it.  TSNode contains a pointer to the tree it belongs to,
      and the parser object, when collected by gc, will free that
-     tree. */
+     tree.  */
   Lisp_Object parser;
   TSNode node;
   /* A node inherits its parser's timestamp at creation time.  The

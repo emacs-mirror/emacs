@@ -280,15 +280,15 @@ init_treesit_functions (void)
    The Emacs wrapper of tree-sitter does not expose everything the C
    API provides, most notably:
 
-   - It doesn't expose a syntax tree, we put the syntax tree in the
-     parser object, and updating the tree is handled in the C level.
+   - It doesn't expose a syntax tree.  We put the syntax tree in the
+     parser object, and updating the tree is handled on the C level.
 
    - We don't expose tree cursor either.  I think Lisp is slow enough
      to nullify any performance advantage of using a cursor, though I
      don't have evidence.  Also I want to minimize the number of new
-     types we introduce, currently we only add parser and node type.
+     types we introduce.  Currently we only add parser and node type.
 
-   - Because updating the change is handled in the C level as each
+   - Because updating the change is handled on the C level as each
      change is made in the buffer, there is no way for Lisp to update
      a node.  But since we can just retrieve a new node, it shouldn't
      be a limitation.
@@ -330,7 +330,7 @@ init_treesit_functions (void)
    functions: 'treesit-parser-create' and
    'treesit-language-available-p'.  Technically we only need to call
    initialization function in those two functions, but in reality we
-   check at the beginning of every lisp function.  That should be more
+   check at the beginning of every Lisp function.  That should be more
    fool-proof.
 
    Tree-sitter offset (0-based) and buffer position (1-based):
@@ -344,7 +344,7 @@ init_treesit_functions (void)
    - lisp/emacs-lisp/cl-preloaded.el & data.c & lisp.h for parser and
      node type.
 
-   Regarding signals: only raise signals in lisp functions.
+   Regarding signals: only raise signals in Lisp functions.
 
    Casts from EMACS_INT and ptrdiff_t to uint32_t: We install checks
    for buffer size and range and thus able to assume these casts never
@@ -364,7 +364,7 @@ init_treesit_functions (void)
    treesit-query-capture is called, and it completely kills the
    performance of querying in a loop for a moderate amount of times
    (hundreds of queries takes seconds rather than milliseconds to
-   complete).  Therefore we want some caching. We can either use a
+   complete).  Therefore we want some caching.  We can either use a
    search.c style transparent caching, or simply expose a new type,
    compiled-ts-query and let the user to manually compile AOT.  I
    believe AOT compiling gives users more control, makes the
@@ -487,7 +487,7 @@ treesit_load_language_push_for_each_suffix (Lisp_Object lib_base_name,
    to the language definition.
 
    If error occurs, return NULL and fill SIGNAL_SYMBOL and SIGNAL_DATA
-   with values suitable for xsignal. */
+   with values suitable for xsignal.  */
 static TSLanguage *
 treesit_load_language (Lisp_Object language_symbol,
 		       Lisp_Object *signal_symbol, Lisp_Object *signal_data)
@@ -563,7 +563,7 @@ treesit_load_language (Lisp_Object language_symbol,
   if (found_override)
     c_name = SSDATA (override_c_name);
   langfn = dynlib_sym (handle, c_name);
-  free(c_name);
+  free (c_name);
   error = dynlib_error ();
   if (error != NULL)
     {
@@ -668,7 +668,7 @@ treesit_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
 }
 
 /* Update each parser's tree after the user made an edit.  This
-function does not parse the buffer and only updates the tree. (So it
+function does not parse the buffer and only updates the tree.  (So it
 should be very fast.)  */
 void
 treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
@@ -769,14 +769,14 @@ treesit_ensure_position_synced (Lisp_Object parser)
      situation.  We change visible_beg and visible_end to match
      BUF_BEGV_BYTE and BUF_ZV_BYTE, and inform tree-sitter of the
      change.  We want to move the visible range of tree-sitter to
-     match the narrowed range. For example,
+     match the narrowed range.  For example,
      from ________|xxxx|__
      to   |xxxx|__________ */
 
   /* 1. Make sure visible_beg <= BUF_BEGV_BYTE.  */
   if (visible_beg > BUF_BEGV_BYTE (buffer))
     {
-      /* Tree-sitter sees: insert at the beginning. */
+      /* Tree-sitter sees: insert at the beginning.  */
       treesit_tree_edit_1 (tree, 0, 0, visible_beg - BUF_BEGV_BYTE (buffer));
       visible_beg = BUF_BEGV_BYTE (buffer);
       eassert (visible_beg <= visible_end);
@@ -825,7 +825,7 @@ treesit_check_buffer_size (struct buffer *buffer)
 	      make_fixnum (buffer_size));
 }
 
-/* Parse the buffer.  We don't parse until we have to. When we have
+/* Parse the buffer.  We don't parse until we have to.  When we have
 to, we call this function to parse and update the tree.  */
 static void
 treesit_ensure_parsed (Lisp_Object parser)
@@ -886,7 +886,7 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
   char *beg;
   int len;
   /* This function could run from a user command, so it is better to
-     do nothing instead of raising an error. (It was a pain in the a**
+     do nothing instead of raising an error.  (It was a pain in the a**
      to decrypt mega-if-conditions in Emacs source, so I wrote the two
      branches separately, you are welcome.)  */
   if (!BUFFER_LIVE_P (buffer))
@@ -1418,7 +1418,7 @@ return nil.  */)
 /*** Node API  */
 
 /* Check that OBJ is a positive integer and signal an error if
-   otherwise. */
+   otherwise.  */
 static void
 treesit_check_positive_integer (Lisp_Object obj)
 {
@@ -2030,7 +2030,7 @@ treesit_predicate_capture_name_to_text (Lisp_Object name,
 }
 
 /* Handles predicate (#equal A B).  Return true if A equals B; return
-   false otherwise. A and B can be either string, or a capture name.
+   false otherwise.  A and B can be either string, or a capture name.
    The capture name evaluates to the text its captured node spans in
    the buffer.  */
 static bool
@@ -2146,7 +2146,7 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
 
   Lisp_Object lisp_query = make_treesit_query (query, language);
 
-  /* Maybe actually compile. */
+  /* Maybe actually compile.  */
   if (NILP (eager))
     return lisp_query;
   else
@@ -2204,7 +2204,7 @@ the query.  */)
 	|| CONSP (query) || STRINGP (query)))
     wrong_type_argument (Qtreesit_query_p, query);
 
-  /* Resolve NODE into an actual node. */
+  /* Resolve NODE into an actual node.  */
   Lisp_Object lisp_node;
   if (TS_NODEP (node))
     lisp_node = node;
@@ -2270,13 +2270,13 @@ the query.  */)
   /* WARN: After this point, free treesit_query and cursor before every
      signal and return.  */
 
-  /* Set query range. */
+  /* Set query range.  */
   if (!NILP (beg) && !NILP (end))
     {
       EMACS_INT beg_byte = XFIXNUM (beg);
       EMACS_INT end_byte = XFIXNUM (end);
       /* We never let tree-sitter run on buffers too large, so these
-	 assertion should never hit. */
+	 assertion should never hit.  */
       eassert (beg_byte - visible_beg <= UINT32_MAX);
       eassert (end_byte - visible_beg <= UINT32_MAX);
       ts_query_cursor_set_byte_range (cursor, (uint32_t) beg_byte - visible_beg,
@@ -2291,7 +2291,7 @@ the query.  */)
      captures in the RESULT list unconditionally as we get them, then
      test for predicates.  If predicates pass, then all good, if
      predicates don't pass, revert the result back to the result
-     before this loop (PREV_RESULT). (Predicates control the entire
+     before this loop (PREV_RESULT).  (Predicates control the entire
      match.) This way we don't need to create a list of captures in
      every for loop and nconc it to RESULT every time.  That is indeed
      the initial implementation in which Yoav found nconc being the
@@ -2377,9 +2377,9 @@ treesit_traverse_child_helper (TSNode node, bool forward, bool named)
   if (forward)
     {
       if (named)
-	return ts_node_named_child(node, 0);
+	return ts_node_named_child (node, 0);
       else
-	return ts_node_child(node, 0);
+	return ts_node_child (node, 0);
     }
   else
     {
@@ -2470,7 +2470,7 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
     }
 }
 
-/* Go thought the whole tree linearly, leaf-first, starting from
+/* Go through the whole tree linearly, leaf-first, starting from
    START.  PRED, PARSER, NAMED, FORWARD are the same as in
    ts_search_subtre.  If UP_ONLY is true, never go to children, only
    sibling and parents.  */
@@ -2686,7 +2686,7 @@ PREDICATE is "is letter", the returned tree is the one on the right.
      |  |              |
      e  5              e
 
-If PROCESS-FN is non-nil, it should be a function of one argument. In
+If PROCESS-FN is non-nil, it should be a function of one argument.  In
 that case, instead of returning the matched nodes, pass each node to
 PROCESS-FN, and use its return value instead.
 
