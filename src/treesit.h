@@ -169,16 +169,10 @@ CHECK_TS_COMPILED_QUERY (Lisp_Object query)
 	      Qtreesit_compiled_query_p, query);
 }
 
-void
-treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
-		       ptrdiff_t new_end_byte);
-
-Lisp_Object
-make_treesit_parser (Lisp_Object buffer, TSParser *parser,
-		     TSTree *tree, Lisp_Object language_symbol);
-
-Lisp_Object
-make_treesit_node (Lisp_Object parser, TSNode node);
+extern void treesit_record_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
+extern Lisp_Object make_treesit_parser (Lisp_Object, TSParser *, TSTree *,
+					Lisp_Object);
+extern Lisp_Object make_treesit_node (Lisp_Object, TSNode);
 
 bool treesit_node_uptodate_p (Lisp_Object obj);
 

@@ -280,13 +280,15 @@ init_treesit_functions (void)
    The Emacs wrapper of tree-sitter does not expose everything the C
    API provides, most notably:
 
-   - It doesn't expose a syntax tree.  We put the syntax tree in the
-     parser object, and updating the tree is handled on the C level.
+   - It doesn't expose a syntax tree.  The syntax tree is placed in
+     the parser object, and updating the tree is handled at the C
+     level.
 
-   - We don't expose tree cursor either.  I think Lisp is slow enough
-     to nullify any performance advantage of using a cursor, though I
-     don't have evidence.  Also I want to minimize the number of new
-     types we introduce.  Currently we only add parser and node type.
+   - The tree cursor is not exposed either.  I think Lisp is slow
+     enough to nullify any performance advantage of using a cursor,
+     though I don't have evidence.  Also I want to minimize the number
+     of new types we introduce.  Currently we only add parser and node
+     type.
 
    - Because updating the change is handled on the C level as each
      change is made in the buffer, there is no way for Lisp to update
@@ -295,36 +297,38 @@ init_treesit_functions (void)
 
    - I didn't expose setting timeout and cancellation flag for a
      parser, mainly because I don't think they are really necessary
-     in Emacs' use cases.
+     in Emacs's use cases.
 
-   - Many tree-sitter functions asks for a TSPoint, basically a (row,
-     column) location.  Emacs uses a gap buffer and keeps no
-     information about row and column position.  According to the
-     author of tree-sitter, tree-sitter only asks for (row, column)
-     position to carry it around and return back to the user later;
-     and the real position used is the byte position.  He also said
-     that he _think_ that it will work to use byte position only.
-     That's why whenever a TSPoint is asked, we pass a dummy one to
-     it.  Judging by the nature of parsing algorithms, I think it is
-     safe to use only byte position, and I don't think this will
-     change in the future.
+   - Many tree-sitter functions take a TSPoint, which is basically a
+     row and column.  Emacs uses a gap buffer and does not keep
+     information about the row and column position of a buffer.
+     According to the author of tree-sitter, those functions only take
+     a TSPoint so that it can be moved alongside the byte position and
+     returned to the caller afterwards, and the position actually used
+     is the specified byte position.  He also said that he _thinks_
+     that just passing a byte position will also work.  As a result, a
+     dummy value is used in place of each TSPoint.  Judging by the
+     nature of parsing algorithms, I think it is safe to use only the
+     byte position, and I don't think this will change in the future.
 
-     REF: https://github.com/tree-sitter/tree-sitter/issues/445
+     See: https://github.com/tree-sitter/tree-sitter/issues/445
 
-   treesit.h has some commentary on the two main data structure
-   for the parser and node.  treesit_ensure_position_synced has some
-   commentary on how do we make tree-sitter play well with narrowing
-   (tree-sitter parser only sees the visible region, so we need to
+   treesit.h has some commentary on the two main data structure for
+   the parser and node.  treesit_ensure_position_synced has some
+   commentary on how we make tree-sitter play well with narrowing (the
+   tree-sitter parser only sees the visible region, so we need to
    translate positions back and forth).  Most action happens in
-   treesit_ensure_parsed, treesit_read_buffer and treesit_record_change.
+   treesit_ensure_parsed, treesit_read_buffer and
+   treesit_record_change.
 
    A complete correspondence list between tree-sitter functions and
-   exposed Lisp functions can be found in the manual (elisp)API
+   exposed Lisp functions can be found in the manual node (elisp)API
    Correspondence.
 
    Placement of CHECK_xxx functions: call CHECK_xxx before using any
-   unchecked Lisp values; these include argument of Lisp functions,
-   return value of Fsymbol_value, car of a cons.
+   unchecked Lisp values; these include arguments of Lisp functions,
+   the return value of Fsymbol_value, and that of Fcar or Fcdr on
+   user-specified conses.
 
    Initializing tree-sitter: there are two entry points to tree-sitter
    functions: 'treesit-parser-create' and
@@ -378,8 +382,8 @@ init_treesit_functions (void)
    up and the query doesn't EQ to the cache anymore, the performance
    mysteriously drops.  3) what if a user uses so many stuff that the
    default cache size (20) is not enough and we end up thrashing?
-   These are all imagined scenarios but they are not impossible :-)
- */
+   These are all imaginary scenarios but they are not impossible
+   :-) */
 
 
 /*** Initialization */
@@ -449,21 +453,28 @@ static bool
 treesit_find_override_name (Lisp_Object language_symbol, Lisp_Object *name,
 			    Lisp_Object *c_symbol)
 {
+  Lisp_Object tem;
+
   CHECK_LIST (Vtreesit_load_name_override_list);
-  for (Lisp_Object list = Vtreesit_load_name_override_list;
-       !NILP (list); list = XCDR (list))
+
+  FOR_EACH_TAIL (tem)
     {
-      Lisp_Object lang = XCAR (XCAR (list));
+      Lisp_Object lang = XCAR (XCAR (tem));
       CHECK_SYMBOL (lang);
+
       if (EQ (lang, language_symbol))
 	{
-	  *name = Fnth (make_fixnum (1), XCAR (list));
+	  *name = Fnth (make_fixnum (1), XCAR (tem));
 	  CHECK_STRING (*name);
-	  *c_symbol = Fnth (make_fixnum (2), XCAR (list));
+	  *c_symbol = Fnth (make_fixnum (2), XCAR (tem));
 	  CHECK_STRING (*c_symbol);
+
 	  return true;
 	}
     }
+
+  CHECK_LIST_END (tem, Vtreesit_load_name_override_list);
+
   return false;
 }
 
@@ -475,12 +486,13 @@ static void
 treesit_load_language_push_for_each_suffix (Lisp_Object lib_base_name,
 					    Lisp_Object *path_candidates)
 {
-  for (Lisp_Object suffixes = Vdynamic_library_suffixes;
-       !NILP (suffixes); suffixes = XCDR (suffixes))
-    {
-      *path_candidates = Fcons (concat2 (lib_base_name, XCAR (suffixes)),
-				*path_candidates);
-    }
+  Lisp_Object suffixes;
+
+  suffixes = Vdynamic_library_suffixes;
+
+  FOR_EACH_TAIL (suffixes)
+    *path_candidates = Fcons (concat2 (lib_base_name, XCAR (suffixes)),
+			      *path_candidates);
 }
 
 /* Load the dynamic library of LANGUAGE_SYMBOL and return the pointer
@@ -497,10 +509,10 @@ treesit_load_language (Lisp_Object language_symbol,
   CHECK_LIST (Vtreesit_extra_load_path);
 
   /* Figure out the library name and C name.  */
-  Lisp_Object lib_base_name =
-    concat2 (build_pure_c_string ("libtree-sitter-"), symbol_name);
-  Lisp_Object base_name =
-    concat2 (build_pure_c_string ("tree-sitter-"), symbol_name);
+  Lisp_Object lib_base_name
+    = concat2 (build_pure_c_string ("libtree-sitter-"), symbol_name);
+  Lisp_Object base_name
+    = concat2 (build_pure_c_string ("tree-sitter-"), symbol_name);
 
   /* Override the library name and C name, if appropriate.  */
   Lisp_Object override_name;
@@ -509,7 +521,7 @@ treesit_load_language (Lisp_Object language_symbol,
 						    &override_name,
 						    &override_c_name);
   if (found_override)
-      lib_base_name = override_name;
+    lib_base_name = override_name;
 
   /* Now we generate a list of possible library paths.  */
   Lisp_Object path_candidates = Qnil;
@@ -519,13 +531,16 @@ treesit_load_language (Lisp_Object language_symbol,
   /* This is used for reporting errors (i.e., just filenames).  */
   Lisp_Object base_candidates = path_candidates;
   /* Then push ~/.emacs.d/tree-sitter paths.  */
-  Lisp_Object lib_name =
-    Fexpand_file_name (concat2 (build_string ("tree-sitter/"), lib_base_name),
-		       Fsymbol_value (Quser_emacs_directory));
+  Lisp_Object lib_name
+    = Fexpand_file_name (concat2 (build_string ("tree-sitter/"), lib_base_name),
+			 Fsymbol_value (Quser_emacs_directory));
   treesit_load_language_push_for_each_suffix (lib_name, &path_candidates);
   /* Then push paths from treesit-extra-load-path.  */
-  for (Lisp_Object tail = Freverse (Vtreesit_extra_load_path);
-       !NILP (tail); tail = XCDR (tail))
+  Lisp_Object tail;
+
+  tail = Freverse (Vtreesit_extra_load_path);
+
+  FOR_EACH_TAIL (tail)
     {
       Lisp_Object expanded_lib = Fexpand_file_name (lib_base_name, XCAR (tail));
       treesit_load_language_push_for_each_suffix (expanded_lib,
@@ -537,8 +552,10 @@ treesit_load_language (Lisp_Object language_symbol,
      fail.  */
   dynlib_handle_ptr handle;
   char const *error;
-  for (Lisp_Object tail = path_candidates;
-       !NILP (tail); tail = XCDR (tail))
+
+  tail = path_candidates;
+
+  FOR_EACH_TAIL (tail)
     {
       char *library_name = SSDATA (XCAR (tail));
       dynlib_error ();
@@ -547,6 +564,7 @@ treesit_load_language (Lisp_Object language_symbol,
       if (error == NULL)
 	break;
     }
+
   if (error != NULL)
     {
       *signal_symbol = Qtreesit_load_language_error;
@@ -587,8 +605,7 @@ treesit_load_language (Lisp_Object language_symbol,
   return lang;
 }
 
-DEFUN ("treesit-language-available-p",
-       Ftreesit_langauge_available_p,
+DEFUN ("treesit-language-available-p", Ftreesit_langauge_available_p,
        Streesit_language_available_p,
        1, 2, 0,
        doc: /* Return non-nil if LANGUAGE exists and is loadable.
@@ -668,15 +685,17 @@ treesit_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
 }
 
 /* Update each parser's tree after the user made an edit.  This
-function does not parse the buffer and only updates the tree.  (So it
-should be very fast.)  */
+   function does not parse the buffer and only updates the tree, so it
+   should be very fast.  */
 void
 treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 		       ptrdiff_t new_end_byte)
 {
-  for (Lisp_Object parser_list = BVAR (current_buffer, ts_parser_list);
-       !NILP (parser_list);
-       parser_list = XCDR (parser_list))
+  Lisp_Object parser_list;
+
+  parser_list = BVAR (current_buffer, ts_parser_list);
+
+  FOR_EACH_TAIL_SAFE (parser_list)
     {
       CHECK_CONS (parser_list);
       Lisp_Object lisp_parser = XCAR (parser_list);
@@ -699,15 +718,15 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	     VISIBLE_BEG.  min(visi_end, max(visi_beg, value)) clips
 	     value into [visi_beg, visi_end], and subtracting visi_beg
 	     gives the offset from visi_beg.  */
-	  ptrdiff_t start_offset =
-	    min (visible_end,
-		 max (visible_beg, start_byte)) - visible_beg;
-	  ptrdiff_t old_end_offset =
-	    min (visible_end,
-		 max (visible_beg, old_end_byte)) - visible_beg;
-	  ptrdiff_t new_end_offset =
-	    min (visible_end,
-		 max (visible_beg, new_end_byte)) - visible_beg;
+	  ptrdiff_t start_offset = (min (visible_end,
+					 max (visible_beg, start_byte))
+				    - visible_beg);
+	  ptrdiff_t old_end_offset = (min (visible_end,
+					   max (visible_beg, old_end_byte))
+				      - visible_beg);
+	  ptrdiff_t new_end_offset = (min (visible_end,
+					   max (visible_beg, new_end_byte))
+				      - visible_beg);
 	  eassert (start_offset <= old_end_offset);
 	  eassert (start_offset <= new_end_offset);
 
@@ -721,21 +740,18 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	     view changes.  */
 	  ptrdiff_t visi_beg_delta;
 	  if (old_end_byte > new_end_byte)
-	    {
-	      /* Move backward.  */
-	      visi_beg_delta =
-		min (visible_beg, new_end_byte)
-		     - min (visible_beg, old_end_byte);
-	    }
+	    /* Move backward.  */
+	    visi_beg_delta = (min (visible_beg, new_end_byte)
+			      - min (visible_beg, old_end_byte));
 	  else
-	    {
-	      /* Move forward.  */
-	      visi_beg_delta =
-		old_end_byte < visible_beg ? new_end_byte - old_end_byte : 0;
-	    }
+	    /* Move forward.  */
+	    visi_beg_delta = (old_end_byte < visible_beg
+			      ? new_end_byte - old_end_byte : 0);
 	  XTS_PARSER (lisp_parser)->visible_beg = visible_beg + visi_beg_delta;
-	  XTS_PARSER (lisp_parser)->visible_end
-	    = visible_end + visi_beg_delta + (new_end_offset - old_end_offset);
+	  XTS_PARSER (lisp_parser)->visible_end = (visible_end
+						   + visi_beg_delta
+						   + (new_end_offset
+						      - old_end_offset));
 	  eassert (XTS_PARSER (lisp_parser)->visible_beg >= 0);
 	  eassert (XTS_PARSER (lisp_parser)->visible_beg
 		   <= XTS_PARSER (lisp_parser)->visible_end);
@@ -826,7 +842,7 @@ treesit_check_buffer_size (struct buffer *buffer)
 }
 
 /* Parse the buffer.  We don't parse until we have to.  When we have
-to, we call this function to parse and update the tree.  */
+   to, we call this function to parse and update the tree.  */
 static void
 treesit_ensure_parsed (Lisp_Object parser)
 {
@@ -913,15 +929,18 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
   return beg;
 }
 
-/*** Functions for parser and node object*/
+/*** Functions for parser and node object */
 
-/* Wrap the parser in a Lisp_Object to be used in the Lisp machine.  */
+/* Wrap the parser in a Lisp_Object to be used in the Lisp
+   machine.  */
 Lisp_Object
 make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 		     TSTree *tree, Lisp_Object language_symbol)
 {
-  struct Lisp_TS_Parser *lisp_parser =
-    ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Parser, buffer, PVEC_TS_PARSER);
+  struct Lisp_TS_Parser *lisp_parser;
+
+  lisp_parser = ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Parser,
+				       buffer, PVEC_TS_PARSER);
 
   lisp_parser->language_symbol = language_symbol;
   lisp_parser->buffer = buffer;
@@ -942,8 +961,10 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 Lisp_Object
 make_treesit_node (Lisp_Object parser, TSNode node)
 {
-  struct Lisp_TS_Node *lisp_node =
-    ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Node, parser, PVEC_TS_NODE);
+  struct Lisp_TS_Node *lisp_node;
+
+  lisp_node = ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Node,
+				     parser, PVEC_TS_NODE);
   lisp_node->parser = parser;
   lisp_node->node = node;
   lisp_node->timestamp = XTS_PARSER (parser)->timestamp;
@@ -956,9 +977,10 @@ static Lisp_Object
 make_treesit_query (Lisp_Object query, Lisp_Object language)
 {
   TSQueryCursor *treesit_cursor = ts_query_cursor_new ();
-  struct Lisp_TS_Query *lisp_query =
-    ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Query, source,
-			   PVEC_TS_COMPILED_QUERY);
+  struct Lisp_TS_Query *lisp_query;
+
+  lisp_query = ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Query,
+				      source, PVEC_TS_COMPILED_QUERY);
 
   lisp_query->language = language;
   lisp_query->source = query;
@@ -1178,8 +1200,9 @@ create a new parser.  */)
   ts_parser_set_language (parser, lang);
 
   /* Create parser.  */
-  Lisp_Object lisp_parser
-    = make_treesit_parser (Fcurrent_buffer (), parser, NULL, language);
+  Lisp_Object lisp_parser = make_treesit_parser (Fcurrent_buffer (),
+						 parser, NULL,
+						 language);
 
   /* Update parser-list.  */
   BVAR (buf, ts_parser_list) = Fcons (lisp_parser, BVAR (buf, ts_parser_list));
@@ -1198,7 +1221,9 @@ See `treesit-parser-list' for the buffer's parser list.  */)
 
   Lisp_Object buffer = XTS_PARSER (parser)->buffer;
   struct buffer *buf = XBUFFER (buffer);
-  BVAR (buf, ts_parser_list) = Fdelete (parser, BVAR (buf, ts_parser_list));
+
+  BVAR (buf, ts_parser_list)
+    = Fdelete (parser, BVAR (buf, ts_parser_list));
 
   XTS_PARSER (parser)->deleted = true;
   return Qnil;
@@ -1222,12 +1247,13 @@ BUFFER defaults to the current buffer.  */)
   /* Return a fresh list so messing with that list doesn't affect our
      internal data.  */
   Lisp_Object return_list = Qnil;
-  for (Lisp_Object tail = BVAR (buf, ts_parser_list);
-       !NILP (tail);
-       tail = XCDR (tail))
-    {
-      return_list = Fcons (XCAR (tail), return_list);
-    }
+  Lisp_Object tail;
+
+  tail = BVAR (buf, ts_parser_list);
+
+  FOR_EACH_TAIL (tail)
+    return_list = Fcons (XCAR (tail), return_list);
+
   return Freverse (return_list);
 }
 
@@ -1278,8 +1304,13 @@ treesit_check_range_argument (Lisp_Object ranges)
   ptrdiff_t point_min = BUF_BEGV (buffer);
   ptrdiff_t point_max = BUF_ZV (buffer);
   EMACS_INT last_point = point_min;
+  Lisp_Object tail;
 
-  for (Lisp_Object tail = ranges; !NILP (tail); tail = XCDR (tail))
+  tail = ranges;
+
+  CHECK_LIST (tail);
+
+  FOR_EACH_TAIL (tail)
     {
       CHECK_CONS (tail);
       Lisp_Object range = XCAR (tail);
@@ -1290,10 +1321,13 @@ treesit_check_range_argument (Lisp_Object ranges)
       EMACS_INT end = XFIXNUM (XCDR (range));
       if (!(last_point <= beg && beg <= end && end <= point_max))
 	xsignal2 (Qtreesit_range_invalid,
-		  build_pure_c_string ("RANGE is either overlapping or out-of-order or out-of-range"),
+		  build_pure_c_string ("RANGE is either overlapping,"
+				       " out-of-order or out-of-range"),
 		  ranges);
       last_point = end;
     }
+
+  CHECK_LIST_END (tail, ranges);
 }
 
 DEFUN ("treesit-parser-set-included-ranges",
@@ -1385,8 +1419,8 @@ return nil.  */)
   treesit_check_parser (parser);
   treesit_initialize ();
   uint32_t len;
-  const TSRange *ranges =
-    ts_parser_included_ranges (XTS_PARSER (parser)->parser, &len);
+  const TSRange *ranges
+    = ts_parser_included_ranges (XTS_PARSER (parser)->parser, &len);
   if (len == 0)
     return Qnil;
 
@@ -1407,9 +1441,9 @@ return nil.  */)
       eassert (beg_byte <= end_byte);
       eassert (end_byte <= BUF_ZV_BYTE (buffer));
 
-      Lisp_Object lisp_range =
-	Fcons (make_fixnum (buf_bytepos_to_charpos (buffer, beg_byte)) ,
-	       make_fixnum (buf_bytepos_to_charpos (buffer, end_byte)));
+      Lisp_Object lisp_range
+	= Fcons (make_fixnum (buf_bytepos_to_charpos (buffer, beg_byte)),
+		 make_fixnum (buf_bytepos_to_charpos (buffer, end_byte)));
       list = Fcons (lisp_range, list);
     }
   return Fnreverse (list);
@@ -1469,10 +1503,11 @@ If NODE is nil, return nil.  */)
   TSNode treesit_node = XTS_NODE (node)->node;
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
   uint32_t start_byte_offset = ts_node_start_byte (treesit_node);
-  struct buffer *buffer =
-    XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
-  ptrdiff_t start_pos =
-    buf_bytepos_to_charpos (buffer, start_byte_offset + visible_beg);
+  struct buffer *buffer
+    = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
+  ptrdiff_t start_pos
+    = buf_bytepos_to_charpos (buffer,
+			      start_byte_offset + visible_beg);
   return make_fixnum (start_pos);
 }
 
@@ -1489,10 +1524,10 @@ If NODE is nil, return nil.  */)
   TSNode treesit_node = XTS_NODE (node)->node;
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
   uint32_t end_byte_offset = ts_node_end_byte (treesit_node);
-  struct buffer *buffer =
-    XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
-  ptrdiff_t end_pos =
-    buf_bytepos_to_charpos (buffer, end_byte_offset + visible_beg);
+  struct buffer *buffer
+    = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
+  ptrdiff_t end_pos
+    = buf_bytepos_to_charpos (buffer, end_byte_offset + visible_beg);
   return make_fixnum (end_pos);
 }
 
@@ -1616,7 +1651,8 @@ errors.  */)
   else if (EQ (property, Qhas_changes))
     result = ts_node_has_changes (treesit_node);
   else
-    signal_error ("Expecting `named', `missing', `extra', `has-changes' or `has-error', but got",
+    signal_error ("Expecting `named', `missing', `extra', "
+		  "`has-changes' or `has-error', but got",
 		  property);
   return result ? Qt : Qnil;
 }
@@ -1699,7 +1735,8 @@ Return nil if there is no such child.  If NODE is nil, return nil.  */)
   char *name_str = SSDATA (field_name);
   TSNode treesit_node = XTS_NODE (node)->node;
   TSNode child
-    = ts_node_child_by_field_name (treesit_node, name_str, strlen (name_str));
+    = ts_node_child_by_field_name (treesit_node, name_str,
+				   strlen (name_str));
 
   if (ts_node_is_null (child))
     return Qnil;
@@ -1905,10 +1942,10 @@ See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
     return build_pure_c_string ("#equal");
   if (EQ (pattern, intern_c_string (":match")))
     return build_pure_c_string ("#match");
-  Lisp_Object opening_delimeter =
-    build_pure_c_string (VECTORP (pattern) ? "[" : "(");
-  Lisp_Object closing_delimiter =
-    build_pure_c_string (VECTORP (pattern) ? "]" : ")");
+  Lisp_Object opening_delimeter
+    = build_pure_c_string (VECTORP (pattern) ? "[" : "(");
+  Lisp_Object closing_delimiter
+    = build_pure_c_string (VECTORP (pattern) ? "]" : ")");
   if (VECTORP (pattern) || CONSP (pattern))
     return concat3 (opening_delimeter,
 		    Fmapconcat (intern_c_string ("treesit-pattern-expand"),
@@ -1942,8 +1979,8 @@ A PATTERN in QUERY can be
 See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
   (Lisp_Object query)
 {
-  return Fmapconcat (intern_c_string ("treesit-pattern-expand"),
-		     query, build_pure_c_string (" "));
+  return Fmapconcat (Qtreesit_pattern_expand,
+		     query, empty_unibyte_string);
 }
 
 /* This struct is used for passing captures to be check against
@@ -1967,8 +2004,8 @@ static Lisp_Object
 treesit_predicates_for_pattern (TSQuery *query, uint32_t pattern_index)
 {
   uint32_t len;
-  const TSQueryPredicateStep *predicate_list =
-    ts_query_predicates_for_pattern (query, pattern_index, &len);
+  const TSQueryPredicateStep *predicate_list
+    = ts_query_predicates_for_pattern (query, pattern_index, &len);
   Lisp_Object result = Qnil;
   Lisp_Object predicate = Qnil;
   for (int idx = 0; idx < len; idx++)
@@ -2024,7 +2061,9 @@ treesit_predicate_capture_name_to_text (Lisp_Object name,
   if (NILP (node))
     xsignal3 (Qtreesit_query_error,
 	      build_pure_c_string ("Cannot find captured node"),
-	      name, build_pure_c_string ("A predicate can only refer to captured nodes in the same pattern"));
+	      name, build_pure_c_string ("A predicate can only refer"
+					 " to captured nodes in the "
+					 "same pattern"));
 
   struct buffer *old_buffer = current_buffer;
   set_buffer_internal (XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer));
@@ -2043,17 +2082,20 @@ treesit_predicate_equal (Lisp_Object args, struct capture_range captures)
 {
   if (XFIXNUM (Flength (args)) != 2)
     xsignal2 (Qtreesit_query_error,
-	      build_pure_c_string ("Predicate `equal' requires two arguments but only given"),
+	      build_pure_c_string ("Predicate `equal' requires "
+				   "two arguments but only given"),
 	      Flength (args));
 
   Lisp_Object arg1 = XCAR (args);
   Lisp_Object arg2 = XCAR (XCDR (args));
-  Lisp_Object text1 =
-    STRINGP (arg1) ? arg1 : treesit_predicate_capture_name_to_text (arg1,
-								    captures);
-  Lisp_Object text2 =
-    STRINGP (arg2) ? arg2 : treesit_predicate_capture_name_to_text (arg2,
-								    captures);
+  Lisp_Object text1 = (STRINGP (arg1)
+		       ? arg1
+		       : treesit_predicate_capture_name_to_text (arg1,
+								 captures));
+  Lisp_Object text2 = (STRINGP (arg2)
+		       ? arg2
+		       : treesit_predicate_capture_name_to_text (arg2,
+								 captures));
 
   return !NILP (Fstring_equal (text1, text2));
 }
@@ -2066,7 +2108,8 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 {
   if (XFIXNUM (Flength (args)) != 2)
     xsignal2 (Qtreesit_query_error,
-	      build_pure_c_string ("Predicate `equal' requires two arguments but only given"),
+	      build_pure_c_string ("Predicate `equal' requires two "
+				   "arguments but only given"),
 	      Flength (args));
 
   Lisp_Object regexp = XCAR (args);
@@ -2080,10 +2123,12 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
      string-match does.)  */
   if (!STRINGP (regexp))
     xsignal1 (Qtreesit_query_error,
-	      build_pure_c_string ("The first argument to `match' should be a regexp string, not a capture name"));
+	      build_pure_c_string ("The first argument to `match' should "
+				   "be a regexp string, not a capture name"));
   if (!SYMBOLP (capture_name))
     xsignal1 (Qtreesit_query_error,
-	      build_pure_c_string ("The second argument to `match' should be a capture name, not a string"));
+	      build_pure_c_string ("The second argument to `match' should "
+				   "be a capture name, not a string"));
 
   if (fast_string_match (regexp, text) >= 0)
     return true;
@@ -2119,7 +2164,8 @@ treesit_eval_predicates (struct capture_range captures, Lisp_Object predicates)
       else
 	xsignal3 (Qtreesit_query_error,
 		  build_pure_c_string ("Invalid predicate"),
-		  fn, build_pure_c_string ("Currently Emacs only supports equal and match predicate"));
+		  fn, build_pure_c_string ("Currently Emacs only supports"
+					   " equal and match predicate"));
     }
   /* If all predicates passed, add captures to result list.  */
   return pass;
@@ -2231,12 +2277,14 @@ the query.  */)
   treesit_initialize ();
 
   /* Extract C values from Lisp objects.  */
-  TSNode treesit_node = XTS_NODE (lisp_node)->node;
-  Lisp_Object lisp_parser = XTS_NODE (lisp_node)->parser;
-  ptrdiff_t visible_beg =
-    XTS_PARSER (XTS_NODE (lisp_node)->parser)->visible_beg;
-  const TSLanguage *lang =
-    ts_parser_language (XTS_PARSER (lisp_parser)->parser);
+  TSNode treesit_node
+    = XTS_NODE (lisp_node)->node;
+  Lisp_Object lisp_parser
+    = XTS_NODE (lisp_node)->parser;
+  ptrdiff_t visible_beg
+    = XTS_PARSER (XTS_NODE (lisp_node)->parser)->visible_beg;
+  const TSLanguage *lang
+    = ts_parser_language (XTS_PARSER (lisp_parser)->parser);
 
   /* Initialize query objects.  At the end of this block, we should
      have a working TSQuery and a TSQueryCursor.  */
@@ -2266,10 +2314,11 @@ the query.  */)
       uint32_t error_offset;
       TSQueryError error_type;
       treesit_query = ts_query_new (lang, query_string, strlen (query_string),
-			       &error_offset, &error_type);
+				    &error_offset, &error_type);
       if (treesit_query == NULL)
 	xsignal (Qtreesit_query_error,
-		 treesit_compose_query_signal_data (error_offset, error_type));
+		 treesit_compose_query_signal_data (error_offset,
+						    error_type));
       cursor = ts_query_cursor_new ();
       needs_to_free_query_and_cursor = true;
     }
@@ -2321,9 +2370,9 @@ the query.  */)
 	  Lisp_Object cap;
 	  if (NILP (node_only))
 	    {
-	      const char *capture_name =
-		ts_query_capture_name_for_id (treesit_query, capture.index,
-					      &capture_name_len);
+	      const char *capture_name
+		= ts_query_capture_name_for_id (treesit_query, capture.index,
+						&capture_name_len);
 	      cap = Fcons (intern_c_string_1 (capture_name, capture_name_len),
 			   captured_node);
 	    }
@@ -2333,16 +2382,15 @@ the query.  */)
 	  result = Fcons (cap, result);
 	}
       /* Get predicates.  */
-      Lisp_Object predicates =
-	treesit_predicates_for_pattern (treesit_query, match.pattern_index);
+      Lisp_Object predicates
+	= treesit_predicates_for_pattern (treesit_query,
+					  match.pattern_index);
 
       /* captures_lisp = Fnreverse (captures_lisp); */
       struct capture_range captures_range = { result, prev_result };
       if (!treesit_eval_predicates (captures_range, predicates))
-	{
-	  /* Predicates didn't pass, roll back.  */
-	  result = prev_result;
-	}
+	/* Predicates didn't pass, roll back.  */
+	result = prev_result;
     }
   if (needs_to_free_query_and_cursor)
     {
@@ -2355,8 +2403,7 @@ the query.  */)
 /*** Navigation */
 
 /* Return the next/previous named/unnamed sibling of NODE.  FORWARD
-   controls the direction and NAMED controls the nameness.
- */
+   controls the direction and NAMED controls the nameness.  */
 static TSNode
 treesit_traverse_sibling_helper (TSNode node, bool forward, bool named)
 {
@@ -2457,13 +2504,15 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
     return false;
   else
     {
-      int count =
-	named ? ts_node_named_child_count (node) : ts_node_child_count (node);
+      int count = (named
+		   ? ts_node_named_child_count (node)
+		   : ts_node_child_count (node));
       for (int offset = 0; offset < count; offset++)
 	{
 	  uint32_t idx = forward ? offset : count - offset - 1;
-	  TSNode child =
-	    named ? ts_node_named_child (node, idx) : ts_node_child (node, idx);
+	  TSNode child = (named
+			  ? ts_node_named_child (node, idx)
+			  : ts_node_child (node, idx));
 
 	  if (!ts_node_is_null (child)
 	      && treesit_search_dfs (&child, pred, parser, named,
@@ -2661,11 +2710,9 @@ treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
     }
   /* Before we go, reverse children in the sparse tree.  */
   if (match)
-    {
-      /* When match == true, "parent" is actually the node we added in
-	 this layer (parent = this).  */
-      Fsetcdr (parent, Fnreverse (Fcdr (parent)));
-    }
+    /* When match == true, "parent" is actually the node we added in
+       this layer (parent = this).  */
+    Fsetcdr (parent, Fnreverse (Fcdr (parent)));
 }
 
 DEFUN ("treesit-induce-sparse-tree",
@@ -2789,6 +2836,7 @@ syms_of_treesit (void)
   DEFSYM (Quser_emacs_directory,
 	  "user-emacs-directory");
   DEFSYM (Qtreesit_parser_deleted, "treesit-parser-deleted");
+  DEFSYM (Qtreesit_pattern_expand, "treesit-pattern-expand");
 
   DEFSYM (Qor, "or");
 
@@ -2893,6 +2941,6 @@ then in the system default locations for dynamic libraries, in that order.  */);
   defsubr (&Streesit_search_subtree);
   defsubr (&Streesit_search_forward);
   defsubr (&Streesit_induce_sparse_tree);
-#endif	/* HAVE_TREE_SITTER */
+#endif /* HAVE_TREE_SITTER */
   defsubr (&Streesit_available_p);
 }
