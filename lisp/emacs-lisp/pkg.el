@@ -540,6 +540,15 @@ Value is the renamed package object."
                            unuse))
     t))
 
+;;;###autoload
+(defun in-package* (package)
+  "Switch to PACKAGE with completion."
+  (interactive (list (completing-read "Package to switch to: "
+                                      *package-registry*
+                                      nil t)))
+  (let ((package (pkg--package-or-lose package)))
+    (setf *package* package)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            defpackage
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
