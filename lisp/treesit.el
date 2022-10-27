@@ -893,9 +893,8 @@ of the current line.")
                        (t nil)))
          (`(,anchor . ,offset)
           (funcall treesit-indent-function node parent bol)))
-      (if (null anchor)
-          (when treesit--indent-verbose
-            (message "Failed to find the anchor"))
+      (if (or (null anchor) (null offset))
+          nil
         (let ((col (+ (save-excursion
                         (goto-char anchor)
                         (current-column))
@@ -904,8 +903,6 @@ of the current line.")
               (save-excursion
                 (indent-line-to col))
             (indent-line-to col)))))))
-
-(declare-function c-calc-offset "cc-engine")
 
 (defun treesit-simple-indent (node parent bol)
   "Calculate indentation according to `treesit-simple-indent-rules'.
@@ -936,10 +933,11 @@ OFFSET."
                (let ((anchor-pos
                       (treesit--simple-indent-eval
                        (list anchor node parent bol))))
-                 (cons anchor-pos
-                       (if (integerp offset)
-                           offset
-                         (c-calc-offset (list offset anchor-pos)))))))))
+                 (cons anchor-pos offset))
+               finally return
+               (progn (when treesit--indent-verbose
+                        (message "No matched rule"))
+                      (cons nil nil))))))
 
 (defun treesit-check-indent (mode)
   "Check current buffer's indentation against a major mode MODE.
