@@ -661,6 +661,7 @@ See `treesit-simple-indent-presets'.")
                        (or (null ,node-index-max)
                            (<= (treesit-node-index node t)
                                ,node-index-max))))))
+    ;; TODO: Document if genuinely useful.
     (n-p-gp . (lambda (node-t parent-t grand-parent-t)
                 `(lambda (node parent bol &rest _)
                    (and (or (null ,node-t)
@@ -688,6 +689,7 @@ See `treesit-simple-indent-presets'.")
                   `(lambda (node parent bol &rest _)
                      (string-match-p
                       ,name (or (treesit-node-field-name node) "")))))
+    ;; TODO: Document.
     (catch-all . (lambda (&rest _) t))
 
     (query . (lambda (pattern)
@@ -701,12 +703,14 @@ See `treesit-simple-indent-presets'.")
     (first-sibling . (lambda (node parent bol &rest _)
                        (treesit-node-start
                         (treesit-node-child parent 0))))
+    ;; TODO: Document.
     (nth-sibling . (lambda (n &optional named)
                      `(lambda (node parent bol &rest _)
                         (treesit-node-start
                          (treesit-node-child parent ,n ,named)))))
     (parent . (lambda (node parent bol &rest _)
                 (treesit-node-start parent)))
+    ;; TODO: Document.
     (grand-parent . (lambda (node parent bol &rest _)
                       (treesit-node-start (treesit-node-parent parent))))
     (parent-bol . (lambda (node parent bol &rest _)
@@ -723,6 +727,7 @@ See `treesit-simple-indent-presets'.")
                      (goto-char bol)
                      (forward-line -1)
                      (skip-chars-forward " \t"))))
+    ;; TODO: Document.
     (and . (lambda (&rest fns)
              `(lambda (node parent bol &rest _)
                 (cl-reduce (lambda (a b) (and a b))
@@ -760,6 +765,8 @@ MATCHER:
 
         (match nil \"argument_list\" nil nil 0 0).
 
+    NODE-TYPE, PARENT-TYPE, and NODE-FIELD are regexps.
+
 no-node
 
     Matches the case where node is nil, i.e., there is no node
@@ -768,11 +775,11 @@ no-node
 
 \(parent-is TYPE)
 
-    Check that the parent has type TYPE.
+    Check that the parent's type matches regexp TYPE.
 
 \(node-is TYPE)
 
-    Checks that the node has type TYPE.
+    Checks that the node's type matches regexp TYPE.
 
 \(query QUERY)
 
