@@ -52,7 +52,7 @@
 ;;                               Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun pkg-check-disjoint (&rest args)
+(defun pkg--check-disjoint (&rest args)
   "Check whether all given arguments specify disjoint sets of symbols.
 Each argument is of the form (:key . set)."
   (cl-loop for (current-arg . rest-args) on args
@@ -170,6 +170,15 @@ Otherwise assume that "
         ((null package) *package*)
         (t (pkg--package-or-lose package))))
 
+(defun pkg--ensure-symbol (name package)
+  ;; We could also intern it, hm...
+  (cl-multiple-value-bind (symbol how)
+      (find-symbol name package)
+    (if how
+        symbol
+      (error "%s does not contain a symbol %s"
+             (package-name package) name))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Macros
@@ -216,13 +225,13 @@ normally, or else if an explcit return occurs the value it transfers."
     `(cl-block nil
        (cl-flet ((,flet-name (,var)
 		   (cl-tagbody ,@body)))
-	 (let* ((package (pkg--package-or-lose ,package))
-		(shadows (package-%shadowing-symbols package)))
+	 (let* ((package (pkg--package-or-lose ,package)))
 	   (maphash (lambda (k v)
 		      (when (eq v :external)
 			(,flet-name k)))
 		    (package-%symbols package))))
        (let ((,var nil))
+         ,var
 	 ,result-form))))
 
 ;;;###autoload
@@ -243,6 +252,7 @@ normally, or else if an explcit return occurs the value it transfers."
 		      (,flet-name k))
 		    (package-%symbols package))))
        (let ((,var nil))
+         ,var
 	 ,result-form))))
 
 
@@ -564,168 +574,147 @@ Value is t."
 ;;                            defpackage
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defun pkg--enter-new-nicknames (package nicknames)
-;;   (cl-check-type nicknames list)
-;;   (dolist (n nicknames)
-;;     (let* ((n (pkg-package-namify n))
-;; 	   (found (pkg-name-to-package n)))
-;;       (cond ((not found)
-;; 	     (setf (gethash n *package-registry*) package)
-;; 	     (push n (package-%nicknames package)))
-;; 	    ((eq found package))
-;; 	    ((string= (package-name found) n)
-;; 	     (error "%s is a package name, so it cannot be a nickname for %s."
-;; 	            n (package-name package)))
-;; 	    (t
-;; 	     (error "%s is already a nickname for %s"
-;;                     n (package-name found)))))))
+(defun pkg-defpackage (name nicknames size shadows shadowing-imports
+			    use imports interns exports _doc-string)
+  (let ((package (or (find-package name)
+                     (make-package name :use nil :size size
+                                   :nicknames nicknames))))
+    ;; PKG-FIXME: What of the existing stuff does survive?  Nicknames,
+    ;; use-list, and so on.
+    (unregister-package package)
+    (register-package package)
 
-;; (defun pkg-defpackage (name nicknames size shadows shadowing-imports
-;; 			    use imports interns exports doc-string)
-;;   (let ((package (find-package name)))
-;;     (unless package
-;;       (setq package (make-package name :use nil :size (or size 10))))
-;;     (unless (string= (package-name package) name)
-;;       (error "%s is a nickname for the package %s"
-;;              name (package-name package)))
+    ;; Shadows and Shadowing-imports.
+    (let ((old-shadows (package-%shadowing-symbols package)))
+      (shadow shadows package)
+      (dolist (sym-name shadows)
+	(setf old-shadows (remove (find-symbol sym-name package) old-shadows)))
+      (dolist (simports-from shadowing-imports)
+	(let ((other-package (pkg--package-or-lose (car simports-from))))
+	  (dolist (sym-name (cdr simports-from))
+	    (let ((sym (pkg--ensure-symbol sym-name other-package)))
+	      (shadowing-import sym package)
+	      (setf old-shadows (remove sym old-shadows))))))
+      (when old-shadows
+	(warn "%s also shadows the following symbols: %s"
+	      name old-shadows)))
 
-;;     Nicknames
-;;     (pkg--enter-new-nicknames package nicknames)
+    ;;Use
+    (let ((old-use-list (package-use-list package))
+	  (new-use-list (mapcar #'pkg--package-or-lose use)))
+      (use-package (cl-set-difference new-use-list old-use-list) package)
+      (let ((laterize (cl-set-difference old-use-list new-use-list)))
+	(when laterize
+	  (unuse-package laterize package)
+	    (warn "%s previously used the following packages: %s"
+		  name laterize))))
 
-;;     Shadows and Shadowing-imports.
-;;     (let ((old-shadows (package-%shadowing-symbols package)))
-;;       (shadow shadows package)
-;;       (dolist (sym-name shadows)
-;; 	(setf old-shadows (remove (find-symbol sym-name package) old-shadows)))
-;;       (dolist (simports-from shadowing-imports)
-;; 	(let ((other-package (package-or-lose (car simports-from))))
-;; 	  (dolist (sym-name (cdr simports-from))
-;; 	    (let ((sym (find-or-make-symbol sym-name other-package)))
-;; 	      (shadowing-import sym package)
-;; 	      (setf old-shadows (remove sym old-shadows))))))
-;;       (when old-shadows
-;; 	(warn "%s also shadows the following symbols: %s"
-;; 	      name old-shadows)))
+    ;;Import and Intern.
+    (dolist (sym-name interns)
+      (intern sym-name package))
+    (dolist (imports-from imports)
+      (let ((other-package (pkg--package-or-lose (car imports-from))))
+	(dolist (sym-name (cdr imports-from))
+	  (import (list (pkg--ensure-symbol sym-name other-package))
+		  package))))
 
-;;     Use
-;;     (let ((old-use-list (package-use-list package))
-;; 	  (new-use-list (mapcar #'package-or-lose use)))
-;;       (use-package (cl-set-difference new-use-list old-use-list) package)
-;;       (let ((laterize (cl-set-difference old-use-list new-use-list)))
-;; 	(when laterize
-;; 	  (unuse-package laterize package)
-;; 	    (warn "%s previously used the following packages: %s"
-;; 		  name laterize))))
+    ;; Exports.
+    (let ((old-exports nil)
+	  (exports (mapcar (lambda (sym-name) (intern sym-name package)) exports)))
+      (do-external-symbols (sym package)
+	 (push sym old-exports))
+      (export exports package)
+      (let ((diff (cl-set-difference old-exports exports)))
+	(when diff
+	  (warn "%s also exports the following symbols: %s" name diff))))
 
-;;     Import and Intern.
-;;     (dolist (sym-name interns)
-;;       (intern sym-name package))
-;;     (dolist (imports-from imports)
-;;       (let ((other-package (package-or-lose (car imports-from))))
-;; 	(dolist (sym-name (cdr imports-from))
-;; 	  (import (list (find-or-make-symbol sym-name other-package))
-;; 		  package))))
+    ;; Documentation
+    ;(setf (package-doc-string package) doc-string)
+    package))
 
-;;     Exports.
-;;     (let ((old-exports nil)
-;; 	  (exports (mapcar (lambda (sym-name) (intern sym-name package)) exports)))
-;;       (do-external-symbols (sym package)
-;; 	 (push sym old-exports))
-;;       (export exports package)
-;;       (let ((diff (cl-set-difference old-exports exports)))
-;; 	(when diff
-;; 	  (warn "%s also exports the following symbols: %s" name diff))))
-
-;;     Documentation
-;;     (setf (package-doc-string package) doc-string)
-;;     package))
-
-
-
-;; (defmacro defpackage (package &rest options)
-;;   "Defines a new package called PACKAGE.  Each of OPTIONS should be one of the
-;;    following:
-;;      (:NICKNAMES {package-name}*)
-;;      (:SIZE <integer>)
-;;      (:SHADOW {symbol-name}*)
-;;      (:SHADOWING-IMPORT-FROM <package-name> {symbol-name}*)
-;;      (:USE {package-name}*)
-;;      (:IMPORT-FROM <package-name> {symbol-name}*)
-;;      (:INTERN {symbol-name}*)
-;;      (:EXPORT {symbol-name}*)
-;;      (:DOCUMENTATION doc-string)
-;;    All options except :SIZE and :DOCUMENTATION can be used multiple times."
-;;   (let ((nicknames nil)
-;; 	(size nil)
-;; 	(shadows nil)
-;; 	(shadowing-imports nil)
-;; 	(use nil)
-;; 	(use-p nil)
-;; 	(imports nil)
-;; 	(interns nil)
-;; 	(exports nil)
-;; 	(doc nil))
-;;     (dolist (option options)
-;;       (unless (consp option)
-;; 	(error "Bogus DEFPACKAGE option: %s" option))
-;;       (cl-case (car option)
-;; 	(:nicknames
-;; 	 (setf nicknames (pkg--stringify-names (cdr option) "package")))
-;; 	(:size
-;; 	 (cond (size
-;; 		(error "Can't specify :SIZE twice."))
-;; 	       ((and (consp (cdr option))
-;; 		     (cl-typep (cl-second option) 'natnum))
-;; 		(setf size (cl-second option)))
-;; 	       (t
-;; 		(error "Bogus :SIZE, must be a positive integer: %s"
-;;                        (cl-second option)))))
-;; 	(:shadow
-;; 	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
-;; 	   (setf shadows (append shadows new))))
-;; 	(:shadowing-import-from
-;; 	 (let ((package-name (pkg--stringify-name (cl-second option) "package"))
-;; 	       (names (pkg--stringify-names (cddr option) "symbol")))
-;; 	   (let ((assoc (cl-assoc package-name shadowing-imports
-;; 			          :test #'string=)))
-;; 	     (if assoc
-;; 		 (setf (cdr assoc) (append (cdr assoc) names))
-;; 	       (setf shadowing-imports
-;; 		     (cl-acons package-name names shadowing-imports))))))
-;; 	(:use
-;; 	 (let ((new (pkg--stringify-names (cdr option) "package")))
-;; 	   (setf use (cl-delete-duplicates (nconc use new) :test #'string=))
-;; 	   (setf use-p t)))
-;; 	(:import-from
-;; 	 (let ((package-name (pkg--stringify-name (cl-second option) "package"))
-;; 	       (names (pkg--stringify-names (cddr option) "symbol")))
-;; 	   (let ((assoc (cl-assoc package-name imports
-;; 			          :test #'string=)))
-;; 	     (if assoc
-;; 		 (setf (cdr assoc) (append (cdr assoc) names))
-;; 	       (setf imports (cl-acons package-name names imports))))))
-;; 	(:intern
-;; 	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
-;; 	   (setf interns (append interns new))))
-;; 	(:export
-;; 	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
-;; 	   (setf exports (append exports new))))
-;; 	(:documentation
-;; 	 (when doc
-;; 	   (error "Can't specify :DOCUMENTATION twice."))
-;; 	 (setf doc (cl-coerce (cl-second option) 'string)))
-;; 	(t
-;; 	 (error "Bogus DEFPACKAGE option: %s" option))))
-;;     (pkg-check-disjoint `(:intern ,@interns) `(:export  ,@exports))
-;;     (pkg-check-disjoint `(:intern ,@interns)
-;; 		        `(:import-from ,@(apply 'append (mapcar 'cl-rest imports)))
-;; 		        `(:shadow ,@shadows)
-;; 		        `(:shadowing-import-from
-;;                           ,@(apply 'append (mapcar 'cl-rest shadowing-imports))))
-;;     `(cl-eval-when (compile load eval)
-;;        (pkg-defpackage ,(pkg--stringify-name package "package") ',nicknames ',size
-;; 		       ',shadows ',shadowing-imports ',(if use-p use :default)
-;; 		       ',imports ',interns ',exports ',doc))))
+(defmacro defpackage (package &rest options)
+  "Defines a new package called PACKAGE.  Each of OPTIONS should be one of the
+   following:
+     (:NICKNAMES {package-name}*)
+     (:SIZE <integer>)
+     (:SHADOW {symbol-name}*)
+     (:SHADOWING-IMPORT-FROM <package-name> {symbol-name}*)
+     (:USE {package-name}*)
+     (:IMPORT-FROM <package-name> {symbol-name}*)
+     (:INTERN {symbol-name}*)
+     (:EXPORT {symbol-name}*)
+     (:DOCUMENTATION doc-string)
+   All options except :SIZE and :DOCUMENTATION can be used multiple times."
+  (let ((nicknames nil)
+	(size nil)
+	(shadows nil)
+	(shadowing-imports nil)
+	(use nil)
+	(use-p nil)
+	(imports nil)
+	(interns nil)
+	(exports nil)
+	(doc nil))
+    (dolist (option options)
+      (unless (consp option)
+	(error "Bogus DEFPACKAGE option: %s" option))
+      (cl-case (car option)
+	(:nicknames
+	 (setf nicknames (pkg--stringify-names (cdr option) "package")))
+	(:size
+	 (cond (size
+		(error "Can't specify :SIZE twice."))
+	       ((and (consp (cdr option))
+		     (cl-typep (cl-second option) 'natnum))
+		(setf size (cl-second option)))
+	       (t
+		(error "Bogus :SIZE, must be a positive integer: %s"
+                       (cl-second option)))))
+	(:shadow
+	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
+	   (setf shadows (append shadows new))))
+	(:shadowing-import-from
+	 (let ((package-name (pkg--stringify-name (cl-second option) "package"))
+	       (names (pkg--stringify-names (cddr option) "symbol")))
+	   (let ((assoc (cl-assoc package-name shadowing-imports
+			          :test #'string=)))
+	     (if assoc
+		 (setf (cdr assoc) (append (cdr assoc) names))
+	       (setf shadowing-imports
+		     (cl-acons package-name names shadowing-imports))))))
+	(:use
+	 (let ((new (pkg--stringify-names (cdr option) "package")))
+	   (setf use (cl-delete-duplicates (nconc use new) :test #'string=))
+	   (setf use-p t)))
+	(:import-from
+	 (let ((package-name (pkg--stringify-name (cl-second option) "package"))
+	       (names (pkg--stringify-names (cddr option) "symbol")))
+	   (let ((assoc (cl-assoc package-name imports :test #'string=)))
+	     (if assoc
+		 (setf (cdr assoc) (append (cdr assoc) names))
+	       (setf imports (cl-acons package-name names imports))))))
+	(:intern
+	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
+	   (setf interns (append interns new))))
+	(:export
+	 (let ((new (pkg--stringify-names (cdr option) "symbol")))
+	   (setf exports (append exports new))))
+	(:documentation
+	 (when doc
+	   (error "Can't specify :DOCUMENTATION twice."))
+	 (setf doc (cl-coerce (cl-second option) 'string)))
+	(t
+	 (error "Bogus DEFPACKAGE option: %s" option))))
+    (pkg--check-disjoint `(:intern ,@interns) `(:export  ,@exports))
+    (pkg--check-disjoint `(:intern ,@interns)
+		         `(:import-from ,@(apply 'append (mapcar 'cl-rest imports)))
+		         `(:shadow ,@shadows)
+		         `(:shadowing-import-from
+                           ,@(apply 'append (mapcar 'cl-rest shadowing-imports))))
+    `(cl-eval-when (compile load eval)
+       (pkg-defpackage ,(pkg--stringify-name package "package") ',nicknames ',size
+		       ',shadows ',shadowing-imports ',(if use-p use :default)
+		       ',imports ',interns ',exports ',doc))))
 
 (provide 'pkg)
 
