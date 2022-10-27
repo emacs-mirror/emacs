@@ -460,7 +460,7 @@ variables.
 
 @vindex electric-quote-replace-double
   You can also set the option @code{electric-quote-replace-double} to
-a non-@code{nil} value.  Then, typing @kbd{"} insert an appropriate
+a non-@code{nil} value.  Then, typing @kbd{"} inserts an appropriate
 curved double quote depending on context: @t{“} at the beginning of
 the buffer or after a line break, whitespace, opening parenthesis, or
 quote character, and @t{”} otherwise.
