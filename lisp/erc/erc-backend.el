@@ -299,6 +299,9 @@ function `erc-server-process-alive' instead.")
 (defvar-local erc--server-last-reconnect-count 0
   "Snapshot of reconnect count when the connection was established.")
 
+(defvar-local erc--server-reconnect-timer nil
+  "Auto-reconnect timer for a network context.")
+
 (defvar-local erc-server-quitting nil
   "Non-nil if the user requests a quit.")
 
@@ -400,6 +403,16 @@ This only has an effect if `erc-server-auto-reconnect' is non-nil."
 
 If a key is pressed while ERC is waiting, it will stop waiting."
   :type 'number)
+
+(defcustom erc-server-reconnect-function 'erc-server-delayed-reconnect
+  "Function called by the reconnect timer to create a new connection.
+Called with a server buffer as its only argument.  Potential uses
+include exponential backoff and probing for connectivity prior to
+dialing.  Use `erc-schedule-reconnect' to instead try again later
+and optionally alter the attempts tally."
+  :package-version '(ERC . "5.4.1") ; FIXME on next release
+  :type '(choice (function-item erc-server-delayed-reconnect)
+                 function))
 
 (defcustom erc-split-line-length 440
   "The maximum length of a single message.
@@ -645,7 +658,8 @@ TLS (see `erc-session-client-certificate' for more details)."
       (setq erc-server-process process)
       (setq erc-server-quitting nil)
       (setq erc-server-reconnecting nil
-            erc--server-reconnecting nil)
+            erc--server-reconnecting nil
+            erc--server-reconnect-timer nil)
       (setq erc-server-timed-out nil)
       (setq erc-server-banned nil)
       (setq erc-server-error-occurred nil)
@@ -686,6 +700,7 @@ Make sure you are in an ERC buffer when running this."
     (with-current-buffer buffer
       (erc-update-mode-line)
       (erc-set-active-buffer (current-buffer))
+      (setq erc--server-reconnecting t)
       (setq erc-server-last-sent-time 0)
       (setq erc-server-lines-sent 0)
       (let ((erc-server-connect-function (or erc-session-connector
@@ -758,37 +773,59 @@ EVENT is the message received from the closed connection process."
         erc-server-reconnecting)
       (erc--server-reconnect-p event)))
 
+(defconst erc--mode-line-process-reconnecting
+  '(:eval (erc-with-server-buffer
+            (and erc--server-reconnect-timer
+                 (format ": reconnecting in %.1fs"
+                         (- (timer-until erc--server-reconnect-timer
+                                         (current-time)))))))
+  "Mode-line construct showing seconds until next reconnect attempt.
+Move point around to refresh.")
+
+(defun erc--cancel-auto-reconnect-timer ()
+  (when erc--server-reconnect-timer
+    (cancel-timer erc--server-reconnect-timer)
+    (erc-display-message nil 'notice nil 'reconnect-canceled
+                         ?u (buffer-name)
+                         ?c (- (timer-until erc--server-reconnect-timer
+                                            (current-time))))
+    (setq erc--server-reconnect-timer nil)
+    (erc-update-mode-line)))
+
+(defun erc-schedule-reconnect (buffer &optional incr)
+  "Create and return a reconnect timer for BUFFER.
+When `erc-server-reconnect-attempts' is a number, increment
+`erc-server-reconnect-count' by INCR unconditionally."
+  (let ((count (and (integerp erc-server-reconnect-attempts)
+                    (- erc-server-reconnect-attempts
+                       (cl-incf erc-server-reconnect-count (or incr 1))))))
+    (erc-display-message nil 'error (current-buffer) 'reconnecting
+                         ?m erc-server-reconnect-timeout
+                         ?i (if count erc-server-reconnect-count "N")
+                         ?n (if count erc-server-reconnect-attempts "A"))
+    (setq erc-server-reconnecting nil
+          erc--server-reconnect-timer
+          (run-at-time erc-server-reconnect-timeout nil
+                       erc-server-reconnect-function buffer))))
+
 (defun erc-process-sentinel-2 (event buffer)
   "Called when `erc-process-sentinel-1' has detected an unexpected disconnect."
-  (if (not (buffer-live-p buffer))
-      (erc-update-mode-line)
+  (when (buffer-live-p buffer)
     (with-current-buffer buffer
-      (let ((reconnect-p (erc--server-reconnect-p event)) message delay)
+      (let ((reconnect-p (erc--server-reconnect-p event)) message)
         (setq message (if reconnect-p 'disconnected 'disconnected-noreconnect))
         (erc-display-message nil 'error (current-buffer) message)
         (if (not reconnect-p)
             ;; terminate, do not reconnect
             (progn
-              (setq erc--server-reconnecting nil)
+              (setq erc--server-reconnecting nil
+                    erc--server-reconnect-timer nil)
               (erc-display-message nil 'error (current-buffer)
                                    'terminated ?e event)
-              ;; Update mode line indicators
-              (erc-update-mode-line)
               (set-buffer-modified-p nil))
           ;; reconnect
-          (condition-case nil
-              (progn
-                (setq erc-server-reconnecting nil
-                      erc--server-reconnecting t
-                      erc-server-reconnect-count (1+ erc-server-reconnect-count))
-                (setq delay erc-server-reconnect-timeout)
-                (run-at-time delay nil
-                             #'erc-server-delayed-reconnect buffer))
-            (error (unless (integerp erc-server-reconnect-attempts)
-                     (message "%s ... %s"
-                              "Reconnecting until we succeed"
-                              "kill the ERC server buffer to stop"))
-                   (erc-server-delayed-reconnect buffer))))))))
+          (erc-schedule-reconnect buffer))))
+    (erc-update-mode-line)))
 
 (defun erc-process-sentinel-1 (event buffer)
   "Called when `erc-process-sentinel' has decided that we're disconnecting.

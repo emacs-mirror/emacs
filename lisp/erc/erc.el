@@ -2032,12 +2032,12 @@ Returns the buffer for the given server or channel."
     ;; Saving log file on exit
     (run-hook-with-args 'erc-connect-pre-hook buffer)
 
-    (when connect
-      (erc-server-connect erc-session-server
-                          erc-session-port
-                          buffer
-                          erc-session-client-certificate))
-    (erc-update-mode-line)
+    (if connect
+        (erc-server-connect erc-session-server
+                            erc-session-port
+                            buffer
+                            erc-session-client-certificate)
+      (erc-update-mode-line))
 
     ;; Now display the buffer in a window as per user wishes.
     (unless (eq buffer old-buffer)
@@ -3804,17 +3804,17 @@ the message given by REASON."
 (put 'erc-cmd-GQUIT 'do-not-parse-args t)
 (put 'erc-cmd-GQUIT 'process-not-needed t)
 
-(defun erc-cmd-RECONNECT ()
-  "Try to reconnect to the current IRC server."
+(defun erc--cmd-reconnect ()
   (let ((buffer (erc-server-buffer))
         (process nil))
     (unless (buffer-live-p buffer)
       (setq buffer (current-buffer)))
     (with-current-buffer buffer
+      (when erc--server-reconnect-timer
+        (erc--cancel-auto-reconnect-timer))
       (setq erc-server-quitting nil)
       (with-suppressed-warnings ((obsolete erc-server-reconnecting))
         (setq erc-server-reconnecting t))
-      (setq erc--server-reconnecting t)
       (setq erc-server-reconnect-count 0)
       (setq process (get-buffer-process (erc-server-buffer)))
       (when process
@@ -3828,6 +3828,18 @@ the message given by REASON."
           (setq erc--server-reconnecting nil
                 erc-server-reconnecting nil)))))
   t)
+
+(defun erc-cmd-RECONNECT (&rest args)
+  "Try reconnecting to the current IRC server.
+Alternatively, CANCEL a scheduled attempt for either the current
+connection or, with -A, all applicable connections.
+
+\(fn [CANCEL [-A]])"
+  (pcase args
+    (`("cancel" "-a") (erc-buffer-filter #'erc--cancel-auto-reconnect-timer))
+    (`("cancel") (erc-with-server-buffer (erc--cancel-auto-reconnect-timer)))
+    (_ (erc--cmd-reconnect))))
+
 (put 'erc-cmd-RECONNECT 'process-not-needed t)
 
 (defun erc-cmd-SERVER (server)
@@ -6713,11 +6725,12 @@ shortened server name instead."
                   (?s . ,(erc-format-target-and/or-server))
                   (?S . ,(erc-format-target-and/or-network))
                   (?t . ,(erc-format-target))))
-          (process-status (cond ((and (erc-server-process-alive)
-                                      (not erc-server-connected))
-                                 ":connecting")
-                                ((erc-server-process-alive)
-                                 "")
+          (process-status (cond ((erc-server-process-alive buffer)
+                                 (unless erc-server-connected
+                                   ": connecting"))
+                                ((erc-with-server-buffer
+                                   erc--server-reconnect-timer)
+                                 erc--mode-line-process-reconnecting)
                                 (t
                                  ": CLOSED")))
           (face (cond ((eq erc-header-line-face-method nil)
@@ -6728,7 +6741,7 @@ shortened server name instead."
                        'erc-header-line))))
       (setq mode-line-buffer-identification
             (list (format-spec erc-mode-line-format spec)))
-      (setq mode-line-process (list process-status))
+      (setq mode-line-process process-status)
       (let ((header (if erc-header-line-format
                         (format-spec erc-header-line-format spec)
                       nil)))
@@ -6913,6 +6926,8 @@ All windows are opened in the current frame."
    (disconnected . "\n\nConnection failed!  Re-establishing connection...\n")
    (disconnected-noreconnect
     . "\n\nConnection failed!  Not re-establishing connection.\n")
+   (reconnecting . "Reconnecting in %ms: attempt %i/%n ...")
+   (reconnect-canceled . "Canceled %u reconnect timer with %cs to go...")
    (finished . "\n\n*** ERC finished ***\n")
    (terminated . "\n\n*** ERC terminated: %e\n")
    (login . "Logging in as `%n'...")
