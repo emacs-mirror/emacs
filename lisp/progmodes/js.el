@@ -3442,6 +3442,122 @@ This function is intended for use in `after-change-functions'."
      ((node-is "/") parent 0)
      ((parent-is "jsx_self_closing_element") parent ,js-indent-level))))
 
+(defvar js--treesit-cc-indent-rules
+  (let ((function-re (rx (or "function_declaration"
+                             "method_definition"
+                             "function")))
+        (if-statement-like (rx (or "if" "try" "while" "do")
+                               "_statement"))
+        (else-clause-like (rx (or "else" "catch" "finally")
+                              "_clause"))
+        (switch-case-re (rx "switch_" (or "case" "default"))))
+    `((javascript
+       ;; Function declaration.
+       ;; "{"
+       ((match "statement_block" ,function-re) parent defun-open)
+       ((n-p-gp "}" "statement_block" ,function-re) grand-parent defun-close)
+
+       ((and (node-is ,function-re) (parent-is "program"))
+        parent topmost-intro)
+       ((parent-is ,function-re) parent topmost-intro-cont)
+       ((and (n-p-gp nil "statement_block" ,function-re)
+             (match nil nil nil 0 0))
+        parent-bol defun-block-intro)
+
+       ;; Class
+       ((node-is "class_declaration") parent topmost-intro)
+       ((parent-is "class_declaration") parent topmost-intro-cont)
+       ((match "{" "class_declaration") parent class-open)
+       ((match "}" "class_declaration") parent class-close)
+
+       ((node-is "class_heritage") parent inher-intro)
+       ((parent-is "class_heritage") parent inher-cont)
+
+       ;; Javascript doesn't have class access keywords
+       ;; (`member-init-intro', `member-init-cont') I think?
+
+       ((match "{" "class_declaration") parent class-open)
+       ((match "}" "class_body") parent class-close)
+
+       ((parent-is "class_body") parent inclass)
+       ((parent-is "member_definition") parent topmost-intro-cont)
+
+       ((match "statement_block" "member_definition") parent defun-open)
+       ((n-p-gp "}" "statement_block" "member_definition")
+        grand-parent defun-close)
+
+       ;; Javascript doesn't have class parameters
+       ;; (`template-args-cont').
+
+       ;; Conditional.
+       ((match "statement_block" ,if-statement-like)
+        parent substatement-open)
+       ((match "statement_block" ,else-clause-like)
+        grand-parent substatement-open)
+       ;; Javascript doesn't have `substatement-label'.
+       ((node-is ,else-clause-like) parent else-clause)
+       ((parent-is ,else-clause-like) grand-parent substatement)
+       ((match "while" "do_statement") parent do-while-closure)
+       ((field-is "consequence") parent substatement)
+       ((field-is "condition") parent statement-cont)
+
+       ;; Switch.
+       ((node-is ,switch-case-re) grand-parent case-label)
+       ((match "statement_block" ,switch-case-re) parent statement-case-open)
+       ((match nil ,switch-case-re "body") parent statement-case-intro)
+       ((parent-is ,switch-case-re) first-sibling statement-case-cont)
+       ((node-is "switch_body") parent substatement-open)
+       ((match "}" "switch_body") grand-parent substatement-close)
+
+       ;; Brace list.
+       ((node-is "object") parent-bol brace-list-open)
+       ((match "}" "object") parent brace-list-close)
+       ;; ((match nil "object" nil 0 0) parent brace-list-intro)
+       ((match nil "object" nil 0 0) parent ,js-indent-level)
+       ((match nil "object" nil 1) first-sibling brace-list-entry)
+
+       ;; Pair.
+       ((match nil "pair" "value") parent ,js-indent-level)
+
+       ;; Javascript doesn't have extern.
+
+       ;; Parenthesis.  These syntax symbols uses line-up functions,
+       ;; which don't work with tree-sitter, so we roll our own:
+       ;; `arglist-close', `arglist-intro', `arglist-cont',
+       ;; `arglist-cont-nonempty'.
+       ((parent-is "formal_parameters") first-sibling 1)
+       ((node-is "formal_parameters") parent statement-cont)
+
+       ;; Misc.
+       ((parent-is "function_declaration") parent func-decl-cont)
+       ((parent-is "string-fragment") grand-parent string)
+       ((parent-is "comment") grand-parent c)
+
+       ;; Fallback for top-level statements.
+       ((parent-is "program") parent 0)
+
+       ;; Fallback for blocks & statements.
+       ((parent-is "expression_statement") parent statement-cont)
+       ((match "}" "statement_block") parent-bol block-close)
+       ((match "statement_block" "statement_block") parent block-open)
+       ((match nil "statement_block" nil 0 0) parent-bol statement-block-intro)
+       ((parent-is "statement_block") prev-sibling statement)
+
+       ;; Template substitution.
+       ((match "}" "template_substitution") parent-bol block-close)
+       ((match nil "template_substitution" nil 0 0) parent-bol statement-block-intro)
+       ((parent-is "template_substitution") prev-sibling statement)
+
+       ;; JSX, copied from `js--treesit-indent-rules' (TODO).
+       ((parent-is "jsx_opening_element") parent ,js-indent-level)
+       ((node-is "jsx_closing_element") parent 0)
+       ((node-is "jsx_text") parent ,js-indent-level)
+       ((parent-is "jsx_element") parent ,js-indent-level)
+       ((node-is "/") parent 0)
+       ((parent-is "jsx_self_closing_element") parent ,js-indent-level)
+
+       (catch-all parent-bol statement-cont)))))
+
 (defvar js--treesit-keywords
   '("as" "async" "await" "break" "case" "catch" "class" "const" "continue"
     "debugger" "default" "delete" "do" "else" "export" "extends" "finally"
@@ -3762,7 +3878,7 @@ definition*\"."
    ((treesit-ready-p 'js-mode 'javascript)
     (treesit-parser-create 'javascript)
     ;; Indent.
-    (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
+    (setq-local treesit-simple-indent-rules js--treesit-cc-indent-rules)
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
                 (rx (or "class_declaration"

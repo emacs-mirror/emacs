@@ -640,28 +640,49 @@ See `treesit-simple-indent-presets'.")
                           node-index-min node-index-max)
                `(lambda (node parent bol &rest _)
                   (and (or (null ,node-type)
-                           (equal (treesit-node-type node)
-                                  ,node-type))
+                           (string-match-p
+                            ,node-type (or (treesit-node-type node) "")))
                        (or (null ,parent-type)
-                           (equal (treesit-node-type parent)
-                                  ,parent-type))
+                           (string-match-p
+                            ,parent-type (treesit-node-type parent)))
                        (or (null ,node-field)
-                           (equal (treesit-node-field-name node)
-                                  ,node-field))
+                           (string-match-p
+                            ,node-field
+                            (or (treesit-node-field-name node) "")))
                        (or (null ,node-index-min)
                            (>= (treesit-node-index node t)
                                ,node-index-min))
                        (or (null ,node-index-max)
                            (<= (treesit-node-index node t)
                                ,node-index-max))))))
+    (n-p-gp . (lambda (node-t parent-t grand-parent-t)
+                `(lambda (node parent bol &rest _)
+                   (and (or (null ,node-t)
+                            (string-match-p
+                             ,node-t (or (treesit-node-type node) "")))
+                        (or (null ,parent-t)
+                            (string-match-p
+                             ,parent-t (treesit-node-type parent)))
+                        (or (null ,grand-parent-t)
+                            (string-match-p
+                             ,grand-parent-t
+                             (treesit-node-type
+                              (treesit-node-parent parent))))))))
     (no-node . (lambda (node parent bol &rest _) (null node)))
     (parent-is . (lambda (type)
                    `(lambda (node parent bol &rest _)
-                      (equal ,type (treesit-node-type parent)))))
+                      (string-match-p
+                       ,type (treesit-node-type parent)))))
 
     (node-is . (lambda (type)
                  `(lambda (node parent bol &rest _)
-                    (equal ,type (treesit-node-type node)))))
+                    (string-match-p
+                     ,type (or (treesit-node-type node) "")))))
+    (field-is . (lambda (name)
+                  `(lambda (node parent bol &rest _)
+                     (string-match-p
+                      ,name (or (treesit-node-field-name node) "")))))
+    (catch-all . (lambda (&rest _) t))
 
     (query . (lambda (pattern)
                `(lambda (node parent bol &rest _)
@@ -673,10 +694,15 @@ See `treesit-simple-indent-presets'.")
                            finally return nil))))
     (first-sibling . (lambda (node parent bol &rest _)
                        (treesit-node-start
-                        (treesit-node-child parent 0 t))))
-
+                        (treesit-node-child parent 0))))
+    (nth-sibling . (lambda (n &optional named)
+                     `(lambda (node parent bol &rest _)
+                        (treesit-node-start
+                         (treesit-node-child parent ,n ,named)))))
     (parent . (lambda (node parent bol &rest _)
                 (treesit-node-start parent)))
+    (grand-parent . (lambda (node parent bol &rest _)
+                      (treesit-node-start (treesit-node-parent parent))))
     (parent-bol . (lambda (node parent bol &rest _)
                     (save-excursion
                       (goto-char (treesit-node-start parent))
@@ -690,7 +716,28 @@ See `treesit-simple-indent-presets'.")
                    (save-excursion
                      (goto-char bol)
                      (forward-line -1)
-                     (skip-chars-forward " \t")))))
+                     (skip-chars-forward " \t"))))
+    (and . (lambda (&rest fns)
+             `(lambda (node parent bol &rest _)
+                (cl-reduce (lambda (a b) (and a b))
+                           (mapcar (lambda (fn)
+                                     (funcall fn node parent bol))
+                                   ',fns)))))
+    (or . (lambda (&rest fns)
+            `(lambda (node parent bol &rest _)
+               (cl-reduce (lambda (a b) (or a b))
+                          (mapcar (lambda (fn)
+                                    (funcall fn node parent bol))
+                                  ',fns)))))
+    (not . (lambda (fn)
+             `(lambda (node parent bol &rest _)
+                (debug)
+                (not (funcall ,fn node parent bol)))))
+    (list . (lambda (&rest fns)
+              `(lambda (node parent bol &rest _)
+                 (mapcar (lambda (fn)
+                           (funcall fn node parent bol))
+                         ',fns)))))
   "A list of presets.
 These presets that can be used as MATHER and ANCHOR in
 `treesit-simple-indent-rules'.
@@ -753,25 +800,31 @@ prev-line
 
     The first non-whitespace charater on the previous line.")
 
-(defun treesit--simple-apply (fn args)
-  "Apply ARGS to FN.
+(defun treesit--simple-indent-eval (exp)
+  "Evaluate EXP.
 
-If FN is a key in `treesit-simple-indent-presets', use the
-corresponding value as the function."
+If EXPis an application and the function is a key in
+`treesit-simple-indent-presets', use the corresponding value as
+the function."
   ;; We don't want to match uncompiled lambdas, so make sure this cons
   ;; is not a function.  We could move the condition functionp
   ;; forward, but better be explicit.
-  (cond ((and (consp fn) (not (functionp fn)))
-         (apply (treesit--simple-apply (car fn) (cdr fn))
-                ;; We don't evaluate ARGS with `simple-apply', i.e.,
-                ;; no composing, better keep it simple.
-                args))
-        ((and (symbolp fn)
-              (alist-get fn treesit-simple-indent-presets))
-         (apply (alist-get fn treesit-simple-indent-presets)
-                args))
-        ((functionp fn) (apply fn args))
-        (t (error "Couldn't find the function corresponding to %s" fn))))
+  (cond ((and (consp exp) (not (functionp exp)))
+         (apply (treesit--simple-indent-eval (car exp))
+                (mapcar #'treesit--simple-indent-eval
+                        (cdr exp))))
+        ;; Presets override functions, so this condition comes before
+        ;; `functionp'.
+        ((alist-get exp treesit-simple-indent-presets)
+         (alist-get exp treesit-simple-indent-presets))
+        ((functionp exp) exp)
+        ((symbolp exp)
+         (if (null exp)
+             exp
+           ;; Matchers only return lambdas, anchors only return
+           ;; integer, so we should never see a variable.
+           (error "Couldn't find the preset corresponding to %s" exp)))
+        (t exp)))
 
 ;; This variable might seem unnecessary: why split
 ;; `treesit-indent' and `treesit-simple-indent' into two
@@ -846,6 +899,8 @@ of the current line.")
                 (indent-line-to col))
             (indent-line-to col)))))))
 
+(declare-function c-calc-offset "cc-engine")
+
 (defun treesit-simple-indent (node parent bol)
   "Calculate indentation according to `treesit-simple-indent-rules'.
 
@@ -866,14 +921,19 @@ OFFSET."
                for pred = (nth 0 rule)
                for anchor = (nth 1 rule)
                for offset = (nth 2 rule)
-               if (treesit--simple-apply
-                   pred (list node parent bol))
+               if (treesit--simple-indent-eval
+                   (list pred node parent bol))
                do (when treesit--indent-verbose
                     (message "Matched rule: %S" rule))
                and
-               return (cons (treesit--simple-apply
-                             anchor (list node parent bol))
-                            offset)))))
+               return
+               (let ((anchor-pos
+                      (treesit--simple-indent-eval
+                       (list anchor node parent bol))))
+                 (cons anchor-pos
+                       (if (integerp offset)
+                           offset
+                         (c-calc-offset (list offset anchor-pos)))))))))
 
 (defun treesit-check-indent (mode)
   "Check current buffer's indentation against a major mode MODE.
