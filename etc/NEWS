@@ -370,6 +370,11 @@ node in the Eshell manual for more details.
 *** Eshell pipelines now only pipe stdout by default.
 To pipe both stdout and stderr, use the '|&' operator instead of '|'.
 
+*** New eshell built-in command 'doas'.
+The privilege-escalation program 'doas' has been added to the existing
+'su' and 'sudo' commands from the 'eshell-tramp' module.  The external
+command may still be accessed by using '*doas'.
+
 ---
 ** The 'delete-forward-char' command now deletes by grapheme clusters.
 This command is by default bound to the <Delete> function key
