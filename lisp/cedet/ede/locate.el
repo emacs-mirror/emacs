@@ -315,7 +315,7 @@ that created this EDE locate object."
   ()
   "EDE Locator using Cscope.
 Configure EDE's use of Cscope through the cedet-cscope.el
-file name searching variable `cedet-cscope-file-command'.")
+file name searching variable `cedet-cscope-command'.")
 
 (cl-defmethod initialize-instance ((loc ede-locate-cscope)
 				   &rest _slots)

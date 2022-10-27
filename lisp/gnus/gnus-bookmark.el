@@ -65,7 +65,7 @@
 ;; http://thread.gmane.org/v9fxx9fkm4.fsf@marauder.physik.uni-ulm.de
 
 ;; FIXME: Check if `gnus-bookmark.el' should use
-;; `bookmark-make-cell-function'.
+;; `bookmark-make-record-function'.
 ;; Cf. http://article.gmane.org/gmane.emacs.gnus.general/66076
 
 (defgroup gnus-bookmark nil
