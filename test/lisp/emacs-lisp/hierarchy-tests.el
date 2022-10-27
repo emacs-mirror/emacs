@@ -689,7 +689,7 @@ and then create a list of the number plus 0.0–0.9."
                       (190.5 '191)
                       (191 '192))))
         (hierarchy (hierarchy-new)))
-    (hierarchy-add-trees hierarchy '(191 190.5) parentfn
+    (hierarchy-add-trees hierarchy '(190 190.5) parentfn
                          #'hierarchy-examples-delayed--childrenfn nil t)
     (should (equal (hierarchy-roots hierarchy) '(192)))
     (should (equal (hierarchy-children hierarchy '192) '(191)))
