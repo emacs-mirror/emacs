@@ -989,9 +989,10 @@ before actually connecting to the server.
 
 Here's an example of defining the workspace-configuration settings for
 a project that uses two different language servers, one for Python,
-whose server is @command{pylsp}, the other one for Go, with
-@command{gopls} as its server (presumably, the project is written in a
-combination of these two languages):
+the other one for Go (presumably, the project is written in a
+combination of these two languages).  The server for Python in this
+case is @command{pylsp}, the server for Go is @command{gopls}.  The
+value of @code{eglot-workspace-configuration} in this case should be:
 
 @lisp
 ((python-mode
