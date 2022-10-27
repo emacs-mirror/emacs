@@ -292,6 +292,8 @@ but is what Common Lisp implementations usually do."
       (register-package package))
     package))
 
+
+;;;###autoload
 (defun register-package (package)
   "Register PACKAGE in the package registry.
 Signal an error if the name or one of the nicknames of PACKAGE
@@ -307,6 +309,13 @@ Value is PACKAGE."
       (mapc (lambda (name) (puthash name package *package-registry*))
             (package-%nicknames package))
       package)))
+
+;;;###autoload
+(defun unregister-package (package)
+  "Unregister PACKAGE from the package registry.
+This removed the name of the package and all its nicknames
+from *package-registry*."
+  (pkg--remove-from-registry (pkg--package-or-lose package)))
 
 ;;;###autoload
 (defun list-all-packages ()
@@ -509,7 +518,6 @@ Value is the renamed package object."
 	(cl-pushnew sym (package-%shadowing-symbols package)))))
   t)
 
-
 ;;;###autoload
 (defun shadowing-import (_symbols &optional package)
   (setq package (pkg--package-or-default package))
@@ -517,6 +525,11 @@ Value is the renamed package object."
 
 ;;;###autoload
 (defun use-package (use &optional package)
+  "Add package(s) USE the the use-list of PACKAGE.
+USE may be a package or list of packages or package designators.
+Optional PACKAGE specifies the PACKAGE whose use-list is
+to be changed.  If not specified, use the current package.
+Value is t."
   (let* ((package (pkg--package-or-default package))
          (use (pkg--listify-packages use)))
     (setf (package-%use-list package)
@@ -526,6 +539,11 @@ Value is the renamed package object."
 
 ;;;###autoload
 (defun unuse-package (unuse &optional package)
+  "Remove package(s) UNUSE the the use-list of PACKAGE.
+UNUSE may be a package or list of packages or package designators.
+Optional PACKAGE specifies the PACKAGE whose use-list is
+to be changed.  If not specified, use the current package.
+Value is t."
   (let* ((package (pkg--package-or-default package))
          (unuse (pkg--listify-packages unuse)))
     (setf (package-%use-list package)
@@ -535,7 +553,7 @@ Value is the renamed package object."
 
 ;;;###autoload
 (defun in-package* (package)
-  "Switch to PACKAGE with completion."
+  "Switch current package to PACKAGE with completion."
   (interactive (list (completing-read "Package to switch to: "
                                       *package-registry*
                                       nil t)))
