@@ -24,8 +24,8 @@ implements an incremental parser and has support from a wide range of
 programming languages.
 
 @defun treesit-available-p
-This function returns non-nil if tree-sitter features are available
-for the current Emacs session.
+This function returns non-@code{nil} if tree-sitter features are
+available for the current Emacs session.
 @end defun
 
 To be able to parse the program source using the tree-sitter library
@@ -105,11 +105,11 @@ In all of these cases, @var{error-msg} might provide additional
 details about the failure.
 
 @defun treesit-language-available-p language &optional detail
-This function returns non-nil if the language definitions for
+This function returns non-@code{nil} if the language definitions for
 @var{language} exist and can be loaded.
 
-If @var{detail} is non-nil, return @code{(t . nil)} when
-@var{language} is available, and @code{(nil . @var{date})} when it's
+If @var{detail} is non-@code{nil}, return @code{(t . nil)} when
+@var{language} is available, and @code{(nil . @var{data})} when it's
 unavailable.  @var{data} is the signal data of
 @code{treesit-load-language-error}.
 @end defun
@@ -130,7 +130,7 @@ to the list in the variable @code{treesit-load-name-override-list}, where
 @var{library-base-name} is the basename of the dynamic library's file name,
 (usually, @file{libtree-sitter-@var{language}}), and
 @var{function-name} is the function provided by the library
-(usually, @code{tree_sitter_@var{language}}). For example,
+(usually, @code{tree_sitter_@var{language}}).  For example,
 
 @example
 (cool-lang "libtree-sitter-coool" "tree_sitter_cooool")
@@ -360,7 +360,7 @@ section.
 @section Using Tree-sitter Parser
 @cindex tree-sitter parser, using
 
-This section described how to create and configure a tree-sitter
+This section describes how to create and configure a tree-sitter
 parser.  In Emacs, each tree-sitter parser is associated with a
 buffer.  As the user edits the buffer, the associated parser and the
 syntax tree are automatically kept up-to-date.
@@ -443,7 +443,7 @@ parsers respect narrowing, modes should not use narrowing as a means
 to handle a multi-language buffer; instead, set the ranges in which the
 parser should operate.  @xref{Multiple Languages}.
 
-Because a parser parses lazily, when the user or a Lisp programs
+Because a parser parses lazily, when the user or a Lisp program
 narrows the buffer, the parser is not affected immediately; as long as
 the mode doesn't query for a node while the buffer is narrowed, the
 parser is oblivious of the narrowing.
@@ -507,7 +507,7 @@ only (@pxref{tree-sitter named node, named node}).
 When @var{pos} is after all the text in the buffer, technically there
 is no node after @var{pos}.  But for convenience, this function will
 return the last leaf node in the parse tree.  If @var{strict} is
-non-nil, this function will strictly comply to the semantics and
+non-@code{nil}, this function will strictly comply to the semantics and
 return @var{nil}.
 
 Example:
@@ -582,7 +582,7 @@ first child is the opening quote @code{"}, and the first named child
 is the string text.
 
 This function returns @code{nil} if there is no @var{n}'th child.
-@var{n} could be negative, e.g., -1 represents the last child.
+@var{n} could be negative, e.g., @code{-1} represents the last child.
 @end defun
 
 @defun treesit-node-children node &optional named
@@ -705,7 +705,7 @@ the buffer that satisfies some condition?''
 @defun treesit-search-forward-goto node predicate &optional start backward all
 This function moves point to the start or end of the next node after
 @var{node} in the buffer that matches @var{predicate}.  If @var{start}
-is non-nil, stop at the beginning rather than the end of a node.
+is non-@code{nil}, stop at the beginning rather than the end of a node.
 
 This function guarantees that the matched node it returns makes
 progress in terms of buffer position: the start/end position of the
@@ -744,7 +744,7 @@ b   1   2         b   |   |      b   c   d
 @end group
 @end example
 
-If @var{process-fn} is non-nil, instead of returning the matched
+If @var{process-fn} is non-@code{nil}, instead of returning the matched
 nodes, this function passes each node to @var{process-fn} and uses the
 returned value instead.  If non-@code{nil}, @var{limit} is the number of
 levels to go down from @var{root}.
@@ -899,7 +899,7 @@ This function returns the field name of the @var{n}'th child of
 the @var{n}'th child doesn't have a field name.
 
 Note that @var{n} counts both named and anonymous child.  And @var{n}
-could be negative, e.g., -1 represents the last child.
+could be negative, e.g., @code{-1} represents the last child.
 @end defun
 
 @defun treesit-child-count node &optional named
@@ -1014,8 +1014,8 @@ Matching that query would return
 @end group
 @end example
 
-As mentioned earlier, @var{query} could contain multiple patterns. For
-example, it could have two top-level patterns:
+As mentioned earlier, @var{query} could contain multiple patterns.
+For example, it could have two top-level patterns:
 
 @example
 @group
@@ -1174,7 +1174,7 @@ example, with the following pattern:
 @noindent
 tree-sitter only matches arrays where the first element equals to
 the last element.  To attach a predicate to a pattern, we need to
-group then together.  A predicate always starts with a @samp{#}.
+group them together.  A predicate always starts with a @samp{#}.
 Currently there are two predicates, @code{#equal} and @code{#match}.
 
 @deffn Predicate equal arg1 arg2
@@ -1310,12 +1310,12 @@ pattern-matching, which can be found at
 @cindex multiple languages, parsing with tree-sitter
 @cindex parsing multiple languages with tree-sitter
 Sometimes, the source of a programming language could contain snippets
-of other languages; HTML + CSS + JavaScript is one example.  In that
-case, text segments written in different languages need to be assigned
-different parsers.  Traditionally, this is achieved by using
-narrowing.  While tree-sitter works with narrowing (@pxref{tree-sitter
-narrowing, narrowing}), the recommended way is instead to set regions
-of buffer text in which a parser will operate.
+of other languages; @acronym{HTML} + @acronym{CSS} + JavaScript is one
+example.  In that case, text segments written in different languages
+need to be assigned different parsers.  Traditionally, this is
+achieved by using narrowing.  While tree-sitter works with narrowing
+(@pxref{tree-sitter narrowing, narrowing}), the recommended way is
+instead to set regions of buffer text in which a parser will operate.
 
 @defun treesit-parser-set-included-ranges parser ranges
 This function sets up @var{parser} to operate on @var{ranges}.  The
@@ -1454,8 +1454,8 @@ first parses the whole document with the major language's parser, sets
 ranges for the embedded languages, and then parses the embedded
 languages.
 
-Suppose we need to parse a very simple document that mixes HTML, CSS
-and JavaScript:
+Suppose we need to parse a very simple document that mixes
+@acronym{HTML}, @acronym{CSS} and JavaScript:
 
 @example
 @group
@@ -1466,7 +1466,8 @@ and JavaScript:
 @end group
 @end example
 
-We first parse with HTML, then set ranges for CSS and JavaScript:
+We first parse with @acronym{HTML}, then set ranges for @acronym{CSS}
+and JavaScript:
 
 @example
 @group
@@ -1495,9 +1496,9 @@ We first parse with HTML, then set ranges for CSS and JavaScript:
 @end group
 @end example
 
-We use a query pattern @w{@code{(style_element (raw_text) @@capture)}} to
-find CSS nodes in the HTML parse tree.  For how to write query
-patterns, @pxref{Pattern Matching}.
+We use a query pattern @w{@code{(style_element (raw_text) @@capture)}}
+to find @acronym{CSS} nodes in the @acronym{HTML} parse tree.  For how
+to write query patterns, @pxref{Pattern Matching}.
 
 @node Tree-sitter major modes
 @section Developing major modes with tree-sitter
@@ -1546,7 +1547,7 @@ otherwise display an echo-area message.
 @section Tree-sitter C API Correspondence
 
 Emacs' tree-sitter integration doesn't expose every feature
-provided by the tree-sitter's C API.  Missing features include:
+provided by tree-sitter's C API.  Missing features include:
 
 @itemize
 @item
@@ -1556,14 +1557,14 @@ Setting timeout and cancellation flag for a parser.
 @item
 Setting the logger for a parser.
 @item
-Printing a DOT graph of the syntax tree to a file.
+Printing a @acronym{DOT} graph of the syntax tree to a file.
 @item
-Coping and modifying a syntax tree.  (Emacs doesn't expose a tree
+Copying and modifying a syntax tree.  (Emacs doesn't expose a tree
 object.)
 @item
 Using (row, column) coordinates as position.
 @item
-Updating a node with changes. (In Emacs, retrieve a new node instead
+Updating a node with changes.  (In Emacs, retrieve a new node instead
 of updating the existing one.)
 @item
 Querying statics of a language definition.
