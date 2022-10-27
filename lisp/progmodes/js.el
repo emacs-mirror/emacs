@@ -3601,18 +3601,6 @@ This function can be used as a value in `which-func-functions'"
              do (setq node (treesit-node-parent node))
              finally return  (string-join name-list "."))))
 
-(defun js--treesit-imenu-top-level-p (node)
-  "Return t if NODE is top-level, nil otherwise.
-Being top-level means there is no parent of NODE that has the
-same type."
-  (when node
-    (catch 'term
-      (let ((type (treesit-node-type node)))
-        (while (setq node (treesit-node-parent node))
-          (when (equal (treesit-node-type node) type)
-            (throw 'term nil))))
-      t)))
-
 ;; Keep this private since we might later change it or generalize it.
 (defvar js--treesit-imenu-type-alist
   '((variable . "V")
@@ -3673,7 +3661,7 @@ definition*\"."
      ((null ts-node)
       subtrees)
      ((and (eq type 'variable)
-           (not (js--treesit-imenu-top-level-p ts-node)))
+           (not (treesit-node-top-level-p ts-node)))
       nil)
      (subtrees
       (let ((parent-label (js--treesit-imenu-label type name))

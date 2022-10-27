@@ -195,6 +195,18 @@ that language in the current buffer, and use that."
                 (treesit-buffer-root-node parser-or-lang))))
     (treesit-node-descendant-for-range root beg (or end beg) named)))
 
+(defun treesit-node-top-level-p (node)
+  "Return non-nil if NODE is top-level, nil otherwise.
+Being top-level means there is no parent of NODE that has the
+same type."
+  (when node
+    (catch 'term
+      (let ((type (treesit-node-type node)))
+        (while (setq node (treesit-node-parent node))
+          (when (equal (treesit-node-type node) type)
+            (throw 'term nil))))
+      t)))
+
 (defun treesit-buffer-root-node (&optional language)
   "Return the root node of the current buffer.
 Use the first parser in (`treesit-parser-list'), if LANGUAGE is
