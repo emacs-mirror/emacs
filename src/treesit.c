@@ -1587,7 +1587,7 @@ Extra nodes represent things like comments, which are not required the
 language definition, but can appear anywhere.
 
 A node "has changes" if the buffer changed since the node is
-created. (Don't forget the "s" at the end of `has-changes'.)
+created.  (Don't forget the "s" at the end of `has-changes'.)
 
 A node "has error" if itself is a syntax error or contains any syntax
 errors.  */)
@@ -2131,7 +2131,7 @@ LANGUAGE is the language this query is for.
 If EAGER is non-nil, immediately load LANGUAGE and compile the query.
 Otherwise defer the compilation until the query is first used.
 
-Signals treesit-query-error if QUERY is malformed or something else
+Signal `treesit-query-error' if QUERY is malformed or something else
 goes wrong.  (This only happens if EAGER is non-nil.)
 You can use `treesit-query-validate' to validate and debug a query.  */)
   (Lisp_Object language, Lisp_Object query, Lisp_Object eager)
