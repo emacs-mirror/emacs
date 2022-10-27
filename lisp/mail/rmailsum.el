@@ -56,6 +56,7 @@ When this variable is non-nil, `rmail-summary-by-*' commands work on the
 current summary, and so their filtering can be stacked one on top of another.
 This allows gradual narrowing of the selection of the messages."
   :type 'boolean
+  :version "29.1"
   :group 'rmail-summary)
 
 (defvar rmail-summary-currently-displayed-msgs nil
