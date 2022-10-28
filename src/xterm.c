@@ -18962,11 +18962,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case Expose:
-      f = x_window_to_frame (dpyinfo, event->xexpose.window);
+
 #ifdef HAVE_XWIDGETS
       {
-	struct xwidget_view *xv =
-	  xwidget_view_from_window (event->xexpose.window);
+	struct xwidget_view *xv;
+
+	xv = xwidget_view_from_window (event->xexpose.window);
 
 	if (xv)
 	  {
@@ -18975,6 +18976,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  }
       }
 #endif
+
+      f = x_window_to_frame (dpyinfo, event->xexpose.window);
       if (f)
         {
           if (!FRAME_VISIBLE_P (f))
@@ -19778,7 +19781,35 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case EnterNotify:
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time,
-				    event->xcrossing.send_event, false);
+				    event->xcrossing.send_event,
+				    false);
+
+#ifdef HAVE_XWIDGETS
+      {
+	struct xwidget_view *xvw;
+	Mouse_HLInfo *hlinfo;
+
+	xvw = xwidget_view_from_window (event->xcrossing.window);
+
+	if (xvw)
+	  {
+	    xwidget_motion_or_crossing (xvw, event);
+	    hlinfo = MOUSE_HL_INFO (xvw->frame);
+
+	    if (xvw->frame == hlinfo->mouse_face_mouse_frame)
+	      {
+		clear_mouse_face (hlinfo);
+		hlinfo->mouse_face_mouse_frame = 0;
+		x_flush_dirty_back_buffer_on (xvw->frame);
+	      }
+
+	    if (any_help_event_p)
+	      do_help = -1;
+
+	    goto OTHER;
+	  }
+      }
+#endif
 
 #ifdef HAVE_XINPUT2
       /* For whatever reason, the X server continues to deliver
@@ -19794,32 +19825,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
 	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
-
-#ifdef HAVE_XWIDGETS
-      {
-	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
-	Mouse_HLInfo *hlinfo;
-
-	if (xvw)
-	  {
-	    xwidget_motion_or_crossing (xvw, event);
-	    hlinfo = MOUSE_HL_INFO (xvw->frame);
-
-	    if (xvw->frame == hlinfo->mouse_face_mouse_frame)
-	      {
-		clear_mouse_face (hlinfo);
-		hlinfo->mouse_face_mouse_frame = 0;
-		x_flush_dirty_back_buffer_on (xvw->frame);
-	      }
-
-	    if (any_help_event_p)
-	      {
-		do_help = -1;
-	      }
-	    goto OTHER;
-	  }
-      }
-#endif
 
       f = any;
 
@@ -19931,7 +19936,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #ifdef HAVE_XWIDGETS
       {
-	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
+	struct xwidget_view *xvw;
+
+	xvw = xwidget_view_from_window (event->xcrossing.window);
 
 	if (xvw)
 	  {
@@ -20291,7 +20298,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           f = 0;
 #endif
 #ifdef HAVE_XWIDGETS
-	struct xwidget_view *xvw = xwidget_view_from_window (event->xmotion.window);
+	struct xwidget_view *xvw;
+
+	xvw = xwidget_view_from_window (event->xmotion.window);
 
 	if (xvw)
 	  xwidget_motion_or_crossing (xvw, event);
@@ -20742,7 +20751,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					event->xbutton.send_event, true);
 
 #ifdef HAVE_XWIDGETS
-	struct xwidget_view *xvw = xwidget_view_from_window (event->xbutton.window);
+	struct xwidget_view *xvw;
+
+	xvw = xwidget_view_from_window (event->xbutton.window);
 
 	if (xvw)
 	  {
@@ -21407,10 +21418,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      {
 #ifdef HAVE_XWIDGETS
-		struct xwidget_view *xwidget_view = xwidget_view_from_window (enter->event);
-#endif
+		struct xwidget_view *xwidget_view;
 
-#ifdef HAVE_XWIDGETS
+		xwidget_view = xwidget_view_from_window (enter->event);
+
 		if (xwidget_view)
 		  {
 		    xwidget_motion_or_crossing (xwidget_view, event);
@@ -21544,8 +21555,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #ifdef HAVE_XWIDGETS
 	      {
-		struct xwidget_view *xvw
-		  = xwidget_view_from_window (leave->event);
+		struct xwidget_view *xvw;
+
+		xvw = xwidget_view_from_window (leave->event);
 
 		if (xvw)
 		  {
