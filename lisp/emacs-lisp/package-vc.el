@@ -451,6 +451,12 @@ the `:brach' attribute in PKG-SPEC."
             (package-vc-unpack-1 pkg-desc default-directory)))
       (package-vc-unpack-1 pkg-desc default-directory))))
 
+(defun package-vc--archives-initialize ()
+  "Initialise package.el and fetch package specifications."
+  (package--archives-initialize)
+  (unless package-vc-archive-data-alist
+    (package-vc--download-and-read-archives)))
+
 ;;;###autoload
 (defun package-vc-install (name-or-url &optional name rev backend)
   "Fetch the source of NAME-OR-URL.
@@ -469,7 +475,7 @@ BACKEND.  If missing, `package-vc-guess-backend' will be used."
    (progn
      ;; Initialize the package system to get the list of package
      ;; symbols for completion.
-     (package--archives-initialize)
+     (package-vc--archives-initialize)
      (let* ((packages (package-vc-sourced-packages-list))
             (input (completing-read
                     "Fetch package source (name or URL): " packages))
@@ -480,7 +486,7 @@ BACKEND.  If missing, `package-vc-guess-backend' will be used."
                        (cadr (assoc input package-archive-contents #'string=))
                        :release-rev)
                       (user-error "No release revision was found")))))))
-  (package--archives-initialize)
+  (package-vc--archives-initialize)
   (cond
    ((and-let* ((stringp name-or-url)
                (backend (or backend (package-vc-guess-backend name-or-url))))
@@ -512,7 +518,7 @@ from the base name of DIR."
                          (file-name-base (directory-file-name dir))))))
   (unless (vc-responsible-backend dir)
     (user-error "Directory %S is not under version control" dir))
-  (package--archives-initialize)
+  (package-vc--archives-initialize)
   (let* ((name (or name (file-name-base (directory-file-name dir))))
          (pkg-dir (expand-file-name name package-user-dir)))
     (make-symbolic-link dir pkg-dir)
