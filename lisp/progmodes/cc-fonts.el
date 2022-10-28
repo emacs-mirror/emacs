@@ -1585,7 +1585,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		       nil)
 		   (setq decl-or-cast
 			 (c-forward-decl-or-cast-1
-			  match-pos context last-cast-end))
+			  match-pos context last-cast-end inside-macro))
 
 		   ;; Ensure that c-<>-arg-sep c-type properties are in place on the
 		   ;; commas separating the arguments inside template/generic <..>s.
