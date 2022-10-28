@@ -1,7 +1,6 @@
 /* Random utility Lisp functions.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2022 Free Software Foundation,
-Inc.
+Copyright (C) 1985-2022  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2797,10 +2796,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	  return mpz_cmp (*xbignum_val (o1), *xbignum_val (o2)) == 0;
 	if (OVERLAYP (o1))
 	  {
-	    if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o2),
-				 equal_kind, depth + 1, ht)
-		|| !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
-				    equal_kind, depth + 1, ht))
+	    if (OVERLAY_BUFFER (o1) != OVERLAY_BUFFER (o2)
+		|| OVERLAY_START (o1) != OVERLAY_START (o2)
+		|| OVERLAY_END (o1) != OVERLAY_END (o2))
 	      return false;
 	    o1 = XOVERLAY (o1)->plist;
 	    o2 = XOVERLAY (o2)->plist;
@@ -5094,6 +5092,7 @@ sxhash_obj (Lisp_Object obj, int depth)
 	            ? 42
 	            : sxhash_vector (obj, depth));
 	  }
+	/* FIXME: Use `switch`.  */
 	else if (pvec_type == PVEC_BIGNUM)
 	  return sxhash_bignum (obj);
 	else if (pvec_type == PVEC_MARKER)
@@ -5108,8 +5107,8 @@ sxhash_obj (Lisp_Object obj, int depth)
 	  return sxhash_bool_vector (obj);
 	else if (pvec_type == PVEC_OVERLAY)
 	  {
-	    EMACS_UINT hash = sxhash_obj (OVERLAY_START (obj), depth);
-	    hash = sxhash_combine (hash, sxhash_obj (OVERLAY_END (obj), depth));
+	    EMACS_UINT hash = OVERLAY_START (obj);
+	    hash = sxhash_combine (hash, OVERLAY_END (obj));
 	    hash = sxhash_combine (hash, sxhash_obj (XOVERLAY (obj)->plist, depth));
 	    return SXHASH_REDUCE (hash);
 	  }
