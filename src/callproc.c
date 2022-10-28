@@ -39,7 +39,10 @@ extern char **environ;
   && (defined HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR        \
       || defined HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP) \
   && defined HAVE_DECL_POSIX_SPAWN_SETSID                   \
-  && HAVE_DECL_POSIX_SPAWN_SETSID == 1
+  && HAVE_DECL_POSIX_SPAWN_SETSID == 1			    \
+  /* posix_spawnattr_setflags rejects POSIX_SPAWN_SETSID on \
+     Haiku */						    \
+  && !defined HAIKU
 # include <spawn.h>
 # define USABLE_POSIX_SPAWN 1
 #else
