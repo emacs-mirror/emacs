@@ -33,6 +33,57 @@
 (require 'cl-seq)
 (require 'font-lock)
 
+;;; Function declarations
+
+(declare-function treesit-language-available-p "treesit.c")
+(declare-function treesit-language-version "treesit.c")
+
+(declare-function treesit-parser-p "treesit.c")
+(declare-function treesit-node-p "treesit.c")
+(declare-function treesit-compiled-query-p "treesit.c")
+(declare-function treesit-query-p "treesit.c")
+(declare-function treesit-query-language "treesit.c")
+
+(declare-function treesit-node-parser "treesit.c")
+
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-parser-delete "treesit.c")
+(declare-function treesit-parser-list "treesit.c")
+(declare-function treesit-parser-buffer "treesit.c")
+(declare-function treesit-parser-language "treesit.c")
+
+(declare-function treesit-parser-root-node "treesit.c")
+
+(declare-function treesit-parser-set-included-ranges "treesit.c")
+(declare-function treesit-parser-included-ranges "treesit.c")
+
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-string "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+(declare-function treesit-node-check "treesit.c")
+(declare-function treesit-node-field-name-for-child "treesit.c")
+(declare-function treesit-node-child-count "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-next-sibling "treesit.c")
+(declare-function treesit-node-prev-sibling "treesit.c")
+(declare-function treesit-node-first-child-for-pos "treesit.c")
+(declare-function treesit-node-descendant-for-range "treesit.c")
+(declare-function treesit-node-eq "treesit.c")
+
+(declare-function treesit-pattern-expand "treesit.c")
+(declare-function treesit-query-expand "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
+
+(declare-function treesit-search-subtree "treesit.c")
+(declare-function treesit-search-forward "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+
+(declare-function treesit-available-p "treesit.c")
+
 ;;; Custom options
 
 ;; Tree-sitter always appear as treesit in symbols.
@@ -47,8 +98,6 @@ indent, imenu, etc."
   "Maximum buffer size for enabling tree-sitter parsing (in bytes)."
   :type 'integer
   :version "29.1")
-
-(declare-function treesit-available-p "treesit.c")
 
 (defcustom treesit-settings '((t nil t))
   "Tree-sitter toggle settings for major modes.
@@ -459,63 +508,69 @@ a capture name is not a face name nor a function name, it is
 ignored.
 
 \(fn :KEYWORD VALUE QUERY...)"
-  (let (;; Tracks the current :language/:override/:toggle/:level value
-        ;; that following queries will apply to.
-        current-language current-override
-        current-feature
-        ;; The list this function returns.
-        (result nil))
-    (while args
-      (let ((token (pop args)))
-        (pcase token
-          ;; (1) Process keywords.
-          (:language
-           (let ((lang (pop args)))
-             (when (or (not (symbolp lang)) (null lang))
+  ;; Other tree-sitter function don't tend to be called unless
+  ;; tree-sitter is enabled, which means tree-sitter must be compiled.
+  ;; But this function is usually call in `defvar' which runs
+  ;; regardless whether tree-sitter is enabled.  So we need this
+  ;; guard.
+  (when (treesit-available-p)
+    (let (;; Tracks the current :language/:override/:toggle/:level value
+          ;; that following queries will apply to.
+          current-language current-override
+          current-feature
+          ;; The list this function returns.
+          (result nil))
+      (while args
+        (let ((token (pop args)))
+          (pcase token
+            ;; (1) Process keywords.
+            (:language
+             (let ((lang (pop args)))
+               (when (or (not (symbolp lang)) (null lang))
+                 (signal 'treesit-font-lock-error
+                         `("Value of :language should be a symbol"
+                           ,lang)))
+               (setq current-language lang)))
+            (:override
+             (let ((flag (pop args)))
+               (when (not (memq flag '(t nil append prepend keep)))
+                 (signal 'treesit-font-lock-error
+                         `("Value of :override should be one of t, nil, append, prepend, keep"
+                           ,flag))
+                 (signal 'wrong-type-argument
+                         `((or t nil append prepend keep)
+                           ,flag)))
+               (setq current-override flag)))
+            (:feature
+             (let ((var (pop args)))
+               (when (or (not (symbolp var))
+                         (memq var '(t nil)))
+                 (signal 'treesit-font-lock-error
+                         `("Value of :feature should be a symbol"
+                           ,var)))
+               (setq current-feature var)))
+            ;; (2) Process query.
+            ((pred treesit-query-p)
+             (when (null current-language)
                (signal 'treesit-font-lock-error
-                       `("Value of :language should be a symbol"
-                         ,lang)))
-             (setq current-language lang)))
-          (:override
-           (let ((flag (pop args)))
-             (when (not (memq flag '(t nil append prepend keep)))
+                       `("Language unspecified, use :language keyword to specify a language for this query" ,token)))
+             (when (null current-feature)
                (signal 'treesit-font-lock-error
-                       `("Value of :override should be one of t, nil, append, prepend, keep"
-                         ,flag))
-               (signal 'wrong-type-argument
-                       `((or t nil append prepend keep)
-                         ,flag)))
-             (setq current-override flag)))
-          (:feature
-           (let ((var (pop args)))
-             (when (or (not (symbolp var))
-                       (memq var '(t nil)))
-               (signal 'treesit-font-lock-error
-                       `("Value of :feature should be a symbol"
-                         ,var)))
-             (setq current-feature var)))
-          ;; (2) Process query.
-          ((pred treesit-query-p)
-           (when (null current-language)
-             (signal 'treesit-font-lock-error
-                     `("Language unspecified, use :language keyword to specify a language for this query" ,token)))
-           (when (null current-feature)
-             (signal 'treesit-font-lock-error
-                     `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
-           (if (treesit-compiled-query-p token)
-               (push `(,current-language token) result)
-             (push `(,(treesit-query-compile current-language token)
-                     t
-                     ,current-feature
-                     ,current-override)
-                   result))
-           ;; Clears any configurations set for this query.
-           (setq current-language nil
-                 current-override nil
-                 current-feature nil))
-          (_ (signal 'treesit-font-lock-error
-                     `("Unexpected value" ,token))))))
-    (nreverse result)))
+                       `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
+             (if (treesit-compiled-query-p token)
+                 (push `(,current-language token) result)
+               (push `(,(treesit-query-compile current-language token)
+                       t
+                       ,current-feature
+                       ,current-override)
+                     result))
+             ;; Clears any configurations set for this query.
+             (setq current-language nil
+                   current-override nil
+                   current-feature nil))
+            (_ (signal 'treesit-font-lock-error
+                       `("Unexpected value" ,token))))))
+      (nreverse result))))
 
 (defun treesit-font-lock-recompute-features ()
   "Enable/disable font-lock settings according to decoration level.
