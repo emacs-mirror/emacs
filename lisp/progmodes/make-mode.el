@@ -88,6 +88,8 @@
   (require 'dabbrev)
   (require 'add-log))
 
+(require 'subr-x) ; `string-limit'
+
 ;;; ------------------------------------------------------------
 ;;; Configurable stuff
 ;;; ------------------------------------------------------------
@@ -1539,24 +1541,9 @@ dependency in the makefile."
 
 (defun makefile-save-temporary ()
   "Create a temporary file from the current makefile buffer."
-  (let ((filename (makefile-generate-temporary-filename)))
+  (let ((filename (make-temp-name "mktmp.")))
     (write-region (point-min) (point-max) filename nil 0)
-    filename))				; return the filename
-
-(defun makefile-generate-temporary-filename ()
-  "Create a filename suitable for use in `makefile-save-temporary'.
-Be careful to allow brain-dead file systems (DOS, SYSV ...) to cope
-with the generated name!"
-  (let ((my-name (user-login-name))
-	(my-uid (int-to-string (user-uid))))
-    (concat "mktmp"
-	  (if (> (length my-name) 3)
-	      (substring my-name 0 3)
-	    my-name)
-	  "."
-	  (if (> (length my-uid) 3)
-	      (substring my-uid 0 3)
-	    my-uid))))
+    filename))
 
 (defun makefile-query-targets (filename target-table prereq-list)
   "Fill the up-to-date overview buffer.
@@ -1822,6 +1809,13 @@ If it isn't in one, return nil."
 	(setq found (replace-regexp-in-string "[ \t]+\\'" "" found))
 	(setq found (replace-regexp-in-string "\\`[ \t]+" "" found)))
       found)))
+
+(defun makefile-generate-temporary-filename ()
+  "Create a filename suitable for use in `makefile-save-temporary'."
+  (declare (obsolete make-temp-name "29.1"))
+  (format "mktmp%s.%s"
+          (string-limit (user-login-name) 3)
+          (string-limit (int-to-string (user-uid)) 3)))
 
 (provide 'make-mode)
 
