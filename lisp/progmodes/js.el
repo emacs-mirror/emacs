@@ -3463,28 +3463,32 @@ This function is intended for use in `after-change-functions'."
   (treesit-font-lock-rules
    :language 'javascript
    :override t
-   :feature 'minimal
-   `(
-     ((identifier) @font-lock-constant-face
-      (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
-
-     [(this) (super)] @font-lock-keyword-face
-
-     [(true) (false) (null)] @font-lock-constant-face
-     (regex pattern: (regex_pattern)) @font-lock-string-face
-     (number) @font-lock-constant-face
-
-     (string) @font-lock-string-face
-     (comment) @font-lock-comment-face
-     [,@js--treesit-keywords] @font-lock-keyword-face
-
-     (template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-constant-face))
+   :feature 'comment
+   `((comment) @font-lock-comment-face)
    :language 'javascript
    :override t
-   :feature 'moderate
-   `(
-     (function
+   :feature 'constant
+   `(((identifier) @font-lock-constant-face
+      (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
+
+     [(true) (false) (null)] @font-lock-constant-face
+     (number) @font-lock-constant-face)
+   :language 'javascript
+   :override t
+   :feature 'keyword
+   `([,@js--treesit-keywords] @font-lock-keyword-face
+     [(this) (super)] @font-lock-keyword-face)
+   :language 'javascript
+   :override t
+   :feature 'string
+   `((regex pattern: (regex_pattern)) @font-lock-string-face
+     (string) @font-lock-string-face
+     (template_string) @js--fontify-template-string
+     (template_substitution ["${" "}"] @font-lock-builtin-face))
+   :language 'javascript
+   :override t
+   :feature 'declaration
+   `((function
       name: (identifier) @font-lock-function-name-face)
 
      (class_declaration
@@ -3499,18 +3503,6 @@ This function is intended for use in `after-change-functions'."
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
 
-     (new_expression
-      constructor: (identifier) @font-lock-type-face)
-
-     (for_in_statement
-      left: (identifier) @font-lock-variable-name-face)
-
-     (arrow_function
-      parameter: (identifier) @font-lock-variable-name-face))
-   :language 'javascript
-   :override t
-   :feature 'full
-   `(
      (variable_declarator
       name: (identifier) @font-lock-function-name-face
       value: [(function) (arrow_function)])
@@ -3520,9 +3512,22 @@ This function is intended for use in `after-change-functions'."
              (identifier)
              (identifier)
              @font-lock-function-name-face)
-      value: (array (number) (function)))
+      value: (array (number) (function))))
+   :language 'javascript
+   :override t
+   :feature 'identifier
+   `((new_expression
+      constructor: (identifier) @font-lock-type-face)
 
-     (assignment_expression
+     (for_in_statement
+      left: (identifier) @font-lock-variable-name-face)
+
+     (arrow_function
+      parameter: (identifier) @font-lock-variable-name-face))
+   :language 'javascript
+   :override t
+   :feature 'expression
+   `((assignment_expression
       left: [(identifier) @font-lock-function-name-face
              (member_expression property: (property_identifier)
                                 @font-lock-function-name-face)]
@@ -3537,9 +3542,11 @@ This function is intended for use in `after-change-functions'."
      (assignment_expression
       left: [(identifier) @font-lock-variable-name-face
              (member_expression
-              property: (property_identifier) @font-lock-variable-name-face)])
-
-     (pair key: (property_identifier) @font-lock-variable-name-face)
+              property: (property_identifier) @font-lock-variable-name-face)]))
+   :language 'javascript
+   :override t
+   :feature 'property
+   `((pair key: (property_identifier) @font-lock-variable-name-face)
 
      (pair value: (identifier) @font-lock-variable-name-face)
 
@@ -3549,12 +3556,16 @@ This function is intended for use in `after-change-functions'."
 
      ((shorthand_property_identifier) @font-lock-variable-name-face)
 
-     (pair_pattern key: (property_identifier) @font-lock-variable-name-face)
-
-     ((shorthand_property_identifier_pattern) @font-lock-variable-name-face)
-
-     (array_pattern (identifier) @font-lock-variable-name-face)
-
+     ((shorthand_property_identifier_pattern) @font-lock-variable-name-face))
+   :language 'javascript
+   :override t
+   :feature 'pattern
+   `((pair_pattern key: (property_identifier) @font-lock-variable-name-face)
+     (array_pattern (identifier) @font-lock-variable-name-face))
+   :language 'javascript
+   :override t
+   :feature 'jsx
+   `(
      (jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]
       @font-lock-function-name-face)
@@ -3780,7 +3791,10 @@ definition*\"."
                         "lexical_declaration")))
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
-    (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
+    (setq-local treesit-font-lock-feature-list
+                '((comment declaration)
+                  (string keyword identifier expression constant)
+                  (property pattern jsx )))
     ;; Imenu
     (setq-local imenu-create-index-function
                 #'js--treesit-imenu)
@@ -3802,8 +3816,7 @@ definition*\"."
     (add-hook 'syntax-propertize-extend-region-functions
               #'syntax-propertize-multiline 'append 'local)
     (add-hook 'syntax-propertize-extend-region-functions
-              #'js--syntax-propertize-extend-region 'append 'local)
-    )))
+              #'js--syntax-propertize-extend-region 'append 'local))))
 
 (defvar js-json--treesit-font-lock-settings
   (treesit-font-lock-rules

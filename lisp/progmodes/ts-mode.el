@@ -60,8 +60,6 @@
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is ">") parent-bol 0)
-     ((node-is ".")
-      parent-bol ,ts-mode-indent-offset)
      ((parent-is "ternary_expression")
       parent-bol ,ts-mode-indent-offset)
      ((parent-is "member_expression")
@@ -123,39 +121,32 @@
   (treesit-font-lock-rules
    :language 'tsx
    :override t
-   :feature 'minimal
-   `(
-     ((identifier) @font-lock-constant-face
-      (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
-
-     [,@ts-mode--keywords] @font-lock-keyword-face
-     [(this) (super)] @font-lock-keyword-face
-
-     [(true) (false) (null)] @font-lock-constant-face
-     (regex pattern: (regex_pattern)) @font-lock-string-face
-     (number) @font-lock-constant-face
-
-     (string) @font-lock-string-face
-
-     (template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-builtin-face)
-
-     (comment) @font-lock-comment-face)
+   :feature 'comment
+   `((comment) @font-lock-comment-face)
    :language 'tsx
    :override t
-   :feature 'moderate
-   '(
-     (nested_type_identifier
-      module: (identifier) @font-lock-type-face)
+   :feature 'constant
+   `(((identifier) @font-lock-constant-face
+      (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
-     (type_identifier) @font-lock-type-face
-
-     (predefined_type) @font-lock-type-face
-
-     (new_expression
-      constructor: (identifier) @font-lock-type-face)
-
-     (function
+     [(true) (false) (null)] @font-lock-constant-face
+     (number) @font-lock-constant-face)
+   :language 'tsx
+   :override t
+   :feature 'keyword
+   `([,@ts-mode--keywords] @font-lock-keyword-face
+     [(this) (super)] @font-lock-keyword-face)
+   :language 'tsx
+   :override t
+   :feature 'string
+   `((regex pattern: (regex_pattern)) @font-lock-string-face
+     (string) @font-lock-string-face
+     (template_string) @js--fontify-template-string
+     (template_substitution ["${" "}"] @font-lock-builtin-face))
+   :language 'tsx
+   :override t
+   :feature 'declaration
+   `((function
       name: (identifier) @font-lock-function-name-face)
 
      (function_declaration
@@ -168,6 +159,31 @@
       name: (identifier) @font-lock-variable-name-face)
 
      (enum_declaration (identifier) @font-lock-type-face)
+
+     (arrow_function
+      parameter: (identifier) @font-lock-variable-name-face)
+
+     (variable_declarator
+      name: (identifier) @font-lock-function-name-face
+      value: [(function) (arrow_function)])
+
+     (variable_declarator
+      name: (array_pattern
+             (identifier)
+             (identifier) @font-lock-function-name-face)
+      value: (array (number) (function))))
+   :language 'tsx
+   :override t
+   :feature 'identifier
+   `((nested_type_identifier
+      module: (identifier) @font-lock-type-face)
+
+     (type_identifier) @font-lock-type-face
+
+     (predefined_type) @font-lock-type-face
+
+     (new_expression
+      constructor: (identifier) @font-lock-type-face)
 
      (enum_body (property_identifier) @font-lock-type-face)
 
@@ -182,22 +198,14 @@
       left: (identifier) @font-lock-variable-name-face)
 
      (arrow_function
-      parameter: (identifier) @font-lock-variable-name-face))
+      parameters:
+      [(_ (identifier) @font-lock-variable-name-face)
+       (_ (_ (identifier) @font-lock-variable-name-face))
+       (_ (_ (_ (identifier) @font-lock-variable-name-face)))]))
    :language 'tsx
    :override t
-   :feature 'full
-   '(
-     (variable_declarator
-      name: (identifier) @font-lock-function-name-face
-      value: [(function) (arrow_function)])
-
-     (variable_declarator
-      name: (array_pattern
-             (identifier)
-             (identifier) @font-lock-function-name-face)
-      value: (array (number) (function)))
-
-     (assignment_expression
+   :feature 'expression
+   '((assignment_expression
       left: [(identifier) @font-lock-function-name-face
              (member_expression
               property: (property_identifier) @font-lock-function-name-face)]
@@ -207,15 +215,11 @@
       function:
       [(identifier) @font-lock-function-name-face
        (member_expression
-        property: (property_identifier) @font-lock-function-name-face)])
-
-     (arrow_function
-      parameters:
-      [(_ (identifier) @font-lock-variable-name-face)
-       (_ (_ (identifier) @font-lock-variable-name-face))
-       (_ (_ (_ (identifier) @font-lock-variable-name-face)))])
-
-     (pair key: (property_identifier) @font-lock-variable-name-face)
+        property: (property_identifier) @font-lock-function-name-face)]))
+   :language 'tsx
+   :override t
+   :feature 'property
+   `((pair key: (property_identifier) @font-lock-variable-name-face)
 
      (pair value: (identifier) @font-lock-variable-name-face)
 
@@ -228,15 +232,19 @@
 
      ((shorthand_property_identifier) @font-lock-variable-name-face)
 
-     (pair_pattern
+     ((shorthand_property_identifier_pattern)
+      @font-lock-variable-name-face))
+   :language 'tsx
+   :override t
+   :feature 'pattern
+   `((pair_pattern
       key: (property_identifier) @font-lock-variable-name-face)
 
-     ((shorthand_property_identifier_pattern)
-      @font-lock-variable-name-face)
-
-     (array_pattern (identifier) @font-lock-variable-name-face)
-
-     (jsx_opening_element
+     (array_pattern (identifier) @font-lock-variable-name-face))
+   :language 'tsx
+   :override t
+   :feature 'jsx
+   `((jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]
       @font-lock-function-name-face)
 
@@ -283,7 +291,10 @@
                         "lexical_declaration")))
     ;; Font-lock.
     (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
-    (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
+    (setq-local treesit-font-lock-feature-list
+                '((comment declaration)
+                  (string keyword identifier expression constant)
+                  (property pattern jsx)))
     ;; Imenu.
     (setq-local imenu-create-index-function #'js--treesit-imenu)
     ;; Which-func (use imenu).
