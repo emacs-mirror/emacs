@@ -452,7 +452,7 @@ the `:brach' attribute in PKG-SPEC."
       (package-vc-unpack-1 pkg-desc default-directory))))
 
 ;;;###autoload
-(defun package-vc-install (name-or-url &optional name rev)
+(defun package-vc-install (name-or-url &optional name rev backend)
   "Fetch the source of NAME-OR-URL.
 If NAME-OR-URL is a URL, then the package will be downloaded from
 the repository indicated by the URL.  The function will try to
@@ -462,7 +462,9 @@ NAME-OR-URL is taken to be a package name, and the package
 metadata will be consulted for the URL.  An explicit revision can
 be requested using REV.  If the command is invoked with a prefix
 argument, the revision used for the last release in the package
-archive is used."
+archive is used.  If a NAME-OR-URL is a URL, that is to say a
+string, the VC backend used to clone the repository can be set by
+BACKEND.  If missing, `package-vc-guess-backend' will be used."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -481,7 +483,7 @@ archive is used."
   (package--archives-initialize)
   (cond
    ((and-let* ((stringp name-or-url)
-               (backend (package-vc-guess-backend name-or-url)))
+               (backend (or backend (package-vc-guess-backend name-or-url))))
       (package-vc-unpack
        (package-desc-create
         :name (or name (intern (file-name-base name-or-url)))
