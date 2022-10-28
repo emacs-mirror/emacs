@@ -213,20 +213,32 @@ struct color_name_cache_entry
 #ifdef HAVE_XINPUT2
 
 #ifdef HAVE_XINPUT2_1
+
 struct xi_scroll_valuator_t
 {
-  bool invalid_p;
-  bool pending_enter_reset;
-  double current_value;
-  double emacs_value;
-  double increment;
-
+  /* The ID of the valuator.  */
   int number;
-  int horizontal;
+
+  /* Whether or not it represents X axis movement.  */
+  bool_bf horizontal : 1;
+
+  /* Whether or not the value is currently invalid.  */
+  bool_bf invalid_p : 1;
+
+  /* The current value.  */
+  double current_value;
+
+  /* Value used to tally up deltas until a threshold is met.  */
+  double emacs_value;
+
+  /* The scroll increment.  */
+  double increment;
 };
+
 #endif
 
 #ifdef HAVE_XINPUT2_2
+
 struct xi_touch_point_t
 {
   struct xi_touch_point_t *next;
@@ -234,6 +246,7 @@ struct xi_touch_point_t
   int number;
   double x, y;
 };
+
 #endif
 
 struct xi_device_t
