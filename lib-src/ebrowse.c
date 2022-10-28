@@ -1574,6 +1574,67 @@ yylex (void)
 
         end_string:
           return end_char == '\'' ? CCHAR : CSTRING;
+	case 'R':
+	  if (GET (c) == '"')
+	    {
+	      /* C++11 rstrings.  */
+
+#define RSTRING_EOF_CHECK						\
+	      do {							\
+		if (c == '\0')						\
+		  {							\
+		    yyerror ("unterminated c++11 rstring", NULL);	\
+		    UNGET ();						\
+		    return CSTRING;					\
+		  }							\
+	      } while (0)
+
+	    char *rstring_prefix_start = in;
+
+	    while (GET (c) != '(')
+	      {
+		RSTRING_EOF_CHECK;
+		if (c == '"')
+		  {
+		    yyerror ("malformed c++11 rstring", NULL);
+		    return CSTRING;
+		  }
+	      }
+	    char *rstring_prefix_end = in - 1;
+	    while (TRUE)
+	      {
+		switch (GET (c))
+		  {
+		  default:
+		    RSTRING_EOF_CHECK;
+		    break;
+		  case '\n':
+		    INCREMENT_LINENO;
+		    break;
+		  case ')':
+		    {
+		      char *in_saved = in;
+		      char *prefix = rstring_prefix_start;
+		      while (prefix != rstring_prefix_end && GET (c) == *prefix)
+			{
+			  RSTRING_EOF_CHECK;
+			  prefix++;
+			}
+		      if (prefix == rstring_prefix_end)
+			{
+			  if (GET (c) == '"')
+			    return CSTRING;
+			  RSTRING_EOF_CHECK;
+			}
+		      in = in_saved;
+		    }
+		  }
+	      }
+	    }
+
+          UNGET ();
+          /* Fall through to identifiers and keywords.  */
+	  FALLTHROUGH;
 
         case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
         case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
@@ -1581,7 +1642,7 @@ yylex (void)
         case 'v': case 'w': case 'x': case 'y': case 'z':
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G':
         case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
-        case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U':
+        case 'O': case 'P': case 'Q': case 'S': case 'T': case 'U':
         case 'V': case 'W': case 'X': case 'Y': case 'Z': case '_':
           {
             /* Identifier and keywords.  */
