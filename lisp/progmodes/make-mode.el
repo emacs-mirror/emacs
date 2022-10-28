@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -37,7 +37,7 @@
 ;;
 ;; The command C-c C-f adds certain filenames in the current directory
 ;; as targets.  You can filter out filenames by setting the variable
-;; makefile-ignored-files-in-pickup-regex.
+;; `makefile-ignored-files-in-pickup-regex'.
 ;;
 ;; The command C-c C-u grinds for a bit, then pops up a report buffer
 ;; showing which target names are up-to-date with respect to their
@@ -49,11 +49,14 @@
 ;; all marked items back in the Makefile with C-c TAB.
 ;;
 ;; The command C-c TAB in the makefile buffer inserts a GNU make builtin.
-;; You will be prompted for the builtin's args.
+;; You will be prompted for the builtin's arguments.
 ;;
 ;; There are numerous other customization variables.
 
-;;
+
+
+;;; Code:
+
 ;; To Do:
 ;;
 ;; * Add missing doc strings, improve terse doc strings.
@@ -65,7 +68,7 @@
 ;;   indentation and slashification done automatically.  Hard.
 ;; * Consider removing browser mode.  It seems useless.
 ;; * ":" should notice when a new target is made and add it to the
-;;   list (or at least set makefile-need-target-pickup).
+;;   list (or at least set `makefile-need-target-pickup').
 ;; * Make browser into a major mode.
 ;; * Clean up macro insertion stuff.  It is a mess.
 ;; * Browser entry and exit is weird.  Normalize.
@@ -77,10 +80,6 @@
 ;; * Update documentation above.
 ;; * Update texinfo manual.
 ;; * Update files.el.
-
-
-
-;;; Code:
 
 ;; Sadly we need this for a macro.
 (eval-when-compile
@@ -998,7 +997,8 @@ Anywhere else just self-inserts."
     (self-insert-command arg)))
 
 (defun makefile-insert-macro (macro-name)
-  "Prepare definition of a new macro."
+  "Prepare definition of a new macro named MACRO-NAME.
+Interactively, prompt for the name of the macro."
   (interactive "sMacro Name: ")
   (makefile-pickup-macros)
   (if (not (zerop (length macro-name)))
@@ -1078,7 +1078,7 @@ Anywhere else just self-inserts."
 		 (skip-chars-forward " \t")
 		 (not (or (eolp) (eq (char-after) ?:)))))
 	(forward-line)))
-    (message "Read targets OK.")))
+    (message "Read targets OK")))
 
 (defun makefile-pickup-macros ()
   "Notice names of all macro definitions in Makefile."
@@ -1098,11 +1098,11 @@ Anywhere else just self-inserts."
 	      (message "Picked up macro \"%s\" from line %d"
 		       macro-name (line-number-at-pos))))
 	(forward-line)))
-    (message "Read macros OK.")))
+    (message "Read macros OK")))
 
 (defun makefile-pickup-everything (arg)
   "Notice names of all macros and targets in Makefile.
-Prefix arg means force pickups to be redone."
+Prefix argument ARG means force pickups to be redone."
   (interactive "P")
   (if arg
       (setq makefile-need-target-pickup t
@@ -1170,8 +1170,8 @@ and adds all qualifying names to the list of known targets."
 
 (defun makefile-backslash-region (from to delete-flag)
   "Insert, align, or delete end-of-line backslashes on the lines in the region.
-With no argument, inserts backslashes and aligns existing backslashes.
-With an argument, deletes the backslashes.
+With no argument, insert backslashes and align existing backslashes.
+With an argument, delete the backslashes.
 
 This function does not modify the last line of the region if the region ends
 right at the start of the following line; it does not modify blank lines
@@ -1466,14 +1466,17 @@ Insertion takes place at point."
   (if (zerop (+ (length targets) (length macros)))
       (progn
 	(beep)
-	(message "No macros or targets to browse! Consider running `makefile-pickup-everything'"))
+        (message
+         (substitute-command-keys
+          (concat "No macros or targets to browse!  "
+                  "Consider running \\[makefile-pickup-everything]"))))
     (let ((browser-buffer (get-buffer-create makefile-browser-buffer-name)))
-	(pop-to-buffer browser-buffer)
-	(makefile-browser-fill targets macros)
-	(shrink-window-if-larger-than-buffer)
-	(setq-local makefile-browser-selection-vector
-		    (make-vector (+ (length targets) (length macros)) nil))
-	(makefile-browser-start-interaction))))
+      (pop-to-buffer browser-buffer)
+      (makefile-browser-fill targets macros)
+      (shrink-window-if-larger-than-buffer)
+      (setq-local makefile-browser-selection-vector
+                  (make-vector (+ (length targets) (length macros)) nil))
+      (makefile-browser-start-interaction))))
 
 (defun makefile-switch-to-browser ()
   (interactive)
