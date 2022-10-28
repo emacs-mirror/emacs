@@ -2319,7 +2319,7 @@ Note that an alternative if the second part doesn't hold is
 `c-type-list-kwds'.  Keywords on this list are typically also present
 on one of the `*-decl-kwds' lists."
   t    nil
-  c    '("struct" "union" "enum")
+  (c objc) '("struct" "union" "enum")
   c++  (append '("class" "typename")
 	       (c-lang-const c-type-prefix-kwds c)))
 
