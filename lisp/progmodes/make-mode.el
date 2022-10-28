@@ -1504,39 +1504,38 @@ dependency in the makefile."
       ;; writing the current contents of the makefile buffer.
       ;;
       (let ((saved-target-table makefile-target-table)
-	    (this-buffer (current-buffer))
-	    (makefile-up-to-date-buffer
-	     (get-buffer-create makefile-up-to-date-buffer-name))
-	    (filename (makefile-save-temporary))
-	    ;;
-	    ;; Forget the target table because it may contain picked-up filenames
-	    ;; that are not really targets in the current makefile.
-	    ;; We don't want to query these, so get a new target-table with just the
-	    ;; targets that can be found in the makefile buffer.
-	    ;; The 'old' target table will be restored later.
-	    ;;
-	    (real-targets (progn
-			    (makefile-pickup-targets)
-			    makefile-target-table))
-	    (prereqs makefile-has-prereqs)
-	    )
-
-	(set-buffer makefile-up-to-date-buffer)
-	(setq buffer-read-only nil)
-	(erase-buffer)
-	(makefile-query-targets filename real-targets prereqs)
-	(if (zerop (buffer-size))		; if it did not get us anything
-	    (progn
-	      (kill-buffer (current-buffer))
-	      (message "No overview created!")))
-	(set-buffer this-buffer)
-	(setq makefile-target-table saved-target-table)
-	(if (get-buffer makefile-up-to-date-buffer-name)
-	    (progn
-	      (pop-to-buffer (get-buffer makefile-up-to-date-buffer-name))
-	      (shrink-window-if-larger-than-buffer)
-	      (sort-lines nil (point-min) (point-max))
-	      (setq buffer-read-only t))))))
+            (this-buffer (current-buffer))
+            (makefile-up-to-date-buffer
+             (get-buffer-create makefile-up-to-date-buffer-name))
+            (filename (makefile-save-temporary))
+            ;;
+            ;; Forget the target table because it may contain picked-up filenames
+            ;; that are not really targets in the current makefile.
+            ;; We don't want to query these, so get a new target-table with just the
+            ;; targets that can be found in the makefile buffer.
+            ;; The 'old' target table will be restored later.
+            ;;
+            (real-targets (progn
+                            (makefile-pickup-targets)
+                            makefile-target-table))
+            (prereqs makefile-has-prereqs))
+        (unwind-protect
+            (progn
+              (set-buffer makefile-up-to-date-buffer)
+              (setq buffer-read-only nil)
+              (erase-buffer)
+              (makefile-query-targets filename real-targets prereqs)
+              (when (zerop (buffer-size))     ; if it did not get us anything
+                (kill-buffer (current-buffer))
+                (message "No overview created!"))
+              (set-buffer this-buffer)
+              (setq makefile-target-table saved-target-table)
+              (when (get-buffer makefile-up-to-date-buffer-name)
+                (pop-to-buffer (get-buffer makefile-up-to-date-buffer-name))
+                (shrink-window-if-larger-than-buffer)
+                (sort-lines nil (point-min) (point-max))
+                (setq buffer-read-only t)))
+          (ignore-errors (delete-file filename))))))
 
 (defun makefile-save-temporary ()
   "Create a temporary file from the current makefile buffer."
