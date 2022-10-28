@@ -550,15 +550,12 @@ usage: (function ARG)  */)
 	  CHECK_STRING (docstring);
 	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
 	}
-      Lisp_Object env
-        = NILP (Vinternal_filter_closure_env_function)
-          ? Vinternal_interpreter_environment
-          /* FIXME: This macroexpands the body, so we should use the resulting
-             macroexpanded code!  */
-          : call2 (Vinternal_filter_closure_env_function,
-                   Fcons (Qprogn, CONSP (cdr) ? XCDR (cdr) : cdr),
-                   Vinternal_interpreter_environment);
-      return Fcons (Qclosure, Fcons (env, cdr));
+      if (NILP (Vinternal_make_interpreted_closure_function))
+        return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, cdr));
+      else
+        return call2 (Vinternal_make_interpreted_closure_function,
+                      Fcons (Qlambda, cdr),
+                      Vinternal_interpreter_environment);
     }
   else
     /* Simply quote the argument.  */
@@ -4361,10 +4358,10 @@ alist of active lexical bindings.  */);
      (Just imagine if someone makes it buffer-local).  */
   Funintern (Qinternal_interpreter_environment, Qnil);
 
-  DEFVAR_LISP ("internal-filter-closure-env-function",
-	       Vinternal_filter_closure_env_function,
+  DEFVAR_LISP ("internal-make-interpreted-closure-function",
+	       Vinternal_make_interpreted_closure_function,
 	       doc: /* Function to filter the env when constructing a closure.  */);
-  Vinternal_filter_closure_env_function = Qnil;
+  Vinternal_make_interpreted_closure_function = Qnil;
 
   Vrun_hooks = intern_c_string ("run-hooks");
   staticpro (&Vrun_hooks);

@@ -828,49 +828,78 @@ This function does not return anything but instead fills the
          (setf (nth 1 dv) t))))))
 (define-obsolete-function-alias 'cconv-analyse-form #'cconv-analyze-form "25.1")
 
-(defun cconv-fv (form env &optional no-macroexpand)
+(defun cconv-fv (form lexvars dynvars)
   "Return the list of free variables in FORM.
-ENV is the lexical environment from which the variables can be taken.
-It should be a list of pairs of the form (VAR . VAL).
-The return value is a list of those (VAR . VAL) bindings,
-in the same order as they appear in ENV.
-If NO-MACROEXPAND is non-nil, we do not macro-expand FORM,
-which means that the result may be incorrect if there are non-expanded
-macro calls in FORM."
-  (let* ((fun `#'(lambda () ,form))
-         ;; Make dummy bindings to avoid warnings about the var being
-         ;; left uninitialized.
-         (analysis-env
-          (delq nil (mapcar (lambda (b) (if (consp b)
-                                       (list (car b) nil nil nil nil)))
-                            env)))
-         (cconv--dynbound-variables
-          (delq nil (mapcar (lambda (b) (if (symbolp b) b)) env)))
+LEXVARS is the list of statically scoped vars in the context
+and DYNVARS is the list of dynamically scoped vars in the context.
+Returns a pair (LEXV . DYNV) of those vars actually used by FORM."
+  (let* ((fun
+          ;; Wrap FORM into a function because the analysis code we
+          ;; have only computes freevars for functions.
+          ;; In practice FORM is always already of the form
+          ;; #'(lambda ...), so optimize for this case.
+          (if (and (eq 'function (car-safe form))
+                   (eq 'lambda (car-safe (cadr form)))
+                   ;; To get correct results, FUN needs to be a "simple lambda"
+                   ;; without nested forms that aren't part of the body.  :-(
+                   (not (assq 'interactive (cadr form)))
+                   (not (assq ':documentation (cadr form))))
+              form
+            `#'(lambda () ,form)))
+         (analysis-env (mapcar (lambda (v) (list v nil nil nil nil)) lexvars))
+         (cconv--dynbound-variables dynvars)
          (byte-compile-lexical-variables nil)
          (cconv--dynbindings nil)
          (cconv-freevars-alist '())
 	 (cconv-var-classification '()))
-    (if (null analysis-env)
+    (let* ((body (cddr (cadr fun))))
+      ;; Analyze form - fill these variables with new information.
+      (cconv-analyze-form fun analysis-env)
+      (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
+      (unless (equal (if (eq :documentation (car-safe (car body)))
+                            (cdr body) body)
+                     (caar cconv-freevars-alist))
+        (message "BOOH!\n%S\n%S"
+                 body (caar cconv-freevars-alist)))
+      (cl-assert (equal (if (eq :documentation (car-safe (car body)))
+                            (cdr body) body)
+                        (caar cconv-freevars-alist)))
+      (let ((fvs (nreverse (cdar cconv-freevars-alist)))
+            (dyns (delq nil (mapcar (lambda (var) (car (memq var dynvars)))
+                                    (delete-dups cconv--dynbindings)))))
+        (cons fvs dyns)))))
+
+(defun cconv-make-interpreted-closure (fun env)
+  (cl-assert (eq (car-safe fun) 'lambda))
+  (let ((lexvars (delq nil (mapcar #'car-safe env))))
+    (if (null lexvars)
         ;; The lexical environment is empty, so there's no need to
         ;; look for free variables.
-        env
-      (let* ((fun (if no-macroexpand fun
-                    (macroexpand-all fun macroexpand-all-environment)))
-             (body (cddr (cadr fun))))
-        ;; Analyze form - fill these variables with new information.
-        (cconv-analyze-form fun analysis-env)
-        (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
-        (cl-assert (equal (if (eq :documentation (car-safe (car body)))
-                              (cdr body) body)
-                          (caar cconv-freevars-alist)))
-        (let ((fvs (nreverse (cdar cconv-freevars-alist)))
-              (dyns (mapcar (lambda (var) (car (memq var env)))
-                            (delete-dups cconv--dynbindings))))
-          (or (nconc (mapcar (lambda (fv) (assq fv env)) fvs)
-                     (delq nil dyns))
-              ;; Never return nil, since nil means to use the dynbind
-              ;; dialect of ELisp.
-              '(t)))))))
+        `(closure ,env . ,(cdr fun))
+      ;; We could try and cache the result of the macroexpansion and
+      ;; `cconv-fv' analysis.  Not sure it's worth the trouble.
+      (let* ((form `#',fun)
+             (expanded-form
+              (let ((lexical-binding t) ;; Tell macros which dialect is in use.
+	            ;; Make the macro aware of any defvar declarations in scope.
+                    (macroexp--dynvars
+                     (if macroexp--dynvars
+                         (append env macroexp--dynvars) env)))
+                (macroexpand-all form macroexpand-all-environment)))
+             ;; Since we macroexpanded the body, we may as well use that.
+             (expanded-fun-cdr
+              (pcase expanded-form
+                (`#'(lambda . ,cdr) cdr)
+                (_ (cdr fun))))
+         
+             (dynvars (delq nil (mapcar (lambda (b) (if (symbolp b) b)) env)))
+             (fvs (cconv-fv expanded-form lexvars dynvars))
+             (newenv (nconc (mapcar (lambda (fv) (assq fv env)) (car fvs))
+                            (cdr fvs))))
+        ;; Never return a nil env, since nil means to use the dynbind
+        ;; dialect of ELisp.
+        `(closure ,(or newenv '(t)) . ,expanded-fun-cdr)))))
+
 
 (provide 'cconv)
 ;;; cconv.el ends here

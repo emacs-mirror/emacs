@@ -351,11 +351,18 @@
   (let ((f (let ((d 51695))
              (lambda (data)
                (interactive (progn (setq d (1+ d)) (list d)))
-               (list (called-interactively-p 'any) data)))))
-    (should (equal (list (call-interactively f)
-                         (funcall f 51695)
-                         (call-interactively f))
-                   '((t 51696) (nil 51695) (t 51697))))))
+               (list (called-interactively-p 'any) data))))
+        (f-interp
+         (eval '(let ((d 51695))
+                  (lambda (data)
+                    (interactive (progn (setq d (1+ d)) (list d)))
+                    (list (called-interactively-p 'any) data)))
+               t)))
+    (dolist (f (list f f-interp))
+      (should (equal (list (call-interactively f)
+                           (funcall f 51695)
+                           (call-interactively f))
+                     '((t 51696) (nil 51695) (t 51697)))))))
 
 (provide 'cconv-tests)
 ;;; cconv-tests.el ends here
