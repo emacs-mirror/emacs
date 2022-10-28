@@ -55,6 +55,7 @@
 
 (defvar ts-mode--indent-rules
   `((tsx
+     ((parent-is "program") parent-bol 0)
      ((node-is "}") parent-bol 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
@@ -62,6 +63,8 @@
      ((node-is ".")
       parent-bol ,ts-mode-indent-offset)
      ((parent-is "ternary_expression")
+      parent-bol ,ts-mode-indent-offset)
+     ((parent-is "member_expression")
       parent-bol ,ts-mode-indent-offset)
      ((parent-is "named_imports")
       parent-bol ,ts-mode-indent-offset)
@@ -261,8 +264,11 @@
   :syntax-table ts-mode--syntax-table
 
   (cond
+   ;; `ts-mode' requires tree-sitter to work, so we don't check if
+   ;; user enables tree-sitter for it.
    ((treesit-ready-p nil 'tsx)
     ;; Tree-sitter.
+    (treesit-parser-create 'tsx)
     ;; Comments.
     (setq-local comment-start "// ")
     (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")

@@ -3417,12 +3417,14 @@ This function is intended for use in `after-change-functions'."
 (defvar js--treesit-indent-rules
   (let ((switch-case (rx "switch_" (or "case" "default"))))
     `((javascript
+       ((parent-is "program") parent-bol 0)
        (no-node (js--treesit-backward-up-list) ,js-indent-level)
        ((node-is "}") parent-bol 0)
        ((node-is ")") parent-bol 0)
        ((node-is "]") parent-bol 0)
        ((node-is ">") parent-bol 0)
-       ((node-is "\\.") parent-bol ,js-indent-level)
+       ((parent-is "ternary_expression") parent-bol ,js-indent-level)
+       ((parent-is "member_expression") parent-bol ,js-indent-level)
        ((node-is ,switch-case) parent-bol 0)
        ;; "{" on the newline.
        ((node-is "statement_block") parent-bol ,js-indent-level)
