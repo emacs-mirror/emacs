@@ -4830,13 +4830,13 @@ an empty line or inside a multi-line string, etc.
 This matcher is a function of one argument, @var{type}; it returns a
 function that is called with 3 arguments: @var{node}, @var{parent},
 and @var{bol}, and returns non-@code{nil} (i.e., a match) if
-@var{parent}'s type is @var{type}.
+@var{parent}'s type matches regexp @var{type}.
 
 @item node-is
 This matcher is a function of one argument, @var{type}; it returns a
 function that is called with 3 arguments: @var{node}, @var{parent},
-and @var{bol}, and returns non-@code{nil} if @var{node}'s type is
-@var{type}.
+and @var{bol}, and returns non-@code{nil} if @var{node}'s type matches
+regexp @var{type}.
 
 @item query
 This matcher is a function of one argument, @var{query}; it returns a
@@ -4849,13 +4849,13 @@ This matcher is a function of 5 arguments: @var{node-type},
 @var{parent-type}, @var{node-field}, @var{node-index-min}, and
 @var{node-index-max}).  It returns a function that is called with 3
 arguments: @var{node}, @var{parent}, and @var{bol}, and returns
-non-@code{nil} if @var{node}'s type is @var{node-type}, @var{parent}'s
-type is @var{parent-type}, @var{node}'s field name in @var{parent} is
-@var{node-field}, and @var{node}'s index among its siblings is between
-@var{node-index-min} and @var{node-index-max}.  If the value of an
-argument is @code{nil}, this matcher doesn't check that argument.
-For example, to match the first child where parent is
-@code{argument_list}, use
+non-@code{nil} if @var{node}'s type matches regexp @var{node-type},
+@var{parent}'s type matches regexp @var{parent-type}, @var{node}'s
+field name in @var{parent} matches regexp @var{node-field}, and
+@var{node}'s index among its siblings is between @var{node-index-min}
+and @var{node-index-max}.  If the value of an argument is @code{nil},
+this matcher doesn't check that argument.  For example, to match the
+first child where parent is @code{argument_list}, use
 
 @example
 (match nil "argument_list" nil nil 0 0)
