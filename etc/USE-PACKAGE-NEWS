@@ -1,6 +1,6 @@
 # Changes
 
-## 2.4.2
+## 2.4.3
 
 This release prepares for inclusion to GNU ELPA and includes no other changes
 
