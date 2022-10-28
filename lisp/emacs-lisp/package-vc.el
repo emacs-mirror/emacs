@@ -56,6 +56,9 @@
   :group 'package
   :version "29.1")
 
+(defconst package-vc-elpa-packages-version 1
+  "Version number of the package specification format understood by package-vc.")
+
 (defcustom package-vc-heuristic-alist
   `((,(rx bos "http" (? "s") "://"
           (or (: (? "www.") "github.com"
@@ -144,6 +147,25 @@ was made.
 
 All other values are ignored.")
 
+(defvar package-vc-archive-data-alist nil
+  "List of package specification archive metadata.
+Each element of the list has the form (ARCHIVE . PLIST), where
+PLIST keys are one of:
+
+        `:version' (integer)
+
+Indicating the version of the file formatting, to be compared
+with `package-vc-elpa-packages-version'.
+
+        `:vc-backend' (symbol)
+
+A symbol indicating what the default VC backend to use if a
+package specification does not indicate anything.  The value
+ought to be a member of `vc-handled-backends'.  If missing,
+`vc-clone' will fall back onto `package-vc-default-backend'.
+
+All other values are ignored.")
+
 (defun package-vc-desc->spec (pkg-desc &optional name)
   "Retrieve the package specification for PKG-DESC.
 The optional argument NAME can be used to override the default
@@ -171,9 +193,23 @@ This function is meant to be used as a hook for
     (when (file-exists-p contents-file)
       (with-temp-buffer
         (let ((coding-system-for-read 'utf-8))
-          (insert-file-contents contents-file))
-        (setf (alist-get (intern archive) package-vc-archive-spec-alist)
-              (read (current-buffer)))))))
+          (insert-file-contents contents-file)
+          ;; The response from the server is expected to have the form
+          ;;
+          ;;    ((("foo" :url "..." ...) ...)
+          ;;     :version 1
+          ;;     :default-vc Git)
+          (let ((spec (read (current-buffer))))
+            (when (= package-vc-elpa-packages-version
+                     (plist-get (cdr spec) :version))
+              (setf (alist-get (intern archive) package-vc-archive-spec-alist)
+                    (car spec)))
+            (setf (alist-get (intern archive) package-vc-archive-data-alist)
+                  (cdr spec))
+            (when-let ((default-vc (plist-get (cdr spec) :default-vc))
+                       ((not (memq default-vc vc-handled-backends))))
+              (warn "Archive `%S' expects missing VC backend %S"
+                    archive (plist-get (cdr spec) :default-vc)))))))))
 
 (defun package-vc--download-and-read-archives (&optional async)
   "Download specifications of all `package-archives' and read them.
@@ -374,6 +410,10 @@ the `:brach' attribute in PKG-SPEC."
       (unless (file-exists-p repo-dir)
         (make-directory (file-name-directory repo-dir) t)
         (let ((backend (or (package-vc-guess-backend url)
+                           (plist-get (alist-get (package-desc-archive pkg-desc)
+                                                 package-vc-archive-data-alist
+                                                 nil nil #'string=)
+                                      :vc-backend)
                            package-vc-default-backend)))
           (unless (vc-clone url backend repo-dir (or rev branch))
             (error "Failed to clone %s from %s" name url))))
