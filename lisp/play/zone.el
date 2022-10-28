@@ -312,7 +312,7 @@ run a specific program.  The program must be a member of
                 (insert " ")))
           (forward-char 1)))
       (setq i (1+ i))
-      (sit-for 0 2)))
+      (sit-for 0.002)))
   (zone-pgm-jitter))
 
 (defun zone-pgm-explode ()
