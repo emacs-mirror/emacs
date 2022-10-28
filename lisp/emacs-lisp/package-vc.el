@@ -145,6 +145,13 @@ A revision string indicating the revision used for the current
 release in the package archive.  If missing or nil, no release
 was made.
 
+        `:vc-backend' (symbol)
+
+A symbol indicating what the VC backend to use for cloning a
+package.  The value ought to be a member of
+`vc-handled-backends'.  If missing, `vc-clone' will fall back
+onto the archive default or `package-vc-default-backend'.
+
 All other values are ignored.")
 
 (defvar package-vc-archive-data-alist nil
@@ -409,7 +416,9 @@ the `:brach' attribute in PKG-SPEC."
       ;; Clone the repository into `repo-dir' if necessary
       (unless (file-exists-p repo-dir)
         (make-directory (file-name-directory repo-dir) t)
-        (let ((backend (or (package-vc-guess-backend url)
+        (let ((backend (or (plist-get pkg-spec :vc-backend)
+                           (package-vc-query-spec pkg-desc :vc-backend)
+                           (package-vc-guess-backend url)
                            (plist-get (alist-get (package-desc-archive pkg-desc)
                                                  package-vc-archive-data-alist
                                                  nil nil #'string=)
