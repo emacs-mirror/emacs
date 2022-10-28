@@ -50,7 +50,12 @@
   (should (eq (let ((*package* (find-package "emacs"))) 'good) 'good))
   (should-error (let ((*package* :emacs)) nil))
   (should-error (let ((*package* 1))))
-  (should-error (setq *package* :keyword)))
+  (should-error (setq *package* :keyword))
+  (should-error (makunbound *package*))
+  (with-temp-buffer
+    (in-package* :emacs-user)
+    (kill-all-local-variables)
+    (should (eq *package* (find-package :emacs)))))
 
 (ert-deftest pkg-tests-standard-packages ()
   (should (packagep (find-package "emacs")))

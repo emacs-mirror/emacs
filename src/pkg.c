@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "lisp.h"
+#include "buffer.h"
 #include "character.h"
 
 /***********************************************************************
@@ -102,7 +103,8 @@ h_next (struct h_iter *it)
 /* Sometimes useful for setting a breakpoint, after inserting it
    somewhere in the code.  */
 
-void pkg_break (void)
+void
+pkg_break (void)
 {
 }
 
@@ -891,9 +893,15 @@ DEFUN ("watch-*package*", Fwatch_earmuffs_package, Swatch_earmuffs_package,
   (Lisp_Object symbol, Lisp_Object newval, Lisp_Object operation,
    Lisp_Object where)
 {
-  if (!PACKAGEP (newval))
-    error ("%s must be bound or set to a package object",
-	   SDATA (SYMBOL_NAME (symbol)));
+  if (EQ (operation, Qmakunbound))
+    {
+      if (!BUFFERP (where))
+	error ("Cannot makunbound %s", SDATA (SYMBOL_NAME (symbol)));
+    }
+  else if (!PACKAGEP (newval))
+    error ("%s must alwasy be bound to a package object (operation %s)",
+	   SDATA (SYMBOL_NAME (symbol)),
+	   SDATA (SYMBOL_NAME (operation)));
   return Qnil;
 }
 
@@ -1001,8 +1009,6 @@ syms_of_pkg (void)
   Fadd_variable_watcher (Qearmuffs_package, Fsymbol_function (Qwatch_earmuffs_package));
   DEFVAR_LISP_NOPRO ("package-prefixes", Vpackage_prefixes,
 		     doc: /* */);
-  Fmake_variable_buffer_local (Qpackage_prefixes);
-
   Fmake_variable_buffer_local (Qpackage_prefixes);
 
   Fprovide (Qsymbol_packages, Qnil);
