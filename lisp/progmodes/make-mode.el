@@ -81,12 +81,6 @@
 ;; * Update texinfo manual.
 ;; * Update files.el.
 
-;; Sadly we need this for a macro.
-(eval-when-compile
-  (require 'imenu)
-  (require 'dabbrev)
-  (require 'add-log))
-
 (require 'subr-x) ; `string-limit'
 
 ;;; ------------------------------------------------------------
