@@ -395,7 +395,7 @@ For changes to this variable to take effect, run
 The exact format of this variable is considered internal.  One
 should always use `treesit-font-lock-rules' to set this variable.
 
-Each SETTING is of form
+Each SETTING has the form:
 
     (QUERY ENABLE FEATURE OVERRIDE)
 
@@ -435,18 +435,18 @@ configure the query (and only that query).  For example,
      \"(script_element) @font-lock-builtin-face\")
 
 For each QUERY, a :language keyword and a :feature keyword is
-required. Each query's :feature is a symbol summarizing what does
+required.  Each query's :feature is a symbol summarizing what does
 the query fontify.  It is used to allow users to enable/disable
 certain features.  See `treesit-font-lock-kind-list' for more.
 Other keywords include:
 
-  KEYWORD    VALUE    DESCRIPTION
-  :override  nil      If the region already has a face,
-                      discard the new face
-             t        Always apply the new face
-             append   Append the new face to existing ones
-             prepend  Prepend the new face to existing ones
-             keep     Fill-in regions without an existing face
+  KEYWORD    VALUE      DESCRIPTION
+  :override  nil        If the region already has a face,
+                        discard the new face.
+             t          Always apply the new face.
+             `append'   Append the new face to existing ones.
+             `prepend'  Prepend the new face to existing ones.
+             `keep'     Fill-in regions without an existing face.
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
@@ -555,7 +555,7 @@ If LOUDLY is non-nil, display some debugging information."
         (ignore activate)
         (let ((captures (treesit-query-capture
                          node query
-                         ;; Specifying the range is important. More
+                         ;; Specifying the range is important.  More
                          ;; often than not, NODE will be the root
                          ;; node, and if we don't specify the range,
                          ;; we are basically querying the whole file.
