@@ -568,34 +568,31 @@ The function must satisfy this calling convention:
 (define-abbrev-table 'makefile-mode-abbrev-table ()
   "Abbrev table in use in Makefile buffers.")
 
-(defvar makefile-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; set up the keymap
-    (define-key map "\C-c:" 'makefile-insert-target-ref)
-    (if makefile-electric-keys
-	(progn
-	  (define-key map "$" 'makefile-insert-macro-ref)
-	  (define-key map ":" 'makefile-electric-colon)
-	  (define-key map "=" 'makefile-electric-equal)
-	  (define-key map "." 'makefile-electric-dot)))
-    (define-key map "\C-c\C-f" 'makefile-pickup-filenames-as-targets)
-    (define-key map "\C-c\C-b" 'makefile-switch-to-browser)
-    (define-key map "\C-c\C-c" 'comment-region)
-    (define-key map "\C-c\C-p" 'makefile-pickup-everything)
-    (define-key map "\C-c\C-u" 'makefile-create-up-to-date-overview)
-    (define-key map "\C-c\C-i" 'makefile-insert-gmake-function)
-    (define-key map "\C-c\C-\\" 'makefile-backslash-region)
-    (define-key map "\C-c\C-m\C-a" 'makefile-automake-mode)
-    (define-key map "\C-c\C-m\C-b" 'makefile-bsdmake-mode)
-    (define-key map "\C-c\C-m\C-g" 'makefile-gmake-mode)
-    (define-key map "\C-c\C-m\C-i" 'makefile-imake-mode)
-    (define-key map "\C-c\C-m\C-m" 'makefile-mode)
-    (define-key map "\C-c\C-m\C-p" 'makefile-makepp-mode)
-    (define-key map "\M-p"     'makefile-previous-dependency)
-    (define-key map "\M-n"     'makefile-next-dependency)
-    (define-key map "\e\t"     'completion-at-point)
-    map)
-  "The keymap that is used in Makefile mode.")
+(defvar-keymap makefile-mode-map
+  :doc "The keymap that is used in Makefile mode."
+  "C-c :"       #'makefile-insert-target-ref
+  "C-c C-f"     #'makefile-pickup-filenames-as-targets
+  "C-c C-b"     #'makefile-switch-to-browser
+  "C-c C-c"     #'comment-region
+  "C-c C-p"     #'makefile-pickup-everything
+  "C-c C-u"     #'makefile-create-up-to-date-overview
+  "C-c TAB"     #'makefile-insert-gmake-function
+  "C-c C-\\"    #'makefile-backslash-region
+  "C-c RET C-a" #'makefile-automake-mode
+  "C-c RET C-b" #'makefile-bsdmake-mode
+  "C-c RET C-g" #'makefile-gmake-mode
+  "C-c RET TAB" #'makefile-imake-mode
+  "C-c RET RET" #'makefile-mode
+  "C-c RET C-p" #'makefile-makepp-mode
+  "M-p"         #'makefile-previous-dependency
+  "M-n"         #'makefile-next-dependency
+  "C-M-i"       #'completion-at-point)
+
+(when makefile-electric-keys
+  (define-key makefile-mode-map "$" #'makefile-insert-macro-ref)
+  (define-key makefile-mode-map ":" #'makefile-electric-colon)
+  (define-key makefile-mode-map "=" #'makefile-electric-equal)
+  (define-key makefile-mode-map "." #'makefile-electric-dot))
 
 (easy-menu-define makefile-mode-menu makefile-mode-map
   "Menu for Makefile mode."
@@ -651,22 +648,20 @@ The function must satisfy this calling convention:
       :selected (eq major-mode 'makefile-makepp-mode)])))
 
 
-(defvar makefile-browser-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "n"    'makefile-browser-next-line)
-    (define-key map "\C-n" 'makefile-browser-next-line)
-    (define-key map "p"    'makefile-browser-previous-line)
-    (define-key map "\C-p" 'makefile-browser-previous-line)
-    (define-key map " "    'makefile-browser-toggle)
-    (define-key map "i"    'makefile-browser-insert-selection)
-    (define-key map "I"    'makefile-browser-insert-selection-and-quit)
-    (define-key map "\C-c\C-m" 'makefile-browser-insert-continuation)
-    (define-key map "q"    'makefile-browser-quit)
-    ;; disable horizontal movement
-    (define-key map "\C-b" 'undefined)
-    (define-key map "\C-f" 'undefined)
-    map)
-  "The keymap that is used in the macro- and target browser.")
+(defvar-keymap makefile-browser-map
+  :doc "The keymap that is used in the macro- and target browser."
+  "n"       #'makefile-browser-next-line
+  "C-n"     #'makefile-browser-next-line
+  "p"       #'makefile-browser-previous-line
+  "C-p"     #'makefile-browser-previous-line
+  "SPC"     #'makefile-browser-toggle
+  "i"       #'makefile-browser-insert-selection
+  "I"       #'makefile-browser-insert-selection-and-quit
+  "C-c RET" #'makefile-browser-insert-continuation
+  "q"       #'makefile-browser-quit
+  ;; disable horizontal movement
+  "C-b"     #'undefined
+  "C-f"     #'undefined)
 
 
 (defvar makefile-mode-syntax-table
