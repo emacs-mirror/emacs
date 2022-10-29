@@ -1919,7 +1919,7 @@ mouse-2: visit this file in other window"
       (let ((bound (line-end-position))
             (segment-start (point))
             (inhibit-read-only t)
-            (dir (substring (match-string 1) 2)))
+            (dir (substring (match-string 0) 2)))
         (while (search-forward "/" bound t 1)
           (setq dir (concat dir (buffer-substring segment-start (point))))
           (add-text-properties
