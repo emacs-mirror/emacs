@@ -3404,21 +3404,10 @@ This function is intended for use in `after-change-functions'."
 
 ;;; Tree sitter integration
 
-(defun js--treesit-backward-up-list ()
-  (lambda (_node _parent _bol &rest _)
-    (save-excursion
-      (backward-up-list 1 nil t)
-      (goto-char
-       (treesit-node-start
-        (treesit-node-at (point))))
-      (back-to-indentation)
-      (point))))
-
 (defvar js--treesit-indent-rules
   (let ((switch-case (rx "switch_" (or "case" "default"))))
     `((javascript
        ((parent-is "program") parent-bol 0)
-       (no-node (js--treesit-backward-up-list) ,js-indent-level)
        ((node-is "}") parent-bol 0)
        ((node-is ")") parent-bol 0)
        ((node-is "]") parent-bol 0)
@@ -3442,6 +3431,7 @@ This function is intended for use in `after-change-functions'."
        ((parent-is "parenthesized_expression") parent-bol ,js-indent-level)
        ((parent-is "class_body") parent-bol ,js-indent-level)
        ((parent-is ,switch-case) parent-bol ,js-indent-level)
+       ((parent-is "statement_block") parent-bol ,js-indent-level)
 
        ;; JSX
        ((parent-is "jsx_opening_element") parent ,js-indent-level)
