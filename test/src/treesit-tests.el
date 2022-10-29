@@ -389,9 +389,6 @@ visible_end.)"
         (setq root-node (treesit-parser-root-node
                          parser))
         (setq doc-node (treesit-node-child root-node 0)))
-      ;; `treesit-language-at'.
-      (should (equal (treesit-language-at (point))
-                     'json))
       ;; `treesit-set-ranges', `treesit-get-ranges'.
       (treesit-set-ranges 'json
                           '((1 . 2)))
