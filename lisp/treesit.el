@@ -974,19 +974,21 @@ Return (ANCHOR . OFFSET).  This function is used by
 (defun treesit-indent ()
   "Indent according to the result of `treesit-indent-function'."
   (treesit-update-ranges)
+  ;; We don't return 'noindent even if no rules match, because
+  ;; `indent-for-tab-command' tries to indent itself when we return
+  ;; 'noindent, which leads to wrong indentation at times.
   (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1)))
-    (if (and anchor offset)
-        (let ((col (+ (save-excursion
-                        (goto-char anchor)
-                        (current-column))
-                      offset))
-              (delta (- (point-max) (point))))
-          (indent-line-to col)
-          ;; Now point is at the end of indentation.  If we started
-          ;; from within the line, go back to where we started.
-          (when (> (- (point-max) delta) (point))
-            (goto-char (- (point-max) delta))))
-      'noindent)))
+    (when (and anchor offset)
+      (let ((col (+ (save-excursion
+                      (goto-char anchor)
+                      (current-column))
+                    offset))
+            (delta (- (point-max) (point))))
+        (indent-line-to col)
+        ;; Now point is at the end of indentation.  If we started
+        ;; from within the line, go back to where we started.
+        (when (> (- (point-max) delta) (point))
+          (goto-char (- (point-max) delta)))))))
 
 (defvar treesit--indent-region-batch-size 400
   "How many lines of indent value do we precompute.
@@ -1066,8 +1068,9 @@ Return (ANCHOR . OFFSET) where ANCHOR is a node, OFFSET is the
 indentation offset, meaning indent to align with ANCHOR and add
 OFFSET."
   (if (null parent)
-      (when treesit--indent-verbose
-        (message "PARENT is nil, not indenting"))
+      (progn (when treesit--indent-verbose
+               (message "PARENT is nil, not indenting"))
+             (cons nil nil))
     (let* ((language (treesit-node-language parent))
            (rules (alist-get language
                              treesit-simple-indent-rules)))
