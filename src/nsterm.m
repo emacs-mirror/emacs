@@ -4242,7 +4242,7 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 #else
       enum { PACIFY_GCC_BUG_81401 = 0 };
 #endif
-      char buf[7 + PACIFY_GCC_BUG_81401];
+      char buf[8 + PACIFY_GCC_BUG_81401];
       char *str = NULL;
       int len = glyph->u.glyphless.len;
 
@@ -4268,7 +4268,7 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	{
 	  unsigned int ch = glyph->u.glyphless.ch;
 	  eassume (ch <= MAX_CHAR);
-	  snprintf (buf, 7, "%0*X", ch < 0x10000 ? 4 : 6, ch);
+	  snprintf (buf, 8, "%0*X", ch < 0x10000 ? 4 : 6, ch);
 	  str = buf;
 	}
 
