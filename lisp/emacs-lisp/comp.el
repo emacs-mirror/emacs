@@ -57,7 +57,7 @@
   :safe #'integerp
   :version "28.1")
 
-(defcustom native-comp-debug (if (eq 'windows-nt system-type) 1 0)
+(defcustom native-comp-debug  0
   "Debug level for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
   0 no debug output.
@@ -67,7 +67,7 @@ This is intended for debugging the compiler itself.
   passes and libgccjit log file."
   :type 'natnum
   :safe #'natnump
-  :version "28.1")
+  :version "29.1")
 
 (defcustom native-comp-verbose 0
   "Compiler verbosity for native compilation, a number between 0 and 3.
