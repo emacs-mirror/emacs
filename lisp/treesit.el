@@ -974,12 +974,18 @@ Return (ANCHOR . OFFSET).  This function is used by
   "Indent according to the result of `treesit-indent-function'."
   (treesit-update-ranges)
   (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1)))
-    (when (and anchor offset)
-      (let ((col (+ (save-excursion
-                      (goto-char anchor)
-                      (current-column))
-                    offset)))
-        (indent-line-to col)))))
+    (if (and anchor offset)
+        (let ((col (+ (save-excursion
+                        (goto-char anchor)
+                        (current-column))
+                      offset))
+              (delta (- (point-max) (point))))
+          (indent-line-to col)
+          ;; Now point is at the end of indentation.  If we started
+          ;; from within the line, go back to where we started.
+          (when (> (- (point-max) delta) (point))
+            (goto-char (- (point-max) delta))))
+      'noindent)))
 
 (defvar treesit--indent-region-batch-size 400
   "How many lines of indent value do we precompute.
