@@ -1457,9 +1457,9 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 	(if (eq (car attributes) t)
 	    (set-visited-file-modtime (file-attribute-modification-time
                                        attributes))))
-      (set-buffer-modified-p nil)
       (when dired-make-directory-clickable
         (dired--make-directory-clickable))
+      (set-buffer-modified-p nil)
       ;; No need to narrow since the whole buffer contains just
       ;; dired-readin's output, nothing else.  The hook can
       ;; successfully use dired functions (e.g. dired-get-filename)
