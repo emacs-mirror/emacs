@@ -54,13 +54,14 @@ typedef unsigned int CARD32;
 #include <gconf/gconf-client.h>
 #endif
 
-#if defined USE_CAIRO || defined HAVE_XFT
 #ifdef USE_CAIRO
 #include <fontconfig/fontconfig.h>
-#include <cairo-ft.h>
-#else  /* HAVE_XFT */
+#elif defined HAVE_XFT
 #include <X11/Xft/Xft.h>
 #endif
+
+#if defined USE_CAIRO && defined CAIRO_HAS_FT_FONT
+#include <cairo/cairo-ft.h>
 #endif
 
 static char *current_mono_font;
