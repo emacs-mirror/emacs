@@ -783,7 +783,8 @@ See `treesit-simple-indent-presets'.")
                     (lambda (_n parent &rest _)
                       (save-excursion
                         (goto-char (treesit-node-start parent))
-                        (current-indentation)))))
+                        (back-to-indentation)
+                        (point)))))
     (prev-sibling . ,(byte-compile
                       (lambda (node &rest _)
                         (treesit-node-start
