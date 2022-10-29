@@ -249,7 +249,7 @@ struct itree_iterator
   uintmax_t otick;
   enum itree_order order;
   bool running;
-  const char file;
+  const char *file;
   int line;
 };
 
@@ -1354,7 +1354,7 @@ itree_iterator_next (struct itree_iterator *g)
 {
   eassert (g->running);
 
-  const struct itree_node *null = NULL;
+  struct itree_node *const null = NULL;
   struct itree_node *node;
 
   /* The `visited` flag stored in each node is used here (and only here):
@@ -1376,8 +1376,8 @@ itree_iterator_next (struct itree_iterator *g)
 	      visited = nav_flag (nav),
 	      node && !visited))
 	{
-	  const struct itree_node *left = node->left;
-	  const struct itree_node *right = node->right;
+	  struct itree_node *const left = node->left;
+	  struct itree_node *const right = node->right;
 
 	  interval_tree_inherit_offset (g->otick, node);
 	  eassert (itree_limit_is_stable (node));
