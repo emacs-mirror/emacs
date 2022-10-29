@@ -567,7 +567,7 @@ LABELFN is the same function passed to `hierarchy-convert-to-tree-widget'.
 INDENT is the same function passed to `hierarchy-convert-to-tree-widget'.
 
 CHILDRENFN is the function used to discover the children of ELEM."
-  (lambda (widget)
+  (lambda (_widget)
     (mapcar
      (lambda (item)
        (widget-convert
