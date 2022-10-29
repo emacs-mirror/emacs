@@ -2057,9 +2057,10 @@ and the annotation emission."
   "Lexically-scoped FUNCTION."
   (let ((args (comp-func-l-args function)))
     (cons (make-comp-mvar :constant (comp-args-base-min args))
-          (make-comp-mvar :constant (if (comp-args-p args)
-                                        (comp-args-max args)
-                                      'many)))))
+          (make-comp-mvar :constant (cond
+                                     ((comp-args-p args) (comp-args-max args))
+                                     ((comp-nargs-rest args) 'many)
+                                     (t (comp-nargs-nonrest args)))))))
 
 (cl-defmethod comp-prepare-args-for-top-level ((function comp-func-d))
   "Dynamically scoped FUNCTION."
