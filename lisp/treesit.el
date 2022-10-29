@@ -922,11 +922,13 @@ is a point (not a node), and OFFSET is a number.  Emacs finds the
 column of ANCHOR and adds OFFSET to it as the final indentation
 of the current line.")
 
-(defun treesit-indent ()
-  "Indent according to the result of `treesit-indent-function'."
-  (treesit-update-ranges)
-  (let* ((orig-pos (point))
-         (bol (save-excursion
+(defun treesit--indent-1 ()
+  "Indent the current line.
+Return the column we should indent this line to, or nil if we
+can't figure it out.  This function is used by `treesit-indent'
+and `treesit-indent-region'."
+  ;; Basically holds the common part between the two indent function.
+  (let* ((bol (save-excursion
                 (forward-line 0)
                 (skip-chars-forward " \t")
                 (point)))
@@ -957,14 +959,62 @@ of the current line.")
           (funcall treesit-indent-function node parent bol)))
       (if (or (null anchor) (null offset))
           nil
-        (let ((col (+ (save-excursion
-                        (goto-char anchor)
-                        (current-column))
-                      offset)))
-          (if (< bol orig-pos)
-              (save-excursion
-                (indent-line-to col))
-            (indent-line-to col)))))))
+        (+ (save-excursion
+             (goto-char anchor)
+             (current-column))
+           offset)))))
+
+(defun treesit-indent ()
+  "Indent according to the result of `treesit-indent-function'."
+  (treesit-update-ranges)
+  (let* ((orig-pos (point))
+         (bol (current-indentation))
+         (col (treesit--indent-1)))
+    (when col
+      (if (< bol orig-pos)
+          (save-excursion
+            (indent-line-to col))
+        (indent-line-to col)))))
+
+(defvar treesit--indent-region-batch-size 1000
+  "How many lines of indent value do we precompute.
+In `treesit-indent-region' we indent in batches: precompute
+indent for each line, apply them in one go, let parser reparse,
+and do it again.  This way the parser don't need to unnecessarily
+reparse after indenting every single line.")
+
+(defun treesit-indent-region (beg end)
+  "Indent the region between BEG and END.
+Similar to `treesit-indent', but indent a region instead."
+  (treesit-update-ranges)
+  (let ((indents (make-vector treesit--indent-region-batch-size 0))
+        (lines-left-to-move 0)
+        (idx 0)
+        (jdx 0)
+        (starting-pos 0)
+        (announce-progress (> (- end beg) 80000)))
+    (save-excursion
+      (goto-char beg)
+      (while (and (eq lines-left-to-move 0) (< (point) end))
+        (setq idx 0 jdx 0
+              starting-pos (point))
+        (while (and (eq lines-left-to-move 0)
+                    (< idx treesit--indent-region-batch-size)
+                    (< (point) end))
+          (setf (aref indents idx) (or (treesit--indent-1) 0))
+          (cl-incf idx)
+          (setq lines-left-to-move (forward-line 1)))
+        ;; Now IDX = last valid IDX + 1.
+        (goto-char starting-pos)
+        (while (< jdx idx)
+          (let ((col (aref indents jdx)))
+            (when (not (eq col 0))
+              (indent-line-to col)))
+          (forward-line 1)
+          (cl-incf jdx))
+        (when announce-progress
+          (message "Indenting region...%s%%"
+                   (/ (* (- (point) beg) 100) (- end beg))))))))
 
 (defun treesit-simple-indent (node parent bol)
   "Calculate indentation according to `treesit-simple-indent-rules'.
@@ -1235,7 +1285,8 @@ If `treesit-defun-type-regexp' is non-nil, setup
     (treesit-font-lock-recompute-features))
   ;; Indent.
   (when treesit-simple-indent-rules
-    (setq-local indent-line-function #'treesit-indent))
+    (setq-local indent-line-function #'treesit-indent)
+    (setq-local indent-region-function #'treesit-indent-region))
   ;; Navigation.
   (when treesit-defun-type-regexp
     (setq-local beginning-of-defun-function #'treesit-beginning-of-defun)
