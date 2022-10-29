@@ -79,8 +79,7 @@ struct itree_node
 
      NOTE: The interval iterators ensure nodes are clean before
      yielding them, so BEGIN and END may be safely used as buffer
-     positions then.
-  */
+     positions then.  */
 
   ptrdiff_t begin;		/* The beginning of this interval. */
   ptrdiff_t end;		/* The end of the interval. */
@@ -100,39 +99,41 @@ struct itree_tree
   intmax_t size;                /* Number of nodes in the tree. */
 };
 
-enum itree_order {
-  ITREE_ASCENDING,
-  ITREE_DESCENDING,
-  ITREE_PRE_ORDER,
-};
+enum itree_order
+  {
+    ITREE_ASCENDING,
+    ITREE_DESCENDING,
+    ITREE_PRE_ORDER,
+  };
 
-void itree_node_init (struct itree_node *, bool, bool, Lisp_Object);
-ptrdiff_t itree_node_begin (struct itree_tree *, struct itree_node *);
-ptrdiff_t itree_node_end (struct itree_tree *, struct itree_node *);
-void itree_node_set_region (struct itree_tree *, struct itree_node *,
-                            ptrdiff_t, ptrdiff_t);
-struct itree_tree *itree_create (void);
-void itree_destroy (struct itree_tree *);
-intmax_t itree_size (struct itree_tree *);
-void itree_clear (struct itree_tree *);
-void itree_insert (struct itree_tree *tree, struct itree_node *node,
-                   ptrdiff_t begin, ptrdiff_t end);
-struct itree_node *itree_remove (struct itree_tree *,
-                                 struct itree_node *);
-void itree_insert_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
-void itree_delete_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
+extern void itree_node_init (struct itree_node *, bool, bool, Lisp_Object);
+extern ptrdiff_t itree_node_begin (struct itree_tree *, struct itree_node *);
+extern ptrdiff_t itree_node_end (struct itree_tree *, struct itree_node *);
+extern void itree_node_set_region (struct itree_tree *, struct itree_node *,
+				   ptrdiff_t, ptrdiff_t);
+extern struct itree_tree *itree_create (void);
+extern void itree_destroy (struct itree_tree *);
+extern intmax_t itree_size (struct itree_tree *);
+extern void itree_clear (struct itree_tree *);
+extern void itree_insert (struct itree_tree *, struct itree_node *,
+			  ptrdiff_t, ptrdiff_t);
+extern struct itree_node *itree_remove (struct itree_tree *,
+					struct itree_node *);
+extern void itree_insert_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
+extern void itree_delete_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
 
 /* Iteration functions.  Almost all code should use ITREE_FOREACH
    instead.  */
-bool itree_iterator_busy_p (void);
-struct itree_iterator *
-itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
-                      ptrdiff_t end, enum itree_order order,
-                      const char *file, int line);
-void itree_iterator_narrow (struct itree_iterator *, ptrdiff_t,
-                            ptrdiff_t);
-void itree_iterator_finish (struct itree_iterator *);
-struct itree_node *itree_iterator_next (struct itree_iterator *);
+extern bool itree_iterator_busy_p (void);
+extern struct itree_iterator *itree_iterator_start (struct itree_tree *,
+						    ptrdiff_t,
+						    ptrdiff_t,
+						    enum itree_order,
+						    const char *, int);
+extern void itree_iterator_narrow (struct itree_iterator *, ptrdiff_t,
+				   ptrdiff_t);
+extern void itree_iterator_finish (struct itree_iterator *);
+extern struct itree_node *itree_iterator_next (struct itree_iterator *);
 
 /* Iterate over the intervals between BEG and END in the tree T.
    N will hold successive nodes.  ORDER can be one of : `ASCENDING`,
