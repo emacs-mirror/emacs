@@ -49,7 +49,7 @@
 (ert-deftest pkg-tests-*package* ()
   (should (eq (let ((*package* (find-package "emacs"))) 'good) 'good))
   (should-error (let ((*package* :emacs)) nil))
-  (should-error (let ((*package* 1))))
+  (should-error (let ((*package* 1)) nil))
   (should-error (setq *package* :keyword))
   (should-error (makunbound *package*))
   (with-temp-buffer
@@ -206,7 +206,7 @@
     (let ((sym-a (intern "a" x)))
       (should (eq (symbol-package sym-a) x))
       (use-package x y)
-      (cl-multiple-value-bind (sym status)
+      (cl-multiple-value-bind (sym _status)
           (find-symbol "a" y)
         (should (null sym))
         (when nil
