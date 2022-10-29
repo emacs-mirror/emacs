@@ -278,24 +278,22 @@ If nil, use `temporary-file-directory'."
 
 ;; Variables.
 
-(defvar ps-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-v" #'ps-run-boundingbox)
-    (define-key map "\C-c\C-u" #'ps-mode-uncomment-region)
-    (define-key map "\C-c\C-t" #'ps-mode-epsf-rich)
-    (define-key map "\C-c\C-s" #'ps-run-start)
-    (define-key map "\C-c\C-r" #'ps-run-region)
-    (define-key map "\C-c\C-q" #'ps-run-quit)
-    (define-key map "\C-c\C-p" #'ps-mode-print-buffer)
-    (define-key map "\C-c\C-o" #'ps-mode-comment-out-region)
-    (define-key map "\C-c\C-k" #'ps-run-kill)
-    (define-key map "\C-c\C-j" #'ps-mode-other-newline)
-    (define-key map "\C-c\C-l" #'ps-run-clear)
-    (define-key map "\C-c\C-b" #'ps-run-buffer)
-    ;; FIXME: Add `indent' to backward-delete-char-untabify-method instead?
-    (define-key map "\177" #'ps-mode-backward-delete-char)
-    map)
-  "Local keymap to use in PostScript mode.")
+(defvar-keymap ps-mode-map
+  :doc "Local keymap to use in PostScript mode."
+  "C-c C-v" #'ps-run-boundingbox
+  "C-c C-u" #'ps-mode-uncomment-region
+  "C-c C-t" #'ps-mode-epsf-rich
+  "C-c C-s" #'ps-run-start
+  "C-c C-r" #'ps-run-region
+  "C-c C-q" #'ps-run-quit
+  "C-c C-p" #'ps-mode-print-buffer
+  "C-c C-o" #'ps-mode-comment-out-region
+  "C-c C-k" #'ps-run-kill
+  "C-c C-j" #'ps-mode-other-newline
+  "C-c C-l" #'ps-run-clear
+  "C-c C-b" #'ps-run-buffer
+  ;; FIXME: Add `indent' to backward-delete-char-untabify-method instead?
+  "DEL"     #'ps-mode-backward-delete-char)
 
 (defvar ps-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -332,15 +330,13 @@ If nil, use `temporary-file-directory'."
     st)
   "Syntax table used while in PostScript mode.")
 
-(defvar ps-run-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map comint-mode-map)
-    (define-key map "\C-c\C-q" #'ps-run-quit)
-    (define-key map "\C-c\C-k" #'ps-run-kill)
-    (define-key map "\C-c\C-e" #'ps-run-goto-error)
-    (define-key map [mouse-2] #'ps-run-mouse-goto-error)
-    map)
-  "Local keymap to use in PostScript run mode.")
+(defvar-keymap ps-run-mode-map
+  :doc "Local keymap to use in PostScript run mode."
+  :parent comint-mode-map
+  "C-c C-q"   #'ps-run-quit
+  "C-c C-k"   #'ps-run-kill
+  "C-c C-e"   #'ps-run-goto-error
+  "<mouse-2>" #'ps-run-mouse-goto-error)
 
 (defvar ps-mode-tmp-file nil
   "Name of temporary file, set by `ps-run'.")
