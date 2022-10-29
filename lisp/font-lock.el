@@ -2095,6 +2095,55 @@ as the constructs of Haddock, Javadoc and similar systems."
   "Font Lock mode face used to highlight grouping constructs in Lisp regexps."
   :group 'font-lock-faces)
 
+(defface font-lock-escape-face
+  '((t :inherit font-lock-regexp-grouping-backslash))
+  "Font Lock mode face used to highlight escape sequences in strings."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-number-face
+  '((t nil))
+  "Font Lock mode face used to highlight numbers."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-operator-face
+  '((t nil))
+  "Font Lock mode face used to highlight operators."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-property-face
+  '((t :inherit font-lock-variable-name-face))
+  "Font Lock mode face used to highlight properties of an object.
+For example, the declaration and use of fields in a struct."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-punctuation-face
+  '((t nil))
+  "Font Lock mode face used to highlight punctuation."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-bracket-face
+  '((t :inherit font-lock-punctuation-face))
+  "Font Lock mode face used to highlight brackets."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-delimiter-face
+  '((t :inherit font-lock-punctuation-face))
+  "Font Lock mode face used to highlight delimiters."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-misc-punctuation-face
+  '((t :inherit font-lock-punctuation-face))
+  "Font Lock mode face used to highlight miscellaneous punctuation."
+  :group 'font-lock-faces
+  :version "29.1")
+
 ;; End of Color etc. support.
 
 ;;; Menu support.

@@ -733,6 +733,14 @@ This determines how long to pause Emacs after a process
 filter/sentinel error has been handled.
 
 +++
+** New faces for font-lock.
+These faces are primarily meant for use with tree-sitter. They are:
+'font-lock-bracket-face', 'font-lock-delimiter-face',
+'font-lock-escape-face', 'font-lock-number-face',
+'font-lock-misc-punctuation-face', 'font-lock-operator-face',
+'font-lock-property-face', 'font-lock-punctuation-face'.
+
++++
 ** New face 'variable-pitch-text'.
 This face is like 'variable-pitch' (from which it inherits), but is
 slightly larger, which should help with the visual size differences

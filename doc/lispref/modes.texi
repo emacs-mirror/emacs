@@ -3653,6 +3653,71 @@ This face inherits, by default, from @code{font-lock-constant-face}.
 @item font-lock-negation-char-face
 @vindex font-lock-negation-char-face
 for easily-overlooked negation characters.
+
+@item font-lock-escape-face
+@vindex font-lock-escape-face
+for escape sequences in strings.
+This face inherits, by default, from @code{font-lock-regexp-grouping-backslash}.
+
+Here is an example in Python, where the escape sequence @code{\n} is used:
+
+@smallexample
+@group
+print('Hello world!\n')
+@end group
+@end smallexample
+
+@item font-lock-number-face
+@vindex font-lock-number-face
+for numbers.
+
+@item font-lock-operator-face
+@vindex font-lock-operator-face
+for operators.
+
+@item font-lock-property-face
+@vindex font-lock-property-face
+for properties of an object, such as the declaration and use of fields
+in a struct.
+This face inherits, by default, from @code{font-lock-variable-name-face}.
+
+For example,
+
+@smallexample
+@group
+typedef struct
+@{
+  int prop;
+//    ^ property
+@} obj;
+
+int main()
+@{
+  obj o;
+  o.prop = 3;
+//  ^ property
+@}
+@end group
+@end smallexample
+
+@item font-lock-punctuation-face
+@vindex font-lock-punctuation-face
+for punctuation such as brackets and delimiters.
+
+@item font-lock-bracket-face
+@vindex font-lock-bracket-face
+for brackets (e.g., @code{()}, @code{[]}, @code{@{@}}).
+This face inherits, by default, from @code{font-lock-punctuation-face}.
+
+@item font-lock-delimiter-face
+@vindex font-lock-delimiter-face
+for delimiters (e.g., @code{;}, @code{:}, @code{,}).
+This face inherits, by default, from @code{font-lock-punctuation-face}.
+
+@item font-lock-misc-punctuation-face
+@vindex font-lock-misc-punctuation-face
+for punctuation that is not a bracket or delimiter.
+This face inherits, by default, from @code{font-lock-punctuation-face}.
 @end table
 
 @node Syntactic Font Lock
