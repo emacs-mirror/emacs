@@ -1505,43 +1505,74 @@ to write query patterns, @pxref{Pattern Matching}.
 @cindex major mode, developing with tree-sitter
 
 This section covers some general guidelines on developing tree-sitter
-integration for a major mode.  For tree-sitter integration with
-specific Emacs features, see @ref{Parser-based Font Lock}, and see
-@ref{Parser-based Indentation}.
+integration for a major mode.
 
-@findex treesit-mode
-@findex global-treesit-mode
-Emacs provides @code{treesit-mode} and @code{global-treesit-mode}.
-When one of these two modes is turned on, major modes should turn on
-their tree-sitter support, if they have one.  Major modes works with
-@code{treesit-mode} by setting @code{major-mode-backend-function}.
+In general, a major mode supporting tree-sitter features should
+roughly follow this pattern:
 
-@defvar major-mode-backend-function
-This is a buffer-local variable that holds a function.
-@code{treesit-mode} uses this function to turn on/off tree-sitter
-support.
+@example
+@group
+(define-derived-mode woomy-mode prog-mode "Woomy"
+  "A mode for Woomy programming language."
+  ;; Shared setup.
+  ...
+  (cond
+   ;; Tree-sitter setup.
+   ((treesit-ready-p 'woomy-mode 'woomy)
+    (setq-local treesit-variables ...)
+    (treesit-major-mode-setup))
+   ;; Non-tree-sitter setup.
+   (t
+    ...)))
+@end group
+@end example
 
-This function is passed two arguments: @var{backend} and @var{warn}.
-@var{backend} is a symbol representing the backend we want to
-activate.  Currently it can be @code{treesit} or @code{elisp}.
+First, the major mode should use @code{treesit-ready-p} to determine
+whether the user wants to activate tree-sitter features for the mode,
+and whether tree-sitter can be activated in this mode.
 
-If @var{warn} is non-@code{nil}, display a warning if a @code{backend}
-can't activated; if @var{warn} is @code{nil}, just print a message
-and don't display any warning.
-@end defvar
+@defun treesit-ready-p mode language &optional quiet
+This function checks for conditions for activating tree-sitter.  It
+checks whether the users turns tree-sitter on for @var{mode}
+(according to @code{treesit-settings}), whether tree-sitter is built
+with Emacs, the buffer's size, and whether @var{languag} is available.
 
-@defun treesit-ready-p warn &rest languages
-This is a convenience function that checks for conditions for
-activating tree-sitter.  It checks for whether tree-sitter is built
-with Emacs, the buffer's size, and whether each @var{language} is
-available.
+When user sets @var{mode} to @var{demand} in @code{treesit-settings},
+this function emits a warning if tree-sitter cannot be activated.  If
+@var{quiet} is @code{message}, the warning is turned into a message,
+if @var{quiet} is @code{nil}, no warning or message is displayed.
 
-If all conditions are met, it returns non-@code{nil}.  If not, it
-shows a warning or displays a message depending on the value of
-@var{warn}.  If @var{warn} is non-@code{nil}, show a warning,
-otherwise display an echo-area message.
+If @var{mode} is nil, this function doesn't check user's preference in
+@code{treesit-settings}.
+
+If all conditions are met, this function returns non-@code{nil}.
+Otherwise it return @code{nil}.
 @end defun
 
+Then, the major mode should setup tree-sitter variables, and call
+@code{treesit-major-mode-setup}.
+
+@defun treesit-major-mode-setup
+This function activates some tree-sitter features for a major mode.
+
+Currently, it sets up the following features:
+@itemize
+@item
+If @code{treesit-font-lock-settings} is non-@code{nil}, it sets up
+fontification.
+@item
+If @code{treesit-simple-indent-rules} is non-@code{nil}, it sets up
+indentation.
+@item
+If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up
+navigation functions for @code{beginning-of-defun} and
+@code{end-of-defun}.
+@end itemize
+@end defun
+
+For more information of these built-in tree-sitter features,
+@pxref{Parser-based Font Lock}, @pxref{Parser-based Indentation}, and
+@pxref{List Motion}.
 
 @node Tree-sitter C API
 @section Tree-sitter C API Correspondence

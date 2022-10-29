@@ -3890,10 +3890,6 @@ also provides complete syntactic font lock with the help of a parser.
 Currently, Emacs uses the tree-sitter library (@pxref{Parsing Program
 Source}) for this purpose.
 
-@defun treesit-font-lock-enable
-This function enables parser-based font lock in the current buffer.
-@end defun
-
 Parser-based font lock and other font lock mechanisms are not mutually
 exclusive.  By default, if enabled, parser-based font lock runs first,
 then the syntactic font lock (if enabled), then the regexp-based
@@ -3929,6 +3925,11 @@ would be highlighted in @code{font-lock-keyword} face.
 
 For more information about queries, patterns, and capture names, see
 @ref{Pattern Matching}.
+
+To setup tree-sitter fontification, a major mode should first set
+@code{treesit-font-lock-settings} with the output of
+@code{treesit-font-lock-rules}, then call
+@code{treesit-major-mode-setup}.
 
 @defun treesit-font-lock-rules :keyword value query...
 This function is used to set @var{treesit-font-lock-settings}.  It
@@ -4012,12 +4013,14 @@ For example, the value of this variable could be:
 @end example
 
 Major modes should set this variable before calling
-@code{treesit-font-lock-enable}.
+@code{treesit-major-mode-setup}.
 
 @findex treesit-font-lock-recompute-features
 For this variable to take effect, a Lisp program should call
 @code{treesit-font-lock-recompute-features} (which resets
-@code{treesit-font-lock-settings} accordingly).
+@code{treesit-font-lock-settings} accordingly), or
+@code{treesit-major-mode-setup} (which calls
+@code{treesit-font-lock-recompute-features}).
 @end defvar
 
 @defvar treesit-font-lock-settings
@@ -4771,7 +4774,9 @@ It is more convenient to use the simple indentation engine described
 below: then the major mode needs only to write some indentation rules
 and the engine takes care of the rest.
 
-To enable the parser-based indentation engine, set the value of
+To enable the parser-based indentation engine, either set
+@var{treesit-simple-indent-rules} and call
+@code{treesit-major-mode-setup}, or equivalently, set the value of
 @code{indent-line-function} to @code{treesit-indent}.
 
 @defvar treesit-indent-function
