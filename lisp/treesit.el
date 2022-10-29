@@ -696,131 +696,117 @@ For MATCHER and ANCHOR, Emacs provides some convenient presets.
 See `treesit-simple-indent-presets'.")
 
 (defvar treesit-simple-indent-presets
-  `((match . ,(byte-compile
-               (lambda
-                 (&optional node-type parent-type node-field
-                            node-index-min node-index-max)
-                 (lambda (node parent &rest _)
-                   (and (or (null node-type)
-                            (string-match-p
-                             node-type (or (treesit-node-type node) "")))
-                        (or (null parent-type)
-                            (string-match-p
-                             parent-type (treesit-node-type parent)))
-                        (or (null node-field)
-                            (string-match-p
-                             node-field
-                             (or (treesit-node-field-name node) "")))
-                        (or (null node-index-min)
-                            (>= (treesit-node-index node t)
-                                node-index-min))
-                        (or (null node-index-max)
-                            (<= (treesit-node-index node t)
-                                node-index-max)))))))
-    ;; TODO: Document if genuinely useful.
-    (n-p-gp . ,(byte-compile
-                (lambda (node-t parent-t grand-parent-t)
-                  (lambda (node parent &rest _)
-                    (and (or (null node-t)
+  (list (cons 'match
+              (lambda
+                (&optional node-type parent-type node-field
+                           node-index-min node-index-max)
+                (lambda (node parent &rest _)
+                  (and (or (null node-type)
+                           (string-match-p
+                            node-type (or (treesit-node-type node) "")))
+                       (or (null parent-type)
+                           (string-match-p
+                            parent-type (treesit-node-type parent)))
+                       (or (null node-field)
+                           (string-match-p
+                            node-field
+                            (or (treesit-node-field-name node) "")))
+                       (or (null node-index-min)
+                           (>= (treesit-node-index node t)
+                               node-index-min))
+                       (or (null node-index-max)
+                           (<= (treesit-node-index node t)
+                               node-index-max))))))
+        ;; TODO: Document if genuinely useful.
+        (cons 'n-p-gp
+              (lambda (node-t parent-t grand-parent-t)
+                (lambda (node parent &rest _)
+                  (and (or (null node-t)
+                           (string-match-p
+                            node-t (or (treesit-node-type node) "")))
+                       (or (null parent-t)
+                           (string-match-p
+                            parent-t (treesit-node-type parent)))
+                       (or (null grand-parent-t)
+                           (string-match-p
+                            grand-parent-t
+                            (treesit-node-type
+                             (treesit-node-parent parent))))))))
+        (cons 'no-node (lambda (node &rest _) (null node)))
+        (cons 'parent-is (lambda (type)
+                           (lambda (_n parent &rest _)
                              (string-match-p
-                              node-t (or (treesit-node-type node) "")))
-                         (or (null parent-t)
-                             (string-match-p
-                              parent-t (treesit-node-type parent)))
-                         (or (null grand-parent-t)
-                             (string-match-p
-                              grand-parent-t
-                              (treesit-node-type
-                               (treesit-node-parent parent)))))))))
-    (no-node . ,(byte-compile
-                 (lambda (node &rest _) (null node))))
-    (parent-is . ,(byte-compile
-                   (lambda (type)
-                     (lambda (_n parent &rest _)
-                       (string-match-p
-                        type (treesit-node-type parent))))))
+                              type (treesit-node-type parent)))))
 
-    (node-is . ,(byte-compile
-                 (lambda (type)
-                   (lambda (node &rest _)
-                     (string-match-p
-                      type (or (treesit-node-type node) ""))))))
-    (field-is . ,(byte-compile
-                  (lambda (name)
-                    (lambda (node &rest _)
-                      (string-match-p
-                       name (or (treesit-node-field-name node) ""))))))
-    ;; TODO: Document.
-    (catch-all . ,(byte-compile (lambda (&rest _) t)))
+        (cons 'node-is (lambda (type)
+                         (lambda (node &rest _)
+                           (string-match-p
+                            type (or (treesit-node-type node) "")))))
+        (cons 'field-is (lambda (name)
+                          (lambda (node &rest _)
+                            (string-match-p
+                             name (or (treesit-node-field-name node) "")))))
+        ;; TODO: Document.
+        (cons 'catch-all (lambda (&rest _) t))
 
-    (query . ,(byte-compile
-               (lambda (pattern)
-                 (lambda (node parent &rest _)
-                   (cl-loop for capture
-                            in (treesit-query-capture
-                                parent pattern)
-                            if (treesit-node-eq node (cdr capture))
-                            return t
-                            finally return nil)))))
-    (first-sibling . ,(byte-compile
-                       (lambda (_n parent &rest _)
-                         (treesit-node-start
-                          (treesit-node-child parent 0)))))
-    ;; TODO: Document.
-    (nth-sibling . ,(byte-compile
-                     (lambda (n &optional named)
-                       (lambda (_n parent &rest _)
-                         (treesit-node-start
-                          (treesit-node-child parent n named))))))
-    (parent . ,(byte-compile
-                (lambda (_n parent &rest _)
-                  (treesit-node-start parent))))
-    ;; TODO: Document.
-    (grand-parent . ,(byte-compile
-                      (lambda (_n parent &rest _)
-                        (treesit-node-start (treesit-node-parent parent)))))
-    (parent-bol . ,(byte-compile
-                    (lambda (_n parent &rest _)
-                      (save-excursion
-                        (goto-char (treesit-node-start parent))
-                        (back-to-indentation)
-                        (point)))))
-    (prev-sibling . ,(byte-compile
-                      (lambda (node &rest _)
-                        (treesit-node-start
-                         (treesit-node-prev-sibling node)))))
-    (no-indent . ,(byte-compile (lambda (_n _p bol &rest _) bol)))
-    (prev-line . ,(byte-compile (lambda (_n _p bol &rest _)
-                                  (save-excursion
-                                    (goto-char bol)
-                                    (forward-line -1)
-                                    (skip-chars-forward " \t")))))
-    ;; TODO: Document.
-    (and . ,(byte-compile
-             (lambda (&rest fns)
-               (lambda (node parent bol &rest _)
-                 (cl-reduce (lambda (a b) (and a b))
-                            (mapcar (lambda (fn)
-                                      (funcall fn node parent bol))
-                                    fns))))))
-    (or . ,(byte-compile
-            (lambda (&rest fns)
-              (lambda (node parent bol &rest _)
-                (cl-reduce (lambda (a b) (or a b))
-                           (mapcar (lambda (fn)
-                                     (funcall fn node parent bol))
-                                   fns))))))
-    (not . ,(byte-compile
-             (lambda (fn)
-               (lambda (node parent bol &rest _)
-                 (debug)
-                 (not (funcall fn node parent bol))))))
-    (list . ,(byte-compile
-              (lambda (&rest fns)
-                (lambda (node parent bol &rest _)
-                  (mapcar (lambda (fn)
-                            (funcall fn node parent bol))
-                          fns))))))
+        (cons 'query (lambda (pattern)
+                       (lambda (node parent &rest _)
+                         (cl-loop for capture
+                                  in (treesit-query-capture
+                                      parent pattern)
+                                  if (treesit-node-eq node (cdr capture))
+                                  return t
+                                  finally return nil))))
+        (cons 'first-sibling (lambda (_n parent &rest _)
+                               (treesit-node-start
+                                (treesit-node-child parent 0))))
+        ;; TODO: Document.
+        (cons 'nth-sibling (lambda (n &optional named)
+                             (lambda (_n parent &rest _)
+                               (treesit-node-start
+                                (treesit-node-child parent n named)))))
+        (cons 'parent (lambda (_n parent &rest _)
+                        (treesit-node-start parent)))
+        ;; TODO: Document.
+        (cons 'grand-parent
+              (lambda (_n parent &rest _)
+                (treesit-node-start (treesit-node-parent parent))))
+        (cons 'parent-bol (lambda (_n parent &rest _)
+                            (save-excursion
+                              (goto-char (treesit-node-start parent))
+                              (back-to-indentation)
+                              (point))))
+        (cons 'prev-sibling (lambda (node &rest _)
+                              (treesit-node-start
+                               (treesit-node-prev-sibling node))))
+        (cons 'no-indent (lambda (_n _p bol &rest _) bol))
+        (cons 'prev-line (lambda (_n _p bol &rest _)
+                           (save-excursion
+                             (goto-char bol)
+                             (forward-line -1)
+                             (skip-chars-forward " \t"))))
+        ;; TODO: Document.
+        (cons 'and (lambda (&rest fns)
+                     (lambda (node parent bol &rest _)
+                       (cl-reduce (lambda (a b) (and a b))
+                                  (mapcar (lambda (fn)
+                                            (funcall fn node parent bol))
+                                          fns)))))
+        (cons 'or (lambda (&rest fns)
+                    (lambda (node parent bol &rest _)
+                      (cl-reduce (lambda (a b) (or a b))
+                                 (mapcar (lambda (fn)
+                                           (funcall fn node parent bol))
+                                         fns)))))
+        (cons 'not (lambda (fn)
+                     (lambda (node parent bol &rest _)
+                       (debug)
+                       (not (funcall fn node parent bol)))))
+        (cons 'list (lambda (&rest fns)
+                      (lambda (node parent bol &rest _)
+                        (mapcar (lambda (fn)
+                                  (funcall fn node parent bol))
+                                fns)))))
   "A list of presets.
 These presets that can be used as MATHER and ANCHOR in
 `treesit-simple-indent-rules'.
