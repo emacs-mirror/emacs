@@ -135,7 +135,7 @@ If this contains a %s, that will be replaced by the matching rule."
 	(if (eq major-mode (default-value 'major-mode))
 	    (sh-mode))))
 
-    (ada-mode . ada-header)
+    (ada-mode . ada-skel-initial-string)
 
     (("\\.[1-9]\\'" . "Man page skeleton")
      "Short description: "

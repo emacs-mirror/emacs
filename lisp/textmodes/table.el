@@ -266,11 +266,6 @@
 ;; all a table is still a part of text in the buffer.  Only the
 ;; special behaviors exist inside each cell through text properties.
 ;;
-;; `table-generate-html' which appeared in earlier releases is
-;; deprecated in favor of `table-generate-source'.  Now HTML is
-;; treated as one of the languages used for describing the table's
-;; logical structure.
-;;
 ;;
 ;; -------
 ;; Keymap:

@@ -2051,6 +2051,18 @@ Formerly it was a pair of numbers '(A B)' that represented 65536*A + B,
 to cater to older Emacs implementations that lacked bignums.
 The older form still works but is undocumented.
 
+** Rmail
+
+---
+*** Rmail partial summaries can now be applied one on top of the other.
+You can now narrow the filtering of messages by the summary's criteria
+(recipients, topic, senders, etc.) by making a summary of the already
+summarized messages.  For example, invoking 'rmail-summary-by-senders',
+followed by 'rmail-summary-by-topic' will produce a summary where both
+the senders and the topic are according to your selection.  The new
+user option 'rmail-summary-apply-filters-consecutively' controls
+whether the stacking of the filters is in effect.
+
 ** EIEIO
 
 +++
@@ -2517,6 +2529,12 @@ the user requesting such a connection, and not of the user who is the
 target.  This has always been needed, just the password prompt and the
 related 'auth-sources' entry were wrong.
 
++++
+*** New user option 'tramp-completion-use-cache'.
+During user and host name completion in the minibuffer, results from
+Tramp's connection cache are taken into account.  This can be disabled
+by setting the user option 'tramp-completion-use-cache' to nil.
+
 ** Browse URL
 
 ---
@@ -2645,6 +2663,14 @@ commands with a warning face as you type.
 +++
 *** New user option 'calc-kill-line-numbering'.
 Set it to nil to exclude line numbering from kills and copies.
+
+** Hierarchy
+
++++
+*** Tree Display can delay computation of children.
+'hierarchy-add-tree' and 'hierarchy-add-trees' have an optional
+argument which allows tree-widget display to be activated and computed
+only when the user expands the node.
 
 ** Miscellaneous
 
@@ -3164,6 +3190,15 @@ The following generalized variables have been made obsolete:
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+** Interpreted closures are "safe for space".
+As was already the case for byte-compiled closures, instead of capturing
+the whole current lexical environment, interpreted closures now only
+capture the part of the environment that they need.
+The previous behavior could occasionally lead to memory leaks or
+to problems where a printed closure would not be 'read'able because
+of an un'read'able value in an unrelated lexical variable.
 
 +++
 ** New accessor function 'file-attribute-file-identifier'.

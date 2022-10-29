@@ -3478,7 +3478,7 @@ Use \\[dired-hide-all] to (un)hide all directories."
       (dired-next-subdir 1 t))))
 
 ;;;###autoload
-(defun dired-hide-all (&optional ignored)
+(defun dired-hide-all (&optional _ignored)
   "Hide all subdirectories, leaving only their header lines.
 If there is already something hidden, make everything visible again.
 Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."

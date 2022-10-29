@@ -2572,6 +2572,7 @@ static const struct standard_args standard_args[] =
   { "-init-directory", "--init-directory", 30, 1 },
   { "-no-x-resources", "--no-x-resources", 40, 0 },
   { "-no-site-file", "--no-site-file", 40, 0 },
+  { "-no-comp-spawn", "--no-comp-spawn", 60, 0 },
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },

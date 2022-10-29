@@ -1525,7 +1525,7 @@ Some commands leave the region active after execution in such a way that
 it interferes with selective undo of that command.  To make @code{undo}
 ignore the active region when invoked immediately after such a command,
 set the property @code{undo-inhibit-region} of the command's function
-symbol to a non-nil value.  @xref{Standard Properties}.
+symbol to a non-@code{nil} value.  @xref{Standard Properties}.
 
 @node Maintaining Undo
 @section Maintaining Undo Lists
@@ -4876,7 +4876,7 @@ If the optional argument @var{no-pad} is non-@code{nil} then this
 function doesn't generate the padding.
 @end defun
 
-@deffn Command base64-decode-region beg end &optional base64url
+@deffn Command base64-decode-region beg end &optional base64url ignore-invalid
 This function converts the region from @var{beg} to @var{end} from base
 64 code into the corresponding decoded text.  It returns the length of
 the decoded text.
@@ -4885,9 +4885,11 @@ The decoding functions ignore newline characters in the encoded text.
 
 If optional argument @var{base64url} is non-@code{nil}, then padding
 is optional, and the URL variant of base 64 encoding is used.
+If optional argument @var{ignore-invalid} is non-@code{nil}, then any
+unrecognized characters are ignored.
 @end deffn
 
-@defun base64-decode-string string &optional base64url
+@defun base64-decode-string string &optional base64url ignore-invalid
 This function converts the string @var{string} from base 64 code into
 the corresponding decoded text.  It returns a unibyte string containing the
 decoded text.
@@ -4897,6 +4899,8 @@ The decoding functions ignore newline characters in the encoded text.
 
 If optional argument @var{base64url} is non-@code{nil}, then padding
 is optional, and the URL variant of base 64 encoding is used.
+If optional argument @var{ignore-invalid} is non-@code{nil}, then any
+unrecognized characters are ignored.
 @end defun
 
 @node Checksum/Hash
@@ -5922,7 +5926,7 @@ methods if these concepts apply to the transport.  If they do, then
 any system resources (e.g.@: processes, timers, etc.) used to listen for
 messages on the wire should be released in @code{jsonrpc-shutdown},
 i.e.@: they should only be needed while @code{jsonrpc-running-p} is
-non-nil.
+non-@code{nil}.
 
 @end enumerate
 

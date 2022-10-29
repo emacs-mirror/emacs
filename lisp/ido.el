@@ -3915,7 +3915,7 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
   "Return dotted pair (RES . 1)."
   (cons res 1))
 
-(defun ido-choose-completion-string (choice &rest ignored)
+(defun ido-choose-completion-string (choice &rest _ignored)
   (when (ido-active)
     ;; Insert the completion into the buffer where completion was requested.
     (and ido-completion-buffer

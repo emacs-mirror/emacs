@@ -507,7 +507,7 @@ This expects `auto-revert--messages' to be bound by
                  (should (equal (auto-revert-test--buffer-string buf-1) "1-a"))
                  (auto-revert-test--write-file "1-b" file-1)
                  ;; Since the file is deleted, it needs at least
-                 ;; `autorevert-interval' to recognize the new file,
+                 ;; `auto-revert-interval' to recognize the new file,
                  ;; while polling.  So increase the timeout.
                  (auto-revert-test--wait-for-buffer-text
                   buf-1 "1-b" (* 2 (auto-revert--timeout)))

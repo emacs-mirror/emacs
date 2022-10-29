@@ -525,7 +525,7 @@ Emacs Development Environment (@pxref{EDE,,, emacs, GNU Emacs
 Manual}).
 @end itemize
 
-Eglot uses the Emacs's project management infrastructure to figure out
+Eglot uses Emacs's project management infrastructure to figure out
 which files and buffers belong to what project, so any kind of project
 supported by that infrastructure is automatically supported by Eglot.
 
@@ -588,8 +588,8 @@ and also arranges for other Emacs features supported by Eglot
 (@pxref{Eglot Features}) to receive information from the language
 server, by changing the settings of these features.  Unlike other
 minor-modes, this special minor mode is not activated manually by the
-user, but automatically as result of starting an Eglot session for the
-buffer.  However, this minor mode provides a hook variable
+user, but automatically, as the result of starting an Eglot session
+for the buffer.  However, this minor mode provides a hook variable
 @code{eglot-managed-mode-hook} that can be used to customize the Eglot
 management of the buffer.  This hook is run both when the minor mode
 is turned on and when it's turned off; use the variable
@@ -614,7 +614,7 @@ visiting the file.
 @section Eglot Commands
 @cindex commands, Eglot
 
-This section provides a reference of the most commonly used Eglot
+This section provides a reference for the most commonly used Eglot
 commands:
 
 @ftable @code
@@ -672,7 +672,7 @@ communications with the language servers.
 @item M-x eglot-rename
 This command renames the program symbol (a.k.a.@: @dfn{identifier}) at
 point to another name.  It prompts for the new name of the symbol, and
-then modifies all the files in the project which arte managed by the
+then modifies all the files in the project which are managed by the
 language server of the current buffer to implement the renaming.
 
 @item M-x eglot-format
@@ -775,13 +775,13 @@ Request completion of the symbol at point.
 @section Eglot Variables
 @cindex variables, Eglot
 
-This section provides a reference of the Eglot' user options.
+This section provides a reference for the Eglot user options.
 
 @vtable @code
 @item eglot-autoreconnect
 This option controls the ability to reconnect automatically to the
 language server when Eglot detects that the server process terminated
-unexpectedly.  The default value 3 means to attempt reconnection only
+unexpectedly.  The default value @code{3} means to attempt reconnection only
 if the previous successful connection lasted for more than that number
 of seconds; a different positive value changes the minimal length of
 the connection to trigger reconnection.  A value of @code{t} means
@@ -798,10 +798,10 @@ out.  The default is 30 seconds.
 This setting is mainly important for connections which are slow to
 establish.  Whereas the variable @code{eglot-connect-timeout} controls
 how long to wait for, this variable controls whether to block Emacs's
-user interface while waiting.  The default value is 3; a positive
+user interface while waiting.  The default value is @code{3}; a positive
 value means block for that many seconds, then wait for the connection
 in the background.  The value of @code{t} means block during the whole
-waiting period.  The value of @code{nil} or zero means don't block at
+waiting period.  The value of @code{nil} or @code{0} means don't block at
 all during the waiting period.
 
 @item eglot-events-buffer-size
@@ -885,7 +885,7 @@ destination, customize the ElDoc variable
 @code{eldoc-display-functions}.
 @end itemize
 
-For this reason, this manual describes only how to customize the
+For this reason, this manual describes only how to customize
 Eglot's own operation, which mainly has to do with the server
 connections and the server features to be used by Eglot.
 
@@ -919,12 +919,12 @@ A hook run after Eglot started or stopped managing a buffer.
 @vindex eglot-stay-out-of
 @item eglot-stay-out-of
 This variable's value lists Emacs features that Eglot shouldn't
-automatically try to manage on user's behalf.  It is useful, for
+automatically try to manage on the user's behalf.  It is useful, for
 example, when you need to use non-LSP Flymake or Company back-ends.
-To have Eglot stay away of some Emacs feature, add that feature's
+To have Eglot stay away from some Emacs feature, add that feature's
 symbol or a regexp that will match a symbol's name to the list: for
 example, the symbol @code{xref} to leave Xref alone, or the string
-@samp{company} to stay away of your Company customizations.  Here's an
+@samp{company} to stay away from your Company customizations.  Here's an
 example:
 
 @lisp
@@ -949,7 +949,7 @@ tuning of per-project settings via the variable
 settings contained in this variable to each server for which such
 settings were defined in the variable.  These settings are
 communicated to the server initially (upon establishing the
-connection) or when the settings are changed, or in response to the
+connection) or when the settings are changed, or in response to a
 configuration request from the server.
 
 In many cases, servers can be configured globally using a
@@ -958,12 +958,12 @@ directory, which the language server reads.  For example, the
 @command{pylsp} server for Python reads the file
 @file{~/.config/pycodestyle} and the @command{clangd} server reads the
 file @file{.clangd} anywhere in the current project's directory tree.
-If possible, we recommend to use these configuration files that are
+If possible, we recommend using those configuration files that are
 independent of Eglot and Emacs; they have the advantage that they will
 work with other LSP clients as well.
 
 If you do need to provide Emacs-specific configuration for a language
-server, we recommend to define the appropriate value in the
+server, we recommend defining the appropriate value in the
 @file{.dir-locals.el} file in the project's directory.  The value of
 this variable should be a property list of the following format:
 
@@ -989,9 +989,10 @@ before actually connecting to the server.
 
 Here's an example of defining the workspace-configuration settings for
 a project that uses two different language servers, one for Python,
-whose server is @command{pylsp}, the other one for Go, with
-@command{gopls} as its server (presumably, the project is written in a
-combination of these two languages):
+the other one for Go (presumably, the project is written in a
+combination of these two languages).  The server for Python in this
+case is @command{pylsp}, the server for Go is @command{gopls}.  The
+value of @code{eglot-workspace-configuration} in this case should be:
 
 @lisp
 ((python-mode
@@ -1104,9 +1105,9 @@ sure to repeat the process after toggling @code{debug-on-error} on
 backtrace of the error that should also be attached to the bug report.
 
 @item
-An explanation how to obtain and install the language server you used.
-If possible, try to replicate the problem with the C/C@t{++} or Python
-servers, as these are very easy to install.
+An explanation of how to obtain, install, and configure the language
+server you used.  If possible, try to replicate the problem with the
+C/C@t{++} or Python servers, as these are very easy to install.
 
 @item
 A description of how to setup the @emph{minimal} project (one or two

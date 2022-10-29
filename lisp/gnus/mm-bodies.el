@@ -189,24 +189,8 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
 	    (quoted-printable-decode-region (point-min) (point-max))
 	    t)
 	   ((eq encoding 'base64)
-	    (base64-decode-region
-	     (point-min)
-	     (save-excursion
-               ;; Some mailers insert whitespace junk at the end which
-	       ;; base64-decode-region dislikes.
-	       (goto-char (point-min))
-	       (while (re-search-forward "^[\t ]*\r?\n" nil t)
-		 (delete-region (match-beginning 0) (match-end 0)))
-	       ;; Also ignore junk which could have been added by
-	       ;; mailing list software by finding the final line with
-	       ;; base64 text.
-	       (goto-char (point-max))
-               (beginning-of-line)
-               (while (and (not (mm-base64-line-p))
-                           (not (bobp)))
-                 (forward-line -1))
-               (forward-line 1)
-	       (point))))
+	    ;; MIME says to ignore any non-base64 junk
+	    (base64-decode-region (point-min) (point-max) nil t))
 	   ((memq encoding '(nil 7bit 8bit binary))
 	    ;; Do nothing.
 	    t)

@@ -6,7 +6,7 @@
 ;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
 ;; URL: https://git.sr.ht/~protesilaos/modus-themes
 ;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
-;; Version: 2.7.1
+;; Version: 3.0.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -88,7 +88,7 @@
   (require 'subr-x))
 
 (defgroup modus-themes ()
-  "Options for `modus-operandi', `modus-vivendi'.
+  "Options for `modus-operandi', `modus-vivendi' themes.
 The Modus themes conform with the WCAG AAA standard for color
 contrast between background and foreground combinations (a
 minimum contrast of 7:1---the highest standard of its kind).  The
@@ -103,13 +103,13 @@ cover the blue-cyan-magenta side of the spectrum."
   :tag "Modus Themes")
 
 (defgroup modus-themes-faces ()
-  "Faces defined by `modus-operandi' and `modus-vivendi'."
+  "Faces defined by `modus-operandi' and `modus-vivendi' themes."
   :group 'modus-themes
   :link '(info-link "(modus-themes) Top")
   :prefix "modus-themes-"
   :tag "Modus Themes Faces")
 
-(defvar modus-themes--version "2.7.0"
+(defvar modus-themes--version "3.0.0"
   "Current version of the Modus themes.
 
 The version either is the last tagged release, such as '1.0.0',
@@ -123,10 +123,7 @@ those would count as part of '1.1.0-dev'.")
 If optional INSERT argument is provided from Lisp or as a prefix
 argument, insert the `modus-themes--version' at point."
   (interactive "P")
-  (if-let ((version modus-themes--version)
-           ((or insert current-prefix-arg)))
-      (insert version)
-    (message version)))
+  (funcall (if insert 'insert 'message) modus-themes--version))
 
 ;;;###autoload
 (defun modus-themes-report-bug ()
@@ -1364,26 +1361,6 @@ The actual styling of the face is done by `modus-themes-faces'."
 The actual styling of the face is done by `modus-themes-faces'."
   :group 'modus-themes-faces)
 
-(define-obsolete-face-alias
- 'modus-themes-completion-standard-first-match
- 'modus-themes-completion-selected
- "2.2.0")
-
-(define-obsolete-face-alias
- 'modus-themes-completion-standard-selected
- 'modus-themes-completion-selected
- "2.2.0")
-
-(define-obsolete-face-alias
- 'modus-themes-completion-extra-selected
- 'modus-themes-completion-selected
- "2.2.0")
-
-(define-obsolete-face-alias
- 'modus-themes-completion-key-binding
- 'modus-themes-key-binding
- "2.2.0")
-
 (defface modus-themes-completion-selected nil
   "Face for current selection in completion UIs.
 The actual styling of the face is done by `modus-themes-faces'."
@@ -1934,20 +1911,22 @@ For example:
   :initialize #'custom-initialize-default
   :link '(info-link "(modus-themes) Org agenda"))
 
-(defcustom modus-themes-fringes nil
-  "Define the visibility of fringes.
+(defcustom modus-themes-fringes 'subtle
+  "Control the visibility of fringes.
 
-Nil means the fringes have no background color.  Option `subtle'
-will apply a grayscale value that is visible yet close to the
-main buffer background color.  Option `intense' will use a more
-pronounced grayscale value."
+When the value is nil, do not apply a distinct background color.
+
+With a value of `subtle' use a gray background color that is
+visible yet close to the main background color.
+
+With `intense' use a more pronounced gray background color."
   :group 'modus-themes
-  :package-version '(modus-themes . "1.0.0")
-  :version "28.1"
+  :package-version '(modus-themes . "3.0.0")
+  :version "29.1"
   :type '(choice
-          (const :format "[%v] %t\n" :tag "No visible fringes (default)" nil)
-          (const :format "[%v] %t\n" :tag "Subtle grayscale background" subtle)
-          (const :format "[%v] %t\n" :tag "Intense grayscale background" intense))
+          (const :format "[%v] %t\n" :tag "No visible fringes" nil)
+          (const :format "[%v] %t\n" :tag "Subtle gray background" subtle)
+          (const :format "[%v] %t\n" :tag "Intense gray background" intense))
   :set #'modus-themes--set-option
   :initialize #'custom-initialize-default
   :link '(info-link "(modus-themes) Fringes"))
@@ -2212,13 +2191,16 @@ interest of optimizing for such a use-case."
   :initialize #'custom-initialize-default
   :link '(info-link "(modus-themes) Diffs"))
 
-(defcustom modus-themes-completions nil
+(defcustom modus-themes-completions
+  '((selection . (intense))
+    (popup . (intense)))
   "Control the style of completion user interfaces.
 
 This affects Company, Corfu, Flx, Helm, Icomplete/Fido, Ido, Ivy,
-Mct, Orderless, Selectrum, Vertico.  The value is an alist that
-takes the form of a (key . properties) combination.  Here is a
-sample, followed by a description of the particularities:
+Orderless, Selectrum, Vertico.  The value is an alist that takes
+the form of a (KEY . PROPERTIES) combination.  KEY is a symbol,
+while PROPERTIES is a list.  Here is a sample, followed by a
+description of the particularities:
 
     (setq modus-themes-completions
           (quote ((matches . (extrabold background intense))
@@ -2226,10 +2208,11 @@ sample, followed by a description of the particularities:
                   (popup . (accented)))))
 
 The `matches' key refers to the highlighted characters that
-correspond to the user's input.  By default (nil or an empty
-list), they have a bold weight and a colored foreground.  The
-list of properties may include any of the following symbols
-regardless of the order they may appear in:
+correspond to the user's input.  When its properties are nil or
+an empty list, matching characters in the user interface will
+have a bold weight and a colored foreground.  The list of
+properties may include any of the following symbols regardless of
+the order they may appear in:
 
 - `background' to add a background color;
 
@@ -2246,10 +2229,10 @@ regardless of the order they may appear in:
   that bold will be used.
 
 The `selection' key applies to the current line or currently
-matched candidate, depending on the specifics of the User
-Interface.  By default (nil or an empty list), it has a subtle
-gray background, a bold weight, and the base foreground value
-for the text.  The list of properties it accepts is as
+matched candidate, depending on the specifics of the user
+interface.  When its properties are nil or an empty list, it has
+a subtle gray background, a bold weight, and the base foreground
+value for the text.  The list of properties it accepts is as
 follows (order is not significant):
 
 - `accented' to make the background colorful instead of gray;
@@ -2268,7 +2251,11 @@ follows (order is not significant):
   variable `modus-themes-weights'.  The absence of a weight means
   that bold will be used.
 
-The `popup' key takes the same values as `selection'.
+The `popup' key takes the same values as `selection'.  The only
+difference is that it applies specifically to user interfaces
+that display an inline popup and thus have slightly different
+styling requirements than the minibuffer.  The two prominent
+packages are `company' and `corfu'.
 
 Apart from specifying each key separately, a fallback list is
 accepted.  This is only useful when the desired aesthetic is the
@@ -2290,22 +2277,14 @@ the corresponding key is simply ignored (`matches' does not have
 `accented' and `text-also', while `selection' and `popup' do not
 have `background').
 
-A concise expression of those associations can be written as
-follows, where the `car' is always the key and the `cdr' is the
-list of properties (whatever order they may appear in):
-
-    (setq modus-themes-completions
-          (quote ((matches extrabold background intense)
-                  (selection semibold accented intense)
-                  (popup accented))))
-
 Check the manual for tweaking `bold' and `italic' faces: Info
 node `(modus-themes) Configure bold and italic faces'.
 
-Also refer to the Orderless documentation for its intersection
-with Company (if you choose to use those in tandem)."
+Also refer to the documentation of the `orderless' package for
+its intersection with `company' (if you choose to use those in
+tandem)."
   :group 'modus-themes
-  :package-version '(modus-themes . "2.3.0")
+  :package-version '(modus-themes . "3.0.0")
   :version "29.1"
   :type `(set
           (cons :tag "Matches"
@@ -2420,11 +2399,11 @@ In user configuration files the form may look like this:
   :initialize #'custom-initialize-default
   :link '(info-link "(modus-themes) Command prompts"))
 
-(defcustom modus-themes-hl-line nil
-  "Control the current line highlight of HL-line mode.
+(defcustom modus-themes-hl-line '(intense)
+  "Control the current line highlight of `hl-line-mode'.
 
 The value is a list of properties, each designated by a symbol.
-The default (a nil value or an empty list) is a subtle gray
+With a nil value, or an empty list, the style is a subtle gray
 background color.
 
 The property `accented' changes the background to a colored
@@ -2450,11 +2429,12 @@ In user configuration files the form may look like this:
 
     (setq modus-themes-hl-line (quote (underline accented)))
 
-Set `x-underline-at-descent-line' to a non-nil value for better
-results with underlines."
+Set `x-underline-at-descent-line' to a non-nil value so that the
+placement of the underline coincides with the lower boundary of
+the colored background."
   :group 'modus-themes
-  :package-version '(modus-themes . "1.5.0")
-  :version "28.1"
+  :package-version '(modus-themes . "3.0.0")
+  :version "29.1"
   :type '(set :tag "Properties" :greedy t
               (const :tag "Colored background" accented)
               (const :tag "Underline" underline)
@@ -2521,8 +2501,6 @@ Also check the variables `org-hide-emphasis-markers',
   :set #'modus-themes--set-option
   :initialize #'custom-initialize-default
   :link '(info-link "(modus-themes) Markup"))
-
-(make-obsolete 'modus-themes-intense-markup 'modus-themes-markup "2.1.0")
 
 (defcustom modus-themes-paren-match nil
   "Control the style of matching parentheses or delimiters.
@@ -3225,11 +3203,6 @@ an alternative to the default value."
   "Get cdr of KEY in ALIST."
   (cdr (assoc key alist)))
 
-(define-obsolete-variable-alias
-  'modus-themes--heading-weights
-  'modus-themes-weights
-  "2.1.0")
-
 (defconst modus-themes-weights
   '( thin ultralight extralight light semilight regular medium
      semibold bold heavy extrabold ultrabold)
@@ -3581,9 +3554,6 @@ foreground unspecified."
   (if modus-themes-deuteranopia
       (list deuteran)
     (list main)))
-
-(make-obsolete 'modus-themes--completion 'modus-themes--completion-line "2.3.0")
-(make-obsolete 'modus-themes--completion 'modus-themes--completion-match "2.3.0")
 
 (defun modus-themes--completion-line (key bg fg bgintense fgintense &optional bgaccent bgaccentintense)
   "Styles for `modus-themes-completions'.
@@ -4309,8 +4279,8 @@ by virtue of calling either of `modus-themes-load-operandi' and
                   magenta-subtle-bg magenta-intense))))
     `(modus-themes-completion-match-1
       ((,class ,@(modus-themes--completion-match
-                  'matches bg-special-faint-cold cyan
-                  cyan-subtle-bg cyan-intense))))
+                  'matches bg-special-faint-cold blue
+                  blue-subtle-bg blue-intense))))
     `(modus-themes-completion-match-2
       ((,class ,@(modus-themes--completion-match
                   'matches bg-special-faint-mild green
@@ -4798,9 +4768,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(consult-line-number-prefix ((,class :foreground ,fg-unfocused)))
     `(consult-narrow-indicator ((,class :foreground ,magenta-alt)))
     `(consult-preview-cursor ((,class :inherit modus-themes-intense-blue)))
-    `(consult-preview-error ((,class :inherit modus-themes-intense-red)))
     `(consult-preview-insertion ((,class :inherit modus-themes-special-warm)))
-    `(consult-preview-line ((,class :background ,bg-hl-alt-intense)))
 ;;;;; corfu
     `(corfu-current ((,class :inherit modus-themes-completion-selected-popup)))
     `(corfu-bar ((,class :background ,fg-alt)))
@@ -4928,16 +4896,12 @@ by virtue of calling either of `modus-themes-load-operandi' and
 ;;;;; diff-hl
     `(diff-hl-change ((,class :inherit modus-themes-fringe-yellow)))
     `(diff-hl-delete ((,class :inherit modus-themes-fringe-red)))
-    `(diff-hl-dired-change ((,class :inherit diff-hl-change)))
-    `(diff-hl-dired-delete ((,class :inherit diff-hl-delete)))
-    `(diff-hl-dired-ignored ((,class :inherit dired-ignored)))
-    `(diff-hl-dired-insert ((,class :inherit diff-hl-insert)))
-    `(diff-hl-dired-unknown ((,class :inherit dired-ignored)))
     `(diff-hl-insert ((,class :inherit modus-themes-grue-background-active)))
     `(diff-hl-reverted-hunk-highlight ((,class :background ,fg-main :foreground ,bg-main)))
 ;;;;; diff-mode
     `(diff-added ((,class :inherit modus-themes-diff-added)))
     `(diff-changed ((,class :inherit modus-themes-diff-changed :extend t)))
+    `(diff-changed-unspecified ((,class :inherit diff-changed)))
     `(diff-context ((,class ,@(unless (eq modus-themes-diffs 'bg-only) (list :foreground fg-unfocused)))))
     `(diff-error ((,class :inherit modus-themes-intense-red)))
     `(diff-file-header ((,class :inherit (bold diff-header))))
@@ -5741,17 +5705,43 @@ by virtue of calling either of `modus-themes-load-operandi' and
     ;; HACK 2022-06-23: The :inverse-video prevents hl-line-mode from
     ;; overriding the background.  Such an override really defeats the
     ;; purpose of setting those highlights.
-    `(hi-aquamarine ((,class :background ,bg-main :foreground ,cyan :inverse-video t)))
+    ;;
+    ;; NOTE 2022-10-04: We do not use the ,class here but instead
+    ;; hardcode color values.  We have to do this as the themes lack
+    ;; entries in their palette for such an edge case.  Defining those
+    ;; entries is not appropriate.
+    `(hi-aquamarine ((((class color) (min-colors 88) (background light))
+                      :background "white" :foreground "#227f9f" :inverse-video t)
+                     (((class color) (min-colors 88) (background dark))
+                      :background "black" :foreground "#66cbdc" :inverse-video t)))
     `(hi-black-b ((,class :inverse-video t)))
     `(hi-black-hb ((,class :background ,bg-main :foreground ,fg-alt :inverse-video t)))
-    `(hi-blue ((,class :background ,bg-main :foreground ,blue-alt :inverse-video t)))
+    `(hi-blue ((((class color) (min-colors 88) (background light))
+                :background "white" :foreground "#3366dd" :inverse-video t)
+               (((class color) (min-colors 88) (background dark))
+                :background "black" :foreground "#aaccff" :inverse-video t)))
     `(hi-blue-b ((,class :inherit (bold hi-blue))))
-    `(hi-green ((,class :background ,bg-main :foreground ,green :inverse-video t)))
+    `(hi-green ((((class color) (min-colors 88) (background light))
+                  :background "white" :foreground "#008a00" :inverse-video t)
+                 (((class color) (min-colors 88) (background dark))
+                  :background "black" :foreground "#66dd66" :inverse-video t)))
     `(hi-green-b ((,class :inherit (bold hi-green))))
-    `(hi-pink ((,class :background ,bg-main :foreground ,magenta :inverse-video t)))
-    `(hi-red-b ((,class :inherit bold :background ,bg-main :foreground ,red :inverse-video t)))
-    `(hi-salmon ((,class :background ,bg-main :foreground ,red-alt-faint :inverse-video t)))
-    `(hi-yellow ((,class :background ,bg-main :foreground ,yellow-alt :inverse-video t)))
+    `(hi-pink ((((class color) (min-colors 88) (background light))
+                  :background "white" :foreground "#bd30aa" :inverse-video t)
+                 (((class color) (min-colors 88) (background dark))
+                  :background "black" :foreground "#ff88ee" :inverse-video t)))
+    `(hi-red-b ((((class color) (min-colors 88) (background light))
+                  :background "white" :foreground "#dd0000" :inverse-video t)
+                 (((class color) (min-colors 88) (background dark))
+                  :background "black" :foreground "#f06666" :inverse-video t)))
+    `(hi-salmon ((((class color) (min-colors 88) (background light))
+                  :background "white" :foreground "#bf555a" :inverse-video t)
+                 (((class color) (min-colors 88) (background dark))
+                  :background "black" :foreground "#e08a50" :inverse-video t)))
+    `(hi-yellow ((((class color) (min-colors 88) (background light))
+                  :background "white" :foreground "#af6400" :inverse-video t)
+                 (((class color) (min-colors 88) (background dark))
+                  :background "black" :foreground "#faea00" :inverse-video t)))
     `(highlight ((,class ,@(if modus-themes-intense-mouseovers
                                (list :background blue-intense-bg :foreground fg-main)
                              (list :background cyan-subtle-bg :foreground fg-main)))))
@@ -5800,6 +5790,8 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(iflipb-other-buffer-face ((,class :inherit shadow)))
 ;;;;; image-dired
     `(image-dired-thumb-flagged ((,class :background ,red-intense-bg)))
+    `(image-dired-thumb-header-file-name ((,class :inherit bold)))
+    `(image-dired-thumb-header-file-size ((,class :foreground ,blue-active)))
     `(image-dired-thumb-mark ((,class :inherit modus-themes-grue-background-intense)))
 ;;;;; imenu-list
     `(imenu-list-entry-face-0 ((,class :foreground ,cyan)))
@@ -6485,6 +6477,8 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(nxml-prolog-keyword ((,class :inherit font-lock-keyword-face)))
     `(nxml-ref ((,class :inherit modus-themes-bold :foreground ,fg-special-mild)))
     `(rng-error ((,class :inherit error)))
+;;;;; olivetti
+    `(olivetti-fringe ((,class :background ,bg-main)))
 ;;;;; orderless
     `(orderless-match-face-0 ((,class :inherit modus-themes-completion-match-0)))
     `(orderless-match-face-1 ((,class :inherit modus-themes-completion-match-1)))
@@ -7109,17 +7103,13 @@ by virtue of calling either of `modus-themes-load-operandi' and
 ;;;;; table (built-in table.el)
     `(table-cell ((,class :background ,blue-nuanced-bg)))
 ;;;;; telega
-    ;; FIXME 2021-03-28: Some aspects of `telega' are not fully
-    ;; supported or have not been tested thoroughly.  Please understand
-    ;; that I do not use that service because it requires a smartphone
-    ;; and I have none.  Help with testing is appreciated.
     `(telega-button ((,class :box t :foreground ,blue)))
     `(telega-button-active ((,class :box ,blue-intense-bg :background ,blue-intense-bg :foreground ,fg-main)))
     `(telega-button-highlight ((,class :inherit modus-themes-subtle-magenta)))
     `(telega-chat-prompt ((,class :inherit bold)))
-    `(telega-entity-type-code ((,class :inherit modus-themes-fixed-pitch)))
+    `(telega-entity-type-code ((,class :inherit modus-themes-markup-verbatim)))
     `(telega-entity-type-mention ((,class :foreground ,cyan)))
-    `(telega-entity-type-pre ((,class :inherit modus-themes-fixed-pitch)))
+    `(telega-entity-type-pre ((,class :inherit modus-themes-markup-code)))
     `(telega-entity-type-spoiler ((,class :background ,fg-main :foreground ,fg-main)))
     `(telega-msg-heading ((,class :background ,bg-alt)))
     `(telega-msg-self-title ((,class :inherit bold)))
@@ -7168,7 +7158,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(term-color-yellow ((,class :background ,yellow :foreground ,yellow)))
     `(term-underline ((,class :underline t)))
 ;;;;; textsec
-    `(textsec-suspicious ((,class :inherit modus-themes-refine-red)))
+    `(textsec-suspicious (()))
 ;;;;; tomatinho
     `(tomatinho-ok-face ((,class :foreground ,blue-intense)))
     `(tomatinho-pause-face ((,class :foreground ,yellow-intense)))

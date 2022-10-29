@@ -1,7 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2022 Free Software Foundation,
-Inc.
+Copyright (C) 1985-2022  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -643,10 +642,8 @@ extern bool initialized;
 extern struct gflags
 {
   /* True means this Emacs instance was born to dump.  */
-#if defined HAVE_PDUMPER || defined HAVE_UNEXEC
   bool will_dump_ : 1;
   bool will_bootstrap_ : 1;
-#endif
 #ifdef HAVE_PDUMPER
   /* Set in an Emacs process that will likely dump with pdumper; all
      Emacs processes may dump with pdumper, however.  */
@@ -2711,10 +2708,9 @@ struct Lisp_Overlay
 */
   {
     union vectorlike_header header;
-    Lisp_Object start;
-    Lisp_Object end;
     Lisp_Object plist;
-    struct Lisp_Overlay *next;
+    struct buffer *buffer;        /* eassert (live buffer || NULL). */
+    struct itree_node *interval;
   } GCALIGNED_STRUCT;
 
 struct Lisp_Misc_Ptr
@@ -4528,7 +4524,6 @@ extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern specpdl_ref inhibit_garbage_collection (void);
 extern Lisp_Object build_symbol_with_pos (Lisp_Object, Lisp_Object);
-extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
 extern void init_alloc_once (void);
 extern void init_alloc (void);

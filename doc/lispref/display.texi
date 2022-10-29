@@ -2587,7 +2587,7 @@ meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
 @var{style} should be a symbol @code{line} or @code{wave}, meaning to
 use a straight or wavy line.  Omitting the attribute @code{:style}
-means to use a straight line.  @var{position}, if non-nil, means to
+means to use a straight line.  @var{position}, if non-@code{nil}, means to
 display the underline at the descent of the text, instead of at the
 baseline level.  If it is a number, then it specifies the amount of
 pixels above the descent to display the underline.
@@ -7347,7 +7347,7 @@ Display the next search result in @var{xwidget}.  This function will
 signal an error if a search query has not been already started in
 @var{xwidget} through @code{xwidget-webkit-search}.
 
-If @code{wrap-around} was non-nil when @code{xwidget-webkit-search}
+If @code{wrap-around} was non-@code{nil} when @code{xwidget-webkit-search}
 was called, then the search will restart from the beginning of the
 document when its end is reached.
 @end defun
@@ -7357,7 +7357,7 @@ Display the previous search result in @var{xwidget}.  This function
 signals an error if a search query has not been already started in
 @var{xwidget} through @code{xwidget-webkit-search}.
 
-If @code{wrap-around} was non-nil when @code{xwidget-webkit-search}
+If @code{wrap-around} was non-@code{nil} when @code{xwidget-webkit-search}
 was called, then the search will restart from the end of the
 document when its beginning is reached.
 @end defun

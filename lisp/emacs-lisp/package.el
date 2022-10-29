@@ -835,8 +835,7 @@ byte-compilation of the new package to fail."
 If DEPS is non-nil, also activate its dependencies (unless they
 are already activated).
 If RELOAD is non-nil, also `load' any files inside the package which
-correspond to previously loaded files (those returned by
-`package--list-loaded-files')."
+correspond to previously loaded files."
   (let* ((name (package-desc-name pkg-desc))
          (pkg-dir (package-desc-dir pkg-desc)))
     (unless pkg-dir

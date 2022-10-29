@@ -178,7 +178,7 @@ Earlier variables shadow later ones with the same name.")
                ;; be displayed when the function's source file will be
                ;; compiled anyway, but more importantly we would otherwise
                ;; emit spurious warnings here because we don't have the full
-               ;; context, such as `declare-functions' placed earlier in the
+               ;; context, such as `declare-function's placed earlier in the
                ;; source file's code or `with-suppressed-warnings' that
                ;; surrounded the `defsubst'.
                (byte-compile-warnings nil))

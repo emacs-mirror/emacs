@@ -1,7 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2022 Free Software Foundation,
-Inc.
+Copyright (C) 1985-2022  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "character.h"
 #include "lisp.h"
+#include "itree.h"
 
 INLINE_HEADER_BEGIN
 
@@ -697,16 +697,8 @@ struct buffer
      display optimizations must be used.  */
   bool_bf long_line_optimizations_p : 1;
 
-  /* List of overlays that end at or before the current center,
-     in order of end-position.  */
-  struct Lisp_Overlay *overlays_before;
-
-  /* List of overlays that end after  the current center,
-     in order of start-position.  */
-  struct Lisp_Overlay *overlays_after;
-
-  /* Position where the overlay lists are centered.  */
-  ptrdiff_t overlay_center;
+  /* The inveral tree containing this buffer's overlays. */
+  struct itree_tree *overlays;
 
   /* Changes in the buffer are recorded here for undo, and t means
      don't record anything.  This information belongs to the base
@@ -714,6 +706,14 @@ struct buffer
      struct buffer_text because local variables have to be right in
      the struct buffer. So we copy it around in set_buffer_internal.  */
   Lisp_Object undo_list_;
+};
+
+struct sortvec
+{
+  Lisp_Object overlay;
+  ptrdiff_t beg, end;
+  EMACS_INT priority;
+  EMACS_INT spriority;		/* Secondary priority.  */
 };
 
 INLINE bool
@@ -1171,8 +1171,11 @@ extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void compact_buffer (struct buffer *);
 extern void evaporate_overlays (ptrdiff_t);
-extern ptrdiff_t overlays_at (EMACS_INT, bool, Lisp_Object **,
-			      ptrdiff_t *, ptrdiff_t *, ptrdiff_t *, bool);
+extern ptrdiff_t overlays_at (ptrdiff_t, bool, Lisp_Object **, ptrdiff_t *, ptrdiff_t *);
+extern ptrdiff_t overlays_in (ptrdiff_t, ptrdiff_t, bool, Lisp_Object **,
+                              ptrdiff_t *,  bool, bool, ptrdiff_t *);
+extern ptrdiff_t previous_overlay_change (ptrdiff_t);
+extern ptrdiff_t next_overlay_change (ptrdiff_t);
 extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
 extern void recenter_overlay_lists (struct buffer *, ptrdiff_t);
 extern ptrdiff_t overlay_strings (ptrdiff_t, struct window *, unsigned char **);
@@ -1186,6 +1189,7 @@ extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void mmap_set_vars (bool);
 extern void restore_buffer (Lisp_Object);
 extern void set_buffer_if_live (Lisp_Object);
+extern Lisp_Object build_overlay (bool, bool, Lisp_Object);
 
 /* Return B as a struct buffer pointer, defaulting to the current buffer.  */
 
@@ -1226,18 +1230,16 @@ record_unwind_current_buffer (void)
    This macro might evaluate its args multiple times,
    and it treat some args as lvalues.  */
 
-#define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
+#define GET_OVERLAYS_AT(posn, overlays, noverlays, next)                \
   do {									\
     ptrdiff_t maxlen = 40;						\
     SAFE_NALLOCA (overlays, 1, maxlen);					\
-    (noverlays) = overlays_at (posn, false, &(overlays), &maxlen,	\
-			       nextp, NULL, chrq);			\
+    (noverlays) = overlays_at (posn, false, &(overlays), &maxlen, next); \
     if ((noverlays) > maxlen)						\
       {									\
 	maxlen = noverlays;						\
 	SAFE_NALLOCA (overlays, 1, maxlen);				\
-	(noverlays) = overlays_at (posn, false, &(overlays), &maxlen,	\
-				   nextp, NULL, chrq);			\
+	(noverlays) = overlays_at (posn, false, &(overlays), &maxlen, next); \
       }									\
   } while (false)
 
@@ -1272,7 +1274,8 @@ set_buffer_intervals (struct buffer *b, INTERVAL i)
 INLINE bool
 buffer_has_overlays (void)
 {
-  return current_buffer->overlays_before || current_buffer->overlays_after;
+  return current_buffer->overlays
+         && (current_buffer->overlays->root != NULL);
 }
 
 /* Functions for accessing a character or byte,
@@ -1390,25 +1393,69 @@ buffer_window_count (struct buffer *b)
 
 /* Overlays */
 
-/* Return the marker that stands for where OV starts in the buffer.  */
+INLINE ptrdiff_t
+overlay_start (struct Lisp_Overlay *ov)
+{
+  if (! ov->buffer)
+    return -1;
+  return itree_node_begin (ov->buffer->overlays, ov->interval);
+}
 
-#define OVERLAY_START(OV) XOVERLAY (OV)->start
+INLINE ptrdiff_t
+overlay_end (struct Lisp_Overlay *ov)
+{
+  if (! ov->buffer)
+    return -1;
+  return itree_node_end (ov->buffer->overlays, ov->interval);
+}
 
-/* Return the marker that stands for where OV ends in the buffer.  */
+/* Return the start of OV in its buffer, or -1 if OV is not associated
+   with any buffer.  */
 
-#define OVERLAY_END(OV) XOVERLAY (OV)->end
+INLINE ptrdiff_t
+OVERLAY_START (Lisp_Object ov)
+{
+  return overlay_start (XOVERLAY (ov));
+}
+
+/* Return the end of OV in its buffer, or -1. */
+
+INLINE ptrdiff_t
+OVERLAY_END (Lisp_Object ov)
+{
+  return overlay_end (XOVERLAY (ov));
+}
 
 /* Return the plist of overlay OV.  */
 
-#define OVERLAY_PLIST(OV) XOVERLAY (OV)->plist
-
-/* Return the actual buffer position for the marker P.
-   We assume you know which buffer it's pointing into.  */
-
-INLINE ptrdiff_t
-OVERLAY_POSITION (Lisp_Object p)
+INLINE Lisp_Object
+OVERLAY_PLIST (Lisp_Object ov)
 {
-  return marker_position (p);
+  return XOVERLAY (ov)->plist;
+}
+
+/* Return the buffer of overlay OV. */
+
+INLINE struct buffer *
+OVERLAY_BUFFER (Lisp_Object ov)
+{
+  return XOVERLAY (ov)->buffer;
+}
+
+/* Return true, if OV's rear-advance is set. */
+
+INLINE bool
+OVERLAY_REAR_ADVANCE_P (Lisp_Object ov)
+{
+  return XOVERLAY (ov)->interval->rear_advance;
+}
+
+/* Return true, if OV's front-advance is set. */
+
+INLINE bool
+OVERLAY_FRONT_ADVANCE_P (Lisp_Object ov)
+{
+  return XOVERLAY (ov)->interval->front_advance;
 }
 
 
@@ -1691,5 +1738,8 @@ dec_both (ptrdiff_t *charpos, ptrdiff_t *bytepos)
 }
 
 INLINE_HEADER_END
+
+int compare_overlays (const void *v1, const void *v2);
+void make_sortvec_item (struct sortvec *item, Lisp_Object overlay);
 
 #endif /* EMACS_BUFFER_H */

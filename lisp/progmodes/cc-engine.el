@@ -6693,8 +6693,7 @@ comment at the start of cc-engine.el for more info."
 	  ;; syntactic ws.
 	  (when (and cfd-match-pos (< cfd-match-pos syntactic-pos))
 	    (goto-char syntactic-pos)
-	    (c-forward-syntactic-ws
-	     (min (+ (point) 2000) (point-max)))
+	    (c-forward-syntactic-ws cfd-limit)
 	    (and cfd-continue-pos
 		 (< cfd-continue-pos (point))
 		 (setq cfd-token-pos (point))))
@@ -6735,8 +6734,7 @@ comment at the start of cc-engine.el for more info."
 			;; can't be nested, and that's already been done in
 			;; `c-find-decl-prefix-search'.
 			(when (> cfd-continue-pos cfd-token-pos)
-			  (c-forward-syntactic-ws
-			   (min (+ (point) 2000) (point-max)))
+			  (c-forward-syntactic-ws cfd-limit)
 			  (setq cfd-token-pos (point)))
 
 			;; Continue if the following token fails the
@@ -8196,7 +8194,8 @@ multi-line strings (but not C++, for example)."
 ;; treat possible types (i.e. those that it normally returns 'maybe or
 ;; 'found for) as actual types (and always return 'found for them).
 ;; This means that it records them in `c-record-type-identifiers' if
-;; that is set, and that it adds them to `c-found-types'.
+;; that is set, and that if its value is t (not 'just-one), it adds
+;; them to `c-found-types'.
 (defvar c-promote-possible-types nil)
 
 ;; Dynamically bound variable that instructs `c-forward-<>-arglist' to
@@ -9193,10 +9192,11 @@ multi-line strings (but not C++, for example)."
 	     (goto-char id-end)
 	     (if (or res c-promote-possible-types)
 		 (progn
-		   (c-add-type id-start (save-excursion
-					  (goto-char id-end)
-					  (c-backward-syntactic-ws)
-					  (point)))
+		   (when (not (eq c-promote-possible-types 'just-one))
+		     (c-add-type id-start (save-excursion
+					    (goto-char id-end)
+					    (c-backward-syntactic-ws)
+					    (point))))
 		   (when (and c-record-type-identifiers id-range)
 		     (c-record-type-id id-range))
 		   (unless res
@@ -10031,7 +10031,8 @@ This function might do hidden buffer changes."
 	;; This identifier is bound only in the inner let.
 	'(setq start id-start))))
 
-(defun c-forward-decl-or-cast-1 (preceding-token-end context last-cast-end)
+(defun c-forward-decl-or-cast-1 (preceding-token-end context last-cast-end
+						     &optional inside-macro)
   ;; Move forward over a declaration or a cast if at the start of one.
   ;; The point is assumed to be at the start of some token.  Nil is
   ;; returned if no declaration or cast is recognized, and the point
@@ -10119,6 +10120,10 @@ This function might do hidden buffer changes."
   ;; the position after the closest preceding call where a cast was
   ;; matched.  In that case it's used to discover chains of casts like
   ;; "(a) (b) c".
+  ;;
+  ;; INSIDE-MACRO is t when we definitely know we're inside a macro, nil
+  ;; otherwise.  We use it to disambiguate things like "(a) (b);", which is
+  ;; likely a function call in a macro, but a cast outside of one.
   ;;
   ;; This function records identifier ranges on
   ;; `c-record-type-identifiers' and `c-record-ref-identifiers' if
@@ -11104,11 +11109,17 @@ This function might do hidden buffer changes."
 		   ;; Check if the expression begins with a prefix keyword.
 		   (match-beginning 2)
 		   (if (match-beginning 1)
-		       ;; Expression begins with an ambiguous operator.  Treat
-		       ;; it as a cast if it's a type decl or if we've
-		       ;; recognized the type somewhere else.
-		       (or at-decl-or-cast
-			   (memq at-type '(t known found)))
+		       ;; Expression begins with an ambiguous operator.
+		       (cond
+			((match-beginning c-per-&*+--match)
+			 (memq at-type '(t known found)))
+			((match-beginning c-per-++---match)
+			 t)
+			((match-beginning c-per-\(-match)
+			 (or
+			  (memq at-type '(t known found))
+			  (not inside-macro)))
+			(t nil))
 		     ;; Unless it's a keyword, it's the beginning of a primary
 		     ;; expression.
 		     (not (looking-at c-keywords-regexp)))))
@@ -11134,18 +11145,33 @@ This function might do hidden buffer changes."
 		     ;; surrounding parens).
 		     (looking-at c-simple-stmt-key)
 		   (and
-		    ;; Check that it isn't a close paren (block close is ok,
-		    ;; though).
-		    (not (memq (char-before) '(?\) ?\])))
+		    ;; Check that it isn't a close paren (block close , or a
+		    ;; macro arglist is ok, though).
+		    (or
+		     (not (memq (char-before) '(?\) ?\])))
+		     ;; Have we moved back to a macro arglist?
+		     (and c-opt-cpp-prefix
+			  (eq (char-before) ?\))
+			  (save-excursion
+			    (and
+			     (c-go-list-backward)
+			     (let (pos)
+			       (c-backward-syntactic-ws)
+			       (and (setq pos (c-on-identifier))
+				    (goto-char pos)))
+			     (zerop (c-backward-token-2 2))
+			     (looking-at c-opt-cpp-macro-define-start)))))
+
 		    ;; Check that it isn't a nonsymbol identifier.
 		    (not (c-on-identifier)))))))))
 
       ;; Handle the cast.
       (when (and c-record-type-identifiers
 		 at-type
-		 (not (memq at-type '(t maybe)))) ; 'maybe isn't strong enough
-					; evidence to promote the type.
-	(let ((c-promote-possible-types t))
+		 (not (eq at-type t)))
+	(let ((c-promote-possible-types (if (eq at-type 'maybe)
+					    'just-one
+					  t)))
 	  (goto-char type-start)
 	  (c-forward-type)))
 

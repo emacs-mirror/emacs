@@ -263,7 +263,7 @@ must evaluate to a regular expression string."
 
 (ert-deftest module--test-assertions--load-non-live-object-with-global-copy ()
   "Check that -module-assertions verify that non-live objects aren't accessed.
-This differs from `module--test-assertions-load-non-live-object'
+This differs from `module--test-assertions--load-non-live-object'
 in that it stows away a global reference.  The module assertions
 should nevertheless detect the invalid load."
   :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))

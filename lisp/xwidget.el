@@ -1198,7 +1198,7 @@ Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit
     (xwidget-webkit-goto-history xwidget-webkit-history--session id))
   (xwidget-webkit-history-reload))
 
-(defun xwidget-webkit-history-reload (&rest ignored)
+(defun xwidget-webkit-history-reload (&rest _ignored)
   "Reload the current history buffer."
   (interactive)
   (setq tabulated-list-entries nil)

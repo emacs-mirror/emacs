@@ -156,7 +156,7 @@ Valid properties include:
   "The name of the ldapsearch command line program."
   :type '(string :tag "`ldapsearch' Program"))
 
-(defcustom ldap-ldapsearch-args '("-LLL" "-tt")
+(defcustom ldap-ldapsearch-args nil
   "A list of additional arguments to pass to `ldapsearch'."
   :type '(repeat :tag "`ldapsearch' Arguments"
 		 (string :tag "Argument")))
@@ -609,7 +609,8 @@ an alist of attribute/value pairs."
 	(sizelimit (plist-get search-plist 'sizelimit))
 	(withdn (plist-get search-plist 'withdn))
 	(numres 0)
-	arglist dn name value record result)
+        (arglist (list "-LLL" "-tt"))
+	dn name value record result)
     (if (or (null filter)
 	    (equal "" filter))
 	(error "No search filter"))

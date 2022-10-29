@@ -211,6 +211,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 (defvar reb-valid-string ""
   "String in mode line showing validity of RE.")
+(put 'reb-valid-string 'risky-local-variable t)
 
 (defconst reb-buffer "*RE-Builder*"
   "Buffer to use for the RE Builder.")
@@ -308,13 +309,13 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Return t if display is capable of displaying colors."
   (eq 'color (frame-parameter nil 'display-type)))
 
-(defsubst reb-lisp-syntax-p ()
+(defun reb-lisp-syntax-p ()
   "Return non-nil if RE Builder uses `rx' syntax."
   (eq reb-re-syntax 'rx))
 
-(defmacro reb-target-binding (symbol)
+(defun reb-target-value (symbol)
   "Return binding for SYMBOL in the RE Builder target buffer."
-  `(with-current-buffer reb-target-buffer ,symbol))
+  (buffer-local-value symbol reb-target-buffer))
 
 (defun reb-initialize-buffer ()
   "Initialize the current buffer as a RE Builder buffer."
@@ -440,7 +441,7 @@ provided in the Commentary section of this library."
   (interactive)
   (reb-update-regexp)
   (let ((re (with-output-to-string
-	      (print (reb-target-binding reb-regexp)))))
+	      (print (reb-target-value 'reb-regexp)))))
     (setq re (substring re 1 (1- (length re))))
     (setq re (string-replace "\n" "\\n" re))
     (kill-new re)
@@ -518,12 +519,17 @@ An actual update is only done if the regexp has changed or if the
 optional fourth argument FORCE is non-nil."
   (let ((prev-valid reb-valid-string)
 	(new-valid
-	 (condition-case nil
+	 (condition-case err
 	     (progn
 	       (when (or (reb-update-regexp) force)
 		 (reb-do-update))
 	       "")
-	   (error " *invalid*"))))
+	   (error (propertize
+                   (format " %s"
+                           (if (and (consp (cdr err)) (stringp (cadr err)))
+                               (format "%s: %s" (car err) (cadr err))
+                             (car err)))
+                   'face 'font-lock-warning-face)))))
     (setq reb-valid-string new-valid)
     (force-mode-line-update)
 
@@ -554,7 +560,7 @@ optional fourth argument FORCE is non-nil."
 	 (if reb-subexp-mode
              (format " (subexp %s)" (or reb-subexp-displayed "-"))
 	   "")
-	 (if (not (reb-target-binding case-fold-search))
+	 (if (not (reb-target-value 'case-fold-search))
 	     " Case"
 	   "")))
   (force-mode-line-update))
@@ -600,7 +606,7 @@ optional fourth argument FORCE is non-nil."
 
 (defun reb-insert-regexp ()
   "Insert current RE."
-  (let ((re (or (reb-target-binding reb-regexp)
+  (let ((re (or (reb-target-value 'reb-regexp)
 		(reb-empty-regexp))))
   (cond ((eq reb-re-syntax 'read)
 	 (print re (current-buffer)))
@@ -608,7 +614,7 @@ optional fourth argument FORCE is non-nil."
 	 (insert "\n\"" re "\""))
 	;; For the Lisp syntax we need the "source" of the regexp
 	((reb-lisp-syntax-p)
-	 (insert (or (reb-target-binding reb-regexp-src)
+	 (insert (or (reb-target-value 'reb-regexp-src)
 		     (reb-empty-regexp)))))))
 
 (defun reb-cook-regexp (re)
@@ -627,9 +633,8 @@ Return t if the (cooked) expression changed."
 	(prog1
 	    (not (string= oldre re))
 	  (setq reb-regexp re)
-	  ;; Only update the source re for the lisp formats
-	  (when (reb-lisp-syntax-p)
-	    (setq reb-regexp-src re-src)))))))
+	  ;; Update the source re for the Lisp formats.
+	  (setq reb-regexp-src re-src))))))
 
 
 ;; And now the real core of the whole thing
@@ -644,7 +649,7 @@ Return t if the (cooked) expression changed."
 (defun reb-update-overlays (&optional subexp)
   "Switch to `reb-target-buffer' and mark all matches of `reb-regexp'.
 If SUBEXP is non-nil mark only the corresponding sub-expressions."
-  (let* ((re (reb-target-binding reb-regexp))
+  (let* ((re (reb-target-value 'reb-regexp))
 	 (subexps (reb-count-subexps re))
 	 (matches 0)
 	 (submatches 0)

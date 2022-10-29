@@ -418,7 +418,7 @@ and it should apply face FACE to the text between BEG and END.")
   (setq ansi-color-for-comint-mode 'filter))
 
 ;;;###autoload
-(defun ansi-color-process-output (ignored)
+(defun ansi-color-process-output (_ignored)
   "Maybe translate SGR control sequences of comint output into text properties.
 
 Depending on variable `ansi-color-for-comint-mode' the comint output is

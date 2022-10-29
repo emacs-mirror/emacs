@@ -1221,7 +1221,7 @@ SORTFUN is passed to `sort' to change the default ordering."
 
 (defface abbrev-table-name
   '((t :inherit font-lock-function-name-face))
-  "Face used for displaying the abbrev table name in `edit-abbrev-mode'."
+  "Face used for displaying the abbrev table name in `edit-abbrevs-mode'."
   :version "29.1")
 
 (defvar edit-abbrevs-mode-font-lock-keywords

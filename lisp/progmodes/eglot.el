@@ -81,7 +81,8 @@
 ;;   in place during Eglot's LSP-enriched tenure over a project.  Even
 ;;   so, some of those decisions will invariably aggravate a minority
 ;;   of Emacs power users, but these users can use `eglot-stay-out-of'
-;;   and `eglot-managed-mode-hook' to quench their OCD.
+;;   and `eglot-managed-mode-hook' to adjust things to their
+;;   preferences.
 ;;
 ;; * On occasion, to enable new features, Eglot can have soft
 ;;   dependencies on popular libraries that are not in Emacs core.
@@ -186,7 +187,8 @@ chosen (interactively or automatically)."
                                 (python-mode
                                  . ,(eglot-alternatives
                                      '("pylsp" "pyls" ("pyright-langserver" "--stdio") "jedi-language-server")))
-                                ((js-mode typescript-mode)
+                                ((js-json-mode json-mode) . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio"))))
+                                ((js-mode ts-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
                                 ((php-mode phps-mode)
@@ -227,9 +229,8 @@ language-server/bin/php-language-server.php"))
                                 (zig-mode . ("zls"))
                                 (css-mode . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio") ("css-languageserver" "--stdio"))))
                                 (html-mode . ,(eglot-alternatives '(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio"))))
-                                (json-mode . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio"))))
                                 (dockerfile-mode . ("docker-langserver" "--stdio"))
-                                ((clojure-mode clojurescript-mode clojurec-mode) 
+                                ((clojure-mode clojurescript-mode clojurec-mode)
                                  . ("clojure-lsp"))
                                 (csharp-mode . ("omnisharp" "-lsp"))
                                 (purescript-mode . ("purescript-language-server" "--stdio"))
@@ -322,13 +323,15 @@ never reconnect automatically after unexpected server shutdowns,
 crashes or network failures.  A positive integer number says to
 only autoreconnect if the previous successful connection attempt
 lasted more than that many seconds."
-  :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
+  :type '(choice (const :tag "Reconnect automatically" t)
+                 (const :tag "Never reconnect" nil)
                  (integer :tag "Number of seconds")))
 
 (defcustom eglot-connect-timeout 30
   "Number of seconds before timing out LSP connection attempts.
 If nil, never time out."
-  :type 'number)
+  :type '(choice (number :tag "Number of seconds")
+                 (const  :tag "Never time out" nil)))
 
 (defcustom eglot-sync-connect 3
   "Control blocking of LSP connection attempts.
@@ -336,8 +339,9 @@ If t, block for `eglot-connect-timeout' seconds.  A positive
 integer number means block for that many seconds, and then wait
 for the connection in the background.  nil has the same meaning
 as 0, i.e. don't block at all."
-  :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
-                 (integer :tag "Number of seconds")))
+  :type '(choice (const :tag "Block for `eglot-connect-timeout' seconds" t)
+                 (const :tag "Never block" nil)
+                 (integer :tag "Number of seconds to block")))
 
 (defcustom eglot-autoshutdown nil
   "If non-nil, shut down server after killing last managed buffer."
@@ -362,7 +366,7 @@ done by `eglot-reconnect'."
 (defcustom eglot-confirm-server-initiated-edits 'confirm
   "Non-nil if server-initiated edits should be confirmed with user."
   :type '(choice (const :tag "Don't show confirmation prompt" nil)
-                 (symbol :tag "Show confirmation prompt" 'confirm)))
+                 (const :tag "Show confirmation prompt" confirm)))
 
 (defcustom eglot-extend-to-xref nil
   "If non-nil, activate Eglot in cross-referenced non-project files."
@@ -614,7 +618,7 @@ Honour `eglot-strict-mode'."
 (cl-defmacro eglot--dcase (obj &rest clauses)
   "Like `pcase', but for the LSP object OBJ.
 CLAUSES is a list (DESTRUCTURE FORMS...) where DESTRUCTURE is
-treated as in `eglot-dbind'."
+treated as in `eglot--dbind'."
   (declare (indent 1) (debug (sexp &rest (sexp &rest form))))
   (let ((obj-once (make-symbol "obj-once")))
     `(let ((,obj-once ,obj))
@@ -1078,6 +1082,7 @@ MANAGED-MAJOR-MODE, which matters to a minority of servers.
 
 INTERACTIVE is t if called interactively."
   (interactive (append (eglot--guess-contact t) '(t)))
+  (setq managed-major-mode (eglot--ensure-list managed-major-mode))
   (let* ((current-server (eglot-current-server))
          (live-p (and current-server (jsonrpc-running-p current-server))))
     (if (and live-p
@@ -1627,6 +1632,8 @@ and just return it.  PROMPT shouldn't end with a question mark."
   (cl-loop for (k _v) on plist by #'cddr collect k))
 
 (defun eglot--ensure-list (x) (if (listp x) x (list x)))
+(when (fboundp 'ensure-list)            ; Emacs 28 or later
+  (define-obsolete-function-alias 'eglot--ensure-list #'ensure-list "29.1"))
 
 
 ;;; Minor modes
@@ -2457,7 +2464,7 @@ may be called multiple times (respecting the protocol of
 (defun eglot-xref-backend () "Eglot xref backend." 'eglot)
 
 (defvar eglot--temp-location-buffers (make-hash-table :test #'equal)
-  "Helper variable for `eglot--handling-xrefs'.")
+  "Helper variable for `eglot--collecting-xrefs'.")
 
 (defvar eglot-xref-lessp-function #'ignore
   "Compare two `xref-item' objects for sorting.")
@@ -2898,7 +2905,7 @@ for which LSP on-type-formatting should be requested."
 (defun eglot--hover-info (contents &optional _range)
   (mapconcat #'eglot--format-markup
              (if (vectorp contents) contents (list contents)) "\n"))
- 
+
 (defun eglot--sig-info (sigs active-sig sig-help-active-param)
   (cl-loop
    for (sig . moresigs) on (append sigs nil) for i from 0

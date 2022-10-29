@@ -3689,8 +3689,7 @@ Prepare every function for final compilation and drive the C back-end."
              (print-circle t)
              (print-escape-multibyte t)
              (expr `((require 'comp)
-                     (setf comp-no-spawn t
-                           native-comp-verbose ,native-comp-verbose
+                     (setf native-comp-verbose ,native-comp-verbose
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                            comp-ctxt ,comp-ctxt
                            native-comp-eln-load-path ',native-comp-eln-load-path
@@ -3716,7 +3715,8 @@ Prepare every function for final compilation and drive the C back-end."
               (if (zerop
                    (call-process (expand-file-name invocation-name
                                                    invocation-directory)
-				 nil t t "--batch" "-l" temp-file))
+				 nil t t "-no-comp-spawn" "--batch" "-l"
+                                 temp-file))
                   (progn
                     (delete-file temp-file)
                     output)
@@ -3948,7 +3948,6 @@ display a message."
                      source-file (comp-el-to-eln-filename source-file))))
          do (let* ((expr `((require 'comp)
                            (setq comp-async-compilation t
-                                 comp-no-spawn t
                                  warning-fill-column most-positive-fixnum)
                            ,(let ((set (list 'setq)))
                               (dolist (var '(comp-file-preloaded-p
@@ -4005,7 +4004,8 @@ display a message."
                              :command (list
                                        (expand-file-name invocation-name
                                                          invocation-directory)
-                                       "--batch" "-l" temp-file)
+                                       "-no-comp-spawn" "--batch" "-l"
+                                       temp-file)
                              :sentinel
                              (lambda (process _event)
                                (run-hook-with-args

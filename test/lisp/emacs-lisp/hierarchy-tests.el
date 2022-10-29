@@ -552,5 +552,148 @@
     (hierarchy-sort organisms)
     (should (equal (hierarchy-roots organisms) '(animal plant)))))
 
+(defun hierarchy-examples-delayed--find-number (num)
+  "Find a number, NUM, by adding 1s together until you reach it.
+This is entire contrived and mostly meant to be purposefully inefficient to
+not be possible on a large scale.
+Running the number 200 causes this function to crash; running this function in
+`hierarchy-add-tree' with a root of 80 and no delayed children causes that to
+ crash.
+If generating hierarchy children is not delayed, tests for that functionality
+should fail as this function will crash."
+
+  (funcall (lambda (funct) (funcall funct 1 funct))
+           (lambda (n funct)
+             (if (< n num)
+                 (+ 1 (funcall funct (+ 1 n) funct))
+               1))))
+
+(defun hierarchy-examples-delayed--childrenfn (hier-elem)
+  "Return the children of HIER-ELEM.
+Basially, feed the number, minus 1, to `hierarchy-examples-delayed--find-number'
+and then create a list of the number plus 0.0–0.9."
+
+  (when (> hier-elem 1)
+    (let ((next (hierarchy-examples-delayed--find-number (1- hier-elem))))
+      (mapcar (lambda (dec) (+ next dec)) '(.0 .1 .2 .3 .4 .5 .6 .7 .8 .9)))))
+
+(ert-deftest hierarchy-delayed-add-one-root ()
+  (let ((parentfn (lambda (_) nil))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(190)))))
+
+(ert-deftest hierarchy-delayed-add-one-item-with-parent ()
+  (let ((parentfn (lambda (item)
+                    (cl-case item
+                      (190 191))))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(191)))
+    (should (equal (hierarchy-children hierarchy 191) '(190)))
+    (should (equal (hierarchy-children hierarchy 190) '()))))
+
+(ert-deftest hierarchy-delayed-add-one-item-with-parent-and-grand-parent ()
+  (let ((parentfn (lambda (item)
+                    (cl-case item
+                      (190 191)
+                      (191 192))))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(192)))
+    (should (equal (hierarchy-children hierarchy 192) '(191)))
+    (should (equal (hierarchy-children hierarchy 191) '(190)))
+    (should (equal (hierarchy-children hierarchy 190) '()))))
+
+(ert-deftest hierarchy-delayed-add-same-root-twice ()
+  (let ((parentfn (lambda (_) nil))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(190)))))
+
+(ert-deftest hierarchy-delayed-add-same-child-twice ()
+  (let ((parentfn (lambda (item)
+                    (cl-case item
+                      (190 191))))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(191)))
+    (should (equal (hierarchy-children hierarchy 191) '(190)))
+    (should (equal (hierarchy-children hierarchy 190) '()))))
+
+(ert-deftest hierarchy-delayed-add-item-and-its-parent ()
+  (let ((parentfn (lambda (item)
+                    (cl-case item
+                      (190 191))))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (hierarchy-add-tree hierarchy 191 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(191)))
+    (should (equal (hierarchy-children hierarchy 191) '(190)))
+    (should (equal (hierarchy-children hierarchy 190) '()))))
+
+(ert-deftest hierarchy-delayed-add-item-and-its-child ()
+  (let ((parentfn (lambda (item)
+                    (cl-case item
+                      (190 191))))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 191 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(191)))
+    (should (equal (hierarchy-children hierarchy 191) '(190)))
+    (should (equal (hierarchy-children hierarchy 190) '()))))
+
+(ert-deftest hierarchy-delayed-add-two-items-sharing-parent ()
+  (let ((parentfn (lambda (item)
+                    (cl-case item
+                      (190 191)
+                      (190.5 191))))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (hierarchy-add-tree hierarchy 190.5 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(191)))
+    (should (equal (hierarchy-children hierarchy 191) '(190 190.5)))))
+
+(ert-deftest hierarchy-delayed-add-two-hierarchies ()
+  (let ((parentfn (lambda (item)
+                    (cl-case item
+                      (190 191)
+                      (circle 'shape))))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-tree hierarchy 190 parentfn
+                        #'hierarchy-examples-delayed--childrenfn nil t)
+    (hierarchy-add-tree hierarchy 'circle parentfn)
+    (should (equal (hierarchy-roots hierarchy) '(191 shape)))
+    (should (equal (hierarchy-children hierarchy 191) '(190)))
+    (should (equal (hierarchy-children hierarchy 'shape) '(circle)))))
+
+(ert-deftest hierarchy-delayed-add-trees ()
+  (let ((parentfn (lambda (item)
+                    (cl-case item
+                      (190 '191)
+                      (190.5 '191)
+                      (191 '192))))
+        (hierarchy (hierarchy-new)))
+    (hierarchy-add-trees hierarchy '(190 190.5) parentfn
+                         #'hierarchy-examples-delayed--childrenfn nil t)
+    (should (equal (hierarchy-roots hierarchy) '(192)))
+    (should (equal (hierarchy-children hierarchy '192) '(191)))
+    (should (equal (hierarchy-children hierarchy '191) '(190 190.5)))))
+
 (provide 'hierarchy-tests)
 ;;; hierarchy-tests.el ends here

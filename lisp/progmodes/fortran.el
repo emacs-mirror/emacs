@@ -957,7 +957,7 @@ With non-nil ARG, uncomments the region."
     (set-marker save-point nil)))
 
 ;; uncomment-region calls this with 3 args.
-(defun fortran-uncomment-region (start end &optional ignored)
+(defun fortran-uncomment-region (start end &optional _ignored)
   "Uncomment every line in the region."
   (fortran-comment-region start end t))
 

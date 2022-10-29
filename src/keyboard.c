@@ -1268,7 +1268,6 @@ command_loop_1 (void)
 {
   modiff_count prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
-  bool already_adjusted = 0;
 
   kset_prefix_arg (current_kboard, Qnil);
   kset_last_prefix_arg (current_kboard, Qnil);
@@ -1458,8 +1457,6 @@ command_loop_1 (void)
       safe_run_hooks_maybe_narrowed (Qpre_command_hook,
 				     XWINDOW (selected_window));
 
-      already_adjusted = 0;
-
       if (NILP (Vthis_command))
 	/* nil means key is undefined.  */
 	call0 (Qundefined);
@@ -1615,9 +1612,8 @@ command_loop_1 (void)
 		   the automatic composition, we must update the
 		   display.  */
 		windows_or_buffers_changed = 21;
-	      if (!already_adjusted)
-		adjust_point_for_property (last_point_position,
-					   MODIFF != prev_modiff);
+	      adjust_point_for_property (last_point_position,
+					 MODIFF != prev_modiff);
 	    }
 	  else if (PT > BEGV && PT < ZV
 		   && (composition_adjust_point (last_point_position, PT)
@@ -1699,8 +1695,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 	  && display_prop_intangible_p (val, overlay, PT, PT_BYTE)
 	  && (!OVERLAYP (overlay)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
-	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),
-		 end = OVERLAY_POSITION (OVERLAY_END (overlay))))
+	      : (beg = OVERLAY_START (overlay),
+		 end = OVERLAY_END (overlay)))
 	  && (beg < PT /* && end > PT   <- It's always the case.  */
 	      || (beg <= PT && STRINGP (val) && SCHARS (val) == 0)))
 	{
