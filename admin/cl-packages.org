@@ -121,13 +121,15 @@ In Emacs, keywords are just symbols whose names start with a colon,
 and that is expected in a ton of places both implicity and explicitly
 in various ways.
 
-Solution:
+Current approach:
 
 - Internally, keyword names don't contain the colon, which is TRT.
 - symbol-name returns a name with colon for keywords.
 - cl-symbol-name returns the symbol name as-is.
 - intern and intern-soft when called with a name starting with a colon
   interpret that as wanting a keyword.
+
+But see under Ideas and Todos.
 
 *** Fake package qualification
 Existing code contains symbols like GUI:xyz which look like GUI is a
@@ -155,13 +157,28 @@ Just ideas:
 - (import sym as another-sym)
 
 *** Package-prefixes
-Would it make sense to record the value of package-prefixes when read
-or compiled in functions?  This would allow some notorious cases of
-intern, for example, which use colons in the traditional way to behave
-differently.
+I'm wondering if it would be a good idea to record the value of
+package-prefixes (1 bit) at time and in the buffer where functions are
+compiled.
 
-This could also be used for symbol-name, which would only return a
-name with leading colon if package-prefixes is nil.
+We could then
+
+- Return a name with leading colon from symbol-value if the bit is 0,
+  which means the function was compiled or read in a "traditional"
+  setting.  It would return the name without the leading colon
+  otherwise.
+
+- Make intern treat colons differently.  There are some places like
+  transient.el which intern names with a leading colon which is a pain
+  in the neck.
+
+- Maybe calls to read could also behave differently.
+
+For subrs (native-compiled code), there is plenty of room for the bit.
+For byte-compiled functions, see make-bytecode + make-closure.
+
+This should be doable from that perspective.  One probably just has to
+try it out.
 
 *** Modeline
 A mode-line indicator showing the current package and package-prefixes
