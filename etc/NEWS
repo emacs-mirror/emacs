@@ -106,27 +106,18 @@ frame positioning and various issues with keyboard input of sequences
 such as 'C-;' and 'C-S-u'.
 
 ---
+** The implementation of overlays has changed.
+Emacs now uses an implementation of overlays that is much more
+efficient than the original one, and should speed up all the
+operations that involve overlays, especially when there are lots of
+them in a buffer.  However, no changes in behavior of overlays should
+be visible on the Lisp or user level, with the exception of better
+performance.
+
+---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
 Instead, they're fetched as needed from the corresponding ".elc" file,
 as was already the case for all the non-preloaded files.
-
-** Emacs Sessions (Desktop)
-
-+++
-*** New user option to load a locked desktop if locking Emacs is not running.
-The option 'desktop-load-locked-desktop' can now be set to the value
-'check-pid', which means to allow loading a locked ".emacs.desktop"
-file if the Emacs process which locked it is no longer running on the
-local machine.  This allows avoiding questions about locked desktop
-files when the Emacs session which locked it crashes, or was otherwise
-interrupted, and didn't exit gracefully.  See the "(emacs) Saving
-Emacs Sessions" node in the Emacs manual for more details.
-
-** Miscellaneous
-
-+++
-*** User option 'minibuffer-eldef-shorten-default' is now obsolete.
-Customize the user option 'minibuffer-default-prompt-format' instead.
 
 
 * Startup Changes in Emacs 29.1
@@ -1557,6 +1548,18 @@ These commands can be useful if the ".elc" files are out of date
 If no packages are marked, 'x' will install the package under point if
 it isn't already, and remove it if it is installed.
 
+** Emacs Sessions (Desktop)
+
++++
+*** New user option to load a locked desktop if locking Emacs is not running.
+The option 'desktop-load-locked-desktop' can now be set to the value
+'check-pid', which means to allow loading a locked ".emacs.desktop"
+file if the Emacs process which locked it is no longer running on the
+local machine.  This allows avoiding questions about locked desktop
+files when the Emacs session which locked it crashes, or was otherwise
+interrupted, and didn't exit gracefully.  See the "(emacs) Saving
+Emacs Sessions" node in the Emacs manual for more details.
+
 ** Miscellaneous
 
 +++
@@ -1694,6 +1697,10 @@ always hides the completion buffer after some completion is made.
 but completes on the history items instead of the default completion
 table.  'minibuffer-complete-defaults' ('C-x <down>') completes
 on the list of default items.
+
++++
+*** User option 'minibuffer-eldef-shorten-default' is now obsolete.
+Customize the user option 'minibuffer-default-prompt-format' instead.
 
 +++
 *** New user option 'completions-sort'.
