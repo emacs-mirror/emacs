@@ -1172,6 +1172,13 @@
              (backquote (example-2-face ((t (:foreground "LightGreen"))))))
       (require 'example nil nil))))
 
+(ert-deftest use-package-test/:custom-face-3 ()
+  (match-expansion
+   (use-package foo :custom-face (foo ((t (:background "#e4edfc"))) face-defspec-spec))
+   `(progn
+      (apply #'face-spec-set (backquote (foo ((t (:background "#e4edfc"))) face-defspec-spec)))
+      (require 'foo nil nil))))
+
 (ert-deftest use-package-test/:init-1 ()
   (match-expansion
    (use-package foo :init (init))

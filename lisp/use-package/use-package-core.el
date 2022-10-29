@@ -1501,7 +1501,7 @@ no keyword implies `:all'."
 (defun use-package-normalize/:custom-face (name-symbol _keyword arg)
   "Normalize use-package custom-face keyword."
   (let ((error-msg
-         (format "%s wants a (<symbol> <face-spec>) or list of these"
+         (format "%s wants a (<symbol> <face-spec> [spec-type]) or list of these"
                  name-symbol)))
     (unless (listp arg)
       (use-package-error error-msg))
@@ -1512,7 +1512,7 @@ no keyword implies `:all'."
             (spec (nth 1 def)))
         (when (or (not face)
                   (not spec)
-                  (> (length def) 2))
+                  (> (length def) 3))
           (use-package-error error-msg))))))
 
 (defun use-package-handler/:custom-face (name _keyword args rest state)
