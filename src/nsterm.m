@@ -4237,7 +4237,12 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
   for (i = 0; i < s->nchars; i++, glyph++)
     {
-      char buf[7];
+#ifdef GCC_LINT
+      enum { PACIFY_GCC_BUG_81401 = 1 };
+#else
+      enum { PACIFY_GCC_BUG_81401 = 0 };
+#endif
+      char buf[7 + PACIFY_GCC_BUG_81401];
       char *str = NULL;
       int len = glyph->u.glyphless.len;
 
@@ -9158,6 +9163,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   NSTRACE ("[EmacsWindow dealloc]");
 
   /* We need to release the toolbar ourselves.  */
+  [self setToolbar: nil];
   [[self toolbar] release];
 
   /* Also the last button press event .  */
