@@ -3670,8 +3670,9 @@ definition*\"."
     (cond
      ((null ts-node)
       subtrees)
+     ;; Don't included non-top-level variable declarations.
      ((and (eq type 'variable)
-           (not (treesit-node-top-level-p ts-node)))
+           (treesit-node-top-level ts-node))
       nil)
      (subtrees
       (let ((parent-label (js--treesit-imenu-label type name))

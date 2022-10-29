@@ -782,6 +782,16 @@ takes a node as the argument.  That is, this function returns the
 farthest parent that still satisfies @var{predicate}.
 @end defun
 
+@defun treesit-node-top-level node &optional type
+This function returns the highest parent of @var{node} that has the
+same type as @var{node}.  If no such parent exists, it returns
+@code{nil}.  Therefore this function is also useful for testing
+whether @var{node} is top-level.
+
+If @var{type} is non-@code{nil}, this function matches each parent's
+type with @var{type} as a regexp, rather than using @var{node}'s type.
+@end defun
+
 @node Accessing Node Information
 @section Accessing Node Information
 @cindex information of node, syntax trees

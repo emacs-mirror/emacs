@@ -246,21 +246,21 @@ that language in the current buffer, and use that."
                 (treesit-buffer-root-node parser-or-lang))))
     (treesit-node-descendant-for-range root beg (or end beg) named)))
 
-(defun treesit-node-top-level-p (node &optional type)
-  "Return non-nil if NODE is top-level, and nil otherwise.
-Being top-level means there is no parent of NODE that has the
-same type.
+(defun treesit-node-top-level (node &optional type)
+  "Return the top-level equivalent of NODE.
+Specifically, return the highest parent of NODE that has the same
+type as it.  If no such parent exists, return nil.
 
-If TYPE is non-nil, match each parent's type with TYPE as a regexp."
-  (when node
-    (catch 'term
-      (let ((plain-type (treesit-node-type node)))
-        (while (setq node (treesit-node-parent node))
-          (when (if type
-                    (string-match-p type (treesit-node-type node))
-                  (equal (treesit-node-type node) plain-type))
-            (throw 'term nil))))
-      t)))
+If TYPE is non-nil, match each parent's type with TYPE as a
+regexp, rather than using NODE's type."
+  (let ((type (or type (treesit-node-type node)))
+        (result nil))
+    (cl-loop for cursor = (treesit-node-parent node)
+             then (treesit-node-parent cursor)
+             while cursor
+             if (string-match-p type (treesit-node-type cursor))
+             do (setq result cursor))
+    result))
 
 (defun treesit-buffer-root-node (&optional language)
   "Return the root node of the current buffer.
@@ -1162,17 +1162,6 @@ For example, \"(function|class)_definition\".
 
 This is used by `treesit-beginning-of-defun' and friends.")
 
-(defun treesit--find-top-level-match (node type)
-  "Return the top-level parent of NODE matching TYPE.
-TYPE is a regexp, this function matches TYPE with each parent's
-type."
-  (cl-loop for cursor = (treesit-node-parent node)
-           then (treesit-node-parent cursor)
-           while cursor
-           if (string-match-p type (treesit-node-type cursor))
-           do (setq node cursor)
-           finally return node))
-
 (defun treesit-beginning-of-defun (&optional arg)
   "Tree-sitter `beginning-of-defun' function.
 ARG is the same as in `beginning-of-defun'."
@@ -1183,15 +1172,17 @@ ARG is the same as in `beginning-of-defun'."
         (while (and (> arg 0)
                     (setq node (treesit-search-forward-goto
                                 node treesit-defun-type-regexp t t)))
-          (setq node (treesit--find-top-level-match
-                      node treesit-defun-type-regexp))
+          (setq node (or (treesit-node-top-level
+                          node treesit-defun-type-regexp)
+                         node))
           (setq arg (1- arg)))
       ;; Go forward.
       (while (and (< arg 0)
                   (setq node (treesit-search-forward-goto
                               node treesit-defun-type-regexp)))
-        (setq node (treesit--find-top-level-match
-                    node treesit-defun-type-regexp))
+        (setq node (or (treesit-node-top-level
+                        node treesit-defun-type-regexp)
+                       node))
         (setq arg (1+ arg))))
     (when node
       (goto-char (treesit-node-start node))
@@ -1201,10 +1192,12 @@ ARG is the same as in `beginning-of-defun'."
   "Tree-sitter `end-of-defun' function."
   ;; Why not simply get the largest node at point: when point is at
   ;; (point-min), that gives us the root node.
-  (let ((node (treesit--find-top-level-match
-               (treesit-node-at (point))
-               treesit-defun-type-regexp)))
-    (goto-char (treesit-node-end node))))
+  (let* ((node (treesit-node-at (point)))
+         (top (or (treesit-node-top-level
+                   node
+                   treesit-defun-type-regexp)
+                  node)))
+    (goto-char (treesit-node-end top))))
 
 ;;; Imenu
 
