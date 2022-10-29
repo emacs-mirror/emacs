@@ -536,7 +536,7 @@ This should identify a `make' command that can handle the `-q' option."
   'makefile-query-one-target-method-function "29.1")
 
 (defcustom makefile-query-one-target-method-function
-  'makefile-query-by-make-minus-q
+  #'makefile-query-by-make-minus-q
   "Function to call to determine whether a make target is up to date.
 The function must satisfy this calling convention:
 
@@ -995,12 +995,11 @@ Anywhere else just self-inserts."
 Interactively, prompt for the name of the macro."
   (interactive "sMacro Name: ")
   (makefile-pickup-macros)
-  (if (not (zerop (length macro-name)))
-      (progn
-	(beginning-of-line)
-	(insert macro-name makefile-macro-assign)
-	(setq makefile-need-macro-pickup t)
-	(makefile-remember-macro macro-name))))
+  (unless (zerop (length macro-name))
+    (beginning-of-line)
+    (insert macro-name makefile-macro-assign)
+    (setq makefile-need-macro-pickup t)
+    (makefile-remember-macro macro-name)))
 
 (defun makefile-insert-macro-ref (macro-name)
   "Complete on a list of known macros, then insert complete ref at point."
@@ -1014,24 +1013,23 @@ Interactively, prompt for the name of the macro."
 (defun makefile-insert-target (target-name)
   "Prepare definition of a new target (dependency line)."
   (interactive "sTarget: ")
-  (if (not (zerop (length target-name)))
-      (progn
-	(beginning-of-line)
-	(insert target-name makefile-target-colon)
-	(makefile-forward-after-target-colon)
-	(end-of-line)
-	(setq makefile-need-target-pickup t)
-	(makefile-remember-target target-name))))
+  (unless (zerop (length target-name))
+    (beginning-of-line)
+    (insert target-name makefile-target-colon)
+    (makefile-forward-after-target-colon)
+    (end-of-line)
+    (setq makefile-need-target-pickup t)
+    (makefile-remember-target target-name)))
 
 (defun makefile-insert-target-ref (target-name)
   "Complete on a list of known targets, then insert TARGET-NAME at point."
   (interactive
    (list
     (progn
-     (makefile-pickup-targets)
-     (completing-read "Refer to target: " makefile-target-table nil nil nil))))
-   (if (not (zerop (length target-name)))
-       (insert target-name " ")))
+      (makefile-pickup-targets)
+      (completing-read "Refer to target: " makefile-target-table nil nil nil))))
+  (unless (zerop (length target-name))
+    (insert target-name " ")))
 
 (defun makefile-electric-colon (arg)
   "Prompt for name of new target.
@@ -1180,9 +1178,9 @@ definition and conveniently use this command."
       (when (and makefile-backslash-align (not delete-flag))
         (while (< (point) to)
           (end-of-line)
-          (if (= (preceding-char) ?\\)
-              (progn (forward-char -1)
-                     (skip-chars-backward " \t")))
+          (when (= (preceding-char) ?\\)
+            (forward-char -1)
+            (skip-chars-backward " \t"))
           (setq column (max column (1+ (current-column))))
 	  (forward-line 1))
         ;; Adjust upward to a tab column, if that doesn't push
@@ -1349,18 +1347,16 @@ Fill comments, backslashed lines, and variable definitions specially."
 (defun makefile-browser-next-line ()
   "Move the browser selection cursor to the next line."
   (interactive)
-  (if (not (makefile-last-line-p))
-      (progn
-	(forward-line 1)
-	(forward-char makefile-browser-cursor-column))))
+  (unless (makefile-last-line-p)
+    (forward-line 1)
+    (forward-char makefile-browser-cursor-column)))
 
 (defun makefile-browser-previous-line ()
   "Move the browser selection cursor to the previous line."
   (interactive)
-  (if (not (makefile-first-line-p))
-      (progn
-	(forward-line -1)
-	(forward-char makefile-browser-cursor-column))))
+  (unless (makefile-first-line-p)
+    (forward-line -1)
+    (forward-char makefile-browser-cursor-column)))
 
 ;;;
 ;;; Quitting the browser (returns to client buffer)
@@ -1706,14 +1702,13 @@ matched in a rule action."
 
 (defun makefile-remember-target (target-name &optional has-prereqs)
   "Remember a given target if it is not already remembered for this buffer."
-  (if (not (zerop (length target-name)))
-      (progn
-      (if (not (assoc target-name makefile-target-table))
-	  (setq makefile-target-table
-		(cons (list target-name) makefile-target-table)))
-      (if has-prereqs
-	  (setq makefile-has-prereqs
-		(cons target-name makefile-has-prereqs))))))
+  (unless (zerop (length target-name))
+    (if (not (assoc target-name makefile-target-table))
+        (setq makefile-target-table
+              (cons (list target-name) makefile-target-table)))
+    (if has-prereqs
+        (setq makefile-has-prereqs
+              (cons target-name makefile-has-prereqs)))))
 
 (defun makefile-remember-macro (macro-name)
   "Remember a given macro if it is not already remembered for this buffer."
