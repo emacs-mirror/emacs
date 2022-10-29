@@ -783,8 +783,7 @@ See `treesit-simple-indent-presets'.")
                     (lambda (_n parent &rest _)
                       (save-excursion
                         (goto-char (treesit-node-start parent))
-                        (back-to-indentation)
-                        (point)))))
+                        (current-indentation)))))
     (prev-sibling . ,(byte-compile
                       (lambda (node &rest _)
                         (treesit-node-start
@@ -951,7 +950,7 @@ Return (ANCHOR . OFFSET).  This function is used by
          (smallest-node
           (cond ((null (treesit-parser-list)) nil)
                 ((eq 1 (length (treesit-parser-list)))
-                 (treesit-node-at bol))
+                 (treesit-node-at bol nil nil t))
                 ((treesit-language-at (point))
                  (treesit-node-at bol (treesit-language-at (point))))
                 (t (treesit-node-at bol))))
@@ -968,26 +967,19 @@ Return (ANCHOR . OFFSET).  This function is used by
          ;; encompass the whitespace.
          (parent (cond ((and node parser)
                         (treesit-node-parent node))
-                       (parser
-                        (treesit-node-at bol parser))
-                       (t nil))))
+                       (t (treesit-node-on bol bol)))))
       (funcall treesit-indent-function node parent bol))))
 
 (defun treesit-indent ()
   "Indent according to the result of `treesit-indent-function'."
   (treesit-update-ranges)
-  (pcase-let* ((orig-pos (point))
-               (bol (current-indentation))
-               (`(,anchor . ,offset) (treesit--indent-1)))
+  (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1)))
     (when (and anchor offset)
       (let ((col (+ (save-excursion
                       (goto-char anchor)
                       (current-column))
                     offset)))
-        (if (< bol orig-pos)
-            (save-excursion
-              (indent-line-to col))
-          (indent-line-to col))))))
+        (indent-line-to col)))))
 
 (defvar treesit--indent-region-batch-size 400
   "How many lines of indent value do we precompute.
