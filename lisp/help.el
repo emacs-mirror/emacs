@@ -55,66 +55,68 @@
 This variable is bound to t during the preparation of a *Help*
 buffer.")
 
-(defvar help-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (char-to-string help-char) 'help-for-help)
-    (define-key map [help] 'help-for-help)
-    (define-key map [f1] 'help-for-help)
-    (define-key map "." 'display-local-help)
-    (define-key map "?" 'help-for-help)
+(defun help-key ()
+  "Return `help-char' in a format suitable for the `keymap-set' KEY argument."
+  (key-description (char-to-string help-char)))
 
-    (define-key map "\C-a" 'about-emacs)
-    (define-key map "\C-c" 'describe-copying)
-    (define-key map "\C-d" 'view-emacs-debugging)
-    (define-key map "\C-e" 'view-external-packages)
-    (define-key map "\C-f" 'view-emacs-FAQ)
-    (define-key map "\C-m" 'view-order-manuals)
-    (define-key map "\C-n" 'view-emacs-news)
-    (define-key map "\C-o" 'describe-distribution)
-    (define-key map "\C-p" 'view-emacs-problems)
-    (define-key map "\C-s" 'search-forward-help-for-help)
-    (define-key map "\C-t" 'view-emacs-todo)
-    (define-key map "\C-w" 'describe-no-warranty)
+(defvar-keymap help-map
+  :doc "Keymap for characters following the Help key."
+  (help-key) #'help-for-help
+  "<help>" #'help-for-help
+  "<f1>" #'help-for-help
+  "."    #'display-local-help
+  "?"    #'help-for-help
 
-    ;; This does not fit the pattern, but it is natural given the C-\ command.
-    (define-key map "\C-\\" 'describe-input-method)
+  "C-a"  #'about-emacs
+  "C-c"  #'describe-copying
+  "C-d"  #'view-emacs-debugging
+  "C-e"  #'view-external-packages
+  "C-f"  #'view-emacs-FAQ
+  "RET"  #'view-order-manuals
+  "C-n"  #'view-emacs-news
+  "C-o"  #'describe-distribution
+  "C-p"  #'view-emacs-problems
+  "C-s"  #'search-forward-help-for-help
+  "C-t"  #'view-emacs-todo
+  "C-w"  #'describe-no-warranty
 
-    (define-key map "C" 'describe-coding-system)
-    (define-key map "F" 'Info-goto-emacs-command-node)
-    (define-key map "I" 'describe-input-method)
-    (define-key map "K" 'Info-goto-emacs-key-command-node)
-    (define-key map "L" 'describe-language-environment)
-    (define-key map "S" 'info-lookup-symbol)
+  ;; This does not fit the pattern, but it is natural given the C-\ command.
+  "C-\\" #'describe-input-method
 
-    (define-key map "a" 'apropos-command)
-    (define-key map "b" 'describe-bindings)
-    (define-key map "c" 'describe-key-briefly)
-    (define-key map "d" 'apropos-documentation)
-    (define-key map "e" 'view-echo-area-messages)
-    (define-key map "f" 'describe-function)
-    (define-key map "g" 'describe-gnu-project)
-    (define-key map "h" 'view-hello-file)
+  "C"    #'describe-coding-system
+  "F"    #'Info-goto-emacs-command-node
+  "I"    #'describe-input-method
+  "K"    #'Info-goto-emacs-key-command-node
+  "L"    #'describe-language-environment
+  "S"    #'info-lookup-symbol
 
-    (define-key map "i" 'info)
-    (define-key map "4i" 'info-other-window)
+  "a"    #'apropos-command
+  "b"    #'describe-bindings
+  "c"    #'describe-key-briefly
+  "d"    #'apropos-documentation
+  "e"    #'view-echo-area-messages
+  "f"    #'describe-function
+  "g"    #'describe-gnu-project
+  "h"    #'view-hello-file
 
-    (define-key map "k" 'describe-key)
-    (define-key map "l" 'view-lossage)
-    (define-key map "m" 'describe-mode)
-    (define-key map "o" 'describe-symbol)
-    (define-key map "n" 'view-emacs-news)
-    (define-key map "p" 'finder-by-keyword)
-    (define-key map "P" 'describe-package)
-    (define-key map "r" 'info-emacs-manual)
-    (define-key map "R" 'info-display-manual)
-    (define-key map "s" 'describe-syntax)
-    (define-key map "t" 'help-with-tutorial)
-    (define-key map "v" 'describe-variable)
-    (define-key map "w" 'where-is)
-    (define-key map "x" 'describe-command)
-    (define-key map "q" 'help-quit-or-quick)
-    map)
-  "Keymap for characters following the Help key.")
+  "i"    #'info
+  "4 i"  #'info-other-window
+
+  "k"    #'describe-key
+  "l"    #'view-lossage
+  "m"    #'describe-mode
+  "o"    #'describe-symbol
+  "n"    #'view-emacs-news
+  "p"    #'finder-by-keyword
+  "P"    #'describe-package
+  "r"    #'info-emacs-manual
+  "R"    #'info-display-manual
+  "s"    #'describe-syntax
+  "t"    #'help-with-tutorial
+  "v"    #'describe-variable
+  "w"    #'where-is
+  "x"    #'describe-command
+  "q"    #'help-quit-or-quick)
 
 (define-key global-map (char-to-string help-char) 'help-command)
 (define-key global-map [help] 'help-command)
