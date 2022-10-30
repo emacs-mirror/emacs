@@ -1238,7 +1238,8 @@ in the European submenu in each of those two menus."
 	  (if (symbolp (setq parent-symbol (car parents)))
 	      (setq parent (symbol-name parent))
 	    (setq parent parent-symbol parent-symbol (intern parent)))
-	  (setq describe-map (lookup-key describe-language-environment-map (vector parent-symbol)))
+	  (setq describe-map (lookup-key describe-language-environment-map
+                                         (vector parent-symbol)))
 	  ;; This prompt string is for define-prefix-command, so
 	  ;; that the map it creates will be suitable for a menu.
 	  (or describe-map (setq prompt (format "%s Environment" parent)))
@@ -1246,19 +1247,25 @@ in the European submenu in each of those two menus."
 	    (setq describe-map (intern (format "describe-%s-environment-map"
 					       (downcase parent))))
 	    (define-prefix-command describe-map nil prompt)
-	    (define-key-after describe-language-environment-map (vector parent-symbol)
-	      (cons parent describe-map)))
-	  (setq setup-map (lookup-key setup-language-environment-map (vector parent-symbol)))
+	    (define-key-after
+              describe-language-environment-map
+              (vector parent-symbol) (cons parent describe-map)))
+	  (setq setup-map (lookup-key setup-language-environment-map
+                                      (vector parent-symbol)))
 	  (unless setup-map
 	    (setq setup-map (intern (format "setup-%s-environment-map"
                                             (downcase parent))))
 	    (define-prefix-command setup-map nil prompt)
-	    (define-key-after setup-language-environment-map (vector parent-symbol)
-	      (cons parent setup-map)))
+	    (define-key-after
+              setup-language-environment-map
+              (vector parent-symbol) (cons parent setup-map)))
 	  (setq parents (cdr parents))
-          (set-language-info-setup-keymap lang-env alist (symbol-value describe-map) (symbol-value setup-map))))
-    (set-language-info-setup-keymap lang-env alist
-                                    describe-language-environment-map setup-language-environment-map))
+          (set-language-info-setup-keymap
+           lang-env alist
+           (symbol-value describe-map) (symbol-value setup-map))))
+    (set-language-info-setup-keymap
+     lang-env alist
+     describe-language-environment-map setup-language-environment-map))
   (dolist (elt alist)
     (set-language-info-internal lang-env (car elt) (cdr elt)))
   (if (equal lang-env current-language-environment)
