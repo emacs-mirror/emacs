@@ -203,8 +203,8 @@ This function is meant to be used as a hook for
           ;;     :version 1
           ;;     :default-vc Git)
           (let ((spec (read (current-buffer))))
-            (when (= package-vc-elpa-packages-version
-                     (plist-get (cdr spec) :version))
+            (when (eq package-vc-elpa-packages-version
+                      (plist-get (cdr spec) :version))
               (setf (alist-get (intern archive) package-vc-archive-spec-alist)
                     (car spec)))
             (setf (alist-get (intern archive) package-vc-archive-data-alist)
