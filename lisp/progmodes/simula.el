@@ -1,7 +1,6 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
 ;; Maintainer: emacs-devel@gnu.org
@@ -245,17 +244,6 @@ for SIMULA mode to function correctly."
 
 (defvar simula-font-lock-keywords simula-font-lock-keywords-1
   "Default expressions to highlight in Simula mode.")
-
-; The following function is taken from cc-mode.el,
-; it determines the flavor of the Emacs running
-
-(defvar simula-mode-menu
-  '(["Indent Line"	      simula-indent-line t]
-    ["Backward Statement"     simula-previous-statement t]
-    ["Forward Statement"      simula-next-statement t]
-    ["Backward Up Level"      simula-backward-up-level t]
-    ["Forward Down Statement" simula-forward-down-level t])
-  "Emacs menu for SIMULA mode.")
 
 (defvar simula-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1560,7 +1548,6 @@ If not nil and not t, move to limit of search and return nil."
 (let (abbrevs-changed)
   (simula-install-standard-abbrevs))
 
-;; Hilit mode support.
 
 ;; obsolete
 
