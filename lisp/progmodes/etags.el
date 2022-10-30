@@ -1,7 +1,6 @@
 ;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2022 Free
-;; Software Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -2006,16 +2005,15 @@ see the doc of that variable if you want to add names to the list."
   (set-buffer-modified-p nil)
   (select-tags-table-mode))
 
-(defvar select-tags-table-mode-map ; Doc string?
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map button-buffer-map)
-    (define-key map "t" 'push-button)
-    (define-key map " " 'next-line)
-    (define-key map "\^?" 'previous-line)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "q" 'select-tags-table-quit)
-    map))
+(defvar-keymap select-tags-table-mode-map
+  :doc "Keymap for `select-tags-table-mode'."
+  :parent button-buffer-map
+  "t"   #'push-button
+  "SPC" #'next-line
+  "DEL" #'previous-line
+  "n"   #'next-line
+  "p"   #'previous-line
+  "q"   #'select-tags-table-quit)
 
 (define-derived-mode select-tags-table-mode special-mode "Select Tags Table"
   "Major mode for choosing a current tags table among those already loaded."
