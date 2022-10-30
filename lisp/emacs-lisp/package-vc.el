@@ -381,7 +381,18 @@ The output is written out into PKG-FILE."
   ;; Mark package as selected
   (package--save-selected-packages
    (cons (package-desc-name pkg-desc)
-         package-selected-packages)))
+         package-selected-packages))
+
+  ;; Confirm that the installation was successful
+  (let ((main-file (package-vc-main-file pkg-desc)))
+    (message "Source package `%s' installed (Version %s, Revision %S)."
+             (package-desc-name pkg-desc)
+             (lm-with-file main-file
+               (package-strip-rcs-id
+                (or (lm-header "package-version")
+                    (lm-header "version"))))
+             (vc-working-revision main-file)))
+  t)
 
 (defun package-vc-guess-backend (url)
   "Guess the VC backend for URL.
