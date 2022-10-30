@@ -507,8 +507,8 @@ If no such revision can be found, return nil."
           (ignore-error vc-not-supported
             (vc-call-backend (vc-backend (buffer-file-name))
                              'last-change
-                             (match-beginning 0)
-                             (match-end 0))))))))
+                             (buffer-file-name)
+                             (line-number-at-pos nil t))))))))
 
 ;;;###autoload
 (defun package-vc-install (name-or-url &optional name rev backend)

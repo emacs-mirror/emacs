@@ -449,10 +449,10 @@
 ;;
 ;;   Return the common ancestor between REV1 and REV2 revisions.
 ;;
-;; - last-change (from to)
+;; - last-change (file line)
 ;;
-;;   Return the most recent revision that made a change between FROM
-;;   and TO.
+;;   Return the most recent revision of FILE that made a change
+;;   on LINE.
 
 ;; TAG/BRANCH SYSTEM
 ;;
@@ -3590,17 +3590,20 @@ it indicates a specific revision to check out."
             (throw 'ok res)))))))
 
 (declare-function log-view-current-tag "log-view" (&optional pos))
-(defun vc-default-last-change (_backend from to)
+(defun vc-default-last-change (_backend file line)
   "Default `last-change' implementation.
-FROM and TO are used as region markers"
-  (save-window-excursion
-    (let* ((buf (window-buffer (vc-region-history from to)))
-           (proc (get-buffer-process buf)))
-      (cl-assert (processp proc))
-      (while (accept-process-output proc))
-      (with-current-buffer buf
-        (prog1 (log-view-current-tag)
-          (kill-buffer))))))
+It returns the last revision that changed LINE number in FILE."
+  (unless (file-exists-p file)
+    (signal 'file-error "File doesn't exist"))
+  (with-temp-buffer
+    (vc-call-backend (vc-backend file) 'annotate-command
+                     file (current-buffer))
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (let ((rev (vc-call-backend
+                (vc-backend file)
+                'annotate-extract-revision-at-line)))
+      (if (consp rev) (car rev) rev))))
 
 
 
