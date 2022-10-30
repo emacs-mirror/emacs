@@ -30277,11 +30277,6 @@ x_delete_terminal (struct terminal *terminal)
 	 closing all the displays.  */
       XrmDestroyDatabase (dpyinfo->rdb);
 #endif
-
-#ifdef HAVE_XKB
-      if (dpyinfo->xkb_desc)
-	XkbFreeKeyboard (dpyinfo->xkb_desc, XkbAllComponentsMask, True);
-#endif
 #ifdef USE_GTK
       xg_display_close (dpyinfo->display);
 #else
@@ -30291,9 +30286,6 @@ x_delete_terminal (struct terminal *terminal)
       XCloseDisplay (dpyinfo->display);
 #endif
 #endif /* ! USE_GTK */
-
-      if (dpyinfo->modmap)
-	XFreeModifiermap (dpyinfo->modmap);
       /* Do not close the connection here because it's already closed
 	 by X(t)CloseDisplay (Bug#18403).  */
       dpyinfo->display = NULL;
@@ -30305,6 +30297,18 @@ x_delete_terminal (struct terminal *terminal)
      way to continue and avoid Bug#19147.  */
   else if (dpyinfo->connection >= 0)
     emacs_close (dpyinfo->connection);
+
+  /* Free the keyboard and modifier maps here; that is safe to do
+     without a display, and not doing so leads to a lot of data being
+     leaked upon IO error.  */
+
+#ifdef HAVE_XKB
+  if (dpyinfo->xkb_desc)
+    XkbFreeKeyboard (dpyinfo->xkb_desc, XkbAllComponentsMask, True);
+#endif
+
+  if (dpyinfo->modmap)
+    XFreeModifiermap (dpyinfo->modmap);
 
   /* No more input on this descriptor.  */
   delete_keyboard_wait_descriptor (dpyinfo->connection);
