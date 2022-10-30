@@ -367,6 +367,12 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
   if (!file)
     return NULL;
 
+  /* Do not follow symlinks, so that the caller could watch symlink
+     files.  */
+  DWORD crflags = FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED;
+  if (symlinks_supported (parent_dir))
+    crflags |= FILE_FLAG_OPEN_REPARSE_POINT;
+
   if (w32_unicode_filenames)
     {
       wchar_t dir_w[MAX_PATH], file_w[MAX_PATH];
@@ -383,8 +389,7 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
 			     processes from deleting files inside
 			     parent_dir.  */
 			  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
-			  NULL, OPEN_EXISTING,
-			  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			  NULL, OPEN_EXISTING, crflags,
 			  NULL);
     }
   else
@@ -400,8 +405,7 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
       hdir = CreateFileA (dir_a,
 			  FILE_LIST_DIRECTORY,
 			  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
-			  NULL, OPEN_EXISTING,
-			  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			  NULL, OPEN_EXISTING, crflags,
 			  NULL);
     }
   if (hdir == INVALID_HANDLE_VALUE)

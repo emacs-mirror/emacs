@@ -371,6 +371,7 @@ This uses `icon-map-list' to map icon file names to stock icon names."
   "Return the device class of NAME.
 Users should not call this function; see `device-class' instead."
   (cond
+   ((not name) nil)
    ((string-match-p "XTEST" name) 'test)
    ((string= "Virtual core pointer" name) 'core-pointer)
    ((string= "Virtual core keyboard" name) 'core-keyboard)

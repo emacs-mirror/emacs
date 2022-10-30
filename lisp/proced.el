@@ -426,7 +426,14 @@ Important: the match ends just after the marker.")
   "Name of Proced Log buffer.")
 
 (defconst proced-help-string
-  "(n)ext, (p)revious, (m)ark, (u)nmark, (k)ill, (q)uit (type ? for more help)"
+  (concat "\\<proced-mode-map> "
+          "\\[next-line] next, "
+          "\\[previous-line] previous, "
+          "\\[proced-mark] mark, "
+          "\\[proced-unmark] unmark, "
+          "\\[proced-send-signal] kill, "
+          "\\[quit-window] quit "
+          "(type \\[proced-help] for more help)")
   "Help string for Proced.")
 
 (defconst proced-header-help-echo
@@ -445,60 +452,58 @@ Important: the match ends just after the marker.")
     (,(concat "^[" (char-to-string proced-marker-char) "]")
      ".+" (proced-move-to-goal-column) nil (0 'proced-marked))))
 
-(defvar proced-mode-map
-  (let ((km (make-sparse-keymap)))
-    ;; moving
-    (define-key km " " 'next-line)
-    (define-key km "n" 'next-line)
-    (define-key km "p" 'previous-line)
-    (define-key km "\C-n" 'next-line)
-    (define-key km "\C-p" 'previous-line)
-    (define-key km "\C-?" 'previous-line)
-    (define-key km [?\S-\ ] 'previous-line)
-    (define-key km [down] 'next-line)
-    (define-key km [up] 'previous-line)
-    ;; marking
-    (define-key km "d" 'proced-mark) ; Dired compatibility ("delete")
-    (define-key km "m" 'proced-mark)
-    (put 'proced-mark :advertised-binding "m")
-    (define-key km "u" 'proced-unmark)
-    (define-key km "\177" 'proced-unmark-backward)
-    (define-key km "M" 'proced-mark-all)
-    (define-key km "U" 'proced-unmark-all)
-    (define-key km "t" 'proced-toggle-marks)
-    (define-key km "C" 'proced-mark-children)
-    (define-key km "P" 'proced-mark-parents)
-    ;; filtering
-    (define-key km "f"  'proced-filter-interactive)
-    (define-key km [mouse-2] 'proced-refine)
-    (define-key km "\C-m" 'proced-refine)
-    ;; sorting
-    (define-key km "sc" 'proced-sort-pcpu)
-    (define-key km "sm" 'proced-sort-pmem)
-    (define-key km "sp" 'proced-sort-pid)
-    (define-key km "ss" 'proced-sort-start)
-    (define-key km "sS" 'proced-sort-interactive)
-    (define-key km "st" 'proced-sort-time)
-    (define-key km "su" 'proced-sort-user)
-    ;; similar to `Buffer-menu-sort-by-column'
-    (define-key km [header-line mouse-1] 'proced-sort-header)
-    (define-key km [header-line mouse-2] 'proced-sort-header)
-    (define-key km "T" 'proced-toggle-tree)
-    ;; formatting
-    (define-key km "F"  'proced-format-interactive)
-    ;; operate
-    (define-key km "o" 'proced-omit-processes)
-    (define-key km "x" 'proced-send-signal) ; Dired compatibility
-    (define-key km "k" 'proced-send-signal) ; kill processes
-    (define-key km "r" 'proced-renice) ; renice processes
-    ;; misc
-    (define-key km "h" 'describe-mode)
-    (define-key km "?" 'proced-help)
-    (define-key km [remap undo] 'proced-undo)
-    (define-key km [remap advertised-undo] 'proced-undo)
-    ;; Additional keybindings are inherited from `special-mode-map'
-    km)
-  "Keymap for Proced commands.")
+(defvar-keymap proced-mode-map
+  :doc "Keymap for Proced commands."
+  ;; moving
+  "SPC"       #'next-line
+  "n"         #'next-line
+  "p"         #'previous-line
+  "C-n"       #'next-line
+  "C-p"       #'previous-line
+  "S-SPC"     #'previous-line
+  "<down>"    #'next-line
+  "<up>"      #'previous-line
+  ;; marking
+  "d"         #'proced-mark ; Dired compatibility ("delete")
+  "m"         #'proced-mark
+  "u"         #'proced-unmark
+  "DEL"       #'proced-unmark-backward
+  "M"         #'proced-mark-all
+  "U"         #'proced-unmark-all
+  "t"         #'proced-toggle-marks
+  "C"         #'proced-mark-children
+  "P"         #'proced-mark-parents
+  ;; filtering
+  "f"         #'proced-filter-interactive
+  "<mouse-2>" #'proced-refine
+  "RET"       #'proced-refine
+  ;; sorting
+  "s c"       #'proced-sort-pcpu
+  "s m"       #'proced-sort-pmem
+  "s p"       #'proced-sort-pid
+  "s s"       #'proced-sort-start
+  "s S"       #'proced-sort-interactive
+  "s t"       #'proced-sort-time
+  "s u"       #'proced-sort-user
+  ;; similar to `Buffer-menu-sort-by-column'
+  "<header-line> <mouse-1>"   #'proced-sort-header
+  "<header-line> <mouse-2>"   #'proced-sort-header
+  "T"         #'proced-toggle-tree
+  ;; formatting
+  "F"         #'proced-format-interactive
+  ;; operate
+  "o"         #'proced-omit-processes
+  "x"         #'proced-send-signal ; Dired compatibility
+  "k"         #'proced-send-signal ; kill processes
+  "r"         #'proced-renice ; renice processes
+  ;; misc
+  "h"         #'describe-mode
+  "?"         #'proced-help
+  "<remap> <undo>"            #'proced-undo
+  "<remap> <advertised-undo>" #'proced-undo
+  ;; Additional keybindings are inherited from `special-mode-map'
+  )
+(put 'proced-mark :advertised-binding "m")
 
 (easy-menu-define proced-menu proced-mode-map
   "Proced Menu."
@@ -637,22 +642,27 @@ type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
 Type \\[proced-renice] to renice marked processes.
 
-The initial content of a listing is defined by the variable `proced-filter'
-and the variable `proced-format'.
-The variable `proced-filter' specifies which system processes are displayed.
-The variable `proced-format' specifies which attributes are displayed for
-each process.  Type \\[proced-filter-interactive] and \\[proced-format-interactive]
-to change the values of `proced-filter' and `proced-format'.
-The current value of the variable `proced-filter' is indicated in the
-mode line.
+The initial content of a listing is defined by the variable
+`proced-filter' and the variable `proced-format'.
+
+The variable `proced-filter' specifies which system processes are
+displayed.
+
+The variable `proced-format' specifies which attributes are
+displayed for each process.
+
+Type \\[proced-filter-interactive] and \\[proced-format-interactive] to \
+change the values of `proced-filter' and
+`proced-format'.  The current value of the variable
+`proced-filter' is indicated in the mode line.
 
 The sort order of Proced listings is defined by the variable `proced-sort'.
-Type \\[proced-sort-interactive] or click on a header in the header line
-to change the sort scheme.  The current sort scheme is indicated in the
-mode line, using \"+\" or \"-\" for ascending or descending sort order.
+Type \\[proced-sort-interactive] or click on a header in the header \
+line to change the sort scheme.
+The current sort scheme is indicated in the mode line, using
+\"+\" or \"-\" for ascending or descending sort order.
 
-Type \\[proced-toggle-tree] to toggle whether the listing is
-displayed as process tree.
+Type \\[proced-toggle-tree] to toggle whether the listing is displayed as process tree.
 
 Type \\[proced-toggle-auto-update] to automatically update the
 process list.  The time interval for updates can be configured
@@ -661,11 +671,11 @@ via `proced-auto-update-interval'.
 An existing Proced listing can be refined by typing \\[proced-refine].
 Refining an existing listing does not update the variable `proced-filter'.
 
-The attribute-specific rules for formatting, filtering, sorting, and refining
-are defined in `proced-grammar-alist'.
+The attribute-specific rules for formatting, filtering, sorting,
+and refining are defined in `proced-grammar-alist'.
 
-After displaying or updating a Proced buffer, Proced runs the normal hook
-`proced-post-display-hook'.
+After displaying or updating a Proced buffer, Proced runs the
+normal hook `proced-post-display-hook'.
 
 \\{proced-mode-map}"
   :interactive nil
@@ -1768,6 +1778,9 @@ The value returned is the value of the last form in BODY."
        (save-window-excursion
          ;; Analogous to `dired-pop-to-buffer'
          ;; Don't split window horizontally.  (Bug#1806)
+         ;; FIXME: `dired-pop-to-buffer' was removed and replaced with
+         ;;        `dired-mark-pop-up'.  Should we just use
+         ;;        `pop-to-buffer' here also?
          (display-buffer (current-buffer)
                          '(display-buffer-in-direction
                            (direction . bottom)
@@ -1977,7 +1990,7 @@ STRING is an overall summary of the failures."
   (proced-why)
   (if (eq last-command 'proced-help)
       (describe-mode)
-    (message proced-help-string)))
+    (message (substitute-command-keys proced-help-string))))
 
 (defun proced-undo ()
   "Undo in a Proced buffer.

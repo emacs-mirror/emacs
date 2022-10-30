@@ -5,7 +5,7 @@
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, lisp
-;; Version: 3.2.1
+;; Version: 3.3.1
 ;; Package-Requires: ((emacs "26"))
 
 ;; This file is part of GNU Emacs.
@@ -80,27 +80,57 @@ MAP can be an alist, plist, hash-table, or array."
   `(pcase-let ((,(map--make-pcase-patterns keys) ,map))
      ,@body))
 
-(eval-when-compile
-  (defmacro map--dispatch (map-var &rest args)
-    "Evaluate one of the forms specified by ARGS based on the type of MAP-VAR.
-
-The following keyword types are meaningful: `:list',
-`:hash-table' and `:array'.
-
-An error is thrown if MAP-VAR is neither a list, hash-table nor array.
-
-Returns the result of evaluating the form associated with MAP-VAR's type."
-    (declare (debug t) (indent 1))
-    `(cond ((listp ,map-var) ,(plist-get args :list))
-           ((hash-table-p ,map-var) ,(plist-get args :hash-table))
-           ((arrayp ,map-var) ,(plist-get args :array))
-           (t (error "Unsupported map type `%S': %S"
-                     (type-of ,map-var) ,map-var)))))
-
 (define-error 'map-not-inplace "Cannot modify map in-place")
 
 (defsubst map--plist-p (list)
+  "Return non-nil if LIST is the start of a nonempty plist map."
   (and (consp list) (atom (car list))))
+
+(defconst map--plist-has-predicate
+  (condition-case nil
+      (with-no-warnings (plist-get () nil #'eq) t)
+    (wrong-number-of-arguments))
+  "Non-nil means `plist-get' & co. accept a predicate in Emacs 29+.
+Note that support for this predicate in map.el is patchy and
+deprecated.")
+
+(defun map--plist-member-1 (plist prop &optional predicate)
+  "Compatibility shim for the PREDICATE argument of `plist-member'.
+Assumes non-nil PLIST satisfies `map--plist-p'."
+  (if (or (memq predicate '(nil eq)) (null plist))
+      (plist-member plist prop)
+    (let ((tail plist) found)
+      (while (and (not (setq found (funcall predicate (car tail) prop)))
+                  (consp (setq tail (cdr tail)))
+                  (consp (setq tail (cdr tail)))))
+      (and tail (not found)
+           (signal 'wrong-type-argument `(plistp ,plist)))
+      tail)))
+
+(defalias 'map--plist-member
+  (if map--plist-has-predicate #'plist-member #'map--plist-member-1)
+  "Compatibility shim for `plist-member' in Emacs 29+.
+\n(fn PLIST PROP &optional PREDICATE)")
+
+(defun map--plist-put-1 (plist prop val &optional predicate)
+  "Compatibility shim for the PREDICATE argument of `plist-put'.
+Assumes non-nil PLIST satisfies `map--plist-p'."
+  (if (or (memq predicate '(nil eq)) (null plist))
+      (plist-put plist prop val)
+    (let ((tail plist) prev found)
+      (while (and (consp (cdr tail))
+                  (not (setq found (funcall predicate (car tail) prop)))
+                  (consp (setq prev tail tail (cddr tail)))))
+      (cond (found (setcar (cdr tail) val))
+            (tail (signal 'wrong-type-argument `(plistp ,plist)))
+            (prev (setcdr (cdr prev) (cons prop (cons val (cddr prev)))))
+            ((setq plist (cons prop (cons val plist)))))
+      plist)))
+
+(defalias 'map--plist-put
+  (if map--plist-has-predicate #'plist-put #'map--plist-put-1)
+  "Compatibility shim for `plist-put' in Emacs 29+.
+\n(fn PLIST PROP VAL &optional PREDICATE)")
 
 (cl-defgeneric map-elt (map key &optional default testfn)
   "Look up KEY in MAP and return its associated value.
@@ -108,20 +138,24 @@ If KEY is not found, return DEFAULT which defaults to nil.
 
 TESTFN is the function to use for comparing keys.  It is
 deprecated because its default and valid values depend on the MAP
-argument.  Generally, alist keys are compared with `equal', plist
-keys with `eq', and hash-table keys with the hash-table's test
+argument, and it was never consistently supported by the map.el
+API.  Generally, alist keys are compared with `equal', plist keys
+with `eq', and hash-table keys with the hash-table's test
 function.
 
 In the base definition, MAP can be an alist, plist, hash-table,
 or array."
   (declare
+   ;; `testfn' is deprecated.
+   (advertised-calling-convention (map key &optional default) "27.1")
    (gv-expander
     (lambda (do)
       (gv-letplace (mgetter msetter) `(gv-delay-error ,map)
         (macroexp-let2* nil
             ;; Eval them once and for all in the right order.
             ((key key) (default default) (testfn testfn))
-          (funcall do `(map-elt ,mgetter ,key ,default)
+          (funcall do
+                   `(map-elt ,mgetter ,key ,default ,@(and testfn `(,testfn)))
                    (lambda (v)
                      (macroexp-let2 nil v v
                        `(condition-case nil
@@ -132,19 +166,21 @@ or array."
                            ,(funcall msetter
                                      `(map-insert ,mgetter ,key ,v))
                            ;; Always return the value.
-                           ,v)))))))))
-   ;; `testfn' is deprecated.
-   (advertised-calling-convention (map key &optional default) "27.1"))
-  ;; Can't use `cl-defmethod' with `advertised-calling-convention'.
-  (map--dispatch map
-    :list (if (map--plist-p map)
-              (let ((res (plist-member map key)))
-                (if res (cadr res) default))
-            (alist-get key map default nil (or testfn #'equal)))
-    :hash-table (gethash key map default)
-    :array (if (map-contains-key map key)
-               (aref map key)
-             default)))
+                           ,v)))))))))))
+
+(cl-defmethod map-elt ((map list) key &optional default testfn)
+  (if (map--plist-p map)
+      (let ((res (map--plist-member map key testfn)))
+        (if res (cadr res) default))
+    (alist-get key map default nil (or testfn #'equal))))
+
+(cl-defmethod map-elt ((map hash-table) key &optional default _testfn)
+  (gethash key map default))
+
+(cl-defmethod map-elt ((map array) key &optional default _testfn)
+  (if (map-contains-key map key)
+      (aref map key)
+    default))
 
 (defmacro map-put (map key value &optional testfn)
   "Associate KEY with VALUE in MAP and return VALUE.
@@ -154,8 +190,12 @@ When MAP is an alist, test equality with TESTFN if non-nil,
 otherwise use `equal'.
 
 MAP can be an alist, plist, hash-table, or array."
-  (declare (obsolete "use map-put! or (setf (map-elt ...) ...) instead" "27.1"))
-  `(setf (map-elt ,map ,key nil ,testfn) ,value))
+  (declare
+   (obsolete "use `map-put!' or `(setf (map-elt ...) ...)' instead." "27.1"))
+  (if testfn
+      `(with-no-warnings
+         (setf (map-elt ,map ,key nil ,testfn) ,value))
+    `(setf (map-elt ,map ,key) ,value)))
 
 (defun map--plist-delete (map key)
   (let ((tail map) last)
@@ -338,15 +378,16 @@ The default implementation delegates to `map-length'."
   "Return non-nil if and only if MAP contains KEY.
 TESTFN is deprecated.  Its default depends on MAP.
 The default implementation delegates to `map-some'."
+  (declare (advertised-calling-convention (map key) "27.1"))
   (unless testfn (setq testfn #'equal))
   (map-some (lambda (k _v) (funcall testfn key k)) map))
 
 (cl-defmethod map-contains-key ((map list) key &optional testfn)
   "Return non-nil if MAP contains KEY.
 If MAP is an alist, TESTFN defaults to `equal'.
-If MAP is a plist, `plist-member' is used instead."
+If MAP is a plist, TESTFN defaults to `eq'."
   (if (map--plist-p map)
-      (plist-member map key)
+      (map--plist-member map key testfn)
     (let ((v '(nil)))
       (not (eq v (alist-get key map v nil (or testfn #'equal)))))))
 
@@ -459,24 +500,30 @@ This operates by modifying MAP in place.
 If it cannot do that, it signals a `map-not-inplace' error.
 To insert an element without modifying MAP, use `map-insert'."
   ;; `testfn' only exists for backward compatibility with `map-put'!
-  (declare (advertised-calling-convention (map key value) "27.1"))
-  ;; Can't use `cl-defmethod' with `advertised-calling-convention'.
-  (map--dispatch
-   map
-   :list
-   (progn
-     (if (map--plist-p map)
-         (plist-put map key value)
-       (let ((oldmap map))
-         (setf (alist-get key map key nil (or testfn #'equal)) value)
-         (unless (eq oldmap map)
-           (signal 'map-not-inplace (list oldmap)))))
-     ;; Always return the value.
-     value)
-   :hash-table (puthash key value map)
-   ;; FIXME: If `key' is too large, should we signal `map-not-inplace'
-   ;; and let `map-insert' grow the array?
-   :array (aset map key value)))
+  (declare (advertised-calling-convention (map key value) "27.1")))
+
+(cl-defmethod map-put! ((map list) key value &optional testfn)
+  (if (map--plist-p map)
+      (map--plist-put map key value testfn)
+    (let ((oldmap map))
+      (setf (alist-get key map key nil (or testfn #'equal)) value)
+      (unless (eq oldmap map)
+        (signal 'map-not-inplace (list oldmap)))))
+  ;; Always return the value.
+  value)
+
+(cl-defmethod map-put! ((map hash-table) key value &optional _testfn)
+  (puthash key value map))
+
+(cl-defmethod map-put! ((map array) key value &optional _testfn)
+  ;; FIXME: If `key' is too large, should we signal `map-not-inplace'
+  ;; and let `map-insert' grow the array?
+  (aset map key value))
+
+;; There shouldn't be old source code referring to `map--put', yet we do
+;; need to keep it for backward compatibility with .elc files where the
+;; expansion of `setf' may call this function.
+(define-obsolete-function-alias 'map--put #'map-put! "27.1")
 
 (cl-defgeneric map-insert (map key value)
   "Return a new map like MAP except that it associates KEY with VALUE.
@@ -492,11 +539,6 @@ The default implementation defaults to `map-copy' and `map-put!'."
   (if (map--plist-p map)
       (cons key (cons value map))
     (cons (cons key value) map)))
-
-;; There shouldn't be old source code referring to `map--put', yet we do
-;; need to keep it for backward compatibility with .elc files where the
-;; expansion of `setf' may call this function.
-(define-obsolete-function-alias 'map--put #'map-put! "27.1")
 
 (cl-defmethod map-apply (function (map list))
   (if (map--plist-p map)

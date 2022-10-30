@@ -52,6 +52,7 @@ static ptrdiff_t get_leaf_windows (struct window *, struct window **,
 				   ptrdiff_t);
 static void window_scroll_pixel_based (Lisp_Object, int, bool, bool);
 static void window_scroll_line_based (Lisp_Object, int, bool, bool);
+static void window_scroll_for_long_lines (struct window *, int, bool);
 static void foreach_window (struct frame *,
 			    bool (* fn) (struct window *, void *),
                             void *);
@@ -5440,12 +5441,13 @@ window_wants_mode_line (struct window *w)
  * Return 1 if window W wants a header line and is high enough to
  * accommodate it, 0 otherwise.
  *
- * W wants a header line if it's a leaf window and neither a minibuffer
- * nor a pseudo window.  Moreover, its 'window-mode-line-format'
- * parameter must not be 'none' and either that parameter or W's
- * buffer's 'mode-line-format' value must be non-nil.  Finally, W must
- * be higher than its frame's canonical character height and be able to
- * accommodate a mode line too if necessary (the mode line prevails).
+ * W wants a header line if it's a leaf window and neither a
+ * minibuffer nor a pseudo window.  Moreover, its
+ * 'window-header-line-format' parameter must not be 'none' and either
+ * that parameter or W's buffer's 'header-line-format' value must be
+ * non-nil.  Finally, W must be higher than its frame's canonical
+ * character height and be able to accommodate a mode line too if
+ * necessary (the mode line prevails).
  */
 bool
 window_wants_header_line (struct window *w)
@@ -5473,9 +5475,9 @@ window_wants_header_line (struct window *w)
  * accommodate it, 0 otherwise.
  *
  * W wants a tab line if it's a leaf window and neither a minibuffer
- * nor a pseudo window.  Moreover, its 'window-mode-line-format'
+ * nor a pseudo window.  Moreover, its 'window-tab-line-format'
  * parameter must not be 'none' and either that parameter or W's
- * buffer's 'mode-line-format' value must be non-nil.  Finally, W must
+ * buffer's 'tab-line-format' value must be non-nil.  Finally, W must
  * be higher than its frame's canonical character height and be able
  * to accommodate a mode line and a header line too if necessary (the
  * mode line and a header line prevail).
@@ -5536,19 +5538,40 @@ window_internal_height (struct window *w)
 static void
 window_scroll (Lisp_Object window, EMACS_INT n, bool whole, bool noerror)
 {
+  struct window *w = XWINDOW (window);
+  struct buffer *b = XBUFFER (w->contents);
+  bool long_lines_truncated =
+    b->long_line_optimizations_p && !NILP (BVAR (b, truncate_lines));
   specpdl_ref count = SPECPDL_INDEX ();
 
   n = clip_to_bounds (INT_MIN, n, INT_MAX);
 
-  wset_redisplay (XWINDOW (window));
+  wset_redisplay (w);
 
-  if (whole && fast_but_imprecise_scrolling)
+  /* Does this window's buffer have very long and truncated lines?  */
+  if (b->long_line_optimizations_p
+      && !long_lines_truncated
+      && !NILP (Vtruncate_partial_width_windows)
+      && w->total_cols < FRAME_COLS (XFRAME (WINDOW_FRAME (w))))
+    {
+      if (FIXNUMP (Vtruncate_partial_width_windows))
+	long_lines_truncated =
+	  w->total_cols < XFIXNAT (Vtruncate_partial_width_windows);
+      else
+	long_lines_truncated = true;
+    }
+
+  if (whole && (fast_but_imprecise_scrolling || long_lines_truncated))
     specbind (Qfontification_functions, Qnil);
 
-  /* On GUI frames, use the pixel-based version which is much slower
-     than the line-based one but can handle varying line heights.  */
-  if (FRAME_WINDOW_P (XFRAME (XWINDOW (window)->frame)))
+  if (whole && long_lines_truncated)
+    window_scroll_for_long_lines (w, n, noerror);
+  else if (FRAME_WINDOW_P (XFRAME (XWINDOW (window)->frame)))
     {
+
+      /* On GUI frames, use the pixel-based version which is much
+	 slower than the line-based one, but can handle varying
+	 line heights.  */
       record_unwind_protect_void (unwind_display_working_on_window);
       display_working_on_window_p = true;
       window_scroll_pixel_based (window, n, whole, noerror);
@@ -5596,6 +5619,71 @@ static int
 sanitize_next_screen_context_lines (void)
 {
   return clip_to_bounds (0, next_screen_context_lines, 1000000);
+}
+
+/* Implementation of window_scroll for very long and truncated lines.
+   This is a simplified version, it only handles WHOLE window scrolls,
+   and doesn't honor scroll-preserve-screen-position nor scroll-margin.  */
+static void
+window_scroll_for_long_lines (struct window *w, int n, bool noerror)
+{
+  ptrdiff_t startpos = marker_position (w->start);
+  ptrdiff_t startbyte = marker_byte_position (w->start);
+  int nscls = sanitize_next_screen_context_lines ();
+  register int ht = window_internal_height (w);
+
+  n *= max (1, ht - nscls);
+
+  /* If point is not visible in window, bring it inside window.  */
+  struct position pos;
+  int rtop, rbot, dummy_rowh, dummy_vpos, dummy_x, dummy_y;
+  if (!(PT >= startpos
+	&& PT <= ZV
+	&& startpos <= ZV
+	&& pos_visible_p (w, PT, &dummy_x, &dummy_y, &rtop, &rbot, &dummy_rowh,
+			  &dummy_vpos)
+	&& !rtop && !rbot))
+    {
+      pos = *vmotion (PT, PT_BYTE, - (ht / 2), w);
+      startpos = pos.bufpos;
+      startbyte = pos.bytepos;
+    }
+  SET_PT_BOTH (startpos, startbyte);
+
+  bool lose = n < 0 && PT == BEGV;
+  pos = *vmotion (PT, PT_BYTE, n, w);
+  if (lose)
+    {
+      if (noerror)
+	return;
+      else
+	xsignal0 (Qbeginning_of_buffer);
+    }
+
+  bool bolp = pos.bufpos == BEGV || FETCH_BYTE (pos.bytepos - 1) == '\n';
+  if (pos.bufpos < ZV)
+    {
+      set_marker_restricted_both (w->start, w->contents,
+				  pos.bufpos, pos.bytepos);
+      w->start_at_line_beg = bolp;
+      wset_update_mode_line (w);
+      /* Set force_start so that redisplay_window will run
+	 the window-scroll-functions.  */
+      w->force_start = true;
+      SET_PT_BOTH (pos.bufpos, pos.bytepos);
+      if (n > 0)
+	pos = *vmotion (PT, PT_BYTE, ht / 2, w);
+      else if (n < 0)
+	pos = *vmotion (PT, PT_BYTE, - (ht / 2), w);
+      SET_PT_BOTH (pos.bufpos, pos.bytepos);
+    }
+  else
+    {
+      if (noerror)
+	return;
+      else
+	xsignal0 (Qend_of_buffer);
+    }
 }
 
 /* Implementation of window_scroll that works based on pixel line
@@ -8213,6 +8301,8 @@ init_window_once (void)
 
   minibuf_selected_window = Qnil;
   staticpro (&minibuf_selected_window);
+  old_selected_window = Qnil;
+  staticpro (&old_selected_window);
 
   pdumper_do_now_and_after_late_load (init_window_once_for_pdumper);
 }
@@ -8363,7 +8453,8 @@ on their symbols to be controlled by this variable.  */);
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-point-insertion-type", Vwindow_point_insertion_type,
-	       doc: /* Type of marker to use for `window-point'.  */);
+	       doc: /* Insertion type of marker to use for `window-point'.
+See `marker-insertion-type' for the meaning of the possible values.  */);
   Vwindow_point_insertion_type = Qnil;
   DEFSYM (Qwindow_point_insertion_type, "window-point-insertion-type");
 

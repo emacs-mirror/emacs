@@ -923,11 +923,12 @@ Elements of the attribute list are:
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. An unspecified value, present only for backward compatibility.
 10. inode number, as a nonnegative integer.
-11. Filesystem device number, as an integer.
+11. Filesystem device identifier, as an integer or a cons cell of integers.
 
 Large integers are bignums, so `eq' might not work on them.
 On most filesystems, the combination of the inode and the device
-number uniquely identifies the file.
+identifier uniquely identifies the file.  This unique file identification
+is provided by the access function `file-attribute-file-identifier'.
 
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.

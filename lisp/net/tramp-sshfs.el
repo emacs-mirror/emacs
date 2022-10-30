@@ -47,6 +47,9 @@
   :type 'string)
 
 ;;;###tramp-autoload
+(defvar tramp-default-remote-shell) ;; Silence byte compiler.
+
+;;;###tramp-autoload
 (tramp--with-startup
  (add-to-list 'tramp-methods
 	      `(,tramp-sshfs-method
@@ -150,6 +153,7 @@
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . ignore)
     (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-groups . ignore)
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
@@ -215,7 +219,7 @@ arguments to pass to the OPERATION."
 	  (progn
 	    ;; Read the expression.
 	    (goto-char (point-min))
-            (buffer-substring (point) (line-end-position)))
+	    (buffer-substring (point) (line-end-position)))
 	  ":" 'omit))))
    ;; The equivalent to `exec-directory'.
    `(,(tramp-file-local-name (expand-file-name default-directory)))))

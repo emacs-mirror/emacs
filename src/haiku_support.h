@@ -115,6 +115,7 @@ enum haiku_event_type
     SCREEN_CHANGED_EVENT,
     MENU_BAR_LEFT,
     CLIPBOARD_CHANGED_EVENT,
+    FONT_CHANGE_EVENT,
   };
 
 struct haiku_clipboard_changed_event
@@ -442,6 +443,27 @@ struct haiku_menu_bar_state_event
   void *window;
 };
 
+enum haiku_what_font
+  {
+    FIXED_FAMILY,
+    FIXED_STYLE,
+    DEFAULT_FAMILY,
+    DEFAULT_STYLE,
+  };
+
+struct haiku_font_change_event
+{
+  /* New family, style and size of the font.  */
+  haiku_font_family_or_style new_family;
+  haiku_font_family_or_style new_style;
+  int new_size;
+
+  /* What changed.  FIXED_FAMILY means this is the new fixed font.
+     DEFAULT_FAMILY means this is the new plain font.  The other enums
+     have no meaning.  */
+  enum haiku_what_font what;
+};
+
 struct haiku_session_manager_reply
 {
   bool quit_reply;
@@ -697,7 +719,7 @@ extern int be_get_display_screens (void);
 extern bool be_use_subpixel_antialiasing (void);
 extern const char *be_find_setting (const char *);
 extern haiku_font_family_or_style *be_list_font_families (size_t *);
-extern void be_font_style_to_flags (char *, struct haiku_font_pattern *);
+extern void be_font_style_to_flags (const char *, struct haiku_font_pattern *);
 extern void *be_open_font_at_index (int, int, float);
 extern void be_set_font_antialiasing (void *, bool);
 extern int be_get_ui_color (const char *, uint32_t *);
@@ -724,11 +746,21 @@ extern void be_get_window_decorator_frame (void *, int *, int *, int *, int *);
 extern void be_send_move_frame_event (void *);
 extern void be_set_window_fullscreen_mode (void *, enum haiku_fullscreen_mode);
 
+extern status_t be_write_node_message (const char *, const char *, void *);
+extern void be_send_message (const char *, void *);
+
 extern void be_lock_window (void *);
 extern void be_unlock_window (void *);
 extern bool be_get_explicit_workarea (int *, int *, int *, int *);
 extern void be_clear_grab_view (void);
 extern void be_set_use_frame_synchronization (void *, bool);
+
+extern void be_listen_font_settings (void);
+
+extern bool be_lock_font_defaults (void);
+extern const char *be_get_font_default (enum haiku_what_font);
+extern int be_get_font_size (enum haiku_what_font);
+extern void be_unlock_font_defaults (void);
 #ifdef __cplusplus
 }
 

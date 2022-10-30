@@ -4,6 +4,8 @@
 @c See file emacs.texi for copying conditions.
 @node Maintaining
 @chapter Maintaining Large Programs
+@cindex maintaining large programs
+@cindex large programming projects, maintaining
 
   This chapter describes Emacs features for maintaining medium- to
 large-size programs and packages.  These features include:
@@ -170,6 +172,30 @@ which it refers to as @dfn{back ends}:
 
 @itemize @bullet
 
+@cindex git
+@item
+Git is a decentralized version control system originally invented by
+Linus Torvalds to support development of Linux (his kernel).  VC
+supports many common Git operations, but others, such as repository
+syncing, must be done from the command line.
+
+@cindex CVS
+@item
+CVS is the free version control system that was, until circa 2008,
+used by the majority of free software projects.  Since then, it has
+been superseded by newer systems.  CVS allows concurrent multi-user
+development either locally or over the network.  Unlike newer systems,
+it lacks support for atomic commits and file moving/renaming.  VC
+supports all basic editing operations under CVS.
+
+@cindex SVN
+@cindex Subversion
+@item
+Subversion (svn) is a free version control system designed to be
+similar to CVS but without its problems (e.g., it supports atomic
+commits of filesets, and versioning of directories, symbolic links,
+meta-data, renames, copies, and deletes).
+
 @cindex SCCS
 @item
 SCCS was the first version control system ever built, and was long ago
@@ -190,30 +216,6 @@ RCS is the free version control system around which VC was initially
 built.  It is relatively primitive: it cannot be used over the
 network, and works at the level of individual files.  Almost
 everything you can do with RCS can be done through VC.
-
-@cindex CVS
-@item
-CVS is the free version control system that was, until circa 2008,
-used by the majority of free software projects.  Since then, it has
-been superseded by newer systems.  CVS allows concurrent multi-user
-development either locally or over the network.  Unlike newer systems,
-it lacks support for atomic commits and file moving/renaming.  VC
-supports all basic editing operations under CVS.
-
-@cindex SVN
-@cindex Subversion
-@item
-Subversion (svn) is a free version control system designed to be
-similar to CVS but without its problems (e.g., it supports atomic
-commits of filesets, and versioning of directories, symbolic links,
-meta-data, renames, copies, and deletes).
-
-@cindex git
-@item
-Git is a decentralized version control system originally invented by
-Linus Torvalds to support development of Linux (his kernel).  VC
-supports many common Git operations, but others, such as repository
-syncing, must be done from the command line.
 
 @cindex hg
 @cindex Mercurial
@@ -690,11 +692,15 @@ started editing (@pxref{Old Revisions}), type @kbd{C-c C-d}
 
 @kindex C-c C-w @r{(Log Edit mode)}
 @findex log-edit-generate-changelog-from-diff
+@vindex diff-add-log-use-relative-names
   To help generate ChangeLog entries, type @kbd{C-c C-w}
 (@code{log-edit-generate-changelog-from-diff}), to generate skeleton
 ChangeLog entries, listing all changed file and function names based
 on the diff of the VC fileset.  Consecutive entries left empty will be
-combined by @kbd{C-q} (@code{fill-paragraph}).
+combined by @kbd{C-q} (@code{fill-paragraph}).  By default the
+skeleton will just include the file name, without any leading
+directories.  If you wish to prepend the leading directories up to the
+VC root, customize @code{diff-add-log-use-relative-names}.
 
 @kindex C-c C-a @r{(Log Edit mode)}
 @findex log-edit-insert-changelog
@@ -897,7 +903,14 @@ is non-@code{nil}, the colors expressing the age of each line are
 applied to the background color, leaving the foreground at its default
 color.
 
-  When you give a prefix argument to this command, Emacs reads two
+@vindex vc-annotate-switches
+  You can customize the @code{annotate} options that @kbd{C-x v g}
+uses by customizing @code{vc-@var{backend}-annotate-switches} and
+@code{vc-annotate-switches}.  They function similarly to
+@code{vc-@var{backend}-diff-switches} and @code{vc-diff-switches},
+described above.
+
+  When you give a prefix argument to @kbd{C-x v g}, Emacs reads two
 arguments using the minibuffer: the revision to display and annotate
 (instead of the current file contents), and the time span in days the
 color range should cover.
@@ -1030,13 +1043,14 @@ revision at point.  A second @key{RET} hides it again.
 (@code{vc-log-incoming}) command displays a log buffer showing the
 changes that will be applied, the next time you run the version
 control system's pull command to get new revisions from another
-repository (@pxref{Pulling / Pushing}).  This other repository is the default
+remote location (@pxref{Pulling / Pushing}).  This other remote location is the default
 one from which changes are pulled, as defined by the version control
 system; with a prefix argument, @code{vc-log-incoming} prompts for a
-specific repository.  Similarly, @kbd{C-x v O}
+specific remote location.  Similarly, @kbd{C-x v O}
 (@code{vc-log-outgoing}) shows the changes that will be sent to
-another repository, the next time you run the push command; with a
-prefix argument, it prompts for a specific destination repository.
+another remote location, the next time you run the push command; with a
+prefix argument, it prompts for a specific destination that
+in case of some version control system can be a branch name.
 
 @cindex VC log buffer, commands in
 @cindex vc-log buffer
@@ -1394,18 +1408,19 @@ Apart from acting on multiple files, these commands behave much like
 their single-buffer counterparts (@pxref{Search}).
 
   The VC Directory buffer additionally defines some branch-related
-commands starting with the prefix @kbd{B}:
+commands starting with the prefix @kbd{b}:
 
 @table @kbd
-@item B c
-Create a new branch (@code{vc-create-tag}).
+@item b c
+Create a new branch (@code{vc-create-branch}).  @xref{Creating
+Branches}.
 
-@item B l
+@item b l
 Prompt for the name of a branch and display the change history of that
 branch (@code{vc-print-branch-log}).
 
-@item B s
-Switch to a branch (@code{vc-retrieve-tag}).  @xref{Switching
+@item b s
+Switch to a branch (@code{vc-switch-branch}).  @xref{Switching
 Branches}.
 
 @item d
@@ -1469,7 +1484,7 @@ Mercurial, command @kbd{hg update} is used to switch to another
 branch.
 
   The VC command to switch to another branch in the current directory
-is @kbd{C-x v r @var{branch-name} @key{RET}} (@code{vc-retrieve-tag}).
+is @kbd{C-x v b s @var{branch-name} @key{RET}} (@code{vc-switch-branch}).
 
   On centralized version control systems, you can also switch between
 branches by typing @kbd{C-u C-x v v} in an up-to-date work file
@@ -1619,8 +1634,8 @@ if the current revision is 2.5, the branch ID should be 2.5.1, 2.5.2,
 and so on, depending on the number of existing branches at that point.
 
   This procedure will not work for distributed version control systems
-like git or Mercurial.  For those systems you should use the prefix
-argument to @code{vc-create-tag} (@kbd{C-u C-x v s}) instead.
+like git or Mercurial.  For those systems you should use the command
+@code{vc-create-branch} (@kbd{C-x v b c}) instead.
 
   To create a new branch at an older revision (one that is no longer
 the head of a branch), first select that revision (@pxref{Switching
@@ -2082,6 +2097,13 @@ that it only knows about subunits that were loaded into the
 interpreter.)
 
 @item
+If Eglot is activated for the current buffer's project
+(@pxref{Projects}) and the current buffer's major mode, Eglot consults
+an external language server program and provides the data supplied by
+the server regarding the definitions of the identifiers in the
+project.  @xref{Eglot Features,,, eglot, Eglot: The Emacs LSP Client}.
+
+@item
 An external program can extract references by scanning the relevant
 files, and build a database of these references.  A backend can then
 access this database whenever it needs to list or look up references.
@@ -2289,7 +2311,9 @@ Display the reference on the current line in the other window
 @item r @var{pattern} @key{RET} @var{replacement} @key{RET}
 Perform interactive query-replace on references that match
 @var{pattern} (@code{xref-query-replace-in-results}), replacing
-the match with @var{replacement}.  @xref{Identifier Search}.
+the match with @var{replacement}.  This command can only be used in
+@file{*xref*} buffers that show all the matches for an identifier in
+all the relevant files.  @xref{Identifier Search}.
 
 @item g
 @findex xref-revert-buffer
@@ -2323,7 +2347,8 @@ them.
 @item M-?
 Find all the references for the identifier at point.
 
-@item M-x xref-query-replace-in-results @key{RET} @var{replacement} @key{RET}
+@item r
+@itemx M-x xref-query-replace-in-results @key{RET} @var{replacement} @key{RET}
 @itemx C-u M-x xref-query-replace-in-results @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Interactively replace @var{regexp} with @var{replacement} in the names
 of all the identifiers shown in the @file{*xref*} buffer.
@@ -2369,16 +2394,18 @@ shown.  The default value is @code{nil}, which just shows the results
 in the @file{*xref*} buffer, but doesn't select any of them.
 
 @findex xref-query-replace-in-results
-  @kbd{M-x xref-query-replace-in-results} reads a @var{replacement}
+  @kbd{r} (@code{xref-query-replace-in-results}) reads a @var{replacement}
 string, just like ordinary @kbd{M-x query-replace-regexp}.  It then
 renames the identifiers shown in the @file{*xref*} buffer in all the
 places in all the files where these identifiers are referenced, such
 that their new name is @var{replacement}.  This is useful when you
 rename your identifiers as part of refactoring.  This command should
-be invoked in the @file{*xref*} buffer generated by @kbd{M-?}.  With a
-prefix argument, the command also prompts for a regexp to match
-identifier names, and renames that regexp in the names of the matching
-identifiers with @var{replacement}.
+be invoked in the @file{*xref*} buffer generated by @kbd{M-?}.  By
+default, the command replaces the entire name of each identifier with
+@var{replacement}, but if invoked with a prefix argument, the command
+prompts for a regexp to match identifier names, and replaces only the
+matches of that regexp in the names of the identifiers with
+@var{replacement}.
 
 @findex xref-find-references-and-replace
   @kbd{M-x xref-find-references-and-replace} works similarly to
@@ -3271,7 +3298,7 @@ according to @code{bug-reference-setup-from-mail-alist},
 and @code{bug-reference-maybe-setup-from-irc} which does the setup
 according to @code{bug-reference-setup-from-irc-alist}.
 @end itemize
-A setup function should return non-nil if it could setup bug-reference
+A setup function should return non-@code{nil} if it could setup bug-reference
 mode which is the case if the last thing the function does is calling
 one of the helper functions above.
 

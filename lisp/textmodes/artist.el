@@ -5341,8 +5341,6 @@ The event, EV, is the mouse event."
   (require 'reporter)
   (if (y-or-n-p "Do you want to submit a bug report on Artist? ")
       (let ((vars '(window-system
-		    window-system-version
-		    ;;
 		    artist-rubber-banding
 		    artist-interface-with-rect
 		    artist-aspect-ratio

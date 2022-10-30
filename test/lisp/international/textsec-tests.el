@@ -77,7 +77,7 @@
   (should (eq (textsec-restriction-level "切foo")
               'highly-restrictive))
   (should (eq (textsec-restriction-level "հfoo")
-              'moderately-retrictive))
+              'moderately-restrictive))
   (should (eq (textsec-restriction-level "Сirсlе")
               'unrestricted)))
 

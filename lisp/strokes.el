@@ -210,9 +210,6 @@ static char * stroke_xpm[] = {
   :link '(emacs-commentary-link "strokes")
   :group 'mouse)
 
-(define-obsolete-variable-alias 'strokes-modeline-string 'strokes-lighter
-  "24.3")
-
 (defcustom strokes-lighter " Strokes"
   "Mode line identifier for Strokes mode."
   :type 'string)
@@ -1362,11 +1359,9 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
   "Return t if STROKE1's command name precedes STROKE2's in lexicographic order."
   (string-lessp (cdr stroke1) (cdr stroke2)))
 
-(defvar strokes-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(shift down-mouse-2)] #'strokes-do-stroke)
-    (define-key map [(meta down-mouse-2)] #'strokes-do-complex-stroke)
-    map))
+(defvar-keymap strokes-mode-map
+  "S-<down-mouse-2>" #'strokes-do-stroke
+  "M-<down-mouse-2>" #'strokes-do-complex-stroke)
 
 ;;;###autoload
 (define-minor-mode strokes-mode

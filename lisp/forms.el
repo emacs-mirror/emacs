@@ -1928,8 +1928,7 @@ after writing out the data."
   (let ((i 0)
 	(here (point))
 	there
-	(cnt 0)
-	(inhibit-point-motion-hooks t))
+	(cnt 0))
 
     (if (zerop arg)
 	(setq cnt 1)
@@ -1955,8 +1954,7 @@ after writing out the data."
   (let ((i (length forms--markers))
 	(here (point))
 	there
-	(cnt 0)
-	(inhibit-point-motion-hooks t))
+	(cnt 0))
 
     (if (zerop arg)
 	(setq cnt 1)

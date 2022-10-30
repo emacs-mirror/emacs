@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'pcase)
+(require 'seq)
 (require 'quail)
 (require 'ind-util)
 
@@ -698,6 +700,165 @@ is."
  indian-tml-base-digits-table inscript-tml-keytable
  "tamil-inscript-digits" "Tamil" "TmlISD"
  "Tamil keyboard Inscript with Tamil digits support.")
+
+;; Tamil99 input method
+;;
+;; Tamil99 is a keyboard layout and input method that is specifically
+;; designed for the Tamil language.  Vowels and vowel modifiers are
+;; input with your left hand, and consonants are input with your right
+;; hand. See https://en.wikipedia.org/wiki/Tamil_99
+;;
+;; தமிழ்99 உள்ளீட்டு முறை
+;;
+;; தமிழ்99 தமிழுக்கென்றே உருவாக்கப்பட்ட விசைப்பலகை அமைப்பும் உள்ளீட்டு முறையும்
+;; ஆகும். உயிர்களை இடக்கையுடனும் மெய்களை வலக்கையுடனும் தட்டச்சிடும்படி
+;; அமைக்கப்பட்டது. https://ta.wikipedia.org/wiki/%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D_99
+;; காண்க.
+
+(quail-define-package
+ "tamil99" "Tamil" "தமிழ்99"
+ t "Tamil99 input method"
+ nil t t t t nil nil nil nil nil t)
+
+(defconst tamil99-vowels
+  '(("q" "ஆ")
+    ("w" "ஈ")
+    ("e" "ஊ")
+    ("r" "ஐ")
+    ("t" "ஏ")
+    ("a" "அ")
+    ("s" "இ")
+    ("d" "உ")
+    ("g" "எ")
+    ("z" "ஔ")
+    ("x" "ஓ")
+    ("c" "ஒ"))
+  "Mapping for vowels.")
+
+(defconst tamil99-vowel-modifiers
+  '(("q" "ா")
+    ("w" "ீ")
+    ("e" "ூ")
+    ("r" "ை")
+    ("t" "ே")
+    ("a" "")
+    ("s" "ி")
+    ("d" "ு")
+    ("g" "ெ")
+    ("z" "ௌ")
+    ("x" "ோ")
+    ("c" "ொ")
+    ("f" "்"))
+  "Mapping for vowel modifiers.")
+
+(defconst tamil99-hard-consonants
+  '(("h" "க")
+    ("[" "ச")
+    ("o" "ட")
+    ("l" "த")
+    ("j" "ப")
+    ("u" "ற"))
+  "Mapping for hard consonants (வல்லினம்).")
+
+(defconst tamil99-soft-consonants
+  '(("b" "ங")
+    ("]" "ஞ")
+    ("p" "ண")
+    (";" "ந")
+    ("k" "ம")
+    ("i" "ன"))
+  "Mapping for soft consonants (மெல்லினம்).")
+
+(defconst tamil99-medium-consonants
+  '(("'" "ய")
+    ("m" "ர")
+    ("n" "ல")
+    ("v" "வ")
+    ("/" "ழ")
+    ("y" "ள"))
+  "Mapping for medium consonants (இடையினம்).")
+
+(defconst tamil99-grantham-consonants
+  '(("Q" "ஸ")
+    ("W" "ஷ")
+    ("E" "ஜ")
+    ("R" "ஹ"))
+  "Mapping for grantham consonants (கிரந்தம்).")
+
+(defconst tamil99-consonants
+  (append tamil99-hard-consonants
+          tamil99-soft-consonants
+          tamil99-medium-consonants
+          tamil99-grantham-consonants)
+  "Mapping for all consonants.")
+
+(defconst tamil99-other
+  `(("T" ,(vector "க்ஷ"))
+    ("Y" ,(vector "ஶஂரீ"))
+    ("O" "[")
+    ("P" "]")
+    ("A" "௹")
+    ("S" "௺")
+    ("D" "௸")
+    ("F" "ஃ")
+    ("K" "\"")
+    ("L" ":")
+    (":" ";")
+    ("\"" "'")
+    ("Z" "௳")
+    ("X" "௴")
+    ("C" "௵")
+    ("V" "௶")
+    ("B" "௷")
+    ("M" "/"))
+  "Mapping for miscellaneous characters.")
+
+;; உயிர்
+;; vowel
+(mapc (pcase-lambda (`(,vowel-key ,vowel))
+        (quail-defrule vowel-key vowel))
+      tamil99-vowels)
+
+(mapc (pcase-lambda (`(,consonant-key ,consonant))
+        ;; அகர உயிர்மெய்
+        ;; consonant symbol (consonant combined with the first vowel அ)
+        (quail-defrule consonant-key consonant)
+        ;; மெய்யொற்று பின் அகர உயிர்மெய்
+        ;; pulli on double consonant
+        (quail-defrule (concat consonant-key consonant-key)
+                       (vector (concat consonant "்" consonant)))
+        (mapc (pcase-lambda (`(,vowel-key ,vowel-modifier))
+                ;; உயிர்மெய்
+                ;; vowelised consonant
+                (quail-defrule (concat consonant-key vowel-key)
+                               (vector (concat consonant vowel-modifier)))
+                ;; மெய்யொற்று பின் பிற உயிர்மெய்
+                ;; vowelised consonant after double consonant
+                (quail-defrule (concat consonant-key consonant-key vowel-key)
+                               (vector (concat consonant "்" consonant vowel-modifier))))
+              tamil99-vowel-modifiers))
+      tamil99-consonants)
+
+(seq-mapn (pcase-lambda (`(,soft-consonant-key ,soft-consonant)
+                         `(,hard-consonant-key ,hard-consonant))
+            ;; மெல்லினம் பின் வல்லினம்
+            ;; hard consonant after soft consonant
+            (quail-defrule (concat soft-consonant-key hard-consonant-key)
+                           (vector (concat soft-consonant "்" hard-consonant)))
+            (mapc (pcase-lambda (`(,vowel-key ,vowel-modifier))
+                    ;; மெல்லின ஒற்றொட்டிய வல்லினம் பின் உயிர்மெய்
+                    ;; vowelised consonant after soft-hard consonant pair
+                    (quail-defrule (concat soft-consonant-key hard-consonant-key vowel-key)
+                                   (vector (concat soft-consonant "்" hard-consonant vowel-modifier))))
+                  tamil99-vowel-modifiers))
+          tamil99-soft-consonants
+          tamil99-hard-consonants)
+
+;; பிற வரியுருக்கள்
+;; other characters
+(mapc (pcase-lambda (`(,key ,translation))
+        (quail-defrule key translation))
+      tamil99-other)
 
 ;; Probhat Input Method
 (quail-define-package
@@ -2133,6 +2294,120 @@ is."
  ("M"  ?ꯝ)
  ("`m" ?ꫲ)
  ("`?" ?꫱))
+
+(quail-define-package
+ "wancho" "Wancho" "𞋒" t "Wancho phonetic input method.
+
+ `\\=`' is used to switch levels instead of Alt-Gr."
+ nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("``" ?𞋿)
+ ("1"  ?𞋱)
+ ("`1" ?1)
+ ("2"  ?𞋲)
+ ("`2" ?2)
+ ("3"  ?𞋳)
+ ("`3" ?3)
+ ("4"  ?𞋴)
+ ("`4" ?4)
+ ("5"  ?𞋵)
+ ("`5" ?5)
+ ("6"  ?𞋶)
+ ("`6" ?6)
+ ("7"  ?𞋷)
+ ("`7" ?7)
+ ("8"  ?𞋸)
+ ("`8" ?8)
+ ("9"  ?𞋹)
+ ("`9" ?9)
+ ("0"  ?𞋰)
+ ("`0" ?0)
+ ("q"  ?𞋠)
+ ("Q"  ?𞋡)
+ ("w"  ?𞋒)
+ ("e"  ?𞋛)
+ ("E"  ?𞋧)
+ ("r"  ?𞋗)
+ ("t"  ?𞋋)
+ ("T"  ?𞋌)
+ ("y"  ?𞋆)
+ ("Y"  ?𞋫)
+ ("u"  ?𞋞)
+ ("U"  ?𞋪)
+ ("i"  ?𞋜)
+ ("I"  ?𞋥)
+ ("o"  ?𞋕)
+ ("O"  ?𞋖)
+ ("`o" ?𞋢)
+ ("`O" ?𞋦)
+ ("p"  ?𞋊)
+ ("P"  ?𞋇)
+ ("a"  ?𞋁)
+ ("A"  ?𞋀)
+ ("`a" ?𞋤)
+ ("`A" ?𞋣)
+ ("s"  ?𞋎)
+ ("S"  ?𞋏)
+ ("d"  ?𞋄)
+ ("f"  ?𞋍)
+ ("g"  ?𞋅)
+ ("h"  ?𞋚)
+ ("j"  ?𞋐)
+ ("k"  ?𞋔)
+ ("K"  ?𞋙)
+ ("l"  ?𞋈)
+ ("L"  ?𞋟)
+ ("z"  ?𞋑)
+ ("x"  ?𞋩)
+ ("X"  ?𞋝)
+ ("c"  ?𞋃)
+ ("C"  ?𞋬)
+ ("v"  ?𞋓)
+ ("V"  ?𞋭)
+ ("b"  ?𞋂)
+ ("B"  ?𞋮)
+ ("n"  ?𞋉)
+ ("N"  ?𞋯)
+ ("m"  ?𞋘)
+ ("M"  ?𞋨))
+
+(quail-define-package
+ "toto" "Toto" "𞊒𞊪" nil "Toto script phonetic input method."
+ nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("q"  ?𞊫)
+ ("Q"  ?𞊬)
+ ("w"  ?𞊜)
+ ("e"  ?𞊦)
+ ("E"  ?𞊧)
+ ("r"  ?𞊟)
+ ("t"  ?𞊒)
+ ("y"  ?𞊛)
+ ("u"  ?𞊥)
+ ("i"  ?𞊡)
+ ("I"  ?𞊢)
+ ("o"  ?𞊪)
+ ("p"  ?𞊐)
+ ("a"  ?𞊭)
+ ("s"  ?𞊙)
+ ("d"  ?𞊓)
+ ("f"  ?𞊮)
+ ("g"  ?𞊕)
+ ("h"  ?𞊞)
+ ("j"  ?𞊝)
+ ("k"  ?𞊔)
+ ("l"  ?𞊠)
+ ("z"  ?𞊣)
+ ("Z"  ?𞊤)
+ ("x"  ?𞊨)
+ ("X"  ?𞊩)
+ ("c"  ?𞊚)
+ ("b"  ?𞊑)
+ ("n"  ?𞊗)
+ ("N"  ?𞊘)
+ ("m"  ?𞊖))
 
 (provide 'indian)
 ;;; indian.el ends here

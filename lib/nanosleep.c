@@ -23,9 +23,7 @@
 #include <time.h>
 
 #include "intprops.h"
-#include "verify.h"
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/select.h>
@@ -59,7 +57,7 @@ nanosleep (const struct timespec *requested_delay,
 
   {
     /* Verify that time_t is large enough.  */
-    verify (TYPE_MAXIMUM (time_t) / 24 / 24 / 60 / 60);
+    static_assert (TYPE_MAXIMUM (time_t) / 24 / 24 / 60 / 60);
     const time_t limit = 24 * 24 * 60 * 60;
     time_t seconds = requested_delay->tv_sec;
     struct timespec intermediate;

@@ -85,11 +85,14 @@ statement-cont.)
 Works with: topmost-intro-cont."
   (save-excursion
     (beginning-of-line)
-    (c-backward-syntactic-ws (c-langelem-pos langelem))
-    (if (and (memq (char-before) '(?} ?,))
-	     (not (and c-overloadable-operators-regexp
-		       (c-after-special-operator-id))))
-	c-basic-offset)))
+    (unless (re-search-forward c-fun-name-substitute-key
+			       (c-point 'eol) t)
+      (beginning-of-line)
+      (c-backward-syntactic-ws (c-langelem-pos langelem))
+      (if (and (memq (char-before) '(?} ?,))
+	       (not (and c-overloadable-operators-regexp
+			 (c-after-special-operator-id))))
+	  c-basic-offset))))
 
 (defun c-lineup-gnu-DEFUN-intro-cont (langelem)
   "Line up the continuation lines of a DEFUN macro in the Emacs C source.

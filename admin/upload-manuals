@@ -36,14 +36,7 @@
 
 ### Code:
 
-
-die ()                          # write error to stderr and exit
-{
-    [ $# -gt 0 ] && echo "$PN: $@" >&2
-    exit 1
-}
-
-PN=${0##*/}                     # basename of script
+source "${0%/*}/emacs-shell-lib"
 
 usage ()
 {

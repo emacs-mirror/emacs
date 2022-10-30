@@ -59,9 +59,17 @@ which, when present, becomes the first argument passed to the "USER"
 IRC command.  The traditional way of setting this globally, via
 'erc-email-userid', is still honored.
 
-** Additional display options for updated buffers.
-Additional flexibility is now available for controlling the behavior
-of newly created target buffers, especially during reconnection.
+** Changes to display options for new ERC buffers.
+The default value for the option 'erc-join-buffer', which determines
+how new buffers are displayed, has been changed to 'bury' for security
+reasons.  Although the old value of 'buffer' is still accessible,
+along with its original behavior, users wanting a safer alternative
+can now opt for an improved 'window-noselect' instead.  It still
+offers the same pronounced visual cue when connecting and joining but
+now avoids any hijacking of the active window as well.
+
+Beyond this, additional flexibility is now available for controlling
+the behavior of newly created target buffers during reconnection.
 
 ** Improved handling of multiline prompt input.
 This means better detection and handling of intervening and trailing
@@ -76,6 +84,12 @@ now collapse into an alternate form designated by the option
 'erc-prompt-hidden'.  Behavior differs for query and channel buffers
 but can be fine-tuned via the repurposed, formerly abandoned option
 'erc-hide-prompt'.
+
+Certain commands provided by the 'erc-match' module, such as
+'erc-add-keyword', 'erc-add-pal', and others, now optionally ask
+whether to 'regexp-quote' the current input.  A new option,
+'erc-match-quote-when-adding', has been added to allow for retaining
+the old behavior, if desired.
 
 A bug has been fixed affecting users of the Soju bouncer: outgoing
 messages during periods of heavy traffic no longer disappear.

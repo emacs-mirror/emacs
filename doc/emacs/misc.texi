@@ -162,12 +162,12 @@ List killed groups (@code{gnus-group-list-killed}).
 List zombie groups (@code{gnus-group-list-zombies}).
 
 @kindex u @r{(Gnus Group mode)}
-@findex gnus-group-toggle-subscription
+@findex gnus-group-toggle-subscription-at-point
 @cindex subscribe groups
 @cindex unsubscribe groups
 @item u
 Toggle the subscription status of the group
-(@code{gnus-group-toggle-subscription}) on the current line.
+(@code{gnus-group-toggle-subscription-at-point}) on the current line.
 Invoking this on a killed or zombie group turns it into an
 unsubscribed group.
 
@@ -245,7 +245,7 @@ buffer and typed @kbd{C-s} (@pxref{Incremental Search}).
 
 @kindex M-s M-s @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-forward
-@item M-s @var{regexp} @key{RET}
+@item M-s M-s @var{regexp} @key{RET}
 Search forward for articles containing a match for @var{regexp}
 (@code{gnus-summary-search-article-forward}).
 
@@ -583,6 +583,18 @@ you instead want the image to be re-rendered at the new size, set
 @code{doc-view-scale-internally} to @code{nil}.  To specify the
 default size for DocView, customize the variable
 @code{doc-view-resolution}.
+
+@vindex doc-view-imenu-enabled
+@vindex doc-view-imenu-flatten
+@vindex doc-view-imenu-format
+  When the @command{mutool} program is available, DocView will use it
+to generate entries for an outline menu, making it accessible via the
+@code{imenu} facility (@pxref{Imenu}).  To disable this functionality
+even when @command{mutool} can be found on your system, customize the
+variable @code{doc-view-imenu-enabled} to the @code{nil} value.  You
+can further customize how @code{imenu} items are formatted and
+displayed using the variables @code{doc-view-imenu-format} and
+@code{doc-view-flatten}.
 
 @node DocView Searching
 @subsection DocView Searching
@@ -936,7 +948,7 @@ Coding}.
 @cindex @env{INSIDE_EMACS} environment variable
   Emacs sets the environment variable @env{INSIDE_EMACS} in the
 subshell to @samp{@var{version},comint}, where @var{version} is the
-Emacs version (e.g., @samp{24.1}).  Programs can check this variable
+Emacs version (e.g., @samp{28.1}).  Programs can check this variable
 to determine whether they are running inside an Emacs subshell.
 
 @node Shell Mode
@@ -1528,7 +1540,7 @@ color is supported.  Therefore, Emacs provides an option
 @code{comint-terminfo-terminal} to let you choose a terminal with more
 advanced features, as defined in your system's terminfo database.
 Emacs will use this option as the value for @env{TERM} so long as
-@code{system-uses-terminfo} is non-nil.
+@code{system-uses-terminfo} is non-@code{nil}.
 
 Both @code{comint-terminfo-terminal} and @code{system-uses-terminfo}
 can be declared as connection-local variables to adjust these options
@@ -2089,7 +2101,14 @@ all server buffers are finished.  You can take as long as you like to
 edit the server buffers within Emacs, and they are @emph{not} killed
 when you type @kbd{C-x #} in them.
 
-@item --parent-id @var{id}
+@item -w
+@itemx --timeout=@var{N}
+Wait for a response from Emacs for @var{N} seconds before giving up.
+If there is no response within that time, @command{emacsclient} will
+display a warning and exit.  The default is @samp{0}, which means to
+wait forever.
+
+@item --parent-id=@var{id}
 Open an @command{emacsclient} frame as a client frame in the parent X
 window with id @var{id}, via the XEmbed protocol.  Currently, this
 option is mainly useful for developers.

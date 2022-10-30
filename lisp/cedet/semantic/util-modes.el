@@ -196,10 +196,8 @@ Argument OVERLAY is the overlay created to mark the change.
 This function will set the face property on this overlay."
   (overlay-put overlay 'face 'semantic-highlight-edits-face))
 
-(defvar semantic-highlight-edits-mode-map
-  (let ((km (make-sparse-keymap)))
-    km)
-  "Keymap for highlight-edits minor mode.")
+(defvar-keymap semantic-highlight-edits-mode-map
+  :doc "Keymap for highlight-edits minor mode.")
 
 ;;;###autoload
 (define-minor-mode semantic-highlight-edits-mode
@@ -343,11 +341,9 @@ Do not search past BOUND if non-nil."
                 (setq ol (cdr ol))))))
       ol)))
 
-(defvar semantic-show-unmatched-syntax-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km "\C-c,`" #'semantic-show-unmatched-syntax-next)
-    km)
-  "Keymap for command `semantic-show-unmatched-syntax-mode'.")
+(defvar-keymap semantic-show-unmatched-syntax-mode-map
+  :doc "Keymap for command `semantic-show-unmatched-syntax-mode'."
+  "C-c , `" #'semantic-show-unmatched-syntax-next)
 
 ;;;###autoload
 (define-minor-mode semantic-show-unmatched-syntax-mode
@@ -417,10 +413,8 @@ non-nil if the minor mode is enabled.
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-show-parser-state-mode-map
-  (let ((km (make-sparse-keymap)))
-    km)
-  "Keymap for show-parser-state minor mode.")
+(defvar-keymap semantic-show-parser-state-mode-map
+  :doc "Keymap for show-parser-state minor mode.")
 
 ;;;###autoload
 (define-minor-mode semantic-show-parser-state-mode
@@ -553,11 +547,9 @@ to indicate a parse in progress."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-stickyfunc-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km [ header-line down-mouse-1 ] #'semantic-stickyfunc-menu)
-    km)
-  "Keymap for stickyfunc minor mode.")
+(defvar-keymap semantic-stickyfunc-mode-map
+  :doc "Keymap for stickyfunc minor mode."
+  "<header-line> <down-mouse-1>" #'semantic-stickyfunc-menu)
 
 (defvar semantic-stickyfunc-popup-menu nil
   "Menu used if the user clicks on the header line used by stickyfunc mode.")
@@ -824,11 +816,9 @@ Argument EVENT describes the event that caused this function to be called."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-highlight-func-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km [mouse-3] #'semantic-highlight-func-menu)
-    km)
-  "Keymap for highlight-func minor mode.")
+(defvar-keymap semantic-highlight-func-mode-map
+  :doc "Keymap for highlight-func minor mode."
+  "<mouse-3>" #'semantic-highlight-func-menu)
 
 (defvar semantic-highlight-func-popup-menu nil
   "Menu used if the user clicks on the header line.

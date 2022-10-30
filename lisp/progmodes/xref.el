@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
-;; Version: 1.5.0
+;; Version: 1.5.1
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -751,17 +751,22 @@ quit the *xref* buffer."
 (defun xref-query-replace-in-results (from to)
   "Perform interactive replacement of FROM with TO in all displayed xrefs.
 
-This command interactively replaces FROM with TO in the names of the
+This function interactively replaces FROM with TO in the names of the
 references displayed in the current *xref* buffer.
 
-When called interactively, it uses '.*' as FROM, which means
-replace the whole name.  Unless called with prefix argument, in
-which case the user is prompted for both FROM and TO.
+When called interactively, it uses '.*' as FROM, which means replace
+the whole name, and prompts the user for TO.
+If invoked with prefix argument, it prompts the user for both FROM and TO.
 
 As each match is found, the user must type a character saying
 what to do with it.  Type SPC or `y' to replace the match,
 DEL or `n' to skip and go to the next match.  For more directions,
-type \\[help-command] at that time."
+type \\[help-command] at that time.
+
+Note that this function cannot be used in *xref* buffers that show
+a partial list of all references, such as the *xref* buffer created
+by \\[xref-find-definitions] and its variants, since those list only
+some of the references to the identifiers."
   (interactive
    (let* ((fr
            (if current-prefix-arg
@@ -891,7 +896,9 @@ ITEMS is an xref item which " ; FIXME: Expand documentation.
       (setq pairs (cdr buf-pairs))
       (setq continue
             (perform-replace from to t t nil nil multi-query-replace-map)))
-    (unless did-it-once (user-error "No suitable matches here"))
+    (unless did-it-once
+      (user-error
+       "Cannot perform global renaming of symbols using find-definition results"))
     (when (and continue (not buf-pairs))
       (message "All results processed"))))
 
@@ -1764,6 +1771,12 @@ utility function used by commands like `dired-do-find-regexp' and
   :version "28.1"
   :package-version '(xref . "1.0.4"))
 
+(defmacro xref--with-connection-local-variables (&rest body)
+  (declare (debug t))
+  (if (>= emacs-major-version 27)
+      `(with-connection-local-variables ,@body)
+    `(progn ,@body)))
+
 ;;;###autoload
 (defun xref-matches-in-files (regexp files)
   "Find all matches for REGEXP in FILES.
@@ -1810,13 +1823,14 @@ to control which program to use when looking for matches."
         (insert (mapconcat #'identity files "\0"))
         (setq default-directory dir)
         (setq status
-              (xref--process-file-region (point-min)
-                                         (point-max)
-                                         shell-file-name
-                                         output
-                                         nil
-                                         shell-command-switch
-                                         command)))
+              (xref--with-connection-local-variables
+               (xref--process-file-region (point-min)
+                                          (point-max)
+                                          shell-file-name
+                                          output
+                                          nil
+                                          shell-command-switch
+                                          command))))
       (goto-char (point-min))
       (when (and (/= (point-min) (point-max))
                  (not (looking-at grep-re))

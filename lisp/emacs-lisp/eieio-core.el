@@ -249,16 +249,22 @@ use '%s or turn off `eieio-backward-compatibility' instead" cname)
 (defun eieio-make-class-predicate (class)
   (lambda (obj)
     (:documentation
-     (format "Return non-nil if OBJ is an object of type `%S'.\n\n(fn OBJ)"
-             class))
+     (concat
+      (internal--format-docstring-line
+       "Return non-nil if OBJ is an object of type `%S'."
+       class)
+      "\n\n(fn OBJ)"))
     (and (eieio-object-p obj)
          (same-class-p obj class))))
 
 (defun eieio-make-child-predicate (class)
   (lambda (obj)
     (:documentation
-     (format "Return non-nil if OBJ is an object of type `%S' or a subclass.
-\n(fn OBJ)" class))
+     (concat
+      (internal--format-docstring-line
+       "Return non-nil if OBJ is an object of type `%S' or a subclass."
+       class)
+      "\n\n(fn OBJ)"))
     (and (eieio-object-p obj)
          (object-of-class-p obj class))))
 
@@ -353,8 +359,8 @@ See `defclass' for more information."
         (defalias csym
           (lambda (obj)
             (:documentation
-             (format
-              "Test OBJ to see if it a list of objects which are a child of type %s"
+             (internal--format-docstring-line
+              "Test OBJ to see if it a list of objects which are a child of type `%s'."
               cname))
             (when (listp obj)
               (let ((ans t)) ;; nil is valid

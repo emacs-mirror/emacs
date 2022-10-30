@@ -174,9 +174,6 @@
 All the bindings are done here instead of globally to try and be
 nice to the world.")
 
-(define-obsolete-variable-alias 'crisp-mode-modeline-string
-  'crisp-mode-mode-line-string "24.3")
-
 (defcustom crisp-mode-mode-line-string " *CRiSP*"
   "String to display in the mode line when CRiSP emulation mode is enabled."
   :type 'string)

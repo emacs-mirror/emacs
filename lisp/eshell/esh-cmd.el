@@ -261,9 +261,9 @@ the command."
 (defcustom eshell-subcommand-bindings
   '((eshell-in-subcommand-p t)
     (eshell-in-pipeline-p nil)
-    (default-directory default-directory)
-    (process-environment (eshell-copy-environment)))
+    (default-directory default-directory))
   "A list of `let' bindings for subcommand environments."
+  :version "29.1"		       ; removed `process-environment'
   :type 'sexp
   :risky t)
 
@@ -372,8 +372,7 @@ The value returned is the last form in BODY."
          ;; Since parsing relies partly on buffer-local state
          ;; (e.g. that of `eshell-parse-argument-hook'), we need to
          ;; perform the parsing in the Eshell buffer.
-         (let ((begin (point)) end
-	       (inhibit-point-motion-hooks t))
+         (let ((begin (point)) end)
            (with-silent-modifications
              (insert reg)
              (setq end (point))
@@ -810,8 +809,6 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 	   `(let ((nextproc
 		   (eshell-do-pipelines (quote ,(cdr pipeline)) t)))
               (eshell-set-output-handle ,eshell-output-handle
-                                        'append nextproc)
-              (eshell-set-output-handle ,eshell-error-handle
                                         'append nextproc)))
 	,(let ((head (car pipeline)))
 	   (if (memq (car head) '(let progn))
@@ -842,8 +839,6 @@ This is used on systems where async subprocesses are not supported."
        ,(when (cdr pipeline)
           `(let ((output-marker ,(point-marker)))
              (eshell-set-output-handle ,eshell-output-handle
-                                       'append output-marker)
-             (eshell-set-output-handle ,eshell-error-handle
                                        'append output-marker)))
        ,(let ((head (car pipeline)))
           (if (memq (car head) '(let progn))
@@ -1279,8 +1274,9 @@ be finished later after the completion of an asynchronous subprocess."
                         name)
                   (eshell-search-path name)))))
       (if (not program)
-	  (eshell-error (format "which: no %s in (%s)\n"
-				name (getenv "PATH")))
+          (eshell-error (format "which: no %s in (%s)\n"
+                                name (string-join (eshell-get-path t)
+                                                  (path-separator))))
 	(eshell-printn program)))))
 
 (put 'eshell/which 'eshell-no-numeric-conversions t)
@@ -1347,6 +1343,15 @@ case."
                  (apply func-or-form args)))))
         (and result (funcall printer result))
         result)
+    (eshell-pipe-broken
+     ;; If FUNC-OR-FORM tried and failed to write some output to a
+     ;; process, it will raise an `eshell-pipe-broken' signal (this is
+     ;; analogous to SIGPIPE on POSIX systems).  In this case, set the
+     ;; command status to some non-zero value to indicate an error; to
+     ;; match GNU/Linux, we use 141, which the numeric value of
+     ;; SIGPIPE on GNU/Linux (13) with the high bit (2^7) set.
+     (setq eshell-last-command-status 141)
+     nil)
     (error
      (setq eshell-last-command-status 1)
      (let ((msg (error-message-string err)))

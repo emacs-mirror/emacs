@@ -166,9 +166,8 @@ is slower."
   (require 'message)
   (save-excursion
     (save-restriction
-      (let ((inhibit-point-motion-hooks t))
-	(nnheader-narrow-to-headers)
-	(message-fetch-field field)))))
+      (nnheader-narrow-to-headers)
+      (message-fetch-field field))))
 
 (defun gnus-fetch-original-field (field)
   "Fetch FIELD from the original version of the current article."

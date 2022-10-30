@@ -220,8 +220,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
 Load the compiled code when finished.
 
 Use `emacs-lisp-byte-compile-and-load' in combination with
-`native-comp-deferred-compilation' set to t to achieve asynchronous
-native compilation."
+`inhibit-automatic-native-compilation' set to nil to achieve
+asynchronous native compilation."
   (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
   (load (native-compile buffer-file-name)))
@@ -1646,6 +1646,7 @@ Return the result of evaluation."
   ;; printing, not while evaluating.
   (defvar elisp--eval-defun-result)
   (let ((debug-on-error eval-expression-debug-on-error)
+        (edebugging edebug-all-defs)
         elisp--eval-defun-result)
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
@@ -1670,8 +1671,9 @@ Return the result of evaluation."
                          (elisp--eval-defun-1
                           (macroexpand form)))))
 	      (print-length eval-expression-print-length)
-	      (print-level eval-expression-print-level))
-          (eval-region beg end standard-output
+	      (print-level eval-expression-print-level)
+              (should-print (if (not edebugging) standard-output)))
+          (eval-region beg end should-print
                        (lambda (_ignore)
                          ;; Skipping to the end of the specified region
                          ;; will make eval-region return.
@@ -1824,8 +1826,8 @@ or elsewhere, return a 1-line docstring."
 		(eq 'function (aref elisp--eldoc-last-data 2)))
 	   (aref elisp--eldoc-last-data 1))
 	  (t
-	   (let* ((advertised (gethash (indirect-function sym)
-                                       advertised-signature-table t))
+	   (let* ((advertised (get-advertised-calling-convention
+                               (indirect-function sym)))
                   doc
 		  (args
 		   (cond

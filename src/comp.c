@@ -68,6 +68,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_context_get_type
 #undef gcc_jit_context_new_array_access
 #undef gcc_jit_context_new_array_type
+#undef gcc_jit_context_new_bitcast
 #undef gcc_jit_context_new_binary_op
 #undef gcc_jit_context_new_call
 #undef gcc_jit_context_new_call_through_ptr
@@ -108,6 +109,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_struct_set_fields
 #undef gcc_jit_type_get_const
 #undef gcc_jit_type_get_pointer
+#undef gcc_jit_type_is_pointer
 #undef gcc_jit_version_major
 #undef gcc_jit_version_minor
 #undef gcc_jit_version_patchlevel
@@ -180,8 +182,13 @@ DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_call_through_ptr,
             (gcc_jit_context *ctxt, gcc_jit_location *loc,
              gcc_jit_rvalue *fn_ptr, int numargs, gcc_jit_rvalue **args));
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_cast,
+            (gcc_jit_context * ctxt, gcc_jit_location *loc,
+             gcc_jit_rvalue *rvalue, gcc_jit_type *type));
+#ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_bitcast,
             (gcc_jit_context *ctxt, gcc_jit_location *loc,
              gcc_jit_rvalue *rvalue, gcc_jit_type *type));
+#endif
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_comparison,
             (gcc_jit_context *ctxt, gcc_jit_location *loc,
              enum gcc_jit_comparison op, gcc_jit_rvalue *a, gcc_jit_rvalue *b));
@@ -224,6 +231,9 @@ DEF_DLL_FN (gcc_jit_type *, gcc_jit_struct_as_type,
             (gcc_jit_struct *struct_type));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_const, (gcc_jit_type *type));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_pointer, (gcc_jit_type *type));
+#ifdef LIBGCCJIT_HAVE_REFLECTION
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_is_pointer, (gcc_jit_type *type));
+#endif
 DEF_DLL_FN (void, gcc_jit_block_add_assignment,
             (gcc_jit_block *block, gcc_jit_location *loc, gcc_jit_lvalue *lvalue,
              gcc_jit_rvalue *rvalue));
@@ -293,6 +303,9 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_get_type);
   LOAD_DLL_FN (library, gcc_jit_context_new_array_access);
   LOAD_DLL_FN (library, gcc_jit_context_new_array_type);
+#ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
+  LOAD_DLL_FN (library, gcc_jit_context_new_bitcast);
+#endif
   LOAD_DLL_FN (library, gcc_jit_context_new_binary_op);
   LOAD_DLL_FN (library, gcc_jit_context_new_call);
   LOAD_DLL_FN (library, gcc_jit_context_new_call_through_ptr);
@@ -334,6 +347,9 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
   LOAD_DLL_FN (library, gcc_jit_type_get_const);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
+#ifdef LIBGCCJIT_HAVE_REFLECTION
+  LOAD_DLL_FN (library, gcc_jit_type_is_pointer);
+#endif
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_command_line_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
 #if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
@@ -368,6 +384,9 @@ init_gccjit_functions (void)
 #define gcc_jit_context_get_type fn_gcc_jit_context_get_type
 #define gcc_jit_context_new_array_access fn_gcc_jit_context_new_array_access
 #define gcc_jit_context_new_array_type fn_gcc_jit_context_new_array_type
+#ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
+# define gcc_jit_context_new_bitcast fn_gcc_jit_context_new_bitcast
+#endif
 #define gcc_jit_context_new_binary_op fn_gcc_jit_context_new_binary_op
 #define gcc_jit_context_new_call fn_gcc_jit_context_new_call
 #define gcc_jit_context_new_call_through_ptr fn_gcc_jit_context_new_call_through_ptr
@@ -410,6 +429,9 @@ init_gccjit_functions (void)
 #define gcc_jit_rvalue_get_type fn_gcc_jit_rvalue_get_type
 #define gcc_jit_struct_as_type fn_gcc_jit_struct_as_type
 #define gcc_jit_struct_set_fields fn_gcc_jit_struct_set_fields
+#ifdef LIBGCCJIT_HAVE_REFLECTION
+# define gcc_jit_type_is_pointer fn_gcc_jit_type_is_pointer
+#endif
 #define gcc_jit_type_get_const fn_gcc_jit_type_get_const
 #define gcc_jit_type_get_pointer fn_gcc_jit_type_get_pointer
 #if defined (LIBGCCJIT_HAVE_gcc_jit_version)
@@ -518,7 +540,9 @@ typedef struct {
 
 static f_reloc_t freloc;
 
-#define NUM_CAST_TYPES 15
+#ifndef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
+# define NUM_CAST_TYPES 15
+#endif
 
 typedef struct {
   EMACS_INT len;
@@ -593,13 +617,15 @@ typedef struct {
   gcc_jit_rvalue *current_thread_ref;
   /* Other globals.  */
   gcc_jit_rvalue *pure_ptr;
-  /* libgccjit has really limited support for casting therefore this union will
-     be used for the scope.  */
+#ifndef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
+  /* This version of libgccjit has really limited support for casting
+     therefore this union will be used for the scope.  */
   gcc_jit_type *cast_union_type;
   gcc_jit_function *cast_functions_from_to[NUM_CAST_TYPES][NUM_CAST_TYPES];
   gcc_jit_function *cast_ptr_to_int;
   gcc_jit_function *cast_int_to_ptr;
   gcc_jit_type *cast_types[NUM_CAST_TYPES];
+#endif
   gcc_jit_function *func; /* Current function being compiled.  */
   bool func_has_non_local; /* From comp-func has-non-local slot.  */
   EMACS_INT func_speed; /* From comp-func speed slot.  */
@@ -1100,6 +1126,7 @@ emit_cond_jump (gcc_jit_rvalue *test,
 
 }
 
+#ifndef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
 static int
 type_to_cast_index (gcc_jit_type * type)
 {
@@ -1109,6 +1136,7 @@ type_to_cast_index (gcc_jit_type * type)
 
   xsignal1 (Qnative_ice, build_string ("unsupported cast"));
 }
+#endif
 
 static gcc_jit_rvalue *
 emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
@@ -1145,14 +1173,48 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
     }
 #endif
 
+#ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
+  bool old_is_ptr = gcc_jit_type_is_pointer (old_type) != NULL;
+  bool new_is_ptr = gcc_jit_type_is_pointer (new_type) != NULL;
+
+  gcc_jit_rvalue *tmp = obj;
+
+  /* `gcc_jit_context_new_bitcast` requires that the types being converted
+     between have the same layout and as such, doesn't allow converting
+     between an arbitrarily sized integer/boolean and a pointer. Casting it
+     to a uintptr/void* is still necessary, to ensure that it can be bitcast
+     into a (void *)/uintptr respectively.  */
+  if (old_is_ptr != new_is_ptr)
+    {
+      if (old_is_ptr)
+	{
+	  tmp = gcc_jit_context_new_cast (comp.ctxt, NULL, tmp,
+					  comp.void_ptr_type);
+	  tmp = gcc_jit_context_new_bitcast (comp.ctxt, NULL, tmp,
+					     comp.uintptr_type);
+	}
+      else
+	{
+	  tmp = gcc_jit_context_new_cast (comp.ctxt, NULL, tmp,
+					  comp.uintptr_type);
+	  tmp = gcc_jit_context_new_bitcast (comp.ctxt, NULL, tmp,
+					     comp.void_ptr_type);
+	}
+    }
+  return gcc_jit_context_new_cast (comp.ctxt, NULL, tmp, new_type);
+
+#else /* !LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast */
+
   int old_index = type_to_cast_index (old_type);
   int new_index = type_to_cast_index (new_type);
 
   /* Lookup the appropriate cast function in the cast matrix.  */
   return gcc_jit_context_new_call (comp.ctxt,
-           NULL,
-           comp.cast_functions_from_to[old_index][new_index],
-           1, &obj);
+				   NULL,
+				   comp.cast_functions_from_to
+				   [old_index][new_index],
+				   1, &obj);
+#endif
 }
 
 static gcc_jit_rvalue *
@@ -3318,6 +3380,7 @@ define_thread_state_struct (void)
     gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.thread_state_s));
 }
 
+#ifndef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
 static gcc_jit_function *
 define_type_punning (const char *name,
 		     gcc_jit_type *from, gcc_jit_field *from_field,
@@ -3451,6 +3514,7 @@ define_cast_functions (void)
 					      comp.void_ptr_type,
 					      cast_union_fields[0]);
 
+
   for (int i = 0; i < NUM_CAST_TYPES; ++i)
     comp.cast_types[i] = cast_types[i].type;
 
@@ -3460,6 +3524,7 @@ define_cast_functions (void)
         comp.cast_functions_from_to[i][j] =
           define_cast_from_to (cast_types[i], cast_types[j]);
 }
+#endif /* !LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast */
 
 static void
 define_CHECK_TYPE (void)
@@ -4467,7 +4532,7 @@ the latter is supposed to be used by the Emacs build procedure.  */)
 	}
       if (NILP (base_dir))
 	error ("Cannot find suitable directory for output in "
-	       "`comp-native-load-path'.");
+	       "`native-comp-eln-load-path'.");
     }
 
   if (!file_name_absolute_p (SSDATA (base_dir)))
@@ -4660,7 +4725,9 @@ Return t on success.  */)
   define_jmp_buf ();
   define_handler_struct ();
   define_thread_state_struct ();
+#ifndef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
   define_cast_functions ();
+#endif
 
   return Qt;
 }
@@ -5107,6 +5174,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
     return;
 
   if (!native_comp_deferred_compilation
+      || !NILP (Vinhibit_automatic_native_compilation)
       || noninteractive
       || !NILP (Vpurify_flag)
       || !COMPILEDP (definition)
@@ -5610,6 +5678,14 @@ For internal use.  */);
 	       doc: /* Non-nil when comp.el can be native compiled.
 For internal use. */);
   /* Compiler control customizes.  */
+  DEFVAR_LISP ("inhibit-automatic-native-compilation",
+	       Vinhibit_automatic_native_compilation,
+	       doc: /* If non-nil, inhibit automatic native compilation of loaded .elc files.
+
+After compilation, each function definition is updated to the native
+compiled one.  */);
+  Vinhibit_automatic_native_compilation = Qnil;
+
   DEFVAR_BOOL ("native-comp-deferred-compilation",
 	       native_comp_deferred_compilation,
 	       doc: /* If non-nil compile loaded .elc files asynchronously.
@@ -5792,8 +5868,21 @@ The last directory of this list is assumed to be the system one.  */);
   Vnative_comp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
   DEFVAR_BOOL ("comp-enable-subr-trampolines", comp_enable_subr_trampolines,
-	       doc: /* If non-nil enable primitive trampoline synthesis.
-This makes primitive functions redefinable or advisable effectively.  */);
+	       doc: /* If non-nil, enable primitive trampoline synthesis.
+This makes Emacs respect redefinition or advises of primitive functions
+when they are called from Lisp code natively-compiled at `native-comp-speed'
+of 2.
+
+By default, this is enabled, and when Emacs sees a redefined or advised
+primitive called from natively-compiled Lisp, it generates a trampoline
+for it on-the-fly.
+
+Disabling this, when a trampoline for a redefined or advised primitive is
+not available from previous compilations, means that such redefinition
+or advise will not have effect on calls from natively-compiled Lisp code.
+That is, calls to primitives without existing trampolines from
+natively-compiled Lisp will behave as if the primitive was called
+directly from C.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
 	       doc: /* Hash table subr-name -> installed trampoline.

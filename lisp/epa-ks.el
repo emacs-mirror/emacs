@@ -41,7 +41,7 @@
 (defcustom epa-keyserver "pgp.mit.edu"
   "Domain of keyserver.
 
-This is used by `epa-ks-lookup-key', for looking up public keys."
+This is used by `epa-search-keys', for looking up public keys."
   :type '(choice :tag "Keyserver"
                  (repeat :tag "Random pool"
                          (string :tag "Keyserver address"))
@@ -66,14 +66,12 @@ This is used by `epa-ks-lookup-key', for looking up public keys."
   "List of arguments to pass to `epa-search-keys'.
 This is used when reverting a buffer to restart search.")
 
-(defvar epa-ks-search-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (define-key map (kbd "f") #'epa-ks-mark-key-to-fetch)
-    (define-key map (kbd "i") #'epa-ks-inspect-key-to-fetch)
-    (define-key map (kbd "u") #'epa-ks-unmark-key-to-fetch)
-    (define-key map (kbd "x") #'epa-ks-do-key-to-fetch)
-    map))
+(defvar-keymap epa-ks-search-mode-map
+  :suppress t
+  "f" #'epa-ks-mark-key-to-fetch
+  "i" #'epa-ks-inspect-key-to-fetch
+  "u" #'epa-ks-unmark-key-to-fetch
+  "x" #'epa-ks-do-key-to-fetch)
 
 (define-derived-mode epa-ks-search-mode tabulated-list-mode "Keyserver"
   "Major mode for listing public key search results."
@@ -182,7 +180,7 @@ If EXACT is non-nil, don't accept approximate matches."
   "Prepare KEYS for `tabulated-list-mode', for buffer BUF.
 
 KEYS is a list of `epa-ks-key' structures, as parsed by
-`epa-ks-parse-result'."
+`epa-ks--parse-buffer'."
   (when (buffer-live-p buf)
     (let (entries)
       (dolist (key keys)

@@ -164,52 +164,51 @@ and `goto-address-fontify-p'."
   ;; Clean up from any previous go.
   (goto-address-unfontify (or start (point-min)) (or end (point-max)))
   (save-excursion
-    (let ((inhibit-point-motion-hooks t))
+    (goto-char (or start (point-min)))
+    (when (or (eq t goto-address-fontify-maximum-size)
+	      (< (- (or end (point-max)) (point))
+                 goto-address-fontify-maximum-size))
+      (while (re-search-forward goto-address-url-regexp end t)
+	(let* ((s (match-beginning 0))
+	       (e (match-end 0))
+	       this-overlay)
+	  (when (or (not goto-address-prog-mode)
+		    ;; This tests for both comment and string
+		    ;; syntax.
+		    (nth 8 (syntax-ppss)))
+	    (setq this-overlay (make-overlay s e))
+	    (and goto-address-fontify-p
+		 (overlay-put this-overlay 'face goto-address-url-face))
+	    (overlay-put this-overlay 'evaporate t)
+	    (overlay-put this-overlay
+			 'mouse-face goto-address-url-mouse-face)
+	    (overlay-put this-overlay 'follow-link t)
+	    (overlay-put this-overlay
+			 'help-echo "mouse-2, C-c RET: follow URL")
+	    (overlay-put this-overlay
+			 'keymap goto-address-highlight-keymap)
+	    (overlay-put this-overlay 'goto-address t))))
       (goto-char (or start (point-min)))
-      (when (or (eq t goto-address-fontify-maximum-size)
-		(< (- (or end (point-max)) (point))
-                   goto-address-fontify-maximum-size))
-	(while (re-search-forward goto-address-url-regexp end t)
-	  (let* ((s (match-beginning 0))
-		 (e (match-end 0))
-		 this-overlay)
-	    (when (or (not goto-address-prog-mode)
-		      ;; This tests for both comment and string
-		      ;; syntax.
-		      (nth 8 (syntax-ppss)))
-	      (setq this-overlay (make-overlay s e))
-	      (and goto-address-fontify-p
-		   (overlay-put this-overlay 'face goto-address-url-face))
-	      (overlay-put this-overlay 'evaporate t)
-	      (overlay-put this-overlay
-			   'mouse-face goto-address-url-mouse-face)
-	      (overlay-put this-overlay 'follow-link t)
-	      (overlay-put this-overlay
-			   'help-echo "mouse-2, C-c RET: follow URL")
-	      (overlay-put this-overlay
-			   'keymap goto-address-highlight-keymap)
-	      (overlay-put this-overlay 'goto-address t))))
-	(goto-char (or start (point-min)))
-	(while (re-search-forward goto-address-mail-regexp end t)
-	  (let* ((s (match-beginning 0))
-		 (e (match-end 0))
-		 this-overlay)
-	    (when (or (not goto-address-prog-mode)
-		      ;; This tests for both comment and string
-		      ;; syntax.
-		      (nth 8 (syntax-ppss)))
-	      (setq this-overlay (make-overlay s e))
-	      (and goto-address-fontify-p
-		   (overlay-put this-overlay 'face goto-address-mail-face))
-	      (overlay-put this-overlay 'evaporate t)
-	      (overlay-put this-overlay 'mouse-face
-			   goto-address-mail-mouse-face)
-	      (overlay-put this-overlay 'follow-link t)
-	      (overlay-put this-overlay
-			   'help-echo "mouse-2, C-c RET: mail this address")
-	      (overlay-put this-overlay
-			   'keymap goto-address-highlight-keymap)
-	      (overlay-put this-overlay 'goto-address t))))))))
+      (while (re-search-forward goto-address-mail-regexp end t)
+	(let* ((s (match-beginning 0))
+	       (e (match-end 0))
+	       this-overlay)
+	  (when (or (not goto-address-prog-mode)
+		    ;; This tests for both comment and string
+		    ;; syntax.
+		    (nth 8 (syntax-ppss)))
+	    (setq this-overlay (make-overlay s e))
+	    (and goto-address-fontify-p
+		 (overlay-put this-overlay 'face goto-address-mail-face))
+	    (overlay-put this-overlay 'evaporate t)
+	    (overlay-put this-overlay 'mouse-face
+			 goto-address-mail-mouse-face)
+	    (overlay-put this-overlay 'follow-link t)
+	    (overlay-put this-overlay
+			 'help-echo "mouse-2, C-c RET: mail this address")
+	    (overlay-put this-overlay
+			 'keymap goto-address-highlight-keymap)
+	    (overlay-put this-overlay 'goto-address t)))))))
 
 (defun goto-address-fontify-region (start end)
   "Fontify URLs and e-mail addresses in the given region."

@@ -256,7 +256,6 @@ as an argument will ``spread'' the elements into multiple arguments:
 @end example
 
 @subsection Quoting and escaping
-
 As with other shells, you can escape special characters and spaces
 with by prefixing the character with a backslash (@code{\}), or by
 surrounding the string with apostrophes (@code{''}) or double quotes
@@ -267,6 +266,40 @@ names.
 When using expansions (@pxref{Expansion}) in an Eshell command, the
 result may potentially be of any data type.  To ensure that the result
 is always a string, the expansion can be surrounded by double quotes.
+
+@subsection Special argument types
+In addition to strings and numbers, Eshell supports a number of
+special argument types.  These let you refer to various other Emacs
+Lisp data types, such as lists or buffers.
+
+@table @code
+
+@item #'@var{lisp-form}
+This refers to the quoted Emacs Lisp form @var{lisp-form}.  Though
+this looks similar to the ``sharp quote'' syntax for functions
+(@pxref{Special Read Syntax, , , elisp, The Emacs Lisp Reference
+Manual}), it instead corresponds to @code{quote} and can be used for
+any quoted form.@footnote{Eshell would interpret a bare apostrophe
+(@code{'}) as the start of a single-quoted string.}
+
+@item `@var{lisp-form}
+This refers to the backquoted Emacs Lisp form @var{lisp-form}
+(@pxref{Backquote, , , elisp, The Emacs Lisp Reference Manual}).  As
+in Emacs Lisp, you can use @samp{,} and @samp{,@@} to refer to
+non-constant values.
+
+@item #<buffer @var{name}>
+@itemx #<@var{name}>
+Return the buffer named @var{name}.  This is equivalent to
+@samp{$(get-buffer-create "@var{name}")} (@pxref{Creating Buffers, , ,
+elisp, The Emacs Lisp Reference Manual}).
+
+@item #<process @var{name}>
+Return the process named @var{name}.  This is equivalent to
+@samp{$(get-process "@var{name}")}  (@pxref{Process Information, , ,
+elisp, The Emacs Lisp Reference Manual}).
+
+@end table
 
 @node Built-ins
 @section Built-in commands
@@ -405,11 +438,6 @@ If @code{eshell-cp-overwrite-files} is non-@code{nil}, then
 Print the current local time as a human-readable string.  This command
 is similar to, but slightly different from, the GNU Coreutils
 @command{date} command.
-
-@item define
-@cmindex define
-Define a variable alias.
-@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
 
 @item diff
 @cmindex diff
@@ -666,10 +694,18 @@ used for comparing lists of strings.
 This command can be loaded as part of the eshell-xtra module, which is
 disabled by default.
 
+@item set
+@cmindex set
+Set variable values, using the function @code{set} like a command
+(@pxref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}).
+A variable name can be a symbol, in which case it refers to a Lisp
+variable, or a string, referring to an environment variable
+(@pxref{Arguments}).
+
 @item setq
 @cmindex setq
-Set variable values, using the function @code{setq} like a command.
-@xref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}.
+Set variable values, using the function @code{setq} like a command
+(@pxref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}).
 
 @item source
 @cmindex source
@@ -715,7 +751,9 @@ disabled by default.
 
 @item unset
 @cmindex unset
-Unset an environment variable.
+Unset one or more variables.  As with @command{set}, a variable name
+can be a symbol, in which case it refers to a Lisp variable, or a
+string, referring to an environment variable.
 
 @item wait
 @cmindex wait
@@ -762,12 +800,12 @@ command-line switch:
 
 @table @var
 @item short
-This element, if non-nil, should be a character to be used as a short
+This element, if non-@code{nil}, should be a character to be used as a short
 switch, like @code{-@var{short}}.  At least one of this element and
-@var{long} must be non-nil.
+@var{long} must be non-@code{nil}.
 
 @item long
-This element, if non-nil, should be a string to be used as a long
+This element, if non-@code{nil}, should be a string to be used as a long
 switch, like @code{--@var{long}}.
 
 @item value
@@ -853,12 +891,35 @@ For example, you could handle a subset of the options for the
 
 @node Variables
 @section Variables
-Since Eshell is just an Emacs @acronym{REPL}@footnote{
+@vindex eshell-prefer-lisp-variables
+Since Eshell is a combination of an Emacs @acronym{REPL}@footnote{
 Short for ``Read-Eval-Print Loop''.
-}
-, it does not have its own scope, and simply stores variables the same
-you would in an Elisp program.  Eshell provides a command version of
-@code{setq} for convenience.
+} and a command shell, it can refer to variables from two different
+sources: ordinary Emacs Lisp variables, as well as environment
+variables.  By default, when using a variable in Eshell, it will first
+look in the list of built-in variables, then in the list of
+environment variables, and finally in the list of Lisp variables.  If
+you would prefer to use Lisp variables over environment variables, you
+can set @code{eshell-prefer-lisp-variables} to @code{t}.
+
+You can set variables in a few different ways.  To set a Lisp
+variable, you can use the command @samp{setq @var{name} @var{value}},
+which works much like its Lisp counterpart (@pxref{Setting Variables,
+, , elisp, The Emacs Lisp Reference Manual}).  To set an environment
+variable, use @samp{export @var{name}=@var{value}}.  You can also use
+@samp{set @var{variable} @var{value}}, which sets a Lisp variable if
+@var{variable} is a symbol, or an environment variable if it's a
+string (@pxref{Arguments}).  Finally, you can temporarily set
+environment variables for a single command with
+@samp{@var{name}=@var{value} @var{command} @dots{}}.  This is
+equivalent to:
+
+@example
+@{
+  export @var{name}=@var{value}
+  @var{command} @dots{}
+@}
+@end example
 
 @subsection Built-in variables
 Eshell knows a few built-in variables:
@@ -880,6 +941,16 @@ current working directory from before the last @code{cd} command).
 When using @code{$-}, you can also access older directories in the
 directory ring via subscripting, e.g.@: @samp{$-[1]} refers to the
 working directory @emph{before} the previous one.
+
+@vindex $PATH
+@item $PATH
+This specifies the directories to search for executable programs.  Its
+value is a string, separated by @code{":"} for Unix and GNU systems,
+and @code{";"} for MS systems.  This variable is connection-aware, so
+whenever you change the current directory to a different host
+(@pxref{Remote Files, , , emacs, The GNU Emacs Manual}),
+the value will automatically update to reflect the search path on that
+host.
 
 @vindex $_
 @item $_
@@ -1105,7 +1176,7 @@ a number if possible.
 
 @item one or both (non-@code{nil}) lists
 Concatenate ``adjacent'' elements of each value (possibly converting
-back to a number as above).  For example, @samp{$list("a" "b")c}
+back to a number as above).  For example, @samp{$(list "a" "b")c}
 returns @samp{("a" "bc")}.
 
 @item anything else
@@ -1560,6 +1631,13 @@ Reverses the order of a list of values.
 Since Eshell does not communicate with a terminal like most command
 shells, IO is a little different.
 
+@menu
+* Visual Commands::
+* Redirection::
+* Pipelines::
+@end menu
+
+@node Visual Commands
 @section Visual Commands
 If you try to run programs from within Eshell that are not
 line-oriented, such as programs that use ncurses, you will just get
@@ -1592,40 +1670,142 @@ program exits, customize the variable
 @code{eshell-destroy-buffer-when-process-dies} to a non-@code{nil}
 value; the default is @code{nil}.
 
+@node Redirection
 @section Redirection
-Redirection is mostly the same in Eshell as it is in other command
-shells.  The output redirection operators @code{>} and @code{>>} as
-well as pipes are supported, but there is not yet any support for
-input redirection.  Output can also be redirected to buffers, using
-the @code{>>>} redirection operator, and Elisp functions, using
-virtual devices.
+Redirection in Eshell is similar to that of other command shells.  You
+can use the output redirection operators @code{>} and @code{>>}, but
+there is not yet any support for input redirection.  In the cases
+below, @var{fd} specifies the file descriptor to redirect; if not
+specified, file descriptor 1 (standard output) will be used by
+default.
 
-The buffer redirection operator, @code{>>>}, expects a buffer object
-on the right-hand side, into which it inserts the output of the
-left-hand side.  e.g., @samp{echo hello >>> #<buffer *scratch*>}
-inserts the string @code{"hello"} into the @file{*scratch*} buffer.
-The convenience shorthand variant @samp{#<@var{buffer-name}>}, as in
-@samp{#<*scratch*>}, is also accepted.
+@table @code
 
-@code{eshell-virtual-targets} is a list of mappings of virtual device
-names to functions.  Eshell comes with two virtual devices:
-@file{/dev/kill}, which sends the text to the kill ring, and
-@file{/dev/clip}, which sends text to the clipboard.
+@item > @var{dest}
+@itemx @var{fd}> @var{dest}
+Redirect output to @var{dest}, overwriting its contents with the new
+output.
 
+@item >> @var{dest}
+@itemx @var{fd}>> @var{dest}
+Redirect output to @var{dest}, appending it to the existing contents
+of @var{dest}.
+
+@item >>> @var{buffer}
+@itemx @var{fd}>>> @var{buffer}
+Redirect output to @var{dest}, inserting it at the current mark if
+@var{dest} is a buffer, at the beginning of the file if @var{dest} is
+a file, or otherwise behaving the same as @code{>>}.
+
+@item &> @var{file}
+@itemx >& @var{file}
+Redirect both standard output and standard error to @var{dest},
+overwriting its contents with the new output.
+
+@item &>> @var{file}
+@itemx >>& @var{file}
+Redirect both standard output and standard error to @var{dest},
+appending it to the existing contents of @var{dest}.
+
+@item &>>> @var{file}
+@itemx >>>& @var{file}
+Redirect both standard output and standard error to @var{dest},
+inserting it like with @code{>>> @var{file}}.
+
+@item >&@var{other-fd}
+@itemx @var{fd}>&@var{other-fd}
+Duplicate the file descriptor @var{other-fd} to @var{fd} (or 1 if
+unspecified).  The order in which this is used is significant, so
+
+@example
+@var{command} > @var{file} 2>&1
+@end example
+
+redirects both standard output and standard error to @var{file},
+whereas
+
+@example
+@var{command} 2>&1 > @var{file}
+@end example
+
+only redirects standard output to @var{file} (and sends standard error
+to the display via standard output's original handle).
+
+@end table
+
+Eshell supports redirecting output to several different types of
+targets:
+
+@itemize @bullet
+
+@item
+files, including virtual targets (see below);
+
+@item
+buffers (@pxref{Buffers, , , elisp, GNU Emacs Lisp Reference Manual});
+
+@item
+markers (@pxref{Markers, , , elisp, GNU Emacs Lisp Reference Manual});
+
+@item
+processes (@pxref{Processes, , , elisp, GNU Emacs Lisp Reference
+Manual}); and
+
+@item
+symbols (@pxref{Symbols, , , elisp, GNU Emacs Lisp Reference Manual}).
+
+@end itemize
+
+@subsection Virtual Targets
+Virtual targets are mapping of device names to functions.  Eshell
+comes with four virtual devices:
+
+@table @file
+
+@item /dev/null
+Does nothing with the output passed to it.
+
+@item /dev/eshell
+Writes the text passed to it to the display.
+
+@item /dev/kill
+Adds the text passed to it to the kill ring.
+
+@item /dev/clip
+Adds the text passed to it to the clipboard.
+
+@end table
+
+@vindex eshell-virtual-targets
 You can, of course, define your own virtual targets.  They are defined
-by adding a list of the form @samp{("/dev/name" @var{function} @var{mode})} to
-@code{eshell-virtual-targets}.  The first element is the device name;
-@var{function} may be either a lambda or a function name.  If
-@var{mode} is @code{nil}, then the function is the output function; if it is
-non-@code{nil}, then the function is passed the redirection mode as a
-symbol--@code{overwrite} for @code{>}, @code{append} for @code{>>}, or
-@code{insert} for @code{>>>}--and the function is expected to return
-the output function.
+by adding a list of the form @samp{("/dev/name" @var{function}
+@var{mode})} to @code{eshell-virtual-targets}.  The first element is
+the device name; @var{function} may be either a lambda or a function
+name.  If @var{mode} is @code{nil}, then the function is the output
+function; if it is non-@code{nil}, then the function is passed the
+redirection mode as a symbol--@code{overwrite} for @code{>},
+@code{append} for @code{>>}, or @code{insert} for @code{>>>}--and the
+function is expected to return the output function.
 
 The output function is called once on each line of output until
 @code{nil} is passed, indicating end of output.
 
-@section Running Shell Pipelines Natively
+@node Pipelines
+@section Pipelines
+As with most other shells, Eshell supports pipelines to pass the
+output of one command the input of the next command.  You can send the
+standard output of one command to the standard input of another using
+the @code{|} operator.  For example,
+
+@example
+~ $ echo hello | rev
+olleh
+@end example
+
+To send both the standard output and standard error of a command to
+another command's input, you can use the @code{|&} operator.
+
+@subsection Running Shell Pipelines Natively
 When constructing shell pipelines that will move a lot of data, it is
 a good idea to bypass Eshell's own pipelining support and use the
 operating system shell's instead.  This is especially relevant when
@@ -2113,10 +2293,9 @@ current being used.
 
 @item How can Eshell learn if a background process has requested input?
 
-@item Support @samp{2>&1} and @samp{>&} and @samp{2>} and @samp{|&}
+@item Make a customizable syntax table for redirects
 
-The syntax table for parsing these should be customizable, such that the
-user could change it to use rc syntax: @samp{>[2=1]}.
+This way, the user could change it to use rc syntax: @samp{>[2=1]}.
 
 @item Allow @samp{$_[-1]}, which would indicate the last element of the array
 

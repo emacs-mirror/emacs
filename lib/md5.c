@@ -27,7 +27,6 @@
 #endif
 #include "md5.h"
 
-#include <stdalign.h>
 #include <stdint.h>
 #include <string.h>
 #include <sys/types.h>

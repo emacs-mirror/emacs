@@ -888,9 +888,22 @@ symbol `never', the posting is not allowed.  If it is the symbol
   ;; FIXME: This is related to `mail-specify-envelope-from' but works
   ;; differently (bug#36937).
   nil
-  "Non-nil means don't add \"-f username\" to the sendmail command line.
-See `feedmail-sendmail-f-doesnt-sell-me-out' for an explanation
-of what the \"-f\" parameter does."
+  "Non-nil means don't add \"-f username\" to the \"sendmail\" command line.
+The \"sendmail\" program has a useful feature to let you set the
+envelope FROM address via a command line option, \"-f\".
+Unfortunately, it also has a widely disliked default behavior of
+disclosing your actual user name anyway by inserting an
+unattractive warning in the headers.  It looks something like
+this:
+
+  X-Authentication-Warning: u1.example.com: niceguy set
+      sender to niceguy@example.com using -f
+
+It is possible to configure \"sendmail\" to not do this, but such a
+reconfiguration is not an option for some users.
+
+Note that this user option is mostly useful for actual \"sendmail\"
+installations, which are rare these days."
   :group 'message-sending
   :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
@@ -2159,8 +2172,7 @@ If FIRST is non-nil, only the first value is returned.
 
 The buffer is expected to be narrowed to just the header of the message;
 see `message-narrow-to-headers-or-head'."
-  (let* ((inhibit-point-motion-hooks t)
-	 (value (mail-fetch-field header nil (not first))))
+  (let* ((value (mail-fetch-field header nil (not first))))
     (when value
       (while (string-match "\n[\t ]+" value)
 	(setq value (replace-match " " t t value)))
@@ -3195,7 +3207,8 @@ Like `text-mode', but with these additional commands:
   ;;
   (setq-local syntax-propertize-function #'message--syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
-  (setq-local message-encoded-mail-cache nil))
+  (setq-local message-encoded-mail-cache nil)
+  (setq-local image-crop-buffer-text-function #'message--update-image-crop))
 
 (defun message-setup-fill-variables ()
   "Setup message fill variables."
@@ -3551,7 +3564,12 @@ of lines before the signature intact."
 
 (defun message-newline-and-reformat (&optional arg not-break)
   "Insert four newlines, and then reformat if inside quoted text.
-Prefix arg means justify as well."
+Prefix arg means justify as well.
+
+This function tries to guess what the quote prefix is based on
+the text on the current line before point.  If point is at the
+start of the line, the formatted text (if any) is filled without
+a quote prefix."
   (interactive (list (if current-prefix-arg 'full)) message-mode)
   (unless (message-in-body-p)
     (error "This command only works in the body of the message"))
@@ -3928,8 +3946,7 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
 	(if all-removed
 	    (goto-char start)
 	  (forward-line 1))))
-    ;; Delete blank lines at the start of the buffer.
-    (goto-char (point-min))
+    ;; Delete blank lines at the start of the cited text.
     (while (and (eolp) (not (eobp)))
       (delete-line))
     ;; Delete blank lines at the end of the buffer.
@@ -4344,10 +4361,10 @@ arguments.  If METHOD is nil in this case, the return value of
 the function will be inserted instead.
 If the buffer already has a\"X-Message-SMTP-Method\" header,
 it is left unchanged."
-  :type '(alist :key-type '(choice
-                            (string :tag "From Address")
-                            (function :tag "Predicate"))
-                :value-type 'string)
+  :type '(alist :key-type (choice
+                           (string :tag "From Address")
+                           (function :tag "Predicate"))
+                :value-type string)
   :version "29.1"
   :group 'message-sending)
 
@@ -4368,7 +4385,7 @@ it is left unchanged."
                      (setq method (or (cdr server) res))
                      (throw 'exit nil))))
                 ((and (stringp (car server))
-                      (string= (car server) from))
+                      (string-equal-ignore-case (car server) from))
                  (setq method (cdr server))
                  (throw 'exit nil)))))
       (when method
@@ -5175,10 +5192,7 @@ command evaluates `message-send-mail-hook' just before sending a message."
 (defun message-canlock-generate ()
   "Return a string that is non-trivial to guess.
 Do not use this for anything important, it is cryptographically weak."
-  (sha1 (concat (message-unique-id)
-                (format "%x%x%x" (random) (random) (random))
-                (prin1-to-string (recent-keys))
-                (prin1-to-string (garbage-collect)))))
+  (secure-hash 'sha1 'iv-auto 128))
 
 (defvar canlock-password)
 (defvar canlock-password-for-verify)
@@ -7291,7 +7305,6 @@ specified by FUNCTIONS, if non-nil, or by the variable
   (let ((cur (current-buffer))
 	from subject date
 	references message-id follow-to
-	(inhibit-point-motion-hooks t)
 	(message-this-is-mail t)
 	gnus-warning)
     (save-restriction
@@ -7352,7 +7365,6 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
   (let ((cur (current-buffer))
 	from subject date reply-to mrt mct
 	references message-id follow-to
-	(inhibit-point-motion-hooks t)
 	(message-this-is-news t)
 	followup-to distribution newsgroups gnus-warning posted-to)
     (save-restriction
@@ -8591,7 +8603,6 @@ From headers in the original article."
   (let ((regexps (if (stringp message-hidden-headers)
 		     (list message-hidden-headers)
 		   message-hidden-headers))
-	(inhibit-point-motion-hooks t)
 	(inhibit-modification-hooks t)
 	end-of-headers)
     (when regexps
@@ -8910,18 +8921,25 @@ used to take the screenshot."
 		 :max-width (truncate (* (frame-pixel-width) 0.8))
 		 :max-height (truncate (* (frame-pixel-height) 0.8))
 		 :scale 1)
-   (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
-           type
-	   ;; Get a base64 version of the image -- this avoids later
-	   ;; complications if we're auto-saving the buffer and
-	   ;; restoring from a file.
-	   (with-temp-buffer
-	     (set-buffer-multibyte nil)
-	     (insert image)
-	     (base64-encode-region (point-min) (point-max) t)
-	     (buffer-string)))
+   (message--image-part-string type image)
    nil nil t)
   (insert "\n\n"))
+
+(defun message--image-part-string (type image)
+  (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
+          type
+	  ;; Get a base64 version of the image -- this avoids later
+	  ;; complications if we're auto-saving the buffer and
+	  ;; restoring from a file.
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
+	    (insert image)
+	    (base64-encode-region (point-min) (point-max) t)
+	    (buffer-string))))
+
+(declare-function image-crop--content-type "image-crop")
+(defun message--update-image-crop (_text image)
+  (message--image-part-string (image-crop--content-type image) image))
 
 (declare-function gnus-url-unhex-string "gnus-util")
 

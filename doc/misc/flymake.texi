@@ -1,8 +1,8 @@
 \input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/flymake.info
-@set VERSION 1.2
-@set UPDATED September 2021
+@set VERSION 1.2.2
+@set UPDATED November 2021
 @settitle GNU Flymake @value{VERSION}
 @include docstyle.texi
 @syncodeindex pg cp
@@ -312,7 +312,7 @@ been reported.
 Which fringe (if any) should show the warning/error bitmaps.
 
 @item flymake-wrap-around
-If non-nil, moving to errors with @code{flymake-goto-next-error} and
+If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
 @code{flymake-goto-prev-error} wraps around buffer boundaries.
 @end vtable
 
@@ -801,6 +801,7 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
                        for type = (if (string-match "^warning" msg)
                                       :warning
                                     :error)
+                       when (and beg end)
                        collect (flymake-make-diagnostic source
                                                         beg
                                                         end
@@ -877,7 +878,7 @@ line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
 @item flymake-proc-diagnostic-type-pred
 A function to classify a diagnostic text as particular type of error.
 Should be a function taking an error text and returning a diagnostic
-symbol (@pxref{Flymake error types}).  If non-nil is returned but
+symbol (@pxref{Flymake error types}).  If non-@code{nil} is returned but
 there is no such symbol in that table, a warning is assumed.  If nil
 is returned, an error is assumed.  Can also be a regular expression
 that should match only warnings.  This variable replaces the old

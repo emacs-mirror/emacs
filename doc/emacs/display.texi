@@ -270,7 +270,7 @@ either at the top or bottom of the window depending on the scroll
 direction.  By default, @code{scroll-conservatively} is@tie{}0, which
 means to always center point in the window.
 This said, in minibuffer windows, scrolling is always conservative by
-default because @code{scroll-minibuffer-conservatively} is non-nil,
+default because @code{scroll-minibuffer-conservatively} is non-@code{nil},
 which takes precedence over @code{scroll-conservatively}.
 
 @vindex scroll-step

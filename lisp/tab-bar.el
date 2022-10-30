@@ -33,7 +33,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'seq))
+  (require 'seq)
+  (require 'icons))
 
 
 (defgroup tab-bar nil
@@ -155,25 +156,43 @@ For easier selection of tabs by their numbers, consider customizing
 
 (defun tab-bar--load-buttons ()
   "Load the icons for the tab buttons."
-  (when (and tab-bar-new-button
-             (not (get-text-property 0 'display tab-bar-new-button)))
-    ;; This file is pre-loaded so only here we can use the right data-directory:
-    (add-text-properties 0 (length tab-bar-new-button)
-                         `(display (image :type xpm
-                                          :file "tabs/new.xpm"
-                                          :margin ,tab-bar-button-margin
-                                          :ascent center))
-                         tab-bar-new-button))
+  (require 'icons)
+  (unless (iconp 'tab-bar-new)
+    (define-icon tab-bar-new nil
+      `((image "tabs/new.xpm"
+               :margin ,tab-bar-button-margin
+               :ascent center)
+        ;; (emoji "➕")
+        ;; (symbol "＋")
+        (text " + "))
+      "Icon for creating a new tab."
+      :version "29.1"
+      :help-echo "New tab"))
+  (setq tab-bar-new-button (icon-string 'tab-bar-new))
 
-  (when (and tab-bar-close-button
-             (not (get-text-property 0 'display tab-bar-close-button)))
-    ;; This file is pre-loaded so only here we can use the right data-directory:
-    (add-text-properties 0 (length tab-bar-close-button)
-                         `(display (image :type xpm
-                                          :file "tabs/close.xpm"
-                                          :margin ,tab-bar-button-margin
-                                          :ascent center))
-                         tab-bar-close-button)))
+  (unless (iconp 'tab-bar-close)
+    (define-icon tab-bar-close nil
+      `((image "tabs/close.xpm"
+               :margin ,tab-bar-button-margin
+               :ascent center)
+        ;; (emoji " ❌")
+        ;; (symbol "✕") ;; "ⓧ"
+        (text " x"))
+      "Icon for closing the clicked tab."
+      :version "29.1"
+      :help-echo "Click to close tab"))
+  (setq tab-bar-close-button (propertize (icon-string 'tab-bar-close)
+                                         'close-tab t))
+
+  (unless (iconp 'tab-bar-menu-bar)
+    (define-icon tab-bar-menu-bar nil
+      '(;; (emoji "🍔")
+        (symbol "☰")
+        (text "Menu" :face tab-bar-tab-inactive))
+      "Icon for for the menu bar."
+      :version "29.1"
+      :help-echo "Menu bar"))
+  (setq tab-bar-menu-bar-button (icon-string 'tab-bar-menu-bar)))
 
 (defun tab-bar--tab-bar-lines-for-frame (frame)
   "Determine and return the value of `tab-bar-lines' for FRAME.
@@ -721,7 +740,7 @@ If a function returns nil, it doesn't directly affect the
 tab bar appearance, but can do that by some side-effect.
 If the list ends with `tab-bar-format-align-right' and
 `tab-bar-format-global', then after enabling `display-time-mode'
-(or any other mode that uses `global-mode-string'),
+\(or any other mode that uses `global-mode-string'),
 it will display time aligned to the right on the tab bar instead
 of the mode line.  Replacing `tab-bar-format-tabs' with
 `tab-bar-format-tabs-groups' will group tabs on the tab bar."
@@ -921,7 +940,7 @@ when the tab is current.  Return the result as a keymap."
 (defun tab-bar-format-global ()
   "Produce display of `global-mode-string' in the tab bar.
 When `tab-bar-format-global' is added to `tab-bar-format'
-(possibly appended after `tab-bar-format-align-right'),
+\(possibly appended after `tab-bar-format-align-right'),
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
@@ -1091,7 +1110,8 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
          (to-number (cond ((< tab-number 0) (+ (length tabs) (1+ tab-number)))
                           ((zerop tab-number) (1+ from-index))
                           (t tab-number)))
-         (to-index (1- (max 1 (min to-number (length tabs))))))
+         (to-index (1- (max 1 (min to-number (length tabs)))))
+         (minibuffer-was-active (minibuffer-window-active-p (selected-window))))
 
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))
@@ -1117,7 +1137,7 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
                 (wc-history-back (alist-get 'wc-history-back to-tab))
                 (wc-history-forward (alist-get 'wc-history-forward to-tab)))
 
-            (set-window-configuration wc)
+            (set-window-configuration wc nil t)
 
             ;; set-window-configuration does not restore the value of
             ;; point in the current buffer, so restore it separately.
@@ -1145,7 +1165,21 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
                        tab-bar-history-forward))))
 
          (ws
+          ;; `window-state-put' fails when called in the minibuffer
+          (when (minibuffer-selected-window)
+            (select-window (minibuffer-selected-window)))
           (window-state-put ws nil 'safe)))
+
+        ;; Select the minibuffer when it was active before switching tabs
+        (when (and minibuffer-was-active (active-minibuffer-window))
+          (select-window (active-minibuffer-window)))
+
+        ;; When the minibuffer was activated in one tab, but exited in
+        ;; another tab, then after going back to the first tab, it has
+        ;; such inconsistent state that the current buffer is the minibuffer,
+        ;; but its window is not active.  So try to undo this mess.
+        (when (and (minibufferp) (not (active-minibuffer-window)))
+          (other-window 1))
 
         (when tab-bar-history-mode
           (setq tab-bar-history-omit t))
@@ -1881,7 +1915,7 @@ This navigates back in the history of window configurations."
                    (cons tab-bar-history-old
                          (gethash (selected-frame) tab-bar-history-forward))
                    tab-bar-history-forward)
-          (set-window-configuration wc)
+          (set-window-configuration wc nil t)
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab back history"))))
@@ -1900,7 +1934,7 @@ This navigates forward in the history of window configurations."
                    (cons tab-bar-history-old
                          (gethash (selected-frame) tab-bar-history-back))
                    tab-bar-history-back)
-          (set-window-configuration wc)
+          (set-window-configuration wc nil t)
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab forward history"))))
@@ -1916,22 +1950,27 @@ and can restore them."
   :global t :group 'tab-bar
   (if tab-bar-history-mode
       (progn
-        (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-back-button)))
-          ;; This file is pre-loaded so only here we can use the right data-directory:
-          (add-text-properties 0 (length tab-bar-back-button)
-                               `(display (image :type xpm
-                                                :file "tabs/left-arrow.xpm"
-                                                :margin ,tab-bar-button-margin
-                                                :ascent center))
-                               tab-bar-back-button))
-        (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-forward-button)))
-          ;; This file is pre-loaded so only here we can use the right data-directory:
-          (add-text-properties 0 (length tab-bar-forward-button)
-                               `(display (image :type xpm
-                                                :file "tabs/right-arrow.xpm"
-                                                :margin ,tab-bar-button-margin
-                                                :ascent center))
-                               tab-bar-forward-button))
+        (require 'icons)
+
+        (unless (iconp 'tab-bar-back)
+          (define-icon tab-bar-back nil
+            `((image "tabs/left-arrow.xpm"
+                     :margin ,tab-bar-button-margin
+                     :ascent center)
+              (text " < "))
+            "Icon for going back in tab history."
+            :version "29.1"))
+        (setq tab-bar-back-button (icon-string 'tab-bar-back))
+
+        (unless (iconp 'tab-bar-forward)
+          (define-icon tab-bar-forward nil
+            `((image "tabs/right-arrow.xpm"
+                     :margin ,tab-bar-button-margin
+                     :ascent center)
+              (text " > "))
+            "Icon for going forward in tab history."
+            :version "29.1"))
+        (setq tab-bar-forward-button (icon-string 'tab-bar-forward))
 
         (add-hook 'pre-command-hook 'tab-bar--history-pre-change)
         (add-hook 'window-configuration-change-hook 'tab-bar--history-change))
@@ -2411,6 +2450,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (keymap-set tab-prefix-map "M"   #'tab-move-to)
 (keymap-set tab-prefix-map "G"   #'tab-group)
 (keymap-set tab-prefix-map "r"   #'tab-rename)
+(keymap-set tab-prefix-map "^ f"  #'tab-detach)
 (keymap-set tab-prefix-map "RET" #'tab-switch)
 (keymap-set tab-prefix-map "b"   #'switch-to-buffer-other-tab)
 (keymap-set tab-prefix-map "f"   #'find-file-other-tab)

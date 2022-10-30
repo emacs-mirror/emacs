@@ -300,7 +300,7 @@ usually do not have translators for other languages.\n\n")))
     (let ((txt (delete-and-extract-region (1+ user-point) (point))))
       (insert (propertize "\n" 'display txt)))
 
-    (emacs-bug--system-description)
+    (emacs-build-description)
     (insert "Configured features:\n" system-configuration-features "\n\n")
     (fill-region (line-beginning-position -1) (point))
     (when (and (featurep 'native-compile)
@@ -386,7 +386,10 @@ copy text to your preferred mail program.\n"
                 (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
-(defun emacs-bug--system-description ()
+;;;###autoload
+(defun emacs-build-description ()
+  "Insert a description of the current Emacs build in the current buffer."
+  (interactive)
   (let ((start (point)))
     (insert "\nIn " (emacs-version))
     (if emacs-build-system
@@ -413,8 +416,6 @@ copy text to your preferred mail program.\n"
     (insert "Configured using:\n 'configure "
 	    system-configuration-options "'\n\n")
     (fill-region (line-beginning-position -1) (point))))
-
-(define-obsolete-function-alias 'report-emacs-bug-info #'info-emacs-bug "24.3")
 
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."
@@ -523,7 +524,7 @@ Message buffer where you can explain more about the patch."
   (compose-mail-other-window report-emacs-bug-address subject)
   (message-goto-body)
   (insert "\n\n\n")
-  (emacs-bug--system-description)
+  (emacs-build-description)
   (mml-attach-file file "text/patch" nil "attachment")
   (message-goto-body)
   (message "Write a description of the patch and use %s to send it"

@@ -402,7 +402,7 @@ information can be used so that you can replace multiple
 
 Bogofilter is a Bayesian spam filtering program. Get it from your
 local distribution or from the bogofilter web site at URL
-`http://bogofilter.sourceforge.net/'.
+`https://bogofilter.sourceforge.io/'.
 
 Bogofilter is taught by running:
 
@@ -487,7 +487,7 @@ See `mh-bogofilter-blocklist' for more information."
 
 SpamProbe is a Bayesian spam filtering program. Get it from your
 local distribution or from the SpamProbe web site at URL
-`http://spamprobe.sourceforge.net'.
+`https://spamprobe.sourceforge.net'.
 
 To use SpamProbe, add the following recipes to \".procmailrc\":
 

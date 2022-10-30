@@ -944,7 +944,7 @@
 ;;                   `https://www.gnu.org/software/ghostscript/ghostscript.html'
 ;;    gsprint        `https://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
 ;;    enscript       `https://people.ssh.fi/mtr/genscript/'
-;;    psnup          `http://gnuwin32.sourceforge.net/packages/psutils.htm'
+;;    psnup          `https://gnuwin32.sourceforge.net/packages/psutils.htm'
 ;;    redmon         `http://www.ghostgum.com.au/software/redmon.htm'
 ;;
 ;;
@@ -1752,7 +1752,7 @@ Useful links:
   `https://linux.die.net/man/1/lp'
 
 * GNU utilities for w32 (cp.exe)
-  `http://unxutils.sourceforge.net/'"
+  `https://unxutils.sourceforge.net/'"
   :type '(repeat
 	  (list
 	   :tag "PostScript Printer"
@@ -2382,7 +2382,7 @@ Useful links:
   `http://gershwin.ens.fr/vdaniel/Doc-Locale/Outils-Gnu-Linux/PsUtils/'
 
 * psnup (PsUtils for Windows)
-  `http://gnuwin32.sourceforge.net/packages/psutils.htm'
+  `https://gnuwin32.sourceforge.net/packages/psutils.htm'
 
 * psnup documentation (GNU or Unix - or type `man psnup')
   `https://linux.die.net/man/1/psnup'
@@ -3040,7 +3040,7 @@ A. Interface:
 
 I. PostScript printing:
 
-   1. You can generate a PostScript file (if you type C-u before activating
+   1. You can generate a PostScript file (if you type \\[universal-argument] before activating
       menu) or PostScript temporary file for a directory, a buffer, a region
       or a major mode, choosing 1-up, 2-up, 4-up or any other n-up printing;
       after file generation, ghostview is activated using the file generated
@@ -3080,7 +3080,7 @@ I. PostScript printing:
 	      `pr-ps-utility-alist'.
 
    2. Operate the same way as option 1, but it sends directly the PostScript
-      code (or put in a file, if you've typed C-u) or it uses ghostscript to
+      code (or put in a file, if you've typed \\[universal-argument]) or it uses ghostscript to
       print the PostScript file generated.  It depends on option 18, if it's
       turned on, it uses ghostscript; otherwise, it sends directly to
       printer.  If spooling is on (option 16), the PostScript code is saved
@@ -3089,7 +3089,7 @@ I. PostScript printing:
       Instead of printing each buffer, region or major mode at once, you can
       save temporarily the PostScript code generated in a buffer and print it
       later.  The option `Despool...' despools the PostScript spooling buffer
-      directly on a printer.  If you type C-u before choosing this option,
+      directly on a printer.  If you type \\[universal-argument] before choosing this option,
       the PostScript code generated is saved in a file instead of sending it to
       the printer.  To spool the PostScript code generated you need to turn on
       option 16.  This option is enabled if spooling is on (option 16).
@@ -4183,7 +4183,8 @@ bottom."
 (defun pr-help (&rest _ignore)
   "Help for the printing package."
   (interactive)
-  (pr-show-setup pr-help-message "*Printing Help*"))
+  (pr-show-setup (substitute-command-keys pr-help-message)
+                 "*Printing Help*"))
 
 
 ;;;###autoload
@@ -5036,7 +5037,8 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 (defun pr-show-setup (settings buffer-name)
   (with-output-to-temp-buffer buffer-name
-    (princ settings)
+    (with-current-buffer buffer-name
+      (insert settings))
     (help-print-return-message)))
 
 
@@ -5544,13 +5546,11 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (defvar pr-i-ps-send    'printer)
 
 
-(defvar pr-interface-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (define-key map "q" 'pr-interface-quit)
-    (define-key map "?" 'pr-interface-help)
-    map)
-  "Keymap for `pr-interface'.")
+(defvar-keymap pr-interface-map
+  :doc "Keymap for `pr-interface'."
+  :parent widget-keymap
+  "q" #'pr-interface-quit
+  "?" #'pr-interface-help)
 
 (defmacro pr-interface-save (&rest body)
   `(with-current-buffer pr-i-buffer

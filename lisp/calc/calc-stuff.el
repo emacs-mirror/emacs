@@ -52,18 +52,14 @@ With a prefix, push that prefix as a number onto the stack."
        (calc-less-recursion-depth n)
      (let ((n (if n (prefix-numeric-value n) 2)))
        (if (> n 1)
-	   (setq max-specpdl-size (* max-specpdl-size n)
-		 max-lisp-eval-depth (* max-lisp-eval-depth n))))
+	   (setq max-lisp-eval-depth (* max-lisp-eval-depth n))))
      (message "max-lisp-eval-depth is now %d" max-lisp-eval-depth))))
 
 (defun calc-less-recursion-depth (n)
   (interactive "P")
   (let ((n (if n (prefix-numeric-value n) 2)))
     (if (> n 1)
-	(setq max-specpdl-size
-	      (max (/ max-specpdl-size n) 600)
-	      max-lisp-eval-depth
-	      (max (/ max-lisp-eval-depth n) 200))))
+	(setq max-lisp-eval-depth (max (/ max-lisp-eval-depth n) 200))))
   (message "max-lisp-eval-depth is now %d" max-lisp-eval-depth))
 
 

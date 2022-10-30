@@ -49,7 +49,6 @@ typedef struct {
 
   Boolean	visual_bell;		/* flash instead of beep */
   int		bell_volume;		/* how loud is beep */
-
   /* private state */
 
 } EmacsFramePart;

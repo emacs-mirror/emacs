@@ -147,16 +147,16 @@ and then returns."
                  (while (or (memq char (append help-event-list
                                                (cons help-char '( ?? ?\C-v ?\s ?\177 ?\M-v ?\S-\s
                                                                   deletechar backspace vertical-scroll-bar
-                                                                  next prior up down))))
+                                                                  home end next prior up down))))
                             (eq (car-safe char) 'switch-frame)
                             (equal key "\M-v"))
                    (condition-case nil
                        (cond
                         ((eq (car-safe char) 'switch-frame)
                          (handle-switch-frame char))
-                        ((memq char '(?\C-v ?\s next))
+                        ((memq char '(?\C-v ?\s next end))
                          (scroll-up))
-                        ((or (memq char '(?\177 ?\M-v ?\S-\s deletechar backspace prior))
+                        ((or (memq char '(?\177 ?\M-v ?\S-\s deletechar backspace prior home))
                              (equal key "\M-v"))
                          (scroll-down))
                         ((memq char '(down))
@@ -210,7 +210,11 @@ and then returns."
                            (unless (eq new-frame (selected-frame))
                              (iconify-frame new-frame))
                            (setq new-frame nil)))
-                     (ding)))))
+                     (unless (equal (key-description key) "C-g")
+                       (message (substitute-command-keys
+                                (format "No help command is bound to `\\`%s''"
+                                        (key-description key))))
+                       (ding))))))
            (when config
              (set-window-configuration config))
            (when new-frame

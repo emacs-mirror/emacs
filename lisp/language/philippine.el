@@ -35,7 +35,8 @@
              (sample-text . "Tagalog (ᜊᜌ᜔ᜊᜌᜒᜈ᜔)	ᜃᜓᜋᜓᜐ᜔ᜆ")
              (documentation . "\
 Tagalog language using the Baybayin script is supported in
-this language environment.")))
+this language environment."))
+ '("Philippine"))
 
 (set-language-info-alist
  "Hanunoo" '((charset unicode)
@@ -44,7 +45,8 @@ this language environment.")))
              (input-method . "hanunoo")
              (sample-text . "Hanunoo (ᜱᜨᜳᜨᜳᜢ)	ᜫᜬᜧ᜴ ᜣᜭᜯᜥ᜴ ᜰᜲᜭᜥ᜴")
              (documentation . "\
-Philippine Language Hanunoo is supported in this language environment.")))
+Philippine Language Hanunoo is supported in this language environment."))
+ '("Philippine"))
 
 (set-language-info-alist
  "Buhid" '((charset unicode)
@@ -52,7 +54,8 @@ Philippine Language Hanunoo is supported in this language environment.")))
            (coding-priority utf-8)
            (input-method . "buhid")
            (documentation . "\
-Philippine Language Buhid is supported in this language environment.")))
+Philippine Language Buhid is supported in this language environment."))
+ '("Philippine"))
 
 (set-language-info-alist
  "Tagbanwa" '((charset unicode)
@@ -61,7 +64,8 @@ Philippine Language Buhid is supported in this language environment.")))
              (input-method . "tagbanwa")
              (sample-text . "Tagbanwa (ᝦᝪᝯ)	ᝫᝩᝬᝥ ᝣᝮᝧᝯ")
              (documentation . "\
-Philippine Languages Tagbanwa are supported in this language environment.")))
+Philippine Languages Tagbanwa are supported in this language environment."))
+ '("Philippine"))
 
 ;; Tagalog composition rules
 (let ((akshara              "[\x1700-\x1711\x171F]")

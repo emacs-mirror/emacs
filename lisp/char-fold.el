@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))
+
 (eval-and-compile
   (put 'char-fold-table 'char-table-extra-slots 1)
   (defconst char-fold--default-override nil)
@@ -48,6 +50,7 @@
 
 
 (eval-and-compile
+  (defvar char-fold--no-regexp nil)
   (defun char-fold--make-table ()
     (let* ((equiv (make-char-table 'char-fold-table))
            (equiv-multi (make-char-table 'char-fold-table))
@@ -201,11 +204,14 @@
            symmetric)))
 
       ;; Convert the lists of characters we compiled into regexps.
-      (map-char-table
-       (lambda (char decomp-list)
-         (let ((re (regexp-opt (cons (char-to-string char) decomp-list))))
-           (aset equiv char re)))
-       equiv)
+      (unless char-fold--no-regexp
+        ;; Non-nil `char-fold--no-regexp' unoptimized for regexp
+        ;; is used by `describe-char-fold-equivalences'.
+        (map-char-table
+         (lambda (char decomp-list)
+           (let ((re (regexp-opt (cons (char-to-string char) decomp-list))))
+             (aset equiv char re)))
+         equiv))
       equiv)))
 
 (defconst char-fold-table
@@ -420,6 +426,68 @@ which is searched for with `re-search-backward'.
 BOUND NOERROR COUNT are passed to `re-search-backward'."
   (interactive "sSearch: ")
   (re-search-backward (char-fold-to-regexp string) bound noerror count))
+
+
+;;;###autoload
+(defun describe-char-fold-equivalences (char &optional lax)
+  "Display characters equivalent to CHAR under character-folding.
+Prompt for CHAR (using `read-char-by-name', which see for how to
+specify the character).  With no input, i.e. when CHAR is nil,
+describe all available character equivalences of `char-fold-to-regexp'.
+Optional argument LAX (interactively, the prefix argument), if
+non-nil, means also include partially matching ligatures and
+non-canonical equivalences."
+  (interactive (list (ignore-errors
+                       (read-char-by-name
+                        (format-prompt "Unicode name, single char, or hex"
+                                       "all")
+                        t))
+                     current-prefix-arg))
+  (require 'help-fns)
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'describe-char-fold-equivalences)
+                     (called-interactively-p 'interactive))
+    (let* ((equivalences nil)
+           (char-fold--no-regexp t)
+           (table (char-fold--make-table))
+           (extra (char-table-extra-slot table 0)))
+      (if (not char)
+          (map-char-table
+           (lambda (char list)
+             (when lax
+               (setq list (append list (mapcar (lambda (entry)
+                                                 (cdr entry))
+                                               (aref extra char)))))
+             (setq equivalences (cons (cons char list)
+                                      equivalences)))
+           table)
+        (setq equivalences (aref table char))
+        (when lax
+          (setq equivalences (append equivalences
+                                     (mapcar (lambda (entry)
+                                               (cdr entry))
+                                             (aref extra char)))))
+        (setq equivalences (cons (char-to-string char) equivalences)))
+      (with-help-window (help-buffer)
+        (with-current-buffer standard-output
+          (if char
+              (insert
+               (mapconcat
+                (lambda (c)
+                  (format "%s: %s\n"
+                          c
+                          (mapconcat
+                           (lambda (ch)
+                             (format "?\\N{%s}"
+                                     (or (get-char-code-property ch 'name)
+                                         (get-char-code-property ch 'old-name))))
+                           c)))
+                equivalences))
+            (insert "A list of char-fold equivalences for `char-fold-to-regexp':\n\n")
+            (setq-local bidi-paragraph-direction 'left-to-right)
+            (dolist (equiv (nreverse equivalences))
+              (insert (format "%c: %s\n" (car equiv)
+                              (string-join (cdr equiv) " "))))))))))
 
 (provide 'char-fold)
 

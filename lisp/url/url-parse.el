@@ -96,17 +96,6 @@ If the specified port number is the default, return nil."
 	    (or file "/")
 	    (if frag (concat "#" frag)))))
 
-(defun url-recreate-url-attributes (urlobj)
-  "Recreate the attributes of an URL string from the parsed URLOBJ."
-  (declare (obsolete nil "24.3"))
-  (when (url-attributes urlobj)
-    (concat ";"
-	    (mapconcat (lambda (x)
-                         (if (cdr x)
-                             (concat (car x) "=" (cdr x))
-                           (car x)))
-                       (url-attributes urlobj) ";"))))
-
 ;;;###autoload
 (defun url-generic-parse-url (url)
   "Return an URL-struct of the parts of URL.

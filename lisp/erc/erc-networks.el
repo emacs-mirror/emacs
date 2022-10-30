@@ -996,8 +996,8 @@ Rename the current buffer if its NID has grown."
   "Return a list of target BUFFERS, newest to oldest."
   (sort buffers
         (lambda (a b)
-          (> (with-current-buffer a (erc-networks--id-ts erc-networks--id))
-             (with-current-buffer b (erc-networks--id-ts erc-networks--id))))))
+          (> (erc-networks--id-ts (buffer-local-value 'erc-networks--id a))
+             (erc-networks--id-ts (buffer-local-value 'erc-networks--id b))))))
 
 
 ;;;; Buffer association
@@ -1256,7 +1256,7 @@ Signal an error when the network cannot be determined."
       ;; but aren't being proxied through to a real network.  The
       ;; service may send a 422 but no NETWORK param (or *any* 005s).
       (let ((m (concat "Failed to determine network. Please set entry for "
-                       erc-server-announced-name " in `erc-network-alist'.")))
+                       erc-server-announced-name " in `erc-networks-alist'.")))
         (erc-display-error-notice parsed m)
         (erc-error "Failed to determine network"))) ; beep
     (setq erc-network name))

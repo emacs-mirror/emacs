@@ -4124,6 +4124,7 @@ syms_of_data (void)
   DEFSYM (Qsymbolp, "symbolp");
   DEFSYM (Qfixnump, "fixnump");
   DEFSYM (Qintegerp, "integerp");
+  DEFSYM (Qbooleanp, "booleanp");
   DEFSYM (Qnatnump, "natnump");
   DEFSYM (Qwholenump, "wholenump");
   DEFSYM (Qstringp, "stringp");

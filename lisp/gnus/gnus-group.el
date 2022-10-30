@@ -1717,9 +1717,7 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
 	  (setq mode-string (substring mode-string 0 (- max-len 4))))
 	(prog1
 	    (setq mode-line-buffer-identification
-		  (gnus-mode-line-buffer-identification
-		   (list (propertize mode-string
-				     'face 'mode-line-buffer-id))))
+		  (gnus-mode-line-buffer-identification (list mode-string)))
 	  (set-buffer-modified-p modified))))))
 
 (defun gnus-group-group-name ()
@@ -2423,44 +2421,37 @@ the ephemeral group."
                                    (regexp-quote address)
                                    "\\(?:\\'\\|[ ,>]\\)"))
                (delim (concat "^" message-unix-mail-delimiter)))
-          (let ((coding-system-for-write 'binary)
-                (coding-system-for-read 'binary))
-            (with-temp-file tmpfile
-              (mm-disable-multibyte)
-              (dolist (id ids)
-                (let ((file (expand-file-name id (locate-user-emacs-file
-                                                  "debbugs-cache"))))
-                  (if (and (not gnus-plugged)
-                           (file-exists-p file))
-                      (insert-file-contents file)
-                    ;; Pass non-nil VISIT to avoid errors with non-nil
-                    ;; `url-automatic-caching' (bug#26063, bug#29008)
-                    ;; and immediately unvisit.
-                    ;; FIXME: This masks real errors!
-                    (url-insert-file-contents (format mbox-url id) t)
-                    (setq buffer-file-name nil))))
-	      (goto-char (point-min))
-              ;; Throw an informative error early instead of passing nonsense
-              ;; to `gnus-group-read-ephemeral-group' (bug#36433).
-              (unless (save-excursion (re-search-forward delim nil t))
-                (error "Invalid mbox format for bug IDs: %s"
-                       (string-join ids ", ")))
-              (while (re-search-forward delim nil t)
-                (narrow-to-region (point)
-                                  (if (search-forward "\n\n" nil t)
-                                      (1- (point))
-                                    (point-max)))
-                (unless (string-match-p address-re
-                                        (concat (message-fetch-field "to") " "
-                                                (message-fetch-field "cc")))
-                  (goto-char (point-min))
-                  (if (not (re-search-forward "^To:" nil t))
-                      (insert "To: " address "\n")
-		    (message-next-header)
-		    (skip-chars-backward "\t\n ")
-                    (insert ", " address)))
-                (goto-char (point-max))
-                (widen))))
+          (with-temp-file tmpfile
+            (mm-disable-multibyte)
+            (dolist (id ids)
+              (let ((file (expand-file-name id (locate-user-emacs-file
+                                                "debbugs-cache"))))
+                (if (and (not gnus-plugged)
+                         (file-exists-p file))
+                    (insert-file-contents-literally file)
+                  (url-insert-file-contents-literally (format mbox-url id)))))
+	    (goto-char (point-min))
+            ;; Throw an informative error early instead of passing nonsense
+            ;; to `gnus-group-read-ephemeral-group' (bug#36433).
+            (unless (save-excursion (re-search-forward delim nil t))
+              (error "Invalid mbox format for bug IDs: %s"
+                     (string-join ids ", ")))
+            (while (re-search-forward delim nil t)
+              (narrow-to-region (point)
+                                (if (search-forward "\n\n" nil t)
+                                    (1- (point))
+                                  (point-max)))
+              (unless (string-match-p address-re
+                                      (concat (message-fetch-field "to") " "
+                                              (message-fetch-field "cc")))
+                (goto-char (point-min))
+                (if (not (re-search-forward "^To:" nil t))
+                    (insert "To: " address "\n")
+		  (message-next-header)
+		  (skip-chars-backward "\t\n ")
+                  (insert ", " address)))
+              (goto-char (point-max))
+              (widen)))
           (gnus-group-read-ephemeral-group
            (concat "nndoc+ephemeral:bug#" (string-join ids ","))
            `(nndoc ,tmpfile
@@ -2660,6 +2651,7 @@ If EXCLUDE-GROUP, do not go to that group."
     (and best-point (gnus-group-group-name))))
 
 ;; Is there something like an after-point-motion-hook?
+;; FIXME: There's `cursor-sensor-mode's `cursor-sensor-functions' property.
 ;; (inhibit-point-motion-hooks?).  Is there a tool-bar-update function?
 
 ;; (defun gnus-group-menu-bar-update ()

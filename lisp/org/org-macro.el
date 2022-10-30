@@ -66,7 +66,7 @@
 (declare-function org-mode "org" ())
 (declare-function vc-backend "vc-hooks" (f))
 (declare-function vc-call "vc-hooks" (fun file &rest args) t)
-(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
 
 (defvar org-link-search-must-match-exact-headline)
 

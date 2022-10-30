@@ -142,7 +142,7 @@ remove them from your saved Custom file.\n\n")
     (widget-create 'push-button
 		   :tag " Revert "
 		   :help-echo "Revert this buffer to its original state."
-		   :action (lambda (&rest ignored) (revert-buffer)))
+                   :action (lambda (&rest _ignored) (revert-buffer)))
 
     (widget-insert "\n\nTheme name : ")
     (setq custom-theme-name
@@ -496,7 +496,7 @@ It includes all faces in list FACES."
       (princ (substitute-command-keys " in `"))
       (help-insert-xref-button (file-name-nondirectory fn)
 			       'help-theme-def fn)
-      (princ (substitute-command-keys "'")))
+      (princ (substitute-quotes "'")))
     (princ ".\n")
     (if (custom-theme-p theme)
 	(progn

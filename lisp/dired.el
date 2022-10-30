@@ -508,15 +508,6 @@ This is what the do-commands look for, and what the mark-commands store.")
 (defvar dired-del-marker ?D
   "Character used to flag files for deletion.")
 
-(defvar dired-shrink-to-fit t
-  ;; I see no reason ever to make this nil -- rms.
-  ;;  (> baud-rate search-slow-speed)
-  "Non-nil means Dired shrinks the display buffer to fit the marked files.")
-(make-obsolete-variable 'dired-shrink-to-fit
-			"use the Customization interface to add a new rule
-to `display-buffer-alist' where condition regexp is \"^ \\*Marked Files\\*$\",
-action argument symbol is `window-height' and its value is nil." "24.3")
-
 (defvar dired-file-version-alist)
 
 ;;;###autoload
@@ -786,7 +777,7 @@ Subexpression 2 must end right before the \\n.")
                nil
                '(1 'dired-broken-symlink)
                '(2 dired-symlink-face)
-               '(3 'dired-broken-symlink)))
+               '(3 '(face dired-broken-symlink dired-symlink-filename t))))
    ;;
    ;; Symbolic link to a directory.
    (list dired-re-sym
@@ -798,7 +789,7 @@ Subexpression 2 must end right before the \\n.")
                '(dired-move-to-filename)
                nil
                '(1 dired-symlink-face)
-               '(2 dired-directory-face)))
+               '(2 '(face dired-directory-face dired-symlink-filename t))))
    ;;
    ;; Symbolic link to a non-directory.
    (list dired-re-sym
@@ -812,7 +803,7 @@ Subexpression 2 must end right before the \\n.")
                '(dired-move-to-filename)
                nil
                '(1 dired-symlink-face)
-               '(2 'default)))
+               '(2 '(face default dired-symlink-filename t))))
    ;;
    ;; Sockets, pipes, block devices, char devices.
    (list dired-re-special
@@ -1466,9 +1457,9 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 	(if (eq (car attributes) t)
 	    (set-visited-file-modtime (file-attribute-modification-time
                                        attributes))))
-      (set-buffer-modified-p nil)
       (when dired-make-directory-clickable
         (dired--make-directory-clickable))
+      (set-buffer-modified-p nil)
       ;; No need to narrow since the whole buffer contains just
       ;; dired-readin's output, nothing else.  The hook can
       ;; successfully use dired functions (e.g. dired-get-filename)
@@ -1920,11 +1911,15 @@ mouse-2: visit this file in other window"
 (defun dired--make-directory-clickable ()
   (save-excursion
     (goto-char (point-min))
-    (while (re-search-forward "^  /" nil t 1)
+    (while (re-search-forward
+            (if (memq system-type '(windows-nt ms-dos))
+                "^  \\([a-zA-Z]:/\\|//\\)"
+              "^  /")
+            nil t 1)
       (let ((bound (line-end-position))
             (segment-start (point))
             (inhibit-read-only t)
-            (dir "/"))
+            (dir (substring (match-string 0) 2)))
         (while (search-forward "/" bound t 1)
           (setq dir (concat dir (buffer-substring segment-start (point))))
           (add-text-properties
@@ -2259,8 +2254,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "M-s f C-M-s" #'dired-isearch-filenames-regexp
   ;; misc
   "<remap> <read-only-mode>"   #'dired-toggle-read-only
-  ;; `toggle-read-only' is an obsolete alias for `read-only-mode'
-  "<remap> <toggle-read-only>" #'dired-toggle-read-only
   "?"       #'dired-summary
   "DEL"     #'dired-unmark-backward
   "<remap> <undo>"             #'dired-undo
@@ -2967,7 +2960,7 @@ unchanged."
   (or dir (setq dir default-directory))
   ;; This case comes into play if default-directory is set to
   ;; use ~.
-  (if (and (> (length dir) 0) (= (aref dir 0) ?~))
+  (if (string-match-p "\\(\\`\\|:\\)~" dir)
       (setq dir (expand-file-name dir)))
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
@@ -3675,16 +3668,16 @@ non-empty directories is allowed."
 	 case-fold-search markers)
     (if (save-excursion (goto-char (point-min))
 			(re-search-forward regexp nil t))
-	(dired-internal-do-deletions
-         (nreverse
-	  ;; this can't move point since ARG is nil
-	  (dired-map-over-marks (cons (dired-get-filename)
-                                      (let ((m (point-marker)))
-                                        (push m markers)
-                                        m))
-			        nil))
-	 nil t)
-      (dolist (m markers) (set-marker m nil))
+        (progn
+          (dired-internal-do-deletions
+           (nreverse
+            (dired-map-over-marks (cons (dired-get-filename)
+                                   (let ((m (point-marker)))
+                                     (push m markers)
+                                     m))
+                             nil))
+           nil t)
+          (dolist (m markers) (set-marker m nil)))
       (or nomessage
 	  (message "(No deletions requested)")))))
 
@@ -3746,7 +3739,10 @@ non-empty directories is allowed."
 		      (progress-reporter-update progress-reporter succ)
 		      (dired-fun-in-all-buffers
 		       (file-name-directory fn) (file-name-nondirectory fn)
-		       #'dired-delete-entry fn))
+		       #'dired-delete-entry fn)
+                      ;; For when FN's directory name is different
+                      ;; from the current buffer's dired-directory.
+                      (dired-delete-entry fn))
                   (quit (throw '--delete-cancel (message "OK, canceled")))
 		  (error ;; catch errors from failed deletions
 		   (dired-log "%s: %s\n" (car err) (error-message-string err))
@@ -3875,28 +3871,6 @@ or \"* [3 files]\"."
 	  ;;                        count)
 	  (format "[next %d files]" arg)
 	(format "%c [%d files]" dired-marker-char count)))))
-
-(defun dired-pop-to-buffer (buf)
-  "Pop up buffer BUF in a way suitable for Dired."
-  (declare (obsolete pop-to-buffer "24.3"))
-  (let ((split-window-preferred-function
-	 (lambda (window)
-	   (or (and (let ((split-height-threshold 0))
-		      (window-splittable-p (selected-window)))
-		    ;; Try to split the selected window vertically if
-		    ;; that's possible.  (Bug#1806)
-		    (split-window-below))
-	       ;; Otherwise, try to split WINDOW sensibly.
-	       (split-window-sensibly window))))
-	pop-up-frames)
-    (pop-to-buffer (get-buffer-create buf)))
-  ;; See Bug#12281.
-  (set-window-start nil (point-min))
-  ;; If dired-shrink-to-fit is t, make its window fit its contents.
-  (when dired-shrink-to-fit
-    ;; Try to not delete window when we want to display less than
-    ;; `window-min-height' lines.
-    (fit-window-to-buffer (get-buffer-window buf) nil 1 nil nil t)))
 
 (defcustom dired-no-confirm nil
   "A list of symbols for commands Dired should not confirm, or t.
@@ -4586,9 +4560,6 @@ Possible values:
                      "Dired by date")
                     (t (concat "Dired " dired-actual-switches))))))
     (force-mode-line-update)))
-
-(define-obsolete-function-alias 'dired-sort-set-modeline
-  #'dired-sort-set-mode-line "24.3")
 
 (defun dired-sort-toggle-or-edit (&optional arg)
   "Toggle sorting by date, and refresh the Dired buffer.

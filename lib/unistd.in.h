@@ -1143,7 +1143,9 @@ _GL_FUNCDECL_SYS (getdomainname, int, (char *name, size_t len)
 #  endif
 _GL_CXXALIAS_SYS (getdomainname, int, (char *name, size_t len));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (getdomainname);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef getdomainname
 # if HAVE_RAW_DECL_GETDOMAINNAME
@@ -2055,7 +2057,7 @@ _GL_CXXALIAS_MDA_CAST (swab, void, (char *from, char *to, int n));
 # else
 #  if defined __hpux /* HP-UX */
 _GL_CXXALIAS_SYS (swab, void, (const char *from, char *to, int n));
-#  elif defined __sun && !defined _XPG4 /* Solaris */
+#  elif defined __sun && (defined __SunOS_5_10 || defined __XOPEN_OR_POSIX) && !defined _XPG4 /* Solaris */
 _GL_CXXALIAS_SYS (swab, void, (const char *from, char *to, ssize_t n));
 #  else
 _GL_CXXALIAS_SYS (swab, void, (const void *from, void *to, ssize_t n));

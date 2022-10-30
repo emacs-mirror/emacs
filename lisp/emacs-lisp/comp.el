@@ -57,7 +57,7 @@
   :safe #'integerp
   :version "28.1")
 
-(defcustom native-comp-debug (if (eq 'windows-nt system-type) 1 0)
+(defcustom native-comp-debug  0
   "Debug level for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
   0 no debug output.
@@ -67,7 +67,7 @@ This is intended for debugging the compiler itself.
   passes and libgccjit log file."
   :type 'natnum
   :safe #'natnump
-  :version "28.1")
+  :version "29.1")
 
 (defcustom native-comp-verbose 0
   "Compiler verbosity for native compilation, a number between 0 and 3.
@@ -178,14 +178,15 @@ and above."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom native-comp-driver-options nil
+(defcustom native-comp-driver-options (when (eq system-type 'darwin)
+                                        '("-Wl,-w"))
   "Options passed verbatim to the native compiler's back-end driver.
 Note that not all options are meaningful; typically only the options
 affecting the assembler and linker are likely to be useful.
 
 Passing these options is only available in libgccjit version 9
 and above."
-  :type '(repeat string)                ; FIXME is this right?
+  :type '(repeat string)
   :version "28.1")
 
 (defcustom comp-libgccjit-reproducer nil
@@ -462,7 +463,7 @@ Useful to hook into pass checkers.")
     (marker-buffer (function (marker) (or buffer null)))
     (markerp (function (t) boolean))
     (max (function ((or number marker) &rest (or number marker)) number))
-    (max-char (function () fixnum))
+    (max-char (function (&optional t) fixnum))
     (member (function (t list) list))
     (memory-limit (function () integer))
     (memq (function (t list) list))
@@ -686,6 +687,9 @@ Useful to hook into pass checkers.")
   'native-compiler-error)
 
 
+(defvar comp-no-spawn nil
+  "Non-nil don't spawn native compilation processes.")
+
 ;; Moved early to avoid circularity when comp.el is loaded and
 ;; `macroexpand' needs to be advised (bug#47049).
 ;;;###autoload
@@ -695,12 +699,9 @@ Useful to hook into pass checkers.")
               (memq subr-name native-comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
     (cl-assert (subr-primitive-p (symbol-function subr-name)))
-    (comp--install-trampoline
-     subr-name
-     (or (comp-trampoline-search subr-name)
-         (comp-trampoline-compile subr-name)
-         ;; Should never happen.
-         (cl-assert nil)))))
+    (when-let ((trampoline (or (comp-trampoline-search subr-name)
+                               (comp-trampoline-compile subr-name))))
+        (comp--install-trampoline subr-name trampoline))))
 
 
 (cl-defstruct (comp-vec (:copier nil))
@@ -2056,9 +2057,10 @@ and the annotation emission."
   "Lexically-scoped FUNCTION."
   (let ((args (comp-func-l-args function)))
     (cons (make-comp-mvar :constant (comp-args-base-min args))
-          (make-comp-mvar :constant (if (comp-args-p args)
-                                        (comp-args-max args)
-                                      'many)))))
+          (make-comp-mvar :constant (cond
+                                     ((comp-args-p args) (comp-args-max args))
+                                     ((comp-nargs-rest args) 'many)
+                                     (t (comp-nargs-nonrest args)))))))
 
 (cl-defmethod comp-prepare-args-for-top-level ((function comp-func-d))
   "Dynamically scoped FUNCTION."
@@ -3714,7 +3716,8 @@ Prepare every function for final compilation and drive the C back-end."
               (if (zerop
                    (call-process (expand-file-name invocation-name
                                                    invocation-directory)
-				 nil t t "--batch" "-l" temp-file))
+				 nil t t "-no-comp-spawn" "--batch" "-l"
+                                 temp-file))
                   (progn
                     (delete-file temp-file)
                     output)
@@ -3800,22 +3803,25 @@ Return the trampoline if found or nil otherwise."
          (lexical-binding t))
     (comp--native-compile
      form nil
-     (cl-loop
-      for dir in (if native-compile-target-directory
-                     (list (expand-file-name comp-native-version-dir
-                                             native-compile-target-directory))
-                   (comp-eln-load-path-eff))
-      for f = (expand-file-name
-               (comp-trampoline-filename subr-name)
-               dir)
-      unless (file-exists-p dir)
-        do (ignore-errors
-             (make-directory dir t)
-             (cl-return f))
-      when (file-writable-p f)
-        do (cl-return f)
-      finally (error "Cannot find suitable directory for output in \
-`native-comp-eln-load-path'")))))
+     ;; If we've disabled nativecomp, don't write the trampolines to
+     ;; the eln cache (but create them).
+     (and (not inhibit-automatic-native-compilation)
+          (cl-loop
+           for dir in (if native-compile-target-directory
+                          (list (expand-file-name comp-native-version-dir
+                                                  native-compile-target-directory))
+                        (comp-eln-load-path-eff))
+           for f = (expand-file-name
+                    (comp-trampoline-filename subr-name)
+                    dir)
+           unless (file-exists-p dir)
+           do (ignore-errors
+                (make-directory dir t)
+                (cl-return f))
+           when (file-writable-p f)
+           do (cl-return f)
+           finally (error "Cannot find suitable directory for output in \
+`native-comp-eln-load-path'"))))))
 
 
 ;; Some entry point support code.
@@ -3923,6 +3929,7 @@ processes from `comp-async-compilations'"
   "Start compiling files from `comp-files-queue' asynchronously.
 When compilation is finished, run `native-comp-async-all-done-hook' and
 display a message."
+  (cl-assert (null comp-no-spawn))
   (if (or comp-files-queue
           (> (comp-async-runnings) 0))
       (unless (>= (comp-async-runnings) (comp-effective-async-max-jobs))
@@ -3935,11 +3942,14 @@ display a message."
          when (or native-comp-always-compile
                   load ; Always compile when the compilation is
                        ; commanded for late load.
-                  (file-newer-than-file-p
-                   source-file (comp-el-to-eln-filename source-file)))
+                  ;; Skip compilation if `comp-el-to-eln-filename' fails
+                  ;; to find a writable directory.
+                  (with-demoted-errors "Async compilation :%S"
+                    (file-newer-than-file-p
+                     source-file (comp-el-to-eln-filename source-file))))
          do (let* ((expr `((require 'comp)
-                           (setq comp-async-compilation t)
-                           (setq warning-fill-column most-positive-fixnum)
+                           (setq comp-async-compilation t
+                                 warning-fill-column most-positive-fixnum)
                            ,(let ((set (list 'setq)))
                               (dolist (var '(comp-file-preloaded-p
                                              native-compile-target-directory
@@ -3995,7 +4005,8 @@ display a message."
                              :command (list
                                        (expand-file-name invocation-name
                                                          invocation-directory)
-                                       "--batch" "-l" temp-file)
+                                       "-no-comp-spawn" "--batch" "-l"
+                                       temp-file)
                              :sentinel
                              (lambda (process _event)
                                (run-hook-with-args
@@ -4039,72 +4050,73 @@ the deferred compilation mechanism."
               (stringp function-or-file))
     (signal 'native-compiler-error
             (list "Not a function symbol or file" function-or-file)))
-  (catch 'no-native-compile
-    (let* ((print-symbols-bare t)
-           (max-specpdl-size (max max-specpdl-size 5000))
-           (data function-or-file)
-           (comp-native-compiling t)
-           (byte-native-qualities nil)
-           (symbols-with-pos-enabled t)
-           ;; Have byte compiler signal an error when compilation fails.
-           (byte-compile-debug t)
-           (comp-ctxt (make-comp-ctxt :output output
-                                      :with-late-load with-late-load)))
-      (comp-log "\n\n" 1)
-      (unwind-protect
-          (progn
-            (condition-case err
-                (cl-loop
-                 with report = nil
-                 for t0 = (current-time)
-                 for pass in comp-passes
-                 unless (memq pass comp-disabled-passes)
-                 do
-                 (comp-log (format "(%s) Running pass %s:\n"
-                                   function-or-file pass)
-                           2)
-                 (setf data (funcall pass data))
-                 (push (cons pass (float-time (time-since t0))) report)
-                 (cl-loop for f in (alist-get pass comp-post-pass-hooks)
-                          do (funcall f data))
-                 finally
-                 (when comp-log-time-report
-                   (comp-log (format "Done compiling %s" data) 0)
-                   (cl-loop for (pass . time) in (reverse report)
-                            do (comp-log (format "Pass %s took: %fs."
-                                                 pass time) 0))))
-              (native-compiler-skip)
-              (t
-               (let ((err-val (cdr err)))
-                 ;; If we are doing an async native compilation print the
-                 ;; error in the correct format so is parsable and abort.
-                 (if (and comp-async-compilation
-                          (not (eq (car err) 'native-compiler-error)))
-                     (progn
-                       (message (if err-val
-                                    "%s: Error: %s %s"
-                                  "%s: Error %s")
-                                function-or-file
-                                (get (car err) 'error-message)
-                                (car-safe err-val))
-                       (kill-emacs -1))
-                   ;; Otherwise re-signal it adding the compilation input.
-	           (signal (car err) (if (consp err-val)
-			                 (cons function-or-file err-val)
-			               (list function-or-file err-val)))))))
-            (if (stringp function-or-file)
-                data
-              ;; So we return the compiled function.
-              (native-elisp-load data)))
-        ;; We may have created a temporary file when we're being
-        ;; called with something other than a file as the argument.
-        ;; Delete it.
-        (when (and (not (stringp function-or-file))
-                   (not output)
-                   comp-ctxt
-                   (comp-ctxt-output comp-ctxt)
-                   (file-exists-p (comp-ctxt-output comp-ctxt)))
-          (delete-file (comp-ctxt-output comp-ctxt)))))))
+  (when (or (null comp-no-spawn) comp-async-compilation)
+    (catch 'no-native-compile
+      (let* ((print-symbols-bare t)
+             (data function-or-file)
+             (comp-native-compiling t)
+             (byte-native-qualities nil)
+             (symbols-with-pos-enabled t)
+             ;; Have byte compiler signal an error when compilation fails.
+             (byte-compile-debug t)
+             (comp-ctxt (make-comp-ctxt :output output
+                                        :with-late-load with-late-load)))
+        (comp-log "\n\n" 1)
+        (unwind-protect
+            (progn
+              (condition-case err
+                  (cl-loop
+                   with report = nil
+                   for t0 = (current-time)
+                   for pass in comp-passes
+                   unless (memq pass comp-disabled-passes)
+                   do
+                   (comp-log (format "(%s) Running pass %s:\n"
+                                     function-or-file pass)
+                             2)
+                   (setf data (funcall pass data))
+                   (push (cons pass (float-time (time-since t0))) report)
+                   (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                            do (funcall f data))
+                   finally
+                   (when comp-log-time-report
+                     (comp-log (format "Done compiling %s" data) 0)
+                     (cl-loop for (pass . time) in (reverse report)
+                              do (comp-log (format "Pass %s took: %fs."
+                                                   pass time) 0))))
+                (native-compiler-skip)
+                (t
+                 (let ((err-val (cdr err)))
+                   ;; If we are doing an async native compilation print the
+                   ;; error in the correct format so is parsable and abort.
+                   (if (and comp-async-compilation
+                            (not (eq (car err) 'native-compiler-error)))
+                       (progn
+                         (message (if err-val
+                                      "%s: Error: %s %s"
+                                    "%s: Error %s")
+                                  function-or-file
+                                  (get (car err) 'error-message)
+                                  (car-safe err-val))
+                         (kill-emacs -1))
+                     ;; Otherwise re-signal it adding the compilation input.
+	             (signal (car err) (if (consp err-val)
+			                   (cons function-or-file err-val)
+			                 (list function-or-file err-val)))))))
+              (if (stringp function-or-file)
+                  data
+                ;; So we return the compiled function.
+                (native-elisp-load data)))
+          ;; We may have created a temporary file when we're being
+          ;; called with something other than a file as the argument.
+          ;; Delete it.
+          (when (and (not (stringp function-or-file))
+                     (not output)
+                     comp-ctxt
+                     (comp-ctxt-output comp-ctxt)
+                     (file-exists-p (comp-ctxt-output comp-ctxt)))
+            (message "Deleting %s" (comp-ctxt-output comp-ctxt))
+            (delete-file (comp-ctxt-output comp-ctxt))))))))
 
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.
@@ -4112,6 +4124,7 @@ the deferred compilation mechanism."
 LOAD and SELECTOR work as described in `native--compile-async'."
   ;; Make sure we are not already compiling `file' (bug#40838).
   (or (gethash file comp-async-compilations)
+      (gethash (file-name-with-extension file "elc") comp--no-native-compile)
       (cond
        ((null selector) nil)
        ((functionp selector) (not (funcall selector file)))
@@ -4159,7 +4172,8 @@ bytecode definition was not changed in the meantime)."
     (error "LOAD must be nil, t or 'late"))
   (unless (listp files)
     (setf files (list files)))
-  (let (file-list)
+  (let ((added-something nil)
+        file-list)
     (dolist (file-or-dir files)
       (cond ((file-directory-p file-or-dir)
              (dolist (file (if recursively
@@ -4187,15 +4201,30 @@ bytecode definition was not changed in the meantime)."
               (make-directory out-dir t))
             (if (file-writable-p out-filename)
                 (setf comp-files-queue
-                      (append comp-files-queue `((,file . ,load))))
+                      (append comp-files-queue `((,file . ,load)))
+                      added-something t)
               (display-warning 'comp
                                (format "No write access for %s skipping."
                                        out-filename)))))))
-    (when (zerop (comp-async-runnings))
+    ;; Perhaps nothing passed `native-compile-async-skip-p'?
+    (when (and added-something
+               ;; Don't start if there's one already running.
+               (zerop (comp-async-runnings)))
       (comp-run-async-workers))))
 
 
 ;;; Compiler entry points.
+
+(defun comp-compile-all-trampolines ()
+  "Pre-compile AOT all trampolines."
+  (let ((comp-running-batch-compilation t)
+        ;; We want to target only the 'native-lisp' directory.
+        (native-compile-target-directory
+         (car (last native-comp-eln-load-path))))
+    (mapatoms (lambda (f)
+                (when (subr-primitive-p (symbol-function f))
+                  (message "Compiling trampoline for: %s" f)
+                  (comp-trampoline-compile f))))))
 
 ;;;###autoload
 (defun comp-lookup-eln (filename)
@@ -4216,14 +4245,13 @@ Search happens in `native-comp-eln-load-path'."
 (defun native-compile (function-or-file &optional output)
   "Compile FUNCTION-OR-FILE into native code.
 This is the synchronous entry-point for the Emacs Lisp native
-compiler.
-FUNCTION-OR-FILE is a function symbol, a form, or the filename of
-an Emacs Lisp source file.
-If OUTPUT is non-nil, use it as the filename for the compiled
-object.
-If FUNCTION-OR-FILE is a filename, return the filename of the
-compiled object.  If FUNCTION-OR-FILE is a function symbol or a
-form, return the compiled function."
+compiler.  FUNCTION-OR-FILE is a function symbol, a form, or the
+filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
+it as the filename for the compiled object.  If FUNCTION-OR-FILE
+is a filename, if the compilation was successful return the
+filename of the compiled object.  If FUNCTION-OR-FILE is a
+function symbol or a form, if the compilation was successful
+return the compiled function."
   (comp--native-compile function-or-file nil output))
 
 ;;;###autoload
@@ -4310,13 +4338,15 @@ of (commands) to run simultaneously."
     ;; `invocation-directory'.
     (setq dir (expand-file-name dir invocation-directory))
     (when (file-exists-p dir)
-      (dolist (subdir (directory-files dir t))
+      (dolist (subdir (seq-filter
+                       (lambda (f) (not (string-match (rx "/." (? ".") eos) f)))
+                       (directory-files dir t)))
         (when (and (file-directory-p subdir)
                    (file-writable-p subdir)
                    (not (equal (file-name-nondirectory
                                 (directory-file-name subdir))
                                comp-native-version-dir)))
-          (message "Deleting %s..." subdir)
+          (message "Deleting `%s'..." subdir)
           ;; We're being overly cautious here -- there shouldn't be
           ;; anything but .eln files in these directories.
           (dolist (eln (directory-files subdir t "\\.eln\\(\\.tmp\\)?\\'"))

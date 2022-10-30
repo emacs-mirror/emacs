@@ -966,7 +966,7 @@ detailed description of this mode.
              (if gdb-active-process
                  (gdb-gud-context-command "-exec-continue")
                "-exec-run")))
-   "C-v" "Start or continue execution.  Use a prefix to specify arguments.")
+   "\C-v" "Start or continue execution.  Use a prefix to specify arguments.")
 
   ;; For debugging Emacs only.
   (gud-def gud-pp
@@ -2943,8 +2943,7 @@ Return position where LINE begins."
        start-posn)))
 
 (defun gdb-pad-string (string padding)
-  (declare (obsolete string-pad "29.1"))
-  (string-pad string padding nil t))
+  (string-pad string (abs padding) nil (natnump padding)))
 
 ;; gdb-table struct is a way to programmatically construct simple
 ;; tables. It help to reliably align columns of data in GDB buffers
@@ -2962,8 +2961,7 @@ When non-nil, PROPERTIES will be added to the whole row when
 calling `gdb-table-string'."
   (let ((rows (gdb-table-rows table))
         (row-properties (gdb-table-row-properties table))
-        (column-sizes (gdb-table-column-sizes table))
-        (right-align (gdb-table-right-align table)))
+        (column-sizes (gdb-table-column-sizes table)))
     (when (not column-sizes)
       (setf (gdb-table-column-sizes table)
             (make-list (length row) 0)))
@@ -2973,9 +2971,7 @@ calling `gdb-table-string'."
           (append row-properties (list properties)))
     (setf (gdb-table-column-sizes table)
           (cl-mapcar (lambda (x s)
-                         (let ((new-x
-                                (max (abs x) (string-width (or s "")))))
-                           (if right-align new-x (- new-x))))
+                       (max (abs x) (string-width (or s ""))))
                        (gdb-table-column-sizes table)
                        row))
     ;; Avoid trailing whitespace at eol
@@ -2991,7 +2987,10 @@ calling `gdb-table-string'."
       (lambda (row properties)
         (apply #'propertize
                (mapconcat #'identity
-                          (cl-mapcar (lambda (s x) (string-pad s x nil t))
+                          (cl-mapcar (lambda (s x)
+                                       (string-pad
+                                        s x nil
+                                        (not (gdb-table-right-align table))))
                                      row column-sizes)
                           sep)
                properties))
@@ -4034,11 +4033,12 @@ DOC is an optional documentation string."
          (file (gdb-mi--field frame 'fullname))
          (line (gdb-mi--field frame 'line)))
     (if file
-      (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)
-    ;; If we're unable to get a file name / line for $PC, simply
-    ;; follow $PC, disassembling the next 10 (x ~15 (on IA) ==
-    ;; 150 bytes) instructions.
-    "-data-disassemble -s $pc -e \"$pc + 150\" -- 0"))
+        (format "-data-disassemble -f %s -l %s -n -1 -- 0"
+                (file-local-name file) line)
+      ;; If we're unable to get a file name / line for $PC, simply
+      ;; follow $PC, disassembling the next 10 (x ~15 (on IA) ==
+      ;; 150 bytes) instructions.
+      "-data-disassemble -s $pc -e \"$pc + 150\" -- 0"))
   gdb-disassembly-handler
   ;; We update disassembly only after we have actual frame information
   ;; about all threads, so no there's `update' signal in this list
@@ -4359,7 +4359,7 @@ member."
   "Mapping of local variable names to a string with their value.")
 
 (defun gdb-locals-values-handler-custom ()
-  "Store the values of local variables in `gdb-locals-value-map'."
+  "Store the values of local variables in `gdb-locals-values-table'."
   (let ((locals-list (bindat-get-field (gdb-mi--partial-output) 'variables)))
     (dolist (local locals-list)
       (let ((name (bindat-get-field local 'name))

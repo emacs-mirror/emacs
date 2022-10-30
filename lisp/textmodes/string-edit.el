@@ -46,7 +46,9 @@ called with no parameters.
 
 PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If PROMPT is nil, no help text
-will be inserted."
+will be inserted.
+
+Also see `read-string-from-buffer'."
   (with-current-buffer (generate-new-buffer "*edit string*")
     (when prompt
       (let ((inhibit-read-only t))
@@ -88,7 +90,9 @@ The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or 
 
 PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If nil, no prompt will be
-inserted in the buffer."
+inserted in the buffer.
+
+Also see `string-edit'."
   (string-edit
    prompt
    string
@@ -115,9 +119,7 @@ This will kill the current buffer."
   (interactive)
   (goto-char (point-min))
   ;; Skip past the help text.
-  (when-let ((match (text-property-search-forward
-                     'string-edit--prompt nil t)))
-    (goto-char (prop-match-beginning match)))
+  (text-property-search-forward 'string-edit--prompt)
   (let ((string (buffer-substring (point) (point-max)))
         (callback string-edit--success-callback))
     (quit-window 'kill)

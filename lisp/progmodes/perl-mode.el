@@ -215,11 +215,16 @@
 (eval-and-compile
   (defconst perl--syntax-exp-intro-keywords
     '("split" "if" "unless" "until" "while" "print" "printf"
-      "grep" "map" "not" "or" "and" "for" "foreach" "return"))
+      "grep" "map" "not" "or" "and" "for" "foreach" "return" "die"
+      "warn" "eval"))
 
   (defconst perl--syntax-exp-intro-regexp
     (concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
             (regexp-opt perl--syntax-exp-intro-keywords)
+            ;; A HERE document as an argument to printf?
+            ;; when printing to a filehandle.
+            "\\|printf?[ \t]*\\$?[_[:alpha:]][_[:alnum:]]*"
+            "\\|=>"
             "\\|[?:.,;|&*=!~({[]"
             "\\|[^-+][-+]"    ;Bug#42168: `+' is intro but `++' isn't!
             "\\|\\(^\\)\\)[ \t\n]*")))
@@ -242,6 +247,12 @@
                                          (not (nth 3 (syntax-ppss
                                                       (match-beginning 0))))))
                             (string-to-syntax ". p"))))
+      ;; If "\" is acting as a backslash operator, it shouldn't start an
+      ;; escape sequence, so change its syntax.  This allows us to handle
+      ;; correctly the \() construct (Bug#11996) as well as references
+      ;; to string values.
+      ("\\(\\\\\\)['`\"($]" (1 (unless (nth 3 (syntax-ppss))
+                                       (string-to-syntax "."))))
       ;; Handle funny names like $DB'stop.
       ("\\$ ?{?\\^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
@@ -280,6 +291,7 @@
                                       (backward-sexp 1)
                                       (member (buffer-substring (point) end)
                                               perl--syntax-exp-intro-keywords)))
+                               (bobp)
                                (memq (char-before)
                                      '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[))))))
                nil ;; A division sign instead of a regexp-match.
@@ -328,7 +340,7 @@
         "<<\\(~\\)?[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\)"
         ;; The <<EOF case which needs perl--syntax-exp-intro-regexp, to
         ;; disambiguate with the left-bitshift operator.
-        "\\|" perl--syntax-exp-intro-regexp "<<\\(?2:\\sw+\\)\\)"
+        "\\|" perl--syntax-exp-intro-regexp "<<\\(?1:~\\)?\\(?2:\\sw+\\)\\)"
         ".*\\(\n\\)")
        (4 (let* ((eol (match-beginning 4))
                  (st (get-text-property eol 'syntax-table))

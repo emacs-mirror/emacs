@@ -57,8 +57,7 @@
   "The default number of bits to pay to unknown users.
 If this is zero, no payment header will be generated.
 See `hashcash-payment-alist'."
-  :type 'natnum
-  :group 'hashcash)
+  :type 'natnum)
 
 (defcustom hashcash-payment-alist '()
   "An association list mapping email addresses to payment amounts.
@@ -72,46 +71,39 @@ present, is the string to be hashed; if not present ADDR will be used."
 			 (list :tag "Replace hash input"
 			       (string :name "Address")
 			       (string :name "Hash input")
-			       (integer :name "Amount"))))
-  :group 'hashcash)
+                               (integer :name "Amount")))))
 
 (defcustom hashcash-default-accept-payment 20
   "The default minimum number of bits to accept on incoming payments."
-  :type 'natnum
-  :group 'hashcash)
+  :type 'natnum)
 
 (defcustom hashcash-accept-resources `((,user-mail-address nil))
   "An association list mapping hashcash resources to payment amounts.
 Resources named here are to be accepted in incoming payments.  If the
 corresponding AMOUNT is NIL, the value of `hashcash-default-accept-payment'
 is used instead."
-  :type 'alist
-  :group 'hashcash)
+  :type 'alist)
 
 (define-obsolete-variable-alias 'hashcash-path 'hashcash-program "24.4")
 (defcustom hashcash-program "hashcash"
   "The name of the hashcash executable.
 If this is not in your PATH, specify an absolute file name."
-  :type '(choice (const nil) file)
-  :group 'hashcash)
+  :type '(choice (const nil) file))
 
 (defcustom hashcash-extra-generate-parameters '("-Z2")
   "A list of parameter strings passed to `hashcash-program' when minting.
 For example, on very old hardware, you may want to set this
 to (\"-Z0\") to disable compression."
   :type '(repeat string)
-  :version "29.1"
-  :group 'hashcash)
+  :version "29.1")
 
 (defcustom hashcash-double-spend-database "hashcash.db"
   "The name of the double-spending database file."
-  :type 'file
-  :group 'hashcash)
+  :type 'file)
 
 (defcustom hashcash-in-news nil
   "Specifies whether or not hashcash payments should be made to newsgroups."
-  :type 'boolean
-  :group 'hashcash)
+  :type 'boolean)
 
 (defvar hashcash-process-alist nil
   "Alist of asynchronous hashcash processes and buffers.")
@@ -316,6 +308,7 @@ Set ASYNC to t to start asynchronous calculation.  (See
     (save-excursion
       (save-restriction
 	(message-narrow-to-headers)
+        (goto-char (point-max))
 	(let ((to (hashcash-strip-quoted-names (mail-fetch-field "To" nil t)))
 	      (cc (hashcash-strip-quoted-names (mail-fetch-field "Cc" nil t)))
 	      (ng (hashcash-strip-quoted-names (mail-fetch-field "Newsgroups"

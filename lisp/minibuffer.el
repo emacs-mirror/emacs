@@ -972,10 +972,18 @@ ALL-COMPLETIONS is the function that lists the completions (it should
 follow the calling convention of `completion-all-completions'),
 and DOC describes the way this style of completion works.")
 
+(defun completion--update-styles-options (widget)
+  "Function to keep updated the options in `completion-category-overrides'."
+  (let ((lst (mapcar (lambda (x)
+                       (list 'const (car x)))
+		     completion-styles-alist)))
+    (widget-put widget :args (mapcar #'widget-convert lst))
+    widget))
+
 (defconst completion--styles-type
   `(repeat :tag "insert a new menu to add more styles"
-           (choice ,@(mapcar (lambda (x) (list 'const (car x)))
-                             completion-styles-alist))))
+           (choice :convert-widget completion--update-styles-options)))
+
 (defconst completion--cycling-threshold-type
   '(choice (const :tag "No cycling" nil)
            (const :tag "Always cycle" t)
@@ -1237,9 +1245,9 @@ pair of a group title string and a list of group candidate strings."
   :version "28.1")
 
 (defface completions-group-separator
-  '((t :inherit shadow :strike-through t))
+  '((t :inherit shadow :underline t))
   "Face used for the separator lines between the candidate groups."
-  :version "28.1")
+  :version "29.1")
 
 (defun completion--cycle-threshold (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
@@ -4461,6 +4469,11 @@ FORMAT-ARGS is non-nil, PROMPT is used as a format control
 string, and FORMAT-ARGS are the arguments to be substituted into
 it.  See `format' for details.
 
+Both PROMPT and `minibuffer-default-prompt-format' are run
+through `substitute-command-keys' (which see).  In particular,
+this means that single quotes may be displayed by equivalent
+characters, according to the capabilities of the terminal.
+
 If DEFAULT is a list, the first element is used as the default.
 If not, the element is used as is.
 
@@ -4468,12 +4481,12 @@ If DEFAULT is nil or an empty string, no \"default value\" string
 is included in the return value."
   (concat
    (if (null format-args)
-       prompt
-     (apply #'format prompt format-args))
+       (substitute-command-keys prompt)
+     (apply #'format (substitute-command-keys prompt) format-args))
    (and default
         (or (not (stringp default))
             (length> default 0))
-        (format minibuffer-default-prompt-format
+        (format (substitute-command-keys minibuffer-default-prompt-format)
                 (if (consp default)
                     (car default)
                   default)))

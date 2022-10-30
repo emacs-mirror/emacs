@@ -56,6 +56,7 @@
 ;; Silence the byte compiler.
 (cc-bytecomp-defvar c-new-BEG)
 (cc-bytecomp-defvar c-new-END)
+(cc-bytecomp-defvar c-open-string-opener)
 (cc-bytecomp-defun c-restore-string-fences)
 (cc-bytecomp-defun c-clear-string-fences)
 
@@ -777,16 +778,20 @@
   ;; opener, t if it would be a division sign.
   ;;
   ;; This function does hidden buffer changes.
-  (search-forward-regexp c-awk-string-without-end-here-re nil t) ; a (possibly unterminated) string
-  (c-awk-set-string-regexp-syntax-table-properties
-   (match-beginning 0) (match-end 0))
-  (cond ((looking-at "\"")
-         (forward-char)
-         t)                             ; In AWK, ("15" / 5) gives 3 ;-)
-        ((looking-at "[\n\r]")          ; Unterminated string with EOL.
-         (forward-char)
-         nil)                           ; / on next line would start a regexp
-        (t nil)))                       ; Unterminated string at EOB
+  (let ((string-start (if (eq (char-after) ?_) (1+ (point)) (point))))
+    (search-forward-regexp c-awk-string-without-end-here-re nil t) ; a (possibly unterminated) string
+    (c-awk-set-string-regexp-syntax-table-properties
+     (match-beginning 0) (match-end 0))
+    (cond ((looking-at "\"")
+	   (forward-char)
+	   t)				; In AWK, ("15" / 5) gives 3 ;-)
+	  ((looking-at "[\n\r]")	; Unterminated string with EOL.
+	   (setq c-open-string-opener string-start)
+	   (forward-char)
+	   nil)				; / on next line would start a regexp
+	  (t				; Unterminated string at EOB
+	   (setq c-open-string-opener string-start)
+	   nil))))
 
 (defun c-awk-syntax-tablify-/ (anchor anchor-state-/div)
   ;; Point is at a /.  Determine whether this is a division sign or a regexp

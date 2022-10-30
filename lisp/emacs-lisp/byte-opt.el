@@ -178,7 +178,7 @@ Earlier variables shadow later ones with the same name.")
                ;; be displayed when the function's source file will be
                ;; compiled anyway, but more importantly we would otherwise
                ;; emit spurious warnings here because we don't have the full
-               ;; context, such as `declare-functions' placed earlier in the
+               ;; context, such as `declare-function's placed earlier in the
                ;; source file's code or `with-suppressed-warnings' that
                ;; surrounded the `defsubst'.
                (byte-compile-warnings nil))
@@ -737,7 +737,7 @@ for speeding up processing.")
                                 reverse nreverse sort))
                   (setq form (nth 1 form))
                   t)
-                 ((memq head '(mapc setq setcar setcdr puthash))
+                 ((memq head '(mapc setq setcar setcdr puthash set))
                   (setq form (nth 2 form))
                   t)
                  ((memq head '(aset put function-put))
@@ -793,6 +793,7 @@ for speeding up processing.")
                            sxhash sxhash-equal sxhash-eq sxhash-eql
                            sxhash-equal-including-properties
                            make-marker copy-marker point-marker mark-marker
+                           set-marker
                            kbd key-description
                            always))
                   t)
@@ -811,7 +812,7 @@ for speeding up processing.")
 (defun byte-compile-nilconstp (form)
   "Return non-nil if FORM always evaluates to a nil value."
   (setq form (byte-opt--bool-value-form form))
-  (or (not form)   ; assume (quote nil) always being normalised to nil
+  (or (not form)   ; assume (quote nil) always being normalized to nil
       (and (consp form)
            (let ((head (car form)))
              ;; FIXME: There are many other expressions that are statically nil.
@@ -1183,7 +1184,7 @@ See Info node `(elisp) Integer Basics'."
     (if (equal new-args (cdr form))
         ;; Input is unchanged: keep original form, and don't represent
         ;; a nil result explicitly because that would lead to infinite
-        ;; growth when the optimiser is iterated.
+        ;; growth when the optimizer is iterated.
         (setq nil-result nil)
       (setq form (cons (car form) new-args)))
 
@@ -1531,15 +1532,16 @@ See Info node `(elisp) Integer Basics'."
 
 (put 'set 'byte-optimizer #'byte-optimize-set)
 (defun byte-optimize-set (form)
-  (let ((var (car-safe (cdr-safe form))))
-    (cond
-     ((and (eq (car-safe var) 'quote) (consp (cdr var)))
-      `(setq ,(cadr var) ,@(cddr form)))
-     ((and (eq (car-safe var) 'make-local-variable)
-	   (eq (car-safe (setq var (car-safe (cdr var)))) 'quote)
-	   (consp (cdr var)))
-      `(progn ,(cadr form) (setq ,(cadr var) ,@(cddr form))))
-     (t form))))
+  (pcase (cdr form)
+    ;; Make sure we only turn `set' into `setq' for dynamic variables.
+    (`((quote ,(and var (guard (and (symbolp var)
+                                    (not (macroexp--const-symbol-p var))
+                                    (not (assq var byte-optimize--lexvars))))))
+       ,newval)
+     `(setq ,var ,newval))
+    (`(,(and ml `(make-local-variable ,(and v `(quote ,_)))) ,newval)
+     `(progn ,ml (,(car form) ,v ,newval)))
+    (_ form)))
 
 ;; enumerating those functions which need not be called if the returned
 ;; value is not used.  That is, something like
@@ -1999,20 +2001,20 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	  (setq keep-going t)
 	  (setq tmp (aref byte-stack+-info (symbol-value (car lap0))))
 	  (setq rest (cdr rest))
-	  (cond ((= tmp 1)
+	  (cond ((eql tmp 1)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\t<deleted>" lap0)
 		 (setq lap (delq lap0 (delq lap1 lap))))
-		((= tmp 0)
+		((eql tmp 0)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\t<deleted> discard" lap0)
 		 (setq lap (delq lap0 lap)))
-		((= tmp -1)
+		((eql tmp -1)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\tdiscard discard" lap0)
 		 (setcar lap0 'byte-discard)
 		 (setcdr lap0 0))
-		((error "Optimizer error: too much on the stack"))))
+		(t (error "Optimizer error: too much on the stack"))))
 	 ;;
 	 ;; goto*-X X:  -->  X:
 	 ;;

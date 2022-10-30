@@ -528,7 +528,15 @@ If the value is t instead of an alist, use the value of
 
 (defvar-keymap world-clock-mode-map
   "n" #'next-line
-  "p" #'previous-line)
+  "p" #'previous-line
+  "w" #'world-clock-copy-time-as-kill)
+
+(defun world-clock-copy-time-as-kill ()
+  "Copy current line into the kill ring."
+  (interactive nil world-clock-mode)
+  (when-let ((str (buffer-substring-no-properties (pos-bol) (pos-eol))))
+    (kill-new str)
+    (message str)))
 
 (define-derived-mode world-clock-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.

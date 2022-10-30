@@ -3808,7 +3808,7 @@ file_offset (Lisp_Object val)
 	}
     }
 
-  wrong_type_argument (intern ("file-offset"), val);
+  wrong_type_argument (Qfile_offset, val);
 }
 
 /* Return a special time value indicating the error number ERRNUM.  */
@@ -4167,8 +4167,7 @@ by calling `format-decode', which see.  */)
 		  bset_read_only (buf, Qnil);
 		  bset_filename (buf, Qnil);
 		  bset_undo_list (buf, Qt);
-		  eassert (buf->overlays_before == NULL);
-		  eassert (buf->overlays_after == NULL);
+		  eassert (buf->overlays == NULL);
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();
@@ -4875,7 +4874,7 @@ by calling `format-decode', which see.  */)
       if (! NILP (insval))
 	{
 	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
-	    wrong_type_argument (intern ("inserted-chars"), insval);
+	    wrong_type_argument (Qinserted_chars, insval);
 	  inserted = XFIXNAT (insval);
 	}
     }
@@ -4898,7 +4897,7 @@ by calling `format-decode', which see.  */)
 	  insval = call3 (Qformat_decode,
 			  Qnil, make_fixnum (inserted), visit);
 	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
-	    wrong_type_argument (intern ("inserted-chars"), insval);
+	    wrong_type_argument (Qinserted_chars, insval);
 	  inserted = XFIXNAT (insval);
 	}
       else
@@ -4921,7 +4920,7 @@ by calling `format-decode', which see.  */)
 	  insval = call3 (Qformat_decode,
 			  Qnil, make_fixnum (oinserted), visit);
 	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
-	    wrong_type_argument (intern ("inserted-chars"), insval);
+	    wrong_type_argument (Qinserted_chars, insval);
 	  if (ochars_modiff == CHARS_MODIFF)
 	    /* format_decode didn't modify buffer's characters => move
 	       point back to position before inserted text and leave
@@ -4944,7 +4943,7 @@ by calling `format-decode', which see.  */)
 	      if (!NILP (insval))
 		{
 		  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
-		    wrong_type_argument (intern ("inserted-chars"), insval);
+		    wrong_type_argument (Qinserted_chars, insval);
 		  inserted = XFIXNAT (insval);
 		}
 	    }
@@ -4962,7 +4961,7 @@ by calling `format-decode', which see.  */)
 	      if (!NILP (insval))
 		{
 		  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
-		    wrong_type_argument (intern ("inserted-chars"), insval);
+		    wrong_type_argument (Qinserted_chars, insval);
 		  if (ochars_modiff == CHARS_MODIFF)
 		    /* after_insert_file_functions didn't modify
 		       buffer's characters => move point back to
@@ -5000,9 +4999,10 @@ by calling `format-decode', which see.  */)
       unbind_to (count1, Qnil);
     }
 
-  if (!NILP (visit) && current_buffer->modtime.tv_nsec < 0)
+  if (save_errno != 0)
     {
       /* Signal an error if visiting a file that could not be opened.  */
+      eassert (!NILP (visit) && NILP (handler));
       report_file_errno ("Opening input file", orig_filename, save_errno);
     }
 
@@ -6019,11 +6019,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   bool old_message_p = 0;
   struct auto_save_unwind auto_save_unwind;
 
-  intmax_t sum = INT_ADD_WRAPV (specpdl_end - specpdl, 40, &sum)
-                 ? INTMAX_MAX : sum;
-  if (max_specpdl_size < sum)
-    max_specpdl_size = sum;
-
   if (minibuf_level)
     no_message = Qt;
 
@@ -6367,7 +6362,7 @@ init_fileio (void)
      For more on why fsync does not suffice even if it works properly, see:
      Roche X. Necessary step(s) to synchronize filename operations on disk.
      Austin Group Defect 672, 2013-03-19
-     http://austingroupbugs.net/view.php?id=672  */
+     https://austingroupbugs.net/view.php?id=672  */
   write_region_inhibit_fsync = noninteractive;
 }
 
@@ -6431,9 +6426,11 @@ syms_of_fileio (void)
   DEFSYM (Qfile_date_error, "file-date-error");
   DEFSYM (Qfile_missing, "file-missing");
   DEFSYM (Qpermission_denied, "permission-denied");
+  DEFSYM (Qfile_offset, "file-offset");
   DEFSYM (Qfile_notify_error, "file-notify-error");
   DEFSYM (Qremote_file_error, "remote-file-error");
   DEFSYM (Qexcl, "excl");
+  DEFSYM (Qinserted_chars, "inserted-chars");
 
   DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
 	       doc: /* Coding system for encoding file names.

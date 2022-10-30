@@ -903,6 +903,30 @@ supports changing the remote login shell @command{/bin/sh}.
 Check the @samp{Share SSH connections if possible} control for that
 session.
 
+@item @option{docker}
+@cindex method @option{docker}
+@cindex @option{docker} method
+
+Integration for Docker containers.  The host name may be either a
+running container's name or ID, as returned by @samp{docker ps}.
+
+@item @option{podman}
+@cindex method @option{podman}
+@cindex @option{podman} method
+
+Podman is an alternative to @option{docker} which may be run rootless,
+if desired.
+
+@item @option{kubernetes}
+@cindex method @option{kubernetes}
+@cindex @option{kubernetes} method
+
+Integration for containers in Kubernetes pods.  The host name is a pod
+name returned by @samp{kubectl get pods}.  The first container in a
+pod is used.
+
+This method does not support user names.
+
 @end table
 
 
@@ -1763,36 +1787,21 @@ They can be installed with Emacs's Package Manager.  This includes
 @c @item ibuffer-tramp.el
 @c Contact Svend Sorensen <svend@@ciffer.net>
 
-@item docker-tramp
-@cindex method @option{docker}
-@cindex @option{docker} method
-Integration for Docker containers.  A container is accessed via
-@file{@trampfn{docker,user@@container,/path/to/file}}, where
-@samp{user} is the (optional) user that you want to use, and
-@samp{container} is the id or name of the container.
-
-@item kubernetes-tramp
-@cindex method @option{kubectl}
-@cindex @option{kubectl} method
-Integration for Docker containers deployed in a Kubernetes cluster.
-It is derived from @samp{docker-tramp}.  A container is accessed via
-@file{@trampfn{kubectl,user@@container,/path/to/file}}, @samp{user}
-and @samp{container} have the same meaning as in @samp{docker-tramp}.
-
 @item lxc-tramp
 @cindex method @option{lxc}
 @cindex @option{lxc} method
 Integration for LXC containers.  A container is accessed via
 @file{@trampfn{lxc,container,/path/to/file}}, @samp{container} has the
-same meaning as in @samp{docker-tramp}.  A @samp{user} specification
-is ignored.
+same meaning as with the @option{docker} method.  A @samp{user}
+specification is ignored.
 
 @item lxd-tramp
 @cindex method @option{lxd}
 @cindex @option{lxd} method
 Integration for LXD containers.  A container is accessed via
 @file{@trampfn{lxd,user@@container,/path/to/file}}, @samp{user} and
-@samp{container} have the same meaning as in @samp{docker-tramp}.
+@samp{container} have the same meaning as with the @option{docker}
+method.
 
 @item magit-tramp
 @cindex method @option{git}
@@ -1997,10 +2006,10 @@ password of the target user.  If these connections happen on the local
 host, an entry with the local user and local host is used:
 
 @example
-machine @var{HOST} port sudo login @var{USER} password secret
+machine @var{host} port sudo login @var{user} password secret
 @end example
 
-@var{USER} and @var{HOST} are the strings returned by
+@var{user} and @var{host} are the strings returned by
 @code{(user-login-name)} and @code{(system-name)}.  If one of these
 methods is connected via a multi hop (@pxref{Multi-hops}), the
 credentials of the previous hop are used.
@@ -3523,9 +3532,14 @@ the @file{~/.authinfo.gpg} authentication file.  The user option
 @code{tramp-completion-use-auth-sources} controls, whether such a
 search is performed during completion.
 
+@vindex tramp-completion-use-cache
 Remote hosts previously visited or hosts whose connections are kept
 persistently (@pxref{Connection caching}) will be included in the
-completion lists.
+completion lists.  If you want to suppress this completion because
+there are invalid entries in the persistency file, for example if the
+host configuration changes often, or if you plug your laptop to
+different networks frequently, you can set the user option
+@code{tramp-completion-use-cache} to nil.
 
 After remote host name completion comes completion of file names on
 the remote host.  It works the same as with local host file completion

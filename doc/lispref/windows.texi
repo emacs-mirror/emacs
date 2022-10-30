@@ -1472,18 +1472,34 @@ the new root window.
    For interactive use, Emacs provides two commands which always split
 the selected window.  These call @code{split-window} internally.
 
-@deffn Command split-window-right &optional size
-This function splits the selected window into two side-by-side
-windows, putting the selected window on the left.  If @var{size} is
-positive, the left window gets @var{size} columns; if @var{size} is
+@deffn Command split-window-right &optional size window-to-split
+This function splits the window @var{window-to-split} into two
+side-by-side windows, putting @var{window-to-split} on the left.
+@var{window-to-split} defaults to the selected window.  If @var{size}
+is positive, the left window gets @var{size} columns; if @var{size} is
 negative, the right window gets @minus{}@var{size} columns.
 @end deffn
 
-@deffn Command split-window-below &optional size
-This function splits the selected window into two windows, one above
-the other, leaving the upper window selected.  If @var{size} is
-positive, the upper window gets @var{size} lines; if @var{size} is
+@deffn Command split-window-below &optional size window-to-split
+This function splits the window @var{window-to-split} into two
+windows, one above the other, leaving the upper window selected.
+@var{window-to-split} defaults to the selected window.  If @var{size}
+is positive, the upper window gets @var{size} lines; if @var{size} is
 negative, the lower window gets @minus{}@var{size} lines.
+@end deffn
+
+@deffn Command split-root-window-below &optional size
+This function splits the whole frame in two.  The current window
+configuration is retained on the top, and a new window is created
+below, taking up the whole width of the frame.  @var{size} is treated
+as by @code{split-window-below}.
+@end deffn
+
+@deffn Command split-root-window-right &optional size
+This function splits the whole frame in two.  The current window
+configuration is retained on the left, and a new window is created on
+the right, taking up the whole height of the frame.  @var{size} is treated
+as by @code{split-window-right}.
 @end deffn
 
 @defopt split-window-keep-point
@@ -2608,7 +2624,7 @@ default value is an empty display action, i.e., @w{@code{(nil . nil)}}.
 The value of this option is an alist mapping conditions to display
 actions.  Each condition is passed to @code{buffer-match-p}, along
 with the buffer name and the @var{action} argument passed to
-@code{display-buffer}.  If it returns a non-nil value, then
+@code{display-buffer}.  If it returns a non-@code{nil} value, then
 @code{display-buffer} uses the corresponding display action to display
 the buffer.
 @end defopt
@@ -6476,7 +6492,7 @@ during redisplay provided a significant, non-scrolling change of a
 window has been detected.  For simplicity, these hooks and the
 functions they call will be collectively referred to as @dfn{window
 change functions}.  As any hook, these hooks can be set either
-globally of buffer-locally via the @var{local} argument of
+globally or buffer-locally via the @var{local} argument of
 @code{add-hook} (@pxref{Setting Hooks}) when the hook is installed.
 
 @cindex window buffer change
@@ -6668,32 +6684,32 @@ time window change functions were run for @var{window}'s frame.  If it
 returns @code{nil}, @var{window} has been created after that.  If it
 returns @code{t}, @var{window} was not shown at that time but has been
 restored from a previously saved window configuration afterwards.
-Otherwise, the return value is the buffer shown by @code{window} at
+Otherwise, the return value is the buffer shown by @var{window} at
 that time.
 @end defun
 
 @defun window-old-pixel-width &optional window
 This function returns the total pixel width of @var{window} the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-pixel-height &optional window
 This function returns the total pixel height of @var{window} the last
-time window change functions found @code{window} live on its frame.
-It is zero if @code{window} was created after that.
+time window change functions found @var{window} live on its frame.
+It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-body-pixel-width &optional window
 This function returns the pixel width of @var{window}'s text area the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-body-pixel-height &optional window
 This function returns the pixel height of @var{window}'s text area the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 In order to find out which window or frame was selected the last time

@@ -30,13 +30,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 /* To help make dependencies clearer elsewhere, this file typically
-   does not #include other files.  The exceptions are stdbool.h
-   because it is unlikely to interfere with configuration and bool is
-   such a core part of the C language, and ms-w32.h (DOS_NT
+   does not #include other files.  The exception is ms-w32.h (DOS_NT
    only) because it historically was included here and changing that
    would take some work.  */
-
-#include <stdbool.h>
 
 #if defined WINDOWSNT && !defined DEFER_MS_W32_H
 # include <ms-w32.h>

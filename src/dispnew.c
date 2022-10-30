@@ -1810,8 +1810,11 @@ allocate_matrices_for_window_redisplay (struct window *w)
 	  if (w->desired_matrix == NULL)
 	    {
 	      w->desired_matrix = new_glyph_matrix (NULL);
-	      w->current_matrix = new_glyph_matrix (NULL);
+	      eassert (w->current_matrix == NULL);
 	    }
+
+	  if (w->current_matrix == NULL)
+	    w->current_matrix = new_glyph_matrix (NULL);
 
 	  dim.width = required_matrix_width (w);
 	  dim.height = required_matrix_height (w);
@@ -3149,10 +3152,19 @@ redraw_frame (struct frame *f)
   update_begin (f);
   if (FRAME_MSDOS_P (f))
     FRAME_TERMINAL (f)->set_terminal_modes_hook (FRAME_TERMINAL (f));
+
+  if (FRAME_WINDOW_P (f))
+    /* Garbage the frame now.  Otherwise, platforms that support
+       double buffering will display the blank contents of the frame
+       even though the frame should be redrawn at some point in the
+       future.  */
+    SET_FRAME_GARBAGED (f);
+
   clear_frame (f);
   clear_current_matrices (f);
   update_end (f);
   fset_redisplay (f);
+
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
@@ -4929,7 +4941,9 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
     {
       if (MATRIX_ROW_ENABLED_P (desired_matrix, i))
 	{
-	  if (FRAME_TERMCAP_P (f))
+	  /* Note that output_buffer_size being 0 means that we want the
+	     old default behavior of flushing output every now and then.  */
+	  if (FRAME_TERMCAP_P (f) && FRAME_TTY (f)->output_buffer_size == 0)
 	    {
 	      /* Flush out every so many lines.
 		 Also flush out if likely to have more than 1k buffered
@@ -6504,9 +6518,6 @@ init_display_interactive (void)
   if (!inhibit_window_system && display_arg)
     {
       Vinitial_window_system = Qx;
-#ifdef HAVE_X11
-      Vwindow_system_version = make_fixnum (11);
-#endif
 #ifdef USE_NCURSES
       /* In some versions of ncurses,
 	 tputs crashes if we have not called tgetent.
@@ -6521,7 +6532,6 @@ init_display_interactive (void)
   if (!inhibit_window_system)
     {
       Vinitial_window_system = Qw32;
-      Vwindow_system_version = make_fixnum (1);
       return;
     }
 #endif /* HAVE_NTGUI */
@@ -6530,7 +6540,6 @@ init_display_interactive (void)
   if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qns;
-      Vwindow_system_version = make_fixnum (10);
       return;
     }
 #endif
@@ -6539,7 +6548,6 @@ init_display_interactive (void)
   if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qpgtk;
-      Vwindow_system_version = make_fixnum (3);
       return;
     }
 #endif
@@ -6548,7 +6556,6 @@ init_display_interactive (void)
   if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qhaiku;
-      Vwindow_system_version = make_fixnum (1);
       return;
     }
 #endif
@@ -6766,10 +6773,6 @@ Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
 predicates which report frame's specific UI-related capabilities.  */);
 
-  DEFVAR_LISP ("window-system-version", Vwindow_system_version,
-	       doc: /* The version number of the window system in use.
-For X windows, this is 11.  */);
-
   DEFVAR_BOOL ("cursor-in-echo-area", cursor_in_echo_area,
 	       doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
 
@@ -6817,5 +6820,4 @@ static void
 syms_of_display_for_pdumper (void)
 {
   Vinitial_window_system = Qnil;
-  Vwindow_system_version = Qnil;
 }

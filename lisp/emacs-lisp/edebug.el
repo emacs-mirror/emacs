@@ -129,7 +129,7 @@ contains an infinite loop.  When Edebug is instrumenting code
 containing very large quoted lists, it may reach this limit and give
 the error message \"Too deep - perhaps infinite loop in spec?\".
 Make this limit larger to countermand that, but you may also need to
-increase `max-lisp-eval-depth' and `max-specpdl-size'."
+increase `max-lisp-eval-depth'."
   :type 'integer
   :version "26.1")
 
@@ -1107,8 +1107,7 @@ purpose by adding an entry to this alist, and setting
 	edebug-best-error
 	edebug-error-point
 	;; Do this once here instead of several times.
-	(max-lisp-eval-depth (+ 800 max-lisp-eval-depth))
-	(max-specpdl-size (+ 2000 max-specpdl-size)))
+	(max-lisp-eval-depth (+ 800 max-lisp-eval-depth)))
     (let ((no-match
            (catch 'no-match
              (setq result (edebug-read-and-maybe-wrap-form1))
@@ -2317,7 +2316,6 @@ and run its entry function, and set up `edebug-before' and
               ;; but not inside an unwind-protect.
               ;; Doing it here also keeps it from growing too large.
               (max-lisp-eval-depth (+ 100 max-lisp-eval-depth)) ; too much??
-              (max-specpdl-size (+ 200 max-specpdl-size))
 
               (debugger edebug-debugger) ; only while edebug is active.
               (edebug-outside-debug-on-error debug-on-error)
@@ -3791,9 +3789,6 @@ limited by `edebug-print-length' or `edebug-print-level'."
 
 ;;; Edebug Minor Mode
 
-(define-obsolete-variable-alias 'gud-inhibit-global-bindings
-  'edebug-inhibit-emacs-lisp-mode-bindings "24.3")
-
 (defvar edebug-inhibit-emacs-lisp-mode-bindings nil
   "If non-nil, inhibit Edebug bindings on the C-x C-a key.
 By default, loading the `edebug' library causes these bindings to
@@ -4182,6 +4177,7 @@ from Edebug instrumentation found in the backtrace."
     (backtrace-mode)
     (add-hook 'backtrace-goto-source-functions
               #'edebug--backtrace-goto-source nil t))
+  (edebug-backtrace-mode)
   (setq edebug-instrumented-backtrace-frames
         (backtrace-get-frames 'edebug-debugger
                               :constructor #'edebug--make-frame)
@@ -4257,6 +4253,14 @@ Save DEF-NAME, BEFORE-INDEX and AFTER-INDEX in FRAME."
   (setf (edebug--frame-def-name frame) (and before-index def-name))
   (setf (edebug--frame-before-index frame) before-index)
   (setf (edebug--frame-after-index frame) after-index))
+
+(defvar-keymap edebug-backtrace-mode-map
+  "s" #'backtrace-goto-source)
+
+(define-minor-mode edebug-backtrace-mode
+  "Minor mode for showing backtraces from edebug."
+  :lighter nil
+  :interactive nil)
 
 (defun edebug--backtrace-goto-source ()
   (let* ((index (backtrace-get-index))
@@ -4567,6 +4571,12 @@ With prefix argument, make it a temporary breakpoint."
         (was-macro               `(macro . ,unwrapped))
         (t                       unwrapped))))))
 
+(defun edebug--strip-plist (symbol)
+  "Remove edebug related properties from plist for SYMBOL."
+  (dolist (prop '( edebug edebug-behavior edebug-coverage
+                   edebug-freq-count ghost-edebug))
+    (cl-remprop symbol prop)))
+
 (defun edebug-remove-instrumentation (functions)
   "Remove Edebug instrumentation from FUNCTIONS.
 Interactively, the user is prompted for the function to remove
@@ -4598,6 +4608,7 @@ instrumentation for, defaulting to all functions."
   (dolist (symbol functions)
     (when-let ((unwrapped
                 (edebug--unwrap*-symbol-function symbol)))
+      (edebug--strip-plist symbol)
       (defalias symbol unwrapped)))
   (message "Removed edebug instrumentation from %s"
            (mapconcat #'symbol-name functions ", ")))

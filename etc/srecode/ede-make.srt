@@ -34,7 +34,7 @@ template ede-empty :file :project
 #
 # DO NOT MODIFY THIS FILE OR YOUR CHANGES MAY BE LOST.
 # EDE is the Emacs Development Environment.
-# http://cedet.sourceforge.net/ede.shtml
+# https://cedet.sourceforge.net/ede.shtml
 #
 
 ----
@@ -58,7 +58,7 @@ template ede-empty :file
 #
 # DO NOT MODIFY THIS FILE OR YOUR CHANGES MAY BE LOST.
 # EDE is the Emacs Development Environment.
-# http://cedet.sourceforge.net/ede.shtml
+# https://cedet.sourceforge.net/ede.shtml
 
 ARDUINO_DIR  = {{ARDUINO_HOME}}
 

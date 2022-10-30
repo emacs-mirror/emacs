@@ -30,6 +30,7 @@
 ;; - Thumbnail Managing Standard
 ;; - xdg-user-dirs configuration
 ;; - Desktop Entry Specification
+;; - Unofficial extension $XDG_SESSION_TYPE from systemd
 
 ;;; Code:
 
@@ -281,6 +282,18 @@ Optional argument GROUP defaults to the string \"Desktop Entry\"."
     (when (null (string-match-p "[^[:blank:]]" (car res))) (pop res))
     (nreverse res)))
 
+(defun xdg-current-desktop ()
+  "Return a list of strings identifying the current desktop environment.
+
+According to the XDG Desktop Entry Specification version 0.5:
+
+    If $XDG_CURRENT_DESKTOP is set then it contains a
+    colon-separated list of strings ... $XDG_CURRENT_DESKTOP
+    should have been set by the login manager, according to the
+    value of the DesktopNames found in the session file."
+  (when-let ((ret (getenv "XDG_CURRENT_DESKTOP")))
+    (string-split ret ":")))
+
 
 ;; MIME apps specification
 ;; https://standards.freedesktop.org/mime-apps-spec/mime-apps-spec-1.0.1.html
@@ -384,6 +397,18 @@ Results are cached in `xdg-mime-table'."
         (when files
           (put 'xdg-mime-table 'mtime (current-time)))
         (puthash subtype (delq nil files) (cdr (assoc type xdg-mime-table)))))))
+
+
+;; Unofficial extension from systemd.
+
+(defun xdg-session-type ()
+  "Return the value of $XDG_SESSION_TYPE.
+Should be one of \"unspecified\", \"tty\", \"x11\", \"wayland\",
+or \"mir\".
+
+This is not part of any official Freedesktop.org standard, but is
+documented in the man page `pam_systemd'."
+  (getenv "XDG_SESSION_TYPE"))
 
 (provide 'xdg)
 

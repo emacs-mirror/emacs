@@ -45,13 +45,11 @@
 (defvar gnus-score-edit-exit-function nil
   "Function run on exit from the score buffer.")
 
-(defvar gnus-score-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map emacs-lisp-mode-map)
-    (define-key map "\C-c\C-c" 'gnus-score-edit-exit)
-    (define-key map "\C-c\C-d" 'gnus-score-edit-insert-date)
-    (define-key map "\C-c\C-p" 'gnus-score-pretty-print)
-    map))
+(defvar-keymap gnus-score-mode-map
+  :parent emacs-lisp-mode-map
+  "C-c C-c" #'gnus-score-edit-exit
+  "C-c C-d" #'gnus-score-edit-insert-date
+  "C-c C-p" #'gnus-score-pretty-print)
 
 (defvar score-mode-syntax-table
   (let ((table (copy-syntax-table lisp-mode-syntax-table)))

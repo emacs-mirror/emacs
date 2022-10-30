@@ -154,6 +154,14 @@ not be added to this variable."
 
 ;;; Internal Variables:
 
+(defconst eshell-redirection-operators-alist
+  '(("<"   . input)                     ; FIXME: Not supported yet.
+    (">"   . overwrite)
+    (">>"  . append)
+    (">>>" . insert))
+  "An association list of redirection operators to symbols
+describing the mode, e.g. for using with `eshell-get-target'.")
+
 (defvar eshell-current-handles nil)
 
 (defvar eshell-last-command-status 0
@@ -173,53 +181,104 @@ not be added to this variable."
 (defun eshell-io-initialize ()      ;Called from `eshell-mode' via intern-soft!
   "Initialize the I/O subsystem code."
   (add-hook 'eshell-parse-argument-hook
-	    'eshell-parse-redirection nil t)
+            #'eshell-parse-redirection nil t)
   (make-local-variable 'eshell-current-redirections)
   (add-hook 'eshell-pre-rewrite-command-hook
-	    'eshell-strip-redirections nil t)
+            #'eshell-strip-redirections nil t)
   (add-function :filter-return (local 'eshell-post-rewrite-command-function)
                 #'eshell--apply-redirections))
 
 (defun eshell-parse-redirection ()
-  "Parse an output redirection, such as `2>'."
-  (if (and (not eshell-current-quoted)
-	   (looking-at "\\([0-9]\\)?\\(<\\|>+\\)&?\\([0-9]\\)?\\s-*"))
+  "Parse an output redirection, such as `2>' or `>&'."
+  (when (not eshell-current-quoted)
+    (cond
+     ;; Copying a handle (e.g. `2>&1').
+     ((looking-at (rx (? (group digit))
+                      (group (or "<" ">"))
+                      "&" (group digit)
+                      (* (syntax whitespace))))
+      (let ((source (string-to-number (or (match-string 1) "1")))
+            (mode (cdr (assoc (match-string 2)
+                              eshell-redirection-operators-alist)))
+            (target (string-to-number (match-string 3))))
+        (when (eq mode 'input)
+          (error "Eshell does not support input redirection"))
+        (goto-char (match-end 0))
+        (eshell-finish-arg (list 'eshell-copy-output-handle
+                                 source target))))
+     ;; Shorthand for redirecting both stdout and stderr (e.g. `&>').
+     ((looking-at (rx (or (seq (group (** 1 3 ">")) "&")
+                          (seq "&" (group-n 1 (** 1 3 ">"))))
+                      (* (syntax whitespace))))
       (if eshell-current-argument
-	  (eshell-finish-arg)
-	(let ((sh (match-string 1))
-	      (oper (match-string 2))
-;	      (th (match-string 3))
-	      )
-	  (if (string= oper "<")
-	      (error "Eshell does not support input redirection"))
-	  (eshell-finish-arg
-	   (prog1
-	       (list 'eshell-set-output-handle
-		     (or (and sh (string-to-number sh)) 1)
-		     (list 'quote
-			   (aref [overwrite append insert]
-				 (1- (length oper)))))
-	     (goto-char (match-end 0))))))))
+          (eshell-finish-arg)
+        (goto-char (match-end 0))
+        (eshell-finish-arg
+         (let ((mode (cdr (assoc (match-string 1)
+                                 eshell-redirection-operators-alist))))
+           (list 'eshell-set-all-output-handles
+                 (list 'quote mode))))))
+     ;; Shorthand for piping both stdout and stderr (i.e. `|&').
+     ((looking-at (rx "|&" (* (syntax whitespace))))
+      (if eshell-current-argument
+          (eshell-finish-arg)
+        (goto-char (match-end 0))
+        (eshell-finish-arg
+         '(eshell-copy-output-handle eshell-error-handle
+                                     eshell-output-handle)
+         '(eshell-operator "|"))))
+     ;; Regular redirecting (e.g. `2>').
+     ((looking-at (rx (? (group digit))
+                      (group (or "<" (** 1 3 ">")))
+                      (* (syntax whitespace))))
+      (if eshell-current-argument
+          (eshell-finish-arg)
+        (let ((source (if (match-string 1)
+                          (string-to-number (match-string 1))
+                        eshell-output-handle))
+              (mode (cdr (assoc (match-string 2)
+                                eshell-redirection-operators-alist))))
+          (when (eq mode 'input)
+            (error "Eshell does not support input redirection"))
+          (goto-char (match-end 0))
+          (eshell-finish-arg
+           ;; Note: the target will be set later by
+           ;; `eshell-strip-redirections'.
+           (list 'eshell-set-output-handle
+                 source (list 'quote mode)))))))))
 
 (defun eshell-strip-redirections (terms)
   "Rewrite any output redirections in TERMS."
   (setq eshell-current-redirections (list t))
   (let ((tl terms)
-	(tt (cdr terms)))
+        (tt (cdr terms)))
     (while tt
-      (if (not (and (consp (car tt))
-		    (eq (caar tt) 'eshell-set-output-handle)))
-	  (setq tt (cdr tt)
-		tl (cdr tl))
-	(unless (cdr tt)
-	  (error "Missing redirection target"))
-	(nconc eshell-current-redirections
-	       (list (list 'ignore
-			   (append (car tt) (list (cadr tt))))))
-	(setcdr tl (cddr tt))
-	(setq tt (cddr tt))))
+      (cond
+       ;; Strip `eshell-copy-output-handle'.
+       ((and (consp (car tt))
+             (eq (caar tt) 'eshell-copy-output-handle))
+        (nconc eshell-current-redirections
+               (list (car tt)))
+        (setcdr tl (cddr tt))
+        (setq tt (cdr tt)))
+       ;; Strip `eshell-set-output-handle' or
+       ;; `eshell-set-all-output-handles' and the term immediately
+       ;; after (the redirection target).
+       ((and (consp (car tt))
+             (memq (caar tt) '(eshell-set-output-handle
+                               eshell-set-all-output-handles)))
+        (unless (cdr tt)
+          (error "Missing redirection target"))
+        (nconc eshell-current-redirections
+               (list (list 'ignore
+                           (append (car tt) (list (cadr tt))))))
+        (setcdr tl (cddr tt))
+        (setq tt (cddr tt)))
+       (t
+        (setq tt (cdr tt)
+              tl (cdr tl)))))
     (setq eshell-current-redirections
-	  (cdr eshell-current-redirections))))
+          (cdr eshell-current-redirections))))
 
 (defun eshell--apply-redirections (cmd)
   "Apply any redirection which were specified for COMMAND."
@@ -236,22 +295,21 @@ The default location for standard output and standard error will go to
 STDOUT and STDERR, respectively.
 OUTPUT-MODE and ERROR-MODE are either `overwrite', `append' or `insert';
 a nil value of mode defaults to `insert'."
-  (let ((handles (make-vector eshell-number-of-handles nil))
-	(output-target (eshell-get-target stdout output-mode))
-        (error-target (eshell-get-target stderr error-mode)))
+  (let* ((handles (make-vector eshell-number-of-handles nil))
+         (output-target (eshell-get-target stdout output-mode))
+         (error-target (if stderr
+                           (eshell-get-target stderr error-mode)
+                         output-target)))
     (aset handles eshell-output-handle (cons output-target 1))
-    (aset handles eshell-error-handle
-          (cons (if stderr error-target output-target) 1))
+    (aset handles eshell-error-handle (cons error-target 1))
     handles))
 
 (defun eshell-protect-handles (handles)
   "Protect the handles in HANDLES from a being closed."
-  (let ((idx 0))
-    (while (< idx eshell-number-of-handles)
-      (if (aref handles idx)
-	  (setcdr (aref handles idx)
-		  (1+ (cdr (aref handles idx)))))
-      (setq idx (1+ idx))))
+  (dotimes (idx eshell-number-of-handles)
+    (when (aref handles idx)
+      (setcdr (aref handles idx)
+              (1+ (cdr (aref handles idx))))))
   handles)
 
 (defun eshell-close-handles (&optional exit-code result handles)
@@ -277,6 +335,40 @@ the value already set in `eshell-last-command-result'."
           (dolist (target (ensure-list (car (aref handles idx))))
             (eshell-close-target target (= eshell-last-command-status 0)))
           (setcar handle nil))))))
+
+(defun eshell-set-output-handle (index mode &optional target handles)
+  "Set handle INDEX for the current HANDLES to point to TARGET using MODE.
+If HANDLES is nil, use `eshell-current-handles'."
+  (when target
+    (let ((handles (or handles eshell-current-handles)))
+      (if (and (stringp target)
+               (string= target (null-device)))
+          (aset handles index nil)
+        (let ((where (eshell-get-target target mode))
+              (current (car (aref handles index))))
+          (if (listp current)
+              (unless (member where current)
+                (setq current (append current (list where))))
+            (setq current (list where)))
+          (if (not (aref handles index))
+              (aset handles index (cons nil 1)))
+          (setcar (aref handles index) current))))))
+
+(defun eshell-copy-output-handle (index index-to-copy &optional handles)
+  "Copy the handle INDEX-TO-COPY to INDEX for the current HANDLES.
+If HANDLES is nil, use `eshell-current-handles'."
+  (let* ((handles (or handles eshell-current-handles))
+         (handle-to-copy (car (aref handles index-to-copy))))
+    (setcar (aref handles index)
+            (if (listp handle-to-copy)
+                (copy-sequence handle-to-copy)
+              handle-to-copy))))
+
+(defun eshell-set-all-output-handles (mode &optional target handles)
+  "Set output and error HANDLES to point to TARGET using MODE.
+If HANDLES is nil, use `eshell-current-handles'."
+  (eshell-set-output-handle eshell-output-handle mode target handles)
+  (eshell-copy-output-handle eshell-error-handle eshell-output-handle handles))
 
 (defun eshell-close-target (target status)
   "Close an output TARGET, passing STATUS as the result.
@@ -390,28 +482,20 @@ it defaults to `insert'."
     (error "Invalid redirection target: %s"
 	   (eshell-stringify target)))))
 
-(defun eshell-set-output-handle (index mode &optional target)
-  "Set handle INDEX, using MODE, to point to TARGET."
-  (when target
-    (if (and (stringp target)
-             (string= target (null-device)))
-	(aset eshell-current-handles index nil)
-      (let ((where (eshell-get-target target mode))
-	    (current (car (aref eshell-current-handles index))))
-	(if (and (listp current)
-		 (not (member where current)))
-	    (setq current (append current (list where)))
-	  (setq current (list where)))
-	(if (not (aref eshell-current-handles index))
-	    (aset eshell-current-handles index (cons nil 1)))
-	(setcar (aref eshell-current-handles index) current)))))
+(defun eshell-interactive-output-p (&optional index handles)
+  "Return non-nil if the specified handle is bound for interactive display.
+HANDLES is the set of handles to check; if nil, use
+`eshell-current-handles'.
 
-(defun eshell-interactive-output-p ()
-  "Return non-nil if current handles are bound for interactive display."
-  (and (eq (car (aref eshell-current-handles
-		      eshell-output-handle)) t)
-       (eq (car (aref eshell-current-handles
-		      eshell-error-handle)) t)))
+INDEX is the handle index to check.  If nil, check
+`eshell-output-handle'.  If `all', check both
+`eshell-output-handle' and `eshell-error-handle'."
+  (let ((handles (or handles eshell-current-handles))
+        (index (or index eshell-output-handle)))
+    (if (eq index 'all)
+        (and (eq (car (aref handles eshell-output-handle)) t)
+             (eq (car (aref handles eshell-error-handle)) t))
+      (eq (car (aref handles index)) t))))
 
 (defvar eshell-print-queue nil)
 (defvar eshell-print-queue-count -1)
@@ -498,10 +582,16 @@ Returns what was actually sent, or nil if nothing was sent."
    ((eshell-processp target)
     (unless (stringp object)
       (setq object (eshell-stringify object)))
-    (condition-case nil
+    (condition-case err
         (process-send-string target object)
-      ;; If `process-send-string' raises an error, treat it as a broken pipe.
-      (error (signal 'eshell-pipe-broken (list target)))))
+      (error
+       ;; If `process-send-string' raises an error and the process has
+       ;; finished, treat it as a broken pipe.  Otherwise, just
+       ;; re-throw the signal.
+       (if (memq (process-status target)
+		 '(run stop open closed))
+           (signal (car err) (cdr err))
+         (signal 'eshell-pipe-broken (list target))))))
 
    ((consp target)
     (apply (car target) object (cdr target))))

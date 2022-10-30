@@ -34,6 +34,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define HAVE_CHAR_CACHE_MAX 65535
 
+/* This is really defined in haiku_support.h.  */
+struct haiku_font_change_event;
+
 extern int popup_activated_p;
 
 struct haikufont_info
@@ -171,6 +174,10 @@ struct haiku_output
      displayed yet.  */
   bool_bf dirty_p : 1;
 
+  /* Whether or not the frame is complete, i.e. safe to flush on
+     input.  */
+  bool_bf complete_p : 1;
+
   struct font *font;
 
   /* The pending position we're waiting for. */
@@ -272,6 +279,7 @@ struct scroll_bar
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
 #define FRAME_DIRTY_P(f)		(FRAME_OUTPUT_DATA (f)->dirty_p)
+#define FRAME_COMPLETE_P(f)		(FRAME_OUTPUT_DATA (f)->complete_p)
 #define MAKE_FRAME_DIRTY(f)		(FRAME_DIRTY_P (f) = 1)
 #define FRAME_OUTPUT_DATA(f)		((f)->output_data.haiku)
 #define FRAME_HAIKU_WINDOW(f)		(FRAME_OUTPUT_DATA (f)->window)
@@ -361,4 +369,7 @@ extern void haiku_merge_cursor_foreground (struct glyph_string *, unsigned long 
 					   unsigned long *);
 extern void haiku_handle_selection_clear (struct input_event *);
 extern void haiku_start_watching_selections (void);
+extern void haiku_handle_font_change_event (struct haiku_font_change_event *,
+					    struct input_event *);
+
 #endif /* _HAIKU_TERM_H_ */

@@ -614,29 +614,12 @@ to arrange for the message to get a From: line."
 
 
 (defcustom feedmail-sendmail-f-doesnt-sell-me-out nil
-  "Whether sendmail should issue a warning header if called with \"-f\".
-The sendmail program has a useful feature to let you set the envelope FROM
-address via a command line option, \"-f\".  Unfortunately, it also has a widely
-disliked default behavior of selling you out if you do that by inserting
-an unattractive warning in the headers.  It looks something like this:
-
-  X-Authentication-Warning: u1.example.com: niceguy set
-      sender to niceguy@example.com using -f
-
-It is possible to configure sendmail to not do this, but such a
-reconfiguration is not an option for many users.  As this is the
-default behavior of most sendmail installations, one can mostly
-only wish it were otherwise.  If feedmail believes the sendmail
-program will sell you out this way, it won't use the \"-f\"
-option when calling sendmail.  If it doesn't think sendmail will
-sell you out, it will use the \"-f\" \(since it is a handy
-feature).  You control what feedmail thinks with this variable.
-The default is nil, meaning that feedmail will believe that
-sendmail will sell you out."
+  "If non-nil, call \"sendmail\" with \"-f\".
+See `message-sendmail-f-is-evil' for an explanation of what the
+\"-f\" parameter does."
   :version "24.1"
   :group 'feedmail-headers
-  :type 'boolean
-)
+  :type 'boolean)
 
 
 (defcustom feedmail-deduce-envelope-from t

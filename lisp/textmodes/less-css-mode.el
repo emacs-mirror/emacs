@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; This mode provides syntax highlighting for Less CSS files
-;; (http://lesscss.org/), plus optional support for compilation of
+;; (https://lesscss.org/), plus optional support for compilation of
 ;; .less files to .css files at the time they are saved: use
 ;; `less-css-compile-at-save' to enable this.
 ;;
@@ -209,10 +209,8 @@ directory by default."
     (modify-syntax-entry ?. "'" st)
     st))
 
-(defvar less-css-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" #'less-css-compile)
-    map))
+(defvar-keymap less-css-mode-map
+  "C-c C-c" #'less-css-compile)
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.less\\'" . less-css-mode))
 ;;;###autoload

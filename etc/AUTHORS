@@ -103,8 +103,8 @@ Alakazam Petrofsky: changed hanoi.el
 Alan Mackenzie: wrote cc-awk.el
 and co-wrote cc-align.el cc-cmds.el cc-defs.el cc-engine.el cc-fonts.el
   cc-langs.el cc-mode.el cc-styles.el cc-vars.el
-and changed cc-mode.texi minibuf.c bytecomp.el edebug.el follow.el
-  window.c display.texi subr.el syntax.texi progmodes/compile.el
+and changed cc-mode.texi minibuf.c bytecomp.el window.c edebug.el
+  follow.el display.texi subr.el syntax.texi progmodes/compile.el
   programs.texi eval.c keyboard.c lisp.h modes.texi window.el
   windows.texi cus-start.el font-lock.el frame.c isearch.el
   and 167 other files
@@ -994,7 +994,8 @@ and changed calc.el replace.el update-game-score.c calc-ext.el
 
 Colin Williams: changed calc.texi
 
-Colin Woodbury: changed files.el files.texi macros.texi shortdoc.el
+Colin Woodbury: changed files.el cl-seq.el files.texi macros.texi
+  shortdoc.el
 
 Constantin Kulikov: changed server.el startup.el
 
@@ -2056,10 +2057,10 @@ Gregor Schmid: changed intervals.c intervals.h tcl-mode.el textprop.c
 
 Gregory Chernov: changed nnslashdot.el
 
-Gregory Heytings: changed isearch.el minibuffer.el mini.texi quail.el
-  search.texi simple.el HELLO buffers.texi diff-mode.el emake facemenu.el
-  files.el fringe.c help-macro.el icomplete.el keyboard.c misc-lang.el
-  modula2.el pcmpl-gnu.el print.c pulse.el and 4 other files
+Gregory Heytings: changed isearch.el minibuffer.el efaq.texi mini.texi
+  quail.el search.texi simple.el HELLO buffers.texi diff-mode.el emake
+  facemenu.el fbterm.el files.el fringe.c help-macro.el icomplete.el
+  keyboard.c misc-lang.el modula2.el pcmpl-gnu.el and 6 other files
 
 Grégory Mounié: changed display.texi hi-lock.el man.el xfns.c
 
@@ -4518,7 +4519,7 @@ Philipp Stephani: wrote callint-tests.el checkdoc-tests.el
 and changed emacs-module.c emacs-module-tests.el configure.ac json.c
   process.c eval.c internals.texi json-tests.el process-tests.el alloc.c
   emacs-module.h.in emacs.c lread.c nsterm.m lisp.h pdumper.c bytecomp.el
-  callproc.c seccomp-filter.c gtkutil.c files.el and 184 other files
+  callproc.c seccomp-filter.c gtkutil.c files.el and 185 other files
 
 Phillip Lord: wrote ps-print-tests.el w32-feature.el
 and changed build-zips.sh build-dep-zips.py lisp/Makefile.in undo.c
@@ -4787,7 +4788,7 @@ Robert Pluim: wrote nsm-tests.el
 and changed configure.ac process.c blocks.awk network-stream-tests.el
   font.c processes.texi ftfont.c gtkutil.c vc-git.el process-tests.el
   emoji-zwj.awk gnutls.el network-stream.el nsm.el tramp.texi mml-sec.el
-  nsterm.m unicode xfns.c auth.texi composite.c and 138 other files
+  nsterm.m unicode xfns.c auth.texi composite.c and 139 other files
 
 Robert Thorpe: changed cus-start.el indent.el rmail.texi
 
@@ -5180,8 +5181,8 @@ Stefan Kangas: wrote bookmark-tests.el cal-julian-tests.el
 and co-wrote help-tests.el keymap-tests.el
 and changed efaq.texi checkdoc.el package.el cperl-mode.el bookmark.el
   help.el keymap.c subr.el simple.el erc.el ediff-util.el idlwave.el
-  time.el bytecomp-tests.el comp.el speedbar.el bytecomp.el edebug.el
-  emacs-lisp-intro.texi flyspell.el ibuffer.el and 1344 other files
+  time.el bytecomp-tests.el comp.el emacs-lisp-intro.texi speedbar.el
+  bytecomp.el edebug.el flyspell.el ibuffer.el and 1348 other files
 
 Stefan Merten: co-wrote rst.el
 

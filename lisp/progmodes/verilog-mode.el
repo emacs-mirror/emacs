@@ -3409,7 +3409,8 @@ A change is considered significant if it affects the buffer text
 in any way that isn't completely restored again.  Any
 user-visible changes to the buffer must not be within a
 `verilog-save-buffer-state'."
-  `(let ((inhibit-point-motion-hooks t)
+  `(let (,@(unless (>= emacs-major-version 25)
+             '((inhibit-point-motion-hooks t)))
          (verilog-no-change-functions t))
      ,(if (fboundp 'with-silent-modifications)
           `(with-silent-modifications ,@body)
@@ -3455,11 +3456,13 @@ For insignificant changes, see instead `verilog-save-buffer-state'."
       (run-hook-with-args 'before-change-functions (point-min) (point-max))
       (unwind-protect
           ;; Must inhibit and restore hooks before restoring font-lock
-          (let* ((inhibit-point-motion-hooks t)
+          (let* (,@(unless (>= emacs-major-version 25)
+                     '((inhibit-point-motion-hooks t) ;Obsolete since 25.1
+                       ;; XEmacs and pre-Emacs 21 ignore
+                       ;; `inhibit-modification-hooks'.
+                       before-change-functions after-change-functions))
                  (inhibit-modification-hooks t)
-                 (verilog-no-change-functions t)
-                 ;; XEmacs and pre-Emacs 21 ignore inhibit-modification-hooks.
-                 before-change-functions after-change-functions)
+                 (verilog-no-change-functions t))
             (progn ,@body))
         ;; Unwind forms
         (run-hook-with-args 'after-change-functions (point-min) (point-max)
@@ -9627,7 +9630,7 @@ Returns REGEXP and list of ( (signal_name connection_name)... )."
 
 (defun verilog-read-auto-template (module)
   "Look for an auto_template for the instantiation of the given MODULE.
-If found returns `verilog-read-auto-template-inside' structure."
+If found returns `verilog-read-auto-template-middle' structure."
   (save-excursion
     ;; Find beginning
     (let ((pt (point)))
@@ -10021,7 +10024,7 @@ Used for __FLAGS__ in `verilog-expand-command'."
 
 (defvar verilog-dir-cache-preserving nil
   "If true, the directory cache is enabled, and file system changes are ignored.
-See `verilog-dir-exists-p' and `verilog-dir-files'.")
+See `verilog-dir-file-exists-p' and `verilog-dir-files'.")
 
 ;; If adding new cached variable, add also to verilog-preserve-dir-cache
 (defvar verilog-dir-cache-list nil

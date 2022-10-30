@@ -550,10 +550,10 @@ This also saves the value of `send-mail-function' via Customize."
   #'mail-send-and-exit)
 
 ;;;###autoload
-(defun sendmail-user-agent-compose (&optional to subject other-headers
-				    continue switch-function yank-action
-				    send-actions return-action
-				    &rest ignored)
+(defun sendmail-user-agent-compose ( &optional to subject other-headers
+                                     continue switch-function yank-action
+                                     send-actions return-action
+                                     &rest _ignored )
   (if switch-function
       (funcall switch-function "*mail*"))
   (let ((cc (cdr (assoc-string "cc" other-headers t)))

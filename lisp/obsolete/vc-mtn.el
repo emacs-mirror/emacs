@@ -141,7 +141,7 @@ switches."
 
 ;; dir-status-files called from vc-dir, which loads vc,
 ;; which loads vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
 
 (defun vc-mtn-dir-status-files (dir _files update-function)
   (vc-mtn-command (current-buffer) 'async dir "status")

@@ -998,10 +998,14 @@ major mode's special commands.  (The variable
 
 @vindex outline-minor-mode-use-buttons
   If @code{outline-minor-mode-use-buttons} is non-@code{nil}, Outline
-minor mode will use buttons (at the start of the header lines) in
-addition to ellipsis to show that a section is hidden.  Using
-@kbd{RET} (or clicking on the button with a mouse) will toggle
-displaying the section.
+minor mode will use buttons at the beginning of the heading lines, in
+addition to ellipsis, to show that a section is hidden.  Clicking the
+mouse on the button toggles display of the section.  If the value of
+this variable is @code{insert}, the buttons are inserted directly into
+the buffer text, so @key{RET} on the button will also toggle display
+of the section, like a mouse click does.  If the value is
+@code{in-margins}, Outline minor mode will use the window margins to
+indicate that a section is hidden.
 
 @vindex outline-minor-mode-cycle
   If the @code{outline-minor-mode-cycle} user option is
@@ -1509,15 +1513,15 @@ etc.
 @subsection Org as an authoring system
 @cindex Org exporting
 
-@findex org-export
+@findex org-export-dispatch
 @kindex C-c C-e @r{(Org mode)}
   You may want to format your Org notes nicely and to prepare them for
 export and publication.  To export the current buffer, type @kbd{C-c
-C-e} (@code{org-export}) anywhere in an Org buffer.  This command
-prompts for an export format; currently supported formats include
-HTML, @LaTeX{}, Texinfo, OpenDocument (@file{.odt}), iCalendar,
-Markdown, man-page, and PDF@.  Some formats, such as PDF, require
-certain system tools to be installed.
+C-e} (@code{org-export-dispatch}) anywhere in an Org buffer.  This
+command prompts for an export format; currently supported formats
+include HTML, @LaTeX{}, Texinfo, OpenDocument (@file{.odt}),
+iCalendar, Markdown, man-page, and PDF@.  Some formats, such as PDF,
+require certain system tools to be installed.
 
 @vindex org-publish-project-alist
   To export several files at once to a specific directory, either

@@ -54,12 +54,14 @@ typedef unsigned int CARD32;
 #include <gconf/gconf-client.h>
 #endif
 
-#if defined USE_CAIRO || defined HAVE_XFT
 #ifdef USE_CAIRO
 #include <fontconfig/fontconfig.h>
-#else  /* HAVE_XFT */
+#elif defined HAVE_XFT
 #include <X11/Xft/Xft.h>
 #endif
+
+#if defined USE_CAIRO && defined CAIRO_HAS_FT_FONT
+#include <cairo/cairo-ft.h>
 #endif
 
 static char *current_mono_font;
@@ -804,16 +806,30 @@ static void
 apply_xft_settings (Display_Info *dpyinfo,
                     struct xsettings *settings)
 {
-#ifdef HAVE_XFT
+#if defined HAVE_XFT					\
+  || (defined USE_CAIRO && defined CAIRO_HAS_FC_FONT	\
+      && defined CAIRO_HAS_FT_FONT)
   FcPattern *pat;
   struct xsettings oldsettings;
   bool changed = false;
+#ifndef HAVE_XFT
+  cairo_font_options_t *options;
+#endif
+
 
   memset (&oldsettings, 0, sizeof (oldsettings));
   pat = FcPatternCreate ();
+#ifdef HAVE_XFT
   XftDefaultSubstitute (dpyinfo->display,
                         XScreenNumberOfScreen (dpyinfo->screen),
                         pat);
+#else
+  FcConfigSubstitute (NULL, pat, FcMatchPattern);
+  options = cairo_font_options_create ();
+  cairo_ft_font_options_substitute (options, pat);
+  cairo_font_options_destroy (options);
+  FcDefaultSubstitute (pat);
+#endif
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &oldsettings.aa);
   FcPatternGetBool (pat, FC_HINTING, 0, &oldsettings.hinting);
 #ifdef FC_HINT_STYLE
@@ -912,8 +928,11 @@ apply_xft_settings (Display_Info *dpyinfo,
 		     - sizeof "%f")
       };
       char buf[sizeof format + d_formats * d_growth + lf_formats * lf_growth];
-
+#ifdef HAVE_XFT
       XftDefaultSet (dpyinfo->display, pat);
+#else
+      FcPatternDestroy (pat);
+#endif
       store_config_changed_event (Qfont_render,
 				  XCAR (dpyinfo->name_list_element));
       Vxft_settings
@@ -925,7 +944,7 @@ apply_xft_settings (Display_Info *dpyinfo,
     }
   else
     FcPatternDestroy (pat);
-#endif /* HAVE_XFT */
+#endif /* HAVE_XFT || (USE_CAIRO && CAIRO_HAS_FC_FONT && CAIRO_HAS_FT_FONT) */
 }
 #endif
 
@@ -1225,7 +1244,8 @@ xsettings_get_font_options (void)
 DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,
        0, 0, 0,
-       doc: /* Get the system default application font. */)
+       doc: /* Get the system default application font.
+The font is returned as either a font-spec or font name.  */)
   (void)
 {
   return current_font ? build_string (current_font) : Qnil;
@@ -1233,7 +1253,8 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
 
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
-       doc: /* Get the system default fixed width font. */)
+       doc: /* Get the system default fixed width font.
+The font is returned as either a font-spec or font name.  */)
   (void)
 {
   return current_mono_font ? build_string (current_mono_font) : Qnil;
@@ -1282,6 +1303,10 @@ syms_of_xsettings (void)
   DEFSYM (Qmonospace_font_name, "monospace-font-name");
   DEFSYM (Qfont_name, "font-name");
   DEFSYM (Qfont_render, "font-render");
+  DEFSYM (Qdynamic_setting, "dynamic-setting");
+  DEFSYM (Qfont_render_setting, "font-render-setting");
+  DEFSYM (Qsystem_font_setting, "system-font-setting");
+
   defsubr (&Sfont_get_system_font);
   defsubr (&Sfont_get_system_normal_font);
 
@@ -1297,9 +1322,9 @@ If this variable is nil, Emacs ignores system font changes.  */);
   Vxft_settings = empty_unibyte_string;
 
 #if defined USE_CAIRO || defined HAVE_XFT
-  Fprovide (intern_c_string ("font-render-setting"), Qnil);
+  Fprovide (Qfont_render_setting, Qnil);
 #if defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
-  Fprovide (intern_c_string ("system-font-setting"), Qnil);
+  Fprovide (Qsystem_font_setting, Qnil);
 #endif
 #endif
 
@@ -1307,5 +1332,5 @@ If this variable is nil, Emacs ignores system font changes.  */);
   DEFSYM (Qtool_bar_style, "tool-bar-style");
   defsubr (&Stool_bar_get_system_style);
 
-  Fprovide (intern_c_string ("dynamic-setting"), Qnil);
+  Fprovide (Qdynamic_setting, Qnil);
 }

@@ -72,6 +72,9 @@ HOST is the hostname of an LDAP server (with an optional TCP port number
 appended to it using a colon as a separator).
 PROPn and VALn are property/value pairs describing parameters for the server.
 Valid properties include:
+  `auth-source' specifies whether or not to look up, via the
+  `auth-source' library, options which are not otherwise provided
+  in this list.  See `ldap-search-internal'.
   `binddn' is the distinguished name of the user to bind as
     (in RFC 1779 syntax).
   `passwd' is the password to use for simple authentication.
@@ -90,6 +93,11 @@ Valid properties include:
 		       (string :tag "Host name")
 		       (checklist :inline t
 				  :greedy t
+				  (list
+				   :tag "Use auth-source"
+				   :inline t
+				   (const :tag "Use auth-source" auth-source)
+				   boolean)
 				  (list
 				   :tag "Search Base"
 				   :inline t
@@ -148,7 +156,7 @@ Valid properties include:
   "The name of the ldapsearch command line program."
   :type '(string :tag "`ldapsearch' Program"))
 
-(defcustom ldap-ldapsearch-args '("-LLL" "-tt")
+(defcustom ldap-ldapsearch-args nil
   "A list of additional arguments to pass to `ldapsearch'."
   :type '(repeat :tag "`ldapsearch' Arguments"
 		 (string :tag "Argument")))
@@ -601,7 +609,8 @@ an alist of attribute/value pairs."
 	(sizelimit (plist-get search-plist 'sizelimit))
 	(withdn (plist-get search-plist 'withdn))
 	(numres 0)
-	arglist dn name value record result)
+        (arglist (list "-LLL" "-tt"))
+	dn name value record result)
     (if (or (null filter)
 	    (equal "" filter))
 	(error "No search filter"))
@@ -707,14 +716,14 @@ an alist of attribute/value pairs."
                      (eq (string-match "/\\(.:.*\\)$" value) 0))
                 (setq value (match-string 1 value)))
 	    ;; Do not try to open non-existent files
-	    (if (equal value "")
-		(setq value " ")
-	      (with-current-buffer bufval
+            (if (match-string 3)
+              (with-current-buffer bufval
 		(erase-buffer)
 		(set-buffer-multibyte nil)
 		(insert-file-contents-literally value)
 		(delete-file value)
-		(setq value (buffer-string))))
+		(setq value (buffer-string)))
+              (setq value " "))
 	    (setq record (cons (list name value)
 			       record))
 	    (forward-line 1))

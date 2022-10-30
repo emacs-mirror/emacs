@@ -73,11 +73,11 @@
 
 (defun emacs-news--mode-common ()
   (setq-local font-lock-defaults '(emacs-news-mode-font-lock-keywords t))
-  (setq-local outline-regexp "\\(:? +\\)?\\(\\*+\\) "
-              outline-minor-mode-cycle t
-              outline-level (lambda () (length (match-string 2)))
-              outline-minor-mode-highlight 'append)
+  (setq-local outline-minor-mode-cycle t
+              outline-minor-mode-highlight 'append
+              outline-minor-mode-use-buttons 'in-margins)
   (outline-minor-mode)
+  (setq-local imenu-generic-expression outline-imenu-generic-expression)
   (emacs-etc--hide-local-variables))
 
 ;;;###autoload
@@ -273,6 +273,17 @@ documentation marks on the previous line."
                         (looking-at (rx bol (or "---" "+++") eol)))
     (forward-line -1))
   (open-line n))
+
+(defun emacs-news-delete-temporary-markers ()
+  "Delete any temporary markers.
+This is used when preparing a new release of Emacs."
+  (interactive nil emacs-news-mode)
+  (goto-char (point-min))
+  (re-search-forward "^Temporary note:$")
+  (forward-line -1)
+  (delete-region (point) (save-excursion (forward-paragraph) (point)))
+  (while (re-search-forward (rx bol (or "+++" "---") eol) nil t)
+    (delete-line)))
 
 (provide 'emacs-news-mode)
 

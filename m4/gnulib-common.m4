@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 73
+# gnulib-common.m4 serial 74
 dnl Copyright (C) 2007-2022 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -115,7 +115,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 # define _GL_HAS_C_ATTRIBUTE(attr) 0
 #endif
 
-]dnl There is no _GL_ATTRIBUTE_ALIGNED; use stdalign's _Alignas instead.
+]dnl There is no _GL_ATTRIBUTE_ALIGNED; use stdalign's alignas instead.
 [
 /* _GL_ATTRIBUTE_ALLOC_SIZE ((N)) declares that the Nth argument of the function
    is the size of the returned memory block.
@@ -313,7 +313,8 @@ AC_DEFUN([gl_COMMON_BODY], [
 #else
 # define _GL_ATTRIBUTE_MAYBE_UNUSED _GL_ATTRIBUTE_UNUSED
 #endif
-/* Alternative spelling of this macro, for convenience.  */
+/* Alternative spelling of this macro, for convenience and for
+   compatibility with glibc/include/libc-symbols.h.  */
 #define _GL_UNUSED _GL_ATTRIBUTE_MAYBE_UNUSED
 /* Earlier spellings of this macro.  */
 #define _UNUSED_PARAMETER_ _GL_ATTRIBUTE_MAYBE_UNUSED

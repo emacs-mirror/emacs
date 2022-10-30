@@ -97,9 +97,9 @@ present for backward compatibility."
 
  ;; Add some defaults for `tramp-default-method-alist'.
  (add-to-list 'tramp-default-method-alist
-	      (list "\\`ftp\\." nil tramp-ftp-method))
+	      (list (rx bos "ftp.") nil tramp-ftp-method))
  (add-to-list 'tramp-default-method-alist
-	      (list nil "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method))
+	      (list nil (rx bos (| "anonymous" "ftp") eos) tramp-ftp-method))
 
  ;; Add completion function for FTP method.
  (tramp-set-completion-function

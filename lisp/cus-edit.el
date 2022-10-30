@@ -1546,7 +1546,7 @@ If TYPE is `groups', include only groups."
      "*Customize Apropos*")))
 
 ;;;###autoload
-(defun customize-apropos-options (regexp &optional ignored)
+(defun customize-apropos-options (regexp &optional _ignored)
   "Customize all loaded customizable options matching REGEXP."
   (interactive (list (apropos-read-pattern "options")))
   (customize-apropos regexp 'options))
@@ -4298,7 +4298,12 @@ restoring it to the state of a face that has never been customized."
   "A Lisp fringe bitmap name."
   :format "%v"
   :tag "Fringe bitmap"
-  :match (lambda (_widget value) (fringe-bitmap-p value))
+  :match (lambda (_widget value)
+           ;; In no-X builds (where `fringe-bitmaps' is undefined),
+           ;; allow anything.  This ensures that customizations set on
+           ;; a with-X build aren't considered invalid under no-X.
+           (or (not (boundp 'fringe-bitmaps))
+               (fringe-bitmap-p value)))
   :completions (apply-partially #'completion-table-with-predicate
                                 obarray #'fringe-bitmap-p 'strict)
   :prompt-match 'fringe-bitmap-p

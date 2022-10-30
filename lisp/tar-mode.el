@@ -169,7 +169,7 @@ This information is useful, but it takes screen space away from file names."
 
 (defun tar-swap-data ()
   "Swap buffer contents between current buffer and `tar-data-buffer'.
-Preserve the modified states of the buffers and set `buffer-swapped-with'."
+Preserve the modified states of the buffers and set `tar-data-swapped'."
   (let ((data-buffer-modified-p (buffer-modified-p tar-data-buffer))
 	(current-buffer-modified-p (buffer-modified-p)))
     (buffer-swap-text tar-data-buffer)

@@ -196,9 +196,7 @@ Effective only if `hide-ifdef-expand-reinclusion-guard' is t."
   "C"   #'hif-clear-all-ifdef-defined
   "C-q" #'hide-ifdef-toggle-read-only
   "C-w" #'hide-ifdef-toggle-shadowing
-  "<remap> <read-only-mode>" #'hide-ifdef-toggle-outside-read-only
-  ;; `toggle-read-only' is obsoleted by `read-only-mode'.
-  "<remap> <toggle-read-only>" #'hide-ifdef-toggle-outside-read-only)
+  "<remap> <read-only-mode>" #'hide-ifdef-toggle-outside-read-only)
 
 (defcustom hide-ifdef-mode-prefix-key "\C-c@"
   "Prefix key for all Hide-Ifdef mode commands."
@@ -407,7 +405,7 @@ overlays created."
   ;; hidden with `hide-ifdef-lines' equals to nil while another part with 't,
   ;; this case happens.
   ;; TODO: Should we merge? or just create a container overlay? -- this can
-  ;; prevent `hideif-show-ifdef' expanding too many hidden contents since there
+  ;; prevent `show-ifdefs' expanding too many hidden contents since there
   ;; is only a big overlay exists there without any smaller overlays.
   (save-restriction
     (widen) ; Otherwise `point-min' and `point-max' will be restricted and thus
@@ -727,7 +725,7 @@ Assuming we've just regexp-matched with `hif-decfloat-regexp' and it matched.
 if REMATCH is t, do a rematch."
   ;; In elisp `(string-to-number "01.e2")' will return 1 instead of the expected
   ;; 100.0; therefore we need to write our own.
-  ;; This function relies on the regexp groups of `hif-dexfloat-regexp'
+  ;; This function relies on the regexp groups of `hif-hexfloat-regexp'
   (if (or fix exp)
       (setq fix (hif-delete-char-in-string ?' fix)
             exp (hif-delete-char-in-string ?' exp))

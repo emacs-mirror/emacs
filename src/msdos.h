@@ -123,7 +123,6 @@ extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 #define XGetGeometry(p1,p2,p3,p4,p5,p6,p7,p8,p9)
 #define DisplayWidth(p1,p2) (SELECTED_FRAME()->text_cols)
 #define DisplayHeight(p1,p2) (SELECTED_FRAME()->text_lines)
-#define XMenuSetAEQ (void)
 #define XMenuSetFreeze (void)
 #define XMenuRecompute (void)
 #define XM_FAILURE -1

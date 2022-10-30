@@ -80,12 +80,8 @@ directory will be used.")
 (defun gamegrid-calculate-glyph-size ()
   "Calculate appropriate glyph size in pixels based on display resolution.
 Return a multiple of 8 no less than 16."
-  (let (atts
+  (let ((atts (frame-monitor-attributes))
         y-pitch)
-    (dolist (mon (display-monitor-attributes-list))
-      (when-let ((frames (alist-get 'frames mon))
-                 (match (memq (selected-frame) frames)))
-        (setq atts mon)))
     (setq y-pitch (cond
                    (atts
                     (/ (nth 4 (assq 'geometry atts))
@@ -347,6 +343,8 @@ format."
 	   (gamegrid-match-spec-list (cdr spec-list)))))
 
 (defun gamegrid-make-glyph (data-spec-list color-spec-list)
+  ;; image.el is not preloaded in --without-x builds.
+  (defvar image-scaling-factor)
   (let ((data (gamegrid-match-spec-list data-spec-list))
 	(color (gamegrid-match-spec-list color-spec-list))
         (image-scaling-factor 1.0))

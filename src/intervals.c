@@ -1836,8 +1836,8 @@ adjust_for_invis_intang (ptrdiff_t pos, ptrdiff_t test_offs, ptrdiff_t adj,
 	     == (test_offs == 0 ? 1 : -1))
 	  /* Invisible property is from an overlay.  */
 	  : (test_offs == 0
-	     ? XMARKER (OVERLAY_START (invis_overlay))->insertion_type == 0
-	     : XMARKER (OVERLAY_END (invis_overlay))->insertion_type == 1)))
+	     ? ! OVERLAY_FRONT_ADVANCE_P (invis_overlay)
+	     : OVERLAY_REAR_ADVANCE_P (invis_overlay))))
     pos += adj;
 
   return pos;
@@ -2171,8 +2171,8 @@ get_property_and_range (ptrdiff_t pos, Lisp_Object prop, Lisp_Object *val,
 
 /* Return the proper local keymap TYPE for position POSITION in
    BUFFER; TYPE should be one of `keymap' or `local-map'.  Use the map
-   specified by the PROP property, if any.  Otherwise, if TYPE is
-   `local-map' use BUFFER's local map.  */
+   specified by the TYPE property, if any.  Otherwise, if TYPE is
+   `local-map', use BUFFER's local map.  */
 
 Lisp_Object
 get_local_map (ptrdiff_t position, struct buffer *buffer, Lisp_Object type)

@@ -53,8 +53,8 @@
   `(;; GNU GPL
     ("is free software[:;] you can redistribute it" .
      ,(rx (or (seq "If not, see " (? "<")
-                   "http" (? "s") "://www.gnu.org/licenses/"
-                   (? ">") (? " "))
+                   "http" (? "s") "://www.gnu.org/licenses"
+                   (? "/") (? ">") (? " "))
               (seq "Boston, MA " (? " ")
                    "0211" (or "1-1307" "0-1301")
                    (or "  " ", ") "USA")

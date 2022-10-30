@@ -91,7 +91,8 @@
       "Format for `ert-resource-directory'.")
     (defvar ert-resource-directory-trim-left-regexp ""
       "Regexp for `string-trim' (left) used by `ert-resource-directory'.")
-    (defvar ert-resource-directory-trim-right-regexp "\\(-tests?\\)?\\.el"
+    (defvar ert-resource-directory-trim-right-regexp
+      (rx (? "-test" (? "s")) ".el")
       "Regexp for `string-trim' (right) used by `ert-resource-directory'.")
 
     (defmacro ert-resource-directory ()
@@ -204,7 +205,7 @@ being the result.")
     ;; Remove old test files.
     (dolist (dir `(,temporary-file-directory
 		   ,ert-remote-temporary-file-directory))
-      (dolist (file (directory-files dir 'full "\\`\\(\\.#\\)?tramp-test"))
+      (dolist (file (directory-files dir 'full (rx bos (? ".#") "tramp-test")))
 	(ignore-errors
 	  (if (file-directory-p file)
 	      (delete-directory file 'recursive)
@@ -387,15 +388,17 @@ Also see `ignore'."
 	  ;; `tramp-ignored-file-name-regexp' suppresses Tramp.
 	  (let ((tramp-ignored-file-name-regexp "^/method:user@host:"))
 	    (should-not (tramp-tramp-file-p "/method:user@host:")))
-	  ;; Methods shall be at least two characters on MS Windows,
-	  ;; except the default method.
+	  ;; Methods shall be at least two characters, except the
+	  ;; default method.
 	  (let ((system-type 'windows-nt))
 	    (should-not (tramp-tramp-file-p "/c:/path/to/file"))
 	    (should-not (tramp-tramp-file-p "/c::/path/to/file"))
-	    (should (tramp-tramp-file-p "/-::/path/to/file")))
+	    (should (tramp-tramp-file-p "/-::/path/to/file"))
+	    (should (tramp-tramp-file-p "/mm::/path/to/file")))
 	  (let ((system-type 'gnu/linux))
+	    (should-not (tramp-tramp-file-p "/m::/path/to/file"))
 	    (should (tramp-tramp-file-p "/-:h:/path/to/file"))
-	    (should (tramp-tramp-file-p "/m::/path/to/file"))))
+	    (should (tramp-tramp-file-p "/mm::/path/to/file"))))
 
       ;; Exit.
       (tramp-change-syntax syntax))))
@@ -1064,8 +1067,7 @@ Also see `ignore'."
 		   (file-remote-p "/user@email@host:")
 		   (format "/%s@%s:" "user@email" "host")))
 	  (should (string-equal
-		   (file-remote-p
-		    "/user@email@host:" 'method) "default-method"))
+		   (file-remote-p "/user@email@host:" 'method) "default-method"))
 	  (should (string-equal
 		   (file-remote-p "/user@email@host:" 'user) "user@email"))
 	  (should (string-equal
@@ -1474,11 +1476,10 @@ Also see `ignore'."
 		   (file-remote-p "/[method/user@email@host]")
 		   (format "/[%s/%s@%s]" "method" "user@email" "host")))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[method/user@email@host]" 'method) "method"))
+		   (file-remote-p "/[method/user@email@host]" 'method) "method"))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[method/user@email@host]" 'user) "user@email"))
+		   (file-remote-p "/[method/user@email@host]" 'user)
+		   "user@email"))
 	  (should (string-equal
 		   (file-remote-p "/[method/user@email@host]" 'host) "host"))
 	  (should (string-equal
@@ -1505,11 +1506,10 @@ Also see `ignore'."
 		   (file-remote-p "/[/user@host#1234]")
 		   (format "/[%s/%s@%s]" "default-method" "user" "host#1234")))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[/user@host#1234]" 'method) "default-method"))
+		   (file-remote-p "/[/user@host#1234]" 'method)
+		   "default-method"))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[/user@host#1234]" 'user) "user"))
+		   (file-remote-p "/[/user@host#1234]" 'user) "user"))
 	  (should (string-equal
 		   (file-remote-p "/[/user@host#1234]" 'host) "host#1234"))
 	  (should (string-equal
@@ -1535,11 +1535,10 @@ Also see `ignore'."
 		   (file-remote-p "/[-/user@host#1234]")
 		   (format "/[%s/%s@%s]" "default-method" "user" "host#1234")))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[-/user@host#1234]" 'method) "default-method"))
+		   (file-remote-p "/[-/user@host#1234]" 'method)
+		   "default-method"))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[-/user@host#1234]" 'user) "user"))
+		   (file-remote-p "/[-/user@host#1234]" 'user) "user"))
 	  (should (string-equal
 		   (file-remote-p "/[-/user@host#1234]" 'host) "host#1234"))
 	  (should (string-equal
@@ -1569,8 +1568,7 @@ Also see `ignore'."
 	  (should (string-equal
 		   (file-remote-p "/[method/user@host#1234]" 'user) "user"))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[method/user@host#1234]" 'host) "host#1234"))
+		   (file-remote-p "/[method/user@host#1234]" 'host) "host#1234"))
 	  (should (string-equal
 		   (file-remote-p "/[method/user@host#1234]" 'localname) ""))
 	  (should (string-equal
@@ -1595,8 +1593,7 @@ Also see `ignore'."
 		   (file-remote-p "/[/user@1.2.3.4]")
 		   (format "/[%s/%s@%s]" "default-method" "user" "1.2.3.4")))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[/user@1.2.3.4]" 'method) "default-method"))
+		   (file-remote-p "/[/user@1.2.3.4]" 'method) "default-method"))
 	  (should (string-equal
 		   (file-remote-p "/[/user@1.2.3.4]" 'user) "user"))
 	  (should (string-equal
@@ -1624,8 +1621,7 @@ Also see `ignore'."
 		   (file-remote-p "/[-/user@1.2.3.4]")
 		   (format "/[%s/%s@%s]" "default-method" "user" "1.2.3.4")))
 	  (should (string-equal
-		   (file-remote-p
-		    "/[-/user@1.2.3.4]" 'method) "default-method"))
+		   (file-remote-p "/[-/user@1.2.3.4]" 'method) "default-method"))
 	  (should (string-equal
 		   (file-remote-p "/[-/user@1.2.3.4]" 'user) "user"))
 	  (should (string-equal
@@ -2299,9 +2295,9 @@ This checks also `file-name-as-directory', `file-name-directory',
 
     ;; Check `directory-abbrev-alist' abbreviation.
     (let ((directory-abbrev-alist
-           `((,(concat "\\`" (regexp-quote home-dir) "/foo")
+           `((,(tramp-compat-rx bos (literal home-dir) "/foo")
               . ,(concat home-dir "/f"))
-             (,(concat "\\`" (regexp-quote remote-host) "/nowhere")
+             (,(tramp-compat-rx bos (literal remote-host) "/nowhere")
               . ,(concat remote-host "/nw")))))
       (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
                      (concat remote-host-nohop "~/f/bar")))
@@ -2514,8 +2510,9 @@ This checks also `file-name-as-directory', `file-name-directory',
 		     (string-match-p
 		      (if (and (null noninteractive)
 			       (or (eq visit t) (null visit) (stringp visit)))
-			  (format "^Wrote %s\n\\'" (regexp-quote tmp-name))
-			"^\\'")
+			  (tramp-compat-rx
+			   bol "Wrote " (literal tmp-name) "\n" eos)
+			(rx bos))
 		      tramp--test-messages))))))
 
 	    ;; We do not test lockname here.  See
@@ -3215,38 +3212,42 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	    (with-temp-buffer
 	      (insert-directory tmp-name1 nil)
 	      (goto-char (point-min))
-	      (should (looking-at-p (regexp-quote tmp-name1))))
+	      (should (looking-at-p (tramp-compat-rx (literal tmp-name1)))))
 	    (with-temp-buffer
 	      (insert-directory (file-name-as-directory tmp-name1) nil)
 	      (goto-char (point-min))
 	      (should
                (looking-at-p
-                (regexp-quote (file-name-as-directory tmp-name1)))))
+                (tramp-compat-rx (literal (file-name-as-directory tmp-name1))))))
 	    (with-temp-buffer
 	      (insert-directory tmp-name1 "-al")
 	      (goto-char (point-min))
 	      (should
-	       (looking-at-p (format "^.+ %s$" (regexp-quote tmp-name1)))))
+	       (looking-at-p
+		(tramp-compat-rx bol (+ nonl) blank (literal tmp-name1) eol))))
 	    (with-temp-buffer
 	      (insert-directory (file-name-as-directory tmp-name1) "-al")
 	      (goto-char (point-min))
 	      (should
-	       (looking-at-p (format "^.+ %s/$" (regexp-quote tmp-name1)))))
-	    (let ((directory-files (directory-files tmp-name1)))
-	      (with-temp-buffer
-		(insert-directory
-		 (file-name-as-directory tmp-name1) "-al" nil 'full-directory-p)
-		(goto-char (point-min))
-		(should
-		 (looking-at-p
-		  (concat
+	       (looking-at-p
+		(tramp-compat-rx
+		 bol (+ nonl) blank (literal tmp-name1) "/" eol))))
+	    (with-temp-buffer
+	      (insert-directory
+	       (file-name-as-directory tmp-name1) "-al" nil 'full-directory-p)
+	      (goto-char (point-min))
+	      (should
+	       (looking-at-p
+		(rx-to-string
+		 `(:
 		   ;; There might be a summary line.
-		   "\\(total.+[[:digit:]]+ ?[kKMGTPEZY]?i?B?\n\\)?"
+		   (? "total" (+ nonl) (+ digit) (? blank)
+		      (? (any "EGKMPTYZk")) (? "i") (? "B") "\n")
 		   ;; We don't know in which order ".", ".." and "foo" appear.
-		   (format
-		    "\\(.+ %s\\( ->.+\\)?\n\\)\\{%d\\}"
-		    (regexp-opt directory-files)
-		    (length directory-files)))))))
+		   (= ,(length (directory-files tmp-name1))
+		      (+ nonl) blank
+		      (regexp ,(regexp-opt (directory-files tmp-name1)))
+		      (? " ->" (+ nonl)) "\n"))))))
 
 	    ;; Check error cases.
 	    (when (and (tramp--test-supports-set-file-modes-p)
@@ -3274,7 +3275,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test17-dired-with-wildcards ()
   "Check `dired' with wildcards."
   ;; `separate' syntax and IPv6 host name syntax do not work.
-  (skip-unless (not (string-match-p "\\[" ert-remote-temporary-file-directory)))
+  (skip-unless
+   (not (string-match-p (rx "[") ert-remote-temporary-file-directory)))
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
@@ -3313,15 +3315,17 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (goto-char (point-min))
 	      (should
 	       (re-search-forward
-		(regexp-quote
-		 (file-relative-name
-		  tmp-name1 ert-remote-temporary-file-directory))))
+		(tramp-compat-rx
+		 (literal
+		  (file-relative-name
+		   tmp-name1 ert-remote-temporary-file-directory)))))
 	      (goto-char (point-min))
 	      (should
 	       (re-search-forward
-		(regexp-quote
-		 (file-relative-name
-		  tmp-name2 ert-remote-temporary-file-directory)))))
+		(tramp-compat-rx
+		 (literal
+		  (file-relative-name
+		   tmp-name2 ert-remote-temporary-file-directory))))))
 	    (kill-buffer buffer)
 
 	    ;; Check for expanded directory and file names.
@@ -3333,16 +3337,18 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (goto-char (point-min))
 	      (should
 	       (re-search-forward
-		(regexp-quote
-		 (file-relative-name
-		  tmp-name3 ert-remote-temporary-file-directory))))
+		(tramp-compat-rx
+		 (literal
+		  (file-relative-name
+		   tmp-name3 ert-remote-temporary-file-directory)))))
 	      (goto-char (point-min))
 	      (should
 	       (re-search-forward
-		(regexp-quote
-		 (file-relative-name
-		  tmp-name4
-		  ert-remote-temporary-file-directory)))))
+		(tramp-compat-rx
+		 (literal
+		  (file-relative-name
+		   tmp-name4
+		   ert-remote-temporary-file-directory))))))
 	    (kill-buffer buffer)
 
 	    ;; Check for special characters.
@@ -3361,16 +3367,18 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (goto-char (point-min))
 	      (should
 	       (re-search-forward
-		(regexp-quote
-		 (file-relative-name
-		  tmp-name3 ert-remote-temporary-file-directory))))
+		(tramp-compat-rx
+		 (literal
+		  (file-relative-name
+		   tmp-name3 ert-remote-temporary-file-directory)))))
 	      (goto-char (point-min))
 	      (should
 	       (re-search-forward
-		(regexp-quote
-		 (file-relative-name
-		  tmp-name4
-		  ert-remote-temporary-file-directory)))))
+		(tramp-compat-rx
+		 (literal
+		  (file-relative-name
+		   tmp-name4
+		   ert-remote-temporary-file-directory))))))
 	    (kill-buffer buffer))
 
 	;; Cleanup.
@@ -3420,7 +3428,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	       (string-equal
 		(dired-get-filename 'no-dir 'no-error)
 		(file-name-nondirectory tmp-name2)))
-	      (should-not (re-search-forward "dired" nil t))
+	      (should-not (search-forward "dired" nil t))
 	      ;; The copied file has been inserted the line before.
 	      (forward-line -1)
 	      (should
@@ -3593,12 +3601,19 @@ This tests also `access-file', `file-readable-p',
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-stat tramp-test-vec))
-     (let ((default-directory ert-remote-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (cons '(nil "perl" nil)
-		  tramp-connection-properties)))
-       (funcall (ert-test-body ert-test)))))
+     (if-let ((default-directory ert-remote-temporary-file-directory)
+	      (ert-test (ert-get-test ',test))
+	      (result (ert-test-most-recent-result ert-test))
+	      (tramp-connection-properties
+	       (cons '(nil "perl" nil)
+		     tramp-connection-properties)))
+	 (progn
+	   ;; `ert-test-result-duration' exists since Emacs 27.  It
+	   ;; doesn't hurt to call it unconditionally, because
+	   ;; `skip-unless' hides the error.
+	   (skip-unless (< (ert-test-result-duration result) 300))
+	   (funcall (ert-test-body ert-test)))
+       (ert-skip (format "Test `%s' must run before" ',test)))))
 
 (defmacro tramp--test-deftest-with-perl (test)
   "Define ert `TEST-with-perl'."
@@ -3612,15 +3627,24 @@ This tests also `access-file', `file-readable-p',
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-perl tramp-test-vec))
-     (let ((default-directory ert-remote-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (append
-	     '((nil "stat" nil)
-	       ;; See `tramp-sh-handle-file-truename'.
-	       (nil "readlink" nil))
-	     tramp-connection-properties)))
-       (funcall (ert-test-body ert-test)))))
+     (if-let ((default-directory ert-remote-temporary-file-directory)
+	      (ert-test (ert-get-test ',test))
+	      (result (ert-test-most-recent-result ert-test))
+	      (tramp-connection-properties
+	       (append
+		'((nil "stat" nil)
+		  ;; See `tramp-sh-handle-file-truename'.
+		  (nil "readlink" nil)
+		  ;; See `tramp-sh-handle-get-remote-*'.
+		  (nil "id" nil))
+		tramp-connection-properties)))
+	 (progn
+	   ;; `ert-test-result-duration' exists since Emacs 27.  It
+	   ;; doesn't hurt to call it unconditionally, because
+	   ;; `skip-unless' hides the error.
+	   (skip-unless (< (ert-test-result-duration result) 300))
+	   (funcall (ert-test-body ert-test)))
+       (ert-skip (format "Test `%s' must run before" ',test)))))
 
 (defmacro tramp--test-deftest-with-ls (test)
   "Define ert `TEST-with-ls'."
@@ -3633,16 +3657,23 @@ This tests also `access-file', `file-readable-p',
      :tags '(:expensive-test)
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
-     (let ((default-directory ert-remote-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (append
-	     '((nil "perl" nil)
-	       (nil "stat" nil)
-	       ;; See `tramp-sh-handle-file-truename'.
-	       (nil "readlink" nil))
-	     tramp-connection-properties)))
-       (funcall (ert-test-body ert-test)))))
+     (if-let ((default-directory ert-remote-temporary-file-directory)
+	      (ert-test (ert-get-test ',test))
+	      (result (ert-test-most-recent-result ert-test))
+	      (tramp-connection-properties
+	       (append
+		'((nil "perl" nil)
+		  (nil "stat" nil)
+		  ;; See `tramp-sh-handle-file-truename'.
+		  (nil "readlink" nil))
+		tramp-connection-properties)))
+	 (progn
+	   ;; `ert-test-result-duration' exists since Emacs 27.  It
+	   ;; doesn't hurt to call it unconditionally, because
+	   ;; `skip-unless' hides the error.
+	   (skip-unless (< (ert-test-result-duration result) 300))
+	   (funcall (ert-test-body ert-test)))
+       (ert-skip (format "Test `%s' must run before" ',test)))))
 
 (tramp--test-deftest-with-stat tramp-test18-file-attributes)
 
@@ -3754,14 +3785,15 @@ They might differ only in time attributes or directory size."
 	       (tramp--test-file-attributes-equal-p
 		(file-attributes (car elt)) (cdr elt))))
 
-	    (setq attr (directory-files-and-attributes tmp-name2 nil "\\`b"))
+	    (setq attr (directory-files-and-attributes
+			tmp-name2 nil (rx bos "b")))
 	    (should (equal (mapcar #'car attr) '("bar" "boz")))
 
 	    ;; Check the COUNT arg.  It exists since Emacs 28.
 	    (when (tramp--test-emacs28-p)
 	      (with-no-warnings
 		(setq attr (directory-files-and-attributes
-			    tmp-name2 nil "\\`b" nil nil 1))
+			    tmp-name2 nil (rx bos "b") nil nil 1))
 		(should (equal (mapcar #'car attr) '("bar"))))))
 
 	;; Cleanup.
@@ -3867,8 +3899,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   `(condition-case err
        (progn ,@body)
      (file-error
-      (unless (string-match-p "^error with add-name-to-file"
-			      (error-message-string err))
+      (unless (string-prefix-p "error with add-name-to-file"
+			       (error-message-string err))
 	(signal (car err) (cdr err))))))
 
 (ert-deftest tramp-test21-file-links ()
@@ -4598,7 +4630,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (defun tramp--test-shell-file-name ()
   "Return default remote shell."
-  (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh"))
+  (if (file-exists-p
+       (concat
+	(file-remote-p ert-remote-temporary-file-directory) "/system/bin/sh"))
+      "/system/bin/sh" "/bin/sh"))
 
 (ert-deftest tramp-test28-process-file ()
   "Check `process-file'."
@@ -4638,7 +4673,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (let ((process-file-return-signal-string t))
 		(should
 		 (string-match-p
-		  "Interrupt\\|Signal 2"
+		  (rx (| "Interrupt" "Signal 2"))
 		  (process-file
 		   (tramp--test-shell-file-name)
 		   nil nil nil "-c" "kill -2 $$")))))
@@ -4718,7 +4753,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(insert-file-contents tmp-name)
 		(should
 		 (string-match-p
-		  "cat:.* No such file or directory" (buffer-string)))
+		  (rx "cat:" (* nonl) " No such file or directory")
+		  (buffer-string)))
 		(should-not (get-buffer-window (current-buffer) t))
 		(delete-file tmp-name))))
 
@@ -4868,8 +4904,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
                       ;; On macOS, there is always newline conversion.
 		      ;; "telnet" converts \r to <CR><NUL> if `crlf'
 		      ;; flag is FALSE.  See telnet(1) man page.
-		      "66\n6F\n6F\n0D\\(\n00\\)?\n0A\n"
-		    "66\n6F\n6F\n0A\\(\n00\\)?\n0A\n")
+		      (rx "66\n6F\n6F\n0D" (? "\n00") "\n0A\n")
+		    (rx "66\n6F\n6F\n0A" (? "\n00") "\n0A\n"))
 		  (buffer-string))))
 
 	    ;; Cleanup.
@@ -5066,7 +5102,9 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (accept-process-output proc 0 nil t)))
 	    ;; On some MS Windows systems, it returns "unknown signal".
-	    (should (string-match-p "unknown signal\\|killed" (buffer-string))))
+	    (should
+	     (string-match-p
+	      (rx (| "unknown signal" "killed")) (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -5099,7 +5137,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		  (delete-process proc)
 		  (should
 		   (string-match-p
-		    "cat:.* No such file or directory" (buffer-string)))))
+		    (rx "cat:" (* nonl) " No such file or directory")
+		    (buffer-string)))))
 
 	    ;; Cleanup.
 	    (ignore-errors (delete-process proc))
@@ -5126,7 +5165,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		(insert-file-contents tmp-name)
 		(should
 		 (string-match-p
-		  "cat:.* No such file or directory" (buffer-string)))))
+		  (rx "cat:" (* nonl) " No such file or directory")
+		  (buffer-string)))))
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
@@ -5177,8 +5217,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
                         ;; On macOS, there is always newline conversion.
 			;; "telnet" converts \r to <CR><NUL> if `crlf'
 			;; flag is FALSE.  See telnet(1) man page.
-			"66\n6F\n6F\n0D\\(\n00\\)?\n0A\n"
-		      "66\n6F\n6F\n0A\\(\n00\\)?\n0A\n")
+			(rx "66\n6F\n6F\n0D" (? "\n00") "\n0A\n")
+		      (rx "66\n6F\n6F\n0A" (? "\n00") "\n0A\n"))
 		    (buffer-string))))
 
 	      ;; Cleanup.
@@ -5657,7 +5697,7 @@ INPUT, if non-nil, is a string sent to the process."
 	;; Variable is set.
 	(should
 	 (string-match-p
-	  (regexp-quote envvar)
+	  (tramp-compat-rx (literal envvar))
 	  (funcall this-shell-command-to-string "set"))))
 
       (unless (tramp-direct-async-process-p)
@@ -5684,7 +5724,7 @@ INPUT, if non-nil, is a string sent to the process."
 	    ;; Variable is unset.
 	    (should-not
 	     (string-match-p
-	      (regexp-quote envvar)
+	      (tramp-compat-rx (literal envvar))
 	      ;; We must remove PS1, the output is truncated otherwise.
 	      ;; We must suppress "_=VAR...".
 	      (funcall
@@ -5836,7 +5876,7 @@ INPUT, if non-nil, is a string sent to the process."
 	    (with-timeout (10)
 	      (while (accept-process-output
 		      (get-buffer-process (current-buffer)) nil nil t)))
-	    (should (string-match-p "^foo$" (buffer-string)))))
+	    (should (string-match-p (rx bol "foo" eol) (buffer-string)))))
 
       ;; Cleanup.
       (put 'explicit-shell-file-name 'permanent-local nil)
@@ -6354,7 +6394,7 @@ INPUT, if non-nil, is a string sent to the process."
 	    ;; When `lock-file-name-transforms' is set, another lock
 	    ;; file is used.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-	    (let ((lock-file-name-transforms `((".*" ,tmp-name2))))
+	    (let ((lock-file-name-transforms `((,(rx (* nonl)) ,tmp-name2))))
 	      (should
 	       (string-equal
 		(with-no-warnings (make-lock-file-name tmp-name1))
@@ -6480,10 +6520,12 @@ INPUT, if non-nil, is a string sent to the process."
 		      (insert "bar")
 		      (when create-lockfiles
 			(should (string-match-p
-				 (format
-				  "^%s changed on disk; really edit the buffer\\?"
-				  (if (tramp--test-crypt-p)
-				      ".+" (file-name-nondirectory tmp-name)))
+				 (rx-to-string
+				  `(: bol
+				      ,(if (tramp--test-crypt-p)
+					   '(+ nonl)
+					 (file-name-nondirectory tmp-name))
+				      " changed on disk; really edit the buffer?"))
 				 captured-messages))
 			(should (file-locked-p tmp-name)))))
 
@@ -6574,7 +6616,7 @@ This is used in tests which we don't want to tag
                          :body nil :tags '(:tramp-asynchronous-processes))))
    ;; tramp-adb.el cannot apply multi-byte commands.
    (not (and (tramp--test-adb-p)
-	     (string-match-p "[[:multibyte:]]" default-directory)))))
+	     (string-match-p (tramp-compat-rx multibyte) default-directory)))))
 
 (defun tramp--test-crypt-p ()
   "Check, whether the remote directory is encrypted."
@@ -6599,8 +6641,8 @@ completely."
   "Check, whether an FTP-like method is used.
 This does not support globbing characters in file names (yet)."
   ;; Globbing characters are ??, ?* and ?\[.
-  (string-match-p
-   "ftp$" (file-remote-p ert-remote-temporary-file-directory 'method)))
+  (string-suffix-p
+   "ftp" (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-fuse-p ()
   "Check, whether an FUSE file system isused."
@@ -6623,7 +6665,7 @@ If optional METHOD is given, it is checked first."
 Several special characters do not work properly there."
   ;; We must refill the cache.  `file-truename' does it.
   (file-truename ert-remote-temporary-file-directory)
-  (ignore-errors (tramp-check-remote-uname tramp-test-vec "^HP-UX")))
+  (ignore-errors (tramp-check-remote-uname tramp-test-vec (rx bol "HP-UX"))))
 
 (defun tramp--test-ksh-p ()
   "Check, whether the remote shell is ksh.
@@ -6631,8 +6673,9 @@ ksh93 makes some strange conversions of non-latin characters into
 a $'' syntax."
   ;; We must refill the cache.  `file-truename' does it.
   (file-truename ert-remote-temporary-file-directory)
-  (string-match-p
-   "ksh$" (tramp-get-connection-property tramp-test-vec "remote-shell" "")))
+  (string-suffix-p
+   "ksh"
+   (tramp-get-connection-property tramp-test-vec "remote-shell" "")))
 
 (defun tramp--test-macos-p ()
   "Check, whether the remote host runs macOS."
@@ -6680,7 +6723,7 @@ Additionally, ls does not support \"--dired\"."
   "Check, whether the method needs a share."
   (and (tramp--test-gvfs-p)
        (string-match-p
-	"^\\(afp\\|davs?\\|smb\\)$"
+	(rx bol (| "afp" (: "dav" (? "s")) "smb") eol)
 	(file-remote-p ert-remote-temporary-file-directory 'method))))
 
 (defun tramp--test-sshfs-p ()
@@ -6732,7 +6775,7 @@ This requires restrictions of file name syntax."
       ;; Not all tramp-gvfs.el methods support changing the file mode.
       (and
        (tramp--test-gvfs-p)
-       (string-match-p
+       (string-suffix-p
 	"ftp" (file-remote-p ert-remote-temporary-file-directory 'method)))))
 
 (defun tramp--test-check-files (&rest files)
@@ -6881,14 +6924,14 @@ This requires restrictions of file name syntax."
 		    (should
 		     (string-equal
 		      (caar (directory-files-and-attributes
-			     file1 nil (regexp-quote elt1)))
+			     file1 nil (tramp-compat-rx (literal elt1))))
 		      elt1))
 		    (should
 		     (string-equal
 		      (funcall
 		       (if quoted #'tramp-compat-file-name-quote #'identity)
 		       (cadr (car (directory-files-and-attributes
-				   file1 nil (regexp-quote elt1)))))
+				   file1 nil (tramp-compat-rx (literal elt1))))))
 		      (file-remote-p (file-truename file2) 'localname)))
 		    (delete-file file3)
 		    (should-not (file-exists-p file3))))
@@ -6943,10 +6986,9 @@ This requires restrictions of file name syntax."
 		    (goto-char (point-min))
 		    (should
 		     (re-search-forward
-		      (format
-		       "^%s=%s$"
-		       (regexp-quote envvar)
-		       (regexp-quote (getenv envvar))))))))))
+		      (tramp-compat-rx
+		       bol (literal envvar)
+		       "=" (literal (getenv envvar)) eol))))))))
 
 	;; Cleanup.
 	(ignore-errors (kill-buffer buffer))
@@ -7078,7 +7120,7 @@ This requires restrictions of file name syntax."
 	     ;; ?\n and ?/ shouldn't be part of any file name.  ?\t,
 	     ;; ?. and ?? do not work for "smb" method.  " " does not
 	     ;; work at begin or end of the string for MS Windows.
-	     (replace-regexp-in-string "[ \t\n/.?]" "" x)))
+	     (replace-regexp-in-string (rx (any " \t\n/.?")) "" x)))
 	  language-info-alist)))))))
 
 (tramp--test-deftest-with-stat tramp-test42-utf8)
@@ -7461,7 +7503,7 @@ process sentinels.  They shall not disturb each other."
 	  ert-remote-temporary-file-directory)))
     (should
      (string-match-p
-      "Tramp loaded: t[\n\r]+"
+      (rx "Tramp loaded: t" (+ (any "\n\r")))
       (shell-command-to-string
        (format
 	"%s -batch -Q -L %s --eval %s"
@@ -7488,9 +7530,10 @@ process sentinels.  They shall not disturb each other."
     (dolist (tm '(t nil))
       (should
        (string-match-p
-	(format
-       "Tramp loaded: nil[\n\r]+Tramp loaded: nil[\n\r]+Tramp loaded: %s[\n\r]+"
-	 tm)
+	(tramp-compat-rx
+	 "Tramp loaded: nil" (+ (any "\n\r"))
+	 "Tramp loaded: nil" (+ (any "\n\r"))
+	 "Tramp loaded: " (literal (symbol-name tm)) (+ (any "\n\r")))
 	(shell-command-to-string
 	 (format
 	  "%s -batch -Q -L %s --eval %s"
@@ -7535,9 +7578,9 @@ process sentinels.  They shall not disturb each other."
 	    (tramp-cleanup-all-connections))"))
     (should
      (string-match-p
-      (format
-       "Loading %s"
-       (regexp-quote
+      (tramp-compat-rx
+       "Loading "
+       (literal
         (expand-file-name
          "tramp-cmds" (file-name-directory (locate-library "tramp")))))
       (shell-command-to-string
@@ -7580,11 +7623,13 @@ Since it unloads Tramp, it shall be the last test to run."
      (and (or (and (boundp x) (null (local-variable-if-set-p x)))
 	      (and (functionp x) (null (autoloadp (symbol-function x))))
 	      (macrop x))
-	  (string-match-p "^tramp" (symbol-name x))
+	  (string-prefix-p "tramp" (symbol-name x))
 	  ;; `tramp-completion-mode' is autoloaded in Emacs < 28.1.
 	  (not (eq 'tramp-completion-mode x))
-	  (not (string-match-p "^tramp\\(-archive\\)?--?test" (symbol-name x)))
-	  (not (string-match-p "unload-hook$" (symbol-name x)))
+	  (not (string-match-p
+		(rx bol "tramp" (? "-archive") (** 1 2 "-") "test")
+		(symbol-name x)))
+	  (not (string-suffix-p "unload-hook" (symbol-name x)))
 	  (not (get x 'tramp-autoload))
 	  (ert-fail (format "`%s' still bound" x)))))
 
@@ -7594,7 +7639,7 @@ Since it unloads Tramp, it shall be the last test to run."
   (mapatoms
    (lambda (x)
      (and (functionp x) (null (autoloadp (symbol-function x)))
-          (string-match-p "tramp-file-name" (symbol-name x))
+          (string-prefix-p "tramp-file-name" (symbol-name x))
           (ert-fail (format "Structure function `%s' still exists" x)))))
 
   ;; There shouldn't be left a hook function containing a Tramp
@@ -7602,8 +7647,9 @@ Since it unloads Tramp, it shall be the last test to run."
   (mapatoms
    (lambda (x)
      (and (boundp x)
-	  (string-match-p "-\\(hook\\|function\\)s?$" (symbol-name x))
-	  (not (string-match-p "unload-hook$" (symbol-name x)))
+	  (string-match-p
+	   (rx "-" (| "hook" "function") (? "s") eol) (symbol-name x))
+	  (not (string-suffix-p "unload-hook" (symbol-name x)))
 	  (consp (symbol-value x))
 	  (ignore-errors (all-completions "tramp" (symbol-value x)))
 	  (ert-fail (format "Hook `%s' still contains Tramp function" x)))))
@@ -7614,7 +7660,7 @@ Since it unloads Tramp, it shall be the last test to run."
      (and (functionp x)
 	  (advice-mapc
 	   (lambda (fun _symbol)
-	     (and (string-match-p "^tramp" (symbol-name fun))
+	     (and (string-prefix-p "tramp" (symbol-name fun))
 		  (ert-fail
 		   (format "Function `%s' still contains Tramp advice" x))))
 	   x))))
@@ -7631,7 +7677,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
   (interactive "p")
   (funcall
    (if interactive #'ert-run-tests-interactively #'ert-run-tests-batch)
-   "^tramp"))
+   (rx bol "tramp")))
 
 ;; TODO:
 
@@ -7640,6 +7686,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * file-in-directory-p
 ;; * file-name-case-insensitive-p
 ;; * tramp-get-remote-gid
+;; * tramp-get-remote-groups
 ;; * tramp-get-remote-uid
 ;; * tramp-set-file-uid-gid
 

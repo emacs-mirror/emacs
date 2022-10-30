@@ -359,6 +359,17 @@ should invoke the 'shape' method.  'hbfont_shape' should be extended
 to pass to 'hb_shape_full' the required array of features, as
 mentioned in the above HarfBuzz discussion.
 
+Alternatively, stylistic sets could be a font property, or a face
+property.  See this discussion:
+
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01597.html
+
+For some relevant use cases, see
+
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01652.html
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01701.html
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01772.html
+
 ** Concurrency
 Stefan Monnier writes: "Including it as an 'experimental' compile-time
 option sounds good.  Of course there might still be big questions
@@ -498,7 +509,7 @@ Also for listing fonts, displaying a font as a sample, etc.
 
 ** Program Enriched mode to read and save in RTF
 Is there actually a decent single definition of RTF?  Maybe see info at
-http://latex2rtf.sourceforge.net/.
+https://latex2rtf.sourceforge.net/.
 
 This task seems to be addressed by
 https://savannah.nongnu.org/projects/emacs-rtf/, which is still in
@@ -875,7 +886,6 @@ window associated with that modeline.
 https://lists.gnu.org/r/emacs-devel/2007-09/msg02416.html
 
 ** Random things that were planned for Emacs-24
-
 Stefan Monnier writes: "Random things that cross my mind right now
 that I'd like to see.  Some of them from my local hacks, but it's not
 obvious at all whether they'll make it."
@@ -1481,8 +1491,8 @@ Markers are implemented as a non-sorted singly linked list of markers.
 This makes them scale badly when thousands of markers are created in a
 buffer for some purpose, because some low-level primitives in Emacs
 traverse the markers' list (e.g., when converting between character
-and byte positions), and also because searching for a marker (e.g.,
-with 'buffer-has-markers-at') becomes very slow.
+and byte positions), and also because searching for a marker becomes
+very slow.
 
 **** Explore whether overlay-recenter can cure overlays performance problems
 
@@ -1686,12 +1696,6 @@ and the one to use when terminating the selection.
 More specifically do what's needed to make ibuffer.el the default, or
 just an extension of buff-menu.el.
 
-** Replace linum.el with nlinum.el
-https://lists.gnu.org/r/emacs-devel/2013-08/msg00379.html
-
-(Since Emacs 26 introduced native line numbers, this item is
-probably obsolete.)
-
 ** Merge sendmail.el and messages.el
 Probably not a complete merge, but at least arrange for messages.el to
 be a derived mode of sendmail.el.  Or arrange for messages.el to be
@@ -1733,6 +1737,17 @@ https://lists.gnu.org/r/emacs-devel/2012-06/msg00354.html
 It wouldn't have to be a complete replacement, just enough
 for vc-rcs-update-changelog.
 
+** Allow Emacs to use the bottom-right corner of a TTY
+Emacs doesn't use the bottom-right corner of a TTY when terminfo
+capability "am" (auto_right_margin) is defined.  It could use the
+bottom-right corner nonetheless when certain other capabilities are
+defined.  See bug#57607.
+
+** Replace tramp-archive.el by a native libarchive(3) implementation.
+The former is based on the GVFS archive backend, which makes it
+available on GNU/Linux only.  That implementation has further
+drawbacks like it doesn't support to write into archives.
+
 * Other known bugs
 
 ** 'make-frame' forgets unhandled parameters, at least for X11 frames
@@ -1753,6 +1768,26 @@ enough environment under which the fix can be tested.
 
 The MPX code has not been tested under X toolkit or GTK+ 2.x builds
 and is not expected to work there.
+
+** Framework for doing animations
+Emacs does animations all over the place, usually "pluse" animations.
+These currently animate by waiting for a small but fixed amount of
+time between each redisplay, which causes screen tearing by not
+synchronizing with the vertical refresh.  Frame synchronization works
+by causing redisplay to delay until the next time the monitor can
+refresh; this works, but can cause substandard frame rate when
+redisplay happens less often than the monitor refreshing, as redisplay
+will have to continually wait for missed monitor refresh.
+
+The right remedy for this problem is to define a function that returns
+the amount of time remaining before the next vertical blanking period,
+and to schedule animation redisplay within that period, using the
+information provided by the _NET_WM_FRAME_DRAWN and
+_NET_WM_FRAME_TIMINGS compositor messages on X and the
+BScreen::GetMonitorInfo function on Haiku.  Ideally, all features
+performing animations should be modified to use that method of
+scheduling redisplay.  Examples include xref-pulse-momentarily and
+pixel-scroll-precision-start-momentum.
 
 
 This file is part of GNU Emacs.

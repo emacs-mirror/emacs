@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
-;; Version: 0.8.1
+;; Version: 0.8.2
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -1498,7 +1498,8 @@ the progress.  The function returns the number of detected
 projects."
   (interactive "DDirectory: \nP")
   (project--ensure-read-project-list)
-  (let ((queue (directory-files dir t nil t)) (count 0)
+  (let ((queue (list dir))
+        (count 0)
         (known (make-hash-table
                 :size (* 2 (length project--list))
                 :test #'equal )))
@@ -1506,15 +1507,20 @@ projects."
       (puthash project t known))
     (while queue
       (when-let ((subdir (pop queue))
-                 ((file-directory-p subdir))
-                 ((not (gethash subdir known))))
-        (when-let (pr (project--find-in-directory subdir))
-          (project-remember-project pr t)
-          (message "Found %s..." (project-root pr))
+                 ((file-directory-p subdir)))
+        (when-let ((project (project--find-in-directory subdir))
+                   (project-root (project-root project))
+                   ((not (gethash project-root known))))
+          (project-remember-project project t)
+          (puthash project-root t known)
+          (message "Found %s..." project-root)
           (setq count (1+ count)))
-        (when (and recursive (file-symlink-p subdir))
-          (setq queue (nconc (directory-files subdir t nil t) queue))
-          (puthash subdir t known))))
+        (when (and recursive (file-directory-p subdir))
+          (setq queue
+                (nconc
+                 (directory-files
+                  subdir t directory-files-no-dot-files-regexp t)
+                 queue)))))
     (unless (eq recursive 'in-progress)
       (if (zerop count)
           (message "No projects were found")

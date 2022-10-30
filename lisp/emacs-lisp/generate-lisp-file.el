@@ -63,12 +63,12 @@ inserted."
 
 (cl-defun generate-lisp-file-trailer (file &key version inhibit-provide
                                       (coding 'utf-8-emacs-unix) autoloads
-                                      compile provide)
+                                      compile provide inhibit-native-compile)
   "Insert a standard trailer for FILE.
 By default, this trailer inhibits version control, byte
 compilation, updating autoloads, and uses a `utf-8-emacs-unix'
 coding system.  These can be inhibited by providing non-nil
-values to the VERSION, NO-PROVIDE, AUTOLOADS and COMPILE
+values to the VERSION, AUTOLOADS, COMPILE and NATIVE-COMPILE
 keyword arguments.
 
 CODING defaults to `utf-8-emacs-unix'.  Use a nil value to
@@ -79,7 +79,11 @@ If PROVIDE is non-nil, use that in the `provide' statement
 instead of using FILE as the basis.
 
 If `standard-output' is bound to a buffer, insert in that buffer.
-If no, insert at point in the current buffer."
+If no, insert at point in the current buffer.
+
+If INHITBIT-NATIVE-COMPILE is non-nil, add a cookie to inhibit
+native compilation.  (By default, a file will be native-compiled
+if it's also byte-compiled)."
   (with-current-buffer (if (bufferp standard-output)
                            standard-output
                          (current-buffer))
@@ -96,9 +100,11 @@ If no, insert at point in the current buffer."
     (unless version
       (insert ";; version-control: never\n"))
     (unless compile
-      (insert ";; no-byte-" "compile: t\n")) ;; #$ is byte-compiled into nil.
+      (insert ";; no-byte-" "compile: t\n"))
     (unless autoloads
       (insert ";; no-update-autoloads: t\n"))
+    (when inhibit-native-compile
+      (insert ";; no-native-" "compile: t\n"))
     (when coding
       (insert (format ";; coding: %s\n"
                       (if (eq coding t)

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
-;; Author: Ilya Zakharevich
+;; Author: Ilya Zakharevich <ilyaz@cpan.org>
 ;;	Bob Olson
 ;;	Jonathan Rockway <jon@jrock.us>
 ;; Maintainer: emacs-devel@gnu.org
@@ -23,8 +23,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-;; Corrections made by Ilya Zakharevich ilyaz@cpan.org
 
 ;;; Commentary:
 
@@ -54,7 +52,7 @@
 ;;     (define-key global-map [M-S-down-mouse-3] #'imenu)
 
 ;; This version supports the syntax added by the MooseX::Declare CPAN
-;; module, as well as Perl 5.10 keyword support.
+;; module, as well as Perl 5.10 keywords.
 
 ;;; Code:
 
@@ -634,7 +632,7 @@ mode-compile.el.
 If your Emacs does not default to `cperl-mode' on Perl files, and you
 want it to: put the following into your .emacs file:
 
-  (defalias \\='perl-mode \\='cperl-mode)
+  (add-to-list \\='major-mode-remap-alist \\='(perl-mode . cperl-mode))
 
 Get perl5-info from
   $CPAN/doc/manual/info/perl5-old/perl5-info.tar.gz
@@ -957,13 +955,6 @@ Unless KEEP, removes the old indentation."
 (define-abbrev-table 'cperl-mode-abbrev-table ()
   "Abbrev table in use in CPerl mode buffers."
   :parents (list cperl-mode-electric-keywords-abbrev-table))
-
-;; ;; TODO: Commented out as we don't know what it is used for.  If
-;; ;;       there are no bug reports about this for Emacs 28.1, this
-;; ;;       can probably be removed.  (Code search online reveals nothing.)
-;; (when (boundp 'edit-var-mode-alist)
-;;   ;; FIXME: What package uses this?
-;;   (add-to-list 'edit-var-mode-alist '(perl-mode (regexp . "^cperl-"))))
 
 (defvar cperl-mode-map
   (let ((map (make-sparse-keymap)))
@@ -3016,7 +3007,7 @@ and closing parentheses and brackets."
 	       ;; Now it is a hash reference
 	       (+ cperl-indent-level cperl-close-paren-offset))
 	     ;; Labels do not take :: ...
-	     (if (looking-at "\\(\\w\\|_\\)+[ \t]*:")
+	     (if (looking-at "\\(\\w\\|_\\)+[ \t]*:[^:]")
 		 (if (> (current-indentation) cperl-min-label-indent)
 		     (- (current-indentation) cperl-label-offset)
 		   ;; Do not move `parse-data', this should
@@ -3171,7 +3162,7 @@ Returns true if comment is found.  In POD will not move the point."
 Mark as generic string if STRING, as generic comment otherwise.
 A single character is marked as punctuation and directly
 fontified.  Do nothing if BEGIN and END are equal.  If
-`cperl-use-syntax-text-property' is nil, just fontify."
+`cperl-use-syntax-table-text-property' is nil, just fontify."
   (if (and cperl-use-syntax-table-text-property
            (> end begin))
       (progn
@@ -3727,7 +3718,6 @@ This is part of `cperl-find-pods-heres' (below)."
           overshoot
           warning-message)))
 
-;; Debugging this may require (setq max-specpdl-size 2000)...
 (defun cperl-find-pods-heres (&optional min max non-inter end ignore-max end-of-here-doc)
   "Scan the buffer for hard-to-parse Perl constructions.
 If `cperl-pod-here-fontify' is non-nil after evaluation,
@@ -6045,39 +6035,6 @@ Style of printout regulated by the variable `cperl-ps-print-face-properties'."
     (ps-extend-face-list cperl-ps-print-face-properties)
     (ps-print-buffer-with-faces file)))
 
-;; (defun cperl-ps-print-init ()
-;;   "Initialization of `ps-print' components for faces used in CPerl."
-;;   ;; Guard against old versions
-;;   (defvar ps-underlined-faces nil)
-;;   (defvar ps-bold-faces nil)
-;;   (defvar ps-italic-faces nil)
-;;   (setq ps-bold-faces
-;; 	(append '(font-lock-emphasized-face
-;; 		  cperl-array-face
-;; 		  font-lock-keyword-face
-;; 		  font-lock-variable-name-face
-;; 		  font-lock-constant-face
-;; 		  font-lock-reference-face
-;; 		  font-lock-other-emphasized-face
-;; 		  cperl-hash-face)
-;; 		ps-bold-faces))
-;;   (setq ps-italic-faces
-;; 	(append '(cperl-nonoverridable-face
-;; 		  font-lock-constant-face
-;; 		  font-lock-reference-face
-;; 		  font-lock-other-emphasized-face
-;; 		  cperl-hash-face)
-;; 		ps-italic-faces))
-;;   (setq ps-underlined-faces
-;; 	(append '(font-lock-emphasized-face
-;; 		  cperl-array-face
-;; 		  font-lock-other-emphasized-face
-;; 		  cperl-hash-face
-;; 		  cperl-nonoverridable-face font-lock-type-face)
-;; 		ps-underlined-faces))
-;;   (cons 'font-lock-type-face ps-underlined-faces))
-
-
 (cperl-windowed-init)
 
 (defconst cperl-styles-entries
@@ -8366,7 +8323,7 @@ the appropriate statement modifier."
 				  'cperl-short-docs
 				  'variable-documentation))))
 	 (Man-switches "")
-	 (manual-program (if is-func "perldoc -f" "perldoc")))
+         (manual-program (concat "perldoc -i" (if is-func " -f"))))
     (Man-getpage-in-background word)))
 
 ;;;###autoload
@@ -8535,8 +8492,8 @@ POS defaults to the point."
   (let ((p (cperl-get-here-doc-region pos)))
     (or p (error "Not inside a HERE document"))
     (narrow-to-region (car p) (cdr p))
-    (message
-     "When you are finished with narrow editing, type C-x n w")))
+    (message (substitute-command-keys
+              "When you are finished with narrow editing, type \\[widen]"))))
 
 (defun cperl-select-this-pod-or-here-doc (&optional pos)
   "Select the HERE-DOC (or POD section) at POS.

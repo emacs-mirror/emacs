@@ -52,13 +52,13 @@
       ;; Verify that the action is valid and pretend the drag succeeded
       ;; (by returning the action).
       (cl-ecase action
-        ('XdndActionCopy action)
-        ('XdndActionMove action)
-        ('XdndActionLink action)
+        (XdndActionCopy action)
+        (XdndActionMove action)
+        (XdndActionLink action)
         ;; These two are not technically valid, but x-begin-drag accepts
         ;; them anyway.
-        ('XdndActionPrivate action)
-        ('XdndActionAsk 'XdndActionPrivate))))
+        (XdndActionPrivate action)
+        (XdndActionAsk 'XdndActionPrivate))))
 
   ;; This doesn't work during tests.
   (defalias 'gui-set-selection
@@ -416,7 +416,7 @@ This function only tries to handle strings."
   ;; system specific test is in x-dnd-tests.el.  When running this
   ;; interactively, keep in mind that there are only two file managers
   ;; which are known to implement XDS correctly: System G (see
-  ;; http://nps-systemg.sourceforge.net), and Emacs itself.  GTK file
+  ;; https://nps-systemg.sourceforge.net), and Emacs itself.  GTK file
   ;; managers such as Nautilus will not work, since they prefer the
   ;; `text/uri-list' selection target to `XdndDirectSave0', contrary
   ;; to the XDS specification.

@@ -427,19 +427,19 @@ It is a permanent local, unaffected by
 @end defvar
 
 @defvar buffer-file-number
-This buffer-local variable holds the file number and directory device
-number of the file visited in the current buffer, or @code{nil} if no
+This buffer-local variable holds the inode number and device
+identifier of the file visited in the current buffer, or @code{nil} if no
 file or a nonexistent file is visited.  It is a permanent local,
 unaffected by @code{kill-all-local-variables}.
 
-The value is normally a list of the form @code{(@var{filenum}
-@var{devnum})}.  This pair of numbers uniquely identifies the file among
+The value is normally a list of the form @code{(@var{inodenum}
+@var{device})}.  This tuple uniquely identifies the file among
 all files accessible on the system.  See the function
 @code{file-attributes}, in @ref{File Attributes}, for more information
 about them.
 
 If @code{buffer-file-name} is the name of a symbolic link, then both
-numbers refer to the recursive target.
+@var{inodenum} and @var{device} refer to the recursive target of the link.
 @end defvar
 
 @defun get-file-buffer filename

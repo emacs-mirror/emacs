@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2022 Free Software Foundation, Inc.
+Copyright (C) 1986-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -65,6 +65,8 @@ char *w32_getenv (const char *);
 # define egetenv(VAR) getenv (VAR)
 
 #endif /* !WINDOWSNT */
+
+#define DEFAULT_TIMEOUT (30)
 
 #include <ctype.h>
 #include <errno.h>
@@ -144,6 +146,9 @@ static char const *socket_name;
 /* If non-NULL, the filename of the authentication file.  */
 static char const *server_file;
 
+/* Seconds to wait before timing out (0 means wait forever).  */
+static uintmax_t timeout;
+
 /* If non-NULL, the tramp prefix emacs must use to find the files.  */
 static char const *tramp_prefix;
 
@@ -178,6 +183,7 @@ static struct option const longopts[] =
   { "server-file",	required_argument, NULL, 'f' },
   { "display",	required_argument, NULL, 'd' },
   { "parent-id", required_argument, NULL, 'p' },
+  { "timeout",	required_argument, NULL, 'w' },
   { "tramp",	required_argument, NULL, 'T' },
   { 0, 0, 0, 0 }
 };
@@ -185,7 +191,7 @@ static struct option const longopts[] =
 /* Short options, in the same order as the corresponding long options.
    There is no '-p' short option.  */
 static char const shortopts[] =
-  "nqueHVtca:F:"
+  "nqueHVtca:F:w:"
 #ifdef SOCKETS_IN_FILE_SYSTEM
   "s:"
 #endif
@@ -497,6 +503,7 @@ decode_options (int argc, char **argv)
       if (opt < 0)
 	break;
 
+      char* endptr;
       switch (opt)
 	{
 	case 0:
@@ -528,6 +535,17 @@ decode_options (int argc, char **argv)
 
 	case 'n':
 	  nowait = true;
+	  break;
+
+	case 'w':
+	  timeout = strtoumax (optarg, &endptr, 10);
+	  if (timeout <= 0 ||
+	      ((timeout == INTMAX_MAX || timeout == INTMAX_MIN)
+	       && errno == ERANGE))
+	    {
+	      fprintf (stderr, "Invalid timeout: \"%s\"\n", optarg);
+	      exit (EXIT_FAILURE);
+	    }
 	  break;
 
 	case 'e':
@@ -671,6 +689,7 @@ The following OPTIONS are accepted:\n\
 			Set the parameters of a new frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
+-w, --timeout		Seconds to wait before timing out\n\
 -q, --quiet		Don't display messages on success\n\
 -u, --suppress-output   Don't display return values from the server\n\
 -d DISPLAY, --display=DISPLAY\n\
@@ -1059,7 +1078,9 @@ set_tcp_socket (const char *local_server_file)
 
   /* The cast to 'const char *' is to avoid a compiler warning when
      compiling for MS-Windows sockets.  */
-  setsockopt (s, SOL_SOCKET, SO_LINGER, (const char *) &l_arg, sizeof l_arg);
+  int ret = setsockopt (s, SOL_SOCKET, SO_LINGER, (const char *) &l_arg, sizeof l_arg);
+  if (ret < 0)
+    sock_err_message ("setsockopt");
 
   /* Send the authentication.  */
   auth_string[AUTH_KEY_LENGTH] = '\0';
@@ -1870,6 +1891,43 @@ start_daemon_and_retry_set_socket (void)
   return emacs_socket;
 }
 
+static void
+set_socket_timeout (HSOCKET socket, int seconds)
+{
+  int ret;
+
+#ifndef WINDOWSNT
+  struct timeval timeout;
+  timeout.tv_sec = seconds;
+  timeout.tv_usec = 0;
+  ret = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
+#else
+  DWORD timeout;
+
+  if (seconds > INT_MAX / 1000)
+    timeout = INT_MAX;
+  else
+    timeout = seconds * 1000;
+  ret = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof timeout);
+#endif
+
+  if (ret < 0)
+    sock_err_message ("setsockopt");
+}
+
+static bool
+check_socket_timeout (int rl)
+{
+#ifndef WINDOWSNT
+  return (rl == -1)
+    && (errno == EAGAIN)
+    && (errno == EWOULDBLOCK);
+#else
+  return (rl == SOCKET_ERROR)
+    && (WSAGetLastError() == WSAETIMEDOUT);
+#endif
+}
+
 int
 main (int argc, char **argv)
 {
@@ -2086,19 +2144,40 @@ main (int argc, char **argv)
     }
   fflush (stdout);
 
+  set_socket_timeout (emacs_socket, timeout > 0 ? timeout : DEFAULT_TIMEOUT);
+  bool saw_response = false;
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
     {
+      bool retry = true;
+      bool msg_showed = quiet;
       do
 	{
 	  act_on_signals (emacs_socket);
 	  rl = recv (emacs_socket, string, BUFSIZ, 0);
+	  retry = check_socket_timeout (rl);
+	  if (retry && !saw_response)
+	    {
+	      if (timeout > 0)
+		{
+		  /* Don't retry if we were given a --timeout flag.  */
+		  fprintf (stderr, "\nServer not responding; timed out after %ju seconds",
+			   timeout);
+		  retry = false;
+		}
+	      else if (!msg_showed)
+		{
+		  msg_showed = true;
+		  fprintf (stderr, "\nServer not responding; use Ctrl+C to break");
+		}
+	    }
 	}
-      while (rl < 0 && errno == EINTR);
+      while ((rl < 0 && errno == EINTR) || retry);
 
       if (rl <= 0)
         break;
 
+      saw_response = true;
       string[rl] = '\0';
 
       /* Loop over all NL-terminated messages.  */

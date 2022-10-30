@@ -113,10 +113,6 @@ While this input method is active, the variable
   (interactive)
   (ucs-input-activate -1))
 
-(define-obsolete-function-alias
-  'ucs-input-inactivate
-  #'ucs-input-deactivate "24.3")
-
 (defun ucs-input-help ()
   (interactive)
   (with-output-to-temp-buffer "*Help*"

@@ -275,11 +275,31 @@ Must called from within a `tar-mode' buffer."
 
     (let* ((pkg-el "multi-file-0.2.3.tar")
            (source-file (expand-file-name pkg-el (ert-resource-directory))))
-      (package-initialize)
       (should-not (package-installed-p 'multie-file))
       (package-install-file source-file)
       (should (package-installed-p 'multi-file))
-      (package-delete (cadr (assq 'multi-file package-alist))))
+      (package-delete (cadr (assq 'multi-file package-alist))))))
+
+(ert-deftest package-test-bug58367 ()
+  "Check variations in tarball formats."
+  (with-package-test (:basedir (ert-resource-directory))
+    (package-initialize)
+
+    ;; A package whose first entry is the main dir but without trailing /.
+    (let* ((pkg-el "ustar-withsub-0.1.tar")
+           (source-file (expand-file-name pkg-el (ert-resource-directory))))
+      (should-not (package-installed-p 'ustar-withsub))
+      (package-install-file source-file)
+      (should (package-installed-p 'ustar-withsub))
+      (package-delete (cadr (assq 'ustar-withsub package-alist))))
+
+    ;; A package whose first entry is a file in a subdir.
+    (let* ((pkg-el "v7-withsub-0.1.tar")
+           (source-file (expand-file-name pkg-el (ert-resource-directory))))
+      (should-not (package-installed-p 'v7-withsub))
+      (package-install-file source-file)
+      (should (package-installed-p 'v7-withsub))
+      (package-delete (cadr (assq 'v7-withsub package-alist))))
     ))
 
 (ert-deftest package-test-install-file-EOLs ()

@@ -103,6 +103,10 @@ modified to follow suit.  If there's trailing whitespace in
 BidiCharacterTest.txt, it should be removed before committing the new
 version.
 
+src/macuvs.h is a generated file, but if it has changed as a result
+of the updates, please commit it as well (see
+admin/unidata/Makefile.in for an explanation).
+
 Visit "emoji-data.txt" with the rebuilt Emacs, and check that an
 appropriate font is being used for the emoji (by default Emacs uses
 "Noto Color Emoji").  Running the following command in that buffer

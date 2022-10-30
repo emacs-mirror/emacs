@@ -310,12 +310,15 @@ be set in `.emacs' instead."
   :type 'boolean)
 
 (defun gnus-mode-line-buffer-identification (line)
-  (let ((str (car-safe line)))
+  (let* ((str (car-safe line))
+         (str (if (stringp str)
+                  (car (propertized-buffer-identification str))
+                str)))
     (if (or (not (fboundp 'find-image))
 	    (not (display-graphic-p))
 	    (not (stringp str))
 	    (not (string-match "^Gnus:" str)))
-	line
+	(list str)
       (let ((load-path (append (mm-image-load-path) load-path)))
 	;; Add the Gnus logo.
 	(add-text-properties
@@ -2232,7 +2235,7 @@ Disabling the agent may result in noticeable loss of performance."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value"))))
 
-(defcustom gnus-user-agent '(emacs gnus type)
+(defcustom gnus-user-agent '(gnus)
   "Which information should be exposed in the User-Agent header.
 
 Can be a list of symbols or a string.  Valid symbols are `gnus'
@@ -2240,7 +2243,7 @@ Can be a list of symbols or a string.  Valid symbols are `gnus'
 addition to the Emacs version, you can add `config' (show system
 configuration) or `type' (show system type).  If you set it to a
 string, be sure to use a valid format, see RFC 2616."
-  :version "22.1"
+  :version "29.1"
   :group 'gnus-message
   :type '(choice (list (set :inline t
                             (const :value gnus  :tag "Gnus version")
@@ -2249,25 +2252,6 @@ string, be sure to use a valid format, see RFC 2616."
                                     (const :value type   :tag "system type")
                                     (const :value config :tag "system configuration"))))
 		 (string)))
-
-;; Convert old (< 2005-01-10) symbol type values:
-(when (symbolp gnus-user-agent)
-  (setq gnus-user-agent
-	(cond ((eq gnus-user-agent 'emacs-gnus-config)
-	       '(emacs gnus config))
-	      ((eq gnus-user-agent 'emacs-gnus-type)
-	       '(emacs gnus type))
-	      ((eq gnus-user-agent 'emacs-gnus)
-	       '(emacs gnus))
-	      ((eq gnus-user-agent 'gnus)
-	       '(gnus))
-	      (t gnus-user-agent)))
-  (gnus-message 1 "Converted `gnus-user-agent' to `%s'." gnus-user-agent)
-  (sit-for 1)
-  (if (get 'gnus-user-agent 'saved-value)
-      (customize-save-variable 'gnus-user-agent gnus-user-agent)
-    (gnus-message 1 "Edit your init file to make this change permanent.")
-    (sit-for 2)))
 
 (defcustom gnus-agent-eagerly-store-articles t
   "If non-nil, cache articles eagerly.

@@ -36,6 +36,7 @@
 (require 'shell)
 (require 'subr-x)
 
+(declare-function tramp-compat-rx "tramp")
 (declare-function tramp-error "tramp")
 (declare-function tramp-file-name-handler "tramp")
 (declare-function tramp-tramp-file-p "tramp")
@@ -48,6 +49,13 @@
 	   (car (version-to-list tramp-compat-emacs-compiled-version)))
   (warn "Tramp has been compiled with Emacs %s, this is Emacs %s"
 	tramp-compat-emacs-compiled-version emacs-version))
+
+(with-eval-after-load 'docker-tramp
+  (warn (concat "Package `docker-tramp' has been obsoleted, "
+		"please use integrated package `tramp-container'")))
+(with-eval-after-load 'kubernetes-tramp
+  (warn (concat "Package `kubernetes-tramp' has been obsoleted, "
+		"please use integrated package `tramp-container'")))
 
 ;; For not existing functions, obsolete functions, or functions with a
 ;; changed argument list, there are compiler warnings.  We want to
@@ -179,6 +187,50 @@ Otherwise, return result of last form in BODY.
 CONDITION can also be a list of error conditions."
   (declare (debug t) (indent 1))
   `(condition-case nil (progn ,@body) (,condition nil)))
+
+;; `rx' in Emacs 26 doesn't know the `literal', `anychar' and
+;; `multibyte' constructs.  The `not' construct requires an `any'
+;; construct as argument.  The `regexp' construct requires a literal
+;; string.
+(defvar tramp-compat-rx--runtime-params)
+
+(defun tramp-compat-rx--transform-items (items)
+  (mapcar #'tramp-compat-rx--transform-item items))
+
+;; There is an error in Emacs 26.  `(rx "a" (? ""))' => "a?".
+;; We must protect the string in regexp and literal, therefore.
+(defun tramp-compat-rx--transform-item (item)
+  (pcase item
+    ('anychar 'anything)
+    ('multibyte 'nonascii)
+    (`(not ,expr)
+     (if (consp expr) item (list 'not (list 'any expr))))
+    (`(regexp ,expr)
+     (setq tramp-compat-rx--runtime-params t)
+     `(regexp ,(list '\, `(concat "\\(?:" ,expr "\\)"))))
+    (`(literal ,expr)
+     (setq tramp-compat-rx--runtime-params t)
+     `(regexp ,(list '\, `(concat "\\(?:" (regexp-quote ,expr) "\\)"))))
+    (`(eval . ,_) item)
+    (`(,head . ,rest) (cons head (tramp-compat-rx--transform-items rest)))
+    (_ item)))
+
+(defun tramp-compat-rx--transform (items)
+  (let* ((tramp-compat-rx--runtime-params nil)
+         (new-rx (cons ': (tramp-compat-rx--transform-items items))))
+    (if tramp-compat-rx--runtime-params
+        `(rx-to-string ,(list '\` new-rx) t)
+      (rx-to-string new-rx t))))
+
+(if (ignore-errors (rx-to-string '(literal "a"))) ;; Emacs 27+.
+    (defalias 'tramp-compat-rx #'rx)
+  (defmacro tramp-compat-rx (&rest items)
+    (tramp-compat-rx--transform items)))
+
+;; This is needed for compilation in the Emacs source tree.
+;;;###autoload (defalias 'tramp-compat-rx #'rx)
+
+(put #'tramp-compat-rx 'tramp-autoload t)
 
 ;; `file-modes', `set-file-modes' and `set-file-times' got argument
 ;; FLAG in Emacs 28.1.

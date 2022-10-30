@@ -1,4 +1,4 @@
-;;; modus-vivendi-theme.el --- Elegant, highly legible and customizable light theme -*- lexical-binding:t -*-
+;;; modus-vivendi-theme.el --- Elegant, highly legible and customizable dark theme -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2019-2022  Free Software Foundation, Inc.
 
@@ -6,7 +6,7 @@
 ;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
 ;; URL: https://git.sr.ht/~protesilaos/modus-themes
 ;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
-;; Version: 2.6.0
+;; Version: 3.0.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -70,5 +70,8 @@ which corresponds to a minimum contrast in relative luminance of
   (modus-themes-theme modus-vivendi)
 
   (provide-theme 'modus-vivendi))
+
+;;;###theme-autoload
+(put 'modus-vivendi 'theme-properties '(:background-mode dark :kind color-scheme :family modus))
 
 ;;; modus-vivendi-theme.el ends here

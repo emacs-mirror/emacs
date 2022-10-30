@@ -37,7 +37,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
-#include <stdbool.h>
 
 #include <c-ctype.h>
 #include <c-strcase.h>
@@ -2480,7 +2479,7 @@ get_keysym_name (int keysym)
 {
   static char value[16];
   NSTRACE ("get_keysym_name");
-  sprintf (value, "%d", keysym);
+  snprintf (value, 16, "%d", keysym);
   return value;
 }
 
@@ -3996,6 +3995,7 @@ static void
 ns_draw_stretch_glyph_string (struct glyph_string *s)
 {
   struct face *face;
+  NSColor *fg_color;
 
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
@@ -4092,8 +4092,20 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
 	  NSRectFill (NSMakeRect (x, s->y, background_width, s->height));
 	}
     }
-}
 
+  /* Draw overlining, etc. on the stretch glyph (or the part of the
+     stretch glyph after the cursor).  If the glyph has a box, then
+     decorations will be drawn after drawing the box in
+     ns_draw_glyph_string, in order to prevent them from being
+     overwritten by the box.  */
+  if (s->face->box == FACE_NO_BOX)
+    {
+      fg_color = [NSColor colorWithUnsignedLong:
+			    NS_FACE_FOREGROUND (s->face)];
+      ns_draw_text_decoration (s, s->face, fg_color,
+			       s->background_width, s->x);
+    }
+}
 
 static void
 ns_draw_glyph_string_foreground (struct glyph_string *s)
@@ -4225,7 +4237,12 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
   for (i = 0; i < s->nchars; i++, glyph++)
     {
-      char buf[7];
+#ifdef GCC_LINT
+      enum { PACIFY_GCC_BUG_81401 = 1 };
+#else
+      enum { PACIFY_GCC_BUG_81401 = 0 };
+#endif
+      char buf[8 + PACIFY_GCC_BUG_81401];
       char *str = NULL;
       int len = glyph->u.glyphless.len;
 
@@ -4241,6 +4258,8 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 		   ? CHAR_TABLE_REF (Vglyphless_char_display,
 				     glyph->u.glyphless.ch)
 		   : XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
+	      if (CONSP (acronym))
+		acronym = XCAR (acronym);
 	      if (STRINGP (acronym))
 		str = SSDATA (acronym);
 	    }
@@ -4249,7 +4268,7 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	{
 	  unsigned int ch = glyph->u.glyphless.ch;
 	  eassume (ch <= MAX_CHAR);
-	  sprintf (buf, "%0*X", ch < 0x10000 ? 4 : 6, ch);
+	  snprintf (buf, 8, "%0*X", ch < 0x10000 ? 4 : 6, ch);
 	  str = buf;
 	}
 
@@ -4409,7 +4428,8 @@ ns_draw_glyph_string (struct glyph_string *s)
     {
       NSColor *fg_color;
 
-      fg_color = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)];
+      fg_color = [NSColor colorWithUnsignedLong: NS_FACE_FOREGROUND (s->face)];
+
       ns_draw_text_decoration (s, s->face, fg_color,
 			       s->background_width, s->x);
     }
@@ -5605,17 +5625,6 @@ ns_term_init (Lisp_Object display_name)
 
   NSTRACE_MSG ("Versions");
 
-  {
-#ifdef NS_IMPL_GNUSTEP
-    Vwindow_system_version = build_string (gnustep_base_version);
-#else
-    /* PSnextrelease (128, c); */
-    char c[DBL_BUFSIZE_BOUND];
-    int len = dtoastr (c, sizeof c, 0, 0, NSAppKitVersionNumber);
-    Vwindow_system_version = make_unibyte_string (c, len);
-#endif
-  }
-
   delete_keyboard_wait_descriptor (0);
 
   ns_app_name = [[NSProcessInfo processInfo] processName];
@@ -6112,17 +6121,20 @@ ns_term_shutdown (int sig)
 
 - (void) terminate: (id)sender
 {
+  struct input_event ie;
+  struct frame *f;
+
   NSTRACE ("[EmacsApp terminate:]");
 
-  struct frame *emacsframe = SELECTED_FRAME ();
+  f = SELECTED_FRAME ();
+  EVENT_INIT (ie);
 
-  if (!emacs_event)
-    return;
+  ie.kind = NS_NONKEY_EVENT;
+  ie.code = KEY_NS_POWER_OFF;
+  ie.arg = Qt; /* mark as non-key event */
+  XSETFRAME (ie.frame_or_window, f);
 
-  emacs_event->kind = NS_NONKEY_EVENT;
-  emacs_event->code = KEY_NS_POWER_OFF;
-  emacs_event->arg = Qt; /* mark as non-key event */
-  EV_TRAILER ((id)nil);
+  kbd_buffer_store_event (&ie);
 }
 
 static bool
@@ -7915,17 +7927,24 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   if (!emacsframe->output_data.ns)
     return;
+
   if (screen != nil)
     {
-      emacsframe->left_pos = NSMinX (r) - NS_PARENT_WINDOW_LEFT_POS (emacsframe);
-      emacsframe->top_pos = NS_PARENT_WINDOW_TOP_POS (emacsframe) - NSMaxY (r);
+      emacsframe->left_pos = (NSMinX (r)
+			      - NS_PARENT_WINDOW_LEFT_POS (emacsframe));
+      emacsframe->top_pos = (NS_PARENT_WINDOW_TOP_POS (emacsframe)
+			     - NSMaxY (r));
 
-      // FIXME: after event part below didExitFullScreen is not received
-      // if (emacs_event)
-      //   {
-      //     emacs_event->kind = MOVE_FRAME_EVENT;
-      //     EV_TRAILER ((id)nil);
-      //   }
+      if (emacs_event)
+	{
+	  struct input_event ie;
+	  EVENT_INIT (ie);
+	  ie.kind = MOVE_FRAME_EVENT;
+	  XSETFRAME (ie.frame_or_window, emacsframe);
+	  XSETINT (ie.x, emacsframe->left_pos);
+	  XSETINT (ie.y, emacsframe->top_pos);
+	  kbd_buffer_store_event (&ie);
+	}
     }
 }
 
@@ -8582,7 +8601,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   EmacsLayer *layer = (EmacsLayer *)[self layer];
 
   [layer setContentsScale:[[notification object] backingScaleFactor]];
-  [layer setColorSpace:[[[notification object] colorSpace] CGColorSpace]];
+  [layer setColorSpace:[(id) [[notification object] colorSpace] CGColorSpace]];
 
   ns_clear_frame (emacsframe);
   expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
@@ -9144,6 +9163,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   NSTRACE ("[EmacsWindow dealloc]");
 
   /* We need to release the toolbar ourselves.  */
+  [self setToolbar: nil];
   [[self toolbar] release];
 
   /* Also the last button press event .  */

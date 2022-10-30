@@ -70,7 +70,6 @@
 
    Before including this file, you also need to include:
      #include <limits.h>
-     #include <stdbool.h>
      #include "minmax.h"
  */
 

@@ -2,6 +2,9 @@
 #
 # History:
 #
+# 2022-09-13 Registration of additional sequences in the Adobe-Japan1
+#            collection.
+#
 # 2020-11-06 Registration of additional sequences in the MSARG
 #            collection.
 #
@@ -32,7 +35,7 @@
 # For more details on the IVD, see UTS #37:
 # https://www.unicode.org/reports/tr37/
 #
-# Copyright 2006-2020 Unicode, Inc.
+# Copyright 2006-2022 Unicode, Inc.
 # For terms of use, see: https://www.unicode.org/copyright.html#8
 #
 3402 E0100; Adobe-Japan1; CID+13698
@@ -39337,4 +39340,5 @@ FA29 E0100; Adobe-Japan1; CID+8687
 2EB71 E0101; Moji_Joho; MJ059252
 2EB79 E0100; Moji_Joho; MJ059255
 2EB79 E0101; Moji_Joho; MJ059256
+31350 E0100; Adobe-Japan1; CID+19130
 # EOF

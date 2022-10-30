@@ -249,7 +249,7 @@ uni_combining (hb_unicode_funcs_t *funcs, hb_codepoint_t ch, void *user_data)
   if (!combining_class_loaded)
     {
       canonical_combining_class_table =
-	uniprop_table (intern ("canonical-combining-class"));
+	uniprop_table (Qcanonical_combining_class);
       if (NILP (canonical_combining_class_table))
 	emacs_abort ();
       staticpro (&canonical_combining_class_table);

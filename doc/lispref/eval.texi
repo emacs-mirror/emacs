@@ -830,7 +830,7 @@ This variable defines the maximum depth allowed in calls to @code{eval},
 @code{apply}, and @code{funcall} before an error is signaled (with error
 message @code{"Lisp nesting exceeds max-lisp-eval-depth"}).
 
-This limit, with the associated error when it is exceeded, is one way
+This limit, with the associated error when it is exceeded, is how
 Emacs Lisp avoids infinite recursion on an ill-defined function.  If
 you increase the value of @code{max-lisp-eval-depth} too much, such
 code can cause stack overflow instead.  On some systems, this overflow
@@ -846,14 +846,11 @@ The depth limit counts internal uses of @code{eval}, @code{apply}, and
 expressions, and recursive evaluation of function call arguments and
 function body forms, as well as explicit calls in Lisp code.
 
-The default value of this variable is 800.  If you set it to a value
+The default value of this variable is 1600.  If you set it to a value
 less than 100, Lisp will reset it to 100 if the given value is
 reached.  Entry to the Lisp debugger increases the value, if there is
 little room left, to make sure the debugger itself has room to
 execute.
-
-@code{max-specpdl-size} provides another limit on nesting.
-@xref{Definition of max-specpdl-size,, Local Variables}.
 @end defopt
 
 @defvar values

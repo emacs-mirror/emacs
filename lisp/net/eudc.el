@@ -106,44 +106,39 @@
    ;; Split the string just in case.
    (version<= "3" (car (split-string bbdb-version)))))
 
-(defun eudc-plist-member (plist prop)
-  "Return t if PROP has a value specified in PLIST."
-  (if (not (= 0 (% (length plist) 2)))
-      (error "Malformed plist"))
-  (catch 'found
-    (while plist
-      (if (eq prop (car plist))
-	  (throw 'found t))
-      (setq plist (cdr (cdr plist))))
-    nil))
+(defun eudc--plist-member (plist prop &optional predicate)
+  "Like `plist-member', but signal on invalid PLIST."
+  (or (plistp plist)
+      (signal 'wrong-type-argument `(plistp ,plist)))
+  (plist-member plist prop predicate))
 
-;; Emacs's plist-get lacks third parameter
+(defun eudc-plist-member (plist prop)
+  "Return t if PROP has a value specified in PLIST.
+Signal an error if PLIST is not a valid property list."
+  (and (eudc--plist-member plist prop) t))
+
+;; Emacs's `plist-get' lacks a default parameter, and CL-Lib's
+;; `cl-getf' doesn't accept a predicate or signal an error.
 (defun eudc-plist-get (plist prop &optional default)
-  "Extract a value from a property list.
-PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
-corresponding to the given PROP, or DEFAULT if PROP is not
-one of the properties on the list."
-  (if (eudc-plist-member plist prop)
-      (plist-get plist prop)
-    default))
+  "Extract the value of PROP in property list PLIST.
+PLIST is a list of the form (PROP1 VALUE1 PROP2 VALUE2...).
+This function returns the first value corresponding to the given
+PROP, or DEFAULT if PROP is not one of the properties in the
+list.  The comparison with PROP is done using `eq'.  If PLIST is
+not a valid property list, this function signals an error."
+  (let ((tail (eudc--plist-member plist prop)))
+    (if tail (cadr tail) default)))
 
 (defun eudc-lax-plist-get (plist prop &optional default)
-  "Extract a value from a lax property list.
-
-PLIST is a lax property list, which is a list of the form (PROP1
-VALUE1 PROP2 VALUE2...), where comparisons between properties are done
-using `equal' instead of `eq'.  This function returns the value
-corresponding to PROP, or DEFAULT if PROP is not one of the
-properties on the list."
-  (if (not (= 0 (% (length plist) 2)))
-      (error "Malformed plist"))
-  (catch 'found
-    (while plist
-      (if (equal prop (car plist))
-	  (throw 'found (car (cdr plist))))
-      (setq plist (cdr (cdr plist))))
-    default))
+  "Extract the value of PROP from lax property list PLIST.
+PLIST is a list of the form (PROP1 VALUE1 PROP2 VALUE2...), where
+comparisons between properties are done using `equal' instead of
+`eq'.  This function returns the first value corresponding to
+PROP, or DEFAULT if PROP is not one of the properties in the
+list.  If PLIST is not a valid property list, this function
+signals an error."
+  (let ((tail (eudc--plist-member plist prop #'equal)))
+    (if tail (cadr tail) default)))
 
 (defun eudc-replace-in-string (str regexp newtext)
   "Replace all matches in STR for REGEXP with NEWTEXT.

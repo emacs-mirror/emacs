@@ -137,9 +137,6 @@ This variable only has effect if set with \\[customize]."
 (defvar timeclock-update-timer nil
   "The timer used to update `timeclock-mode-string'.")
 
-(define-obsolete-variable-alias 'timeclock-modeline-display
-  'timeclock-mode-line-display "24.3")
-
 ;; For byte-compiler.
 (defvar display-time-hook)
 (defvar timeclock-mode-line-display)
@@ -258,9 +255,6 @@ The time is bracketed by <> if you are clocked in, otherwise by [].")
   "The date of the last day when notified \"day over\" for.")
 
 ;;; User Functions:
-
-(define-obsolete-function-alias 'timeclock-modeline-display
-  'timeclock-mode-line-display "24.3")
 
 ;;;###autoload
 (define-minor-mode timeclock-mode-line-display
@@ -611,9 +605,6 @@ arguments of `completing-read'."
 (defun timeclock-ask-for-reason ()
   "Ask the user for the reason they are clocking out."
   (completing-read "Reason for clocking out: " timeclock-reason-list))
-
-(define-obsolete-function-alias 'timeclock-update-modeline
-  'timeclock-update-mode-line "24.3")
 
 (defun timeclock-update-mode-line ()
   "Update the `timeclock-mode-string' displayed in the mode line.

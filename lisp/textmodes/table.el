@@ -266,11 +266,6 @@
 ;; all a table is still a part of text in the buffer.  Only the
 ;; special behaviors exist inside each cell through text properties.
 ;;
-;; `table-generate-html' which appeared in earlier releases is
-;; deprecated in favor of `table-generate-source'.  Now HTML is
-;; treated as one of the languages used for describing the table's
-;; logical structure.
-;;
 ;;
 ;; -------
 ;; Keymap:
@@ -5221,16 +5216,15 @@ instead of the current buffer and returns the OBJECT."
   "Point has entered a cell.
 Refresh the menu bar."
   ;; Avoid calling point-motion-hooks recursively.
-  (let ((inhibit-point-motion-hooks t))
-    (force-mode-line-update)
-    (pcase dir
-     ('left
-      (setq table-mode-indicator nil)
-      (run-hooks 'table-point-left-cell-hook))
-     ('entered
-      (setq table-mode-indicator t)
-      (table--warn-incompatibility)
-      (run-hooks 'table-point-entered-cell-hook)))))
+  (force-mode-line-update)
+  (pcase dir
+    ('left
+     (setq table-mode-indicator nil)
+     (run-hooks 'table-point-left-cell-hook))
+    ('entered
+     (setq table-mode-indicator t)
+     (table--warn-incompatibility)
+     (run-hooks 'table-point-entered-cell-hook))))
 
 (defun table--warn-incompatibility ()
   "If called from interactive operation warn the know incompatibilities.

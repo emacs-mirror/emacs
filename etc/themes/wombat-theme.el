@@ -21,11 +21,14 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme wombat
   "Medium-contrast faces with a dark gray background.
 Adapted, with permission, from a Vim color scheme by Lars H. Nielsen.
 Basic, Font Lock, Isearch, Gnus, Message, and Ansi-Color faces
-are included.")
+are included."
+  :background-mode 'dark
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

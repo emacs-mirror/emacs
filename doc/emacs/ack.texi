@@ -245,6 +245,11 @@ Theresa O'Connor wrote @file{json.el}, a file for parsing and
 generating JSON files.
 
 @item
+Andrea Corallo wrote the native compilation support in @file{comp.c}
+and @file{comp.el}, for compiling Emacs Lisp to native code using
+@samp{libgccjit}.
+
+@item
 Georges Brun-Cottan and Stefan Monnier wrote @file{easy-mmode.el}, a
 package for easy definition of major and minor modes.
 
@@ -519,8 +524,9 @@ Denis Howe wrote @file{browse-url.el}, a package for invoking a WWW
 browser to display a URL.
 
 @item
-Lars Magne Ingebrigtsen did a major redesign of the Gnus news-reader and
-wrote many of its parts.  Several of these are now general components of
+Lars Magne Ingebrigtsen was the Emacs (co-)maintainer from Emacs 27.2
+onwards.  He did a major redesign of the Gnus news-reader and wrote
+many of its parts.  Several of these are now general components of
 Emacs, including: @file{dns.el} for Domain Name Service lookups;
 @file{format-spec.el} for formatting arbitrary format strings;
 @file{netrc.el} for parsing of @file{.netrc} files; and
@@ -1435,7 +1441,8 @@ Victor Zandy wrote @file{zone.el}, a package for people who like to
 zone out in front of Emacs.
 
 @item
-Eli Zaretskii made many standard Emacs features work on MS-DOS and
+Eli Zaretskii was the Emacs (co-)maintainer from Emacs 25
+onwards.  He made many standard Emacs features work on MS-DOS and
 Microsoft Windows.  He also wrote @file{tty-colors.el}, which
 implements transparent mapping of X colors to tty colors; and
 @file{rxvt.el}.  He implemented support for bidirectional text, menus

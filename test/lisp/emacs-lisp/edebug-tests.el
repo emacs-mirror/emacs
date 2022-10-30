@@ -428,7 +428,8 @@ test and possibly others should be updated."
     (verify-keybinding "-" 'negative-argument)
     (verify-keybinding "=" 'edebug-temp-display-freq-count)
     (should (eq (lookup-key backtrace-mode-map "n") 'backtrace-forward-frame))
-    (should (eq (lookup-key backtrace-mode-map "s") 'backtrace-goto-source))))
+    (should (eq (lookup-key edebug-backtrace-mode-map "s")
+                'backtrace-goto-source))))
 
 (ert-deftest edebug-tests-stop-point-at-start-of-first-instrumented-function ()
   "Edebug stops at the beginning of an instrumented function."

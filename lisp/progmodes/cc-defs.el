@@ -60,7 +60,6 @@
 (cc-bytecomp-defun region-active-p)	; XEmacs
 (cc-bytecomp-defvar mark-active)	; Emacs
 (cc-bytecomp-defvar deactivate-mark)	; Emacs
-(cc-bytecomp-defvar inhibit-point-motion-hooks) ; Emacs
 (cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs
 (cc-bytecomp-defvar text-property-default-nonsticky) ; Emacs 21
 (cc-bytecomp-defun string-to-syntax)	; Emacs 21
@@ -125,7 +124,7 @@ The result of the body appears to the compiler as a quoted constant.
 
 This variant works around bugs in `eval-when-compile' in various
 \(X)Emacs versions.  See cc-defs.el for details."
-    (declare (indent 0) (debug t))
+    (declare (indent 0) (debug (&rest def-form)))
     (if c-inside-eval-when-compile
 	;; XEmacs 21.4.6 has a bug in `eval-when-compile' in that it
 	;; evaluates its body at macro expansion time if it's nested
@@ -2629,6 +2628,20 @@ fallback definition for all modes, to break the cycle).")
 
 (defconst c-lang--novalue "novalue")
 
+(defmacro c-let*-maybe-max-specpdl-size (varlist &rest body)
+  ;; Like let*, but doesn't bind `max-specpdl-size' if that variable
+  ;; is in the bindings list and either doesn't exist or is obsolete.
+  (declare (debug let*) (indent 1))
+  (let ((-varlist- (copy-sequence varlist)) msp-binding)
+    (if (or (not (boundp 'max-specpdl-size))
+	    (get 'max-specpdl-size 'byte-obsolete-variable))
+	(cond
+	 ((memq 'max-specpdl-size -varlist-)
+	  (setq -varlist- (delq 'max-specpdl-size -varlist-)))
+	 ((setq msp-binding (assq 'max-specpdl-size -varlist-))
+	  (setq -varlist- (delq msp-binding -varlist-)))))
+    `(let* ,-varlist- ,@body)))
+
 (defun c-get-lang-constant (name &optional source-files mode)
   ;; Used by `c-lang-const'.
 
@@ -2669,21 +2682,22 @@ fallback definition for all modes, to break the cycle).")
       ;; In that case we just continue with the "assignment" before
       ;; the one currently being evaluated, thereby creating the
       ;; illusion if a `setq'-like sequence of assignments.
-      (let* ((c-buffer-is-cc-mode mode)
-	     (source-pos
-	      (or (assq sym c-lang-constants-under-evaluation)
-		  (cons sym (vector source nil))))
-	     ;; Append `c-lang-constants-under-evaluation' even if an
-	     ;; earlier entry is found.  It's only necessary to get
-	     ;; the recording of dependencies above correct.
-	     (c-lang-constants-under-evaluation
-	      (cons source-pos c-lang-constants-under-evaluation))
-	     (fallback (get mode 'c-fallback-mode))
-	     value
-	     ;; Make sure the recursion limits aren't very low
-	     ;; since the `c-lang-const' dependencies can go deep.
-	     (max-specpdl-size (max max-specpdl-size 3000))
-	     (max-lisp-eval-depth (max max-lisp-eval-depth 1000)))
+      (c-let*-maybe-max-specpdl-size
+	  ((c-buffer-is-cc-mode mode)
+	   (source-pos
+	    (or (assq sym c-lang-constants-under-evaluation)
+		(cons sym (vector source nil))))
+	   ;; Append `c-lang-constants-under-evaluation' even if an
+	   ;; earlier entry is found.  It's only necessary to get
+	   ;; the recording of dependencies above correct.
+	   (c-lang-constants-under-evaluation
+	    (cons source-pos c-lang-constants-under-evaluation))
+	   (fallback (get mode 'c-fallback-mode))
+	   value
+	   ;; Make sure the recursion limits aren't very low
+	   ;; since the `c-lang-const' dependencies can go deep.
+	   (max-specpdl-size (max max-specpdl-size 3000))
+	   (max-lisp-eval-depth (max max-lisp-eval-depth 1000)))
 
 	(if (if fallback
 		(let ((backup-source-pos (copy-sequence (cdr source-pos))))

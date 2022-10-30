@@ -125,8 +125,6 @@ A non-local file is one whose file name is not proper outside Emacs.
 A local copy of the archive will be used when updating."
   :type 'regexp)
 
-(define-obsolete-variable-alias 'archive-extract-hooks
-  'archive-extract-hook "24.3")
 (defcustom archive-extract-hook nil
   "Hook run when an archive member has been extracted."
   :type 'hook)

@@ -140,4 +140,70 @@ HERE
 
 . 'indent-level'; # Continuation, should be indented
 
+=head2 Test case 7
+
+An indented HERE document using a bare identifier.
+
+=cut
+
+## test case
+
+$text = <<~HERE;
+look-here
+HERE
+
+$noindent = "New statement in this line";
+
+=head2 Test case 8
+
+A HERE document as an argument to print when printing to a filehandle.
+
+=cut
+
+## test case
+
+print $fh <<~HERE;
+look-here
+HERE
+
+$noindent = "New statement in this line";
+
+=head2 Test case 9
+
+A HERE document as a hash value.
+
+=cut
+
+my %foo = (
+    text => <<~HERE
+look-here
+HERE
+    );
+
+$noindent = "New statement in this line";
+
+=head2 Test case 10
+
+A HERE document as an argument to die.
+
+=cut
+
+1 or die <<HERE;
+look-here
+HERE
+
+$noindent = "New statement in this line";
+
+=head2 Test case 11
+
+A HERE document as an argument to warn.
+
+=cut
+
+1 or warn <<HERE;
+look-here
+HERE
+
+$noindent = "New statement in this line";
+
 __END__

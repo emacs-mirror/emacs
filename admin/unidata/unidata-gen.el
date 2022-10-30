@@ -212,12 +212,12 @@ Property value is one of the following symbols:
       ;; Character Database (UCD).
       (L (#x0600 #x07BF AL) (#x0860 #x08FF AL) (#xFB50 #xFDCF AL)
          (#xFDF0 #xFDFF AL) (#xFE70 #xFEFF AL) (#x10D00 #x10D3F AL)
-         (#x10F30 #x10F6F AL) (#x1EC70 #x1ECBF AL) (#x1ED00 #x1ED4F AL)
-         (#x1EE00 #x1EEFF AL)
+         (#x10EC0 #x10EFF AL) (#x10F30 #x10F6F AL) (#x1EC70 #x1ECBF AL)
+         (#x1ED00 #x1ED4F AL) (#x1EE00 #x1EEFF AL)
 	 (#x0590 #x05FF R) (#x07C0 #x085F R) (#xFB1D #xFB4F R)
-         (#x10800 #x10CFF R) (#x10D40 #x10F2F R) (#x10F70 #x10FFF R)
-         (#x1E800 #x1EC6F R) (#x1ECC0 #x1ECFF R) (#x1ED50 #x1EDFF R)
-         (#x1EF00 #x1EFFF R)
+         (#x10800 #x10CFF R) (#x10D40 #x10EBF R) (#x10F00 #x10F2F R)
+         (#x10F70 #x10FFF R) (#x1E800 #x1EC6F R) (#x1ECC0 #x1ECFF R)
+         (#x1ED50 #x1EDFF R) (#x1EF00 #x1EFFF R)
          (#x20A0 #x20CF ET))
       ;; The order of elements must be in sync with bidi_type_t in
       ;; src/dispextern.h.

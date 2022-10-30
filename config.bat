@@ -276,6 +276,7 @@ cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
 If Exist c++defs.h update c++defs.h cxxdefs.h
 If Exist alloca.in.h update alloca.in.h alloca.in-h
+If Exist assert.in.h update assert.in.h assert.in-h
 If Exist byteswap.in.h update byteswap.in.h byteswap.in-h
 If Exist dirent.in.h update dirent.in.h dirent.in-h
 If Exist errno.in.h update errno.in.h errno.in-h

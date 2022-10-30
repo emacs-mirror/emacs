@@ -294,6 +294,48 @@ For example:
 @end group
 @end example
 
+It can be convenient to bind variables in conjunction with using a
+conditional.  It's often the case that you compute a value, and then
+want to do something with that value if it's non-@code{nil}.  The
+straightforward way to do that is to just write, for instance:
+
+@example
+(let ((result1 (do-computation)))
+  (when result1
+    (let ((result2 (do-more result1)))
+      (when result2
+        (do-something result2)))))
+@end example
+
+Since this is a very common pattern, Emacs provides a number of macros
+to make this easier and more readable.  The above can be written the
+following way instead:
+
+@example
+(when-let ((result1 (do-computation))
+           (result2 (do-more result1)))
+  (do-something result2))
+@end example
+
+There's a number of variations on this theme, and they're briefly
+described below.
+
+@defmac if-let spec then-form else-forms...
+Evaluate each binding in @var{spec} in turn, like in @code{let*}
+(@pxref{Local Variables}, stopping if a binding value is @code{nil}.
+If all are non-@code{nil}, return the value of @var{then-form},
+otherwise the last form in @var{else-forms}.
+@end defmac
+
+@defmac when-let spec then-forms...
+Like @code{if-let}, but without @var{else-forms}.
+@end defmac
+
+@defmac while-let spec then-forms...
+Like @code{when-let}, but repeat until a binding in @var{spec} is
+@code{nil}.  The return value is always @code{nil}.
+@end defmac
+
 @node Combining Conditions
 @section Constructs for Combining Conditions
 @cindex combining conditions
@@ -2366,11 +2408,6 @@ of the @var{cleanup-forms} themselves exits nonlocally (via a
 guaranteed to evaluate the rest of them.  If the failure of one of the
 @var{cleanup-forms} has the potential to cause trouble, then protect
 it with another @code{unwind-protect} around that form.
-
-The number of currently active @code{unwind-protect} forms counts,
-together with the number of local variable bindings, against the limit
-@code{max-specpdl-size} (@pxref{Definition of max-specpdl-size,, Local
-Variables}).
 @end defspec
 
   For example, here we make an invisible buffer for temporary use, and

@@ -213,20 +213,32 @@ struct color_name_cache_entry
 #ifdef HAVE_XINPUT2
 
 #ifdef HAVE_XINPUT2_1
+
 struct xi_scroll_valuator_t
 {
-  bool invalid_p;
-  bool pending_enter_reset;
-  double current_value;
-  double emacs_value;
-  double increment;
-
+  /* The ID of the valuator.  */
   int number;
-  int horizontal;
+
+  /* Whether or not it represents X axis movement.  */
+  bool_bf horizontal : 1;
+
+  /* Whether or not the value is currently invalid.  */
+  bool_bf invalid_p : 1;
+
+  /* The current value.  */
+  double current_value;
+
+  /* Value used to tally up deltas until a threshold is met.  */
+  double emacs_value;
+
+  /* The scroll increment.  */
+  double increment;
 };
+
 #endif
 
 #ifdef HAVE_XINPUT2_2
+
 struct xi_touch_point_t
 {
   struct xi_touch_point_t *next;
@@ -234,6 +246,7 @@ struct xi_touch_point_t
   int number;
   double x, y;
 };
+
 #endif
 
 struct xi_device_t
@@ -286,11 +299,16 @@ struct xi_device_t
   /* The frame that is currently this device's implicit keyboard
      focus, or NULL.  */
   struct frame *focus_implicit_frame;
+
+  /* The window on which the last motion event happened.  */
+  Window last_motion_window;
+
+  /* The rounded integer coordinates of the last motion event.  */
+  int last_motion_x, last_motion_y;
 };
 #endif
 
-Status x_parse_color (struct frame *f, const char *color_name,
-		      XColor *color);
+extern Status x_parse_color (struct frame *, const char *, XColor *);
 
 struct x_failable_request
 {
@@ -301,6 +319,22 @@ struct x_failable_request
      Otherwise, this is the request that ends this sequence.  */
   unsigned long end;
 };
+
+#ifdef HAVE_XFIXES
+
+struct x_monitored_selection
+{
+  /* The name of the selection.  */
+  Atom name;
+
+  /* The current owner of the selection.  */
+  Window owner;
+};
+
+/* An invalid window.  */
+#define X_INVALID_WINDOW 0xffffffff
+
+#endif
 
 
 /* For each X display, we have a structure that records
@@ -574,6 +608,9 @@ struct x_display_info
   XIMStyles *xim_styles;
   struct xim_inst_t *xim_callback_data;
   XIMStyle preferred_xim_style;
+
+  /* The named coding system to use for this input method.  */
+  Lisp_Object xim_coding;
 #endif
 
   /* A cache mapping color names to RGB values.  */
@@ -650,7 +687,8 @@ struct x_display_info
     Xatom_net_wm_sync_request, Xatom_net_wm_sync_request_counter,
     Xatom_net_wm_sync_fences, Xatom_net_wm_frame_drawn, Xatom_net_wm_frame_timings,
     Xatom_net_wm_user_time, Xatom_net_wm_user_time_window,
-    Xatom_net_client_list_stacking, Xatom_net_wm_pid;
+    Xatom_net_client_list_stacking, Xatom_net_wm_pid,
+    Xatom_net_wm_bypass_compositor;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -768,6 +806,7 @@ struct x_display_info
   bool xfixes_supported_p;
   int xfixes_major;
   int xfixes_minor;
+  int xfixes_event_base;
 #endif
 
 #ifdef HAVE_XSYNC
@@ -818,18 +857,30 @@ struct x_display_info
   /* Pointer to the next request in `failable_requests'.  */
   struct x_failable_request *next_failable_request;
 
+#ifdef HAVE_XFIXES
+  /* Array of selections being monitored and their owners.  */
+  struct x_monitored_selection *monitored_selections;
+
+  /* Window used to monitor those selections.  */
+  Window selection_tracking_window;
+
+  /* The number of those selections.  */
+  int n_monitored_selections;
+#endif
+
   /* The pending drag-and-drop time for middle-click based
      drag-and-drop emulation.  */
   Time pending_dnd_time;
 
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   /* Whether or not the server time is probably the same as
      "clock_gettime (CLOCK_MONOTONIC, ...)".  */
   bool server_time_monotonic_p;
 
   /* The time difference between the X server clock and the monotonic
-     clock.  */
-  int64_t server_time_offset;
+     clock, or 0 if unknown (if the difference is legitimately 0,
+     server_time_monotonic_p will be true).  */
+  int_fast64_t server_time_offset;
 #endif
 };
 
@@ -904,11 +955,6 @@ struct x_output
      not present.  */
   Picture picture;
 #endif
-
-  /* Flag that indicates whether we've modified the back buffer and
-     need to publish our modifications to the front buffer at a
-     convenient time.  */
-  bool need_buffer_flip;
 
   /* The X window used for the bitmap icon;
      or 0 if we don't have a bitmap icon.  */
@@ -1080,6 +1126,18 @@ struct x_output
      and inactive states.  */
   bool_bf alpha_identical_p : 1;
 
+#ifdef HAVE_XDBE
+  /* Flag that indicates whether we've modified the back buffer and
+     need to publish our modifications to the front buffer at a
+     convenient time.  */
+  bool_bf need_buffer_flip : 1;
+
+  /* Flag that indicates whether or not the frame contents are
+     complete and can be safely flushed while handling async
+     input.  */
+  bool_bf complete : 1;
+#endif
+
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
@@ -1125,10 +1183,10 @@ struct x_output
   bool_bf use_vsync_p : 1;
 
   /* The time (in microseconds) it took to draw the last frame.  */
-  uint64_t last_frame_time;
+  uint_fast64_t last_frame_time;
 
   /* A temporary time used to calculate that value.  */
-  uint64_t temp_frame_time;
+  uint_fast64_t temp_frame_time;
 
 #ifdef HAVE_XSYNCTRIGGERFENCE
   /* An array of two sync fences that are triggered in order after a
@@ -1188,6 +1246,15 @@ struct x_output
   XIEventMask *xi_masks;
   int num_xi_masks;
 #endif
+
+  /* Whether or not we are certain we know the offset from the root
+     window to this frame.  */
+  bool window_offset_certain_p;
+
+  /* The offset of the edit window from the root window.  This is
+     strictly an optimization to avoid extraneous synchronizing in
+     some cases.  */
+  int root_x, root_y;
 };
 
 enum
@@ -1201,7 +1268,6 @@ enum
   FOCUS_IMPLICIT = 1,
   FOCUS_EXPLICIT = 2
 };
-
 
 /* Return the X output data for frame F.  */
 #define FRAME_X_OUTPUT(f) ((f)->output_data.x)
@@ -1229,6 +1295,10 @@ extern void x_mark_frame_dirty (struct frame *f);
 
 /* Return the need-buffer-flip flag for frame F.  */
 #define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
+
+/* Return whether or not the frame F has been completely drawn.  Used
+   while handling async input.  */
+#define FRAME_X_COMPLETE_P(f) ((f)->output_data.x->complete)
 #endif
 
 /* Return the outermost X window associated with the frame F.  */
@@ -1332,6 +1402,12 @@ extern void x_mark_frame_dirty (struct frame *f);
 #define FRAME_X_XIM_STYLES(f) (FRAME_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
+#define FRAME_X_XIM_CODING(f)				\
+  (SYMBOLP (Vx_input_coding_system)			\
+   ? Vx_input_coding_system				\
+   : (!NILP (FRAME_DISPLAY_INFO (f)->xim_coding)	\
+      ? FRAME_DISPLAY_INFO(f)->xim_coding		\
+      : Vlocale_coding_system))
 
 /* X-specific scroll bar stuff.  */
 
@@ -1581,6 +1657,7 @@ extern void x_wm_set_size_hint (struct frame *, long, bool);
   && defined HAVE_CLOCK_GETTIME
 extern void x_sync_init_fences (struct frame *);
 #endif
+extern bool x_embed_frame (struct x_display_info *, struct frame *);
 
 extern void x_delete_terminal (struct terminal *);
 extern Cursor x_create_font_cursor (struct x_display_info *, int);
@@ -1619,6 +1696,10 @@ extern void x_cr_draw_frame (cairo_t *, struct frame *);
 extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #endif
 
+#ifdef HAVE_XFIXES
+extern Window x_find_selection_owner (struct x_display_info *, Atom);
+#endif
+
 #ifdef HAVE_XRENDER
 extern void x_xrender_color_from_gc_background (struct frame *, GC,
 						XRenderColor *, bool);
@@ -1626,6 +1707,12 @@ extern void x_xr_ensure_picture (struct frame *);
 extern void x_xr_apply_ext_clip (struct frame *, GC);
 extern void x_xr_reset_ext_clip (struct frame *);
 #endif
+
+extern void x_translate_coordinates (struct frame *, int, int, int *, int *);
+extern void x_translate_coordinates_to_root (struct frame *, int, int,
+					     int *, int *);
+extern Lisp_Object x_handle_translate_coordinates (struct frame *, Lisp_Object,
+						   int, int);
 
 extern Bool x_query_pointer (Display *, Window, Window *, Window *, int *,
 			     int *, int *, int *, unsigned int *);
@@ -1820,7 +1907,7 @@ extern void mark_xterm (void);
 
 /* Is the frame embedded into another application? */
 
-#define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)
+#define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT (f)->explicit_parent != 0)
 
 #define STORE_NATIVE_RECT(nr,rx,ry,rwidth,rheight)	\
   ((nr).x = (rx),					\

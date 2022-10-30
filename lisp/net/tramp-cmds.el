@@ -34,6 +34,7 @@
 (declare-function mml-mode "mml")
 (declare-function mml-insert-empty-tag "mml")
 (declare-function reporter-dump-variable "reporter")
+(defvar mm-7bit-chars)
 (defvar reporter-eval-buffer)
 (defvar reporter-prompt-for-summary-p)
 
@@ -177,6 +178,10 @@ This includes password cache, file cache, connection cache, buffers."
 
   ;; Flush file and connection cache.
   (clrhash tramp-cache-data)
+
+  ;; Initialize the cache version.
+  (tramp-set-connection-property
+   tramp-cache-version "tramp-version" tramp-version)
 
   ;; Remove ad-hoc proxies.
   (let ((proxies tramp-default-proxies-alist))
@@ -354,7 +359,7 @@ The remote connection identified by SOURCE is flushed by
 		      (dir (tramp-rename-read-file-name-dir default))
 		      (init (tramp-rename-read-file-name-init default))
 		      (tramp-ignored-file-name-regexp
-		       (regexp-quote (file-remote-p source))))
+		       (tramp-compat-rx (literal (file-remote-p source)))))
 		 (read-file-name-default
 		  "Enter new Tramp connection: "
 		  dir default 'confirm init #'file-directory-p)))))
@@ -465,7 +470,7 @@ For details, see `tramp-rename-files'."
 		      (dir (tramp-rename-read-file-name-dir default))
 		      (init (tramp-rename-read-file-name-init default))
 		      (tramp-ignored-file-name-regexp
-		       (regexp-quote (file-remote-p source))))
+		       (tramp-compat-rx (literal (file-remote-p source)))))
 		 (read-file-name-default
 		  (format "Change Tramp connection `%s': " source)
 		  dir default 'confirm init #'file-directory-p)))))
@@ -502,7 +507,7 @@ This is needed if there are compatibility problems."
       ((dir (tramp-compat-funcall
 	     'package-desc-dir
 	     (car (alist-get 'tramp (bound-and-true-p package-alist))))))
-    (dolist (elc (directory-files dir 'full "\\.elc\\'"))
+    (dolist (elc (directory-files dir 'full (rx ".elc" eos)))
       (delete-file elc))
     (with-current-buffer (get-buffer-create byte-compile-log-buffer)
       (let ((inhibit-read-only t))
@@ -604,7 +609,7 @@ buffer in your bug report.
       ;; There are non-7bit characters to be masked.
       (when (and (stringp val)
 		 (string-match-p
-		  (concat "[^" (bound-and-true-p mm-7bit-chars) "]") val))
+		  (rx-to-string `(not (any ,mm-7bit-chars))) val))
 	(with-current-buffer reporter-eval-buffer
 	  (set varsym
 	       `(decode-coding-string
@@ -613,20 +618,22 @@ buffer in your bug report.
 		 'raw-text)))))
 
     ;; Dump variable.
-    (reporter-dump-variable varsym mailbuf)
+    (goto-char (point-max))
+    (save-excursion
+      (reporter-dump-variable varsym mailbuf))
 
     (unless (hash-table-p val)
       ;; Remove string quotation.
-      (forward-line -1)
       (when (looking-at
-	     (concat "\\(^.*\\)" "\""                       ;; \1 "
-		     "\\((base64-decode-string \\)" "\\\\"  ;; \2 \
-		     "\\(\".*\\)" "\\\\"                    ;; \3 \
-		     "\\(\")\\)" "\"$"))                    ;; \4 "
+	     (tramp-compat-rx
+	      bol (group (* anychar)) "\""          ;; \1 "
+	      (group "(base64-decode-string ") "\\" ;; \2 \
+	      (group "\"" (* anychar)) "\\"         ;; \3 \
+	      (group "\")") "\"" eol))              ;; \4 "
 	(replace-match "\\1\\2\\3\\4")
 	(beginning-of-line)
-	(insert " ;; Variable encoded due to non-printable characters.\n"))
-      (forward-line 1))
+	(insert " ;; Variable encoded due to non-printable characters.\n")))
+    (goto-char (point-max))
 
     ;; Reset VARSYM to old value.
     (with-current-buffer reporter-eval-buffer
@@ -656,20 +663,26 @@ buffer in your bug report.
 	(erase-buffer)
 	(insert (format "\n;; %s\n(setq-local\n" (buffer-name buffer)))
 	(lisp-indent-line)
-	(dolist
-	    (varsym
-	     (sort
-	      (append
-	       (mapcar
-		#'intern
-		(all-completions "tramp-" (buffer-local-variables buffer)))
-	       ;; Non-tramp variables of interest.
-	       '(connection-local-variables-alist default-directory))
-	      #'string<))
-	    (reporter-dump-variable varsym elbuf))
+	(dolist (varsym
+		 (sort
+		  (append
+		   (mapcar
+		    #'intern
+		    (all-completions "tramp-" (buffer-local-variables buffer)))
+		   ;; Non-tramp variables of interest.
+		   '(connection-local-variables-alist default-directory))
+		  #'string<))
+	  (reporter-dump-variable varsym elbuf))
 	(lisp-indent-line)
 	(insert ")\n"))
       (insert-buffer-substring elbuf)))
+
+  ;; Beautify encoded values.
+  (goto-char (point-min))
+  (while (re-search-forward
+	  (rx "'" (group "(decode-coding-string")) nil 'noerror)
+    (replace-match "\\1"))
+  (goto-char (point-max))
 
   ;; Dump load-path shadows.
   (insert "\nload-path shadows:\n==================\n")
@@ -683,7 +696,7 @@ buffer in your bug report.
 	 (eq major-mode 'message-mode)
 	 (bound-and-true-p mml-mode))
 
-    (let ((tramp-buf-regexp "\\*\\(debug \\)?tramp/")
+    (let ((tramp-buf-regexp (rx "*" (? "debug ") "tramp/"))
 	  (buffer-list (tramp-list-tramp-buffers))
 	  (curbuf (current-buffer)))
 
@@ -694,7 +707,7 @@ buffer in your bug report.
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
 	(while (not (eobp))
-          (if (re-search-forward tramp-buf-regexp (line-end-position) t)
+	  (if (re-search-forward tramp-buf-regexp (line-end-position) t)
 	      (forward-line 1)
 	    (forward-line 0)
 	    (let ((start (point)))

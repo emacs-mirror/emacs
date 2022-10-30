@@ -1229,6 +1229,17 @@ you should use an Emacs input method instead.
 
 ** X keyboard problems
 
+*** `x-focus-frame' fails to activate the frame.
+
+Some window managers prevent `x-focus-frame' from activating the given
+frame when Emacs is in the background.
+
+Emacs tries to work around this problem by default, but the workaround
+does not work on all window managers.  You can try different
+workarounds by changing the value of `x-allow-focus-stealing' (see its
+doc string for more details).  The value `imitate-pager' may be
+required on some versions of KWin.
+
 *** You "lose characters" after typing Compose Character key.
 
 This is because the Compose Character key is defined as the keysym
@@ -2266,6 +2277,13 @@ term/xterm.el) for more details.
 ** Incorrect or corrupted display of some Unicode characters
 
 *** Linux console problems with double-width characters
+
+If possible, we recommend running Emacs inside fbterm, when in a Linux
+console (see the node "Emacs in a Linux console" in the Emacs FAQ).
+Most Unicode characters should then be displayed correctly.
+
+If that is not possible, the following may be useful to alleviate the
+problem of displaying Unicode characters in a raw console.
 
 The Linux console declares UTF-8 encoding, but supports only a limited
 number of Unicode characters, and can cause Emacs produce corrupted or

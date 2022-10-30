@@ -25,6 +25,8 @@
 (require 'cl-macs)
 (require 'edebug)
 (require 'ert)
+(require 'ert-x)
+(require 'pcase)
 
 
 ;;;; cl-loop tests -- many adapted from Steele's CLtL2
@@ -539,7 +541,27 @@ collection clause."
                          ((p (gv-synthetic-place cl (lambda (v) `(setcar l ,v)))))
                        (cl-incf p)))
                    l)
-                 '(1))))
+                 '(1)))
+  ;; Make sure `gv-synthetic-place' isn't macro-expanded before
+  ;; `cl-letf' gets to see its `gv-expander'.
+  (should (equal
+           (condition-case err
+               (let ((x 1))
+                 (list x
+                       (cl-letf (((gv-synthetic-place (+ 1 2)
+                                                      (lambda (v) `(setq x ,v)))
+                                  7))
+                         x)
+                       x))
+             (error err))
+           '(1 7 3)))
+  (should (equal
+           (let ((x (list 42)))
+             (cl-symbol-macrolet ((m (car x)))
+               (list m
+                     (cl-letf ((m 5)) m)
+                     m)))
+           '(42 5 42))))
 
 (ert-deftest cl-macs-loop-conditional-step-clauses ()
   "These tests failed under the initial fixes in #bug#29799."
@@ -726,5 +748,59 @@ collection clause."
           (edebug-initial-mode 'Go-nonstop))
       ;; Just make sure the forms can be instrumented.
       (eval-buffer))))
+
+(ert-deftest cl-case-error ()
+  "Test that `cl-case' and `cl-ecase' signal an error if a t or
+`otherwise' key is misplaced."
+  (let ((text-quoting-style 'grave))
+    (dolist (form '((cl-case val (t 1) (123 2))
+                    (cl-ecase val (t 1) (123 2))
+                    (cl-ecase val (123 2) (t 1))))
+      (ert-info ((prin1-to-string form) :prefix "Form: ")
+                (let ((error (should-error (macroexpand form))))
+                  (should (equal (cdr error)
+                                 '("Misplaced t or `otherwise' clause"))))))))
+
+(ert-deftest cl-case-warning ()
+  "Test that `cl-case' and `cl-ecase' warn about suspicious
+constructs."
+  (let ((text-quoting-style 'grave))
+    (pcase-dolist (`(,case . ,message)
+                   `((nil . "Case nil will never match")
+                     ('nil . ,(concat "Case 'nil will match `quote'.  "
+                                      "If that's intended, write "
+                                      "(nil quote) instead.  "
+                                      "Otherwise, don't quote `nil'."))
+                     ('t . ,(concat "Case 't will match `quote'.  "
+                                    "If that's intended, write "
+                                    "(t quote) instead.  "
+                                    "Otherwise, don't quote `t'."))
+                     ('foo . ,(concat "Case 'foo will match `quote'.  "
+                                      "If that's intended, write "
+                                      "(foo quote) instead.  "
+                                      "Otherwise, don't quote `foo'."))
+                     (#'foo . ,(concat "Case #'foo will match "
+                                       "`function'.  If that's "
+                                       "intended, write (foo function) "
+                                       "instead.  Otherwise, don't "
+                                       "quote `foo'."))))
+      (dolist (macro '(cl-case cl-ecase))
+        (let ((form `(,macro val (,case 1))))
+          (ert-info ((prin1-to-string form) :prefix "Form: ")
+                    (ert-with-message-capture messages
+                                              (macroexpand form)
+                                              (should (equal messages
+                                                             (concat "Warning: " message "\n"))))))))))
+
+(ert-deftest cl-case-no-warning ()
+  "Test that `cl-case' and `cl-ecase' don't warn in some valid cases.
+See Bug#57915."
+  (dolist (case '(quote (quote) function (function)))
+    (dolist (macro '(cl-case cl-ecase))
+      (let ((form `(,macro val (,case 1))))
+        (ert-info ((prin1-to-string form) :prefix "Form: ")
+          (ert-with-message-capture messages
+            (macroexpand form)
+            (should (string-empty-p messages))))))))
 
 ;;; cl-macs-tests.el ends here

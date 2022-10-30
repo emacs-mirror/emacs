@@ -131,43 +131,38 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
           (get-buffer (format "127.0.0.1:%d/127.0.0.1" port)))
          (server-buffer-bar
           (get-buffer (format "127.0.0.1:%d/127.0.0.1<2>" port)))
-         (chan-buffer-foo (get-buffer "#chan/127.0.0.1"))
-         (chan-buffer-bar (get-buffer "#chan/127.0.0.1<2>"))
-         (server-process-foo (with-current-buffer server-buffer-foo
-                               erc-server-process))
-         (server-process-bar (with-current-buffer server-buffer-bar
-                               erc-server-process)))
+         (server-process-foo
+          (buffer-local-value 'erc-server-process server-buffer-foo))
+         (server-process-bar
+          (buffer-local-value 'erc-server-process server-buffer-bar)))
 
     (ert-info ("Unique #chan buffers exist")
-      (let ((chan-bufs (erc-scenarios-common-buflist "#chan"))
-            (known (list chan-buffer-bar chan-buffer-foo)))
-        (should (memq (pop chan-bufs) known))
-        (should (memq (pop chan-bufs) known))
-        (should-not chan-bufs)))
+      (erc-d-t-wait-for 3 (get-buffer "#chan/127.0.0.1<2>"))
+      (erc-d-t-wait-for 3 (get-buffer "#chan/127.0.0.1")))
 
     (ert-info ("#chan@foonet is exclusive and not contaminated")
-      (with-current-buffer chan-buffer-foo
+      (with-current-buffer "#chan/127.0.0.1"
         (funcall expect 1 "<bob>")
         (erc-d-t-absent-for 0.1 "<joe>")
         (funcall expect 1 "strength to climb")
         (should (eq erc-server-process server-process-foo))))
 
     (ert-info ("#chan@barnet is exclusive and not contaminated")
-      (with-current-buffer chan-buffer-bar
+      (with-current-buffer "#chan/127.0.0.1<2>"
         (funcall expect 1 "<joe>")
         (erc-d-t-absent-for 0.1 "<bob>")
         (funcall expect 1 "the loudest noise")
         (should (eq erc-server-process server-process-bar))))
 
     (ert-info ("Part #chan@foonet")
-      (with-current-buffer chan-buffer-foo
+      (with-current-buffer "#chan/127.0.0.1"
         (erc-d-t-search-for 1 "shake my sword")
         (erc-cmd-PART "#chan")
         (funcall expect 3 "You have left channel #chan")
         (erc-cmd-JOIN "#chan")))
 
     (ert-info ("Part #chan@barnet")
-      (with-current-buffer chan-buffer-bar
+      (with-current-buffer "#chan/127.0.0.1<2>"
         (funcall expect 10 "Arm it in rags")
         (should (erc-get-channel-user (erc-current-nick)))
         (erc-cmd-PART "#chan")
@@ -179,7 +174,7 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
       (get-buffer "#chan/127.0.0.1<3>"))
 
     (ert-info ("Activity continues in new, <n>-suffixed #chan@foonet buffer")
-      (with-current-buffer chan-buffer-foo
+      (with-current-buffer "#chan/127.0.0.1"
         (should-not (erc-get-channel-user (erc-current-nick))))
       (with-current-buffer "#chan/127.0.0.1<3>"
         (should (erc-get-channel-user (erc-current-nick)))
@@ -194,7 +189,7 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
       (get-buffer "#chan/127.0.0.1<4>"))
 
     (ert-info ("Activity continues in new, <n>-suffixed #chan@barnet buffer")
-      (with-current-buffer chan-buffer-bar
+      (with-current-buffer "#chan/127.0.0.1<2>"
         (should-not (erc-get-channel-user (erc-current-nick))))
       (with-current-buffer "#chan/127.0.0.1<4>"
         (funcall expect 2 "You have joined channel #chan")
@@ -221,12 +216,12 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
     (ert-info ("Buffers are exempt from shortening")
       (kill-buffer "#chan/127.0.0.1<4>")
       (kill-buffer "#chan/127.0.0.1<3>")
-      (kill-buffer chan-buffer-bar)
+      (kill-buffer "#chan/127.0.0.1<2>")
       (should-not (get-buffer "#chan"))
-      (should chan-buffer-foo))))
+      (should (get-buffer "#chan/127.0.0.1")))))
 
 (ert-deftest erc-scenarios-base-reuse-buffers-channel-buffers--disabled ()
-  :tags '(:expensive-test :unstable)
+  :tags '(:expensive-test)
   (with-suppressed-warnings ((obsolete erc-reuse-buffers))
     (should erc-reuse-buffers)
     (let ((erc-scenarios-common-dialog "base/reuse-buffers/channel")

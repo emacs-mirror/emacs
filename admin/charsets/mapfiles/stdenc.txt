@@ -54,7 +54,7 @@
 #    
 #    [v0.1, 5 May 1995] First release.
 #
-#  Use the Unicode reporting form <http://www.unicode.org/reporting.html>
+#  Use the Unicode reporting form <https://www.unicode.org/reporting.html>
 #    for any questions or comments or to report errors in the data.
 #
 0020	20	# SPACE	# space

@@ -109,6 +109,8 @@
 ;; TODO:
 ;; - log buffers need font-locking.
 
+(eval-when-compile (require 'cl-lib))
+
 ;; General customization
 
 (defcustom vc-logentry-check-hook nil
@@ -194,7 +196,7 @@ Another is that undo information is not kept."
 
 (defvar vc-sentinel-movepoint)          ;Dynamically scoped.
 
-(defun vc--process-sentinel (p code)
+(defun vc--process-sentinel (p code &optional success)
   (let ((buf (process-buffer p)))
     ;; Impatient users sometime kill "slow" buffers; check liveness
     ;; to avoid "error in process sentinel: Selecting deleted buffer".
@@ -215,7 +217,7 @@ Another is that undo information is not kept."
             ;; each sentinel read&set process-mark, but since `cmd' needs
             ;; to work both for async and sync processes, this would be
             ;; difficult to achieve.
-            (vc-exec-after code)
+            (vc-exec-after code success)
             (move-marker m (point)))
           ;; But sometimes the sentinels really want to move point.
           (when vc-sentinel-movepoint
@@ -232,11 +234,14 @@ Another is that undo information is not kept."
                                 'help-echo
                                 "A command is in progress in this buffer"))))
 
-(defun vc-exec-after (code)
+(defun vc-exec-after (code &optional success)
   "Eval CODE when the current buffer's process is done.
 If the current buffer has no process, just evaluate CODE.
 Else, add CODE to the process' sentinel.
-CODE should be a function of no arguments."
+CODE should be a function of no arguments.
+
+If SUCCESS, it should be a process object.  Only run CODE if the
+SUCCESS process has a zero exit code."
   (let ((proc (get-buffer-process (current-buffer))))
     (cond
      ;; If there's no background process, just execute the code.
@@ -247,13 +252,15 @@ CODE should be a function of no arguments."
      ((or (null proc) (eq (process-status proc) 'exit))
       ;; Make sure we've read the process's output before going further.
       (when proc (accept-process-output proc))
-      (if (functionp code) (funcall code) (eval code t)))
+      (when (or (not success)
+                (zerop (process-exit-status success)))
+        (if (functionp code) (funcall code) (eval code t))))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
       (vc-set-mode-line-busy-indicator)
       (letrec ((fun (lambda (p _msg)
                       (remove-function (process-sentinel p) fun)
-                      (vc--process-sentinel p code))))
+                      (vc--process-sentinel p code success))))
         (add-function :after (process-sentinel proc) fun)))
      (t (error "Unexpected process state"))))
   nil)
@@ -261,6 +268,13 @@ CODE should be a function of no arguments."
 (defmacro vc-run-delayed (&rest body)
   (declare (indent 0) (debug (def-body)))
   `(vc-exec-after (lambda () ,@body)))
+
+(defvar vc-filter-command-function #'list
+  "Function called to transform VC commands before execution.
+The function is called inside the buffer in which the command
+will be run and is passed the COMMAND, FILE-OR-LIST and FLAGS
+arguments to `vc-do-command'.  It should return a list of three
+elements, the new values for these arguments.")
 
 (defvar vc-post-command-functions nil
   "Hook run at the end of `vc-do-command'.
@@ -282,6 +296,23 @@ the man pages for \"torsocks\" for more details about Tor."
   :version "27.1"
   :group 'vc)
 
+(defun vc-user-edit-command (command file-or-list flags)
+  "Prompt the user to edit VC command COMMAND and FLAGS.
+Intended to be used as the value of `vc-filter-command-function'."
+  (let* ((files-separator-p (string= "--" (car (last flags))))
+         (edited (split-string-and-unquote
+                  (read-shell-command
+                   (format "Edit VC command & arguments%s: "
+                           (if file-or-list
+                               " (files list to be appended)"
+                             ""))
+                   (combine-and-quote-strings
+                    (cons command (remq nil (if files-separator-p
+                                                (butlast flags)
+                                              flags))))))))
+    (list (car edited) file-or-list
+          (nconc (cdr edited) (and files-separator-p '("--"))))))
+
 ;;;###autoload
 (defun vc-do-command (buffer okstatus command file-or-list &rest flags)
   "Execute a slave command, notifying user and checking for errors.
@@ -296,117 +327,142 @@ FILE-OR-LIST is the name of a working file; it may be a list of
 files or be nil (to execute commands that don't expect a file
 name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename.
+
 Return the return value of the slave command in the synchronous
 case, and the process object in the asynchronous case."
-  ;; FIXME: file-relative-name can return a bogus result because
-  ;; it doesn't look at the actual file-system to see if symlinks
-  ;; come into play.
-  (let* ((files
-	  (mapcar (lambda (f) (file-relative-name (expand-file-name f)))
-		  (if (listp file-or-list) file-or-list (list file-or-list))))
-	 ;; Keep entire commands in *Messages* but avoid resizing the
-	 ;; echo area.  Messages in this function are formatted in
-	 ;; a such way that the important parts are at the beginning,
-	 ;; due to potential truncation of long messages.
-	 (message-truncate-lines t)
-	 (full-command
-	  (concat (if vc-tor "torsocks " "")
-                  (if (string= (substring command -1) "\n")
-		      (substring command 0 -1)
-		    command)
-		  " " (vc-delistify flags)
-		  " " (vc-delistify files)))
-	 (vc-inhibit-message
-	  (or (eq vc-command-messages 'log)
-	      (eq (selected-window) (active-minibuffer-window)))))
+  (let (;; Keep entire commands in *Messages* but avoid resizing the
+	;; echo area.  Messages in this function are formatted in
+	;; a such way that the important parts are at the beginning,
+	;; due to potential truncation of long messages.
+	(message-truncate-lines t)
+        (vc-inhibit-message
+	 (or (eq vc-command-messages 'log)
+	     (eq (selected-window) (active-minibuffer-window)))))
     (save-current-buffer
       (unless (or (eq buffer t)
 		  (and (stringp buffer)
 		       (string= (buffer-name) buffer))
 		  (eq buffer (current-buffer)))
-	(vc-setup-buffer buffer))
-      ;; If there's some previous async process still running, just kill it.
-      (let ((squeezed (remq nil flags))
-	    (inhibit-read-only t)
-	    (status 0))
-	(when files
-	  (setq squeezed (nconc squeezed files)))
-	(let (;; Since some functions need to parse the output
-	      ;; from external commands, set LC_MESSAGES to C.
-	      (process-environment (cons "LC_MESSAGES=C" process-environment))
-	      (w32-quote-process-args t))
-	  (if (eq okstatus 'async)
-	      ;; Run asynchronously.
-	      (let ((proc
-		     (let ((process-connection-type nil))
-		       (apply #'start-file-process command (current-buffer)
-                              command squeezed))))
-		(when vc-command-messages
-		  (let ((inhibit-message vc-inhibit-message))
-		    (message "Running in background: %s" full-command)))
-                ;; Get rid of the default message insertion, in case we don't
-                ;; set a sentinel explicitly.
-		(set-process-sentinel proc #'ignore)
-		(set-process-filter proc #'vc-process-filter)
-		(setq status proc)
-		(when vc-command-messages
-		  (vc-run-delayed
-		    (let ((message-truncate-lines t)
-			  (inhibit-message vc-inhibit-message))
-		      (message "Done in background: %s" full-command)))))
-	    ;; Run synchronously
-	    (when vc-command-messages
-	      (let ((inhibit-message vc-inhibit-message))
-		(message "Running in foreground: %s" full-command)))
-	    (let ((buffer-undo-list t))
-	      (setq status (apply #'process-file command nil t nil squeezed)))
-	    (when (and (not (eq t okstatus))
-		       (or (not (integerp status))
-			   (and okstatus (< okstatus status))))
-              (unless (eq ?\s (aref (buffer-name (current-buffer)) 0))
-                (pop-to-buffer (current-buffer))
-                (goto-char (point-min))
-                (shrink-window-if-larger-than-buffer))
-	      (error "Failed (%s): %s"
-		     (if (integerp status) (format "status %d" status) status)
-		     full-command))
-	    (when vc-command-messages
-	      (let ((inhibit-message vc-inhibit-message))
-		(message "Done (status=%d): %s" status full-command)))))
-	(vc-run-delayed
-	  (run-hook-with-args 'vc-post-command-functions
-			      command file-or-list flags))
-	status))))
+        (vc-setup-buffer buffer))
+      (cl-destructuring-bind (command file-or-list flags)
+          (funcall vc-filter-command-function command file-or-list flags)
+        (when vc-tor
+          (push command flags)
+          (setq command "torsocks"))
+        (let* (;; FIXME: file-relative-name can return a bogus result
+               ;; because it doesn't look at the actual file-system to
+               ;; see if symlinks come into play.
+               (files
+	        (mapcar (lambda (f)
+                          (file-relative-name (expand-file-name f)))
+		        (if (listp file-or-list)
+                            file-or-list
+                          (list file-or-list))))
+	       (full-command
+	        (concat (if (string= (substring command -1) "\n")
+		            (substring command 0 -1)
+		          command)
+		        " " (vc-delistify flags)
+		        " " (vc-delistify files)))
+               (squeezed (remq nil flags))
+	       (inhibit-read-only t)
+	       (status 0))
+          ;; If there's some previous async process still running,
+          ;; just kill it.
+          (when files
+	    (setq squeezed (nconc squeezed files)))
+	  (let (;; Since some functions need to parse the output
+	        ;; from external commands, set LC_MESSAGES to C.
+	        (process-environment
+                 (cons "LC_MESSAGES=C" process-environment))
+	        (w32-quote-process-args t))
+	    (if (eq okstatus 'async)
+	        ;; Run asynchronously.
+	        (let ((proc
+		       (let ((process-connection-type nil))
+		         (apply #'start-file-process command
+                                (current-buffer) command squeezed))))
+		  (when vc-command-messages
+		    (let ((inhibit-message vc-inhibit-message))
+		      (message "Running in background: %s"
+                               full-command)))
+                  ;; Get rid of the default message insertion, in case
+                  ;; we don't set a sentinel explicitly.
+		  (set-process-sentinel proc #'ignore)
+		  (set-process-filter proc #'vc-process-filter)
+		  (setq status proc)
+		  (when vc-command-messages
+		    (vc-run-delayed
+		      (let ((message-truncate-lines t)
+			    (inhibit-message vc-inhibit-message))
+		        (message "Done in background: %s"
+                                 full-command)))))
+	      ;; Run synchronously
+	      (when vc-command-messages
+	        (let ((inhibit-message vc-inhibit-message))
+		  (message "Running in foreground: %s" full-command)))
+	      (let ((buffer-undo-list t))
+	        (setq status (apply #'process-file
+                                    command nil t nil squeezed)))
+	      (when (and (not (eq t okstatus))
+		         (or (not (integerp status))
+			     (and okstatus (< okstatus status))))
+                (unless (eq ?\s (aref (buffer-name (current-buffer)) 0))
+                  (pop-to-buffer (current-buffer))
+                  (goto-char (point-min))
+                  (shrink-window-if-larger-than-buffer))
+	        (error "Failed (%s): %s"
+		       (if (integerp status)
+                           (format "status %d" status)
+                         status)
+		       full-command))
+	      (when vc-command-messages
+	        (let ((inhibit-message vc-inhibit-message))
+		  (message "Done (status=%d): %s"
+                           status full-command)))))
+	  (vc-run-delayed
+	    (run-hook-with-args 'vc-post-command-functions
+			        command file-or-list flags))
+	  status)))))
+
+(defvar vc--inhibit-async-window nil)
 
 (defun vc-do-async-command (buffer root command &rest args)
   "Run COMMAND asynchronously with ARGS, displaying the result.
 Send the output to BUFFER, which should be a buffer or the name
 of a buffer, which is created.
 ROOT should be the directory in which the command should be run.
+The process object is returned.
 Display the buffer in some window, but don't select it."
-  (let* ((dir default-directory)
-	 (inhibit-read-only t)
-	 window new-window-start)
+  (let ((dir default-directory)
+	(inhibit-read-only t)
+        new-window-start proc)
     (setq buffer (get-buffer-create buffer))
     (if (get-buffer-process buffer)
 	(error "Another VC action on %s is running" root))
     (with-current-buffer buffer
       (setq default-directory root)
-      (goto-char (point-max))
-      (unless (eq (point) (point-min))
-	(insert "\n"))
-      (setq new-window-start (point))
-      (insert "Running \"" command)
-      (dolist (arg args)
-	(insert " " arg))
-      (insert "\"...\n")
-      ;; Run in the original working directory.
-      (let ((default-directory dir))
-	(apply #'vc-do-command t 'async command nil args)))
-    (setq window (display-buffer buffer))
-    (if window
-	(set-window-start window new-window-start))
-    buffer))
+      (let* (;; Run in the original working directory.
+             (default-directory dir)
+             (orig-fun vc-filter-command-function)
+             (vc-filter-command-function
+              (lambda (&rest args)
+                (cl-destructuring-bind (&whole args cmd _ flags)
+                    (apply orig-fun args)
+                  (goto-char (point-max))
+                  (unless (eq (point) (point-min))
+	            (insert "\n"))
+                  (setq new-window-start (point))
+                  (insert "Running \"" cmd)
+                  (dolist (flag flags)
+	            (insert " " flag))
+                  (insert "\"...\n")
+                  args))))
+	(setq proc (apply #'vc-do-command t 'async command nil args))))
+    (unless vc--inhibit-async-window
+      (when-let ((window (display-buffer buffer)))
+        (set-window-start window new-window-start)))
+    proc))
 
 (defvar compilation-error-regexp-alist)
 
@@ -624,6 +680,8 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 
 (declare-function log-edit-empty-buffer-p "log-edit" ())
 
+(defvar vc-patch-string)
+
 (defun vc-log-edit (fileset mode backend)
   "Set up `log-edit' for use on FILE."
   (setq default-directory
@@ -653,15 +711,17 @@ NOT-URGENT means it is ok to continue if the user says not to save."
                       (mapcar
                        (lambda (file) (file-relative-name file root))
                        fileset))))
-	      (log-edit-diff-function . vc-diff)
+	      (log-edit-diff-function
+               . ,(if vc-patch-string 'log-edit-diff-patch 'log-edit-diff-fileset))
 	      (log-edit-vc-backend . ,backend)
-	      (vc-log-fileset . ,fileset))
+	      (vc-log-fileset . ,fileset)
+	      (vc-patch-string . ,vc-patch-string))
 	    nil
 	    mode)
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook backend)
+(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook backend patch-string)
   "Accept a comment for an operation on FILES.
 If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
@@ -673,7 +733,8 @@ empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  Puts the log-entry buffer in major mode
 MODE, defaulting to `log-edit-mode' if MODE is nil.
 AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'.
-BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
+BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer.
+PATCH-STRING is a patch to check in."
   (let ((parent
          (if (vc-dispatcher-browsing)
              ;; If we are called from a directory browser, the parent buffer is
@@ -688,6 +749,8 @@ BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
     (setq-local vc-parent-buffer parent)
     (setq-local vc-parent-buffer-name
                 (concat " from " (buffer-name vc-parent-buffer)))
+    (when patch-string
+      (setq-local vc-patch-string patch-string))
     (vc-log-edit files mode backend)
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
@@ -697,7 +760,11 @@ BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
       (erase-buffer)
       (when (stringp comment) (insert comment)))
     (if (or (not comment) initial-contents)
-	(message "%s  Type C-c C-c when done" msg)
+        (message (substitute-command-keys
+                  (if (eq major-mode 'log-edit-mode)
+                      "%s  Type \\[log-edit-done] when done"
+                    "%s  Type \\`C-c C-c' when done"))
+                 msg)
       (vc-finish-logentry (eq comment t)))))
 
 ;; vc-finish-logentry is typically called from a log-edit buffer (see
@@ -753,7 +820,8 @@ the buffer contents as a comment."
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
   (or (derived-mode-p 'vc-dir-mode)
-      (derived-mode-p 'dired-mode)))
+      (derived-mode-p 'dired-mode)
+      (derived-mode-p 'diff-mode)))
 
 ;; These are unused.
 ;; (defun vc-dispatcher-in-fileset-p (fileset)

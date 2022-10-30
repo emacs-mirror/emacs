@@ -1108,9 +1108,6 @@ Possible values are: ask, auto, ignore."
   (pcomplete-here '("auto" "ask" "ignore")))
 (defalias 'pcomplete/erc-mode/SREQ #'pcomplete/erc-mode/CREQ)
 
-(define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
-  'erc-dcc-chat-filter-functions "24.3")
-
 (defvar erc-dcc-chat-filter-functions '(erc-dcc-chat-parse-output)
   "Abnormal hook run after parsing (and maybe inserting) a DCC message.
 Each function is called with two arguments: the ERC process and

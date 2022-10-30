@@ -1573,44 +1573,67 @@ frames on all displays."
 (defun x-device-class (name)
   "Return the device class of NAME.
 Users should not call this function; see `device-class' instead."
-  (let ((downcased-name (downcase name)))
-    (cond
-     ((string-match-p "XTEST" name) 'test)
-     ((string= "Virtual core pointer" name) 'core-pointer)
-     ((string= "Virtual core keyboard" name) 'core-keyboard)
-     ((string-match-p "eraser" downcased-name) 'eraser)
-     ((string-match-p " pad" downcased-name) 'pad)
-     ((or (or (string-match-p "wacom" downcased-name)
-              (string-match-p "pen" downcased-name))
-          (string-match-p "stylus" downcased-name))
-      'pen)
-     ((or (string-prefix-p "xwayland-touch:" name)
-          (string-match-p "touchscreen" downcased-name))
-      'touchscreen)
-     ((or (string-match-p "trackpoint" downcased-name)
-          (string-match-p "stick" downcased-name))
-      'trackpoint)
-     ((or (string-match-p "mouse" downcased-name)
-          (string-match-p "optical" downcased-name)
-          (string-match-p "pointer" downcased-name))
-      'mouse)
-     ((string-match-p "cursor" downcased-name) 'puck)
-     ((or (string-match-p "keyboard" downcased-name)
-          ;; One of my cheap keyboards is really named this...
-          (string= name "USB USB Keykoard"))
-      'keyboard)
-     ((string-match-p "button" downcased-name) 'power-button)
-     ((string-match-p "touchpad" downcased-name) 'touchpad)
-     ((or (string-match-p "midi" downcased-name)
-          (string-match-p "piano" downcased-name))
-      'piano)
-     ((or (string-match-p "wskbd" downcased-name) ; NetBSD/OpenBSD
-          (and (string-match-p "/dev" downcased-name)
-               (string-match-p "kbd" downcased-name)))
-      'keyboard))))
+  (and name
+       (let ((downcased-name (downcase name)))
+         (cond
+          ((string-match-p "XTEST" name) 'test)
+          ((string= "Virtual core pointer" name) 'core-pointer)
+          ((string= "Virtual core keyboard" name) 'core-keyboard)
+          ((string-match-p "eraser" downcased-name) 'eraser)
+          ((string-match-p " pad" downcased-name) 'pad)
+          ((or (or (string-match-p "wacom" downcased-name)
+                   (string-match-p "pen" downcased-name))
+               (string-match-p "stylus" downcased-name))
+           'pen)
+          ((or (string-prefix-p "xwayland-touch:" name)
+               (string-match-p "touchscreen" downcased-name))
+           'touchscreen)
+          ((or (string-match-p "trackpoint" downcased-name)
+               (string-match-p "stick" downcased-name))
+           'trackpoint)
+          ((or (string-match-p "mouse" downcased-name)
+               (string-match-p "optical" downcased-name)
+               (string-match-p "pointer" downcased-name))
+           'mouse)
+          ((string-match-p "cursor" downcased-name) 'puck)
+          ((or (string-match-p "keyboard" downcased-name)
+               ;; One of my cheap keyboards is really named this...
+               (string= name "USB USB Keykoard"))
+           'keyboard)
+          ((string-match-p "button" downcased-name) 'power-button)
+          ((string-match-p "touchpad" downcased-name) 'touchpad)
+          ((or (string-match-p "midi" downcased-name)
+               (string-match-p "piano" downcased-name))
+           'piano)
+          ((or (string-match-p "wskbd" downcased-name) ; NetBSD/OpenBSD
+               (and (string-match-p "/dev" downcased-name)
+                    (string-match-p "kbd" downcased-name)))
+           'keyboard)))))
 
 (setq x-dnd-movement-function #'x-dnd-movement)
 (setq x-dnd-unsupported-drop-function #'x-dnd-handle-unsupported-drop)
+
+(defvar x-input-coding-function)
+
+(defun x-get-input-coding-system (x-locale)
+  "Return a coding system for the locale X-LOCALE.
+Return a coding system that is able to decode text sent with the
+X input method locale X-LOCALE, or nil if no coding system was
+found."
+  (if (equal x-locale "C")
+      ;; Treat the C locale specially, as it means "ascii" under X.
+      'ascii
+    (let ((locale (locale-translate (downcase x-locale))))
+      (or (locale-name-match locale locale-preferred-coding-systems)
+	  (when locale
+	    (if (string-match "\\.\\([^@]+\\)" locale)
+	        (locale-charset-to-coding-system
+	         (match-string 1 locale))))
+          (let ((language-name
+                 (locale-name-match locale locale-language-names)))
+            (and (consp language-name) (cdr language-name)))))))
+
+(setq x-input-coding-function #'x-get-input-coding-system)
 
 (provide 'x-win)
 (provide 'term/x-win)

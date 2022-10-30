@@ -358,27 +358,6 @@ Variables}); a few variables have terminal-local bindings
 like ordinary local bindings, but they are localized depending on
 where you are in Emacs.
 
-@defopt max-specpdl-size
-@anchor{Definition of max-specpdl-size}
-@cindex variable limit error
-@cindex evaluation error
-@cindex infinite recursion
-This variable defines the limit on the total number of local variable
-bindings and @code{unwind-protect} cleanups (@pxref{Cleanups,,
-Cleaning Up from Nonlocal Exits}) that are allowed before Emacs
-signals an error (with data @code{"Variable binding depth exceeds
-max-specpdl-size"}).
-
-This limit, with the associated error when it is exceeded, is one way
-that Lisp avoids infinite recursion on an ill-defined function.
-@code{max-lisp-eval-depth} provides another limit on depth of nesting.
-@xref{Definition of max-lisp-eval-depth,, Eval}.
-
-The default value is 1600.  Entry to the Lisp debugger increases the
-value, if there is little room left, to make sure the debugger itself
-has room to execute.
-@end defopt
-
 @node Void Variables
 @section When a Variable is Void
 @cindex @code{void-variable} error
@@ -1204,7 +1183,7 @@ Here is an example:
 (let ((x 0))             ; @r{@code{x} is lexically bound.}
   (setq my-ticker (lambda ()
                     (setq x (1+ x)))))
-    @result{} (closure ((x . 0) t) ()
+    @result{} (closure ((x . 0)) ()
           (setq x (1+ x)))
 
 (funcall my-ticker)
@@ -2260,8 +2239,25 @@ still respecting file-local variables (@pxref{File Local Variables}).
 @cindex connection local variables
 
   Connection-local variables provide a general mechanism for different
-variable settings in buffers with a remote connection.  They are bound
+variable settings in buffers with a remote connection (@pxref{Remote
+Files,, Remote Files, emacs, The GNU Emacs Manual}).  They are bound
 and set depending on the remote connection a buffer is dedicated to.
+
+@menu
+* Connection Local Profiles::            Storing variable settings to
+                                         apply to connections.
+* Applying Connection Local Variables::  Using connection-local values
+                                         in your code.
+@end menu
+
+@node Connection Local Profiles
+@subsection Connection Local Profiles
+@cindex connection local profiles
+
+  Emacs uses connection-local profiles to store the variable settings
+to apply to particular connections.  You can then associate these with
+remote connections by defining the criteria when they should apply,
+using @code{connection-local-set-profiles}.
 
 @defun connection-local-set-profile-variables profile variables
 This function defines a set of variable settings for the connection
@@ -2332,13 +2328,13 @@ always applies.  Example:
 @example
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "localhost")
+  '(:application tramp :protocol "ssh" :machine "localhost")
   'remote-bash 'remote-null-device)
 @end group
 
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "sudo"
+  '(:application tramp :protocol "sudo"
     :user "root" :machine "localhost")
   'remote-ksh 'remote-null-device)
 @end group
@@ -2350,13 +2346,13 @@ Therefore, the example above would be equivalent to
 @example
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "localhost")
+  '(:application tramp :protocol "ssh" :machine "localhost")
   'remote-bash)
 @end group
 
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "sudo"
+  '(:application tramp :protocol "sudo"
     :user "root" :machine "localhost")
   'remote-ksh)
 @end group
@@ -2377,6 +2373,14 @@ names.  The function @code{connection-local-set-profiles} updates this
 list.
 @end deffn
 
+@node Applying Connection Local Variables
+@subsection Applying Connection Local Variables
+@cindex connection local variables, applying
+
+  When writing connection-aware code, you'll need to collect, and
+possibly apply, any connection-local variables.  There are several
+ways to do this, as described below.
+
 @defun hack-connection-local-variables criteria
 This function collects applicable connection-local variables
 associated with @var{criteria} in
@@ -2386,7 +2390,7 @@ Example:
 @example
 @group
 (hack-connection-local-variables
-  '(:application 'tramp :protocol "ssh" :machine "localhost"))
+  '(:application tramp :protocol "ssh" :machine "localhost"))
 @end group
 
 @group
@@ -2405,40 +2409,12 @@ This function looks for connection-local variables according to
 @var{criteria}, and immediately applies them in the current buffer.
 @end defun
 
-@defmac with-connection-local-variables &rest body
-All connection-local variables, which are specified by
-@code{default-directory}, are applied.
+@defmac with-connection-local-application-variables application &rest body
+Apply all connection-local variables for @code{application}, which are
+specified by @code{default-directory}.
 
 After that, @var{body} is executed, and the connection-local variables
 are unwound.  Example:
-
-@example
-@group
-(connection-local-set-profile-variables
-  'remote-perl
-  '((perl-command-name . "/usr/local/bin/perl")
-    (perl-command-switch . "-e %s")))
-@end group
-
-@group
-(connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "remotehost")
-  'remote-perl)
-@end group
-
-@group
-(let ((default-directory "/ssh:remotehost:/working/dir/"))
-  (with-connection-local-variables
-    do something useful))
-@end group
-@end example
-@end defmac
-
-@defvar connection-local-default-application
-The default application, a symbol, to be applied in
-@code{with-connection-local-variables}.  It defaults to @code{tramp},
-but in case you want to overwrite Tramp's settings temporarily, you
-could let-bind it like
 
 @example
 @group
@@ -2450,17 +2426,74 @@ could let-bind it like
 
 @group
 (connection-local-set-profiles
-  '(:application 'my-app :protocol "ssh" :machine "remotehost")
+  '(:application my-app :protocol "ssh" :machine "remotehost")
   'my-remote-perl)
 @end group
 
 @group
-(let ((default-directory "/ssh:remotehost:/working/dir/")
-      (connection-local-default-application 'my-app))
-  (with-connection-local-variables
+(let ((default-directory "/ssh:remotehost:/working/dir/"))
+  (with-connection-local-application-variables 'my-app
     do something useful))
 @end group
 @end example
+@end defmac
+
+@defvar connection-local-default-application
+The default application, a symbol, to be applied in
+@code{with-connection-local-variables}.  It defaults to @code{tramp},
+but you can let-bind it to change the application temporarily
+(@pxref{Local Variables}).
+
+This variable must not be changed globally.
+@end defvar
+
+@defmac with-connection-local-variables &rest body
+This is equivalent to
+@code{with-connection-local-application-variables}, but uses
+@code{connection-local-default-application} for the application.
+@end defmac
+
+@defmac setq-connection-local [symbol form]@dots{}
+This macro sets each @var{symbol} connection-locally to the result of
+evaluating the corresponding @var{form}, using the connection-local
+profile specified in @code{connection-local-profile-name-for-setq}; if
+the profile name is @code{nil}, this macro will just set the variables
+normally, as with @code{setq} (@pxref{Setting Variables}).
+
+For example, you can use this macro in combination with
+@code{with-connection-local-variables} or
+@code{with-connection-local-application-variables} to lazily
+initialize connection-local settings:
+
+@example
+@group
+(defvar my-app-variable nil)
+
+(connection-local-set-profile-variables
+ 'my-app-connection-default-profile
+ '((my-app-variable . nil)))
+
+(connection-local-set-profiles
+ '(:application my-app)
+ 'my-app-connection-default-profile)
+@end group
+
+@group
+(defun my-app-get-variable ()
+  (with-connection-local-application-variables 'my-app
+    (or my-app-variable
+        (setq-connection-local my-app-variable
+                               do something useful))))
+@end group
+@end example
+@end defmac
+
+@defvar connection-local-profile-name-for-setq
+The connection-local profile name, a symbol, to use when setting
+variables via @code{setq-connection-local}.  This is let-bound in the
+body of @code{with-connection-local-variables}, but you can also
+let-bind it yourself if you'd like to set variables on a different
+profile.
 
 This variable must not be changed globally.
 @end defvar
@@ -2635,15 +2668,15 @@ is a set of forms that can be generalized variables in Lisp.
 
 The @code{setf} macro is the most basic way to operate on generalized
 variables.  The @code{setf} form is like @code{setq}, except that it
-accepts arbitrary place forms on the left side rather than just
-symbols.  For example, @code{(setf (car a) b)} sets the car of
-@code{a} to @code{b}, doing the same operation as @code{(setcar a b)},
-but without you having to use two separate functions for setting and
-accessing this type of place.
+accepts arbitrary place forms in the first (left) argument of each
+pair rather than just symbols.  For example, @code{(setf (car a) b)}
+sets the car of @code{a} to @code{b}, doing the same operation as
+@code{(setcar a b)}, but without you having to use two separate
+functions for setting and accessing this type of place.
 
 @defmac setf [place form]@dots{}
-This macro evaluates @var{form} and stores it in @var{place}, which
-must be a valid generalized variable form.  If there are several
+This macro evaluates @var{form} and stores its value in @var{place},
+which must be a valid generalized variable form.  If there are several
 @var{place} and @var{form} pairs, the assignments are done sequentially
 just as with @code{setq}.  @code{setf} returns the value of the last
 @var{form}.
@@ -2679,17 +2712,56 @@ cdar      nthcdr
 A call to any of the following Emacs-specific functions:
 
 @smallexample
-alist-get                     process-get
-frame-parameter               process-sentinel
-terminal-parameter            window-buffer
-keymap-parent                 window-display-table
-match-data                    window-dedicated-p
-overlay-get                   window-hscroll
-overlay-start                 window-parameter
-overlay-end                   window-point
-process-buffer                window-start
-process-filter                default-value
+alist-get                     overlay-start
+default-value                 overlay-get
+face-background               process-buffer
+face-font                     process-filter
+face-foreground               process-get
+face-stipple                  process-sentinel
+face-underline-p              terminal-parameter
+file-modes                    window-buffer
+frame-parameter               window-dedicated-p
+frame-parameters              window-display-table
+get-register                  window-hscroll
+getenv                        window-parameter
+keymap-parent                 window-point
+match-data                    window-start
+overlay-end
 @end smallexample
+
+@item
+A call of the form @code{(substring @var{subplace} @var{n} [@var{m}])},
+where @var{subplace} is itself a valid generalized variable whose
+current value is a string, and where the value stored is also a
+string.  The new string is spliced into the specified part of the
+destination string.  For example:
+
+@example
+(setq a (list "hello" "world"))
+     @result{} ("hello" "world")
+(cadr a)
+     @result{} "world"
+(substring (cadr a) 2 4)
+     @result{} "rl"
+(setf (substring (cadr a) 2 4) "o")
+     @result{} "o"
+(cadr a)
+     @result{} "wood"
+a
+     @result{} ("hello" "wood")
+@end example
+
+@item
+The @code{if} and @code{cond} conditionals will work as generalized
+variables.  For instance, this will set either the @code{foo} or the
+@code{bar} variable to @code{zot}:
+
+@example
+(setf (if (zerop (random 2))
+	  foo
+	bar)
+      'zot)
+@end example
 @end itemize
 
 @noindent

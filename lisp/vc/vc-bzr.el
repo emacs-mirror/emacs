@@ -339,7 +339,7 @@ in the repository root directory of FILE."
   "Value of `compilation-error-regexp-alist' in *vc-bzr* buffers.")
 
 ;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
@@ -1323,6 +1323,20 @@ stream.  Standard error output is discarded."
       (if (re-search-forward "parent branch: \\(.*\\)$" nil t)
           (match-string 1)
         (error "Cannot determine Bzr repository URL")))))
+
+(defun vc-bzr-prepare-patch (rev)
+  (with-current-buffer (generate-new-buffer " *vc-bzr-prepare-patch*")
+    (vc-bzr-command
+     "send" t 0 '()
+     "--revision" (concat (vc-bzr-previous-revision nil rev) ".." rev)
+     "--output" "-")
+    (let (subject)
+      ;; Extract the subject line
+      (goto-char (point-min))
+      (search-forward-regexp "^[^#].*")
+      (setq subject (match-string 0))
+      ;; Return the extracted data
+      (list :subject subject :buffer (current-buffer)))))
 
 (provide 'vc-bzr)
 

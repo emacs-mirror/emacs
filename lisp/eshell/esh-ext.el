@@ -77,7 +77,7 @@ but Eshell will be able to understand
     (let ((list (eshell-get-path))
 	  suffixes n1 n2 file)
       (while list
-	(setq n1 (concat (car list) name))
+	(setq n1 (file-name-concat (car list) name))
 	(setq suffixes eshell-binary-suffixes)
 	(while suffixes
 	  (setq n2 (concat n1 (car suffixes)))
@@ -239,17 +239,16 @@ causing the user to wonder if anything's really going on..."
      (?h "help" nil nil  "display this usage message")
      :usage "[-b] PATH
 Adds the given PATH to $PATH.")
-   (if args
-       (progn
-	 (setq eshell-path-env (getenv "PATH")
-	       args (mapconcat #'identity args path-separator)
-	       eshell-path-env
-	       (if prepend
-		   (concat args path-separator eshell-path-env)
-		 (concat eshell-path-env path-separator args)))
-	 (setenv "PATH" eshell-path-env))
-     (dolist (dir (parse-colon-path (getenv "PATH")))
-       (eshell-printn dir)))))
+   (let ((path (eshell-get-path t)))
+     (if args
+         (progn
+           (setq path (if prepend
+                          (append args path)
+                        (append path args)))
+           (eshell-set-path path)
+           (string-join path (path-separator)))
+       (dolist (dir path)
+         (eshell-printn dir))))))
 
 (put 'eshell/addpath 'eshell-no-numeric-conversions t)
 (put 'eshell/addpath 'eshell-filename-arguments t)

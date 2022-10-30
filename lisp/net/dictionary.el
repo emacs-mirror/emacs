@@ -59,7 +59,7 @@ the existing connection."
 
 (defgroup dictionary nil
   "Client for accessing the dictd server based dictionaries."
-  :group 'hypermedia)
+  :group 'applications)
 
 (defgroup dictionary-proxy nil
   "Proxy configuration options for the dictionary client."
@@ -1173,7 +1173,10 @@ allows editing it."
 (defun dictionary-lookup-definition ()
   "Unconditionally lookup the word at point."
   (interactive)
-  (dictionary-new-search (cons (current-word) dictionary-default-dictionary)))
+  (let ((word (current-word)))
+    (unless word
+      (error "No word at point"))
+    (dictionary-new-search (cons word dictionary-default-dictionary))))
 
 (defun dictionary-previous ()
   "Go to the previous location in the current buffer."

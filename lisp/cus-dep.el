@@ -175,7 +175,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 				    (prin1 (sort found #'string<))))
 			    alist))))))
     (dolist (e (sort alist (lambda (e1 e2) (string< (car e1) (car e2)))))
-      (insert "(put '" (car e) " 'custom-loads '" (cdr e) ")\n")))
+      (insert "(custom--add-custom-loads '" (car e) " '" (cdr e) ")\n")))
   (insert "\
 
 ;; The remainder of this file is for handling :version.

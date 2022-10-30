@@ -451,6 +451,7 @@ or `Info-virtual-nodes'."
        (".info.z"    . "gunzip")
        (".info.bz2"  . ("bzip2" "-dc"))
        (".info.xz"   . "unxz")
+       (".info.zst"  . ("zstd" "-dc"))
        (".info"      . nil)
        ("-info.Z"    . "uncompress")
        ("-info.Y"    . "unyabba")
@@ -458,6 +459,7 @@ or `Info-virtual-nodes'."
        ("-info.bz2"  . ("bzip2" "-dc"))
        ("-info.z"    . "gunzip")
        ("-info.xz"   . "unxz")
+       ("-info.zst"  . ("zstd" "-dc"))
        ("-info"      . nil)
        ("/index.Z"   . "uncompress")
        ("/index.Y"   . "unyabba")
@@ -465,6 +467,7 @@ or `Info-virtual-nodes'."
        ("/index.z"   . "gunzip")
        ("/index.bz2" . ("bzip2" "-dc"))
        ("/index.xz"  . "unxz")
+       ("/index.zst" . ("zstd" "-dc"))
        ("/index"     . nil)
        (".Z"         . "uncompress")
        (".Y"         . "unyabba")
@@ -472,6 +475,7 @@ or `Info-virtual-nodes'."
        (".z"         . "gunzip")
        (".bz2"       . ("bzip2" "-dc"))
        (".xz"        . "unxz")
+       (".zst"       . ("zstd" "-dc"))
        (""           . nil)))
   "List of file name suffixes and associated decoding commands.
 Each entry should be (SUFFIX . STRING); the file is given to
@@ -759,6 +763,11 @@ See a list of available Info commands in `Info-mode'."
                     (read-file-name "Info file name: " nil nil t))
                 (if (numberp current-prefix-arg)
                     (format "*info*<%s>" current-prefix-arg))))
+  (when file-or-node
+    ;; Info node names don't contain newlines, so allow for easier use
+    ;; of names that might have been wrapped (in emails, etc.).
+    (setq file-or-node
+          (string-replace "\n" " " file-or-node)))
   (info-setup file-or-node
 	      (pop-to-buffer-same-window (or buffer "*info*"))))
 
@@ -1874,6 +1883,9 @@ See `completing-read' for a description of arguments and usage."
    (t (complete-with-action
        code Info-read-node-completion-table string predicate))))
 
+(defvar Info-minibuf-history nil
+  "History for `Info-read-node-name'.")
+
 ;; Arrange to highlight the proper letters in the completion list buffer.
 (defun Info-read-node-name (prompt &optional default)
   "Read an Info node name with completion, prompting with PROMPT.
@@ -2472,7 +2484,6 @@ Table of contents is created from the tree structure of menus."
            (sections '(("Top" "Top")))
            nodes subfiles)
       (while (or main-file subfiles)
-        ;; (or main-file (message "Searching subfile %s..." (car subfiles)))
         (erase-buffer)
         (info-insert-file-contents (or main-file (car subfiles)))
         (goto-char (point-min))
@@ -2531,7 +2542,6 @@ Table of contents is created from the tree structure of menus."
               (setq subfiles (nreverse subfiles)
                     main-file nil))
           (setq subfiles (cdr subfiles))))
-      (message "")
       (nreverse nodes))))
 
 (defun Info-toc-nodes (filename)
@@ -4451,9 +4461,12 @@ Advanced commands:
   (setq buffer-read-only t)
   (setq Info-tag-table-marker (make-marker))
   (unless (or (display-multi-font-p)
-              (coding-system-equal
-               (coding-system-base (terminal-coding-system))
-               'utf-8))
+              (and (coding-system-equal
+                    (coding-system-base (terminal-coding-system))
+                    'utf-8)
+                   ;; The Linux console has limited character
+                   ;; repertoire even when its encoding is UTF-8.
+                   (not (equal (tty-type) "linux"))))
     (dolist (elt info-symbols-and-replacements)
       (let ((ch (car elt))
             (repl (cdr elt)))

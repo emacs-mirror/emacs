@@ -325,6 +325,20 @@ This will generate compile-time constants from BINDINGS."
               (throw 'matched t)))
         (throw 'matched nil)))))
 
+(defun lisp-mode--search-key (char bound)
+  (catch 'found
+    (while (re-search-forward
+            (concat "\\_<" char (rx lisp-mode-symbol) "\\_>")
+            bound t)
+      (when (or (< (match-beginning 0) (+ (point-min) 2))
+                ;; A quoted white space before the &/: means that this
+                ;; is not the start of a :keyword or an &option.
+                (not (eql (char-after (- (match-beginning 0) 2))
+                          ?\\))
+                (not (memq (char-after (- (match-beginning 0) 1))
+                           '(?\s ?\n ?\t))))
+        (throw 'found t)))))
+
 (let-when-compile
     ((lisp-fdefs '("defmacro" "defun"))
      (lisp-vdefs '("defvar"))
@@ -496,11 +510,11 @@ This will generate compile-time constants from BINDINGS."
          (,(rx "\\\\=")
           (0 font-lock-builtin-face prepend))
          ;; Constant values.
-         (,(concat "\\_<:" (rx lisp-mode-symbol) "\\_>")
+         (,(lambda (bound) (lisp-mode--search-key ":" bound))
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
-         (,(concat "\\_<&" (rx lisp-mode-symbol) "\\_>")
-          . font-lock-type-face)
+         (,(lambda (bound) (lisp-mode--search-key "&" bound))
+          (0 font-lock-builtin-face))
          ;; ELisp regexp grouping constructs
          (,(lambda (bound)
              (catch 'found
@@ -549,11 +563,12 @@ This will generate compile-time constants from BINDINGS."
          ;; must come before keywords below to have effect
          (,(concat "#:" (rx lisp-mode-symbol) "") 0 font-lock-builtin-face)
          ;; Constant values.
-         (,(concat "\\_<:" (rx lisp-mode-symbol) "\\_>")
+         (,(lambda (bound) (lisp-mode--search-key ":" bound))
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
-         (,(concat "\\_<&" (rx lisp-mode-symbol) "\\_>")
-          . font-lock-type-face)
+         (,(lambda (bound) (lisp-mode--search-key "&" bound))
+          (0 font-lock-builtin-face))
+         ;; ELisp regexp grouping constructs
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
          ;; and that they get the wrong color.

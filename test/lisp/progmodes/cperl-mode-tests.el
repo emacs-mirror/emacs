@@ -723,6 +723,18 @@ created by CPerl mode, so skip it for Perl mode."
 
 ;;; Tests for issues reported in the Bug Tracker
 
+(ert-deftest cperl-test-bug-997 ()
+  "Test that we distinguish a regexp match when there's nothing before it."
+  (let ((code "# some comment\n\n/fontify me/;\n"))
+    (with-temp-buffer
+      (funcall cperl-test-mode)
+      (insert code)
+      (font-lock-ensure)
+      (goto-char (point-min))
+      (search-forward "/f")
+      (should (equal (get-text-property (point) 'face)
+                     'font-lock-string-face)))))
+
 (defun cperl-test--run-bug-10483 ()
   "Runs a short program, intended to be under timer scrutiny.
 This function is intended to be used by an Emacs subprocess in
@@ -775,6 +787,36 @@ under timeout control."
       ;; be rather robust with regard to indentation defaults
       (should (string-match
                "poop ('foo', \n      'bar')" (buffer-string))))))
+
+(ert-deftest cperl-test-bug-11996 ()
+  "Verify that we give the right syntax property to a backslash operator."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-11996.pl"))
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (re-search-forward "\\(\\\\(\\)")
+    (save-excursion
+      (goto-char (match-beginning 1))
+      (should (equal (syntax-after (point)) (string-to-syntax ".")))
+      ;; `forward-sexp' shouldn't complain.
+      (forward-sexp)
+      (should (char-equal (char-after) ?\;)))
+    (re-search-forward "\\(\\\\\"\\)")
+    (save-excursion
+      (goto-char (match-beginning 1))
+      (should (equal (syntax-after (point)) (string-to-syntax "\\")))
+      (should (equal (get-text-property (point) 'face) 'font-lock-string-face)))
+    (re-search-forward "\\(\\\\\"\\)")
+    (save-excursion
+      (goto-char (match-beginning 1))
+      (should (equal (syntax-after (point)) (string-to-syntax "\\"))))
+    (re-search-forward "\\(\\\\\"\\)")
+    (save-excursion
+      (goto-char (match-beginning 1))
+      (should (equal (syntax-after (point)) (string-to-syntax ".")))
+      (should (equal (get-text-property (1+ (point)) 'face)
+                     'font-lock-string-face)))))
 
 (ert-deftest cperl-test-bug-14343 ()
   "Verify that inserting text into a HERE-doc string with Elisp
@@ -1102,5 +1144,8 @@ as a regex."
     (insert " ?foo?;")
     (funcall cperl-test-mode)
     (should-not (nth 3 (syntax-ppss 3)))))
+
+(ert-deftest test-indentation ()
+  (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))
 
 ;;; cperl-mode-tests.el ends here

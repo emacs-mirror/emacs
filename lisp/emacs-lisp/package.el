@@ -346,21 +346,28 @@ default directory."
 
 (defcustom package-check-signature 'allow-unsigned
   "Non-nil means to check package signatures when installing.
-More specifically the value can be:
-- nil: package signatures are ignored.
-- `allow-unsigned': install a package even if it is unsigned, but
-  if it is signed, we have the key for it, and OpenGPG is
-  installed, verify the signature.
-- t: accept a package only if it comes with at least one verified signature.
-- `all': same as t, except when the package has several signatures,
-  in which case we verify all the signatures.
 
 This also applies to the \"archive-contents\" file that lists the
-contents of the archive."
+contents of the archive.
+
+The value can be one of:
+
+  t                  Accept a package only if it comes with at least
+                     one verified signature.
+
+  `all'              Same as t, but verify all signatures if there
+                     are more than one.
+
+  `allow-unsigned'   Install a package even if it is unsigned,
+                     but verify the signature if possible (that
+                     is, if it is signed, we have the key for it,
+                     and GnuPG is installed).
+
+  nil                Package signatures are ignored."
   :type '(choice (const :value nil            :tag "Never")
                  (const :value allow-unsigned :tag "Allow unsigned")
                  (const :value t              :tag "Check always")
-                 (const :value all            :tag "Check all signatures"))
+                 (const :value all            :tag "Check always (all signatures)"))
   :risky t
   :version "27.1")
 
@@ -828,8 +835,7 @@ byte-compilation of the new package to fail."
 If DEPS is non-nil, also activate its dependencies (unless they
 are already activated).
 If RELOAD is non-nil, also `load' any files inside the package which
-correspond to previously loaded files (those returned by
-`package--list-loaded-files')."
+correspond to previously loaded files."
   (let* ((name (package-desc-name pkg-desc))
          (pkg-dir (package-desc-dir pkg-desc)))
     (unless pkg-dir
@@ -923,7 +929,7 @@ untar into a directory named DIR; otherwise, signal an error."
         (or (string-match regexp name)
             ;; Tarballs created by some utilities don't list
             ;; directories with a trailing slash (Bug#13136).
-            (and (string-equal dir name)
+            (and (string-equal (expand-file-name dir) name)
                  (eq (tar-header-link-type tar-data) 5))
             (error "Package does not untar cleanly into directory %s/" dir)))))
   (tar-untar-buffer))
@@ -1185,8 +1191,12 @@ Return the pkg-desc, with desc-kind set to KIND."
   "Find package information for a tar file.
 The return result is a `package-desc'."
   (cl-assert (derived-mode-p 'tar-mode))
-  (let* ((dir-name (file-name-directory
-                    (tar-header-name (car tar-parse-info))))
+  (let* ((dir-name (named-let loop
+                       ((filename (tar-header-name (car tar-parse-info))))
+                     (let ((dirname (file-name-directory filename)))
+                       ;; The first file can be in a subdir: look for the top.
+                       (if dirname (loop (directory-file-name dirname))
+                         (file-name-as-directory filename)))))
          (desc-file (package--description-file dir-name))
          (tar-desc (tar-get-file-descriptor (concat dir-name desc-file))))
     (unless tar-desc
@@ -2189,8 +2199,8 @@ to install it but still mark it as selected."
              (assq (car elt) package-archive-contents)))
         (and available
              (version-list-<
-              (package-desc-priority-version (cadr elt))
-              (package-desc-priority-version (cadr available))))))
+              (package-desc-version (cadr elt))
+              (package-desc-version (cadr available))))))
     package-alist)))
 
 ;;;###autoload
@@ -2436,10 +2446,14 @@ If NOSAVE is non-nil, the package is not removed from
   "Reinstall package PKG.
 PKG should be either a symbol, the package name, or a `package-desc'
 object."
-  (interactive (list (intern (completing-read
-                              "Reinstall package: "
-                              (mapcar #'symbol-name
-                                      (mapcar #'car package-alist))))))
+  (interactive
+   (progn
+     (package--archives-initialize)
+     (list (intern (completing-read
+                    "Reinstall package: "
+                    (mapcar #'symbol-name
+                            (mapcar #'car package-alist)))))))
+  (package--archives-initialize)
   (package-delete
    (if (package-desc-p pkg) pkg (cadr (assq pkg package-alist)))
    'force 'nosave)
@@ -2648,7 +2662,7 @@ Helper function for `describe-package'."
                         "',\n             shadowing a ")
                        (propertize "built-in package"
                                    'font-lock-face 'package-status-built-in))
-             (insert (substitute-command-keys "'")))
+             (insert (substitute-quotes "'")))
            (if signed
                (insert ".")
              (insert " (unsigned)."))
@@ -3700,30 +3714,34 @@ objects removed."
     `((delete . ,del) (install . ,ins) (upgrade . ,upg))))
 
 (defun package-menu--perform-transaction (install-list delete-list)
-  "Install packages in INSTALL-LIST and delete DELETE-LIST."
-  (if install-list
-      (let ((status-format (format ":Installing %%d/%d"
-                             (length install-list)))
-            (i 0)
-            (package-menu--transaction-status))
-        (dolist (pkg install-list)
-          (setq package-menu--transaction-status
-                (format status-format (cl-incf i)))
-          (force-mode-line-update)
-          (redisplay 'force)
-          ;; Don't mark as selected, `package-menu-execute' already
-          ;; does that.
-          (package-install pkg 'dont-select))))
-  (let ((package-menu--transaction-status ":Deleting"))
-    (force-mode-line-update)
-    (redisplay 'force)
-    (dolist (elt (package--sort-by-dependence delete-list))
-      (condition-case-unless-debug err
-          (let ((inhibit-message (or inhibit-message package-menu-async)))
-            (package-delete elt nil 'nosave))
-        (error (message "Error trying to delete `%s': %S"
-                 (package-desc-full-name elt)
-                 err))))))
+  "Install packages in INSTALL-LIST and delete DELETE-LIST.
+Return nil if there were no errors; non-nil otherwise."
+  (let ((errors nil))
+    (if install-list
+        (let ((status-format (format ":Installing %%d/%d"
+                                     (length install-list)))
+              (i 0)
+              (package-menu--transaction-status))
+          (dolist (pkg install-list)
+            (setq package-menu--transaction-status
+                  (format status-format (cl-incf i)))
+            (force-mode-line-update)
+            (redisplay 'force)
+            ;; Don't mark as selected, `package-menu-execute' already
+            ;; does that.
+            (package-install pkg 'dont-select))))
+    (let ((package-menu--transaction-status ":Deleting"))
+      (force-mode-line-update)
+      (redisplay 'force)
+      (dolist (elt (package--sort-by-dependence delete-list))
+        (condition-case-unless-debug err
+            (let ((inhibit-message (or inhibit-message package-menu-async)))
+              (package-delete elt nil 'nosave))
+          (error
+           (push (package-desc-full-name elt) errors)
+           (message "Error trying to delete `%s': %S"
+                    (package-desc-full-name elt) err)))))
+    errors))
 
 (defun package--update-selected-packages (add remove)
   "Update the `package-selected-packages' list according to ADD and REMOVE.
@@ -3796,8 +3814,8 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
           (message "Operation %s started" message-template)
           ;; Packages being upgraded are not marked as selected.
           (package--update-selected-packages .install .delete)
-          (package-menu--perform-transaction install-list delete-list)
-          (when package-selected-packages
+          (unless (package-menu--perform-transaction install-list delete-list)
+            ;; If there weren't errors, output data.
             (if-let* ((removable (package--removable-packages)))
                 (message "Operation finished.  Packages that are no longer needed: %d.  Type `%s' to remove them"
                          (length removable)

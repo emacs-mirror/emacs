@@ -5992,12 +5992,22 @@ sys_umask (int mode)
 #ifndef SYMBOLIC_LINK_FLAG_DIRECTORY
 #define SYMBOLIC_LINK_FLAG_DIRECTORY 0x1
 #endif
+#ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
+#define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 0x2
+#endif
 
 int
 symlink (char const *filename, char const *linkname)
 {
   char linkfn[MAX_UTF8_PATH], *tgtfn;
-  DWORD flags = 0;
+  /* The SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE flag is
+     supported from Windows 10 build 14972.  It is only supported if
+     Developer Mode is enabled, and is ignored if it isn't.  */
+  DWORD flags =
+    (os_subtype == OS_SUBTYPE_NT
+     && (w32_major_version > 10
+	 || (w32_major_version == 10 && w32_build_number >= 14972)))
+    ? SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE : 0;
   int dir_access, filename_ends_in_slash;
 
   /* Diagnostics follows Posix as much as possible.  */
@@ -6055,7 +6065,7 @@ symlink (char const *filename, char const *linkname)
      directory.  */
   filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
   if (dir_access == 0 || filename_ends_in_slash)
-    flags = SYMBOLIC_LINK_FLAG_DIRECTORY;
+    flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
 
   tgtfn = (char *)map_w32_filename (filename, NULL);
   if (filename_ends_in_slash)
@@ -6468,6 +6478,17 @@ chase_symlinks (const char *file)
   if (target[0] == '\0') /* not a single call to readlink succeeded */
     return (char *)file;
   return target;
+}
+
+/* Return non-zero if FILE's filesystem supports symlinks.  */
+bool
+symlinks_supported (const char *file)
+{
+  if (is_windows_9x () != TRUE
+      && get_volume_info (file, NULL)
+      && (volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0)
+    return true;
+  return false;
 }
 
 

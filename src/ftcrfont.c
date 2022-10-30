@@ -233,6 +233,7 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   cairo_glyph_t stack_glyph;
   font->min_width = font->max_width = 0;
   font->average_width = font->space_width = 0;
+  int n = 0;
   for (char c = 32; c < 127; c++)
     {
       cairo_glyph_t *glyphs = &stack_glyph;
@@ -252,17 +253,20 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 	  stack_glyph.index = 0;
 	}
       int this_width = ftcrfont_glyph_extents (font, stack_glyph.index, NULL);
-      if (this_width > 0
-	  && (! font->min_width
-	      || font->min_width > this_width))
-	font->min_width = this_width;
-      if (this_width > font->max_width)
-	font->max_width = this_width;
-      if (c == 32)
-	font->space_width = this_width;
-      font->average_width += this_width;
+      if (this_width > 0)
+	{
+	  if (! font->min_width || font->min_width > this_width)
+	    font->min_width = this_width;
+	  if (this_width > font->max_width)
+	    font->max_width = this_width;
+	  if (c == 32)
+	    font->space_width = this_width;
+	  font->average_width += this_width;
+	  n++;
+	}
     }
-  font->average_width /= 95;
+  if (n)
+    font->average_width /= n;
 
   cairo_scaled_font_extents (ftcrfont_info->cr_scaled_font, &extents);
   font->ascent = lround (extents.ascent);
@@ -679,8 +683,12 @@ ftcrhbfont_begin_hb_font (struct font *font, double *position_unit)
   hb_font_t *hb_font = fthbfont_begin_hb_font (font, position_unit);
   /* HarfBuzz 5 correctly scales bitmap-only fonts without position
      unit adjustment.
-     (https://github.com/harfbuzz/harfbuzz/issues/489) */
-  if (!hb_version_atleast (5, 0, 0)
+     (https://github.com/harfbuzz/harfbuzz/issues/489)
+
+     Update: HarfBuzz 5.2.0 no longer does this for an hb_font_t font
+     object created from a given FT_Face.
+     (https://github.com/harfbuzz/harfbuzz/issues/3788) */
+  if ((hb_version_atleast (5, 2, 0) || !hb_version_atleast (5, 0, 0))
       && ftcrfont_info->bitmap_position_unit)
     *position_unit = ftcrfont_info->bitmap_position_unit;
 
