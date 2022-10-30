@@ -483,7 +483,7 @@ which the tab will represent."
     (dolist (fn tab-line-tab-face-functions)
       (setf face (funcall fn tab tabs face buffer-p selected-p)))
     (apply 'propertize
-           (concat (propertize name
+           (concat (propertize (string-replace "%" "%%" name) ;; (bug#57848)
                                'keymap tab-line-tab-map
                                'help-echo (if selected-p "Current tab"
                                             "Click to select tab")
