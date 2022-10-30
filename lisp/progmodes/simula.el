@@ -245,20 +245,19 @@ for SIMULA mode to function correctly."
 (defvar simula-font-lock-keywords simula-font-lock-keywords-1
   "Default expressions to highlight in Simula mode.")
 
-(defvar simula-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-u"   #'simula-backward-up-level)
-    (define-key map "\C-c\C-p"   #'simula-previous-statement)
-    (define-key map "\C-c\C-d"   #'simula-forward-down-level)
-    (define-key map "\C-c\C-n"   #'simula-next-statement)
-    ;; (define-key map "\C-c\C-g"   #'simula-goto-definition)
-    ;; (define-key map "\C-c\C-h"   #'simula-standard-help)
-    (define-key map "\177"       #'backward-delete-char-untabify)
-    (define-key map ":"          #'simula-electric-label)
-    (define-key map "\e\C-q"     #'simula-indent-exp)
-    ;; (define-key map "\t"         #'simula-indent-command)
-    map)
-  "Keymap used in `simula-mode'.")
+(defvar-keymap simula-mode-map
+  :doc "Keymap used in `simula-mode'."
+  "C-c C-u"    #'simula-backward-up-level
+  "C-c C-p"    #'simula-previous-statement
+  "C-c C-d"    #'simula-forward-down-level
+  "C-c C-n"    #'simula-next-statement
+  ;; "C-c C-g" #'simula-goto-definition
+  ;; "C-c C-h" #'simula-standard-help
+  "DEL"        #'backward-delete-char-untabify
+  ":"          #'simula-electric-label
+  "C-M-q"      #'simula-indent-exp
+  ;; "TAB"     #'simula-indent-command
+  )
 
 (easy-menu-define simula-mode-menu simula-mode-map
   "Menu for `simula-mode'."
