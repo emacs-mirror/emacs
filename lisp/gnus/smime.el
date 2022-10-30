@@ -152,7 +152,7 @@ certificate."
 (defcustom smime-CA-file (car (gnutls-trustfiles))
   "File containing certificates for CAs you trust.
 The file should contain certificates in PEM format.  By default,
-this is initialized from the `gnutls-trusfiles' variable."
+this is initialized from the `gnutls-trustfiles' variable."
   :version "29.1"
   :type '(choice (const :tag "none" nil)
 		 file))

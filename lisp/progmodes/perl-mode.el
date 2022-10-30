@@ -223,7 +223,7 @@
             (regexp-opt perl--syntax-exp-intro-keywords)
             ;; A HERE document as an argument to printf?
             ;; when printing to a filehandle.
-            "\\|printf?[ \t]*$?[_[:alpha:]][_[:alnum:]]*"
+            "\\|printf?[ \t]*\\$?[_[:alpha:]][_[:alnum:]]*"
             "\\|=>"
             "\\|[?:.,;|&*=!~({[]"
             "\\|[^-+][-+]"    ;Bug#42168: `+' is intro but `++' isn't!

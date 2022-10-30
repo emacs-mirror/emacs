@@ -620,7 +620,8 @@ the selected tab visible."
     (let ((truncate-partial-width-windows nil)
           (inhibit-modification-hooks t)
           show-arrows)
-      (setq truncate-lines nil)
+      (setq truncate-lines nil
+            word-wrap nil)
       (erase-buffer)
       (apply 'insert strings)
       (goto-char (point-min))

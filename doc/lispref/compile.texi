@@ -1077,7 +1077,7 @@ pristine environment, that may not be true for the subprocess.
 @end defopt
 
 @defopt native-comp-async-query-on-exit
-If this variable's value is non-nil, Emacs will query upon exiting
+If this variable's value is non-@code{nil}, Emacs will query upon exiting
 whether to exit and kill any asynchronous native-compilation
 subprocesses that are still running, thus preventing the corresponding
 @file{.eln} files from being written.  If the value is @code{nil}, the

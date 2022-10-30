@@ -3136,7 +3136,7 @@ a list of file names that match it.
 
 @var{pattern} is, by default, a ``glob''/wildcard string, e.g.,
 @samp{"/tmp/*.png"} or @samp{"/*/*/foo.png"}, but can also be a
-regular expression if the optional @var{regexp} parameter is non-nil.
+regular expression if the optional @var{regexp} parameter is non-@code{nil}.
 In any case, the matches are applied per sub-directory, so a match
 can't span a parent/sub directory.
 

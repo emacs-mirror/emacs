@@ -1301,7 +1301,7 @@ non-first windows in Follow mode."
   "The buffer current at the last call to `follow-adjust-window' or nil.
 `follow-mode' is not necessarily enabled in this buffer.")
 
-;; This function is added to `pre-display-function' and is thus called
+;; This function is added to `pre-redisplay-function' and is thus called
 ;; before each redisplay operation.  It supersedes (2018-09) the
 ;; former use of the post command hook, and now does the right thing
 ;; when a program calls `redisplay' or `sit-for'.

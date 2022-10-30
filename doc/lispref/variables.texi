@@ -1183,7 +1183,7 @@ Here is an example:
 (let ((x 0))             ; @r{@code{x} is lexically bound.}
   (setq my-ticker (lambda ()
                     (setq x (1+ x)))))
-    @result{} (closure ((x . 0) t) ()
+    @result{} (closure ((x . 0)) ()
           (setq x (1+ x)))
 
 (funcall my-ticker)

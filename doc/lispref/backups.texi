@@ -474,7 +474,7 @@ Each transform is a list of the form @w{@code{(@var{regexp}
 @var{replacement} [@var{uniquify}])}}.  @var{regexp} is a regular
 expression to match against the file name; if it matches,
 @code{replace-match} is used to replace the matching part with
-@var{replacement}.  If the optional element @var{uniquify} is non-nil,
+@var{replacement}.  If the optional element @var{uniquify} is non-@code{nil},
 the auto-save file name is constructed by concatenating the directory
 part of the transformed file name with the buffer's file name in which
 all directory separators were changed to @samp{!} to prevent clashes.

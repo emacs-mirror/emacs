@@ -849,7 +849,7 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
     (back-to-indentation)
     (current-column)))
 
-(defun ruby-indent-line (&optional ignored)
+(defun ruby-indent-line (&optional _ignored)
   "Correct the indentation of the current Ruby line."
   (interactive)
   (ruby-indent-to (ruby-calculate-indent)))
@@ -1576,7 +1576,7 @@ With ARG, do it many times.  Negative ARG means move forward."
         ((error)))
       i))))
 
-(defun ruby-indent-exp (&optional ignored)
+(defun ruby-indent-exp (&optional _ignored)
   "Indent each line in the balanced expression following the point."
   (interactive "*P")
   (let ((here (point-marker)) start top column (nest t))

@@ -445,16 +445,17 @@ The return value is the last VAL in the list.
                             ,v))))))))))
 
 (gv-define-expander plist-get
-  (lambda (do plist prop)
+  (lambda (do plist prop &optional predicate)
     (macroexp-let2 macroexp-copyable-p key prop
       (gv-letplace (getter setter) plist
-        (macroexp-let2 nil p `(cdr (plist-member ,getter ,key))
+        (macroexp-let2 nil p `(cdr (plist-member ,getter ,key ,predicate))
           (funcall do
                    `(car ,p)
                    (lambda (val)
                      `(if ,p
                           (setcar ,p ,val)
-                        ,(funcall setter `(cons ,key (cons ,val ,getter)))))))))))
+                        ,(funcall setter
+                                  `(cons ,key (cons ,val ,getter)))))))))))
 
 ;;; Some occasionally handy extensions.
 

@@ -4359,7 +4359,7 @@ member."
   "Mapping of local variable names to a string with their value.")
 
 (defun gdb-locals-values-handler-custom ()
-  "Store the values of local variables in `gdb-locals-value-map'."
+  "Store the values of local variables in `gdb-locals-values-table'."
   (let ((locals-list (bindat-get-field (gdb-mi--partial-output) 'variables)))
     (dolist (local locals-list)
       (let ((name (bindat-get-field local 'name))

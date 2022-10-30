@@ -675,7 +675,15 @@ with coordinates relative to the root window."
 (defun x-dnd-get-drop-rectangle (window posn)
   "Return the drag-and-drop rectangle at POSN on WINDOW."
   (if (or dnd-scroll-margin
-          (not (windowp window)))
+          (not (windowp window))
+          ;; Drops on the scroll bar aren't allowed, but the mouse
+          ;; rectangle can be set while still on the scroll bar,
+          ;; causing the drag initiator to never send an XdndPosition
+          ;; event that will an XdndStatus message with the accept
+          ;; flag set to be set, even after the mouse enters the
+          ;; window text area.  To prevent that, simply don't generate
+          ;; a mouse rectangle when an area is set.
+          (posn-area posn))
       '(0 0 0 0)
     (let ((window-rectangle (x-dnd-get-window-rectangle window))
           object-rectangle)

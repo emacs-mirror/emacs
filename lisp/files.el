@@ -3863,7 +3863,7 @@ If these settings come from directory-local variables, then
 DIR-NAME is the name of the associated directory.  Otherwise it is nil."
   ;; Find those variables that we may want to save to
   ;; `safe-local-variable-values'.
-  (let (all-vars risky-vars unsafe-vars ignored)
+  (let (all-vars risky-vars unsafe-vars)
     (dolist (elt variables)
       (let ((var (car elt))
 	    (val (cdr elt)))

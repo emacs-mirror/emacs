@@ -75,7 +75,7 @@
   (setq-local font-lock-defaults '(emacs-news-mode-font-lock-keywords t))
   (setq-local outline-minor-mode-cycle t
               outline-minor-mode-highlight 'append
-              outline-minor-mode-use-margins t)
+              outline-minor-mode-use-buttons 'in-margins)
   (outline-minor-mode)
   (setq-local imenu-generic-expression outline-imenu-generic-expression)
   (emacs-etc--hide-local-variables))

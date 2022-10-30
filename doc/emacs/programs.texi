@@ -1197,7 +1197,7 @@ use in your program.
 @menu
 * Info Lookup::         Looking up library functions and commands in Info files.
 * Man Page::            Looking up man pages of library functions and commands.
-* Lisp Doc::            Looking up Emacs Lisp functions, etc.
+* Programming Language Doc:: Looking up program functions, variables, etc.
 @end menu
 
 @node Info Lookup
@@ -1298,8 +1298,10 @@ WoMan Manual}.
 the WoMan Info manual, which is distributed with Emacs.
 @end ifnotinfo
 
-@node Lisp Doc
-@subsection Emacs Lisp Documentation Lookup
+@node Programming Language Doc
+@subsection Programming Language Documentation Lookup
+@cindex documentation for program symbols
+@cindex program functions and variables, documentation lookup
 
   When editing Emacs Lisp code, you can use the commands @kbd{C-h f}
 (@code{describe-function}) and @kbd{C-h v} (@code{describe-variable})
@@ -1307,43 +1309,120 @@ to view the built-in documentation for the Lisp functions and
 variables that you want to use.  @xref{Name Help}.
 
 @cindex ElDoc mode
+@cindex at-point documentation for program symbols
 @findex eldoc-mode
 @findex global-eldoc-mode
-  ElDoc is a buffer-local minor mode that helps with looking up Lisp
-documentation.  When it is enabled, the echo area displays some useful
-information whenever there is a Lisp function or variable at point;
-for a function, it shows the argument list, and for a variable it
-shows the first line of the variable's documentation string.  To
-toggle ElDoc mode, type @kbd{M-x eldoc-mode}.  There's also a Global
-ElDoc mode, which is turned on by default, and affects buffers whose
-major mode sets the variables described below.  Use @w{@kbd{M-x
-global-eldoc-mode}} to turn it off globally.
+  ElDoc@footnote{
+The name ``ElDoc'' is a historical accident: this mode started by
+supporting Emacs Lisp buffers.
+} is a buffer-local minor mode that helps with looking up
+documentation of symbols (functions, methods, classes, variables,
+etc.) in your program.  When this mode is enabled, the echo area
+displays useful information whenever there is a documented symbol at
+point.  For example, in buffers under the Emacs Lisp mode, it shows
+the argument list of a function at point, and for a Lisp variable it
+shows the first line of the variable's documentation string.
 
-@vindex eldoc-documentation-strategy
-@vindex eldoc-documentation-functions
-  These variables can be used to configure ElDoc mode:
+To toggle ElDoc mode, type @kbd{M-x eldoc-mode}.  There's also a
+Global ElDoc mode, which is turned on by default, and turns on the
+ElDoc mode in buffers whose major mode sets the variables described
+below.  Use @w{@kbd{M-x global-eldoc-mode}} to turn it off globally.
 
-@table @code
+Various major modes configure the Global ElDoc mode to use their
+documentation functions.  Examples include Emacs Lisp mode, Python
+mode, and Cfengine mode.  In addition, Emacs features that provide
+support for several major modes configure ElDoc to use their
+facilities for retrieving the documentation.  Examples include Eglot
+(@pxref{Eglot Features,,, eglot, Eglot: The Emacs LSP Client}), which
+provides documentation based on information from language servers;
+Semantic's Idle Summary mode (@pxref{Idle Summary Mode,,, semantic,
+Semantic Manual}); and Flymake, which uses ElDoc to show diagnostics
+at point (@pxref{Finding diagnostics,,, flymake, GNU Flymake manual}).
+
+The ElDoc mode works by scheduling the display of the available
+documentation for the symbol at point after Emacs has been idle for
+some short time.  This avoids annoying flickering of documentation
+messages in the echo area or the mode line when you type quickly and
+without delay.
+
+@findex eldoc-print-current-symbol-info
+You can also trigger the display of documentation for a symbol at
+point by using the command @kbd{M-x eldoc-print-current-symbol-info}.
+
+  The following variables can be used to configure ElDoc mode:
+
+@vtable @code
+@item eldoc-idle-delay
+The value of this user option controls the amount of idle time before
+the at-point documentation is displayed.  It should be set to the
+number of seconds to wait; the value of zero means to display without
+any delay.  The default is 0.5 sec.
+
+@item eldoc-print-after-edit
+If this user option is non-@code{nil}, ElDoc will show documentation
+only after some editing command, like inserting or deleting some
+text.  This comes in handy if you want Emacs to display documentation
+only about symbols that you type, but not about symbols that are
+already in the buffer (so just reading the source code will not show
+documentation).  The default value is @code{nil}.  If you change the
+value, you need to toggle @code{eldoc-mode} off and on again.
+
+@item eldoc-echo-area-use-multiline-p
+This user option controls whether and how to truncate documentation
+text if it is longer than the echo-area can display as a single screen
+line.  If the value is a positive number, it specifies the number of
+screen lines that ElDoc is allowed to display in the echo area without
+truncating the documentation.  A positive integer specifies the
+absolute maximum number of screen lines to use; a floating-point
+number specifies the number of screen lines as a fraction of the
+frame's height.  The value of @code{t} means never truncate the
+documentation (the echo-area will be resized up to the height allowed
+by @code{max-mini-window-height}, @pxref{Minibuffer Edit}), whereas
+the value of @code{nil} means truncate if the documentation is longer
+than a single screen line.  Finally, the special value
+@code{truncate-sym-name-if-fit} (the default) means to truncate the
+part of the documentation that represents a symbol's name if doing
+that will allow the documentation to fit on a single screen line.
+
+@item eldoc-echo-area-display-truncation-message
+If non-@code{nil} (the default), and documentation shown in the echo
+area is truncated because it's too long, follow the documentation by
+instructions about how to view the complete documentation text.  If
+@code{nil}, just indicate with @samp{@dots{}} that the documentation
+was truncated.
+
+@findex eldoc-doc-buffer
+@item eldoc-echo-area-prefer-doc-buffer
+If the value of this user option is @code{t}, ElDoc will not show the
+documentation in the echo area if the ElDoc buffer with the
+documentation is already displayed in some window.  (You can use the
+command @kbd{M-x eldoc-doc-buffer} any time to show the ElDoc buffer.)
+If the value of this option is the symbol @code{maybe}, the
+documentation will not be displayed in the echo area if the ElDoc
+buffer is shown in some window, and the documentation text has to be
+truncated if displayed in the echo area.  Finally, the value of
+@code{nil} (the default) means always show the documentation in the
+echo area.
+
 @item eldoc-documentation-strategy
-This variable holds the function which is used to retrieve
-documentation for the item at point from the functions in the hook
-@code{eldoc-documentation-functions}.  By default,
-@code{eldoc-documentation-strategy} returns the first documentation
-string produced by the @code{eldoc-documentation-functions} hook, but
-it may be customized to compose those functions' results in other
-ways.
+This customizable variable's value is the function which is used to
+retrieve and display documentation for the symbol at point.  The
+documentation is produced by the functions in the hook
+@code{eldoc-documentation-functions}.  The default value of
+@code{eldoc-documentation-strategy} specifies that ElDoc should
+display the first documentation text produced by functions in the
+@code{eldoc-documentation-functions} hook, but you can customize
+@code{eldoc-documentation-strategy} to work in other ways, such as
+displaying all of the documentation texts concatenated together.
 
 @item eldoc-documentation-functions
-This abnormal hook holds documentation functions.  It acts as a
-collection of backends for ElDoc.  This is what modes should use to
-register their documentation functions with ElDoc.
-
-@vindex eldoc-echo-area-display-truncation-message
-@item eldoc-echo-area-display-truncation-message
-If non-@code{nil} (the default), display a verbose message about how
-to view a complete documentation (if it has been truncated in the echo
-area).  If @code{nil}, just mark truncated messages with @samp{...}.
-@end table
+This abnormal hook's value is a list of functions that can produce
+documentation for the symbol at point as appropriate for the current
+buffer's major-mode.  These functions act as a collection of backends
+for ElDoc.  Major mode register their documentation lookup functions
+with ElDoc by adding their functions to the buffer-local value of this
+variable.
+@end vtable
 
 @node Hideshow
 @section Hideshow minor mode

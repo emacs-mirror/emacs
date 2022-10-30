@@ -1,7 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2022 Free Software
-Foundation, Inc.
+Copyright (C) 1985-2022  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -46,6 +45,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "pdumper.h"
 #include "termhooks.h"		/* For struct terminal.  */
+#include "itree.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -3129,6 +3129,11 @@ cleanup_vector (struct Lisp_Vector *vector)
 
   if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_BIGNUM))
     mpz_clear (PSEUDOVEC_STRUCT (vector, Lisp_Bignum)->value);
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_OVERLAY))
+    {
+      struct Lisp_Overlay *ol = PSEUDOVEC_STRUCT (vector, Lisp_Overlay);
+      xfree (ol->interval);
+    }
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FINALIZER))
     unchain_finalizer (PSEUDOVEC_STRUCT (vector, Lisp_Finalizer));
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT))
@@ -3697,18 +3702,20 @@ build_symbol_with_pos (Lisp_Object symbol, Lisp_Object position)
   return val;
 }
 
-/* Return a new overlay with specified START, END and PLIST.  */
+/* Return a new (deleted) overlay with PLIST.  */
 
 Lisp_Object
-build_overlay (Lisp_Object start, Lisp_Object end, Lisp_Object plist)
+build_overlay (bool front_advance, bool rear_advance,
+               Lisp_Object plist)
 {
   struct Lisp_Overlay *p = ALLOCATE_PSEUDOVECTOR (struct Lisp_Overlay, plist,
 						  PVEC_OVERLAY);
   Lisp_Object overlay = make_lisp_ptr (p, Lisp_Vectorlike);
-  OVERLAY_START (overlay) = start;
-  OVERLAY_END (overlay) = end;
+  struct itree_node *node = xmalloc (sizeof (*node));
+  itree_node_init (node, front_advance, rear_advance, overlay);
+  p->interval = node;
+  p->buffer = NULL;
   set_overlay_plist (overlay, plist);
-  p->next = NULL;
   return overlay;
 }
 
@@ -5938,8 +5945,7 @@ visit_buffer_root (struct gc_root_visitor visitor,
   /* Buffers that are roots don't have intervals, an undo list, or
      other constructs that real buffers have.  */
   eassert (buffer->base_buffer == NULL);
-  eassert (buffer->overlays_before == NULL);
-  eassert (buffer->overlays_after == NULL);
+  eassert (buffer->overlays == NULL);
 
   /* Visit the buffer-locals.  */
   visit_vectorlike_root (visitor, (struct Lisp_Vector *) buffer, type);
@@ -6273,6 +6279,11 @@ garbage_collect (void)
   image_prune_animation_caches (false);
 #endif
 
+  /* ELisp code run by `gc-post-hook' could result in itree iteration,
+     which must not happen while the itree is already busy.  See
+     bug#58639.  */
+  eassert (!itree_iterator_busy_p ());
+
   if (!NILP (Vpost_gc_hook))
     {
       specpdl_ref gc_count = inhibit_garbage_collection ();
@@ -6495,16 +6506,25 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
 /* Mark the chain of overlays starting at PTR.  */
 
 static void
-mark_overlay (struct Lisp_Overlay *ptr)
+mark_overlay (struct Lisp_Overlay *ov)
 {
-  for (; ptr && !vectorlike_marked_p (&ptr->header); ptr = ptr->next)
-    {
-      set_vectorlike_marked (&ptr->header);
-      /* These two are always markers and can be marked fast.  */
-      set_vectorlike_marked (&XMARKER (ptr->start)->header);
-      set_vectorlike_marked (&XMARKER (ptr->end)->header);
-      mark_object (ptr->plist);
-    }
+  /* We don't mark the `interval_node` object, because it is managed manually
+     rather than by the GC.  */
+  eassert (BASE_EQ (ov->interval->data, make_lisp_ptr (ov, Lisp_Vectorlike)));
+  set_vectorlike_marked (&ov->header);
+  mark_object (ov->plist);
+}
+
+/* Mark the overlay subtree rooted at NODE.  */
+
+static void
+mark_overlays (struct itree_node *node)
+{
+  if (node == NULL)
+    return;
+  mark_object (node->data);
+  mark_overlays (node->left);
+  mark_overlays (node->right);
 }
 
 /* Mark Lisp_Objects and special pointers in BUFFER.  */
@@ -6528,8 +6548,8 @@ mark_buffer (struct buffer *buffer)
   if (!BUFFER_LIVE_P (buffer))
       mark_object (BVAR (buffer, undo_list));
 
-  mark_overlay (buffer->overlays_before);
-  mark_overlay (buffer->overlays_after);
+  if (buffer->overlays)
+    mark_overlays (buffer->overlays->root);
 
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer &&

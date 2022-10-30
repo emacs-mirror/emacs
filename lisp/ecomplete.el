@@ -88,7 +88,8 @@ string that was matched."
 
 (defcustom ecomplete-filter-regexp nil
   "Regular expression of addresses that should not be stored by ecomplete."
-  :type 'regexp
+  :type '(choice (const :tag "None" nil)
+                 (regexp :tag "Regexp"))
   :version "29.1")
 
 ;;; Internal variables.
@@ -189,7 +190,7 @@ FORCE is non-nil, use TEXT exactly as is."
 If CHOOSE, allow the user to choose interactively between the
 matches.
 
-Auto-select when `ecomplete-message-display-abbrev-auto-select' is
+Auto-select when `ecomplete-auto-select' is
 non-nil and there is only a single completion option available."
   (let* ((matches (ecomplete-get-matches type word))
          (match-list (and matches (split-string matches "\n")))

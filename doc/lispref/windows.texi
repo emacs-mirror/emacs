@@ -2624,7 +2624,7 @@ default value is an empty display action, i.e., @w{@code{(nil . nil)}}.
 The value of this option is an alist mapping conditions to display
 actions.  Each condition is passed to @code{buffer-match-p}, along
 with the buffer name and the @var{action} argument passed to
-@code{display-buffer}.  If it returns a non-nil value, then
+@code{display-buffer}.  If it returns a non-@code{nil} value, then
 @code{display-buffer} uses the corresponding display action to display
 the buffer.
 @end defopt

@@ -2787,7 +2787,6 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
   unsigned char *data = (unsigned char *) event->data.b;
   int idata[5];
   ptrdiff_t i;
-  Window child_return;
 
   for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i)
     if (dpyinfo->x_dnd_atoms[i] == event->message_type) break;
@@ -2822,11 +2821,7 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
   if (!root_window_coords)
     x_relative_mouse_position (f, &x, &y);
   else
-    XTranslateCoordinates (dpyinfo->display,
-			   dpyinfo->root_window,
-			   FRAME_X_WINDOW (f),
-			   root_x, root_y,
-			   &x, &y, &child_return);
+    x_translate_coordinates (f, root_x, root_y, &x, &y);
 
   bufp->kind = DRAG_N_DROP_EVENT;
   bufp->frame_or_window = frame;

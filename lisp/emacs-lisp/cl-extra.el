@@ -615,12 +615,12 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 				  ,(funcall setter
 					    `(cl--set-getf ,getter ,k ,val))
 				  ,val)))))))))
-  (let ((val-tail (cdr-safe (plist-member plist tag))))
+  (let ((val-tail (cdr (plist-member plist tag))))
     (if val-tail (car val-tail) def)))
 
 ;;;###autoload
 (defun cl--set-getf (plist tag val)
-  (let ((val-tail (cdr-safe (plist-member plist tag))))
+  (let ((val-tail (cdr (plist-member plist tag))))
     (if val-tail (progn (setcar val-tail val) plist)
       (cl-list* tag val plist))))
 

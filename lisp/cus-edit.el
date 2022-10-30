@@ -1546,7 +1546,7 @@ If TYPE is `groups', include only groups."
      "*Customize Apropos*")))
 
 ;;;###autoload
-(defun customize-apropos-options (regexp &optional ignored)
+(defun customize-apropos-options (regexp &optional _ignored)
   "Customize all loaded customizable options matching REGEXP."
   (interactive (list (apropos-read-pattern "options")))
   (customize-apropos regexp 'options))

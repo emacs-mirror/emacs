@@ -2134,16 +2134,63 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 }
 
 static dump_off
+dump_interval_node (struct dump_context *ctx, struct itree_node *node,
+                    dump_off parent_offset)
+{
+#if CHECK_STRUCTS && !defined (HASH_interval_node_5765524F7E)
+# error "interval_node changed. See CHECK_STRUCTS comment in config.h."
+#endif
+  struct itree_node out;
+  dump_object_start (ctx, &out, sizeof (out));
+  if (node->parent)
+    dump_field_fixup_later (ctx, &out, node, &node->parent);
+  if (node->left)
+    dump_field_fixup_later (ctx, &out, node, &node->parent);
+  if (node->right)
+    dump_field_fixup_later (ctx, &out, node, &node->parent);
+  DUMP_FIELD_COPY (&out, node, begin);
+  DUMP_FIELD_COPY (&out, node, end);
+  DUMP_FIELD_COPY (&out, node, limit);
+  DUMP_FIELD_COPY (&out, node, offset);
+  DUMP_FIELD_COPY (&out, node, otick);
+  dump_field_lv (ctx, &out, node, &node->data, WEIGHT_STRONG);
+  DUMP_FIELD_COPY (&out, node, red);
+  DUMP_FIELD_COPY (&out, node, rear_advance);
+  DUMP_FIELD_COPY (&out, node, front_advance);
+  dump_off offset = dump_object_finish (ctx, &out, sizeof (out));
+  if (node->parent)
+      dump_remember_fixup_ptr_raw
+	(ctx,
+	 offset + dump_offsetof (struct itree_node, parent),
+	 dump_interval_node (ctx, node->parent, offset));
+  if (node->left)
+      dump_remember_fixup_ptr_raw
+	(ctx,
+	 offset + dump_offsetof (struct itree_node, left),
+	 dump_interval_node (ctx, node->left, offset));
+  if (node->right)
+      dump_remember_fixup_ptr_raw
+	(ctx,
+	 offset + dump_offsetof (struct itree_node, right),
+	 dump_interval_node (ctx, node->right, offset));
+  return offset;
+}
+
+static dump_off
 dump_overlay (struct dump_context *ctx, const struct Lisp_Overlay *overlay)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_72EADA9882)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_1CD4249AEC)
 # error "Lisp_Overlay changed. See CHECK_STRUCTS comment in config.h."
 #endif
   START_DUMP_PVEC (ctx, &overlay->header, struct Lisp_Overlay, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &overlay->header);
-  dump_field_lv_rawptr (ctx, out, overlay, &overlay->next,
-                        Lisp_Vectorlike, WEIGHT_STRONG);
-  return finish_dump_pvec (ctx, &out->header);
+  dump_field_fixup_later (ctx, &out, overlay, &overlay->interval);
+  dump_off offset = finish_dump_pvec (ctx, &out->header);
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     offset + dump_offsetof (struct Lisp_Overlay, interval),
+     dump_interval_node (ctx, overlay->interval, offset));
+  return offset;
 }
 
 static void
@@ -2701,7 +2748,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_AA373AEE10
+#if CHECK_STRUCTS && !defined HASH_buffer_F0F08347A5
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -2816,13 +2863,12 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   DUMP_FIELD_COPY (out, buffer, inhibit_buffer_hooks);
   DUMP_FIELD_COPY (out, buffer, long_line_optimizations_p);
 
-  dump_field_lv_rawptr (ctx, out, buffer, &buffer->overlays_before,
-                        Lisp_Vectorlike, WEIGHT_NORMAL);
+  if (buffer->overlays && buffer->overlays->root != NULL)
+    /* We haven't implemented the code to dump overlays.  */
+    emacs_abort ();
+  else
+    out->overlays = NULL;
 
-  dump_field_lv_rawptr (ctx, out, buffer, &buffer->overlays_after,
-                        Lisp_Vectorlike, WEIGHT_NORMAL);
-
-  DUMP_FIELD_COPY (out, buffer, overlay_center);
   dump_field_lv (ctx, out, buffer, &buffer->undo_list_,
                  WEIGHT_STRONG);
   dump_off offset = finish_dump_pvec (ctx, &out->header);

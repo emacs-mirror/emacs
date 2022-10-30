@@ -1217,7 +1217,7 @@ Subkeymaps may be modified but are not canonicalized."
 
 (defun keyboard-translate (from to)
   "Translate character FROM to TO on the current terminal.
-This is a legacy function; see `keymap-translate' for the
+This is a legacy function; see `key-translate' for the
 recommended function to use instead.
 
 This function creates a `keyboard-translate-table' if necessary
@@ -1296,7 +1296,7 @@ KEY is a string or vector representing a sequence of keystrokes."
 
 (defun local-key-binding (keys &optional accept-default)
   "Return the binding for command KEYS in current local keymap only.
-This is a legacy function; see `keymap-local-binding' for the
+This is a legacy function; see `keymap-local-lookup' for the
 recommended function to use instead.
 
 KEYS is a string or vector, a sequence of keystrokes.
@@ -1310,7 +1310,7 @@ about this."
 
 (defun global-key-binding (keys &optional accept-default)
   "Return the binding for command KEYS in current global keymap only.
-This is a legacy function; see `keymap-global-binding' for the
+This is a legacy function; see `keymap-global-lookup' for the
 recommended function to use instead.
 
 KEYS is a string or vector, a sequence of keystrokes.

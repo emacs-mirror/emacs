@@ -1810,7 +1810,7 @@ where unread is an integer count of calculated unread
 messages (or nil), and info is a regular gnus info entry.
 
 The info element is shared with the same element of
-`gnus-newrc-alist', so as to conserve space."
+`gnus-newsrc-alist', so as to conserve space."
   (let ((alist gnus-newsrc-alist)
 	(ohashtb gnus-newsrc-hashtb)
 	info method gname rest methods)

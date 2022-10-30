@@ -50,6 +50,23 @@ Setting this option to nil might speed up the generation of summaries."
   :type 'boolean
   :group 'rmail-summary)
 
+(defcustom rmail-summary-apply-filters-consecutively nil
+  "If non-nil, Rmail summary commands apply filtering on top existing filtering.
+When this variable is non-nil, `rmail-summary-by-*' commands work on the
+current summary, and so their filtering can be stacked one on top of another.
+This allows gradual narrowing of the selection of the messages."
+  :type 'boolean
+  :version "29.1"
+  :group 'rmail-summary)
+
+(defvar rmail-summary-currently-displayed-msgs nil
+  "String made of `y' and `n'.
+The character at position i tells wether message i is shown in the
+summary or not.  First character is ignored.
+Used when applying `rmail-summary-by-*' commands consecutively.  Filled
+by `rmail-summary-fill-displayed-messages'.")
+(put 'rmail-summary-currently-displayed-msgs 'permanent-local t)
+
 (defvar rmail-summary-font-lock-keywords
   '(("^ *[0-9]+D.*" . font-lock-string-face)			; Deleted.
     ("^ *[0-9]+-.*" . font-lock-type-face)			; Unread.
@@ -267,6 +284,34 @@ Setting this option to nil might speed up the generation of summaries."
 (defun rmail-update-summary (&rest _)
   (apply (car rmail-summary-redo) (cdr rmail-summary-redo)))
 
+(defun rmail-summary-fill-displayed-messages ()
+  "Fill the rmail-summary-currently-displayed-msgs string."
+  (with-current-buffer rmail-buffer
+    (with-current-buffer rmail-summary-buffer
+      (setq rmail-summary-currently-displayed-msgs
+	    (make-string (1+ rmail-total-messages) ?n))
+      (goto-char (point-min))
+      (while (not (eobp))
+	(aset rmail-summary-currently-displayed-msgs
+	      (string-to-number (thing-at-point 'line))
+	      ?y)
+	(forward-line 1)))))
+
+(defun rmail-summary-negate ()
+  "Toggle display of messages that match the summary and those which do not."
+  (interactive)
+  (rmail-summary-fill-displayed-messages)
+  (rmail-new-summary "Negate"
+		     '(rmail-summary-by-regexp ".*")
+		     (lambda (msg)
+		       (if
+			   (= (aref rmail-summary-currently-displayed-msgs msg)
+			      ?n)
+			   (progn
+			     (aset rmail-summary-currently-displayed-msgs msg ?y) t)
+			 (progn
+			   (aset rmail-summary-currently-displayed-msgs msg ?n) nil)))))
+
 ;;;###autoload
 (defun rmail-summary ()
   "Display a summary of all messages, one line per message."
@@ -282,9 +327,16 @@ LABELS should be a string containing the desired labels, separated by commas."
       (setq labels (or rmail-last-multi-labels
 		       (error "No label specified"))))
   (setq rmail-last-multi-labels labels)
+  (if rmail-summary-apply-filters-consecutively
+      (rmail-summary-fill-displayed-messages))
   (rmail-new-summary (concat "labels " labels)
 		     (list 'rmail-summary-by-labels labels)
-		     'rmail-message-labels-p
+		     (if rmail-summary-apply-filters-consecutively
+			 (lambda (msg l)
+			   (and (= (aref rmail-summary-currently-displayed-msgs msg)
+				   ?y)
+				(rmail-message-labels-p msg l)))
+		       'rmail-message-labels-p)
 		     (concat " \\("
 			     (mail-comma-list-regexp labels)
 			     "\\)\\(,\\|\\'\\)")))
@@ -297,10 +349,18 @@ but if PRIMARY-ONLY is non-nil (prefix arg given),
  only look in the To and From fields.
 RECIPIENTS is a regular expression."
   (interactive "sRecipients to summarize by: \nP")
+  (if rmail-summary-apply-filters-consecutively
+      (rmail-summary-fill-displayed-messages))
   (rmail-new-summary
    (concat "recipients " recipients)
    (list 'rmail-summary-by-recipients recipients primary-only)
-   'rmail-message-recipients-p recipients primary-only))
+   (if rmail-summary-apply-filters-consecutively
+       (lambda (msg r &optional po)
+	 (and (= (aref rmail-summary-currently-displayed-msgs msg)
+		 ?y)
+	      (rmail-message-recipients-p msg r po)))
+     'rmail-message-recipients-p)
+   recipients primary-only))
 
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
   (rmail-apply-in-message msg 'rmail-message-recipients-p-1
@@ -328,9 +388,16 @@ Emacs will list the message in the summary."
       (setq regexp (or rmail-last-regexp
 			 (error "No regexp specified"))))
   (setq rmail-last-regexp regexp)
+  (if rmail-summary-apply-filters-consecutively
+      (rmail-summary-fill-displayed-messages))
   (rmail-new-summary (concat "regexp " regexp)
 		     (list 'rmail-summary-by-regexp regexp)
-		     'rmail-message-regexp-p
+		     (if rmail-summary-apply-filters-consecutively
+			 (lambda (msg r)
+			   (and (= (aref rmail-summary-currently-displayed-msgs msg)
+				   ?y)
+				(rmail-message-regexp-p msg r)))
+		       'rmail-message-regexp-p)
                      regexp))
 
 (defun rmail-message-regexp-p (msg regexp)
@@ -365,7 +432,7 @@ Emacs will list the message in the summary."
 ;;;###autoload
 (defun rmail-summary-by-topic (subject &optional whole-message)
   "Display a summary of all messages with the given SUBJECT.
-Normally checks just the Subject field of headers; but with prefix
+Normally checks just the Subject field of headers; but when prefix
 argument WHOLE-MESSAGE is non-nil, looks in the whole message.
 SUBJECT is a regular expression."
   (interactive
@@ -376,10 +443,18 @@ SUBJECT is a regular expression."
 			  (if subject ", default current subject" "")
 			  "): ")))
      (list (read-string prompt nil nil subject) current-prefix-arg)))
+  (if rmail-summary-apply-filters-consecutively
+      (rmail-summary-fill-displayed-messages))
   (rmail-new-summary
    (concat "about " subject)
    (list 'rmail-summary-by-topic subject whole-message)
-   'rmail-message-subject-p subject whole-message))
+   (if rmail-summary-apply-filters-consecutively
+       (lambda (msg s &optional wm)
+	 (and (= (aref rmail-summary-currently-displayed-msgs msg)
+		 ?y)
+	      (rmail-message-subject-p msg s wm)))
+     'rmail-message-subject-p)
+   subject whole-message))
 
 (defun rmail-message-subject-p (msg subject &optional whole-message)
   (if whole-message
@@ -402,9 +477,18 @@ sender of the current message."
 			  (if sender ", default this message's sender" "")
 			  "): ")))
      (list (read-string prompt nil nil sender))))
+  (if rmail-summary-apply-filters-consecutively
+      (rmail-summary-fill-displayed-messages))
   (rmail-new-summary
    (concat "senders " senders)
-   (list 'rmail-summary-by-senders senders) 'rmail-message-senders-p senders))
+   (list 'rmail-summary-by-senders senders)
+   (if rmail-summary-apply-filters-consecutively
+       (lambda (msg s)
+	 (and (= (aref rmail-summary-currently-displayed-msgs msg)
+		 ?y)
+	      (rmail-message-senders-p msg s)))
+     'rmail-message-senders-p)
+   senders))
 
 (defun rmail-message-senders-p (msg senders)
   (string-match senders (or (rmail-get-header "From" msg) "")))

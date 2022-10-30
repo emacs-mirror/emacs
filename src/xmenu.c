@@ -294,10 +294,13 @@ x_menu_translate_generic_event (XEvent *event)
 #endif
 
 #if !defined USE_X_TOOLKIT && !defined USE_GTK
-static void
-x_menu_expose_event (XEvent *event)
+static int
+x_menu_dispatch_event (XEvent *event)
 {
   x_dispatch_event (event, event->xexpose.display);
+
+  /* The return doesn't really matter.  */
+  return 0;
 }
 #endif
 #endif /* ! MSDOS */
@@ -2537,6 +2540,8 @@ pop_down_menu (void *arg)
     }
 #endif
 
+  /* Decrement the popup_activated_flag.  */
+  popup_activated_flag = 0;
 #endif /* HAVE_X_WINDOWS */
 
   unblock_input ();
@@ -2747,21 +2752,22 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
       y += 1.5 * height/ (maxlines + 2);
     }
 
-  XMenuSetAEQ (menu, true);
   XMenuSetFreeze (menu, true);
   pane = selidx = 0;
 
 #ifndef MSDOS
   DEFER_SELECTIONS;
 
-  XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
+  XMenuActivateSetWaitFunction (x_menu_wait_for_event,
+				FRAME_X_DISPLAY (f));
+  XMenuEventHandler (x_menu_dispatch_event);
+
   /* When the input extension is in use, the owner_events grab will
      report extension events on frames, which the XMenu library does
      not normally understand.  */
 #ifdef HAVE_XINPUT2
   XMenuActivateSetTranslateFunction (x_menu_translate_generic_event);
 #endif
-  XMenuActivateSetExposeFunction (x_menu_expose_event);
 #endif
 
   record_unwind_protect_ptr (pop_down_menu,
@@ -2787,6 +2793,12 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 #endif
 
+#ifdef HAVE_X_WINDOWS
+  /* Increment the popup flag; this prevents nested popups from being
+     displayed by user Lisp code in help-echo callbacks, and also
+     prevents mouse face from being displayed.  */
+  popup_activated_flag = 1;
+#endif
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
                           x, y, ButtonReleaseMask, &datap,
                           menu_help_callback);

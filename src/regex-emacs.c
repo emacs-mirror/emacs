@@ -3446,14 +3446,18 @@ static bool bcmp_translate (re_char *, re_char *, ptrdiff_t,
 
 /* Call before fetching a character with *d.  This switches over to
    string2 if necessary.
+   `reset' is executed before backtracking if there are no more characters.
    Check re_match_2_internal for a discussion of why end_match_2 might
    not be within string2 (but be equal to end_match_1 instead).  */
-#define PREFETCH()							\
+#define PREFETCH(reset)							\
   while (d == dend)							\
     {									\
       /* End of string2 => fail.  */					\
       if (dend == end_match_2)						\
-	goto fail;							\
+        {								\
+	  reset;							\
+	  goto fail;							\
+	}								\
       /* End of string1 => advance to string2.  */			\
       d = string2;							\
       dend = end_match_2;						\
@@ -4252,7 +4256,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		int pat_charlen, buf_charlen;
 		int pat_ch, buf_ch;
 
-		PREFETCH ();
+		PREFETCH (d = dfail);
 		if (multibyte)
 		  pat_ch = string_char_and_length (p, &pat_charlen);
 		else
@@ -4280,7 +4284,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		int pat_charlen;
 		int pat_ch, buf_ch;
 
-		PREFETCH ();
+		PREFETCH (d = dfail);
 		if (multibyte)
 		  {
 		    pat_ch = string_char_and_length (p, &pat_charlen);
@@ -4486,7 +4490,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		if (d2 == dend2) break;
 
 		/* If necessary, advance to next segment in data.  */
-		PREFETCH ();
+		PREFETCH (d = dfail);
 
 		/* How many characters left in this segment to match.  */
 		dcnt = dend - d;

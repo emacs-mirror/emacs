@@ -259,7 +259,7 @@ Use @kbd{C-c C-@key{SPC}} to switch to these buffers.
 
 @vindex rcirc-track-ignore-server-buffer-flag
 If the user wishes to ignore events in the server buffer, set
-@code{rcirc-track-ignore-server-buffer-flag} to a non-nil value.
+@code{rcirc-track-ignore-server-buffer-flag} to a non-@code{nil} value.
 
 @node Reference
 @chapter Reference
@@ -693,7 +693,7 @@ buffers.
 
 @cindex rcirc-track-abbrevate-flag
 By default the channel names are abbreviated, set
-@code{rcirc-track-abbrevate-flag} to a non-nil value. This might be
+@code{rcirc-track-abbrevate-flag} to a non-@code{nil} value. This might be
 interesting if the IRC activities are not tracked in the mode line,
 but somewhere else.
 

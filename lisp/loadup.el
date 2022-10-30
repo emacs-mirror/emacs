@@ -366,6 +366,11 @@
 (load "emacs-lisp/shorthands")
 
 (load "emacs-lisp/eldoc")
+(load "emacs-lisp/cconv")
+(when (and (compiled-function-p (symbol-function 'cconv-fv))
+           (compiled-function-p (symbol-function 'macroexpand-all)))
+  (setq internal-make-interpreted-closure-function
+        #'cconv-make-interpreted-closure))
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
 (if (not (eq system-type 'ms-dos))
     (load "tooltip"))

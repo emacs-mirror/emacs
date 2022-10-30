@@ -57,7 +57,7 @@
   :safe #'integerp
   :version "28.1")
 
-(defcustom native-comp-debug (if (eq 'windows-nt system-type) 1 0)
+(defcustom native-comp-debug  0
   "Debug level for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
   0 no debug output.
@@ -67,7 +67,7 @@ This is intended for debugging the compiler itself.
   passes and libgccjit log file."
   :type 'natnum
   :safe #'natnump
-  :version "28.1")
+  :version "29.1")
 
 (defcustom native-comp-verbose 0
   "Compiler verbosity for native compilation, a number between 0 and 3.
@@ -2057,9 +2057,10 @@ and the annotation emission."
   "Lexically-scoped FUNCTION."
   (let ((args (comp-func-l-args function)))
     (cons (make-comp-mvar :constant (comp-args-base-min args))
-          (make-comp-mvar :constant (if (comp-args-p args)
-                                        (comp-args-max args)
-                                      'many)))))
+          (make-comp-mvar :constant (cond
+                                     ((comp-args-p args) (comp-args-max args))
+                                     ((comp-nargs-rest args) 'many)
+                                     (t (comp-nargs-nonrest args)))))))
 
 (cl-defmethod comp-prepare-args-for-top-level ((function comp-func-d))
   "Dynamically scoped FUNCTION."
@@ -3689,8 +3690,7 @@ Prepare every function for final compilation and drive the C back-end."
              (print-circle t)
              (print-escape-multibyte t)
              (expr `((require 'comp)
-                     (setf comp-no-spawn t
-                           native-comp-verbose ,native-comp-verbose
+                     (setf native-comp-verbose ,native-comp-verbose
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                            comp-ctxt ,comp-ctxt
                            native-comp-eln-load-path ',native-comp-eln-load-path
@@ -3716,7 +3716,8 @@ Prepare every function for final compilation and drive the C back-end."
               (if (zerop
                    (call-process (expand-file-name invocation-name
                                                    invocation-directory)
-				 nil t t "--batch" "-l" temp-file))
+				 nil t t "-no-comp-spawn" "--batch" "-l"
+                                 temp-file))
                   (progn
                     (delete-file temp-file)
                     output)
@@ -3948,7 +3949,6 @@ display a message."
                      source-file (comp-el-to-eln-filename source-file))))
          do (let* ((expr `((require 'comp)
                            (setq comp-async-compilation t
-                                 comp-no-spawn t
                                  warning-fill-column most-positive-fixnum)
                            ,(let ((set (list 'setq)))
                               (dolist (var '(comp-file-preloaded-p
@@ -4005,7 +4005,8 @@ display a message."
                              :command (list
                                        (expand-file-name invocation-name
                                                          invocation-directory)
-                                       "--batch" "-l" temp-file)
+                                       "-no-comp-spawn" "--batch" "-l"
+                                       temp-file)
                              :sentinel
                              (lambda (process _event)
                                (run-hook-with-args

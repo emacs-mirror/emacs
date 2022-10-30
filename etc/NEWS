@@ -106,27 +106,18 @@ frame positioning and various issues with keyboard input of sequences
 such as 'C-;' and 'C-S-u'.
 
 ---
+** The implementation of overlays has changed.
+Emacs now uses an implementation of overlays that is much more
+efficient than the original one, and should speed up all the
+operations that involve overlays, especially when there are lots of
+them in a buffer.  However, no changes in behavior of overlays should
+be visible on the Lisp or user level, with the exception of better
+performance.
+
+---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
 Instead, they're fetched as needed from the corresponding ".elc" file,
 as was already the case for all the non-preloaded files.
-
-** Emacs Sessions (Desktop)
-
-+++
-*** New user option to load a locked desktop if locking Emacs is not running.
-The option 'desktop-load-locked-desktop' can now be set to the value
-'check-pid', which means to allow loading a locked ".emacs.desktop"
-file if the Emacs process which locked it is no longer running on the
-local machine.  This allows avoiding questions about locked desktop
-files when the Emacs session which locked it crashes, or was otherwise
-interrupted, and didn't exit gracefully.  See the "(emacs) Saving
-Emacs Sessions" node in the Emacs manual for more details.
-
-** Miscellaneous
-
-+++
-*** User option 'minibuffer-eldef-shorten-default' is now obsolete.
-Customize the user option 'minibuffer-default-prompt-format' instead.
 
 
 * Startup Changes in Emacs 29.1
@@ -1036,15 +1027,11 @@ or is itself too long.
 +++
 *** New user option 'outline-minor-mode-use-buttons'.
 If non-nil, Outline Minor Mode will use buttons to hide/show outlines
-in addition to the ellipsis.  The default is nil in editing modes, but
-non-nil in 'help-mode' and its derivatives.
-
-+++
-*** New user option 'outline-minor-mode-use-margins'.
-If non-nil, Outline Minor Mode will use the window margins to
-hide/show outlines in addition to the ellipsis.  The default is
-non-nil in 'special-mode' and its derivatives, and it can be used in
-editing modes.
+in addition to the ellipsis.  The default is nil, but in 'help-mode'
+it has the value 'insert' that inserts the buttons directly to the
+buffer where you can use 'RET' to cycle outline visibility.  When
+the value is 'in-margins', Outline Minor Mode uses the window margins
+to hide/show outlines.
 
 ** Windows
 
@@ -1581,6 +1568,18 @@ packages checked out using 'package-vc-install'.
 This command helps you compose an email for sending bug reports to
 package maintainers.
 
+** Emacs Sessions (Desktop)
+
++++
+*** New user option to load a locked desktop if locking Emacs is not running.
+The option 'desktop-load-locked-desktop' can now be set to the value
+'check-pid', which means to allow loading a locked ".emacs.desktop"
+file if the Emacs process which locked it is no longer running on the
+local machine.  This allows avoiding questions about locked desktop
+files when the Emacs session which locked it crashes, or was otherwise
+interrupted, and didn't exit gracefully.  See the "(emacs) Saving
+Emacs Sessions" node in the Emacs manual for more details.
+
 ** Miscellaneous
 
 +++
@@ -1657,7 +1656,7 @@ This mode adds some highlighting, fixes the 'M-q' command, and has
 commands for doing maintenance of the Emacs NEWS files.  In addition,
 this mode turns on 'outline-minor-mode', and thus displays
 customizable icons (see 'icon-preference') in the margins.  To
-disable these icons, customize 'outline-minor-mode-use-margins' to a
+disable these icons, set 'outline-minor-mode-use-buttons' to a
 nil value.
 
 ---
@@ -1718,6 +1717,10 @@ always hides the completion buffer after some completion is made.
 but completes on the history items instead of the default completion
 table.  'minibuffer-complete-defaults' ('C-x <down>') completes
 on the list of default items.
+
++++
+*** User option 'minibuffer-eldef-shorten-default' is now obsolete.
+Customize the user option 'minibuffer-default-prompt-format' instead.
 
 +++
 *** New user option 'completions-sort'.
@@ -2074,6 +2077,18 @@ supports the unified search syntax.
 Formerly it was a pair of numbers '(A B)' that represented 65536*A + B,
 to cater to older Emacs implementations that lacked bignums.
 The older form still works but is undocumented.
+
+** Rmail
+
+---
+*** Rmail partial summaries can now be applied one on top of the other.
+You can now narrow the filtering of messages by the summary's criteria
+(recipients, topic, senders, etc.) by making a summary of the already
+summarized messages.  For example, invoking 'rmail-summary-by-senders',
+followed by 'rmail-summary-by-topic' will produce a summary where both
+the senders and the topic are according to your selection.  The new
+user option 'rmail-summary-apply-filters-consecutively' controls
+whether the stacking of the filters is in effect.
 
 ** EIEIO
 
@@ -2541,6 +2556,12 @@ the user requesting such a connection, and not of the user who is the
 target.  This has always been needed, just the password prompt and the
 related 'auth-sources' entry were wrong.
 
++++
+*** New user option 'tramp-completion-use-cache'.
+During user and host name completion in the minibuffer, results from
+Tramp's connection cache are taken into account.  This can be disabled
+by setting the user option 'tramp-completion-use-cache' to nil.
+
 ** Browse URL
 
 ---
@@ -2670,6 +2691,14 @@ commands with a warning face as you type.
 *** New user option 'calc-kill-line-numbering'.
 Set it to nil to exclude line numbering from kills and copies.
 
+** Hierarchy
+
++++
+*** Tree Display can delay computation of children.
+'hierarchy-add-tree' and 'hierarchy-add-trees' have an optional
+argument which allows tree-widget display to be activated and computed
+only when the user expands the node.
+
 ** Miscellaneous
 
 ---
@@ -2778,6 +2807,13 @@ name.
 
 
 * New Modes and Packages in Emacs 29.1
+
++++
+** Eglot: Emacs Client for the Language Server Protocol.
+Emacs now comes with the Eglot package, which enhances various Emacs
+features, such as completion, documentation, error detection, etc.,
+based on data provided by language servers using the Language Server
+Protocol (LSP).
 
 +++
 ** New commands 'image-crop' and 'image-cut.
@@ -3181,6 +3217,15 @@ The following generalized variables have been made obsolete:
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+** Interpreted closures are "safe for space".
+As was already the case for byte-compiled closures, instead of capturing
+the whole current lexical environment, interpreted closures now only
+capture the part of the environment that they need.
+The previous behavior could occasionally lead to memory leaks or
+to problems where a printed closure would not be 'read'able because
+of an un'read'able value in an unrelated lexical variable.
 
 +++
 ** New accessor function 'file-attribute-file-identifier'.
@@ -4221,11 +4266,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-
-Local variables:
-coding: utf-8
-mode: outline
-mode: emacs-news
-paragraph-separate: "[ 	]*$"
-end:

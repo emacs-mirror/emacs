@@ -972,10 +972,18 @@ ALL-COMPLETIONS is the function that lists the completions (it should
 follow the calling convention of `completion-all-completions'),
 and DOC describes the way this style of completion works.")
 
+(defun completion--update-styles-options (widget)
+  "Function to keep updated the options in `completion-category-overrides'."
+  (let ((lst (mapcar (lambda (x)
+                       (list 'const (car x)))
+		     completion-styles-alist)))
+    (widget-put widget :args (mapcar #'widget-convert lst))
+    widget))
+
 (defconst completion--styles-type
   `(repeat :tag "insert a new menu to add more styles"
-           (choice ,@(mapcar (lambda (x) (list 'const (car x)))
-                             completion-styles-alist))))
+           (choice :convert-widget completion--update-styles-options)))
+
 (defconst completion--cycling-threshold-type
   '(choice (const :tag "No cycling" nil)
            (const :tag "Always cycle" t)
@@ -1237,9 +1245,9 @@ pair of a group title string and a list of group candidate strings."
   :version "28.1")
 
 (defface completions-group-separator
-  '((t :inherit shadow :strike-through t))
+  '((t :inherit shadow :underline t))
   "Face used for the separator lines between the candidate groups."
-  :version "28.1")
+  :version "29.1")
 
 (defun completion--cycle-threshold (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))

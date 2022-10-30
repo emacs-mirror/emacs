@@ -4167,8 +4167,7 @@ by calling `format-decode', which see.  */)
 		  bset_read_only (buf, Qnil);
 		  bset_filename (buf, Qnil);
 		  bset_undo_list (buf, Qt);
-		  eassert (buf->overlays_before == NULL);
-		  eassert (buf->overlays_after == NULL);
+		  eassert (buf->overlays == NULL);
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();
