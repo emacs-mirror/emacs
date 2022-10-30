@@ -1024,44 +1024,55 @@ Do not fontify the initial f for f-strings."
 
 (defvar python--treesit-settings
   (treesit-font-lock-rules
+   :feature 'comment
    :language 'python
-   :feature 'basic
-   '(;; Queries for def and class.
-     (function_definition
-      name: (identifier) @font-lock-function-name-face)
+   '((comment) @font-lock-comment-face)
 
-     (class_definition
-      name: (identifier) @font-lock-type-face)
-
-     ;; Comment and string.
-     (comment) @font-lock-comment-face
-
-     (string) @python--treesit-fontify-string
-     ((string) @font-lock-doc-face
-      (:match "^\"\"\"" @font-lock-doc-face))
-     (interpolation (identifier) @font-lock-variable-name-face))
+   :feature 'string
    :language 'python
-   :feature 'moderate
    :override t
-   `(;; Keywords, builtins, and constants.
-     [,@python--treesit-keywords] @font-lock-keyword-face
+   '((string) @python--treesit-fontify-string
+     ((string) @font-lock-doc-face
+      (:match "^\"\"\"" @font-lock-doc-face)))
 
+   :feature 'string-interpolation
+   :language 'python
+   :override t
+   '((interpolation (identifier) @font-lock-variable-name-face))
+
+   :feature 'function-name
+   :language 'python
+   '((function_definition
+      name: (identifier) @font-lock-function-name-face))
+
+   :feature 'class-name
+   :language 'python
+   '((class_definition
+      name: (identifier) @font-lock-type-face))
+
+   :feature 'keyword
+   :language 'python
+   `([,@python--treesit-keywords] @font-lock-keyword-face
      ((identifier) @font-lock-keyword-face
-      (:match "^self$" @font-lock-keyword-face))
+      (:match "^self$" @font-lock-keyword-face)))
 
-     ((identifier) @font-lock-builtin-face
+   :feature 'builtin
+   :language 'python
+   `(((identifier) @font-lock-builtin-face
       (:match ,(rx-to-string
                 `(seq bol
                       (or ,@python--treesit-builtins
                           ,@python--treesit-special-attributes)
                       eol))
-              @font-lock-builtin-face))
+              @font-lock-builtin-face)))
 
-     [(true) (false) (none)] @font-lock-constant-face)
+   :feature 'constant
    :language 'python
-   :feature 'elaborate
-   :override t
-   `(;; Variable names.
+   '([(true) (false) (none)] @font-lock-constant-face)
+
+   :feature 'assignment
+   :language 'python
+   `(;; Variable names and LHS.
      (assignment left: (identifier)
                  @font-lock-variable-name-face)
      (assignment left: (attribute
@@ -1074,19 +1085,25 @@ Do not fontify the initial f for f-strings."
      (list_pattern (identifier)
                    @font-lock-variable-name-face)
      (list_splat_pattern (identifier)
-                         @font-lock-variable-name-face)
+                         @font-lock-variable-name-face))
 
-     ;; Types and decorators.
-     (decorator) @font-lock-type-face
-     ((identifier) @font-lock-type-face
+   :feature 'decorator
+   :language 'python
+   '((decorator) @font-lock-type-face)
+
+   :feature 'type
+   :language 'python
+   `(((identifier) @font-lock-type-face
       (:match ,(rx-to-string
                 `(seq bol (or ,@python--treesit-exceptions)
                       eol))
               @font-lock-type-face))
-     (type (identifier) @font-lock-type-face)
+     (type (identifier) @font-lock-type-face))
 
-     ;; Escape sequences
-     (escape_sequence) @font-lock-constant-face))
+   :feature 'escape-sequence
+   :language 'python
+   :override t
+   '((escape_sequence) @font-lock-constant-face))
   "Tree-sitter font-lock settings.")
 
 
@@ -6469,7 +6486,10 @@ Add import for undefined name `%s' (empty to skip): "
    ;; Tree-sitter.
    ((treesit-ready-p 'python-mode 'python)
     (setq-local treesit-font-lock-feature-list
-                '((basic) (moderate) (elaborate)))
+                '(( comment string function-name class-name)
+                  ( keyword builtin constant type)
+                  ( assignment decorator escape-sequence
+                    string-interpolation)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)
