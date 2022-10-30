@@ -2734,8 +2734,7 @@ setup_w32_kbdhook (void)
 	  int i;
 
 	  CoCreateGuid (&guid);
-	  StringFromGUID2 (&guid, newTitle, 64);
-	  if (newTitle != NULL)
+	  if (oldTitle != NULL && StringFromGUID2 (&guid, newTitle, 64))
 	    {
 	      GetConsoleTitleW (oldTitle, 1024);
 	      SetConsoleTitleW (newTitle);
