@@ -1110,7 +1110,8 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
          (to-number (cond ((< tab-number 0) (+ (length tabs) (1+ tab-number)))
                           ((zerop tab-number) (1+ from-index))
                           (t tab-number)))
-         (to-index (1- (max 1 (min to-number (length tabs))))))
+         (to-index (1- (max 1 (min to-number (length tabs)))))
+         (minibuffer-was-active (minibuffer-window-active-p (selected-window))))
 
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))
@@ -1136,7 +1137,7 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
                 (wc-history-back (alist-get 'wc-history-back to-tab))
                 (wc-history-forward (alist-get 'wc-history-forward to-tab)))
 
-            (set-window-configuration wc)
+            (set-window-configuration wc nil t)
 
             ;; set-window-configuration does not restore the value of
             ;; point in the current buffer, so restore it separately.
@@ -1164,7 +1165,21 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
                        tab-bar-history-forward))))
 
          (ws
+          ;; `window-state-put' fails when called in the minibuffer
+          (when (minibuffer-selected-window)
+            (select-window (minibuffer-selected-window)))
           (window-state-put ws nil 'safe)))
+
+        ;; Select the minibuffer when it was active before switching tabs
+        (when (and minibuffer-was-active (active-minibuffer-window))
+          (select-window (active-minibuffer-window)))
+
+        ;; When the minibuffer was activated in one tab, but exited in
+        ;; another tab, then after going back to the first tab, it has
+        ;; such inconsistent state that the current buffer is the minibuffer,
+        ;; but its window is not active.  So try to undo this mess.
+        (when (and (minibufferp) (not (active-minibuffer-window)))
+          (other-window 1))
 
         (when tab-bar-history-mode
           (setq tab-bar-history-omit t))
@@ -1900,7 +1915,7 @@ This navigates back in the history of window configurations."
                    (cons tab-bar-history-old
                          (gethash (selected-frame) tab-bar-history-forward))
                    tab-bar-history-forward)
-          (set-window-configuration wc)
+          (set-window-configuration wc nil t)
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab back history"))))
@@ -1919,7 +1934,7 @@ This navigates forward in the history of window configurations."
                    (cons tab-bar-history-old
                          (gethash (selected-frame) tab-bar-history-back))
                    tab-bar-history-back)
-          (set-window-configuration wc)
+          (set-window-configuration wc nil t)
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab forward history"))))
