@@ -29,9 +29,6 @@
 ;; - Allow for automatic updating
 ;;   * Detect merge conflicts
 ;;   * Check if there are upstream changes
-;; - Allow finding revisions that bump the version tag
-;;   * Allow for `package-vc-install' to use the version
-;;     of the package if already installed.
 ;; - Allow for ELPA specifications to be respected without
 ;;   endangering the user with arbitrary code execution
 ;; - Allow maintaining patches that are ported back onto regular
