@@ -486,8 +486,13 @@ If no such revision can be found, return nil."
     (save-excursion
       (goto-char (point-min))
       (let ((case-fold-search t))
-        (when (re-search-forward (concat (lm-get-header-re "version") ".*$")
-                                 (lm-code-start) t)
+        (when (cond
+               ((re-search-forward
+                 (concat (lm-get-header-re "package-version") ".*$")
+                 (lm-code-start) t))
+               ((re-search-forward
+                 (concat (lm-get-header-re "version") ".*$")
+                 (lm-code-start) t)))
           (ignore-error vc-not-supported
             (vc-call-backend (vc-backend (buffer-file-name))
                              'last-change
