@@ -1632,6 +1632,23 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 		    (expand-file-name fname (vc-git-root default-directory))))
 	  revision)))))
 
+(defun vc-git-last-change (from to)
+  (vc-buffer-sync)
+  (let ((file (file-relative-name
+               (buffer-file-name)
+               (vc-git-root (buffer-file-name))))
+        (start (line-number-at-pos from t))
+        (end (line-number-at-pos to t)))
+    (with-temp-buffer
+      (when (vc-git--out-ok
+             "blame" "--porcelain"
+             (format "-L%d,%d" start end)
+             file)
+        (goto-char (point-min))
+        (save-match-data
+          (when (looking-at "\\`\\([[:alnum:]]+\\)[[:space:]]+")
+            (match-string 1)))))))
+
 ;;; TAG/BRANCH SYSTEM
 
 (declare-function vc-read-revision "vc"

@@ -448,6 +448,11 @@
 ;; - mergebase (rev1 &optional rev2)
 ;;
 ;;   Return the common ancestor between REV1 and REV2 revisions.
+;;
+;; - last-change (from to)
+;;
+;;   Return the most recent revision that made a change between FROM
+;;   and TO.
 
 ;; TAG/BRANCH SYSTEM
 ;;
@@ -3583,6 +3588,19 @@ it indicates a specific revision to check out."
                            backend 'clone
                            remote directory rev)))
             (throw 'ok res)))))))
+
+(declare-function log-view-current-tag "log-view" (&optional pos))
+(defun vc-default-last-change (_backend from to)
+  "Default `last-change' implementation.
+FROM and TO are used as region markers"
+  (save-window-excursion
+    (let* ((buf (window-buffer (vc-region-history from to)))
+           (proc (get-buffer-process buf)))
+      (cl-assert (processp proc))
+      (while (accept-process-output proc))
+      (with-current-buffer buf
+        (prog1 (log-view-current-tag)
+          (kill-buffer))))))
 
 
 

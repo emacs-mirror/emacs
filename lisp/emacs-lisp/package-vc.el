@@ -139,12 +139,6 @@ The main file of the project, relevant to gather package
 metadata.  If not given, the assumed default is the package named
 with \".el\" concatenated to the end.
 
-        `:release-rev' (string)
-
-A revision string indicating the revision used for the current
-release in the package archive.  If missing or nil, no release
-was made.
-
         `:vc-backend' (symbol)
 
 A symbol indicating what the VC backend to use for cloning a
@@ -179,8 +173,10 @@ The optional argument NAME can be used to override the default
 name for PKG-DESC."
   (alist-get
    (or name (package-desc-name pkg-desc))
-   (alist-get (intern (package-desc-archive pkg-desc))
-              package-vc-archive-spec-alist)
+   (if (package-desc-archive pkg-desc)
+       (alist-get (intern (package-desc-archive pkg-desc))
+                  package-vc-archive-spec-alist)
+     (mapcan #'append (mapcar #'cdr package-vc-archive-spec-alist)))
    nil nil #'string=))
 
 (define-inline package-vc-query-spec (pkg-desc prop)
@@ -258,6 +254,20 @@ asynchronously."
            return it
            finally return "0"))
 
+(defun package-vc-main-file (pkg-desc)
+  "Return the main file for PKG-DESC."
+  (cl-assert (package-vc-p pkg-desc))
+  (let ((pkg-spec (package-vc-desc->spec pkg-desc)))
+    (or (plist-get pkg-spec :main-file)
+        (expand-file-name
+         (format "%s.el" (package-desc-name pkg-desc))
+         (file-name-concat
+          (or (package-desc-dir pkg-desc)
+              (expand-file-name
+               (package-desc-name pkg-desc)
+               package-user-dir))
+          (plist-get pkg-spec :lisp-dir))))))
+
 (defun package-vc-generate-description-file (pkg-desc pkg-file)
   "Generate a package description file for PKG-DESC.
 The output is written out into PKG-FILE."
@@ -265,18 +275,13 @@ The output is written out into PKG-FILE."
     ;; Infer the subject if missing.
     (unless (package-desc-summary pkg-desc)
       (setf (package-desc-summary pkg-desc)
-            (or (package-desc-summary pkg-desc)
-                (and-let* ((pkg (cadr (assq name package-archive-contents))))
-                  (package-desc-summary pkg))
-                (and-let* ((pkg-spec (package-vc-desc->spec pkg-desc))
-                           (main-file (plist-get pkg-spec :main-file)))
-                  (lm-summary main-file))
-                (and-let* ((main-file (expand-file-name
-                                       (format "%s.el" name)
-                                       (package-desc-dir pkg-desc)))
-                           ((file-exists-p main-file)))
-                  (lm-summary main-file))
-                package--default-summary)))
+            (let ((main-file (package-vc-main-file pkg-desc)))
+              (or (package-desc-summary pkg-desc)
+                  (and-let* ((pkg (cadr (assq name package-archive-contents))))
+                    (package-desc-summary pkg))
+                  (and main-file (file-exists-p main-file)
+                       (lm-summary main-file))
+                  package--default-summary))))
     (let ((print-level nil)
           (print-quoted t)
           (print-length nil))
@@ -424,8 +429,15 @@ the `:brach' attribute in PKG-SPEC."
                                                  nil nil #'string=)
                                       :vc-backend)
                            package-vc-default-backend)))
-          (unless (vc-clone url backend repo-dir (or rev branch))
+          (unless (vc-clone url backend repo-dir
+                            (or (and (not (eq rev :last-release)) rev) branch))
             (error "Failed to clone %s from %s" name url))))
+
+      ;; Check out the latest release if requested
+      (when (eq rev :last-release)
+        (if-let ((release-rev (package-vc-release-rev pkg-desc)))
+            (vc-retrieve-tag pkg-dir release-rev)
+          (message "No release revision was found, continuing...")))
 
       (unless (eq pkg-dir repo-dir)
         ;; Link from the right position in `repo-dir' to the package
@@ -466,6 +478,22 @@ the `:brach' attribute in PKG-SPEC."
   (unless package-vc-archive-data-alist
     (package-vc--download-and-read-archives)))
 
+(defun package-vc-release-rev (pkg-desc)
+  "Find the latest revision that bumps the \"Version\" tag for PKG-DESC.
+If no such revision can be found, return nil."
+  (with-current-buffer (find-file-noselect (package-vc-main-file pkg-desc))
+    (vc-buffer-sync)
+    (save-excursion
+      (goto-char (point-min))
+      (let ((case-fold-search t))
+        (when (re-search-forward (concat (lm-get-header-re "version") ".*$")
+                                 (lm-code-start) t)
+          (ignore-error vc-not-supported
+            (vc-call-backend (vc-backend (buffer-file-name))
+                             'last-change
+                             (match-beginning 0)
+                             (match-end 0))))))))
+
 ;;;###autoload
 (defun package-vc-install (name-or-url &optional name rev backend)
   "Fetch the source of NAME-OR-URL.
@@ -477,9 +505,11 @@ NAME-OR-URL is taken to be a package name, and the package
 metadata will be consulted for the URL.  An explicit revision can
 be requested using REV.  If the command is invoked with a prefix
 argument, the revision used for the last release in the package
-archive is used.  If a NAME-OR-URL is a URL, that is to say a
-string, the VC backend used to clone the repository can be set by
-BACKEND.  If missing, `package-vc-guess-backend' will be used."
+archive is used.  This can also be reproduced by passing the
+special value `:last-release' as REV.  If a NAME-OR-URL is a URL,
+that is to say a string, the VC backend used to clone the
+repository can be set by BACKEND.  If missing,
+`package-vc-guess-backend' will be used."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -490,11 +520,7 @@ BACKEND.  If missing, `package-vc-guess-backend' will be used."
                     "Fetch package source (name or URL): " packages))
             (name (file-name-base input)))
        (list input (intern (string-remove-prefix "emacs-" name))
-             (and current-prefix-arg
-                  (or (package-vc-query-spec
-                       (cadr (assoc input package-archive-contents #'string=))
-                       :release-rev)
-                      (user-error "No release revision was found")))))))
+             (and current-prefix-arg :last-release)))))
   (package-vc--archives-initialize)
   (cond
    ((and-let* ((stringp name-or-url)
@@ -511,6 +537,10 @@ BACKEND.  If missing, `package-vc-guess-backend' will be used."
          (setf (package-desc-kind copy) 'vc)
          copy)
        (or (package-vc-desc->spec (cadr desc))
+           (and-let* ((extras (package-desc-extras (cadr desc)))
+                      (url (alist-get :url extras))
+                      (backend (package-vc-guess-backend url)))
+             (list :vc-backend backend :url url))
            (user-error "Package has no VC data"))
        rev)))
    ((user-error "Unknown package to fetch: %s" name-or-url))))
