@@ -528,14 +528,15 @@ DEFUN ("sqlite-select", Fsqlite_select, Ssqlite_select, 2, 4, 0,
 If VALUES is non-nil, it should be a list or a vector specifying the
 values that will be interpolated into a parameterized statement.
 
-By default, the return value is a list where the first element is a
-list of column names, and the rest of the elements are the matching data.
+By default, the return value is a list, whose contents depend on
+the value of the optional argument RETURN-TYPE.
 
-RETURN-TYPE can be either nil (which means that the matching data
-should be returned as a list of rows), or `full' (the same, but the
-first element in the return list will be the column names), or `set',
-which means that we return a set object that can be queried with
-`sqlite-next' and other functions to get the data.  */)
+If RETURN-TYPE is nil or omitted, the function returns a list of rows
+matching QUERY.  If RETURN-TYPE is `full', the function returns a
+list whose first element is the list of column names, and the rest
+of the elements are the rows matching QUERY.  If RETURN-TYPE is `set',
+the function returns a set object that can be queried with functions
+like `sqlite-next' etc., in order to get the data.  */)
   (Lisp_Object db, Lisp_Object query, Lisp_Object values,
    Lisp_Object return_type)
 {
