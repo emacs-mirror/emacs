@@ -8596,10 +8596,27 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		    (setq files-base (substring (file-name-nondirectory info-fn)
                                                 0 (- (length ".trashinfo"))))
 		    (write-region nil nil info-fn nil 'quiet info-fn)))
-		 ;; Finally, try to move the file to the trashcan.
+		 ;; Finally, try to move the item to the trashcan.  If
+                 ;; it's a file, just move it.  Things are more
+                 ;; complicated for directories.  If the target
+                 ;; directory already exists (due to uniquification)
+                 ;; and the trash directory is in a different
+                 ;; filesystem, rename-file will error out, even when
+                 ;; 'overwrite' is non-nil.  Rather than worry about
+                 ;; whether we're crossing filesystems, just check if
+                 ;; we've moving a directory and the target directory
+                 ;; already exists.  That handles both the
+                 ;; same-filesystem and cross-filesystem cases.
 		 (let ((delete-by-moving-to-trash nil)
 		       (new-fn (file-name-concat trash-files-dir files-base)))
-		   (rename-file fn new-fn overwrite)))))))))
+                   (if (or (not is-directory)
+                           (not (file-exists-p new-fn)))
+                       (rename-file fn new-fn overwrite)
+                     (copy-directory fn
+                                     (file-name-as-directory new-fn)
+                                     t nil t)
+                     (delete-directory fn t))))))))))
+
 
 
 (defsubst file-attribute-type (attributes)
