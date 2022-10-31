@@ -3997,6 +3997,17 @@ Let-bind it when necessary.")
   (cond
    ((not (file-exists-p file1)) nil)
    ((not (file-exists-p file2)) t)
+   ;; Tramp reads and writes timestamps on second level.  So we round
+   ;; the timestamps to seconds w/o fractions.
+   ;; `time-convert' has been introduced with Emacs 27.1.
+   ((fboundp 'time-convert)
+    (time-less-p
+     (tramp-compat-funcall
+      'time-convert
+      (file-attribute-modification-time (file-attributes file2)) 'integer)
+     (tramp-compat-funcall
+      'time-convert
+      (file-attribute-modification-time (file-attributes file1)) 'integer)))
    (t (time-less-p
        (file-attribute-modification-time (file-attributes file2))
        (file-attribute-modification-time (file-attributes file1))))))
