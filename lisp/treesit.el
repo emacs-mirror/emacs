@@ -1302,6 +1302,11 @@ If `treesit-defun-type-regexp' is non-nil, setup
     (setq-local font-lock-defaults '(nil t))
     (setq-local font-lock-fontify-region-function
                 #'treesit-font-lock-fontify-region)
+    ;; `font-lock-mode' sets this to t when syntactic font-lock is
+    ;; enabled (i.e., `font-lock-keywords-only' is nil).  We disable
+    ;; font-lock's syntactic fontification, and do it ourselves, so we
+    ;; still need `jit-lock-contextually' to be t, set it ourselves.
+    (setq-local jit-lock-contextually t)
     (font-lock-mode 1)
     (treesit-font-lock-recompute-features))
   ;; Indent.
