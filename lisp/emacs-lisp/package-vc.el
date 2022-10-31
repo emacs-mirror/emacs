@@ -581,7 +581,7 @@ repository can be set by BACKEND.  If missing,
              (and current-prefix-arg :last-release)))))
   (package-vc--archives-initialize)
   (cond
-   ((and-let* ((stringp name-or-url)
+   ((and-let* (((stringp name-or-url))
                (backend (or backend (package-vc-guess-backend name-or-url))))
       (package-vc-unpack
        (package-desc-create
