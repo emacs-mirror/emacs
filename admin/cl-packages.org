@@ -68,8 +68,7 @@ There is nothing preventing the use of pure space though, in
 principle.
 
 *** Shorthands
-Are currently not supported.  I understand what they do
-but I don't understand their end-purpose.
+Are currently not supported.
 
 *** Lisp_Package
 There is a new Lisp data type Lisp_Package defined in lisp.h.
@@ -119,7 +118,7 @@ The keyword package has a nickname that is an empty string.
 
 In Emacs, keywords are just symbols whose names start with a colon,
 and that is expected in a ton of places both implicity and explicitly
-in various ways.
+and in various forms.
 
 Current approach:
 
@@ -129,12 +128,17 @@ Current approach:
 - intern and intern-soft when called with a name starting with a colon
   interpret that as wanting a keyword.
 
+That's not at all pretty, but in an experiment with symbol-name
+behaving like in CL showed serious problems that I couldn't solve so
+far without modifying the code.
+
 But see under Ideas and Todos.
 
 *** Fake package qualification
 Existing code contains symbols like GUI:xyz which look like GUI is a
-package qualification.  That's the reason for package-prefixes which
-means to interpret the : as part of the symbol name.
+package qualification.  That's the reason for the variable
+package-prefixes which means to interpret the : as part of the symbol
+name.
 
 ** Ideas / Todo
 *** Completions
@@ -143,7 +147,13 @@ I haven't added that.
 
 *** Existing package extensions
 There are some language extensions available in CL implementations
-that might be nice to have:
+that might be nice to have
+
+- Hierarchical packages
+- Package locks
+- Local nicknames
+
+None of these are implemented.
 
 *** Changing symbol names
 A trap that I always fall into, constantly, in Emacs, is to use CL
@@ -156,38 +166,43 @@ Just ideas:
   with regexs. Or something.
 - (import sym as another-sym)
 
-*** Package-prefixes
-I'm wondering if it would be a good idea to record the value of
-package-prefixes (1 bit) at time and in the buffer where functions are
-compiled.
+*** Package-prefixes in functions
+I'm wondering if it would be an idea to record the value of
+package-prefixes at the time and in the buffer where functions are
+compiled or eval'd.
 
 We could then
 
-- Return a name with leading colon from symbol-value if the bit is 0,
-  which means the function was compiled or read in a "traditional"
-  setting.  It would return the name without the leading colon
-  otherwise.
+- Bbind package-prefixes around the execution of the function to that
+  value.
 
-- Make intern treat colons differently.  There are some places like
-  transient.el which intern names with a leading colon which is a pain
-  in the neck.
+- Return a name with leading colon from symbol-value if
+  package-prefixes is nil, which means the function was compiled or
+  eval'd in a "traditional" setting.  It would return the keyword name
+  without the leading colon if package-prefixes is t.
+
+- Make intern treat colons differently depending on the value of
+  package-prefixes.  There are some places like transient.el which
+  intern names with a leading colon which are a pain in the neck.
 
 - Maybe calls to read could also behave differently.
 
-For subrs (native-compiled code), there is plenty of room for the bit.
-For byte-compiled functions, see make-bytecode + make-closure.
+For subrs (native-compiled and C code), there is plenty of room for 1
+bit.  For byte-compiled functions, see make-bytecode + make-closure.
 
 This should be doable from that perspective.  One probably just has to
 try it out.
 
 *** Modeline
 A mode-line indicator showing the current package and package-prefixes
-would be nice.  Can be done with (:eval ...) in global-mode-string
-now.
+would be helpful.  Can be done with (:eval ...) in global-mode-string
+now.  Or maybe in a header-line.
 
 *** Tests
 Should be much improved.
+
 *** Documentation
 Doesn't exist :-).
+
 *** Other
 - Add (declare (ignore ...)) and (declare (ignorable ...) goddam :-).
