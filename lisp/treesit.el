@@ -635,17 +635,18 @@ If LOUDLY is non-nil, display some debugging information."
            (enable (nth 1 setting))
            (override (nth 3 setting))
            (language (treesit-query-language query)))
-      (when-let ((node (treesit-node-on start end language))
+      ;; Why root node rather than (treesit-node-on start end)?  If
+      ;; you insert an ending quote into a buffer, jit-lock only wants
+      ;; to fontify that single quote, and (treesit-node-on start end)
+      ;; will give you that quote node.  We want to capture the string
+      ;; and apply string face to it, but querying on the quote node
+      ;; will not give us the string node.
+      (when-let ((root (treesit-buffer-root-node language))
                  ;; Only activate if ENABLE flag is t.
                  (activate (eq t enable)))
         (ignore activate)
         (let ((captures (treesit-query-capture
-                         node query
-                         ;; Specifying the range is important.  More
-                         ;; often than not, NODE will be the root
-                         ;; node, and if we don't specify the range,
-                         ;; we are basically querying the whole file.
-                         start end))
+                         root query start end))
               (inhibit-point-motion-hooks t))
           (with-silent-modifications
             (dolist (capture captures)
