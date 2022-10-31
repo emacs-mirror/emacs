@@ -3975,12 +3975,22 @@ that starts with @code{@@}), and tree-sitter will return matched nodes
 tagged with those same capture names.  For the purpose of
 fontification, capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified
-with that face.  Capture names can also be function names, in which
-case the function is called with 3 arguments: @var{start}, @var{end},
-and @var{node}, where @var{start} and @var{end} are the start and end
-position of the node in buffer, and @var{node} is the node itself.  If
-a capture name is both a face and a function, the face takes priority.
-If a capture name is neither a face nor a function, it is ignored.
+with that face.
+
+@findex treesit-fontify-with-override
+Capture names can also be function names, in which case the function
+is called with 4 arguments: @var{start}, @var{end}, @var{node}, and
+@var{override}, where @var{start} and @var{end} are the start and end
+position of the node in buffer, @var{node} is the node itself, and
+@var{override} is the override property of the rule which captured
+this node.  (If this function wants to respect the @var{override}
+argument, it can use @code{treesit-fontify-with-override}.)  Beyond
+the 4 arguments presented, this function should accept more arguments
+as optional arguments for future extensibility.
+
+If a capture name is both a face and a function, the face takes
+priority.  If a capture name is neither a face nor a function, it is
+ignored.
 @end defun
 
 @defvar treesit-font-lock-feature-list

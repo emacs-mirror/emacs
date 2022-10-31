@@ -410,7 +410,7 @@ omitted, default END to BEG."
                return rng
                finally return nil))))
 
-;;; Font-lock
+;;; Fontification
 
 (define-error 'treesit-font-lock-error
               "Generic tree-sitter font-lock error"
@@ -500,12 +500,14 @@ Other keywords include:
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
 with that face.  Capture names can also be function names, in
-which case the function is called with (START END NODE), where
-START and END are the start and end position of the node in
-buffer, and NODE is the tree-sitter node object.  If a capture
-name is both a face and a function, the face takes priority.  If
-a capture name is not a face name nor a function name, it is
-ignored.
+which case the function is called with (START END NODE OVERRIDE),
+where START and END are the start and end position of the node in
+buffer, NODE is the tree-sitter node object, and OVERRIDE is the
+override option of that rule.  This function should accept more
+arguments as optional arguments for future extensibility.  If a
+capture name is both a face and a function, the face takes
+priority.  If a capture name is not a face name nor a function
+name, it is ignored.
 
 \(fn :KEYWORD VALUE QUERY...)"
   ;; Other tree-sitter function don't tend to be called unless
@@ -600,6 +602,26 @@ Set the ENABLE flag for each setting in
              do (setf (nth 1 (nth idx treesit-font-lock-settings))
                       (if (memq feature features) t nil)))))
 
+(defun treesit-fontify-with-override (start end face override)
+  "Apply FACE to the region between START and END.
+OVERRIDE can be nil, t, `append', `prepend', or `keep'.
+See `treesit-font-lock-rules' for their semantic."
+  (pcase override
+    ('nil (unless (text-property-not-all
+                   start end 'face nil)
+            (put-text-property start end 'face face)))
+    ('t (put-text-property start end 'face face))
+    ('append (font-lock-append-text-property
+              start end 'face face))
+    ('prepend (font-lock-prepend-text-property
+               start end 'face face))
+    ('keep (font-lock-fillin-text-property
+            start end 'face face))
+    (_ (signal 'treesit-font-lock-error
+               (list
+                "Unrecognized value of :override option"
+                override)))))
+
 (defun treesit-font-lock-fontify-region
     (start end &optional loudly)
   "Fontify the region between START and END.
@@ -633,23 +655,9 @@ If LOUDLY is non-nil, display some debugging information."
                      (end (treesit-node-end node)))
                 (cond
                  ((facep face)
-                  (pcase override
-                    ('nil (unless (text-property-not-all
-                                   start end 'face nil)
-                            (put-text-property start end 'face face)))
-                    ('t (put-text-property start end 'face face))
-                    ('append (font-lock-append-text-property
-                              start end 'face face))
-                    ('prepend (font-lock-prepend-text-property
-                               start end 'face face))
-                    ('keep (font-lock-fillin-text-property
-                            start end 'face face))
-                    (_ (signal 'treesit-font-lock-error
-                               (list
-                                "Unrecognized value of :override option"
-                                override)))))
+                  (treesit-fontify-with-override start end face override))
                  ((functionp face)
-                  (funcall face start end node)))
+                  (funcall face start end node override)))
                 ;; Don't raise an error if FACE is neither a face nor
                 ;; a function.  This is to allow intermediate capture
                 ;; names used for #match and #eq.

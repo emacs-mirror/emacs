@@ -1015,7 +1015,7 @@ It makes underscores and dots word constituent chars.")
     "VMSError" "WindowsError"
     ))
 
-(defun python--treesit-fontify-string (_beg _end node)
+(defun python--treesit-fontify-string (_beg _end node _override &rest _)
   "Fontify string.
 NODE is the last quote in the string.  Do not fontify the initial
 f for f-strings."

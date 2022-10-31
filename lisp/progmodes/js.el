@@ -3573,7 +3573,7 @@ This function is intended for use in `after-change-functions'."
       @font-lock-constant-face)))
   "Tree-sitter font-lock settings.")
 
-(defun js--fontify-template-string (beg end node)
+(defun js--fontify-template-string (beg end node _override &rest _)
   "Fontify template string but not substitution inside it.
 BEG, END, NODE refers to the template_string node."
   (ignore end)
