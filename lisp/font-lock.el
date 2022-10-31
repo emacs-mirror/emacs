@@ -614,6 +614,14 @@ If it fontifies a larger region, it should ideally return a list of the form
 \(jit-lock-bounds BEG . END) indicating the bounds of the region actually
 fontified.")
 
+(defvar font-lock-fontify-syntactically-function
+  #'font-lock-default-fontify-syntactically
+  "Function to use for syntactically fontifying a region.
+
+It should take two args, the beginning and end of the region, and
+an optional third arg VERBOSE.  If VERBOSE is non-nil, the
+function should print status messages.")
+
 (defvar font-lock-unfontify-region-function #'font-lock-default-unfontify-region
   "Function to use for unfontifying a region.
 It should take two args, the beginning and end of the region.
@@ -942,7 +950,7 @@ The value of this variable is used when Font Lock mode is turned on.")
 ;; A further reason to use the fontification indirection feature is when the
 ;; default syntactic fontification, or the default fontification in general,
 ;; is not flexible enough for a particular major mode.  For example, perhaps
-;; comments are just too hairy for `font-lock-fontify-syntactically-region' to
+;; comments are just too hairy for `font-lock-default-fontify-syntactically' to
 ;; cope with.  You need to write your own version of that function, e.g.,
 ;; `hairy-fontify-syntactically-region', and make your own version of
 ;; `hairy-fontify-region' call that function before calling
@@ -952,6 +960,10 @@ The value of this variable is used when Font Lock mode is turned on.")
 ;; example, TeX modes could fontify {\foo ...} and \bar{...}  etc. multi-line
 ;; directives correctly and cleanly.  (It is the same problem as fontifying
 ;; multi-line strings and comments; regexps are not appropriate for the job.)
+;; (This comment is written before `font-lock-default-fontify-syntactically'
+;; can be replaced.  Now you can obviously replace
+;; `font-lock-default-fontify-syntactically' with a custom function.)
+
 
 (defvar-local font-lock-extend-after-change-region-function nil
   "A function that determines the region to refontify after a change.
@@ -1181,7 +1193,7 @@ This function is the default `font-lock-fontify-region-function'."
            (setq font-lock-syntactically-fontified end))
          (font-lock-fontify-syntactic-keywords-region start end)))
      (unless font-lock-keywords-only
-       (font-lock-fontify-syntactically-region beg end loudly))
+       (funcall font-lock-fontify-syntactically-function beg end loudly))
      (font-lock-fontify-keywords-region beg end loudly)
      `(jit-lock-bounds ,beg . ,end))))
 
@@ -1531,7 +1543,7 @@ START should be at the beginning of a line."
 (defvar font-lock-comment-end-skip nil
   "If non-nil, Font Lock mode uses this instead of `comment-end-skip'.")
 
-(defun font-lock-fontify-syntactically-region (start end &optional loudly)
+(defun font-lock-default-fontify-syntactically (start end &optional loudly)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
   (syntax-propertize end)  ; Apply any needed syntax-table properties.

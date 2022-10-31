@@ -656,23 +656,7 @@ If LOUDLY is non-nil, display some debugging information."
                 (when (or loudly tresit--font-lock-verbose)
                   (message "Fontifying text from %d to %d, Face: %s Language: %s"
                            start end face language)))))))))
-  ;; Call regexp font-lock after tree-sitter, as it is usually used
-  ;; for custom fontification.
-  (let ((font-lock-unfontify-region-function #'ignore))
-    (funcall #'font-lock-default-fontify-region start end loudly))
   `(jit-lock-bounds ,start . ,end))
-
-(defun treesit-font-lock-enable ()
-  "Enable tree-sitter font-locking for the current buffer."
-  (treesit-font-lock-recompute-features)
-  (setq-local font-lock-fontify-region-function
-              #'treesit-font-lock-fontify-region)
-  ;; If we don't set `font-lock-defaults' to some non-nil value,
-  ;; font-lock doesn't enable properly (`font-lock-mode-internal'
-  ;; doesn't run).  See `font-lock-specified-p'.
-  (when (null font-lock-defaults)
-    (setq font-lock-defaults '(nil)))
-  (font-lock-mode 1))
 
 ;;; Indent
 
@@ -1306,17 +1290,10 @@ If `treesit-defun-type-regexp' is non-nil, setup
   (when treesit-font-lock-settings
     ;; `font-lock-mode' wouldn't setup properly if
     ;; `font-lock-defaults' is nil, see `font-lock-specified-p'.
-    ;; And we disable syntax-table-based font-lock by setting the
-    ;; KEYWORD-ONLY flag to t, so syntax-table-based font-lock
-    ;; doesn't override tree-sitter's fontification.
-    (setq-local font-lock-defaults '(nil t))
-    (setq-local font-lock-fontify-region-function
-                #'treesit-font-lock-fontify-region)
-    ;; `font-lock-mode' sets this to t when syntactic font-lock is
-    ;; enabled (i.e., `font-lock-keywords-only' is nil).  We disable
-    ;; font-lock's syntactic fontification, and do it ourselves, so we
-    ;; still need `jit-lock-contextually' to be t, set it ourselves.
-    (setq-local jit-lock-contextually t)
+    (setq-local font-lock-defaults
+                '( nil nil nil nil
+                   (font-lock-fontify-syntactically-function
+                    . treesit-font-lock-fontify-region)))
     (font-lock-mode 1)
     (treesit-font-lock-recompute-features))
   ;; Indent.

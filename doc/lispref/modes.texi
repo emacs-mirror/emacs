@@ -3892,8 +3892,7 @@ Source}) for this purpose.
 
 Parser-based font lock and other font lock mechanisms are not mutually
 exclusive.  By default, if enabled, parser-based font lock runs first,
-then the syntactic font lock (if enabled), then the regexp-based
-font lock.
+replacing syntactic font lock, then the regexp-based font lock.
 
 Although parser-based font lock doesn't share the same customization
 variables with regexp-based font lock, it uses similar customization
