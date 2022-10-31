@@ -1715,9 +1715,6 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
                                              "--no-backup-if-mismatch"
                                              "-i" "-"))
               (user-error "Patch failed: %s" (buffer-string))))
-          (dolist (f files)
-            (with-current-buffer (get-file-buffer f)
-              (revert-buffer t t t)))
           (vc-call-backend backend 'checkin files comment))
       (dolist (f files)
         (copy-file (expand-file-name f tmpdir)
