@@ -576,7 +576,7 @@ ignored.
 ;; `jit-lock-functions' doesn't pass that argument.  So even if we set
 ;; `font-lock-verbose' to t, if jit-lock is enabled (and it's almost
 ;; always is), we don't get debug messages.  So we add our own.
-(defvar tresit--font-lock-verbose nil
+(defvar treesit--font-lock-verbose nil
   "If non-nil, print debug messages when fontifying.")
 
 (defun treesit-font-lock-recompute-features ()
@@ -604,7 +604,7 @@ Set the ENABLE flag for each setting in
     (start end &optional loudly)
   "Fontify the region between START and END.
 If LOUDLY is non-nil, display some debugging information."
-  (when (or loudly tresit--font-lock-verbose)
+  (when (or loudly treesit--font-lock-verbose)
     (message "Fontifying region: %s-%s" start end))
   (treesit-update-ranges start end)
   (font-lock-unfontify-region start end)
@@ -653,7 +653,7 @@ If LOUDLY is non-nil, display some debugging information."
                 ;; Don't raise an error if FACE is neither a face nor
                 ;; a function.  This is to allow intermediate capture
                 ;; names used for #match and #eq.
-                (when (or loudly tresit--font-lock-verbose)
+                (when (or loudly treesit--font-lock-verbose)
                   (message "Fontifying text from %d to %d, Face: %s Language: %s"
                            start end face language)))))))))
   `(jit-lock-bounds ,start . ,end))
