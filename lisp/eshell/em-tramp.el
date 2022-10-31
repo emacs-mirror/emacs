@@ -1,4 +1,4 @@
-;;; em-tramp.el --- Eshell features that require TRAMP  -*- lexical-binding:t -*-
+;;; em-tramp.el --- Eshell features that require Tramp  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Eshell features that require TRAMP.
+;; Eshell features that require Tramp.
 
 ;;; Code:
 
@@ -38,17 +38,17 @@
 ;;;###autoload
 (progn
  (defgroup eshell-tramp nil
-   "This module defines commands that use TRAMP in a way that is
+   "This module defines commands that use Tramp in a way that is
   not transparent to the user.  So far, this includes only the
   built-in su, sudo and doas commands, which are not compatible
   with the full, external su, sudo, and doas commands, and
-  require the user to understand how to use the TRAMP sudo
+  require the user to understand how to use the Tramp sudo
   method."
-   :tag "TRAMP Eshell features"
+   :tag "Tramp Eshell features"
    :group 'eshell-module))
 
 (defun eshell-tramp-initialize ()   ;Called from `eshell-mode' via intern-soft!
-  "Initialize the TRAMP-using commands code."
+  "Initialize the Tramp-using commands code."
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
@@ -59,9 +59,9 @@
 (autoload 'eshell-parse-command "esh-cmd")
 
 (defun eshell/su (&rest args)
-  "Alias \"su\" to call TRAMP.
+  "Alias \"su\" to call Tramp.
 
-Uses the system su through TRAMP's su method."
+Uses the system su through Tramp's su method."
   (eshell-eval-using-options
    "su" args
    '((?h "help" nil nil "show this usage screen")
@@ -110,7 +110,7 @@ Become another USER during a login session.")
 (defun eshell/sudo (&rest args)
   "Alias \"sudo\" to call Tramp.
 
-Uses the system sudo through TRAMP's sudo method."
+Uses the system sudo through Tramp's sudo method."
   (eshell-eval-using-options
    "sudo" args
    '((?h "help" nil nil "show this usage screen")
