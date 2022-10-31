@@ -572,6 +572,13 @@ ignored.
                        `("Unexpected value" ,token))))))
       (nreverse result))))
 
+;; `font-lock-fontify-region-function' has the LOUDLY argument, but
+;; `jit-lock-functions' doesn't pass that argument.  So even if we set
+;; `font-lock-verbose' to t, if jit-lock is enabled (and it's almost
+;; always is), we don't get debug messages.  So we add our own.
+(defvar tresit--font-lock-verbose nil
+  "If non-nil, print debug messages when fontifying.")
+
 (defun treesit-font-lock-recompute-features ()
   "Enable/disable font-lock settings according to decoration level.
 Set the ENABLE flag for each setting in
@@ -597,6 +604,8 @@ Set the ENABLE flag for each setting in
     (start end &optional loudly)
   "Fontify the region between START and END.
 If LOUDLY is non-nil, display some debugging information."
+  (when (or loudly tresit--font-lock-verbose)
+    (message "Fontifying region: %s-%s" start end))
   (treesit-update-ranges start end)
   (font-lock-unfontify-region start end)
   (dolist (setting treesit-font-lock-settings)
@@ -644,13 +653,14 @@ If LOUDLY is non-nil, display some debugging information."
                 ;; Don't raise an error if FACE is neither a face nor
                 ;; a function.  This is to allow intermediate capture
                 ;; names used for #match and #eq.
-                (when loudly
+                (when (or loudly tresit--font-lock-verbose)
                   (message "Fontifying text from %d to %d, Face: %s Language: %s"
                            start end face language)))))))))
   ;; Call regexp font-lock after tree-sitter, as it is usually used
   ;; for custom fontification.
   (let ((font-lock-unfontify-region-function #'ignore))
-    (funcall #'font-lock-default-fontify-region start end loudly)))
+    (funcall #'font-lock-default-fontify-region start end loudly))
+  `(jit-lock-bounds ,start . ,end))
 
 (defun treesit-font-lock-enable ()
   "Enable tree-sitter font-locking for the current buffer."
