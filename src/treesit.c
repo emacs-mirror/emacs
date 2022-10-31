@@ -2178,8 +2178,10 @@ either string or sexp form.  When using repeatedly, a compiled query
 is much faster than a string or sexp one, so it is recommend to
 compile your query if it will be used repeatedly.
 
-BEG and END, if both non-nil, specify the region  of buffer positions
-in which the query is executed.
+BEG and END, if both non-nil, specify the region of buffer positions
+in which the query is executed.  Any matching node whose span overlaps
+with the region between BEG and END are captured, it doesn't have to
+be completely in the region.
 
 If NODE-ONLY is non-nil, return a list of nodes.
 

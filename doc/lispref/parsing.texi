@@ -992,7 +992,9 @@ The function returns all the captured nodes in a list of the form
 non-@code{nil}, it returns the list of nodes instead.  By default the
 entire text of @var{node} is searched, but if @var{beg} and @var{end}
 are both non-@code{nil}, they specify the region of buffer text where
-this function should match nodes.
+this function should match nodes.  Any matching node whose span
+overlaps with the region between @var{beg} and @var{end} are captured,
+it doesn't have to be completely in the region.
 
 @vindex treesit-query-error
 @findex treesit-query-validate
