@@ -1015,12 +1015,24 @@ It makes underscores and dots word constituent chars.")
     "VMSError" "WindowsError"
     ))
 
-(defun python--treesit-fontify-string (beg end _)
-  "Fontify string between BEG and END.
-Do not fontify the initial f for f-strings."
-  (let ((beg (if (eq (char-after beg) ?f)
-                 (1+ beg) beg)))
-    (put-text-property beg end 'face 'font-lock-string-face)))
+(defun python--treesit-fontify-string (_beg _end node)
+  "Fontify string.
+NODE is the last quote in the string.  Do not fontify the initial
+f for f-strings."
+  (let* ((string (treesit-node-parent node))
+         (string-beg (treesit-node-start string))
+         (string-end (treesit-node-end string))
+         (maybe-defun (treesit-node-parent
+                       (treesit-node-parent
+                        (treesit-node-parent string))))
+         (face (if (member (treesit-node-type maybe-defun)
+                           '("function_definition"
+                             "class_definition"))
+                   'font-lock-doc-face
+                 'font-lock-string-face)))
+    (when (eq (char-after string-beg) ?f)
+      (cl-incf string-beg))
+    (put-text-property string-beg string-end 'face face)))
 
 (defvar python--treesit-settings
   (treesit-font-lock-rules
@@ -1031,9 +1043,11 @@ Do not fontify the initial f for f-strings."
    :feature 'string
    :language 'python
    :override t
-   '((string) @python--treesit-fontify-string
-     ((string) @font-lock-doc-face
-      (:match "^\"\"\"" @font-lock-doc-face)))
+   ;; Capture the last quote node rather than the whole string.  The
+   ;; whole string might not be captured if it's not contained in the
+   ;; region being fontified.  E.g., the user inserts a quote, that
+   ;; single quote is the whole region we are fontifying.
+   '((string "\"" @python--treesit-fontify-string :anchor))
 
    :feature 'string-interpolation
    :language 'python
