@@ -111,6 +111,51 @@ symbol is used.  The value must be a member of
                            vc-handled-backends))
   :version "29.1")
 
+(defun package-vc--select-packages (sym val)
+  "Custom setter for `package-vc-selected-packages'.
+It will ensure that all the packages are installed as source
+packages.  Finally SYM is set to VAL."
+  (pcase-dolist (`(,(and (pred symbolp) name) . ,spec) val)
+    (let* ((pkg-desc (cadr (assoc name package-alist #'string=))))
+      (unless (and name (package-installed-p name) (package-vc-p pkg-desc))
+        (cond
+         ((null spec)
+          (package-vc-install name))
+         ((stringp spec)
+          (package-vc-install name nil spec))
+         ((listp spec)
+          (package-vc--archives-initialize)
+          (package-vc-unpack pkg-desc spec))))))
+  (custom-set-default sym val))
+
+;;;###autoload
+(defcustom package-vc-selected-packages '()
+  "List of packages to ensure being installed.
+Each entry of the list is of the form (NAME . SPEC), where NAME
+is a symbol designating the package and SPEC is one of:
+
+- the value nil, if any package version is to be installed,
+- a string, if a specific revision, as designating by the string
+  is to be installed,
+- a property list of the form described in
+  `package-vc-archive-spec-alist', giving a package
+  specification.
+
+This user option differs from `package-selected-packages' in that
+it is meant to be specified manually."
+  :type '(alist :tag "List of ensured packages"
+                :key-type (symbol :tag "Package")
+                :value-type
+                (choice (const :tag "Any revision" nil)
+                        (string :tag "Specific revision")
+                        (plist :options ((:url string)
+                                         (:branch string)
+                                         (:lisp-dir string)
+                                         (:main-file string)
+                                         (:vc-backend symbol)))))
+  :set #'package-vc--select-packages
+  :version "29.1")
+
 (defvar package-vc-archive-spec-alist nil
   "List of package specifications for each archive.
 The list maps package names as string to plist.  Valid keys
