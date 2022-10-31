@@ -3573,9 +3573,12 @@ This function is intended for use in `after-change-functions'."
       @font-lock-constant-face)))
   "Tree-sitter font-lock settings.")
 
-(defun js--fontify-template-string (beg end node _override &rest _)
+(defun js--fontify-template-string (beg end node override &rest _)
   "Fontify template string but not substitution inside it.
-BEG, END, NODE refers to the template_string node."
+BEG, END, NODE refers to the template_string node.
+
+OVERRIDE is the override flag described in
+`treesit-font-lock-rules'."
   (ignore end)
   ;; You would have thought that the children of the string node spans
   ;; the whole string.  No, the children of the template_string only
@@ -3585,10 +3588,12 @@ BEG, END, NODE refers to the template_string node."
   (let ((child (treesit-node-child node 0)))
     (while child
       (if (equal (treesit-node-type child) "template_substitution")
-          (put-text-property beg (treesit-node-start child)
-                             'face 'font-lock-string-face)
-        (put-text-property beg (treesit-node-end child)
-                           'face 'font-lock-string-face))
+          (treesit-fontify-with-override
+           beg (treesit-node-start child)
+           'font-lock-string-face override)
+        (treesit-fontify-with-override
+         beg (treesit-node-end child)
+         'font-lock-string-face override))
       (setq beg (treesit-node-end child)
             child (treesit-node-next-sibling child)))))
 
