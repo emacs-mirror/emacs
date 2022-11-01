@@ -29801,7 +29801,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
        that also destroys the font, leading to to X protocol errors at
        XtCloseDisplay.  Just free the font info structure.
        (Bug#18403) */
-    XFreeFontInfo (NULL, query_result, 0);
+    XFreeFontInfo (NULL, query_result, 1);
     x_uncatch_errors ();
   }
 #endif
