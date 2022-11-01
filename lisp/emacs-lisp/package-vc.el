@@ -513,17 +513,38 @@ the `:brach' attribute in PKG-SPEC."
 
 (defun package-vc-update (pkg-desc)
   "Attempt to update the packager PKG-DESC."
-  (let* ((default-directory (package-desc-dir pkg-desc))
-         (ret (with-demoted-errors "Error during package update: %S"
-                (vc-pull)))
-         (buf (cond
-               ((processp ret) (process-buffer ret))
-               ((bufferp ret) ret))))
-    (if buf
-        (with-current-buffer buf
-          (vc-run-delayed
-            (package-vc-unpack-1 pkg-desc default-directory)))
-      (package-vc-unpack-1 pkg-desc default-directory))))
+  ;; HACK: To run `package-vc-unpack-1' after checking out the new
+  ;; revision, we insert a hook into `vc-post-command-functions', and
+  ;; remove it right after it ran.  To avoid running the hook multiple
+  ;; times or even for the wrong repository (as `vc-pull' is often
+  ;; asynchronous), we extract the relevant arguments using a pseudo
+  ;; filter for `vc-filter-command-function', executed only for the
+  ;; side effect, and store them in the lexical scope.  When the hook
+  ;; is run, we check if the arguments are the same (`eq') as the ones
+  ;; previously extracted, and only in that case will be call
+  ;; `package-vc-unpack-1'.  Ugh...
+  ;;
+  ;; If there is a better way to do this, it should be done.
+  (letrec ((pkg-dir (package-desc-dir pkg-desc))
+           (empty (make-symbol empty))
+           (args (list empty empty empty))
+           (vc-filter-command-function
+            (lambda (command file-or-list flags)
+              (setf (nth 0 args) command
+                    (nth 1 args) file-or-list
+                    (nth 2 args) flags)
+              (list command file-or-list flags)))
+           (post-upgrade
+            (lambda (command file-or-list flags)
+              (when (and (memq (nth 0 args) (list command empty))
+                         (memq (nth 1 args) (list file-or-list empty))
+                         (memq (nth 2 args) (list flags empty)))
+                (with-demoted-errors "Failed to activate: %S"
+                  (package-vc-unpack-1 pkg-desc pkg-dir))
+                (remove-hook 'vc-post-command-functions post-upgrade)))))
+    (add-hook 'vc-post-command-functions post-upgrade)
+    (with-demoted-errors "Failed to fetch: %S"
+      (vc-pull))))
 
 (defun package-vc--archives-initialize ()
   "Initialise package.el and fetch package specifications."
