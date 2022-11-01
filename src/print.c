@@ -2018,9 +2018,9 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
     case PVEC_TS_PARSER:
       print_c_string ("#<treesit-parser for ", printcharfun);
       Lisp_Object language = XTS_PARSER (obj)->language_symbol;
+      /* No need to print the buffer because it's not that useful: we
+	 usually know which buffer a parser belongs to.  */
       print_string (Fsymbol_name (language), printcharfun);
-      print_c_string (" in ", printcharfun);
-      print_object (XTS_PARSER (obj)->buffer, printcharfun, escapeflag);
       printchar ('>', printcharfun);
       break;
     case PVEC_TS_NODE:
@@ -2034,8 +2034,9 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       print_string (Ftreesit_node_type (obj), printcharfun);
       print_c_string (delim2, printcharfun);
       print_c_string (" in ", printcharfun);
-      print_object (XTS_PARSER (XTS_NODE (obj)->parser)->buffer,
-		    printcharfun, escapeflag);
+      print_object (Ftreesit_node_start (obj), printcharfun, escapeflag);
+      printchar ('-', printcharfun);
+      print_object (Ftreesit_node_end (obj), printcharfun, escapeflag);
       printchar ('>', printcharfun);
       break;
     case PVEC_TS_COMPILED_QUERY:

@@ -516,7 +516,7 @@ Example:
 @group
 ;; Find the node at point in a C parser's syntax tree.
 (treesit-node-at (point) 'c)
-  @result{} #<treesit-node (primitive_type) in *scratch*>
+  @result{} #<treesit-node (primitive_type) in 23-27>
 @end group
 @end example
 @end defun
@@ -617,7 +617,7 @@ This function finds the child of @var{node} whose field name is
 @group
 ;; Get the child that has "body" as its field name.
 (treesit-child-by-field-name node "body")
-  @result{} #<treesit-node (compound_statement) in *scratch*>
+  @result{} #<treesit-node (compound_statement) in 45-89>
 @end group
 @end example
 @end defun
