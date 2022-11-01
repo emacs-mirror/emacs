@@ -419,6 +419,9 @@ omitted, default END to BEG."
 (defvar-local treesit-font-lock-feature-list nil
   "A list of lists of feature symbols.
 
+End-user should use `treesit-font-lock-recompute-features' and
+`font-lock-maximum-decoration' to configure enabled features.
+
 Each sublist represents a decoration level.
 `font-lock-maximum-decoration' controls which levels are
 activated.
@@ -581,20 +584,31 @@ name, it is ignored.
 (defvar treesit--font-lock-verbose nil
   "If non-nil, print debug messages when fontifying.")
 
-(defun treesit-font-lock-recompute-features ()
+(defun treesit-font-lock-recompute-features (&optional add-list remove-list)
   "Enable/disable font-lock settings according to decoration level.
-Set the ENABLE flag for each setting in
-`treesit-font-lock-settings', according to
+
+First compute the enabled features according to
 `treesit-font-lock-feature-list' and
-`font-lock-maximum-decoration'."
+`font-lock-maximum-decoration', then if ADD-LIST or REMOVE-LIST
+are not omitted, further add and remove features accordingly.
+
+ADD-LIST and REMOVE-LIST are each list of feature symbols.  The
+same feature symbol cannot not appear in both lists.  Otherwise
+signal `treesit-font-lock-error'."
+  (when-let ((intersection (cl-intersection add-list remove-list)))
+    (signal 'treesit-font-lock-error
+            (list "ADD-LIST and REMOVE-LIST contain the same feature"
+                  intersection)))
   (let* ((level (font-lock-value-in-major-mode
                  font-lock-maximum-decoration))
-         (features (cl-loop
-                    for idx = 0 then (1+ idx)
-                    for features in treesit-font-lock-feature-list
-                    if (or (eq level t)
-                           (>= level (1+ idx)))
-                    append features)))
+         (base-features (cl-loop
+                         for idx = 0 then (1+ idx)
+                         for features in treesit-font-lock-feature-list
+                         if (or (eq level t)
+                                (>= level (1+ idx)))
+                         append features))
+         (features (cl-set-difference (cl-union base-features add-list)
+                                      remove-list)))
     (cl-loop for idx = 0 then (1+ idx)
              for setting in treesit-font-lock-settings
              for feature = (nth 2 setting)
