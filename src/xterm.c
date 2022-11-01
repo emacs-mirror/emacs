@@ -29778,21 +29778,30 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   {
     XrmValue d, fr, to;
     Font font;
+    XFontStruct *query_result;
 
     dpy = dpyinfo->display;
-    d.addr = (XPointer)&dpy;
+    d.addr = (XPointer) &dpy;
     d.size = sizeof (Display *);
     fr.addr = (char *) XtDefaultFont;
     fr.size = sizeof (XtDefaultFont);
     to.size = sizeof (Font *);
-    to.addr = (XPointer)&font;
+    to.addr = (XPointer) &font;
     x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
       emacs_abort ();
-    if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
+    query_result = XQueryFont (dpy, font);
+
+    /* Set the dialog font to some fallback (here, 9x15) if the font
+       specified is invalid.  */
+    if (x_had_errors_p (dpy) || !font)
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
-    /* Do not free XFontStruct returned by the above call to XQueryFont.
-       This leads to X protocol errors at XtCloseDisplay (Bug#18403).  */
+
+    /* Do not destroy the font struct returned above with XFreeFont;
+       that also destroys the font, leading to to X protocol errors at
+       XtCloseDisplay.  Just free the font info structure.
+       (Bug#18403) */
+    XFreeFontInfo (NULL, query_result, 0);
     x_uncatch_errors ();
   }
 #endif
