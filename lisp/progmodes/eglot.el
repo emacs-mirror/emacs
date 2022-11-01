@@ -877,7 +877,7 @@ SERVER."
 PRESERVE-BUFFERS as in `eglot-shutdown', which see."
   (interactive (list current-prefix-arg))
   (cl-loop for ss being the hash-values of eglot--servers-by-project
-           do (cl-loop for s in ss do (eglot-shutdown s nil preserve-buffers))))
+           do (cl-loop for s in ss do (eglot-shutdown s nil nil preserve-buffers))))
 
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
