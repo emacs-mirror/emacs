@@ -546,7 +546,7 @@ Used when `whitespace-style' includes the value `trailing'.")
     (t :background "red1" :foreground "yellow"))
   "Face used to visualize trailing blanks.
 
-See '`whitespace-trailing-regexp'."
+See `whitespace-trailing-regexp'."
   :group 'whitespace)
 
 
