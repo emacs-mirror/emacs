@@ -1667,9 +1667,10 @@ to directory DIR."
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command))))
-    (let ((default-directory dir)
-          (project-current-inhibit-prompt t))
-      (call-interactively command))))
+    (with-temp-buffer
+      (let ((default-directory dir)
+            (project-current-inhibit-prompt t))
+        (call-interactively command)))))
 
 (provide 'project)
 ;;; project.el ends here
