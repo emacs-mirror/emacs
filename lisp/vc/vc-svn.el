@@ -364,7 +364,7 @@ DIRECTORY or absolute."
   (with-temp-buffer
     (when (zerop (vc-svn-command
                   t t nil "propget" "svn:ignore" (expand-file-name directory)))
-      (split-string (buffer-string) "\n"))))
+      (split-string (buffer-string) "\n" t))))
 
 (defun vc-svn-find-admin-dir (file)
   "Return the administrative directory of FILE."
