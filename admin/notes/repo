@@ -128,6 +128,11 @@ again.
 This is a semi-automated way to find the revision that introduced a bug.
 Browse 'git help bisect' for technical instructions.
 
+Depending on what you want to do, it can be helpful to start bisecing
+with the option '--first-parent', like `git bisect start
+--first-parent', which makes bisect ignore commits coming into a
+branch from merges.
+
 * Maintaining ChangeLog history
 
 Older ChangeLog entries are kept in history files named ChangeLog.1,
