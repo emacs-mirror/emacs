@@ -128,10 +128,9 @@ again.
 This is a semi-automated way to find the revision that introduced a bug.
 Browse 'git help bisect' for technical instructions.
 
-Depending on what you want to do, it can be helpful to start bisecing
-with the option '--first-parent', like `git bisect start
---first-parent', which makes bisect ignore commits coming into a
-branch from merges.
+It is recommended to start a bisection with the admin/git-bisect-start
+script.  This script prunes the branches that are the result of
+merging external trees into the Emacs repository.
 
 * Maintaining ChangeLog history
 
