@@ -1017,7 +1017,7 @@ It makes underscores and dots word constituent chars.")
 
 (defun python--treesit-fontify-string (_beg _end node override &rest _)
   "Fontify string.
-NODE is the last quote in the string.  Do not fontify the initial
+NODE is the leading quote in the string.  Do not fontify the initial
 f for f-strings.  OVERRIDE is the override flag described in
 `treesit-font-lock-rules'."
   (let* ((string (treesit-node-parent node))
@@ -1035,6 +1035,12 @@ f for f-strings.  OVERRIDE is the override flag described in
       (cl-incf string-beg))
     (treesit-fontify-with-override string-beg string-end face override)))
 
+(defun python--treesit-fontify-string-end (_beg _end node &rest _)
+  "Mark the whole string as to-be-fontified.
+NODE is the ending quote of a string."
+  (let ((string (treesit-node-parent node)))
+    (setq jit-lock-context-unfontify-pos (treesit-node-start string))))
+
 (defvar python--treesit-settings
   (treesit-font-lock-rules
    :feature 'comment
@@ -1044,11 +1050,9 @@ f for f-strings.  OVERRIDE is the override flag described in
    :feature 'string
    :language 'python
    :override t
-   ;; Capture the last quote node rather than the whole string.  The
-   ;; whole string might not be captured if it's not contained in the
-   ;; region being fontified.  E.g., the user inserts a quote, that
-   ;; single quote is the whole region we are fontifying.
-   '((string "\"" @python--treesit-fontify-string :anchor))
+   ;; TODO Document on why we do this.
+   '((string "\"" @python--treesit-fontify-string-end :anchor)
+     (string :anchor "\"" @python--treesit-fontify-string :anchor))
 
    :feature 'string-interpolation
    :language 'python
