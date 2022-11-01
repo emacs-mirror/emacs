@@ -677,8 +677,8 @@ If LOUDLY is non-nil, display some debugging information."
                 ;; a function.  This is to allow intermediate capture
                 ;; names used for #match and #eq.
                 (when (or loudly treesit--font-lock-verbose)
-                  (message "Fontifying text from %d to %d, Face: %s Language: %s"
-                           start end face language)))))))))
+                  (message "Fontifying text from %d to %d, Face: %s, Node: %s"
+                           start end face (treesit-node-type node))))))))))
   `(jit-lock-bounds ,start . ,end))
 
 ;;; Indent
