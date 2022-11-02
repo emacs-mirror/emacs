@@ -2585,6 +2585,10 @@ that are mainly relevant to encrypted connections:
 @item :nowait @var{boolean}
 If non-@code{nil}, try to make an asynchronous connection.
 
+@item :noquery @var{query-flag}
+Initialize the process query flag to @var{query-flag}.
+@xref{Query Before Exit}.
+
 @item :coding @var{coding}
 Use this to set the coding systems used by the network process, in
 preference to binding @code{coding-system-for-read} or

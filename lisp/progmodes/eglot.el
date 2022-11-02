@@ -1200,7 +1200,8 @@ This docstring appeases checkdoc, that's all."
                                (pcase-let ((`(,connection . ,inferior)
                                             (eglot--inferior-bootstrap
                                              readable-name
-                                             contact)))
+                                             contact
+                                             '(:noquery t))))
                                  (setq autostart-inferior-process inferior)
                                  connection))))
                 ((stringp (car contact))
