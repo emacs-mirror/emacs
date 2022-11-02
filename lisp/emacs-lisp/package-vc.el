@@ -26,16 +26,8 @@
 
 ;;; TODO:
 
-;; - Allow for automatic updating
-;;   * Detect merge conflicts
-;;   * Check if there are upstream changes
-;; - Allow for ELPA specifications to be respected without
-;;   endangering the user with arbitrary code execution
 ;; - Allow maintaining patches that are ported back onto regular
 ;;   packages and maintained between versions.
-;; - Allow locking the specific revisions of sourced packages
-;;  (comparable to `package-selected-packages') so that specific
-;;  revisions can be re-installed.
 
 ;;; Code:
 
