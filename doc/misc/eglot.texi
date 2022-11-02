@@ -872,7 +872,7 @@ Eglot supports and enhances (@pxref{Eglot Features}).  For example:
 @item
 To configure the face used for server-derived errors and warnings,
 customize the Flymake faces @code{flymake-error} and
-@code{flymake-error}.
+@code{flymake-warning}.
 
 @item
 To configure the amount of space taken up by documentation in the
