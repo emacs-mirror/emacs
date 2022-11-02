@@ -106,6 +106,7 @@ enum itree_order
     ITREE_PRE_ORDER,
   };
 
+extern void init_itree (void);
 extern void itree_node_init (struct itree_node *, bool, bool, Lisp_Object);
 extern ptrdiff_t itree_node_begin (struct itree_tree *, struct itree_node *);
 extern ptrdiff_t itree_node_end (struct itree_tree *, struct itree_node *);
@@ -147,7 +148,7 @@ extern struct itree_node *itree_iterator_next (struct itree_iterator *);
 
    BEWARE:
    - The expression T may be evaluated more than once, so make sure
-     it is cheap a pure.
+     it is cheap and pure.
    - Only a single iteration can happen at a time, so make sure none of the
      code within the loop can start another tree iteration, i.e. it shouldn't
      be able to run ELisp code, nor GC since GC can run ELisp by way

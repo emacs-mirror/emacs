@@ -191,7 +191,7 @@ interval_stack_clear (struct interval_stack *stack)
 }
 
 static inline void
-interval_stack_ensure_space (struct interval_stack *stack, intmax_t nelements)
+interval_stack_ensure_space (struct interval_stack *stack, uintmax_t nelements)
 {
   if (nelements > stack->size)
     {
@@ -207,7 +207,7 @@ static inline void
 interval_stack_push_flagged (struct interval_stack *stack,
 			     struct itree_node *node, bool flag)
 {
-  eassert (node && node != NULL);
+  eassert (node);
 
   /* FIXME: While the stack used in the iterator is bounded by the tree
      depth and could be easily pre-allocated to a large enough size to avoid
@@ -287,8 +287,8 @@ itree_iterator_create (struct itree_tree *tree)
   return g;
 }
 
-static void
-itree_init (void)
+void
+init_itree (void)
 {
   iter = itree_iterator_create (NULL);
 }
@@ -555,16 +555,11 @@ itree_node_end (struct itree_tree *tree,
   return node->end;
 }
 
-/* Allocate an interval_tree. Free with interval_tree_destroy. */
+/* Allocate an itree_tree.  Free with itree_destroy.  */
 
 struct itree_tree *
 itree_create (void)
 {
-  /* FIXME?  Maybe avoid the initialization of itree_null in the same
-     way that is used to call mem_init in alloc.c?  It's not really
-     important though.  */
-  itree_init ();
-
   struct itree_tree *tree = xmalloc (sizeof (*tree));
   itree_clear (tree);
   return tree;
@@ -584,10 +579,9 @@ itree_clear (struct itree_tree *tree)
 /* Initialize a pre-allocated tree (presumably on the stack).  */
 
 static void
-interval_tree_init (struct interval_tree *tree)
+interval_tree_init (struct itree_tree *tree)
 {
-  interval_tree_clear (tree);
-  /* tree->iter = itree_iterator_create (tree); */
+  itree_clear (tree);
 }
 #endif
 
@@ -596,8 +590,6 @@ void
 itree_destroy (struct itree_tree *tree)
 {
   eassert (tree->root == NULL);
-  /* if (tree->iter)
-   *   itree_iterator_destroy (tree->iter); */
   xfree (tree);
 }
 
@@ -775,7 +767,7 @@ interval_tree_insert_fix (struct itree_tree *tree,
 static void
 interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
 {
-  eassert (node->begin <= node->end && node != NULL);
+  eassert (node && node->begin <= node->end);
   /* FIXME: The assertion below fails because `delete_all_overlays`
      doesn't set left/right/parent to NULL.  */
   /* eassert (node->left == NULL && node->right == NULL
@@ -868,7 +860,7 @@ itree_node_set_region (struct itree_tree *tree,
 static bool
 interval_tree_contains (struct itree_tree *tree, struct itree_node *node)
 {
-  eassert (node);
+  eassert (iter && node);
   struct itree_node *other;
   ITREE_FOREACH (other, tree, node->begin, PTRDIFF_MAX, ASCENDING)
     if (other == node)
@@ -912,7 +904,7 @@ interval_tree_remove_fix (struct itree_tree *tree,
   if (parent == NULL)
     eassert (node == tree->root);
   else
-  eassert (node == NULL || node->parent == parent);
+    eassert (node == NULL || node->parent == parent);
 
   while (parent != NULL && null_safe_is_black (node))
     {
@@ -1151,7 +1143,7 @@ itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
 		      ptrdiff_t end, enum itree_order order,
 		      const char *file, int line)
 {
-  /* struct itree_iterator *iter = tree->iter; */
+  eassert (iter);
   if (iter->running)
     {
       fprintf (stderr,
@@ -1179,7 +1171,7 @@ itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
 void
 itree_iterator_finish (struct itree_iterator *iter)
 {
-  eassert (iter->running);
+  eassert (iter && iter->running);
   iter->running = false;
 }
 
@@ -1212,7 +1204,7 @@ itree_insert_gap (struct itree_tree *tree,
 	  && (node->begin != node->end || node->rear_advance))
 	interval_stack_push (saved, node);
     }
-  for (int i = 0; i < saved->length; ++i)
+  for (size_t i = 0; i < saved->length; ++i)
     itree_remove (tree, nav_nodeptr (saved->nodes[i]));
 
   /* We can't use an iterator here, because we can't effectively
@@ -1352,7 +1344,7 @@ interval_node_intersects (const struct itree_node *node,
 struct itree_node *
 itree_iterator_next (struct itree_iterator *g)
 {
-  eassert (g->running);
+  eassert (g && g->running);
 
   struct itree_node *const null = NULL;
   struct itree_node *node;
@@ -1424,9 +1416,9 @@ void
 itree_iterator_narrow (struct itree_iterator *g,
 		       ptrdiff_t begin, ptrdiff_t end)
 {
-  eassert (g->running);
+  eassert (g && g->running);
   eassert (begin >= g->begin);
   eassert (end <= g->end);
-  g->begin =  max (begin, g->begin);
-  g->end =  min (end, g->end);
+  g->begin = max (begin, g->begin);
+  g->end = min (end, g->end);
 }

@@ -6508,7 +6508,7 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
 static void
 mark_overlay (struct Lisp_Overlay *ov)
 {
-  /* We don't mark the `interval_node` object, because it is managed manually
+  /* We don't mark the `itree_node` object, because it is managed manually
      rather than by the GC.  */
   eassert (BASE_EQ (ov->interval->data, make_lisp_ptr (ov, Lisp_Vectorlike)));
   set_vectorlike_marked (&ov->header);

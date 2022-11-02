@@ -982,7 +982,7 @@ set_overlays_multibyte (bool multibyte)
   struct itree_tree *tree = current_buffer->overlays;
   const intmax_t size = itree_size (tree);
 
-  /* We can't use `interval_node_set_region` at the same time
+  /* We can't use `itree_node_set_region` at the same time
      as we iterate over the itree, so we need an auxiliary storage
      to keep the list of nodes.  */
   USE_SAFE_ALLOCA;
