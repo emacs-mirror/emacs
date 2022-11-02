@@ -1015,7 +1015,7 @@ It makes underscores and dots word constituent chars.")
     "VMSError" "WindowsError"
     ))
 
-(defun python--treesit-fontify-string (_beg _end node override &rest _)
+(defun python--treesit-fontify-string (node override &rest _)
   "Fontify string.
 NODE is the leading quote in the string.  Do not fontify the initial
 f for f-strings.  OVERRIDE is the override flag described in
@@ -1035,7 +1035,7 @@ f for f-strings.  OVERRIDE is the override flag described in
       (cl-incf string-beg))
     (treesit-fontify-with-override string-beg string-end face override)))
 
-(defun python--treesit-fontify-string-end (_beg _end node &rest _)
+(defun python--treesit-fontify-string-end (node &rest _)
   "Mark the whole string as to-be-fontified.
 NODE is the ending quote of a string."
   (let ((string (treesit-node-parent node)))
