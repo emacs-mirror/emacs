@@ -296,6 +296,42 @@ with parameters from the *Messages* buffer modification."
       (should (equal (overlay-start ol1) (overlay-start ol2)))
       (should (equal (overlay-end ol1) (overlay-end ol2))))))
 
+(ert-deftest buffer-tests--overlays-indirect-evaporate ()
+  "Verify that deleting text evaporates overlays in every related buffer.
+
+Deleting characters from either a base or an indirect buffer
+should evaporate overlays in both."
+  :expected-result :failed
+  ;; Loop twice, erasing from the base buffer the first time and the
+  ;; indirect buffer the second.
+  (dolist (erase-where '(base indirect))
+    (ert-info ((format "erase-where %S" erase-where))
+      (with-temp-buffer
+        (insert "xxx")
+        (let* ((beg 2)
+               (end 3)
+               (base (current-buffer))
+               (base-overlay (make-overlay beg end base))
+               (indirect (make-indirect-buffer
+                          base
+                          (generate-new-buffer-name
+                           (concat (buffer-name base) "-indirect"))))
+               (indirect-overlay (make-overlay beg end indirect)))
+          (overlay-put base-overlay 'evaporate t)
+          (overlay-put indirect-overlay 'evaporate t)
+          (with-current-buffer (pcase-exhaustive erase-where
+                                 (`base base)
+                                 (`indirect indirect))
+            (delete-region beg end))
+          (ert-info ((prin1-to-string
+                      `(,base ,base-overlay ,indirect ,indirect-overlay)))
+            (should (not (buffer-live-p (overlay-buffer base-overlay))))
+            (should (not (buffer-live-p (overlay-buffer indirect-overlay))))
+            (should (equal nil (with-current-buffer base
+                                 (overlays-in (point-min) (point-max)))))
+            (should (equal nil (with-current-buffer indirect
+                                 (overlays-in (point-min) (point-max)))))))))))
+
 (ert-deftest overlay-evaporation-after-killed-buffer ()
   (let* ((ols (with-temp-buffer
                 (insert "toto")
