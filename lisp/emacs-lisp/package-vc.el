@@ -116,7 +116,7 @@ symbol is used.  The value must be a member of
 It will ensure that all the packages are installed as source
 packages.  Finally SYM is set to VAL."
   (pcase-dolist (`(,(and (pred symbolp) name) . ,spec) val)
-    (let* ((pkg-desc (cadr (assoc name package-alist #'string=))))
+    (let ((pkg-desc (cadr (assoc name package-alist #'string=))))
       (unless (and name (package-installed-p name) (package-vc-p pkg-desc))
         (cond
          ((null spec)
@@ -232,9 +232,9 @@ return nil."
   "Update `package-vc-archive-spec-alist' with the contents of ARCHIVE.
 This function is meant to be used as a hook for
 `package--read-archive-hook'."
-  (let* ((contents-file (expand-file-name
-                         (format "archives/%s/elpa-packages.eld" archive)
-                         package-user-dir)))
+  (let ((contents-file (expand-file-name
+                        (format "archives/%s/elpa-packages.eld" archive)
+                        package-user-dir)))
     (when (file-exists-p contents-file)
       (with-temp-buffer
         (let ((coding-system-for-read 'utf-8))
