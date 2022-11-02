@@ -1035,12 +1035,6 @@ f for f-strings.  OVERRIDE is the override flag described in
       (cl-incf string-beg))
     (treesit-fontify-with-override string-beg string-end face override)))
 
-(defun python--treesit-fontify-string-end (node &rest _)
-  "Mark the whole string as to-be-fontified.
-NODE is the ending quote of a string."
-  (let ((string (treesit-node-parent node)))
-    (setq jit-lock-context-unfontify-pos (treesit-node-start string))))
-
 (defvar python--treesit-settings
   (treesit-font-lock-rules
    :feature 'comment
@@ -1051,8 +1045,8 @@ NODE is the ending quote of a string."
    :language 'python
    :override t
    ;; TODO Document on why we do this.
-   '((string "\"" @python--treesit-fontify-string-end :anchor)
-     (string :anchor "\"" @python--treesit-fontify-string :anchor))
+   '((string :anchor "\"" @python--treesit-fontify-string)
+     (string) @contextual)
 
    :feature 'string-interpolation
    :language 'python

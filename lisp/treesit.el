@@ -636,6 +636,82 @@ See `treesit-font-lock-rules' for their semantic."
                 "Unrecognized value of :override option"
                 override)))))
 
+(defun treesit--set-nonsticky (start end sym &optional remove)
+  "Set `rear-nonsticky' property between START and END.
+Set the proeprty to a list containing SYM.  If there is already a
+list, add SYM to that list.  If REMOVE is non-nil, remove SYM
+instead."
+  (let* ((prop (get-text-property start 'rear-nonsticky))
+         (new-prop
+          (pcase prop
+            ((pred listp) ; PROP is a list or nil.
+             (if remove
+                 (remove sym prop)
+               ;; We should make sure PORP doesn't contain SYM, but
+               ;; whatever.
+               (cons sym prop)))
+            ;; PROP is t.
+            (_ (if remove
+                   nil
+                 (list sym))))))
+    (if (null new-prop)
+        (remove-text-properties start end '(rear-nonsticky nil))
+      (put-text-property start end 'rear-nonsticky new-prop))))
+
+;; This post-processing tries to deal with the following scenario:
+;; User inserts "/*", then go down the buffer and inserts "*/".
+;; Before the user inserts "*/", tree-sitter cannot construct a
+;; comment node and the parse tree is incomplete, and we can't fontify
+;; the comment.  But once the user inserts the "*/", the parse-tree is
+;; complete and we want to refontify the whole comment, and possibly
+;; text after comment (the "/*" could damage the parse tree enough
+;; that makes tree-sitter unable to produce reasonable information for
+;; text after it).
+;;
+;; So we set jit-lock-context-unfontify-pos to comment start, and
+;; jit-lock-context will refontify text after that position in a
+;; timer.  Refontifying those text will end up calling this function
+;; again, and we don't want to fall into infinite recursion.  So we
+;; mark the end of the comment with a text property, so we can
+;; distinguish between initial and follow up invocation of this
+;; function.
+(defun treesit-font-lock-contextual-post-process
+    (node start end &optional verbose)
+  "Post-processing for contextual syntax nodes.
+NODE is a comment or string node, START and END are the region
+being fontified.
+
+If VERBOSE is non-nil, print debugging information."
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         (node-end-1 (max (point-min) (1- node-end)))
+         (prop-sym 'treesit-context-refontify-in-progress))
+    (when verbose
+      (message "Contextual: region: %s-%s, node: %s-%s"
+               start end node-start node-end))
+    (when (<= node-end end)
+      (if (get-text-property node-end-1 prop-sym)
+          ;; We are called from a refontification by jit-lock-context,
+          ;; caused by a previous call to this function.
+          (progn (when verbose
+                   (message "Contextual: in progress"))
+                 (remove-text-properties
+                  node-end-1 node-end `(,prop-sym nil))
+                 (treesit--set-nonsticky node-end-1 node-end prop-sym t))
+        ;; We are called from a normal fontification.
+        (when verbose
+          (message "Contextual: initial"))
+        (setq jit-lock-context-unfontify-pos node-start)
+        (put-text-property node-end-1 node-end prop-sym t)
+        (treesit--set-nonsticky node-end-1 node-end prop-sym)))))
+
+;; Some details worth explaining:
+;;
+;; 1. When we apply face to a node, we clip the face into the
+;; currently fontifying region, this way we don't overwrite faces
+;; applied by regexp-based font-lock.  The clipped part will be
+;; fontified fine when Emacs fontifies the region containing it.
+;;
 (defun treesit-font-lock-fontify-region
     (start end &optional loudly)
   "Fontify the region between START and END.
@@ -666,11 +742,17 @@ If LOUDLY is non-nil, display some debugging information."
             (dolist (capture captures)
               (let* ((face (car capture))
                      (node (cdr capture))
-                     (start (treesit-node-start node))
-                     (end (treesit-node-end node)))
+                     (node-start (treesit-node-start node))
+                     (node-end (treesit-node-end node)))
                 (cond
+                 ((eq face 'contextual)
+                  (treesit-font-lock-contextual-post-process
+                   node start end
+                   (or loudly treesit--font-lock-verbose)))
                  ((facep face)
-                  (treesit-fontify-with-override start end face override))
+                  (treesit-fontify-with-override
+                   (max node-start start) (min node-end end)
+                   face override))
                  ((functionp face)
                   (funcall face node override)))
                 ;; Don't raise an error if FACE is neither a face nor
