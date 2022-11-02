@@ -1196,7 +1196,7 @@ void
 itree_insert_gap (struct itree_tree *tree,
 		  ptrdiff_t pos, ptrdiff_t length)
 {
-  if (length <= 0 || tree->root == NULL)
+  if (!tree || length <= 0 || tree->root == NULL)
     return;
   uintmax_t ootick = tree->otick;
 
@@ -1280,7 +1280,7 @@ void
 itree_delete_gap (struct itree_tree *tree,
 		  ptrdiff_t pos, ptrdiff_t length)
 {
-  if (length <= 0 || tree->root == NULL)
+  if (!tree || length <= 0 || tree->root == NULL)
     return;
 
   /* FIXME: Don't allocate stack anew every time. */

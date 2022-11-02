@@ -275,6 +275,27 @@ with parameters from the *Messages* buffer modification."
   (with-temp-buffer
     (should (eq (buffer-base-buffer (current-buffer)) nil))))
 
+(ert-deftest buffer-tests--overlays-indirect-bug58928 ()
+  (with-temp-buffer
+    (insert "hello world")
+    (let* ((base (current-buffer))
+           (ol1 (make-overlay (+ 2 (point-min)) (+ 8 (point-min))))
+           (ib (make-indirect-buffer
+                base (generate-new-buffer-name "bug58928")))
+           (ol2 (with-current-buffer ib
+                  (make-overlay (+ 2 (point-min)) (+ 8 (point-min))))))
+      (should (equal (overlay-start ol1) (overlay-start ol2)))
+      (should (equal (overlay-end ol1) (overlay-end ol2)))
+      (goto-char (+ 3 (point-min)))
+      (insert "a") (delete-char 2)
+      (should (equal (overlay-start ol1) (overlay-start ol2)))
+      (should (equal (overlay-end ol1) (overlay-end ol2)))
+      (with-current-buffer ib
+        (goto-char (+ 4 (point-min)))
+        (insert "a") (delete-char 2))
+      (should (equal (overlay-start ol1) (overlay-start ol2)))
+      (should (equal (overlay-end ol1) (overlay-end ol2))))))
+
 (ert-deftest overlay-evaporation-after-killed-buffer ()
   (let* ((ols (with-temp-buffer
                 (insert "toto")

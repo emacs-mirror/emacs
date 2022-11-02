@@ -3456,19 +3456,37 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
 void
 adjust_overlays_for_insert (ptrdiff_t pos, ptrdiff_t length)
 {
-  /* After an insertion, the lists are still sorted properly,
-     but we may need to update the value of the overlay center.  */
-  if (! current_buffer->overlays)
-    return;
-  itree_insert_gap (current_buffer->overlays, pos, length);
+  if (!current_buffer->indirections)
+    itree_insert_gap (current_buffer->overlays, pos, length);
+  else
+    {
+      struct buffer *base = current_buffer->base_buffer
+                            ? current_buffer->base_buffer
+                            : current_buffer;
+      Lisp_Object tail, other;
+      itree_insert_gap (base->overlays, pos, length);
+      FOR_EACH_LIVE_BUFFER (tail, other)
+        if (XBUFFER (other)->base_buffer == base)
+          itree_insert_gap (XBUFFER (other)->overlays, pos, length);
+    }
 }
 
 void
 adjust_overlays_for_delete (ptrdiff_t pos, ptrdiff_t length)
 {
-  if (! current_buffer->overlays)
-    return;
-  itree_delete_gap (current_buffer->overlays, pos, length);
+  if (!current_buffer->indirections)
+    itree_delete_gap (current_buffer->overlays, pos, length);
+  else
+    {
+      struct buffer *base = current_buffer->base_buffer
+                            ? current_buffer->base_buffer
+                            : current_buffer;
+      Lisp_Object tail, other;
+      itree_delete_gap (base->overlays, pos, length);
+      FOR_EACH_LIVE_BUFFER (tail, other)
+        if (XBUFFER (other)->base_buffer == base)
+          itree_delete_gap (XBUFFER (other)->overlays, pos, length);
+    }
 }
 
 
