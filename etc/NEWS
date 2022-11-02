@@ -1395,6 +1395,14 @@ If non-nil and there's only one matching option, auto-select that.
 If non-nil, this user option describes what entries not to add to the
 database stored on disk.
 
+** Auth-Source
+
++++
+*** New user option 'auth-source-pass-extra-query-keywords'.
+Whether to recognize additional keyword params, like ':max' and
+':require', as well as accept lists of query terms paired with
+applicable keywords.
+
 ** Dired
 
 +++
