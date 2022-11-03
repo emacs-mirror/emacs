@@ -21,6 +21,7 @@ MaxEmptyLinesToKeep: 1
 PenaltyBreakBeforeFirstCallParameter: 2000
 SpaceAfterCStyleCast: true
 SpaceBeforeParens: Always
+UseTab: Always
 
 # Local Variables:
 # mode: yaml
