@@ -435,6 +435,34 @@ and return nil if no reasonable guess can be made."
   (and url (alist-get url package-vc-heuristic-alist
                       nil nil #'string-match-p)))
 
+(defun package-vc-clone (pkg-desc pkg-spec dir rev)
+  "Clone the source of a package into a directory DIR.
+The package is described by a package descriptions PKG-DESC and a
+package specification PKG-SPEC."
+  (pcase-let* ((name (package-desc-name pkg-desc))
+               ((map :url :branch) pkg-spec))
+
+    ;; Clone the repository into `repo-dir' if necessary
+    (unless (file-exists-p dir)
+      (make-directory (file-name-directory dir) t)
+      (let ((backend (or (plist-get pkg-spec :vc-backend)
+                         (package-vc-query-spec pkg-desc :vc-backend)
+                         (package-vc-guess-backend url)
+                         (plist-get (alist-get (package-desc-archive pkg-desc)
+                                               package-vc-archive-data-alist
+                                               nil nil #'string=)
+                                    :vc-backend)
+                         package-vc-default-backend)))
+        (unless (vc-clone url backend dir
+                          (or (and (not (eq rev :last-release)) rev) branch))
+          (error "Failed to clone %s from %s" name url))))
+
+    ;; Check out the latest release if requested
+    (when (eq rev :last-release)
+      (if-let ((release-rev (package-vc-release-rev pkg-desc)))
+          (vc-retrieve-tag dir release-rev)
+        (message "No release revision was found, continuing...")))))
+
 (defun package-vc-unpack (pkg-desc pkg-spec &optional rev)
   "Install the package described by PKG-DESC.
 PKG-SPEC is a package specification is a property list describing
@@ -442,52 +470,31 @@ how to fetch and build the package PKG-DESC.  See
 `package-vc-archive-spec-alist' for details.  The optional argument
 REV specifies a specific revision to checkout.  This overrides
 the `:brach' attribute in PKG-SPEC."
-  (let* ((name (package-desc-name pkg-desc))
-         (dirname (package-desc-full-name pkg-desc))
-         (pkg-dir (expand-file-name dirname package-user-dir)))
+  (pcase-let* (((map :url :lisp-dir) pkg-spec)
+               (name (package-desc-name pkg-desc))
+               (dirname (package-desc-full-name pkg-desc))
+               (pkg-dir (expand-file-name dirname package-user-dir))
+               (real-dir (if (null lisp-dir)
+                             pkg-dir
+                           (unless (file-exists-p package-vc-repository-store)
+                             (make-directory package-vc-repository-store t))
+                           (file-name-concat
+                            package-vc-repository-store
+                            ;; FIXME: We aren't sure this directory
+                            ;; will be unique, but we can try other
+                            ;; names to avoid an unnecessary error.
+                            (file-name-base url)))))
     (setf (package-desc-dir pkg-desc) pkg-dir)
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p "Overwrite previous checkout?")
           (package--delete-directory pkg-dir pkg-desc)
         (error "There already exists a checkout for %s" name)))
-    (pcase-let* (((map :url :branch :lisp-dir) pkg-spec)
-                 (repo-dir
-                  (if (null lisp-dir)
-                      pkg-dir
-                    (unless (file-exists-p package-vc-repository-store)
-                      (make-directory package-vc-repository-store t))
-                    (file-name-concat
-                     package-vc-repository-store
-                     ;; FIXME: We aren't sure this directory
-                     ;; will be unique, but we can try other
-                     ;; names to avoid an unnecessary error.
-                     (file-name-base url)))))
+    (package-vc-clone pkg-desc pkg-spec real-dir rev)
+    (unless (eq pkg-dir real-dir)
+      ;; Link from the right position in `repo-dir' to the package
+      ;; directory in the ELPA store.
+      (make-symbolic-link (file-name-concat real-dir lisp-dir) pkg-dir))
 
-      ;; Clone the repository into `repo-dir' if necessary
-      (unless (file-exists-p repo-dir)
-        (make-directory (file-name-directory repo-dir) t)
-        (let ((backend (or (plist-get pkg-spec :vc-backend)
-                           (package-vc-query-spec pkg-desc :vc-backend)
-                           (package-vc-guess-backend url)
-                           (plist-get (alist-get (package-desc-archive pkg-desc)
-                                                 package-vc-archive-data-alist
-                                                 nil nil #'string=)
-                                      :vc-backend)
-                           package-vc-default-backend)))
-          (unless (vc-clone url backend repo-dir
-                            (or (and (not (eq rev :last-release)) rev) branch))
-            (error "Failed to clone %s from %s" name url))))
-
-      ;; Check out the latest release if requested
-      (when (eq rev :last-release)
-        (if-let ((release-rev (package-vc-release-rev pkg-desc)))
-            (vc-retrieve-tag pkg-dir release-rev)
-          (message "No release revision was found, continuing...")))
-
-      (unless (eq pkg-dir repo-dir)
-        ;; Link from the right position in `repo-dir' to the package
-        ;; directory in the ELPA store.
-        (make-symbolic-link (file-name-concat repo-dir lisp-dir) pkg-dir)))
     (package-vc-unpack-1 pkg-desc pkg-dir)))
 
 (defun package-vc-sourced-packages-list ()
@@ -615,6 +622,36 @@ repository can be set by BACKEND.  If missing,
            (user-error "Package has no VC data"))
        rev)))
    ((user-error "Unknown package to fetch: %s" name-or-url))))
+
+(defun package-vc-checkout (pkg-desc directory &optional rev)
+  "Clone the sources for PKG-DESC into DIRECTORY.
+An explicit revision can be requested by passing a string to the
+optional argument REV.  If the command is invoked with a prefix
+argument, the revision used for the last release in the package
+archive is used.  This can also be reproduced by passing the
+special value `:last-release' as REV."
+  (interactive
+   (progn
+     ;; Initialize the package system to get the list of package
+     ;; symbols for completion.
+     (package-vc--archives-initialize)
+     (let* ((packages (package-vc-sourced-packages-list))
+            (input (completing-read
+                    "Fetch package source (name or URL): " packages)))
+       (list (cadr (assoc input package-archive-contents #'string=))
+             (read-file-name "Clone into new or empty directory: " nil nil t nil
+                             (lambda (dir) (or (not (file-exists-p dir))
+                                               (directory-empty-p dir))))
+             (and current-prefix-arg :last-release)))))
+  (package-vc--archives-initialize)
+  (let ((pkg-spec (or (package-vc-desc->spec pkg-desc)
+                      (and-let* ((extras (package-desc-extras pkg-desc))
+                                 (url (alist-get :url extras))
+                                 (backend (package-vc-guess-backend url)))
+                        (list :vc-backend backend :url url))
+                      (user-error "Package has no VC data"))))
+    (package-vc-clone pkg-desc pkg-spec directory rev)
+    (find-file directory)))
 
 (defun package-vc-link-directory (dir name)
   "Install the package NAME in DIR by linking it into the ELPA directory.

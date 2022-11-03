@@ -1559,6 +1559,11 @@ An existing checkout can now be loaded via package.el, by creating a
 symbolic link from the usual package directory to the checkout.
 
 +++
+*** New command 'package-vc-checkout'
+Used to fetch the source of a package by cloning a repository without
+activating the package.
+
++++
 *** New command 'package-vc-prepare-patch'
 This command allows you to send patches to package maintainers, for
 packages checked out using 'package-vc-install'.

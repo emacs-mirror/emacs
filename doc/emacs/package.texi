@@ -546,6 +546,7 @@ source.  This often makes it easier to develop patches and report
 bugs.
 
 @findex package-vc-install
+@findex package-vc-checkout
   One way to do this is to use @code{package-vc-install}, to fetch the
 source code for a package directly from source.  The command will also
 automatically ensure that all files are byte-compiled and auto-loaded,
@@ -553,7 +554,9 @@ just like with a regular package.  Packages installed this way behave
 just like any other package.  You can update them using
 @code{package-update} or @code{package-update-all} and delete them
 again using @code{package-delete}.  They are even displayed in the
-regular package listing.
+regular package listing.  If you just wish to clone the source of a
+package, without adding it to the package list, use
+@code{package-vc-checkout}.
 
 @findex package-report-bug
 @findex package-vc-prepare-patch
