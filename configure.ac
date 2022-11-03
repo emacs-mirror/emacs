@@ -1144,12 +1144,6 @@ AS_IF([test $gl_gcc_warnings = no],
     gl_WARN_ADD([-Wno-int-in-bool-context])
   fi
 
-  # Suppress deprecation warnings from using sprintf variants,
-  # starting with Xcode 14.1 on macOS 13.
-  if test $opsys = darwin; then
-    gl_WARN_ADD([-Wno-deprecated-declarations])
-  fi
-
   # This causes too much noise in the MinGW build
   if test $opsys = mingw32; then
     gl_WARN_ADD([-Wno-pointer-sign])
@@ -1174,6 +1168,13 @@ if test "$emacs_cv_clang" = yes; then
   gl_WARN_ADD([-Wno-initializer-overrides])
   gl_WARN_ADD([-Wno-tautological-compare])
   gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
+fi
+
+# Suppress deprecation warnings from using sprintf variants,
+# starting with Xcode 14.1 on macOS 13.
+# These warnings are false alarms, as Emacs usage of sprintf is safe.
+if test $opsys = darwin; then
+  gl_WARN_ADD([-Wno-deprecated-declarations])
 fi
 
 # Use a slightly smaller set of warning options for lib/.
