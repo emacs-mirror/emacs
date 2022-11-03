@@ -3451,10 +3451,13 @@ This function is intended for use in `after-change-functions'."
 
 (defvar js--treesit-font-lock-settings
   (treesit-font-lock-rules
+
    :language 'javascript
    :override t
    :feature 'comment
-   `((comment) @font-lock-comment-face)
+   `((comment) @font-lock-comment-face
+     (comment) @contextual)
+
    :language 'javascript
    :override t
    :feature 'constant
@@ -3463,18 +3466,23 @@ This function is intended for use in `after-change-functions'."
 
      [(true) (false) (null)] @font-lock-constant-face
      (number) @font-lock-constant-face)
+
    :language 'javascript
    :override t
    :feature 'keyword
    `([,@js--treesit-keywords] @font-lock-keyword-face
      [(this) (super)] @font-lock-keyword-face)
+
    :language 'javascript
    :override t
    :feature 'string
    `((regex pattern: (regex_pattern)) @font-lock-string-face
      (string) @font-lock-string-face
+     (string) @contextual
      (template_string) @js--fontify-template-string
+     (template_string) @contextual
      (template_substitution ["${" "}"] @font-lock-builtin-face))
+
    :language 'javascript
    :override t
    :feature 'declaration
@@ -3503,6 +3511,7 @@ This function is intended for use in `after-change-functions'."
              (identifier)
              @font-lock-function-name-face)
       value: (array (number) (function))))
+
    :language 'javascript
    :override t
    :feature 'identifier
@@ -3514,6 +3523,7 @@ This function is intended for use in `after-change-functions'."
 
      (arrow_function
       parameter: (identifier) @font-lock-variable-name-face))
+
    :language 'javascript
    :override t
    :feature 'expression
@@ -3533,6 +3543,7 @@ This function is intended for use in `after-change-functions'."
       left: [(identifier) @font-lock-variable-name-face
              (member_expression
               property: (property_identifier) @font-lock-variable-name-face)]))
+
    :language 'javascript
    :override t
    :feature 'property
@@ -3547,11 +3558,13 @@ This function is intended for use in `after-change-functions'."
      ((shorthand_property_identifier) @font-lock-variable-name-face)
 
      ((shorthand_property_identifier_pattern) @font-lock-variable-name-face))
+
    :language 'javascript
    :override t
    :feature 'pattern
    `((pair_pattern key: (property_identifier) @font-lock-variable-name-face)
      (array_pattern (identifier) @font-lock-variable-name-face))
+
    :language 'javascript
    :override t
    :feature 'jsx

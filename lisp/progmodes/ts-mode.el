@@ -100,10 +100,13 @@
 
 (defvar ts-mode--font-lock-settings
   (treesit-font-lock-rules
+
    :language 'tsx
    :override t
    :feature 'comment
-   `((comment) @font-lock-comment-face)
+   `((comment) @font-lock-comment-face
+     (comment) @contextual)
+
    :language 'tsx
    :override t
    :feature 'constant
@@ -112,18 +115,23 @@
 
      [(true) (false) (null)] @font-lock-constant-face
      (number) @font-lock-constant-face)
+
    :language 'tsx
    :override t
    :feature 'keyword
    `([,@ts-mode--keywords] @font-lock-keyword-face
      [(this) (super)] @font-lock-keyword-face)
+
    :language 'tsx
    :override t
    :feature 'string
    `((regex pattern: (regex_pattern)) @font-lock-string-face
      (string) @font-lock-string-face
+     (string) @contextual
      (template_string) @js--fontify-template-string
+     (template_string) @contextual
      (template_substitution ["${" "}"] @font-lock-builtin-face))
+
    :language 'tsx
    :override t
    :feature 'declaration
@@ -153,6 +161,7 @@
              (identifier)
              (identifier) @font-lock-function-name-face)
       value: (array (number) (function))))
+
    :language 'tsx
    :override t
    :feature 'identifier
@@ -183,6 +192,7 @@
       [(_ (identifier) @font-lock-variable-name-face)
        (_ (_ (identifier) @font-lock-variable-name-face))
        (_ (_ (_ (identifier) @font-lock-variable-name-face)))]))
+
    :language 'tsx
    :override t
    :feature 'expression
@@ -197,6 +207,7 @@
       [(identifier) @font-lock-function-name-face
        (member_expression
         property: (property_identifier) @font-lock-function-name-face)]))
+
    :language 'tsx
    :override t
    :feature 'property
@@ -215,6 +226,7 @@
 
      ((shorthand_property_identifier_pattern)
       @font-lock-variable-name-face))
+
    :language 'tsx
    :override t
    :feature 'pattern
@@ -222,6 +234,7 @@
       key: (property_identifier) @font-lock-variable-name-face)
 
      (array_pattern (identifier) @font-lock-variable-name-face))
+
    :language 'tsx
    :override t
    :feature 'jsx
