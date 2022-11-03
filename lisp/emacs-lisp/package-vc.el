@@ -620,7 +620,7 @@ repository can be set by BACKEND.  If missing,
    ((user-error "Unknown package to fetch: %s" name-or-url))))
 
 (defun package-vc-checkout (pkg-desc directory &optional rev)
-  "Clone the sources for PKG-DESC into DIRECTORY.
+  "Clone the sources for PKG-DESC into DIRECTORY and open it.
 An explicit revision can be requested by passing a string to the
 optional argument REV.  If the command is invoked with a prefix
 argument, the revision used for the last release in the package
