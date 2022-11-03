@@ -68,53 +68,50 @@ Next: <a href="Abbrevs.html" accesskey="n" rel="next">Abbrevs and Abbrev Expansi
 <hr>
 <span id="Parsing-Program-Source-1"></span><h2 class="chapter">37 Parsing Program Source</h2>
 
+<span id="index-syntax-tree_002c-from-parsing-program-source"></span>
 <p>Emacs provides various ways to parse program source text and produce a
-<em>syntax tree</em>.  In a syntax tree, text is no longer a
-one-dimensional stream but a structured tree of nodes, where each node
-representing a piece of text.  Thus a syntax tree can enable
-interesting features like precise fontification, indentation,
+<em>syntax tree</em>.  In a syntax tree, text is no longer considered a
+one-dimensional stream of characters, but a structured tree of nodes,
+where each node representing a piece of text.  Thus, a syntax tree can
+enable interesting features like precise fontification, indentation,
 navigation, structured editing, etc.
 </p>
 <p>Emacs has a simple facility for parsing balanced expressions
-(see <a href="Parsing-Expressions.html">Parsing Expressions</a>).  There is also SMIE library for generic
-navigation and indentation (see <a href="SMIE.html">Simple Minded Indentation Engine</a>).
+(see <a href="Parsing-Expressions.html">Parsing Expressions</a>).  There is also the SMIE library for
+generic navigation and indentation (see <a href="SMIE.html">Simple Minded Indentation Engine</a>).
 </p>
-<p>Emacs also provides integration with tree-sitter library
-(<a href="https://tree-sitter.github.io/tree-sitter">https://tree-sitter.github.io/tree-sitter</a>) if compiled with
-it.  The tree-sitter library implements an incremental parser and has
-support from a wide range of programming languages.
+<p>In addition to those, Emacs also provides integration with
+<a href="https://tree-sitter.github.io/tree-sitter">the tree-sitter
+library</a>) if support for it was compiled in.  The tree-sitter library
+implements an incremental parser and has support from a wide range of
+programming languages.
 </p>
 <dl class="def">
 <dt id="index-treesit_002davailable_002dp"><span class="category">Function: </span><span><strong>treesit-available-p</strong><a href='#index-treesit_002davailable_002dp' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This function returns non-nil if tree-sitter features are available
-for this Emacs instance.
+<dd><p>This function returns non-<code>nil</code> if tree-sitter features are
+available for the current Emacs session.
 </p></dd></dl>
 
-<p>For tree-sitter integration with existing Emacs features,
-see <a href="Parser_002dbased-Font-Lock.html">Parser-based Font Lock</a>, <a href="Parser_002dbased-Indentation.html">Parser-based Indentation</a>, and
-<a href="List-Motion.html">Moving over Balanced Expressions</a>.
-</p>
-<p>About naming convention: use &ldquo;tree-sitter&rdquo; when referring to it as a
-noun, like <code>python-use-tree-sitter</code>, but use &ldquo;treesit&rdquo; for
-prefixes, like <code>python-treesit-indent-function</code>.
-</p>
-<p>To access the syntax tree of the text in a buffer, we need to first
-load a language definition and create a parser with it.  Next, we can
-query the parser for specific nodes in the syntax tree.  Then, we can
-access various information about the node, and we can pattern-match a
-node with a powerful syntax.  Finally, we explain how to work with
-source files that mixes multiple languages.  The following sections
-explain how to do each of the tasks in detail.
+<p>To be able to parse the program source using the tree-sitter library
+and access the syntax tree of the program, a Lisp program needs to
+load a language definition library, and create a parser for that
+language and the current buffer.  After that, the Lisp program can
+query the parser about specific nodes of the syntax tree.  Then, it
+can access various kinds of information about each node, and search
+for nodes using a powerful pattern-matching syntax.  This chapter
+explains how to do all this, and also how a Lisp program can work with
+source files that mix multiple programming languages.
 </p>
 
 <ul class="section-toc">
 <li><a href="Language-Definitions.html" accesskey="1">Tree-sitter Language Definitions</a></li>
 <li><a href="Using-Parser.html" accesskey="2">Using Tree-sitter Parser</a></li>
 <li><a href="Retrieving-Node.html" accesskey="3">Retrieving Node</a></li>
-<li><a href="Accessing-Node.html" accesskey="4">Accessing Node Information</a></li>
+<li><a href="Accessing-Node-Information.html" accesskey="4">Accessing Node Information</a></li>
 <li><a href="Pattern-Matching.html" accesskey="5">Pattern Matching Tree-sitter Nodes</a></li>
 <li><a href="Multiple-Languages.html" accesskey="6">Parsing Text in Multiple Languages</a></li>
-<li><a href="Tree_002dsitter-C-API.html" accesskey="7">Tree-sitter C API Correspondence</a></li>
+<li><a href="Tree_002dsitter-major-modes.html" accesskey="7">Developing major modes with tree-sitter</a></li>
+<li><a href="Tree_002dsitter-C-API.html" accesskey="8">Tree-sitter C API Correspondence</a></li>
 </ul>
 </div>
 <hr>

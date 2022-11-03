@@ -78,28 +78,25 @@ Now check if Emacs is built with tree-sitter library
 
     (treesit-available-p)
 
-For your major mode, first create a tree-sitter switch:
+Users toggle tree-sitter for each major mode with a central variable,
+‘treesit-settings’.  You can check whether to enable tree-sitter with
+‘treesit-ready-p’, which takes a major-mode symbol and one or more
+language symbol. The major mode body should use a branch like this:
 
-#+begin_src elisp
-(defcustom python-use-tree-sitter nil
-  "If non-nil, `python-mode' tries to use tree-sitter.
-Currently `python-mode' can utilize tree-sitter for font-locking,
-imenu, and movement functions."
-  :type 'boolean)
-#+end_src
-
-Then in other places, we decide on whether to enable tree-sitter by
-
-#+begin_src elisp
-(and python-use-tree-sitter
-     (treesit-can-enable-p))
+#+begin_src emacs-lisp
+(cond
+ ;; Tree-sitter setup.
+ ((treesit-ready-p 'python-mode 'python)
+  ...)
+ (t
+  ;; Non-tree-sitter setup.
+  ...))
 #+end_src
 
 * Naming convention
 
-When referring to tree-sitter as a noun, use “tree-sitter”, like
-python-use-tree-sitter. For prefix use “treesit”, like
-python-treesit-indent.
+Use tree-sitter for text (documentation, comment), use treesit for
+symbol (variable, function).
 
 * Font-lock
 
@@ -108,10 +105,23 @@ capture names, tree-sitter finds the nodes that match these patterns,
 tag the corresponding capture names onto the nodes and return them to
 you. The query function returns a list of (capture-name . node). For
 font-lock, we use face names as capture names. And the captured node
-will be fontified in their capture name. The capture name could also
-be a function, in which case (START END NODE) is passed to the
-function for font-lock. START and END is the start and end the
-captured NODE.
+will be fontified in their capture name.
+
+The capture name could also be a function, in which case (NODE
+OVERRIDE START END) is passed to the function for fontification. START
+and END is the start and end of the region to be fontified.  The
+function should only fontify within that region.  The function should
+also allow more optional arguments with (&rest _), for future
+extensibility.  For OVERRIDE check out the docstring of
+treesit-font-lock-rules.
+
+Contextual syntax like multi-line comments and multi-line strings,
+needs special care.  Because change in this type of things can affect
+a large portion of the buffer. Think of inserting a closing comment
+delimeter, it causes all the text before it (to the opening comment
+delimeter) to change to comment face.  These things needs to be
+captured in a special name “contextual”, so that Emacs can give them
+special treatment.  Se the example below for how it looks like.
 
 ** Query syntax
 
@@ -171,52 +181,64 @@ The manual explains how to read grammar files in the bottom of section
 
 ** Debugging queires
 
-If your query has problems, it usually cannot compile. In that case
-use ‘treesit-query-validate’ to debug the query. It will pop a buffer
-containing the query (in text format) and mark the offending part in
-red.
+If your query has problems, use ‘treesit-query-validate’ to debug the
+query. It will pop a buffer containing the query (in text format) and
+mark the offending part in red.
 
 ** Code
 
-To enable tree-sitter font-lock, set ‘treesit-font-lock-settings’
-buffer-locally and call ‘treesit-font-lock-enable’. For example, see
+To enable tree-sitter font-lock, set ‘treesit-font-lock-settings’ and
+‘treesit-font-lock-feature-list’ buffer-locally and call
+‘treesit-major-mode-setup’. For example, see
 ‘python--treesit-settings’ in python.el. Below I paste a snippet of
 it.
 
 Note that like the current font-lock, if the to-be-fontified region
 already has a face (ie, an earlier match fontified part/all of the
-region), the new face is discarded rather than applied.  If you want
+region), the new face is discarded rather than applied. If you want
 later matches always override earlier matches, use the :override
 keyword.
+
+Each rule should have a :feature, like function-name,
+string-interpolation, builtin, etc. Users can then enable/disable each
+feature individually.
 
 #+begin_src elisp
 (defvar python--treesit-settings
   (treesit-font-lock-rules
+   :feature 'comment
    :language 'python
-   :override t
-   `(;; Queries for def and class.
-     (function_definition
-      name: (identifier) @font-lock-function-name-face)
+   '((comment) @font-lock-comment-face)
 
-     (class_definition
-      name: (identifier) @font-lock-type-face)
+   :feature 'string
+   :language 'python
+   '((string) @font-lock-string-face
+     (string) @contextual) ; Contextual special treatment.
 
-     ;; Comment and string.
-     (comment) @font-lock-comment-face
+   :feature 'function-name
+   :language 'python
+   '((function_definition
+      name: (identifier) @font-lock-function-name-face))
 
-     ...)))
+   :feature 'class-name
+   :language 'python
+   '((class_definition
+      name: (identifier) @font-lock-type-face))
+
+   ...))
 #+end_src
 
 Then in ‘python-mode’, enable tree-sitter font-lock:
 
 #+begin_src elisp
 (treesit-parser-create 'python)
-;; This turns off the syntax-based font-lock for comments and
-;; strings.  So it doesn’t override tree-sitter’s fontification.
-(setq-local font-lock-keywords-only t)
-(setq-local treesit-font-lock-settings
-            python--treesit-settings)
-(treesit-font-lock-enable)
+(setq-local treesit-font-lock-settings python--treesit-settings)
+(setq-local treesit-font-lock-feature-list
+            '((comment string function-name)
+              (class-name keyword builtin)
+              (string-interpolation decorator)))
+...
+(treesit-major-mode-setup)
 #+end_src
 
 Concretely, something like this:
@@ -224,28 +246,21 @@ Concretely, something like this:
 #+begin_src elisp
 (define-derived-mode python-mode prog-mode "Python"
   ...
-
-  (treesit-parser-create 'python)
-
-  (if (and python-use-tree-sitter
-           (treesit-can-enable-p))
-      ;; Tree-sitter.
-      (progn
-        (setq-local font-lock-keywords-only t)
-        (setq-local treesit-font-lock-settings
-                    python--treesit-settings)
-        (treesit-font-lock-enable))
+  (cond
+   ;; Tree-sitter.
+   ((treesit-ready-p 'python-mode 'python)
+    (treesit-parser-create 'python)
+    (setq-local treesit-font-lock-settings python--treesit-settings)
+    (setq-local treesit-font-lock-feature-list
+                '((comment string function-name)
+                  (class-name keyword builtin)
+                  (string-interpolation decorator)))
+    (treesit-major-mode-setup))
+   (t
     ;; No tree-sitter
-    (setq-local font-lock-defaults ...))
-
-  ...)
+    (setq-local font-lock-defaults ...)
+    ...)))
 #+end_src
-
-You’ll notice that tree-sitter’s font-lock doesn’t respect
-‘font-lock-maximum-decoration’, major modes are free to set
-‘treesit-font-lock-settings’ based on the value of
-‘font-lock-maximum-decoration’, or provide more fine-grained control
-through other mode-specific means. (Towards that end, the :toggle option in treesit-font-lock-rules is very useful.)
 
 * Indent
 
@@ -262,10 +277,14 @@ previous line. We find the column number of that point (eg, 4), add
 OFFSET to it (eg, 0), and that is the column we want to indent the
 current line to (4 + 0 = 4).
 
+Matchers and anchors are functions that takes (NODE PARENT BOL &rest
+_). Matches return nil/non-nil for no match/match, and anchors return
+the anchor point. Below are some convenient builtin matchers and anchors.
+
 For MATHCER we have
 
-    (parent-is TYPE)
-    (node-is TYPE)
+    (parent-is TYPE) => matches if PARENT’s type matches TYPE as regexp
+    (node-is TYPE) => mathces NODE’s type
     (query QUERY) => matches if querying PARENT with QUERY
                      captures NODE.
 
@@ -280,9 +299,9 @@ For ANCHOR we have
     first-sibling => start of the first sibling
     parent => start of parent
     parent-bol => BOL of the line parent is on.
-    prev-sibling
-    no-indent => don’t indent
-    prev-line => same indent as previous line
+    prev-sibling => start of previous sibling
+    no-indent => current position (don’t indent)
+    prev-line => start of previous line
 
 There is also a manual section for indent: "Parser-based Indentation".
 
@@ -301,7 +320,7 @@ tells you which rule is applied in the echo area.
        ((node-is ")") parent-bol 0)
        ((node-is "]") parent-bol 0)
        ((node-is ">") parent-bol 0)
-       ((node-is ".") parent-bol ,offset)
+       ((node-is "\\.") parent-bol ,offset)
        ((parent-is "ternary_expression") parent-bol ,offset)
        ((parent-is "named_imports") parent-bol ,offset)
        ((parent-is "statement_block") parent-bol ,offset)
@@ -320,21 +339,21 @@ tells you which rule is applied in the echo area.
        ...))))
 #+end_src
 
-Then you set ‘treesit-simple-indent-rules’ to your rules, and set
-‘indent-line-function’:
+Then you set ‘treesit-simple-indent-rules’ to your rules, and call
+‘treesit-major-mode-setup’:
 
 #+begin_src elisp
 (setq-local treesit-simple-indent-rules typescript-mode-indent-rules)
-(setq-local indent-line-function #'treesit-indent)
+(treesit-major-mode-setup)
 #+end_src
 
 * Imenu
 
 Not much to say except for utilizing ‘treesit-induce-sparse-tree’.
-See ‘python--imenu-treesit-create-index-1’ in python.el for an
-example.
+See ‘js--treesit-imenu-1’ in js.el for an example.
 
-Once you have the index builder, set ‘imenu-create-index-function’.
+Once you have the index builder, set ‘imenu-create-index-function’ to
+it.
 
 * Navigation
 
@@ -344,51 +363,33 @@ You can find the end of a defun with something like
 (treesit-search-forward-goto "function_definition" 'end)
 
 where "function_definition" matches the node type of a function
-definition node, and ’end means we want to go to the end of that
-node.
+definition node, and ’end means we want to go to the end of that node.
 
-Something like this should suffice:
+Tree-sitter has default implementations for
+‘beginning-of-defun-function’ and ‘end-of-defun-function’.  So for
+ordinary languages, it is suffice to set ‘treesit-defun-type-regexp’
+to something that matches all the defun struct types in the language,
+and call ‘treesit-major-mode-setup’.  For example,
 
-#+begin_src elisp
-(defun js--treesit-beginning-of-defun (&optional arg)
-  (let ((arg (or arg 1)))
-    (if (> arg 0)
-        ;; Go backward.
-        (while (and (> arg 0)
-                    (treesit-search-forward-goto
-                     "function_definition" 'start nil t))
-          (setq arg (1- arg)))
-      ;; Go forward.
-      (while (and (< arg 0)
-                  (treesit-search-forward-goto
-                   "function_definition" 'start))
-        (setq arg (1+ arg))))))
-
-(defun xxx-end-of-defun (&optional arg)
-  (let ((arg (or arg 1)))
-    (if (< arg 0)
-        ;; Go backward.
-        (while (and (< arg 0)
-                    (treesit-search-forward-goto
-                     "function_definition" 'end nil t))
-          (setq arg (1+ arg)))
-      ;; Go forward.
-      (while (and (> arg 0)
-                  (treesit-search-forward-goto
-                   "function_definition" 'end))
-        (setq arg (1- arg))))))
-
-(setq-local beginning-of-defun-function #'xxx-beginning-of-defun)
-(setq-local end-of-defun-function #'xxx-end-of-defun)
-#+end_src
+#+begin_src emacs-lisp
+(setq-local treesit-defun-type-regexp (rx bol
+                                          (or "function" "class")
+                                          "_definition"
+                                          eol))
+(treesit-major-mode-setup)
+#+end_src>
 
 * Which-func
 
-You can find the current function by going up the tree and looking for
-the function_definition node. See ‘python-info-treesit-current-defun’
-in python.el for an example.  Since Python allows nested function
-definitions, that function keeps going until it reaches the root node,
-and records all the function names along the way.
+If you have an imenu implementation, set ‘which-func-functions’ to
+nil, and which-func will automatically use imenu’s data.
+
+If you want independent implementation for which-func, you can find
+the current function by going up the tree and looking for the
+function_definition node. See the function below for an example.
+Since Python allows nested function definitions, that function keeps
+going until it reaches the root node, and records all the function
+names along the way.
 
 #+begin_src elisp
 (defun python-info-treesit-current-defun (&optional include-type)

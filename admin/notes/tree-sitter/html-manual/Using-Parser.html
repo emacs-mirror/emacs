@@ -67,12 +67,12 @@ Next: <a href="Retrieving-Node.html" accesskey="n" rel="next">Retrieving Node</a
 </div>
 <hr>
 <span id="Using-Tree_002dsitter-Parser"></span><h3 class="section">37.2 Using Tree-sitter Parser</h3>
-<span id="index-Tree_002dsitter-parser"></span>
+<span id="index-tree_002dsitter-parser_002c-using"></span>
 
-<p>This section described how to create and configure a tree-sitter
+<p>This section describes how to create and configure a tree-sitter
 parser.  In Emacs, each tree-sitter parser is associated with a
-buffer.  As we edit the buffer, the associated parser and the syntax
-tree is automatically kept up-to-date.
+buffer.  As the user edits the buffer, the associated parser and
+syntax tree are automatically kept up-to-date.
 </p>
 <dl class="def">
 <dt id="index-treesit_002dmax_002dbuffer_002dsize"><span class="category">Variable: </span><span><strong>treesit-max-buffer-size</strong><a href='#index-treesit_002dmax_002dbuffer_002dsize' class='copiable-anchor'> &para;</a></span></dt>
@@ -88,48 +88,49 @@ activating tree-sitter features.  It basically checks
 <code>treesit-available-p</code> and <code>treesit-max-buffer-size</code>.
 </p></dd></dl>
 
-<span id="index-Creating-tree_002dsitter-parsers"></span>
+<span id="index-creating-tree_002dsitter-parsers"></span>
+<span id="index-tree_002dsitter-parser_002c-creating"></span>
 <dl class="def">
 <dt id="index-treesit_002dparser_002dcreate"><span class="category">Function: </span><span><strong>treesit-parser-create</strong> <em>language &amp;optional buffer no-reuse</em><a href='#index-treesit_002dparser_002dcreate' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>To create a parser, we provide a <var>buffer</var> and the <var>language</var>
-to use (see <a href="Language-Definitions.html">Tree-sitter Language Definitions</a>).  If <var>buffer</var> is nil, the
-current buffer is used.
+<dd><p>Create a parser for the specified <var>buffer</var> and <var>language</var>
+(see <a href="Language-Definitions.html">Tree-sitter Language Definitions</a>).  If <var>buffer</var> is omitted or
+<code>nil</code>, it stands for the current buffer.
 </p>
 <p>By default, this function reuses a parser if one already exists for
-<var>language</var> in <var>buffer</var>, if <var>no-reuse</var> is non-nil, this
-function always creates a new parser.
+<var>language</var> in <var>buffer</var>, but if <var>no-reuse</var> is
+non-<code>nil</code>, this function always creates a new parser.
 </p></dd></dl>
 
-<p>Given a parser, we can query information about it:
+<p>Given a parser, we can query information about it.
 </p>
 <dl class="def">
 <dt id="index-treesit_002dparser_002dbuffer"><span class="category">Function: </span><span><strong>treesit-parser-buffer</strong> <em>parser</em><a href='#index-treesit_002dparser_002dbuffer' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>Returns the buffer associated with <var>parser</var>.
+<dd><p>This function returns the buffer associated with <var>parser</var>.
 </p></dd></dl>
 
 <dl class="def">
 <dt id="index-treesit_002dparser_002dlanguage"><span class="category">Function: </span><span><strong>treesit-parser-language</strong> <em>parser</em><a href='#index-treesit_002dparser_002dlanguage' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>Returns the language that <var>parser</var> uses.
+<dd><p>This function returns the language used by <var>parser</var>.
 </p></dd></dl>
 
 <dl class="def">
 <dt id="index-treesit_002dparser_002dp"><span class="category">Function: </span><span><strong>treesit-parser-p</strong> <em>object</em><a href='#index-treesit_002dparser_002dp' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>Checks if <var>object</var> is a tree-sitter parser. Return non-nil if it
-is, return nil otherwise.
+<dd><p>This function checks if <var>object</var> is a tree-sitter parser, and
+returns non-<code>nil</code> if it is, and <code>nil</code> otherwise.
 </p></dd></dl>
 
 <p>There is no need to explicitly parse a buffer, because parsing is done
-automatically and lazily.  A parser only parses when we query for a
-node in its syntax tree.  Therefore, when a parser is first created,
-it doesn&rsquo;t parse the buffer; it waits until we query for a node for
-the first time.  Similarly, when some change is made in the buffer, a
-parser doesn&rsquo;t re-parse immediately.
+automatically and lazily.  A parser only parses when a Lisp program
+queries for a node in its syntax tree.  Therefore, when a parser is
+first created, it doesn&rsquo;t parse the buffer; it waits until the Lisp
+program queries for a node for the first time.  Similarly, when some
+change is made in the buffer, a parser doesn&rsquo;t re-parse immediately.
 </p>
 <span id="index-treesit_002dbuffer_002dtoo_002dlarge"></span>
-<p>When a parser do parse, it checks for the size of the buffer.
+<p>When a parser does parse, it checks for the size of the buffer.
 Tree-sitter can only handle buffer no larger than about 4GB.  If the
-size exceeds that, Emacs signals <code>treesit-buffer-too-large</code>
-with signal data being the buffer size.
+size exceeds that, Emacs signals the <code>treesit-buffer-too-large</code>
+error with signal data being the buffer size.
 </p>
 <p>Once a parser is created, Emacs automatically adds it to the
 internal parser list.  Every time a change is made to the buffer,
@@ -138,8 +139,9 @@ tree incrementally.
 </p>
 <dl class="def">
 <dt id="index-treesit_002dparser_002dlist"><span class="category">Function: </span><span><strong>treesit-parser-list</strong> <em>&amp;optional buffer</em><a href='#index-treesit_002dparser_002dlist' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This function returns the parser list of <var>buffer</var>.  And
-<var>buffer</var> defaults to the current buffer.
+<dd><p>This function returns the parser list of <var>buffer</var>.  If
+<var>buffer</var> is <code>nil</code> or omitted, it defaults to the current
+buffer.
 </p></dd></dl>
 
 <dl class="def">
@@ -148,29 +150,30 @@ tree incrementally.
 </p></dd></dl>
 
 <span id="index-tree_002dsitter-narrowing"></span>
-<span id="tree_002dsitter-narrowing"></span><p>Normally, a parser &ldquo;sees&rdquo; the whole
-buffer, but when the buffer is narrowed (see <a href="Narrowing.html">Narrowing</a>), the
-parser will only see the visible region.  As far as the parser can
-tell, the hidden region is deleted.  And when the buffer is later
-widened, the parser thinks text is inserted in the beginning and in
-the end.  Although parsers respect narrowing, narrowing shouldn&rsquo;t be
-the mean to handle a multi-language buffer; instead, set the ranges in
-which a parser should operate in.  See <a href="Multiple-Languages.html">Parsing Text in Multiple Languages</a>.
+<span id="tree_002dsitter-narrowing"></span><p>Normally, a parser &ldquo;sees&rdquo; the whole buffer, but when the buffer is
+narrowed (see <a href="Narrowing.html">Narrowing</a>), the parser will only see the accessible
+portion of the buffer.  As far as the parser can tell, the hidden
+region was deleted.  When the buffer is later widened, the parser
+thinks text is inserted at the beginning and at the end.  Although
+parsers respect narrowing, modes should not use narrowing as a means
+to handle a multi-language buffer; instead, set the ranges in which the
+parser should operate.  See <a href="Multiple-Languages.html">Parsing Text in Multiple Languages</a>.
 </p>
-<p>Because a parser parses lazily, when we narrow the buffer, the parser
-is not affected immediately; as long as we don&rsquo;t query for a node
-while the buffer is narrowed, the parser is oblivious of the
-narrowing.
+<p>Because a parser parses lazily, when the user or a Lisp program
+narrows the buffer, the parser is not affected immediately; as long as
+the mode doesn&rsquo;t query for a node while the buffer is narrowed, the
+parser is oblivious of the narrowing.
 </p>
 <span id="index-tree_002dsitter-parse-string"></span>
-<dl class="def">
-<dt id="index-treesit_002dparse_002dstring"><span class="category">Function: </span><span><strong>treesit-parse-string</strong> <em>string language</em><a href='#index-treesit_002dparse_002dstring' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>Besides creating a parser for a buffer, we can also just parse a
-string.  Unlike a buffer, parsing a string is a one-time deal, and
+<span id="index-parse-string_002c-tree_002dsitter"></span>
+<p>Besides creating a parser for a buffer, a Lisp program can also parse a
+string.  Unlike a buffer, parsing a string is a one-off operation, and
 there is no way to update the result.
 </p>
-<p>This function parses <var>string</var> with <var>language</var>, and returns the
-root node of the generated syntax tree.
+<dl class="def">
+<dt id="index-treesit_002dparse_002dstring"><span class="category">Function: </span><span><strong>treesit-parse-string</strong> <em>string language</em><a href='#index-treesit_002dparse_002dstring' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function parses <var>string</var> using <var>language</var>, and returns
+the root node of the generated syntax tree.
 </p></dd></dl>
 
 </div>

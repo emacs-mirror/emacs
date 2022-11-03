@@ -33,7 +33,7 @@ developing GNU and promoting software freedom." -->
 <link href="Index.html" rel="index" title="Index">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
 <link href="Parsing-Program-Source.html" rel="up" title="Parsing Program Source">
-<link href="Multiple-Languages.html" rel="prev" title="Multiple Languages">
+<link href="Tree_002dsitter-major-modes.html" rel="prev" title="Tree-sitter major modes">
 <style type="text/css">
 <!--
 a.copiable-anchor {visibility: hidden; text-decoration: none; line-height: 0em}
@@ -62,23 +62,23 @@ ul.no-bullet {list-style: none}
 <div class="section" id="Tree_002dsitter-C-API">
 <div class="header">
 <p>
-Previous: <a href="Multiple-Languages.html" accesskey="p" rel="prev">Parsing Text in Multiple Languages</a>, Up: <a href="Parsing-Program-Source.html" accesskey="u" rel="up">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+Previous: <a href="Tree_002dsitter-major-modes.html" accesskey="p" rel="prev">Developing major modes with tree-sitter</a>, Up: <a href="Parsing-Program-Source.html" accesskey="u" rel="up">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
 </div>
 <hr>
-<span id="Tree_002dsitter-C-API-Correspondence"></span><h3 class="section">37.7 Tree-sitter C API Correspondence</h3>
+<span id="Tree_002dsitter-C-API-Correspondence"></span><h3 class="section">37.8 Tree-sitter C API Correspondence</h3>
 
 <p>Emacs&rsquo; tree-sitter integration doesn&rsquo;t expose every feature
-tree-sitter&rsquo;s C API provides.  Missing features include:
+provided by tree-sitter&rsquo;s C API.  Missing features include:
 </p>
 <ul>
 <li> Creating a tree cursor and navigating the syntax tree with it.
 </li><li> Setting timeout and cancellation flag for a parser.
 </li><li> Setting the logger for a parser.
-</li><li> Printing a DOT graph of the syntax tree to a file.
-</li><li> Coping and modifying a syntax tree.  (Emacs doesn&rsquo;t expose a tree
+</li><li> Printing a <acronym>DOT</acronym> graph of the syntax tree to a file.
+</li><li> Copying and modifying a syntax tree.  (Emacs doesn&rsquo;t expose a tree
 object.)
 </li><li> Using (row, column) coordinates as position.
-</li><li> Updating a node with changes. (In Emacs, retrieve a new node instead
+</li><li> Updating a node with changes.  (In Emacs, retrieve a new node instead
 of updating the existing one.)
 </li><li> Querying statics of a language definition.
 </li></ul>
@@ -87,7 +87,7 @@ of updating the existing one.)
 convenient and idiomatic:
 </p>
 <ul>
-<li> Instead of using byte positions, the ELisp API uses character
+<li> Instead of using byte positions, the Emacs Lisp API uses character
 positions.
 </li><li> Null nodes are converted to nil.
 </li></ul>
@@ -203,7 +203,7 @@ ts_language_version
 <hr>
 <div class="header">
 <p>
-Previous: <a href="Multiple-Languages.html">Parsing Text in Multiple Languages</a>, Up: <a href="Parsing-Program-Source.html">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+Previous: <a href="Tree_002dsitter-major-modes.html">Developing major modes with tree-sitter</a>, Up: <a href="Parsing-Program-Source.html">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
 </div>
 
 

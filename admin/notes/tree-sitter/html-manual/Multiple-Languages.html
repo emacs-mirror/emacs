@@ -33,7 +33,7 @@ developing GNU and promoting software freedom." -->
 <link href="Index.html" rel="index" title="Index">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
 <link href="Parsing-Program-Source.html" rel="up" title="Parsing Program Source">
-<link href="Tree_002dsitter-C-API.html" rel="next" title="Tree-sitter C API">
+<link href="Tree_002dsitter-major-modes.html" rel="next" title="Tree-sitter major modes">
 <link href="Pattern-Matching.html" rel="prev" title="Pattern Matching">
 <style type="text/css">
 <!--
@@ -63,27 +63,29 @@ ul.no-bullet {list-style: none}
 <div class="section" id="Multiple-Languages">
 <div class="header">
 <p>
-Next: <a href="Tree_002dsitter-C-API.html" accesskey="n" rel="next">Tree-sitter C API Correspondence</a>, Previous: <a href="Pattern-Matching.html" accesskey="p" rel="prev">Pattern Matching Tree-sitter Nodes</a>, Up: <a href="Parsing-Program-Source.html" accesskey="u" rel="up">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+Next: <a href="Tree_002dsitter-major-modes.html" accesskey="n" rel="next">Developing major modes with tree-sitter</a>, Previous: <a href="Pattern-Matching.html" accesskey="p" rel="prev">Pattern Matching Tree-sitter Nodes</a>, Up: <a href="Parsing-Program-Source.html" accesskey="u" rel="up">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
 </div>
 <hr>
 <span id="Parsing-Text-in-Multiple-Languages"></span><h3 class="section">37.6 Parsing Text in Multiple Languages</h3>
 
-<p>Sometimes, the source of a programming language could contain sources
-of other languages, HTML + CSS + JavaScript is one example.  In that
-case, we need to assign individual parsers to text segments written in
-different languages.  Traditionally this is achieved by using
-narrowing.  While tree-sitter works with narrowing (see <a href="Using-Parser.html#tree_002dsitter-narrowing">narrowing</a>), the recommended way is to set ranges in which
-a parser will operate.
+<span id="index-multiple-languages_002c-parsing-with-tree_002dsitter"></span>
+<span id="index-parsing-multiple-languages-with-tree_002dsitter"></span>
+<p>Sometimes, the source of a programming language could contain snippets
+of other languages; <acronym>HTML</acronym> + <acronym>CSS</acronym> + JavaScript is one
+example.  In that case, text segments written in different languages
+need to be assigned different parsers.  Traditionally, this is
+achieved by using narrowing.  While tree-sitter works with narrowing
+(see <a href="Using-Parser.html#tree_002dsitter-narrowing">narrowing</a>), the recommended way is
+instead to set regions of buffer text in which a parser will operate.
 </p>
 <dl class="def">
 <dt id="index-treesit_002dparser_002dset_002dincluded_002dranges"><span class="category">Function: </span><span><strong>treesit-parser-set-included-ranges</strong> <em>parser ranges</em><a href='#index-treesit_002dparser_002dset_002dincluded_002dranges' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This function sets the range of <var>parser</var> to <var>ranges</var>.  Then
-<var>parser</var> will only read the text covered in each range.  Each
-range in <var>ranges</var> is a list of cons <code>(<var>beg</var>
-. <var>end</var>)</code>.
+<dd><p>This function sets up <var>parser</var> to operate on <var>ranges</var>.  The
+<var>parser</var> will only read the text of the specified ranges.  Each
+range in <var>ranges</var> is a list of the form <code>(<var>beg</var>&nbsp;.&nbsp;<var>end</var>)</code><!-- /@w -->.
 </p>
-<p>Each range in <var>ranges</var> must come in order and not overlap.  That
-is, in pseudo code:
+<p>The ranges in <var>ranges</var> must come in order and must not overlap.
+That is, in pseudo code:
 </p>
 <div class="example">
 <pre class="example">(cl-loop for idx from 1 to (1- (length ranges))
@@ -95,12 +97,12 @@ is, in pseudo code:
 
 <span id="index-treesit_002drange_002dinvalid"></span>
 <p>If <var>ranges</var> violates this constraint, or something else went
-wrong, this function signals a <code>treesit-range-invalid</code>.  The
-signal data contains a specific error message and the ranges we are
-trying to set.
+wrong, this function signals the <code>treesit-range-invalid</code> error.
+The signal data contains a specific error message and the ranges we
+are trying to set.
 </p>
 <p>This function can also be used for disabling ranges.  If <var>ranges</var>
-is nil, the parser is set to parse the whole buffer.
+is <code>nil</code>, the parser is set to parse the whole buffer.
 </p>
 <p>Example:
 </p>
@@ -114,9 +116,9 @@ is nil, the parser is set to parse the whole buffer.
 <dt id="index-treesit_002dparser_002dincluded_002dranges"><span class="category">Function: </span><span><strong>treesit-parser-included-ranges</strong> <em>parser</em><a href='#index-treesit_002dparser_002dincluded_002dranges' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function returns the ranges set for <var>parser</var>.  The return
 value is the same as the <var>ranges</var> argument of
-<code>treesit-parser-included-ranges</code>: a list of cons
-<code>(<var>beg</var> . <var>end</var>)</code>.  And if <var>parser</var> doesn&rsquo;t have any
-ranges, the return value is nil.
+<code>treesit-parser-included-ranges</code>: a list of cons cells of the form
+<code>(<var>beg</var>&nbsp;.&nbsp;<var>end</var>)</code><!-- /@w -->.  If <var>parser</var> doesn&rsquo;t have any
+ranges, the return value is <code>nil</code>.
 </p>
 <div class="example">
 <pre class="example">(treesit-parser-included-ranges parser)
@@ -131,7 +133,7 @@ the ranges of <var>parser-or-lang</var> to <var>ranges</var>.  Conveniently,
 <var>parser-or-lang</var> could be either a parser or a language.  If it is
 a language, this function looks for the first parser in
 <code>(treesit-parser-list)</code> for that language in the current buffer,
-and set range for it.
+and sets the ranges for it.
 </p></dd></dl>
 
 <dl class="def">
@@ -145,68 +147,76 @@ a language symbol.
 <dl class="def">
 <dt id="index-treesit_002dquery_002drange"><span class="category">Function: </span><span><strong>treesit-query-range</strong> <em>source query &amp;optional beg end</em><a href='#index-treesit_002dquery_002drange' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function matches <var>source</var> with <var>query</var> and returns the
-ranges of captured nodes.  The return value has the same shape of
-other functions: a list of <code>(<var>beg</var> . <var>end</var>)</code>.
+ranges of captured nodes.  The return value is a list of cons cells of
+the form <code>(<var>beg</var>&nbsp;.&nbsp;<var>end</var>)</code><!-- /@w -->, where <var>beg</var> and
+<var>end</var> specify the beginning and the end of a region of text.
 </p>
 <p>For convenience, <var>source</var> can be a language symbol, a parser, or a
-node.  If a language symbol, this function matches in the root node of
-the first parser using that language; if a parser, this function
-matches in the root node of that parser; if a node, this function
-matches in that node.
+node.  If it&rsquo;s a language symbol, this function matches in the root
+node of the first parser using that language; if a parser, this
+function matches in the root node of that parser; if a node, this
+function matches in that node.
 </p>
-<p>Parameter <var>query</var> is the query used to capture nodes
-(see <a href="Pattern-Matching.html">Pattern Matching Tree-sitter Nodes</a>). The capture names don&rsquo;t matter.  Parameter
-<var>beg</var> and <var>end</var>, if both non-nil, limits the range in which
-this function queries.
+<p>The argument <var>query</var> is the query used to capture nodes
+(see <a href="Pattern-Matching.html">Pattern Matching Tree-sitter Nodes</a>).  The capture names don&rsquo;t matter.  The
+arguments <var>beg</var> and <var>end</var>, if both non-<code>nil</code>, limit the
+range in which this function queries.
 </p>
-<p>Like other query functions, this function raises an
-<var>treesit-query-error</var> if <var>query</var> is malformed.
-</p></dd></dl>
-
-<dl class="def">
-<dt id="index-treesit_002dlanguage_002dat"><span class="category">Function: </span><span><strong>treesit-language-at</strong> <em>point</em><a href='#index-treesit_002dlanguage_002dat' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This function tries to figure out which language is responsible for
-the text at <var>point</var>.  It goes over each parser in
-<code>(treesit-parser-list)</code> and see if that parser&rsquo;s range covers
-<var>point</var>.
+<p>Like other query functions, this function raises the
+<code>treesit-query-error</code> error if <var>query</var> is malformed.
 </p></dd></dl>
 
 <dl class="def">
 <dt id="index-treesit_002drange_002dfunctions"><span class="category">Variable: </span><span><strong>treesit-range-functions</strong><a href='#index-treesit_002drange_002dfunctions' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>A list of range functions.  Font-locking and indenting code uses
-functions in this alist to set correct ranges for a language parser
-before using it.
+<dd><p>This variable holds the list of range functions.  Font-locking and
+indenting code use functions in this list to set correct ranges for
+a language parser before using it.
 </p>
-<p>The signature of each function should be
+<p>The signature of each function in the list should be:
 </p>
 <div class="example">
 <pre class="example">(<var>start</var> <var>end</var> &amp;rest <var>_</var>)
 </pre></div>
 
-<p>where <var>start</var> and <var>end</var> marks the region that is about to be
-used.  A range function only need to (but not limited to) update
+<p>where <var>start</var> and <var>end</var> specify the region that is about to be
+used.  A range function only needs to (but is not limited to) update
 ranges in that region.
 </p>
-<p>Each function in the list is called in-order.
+<p>The functions in the list are called in order.
 </p></dd></dl>
 
 <dl class="def">
 <dt id="index-treesit_002dupdate_002dranges"><span class="category">Function: </span><span><strong>treesit-update-ranges</strong> <em>&amp;optional start end</em><a href='#index-treesit_002dupdate_002dranges' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This function is used by font-lock and indent to update ranges before
-using any parser.  Each range function in
+<dd><p>This function is used by font-lock and indentation to update ranges
+before using any parser.  Each range function in
 <var>treesit-range-functions</var> is called in-order.  Arguments
 <var>start</var> and <var>end</var> are passed to each range function.
+</p></dd></dl>
+
+<span id="index-treesit_002dlanguage_002dat_002dpoint_002dfunction"></span>
+<dl class="def">
+<dt id="index-treesit_002dlanguage_002dat"><span class="category">Function: </span><span><strong>treesit-language-at</strong> <em>pos</em><a href='#index-treesit_002dlanguage_002dat' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function tries to figure out which language is responsible for
+the text at buffer position <var>pos</var>.  Under the hood it just calls
+<code>treesit-language-at-point-function</code>.
+</p>
+<p>Various Lisp programs use this function.  For example, the indentation
+program uses this function to determine which language&rsquo;s rule to use
+in a multi-language buffer.  So it is important to provide
+<code>treesit-language-at-point-function</code> for a multi-language major
+mode.
 </p></dd></dl>
 
 <span id="An-example"></span><h3 class="heading">An example</h3>
 
 <p>Normally, in a set of languages that can be mixed together, there is a
-major language and several embedded languages. We first parse the
-whole document with the major language’s parser, set ranges for the
-embedded languages, then parse the embedded languages.
+major language and several embedded languages.  A Lisp program usually
+first parses the whole document with the major language&rsquo;s parser, sets
+ranges for the embedded languages, and then parses the embedded
+languages.
 </p>
-<p>Suppose we want to parse a very simple document that mixes HTML, CSS
-and JavaScript:
+<p>Suppose we need to parse a very simple document that mixes
+<acronym>HTML</acronym>, <acronym>CSS</acronym> and JavaScript:
 </p>
 <div class="example">
 <pre class="example">&lt;html&gt;
@@ -215,22 +225,25 @@ and JavaScript:
 &lt;/html&gt;
 </pre></div>
 
-<p>We first parse with HTML, then set ranges for CSS and JavaScript:
+<p>We first parse with <acronym>HTML</acronym>, then set ranges for <acronym>CSS</acronym>
+and JavaScript:
 </p>
 <div class="example">
 <pre class="example">;; Create parsers.
 (setq html (treesit-get-parser-create 'html))
 (setq css (treesit-get-parser-create 'css))
 (setq js (treesit-get-parser-create 'javascript))
+</pre><pre class="example">
 
-;; Set CSS ranges.
+</pre><pre class="example">;; Set CSS ranges.
 (setq css-range
       (treesit-query-range
        'html
        &quot;(style_element (raw_text) @capture)&quot;))
 (treesit-parser-set-included-ranges css css-range)
+</pre><pre class="example">
 
-;; Set JavaScript ranges.
+</pre><pre class="example">;; Set JavaScript ranges.
 (setq js-range
       (treesit-query-range
        'html
@@ -238,15 +251,15 @@ and JavaScript:
 (treesit-parser-set-included-ranges js js-range)
 </pre></div>
 
-<p>We use a query pattern <code>(style_element (raw_text) @capture)</code> to
-find CSS nodes in the HTML parse tree. For how to write query
-patterns, see <a href="Pattern-Matching.html">Pattern Matching Tree-sitter Nodes</a>.
+<p>We use a query pattern <code><span class="nolinebreak">(style_element</span>&nbsp;<span class="nolinebreak">(raw_text)</span>&nbsp;@capture)</code><!-- /@w -->
+to find <acronym>CSS</acronym> nodes in the <acronym>HTML</acronym> parse tree.  For how
+to write query patterns, see <a href="Pattern-Matching.html">Pattern Matching Tree-sitter Nodes</a>.
 </p>
 </div>
 <hr>
 <div class="header">
 <p>
-Next: <a href="Tree_002dsitter-C-API.html">Tree-sitter C API Correspondence</a>, Previous: <a href="Pattern-Matching.html">Pattern Matching Tree-sitter Nodes</a>, Up: <a href="Parsing-Program-Source.html">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+Next: <a href="Tree_002dsitter-major-modes.html">Developing major modes with tree-sitter</a>, Previous: <a href="Pattern-Matching.html">Pattern Matching Tree-sitter Nodes</a>, Up: <a href="Parsing-Program-Source.html">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
 </div>
 
 
