@@ -2024,8 +2024,8 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       printchar ('>', printcharfun);
       break;
     case PVEC_TS_NODE:
-      /* Prints #<treesit-node (identifier) in #<buffer xxx>> or
-         #<treesit-node "keyword" in #<buffer xxx>>. */
+      /* Prints #<treesit-node (identifier) in 12-15> or
+         #<treesit-node "keyword" in 28-31>. */
       print_c_string ("#<treesit-node ", printcharfun);
       bool named = treesit_named_node_p (XTS_NODE (obj)->node);
       const char *delim1 = named ? "(" : "\"";
