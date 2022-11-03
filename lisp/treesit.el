@@ -502,11 +502,18 @@ Other keywords include:
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
-with that face.  Capture names can also be function names, in
-which case the function should have a signature (NODE OVERRIDE
-&rest _), where NODE is the tree-sitter node object, and OVERRIDE
-is the override option of that rule.  This function should accept
-more arguments as optional arguments for future extensibility.
+with that face.
+
+Capture names can also be function names, in which case the
+function should have a signature
+
+    (NODE OVERRIDE START END &rest _)
+
+where NODE is the tree-sitter node object, OVERRIDE is the
+override option of that rule, and START and END marks the region
+to be fontified.  This function should accept more arguments as
+optional arguments for future extensibility.  And this function
+shouldn't fontify text outside START and END.
 
 If a capture name is both a face and a function, the face takes
 priority.  If a capture name is not a face name nor a function
@@ -754,7 +761,7 @@ If LOUDLY is non-nil, display some debugging information."
                    (max node-start start) (min node-end end)
                    face override))
                  ((functionp face)
-                  (funcall face node override)))
+                  (funcall face node override start end)))
                 ;; Don't raise an error if FACE is neither a face nor
                 ;; a function.  This is to allow intermediate capture
                 ;; names used for #match and #eq.

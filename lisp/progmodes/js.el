@@ -3573,9 +3573,10 @@ This function is intended for use in `after-change-functions'."
       @font-lock-constant-face)))
   "Tree-sitter font-lock settings.")
 
-(defun js--fontify-template-string (node override &rest _)
+(defun js--fontify-template-string (node override start end &rest _)
   "Fontify template string but not substitution inside it.
-BEG, END, NODE refers to the template_string node.
+NODE is the template_string node. START and END marks the region
+to be fontified.
 
 OVERRIDE is the override flag described in
 `treesit-font-lock-rules'."
@@ -3585,16 +3586,17 @@ OVERRIDE is the override flag described in
   ;; closing "`".  That's why we have to track BEG instead of just
   ;; fontifying each child.
   (let ((child (treesit-node-child node 0))
-        (beg (treesit-node-start node)))
+        (font-beg (treesit-node-start node)))
     (while child
-      (if (equal (treesit-node-type child) "template_substitution")
+      (let ((font-end (if (equal (treesit-node-type child)
+                                 "template_substitution")
+                          (treesit-node-start child)
+                        (treesit-node-end child))))
+        (setq font-beg (max beg font-beg))
+        (when (< font-beg end)
           (treesit-fontify-with-override
-           beg (treesit-node-start child)
-           'font-lock-string-face override)
-        (treesit-fontify-with-override
-         beg (treesit-node-end child)
-         'font-lock-string-face override))
-      (setq beg (treesit-node-end child)
+           font-beg font-end 'font-lock-string-face override)))
+      (setq font-beg (treesit-node-end child)
             child (treesit-node-next-sibling child)))))
 
 (defun js-treesit-current-defun ()

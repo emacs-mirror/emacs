@@ -1015,11 +1015,12 @@ It makes underscores and dots word constituent chars.")
     "VMSError" "WindowsError"
     ))
 
-(defun python--treesit-fontify-string (node override &rest _)
+(defun python--treesit-fontify-string (node override start end &rest _)
   "Fontify string.
-NODE is the leading quote in the string.  Do not fontify the initial
-f for f-strings.  OVERRIDE is the override flag described in
-`treesit-font-lock-rules'."
+NODE is the leading quote in the string.  Do not fontify the
+initial f for f-strings.  OVERRIDE is the override flag described
+in `treesit-font-lock-rules'.  START and END marks the region to
+be fontified."
   (let* ((string (treesit-node-parent node))
          (string-beg (treesit-node-start string))
          (string-end (treesit-node-end string))
@@ -1033,7 +1034,8 @@ f for f-strings.  OVERRIDE is the override flag described in
                  'font-lock-string-face)))
     (when (eq (char-after string-beg) ?f)
       (cl-incf string-beg))
-    (treesit-fontify-with-override string-beg string-end face override)))
+    (treesit-fontify-with-override
+     (max start string-beg) (min end string-end) face override)))
 
 (defvar python--treesit-settings
   (treesit-font-lock-rules
