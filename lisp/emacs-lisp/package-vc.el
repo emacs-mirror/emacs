@@ -276,17 +276,13 @@ asynchronously."
 (defun package-vc-version (pkg)
   "Extract the commit of a development package PKG."
   (cl-assert (package-vc-p pkg))
-  (cl-loop with dir = (package-desc-dir pkg) ;FIXME: dir is nil
-           for file in (sort (directory-files dir t "\\.el\\'")
-                             (lambda (s1 s2)
-                               (< (length s1) (length s2))))
-           when (with-temp-buffer
-                  (insert-file-contents file)
-                  (package-strip-rcs-id
-                   (or (lm-header "package-version")
-                       (lm-header "version"))))
-           return it
-           finally return "0"))
+  (if-let ((main-file (package-vc-main-file pkg)))
+      (with-temp-buffer
+        (insert-file-contents main-file)
+        (package-strip-rcs-id
+         (or (lm-header "package-version")
+             (lm-header "version"))))
+    "0"))
 
 (defun package-vc-main-file (pkg-desc)
   "Return the main file for PKG-DESC."
