@@ -3282,9 +3282,9 @@ REGEXP should use constructs supported by your local `grep' command."
 ;;;###autoload
 (defun dired-show-file-type (file &optional deref-symlinks)
   "Print the type of FILE, according to the `file' command.
-If you give a prefix to this command, and FILE is a symbolic
-link, then the type of the file linked to by FILE is printed
-instead."
+If you give a prefix argument \\[universal-argument] to this command, and
+FILE is a symbolic link, then the command will print the type
+of the target of the link instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
   (let (process-file-side-effects)
     (with-temp-buffer
