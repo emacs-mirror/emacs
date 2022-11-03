@@ -1470,7 +1470,8 @@ treesit_check_node (Lisp_Object obj)
     xsignal1 (Qtreesit_node_outdated, obj);
 }
 
-bool treesit_node_uptodate_p (Lisp_Object obj)
+bool
+treesit_node_uptodate_p (Lisp_Object obj)
 {
   Lisp_Object lisp_parser = XTS_NODE (obj)->parser;
   return XTS_NODE (obj)->timestamp == XTS_PARSER (lisp_parser)->timestamp;
