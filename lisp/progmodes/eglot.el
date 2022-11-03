@@ -1501,29 +1501,38 @@ If optional MARKER, return a marker instead"
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
   (let ((truepath (file-truename path)))
-    (concat "file://"
-            ;; Add a leading "/" for local MS Windows-style paths.
-            (if (and (eq system-type 'windows-nt)
-                     (not (file-remote-p truepath)))
-                "/")
-            (url-hexify-string
-             ;; Again watch out for trampy paths.
-             (directory-file-name (file-local-name truepath))
-             eglot--uri-path-allowed-chars))))
+    (if (url-type (url-generic-parse-url truepath))
+        ;; Path is already a URI, so forward it to the lsp server untouched.
+        truepath
+      (concat "file://"
+              ;; Add a leading "/" for local MS Windows-style paths.
+              (if (and (eq system-type 'windows-nt)
+                       (not (file-remote-p truepath)))
+                  "/")
+              (url-hexify-string
+               ;; Again watch out for trampy paths.
+               (directory-file-name (file-local-name truepath))
+               eglot--uri-path-allowed-chars)))))
 
 (defun eglot--uri-to-path (uri)
   "Convert URI to file path, helped by `eglot--current-server'."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
   (let* ((server (eglot-current-server))
          (remote-prefix (and server (eglot--trampish-p server)))
-         (retval (url-unhex-string (url-filename (url-generic-parse-url uri))))
-         ;; Remove the leading "/" for local MS Windows-style paths.
-         (normalized (if (and (not remote-prefix)
-                              (eq system-type 'windows-nt)
-                              (cl-plusp (length retval)))
-                         (substring retval 1)
-                       retval)))
-    (concat remote-prefix normalized)))
+         (url (url-generic-parse-url uri)))
+    ;; Only attempt to parse URIs with the file scheme.
+    (if (string= "file" (url-type url))
+        (let* ((retval (url-unhex-string (url-filename url)))
+               ;; Remove the leading "/" for local MS Windows-style paths.
+               (normalized (if (and (not remote-prefix)
+                                    (eq system-type 'windows-nt)
+                                    (cl-plusp (length retval)))
+                               (substring retval 1)
+                             retval)))
+          (concat remote-prefix normalized))
+      ;; Leave non-file type URIs untouched, `file-name-handler-alist'
+      ;; handlers can be used to dispatch them properly.
+      uri)))
 
 (defun eglot--snippet-expansion-fn ()
   "Compute a function to expand snippets.
