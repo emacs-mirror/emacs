@@ -3620,10 +3620,10 @@ This function can be used as a value in `which-func-functions'"
 
 ;; Keep this private since we might later change it or generalize it.
 (defvar js--treesit-imenu-type-alist
-  '((variable . "V")
-    (function . "F")
-    (class . "C")
-    (method . "M"))
+  '((variable . "V ")
+    (function . "F ")
+    (class . "C ")
+    (method . "M "))
   "Maps imenu label types to their \"symbol\".
 Symbols are prefixed to each label in imenu (see
 `js--treesit-imenu-label').")
@@ -3632,7 +3632,7 @@ Symbols are prefixed to each label in imenu (see
   "Format label for imenu.
 TYPE can be `variable', `function', `class', `method'.
 NAME is a string."
-  (format "%s %s" (alist-get type js--treesit-imenu-type-alist)
+  (format "%s%s" (alist-get type js--treesit-imenu-type-alist)
           name))
 
 (defun js--treesit-imenu-1 (node)
