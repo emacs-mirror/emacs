@@ -341,7 +341,8 @@ is utf-8"
   "p"     #'backward-button
   "SPC"   #'scroll-up-command
   "S-SPC" #'scroll-down-command
-  "M-SPC" #'scroll-down-command)
+  "M-SPC" #'scroll-down-command
+  "DEL"   #'scroll-down-command)
 
 (defvar dictionary-connection
   nil
