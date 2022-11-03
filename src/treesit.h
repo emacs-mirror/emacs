@@ -180,6 +180,8 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 Lisp_Object
 make_treesit_node (Lisp_Object parser, TSNode node);
 
+bool treesit_node_uptodate_p (Lisp_Object obj);
+
 extern void treesit_delete_parser (struct Lisp_TS_Parser *);
 extern void treesit_delete_query (struct Lisp_TS_Query *);
 extern bool treesit_named_node_p (TSNode);

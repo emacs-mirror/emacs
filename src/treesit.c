@@ -1431,9 +1431,14 @@ static void
 treesit_check_node (Lisp_Object obj)
 {
   CHECK_TS_NODE (obj);
-  Lisp_Object lisp_parser = XTS_NODE (obj)->parser;
-  if (XTS_NODE (obj)->timestamp != XTS_PARSER (lisp_parser)->timestamp)
+  if (!treesit_node_uptodate_p (obj))
     xsignal1 (Qtreesit_node_outdated, obj);
+}
+
+bool treesit_node_uptodate_p (Lisp_Object obj)
+{
+  Lisp_Object lisp_parser = XTS_NODE (obj)->parser;
+  return XTS_NODE (obj)->timestamp == XTS_PARSER (lisp_parser)->timestamp;
 }
 
 DEFUN ("treesit-node-type",

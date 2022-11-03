@@ -2026,7 +2026,15 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
     case PVEC_TS_NODE:
       /* Prints #<treesit-node (identifier) in 12-15> or
          #<treesit-node "keyword" in 28-31>. */
-      print_c_string ("#<treesit-node ", printcharfun);
+      print_c_string ("#<treesit-node", printcharfun);
+      if (!treesit_node_uptodate_p (obj))
+	{
+	  print_c_string ("-outdated>", printcharfun);
+	  break;
+	}
+      printchar (' ', printcharfun);
+      /* Now the node must be up-to-date, and calling functions like
+	 Ftreesit_node_start will not signal.  */
       bool named = treesit_named_node_p (XTS_NODE (obj)->node);
       const char *delim1 = named ? "(" : "\"";
       const char *delim2 = named ? ")" : "\"";
