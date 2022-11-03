@@ -280,15 +280,14 @@ init_treesit_functions (void)
    The Emacs wrapper of tree-sitter does not expose everything the C
    API provides, most notably:
 
-   - It doesn't expose a syntax tree.  The syntax tree is placed in
-     the parser object, and updating the tree is handled at the C
-     level.
+   - It doesn't expose a syntax tree.  The syntax tree is part of the
+     parser object, and updating the tree is handled on the C level.
 
-   - The tree cursor is not exposed either.  I think Lisp is slow
-     enough to nullify any performance advantage of using a cursor,
-     though I don't have evidence.  Also I want to minimize the number
-     of new types we introduce.  Currently we only add parser and node
-     type.
+   - It doesn't expose the tree cursor, either.  Presumably, Lisp is
+     slow enough to make insignificant any performance advantages from
+     using the cursor.  Not exposing the cursor also minimizes the
+     number of new types this adds to Emacs Lisp; currently, this adds
+     only the parser and node types.
 
    - Because updating the change is handled on the C level as each
      change is made in the buffer, there is no way for Lisp to update
@@ -456,6 +455,8 @@ treesit_find_override_name (Lisp_Object language_symbol, Lisp_Object *name,
   Lisp_Object tem;
 
   CHECK_LIST (Vtreesit_load_name_override_list);
+
+  tem = Vtreesit_load_name_override_list;
 
   FOR_EACH_TAIL (tem)
     {
@@ -1980,7 +1981,7 @@ See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
   (Lisp_Object query)
 {
   return Fmapconcat (Qtreesit_pattern_expand,
-		     query, empty_unibyte_string);
+		     query, build_pure_c_string (" "));
 }
 
 /* This struct is used for passing captures to be check against
