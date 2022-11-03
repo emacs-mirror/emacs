@@ -619,6 +619,7 @@ repository can be set by BACKEND.  If missing,
        rev)))
    ((user-error "Unknown package to fetch: %s" name-or-url))))
 
+;;;###autoload
 (defun package-vc-checkout (pkg-desc directory &optional rev)
   "Clone the sources for PKG-DESC into DIRECTORY and open it.
 An explicit revision can be requested by passing a string to the
@@ -649,6 +650,7 @@ special value `:last-release' as REV."
     (package-vc--clone pkg-desc pkg-spec directory rev)
     (find-file directory)))
 
+;;;###autoload
 (defun package-vc-link-directory (dir name)
   "Install the package NAME in DIR by linking it into the ELPA directory.
 If invoked interactively with a prefix argument, the user will be
@@ -670,6 +672,7 @@ from the base name of DIR."
                           :kind 'vc)
                          pkg-dir)))
 
+;;;###autoload
 (defun package-vc-refresh (pkg-desc)
   "Refresh the installation for PKG-DESC."
   (interactive (package-vc--read-pkg "Refresh package: "))
