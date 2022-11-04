@@ -4071,7 +4071,7 @@ the message given by REASON."
         (delete-process process))
       (erc-server-reconnect)
       (with-suppressed-warnings ((obsolete erc-server-reconnecting)
-                                 ((obsolete erc-reuse-buffers)))
+                                 (obsolete erc-reuse-buffers))
         (if erc-reuse-buffers
             (progn (cl-assert (not erc--server-reconnecting))
                    (cl-assert (not erc-server-reconnecting)))
