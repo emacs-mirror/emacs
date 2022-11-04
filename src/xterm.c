@@ -13083,7 +13083,7 @@ xi_handle_device_changed (struct x_display_info *dpyinfo,
 	      valuator->horizontal = (scroll->scroll_type
 				      == XIScrollTypeHorizontal);
 	      valuator->invalid_p = true;
-	      valuator->emacs_value = DBL_MIN;
+	      valuator->emacs_value = 0;
 	      valuator->increment = scroll->increment;
 	      valuator->number = scroll->number;
 	      break;
