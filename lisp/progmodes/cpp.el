@@ -410,47 +410,45 @@ A prefix arg suppresses display of that buffer."
 
 ;;; Edit Buffer:
 
-(defvar cpp-edit-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (define-key map [ down-mouse-2 ] 'cpp-push-button)
-    (define-key map [ mouse-2 ] 'ignore)
-    (define-key map " " 'scroll-up-command)
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map "\C-?" 'scroll-down-command)
-    (define-key map [ delete ] 'scroll-down)
-    (define-key map "\C-c\C-c" 'cpp-edit-apply)
-    (define-key map "a" 'cpp-edit-apply)
-    (define-key map "A" 'cpp-edit-apply)
-    (define-key map "r" 'cpp-edit-reset)
-    (define-key map "R" 'cpp-edit-reset)
-    (define-key map "s" 'cpp-edit-save)
-    (define-key map "S" 'cpp-edit-save)
-    (define-key map "l" 'cpp-edit-load)
-    (define-key map "L" 'cpp-edit-load)
-    (define-key map "h" 'cpp-edit-home)
-    (define-key map "H" 'cpp-edit-home)
-    (define-key map "b" 'cpp-edit-background)
-    (define-key map "B" 'cpp-edit-background)
-    (define-key map "k" 'cpp-edit-known)
-    (define-key map "K" 'cpp-edit-known)
-    (define-key map "u" 'cpp-edit-unknown)
-    (define-key map "u" 'cpp-edit-unknown)
-    (define-key map "t" 'cpp-edit-true)
-    (define-key map "T" 'cpp-edit-true)
-    (define-key map "f" 'cpp-edit-false)
-    (define-key map "F" 'cpp-edit-false)
-    (define-key map "w" 'cpp-edit-write)
-    (define-key map "W" 'cpp-edit-write)
-    (define-key map "X" 'cpp-edit-toggle-known)
-    (define-key map "x" 'cpp-edit-toggle-known)
-    (define-key map "Y" 'cpp-edit-toggle-unknown)
-    (define-key map "y" 'cpp-edit-toggle-unknown)
-    (define-key map "q" 'bury-buffer)
-    (define-key map "Q" 'bury-buffer)
-    map)
-  "Keymap for `cpp-edit-mode'.")
-
+(defvar-keymap cpp-edit-mode-map
+  :doc "Keymap for `cpp-edit-mode'."
+  :full t
+  :suppress t
+  "<down-mouse-2>" #'cpp-push-button
+  "<mouse-2>"      #'ignore
+  "SPC"      #'scroll-up-command
+  "S-SPC"    #'scroll-down-command
+  "DEL"      #'scroll-down-command
+  "<delete>" #'scroll-down
+  "C-c C-c"  #'cpp-edit-apply
+  "a"        #'cpp-edit-apply
+  "A"        #'cpp-edit-apply
+  "r"        #'cpp-edit-reset
+  "R"        #'cpp-edit-reset
+  "s"        #'cpp-edit-save
+  "S"        #'cpp-edit-save
+  "l"        #'cpp-edit-load
+  "L"        #'cpp-edit-load
+  "h"        #'cpp-edit-home
+  "H"        #'cpp-edit-home
+  "b"        #'cpp-edit-background
+  "B"        #'cpp-edit-background
+  "k"        #'cpp-edit-known
+  "K"        #'cpp-edit-known
+  "u"        #'cpp-edit-unknown
+  "U"        #'cpp-edit-unknown
+  "t"        #'cpp-edit-true
+  "T"        #'cpp-edit-true
+  "f"        #'cpp-edit-false
+  "F"        #'cpp-edit-false
+  "w"        #'cpp-edit-write
+  "W"        #'cpp-edit-write
+  "X"        #'cpp-edit-toggle-known
+  "x"        #'cpp-edit-toggle-known
+  "Y"        #'cpp-edit-toggle-unknown
+  "y"        #'cpp-edit-toggle-unknown
+  "q"        #'bury-buffer
+  "Q"        #'bury-buffer)
 
 
 (defvar-local cpp-edit-symbols nil
