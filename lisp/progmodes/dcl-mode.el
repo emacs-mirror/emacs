@@ -258,17 +258,15 @@ See `imenu-generic-expression' for details."
 ;;; *** Global variables ****************************************************
 
 
-(defvar dcl-mode-syntax-table nil
+(defvar dcl-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?!  "<" st) ; comment start
+    (modify-syntax-entry ?\n ">" st) ; comment end
+    (modify-syntax-entry ?< "(>" st) ; < and ...
+    (modify-syntax-entry ?> ")<" st) ; > is a matching pair
+    (modify-syntax-entry ?\\ "_" st) ; not an escape
+    st)
   "Syntax table used in DCL-buffers.")
-(unless dcl-mode-syntax-table
-  (setq dcl-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?!  "<" dcl-mode-syntax-table) ; comment start
-  (modify-syntax-entry ?\n ">" dcl-mode-syntax-table) ; comment end
-  (modify-syntax-entry ?< "(>" dcl-mode-syntax-table) ; < and ...
-  (modify-syntax-entry ?> ")<" dcl-mode-syntax-table) ; > is a matching pair
-  (modify-syntax-entry ?\\ "_" dcl-mode-syntax-table) ; not an escape
-)
-
 
 (defvar-keymap dcl-mode-map
   :doc "Keymap used in DCL-mode buffers."
