@@ -963,7 +963,117 @@ on the tab bar instead."
 
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
-  (append tab-bar-map (tab-bar-format-list tab-bar-format)))
+  (let ((items (tab-bar-format-list tab-bar-format)))
+    (when tab-bar-fixed-width
+      (setq items (tab-bar-fixed-width items)))
+    (append tab-bar-map items)))
+
+
+(defcustom tab-bar-fixed-width t
+  "Automatically resize tabs on the tab bar to the fixed width.
+This variable is intended to solve two problems.  When switching buffers
+on the current tab, the tab changes its name to buffer names of
+various lengths, thus resizing the tab and shifting the tab positions
+on the tab bar.  But with the fixed width, the size of the tab name
+doesn't change when the tab name changes, thus keeping the fixed
+tab bar layout.  The second problem solved by this variable is to prevent
+wrapping the long tab bar to the second line, thus keeping the height of
+the tab bar always fixed to one line.
+
+The maximum tab width is defined by the variable `tab-bar-fixed-width-max'."
+  :type 'boolean
+  :group 'tab-bar
+  :version "29.1")
+
+(defcustom tab-bar-fixed-width-max '(220 . 20)
+  "Maximum number of pixels or characters allowed for the tab name width.
+The car of the cons cell is the maximum number of pixels when used on
+a GUI session.  The cdr of the cons cell defines the maximum number of
+characters when used on a tty.  When set to nil, there is no limit
+on maximum width, and tabs are resized evenly to the whole width
+of the tab bar when `tab-bar-fixed-width' is non-nil."
+  :type '(choice
+          (const :tag "No limit" nil)
+          (cons (integer :tag "Max width (pixels)" :value 220)
+                (integer :tag "Max width (chars)" :value 20)))
+  :group 'tab-bar
+  :version "29.1")
+
+(defvar tab-bar-fixed-width-min '(20 . 2)
+  "Minimum number of pixels or characters allowed for the tab name width.
+It's not recommended to change this value since with a bigger value, the
+tab bar might wrap to the second line.")
+
+(defvar tab-bar-fixed-width-faces
+  '( tab-bar-tab tab-bar-tab-inactive
+     tab-bar-tab-ungrouped
+     tab-bar-tab-group-inactive)
+  "Resize tabs only with these faces.")
+
+(defvar tab-bar--fixed-width-hash nil
+  "Memoization table for `tab-bar-fixed-width'.")
+
+(defun tab-bar-fixed-width (items)
+  "Return tab-bar items with resized tab names."
+  (unless tab-bar--fixed-width-hash
+    (define-hash-table-test 'tab-bar--fixed-width-hash-test
+                            #'equal-including-properties
+                            #'sxhash-equal-including-properties)
+    (setq tab-bar--fixed-width-hash
+          (make-hash-table :test 'tab-bar--fixed-width-hash-test)))
+  (let ((tabs nil)    ;; list of resizable tabs
+        (non-tabs "") ;; concatenated names of non-resizable tabs
+        (width 0))    ;; resize tab names to this width
+    (dolist (item items)
+      (when (and (eq (nth 1 item) 'menu-item) (stringp (nth 2 item)))
+        (if (memq (get-text-property 0 'face (nth 2 item))
+                  tab-bar-fixed-width-faces)
+            (push item tabs)
+          (unless (eq (nth 0 item) 'align-right)
+            (setq non-tabs (concat non-tabs (nth 2 item)))))))
+    (when tabs
+      (setq width (/ (- (frame-pixel-width)
+                        (string-pixel-width
+                         (propertize non-tabs 'face 'tab-bar)))
+                     (length tabs)))
+      (when tab-bar-fixed-width-min
+        (setq width (max width (if window-system
+                                   (car tab-bar-fixed-width-min)
+                                 (cdr tab-bar-fixed-width-min)))))
+      (when tab-bar-fixed-width-max
+        (setq width (min width (if window-system
+                                   (car tab-bar-fixed-width-max)
+                                 (cdr tab-bar-fixed-width-max)))))
+      (dolist (item tabs)
+        (setf (nth 2 item)
+              (with-memoization (gethash (cons width (nth 2 item))
+                                         tab-bar--fixed-width-hash)
+                (let* ((name (nth 2 item))
+                       (len (length name))
+                       (close-p (get-text-property (1- len) 'close-tab name))
+                       (pixel-width (string-pixel-width
+                                     (propertize name 'face 'tab-bar-tab))))
+                  (cond
+                   ((< pixel-width width)
+                    (let ((space (apply 'propertize " " (text-properties-at 0 name)))
+                          (ins-pos (- len (if close-p 1 0))))
+                      (while (< pixel-width width)
+                        (setf (substring name ins-pos ins-pos) space)
+                        (setq pixel-width (string-pixel-width
+                                           (propertize name 'face 'tab-bar-tab))))))
+                   ((> pixel-width width)
+                    (let (del-pos)
+                      (while (> pixel-width width)
+                        (setq len (length name)
+                              del-pos (- len (if close-p 1 0)))
+                        (setf (substring name (1- del-pos) del-pos) "")
+                        (setq pixel-width (string-pixel-width
+                                           (propertize name 'face 'tab-bar-tab))))
+                      (add-face-text-property (max (- del-pos 3) 1)
+                                              (1- del-pos)
+                                              'shadow nil name))))
+                  name)))))
+    items))
 
 
 ;; Some window-configuration parameters don't need to be persistent.

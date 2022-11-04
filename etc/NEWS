@@ -1077,6 +1077,11 @@ the corresponding deleted frame.
 ** Tab Bars and Tab Lines
 
 ---
+*** New user option 'tab-bar-fixed-width' to automatically resize tabs.
+Another option 'tab-bar-fixed-width-max' defines the maximum tab width
+that by default is 220 pixels on GUI and 20 characters on a tty.
+
+---
 *** 'C-x t RET' creates a new tab when the provided tab name doesn't exist.
 
 ---
