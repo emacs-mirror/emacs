@@ -1236,7 +1236,8 @@ Return t if the file exists and loads successfully.  */)
   /* If file name is magic, call the handler.  */
   handler = Ffind_file_name_handler (file, Qload);
   if (!NILP (handler))
-    return call5 (handler, Qload, file, noerror, nomessage, nosuffix);
+    return
+      call6 (handler, Qload, file, noerror, nomessage, nosuffix, must_suffix);
 
   /* The presence of this call is the result of a historical accident:
      it used to be in every file-operation and when it got removed

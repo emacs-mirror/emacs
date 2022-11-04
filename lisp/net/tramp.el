@@ -4584,14 +4584,9 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	     (setq file (concat file ".elc")))
 	    ((file-exists-p (concat file ".el"))
 	     (setq file (concat file ".el")))))
-    (when must-suffix
-      ;; The first condition is always true for absolute file names.
-      ;; Included for safety's sake.
-      (unless (or (file-name-directory file)
-		  (string-match-p (rx ".el" (? "c") eos) file))
-	(tramp-error
-	 v 'file-error
-	 "File `%s' does not include a `.el' or `.elc' suffix" file)))
+    (when (and must-suffix (not (string-match-p (rx ".el" (? "c") eos) file)))
+      (tramp-error
+       v 'file-error "File `%s' does not include a `.el' or `.elc' suffix" file))
     (unless (or noerror (file-exists-p file))
       (tramp-error v 'file-missing file))
     (if (not (file-exists-p file))
