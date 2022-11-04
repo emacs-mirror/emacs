@@ -216,7 +216,7 @@ is a list of additional properties among the following:
     function) named COPIER.  It will take an object of type NAME as first
     argument followed by ARGS.  ARGS lists the names of the slots that will
     be updated with the value of the corresponding argument.
-SLOTS is a list if slot descriptions.  Each slot can be a single symbol
+SLOTS is a list of slot descriptions.  Each slot can be a single symbol
 which is the name of the slot, or it can be of the form (SLOT-NAME . SPROPS)
 where SLOT-NAME is then the name of the slot and SPROPS is a property
 list of slot properties.  The currently known properties are the following:
@@ -341,11 +341,11 @@ list of slot properties.  The currently known properties are the following:
 
 (defmacro oclosure--lambda (type bindings mutables args &rest body)
   "Low level construction of an OClosure object.
-TYPE should be a form returning an OClosure type (a symbol)
+TYPE should be a form returning an OClosure type (a symbol).
 BINDINGS should list all the slots expected by this type, in the proper order.
 MUTABLE is a list of symbols indicating which of the BINDINGS
 should be mutable.
-No checking is performed,"
+No checking is performed."
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
   ;; FIXME: Fundamentally `oclosure-lambda' should be a special form.
   ;; We define it here as a macro which expands to something that
