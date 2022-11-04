@@ -448,6 +448,11 @@
 ;; - mergebase (rev1 &optional rev2)
 ;;
 ;;   Return the common ancestor between REV1 and REV2 revisions.
+;;
+;; - last-change (file line)
+;;
+;;   Return the most recent revision of FILE that made a change
+;;   on LINE.
 
 ;; TAG/BRANCH SYSTEM
 ;;
@@ -584,6 +589,15 @@
 ;;   buffer should be inserted into an inline patch.  If the two last
 ;;   properties are omitted, `point-min' and `point-max' will
 ;;   respectively be used instead.
+;;
+;; - clone (remote directory rev)
+;;
+;;   Attempt to clone a REMOTE repository, into a local DIRECTORY.
+;;   Returns a string with the directory with the contents of the
+;;   repository if successful, otherwise nil.  With a non-nil value
+;;   for REV the backend will attempt to check out a specific
+;;   revision, if possible without first checking out the default
+;;   branch.
 
 ;;; Changes from the pre-25.1 API:
 ;;
@@ -3550,6 +3564,43 @@ to provide the `find-revision' operation instead."
   "Check if the current file has any headers in it."
   (interactive)
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
+
+(defun vc-clone (remote &optional backend directory rev)
+  "Use BACKEND to clone REMOTE into DIRECTORY.
+If successful, returns the a string with the directory of the
+checkout.  If BACKEND is nil, iterate through every known backend
+in `vc-handled-backends' until one succeeds.  If REV is non-nil,
+it indicates a specific revision to check out."
+  (unless directory
+    (setq directory default-directory))
+  (if backend
+      (progn
+        (unless (memq backend vc-handled-backends)
+          (error "Unknown VC backend %s" backend))
+        (vc-call-backend backend 'clone remote directory rev))
+    (catch 'ok
+      (dolist (backend vc-handled-backends)
+        (ignore-error vc-not-supported
+          (when-let ((res (vc-call-backend
+                           backend 'clone
+                           remote directory rev)))
+            (throw 'ok res)))))))
+
+(declare-function log-view-current-tag "log-view" (&optional pos))
+(defun vc-default-last-change (_backend file line)
+  "Default `last-change' implementation.
+It returns the last revision that changed LINE number in FILE."
+  (unless (file-exists-p file)
+    (signal 'file-error "File doesn't exist"))
+  (with-temp-buffer
+    (vc-call-backend (vc-backend file) 'annotate-command
+                     file (current-buffer))
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (let ((rev (vc-call-backend
+                (vc-backend file)
+                'annotate-extract-revision-at-line)))
+      (if (consp rev) (car rev) rev))))
 
 
 

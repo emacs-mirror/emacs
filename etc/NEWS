@@ -1553,6 +1553,36 @@ These commands can be useful if the ".elc" files are out of date
 If no packages are marked, 'x' will install the package under point if
 it isn't already, and remove it if it is installed.
 
++++
+*** New command 'package-vc-install'
+Packages can now be installed directly from source by cloning from a
+repository.
+
++++
+*** New command 'package-vc-link-directory'
+An existing checkout can now be loaded via package.el, by creating a
+symbolic link from the usual package directory to the checkout.
+
++++
+*** New command 'package-vc-checkout'
+Used to fetch the source of a package by cloning a repository without
+activating the package.
+
++++
+*** New command 'package-vc-prepare-patch'
+This command allows you to send patches to package maintainers, for
+packages checked out using 'package-vc-install'.
+
++++
+*** New command 'package-report-bug'
+This command helps you compose an email for sending bug reports to
+package maintainers.
+
++++
+*** New user option 'package-vc-selected-packages'
+By customising this user option you can specify specific packages to
+install.
+
 ** Emacs Sessions (Desktop)
 
 +++
@@ -4251,11 +4281,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-
-Local variables:
-coding: utf-8
-mode: outline
-mode: emacs-news
-paragraph-separate: "[ 	]*$"
-end:

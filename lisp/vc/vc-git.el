@@ -1268,6 +1268,12 @@ This prompts for a branch to merge from."
       (add-hook 'after-save-hook #'vc-git-resolve-when-done nil 'local))
     (vc-message-unresolved-conflicts buffer-file-name)))
 
+(defun vc-git-clone (remote directory rev)
+  (if rev
+      (vc-git--out-ok "clone" "--branch" rev remote directory)
+    (vc-git--out-ok "clone" remote directory))
+  directory)
+
 ;;; HISTORY FUNCTIONS
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
@@ -1625,6 +1631,19 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 	      (cons revision
 		    (expand-file-name fname (vc-git-root default-directory))))
 	  revision)))))
+
+(defun vc-git-last-change (file line)
+  (vc-buffer-sync)
+  (let ((file (file-relative-name file (vc-git-root (buffer-file-name)))))
+    (with-temp-buffer
+      (when (vc-git--out-ok
+             "blame" "--porcelain"
+             (format "-L%d,+1" line)
+             file)
+        (goto-char (point-min))
+        (save-match-data
+          (when (looking-at "\\`\\([[:alnum:]]+\\)[[:space:]]+")
+            (match-string 1)))))))
 
 ;;; TAG/BRANCH SYSTEM
 
