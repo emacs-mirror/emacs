@@ -476,7 +476,11 @@ region."
                             host-lang query beg end))
                (set-ranges (treesit--merge-ranges
                             old-ranges new-ranges beg end)))
-          (treesit-parser-set-included-ranges parser set-ranges))))))
+          (dolist (parser (treesit-parser-list))
+            (when (eq (treesit-parser-language parser)
+                      language)
+              (treesit-parser-set-included-ranges
+               parser set-ranges))))))))
 
 (defun treesit-parser-range-on (parser beg &optional end)
   "Check if PARSER's range covers the portion between BEG and END.
