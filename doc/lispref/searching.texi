@@ -395,13 +395,12 @@ range should not be the starting point of another one; for example,
 @samp{[a-m-z]} should be avoided.
 
 A character alternative can also specify named character classes
-(@pxref{Char Classes}).  This is a POSIX feature.  For example,
-@samp{[[:ascii:]]} matches any @acronym{ASCII} character.
-Using a character class is equivalent to mentioning each of the
-characters in that class; but the latter is not feasible in practice,
-since some classes include thousands of different characters.
-A character class should not appear as the lower or upper bound
-of a range.
+(@pxref{Char Classes}).  For example, @samp{[[:ascii:]]} matches any
+@acronym{ASCII} character.  Using a character class is equivalent to
+mentioning each of the characters in that class; but the latter is not
+feasible in practice, since some classes include thousands of
+different characters.  A character class should not appear as the
+lower or upper bound of a range.
 
 The usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters is
