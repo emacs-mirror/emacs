@@ -2647,10 +2647,7 @@ function as needed."
       ((or `(lambda ,_args . ,body) `(closure ,_env ,_args . ,body)
            `(autoload ,_file . ,body))
        (let ((doc (car body)))
-	 (when (and (funcall docstring-p doc)
-	            ;; Handle a doc reference--but these never come last
-	            ;; in the function body, so reject them if they are last.
-	            (or (cdr body) (eq 'autoload (car-safe function))))
+	 (when (funcall docstring-p doc)
            doc)))
       (_ (signal 'invalid-function (list function))))))
 
