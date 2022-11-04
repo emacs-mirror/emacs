@@ -3588,7 +3588,7 @@ This function is intended for use in `after-change-functions'."
 
 (defun js--fontify-template-string (node override start end &rest _)
   "Fontify template string but not substitution inside it.
-NODE is the template_string node. START and END marks the region
+NODE is the template_string node.  START and END marks the region
 to be fontified.
 
 OVERRIDE is the override flag described in
@@ -3605,7 +3605,7 @@ OVERRIDE is the override flag described in
                                  "template_substitution")
                           (treesit-node-start child)
                         (treesit-node-end child))))
-        (setq font-beg (max beg font-beg))
+        (setq font-beg (max start font-beg))
         (when (< font-beg end)
           (treesit-fontify-with-override
            font-beg font-end 'font-lock-string-face override)))
