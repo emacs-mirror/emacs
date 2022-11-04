@@ -161,10 +161,10 @@ of previous VARs.
     `(progn . ,(nreverse exps))))
 
 (defmacro setq-local (&rest pairs)
-  "Make variables in PAIRS buffer-local and assign them the corresponding values.
+  "Make VARIABLEs buffer-local and assign them the corresponding VALUEs.
 
-PAIRS is a list of variable/value pairs.  For each variable, make
-it buffer-local and assign it the corresponding value.  The
+The args are a list of variable/value pairs.  For each VARIABLE,
+make it buffer-local and assign it the corresponding VALUE.  The
 variables are literal symbols and should not be quoted.
 
 The second VALUE is not computed until after the first VARIABLE
