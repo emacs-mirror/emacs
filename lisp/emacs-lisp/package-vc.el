@@ -44,6 +44,7 @@
   "Manage packages from VC checkouts."
   :group 'package
   :link '(custom-manual "(emacs) Package from Source")
+  :prefix "package-vc-"
   :version "29.1")
 
 (defconst package-vc--elpa-packages-version 1
