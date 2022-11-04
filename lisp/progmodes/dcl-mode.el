@@ -1,6 +1,6 @@
 ;;; dcl-mode.el --- major mode for editing DCL command files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Odd Gripenstam <gripenstamol@decus.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -270,26 +270,24 @@ See `imenu-generic-expression' for details."
 )
 
 
-(defvar dcl-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e\n"	#'dcl-split-line)
-    (define-key map "\e\t" 	#'tempo-complete-tag)
-    (define-key map "\e^"	#'dcl-delete-indentation)
-    (define-key map "\em"	#'dcl-back-to-indentation)
-    (define-key map "\ee"        #'dcl-forward-command)
-    (define-key map "\ea"        #'dcl-backward-command)
-    (define-key map "\e\C-q" 	#'dcl-indent-command)
-    (define-key map "\t"         #'dcl-tab)
-    (define-key map ":"          #'dcl-electric-character)
-    (define-key map "F"          #'dcl-electric-character)
-    (define-key map "f"          #'dcl-electric-character)
-    (define-key map "E"          #'dcl-electric-character)
-    (define-key map "e"          #'dcl-electric-character)
-    (define-key map "\C-c\C-o" 	#'dcl-set-option)
-    (define-key map "\C-c\C-f" 	#'tempo-forward-mark)
-    (define-key map "\C-c\C-b" 	#'tempo-backward-mark)
-    map)
-  "Keymap used in DCL-mode buffers.")
+(defvar-keymap dcl-mode-map
+  :doc "Keymap used in DCL-mode buffers."
+  "M-RET"   #'dcl-split-line
+  "M-TAB"   #'tempo-complete-tag
+  "M-^"     #'dcl-delete-indentation
+  "M-m"     #'dcl-back-to-indentation
+  "M-e"     #'dcl-forward-command
+  "M-a"     #'dcl-backward-command
+  "C-M-q"   #'dcl-indent-command
+  "TAB"     #'dcl-tab
+  ":"       #'dcl-electric-character
+  "F"       #'dcl-electric-character
+  "f"       #'dcl-electric-character
+  "E"       #'dcl-electric-character
+  "e"       #'dcl-electric-character
+  "C-c C-o" #'dcl-set-option
+  "C-c C-f" #'tempo-forward-mark
+  "C-c C-b" #'tempo-backward-mark)
 
 (easy-menu-define dcl-mode-menu dcl-mode-map
   "Menu for DCL-mode buffers."
