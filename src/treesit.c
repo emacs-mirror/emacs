@@ -346,6 +346,7 @@ init_treesit_functions (void)
      parser of buffer changes.
    - lisp/emacs-lisp/cl-preloaded.el & data.c & lisp.h for parser and
      node type.
+   - print.c for printing tree-sitter objects (node, parser, query).
 
    Regarding signals: only raise signals in Lisp functions.
 
