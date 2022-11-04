@@ -43,6 +43,7 @@
 (defgroup package-vc nil
   "Manage packages from VC checkouts."
   :group 'package
+  :link '(custom-manual "(emacs) Package from Source")
   :version "29.1")
 
 (defconst package-vc--elpa-packages-version 1
