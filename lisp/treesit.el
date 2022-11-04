@@ -696,7 +696,7 @@ If VERBOSE is non-nil, print debugging information."
     (when verbose
       (message "Contextual: region: %s-%s, node: %s-%s"
                start end node-start node-end))
-    (when (<= node-end end)
+    (when (and (< node-start start) (<= node-end end))
       (if (get-text-property node-end-1 prop-sym)
           ;; We are called from a refontification by jit-lock-context,
           ;; caused by a previous call to this function.
