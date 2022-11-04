@@ -1552,7 +1552,10 @@ in `treesit-parser-list'."
             (format " %s: " (treesit-node-field-name node))
           " ")
         (if (treesit-node-check node 'named) "(" "\"")
-        (or (treesit-node-type node)
+        (or (propertize (treesit-node-type node)
+                        'face
+                        (if (treesit-node-eq node largest-node)
+                            'bold nil))
             "N/A")
         name
         (if (treesit-node-check node 'named) ")" "\""))))
@@ -1568,11 +1571,11 @@ in `treesit-parser-list'."
 
 The mode-line displays
 
-    PARENT FIELD-NAME: (CHILD FIELD_NAME: (GRAND-CHILD (...)))
+    PARENT FIELD-NAME: (NODE FIELD_NAME: (CHILD (...)))
 
-CHILD, GRAND-CHILD, and GRAND-GRAND-CHILD, etc, are nodes that
-have their beginning at point.  And PARENT is the parent of
-CHILD.
+NODE, CHILD, and GRAND-CHILD, etc, are nodes that have their
+beginning at point.  And PARENT is the parent of NODE.  NODE is
+displayed in bold face.
 
 If no node starts at point, i.e., point is in the middle of a
 node, then just display the smallest node that spans point and
