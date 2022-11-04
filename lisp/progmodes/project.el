@@ -1222,8 +1222,10 @@ displayed."
 
 (defcustom project-kill-buffer-conditions
   '(buffer-file-name    ; All file-visiting buffers are included.
-    ;; Most of the temp buffers in the background:
-    (major-mode . fundamental-mode)
+    ;; Most of temp and logging buffers (aside from hidden ones):
+    (and
+     (major-mode . fundamental-mode)
+     (not "\\` "))
     ;; non-text buffer such as xref, occur, vc, log, ...
     (and (derived-mode . special-mode)
          (not (major-mode . help-mode)))
