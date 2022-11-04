@@ -528,28 +528,6 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlay-start/end-1 L (1 0) (1 1))
 (deftest-overlay-start/end-1 M (0 0) (1 1))
 
-(ert-deftest test-overlay-insert-before-markers-empty ()
-  (with-temp-buffer
-    (insert "1234")
-    (goto-char (1+ (point-min)))
-    (let ((overlay (make-overlay (point) (point))))
-      (insert-before-markers "x")
-      (should (equal (point) (overlay-end overlay)))
-      (should (equal (point) (overlay-start overlay))))))
-
-(ert-deftest test-overlay-insert-before-markers-non-empty ()
-  (with-temp-buffer
-    (insert "1234")
-    (goto-char (+ 2 (point)))
-    (let ((overlay (make-overlay (1- (point)) (point))))
-      (insert-before-markers "x")
-      (should (equal (point) (overlay-end overlay)))
-      (should (equal (- (point) 2) (overlay-start overlay)))
-      (forward-char -2)
-      (insert-before-markers "y")
-      (should (equal (+ 2 (point)) (overlay-end overlay)))
-      (should (equal (point) (overlay-start overlay))))))
-
 (ert-deftest test-overlay-start/end-2 ()
   (should-not (overlay-start (with-temp-buffer (make-overlay 1 1))))
   (should-not (overlay-end (with-temp-buffer (make-overlay 1 1)))))
@@ -1315,7 +1293,46 @@ Regression test for bug#58706."
       (delete-overlay left)
       (should (= 2 (length (overlays-in 1 (point-max))))))))
 
+;; +==========================================================================+
+;; | Moving overlays with insert-before-markers
+;; +==========================================================================+
 
+(ert-deftest test-overlay-insert-before-markers-at-start ()
+  "`insert-before-markers' always advances an overlay's start.
+Test both front-advance and non-front-advance overlays."
+  (dolist (front-advance '(nil t))
+    (ert-info ((format "front-advance %S" front-advance))
+      (with-temp-buffer
+        (insert "1234")
+        (let ((overlay (make-overlay 2 3 nil front-advance nil)))
+          (goto-char 2)
+          (insert-before-markers "x")
+          (should (equal 3 (overlay-start overlay)))
+          (should (equal 4 (overlay-end overlay))))))))
+
+(ert-deftest test-overlay-insert-before-markers-at-end ()
+  "`insert-before-markers' always advances an overlay's end.
+Test both rear-advance and non-rear-advance overlays."
+  (dolist (rear-advance '(nil t))
+    (ert-info ((format "rear-advance %S" rear-advance))
+      (with-temp-buffer
+        (insert "1234")
+        (let ((overlay (make-overlay 2 3 nil nil rear-advance)))
+          (goto-char 3)
+          (insert-before-markers "x")
+          (should (equal 2 (overlay-start overlay)))
+          (should (equal 4 (overlay-end overlay))))))))
+
+(ert-deftest test-overlay-insert-before-markers-empty ()
+  (dolist (advance-args '((nil nil) (t nil) (nil t) (t t)))
+    (ert-info ((format "advance args %S" advance-args))
+      (with-temp-buffer
+        (insert "1234")
+        (let ((overlay (apply #'make-overlay 2 2 nil advance-args)))
+          (goto-char 2)
+          (insert-before-markers "x")
+          (should (equal 3 (overlay-start overlay)))
+          (should (equal 3 (overlay-end overlay))))))))
 
 ;; +==========================================================================+
 ;; | Moving by deletions
