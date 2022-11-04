@@ -151,29 +151,6 @@ Assumes parser ranges are up-to-date."
   (when treesit-language-at-point-function
     (funcall treesit-language-at-point-function position)))
 
-(defun treesit-set-ranges (parser-or-lang ranges)
-  "Set the ranges of PARSER-OR-LANG to RANGES."
-  (treesit-parser-set-included-ranges
-   (cond ((symbolp parser-or-lang)
-          (or (treesit-parser-create parser-or-lang)
-              (error "Cannot find a parser for %s" parser-or-lang)))
-         ((treesit-parser-p parser-or-lang)
-          parser-or-lang)
-         (t (error "Expecting a parser or language, but got %s"
-                   parser-or-lang)))
-   ranges))
-
-(defun treesit-get-ranges (parser-or-lang)
-  "Get the ranges of PARSER-OR-LANG."
-  (treesit-parser-included-ranges
-   (cond ((symbolp parser-or-lang)
-          (or (treesit-parser-create parser-or-lang)
-              (error "Cannot find a parser for %s" parser-or-lang)))
-         ((treesit-parser-p parser-or-lang)
-          parser-or-lang)
-         (t (error "Expecting a parser or language, but got %s"
-                   parser-or-lang)))))
-
 ;;; Node API supplement
 
 (defun treesit-node-buffer (node)
