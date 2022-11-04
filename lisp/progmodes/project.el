@@ -355,8 +355,8 @@ Also quote LOCAL-FILES if `default-directory' is quoted."
 (cl-defgeneric project-buffers (project)
   "Return the list of all live buffers that belong to PROJECT.
 
-The default implementation matches the existing buffers to
-PROJECT root using the value of `default-directory' in each one."
+The default implementation matches each buffer to PROJECT root using
+the buffer's value of `default-directory'."
   (let ((root (expand-file-name (file-name-as-directory (project-root project))))
         bufs)
     (dolist (buf (buffer-list))
