@@ -3467,7 +3467,8 @@ adjust_overlays_for_insert (ptrdiff_t pos, ptrdiff_t length, bool before_markers
       itree_insert_gap (base->overlays, pos, length, before_markers);
       FOR_EACH_LIVE_BUFFER (tail, other)
         if (XBUFFER (other)->base_buffer == base)
-          itree_insert_gap (XBUFFER (other)->overlays, pos, length, before_markers);
+	  itree_insert_gap (XBUFFER (other)->overlays, pos, length,
+			    before_markers);
     }
 }
 
