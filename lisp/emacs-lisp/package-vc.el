@@ -23,6 +23,17 @@
 ;; While packages managed by package.el use tarballs for distributing
 ;; the source code, this extension allows for packages to be fetched
 ;; and updated directly from a version control system.
+;;
+;; To install a package from source use `package-vc-install'.  If you
+;; aren't interested in activating a package, you can use
+;; `package-vc-checkout' instead, which will prompt you for a target
+;; directory.  If you wish to re-use an existing checkout, the command
+;; `package-vc-link-directory' will create a symbolic link and prepare
+;; the package.
+;;
+;; If you make local changes that you wish to share with an upstream
+;; maintainer, the command `package-vc-prepare-patch' can prepare
+;; these as patches to send via Email.
 
 ;;; TODO:
 
