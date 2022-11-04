@@ -199,7 +199,7 @@ lacks the terminfo database, you can instruct Emacs to support 24-bit
 true color by setting 'COLORTERM=truecolor' in the environment.  This is
 useful on systems such as FreeBSD which ships only with "etc/termcap".
 
-** File names given on the command line are now be pushed onto history.
+** File names given on the command line are now pushed onto history.
 The file names will be pushed onto 'file-name-history', like the names
 of files visited via 'C-x C-f' and other commands.
 
