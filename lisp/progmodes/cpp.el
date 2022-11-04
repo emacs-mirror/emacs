@@ -1,6 +1,6 @@
 ;;; cpp.el --- highlight or hide text according to cpp conditionals -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -98,8 +98,8 @@ Each entry is a list with the following elements:
                                (const :tag "Both branches writable" both)))))
 
 (defcustom cpp-message-min-time-interval 1.0
-  "Minimum time interval in seconds for `cpp-progress-message' messages.
-If nil, `cpp-progress-message' prints no progress messages."
+  "Minimum time interval in seconds for `cpp-highlight-buffer' progress messages.
+If nil, `cpp-highlight-buffer' prints no progress messages."
   :type '(choice (const :tag "Disable progress messages" nil)
                  float)
   :version "26.1")
@@ -218,14 +218,15 @@ A prefix arg suppresses display of that buffer."
   (cpp-parse-reset)
   (if (null cpp-edit-list)
       (cpp-edit-load))
-  (let (cpp-state-stack)
+  (let ((reporter
+         (and cpp-message-min-time-interval
+              (make-progress-reporter "Parsing..." (point-min) (point-max)
+                                      nil nil cpp-message-min-time-interval)))
+        cpp-state-stack)
     (save-excursion
       (goto-char (point-min))
-      (cpp-progress-message "Parsing...")
       (while (re-search-forward cpp-parse-regexp nil t)
-	(cpp-progress-message "Parsing...%d%%"
-			      (floor (* 100.0 (- (point) (point-min)))
-				     (buffer-size)))
+        (when reporter (progress-reporter-update reporter (point)))
 	(let ((match (buffer-substring (match-beginning 0) (match-end 0))))
 	  (cond ((or (string-equal match "'")
 		     (string-equal match "\""))
@@ -268,7 +269,7 @@ A prefix arg suppresses display of that buffer."
 			  (cpp-parse-close from to))
 			 (t
 			  (cpp-parse-error "Parser error"))))))))
-      (cpp-progress-message "Parsing...done"))
+      (when reporter (progress-reporter-done reporter)))
     (if cpp-state-stack
       (save-excursion
 	(goto-char (nth 3 (car cpp-state-stack)))
@@ -814,6 +815,7 @@ Type must be one of the types defined in `cpp-face-type-list'."
 
 ;;; Utilities:
 
+(make-obsolete-variable 'cpp-progress-time nil "29.1")
 (defvar cpp-progress-time 0
   "Last time `cpp-progress-message' issued a progress message.")
 
@@ -823,6 +825,7 @@ Type must be one of the types defined in `cpp-face-type-list'."
 Print messages at most once every `cpp-message-min-time-interval' seconds.
 If that option is nil, don't prints messages.
 ARGS are the same as for `message'."
+  (declare (obsolete make-progress-reporter "29.1"))
   (when cpp-message-min-time-interval
     (let ((time (current-time)))
       (unless (time-less-p cpp-message-min-time-interval
