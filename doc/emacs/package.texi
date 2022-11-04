@@ -49,7 +49,7 @@ Manual}.
 * Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
-* Package from Source::  Managing packages directly from source.
+* Fetching Package Sources::  Managing packages directly from source.
 @end menu
 
 @node Package Menu
@@ -532,8 +532,8 @@ corresponding package subdirectory.  This only works for packages
 installed in @code{package-user-dir}; if told to act on a package in a
 system-wide package directory, the deletion command signals an error.
 
-@node Package from Source
-@section Package from Source
+@node Fetching Package Sources
+@section Fetching Package Sources
 @cindex package development source
 @cindex upstream source, for packages
 @cindex git source of package @c "git" is not technically correct
