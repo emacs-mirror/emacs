@@ -8380,65 +8380,92 @@ dicta sunt, explicabo.  "))
     (remove-overlays)
     (should (= (length (overlays-in (point-min) (point-max))) 0))))
 
-(ert-deftest test-kill-buffer-auto-save-default ()
-  (ert-with-temp-file file
-    (let (auto-save)
-      ;; Always answer yes.
-      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
-        (unwind-protect
-            (progn
-              (find-file file)
-              (auto-save-mode t)
-              (insert "foo\n")
-              (should buffer-auto-save-file-name)
-              (setq auto-save buffer-auto-save-file-name)
-              (do-auto-save)
-              (should (file-exists-p auto-save))
-              (kill-buffer (current-buffer))
-              (should (file-exists-p auto-save)))
-          (when auto-save
-            (ignore-errors (delete-file auto-save))))))))
+(defun test-kill-buffer-auto-save (auto-save-answer body-func)
+  "Test helper for `kill-buffer-delete-auto-save' tests.
 
-(ert-deftest test-kill-buffer-auto-save-delete ()
+Call BODY-FUNC with the current buffer set to a buffer visiting a
+temporary file.  Around the call, mock the \"Buffer modified;
+kill anyway?\" and \"Delete auto-save file?\" prompts, answering
+\"yes\" for the former and AUTO-SAVE-ANSWER for the latter.  The
+expectation should be the characters `?y' or `?n', or `nil' if no
+prompt is expected.  The test fails if the \"Delete auto-save
+file?\" prompt does not either prompt is not issued as expected.
+Finally, kill the buffer and its temporary file."
   (ert-with-temp-file file
-    (let (auto-save)
-      (should (file-exists-p file))
-      (setq kill-buffer-delete-auto-save-files t)
-      ;; Always answer yes.
-      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
-        (unwind-protect
-            (progn
-              (find-file file)
-              (auto-save-mode t)
-              (insert "foo\n")
-              (should buffer-auto-save-file-name)
-              (setq auto-save buffer-auto-save-file-name)
-              (do-auto-save)
-              (should (file-exists-p auto-save))
-              ;; This should delete the auto-save file.
-              (kill-buffer (current-buffer))
-              (should-not (file-exists-p auto-save)))
-          (ignore-errors (delete-file file))
-          (when auto-save
-            (ignore-errors (delete-file auto-save)))))
-      ;; Answer no to deletion.
-      (cl-letf (((symbol-function #'yes-or-no-p)
-                 (lambda (prompt)
-                   (not (string-search "Delete auto-save file" prompt)))))
-        (unwind-protect
-            (progn
-              (find-file file)
-              (auto-save-mode t)
-              (insert "foo\n")
-              (should buffer-auto-save-file-name)
-              (setq auto-save buffer-auto-save-file-name)
-              (do-auto-save)
-              (should (file-exists-p auto-save))
-              ;; This should not delete the auto-save file.
-              (kill-buffer (current-buffer))
-              (should (file-exists-p auto-save)))
-          (when auto-save
-            (ignore-errors (delete-file auto-save))))))))
+    (should (file-exists-p file))
+    (save-excursion
+      (find-file file)
+      (should (equal file (buffer-file-name)))
+      (let ((buffer (current-buffer))
+            (auto-save-prompt-happened nil))
+        (cl-letf (((symbol-function #'read-multiple-choice)
+                   (lambda (prompt choices &rest _)
+                     (should (string-search "modified; kill anyway?" prompt))
+                     (let ((answer (assq ?y choices)))
+                       (should answer)
+                       answer)))
+                  ((symbol-function #'yes-or-no-p)
+                   (lambda (prompt)
+                     (should (string-search "Delete auto-save file?" prompt))
+                     (setq auto-save-prompt-happened t)
+                     (pcase-exhaustive auto-save-answer
+                       (?y t)
+                       (?n nil)))))
+          (funcall body-func)
+          (should (equal (null auto-save-prompt-happened)
+                         (null auto-save-answer))))
+        (when (buffer-live-p buffer)
+          (with-current-buffer buffer
+            (set-buffer-modified-p nil)
+            (kill-buffer)))))))
+
+(ert-deftest test-kill-buffer-auto-save-default ()
+  (let ((kill-buffer-delete-auto-save-files nil))
+    (test-kill-buffer-auto-save
+     nil
+     (lambda ()
+       (let (auto-save)
+         (auto-save-mode t)
+         (insert "foo\n")
+         (should buffer-auto-save-file-name)
+         (setq auto-save buffer-auto-save-file-name)
+         (do-auto-save)
+         (should (file-exists-p auto-save))
+         (kill-buffer (current-buffer))
+         (should (file-exists-p auto-save)))))))
+
+(ert-deftest test-kill-buffer-auto-save-delete-yes ()
+  (let ((kill-buffer-delete-auto-save-files t))
+    (test-kill-buffer-auto-save
+     ?y
+     (lambda ()
+       (let (auto-save)
+         (auto-save-mode t)
+         (insert "foo\n")
+         (should buffer-auto-save-file-name)
+         (setq auto-save buffer-auto-save-file-name)
+         (do-auto-save)
+         (should (file-exists-p auto-save))
+         ;; This should delete the auto-save file.
+         (kill-buffer (current-buffer))
+         (should-not (file-exists-p auto-save)))))))
+
+(ert-deftest test-kill-buffer-auto-save-delete-no ()
+  (let ((kill-buffer-delete-auto-save-files t))
+    (test-kill-buffer-auto-save
+     ?n
+     (lambda ()
+       (let (auto-save)
+         (auto-save-mode t)
+         (insert "foo\n")
+         (should buffer-auto-save-file-name)
+         (setq auto-save buffer-auto-save-file-name)
+         (do-auto-save)
+         (should (file-exists-p auto-save))
+         ;; This should not delete the auto-save file.
+         (kill-buffer (current-buffer))
+         (should (file-exists-p auto-save))
+         (delete-file auto-save))))))
 
 (ert-deftest test-buffer-modifications ()
   (ert-with-temp-file file
