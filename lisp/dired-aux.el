@@ -1025,8 +1025,9 @@ If PROGRAM exits successfully, display \"MSG...done\" and return nil.
 If PROGRAM exits abnormally, save in `dired-log-buffer' the command
 that invoked PROGRAM and the messages it emitted, and return either
 the offending ARGUMENTS or PROGRAM if no ARGUMENTS were provided."
-  (let (err-buffer err (dir default-directory))
-    (message "%s..." msg)
+  (let ((dir default-directory)
+        (reporter (make-progress-reporter msg))
+        err-buffer err)
     (save-excursion
       ;; Get a clean buffer for error output:
       (setq err-buffer (get-buffer-create " *dired-check-process output*"))
@@ -1041,8 +1042,8 @@ the offending ARGUMENTS or PROGRAM if no ARGUMENTS were provided."
 	    (dired-log err-buffer)
 	    (or arguments program t))
 	(kill-buffer err-buffer)
-	(message "%s...done" msg)
-	nil))))
+        (progress-reporter-done reporter)
+        nil))))
 
 (defun dired-shell-command (cmd)
   "Run CMD, and check for output.
