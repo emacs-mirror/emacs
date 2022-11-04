@@ -247,10 +247,10 @@ If optional argument LANGUAGE is non-nil, use the first parser
 for LANGUAGE."
   (if-let ((parser
             (or (if language
-                    (or (treesit-parser-create language)
-                        (error "Cannot find a parser for %s" language))
+                    (treesit-parser-create language)
                   (or (car (treesit-parser-list))
-                      (error "Buffer has no parser"))))))
+                      (signal 'treesit-error
+                              '("Buffer has no parser")))))))
       (treesit-parser-root-node parser)))
 
 (defun treesit-filter-child (node pred &optional named)
