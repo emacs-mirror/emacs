@@ -13026,6 +13026,23 @@ xi_get_scroll_valuator (struct xi_device_t *device, int number)
   return NULL;
 }
 
+/* Check if EVENT, a DeviceChanged event, contains any scroll
+   valuators.  */
+
+static bool
+xi_has_scroll_valuators (XIDeviceChangedEvent *event)
+{
+  int i;
+
+  for (i = 0; i < event->num_classes; ++i)
+    {
+      if (event->classes[i]->type == XIScrollClass)
+	return true;
+    }
+
+  return false;
+}
+
 #endif
 
 /* Handle EVENT, a DeviceChanged event.  Look up the device that
@@ -13049,21 +13066,93 @@ xi_handle_device_changed (struct x_display_info *dpyinfo,
 #endif
 
 #ifdef HAVE_XINPUT2_1
-  /* When a DeviceChange event is received for a master device, we
-     don't get any scroll valuators along with it.  This is possibly
-     an X server bug but I really don't want to dig any further, so
-     fetch the scroll valuators manually.  (bug#57020) */
-
-  x_catch_errors (dpyinfo->display);
-  info = XIQueryDevice (dpyinfo->display, event->deviceid,
-			/* ndevices is always 1 if a deviceid is
-			   specified.  If the request fails, NULL will
-			   be returned.  */
-			&ndevices);
-  x_uncatch_errors ();
-
-  if (info)
+  if (xi_has_scroll_valuators (event))
     {
+      /* Scroll valuators are provided by this event.  Use the values
+	 provided in this event to populate the device's new scroll
+	 valuator list, as if this event's is a SlaveSwitch event
+	 caused by wheel movement, querying for the device info will
+	 probably return newer values, leading to a delta of 0 being
+	 computed when handling the subsequent XI_Motion event.
+	 (bug#58980) */
+
+      device->valuators = xrealloc (device->valuators,
+				    (event->num_classes
+				     * sizeof *device->valuators));
+      device->scroll_valuator_count = 0;
+#ifdef HAVE_XINPUT2_2
+      device->direct_p = false;
+#endif
+
+      for (i = 0; i < event->num_classes; ++i)
+	{
+	  switch (event->classes[i]->type)
+	    {
+	    case XIScrollClass:
+	      scroll = (XIScrollClassInfo *) event->classes[i];
+
+	      valuator = &device->valuators[device->scroll_valuator_count++];
+	      valuator->horizontal = (scroll->scroll_type
+				      == XIScrollTypeHorizontal);
+	      valuator->invalid_p = true;
+	      valuator->emacs_value = 0;
+	      valuator->increment = scroll->increment;
+	      valuator->number = scroll->number;
+	      break;
+
+#ifdef HAVE_XINPUT2_2
+	    case XITouchClass:
+	      touch = (XITouchClassInfo *) event->classes[i];
+
+	      if (touch->mode == XIDirectTouch)
+		device->direct_p = true;
+	      break;
+#endif
+	    }
+	}
+
+      /* Restore the values of any scroll valuators that we already
+	 know about.  */
+
+      for (i = 0; i < event->num_classes; ++i)
+	{
+	  switch (event->classes[i]->type)
+	    {
+	    case XIValuatorClass:
+	      valuator_info = (XIValuatorClassInfo *) event->classes[i];
+
+	      valuator = xi_get_scroll_valuator (device,
+						 valuator_info->number);
+	      if (valuator)
+		{
+		  valuator->invalid_p = false;
+		  valuator->current_value = valuator_info->value;
+		  valuator->emacs_value = 0;
+		}
+
+	      break;
+	    }
+	}
+    }
+  else
+    {
+      /* When a DeviceChange event is received for a master device,
+	 the X server sometimes does not send any scroll valuators
+	 along with it.  This is possibly an X server bug but I really
+	 don't want to dig any further, so fetch the scroll valuators
+	 manually.  (bug#57020) */
+
+      x_catch_errors (dpyinfo->display);
+      info = XIQueryDevice (dpyinfo->display, event->deviceid,
+			    /* ndevices is always 1 if a deviceid is
+			       specified.  If the request fails, NULL will
+			       be returned.  */
+			    &ndevices);
+      x_uncatch_errors ();
+
+      if (!info)
+	return;
+
       device->valuators = xrealloc (device->valuators,
 				    (info->num_classes
 				     * sizeof *device->valuators));
@@ -13115,32 +13204,32 @@ xi_handle_device_changed (struct x_display_info *dpyinfo,
 		{
 		  valuator->invalid_p = false;
 		  valuator->current_value = valuator_info->value;
+		  valuator->emacs_value = 0;
 		}
 
 	      break;
 	    }
 	}
 
-#ifdef HAVE_XINPUT2_2
-      /* The device is no longer a DirectTouch device, so
-	 remove any touchpoints that we might have
-	 recorded.  */
-      if (!device->direct_p)
-	{
-	  tem = device->touchpoints;
-
-	  while (tem)
-	    {
-	      last = tem;
-	      tem = tem->next;
-	      xfree (last);
-	    }
-
-	  device->touchpoints = NULL;
-	}
+      XIFreeDeviceInfo (info);
+    }
 #endif
 
-      XIFreeDeviceInfo (info);
+#ifdef HAVE_XINPUT2_2
+  /* The device is no longer a DirectTouch device, so remove any
+     touchpoints that we might have recorded.  */
+  if (!device->direct_p)
+    {
+      tem = device->touchpoints;
+
+      while (tem)
+	{
+	  last = tem;
+	  tem = tem->next;
+	  xfree (last);
+	}
+
+      device->touchpoints = NULL;
     }
 #endif
 }
