@@ -321,6 +321,9 @@ visible_end.)"
         (setq parser (treesit-parser-create 'json))
         (setq root-node (treesit-parser-root-node
                          parser)))
+
+      (should (eq (treesit-parser-included-ranges parser) nil))
+
       (should-error
        (treesit-parser-set-included-ranges
         parser '((1 . 6) (5 . 20)))
@@ -333,6 +336,32 @@ visible_end.)"
       (should (equal "(document (array (array (number)) (array (number) (number) (number)) (array (number) (number))))"
                      (treesit-node-string
                       (treesit-parser-root-node parser))))
+
+      (treesit-parser-set-included-ranges parser nil)
+      (should (eq (treesit-parser-included-ranges parser) nil))
+
+      ;; `treesit--merge-ranges'.
+      (let ((old-ranges '((1 . 10) ; (1) -- before (a)
+                          (20 . 30); (2) -- intersect with (b)
+                          (42 . 46) (47 . 48) ; (3) -- inside (c)
+                          (55 . 65) (70 . 75) ; (4) -- intersect start-end
+                          (80 . 90) ; (4)
+                          ))
+            (new-ranges '((10 . 15) ; (a)
+                          (18 . 25) (26 . 28) ; (b)
+                          (40 . 50) ; (c)
+                          (90 . 100) ; (d) -- after (4)
+                          ))
+            (result '((1 . 10) ; (1)
+                      (10 . 15) ; (a)
+                      (18 . 25) (26 . 28) ; (b)
+                      (40 . 50) ; (c)
+                      (80 . 90) ; (4)
+                      (90 . 100) ; (d)
+                      )))
+        (should (equal (treesit--merge-ranges
+                        old-ranges new-ranges 60 75)
+                       result)))
       ;; TODO: More tests.
       )))
 

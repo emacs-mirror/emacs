@@ -373,27 +373,133 @@ captured node.  Capture names don't matter."
 
 ;;; Range API supplement
 
-(defvar-local treesit-range-functions nil
-  "A list of range functions.
-Font-locking and indenting code uses functions in this list to
-set correct ranges for a language parser before using it.
+(defvar-local treesit-range-settings nil
+  "A list of range settings.
 
-The signature of each function should be
+A list of list of the form
 
-    (start end &rest _)
+    (QUERY LANGUAGE)
 
-where START and END marks the region that is about to be used.  A
-range function only need to (but not limited to) update ranges in
-that region.
+When updating the range of each parser in the buffer,
+`treesit-update-ranges' queries each QUERY, and set LANGUAGE's
+range to the range spanned by captured nodes.  QUERY must be a
+compiled query.
 
-Each function in the list is called in-order.")
+QUERY can also be a function, in which case it is called with 2
+arguments, START and END.  It should ensure parsers' range are
+correct in that region.
 
-(defun treesit-update-ranges (&optional start end)
+The exact form of the variable is considered internal and subject
+to change.  Use `treesit-range-rules' to set this variable.")
+
+(defun treesit-range-rules (&rest args)
+  "Produce settings for `treesit-range-settings'.
+
+Take a series of QUERIES in either string, s-expression or
+compiled form.  For example,
+
+Before each QUERY there must be :KEYWORD VALUE pairs that
+configure the query (and only that query).  For example,
+
+    (treesit-range-rules
+     :embed \\='javascript
+     :host \\='html
+     \\='((script_element (raw_text) @cap)))
+
+For each query, :embed keyword specifies the embedded language,
+and :host keyword specified the host language.  Emacs queries the
+QUERY in the host language and uses the result to set ranges for
+the embedded language.
+
+QUERY can also be a function that takes two arguments, START and
+END, and sets the range for parsers.  The function only needs to
+ensure ranges between START and END is correct.  If QUERY is a
+function, it doesn't need to have keywords before it.
+
+\(:KEYWORD VALUE QUERY...)"
+  (let (host embed result)
+    (while args
+      (pcase (pop args)
+        (:host (let ((host-lang (pop args)))
+                 (unless (symbolp host-lang)
+                   (signal 'treesit-error (list "Value of :host option should be a symbol" host-lang)))
+                 (setq host host-lang)))
+        (:embed (let ((embed-lang (pop args)))
+                  (unless (symbolp embed-lang)
+                    (signal 'treesit-error (list "Value of :embed option should be a symbol" embed-lang)))
+                  (setq embed embed-lang)))
+        (query (if (functionp query)
+                   (push (list query nil nil) result)
+                 (when (null embed)
+                   (signal 'treesit-error (list "Value of :embed option cannot be omitted")))
+                 (when (null host)
+                   (signal 'treesit-error (list "Value of :host option cannot be omitted")))
+                 (push (list (treesit-query-compile host query)
+                             embed host)
+                       result))
+               (setq host nil embed nil))))
+    (nreverse result)))
+
+(defun treesit--merge-ranges (old-ranges new-ranges start end)
+  "Merge OLD-RANGES and NEW-RANGES.
+Each range is a list of cons of the form (BEG . END).  When
+merging the two ranges, if a range in OLD-RANGES intersects with
+another range in NEW-RANGES, discard the one in OLD-RANGES and
+keep the one in NEW-RANGES.  Also discard any range in OLD-RANGES
+that intersects the region marked by START and END.
+
+Return the merged range list."
+  (let ((result nil))
+    (while (and old-ranges new-ranges)
+      (let ((new-beg (caar new-ranges))
+            (new-end (cdar new-ranges))
+            (old-beg (caar old-ranges))
+            (old-end (cdar old-ranges)))
+        (cond
+         ;; Old range intersects with START-END, discard.
+         ((and (< start old-end)
+               (< old-beg end))
+          (setq old-ranges (cdr old-ranges)))
+         ;; New range and old range don't intersect, new comes
+         ;; before, push new.
+         ((<= new-end old-beg)
+          (push (car new-ranges) result)
+          (setq new-ranges (cdr new-ranges)))
+         ;; New range and old range don't intersect, old comes
+         ;; before, push old.
+         ((<= old-end new-beg)
+          (push (car old-ranges) result)
+          (setq old-ranges (cdr old-ranges)))
+         (t ;; New and old range intersect, discard old.
+          (setq old-ranges (cdr old-ranges))))))
+    (let ((left-over (or new-ranges old-ranges)))
+      (dolist (range left-over)
+        (push range result)))
+    (nreverse result)))
+
+(defun treesit-update-ranges (&optional beg end)
   "Update the ranges for each language in the current buffer.
-Calls each range functions in `treesit-range-functions'
-in-order.  START and END are passed to each range function."
-  (dolist (range-fn treesit-range-functions)
-    (funcall range-fn (or start (point-min)) (or end (point-max)))))
+If BEG and END not omitted, only update parser ranges in that
+region."
+  ;; When updating ranges, we want to avoid querying the whole buffer
+  ;; which could be slow in very large buffers.  Instead, we only
+  ;; query for nodes that intersect with the region between BEG and
+  ;; END.  And we only update the ranges intersecting BEG and END,
+  ;; outside of that region we inherit old ranges.
+  (dolist (setting treesit-range-settings)
+    (let ((query (nth 0 setting))
+          (language (nth 1 setting))
+          (beg (or beg (point-min)))
+          (end (or end (point-max))))
+      (if (functionp query) (funcall query beg end)
+        (let* ((host-lang (treesit-query-language query))
+               (parser (treesit-parser-create language))
+               (old-ranges (treesit-parser-included-ranges parser))
+               (new-ranges (treesit-query-range
+                            host-lang query beg end))
+               (set-ranges (treesit--merge-ranges
+                            old-ranges new-ranges beg end)))
+          (treesit-parser-set-included-ranges parser set-ranges))))))
 
 (defun treesit-parser-range-on (parser beg &optional end)
   "Check if PARSER's range covers the portion between BEG and END.
@@ -469,9 +575,8 @@ t, nil, append, prepend, keep.  See more in
   "Return a value suitable for `treesit-font-lock-settings'.
 
 Take a series of QUERIES in either string, s-expression or
-compiled form.  Same as in `treesit-font-lock-settings', for each
-query, captured nodes are highlighted with the capture name as
-its face.
+compiled form.  For each query, captured nodes are highlighted
+with the capture name as its face.
 
 Before each QUERY there could be :KEYWORD VALUE pairs that
 configure the query (and only that query).  For example,
@@ -1065,7 +1170,8 @@ Return (ANCHOR . OFFSET).  This function is used by
 
 (defun treesit-indent ()
   "Indent according to the result of `treesit-indent-function'."
-  (treesit-update-ranges)
+  (treesit-update-ranges (line-beginning-position)
+                         (line-end-position))
   ;; We don't return 'noindent even if no rules match, because
   ;; `indent-for-tab-command' tries to indent itself when we return
   ;; 'noindent, which leads to wrong indentation at times.
@@ -1092,7 +1198,7 @@ reparse after indenting every single line.")
 (defun treesit-indent-region (beg end)
   "Indent the region between BEG and END.
 Similar to `treesit-indent', but indent a region instead."
-  (treesit-update-ranges)
+  (treesit-update-ranges beg end)
   (let* ((meta-len 2)
          (vector-len (* meta-len treesit--indent-region-batch-size))
          ;; This vector saves the indent meta for each line in the

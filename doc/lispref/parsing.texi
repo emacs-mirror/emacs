@@ -1419,49 +1419,30 @@ Like other query functions, this function raises the
 @code{treesit-query-error} error if @var{query} is malformed.
 @end defun
 
-@defvar treesit-range-functions
-This variable holds the list of range functions.  Font-locking and
-indenting code use functions in this list to set correct ranges for
-a language parser before using it.
-
-The signature of each function in the list should be:
-
-@example
-(@var{start} @var{end} &rest @var{_})
-@end example
-
-@noindent
-where @var{start} and @var{end} specify the region that is about to be
-used.  A range function only needs to (but is not limited to) update
-ranges in that region.
-
-The functions in the list are called in order.
-@end defvar
-
-@defun treesit-update-ranges &optional start end
-This function is used by font-lock and indentation to update ranges
-before using any parser.  Each range function in
-@var{treesit-range-functions} is called in-order.  Arguments
-@var{start} and @var{end} are passed to each range function.
+@defun treesit-update-ranges &optional beg end
+This function is used by fontification and indentation to update
+ranges before using any parser.  It makes sure the parsers' range are
+set correctly between @var{beg} and @var{end}, according to
+@code{treesit-range-settings}.  If omitted, @var{beg} defaults to the
+beginning of the buffer, and @var{end} defaults to the end.
 @end defun
 
 @vindex treesit-language-at-point-function
 @defun treesit-language-at pos
 This function tries to figure out which language is responsible for
 the text at buffer position @var{pos}.  Under the hood it just calls
-@code{treesit-language-at-point-function}.
+@code{treesit-language-at-point-function}, which is a function that
+takes the same argument as this function.
 
 Various Lisp programs use this function.  For example, the indentation
 program uses this function to determine which language's rule to use
-in a multi-language buffer.  So it is important to provide
-@code{treesit-language-at-point-function} for a multi-language major
-mode.
+in a multi-language buffer.
 @end defun
 
 @heading An example
 
 Normally, in a set of languages that can be mixed together, there is a
-major language and several embedded languages.  A Lisp program usually
+main language and several embedded languages.  A Lisp program usually
 first parses the whole document with the major language's parser, sets
 ranges for the embedded languages, and then parses the embedded
 languages.
@@ -1511,6 +1492,51 @@ and JavaScript:
 We use a query pattern @w{@code{(style_element (raw_text) @@capture)}}
 to find @acronym{CSS} nodes in the @acronym{HTML} parse tree.  For how
 to write query patterns, @pxref{Pattern Matching}.
+
+Emacs can automate the above process in @code{treesit-update-ranges}.
+For it to work, a Lisp program should set
+@code{treesit-range-settings} to the output of
+@code{treesit-range-rules}, like the following.
+
+@example
+@group
+(setq-local treesit-range-settings
+            (treesit-range-rules
+             :embed 'javascript
+             :host 'html
+             '((script_element (raw_text) @@cap))
+@end group
+
+@group
+             :embed 'css
+             :host 'html
+             '((style_element (raw_text) @@cap))))
+@end group
+@example
+
+@defun treesit-range-rules :keyword value query...
+This function is used to set @var{treesit-range-settings}.  It
+takes care of compiling queries and other post-processing, and outputs
+a value that @var{treesit-range-settings} accepts.
+
+It takes a series of @var{queries} in either string, s-expression or
+compiled form.  Before each QUERY there must be @var{:keyword}
+@var{value} pairs that configure the query (and only that query).
+
+For each query, @code{:embed} keyword specifies the embedded language,
+and @code{:host} keyword specified the host language.  Emacs queries
+the @var{query} in the host language and uses the result to set ranges
+for the embedded language.
+
+A @var{query} can also be a function that takes two arguments,
+@var{start} and @var{end}, and sets the range for parsers.  It only
+needs to ensure ranges between @var{start} and @var{end} is correct.
+When @var{query} is a function, it doesn't need keywords before it.
+@end defun
+
+In summary, a multi-langauge major mode should set
+@code{treesit-language-at-function} and @code{treesit-range-settings}
+for Emacs to handle multiple languages in the same buffer.
 
 @node Tree-sitter major modes
 @section Developing major modes with tree-sitter
