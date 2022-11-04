@@ -955,6 +955,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->visible_end = BUF_ZV (XBUFFER (buffer));
   lisp_parser->timestamp = 0;
   lisp_parser->deleted = false;
+  lisp_parser->has_range = false;
   eassert (lisp_parser->visible_beg <= lisp_parser->visible_end);
   return make_lisp_ptr (lisp_parser, Lisp_Vectorlike);
 }
@@ -1340,13 +1341,15 @@ DEFUN ("treesit-parser-set-included-ranges",
 
 RANGES is a list of (BEG . END), each (BEG . END) defines a region in
 which the parser should operate.  Regions must not overlap, and the
-regions should come in order in the list.  Signal `treesit-set-range-error'
-if the argument is invalid, or something else went wrong.  If RANGES
-is nil, the PARSER is to parse the whole buffer.  */)
+regions should come in order in the list.  Signal
+`treesit-set-range-error' if the argument is invalid, or something
+else went wrong.  If RANGES is nil, the PARSER is to parse the whole
+buffer.  */)
   (Lisp_Object parser, Lisp_Object ranges)
 {
   treesit_check_parser (parser);
-  CHECK_CONS (ranges);
+  if (!NILP (ranges))
+    CHECK_CONS (ranges);
   treesit_check_range_argument (ranges);
 
   treesit_initialize ();
@@ -1357,6 +1360,7 @@ is nil, the PARSER is to parse the whole buffer.  */)
   bool success;
   if (NILP (ranges))
     {
+      XTS_PARSER (parser)->has_range = false;
       /* If RANGES is nil, make parser to parse the whole document.
 	 To do that we give tree-sitter a 0 length, the range is a
 	 dummy.  */
@@ -1367,6 +1371,7 @@ is nil, the PARSER is to parse the whole buffer.  */)
   else
     {
       /* Set ranges for PARSER.  */
+      XTS_PARSER (parser)->has_range = true;
 
       if (list_length (ranges) > UINT32_MAX)
 	xsignal (Qargs_out_of_range, list2 (ranges, Flength (ranges)));
@@ -1420,11 +1425,18 @@ return nil.  */)
 {
   treesit_check_parser (parser);
   treesit_initialize ();
+
+  /* When the parser doesn't have a range set and we call
+     ts_parser_included_ranges on it, it doesn't return an empty list,
+     but rather return some garbled data. (A single range where
+     start_byte = 0, end_byte = UINT32_MAX).  So we need to track
+     whether the parser is ranged ourselves.  */
+  if (!XTS_PARSER (parser)->has_range)
+    return Qnil;
+
   uint32_t len;
   const TSRange *ranges
     = ts_parser_included_ranges (XTS_PARSER (parser)->parser, &len);
-  if (len == 0)
-    return Qnil;
 
   /* Our return value depends on the buffer state (BUF_BEGV_BYTE,
      etc), so we need to sync up.  */

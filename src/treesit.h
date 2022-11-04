@@ -65,6 +65,9 @@ struct Lisp_TS_Parser
   /* If this field is true, parser functions raises
      treesit-parser-deleted signal.  */
   bool deleted;
+  /* If this field is true, the parser has ranges set.  See
+     Ftreesit_parser_included_ranges for why we need this.  */
+  bool has_range;
 };
 
 /* A wrapper around a tree-sitter node.  */
