@@ -116,6 +116,7 @@ symbol is used.  The value must be a member of
                            vc-handled-backends))
   :version "29.1")
 
+(defvar package-vc-selected-packages) ; pacify byte-compiler
 (defun package-vc-ensure-packages ()
   "Ensure source packages specified in `package-vc-selected-packages'."
   (pcase-dolist (`(,(and (pred symbolp) name) . ,spec)
