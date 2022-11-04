@@ -1228,7 +1228,8 @@ displayed."
      (not "\\` "))
     ;; non-text buffer such as xref, occur, vc, log, ...
     (and (derived-mode . special-mode)
-         (not (major-mode . help-mode)))
+         (not (major-mode . help-mode))
+         (not (derived-mode . gnus-mode)))
     (derived-mode . compilation-mode)
     (derived-mode . dired-mode)
     (derived-mode . diff-mode)
