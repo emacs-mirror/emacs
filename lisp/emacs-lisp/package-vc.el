@@ -103,13 +103,13 @@ symbol is used.  The value must be a member of
                            vc-handled-backends))
   :version "29.1")
 
-(defun package-vc--select-packages (sym val)
-  "Custom setter for `package-vc-selected-packages'.
-It will ensure that all the packages are installed as source
-packages.  Finally SYM is set to VAL."
-  (pcase-dolist (`(,(and (pred symbolp) name) . ,spec) val)
+(defun package-vc-ensure-packages ()
+  "Ensure source packages specified in `package-vc-selected-packages'."
+  (pcase-dolist (`(,(and (pred symbolp) name) . ,spec)
+                 package-vc-selected-packages)
     (let ((pkg-desc (cadr (assoc name package-alist #'string=))))
-      (unless (and name (package-installed-p name) (package-vc-p pkg-desc))
+      (unless (and name (package-installed-p name)
+                   (package-vc-p pkg-desc))
         (cond
          ((null spec)
           (package-vc-install name))
@@ -117,8 +117,7 @@ packages.  Finally SYM is set to VAL."
           (package-vc-install name nil spec))
          ((listp spec)
           (package-vc--archives-initialize)
-          (package-vc--unpack pkg-desc spec))))))
-  (custom-set-default sym val))
+          (package-vc--unpack pkg-desc spec)))))))
 
 ;;;###autoload
 (defcustom package-vc-selected-packages '()
@@ -134,7 +133,8 @@ is a symbol designating the package and SPEC is one of:
   specification.
 
 This user option differs from `package-selected-packages' in that
-it is meant to be specified manually."
+it is meant to be specified manually.  You can also use the
+function `package-vc-selected-packages' to apply the changes."
   :type '(alist :tag "List of ensured packages"
                 :key-type (symbol :tag "Package")
                 :value-type
@@ -145,7 +145,9 @@ it is meant to be specified manually."
                                          (:lisp-dir string)
                                          (:main-file string)
                                          (:vc-backend symbol)))))
-  :set #'package-vc--select-packages
+  :set (lambda (sym val)
+         (custom-set-default sym val)
+         (package-vc-ensure-packages))
   :version "29.1")
 
 (defvar package-vc--archive-spec-alist nil

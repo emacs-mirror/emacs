@@ -1573,6 +1573,11 @@ packages checked out using 'package-vc-install'.
 This command helps you compose an email for sending bug reports to
 package maintainers.
 
++++
+*** New user option 'package-vc-selected-packages'
+By customising this user option you can specify specific packages to
+install.
+
 ** Emacs Sessions (Desktop)
 
 +++
