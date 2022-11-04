@@ -3619,7 +3619,7 @@ buffer.  */)
       o_end = OVERLAY_END (overlay);
     }
 
-  if (! EQ (buffer, obuffer))
+  if (! BASE_EQ (buffer, obuffer))
     {
       if (! NILP (obuffer))
         remove_buffer_overlay (XBUFFER (obuffer), XOVERLAY (overlay));
