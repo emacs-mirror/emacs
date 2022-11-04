@@ -1186,7 +1186,7 @@ itree_iterator_finish (struct itree_iterator *iter)
 
 void
 itree_insert_gap (struct itree_tree *tree,
-		  ptrdiff_t pos, ptrdiff_t length)
+		  ptrdiff_t pos, ptrdiff_t length, bool before_markers)
 {
   if (!tree || length <= 0 || tree->root == NULL)
     return;
@@ -1195,14 +1195,19 @@ itree_insert_gap (struct itree_tree *tree,
   /* FIXME: Don't allocate iterator/stack anew every time. */
 
   /* Nodes with front_advance starting at pos may mess up the tree
-     order, so we need to remove them first. */
+     order, so we need to remove them first.  This doesn't apply for
+     `before_markers` since in that case, all positions move identically
+     regardless of `front_advance` or `rear_advance`.  */
   struct interval_stack *saved = interval_stack_create (0);
   struct itree_node *node = NULL;
-  ITREE_FOREACH (node, tree, pos, pos + 1, PRE_ORDER)
+  if (!before_markers)
     {
-      if (node->begin == pos && node->front_advance
-	  && (node->begin != node->end || node->rear_advance))
-	interval_stack_push (saved, node);
+      ITREE_FOREACH (node, tree, pos, pos + 1, PRE_ORDER)
+	{
+	  if (node->begin == pos && node->front_advance
+	      && (node->begin != node->end || node->rear_advance))
+	    interval_stack_push (saved, node);
+	}
     }
   for (size_t i = 0; i < saved->length; ++i)
     itree_remove (tree, nav_nodeptr (saved->nodes[i]));
@@ -1235,10 +1240,12 @@ itree_insert_gap (struct itree_tree *tree,
 	      && pos <= node->left->limit + node->left->offset)
 	    interval_stack_push (stack, node->left);
 
-	  /* node->begin == pos implies no front-advance. */
-	  if (node->begin > pos)
+	  if (before_markers
+	      ? node->begin >= pos
+	      : node->begin > pos) /* node->begin == pos => !front-advance  */
 	    node->begin += length;
-	  if (node->end > pos || (node->end == pos && node->rear_advance))
+	  if (node->end > pos
+	      || (node->end == pos && (before_markers || node->rear_advance)))
 	    {
 	      node->end += length;
 	      eassert (node != NULL);

@@ -120,7 +120,7 @@ extern void itree_insert (struct itree_tree *, struct itree_node *,
 			  ptrdiff_t, ptrdiff_t);
 extern struct itree_node *itree_remove (struct itree_tree *,
 					struct itree_node *);
-extern void itree_insert_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
+extern void itree_insert_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t, bool);
 extern void itree_delete_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
 
 /* Iteration functions.  Almost all code should use ITREE_FOREACH

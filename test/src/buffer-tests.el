@@ -528,6 +528,28 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlay-start/end-1 L (1 0) (1 1))
 (deftest-overlay-start/end-1 M (0 0) (1 1))
 
+(ert-deftest test-overlay-insert-before-markers-empty ()
+  (with-temp-buffer
+    (insert "1234")
+    (goto-char (1+ (point-min)))
+    (let ((overlay (make-overlay (point) (point))))
+      (insert-before-markers "x")
+      (should (equal (point) (overlay-end overlay)))
+      (should (equal (point) (overlay-start overlay))))))
+
+(ert-deftest test-overlay-insert-before-markers-non-empty ()
+  (with-temp-buffer
+    (insert "1234")
+    (goto-char (+ 2 (point)))
+    (let ((overlay (make-overlay (1- (point)) (point))))
+      (insert-before-markers "x")
+      (should (equal (point) (overlay-end overlay)))
+      (should (equal (- (point) 2) (overlay-start overlay)))
+      (forward-char -2)
+      (insert-before-markers "y")
+      (should (equal (+ 2 (point)) (overlay-end overlay)))
+      (should (equal (point) (overlay-start overlay))))))
+
 (ert-deftest test-overlay-start/end-2 ()
   (should-not (overlay-start (with-temp-buffer (make-overlay 1 1))))
   (should-not (overlay-end (with-temp-buffer (make-overlay 1 1)))))

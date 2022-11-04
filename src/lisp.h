@@ -4690,7 +4690,7 @@ extern void syms_of_editfns (void);
 extern bool mouse_face_overlay_overlaps (Lisp_Object);
 extern Lisp_Object disable_line_numbers_overlay_at_eob (void);
 extern AVOID nsberror (Lisp_Object);
-extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t);
+extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t, bool);
 extern void adjust_overlays_for_delete (ptrdiff_t, ptrdiff_t);
 extern void fix_start_end_in_overlays (ptrdiff_t, ptrdiff_t);
 extern void report_overlay_modification (Lisp_Object, Lisp_Object, bool,
