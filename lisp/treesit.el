@@ -1440,7 +1440,7 @@ instead of emitting warning.
 If MODE is nil, don't check for user setting and assume the
 setting is t.
 
-LANGUAGE is the language symbol we want check for availability.
+LANGUAGE is the language symbol we want to check for availability.
 It can also be a list of language symbols."
   (let ((language-list (if (consp language)
                            language
