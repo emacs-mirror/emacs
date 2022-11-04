@@ -877,6 +877,10 @@ If LOUDLY is non-nil, display some debugging information."
 
 ;;; Indent
 
+(define-error 'treesit-indent-error
+              "Generic tree-sitter indentation error"
+              'treesit-error)
+
 (defvar treesit--indent-verbose nil
   "If non-nil, log progress when indenting.")
 
@@ -1105,7 +1109,8 @@ the function."
              exp
            ;; Matchers only return lambdas, anchors only return
            ;; integer, so we should never see a variable.
-           (error "Couldn't find the preset corresponding to %s" exp)))
+           (signal 'treesit-indent-error
+                   '("Couldn't find the preset corresponding to %s") exp)))
         (t exp)))
 
 ;; This variable might seem unnecessary: why split
