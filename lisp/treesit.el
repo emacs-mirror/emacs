@@ -1552,11 +1552,10 @@ in `treesit-parser-list'."
             (format " %s: " (treesit-node-field-name node))
           " ")
         (if (treesit-node-check node 'named) "(" "\"")
-        (or (propertize (treesit-node-type node)
-                        'face
-                        (if (treesit-node-eq node largest-node)
-                            'bold nil))
-            "N/A")
+        (propertize (or (treesit-node-type node) "N/A")
+                    'face
+                    (if (treesit-node-eq node largest-node)
+                        'bold nil))
         name
         (if (treesit-node-check node 'named) ")" "\""))))
     (setq treesit--inspect-name name)
