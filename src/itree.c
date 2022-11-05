@@ -294,6 +294,14 @@ init_itree (void)
   iter = itree_iterator_create (NULL);
 }
 
+#ifdef HAVE_UNEXEC
+void
+forget_itree (void)
+{
+  iter = NULL;
+}
+#endif
+
 struct check_subtree_result
 {
   /* Node count of the tree.  */

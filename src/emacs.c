@@ -3105,6 +3105,8 @@ You must run Emacs in batch mode in order to dump it.  */)
   gflags.will_dump_with_unexec_ = false;
   gflags.dumped_with_unexec_ = true;
 
+  forget_itree ();
+
   alloc_unexec_pre ();
 
   unexec (SSDATA (filename), !NILP (symfile) ? SSDATA (symfile) : 0);
