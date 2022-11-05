@@ -1318,7 +1318,6 @@ pattern-matching, which can be found at
 
 @node Multiple Languages
 @section Parsing Text in Multiple Languages
-
 @cindex multiple languages, parsing with tree-sitter
 @cindex parsing multiple languages with tree-sitter
 Sometimes, the source of a programming language could contain snippets
@@ -1328,6 +1327,14 @@ need to be assigned different parsers.  Traditionally, this is
 achieved by using narrowing.  While tree-sitter works with narrowing
 (@pxref{tree-sitter narrowing, narrowing}), the recommended way is
 instead to set regions of buffer text in which a parser will operate.
+
+@c FIXME: This text should be expanded, as it doesn't explain who do
+@c the other functions in this node related to supporting multiple
+@c languages.
+Specifically, a multi-language major mode should set
+@code{treesit-language-at-point-function} and
+@code{treesit-range-settings} for Emacs to handle multiple languages
+in the same buffer.
 
 @defun treesit-parser-set-included-ranges parser ranges
 This function sets up @var{parser} to operate on @var{ranges}.  The
@@ -1420,11 +1427,12 @@ Like other query functions, this function raises the
 @end defun
 
 @defun treesit-update-ranges &optional beg end
-This function is used by fontification and indentation to update
-ranges before using any parser.  It makes sure the parsers' range are
+This function is used by fontifications and indentation to update
+ranges before using any parser.  It makes sure the parsers' ranges are
 set correctly between @var{beg} and @var{end}, according to
 @code{treesit-range-settings}.  If omitted, @var{beg} defaults to the
-beginning of the buffer, and @var{end} defaults to the end.
+beginning of the buffer, and @var{end} defaults to the end of the
+buffer.
 @end defun
 
 @vindex treesit-language-at-point-function
@@ -1496,7 +1504,7 @@ to write query patterns, @pxref{Pattern Matching}.
 Emacs can automate the above process in @code{treesit-update-ranges}.
 For it to work, a Lisp program should set
 @code{treesit-range-settings} to the output of
-@code{treesit-range-rules}, like the following.
+@code{treesit-range-rules}, like in the following example:
 
 @example
 @group
@@ -1514,29 +1522,40 @@ For it to work, a Lisp program should set
 @end group
 @end example
 
+@c FIXME: This is NOT how we document series of 3 arguments!  It is
+@c better to use ``&rest query-specs'' instead, and then tell that
+@c each query-spec is a triplet of :keyword, value, and the query
+@c itself.  But then the doc string of the function and its advertised
+@c calling sequence, should be changed accordingly.
 @defun treesit-range-rules :keyword value query...
 This function is used to set @var{treesit-range-settings}.  It
 takes care of compiling queries and other post-processing, and outputs
-a value that @var{treesit-range-settings} accepts.
+a value that @var{treesit-range-settings} can have.
 
-It takes a series of @var{queries} in either string, s-expression or
-compiled form.  Before each QUERY there must be @var{:keyword}
-@var{value} pairs that configure the query (and only that query).
+It takes a series of one or more @var{query}s in either the string,
+s-expression or compiled form.  Each @var{query} should be preceded by
+a pair of @var{:keyword} and @var{value} that configure the query (and
+only that query).
 
-For each query, @code{:embed} keyword specifies the embedded language,
-and @code{:host} keyword specified the host language.  Emacs queries
-the @var{query} in the host language and uses the result to set ranges
-for the embedded language.
+@c FIXME: The notion of ``host language'' was never explained.  We do
+@c mention ``embedded language'', but without a @dfn and without an
+@c index entry to find it; that should also be fixed.
+For each query, the @code{:embed} keyword specifies the embedded
+language, and the @code{:host} keyword specified the host language.
+@c FIXME: The next sentence is not clear: what does it mean ``to set
+@c ranges in the embedded language''?
+Emacs queries the @var{query} in the host language and uses the result
+to set ranges for the embedded language.
 
+@c FIXME: ``It only needs to ensure...'' is not clear.  What does
+@c ``only'' refer to? does it mean that's the only purpose of such a
+@c function?
 A @var{query} can also be a function that takes two arguments,
 @var{start} and @var{end}, and sets the range for parsers.  It only
 needs to ensure ranges between @var{start} and @var{end} is correct.
+@c FIXME: This should be at the beginning of the description.
 When @var{query} is a function, it doesn't need keywords before it.
 @end defun
-
-In summary, a multi-langauge major mode should set
-@code{treesit-language-at-function} and @code{treesit-range-settings}
-for Emacs to handle multiple languages in the same buffer.
 
 @node Tree-sitter major modes
 @section Developing major modes with tree-sitter
@@ -1571,23 +1590,25 @@ and whether tree-sitter can be activated in this mode.
 
 @defun treesit-ready-p mode language &optional quiet
 This function checks for conditions for activating tree-sitter.  It
-checks whether the users turns tree-sitter on for @var{mode}
-(according to @code{treesit-settings}), whether tree-sitter is built
-with Emacs, the buffer's size, and whether @var{languag} is available.
+checks whether the user turned on tree-sitter for @var{mode}
+(according to @code{treesit-settings}), whether Emacs was built with
+tree-sitter, whether the buffer's size is not too large for
+tree-sitter to handle it, and whether support for @var{language} is
+available in tree-sitter.
 
-When user sets @var{mode} to @var{demand} in @code{treesit-settings},
+When the user sets @var{mode} to @var{demand} in @code{treesit-settings},
 this function emits a warning if tree-sitter cannot be activated.  If
-@var{quiet} is @code{message}, the warning is turned into a message,
+@var{quiet} is @code{message}, the warning is turned into a message;
 if @var{quiet} is @code{nil}, no warning or message is displayed.
 
 If @var{mode} is nil, this function doesn't check user's preference in
 @code{treesit-settings}.
 
-If all conditions are met, this function returns non-@code{nil}.
-Otherwise it return @code{nil}.
+If all the necessary conditions are met, this function returns
+non-@code{nil}; otherwise it return @code{nil}.
 @end defun
 
-Then, the major mode should setup tree-sitter variables, and call
+Next, the major mode should set up tree-sitter variables and call
 @code{treesit-major-mode-setup}.
 
 @defun treesit-major-mode-setup

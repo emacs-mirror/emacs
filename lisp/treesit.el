@@ -353,18 +353,15 @@ captured node.  Capture names don't matter."
 (defvar-local treesit-range-settings nil
   "A list of range settings.
 
-A list of list of the form
-
-    (QUERY LANGUAGE)
-
+Each element of the list is of the form (QUERY LANGUAGE).
 When updating the range of each parser in the buffer,
-`treesit-update-ranges' queries each QUERY, and set LANGUAGE's
+`treesit-update-ranges' queries each QUERY, and sets LANGUAGE's
 range to the range spanned by captured nodes.  QUERY must be a
 compiled query.
 
 QUERY can also be a function, in which case it is called with 2
-arguments, START and END.  It should ensure parsers' range are
-correct in that region.
+arguments, START and END.  It should ensure parsers' ranges are
+correct in the region between START and END.
 
 The exact form of the variable is considered internal and subject
 to change.  Use `treesit-range-rules' to set this variable.")
@@ -372,26 +369,26 @@ to change.  Use `treesit-range-rules' to set this variable.")
 (defun treesit-range-rules (&rest args)
   "Produce settings for `treesit-range-settings'.
 
-Take a series of QUERIES in either string, s-expression or
-compiled form.  For example,
+Take a series of QUERYs in either the string, s-expression or
+compiled form.
 
-Before each QUERY there must be :KEYWORD VALUE pairs that
-configure the query (and only that query).  For example,
+Each QUERY should be preceded by a :KEYWORD VALUE pair that
+configures the query (and only that query).  For example,
 
     (treesit-range-rules
      :embed \\='javascript
      :host \\='html
      \\='((script_element (raw_text) @cap)))
 
-For each query, :embed keyword specifies the embedded language,
-and :host keyword specified the host language.  Emacs queries the
-QUERY in the host language and uses the result to set ranges for
+For each query, the `:embed' keyword specifies the embedded language,
+the `:host' keyword specified the host (main) language.  Emacs queries
+the QUERY in the host language and uses the result to set ranges for
 the embedded language.
 
 QUERY can also be a function that takes two arguments, START and
 END, and sets the range for parsers.  The function only needs to
 ensure ranges between START and END is correct.  If QUERY is a
-function, it doesn't need to have keywords before it.
+function, it doesn't need to have the :KEYWORD VALUE pair before it.
 
 \(:KEYWORD VALUE QUERY...)"
   (let (host embed result)
@@ -418,14 +415,14 @@ function, it doesn't need to have keywords before it.
     (nreverse result)))
 
 (defun treesit--merge-ranges (old-ranges new-ranges start end)
-  "Merge OLD-RANGES and NEW-RANGES.
-Each range is a list of cons of the form (BEG . END).  When
+  "Merge OLD-RANGES and NEW-RANGES, discarding ranges between START and END.
+OLD-RANGES and NEW-RANGES are lists of cons of the form (BEG . END).  When
 merging the two ranges, if a range in OLD-RANGES intersects with
 another range in NEW-RANGES, discard the one in OLD-RANGES and
 keep the one in NEW-RANGES.  Also discard any range in OLD-RANGES
 that intersects the region marked by START and END.
 
-Return the merged range list."
+Return the merged list of ranges."
   (let ((result nil))
     (while (and old-ranges new-ranges)
       (let ((new-beg (caar new-ranges))
@@ -456,12 +453,12 @@ Return the merged range list."
 
 (defun treesit-update-ranges (&optional beg end)
   "Update the ranges for each language in the current buffer.
-If BEG and END not omitted, only update parser ranges in that
+If BEG and END are non-nil, only update parser ranges in that
 region."
   ;; When updating ranges, we want to avoid querying the whole buffer
   ;; which could be slow in very large buffers.  Instead, we only
   ;; query for nodes that intersect with the region between BEG and
-  ;; END.  And we only update the ranges intersecting BEG and END,
+  ;; END.  Also, we only update the ranges intersecting BEG and END;
   ;; outside of that region we inherit old ranges.
   (dolist (setting treesit-range-settings)
     (let ((query (nth 0 setting))
@@ -506,7 +503,7 @@ omitted, default END to BEG."
 (defvar-local treesit-font-lock-feature-list nil
   "A list of lists of feature symbols.
 
-End-user should use `treesit-font-lock-recompute-features' and
+Use `treesit-font-lock-recompute-features' and
 `font-lock-maximum-decoration' to configure enabled features.
 
 Each sublist represents a decoration level.
@@ -591,15 +588,15 @@ Capture names in QUERY should be face names like
 with that face.
 
 Capture names can also be function names, in which case the
-function should have a signature
+function will be called with the following argument list:
 
     (NODE OVERRIDE START END &rest _)
 
 where NODE is the tree-sitter node object, OVERRIDE is the
-override option of that rule, and START and END marks the region
+override option of that rule, and START and END specify the region
 to be fontified.  This function should accept more arguments as
-optional arguments for future extensibility.  And this function
-shouldn't fontify text outside START and END.
+optional arguments for future extensibility, and it shouldn't
+fontify text outside the region given by START and END.
 
 If a capture name is both a face and a function, the face takes
 priority.  If a capture name is not a face name nor a function
@@ -681,13 +678,13 @@ name, it is ignored.
   "Enable/disable font-lock settings according to decoration level.
 
 First compute the enabled features according to
-`treesit-font-lock-feature-list' and
-`font-lock-maximum-decoration', then if ADD-LIST or REMOVE-LIST
-are not omitted, further add and remove features accordingly.
+`treesit-font-lock-feature-list' and `font-lock-maximum-decoration',
+then, if ADD-LIST or REMOVE-LIST are not omitted, further add and
+remove features accordingly.
 
-ADD-LIST and REMOVE-LIST are each list of feature symbols.  The
-same feature symbol cannot not appear in both lists.  Otherwise
-signal `treesit-font-lock-error'."
+ADD-LIST and REMOVE-LIST are each a list of feature symbols.  The
+same feature symbol cannot appear in both lists; the function
+signals the `treesit-font-lock-error' error if so."
   (when-let ((intersection (cl-intersection add-list remove-list)))
     (signal 'treesit-font-lock-error
             (list "ADD-LIST and REMOVE-LIST contain the same feature"
@@ -752,26 +749,26 @@ instead."
       (put-text-property start end 'rear-nonsticky new-prop))))
 
 ;; This post-processing tries to deal with the following scenario:
-;; User inserts "/*", then go down the buffer and inserts "*/".
-;; Before the user inserts "*/", tree-sitter cannot construct a
-;; comment node and the parse tree is incomplete, and we can't fontify
-;; the comment.  But once the user inserts the "*/", the parse-tree is
-;; complete and we want to refontify the whole comment, and possibly
-;; text after comment (the "/*" could damage the parse tree enough
-;; that makes tree-sitter unable to produce reasonable information for
-;; text after it).
+;; User inserts "/*" in a buffer under C mode, then goes down the
+;; buffer and inserts "*/".  Before the user inserts "*/", tree-sitter
+;; cannot construct a comment node and the parse tree is incomplete,
+;; and we can't fontify the comment.  But once the user inserts the
+;; "*/", the parse-tree is complete and we want to refontify the whole
+;; comment, and possibly text after comment (the "/*" could damage the
+;; parse tree enough that makes tree-sitter unable to produce
+;; reasonable information for text after it).
 ;;
 ;; So we set jit-lock-context-unfontify-pos to comment start, and
 ;; jit-lock-context will refontify text after that position in a
 ;; timer.  Refontifying those text will end up calling this function
 ;; again, and we don't want to fall into infinite recursion.  So we
-;; mark the end of the comment with a text property, so we can
-;; distinguish between initial and follow up invocation of this
+;; mark the end of the comment with a text property, to be able to
+;; distinguish between initial and follow-up invocation of this
 ;; function.
 (defun treesit-font-lock-contextual-post-process
     (node start end &optional verbose)
-  "Post-processing for contextual syntax nodes.
-NODE is a comment or string node, START and END are the region
+  "Post-process contextual syntax NODE for fontification between START and END.
+NODE is a comment or string node, START and END specify the region
 being fontified.
 
 If VERBOSE is non-nil, print debugging information."
@@ -1070,7 +1067,7 @@ prev-line
 (defun treesit--simple-indent-eval (exp)
   "Evaluate EXP.
 
-If EXPis an application and the function is a key in
+If EXP is an application and the function is a key in
 `treesit-simple-indent-presets', use the corresponding value as
 the function."
   ;; We don't want to match uncompiled lambdas, so make sure this cons
@@ -1091,7 +1088,8 @@ the function."
            ;; Matchers only return lambdas, anchors only return
            ;; integer, so we should never see a variable.
            (signal 'treesit-indent-error
-                   '("Couldn't find the preset corresponding to %s") exp)))
+                   (list "Couldn't find the preset corresponding to expression"
+                         exp))))
         (t exp)))
 
 ;; This variable might seem unnecessary: why split
@@ -1428,20 +1426,20 @@ MODE is a major mode symbol.  SETTINGS should be `treesit-settings'."
       (cdar applicable)))))
 
 (defun treesit-ready-p (mode language &optional quiet)
-  "Check that tree-sitter is ready to be used for MODE.
+  "Check whether tree-sitter is ready to be used for MODE and LANGUAGE.
 
-Checks the user setting in `treesit-settings', if user sets
-`demand' for MODE, and tree-sitter is not ready, emit a warning
-and return nil.  If user chose to activate tree-sitter for MODE
-and tree-sitter is ready, return non-nil.  If QUIET is t, no
-warning is emitted in any case, if quiet is `message', message
+LANGUAGE is the language symbol to check for availability.
+It can also be a list of language symbols.
+
+This function checks the user setting in `treesit-settings'.  If the
+user has set `demand' for MODE, and tree-sitter is not ready, emit a
+warning and return nil.  If the user has chosen to activate tree-sitter
+for MODE and tree-sitter is ready, return non-nil.  If QUIET is t, don't
+emit warning in either case; if quiet is `message', display a message
 instead of emitting warning.
 
 If MODE is nil, don't check for user setting and assume the
-setting is t.
-
-LANGUAGE is the language symbol we want to check for availability.
-It can also be a list of language symbols."
+setting is t."
   (let ((language-list (if (consp language)
                            language
                          (list language)))
@@ -1565,23 +1563,23 @@ in `treesit-parser-list'."
           (message "%s" treesit--inspect-name)
         (message "No node at point")))))
 
+;; FIXME: in the next doc string, what is FIELD-NAME?
 (define-minor-mode treesit-inspect-mode
-  "Show the node that _starts_ at point in the mode-line.
+  "Minor mode that displays in the mode-line the node which starts at point.
 
-The mode-line displays
+When this mode is enabled, the mode-line displays
 
-    PARENT FIELD-NAME: (NODE FIELD_NAME: (CHILD (...)))
+    PARENT FIELD-NAME: (NODE FIELD-NAME: (CHILD (...)))
 
-NODE, CHILD, and GRAND-CHILD, etc, are nodes that have their
-beginning at point.  And PARENT is the parent of NODE.  NODE is
-displayed in bold face.
+where NODE, CHILD, etc, are nodes which begin at point.
+PARENT is the parent of NODE.  NODE is displayed in bold typeface.
 
 If no node starts at point, i.e., point is in the middle of a
-node, then just display the smallest node that spans point and
-its immediate parent.
+node, then the mode line displays the earliest node that spans point,
+and its immediate parent.
 
-This minor mode doesn't create parsers on its own.  It simply
-uses the first parser in `treesit-parser-list'."
+This minor mode doesn't create parsers on its own.  It uses the first
+parser in `treesit-parser-list'."
   :lighter nil
   (if treesit-inspect-mode
       (progn

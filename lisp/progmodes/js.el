@@ -3588,7 +3588,7 @@ This function is intended for use in `after-change-functions'."
 
 (defun js--fontify-template-string (node override start end &rest _)
   "Fontify template string but not substitution inside it.
-NODE is the template_string node.  START and END marks the region
+NODE is the template_string node.  START and END mark the region
 to be fontified.
 
 OVERRIDE is the override flag described in
