@@ -98,6 +98,11 @@ Although rare, server passwords containing white space are now handled
 correctly.
 
 ** Miscellaneous behavioral changes in the library API.
+A number of core macros and other definitions have been moved to a new
+file called erc-common.el.  This was done to further lessen the
+various complications arising from the mutual dependency between 'erc'
+and 'erc-backend'.
+
 The function 'erc-network' always returns non-nil in server and target
 buffers belonging to a successfully established IRC connection, even
 after that connection has been closed.
@@ -109,11 +114,14 @@ network-context identifiers via a new ':id' keyword.  The latter
 carries wider significance beyond autojoin and can be used for
 unequivocally identifying a connection in a human-readable way.
 
-The function 'erc-auto-query', unused internally, and basically
-inscrutable when read, has been deprecated with no public replacement.
-This raises a related issue: if you use ERC as a library and need
-something only offered internally, please lobby to have it exported by
-writing to emacs-erc@gnu.org.
+The function 'erc-auto-query' was deemed too difficult to reason
+through and has thus been deprecated with no public replacement; it
+has also been removed from the client code path.
+
+A few internal variables have been introduced that could just as well
+have been made public, possibly as user options.  Likewise for some
+internal functions.  As always, users needing such functionality
+officially exposed are encouraged to write to emacs-erc@gnu.org.
 
 
 * Changes in ERC 5.4.1
