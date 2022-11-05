@@ -428,11 +428,23 @@ row_to_value (sqlite3_stmt *stmt)
 static Lisp_Object
 sqlite_prepare_errdata (int code, sqlite3 *sdb)
 {
-  Lisp_Object errstr = build_string (sqlite3_errstr (code));
-  Lisp_Object errcode = make_fixnum (code);
+  Lisp_Object errstr, errcode, ext_errcode;
+  const char *errmsg;
+
+  /* The internet says this is identical to sqlite3_errstr (code),
+     which is too new to exist on Fedora 9.  */
+  errmsg = sqlite3_errmsg (sdb);
+  errstr = errmsg ? build_string (errmsg) : Qnil;
+  errcode = make_fixnum (code);
+
   /* More details about what went wrong.  */
-  Lisp_Object ext_errcode = make_fixnum (sqlite3_extended_errcode (sdb));
-  const char *errmsg = sqlite3_errmsg (sdb);
+#if SQLITE_VERSION_NUMBER >= 3006005
+  ext_errcode = make_fixnum (sqlite3_extended_errcode (sdb));
+#else
+  /* What value to use here?  */
+  ext_errcode = make_fixnum (0);
+#endif
+
   return list4 (errstr, errmsg ? build_string (errmsg) : Qnil,
 		errcode, ext_errcode);
 }
