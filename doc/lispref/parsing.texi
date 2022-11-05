@@ -1512,7 +1512,7 @@ For it to work, a Lisp program should set
              :host 'html
              '((style_element (raw_text) @@cap))))
 @end group
-@example
+@end example
 
 @defun treesit-range-rules :keyword value query...
 This function is used to set @var{treesit-range-settings}.  It
