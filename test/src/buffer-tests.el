@@ -1339,11 +1339,13 @@ Test both front-advance and non-front-advance overlays."
     (ert-info ((format "front-advance %S" front-advance))
       (with-temp-buffer
         (insert "1234")
-        (let ((overlay (make-overlay 2 3 nil front-advance nil)))
-          (goto-char 2)
+        (let* ((beg (1+ (point-min)))
+               (end (1+ beg))
+               (overlay (make-overlay beg end nil front-advance nil)))
+          (goto-char beg)
           (insert-before-markers "x")
-          (should (equal 3 (overlay-start overlay)))
-          (should (equal 4 (overlay-end overlay))))))))
+          (should (equal (1+ beg) (overlay-start overlay)))
+          (should (equal (1+ end) (overlay-end overlay))))))))
 
 (ert-deftest test-overlay-insert-before-markers-at-end ()
   "`insert-before-markers' always advances an overlay's end.
@@ -1352,22 +1354,25 @@ Test both rear-advance and non-rear-advance overlays."
     (ert-info ((format "rear-advance %S" rear-advance))
       (with-temp-buffer
         (insert "1234")
-        (let ((overlay (make-overlay 2 3 nil nil rear-advance)))
-          (goto-char 3)
+        (let* ((beg (1+ (point-min)))
+               (end (1+ beg))
+               (overlay (make-overlay beg end nil nil rear-advance)))
+          (goto-char end)
           (insert-before-markers "x")
-          (should (equal 2 (overlay-start overlay)))
-          (should (equal 4 (overlay-end overlay))))))))
+          (should (equal beg (overlay-start overlay)))
+          (should (equal (1+ end) (overlay-end overlay))))))))
 
 (ert-deftest test-overlay-insert-before-markers-empty ()
   (dolist (advance-args '((nil nil) (t nil) (nil t) (t t)))
     (ert-info ((format "advance args %S" advance-args))
       (with-temp-buffer
         (insert "1234")
-        (let ((overlay (apply #'make-overlay 2 2 nil advance-args)))
-          (goto-char 2)
+        (let* ((pos (1+ (point-min)))
+               (overlay (apply #'make-overlay pos pos nil advance-args)))
+          (goto-char pos)
           (insert-before-markers "x")
-          (should (equal 3 (overlay-start overlay)))
-          (should (equal 3 (overlay-end overlay))))))))
+          (should (equal (1+ pos) (overlay-start overlay)))
+          (should (equal (1+ pos) (overlay-end overlay))))))))
 
 ;; +==========================================================================+
 ;; | Moving by deletions

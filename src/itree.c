@@ -1193,8 +1193,8 @@ itree_iterator_finish (struct itree_iterator *iter)
    intersecting it, while respecting their rear_advance and
    front_advance setting.
 
-   When BEFORE_MARKERS, all overlays beginning/ending at POS are
-   treated as if their front_advance/rear_advance was true. */
+   If BEFORE_MARKERS is non-zero, all overlays beginning/ending at POS
+   are treated as if their front_advance/rear_advance was true. */
 
 void
 itree_insert_gap (struct itree_tree *tree,
