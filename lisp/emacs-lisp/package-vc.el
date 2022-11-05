@@ -109,9 +109,10 @@
 (defcustom package-vc-default-backend 'Git
   "Default VC backend used when cloning a package repository.
 If no repository type was specified or could be guessed by
-`package-vc-heuristic-alist', the VC backend denoted by this
-symbol is used.  The value must be a member of
-`vc-handled-backends' that implements the `clone' function."
+`package-vc-heuristic-alist', this is the default VC backend
+used as fallback.  The value must be a member of
+`vc-handled-backends' and the named backend must implement
+the `clone' function."
   :type `(choice ,@(mapcar (lambda (b) (list 'const b))
                            vc-handled-backends))
   :version "29.1")
@@ -135,13 +136,12 @@ symbol is used.  The value must be a member of
 
 ;;;###autoload
 (defcustom package-vc-selected-packages '()
-  "List of packages to ensure being installed.
-Each entry of the list is of the form (NAME . SPEC), where NAME
+  "List of packages that must be installed.
+Each member of the list is of the form (NAME . SPEC), where NAME
 is a symbol designating the package and SPEC is one of:
 
-- the value nil, if any package version is to be installed,
-- a string, if a specific revision, as designating by the string
-  is to be installed,
+- nil, if any package version can be installed;
+- a version string, if that specific revision is to be installed;
 - a property list of the form described in
   `package-vc-archive-spec-alist', giving a package
   specification.
@@ -149,7 +149,7 @@ is a symbol designating the package and SPEC is one of:
 This user option differs from `package-selected-packages' in that
 it is meant to be specified manually.  You can also use the
 function `package-vc-selected-packages' to apply the changes."
-  :type '(alist :tag "List of ensured packages"
+  :type '(alist :tag "List of packages you want to be installed"
                 :key-type (symbol :tag "Package")
                 :value-type
                 (choice (const :tag "Any revision" nil)
@@ -166,54 +166,47 @@ function `package-vc-selected-packages' to apply the changes."
 
 (defvar package-vc--archive-spec-alist nil
   "List of package specifications for each archive.
-The list maps package names as string to plist.  Valid keys
-include
+The list maps each package name, as a string, to a plist.
+Valid keys and the corresponding value types are:
 
-        `:url' (string)
+ `:url' (string)
+    The URL of the repository used to fetch the package source.
 
-The URL of the repository used to fetch the package source.
+ `:branch' (string)
+    If given, the name of the branch to checkout after cloning the directory.
 
-        `:branch' (string)
+ `:lisp-dir' (string)
+    The repository-relative name of the directory to use for loading the Lisp
+    sources.  If not given, the value defaults to the root directory
+    of the repository.
 
-If given, the branch to check out after cloning the directory.
+ `:main-file' (string)
+    The main file of the project, relevant to gather package metadata.
+    If not given, the assumed default is the package name with \".el\"
+    appended to it.
 
-        `:lisp-dir' (string)
-
-The repository-relative directory to use for loading the Lisp
-sources.  If not given, the value defaults to the root directory
-of the repository.
-
-        `:main-file' (string)
-
-The main file of the project, relevant to gather package
-metadata.  If not given, the assumed default is the package named
-with \".el\" concatenated to the end.
-
-        `:vc-backend' (symbol)
-
-A symbol indicating what the VC backend to use for cloning a
-package.  The value ought to be a member of
-`vc-handled-backends'.  If missing, `vc-clone' will fall back
-onto the archive default or `package-vc-default-backend'.
+ `:vc-backend' (symbol)
+    A symbol of the VC backend to use for cloning the package.  The
+    value ought to be a member of `vc-handled-backends'.  If omitted,
+    `vc-clone' will fall back onto the archive default or on
+    `package-vc-default-backend'.
 
 All other values are ignored.")
 
 (defvar package-vc--archive-data-alist nil
-  "List of package specification archive metadata.
+  "List of package specification metadata for archives.
 Each element of the list has the form (ARCHIVE . PLIST), where
 PLIST keys are one of:
 
-        `:version' (integer)
+ `:version' (integer)
+   Indicates the version of the file formatting, to be compared
+   with `package-vc--elpa-packages-version'.
 
-Indicating the version of the file formatting, to be compared
-with `package-vc--elpa-packages-version'.
-
-        `:vc-backend' (symbol)
-
-A symbol indicating what the default VC backend to use if a
-package specification does not indicate anything.  The value
-ought to be a member of `vc-handled-backends'.  If missing,
-`vc-clone' will fall back onto `package-vc-default-backend'.
+ `:vc-backend' (symbol)
+   A symbol of the default VC backend to use if a package specification
+   does not indicate a backend.  The value ought to be a member of
+   `vc-handled-backends'.  If omitted, `vc-clone' will fall back on
+   `package-vc-default-backend'.
 
 All other values are ignored.")
 
@@ -230,16 +223,15 @@ name for PKG-DESC."
    nil nil #'string=))
 
 (define-inline package-vc--query-spec (pkg-desc prop)
-  "Query the property PROP for the package specification for PKG-DESC.
+  "Query the property PROP for the package specification of PKG-DESC.
 If no package specification can be determined, the function will
 return nil."
   (inline-letevals (pkg-desc prop)
     (inline-quote (plist-get (package-vc--desc->spec ,pkg-desc) ,prop))))
 
 (defun package-vc--read-archive-data (archive)
-  "Update `package-vc--archive-spec-alist' with the contents of ARCHIVE.
-This function is meant to be used as a hook for
-`package--read-archive-hook'."
+  "Update `package-vc--archive-spec-alist' for ARCHIVE.
+This function is meant to be used as a hook for `package--read-archive-hook'."
   (let ((contents-file (expand-file-name
                         (format "archives/%s/elpa-packages.eld" archive)
                         package-user-dir)))
@@ -279,10 +271,10 @@ asynchronously."
 (add-hook 'package-refresh-contents-hook #'package-vc--download-and-read-archives 20)
 
 (defun package-vc-commit (pkg)
-  "Extract the commit of a development package PKG."
+  "Return the last commit of a development package PKG."
   (cl-assert (package-vc-p pkg))
   ;; FIXME: vc should be extended to allow querying the commit of a
-  ;; directory (as is possible when dealing with git repositores).
+  ;; directory (as is possible when dealing with git repositories).
   ;; This should be a fallback option.
   (cl-loop with dir = (package-desc-dir pkg)
            for file in (directory-files dir t "\\.el\\'" t)
@@ -301,7 +293,7 @@ asynchronously."
     "0"))
 
 (defun package-vc--main-file (pkg-desc)
-  "Return the main file for PKG-DESC."
+  "Return the name of the main file for PKG-DESC."
   (cl-assert (package-vc-p pkg-desc))
   (let ((pkg-spec (package-vc--desc->spec pkg-desc)))
     (or (plist-get pkg-spec :main-file)
@@ -315,8 +307,7 @@ asynchronously."
           (plist-get pkg-spec :lisp-dir))))))
 
 (defun package-vc--generate-description-file (pkg-desc pkg-file)
-  "Generate a package description file for PKG-DESC.
-The output is written out into PKG-FILE."
+  "Generate a package description file for PKG-DESC and write it to PKG-FILE."
   (let ((name (package-desc-name pkg-desc)))
     ;; Infer the subject if missing.
     (unless (package-desc-summary pkg-desc)
@@ -360,7 +351,9 @@ The output is written out into PKG-FILE."
 (declare-function org-export-to-file "ox" (backend file))
 
 (defun package-vc--build-documentation (pkg-desc file)
-  "Build documentation FILE for PKG-DESC."
+  "Build documentation FILE for PKG-DESC.
+FILE can be an Org file, indicated by its \".org\" extension,
+otherwise it's assumed to be an Info file."
   (let ((pkg-dir (package-desc-dir pkg-desc)))
     (when (string-match-p "\\.org\\'" file)
       (require 'ox)
@@ -373,7 +366,7 @@ The output is written out into PKG-FILE."
                   file pkg-dir)))
 
 (defun package-vc--unpack-1 (pkg-desc pkg-dir)
-  "Install PKG-DESC that is already located in PKG-DIR."
+  "Install PKG-DESC that is already checked-out in PKG-DIR."
   ;; In case the package was installed directly from source, the
   ;; dependency list wasn't know beforehand, and they might have
   ;; to be installed explicitly.
@@ -443,14 +436,14 @@ The output is written out into PKG-FILE."
 (defun package-vc--guess-backend (url)
   "Guess the VC backend for URL.
 This function will internally query `package-vc-heuristic-alist'
-and return nil if no reasonable guess can be made."
+and return nil if it cannot reasonably guess."
   (and url (alist-get url package-vc-heuristic-alist
                       nil nil #'string-match-p)))
 
 (defun package-vc--clone (pkg-desc pkg-spec dir rev)
-  "Clone the source of a package into a directory DIR.
-The package is described by a package descriptions PKG-DESC and a
-package specification PKG-SPEC."
+  "Clone the package PKG-DESC whose spec is PKG-SPEC into the directory DIR.
+REV specifies a specific revision to checkout.  This overrides the `:branch'
+attribute in PKG-SPEC."
   (pcase-let* ((name (package-desc-name pkg-desc))
                ((map :url :branch) pkg-spec))
 
@@ -477,11 +470,10 @@ package specification PKG-SPEC."
 
 (defun package-vc--unpack (pkg-desc pkg-spec &optional rev)
   "Install the package described by PKG-DESC.
-PKG-SPEC is a package specification is a property list describing
-how to fetch and build the package PKG-DESC.  See
-`package-vc--archive-spec-alist' for details.  The optional argument
-REV specifies a specific revision to checkout.  This overrides
-the `:brach' attribute in PKG-SPEC."
+PKG-SPEC is a package specification, a property list describing
+how to fetch and build the package.  See `package-vc--archive-spec-alist'
+for details.  The optional argument REV specifies a specific revision to
+checkout.  This overrides the `:branch' attribute in PKG-SPEC."
   (pcase-let* (((map :url :lisp-dir) pkg-spec)
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))
@@ -523,7 +515,7 @@ the `:brach' attribute in PKG-SPEC."
    package-archive-contents))
 
 (defun package-vc-update (pkg-desc)
-  "Attempt to update the packager PKG-DESC."
+  "Attempt to update the package PKG-DESC."
   ;; HACK: To run `package-vc--unpack-1' after checking out the new
   ;; revision, we insert a hook into `vc-post-command-functions', and
   ;; remove it right after it ran.  To avoid running the hook multiple
@@ -558,13 +550,13 @@ the `:brach' attribute in PKG-SPEC."
       (vc-pull))))
 
 (defun package-vc--archives-initialize ()
-  "Initialise package.el and fetch package specifications."
+  "Initialize package.el and fetch package specifications."
   (package--archives-initialize)
   (unless package-vc--archive-data-alist
     (package-vc--download-and-read-archives)))
 
 (defun package-vc--release-rev (pkg-desc)
-  "Find the latest revision that bumps the \"Version\" tag for PKG-DESC.
+  "Return the latest revision that bumps the \"Version\" tag for PKG-DESC.
 If no such revision can be found, return nil."
   (with-current-buffer (find-file-noselect (package-vc--main-file pkg-desc))
     (vc-buffer-sync)
@@ -586,20 +578,23 @@ If no such revision can be found, return nil."
 
 ;;;###autoload
 (defun package-vc-install (name-or-url &optional name rev backend)
-  "Fetch the source of NAME-OR-URL.
-If NAME-OR-URL is a URL, then the package will be downloaded from
-the repository indicated by the URL.  The function will try to
-guess the name of the package using `file-name-base'.  This can
-be overridden by manually passing the optional NAME.  Otherwise
-NAME-OR-URL is taken to be a package name, and the package
-metadata will be consulted for the URL.  An explicit revision can
-be requested using REV.  If the command is invoked with a prefix
-argument, the revision used for the last release in the package
-archive is used.  This can also be reproduced by passing the
-special value `:last-release' as REV.  If a NAME-OR-URL is a URL,
-that is to say a string, the VC backend used to clone the
-repository can be set by BACKEND.  If missing,
-`package-vc--guess-backend' will be used."
+  "Fetch a package NAME-OR-URL and set it up for using with Emacs.
+If NAME-OR-URL is a URL, download the package from the repository
+at that URL; the function will try to guess the name of the package
+from the URL.  Otherwise NAME-OR-URL should be a symbol whose name
+is the package name, and the URL for the package will be taken from
+the package's metadata.
+By default, this function installs the last version of the package
+available from its repository, but if REV is given and non-nil, it
+specifies the revision to install.  If REV has the special value
+`:last-release' (interactively, the prefix argument), that stands
+for the last released version of the package.
+When calling from Lisp, optional argument NAME overrides the package
+name as deduced from NAME-OR-URL.
+Optional argument BACKEND specifies the VC backend to use for cloning
+the package's repository; this is only possible if NAME-OR-URL is a URL,
+a string.  If BACKEND is omitted or nil, the function
+uses `package-vc--guess-backend' to guess the backend."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -637,12 +632,15 @@ repository can be set by BACKEND.  If missing,
 
 ;;;###autoload
 (defun package-vc-checkout (pkg-desc directory &optional rev)
-  "Clone the sources for PKG-DESC into DIRECTORY and open it.
-An explicit revision can be requested by passing a string to the
-optional argument REV.  If the command is invoked with a prefix
-argument, the revision used for the last release in the package
-archive is used.  This can also be reproduced by passing the
-special value `:last-release' as REV."
+  "Clone the sources for PKG-DESC into DIRECTORY and visit that directory.
+Unlike `package-vc-install', this does not yet set up the package
+for use with Emacs; use `package-vc-link-directory' for setting
+the package up after this function finishes.
+Optional argument REV means to clone a specific version of the
+package; it defaults to the last version available from the
+package's repository.  If REV has the special value
+`:last-release' (interactively, the prefix argument), that stands
+for the last released version of the package."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -668,10 +666,12 @@ special value `:last-release' as REV."
 
 ;;;###autoload
 (defun package-vc-link-directory (dir name)
-  "Install the package NAME in DIR by linking it into the ELPA directory.
-If invoked interactively with a prefix argument, the user will be
-prompted for the package NAME.  Otherwise it will be inferred
-from the base name of DIR."
+  "Set up the package NAME in DIR by linking it into the ELPA directory.
+Interactively, prompt the user for DIR, which should be a directory
+under version control, typically one created by `package-vc-checkout'.
+If invoked interactively with a prefix argument, prompt the user
+for the NAME of the package to set up.  Otherwise infer the package
+name from the base name of DIR."
   (interactive (let ((dir (read-directory-name "Directory: ")))
                  (list dir
                        (if current-prefix-arg
@@ -690,7 +690,8 @@ from the base name of DIR."
 
 ;;;###autoload
 (defun package-vc-refresh (pkg-desc)
-  "Refresh the installation for PKG-DESC."
+  "Refresh the installation for package given by PKG-DESC.
+Interactively, prompt for the name of the package to refresh."
   (interactive (package-vc--read-pkg "Refresh package: "))
   (package-vc--unpack-1 pkg-desc (package-desc-dir pkg-desc)))
 
@@ -706,9 +707,12 @@ from the base name of DIR."
 
 ;;;###autoload
 (defun package-vc-prepare-patch (pkg subject revisions)
-  "Send a patch to the maintainer of a package PKG.
-SUBJECT and REVISIONS are used passed on to `vc-prepare-patch'.
-PKG must be a package description."
+  "Send patch for REVISIONS to maintainer of the package PKG using SUBJECT.
+SUBJECT and REVISIONS are passed on to `vc-prepare-patch', which see.
+PKG must be a package description.
+Interactively, prompt for PKG, SUBJECT, and REVISIONS.  However,
+if the current buffer has marked commit log entries, REVISIONS
+are the tags of the marked entries, see `log-view-get-marked'."
   (interactive
    (list (package-vc--read-pkg "Package to prepare a patch for: ")
          (and (not vc-prepare-patches-separately)
