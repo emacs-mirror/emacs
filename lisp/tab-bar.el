@@ -1055,9 +1055,10 @@ tab bar might wrap to the second line.")
                                      (propertize name 'face 'tab-bar-tab))))
                   (cond
                    ((< pixel-width width)
-                    (let ((space (apply 'propertize " " (text-properties-at 0 name)))
-                          (ins-pos (- len (if close-p 1 0))))
-                      (while (< pixel-width width)
+                    (let* ((space (apply 'propertize " " (text-properties-at 0 name)))
+                           (space-width (string-pixel-width (propertize space 'face 'tab-bar)))
+                           (ins-pos (- len (if close-p 1 0))))
+                      (while (<= (+ pixel-width space-width) width)
                         (setf (substring name ins-pos ins-pos) space)
                         (setq pixel-width (string-pixel-width
                                            (propertize name 'face 'tab-bar-tab))))))
