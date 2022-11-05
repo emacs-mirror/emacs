@@ -147,9 +147,14 @@ The function is called with one argument, the position of point.")
 
 (defun treesit-language-at (position)
   "Return the language at POSITION.
-Assumes parser ranges are up-to-date."
-  (when treesit-language-at-point-function
-    (funcall treesit-language-at-point-function position)))
+Assumes parser ranges are up-to-date.  Returns the return value
+of `treesit-language-at-point-function' if it's non-nil,
+otherwise return the language of the first parser in
+`treesit-parser-list', or nil if there is no parser."
+  (if treesit-language-at-point-function
+      (funcall treesit-language-at-point-function position)
+    (when-let ((parser (car (treesit-parser-list))))
+      (treesit-parser-language parser))))
 
 ;;; Node API supplement
 
