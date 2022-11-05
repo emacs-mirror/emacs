@@ -363,42 +363,47 @@ QUERY can also be a function, in which case it is called with 2
 arguments, START and END.  It should ensure parsers' ranges are
 correct in the region between START and END.
 
-The exact form of the variable is considered internal and subject
+The exact form of each setting is considered internal and subject
 to change.  Use `treesit-range-rules' to set this variable.")
 
-(defun treesit-range-rules (&rest args)
+(defun treesit-range-rules (&rest query-specs)
   "Produce settings for `treesit-range-settings'.
 
-Take a series of QUERYs in either the string, s-expression or
-compiled form.
+QUERY-SPECS contains a series of QUERY-SPEC of the form
 
-Each QUERY should be preceded by a :KEYWORD VALUE pair that
-configures the query (and only that query).  For example,
+    :KEYWORD VALUE... QUERY
+
+Each QUERY is a tree-sitter query in either the string,
+s-expression or compiled form.
+
+Each QUERY should be preceded by :KEYWORD VALUE pairs that
+configures this query.  For example,
 
     (treesit-range-rules
      :embed \\='javascript
      :host \\='html
      \\='((script_element (raw_text) @cap)))
 
-For each query, the `:embed' keyword specifies the embedded language,
-the `:host' keyword specified the host (main) language.  Emacs queries
-the QUERY in the host language and uses the result to set ranges for
-the embedded language.
+The `:embed' keyword specifies the embedded language, and the
+`:host' keyword specifies the host language.  They are used in
+this way: Emacs queries QUERY in the host language's parser,
+computes the ranges spanned by the captured nodes, and applies
+these ranges to parsers for the embedded language.
 
 QUERY can also be a function that takes two arguments, START and
-END, and sets the range for parsers.  The function only needs to
-ensure ranges between START and END is correct.  If QUERY is a
-function, it doesn't need to have the :KEYWORD VALUE pair before it.
-
-\(:KEYWORD VALUE QUERY...)"
+END.  If QUERY is a function, it doesn't need :KEYWORD VALUE
+pairs preceding it.  This function should set the ranges for
+parsers in the current buffer in the region between START and
+END.  It is OK for this function to set ranges in a larger region
+that encompasses the region between START and END."
   (let (host embed result)
-    (while args
-      (pcase (pop args)
-        (:host (let ((host-lang (pop args)))
+    (while query-specs
+      (pcase (pop query-specs)
+        (:host (let ((host-lang (pop query-specs)))
                  (unless (symbolp host-lang)
                    (signal 'treesit-error (list "Value of :host option should be a symbol" host-lang)))
                  (setq host host-lang)))
-        (:embed (let ((embed-lang (pop args)))
+        (:embed (let ((embed-lang (pop query-specs)))
                   (unless (symbolp embed-lang)
                     (signal 'treesit-error (list "Value of :embed option should be a symbol" embed-lang)))
                   (setq embed embed-lang)))
@@ -528,8 +533,8 @@ For changes to this variable to take effect, run
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
 
-The exact format of this variable is considered internal.  One
-should always use `treesit-font-lock-rules' to set this variable.
+The exact format of each SETTING is considered internal.  Use
+`treesit-font-lock-rules' to set this variable.
 
 Each SETTING has the form:
 
@@ -549,11 +554,15 @@ OVERRIDE is the override flag for this query.  Its value can be
 t, nil, append, prepend, keep.  See more in
 `treesit-font-lock-rules'.")
 
-(defun treesit-font-lock-rules (&rest args)
+(defun treesit-font-lock-rules (&rest query-specs)
   "Return a value suitable for `treesit-font-lock-settings'.
 
-Take a series of QUERIES in either string, s-expression or
-compiled form.  For each query, captured nodes are highlighted
+QUERY-SPECS is made of a series of QUERY-SPECs of the form
+
+   :KEYWORD VALUE... QUERY
+
+QUERY is a tree-sitter query in either the string, s-expression
+or compiled form.  For each query, captured nodes are highlighted
 with the capture name as its face.
 
 Before each QUERY there could be :KEYWORD VALUE pairs that
@@ -600,9 +609,7 @@ fontify text outside the region given by START and END.
 
 If a capture name is both a face and a function, the face takes
 priority.  If a capture name is not a face name nor a function
-name, it is ignored.
-
-\(fn :KEYWORD VALUE QUERY...)"
+name, it is ignored."
   ;; Other tree-sitter function don't tend to be called unless
   ;; tree-sitter is enabled, which means tree-sitter must be compiled.
   ;; But this function is usually call in `defvar' which runs
@@ -615,19 +622,19 @@ name, it is ignored.
           current-feature
           ;; The list this function returns.
           (result nil))
-      (while args
-        (let ((token (pop args)))
+      (while query-specs
+        (let ((token (pop query-specs)))
           (pcase token
             ;; (1) Process keywords.
             (:language
-             (let ((lang (pop args)))
+             (let ((lang (pop query-specs)))
                (when (or (not (symbolp lang)) (null lang))
                  (signal 'treesit-font-lock-error
                          `("Value of :language should be a symbol"
                            ,lang)))
                (setq current-language lang)))
             (:override
-             (let ((flag (pop args)))
+             (let ((flag (pop query-specs)))
                (when (not (memq flag '(t nil append prepend keep)))
                  (signal 'treesit-font-lock-error
                          `("Value of :override should be one of t, nil, append, prepend, keep"
@@ -637,7 +644,7 @@ name, it is ignored.
                            ,flag)))
                (setq current-override flag)))
             (:feature
-             (let ((var (pop args)))
+             (let ((var (pop query-specs)))
                (when (or (not (symbolp var))
                          (memq var '(t nil)))
                  (signal 'treesit-font-lock-error
@@ -1563,7 +1570,6 @@ in `treesit-parser-list'."
           (message "%s" treesit--inspect-name)
         (message "No node at point")))))
 
-;; FIXME: in the next doc string, what is FIELD-NAME?
 (define-minor-mode treesit-inspect-mode
   "Minor mode that displays in the mode-line the node which starts at point.
 
@@ -1571,8 +1577,10 @@ When this mode is enabled, the mode-line displays
 
     PARENT FIELD-NAME: (NODE FIELD-NAME: (CHILD (...)))
 
-where NODE, CHILD, etc, are nodes which begin at point.
-PARENT is the parent of NODE.  NODE is displayed in bold typeface.
+where NODE, CHILD, etc, are nodes which begin at point.  PARENT
+is the parent of NODE.  NODE is displayed in bold typeface.
+FIELD-NAMEs are field names of NODE and CHILD, etc (see Info
+node `(elisp)Language Definitions', heading \"Field names\").
 
 If no node starts at point, i.e., point is in the middle of a
 node, then the mode line displays the earliest node that spans point,

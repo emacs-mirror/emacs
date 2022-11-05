@@ -228,18 +228,20 @@ This minor mode displays on the mode-line the node that @emph{starts}
 at point.  The mode-line will display
 
 @example
-@var{parent} @var{field}: (@var{child} (@var{grandchild} (@dots{})))
+@var{parent} @var{field}: (@var{node} (@var{child} (@dots{})))
 @end example
 
-@var{child}, @var{grand}, @var{grand-grandchild}, etc., are nodes that
-begin at point.  @var{parent} is the parent node of @var{child}.
+where @var{node}, @var{child}, etc, are nodes which begin at point.
+@var{parent} is the parent of @var{node}.  @var{node} is displayed in
+bold typeface.  @var{field-name}s are field names of @var{node} and
+@var{child}, etc.
 
-If there is no node that starts at point, i.e., point is in the middle
-of a node, then the mode-line only displays the smallest node that
-spans the position of point, and its immediate parent.
+If no node starts at point, i.e., point is in the middle of a node,
+then the mode line displays the earliest node that spans point, and
+its immediate parent.
 
-This minor mode doesn't create parsers on its own.  It simply uses the
-first parser in @code{(treesit-parser-list)} (@pxref{Using Parser}).
+This minor mode doesn't create parsers on its own.  It uses the first
+parser in @code{(treesit-parser-list)} (@pxref{Using Parser}).
 @end deffn
 
 @heading Reading the grammar definition
@@ -1326,15 +1328,20 @@ example.  In that case, text segments written in different languages
 need to be assigned different parsers.  Traditionally, this is
 achieved by using narrowing.  While tree-sitter works with narrowing
 (@pxref{tree-sitter narrowing, narrowing}), the recommended way is
-instead to set regions of buffer text in which a parser will operate.
+instead to set regions of buffer text (i.e., ranges) in which a parser
+will operate.  This section describes functions for setting and
+getting ranges for a parser.
 
-@c FIXME: This text should be expanded, as it doesn't explain who do
-@c the other functions in this node related to supporting multiple
-@c languages.
-Specifically, a multi-language major mode should set
-@code{treesit-language-at-point-function} and
-@code{treesit-range-settings} for Emacs to handle multiple languages
-in the same buffer.
+Lisp programs should call @code{treesit-update-ranges} to make sure
+the ranges for each parser are correct before using parsers in a
+buffer, and call @code{treesit-language-at} to figure out the language
+responsible for the text at some position.  Multi-language major modes
+sets @code{treesit-range-settings} and
+@code{treesit-language-at-point-function} respectively to power these
+two functions.  These functions and variables are explained in more
+detail towards the end of the section.
+
+@heading Getting and setting ranges
 
 @defun treesit-parser-set-included-ranges parser ranges
 This function sets up @var{parser} to operate on @var{ranges}.  The
@@ -1389,22 +1396,6 @@ ranges, the return value is @code{nil}.
 @end example
 @end defun
 
-@defun treesit-set-ranges parser-or-lang ranges
-Like @code{treesit-parser-set-included-ranges}, this function sets
-the ranges of @var{parser-or-lang} to @var{ranges}.  Conveniently,
-@var{parser-or-lang} could be either a parser or a language.  If it is
-a language, this function looks for the first parser in
-@code{(treesit-parser-list)} for that language in the current buffer,
-and sets the ranges for it.
-@end defun
-
-@defun treesit-get-ranges parser-or-lang
-This function returns the ranges of @var{parser-or-lang}, like
-@code{treesit-parser-included-ranges}.  And like
-@code{treesit-set-ranges}, @var{parser-or-lang} can be a parser or
-a language symbol.
-@end defun
-
 @defun treesit-query-range source query &optional beg end
 This function matches @var{source} with @var{query} and returns the
 ranges of captured nodes.  The return value is a list of cons cells of
@@ -1426,37 +1417,55 @@ Like other query functions, this function raises the
 @code{treesit-query-error} error if @var{query} is malformed.
 @end defun
 
-@defun treesit-update-ranges &optional beg end
-This function is used by fontifications and indentation to update
-ranges before using any parser.  It makes sure the parsers' ranges are
-set correctly between @var{beg} and @var{end}, according to
-@code{treesit-range-settings}.  If omitted, @var{beg} defaults to the
-beginning of the buffer, and @var{end} defaults to the end of the
-buffer.
-@end defun
+@heading Supporting multiple languages as Lisp programs
 
-@vindex treesit-language-at-point-function
-@defun treesit-language-at pos
-This function tries to figure out which language is responsible for
-the text at buffer position @var{pos}.  Under the hood it just calls
-@code{treesit-language-at-point-function}, which is a function that
-takes the same argument as this function.
-
-Various Lisp programs use this function.  For example, the indentation
-program uses this function to determine which language's rule to use
-in a multi-language buffer.
-@end defun
-
-@heading An example
-
-Normally, in a set of languages that can be mixed together, there is a
-main language and several embedded languages.  A Lisp program usually
-first parses the whole document with the major language's parser, sets
-ranges for the embedded languages, and then parses the embedded
+It should suffice for general Lisp programs to call these two
+functions in order to support program sources that mixes multiple
 languages.
 
-Suppose we need to parse a very simple document that mixes
-@acronym{HTML}, @acronym{CSS} and JavaScript:
+@defun treesit-update-ranges &optional beg end
+This function updates ranges for parsers in the buffer.  It makes sure
+the parsers' ranges are set correctly between @var{beg} and @var{end},
+according to @code{treesit-range-settings}.  If omitted, @var{beg}
+defaults to the beginning of the buffer, and @var{end} defaults to the
+end of the buffer.
+
+For example, fontification functions uses this function before
+querying for nodes in a region.
+@end defun
+
+@defun treesit-language-at pos
+This function returns the language of the text at buffer position
+@var{pos}.  Under the hood it calls
+@code{treesit-language-at-point-function} and returns its return
+value.  If @code{treesit-language-at-point-function} is @code{nil},
+this function returns the language of the first parser in the returned
+value of @code{treesit-parser-list}.  If there is no parser in the
+buffer, it returns @code{nil}.
+@end defun
+
+@heading Supporting multiple languages as major modes
+
+@cindex host language, tree-sitter
+@cindex tree-sitter host language
+@cindex embedded language, tree-sitter
+@cindex tree-sitter embedded language
+Normally, in a set of languages that can be mixed together, there is a
+host language and one or more embedded languages.  A Lisp program
+usually first parses the whole document with the host language's
+parser, retrieve some information, sets ranges for the embedded
+languages with that information, and then parses the embedded
+languages.
+
+Take a buffer containing @acronym{HTML}, @acronym{CSS} and JavaScript
+as an example.  A lisp program will first parse the whole buffer with
+an @acronym{HTML} parser, then query the parser for
+@code{style_element} and @code{script_element} nodes, which
+corresponds to @acronym{CSS} and JavaScript text, respectively.  Then
+it sets the range of the @acronym{CSS} and JavaScript parser to the
+range in which their corresponding nodes span.
+
+Given a simple @acronym{HTML} document:
 
 @example
 @group
@@ -1467,8 +1476,8 @@ Suppose we need to parse a very simple document that mixes
 @end group
 @end example
 
-We first parse with @acronym{HTML}, then set ranges for @acronym{CSS}
-and JavaScript:
+A Lisp program will first parse with a @acronym{HTML} parser, then set
+ranges for @acronym{CSS} and JavaScript parsers:
 
 @example
 @group
@@ -1497,14 +1506,13 @@ and JavaScript:
 @end group
 @end example
 
-We use a query pattern @w{@code{(style_element (raw_text) @@capture)}}
-to find @acronym{CSS} nodes in the @acronym{HTML} parse tree.  For how
-to write query patterns, @pxref{Pattern Matching}.
-
-Emacs can automate the above process in @code{treesit-update-ranges}.
-For it to work, a Lisp program should set
-@code{treesit-range-settings} to the output of
-@code{treesit-range-rules}, like in the following example:
+Emacs automates this process in @code{treesit-update-ranges}.  A
+multi-language major mode should set @code{treesit-range-settings} so
+that this function knows how to perform this process automatically.
+Major modes should use the helper function @code{treesit-range-rules}
+to generate the value that @code{treesit-range-settings} can have.
+The settings in the following example directly translates to
+operations shown above.
 
 @example
 @group
@@ -1512,50 +1520,65 @@ For it to work, a Lisp program should set
             (treesit-range-rules
              :embed 'javascript
              :host 'html
-             '((script_element (raw_text) @@cap))
+             '((script_element (raw_text) @@capture))
 @end group
 
 @group
              :embed 'css
              :host 'html
-             '((style_element (raw_text) @@cap))))
+             '((style_element (raw_text) @@capture))))
 @end group
 @end example
 
-@c FIXME: This is NOT how we document series of 3 arguments!  It is
-@c better to use ``&rest query-specs'' instead, and then tell that
-@c each query-spec is a triplet of :keyword, value, and the query
-@c itself.  But then the doc string of the function and its advertised
-@c calling sequence, should be changed accordingly.
-@defun treesit-range-rules :keyword value query...
+@defun treesit-range-rules &rest query-specs
 This function is used to set @var{treesit-range-settings}.  It
 takes care of compiling queries and other post-processing, and outputs
 a value that @var{treesit-range-settings} can have.
 
-It takes a series of one or more @var{query}s in either the string,
-s-expression or compiled form.  Each @var{query} should be preceded by
-a pair of @var{:keyword} and @var{value} that configure the query (and
-only that query).
+It takes a series of @var{query-spec}s, where each @var{query-spec} is
+of the form @w{@code{@var{:keyword} @var{value} @dots{} @var{query}}}.
+Each @var{query} is a tree-sitter query in either the string,
+s-expression or compiled form, or a function.
 
-@c FIXME: The notion of ``host language'' was never explained.  We do
-@c mention ``embedded language'', but without a @dfn and without an
-@c index entry to find it; that should also be fixed.
-For each query, the @code{:embed} keyword specifies the embedded
-language, and the @code{:host} keyword specified the host language.
-@c FIXME: The next sentence is not clear: what does it mean ``to set
-@c ranges in the embedded language''?
-Emacs queries the @var{query} in the host language and uses the result
-to set ranges for the embedded language.
+If @var{query} is a tree-sitter qurey, it should be preceded by 2
+pairs of @var{:keyword} and @var{value}, where the @code{:embed}
+keyword specifies the @dfn{embedded language}, and the @code{:host}
+keyword specified the @dfn{host language}.
 
-@c FIXME: ``It only needs to ensure...'' is not clear.  What does
-@c ``only'' refer to? does it mean that's the only purpose of such a
-@c function?
-A @var{query} can also be a function that takes two arguments,
-@var{start} and @var{end}, and sets the range for parsers.  It only
-needs to ensure ranges between @var{start} and @var{end} is correct.
-@c FIXME: This should be at the beginning of the description.
-When @var{query} is a function, it doesn't need keywords before it.
+@code{treesit-update-ranges} uses @var{query} to figure out how to set
+the ranges for parsers for the embedded language.  It queries
+@var{query} in a host language parser, computes the ranges in which
+the captured nodes span, and applies these ranges to embedded
+language parsers.
+
+If @var{query} is a function, it doesn't need any @var{keyword} and
+@var{value} pair.  It should be a function that takes 2 arguments,
+@var{start} and @var{end}, and sets the ranges for parsers in the
+current buffer in the region between @var{start} and @var{end}.  It is
+fine for this function to set ranges in a larger region that
+encompasses the region between @var{start} and @var{end}.
 @end defun
+
+@defvar treesit-range-settings
+This variable helps @code{treesit-update-ranges} to update ranges for
+parsers in the buffer.  It is a list of @var{setting}s where the exact
+format of a @var{setting} is considered internal.  You should use
+@code{treesit-range-rules} to generate a value that this variable can
+have.
+
+@c Because the format is internal, we don't document them here.  Though
+@c we do have it explained in the docstring.  We also expose the fact
+@c that it is a list of settings, so one could combine two of them with
+@c append.
+@end defvar
+
+
+@defvar treesit-language-at-point-function
+This variable's value should be a function that takes a single
+argument, @var{pos}, which is a buffer position, and returns the
+language of the buffer text at @var{pos}.  This variable is used by
+@code{treesit-language-at}.
+@end defvar
 
 @node Tree-sitter major modes
 @section Developing major modes with tree-sitter
@@ -1564,8 +1587,8 @@ When @var{query} is a function, it doesn't need keywords before it.
 This section covers some general guidelines on developing tree-sitter
 integration for a major mode.
 
-In general, a major mode supporting tree-sitter features should
-roughly follow this pattern:
+A major mode supporting tree-sitter features should roughly follow
+this pattern:
 
 @example
 @group
@@ -1593,8 +1616,9 @@ This function checks for conditions for activating tree-sitter.  It
 checks whether the user turned on tree-sitter for @var{mode}
 (according to @code{treesit-settings}), whether Emacs was built with
 tree-sitter, whether the buffer's size is not too large for
-tree-sitter to handle it, and whether support for @var{language} is
-available in tree-sitter.
+tree-sitter to handle it, and whether language definition for
+@var{language} is available on the system (@pxref{Language
+Definitions}).
 
 When the user sets @var{mode} to @var{demand} in @code{treesit-settings},
 this function emits a warning if tree-sitter cannot be activated.  If
@@ -1605,7 +1629,7 @@ If @var{mode} is nil, this function doesn't check user's preference in
 @code{treesit-settings}.
 
 If all the necessary conditions are met, this function returns
-non-@code{nil}; otherwise it return @code{nil}.
+non-@code{nil}; otherwise it returns @code{nil}.
 @end defun
 
 Next, the major mode should set up tree-sitter variables and call
@@ -1632,6 +1656,9 @@ navigation functions for @code{beginning-of-defun} and
 For more information of these built-in tree-sitter features,
 @pxref{Parser-based Font Lock}, @pxref{Parser-based Indentation}, and
 @pxref{List Motion}.
+
+For supporting mixing of multiple languages in a major mode,
+@pxref{Multiple Languages}.
 
 @node Tree-sitter C API
 @section Tree-sitter C API Correspondence

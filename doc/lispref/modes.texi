@@ -3930,7 +3930,7 @@ To setup tree-sitter fontification, a major mode should first set
 @code{treesit-font-lock-rules}, then call
 @code{treesit-major-mode-setup}.
 
-@defun treesit-font-lock-rules :keyword value query...
+@defun treesit-font-lock-rules &rest query-specs
 This function is used to set @var{treesit-font-lock-settings}.  It
 takes care of compiling queries and other post-processing, and outputs
 a value that @var{treesit-font-lock-settings} accepts.  Here's an
@@ -3950,13 +3950,18 @@ example:
 @end group
 @end example
 
-This function takes a list of text or s-exp queries.  Before each
-query, there are @var{:keyword}-@var{value} pairs that configure
-that query.  The @code{:lang} keyword sets the query's language and
-every query must specify the language.  The @code{:feature} keyword
-sets the feature name of the query.  Users can control which features
-are enabled with @code{font-lock-maximum-decoration} and
-@code{treesit-font-lock-feature-list} (see below).
+This function takes a list of @var{query-spec}s of the form
+@w{@code{@var{:keyword} @var{value} @dots{} @var{query}}}.  Each
+@var{query} is a tree-sitter query in either the string, s-expression
+or compiled form.
+
+Before each query, there are @var{:keyword} @var{value} pairs that
+configure that query.  The @code{:lang} keyword sets the query's
+language.  The @code{:feature} keyword sets the feature name of the
+query.  Users can control which features are enabled with
+@code{font-lock-maximum-decoration} and
+@code{treesit-font-lock-feature-list} (described below).  These two
+keywords are mandated.
 
 Other keywords are optional:
 
@@ -4055,10 +4060,13 @@ For this variable to take effect, a Lisp program should call
 
 @defvar treesit-font-lock-settings
 A list of settings for tree-sitter based font lock.  The exact format
-of this variable is considered internal.  One should always use
+of each setting is considered internal.  One should always use
 @code{treesit-font-lock-rules} to set this variable.
-@c Because the format is internal, we don't document them here.
-@c Though we do have it explained in the docstring.
+
+@c Because the format is internal, we don't document them here.  Though
+@c we do have it explained in the docstring.  We also expose the fact
+@c that it is a list of settings, so one could combine two of them with
+@c append.
 @end defvar
 
 Multi-language major modes should provide range functions in
