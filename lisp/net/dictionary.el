@@ -1150,9 +1150,7 @@ It presents the selection or word at point as default input and
 allows editing it."
   (interactive
    (list (let ((default (dictionary-search-default)))
-           (read-string (if default
-                            (format "Search word (%s): " default)
-                          "Search word: ")
+           (read-string (format-prompt "Search word" default)
                         nil 'dictionary-word-history default))
 	 (if current-prefix-arg
 	     (read-string (if dictionary-default-dictionary
