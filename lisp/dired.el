@@ -3034,7 +3034,8 @@ See options: `dired-hide-details-hide-symlink-targets' and
       (remove-list-of-text-properties
        (progn (goto-char start) (line-end-position))
        (progn (goto-char end) (line-end-position))
-       '(invisible)))))
+       '(invisible))
+      (dired-insert-set-properties start end))))
 
 ;;; Functions for finding the file name in a dired buffer line
 

@@ -288,6 +288,16 @@
             (should (cdr (dired-get-marked-files))))
         (when (buffer-live-p buf) (kill-buffer buf))))))
 
+(ert-deftest dired-test-bugXXXX ()
+  "Test for https://debbugs.gnu.org/XXXX ."
+  (dired (list (expand-file-name "src" source-directory)
+               "cygw32.c" "alloc.c" "w32xfns.c" "xdisp.c"))
+  (dired-hide-all)
+  (dired-hide-all)
+  (dired-next-line 1)
+  (should (equal 'dired-hide-details-detail
+                 (get-text-property (1+ (line-beginning-position)) 'invisible))))
+
 (ert-deftest dired-test-bug27899 ()
   "Test for https://debbugs.gnu.org/27899 ."
   :tags '(:unstable)
