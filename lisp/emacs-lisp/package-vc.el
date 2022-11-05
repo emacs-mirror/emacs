@@ -28,8 +28,8 @@
 ;; aren't interested in activating a package, you can use
 ;; `package-vc-checkout' instead, which will prompt you for a target
 ;; directory.  If you wish to re-use an existing checkout, the command
-;; `package-vc-link-directory' will create a symbolic link and prepare
-;; the package.
+;; `package-vc-install-from-checkout' will create a symbolic link and
+;; prepare the package.
 ;;
 ;; If you make local changes that you wish to share with an upstream
 ;; maintainer, the command `package-vc-prepare-patch' can prepare
@@ -665,7 +665,7 @@ for the last released version of the package."
     (find-file directory)))
 
 ;;;###autoload
-(defun package-vc-link-directory (dir name)
+(defun package-vc-install-from-checkout (dir name)
   "Set up the package NAME in DIR by linking it into the ELPA directory.
 Interactively, prompt the user for DIR, which should be a directory
 under version control, typically one created by `package-vc-checkout'.

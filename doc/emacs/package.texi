@@ -592,11 +592,11 @@ that you have customised.  If you have made a change you wish to share
 with the maintainers, first commit your changes then use the command
 @code{package-vc-prepare-patch} to share it.  @xref{Preparing Patches}.
 
-@findex package-vc-link-directory
+@findex package-vc-install-from-checkout
 @findex package-vc-refresh
   If you maintain your own packages you might want to use a local
 checkout instead of cloning a remote repository.  You can do this by
-using @code{package-vc-link-directory}, which creates a symbolic link
+using @code{package-vc-install-from-checkout}, which creates a symbolic link
 from the package directory (@pxref{Package Files}) to your checkout
 and initialises the code.  Note that you might have to use
 @code{package-vc-refresh} to repeat the initialisation and update the

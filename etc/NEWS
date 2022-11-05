@@ -1559,7 +1559,7 @@ Packages can now be installed directly from source by cloning from a
 repository.
 
 +++
-*** New command 'package-vc-link-directory'
+*** New command 'package-vc-install-from-checkout'
 An existing checkout can now be loaded via package.el, by creating a
 symbolic link from the usual package directory to the checkout.
 
