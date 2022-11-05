@@ -1228,7 +1228,7 @@ displayed."
     ;; Most of temp and logging buffers (aside from hidden ones):
     (and
      (major-mode . fundamental-mode)
-     "\\[^ ]")
+     "\\`[^ ]")
     ;; non-text buffer such as xref, occur, vc, log, ...
     (and (derived-mode . special-mode)
          (not (major-mode . help-mode))
