@@ -345,6 +345,11 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
   ptrdiff_t diff_bytes = new_bytes - old_bytes;
 
   adjust_suspend_auto_hscroll (from, from + old_chars);
+
+  /* FIXME: When OLD_CHARS is 0, this "replacement" is really just an
+     insertion, but the behavior we provide here in that case is that of
+     `insert-before-markers` rather than that of `insert`.
+     Maybe not a bug, but not a feature either.  */
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
       if (m->bytepos >= prev_to_byte)
@@ -362,7 +367,8 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
   check_markers ();
 
   adjust_overlays_for_insert (from + old_chars, new_chars, true);
-  adjust_overlays_for_delete (from, old_chars);
+  if (old_chars)
+    adjust_overlays_for_delete (from, old_chars);
 }
 
 /* Starting at POS (BYTEPOS), find the byte position corresponding to
@@ -1334,8 +1340,6 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 
   check_markers ();
 
-  if (len == 0)
-    evaporate_overlays (from);
   modiff_incr (&MODIFF, nchars_del + len);
   CHARS_MODIFF = MODIFF;
 }
@@ -1521,9 +1525,6 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 		  (from_byte + outgoing_insbytes
 		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
 
-  if (outgoing_insbytes == 0)
-    evaporate_overlays (from);
-
   check_markers ();
 
   modiff_incr (&MODIFF, nchars_del + inschars);
@@ -1646,9 +1647,6 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
       else
 	adjust_point (inschars - nchars_del, insbytes - nbytes_del);
     }
-
-  if (insbytes == 0)
-    evaporate_overlays (from);
 
   check_markers ();
 
@@ -1857,8 +1855,6 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
     END_UNCHANGED = Z - GPT;
 
   check_markers ();
-
-  evaporate_overlays (from);
 
   return deletion;
 }

@@ -301,7 +301,6 @@ with parameters from the *Messages* buffer modification."
 
 Deleting characters from either a base or an indirect buffer
 should evaporate overlays in both."
-  :expected-result :failed
   ;; Loop twice, erasing from the base buffer the first time and the
   ;; indirect buffer the second.
   (dolist (erase-where '(base indirect))
