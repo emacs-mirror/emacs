@@ -1893,8 +1893,6 @@ with the changes against the last commit, e.g. with 'C-x v D'
 want to commit.  Finally, type 'C-x v v' in that diff buffer to commit
 only part of your changes, those whose hunks were left in the buffer.
 
-Currently this feature works only with the Git as 'vc-backend'.
-
 ---
 *** 'C-x v v' on an unregistered file will now use the most specific backend.
 Previously, if you had an SVN-covered "~/" directory, and a Git-covered
