@@ -107,7 +107,9 @@ enum itree_order
   };
 
 extern void init_itree (void);
+#ifdef HAVE_UNEXEC
 extern void forget_itree (void);
+#endif
 extern void itree_node_init (struct itree_node *, bool, bool, Lisp_Object);
 extern ptrdiff_t itree_node_begin (struct itree_tree *, struct itree_node *);
 extern ptrdiff_t itree_node_end (struct itree_tree *, struct itree_node *);
