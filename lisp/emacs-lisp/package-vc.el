@@ -506,21 +506,39 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
 
     (package-vc--unpack-1 pkg-desc pkg-dir)))
 
-(defun package-vc--sourced-packages-list ()
-  "Generate a list of packages with VC data."
-  (seq-filter
-   (lambda (pkg)
-     (or (package-vc--desc->spec (cadr pkg))
-         ;; If we have no explicit VC data, we can try a kind of
-         ;; heuristic and use the URL header, that might already be
-         ;; pointing towards a repository, and use that as a backup
-         (and-let* ((extras (package-desc-extras (cadr pkg)))
-                    (url (alist-get :url extras))
-                    ((package-vc--guess-backend url))))))
-   package-archive-contents))
+(defun package-vc--read-package-name (prompt &optional allow-url installed)
+  "Query the user for a source package and return a name with PROMPT.
+If the optional argument ALLOW-URL is non-nil, the user is also
+allowed to specify a non-package name.  If the optional argument
+INSTALLED is non-nil, the selection will be filtered down to
+source packages that have already been installed."
+  (package-vc--archives-initialize)
+  (completing-read prompt (if installed package-alist package-archive-contents)
+                   (if installed
+                       (lambda (pkg) (package-vc-p (cadr pkg)))
+                     (lambda (pkg)
+                       (or (package-vc--desc->spec (cadr pkg))
+                           ;; If we have no explicit VC data, we can try a kind of
+                           ;; heuristic and use the URL header, that might already be
+                           ;; pointing towards a repository, and use that as a backup
+                           (and-let* ((extras (package-desc-extras (cadr pkg)))
+                                      (url (alist-get :url extras))
+                                      ((package-vc--guess-backend url)))))))
+                   nil (not allow-url)))
+
+(defun package-vc--read-package-desc (prompt &optional installed)
+  "Query the user for a source package and return a description with PROMPT.
+If the optional argument INSTALLED is non-nil, the selection will
+be filtered down to source packages that have already been
+installed, and the package description will be that of an
+installed package."
+  (cadr (assoc (package-vc--read-package-name prompt nil installed)
+               (if installed package-alist package-archive-contents)
+               #'string=)))
 
 (defun package-vc-update (pkg-desc)
   "Attempt to update the package PKG-DESC."
+  (interactive (list (package-vc--read-package-desc "Update source package:")))
   ;; HACK: To run `package-vc--unpack-1' after checking out the new
   ;; revision, we insert a hook into `vc-post-command-functions', and
   ;; remove it right after it ran.  To avoid running the hook multiple
@@ -605,11 +623,10 @@ uses `package-vc--guess-backend' to guess the backend."
      ;; Initialize the package system to get the list of package
      ;; symbols for completion.
      (package-vc--archives-initialize)
-     (let* ((packages (package-vc--sourced-packages-list))
-            (input (completing-read
-                    "Fetch package source (name or URL): " packages))
-            (name (file-name-base input)))
-       (list input (intern (string-remove-prefix "emacs-" name))
+     (let* ((name-or-url (package-vc--read-package-name
+                          "Fetch and install package: " t))
+            (name (file-name-base name-or-url)))
+       (list name-or-url (intern (string-remove-prefix "emacs-" name))
              (and current-prefix-arg :last-release)))))
   (package-vc--archives-initialize)
   (cond
@@ -647,18 +664,12 @@ package's repository.  If REV has the special value
 `:last-release' (interactively, the prefix argument), that stands
 for the last released version of the package."
   (interactive
-   (progn
-     ;; Initialize the package system to get the list of package
-     ;; symbols for completion.
-     (package-vc--archives-initialize)
-     (let* ((packages (package-vc--sourced-packages-list))
-            (input (completing-read
-                    "Fetch package source (name or URL): " packages)))
-       (list (cadr (assoc input package-archive-contents #'string=))
-             (read-file-name "Clone into new or empty directory: " nil nil t nil
-                             (lambda (dir) (or (not (file-exists-p dir))
-                                               (directory-empty-p dir))))
-             (and current-prefix-arg :last-release)))))
+   (let* ((name (package-vc--read-package-name "Fetch package source: ")))
+     (list (cadr (assoc name package-archive-contents #'string=))
+           (read-file-name "Clone into new or empty directory: " nil nil t nil
+                           (lambda (dir) (or (not (file-exists-p dir))
+                                             (directory-empty-p dir))))
+           (and current-prefix-arg :last-release))))
   (package-vc--archives-initialize)
   (let ((pkg-spec (or (package-vc--desc->spec pkg-desc)
                       (and-let* ((extras (package-desc-extras pkg-desc))
@@ -697,18 +708,8 @@ name from the base name of DIR."
 (defun package-vc-refresh (pkg-desc)
   "Refresh the installation for package given by PKG-DESC.
 Interactively, prompt for the name of the package to refresh."
-  (interactive (list (package-vc--read-pkg "Refresh package: ")))
+  (interactive (list (package-vc--read-package-desc "Refresh package: " t)))
   (package-vc--unpack-1 pkg-desc (package-desc-dir pkg-desc)))
-
-(defun package-vc--read-pkg (prompt)
-  "Query for a source package description with PROMPT."
-  (cadr (assoc (completing-read
-                prompt
-                package-alist
-                (lambda (pkg) (package-vc-p (cadr pkg)))
-                t)
-               package-alist
-               #'string=)))
 
 ;;;###autoload
 (defun package-vc-prepare-patch (pkg subject revisions)
@@ -719,7 +720,7 @@ Interactively, prompt for PKG, SUBJECT, and REVISIONS.  However,
 if the current buffer has marked commit log entries, REVISIONS
 are the tags of the marked entries, see `log-view-get-marked'."
   (interactive
-   (list (package-vc--read-pkg "Package to prepare a patch for: ")
+   (list (package-vc--read-package-desc "Package to prepare a patch for: " t)
          (and (not vc-prepare-patches-separately)
               (read-string "Subject: " "[PATCH] " nil nil t))
          (or (log-view-get-marked)
