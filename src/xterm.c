@@ -5317,7 +5317,8 @@ struct xi_known_valuator
 #endif
 
 static void
-xi_populate_device_from_info (struct xi_device_t *xi_device,
+xi_populate_device_from_info (struct x_display_info *dpyinfo,
+			      struct xi_device_t *xi_device,
 			      XIDeviceInfo *device)
 {
 #ifdef HAVE_XINPUT2_1
@@ -5335,19 +5336,56 @@ xi_populate_device_from_info (struct xi_device_t *xi_device,
   USE_SAFE_ALLOCA;
 #endif
 
+  /* Initialize generic information about the device: its ID, which
+     buttons are currently pressed and thus presumably actively
+     grabbing the device, what kind of device it is (master pointer,
+     master keyboard, slave pointer, slave keyboard, or floating
+     slave), and its attachment.
+
+     Here is a brief description of what device uses and attachments
+     are.  Under XInput 2, user input from individual input devices is
+     multiplexed into specific seats before being delivered, with each
+     seat corresponding to a single on-screen mouse pointer and having
+     its own keyboard focus.  Each seat consists of two virtual
+     devices: the master keyboard and the master pointer, the first of
+     which is used to report all keyboard input, with the other used
+     to report all other input.
+
+     Input from each physical device (mouse, trackpad or keyboard) is
+     then associated with that slave device's paired master device.
+     For example, moving the device "Logitech USB Optical Mouse",
+     enslaved by the master pointer device "Virtual core pointer",
+     will result in movement of the mouse pointer associated with that
+     master device's seat.  If the pointer moves over an Emacs frame,
+     then the frame will receive XI_Enter and XI_Motion events from
+     that master pointer.
+
+     Likewise, keyboard input from the device "AT Translated Set 2
+     keyboard", enslaved by the master keyboard device "Virtual core
+     keyboard", will be reported to its seat's input focus window.
+
+     The device use describes what the device is.  The meanings of
+     MasterPointer, MasterKeyboard, SlavePointer and SlaveKeyboard
+     should be obvious.  FloatingSlave means the device is a slave
+     device that is not associated with any seat, and thus generates
+     no input.
+
+     The device attachment is a device ID whose meaning varies
+     depending on the device use.  If the device is a master device,
+     then the attachment is the device ID of the other device in its
+     seat (the master keyboard for master pointer devices, and vice
+     versa).  Otherwise, it is the ID of the master device the slave
+     device is attached to.  For slave devices not attached to any
+     seat, its value is undefined.  */
+
   xi_device->device_id = device->deviceid;
   xi_device->grab = 0;
-
-#ifdef HAVE_XINPUT2_1
-  actual_valuator_count = 0;
-  xi_device->valuators = xnmalloc (device->num_classes,
-				   sizeof *xi_device->valuators);
-  values = NULL;
-#endif
-
   xi_device->use = device->use;
   xi_device->name = build_string (device->name);
   xi_device->attachment = device->attachment;
+
+  /* Clear the list of active touch points on the device, which are
+     individual touches tracked by a touchscreen.  */
 
 #ifdef HAVE_XINPUT2_2
   xi_device->touchpoints = NULL;
@@ -5355,6 +5393,28 @@ xi_populate_device_from_info (struct xi_device_t *xi_device,
 #endif
 
 #ifdef HAVE_XINPUT2_1
+  if (!dpyinfo->xi2_version)
+    {
+      /* Skip everything below as there are no classes of interest on
+	 XI 2.0 servers.  */
+      xi_device->valuators = NULL;
+      xi_device->scroll_valuator_count = 0;
+
+      return;
+    }
+
+  actual_valuator_count = 0;
+  xi_device->valuators = xnmalloc (device->num_classes,
+				   sizeof *xi_device->valuators);
+  values = NULL;
+
+  /* Initialize device info based on a list of "device classes".
+     Device classes are little pieces of information associated with a
+     device.  Emacs is interested in scroll valuator information and
+     touch handling information, which respectively describe the axes
+     (if any) along which the device's scroll wheel rotates, and how
+     the device reports touch input.  */
+
   for (c = 0; c < device->num_classes; ++c)
     {
       switch (device->classes[c]->type)
@@ -5474,7 +5534,8 @@ x_cache_xi_devices (struct x_display_info *dpyinfo)
   for (i = 0; i < ndevices; ++i)
     {
       if (infos[i].enabled)
-	xi_populate_device_from_info (&dpyinfo->devices[actual_devices++],
+	xi_populate_device_from_info (dpyinfo,
+				      &dpyinfo->devices[actual_devices++],
 				      &infos[i]);
     }
 
@@ -23607,7 +23668,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      memset (dpyinfo->devices + dpyinfo->num_devices - 1,
 				      0, sizeof *dpyinfo->devices);
 			      device = &dpyinfo->devices[dpyinfo->num_devices - 1];
-			      xi_populate_device_from_info (device, info);
+			      xi_populate_device_from_info (dpyinfo, device, info);
 			    }
 
 			  if (info)
@@ -29608,11 +29669,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  xi_select_hierarchy_events (dpyinfo);
 #endif
 
+	  dpyinfo->xi2_version = minor;
 	  x_cache_xi_devices (dpyinfo);
 	}
     }
-
-  dpyinfo->xi2_version = minor;
  skip_xi_setup:
   ;
 #endif
