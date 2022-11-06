@@ -120,8 +120,9 @@ the `clone' function."
 (defvar package-vc-selected-packages) ; pacify byte-compiler
 (defun package-vc-ensure-packages ()
   "Ensure packages specified in `package-vc-selected-packages' are installed."
-  (pcase-dolist (`(,(and (pred symbolp) name) . ,spec)
-                 package-vc-selected-packages)
+  (pcase-dolist (`(,name . ,spec) package-vc-selected-packages)
+    (when (stringp name)
+      (setq name (intern name)))
     (let ((pkg-desc (cadr (assoc name package-alist #'string=))))
       (unless (and name (package-installed-p name)
                    (package-vc-p pkg-desc))
