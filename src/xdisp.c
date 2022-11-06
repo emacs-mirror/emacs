@@ -23156,6 +23156,9 @@ extend_face_to_end_of_line (struct it *it)
   /* The default face, possibly remapped. */
   struct face *default_face =
     FACE_FROM_ID_OR_NULL (f, lookup_basic_face (it->w, f, DEFAULT_FACE_ID));
+  if (!default_face)
+    return;
+
   const int extend_face_id =
     (it->face_id == default_face->id || it->s != NULL)
     ? it->face_id
