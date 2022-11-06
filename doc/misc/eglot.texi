@@ -945,9 +945,9 @@ provide per-project settings, as described below in more detail.
 Some language servers need to know project-specific settings, which
 the LSP calls @dfn{workspace configuration}.  Eglot allows such fine
 tuning of per-project settings via the variable
-@code{eglot-workspace-configuration}.  Eglot sends the portion of the
-settings contained in this variable to each server for which such
-settings were defined in the variable.  These settings are
+@code{eglot-workspace-configuration}.  Eglot sends the settings in
+this variable to each server, and each server applies the portion of the
+settings relevant to it and ignores the rest.  These settings are
 communicated to the server initially (upon establishing the
 connection) or when the settings are changed, or in response to a
 configuration request from the server.
@@ -1022,8 +1022,8 @@ Alternatively, the same configuration could be defined as follows:
 @end lisp
 
 This is an equivalent setup which sets the value for all the
-major-modes inside the project; Eglot will use for each server only
-the section of the parameters intended for that server.
+major-modes inside the project; each server will use only the section
+of the parameters intended for that server, and ignore the rest.
 
 As yet another alternative, you can set the value of
 @code{eglot-workspace-configuration} programmatically, via the
