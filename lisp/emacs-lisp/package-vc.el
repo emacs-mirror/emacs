@@ -118,7 +118,7 @@ the `clone' function."
   :version "29.1")
 
 (defvar package-vc-selected-packages) ; pacify byte-compiler
-(defun package-vc-ensure-packages ()
+(defun package-vc-install-selected-packages ()
   "Ensure packages specified in `package-vc-selected-packages' are installed."
   (pcase-dolist (`(,name . ,spec) package-vc-selected-packages)
     (when (stringp name)
@@ -162,7 +162,7 @@ function `package-vc-selected-packages' to apply the changes."
                                          (:vc-backend symbol)))))
   :set (lambda (sym val)
          (custom-set-default sym val)
-         (package-vc-ensure-packages))
+         (package-vc-install-selected-packages))
   :version "29.1")
 
 (defvar package-vc--archive-spec-alist nil
