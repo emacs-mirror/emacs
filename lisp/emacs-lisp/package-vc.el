@@ -102,7 +102,7 @@
 
 (defcustom package-vc-repository-store
   (expand-file-name "emacs/vc-packages" (xdg-data-home))
-  "Directory used by `package-vc--unpack' to store repositories."
+  "Directory used by to store repositories."
   :type 'directory
   :version "29.1")
 
@@ -625,7 +625,7 @@ name as deduced from NAME-OR-URL.
 Optional argument BACKEND specifies the VC backend to use for cloning
 the package's repository; this is only possible if NAME-OR-URL is a URL,
 a string.  If BACKEND is omitted or nil, the function
-uses `package-vc--guess-backend' to guess the backend."
+uses `package-vc-heuristic-alist' to guess the backend."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
