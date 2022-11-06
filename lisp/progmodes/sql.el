@@ -3030,9 +3030,10 @@ displayed."
 
     ;; Our start must be between them
     (goto-char last)
-    ;; Find a beginning-of-stmt that's not in a comment
+    ;; Find a beginning-of-stmt that's not in a string or comment
     (while (and (re-search-forward regexp next t 1)
-                (nth 7 (syntax-ppss)))
+                (or (nth 3 (syntax-ppss))
+                    (nth 7 (syntax-ppss))))
       (goto-char (match-end 0)))
     (goto-char
      (if (match-data)
@@ -3062,8 +3063,9 @@ displayed."
       ;; If we found another end-of-stmt
       (if (not (apply re-search term nil t n nil))
           (setq arg 0)
-        ;; count it if we're not in a comment
-        (unless (nth 7 (syntax-ppss))
+        ;; count it if we're not in a string or comment
+        (unless (or (nth 3 (syntax-ppss))
+                    (nth 7 (syntax-ppss)))
           (setq arg (- arg (cl-signum arg))))))
     (goto-char (if (match-data)
                    (match-end 0)
