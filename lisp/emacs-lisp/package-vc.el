@@ -692,7 +692,7 @@ name from the base name of DIR."
 (defun package-vc-refresh (pkg-desc)
   "Refresh the installation for package given by PKG-DESC.
 Interactively, prompt for the name of the package to refresh."
-  (interactive (package-vc--read-pkg "Refresh package: "))
+  (interactive (list (package-vc--read-pkg "Refresh package: ")))
   (package-vc--unpack-1 pkg-desc (package-desc-dir pkg-desc)))
 
 (defun package-vc--read-pkg (prompt)
