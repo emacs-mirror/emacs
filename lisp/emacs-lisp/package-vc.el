@@ -363,7 +363,11 @@ asynchronously."
   "Build documentation for package PKG-DESC from documentation source in FILE.
 FILE can be an Org file, indicated by its \".org\" extension,
 otherwise it's assumed to be an Info file."
-  (let ((pkg-dir (package-desc-dir pkg-desc)))
+  (let* ((pkg-name (package-desc-name pkg-desc))
+         (pkg-dir (package-desc-dir pkg-desc))
+         (output (file-name-concat
+                  (format "%s.info" pkg-name)
+                  pkg-dir)))
     (when (string-match-p "\\.org\\'" file)
       (require 'ox)
       (require 'ox-texinfo)
@@ -371,8 +375,10 @@ otherwise it's assumed to be an Info file."
         (insert-file-contents file)
         (setq file (make-temp-file "ox-texinfo-"))
         (org-export-to-file 'texinfo file)))
+    (call-process "makeinfo" nil nil nil
+                  "--no-split" file "-o" output)
     (call-process "install-info" nil nil nil
-                  file pkg-dir)))
+                  output pkg-dir)))
 
 (defun package-vc--unpack-1 (pkg-desc pkg-dir)
   "Prepare PKG-DESC that is already checked-out in PKG-DIR.
