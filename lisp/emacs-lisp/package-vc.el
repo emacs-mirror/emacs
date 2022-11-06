@@ -291,7 +291,7 @@ asynchronously."
            finally return "unknown"))
 
 (defun package-vc--version (pkg)
-  "Extract the commit of a development package PKG."
+  "Return the version number for the source package PKG."
   (cl-assert (package-vc-p pkg))
   (if-let ((main-file (package-vc--main-file pkg)))
       (with-temp-buffer
