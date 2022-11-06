@@ -118,6 +118,8 @@ the `clone' function."
   :version "29.1")
 
 (defvar package-vc-selected-packages) ; pacify byte-compiler
+
+;;;###autoload
 (defun package-vc-install-selected-packages ()
   "Ensure packages specified in `package-vc-selected-packages' are installed."
   (interactive)
@@ -161,6 +163,7 @@ function `package-vc-selected-packages' to apply the changes."
                                          (:lisp-dir string)
                                          (:main-file string)
                                          (:vc-backend symbol)))))
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (custom-set-default sym val)
          (package-vc-install-selected-packages))
