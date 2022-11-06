@@ -12217,7 +12217,10 @@ non-numeric, there is no explicit limit on the size of images.  */);
   && ((defined HAVE_NS && defined NS_IMPL_COCOA)	\
       || defined HAVE_HAIKU)
   DEFSYM (Qsvg, "svg");
-  add_image_type (Qsvg);
+
+  /* On Haiku, the SVG translator may not be installed.  */
+  if (image_can_use_native_api (Qsvg))
+    add_image_type (Qsvg);
 #endif
 
 #ifdef HAVE_NS
