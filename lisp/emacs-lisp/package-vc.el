@@ -151,8 +151,12 @@ is a symbol designating the package and SPEC is one of:
   specification.
 
 This user option differs from `package-selected-packages' in that
-it is meant to be specified manually.  You can also use the
-function `package-vc-selected-packages' to apply the changes."
+it is meant to be specified manually.  If you want to install all
+the packages in the list, you cal also use
+`package-vc-install-selected-packages'.
+
+Note that this option will not override an existing source
+package installation or revert the checked out revision."
   :type '(alist :tag "List of packages you want to be installed"
                 :key-type (symbol :tag "Package")
                 :value-type
