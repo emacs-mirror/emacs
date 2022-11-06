@@ -4838,7 +4838,8 @@ the current line to @var{matcher}; if it returns non-@code{nil}, this
 rule is applicable.  Then Emacs passes the node to @var{anchor}, which
 returns a buffer position.  Emacs takes the column number of that
 position, adds @var{offset} to it, and the result is the indentation
-column for the current line.
+column for the current line.  @var{offset} can be an integer or a
+variable whose value is an integer.
 
 The @var{matcher} and @var{anchor} are functions, and Emacs provides
 convenient defaults for them.

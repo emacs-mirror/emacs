@@ -894,8 +894,9 @@ If MATCHER returns non-nil, meaning the rule matches, Emacs then
 uses ANCHOR to find an anchor, it should be a function that takes
 the same argument (NODE PARENT BOL) and returns a point.
 
-Finally Emacs computes the column of that point returned by ANCHOR
-and adds OFFSET to it, and indents to that column.
+Finally Emacs computes the column of that point returned by
+ANCHOR and adds OFFSET to it, and indents to that column.  OFFSET
+can be an integer or a variable whose value is an integer.
 
 For MATCHER and ANCHOR, Emacs provides some convenient presets.
 See `treesit-simple-indent-presets'.")
@@ -1298,7 +1299,9 @@ OFFSET."
                (let ((anchor-pos
                       (treesit--simple-indent-eval
                        (list anchor node parent bol))))
-                 (cons anchor-pos offset))
+                 (cons anchor-pos (if (symbolp offset)
+                                      (symbol-value offset)
+                                    offset)))
                finally return
                (progn (when treesit--indent-verbose
                         (message "No matched rule"))
