@@ -985,21 +985,25 @@ The maximum tab width is defined by the variable `tab-bar-fixed-width-max'."
   :group 'tab-bar
   :version "29.1")
 
-(defcustom tab-bar-fixed-width-max '(220 . 20)
+(defcustom tab-bar-fixed-width-max '(220 20)
   "Maximum number of pixels or characters allowed for the tab name width.
-The car of the cons cell is the maximum number of pixels when used on
-a GUI session.  The cdr of the cons cell defines the maximum number of
-characters when used on a tty.  When set to nil, there is no limit
+The first element of the list is the maximum number of pixels when used on
+a GUI session.  The second element of the list defines the maximum number
+of characters when used on a tty.  When set to nil, there is no limit
 on maximum width, and tabs are resized evenly to the whole width
 of the tab bar when `tab-bar-fixed-width' is non-nil."
   :type '(choice
           (const :tag "No limit" nil)
-          (cons (integer :tag "Max width (pixels)" :value 220)
+          (list (integer :tag "Max width (pixels)" :value 220)
                 (integer :tag "Max width (chars)" :value 20)))
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (setq tab-bar--fixed-width-hash nil))
   :group 'tab-bar
   :version "29.1")
 
-(defvar tab-bar-fixed-width-min '(20 . 2)
+(defvar tab-bar-fixed-width-min '(20 2)
   "Minimum number of pixels or characters allowed for the tab name width.
 It's not recommended to change this value since with a bigger value, the
 tab bar might wrap to the second line.")
@@ -1038,12 +1042,12 @@ tab bar might wrap to the second line.")
                      (length tabs)))
       (when tab-bar-fixed-width-min
         (setq width (max width (if window-system
-                                   (car tab-bar-fixed-width-min)
-                                 (cdr tab-bar-fixed-width-min)))))
+                                   (nth 0 tab-bar-fixed-width-min)
+                                 (nth 1 tab-bar-fixed-width-min)))))
       (when tab-bar-fixed-width-max
         (setq width (min width (if window-system
-                                   (car tab-bar-fixed-width-max)
-                                 (cdr tab-bar-fixed-width-max)))))
+                                   (nth 0 tab-bar-fixed-width-max)
+                                 (nth 1 tab-bar-fixed-width-max)))))
       (dolist (item tabs)
         (setf (nth 2 item)
               (with-memoization (gethash (cons width (nth 2 item))
