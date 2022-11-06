@@ -846,23 +846,30 @@ If LOUDLY is non-nil, display some debugging information."
                      (node (cdr capture))
                      (node-start (treesit-node-start node))
                      (node-end (treesit-node-end node)))
-                (cond
-                 ((eq face 'contextual)
-                  (treesit-font-lock-contextual-post-process
-                   node start end
-                   (or loudly treesit--font-lock-verbose)))
-                 ((facep face)
-                  (treesit-fontify-with-override
-                   (max node-start start) (min node-end end)
-                   face override))
-                 ((functionp face)
-                  (funcall face node override start end)))
-                ;; Don't raise an error if FACE is neither a face nor
-                ;; a function.  This is to allow intermediate capture
-                ;; names used for #match and #eq.
-                (when (or loudly treesit--font-lock-verbose)
-                  (message "Fontifying text from %d to %d, Face: %s, Node: %s"
-                           start end face (treesit-node-type node))))))))))
+                ;; Turns out it is possible to capture a node that's
+                ;; completely outside the region between START and
+                ;; END.  If the node is outside of that region, (max
+                ;; node-start start) and friends return bad values.
+                (when (and (< start node-end)
+                           (< node-start end))
+                  (cond
+                   ((eq face 'contextual)
+                    (treesit-font-lock-contextual-post-process
+                     node start end
+                     (or loudly treesit--font-lock-verbose)))
+                   ((facep face)
+                    (treesit-fontify-with-override
+                     (max node-start start) (min node-end end)
+                     face override))
+                   ((functionp face)
+                    (funcall face node override start end)))
+                  ;; Don't raise an error if FACE is neither a face nor
+                  ;; a function.  This is to allow intermediate capture
+                  ;; names used for #match and #eq.
+                  (when (or loudly treesit--font-lock-verbose)
+                    (message "Fontifying text from %d to %d, Face: %s, Node: %s"
+                             (max node-start start) (min node-end end)
+                             face (treesit-node-type node)))))))))))
   `(jit-lock-bounds ,start . ,end))
 
 ;;; Indent
