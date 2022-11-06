@@ -375,7 +375,11 @@ otherwise it's assumed to be an Info file."
                   file pkg-dir)))
 
 (defun package-vc--unpack-1 (pkg-desc pkg-dir)
-  "Install PKG-DESC that is already checked-out in PKG-DIR."
+  "Prepare PKG-DESC that is already checked-out in PKG-DIR.
+This includes downloading missing dependencies, generating
+autoloads, generating a package description file (used to
+identify a package as a source package later on), building
+documentation and marking the package as installed."
   ;; In case the package was installed directly from source, the
   ;; dependency list wasn't know beforehand, and they might have
   ;; to be installed explicitly.
