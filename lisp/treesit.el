@@ -147,10 +147,10 @@ The function is called with one argument, the position of point.")
 
 (defun treesit-language-at (position)
   "Return the language at POSITION.
-Assumes parser ranges are up-to-date.  Returns the return value
-of `treesit-language-at-point-function' if it's non-nil,
-otherwise return the language of the first parser in
-`treesit-parser-list', or nil if there is no parser."
+This function assumes that parser ranges are up-to-date.  It
+returns the return value of `treesit-language-at-point-function'
+if it's non-nil, otherwise it returns the language of the first
+parser in `treesit-parser-list', or nil if there is no parser."
   (if treesit-language-at-point-function
       (funcall treesit-language-at-point-function position)
     (when-let ((parser (car (treesit-parser-list))))
@@ -374,7 +374,7 @@ to change.  Use `treesit-range-rules' to set this variable.")
 (defun treesit-range-rules (&rest query-specs)
   "Produce settings for `treesit-range-settings'.
 
-QUERY-SPECS contains a series of QUERY-SPEC of the form
+QUERY-SPECS are a series of QUERY-SPEC triplets of the form
 
     :KEYWORD VALUE... QUERY
 
@@ -396,8 +396,8 @@ computes the ranges spanned by the captured nodes, and applies
 these ranges to parsers for the embedded language.
 
 QUERY can also be a function that takes two arguments, START and
-END.  If QUERY is a function, it doesn't need :KEYWORD VALUE
-pairs preceding it.  This function should set the ranges for
+END.  If QUERY is a function, it doesn't need the :KEYWORD VALUE
+pair preceding it.  This function should set the ranges for
 parsers in the current buffer in the region between START and
 END.  It is OK for this function to set ranges in a larger region
 that encompasses the region between START and END."
@@ -562,7 +562,7 @@ t, nil, append, prepend, keep.  See more in
 (defun treesit-font-lock-rules (&rest query-specs)
   "Return a value suitable for `treesit-font-lock-settings'.
 
-QUERY-SPECS is made of a series of QUERY-SPECs of the form
+QUERY-SPECS is a series of 3 arguments:
 
    :KEYWORD VALUE... QUERY
 
@@ -570,7 +570,7 @@ QUERY is a tree-sitter query in either the string, s-expression
 or compiled form.  For each query, captured nodes are highlighted
 with the capture name as its face.
 
-Before each QUERY there could be :KEYWORD VALUE pairs that
+Before each QUERY there could be :KEYWORD and VALUE pairs that
 configure the query (and only that query).  For example,
 
     (treesit-font-lock-rules

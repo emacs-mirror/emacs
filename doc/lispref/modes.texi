@@ -3950,15 +3950,15 @@ example:
 @end group
 @end example
 
-This function takes a list of @var{query-spec}s of the form
+This function takes a series of @var{query-spec}s, which are triplets
 @w{@code{@var{:keyword} @var{value} @dots{} @var{query}}}.  Each
 @var{query} is a tree-sitter query in either the string, s-expression
 or compiled form.
 
-Before each query, there are @var{:keyword} @var{value} pairs that
-configure that query.  The @code{:lang} keyword sets the query's
-language.  The @code{:feature} keyword sets the feature name of the
-query.  Users can control which features are enabled with
+The @var{:keyword} and @var{value} pairs configure the query which
+follows them in the argument list.  The @code{:lang} keyword sets the
+query's language.  The @code{:feature} keyword sets the feature name
+of the query.  Users can control which features are enabled with
 @code{font-lock-maximum-decoration} and
 @code{treesit-font-lock-feature-list} (described below).  These two
 keywords are mandated.
