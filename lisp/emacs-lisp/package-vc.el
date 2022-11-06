@@ -360,7 +360,7 @@ asynchronously."
 (declare-function org-export-to-file "ox" (backend file))
 
 (defun package-vc--build-documentation (pkg-desc file)
-  "Build documentation FILE for PKG-DESC.
+  "Build documentation for package PKG-DESC from documentation source in FILE.
 FILE can be an Org file, indicated by its \".org\" extension,
 otherwise it's assumed to be an Info file."
   (let ((pkg-dir (package-desc-dir pkg-desc)))
