@@ -23154,14 +23154,14 @@ extend_face_to_end_of_line (struct it *it)
      point temporarily moved to window-point.  */
   specbind (Qinhibit_quit, Qt);
   /* The default face, possibly remapped. */
-  struct face *default_face =
-    FACE_FROM_ID_OR_NULL (f, lookup_basic_face (it->w, f, DEFAULT_FACE_ID));
-  const int extend_face_id =
-    (it->face_id == default_face->id || it->s != NULL)
-    ? it->face_id
-    : (it->glyph_row->ends_at_zv_p
-       ? default_face->id
-       : face_at_pos (it, LFACE_EXTEND_INDEX));
+  struct face *default_face
+    = FACE_FROM_ID (f, lookup_basic_face (it->w, f, DEFAULT_FACE_ID));
+  const int extend_face_id
+    = ((it->face_id == default_face->id || it->s != NULL)
+       ? it->face_id
+       : (it->glyph_row->ends_at_zv_p
+	  ? default_face->id
+	  : face_at_pos (it, LFACE_EXTEND_INDEX)));
   unbind_to (count, Qnil);
 
   /* Face extension extends the background and box of IT->extend_face_id
