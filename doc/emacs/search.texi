@@ -1359,7 +1359,7 @@ Hence, @w{@samp{foo bar}} matches @w{@samp{foo bar}}, @w{@samp{foo@ @
 bar}}, @w{@samp{foo@ @ @ bar}}, and so on (but not @samp{foobar}).  If
 you want to make spaces match sequences of newlines as well as spaces
 and tabs, customize the option to make its value be the regular
-expression @samp{[[:space:]\n]+}.  (The default behavior of the
+expression @samp{[ \t\n]+}.  (The default behavior of the
 incremental regexp search is different; see @ref{Regexp Search}.)
 
   If you want whitespace characters to match exactly, you can turn lax
