@@ -12213,7 +12213,12 @@ non-numeric, there is no explicit limit on the size of images.  */);
 # endif
   DEFSYM (Qgobject, "gobject");
 #endif /* HAVE_NTGUI  */
-#endif /* HAVE_RSVG  */
+#elif defined HAVE_NATIVE_IMAGE_API			\
+  && ((defined HAVE_NS && defined NS_IMPL_COCOA)	\
+      || defined HAVE_HAIKU)
+  DEFSYM (Qsvg, "svg");
+  add_image_type (Qsvg);
+#endif
 
 #ifdef HAVE_NS
   DEFSYM (Qheic, "heic");
