@@ -1327,6 +1327,35 @@ indentation (target) is in green, current indentation is in red."
       (indent-region (point-min) (point-max))
       (diff-buffers source-buf (current-buffer)))))
 
+(defun treesit--indent-rules-optimize (rules)
+  "Optimize simple indent RULES.
+RULES should be a value suitable for
+`treesit-simple-indent-rules'.  Return the optimized version of
+RULES."
+  ;; Right now this function just compiles queries.  it doesn't
+  ;; byte-compile matchers and anchors because it doesn't make much
+  ;; difference.
+  (cl-loop for setting in rules
+           for lang = (car setting)
+           for indent-rules = (cdr setting)
+           collect
+           (cl-labels
+               ;; Optimize a matcher or anchor.
+               ((optimize-func (func)
+                  (pcase func
+                    (`(query ,qry)
+                     (list 'query (treesit-query-compile lang qry)))
+                    (_ func)))
+                ;; Optimize a rule (MATCHER ANCHOR OFFSET).
+                (optimize-rule (rule)
+                  (let ((matcher (nth 0 rule))
+                        (anchor (nth 1 rule))
+                        (offset (nth 2 rule)))
+                    (list (optimize-func matcher)
+                          (optimize-func anchor)
+                          offset))))
+             (cons lang (mapcar #'optimize-rule indent-rules)))))
+
 ;;; Search
 
 (defun treesit-search-forward-goto
@@ -1539,6 +1568,9 @@ If `treesit-defun-type-regexp' is non-nil, setup
     (treesit-font-lock-recompute-features))
   ;; Indent.
   (when treesit-simple-indent-rules
+    (setq-local treesit-simple-indent-rules
+                (treesit--indent-rules-optimize
+                 treesit-simple-indent-rules))
     (setq-local indent-line-function #'treesit-indent)
     (setq-local indent-region-function #'treesit-indent-region))
   ;; Navigation.
