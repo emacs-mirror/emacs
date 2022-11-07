@@ -1240,6 +1240,8 @@ itree_insert_gap (struct itree_tree *tree,
 	{
 	  /* Process in pre-order. */
 	  interval_tree_inherit_offset (tree->otick, node);
+	  if (pos > node->limit)
+	    continue;
 	  if (node->right != NULL)
 	    {
 	      if (node->begin > pos)
@@ -1251,8 +1253,7 @@ itree_insert_gap (struct itree_tree *tree,
 	      else
 		interval_stack_push (stack, node->right);
 	    }
-	  if (node->left != NULL
-	      && pos <= node->left->limit + node->left->offset)
+	  if (node->left != NULL)
 	    interval_stack_push (stack, node->left);
 
 	  if (before_markers
@@ -1312,6 +1313,8 @@ itree_delete_gap (struct itree_tree *tree,
     {
       node = nav_nodeptr (nav);
       interval_tree_inherit_offset (tree->otick, node);
+      if (pos > node->limit)
+	continue;
       if (node->right != NULL)
 	{
 	  if (node->begin > pos + length)
@@ -1323,8 +1326,7 @@ itree_delete_gap (struct itree_tree *tree,
 	  else
 	    interval_stack_push (stack, node->right);
 	}
-      if (node->left != NULL
-	  && pos <= node->left->limit + node->left->offset)
+      if (node->left != NULL)
 	interval_stack_push (stack, node->left);
 
       if (pos < node->begin)
