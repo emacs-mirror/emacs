@@ -6158,9 +6158,10 @@ comment at the start of cc-engine.el for more info."
 	    (setq s (cdr s))))
 	 ((c-keyword-member kwd-sym 'c-flat-decl-block-kwds)
 	  (push 0 s))))
-      ;; The failing `c-syntactic-re-search-forward' may have left us in the
-      ;; middle of a token, which might be a significant token.  Fix this!
-      (c-beginning-of-current-token)
+      (when (> prev-match-pos 1)      ; Has the search matched at least once?
+	;; The failing `c-syntactic-re-search-forward' may have left us in the
+	;; middle of a token, which might be a significant token.  Fix this!
+	(c-beginning-of-current-token))
       (cons (point)
 	    (cons bound-<> s)))))
 
