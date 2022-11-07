@@ -998,6 +998,7 @@ See `treesit-simple-indent-presets'.")
                              (goto-char bol)
                              (forward-line -1)
                              (skip-chars-forward " \t"))))
+        (cons 'point-min (lambda (&rest _) (point-min)))
         ;; TODO: Document.
         (cons 'and (lambda (&rest fns)
                      (lambda (node parent bol &rest _)
@@ -1082,7 +1083,11 @@ no-indent
 
 prev-line
 
-    The first non-whitespace charater on the previous line.")
+    The first non-whitespace charater on the previous line.
+
+point-min
+
+    Returns the beginning of buffer, which is always at column 0.")
 
 (defun treesit--simple-indent-eval (exp)
   "Evaluate EXP.

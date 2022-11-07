@@ -4937,6 +4937,11 @@ This anchor is a function that is called with 3 arguments: @var{node},
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the first non-whitespace
 charater on the previous line.
+
+@item point-min
+This anchor is a function is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the beginning of the buffer.
+This is useful as the beginning of the buffer is always at column 0.
 @end ftable
 
 @end defvar
