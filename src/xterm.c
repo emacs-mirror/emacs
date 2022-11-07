@@ -5400,6 +5400,7 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
       xi_device->valuators = NULL;
       xi_device->scroll_valuator_count = 0;
 
+      SAFE_FREE ();
       return;
     }
 
