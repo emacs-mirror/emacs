@@ -507,7 +507,9 @@ See the command `outline-mode' for more information on this mode."
           (when (eq (current-bidi-paragraph-direction) 'right-to-left)
             (setq-local outline--use-rtl t))
           (setq-local outline--button-icons (outline--create-button-icons))
-          (when (eq outline-minor-mode-use-buttons 'in-margins)
+          (when (and (eq outline-minor-mode-use-buttons 'in-margins)
+                     (> 1 (if outline--use-rtl right-margin-width
+                            left-margin-width)))
             (if outline--use-rtl
                 (setq-local right-margin-width (1+ right-margin-width))
               (setq-local left-margin-width (1+ left-margin-width)))
@@ -542,7 +544,9 @@ See the command `outline-mode' for more information on this mode."
       (remove-overlays nil nil 'outline-highlight t))
     (when outline-minor-mode-use-buttons
       (remove-overlays nil nil 'outline-button t)
-      (when (eq outline-minor-mode-use-buttons 'in-margins)
+      (when (and (eq outline-minor-mode-use-buttons 'in-margins)
+                 (< 0 (if outline--use-rtl right-margin-width
+                        left-margin-width)))
         (if outline--use-rtl
             (setq-local right-margin-width (1- right-margin-width))
           (setq-local left-margin-width (1- left-margin-width)))
