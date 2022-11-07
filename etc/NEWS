@@ -1082,9 +1082,11 @@ the corresponding deleted frame.
 ** Tab Bars and Tab Lines
 
 ---
-*** New user option 'tab-bar-fixed-width' to automatically resize tabs.
-Another option 'tab-bar-fixed-width-max' defines the maximum tab width
-that by default is 220 pixels on GUI and 20 characters on a tty.
+*** New user option 'tab-bar-auto-width' to automatically determine tab width.
+This option is non-nil by default, which resizes tab-bar tabs so that
+their width is evenly distributed across the tab bar.  A companion
+option 'tab-bar-auto-width-max' controls the maximum width of a tab
+before its name on display is truncated.
 
 ---
 *** 'C-x t RET' creates a new tab when the provided tab name doesn't exist.
@@ -4284,3 +4286,11 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+
+Local variables:
+coding: utf-8
+mode: outline
+mode: emacs-news
+paragraph-separate: "[ 	]"
+end:

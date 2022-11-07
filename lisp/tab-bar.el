@@ -964,34 +964,42 @@ on the tab bar instead."
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
   (let ((items (tab-bar-format-list tab-bar-format)))
-    (when tab-bar-fixed-width
-      (setq items (tab-bar-fixed-width items)))
+    (when tab-bar-auto-width
+      (setq items (tab-bar-auto-width items)))
     (append tab-bar-map items)))
 
 
-(defcustom tab-bar-fixed-width t
-  "Automatically resize tabs on the tab bar to the fixed width.
-This variable is intended to solve two problems.  When switching buffers
-on the current tab, the tab changes its name to buffer names of
-various lengths, thus resizing the tab and shifting the tab positions
-on the tab bar.  But with the fixed width, the size of the tab name
-doesn't change when the tab name changes, thus keeping the fixed
-tab bar layout.  The second problem solved by this variable is to prevent
-wrapping the long tab bar to the second line, thus keeping the height of
-the tab bar always fixed to one line.
+(defcustom tab-bar-auto-width t
+  "Automatically resize width of tabs on tab bar to fill available tab-bar space.
+When non-nil, the widths of the tabs on the tab bar are
+automatically resized so that their width is evenly distributed
+across the tab bar.  This keeps the widths of the tabs
+independent of the length of the buffer names shown on each tab;
+the tab widths change only when tabs are added or deleted, or
+when the frame's dimensions change.  This also avoids as much as
+possible wrapping a long tab bar to a second tab-bar line.
 
-The maximum tab width is defined by the variable `tab-bar-fixed-width-max'."
+The automatic resizing of tabs takes place as long as tabs are no
+wider than allowed by the value of `tab-bar-fixed-width-max', and
+at least as wide as specified by the value of
+`tab-bar-fixed-width-min'.
+
+When this variable is nil, the width of each tab is determined by the
+length of the tab's name."
   :type 'boolean
   :group 'tab-bar
   :version "29.1")
 
-(defcustom tab-bar-fixed-width-max '(220 20)
-  "Maximum number of pixels or characters allowed for the tab name width.
-The first element of the list is the maximum number of pixels when used on
-a GUI session.  The second element of the list defines the maximum number
-of characters when used on a tty.  When set to nil, there is no limit
-on maximum width, and tabs are resized evenly to the whole width
-of the tab bar when `tab-bar-fixed-width' is non-nil."
+(defcustom tab-bar-auto-width-max '(220 20)
+  "Maximum width for automatic resizing of width of tab-bar tabs.
+This determines the maximum width of tabs before their names will be
+truncated on display.
+The value should be a list of two numbers: the first is the maximum
+width of tabs in pixels for GUI frames, the second is the maximum
+width of tabs in characters on TTY frames.
+If the value of this variable is nil, there is no limit on maximum
+width.
+This variable has effect only when `tab-bar-auto-width' is non-nil."
   :type '(choice
           (const :tag "No limit" nil)
           (list (integer :tag "Max width (pixels)" :value 220)
@@ -1003,21 +1011,25 @@ of the tab bar when `tab-bar-fixed-width' is non-nil."
   :group 'tab-bar
   :version "29.1")
 
-(defvar tab-bar-fixed-width-min '(20 2)
-  "Minimum number of pixels or characters allowed for the tab name width.
-It's not recommended to change this value since with a bigger value, the
-tab bar might wrap to the second line.")
+(defvar tab-bar-auto-width-min '(20 2)
+  "Minimum width of tabs for automatic resizing under `tab-bar-auto-width'.
+The value should be a list of two numbers, giving the minimum width
+as the number of pixels for GUI frames and the number of characters
+for text-mode frames.  Tabs whose width is smaller than this will not
+be narrowed.
+It's not recommended to change this value since with larger values, the
+tab bar might wrap to the second line when it shouldn't.")
 
-(defvar tab-bar-fixed-width-faces
+(defvar tab-bar-auto-width-faces
   '( tab-bar-tab tab-bar-tab-inactive
      tab-bar-tab-ungrouped
      tab-bar-tab-group-inactive)
   "Resize tabs only with these faces.")
 
 (defvar tab-bar--fixed-width-hash nil
-  "Memoization table for `tab-bar-fixed-width'.")
+  "Memoization table for `tab-bar-auto-width'.")
 
-(defun tab-bar-fixed-width (items)
+(defun tab-bar-auto-width (items)
   "Return tab-bar items with resized tab names."
   (unless tab-bar--fixed-width-hash
     (define-hash-table-test 'tab-bar--fixed-width-hash-test
@@ -1031,7 +1043,7 @@ tab bar might wrap to the second line.")
     (dolist (item items)
       (when (and (eq (nth 1 item) 'menu-item) (stringp (nth 2 item)))
         (if (memq (get-text-property 0 'face (nth 2 item))
-                  tab-bar-fixed-width-faces)
+                  tab-bar-auto-width-faces)
             (push item tabs)
           (unless (eq (nth 0 item) 'align-right)
             (setq non-tabs (concat non-tabs (nth 2 item)))))))
@@ -1040,14 +1052,14 @@ tab bar might wrap to the second line.")
                         (string-pixel-width
                          (propertize non-tabs 'face 'tab-bar)))
                      (length tabs)))
-      (when tab-bar-fixed-width-min
+      (when tab-bar-auto-width-min
         (setq width (max width (if window-system
-                                   (nth 0 tab-bar-fixed-width-min)
-                                 (nth 1 tab-bar-fixed-width-min)))))
-      (when tab-bar-fixed-width-max
+                                   (nth 0 tab-bar-auto-width-min)
+                                 (nth 1 tab-bar-auto-width-min)))))
+      (when tab-bar-auto-width-max
         (setq width (min width (if window-system
-                                   (nth 0 tab-bar-fixed-width-max)
-                                 (nth 1 tab-bar-fixed-width-max)))))
+                                   (nth 0 tab-bar-auto-width-max)
+                                 (nth 1 tab-bar-auto-width-max)))))
       (dolist (item tabs)
         (setf (nth 2 item)
               (with-memoization (gethash (cons width (nth 2 item))
