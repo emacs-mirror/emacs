@@ -980,9 +980,9 @@ when the frame's dimensions change.  This also avoids as much as
 possible wrapping a long tab bar to a second tab-bar line.
 
 The automatic resizing of tabs takes place as long as tabs are no
-wider than allowed by the value of `tab-bar-fixed-width-max', and
+wider than allowed by the value of `tab-bar-auto-width-max', and
 at least as wide as specified by the value of
-`tab-bar-fixed-width-min'.
+`tab-bar-auto-width-min'.
 
 When this variable is nil, the width of each tab is determined by the
 length of the tab's name."
