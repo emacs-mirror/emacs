@@ -214,7 +214,7 @@ This can be either \"inline\" or \"attachment\".")
      "$"
      ,#'mm-uu-org-src-code-block-extract))
   "A list of specifications for non-MIME attachments.
-Each element consist of a `mm-uu-entry'.
+Each element consists of a `mm-uu-entry'.
 The functions in the last 3 slots of this type can make use of the following
 dynamically-scoped variables:
 `file-name', `start-point', and `end-point'.

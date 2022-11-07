@@ -825,7 +825,7 @@
 
 2015-03-10  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Prefer "initialize" to "initialise"
+	Prefer "initialize"
 	* progmodes/js.el (js-indent-first-init):
 	Rename from js-indent-first-initialiser, to avoid worrying about
 	American vs British spelling.  All uses changed.

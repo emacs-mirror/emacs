@@ -687,26 +687,20 @@ starting double-quote is not part of the string!
 @cindex curly quotes
 @cindex curved quotes
 When a documentation string refers to a Lisp symbol, write it as it
-would be printed (which usually means in lower case), surrounding it
-with curved single quotes (@t{‘..’}).  There are two exceptions: write
-@code{t} and @code{nil} without surrounding punctuation.  For example:
+would be printed (which usually means in lower case), with a grave
+accent @samp{`} before and apostrophe @samp{'} after it.  There are
+two exceptions: write @code{t} and @code{nil} without surrounding
+punctuation.  For example:
 
 @example
- CODE can be ‘lambda’, nil, or t.
+CODE can be `lambda', nil, or t.
 @end example
 
-@noindent
-@xref{Quotation Marks,,, emacs, The GNU Emacs Manual}, for how to
-enter curved single quotes.
-
-Documentation strings can also use an older single-quoting convention,
-which quotes symbols with grave accent @t{`} and apostrophe
-@t{'}: @t{`like-this'} rather than @t{‘like-this’}.  This
-older convention was designed for now-obsolete displays in which grave
-accent and apostrophe were mirror images.
-Documentation using this convention is converted to the user's
-preferred format when it is copied into a help buffer.  @xref{Keys in
-Documentation}.
+Note that when Emacs displays these doc strings, Emacs will usually
+display @samp{`} (grave accent) as @samp{‘} (left single quotation
+mark) and @samp{'} (apostrophe) as @samp{’} (right single quotation
+mark), if the display supports displaying these characters.
+@xref{Keys in Documentation}.
 
 @cindex hyperlinks in documentation strings
 Help mode automatically creates a hyperlink when a documentation string
@@ -851,7 +845,7 @@ find an alternate phrasing that conveys the meaning.
 @item
 Try to avoid using abbreviations such as ``e.g.'' (for ``for
 example''), ``i.e.'' (for ``that is''), ``no.'' (for ``number''),
-``c.f.'' (for ``in contrast to'') and ``w.r.t.'' (for ``with respect
+``cf.'' (for ``compare''/``see also'') and ``w.r.t.'' (for ``with respect
 to'') as much as possible.  It is almost always clearer and easier to
 read the expanded version.@footnote{We do use these occasionally, but
 try not to overdo it.}

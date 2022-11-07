@@ -819,7 +819,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	rm -f "$(DESTDIR)$(includedir)/emacs-module.h"
 	$(MAKE) -C lib-src uninstall
 	-unset CDPATH; \
-	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" ; do 	\
+	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" "$(ELN_DESTDIR)" ; do 	\
 	  if [ -d "$${dir}" ]; then			\
 	    case `cd "$${dir}" ; /bin/pwd` in		\
 	      "`cd ${srcdir} ; /bin/pwd`"* ) ;;		\

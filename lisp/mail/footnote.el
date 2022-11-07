@@ -41,11 +41,11 @@
 ;; + The key sequence 'C-c ! a C-y C-c ! b' should auto-fill the
 ;;   footnote in adaptive fill mode.  This does not seem to be a bug in
 ;;   `adaptive-fill' because it behaves that way on all point movements
-;; + Handle footmode mode elegantly in all modes, even if that means refuses to
+;; + Handle footnote mode elegantly in all modes, even if that means refusing to
 ;;   accept the burden.  For example, in a programming language mode, footnotes
 ;;   should be commented.
-;; + Manually autofilling the a first footnote should not cause it to
-;;   wrap into the footnote section tag
+;; + Manually autofilling the first footnote should not cause it to
+;;   wrap into the footnote section tag.
 ;;   + Current solution adds a second newline after the section tag, so it is
 ;;     clearly a separate paragraph.  There may be stylistic objections to this.
 ;; + Footnotes with multiple paragraphs should not have their first

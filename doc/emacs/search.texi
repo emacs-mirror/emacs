@@ -1332,18 +1332,19 @@ tailor them to your needs.
 @kindex SPC @r{(Incremental search)}
 @findex isearch-toggle-lax-whitespace
 @vindex search-whitespace-regexp
-  By default, search commands perform @dfn{lax space matching}:
-each space, or sequence of spaces, matches any sequence of one or more
-whitespace characters in the text.  (Incremental regexp search has a
-separate default; see @ref{Regexp Search}.)  Hence, @w{@samp{foo bar}}
-matches @w{@samp{foo bar}}, @w{@samp{foo@ @ bar}},
-@w{@samp{foo@ @ @ bar}}, and so on (but not @samp{foobar}).  More
-precisely, Emacs matches each sequence of space characters in the
-search string to a regular expression specified by the variable
-@code{search-whitespace-regexp}.  For example, to make spaces match
-sequences of newlines as well as spaces, set it to the regular expression
-@samp{[[:space:]\n]+}.  The default value of this variable considers
-any sequence of spaces and tab characters as whitespace.
+  By default, search commands perform @dfn{lax space matching}: each
+space, or sequence of spaces, matches any sequence of one or more
+whitespace characters in the text.  More precisely, Emacs matches each
+sequence of space characters in the search string to a regular
+expression specified by the user option
+@code{search-whitespace-regexp}.  The default value of this option
+considers any sequence of spaces and tab characters as whitespace.
+Hence, @w{@samp{foo bar}} matches @w{@samp{foo bar}}, @w{@samp{foo@ @
+bar}}, @w{@samp{foo@ @ @ bar}}, and so on (but not @samp{foobar}).  If
+you want to make spaces match sequences of newlines as well as spaces
+and tabs, customize the option to make its value be the regular
+expression @samp{[ \t\n]+}.  (The default behavior of the
+incremental regexp search is different; see @ref{Regexp Search}.)
 
   If you want whitespace characters to match exactly, you can turn lax
 space matching off by typing @kbd{M-s @key{SPC}}
@@ -1413,16 +1414,18 @@ of its accented cousins like @code{@"a} and @code{@'a}, i.e., the
 match disregards the diacritics that distinguish these
 variants.  In addition, @code{a} matches other characters that
 resemble it, or have it as part of their graphical representation,
-such as U+249C @sc{parenthesized latin small letter a} and U+2100
-@sc{account of} (which looks like a small @code{a} over @code{c}).
+such as U+00AA @sc{feminine ordinal indicator} and U+24D0
+@sc{circled latin small letter a} (which looks like a small @code{a}
+inside a circle).
 Similarly, the @acronym{ASCII} double-quote character @code{"} matches
 all the other variants of double quotes defined by the Unicode
 standard.  Finally, character folding can make a sequence of one or
 more characters match another sequence of a different length: for
 example, the sequence of two characters @code{ff} matches U+FB00
-@sc{latin small ligature ff}.  Character sequences that are not identical,
-but match under character folding are known as @dfn{equivalent
-character sequences}.
+@sc{latin small ligature ff} and the sequence @code{(a)} matches
+U+249C @sc{parenthesized latin small letter a}.  Character sequences
+that are not identical, but match under character folding are known as
+@dfn{equivalent character sequences}.
 
 @kindex M-s ' @r{(Incremental Search)}
 @findex isearch-toggle-char-fold

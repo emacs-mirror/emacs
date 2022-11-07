@@ -23,10 +23,14 @@
 
 ;;; Commentary:
 
-;; Defines a major mode for visiting image files
-;; that allows conversion between viewing the text of the file,
-;; hex of the file and viewing the file as an image.  Viewing the image
-;; works by putting a `display' text-property on the
+;; Defines `image-mode', a major mode for visiting image files.  Displaying
+;; images only works if Emacs was built with support for displaying
+;; such images.  See Info node `(emacs) Image Mode' for more
+;; information.
+;;
+;; There is support for switching between viewing the text of the
+;; file, the hex of the file and viewing the file as an image.
+;; Viewing the image works by putting a `display' text-property on the
 ;; image data, with the image-data still present underneath; if the
 ;; resulting buffer file is saved to another name it will correctly save
 ;; the image data to the new file.
@@ -738,11 +742,12 @@ displays an image file as text."
       (image-toggle-display-text))))
 
 (defun image-mode-as-hex ()
-  "Set a non-image mode as major mode in combination with image minor mode.
+  "Set `hexl-mode' as major mode in combination with image minor mode.
 A non-mage major mode found from `auto-mode-alist' or fundamental mode
 displays an image file as hex.  `image-minor-mode' provides the key
-\\<image-mode-map>\\[image-toggle-hex-display] to switch back to `image-mode'
-to display an image file as the actual image.
+\\<image-mode-map>\\[image-toggle-hex-display] to switch back to `image-mode' \
+to display an image file as
+the actual image.
 
 You can use `image-mode-as-hex' in `auto-mode-alist' when you want to
 display an image file as hex initially.
@@ -751,13 +756,9 @@ See commands `image-mode' and `image-minor-mode' for more information
 on these modes."
   (interactive)
   (image-mode-to-text)
-  ;; Turn on hexl-mode
   (hexl-mode)
-  (message "%s" (concat
-                 (substitute-command-keys
-                  "Type \\[image-toggle-hex-display] or \\[image-toggle-display] to view the image as ")
-                 (if (image-get-display-property)
-                     "hex" "an image or text") ".")))
+  (message "%s" (substitute-command-keys
+                 "Type \\[hexl-mode-exit] to view the image as an image")))
 
 (defun image-mode-as-text ()
   "Set a non-image mode as major mode in combination with image minor mode.
@@ -777,7 +778,7 @@ on these modes."
                  (substitute-command-keys
                   "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as ")
                  (if (image-get-display-property)
-                     "text" "an image or hex") ".")))
+                     "text" "an image or hex"))))
 
 (defun image-toggle-display-text ()
   "Show the image file as text.
@@ -1161,14 +1162,14 @@ tar mode buffers."
       (when (buffer-live-p archive-superior-buffer)
         (push (cons 'archive archive-superior-buffer) buffers)))
      (t
-      ;; Find a dired buffer.
+      ;; Find a Dired buffer.
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
           (when (and (derived-mode-p 'dired-mode)
 	             (equal (file-truename dir)
 		            (file-truename default-directory)))
             (push (cons 'dired (current-buffer)) buffers))))
-      ;; If we can't find any buffers to navigate in, we open a dired
+      ;; If we can't find any buffers to navigate in, we open a Dired
       ;; buffer.
       (unless buffers
         (push (cons 'dired (find-file-noselect dir)) buffers)
@@ -1180,14 +1181,14 @@ tar mode buffers."
 
 (defun image-mode--next-file (file n)
   "Go to the next image file in the parent buffer of FILE.
-This is typically a dired buffer, but may also be a tar/archive buffer.
+This is typically a Dired buffer, but may also be a tar/archive buffer.
 Return the next image file from that buffer.
 If N is negative, go to the previous file."
   (let ((regexp (image-file-name-regexp))
         (buffers (image-mode--directory-buffers file))
         next)
     (dolist (buffer buffers)
-      ;; We do this traversal for all the dired buffers open on this
+      ;; We do this traversal for all the Dired buffers open on this
       ;; directory.  There probably is just one, but we want to move
       ;; point in all of them.
       (save-window-excursion
@@ -1236,8 +1237,8 @@ replacing the current Image mode buffer."
   (message "Copied %s" buffer-file-name))
 
 (defun image-mode-mark-file ()
-  "Mark the current file in the appropriate dired buffer(s).
-Any dired buffer that's opened to the current file's directory
+  "Mark the current file in the appropriate Dired buffer(s).
+Any Dired buffer that's opened to the current file's directory
 will have the line where the image appears (if any) marked.
 
 If no such buffer exists, it will be opened."
@@ -1247,8 +1248,8 @@ If no such buffer exists, it will be opened."
   (image-mode--mark-file buffer-file-name #'dired-mark "marked"))
 
 (defun image-mode-unmark-file ()
-  "Unmark the current file in the appropriate dired buffer(s).
-Any dired buffer that's opened to the current file's directory
+  "Unmark the current file in the appropriate Dired buffer(s).
+Any Dired buffer that's opened to the current file's directory
 will remove the mark from the line where the image appears (if
 any).
 

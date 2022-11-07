@@ -1666,7 +1666,7 @@ URLs."
                       (seq "(" (* (not ")")) ")")))
               ")")))
     ""
-    ;; Heuristic: We can't reliably do `subsititute-command-keys'
+    ;; Heuristic: We can't reliably do `substitute-command-keys'
     ;; substitutions, since the value of a keymap in general can't be
     ;; known at compile time.  So instead, we assume that these
     ;; substitutions are of some length N.

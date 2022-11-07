@@ -29,7 +29,7 @@
 ;; automatically saved across Emacs sessions.
 
 ;; You can customize the number of recent files displayed, the
-;; location of the menu and others options.  Type:
+;; location of the menu and other options.  Type:
 ;;
 ;;     M-x customize-group RET recentf RET
 

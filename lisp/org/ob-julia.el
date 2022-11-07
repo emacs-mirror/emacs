@@ -26,6 +26,9 @@
 ;; Org-Babel support for evaluating julia code
 ;;
 ;; Based on ob-R.el by Eric Schulte and Dan Davison.
+;;
+;; Session support requires the installation of the DataFrames and CSV
+;; Julia packages.
 
 ;;; Code:
 (require 'cl-lib)
@@ -62,6 +65,7 @@
 (defvar ess-current-process-name) ; dynamically scoped
 (defvar ess-local-process-name)   ; dynamically scoped
 (defvar ess-eval-visibly-p)       ; dynamically scoped
+(defvar ess-local-customize-alist); dynamically scoped
 (defun org-babel-edit-prep:julia (info)
   (let ((session (cdr (assq :session (nth 2 info)))))
     (when (and session
@@ -250,8 +254,8 @@ end")
 (defun org-babel-julia-evaluate-external-process
     (body result-type result-params column-names-p)
   "Evaluate BODY in external julia process.
-If RESULT-TYPE equals 'output then return standard output as a
-string.  If RESULT-TYPE equals 'value then return the value of the
+If RESULT-TYPE equals `output' then return standard output as a
+string.  If RESULT-TYPE equals `value' then return the value of the
 last statement in BODY, as elisp."
   (cl-case result-type
     (value
@@ -274,14 +278,15 @@ last statement in BODY, as elisp."
 (defun org-babel-julia-evaluate-session
     (session body result-type result-params column-names-p)
   "Evaluate BODY in SESSION.
-If RESULT-TYPE equals 'output then return standard output as a
-string.  If RESULT-TYPE equals 'value then return the value of the
+If RESULT-TYPE equals `output' then return standard output as a
+string.  If RESULT-TYPE equals `value' then return the value of the
 last statement in BODY, as elisp."
   (cl-case result-type
     (value
      (with-temp-buffer
        (insert (org-babel-chomp body))
-       (let ((ess-local-process-name
+       (let ((ess-local-customize-alist t)
+             (ess-local-process-name
 	      (process-name (get-buffer-process session)))
 	     (ess-eval-visibly-p nil))
 	 (ess-eval-buffer nil)))

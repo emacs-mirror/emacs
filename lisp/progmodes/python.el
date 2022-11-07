@@ -2909,8 +2909,8 @@ interpreter is run.  Variables
 `python-shell-font-lock-enable',
 `python-shell-completion-setup-code',
 `python-shell-completion-string-code',
-`python-eldoc-setup-code', `python-eldoc-string-code',
-`python-ffap-setup-code' and `python-ffap-string-code' can
+`python-eldoc-setup-code',
+`python-ffap-setup-code' can
 customize this mode for different Python interpreters.
 
 This mode resets `comint-output-filter-functions' locally, so you

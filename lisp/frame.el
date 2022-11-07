@@ -64,7 +64,7 @@ handles the corresponding kind of display.")
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
 (defcustom initial-frame-alist nil
-  "Alist of parameters for the initial X window frame.
+  "Alist of parameters for the initial window-system (a.k.a. \"GUI\") frame.
 You can set this in your init file; for example,
 
  (setq initial-frame-alist
@@ -1779,7 +1779,7 @@ of frames like calls to map a frame or change its visibility."
             (insert (format ", DS=%sx%s" (nth 0 item) (nth 1 item))))
           (insert "\n"))
          ((and (eq (nth 0 item) frame) (= (nth 1 item) 5))
-          ;; Length 5 is an `adjust-frame-size' item.
+          ;; Length 5 is an 'adjust_frame_size' item.
           (insert (format "%s (%s)" (nth 3 item) (nth 2 item)))
           (setq item (nth 0 (cdr entry)))
           (unless (and (= (nth 0 item) (nth 2 item))

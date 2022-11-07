@@ -418,7 +418,7 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                                    (and (commandp s)
                                         (get s 'repeat-map)
                                         (push (get s 'repeat-map) keymaps))))))
-      (message "Repeat mode is enabled for %d commands and %d keymaps; see `describe-repeat-maps'."
+      (message "Repeat mode is enabled for %d commands and %d keymaps; see `describe-repeat-maps'"
                (length commands)
                (length (delete-dups keymaps))))))
 

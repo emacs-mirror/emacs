@@ -87,7 +87,7 @@
 ;; For hostname completion, information is retrieved from the zeroconf
 ;; daemon (for the "afp", "dav", "davs", and "sftp" methods).  The
 ;; zeroconf daemon is pre-configured to discover services in the
-;; "local" domain.  If another domain shall be used for discovering
+;; "local" domain.  If another domain should be used for discovering
 ;; services, the user option `tramp-gvfs-zeroconf-domain' can be set
 ;; accordingly.
 
@@ -841,6 +841,8 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 	      (tramp-file-name-method (tramp-dissect-file-name filename))))
 	 (and (stringp method) (member method tramp-gvfs-methods)))))
 
+(defvar tramp-gvfs-dbus-event-vector)
+
 ;;;###tramp-autoload
 (defun tramp-gvfs-file-name-handler (operation &rest args)
   "Invoke the GVFS related OPERATION and ARGS.
@@ -848,7 +850,11 @@ First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
   (unless tramp-gvfs-enabled
     (tramp-user-error nil "Package `tramp-gvfs' not supported"))
-  (if-let ((fn (assoc operation tramp-gvfs-file-name-handler-alist)))
+  (if-let ((filename (apply #'tramp-file-name-for-operation operation args))
+           (tramp-gvfs-dbus-event-vector
+            (and (tramp-tramp-file-p filename)
+                 (tramp-dissect-file-name filename)))
+           (fn (assoc operation tramp-gvfs-file-name-handler-alist)))
       (save-match-data (apply (cdr fn) args))
     (tramp-run-real-handler operation args)))
 
@@ -942,7 +948,8 @@ The call will be traced by Tramp with trace level 6."
 (defvar tramp-gvfs-dbus-event-vector nil
   "Current Tramp file name to be used, as vector.
 It is needed when D-Bus signals or errors arrive, because there
-is no information where to trace the message.")
+is no information where to trace the message.
+The global value will always be nil; it is bound where needed.")
 
 (defun tramp-gvfs-dbus-event-error (event err)
   "Called when a D-Bus error message arrives, see `dbus-event-error-functions'."
@@ -1046,12 +1053,14 @@ file names."
 		       ;; code in case of direct copy/move.  Apply
 		       ;; sanity checks.
 		       (or (not equal-remote)
-			   (tramp-gvfs-send-command
-			    v "gvfs-info" (tramp-gvfs-url-file-name newname))
-			   (eq op 'copy)
-			   (not (tramp-gvfs-send-command
-				 v "gvfs-info"
-				 (tramp-gvfs-url-file-name filename)))))
+			   (and
+			    (tramp-gvfs-send-command
+			     v "gvfs-info"
+			     (tramp-gvfs-url-file-name newname))
+			    (or (eq op 'copy)
+				(not (tramp-gvfs-send-command
+				      v "gvfs-info"
+				      (tramp-gvfs-url-file-name filename)))))))
 
 		(if (or (not equal-remote)
 			(and equal-remote
@@ -2120,10 +2129,6 @@ connection if a previous connection has died for some reason."
   ;; During completion, don't reopen a new connection.
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
-
-  ;; We set the file name, in case there are incoming D-Bus signals or
-  ;; D-Bus errors.
-  (setq tramp-gvfs-dbus-event-vector vec)
 
   ;; For password handling, we need a process bound to the connection
   ;; buffer.  Therefore, we create a dummy process.  Maybe there is a

@@ -737,7 +737,7 @@ with any other @var{round} it returns the internal value of
 @cindex window width
 @cindex width of a window
 @cindex total width of a window
-The @dfn{total width} of a window is the number of lines comprising its
+The @dfn{total width} of a window is the number of columns comprising its
 body and its left and right decorations (@pxref{Basic Windows}).
 
 @defun window-total-width &optional window round
@@ -747,7 +747,7 @@ the selected window.  If @var{window} is internal, the return value is
 the total width occupied by its descendant windows.
 
   If a window's pixel width is not an integral multiple of its frame's
-character width, the number of lines occupied by the window is rounded
+character width, the number of columns occupied by the window is rounded
 internally.  This is done in a way such that, if the window is a parent
 window, the sum of the total widths of all its children internally
 equals the total width of their parent.  This means that although two
@@ -6399,7 +6399,7 @@ during redisplay provided a significant, non-scrolling change of a
 window has been detected.  For simplicity, these hooks and the
 functions they call will be collectively referred to as @dfn{window
 change functions}.  As any hook, these hooks can be set either
-globally of buffer-locally via the @var{local} argument of
+globally or buffer-locally via the @var{local} argument of
 @code{add-hook} (@pxref{Setting Hooks}) when the hook is installed.
 
 @cindex window buffer change
@@ -6591,32 +6591,32 @@ time window change functions were run for @var{window}'s frame.  If it
 returns @code{nil}, @var{window} has been created after that.  If it
 returns @code{t}, @var{window} was not shown at that time but has been
 restored from a previously saved window configuration afterwards.
-Otherwise, the return value is the buffer shown by @code{window} at
+Otherwise, the return value is the buffer shown by @var{window} at
 that time.
 @end defun
 
 @defun window-old-pixel-width &optional window
 This function returns the total pixel width of @var{window} the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-pixel-height &optional window
 This function returns the total pixel height of @var{window} the last
-time window change functions found @code{window} live on its frame.
-It is zero if @code{window} was created after that.
+time window change functions found @var{window} live on its frame.
+It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-body-pixel-width &optional window
 This function returns the pixel width of @var{window}'s text area the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-body-pixel-height &optional window
 This function returns the pixel height of @var{window}'s text area the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 In order to find out which window or frame was selected the last time

@@ -392,7 +392,7 @@ that IDLWAVE has many more capabilities than covered here, which can
 be discovered by reading the entire manual, or hovering over the
 shoulder of your nearest IDLWAVE guru for a few days.
 
-It is assumed that you have access to Emacs or XEmacs with the full
+It is assumed that you have access to Emacs with the full
 IDLWAVE package including online help.  We also assume that you are
 familiar with Emacs and can read the nomenclature of key presses in
 Emacs (in particular, @kbd{C} stands for @key{CONTROL} and @kbd{M} for
@@ -1011,9 +1011,9 @@ Non-@code{nil} means use last match on line for
 @cindex Font lock
 
 Highlighting of keywords, comments, strings etc.@: can be accomplished
-with @code{font-lock}.  If you are using @code{global-font-lock-mode}
-(in Emacs), or have @code{font-lock} turned on in any other buffer in
-XEmacs, it should also automatically work in IDLWAVE buffers.  If you'd
+with @code{font-lock}.  If you are using @code{global-font-lock-mode},
+or have @code{font-lock-mode} turned on in any other buffer,
+it should also automatically work in IDLWAVE buffers.  If you'd
 prefer invoking font-lock individually by mode, you can enforce it in
 @code{idlwave-mode} with the following line in your @file{.emacs}:
 
@@ -4022,7 +4022,7 @@ user is King!
 
 IDLWAVE was developed on a UNIX system.  However, thanks to the
 portability of Emacs, much of IDLWAVE does also work under different
-operating systems like Windows (with NTEmacs or NTXEmacs).
+operating systems like Windows (with NTEmacs).
 
 The only real problem is that there is no command-line version of IDL
 for Windows with which IDLWAVE can interact.  As a
@@ -4117,13 +4117,6 @@ configuration files (e.g., @file{.cshrc}), but from the file
 @file{~/.MacOSX/environment.plist}.  Either include your path settings
 there, or start Emacs and IDLWAVE from the shell.
 
-@item @strong{I get errors like @samp{Symbol's function is void:
-overlayp}}
-
-You don't have the @samp{fsf-compat} package installed, which IDLWAVE
-needs to run under XEmacs.  Install it, or find an XEmacs distribution
-which includes it by default.
-
 @item @strong{I'm getting errors like @samp{Symbol's value as variable is void:
 cl-builtin-gethash} on completion or routine info.}
 
@@ -4181,8 +4174,8 @@ tried to install the optional modules @file{idlw-roprompt.el} or
 load file}}.
 
 The problem is that your Emacs is not finding the version of IDLWAVE you
-installed.  Many Emacsen come with an older bundled copy of IDLWAVE
-(e.g., v4.7 for Emacs 21.x), which is likely what's being used instead.
+installed.  Emacs might come with an older bundled copy of IDLWAVE
+which is likely what's being used instead.
 You need to make sure your Emacs @emph{load-path} contains the directory
 where IDLWAVE is installed (@file{/usr/local/share/emacs/site-lisp}, by
 default), @emph{before} Emacs's default search directories.  You can
@@ -4261,20 +4254,6 @@ help package appears with each IDL release (assuming the documentation
 is updated).
 Starting with IDL 6.2, the HTML help and its catalog are
 distributed with IDL, and so should never be inconsistent.
-
-@item @strong{I get errors such as @samp{void-variable
-browse-url-browser-function} or similar when attempting to load IDLWAVE
-under XEmacs.}
-
-You don't have the @samp{browse-url} (or other required) XEmacs package.
-Unlike Emacs, XEmacs distributes many packages separately from the
-main program.  IDLWAVE is actually among these, but is not always the
-most up to date.  When installing IDLWAVE as an XEmacs package, it
-should prompt you for required additional packages.  When installing it
-from source, it won't and you'll get this error.  The easiest solution
-is to install all the packages when you install XEmacs (the so-called
-@samp{sumo} bundle).  The minimum set of XEmacs packages required by
-IDLWAVE is @samp{fsf-compat, xemacs-base, mail-lib}.
 
 @end enumerate
 

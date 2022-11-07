@@ -481,7 +481,7 @@ By default, customizing a theme-related user option through the Custom
 interfaces or with {{{kbd(M-x customize-set-variable)}}} will not reload the
 currently active Modus theme.
 
-Enable this behaviour by setting this variable to ~nil~.
+Enable this behavior by setting this variable to ~nil~.
 
 ** Option for color-coding success state
 :properties:
@@ -649,7 +649,7 @@ tables and code blocks to always inherit from the ~fixed-pitch~ face.
 This is to ensure that those constructs remain monospaced even when
 users opt for a mode that remaps typeface families, such as the built-in
 {{{kbd(M-x variable-pitch-mode)}}}.  Otherwise the layout would appear
-broken, due to how spacing is done.  To disable this behaviour, set the
+broken, due to how spacing is done.  To disable this behavior, set the
 option to ~t~.
 
 Users may prefer to use another package for handling mixed typeface
@@ -1736,7 +1736,7 @@ things with precision ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization 
 This section is of interest only to users who are prepared to maintain
 their own local tweaks and who are willing to deal with any possible
 incompatibilities between versioned releases of the themes.  As such,
-they are labelled as "do-it-yourself" or "DIY".
+they are labeled as "do-it-yourself" or "DIY".
 
 ** Per-theme customization settings
 :properties:
@@ -2050,7 +2050,7 @@ this example:
 Whenever we enter a ~diff-mode~ buffer, we now get a magenta-colored
 region.
 
-Perhaps you may wish to generalise those findings in to a set of
+Perhaps you may wish to generalize those findings in to a set of
 functions that also accept an arbitrary face.  We shall leave the
 experimentation up to you.
 
@@ -2069,7 +2069,7 @@ contrast on an on-demand basis.
 
 One way to achieve this is to design a command that cycles through three
 distinct levels of intensity, though the following can be adapted to any
-kind of cyclic behaviour, such as to switch between red, green, and
+kind of cyclic behavior, such as to switch between red, green, and
 blue.
 
 In the following example, we employ the ~modus-themes-color~ function
@@ -2318,7 +2318,7 @@ come into effect: subtle ochre tints for Modus Operandi and night sky
 shades for Modus Vivendi.  Switching between the two themes, such as
 with {{{kbd(M-x modus-themes-toggle)}}} will also use the overrides.
 
-Given that this is a user-level customisation, one is free to implement
+Given that this is a user-level customization, one is free to implement
 whatever color values they desire, even if the possible combinations
 fall below the minimum 7:1 contrast ratio that governs the design of the
 themes (the WCAG AAA legibility standard).  Alternatively, this can also

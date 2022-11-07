@@ -516,7 +516,7 @@ mouse-1: Display Line and Column Mode Menu")
 	  'help-echo "Size indication mode\n\
 mouse-1: Display Line and Column Mode Menu")))
     (line-number-mode
-     ((column-number-mode
+     (column-number-mode
        (column-number-indicator-zero-based
         (10
          (:propertize
@@ -530,13 +530,13 @@ mouse-1: Display Line and Column Mode Menu")))
        (6
         (:propertize
 	 mode-line-position-line-format
-         ,@mode-line-position--column-line-properties))))
+         ,@mode-line-position--column-line-properties)))
      (column-number-mode
       (column-number-indicator-zero-based
        (6
         (:propertize
          mode-line-position-column-format
-         (,@mode-line-position--column-line-properties)))
+         ,@mode-line-position--column-line-properties))
        (6
         (:propertize
          (:eval (string-replace

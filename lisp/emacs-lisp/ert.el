@@ -47,8 +47,6 @@
 ;; environment (like availability of features, external binaries, etc).
 ;;
 ;; See ERT's info manual as well as the docstrings for more details.
-;; To compile the manual, run `makeinfo ert.texinfo' in the ERT
-;; directory, then C-u M-x info ert.info in Emacs to view it.
 ;;
 ;; To see some examples of tests written in ERT, see its self-tests in
 ;; ert-tests.el.  Some of these are tricky due to the bootstrapping

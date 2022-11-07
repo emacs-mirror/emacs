@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH ETAGS 1 "2021-03-30" "GNU Tools" "GNU"
+.TH ETAGS 1 "2022-06-10" "GNU Tools" "GNU"
 .de BP
 .sp
 .ti -.2i
@@ -122,7 +122,9 @@ current file.  Only \fBetags\fP accepts this option.
 .B \-I, \-\-ignore\-indentation
 Don't rely on indentation as much as we normally do.  Currently, this
 means not to assume that a closing brace in the first column is the
-final brace of a function or structure definition in C and C++.
+final brace of a function or structure definition in C and C++.  This
+is important for code that doesn't observe the GNU Coding conventions
+of placing only top-level braces in column zero.
 .TP
 \fB\-l\fP \fIlanguage\fP, \fB\-\-language=\fIlanguage\fP
 Parse the following files according to the given language.  More than

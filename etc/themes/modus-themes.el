@@ -1679,7 +1679,7 @@ By default, customizing a theme-related user option through the
 Custom interfaces or with `customize-set-variable' will not
 reload the currently active Modus theme.
 
-Enable this behaviour by setting this variable to nil."
+Enable this behavior by setting this variable to nil."
   :group 'modus-themes
   :package-version '(modus-themes . "1.5.0")
   :version "28.1"
@@ -7045,7 +7045,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
                                          blue-alt-other))))
 ;;;;; selectrum
     ;; NOTE 2021-02-22: The `selectrum-primary-highlight' and
-    ;; `selectrum-secondary-highlight' are deprecated upstream in favour
+    ;; `selectrum-secondary-highlight' are deprecated upstream in favor
     ;; of their selectrum-prescient counterparts.  We shall remove those
     ;; faces from the themes once we are certain that they are no longer
     ;; relevant.

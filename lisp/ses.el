@@ -3782,7 +3782,7 @@ function is redefined."
 	 (default (and cur-printer (ses--locprn-def cur-printer)))
 	 create-printer)
     (cond
-     ;; cancelled operation => do nothing
+     ;; canceled operation => do nothing
      ((eq definition t))
      ;; no change => do nothing
      ((and cur-printer (equal definition default)))

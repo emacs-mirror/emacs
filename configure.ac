@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT(GNU Emacs, 28.1.50, bug-gnu-emacs@gnu.org, , https://www.gnu.org/software/emacs/)
+AC_INIT(GNU Emacs, 28.2.50, bug-gnu-emacs@gnu.org, , https://www.gnu.org/software/emacs/)
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
@@ -2054,17 +2054,16 @@ AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
 
 if test "${HAVE_NS}" = yes; then
+  AC_LANG_PUSH([Objective C])
   AC_CACHE_CHECK(
     [if the Objective C compiler supports instancetype],
     [emacs_cv_objc_instancetype],
-    [AC_LANG_PUSH([Objective C])
-     AC_COMPILE_IFELSE(
+    [AC_COMPILE_IFELSE(
        [AC_LANG_SOURCE([[@interface Test
                           + (instancetype)test;
                           @end]])],
-       emacs_cv_objc_instancetype=yes,
-       emacs_cv_objc_instancetype=no)
-     AC_LANG_POP([Objective C])])
+       [emacs_cv_objc_instancetype=yes],
+       [emacs_cv_objc_instancetype=no])])
 
   if test x$emacs_cv_objc_instancetype = xyes ; then
     AC_DEFINE(NATIVE_OBJC_INSTANCETYPE, 1,
@@ -2074,16 +2073,15 @@ if test "${HAVE_NS}" = yes; then
   AC_CACHE_CHECK(
     [if the Objective C compiler defaults to C99],
     [emacs_cv_objc_c99],
-    [AC_LANG_PUSH([Objective C])
-     AC_COMPILE_IFELSE(
+    [AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM([], [[for (int i = 0;;);]])],
-       emacs_cv_objc_c99=yes,
-       emacs_cv_objc_c99=no)
-     AC_LANG_POP([Objective C])])
+       [emacs_cv_objc_c99=yes],
+       [emacs_cv_objc_c99=no])])
 
-   if test x$emacs_cv_objc_c99 = xno ; then
-     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -std=c99"
-   fi
+  if test x$emacs_cv_objc_c99 = xno ; then
+    GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -std=c99"
+  fi
+  AC_LANG_POP([Objective C])
 fi
 
 HAVE_W32=no
@@ -3913,8 +3911,8 @@ if test "${with_native_compilation}" != "no"; then
         if test -n "`$BREW --prefix --installed libgccjit 2>/dev/null`"; then
           MAC_CFLAGS="-I$(dirname $($BREW ls -v libgccjit | \
                                                 grep libgccjit.h))"
-          MAC_LIBS="-L$(dirname $($BREW ls -v libgccjit| \
-                                            grep libgccjit.so\$))"
+          MAC_LIBS="-L$(dirname $($BREW ls -v libgccjit \
+                                  | grep -m1 -E 'libgccjit\.(so|dylib)$'))"
         fi
       fi
 
@@ -4449,6 +4447,10 @@ EMACS_CHECK_MODULES([LIBSECCOMP], [libseccomp >= 2.5.2])
 AC_SUBST([HAVE_LIBSECCOMP])
 AC_SUBST([LIBSECCOMP_LIBS])
 AC_SUBST([LIBSECCOMP_CFLAGS])
+
+AC_CHECK_SIZEOF([long])
+SIZEOF_LONG="$ac_cv_sizeof_long"
+AC_SUBST([SIZEOF_LONG])
 
 OLD_LIBS=$LIBS
 LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"

@@ -5580,7 +5580,7 @@ the mode line appears at the bottom.  */);
 
   DEFVAR_PER_BUFFER ("mode-line-format", &BVAR (current_buffer, mode_line_format),
 		     Qnil,
-		     doc: /* Template for displaying mode line for current buffer.
+		     doc: /* Template for displaying mode line for a window's buffer.
 
 The value may be nil, a string, a symbol or a list.
 
@@ -5592,6 +5592,9 @@ For any symbol other than t or nil, the symbol's value is processed as
  %-constructs (see below).  Also, unless the symbol has a non-nil
  `risky-local-variable' property, all properties in any strings, as
  well as all :eval and :propertize forms in the value, are ignored.
+
+When the value is processed, the window's buffer is temporarily the
+current buffer.
 
 A list whose car is a string or list is processed by processing each
  of the list elements recursively, as separate mode line constructs,

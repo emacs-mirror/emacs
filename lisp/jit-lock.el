@@ -45,9 +45,12 @@ Preserves the `buffer-modified-p' state of the current buffer."
   :group 'font-lock)
 
 (defcustom jit-lock-chunk-size 1500
-  "Jit-lock fontifies chunks of at most this many characters at a time.
+  "Jit-lock asks to fontify chunks of at most this many characters at a time.
 
-This variable controls both `display-time' and stealth fontification.
+The actual size of the fontified chunk of text can be different,
+depending on what the `fontification-functions' actually decide to do.
+
+This variable controls both display-time and stealth fontifications.
 
 The optimum value is a little over the typical number of buffer
 characters which fit in a typical window."

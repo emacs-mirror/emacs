@@ -1567,6 +1567,19 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
     last_nonminibuf_frame = XFRAME (selected_frame);
 
+  /* If the selected window in the target frame is its mini-window, we move
+     to a different window, the most recently used one, unless there is a
+     valid active minibuffer in the mini-window.  */
+  if (EQ (f->selected_window, f->minibuffer_window)
+      /* The following test might fail if the mini-window contains a
+	 non-active minibuffer.  */
+      && NILP (Fminibufferp (XWINDOW (f->minibuffer_window)->contents, Qt)))
+    {
+      Lisp_Object w = call1 (Qget_mru_window, frame);
+      if (WINDOW_LIVE_P (w)) /* W can be nil in minibuffer-only frames.  */
+        Fset_frame_selected_window (frame, w, Qnil);
+    }
+
   Fselect_window (f->selected_window, norecord);
 
   /* We want to make sure that the next event generates a frame-switch
@@ -6198,7 +6211,7 @@ You can also use a floating number between 0.0 and 1.0.  */);
 #endif
 
   DEFVAR_LISP ("default-frame-alist", Vdefault_frame_alist,
-	       doc: /* Alist of default values for frame creation.
+    doc: /* Alist of default values of frame parameters for frame creation.
 These may be set in your init file, like this:
   (setq default-frame-alist \\='((width . 80) (height . 55) (menu-bar-lines . 1)))
 These override values given in window system configuration data,

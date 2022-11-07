@@ -23,11 +23,10 @@
 
 ;;; Commentary:
 
-;;
 ;; There are three main areas of functionality:
 ;;
 ;; * Wrap common network utility programs (ping, traceroute, netstat,
-;; nslookup, arp, route). Note that these wrappers are of the diagnostic
+;; nslookup, arp, route).  Note that these wrappers are of the diagnostic
 ;; functions of these programs only.
 ;;
 ;; * Implement some very basic protocols in Emacs Lisp (finger and whois)
@@ -39,7 +38,7 @@
 ;;; Code:
 
 ;; On some systems, programs like ifconfig are not in normal user
-;; path, but rather in /sbin, /usr/sbin, etc (but non-root users can
+;; path, but rather in /sbin, /usr/sbin, etc. (but non-root users can
 ;; still use them for queries).  Actually the trend these
 ;; days is for /sbin to be a symlink to /usr/sbin, but we still need to
 ;; search both for older systems.

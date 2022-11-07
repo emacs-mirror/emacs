@@ -402,7 +402,7 @@ but if the second argument FORCE is non-nil, you may do so. */)
 
 DEFUN ("frame-terminal", Fframe_terminal, Sframe_terminal, 0, 1, 0,
        doc: /* Return the terminal that FRAME is displayed on.
-If FRAME is nil, the selected frame is used.
+If FRAME is nil, use the selected frame.
 
 The terminal device is represented by its integer identifier.  */)
   (Lisp_Object frame)
@@ -421,10 +421,12 @@ The terminal device is represented by its integer identifier.  */)
 
 DEFUN ("terminal-live-p", Fterminal_live_p, Sterminal_live_p, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a terminal which has not been deleted.
-Value is nil if OBJECT is not a live display terminal.
-If object is a live display terminal, the return value indicates what
-sort of output terminal it uses.  See the documentation of `framep' for
-possible return values.  */)
+Return nil if OBJECT is not a live display terminal.
+OBJECT may be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).
+If OBJECT is a live display terminal, return what sort of output
+terminal it uses.  See the documentation of `framep' for possible
+return values.  */)
   (Lisp_Object object)
 {
   struct terminal *t = decode_terminal (object);

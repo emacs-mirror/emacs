@@ -515,6 +515,8 @@
 (defun comp-test-47868-4-f ()
   #(" " 0 1 (face font-lock-keyword-face)))
 
+(defun comp-test-48029-nonascii-žžž-f (arg)
+  (when arg t))
 
 
 ;;;;;;;;;;;;;;;;;;;;

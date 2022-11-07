@@ -59,7 +59,7 @@
 (declare-function so-long-tests-assert-and-revert "so-long-tests-helpers")
 (declare-function so-long-tests-predicates "so-long-tests-helpers")
 
-;; Enable the automated behaviour for all tests.
+;; Enable the automated behavior for all tests.
 (global-so-long-mode 1)
 
 (ert-deftest so-long-tests-threshold-under ()
@@ -210,7 +210,7 @@
       ;; From Emacs 27 the `display-buffer' call is insufficient.
       ;; The various 'window change functions' are now invoked by the
       ;; redisplay, and redisplay does nothing at all in batch mode,
-      ;; so we cannot test under this revised behaviour.  Refer to:
+      ;; so we cannot test under this revised behavior.  Refer to:
       ;; https://lists.gnu.org/r/emacs-devel/2019-10/msg00971.html
       ;; For interactive (non-batch) test runs, calling `redisplay'
       ;; does do the trick; so do that first.

@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.5.3-pre
+;; Version: 2.5.4-pre
 ;; Package-Requires: ((emacs "25.1"))
 ;; Package-Type: multi
 ;; URL: https://www.gnu.org/software/tramp/
@@ -40,7 +40,7 @@
 ;; ./configure" to change them.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.5.3-pre"
+(defconst tramp-version "2.5.4-pre"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -58,6 +58,7 @@
       ;; `emacs-repository-get-branch' has been introduced with Emacs 27.1.
       (with-no-warnings
 	(and (stringp dir) (file-directory-p dir)
+	     (executable-find "git")
 	     (emacs-repository-get-branch dir)))))
   "The repository branch of the Tramp sources.")
 
@@ -70,13 +71,14 @@
 	  (dir (or (locate-dominating-file (locate-library "tramp") ".git")
 		   source-directory)))
       (and (stringp dir) (file-directory-p dir)
+	   (executable-find "git")
 	   (emacs-repository-get-version dir))))
   "The repository revision of the Tramp sources.")
 
 ;; Check for Emacs version.
 (let ((x   (if (not (string-lessp emacs-version "25.1"))
       "ok"
-    (format "Tramp 2.5.3-pre is not fit for %s"
+    (format "Tramp 2.5.4-pre is not fit for %s"
             (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
@@ -102,7 +104,7 @@
          ("2.3.3" . "26.1") ("2.3.3.26.1" . "26.1") ("2.3.5.26.2" . "26.2")
          ("2.3.5.26.3" . "26.3")
          ("2.4.3.27.1" . "27.1") ("2.4.5.27.2" . "27.2")
-         ("2.5.2.28.1" . "28.1")))
+         ("2.5.2.28.1" . "28.1") ("2.5.3.28.2" . "28.2")))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

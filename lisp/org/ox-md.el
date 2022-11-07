@@ -193,11 +193,11 @@ of contents can refer to headlines."
      ;; A link refers internally to HEADLINE.
      (org-element-map (plist-get info :parse-tree) 'link
        (lambda (link)
-	 (eq headline
-	     (pcase (org-element-property :type link)
-	       ((or "custom-id" "id") (org-export-resolve-id-link link info))
-	       ("fuzzy" (org-export-resolve-fuzzy-link link info))
-	       (_ nil))))
+	 (equal headline
+                ;; Ignore broken links.
+                (condition-case nil
+                    (org-export-resolve-id-link link info)
+                  (org-link-broken nil))))
        info t))))
 
 (defun org-md--headline-title (style level title &optional anchor tags)

@@ -1,7 +1,7 @@
 \input texinfo @c -*- mode: texinfo; coding: utf-8 -*-
+@setfilename ../../info/calc.info
 @comment %**start of header (This is for running Texinfo on a region.)
 @c smallbook
-@setfilename ../../info/calc.info
 @c [title]
 @settitle GNU Emacs Calc Manual
 @include docstyle.texi

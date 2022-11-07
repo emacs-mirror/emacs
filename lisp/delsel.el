@@ -108,7 +108,8 @@ the active region is killed instead of deleted."
   "Repeat replacing text of highlighted region with typed text.
 Search for the next stretch of text identical to the region last replaced
 by typing text over it and replaces it with the same stretch of text.
-With ARG, repeat that many times.  `\\[universal-argument]' means until end of buffer."
+With ARG (interactively, prefix numeric argument), repeat that many times.
+Just `\\[universal-argument]' means repeat until the end of the buffer's accessible portion."
   (interactive "P")
   (let ((old-text (and delete-selection-save-to-register
                        (get-register delete-selection-save-to-register)))

@@ -729,6 +729,53 @@ time.  Possible reasons for this include:
 To work around the problem, you could use Git or some other
 free-software program, instead of ClearCase.
 
+*** Various commands that visit files on networked filesystems fail.
+
+This could happen if the filesystem of those files is mounted in a way
+that causes the files to be accessed via a symlink.  One such example
+is the 'amd' automounter, which unmounts the filesystem after some
+period of lack of use.  Another example is Emacs running on MS-Windows
+that accesses files on remote server via symlinks whose target is a
+UNC of the form '\\server\share'.
+
+The reason for these problems is that some Emacs commands visit files
+via their truename, resolving the symlink, which causes these files'
+default-directory to also have the symlink resolved.  If the resolved
+directory has access problems, subsequent commands from that file's
+buffer could fail.  For example, the stock MS-Windows shell 'cmd.exe'
+is unable to use a UNC-form directory as the current directory, so
+'shell-command' and its callers will typically fail.  Similarly with
+using targets of symlinks which no longer mount the remote filesystem
+will fail.
+
+You can solve these problems in several ways:
+
+  - Write a 'find-file'hook' function which will change the value of
+    'default-directory' to reference the symlink instead of its
+    target.
+
+  - Set up 'directory-abbrev-alist' to automatically convert the
+    'default-directory' of such files in the same manner.
+
+  - On MS-Windows, map a drive letter to the '\\server\share'
+    directory and point your symlinks to a directory name that uses
+    the drive letter.
+
+*** On MS-Windows, visiting files in OneDrive fails.
+
+This is known to happen when OneDrive is accessed via the so-called
+"metered connections", whose use is charged by the volume of
+transferred data.  Those are typically wireless links using a modem or
+a mobile phone.  In these cases, files that are left in the cloud and
+not downloaded to the local computer can produce various failures in
+system calls that access the files or their meta-data.
+
+The solution is to disable the "metered connection" status from the
+WiFi properties (reachable from the Windows Settings menu).  This will
+cause files to be downloaded to the local computer when they are
+accessed (which could take some time, and Emacs functions accessing
+the file will wait for that), avoiding the errors.
+
 *** ps-print commands fail to find prologue files ps-prin*.ps.
 
 This can happen if you use an old version of X-Symbol package: it
@@ -2061,6 +2108,13 @@ term/xterm.el) for more details.
 
 *** Linux console problems with double-width characters
 
+If possible, we recommend running Emacs inside fbterm, when in a Linux
+console (see the node "Emacs in a Linux console" in the Emacs FAQ).
+Most Unicode characters should then be displayed correctly.
+
+If that is not possible, the following may be useful to alleviate the
+problem of displaying Unicode characters in a raw console.
+
 The Linux console declares UTF-8 encoding, but supports only a limited
 number of Unicode characters, and can cause Emacs produce corrupted or
 garbled display with some unusual characters and sequences.  Emacs 28
@@ -2123,8 +2177,23 @@ terminals display them as 1-column glyphs.  Again, this causes cursor
 addressing to get out of sync and eventually messes up the display.
 
 One possible workaround for problems caused by character composition
-is to turn off 'auto-composition-mode' on Kitty terminals.
+is to turn off 'auto-composition-mode' on Kitty terminals, e.g. by
+customizing the 'auto-composition-mode' variable to have as value a
+string that the 'tty-type' function returns on those terminals.
 
+*** Display artifacts on the Alacritty text terminal
+
+This terminal is known to cause problems with Emoji sequences: when
+displaying them, the Emacs text-mode frame could show gaps and other
+visual artifacts.
+
+The solution is to disable 'auto-composition-mode' on these
+terminals, for example, like this:
+
+  (setq auto-composition-mode "alacritty")
+
+This disables 'auto-composition-mode' on frames that display on
+terminals of this type.
 
 * Runtime problems specific to individual Unix variants
 
@@ -2399,6 +2468,17 @@ Definitions" to make them defined.
 
 We list bugs in current versions here.  See also the section on legacy
 systems.
+
+*** On Solaris 10, 'make clean' and 'make check' do not work.
+The Emacs build procedure uses ’find ... -path ...', which Solaris 10
+'find' does not support.  You can work around the problem by
+installing GNU 'find' in your PATH.  This problem should be fixed in
+Emacs 29.
+
+*** On Solaris 10 sparc, Emacs crashes during the build while saving state.
+This was observed for Emacs 28.1 on Solaris 10 32-bit sparc, with
+Oracle Developer Studio 12.6 (Sun C 5.15).  The failure was intermittent,
+and running GNU Make a second time would typically finish the build.
 
 *** On Solaris 10, Emacs crashes during the build process.
 (This applies only with './configure --with-unexec=yes', which is rare.)
@@ -2836,6 +2916,72 @@ selection".
 If this does not work, please inform bug-gnu-emacs@gnu.org.  Then
 please call support for your X-server and see if you can get a fix.
 If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
+
+
+* Runtime problems specific to Cygwin
+
+** Fork failures in a build with native compilation
+
+To prevent fork failures, shared libraries on Cygwin need to be
+rebased occasionally, for the reasons explained here:
+
+  https://cygwin.com/cygwin-ug-net/highlights.html#ov-hi-process-problems
+
+This includes the .eln files produced by an Emacs built with native
+compilation.
+
+Rebasing is handled by Cygwin's autorebase postinstall script every
+time you run the Cygwin setup program (which you should do with no
+Cygwin processes running).  This script knows about the .eln files
+installed in the standard places (e.g.,
+/usr/lib/emacs/28.1/native-lisp), but it does not know about those in
+your user cache (e.g., /home/<username>/.emacs.d/eln-cache).  In order
+for these to be automatically rebased, you must create a file
+
+  /var/lib/rebase/userpath.d/<username>
+
+with one line for each directory containing .eln files.  If you are
+running an installed Emacs, it should suffice to list your cache
+directory.  For example, if there is an Emacs user "kbrown", then
+there should be a file
+
+  /var/lib/rebase/userpath.d/kbrown
+
+containing the single line
+
+  /home/kbrown/.emacs.d/eln-cache
+
+If you are running an Emacs that you have built but not installed,
+then you will need an additional line giving the path to the
+native-lisp subdirectory of your build directory.
+
+If more than one user will be using Emacs on your system, there should
+be a file like this for each user.
+
+Rebasing is not currently done when new .eln files are created, so
+fork failures are still possible between runs of Cygwin's setup
+program.  If you ever see a fork failure whose error message refers to
+a .eln file, you should be able to fix it temporarily by exiting emacs
+and issuing the command
+
+   find ~/.emacs.d/eln-cache -name '*.eln' | rebase -O -T -
+
+This is called an "ephemeral" rebase.  Again, if you are running an
+Emacs that has not been installed, you need to add the native-lisp
+subdirectory of your build directory to this command.  Alternatively,
+stop all Cygwin processes and run Cygwin's setup program to let the
+autorebase postinstall script run.
+
+It is hoped that the measures above will make native compilation
+usable on 64-bit Cygwin, with only an occasional minor annoyance.  In
+the 32-bit case, however, the limited address space makes frequent
+fork failures extremely likely.  It is therefore strongly recommended
+that you not build Emacs with native compilation on 32-bit Cygwin.
+Indeed, the configure script will not allow this unless you use the
+--with-cygwin32-native-compilation option.
+
+See bug#50666 (https://debbugs.gnu.org/cgi/bugreport.cgi?bug=50666)
+for further discussion.
 
 
 * Runtime problems specific to macOS

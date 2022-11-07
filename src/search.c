@@ -2811,22 +2811,37 @@ Return value is undefined if the last search failed.  */)
 }
 
 DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 3, 0,
-       doc: /* Return a list describing what the last search matched.
-Element 2N is `(match-beginning N)'; element 2N + 1 is `(match-end N)'.
-All the elements are markers or nil (nil if the Nth pair didn't match)
-if the last match was on a buffer; integers or nil if a string was matched.
-Use `set-match-data' to reinstate the data in this list.
+       doc: /* Return a list of positions that record text matched by the last search.
+Element 2N of the returned list is the position of the beginning of the
+match of the Nth subexpression; it corresponds to `(match-beginning N)';
+element 2N + 1 is the position of the end of the match of the Nth
+subexpression; it corresponds to `(match-end N)'.  See `match-beginning'
+and `match-end'.
+If the last search was on a buffer, all the elements are by default
+markers or nil (nil when the Nth pair didn't match); they are integers
+or nil if the search was on a string.  But if the optional argument
+INTEGERS is non-nil, the elements that represent buffer positions are
+always integers, not markers, and (if the search was on a buffer) the
+buffer itself is appended to the list as one additional element.
 
-If INTEGERS (the optional first argument) is non-nil, always use
-integers (rather than markers) to represent buffer positions.  In
-this case, and if the last match was in a buffer, the buffer will get
-stored as one additional element at the end of the list.
+Use `set-match-data' to reinstate the match data from the elements of
+this list.
 
-If REUSE is a list, reuse it as part of the value.  If REUSE is long
-enough to hold all the values, and if INTEGERS is non-nil, no consing
-is done.
+Note that non-matching optional groups at the end of the regexp are
+elided instead of being represented with two `nil's each.  For instance:
 
-If optional third arg RESEAT is non-nil, any previous markers on the
+  (progn
+    (string-match "^\\(a\\)?\\(b\\)\\(c\\)?$" "b")
+    (match-data))
+  => (0 1 nil nil 0 1)
+
+If REUSE is a list, store the value in REUSE by destructively modifying it.
+If REUSE is long enough to hold all the values, its length remains the
+same, and any unused elements are set to nil.  If REUSE is not long
+enough, it is extended.  Note that if REUSE is long enough and INTEGERS
+is non-nil, no consing is done to make the return value; this minimizes GC.
+
+If optional third argument RESEAT is non-nil, any previous markers on the
 REUSE list will be modified to point to nowhere.
 
 Return value is undefined if the last search failed.  */)

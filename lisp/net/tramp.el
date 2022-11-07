@@ -106,8 +106,8 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
  4  activities
  5  internal
  6  sent and received strings
- 7  file caching
- 8  connection properties
+ 7  connection properties
+ 8  file caching
  9  test commands
 10  traces (huge)
 11  call traces (maintainer only)."
@@ -238,7 +238,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     unchanged after expansion (i.e. no host, no user or no port
     were specified), that sublist is not used.  For e.g.
 
-    '((\"-a\" \"-b\") (\"-l\" \"%u\"))
+    \\='((\"-a\" \"-b\") (\"-l\" \"%u\"))
 
     that means that (\"-l\" \"%u\") is used only if the user was
     specified, and it is thus effectively optional.
@@ -257,6 +257,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
       argument if it is supported.
     - \"%y\" is replaced by the `tramp-scp-force-scp-protocol'
       argument if it is supported.
+    - \"%d\" is replaced by the device detected by `tramp-adb-get-device'.
 
     The existence of `tramp-login-args', combined with the
     absence of `tramp-copy-args', is an indication that the
@@ -497,7 +498,8 @@ interpreted as a regular expression which always matches."
 ;; either lower case or upper case letters.  See
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
 (defcustom tramp-restricted-shell-hosts-alist
-  (when (eq system-type 'windows-nt)
+  (when (and (eq system-type 'windows-nt)
+             (not (string-match-p "sh$" tramp-encoding-shell)))
     (list (format "\\`\\(%s\\|%s\\)\\'"
 		  (regexp-quote (downcase tramp-system-name))
 		  (regexp-quote (upcase tramp-system-name)))))
@@ -611,7 +613,7 @@ This regexp must match both `tramp-initial-end-of-output' and
   "Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
-This variable is, by default, initialised from
+This variable is, by default, initialized from
 `password-word-equivalents' when Tramp is loaded, and it is
 usually more convenient to add new passphrases to that variable
 instead of altering this variable.
@@ -3817,7 +3819,7 @@ Let-bind it when necessary.")
 
 		    ;; When we shall insert only a part of the file, we
 		    ;; copy this part.  This works only for the shell file
-		    ;; name handlers.  It doesn't work for crypted files.
+                    ;; name handlers.  It doesn't work for encrypted files.
 		    (when (and (or beg end)
 			       (tramp-sh-file-name-handler-p v)
 			       (null tramp-crypt-enabled))
@@ -3915,7 +3917,7 @@ Return nil when there is no lockfile."
 	       (buffer-string))))))
 
 (defvar tramp-lock-pid nil
-  "A random nunber local for every connection.
+  "A random number local for every connection.
 Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 
 (defun tramp-get-lock-pid (file)
@@ -4243,6 +4245,8 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	  ;; is different between tramp-sh.el, and tramp-adb.el or
 	  ;; tramp-sshfs.el.
 	  (let* ((sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
+		 (adb-file-name-handler-p
+		  (tramp-adb-file-name-p (tramp-make-tramp-file-name v)))
 		 (login-program
 		  (tramp-get-method-parameter v 'tramp-login-program))
 		 ;; We don't create the temporary file.  In fact, it
@@ -4262,6 +4266,10 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 		  (when sh-file-name-handler-p
 		    (tramp-compat-funcall
 		     'tramp-ssh-controlmaster-options v)))
+		 (device
+		  (when adb-file-name-handler-p
+		    (tramp-compat-funcall
+		     'tramp-adb-get-device v)))
 		 login-args p)
 
 	    ;; Replace `login-args' place holders.  Split
@@ -4278,7 +4286,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 		 v 'tramp-login-args
 		 ?h (or host "") ?u (or user "") ?p (or port "")
 		 ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
-		 ?l ""))))
+		 ?d (or device "") ?l ""))))
 	     p (make-process
 		:name name :buffer buffer
 		:command (append `(,login-program) login-args command)
@@ -5438,7 +5446,7 @@ This handles also chrooted environments, which are not regarded as local."
      ;; handlers.  `tramp-local-host-p' is also called for "smb" and
      ;; alike, where it must fail.
      (tramp-sh-file-name-handler-p vec)
-     ;; Direct actions aren't possible for crypted directories.
+     ;; Direct actions aren't possible for encrypted directories.
      (null tramp-crypt-enabled)
      ;; The local temp directory must be writable for the other user.
      (file-writable-p
@@ -5450,7 +5458,12 @@ This handles also chrooted environments, which are not regarded as local."
 
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
-  (with-tramp-connection-property vec "tmpdir"
+  (with-tramp-connection-property (tramp-get-process vec) "remote-tmpdir"
+    ;; Prior Tramp 2.5.3.2, the connection property "tmpdir" did exist
+    ;; with a remote file name.  This must be discarded.  (Bug#57800)
+    (when-let ((tmpdir (tramp-get-connection-property vec "tmpdir" nil)))
+      (when (tramp-tramp-file-p tmpdir)
+	(tramp-flush-connection-property vec "tmpdir")))
     (let ((dir
 	   (tramp-make-tramp-file-name
 	    vec (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))

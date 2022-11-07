@@ -178,6 +178,12 @@ files.
 Skip the next @samp{N} characters (@pxref{Comments}).  This is used in
 byte-compiled files, and is not meant to be used in Emacs Lisp source
 files.
+
+@item #f
+Indicates that the following form isn't readable by the Emacs Lisp
+reader.  This is only in text for display purposes (when that would
+look prettier than alternative ways of indicating an unreadable form)
+and will never appear in any Lisp file.
 @end table
 
 

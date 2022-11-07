@@ -32,11 +32,6 @@
 ;; the MooseX::Declare CPAN module, as well as Perl 5.10 keyword
 ;; support.
 
-;; The latest version is available from
-;; https://github.com/jrockway/cperl-mode
-;;
-;; (perhaps in the moosex-declare branch)
-
 ;; You can either fine-tune the bells and whistles of this mode or
 ;; bulk enable them by putting
 
@@ -3193,7 +3188,7 @@ Returns true if comment is found.  In POD will not move the point."
 Mark as generic string if STRING, as generic comment otherwise.
 A single character is marked as punctuation and directly
 fontified.  Do nothing if BEGIN and END are equal.  If
-`cperl-use-syntax-text-property' is nil, just fontify."
+`cperl-use-syntax-table-text-property' is nil, just fontify."
   (if (and cperl-use-syntax-table-text-property
            (> end begin))
       (progn
@@ -5951,7 +5946,7 @@ default function."
                                         (eval cperl--basic-identifier-rx)))
                    (0+ blank) "(")
 ;;	    '("\\<for\\(each\\)?\\([ \t]+\\(state\\|my\\|local\\|our\\)\\)?[ \t]*\\(\\$[a-zA-Z_][a-zA-Z_0-9]*\\)[ \t]*("
-	      4 font-lock-variable-name-face)
+	      1 font-lock-variable-name-face)
 	    ;; Avoid $!, and s!!, qq!! etc. when not fontifying syntactically
 	    '("\\(?:^\\|[^smywqrx$]\\)\\(!\\)" 1 font-lock-negation-char-face)
 	    '("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)))

@@ -50,7 +50,7 @@ modify this GNU manual.''
 @titlepage
 @title Ediff User's Manual
 @sp 4
-@subtitle Ediff version 2.81.2
+@subtitle Ediff version 2.81.6
 @sp 1
 @subtitle November 2008
 @sp 5
@@ -947,12 +947,14 @@ This function can also be invoked from the Menubar.  However, in some
 cases, the change will take place only after you execute one of the Ediff
 commands, such as going to the next difference or redisplaying.
 
+@c --> The below can be revisited once the toolbar has been ported to Emacs:
+@ignore
 @item ediff-toggle-use-toolbar
 @findex ediff-toggle-use-toolbar
-Available in XEmacs only.  The Ediff toolbar provides quick access to some
-of the common Ediff functions.  This function toggles the display of the
-toolbar.  If invoked from the menubar, the function may take sometimes
-effect only after you execute an Ediff command, such as going to the next
+The Ediff toolbar provides quick access to some of the common Ediff
+functions.  This function toggles the display of the toolbar.  If
+invoked from the menubar, the function may take sometimes effect only
+after you execute an Ediff command, such as going to the next
 difference.
 
 @item ediff-use-toolbar-p
@@ -961,6 +963,7 @@ The use of the toolbar can also be specified via the variable
 @code{ediff-use-toolbar-p} (default is @code{t}).  This variable can be set
 only in @file{.emacs}: do @strong{not} change it interactively.  Use the
 function @code{ediff-toggle-use-toolbar} instead.
+@end ignore
 
 @item ediff-revert-buffers-then-recompute-diffs
 @findex ediff-revert-buffers-then-recompute-diffs

@@ -474,7 +474,7 @@ THINGS TO DO
    definition.
 
    Exceptions found so far: x-select-text and
-   x-selection-value (old name: x-cut-buffer-or-selection-value).
+   x-selection-value.
 
 ** Have a look at fatal_error_hook.
 

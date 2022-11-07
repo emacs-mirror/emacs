@@ -498,7 +498,7 @@ The decision is taken by order of preference:
   corresponding delimiter for C;
 
 * According to C alone, by looking C up in the tables
-  `electric-pair-paris' or `electric-pair-text-pairs' (which
+  `electric-pair-pairs' or `electric-pair-text-pairs' (which
   see);
 
 * According to C's syntax and the syntactic state of the buffer
@@ -575,7 +575,7 @@ The decision is taken by order of preference:
          (save-excursion (electric-pair--insert pair))))))))
 
 (defun electric-pair-open-newline-between-pairs-psif ()
-  "Honour `electric-pair-open-newline-between-pairs'.
+  "Honor `electric-pair-open-newline-between-pairs'.
 Member of `post-self-insert-hook' if `electric-pair-mode' is on."
   (when (and (if (functionp electric-pair-open-newline-between-pairs)
                  (funcall electric-pair-open-newline-between-pairs)

@@ -812,7 +812,7 @@ if it were to exist."
 
 (defun add-log-find-changelog-buffer (changelog-file-name)
   "Find a ChangeLog buffer for CHANGELOG-FILE-NAME.
-Respect `add-log-use-pseudo-changelog', which see."
+Respect `add-log--pseudo-changelog-buffer-name', which see."
   (if (or (file-exists-p changelog-file-name)
           (not add-log-dont-create-changelog-file))
       (find-file-noselect changelog-file-name)

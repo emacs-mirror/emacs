@@ -5070,7 +5070,7 @@ Opening bracket for adopted articles.  The default is @samp{<}.
 
 @item ]
 Closing bracket, which is normally @samp{]}, but can also be @samp{>}
-for adopted articles.  This can be customised using following settings:
+for adopted articles.  This can be customized using following settings:
 
 @table @code
 @item gnus-sum-closing-bracket
@@ -9359,7 +9359,7 @@ Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
 Use @uref{http://w3m.sourceforge.net/, w3m}.
 
 @item links
-Use @uref{https://almende.github.io/chap-links-library/, CHAP Links}.
+Use @uref{http://links.twibright.com/, Links}.
 
 @item lynx
 Use @uref{https://lynx.browser.org/, Lynx}.
@@ -27021,16 +27021,6 @@ maintains a hash table that points to the entries in this alist (which
 speeds up many functions), and changing the alist directly will lead to
 peculiar results.
 
-@cindex hilit19
-@cindex highlighting
-Old hilit19 code does not work at all.  In fact, you should probably
-remove all hilit code from all Gnus hooks
-(@code{gnus-group-prepare-hook} and @code{gnus-summary-prepare-hook}).
-Gnus provides various integrated functions for highlighting.  These are
-faster and more accurate.  To make life easier for everybody, Gnus will
-by default remove all hilit calls from all hilit hooks.  Uncleanliness!
-Away!
-
 Packages like @code{expire-kill} will no longer work.  As a matter of
 fact, you should probably remove all old @sc{gnus} packages (and other
 code) when you start using Gnus.  More likely than not, Gnus already
@@ -29671,10 +29661,9 @@ Gnus not to use @acronym{NOV}.
 
 As the variables for the other back ends, there are
 @code{nndiary-nov-is-evil}, @code{nndir-nov-is-evil},
-@code{nnfolder-nov-is-evil}, @code{nnimap-nov-is-evil},
-@code{nnml-nov-is-evil}, and @code{nnspool-nov-is-evil}.  Note that a
-non-@code{nil} value for @code{gnus-nov-is-evil} overrides all those
-variables.
+@code{nnfolder-nov-is-evil}, @code{nnml-nov-is-evil}, and
+@code{nnspool-nov-is-evil}.  Note that a non-@code{nil} value for
+@code{gnus-nov-is-evil} overrides all those variables.
 @end table
 
 

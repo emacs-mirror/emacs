@@ -1615,7 +1615,7 @@ alpha-down         Sort headlines alphabetically, reversed.
 
 The different possibilities will be tried in sequence, and testing stops
 if one comparison returns a \"not-equal\".  For example, the default
-    '(time-up category-keep priority-down)
+    `(time-up category-keep priority-down)'
 means: Pull out all entries having a specified time of day and sort them,
 in order to make a time schedule for the current day the first thing in the
 agenda listing for the day.  Of the entries without a time indication, keep
@@ -4124,7 +4124,7 @@ dimming them."                   ;FIXME: The arg isn't used, actually!
 
 If the header at `org-hd-marker' is blocked according to
 `org-entry-blocked-p', then if `org-agenda-dim-blocked-tasks' is
-'invisible and the header is not blocked by checkboxes, set the
+`invisible' and the header is not blocked by checkboxes, set the
 text property `org-todo-blocked' to `invisible', otherwise set it
 to t."
   (when (get-text-property 0 'todo-state entry)
@@ -7399,7 +7399,7 @@ Argument ARG is the prefix argument."
 When in a restricted subtree, remove it.
 
 The restriction will span over the entire file if TYPE is `file',
-or if type is '(4), or if the cursor is before the first headline
+or if type is \\='(4), or if the cursor is before the first headline
 in the file.  Otherwise, only apply the restriction to the current
 subtree."
   (interactive "P")

@@ -11401,6 +11401,9 @@ DEFUN ("posn-at-point", Fposn_at_point, Sposn_at_point, 0, 2, 0,
        doc: /* Return position information for buffer position POS in WINDOW.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
+If POS is in invisible text or is hidden by `display' properties,
+this function may report on buffer positions before or after POS.
+
 Return nil if POS is not visible in WINDOW.  Otherwise,
 the return value is similar to that returned by `event-start' for
 a mouse click at the upper left corner of the glyph corresponding

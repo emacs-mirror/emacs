@@ -867,14 +867,17 @@ load_pdump (int argc, char **argv)
     }
 
   /* Where's our executable?  */
-  ptrdiff_t bufsize, exec_bufsize;
-  emacs_executable = load_pdump_find_executable (argv[0], &bufsize);
-  exec_bufsize = bufsize;
+  ptrdiff_t exec_bufsize, bufsize, needed;
+  emacs_executable = load_pdump_find_executable (argv[0], &exec_bufsize);
 
   /* If we couldn't find our executable, go straight to looking for
      the dump in the hardcoded location.  */
   if (!(emacs_executable && *emacs_executable))
-    goto hardcoded;
+    {
+      bufsize = 0;
+      dump_file = NULL;
+      goto hardcoded;
+    }
 
   if (dump_file)
     {
@@ -902,8 +905,8 @@ load_pdump (int argc, char **argv)
 		      strip_suffix_length))
 	exenamelen = prefix_length;
     }
-  ptrdiff_t needed = exenamelen + strlen (suffix) + 1;
-  dump_file = xpalloc (NULL, &bufsize, needed - bufsize, -1, 1);
+  bufsize = exenamelen + strlen (suffix) + 1;
+  dump_file = xpalloc (NULL, &bufsize, 1, -1, 1);
   memcpy (dump_file, emacs_executable, exenamelen);
   strcpy (dump_file + exenamelen, suffix);
   result = pdumper_load (dump_file, emacs_executable);
@@ -940,20 +943,24 @@ load_pdump (int argc, char **argv)
   sprintf (dump_file, "%s%c%s%s",
            path_exec, DIRECTORY_SEP, argv0_base, suffix);
 #if !defined (NS_SELF_CONTAINED)
-  /* Assume the Emacs binary lives in a sibling directory as set up by
-     the default installation configuration.  */
-  const char *go_up = "../../../../bin/";
-  needed += (strip_suffix ? strlen (strip_suffix) : 0)
-    - strlen (suffix) + strlen (go_up);
-  if (exec_bufsize < needed)
+  if (!(emacs_executable && *emacs_executable))
     {
-      xfree (emacs_executable);
-      emacs_executable = xpalloc (NULL, &exec_bufsize, needed - exec_bufsize,
-				  -1, 1);
+      /* If we didn't find the Emacs binary, assume that it lives in a
+	 sibling directory as set up by the default installation
+	 configuration.  */
+      const char *go_up = "../../../../bin/";
+      needed += (strip_suffix ? strlen (strip_suffix) : 0)
+	- strlen (suffix) + strlen (go_up);
+      if (exec_bufsize < needed)
+	{
+	  xfree (emacs_executable);
+	  emacs_executable = xpalloc (NULL, &exec_bufsize,
+				      needed - exec_bufsize, -1, 1);
+	}
+      sprintf (emacs_executable, "%s%c%s%s%s",
+	       path_exec, DIRECTORY_SEP, go_up, argv0_base,
+	       strip_suffix ? strip_suffix : "");
     }
-  sprintf (emacs_executable, "%s%c%s%s%s",
-	   path_exec, DIRECTORY_SEP, go_up, argv0_base,
-	   strip_suffix ? strip_suffix : "");
 #endif
   result = pdumper_load (dump_file, emacs_executable);
 

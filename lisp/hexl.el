@@ -687,7 +687,7 @@ If there is no byte at the target address move to the last byte in that line."
 
 (defun hexl-beginning-of-buffer (arg)
   "Move to the beginning of the hexl buffer.
-Leaves `hexl-mark' at previous position.
+Leaves mark at previous position.
 With prefix arg N, puts point N bytes of the way from the true beginning."
   (interactive "p")
   (push-mark)

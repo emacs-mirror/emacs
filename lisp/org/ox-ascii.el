@@ -948,12 +948,18 @@ channel."
 	 (when description
 	   (let ((dest (if (equal type "fuzzy")
 			   (org-export-resolve-fuzzy-link link info)
-			 (org-export-resolve-id-link link info))))
-	     (concat
-	      (org-ascii--fill-string
-	       (format "[%s] %s" anchor (org-ascii--describe-datum dest info))
-	       width info)
-	      "\n\n"))))
+                         ;; Ignore broken links.  On broken link,
+                         ;; `org-export-resolve-id-link' will throw an
+                         ;; error and we will return nil.
+			 (condition-case nil
+                             (org-export-resolve-id-link link info)
+                           (org-link-broken nil)))))
+             (when dest
+	       (concat
+	        (org-ascii--fill-string
+	         (format "[%s] %s" anchor (org-ascii--describe-datum dest info))
+	         width info)
+	        "\n\n")))))
 	;; Do not add a link that cannot be resolved and doesn't have
 	;; any description: destination is already visible in the
 	;; paragraph.

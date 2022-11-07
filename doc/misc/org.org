@@ -2866,12 +2866,12 @@ For more information and examples see the [[https://orgmode.org/worg/org-tutoria
 - transpose ::
 
   When =y=, =yes=, or =t= attempt to transpose the table data before
-  plotting.  Also recognises the shorthand option =trans=.
+  plotting.  Also recognizes the shorthand option =trans=.
 
 - =type= ::
 
   Specify the type of the plot, by default one of  =2d=, =3d=, =radar=, or =grid=.
-  Available types can be customised with ~org-plot/preset-plot-types~.
+  Available types can be customized with ~org-plot/preset-plot-types~.
 
 - =with= ::
 
@@ -8544,8 +8544,8 @@ commands:
   Search for a regular expression in all agenda files and additionally
   in the files listed in ~org-agenda-text-search-extra-files~.  This
   uses the Emacs command ~multi-occur~.  A prefix argument can be used
-  to specify the number of context lines for each match, default is
-  1.
+  to specify the number of context lines for each match, the default
+  is 1.
 
 - {{{kbd(#)}}} ::
 
@@ -11042,7 +11042,7 @@ a major LaTeX mode like AUCTeX in order to speed-up insertion of
 environments and math templates.  Inside Org mode, you can make use of
 some of the features of CDLaTeX mode.  You need to install
 =cdlatex.el= and =texmathp.el= (the latter comes also with AUCTeX)
-using [[https://melpa.org/][MELPA]] with the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html][Emacs packaging system]] or alternatively from
+from [[https://elpa.nongnu.org/][NonGNU ELPA]] with the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html][Emacs packaging system]] or alternatively from
 [[https://staff.fnwi.uva.nl/c.dominik/Tools/cdlatex/]].  Do not use
 CDLaTeX mode itself under Org mode, but use the special version Org
 CDLaTeX minor mode that comes as part of Org.  Turn it on for the
@@ -12442,7 +12442,7 @@ should in principle be exportable as a Beamer presentation.
   When =ignoreheading= is set, Org export ignores the entry's headline
   but not its content.  This is useful for inserting content between
   frames.  It is also useful for properly closing a =column=
-  environment.  @end itemize
+  environment.
 
   #+cindex: @samp{BEAMER_ACT}, property
   #+cindex: @samp{BEAMER_OPT}, property
@@ -22024,7 +22024,7 @@ a deadline string.  See ~org-agenda-entry-types~ on how to set what
 planning information is taken into account.
 
 [fn:104] For HTML you need to install Hrvoje Nikšić's =htmlize.el=
-as an Emacs package from MELPA or from [[https://github.com/hniksic/emacs-htmlize][Hrvoje Nikšić's repository]].
+as an Emacs package from [[https://elpa.nongnu.org/][NonGNU ELPA]] or from [[https://github.com/hniksic/emacs-htmlize][Hrvoje Nikšić's repository]].
 
 [fn:105] To create PDF output, the Ghostscript ps2pdf utility must be
 installed on the system.  Selecting a PDF file also creates the

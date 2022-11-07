@@ -460,8 +460,9 @@ must be available."
 
 ;;;###autoload
 (defun create-image (file-or-data &optional type data-p &rest props)
-  "Create an image.
-FILE-OR-DATA is an image file name or image data.
+  "Create an image from FILE-OR-DATA.
+FILE-OR-DATA is an image file name or image data.  If it is a relative
+file name, the function will look for it along `image-load-path'.
 
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
@@ -478,11 +479,7 @@ automatically scaled up in proportion to the default font.
 
 Value is the image created, or nil if images of type TYPE are not supported.
 
-Images should not be larger than specified by `max-image-size'.
-
-Image file names that are not absolute are searched for in the
-\"images\" sub-directory of `data-directory' and
-`x-bitmap-file-path' (in that order)."
+Images should not be larger than specified by `max-image-size'."
   (let ((data-format
          ;; Pass the image format, if any, if this is data.
          (and data-p (or (plist-get props :format) t))))

@@ -395,7 +395,7 @@ fd:close()"
         (org-babel-lua-table-or-string results)))))
 
 (defun org-babel-lua-read-string (string)
-  "Strip 's from around Lua string."
+  "Strip \\=' characters from around Lua string."
   (org-unbracket-string "'" "'" string))
 
 (provide 'ob-lua)

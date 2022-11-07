@@ -1526,7 +1526,7 @@ POS can be a buffer position or a button"
    (flymake-show-diagnostic (if (button-type pos) (button-start pos) pos))))
 
 (defun flymake--tabulated-entries-1 (diags project-root)
-  "Helper for `flymake--diagnostic-buffer-entries'.
+  "Helper for `flymake--diagnostics-buffer-entries'.
 PROJECT-ROOT indicates that each entry should be preceded by the
 filename of the diagnostic relative to that directory."
   (cl-loop
@@ -1664,9 +1664,9 @@ the file they refer to is visited and `flymake-mode' is turned on
 in the resulting buffer.
 
 Flymake backends that somehow gain sporadic information about
-diagnostics in neighbouring files may freely modify this variable
+diagnostics in neighboring files may freely modify this variable
 by adding or removing entries to for those files.  If the
-information about those neighbouring files is acquired repeatedly
+information about those neighboring files is acquired repeatedly
 and reliably, it may be more sensible to report them as
 \"foreign\" diagnostics instead.
 

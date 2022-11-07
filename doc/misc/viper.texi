@@ -34,7 +34,7 @@ modify this GNU manual.''
 @titlepage
 @title Viper Is a Package for Emacs Rebels
 @subtitle a Vi emulator for Emacs
-@subtitle November 2008, Viper Version 3.11.2
+@subtitle July 2013, Viper Version 3.14.2
 
 @author Michael Kifer (Viper)
 @author Aamod Sane (VIP 4.4)
@@ -325,9 +325,9 @@ lines (in the given order!):
 @noindent
 in your @file{~/.emacs} file.  The @file{.emacs} file is placed in your
 home directory and it is be executed every time you invoke Emacs.  This is
-the place where all general Emacs customization takes place.  Beginning with
-version 20.0, Emacsen have an interactive interface, which simplifies the
-job of customization significantly.
+the place where all general Emacs customization takes place.  Emacs
+has an interactive interface (@kbd{M-x customize}), which simplifies
+the job of customization significantly.
 
 Viper also uses the file @file{~/.emacs.d/viper} for Viper-specific customization.
 The location of Viper customization file can be changed by setting the
@@ -1842,7 +1842,7 @@ usually most effective:
 (set-face-background viper-replace-overlay-face "yellow")
 @end smallexample
 For a complete list of colors available to you, evaluate the expression
-@code{(x-defined-colors)}.  (Type it in the buffer @file{*scratch*} and then
+@code{(defined-colors)}.  (Type it in the buffer @file{*scratch*} and then
 hit the @kbd{C-j} key.
 
 @item viper-replace-overlay-cursor-color  "Red"

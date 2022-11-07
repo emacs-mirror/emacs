@@ -41,7 +41,7 @@
 (defcustom epa-keyserver "pgp.mit.edu"
   "Domain of keyserver.
 
-This is used by `epa-ks-lookup-key', for looking up public keys."
+This is used by `epa-search-keys', for looking up public keys."
   :type '(choice :tag "Keyserver"
                  (repeat :tag "Random pool"
                          (string :tag "Keyserver address"))
@@ -182,7 +182,7 @@ If EXACT is non-nil, don't accept approximate matches."
   "Prepare KEYS for `tabulated-list-mode', for buffer BUF.
 
 KEYS is a list of `epa-ks-key' structures, as parsed by
-`epa-ks-parse-result'."
+`epa-ks--parse-buffer'."
   (when (buffer-live-p buf)
     (let (entries)
       (dolist (key keys)

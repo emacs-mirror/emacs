@@ -23,50 +23,50 @@
 
 ;;; Commentary:
 
-;; Access functions for crypted remote files.  It uses encfs to
+;; Access functions for encrypted remote files.  It uses encfs to
 ;; encrypt / decrypt the files on a remote directory.  A remote
-;; directory, which shall include crypted files, must be declared in
+;; directory where you wish files to be encrypted must be declared in
 ;; `tramp-crypt-directories' via command `tramp-crypt-add-directory'.
 ;; All files in that directory, including all subdirectories, are
-;; stored there encrypted.  This includes file names and directory
+;; stored encrypted.  This includes file names and directory
 ;; names.
 
 ;; This package is just responsible for the encryption part.  Copying
-;; of the crypted files is still the responsibility of the remote file
-;; name handlers.
+;; of the encrypted files is still the responsibility of the remote
+;; file name handlers.
 
 ;; A password protected encfs configuration file is created the very
-;; first time you access a crypted remote directory.  It is kept in
-;; your user directory "~/.emacs.d/" with the url-encoded directory
-;; name as part of the basename, and ".encfs6.xml" as suffix.  Do not
-;; lose this file and the corresponding password; otherwise there is
-;; no way to decrypt your crypted files.
+;; first time you access an encrypted remote directory.  It is kept in
+;; your user directory (usually "~/.emacs.d/") with the url-encoded
+;; directory name as part of the basename, and ".encfs6.xml" as
+;; suffix.  Do not lose this file and the corresponding password;
+;; otherwise there is no way to decrypt your encrypted files.
 
 ;; If the user option `tramp-crypt-save-encfs-config-remote' is
 ;; non-nil (the default), the encfs configuration file ".encfs6.xml"
-;; is also kept in the crypted remote directory.  It depends on you,
+;; is also kept in the encrypted remote directory.  It depends on you,
 ;; whether you regard the password protection of this file as
-;; sufficient.
+;; sufficient security.
 
 ;; If you use a remote file name with a quoted localname part, this
 ;; localname and the corresponding file will not be encrypted/
-;; decrypted.  For example, if you have a crypted remote directory
-;; "/nextcloud:user@host:/crypted_dir", the command
+;; decrypted.  For example, if you have an encrypted remote directory
+;; "/nextcloud:user@host:/encrypted_dir", the command
 ;;
-;;   C-x d /nextcloud:user@host:/crypted_dir
+;;   C-x d /nextcloud:user@host:/encrypted_dir
 ;;
 ;; will show the directory listing with the plain file names, and the
 ;; command
 ;;
-;;   C-x d /nextcloud:user@host:/:/crypted_dir
+;;   C-x d /nextcloud:user@host:/:/encrypted_dir
 ;;
 ;; will show the directory with the encrypted file names, and visiting
-;; a file will show its crypted contents.  However, it is highly
-;; discouraged to mix crypted and not crypted files in the same
+;; a file will show its encrypted contents.  However, it is highly
+;; discouraged to mix encrypted and non-encrypted files in the same
 ;; directory.
 
-;; If a remote directory shall not include crypted files anymore, it
-;; must be indicated by the command `tramp-crypt-remove-directory'.
+;; To disable encryption for a particular remote directory, use the
+;; command `tramp-crypt-remove-directory'.
 
 ;;; Code:
 
@@ -78,7 +78,7 @@
 (autoload 'text-property-search-forward "text-property-search")
 
 (defconst tramp-crypt-method "crypt"
-  "Method name for crypted remote directories.")
+  "Method name for encrypted remote directories.")
 
 (defcustom tramp-crypt-encfs-program "encfs"
   "Name of the encfs program."
@@ -96,7 +96,7 @@
   "Configuration option for encfs.
 This could be either \"--standard\" or \"--paranoia\".  The file
 name IV chaining mode mode will always be disabled when
-initializing a new crypted remote directory."
+initializing a new encrypted remote directory."
   :group 'tramp
   :version "28.1"
   :type '(choice (const "--standard")
@@ -120,7 +120,7 @@ initializing a new crypted remote directory."
 They are completed by \"M-x TAB\" only when encryption support is enabled."
   (and tramp-crypt-enabled
        ;; `tramp-crypt-remove-directory' needs to be completed only in
-       ;; case we have already crypted directories.
+       ;; case we have already encrypted directories.
        (or (not (eq symbol #'tramp-crypt-remove-directory))
 	   tramp-crypt-directories)))
 
@@ -129,21 +129,21 @@ They are completed by \"M-x TAB\" only when encryption support is enabled."
   "Encfs configuration file name.")
 
 (defcustom tramp-crypt-save-encfs-config-remote t
-  "Whether to keep the encfs configuration file in the crypted remote directory."
+  "Whether to keep the encfs configuration file in the encrypted remote directory."
   :group 'tramp
   :version "28.1"
   :type 'boolean)
 
 ;;;###tramp-autoload
 (defvar tramp-crypt-directories nil
-  "List of crypted remote directories.")
+  "List of encrypted remote directories.")
 
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-crypt-file-name-p (name)
-  "Return the crypted remote directory NAME belongs to.
-If NAME doesn't belong to a crypted remote directory, retun nil."
+  "Return the encrypted remote directory NAME belongs to.
+If NAME doesn't belong to an encrypted remote directory, return nil."
   (catch 'crypt-file-name-p
     (and tramp-crypt-enabled (stringp name)
 	 (not (tramp-compat-file-name-quoted-p name))
@@ -240,7 +240,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
 (defsubst tramp-crypt-file-name-for-operation (operation &rest args)
-  "Like `tramp-file-name-for-operation', but for crypted remote files."
+  "Like `tramp-file-name-for-operation', but for encrypted remote files."
   (let ((tfnfo (apply #'tramp-file-name-for-operation operation args)))
     ;; `tramp-file-name-for-operation' returns already the first argument
     ;; if it is remote.  So we check a possible second argument.
@@ -264,7 +264,7 @@ arguments to pass to the OPERATION."
 
 ;;;###tramp-autoload
 (defun tramp-crypt-file-name-handler (operation &rest args)
-  "Invoke the crypted remote file related OPERATION.
+  "Invoke the encrypted remote file related OPERATION.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
   (if-let ((filename
@@ -409,7 +409,7 @@ ARGS are the arguments.  It returns t if ran successful, and nil otherwise."
 	t))))
 
 (defun tramp-crypt-do-encrypt-or-decrypt-file-name (op name)
-  "Return encrypted / decrypted NAME if NAME belongs to a crypted directory.
+  "Return encrypted / decrypted NAME if NAME belongs to an encrypted directory.
 OP must be `encrypt' or `decrypt'.  Raise an error if this fails.
 Otherwise, return NAME."
   (if-let ((tramp-crypt-enabled t)
@@ -438,17 +438,17 @@ Otherwise, return NAME."
     name))
 
 (defsubst tramp-crypt-encrypt-file-name (name)
-  "Return encrypted NAME if NAME belongs to a crypted directory.
+  "Return encrypted NAME if NAME belongs to an encrypted directory.
 Otherwise, return NAME."
   (tramp-crypt-do-encrypt-or-decrypt-file-name 'encrypt name))
 
 (defsubst tramp-crypt-decrypt-file-name (name)
-  "Return decrypted NAME if NAME belongs to a crypted directory.
+  "Return decrypted NAME if NAME belongs to an encrypted directory.
 Otherwise, return NAME."
   (tramp-crypt-do-encrypt-or-decrypt-file-name 'decrypt name))
 
 (defun tramp-crypt-do-encrypt-or-decrypt-file (op root infile outfile)
-  "Encrypt / decrypt file INFILE to OUTFILE according to crypted directory ROOT.
+  "Encrypt / decrypt file INFILE to OUTFILE according to encrypted directory ROOT.
 Both files must be local files.  OP must be `encrypt' or `decrypt'.
 If OP ist `decrypt', the basename of INFILE must be an encrypted file name.
 Raise an error if this fails."
@@ -470,12 +470,12 @@ Raise an error if this fails."
 	(write-region nil nil outfile)))))
 
 (defsubst tramp-crypt-encrypt-file (root infile outfile)
-  "Encrypt file INFILE to OUTFILE according to crypted directory ROOT.
+  "Encrypt file INFILE to OUTFILE according to encrypted directory ROOT.
 See `tramp-crypt-do-encrypt-or-decrypt-file'."
   (tramp-crypt-do-encrypt-or-decrypt-file 'encrypt root infile outfile))
 
 (defsubst tramp-crypt-decrypt-file (root infile outfile)
-  "Decrypt file INFILE to OUTFILE according to crypted directory ROOT.
+  "Decrypt file INFILE to OUTFILE according to encrypted directory ROOT.
 See `tramp-crypt-do-encrypt-or-decrypt-file'."
   (tramp-crypt-do-encrypt-or-decrypt-file 'decrypt root infile outfile))
 
@@ -537,10 +537,10 @@ localname."
 	(make-tramp-file-name
 	 :method tramp-crypt-method :user (user-login-name)
 	 :host (url-hexify-string dir))
-      (tramp-user-error nil "Not a crypted remote directory: \"%s\"" name))))
+      (tramp-user-error nil "Not an encrypted remote directory: \"%s\"" name))))
 
 (defun tramp-crypt-get-remote-dir (vec)
-  "Return the name of the crypted remote directory to be used for encfs."
+  "Return the name of the encrypted remote directory to be used for encfs."
   (url-unhex-string (tramp-file-name-host vec)))
 
 
@@ -606,7 +606,7 @@ absolute file names."
 	(with-tramp-progress-reporter
 	    v 0 (format "%s %s to %s" msg-operation filename newname)
 	  (if (and t1 t2 (string-equal t1 t2))
-	      ;; Both files are on the same crypted remote directory.
+              ;; Both files are on the same encrypted remote directory.
 	      (let (tramp-crypt-enabled)
 		(if (eq op 'copy)
 		    (copy-file
@@ -624,7 +624,7 @@ absolute file names."
 		     (file-name-nondirectory encrypt-newname) tmpdir))
 		   tramp-crypt-enabled)
 	      (cond
-	       ;; Source and target file are on a crypted remote directory.
+               ;; Source and target file are on an encrypted remote directory.
 	       ((and t1 t2)
 		(if (eq op 'copy)
 		    (copy-file
@@ -632,7 +632,7 @@ absolute file names."
 		     keep-date preserve-uid-gid preserve-extended-attributes)
 		  (rename-file
 		   encrypt-filename encrypt-newname ok-if-already-exists)))
-	       ;; Source file is on a crypted remote directory.
+               ;; Source file is on an encrypted remote directory.
 	       (t1
 		(if (eq op 'copy)
 		    (copy-file
@@ -641,7 +641,7 @@ absolute file names."
 		  (rename-file encrypt-filename tmpfile1 t))
 		(tramp-crypt-decrypt-file t1 tmpfile1 tmpfile2)
 		(rename-file tmpfile2 newname ok-if-already-exists))
-	       ;; Target file is on a crypted remote directory.
+               ;; Target file is on an encrypted remote directory.
 	       (t2
 		(if (eq op 'copy)
 		    (copy-file
@@ -677,7 +677,7 @@ absolute file names."
      (list filename newname ok-if-already-exists keep-date
 	   preserve-uid-gid preserve-extended-attributes))))
 
-;; Crypted files won't be trashed.
+;; Encrypted files won't be trashed.
 (defun tramp-crypt-handle-delete-directory
     (directory &optional recursive _trash)
   "Like `delete-directory' for Tramp files."
@@ -686,7 +686,7 @@ absolute file names."
     (let (tramp-crypt-enabled)
       (delete-directory (tramp-crypt-encrypt-file-name directory) recursive))))
 
-;; Crypted files won't be trashed.
+;; Encrypted files won't be trashed.
 (defun tramp-crypt-handle-delete-file (filename &optional _trash)
   "Like `delete-file' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil

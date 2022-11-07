@@ -1,6 +1,6 @@
 ;;; fortune.el --- use fortune to create signatures  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -21,38 +21,48 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
 ;; This utility allows you to automatically cut regions to a fortune
 ;; file.  In case that the region stems from an article buffer (mail or
 ;; news), it will try to automatically determine the author of the
-;; fortune.  It will also allow you to compile your fortune-database
+;; fortune.  It will also allow you to compile your fortune database
 ;; as well as providing a function to extract a fortune for use as your
 ;; signature.
+;;
 ;; Of course, it can simply display a fortune, too.
 ;; Use prefix arguments to specify different fortune databases.
-
+;;
 ;;; Installation:
-
-;; Please check the customize settings -- you will at least have to
-;; modify the values of `fortune-dir' and `fortune-file'.
-
+;;
+;; Please type `M-x customize-group RET fortune RET' -- you will at
+;; least have to modify the user options `fortune-dir' and
+;; `fortune-file'.
+;;
 ;; I then use this in my .gnus:
-;;(message "Making new signature: %s" (fortune-to-signature "~/fortunes/"))
+;;
+;;     (message "Making new signature: %s"
+;;              (fortune-to-signature "~/fortunes/"))
+;;
 ;; This automagically creates a new signature when starting up Gnus.
-;; Note that the call to fortune-to-signature specifies a directory in which
-;; several fortune-files and their databases are stored.
-
-;; If you like to get a new signature for every message, you can also hook
-;; it into message-mode:
-;; (add-hook 'message-setup-hook 'fortune-to-signature)
-;; This time no fortune-file is specified, so fortune-to-signature would use
-;; the default-file as specified by fortune-file.
-
-;; I have also this in my .gnus:
-;;(add-hook 'gnus-article-mode-hook
-;;	  (lambda ()
-;;	     (define-key gnus-article-mode-map "i" 'fortune-from-region)))
+;; Note that the call to `fortune-to-signature' specifies a directory
+;; in which several fortune files and their databases are stored.
+;;
+;; To get a new signature for every message, you can hook it into
+;; `message-mode':
+;;
+;;     (add-hook 'message-setup-hook #'fortune-to-signature)
+;;
+;; This time no fortune file is specified, so `fortune-to-signature'
+;; would use the default file as specified by `fortune-file'.
+;;
+;; I also have this in my .gnus:
+;;
+;;     (add-hook 'gnus-article-mode-hook
+;;               (lambda ()
+;;                 (define-key gnus-article-mode-map "i" #'fortune-from-region)))
+;;
 ;; which allows marking a region and then pressing "i" so that the marked
-;; region will be automatically added to my favorite fortune-file.
+;; region will be automatically added to my favorite fortune file.
 
 ;;; Code:
 
@@ -166,7 +176,7 @@ If INTERACTIVE is non-nil, don't compile the fortune file afterwards."
 	  (fortune-compile file)))))
 
 (defun fortune-ask-file ()
-  "Asks the user for a file-name."
+  "Ask the user for the file name of the fortune file."
   (expand-file-name
    (read-file-name
     "Fortune file to use: "

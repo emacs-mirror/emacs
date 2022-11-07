@@ -45,20 +45,12 @@ Please send all bug fixes and enhancements to
 ;;
 ;;        (require 'ebnf2ps)
 ;;
-;; ebnf2ps uses ps-print package (version 5.2.3 or later), so see ps-print to
+;; ebnf2ps uses ps-print package (bundled with Emacs), so see ps-print to
 ;; know how to set options like landscape printing, page headings, margins,
 ;; etc.
 ;;
-;; NOTE: ps-print zebra stripes and line number options doesn't have effect on
-;;       ebnf2ps, they behave as it's turned off.
-;;
-;; For good performance, be sure to byte-compile ebnf2ps.el, e.g.
-;;
-;;    M-x byte-compile-file <give the path to ebnf2ps.el when prompted>
-;;
-;; This will generate ebnf2ps.elc, which will be loaded instead of ebnf2ps.el.
-;;
-;; ebnf2ps was tested with GNU Emacs 20.4.1.
+;; NOTE: ps-print zebra stripes and line number options don't have an
+;;       effect on ebnf2ps, they behave as if it's turned off.
 ;;
 ;;
 ;; Using ebnf2ps

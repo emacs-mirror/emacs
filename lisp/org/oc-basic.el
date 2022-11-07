@@ -73,6 +73,7 @@
 (require 'seq)
 
 (declare-function org-open-at-point "org" (&optional arg))
+(declare-function org-open-file "org" (path &optional in-emacs line search))
 
 (declare-function org-element-interpret-data "org-element" (data))
 (declare-function org-element-property "org-element" (property element))
@@ -189,7 +190,14 @@ Return a hash table with citation references as keys and fields alist as values.
                                 (cons 'year
                                       (cond
                                        ((consp date)
-                                        (caar date))
+                                         (let ((year (caar date)))
+                                           (cond
+                                             ((numberp year) (number-to-string year))
+                                             ((stringp year) year)
+                                             (t
+                                               (error
+                                                 "First element of CSL-JSON date-parts should be a number or string, got %s: %S"
+                                                 (type-of year) year)))))
                                        ((stringp date)
                                         (replace-regexp-in-string
                                           (rx

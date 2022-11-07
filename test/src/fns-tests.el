@@ -788,7 +788,7 @@
   (should (equal 1 (string-distance "ab" "a我b")))
   (should (equal 1 (string-distance "我" "她")))
 
-  ;; correct behaviour with empty strings
+  ;; correct behavior with empty strings
   (should (equal 0 (string-distance "" "")))
   (should (equal 0 (string-distance "" "" t)))
   (should (equal 1 (string-distance "x" "")))

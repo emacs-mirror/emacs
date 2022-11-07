@@ -937,7 +937,7 @@ characters that should be escaped."
 
 (defun org-link-decode (s)
   "Decode percent-encoded parts in string S.
-E.g. \"%C3%B6\" becomes the german o-Umlaut."
+E.g. \"%C3%B6\" becomes the German o-Umlaut."
   (replace-regexp-in-string "\\(%[0-9A-Za-z]\\{2\\}\\)+"
 			    #'org-link--decode-compound s t t))
 

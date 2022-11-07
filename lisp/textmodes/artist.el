@@ -46,8 +46,8 @@
 ;;
 ;; * Rubber-banding: When drawing lines you can interactively see the
 ;;   result while holding the mouse button down and moving the mouse.  If
-;;   your machine is not fast enough (a 386 is a bit to slow, but a
-;;   pentium is well enough), you can turn this feature off.  You will
+;;   your machine is not fast enough (a 386 is a bit too slow, but a
+;;   Pentium is good enough), you can turn this feature off.  You will
 ;;   then see 1's and 2's which mark the 1st and 2nd endpoint of the line
 ;;   you are drawing.
 ;;
@@ -75,10 +75,10 @@
 ;; * Flood-filling: You can fill any area with a certain character by
 ;;   flood-filling.
 ;;
-;; * Cut copy and paste: You can cut, copy and paste rectangular
+;; * Cut, copy and paste: You can cut, copy and paste rectangular
 ;;   regions.  Artist also interfaces with the rect package (this can be
 ;;   turned off if it causes you any trouble) so anything you cut in
-;;   artist can be yanked with C-x r y and vice versa.
+;;   artist can be yanked with `C-x r y' and vice versa.
 ;;
 ;; * Drawing with keys: Everything you can do with the mouse, you can
 ;;   also do without the mouse.
@@ -86,7 +86,7 @@
 ;; * Arrows: After having drawn a (straight) line or a (straight)
 ;;   poly-line, you can set arrows on the line-ends by typing < or >.
 ;;
-;; * Aspect-ratio: You can set the variable artist-aspect-ratio to
+;; * Aspect-ratio: You can set the user option `artist-aspect-ratio' to
 ;;   reflect the height-width ratio for the font you are using.  Squares
 ;;   and circles are then drawn square/round.  Note, that once your
 ;;   ascii-file is shown with font with a different height-width ratio,
@@ -95,7 +95,7 @@
 ;; * Picture mode compatibility: Artist is picture mode compatible (this
 ;;   can be turned off).
 ;;
-;; See the documentation for the function artist-mode for a detailed
+;; See the documentation for the function `artist-mode' for a detailed
 ;; description on how to use artist.
 ;;
 ;;
@@ -119,8 +119,8 @@
 ;;; Known bugs:
 
 ;; It is not possible to change between shifted and unshifted operation
-;; while drawing with the mouse. (See the comment in the function
-;; artist-shift-has-changed for further details.)
+;; while drawing with the mouse.  (See the comment in the function
+;; `artist-shift-has-changed' for further details.)
 
 
 ;;; ChangeLog:
@@ -149,9 +149,9 @@
 ;;
 ;; 1.2.1	15-Nov-2000
 ;; New:		Documentation fixes.
-;; Bugfix:	Sets next-line-add-newlines to t while in artist-mode.
+;; Bugfix:	Set `next-line-add-newlines' to t while in `artist-mode'.
 ;;		Drawing with keys was confusing without this fix, if
-;;		next-line-add-newlines was set to nil.
+;;		`next-line-add-newlines' was set to nil.
 ;;		Thanks to Tatsuo Furukawa <tatsuo@kobe.hp.com> for this.
 ;;
 ;; 1.2		22-Oct-2000
@@ -462,7 +462,7 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 (if artist-picture-compatibility
     (require 'picture))
 
-;; Variables that are made local in artist-mode-init
+;; Variables that are made local in `artist-mode-init'
 (defvar artist-key-is-drawing nil)
 (defvar artist-key-endpoint1 nil)
 (defvar artist-key-poly-point-list nil)
@@ -1334,25 +1334,25 @@ Variables
  This is a brief overview of the different variables.  For more info,
  see the documentation for the variables (type \\[describe-variable] <variable> RET).
 
- artist-rubber-banding		Interactively do rubber-banding or not
- artist-first-char		What to set at first/second point...
- artist-second-char		...when not rubber-banding
- artist-interface-with-rect	If cut/copy/paste should interface with rect
- artist-arrows			The arrows to use when drawing arrows
- artist-aspect-ratio		Character height-to-width for squares
- artist-trim-line-endings	Trimming of line endings
- artist-flood-fill-right-border	Right border when flood-filling
- artist-flood-fill-show-incrementally	Update display while filling
- artist-pointer-shape		Pointer shape to use while drawing
- artist-ellipse-left-char	Character to use for narrow ellipses
- artist-ellipse-right-char	Character to use for narrow ellipses
- artist-borderless-shapes       If shapes should have borders
- artist-picture-compatibility   Whether or not to be picture mode compatible
- artist-vaporize-fuzziness      Tolerance when recognizing lines
- artist-spray-interval          Seconds between repeated sprayings
- artist-spray-radius            Size of the spray-area
- artist-spray-chars             The spray-\"color\"
- artist-spray-new-chars         Initial spray-\"color\"
+ `artist-rubber-banding'              Interactively do rubber-banding or not
+ `artist-first-char'                  What to set at first/second point...
+ `artist-second-char'                 ...when not rubber-banding
+ `artist-interface-with-rect'         Should cut/copy/paste interface with rect
+ `artist-arrows'                      The arrows to use when drawing arrows
+ `artist-aspect-ratio'                Character height-to-width for squares
+ `artist-trim-line-endings'           Trimming of line endings
+ `artist-flood-fill-right-border'     Right border when flood-filling
+ `artist-flood-fill-show-incrementally'  Update display while filling
+ `artist-pointer-shape'               Pointer shape to use while drawing
+ `artist-ellipse-left-char'           Character to use for narrow ellipses
+ `artist-ellipse-right-char'          Character to use for narrow ellipses
+ `artist-borderless-shapes'           If shapes should have borders
+ `artist-picture-compatibility'       Picture mode compatibility on or off
+ `artist-vaporize-fuzziness'          Tolerance when recognizing lines
+ `artist-spray-interval'              Seconds between repeated sprayings
+ `artist-spray-radius'                Size of the spray-area
+ `artist-spray-chars'                 The spray-\"color\"
+ `artist-spray-new-char'              Initial spray-\"color\"
 
 Hooks
 

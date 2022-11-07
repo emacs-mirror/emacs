@@ -515,6 +515,9 @@ FACES may be either a single face or a list of faces.
 
 (defun face-foreground (face &optional frame inherit)
   "Return the foreground color name of FACE, or nil if unspecified.
+On TTY frames, the returned color name can be \"unspecified-fg\",
+which stands for the unknown default foreground color of the display
+where the frame is displayed.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
@@ -536,6 +539,9 @@ merging with the `default' face (which is always completely specified)."
 
 (defun face-background (face &optional frame inherit)
   "Return the background color name of FACE, or nil if unspecified.
+On TTY frames, the returned color name can be \"unspecified-bg\",
+which stands for the unknown default background color of the display
+where the frame is displayed.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
@@ -662,21 +668,28 @@ If FACE is a face-alias, get the documentation for the target face."
 
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
-This function overrides the face attributes specified by FACE's
-face spec.  It is mostly intended for internal use only.
+This function overrides the face attributes specified by FACE's face spec.
+It is mostly intended for internal use.
 
-If FRAME is nil, set the attributes for all existing frames, as
-well as the default for new frames.  If FRAME is t, change the
-default for new frames only.  As an exception, to reset the value
-of some attribute to `unspecified' in a way that overrides the
-non-`unspecified' value defined by the face's spec in `defface',
-for new frames, you must explicitly call this function with FRAME
-set to t and the attribute's value set to `unspecified'; just
-using FRAME of nil will not affect new frames in this case.
+If FRAME is a frame, set the FACE's attributes only for that frame.  If
+FRAME is nil, set attribute values for all existing frames, as well as
+the default for new frames.  If FRAME is t, change the default values
+of attributes for new frames.
 
-ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a
-valid face attribute name.  All attributes can be set to
-`unspecified'; this fact is not further mentioned below.
+ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid face
+attribute name and VALUE must be a value that is valid for ATTRIBUTE,
+as described below for each attribute.
+
+In addition to the attribute values listed below, all attributes can
+also be set to the special value `unspecified', which means the face
+doesn't by itself specify a value for the attribute.
+
+When a new frame is created, attribute values in the FACE's `defface'
+spec normally override the `unspecified' values in the FACE's
+default attributes.  To avoid that, i.e. to cause ATTRIBUTE's value
+be reset to `unspecified' when creating new frames, disregarding
+what the FACE's face spec says, call this function with FRAME set to
+t and the ATTRIBUTE's value set to `unspecified'.
 
 The following attributes are recognized:
 
@@ -1842,7 +1855,7 @@ This value was determined experimentally.")
   "Whether RGB is more readable against white than black.
 RGB is a 3-element list (R G B), each component in the range [0,1].
 This predicate can be used both for determining a suitable (black or white)
-contrast colour with RGB as background and as foreground."
+contrast color with RGB as background and as foreground."
   (unless (<= 0 (apply #'min rgb) (apply #'max rgb) 1)
     (error "RGB components %S not in [0,1]" rgb))
   ;; Compute the relative luminance after gamma-correcting (assuming sRGB),
@@ -2062,11 +2075,17 @@ unnamed faces (e.g, `foreground-color')."
         (face-attribute 'default attribute))))
 
 (defun foreground-color-at-point ()
-  "Return the foreground color of the character after point."
+  "Return the foreground color of the character after point.
+On TTY frames, the returned color name can be \"unspecified-fg\",
+which stands for the unknown default foreground color of the
+display where the frame is displayed."
   (faces--attribute-at-point :foreground 'foreground-color))
 
 (defun background-color-at-point ()
-  "Return the background color of the character after point."
+  "Return the background color of the character after point.
+On TTY frames, the returned color name can be \"unspecified-bg\",
+which stands for the unknown default background color of the
+display where the frame is displayed."
   (faces--attribute-at-point :background 'background-color))
 
 

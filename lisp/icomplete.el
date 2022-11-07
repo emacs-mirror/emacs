@@ -369,7 +369,7 @@ require user confirmation."
 (defun icomplete-fido-exit (force)
   "Attempt to exit minibuffer immediately with current input.
 Unless FORCE is non-nil (interactively with a prefix argument),
-honour a non-nil REQUIRE-MATCH argument to `completing-read' by
+honor a non-nil REQUIRE-MATCH argument to `completing-read' by
 trying to complete as much as possible and disallowing the exit
 if that doesn't produce a completion match."
   (interactive "P")
@@ -587,7 +587,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
                           ;; select it -- again, as desired.
                           ;;
                           ;; FIXME: it's arguable that this second
-                          ;; behaviour should be a property of the
+                          ;; behavior should be a property of the
                           ;; completion table and not the completion
                           ;; frontend such as we have done
                           ;; here. However, it seems generically

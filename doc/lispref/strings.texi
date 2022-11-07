@@ -440,12 +440,12 @@ Split @var{string} into a list of strings on newline boundaries.  If
 @end defun
 
 @defun string-pad string length &optional padding start
-Pad @var{string} to the be of @var{length} using @var{padding} as the
-padding character (defaulting to the space character).  If
-@var{string} is shorter than @var{length}, no padding is done.  If
-@var{start} is @code{nil} (or not present), the padding is done to the
-end of the string, and if it's non-@code{nil}, to the start of the
-string.
+Pad @var{string} to be of the given @var{length} using @var{padding}
+as the padding character.  @var{padding} defaults to the space
+character.  If @var{string} is longer than @var{length}, no padding is
+done.  If @var{start} is @code{nil} or omitted, the padding is
+appended to the characters of @var{string}, and if it's
+non-@code{nil}, the padding is prepended to @var{string}'s characters.
 @end defun
 
 @defun string-chop-newline string
@@ -461,23 +461,29 @@ Remove the final newline, if any, from @var{string}.
 described in this section.  @xref{Mutability}.
 
   The most basic way to alter the contents of an existing string is with
-@code{aset} (@pxref{Array Functions}).  @code{(aset @var{string}
-@var{idx} @var{char})} stores @var{char} into @var{string} at index
-@var{idx}.  Each character occupies one or more bytes, and if @var{char}
-needs a different number of bytes from the character already present at
-that index, @code{aset} signals an error.
+@code{aset} (@pxref{Array Functions}).  @w{@code{(aset @var{string}
+@var{idx} @var{char})}} stores @var{char} into @var{string} at character
+index @var{idx}.  It will automatically convert a pure-@acronym{ASCII}
+@var{string} to a multibyte string (@pxref{Text Representations}) if
+needed, but we recommend to always make sure @var{string} is multibyte
+(e.g., by using @code{string-to-multibyte}, @pxref{Converting
+Representations}), if @var{char} is a non-@acronym{ASCII} character, not
+a raw byte.
 
   A more powerful function is @code{store-substring}:
 
 @defun store-substring string idx obj
-This function alters part of the contents of the string @var{string}, by
-storing @var{obj} starting at index @var{idx}.  The argument @var{obj}
-may be either a character or a (smaller) string.
+This function alters part of the contents of the specified @var{string},
+by storing @var{obj} starting at character index @var{idx}.  The
+argument @var{obj} may be either a character (in which case the function
+behaves exactly as @code{aset}) or a (smaller) string.  If @var{obj}
+is a multibyte string, we recommend to make sure @var{string} is also
+multibyte, even if it's pure-@acronym{ASCII}.
 
-Since it is impossible to change the length of an existing string, it is
-an error if @var{obj} doesn't fit within @var{string}'s actual length,
-or if any new character requires a different number of bytes from the
-character currently present at that point in @var{string}.
+Since it is impossible to change the number of characters in an
+existing string, it is en error if @var{obj} consists of more
+characters than would fit in @var{string} starting at character index
+@var{idx}.
 @end defun
 
   To clear out a string that contained a password, use
@@ -558,11 +564,19 @@ equal with respect to collation rules.  A collation rule is not only
 determined by the lexicographic order of the characters contained in
 @var{string1} and @var{string2}, but also further rules about
 relations between these characters.  Usually, it is defined by the
-@var{locale} environment Emacs is running with.
+@var{locale} environment Emacs is running with and by the Standard C
+library against which Emacs was linked@footnote{
+For more information about collation rules and their locale
+dependencies, see @uref{https://unicode.org/reports/tr10/, The Unicode
+Collation Algorithm}.  Some Standard C libraries, such as the
+@acronym{GNU} C Library (a.k.a.@: @dfn{glibc}) implement large
+portions of the Unicode Collation Algorithm and use the associated
+locale data, Common Locale Data Repository, or @acronym{CLDR}.
+}.
 
-For example, characters with different coding points but
-the same meaning might be considered as equal, like different grave
-accent Unicode characters:
+For example, characters with different code points but the same
+meaning, like different grave accent Unicode characters, might, in
+some locales, be considered as equal:
 
 @example
 @group
@@ -750,7 +764,8 @@ The strings are compared by the numeric values of their characters.
 For instance, @var{str1} is considered less than @var{str2} if
 its first differing character has a smaller numeric value.  If
 @var{ignore-case} is non-@code{nil}, characters are converted to
-upper-case before comparing them.  Unibyte strings are converted to
+upper-case, using the current buffer's case-table (@pxref{Case
+Tables}), before comparing them.  Unibyte strings are converted to
 multibyte for comparison (@pxref{Text Representations}), so that a
 unibyte string and its conversion to multibyte are always regarded as
 equal.
@@ -1345,7 +1360,7 @@ given width, if specified.
 This flag converts the substituted text to upper case (@pxref{Case
 Conversion}).
 
-@item _
+@item _@r{ (underscore)}
 This flag converts the substituted text to lower case (@pxref{Case
 Conversion}).
 @end table

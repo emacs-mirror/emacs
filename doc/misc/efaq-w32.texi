@@ -130,10 +130,8 @@ from Windows 98 onward, and all versions of the NT family starting
 from NT 4.0; this includes all the modern versions from Windows XP and
 on.  The Windows port is built using the Win32 API and supports most
 features of the X version, including variable width fonts, images and
-tooltips.
-
-Emacs on Windows can be compiled as either a 32-bit or a 64-bit
-executable, using the MinGW GCC compiler and development tools.
+tooltips.  Emacs on Windows can be compiled as either a 64-bit or a
+32-bit executable.
 
 @node Other versions of Emacs
 @section What other versions of Emacs run on Windows?
@@ -177,8 +175,8 @@ best-effort basis in the @file{windows} subdirectory of the above ftp
 site (as zip files digitally signed by the person who built them).
 See the @file{README} file in that directory for more information.
 Building Emacs from source yourself should be straightforward,
-following the instructions in @file{nt/INSTALL}, so we encourage you
-to give it a try.  @xref{Compiling}.
+following the instructions in the @file{nt} directory, so we
+encourage you to give it a try.  @xref{Compiling}.
 
 @cindex latest development version of Emacs
 @cindex Emacs Development
@@ -190,21 +188,27 @@ development site.
 @section How can I compile Emacs myself?
 @cindex compiling Emacs
 
-To compile Emacs on Windows, you will need the MinGW port of GCC and
-Binutils, the MinGW runtime and development environment, and the MSYS
-suite of tools.  For the details, see the file @file{nt/INSTALL} in
-the Emacs source distribution.
+To compile Emacs on a 64-bit version of Windows 7 or newer, we
+recommend to use the MinGW-w64 port of GCC and Binutils with the MSYS2
+suite of tools.  For the details, see the file @file{nt/INSTALL.W64}
+in the Emacs source distribution.
+
+If you need to build or run Emacs on MS Windows before Windows 7, you
+have to use the MinGW port of GCC and the MSYS suite of tools.  The
+file @file{nt/INSTALL} in Emacs source distribution contains the
+details.
 
 Support for displaying images, as well as XML/HTML rendering and TLS
 networking requires external libraries, the headers and import
 libraries for which will need to be installed where your compiler can
 find them.  Again, the details, including URLs of sites where you can
-download these libraries are in @file{nt/INSTALL}.  @xref{Other useful
-ports}, for auxiliary tools you may wish to install and use in
-conjunction with Emacs.
+download these libraries are in @file{nt/INSTALL.W64} or
+@file{nt/INSTALL}.  @xref{Other useful ports}, for auxiliary tools you
+may wish to install and use in conjunction with Emacs.
 
 After unpacking the source, or checking out of the repository, be sure
-to read the instructions in @file{nt/README} and @file{nt/INSTALL}.
+to read the instructions in @file{nt/README} and the respective
+install file.
 
 @node Debugging
 @section How do I use a debugger on Emacs?
@@ -222,18 +226,18 @@ specific notes about debugging Emacs.
 
 @cindex debugging Emacs with GDB
 GDB is the GNU debugger, which can be used to debug Emacs when it has
-been compiled with MinGW GCC@.  The best results will be obtained if
-you start gdb from the @file{src} directory as @kbd{gdb ./emacs.exe}.
+been compiled with GCC@.  The best results will be obtained if you
+start gdb from the @file{src} directory as @kbd{gdb ./emacs.exe}.
 This will load the init file @file{.gdbinit}@footnote{
 Latest versions of GDB might refuse to load the init file for security
 reasons, unless you customize GDB; alternatively, use an explicit
 @kbd{source ./gdbinit} command after entering GDB.
 } in that directory, to define some extra commands for working with
-lisp while debugging, and set up breakpoints to catch abnormal
-aborts.
+lisp while debugging, and set up breakpoints to catch abnormal aborts.
 
-A Windows port of GDB can be found on MinGW download sites and on some
-others.
+A Windows port of GDB is installed with MinGW64-w64 and MSYS2
+(@samp{mingw-w64-<arch>-toolchain} group) or can be found on MinGW
+download sites and on some others.
 
 @c ------------------------------------------------------------
 @node Installing Emacs
@@ -307,8 +311,8 @@ bsdtar -xf emacs-@value{EMACSVER}.tar.xz
 Expect @command{bsdtar} to unpack the whole distribution without any
 complaints.
 
-Once you unpack the source distribution, look in @file{nt/INSTALL}
-file for build instructions.
+Once you unpack the source distribution, look in the @file{nt}
+directory for build instructions.
 
 @node Installing binaries
 @section How do I install Emacs after unpacking the binary zip?
@@ -1645,8 +1649,8 @@ obtained the packages from if you want to use them.
 In your @env{HOME} directory create a file called @file{.mailcap},
 with contents like the following:
 @example
-application/zip "C:/Program Files/7-Zip/7zFM.exe"
-video/* "C:/Program Files/VideoLAN/VLC/vlc.exe"
+application/zip; "C:/Program Files/7-Zip/7zFM.exe"
+video/*; "C:/Program Files/VideoLAN/VLC/vlc.exe"
 @end example
 
 @strong{Warning:} Associating MIME types with @command{start} or other
@@ -1754,11 +1758,13 @@ A number of implementations are listed on the
 Emacs has support for spell checking on demand (@code{ispell}) and as
 your type (@code{flyspell}).  Both packages depend on a copy of
 @command{ispell} 3.2 or a compatible spell-checking program.
-GNU Aspell is a popular choice these days, Windows installers are
-available from the @uref{http://aspell.net/win32/, official site}.
+GNU Aspell is a popular choice these days, outdated Windows installers
+are available from the @uref{http://aspell.net/win32/, official site}.
 Another possibility is Hunspell, which is available from
 @uref{https://sourceforge.net/projects/ezwinports/files/?source=navbar,
-the ezwinports site}.
+the ezwinports site}.  If you're using the MSYS2 distribution, you can
+install a recent version of either GNU Aspell or Hunspell through the
+package manager Pacman.  @xref{Other useful ports}.
 
 Once installed, you will need to configure @code{ispell-program-name}
 to tell ispell and flyspell to use @command{aspell} or
@@ -2096,9 +2102,9 @@ suggestions} for improving the interaction of perldb and Emacs.
 
 @menu
 * Cygwin::
-* MinGW::
+* MinGW-w64::
 * EZWinPorts::
-* UWIN::
+* MinGW::
 * GnuWin32::
 * GTK::
 * Read man pages::
@@ -2133,22 +2139,25 @@ Cygwin on your system @env{PATH} for this reason.  Instead you can
 make the Cygwin tools available within Emacs by setting @code{exec-path}
 in your init file.
 
-@node MinGW
-@section MinGW and MSYS
-@cindex mingw tools
-@cindex msys environment
-@cindex subprocesses, mingw and msys
+@node MinGW-w64
+@section MinGW-w64 and MSYS2
+@cindex mingw-w64 tools
+@cindex msys2 environment
+@cindex subprocesses, mingw-w64 and msys2
 
-@uref{http://www.mingw.org/}
+@uref{https://www.msys2.org/}
 
-MinGW is a set of development tools that produce native Windows
+MinGW-w64 is a set of development tools that produce native Windows
 executables, not dependent on Cygwin's POSIX emulation DLLs.
+MinGW-w64 has forked the original MinGW in 2007 in order to provide
+support for 64 bits and new APIs.
 
-MSYS is a POSIX shell and minimal set of tools that are commonly used in
-configure scripts.  Like Cygwin, this environment uses a non-native
-filesystem mapping to appear more POSIX like to the scripts that it
-runs.  This is intended to complement the MinGW tools to make it easier
-to port software to Windows.
+MSYS2 is software distribution and a building platform for Windows.
+MSYS2 is an independent rewrite of MSYS, based on modern Cygwin and
+MinGW-w64 with the aim of better interoperability with native Windows
+software.  It plays the same role MSYS does in MinGW.  Being a
+distribution, MSYS2 provides tools to build software as well as more
+than 2.600 precompiled packages ready for use.
 
 @node EZWinPorts
 @section EZWinPorts
@@ -2161,16 +2170,22 @@ software.  This includes all the optional libraries used by Emacs
 @command{man} command, Grep, xz, bzip2, bsdtar, ID Utils, Findutils,
 Hunspell, Gawk, GNU Make, Groff, GDB.
 
-@node UWIN
-@section UWIN
-@cindex uwin environment
-@cindex subprocesses, uwin
+@node MinGW
+@section MinGW and MSYS
+@cindex mingw tools
+@cindex msys environment
+@cindex subprocesses, mingw and msys
 
-@uref{http://www.research.att.com/sw/tools/uwin/}
+@uref{https://osdn.net/projects/mingw/}
 
-UWIN is another POSIX emulation environment, like Cygwin and MSYS,
-that provides a large number of ported tools.  The shell used by UWIN
-is @command{ksh}, the Korn shell.
+MinGW is another set of development tools that produce native Windows
+executables, not dependent on Cygwin's POSIX emulation DLLs.
+
+MSYS is a POSIX shell and minimal set of tools that are commonly used in
+configure scripts.  Like Cygwin, this environment uses a non-native
+filesystem mapping to appear more POSIX like to the scripts that it
+runs.  This is intended to complement the MinGW tools to make it easier
+to port software to Windows.
 
 @node GnuWin32
 @section GnuWin32

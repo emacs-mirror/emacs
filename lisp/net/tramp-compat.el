@@ -398,6 +398,29 @@ CONDITION can also be a list of error conditions."
                          (car components))
 	         (cdr components)))))))
 
+;; Function `replace-regexp-in-region' is new in Emacs 28.1.
+(defalias 'tramp-compat-replace-regexp-in-region
+  (if (fboundp 'replace-regexp-in-region)
+      #'replace-regexp-in-region
+    (lambda (regexp replacement &optional start end)
+      (if start
+	  (when (< start (point-min))
+            (error "Start before start of buffer"))
+	(setq start (point)))
+      (if end
+	  (when (> end (point-max))
+            (error "End after end of buffer"))
+	(setq end (point-max)))
+      (save-excursion
+	(let ((matches 0)
+              (case-fold-search nil))
+	  (goto-char start)
+	  (while (re-search-forward regexp end t)
+            (replace-match replacement t)
+            (setq matches (1+ matches)))
+	  (and (not (zerop matches))
+               matches))))))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 

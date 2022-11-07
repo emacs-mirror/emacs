@@ -10,8 +10,7 @@
 This manual documents Htmlfontify, a source code -> crosslinked +
 formatted + syntax colorized html transformer.
 
-Copyright @copyright{} 2002--2003, 2013--2022 Free Software Foundation,
-Inc.
+Copyright @copyright{} 2002--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -34,7 +33,7 @@ modify this GNU manual.''
 @titlepage
 @title Htmlfontify User Manual
 @sp 4
-@subtitle Htmlfontify version 0.20
+@subtitle Htmlfontify version 0.21
 @sp 1
 @subtitle Jun 2002
 @sp 5
@@ -1538,13 +1537,6 @@ An alist of character -> entity mappings used to make the text html-safe.
 Htmlfontify has a couple of external requirements:
 
 @itemize @bullet
-
-@item
-GNU Emacs 20.7+ or 21.1+
-
-Other versions may work---these have been used successfully by the
-author.  If you intend to use Htmlfontify in batch mode, 21.1+ is
-pretty much required.
 
 @item
 A copy of etags (exuberant-ctags or GNU etags).  Htmlfontify attempts

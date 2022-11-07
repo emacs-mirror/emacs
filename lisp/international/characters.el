@@ -1599,7 +1599,8 @@ GROUP must be one of these symbols:
                          presentation).
   `no-font':        characters for which no suitable font is found.
                     For character terminals, characters that cannot
-                    be encoded by `terminal-coding-system'.
+                    be encoded by `terminal-coding-system' or those
+                    for which the terminal has no glyphs.
 
 METHOD must be one of these symbols:
   `zero-width': don't display.
@@ -1613,7 +1614,10 @@ METHOD must be one of these symbols:
 Do not set its value directly from Lisp; the value takes effect
 only via a custom `:set'
 function (`update-glyphless-char-display'), which updates
-`glyphless-char-display'."
+`glyphless-char-display'.
+
+See also the `glyphless-char' face, which is used to display the
+visual representation of these characters."
   :version "28.1"
   :type '(alist :key-type (symbol :tag "Character Group")
 		:value-type (symbol :tag "Display Method"))

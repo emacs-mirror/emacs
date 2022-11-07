@@ -1837,7 +1837,18 @@ adjust_frame_glyphs (struct frame *f)
   if (FRAME_WINDOW_P (f))
     adjust_frame_glyphs_for_window_redisplay (f);
   else
-    adjust_frame_glyphs_for_frame_redisplay (f);
+    {
+      adjust_frame_glyphs_for_frame_redisplay (f);
+      eassert (FRAME_INITIAL_P (f)
+	       || noninteractive
+	       || !initialized
+	       || (f->current_matrix
+		   && f->current_matrix->nrows > 0
+		   && f->current_matrix->rows
+		   && f->desired_matrix
+		   && f->desired_matrix->nrows > 0
+		   && f->desired_matrix->rows));
+    }
 
   /* Don't forget the buffer for decode_mode_spec.  */
   adjust_decode_mode_spec_buffer (f);
@@ -2115,6 +2126,19 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
       else
 	{
 	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
+	  adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
+	  SET_FRAME_GARBAGED (f);
+	}
+    }
+  else if (!FRAME_INITIAL_P (f) && !noninteractive && initialized)
+    {
+      if (!f->desired_matrix->nrows || !f->desired_matrix->rows)
+	{
+	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
+	  SET_FRAME_GARBAGED (f);
+	}
+      if (!f->current_matrix->nrows || !f->current_matrix->rows)
+	{
 	  adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
 	  SET_FRAME_GARBAGED (f);
 	}

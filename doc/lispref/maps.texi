@@ -125,6 +125,7 @@ setup-language-environment-map, describe-language-environment-map,
 menu-bar-epatch-menu, menu-bar-ediff-merge-menu, menu-bar-ediff-menu, etc.
 @end ignore
 
+@cindex minibuffer-inactive-mode-map
 @item minibuffer-inactive-mode-map
 A full keymap used in the minibuffer when it is not active.@*
 @xref{Minibuffer Edit,, Editing in the Minibuffer, emacs, The GNU Emacs Manual}.
@@ -156,6 +157,7 @@ The global keymap used for the @kbd{C-x @key{RET}} prefix key.
 @vindex narrow-map
 A sparse keymap for subcommands of the prefix @kbd{C-x n}.
 
+@cindex prog-mode-map
 @item prog-mode-map
 The keymap used by Prog mode.@*
 @xref{Basic Major Modes}.
@@ -171,6 +173,7 @@ for multi-buffer replacements.  @xref{Search and Replace, query-replace-map}.
 @item search-map
 A sparse keymap that provides global bindings for search-related commands.
 
+@cindex special-mode-map
 @item special-mode-map
 The keymap used by Special mode.@*
 @xref{Basic Major Modes}.
@@ -179,6 +182,7 @@ The keymap used by Special mode.@*
 The global keymap used for the @kbd{C-x t} prefix key for tab-bar related commands.@*
 @xref{Tab Bars,,, emacs, The GNU Emacs Manual}.
 
+@cindex tab-bar-map
 @item tab-bar-map
 The keymap defining the contents of the tab bar.@*
 @xref{Tab Bars,,, emacs, The GNU Emacs Manual}.

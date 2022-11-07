@@ -340,11 +340,13 @@ Optional argument TYPE is type of output (nil means all)."
 \"https://www.w3.org/TR/html4/loose.dtd\">\n\n")
 
 (defconst manual-meta-string
-  "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
-<link rev=\"made\" href=\"mailto:bug-gnu-emacs@gnu.org\">
+  "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n")
+
+(defconst manual-links-string
+  "<link rev=\"made\" href=\"mailto:bug-gnu-emacs@gnu.org\">
 <link rel=\"icon\" type=\"image/png\" href=\"/graphics/gnu-head-mini.png\">
 <meta name=\"ICBM\" content=\"42.256233,-71.006581\">
-<meta name=\"DC.title\" content=\"gnu.org\">\n\n")
+<meta name=\"DC.title\" content=\"gnu.org\">\n")
 
 (defconst manual-style-string "<style type=\"text/css\">
 @import url('/software/emacs/manual.css');\n</style>\n")
@@ -475,6 +477,13 @@ the @import directive."
       (delete-region opoint (point))
       (search-forward "<meta http-equiv=\"Content-Style")
       (setq opoint (match-beginning 0)))
+    (search-forward "<title>")
+    (delete-region opoint (match-beginning 0))
+    (search-forward "</title>\n")
+    (when (search-forward "<link href=" nil t)
+      (goto-char (match-beginning 0)))
+    (insert manual-links-string)
+    (setq opoint (point))
     (search-forward "</head>")
     (goto-char (match-beginning 0))
     (delete-region opoint (point))
@@ -598,7 +607,7 @@ style=\"text-align:left\">")
       ;; its original form.
       (when (or (search-forward "<ul class=\"menu\">" nil t)
 	        ;; FIXME?  The following search seems dangerously lax.
-	        (search-forward "<ul>"))
+	        (search-forward "<ul>" nil t))
         ;; Convert the list that Makeinfo made into a table.
         (replace-match "<table style=\"float:left\" width=\"100%\">")
         (forward-line 1)
@@ -760,6 +769,204 @@ Optional argument TYPE is type of output (nil means all)."
   (dolist (m '("emacs" "lispref" "lispintro" "misc"))
     (if (member type (list nil m))
 	(make-manuals-dist--1 root m))))
+
+(defvar admin--org-export-headers-format "\
+#+title: GNU Emacs %s NEWS -- history of user-visible changes
+#+author:
+#+options: author:nil creator:nil toc:2 num:3 *:nil \\n:t ^:nil tex:nil
+#+language: en
+#+HTML_LINK_HOME: /software/emacs
+#+HTML_LINK_UP: /software/emacs
+#+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/mini.css\" media=\"handheld\" />
+#+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/layout.min.css\" media=\"screen\" />
+#+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/print.min.css\" media=\"print\" />
+
+#+BEGIN_EXPORT html
+<div style=\"float:right;margin-left:1em;padding:3px;border:0px solid;text-align:center\">
+<a href=\"/graphics/gnu-head.jpg\">
+<img src=\"/graphics/gnu-head-sm.jpg\" alt=\" [image of the head
+of a GNU] \" width=\"129\" height=\"122\"/>
+</a>
+</div>
+#+END_EXPORT\n\n")
+
+(defvar admin--org-html-postamble "
+<p>
+Return to the <a href=\"/software/emacs/emacs.html\">GNU Emacs home page</a>.
+</p>
+
+<div id=\"footer\">
+<div class=\"unprintable\">
+
+<p>
+Please send FSF &amp; GNU inquiries to
+<a href=\"mailto:gnu@gnu.org\">&lt;gnu@gnu.org&gt;</a>.
+There are also <a href=\"/contact/\">other ways to contact</a>
+the FSF.
+Broken links and other corrections or suggestions can be sent to
+<a href=\"mailto:bug-gnu-emacs@gnu.org\">&lt;bug-gnu-emacs@gnu.org&gt;</a>.
+</p>
+</div>
+
+<p>
+    Copyright &copy; %s Free Software Foundation, Inc.
+</p>
+
+<p>This page is licensed under
+a <a href=\"https://creativecommons.org/licenses/by-sa/4.0\">CC-BY-SA</a>
+license.</p>
+
+<!--#include virtual=\"/server/bottom-notes.html\" -->
+
+<p class=\"unprintable\">
+Updated:
+<!-- timestamp start -->
+$Date: %s $
+<!-- timestamp end -->
+</p>
+</div>
+</div>")
+
+(defun admin--require-external-package (pkg)
+  (package-initialize)
+  (require pkg nil t)
+  (unless (featurep pkg)
+    (when (yes-or-no-p (format "Package \"%s\" is missing.  Install now?" pkg))
+      (package-install pkg)
+      (require pkg nil t))))
+
+(defvar org-html-postamble)
+(defvar org-html-mathjax-template)
+(defun make-news-html-file (root version)
+  "Convert the NEWS file into an HTML file."
+  (interactive (let ((root
+                      (if noninteractive
+                          (or (pop command-line-args-left)
+                              default-directory)
+                        (read-directory-name "Emacs root directory: "
+                                             source-directory nil t))))
+                 (list root
+                       (read-string "Major version number: "
+                                    (number-to-string emacs-major-version)))))
+  (unless (file-exists-p (expand-file-name "src/emacs.c" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (admin--require-external-package 'htmlize)
+  (let* ((newsfile (expand-file-name "etc/NEWS" root))
+         (orgfile (expand-file-name (format "etc/NEWS.%s.org" version) root))
+         (html (format "%s.html" (file-name-base orgfile)))
+         (copyright-years (format-time-string "%Y")))
+    (delete-file orgfile)
+    (copy-file newsfile orgfile t)
+    (find-file orgfile)
+
+    ;; Find the copyright range.
+    (goto-char (point-min))
+    (re-search-forward "^Copyright (C) \\([0-9-]+\\) Free Software Foundation, Inc.")
+    (setq copyright-years (match-string 1))
+
+    ;; Delete some unnecessary stuff.
+    (replace-regexp-in-region "^---$" "" (point-min) (point-max))
+    (replace-regexp-in-region "^\\+\\+\\+$" "" (point-min) (point-max))
+    (dolist (str '("\n"
+                   "GNU Emacs NEWS -- history of user-visible changes."
+                   "Temporary note:"
+                   "+++ indicates that all relevant manuals in doc/ have been updated."
+                   "--- means no change in the manuals is needed."
+                   "When you add a new item, use the appropriate mark if you are sure it"
+                   "applies, and please also update docstrings as needed."
+                   "You can narrow news to a specific version by calling 'view-emacs-news'"
+                   "with a prefix argument or by typing 'C-u C-h C-n'."))
+      (replace-string-in-region str "" (point-min) (point-max)))
+
+    ;; Escape some characters.
+    (replace-regexp-in-region (rx "$") "@@html:&dollar;@@" (point-min) (point-max))
+
+    ;; Use Org-mode markers for 'symbols', 'C-x k', etc.
+    (replace-regexp-in-region
+     (rx (or (: (group (in " \t\n("))
+                "'"
+                (group (+ (or (not (in "'\n"))
+                              (: "'" (not (in " .,\t\n)"))))))
+                "'"
+                (group (in ",.;:!? \t\n)")))
+             ;; Buffer names, e.g. "*scratch*".
+             (: "\""
+                (group-n 2 "*" (+ (not (in "*\""))) "*")
+                "\"")))
+     "\\1~\\2~\\3" (point-min) (point-max))
+
+    ;; Format code blocks.
+    (while (re-search-forward "^    " nil t)
+      (let ((elisp-block (looking-at "(")))
+        (backward-paragraph)
+        (insert (if elisp-block
+                    "\n#+BEGIN_SRC emacs-lisp"
+                  "\n#+BEGIN_EXAMPLE"))
+        (forward-paragraph)
+        (insert (if elisp-block
+                    "#+END_SRC\n"
+                  "#+END_EXAMPLE\n"))))
+
+    ;; Delete buffer local variables.
+    (goto-char (point-max))
+    (when (re-search-backward "Local variables:")
+      (forward-line -1)
+      (delete-region (point) (point-max)))
+
+    ;; Insert Org-mode export headers.
+    (goto-char (point-min))
+    (insert (format admin--org-export-headers-format version))
+    (org-mode)
+    (save-buffer)
+
+    ;; Make everything one level lower.
+    (goto-char (point-min))
+    (while (re-search-forward (rx bol (group (+ "*")) " ") nil t)
+      (replace-match "*\\1" nil nil nil 1))
+
+    ;; Insert anchors for different versions.
+    (goto-char (point-min))
+    (let (last-major last-minor)
+      (while (re-search-forward (rx bol "** " (+ (not "\n")) "in Emacs "
+                                    (group digit digit) "." (group digit)
+                                    eol)
+                                nil t)
+        (unless (and (equal (match-string 1) last-major)
+                     (equal (match-string 2) last-minor))
+          (setq last-major (match-string 1))
+          (setq last-minor (match-string 2))
+          (forward-line -1)
+          (insert (format
+                   (concat
+                    "#+HTML: <p>&nbsp;</p>\n"
+                    "* Changes in Emacs %s.%s\n"
+                    ;; Add anchor to allow linking to
+                    ;; e.g. "NEWS.28.html#28.1".
+                    ":PROPERTIES:\n"
+                    ":CUSTOM_ID: %s.%s\n"
+                    ":END:\n")
+                   last-major last-minor
+                   last-major last-minor)))))
+
+    (save-buffer)
+
+    ;; Make the HTML export.
+    (let* ((org-html-postamble
+            (format admin--org-html-postamble
+                    copyright-years
+                    ;; e.g. "2022/09/13 09:13:13"
+                    (format-time-string "%Y/%m/%d %H:%m:%S")))
+           (org-html-mathjax-template "")
+           (htmlize-output-type 'css))
+      (org-html-export-as-html))
+
+    ;; Write HTML to file.
+    (let ((html (expand-file-name html (expand-file-name "etc" root))))
+      (write-file html)
+      (unless noninteractive
+        (find-file html)
+        (html-mode))
+      (message "Successfully exported HTML to %s" html))))
 
 
 ;; Stuff to check new `defcustom's got :version tags.

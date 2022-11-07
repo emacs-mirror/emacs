@@ -554,7 +554,9 @@ select_window (Lisp_Object window, Lisp_Object norecord,
 	 frame is active.  */
       Fselect_frame (frame, norecord);
       /* Fselect_frame called us back so we've done all the work already.  */
-      eassert (EQ (window, selected_window));
+      eassert (EQ (window, selected_window)
+	       || (EQ (window, f->minibuffer_window)
+		   && NILP (Fminibufferp (XWINDOW (window)->contents, Qt))));
       return window;
     }
   else
@@ -1232,7 +1234,7 @@ WINDOW must be a live window and defaults to the selected one.
 Clip the number to a reasonable value if out of range.
 Return the new number.  NCOL should be zero or positive.
 
-Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
+Note that if `auto-hscroll-mode' is non-nil, you cannot scroll the
 window so that the location of point moves off-window.  */)
   (Lisp_Object window, Lisp_Object ncol)
 {
@@ -5401,12 +5403,13 @@ window_wants_mode_line (struct window *w)
  * Return 1 if window W wants a header line and is high enough to
  * accommodate it, 0 otherwise.
  *
- * W wants a header line if it's a leaf window and neither a minibuffer
- * nor a pseudo window.  Moreover, its 'window-mode-line-format'
- * parameter must not be 'none' and either that parameter or W's
- * buffer's 'mode-line-format' value must be non-nil.  Finally, W must
- * be higher than its frame's canonical character height and be able to
- * accommodate a mode line too if necessary (the mode line prevails).
+ * W wants a header line if it's a leaf window and neither a
+ * minibuffer nor a pseudo window.  Moreover, its
+ * 'window-header-line-format' parameter must not be 'none' and either
+ * that parameter or W's buffer's 'header-line-format' value must be
+ * non-nil.  Finally, W must be higher than its frame's canonical
+ * character height and be able to accommodate a mode line too if
+ * necessary (the mode line prevails).
  */
 bool
 window_wants_header_line (struct window *w)
@@ -5434,9 +5437,9 @@ window_wants_header_line (struct window *w)
  * accommodate it, 0 otherwise.
  *
  * W wants a tab line if it's a leaf window and neither a minibuffer
- * nor a pseudo window.  Moreover, its 'window-mode-line-format'
+ * nor a pseudo window.  Moreover, its 'window-tab-line-format'
  * parameter must not be 'none' and either that parameter or W's
- * buffer's 'mode-line-format' value must be non-nil.  Finally, W must
+ * buffer's 'tab-line-format' value must be non-nil.  Finally, W must
  * be higher than its frame's canonical character height and be able
  * to accommodate a mode line and a header line too if necessary (the
  * mode line and a header line prevail).
@@ -6631,7 +6634,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	     considered to be part of the visible height of the line.
 	  */
 	  h += extra_line_spacing;
-	  while (-it.current_y > h)
+	  while (-it.current_y > h && it.what != IT_EOB)
 	    move_it_by_lines (&it, 1);
 
 	  charpos = IT_CHARPOS (it);
@@ -8307,7 +8310,8 @@ on their symbols to be controlled by this variable.  */);
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-point-insertion-type", Vwindow_point_insertion_type,
-	       doc: /* Type of marker to use for `window-point'.  */);
+	       doc: /* Insertion type of marker to use for `window-point'.
+See `marker-insertion-type' for the meaning of the possible values.  */);
   Vwindow_point_insertion_type = Qnil;
   DEFSYM (Qwindow_point_insertion_type, "window-point-insertion-type");
 

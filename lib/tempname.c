@@ -77,6 +77,12 @@ typedef uint_fast64_t random_value;
 #define BASE_62_DIGITS 10 /* 62**10 < UINT_FAST64_MAX */
 #define BASE_62_POWER (62LL * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62)
 
+#if _LIBC || (defined CLOCK_MONOTONIC && HAVE_CLOCK_GETTIME)
+# define HAS_CLOCK_ENTROPY true
+#else
+# define HAS_CLOCK_ENTROPY false
+#endif
+
 static random_value
 random_bits (random_value var, bool use_getrandom)
 {
@@ -84,7 +90,7 @@ random_bits (random_value var, bool use_getrandom)
   /* Without GRND_NONBLOCK it can be blocked for minutes on some systems.  */
   if (use_getrandom && __getrandom (&r, sizeof r, GRND_NONBLOCK) == sizeof r)
     return r;
-#if _LIBC || (defined CLOCK_MONOTONIC && HAVE_CLOCK_GETTIME)
+#if HAS_CLOCK_ENTROPY
   /* Add entropy if getrandom did not work.  */
   struct __timespec64 tv;
   __clock_gettime64 (CLOCK_MONOTONIC, &tv);
@@ -213,7 +219,7 @@ static const char letters[] =
                         and return a read-write fd.  The file is mode 0600.
    __GT_DIR:            create a directory, which will be mode 0700.
 
-   We use a clever algorithm to get hard-to-predict names. */
+   */
 #ifdef _LIBC
 static
 #endif
@@ -267,13 +273,20 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
      alignment.  */
   random_value v = ((uintptr_t) &v) / alignof (max_align_t);
 
+#if !HAS_CLOCK_ENTROPY
+  /* Arrange gen_tempname to return less predictable file names on
+     systems lacking clock entropy <https://bugs.gnu.org/57129>.  */
+  static random_value prev_v;
+  v ^= prev_v;
+#endif
+
   /* How many random base-62 digits can currently be extracted from V.  */
   int vdigits = 0;
 
   /* Whether to consume entropy when acquiring random bits.  On the
      first try it's worth the entropy cost with __GT_NOCREATE, which
      is inherently insecure and can use the entropy to make it a bit
-     less secure.  On the (rare) second and later attempts it might
+     more secure.  On the (rare) second and later attempts it might
      help against DoS attacks.  */
   bool use_getrandom = tryfunc == try_nocreate;
 
@@ -318,6 +331,9 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
       if (fd >= 0)
         {
           __set_errno (save_errno);
+#if !HAS_CLOCK_ENTROPY
+          prev_v = v;
+#endif
           return fd;
         }
       else if (errno != EEXIST)

@@ -125,7 +125,7 @@
 ;;   ...)
 
 (ert-deftest keymap-lookup-key/mixed-case ()
-  "Backwards compatibility behaviour (Bug#50752)."
+  "Backwards compatibility behavior (Bug#50752)."
   (let ((map (make-keymap)))
     (define-key map [menu-bar foo bar] 'foo)
     (should (eq (lookup-key map [menu-bar foo bar]) 'foo))

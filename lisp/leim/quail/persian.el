@@ -23,7 +23,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This file contains a collection of input methods for
 ;; Persian languages (Farsi, Urdu, Pashto/Afghanic, ...)
 ;;
@@ -402,7 +402,7 @@
 
 ;;;;;;;;;;;  isiri-6219 Table 6 -- جدول ۶ - حروِفِ  عربی
  ("F" ?إ)
- ("D" ?\u0671)     ;; (ucs-insert #x0671)ٱ   named: حرفِ الفِ وصل
+ ("D" ?\u0671)     ;; (insert-char #x0671)ٱ   named: حرفِ الفِ وصل
  ("K"  ?ك)         ;;  Arabic kaf
  ("Th" ?ة)         ;; ta marbuteh
  ("Y"  ?ي)
@@ -421,40 +421,40 @@
  ("8"  ?۸)
  ("9"  ?۹)
 
- ("\\/" ?\u066B)     ;; (ucs-insert #x066B)٫   named: ممیزِ فارسی
- ("\\," ?\u066C)     ;; (ucs-insert #x066C)٬   named: جداکننده‌ی هزارهای فارسی
- ("%" ?\u066A)       ;; (ucs-insert #x066A)٪   named: درصدِ فارسی
- ("+" ?\u002B)     ;; (ucs-insert #x002B)+   named: علامتِ به‌اضافه
- ("-" ?\u2212)     ;; (ucs-insert #x2212)−   named: علامتِ منها
- ("\\*" ?\u00D7)     ;; (ucs-insert #x00D7)×   named: علامتِ ضرب
- ("\\-" ?\u00F7)    ;; (ucs-insert #x00F7)÷   named: علامتِ تقسیم
- ("<" ?\u003C)     ;; (ucs-insert #x003C)<   named: علامتِ کوچکتر
- ("=" ?\u003D)     ;; (ucs-insert #x003D)=   named: علامتِ مساوی
- (">" ?\u003E)     ;; (ucs-insert #x003E)>   named: علامتِ بزرگتر
+ ("\\/" ?\u066B)     ;; (insert-char #x066B)٫   named: ممیزِ فارسی
+ ("\\," ?\u066C)     ;; (insert-char #x066C)٬   named: جداکننده‌ی هزارهای فارسی
+ ("%" ?\u066A)       ;; (insert-char #x066A)٪   named: درصدِ فارسی
+ ("+" ?\u002B)     ;; (insert-char #x002B)+   named: علامتِ به‌اضافه
+ ("-" ?\u2212)     ;; (insert-char #x2212)−   named: علامتِ منها
+ ("\\*" ?\u00D7)     ;; (insert-char #x00D7)×   named: علامتِ ضرب
+ ("\\-" ?\u00F7)    ;; (insert-char #x00F7)÷   named: علامتِ تقسیم
+ ("<" ?\u003C)     ;; (insert-char #x003C)<   named: علامتِ کوچکتر
+ ("=" ?\u003D)     ;; (insert-char #x003D)=   named: علامتِ مساوی
+ (">" ?\u003E)     ;; (insert-char #x003E)>   named: علامتِ بزرگتر
 
 
 ;;;;;;;;;;;  isiri-6219 Table 2 -- جدول ۲ -  علائم نقطه گذاریِ مشترک
  ;;; Space
  ("."  ?.)  ;;
- (":" ?\u003A)     ;; (ucs-insert #x003A):   named:
- ("!" ?\u0021)     ;; (ucs-insert #x0021)!   named:
- ("\\." ?\u2026)     ;; (ucs-insert #x2026)…   named:
- ("\\-" ?\u2010)     ;; (ucs-insert #x2010)‐   named:
- ("-" ?\u002D)     ;; (ucs-insert #x002D)-   named:
+ (":" ?\u003A)     ;; (insert-char #x003A):   named:
+ ("!" ?\u0021)     ;; (insert-char #x0021)!   named:
+ ("\\." ?\u2026)     ;; (insert-char #x2026)…   named:
+ ("\\-" ?\u2010)     ;; (insert-char #x2010)‐   named:
+ ("-" ?\u002D)     ;; (insert-char #x002D)-   named:
  ("|" ?|)
  ;;("\\\\" ?\)
  ("//" ?/)
- ("*" ?\u002A)     ;; (ucs-insert #x002A)*   named:
- ("(" ?\u0028)     ;; (ucs-insert #x0028)(   named:
- (")" ?\u0029)     ;; (ucs-insert #x0029))   named:
- ("[" ?\u005B)     ;; (ucs-insert #x005B)[   named:
- ("[" ?\u005D)     ;; (ucs-insert #x005D)]   named:
- ("{" ?\u007B)     ;; (ucs-insert #x007B){   named:
- ("}" ?\u007D)     ;; (ucs-insert #x007D)}   named:
- ("\\<" ?\u00AB)     ;; (ucs-insert #x00AB)«   named:
- ("\\>" ?\u00BB)     ;; (ucs-insert #x00BB)»   named:
- ("N" ?\u00AB)     ;; (ucs-insert #x00AB)«   named:
- ("M" ?\u00BB)     ;; (ucs-insert #x00BB)»   named:
+ ("*" ?\u002A)     ;; (insert-char #x002A)*   named:
+ ("(" ?\u0028)     ;; (insert-char #x0028)(   named:
+ (")" ?\u0029)     ;; (insert-char #x0029))   named:
+ ("[" ?\u005B)     ;; (insert-char #x005B)[   named:
+ ("[" ?\u005D)     ;; (insert-char #x005D)]   named:
+ ("{" ?\u007B)     ;; (insert-char #x007B){   named:
+ ("}" ?\u007D)     ;; (insert-char #x007D)}   named:
+ ("\\<" ?\u00AB)     ;; (insert-char #x00AB)«   named:
+ ("\\>" ?\u00BB)     ;; (insert-char #x00BB)»   named:
+ ("N" ?\u00AB)     ;; (insert-char #x00AB)«   named:
+ ("M" ?\u00BB)     ;; (insert-char #x00BB)»   named:
 
 ;;;;;;;;;;;  isiri-6219 Table 3 -- جدول ۳ -  علائم نقطه گذاریِ فارسی
  ("," ?،)  ;; farsi
@@ -466,20 +466,20 @@
 ;;;;;;;;;;;  isiri-6219 Table 1 -- جدول ۱ -  نویسه‌های کنترلی
  ;; LF
  ;; CR
- ("&zwnj;" ?\u200C) ;; (ucs-insert #x200C)‌   named: فاصله‌ی مجازی
+ ("&zwnj;" ?\u200C) ;; (insert-char #x200C)‌   named: فاصله‌ی مجازی
  ("/" ?\u200C)      ;;
- ("&zwj;" ?\u200D)  ;; (ucs-insert #x200D)‍   named: اتصالِ مجازی
+ ("&zwj;" ?\u200D)  ;; (insert-char #x200D)‍   named: اتصالِ مجازی
  ("J" ?\u200D)      ;;
- ("&lrm;" ?\u200E)  ;; (ucs-insert #x200E)‎   named: نشانه‌ی چپ‌به‌راست
- ("&rlm;" ?\u200F)  ;; (ucs-insert #x200F)‏   named: نشانه‌ی راست‌به‌چپ
- ("&ls;" ?\u2028)   ;; (ucs-insert #x2028)    named: جداکننده‌ی سطرها
- ("&ps;" ?\u2028)   ;; (ucs-insert #x2029)    named: جداکننده‌ی بندها
- ("&lre;" ?\u202A)   ;; (ucs-insert #x202A)‪   named: زیرمتنِ چپ‌به‌راست
- ("&rle;" ?\u202B)   ;; (ucs-insert #x202B)   named: زیرمتنِ راست‌به‌چپ
- ("&pdf;" ?\u202C)   ;; (ucs-insert #x202C)   named: پایانِ زیرمتن
- ("&lro;" ?\u202D)   ;; (ucs-insert #x202D)   named: زیرمتنِ اکیداً چپ‌به‌راست
- ("&rlo;" ?\u202D)   ;; (ucs-insert #x202E)   named: زیرمتنِ اکیداً راست‌به‌چپ
- ("&bom;" ?\uFEFF)   ;; (ucs-insert #xFEFF)   named: نشانه‌ی ترتیبِ بایت‌ها
+ ("&lrm;" ?\u200E)  ;; (insert-char #x200E)‎   named: نشانه‌ی چپ‌به‌راست
+ ("&rlm;" ?\u200F)  ;; (insert-char #x200F)‏   named: نشانه‌ی راست‌به‌چپ
+ ("&ls;" ?\u2028)   ;; (insert-char #x2028)    named: جداکننده‌ی سطرها
+ ("&ps;" ?\u2028)   ;; (insert-char #x2029)    named: جداکننده‌ی بندها
+ ("&lre;" ?\u202A)   ;; (insert-char #x202A)‪   named: زیرمتنِ چپ‌به‌راست
+ ("&rle;" ?\u202B)   ;; (insert-char #x202B)   named: زیرمتنِ راست‌به‌چپ
+ ("&pdf;" ?\u202C)   ;; (insert-char #x202C)   named: پایانِ زیرمتن
+ ("&lro;" ?\u202D)   ;; (insert-char #x202D)   named: زیرمتنِ اکیداً چپ‌به‌راست
+ ("&rlo;" ?\u202D)   ;; (insert-char #x202E)   named: زیرمتنِ اکیداً راست‌به‌چپ
+ ("&bom;" ?\uFEFF)   ;; (insert-char #xFEFF)   named: نشانه‌ی ترتیبِ بایت‌ها
 
 
 ;;;;;;;;;;;  isiri-6219 Table 7 -- جدول ۷ -  نشانه‌هایِ فارسی
@@ -491,14 +491,14 @@
  ("O" ?ٌ)  ;; دو پيش فارسى -- تنوين رفع
  ("~"  ?ّ)  ;; tashdid ;;  تشديد فارسى
  ("@" ?ْ)   ;; ساکن فارسى
- ("U" ?\u0653)  ;; (ucs-insert #x0653)ٓ   named: مدِ فارسی
+ ("U" ?\u0653)  ;; (insert-char #x0653)ٓ   named: مدِ فارسی
  ("`" ?ٔ)  ;; همزه فارسى بالا
- ("C" ?\u0655)  ;; (ucs-insert #x0655)ٕ   named: همزه فارسى پایین
- ("$" ?\u0670)  ;; (ucs-insert #x0670)ٰ   named: الفِ مقصوره‌ی فارسی
+ ("C" ?\u0655)  ;; (insert-char #x0655)ٕ   named: همزه فارسى پایین
+ ("$" ?\u0670)  ;; (insert-char #x0670)ٰ   named: الفِ مقصوره‌ی فارسی
 
 
 ;;;;;;;;;;;  isiri-6219 Table 8 - Forbidden Characters -- جدول ۸ - نویسه‌هایِ ممنوع
-;;  ;; he ye (ucs-insert 1728)  (ucs-insert #x06c0) kills emacs-24.0.90
+;;  ;; he ye (insert-char 1728)  (insert-char #x06c0) kills emacs-24.0.90
 ;; arabic digits 0-9
 
 
@@ -508,7 +508,7 @@
  ("\\~" ?~)
  ("\\@" ?@)
  ("\\#" ?#)
- ("\\$" ?\uFDFC)  ;; (ucs-insert #xFDFC)﷼   named:
+ ("\\$" ?\uFDFC)  ;; (insert-char #xFDFC)﷼   named:
  ("\\^" ?^)
  ("\\1" ?1)
  ("\\2" ?2)
