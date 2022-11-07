@@ -1335,12 +1335,12 @@ getting ranges for a parser.
 Lisp programs should call @code{treesit-update-ranges} to make sure
 the ranges for each parser are correct before using parsers in a
 buffer, and call @code{treesit-language-at} to figure out the language
-responsible for the text at some position.  Multi-language major modes
-set @code{treesit-range-settings} and
-@c FIXME: ``power''?
-@code{treesit-language-at-point-function} respectively to power these
-two functions.  These functions and variables are explained in more
-detail towards the end of the section.
+responsible for the text at some position.  These two functions don't
+work by themselves, they need major modes to set
+@code{treesit-range-settings} and
+@code{treesit-language-at-point-function}, which do the actual work.
+These functions and variables are explained in more detail towards the
+end of the section.
 
 @heading Getting and setting ranges
 
