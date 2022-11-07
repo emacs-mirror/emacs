@@ -1023,17 +1023,18 @@ See `treesit-simple-indent-presets'.")
                                 fns)))))
   "A list of presets.
 These presets that can be used as MATHER and ANCHOR in
-`treesit-simple-indent-rules'.
+`treesit-simple-indent-rules'.  MACHTERs and ANCHORs are
+functions that takes 3 arguments: NODE, PARENT and BOL.
 
 MATCHER:
 
 \(match NODE-TYPE PARENT-TYPE NODE-FIELD NODE-INDEX-MIN NODE-INDEX-MAX)
 
-    NODE-TYPE checks for node's type, PARENT-TYPE checks for
-    parent's type, NODE-FIELD checks for the filed name of node
-    in the parent, NODE-INDEX-MIN and NODE-INDEX-MAX checks for
-    the node's index in the parent.  Therefore, to match the
-    first child where parent is \"argument_list\", use
+    NODE-TYPE checks for NODE's type, PARENT-TYPE checks for
+    PARENT's type, NODE-FIELD checks for the filed name of NODE
+    in PARENT, NODE-INDEX-MIN and NODE-INDEX-MAX checks for
+    NODE's index in PARENT.  Therefore, to match the first child
+    where PARENT is \"argument_list\", use
 
         (match nil \"argument_list\" nil nil 0 0).
 
@@ -1041,49 +1042,49 @@ MATCHER:
 
 no-node
 
-    Matches the case where node is nil, i.e., there is no node
+    Matches the case where NODE is nil, i.e., there is no node
     that starts at point.  This is the case when indenting an
     empty line.
 
 \(parent-is TYPE)
 
-    Check that the parent's type matches regexp TYPE.
+    Check that PARENT's type matches regexp TYPE.
 
 \(node-is TYPE)
 
-    Checks that the node's type matches regexp TYPE.
+    Checks that NODE's type matches regexp TYPE.
 
 \(query QUERY)
 
-    Queries the parent node with QUERY, and checks if the node
-    is captured (by any capture name).
+    Queries PARENT with QUERY, and checks if NODE is
+    captured (by any capture name).
 
 ANCHOR:
 
 first-sibling
 
-    Find the first child of the parent.
+    Returns the start of the first child of PARENT.
 
 parent
 
-    Find the parent.
+    Returns the start of PARENT.
 
 parent-bol
 
-    Find the beginning of non-space characters on the line where
-    the parent is on.
+    Returns the beginning of non-space characters on the line where
+    PARENT is on.
 
 prev-sibling
 
-    Find node's previous sibling.
+    Returns the start of NODE's previous sibling.
 
 no-indent
 
-    Do nothing.
+    Returns the start of NODE.
 
 prev-line
 
-    The first non-whitespace charater on the previous line.
+    Returns the  first non-whitespace character on the previous line.
 
 point-min
 
