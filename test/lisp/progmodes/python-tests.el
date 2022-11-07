@@ -5592,6 +5592,23 @@ else:
      (equal (list (python-tests-look-at "else:" -1 t))
             (python-info-dedenter-opening-block-positions)))))
 
+(ert-deftest python-info-dedenter-opening-block-positions-6 ()
+  "Test multiline block start."
+  (python-tests-with-temp-buffer
+   "
+def func():
+    if (
+        cond1 or
+        cond2
+    ):
+        something()
+        else
+"
+   (python-tests-look-at "else\n")
+    (should
+     (equal (list (python-tests-look-at "if (" -1 t))
+            (python-info-dedenter-opening-block-positions)))))
+
 (ert-deftest python-info-dedenter-opening-block-message-1 ()
   "Test dedenters inside strings are ignored."
   (python-tests-with-temp-buffer
