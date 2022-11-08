@@ -10773,7 +10773,15 @@ This function might do hidden buffer changes."
 			((eq at-decl-or-cast t)
 			 (throw 'at-decl-or-cast t))
 			((and c-has-bitfields
-			      (eq at-decl-or-cast 'ids)) ; bitfield.
+			      ;; Check for a bitfield.
+			      (eq at-decl-or-cast 'ids)
+			      (save-excursion
+				(forward-char) ; Over the :
+				(c-forward-syntactic-ws)
+				(and (looking-at "[[:alnum:]]")
+				     (progn (c-forward-token-2)
+					    (c-forward-syntactic-ws)
+					    (memq (char-after) '(?\; ?,))))))
 			 (setq backup-if-not-cast t)
 			 (throw 'at-decl-or-cast t)))
 
