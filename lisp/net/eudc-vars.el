@@ -51,9 +51,10 @@ instead."
 
 ;; Known protocols (used in completion)
 ;; Not to be mistaken with `eudc-supported-protocols'
-(defvar eudc-known-protocols '(bbdb ldap))
+(defvar eudc-known-protocols '(bbdb ldap ecomplete mailabbrev))
 
-(defcustom eudc-server-hotlist nil
+(defcustom eudc-server-hotlist '(("localhost" . ecomplete)
+                                 ("localhost" . mailabbrev))
   "Directory servers to query.
 This is an alist of the form (SERVER . PROTOCOL).  SERVER is the
 host name or URI of the server, PROTOCOL is a symbol representing

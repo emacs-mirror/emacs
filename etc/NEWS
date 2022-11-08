@@ -2017,6 +2017,25 @@ The EUDC back-end for the macOS Contacts app now provides a wider set
 of attributes to use for queries, and delivers more attributes in
 query results.
 
++++
+*** New back-end for ecomplete
+A new back-end for ecomplete allows information from that database to
+be queried by EUDC, too.  The attributes present in the EUDC query are
+used to select the entry type in the ecomplete database.
+
++++
+*** New back-end for mailabbrev
+A new back-end for mailabbrev allows information from that database to
+be queried by EUDC, too.  The attributes email, name, and firstname
+are supported only.
+
++++
+*** New default for 'eudc-server-hotlist' includes built-in backends
+The 'eudc-server-hotlist' user option now defaults to including
+entries for the new built-in ecomplete and mailabbrev EUDC backends.
+As a result, 'C-u M-x eudc-expand-try-all' will query both of these
+backends for email address completions, by default.
+
 ** EWW/SHR
 
 +++
