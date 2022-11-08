@@ -3950,16 +3950,16 @@ example:
 @end group
 @end example
 
-This function takes a series of @var{query-spec}s, which are triplets
-@w{@code{@var{:keyword} @var{value} @dots{} @var{query}}}.  Each
-@var{query} is a tree-sitter query in either the string, s-expression
-or compiled form.
+This function takes a series of @var{query-spec}s, where each
+@var{query-spec} is a @var{query} preceded by multiple pairs of
+@var{:keyword} and @var{value}.  Each @var{query} is a tree-sitter
+query in either the string, s-expression or compiled form.
 
-The @var{:keyword} and @var{value} pairs configure the query which
-follows them in the argument list.  The @code{:lang} keyword sets the
-query's language.  The @code{:feature} keyword sets the feature name
-of the query.  Users can control which features are enabled with
-@code{font-lock-maximum-decoration} and
+For each @var{query}, the @var{:keyword} and @var{value} pairs add
+meta information to it.  The @code{:lang} keyword declares
+@var{query}'s language.  The @code{:feature} keyword sets the feature
+name of @var{query}.  Users can control which features are enabled
+with @code{font-lock-maximum-decoration} and
 @code{treesit-font-lock-feature-list} (described below).  These two
 keywords are mandated.
 
@@ -3975,7 +3975,7 @@ Other keywords are optional:
 @item @tab @code{keep} @tab Fill-in regions without an existing face
 @end multitable
 
-Lisp programs mark patterns in the query with capture names (names
+Lisp programs mark patterns in @var{query} with capture names (names
 that starts with @code{@@}), and tree-sitter will return matched nodes
 tagged with those same capture names.  For the purpose of
 fontification, capture names in @var{query} should be face names like

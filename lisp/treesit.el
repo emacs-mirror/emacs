@@ -374,15 +374,17 @@ to change.  Use `treesit-range-rules' to set this variable.")
 (defun treesit-range-rules (&rest query-specs)
   "Produce settings for `treesit-range-settings'.
 
-QUERY-SPECS are a series of QUERY-SPEC triplets of the form
+QUERY-SPECS are a series of QUERY-SPECs, where each QUERY-SPEC is
+a QUERY preceeded by zero or more pairs of :KEYWORD and VALUE,
+like this:
 
     :KEYWORD VALUE... QUERY
 
 Each QUERY is a tree-sitter query in either the string,
 s-expression or compiled form.
 
-Each QUERY should be preceded by :KEYWORD VALUE pairs that
-configures this query.  For example,
+For each QUERY, :KEYWORD and VALUE pairs add meta information to
+it.  For example,
 
     (treesit-range-rules
      :embed \\='javascript
@@ -562,7 +564,8 @@ t, nil, append, prepend, keep.  See more in
 (defun treesit-font-lock-rules (&rest query-specs)
   "Return a value suitable for `treesit-font-lock-settings'.
 
-QUERY-SPECS is a series of 3 arguments:
+QUERY-SPECS is a series of QUERY-SPECs.  Each QUERY-SPEC is a
+QUERY preceded by multiple pairs of :KEYWORD and VALUE:
 
    :KEYWORD VALUE... QUERY
 
@@ -570,8 +573,8 @@ QUERY is a tree-sitter query in either the string, s-expression
 or compiled form.  For each query, captured nodes are highlighted
 with the capture name as its face.
 
-Before each QUERY there could be :KEYWORD and VALUE pairs that
-configure the query (and only that query).  For example,
+:KEYWORD and VALUE pairs preceeding a QUERY add meta information
+to QUERY.  For example,
 
     (treesit-font-lock-rules
      :language \\='javascript
