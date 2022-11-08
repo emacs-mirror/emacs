@@ -1955,9 +1955,9 @@ also be compiled."
                         (not (auto-save-file-name-p source))
                         (not (member source (dir-locals--all-files directory)))
                         ;; File is requested to be ignored
-                        (string-match-p
-                         (regexp-opt byte-compile-ignore-files)
-                         source))
+                        (not (string-match-p
+                              (regexp-opt byte-compile-ignore-files)
+                              source)))
                    (progn (cl-incf
                            (pcase (byte-recompile-file source force arg)
                              ('no-byte-compile skip-count)
