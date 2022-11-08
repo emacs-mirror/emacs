@@ -1090,10 +1090,15 @@ untar into a directory named DIR; otherwise, signal an error."
          (backup-inhibited t)
          (version-control 'never))
     (loaddefs-generate
-     pkg-dir output-file
-     nil
-     "(add-to-list 'load-path (directory-file-name
-                         (or (file-name-directory #$) (car load-path))))")
+     pkg-dir output-file nil
+     (prin1-to-string
+      '(add-to-list
+        'load-path
+        ;; Add the directory that will contain the autoload file to
+        ;; the load path.  We don't hard-code `pkg-dir', to avoid
+        ;; issues if the package directory is moved around.
+        (or (and load-file-name (file-name-directory load-file-name))
+            (car load-path)))))
     (let ((buf (find-buffer-visiting output-file)))
       (when buf (kill-buffer buf)))
     auto-name))
@@ -2419,7 +2424,7 @@ installed), maybe you need to \\[package-refresh-contents]")
 
 (declare-function comp-el-to-eln-filename "comp.c")
 (defvar package-vc-repository-store)
-(defun package--delete-directory (dir pkg-desc)
+(defun package--delete-directory (dir)
   "Delete PKG-DESC directory DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled."
@@ -2427,17 +2432,8 @@ compiled."
     (cl-loop
      for file in (directory-files-recursively dir "\\.el\\'")
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
-  (if (and (package-vc-p pkg-desc)
-           (require 'package-vc)   ;load `package-vc-repository-store'
-           (file-in-directory-p dir package-vc-repository-store))
-      (progn
-        (delete-directory
-         (expand-file-name
-          (car (file-name-split
-                (file-relative-name dir package-vc-repository-store)))
-          package-vc-repository-store)
-         t)
-        (delete-file (directory-file-name dir)))
+  (if (file-symlink-p (directory-file-name dir))
+      (delete-file (directory-file-name dir))
     (delete-directory dir t)))
 
 
@@ -2493,7 +2489,7 @@ If NOSAVE is non-nil, the package is not removed from
                   (package-desc-name pkg-used-elsewhere-by)))
           (t
            (add-hook 'post-command-hook #'package-menu--post-refresh)
-           (package--delete-directory dir pkg-desc)
+           (package--delete-directory dir)
            ;; Remove NAME-VERSION.signed and NAME-readme.txt files.
            ;;
            ;; NAME-readme.txt files are no longer created, but they

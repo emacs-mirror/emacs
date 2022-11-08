@@ -49,7 +49,6 @@
 (require 'lisp-mnt)
 (require 'vc)
 (require 'seq)
-(require 'xdg)
 
 (defgroup package-vc nil
   "Manage packages from VC checkouts."
@@ -98,12 +97,6 @@
                 :value-type (choice :tag "VC Backend"
                                     ,@(mapcar (lambda (b) `(const ,b))
                                               vc-handled-backends)))
-  :version "29.1")
-
-(defcustom package-vc-repository-store
-  (expand-file-name "emacs/vc-packages" (xdg-data-home))
-  "Directory used by to store repositories."
-  :type 'directory
   :version "29.1")
 
 (defcustom package-vc-default-backend 'Git
@@ -390,7 +383,7 @@ documentation and marking the package as installed."
   ;; dependency list wasn't know beforehand, and they might have
   ;; to be installed explicitly.
   (let (deps)
-    (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
+    (dolist (file (directory-files (package-lisp-dir pkg-desc) t "\\.el\\'" t))
       (with-temp-buffer
         (insert-file-contents file)
         (when-let* ((require-lines (lm-header-multiline "package-requires")))
@@ -406,10 +399,26 @@ documentation and marking the package as installed."
      (package-compute-transaction nil (delete-dups deps))))
 
   (let ((default-directory (file-name-as-directory pkg-dir))
-        (name (package-desc-name pkg-desc))
         (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
     ;; Generate autoloads
-    (package-generate-autoloads name pkg-dir)
+    (let* ((name (package-desc-name pkg-desc))
+           (auto-name (format "%s-autoloads.el" name))
+           (extras (package-desc-extras pkg-desc))
+           (lisp-dir (alist-get :lisp-dir extras)))
+      (package-generate-autoloads
+       name (file-name-concat pkg-dir lisp-dir))
+      (when lisp-dir
+        (write-region
+         (with-temp-buffer
+           (insert ";; Autoload indirection for package-vc\n\n")
+           (prin1 `(load (expand-file-name
+                          ,(file-name-concat lisp-dir auto-name)
+                          (or (and load-file-name
+                                   (file-name-directory load-file-name))
+                              (car load-path))))
+                  (current-buffer))
+           (buffer-string))
+         nil (expand-file-name auto-name pkg-dir))))
 
     ;; Generate package file
     (package-vc--generate-description-file pkg-desc pkg-file)
@@ -496,28 +505,17 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
   (pcase-let* (((map :url :lisp-dir) pkg-spec)
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))
-               (pkg-dir (expand-file-name dirname package-user-dir))
-               (real-dir (if (null lisp-dir)
-                             pkg-dir
-                           (unless (file-exists-p package-vc-repository-store)
-                             (make-directory package-vc-repository-store t))
-                           (file-name-concat
-                            package-vc-repository-store
-                            ;; FIXME: We aren't sure this directory
-                            ;; will be unique, but we can try other
-                            ;; names to avoid an unnecessary error.
-                            (file-name-base url)))))
+               (pkg-dir (expand-file-name dirname package-user-dir)))
     (setf (package-desc-dir pkg-desc) pkg-dir)
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p "Overwrite previous checkout?")
-          (package--delete-directory pkg-dir pkg-desc)
+          (package--delete-directory pkg-dir)
         (error "There already exists a checkout for %s" name)))
-    (package-vc--clone pkg-desc pkg-spec real-dir rev)
-    (unless (eq pkg-dir real-dir)
-      ;; Link from the right position in `repo-dir' to the package
-      ;; directory in the ELPA store.
-      (make-symbolic-link (file-name-concat real-dir lisp-dir) pkg-dir))
+    (package-vc--clone pkg-desc pkg-spec pkg-dir rev)
 
+    (when lisp-dir
+      (push (cons :lisp-dir lisp-dir)
+            (package-desc-extras pkg-desc)))
     (package-vc--unpack-1 pkg-desc pkg-dir)))
 
 (defun package-vc--read-package-name (prompt &optional allow-url installed)
