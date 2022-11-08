@@ -726,7 +726,8 @@ server for future sessions."
   (if (called-interactively-p 'interactive)
       (message "Current directory server is now %s (%s)" eudc-server eudc-protocol))
   (if (null no-save)
-      (eudc-save-options)))
+      (when (not eudc-ignore-options-file)
+	(eudc-save-options))))
 
 ;;;###autoload
 (defun eudc-get-email (name &optional error)
@@ -1107,7 +1108,11 @@ queries the server for the existing fields and displays a corresponding form."
       (error "%s:%s is already in the hotlist" protocol server)
     (setq eudc-server-hotlist (cons (cons server protocol) eudc-server-hotlist))
     (eudc-install-menu)
-    (eudc-save-options)))
+    (if eudc-ignore-options-file
+	(warn "Not saving bookmark due to `eudc-ignore-options-file'\
+ customization. Instead, customize `eudc-server-hotlist' to include %s:%s"
+	      protocol server)
+      (eudc-save-options))))
 
 (defun eudc-bookmark-current-server ()
   "Add current server to the EUDC `servers' hotlist."
@@ -1117,6 +1122,9 @@ queries the server for the existing fields and displays a corresponding form."
 (defun eudc-save-options ()
   "Save options to `eudc-options-file'."
   (interactive)
+  (when eudc-ignore-options-file
+    (error "EUDC is configured to ignore the deprecated options file;\
+ see `eudc-ignore-options-file'"))
   (with-current-buffer (find-file-noselect eudc-options-file t)
     (goto-char (point-min))
     ;; delete the previous setq
@@ -1278,11 +1286,13 @@ queries the server for the existing fields and displays a corresponding form."
 ;;{{{ Load time initializations
 
 ;; Load the options file
-(if (and (not noninteractive)
-	 (and (locate-library eudc-options-file)
-	      (progn (message "") t))   ; Remove mode line message
-	 (not (featurep 'eudc-options-file)))
-    (load eudc-options-file))
+(let ((library-file-path (locate-library eudc-options-file)))
+  (if (and (not noninteractive)
+	   (and library-file-path
+	        (progn (message "") t))   ; Remove mode line message
+	   (not (featurep 'eudc-options-file))
+	   (not eudc-ignore-options-file))
+      (load eudc-options-file)))
 
 ;; Install the full menu
 (unless (featurep 'infodock)

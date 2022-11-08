@@ -1965,6 +1965,13 @@ It narrows to the current node.
 ** EUDC
 
 +++
+*** New user option 'eudc-ignore-options-file' that defaults to 'nil'
+The 'eudc-ignore-options-file' user option can be configured to ignore
+the 'eudc-options-file' (typically "~/.emacs.d/eudc-options").  Most
+users should configure this to 't' and put EUDC configuration in the
+main Emacs initialization file (".emacs" or "~/.emacs.d/init.el").
+
++++
 *** 'eudc-expansion-overwrites-query' to 'eudc-expansion-save-query-as-kill'.
 'eudc-expansion-overwrites-query' is renamed to
 'eudc-expansion-save-query-as-kill' to reflect the actual behavior of

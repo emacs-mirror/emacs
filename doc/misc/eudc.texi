@@ -916,13 +916,23 @@ in other places, like for example the body of the message.
 @section The Server Hotlist
 
 EUDC lets you maintain a list of frequently used servers so that you
-can easily switch from one to another.  This hotlist appears in the
-@samp{Server} submenu.  You select a server in this list by clicking on
-its name.  You can add the current server to the list with the command
-@kbd{M-x eudc-bookmark-current-server}.  The list is contained in the variable
-@code{eudc-server-hotlist} which is stored in and retrieved from the file
-designated by @code{eudc-options-file}.  EUDC also provides a facility to
-edit the hotlist interactively (@pxref{The Hotlist Edit Buffer}).
+can easily switch from one to another.  Most users should configure
+the hotlist via Customize, and store the configuration in the main
+Emacs initialization file.  Configuring it dynamically can be
+confusing, particularly if the hotlist settings are saved to
+@code{eudc-options-file} automatically.  @code{eudc-options-file} is
+historical and support for it is still maintained, but new EUDC users
+should set @code{eudc-ignore-options-file} to @code{t}.
+
+However, this hotlist also appears in the @samp{Server} submenu.  You
+select a server in this list by clicking on its name.  You can add the
+current server to the list with the command @kbd{M-x
+eudc-bookmark-current-server}.  The list is contained in the variable
+@code{eudc-server-hotlist} which is stored in and retrieved from the
+file designated by @code{eudc-options-file}, or normal Emacs
+initialization if @code{eudc-ignore-options-file} is non-nil.  EUDC
+also provides a facility to edit the hotlist interactively (@pxref{The
+Hotlist Edit Buffer}).
 
 The hotlist is also used to make queries on multiple servers
 successively (@pxref{Multi-server Queries}).  The order in which the
@@ -936,6 +946,14 @@ Add @var{server} to the hotlist of servers
 @deffn Command eudc-bookmark-current-server
 Add the current server to the hotlist of servers
 @end deffn
+
+@defvar eudc-ignore-options-file
+If non-nil, then EUDC ignores @code{eudc-options-file} and warns or
+issues an error when an attempt is made to use it.  Most users should
+set this, and keep their EUDC configuration in the main Emacs
+initialization file instead.  The separate eudc-options file has
+created confusion for users in the past.
+@end defvar
 
 @defvar eudc-options-file
 The name of a file where EUDC stores its internal variables (the

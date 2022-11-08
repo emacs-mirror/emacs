@@ -343,9 +343,15 @@ arguments that should be passed to the program."
 			:inline t
 			(string :tag "Argument")))))
 
+(defcustom eudc-ignore-options-file nil
+  "Ignore configuration in `eudc-options-file', if non-nil."
+  :type  'boolean
+  :version "29.1")
+
 (defcustom eudc-options-file
   (locate-user-emacs-file "eudc-options" ".eudc-options")
-  "A file where the `servers' hotlist is stored."
+  "A file where the `servers' hotlist is stored.
+See `eudc-ignore-options-file'."
   :type '(file :Tag "File Name:")
   :version "25.1")
 
