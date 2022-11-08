@@ -38,6 +38,9 @@
 
 (defcustom eudc-server nil
   "The name or IP address of the directory server.
+This variable is deprecated as of Emacs 29.1.  Please add an
+entry to `eudc-server-hotlist' instead of setting `eudc-server'.
+
 A port number may be specified by appending a colon and a
 number to the name of the server.  Use `localhost' if the directory
 server resides on your computer (BBDB backend).
