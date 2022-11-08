@@ -6553,7 +6553,7 @@ mark_buffer (struct buffer *buffer)
   if (!BUFFER_LIVE_P (buffer))
       mark_object (BVAR (buffer, undo_list));
 
-  if (buffer->overlays)
+  if (!itree_empty_p (buffer->overlays))
     mark_overlays (buffer->overlays->root);
 
   /* If this is an indirect buffer, mark its base buffer.  */
