@@ -1426,7 +1426,8 @@ LBP defaults to `line-beginning-position'."
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
   (eglot--widening
-   (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
+   ;; LSP line is zero-origin; emacs is one-origin.
+   (list :line (1- (line-number-at-pos pos t))
          :character (progn (when pos (goto-char pos))
                            (funcall eglot-current-column-function)))))
 
