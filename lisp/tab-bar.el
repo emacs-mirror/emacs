@@ -1048,7 +1048,7 @@ tab bar might wrap to the second line when it shouldn't.")
           (unless (eq (nth 0 item) 'align-right)
             (setq non-tabs (concat non-tabs (nth 2 item)))))))
     (when tabs
-      (setq width (/ (- (frame-pixel-width)
+      (setq width (/ (- (frame-inner-width)
                         (string-pixel-width
                          (propertize non-tabs 'face 'tab-bar)))
                      (length tabs)))
