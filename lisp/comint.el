@@ -604,6 +604,14 @@ via PTYs.")
 				       menu-bar-final-items))
     map))
 
+(defvar-keymap comint-repeat-map
+  :doc "Keymap to repeat comint key sequences.  Used in `repeat-mode'."
+  "C-n" #'comint-next-prompt
+  "C-p" #'comint-previous-prompt)
+
+(put #'comint-next-prompt 'repeat-map 'comint-repeat-map)
+(put #'comint-previous-prompt 'repeat-map 'comint-repeat-map)
+
 ;; Fixme: Is this still relevant?
 (defvar comint-ptyp t
   "Non-nil if communications via pty; false if by pipe.  Buffer local.
