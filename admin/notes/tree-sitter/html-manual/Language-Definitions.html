@@ -236,18 +236,20 @@ assign <em>field names</em> to child nodes.  For example, a
 at point.  The mode-line will display
 </p>
 <div class="example">
-<pre class="example"><var>parent</var> <var>field</var>: (<var>child</var> (<var>grandchild</var> (&hellip;)))
+<pre class="example"><var>parent</var> <var>field</var>: (<var>node</var> (<var>child</var> (&hellip;)))
 </pre></div>
 
-<p><var>child</var>, <var>grand</var>, <var>grand-grandchild</var>, etc., are nodes that
-begin at point.  <var>parent</var> is the parent node of <var>child</var>.
+<p>where <var>node</var>, <var>child</var>, etc, are nodes which begin at point.
+<var>parent</var> is the parent of <var>node</var>.  <var>node</var> is displayed in
+bold typeface.  <var>field-name</var>s are field names of <var>node</var> and
+<var>child</var>, etc.
 </p>
-<p>If there is no node that starts at point, i.e., point is in the middle
-of a node, then the mode-line only displays the smallest node that
-spans the position of point, and its immediate parent.
+<p>If no node starts at point, i.e., point is in the middle of a node,
+then the mode line displays the earliest node that spans point, and
+its immediate parent.
 </p>
-<p>This minor mode doesn&rsquo;t create parsers on its own.  It simply uses the
-first parser in <code>(treesit-parser-list)</code> (see <a href="Using-Parser.html">Using Tree-sitter Parser</a>).
+<p>This minor mode doesn&rsquo;t create parsers on its own.  It uses the first
+parser in <code>(treesit-parser-list)</code> (see <a href="Using-Parser.html">Using Tree-sitter Parser</a>).
 </p></dd></dl>
 
 <span id="Reading-the-grammar-definition"></span><h3 class="heading">Reading the grammar definition</h3>

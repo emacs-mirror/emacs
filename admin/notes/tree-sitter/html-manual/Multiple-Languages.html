@@ -67,7 +67,6 @@ Next: <a href="Tree_002dsitter-major-modes.html" accesskey="n" rel="next">Develo
 </div>
 <hr>
 <span id="Parsing-Text-in-Multiple-Languages"></span><h3 class="section">37.6 Parsing Text in Multiple Languages</h3>
-
 <span id="index-multiple-languages_002c-parsing-with-tree_002dsitter"></span>
 <span id="index-parsing-multiple-languages-with-tree_002dsitter"></span>
 <p>Sometimes, the source of a programming language could contain snippets
@@ -76,8 +75,22 @@ example.  In that case, text segments written in different languages
 need to be assigned different parsers.  Traditionally, this is
 achieved by using narrowing.  While tree-sitter works with narrowing
 (see <a href="Using-Parser.html#tree_002dsitter-narrowing">narrowing</a>), the recommended way is
-instead to set regions of buffer text in which a parser will operate.
+instead to set regions of buffer text (i.e., ranges) in which a parser
+will operate.  This section describes functions for setting and
+getting ranges for a parser.
 </p>
+<p>Lisp programs should call <code>treesit-update-ranges</code> to make sure
+the ranges for each parser are correct before using parsers in a
+buffer, and call <code>treesit-language-at</code> to figure out the language
+responsible for the text at some position.  These two functions don&rsquo;t
+work by themselves, they need major modes to set
+<code>treesit-range-settings</code> and
+<code>treesit-language-at-point-function</code>, which do the actual work.
+These functions and variables are explained in more detail towards the
+end of the section.
+</p>
+<span id="Getting-and-setting-ranges"></span><h3 class="heading">Getting and setting ranges</h3>
+
 <dl class="def">
 <dt id="index-treesit_002dparser_002dset_002dincluded_002dranges"><span class="category">Function: </span><span><strong>treesit-parser-set-included-ranges</strong> <em>parser ranges</em><a href='#index-treesit_002dparser_002dset_002dincluded_002dranges' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function sets up <var>parser</var> to operate on <var>ranges</var>.  The
@@ -127,24 +140,6 @@ ranges, the return value is <code>nil</code>.
 </dd></dl>
 
 <dl class="def">
-<dt id="index-treesit_002dset_002dranges"><span class="category">Function: </span><span><strong>treesit-set-ranges</strong> <em>parser-or-lang ranges</em><a href='#index-treesit_002dset_002dranges' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>Like <code>treesit-parser-set-included-ranges</code>, this function sets
-the ranges of <var>parser-or-lang</var> to <var>ranges</var>.  Conveniently,
-<var>parser-or-lang</var> could be either a parser or a language.  If it is
-a language, this function looks for the first parser in
-<code>(treesit-parser-list)</code> for that language in the current buffer,
-and sets the ranges for it.
-</p></dd></dl>
-
-<dl class="def">
-<dt id="index-treesit_002dget_002dranges"><span class="category">Function: </span><span><strong>treesit-get-ranges</strong> <em>parser-or-lang</em><a href='#index-treesit_002dget_002dranges' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This function returns the ranges of <var>parser-or-lang</var>, like
-<code>treesit-parser-included-ranges</code>.  And like
-<code>treesit-set-ranges</code>, <var>parser-or-lang</var> can be a parser or
-a language symbol.
-</p></dd></dl>
-
-<dl class="def">
 <dt id="index-treesit_002dquery_002drange"><span class="category">Function: </span><span><strong>treesit-query-range</strong> <em>source query &amp;optional beg end</em><a href='#index-treesit_002dquery_002drange' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function matches <var>source</var> with <var>query</var> and returns the
 ranges of captured nodes.  The return value is a list of cons cells of
@@ -166,57 +161,56 @@ range in which this function queries.
 <code>treesit-query-error</code> error if <var>query</var> is malformed.
 </p></dd></dl>
 
-<dl class="def">
-<dt id="index-treesit_002drange_002dfunctions"><span class="category">Variable: </span><span><strong>treesit-range-functions</strong><a href='#index-treesit_002drange_002dfunctions' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This variable holds the list of range functions.  Font-locking and
-indenting code use functions in this list to set correct ranges for
-a language parser before using it.
-</p>
-<p>The signature of each function in the list should be:
-</p>
-<div class="example">
-<pre class="example">(<var>start</var> <var>end</var> &amp;rest <var>_</var>)
-</pre></div>
+<span id="Supporting-multiple-languages-in-Lisp-programs"></span><h3 class="heading">Supporting multiple languages in Lisp programs</h3>
 
-<p>where <var>start</var> and <var>end</var> specify the region that is about to be
-used.  A range function only needs to (but is not limited to) update
-ranges in that region.
-</p>
-<p>The functions in the list are called in order.
-</p></dd></dl>
-
-<dl class="def">
-<dt id="index-treesit_002dupdate_002dranges"><span class="category">Function: </span><span><strong>treesit-update-ranges</strong> <em>&amp;optional start end</em><a href='#index-treesit_002dupdate_002dranges' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This function is used by font-lock and indentation to update ranges
-before using any parser.  Each range function in
-<var>treesit-range-functions</var> is called in-order.  Arguments
-<var>start</var> and <var>end</var> are passed to each range function.
-</p></dd></dl>
-
-<span id="index-treesit_002dlanguage_002dat_002dpoint_002dfunction"></span>
-<dl class="def">
-<dt id="index-treesit_002dlanguage_002dat"><span class="category">Function: </span><span><strong>treesit-language-at</strong> <em>pos</em><a href='#index-treesit_002dlanguage_002dat' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This function tries to figure out which language is responsible for
-the text at buffer position <var>pos</var>.  Under the hood it just calls
-<code>treesit-language-at-point-function</code>.
-</p>
-<p>Various Lisp programs use this function.  For example, the indentation
-program uses this function to determine which language&rsquo;s rule to use
-in a multi-language buffer.  So it is important to provide
-<code>treesit-language-at-point-function</code> for a multi-language major
-mode.
-</p></dd></dl>
-
-<span id="An-example"></span><h3 class="heading">An example</h3>
-
-<p>Normally, in a set of languages that can be mixed together, there is a
-major language and several embedded languages.  A Lisp program usually
-first parses the whole document with the major language&rsquo;s parser, sets
-ranges for the embedded languages, and then parses the embedded
+<p>It should suffice for general Lisp programs to call the following two
+functions in order to support program sources that mixes multiple
 languages.
 </p>
-<p>Suppose we need to parse a very simple document that mixes
-<acronym>HTML</acronym>, <acronym>CSS</acronym> and JavaScript:
+<dl class="def">
+<dt id="index-treesit_002dupdate_002dranges"><span class="category">Function: </span><span><strong>treesit-update-ranges</strong> <em>&amp;optional beg end</em><a href='#index-treesit_002dupdate_002dranges' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function updates ranges for parsers in the buffer.  It makes sure
+the parsers&rsquo; ranges are set correctly between <var>beg</var> and <var>end</var>,
+according to <code>treesit-range-settings</code>.  If omitted, <var>beg</var>
+defaults to the beginning of the buffer, and <var>end</var> defaults to the
+end of the buffer.
+</p>
+<p>For example, fontification functions use this function before querying
+for nodes in a region.
+</p></dd></dl>
+
+<dl class="def">
+<dt id="index-treesit_002dlanguage_002dat"><span class="category">Function: </span><span><strong>treesit-language-at</strong> <em>pos</em><a href='#index-treesit_002dlanguage_002dat' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function returns the language of the text at buffer position
+<var>pos</var>.  Under the hood it calls
+<code>treesit-language-at-point-function</code> and returns its return
+value.  If <code>treesit-language-at-point-function</code> is <code>nil</code>,
+this function returns the language of the first parser in the returned
+value of <code>treesit-parser-list</code>.  If there is no parser in the
+buffer, it returns <code>nil</code>.
+</p></dd></dl>
+
+<span id="Supporting-multiple-languages-in-major-modes"></span><h3 class="heading">Supporting multiple languages in major modes</h3>
+
+<span id="index-host-language_002c-tree_002dsitter"></span>
+<span id="index-tree_002dsitter-host-and-embedded-languages"></span>
+<span id="index-embedded-language_002c-tree_002dsitter"></span>
+<p>Normally, in a set of languages that can be mixed together, there is a
+<em>host language</em> and one or more <em>embedded languages</em>.  A Lisp
+program usually first parses the whole document with the host
+language&rsquo;s parser, retrieves some information, sets ranges for the
+embedded languages with that information, and then parses the embedded
+languages.
+</p>
+<p>Take a buffer containing <acronym>HTML</acronym>, <acronym>CSS</acronym> and JavaScript
+as an example.  A Lisp program will first parse the whole buffer with
+an <acronym>HTML</acronym> parser, then query the parser for
+<code>style_element</code> and <code>script_element</code> nodes, which
+correspond to <acronym>CSS</acronym> and JavaScript text, respectively.  Then
+it sets the range of the <acronym>CSS</acronym> and JavaScript parser to the
+ranges in which their corresponding nodes span.
+</p>
+<p>Given a simple <acronym>HTML</acronym> document:
 </p>
 <div class="example">
 <pre class="example">&lt;html&gt;
@@ -225,8 +219,8 @@ languages.
 &lt;/html&gt;
 </pre></div>
 
-<p>We first parse with <acronym>HTML</acronym>, then set ranges for <acronym>CSS</acronym>
-and JavaScript:
+<p>a Lisp program will first parse with a <acronym>HTML</acronym> parser, then set
+ranges for <acronym>CSS</acronym> and JavaScript parsers:
 </p>
 <div class="example">
 <pre class="example">;; Create parsers.
@@ -251,10 +245,76 @@ and JavaScript:
 (treesit-parser-set-included-ranges js js-range)
 </pre></div>
 
-<p>We use a query pattern <code><span class="nolinebreak">(style_element</span>&nbsp;<span class="nolinebreak">(raw_text)</span>&nbsp;@capture)</code><!-- /@w -->
-to find <acronym>CSS</acronym> nodes in the <acronym>HTML</acronym> parse tree.  For how
-to write query patterns, see <a href="Pattern-Matching.html">Pattern Matching Tree-sitter Nodes</a>.
+<p>Emacs automates this process in <code>treesit-update-ranges</code>.  A
+multi-language major mode should set <code>treesit-range-settings</code> so
+that <code>treesit-update-ranges</code> knows how to perform this process
+automatically.  Major modes should use the helper function
+<code>treesit-range-rules</code> to generate a value that can be assigned to
+<code>treesit-range-settings</code>.  The settings in the following example
+directly translate into operations shown above.
 </p>
+<div class="example">
+<pre class="example">(setq-local treesit-range-settings
+            (treesit-range-rules
+             :embed 'javascript
+             :host 'html
+             '((script_element (raw_text) @capture))
+</pre><pre class="example">
+
+</pre><pre class="example">             :embed 'css
+             :host 'html
+             '((style_element (raw_text) @capture))))
+</pre></div>
+
+<dl class="def">
+<dt id="index-treesit_002drange_002drules"><span class="category">Function: </span><span><strong>treesit-range-rules</strong> <em>&amp;rest query-specs</em><a href='#index-treesit_002drange_002drules' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function is used to set <var>treesit-range-settings</var>.  It
+takes care of compiling queries and other post-processing, and outputs
+a value that <var>treesit-range-settings</var> can have.
+</p>
+<p>It takes a series of <var>query-spec</var>s, where each <var>query-spec</var> is
+a <var>query</var> preceded by zero or more pairs of <var>keyword</var> and
+<var>value</var>.  Each <var>query</var> is a tree-sitter query in either the
+string, s-expression or compiled form, or a function.
+</p>
+<p>If <var>query</var> is a tree-sitter query, it should be preceeded by two
+<var>:keyword</var> <var>value</var> pairs, where the <code>:embed</code> keyword
+specifies the embedded language, and the <code>:host</code> keyword
+specified the host language.
+</p>
+<p><code>treesit-update-ranges</code> uses <var>query</var> to figure out how to set
+the ranges for parsers for the embedded language.  It queries
+<var>query</var> in a host language parser, computes the ranges in which
+the captured nodes span, and applies these ranges to embedded
+language parsers.
+</p>
+<p>If <var>query</var> is a function, it doesn&rsquo;t need any <var>:keyword</var> and
+<var>value</var> pair.  It should be a function that takes 2 arguments,
+<var>start</var> and <var>end</var>, and sets the ranges for parsers in the
+current buffer in the region between <var>start</var> and <var>end</var>.  It is
+fine for this function to set ranges in a larger region that
+encompasses the region between <var>start</var> and <var>end</var>.
+</p></dd></dl>
+
+<dl class="def">
+<dt id="index-treesit_002drange_002dsettings"><span class="category">Variable: </span><span><strong>treesit-range-settings</strong><a href='#index-treesit_002drange_002dsettings' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This variable helps <code>treesit-update-ranges</code> in updating the
+ranges for parsers in the buffer.  It is a list of <var>setting</var>s
+where the exact format of a <var>setting</var> is considered internal.  You
+should use <code>treesit-range-rules</code> to generate a value that this
+variable can have.
+</p>
+</dd></dl>
+
+
+<dl class="def">
+<dt id="index-treesit_002dlanguage_002dat_002dpoint_002dfunction"><span class="category">Variable: </span><span><strong>treesit-language-at-point-function</strong><a href='#index-treesit_002dlanguage_002dat_002dpoint_002dfunction' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This variable&rsquo;s value should be a function that takes a single
+argument, <var>pos</var>, which is a buffer position, and returns the
+language of the buffer text at <var>pos</var>.  This variable is used by
+<code>treesit-language-at</code>.
+</p></dd></dl>
+
 </div>
 <hr>
 <div class="header">

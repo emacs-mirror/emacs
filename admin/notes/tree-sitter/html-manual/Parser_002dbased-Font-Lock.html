@@ -111,7 +111,7 @@ would be highlighted in <code>font-lock-keyword</code> face.
 <code>treesit-major-mode-setup</code>.
 </p>
 <dl class="def">
-<dt id="index-treesit_002dfont_002dlock_002drules"><span class="category">Function: </span><span><strong>treesit-font-lock-rules</strong> <em>:keyword value query...</em><a href='#index-treesit_002dfont_002dlock_002drules' class='copiable-anchor'> &para;</a></span></dt>
+<dt id="index-treesit_002dfont_002dlock_002drules"><span class="category">Function: </span><span><strong>treesit-font-lock-rules</strong> <em>&amp;rest query-specs</em><a href='#index-treesit_002dfont_002dlock_002drules' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function is used to set <var>treesit-font-lock-settings</var>.  It
 takes care of compiling queries and other post-processing, and outputs
 a value that <var>treesit-font-lock-settings</var> accepts.  Here&rsquo;s an
@@ -129,13 +129,18 @@ example:
  &quot;(script_element) @font-lock-builtin-face&quot;)
 </pre></div>
 
-<p>This function takes a list of text or s-exp queries.  Before each
-query, there are <var>:keyword</var>-<var>value</var> pairs that configure
-that query.  The <code>:lang</code> keyword sets the query&rsquo;s language and
-every query must specify the language.  The <code>:feature</code> keyword
-sets the feature name of the query.  Users can control which features
-are enabled with <code>font-lock-maximum-decoration</code> and
-<code>treesit-font-lock-feature-list</code> (see below).
+<p>This function takes a series of <var>query-spec</var>s, where each
+<var>query-spec</var> is a <var>query</var> preceded by multiple pairs of
+<var>:keyword</var> and <var>value</var>.  Each <var>query</var> is a tree-sitter
+query in either the string, s-expression or compiled form.
+</p>
+<p>For each <var>query</var>, the <var>:keyword</var> and <var>value</var> pairs add
+meta information to it.  The <code>:lang</code> keyword declares
+<var>query</var>&rsquo;s language.  The <code>:feature</code> keyword sets the feature
+name of <var>query</var>.  Users can control which features are enabled
+with <code>font-lock-maximum-decoration</code> and
+<code>treesit-font-lock-feature-list</code> (described below).  These two
+keywords are mandated.
 </p>
 <p>Other keywords are optional:
 </p>
@@ -148,7 +153,7 @@ are enabled with <code>font-lock-maximum-decoration</code> and
 <tr><td width="15%"></td><td width="15%"><code>keep</code></td><td width="60%">Fill-in regions without an existing face</td></tr>
 </table>
 
-<p>Lisp programs mark patterns in the query with capture names (names
+<p>Lisp programs mark patterns in <var>query</var> with capture names (names
 that starts with <code>@</code>), and tree-sitter will return matched nodes
 tagged with those same capture names.  For the purpose of
 fontification, capture names in <var>query</var> should be face names like
@@ -230,9 +235,10 @@ these common features.
 <dl class="def">
 <dt id="index-treesit_002dfont_002dlock_002dsettings"><span class="category">Variable: </span><span><strong>treesit-font-lock-settings</strong><a href='#index-treesit_002dfont_002dlock_002dsettings' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>A list of settings for tree-sitter based font lock.  The exact format
-of this variable is considered internal.  One should always use
+of each setting is considered internal.  One should always use
 <code>treesit-font-lock-rules</code> to set this variable.
-</p></dd></dl>
+</p>
+</dd></dl>
 
 <p>Multi-language major modes should provide range functions in
 <code>treesit-range-functions</code>, and Emacs will set the ranges

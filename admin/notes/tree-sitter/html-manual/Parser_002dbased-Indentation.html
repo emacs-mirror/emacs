@@ -106,7 +106,8 @@ the current line to <var>matcher</var>; if it returns non-<code>nil</code>, this
 rule is applicable.  Then Emacs passes the node to <var>anchor</var>, which
 returns a buffer position.  Emacs takes the column number of that
 position, adds <var>offset</var> to it, and the result is the indentation
-column for the current line.
+column for the current line.  <var>offset</var> can be an integer or a
+variable whose value is an integer.
 </p>
 <p>The <var>matcher</var> and <var>anchor</var> are functions, and Emacs provides
 convenient defaults for them.
@@ -117,8 +118,8 @@ arguments: <var>node</var>, <var>parent</var>, and <var>bol</var>.  The argument
 position of the first non-whitespace character after the beginning of
 the line.  The argument <var>node</var> is the largest (highest-in-tree)
 node that starts at that position; and <var>parent</var> is the parent of
-<var>node</var>.  However, when that position is on a whitespace or inside
-a multi-line string, no node that starts at that position, so
+<var>node</var>.  However, when that position is in a whitespace or inside
+a multi-line string, no node can start at that position, so
 <var>node</var> is <code>nil</code>.  In that case, <var>parent</var> would be the
 smallest node that spans that position.
 </p>
@@ -215,6 +216,12 @@ sibling of <var>node</var>.
 <dd><p>This anchor is a function that is called with 3 arguments: <var>node</var>,
 <var>parent</var>, and <var>bol</var>, and returns the first non-whitespace
 charater on the previous line.
+</p>
+</dd>
+<dt id='index-point_002dmin'><span><code>point-min</code><a href='#index-point_002dmin' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This anchor is a function is called with 3 arguments: <var>node</var>,
+<var>parent</var>, and <var>bol</var>, and returns the beginning of the buffer.
+This is useful as the beginning of the buffer is always at column 0.
 </p></dd>
 </dl>
 
