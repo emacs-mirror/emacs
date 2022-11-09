@@ -13522,7 +13522,7 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
 #ifdef HAVE_XKB
   int i;
   int found_meta_p = false;
-  uint vmodmask;
+  unsigned int vmodmask;
 #endif
 
   dpyinfo->meta_mod_mask = 0;
@@ -23079,7 +23079,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      char *copy_bufptr = copy_buffer;
 	      int copy_bufsiz = sizeof (copy_buffer);
 	      ptrdiff_t i;
-	      uint old_state;
+	      unsigned int old_state;
 	      struct xi_device_t *device, *source;
 
 	      coding = Qlatin_1;
@@ -23225,8 +23225,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XKB
 	      if (dpyinfo->xkb_desc)
 		{
-		  uint xkb_state = state;
-		  xkb_state &= ~(1 << 13 | 1 << 14);
+		  unsigned int xkb_state;
+
+		  xkb_state = state & ~(1 << 13 | 1 << 14);
 		  xkb_state |= xev->group.effective << 13;
 
 		  if (!XkbTranslateKeyCode (dpyinfo->xkb_desc, keycode,
