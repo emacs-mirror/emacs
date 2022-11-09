@@ -1742,6 +1742,199 @@ to the offending pattern and highlight the pattern."
                functions-in-source)
               "\n"))))
 
+;;; Shortdocs
+
+(defun treesit--generate-shortdoc-examples ()
+  "Generate examples for shortdoc."
+  (with-temp-buffer
+    (let (node parent)
+      (insert "int c = 0;")
+      (print (treesit-parser-create 'c))
+      (print (treesit-parser-list))
+      (goto-char (point-min))
+      (print (setq node (treesit-node-at (point))))
+      (print (setq parent (treesit-node-parent node)))
+      (print (treesit-node-children parent))
+      (print (treesit-node-next-sibling node))
+      (print (treesit-node-child-by-field-name parent "declarator"))
+      nil)))
+
+(define-short-documentation-group treesit
+
+
+  "Parsers"
+  (treesit-parser-create
+   :no-eval (treesit-parser-create)
+   :eg-result-string "#<treesit-parser for c>")
+  (treesit-parser-delete
+   :no-value (treesit-parser-delete parser))
+  (treesit-parser-list
+   :no-eval (treesit-parser-list)
+   :eg-result-string "(#<treesit-parser for c>)")
+  (treesit-parser-buffer
+   :no-eval (treesit-parser-buffer parser)
+   :eg-result-string "#<buffer xdisp.c>")
+  (treesit-parser-language
+   :no-eval (treesit-parser-language parser)
+   :eg-result c)
+
+
+  "Parser ranges"
+  (treesit-parser-set-included-ranges
+   :no-value (treesit-parser-set-included-ranges parser '((1 . 4) (5 . 8))))
+  (treesit-parser-included-ranges
+   :no-eval (treesit-parser-included-ranges parser)
+   :eg-result '((1 . 4) (5 . 8)))
+  (treesit-query-range
+   :no-eval (treesit-query-range node '((script_element) @cap))
+   :eg-result-string '((1 . 4) (5 . 8)))
+
+
+  "Retrieving a node"
+  (treesit-node-at
+   :no-eval (treesit-node-at (point))
+   :eg-result-string "#<treesit-node (identifier) in 179-180>")
+  (treesit-node-on
+   :no-eval (treesit-node-on 18 28)
+   :eg-result-string "#<treesit-node (compound_statement) in 143-290>")
+  (treesit-buffer-root-node
+   :no-eval (treesit-buffer-root-node)
+   :eg-result-string "#<treesit-node (translation_unit) in 1-4830>")
+  (treesit-parser-root-node
+   :no-eval (treesit-parser-root-node parser)
+   :eg-result-string "#<treesit-node (translation_unit) in 1-4830>")
+
+
+  "Retrieving a node from another node"
+  (treesit-node-parent
+   :no-eval (treesit-node-parent node)
+   :eg-result-string "#<treesit-node (declaration) in 1-11>")
+  (treesit-node-child
+   :no-eval (treesit-node-child node 0)
+   :eg-result-string "#<treesit-node (primitive_type) in 1-4>")
+  (treesit-node-children
+   :no-eval (treesit-node-children node)
+   :eg-result-string "(#<treesit-node (primitive_type) in 1-4> #<treesit-node (init_declarator) in 5-10> #<treesit-node \";\" in 10-11>)")
+  (treesit-node-next-sibling
+   :no-eval (treesit-node-next-sibling node)
+   :eg-result-string "#<treesit-node (init_declarator) in 5-10>")
+  (treesit-node-prev-sibling
+   :no-eval (treesit-node-prev-sibling node)
+   :eg-result-string "#<treesit-node (primitive_type) in 1-4>")
+  (treesit-node-child-by-field-name
+   :no-eval (treesit-node-child-by-field-name node "declarator")
+   :eg-result-string "#<treesit-node (init_declarator) in 5-10>")
+
+
+  (treesit-first-child-for-pos
+   :no-eval (treesit-first-child-for-pos node 1)
+   :eg-result-string "#<treesit-node (primitive_type) in 1-4>")
+  (treesit-node-descendant-for-range
+   :no-eval (treesit-node-descendant-for-range node 2 3)
+   :eg-result-string "#<treesit-node (primitive_type) in 1-4>")
+
+
+  "Searching for node"
+  (treesit-search-subtree
+   :no-eval (treesit-search-subtree node "function_definition")
+   :eg-result-string "#<treesit-node (function_definition) in 57-146>")
+  (treesit-search-forward
+   :no-eval (treesit-search-forward node "function_definition")
+   :eg-result-string "#<treesit-node (function_definition) in 57-146>")
+  (treesit-search-forward-goto
+   :no-eval (treesit-search-forward-goto node "function_definition")
+   :eg-result-string "#<treesit-node (function_definition) in 57-146>")
+  (treesit-induce-sparse-tree
+   :no-eval (treesit-induce-sparse-tree node "function_definition")
+   :eg-result-string "(nil (#<treesit-node (function_definition) in 57-146>) (#<treesit-node (function_definition) in 259-296>) (#<treesit-node (function_definition) in 303-659>))")
+  (treesit-filter-child
+   :no-eval (treesit-filter-child node (lambda (n) (equal (treesit-node-type) "identifier")))
+   :eg-result-string "(#<treesit-node (identifier) in 195-196>)")
+  (treesit-parent-until
+   :no-eval (treesit-parent-until node (lambda (p) (eq (treesit-node-start p) (point))))
+   :eg-result-string "#<treesit-node (declaration) in 1-11>")
+  (treesit-parent-while
+   :no-eval (treesit-parent-while node (lambda (p) (eq (treesit-node-start p) (point))))
+   :eg-result-string "#<treesit-node (declaration) in 1-11>")
+  (treesit-node-top-level
+   :no-eval (treesit-node-top-level node)
+   :eg-result-string "#<treesit-node (declaration) in 1-11>")
+
+
+  "Retrieving node information"
+  (treesit-node-text
+   :no-eval (treesit-node-text node)
+   :eg-result "int")
+  (treesit-node-start
+   :no-eval (treesit-node-start node)
+   :eg-result 1)
+  (treesit-node-end
+   :no-eval (treesit-node-end node)
+   :eg-result 10)
+  (treesit-node-type
+   :no-eval (treesit-node-type node)
+   :eg-result "function_definition")
+  (treesit-node-field-name
+   :no-eval (treesit-node-field-name node)
+   :eg-result "body")
+
+
+  (treesit-node-parser
+   :no-eval (treesit-node-parser node)
+   :eg-result-string "#<treesit-parser for c>")
+  (treesit-node-language
+   :no-eval (treesit-node-language node)
+   :eg-result c)
+  (treesit-node-buffer
+   :no-eval (treesit-node-buffer node)
+   :eg-result-string "#<buffer xdisp.c>")
+
+
+  (treesit-node-index
+   :no-eval (treesit-node-index node)
+   :eg-result 0)
+  (treesit-node-string
+   :no-eval (treesit-node-string node)
+   :eg-result-string "(init_declarator declarator: (identifier) value: (number_literal))")
+  (treesit-node-check
+   :no-eval (treesit-node-check node 'named)
+   :eg-result t)
+
+
+  (treesit-field-name-for-child
+   :no-eval (treesit-field-name-for-child node)
+   :eg-result "body")
+  (treesit-child-count
+   :no-eval (treesit-child-count node)
+   :eg-result 3)
+
+
+  "Pattern matching"
+  (treesit-query-capture
+   :no-eval (treesit-query-capture node '((identifier) @id "return" @ret))
+   :eg-result-string "((id . #<treesit-node (identifier) in 195-196>) (ret . #<treesit-node "return" in 338-344>))")
+  (treesit-query-compile
+   :no-eval (treesit-query-compile 'c '((identifier) @id "return" @ret))
+   :eg-result-string "#<treesit-compiled-query>")
+  (treesit-query-language
+   :no-eval (treesit-query-language compiled-query)
+   :eg-result c)
+  (treesit-query-expand
+   :eval (treesit-query-expand '((identifier) @id "return" @ret)))
+  (treesit-pattern-expand
+   :eval (treesit-pattern-expand :anchor)
+   :eval (treesit-pattern-expand '(identifier))
+   :eval (treesit-pattern-expand :equal))
+
+
+  "Parsing a string"
+  (treesit-parse-string
+   :no-eval (treesit-parse-string "int c = 0;" 'c)
+   :eg-result-string "#<treesit-node (translation_unit) in 1-11>")
+  (treesit-query-string
+   :no-eval (treesit-query-string "int c = 0;" '((identifier) @id) 'c)
+   :eg-result-string "((id . #<treesit-node (identifier) in 5-6>))"))
+
 (provide 'treesit)
 
 ;;; treesit.el ends here
