@@ -650,10 +650,9 @@ is non-@code{nil}, it looks for smallest named child.
 This function traverses the subtree of @var{node} (including
 @var{node} itself), looking for a node for which @var{predicate}
 returns non-@code{nil}.  @var{predicate} is a regexp that is matched
-(case-insensitively) against each node's type, or a predicate function
-that takes a node and returns non-@code{nil} if the node matches.  The
-function returns the first node that matches, or @code{nil} if none
-does.
+against each node's type, or a predicate function that takes a node
+and returns non-@code{nil} if the node matches.  The function returns
+the first node that matches, or @code{nil} if none does.
 
 By default, this function only traverses named nodes, but if @var{all}
 is non-@code{nil}, it traverses all the nodes.  If @var{backward} is
@@ -666,9 +665,9 @@ down the tree.
 @defun treesit-search-forward start predicate &optional backward all
 Like @code{treesit-search-subtree}, this function also traverses the
 parse tree and matches each node with @var{predicate} (except for
-@var{start}), where @var{predicate} can be a (case-insensitive) regexp
-or a function.  For a tree like the below where @var{start} is marked
-S, this function traverses as numbered from 1 to 12:
+@var{start}), where @var{predicate} can be a regexp or a function.
+For a tree like the below where @var{start} is marked S, this function
+traverses as numbered from 1 to 12:
 
 @example
 @group
@@ -723,8 +722,8 @@ This function creates a sparse tree from @var{root}'s subtree.
 It takes the subtree under @var{root}, and combs it so only the nodes
 that match @var{predicate} are left.  Like previous functions, the
 @var{predicate} can be a regexp string that matches against each
-node's type case-insensitively, or a function that takes a node and
-return non-@code{nil} if it matches.
+node's type, or a function that takes a node and return non-@code{nil}
+if it matches.
 
 For example, for a subtree on the left that consist of both numbers
 and letters, if @var{predicate} is ``letter only'', the returned tree

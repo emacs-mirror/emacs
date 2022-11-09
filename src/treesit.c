@@ -2476,7 +2476,7 @@ treesit_traverse_match_predicate (TSNode node, Lisp_Object pred,
   if (STRINGP (pred))
     {
       const char *type = ts_node_type (node);
-      return fast_c_string_match_ignore_case (pred, type, strlen (type)) >= 0;
+      return fast_c_string_match (pred, type, strlen (type)) >= 0;
     }
   else
     {
@@ -2594,8 +2594,7 @@ DEFUN ("treesit-search-subtree",
 
 Traverse the subtree of NODE, and match PREDICATE with each node along
 the way.  PREDICATE is a regexp string that matches against each
-node's type case-insensitively, or a function that takes a node and
-returns nil/non-nil.
+node's type, or a function that takes a node and returns nil/non-nil.
 
 By default, only traverse named nodes, but if ALL is non-nil, traverse
 all nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
@@ -2639,8 +2638,8 @@ DEFUN ("treesit-search-forward",
 
 Start traversing the tree from node START, and match PREDICATE with
 each node (except START itself) along the way.  PREDICATE is a regexp
-string that matches against each node's type case-insensitively, or a
-function that takes a node and returns non-nil if it matches.
+string that matches against each node's type, or a function that takes
+a node and returns non-nil if it matches.
 
 By default, only search for named nodes, but if ALL is non-nil, search
 for all nodes.  If BACKWARD is non-nil, search backwards.
@@ -2737,8 +2736,7 @@ DEFUN ("treesit-induce-sparse-tree",
 
 This takes the subtree under ROOT, and combs it so only the nodes
 that match PREDICATE are left, like picking out grapes on the vine.
-PREDICATE is a regexp string that matches against each node's type
-case-insensitively.
+PREDICATE is a regexp string that matches against each node's type.
 
 For a subtree on the left that consist of both numbers and letters, if
 PREDICATE is "is letter", the returned tree is the one on the right.
