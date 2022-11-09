@@ -6599,6 +6599,44 @@ pgtk_selection_event (GtkWidget *widget, GdkEvent *event,
   return FALSE;
 }
 
+/* Display a warning message if the PGTK port is being used under X;
+   that is not supported.  */
+
+static void
+pgtk_display_x_warning (GdkDisplay *display)
+{
+  GtkWidget *dialog_widget, *label, *content_area;
+  GtkDialog *dialog;
+  GtkWindow *window;
+  GdkScreen *screen;
+
+  /* Do this instead of GDK_IS_X11_DISPLAY because the GDK X header
+     pulls in Xlib, which conflicts with definitions in pgtkgui.h.  */
+  if (strcmp (G_OBJECT_TYPE_NAME (display),
+	      "GdkX11Display"))
+    return;
+
+  dialog_widget = gtk_dialog_new ();
+  dialog = GTK_DIALOG (dialog_widget);
+  window = GTK_WINDOW (dialog_widget);
+  screen = gdk_display_get_default_screen (display);
+  content_area = gtk_dialog_get_content_area (dialog);
+
+  gtk_window_set_title (window, "Warning");
+  gtk_window_set_screen (window, screen);
+
+  label = gtk_label_new ("You are trying to run Emacs configured with"
+			  " the \"pure-GTK\" interface under the X Window"
+			  " System.  That configuration is unsupported and"
+			  " will lead to sporadic crashes during transfer of"
+			  " large selection data.  It will also lead to"
+			  " various problems with keyboard input.");
+  gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+  gtk_container_add (GTK_CONTAINER (content_area), label);
+  gtk_widget_show (label);
+  gtk_widget_show (dialog_widget);
+}
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -6702,6 +6740,9 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
       return 0;
     }
 
+  /* If the PGTK port is being used under X, complain very loudly, as
+     that isn't supported.  */
+  pgtk_display_x_warning (dpy);
 
   dpyinfo = xzalloc (sizeof *dpyinfo);
   pgtk_initialize_display_info (dpyinfo);
