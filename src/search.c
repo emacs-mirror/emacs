@@ -496,19 +496,27 @@ fast_string_match_internal (Lisp_Object regexp, Lisp_Object string,
   return val;
 }
 
-/* Match REGEXP against STRING, searching all of STRING ignoring case,
-   and return the index of the match, or negative on failure.
-   This does not clobber the match data.
+/* Match REGEXP against STRING, searching all of STRING and return the
+   index of the match, or negative on failure.  This does not clobber
+   the match data.  Table is a canonicalize table for ignoring case,
+   or nil for none.
+
    We assume that STRING contains single-byte characters.  */
 
 ptrdiff_t
-fast_c_string_match_ignore_case (Lisp_Object regexp,
-				 const char *string, ptrdiff_t len)
+fast_c_string_match_internal (Lisp_Object regexp,
+			      const char *string, ptrdiff_t len,
+			      Lisp_Object table)
 {
+  /* FIXME: This is expensive and not obviously correct when it makes
+     a difference. I.e., no longer "fast", and may hide bugs.
+     Something should be done about this.  */
   regexp = string_make_unibyte (regexp);
+  /* Record specpdl index because freeze_pattern pushes an
+     unwind-protect on the specpdl.  */
   specpdl_ref count = SPECPDL_INDEX ();
   struct regexp_cache *cache_entry
-    = compile_pattern (regexp, 0, Vascii_canon_table, 0, 0);
+    = compile_pattern (regexp, 0, table, 0, 0);
   freeze_pattern (cache_entry);
   re_match_object = Qt;
   ptrdiff_t val = re_search (&cache_entry->buf, string, len, 0, len, 0);
