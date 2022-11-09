@@ -1883,7 +1883,8 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   "Show the contents of stash NAME."
   (interactive (list (vc-git-stash-read "Show stash: ")))
   (vc-setup-buffer "*vc-git-stash*")
-  (vc-git-command "*vc-git-stash*" 'async nil "stash" "show" "-p" name)
+  (vc-git-command "*vc-git-stash*" 'async nil
+                  "stash" "show" "--color=never" "-p" name)
   (set-buffer "*vc-git-stash*")
   (setq buffer-read-only t)
   (diff-mode)
