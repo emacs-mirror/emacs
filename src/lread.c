@@ -5620,7 +5620,8 @@ from the file, and matches them against this regular expression.
 When the regular expression matches, the file is considered to be safe
 to load.  */);
   Vbytecomp_version_regexp
-    = build_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
+    = build_pure_c_string
+        ("^;;;.\\(?:in Emacs version\\|bytecomp version FSF\\)");
 
   DEFSYM (Qlexical_binding, "lexical-binding");
   DEFVAR_LISP ("lexical-binding", Vlexical_binding,
