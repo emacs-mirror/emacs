@@ -564,19 +564,22 @@ installed package."
   ;;
   ;; If there is a better way to do this, it should be done.
   (letrec ((pkg-dir (package-desc-dir pkg-desc))
-           (empty (make-symbol empty))
-           (args (list empty empty empty))
+           (empty (make-symbol "empty"))
+           (args (list empty empty empty empty))
            (vc-filter-command-function
             (lambda (command file-or-list flags)
               (setf (nth 0 args) command
                     (nth 1 args) file-or-list
-                    (nth 2 args) flags)
+                    (nth 2 args) flags
+                    (nth 3 args) default-directory)
               (list command file-or-list flags)))
            (post-upgrade
             (lambda (command file-or-list flags)
               (when (and (memq (nth 0 args) (list command empty))
                          (memq (nth 1 args) (list file-or-list empty))
-                         (memq (nth 2 args) (list flags empty)))
+                         (memq (nth 2 args) (list flags empty))
+                         (or (eq (nth 3 args) empty)
+                             (file-equal-p (nth 3 args) default-directory)))
                 (with-demoted-errors "Failed to activate: %S"
                   (package-vc--unpack-1 pkg-desc pkg-dir))
                 (remove-hook 'vc-post-command-functions post-upgrade)))))
