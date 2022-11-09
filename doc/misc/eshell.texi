@@ -349,9 +349,9 @@ alias (@pxref{Aliases}).  Example:
 @example
 ~ $ which sudo
 eshell/sudo is a compiled Lisp function in `em-tramp.el'.
-~ $ alias sudo '*sudo $*'
+~ $ alias sudo '*sudo $@@*'
 ~ $ which sudo
-sudo is an alias, defined as "*sudo $*"
+sudo is an alias, defined as "*sudo $@@*"
 @end example
 
 @vindex eshell-prefer-lisp-functions
@@ -475,7 +475,7 @@ Manual}.
 
 If @code{eshell-plain-diff-behavior} is non-@code{nil}, then this
 command does not use Emacs's internal @code{diff}.  This is the same
-as using @samp{alias diff '*diff $*'}.
+as using @samp{alias diff '*diff $@@*'}.
 
 @item dirname
 @cmindex dirname
@@ -545,9 +545,9 @@ but use Emacs's internal @code{grep} instead.
 
 If @code{eshell-plain-grep-behavior} is non-@code{nil}, then these
 commands do not use Emacs's internal @code{grep}.  This is the same as
-using @samp{alias grep '*grep $*'}, though this setting applies to all
-of the built-in commands for which you would need to create a separate
-alias.
+using @samp{alias grep '*grep $@@*'}, though this setting applies to
+all of the built-in commands for which you would need to create a
+separate alias.
 
 @item history
 @cmindex history
@@ -603,7 +603,7 @@ Alias to Emacs's @code{locate} function, which simply runs the external
 
 If @code{eshell-plain-locate-behavior} is non-@code{nil}, then Emacs's
 internal @code{locate} is not used.  This is the same as using
-@samp{alias locate '*locate $*'}.
+@samp{alias locate '*locate $@@*'}.
 
 @item ls
 @cmindex ls
@@ -1027,24 +1027,46 @@ necessary.  Its value is @code{@var{emacs-version},eshell}.
 @node Aliases
 @section Aliases
 
-@vindex $*
-@findex eshell-expand-history-references
+@findex eshell-read-aliases-list
 Aliases are commands that expand to a longer input line.  For example,
-@command{ll} is a common alias for @code{ls -l}, and would be defined
-with the command invocation @kbd{alias ll 'ls -l $*'}; with this defined,
-running @samp{ll foo} in Eshell will actually run @samp{ls -l foo}.
-Aliases defined (or deleted) by the @command{alias} command are
-automatically written to the file named by @code{eshell-aliases-file},
-which you can also edit directly.  After doing so, use @w{@kbd{M-x
-eshell-read-aliases-list}} to load the edited aliases.
+@command{ll} is a common alias for @code{ls -l}.  To define this alias
+in Eshell, you can use the command invocation @kbd{alias ll 'ls -l
+$@@*'}; with this defined, running @samp{ll foo} in Eshell will
+actually run @samp{ls -l foo}.  Aliases defined (or deleted) by the
+@command{alias} command are automatically written to the file named by
+@code{eshell-aliases-file}, which you can also edit directly.  After
+doing so, use @w{@kbd{M-x eshell-read-aliases-list}} to load the
+edited aliases.
 
-@vindex $1, $2, @dots{}
 Note that unlike aliases in Bash, arguments must be handled
-explicitly.  Typically the alias definition would end in @samp{$*} to
-pass all arguments along.  More selective use of arguments via
-@samp{$1}, @samp{$2}, etc., is also possible.  For example,
+explicitly.  Within aliases, you can use the special variables
+@samp{$*}, @samp{$0}, @samp{$1}, @samp{$2}, etc. to refer to the
+arguments passed to the alias.
+
+@table @code
+
+@vindex $*
+@item $*
+This expands to the list of arguments passed to the alias.  For
+example, if you run @code{my-alias 1 2 3}, then @samp{$*} would be the
+list @code{(1 2 3)}.  Note that since this variable is a list, using
+@samp{$*} in an alias will pass this list as a single argument to the
+aliased command.  Therefore, when defining an alias, you should
+usually use @samp{$@@*} to pass all arguments along, splicing them
+into your argument list (@pxref{Dollars Expansion}).
+
+@vindex $0
+@item $0
+This expands to the name of the alias currently being executed.
+
+@vindex $1, $2, @dots{}, $9
+@item $1, $2, @dots{}, $9
+These variables expand to the nth argument (starting at 1) passed to
+the alias.  This lets you selectively use an alias's arguments, so
 @kbd{alias mcd 'mkdir $1 && cd $1'} would cause @kbd{mcd foo} to
 create and switch to a directory called @samp{foo}.
+
+@end table
 
 @node History
 @section History
@@ -1307,12 +1329,36 @@ to split the string.  @var{regexp} can be any form other than a
 number.  For example, @samp{$@var{var}[: 0]} will return the first
 element of a colon-delimited string.
 
+@cindex length operator, in variable expansion
 @item $#@var{expr}
-Expands to the length of the result of @var{expr}, an expression in
-one of the above forms.  For example, @samp{$#@var{var}} returns the
-length of the variable @var{var} and @samp{$#@var{var}[0]} returns the
-length of the first element of @var{var}.  Again, signals an error if
-the result of @var{expr} is not a string or a sequence.
+This is the @dfn{length operator}.  It expands to the length of the
+result of @var{expr}, an expression in one of the above forms.  For
+example, @samp{$#@var{var}} returns the length of the variable
+@var{var} and @samp{$#@var{var}[0]} returns the length of the first
+element of @var{var}.  Again, signals an error if the result of
+@var{expr} is not a string or a sequence.
+
+@cindex splice operator, in variable expansion
+@item $@@@var{expr}
+This is the @dfn{splice operator}.  It ``splices'' the elements of
+@var{expr} (an expression of one of the above forms) into the
+resulting list of arguments, much like the @samp{,@@} marker in Emacs
+Lisp (@pxref{Backquote, , , elisp, The Emacs Lisp Reference Manual}).
+The elements of @var{expr} become arguments at the same level as the
+other arguments around it.  For example, if @var{numbers} is the list
+@code{(1 2 3)}, then:
+
+@example
+@group
+~ $ echo 0 $numbers
+(0
+ (1 2 3))
+@end group
+@group
+~ $ echo 0 $@@numbers
+(0 1 2 3)
+@end group
+@end example
 
 @end table
 
@@ -2031,7 +2077,7 @@ Allow for a Bash-compatible syntax, such as:
 
 @example
 alias arg=blah
-function arg () @{ blah $* @}
+function arg () @{ blah $@@* @}
 @end example
 
 @item Pcomplete sometimes gets stuck

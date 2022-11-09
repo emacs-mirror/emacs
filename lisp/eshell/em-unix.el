@@ -786,10 +786,14 @@ external command."
 
 (defun eshell-complete-host-reference ()
   "If there is a host reference, complete it."
-  (let ((arg (pcomplete-actual-arg))
-	index)
-    (when (setq index (string-match "@[a-z.]*\\'" arg))
-      (setq pcomplete-stub (substring arg (1+ index))
+  (let ((arg (pcomplete-actual-arg)))
+    (when (string-match
+           (rx ;; Match an "@", but not immediately following a "$".
+               (or string-start (not "$")) "@"
+               (group (* (any "a-z.")))
+               string-end)
+           arg)
+      (setq pcomplete-stub (substring arg (match-beginning 1))
 	    pcomplete-last-completion-raw t)
       (throw 'pcomplete-completions (pcomplete-read-host-names)))))
 

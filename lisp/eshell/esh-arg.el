@@ -238,13 +238,53 @@ convert the result to a number as well."
         (eshell-convert-to-number result)
       result)))
 
+(defun eshell-concat-groups (quoted &rest args)
+  "Concatenate groups of arguments in ARGS and return the result.
+QUOTED is passed to `eshell-concat' (which see) and, if non-nil,
+allows values to be converted to numbers where appropriate.
+
+ARGS should be a list of lists of arguments, such as that
+produced by `eshell-prepare-slice'.  \"Adjacent\" values of
+consecutive arguments will be passed to `eshell-concat'.  For
+example, if ARGS is
+
+  ((list a) (list b) (list c d e) (list f g)),
+
+then the result will be:
+
+  ((eshell-concat QUOTED a b c)
+   d
+   (eshell-concat QUOTED e f)
+   g)."
+  (let (result current-arg)
+    (dolist (arg args)
+      (when arg
+        (push (car arg) current-arg)
+        (when (length> arg 1)
+          (push (apply #'eshell-concat quoted (nreverse current-arg))
+                result)
+          (dolist (inner (butlast (cdr arg)))
+            (push inner result))
+          (setq current-arg (list (car (last arg)))))))
+    (when current-arg
+      (push (apply #'eshell-concat quoted (nreverse current-arg))
+            result))
+    (nreverse result)))
+
 (defun eshell-resolve-current-argument ()
   "If there are pending modifications to be made, make them now."
   (when eshell-current-argument
     (when eshell-arg-listified
-      (setq eshell-current-argument
-            (append (list 'eshell-concat eshell-current-quoted)
-                    eshell-current-argument))
+      (if-let ((grouped-terms (eshell-prepare-splice
+                               eshell-current-argument)))
+          (setq eshell-current-argument
+                `(eshell-splice-args
+                  (eshell-concat-groups ,eshell-current-quoted
+                                        ,@grouped-terms)))
+        ;; If no terms are spliced, use a simpler command form.
+        (setq eshell-current-argument
+              (append (list 'eshell-concat eshell-current-quoted)
+                      eshell-current-argument)))
       (setq eshell-arg-listified nil))
     (while eshell-current-modifiers
       (setq eshell-current-argument
@@ -347,6 +387,10 @@ Point is left at the end of the arguments."
 (defsubst eshell-operator (&rest _args)
   "A stub function that generates an error if a floating operator is found."
   (error "Unhandled operator in input text"))
+
+(defsubst eshell-splice-args (&rest _args)
+  "A stub function that generates an error if a floating splice is found."
+  (error "Splice operator is not permitted in this context"))
 
 (defsubst eshell-looking-at-backslash-return (pos)
   "Test whether a backslash-return sequence occurs at POS."
@@ -499,6 +543,33 @@ If the form has no `type', the syntax is parsed as if `type' were
 		  (t
 		   (char-to-string (char-after)))))
 	 (goto-char end)))))))
+
+(defun eshell-prepare-splice (args)
+  "Prepare a list of ARGS for splicing, if any arg requested a splice.
+This looks for `eshell-splice-args' as the CAR of each argument,
+and if found, returns a grouped list like:
+
+  ((list arg-1) (list arg-2) spliced-arg-3 ...)
+
+This allows callers of this function to build the final spliced
+list by concatenating each element together, e.g. with (apply
+#'append grouped-list).
+
+If no argument requested a splice, return nil."
+  (let* ((splicep nil)
+         ;; Group each arg like ((list arg-1) (list arg-2) ...),
+         ;; splicing in `eshell-splice-args' args.  This lets us
+         ;; apply spliced args correctly elsewhere.
+         (grouped-args
+          (mapcar (lambda (i)
+                    (if (eq (car-safe i) 'eshell-splice-args)
+                        (progn
+                          (setq splicep t)
+                          (cadr i))
+                      `(list ,i)))
+                  args)))
+    (when splicep
+      grouped-args)))
 
 (provide 'esh-arg)
 ;;; esh-arg.el ends here

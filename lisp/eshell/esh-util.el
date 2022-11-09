@@ -362,9 +362,13 @@ Prepend remote identification of `default-directory', if any."
   "Convert each element of ARGS into a string value."
   (mapcar #'eshell-stringify args))
 
+(defsubst eshell-list-to-string (list)
+  "Convert LIST into a single string separated by spaces."
+  (mapconcat #'eshell-stringify list " "))
+
 (defsubst eshell-flatten-and-stringify (&rest args)
   "Flatten and stringify all of the ARGS into a single string."
-  (mapconcat #'eshell-stringify (flatten-tree args) " "))
+  (eshell-list-to-string (flatten-tree args)))
 
 (defsubst eshell-directory-files (regexp &optional directory)
   "Return a list of files in the given DIRECTORY matching REGEXP."

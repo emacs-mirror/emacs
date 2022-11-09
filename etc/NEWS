@@ -71,6 +71,16 @@ switches for shortlogs, such as the one produced by 'C-x v L'.
 You can now configure how to display the "*buffer-selection*" buffer
 using this new option.  (Or set 'display-buffer-alist' directly.)
 
+** Eshell
+
++++
+*** New splice operator for Eshell dollar expansions.
+Dollar expansions in Eshell now let you splice the elements of the
+expansion in-place using '$@expr'.  This makes it easier to fill lists
+of arguments into a command, such as when defining aliases.  For more
+information, see the "(eshell) Dollars Expansion" node in the Eshell
+manual.
+
 +++
 *** 'eshell-read-aliases-list' is now an interactive command.
 After manually editing 'eshell-aliases-file', you can use
