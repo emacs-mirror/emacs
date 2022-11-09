@@ -6052,7 +6052,7 @@ comment at the start of cc-engine.el for more info."
 ;; the like.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The approximate interval at which we cache the value of the brace stack.
-(defconst c-bs-interval 5000)
+(defconst c-bs-interval 2000)
 ;; The list of cached values of the brace stack.  Each value in the list is a
 ;; cons of the position it is valid for and the value of the stack as
 ;; described above.
