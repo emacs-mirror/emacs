@@ -2334,7 +2334,7 @@ with those specified by the selected window configuration."
    ((framep all-frames) (list all-frames))
    (t (list (selected-frame)))))
 
-(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames ignore-current-tab)
+(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames ignore-current-tab all-tabs)
   "Return the tab that owns the window whose buffer is BUFFER-OR-NAME.
 BUFFER-OR-NAME may be a buffer or a buffer name, and defaults to
 the current buffer.
@@ -2352,14 +2352,20 @@ selected frame and no others.
 
 When the optional argument IGNORE-CURRENT-TAB is non-nil,
 don't take into account the buffers in the currently selected tab.
-Otherwise, prefer buffers of the current tab."
+Otherwise, prefer buffers of the current tab.
+
+When the optional argument ALL-TABS is non-nil, return a list of all tabs
+that contain the buffer BUFFER-OR-NAME."
   (let ((buffer (if buffer-or-name
                     (get-buffer buffer-or-name)
-                  (current-buffer))))
+                  (current-buffer)))
+        buffer-tabs)
     (when (bufferp buffer)
-      (seq-some
+      (funcall
+       (if all-tabs #'seq-each #'seq-some)
        (lambda (frame)
-         (seq-some
+         (funcall
+          (if all-tabs #'seq-each #'seq-some)
           (lambda (tab)
             (when (if (eq (car tab) 'current-tab)
                       (get-buffer-window buffer frame)
@@ -2371,8 +2377,9 @@ Otherwise, prefer buffers of the current tab."
                        (memq buffer buffers)
                        ;; writable window-state
                        (member (buffer-name buffer) buffers))))
-              (append tab `((index . ,(tab-bar--tab-index tab nil frame))
-                            (frame . ,frame)))))
+              (push (append tab `((index . ,(tab-bar--tab-index tab nil frame))
+                                  (frame . ,frame)))
+                    buffer-tabs)))
           (let* ((tabs (funcall tab-bar-tabs-function frame))
                  (current-tab (tab-bar--current-tab-find tabs)))
             (setq tabs (remq current-tab tabs))
@@ -2381,7 +2388,8 @@ Otherwise, prefer buffers of the current tab."
                 tabs
               ;; Make sure current-tab is at the beginning of tabs.
               (cons current-tab tabs)))))
-       (tab-bar--reusable-frames all-frames)))))
+       (tab-bar--reusable-frames all-frames))
+      (if all-tabs (nreverse buffer-tabs) (car (last buffer-tabs))))))
 
 (defun display-buffer-in-tab (buffer alist)
   "Display BUFFER in a tab using display actions in ALIST.
