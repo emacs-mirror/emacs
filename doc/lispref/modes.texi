@@ -3951,17 +3951,17 @@ example:
 @end example
 
 This function takes a series of @var{query-spec}s, where each
-@var{query-spec} is a @var{query} preceded by multiple pairs of
-@var{:keyword} and @var{value}.  Each @var{query} is a tree-sitter
-query in either the string, s-expression or compiled form.
+@var{query-spec} is a @var{query} preceded by one or more
+@var{:keyword}/@var{value} pairs.  Each @var{query} is a
+tree-sitter query in either the string, s-expression or compiled form.
 
-For each @var{query}, the @var{:keyword} and @var{value} pairs add
-meta information to it.  The @code{:lang} keyword declares
-@var{query}'s language.  The @code{:feature} keyword sets the feature
-name of @var{query}.  Users can control which features are enabled
-with @code{font-lock-maximum-decoration} and
+For each @var{query}, the @var{:keyword}/@var{value} pairs that
+precede it add meta information to it.  The @code{:lang} keyword
+declares @var{query}'s language.  The @code{:feature} keyword sets the
+feature name of @var{query}.  Users can control which features are
+enabled with @code{font-lock-maximum-decoration} and
 @code{treesit-font-lock-feature-list} (described below).  These two
-keywords are mandated.
+keywords are mandatory.
 
 Other keywords are optional:
 
