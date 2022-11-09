@@ -33564,8 +33564,14 @@ coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
 bool
 cursor_in_mouse_face_p (struct window *w)
 {
-  int hpos = w->phys_cursor.hpos;
   int vpos = w->phys_cursor.vpos;
+
+  /* If the cursor is outside the matrix glyph rows, it cannot be
+     within the mouse face.  */
+  if (!(0 <= vpos && vpos < w->current_matrix->nrows))
+    return false;
+
+  int hpos = w->phys_cursor.hpos;
   struct glyph_row *row = MATRIX_ROW (w->current_matrix, vpos);
 
   /* When the window is hscrolled, cursor hpos can legitimately be out
