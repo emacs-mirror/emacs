@@ -980,8 +980,8 @@ In addition to function descriptions, the list can also have string
 elements, which are used to divide a documentation group into
 sections.
 
-@defun shortdoc-add-function shortdoc-add-function group section elem
-Lisp packages can add functions to groups with this command.  Each
+@defun shortdoc-add-function group section elem
+Lisp packages can add functions to groups with this function.  Each
 @var{elem} should be a function description, as described above.
 @var{group} is the function group, and @var{section} is what section
 in the function group to insert the function into.
