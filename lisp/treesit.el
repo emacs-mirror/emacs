@@ -340,15 +340,15 @@ See `treesit-query-capture' for QUERY."
        (treesit-parser-root-node parser)
        query))))
 
-(defun treesit-query-range (source query &optional beg end)
+(defun treesit-query-range (node query &optional beg end)
   "Query the current buffer and return ranges of captured nodes.
 
-QUERY, SOURCE, BEG, END are the same as in
-`treesit-query-in'.  This function returns a list
+QUERY, NODE, BEG, END are the same as in
+`treesit-query-capture'.  This function returns a list
 of (START . END), where START and END specifics the range of each
 captured node.  Capture names don't matter."
   (cl-loop for capture
-           in (treesit-query-capture source query beg end)
+           in (treesit-query-capture node query beg end)
            for node = (cdr capture)
            collect (cons (treesit-node-start node)
                          (treesit-node-end node))))
