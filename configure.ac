@@ -3217,7 +3217,11 @@ TREE_SITTER_OBJ=
 if test "${with_tree_sitter}" != "no"; then
    dnl Tree-sitter 0.20.2 added support to change the malloc it uses
    dnl at runtime.
-  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.20.2],
+   dnl
+   dnl Tree-sitter's Makefile has problems, until that's fixed,
+   dnl tree-sitter libraries will be versioned 0.6.3.  So for now
+   dnl require 0.0.
+  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.0],
     [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
   if test "${HAVE_TREE_SITTER}" = yes; then
     AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
