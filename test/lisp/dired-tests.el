@@ -288,16 +288,6 @@
             (should (cdr (dired-get-marked-files))))
         (when (buffer-live-p buf) (kill-buffer buf))))))
 
-(ert-deftest dired-test-bugXXXX ()
-  "Test for https://debbugs.gnu.org/XXXX ."
-  (dired (list (expand-file-name "src" source-directory)
-               "cygw32.c" "alloc.c" "w32xfns.c" "xdisp.c"))
-  (dired-hide-all)
-  (dired-hide-all)
-  (dired-next-line 1)
-  (should (equal 'dired-hide-details-detail
-                 (get-text-property (1+ (line-beginning-position)) 'invisible))))
-
 (ert-deftest dired-test-bug27899 ()
   "Test for https://debbugs.gnu.org/27899 ."
   :tags '(:unstable)
@@ -363,6 +353,17 @@
         ;; After revert, the point must be in 'subdir' line.
         (should (equal "subdir" (dired-get-filename 'local t)))))))
 
+
+(ert-deftest dired-test-bug59047 ()
+  "Test for https://debbugs.gnu.org/59047 ."
+  (dired (list (expand-file-name "src" source-directory)
+               "cygw32.c" "alloc.c" "w32xfns.c" "xdisp.c"))
+  (dired-hide-all)
+  (dired-hide-all)
+  (dired-next-line 1)
+  (should (equal 'dired-hide-details-detail
+                 (get-text-property
+                  (1+ (line-beginning-position)) 'invisible))))
 
 (defmacro dired-test-with-temp-dirs (just-empty-dirs &rest body)
   "Helper macro for Bug#27940 test."
