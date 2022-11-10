@@ -112,7 +112,8 @@ efficient than the original one, and should speed up all the
 operations that involve overlays, especially when there are lots of
 them in a buffer.  However, no changes in behavior of overlays should
 be visible on the Lisp or user level, with the exception of better
-performance.
+performance and the order of overlays returned by functions that don't
+promise any particular order.
 
 ---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
