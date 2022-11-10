@@ -500,7 +500,7 @@ PKG-SPEC is a package specification, a property list describing
 how to fetch and build the package.  See `package-vc--archive-spec-alist'
 for details.  The optional argument REV specifies a specific revision to
 checkout.  This overrides the `:branch' attribute in PKG-SPEC."
-  (pcase-let* (((map :url :lisp-dir) pkg-spec)
+  (pcase-let* (((map :lisp-dir) pkg-spec)
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))
                (pkg-dir (expand-file-name dirname package-user-dir)))
