@@ -298,7 +298,10 @@ CONTACT can be:
   the call is interactive, the function can ask the user for
   hints on finding the required programs, etc.  Otherwise, it
   should not ask the user for any input, and return nil or signal
-  an error if it can't produce a valid CONTACT.")
+  an error if it can't produce a valid CONTACT.  The helper
+  function `eglot-alternatives' (which see) can be used to
+  produce a function that offers more than one server for a given
+  MAJOR-MODE.")
 
 (defface eglot-highlight-symbol-face
   '((t (:inherit bold)))

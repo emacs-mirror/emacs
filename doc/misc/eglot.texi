@@ -264,8 +264,9 @@ Emacs major-mode @code{foo-mode}, you can add it to the alist like
 this:
 
 @lisp
-(add-to-list 'eglot-server-programs
-             '(foo-mode . ("fools" "--stdio")))
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(foo-mode . ("fools" "--stdio"))))
 @end lisp
 
 This will invoke the program @command{fools} with the command-line
@@ -276,6 +277,24 @@ executable file @file{fools} should be in one of the directories
 mentioned by the @code{exec-path} variable (@pxref{Subprocess
 Creation,,, elisp, GNU Emacs Lisp Reference Manual}), for Eglot to be
 able to find it.
+
+Sometimes, multiple servers are acceptable alternatives for handling a
+given major-mode.  In those cases, you may combine the helper function
+@code{eglot-alternatives} with the funcional form of
+@code{eglot-server-programs}.
+
+@lisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               `(foo-mode . ,(eglot-alternatives
+                               '(("fools" "--stdio")
+                                 ("phewls" "--fast"))))))
+@end lisp
+
+If you have @command{fools} and @command{phewls} installed, the
+function produced by @code{eglot-alternatives} will prompt for the
+server to use in @code{foo-mode} buffers.  Else it will use whichever
+is available.
 
 @node Starting Eglot
 @section Starting Eglot
@@ -1046,8 +1065,10 @@ Eglot via Elisp to adapt to it, by defining a suitable
 Here's an example:
 
 @lisp
+(require 'eglot)
+
 (add-to-list 'eglot-server-programs
-             '((c++ mode c-mode) . (eglot-cquery "cquery")))
+             '((c++-mode c-mode) . (eglot-cquery "cquery")))
 
 (defclass eglot-cquery (eglot-lsp-server) ()
   :documentation "A custom class for cquery's C/C++ langserver.")
