@@ -432,9 +432,9 @@ terminate_due_to_signal (int sig, int backtrace_limit)
           if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
 	    {
 	      /* Avoid abort in shut_down_emacs if we were interrupted
-		 by SIGINT in noninteractive usage, as in that case we
-		 don't care about the message stack.  */
-	      if (sig == SIGINT && noninteractive)
+		 in noninteractive usage, as in that case we don't
+		 care about the message stack.  */
+	      if (noninteractive)
 		clear_message_stack ();
 	      Fkill_emacs (make_fixnum (sig), Qnil);
 	    }
