@@ -355,10 +355,8 @@ asynchronously."
 FILE can be an Org file, indicated by its \".org\" extension,
 otherwise it's assumed to be an Info file."
   (let* ((pkg-name (package-desc-name pkg-desc))
-         (pkg-dir (package-desc-dir pkg-desc))
-         (output (file-name-concat
-                  (format "%s.info" pkg-name)
-                  pkg-dir)))
+         (default-directory (package-desc-dir pkg-desc))
+         (output (expand-file-name (format "%s.info" pkg-name))))
     (when (string-match-p "\\.org\\'" file)
       (require 'ox)
       (require 'ox-texinfo)
@@ -366,10 +364,18 @@ otherwise it's assumed to be an Info file."
         (insert-file-contents file)
         (setq file (make-temp-file "ox-texinfo-"))
         (org-export-to-file 'texinfo file)))
-    (call-process "makeinfo" nil nil nil
-                  "--no-split" file "-o" output)
-    (call-process "install-info" nil nil nil
-                  output pkg-dir)))
+    (with-current-buffer (get-buffer-create " *package-vc doc*")
+      (erase-buffer)
+      (cond
+       ((/= 0 (call-process "makeinfo" nil t nil
+                            "--no-split" file "-o" output))
+        (message "Failed to build manual %s, see buffer %S"
+                 file (buffer-name)))
+       ((/= 0 (call-process "install-info" nil t nil
+                            output (expand-file-name "dir")))
+        (message "Failed to install manual %s, see buffer %S"
+                 output (buffer-name)))
+       ((kill-buffer))))))
 
 (defun package-vc--unpack-1 (pkg-desc pkg-dir)
   "Prepare PKG-DESC that is already checked-out in PKG-DIR.
