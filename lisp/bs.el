@@ -823,10 +823,14 @@ Leave Buffer Selection Menu."
   "Visit the tags table in the buffer on this line.
 See `visit-tags-table'."
   (interactive)
-  (let ((file (buffer-file-name (bs--current-buffer))))
-    (if file
-	(visit-tags-table file)
-      (error "Specified buffer has no file"))))
+  (let* ((buf (bs--current-buffer))
+         (file (buffer-file-name buf)))
+    (cond
+      ((not file) (error "Specified buffer has no file"))
+      ((and buf (with-current-buffer buf
+                  (etags-verify-tags-table)))
+       (visit-tags-table file))
+      (t (error "Specified buffer is not a tags-table")))))
 
 (defun bs-toggle-current-to-show ()
   "Toggle status of showing flag for buffer in current line."
