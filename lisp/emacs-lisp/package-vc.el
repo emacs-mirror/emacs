@@ -536,7 +536,7 @@ source packages that have already been installed."
                            (and-let* ((extras (package-desc-extras (cadr pkg)))
                                       (url (alist-get :url extras))
                                       ((package-vc--guess-backend url)))))))
-                   nil (not allow-url)))
+                   (not allow-url)))
 
 (defun package-vc--read-package-desc (prompt &optional installed)
   "Query the user for a source package and return a description with PROMPT.
