@@ -1118,7 +1118,7 @@ be fontified."
    :feature 'escape-sequence
    :language 'python
    :override t
-   '((escape_sequence) @font-lock-constant-face))
+   '((escape_sequence) @font-lock-escape-face))
   "Tree-sitter font-lock settings.")
 
 
