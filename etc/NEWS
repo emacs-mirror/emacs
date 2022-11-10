@@ -1482,6 +1482,10 @@ This controls how statements like the following are indented:
 It is enabled by default, but requires that the external "shellcheck"
 command is installed.
 
+** CC Mode
+---
+*** C++ Mode now supports most of the new features in the C++20 standard.
+
 ** Cperl Mode
 
 ---
