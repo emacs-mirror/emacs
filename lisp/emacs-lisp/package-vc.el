@@ -139,9 +139,31 @@ is a symbol designating the package and SPEC is one of:
 
 - nil, if any package version can be installed;
 - a version string, if that specific revision is to be installed;
-- a property list of the form described in
-  `package-vc-archive-spec-alist', giving a package
-  specification.
+- a property list.  Valid key/value pairs are
+
+   `:url' (string)
+      The URL of the repository used to fetch the package source.
+
+   `:branch' (string)
+      If given, the name of the branch to checkout after cloning the directory.
+
+   `:lisp-dir' (string)
+      The repository-relative name of the directory to use for loading the Lisp
+      sources.  If not given, the value defaults to the root directory
+      of the repository.
+
+   `:main-file' (string)
+      The main file of the project, relevant to gather package metadata.
+      If not given, the assumed default is the package name with \".el\"
+      appended to it.
+
+   `:vc-backend' (symbol)
+      A symbol of the VC backend to use for cloning the package.  The
+      value ought to be a member of `vc-handled-backends'.  If omitted,
+      `vc-clone' will fall back onto the archive default or on
+      `package-vc-default-backend'.
+
+  All other values are ignored.
 
 This user option differs from `package-selected-packages' in that
 it is meant to be specified manually.  If you want to install all
@@ -168,32 +190,8 @@ package installation or revert the checked out revision."
 
 (defvar package-vc--archive-spec-alist nil
   "List of package specifications for each archive.
-The list maps each package name, as a string, to a plist.
-Valid keys and the corresponding value types are:
-
- `:url' (string)
-    The URL of the repository used to fetch the package source.
-
- `:branch' (string)
-    If given, the name of the branch to checkout after cloning the directory.
-
- `:lisp-dir' (string)
-    The repository-relative name of the directory to use for loading the Lisp
-    sources.  If not given, the value defaults to the root directory
-    of the repository.
-
- `:main-file' (string)
-    The main file of the project, relevant to gather package metadata.
-    If not given, the assumed default is the package name with \".el\"
-    appended to it.
-
- `:vc-backend' (symbol)
-    A symbol of the VC backend to use for cloning the package.  The
-    value ought to be a member of `vc-handled-backends'.  If omitted,
-    `vc-clone' will fall back onto the archive default or on
-    `package-vc-default-backend'.
-
-All other values are ignored.")
+The list maps each package name, as a string, to a plist as
+specified in `package-vc-selected-packages'.")
 
 (defvar package-vc--archive-data-alist nil
   "List of package specification metadata for archives.
