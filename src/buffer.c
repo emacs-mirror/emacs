@@ -3835,7 +3835,9 @@ and also contained within the specified region.
 
 Empty overlays are included in the result if they are located at BEG,
 between BEG and END, or at END provided END denotes the position at the
-end of the accessible part of the buffer.  */)
+end of the accessible part of the buffer.
+
+The resulting list of overlays is in an arbitrary unpredictable order.  */)
   (Lisp_Object beg, Lisp_Object end)
 {
   ptrdiff_t len, noverlays;
