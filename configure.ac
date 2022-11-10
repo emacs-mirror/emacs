@@ -3216,15 +3216,34 @@ TREE_SITTER_OBJ=
 
 if test "${with_tree_sitter}" != "no"; then
    dnl Tree-sitter 0.20.2 added support to change the malloc it uses
-   dnl at runtime.
-   dnl
-   dnl Tree-sitter's Makefile has problems, until that's fixed,
-   dnl tree-sitter libraries will be versioned 0.6.3.  So for now
-   dnl require 0.0.
-  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.0],
+   dnl at runtime, we need that feature.  However, tree-sitter's
+   dnl Makefile has problems, until that's fixed, all tree-sitter
+   dnl libraries distributed are versioned 0.6.3.  We try to
+   dnl accept a tree-sitter library that has incorrect version as long
+   dnl as it supports changing malloc.
+  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.20.2],
     [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
   if test "${HAVE_TREE_SITTER}" = yes; then
     AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
+  else
+    EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.6.3],
+      [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
+    if test "${HAVE_TREE_SITTER}" = yes; then
+      OLD_CFLAGS=$CFLAGS
+      OLD_LIBS=$LIBS
+      CFLAGS="$CFLAGS $TREE_SITTER_CFLAGS"
+      LIBS="$TREE_SITTER_LIBS $LIBS"
+      AC_CHECK_FUNCS([ts_set_allocator])
+      CFLAGS=$OLD_CFLAGS
+      LIBS=$OLD_LIBS
+      if test "$ac_cv_func_ts_set_allocator" == yes; then
+        AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
+      else
+        AC_MSG_ERROR([Tree-sitter library exists but its version is too old]);
+        TREE_SITTER_CFLAGS=
+        TREE_SITTER_LIBS=
+      fi
+    fi
   fi
 
   # Windows loads tree-sitter dynamically
