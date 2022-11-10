@@ -585,8 +585,8 @@ For use in `tab-line-tab-face-functions'."
 
 (defvar tab-line-cache-key-function #'tab-line-cache-key-default
   "Function that adds more cache keys.
-It has one argument with a list of tabs, and returns a list of cache keys.
-You can use `add-function' to add more cache keys.")
+It is called with one argument, a list of tabs, and should return a list
+of cache keys.  You can use `add-function' to add more cache keys.")
 
 (defun tab-line-format ()
   "Format for displaying the tab line of the selected window."
