@@ -587,8 +587,8 @@ to QUERY.  For example,
      \"(script_element) @font-lock-builtin-face\")
 
 For each QUERY, a :language keyword and a :feature keyword is
-required.  Each query's :feature is a symbol summarizing what does
-the query fontify.  It is used to allow users to enable/disable
+required.  Each query's :feature is a symbol summarizing what the
+query fontifies.  It is used to allow users to enable/disable
 certain features.  See `treesit-font-lock-kind-list' for more.
 Other keywords include:
 
