@@ -2128,7 +2128,7 @@ For example, the declaration and use of fields in a struct."
 
 (defface font-lock-bracket-face
   '((t :inherit font-lock-punctuation-face))
-  "Font Lock mode face used to highlight brackets."
+  "Font Lock mode face used to highlight brackets, braces, and parens."
   :group 'font-lock-faces
   :version "29.1")
 
