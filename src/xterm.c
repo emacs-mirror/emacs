@@ -5339,7 +5339,7 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
   struct xi_known_valuator *values, *tem;
   int actual_valuator_count, c;
   XIScrollClassInfo *info;
-  XIValuatorClassInfo *val_info;
+  XIValuatorClassInfo *valuator_info;
 #endif
 #ifdef HAVE_XINPUT2_2
   XITouchClassInfo *touch_info;
@@ -5450,12 +5450,23 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
 
 	case XIValuatorClass:
 	  {
-	    val_info = (XIValuatorClassInfo *) device->classes[c];
+	    valuator_info = (XIValuatorClassInfo *) device->classes[c];
 	    tem = SAFE_ALLOCA (sizeof *tem);
 
+	    /* Avoid restoring bogus values if some driver
+	       accidentally specifies relative values in scroll
+	       valuator classes how the input extension spec says they
+	       should be, but allow restoring values when a value is
+	       set, which is how the input extension actually
+	       behaves.  */
+
+	    if (valuator_info->value == 0.0
+		&& valuator_info->mode != XIModeAbsolute)
+	      continue;
+
 	    tem->next = values;
-	    tem->number = val_info->number;
-	    tem->current_value = val_info->value;
+	    tem->number = valuator_info->number;
+	    tem->current_value = valuator_info->value;
 
 	    values = tem;
 	    break;
@@ -13182,22 +13193,32 @@ xi_handle_new_classes (struct x_display_info *dpyinfo, struct xi_device_t *devic
 
   for (i = 0; i < num_classes; ++i)
     {
-      switch (classes[i]->type)
-	{
-	case XIValuatorClass:
-	  valuator_info = (XIValuatorClassInfo *) classes[i];
+      if (classes[i]->type != XIValuatorClass)
+	continue;
 
-	  valuator = xi_get_scroll_valuator (device,
-					     valuator_info->number);
-	  if (valuator)
-	    {
-	      valuator->invalid_p = false;
-	      valuator->current_value = valuator_info->value;
-	      valuator->emacs_value = 0;
-	    }
+      valuator_info = (XIValuatorClassInfo *) classes[i];
 
-	  break;
-	}
+      /* Avoid restoring bogus values if some driver accidentally
+	 specifies relative values in scroll valuator classes how the
+	 input extension spec says they should be, but allow restoring
+	 values when a value is set, which is how the input extension
+	 actually behaves.  */
+
+      if (valuator_info->value == 0.0
+	  && valuator_info->mode != XIModeAbsolute)
+	continue;
+
+      valuator = xi_get_scroll_valuator (device,
+					 valuator_info->number);
+
+      if (!valuator)
+	continue;
+
+      valuator->invalid_p = false;
+      valuator->current_value = valuator_info->value;
+      valuator->emacs_value = 0;
+
+      break;
     }
 }
 
