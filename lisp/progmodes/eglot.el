@@ -1502,7 +1502,9 @@ If optional MARKER, return a marker instead"
   "URIfy PATH."
   (let ((truepath (file-truename path)))
     (if (url-type (url-generic-parse-url truepath))
-        ;; Path is already a URI, so forward it to the lsp server untouched.
+        ;; Path is already a URI, so forward it to the LSP server
+        ;; untouched.  The server shopuld be able to handle it, since
+        ;; it provided this URI to clients in the first place.
         truepath
       (concat "file://"
               ;; Add a leading "/" for local MS Windows-style paths.
