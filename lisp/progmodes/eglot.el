@@ -56,7 +56,7 @@
 ;;   available as GNU ELPA :core packages.  Historically, a number of
 ;;   :core packages were added or reworked in Emacs to make this
 ;;   possible.  This principle should be upheld when adding new LSP
-;;   features or tweaking exising ones.  Design any new facilities in
+;;   features or tweaking existing ones.  Design any new facilities in
 ;;   a way that they could work in the absence of LSP or using some
 ;;   different protocol, then make sure Eglot can link up LSP
 ;;   information to it.
@@ -586,7 +586,7 @@ on unknown notifications and errors on unknown requests."))
 (cl-defmacro eglot--dbind (vars object &body body)
   "Destructure OBJECT, binding VARS in BODY.
 VARS is ([(INTERFACE)] SYMS...)
-Honour `eglot-strict-mode'."
+Honor `eglot-strict-mode'."
   (declare (indent 2) (debug (sexp sexp &rest form)))
   (let ((interface-name (if (consp (car vars))
                             (car (pop vars))))
@@ -613,7 +613,7 @@ Honour `eglot-strict-mode'."
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
   "Function of args CL-LAMBDA-LIST for processing INTERFACE objects.
-Honour `eglot-strict-mode'."
+Honor `eglot-strict-mode'."
   (declare (indent 1) (debug (sexp &rest form)))
   (let ((e (cl-gensym "jsonrpc-lambda-elem")))
     `(lambda (,e) (eglot--dbind ,cl-lambda-list ,e ,@body))))
@@ -1249,7 +1249,7 @@ This docstring appeases checkdoc, that's all."
     (setf (eglot--language-id server) language-id)
     (setf (eglot--inferior-process server) autostart-inferior-process)
     (run-hook-with-args 'eglot-server-initialized-hook server)
-    ;; Now start the handshake.  To honour `eglot-sync-connect'
+    ;; Now start the handshake.  To honor `eglot-sync-connect'
     ;; maybe-sync-maybe-async semantics we use `jsonrpc-async-request'
     ;; and mimic most of `jsonrpc-request'.
     (unwind-protect
@@ -1676,7 +1676,7 @@ against a variable's name.  Examples include the string
 Before Eglot starts \"managing\" a particular buffer, it
 opinionatedly sets some peripheral Emacs facilities, such as
 Flymake, Xref and Company.  These overriding settings help ensure
-consistent Eglot behaviour and only stay in place until
+consistent Eglot behavior and only stay in place until
 \"managing\" stops (usually via `eglot-shutdown'), whereupon the
 previous settings are restored.
 
@@ -3140,7 +3140,7 @@ Returns a list as described in docstring of `imenu--index-alist'."
           (unless (y-or-n-p
                    (format "[eglot] Server wants to edit:\n  %s\n Proceed? "
                            (mapconcat #'identity (mapcar #'car prepared) "\n  ")))
-            (jsonrpc-error "User cancelled server edit")))
+            (jsonrpc-error "User canceled server edit")))
       (cl-loop for edit in prepared
                for (path edits version) = edit
                do (with-current-buffer (find-file-noselect path)

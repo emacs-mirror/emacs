@@ -2834,7 +2834,7 @@ To reset the changes, we apply this and reload the theme:
 
 Users who wish to leverage such a mechanism can opt to implement it
 on-demand by means of a global minor mode.  The following snippet covers
-both themes and expands to some more assosiations in the palette:
+both themes and expands to some more associations in the palette:
 
 #+begin_src emacs-lisp
 (define-minor-mode my-modus-themes-tinted
@@ -5878,7 +5878,7 @@ interface virtually unusable.
 
 [[#h:5808be52-361a-4d18-88fd-90129d206f9b][Option for links]].
 
-Again, one must exercise judgement in order to avoid discrimination,
+Again, one must exercise judgment in order to avoid discrimination,
 where "discrimination" refers to:
 
 + The treatment of substantially different magnitudes as if they were of
@@ -5951,7 +5951,7 @@ the themes, which is partially fleshed out in this manual.
 
 With regard to the artistic aspect (where "art" qua skill may amount to
 an imprecise science), there is no hard-and-fast rule in effect as it
-requires one to exercize discretion and make decisions based on
+requires one to exercise discretion and make decisions based on
 context-dependent information or constraints.  As is true with most
 things in life, when in doubt, do not cling on to the letter of the law
 but try to understand its spirit.

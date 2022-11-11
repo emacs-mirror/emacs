@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    but not the END.  The previous/next overlay change operations need
    to find the nearest point where there is *either* an interval BEG
    or END point, but there is no efficient way to narrow the search
-   space over END postions.
+   space over END positions.
 
    Consider the case where next-overlay-change is called at POS, all
    interval BEG positions are less than pos POS and all interval END
@@ -771,7 +771,7 @@ interval_tree_insert_fix (struct itree_tree *tree,
 }
 
 /* Insert a NODE into the TREE.
-   Note, that inserting a node twice results in undefined behaviour.  */
+   Note, that inserting a node twice results in undefined behavior.  */
 
 static void
 interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
@@ -786,7 +786,7 @@ interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
   struct itree_node *parent = NULL;
   struct itree_node *child = tree->root;
   uintmax_t otick = tree->otick;
-  /* It's the responsability of the caller to set `otick` on the node,
+  /* It's the responsibility of the caller to set `otick` on the node,
      to "confirm" that the begin/end fields are up to date.  */
   eassert (node->otick == otick);
 

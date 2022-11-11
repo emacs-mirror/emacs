@@ -588,7 +588,7 @@ the current development head or implement a new feature to scratch an
 itch.  If the package metadata indicates how to contact the
 maintainer, you can use the command @code{package-report-bug} to
 report a bug via Email.  This report will include all the user options
-that you have customised.  If you have made a change you wish to share
+that you have customized.  If you have made a change you wish to share
 with the maintainers, first commit your changes then use the command
 @code{package-vc-prepare-patch} to share it.  @xref{Preparing Patches}.
 
@@ -598,6 +598,6 @@ with the maintainers, first commit your changes then use the command
 checkout instead of cloning a remote repository.  You can do this by
 using @code{package-vc-install-from-checkout}, which creates a symbolic link
 from the package directory (@pxref{Package Files}) to your checkout
-and initialises the code.  Note that you might have to use
-@code{package-vc-refresh} to repeat the initialisation and update the
+and initializes the code.  Note that you might have to use
+@code{package-vc-refresh} to repeat the initialization and update the
 autoloads.

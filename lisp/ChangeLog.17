@@ -917,7 +917,7 @@
 
 	* desktop.el (desktop-buffer-info): Write docstring.
 	(desktop-buffer-info): Use `pushnew' instead of `add-to-list' and
-	unquote lamda.
+	unquote lambda.
 
 	* emacs-lisp/package.el (package-refresh-contents): Update doc.
 

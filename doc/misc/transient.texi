@@ -1957,7 +1957,7 @@ probably don't want that.
 @item
 @code{transient-suffix} and @code{transient-non-suffix} play a part when
 determining whether the currently active transient prefix command
-remains active/transient when a suffix or abitrary non-suffix
+remains active/transient when a suffix or arbitrary non-suffix
 command is invoked.  @xref{Transient State}.
 
 @item

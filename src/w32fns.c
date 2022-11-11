@@ -8417,7 +8417,7 @@ a ShowWindow flag:
 
   current_dir = ENCODE_FILE (current_dir);
   /* Cannot use filename_to_utf16/ansi with DOCUMENT, since it could
-     be a URL that is not limited to MAX_PATH chararcters.  */
+     be a URL that is not limited to MAX_PATH characters.  */
   doclen = pMultiByteToWideChar (CP_UTF8, multiByteToWideCharFlags,
 				 SSDATA (document), -1, NULL, 0);
   doc_w = xmalloc (doclen * sizeof (wchar_t));

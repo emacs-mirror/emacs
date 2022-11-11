@@ -2505,7 +2505,7 @@ with // and /*, not more generic line and block comments."
 		     (not (eobp)))
 	      (progn
 		(c-forward-over-token)
-		;; Cope with having POS withing a syntactically invalid
+		;; Cope with having POS within a syntactically invalid
 		;; (...), by moving backward out of the parens and trying
 		;; again.
 		(when (and (eq (char-before) ?\))

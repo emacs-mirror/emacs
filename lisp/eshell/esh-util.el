@@ -296,7 +296,7 @@ directories separated by `path-separator'."
      (if (listp path)
 	 path
        ;; Don't use `parse-colon-path' here, since we don't want
-       ;; the additonal translations it does on each element.
+       ;; the additional translations it does on each element.
        (split-string path (path-separator))))))
 
 (defun eshell-parse-colon-path (path-env)

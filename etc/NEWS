@@ -165,7 +165,7 @@ time.
 +++
 *** New variable 'inhibit-automatic-native-compilation'.
 If set, Emacs will inhibit native compilation (and won't write
-anything to the eln cache automatically).  The variable is initialised
+anything to the eln cache automatically).  The variable is initialized
 from the 'EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION' environment
 variable on Emacs startup.
 
@@ -1592,7 +1592,7 @@ package maintainers.
 
 +++
 *** New user option 'package-vc-selected-packages'
-By customising this user option you can specify specific packages to
+By customizing this user option you can specify specific packages to
 install.
 
 ** Emacs Sessions (Desktop)
@@ -2954,7 +2954,7 @@ normal.
 
 ---
 ** Themes have special autoload cookies.
-All build-in themes are scraped for ';;;###theme-autoload' cookies
+All built-in themes are scraped for ';;;###theme-autoload' cookies
 that are loaded along with the regular auto-loaded code.
 
 +++

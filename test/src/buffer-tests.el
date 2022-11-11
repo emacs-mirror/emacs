@@ -1724,7 +1724,7 @@ Test both rear-advance and non-rear-advance overlays."
 
 This test works best when Emacs is configured with
 --enable-checking=yes.  This is a little bit like fuzz testing,
-except this test has no way to reduce to a minimal failng test
+except this test has no way to reduce to a minimal failing test
 case.  Regardless, by exercising many corner cases bugs can be
 found using Emacs' internal consistency assertions."
   (let* (

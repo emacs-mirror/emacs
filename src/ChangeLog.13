@@ -10183,7 +10183,7 @@
 	(w32_wnd_proc): Handle bottom divider width.
 	For WM_WINDOWPOSCHANGING return zero if we resize pixelwise.
 	(Fx_create_frame): Default divider width parameters.
-	Caclulate sizes pixelwise.  Add vertical drag cursor support.
+	Calculate sizes pixelwise.  Add vertical drag cursor support.
 	(x_create_tip_frame): Default divider widths to zero.
 	Pixelize call to change_frame_size.
 	(Fx_show_tip): Add handling of divider widths.  Pixelize window
