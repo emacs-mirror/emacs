@@ -45,8 +45,6 @@
 ;; Installation
 ;; ============
 ;;
-;; Install org mode
-;; Ensure org-ctags.el is somewhere in your emacs load path.
 ;; Download and install Exuberant ctags -- "https://ctags.sourceforge.net/"
 ;; Edit your .emacs file (see next section) and load emacs.
 
