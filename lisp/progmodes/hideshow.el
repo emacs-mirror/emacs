@@ -348,22 +348,20 @@ info node `(elisp)Overlays'."
   "Non-nil if using hideshow mode as a minor mode of some other mode.
 Use the command `hs-minor-mode' to toggle or set this variable.")
 
-(defvar hs-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; These bindings roughly imitate those used by Outline mode.
-    (define-key map "\C-c@\C-h"	      #'hs-hide-block)
-    (define-key map "\C-c@\C-s"	      #'hs-show-block)
-    (define-key map "\C-c@\C-\M-h"    #'hs-hide-all)
-    (define-key map "\C-c@\C-\M-s"    #'hs-show-all)
-    (define-key map "\C-c@\C-l"	      #'hs-hide-level)
-    (define-key map "\C-c@\C-c"	      #'hs-toggle-hiding)
-    (define-key map "\C-c@\C-a"       #'hs-show-all)
-    (define-key map "\C-c@\C-t"       #'hs-hide-all)
-    (define-key map "\C-c@\C-d"       #'hs-hide-block)
-    (define-key map "\C-c@\C-e"       #'hs-toggle-hiding)
-    (define-key map [(shift mouse-2)] #'hs-toggle-hiding)
-    map)
-  "Keymap for hideshow minor mode.")
+(defvar-keymap hs-minor-mode-map
+  :doc "Keymap for hideshow minor mode."
+  ;; These bindings roughly imitate those used by Outline mode.
+  "C-c @ C-h"   #'hs-hide-block
+  "C-c @ C-s"   #'hs-show-block
+  "C-c @ C-M-h" #'hs-hide-all
+  "C-c @ C-M-s" #'hs-show-all
+  "C-c @ C-l"   #'hs-hide-level
+  "C-c @ C-c"   #'hs-toggle-hiding
+  "C-c @ C-a"   #'hs-show-all
+  "C-c @ C-t"   #'hs-hide-all
+  "C-c @ C-d"   #'hs-hide-block
+  "C-c @ C-e"   #'hs-toggle-hiding
+  "S-<mouse-2>" #'hs-toggle-hiding)
 
 (easy-menu-define hs-minor-mode-menu hs-minor-mode-map
   "Menu used when hideshow minor mode is active."
