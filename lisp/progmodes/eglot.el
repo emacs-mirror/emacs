@@ -192,8 +192,10 @@ chosen (interactively or automatically)."
                                  . ("typescript-language-server" "--stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
                                 ((php-mode phps-mode)
-                                 . ("php" "vendor/felixfbecker/\
-language-server/bin/php-language-server.php"))
+                                 . ,(eglot-alternatives
+                                     '(("phpactor" "language-server")
+                                       ("intelephense" "--stdio")
+                                       ("php" "vendor/felixfbecker/language-server/bin/php-language-server.php"))))
                                 ((c++-mode c-mode) . ,(eglot-alternatives
                                                        '("clangd" "ccls")))
                                 (((caml-mode :language-id "ocaml")
