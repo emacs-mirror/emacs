@@ -1841,13 +1841,13 @@ If it is activated, also signal textDocument/didOpen."
                                            (call-interactively what)
                                            (force-mode-line-update t))))))
 
-(defun eglot-manual () "Open on-line documentation."
-  (interactive) (browse-url "https://github.com/joaotavora/eglot#readme"))
+(defun eglot-manual () "Open documentation."
+  (declare (obsolete info "29.1"))
+  (interactive) (info "(eglot)"))
 
 (easy-menu-define eglot-menu nil "Eglot"
   `("Eglot"
     ;; Commands for getting information and customization.
-    ["Read manual" eglot-manual]
     ["Customize Eglot" (lambda () (interactive) (customize-group "eglot"))]
     "--"
     ;; xref like commands.
