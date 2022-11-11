@@ -1787,7 +1787,7 @@ similar to an entry in `package-alist'.  Save the cached copy to
 \"archives/NAME/FILE\" in `package-user-dir'."
   ;; The downloaded archive contents will be read as part of
   ;; `package--update-downloads-in-progress'.
-  (dolist (archive package-archives)
+  (when async
     (cl-pushnew (cons archive file) package--downloads-in-progress
                 :test #'equal))
   (package--with-response-buffer (cdr archive) :file file
