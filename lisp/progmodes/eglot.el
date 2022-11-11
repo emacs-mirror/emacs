@@ -1522,7 +1522,9 @@ If optional MARKER, return a marker instead"
   (let* ((server (eglot-current-server))
          (remote-prefix (and server (eglot--trampish-p server)))
          (url (url-generic-parse-url uri)))
-    ;; Only attempt to parse URIs with the file scheme.
+    ;; Only parse file:// URIs, leave other URI untouched as
+    ;; `file-name-handler-alist' should know how to handle them
+    ;; (bug#58790).
     (if (string= "file" (url-type url))
         (let* ((retval (url-unhex-string (url-filename url)))
                ;; Remove the leading "/" for local MS Windows-style paths.
@@ -1532,8 +1534,7 @@ If optional MARKER, return a marker instead"
                                (substring retval 1)
                              retval)))
           (concat remote-prefix normalized))
-      ;; Leave non-file type URIs untouched, `file-name-handler-alist'
-      ;; handlers can be used to dispatch them properly.
+
       uri)))
 
 (defun eglot--snippet-expansion-fn ()
