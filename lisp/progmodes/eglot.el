@@ -1503,7 +1503,7 @@ If optional MARKER, return a marker instead"
   (let ((truepath (file-truename path)))
     (if (url-type (url-generic-parse-url truepath))
         ;; Path is already a URI, so forward it to the LSP server
-        ;; untouched.  The server shopuld be able to handle it, since
+        ;; untouched.  The server should be able to handle it, since
         ;; it provided this URI to clients in the first place.
         truepath
       (concat "file://"
