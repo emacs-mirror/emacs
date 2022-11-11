@@ -20,14 +20,15 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
-;; See xwidget.c for more api functions.
+
+;; See Info node `(emacs) Embedded WebKit Widgets' for help, and
+;; xwidget.c for more API functions.
+
+;;; Code:
 
 ;; This breaks compilation when we don't have xwidgets.
 ;; And is pointless when we do, since it's in C and so preloaded.
 ;;(require 'xwidget-internal)
-
-;;; Code:
 
 (require 'cl-lib)
 (require 'bookmark)
