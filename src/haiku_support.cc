@@ -653,6 +653,24 @@ public:
       Quit ();
     else if (msg->what == B_CLIPBOARD_CHANGED)
       haiku_write (CLIPBOARD_CHANGED_EVENT, &rq);
+    else if (msg->what == B_KEY_MAP_LOADED)
+      {
+	/* Install the new keymap.  Or rather, clear key_map -- Emacs
+	   will fetch it again from the main thread the next time it
+	   is needed.  */
+	if (key_map_lock.Lock ())
+	  {
+	    if (key_map)
+	      free (key_map);
+
+	    if (key_chars)
+	      free (key_chars);
+
+	    key_map = NULL;
+	    key_chars = NULL;
+	    key_map_lock.Unlock ();
+	  }
+      }
     else
       BApplication::MessageReceived (msg);
   }
