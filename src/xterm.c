@@ -912,11 +912,6 @@ struct x_selection_request_event
 
 struct x_selection_request_event *pending_selection_requests;
 
-/* Compare two request serials A and B with OP, handling
-   wraparound.  */
-#define X_COMPARE_SERIALS(a, op ,b) \
-  (((long) (a) - (long) (b)) op 0)
-
 struct x_atom_ref
 {
   /* Atom name.  */
@@ -25084,6 +25079,48 @@ static struct x_error_message_stack *x_error_message;
 /* The amount of items (depth) in that stack.  */
 int x_error_message_count;
 
+/* Compare various request serials while handling wraparound.  Treat a
+   difference of more than X_ULONG_MAX / 2 as wraparound.
+
+   Note that these functions truncate serials to 32 bits before
+   comparison.  */
+
+static bool
+x_is_serial_more_than (unsigned int a, unsigned int b)
+{
+  if (a > b)
+    return true;
+
+  return (b - a > X_ULONG_MAX / 2);
+}
+
+static bool
+x_is_serial_more_than_or_equal_to (unsigned int a, unsigned int b)
+{
+  if (a >= b)
+    return true;
+
+  return (b - a > X_ULONG_MAX / 2);
+}
+
+static bool
+x_is_serial_less_than (unsigned int a, unsigned int b)
+{
+  if (a < b)
+    return true;
+
+  return (a - b > X_ULONG_MAX / 2);
+}
+
+static bool
+x_is_serial_less_than_or_equal_to (unsigned int a, unsigned int b)
+{
+  if (a <= b)
+    return true;
+
+  return (a - b > X_ULONG_MAX / 2);
+}
+
 static struct x_error_message_stack *
 x_find_error_handler (Display *dpy, XErrorEvent *event)
 {
@@ -25093,8 +25130,8 @@ x_find_error_handler (Display *dpy, XErrorEvent *event)
 
   while (stack)
     {
-      if (X_COMPARE_SERIALS (event->serial, >=,
-			     stack->first_request)
+      if (x_is_serial_more_than_or_equal_to (event->serial,
+					     stack->first_request)
 	  && dpy == stack->dpy)
 	return stack;
 
@@ -25197,11 +25234,11 @@ x_request_can_fail (struct x_display_info *dpyinfo,
        failable_requests < dpyinfo->next_failable_request;
        failable_requests++)
     {
-      if (X_COMPARE_SERIALS (request, >=,
-			     failable_requests->start)
+      if (x_is_serial_more_than_or_equal_to (request,
+					     failable_requests->start)
 	  && (!failable_requests->end
-	      || X_COMPARE_SERIALS (request, <=,
-				    failable_requests->end)))
+	      || x_is_serial_less_than_or_equal_to (request,
+						    failable_requests->end)))
 	return failable_requests;
     }
 
@@ -25219,11 +25256,11 @@ x_clean_failable_requests (struct x_display_info *dpyinfo)
 
   for (first = dpyinfo->failable_requests; first < last; first++)
     {
-      if (X_COMPARE_SERIALS (first->start, >,
-			     LastKnownRequestProcessed (dpyinfo->display))
+      if (x_is_serial_more_than (first->start,
+				 LastKnownRequestProcessed (dpyinfo->display))
 	  || !first->end
-	  || X_COMPARE_SERIALS (first->end, >,
-				LastKnownRequestProcessed (dpyinfo->display)))
+	  || x_is_serial_more_than (first->end,
+				    LastKnownRequestProcessed (dpyinfo->display)))
 	break;
     }
 
@@ -25302,8 +25339,7 @@ x_stop_ignoring_errors (struct x_display_info *dpyinfo)
   /* Abort if no request was made since
      `x_ignore_errors_for_next_request'.  */
 
-  if (X_COMPARE_SERIALS (range->end, <,
-			 range->start))
+  if (x_is_serial_less_than (range->end, range->start))
     emacs_abort ();
 
 #ifdef HAVE_GTK3
