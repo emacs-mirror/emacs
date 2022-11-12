@@ -119,9 +119,8 @@ the `clone' function."
   (pcase-dolist (`(,name . ,spec) package-vc-selected-packages)
     (when (stringp name)
       (setq name (intern name)))
-    (let ((pkg-desc (cadr (assoc name package-alist #'string=))))
-      (unless (and name (package-installed-p name)
-                   (package-vc-p pkg-desc))
+    (let ((pkg-descs (assoc name package-alist #'string=)))
+      (unless (seq-some #'package-vc-p (cdr pkg-descs))
         (cond
          ((null spec)
           (package-vc-install name))
@@ -129,7 +128,7 @@ the `clone' function."
           (package-vc-install name nil spec))
          ((listp spec)
           (package-vc--archives-initialize)
-          (package-vc--unpack pkg-desc spec)))))))
+          (package-vc--unpack (cadr pkg-descs) spec)))))))
 
 ;;;###autoload
 (defcustom package-vc-selected-packages '()
