@@ -3631,23 +3631,6 @@ This function can be used as a value in `which-func-functions'"
              do (setq node (treesit-node-parent node))
              finally return  (string-join name-list "."))))
 
-;; Keep this private since we might later change it or generalize it.
-(defvar js--treesit-imenu-type-alist
-  '((variable . "V ")
-    (function . "F ")
-    (class . "C ")
-    (method . "M "))
-  "Maps imenu label types to their \"symbol\".
-Symbols are prefixed to each label in imenu (see
-`js--treesit-imenu-label').")
-
-(defun js--treesit-imenu-label (type name)
-  "Format label for imenu.
-TYPE can be `variable', `function', `class', `method'.
-NAME is a string."
-  (format "%s%s" (alist-get type js--treesit-imenu-type-alist)
-          name))
-
 (defun js--treesit-imenu-1 (node)
   "Given a sparse tree, create an imenu alist.
 
@@ -3695,23 +3678,24 @@ definition*\"."
            (treesit-node-top-level ts-node))
       nil)
      (subtrees
-      (let ((parent-label (js--treesit-imenu-label type name))
-            (jump-label ""))
-        `((,parent-label
-           ,(cons jump-label marker)
-           ,@subtrees))))
-     (t (let ((label (js--treesit-imenu-label type name)))
-          (list (cons label marker)))))))
+      `((,name
+         ,(cons "" marker)
+         ,@subtrees)))
+     (t (list (cons name marker))))))
 
 (defun js--treesit-imenu ()
   "Return Imenu alist for the current buffer."
   (let* ((node (treesit-buffer-root-node))
-         (tree (treesit-induce-sparse-tree
-                node (rx (or "class_declaration"
-                             "method_definition"
-                             "function_declaration"
-                             "lexical_declaration")))))
-    (js--treesit-imenu-1 tree)))
+         (class-tree (treesit-induce-sparse-tree
+                      node (rx (or "class_declaration"
+                                   "method_definition"))))
+         (func-tree (treesit-induce-sparse-tree
+                     node "function_declaration"))
+         (var-tree (treesit-induce-sparse-tree
+                    node "lexical_declaration")))
+    `(("Class" . ,(js--treesit-imenu-1 class-tree))
+      ("Varieable" . ,(js--treesit-imenu-1 var-tree))
+      ("Function" . ,(js--treesit-imenu-1 func-tree)))))
 
 ;;; Main Function
 

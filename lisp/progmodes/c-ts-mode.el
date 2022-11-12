@@ -340,22 +340,39 @@ the subtrees."
          (subtrees (mapcan #'c-ts-mode--imenu-1 (cdr node)))
          (name (when ts-node
                  (or (treesit-node-text
-                      (or (treesit-node-child-by-field-name
-                           ts-node "declarator")
+                      (pcase (treesit-node-type ts-node)
+                        ("function_definition"
+                         (treesit-node-child-by-field-name
                           (treesit-node-child-by-field-name
-                           ts-node "name"))
+                           ts-node "declarator")
+                          "declarator"))
+                        ("declaration"
+                         (let ((child (treesit-node-child ts-node -1 t)))
+                           (pcase (treesit-node-type child)
+                             ("identifier" child)
+                             (_ (treesit-node-child-by-field-name
+                                 child "declarator")))))
+                        ("struct_specifier"
+                         (treesit-node-child-by-field-name
+                          ts-node "name")))
                       t)
                      "Unnamed node")))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
-    ;; A struct_specifier could be inside a parameter list or another
-    ;; struct definition.  In those cases we don't include it.
+    ;; A struct_specifier could be inside a parameter list, another
+    ;; struct definition, a variable declaration, a function
+    ;; declaration.  In those cases we don't include it.
     (cond
      ((string-match-p
-       (rx (or "parameter" "field") "_declaration")
+       (rx (or "parameter_declaration" "field_declaration"
+               "declaration" "function_definition"))
        (or (treesit-node-type (treesit-node-parent ts-node))
            ""))
+      nil)
+     ((and (equal (treesit-node-type ts-node) "declaration")
+           (not (equal (treesit-node-type (treesit-node-parent ts-node))
+                       "translation_unit")))
       nil)
      ((null ts-node) subtrees)
      (subtrees
@@ -366,10 +383,15 @@ the subtrees."
 (defun c-ts-mode--imenu ()
   "Return Imenu alist for the current buffer."
   (let* ((node (treesit-buffer-root-node))
-         (tree (treesit-induce-sparse-tree
-                node (rx (or "function_definition"
-                             "struct_specifier")))))
-    (c-ts-mode--imenu-1 tree)))
+         (func-tree (treesit-induce-sparse-tree
+                     node "^function_definition$"))
+         (var-tree (treesit-induce-sparse-tree
+                    node "^declaration$"))
+         (struct-tree (treesit-induce-sparse-tree
+                       node "^struct_specifier$")))
+    `(("Struct" . ,(c-ts-mode--imenu-1 struct-tree))
+      ("Variable" . ,(c-ts-mode--imenu-1 var-tree))
+      ("Function" . ,(c-ts-mode--imenu-1 func-tree)))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode--base-mode prog-mode "C"
