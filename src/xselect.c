@@ -923,7 +923,7 @@ x_handle_selection_request (struct selection_input_event *event)
 	 the parameters to a MULTIPLE are ATOM_PAIRs.  */
 
       if (cs.type == XA_ATOM)
-	cs.type = dpyinfo->dpyinfo->Xatom_ATOM_PAIR;
+	cs.type = dpyinfo->Xatom_ATOM_PAIR;
 
       XChangeProperty (dpyinfo->display, requestor, property,
 		       cs.type, cs.format, PropModeReplace,
