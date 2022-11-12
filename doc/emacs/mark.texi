@@ -35,10 +35,10 @@ the mark; this turns off the highlighting.  You can also explicitly
 deactivate the mark at any time, by typing @kbd{C-g}
 (@pxref{Quitting}).
 
-  The above default behavior is known as Transient Mark mode.
-Disabling Transient Mark mode switches Emacs to an alternative
-behavior, in which the region is usually not highlighted.
-@xref{Disabled Transient Mark}.
+  The above behavior, which is the default in interactive sessions, is
+known as Transient Mark mode.  Disabling Transient Mark mode switches
+Emacs to an alternative behavior, in which the region is usually not
+highlighted.  @xref{Disabled Transient Mark}.
 
 @vindex highlight-nonselected-windows
   Setting the mark in one buffer has no effect on the marks in other
@@ -429,10 +429,11 @@ motion keys will extend the region set by shift-selection.
 
   The default behavior of the mark and region, in which setting the
 mark activates it and highlights the region, is called Transient Mark
-mode.  This is a minor mode that is enabled by default.  It can be
-toggled with @kbd{M-x transient-mark-mode}, or with the
-@samp{Highlight Active Region} menu item in the @samp{Options} menu.
-Turning it off switches Emacs to an alternative mode of operation:
+mode.  This is a minor mode that is enabled by default in interactive
+sessions.  It can be toggled with @kbd{M-x transient-mark-mode}, or
+with the @samp{Highlight Active Region} menu item in the
+@samp{Options} menu.  Turning it off switches Emacs to an alternative
+mode of operation:
 
 @itemize @bullet
 @item
