@@ -21,8 +21,9 @@
 
 ;;; Commentary:
 
-;; See Info node `(emacs) Embedded WebKit Widgets' for help, and
-;; xwidget.c for more API functions.
+;; See the node "(emacs)Embedded WebKit Widgets" in the Emacs manual for
+;; help on user-facing features, and "(elisp)Embedded Native Widgets" in
+;; the Emacs Lisp reference manual for help on more API functions.
 
 ;;; Code:
 
