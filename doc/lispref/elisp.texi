@@ -1366,7 +1366,7 @@ Parsing Program Source
 
 * Language Definitions::     Loading tree-sitter language definitions.
 * Using Parser::             Introduction to parsers.
-* Retrieving Node::          Retrieving node from syntax tree.
+* Retrieving Nodes::         Retrieving nodes from a syntax tree.
 * Accessing Node Information:: Accessing node information.
 * Pattern Matching::         Pattern matching with query patterns.
 * Multiple Languages::       Parse text written in multiple languages.

@@ -173,17 +173,14 @@ parser in `treesit-parser-list', or nil if there is no parser."
 
 A leaf node is a node that doesn't have any child nodes.
 
-The returned node's span covers POS: the node's beginning is less
-or equal to POS, and the node's end is greater or equal to POS.
+The returned node's span covers POS: the node's beginning is before
+or at POS, and the node's end is at or after POS.
 
 If no leaf node's span covers POS (e.g., POS is on whitespace
 between two leaf nodes), return the first leaf node after POS.
 
 If there is no leaf node after POS, return the first leaf node
 before POS.
-
-If POS is in between two adjacent nodes, return the one after
-POS.
 
 Return nil if no leaf node can be returned.  If NAMED is non-nil,
 only look for named nodes.
