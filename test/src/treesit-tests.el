@@ -474,6 +474,37 @@ visible_end.)"
     ;; `treesit-search-forward-goto'
     ))
 
+(ert-deftest treesit-node-at ()
+  "Test `treesit-node-at'."
+  (skip-unless (treesit-language-available-p 'json))
+  (let (parser root-node)
+    (progn
+      (insert "[1,  2, 3,4]  ")
+      (setq parser (treesit-parser-create 'json))
+      (setq root-node (treesit-parser-root-node
+                       parser)))
+    ;; Point at ",", should return ",".
+    (goto-char (point-min))
+    (search-forward "1")
+    (should (equal (treesit-node-text
+                    (treesit-node-at (point)))
+                   ","))
+    ;; Point behind ",", should still return the ",".
+    (search-forward ",")
+    (should (equal (treesit-node-text
+                    (treesit-node-at (point)))
+                   ","))
+    ;; Point between "," and "2", should return 2.
+    (forward-char)
+    (should (equal (treesit-node-text
+                    (treesit-node-at (point)))
+                   "2"))
+    ;; EOF, should return the last leaf node "]".
+    (goto-char (point-max))
+    (should (equal (treesit-node-text
+                    (treesit-node-at (point)))
+                   "]"))))
+
 (ert-deftest treesit-misc ()
   "Misc helper functions."
   (let ((settings '((t 0 t)

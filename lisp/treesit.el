@@ -168,44 +168,61 @@ parser in `treesit-parser-list', or nil if there is no parser."
   (treesit-parser-language
    (treesit-node-parser node)))
 
-(defun treesit-node-at (pos &optional parser-or-lang named strict)
-  "Return the smallest node that starts at or after buffer position POS.
+(defun treesit-node-at (pos &optional parser-or-lang named)
+  "Return the leaf node at position POS.
 
-\"Starts at or after POS\" means the start of the node is greater
-than or equal to POS.
+A leaf node is a node that doesn't have any child nodes.
 
-Return nil if none was found.  If NAMED is non-nil, only look for
-named node.
+The returned node's span covers POS: the node's beginning is less
+or equal to POS, and the node's end is greater or equal to POS.
+
+If no leaf node's span covers POS (e.g., POS is on whitespace
+between two leaf nodes), return the first leaf node after POS.
+
+If there is no leaf node after POS, return the first leaf node
+before POS.
+
+If POS is in between two adjacent nodes, return the one after
+POS.
+
+Return nil if no leaf node can be returned.  If NAMED is non-nil,
+only look for named nodes.
 
 If PARSER-OR-LANG is nil, use the first parser in
 `treesit-parser-list'; if PARSER-OR-LANG is a parser, use
 that parser; if PARSER-OR-LANG is a language, find a parser using
-that language in the current buffer, and use that.
-
-If POS is after all the text in the buffer, i.e., there is no
-node after POS, return the last leaf node in the parse tree, even
-though that node is before POS.  If STRICT is non-nil, return nil
-in this case."
+that language in the current buffer, and use that."
   (let* ((root (if (treesit-parser-p parser-or-lang)
                    (treesit-parser-root-node parser-or-lang)
                  (treesit-buffer-root-node parser-or-lang)))
          (node root)
+         (node-before root)
+         (pos-1 (max (1- pos) (point-min)))
          next)
     (when node
       ;; This is very fast so no need for C implementation.
       (while (setq next (treesit-node-first-child-for-pos
                          node pos named))
         (setq node next))
-      ;; If we are at the end of buffer or after all the text, we will
-      ;; end up with NODE = root node.  For convenience, return the last
-      ;; leaf node in the tree.
+      ;; If POS is at the end of buffer, after all the text, we will
+      ;; end up with NODE = root node.  Instead of returning nil,
+      ;; return the last leaf node in the tree for convenience.
       (if (treesit-node-eq node root)
-          (if strict
-              nil
+          (progn
             (while (setq next (treesit-node-child node -1 named))
               (setq node next))
             node)
-        node))))
+        ;; Normal case, where we found a node.
+        (if (<= (treesit-node-start node) pos)
+            node
+          ;; So the node we found is completely after POS, try to find
+          ;; a node whose end equals to POS.
+          (while (setq next (treesit-node-first-child-for-pos
+                             node-before pos-1 named))
+            (setq node-before next))
+          (if (eq (treesit-node-end node-before) pos)
+              node-before
+            node))))))
 
 (defun treesit-node-on (beg end &optional parser-or-lang named)
   "Return the smallest node covering BEG to END.

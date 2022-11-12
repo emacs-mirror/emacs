@@ -492,9 +492,22 @@ Using an outdated node signals the @code{treesit-node-outdated} error.
 @cindex syntax tree, retrieving nodes
 
 @defun treesit-node-at pos &optional parser-or-lang named
-This function returns the @emph{smallest} node that starts at or after
-the buffer position @var{pos}.  In other words, the start of the node
-is greater or equal to @var{pos}.
+This function returns a @emph{leaf} node at buffer position @var{pos}.
+A leaf node is a node that doesn't have any child nodes.
+
+This function tries to return a node whose span covers @var{pos}: the
+node's beginning is less or equal to @var{pos}, and the node's end is
+greater or equal to @var{pos}.
+
+But if no leaf node's span covers @var{pos} (e.g., @var{pos} is on the
+whitespace between two leaf nodes), this function returns the first
+leaf node after @var{pos}.
+
+Finally, if there is no leaf node after @var{pos}, return the first
+leaf node before @var{pos}.
+
+If @var{pos} is in between two adjacent nodes, this function returns
+the one after @var{pos}.
 
 When @var{parser-or-lang} is @code{nil} or omitted, this function uses
 the first parser in @code{(treesit-parser-list)} of the current
@@ -503,14 +516,11 @@ parser; if @var{parser-or-lang} is a language, it finds the first
 parser using that language in @code{(treesit-parser-list)}, and uses
 that.
 
+If this function cannot find a suitable node to return, it returns
+nil.
+
 If @var{named} is non-@code{nil}, this function looks for a named node
 only (@pxref{tree-sitter named node, named node}).
-
-When @var{pos} is after all the text in the buffer, technically there
-is no node after @var{pos}.  But for convenience, this function will
-return the last leaf node in the parse tree.  If @var{strict} is
-non-@code{nil}, this function will strictly comply to the semantics and
-return @var{nil}.
 
 Example:
 
