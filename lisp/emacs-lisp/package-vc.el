@@ -648,6 +648,8 @@ uses `package-vc-heuristic-alist' to guess the backend."
              (and current-prefix-arg :last-release)))))
   (package-vc--archives-initialize)
   (cond
+   ((null name-or-url)
+    (signal 'wrong-type-argument nil))
    ((and-let* (((stringp name-or-url))
                (backend (or backend (package-vc--guess-backend name-or-url))))
       (package-vc--unpack
