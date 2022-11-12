@@ -67,7 +67,7 @@ around 2 seconds, with no loss of functionality!
 
 Installation
 
-* Installing from an Elpa Archive::
+* Installing from GNU ELPA::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 
@@ -119,50 +119,27 @@ use-package can be installed using Emacs' package manager or manually from
 its development repository.
 
 @menu
-* Installing from an Elpa Archive::
+* Installing from GNU ELPA::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 @end menu
 
-@node Installing from an Elpa Archive
-@section Installing from an Elpa Archive
+@node Installing from GNU ELPA
+@section Installing from GNU ELPA
 
-use-package is available from Melpa and Melpa-Stable. If you haven't used
-Emacs' package manager before, then it is high time you familiarize yourself
+use-package is available from GNU ELPA.  If you haven't used Emacs'
+package manager before, then it is high time you familiarize yourself
 with it by reading the documentation in the Emacs manual, see
-@ref{Packages,,,emacs,}. Then add one of the archives to @code{package-archives}:
+@ref{Packages,,,emacs,}.
 
-@itemize
-@item
-To use Melpa:
-@end itemize
-
-@lisp
-(require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
-@end lisp
-
-@itemize
-@item
-To use Melpa-Stable:
-@end itemize
-
-@lisp
-(require 'package)
-(add-to-list 'package-archives
-             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-@end lisp
-
-Once you have added your preferred archive, you need to update the
-local package list using:
+First, you need to update the local package list using:
 
 @example
 M-x package-refresh-contents RET
 @end example
 
-Once you have done that, you can install use-package and its dependencies
-using:
+Once you have done that, you can install use-package and its
+dependencies using:
 
 @example
 M-x package-install RET use-package RET
