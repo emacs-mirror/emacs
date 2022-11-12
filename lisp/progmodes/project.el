@@ -1283,21 +1283,6 @@ Used by `project-kill-buffers'."
   :package-version '(project . "0.8.2")
   :safe #'booleanp)
 
-(defun project--buffer-list (pr)
-  "Return the list of all buffers in project PR."
-  (let ((conn (file-remote-p (project-root pr)))
-        bufs)
-    (dolist (buf (buffer-list))
-      ;; For now we go with the assumption that a project must reside
-      ;; entirely on one host.  We might relax that in the future.
-      (when (and (equal conn
-                        (file-remote-p (buffer-local-value 'default-directory buf)))
-                 (equal pr
-                        (with-current-buffer buf
-                          (project-current))))
-        (push buf bufs)))
-    (nreverse bufs)))
-
 (defun project--buffer-check (buf conditions)
   "Check if buffer BUF matches any element of the list CONDITIONS.
 See `project-kill-buffer-conditions' or
