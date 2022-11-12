@@ -1,4 +1,4 @@
-;;; c-ts-mode.el --- tree sitter support for C and C++  -*- lexical-binding: t; -*-
+;;; c-ts-mode.el --- tree-sitter support for C and C++  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
@@ -191,7 +191,7 @@ MODE is either `c' or `cpp'."
    :override t
    :feature 'comment
    `((comment) @font-lock-comment-face
-     (comment) @contexual)
+     (comment) @contextual)
    :language mode
    :override t
    :feature 'preprocessor
@@ -373,7 +373,7 @@ the subtrees."
 
 ;;;###autoload
 (define-derived-mode c-ts-mode--base-mode prog-mode "C"
-  "Major mode for editing C, powered by Tree Sitter."
+  "Major mode for editing C, powered by tree-sitter."
   :group 'c
   :syntax-table c-ts-mode--syntax-table
 
@@ -406,11 +406,11 @@ the subtrees."
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
-  "Major mode for editing C, powered by Tree Sitter."
+  "Major mode for editing C, powered by tree-sitter."
   :group 'c
 
   (unless (treesit-ready-p nil 'c)
-    (error "Tree Sitter for C isn't available"))
+    (error "Tree-sitter for C isn't available"))
 
   (treesit-parser-create 'c)
 
@@ -424,11 +424,11 @@ the subtrees."
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-mode--base-mode "C++"
-  "Major mode for editing C, powered by Tree Sitter."
+  "Major mode for editing C, powered by tree-sitter."
   :group 'c++
 
   (unless (treesit-ready-p nil 'cpp)
-    (error "Tree Sitter for C++ isn't available"))
+    (error "Tree-sitter for C++ isn't available"))
 
   (treesit-parser-create 'cpp)
 

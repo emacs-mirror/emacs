@@ -1,4 +1,4 @@
-;;; json-ts-mode.el --- tree sitter support for JSON  -*- lexical-binding: t; -*-
+;;; json-ts-mode.el --- tree-sitter support for JSON  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
@@ -113,12 +113,12 @@ the subtrees."
 
 ;;;###autoload
 (define-derived-mode json-ts-mode prog-mode "JSON"
-  "Major mode for editing JSON, powered by Tree Sitter."
+  "Major mode for editing JSON, powered by tree-sitter."
   :group 'json
   :syntax-table json-ts-mode--syntax-table
 
   (unless (treesit-ready-p nil 'json)
-    (error "Tree Sitter for JSON isn't available"))
+    (error "Tree-sitter for JSON isn't available"))
 
   (treesit-parser-create 'json)
 

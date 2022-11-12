@@ -1,4 +1,4 @@
-;;; java-ts-mode.el --- tree sitter support for Java  -*- lexical-binding: t; -*-
+;;; java-ts-mode.el --- tree-sitter support for Java  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
@@ -251,7 +251,7 @@ the subtrees."
 
 ;;;###autoload
 (define-derived-mode java-ts-mode prog-mode "Java"
-  "Major mode for editing Java, powered by Tree Sitter."
+  "Major mode for editing Java, powered by tree-sitter."
   :group 'c
   :syntax-table java-ts-mode--syntax-table
 

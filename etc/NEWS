@@ -2783,33 +2783,33 @@ This is a lightweight variant of 'js-mode' that is used by default
 when visiting JSON files.
 
 
-** New mode ts-mode'.
-A major mode based on the Tree-sitter library for editing programs
-in the FOO language.  It includes support for font-locking,
+** New mode 'ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the TypeScript language.  It includes support for font-locking,
 indentation, and navigation.
 
-** New mode c-ts-mode'.
-A major mode based on the Tree-sitter library for editing programs
+** New mode 'c-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
 in the C language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode c++-ts-mode'.
-A major mode based on the Tree-sitter library for editing programs
+** New mode 'c++-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
 in the C++ language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode java-ts-mode'.
-A major mode based on the Tree-sitter library for editing programs
+** New mode 'java-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
 in the Java language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode css-ts-mode'.
-A major mode based on the Tree-sitter library for editing programs
+** New mode 'css-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
 in the CSS language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode json-ts-mode'.
-A major mode based on the Tree-sitter library for editing programs
+** New mode 'json-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
 in the JSON language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 

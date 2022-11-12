@@ -1,4 +1,4 @@
-;;; css-ts-mode.el --- tree sitter support for CSS  -*- lexical-binding: t; -*-
+;;; css-ts-mode.el --- tree-sitter support for CSS  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
@@ -101,7 +101,7 @@ the subtrees."
   :syntax-table css-mode-syntax-table
 
   (unless (treesit-ready-p nil 'css)
-    (error "Tree Sitter for CSS isn't available"))
+    (error "Tree-sitter for CSS isn't available"))
 
   (treesit-parser-create 'css)
 
