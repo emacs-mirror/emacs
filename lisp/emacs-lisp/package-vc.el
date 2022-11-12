@@ -720,10 +720,15 @@ name from the base name of DIR."
                          pkg-dir)))
 
 ;;;###autoload
-(defun package-vc-refresh (pkg-desc)
-  "Refresh the installation for package given by PKG-DESC.
-Interactively, prompt for the name of the package to refresh."
-  (interactive (list (package-vc--read-package-desc "Refresh package: " t)))
+(defun package-vc-rebuild (pkg-desc)
+  "Rebuild the installation for package given by PKG-DESC.
+Rebuilding an installation means scraping for new autoload
+cookies, re-compiling Emacs Lisp files, building and installing
+any documentation, downloading any missing dependencies.  This
+command does not fetch new revisions from a remote server.  That
+is the responsibility of `package-vc-update'.  Interactively,
+prompt for the name of the package to rebuild."
+  (interactive (list (package-vc--read-package-desc "Rebuild package: " t)))
   (package-vc--unpack-1 pkg-desc (package-desc-dir pkg-desc)))
 
 ;;;###autoload
