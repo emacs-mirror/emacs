@@ -3028,7 +3028,6 @@ See options: `dired-hide-details-hide-symlink-targets' and
   ;; The old code used selective-display which only works at
   ;; a line-granularity, so it used start and end positions that where
   ;; approximate ("anywhere on the line is fine").
-  ;; FIXME: This also removes other invisible properties!
   (save-excursion
     (let ((inhibit-read-only t))
       (remove-list-of-text-properties
