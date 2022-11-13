@@ -2492,8 +2492,6 @@ Also see `suggest-key-bindings'."
 (defvar execute-extended-command--binding-timer nil)
 
 (defun execute-extended-command (prefixarg &optional command-name typed)
-  ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
-  ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
   "Read a command name, then read the arguments and call the command.
 To pass a prefix argument to the command you are
 invoking, give a prefix argument to `execute-extended-command'."
@@ -2540,11 +2538,11 @@ invoking, give a prefix argument to `execute-extended-command'."
     ;; flight.
     (when execute-extended-command--binding-timer
       (cancel-timer execute-extended-command--binding-timer))
-    ;; If this command displayed something in the echo area, then
-    ;; postpone the display of our suggestion message a bit.
     (when (and suggest-key-bindings
                (or binding
                    (and extended-command-suggest-shorter typed)))
+      ;; If this command displayed something in the echo area, then
+      ;; postpone the display of our suggestion message a bit.
       (setq delay-before-suggest
             (cond
              ((zerop (length (current-message))) 0)
@@ -2556,7 +2554,7 @@ invoking, give a prefix argument to `execute-extended-command'."
                  (symbolp function)
                  (> (length (symbol-name function)) 2))
         ;; There's no binding for CMD.  Let's try and find the shortest
-        ;; string to use in M-x.
+        ;; string to use in M-x.  But don't actually do anything yet.
         (setq find-shorter t))
       (when (or binding find-shorter)
         (setq execute-extended-command--binding-timer
