@@ -205,7 +205,8 @@
 ;;;; Variables and options
 
 (defvar-local erc-session-password nil
-  "The password used for the current session.")
+  "The password used for the current session.
+This should be a string or a function returning a string.")
 
 (defvar erc-server-responses (make-hash-table :test #'equal)
   "Hash table mapping server responses to their handler hooks.")

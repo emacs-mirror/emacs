@@ -530,6 +530,28 @@
   (when noninteractive
     (kill-buffer "*#fake*")))
 
+(ert-deftest erc--debug-irc-protocol-mask-secrets ()
+  (should-not erc-debug-irc-protocol)
+  (should erc--debug-irc-protocol-mask-secrets)
+  (with-temp-buffer
+    (setq erc-server-process (start-process "fake" (current-buffer) "true")
+          erc-server-current-nick "tester"
+          erc-session-server "myproxy.localhost"
+          erc-session-port 6667)
+    (let ((inhibit-message noninteractive))
+      (erc-toggle-debug-irc-protocol)
+      (erc-log-irc-protocol
+       (concat "PASS :" (erc--unfun (lambda () "changeme")) "\r\n")
+       'outgoing)
+      (set-process-query-on-exit-flag erc-server-process nil))
+    (with-current-buffer "*erc-protocol*"
+      (goto-char (point-min))
+      (search-forward "\r\n\r\n")
+      (search-forward "myproxy.localhost:6667 >> PASS :????????" (pos-eol)))
+    (when noninteractive
+      (kill-buffer "*erc-protocol*")
+      (should-not erc-debug-irc-protocol))))
+
 (ert-deftest erc-log-irc-protocol ()
   (should-not erc-debug-irc-protocol)
   (with-temp-buffer

@@ -252,8 +252,18 @@ If START or END is negative, it counts from the end."
   ;; From `auth-source-pass-search'
   (cl-assert (and host (not (eq host t)))
              t "Invalid password-store search: %s %s")
-  (erc-compat--29-auth-source-pass--build-result-many
-   host user port require max))
+  (let ((rv (erc-compat--29-auth-source-pass--build-result-many
+             host user port require max)))
+    (if (and (fboundp 'auth-source--obfuscate)
+             (fboundp 'auth-source--deobfuscate))
+        (let (out)
+          (dolist (e rv out)
+            (when-let* ((s (plist-get e :secret))
+                        (v (auth-source--obfuscate s)))
+              (setf (plist-get e :secret)
+                    (byte-compile (lambda () (auth-source--deobfuscate v)))))
+            (push e out)))
+      rv)))
 
 (defun erc-compat--29-auth-source-pass-backend-parse (entry)
   (when (eq entry 'password-store)

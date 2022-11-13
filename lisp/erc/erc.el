@@ -2335,6 +2335,23 @@ but you won't see it.
 WARNING: Do not set this variable directly!  Instead, use the
 function `erc-toggle-debug-irc-protocol' to toggle its value.")
 
+(defvar erc--debug-irc-protocol-mask-secrets t
+  "Whether to hide secrets in a debug log.
+They are still visible on screen but are replaced by question
+marks when yanked.")
+
+(defun erc--mask-secrets (string)
+  (when-let* ((eot (length string))
+              (beg (text-property-any 0 eot 'erc-secret t string))
+              (end (text-property-not-all beg eot 'erc-secret t string))
+              (sec (substring string beg end)))
+    (setq string (concat (substring string 0 beg)
+                         (make-string 10 ??)
+                         (substring string end eot)))
+    (put-text-property beg (+ 10 beg) 'face 'erc-inverse-face string)
+    (put-text-property beg (+ 10 beg) 'display sec string))
+  string)
+
 (defun erc-log-irc-protocol (string &optional outbound)
   "Append STRING to the buffer *erc-protocol*.
 
@@ -2360,6 +2377,8 @@ workaround."
                       (format "%s:%s" erc-session-server erc-session-port))))
           (ts (when erc-debug-irc-protocol-time-format
                 (format-time-string erc-debug-irc-protocol-time-format))))
+      (when erc--debug-irc-protocol-mask-secrets
+        (setq string (erc--mask-secrets string)))
       (with-current-buffer (get-buffer-create "*erc-protocol*")
         (save-excursion
           (goto-char (point-max))
@@ -3285,9 +3304,8 @@ the one with host foo would win."
       (setq plist (plist-put plist :max 5000))) ; `auth-source-netrc-parse'
     (unless (plist-get defaults :require)
       (setq plist (plist-put plist :require '(:secret))))
-    (when-let* ((sorted (sort (apply #'auth-source-search plist) test))
-                (secret (plist-get (car sorted) :secret)))
-      (if (functionp secret) (funcall secret) secret))))
+    (when-let* ((sorted (sort (apply #'auth-source-search plist) test)))
+      (plist-get (car sorted) :secret))))
 
 (defun erc-auth-source-search (&rest plist)
   "Call `auth-source-search', possibly with keyword params in PLIST."
@@ -3308,7 +3326,8 @@ Without SECRET, consult auth-source, possibly passing SERVER as the
     (setq secret (apply erc-auth-source-join-function
                         `(,@(and server (list :host server)) :user ,channel))))
   (erc-log (format "cmd: JOIN: %s" channel))
-  (erc-server-send (concat "JOIN " channel (and secret (concat " " secret)))))
+  (erc-server-send (concat "JOIN " channel
+                           (and secret (concat " " (erc--unfun secret))))))
 
 (defun erc--valid-local-channel-p (channel)
   "Non-nil when channel is server-local on a network that allows them."
@@ -6344,6 +6363,15 @@ user input."
 
 ;; authentication
 
+(defun erc--unfun (maybe-fn)
+  "Return MAYBE-FN or whatever it returns."
+  (let ((s (if (functionp maybe-fn) (funcall maybe-fn) maybe-fn)))
+    (when (and erc-debug-irc-protocol
+               erc--debug-irc-protocol-mask-secrets
+               (stringp s))
+      (put-text-property 0 (length s) 'erc-secret t s))
+    s))
+
 (defun erc-login ()
   "Perform user authentication at the IRC server."
   (erc-log (format "login: nick: %s, user: %s %s %s :%s"
@@ -6353,7 +6381,7 @@ user input."
                    erc-session-server
                    erc-session-user-full-name))
   (if erc-session-password
-      (erc-server-send (concat "PASS :" erc-session-password))
+      (erc-server-send (concat "PASS :" (erc--unfun erc-session-password)))
     (message "Logging in without password"))
   (erc-server-send (format "NICK %s" (erc-current-nick)))
   (erc-server-send

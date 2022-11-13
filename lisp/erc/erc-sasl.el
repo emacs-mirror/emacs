@@ -143,7 +143,7 @@ PROMPT is passed to `read-passwd' if necessary."
                  (apply erc-sasl-auth-source-function
                         :user (erc-sasl--get-user)
                         (and host (list :host (symbol-name host))))))))
-      (copy-sequence found)
+      (copy-sequence (erc--unfun found))
     (read-passwd prompt)))
 
 (defun erc-sasl--plain-response (client steps)
@@ -353,7 +353,7 @@ This doesn't solicit or validate a suite of supported mechanisms."
       (when (string= data "")
         (setq data nil))
       (when data
-        (setq data (base64-encode-string data t)))
+        (setq data (erc--unfun (base64-encode-string data t))))
       (erc-server-send (concat "AUTHENTICATE " (or data "+"))))))
 
 (defun erc-sasl--destroy (proc)
