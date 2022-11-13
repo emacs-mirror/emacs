@@ -73,6 +73,18 @@
     (should (= (count-lines (point) (point)) 0))))
 
 
+;;; `execute-extended-command'
+
+(ert-deftest simple-execute-extended-command--shorter ()
+  ;; This test can be flaky with completion frameworks other than the
+  ;; default, so just skip it in interactive sessions.
+  (skip-unless noninteractive)
+  (should (equal (execute-extended-command--shorter
+                  "display-line-numbers-mode"
+                  "display-line")
+                 "di-n")))
+
+
 ;;; `transpose-sexps'
 (defmacro simple-test--transpositions (&rest body)
   (declare (indent 0)
