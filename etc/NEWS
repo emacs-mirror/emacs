@@ -712,6 +712,15 @@ part of the buffer.
 +++
 ** 'count-words' will now report sentence count when used interactively.
 
+** New user option 'set-message-functions'.
+It allows selecting more functions for 'set-message-function'
+in addition to the default function that handles messages
+in the active minibuffer.  The most useful are 'inhibit-message'
+that allows specifying a list of messages to inhibit via
+'inhibit-message-regexps', and 'set-multi-message' that
+accumulates recent messages and displays them stacked
+in the echo area.
+
 ---
 ** New user option 'find-library-include-other-files'.
 If set to nil, commands like 'find-library' will only include library
