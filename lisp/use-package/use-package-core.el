@@ -53,11 +53,18 @@
 ;; iterating over them to "disable all themes" won't disable it.
 (setq custom-enabled-themes (remq 'use-package custom-enabled-themes))
 
-(if (and (eq emacs-major-version 24) (eq emacs-minor-version 3))
-    (defsubst hash-table-keys (hash-table)
-      "Return a list of keys in HASH-TABLE."
-      (cl-loop for k being the hash-keys of hash-table collect k))
-  (eval-when-compile (require 'subr-x)))
+(eval-when-compile
+  (if (and (eq emacs-major-version 24) (eq emacs-minor-version 3))
+      (progn
+        (defsubst hash-table-keys (hash-table)
+          "Return a list of keys in HASH-TABLE."
+          (cl-loop for k being the hash-keys of hash-table collect k))
+        (defsubst string-suffix-p (suffix string  &optional ignore-case)
+          (let ((start-pos (- (length string) (length suffix))))
+            (and (>= start-pos 0)
+                 (eq t (compare-strings suffix nil nil
+                                        string start-pos nil ignore-case))))))
+    (require 'subr-x)))
 
 (eval-when-compile
   (require 'regexp-opt))
