@@ -933,7 +933,9 @@ when the tab is current.  Return the result as a keymap."
   (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
          (rest (tab-bar-format-list rest))
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
-         (hpos (string-pixel-width (propertize rest 'face 'tab-bar)))
+         (hpos (progn
+                 (add-face-text-property 0 (length rest) 'tab-bar t rest)
+                 (string-pixel-width rest)))
          (str (propertize " " 'display `(space :align-to (- right (,hpos))))))
     `((align-right menu-item ,str ignore))))
 
@@ -1048,9 +1050,9 @@ tab bar might wrap to the second line when it shouldn't.")
           (unless (eq (nth 0 item) 'align-right)
             (setq non-tabs (concat non-tabs (nth 2 item)))))))
     (when tabs
+      (add-face-text-property 0 (length non-tabs) 'tab-bar t non-tabs)
       (setq width (/ (- (frame-inner-width)
-                        (string-pixel-width
-                         (propertize non-tabs 'face 'tab-bar)))
+                        (string-pixel-width non-tabs))
                      (length tabs)))
       (when tab-bar-auto-width-min
         (setq width (max width (if window-system
@@ -1068,28 +1070,39 @@ tab bar might wrap to the second line when it shouldn't.")
                 (let* ((name (nth 2 item))
                        (len (length name))
                        (close-p (get-text-property (1- len) 'close-tab name))
-                       (pixel-width (string-pixel-width
-                                     (propertize name 'face 'tab-bar-tab))))
+                       (continue t)
+                       (prev-width (string-pixel-width name))
+                       curr-width)
                   (cond
-                   ((< pixel-width width)
-                    (let* ((space (apply 'propertize " " (text-properties-at 0 name)))
-                           (space-width (string-pixel-width (propertize space 'face 'tab-bar)))
-                           (ins-pos (- len (if close-p 1 0))))
-                      (while (<= (+ pixel-width space-width) width)
+                   ((< prev-width width)
+                    (let* ((space (apply 'propertize " "
+                                         (text-properties-at 0 name)))
+                           (ins-pos (- len (if close-p 1 0)))
+                           (prev-name name))
+                      (while continue
                         (setf (substring name ins-pos ins-pos) space)
-                        (setq pixel-width (string-pixel-width
-                                           (propertize name 'face 'tab-bar-tab))))))
-                   ((> pixel-width width)
-                    (let (del-pos)
-                      (while (> pixel-width width)
-                        (setq len (length name)
-                              del-pos (- len (if close-p 1 0)))
-                        (setf (substring name (1- del-pos) del-pos) "")
-                        (setq pixel-width (string-pixel-width
-                                           (propertize name 'face 'tab-bar-tab))))
-                      (add-face-text-property (max (- del-pos 3) 1)
-                                              (1- del-pos)
-                                              'shadow nil name))))
+                        (setq curr-width (string-pixel-width name))
+                        (if (and (< curr-width width)
+                                 (not (eq curr-width prev-width)))
+                            (setq prev-width curr-width
+                                  prev-name name)
+                          ;; Set back a shorter name
+                          (setq name prev-name
+                                continue nil)))))
+                   ((> prev-width width)
+                    (let ((del-pos1 (if close-p -2 -1))
+                          (del-pos2 (if close-p -1 nil)))
+                      (while continue
+                        (setf (substring name del-pos1 del-pos2) "")
+                        (setq curr-width (string-pixel-width name))
+                        (if (and (> curr-width width)
+                                 (not (eq curr-width prev-width)))
+                            (setq prev-width curr-width)
+                          (setq continue nil)))
+                      (let* ((len (length name))
+                             (pos (- len (if close-p 1 0))))
+                        (add-face-text-property
+                         (max 0 (- pos 2)) (max 0 pos) 'shadow nil name)))))
                   name)))))
     items))
 
