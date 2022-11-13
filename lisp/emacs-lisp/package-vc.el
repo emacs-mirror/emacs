@@ -750,20 +750,20 @@ prompt for the name of the package to rebuild."
   (package-vc--unpack-1 pkg-desc (package-desc-dir pkg-desc)))
 
 ;;;###autoload
-(defun package-vc-prepare-patch (pkg subject revisions)
+(defun package-vc-prepare-patch (pkg-desc subject revisions)
   "Send patch for REVISIONS to maintainer of the package PKG using SUBJECT.
-SUBJECT and REVISIONS are passed on to `vc-prepare-patch', which see.
-PKG must be a package description.
-Interactively, prompt for PKG, SUBJECT, and REVISIONS.  However,
-if the current buffer has marked commit log entries, REVISIONS
-are the tags of the marked entries, see `log-view-get-marked'."
+The function uses `vc-prepare-patch', passing SUBJECT and
+REVISIONS directly.  PKG-DESC must be a package description.
+Interactively, prompt for PKG-DESC, SUBJECT, and REVISIONS.  When
+invoked with a numerical prefix argument, use the last N
+revisions.  When invoked interactively in a Log View buffer with
+marked revisions, use those."
   (interactive
    (list (package-vc--read-package-desc "Package to prepare a patch for: " t)
          (and (not vc-prepare-patches-separately)
               (read-string "Subject: " "[PATCH] " nil nil t))
-         (or (log-view-get-marked)
-             (vc-read-multiple-revisions "Revisions: "))))
-  (vc-prepare-patch (package-maintainers pkg t)
+         (vc-prepare-patch-prompt-revisions)))
+  (vc-prepare-patch (package-maintainers pkg-desc t)
                     subject revisions))
 
 (provide 'package-vc)
