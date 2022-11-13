@@ -551,6 +551,15 @@ installed package."
                (if installed package-alist package-archive-contents)
                #'string=)))
 
+(defun package-vc-update-all ()
+  "Attempt to update all installed VC packages."
+  (interactive)
+  (dolist (package package-alist)
+    (dolist (pkg-desc (cdr package))
+      (when (package-vc-p pkg-desc)
+        (package-vc-update pkg-desc))))
+  (message "Done updating packages."))
+
 (defun package-vc-update (pkg-desc)
   "Attempt to update the package PKG-DESC."
   (interactive (list (package-vc--read-package-desc "Update source package:")))
@@ -566,6 +575,7 @@ installed package."
   ;; `package-vc--unpack-1'.  Ugh...
   ;;
   ;; If there is a better way to do this, it should be done.
+  (cl-assert (package-vc-p pkg-desc))
   (letrec ((pkg-dir (package-desc-dir pkg-desc))
            (empty (make-symbol "empty"))
            (args (list empty empty empty empty))
