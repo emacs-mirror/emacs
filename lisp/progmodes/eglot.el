@@ -206,7 +206,7 @@ language-server/bin/php-language-server.php"))
                                 (elm-mode . ("elm-language-server"))
                                 (mint-mode . ("mint" "ls"))
                                 (kotlin-mode . ("kotlin-language-server"))
-                                (go-mode . ("gopls"))
+                                ((go-mode go-dot-mod-mode go-dot-work-mode) . ("gopls"))
                                 ((R-mode ess-r-mode) . ("R" "--slave" "-e"
                                                         "languageserver::run()"))
                                 (java-mode . ("jdtls"))
