@@ -678,7 +678,7 @@ uses `package-vc-heuristic-alist' to guess the backend."
                       (url (alist-get :url extras))
                       (backend (package-vc--guess-backend url)))
              (list :vc-backend backend :url url))
-           (user-error "Package has no VC data"))
+           (user-error "Package `%s' has no VC data" name-or-url))
        rev)))
    ((user-error "Unknown package to fetch: %s" name-or-url))))
 
@@ -706,7 +706,8 @@ for the last released version of the package."
                                  (url (alist-get :url extras))
                                  (backend (package-vc--guess-backend url)))
                         (list :vc-backend backend :url url))
-                      (user-error "Package has no VC data"))))
+                      (user-error "Package `%s' has no VC data"
+                                  (package-desc-name pkg-desc)))))
     (package-vc--clone pkg-desc pkg-spec directory rev)
     (find-file directory)))
 
