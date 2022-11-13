@@ -645,7 +645,9 @@ name as deduced from NAME-OR-URL.
 Optional argument BACKEND specifies the VC backend to use for cloning
 the package's repository; this is only possible if NAME-OR-URL is a URL,
 a string.  If BACKEND is omitted or nil, the function
-uses `package-vc-heuristic-alist' to guess the backend."
+uses `package-vc-heuristic-alist' to guess the backend.
+Note that by default, a source package will be prioritised over a
+regular package, but it will not remove a source package."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
