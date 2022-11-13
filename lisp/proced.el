@@ -140,8 +140,8 @@ the external command (usually \"kill\")."
     (nice    "Ni"      "%3d" 3 proced-< t (nice pid) (t t nil))
     (thcount "THCount" "%d" right proced-< t (thcount pid) (nil t t))
     (start   "Start"   proced-format-start 6 proced-time-lessp nil (start pid) (t t nil))
-    (vsize   "VSize"   "%d" right proced-< t (vsize pid) (nil t t))
-    (rss     "RSS"     "%d" right proced-< t (rss pid) (nil t t))
+    (vsize   "VSize"   proced-format-memory right proced-< t (vsize pid) (nil t t))
+    (rss     "RSS"     proced-format-memory right proced-< t (rss pid) (nil t t))
     (etime   "ETime"   proced-format-time right proced-time-lessp t (etime pid) (nil t t))
     (pcpu    "%CPU"    "%.1f" right proced-< t (pcpu pid) (nil t t))
     (pmem    "%Mem"    "%.1f" right proced-< t (pmem pid) (nil t t))
@@ -1424,6 +1424,10 @@ The return string is always 6 characters wide."
   "Format attribute ARGS.
 Replace newline characters by \"^J\" (two characters)."
   (string-replace "\n" "^J" args))
+
+(defun proced-format-memory (kilobytes)
+  "Format KILOBYTES in a human readable format."
+  (funcall byte-count-to-string-function (* 1024 kilobytes)))
 
 (defun proced-format (process-alist format)
   "Display PROCESS-ALIST using FORMAT."
