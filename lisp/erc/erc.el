@@ -2017,10 +2017,12 @@ Returns the buffer for the given server or channel."
     (setq erc-default-nicks (if (consp erc-nick) erc-nick (list erc-nick)))
     ;; client certificate (only useful if connecting over TLS)
     (setq erc-session-client-certificate client-certificate)
-    (setq erc-networks--id (if connect
-                               (erc-networks--id-create id)
-                             (buffer-local-value 'erc-networks--id
-                                                 old-buffer)))
+    (setq erc-networks--id
+          (if connect
+              (or (and continued-session
+                       (buffer-local-value 'erc-networks--id old-buffer))
+                  (and id (erc-networks--id-create id)))
+            (buffer-local-value 'erc-networks--id old-buffer)))
     ;; debug output buffer
     (setq erc-dbuf
           (when erc-log-p
@@ -3179,7 +3181,8 @@ node `(erc) Connecting'."
                  function))
 
 (defun erc--auth-source-determine-params-defaults ()
-  (let* ((net (and-let* ((esid (erc-networks--id-symbol erc-networks--id))
+  (let* ((net (and-let* ((erc-networks--id)
+                         (esid (erc-networks--id-symbol erc-networks--id))
                          ((symbol-name esid)))))
          (localp (and erc--target (erc--target-channel-local-p erc--target)))
          (hosts (if localp
@@ -5904,7 +5907,13 @@ strings over to the next call."
   (with-current-buffer (if (buffer-live-p (erc-server-buffer))
                            (erc-server-buffer)
                          (current-buffer))
-    (setq erc-server-current-nick nick)))
+    (unless (equal erc-server-current-nick nick)
+      (setq erc-server-current-nick nick)
+      ;; This seems sensible but may well be superfluous.  Should
+      ;; really prove that it's actually needed via test scenario.
+      (when erc-server-connected
+        (erc-networks--id-reload erc-networks--id)))
+    nick))
 
 (defun erc-current-nick ()
   "Return the current nickname."

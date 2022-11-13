@@ -1619,7 +1619,7 @@ add things to `%s' instead."
         (cl-pushnew (erc-server-buffer) bufs)
         (erc-set-current-nick nn)
         ;; Rename session, possibly rename server buf and all targets
-        (when (erc-network)
+        (when erc-server-connected
           (erc-networks--id-reload erc-networks--id proc parsed))
         (erc-update-mode-line)
         (setq erc-nick-change-attempt-count 0)
@@ -1629,6 +1629,8 @@ add things to `%s' instead."
          'NICK-you ?n nick ?N nn)
         (run-hook-with-args 'erc-nick-changed-functions nn nick))
        (t
+        (when erc-server-connected
+          (erc-networks--id-reload erc-networks--id proc parsed))
         (erc-handle-user-status-change 'nick (list nick login host) (list nn))
         (erc-display-message parsed 'notice bufs 'NICK ?n nick
                              ?u login ?h host ?N nn))))))
@@ -2255,6 +2257,8 @@ See `erc-display-server-message'." nil
 
 (define-erc-response-handler (433)
   "Login-time \"nick in use\"." nil
+  (when erc-server-connected
+    (erc-networks--id-reload erc-networks--id proc parsed))
   (erc-nickname-in-use (cadr (erc-response.command-args parsed))
                        "already in use"))
 
