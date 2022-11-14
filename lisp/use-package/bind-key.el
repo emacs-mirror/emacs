@@ -223,11 +223,11 @@ See `bind-key' for more details."
 In contrast to `define-key', this function removes the binding from the keymap."
   (define-key keymap key nil)
   ;; Split M-key in ESC key
-  (setq key (mapcan (lambda (k)
-                      (if (and (integerp k) (/= (logand k ?\M-\0) 0))
-                          (list ?\e (logxor k ?\M-\0))
-                        (list k)))
-                    key))
+  (setq key (cl-mapcan (lambda (k)
+                         (if (and (integerp k) (/= (logand k ?\M-\0) 0))
+                             (list ?\e (logxor k ?\M-\0))
+                           (list k)))
+                       key))
   ;; Delete single keys directly
   (if (= (length key) 1)
       (delete key keymap)
@@ -241,7 +241,7 @@ In contrast to `define-key', this function removes the binding from the keymap."
       (delete (last key) submap)
       ;; Delete submap if it is empty
       (when (= 1 (length submap))
-          (bind-key--remove prefix keymap)))))
+        (bind-key--remove prefix keymap)))))
 
 ;;;###autoload
 (defmacro bind-key* (key-name command &optional predicate)
