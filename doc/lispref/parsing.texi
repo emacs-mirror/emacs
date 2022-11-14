@@ -875,11 +875,6 @@ is not yet in its final form.
 A node can be ``extra'': such nodes represent things like comments,
 which can appear anywhere in the text.
 
-@cindex tree-sitter node that has changes
-@cindex has changes, tree-sitter node
-A node ``has changes'' if the buffer changed since the last time the
-node was retrieved, i.e., the node is outdated.
-
 @cindex tree-sitter node that has error
 @cindex has error, tree-sitter node
 A node ``has error'' if the text it spans contains a syntax error.  It
@@ -888,8 +883,8 @@ has an error.
 
 @defun treesit-node-check node property
 This function checks if @var{node} has the specified @var{property}.
-@var{property} can be @code{named}, @code{missing}, @code{extra},
-@code{has-changes}, or @code{has-error}.
+@var{property} can be @code{named}, @code{missing}, @code{extra}, or
+@code{has-error}.
 @end defun
 
 @defun treesit-node-type node
@@ -1749,7 +1744,7 @@ ts_node_is_null
 ts_node_is_named                        treesit-node-check
 ts_node_is_missing                      treesit-node-check
 ts_node_is_extra                        treesit-node-check
-ts_node_has_changes                     treesit-node-check
+ts_node_has_changes
 ts_node_has_error                       treesit-node-check
 ts_node_parent                          treesit-node-parent
 ts_node_child                           treesit-node-child
