@@ -21135,8 +21135,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    if (FRAME_PARENT_FRAME (f) || (hf && frame_ancestor_p (f, hf)))
 	      {
+		x_ignore_errors_for_next_request (dpyinfo);
 		XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 				RevertToParent, event->xbutton.time);
+	        x_stop_ignoring_errors (dpyinfo);
+
 		if (FRAME_PARENT_FRAME (f))
 		  XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
 	      }
@@ -22838,9 +22841,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			}
 #else
 		      /* Non-no toolkit builds without GTK 3 use core
-			 events to handle focus.  */
+			 events to handle focus.  Errors are still
+			 caught here in case the window is not
+			 viewable.  */
+		      x_ignore_errors_for_next_request (dpyinfo);
 		      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 				      RevertToParent, xev->time);
+		      x_stop_ignoring_errors (dpyinfo);
 #endif
 		      if (FRAME_PARENT_FRAME (f))
 			XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
@@ -27602,6 +27609,10 @@ x_focus_frame (struct frame *f, bool noactivate)
   else
     {
       if (!noactivate
+	  /* If F is override-redirect, use SetInputFocus instead.
+	     Override-redirect frames are not subject to window
+	     management.  */
+	  && !FRAME_OVERRIDE_REDIRECT (f)
 	  /* If F is a child frame, use SetInputFocus instead.  This
 	     may not work if its parent is not activated.  */
 	  && !FRAME_PARENT_FRAME (f)
