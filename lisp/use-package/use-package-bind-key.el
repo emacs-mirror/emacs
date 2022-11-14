@@ -29,7 +29,7 @@
 ;;; Commentary:
 
 ;; Provides support for the :bind, :bind*, :bind-keymap and :bind-keymap*
-;; keywords. Note that these are currently still baked into
+;; keywords.  Note that these are currently still baked into
 ;; `use-package-keywords' and `use-package-deferring-keywords', although this
 ;; is harmless if they are never used.
 

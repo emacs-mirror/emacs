@@ -37,7 +37,7 @@
 (require 'use-package-core)
 
 (defgroup use-package-ensure nil
-  "Support for :ensure and :pin keywords in use-package declarations."
+  "Support for :ensure and :pin keywords in `use-package' declarations."
   :group 'use-package)
 
 (eval-when-compile
@@ -64,7 +64,7 @@ to all `:ensure' keywords (always a list, even if only one); and
 the current `state' plist created by previous handlers.
 
 Note that this function is called whenever `:ensure' is provided,
-even if it is nil. It is up to the function to decide on the
+even if it is nil.  It is up to the function to decide on the
 semantics of the various values for `:ensure'.
 
 This function should return non-nil if the package is installed.
@@ -111,7 +111,7 @@ manually updated package."
         (archive-name   (if (stringp archive) archive (symbol-name archive))))
     (if (use-package-archive-exists-p archive-symbol)
         (add-to-list 'package-pinned-packages (cons package archive-name))
-      (error "Archive '%s' requested for package '%s' is not available."
+      (error "Archive '%s' requested for package '%s' is not available"
              archive-name package))
     (unless (bound-and-true-p package--initialized)
       (package-initialize t))))

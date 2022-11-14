@@ -29,7 +29,7 @@
 
 ;; If you have lots of keybindings set in your .emacs file, it can be hard to
 ;; know which ones you haven't set yet, and which may now be overriding some
-;; new default in a new emacs version.  This module aims to solve that
+;; new default in a new Emacs version.  This module aims to solve that
 ;; problem.
 ;;
 ;; Bind keys as follows in your .emacs:
@@ -104,7 +104,7 @@
 (require 'easy-mmode)
 
 (defgroup bind-key nil
-  "A simple way to manage personal keybindings"
+  "A simple way to manage personal keybindings."
   :group 'emacs)
 
 (defcustom bind-key-column-widths '(18 . 40)
@@ -127,7 +127,7 @@
 ;; Create override-global-mode to force key remappings
 
 (defvar override-global-map (make-keymap)
-  "override-global-mode keymap")
+  "Keymap for `override-global-mode'.")
 
 (define-minor-mode override-global-mode
   "A minor mode so that keymap settings override other modes."
@@ -150,7 +150,7 @@ Elements have the form ((KEY . [MAP]) CMD ORIGINAL-CMD)")
 
 KEY-NAME may be a vector, in which case it is passed straight to
 `define-key'. Or it may be a string to be interpreted as
-spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
+spelled-out keystrokes, e.g., `C-c C-z'. See documentation of
 `edmacro-mode' for details.
 
 COMMAND must be an interactive function or lambda form.
