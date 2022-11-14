@@ -40,11 +40,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "md5.h"
 #include "sysstdio.h"
 #include "zlib.h"
+#include "alloc.h"
 
 
 /********************************/
 /* Dynamic loading of libgccjit */
 /********************************/
+
 
 #ifdef WINDOWSNT
 # include "w32common.h"
@@ -110,10 +112,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_rvalue_dereference_field
 #undef gcc_jit_rvalue_get_type
 #undef gcc_jit_struct_as_type
+#undef gcc_jit_struct_get_field_count
 #undef gcc_jit_struct_set_fields
+#undef gcc_jit_type_get_aligned
 #undef gcc_jit_type_get_const
 #undef gcc_jit_type_get_pointer
 #undef gcc_jit_type_is_pointer
+#undef gcc_jit_type_is_struct
+#undef gcc_jit_type_unqualified
 #undef gcc_jit_version_major
 #undef gcc_jit_version_minor
 #undef gcc_jit_version_patchlevel
@@ -256,7 +262,10 @@ DEF_DLL_FN (gcc_jit_type *, gcc_jit_struct_as_type,
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_const, (gcc_jit_type *type));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_pointer, (gcc_jit_type *type));
 #ifdef LIBGCCJIT_HAVE_REFLECTION
+DEF_DLL_FN (size_t, gcc_jit_struct_get_field_count, (gcc_jit_struct *struct_type));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_is_pointer, (gcc_jit_type *type));
+DEF_DLL_FN (gcc_jit_struct *, gcc_jit_type_is_struct, (gcc_jit_type *type));
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_unqualified, (gcc_jit_type *type));
 #endif
 DEF_DLL_FN (void, gcc_jit_block_add_assignment,
             (gcc_jit_block *block, gcc_jit_location *loc, gcc_jit_lvalue *lvalue,
@@ -295,6 +304,10 @@ DEF_DLL_FN (void, gcc_jit_context_set_str_option,
 DEF_DLL_FN (void, gcc_jit_struct_set_fields,
             (gcc_jit_struct *struct_type, gcc_jit_location *loc, int num_fields,
              gcc_jit_field **fields));
+#ifdef LIBGCCJIT_HAVE_gcc_jit_type_get_aligned
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_aligned,
+	    (gcc_jit_type *type, size_t alignment_in_bytes));
+#endif
 #if defined (LIBGCCJIT_HAVE_gcc_jit_version)
 DEF_DLL_FN (int, gcc_jit_version_major, (void));
 DEF_DLL_FN (int, gcc_jit_version_minor, (void));
@@ -377,11 +390,19 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_rvalue_dereference_field);
   LOAD_DLL_FN (library, gcc_jit_rvalue_get_type);
   LOAD_DLL_FN (library, gcc_jit_struct_as_type);
+#ifdef LIBGCCJIT_HAVE_REFLECTION
+  LOAD_DLL_FN (library, gcc_jit_struct_get_field_count);
+#endif
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
+#ifdef LIBGCCJIT_HAVE_gcc_jit_type_get_aligned
+  LOAD_DLL_FN (library, gcc_jit_type_get_aligned);
+#endif
   LOAD_DLL_FN (library, gcc_jit_type_get_const);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
 #ifdef LIBGCCJIT_HAVE_REFLECTION
   LOAD_DLL_FN (library, gcc_jit_type_is_pointer);
+  LOAD_DLL_FN (library, gcc_jit_type_is_struct);
+  LOAD_DLL_FN (library, gcc_jit_type_unqualified);
 #endif
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_command_line_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
@@ -480,6 +501,12 @@ init_gccjit_functions (void)
 #define gcc_jit_struct_set_fields fn_gcc_jit_struct_set_fields
 #ifdef LIBGCCJIT_HAVE_REFLECTION
 # define gcc_jit_type_is_pointer fn_gcc_jit_type_is_pointer
+# define gcc_jit_type_unqualified fn_gcc_jit_type_unqualified
+# define gcc_jit_type_is_struct fn_gcc_jit_type_is_struct
+# define gcc_jit_struct_get_field_count fn_gcc_jit_struct_get_field_count
+#endif
+#ifdef LIBGCCJIT_HAVE_gcc_jit_type_get_aligned
+# define gcc_jit_type_get_aligned fn_gcc_jit_type_get_aligned
 #endif
 #define gcc_jit_type_get_const fn_gcc_jit_type_get_const
 #define gcc_jit_type_get_pointer fn_gcc_jit_type_get_pointer
@@ -517,6 +544,7 @@ load_gccjit_if_necessary (bool mandatory)
 }
 
 
+
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
 #define ABI_VERSION "5"
 
@@ -527,6 +555,7 @@ load_gccjit_if_necessary (bool mandatory)
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM "f_symbols_with_pos_enabled_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
+
 #define DATA_RELOC_SYM "d_reloc"
 #define DATA_RELOC_IMPURE_SYM "d_reloc_imp"
 #define DATA_RELOC_EPHEMERAL_SYM "d_reloc_eph"
@@ -534,6 +563,12 @@ load_gccjit_if_necessary (bool mandatory)
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
 #define LINK_TABLE_HASH_SYM "freloc_hash"
 #define COMP_UNIT_SYM "comp_unit"
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+# define DATA_STATICPRO_SYM "d_staticpro"
+# define DATA_EPHEMERAL_SYM "d_ephemeral"
+# define HAVE_STATIC_LISP_DATA_SYM "comp_have_static_lisp_data"
+#endif
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 #define TEXT_DATA_RELOC_IMPURE_SYM "text_data_reloc_imp"
 #define TEXT_DATA_RELOC_EPHEMERAL_SYM "text_data_reloc_eph"
@@ -608,8 +643,10 @@ typedef struct {
   gcc_jit_context *ctxt;
   gcc_jit_type *void_type;
   gcc_jit_type *bool_type;
+  gcc_jit_type *unsigned_char_type;
   gcc_jit_type *char_type;
   gcc_jit_type *int_type;
+  gcc_jit_type *double_type;
   gcc_jit_type *unsigned_type;
   gcc_jit_type *long_type;
   gcc_jit_type *unsigned_long_type;
@@ -619,12 +656,18 @@ typedef struct {
   gcc_jit_type *emacs_uint_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *bool_ptr_type;
+  gcc_jit_type *unsigned_char_ptr_type;
   gcc_jit_type *char_ptr_type;
+  gcc_jit_type *short_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *uintptr_type;
   gcc_jit_type *size_t_type;
   gcc_jit_type *lisp_word_type;
   gcc_jit_type *lisp_word_tag_type;
+  gcc_jit_type *untagged_ptr_type;
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  gcc_jit_type *bits_word_type;
+#endif
 #ifdef LISP_OBJECT_IS_STRUCT
   gcc_jit_field *lisp_obj_i;
   gcc_jit_struct *lisp_obj_s;
@@ -640,6 +683,27 @@ typedef struct {
   gcc_jit_field *lisp_cons_u_s_u_cdr;
   gcc_jit_type *lisp_cons_type;
   gcc_jit_type *lisp_cons_ptr_type;
+  gcc_jit_type *lisp_cons_u_type;
+  gcc_jit_type *lisp_cons_u_s_type;
+  gcc_jit_type *lisp_cons_u_s_u_type;
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  /* struct cons_block */
+  gcc_jit_struct *cons_block_s;
+  gcc_jit_field *cons_block_conses;
+  gcc_jit_field *cons_block_gcmarkbits;
+  gcc_jit_field *cons_block_next;
+  gcc_jit_type *cons_block_type;
+  gcc_jit_type *cons_block_aligned_type;
+  gcc_jit_type *cons_block_aligned_ptr_type;
+  /* struct float_block */
+  gcc_jit_struct *float_block_s;
+  gcc_jit_field *float_block_floats;
+  gcc_jit_field *float_block_gcmarkbits;
+  gcc_jit_field *float_block_next;
+  gcc_jit_type *float_block_type;
+  gcc_jit_type *float_block_aligned_type;
+  gcc_jit_type *float_block_aligned_ptr_type;
+#endif
   /* struct Lisp_Symbol_With_Position */
   gcc_jit_rvalue *f_symbols_with_pos_enabled_ref;
   gcc_jit_struct *lisp_symbol_with_position;
@@ -650,6 +714,63 @@ typedef struct {
   gcc_jit_type *lisp_symbol_with_position_ptr_type;
   gcc_jit_function *get_symbol_with_position;
   gcc_jit_function *symbol_with_pos_sym;
+  /* struct interval */
+  gcc_jit_struct *interval_s;
+  gcc_jit_type *interval_type;
+  gcc_jit_type *interval_ptr_type;
+  /* struct Lisp_Vector */
+  gcc_jit_struct *lisp_vector_s;
+  gcc_jit_field *lisp_vector_header;
+  gcc_jit_field *lisp_vector_contents;
+  gcc_jit_type *lisp_vector_type;
+  gcc_jit_type *lisp_vector_gcaligned_type;
+  gcc_jit_type *lisp_vector_ptr_type;
+  /* struct Lisp_String */
+  gcc_jit_struct *lisp_string_s;
+  gcc_jit_field *lisp_string_u;
+  gcc_jit_field *lisp_string_u_s;
+  gcc_jit_field *lisp_string_u_s_size;
+  gcc_jit_field *lisp_string_u_s_size_bytes;
+  gcc_jit_field *lisp_string_u_s_intervals;
+  gcc_jit_field *lisp_string_u_s_data;
+  gcc_jit_field *lisp_string_u_next;
+  gcc_jit_type *lisp_string_type;
+  gcc_jit_type *lisp_string_ptr_type;
+  gcc_jit_type *lisp_string_u_type;
+  gcc_jit_type *lisp_string_u_s_type;
+  /* struct Lisp_Float */
+  gcc_jit_struct *lisp_float_s;
+  gcc_jit_field *lisp_float_u;
+  gcc_jit_field *lisp_float_u_data;
+  gcc_jit_field *lisp_float_u_chain;
+  gcc_jit_type *lisp_float_type;
+  gcc_jit_type *lisp_float_ptr_type;
+  gcc_jit_type *lisp_float_u_type;
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  /* struct Lisp_Subr */
+  gcc_jit_struct *lisp_subr_s;
+  gcc_jit_field *lisp_subr_header;
+  gcc_jit_field *lisp_subr_function;
+  gcc_jit_field *lisp_subr_min_args;
+  gcc_jit_field *lisp_subr_max_args;
+  gcc_jit_field *lisp_subr_symbol_name;
+  gcc_jit_field *lisp_subr_intspec;
+  gcc_jit_field *lisp_subr_intspec_string;
+  gcc_jit_field *lisp_subr_intspec_native;
+  gcc_jit_field *lisp_subr_command_modes;
+  gcc_jit_field *lisp_subr_doc;
+  gcc_jit_field *lisp_subr_native_comp_u;
+  gcc_jit_field *lisp_subr_native_c_name;
+  gcc_jit_field *lisp_subr_lambda_list;
+  gcc_jit_field *lisp_subr_type;
+  gcc_jit_type *lisp_subr_intspec_type;
+  gcc_jit_type *lisp_subr_s_type;
+  gcc_jit_type *lisp_subr_s_gcaligned_type;
+  /* struct Aligned_Lisp_Subr */
+  gcc_jit_type *aligned_lisp_subr_type;
+  gcc_jit_type *aligned_lisp_subr_ptr_type;
+  gcc_jit_field *aligned_lisp_subr_s;
+#endif
   /* struct jmp_buf.  */
   gcc_jit_struct *jmp_buf_s;
   /* struct handler.  */
@@ -664,6 +785,7 @@ typedef struct {
   gcc_jit_field *m_handlerlist;
   gcc_jit_type *thread_state_ptr_type;
   gcc_jit_rvalue *current_thread_ref;
+  Lisp_Object lisp_vector_structs_h; /* h -> Lisp_Vector struct with n members.  */
   /* Other globals.  */
   gcc_jit_rvalue *pure_ptr;
 #ifndef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
@@ -702,21 +824,53 @@ typedef struct {
   Lisp_Object exported_funcs_h; /* c-func-name -> gcc_jit_function *.  */
   Lisp_Object imported_funcs_h; /* subr_name -> gcc_jit_field *reloc_field.  */
   Lisp_Object emitter_dispatcher;
+
   /* Synthesized struct holding data relocs.  */
   reloc_array_t data_relocs;
   /* Same as before but can't go in pure space. */
   reloc_array_t data_relocs_impure;
   /* Same as before but content does not survive load phase. */
   reloc_array_t data_relocs_ephemeral;
+
   /* Global structure holding function relocations.  */
   gcc_jit_lvalue *func_relocs;
   gcc_jit_type *func_relocs_ptr_type;
   /* Pointer to this structure local to each function.  */
   gcc_jit_lvalue *func_relocs_local;
   gcc_jit_function *memcpy;
+
   Lisp_Object d_default_idx;
   Lisp_Object d_impure_idx;
   Lisp_Object d_ephemeral_idx;
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  /* If true, compile lisp constants statically into the eln file.  */
+  bool compile_static_data;
+  /* A list of
+     [cons-block-global-val last-idx [cons-rvalue-initializer * cons_block_size]]
+  vectors. */
+  Lisp_Object cons_block_list;
+  /* Same as above, but for Lisp_Float values.  */
+  Lisp_Object float_block_list;
+  /* Hash table holding Lisp_Object -> compiled constant rvalue.  */
+  Lisp_Object d_default_rvals;
+  /* Same as before but can't go in pure space.  */
+  Lisp_Object d_impure_rvals;
+  /* Same as before but contents dont survive load phase.  */
+  Lisp_Object d_ephemeral_rvals;
+
+  ptrdiff_t static_lisp_data_count;
+  ptrdiff_t lisp_obj_globals_count;
+  Lisp_Object static_hash_cons_h;
+  /* A list of lvalues that need to be dynamically initialized at load
+     time. Each entry is a vector of the form [lvalue lisp_obj alloc_class]. */
+  Lisp_Object lisp_consts_init_lvals;
+  /* A list of lvalues to Lisp_Vector variables that need to be initialized
+     to anonymous lambdas (Aligned_Lisp_Subr) at load time. Each entry is a
+     vector of the form [lvalue comp-func] */
+  Lisp_Object lambda_init_lvals;
+#endif
+
 } comp_t;
 
 static comp_t comp;
@@ -734,7 +888,48 @@ typedef struct {
   gcc_jit_rvalue *idx;
 } imm_reloc_t;
 
-
+#ifdef HAVE_STATIC_LISP_GLOBALS
+/* Represents a JIT compiled Lisp_Object value.  */
+typedef struct
+{
+  union {
+    struct {
+      gcc_jit_rvalue *init;
+      enum Lisp_Type type;
+    } with_type;
+    gcc_jit_rvalue *lisp_obj;
+  } expr;
+  enum
+  {
+    /* A constant initializer expression for the underlying Lisp value
+       (struct Lisp_Cons, Lisp_String, Lisp_Vector, etc), with its
+       type.  Represented in lisp as (const-p expr_type (type . rval)).  */
+    COMP_LISP_CONST_INIT_WITH_TYPE = 0,
+    /* A Lisp_Object expression, either a self representing form
+       (integers, nil), or a tagged pointer to a static
+       variable.
+       Repersented in lisp as (const-p expr_type lisp-obj).  */
+    COMP_LISP_CONST_SELF_REPR = 1,
+    COMP_LISP_CONST_VAR = 2
+  } expr_type;
+  /* True if is this is a constant expression.  */
+  bool const_expr_p;
+} comp_lisp_const_t;
+
+/* Get the actual Lisp_Object rvalue for a given compiled constant.
+   For types COMP_LISP_CONST_VAR and COMP_LISP_CONST_SELF_REPR, this
+   does nothing but return the lisp_obj field.
+   For COMP_LISP_CONST_INIT_WITH_TYPE values, create a global constant
+   static to store the underlying data and return a pointer to it,
+   tagged with the corresponding Lisp_Type value.
+*/
+static gcc_jit_rvalue *
+comp_lisp_const_get_lisp_obj_rval (Lisp_Object obj,
+                                   comp_lisp_const_t expr);
+static comp_lisp_const_t emit_comp_lisp_obj (Lisp_Object obj,
+                                             Lisp_Object alloc_class);
+#endif
+
 /*
    Helper functions called by the run-time.
 */
@@ -762,7 +957,7 @@ static void *helper_link_table[] =
     helper_unwind_protect,
     specbind,
     maybe_gc,
-    maybe_quit };
+    maybe_quit};
 
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
@@ -847,13 +1042,27 @@ hash_native_abi (void)
   /* Check runs once.  */
   eassert (NILP (Vcomp_abi_hash));
 
-  Vcomp_abi_hash =
-    comp_hash_string (
-      concat3 (build_string (ABI_VERSION),
-	       concat3 (Vemacs_version, Vsystem_configuration,
-			Vsystem_configuration_options),
-	       Fmapconcat (intern_c_string ("comp--subr-signature"),
-			   Vcomp_subr_list, build_string (""))));
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  Lisp_Object builtin_syms = Qnil;
+  AUTO_STRING (sep, " ");
+
+  for (ptrdiff_t i = 0; i < ARRAYELTS (lispsym); i++)
+    builtin_syms
+      = concat3 (builtin_syms, SYMBOL_NAME (builtin_lisp_symbol (i)),
+                 sep);
+#endif
+
+  Vcomp_abi_hash = comp_hash_string (
+    CALLN (Fconcat, build_string (ABI_VERSION),
+           concat3 (Vemacs_version, Vsystem_configuration,
+                    Vsystem_configuration_options),
+           Fmapconcat (intern_c_string ("comp--subr-signature"),
+                       Vcomp_subr_list, build_string (""))
+#ifdef HAVE_STATIC_LISP_GLOBALS
+	   ,builtin_syms
+#endif
+	   ));
+
 
   Lisp_Object version = Vemacs_version;
 
@@ -1013,7 +1222,7 @@ obj_to_reloc (Lisp_Object obj)
 static void
 emit_comment (const char *str)
 {
-  if (comp.debug)
+  if (comp.debug && comp.block)
     gcc_jit_block_add_comment (comp.block,
 			       NULL,
 			       str);
@@ -1190,7 +1399,8 @@ type_to_cast_index (gcc_jit_type * type)
 static gcc_jit_rvalue *
 emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 {
-  gcc_jit_type *old_type = gcc_jit_rvalue_get_type (obj);
+  gcc_jit_type *old_type
+    = gcc_jit_type_unqualified (gcc_jit_rvalue_get_type (obj));
 
   if (new_type == old_type)
     return obj;
@@ -1453,6 +1663,15 @@ emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, Lisp_Word_tag lisp_word_tag)
 	     comp.uintptr_type,
 	     emit_XLP (a),
 	     emit_rvalue_from_lisp_word_tag (lisp_word_tag)));
+}
+
+static gcc_jit_rvalue *
+emit_XVECTOR (gcc_jit_rvalue *o)
+{
+  emit_comment ("XVECTOR");
+
+  return emit_XUNTAG (o, comp.lisp_vector_gcaligned_type,
+                      LISP_WORD_TAG (Lisp_Vectorlike));
 }
 
 static gcc_jit_rvalue *
@@ -1823,6 +2042,1496 @@ emit_make_fixnum (gcc_jit_rvalue *obj)
     : emit_make_fixnum_MSB_TAG (obj);
 }
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+
+/* Emits a Lisp_Cons struct with the given car and cdr values. */
+static gcc_jit_rvalue *
+emit_cons_struct (gcc_jit_rvalue *car, gcc_jit_rvalue *cdr)
+{
+  gcc_jit_rvalue *cons_u_s_u = gcc_jit_context_new_union_constructor (
+        comp.ctxt, NULL, comp.lisp_cons_u_s_u_type,
+        comp.lisp_cons_u_s_u_cdr, cdr);
+
+  gcc_jit_field *u_s_fields[] = {
+    comp.lisp_cons_u_s_car,
+    comp.lisp_cons_u_s_u};
+  gcc_jit_rvalue *u_s_values[] = {car, cons_u_s_u};
+
+  gcc_jit_rvalue *cons_u_s = gcc_jit_context_new_struct_constructor
+    (comp.ctxt, NULL, comp.lisp_cons_u_s_type, 2, u_s_fields, u_s_values);
+
+  gcc_jit_rvalue *u
+    = gcc_jit_context_new_union_constructor (comp.ctxt, NULL,
+                                             comp.lisp_cons_u_type,
+                                             comp.lisp_cons_u_s,
+                                             cons_u_s);
+  gcc_jit_rvalue *cons
+    = gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
+                                              gcc_jit_struct_as_type (
+                                                comp.lisp_cons_s),
+                                              1, &comp.lisp_cons_u,
+                                              &u);
+  return cons;
+}
+
+typedef struct {
+  ptrdiff_t size;
+  gcc_jit_field *header;
+  gcc_jit_field *contents;
+  gcc_jit_type *lisp_vector_type;
+  gcc_jit_type *contents_type;
+} jit_vector_type_t;
+
+/* Because vectors are implemented as variable length arrays,
+ and libgccjit doesn't seem to support them, we need to create a
+ new struct type for every Lisp_Vector.  */
+static jit_vector_type_t
+make_lisp_vector_struct_type (ptrdiff_t n)
+{
+  Lisp_Object cached;
+  jit_vector_type_t vec;
+  Lisp_Object lisp_n = make_fixnum (n);
+
+  cached
+    = Fgethash (lisp_n, comp.lisp_vector_structs_h, Qnil);
+
+  if (NILP (cached))
+    {
+      vec.size = n;
+      vec.header =
+	gcc_jit_context_new_field (comp.ctxt,
+				   NULL,
+				   comp.ptrdiff_type,
+				   "header");
+      vec.contents_type
+        = gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                          comp.lisp_obj_type,
+                                          vec.size);
+      vec.contents =
+	gcc_jit_context_new_field (comp.ctxt,
+				   NULL,
+				   vec.contents_type,
+				   "contents");
+      gcc_jit_field *fields[] = {vec.header, vec.contents};
+
+      gcc_jit_struct *lisp_vector_struct
+        = gcc_jit_context_new_struct_type (
+          comp.ctxt, NULL, format_string ("comp_Lisp_Vector_%td", vec.size),
+          2, fields);
+
+      vec.lisp_vector_type
+        = gcc_jit_struct_as_type (lisp_vector_struct);
+
+      Lisp_Object entry
+        = CALLN (Fvector,
+		 make_mint_ptr (vec.header),
+                 make_mint_ptr (vec.contents),
+                 make_mint_ptr (vec.lisp_vector_type),
+		 make_mint_ptr (vec.contents_type));
+      Fputhash (lisp_n, entry, comp.lisp_vector_structs_h);
+    }
+  else
+    {
+      vec.size = n;
+      vec.header = xmint_pointer (AREF (cached, 0));
+      vec.contents = xmint_pointer (AREF (cached, 1));
+      vec.lisp_vector_type = xmint_pointer (AREF (cached, 2));
+      vec.contents_type = xmint_pointer (AREF (cached, 3));
+    }
+
+  return vec;
+}
+
+/* Returns whether the given type represents a Lisp_Vector struct.  */
+static bool
+type_lisp_vector_p (gcc_jit_type *type)
+{
+  if (NILP (comp.lisp_vector_structs_h))
+    return false;
+
+  type = gcc_jit_type_unqualified (type);
+  gcc_jit_struct *s = gcc_jit_type_is_struct (type);
+
+  if (s == NULL)
+    return false;
+  if (gcc_jit_struct_get_field_count (s) != 2)
+    return false;
+
+  struct Lisp_Hash_Table *h = XHASH_TABLE (comp.lisp_vector_structs_h);
+
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    {
+      Lisp_Object k = HASH_KEY (h, i);
+      if (!BASE_EQ (k, Qunbound))
+	{
+	  Lisp_Object val = HASH_VALUE (h, i);
+	  if (xmint_pointer (AREF (val, 2)) == type)
+	    return true;
+	}
+    }
+
+  return false;
+}
+
+/* Emit a Lisp_String struct rvalue from a given string.  */
+static gcc_jit_rvalue *
+emit_lisp_string_constructor_rval (Lisp_Object str)
+{
+  eassert (STRINGP (str));
+
+  static ptrdiff_t i;
+  ptrdiff_t str_size = SBYTES (str) + 1;
+
+  gcc_jit_lvalue *str_data = gcc_jit_context_new_global (
+    comp.ctxt, NULL, GCC_JIT_GLOBAL_INTERNAL,
+    gcc_jit_context_new_array_type (comp.ctxt, NULL,
+				    comp.unsigned_char_type,
+				    str_size),
+    format_string ("str_data_%td", i++));
+  gcc_jit_global_set_initializer (str_data, SDATA (str),
+                                  str_size);
+  gcc_jit_rvalue *size_bytes
+    = STRING_MULTIBYTE (str)
+        ? gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                               comp.ptrdiff_type,
+                                               SBYTES (str))
+    // Mark unibyte strings as immovable, so that pin_string does not
+    // attempt to modify them.
+        : gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                               comp.ptrdiff_type, -3);
+  gcc_jit_rvalue *size
+    = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                           comp.ptrdiff_type,
+                                           SCHARS (str));
+  gcc_jit_field *u_s_fields[]
+    = { comp.lisp_string_u_s_size,
+	comp.lisp_string_u_s_size_bytes,
+	comp.lisp_string_u_s_intervals,
+	comp.lisp_string_u_s_data };
+  gcc_jit_rvalue *u_s_values[] = {
+    size,
+    size_bytes,
+    gcc_jit_context_null (comp.ctxt, comp.interval_ptr_type),
+    gcc_jit_context_new_cast (comp.ctxt, NULL,
+                              gcc_jit_lvalue_get_address (str_data,
+                                                          NULL),
+                              comp.unsigned_char_ptr_type),
+  };
+  gcc_jit_rvalue *u_s = gcc_jit_context_new_struct_constructor (
+    comp.ctxt, NULL, comp.lisp_string_u_s_type, 4, u_s_fields,
+    u_s_values);
+  gcc_jit_rvalue *u
+    = gcc_jit_context_new_union_constructor (comp.ctxt, NULL,
+					     comp.lisp_string_u_type,
+					     comp.lisp_string_u_s,
+					     u_s);
+  gcc_jit_rvalue *s
+    = gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
+					      comp.lisp_string_type,
+					      1,
+					      &comp.lisp_string_u,
+					      &u);
+
+  return s;
+}
+
+static gcc_jit_rvalue *
+emit_lisp_float_constructor_rval (Lisp_Object f)
+{
+  eassert (FLOATP (f));
+
+  gcc_jit_rvalue *u = gcc_jit_context_new_union_constructor (
+    comp.ctxt, NULL, comp.lisp_float_u_type, comp.lisp_float_u_data,
+    gcc_jit_context_new_rvalue_from_double (comp.ctxt,
+                                            comp.double_type,
+                                            XFLOAT (f)->u.data));
+  gcc_jit_rvalue *float_s
+    = gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
+                                              comp.lisp_float_type, 1,
+                                              &comp.lisp_float_u, &u);
+  return float_s;
+}
+
+static inline bool
+comp_func_l_p (Lisp_Object func)
+{
+  return !NILP (CALL1I (comp-func-l-p, func));
+}
+
+static inline bool
+comp_func_d_p (Lisp_Object func)
+{
+  return !NILP (CALL1I (comp-func-d-p, func));
+}
+
+static gcc_jit_rvalue *emit_lisp_obj_rval (Lisp_Object obj);
+
+static gcc_jit_rvalue *emit_mvar_rval (Lisp_Object mvar);
+
+/* Return the docstring index for the given function.  */
+static EMACS_INT
+get_comp_func_doc_idx (Lisp_Object func)
+{
+  Lisp_Object func_doc = CALL1I (comp-func-doc, func);
+  Lisp_Object docs = CALL1I (comp-ctxt-function-docs, Vcomp_ctxt);
+  eassert (VECTORP (docs));
+
+  for (ptrdiff_t i = 0; i < ASIZE (docs); i++)
+    {
+      Lisp_Object el = AREF (docs, i);
+      if (!NILP (Fstring_equal (el, func_doc)))
+	    return i;
+    }
+
+  xsignal2 (Qnative_ice,
+            build_string (
+              "could not find documentation index for function"),
+            CALL1I (comp-func-c-name, func));
+}
+
+static gcc_jit_rvalue *
+emit_aligned_lisp_subr_constructor_rval (const char *symbol_name,
+					 gcc_jit_rvalue *native_comp_u,
+					 Lisp_Object func)
+{
+  gcc_jit_rvalue *sym_name
+    = gcc_jit_context_new_string_literal (comp.ctxt, symbol_name);
+  Lisp_Object c_name_l = CALL1I (comp-func-c-name, func);
+
+  short minargs;
+  short maxargs;
+  gcc_jit_rvalue *lambda_list = NULL;
+
+  if (comp_func_l_p (func))
+    {
+      Lisp_Object args = CALL1I (comp-func-l-args, func);
+      minargs = XFIXNUM (CALL1I (comp-args-base-min, args));
+      if (NILP (CALL1I (comp-args-p, args)))
+	maxargs = MANY;
+      else
+	maxargs = XFIXNUM (CALL1I (comp-args-max, args));
+      lambda_list = emit_rvalue_from_lisp_obj (Qnil);
+    }
+  else if (comp_func_d_p (func))
+    {
+      Lisp_Object args = Ffunc_arity (CALL1I (com-func-byte-func, func));
+      minargs = XFIXNUM (XCAR (args));
+
+      if (FIXNUMP (XCDR (args)))
+	maxargs = XFIXNUM (XCDR (args));
+      else
+	maxargs = MANY;
+
+      Lisp_Object l = CALL1I (comp-func-d-lambda-list, func);
+      comp_lisp_const_t expr
+        = emit_comp_lisp_obj (l, Qd_default);
+      lambda_list = comp_lisp_const_get_lisp_obj_rval (l, expr);
+    }
+  else
+    xsignal2 (Qnative_ice, build_string ("invalid function"),
+	      func);
+
+  eassert (lambda_list != NULL);;
+
+  gcc_jit_rvalue *type = emit_mvar_rval (CALL1I (comp-func-type,
+						 func));
+  gcc_jit_rvalue *doc
+    = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                           comp.emacs_int_type,
+                                           get_comp_func_doc_idx (
+                                             func));
+  Lisp_Object int_spec_l = CALL1I (comp-func-int-spec, func);
+  gcc_jit_rvalue *intspec = gcc_jit_context_new_union_constructor (
+    comp.ctxt, NULL, comp.lisp_subr_intspec_type,
+    comp.lisp_subr_intspec_native,
+    comp_lisp_const_get_lisp_obj_rval (
+      int_spec_l, emit_comp_lisp_obj (int_spec_l, Qd_default)));
+
+  Lisp_Object command_modes_l = CALL1I (comp-func-command-modes, func);
+  gcc_jit_rvalue *command_modes = comp_lisp_const_get_lisp_obj_rval (
+    command_modes_l,
+    emit_comp_lisp_obj (command_modes_l, Qd_default));
+
+  Lisp_Object gcc_func
+    = Fgethash (c_name_l, comp.exported_funcs_h, Qnil);
+  if (NILP (gcc_func))
+    xsignal2 (Qnative_ice,
+	      build_string ("missing function"),
+	      gcc_func);
+  gcc_jit_rvalue *function = gcc_jit_context_new_cast (
+    comp.ctxt, NULL,
+    gcc_jit_function_get_address (xmint_pointer (gcc_func), NULL),
+    comp.void_ptr_type);
+  gcc_jit_rvalue *header = gcc_jit_context_new_rvalue_from_long (
+    comp.ctxt, comp.ptrdiff_type,
+    PVECHEADERSIZE (PVEC_SUBR, 0, VECSIZE (union Aligned_Lisp_Subr)));
+
+
+  gcc_jit_rvalue *values[] = {
+    header,
+    function,
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.short_type,
+                                         minargs),
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.short_type,
+                                         maxargs),
+    sym_name,
+    intspec,
+    command_modes,
+    doc,
+    native_comp_u,
+    gcc_jit_context_new_string_literal (comp.ctxt, SSDATA (c_name_l)),
+    lambda_list,
+    type
+  };
+
+  gcc_jit_field *fields[]
+    = { comp.lisp_subr_header,        comp.lisp_subr_function,
+        comp.lisp_subr_min_args,      comp.lisp_subr_max_args,
+        comp.lisp_subr_symbol_name,   comp.lisp_subr_intspec,
+        comp.lisp_subr_command_modes, comp.lisp_subr_doc,
+        comp.lisp_subr_native_comp_u, comp.lisp_subr_native_c_name,
+        comp.lisp_subr_lambda_list,   comp.lisp_subr_type };
+
+  gcc_jit_rvalue *subr
+    = gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
+                                              comp.lisp_subr_s_type,
+                                              12, fields, values);
+  return gcc_jit_context_new_union_constructor (
+    comp.ctxt, NULL, comp.aligned_lisp_subr_type,
+    comp.aligned_lisp_subr_s, subr);
+}
+
+static gcc_jit_rvalue *
+emit_lisp_obj_static_rval (Lisp_Object obj)
+{
+  Lisp_Object ptr;
+
+  ptr = Fgethash (obj, comp.d_default_rvals, Qnil);
+  if (!NILP (ptr))
+    return xmint_pointer (ptr);
+
+  ptr = Fgethash (obj, comp.d_impure_rvals, Qnil);
+  if (!NILP (ptr))
+    return xmint_pointer (ptr);
+
+  ptr = Fgethash (obj, comp.d_ephemeral_rvals, Qnil);
+  if (!NILP (ptr))
+    return xmint_pointer (ptr);
+
+  xsignal1 (Qnative_ice,
+	    build_string ("cant't find static data in relocation containers"));
+}
+#endif
+
+
+static gcc_jit_rvalue *emit_make_lisp_ptr (gcc_jit_rvalue *ptr,
+                                           enum Lisp_Type type);
+static gcc_jit_lvalue *
+emit_lval_access_cons_car (gcc_jit_lvalue *cons);
+static gcc_jit_lvalue *
+emit_lval_access_cons_cdr (gcc_jit_lvalue *cons);
+
+#define INIT_EXPR_CONST_P_IDX (make_fixnum (0))
+#define INIT_EXPR_TYPE_IDX (make_fixnum (1))
+#define INIT_EXPR_EXPR_IDX (make_fixnum (2))
+
+static comp_lisp_const_t
+init_expr_from_lisp (Lisp_Object entry)
+{
+  eassert (CONSP (entry));
+  eassert (list_length (entry) == 3);
+
+  comp_lisp_const_t expr;
+  expr.const_expr_p = !NILP (Fnth (INIT_EXPR_CONST_P_IDX, entry));
+  Lisp_Object expr_type  = Fnth (INIT_EXPR_TYPE_IDX, entry);
+  eassert (SYMBOLP (expr_type));
+
+  Lisp_Object lexpr = Fnth (INIT_EXPR_EXPR_IDX, entry);
+
+  if (EQ (expr_type, Qinit_expr_type_val))
+    {
+      eassert (CONSP (lexpr));
+
+      Lisp_Object pred = XCAR (lexpr);
+      eassert (SYMBOLP (pred));
+
+      enum Lisp_Type type;
+      if (EQ (pred, Qstring))
+	type = Lisp_String;
+      else if (EQ (pred, Qvector))
+	type = Lisp_Vectorlike;
+      else if (EQ (pred, Qcons))
+	type = Lisp_Cons;
+      else if (EQ (pred, Qfloat))
+	type = Lisp_Float;
+      else if (EQ (pred, Qsymbol))
+	type = Lisp_Symbol;
+      else
+	emacs_abort ();
+
+      expr.expr.with_type.type = type;
+      expr.expr.with_type.init = xmint_pointer (XCDR (lexpr));
+      expr.expr_type = COMP_LISP_CONST_INIT_WITH_TYPE;
+    }
+  else if (EQ (expr_type, Qinit_expr_type_self_repr))
+    {
+      eassert (expr.const_expr_p);
+      expr.expr.lisp_obj = xmint_pointer (lexpr);
+      expr.expr_type = COMP_LISP_CONST_SELF_REPR;
+    }
+  else if (EQ (expr_type, Qinit_expr_type_var))
+    {
+      expr.expr.lisp_obj = xmint_pointer (lexpr);
+      expr.expr_type = COMP_LISP_CONST_VAR;
+    }
+
+  return expr;
+}
+
+static Lisp_Object
+init_expr_to_lisp (comp_lisp_const_t expr)
+{
+  switch (expr.expr_type)
+    {
+    case COMP_LISP_CONST_INIT_WITH_TYPE:
+      eassert (expr.expr.with_type.init != NULL);
+      eassert (expr.const_expr_p);
+
+      Lisp_Object pred;
+      switch (expr.expr.with_type.type)
+	{
+	case Lisp_String:
+	  pred = Qstring;
+	  break;
+	case Lisp_Vectorlike:
+	  pred = Qvector;
+	  break;
+	case Lisp_Cons:
+	  pred = Qcons;
+	  break;
+	case Lisp_Float:
+	  pred = Qfloat;
+	  break;
+	case Lisp_Symbol:
+	  pred = Qsymbol;
+	  break;
+	default:
+	  emacs_abort();
+	}
+
+      return list3 (Qt, Qinit_expr_type_val,
+                    Fcons (pred,
+                           make_mint_ptr (expr.expr.with_type.init)));
+    case COMP_LISP_CONST_SELF_REPR:
+      eassert (expr.const_expr_p);
+      eassert (expr.expr.lisp_obj != NULL);
+
+      return list3 (Qt, Qinit_expr_type_self_repr,
+                    make_mint_ptr (expr.expr.lisp_obj));
+    case COMP_LISP_CONST_VAR:
+      eassert (expr.expr.lisp_obj != NULL);
+
+      return list3 (expr.const_expr_p ? Qt : Qnil,
+                    Qinit_expr_type_var,
+                    make_mint_ptr (expr.expr.lisp_obj));
+    default:
+      emacs_abort();
+    }
+}
+
+/* Export a global Lisp_Object constant variable with the the provided
+   name and value.  */
+static gcc_jit_lvalue *
+emit_export_const_lisp_obj_var (const char *name, gcc_jit_rvalue *val)
+{
+  gcc_jit_lvalue *global
+    = gcc_jit_context_new_global (comp.ctxt, NULL,
+                                           GCC_JIT_GLOBAL_EXPORTED,
+                                           gcc_jit_type_get_const (
+                                             comp.lisp_obj_type),
+                                           name);
+  gcc_jit_global_set_initializer_rvalue (global, val);
+  return global;
+}
+
+static gcc_jit_lvalue *
+emit_static_lisp_obj_var (void)
+{
+  return gcc_jit_context_new_global (
+    comp.ctxt, NULL, GCC_JIT_GLOBAL_INTERNAL, comp.lisp_obj_type,
+    format_string ("lisp_obj_%td", comp.lisp_obj_globals_count++));
+}
+
+static Lisp_Object
+push_cons_block (void)
+{
+  char *name
+    = format_string ("cons_block_%ld",
+                     XFIXNUM (Flength (comp.cons_block_list)));
+  gcc_jit_lvalue *var
+    = gcc_jit_context_new_global (comp.ctxt, NULL,
+                                  GCC_JIT_GLOBAL_INTERNAL,
+                                  comp.cons_block_aligned_type, name);
+  Lisp_Object entry
+    = CALLN (Fvector, make_mint_ptr (var), make_fixnum (-1),
+             Fmake_vector (make_fixnum (cons_block_conses_length), Qnil));
+  comp.cons_block_list = Fcons (entry, comp.cons_block_list);
+  return entry;
+}
+
+static Lisp_Object
+push_float_block (void)
+{
+  char *name
+    = format_string ("float_block_%ld",
+                     XFIXNUM (Flength (comp.float_block_list)));
+  gcc_jit_lvalue *var
+    = gcc_jit_context_new_global (comp.ctxt, NULL,
+                                  GCC_JIT_GLOBAL_INTERNAL,
+                                  comp.float_block_aligned_type, name);
+  Lisp_Object entry
+    = CALLN (Fvector, make_mint_ptr (var), make_fixnum (-1),
+             Fmake_vector (make_fixnum (float_block_floats_length), Qnil));
+  comp.float_block_list = Fcons (entry, comp.float_block_list);
+  return entry;
+}
+
+static gcc_jit_lvalue *
+alloc_block_var (Lisp_Object block)
+{
+  return xmint_pointer (AREF (block, 0));
+}
+
+static ptrdiff_t
+alloc_block_last_idx (Lisp_Object block)
+{
+  return XFIXNUM (AREF (block, 1));
+}
+
+static void
+alloc_block_set_last_idx (Lisp_Object block, ptrdiff_t idx)
+{
+  ASET (block, 1, make_fixnum (idx));
+}
+
+static void
+alloc_block_put_cons (Lisp_Object block, gcc_jit_rvalue *init_rval,
+                     ptrdiff_t idx)
+{
+  ASET (AREF (block, 2), idx, make_mint_ptr (init_rval));
+}
+
+
+static gcc_jit_rvalue *
+cons_block_emit_constructor (Lisp_Object block)
+{
+  USE_SAFE_ALLOCA;
+  ptrdiff_t last_idx = alloc_block_last_idx (block);
+  Lisp_Object conses_vec = AREF (block, 2);
+  ptrdiff_t conses_n = last_idx + 1;
+  gcc_jit_rvalue **conses;
+
+  SAFE_NALLOCA (conses, 1,  conses_n);
+  for (ptrdiff_t i = 0; i < conses_n; i++)
+    conses[i] = xmint_pointer (AREF (conses_vec, i));
+
+  gcc_jit_rvalue **gcmarkbits;
+  SAFE_NALLOCA (gcmarkbits, 1, cons_block_gcmarkbits_length);
+  for (ptrdiff_t i = 0; i < cons_block_gcmarkbits_length; i++)
+    gcmarkbits[i]
+      = gcc_jit_context_zero (comp.ctxt, comp.ptrdiff_type);
+
+  gcc_jit_field *fields[] = {
+    comp.cons_block_conses,
+    comp.cons_block_gcmarkbits,
+    comp.cons_block_next,
+  };
+
+  gcc_jit_rvalue *values[] = {
+    gcc_jit_context_new_array_constructor (
+      comp.ctxt, NULL,
+      gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                      comp.lisp_cons_type,
+                                      cons_block_conses_length),
+      conses_n, conses),
+    gcc_jit_context_new_array_constructor (
+      comp.ctxt, NULL,
+      gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                      comp.bits_word_type,
+                                      cons_block_gcmarkbits_length),
+      cons_block_gcmarkbits_length, gcmarkbits),
+    gcc_jit_context_null (comp.ctxt,
+                          comp.cons_block_aligned_ptr_type),
+  };
+
+  gcc_jit_rvalue *value
+    = gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
+                                              comp.cons_block_type, 3,
+                                              fields, values);
+  SAFE_FREE();
+  return value;
+}
+
+static gcc_jit_rvalue *
+float_block_emit_constructor (Lisp_Object block)
+{
+  USE_SAFE_ALLOCA;
+  ptrdiff_t last_idx = alloc_block_last_idx (block);
+  Lisp_Object floats_vec = AREF (block, 2);
+  ptrdiff_t floats_n = last_idx + 1;
+  gcc_jit_rvalue **floats;
+
+  SAFE_NALLOCA (floats, 1,  floats_n);
+  for (ptrdiff_t i = 0; i < floats_n; i++)
+    floats[i] = xmint_pointer (AREF (floats_vec, i));
+
+  gcc_jit_rvalue **gcmarkbits;
+  SAFE_NALLOCA (gcmarkbits, 1, float_block_gcmarkbits_length);
+  for (ptrdiff_t i = 0; i < float_block_gcmarkbits_length; i++)
+    gcmarkbits[i]
+      = gcc_jit_context_zero (comp.ctxt, comp.ptrdiff_type);
+
+  gcc_jit_field *fields[] = {
+    comp.float_block_floats,
+    comp.float_block_gcmarkbits,
+    comp.float_block_next,
+  };
+
+  gcc_jit_rvalue *values[] = {
+    gcc_jit_context_new_array_constructor (
+      comp.ctxt, NULL,
+      gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                      comp.lisp_float_type,
+                                      float_block_floats_length),
+      floats_n, floats),
+    gcc_jit_context_new_array_constructor (
+      comp.ctxt, NULL,
+      gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                      comp.bits_word_type,
+                                      float_block_gcmarkbits_length),
+      float_block_gcmarkbits_length, gcmarkbits),
+    gcc_jit_context_null (comp.ctxt,
+                          comp.float_block_aligned_ptr_type),
+  };
+
+  gcc_jit_rvalue *value
+    = gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
+                                              comp.float_block_type, 3,
+                                              fields, values);
+  SAFE_FREE();
+  return value;
+}
+
+typedef struct {
+  ptrdiff_t cons_block_list_idx;
+  ptrdiff_t cons_block_conses_idx;
+} cons_block_entry_t;
+
+static Lisp_Object
+cons_block_list_get_block_entry (cons_block_entry_t entry)
+{
+  ptrdiff_t list_idx = XFIXNUM (Flength (comp.cons_block_list)) - 1
+    - entry.cons_block_list_idx;
+  return Fnth (make_fixnum (list_idx), comp.cons_block_list);
+}
+
+static void
+cons_block_entry_set_init_rval (cons_block_entry_t entry, gcc_jit_rvalue *init)
+{
+  Lisp_Object block = cons_block_list_get_block_entry (entry);
+  alloc_block_put_cons (block, init, entry.cons_block_conses_idx);
+}
+
+static gcc_jit_lvalue *
+cons_block_entry_emit_cons_lval (cons_block_entry_t entry)
+{
+  Lisp_Object block = cons_block_list_get_block_entry (entry);
+  gcc_jit_lvalue *var = alloc_block_var (block);
+  gcc_jit_lvalue *conses
+    = gcc_jit_lvalue_access_field (var, NULL, comp.cons_block_conses);
+  return gcc_jit_context_new_array_access (
+    comp.ctxt, NULL, gcc_jit_lvalue_as_rvalue (conses),
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.ptrdiff_type,
+                                         entry.cons_block_conses_idx));
+}
+
+static cons_block_entry_t
+cons_block_new_cons (gcc_jit_rvalue *init_val)
+{
+  Lisp_Object block;
+  if (NILP (comp.cons_block_list))
+    block = push_cons_block ();
+  else
+    block = XCAR (comp.cons_block_list);
+
+  ptrdiff_t idx = alloc_block_last_idx (block);
+  if (++idx == cons_block_conses_length)
+    {
+      block = push_cons_block ();
+      eassert (alloc_block_last_idx (block) == -1);
+      idx = 0;
+    }
+
+  alloc_block_set_last_idx (block, idx);
+
+  if (init_val != NULL)
+    alloc_block_put_cons (block, init_val, idx);
+
+  ptrdiff_t list_idx = XFIXNUM (Flength (comp.cons_block_list)) - 1;
+
+  cons_block_entry_t entry
+    = { .cons_block_list_idx = list_idx, .cons_block_conses_idx = idx };
+  return entry;
+}
+
+static gcc_jit_lvalue *
+float_block_new_float (gcc_jit_rvalue *init_val)
+{
+  eassert (init_val != NULL);
+
+  Lisp_Object block;
+  if (NILP (comp.float_block_list))
+    block = push_float_block();
+  else
+    block = XCAR (comp.float_block_list);
+
+  ptrdiff_t idx = alloc_block_last_idx (block);
+  if (++idx == float_block_floats_length)
+    {
+      block = push_float_block ();
+      eassert (alloc_block_last_idx (block) == -1);
+    }
+
+  alloc_block_set_last_idx (block, idx);
+  alloc_block_put_cons (block, init_val, idx);
+
+  gcc_jit_lvalue *var = alloc_block_var (block);
+  gcc_jit_lvalue *floats
+    = gcc_jit_lvalue_access_field (var, NULL,
+                                   comp.float_block_floats);
+  return gcc_jit_context_new_array_access (
+    comp.ctxt, NULL, gcc_jit_lvalue_as_rvalue (floats),
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.ptrdiff_type,
+                                         idx));
+}
+
+static gcc_jit_lvalue *
+emit_lisp_data_var (gcc_jit_type *type, enum gcc_jit_global_kind kind)
+{
+  Lisp_Object final_name;
+  AUTO_STRING (lisp_format, "lisp_data_%d");
+
+  final_name = CALLN (Fformat, lisp_format,
+		      make_fixnum (comp.static_lisp_data_count++));
+  return gcc_jit_context_new_global (comp.ctxt, NULL,
+				     kind, type,
+				     SSDATA (final_name));
+}
+
+static gcc_jit_rvalue *
+comp_lisp_const_get_lisp_obj_rval (Lisp_Object lobj,
+                                   comp_lisp_const_t expr)
+{
+  if (expr.expr_type == COMP_LISP_CONST_SELF_REPR ||
+      expr.expr_type == COMP_LISP_CONST_VAR)
+    return expr.expr.lisp_obj;
+
+  eassert (expr.const_expr_p);
+
+  gcc_jit_type *type = gcc_jit_type_unqualified (
+    gcc_jit_rvalue_get_type (expr.expr.with_type.init));
+
+
+  gcc_jit_rvalue *ptr = NULL;
+
+  if (type == comp.lisp_cons_type)
+    {
+      eassert (expr.expr.with_type.type == Lisp_Cons);
+      cons_block_entry_t entry = cons_block_new_cons (
+	expr.expr.with_type.init);
+      ptr = gcc_jit_lvalue_get_address (
+        cons_block_entry_emit_cons_lval (entry), NULL);
+    }
+  else if (type == comp.lisp_float_type)
+    {
+      eassert (expr.expr.with_type.type == Lisp_Float);
+      ptr = gcc_jit_lvalue_get_address (float_block_new_float (
+                                          expr.expr.with_type.init),
+                                        NULL);
+    }
+  else
+    {
+      if (type_lisp_vector_p (type))
+	type = gcc_jit_type_get_aligned (type, GCALIGNMENT);
+
+      gcc_jit_lvalue *var
+	= emit_lisp_data_var (type, GCC_JIT_GLOBAL_INTERNAL);
+      if (gcc_jit_lvalue_get_alignment (var) % GCALIGNMENT != 0)
+	xsignal1 (Qnative_ice, build_string ("misaligned lisp data variable"));
+
+      gcc_jit_global_set_initializer_rvalue (var, expr.expr.with_type.init);
+      ptr = gcc_jit_lvalue_get_address (var, NULL);
+    }
+
+
+  gcc_jit_rvalue *obj
+    = emit_make_lisp_ptr (ptr, expr.expr.with_type.type);
+
+  comp_lisp_const_t new = { .const_expr_p = true,
+			    .expr_type = COMP_LISP_CONST_VAR,
+			    .expr.lisp_obj = obj };
+  Fputhash (lobj, init_expr_to_lisp (new), comp.static_hash_cons_h);
+  return obj;
+}
+
+static void
+alloc_class_check (Lisp_Object alloc_class)
+{
+  bool valid = EQ (alloc_class, Qd_default) ||
+    EQ (alloc_class, Qd_impure) ||
+    EQ (alloc_class, Qd_ephemeral);
+  if (!valid)
+    {
+      xsignal2 (Qnative_ice,
+		build_string ("invalid lisp data allocation class"),
+		alloc_class);
+      assume (false);
+    }
+}
+
+static void
+add_static_initializer_lisp (gcc_jit_lvalue *accessor,
+                             Lisp_Object obj, Lisp_Object alloc_class)
+{
+  alloc_class_check (alloc_class);
+  Lisp_Object entry
+    = CALLN (Fvector, make_mint_ptr (accessor), obj, alloc_class);
+  comp.lisp_consts_init_lvals
+    = Fcons (entry, comp.lisp_consts_init_lvals);
+}
+
+static void
+add_lisp_const_lvalue_init_rval (gcc_jit_lvalue *accessor,
+                                 gcc_jit_rvalue *init,
+                                 Lisp_Object alloc_class)
+{
+  add_static_initializer_lisp (accessor, make_mint_ptr (init),
+                               alloc_class);
+}
+
+static gcc_jit_lvalue *
+lisp_const_init_lvalue (Lisp_Object l)
+{
+  return xmint_pointer (AREF (l, 0));
+}
+
+static Lisp_Object
+lisp_const_init_obj (Lisp_Object l)
+{
+  return AREF (l, 1);
+}
+
+static Lisp_Object
+lisp_const_init_alloc_class (Lisp_Object l)
+{
+  return AREF (l, 2);
+}
+
+static comp_lisp_const_t
+emit_comp_lisp_obj (Lisp_Object obj,
+		    Lisp_Object alloc_class)
+{
+  alloc_class_check (alloc_class);
+  Lisp_Object entry = Fgethash (obj, comp.static_hash_cons_h, Qnil);
+  if (!NILP (entry))
+    return init_expr_from_lisp (entry);
+
+  USE_SAFE_ALLOCA;
+  comp_lisp_const_t expr;
+
+  if (FIXNUMP (obj))
+    expr = (comp_lisp_const_t){ .expr.lisp_obj
+			  = emit_rvalue_from_lisp_obj (obj),
+			  .const_expr_p = true,
+			  .expr_type = COMP_LISP_CONST_SELF_REPR };
+  else if (BARE_SYMBOL_P (obj) && c_symbol_p (XBARE_SYMBOL (obj)))
+      expr
+        = (comp_lisp_const_t){ .expr.lisp_obj
+                         = emit_rvalue_from_lisp_obj (obj),
+                         .const_expr_p = true,
+                         .expr_type = COMP_LISP_CONST_SELF_REPR };
+  else
+    {
+      Lisp_Object func =
+	Fgethash (obj,
+		  CALL1I (comp-ctxt-byte-func-to-func-h, Vcomp_ctxt),
+		  Qnil);
+      if (!NILP (func))
+	{
+          jit_vector_type_t pvec_type = make_lisp_vector_struct_type (
+            VECSIZE (union Aligned_Lisp_Subr));
+
+          gcc_jit_lvalue *subr_var = emit_lisp_data_var (
+            gcc_jit_type_get_aligned (pvec_type.lisp_vector_type,
+                                      GCALIGNMENT),
+            GCC_JIT_GLOBAL_INTERNAL);
+          comp.lambda_init_lvals
+            = Fcons (CALLN (Fvector, make_mint_ptr (subr_var), func),
+                     comp.lambda_init_lvals);
+	  expr.const_expr_p = false;
+	  expr.expr_type = COMP_LISP_CONST_VAR;
+          expr.expr.lisp_obj = emit_make_lisp_ptr (
+            gcc_jit_lvalue_get_address (subr_var, NULL),
+            Lisp_Vectorlike);
+	}
+      else if (STRINGP (obj) && XSTRING (obj)->u.s.intervals == NULL)
+	{
+          gcc_jit_rvalue *lisp_string
+            = emit_lisp_string_constructor_rval (obj);
+
+	  expr.const_expr_p = true;
+          expr.expr_type = COMP_LISP_CONST_INIT_WITH_TYPE;
+	  expr.expr.with_type.init = lisp_string;
+	  expr.expr.with_type.type = Lisp_String;
+	}
+      else if (FLOATP (obj))
+	{
+          gcc_jit_rvalue *lisp_float
+            = emit_lisp_float_constructor_rval (obj);
+
+	  expr.const_expr_p = true;
+	  expr.expr_type = COMP_LISP_CONST_INIT_WITH_TYPE;
+	  expr.expr.with_type.init = lisp_float;
+	  expr.expr.with_type.type = Lisp_Float;
+	}
+      else if (VECTORP (obj))
+	{
+          ptrdiff_t size = ASIZE (obj);
+	  ptrdiff_t i;
+
+          jit_vector_type_t vec_type
+            = make_lisp_vector_struct_type (size);
+
+	  gcc_jit_rvalue **vec_contents;
+	  SAFE_NALLOCA (vec_contents, 1, size);
+
+	  ptrdiff_t *patch_idx;
+          ptrdiff_t n_patches = 0;
+          SAFE_NALLOCA (patch_idx, 1, size);
+
+	  expr.const_expr_p = true;
+          for (i = 0; i < size; i++)
+	    {
+	      Lisp_Object n = AREF (obj, i);
+              comp_lisp_const_t mem_expr
+                = emit_comp_lisp_obj (n, alloc_class);
+              vec_contents[i]
+                = comp_lisp_const_get_lisp_obj_rval (n, mem_expr);
+	      if (!mem_expr.const_expr_p)
+		{
+		  patch_idx[n_patches++] = i;
+		  expr.const_expr_p = false;
+		}
+	    }
+
+	  gcc_jit_lvalue *vec_var = NULL;
+
+	  if (!expr.const_expr_p)
+	    {
+	      gcc_jit_type *var_type
+		= gcc_jit_type_get_aligned (vec_type.lisp_vector_type,
+					    GCALIGNMENT);
+              vec_var = emit_lisp_data_var (var_type,
+                                            GCC_JIT_GLOBAL_INTERNAL);
+
+              gcc_jit_rvalue *vec_base = gcc_jit_lvalue_as_rvalue (
+                gcc_jit_lvalue_access_field (vec_var, NULL,
+                                             vec_type.contents));
+	      for (i = 0; i < n_patches; i++)
+		{
+		  ptrdiff_t idx = patch_idx[i];
+		  gcc_jit_rvalue *init = vec_contents[idx];
+                  gcc_jit_lvalue *accessor
+                    = gcc_jit_context_new_array_access (
+                      comp.ctxt, NULL, vec_base,
+                      gcc_jit_context_new_rvalue_from_int (
+                        comp.ctxt, comp.ptrdiff_type, idx));
+		  add_lisp_const_lvalue_init_rval (accessor, init, alloc_class);
+		  vec_contents[idx] = emit_rvalue_from_lisp_obj (Qnil);
+		}
+	    }
+
+          gcc_jit_rvalue *struct_values[] = {
+            gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                                 comp.ptrdiff_type,
+                                                 size),
+            gcc_jit_context_new_array_constructor (comp.ctxt, NULL,
+                                                   vec_type
+                                                     .contents_type,
+                                                   size, vec_contents)
+	  };
+          gcc_jit_field *fields[]
+            = { vec_type.header, vec_type.contents };
+	  gcc_jit_rvalue *init
+	    = gcc_jit_context_new_struct_constructor (
+	      comp.ctxt, NULL, vec_type.lisp_vector_type, 2, fields,
+	      struct_values);
+
+	  if (expr.const_expr_p)
+	    {
+	      eassert (vec_var == NULL);
+	      eassert (n_patches == 0);
+
+	      expr.expr_type = COMP_LISP_CONST_INIT_WITH_TYPE;
+              expr.expr.with_type.type = Lisp_Vectorlike;
+	      expr.expr.with_type.init = init;
+	    }
+	  else
+	    {
+	      eassert (vec_var != NULL);
+	      eassert (n_patches > 0);
+
+	      gcc_jit_global_set_initializer_rvalue (vec_var, init);
+	      expr.expr_type = COMP_LISP_CONST_VAR;
+              expr.expr.lisp_obj = emit_make_lisp_ptr (
+                gcc_jit_lvalue_get_address (vec_var, NULL),
+                Lisp_Vectorlike);
+	    }
+	}
+      else if (CONSP (obj))
+	{
+	  gcc_jit_rvalue *car, *cdr;
+	  bool cons_entry_set = false;
+	  cons_block_entry_t cons_entry;
+
+          comp_lisp_const_t car_expr
+            = emit_comp_lisp_obj (XCAR (obj), alloc_class);
+
+#define INIT_CONS_VAR						\
+	  do							\
+	    {							\
+	      if (!cons_entry_set)				\
+		{						\
+		  cons_entry = cons_block_new_cons (NULL);	\
+		  cons_entry_set = true;			\
+		}						\
+	    }							\
+	  while (false)
+
+	  if (car_expr.const_expr_p)
+	    car = comp_lisp_const_get_lisp_obj_rval (XCAR (obj), car_expr);
+	  else
+	    {
+	      INIT_CONS_VAR;
+	      eassert (cons_entry_set);
+
+              gcc_jit_lvalue *lval
+                = cons_block_entry_emit_cons_lval (cons_entry);
+	      car = emit_rvalue_from_lisp_obj (Qnil);
+              add_lisp_const_lvalue_init_rval (
+                emit_lval_access_cons_car (lval),
+                car_expr.expr.lisp_obj, alloc_class);
+	    }
+
+          comp_lisp_const_t cdr_expr
+            = emit_comp_lisp_obj (XCDR (obj), alloc_class);
+	  if (cdr_expr.const_expr_p)
+	    cdr = comp_lisp_const_get_lisp_obj_rval (XCDR (obj), cdr_expr);
+	  else
+	    {
+	      INIT_CONS_VAR;
+
+	      cdr = emit_rvalue_from_lisp_obj (Qnil);
+              gcc_jit_lvalue *lval
+                = cons_block_entry_emit_cons_lval (cons_entry);
+              add_lisp_const_lvalue_init_rval (
+                emit_lval_access_cons_cdr (lval),
+                cdr_expr.expr.lisp_obj, alloc_class);
+	    }
+
+          gcc_jit_rvalue *init = emit_cons_struct (car, cdr);
+
+          expr.const_expr_p
+            = car_expr.const_expr_p && cdr_expr.const_expr_p;
+
+	  eassert (expr.const_expr_p || cons_entry_set);
+
+	  if (expr.const_expr_p)
+	    {
+	      expr.expr_type = COMP_LISP_CONST_INIT_WITH_TYPE;
+              expr.expr.with_type.init = init;
+	      expr.expr.with_type.type = Lisp_Cons;
+	    }
+	  else
+	    {
+	      expr.expr_type = COMP_LISP_CONST_VAR;
+              cons_block_entry_set_init_rval (cons_entry, init);
+	      expr.expr.lisp_obj
+                = emit_make_lisp_ptr (
+                  gcc_jit_lvalue_get_address (
+                    cons_block_entry_emit_cons_lval (cons_entry),
+                    NULL),
+                  Lisp_Cons);
+	    }
+        }
+      else
+	{
+	  gcc_jit_lvalue *var = emit_static_lisp_obj_var();
+	  add_static_initializer_lisp (var, obj, alloc_class);
+	  expr.const_expr_p = false;
+	  expr.expr_type = COMP_LISP_CONST_VAR;
+	  expr.expr.lisp_obj = gcc_jit_lvalue_as_rvalue (var);
+        }
+    }
+
+  if (expr.expr_type != COMP_LISP_CONST_SELF_REPR)
+    Fputhash (obj, init_expr_to_lisp (expr), comp.static_hash_cons_h);
+
+  SAFE_FREE ();
+  return expr;
+}
+
+static gcc_jit_rvalue *
+emit_data_container_vector (const char *name, jit_vector_type_t type)
+{
+  gcc_jit_lvalue *vec_var = emit_lisp_data_var (
+    gcc_jit_type_get_aligned (type.lisp_vector_type, GCALIGNMENT),
+    GCC_JIT_GLOBAL_INTERNAL);
+
+  (void) emit_export_const_lisp_obj_var (
+    name,
+    emit_make_lisp_ptr (gcc_jit_lvalue_get_address (vec_var, NULL),
+			Lisp_Vectorlike));
+
+  gcc_jit_rvalue *size_rval
+    = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                           comp.ptrdiff_type,
+                                           type.size);
+  gcc_jit_global_set_initializer_rvalue (
+    vec_var,
+    gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
+                                            type.lisp_vector_type, 1,
+                                            &type.header,
+                                            &size_rval));
+  return gcc_jit_lvalue_as_rvalue (
+    gcc_jit_lvalue_access_field (vec_var, NULL, type.contents));
+}
+
+static void
+emit_cons_blocks (void)
+{
+  Lisp_Object blocks = Freverse (comp.cons_block_list);
+
+  FOR_EACH_TAIL_SAFE (blocks)
+    {
+      Lisp_Object block = XCAR (blocks);
+
+      gcc_jit_lvalue *global = alloc_block_var (block);
+      gcc_jit_global_set_initializer_rvalue (
+        global, cons_block_emit_constructor (block));
+    }
+}
+
+static void
+emit_float_blocks (void)
+{
+  Lisp_Object blocks = Freverse (comp.float_block_list);
+
+  FOR_EACH_TAIL_SAFE (blocks)
+    {
+      Lisp_Object block = XCAR (blocks);
+
+      gcc_jit_lvalue *global = alloc_block_var (block);
+      gcc_jit_global_set_initializer_rvalue (
+        global, float_block_emit_constructor (block));
+    }
+}
+
+static void
+define_init_objs (void)
+{
+  eassert (comp.compile_static_data);
+
+  /* Declare and initialize all cons_block/float_block entries first.  */
+  emit_cons_blocks ();
+  emit_float_blocks ();
+
+  Lisp_Object statics = Freverse (comp.lisp_consts_init_lvals);
+
+  gcc_jit_block *next_block, *init_vars_block, *alloc_block,
+    *final_block;
+
+  ptrdiff_t staticpro_n = 0;
+  ptrdiff_t ephemeral_n = 0;
+
+  gcc_jit_param *native_comp_u
+    = gcc_jit_context_new_param (comp.ctxt, NULL, comp.lisp_obj_type,
+                                 "comp_u");
+  gcc_jit_param *params[] = {native_comp_u};
+  comp.func
+    = gcc_jit_context_new_function (comp.ctxt, NULL,
+                                    GCC_JIT_FUNCTION_EXPORTED,
+                                    comp.void_type, "comp_init_objs",
+                                    1, params, 0);
+  comp.func_relocs_local
+    = gcc_jit_function_new_local (comp.func, NULL,
+                                  comp.func_relocs_ptr_type,
+                                  "freloc");
+  comp.block = gcc_jit_function_new_block (comp.func, "entry");
+
+  alloc_block = gcc_jit_function_new_block (comp.func, "alloc_data");
+  init_vars_block = gcc_jit_function_new_block (comp.func, "init_vars");
+  final_block = gcc_jit_function_new_block (comp.func, "final");
+
+  gcc_jit_block_end_with_jump (comp.block, NULL, alloc_block);
+
+  comp.block = alloc_block;
+  gcc_jit_block_add_assignment (comp.block,
+				NULL,
+				comp.func_relocs_local,
+				gcc_jit_lvalue_as_rvalue (comp.func_relocs));
+
+  ptrdiff_t i = 0;
+
+  FOR_EACH_TAIL_SAFE (statics)
+    {
+      Lisp_Object elt;
+      Lisp_Object value;
+      Lisp_Object alloc_class;
+
+      elt = XCAR (statics);
+
+      value = lisp_const_init_obj (elt);
+      alloc_class = lisp_const_init_alloc_class (elt);
+
+      if (!mint_ptrp (value))
+	{
+	  if (EQ (alloc_class, Qd_ephemeral))
+	    ephemeral_n++;
+	  else
+	    staticpro_n++;
+	}
+    }
+
+  jit_vector_type_t staticpro_vec_type;
+  jit_vector_type_t eph_vec_type;
+
+  gcc_jit_rvalue *staticpro_vec_contents = NULL;
+  gcc_jit_rvalue *ephemeral_vec_contents = NULL;
+
+  gcc_jit_block *orig = comp.block;
+  comp.block = NULL;
+  if (staticpro_n > 0)
+    {
+      staticpro_vec_type = make_lisp_vector_struct_type (staticpro_n);
+      staticpro_vec_contents
+        = emit_data_container_vector (DATA_STATICPRO_SYM,
+                                      staticpro_vec_type);
+    }
+  else
+    emit_export_const_lisp_obj_var (DATA_STATICPRO_SYM,
+                                    emit_rvalue_from_lisp_obj (Qnil));
+
+  if (ephemeral_n > 0)
+    {
+      eph_vec_type= make_lisp_vector_struct_type (ephemeral_n);
+      ephemeral_vec_contents
+        = emit_data_container_vector (DATA_EPHEMERAL_SYM,
+                                      eph_vec_type);
+    }
+  else
+    emit_export_const_lisp_obj_var (DATA_EPHEMERAL_SYM,
+                                    emit_rvalue_from_lisp_obj (Qnil));
+  comp.block = orig;
+
+  statics = Freverse (comp.lisp_consts_init_lvals);
+
+  ptrdiff_t staticpro_idx = 0, ephemeral_idx = 0;
+  FOR_EACH_TAIL_SAFE (statics)
+  {
+    Lisp_Object elt;
+    Lisp_Object value;
+    Lisp_Object alloc_class;
+    gcc_jit_lvalue *accessor;
+
+    elt = XCAR (statics);
+
+    accessor = lisp_const_init_lvalue (elt);
+    value = lisp_const_init_obj (elt);
+    alloc_class = lisp_const_init_alloc_class (elt);
+
+    alloc_class_check (alloc_class);
+
+    if (mint_ptrp (value))
+      {
+        gcc_jit_rvalue *init = xmint_pointer (value);
+        eassert (init != NULL);
+
+        gcc_jit_block_add_assignment (final_block, NULL, accessor,
+                                      init);
+      }
+    else
+      {
+        next_block = gcc_jit_function_new_block (
+          comp.func, gcc_jit_object_get_debug_string (
+                       gcc_jit_lvalue_as_object (accessor)));
+
+        gcc_jit_block_end_with_jump (comp.block, NULL, next_block);
+        comp.block = next_block;
+	gcc_jit_rvalue *final_rval = NULL;
+
+	/* See emit_static_object_code.   */
+        specpdl_ref count = SPECPDL_INDEX ();
+	specbind (intern_c_string ("print-escape-newlines"), Qt);
+	specbind (intern_c_string ("print-length"), Qnil);
+	specbind (intern_c_string ("print-level"), Qnil);
+	specbind (intern_c_string ("print-quoted"), Qt);
+	specbind (intern_c_string ("print-gensym"), Qt);
+	specbind (intern_c_string ("print-circle"), Qt);
+	emit_comment (SSDATA (Fprin1_to_string (value, Qnil, Qnil)));
+	unbind_to (count, Qnil);
+
+        if (BARE_SYMBOL_P (value))
+          {
+            gcc_jit_lvalue *auto_str
+              = emit_lisp_data_var (comp.lisp_string_type,
+                                    GCC_JIT_GLOBAL_INTERNAL);
+            gcc_jit_rvalue *name_lisp_str
+              = emit_lisp_string_constructor_rval (Fsymbol_name (value));
+            gcc_jit_global_set_initializer_rvalue (auto_str,
+                                                   name_lisp_str);
+	    gcc_jit_rvalue *sym;
+	    if (!SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (value))
+	      {
+                gcc_jit_rvalue *args = emit_make_lisp_ptr (
+                  gcc_jit_lvalue_get_address (auto_str, NULL),
+                  Lisp_String);
+                sym = emit_call (intern_c_string ("make-symbol"),
+                                 comp.lisp_obj_type, 1, &args, false);
+	      }
+	    else
+	      {
+		gcc_jit_rvalue *args[]
+		  = { emit_make_lisp_ptr (
+                    gcc_jit_lvalue_get_address (auto_str, NULL),
+                    Lisp_String),
+		      emit_rvalue_from_lisp_obj (Qnil) };
+		sym
+		  = emit_call (intern_c_string ("intern"),
+			       comp.lisp_obj_type, 2, args, false);
+
+	      }
+	    final_rval = sym;
+          }
+        else
+          {
+            gcc_jit_lvalue *auto_str
+              = gcc_jit_function_new_local (comp.func, NULL,
+                                            comp.lisp_string_type,
+                                            format_string ("str_%td",
+                                                           i++));
+            specpdl_ref count = SPECPDL_INDEX ();
+            /* See emit_static_object_code.   */
+            specbind (intern_c_string ("print-escape-newlines"), Qt);
+            specbind (intern_c_string ("print-length"), Qnil);
+            specbind (intern_c_string ("print-level"), Qnil);
+            specbind (intern_c_string ("print-quoted"), Qt);
+            specbind (intern_c_string ("print-gensym"), Qt);
+            specbind (intern_c_string ("print-circle"), Qt);
+            Lisp_Object obj_str
+              = Fprin1_to_string (value, Qnil, Qnil);
+            unbind_to (count, Qnil);
+
+            gcc_jit_block_add_assignment (
+              comp.block, NULL, auto_str,
+              emit_lisp_string_constructor_rval (obj_str));
+            gcc_jit_rvalue *str = emit_make_lisp_ptr (
+              gcc_jit_lvalue_get_address (auto_str, NULL),
+              Lisp_String);
+            gcc_jit_rvalue *obj
+              = emit_call (intern_c_string ("read"),
+                           comp.lisp_obj_type, 1, &str, false);
+            final_rval = obj;
+          }
+
+	eassert (final_rval != NULL);
+
+        if (EQ (alloc_class, Qd_ephemeral))
+          {
+	    eassert (ephemeral_vec_contents != NULL);
+
+            gcc_jit_rvalue *idx
+              = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                                     comp
+						     .ptrdiff_type,
+                                                     ephemeral_idx++);
+            gcc_jit_lvalue *lval = gcc_jit_context_new_array_access (
+              comp.ctxt, NULL, ephemeral_vec_contents, idx);
+
+            gcc_jit_block_add_assignment (comp.block, NULL, lval,
+                                          final_rval);
+	    gcc_jit_block_add_assignment (init_vars_block, NULL, accessor,
+					  gcc_jit_lvalue_as_rvalue (lval));
+	  }
+        else
+          {
+	    eassert (staticpro_vec_contents != NULL);
+
+	    gcc_jit_rvalue *idx
+              = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                                     comp
+						     .ptrdiff_type,
+                                                     staticpro_idx++);
+            gcc_jit_lvalue *lval = gcc_jit_context_new_array_access (
+              comp.ctxt, NULL, staticpro_vec_contents, idx);
+            gcc_jit_block_add_assignment (comp.block, NULL, lval,
+                                          final_rval);
+	    gcc_jit_block_add_assignment (init_vars_block, NULL, accessor,
+					  gcc_jit_lvalue_as_rvalue (lval));
+	  }
+
+      }
+    }
+
+  gcc_jit_block_end_with_jump (comp.block, NULL, init_vars_block);
+  gcc_jit_block_end_with_jump (init_vars_block, NULL, final_block);
+  comp.block = final_block;
+
+  Lisp_Object lambda = comp.lambda_init_lvals;
+  FOR_EACH_TAIL_SAFE (lambda)
+    {
+      Lisp_Object elt;
+      gcc_jit_lvalue *accessor;
+
+      elt = XCAR (lambda);
+
+      accessor = xmint_pointer (AREF (elt, 0));
+      Lisp_Object func = AREF (elt, 1);
+      Lisp_Object c_name
+	= CALL1I (comp-func-c-name, func);
+
+      gcc_jit_rvalue *subr
+	= emit_aligned_lisp_subr_constructor_rval (
+	  SSDATA (c_name),
+	  gcc_jit_param_as_rvalue (native_comp_u), func);
+      accessor = gcc_jit_rvalue_dereference (
+	gcc_jit_context_new_bitcast (
+	  comp.ctxt, NULL,
+	  gcc_jit_lvalue_get_address (accessor, NULL),
+	  comp.aligned_lisp_subr_ptr_type),
+	NULL);
+
+      gcc_jit_block_add_assignment (comp.block, NULL, accessor,
+				    subr);
+    }
+
+  gcc_jit_context_new_global (comp.ctxt, NULL,
+                              GCC_JIT_GLOBAL_EXPORTED,
+                              gcc_jit_type_get_const (comp.bool_type),
+                              HAVE_STATIC_LISP_DATA_SYM);
+  gcc_jit_block_end_with_void_return (comp.block, NULL);
+}
+
 static gcc_jit_lvalue *
 emit_lisp_obj_reloc_lval (Lisp_Object obj)
 {
@@ -1849,6 +3558,10 @@ emit_lisp_obj_rval (Lisp_Object obj)
       return emit_coerce (comp.lisp_obj_type, n);
     }
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (comp.compile_static_data)
+    return emit_lisp_obj_static_rval (obj);
+#endif
   return gcc_jit_lvalue_as_rvalue (emit_lisp_obj_reloc_lval (obj));
 }
 
@@ -1857,6 +3570,35 @@ emit_NILP (gcc_jit_rvalue *x)
 {
   emit_comment ("NILP");
   return emit_BASE_EQ (x, emit_lisp_obj_rval (Qnil));
+}
+
+static gcc_jit_lvalue *
+emit_lval_access_cons_car (gcc_jit_lvalue *cons)
+{
+  /* cons.u.s.car */
+  return gcc_jit_lvalue_access_field (
+    /* cons.u.s */
+    gcc_jit_lvalue_access_field (
+      /* cons.u */
+      gcc_jit_lvalue_access_field (cons, NULL, comp.lisp_cons_u),
+      NULL, comp.lisp_cons_u_s),
+    NULL, comp.lisp_cons_u_s_car);
+}
+
+static gcc_jit_lvalue *
+emit_lval_access_cons_cdr (gcc_jit_lvalue *cons)
+{
+  /* cons.u.s.u.cdr */
+  return gcc_jit_lvalue_access_field (
+    /* cons.u.s.u */
+    gcc_jit_lvalue_access_field (
+      /* cons.u.s */
+      gcc_jit_lvalue_access_field (
+        /* cons.u */
+        gcc_jit_lvalue_access_field (cons, NULL, comp.lisp_cons_u),
+        NULL, comp.lisp_cons_u_s),
+      NULL, comp.lisp_cons_u_s_u),
+    NULL, comp.lisp_cons_u_s_u_cdr);
 }
 
 static gcc_jit_rvalue *
@@ -1995,6 +3737,37 @@ emit_CHECK_SYMBOL_WITH_POS (gcc_jit_rvalue *x)
 			      args));
 }
 
+static gcc_jit_lvalue *
+emit_AREF_lval (gcc_jit_rvalue *array, gcc_jit_rvalue *idx)
+{
+  gcc_jit_rvalue *vector = emit_XVECTOR (array);
+  gcc_jit_lvalue *contents
+    = gcc_jit_rvalue_dereference_field (vector, NULL,
+                                        comp.lisp_vector_contents);
+  return gcc_jit_context_new_array_access (comp.ctxt, NULL,
+                                           gcc_jit_lvalue_as_rvalue (
+                                             contents),
+                                           idx);
+}
+
+static gcc_jit_rvalue *
+emit_AREF (gcc_jit_rvalue *array, gcc_jit_rvalue *idx)
+{
+  emit_comment ("AREF");
+
+  return gcc_jit_lvalue_as_rvalue (emit_AREF_lval (array, idx));
+}
+
+static void
+emit_ASET (gcc_jit_rvalue *array, gcc_jit_rvalue *idx,
+           gcc_jit_rvalue *val)
+{
+  emit_comment ("ASET");
+
+  gcc_jit_lvalue *lval = emit_AREF_lval (array, idx);
+  gcc_jit_block_add_assignment (comp.block, NULL, lval, val);
+}
+
 static gcc_jit_rvalue *
 emit_car_addr (gcc_jit_rvalue *c)
 {
@@ -2037,6 +3810,64 @@ emit_XSETCDR (gcc_jit_rvalue *c, gcc_jit_rvalue *n)
       emit_cdr_addr (c),
       NULL),
     n);
+}
+
+static gcc_jit_rvalue *
+emit_TAG_PTR (gcc_jit_rvalue *tag, gcc_jit_rvalue *ptr)
+{
+  emit_comment ("TAG_PTR");
+  gcc_jit_rvalue *untagged
+    = gcc_jit_context_new_cast (comp.ctxt, NULL,
+                                ptr,
+                                comp.untagged_ptr_type);
+  gcc_jit_rvalue *result_word;
+
+  if (LISP_WORDS_ARE_POINTERS)
+    {
+      gcc_jit_lvalue *access
+        = gcc_jit_context_new_array_access (comp.ctxt, NULL, untagged,
+                                            tag);
+
+      result_word = gcc_jit_lvalue_get_address (access, NULL);
+      result_word = emit_coerce (comp.lisp_word_type, result_word);
+    }
+  else
+    {
+      result_word
+        = gcc_jit_context_new_binary_op (comp.ctxt, NULL,
+                                         GCC_JIT_BINARY_OP_PLUS,
+                                         comp.lisp_word_type,
+                                         untagged, tag);
+    }
+
+  return emit_coerce (comp.lisp_obj_type, result_word);
+}
+
+const char *lisp_type_name[Lisp_Float + 1] = {
+  "Lisp_Symbol",
+  "Lisp_Type_Unused0",
+  "Lisp_Int0",
+  "Lisp_Int1",
+  "Lisp_String",
+  "Lisp_Vectorlike",
+  "Lisp_Cons",
+  "Lisp_Float"
+};
+
+static gcc_jit_rvalue *
+emit_make_lisp_ptr (gcc_jit_rvalue *ptr, enum Lisp_Type type)
+{
+  emit_comment (format_string ("make_lisp_ptr (%s, %s)",
+                               gcc_jit_object_get_debug_string (
+                                 gcc_jit_rvalue_as_object (ptr)),
+                               lisp_type_name[type]));
+
+  Lisp_Word_tag tag = LISP_WORD_TAG (type);
+  if (!gcc_jit_type_is_pointer (gcc_jit_rvalue_get_type (ptr)))
+    xsignal1 (Qnative_ice,
+              build_string ("attempting to tag a non-pointer value"));
+
+  return emit_TAG_PTR (emit_rvalue_from_lisp_word_tag (tag), ptr);
 }
 
 static gcc_jit_rvalue *
@@ -2096,6 +3927,8 @@ emit_mvar_rval (Lisp_Object mvar)
 	     word (read fixnums).  */
           return emit_rvalue_from_lisp_obj (value);
 	}
+
+
       /* Other const objects are fetched from the reloc array.  */
       return emit_lisp_obj_rval (value);
     }
@@ -2619,14 +4452,23 @@ emit_limple_insn (Lisp_Object insn)
     {
       /* Ex: (setimm #s(comp-mvar 9 1 t 3 nil) a).  */
       emit_comment (SSDATA (Fprin1_to_string (arg[1], Qnil, Qnil)));
-      imm_reloc_t reloc = obj_to_reloc (arg[1]);
-      emit_frame_assignment (
-	arg[0],
-	gcc_jit_lvalue_as_rvalue (
-	  gcc_jit_context_new_array_access (comp.ctxt,
-					    NULL,
-					    reloc.array.r_val,
-					    reloc.idx)));
+      gcc_jit_rvalue *val;
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+      if (comp.compile_static_data)
+	val = emit_lisp_obj_static_rval (arg[1]);
+      else
+	{
+#endif
+	  imm_reloc_t reloc = obj_to_reloc (arg[1]);
+	  val = gcc_jit_lvalue_as_rvalue (
+	    gcc_jit_context_new_array_access (comp.ctxt, NULL,
+					      reloc.array.r_val,
+					      reloc.idx));
+#ifdef HAVE_STATIC_LISP_GLOBALS
+	}
+#endif
+      emit_frame_assignment (arg[0], val);
     }
   else if (EQ (op, Qcomment))
     {
@@ -2775,10 +4617,19 @@ emit_maybe_gc_or_quit (Lisp_Object insn)
    retrieve it at load time.  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
-static void
-emit_static_object (const char *name, Lisp_Object obj)
+  static void
+  emit_static_object (const char *name, Lisp_Object obj)
 {
-  /* libgccjit has no support for initialized static data.
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (comp.compile_static_data)
+    {
+      comp_lisp_const_t expr = emit_comp_lisp_obj (obj, Qd_default);
+      emit_export_const_lisp_obj_var (
+	name, comp_lisp_const_get_lisp_obj_rval (obj, expr));
+      return;
+    }
+#endif
+  /* We cannot emit initialized static data.
      The mechanism below is certainly not aesthetic but I assume the bottle neck
      in terms of performance at load time will still be the reader.
      NOTE: we can not rely on libgccjit even for valid NULL terminated C
@@ -2963,6 +4814,53 @@ emit_static_object (const char *name, Lisp_Object obj)
 }
 #pragma GCC diagnostic pop
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+static Lisp_Object
+emit_static_data_container (Lisp_Object container,
+                            Lisp_Object alloc_class)
+{
+  struct Lisp_Hash_Table *h =
+    XHASH_TABLE (CALL1I (comp-data-container-idx, container));
+  Lisp_Object rval_h
+    = CALLN (Fmake_hash_table, QCtest,
+             intern_c_string ("comp-imm-equal-test"));
+
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    {
+      Lisp_Object obj = HASH_KEY (h, i);
+      if (!BASE_EQ (obj, Qunbound))
+	{
+          comp_lisp_const_t expr
+            = emit_comp_lisp_obj (obj, alloc_class);
+          Fputhash (obj,
+                    make_mint_ptr (
+                      comp_lisp_const_get_lisp_obj_rval (obj, expr)),
+                    rval_h);
+
+	}
+    }
+
+  return rval_h;
+}
+
+static void
+emit_lisp_data (void)
+{
+  eassert (comp.compile_static_data);
+
+  comp.d_default_rvals =
+    emit_static_data_container (CALL1I (comp-ctxt-d-default, Vcomp_ctxt),
+				Qd_default);
+  comp.d_impure_rvals =
+    emit_static_data_container (CALL1I (comp-ctxt-d-impure, Vcomp_ctxt),
+				Qd_impure);
+  comp.d_ephemeral_rvals =
+    emit_static_data_container (CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt),
+				Qd_ephemeral);
+}
+
+#endif
+
 static reloc_array_t
 declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
 			      const char *text_symbol)
@@ -3089,17 +4987,16 @@ emit_ctxt_code (void)
 	     Fcomp_libgccjit_version ()) };
   emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (ARRAYELTS (opt_qly), opt_qly));
 
-  emit_static_object (TEXT_FDOC_SYM,
-		      CALL1I (comp-ctxt-function-docs, Vcomp_ctxt));
+  Lisp_Object docs = CALL1I (comp-ctxt-function-docs, Vcomp_ctxt);
+  emit_static_object (TEXT_FDOC_SYM, docs);
 
-  comp.current_thread_ref =
-    gcc_jit_lvalue_as_rvalue (
-      gcc_jit_context_new_global (
-	comp.ctxt,
-	NULL,
-	GCC_JIT_GLOBAL_EXPORTED,
-	gcc_jit_type_get_pointer (comp.thread_state_ptr_type),
-	CURRENT_THREAD_RELOC_SYM));
+  comp.current_thread_ref
+    = gcc_jit_lvalue_as_rvalue (
+      gcc_jit_context_new_global (comp.ctxt, NULL,
+                                  GCC_JIT_GLOBAL_EXPORTED,
+                                  gcc_jit_type_get_pointer (
+                                    comp.thread_state_ptr_type),
+                                  CURRENT_THREAD_RELOC_SYM));
 
   comp.f_symbols_with_pos_enabled_ref =
     gcc_jit_lvalue_as_rvalue (
@@ -3126,7 +5023,12 @@ emit_ctxt_code (void)
 	comp.lisp_obj_type,
 	COMP_UNIT_SYM);
 
-  declare_imported_data ();
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (comp.compile_static_data)
+    emit_lisp_data ();
+  else
+#endif
+    declare_imported_data ();
 
   /* Functions imported from Lisp code.	 */
   freloc_check_fill ();
@@ -3178,6 +5080,17 @@ emit_ctxt_code (void)
 /* Inline function definition and lisp data structure follows.  */
 /****************************************************************/
 
+#ifdef LIBGCCJIT_HAVE_gcc_jit_type_get_aligned
+static gcc_jit_field *
+make_gcaligned_union_field (void)
+{
+  return gcc_jit_context_new_field (
+    comp.ctxt, NULL,
+    gcc_jit_type_get_aligned (comp.char_type, GCALIGNMENT),
+    "gcaligned");
+}
+#endif
+
 /* struct Lisp_Cons definition.  */
 
 static void
@@ -3200,6 +5113,7 @@ define_lisp_cons (void)
     {
       struct cons_s s;
       char align_pad[sizeof (struct Lisp_Cons)];
+      (or char gcaligned __attribute__((aligned(GCALIGNMENT))))
     };
 
     struct Lisp_Cons
@@ -3236,7 +5150,7 @@ define_lisp_cons (void)
 				    "comp_cdr_u",
 				    ARRAYELTS (cdr_u_fields),
 				    cdr_u_fields);
-
+  comp.lisp_cons_u_s_u_type = cdr_u;
   comp.lisp_cons_u_s_car = gcc_jit_context_new_field (comp.ctxt,
 					    NULL,
 					    comp.lisp_obj_type,
@@ -3255,14 +5169,18 @@ define_lisp_cons (void)
 				     "comp_cons_s",
 				     ARRAYELTS (cons_s_fields),
 				     cons_s_fields);
+  comp.lisp_cons_u_s_type = gcc_jit_struct_as_type (cons_s);
 
   comp.lisp_cons_u_s = gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
-				 gcc_jit_struct_as_type (cons_s),
+				 comp.lisp_cons_u_s_type,
 				 "s");
 
   gcc_jit_field *cons_u_fields[] =
     { comp.lisp_cons_u_s,
+#ifdef LIBGCCJIT_HAVE_gcc_jit_type_get_aligned
+      make_gcaligned_union_field (),
+#else
       gcc_jit_context_new_field (
 	comp.ctxt,
 	NULL,
@@ -3270,7 +5188,9 @@ define_lisp_cons (void)
 					NULL,
 					comp.char_type,
 					sizeof (struct Lisp_Cons)),
-	"align_pad") };
+	"align_pad")
+#endif
+    };
 
   gcc_jit_type *lisp_cons_u_type =
     gcc_jit_context_new_union_type (comp.ctxt,
@@ -3278,6 +5198,7 @@ define_lisp_cons (void)
 				    "comp_cons_u",
 				    ARRAYELTS (cons_u_fields),
 				    cons_u_fields);
+  comp.lisp_cons_u_type = lisp_cons_u_type;
 
   comp.lisp_cons_u =
     gcc_jit_context_new_field (comp.ctxt,
@@ -3286,8 +5207,82 @@ define_lisp_cons (void)
 			       "u");
   gcc_jit_struct_set_fields (comp.lisp_cons_s,
 			     NULL, 1, &comp.lisp_cons_u);
-
 }
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+static void
+define_cons_block (void)
+{
+  comp.cons_block_s
+    = gcc_jit_context_new_opaque_struct (comp.ctxt, NULL,
+                                         "comp_cons_block");
+  comp.cons_block_type = gcc_jit_struct_as_type (comp.cons_block_s);
+
+  comp.cons_block_conses = gcc_jit_context_new_field (
+    comp.ctxt, NULL,
+    gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                    comp.lisp_cons_type,
+                                    cons_block_conses_length), "conses");
+  comp.cons_block_gcmarkbits = gcc_jit_context_new_field (
+    comp.ctxt, NULL,
+    gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                    comp.bits_word_type,
+                                    cons_block_gcmarkbits_length),
+    "gcmarkbits");
+  comp.cons_block_next
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 gcc_jit_type_get_pointer (
+                                   comp.cons_block_type),
+                                 "next");
+
+  gcc_jit_field *fields[]
+    = { comp.cons_block_conses, comp.cons_block_gcmarkbits,
+        comp.cons_block_next };
+  gcc_jit_struct_set_fields (comp.cons_block_s, NULL, 3, fields);
+  comp.cons_block_aligned_type
+    = gcc_jit_type_get_aligned (comp.cons_block_type, block_align);
+
+  comp.cons_block_aligned_ptr_type
+    = gcc_jit_type_get_pointer (comp.cons_block_aligned_type);
+}
+
+static void
+define_float_block (void)
+{
+  comp.float_block_s
+    = gcc_jit_context_new_opaque_struct (comp.ctxt, NULL,
+                                         "comp_float_block");
+  comp.float_block_type = gcc_jit_struct_as_type (comp.float_block_s);
+
+  comp.float_block_floats = gcc_jit_context_new_field (
+    comp.ctxt, NULL,
+    gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                    comp.lisp_float_type,
+                                    float_block_floats_length),
+    "floats");
+  comp.float_block_gcmarkbits = gcc_jit_context_new_field (
+    comp.ctxt, NULL,
+    gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                    comp.bits_word_type,
+                                    float_block_gcmarkbits_length),
+    "gcmarkbits");
+  comp.float_block_next
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 gcc_jit_type_get_pointer (
+                                   comp.float_block_type),
+                                 "next");
+
+  gcc_jit_field *fields[]
+    = { comp.float_block_floats, comp.float_block_gcmarkbits,
+        comp.float_block_next };
+  gcc_jit_struct_set_fields (comp.float_block_s, NULL, 3, fields);
+  comp.float_block_aligned_type
+    = gcc_jit_type_get_aligned (comp.float_block_type, block_align);
+
+  comp.float_block_aligned_ptr_type
+    = gcc_jit_type_get_pointer (comp.float_block_aligned_type);
+}
+#endif
 
 static void
 define_lisp_symbol_with_position (void)
@@ -3320,6 +5315,252 @@ define_lisp_symbol_with_position (void)
     gcc_jit_struct_as_type (comp.lisp_symbol_with_position);
   comp.lisp_symbol_with_position_ptr_type =
     gcc_jit_type_get_pointer (comp.lisp_symbol_with_position_type);
+}
+
+static void
+define_lisp_string (void)
+{
+  /*
+    struct s
+    {
+      ptrdiff_t size;
+      ptrdiff_t size_byte;
+      void *intervals;
+      unsigned char *data;
+    };
+    union u
+    {
+      struct s s;
+      struct Lisp_String *next;
+      char gcaligned __attribtue__ ((aligned ((GCALIGNMENT))));
+    };
+    struct Lisp_String
+    {
+      union u u;
+    }
+   */
+
+  comp.interval_s
+    = gcc_jit_context_new_opaque_struct (comp.ctxt, NULL,
+                                         "comp_interval");
+
+  comp.interval_type = gcc_jit_struct_as_type (comp.interval_s);
+  comp.interval_ptr_type = gcc_jit_type_get_pointer (comp.interval_type);
+
+  comp.lisp_string_s =
+    gcc_jit_context_new_opaque_struct (comp.ctxt,
+				       NULL,
+				       "comp_Lisp_String");
+  comp.lisp_string_type = gcc_jit_struct_as_type (comp.lisp_string_s);
+  comp.lisp_string_ptr_type =
+    gcc_jit_type_get_pointer (comp.lisp_string_type);
+  comp.lisp_string_u_s_size
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.ptrdiff_type,
+                                 "size");
+  comp.lisp_string_u_s_size_bytes
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.ptrdiff_type,
+                                 "size_byte");
+  comp.lisp_string_u_s_intervals
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.interval_ptr_type,
+                                 "intervals");
+  comp.lisp_string_u_s_data
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+				 comp.unsigned_char_ptr_type,
+                                 "data");
+
+  gcc_jit_field *u_s_fields[] = {
+    comp.lisp_string_u_s_size,
+    comp.lisp_string_u_s_size_bytes,
+    comp.lisp_string_u_s_intervals,
+    comp.lisp_string_u_s_data,
+  };
+
+  gcc_jit_struct *u_s
+    = gcc_jit_context_new_struct_type (comp.ctxt, NULL,
+                                       "comp_string_u_s", 4,
+                                       u_s_fields);
+  comp.lisp_string_u_s_type = gcc_jit_struct_as_type (u_s);
+  comp.lisp_string_u_next
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 comp.lisp_string_ptr_type, "next");
+  comp.lisp_string_u_s
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 gcc_jit_struct_as_type (u_s), "s");
+
+  gcc_jit_field *u_fields[] = {
+    comp.lisp_string_u_s,
+    comp.lisp_string_u_next,
+    make_gcaligned_union_field (),
+  };
+
+  gcc_jit_type *u
+    = gcc_jit_context_new_union_type (comp.ctxt, NULL,
+                                      "comp_string_u", 3, u_fields);
+  comp.lisp_string_u_type = u;
+  comp.lisp_string_u
+    = gcc_jit_context_new_field (comp.ctxt, NULL, u, "u");
+
+  gcc_jit_struct_set_fields (comp.lisp_string_s, NULL, 1,
+                             &comp.lisp_string_u);
+}
+
+static void
+define_lisp_vector (void)
+{
+  comp.lisp_vector_header
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.ptrdiff_type,
+                                 "header");
+  comp.lisp_vector_contents
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 gcc_jit_type_get_pointer (
+                                   comp.lisp_obj_type),
+                                 "contents");
+  gcc_jit_field *fields[]
+    = { comp.lisp_vector_header, comp.lisp_vector_contents };
+  comp.lisp_vector_s
+    = gcc_jit_context_new_struct_type (comp.ctxt, NULL, "Lisp_Vector",
+                                       2, fields);
+
+  comp.lisp_vector_type = gcc_jit_struct_as_type (comp.lisp_vector_s);
+  comp.lisp_vector_gcaligned_type
+    = gcc_jit_type_get_aligned (comp.lisp_vector_type, GCALIGNMENT);
+  comp.lisp_vector_ptr_type = gcc_jit_type_get_pointer (comp.lisp_vector_gcaligned_type);
+}
+
+static void
+define_lisp_float (void)
+{
+  /*
+    union u
+    {
+      double data;
+      struct Lisp_Float *chain;
+      char gcaligned __attribute__((aligned (GCALIGNMENT)));
+    }
+
+    struct Lisp_Float
+    {
+      union u u;
+    }
+   */
+
+  comp.lisp_float_s
+    = gcc_jit_context_new_opaque_struct (comp.ctxt, NULL,
+                                         "comp_Lisp_Float");
+
+  comp.lisp_float_type = gcc_jit_struct_as_type (comp.lisp_float_s);
+  comp.lisp_float_ptr_type = gcc_jit_type_get_pointer (comp.lisp_float_type);
+
+  comp.lisp_float_u_data
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.double_type,
+                                 "data");
+  comp.lisp_float_u_chain
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 comp.lisp_float_ptr_type, "chain");
+  gcc_jit_field *u_fields[] = {
+    comp.lisp_float_u_data,
+    comp.lisp_float_u_chain,
+    make_gcaligned_union_field (),
+  };
+  comp.lisp_float_u_type
+    = gcc_jit_context_new_union_type (comp.ctxt, NULL,
+                                      "comp_Lisp_Float_u", 3, u_fields);
+
+  comp.lisp_float_u
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 comp.lisp_float_u_type, "u");
+  gcc_jit_struct_set_fields (comp.lisp_float_s, NULL, 1, &comp.lisp_float_u);
+}
+
+static void
+define_lisp_subr (void)
+{
+  comp.lisp_subr_header
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.ptrdiff_type,
+                                 "header");
+  comp.lisp_subr_function
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.void_ptr_type,
+                                 "function");
+  comp.lisp_subr_min_args
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.short_type,
+                                 "min_args");
+  comp.lisp_subr_max_args
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.short_type,
+                                 "max_args");
+  comp.lisp_subr_symbol_name
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 gcc_jit_type_get_const (
+                                   comp.char_ptr_type),
+                                 "symbol_name");
+
+  comp.lisp_subr_intspec_string = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 gcc_jit_type_get_const (
+                                   comp.char_ptr_type),
+                                 "string");
+  comp.lisp_subr_intspec_native
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.lisp_obj_type,
+                                 "native");
+  gcc_jit_field *intspec_fields[] = { comp.lisp_subr_intspec_string,
+                                      comp.lisp_subr_intspec_native };
+
+  comp.lisp_subr_intspec_type
+    = gcc_jit_context_new_union_type (comp.ctxt, NULL, "comp_intspec",
+                                      2, intspec_fields);
+  comp.lisp_subr_intspec
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 comp.lisp_subr_intspec_type,
+                                 "intspec");
+
+  comp.lisp_subr_command_modes
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.lisp_obj_type,
+                                 "command_modes");
+  comp.lisp_subr_doc
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.emacs_int_type,
+                                 "doc");
+  comp.lisp_subr_native_comp_u
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.lisp_obj_type,
+                                 "native_comp_u");
+  comp.lisp_subr_native_c_name
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.char_ptr_type,
+                                 "native_c_name");
+  comp.lisp_subr_lambda_list
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.lisp_obj_type,
+                                 "lamdba_list");
+  comp.lisp_subr_type
+    = gcc_jit_context_new_field (comp.ctxt, NULL, comp.lisp_obj_type,
+                                 "type");
+
+  gcc_jit_field *lisp_subr_fields[]
+    = { comp.lisp_subr_header,        comp.lisp_subr_function,
+        comp.lisp_subr_min_args,      comp.lisp_subr_max_args,
+        comp.lisp_subr_symbol_name,   comp.lisp_subr_intspec,
+        comp.lisp_subr_command_modes, comp.lisp_subr_doc,
+        comp.lisp_subr_native_comp_u, comp.lisp_subr_native_c_name,
+        comp.lisp_subr_lambda_list,   comp.lisp_subr_type };
+
+  comp.lisp_subr_s
+    = gcc_jit_context_new_struct_type (comp.ctxt, NULL,
+                                       "comp_Lisp_Subr", 12,
+                                       lisp_subr_fields);
+  comp.lisp_subr_s_type = gcc_jit_struct_as_type (comp.lisp_subr_s);
+  comp.lisp_subr_s_gcaligned_type
+    = gcc_jit_type_get_aligned (comp.lisp_subr_s_type, GCALIGNMENT);
+}
+
+static void
+define_aligned_lisp_subr (void)
+{
+  comp.aligned_lisp_subr_s
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+                                 comp.lisp_subr_s_gcaligned_type,
+                                 "s");
+  gcc_jit_field *gcaligned = make_gcaligned_union_field ();
+  gcc_jit_field *fields[] = {comp.aligned_lisp_subr_s, gcaligned};
+  comp.aligned_lisp_subr_type
+    = gcc_jit_context_new_union_type (comp.ctxt, NULL,
+                                      "comp_Aligned_Subr", 2, fields);
+  comp.aligned_lisp_subr_ptr_type
+    = gcc_jit_type_get_pointer (comp.aligned_lisp_subr_type);
 }
 
 /* Opaque jmp_buf definition.  */
@@ -4722,8 +6963,12 @@ Return t on success.  */)
   comp.void_ptr_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
   comp.bool_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_BOOL);
+  comp.unsigned_char_type
+    = gcc_jit_context_get_type (comp.ctxt,
+                                GCC_JIT_TYPE_UNSIGNED_CHAR);
   comp.char_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_CHAR);
   comp.int_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_INT);
+  comp.double_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_DOUBLE);
   comp.unsigned_type = gcc_jit_context_get_type (comp.ctxt,
 						 GCC_JIT_TYPE_UNSIGNED_INT);
   comp.long_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_LONG);
@@ -4734,6 +6979,8 @@ Return t on success.  */)
   comp.unsigned_long_long_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_UNSIGNED_LONG_LONG);
   comp.bool_ptr_type = gcc_jit_type_get_pointer (comp.bool_type);
+  comp.unsigned_char_ptr_type
+    = gcc_jit_type_get_pointer (comp.unsigned_char_type);
   comp.char_ptr_type = gcc_jit_type_get_pointer (comp.char_type);
   comp.emacs_int_type = gcc_jit_context_get_int_type (comp.ctxt,
 						      sizeof (EMACS_INT),
@@ -4748,11 +6995,16 @@ Return t on success.  */)
 	gcc_jit_context_new_opaque_struct (comp.ctxt,
 					   NULL,
 					   "Lisp_X")));
+  comp.untagged_ptr_type = comp.char_ptr_type;
 #else
   comp.lisp_word_type = comp.emacs_int_type;
+  comp.untagged_ptr_type = comp.uintptr_type;
 #endif
   comp.lisp_word_tag_type
     = gcc_jit_context_get_int_type (comp.ctxt, sizeof (Lisp_Word_tag), false);
+  comp.bits_word_type
+    = gcc_jit_context_get_int_type (comp.ctxt, sizeof (bits_word),
+                                    BITS_WORD_IS_SIGNED);
 #ifdef LISP_OBJECT_IS_STRUCT
   comp.lisp_obj_i = gcc_jit_context_new_field (comp.ctxt,
                                                NULL,
@@ -4784,6 +7036,8 @@ Return t on success.  */)
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					 comp.emacs_int_type,
 					 Lisp_Int0);
+  comp.short_type
+    = gcc_jit_context_get_int_type (comp.ctxt, sizeof (short), true);
   comp.ptrdiff_type = gcc_jit_context_get_int_type (comp.ctxt,
 						    sizeof (void *),
 						    true);
@@ -4805,8 +7059,23 @@ Return t on success.  */)
 
   /* Define data structures.  */
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  comp.lisp_vector_structs_h = CALLN (Fmake_hash_table);
+#endif
+
   define_lisp_cons ();
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  define_cons_block ();
+#endif
   define_lisp_symbol_with_position ();
+  define_lisp_string ();
+  define_lisp_float ();
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  define_float_block ();
+#endif
+  define_lisp_vector ();
+  define_lisp_subr ();
+  define_aligned_lisp_subr ();
   define_jmp_buf ();
   define_handler_struct ();
   define_thread_state_struct ();
@@ -4989,6 +7258,11 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   comp.driver_options = CALL1I (comp-ctxt-driver-options, Vcomp_ctxt);
   comp.compiler_options = CALL1I (comp-ctxt-compiler-options, Vcomp_ctxt);
 
+  #ifdef HAVE_STATIC_LISP_GLOBALS
+  comp.compile_static_data = !NILP (CALL1I (comp-ctxt-with-static-data,
+					    Vcomp_ctxt));
+  #endif
+
   if (comp.debug)
       gcc_jit_context_set_bool_option (comp.ctxt,
 				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
@@ -5020,12 +7294,33 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
          comp.ctxt, SSDATA (Ffile_name_nondirectory (filename)));
 #endif
 
-  comp.d_default_idx =
-    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-default, Vcomp_ctxt));
-  comp.d_impure_idx =
-    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-impure, Vcomp_ctxt));
-  comp.d_ephemeral_idx =
-    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt));
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (comp.compile_static_data)
+    {
+      comp.static_lisp_data_count = 0;
+      comp.lisp_obj_globals_count = 0;
+      comp.static_hash_cons_h
+	= CALLN (Fmake_hash_table, QCtest,
+		 intern_c_string ("comp-imm-equal-test"));
+      comp.lisp_consts_init_lvals = Qnil;
+      comp.lambda_init_lvals = Qnil;
+    }
+  else
+    {
+#endif
+      comp.d_default_idx =
+	CALL1I (comp-data-container-idx,
+		CALL1I (comp-ctxt-d-default, Vcomp_ctxt));
+      comp.d_impure_idx =
+	CALL1I (comp-data-container-idx,
+		CALL1I (comp-ctxt-d-impure, Vcomp_ctxt));
+      comp.d_ephemeral_idx =
+	CALL1I (comp-data-container-idx,
+		CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt));
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+    }
+#endif
 
   emit_ctxt_code ();
 
@@ -5052,6 +7347,11 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
     if (!BASE_EQ (HASH_VALUE (func_h, i), Qunbound))
       compile_function (HASH_VALUE (func_h, i));
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (comp.compile_static_data)
+    define_init_objs ();
+#endif
 
   /* Work around bug#46495 (GCC PR99126). */
 #if defined (WIDE_EMACS_INT)						\
@@ -5329,6 +7629,17 @@ typedef char *(*comp_lit_str_func) (void);
 static Lisp_Object
 load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 {
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (comp_u->have_static_lisp_data)
+    {
+      Lisp_Object *obj = dynlib_sym (comp_u->handle, name);
+      if (obj)
+	return *obj;
+
+      xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
+    }
+#endif
+
   static_obj_t *blob =
     dynlib_sym (comp_u->handle, format_string ("%s_blob", name));
   if (blob)
@@ -5345,10 +7656,12 @@ load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 }
 
 /* Return false when something is wrong or true otherwise.  */
-
 static bool
 check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
 {
+  if (comp_u->have_static_lisp_data)
+    return false;
+
   dynlib_handle_ptr handle = comp_u->handle;
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
   Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
@@ -5394,8 +7707,11 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   if (!saved_cu)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
   comp_u->loaded_once = !NILP (*saved_cu);
-  Lisp_Object *data_eph_relocs =
-    dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
+
+  Lisp_Object *data_eph_relocs
+    = comp_u->have_static_lisp_data
+        ? NULL
+        : dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
 
   /* While resurrecting from an image dump loading more than once the
      same compilation unit does not make any sense.  */
@@ -5431,9 +7747,10 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     = dynlib_sym (handle,
 		  late_load ? "late_top_level_run" : "top_level_run");
 
-  /* Always set data_imp_relocs pointer in the compilation unit (in can be
-     used in 'dump_do_dump_relocation').  */
-  comp_u->data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
+  if (!comp_u->have_static_lisp_data)
+    /* Always set data_imp_relocs pointer in the compilation unit (in can be
+       used in 'dump_do_dump_relocation').  */
+    comp_u->data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
 
   if (!comp_u->loaded_once)
     {
@@ -5442,16 +7759,35 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       bool **f_symbols_with_pos_enabled_reloc =
 	dynlib_sym (handle, F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM);
       void **pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
-      Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-      Lisp_Object *data_imp_relocs = comp_u->data_imp_relocs;
+      bool data_valid = false;
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+      Lisp_Object *data_staticpro;
+      Lisp_Object (*comp_init_objs) (Lisp_Object);
+      if (comp_u->have_static_lisp_data)
+	{
+	  data_staticpro = dynlib_sym (handle, DATA_STATICPRO_SYM);
+	  comp_init_objs = dynlib_sym (handle, "comp_init_objs");
+	  data_valid = data_staticpro && comp_init_objs;
+	}
+#endif
+      Lisp_Object *data_relocs;
+      Lisp_Object *data_imp_relocs;
+      if (!comp_u->have_static_lisp_data)
+	{
+	  eassert (!data_valid);
+
+          data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+          data_imp_relocs = comp_u->data_imp_relocs;
+	  data_valid = data_relocs && data_imp_relocs && data_eph_relocs;
+	}
+
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
 
       if (!(current_thread_reloc
 	    && f_symbols_with_pos_enabled_reloc
 	    && pure_reloc
-	    && data_relocs
-	    && data_imp_relocs
-	    && data_eph_relocs
+	    && data_valid
 	    && freloc_link_table
 	    && top_level_run)
 	  || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
@@ -5465,27 +7801,42 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       /* Imported functions.  */
       *freloc_link_table = freloc.link_table;
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+      if (comp_u->have_static_lisp_data)
+	{
+	  comp_u->staticpro = *data_staticpro;
+	  comp_u->ephemeral = load_static_obj (comp_u, DATA_EPHEMERAL_SYM);
+	  comp_init_objs (comp_u_lisp_obj);
+	}
+#endif
+
       /* Imported data.  */
       if (!loading_dump)
 	{
 	  comp_u->optimize_qualities =
 	    load_static_obj (comp_u, TEXT_OPTIM_QLY_SYM);
-	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
-	  comp_u->data_impure_vec =
-	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
+	  if (!comp_u->have_static_lisp_data)
+	    {
+	      comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
+	      comp_u->data_impure_vec =
+		load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
 
-	  if (!NILP (Vpurify_flag))
-	    /* Non impure can be copied into pure space.  */
-	    comp_u->data_vec = Fpurecopy (comp_u->data_vec);
+	      if (!NILP (Vpurify_flag))
+		/* Non impure can be copied into pure space.  */
+		comp_u->data_vec = Fpurecopy (comp_u->data_vec);
+	    }
 	}
 
-      EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
-      for (EMACS_INT i = 0; i < d_vec_len; i++)
-	data_relocs[i] = AREF (comp_u->data_vec, i);
+      if (!comp_u->have_static_lisp_data)
+	{
+	  EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
+	  for (EMACS_INT i = 0; i < d_vec_len; i++)
+	    data_relocs[i] = AREF (comp_u->data_vec, i);
 
-      d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
-      for (EMACS_INT i = 0; i < d_vec_len; i++)
-	data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
+	  d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
+	  for (EMACS_INT i = 0; i < d_vec_len; i++)
+	    data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
+	}
     }
 
   if (!loading_dump)
@@ -5504,7 +7855,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	 'data_ephemeral_vec' would be not only a waste of cycles but
 	 more importantly would lead to crashes if the contained data
 	 is not cons hashed.  */
-      if (!recursive_load)
+      if (!recursive_load && !comp_u->have_static_lisp_data)
 	{
 	  data_ephemeral_vec =
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
@@ -5516,10 +7867,14 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       /* Executing this will perform all the expected environment
 	 modifications.  */
       res = top_level_run (comp_u_lisp_obj);
-      /* Make sure data_ephemeral_vec still exists after top_level_run has run.
-	 Guard against sibling call optimization (or any other).  */
-      data_ephemeral_vec = data_ephemeral_vec;
-      eassert (check_comp_unit_relocs (comp_u));
+
+      if (!comp_u->have_static_lisp_data)
+	{
+	  /* Make sure data_ephemeral_vec still exists after top_level_run has run.
+	     Guard against sibling call optimization (or any other).  */
+	  data_ephemeral_vec = data_ephemeral_vec;
+	  eassert (check_comp_unit_relocs (comp_u));
+	}
     }
 
   if (!recursive_load)
@@ -5528,6 +7883,10 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
   register_native_comp_unit (comp_u_lisp_obj);
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (comp_u->have_static_lisp_data)
+    comp_u->ephemeral = Qnil;
+#endif
   return res;
 }
 
@@ -5535,6 +7894,9 @@ void
 unload_comp_unit (struct Lisp_Native_Comp_Unit *cu)
 {
   if (cu->handle == NULL)
+    return;
+
+  if (cu->have_static_lisp_data)
     return;
 
   Lisp_Object *saved_cu = dynlib_sym (cu->handle, COMP_UNIT_SYM);
@@ -5571,11 +7933,10 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
 
   void *func = dynlib_sym (handle, SSDATA (c_name));
   eassert (func);
-  union Aligned_Lisp_Subr *x =
-    (union Aligned_Lisp_Subr *) allocate_pseudovector (
-				  VECSIZE (union Aligned_Lisp_Subr),
-				  0, VECSIZE (union Aligned_Lisp_Subr),
-				  PVEC_SUBR);
+  union Aligned_Lisp_Subr *x = (union Aligned_Lisp_Subr *)
+    allocate_pseudovector (VECSIZE (union Aligned_Lisp_Subr), 0,
+                           VECSIZE (union Aligned_Lisp_Subr),
+                           PVEC_SUBR);
   if (CONSP (minarg))
     {
       /* Dynamic code.  */
@@ -5607,6 +7968,7 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   XSETSUBR (tem, &x->s);
 
   return tem;
+
 }
 
 DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
@@ -5617,6 +7979,9 @@ This gets called by top_level_run during the load phase.  */)
    Lisp_Object maxarg, Lisp_Object type, Lisp_Object rest,
    Lisp_Object comp_u)
 {
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  eassert (!XNATIVE_COMP_UNIT (comp_u)->have_static_lisp_data);
+#endif
   Lisp_Object doc_idx = FIRST (rest);
   Lisp_Object intspec = SECOND (rest);
   Lisp_Object command_modes = THIRD (rest);
@@ -5730,9 +8095,25 @@ LATE_LOAD has to be non-nil when loading for deferred compilation.  */)
     xsignal2 (Qnative_lisp_load_failed, filename,
 	      build_string (dynlib_error ()));
   comp_u->file = filename;
-  comp_u->data_vec = Qnil;
-  comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
-  comp_u->lambda_c_name_idx_h = CALLN (Fmake_hash_table, QCtest, Qequal);
+
+  comp_u->have_static_lisp_data =
+#ifdef HAVE_STATIC_LISP_GLOBALS
+    dynlib_sym (comp_u->handle, HAVE_STATIC_LISP_DATA_SYM) != NULL;
+#else
+  false;
+#endif
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  comp_u->staticpro = Qnil;
+  comp_u->ephemeral = Qnil;
+#endif
+
+  if (!comp_u->have_static_lisp_data)
+    {
+      comp_u->data_vec = Qnil;
+      comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
+      comp_u->lambda_c_name_idx_h = CALLN (Fmake_hash_table, QCtest, Qequal);
+    }
   return load_comp_unit (comp_u, false, !NILP (late_load));
 }
 
@@ -5889,9 +8270,16 @@ compiled one.  */);
         build_pure_c_string ("eln file inconsistent with current runtime "
 			     "configuration, please recompile"));
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  DEFSYM (Qinit_expr_type_val, "init-expr-type-val");
+  DEFSYM (Qinit_expr_type_self_repr, "init-expr-type-self-repr");
+  DEFSYM (Qinit_expr_type_var, "init-expr-type-var");
+#endif
+
   defsubr (&Scomp__subr_signature);
   defsubr (&Scomp_el_to_eln_rel_filename);
   defsubr (&Scomp_el_to_eln_filename);
+  defsubr (&Scomp_eln_is_preloaded_p);
   defsubr (&Scomp_native_driver_options_effective_p);
   defsubr (&Scomp_native_compiler_options_effective_p);
   defsubr (&Scomp__install_trampoline);
@@ -5913,6 +8301,29 @@ compiled one.  */);
   comp.emitter_dispatcher = Qnil;
   staticpro (&loadsearch_re_list);
   loadsearch_re_list = Qnil;
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  staticpro (&comp.d_default_rvals);
+  comp.d_default_rvals = Qnil;
+  staticpro (&comp.d_impure_rvals);
+  comp.d_impure_rvals = Qnil;
+  staticpro (&comp.d_ephemeral_rvals);
+  comp.d_ephemeral_rvals = Qnil;
+  staticpro (&comp.static_hash_cons_h);
+  comp.static_hash_cons_h = Qnil;
+  staticpro (&comp.lisp_consts_init_lvals);
+  comp.lisp_consts_init_lvals = Qnil;
+  staticpro (&comp.lambda_init_lvals);
+  comp.lambda_init_lvals = Qnil;
+  staticpro (&comp.lisp_vector_structs_h);
+  comp.lisp_vector_structs_h = Qnil;
+  staticpro (&comp.cons_block_list);
+  comp.cons_block_list = Qnil;
+  staticpro (&comp.float_block_list);
+  comp.float_block_list = Qnil;
+
+  Fprovide (intern_c_string ("comp--static-lisp-consts"), Qnil);
+#endif
 
   DEFVAR_LISP ("comp-ctxt", Vcomp_ctxt,
 	       doc: /* The compiler context.  */);

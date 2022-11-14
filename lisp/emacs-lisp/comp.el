@@ -80,6 +80,13 @@ This is intended for debugging the compiler itself.
   :risky t
   :version "28.1")
 
+(defcustom native-comp-compile-static-data t
+  "If non nil, compile constants referenced by Lisp code as static data
+into the eln output.  "
+  :type 'boolean
+  :safe #'booleanp
+  :version "29.1")
+
 (defcustom native-comp-always-compile nil
   "Non-nil means unconditionally (re-)compile all files."
   :type 'boolean
@@ -804,7 +811,10 @@ This is typically for top-level forms other than defun.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
   (with-late-load nil :type boolean
-                  :documentation "When non-nil support late load."))
+                  :documentation "When non-nil support late load.")
+  (with-static-data native-comp-compile-static-data :type boolean
+		    :documentation
+		    "When non-nil compile lisp constants statically."))
 
 (cl-defstruct comp-args-base
   (min nil :type integer
@@ -1281,7 +1291,8 @@ clashes."
                 (comp-byte-frame-size (comp-func-byte-func func))))
         (setf (comp-ctxt-top-level-forms comp-ctxt)
               (list (make-byte-to-native-func-def :name function-name
-                                                  :c-name c-name)))
+                                                  :c-name c-name))
+              (comp-ctxt-with-static-data comp-ctxt) nil)
         (comp-add-func-to-ctxt func))))
 
 (cl-defmethod comp-spill-lap-function ((form list))
@@ -1396,7 +1407,7 @@ clashes."
                (make-byte-to-native-top-level
                 :form `(defalias
                          ',(byte-to-native-func-def-name form)
-                         ,byte-code
+                         (make-byte-code ,@(seq-into byte-code 'list))
                          nil)
                 :lexical (comp-lex-byte-func-p byte-code)))
            form)))
@@ -2121,32 +2132,40 @@ These are stored in the reloc data array."
   (let ((args (comp-prepare-args-for-top-level func)))
     (let ((comp-curr-allocation-class 'd-impure))
       (comp-add-const-to-relocs (comp-func-byte-func func)))
-    (comp-emit
-     (comp-call 'comp--register-lambda
-                ;; mvar to be fixed-up when containers are
-                ;; finalized.
-                (or (gethash (comp-func-byte-func func)
-                             (comp-ctxt-lambda-fixups-h comp-ctxt))
-                    (puthash (comp-func-byte-func func)
-                             (make-comp-mvar :constant nil)
-                             (comp-ctxt-lambda-fixups-h comp-ctxt)))
-                (make-comp-mvar :constant (comp-func-c-name func))
-                (car args)
-                (cdr args)
-                (setf (comp-func-type func)
-                      (make-comp-mvar :constant nil))
-                (make-comp-mvar
-                 :constant
-                 (list
-                  (let* ((h (comp-ctxt-function-docs comp-ctxt))
-                         (i (hash-table-count h)))
-                    (puthash i (comp-func-doc func) h)
-                    i)
-                  (comp-func-int-spec func)
-                  (comp-func-command-modes func)))
-                ;; This is the compilation unit it-self passed as
-                ;; parameter.
-                (make-comp-mvar :slot 0)))))
+    (let ((func-type-mvar (setf (comp-func-type func)
+				(make-comp-mvar :constant nil)))
+          (doc-idx (let* ((h (comp-ctxt-function-docs comp-ctxt))
+			  (i (hash-table-count h)))
+                     (puthash i (comp-func-doc func) h)
+                     i)))
+      (unless (and (featurep 'comp--static-lisp-consts)
+                   native-comp-compile-static-data
+                   (comp-ctxt-with-static-data comp-ctxt))
+        ;; When constants are statically compiled in, we just need
+        ;; the function type mvar and docstring index to be set, as
+        ;; anonymous lambdas are statically created as well.
+        (comp-emit
+         (comp-call 'comp--register-lambda
+                    ;; mvar to be fixed-up when containers are
+                    ;; finalized.
+                    (or (gethash (comp-func-byte-func func)
+				 (comp-ctxt-lambda-fixups-h comp-ctxt))
+			(puthash (comp-func-byte-func func)
+				 (make-comp-mvar :constant nil)
+				 (comp-ctxt-lambda-fixups-h comp-ctxt)))
+                    (make-comp-mvar :constant (comp-func-c-name func))
+                    (car args)
+                    (cdr args)
+                    func-type-mvar
+                    (make-comp-mvar
+                     :constant
+                     (list
+                      doc-idx
+                      (comp-func-int-spec func)
+                      (comp-func-command-modes func)))
+                    ;; This is the compilation unit it-self passed as
+                    ;; parameter.
+                    (make-comp-mvar :slot 0)))))))
 
 (defun comp-limplify-top-level (for-late-load)
   "Create a Limple function to modify the global environment at load.
@@ -2186,8 +2205,8 @@ into the C code forwarding the compilation unit."
     ;; Assign the compilation unit incoming as parameter to the slot frame 0.
     (comp-emit `(set-par-to-local ,(comp-slot-n 0) 0))
     (maphash (lambda (_ func)
-               (comp-emit-lambda-for-top-level func))
-             (comp-ctxt-byte-func-to-func-h comp-ctxt))
+                 (comp-emit-lambda-for-top-level func))
+               (comp-ctxt-byte-func-to-func-h comp-ctxt))
     (mapc (lambda (x) (comp-emit-for-top-level x for-late-load))
           (comp-ctxt-top-level-forms comp-ctxt))
     (comp-emit `(return ,(make-comp-mvar :slot 1)))
@@ -3691,6 +3710,7 @@ Prepare every function for final compilation and drive the C back-end."
              (expr `((require 'comp)
                      (setf native-comp-verbose ,native-comp-verbose
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
+                           native-comp-compile-static-data ,native-comp-compile-static-data
                            comp-ctxt ,comp-ctxt
                            native-comp-eln-load-path ',native-comp-eln-load-path
                            native-comp-compiler-options
@@ -3798,6 +3818,9 @@ Return the trampoline if found or nil otherwise."
          ;; funcall calls!
          (byte-optimize nil)
          (native-comp-speed 1)
+         ;; Disable emitting static data if the trampoline eln might be
+         ;; dumped.
+         (native-comp-compile-static-data nil)
          (lexical-binding t))
     (comp--native-compile
      form nil
@@ -3949,6 +3972,7 @@ display a message."
                            (setq warning-fill-column most-positive-fixnum)
                            ,(let ((set (list 'setq)))
                               (dolist (var '(comp-file-preloaded-p
+                                             native-comp-compile-static-data
                                              native-compile-target-directory
                                              native-comp-speed
                                              native-comp-debug

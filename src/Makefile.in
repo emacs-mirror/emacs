@@ -857,6 +857,7 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 
 %.eln: %.el | emacs$(EXEEXT) $(pdmp)
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="../src/emacs$(EXEEXT)"\
+		ELN_COMPILE_FLAGS='--eval "(setq native-comp-compile-static-data nil)"' \
 		THEFILE=$< $<n
 
 ## FIXME: this is fragile!  We lie to Make about the files produced by

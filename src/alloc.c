@@ -25,11 +25,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <limits.h>		/* For CHAR_BIT.  */
 #include <signal.h>		/* For SIGABRT, SIGDANGER.  */
+#include "lisp.h"
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 
+#include "alloc.h"
 #include "lisp.h"
 #include "bignum.h"
 #include "dispextern.h"
@@ -83,6 +85,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #if defined ENABLE_CHECKING && !defined GC_CHECK_MARKED_OBJECTS
 # define GC_CHECK_MARKED_OBJECTS 1
 #endif
+
 
 /* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
    memory.  Can do this only if using gmalloc.c and if not checking
@@ -1050,6 +1053,8 @@ lisp_free (void *block)
 /* Byte alignment of storage blocks.  */
 #define BLOCK_ALIGN (1 << 10)
 verify (POWER_OF_2 (BLOCK_ALIGN));
+
+const size_t block_align = BLOCK_ALIGN;
 
 /* Use aligned_alloc if it or a simple substitute is available.
    Aligned allocation is incompatible with unexmacosx.c, so don't use
@@ -2541,6 +2546,10 @@ pin_string (Lisp_Object string)
      - (sizeof (struct Lisp_Float) - sizeof (bits_word))) * CHAR_BIT) \
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
 
+const size_t float_block_floats_length = FLOAT_BLOCK_SIZE;
+const size_t float_block_gcmarkbits_length =
+  1 + FLOAT_BLOCK_SIZE / BITS_PER_BITS_WORD;
+
 #define GETMARKBIT(block,n)				\
   (((block)->gcmarkbits[(n) / BITS_PER_BITS_WORD]	\
     >> ((n) % BITS_PER_BITS_WORD))			\
@@ -2644,6 +2653,10 @@ make_float (double float_value)
      /* The compiler might add padding at the end.  */		\
      - (sizeof (struct Lisp_Cons) - sizeof (bits_word))) * CHAR_BIT)	\
    / (sizeof (struct Lisp_Cons) * CHAR_BIT + 1))
+
+const size_t cons_block_conses_length = CONS_BLOCK_SIZE;
+const size_t cons_block_gcmarkbits_length
+  = 1 + CONS_BLOCK_SIZE / BITS_PER_BITS_WORD;
 
 #define CONS_BLOCK(fptr) \
   (eassert (!pdumper_object_p (fptr)),                                  \
@@ -5261,7 +5274,11 @@ valid_lisp_object_p (Lisp_Object obj)
       if (SUBRP (obj))
 	return 1;
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+      return valid;
+#else
       return 0;
+#endif
     }
 
   switch (m->type)
@@ -6834,7 +6851,7 @@ process_mark_stack (ptrdiff_t base_sp)
 	    enum pvec_type pvectype
 	      = PSEUDOVECTOR_TYPE (ptr);
 
-#ifdef GC_CHECK_MARKED_OBJECTS
+#if GC_CHECK_MARKED_OBJECTS
 	    if (!pdumper_object_p (po) && !SUBRP (obj) && !main_thread_p (po))
 	      {
 		m = mem_find (po);
@@ -6917,6 +6934,41 @@ process_mark_stack (ptrdiff_t base_sp)
 		  }
 #endif
 		break;
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+	      case PVEC_NATIVE_COMP_UNIT:
+		{
+		  ptrdiff_t size = ptr->header.size;
+		  eassert (size & PSEUDOVECTOR_FLAG);
+		  set_vector_marked (ptr);
+                  mark_stack_push_values (ptr->contents,
+                                          size
+                                            & PSEUDOVECTOR_SIZE_MASK);
+                  struct Lisp_Native_Comp_Unit *comp_u
+                    = XNATIVE_COMP_UNIT (obj);
+		  if (comp_u->have_static_lisp_data)
+		    {
+		      eassert (NILP (comp_u->lambda_gc_guard_h) &&
+			       NILP (comp_u->lambda_c_name_idx_h) &&
+			       NILP (comp_u->data_vec) &&
+			       NILP (comp_u->data_impure_vec) &&
+			       comp_u->data_imp_relocs == NULL);
+
+		      Lisp_Object staticpro = comp_u->staticpro;
+		      if (!NILP (staticpro))
+			mark_stack_push_values
+			  (XVECTOR (staticpro)->contents,
+			   ASIZE (staticpro));
+
+		      Lisp_Object ephemeral = comp_u->ephemeral;
+		      if (!NILP (ephemeral))
+			mark_stack_push_values
+			  (XVECTOR (ephemeral)->contents,
+			   ASIZE (ephemeral));
+		    }
+		}
+		break;
+#endif
 
 	      case PVEC_FREE:
 		emacs_abort ();

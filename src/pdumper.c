@@ -2914,6 +2914,9 @@ dump_native_comp_unit (struct dump_context *ctx,
   if (!CONSP (comp_u->file))
     error ("Trying to dump non fixed-up eln file");
 
+  if (comp_u->have_static_lisp_data)
+    error ("Trying to dump eln file with static lisp data");
+
   /* Have function documentation always lazy loaded to optimize load-time.  */
   comp_u->data_fdoc_v = Qnil;
   START_DUMP_PVEC (ctx, &comp_u->header, struct Lisp_Native_Comp_Unit, out);
@@ -5306,7 +5309,12 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  dump_ptr (dump_base, reloc_offset);
 	comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
-	if (STRINGP (comp_u->file))
+
+        if (comp_u->have_static_lisp_data)
+          error ("Compilation unit for eln file with static lisp "
+                 "data was dumped");
+
+        if (STRINGP (comp_u->file))
 	  error ("Trying to load incoherent dumped eln file %s",
 		 SSDATA (comp_u->file));
 

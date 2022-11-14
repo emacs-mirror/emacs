@@ -71,12 +71,17 @@ loaddefs = $(shell find ${srcdir} -name '*loaddefs.el' ! -name '.*')
 AUTOGENEL = ${loaddefs} ${srcdir}/cus-load.el ${srcdir}/finder-inf.el \
   ${srcdir}/subdirs.el ${srcdir}/eshell/esh-groups.el
 
+# Additional flags to pass while compiling *.eln files
+ELN_COMPILE_FLAGS =
+
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
 BYTE_COMPILE_FLAGS = \
   --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" \
 	$(BYTE_COMPILE_EXTRA_FLAGS)
 # ... but we must prefer .elc files for those in the early bootstrap.
 compile-first: BYTE_COMPILE_FLAGS = $(BYTE_COMPILE_EXTRA_FLAGS)
+compile-first: ELN_COMPILE_FLAGS = \
+  --eval "(setq native-comp-compile-static-data nil)"
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use
@@ -279,7 +284,7 @@ THEFILE = no-such-file
 .PHONY: $(THEFILE)c
 $(THEFILE)c:
 ifeq ($(HAVE_NATIVE_COMP),yes)
-	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) $(ELN_COMPILE_FLAGS) \
 		-l comp -f byte-compile-refresh-preloaded \
 		-f batch-byte+native-compile $(THEFILE)
 else
@@ -291,7 +296,7 @@ endif
 ifeq ($(HAVE_NATIVE_COMP),yes)
 .PHONY: $(THEFILE)n
 $(THEFILE)n:
-	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) \
+	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) $(ELN_COMPILE_FLAGS) \
 		-l comp -f byte-compile-refresh-preloaded \
 		--eval '(batch-native-compile t)' $(THEFILE)
 endif
@@ -324,7 +329,7 @@ ifeq ($(ANCIENT),yes)
 	TZ=UTC0 touch -t 197001010000 $@
 else
 .el.elc:
-	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) $(ELN_COMPILE_FLAGS) \
 	-l comp -f batch-byte+native-compile $<
 endif
 else

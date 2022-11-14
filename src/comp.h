@@ -22,6 +22,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <dynlib.h>
 
+#ifdef HAVE_NATIVE_COMP
+#include <libgccjit.h>
+#if defined(LIBGCCJIT_HAVE_REFLECTION)					\
+  && defined(LIBGCCJIT_HAVE_CTORS)					\
+  && defined(LIBGCCJIT_HAVE_gcc_jit_type_get_aligned)			\
+  && defined(LIBGCCJIT_HAVE_ALIGNMENT) && USE_STACK_LISP_OBJECTS	\
+  && !defined(GC_CHECK_MARKED_OBJECTS)
+#define HAVE_STATIC_LISP_GLOBALS 1
+#endif
+#endif
+
 struct Lisp_Native_Comp_Unit
 {
   union vectorlike_header header;
@@ -49,6 +60,16 @@ struct Lisp_Native_Comp_Unit
   bool loaded_once;
   bool load_ongoing;
   dynlib_handle_ptr handle;
+  bool have_static_lisp_data;
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  /* vector of dynamically allocated lisp objects, marked manually on GC.  */
+  Lisp_Object staticpro;
+  /* vector of ephemeral objects that need to be marked only during
+     top_level_run.  */
+  Lisp_Object ephemeral;
+#endif
+
 } GCALIGNED_STRUCT;
 
 #ifdef HAVE_NATIVE_COMP
