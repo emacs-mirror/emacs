@@ -3615,9 +3615,7 @@ It returns the last revision that changed LINE number in FILE."
                      file (current-buffer))
     (goto-char (point-min))
     (forward-line (1- line))
-    (let ((rev (vc-call-backend
-                (vc-backend file)
-                'annotate-extract-revision-at-line)))
+    (let ((rev (vc-call annotate-extract-revision-at-line file)))
       (if (consp rev) (car rev) rev))))
 
 
