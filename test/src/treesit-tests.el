@@ -505,6 +505,24 @@ visible_end.)"
                     (treesit-node-at (point)))
                    "]"))))
 
+(ert-deftest treesit-node-check ()
+  "Test `treesit-node-check'."
+  (skip-unless (treesit-language-available-p 'json))
+  (let (parser root-node array-node comment-node)
+    (progn
+      (insert "/* comment */ [1,  2, 3,4  ")
+      (setq parser (treesit-parser-create 'json))
+      (setq root-node (treesit-parser-root-node
+                       parser))
+      (setq comment-node (treesit-node-child root-node 0))
+      (setq array-node (treesit-node-child root-node 1)))
+
+    (should (treesit-node-check comment-node 'extra))
+    (should (treesit-node-check array-node 'has-error))
+    (should-error (treesit-node-check array-node 'xxx))
+    ;; TODO: Test for `missing'.
+    ))
+
 (ert-deftest treesit-misc ()
   "Misc helper functions."
   (let ((settings '((t 0 t)
