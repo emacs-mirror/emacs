@@ -1170,6 +1170,13 @@ if test "$emacs_cv_clang" = yes; then
   gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
 fi
 
+# Suppress deprecation warnings from using sprintf variants,
+# starting with Xcode 14.1 on macOS 13.
+# These warnings are false alarms, as Emacs usage of sprintf is safe.
+if test $opsys = darwin; then
+  gl_WARN_ADD([-Wno-deprecated-declarations])
+fi
+
 # Use a slightly smaller set of warning options for lib/.
 nw=
 nw="$nw -Wunused-macros"

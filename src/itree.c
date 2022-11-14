@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    but not the END.  The previous/next overlay change operations need
    to find the nearest point where there is *either* an interval BEG
    or END point, but there is no efficient way to narrow the search
-   space over END postions.
+   space over END positions.
 
    Consider the case where next-overlay-change is called at POS, all
    interval BEG positions are less than pos POS and all interval END
@@ -191,7 +191,7 @@ interval_stack_clear (struct interval_stack *stack)
 }
 
 static inline void
-interval_stack_ensure_space (struct interval_stack *stack, intmax_t nelements)
+interval_stack_ensure_space (struct interval_stack *stack, uintmax_t nelements)
 {
   if (nelements > stack->size)
     {
@@ -207,7 +207,7 @@ static inline void
 interval_stack_push_flagged (struct interval_stack *stack,
 			     struct itree_node *node, bool flag)
 {
-  eassert (node && node != NULL);
+  eassert (node);
 
   /* FIXME: While the stack used in the iterator is bounded by the tree
      depth and could be easily pre-allocated to a large enough size to avoid
@@ -258,7 +258,7 @@ struct itree_iterator
    are limited by the fact we don't allow modifying the tree at the same
    time, making the use of nested iterations quite rare anyway.
    So we just use a single global iterator instead for now.  */
-static struct itree_iterator *iter;
+static struct itree_iterator *iter = NULL;
 
 static int
 interval_tree_max_height (const struct itree_tree *tree)
@@ -287,11 +287,20 @@ itree_iterator_create (struct itree_tree *tree)
   return g;
 }
 
-static void
-itree_init (void)
+void
+init_itree (void)
 {
+  eassert (!iter);
   iter = itree_iterator_create (NULL);
 }
+
+#ifdef HAVE_UNEXEC
+void
+forget_itree (void)
+{
+  iter = NULL;
+}
+#endif
 
 struct check_subtree_result
 {
@@ -555,16 +564,11 @@ itree_node_end (struct itree_tree *tree,
   return node->end;
 }
 
-/* Allocate an interval_tree. Free with interval_tree_destroy. */
+/* Allocate an itree_tree.  Free with itree_destroy.  */
 
 struct itree_tree *
 itree_create (void)
 {
-  /* FIXME?  Maybe avoid the initialization of itree_null in the same
-     way that is used to call mem_init in alloc.c?  It's not really
-     important though.  */
-  itree_init ();
-
   struct itree_tree *tree = xmalloc (sizeof (*tree));
   itree_clear (tree);
   return tree;
@@ -584,10 +588,9 @@ itree_clear (struct itree_tree *tree)
 /* Initialize a pre-allocated tree (presumably on the stack).  */
 
 static void
-interval_tree_init (struct interval_tree *tree)
+interval_tree_init (struct itree_tree *tree)
 {
-  interval_tree_clear (tree);
-  /* tree->iter = itree_iterator_create (tree); */
+  itree_clear (tree);
 }
 #endif
 
@@ -596,8 +599,6 @@ void
 itree_destroy (struct itree_tree *tree)
 {
   eassert (tree->root == NULL);
-  /* if (tree->iter)
-   *   itree_iterator_destroy (tree->iter); */
   xfree (tree);
 }
 
@@ -770,12 +771,12 @@ interval_tree_insert_fix (struct itree_tree *tree,
 }
 
 /* Insert a NODE into the TREE.
-   Note, that inserting a node twice results in undefined behaviour.  */
+   Note, that inserting a node twice results in undefined behavior.  */
 
 static void
 interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
 {
-  eassert (node->begin <= node->end && node != NULL);
+  eassert (node && node->begin <= node->end);
   /* FIXME: The assertion below fails because `delete_all_overlays`
      doesn't set left/right/parent to NULL.  */
   /* eassert (node->left == NULL && node->right == NULL
@@ -785,7 +786,7 @@ interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
   struct itree_node *parent = NULL;
   struct itree_node *child = tree->root;
   uintmax_t otick = tree->otick;
-  /* It's the responsability of the caller to set `otick` on the node,
+  /* It's the responsibility of the caller to set `otick` on the node,
      to "confirm" that the begin/end fields are up to date.  */
   eassert (node->otick == otick);
 
@@ -868,7 +869,7 @@ itree_node_set_region (struct itree_tree *tree,
 static bool
 interval_tree_contains (struct itree_tree *tree, struct itree_node *node)
 {
-  eassert (node);
+  eassert (iter && node);
   struct itree_node *other;
   ITREE_FOREACH (other, tree, node->begin, PTRDIFF_MAX, ASCENDING)
     if (other == node)
@@ -912,7 +913,7 @@ interval_tree_remove_fix (struct itree_tree *tree,
   if (parent == NULL)
     eassert (node == tree->root);
   else
-  eassert (node == NULL || node->parent == parent);
+    eassert (node == NULL || node->parent == parent);
 
   while (parent != NULL && null_safe_is_black (node))
     {
@@ -1151,7 +1152,7 @@ itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
 		      ptrdiff_t end, enum itree_order order,
 		      const char *file, int line)
 {
-  /* struct itree_iterator *iter = tree->iter; */
+  eassert (iter);
   if (iter->running)
     {
       fprintf (stderr,
@@ -1179,7 +1180,7 @@ itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
 void
 itree_iterator_finish (struct itree_iterator *iter)
 {
-  eassert (iter->running);
+  eassert (iter && iter->running);
   iter->running = false;
 }
 
@@ -1190,33 +1191,44 @@ itree_iterator_finish (struct itree_iterator *iter)
 
 /* Insert a gap at POS of length LENGTH expanding all intervals
    intersecting it, while respecting their rear_advance and
-   front_advance setting. */
+   front_advance setting.
+
+   If BEFORE_MARKERS is non-zero, all overlays beginning/ending at POS
+   are treated as if their front_advance/rear_advance was true. */
 
 void
 itree_insert_gap (struct itree_tree *tree,
-		  ptrdiff_t pos, ptrdiff_t length)
+		  ptrdiff_t pos, ptrdiff_t length, bool before_markers)
 {
-  if (length <= 0 || tree->root == NULL)
+  if (!tree || length <= 0 || tree->root == NULL)
     return;
   uintmax_t ootick = tree->otick;
 
   /* FIXME: Don't allocate iterator/stack anew every time. */
 
   /* Nodes with front_advance starting at pos may mess up the tree
-     order, so we need to remove them first. */
+     order, so we need to remove them first.  This doesn't apply for
+     `before_markers` since in that case, all positions move identically
+     regardless of `front_advance` or `rear_advance`.  */
   struct interval_stack *saved = interval_stack_create (0);
   struct itree_node *node = NULL;
-  ITREE_FOREACH (node, tree, pos, pos + 1, PRE_ORDER)
+  if (!before_markers)
     {
-      if (node->begin == pos && node->front_advance
-	  && (node->begin != node->end || node->rear_advance))
-	interval_stack_push (saved, node);
+      ITREE_FOREACH (node, tree, pos, pos + 1, PRE_ORDER)
+	{
+	  if (node->begin == pos && node->front_advance
+	      /* If we have front_advance and !rear_advance and
+	         the overlay is empty, make sure we don't move
+	         begin past end by pretending it's !front_advance.  */
+	      && (node->begin != node->end || node->rear_advance))
+	    interval_stack_push (saved, node);
+	}
     }
-  for (int i = 0; i < saved->length; ++i)
+  for (size_t i = 0; i < saved->length; ++i)
     itree_remove (tree, nav_nodeptr (saved->nodes[i]));
 
   /* We can't use an iterator here, because we can't effectively
-     narrow AND shift some subtree at the same time. */
+     narrow AND shift some subtree at the same time.  */
   if (tree->root != NULL)
     {
       const int size = interval_tree_max_height (tree) + 1;
@@ -1228,25 +1240,28 @@ itree_insert_gap (struct itree_tree *tree,
 	{
 	  /* Process in pre-order. */
 	  interval_tree_inherit_offset (tree->otick, node);
+	  if (pos > node->limit)
+	    continue;
 	  if (node->right != NULL)
 	    {
 	      if (node->begin > pos)
 		{
-		  /* All nodes in this subtree are shifted by length. */
+		  /* All nodes in this subtree are shifted by length.  */
 		  node->right->offset += length;
 		  ++tree->otick;
 		}
 	      else
 		interval_stack_push (stack, node->right);
 	    }
-	  if (node->left != NULL
-	      && pos <= node->left->limit + node->left->offset)
+	  if (node->left != NULL)
 	    interval_stack_push (stack, node->left);
 
-	  /* node->begin == pos implies no front-advance. */
-	  if (node->begin > pos)
+	  if (before_markers
+	      ? node->begin >= pos
+	      : node->begin > pos) /* node->begin == pos => !front-advance  */
 	    node->begin += length;
-	  if (node->end > pos || (node->end == pos && node->rear_advance))
+	  if (node->end > pos
+	      || (node->end == pos && (before_markers || node->rear_advance)))
 	    {
 	      node->end += length;
 	      eassert (node != NULL);
@@ -1256,16 +1271,17 @@ itree_insert_gap (struct itree_tree *tree,
       interval_stack_destroy (stack);
     }
 
-  /* Reinsert nodes starting at POS having front-advance. */
+  /* Reinsert nodes starting at POS having front-advance.  */
   uintmax_t notick = tree->otick;
   nodeptr_and_flag nav;
   while ((nav = interval_stack_pop (saved),
 	  node = nav_nodeptr (nav)))
     {
       eassert (node->otick == ootick);
+      eassert (node->begin == pos);
+      eassert (node->end > pos || node->rear_advance);
       node->begin += length;
-      if (node->end != pos || node->rear_advance)
-	node->end += length;
+      node->end += length;
       node->otick = notick;
       interval_tree_insert (tree, node);
     }
@@ -1274,19 +1290,19 @@ itree_insert_gap (struct itree_tree *tree,
 }
 
 /* Delete a gap at POS of length LENGTH, contracting all intervals
-   intersecting it. */
+   intersecting it.  */
 
 void
 itree_delete_gap (struct itree_tree *tree,
 		  ptrdiff_t pos, ptrdiff_t length)
 {
-  if (length <= 0 || tree->root == NULL)
+  if (!tree || length <= 0 || tree->root == NULL)
     return;
 
-  /* FIXME: Don't allocate stack anew every time. */
+  /* FIXME: Don't allocate stack anew every time.  */
 
   /* Can't use the iterator here, because by decrementing begin, we
-     might unintentionally bring shifted nodes back into our search space. */
+     might unintentionally bring shifted nodes back into our search space.  */
   const int size = interval_tree_max_height (tree) + 1;
   struct interval_stack *stack = interval_stack_create (size);
   struct itree_node *node;
@@ -1297,6 +1313,8 @@ itree_delete_gap (struct itree_tree *tree,
     {
       node = nav_nodeptr (nav);
       interval_tree_inherit_offset (tree->otick, node);
+      if (pos > node->limit)
+	continue;
       if (node->right != NULL)
 	{
 	  if (node->begin > pos + length)
@@ -1308,8 +1326,7 @@ itree_delete_gap (struct itree_tree *tree,
 	  else
 	    interval_stack_push (stack, node->right);
 	}
-      if (node->left != NULL
-	  && pos <= node->left->limit + node->left->offset)
+      if (node->left != NULL)
 	interval_stack_push (stack, node->left);
 
       if (pos < node->begin)
@@ -1352,7 +1369,7 @@ interval_node_intersects (const struct itree_node *node,
 struct itree_node *
 itree_iterator_next (struct itree_iterator *g)
 {
-  eassert (g->running);
+  eassert (g && g->running);
 
   struct itree_node *const null = NULL;
   struct itree_node *node;
@@ -1424,9 +1441,9 @@ void
 itree_iterator_narrow (struct itree_iterator *g,
 		       ptrdiff_t begin, ptrdiff_t end)
 {
-  eassert (g->running);
+  eassert (g && g->running);
   eassert (begin >= g->begin);
   eassert (end <= g->end);
-  g->begin =  max (begin, g->begin);
-  g->end =  min (end, g->end);
+  g->begin = max (begin, g->begin);
+  g->end = min (end, g->end);
 }

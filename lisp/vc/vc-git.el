@@ -373,9 +373,8 @@ in the order given by `git status'."
 
 (defun vc-git-working-revision (_file)
   "Git-specific version of `vc-working-revision'."
-  (let* ((process-file-side-effects nil)
-         (commit (vc-git--rev-parse "HEAD" t)))
-    (or (vc-git-symbolic-commit commit) commit)))
+  (let (process-file-side-effects)
+    (vc-git--rev-parse "HEAD")))
 
 (defun vc-git--symbolic-ref (file)
   (or
@@ -1268,6 +1267,12 @@ This prompts for a branch to merge from."
       (add-hook 'after-save-hook #'vc-git-resolve-when-done nil 'local))
     (vc-message-unresolved-conflicts buffer-file-name)))
 
+(defun vc-git-clone (remote directory rev)
+  (if rev
+      (vc-git--out-ok "clone" "--branch" rev remote directory)
+    (vc-git--out-ok "clone" remote directory))
+  directory)
+
 ;;; HISTORY FUNCTIONS
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
@@ -1626,6 +1631,19 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 		    (expand-file-name fname (vc-git-root default-directory))))
 	  revision)))))
 
+(defun vc-git-last-change (file line)
+  (vc-buffer-sync)
+  (let ((file (file-relative-name file (vc-git-root (buffer-file-name)))))
+    (with-temp-buffer
+      (when (vc-git--out-ok
+             "blame" "--porcelain"
+             (format "-L%d,+1" line)
+             file)
+        (goto-char (point-min))
+        (save-match-data
+          (when (looking-at "\\`\\([[:alnum:]]+\\)[[:space:]]+")
+            (match-string 1)))))))
+
 ;;; TAG/BRANCH SYSTEM
 
 (declare-function vc-read-revision "vc"
@@ -1675,15 +1693,11 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     ;; does not (and cannot) quote.
     (vc-git--rev-parse (concat rev "~1"))))
 
-(defun vc-git--rev-parse (rev &optional short)
+(defun vc-git--rev-parse (rev)
   (with-temp-buffer
     (and
-     (if short
-         (vc-git--out-ok "rev-parse" "--short" rev)
-       (vc-git--out-ok "rev-parse" rev))
-     (string-trim-right
-      (buffer-substring-no-properties (point-min) (min (+ (point-min) 40)
-                                                       (point-max)))))))
+     (vc-git--out-ok "rev-parse" rev)
+     (buffer-substring-no-properties (point-min) (+ (point-min) 40)))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."
@@ -1869,7 +1883,8 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   "Show the contents of stash NAME."
   (interactive (list (vc-git-stash-read "Show stash: ")))
   (vc-setup-buffer "*vc-git-stash*")
-  (vc-git-command "*vc-git-stash*" 'async nil "stash" "show" "-p" name)
+  (vc-git-command "*vc-git-stash*" 'async nil
+                  "stash" "show" "--color=never" "-p" name)
   (set-buffer "*vc-git-stash*")
   (setq buffer-read-only t)
   (diff-mode)

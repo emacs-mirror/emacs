@@ -1170,7 +1170,6 @@ extern EMACS_INT fix_position (Lisp_Object);
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void compact_buffer (struct buffer *);
-extern void evaporate_overlays (ptrdiff_t);
 extern ptrdiff_t overlays_at (ptrdiff_t, bool, Lisp_Object **, ptrdiff_t *, ptrdiff_t *);
 extern ptrdiff_t overlays_in (ptrdiff_t, ptrdiff_t, bool, Lisp_Object **,
                               ptrdiff_t *,  bool, bool, ptrdiff_t *);

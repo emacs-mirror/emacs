@@ -161,16 +161,18 @@ of previous VARs.
     `(progn . ,(nreverse exps))))
 
 (defmacro setq-local (&rest pairs)
-  "Make variables in PAIRS buffer-local and assign them the corresponding values.
+  "Make each VARIABLE buffer-local and assign to it the corresponding VALUE.
 
-PAIRS is a list of variable/value pairs.  For each variable, make
-it buffer-local and assign it the corresponding value.  The
-variables are literal symbols and should not be quoted.
+The arguments are variable/value pairs  For each VARIABLE in a pair,
+make VARIABLE buffer-local and assign to it the corresponding VALUE
+of the pair.  The VARIABLEs are literal symbols and should not be quoted.
 
-The second VALUE is not computed until after the first VARIABLE
-is set, and so on; each VALUE can use the new value of variables
-set earlier in the `setq-local'.  The return value of the
-`setq-local' form is the value of the last VALUE.
+The VALUE of the Nth pair is not computed until after the VARIABLE
+of the (N-1)th pair is set; thus, each VALUE can use the new VALUEs
+of VARIABLEs set by earlier pairs.
+
+The return value of the `setq-local' form is the VALUE of the last
+pair.
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))

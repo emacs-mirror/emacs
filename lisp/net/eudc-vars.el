@@ -38,6 +38,9 @@
 
 (defcustom eudc-server nil
   "The name or IP address of the directory server.
+This variable is deprecated as of Emacs 29.1.  Please add an
+entry to `eudc-server-hotlist' instead of setting `eudc-server'.
+
 A port number may be specified by appending a colon and a
 number to the name of the server.  Use `localhost' if the directory
 server resides on your computer (BBDB backend).
@@ -48,9 +51,10 @@ instead."
 
 ;; Known protocols (used in completion)
 ;; Not to be mistaken with `eudc-supported-protocols'
-(defvar eudc-known-protocols '(bbdb ldap))
+(defvar eudc-known-protocols '(bbdb ldap ecomplete mailabbrev))
 
-(defcustom eudc-server-hotlist nil
+(defcustom eudc-server-hotlist '(("localhost" . ecomplete)
+                                 ("localhost" . mailabbrev))
   "Directory servers to query.
 This is an alist of the form (SERVER . PROTOCOL).  SERVER is the
 host name or URI of the server, PROTOCOL is a symbol representing
@@ -343,9 +347,15 @@ arguments that should be passed to the program."
 			:inline t
 			(string :tag "Argument")))))
 
+(defcustom eudc-ignore-options-file nil
+  "Ignore configuration in `eudc-options-file', if non-nil."
+  :type  'boolean
+  :version "29.1")
+
 (defcustom eudc-options-file
   (locate-user-emacs-file "eudc-options" ".eudc-options")
-  "A file where the `servers' hotlist is stored."
+  "A file where the `servers' hotlist is stored.
+See `eudc-ignore-options-file'."
   :type '(file :Tag "File Name:")
   :version "25.1")
 

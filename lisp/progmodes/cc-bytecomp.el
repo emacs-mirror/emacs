@@ -287,7 +287,7 @@ perhaps a `cc-bytecomp-restore-environment' is forgotten somewhere"))
 		    (cons cc-file cc-bytecomp-loaded-files))
 	      (cc-bytecomp-debug-msg
 	       "cc-bytecomp-load: Loading %S" cc-file)
-	      ;; native-comp may async compile also intalled el.gz
+	      ;; native-comp may async compile also installed el.gz
 	      ;; files therefore we may have to load here other el.gz.
 	      (load cc-part nil t)
 	      (cc-bytecomp-debug-msg

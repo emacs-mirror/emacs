@@ -982,7 +982,7 @@ set_overlays_multibyte (bool multibyte)
   struct itree_tree *tree = current_buffer->overlays;
   const intmax_t size = itree_size (tree);
 
-  /* We can't use `interval_node_set_region` at the same time
+  /* We can't use `itree_node_set_region` at the same time
      as we iterate over the itree, so we need an auxiliary storage
      to keep the list of nodes.  */
   USE_SAFE_ALLOCA;
@@ -3454,21 +3454,66 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
 
 
 void
-adjust_overlays_for_insert (ptrdiff_t pos, ptrdiff_t length)
+adjust_overlays_for_insert (ptrdiff_t pos, ptrdiff_t length, bool before_markers)
 {
-  /* After an insertion, the lists are still sorted properly,
-     but we may need to update the value of the overlay center.  */
-  if (! current_buffer->overlays)
-    return;
-  itree_insert_gap (current_buffer->overlays, pos, length);
+  if (!current_buffer->indirections)
+    itree_insert_gap (current_buffer->overlays, pos, length, before_markers);
+  else
+    {
+      struct buffer *base = current_buffer->base_buffer
+                            ? current_buffer->base_buffer
+                            : current_buffer;
+      Lisp_Object tail, other;
+      itree_insert_gap (base->overlays, pos, length, before_markers);
+      FOR_EACH_LIVE_BUFFER (tail, other)
+        if (XBUFFER (other)->base_buffer == base)
+	  itree_insert_gap (XBUFFER (other)->overlays, pos, length,
+			    before_markers);
+    }
+}
+
+static void
+adjust_overlays_for_delete_in_buffer (struct buffer * buf,
+                                      ptrdiff_t pos, ptrdiff_t length)
+{
+  Lisp_Object hit_list = Qnil;
+  struct itree_node *node;
+
+  /* Ideally, the evaporate check would be done directly within
+     `itree_delete_gap`, but that code isn't supposed to know about overlays,
+     only about `itree_node`s, so it would break an abstraction boundary.  */
+  itree_delete_gap (buf->overlays, pos, length);
+
+  /* Delete any zero-sized overlays at position POS, if the `evaporate'
+     property is set.  */
+
+  ITREE_FOREACH (node, buf->overlays, pos, pos, ASCENDING)
+    {
+      if (node->end == pos && node->begin == pos
+          && ! NILP (Foverlay_get (node->data, Qevaporate)))
+        hit_list = Fcons (node->data, hit_list);
+    }
+
+  for (; CONSP (hit_list); hit_list = XCDR (hit_list))
+    Fdelete_overlay (XCAR (hit_list));
 }
 
 void
 adjust_overlays_for_delete (ptrdiff_t pos, ptrdiff_t length)
 {
-  if (! current_buffer->overlays)
-    return;
-  itree_delete_gap (current_buffer->overlays, pos, length);
+  if (!current_buffer->indirections)
+    adjust_overlays_for_delete_in_buffer (current_buffer, pos, length);
+  else
+    {
+      struct buffer *base = current_buffer->base_buffer
+                            ? current_buffer->base_buffer
+                            : current_buffer;
+      Lisp_Object tail, other;
+      adjust_overlays_for_delete_in_buffer (base, pos, length);
+      FOR_EACH_LIVE_BUFFER (tail, other)
+        if (XBUFFER (other)->base_buffer == base)
+          adjust_overlays_for_delete_in_buffer (XBUFFER (other), pos, length);
+    }
 }
 
 
@@ -3601,7 +3646,7 @@ buffer.  */)
       o_end = OVERLAY_END (overlay);
     }
 
-  if (! EQ (buffer, obuffer))
+  if (! BASE_EQ (buffer, obuffer))
     {
       if (! NILP (obuffer))
         remove_buffer_overlay (XBUFFER (obuffer), XOVERLAY (overlay));
@@ -3790,7 +3835,9 @@ and also contained within the specified region.
 
 Empty overlays are included in the result if they are located at BEG,
 between BEG and END, or at END provided END denotes the position at the
-end of the accessible part of the buffer.  */)
+end of the accessible part of the buffer.
+
+The resulting list of overlays is in an arbitrary unpredictable order.  */)
   (Lisp_Object beg, Lisp_Object end)
 {
   ptrdiff_t len, noverlays;
@@ -4078,25 +4125,6 @@ call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, bool after,
 	call5 (XCAR (list), overlay, after ? Qt : Qnil, arg1, arg2, arg3);
       list = XCDR (list);
     }
-}
-
-/* Delete any zero-sized overlays at position POS, if the `evaporate'
-   property is set.  */
-void
-evaporate_overlays (ptrdiff_t pos)
-{
-  Lisp_Object hit_list = Qnil;
-  struct itree_node *node;
-
-  ITREE_FOREACH (node, current_buffer->overlays, pos, pos, ASCENDING)
-    {
-      if (node->end == pos
-          && ! NILP (Foverlay_get (node->data, Qevaporate)))
-        hit_list = Fcons (node->data, hit_list);
-    }
-
-  for (; CONSP (hit_list); hit_list = XCDR (hit_list))
-    Fdelete_overlay (XCAR (hit_list));
 }
 
 /***********************************************************************

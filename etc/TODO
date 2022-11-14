@@ -1770,7 +1770,7 @@ The MPX code has not been tested under X toolkit or GTK+ 2.x builds
 and is not expected to work there.
 
 ** Framework for doing animations
-Emacs does animations all over the place, usually "pluse" animations.
+Emacs does animations all over the place, usually "pulse" animations.
 These currently animate by waiting for a small but fixed amount of
 time between each redisplay, which causes screen tearing by not
 synchronizing with the vertical refresh.  Frame synchronization works

@@ -2668,7 +2668,7 @@ To disable or change the way backups are made,
 @cindex Backup files in a single directory
 You can control where Emacs puts backup files by customizing the
 variable @code{backup-directory-alist}.  This variable's value
-specifies that files whose names match specific patters should have
+specifies that files whose names match specific patterns should have
 their backups put in certain directories.  A typical use is to add the
 element @code{("." . @var{dir})} to force Emacs to put @strong{all}
 backup files in the directory @file{dir}.

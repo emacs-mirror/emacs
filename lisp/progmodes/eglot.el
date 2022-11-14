@@ -56,7 +56,7 @@
 ;;   available as GNU ELPA :core packages.  Historically, a number of
 ;;   :core packages were added or reworked in Emacs to make this
 ;;   possible.  This principle should be upheld when adding new LSP
-;;   features or tweaking exising ones.  Design any new facilities in
+;;   features or tweaking existing ones.  Design any new facilities in
 ;;   a way that they could work in the absence of LSP or using some
 ;;   different protocol, then make sure Eglot can link up LSP
 ;;   information to it.
@@ -206,7 +206,7 @@ language-server/bin/php-language-server.php"))
                                 (elm-mode . ("elm-language-server"))
                                 (mint-mode . ("mint" "ls"))
                                 (kotlin-mode . ("kotlin-language-server"))
-                                (go-mode . ("gopls"))
+                                ((go-mode go-dot-mod-mode go-dot-work-mode) . ("gopls"))
                                 ((R-mode ess-r-mode) . ("R" "--slave" "-e"
                                                         "languageserver::run()"))
                                 (java-mode . ("jdtls"))
@@ -217,7 +217,7 @@ language-server/bin/php-language-server.php"))
                                 (scala-mode . ("metals-emacs"))
                                 (racket-mode . ("racket" "-l" "racket-langserver"))
                                 ((tex-mode context-mode texinfo-mode bibtex-mode)
-                                 . ("digestif"))
+                                 . ,(eglot-alternatives '("digestif" "texlab")))
                                 (erlang-mode . ("erlang_ls" "--transport" "stdio"))
                                 (yaml-mode . ("yaml-language-server" "--stdio"))
                                 (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp")))
@@ -234,7 +234,7 @@ language-server/bin/php-language-server.php"))
                                  . ("clojure-lsp"))
                                 (csharp-mode . ("omnisharp" "-lsp"))
                                 (purescript-mode . ("purescript-language-server" "--stdio"))
-                                (perl-mode . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run"))
+                                ((perl-mode cperl-mode) . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run"))
                                 (markdown-mode . ("marksman" "server")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
@@ -298,7 +298,10 @@ CONTACT can be:
   the call is interactive, the function can ask the user for
   hints on finding the required programs, etc.  Otherwise, it
   should not ask the user for any input, and return nil or signal
-  an error if it can't produce a valid CONTACT.")
+  an error if it can't produce a valid CONTACT.  The helper
+  function `eglot-alternatives' (which see) can be used to
+  produce a function that offers more than one server for a given
+  MAJOR-MODE.")
 
 (defface eglot-highlight-symbol-face
   '((t (:inherit bold)))
@@ -583,7 +586,7 @@ on unknown notifications and errors on unknown requests."))
 (cl-defmacro eglot--dbind (vars object &body body)
   "Destructure OBJECT, binding VARS in BODY.
 VARS is ([(INTERFACE)] SYMS...)
-Honour `eglot-strict-mode'."
+Honor `eglot-strict-mode'."
   (declare (indent 2) (debug (sexp sexp &rest form)))
   (let ((interface-name (if (consp (car vars))
                             (car (pop vars))))
@@ -610,7 +613,7 @@ Honour `eglot-strict-mode'."
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
   "Function of args CL-LAMBDA-LIST for processing INTERFACE objects.
-Honour `eglot-strict-mode'."
+Honor `eglot-strict-mode'."
   (declare (indent 1) (debug (sexp &rest form)))
   (let ((e (cl-gensym "jsonrpc-lambda-elem")))
     `(lambda (,e) (eglot--dbind ,cl-lambda-list ,e ,@body))))
@@ -877,7 +880,8 @@ SERVER."
 PRESERVE-BUFFERS as in `eglot-shutdown', which see."
   (interactive (list current-prefix-arg))
   (cl-loop for ss being the hash-values of eglot--servers-by-project
-           do (cl-loop for s in ss do (eglot-shutdown s nil preserve-buffers))))
+           do (with-demoted-errors "[eglot] shutdown all: %s"
+                (cl-loop for s in ss do (eglot-shutdown s nil nil preserve-buffers)))))
 
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
@@ -1200,7 +1204,8 @@ This docstring appeases checkdoc, that's all."
                                (pcase-let ((`(,connection . ,inferior)
                                             (eglot--inferior-bootstrap
                                              readable-name
-                                             contact)))
+                                             contact
+                                             '(:noquery t))))
                                  (setq autostart-inferior-process inferior)
                                  connection))))
                 ((stringp (car contact))
@@ -1244,7 +1249,7 @@ This docstring appeases checkdoc, that's all."
     (setf (eglot--language-id server) language-id)
     (setf (eglot--inferior-process server) autostart-inferior-process)
     (run-hook-with-args 'eglot-server-initialized-hook server)
-    ;; Now start the handshake.  To honour `eglot-sync-connect'
+    ;; Now start the handshake.  To honor `eglot-sync-connect'
     ;; maybe-sync-maybe-async semantics we use `jsonrpc-async-request'
     ;; and mimic most of `jsonrpc-request'.
     (unwind-protect
@@ -1425,7 +1430,8 @@ LBP defaults to `line-beginning-position'."
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
   (eglot--widening
-   (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
+   ;; LSP line is zero-origin; emacs is one-origin.
+   (list :line (1- (line-number-at-pos pos t))
          :character (progn (when pos (goto-char pos))
                            (funcall eglot-current-column-function)))))
 
@@ -1495,29 +1501,41 @@ If optional MARKER, return a marker instead"
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
   (let ((truepath (file-truename path)))
-    (concat "file://"
-            ;; Add a leading "/" for local MS Windows-style paths.
-            (if (and (eq system-type 'windows-nt)
-                     (not (file-remote-p truepath)))
-                "/")
-            (url-hexify-string
-             ;; Again watch out for trampy paths.
-             (directory-file-name (file-local-name truepath))
-             eglot--uri-path-allowed-chars))))
+    (if (url-type (url-generic-parse-url truepath))
+        ;; Path is already a URI, so forward it to the LSP server
+        ;; untouched.  The server should be able to handle it, since
+        ;; it provided this URI to clients in the first place.
+        truepath
+      (concat "file://"
+              ;; Add a leading "/" for local MS Windows-style paths.
+              (if (and (eq system-type 'windows-nt)
+                       (not (file-remote-p truepath)))
+                  "/")
+              (url-hexify-string
+               ;; Again watch out for trampy paths.
+               (directory-file-name (file-local-name truepath))
+               eglot--uri-path-allowed-chars)))))
 
 (defun eglot--uri-to-path (uri)
   "Convert URI to file path, helped by `eglot--current-server'."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
   (let* ((server (eglot-current-server))
          (remote-prefix (and server (eglot--trampish-p server)))
-         (retval (url-unhex-string (url-filename (url-generic-parse-url uri))))
-         ;; Remove the leading "/" for local MS Windows-style paths.
-         (normalized (if (and (not remote-prefix)
-                              (eq system-type 'windows-nt)
-                              (cl-plusp (length retval)))
-                         (substring retval 1)
-                       retval)))
-    (concat remote-prefix normalized)))
+         (url (url-generic-parse-url uri)))
+    ;; Only parse file:// URIs, leave other URI untouched as
+    ;; `file-name-handler-alist' should know how to handle them
+    ;; (bug#58790).
+    (if (string= "file" (url-type url))
+        (let* ((retval (url-unhex-string (url-filename url)))
+               ;; Remove the leading "/" for local MS Windows-style paths.
+               (normalized (if (and (not remote-prefix)
+                                    (eq system-type 'windows-nt)
+                                    (cl-plusp (length retval)))
+                               (substring retval 1)
+                             retval)))
+          (concat remote-prefix normalized))
+
+      uri)))
 
 (defun eglot--snippet-expansion-fn ()
   "Compute a function to expand snippets.
@@ -1658,7 +1676,7 @@ against a variable's name.  Examples include the string
 Before Eglot starts \"managing\" a particular buffer, it
 opinionatedly sets some peripheral Emacs facilities, such as
 Flymake, Xref and Company.  These overriding settings help ensure
-consistent Eglot behaviour and only stay in place until
+consistent Eglot behavior and only stay in place until
 \"managing\" stops (usually via `eglot-shutdown'), whereupon the
 previous settings are restored.
 
@@ -1823,13 +1841,13 @@ If it is activated, also signal textDocument/didOpen."
                                            (call-interactively what)
                                            (force-mode-line-update t))))))
 
-(defun eglot-manual () "Open on-line documentation."
-  (interactive) (browse-url "https://github.com/joaotavora/eglot#readme"))
+(defun eglot-manual () "Open documentation."
+  (declare (obsolete info "29.1"))
+  (interactive) (info "(eglot)"))
 
 (easy-menu-define eglot-menu nil "Eglot"
   `("Eglot"
     ;; Commands for getting information and customization.
-    ["Read manual" eglot-manual]
     ["Customize Eglot" (lambda () (interactive) (customize-group "eglot"))]
     "--"
     ;; xref like commands.
@@ -2350,10 +2368,11 @@ When called interactively, use the currently active server"
             (with-temp-buffer
               (let* ((uri-path (eglot--uri-to-path scopeUri))
                      (default-directory
-                       (if (and (not (string-empty-p uri-path))
-                                (file-directory-p uri-path))
-                           (file-name-as-directory uri-path)
-                         (project-root (eglot--project server)))))
+                      (if (and uri-path
+                               (not (string-empty-p uri-path))
+                               (file-directory-p uri-path))
+                          (file-name-as-directory uri-path)
+                        (project-root (eglot--project server)))))
                 (setq-local major-mode (car (eglot--major-modes server)))
                 (hack-dir-local-variables-non-file-buffer)
                 (cl-loop for (wsection o)
@@ -2916,7 +2935,7 @@ for which LSP on-type-formatting should be requested."
        (let ((active-param (or activeParameter sig-help-active-param))
              params-start params-end)
          ;; Ad-hoc attempt to parse label as <name>(<params>)
-         (when (looking-at "\\([^(]+\\)(\\([^)]+\\))")
+         (when (looking-at "\\([^(]*\\)(\\([^)]+\\))")
            (setq params-start (match-beginning 2) params-end (match-end 2))
            (add-face-text-property (match-beginning 1) (match-end 1)
                                    'font-lock-function-name-face))
@@ -3093,25 +3112,7 @@ Returns a list as described in docstring of `imenu--index-alist'."
                       (save-excursion
                         (save-restriction
                           (narrow-to-region beg end)
-
-                          ;; On emacs versions < 26.2,
-                          ;; `replace-buffer-contents' is buggy - it calls
-                          ;; change functions with invalid arguments - so we
-                          ;; manually call the change functions here.
-                          ;;
-                          ;; See emacs bugs #32237, #32278:
-                          ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=32237
-                          ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=32278
-                          (let ((inhibit-modification-hooks t)
-                                (length (- end beg))
-                                (beg (marker-position beg))
-                                (end (marker-position end)))
-                            (run-hook-with-args 'before-change-functions
-                                                beg end)
-                            (replace-buffer-contents temp)
-                            (run-hook-with-args 'after-change-functions
-                                                beg (+ beg (length newText))
-                                                length))))
+                          (replace-buffer-contents temp)))
                       (progress-reporter-update reporter (cl-incf done)))))))
             (mapcar (eglot--lambda ((TextEdit) range newText)
                       (cons newText (eglot--range-region range 'markers)))
@@ -3140,7 +3141,7 @@ Returns a list as described in docstring of `imenu--index-alist'."
           (unless (y-or-n-p
                    (format "[eglot] Server wants to edit:\n  %s\n Proceed? "
                            (mapconcat #'identity (mapcar #'car prepared) "\n  ")))
-            (jsonrpc-error "User cancelled server edit")))
+            (jsonrpc-error "User canceled server edit")))
       (cl-loop for edit in prepared
                for (path edits version) = edit
                do (with-current-buffer (find-file-noselect path)
@@ -3265,8 +3266,12 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   (eglot-unregister-capability server method id)
   (let* (success
          (globs (mapcar
-                 (eglot--lambda ((FileSystemWatcher) globPattern)
-                   (eglot--glob-compile globPattern t t))
+                 (eglot--lambda ((FileSystemWatcher) globPattern kind)
+                   (cons (eglot--glob-compile globPattern t t)
+                         ;; the default "7" means bitwise OR of
+                         ;; WatchKind.Create (1), WatchKind.Change
+                         ;; (2), WatchKind.Delete (4)
+                         (or kind 7)))
                  watchers))
          (dirs-to-watch
           (delete-dups (mapcar #'file-name-directory
@@ -3275,17 +3280,20 @@ at point.  With prefix argument, prompt for ACTION-KIND."
     (cl-labels
         ((handle-event
           (event)
-          (pcase-let ((`(,desc ,action ,file ,file1) event))
+          (pcase-let* ((`(,desc ,action ,file ,file1) event)
+                       (action-type (cl-case action
+                                      (created 1) (changed 2) (deleted 3)))
+                       (action-bit (when action-type
+                                     (ash 1 (1- action-type)))))
             (cond
              ((and (memq action '(created changed deleted))
-                   (cl-find file globs :test (lambda (f g) (funcall g f))))
+                   (cl-loop for (glob . kind-bitmask) in globs
+                            thereis (and (> (logand kind-bitmask action-bit) 0)
+                                         (funcall glob file))))
               (jsonrpc-notify
                server :workspace/didChangeWatchedFiles
                `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
-                                          :type ,(cl-case action
-                                                   (created 1)
-                                                   (changed 2)
-                                                   (deleted 3)))))))
+                                          :type ,action-type)))))
              ((eq action 'renamed)
               (handle-event `(,desc 'deleted ,file))
               (handle-event `(,desc 'created ,file1)))))))

@@ -292,7 +292,6 @@ static int child_signal_read_fd = -1;
    descriptor to notify `wait_reading_process_output' of process
    status changes.  */
 static int child_signal_write_fd = -1;
-static void child_signal_init (void);
 #ifndef WINDOWSNT
 static void child_signal_read (int, void *);
 #endif
@@ -7323,7 +7322,7 @@ process has been transmitted to the serial port.  */)
 
 /* Set up `child_signal_read_fd' and `child_signal_write_fd'.  */
 
-static void
+void
 child_signal_init (void)
 {
   /* Either both are initialized, or both are uninitialized.  */

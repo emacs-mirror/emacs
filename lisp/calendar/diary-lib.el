@@ -92,7 +92,7 @@ are holidays."
 This is used by `diary-pull-attrs' to fontify certain diary
 elements.  REGEXP is a regular expression to for, and SUBEXP is
 the numbered sub-expression to extract.  `diary-glob-file-regexp-prefix'
-is pre-pended to REGEXP for file-wide specifiers.  ATTRIBUTE
+is prepended to REGEXP for file-wide specifiers.  ATTRIBUTE
 specifies which face attribute (e.g. `:foreground') to modify, or
 that this is a face (`:face') to apply.  TYPE is the type of
 attribute being applied.  Available TYPES (see `diary-attrtype-convert')
@@ -109,7 +109,7 @@ are: `string', `symbol', `int', `tnil', `stringtnil'."
   :group 'diary)
 
 (defcustom diary-glob-file-regexp-prefix "^#"
-  "Regular expression pre-pended to `diary-face-attrs' for file-wide specifiers."
+  "Regular expression prepended to `diary-face-attrs' for file-wide specifiers."
   :type 'regexp
   :group 'diary)
 

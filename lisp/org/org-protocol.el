@@ -42,7 +42,6 @@
 ;;
 ;;   1.) Add this to your init file (.emacs probably):
 ;;
-;;       (add-to-list 'load-path "/path/to/org-protocol/")
 ;;       (require 'org-protocol)
 ;;
 ;;   3.) Ensure emacs-server is up and running.

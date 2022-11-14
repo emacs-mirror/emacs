@@ -1429,10 +1429,40 @@ the last)."
   (rx (sequence line-start (0+ blank) (eval cperl--imenu-entries-rx)))
   "The regular expression used for `outline-minor-mode'.")
 
-(defvar cperl-mode-syntax-table nil
+(defvar cperl-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\\ "\\" st)
+    (modify-syntax-entry ?/  "."  st)
+    (modify-syntax-entry ?*  "."  st)
+    (modify-syntax-entry ?+  "."  st)
+    (modify-syntax-entry ?-  "."  st)
+    (modify-syntax-entry ?=  "."  st)
+    (modify-syntax-entry ?%  "."  st)
+    (modify-syntax-entry ?<  "."  st)
+    (modify-syntax-entry ?>  "."  st)
+    (modify-syntax-entry ?&  "."  st)
+    (modify-syntax-entry ?$  "\\" st)
+    (modify-syntax-entry ?\n ">"  st)
+    (modify-syntax-entry ?#  "<"  st)
+    (modify-syntax-entry ?'  "\"" st)
+    (modify-syntax-entry ?`  "\"" st)
+    (if cperl-under-as-char
+        (modify-syntax-entry ?_ "w" st))
+    (modify-syntax-entry ?:  "_"  st)
+    (modify-syntax-entry ?|  "."  st)
+    st)
   "Syntax table in use in CPerl mode buffers.")
 
-(defvar cperl-string-syntax-table nil
+(defvar cperl-string-syntax-table
+  (let ((st (copy-syntax-table cperl-mode-syntax-table)))
+    (modify-syntax-entry ?$  "." st)
+    (modify-syntax-entry ?\{ "." st)
+    (modify-syntax-entry ?\} "." st)
+    (modify-syntax-entry ?\" "." st)
+    (modify-syntax-entry ?'  "." st)
+    (modify-syntax-entry ?`  "." st)
+    (modify-syntax-entry ?#  "." st) ; (?# comment )
+    st)
   "Syntax table in use in CPerl mode string-like chunks.")
 
 (defsubst cperl-1- (p)
@@ -1440,38 +1470,6 @@ the last)."
 
 (defsubst cperl-1+ (p)
   (min (point-max) (1+ p)))
-
-(if cperl-mode-syntax-table
-    ()
-  (setq cperl-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\\ "\\" cperl-mode-syntax-table)
-  (modify-syntax-entry ?/ "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?* "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?+ "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?- "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?= "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?% "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?< "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?> "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?& "." cperl-mode-syntax-table)
-  (modify-syntax-entry ?$ "\\" cperl-mode-syntax-table)
-  (modify-syntax-entry ?\n ">" cperl-mode-syntax-table)
-  (modify-syntax-entry ?# "<" cperl-mode-syntax-table)
-  (modify-syntax-entry ?' "\"" cperl-mode-syntax-table)
-  (modify-syntax-entry ?` "\"" cperl-mode-syntax-table)
-  (if cperl-under-as-char
-      (modify-syntax-entry ?_ "w" cperl-mode-syntax-table))
-  (modify-syntax-entry ?: "_" cperl-mode-syntax-table)
-  (modify-syntax-entry ?| "." cperl-mode-syntax-table)
-  (setq cperl-string-syntax-table (copy-syntax-table cperl-mode-syntax-table))
-  (modify-syntax-entry ?$ "." cperl-string-syntax-table)
-  (modify-syntax-entry ?\{ "." cperl-string-syntax-table)
-  (modify-syntax-entry ?\} "." cperl-string-syntax-table)
-  (modify-syntax-entry ?\" "." cperl-string-syntax-table)
-  (modify-syntax-entry ?' "." cperl-string-syntax-table)
-  (modify-syntax-entry ?` "." cperl-string-syntax-table)
-  (modify-syntax-entry ?# "." cperl-string-syntax-table)) ; (?# comment )
-
 
 
 (defvar cperl-faces-init nil)

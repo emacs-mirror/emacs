@@ -82,6 +82,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #include "bignum.h"
+#include "itree.h"
 #include "intervals.h"
 #include "character.h"
 #include "buffer.h"
@@ -431,9 +432,9 @@ terminate_due_to_signal (int sig, int backtrace_limit)
           if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
 	    {
 	      /* Avoid abort in shut_down_emacs if we were interrupted
-		 by SIGINT in noninteractive usage, as in that case we
-		 don't care about the message stack.  */
-	      if (sig == SIGINT && noninteractive)
+		 in noninteractive usage, as in that case we don't
+		 care about the message stack.  */
+	      if (noninteractive)
 		clear_message_stack ();
 	      Fkill_emacs (make_fixnum (sig), Qnil);
 	    }
@@ -1935,6 +1936,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   running_asynch_code = 0;
   init_random ();
   init_xfaces ();
+  init_itree ();
 
 #if defined HAVE_JSON && !defined WINDOWSNT
   init_json ();
@@ -3110,6 +3112,8 @@ You must run Emacs in batch mode in order to dump it.  */)
   gflags.will_dump_ = false;
   gflags.will_dump_with_unexec_ = false;
   gflags.dumped_with_unexec_ = true;
+
+  forget_itree ();
 
   alloc_unexec_pre ();
 

@@ -63,9 +63,9 @@ If a list, it is a list of the types of messages to be logged."
 	  (and (listp url-debug) (memq tag url-debug)))
       (with-current-buffer (get-buffer-create "*URL-DEBUG*")
 	(goto-char (point-max))
-	(insert (symbol-name tag) " -> " (apply 'format args) "\n")
+	(insert (symbol-name tag) " -> " (apply #'format args) "\n")
 	(if (numberp url-debug)
-	    (apply 'message args)))))
+	    (apply #'message args)))))
 
 ;;;###autoload
 (defun url-parse-args (str &optional nodowncase)
@@ -125,23 +125,13 @@ conversion.  Replaces these characters as follows:
     <  ==>  &lt;
     >  ==>  &gt;
     \"  ==>  &quot;"
-  (if (string-match "[&<>\"]" string)
-      (with-current-buffer (get-buffer-create " *entity*")
-	(erase-buffer)
-	(buffer-disable-undo (current-buffer))
-	(insert string)
-	(goto-char (point-min))
-	(while (progn
-		 (skip-chars-forward "^&<>\"")
-		 (not (eobp)))
-	  (insert (cdr (assq (char-after (point))
-			     '((?\" . "&quot;")
-			       (?& . "&amp;")
-			       (?< . "&lt;")
-			       (?> . "&gt;")))))
-	  (delete-char 1))
-	(buffer-string))
-    string))
+  (replace-regexp-in-string "[&<>\"]"
+                            (lambda (c) (cdr (assq (aref c 0)
+			                      '((?\" . "&quot;")
+			                        (?& . "&amp;")
+			                        (?< . "&lt;")
+			                        (?> . "&gt;")))))
+			    string))
 
 ;;;###autoload
 (defun url-normalize-url (url)
@@ -169,7 +159,7 @@ Will not do anything if `url-show-status' is nil."
 	  (= url-lazy-message-time
 	     (setq url-lazy-message-time (time-convert nil 'integer))))
       nil
-    (apply 'message args)))
+    (apply #'message args)))
 
 ;;;###autoload
 (defun url-get-normalized-date (&optional specified-time)
@@ -186,7 +176,7 @@ Will not do anything if `url-show-status' is nil."
   #'string-trim-left "29.1")
 
 (define-obsolete-function-alias 'url-pretty-length
-  'file-size-human-readable "24.4")
+  #'file-size-human-readable "24.4")
 
 ;;;###autoload
 (defun url-display-message (fmt &rest args)
@@ -206,7 +196,7 @@ Will not do anything if `url-show-status' is nil."
   (round (* 100 (/ x (float y)))))
 
 ;;;###autoload
-(defalias 'url-basepath 'url-file-directory)
+(defalias 'url-basepath #'url-file-directory)
 
 ;;;###autoload
 (defun url-file-directory (file)
@@ -395,8 +385,7 @@ if character N is allowed."
 		 (aref url-encoding-table byte)))
 	     (if (multibyte-string-p string)
 		 (encode-coding-string string 'utf-8)
-	       string)
-	     ""))
+	       string)))
 
 (defconst url-host-allowed-chars
   ;; Allow % to avoid re-encoding %-encoded sequences.

@@ -2818,7 +2818,7 @@ see the documentation of `replace-match' to find out how to simulate
 `case-replace'.
 
 This function returns nil if there were no matches to make, or
-the user cancelled the call.
+the user canceled the call.
 
 REPLACEMENTS is either a string, a list of strings, or a cons cell
 containing a function and its first argument.  The function is

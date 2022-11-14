@@ -152,4 +152,120 @@
     (should (eq 'b (eudc-lax-plist-get '(nil a "a" a) 'a 'b)))
     (should (eq 'b (eudc-lax-plist-get '(a nil "nil" nil) nil 'b)))))
 
+;; eudc-rfc5322-quote-phrase (string)
+(ert-deftest eudc-test-rfc5322-quote-phrase ()
+  "Tests for RFC5322 compliant phrase quoting."
+  ;; atext-token "[:alpha:][:digit:]!#$%&'*+/=?^_`{|}~-"
+  (should (equal (eudc-rfc5322-quote-phrase "Foo Bar !#$%&'*+/=?^_`{|}~-")
+                 "Foo Bar !#$%&'*+/=?^_`{|}~-"))
+  (should (equal (eudc-rfc5322-quote-phrase "Foo, Bar !#$%&'*+/=?^_`{|}~-")
+                 "\"Foo, Bar !#$%&'*+/=?^_`{|}~-\"")))
+
+;; eudc-rfc5322-valid-comment-p (string)
+(ert-deftest eudc-test-rfc5322-valid-comment-p ()
+  "Tests for RFC5322 compliant comments."
+  ;; cctext-token "\u005D-\u007E\u002A-\u005B\u0021-\u0027" + fwsp-token (TAB, LF, SPC)
+  ;; Printable US-ASCII characters not including "(", ")", or "\".
+  (let ((good-chars (append (number-sequence #x09 #x0a)
+                            (number-sequence #x20 #x20)
+                            (number-sequence #x21 #x27)
+                            (number-sequence #x2a #x5b)
+                            (number-sequence #x5d #x7e)))
+        (bad-chars  (append (number-sequence #x00 #x08)
+                            (number-sequence #x0b #x1f)
+                            (number-sequence #x28 #x29)
+                            (number-sequence #x5c #x5c)
+                            (number-sequence #x7f #xff))))
+    (dolist (gc good-chars)
+      (should (eq (eudc-rfc5322-valid-comment-p (format "%c" gc)) t)))
+    (dolist (bc bad-chars)
+      (should (eq (eudc-rfc5322-valid-comment-p (format "%c" bc)) nil)))))
+
+;; eudc-rfc5322-make-address (address &optional firstname name comment)
+(ert-deftest eudc-test-make-address ()
+  "Tests for RFC5322 compliant email address formatting."
+  (should (equal (eudc-rfc5322-make-address "")
+                 nil))
+  (should (equal (eudc-rfc5322-make-address nil)
+                 nil))
+  (should (equal (eudc-rfc5322-make-address "j.sixpack@example.org")
+                 "j.sixpack@example.org"))
+  (should (equal (eudc-rfc5322-make-address "<j.sixpack@example.org>")
+                 "<j.sixpack@example.org>"))
+  (should (equal (eudc-rfc5322-make-address "j.sixpack@example.org"
+                                            "Joey")
+                 "Joey <j.sixpack@example.org>"))
+  (should (equal (eudc-rfc5322-make-address "j.sixpack@example.org"
+                                            "Joey"
+                                            "Sixpack")
+                 "Joey Sixpack <j.sixpack@example.org>"))
+  (should (equal (eudc-rfc5322-make-address "j.sixpack@example.org"
+                                            "Joey"
+                                            "Sixpack"
+                                            "ten-packs are fine, too")
+                 "Joey Sixpack <j.sixpack@example.org> \
+(ten-packs are fine, too)"))
+  (should (equal (eudc-rfc5322-make-address "j.sixpack@example.org"
+                                            ""
+                                            "Sixpack, Joey")
+                 "\"Sixpack, Joey\" <j.sixpack@example.org>"))
+  (should (equal (eudc-rfc5322-make-address "j.sixpack@example.org"
+                                            nil
+                                            "Sixpack, Joey")
+                 "\"Sixpack, Joey\" <j.sixpack@example.org>"))
+  (should (equal (eudc-rfc5322-make-address "j.sixpack@example.org"
+                                            nil
+                                            nil
+                                            "Duh!")
+                 "j.sixpack@example.org (Duh!)"))
+  (should (equal (eudc-rfc5322-make-address "j.sixpack@example.org"
+                                            nil
+                                            nil
+                                            "Duh\\!")
+                 "j.sixpack@example.org")))
+
+(require 'ert-x) ; ert-with-temp-directory
+
+(defvar ecomplete-database-file (ert-resource-file "ecompleterc"))
+
+(ert-deftest eudcb-ecomplete ()
+  "Test the ecomplete back-end."
+  (ert-with-temp-directory home
+    (with-environment-variables (("HOME" home))
+      (let ((eudc-ignore-options-file t))
+        (should (equal (eudc-ecomplete-query-internal '((mail . "brigts")))
+                       '(((mail . "Lars Ingebrigtsen <larsi@ecomplete.org>")))))
+        (should (equal (eudc-ecomplete-query-internal '((mail . "karl")))
+                       '(((mail . "Karl Fogel <kfogel@ecomplete.com>")))))
+        (should (equal (eudc-ecomplete-query-internal '((mail . "behs")))
+                       '(((mail . "behse@ecomplete.org")))))
+        (should (equal (eudc-ecomplete-query-internal '((mail . "louie")))
+                       nil))))))
+
+(ert-with-temp-directory
+ home
+ (ert-deftest eudcb-mailabbrev ()
+   "Test the mailabbrev back-end."
+   (with-environment-variables
+    (("HOME" home))
+    (let ((mail-personal-alias-file (ert-resource-file "mailrc"))
+          (eudc-ignore-options-file t))
+      (should (equal (eudc-mailabbrev-query-internal '((email . "lars")))
+                     '(((email . "larsi@mail-abbrev.com")
+                        (name . "Lars Ingebrigtsen")))))
+      (should (equal (eudc-mailabbrev-query-internal '((name . "lars")))
+                     '(((email . "larsi@mail-abbrev.com")
+                        (name . "Lars Ingebrigtsen")))))
+      (should (equal (eudc-mailabbrev-query-internal '((phone . "lars")))
+                     nil))
+      (should (equal (eudc-mailabbrev-query-internal '((firstname . "karl")))
+                     '(((email . "kfogel@mail-abbrev.com")
+                        (name . "Karl Fogel")))))
+      (should (equal (eudc-mailabbrev-query-internal '((email . "louie")))
+                     nil))
+      (should (equal (eudc-mailabbrev-query-internal '((name . "emacsheroes")))
+                     '(((email . "Lars Ingebrigtsen <larsi@mail-abbrev.com>, \
+Karl Fogel <kfogel@mail-abbrev.com")))))))))
+
+(provide 'eudc-tests)
 ;;; eudc-tests.el ends here

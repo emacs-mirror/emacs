@@ -1526,7 +1526,7 @@
 
 (quail-define-package
  "gothic" "Gothic" "𐌰" nil
- "Input methid for the ancient Gothic script."
+ "Input method for the ancient Gothic script."
  nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules

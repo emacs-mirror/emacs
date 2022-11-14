@@ -2131,7 +2131,9 @@ But don't look beyond what's visible on the screen."
 	  ;; only reset if a new overlay exists
 	  (setq flyspell-auto-correct-previous-pos nil)
 
-	  (let ((overlay-list (overlays-in (point-min) position))
+	  (let ((overlay-list (seq-sort-by
+                               #'overlay-start #'>
+                               (overlays-in (point-min) position)))
 		(new-overlay 'dummy-value))
 
 	    ;; search for previous (new) flyspell overlay

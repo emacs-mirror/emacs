@@ -1,0 +1,7 @@
+((mail
+ ("larsi@gnus.org" 38154 1516109510 "Lars Ingebrigtsen <larsi@ecomplete.org>")
+ ("kfogel@red-bean.com" 10 1516065455 "Karl Fogel <kfogel@ecomplete.com>")
+ ("behse@ecomplete.org" 10 1516065455 "behse@ecomplete.org"))
+ (phone
+ ("Lars Ingebrigtsen" 0 0 "+1 234 5678 9012")
+ ("Karl Fogel" 0 0 "+33 701 4567 8901")))

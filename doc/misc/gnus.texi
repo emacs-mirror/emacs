@@ -21592,11 +21592,10 @@ details on Gnus' query language, see @ref{Search Queries}.
 
 In order to search for messages from any given server, that server
 must have a search engine associated with it.  IMAP servers do their
-own searching (theoretically it is possible to use a different engine
-to search an IMAP store, but we don't recommend it), but in all other
-cases the user will have to manually specify an engine to use.  This
-can be done at two different levels: by server type, or on a
-per-server basis.
+own searching, and searching IMAP groups will work with no additional
+configuration, but in all other cases the user will have to manually
+specify an engine to use.  This can be done at two different levels:
+by server type, or on a per-server basis.
 
 @vindex gnus-search-default-engines
 The option @code{gnus-search-default-engines} assigns search engines
@@ -21900,14 +21899,13 @@ be found at
 @uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
 
 Though mairix might not be as flexible as other search tools like
-swish++ or namazu, which you can use via the @code{nnir} back end, it
-has the prime advantage of being incredibly fast.  On current systems, it
-can easily search through headers and message bodies of thousands and
-thousands of mails in well under a second.  Building the database
-necessary for searching might take a minute or two, but only has to be
-done once fully.  Afterwards, the updates are done incrementally and
-therefore are really fast, too.  Additionally, mairix is very easy to set
-up.
+swish++ or namazu, it has the prime advantage of being incredibly
+fast.  On current systems, it can easily search through headers and
+message bodies of thousands and thousands of mails in well under a
+second.  Building the database necessary for searching might take a
+minute or two, but only has to be done once fully.  Afterwards, the
+updates are done incrementally and therefore are really fast, too.
+Additionally, mairix is very easy to set up.
 
 For maximum speed though, mairix should be used with mails stored in
 @code{Maildir} or @code{MH} format (this includes the @code{nnml} back
@@ -22544,6 +22542,21 @@ non-existing files.  In Gnus, these messages will usually appear with
 to you, using @kbd{G b u} and updating the group will usually fix this.
 
 @end itemize
+
+@node nnir
+@section Migrating from nnir
+
+@cindex nnir
+
+Gnus' previous search engine was called nnir, and is obsolete as of
+Emacs version 28.  If you've upgraded Emacs and are now getting
+obsolete-variable warnings about @code{nnir-*} variables, migration is
+fairly straightforward.  In addition to the variables raised by the
+warnings, all previous engine-specific variables can be updated by
+simply replacing the @code{nnir-} prefix with @code{gnus-search-}.
+For instance, @code{nnir-notmuch-program} is now
+@code{gnus-search-notmuch-program}.
+
 
 @iftex
 @iflatex

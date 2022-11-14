@@ -31,7 +31,7 @@
 
 ;;; Transliteration
 
-;; The followings provide the various transliteration schemes (such as
+;; The following provides the various transliteration schemes (such as
 ;; ITRANS, kyoto-harvard, and Aiba) of Indian scripts.  They are also
 ;; used in quail/indian.el for typing Indian script in Emacs.
 
@@ -638,7 +638,7 @@
 
 ;;; IS 13194 utilities
 
-;; The followings provide conversion between IS 13194 (ISCII) and UCS.
+;; The following provides conversion between IS 13194 (ISCII) and UCS.
 
 (dlet
     ;;Unicode vs IS13194  ;; only Devanagari is supported now.

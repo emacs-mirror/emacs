@@ -2066,7 +2066,8 @@ connection."
           (set-marker-insertion-type rcirc-prompt-end-marker t)
 
           ;; run markup functions
-          (cl-assert (bolp))
+          (unless (bolp)
+            (newline))
           (save-excursion
             (save-restriction
               (narrow-to-region (point) (point))

@@ -615,7 +615,7 @@ delimited by @var{beg} and @var{end}.  @var{type} is a diagnostic
 symbol (@pxref{Flymake error types}), and @var{text} is a description
 of the problem detected in this region.  Most commonly @var{locus} is
 the buffer object designating for the current buffer being
-syntax-checked.  However, it may be a string nameing a file relative
+syntax-checked.  However, it may be a string naming a file relative
 to the current working directory.  @xref{Foreign and list-only
 diagnostics}, for when this may be useful.  Depending on the type of
 @var{locus}, @var{beg} and @var{end} are both either buffer positions

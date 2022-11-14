@@ -371,7 +371,7 @@ Full key sequences are listed below:")
 ;;; Tamil phonetic input method
 ;;;
 
-;; Define the input method straightaway.
+;; Define the input method straight away.
 (quail-define-package "tamil-phonetic" "Tamil" "ழ" t
  "Customisable Tamil phonetic input method.
 To change the translation rules of the input method, customize

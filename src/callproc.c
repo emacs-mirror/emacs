@@ -648,6 +648,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 #ifndef MSDOS
 
+  child_signal_init ();
   block_input ();
   block_child_signal (&oldset);
 

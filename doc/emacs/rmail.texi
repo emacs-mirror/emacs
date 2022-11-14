@@ -1409,6 +1409,14 @@ might use rot13 to hide important plot points.
 rot13-other-window}.  This displays the current buffer in another window
 which applies the code when displaying the text.
 
+@findex rot13-region
+  If you are only interested in a region, the command @kbd{M-x
+rot13-region} might be preferable.  This will encrypt/decrypt the
+active region in-place.  If the buffer is read-only, it will attempt
+to display the plain text in the echo area.  If the text is too long
+for the echo area, the command will pop up a temporary buffer with the
+encrypted/decrypted text.
+
 @node Movemail
 @section @command{movemail} program
 @cindex @command{movemail} program

@@ -2435,7 +2435,9 @@ eval_sub (Lisp_Object form)
 
       else if (XSUBR (fun)->max_args == UNEVALLED)
 	val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
-      else if (XSUBR (fun)->max_args == MANY)
+      else if (XSUBR (fun)->max_args == MANY
+	       || XSUBR (fun)->max_args > 8)
+
 	{
 	  /* Pass a vector of evaluated arguments.  */
 	  Lisp_Object *vals;
@@ -2998,7 +3000,8 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
   if (numargs >= subr->min_args)
     {
       /* Conforming call to finite-arity subr.  */
-      if (numargs <= subr->max_args)
+      if (numargs <= subr->max_args
+	  && subr->max_args <= 8)
 	{
 	  Lisp_Object argbuf[8];
 	  Lisp_Object *a;
@@ -3034,15 +3037,13 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
 	      return subr->function.a8 (a[0], a[1], a[2], a[3], a[4], a[5],
 					a[6], a[7]);
 	    default:
-	      /* If a subr takes more than 8 arguments without using MANY
-		 or UNEVALLED, we need to extend this function to support it.
-		 Until this is done, there is no way to call the function.  */
-	      emacs_abort ();
+	      emacs_abort (); 	/* Can't happen. */
 	    }
 	}
 
       /* Call to n-adic subr.  */
-      if (subr->max_args == MANY)
+      if (subr->max_args == MANY
+	  || subr->max_args > 8)
 	return subr->function.aMANY (numargs, args);
     }
 

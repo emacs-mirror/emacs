@@ -2814,7 +2814,7 @@
 2012-12-12  Jonas Bernoulli  <jonas@bernoul.li>
 
 	* emacs-lisp/eieio.el: Prettier object pretty-printing (bug#13115).
-	(eieio-override-prin1): Don't quote kewords and booleans.
+	(eieio-override-prin1): Don't quote keywords and booleans.
 	(object-write) <eieio-default-superclass>: Don't put closing parens
 	on new line, avoid needless empty lines, align values that are objects
 	with the slot keyword (instead of beginning on the same line).
@@ -10765,7 +10765,7 @@
 
 	* play/zone.el (zone-hiding-mode-line): Rename from
 	zone-hiding-modeline.  All callers changed.
-	(zone): Remove unusued `modeline-hidden-level' property.
+	(zone): Remove unused `modeline-hidden-level' property.
 
 	* progmodes/xscheme.el (xscheme-mode-line-initialize): Rename from
 	xscheme-modeline-initialize.  All callers changed.
@@ -24104,7 +24104,7 @@
 
 	* emacs-lisp/lisp-mode.el (eval-defun-2): Use eval-sexp-add-defvars.
 
-	* htmlfontify.el (hfy-etags-cmd): Remove inoperant eval-and-compile.
+	* htmlfontify.el (hfy-etags-cmd): Remove inoperative eval-and-compile.
 	(hfy-e2x-etags-cmd, hfy-etags-cmd-alist-default)
 	(hfy-etags-cmd-alist): Don't eval-and-compile any more.
 

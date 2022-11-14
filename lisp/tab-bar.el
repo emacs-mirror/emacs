@@ -933,7 +933,9 @@ when the tab is current.  Return the result as a keymap."
   (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
          (rest (tab-bar-format-list rest))
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
-         (hpos (string-pixel-width (propertize rest 'face 'tab-bar)))
+         (hpos (progn
+                 (add-face-text-property 0 (length rest) 'tab-bar t rest)
+                 (string-pixel-width rest)))
          (str (propertize " " 'display `(space :align-to (- right (,hpos))))))
     `((align-right menu-item ,str ignore))))
 
@@ -963,7 +965,146 @@ on the tab bar instead."
 
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
-  (append tab-bar-map (tab-bar-format-list tab-bar-format)))
+  (let ((items (tab-bar-format-list tab-bar-format)))
+    (when tab-bar-auto-width
+      (setq items (tab-bar-auto-width items)))
+    (append tab-bar-map items)))
+
+
+(defcustom tab-bar-auto-width t
+  "Automatically resize width of tabs on tab bar to fill available tab-bar space.
+When non-nil, the widths of the tabs on the tab bar are
+automatically resized so that their width is evenly distributed
+across the tab bar.  This keeps the widths of the tabs
+independent of the length of the buffer names shown on each tab;
+the tab widths change only when tabs are added or deleted, or
+when the frame's dimensions change.  This also avoids as much as
+possible wrapping a long tab bar to a second tab-bar line.
+
+The automatic resizing of tabs takes place as long as tabs are no
+wider than allowed by the value of `tab-bar-auto-width-max', and
+at least as wide as specified by the value of
+`tab-bar-auto-width-min'.
+
+When this variable is nil, the width of each tab is determined by the
+length of the tab's name."
+  :type 'boolean
+  :group 'tab-bar
+  :version "29.1")
+
+(defcustom tab-bar-auto-width-max '(220 20)
+  "Maximum width for automatic resizing of width of tab-bar tabs.
+This determines the maximum width of tabs before their names will be
+truncated on display.
+The value should be a list of two numbers: the first is the maximum
+width of tabs in pixels for GUI frames, the second is the maximum
+width of tabs in characters on TTY frames.
+If the value of this variable is nil, there is no limit on maximum
+width.
+This variable has effect only when `tab-bar-auto-width' is non-nil."
+  :type '(choice
+          (const :tag "No limit" nil)
+          (list (integer :tag "Max width (pixels)" :value 220)
+                (integer :tag "Max width (chars)" :value 20)))
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (setq tab-bar--fixed-width-hash nil))
+  :group 'tab-bar
+  :version "29.1")
+
+(defvar tab-bar-auto-width-min '(20 2)
+  "Minimum width of tabs for automatic resizing under `tab-bar-auto-width'.
+The value should be a list of two numbers, giving the minimum width
+as the number of pixels for GUI frames and the number of characters
+for text-mode frames.  Tabs whose width is smaller than this will not
+be narrowed.
+It's not recommended to change this value since with larger values, the
+tab bar might wrap to the second line when it shouldn't.")
+
+(defvar tab-bar-auto-width-faces
+  '( tab-bar-tab tab-bar-tab-inactive
+     tab-bar-tab-ungrouped
+     tab-bar-tab-group-inactive)
+  "Resize tabs only with these faces.")
+
+(defvar tab-bar--fixed-width-hash nil
+  "Memoization table for `tab-bar-auto-width'.")
+
+(defun tab-bar-auto-width (items)
+  "Return tab-bar items with resized tab names."
+  (unless tab-bar--fixed-width-hash
+    (define-hash-table-test 'tab-bar--fixed-width-hash-test
+                            #'equal-including-properties
+                            #'sxhash-equal-including-properties)
+    (setq tab-bar--fixed-width-hash
+          (make-hash-table :test 'tab-bar--fixed-width-hash-test)))
+  (let ((tabs nil)    ;; list of resizable tabs
+        (non-tabs "") ;; concatenated names of non-resizable tabs
+        (width 0))    ;; resize tab names to this width
+    (dolist (item items)
+      (when (and (eq (nth 1 item) 'menu-item) (stringp (nth 2 item)))
+        (if (memq (get-text-property 0 'face (nth 2 item))
+                  tab-bar-auto-width-faces)
+            (push item tabs)
+          (unless (eq (nth 0 item) 'align-right)
+            (setq non-tabs (concat non-tabs (nth 2 item)))))))
+    (when tabs
+      (add-face-text-property 0 (length non-tabs) 'tab-bar t non-tabs)
+      (setq width (/ (- (frame-inner-width)
+                        (string-pixel-width non-tabs))
+                     (length tabs)))
+      (when tab-bar-auto-width-min
+        (setq width (max width (if window-system
+                                   (nth 0 tab-bar-auto-width-min)
+                                 (nth 1 tab-bar-auto-width-min)))))
+      (when tab-bar-auto-width-max
+        (setq width (min width (if window-system
+                                   (nth 0 tab-bar-auto-width-max)
+                                 (nth 1 tab-bar-auto-width-max)))))
+      (dolist (item tabs)
+        (setf (nth 2 item)
+              (with-memoization (gethash (list (selected-frame)
+                                               width (nth 2 item))
+                                         tab-bar--fixed-width-hash)
+                (let* ((name (nth 2 item))
+                       (len (length name))
+                       (close-p (get-text-property (1- len) 'close-tab name))
+                       (continue t)
+                       (prev-width (string-pixel-width name))
+                       curr-width)
+                  (cond
+                   ((< prev-width width)
+                    (let* ((space (apply 'propertize " "
+                                         (text-properties-at 0 name)))
+                           (ins-pos (- len (if close-p 1 0)))
+                           (prev-name name))
+                      (while continue
+                        (setf (substring name ins-pos ins-pos) space)
+                        (setq curr-width (string-pixel-width name))
+                        (if (and (< curr-width width)
+                                 (not (eq curr-width prev-width)))
+                            (setq prev-width curr-width
+                                  prev-name name)
+                          ;; Set back a shorter name
+                          (setq name prev-name
+                                continue nil)))))
+                   ((> prev-width width)
+                    (let ((del-pos1 (if close-p -2 -1))
+                          (del-pos2 (if close-p -1 nil)))
+                      (while continue
+                        (setf (substring name del-pos1 del-pos2) "")
+                        (setq curr-width (string-pixel-width name))
+                        (if (and (> curr-width width)
+                                 (not (eq curr-width prev-width)))
+                            (setq prev-width curr-width)
+                          (setq continue nil)))
+                      (let* ((len (length name))
+                             (pos (- len (if close-p 1 0))))
+                        (add-face-text-property
+                         (max 0 (- pos 2)) (max 0 pos) 'shadow nil name)))))
+                  name)))))
+    items))
 
 
 ;; Some window-configuration parameters don't need to be persistent.
@@ -1110,7 +1251,8 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
          (to-number (cond ((< tab-number 0) (+ (length tabs) (1+ tab-number)))
                           ((zerop tab-number) (1+ from-index))
                           (t tab-number)))
-         (to-index (1- (max 1 (min to-number (length tabs))))))
+         (to-index (1- (max 1 (min to-number (length tabs)))))
+         (minibuffer-was-active (minibuffer-window-active-p (selected-window))))
 
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))
@@ -1136,7 +1278,7 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
                 (wc-history-back (alist-get 'wc-history-back to-tab))
                 (wc-history-forward (alist-get 'wc-history-forward to-tab)))
 
-            (set-window-configuration wc)
+            (set-window-configuration wc nil t)
 
             ;; set-window-configuration does not restore the value of
             ;; point in the current buffer, so restore it separately.
@@ -1164,7 +1306,21 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
                        tab-bar-history-forward))))
 
          (ws
+          ;; `window-state-put' fails when called in the minibuffer
+          (when (minibuffer-selected-window)
+            (select-window (minibuffer-selected-window)))
           (window-state-put ws nil 'safe)))
+
+        ;; Select the minibuffer when it was active before switching tabs
+        (when (and minibuffer-was-active (active-minibuffer-window))
+          (select-window (active-minibuffer-window)))
+
+        ;; When the minibuffer was activated in one tab, but exited in
+        ;; another tab, then after going back to the first tab, it has
+        ;; such inconsistent state that the current buffer is the minibuffer,
+        ;; but its window is not active.  So try to undo this mess.
+        (when (and (minibufferp) (not (active-minibuffer-window)))
+          (other-window 1))
 
         (when tab-bar-history-mode
           (setq tab-bar-history-omit t))
@@ -1900,7 +2056,7 @@ This navigates back in the history of window configurations."
                    (cons tab-bar-history-old
                          (gethash (selected-frame) tab-bar-history-forward))
                    tab-bar-history-forward)
-          (set-window-configuration wc)
+          (set-window-configuration wc nil t)
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab back history"))))
@@ -1919,7 +2075,7 @@ This navigates forward in the history of window configurations."
                    (cons tab-bar-history-old
                          (gethash (selected-frame) tab-bar-history-back))
                    tab-bar-history-back)
-          (set-window-configuration wc)
+          (set-window-configuration wc nil t)
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab forward history"))))
@@ -2192,7 +2348,7 @@ with those specified by the selected window configuration."
    ((framep all-frames) (list all-frames))
    (t (list (selected-frame)))))
 
-(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames ignore-current-tab)
+(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames ignore-current-tab all-tabs)
   "Return the tab that owns the window whose buffer is BUFFER-OR-NAME.
 BUFFER-OR-NAME may be a buffer or a buffer name, and defaults to
 the current buffer.
@@ -2210,14 +2366,20 @@ selected frame and no others.
 
 When the optional argument IGNORE-CURRENT-TAB is non-nil,
 don't take into account the buffers in the currently selected tab.
-Otherwise, prefer buffers of the current tab."
+Otherwise, prefer buffers of the current tab.
+
+When the optional argument ALL-TABS is non-nil, return a list of all tabs
+that contain the buffer BUFFER-OR-NAME."
   (let ((buffer (if buffer-or-name
                     (get-buffer buffer-or-name)
-                  (current-buffer))))
+                  (current-buffer)))
+        buffer-tabs)
     (when (bufferp buffer)
-      (seq-some
+      (funcall
+       (if all-tabs #'seq-each #'seq-some)
        (lambda (frame)
-         (seq-some
+         (funcall
+          (if all-tabs #'seq-each #'seq-some)
           (lambda (tab)
             (when (if (eq (car tab) 'current-tab)
                       (get-buffer-window buffer frame)
@@ -2229,8 +2391,9 @@ Otherwise, prefer buffers of the current tab."
                        (memq buffer buffers)
                        ;; writable window-state
                        (member (buffer-name buffer) buffers))))
-              (append tab `((index . ,(tab-bar--tab-index tab nil frame))
-                            (frame . ,frame)))))
+              (push (append tab `((index . ,(tab-bar--tab-index tab nil frame))
+                                  (frame . ,frame)))
+                    buffer-tabs)))
           (let* ((tabs (funcall tab-bar-tabs-function frame))
                  (current-tab (tab-bar--current-tab-find tabs)))
             (setq tabs (remq current-tab tabs))
@@ -2239,7 +2402,8 @@ Otherwise, prefer buffers of the current tab."
                 tabs
               ;; Make sure current-tab is at the beginning of tabs.
               (cons current-tab tabs)))))
-       (tab-bar--reusable-frames all-frames)))))
+       (tab-bar--reusable-frames all-frames))
+      (if all-tabs (nreverse buffer-tabs) (car (last buffer-tabs))))))
 
 (defun display-buffer-in-tab (buffer alist)
   "Display BUFFER in a tab using display actions in ALIST.

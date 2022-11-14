@@ -228,7 +228,7 @@ the default otherwise."
 ;; Apropos `icomplete-scroll', we implement "scrolling icomplete"
 ;; within classic icomplete, which is "rotating", by contrast.
 ;;
-;; The two variables supporing this are
+;; The two variables supporting this are
 ;; `icomplete--scrolled-completions' and `icomplete--scrolled-past'.
 ;; They come into play when:
 ;;

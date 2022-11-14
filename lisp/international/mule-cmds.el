@@ -1208,6 +1208,16 @@ Arguments are the same as `set-language-info'."
 			  (list 'const lang))
 			(sort (mapcar 'car language-info-alist) 'string<))))))
 
+(defun set-language-info-setup-keymap (lang-env alist describe-map setup-map)
+  "Setup menu items for LANG-ENV.
+See `set-language-info-alist' for details of other arguments."
+  (let ((doc (assq 'documentation alist)))
+    (when doc
+      (define-key-after describe-map (vector (intern lang-env))
+	(cons lang-env 'describe-specified-language-support))))
+  (define-key-after setup-map (vector (intern lang-env))
+    (cons lang-env 'setup-specified-language-environment)))
+
 (defun set-language-info-alist (lang-env alist &optional parents)
   "Store ALIST as the definition of language environment LANG-ENV.
 ALIST is an alist of KEY and INFO values.  See the documentation of
@@ -1222,51 +1232,44 @@ in the European submenu in each of those two menus."
 	 (setq lang-env (symbol-name lang-env)))
 	((stringp lang-env)
 	 (setq lang-env (purecopy lang-env))))
-  (let ((describe-map describe-language-environment-map)
-	(setup-map setup-language-environment-map))
-    (if parents
-	(let ((l parents)
-	      map parent-symbol parent prompt)
-	  (while l
-	    (if (symbolp (setq parent-symbol (car l)))
-		(setq parent (symbol-name parent))
-	      (setq parent parent-symbol parent-symbol (intern parent)))
-	    (setq map (lookup-key describe-map (vector parent-symbol)))
-	    ;; This prompt string is for define-prefix-command, so
-	    ;; that the map it creates will be suitable for a menu.
-	    (or map (setq prompt (format "%s Environment" parent)))
-	    (if (not map)
-		(progn
-		  (setq map (intern (format "describe-%s-environment-map"
-					    (downcase parent))))
-		  (define-prefix-command map nil prompt)
-		  (define-key-after describe-map (vector parent-symbol)
-		    (cons parent map))))
-	    (setq describe-map (symbol-value map))
-	    (setq map (lookup-key setup-map (vector parent-symbol)))
-	    (if (not map)
-		(progn
-		  (setq map (intern (format "setup-%s-environment-map"
-					    (downcase parent))))
-		  (define-prefix-command map nil prompt)
-		  (define-key-after setup-map (vector parent-symbol)
-		    (cons parent map))))
-	    (setq setup-map (symbol-value map))
-	    (setq l (cdr l)))))
-
-    ;; Set up menu items for this language env.
-    (let ((doc (assq 'documentation alist)))
-      (when doc
-	(define-key-after describe-map (vector (intern lang-env))
-	  (cons lang-env 'describe-specified-language-support))))
-    (define-key-after setup-map (vector (intern lang-env))
-      (cons lang-env 'setup-specified-language-environment))
-
-    (dolist (elt alist)
-      (set-language-info-internal lang-env (car elt) (cdr elt)))
-
-    (if (equal lang-env current-language-environment)
-	(set-language-environment lang-env))))
+  (if parents
+      (while parents
+	(let (describe-map setup-map parent-symbol parent prompt)
+	  (if (symbolp (setq parent-symbol (car parents)))
+	      (setq parent (symbol-name parent))
+	    (setq parent parent-symbol parent-symbol (intern parent)))
+	  (setq describe-map (lookup-key describe-language-environment-map
+                                         (vector parent-symbol)))
+	  ;; This prompt string is for define-prefix-command, so
+	  ;; that the map it creates will be suitable for a menu.
+	  (or describe-map (setq prompt (format "%s Environment" parent)))
+	  (unless describe-map
+	    (setq describe-map (intern (format "describe-%s-environment-map"
+					       (downcase parent))))
+	    (define-prefix-command describe-map nil prompt)
+	    (define-key-after
+              describe-language-environment-map
+              (vector parent-symbol) (cons parent describe-map)))
+	  (setq setup-map (lookup-key setup-language-environment-map
+                                      (vector parent-symbol)))
+	  (unless setup-map
+	    (setq setup-map (intern (format "setup-%s-environment-map"
+                                            (downcase parent))))
+	    (define-prefix-command setup-map nil prompt)
+	    (define-key-after
+              setup-language-environment-map
+              (vector parent-symbol) (cons parent setup-map)))
+	  (setq parents (cdr parents))
+          (set-language-info-setup-keymap
+           lang-env alist
+           (symbol-value describe-map) (symbol-value setup-map))))
+    (set-language-info-setup-keymap
+     lang-env alist
+     describe-language-environment-map setup-language-environment-map))
+  (dolist (elt alist)
+    (set-language-info-internal lang-env (car elt) (cdr elt)))
+  (if (equal lang-env current-language-environment)
+      (set-language-environment lang-env)))
 
 (defun read-language-name (key prompt &optional default)
   "Read a language environment name which has information for KEY.

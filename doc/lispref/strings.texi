@@ -484,7 +484,7 @@ is a multibyte string, we recommend to make sure @var{string} is also
 multibyte, even if it's pure-@acronym{ASCII}.
 
 Since it is impossible to change the number of characters in an
-existing string, it is en error if @var{obj} consists of more
+existing string, it is an error if @var{obj} consists of more
 characters than would fit in @var{string} starting at character index
 @var{idx}.
 @end defun

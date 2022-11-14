@@ -32,17 +32,15 @@
 (eval-when-compile
   (require 'wid-edit))
 
-(defvar custom-new-theme-mode-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map (make-composed-keymap widget-keymap
-						 special-mode-map))
-    (suppress-keymap map)
-    (define-key map "\C-x\C-s" 'custom-theme-write)
-    (define-key map "q" 'Custom-buffer-done)
-    (define-key map "n" 'widget-forward)
-    (define-key map "p" 'widget-backward)
-    map)
-  "Keymap for `custom-new-theme-mode'.")
+(defvar-keymap custom-new-theme-mode-map
+  :doc "Keymap for `custom-new-theme-mode'."
+  :full t
+  :suppress t
+  :parent (make-composed-keymap widget-keymap special-mode-map)
+  "C-x C-s" #'custom-theme-write
+  "q"       #'Custom-buffer-done
+  "n"       #'widget-forward
+  "p"       #'widget-backward)
 
 (define-derived-mode custom-new-theme-mode nil "Custom-Theme"
   "Major mode for editing Custom themes.
@@ -534,17 +532,15 @@ It includes all faces in list FACES."
   :type 'boolean
   :group 'custom-buffer)
 
-(defvar custom-theme-choose-mode-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map (make-composed-keymap widget-keymap
-						 special-mode-map))
-    (suppress-keymap map)
-    (define-key map "\C-x\C-s" 'custom-theme-save)
-    (define-key map "n" 'widget-forward)
-    (define-key map "p" 'widget-backward)
-    (define-key map "?" 'custom-describe-theme)
-    map)
-  "Keymap for `custom-theme-choose-mode'.")
+(defvar-keymap custom-theme-choose-mode-map
+  :doc "Keymap for `custom-theme-choose-mode'."
+  :full t
+  :suppress t
+  :parent (make-composed-keymap widget-keymap special-mode-map)
+  "C-x C-s" #'custom-theme-save
+  "n"       #'widget-forward
+  "p"       #'widget-backward
+  "?"       #'custom-describe-theme)
 
 (define-derived-mode custom-theme-choose-mode special-mode "Themes"
   "Major mode for selecting Custom themes.

@@ -714,40 +714,42 @@ pgtk_set_window_size (struct frame *f, bool change_gravity,
 
 void
 pgtk_iconify_frame (struct frame *f)
-/* --------------------------------------------------------------------------
-     External: Iconify window
-   -------------------------------------------------------------------------- */
 {
+  GtkWindow *window;
+
   /* Don't keep the highlight on an invisible frame.  */
+
   if (FRAME_DISPLAY_INFO (f)->highlight_frame == f)
-    FRAME_DISPLAY_INFO (f)->highlight_frame = 0;
+    FRAME_DISPLAY_INFO (f)->highlight_frame = NULL;
+
+  /* If the frame is already iconified, return.  */
 
   if (FRAME_ICONIFIED_P (f))
     return;
 
-  block_input ();
+  /* Child frames on PGTK have no outer widgets.  In that case, simply
+     refuse to iconify the frame.  */
 
   if (FRAME_GTK_OUTER_WIDGET (f))
     {
       if (!FRAME_VISIBLE_P (f))
 	gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
 
-      gtk_window_iconify (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
-      SET_FRAME_VISIBLE (f, 0);
-      SET_FRAME_ICONIFIED (f, true);
-      unblock_input ();
-      return;
+      window = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
+
+      gtk_window_iconify (window);
+
+      /* Don't make the frame iconified here.  Doing so will cause it
+	 to be skipped by redisplay, until GDK says it is deiconified
+	 (see window_state_event for more details).  However, if the
+	 window server rejects the iconification request, GDK will
+	 never tell Emacs about the iconification not happening,
+	 leading to the frame not being redisplayed until the next
+	 window state change.  */
+
+      /* SET_FRAME_VISIBLE (f, 0);
+	 SET_FRAME_ICONIFIED (f, true); */
     }
-
-  /* Make sure the X server knows where the window should be positioned,
-     in case the user deiconifies with the window manager.  */
-  if (!FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
-    pgtk_set_offset (f, f->left_pos, f->top_pos, 0);
-
-  SET_FRAME_ICONIFIED (f, true);
-  SET_FRAME_VISIBLE (f, 0);
-
-  unblock_input ();
 }
 
 static gboolean
@@ -5420,9 +5422,7 @@ map_event (GtkWidget *widget,
       /* Check if fullscreen was specified before we where mapped the
          first time, i.e. from the command line.  */
       if (!FRAME_X_OUTPUT (f)->has_been_visible)
-	{
-	  set_fullscreen_state (f);
-	}
+	set_fullscreen_state (f);
 
       if (!iconified)
 	{
@@ -5465,24 +5465,6 @@ window_state_event (GtkWidget *widget,
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-  if (f)
-    {
-      if (new_state & GDK_WINDOW_STATE_FOCUSED)
-	{
-	  if (FRAME_ICONIFIED_P (f))
-	    {
-	      /* Gnome shell does not iconify us when C-z is pressed.
-	         It hides the frame.  So if our state says we aren't
-	         hidden anymore, treat it as deiconified.  */
-	      SET_FRAME_VISIBLE (f, 1);
-	      SET_FRAME_ICONIFIED (f, false);
-	      FRAME_X_OUTPUT (f)->has_been_visible = true;
-	      inev.ie.kind = DEICONIFY_EVENT;
-	      XSETFRAME (inev.ie.frame_or_window, f);
-	    }
-	}
-    }
-
   if (new_state & GDK_WINDOW_STATE_FULLSCREEN)
     store_frame_param (f, Qfullscreen, Qfullboth);
   else if (new_state & GDK_WINDOW_STATE_MAXIMIZED)
@@ -5500,14 +5482,37 @@ window_state_event (GtkWidget *widget,
   else
     store_frame_param (f, Qfullscreen, Qnil);
 
+  /* The Wayland protocol provides no way for the client to know
+     whether or not one of its toplevels has actually been
+     deiconified.  It only provides a request for clients to iconify a
+     toplevel, without even the ability to determine whether or not
+     the iconification request was rejected by the display server.
+
+     GDK computes the iconified state by sending a window state event
+     containing only GDK_WINDOW_STATE_ICONIFIED immediately after
+     gtk_window_iconify is called.  That is error-prone if the request
+     to iconify the frame was rejected by the display server, but is
+     not the main problem here, as Wayland compositors only rarely
+     reject such requests.  GDK also assumes that it can clear the
+     iconified state upon receiving the next toplevel configure event
+     from the display server.  Unfortunately, such events can be sent
+     by Wayland compositors while the frame is iconified, and may also
+     not be sent upon deiconification.  So, no matter what Emacs does,
+     the iconification state of a frame is likely to be wrong under
+     one situation or another.  */
+
   if (new_state & GDK_WINDOW_STATE_ICONIFIED)
-    SET_FRAME_ICONIFIED (f, true);
+    {
+      SET_FRAME_ICONIFIED (f, true);
+      SET_FRAME_VISIBLE (f, false);
+    }
   else
     {
       FRAME_X_OUTPUT (f)->has_been_visible = true;
       inev.ie.kind = DEICONIFY_EVENT;
       XSETFRAME (inev.ie.frame_or_window, f);
       SET_FRAME_ICONIFIED (f, false);
+      SET_FRAME_VISIBLE (f, true);
     }
 
   if (new_state & GDK_WINDOW_STATE_STICKY)
@@ -6594,6 +6599,44 @@ pgtk_selection_event (GtkWidget *widget, GdkEvent *event,
   return FALSE;
 }
 
+/* Display a warning message if the PGTK port is being used under X;
+   that is not supported.  */
+
+static void
+pgtk_display_x_warning (GdkDisplay *display)
+{
+  GtkWidget *dialog_widget, *label, *content_area;
+  GtkDialog *dialog;
+  GtkWindow *window;
+  GdkScreen *screen;
+
+  /* Do this instead of GDK_IS_X11_DISPLAY because the GDK X header
+     pulls in Xlib, which conflicts with definitions in pgtkgui.h.  */
+  if (strcmp (G_OBJECT_TYPE_NAME (display),
+	      "GdkX11Display"))
+    return;
+
+  dialog_widget = gtk_dialog_new ();
+  dialog = GTK_DIALOG (dialog_widget);
+  window = GTK_WINDOW (dialog_widget);
+  screen = gdk_display_get_default_screen (display);
+  content_area = gtk_dialog_get_content_area (dialog);
+
+  gtk_window_set_title (window, "Warning");
+  gtk_window_set_screen (window, screen);
+
+  label = gtk_label_new ("You are trying to run Emacs configured with"
+			  " the \"pure-GTK\" interface under the X Window"
+			  " System.  That configuration is unsupported and"
+			  " will lead to sporadic crashes during transfer of"
+			  " large selection data.  It will also lead to"
+			  " various problems with keyboard input.");
+  gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+  gtk_container_add (GTK_CONTAINER (content_area), label);
+  gtk_widget_show (label);
+  gtk_widget_show (dialog_widget);
+}
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -6697,6 +6740,9 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
       return 0;
     }
 
+  /* If the PGTK port is being used under X, complain very loudly, as
+     that isn't supported.  */
+  pgtk_display_x_warning (dpy);
 
   dpyinfo = xzalloc (sizeof *dpyinfo);
   pgtk_initialize_display_info (dpyinfo);
