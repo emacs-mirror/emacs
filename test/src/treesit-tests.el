@@ -418,11 +418,7 @@ visible_end.)"
         (setq root-node (treesit-parser-root-node
                          parser))
         (setq doc-node (treesit-node-child root-node 0)))
-      ;; `treesit-set-ranges', `treesit-get-ranges'.
-      (treesit-set-ranges 'json
-                          '((1 . 2)))
-      (should (equal (treesit-get-ranges 'json)
-                     '((1 . 2)))))))
+      )))
 
 (ert-deftest treesit-node-supplemental ()
   "Supplemental node functions."
