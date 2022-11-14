@@ -1870,6 +1870,22 @@ characters.  For example, here's how to bind @kbd{C-x M-l} to
 (global-set-key "\C-x\M-l" 'make-symbolic-link)
 @end example
 
+  Similarly, a key sequence can be bound to a Lisp string or a vector
+instead of a command.  A vector is only required if the intended
+result contains non-@acronym{ASCII} characters, and @code{kbd} can
+again be used to create that vector.  For example, to bind @kbd{C-c h}
+to the string @samp{hello}:
+
+@example
+(global-set-key (kbd "C-c h") "hello")
+@end example
+
+  But to bind it to the string @samp{olá} instead:
+
+@example
+(global-set-key (kbd "C-c h") (kbd "olá"))
+@end example
+
   To bind a key sequence including @key{TAB}, @key{RET}, @key{ESC}, or
 @key{DEL}, the string should contain the Emacs Lisp escape sequence
 @samp{\t}, @samp{\r}, @samp{\e}, or @samp{\d} respectively.  Here is
