@@ -166,8 +166,6 @@
 ;;
 ;; Where setup-ebnf2ps.el should be a file containing:
 ;;
-;;    ;; set load-path if ebnf2ps isn't installed in your Emacs environment
-;;    (setq load-path (append (list "/dir/of/ebnf2ps") load-path))
 ;;    (require 'ebnf2ps)
 ;;    ;; insert here your ebnf2ps settings
 ;;    (setq ebnf-terminal-shape 'bevel)

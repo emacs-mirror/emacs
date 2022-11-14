@@ -276,19 +276,17 @@ Used by `pages-directory-for-addresses' function."
 
 ;;; Key bindings for page handling functions
 
-(defvar pages--ctl-x-ctl-p-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-n" #'pages-next-page)
-    (define-key map "\C-p" #'pages-previous-page)
-    (define-key map "\C-a" #'pages-add-new-page)
-    (define-key map "\C-m" #'mark-page)
-    (define-key map "\C-s" #'pages-search)
-    (define-key map "s"    #'pages-sort-buffer)
-    (define-key map "\C-l" #'pages-set-delimiter)
-    (define-key map "\C-d" #'pages-directory)
-    (define-key map "d"    #'pages-directory-for-addresses)
-    map)
-  "Keymap for subcommands of C-x C-p, which are for page handling.")
+(defvar-keymap pages--ctl-x-ctl-p-map
+  :doc "Keymap for subcommands of \\`C-x C-p', which are for page handling."
+  "C-n" #'pages-next-page
+  "C-p" #'pages-previous-page
+  "C-a" #'pages-add-new-page
+  "C-m" #'mark-page
+  "C-s" #'pages-search
+  "s"   #'pages-sort-buffer
+  "C-l" #'pages-set-delimiter
+  "C-d" #'pages-directory
+  "d"   #'pages-directory-for-addresses)
 
 ;; FIXME: Merely loading a package shouldn't have this kind of side-effects!
 (global-unset-key "\C-x\C-p")
@@ -476,14 +474,12 @@ contain matches to the regexp.)")
 
 (define-obsolete-variable-alias 'pages-directory-map
   'pages-directory-mode-map "26.1")
-(defvar pages-directory-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c"     #'pages-directory-goto)
-    (define-key map "\C-m"         #'pages-directory-goto)
-    (define-key map "\C-c\C-p\C-a" #'pages-add-new-page)
-    (define-key map [mouse-2]      #'pages-directory-goto)
-    map)
-  "Keymap for the pages-directory-buffer.")
+(defvar-keymap pages-directory-mode-map
+  :doc "Keymap for the pages-directory-buffer."
+  "C-c C-c"     #'pages-directory-goto
+  "RET"         #'pages-directory-goto
+  "C-c C-p C-a" #'pages-add-new-page
+  "<mouse-2>"   #'pages-directory-goto)
 
 (defvar pages-original-delimiter "^\f"
   "Default page delimiter.")

@@ -718,7 +718,7 @@ Documentation Lookup
 
 * Info Lookup::        Looking up library functions and commands in Info files.
 * Man Page::           Looking up man pages of library functions and commands.
-* Lisp Doc::           Looking up Emacs Lisp functions, etc.
+* Programming Language Doc:: Looking up program functions, variables, etc.
 
 C and Related Modes
 

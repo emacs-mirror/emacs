@@ -156,6 +156,18 @@ If START or END is negative, it counts from the end."
 		 (setq i (1+ i) start (1+ start)))
 	       res))))))
 
+
+;;;; Misc 29.1
+
+(defmacro erc-compat--with-memoization (table &rest forms)
+  (declare (indent defun))
+  (cond
+   ((fboundp 'with-memoization)
+    `(with-memoization ,table ,@forms)) ; 29.1
+   ((fboundp 'cl--generic-with-memoization)
+    `(cl--generic-with-memoization ,table ,@forms))
+   (t `(progn ,@forms))))
+
 (provide 'erc-compat)
 
 ;;; erc-compat.el ends here

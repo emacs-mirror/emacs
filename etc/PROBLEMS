@@ -1229,6 +1229,17 @@ you should use an Emacs input method instead.
 
 ** X keyboard problems
 
+*** `x-focus-frame' fails to activate the frame.
+
+Some window managers prevent `x-focus-frame' from activating the given
+frame when Emacs is in the background.
+
+Emacs tries to work around this problem by default, but the workaround
+does not work on all window managers.  You can try different
+workarounds by changing the value of `x-allow-focus-stealing' (see its
+doc string for more details).  The value `imitate-pager' may be
+required on some versions of KWin.
+
 *** You "lose characters" after typing Compose Character key.
 
 This is because the Compose Character key is defined as the keysym

@@ -669,7 +669,7 @@ the C sources, too."
   "Insert usage at point and return docstring.  With highlighting."
   (if (keymapp function)
       doc                       ; If definition is a keymap, skip arglist note.
-    (let* ((advertised (gethash real-def advertised-signature-table t))
+    (let* ((advertised (get-advertised-calling-convention real-def))
            (arglist (if (listp advertised)
                         advertised (help-function-arglist real-def)))
            (usage (help-split-fundoc doc function)))

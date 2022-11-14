@@ -125,6 +125,8 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 
 ;; eshell.el keeps the path in `eshell-path-env'.  We must change it
 ;; when `default-directory' points to another host.
+;; This is fixed in Eshell with Emacs 29.1.
+
 (defun tramp-eshell-directory-change ()
   "Set `eshell-path-env' to $PATH of the host related to `default-directory'."
   ;; Remove last element of `(exec-path)', which is `exec-directory'.
@@ -136,16 +138,17 @@ been set up by `rfn-eshadow-setup-minibuffer'."
           (getenv "PATH"))))
 
 (with-eval-after-load 'esh-util
-  (add-hook 'eshell-mode-hook
-	    #'tramp-eshell-directory-change)
-  (add-hook 'eshell-directory-change-hook
-	    #'tramp-eshell-directory-change)
-  (add-hook 'tramp-integration-unload-hook
-	    (lambda ()
-	      (remove-hook 'eshell-mode-hook
-			   #'tramp-eshell-directory-change)
-	      (remove-hook 'eshell-directory-change-hook
-			   #'tramp-eshell-directory-change))))
+  (unless (boundp 'eshell-path-env-list)
+    (add-hook 'eshell-mode-hook
+	      #'tramp-eshell-directory-change)
+    (add-hook 'eshell-directory-change-hook
+	      #'tramp-eshell-directory-change)
+    (add-hook 'tramp-integration-unload-hook
+	      (lambda ()
+	        (remove-hook 'eshell-mode-hook
+			     #'tramp-eshell-directory-change)
+	        (remove-hook 'eshell-directory-change-hook
+			     #'tramp-eshell-directory-change)))))
 
 ;;; Integration of recentf.el:
 

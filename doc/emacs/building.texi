@@ -537,10 +537,13 @@ C/C++ files this is usually the C compiler.  Flymake can also use
 build tools such as @code{make} for checking complicated projects.
 
   To enable Flymake mode, type @kbd{M-x flymake-mode}.  You can jump
-to the errors that it finds by using @kbd{M-x flymake-goto-next-error}
-and @kbd{M-x flymake-goto-prev-error}.  To display any error messages
-associated with the current line, type @kbd{M-x
-flymake-display-err-menu-for-current-line}.
+to the errors that it finds by using @w{@kbd{M-x
+flymake-goto-next-error}} and @w{@kbd{M-x flymake-goto-prev-error}}.
+To display a detailed overview of the diagnostics for the current
+buffer, use the command @w{@kbd{M-x flymake-show-buffer-diagnostics}};
+to display a similar overview of diagnostics for the entire project
+(@pxref{Projects}), use @w{@kbd{M-x
+flymake-show-project-diagnostics}}.
 
   For more details about using Flymake,
 @ifnottex

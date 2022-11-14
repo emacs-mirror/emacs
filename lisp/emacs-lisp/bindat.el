@@ -163,7 +163,9 @@
   (let ((s (substring bindat-raw bindat-idx (+ bindat-idx len))))
     (setq bindat-idx (+ bindat-idx len))
     (if (stringp s) s
-      (apply #'unibyte-string s))))
+      ;; FIXME: There should be a more efficient way to do this.
+      ;; Should `apply' accept vectors in addition to lists?
+      (apply #'unibyte-string (append s nil)))))
 
 (defun bindat--unpack-strz (&optional len)
   (let ((i 0) s)
@@ -172,7 +174,7 @@
     (setq s (substring bindat-raw bindat-idx (+ bindat-idx i)))
     (setq bindat-idx (+ bindat-idx (or len (1+ i))))
     (if (stringp s) s
-      (apply #'unibyte-string s))))
+      (apply #'unibyte-string (append s nil)))))
 
 (defun bindat--unpack-bits (len)
   (let ((bits nil) (bnum (1- (* 8 len))) j m)

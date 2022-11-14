@@ -598,7 +598,7 @@ There should be no more than seven characters after the final `/'."
 
 
 ;; Support for loading compressed files.
-(defun jka-compr-load (file &optional noerror nomessage _nosuffix)
+(defun jka-compr-load (file &optional noerror nomessage _nosuffix _must-suffix)
   "Documented as original."
 
   (let* ((local-copy (jka-compr-file-local-copy file))

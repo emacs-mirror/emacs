@@ -39,7 +39,10 @@ extern char **environ;
   && (defined HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR        \
       || defined HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP) \
   && defined HAVE_DECL_POSIX_SPAWN_SETSID                   \
-  && HAVE_DECL_POSIX_SPAWN_SETSID == 1
+  && HAVE_DECL_POSIX_SPAWN_SETSID == 1			    \
+  /* posix_spawnattr_setflags rejects POSIX_SPAWN_SETSID on \
+     Haiku */						    \
+  && !defined HAIKU
 # include <spawn.h>
 # define USABLE_POSIX_SPAWN 1
 #else
@@ -645,6 +648,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 #ifndef MSDOS
 
+  child_signal_init ();
   block_input ();
   block_child_signal (&oldset);
 
@@ -1306,29 +1310,29 @@ emacs_posix_spawn_init_actions (posix_spawn_file_actions_t *actions,
     return error;
 
   error = posix_spawn_file_actions_adddup2 (actions, std_in,
-                                            STDIN_FILENO);
+					    STDIN_FILENO);
   if (error != 0)
     goto out;
 
   error = posix_spawn_file_actions_adddup2 (actions, std_out,
-                                            STDOUT_FILENO);
+					    STDOUT_FILENO);
   if (error != 0)
     goto out;
 
   error = posix_spawn_file_actions_adddup2 (actions,
-                                            std_err < 0 ? std_out
-                                                        : std_err,
-                                            STDERR_FILENO);
+					    std_err < 0 ? std_out
+							: std_err,
+					    STDERR_FILENO);
   if (error != 0)
     goto out;
 
-  error =
-#ifdef HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
-    posix_spawn_file_actions_addchdir
+  /* Haiku appears to have linkable posix_spawn_file_actions_chdir,
+     but it always fails.  So use the _np function instead.  */
+#if defined HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR && !defined HAIKU
+  error = posix_spawn_file_actions_addchdir (actions, cwd);
 #else
-    posix_spawn_file_actions_addchdir_np
+  error = posix_spawn_file_actions_addchdir_np (actions, cwd);
 #endif
-    (actions, cwd);
   if (error != 0)
     goto out;
 
@@ -1347,9 +1351,9 @@ emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes,
     return error;
 
   error = posix_spawnattr_setflags (attributes,
-                                    POSIX_SPAWN_SETSID
-                                      | POSIX_SPAWN_SETSIGDEF
-                                      | POSIX_SPAWN_SETSIGMASK);
+				    POSIX_SPAWN_SETSID
+				    | POSIX_SPAWN_SETSIGDEF
+				    | POSIX_SPAWN_SETSIGMASK);
   if (error != 0)
     goto out;
 

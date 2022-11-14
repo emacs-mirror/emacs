@@ -155,7 +155,7 @@
 
 	* epa.el (epa-decrypt-region): Detect encoding if
 	coding-system-for-read is not specified.
-	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=17018>
+	<https://sourceforge.jp/ticket/browse.php?group_id=2267&tid=17018>
 	(epa-verify-region): Ditto.
 
 2009-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -540,7 +540,7 @@
 
 	* epa-file.el (epa-file-decode-and-insert):
 	Use string-to-multibyte instead of set-buffer-multibyte.
-	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=15259>
+	<https://sourceforge.jp/ticket/browse.php?group_id=2267&tid=15259>
 
 2009-04-18  Yann Hodique  <yann.hodique@gmail.com>  (tiny change)
 

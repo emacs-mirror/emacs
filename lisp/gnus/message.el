@@ -4361,10 +4361,10 @@ arguments.  If METHOD is nil in this case, the return value of
 the function will be inserted instead.
 If the buffer already has a\"X-Message-SMTP-Method\" header,
 it is left unchanged."
-  :type '(alist :key-type '(choice
-                            (string :tag "From Address")
-                            (function :tag "Predicate"))
-                :value-type 'string)
+  :type '(alist :key-type (choice
+                           (string :tag "From Address")
+                           (function :tag "Predicate"))
+                :value-type string)
   :version "29.1"
   :group 'message-sending)
 
@@ -4385,7 +4385,7 @@ it is left unchanged."
                      (setq method (or (cdr server) res))
                      (throw 'exit nil))))
                 ((and (stringp (car server))
-                      (string= (car server) from))
+                      (string-equal-ignore-case (car server) from))
                  (setq method (cdr server))
                  (throw 'exit nil)))))
       (when method
@@ -5192,10 +5192,7 @@ command evaluates `message-send-mail-hook' just before sending a message."
 (defun message-canlock-generate ()
   "Return a string that is non-trivial to guess.
 Do not use this for anything important, it is cryptographically weak."
-  (sha1 (concat (message-unique-id)
-                (format "%x%x%x" (random) (random) (random))
-                (prin1-to-string (recent-keys))
-                (prin1-to-string (garbage-collect)))))
+  (secure-hash 'sha1 'iv-auto 128))
 
 (defvar canlock-password)
 (defvar canlock-password-for-verify)
@@ -7037,6 +7034,7 @@ is a function used to switch to and display the mail buffer."
           ;; Firefox sends us In-Reply-To headers that are Message-IDs
           ;; without <> around them.  Fix that.
           (when (and (eq (car h) 'In-Reply-To)
+                     (stringp (cdr h))
                      ;; Looks like a Message-ID.
                      (string-match-p "\\`[^ @]+@[^ @]+\\'" (cdr h))
                      (not (string-match-p "\\`<.*>\\'" (cdr h))))

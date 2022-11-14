@@ -19,9 +19,13 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme tsdh-light
   "A light Emacs theme.
-Used and created by Tassilo Horn.")
+Used and created by Tassilo Horn."
+  :background-mode 'light
+  :kind 'color-scheme
+  :family 'tsdh)
 
 (custom-theme-set-faces
  'tsdh-light

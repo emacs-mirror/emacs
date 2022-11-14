@@ -458,7 +458,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; The Windows version doesn't report meaningful inode numbers, so
 	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized
-			(file-attribute-file-number (file-attributes this-dir))))
+			(file-attribute-file-identifier
+                         (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
 	  (push attrs normal-top-level-add-subdirs-inode-list)
 	  (dolist (file contents)
@@ -1197,7 +1198,7 @@ please check its value")
                          ("--user") ("--iconic") ("--icon-type") ("--quick")
 			 ("--no-blinking-cursor") ("--basic-display")
                          ("--dump-file") ("--temacs") ("--seccomp")
-                         ("--init-directory")))
+                         ("--init-directory" "--no-comp-spawn")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -1254,6 +1255,9 @@ please check its value")
 	 ((equal argi "-no-site-file")
 	  (setq site-run-file nil)
 	  (put 'site-run-file 'standard-value '(nil)))
+         ((equal argi "-no-comp-spawn")
+          (defvar comp-no-spawn)
+          (setq comp-no-spawn t))
 	 ((equal argi "-debug-init")
 	  (setq init-file-debug t))
 	 ((equal argi "-iconic")

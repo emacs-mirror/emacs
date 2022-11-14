@@ -2164,7 +2164,7 @@ If there is no such live buffer, return nil."
             (setq list (cdr list)))
           found)
         (let* ((attributes (file-attributes truename))
-               (number (file-attribute-file-number attributes))
+               (number (file-attribute-file-identifier attributes))
                (list (buffer-list)) found)
           (and buffer-file-numbers-unique
                (car-safe number)       ;Make sure the inode is not just nil.
@@ -2367,7 +2367,7 @@ the various files."
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
 	     (attributes (file-attributes truename))
-	     (number (file-attribute-file-number attributes))
+	     (number (file-attribute-file-identifier attributes))
 	     ;; Find any buffer for a file that has same truename.
 	     (other (and (not buf)
                          (find-buffer-visiting
@@ -3863,7 +3863,7 @@ If these settings come from directory-local variables, then
 DIR-NAME is the name of the associated directory.  Otherwise it is nil."
   ;; Find those variables that we may want to save to
   ;; `safe-local-variable-values'.
-  (let (all-vars risky-vars unsafe-vars ignored)
+  (let (all-vars risky-vars unsafe-vars)
     (dolist (elt variables)
       (let ((var (car elt))
 	    (val (cdr elt)))
@@ -4745,7 +4745,7 @@ the old visited file has been renamed to the new name FILENAME."
 	      (setq buffer-file-name truename))))
     (setq buffer-file-number
 	  (if filename
-	      (file-attribute-file-number (file-attributes buffer-file-name))
+	      (file-attribute-file-identifier (file-attributes buffer-file-name))
 	    nil))
     ;; write-file-functions is normally used for things like ftp-find-file
     ;; that visit things that are not local files as if they were files.
@@ -5734,7 +5734,8 @@ Before and after saving the buffer, this function runs
 		  (setq save-buffer-coding-system last-coding-system-used)
 	        (setq buffer-file-coding-system last-coding-system-used))
 	      (setq buffer-file-number
-		    (file-attribute-file-number (file-attributes buffer-file-name)))
+		    (file-attribute-file-identifier
+                     (file-attributes buffer-file-name)))
 	      (if setmodes
 		  (condition-case ()
 		      (progn
@@ -8662,7 +8663,7 @@ It is a nonnegative integer."
 It is an integer or a cons cell of integers."
   (nth 11 attributes))
 
-(defsubst file-attribute-file-number (attributes)
+(defsubst file-attribute-file-identifier (attributes)
   "The inode and device numbers in ATTRIBUTES returned by `file-attributes'.
 The value is a list of the form (INODENUM DEVICE), where DEVICE could be
 either a single number or a cons cell of two numbers.

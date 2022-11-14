@@ -484,8 +484,7 @@ usage: (setq [SYM VAL]...)  */)
       /* Like for eval_sub, we do not check declared_special here since
 	 it's been done when let-binding.  */
       Lisp_Object lex_binding
-	= ((!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
-	    && SYMBOLP (sym))
+	= (SYMBOLP (sym)
 	   ? Fassq (sym, Vinternal_interpreter_environment)
 	   : Qnil);
       if (!NILP (lex_binding))
@@ -551,8 +550,12 @@ usage: (function ARG)  */)
 	  CHECK_STRING (docstring);
 	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
 	}
-      return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment,
-				     cdr));
+      if (NILP (Vinternal_make_interpreted_closure_function))
+        return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, cdr));
+      else
+        return call2 (Vinternal_make_interpreted_closure_function,
+                      Fcons (Qlambda, cdr),
+                      Vinternal_interpreter_environment);
     }
   else
     /* Simply quote the argument.  */
@@ -1713,6 +1716,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
   Lisp_Object clause = Qnil;
   struct handler *h;
 
+  eassert (!itree_iterator_busy_p ());
   if (gc_in_progress || waiting_for_input)
     emacs_abort ();
 
@@ -2374,9 +2378,7 @@ eval_sub (Lisp_Object form)
 	 We do not pay attention to the declared_special flag here, since we
 	 already did that when let-binding the variable.  */
       Lisp_Object lex_binding
-	= (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
-	   ? Fassq (form, Vinternal_interpreter_environment)
-	   : Qnil);
+	= Fassq (form, Vinternal_interpreter_environment);
       return !NILP (lex_binding) ? XCDR (lex_binding) : Fsymbol_value (form);
     }
 
@@ -2392,7 +2394,7 @@ eval_sub (Lisp_Object form)
       if (max_lisp_eval_depth < 100)
 	max_lisp_eval_depth = 100;
       if (lisp_eval_depth > max_lisp_eval_depth)
-	xsignal0 (Qexcessive_lisp_nesting);
+	xsignal1 (Qexcessive_lisp_nesting, make_fixnum (lisp_eval_depth));
     }
 
   Lisp_Object original_fun = XCAR (form);
@@ -2433,7 +2435,9 @@ eval_sub (Lisp_Object form)
 
       else if (XSUBR (fun)->max_args == UNEVALLED)
 	val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
-      else if (XSUBR (fun)->max_args == MANY)
+      else if (XSUBR (fun)->max_args == MANY
+	       || XSUBR (fun)->max_args > 8)
+
 	{
 	  /* Pass a vector of evaluated arguments.  */
 	  Lisp_Object *vals;
@@ -2966,7 +2970,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       if (max_lisp_eval_depth < 100)
 	max_lisp_eval_depth = 100;
       if (lisp_eval_depth > max_lisp_eval_depth)
-	xsignal0 (Qexcessive_lisp_nesting);
+	xsignal1 (Qexcessive_lisp_nesting, make_fixnum (lisp_eval_depth));
     }
 
   count = record_in_backtrace (args[0], &args[1], nargs - 1);
@@ -2996,7 +3000,8 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
   if (numargs >= subr->min_args)
     {
       /* Conforming call to finite-arity subr.  */
-      if (numargs <= subr->max_args)
+      if (numargs <= subr->max_args
+	  && subr->max_args <= 8)
 	{
 	  Lisp_Object argbuf[8];
 	  Lisp_Object *a;
@@ -3032,15 +3037,13 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
 	      return subr->function.a8 (a[0], a[1], a[2], a[3], a[4], a[5],
 					a[6], a[7]);
 	    default:
-	      /* If a subr takes more than 8 arguments without using MANY
-		 or UNEVALLED, we need to extend this function to support it.
-		 Until this is done, there is no way to call the function.  */
-	      emacs_abort ();
+	      emacs_abort (); 	/* Can't happen. */
 	    }
 	}
 
       /* Call to n-adic subr.  */
-      if (subr->max_args == MANY)
+      if (subr->max_args == MANY
+	  || subr->max_args > 8)
 	return subr->function.aMANY (numargs, args);
     }
 
@@ -4356,6 +4359,11 @@ alist of active lexical bindings.  */);
   /* Don't export this variable to Elisp, so no one can mess with it
      (Just imagine if someone makes it buffer-local).  */
   Funintern (Qinternal_interpreter_environment, Qnil);
+
+  DEFVAR_LISP ("internal-make-interpreted-closure-function",
+	       Vinternal_make_interpreted_closure_function,
+	       doc: /* Function to filter the env when constructing a closure.  */);
+  Vinternal_make_interpreted_closure_function = Qnil;
 
   Vrun_hooks = intern_c_string ("run-hooks");
   staticpro (&Vrun_hooks);

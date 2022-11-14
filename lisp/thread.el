@@ -58,20 +58,18 @@ An EVENT has the format
   :type 'number
   :version "27.1")
 
-(defvar thread-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map "b" #'thread-list-pop-to-backtrace)
-    (define-key map "s" nil)
-    (define-key map "sq" #'thread-list-send-quit-signal)
-    (define-key map "se" #'thread-list-send-error-signal)
-    (easy-menu-define nil map ""
-      '("Threads"
-        ["Show backtrace" thread-list-pop-to-backtrace t]
-	["Send Quit Signal" thread-list-send-quit-signal t]
-        ["Send Error Signal" thread-list-send-error-signal t]))
-    map)
-  "Local keymap for `thread-list-mode' buffers.")
+(defvar-keymap thread-list-mode-map
+  :doc "Local keymap for `thread-list-mode' buffers."
+  :parent tabulated-list-mode-map
+  "b"   #'thread-list-pop-to-backtrace
+  "s"   nil
+  "s q" #'thread-list-send-quit-signal
+  "s e" #'thread-list-send-error-signal
+  :menu
+  '("Threads"
+    ["Show backtrace" thread-list-pop-to-backtrace t]
+    ["Send Quit Signal" thread-list-send-quit-signal t]
+    ["Send Error Signal" thread-list-send-error-signal t]))
 
 (define-derived-mode thread-list-mode tabulated-list-mode "Thread-List"
   "Major mode for monitoring Lisp threads."

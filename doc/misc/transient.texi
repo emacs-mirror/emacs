@@ -945,7 +945,7 @@ that multiple suffix commands can be bound to the same key, provided
 they are never active at the same time, see @ref{Predicate Slots}.
 
 Unfortunately both false-positives and false-negatives are possible.
-To deal with the former use non-nil @var{KEEP-OTHER@.}  To deal with the
+To deal with the former use non-@code{nil} @var{KEEP-OTHER@.}  To deal with the
 latter remove the conflicting binding explicitly.
 @end defun
 
@@ -1957,7 +1957,7 @@ probably don't want that.
 @item
 @code{transient-suffix} and @code{transient-non-suffix} play a part when
 determining whether the currently active transient prefix command
-remains active/transient when a suffix or abitrary non-suffix
+remains active/transient when a suffix or arbitrary non-suffix
 command is invoked.  @xref{Transient State}.
 
 @item

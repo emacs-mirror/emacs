@@ -341,7 +341,8 @@ is utf-8"
   "p"     #'backward-button
   "SPC"   #'scroll-up-command
   "S-SPC" #'scroll-down-command
-  "M-SPC" #'scroll-down-command)
+  "M-SPC" #'scroll-down-command
+  "DEL"   #'scroll-down-command)
 
 (defvar dictionary-connection
   nil
@@ -1150,9 +1151,7 @@ It presents the selection or word at point as default input and
 allows editing it."
   (interactive
    (list (let ((default (dictionary-search-default)))
-           (read-string (if default
-                            (format "Search word (%s): " default)
-                          "Search word: ")
+           (read-string (format-prompt "Search word" default)
                         nil 'dictionary-word-history default))
 	 (if current-prefix-arg
 	     (read-string (if dictionary-default-dictionary
@@ -1173,7 +1172,10 @@ allows editing it."
 (defun dictionary-lookup-definition ()
   "Unconditionally lookup the word at point."
   (interactive)
-  (dictionary-new-search (cons (current-word) dictionary-default-dictionary)))
+  (let ((word (current-word)))
+    (unless word
+      (error "No word at point"))
+    (dictionary-new-search (cons word dictionary-default-dictionary))))
 
 (defun dictionary-previous ()
   "Go to the previous location in the current buffer."

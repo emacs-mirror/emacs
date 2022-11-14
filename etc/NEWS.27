@@ -2763,7 +2763,7 @@ not waiting for a process to be set up.
 This variable determines how many bytes can be read from a sub-process
 in one read operation.  The default, 4096 bytes, was previously a
 hard-coded constant.  Setting it to a larger value might enhance
-throughput of reading from sub-processes that produces vast
+throughput of reading from sub-processes that produce vast
 (megabytes) amounts of data in one go.
 
 ** The new user option 'quit-window-hook' is now run first when

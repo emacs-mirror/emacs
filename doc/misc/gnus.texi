@@ -8045,7 +8045,7 @@ to a string containing the default command and options (default
 @findex gnus-summary-muttprint
 @vindex gnus-summary-muttprint-program
 Save the current article into muttprint.  That is, print it using the
-external program @uref{http://muttprint.sourceforge.net/,
+external program @uref{https://muttprint.sourceforge.net/,
 Muttprint}.  The program name and options to use is controlled by the
 variable @code{gnus-summary-muttprint-program}.
 (@code{gnus-summary-muttprint}).
@@ -9343,7 +9343,7 @@ Use Gnus rendered based on w3m.
 Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
 
 @item w3m-standalone
-Use @uref{http://w3m.sourceforge.net/, w3m}.
+Use @uref{https://w3m.sourceforge.net/, w3m}.
 
 @item links
 Use @uref{http://links.twibright.com/, Links}.
@@ -10497,7 +10497,7 @@ normally, but it'll make this command work a whole lot faster.  Of
 course, it'll make group entry somewhat slow.
 
 @vindex gnus-refer-thread-use-search
-If @code{gnus-refer-thread-use-search} is non-nil then those backends
+If @code{gnus-refer-thread-use-search} is non-@code{nil} then those backends
 that know how to find threads directly will search not just in the
 current group but all groups on the same server.
 
@@ -10515,7 +10515,7 @@ is true and the initial referral starts from a summary buffer for a
 non-virtual group this may not be possible.  In this case a new
 summary buffer is created holding a virtual group with the result of
 the thread search.)  If @code{gnus-refer-thread-limit-to-thread} is
-non-nil then the summary buffer will be limited to articles in the
+non-@code{nil} then the summary buffer will be limited to articles in the
 thread.
 
 @item M-^ (Summary)
@@ -13602,7 +13602,7 @@ Here's the method for a public spool:
 If you are behind a firewall and only have access to the @acronym{NNTP}
 server from the firewall machine, you can instruct Gnus to @code{rlogin}
 on the firewall machine and connect with
-@uref{http://netcat.sourceforge.net/, netcat} from there to the
+@uref{https://netcat.sourceforge.net/, netcat} from there to the
 @acronym{NNTP} server.
 Doing this can be rather fiddly, but your virtual server definition
 should probably look something like this:
@@ -21569,7 +21569,7 @@ Search Groups}).
 Search queries can be specified one of two ways: either using the
 syntax of the engine responsible for the group you're searching, or
 using Gnus' generalized search syntax.  Set the option
-@code{gnus-search-use-parsed-queries} to a non-nil value to used the
+@code{gnus-search-use-parsed-queries} to a non-@code{nil} value to used the
 generalized syntax.  The advantage of this syntax is that, if you have
 multiple backends indexed by different engines, you don't need to
 remember which one you're searching---it's also possible to issue the
@@ -21592,11 +21592,10 @@ details on Gnus' query language, see @ref{Search Queries}.
 
 In order to search for messages from any given server, that server
 must have a search engine associated with it.  IMAP servers do their
-own searching (theoretically it is possible to use a different engine
-to search an IMAP store, but we don't recommend it), but in all other
-cases the user will have to manually specify an engine to use.  This
-can be done at two different levels: by server type, or on a
-per-server basis.
+own searching, and searching IMAP groups will work with no additional
+configuration, but in all other cases the user will have to manually
+specify an engine to use.  This can be done at two different levels:
+by server type, or on a per-server basis.
 
 @vindex gnus-search-default-engines
 The option @code{gnus-search-default-engines} assigns search engines
@@ -21900,14 +21899,13 @@ be found at
 @uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
 
 Though mairix might not be as flexible as other search tools like
-swish++ or namazu, which you can use via the @code{nnir} back end, it
-has the prime advantage of being incredibly fast.  On current systems, it
-can easily search through headers and message bodies of thousands and
-thousands of mails in well under a second.  Building the database
-necessary for searching might take a minute or two, but only has to be
-done once fully.  Afterwards, the updates are done incrementally and
-therefore are really fast, too.  Additionally, mairix is very easy to set
-up.
+swish++ or namazu, it has the prime advantage of being incredibly
+fast.  On current systems, it can easily search through headers and
+message bodies of thousands and thousands of mails in well under a
+second.  Building the database necessary for searching might take a
+minute or two, but only has to be done once fully.  Afterwards, the
+updates are done incrementally and therefore are really fast, too.
+Additionally, mairix is very easy to set up.
 
 For maximum speed though, mairix should be used with mails stored in
 @code{Maildir} or @code{MH} format (this includes the @code{nnml} back
@@ -22544,6 +22542,21 @@ non-existing files.  In Gnus, these messages will usually appear with
 to you, using @kbd{G b u} and updating the group will usually fix this.
 
 @end itemize
+
+@node nnir
+@section Migrating from nnir
+
+@cindex nnir
+
+Gnus' previous search engine was called nnir, and is obsolete as of
+Emacs version 28.  If you've upgraded Emacs and are now getting
+obsolete-variable warnings about @code{nnir-*} variables, migration is
+fairly straightforward.  In addition to the variables raised by the
+warnings, all previous engine-specific variables can be updated by
+simply replacing the @code{nnir-} prefix with @code{gnus-search-}.
+For instance, @code{nnir-notmuch-program} is now
+@code{gnus-search-notmuch-program}.
+
 
 @iftex
 @iflatex
@@ -23794,7 +23807,7 @@ On a GNU/Linux system, the @code{display} program is included in the
 ImageMagick package.  For external conversion programs look for packages
 with names like @code{netpbm}, @code{libgr-progs} and @code{compface}.
 On Windows, you may use the packages @code{netpbm} and @code{compface}
-from @url{http://gnuwin32.sourceforge.net}.  You need to add the
+from @url{https://gnuwin32.sourceforge.net}.  You need to add the
 @code{bin} directory to your @code{PATH} environment variable.
 @c In fact only the following DLLs and binaries seem to be required:
 @c compface1.dll uncompface.exe libnetpbm10.dll icontopbm.exe
@@ -26329,7 +26342,7 @@ size, it will reject insertion of new entries.
 @end defvar
 
 @defvar gnus-registry-register-all
-If this option is non-nil, the registry will register all messages, as
+If this option is non-@code{nil}, the registry will register all messages, as
 you see them.  This is important to making split-to-parent and
 Message-ID references work correctly, as the registry needs to know
 where all messages are, but it can slow down group opening and the
@@ -26429,7 +26442,7 @@ have to put a rule like this:
 
 in your fancy split setup.
 
-If @code{gnus-registry-register-all} is non-nil (the default), the
+If @code{gnus-registry-register-all} is non-@code{nil} (the default), the
 registry will perform splitting for all messages.  If it is nil,
 splitting will only happen for children of messages you've explicitly
 registered.
@@ -26508,7 +26521,7 @@ Store @code{value} under @code{key} for message @code{id}.
 
 @defun gnus-registry-get-id-key (id key)
 Get the data under @code{key} for message @code{id}.  If the option
-@code{gnus-registry-register-all} is non-nil, this function will also
+@code{gnus-registry-register-all} is non-@code{nil}, this function will also
 create an entry for @code{id} if one doesn't exist.
 @end defun
 
@@ -26633,7 +26646,7 @@ connections after the system resumes.  On systems compiled with D-Bus
 support (check the value of @code{(featurep 'dbusbind)}), Gnus can
 register a D-Bus signal to automatically close all server connections
 before the system goes to sleep.  To enable this, set
-@code{gnus-dbus-close-on-sleep} to a non-nil value.
+@code{gnus-dbus-close-on-sleep} to a non-@code{nil} value.
 
 For more information about D-Bus and Emacs, @pxref{Top,,, dbus, D-Bus integration in Emacs}.
 
@@ -26911,9 +26924,16 @@ Gnus 5.10 on May 1st 2003 (24 releases).
 
 On the January 4th 2004, No Gnus was begun.
 
+Gnus 5.11 was bundled with GNU Emacs 22.1 in June 2007.
+
+A version of No Gnus was released as Gnus 5.13 with GNU Emacs 23.1 in
+July 2009.
+
 On April 19, 2010 Gnus development was moved to Git.
 
 On the January 31th 2012, Ma Gnus was begun.
+
+Since then, Gnus has only been released together with Emacs.
 
 If you happen upon a version of Gnus that has a prefixed name---``(ding)
 Gnus'', ``September Gnus'', ``Red Gnus'', ``Quassia Gnus'',
@@ -29080,8 +29100,9 @@ moving articles to a group that has not turned auto-expire on.
 @subsubsection Ma Gnus
 @cindex Ma Gnus
 
-I'm sure there will be lots of text here.  It's really spelled 真
-Gnus.
+It's really spelled 真Gnus.  Ma Gnus was the code name for the
+development version of Gnus started in 2012.  These days, Gnus is only
+released together with Emacs.
 
 New features in Ma Gnus:
 
@@ -29110,6 +29131,8 @@ The new hooks @code{gnus-gcc-pre-body-encode-hook} and
 @code{gnus-gcc-post-body-encode-hook} are run before/after encoding
 the message body of the Gcc copy of a sent message.
 @xref{Archived Messages}.
+
+For more recent changes, see the Emacs @file{NEWS} files.
 
 @end itemize
 

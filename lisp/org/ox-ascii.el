@@ -456,7 +456,7 @@ Optional argument JUSTIFY can specify any type of justification
 among `left', `center', `right' or `full'.  A nil value is
 equivalent to `left'.  For a justification that doesn't also fill
 string, see `org-ascii--justify-lines' and
-`org-ascii--justify-block'.
+`org-ascii--justify-element'.
 
 Return nil if S isn't a string."
   (when (stringp s)

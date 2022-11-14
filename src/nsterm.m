@@ -4237,7 +4237,12 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
   for (i = 0; i < s->nchars; i++, glyph++)
     {
-      char buf[7];
+#ifdef GCC_LINT
+      enum { PACIFY_GCC_BUG_81401 = 1 };
+#else
+      enum { PACIFY_GCC_BUG_81401 = 0 };
+#endif
+      char buf[8 + PACIFY_GCC_BUG_81401];
       char *str = NULL;
       int len = glyph->u.glyphless.len;
 
@@ -4263,7 +4268,7 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	{
 	  unsigned int ch = glyph->u.glyphless.ch;
 	  eassume (ch <= MAX_CHAR);
-	  snprintf (buf, 7, "%0*X", ch < 0x10000 ? 4 : 6, ch);
+	  snprintf (buf, 8, "%0*X", ch < 0x10000 ? 4 : 6, ch);
 	  str = buf;
 	}
 
@@ -7051,6 +7056,36 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   processingCompose = NO;
 }
 
+static Lisp_Object
+ns_in_echo_area_1 (void *ptr)
+{
+  Lisp_Object in_echo_area;
+  specpdl_ref count;
+
+  count = SPECPDL_INDEX ();
+  specbind (Qinhibit_quit, Qt);
+  in_echo_area = safe_call (1, Qns_in_echo_area);
+
+  return unbind_to (count, in_echo_area);
+}
+
+static Lisp_Object
+ns_in_echo_area_2 (enum nonlocal_exit exit, Lisp_Object error)
+{
+  return Qnil;
+}
+
+static bool
+ns_in_echo_area (void)
+{
+  Lisp_Object in_echo_area;
+
+  in_echo_area
+    = internal_catch_all (ns_in_echo_area_1, NULL,
+			  ns_in_echo_area_2);
+
+  return !NILP (in_echo_area);
+}
 
 /* Used to position char selection windows, etc.  */
 - (NSRect)firstRectForCharacterRange: (NSRange)theRange
@@ -7064,7 +7099,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   if (NS_KEYLOG)
     NSLog (@"firstRectForCharRange request");
 
-  if (WINDOWP (echo_area_window) && ! NILP (call0 (intern ("ns-in-echo-area"))))
+  if (WINDOWP (echo_area_window) && ns_in_echo_area ())
     win = XWINDOW (echo_area_window);
   else
     win = XWINDOW (FRAME_SELECTED_WINDOW (emacsframe));
@@ -9158,6 +9193,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   NSTRACE ("[EmacsWindow dealloc]");
 
   /* We need to release the toolbar ourselves.  */
+  [self setToolbar: nil];
   [[self toolbar] release];
 
   /* Also the last button press event .  */
@@ -11006,6 +11042,7 @@ respectively.  */);
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qreverse_italic, "reverse-italic");
   DEFSYM (Qexpanded, "expanded");
+  DEFSYM (Qns_in_echo_area, "ns-in-echo-area");
 
 #ifdef NS_IMPL_COCOA
   Fprovide (Qcocoa, Qnil);

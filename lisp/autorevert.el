@@ -297,9 +297,10 @@ You should set this variable through Custom."
 (defcustom auto-revert-notify-exclude-dir-regexp
   (concat
    ;; No mounted file systems.
-   "^" (regexp-opt '("/afs/" "/media/" "/mnt" "/net/" "/tmp_mnt/"))
+   mounted-file-systems
    ;; No remote files.
-   (unless auto-revert-remote-files "\\|^/[^/|:][^/|]+:"))
+   (unless auto-revert-remote-files
+     (rx (| "" (: bol "/" (not (any "/:|")) (1+ (not (any "/|"))) ":")))))
   "Regular expression of directories to be excluded from file notifications."
   :group 'auto-revert
   :type 'regexp

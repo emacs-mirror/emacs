@@ -253,7 +253,7 @@ in this language environment."))
 	        (documentation . "\
 Language environment for Gāndhārī, Sanskrit, and other languages
 using the Kharoṣṭhī script."))
- '("Misc"))
+ '("Indian"))
 
 (let ((consonant     "[\U00010A00\U00010A10-\U00010A35]")
       (vowel         "[\U00010A01-\U00010A06]")

@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1989, 1993-2022 Free Software Foundation, Inc.
+Copyright (C) 1985-2022  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -265,51 +265,20 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
 
 /* Find all the overlays in the current buffer that touch position POS.
    Return the number found, and store them in a vector in VEC
-   of length LEN.  */
+   of length LEN.
+
+   Note: this can return overlays that do not touch POS.  The caller
+   should filter these out. */
 
 static ptrdiff_t
-overlays_around (EMACS_INT pos, Lisp_Object *vec, ptrdiff_t len)
+overlays_around (ptrdiff_t pos, Lisp_Object *vec, ptrdiff_t len)
 {
-  ptrdiff_t idx = 0;
-
-  for (struct Lisp_Overlay *tail = current_buffer->overlays_before;
-       tail; tail = tail->next)
-    {
-      Lisp_Object overlay = make_lisp_ptr (tail, Lisp_Vectorlike);
-      Lisp_Object end = OVERLAY_END (overlay);
-      ptrdiff_t endpos = OVERLAY_POSITION (end);
-      if (endpos < pos)
-	  break;
-      Lisp_Object start = OVERLAY_START (overlay);
-      ptrdiff_t startpos = OVERLAY_POSITION (start);
-      if (startpos <= pos)
-	{
-	  if (idx < len)
-	    vec[idx] = overlay;
-	  /* Keep counting overlays even if we can't return them all.  */
-	  idx++;
-	}
-    }
-
-  for (struct Lisp_Overlay *tail = current_buffer->overlays_after;
-       tail; tail = tail->next)
-    {
-      Lisp_Object overlay = make_lisp_ptr (tail, Lisp_Vectorlike);
-      Lisp_Object start = OVERLAY_START (overlay);
-      ptrdiff_t startpos = OVERLAY_POSITION (start);
-      if (pos < startpos)
-	break;
-      Lisp_Object end = OVERLAY_END (overlay);
-      ptrdiff_t endpos = OVERLAY_POSITION (end);
-      if (pos <= endpos)
-	{
-	  if (idx < len)
-	    vec[idx] = overlay;
-	  idx++;
-	}
-    }
-
-  return idx;
+  /* Find all potentially rear-advance overlays at (POS - 1).  Find
+     all overlays at POS, so end at (POS + 1).  Find even empty
+     overlays, which due to the way 'overlays-in' works implies that
+     we might also fetch empty overlays starting at (POS + 1).  */
+  return overlays_in (pos - 1, pos + 1, false, &vec, &len,
+		      true, false, NULL);
 }
 
 DEFUN ("get-pos-property", Fget_pos_property, Sget_pos_property, 2, 3, 0,
@@ -369,11 +338,12 @@ at POSITION.  */)
 	  if (!NILP (tem))
 	    {
 	      /* Check the overlay is indeed active at point.  */
-	      Lisp_Object start = OVERLAY_START (ol), finish = OVERLAY_END (ol);
-	      if ((OVERLAY_POSITION (start) == posn
-		   && XMARKER (start)->insertion_type == 1)
-		  || (OVERLAY_POSITION (finish) == posn
-		      && XMARKER (finish)->insertion_type == 0))
+	      if ((OVERLAY_START (ol) == posn
+		   && OVERLAY_FRONT_ADVANCE_P (ol))
+		  || (OVERLAY_END (ol) == posn
+		      && ! OVERLAY_REAR_ADVANCE_P (ol))
+		  || OVERLAY_START (ol) > posn
+		  || OVERLAY_END (ol) < posn)
 		; /* The overlay will not cover a char inserted at point.  */
 	      else
 		{
@@ -4526,7 +4496,6 @@ ring.  */)
       transpose_markers (start1, end1, start2, end2,
 			 start1_byte, start1_byte + len1_byte,
 			 start2_byte, start2_byte + len2_byte);
-      fix_start_end_in_overlays (start1, end2);
     }
   else
     {

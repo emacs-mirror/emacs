@@ -216,7 +216,7 @@ Each item has the form (ORIGINAL-FILE TARGET-FILE).")
   "Maximum number of concurrent jobs permitted for generating images.
 Increase at own risk.  If you want to experiment with this,
 consider setting `image-dired-debug' to a non-nil value to see
-the time spent on generating thumbnails.  Run `image-clear-cache'
+the time spent on generating thumbnails.  Run `clear-image-cache'
 and remove the cached thumbnail files between each trial run.")
 
 (defun image-dired-pngnq-thumb (spec)

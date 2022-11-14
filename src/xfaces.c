@@ -6540,8 +6540,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   USE_SAFE_ALLOCA;
   {
     ptrdiff_t next_overlay;
-
-    GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay, false);
+    GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay);
     if (next_overlay < endpos)
       endpos = next_overlay;
   }
@@ -6594,7 +6593,6 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     {
       for (prop = Qnil, i = noverlays - 1; i >= 0 && NILP (prop); --i)
 	{
-	  Lisp_Object oend;
 	  ptrdiff_t oendpos;
 
 	  prop = Foverlay_get (overlay_vec[i], propname);
@@ -6607,8 +6605,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 	      merge_face_ref (w, f, prop, attrs, true, NULL, attr_filter);
 	    }
 
-	  oend = OVERLAY_END (overlay_vec[i]);
-	  oendpos = OVERLAY_POSITION (oend);
+	  oendpos = OVERLAY_END (overlay_vec[i]);
 	  if (oendpos < endpos)
 	    endpos = oendpos;
 	}
@@ -6617,7 +6614,6 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     {
       for (i = 0; i < noverlays; i++)
 	{
-	  Lisp_Object oend;
 	  ptrdiff_t oendpos;
 
 	  prop = Foverlay_get (overlay_vec[i], propname);
@@ -6625,11 +6621,10 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 	  if (!NILP (prop))
 	    merge_face_ref (w, f, prop, attrs, true, NULL, attr_filter);
 
-	  oend = OVERLAY_END (overlay_vec[i]);
-	  oendpos = OVERLAY_POSITION (oend);
-	  if (oendpos < endpos)
-	    endpos = oendpos;
-	}
+          oendpos = OVERLAY_END (overlay_vec[i]);
+          if (oendpos < endpos)
+            endpos = oendpos;
+        }
     }
 
   *endptr = endpos;

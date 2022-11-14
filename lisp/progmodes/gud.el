@@ -752,7 +752,12 @@ It should return a list of completion strings.")
 If COMMAND-LINE names a program FILE to debug, gdb will run in
 a buffer named *gud-FILE*, and the directory containing FILE
 becomes the initial working directory and source-file directory
-for your debugger.
+for your debugger.  If you don't want `default-directory' to
+change to the directory of FILE, specify FILE without leading
+directories, in which case FILE should reside either in the
+directory of the buffer from which this command is invoked, or
+it can be found by searching PATH.
+
 If COMMAND-LINE requests that gdb attaches to a process PID, gdb
 will run in *gud-PID*, otherwise it will run in *gud*; in these
 cases the initial working directory is the `default-directory' of

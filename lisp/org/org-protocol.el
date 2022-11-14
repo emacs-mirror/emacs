@@ -42,7 +42,6 @@
 ;;
 ;;   1.) Add this to your init file (.emacs probably):
 ;;
-;;       (add-to-list 'load-path "/path/to/org-protocol/")
 ;;       (require 'org-protocol)
 ;;
 ;;   3.) Ensure emacs-server is up and running.
@@ -66,7 +65,7 @@
 ;;
 ;;
 ;; As of March 2009 Firefox users follow the steps documented on
-;; http://kb.mozillazine.org/Register_protocol, Opera setup is described here:
+;; https://kb.mozillazine.org/Register_protocol, Opera setup is described here:
 ;; http://www.opera.com/support/kb/view/535/
 ;;
 ;;

@@ -174,6 +174,10 @@ struct haiku_output
      displayed yet.  */
   bool_bf dirty_p : 1;
 
+  /* Whether or not the frame is complete, i.e. safe to flush on
+     input.  */
+  bool_bf complete_p : 1;
+
   struct font *font;
 
   /* The pending position we're waiting for. */
@@ -275,6 +279,7 @@ struct scroll_bar
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
 #define FRAME_DIRTY_P(f)		(FRAME_OUTPUT_DATA (f)->dirty_p)
+#define FRAME_COMPLETE_P(f)		(FRAME_OUTPUT_DATA (f)->complete_p)
 #define MAKE_FRAME_DIRTY(f)		(FRAME_DIRTY_P (f) = 1)
 #define FRAME_OUTPUT_DATA(f)		((f)->output_data.haiku)
 #define FRAME_HAIKU_WINDOW(f)		(FRAME_OUTPUT_DATA (f)->window)

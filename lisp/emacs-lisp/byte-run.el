@@ -481,6 +481,11 @@ convention was modified."
   (puthash (indirect-function function) signature
            advertised-signature-table))
 
+(defun get-advertised-calling-convention (function)
+  "Get the advertised SIGNATURE of FUNCTION.
+Return t if there isn't any."
+  (gethash function advertised-signature-table t))
+
 (defun make-obsolete (obsolete-name current-name when)
   "Make the byte-compiler warn that function OBSOLETE-NAME is obsolete.
 OBSOLETE-NAME should be a function name or macro name (a symbol).

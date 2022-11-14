@@ -509,7 +509,7 @@ Also for listing fonts, displaying a font as a sample, etc.
 
 ** Program Enriched mode to read and save in RTF
 Is there actually a decent single definition of RTF?  Maybe see info at
-http://latex2rtf.sourceforge.net/.
+https://latex2rtf.sourceforge.net/.
 
 This task seems to be addressed by
 https://savannah.nongnu.org/projects/emacs-rtf/, which is still in
@@ -1770,7 +1770,7 @@ The MPX code has not been tested under X toolkit or GTK+ 2.x builds
 and is not expected to work there.
 
 ** Framework for doing animations
-Emacs does animations all over the place, usually "pluse" animations.
+Emacs does animations all over the place, usually "pulse" animations.
 These currently animate by waiting for a small but fixed amount of
 time between each redisplay, which causes screen tearing by not
 synchronizing with the vertical refresh.  Frame synchronization works

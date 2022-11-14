@@ -213,20 +213,32 @@ struct color_name_cache_entry
 #ifdef HAVE_XINPUT2
 
 #ifdef HAVE_XINPUT2_1
+
 struct xi_scroll_valuator_t
 {
-  bool invalid_p;
-  bool pending_enter_reset;
-  double current_value;
-  double emacs_value;
-  double increment;
-
+  /* The ID of the valuator.  */
   int number;
-  int horizontal;
+
+  /* Whether or not it represents X axis movement.  */
+  bool_bf horizontal : 1;
+
+  /* Whether or not the value is currently invalid.  */
+  bool_bf invalid_p : 1;
+
+  /* The current value.  */
+  double current_value;
+
+  /* Value used to tally up deltas until a threshold is met.  */
+  double emacs_value;
+
+  /* The scroll increment.  */
+  double increment;
 };
+
 #endif
 
 #ifdef HAVE_XINPUT2_2
+
 struct xi_touch_point_t
 {
   struct xi_touch_point_t *next;
@@ -234,6 +246,7 @@ struct xi_touch_point_t
   int number;
   double x, y;
 };
+
 #endif
 
 struct xi_device_t
@@ -295,8 +308,7 @@ struct xi_device_t
 };
 #endif
 
-Status x_parse_color (struct frame *f, const char *color_name,
-		      XColor *color);
+extern Status x_parse_color (struct frame *, const char *, XColor *);
 
 struct x_failable_request
 {
@@ -307,6 +319,22 @@ struct x_failable_request
      Otherwise, this is the request that ends this sequence.  */
   unsigned long end;
 };
+
+#ifdef HAVE_XFIXES
+
+struct x_monitored_selection
+{
+  /* The name of the selection.  */
+  Atom name;
+
+  /* The current owner of the selection.  */
+  Window owner;
+};
+
+/* An invalid window.  */
+#define X_INVALID_WINDOW 0xffffffff
+
+#endif
 
 
 /* For each X display, we have a structure that records
@@ -778,6 +806,7 @@ struct x_display_info
   bool xfixes_supported_p;
   int xfixes_major;
   int xfixes_minor;
+  int xfixes_event_base;
 #endif
 
 #ifdef HAVE_XSYNC
@@ -827,6 +856,17 @@ struct x_display_info
 
   /* Pointer to the next request in `failable_requests'.  */
   struct x_failable_request *next_failable_request;
+
+#ifdef HAVE_XFIXES
+  /* Array of selections being monitored and their owners.  */
+  struct x_monitored_selection *monitored_selections;
+
+  /* Window used to monitor those selections.  */
+  Window selection_tracking_window;
+
+  /* The number of those selections.  */
+  int n_monitored_selections;
+#endif
 
   /* The pending drag-and-drop time for middle-click based
      drag-and-drop emulation.  */
@@ -915,11 +955,6 @@ struct x_output
      not present.  */
   Picture picture;
 #endif
-
-  /* Flag that indicates whether we've modified the back buffer and
-     need to publish our modifications to the front buffer at a
-     convenient time.  */
-  bool need_buffer_flip;
 
   /* The X window used for the bitmap icon;
      or 0 if we don't have a bitmap icon.  */
@@ -1091,6 +1126,18 @@ struct x_output
      and inactive states.  */
   bool_bf alpha_identical_p : 1;
 
+#ifdef HAVE_XDBE
+  /* Flag that indicates whether we've modified the back buffer and
+     need to publish our modifications to the front buffer at a
+     convenient time.  */
+  bool_bf need_buffer_flip : 1;
+
+  /* Flag that indicates whether or not the frame contents are
+     complete and can be safely flushed while handling async
+     input.  */
+  bool_bf complete : 1;
+#endif
+
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
@@ -1248,6 +1295,10 @@ extern void x_mark_frame_dirty (struct frame *f);
 
 /* Return the need-buffer-flip flag for frame F.  */
 #define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
+
+/* Return whether or not the frame F has been completely drawn.  Used
+   while handling async input.  */
+#define FRAME_X_COMPLETE_P(f) ((f)->output_data.x->complete)
 #endif
 
 /* Return the outermost X window associated with the frame F.  */
@@ -1645,6 +1696,10 @@ extern void x_cr_draw_frame (cairo_t *, struct frame *);
 extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #endif
 
+#ifdef HAVE_XFIXES
+extern Window x_find_selection_owner (struct x_display_info *, Atom);
+#endif
+
 #ifdef HAVE_XRENDER
 extern void x_xrender_color_from_gc_background (struct frame *, GC,
 						XRenderColor *, bool);
@@ -1652,6 +1707,12 @@ extern void x_xr_ensure_picture (struct frame *);
 extern void x_xr_apply_ext_clip (struct frame *, GC);
 extern void x_xr_reset_ext_clip (struct frame *);
 #endif
+
+extern void x_translate_coordinates (struct frame *, int, int, int *, int *);
+extern void x_translate_coordinates_to_root (struct frame *, int, int,
+					     int *, int *);
+extern Lisp_Object x_handle_translate_coordinates (struct frame *, Lisp_Object,
+						   int, int);
 
 extern Bool x_query_pointer (Display *, Window, Window *, Window *, int *,
 			     int *, int *, int *, unsigned int *);

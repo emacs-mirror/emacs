@@ -1744,7 +1744,7 @@ date now, so no concrete pointers are available.
 
 You will need an implementation of TeX for Windows.
 A number of implementations are listed on the
-@uref{http://www.tug.org/interest.html#free, TeX Users Group} website.
+@uref{https://www.tug.org/interest.html#free, TeX Users Group} website.
 
 @node Spell check
 @section How do I perform spell checks?
@@ -1899,7 +1899,7 @@ Christopher Payne wrote a Visual Studio add-in that makes Emacs the
 default text editor, this has now been taken over by Jeff Paquette.
 See the following two URLs for details:
 @itemize
-@item @uref{http://sourceforge.net/projects/visemacs/} for the latest version.
+@item @uref{https://sourceforge.net/projects/visemacs/} for the latest version.
 @item @uref{http://www.smathers.net/VisEmacs.htm} for notes on usage.
 @end itemize
 
@@ -2039,7 +2039,7 @@ this option is set. (I don't see it on VC++ 4.0.)
 @cindex Borland C++, integration with Emacs
 
 Jonathan Arnold has written an
-@uref{http://www.buddydog.org/C++Builder/c++builder.html, EmacsEdit
+@uref{https://www.buddydog.org/C++Builder/c++builder.html, EmacsEdit
 ``expert''} for interfacing C++ Builder and Emacs.
 
 @node Version control
@@ -2194,7 +2194,7 @@ to port software to Windows.
 @cindex image libraries, gnuwin32
 @cindex image libraries, development
 
-@uref{http://gnuwin32.sourceforge.net/}
+@uref{https://gnuwin32.sourceforge.net/}
 
 GnuWin32 provides precompiled native Windows ports of a wide selection
 of Free software and libraries.  Unfortunately, the ports are

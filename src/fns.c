@@ -1,7 +1,6 @@
 /* Random utility Lisp functions.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2022 Free Software Foundation,
-Inc.
+Copyright (C) 1985-2022  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2473,15 +2472,15 @@ with PROP is done using PREDICATE, which defaults to `eq'.
 This function doesn't signal an error if PLIST is invalid.  */)
   (Lisp_Object plist, Lisp_Object prop, Lisp_Object predicate)
 {
-  Lisp_Object tail = plist;
   if (NILP (predicate))
     return plist_get (plist, prop);
 
+  Lisp_Object tail = plist;
   FOR_EACH_TAIL_SAFE (tail)
     {
       if (! CONSP (XCDR (tail)))
 	break;
-      if (!NILP (call2 (predicate, prop, XCAR (tail))))
+      if (!NILP (call2 (predicate, XCAR (tail), prop)))
 	return XCAR (XCDR (tail));
       tail = XCDR (tail);
     }
@@ -2489,7 +2488,7 @@ This function doesn't signal an error if PLIST is invalid.  */)
   return Qnil;
 }
 
-/* Faster version of the above that works with EQ only */
+/* Faster version of Fplist_get that works with EQ only.  */
 Lisp_Object
 plist_get (Lisp_Object plist, Lisp_Object prop)
 {
@@ -2498,7 +2497,7 @@ plist_get (Lisp_Object plist, Lisp_Object prop)
     {
       if (! CONSP (XCDR (tail)))
 	break;
-      if (EQ (prop, XCAR (tail)))
+      if (EQ (XCAR (tail), prop))
 	return XCAR (XCDR (tail));
       tail = XCDR (tail);
     }
@@ -2532,15 +2531,15 @@ use `(setq x (plist-put x prop val))' to be sure to use the new value.
 The PLIST is modified by side effects.  */)
   (Lisp_Object plist, Lisp_Object prop, Lisp_Object val, Lisp_Object predicate)
 {
-  Lisp_Object prev = Qnil, tail = plist;
   if (NILP (predicate))
     return plist_put (plist, prop, val);
+  Lisp_Object prev = Qnil, tail = plist;
   FOR_EACH_TAIL (tail)
     {
       if (! CONSP (XCDR (tail)))
 	break;
 
-      if (!NILP (call2 (predicate, prop, XCAR (tail))))
+      if (!NILP (call2 (predicate, XCAR (tail), prop)))
 	{
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
@@ -2558,6 +2557,7 @@ The PLIST is modified by side effects.  */)
   return plist;
 }
 
+/* Faster version of Fplist_put that works with EQ only.  */
 Lisp_Object
 plist_put (Lisp_Object plist, Lisp_Object prop, Lisp_Object val)
 {
@@ -2567,7 +2567,7 @@ plist_put (Lisp_Object plist, Lisp_Object prop, Lisp_Object val)
       if (! CONSP (XCDR (tail)))
 	break;
 
-      if (EQ (prop, XCAR (tail)))
+      if (EQ (XCAR (tail), prop))
 	{
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
@@ -2594,6 +2594,51 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
   set_symbol_plist
     (symbol, plist_put (XSYMBOL (symbol)->u.s.plist, propname, value));
   return value;
+}
+
+DEFUN ("plist-member", Fplist_member, Splist_member, 2, 3, 0,
+       doc: /* Return non-nil if PLIST has the property PROP.
+PLIST is a property list, which is a list of the form
+\(PROP1 VALUE1 PROP2 VALUE2 ...).
+
+The comparison with PROP is done using PREDICATE, which defaults to
+`eq'.
+
+Unlike `plist-get', this allows you to distinguish between a missing
+property and a property with the value nil.
+The value is actually the tail of PLIST whose car is PROP.  */)
+  (Lisp_Object plist, Lisp_Object prop, Lisp_Object predicate)
+{
+  if (NILP (predicate))
+    return plist_member (plist, prop);
+  Lisp_Object tail = plist;
+  FOR_EACH_TAIL (tail)
+    {
+      if (!NILP (call2 (predicate, XCAR (tail), prop)))
+	return tail;
+      tail = XCDR (tail);
+      if (! CONSP (tail))
+	break;
+    }
+  CHECK_TYPE (NILP (tail), Qplistp, plist);
+  return Qnil;
+}
+
+/* Faster version of Fplist_member that works with EQ only.  */
+Lisp_Object
+plist_member (Lisp_Object plist, Lisp_Object prop)
+{
+  Lisp_Object tail = plist;
+  FOR_EACH_TAIL (tail)
+    {
+      if (EQ (XCAR (tail), prop))
+	return tail;
+      tail = XCDR (tail);
+      if (! CONSP (tail))
+	break;
+    }
+  CHECK_TYPE (NILP (tail), Qplistp, plist);
+  return Qnil;
 }
 
 DEFUN ("eql", Feql, Seql, 2, 2, 0,
@@ -2751,10 +2796,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	  return mpz_cmp (*xbignum_val (o1), *xbignum_val (o2)) == 0;
 	if (OVERLAYP (o1))
 	  {
-	    if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o2),
-				 equal_kind, depth + 1, ht)
-		|| !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
-				    equal_kind, depth + 1, ht))
+	    if (OVERLAY_BUFFER (o1) != OVERLAY_BUFFER (o2)
+		|| OVERLAY_START (o1) != OVERLAY_START (o2)
+		|| OVERLAY_END (o1) != OVERLAY_END (o2))
 	      return false;
 	    o1 = XOVERLAY (o1)->plist;
 	    o2 = XOVERLAY (o2)->plist;
@@ -3388,43 +3432,6 @@ FILENAME are suppressed.  */)
    bottleneck of Widget operation.  Here is their translation to C,
    for the sole reason of efficiency.  */
 
-DEFUN ("plist-member", Fplist_member, Splist_member, 2, 3, 0,
-       doc: /* Return non-nil if PLIST has the property PROP.
-PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2 ...).
-
-The comparison with PROP is done using PREDICATE, which defaults to
-`eq'.
-
-Unlike `plist-get', this allows you to distinguish between a missing
-property and a property with the value nil.
-The value is actually the tail of PLIST whose car is PROP.  */)
-  (Lisp_Object plist, Lisp_Object prop, Lisp_Object predicate)
-{
-  Lisp_Object tail = plist;
-  if (NILP (predicate))
-    predicate = Qeq;
-  FOR_EACH_TAIL (tail)
-    {
-      if (!NILP (call2 (predicate, XCAR (tail), prop)))
-	return tail;
-      tail = XCDR (tail);
-      if (! CONSP (tail))
-	break;
-    }
-  CHECK_TYPE (NILP (tail), Qplistp, plist);
-  return Qnil;
-}
-
-/* plist_member isn't used much in the Emacs sources, so just provide
-   a shim so that the function name follows the same pattern as
-   plist_get/plist_put.  */
-Lisp_Object
-plist_member (Lisp_Object plist, Lisp_Object prop)
-{
-  return Fplist_member (plist, prop, Qnil);
-}
-
 DEFUN ("widget-put", Fwidget_put, Swidget_put, 3, 3, 0,
        doc: /* In WIDGET, set PROPERTY to VALUE.
 The value can later be retrieved with `widget-get'.  */)
@@ -3652,7 +3659,7 @@ static signed char const base64_char_to_value[2][UCHAR_MAX] =
 static ptrdiff_t base64_encode_1 (const char *, char *, ptrdiff_t, bool, bool,
 				  bool, bool);
 static ptrdiff_t base64_decode_1 (const char *, char *, ptrdiff_t, bool,
-				  bool, ptrdiff_t *);
+				  bool, bool, ptrdiff_t *);
 
 static Lisp_Object base64_encode_region_1 (Lisp_Object, Lisp_Object, bool,
 					   bool, bool);
@@ -3915,7 +3922,7 @@ base64_encode_1 (const char *from, char *to, ptrdiff_t length,
 
 
 DEFUN ("base64-decode-region", Fbase64_decode_region, Sbase64_decode_region,
-       2, 3, "r",
+       2, 4, "r",
        doc: /* Base64-decode the region between BEG and END.
 Return the length of the decoded data.
 
@@ -3926,8 +3933,11 @@ system.
 
 If the region can't be decoded, signal an error and don't modify the buffer.
 Optional third argument BASE64URL determines whether to use the URL variant
-of the base 64 encoding, as defined in RFC 4648.  */)
-     (Lisp_Object beg, Lisp_Object end, Lisp_Object base64url)
+of the base 64 encoding, as defined in RFC 4648.
+If optional fourth argument INGORE-INVALID is non-nil invalid characters
+are ignored instead of signaling an error.  */)
+     (Lisp_Object beg, Lisp_Object end, Lisp_Object base64url,
+      Lisp_Object ignore_invalid)
 {
   ptrdiff_t ibeg, iend, length, allength;
   char *decoded;
@@ -3953,7 +3963,8 @@ of the base 64 encoding, as defined in RFC 4648.  */)
   move_gap_both (XFIXNAT (beg), ibeg);
   decoded_length = base64_decode_1 ((char *) BYTE_POS_ADDR (ibeg),
 				    decoded, length, !NILP (base64url),
-				    multibyte, &inserted_chars);
+				    multibyte, !NILP (ignore_invalid),
+				    &inserted_chars);
   if (decoded_length > allength)
     emacs_abort ();
 
@@ -3986,11 +3997,13 @@ of the base 64 encoding, as defined in RFC 4648.  */)
 }
 
 DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
-       1, 2, 0,
+       1, 3, 0,
        doc: /* Base64-decode STRING and return the result as a string.
 Optional argument BASE64URL determines whether to use the URL variant of
-the base 64 encoding, as defined in RFC 4648.  */)
-     (Lisp_Object string, Lisp_Object base64url)
+the base 64 encoding, as defined in RFC 4648.
+If optional third argument IGNORE-INVALID is non-nil invalid characters are
+ignored instead of signaling an error.  */)
+     (Lisp_Object string, Lisp_Object base64url, Lisp_Object ignore_invalid)
 {
   char *decoded;
   ptrdiff_t length, decoded_length;
@@ -4006,7 +4019,8 @@ the base 64 encoding, as defined in RFC 4648.  */)
   /* The decoded result should be unibyte. */
   ptrdiff_t decoded_chars;
   decoded_length = base64_decode_1 (SSDATA (string), decoded, length,
-				    !NILP (base64url), 0, &decoded_chars);
+				    !NILP (base64url), false,
+				    !NILP (ignore_invalid), &decoded_chars);
   if (decoded_length > length)
     emacs_abort ();
   else if (decoded_length >= 0)
@@ -4023,12 +4037,13 @@ the base 64 encoding, as defined in RFC 4648.  */)
 
 /* Base64-decode the data at FROM of LENGTH bytes into TO.  If
    MULTIBYTE, the decoded result should be in multibyte
-   form.  Store the number of produced characters in *NCHARS_RETURN.  */
+   form.  If IGNORE_INVALID, ignore invalid base64 characters.
+   Store the number of produced characters in *NCHARS_RETURN.  */
 
 static ptrdiff_t
 base64_decode_1 (const char *from, char *to, ptrdiff_t length,
-		 bool base64url,
-		 bool multibyte, ptrdiff_t *nchars_return)
+		 bool base64url, bool multibyte, bool ignore_invalid,
+		 ptrdiff_t *nchars_return)
 {
   char const *f = from;
   char const *flim = from + length;
@@ -4054,7 +4069,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 	  c = *f++;
 	  v1 = b64_char_to_value[c];
 	}
-      while (v1 < 0);
+      while (v1 < 0 || (v1 == 0 && ignore_invalid));
 
       if (v1 == 0)
 	return -1;
@@ -4069,7 +4084,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 	  c = *f++;
 	  v1 = b64_char_to_value[c];
 	}
-      while (v1 < 0);
+      while (v1 < 0 || (v1 == 0 && ignore_invalid));
 
       if (v1 == 0)
 	return -1;
@@ -4088,7 +4103,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 	{
 	  if (f == flim)
 	    {
-	      if (!base64url)
+	      if (!base64url && !ignore_invalid)
 		return -1;
 	      *nchars_return = nchars;
 	      return e - to;
@@ -4096,7 +4111,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 	  c = *f++;
 	  v1 = b64_char_to_value[c];
 	}
-      while (v1 < 0);
+      while (v1 < 0 || (v1 == 0 && ignore_invalid));
 
       if (c == '=')
 	{
@@ -4130,7 +4145,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 	{
 	  if (f == flim)
 	    {
-	      if (!base64url)
+	      if (!base64url && !ignore_invalid)
 		return -1;
 	      *nchars_return = nchars;
 	      return e - to;
@@ -4138,7 +4153,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
 	  c = *f++;
 	  v1 = b64_char_to_value[c];
 	}
-      while (v1 < 0);
+      while (v1 < 0 || (v1 == 0 && ignore_invalid));
 
       if (c == '=')
 	continue;
@@ -5077,6 +5092,7 @@ sxhash_obj (Lisp_Object obj, int depth)
 	            ? 42
 	            : sxhash_vector (obj, depth));
 	  }
+	/* FIXME: Use `switch`.  */
 	else if (pvec_type == PVEC_BIGNUM)
 	  return sxhash_bignum (obj);
 	else if (pvec_type == PVEC_MARKER)
@@ -5091,8 +5107,8 @@ sxhash_obj (Lisp_Object obj, int depth)
 	  return sxhash_bool_vector (obj);
 	else if (pvec_type == PVEC_OVERLAY)
 	  {
-	    EMACS_UINT hash = sxhash_obj (OVERLAY_START (obj), depth);
-	    hash = sxhash_combine (hash, sxhash_obj (OVERLAY_END (obj), depth));
+	    EMACS_UINT hash = OVERLAY_START (obj);
+	    hash = sxhash_combine (hash, OVERLAY_END (obj));
 	    hash = sxhash_combine (hash, sxhash_obj (XOVERLAY (obj)->plist, depth));
 	    return SXHASH_REDUCE (hash);
 	  }

@@ -156,7 +156,7 @@ Levels are (in decreasing order of restrictiveness) `ascii-only',
                              tibetan)))
     ;; The string is covered by Latin and any one other Recommended
     ;; script, except Cyrillic, Greek.
-    'moderately-retrictive)
+    'moderately-restrictive)
    ;; Fixme `minimally-restrictive' -- needs well-formedness criteria
    ;; and Identifier Profile.
    (t

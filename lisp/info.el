@@ -1883,6 +1883,9 @@ See `completing-read' for a description of arguments and usage."
    (t (complete-with-action
        code Info-read-node-completion-table string predicate))))
 
+(defvar Info-minibuf-history nil
+  "History for `Info-read-node-name'.")
+
 ;; Arrange to highlight the proper letters in the completion list buffer.
 (defun Info-read-node-name (prompt &optional default)
   "Read an Info node name with completion, prompting with PROMPT.
@@ -2481,7 +2484,6 @@ Table of contents is created from the tree structure of menus."
            (sections '(("Top" "Top")))
            nodes subfiles)
       (while (or main-file subfiles)
-        ;; (or main-file (message "Searching subfile %s..." (car subfiles)))
         (erase-buffer)
         (info-insert-file-contents (or main-file (car subfiles)))
         (goto-char (point-min))
@@ -2540,7 +2542,6 @@ Table of contents is created from the tree structure of menus."
               (setq subfiles (nreverse subfiles)
                     main-file nil))
           (setq subfiles (cdr subfiles))))
-      (message "")
       (nreverse nodes))))
 
 (defun Info-toc-nodes (filename)

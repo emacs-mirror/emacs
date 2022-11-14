@@ -324,7 +324,7 @@ lib-src/seccomp-filter-exec.pfc
 /etc/*.gschema.valid
 
 # Ignore directory made by admin/make-manuals.
-manual/
+/manual/
 
 # Ignore Finder files on MacOS.
 .DS_Store

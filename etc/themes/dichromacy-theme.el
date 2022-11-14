@@ -21,6 +21,7 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme dichromacy
   "Face colors suitable for red/green color-blind users.
 The color palette is from B. Wong, Nature Methods 8, 441 (2011).
@@ -28,7 +29,9 @@ It is intended to provide good variability while being easily
 differentiated by individuals with protanopia or deuteranopia.
 
 Basic, Font Lock, Isearch, Gnus, Message, Flyspell, and
-Ansi-Color faces are included.")
+Ansi-Color faces are included."
+  :background-mode 'light
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89)))
       (orange "#e69f00")

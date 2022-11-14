@@ -281,6 +281,13 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     Until now, just \"ssh\"-based, \"sshfs\"-based and
     \"adb\"-based methods do.
 
+  * `tramp-config-check'
+    A function to be called with one argument, VEC.  It should
+    return a string which is used to check, whether the
+    configuration of the remote host has been changed (which
+    would require to flush the cache data).  This string is kept
+    as connection property \"config-check-data\".
+
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
     the file; this might be the absolute filename of scp or the name of
@@ -1526,7 +1533,8 @@ same connection.  Make a copy in order to avoid side effects."
 
 ;; Comparison of file names is performed by `tramp-equal-remote'.
 (defun tramp-file-name-equal-p (vec1 vec2)
-  "Check, whether VEC1 and VEC2 denote the same `tramp-file-name'."
+  "Check, whether VEC1 and VEC2 denote the same `tramp-file-name'.
+LOCALNAME and HOP do not count."
   (and (tramp-file-name-p vec1) (tramp-file-name-p vec2)
        (equal (tramp-file-name-unify vec1)
 	      (tramp-file-name-unify vec2))))
@@ -3989,6 +3997,17 @@ Let-bind it when necessary.")
   (cond
    ((not (file-exists-p file1)) nil)
    ((not (file-exists-p file2)) t)
+   ;; Tramp reads and writes timestamps on second level.  So we round
+   ;; the timestamps to seconds w/o fractions.
+   ;; `time-convert' has been introduced with Emacs 27.1.
+   ((fboundp 'time-convert)
+    (time-less-p
+     (tramp-compat-funcall
+      'time-convert
+      (file-attribute-modification-time (file-attributes file2)) 'integer)
+     (tramp-compat-funcall
+      'time-convert
+      (file-attribute-modification-time (file-attributes file1)) 'integer)))
    (t (time-less-p
        (file-attribute-modification-time (file-attributes file2))
        (file-attribute-modification-time (file-attributes file1))))))
@@ -4565,14 +4584,9 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	     (setq file (concat file ".elc")))
 	    ((file-exists-p (concat file ".el"))
 	     (setq file (concat file ".el")))))
-    (when must-suffix
-      ;; The first condition is always true for absolute file names.
-      ;; Included for safety's sake.
-      (unless (or (file-name-directory file)
-		  (string-match-p (rx ".el" (? "c") eos) file))
-	(tramp-error
-	 v 'file-error
-	 "File `%s' does not include a `.el' or `.elc' suffix" file)))
+    (when (and must-suffix (not (string-match-p (rx ".el" (? "c") eos) file)))
+      (tramp-error
+       v 'file-error "File `%s' does not include a `.el' or `.elc' suffix" file))
     (unless (or noerror (file-exists-p file))
       (tramp-error v 'file-missing file))
     (if (not (file-exists-p file))

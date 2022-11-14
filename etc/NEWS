@@ -106,27 +106,19 @@ frame positioning and various issues with keyboard input of sequences
 such as 'C-;' and 'C-S-u'.
 
 ---
+** The implementation of overlays has changed.
+Emacs now uses an implementation of overlays that is much more
+efficient than the original one, and should speed up all the
+operations that involve overlays, especially when there are lots of
+them in a buffer.  However, no changes in behavior of overlays should
+be visible on the Lisp or user level, with the exception of better
+performance and the order of overlays returned by functions that don't
+promise any particular order.
+
+---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
 Instead, they're fetched as needed from the corresponding ".elc" file,
 as was already the case for all the non-preloaded files.
-
-** Emacs Sessions (Desktop)
-
-+++
-*** New user option to load a locked desktop if locking Emacs is not running.
-The option 'desktop-load-locked-desktop' can now be set to the value
-'check-pid', which means to allow loading a locked ".emacs.desktop"
-file if the Emacs process which locked it is no longer running on the
-local machine.  This allows avoiding questions about locked desktop
-files when the Emacs session which locked it crashes, or was otherwise
-interrupted, and didn't exit gracefully.  See the "(emacs) Saving
-Emacs Sessions" node in the Emacs manual for more details.
-
-** Miscellaneous
-
-+++
-*** User option 'minibuffer-eldef-shorten-default' is now obsolete.
-Customize the user option 'minibuffer-default-prompt-format' instead.
 
 
 * Startup Changes in Emacs 29.1
@@ -173,7 +165,7 @@ time.
 +++
 *** New variable 'inhibit-automatic-native-compilation'.
 If set, Emacs will inhibit native compilation (and won't write
-anything to the eln cache automatically).  The variable is initialised
+anything to the eln cache automatically).  The variable is initialized
 from the 'EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION' environment
 variable on Emacs startup.
 
@@ -356,6 +348,11 @@ previous 'C-x ='.
 
 ** Eshell
 
+*** Eshell's PATH is now derived from 'exec-path'.
+For consistency with remote connections, Eshell now uses 'exec-path'
+to determine the execution path on the local system, instead of using
+the PATH environment variable directly.
+
 ---
 *** 'source' and '.' no longer accept the '--help' option.
 This is for compatibility with the shell versions of these commands,
@@ -373,6 +370,11 @@ node in the Eshell manual for more details.
 +++
 *** Eshell pipelines now only pipe stdout by default.
 To pipe both stdout and stderr, use the '|&' operator instead of '|'.
+
+*** New eshell built-in command 'doas'.
+The privilege-escalation program 'doas' has been added to the existing
+'su' and 'sudo' commands from the 'eshell-tramp' module.  The external
+command may still be accessed by using '*doas'.
 
 ---
 ** The 'delete-forward-char' command now deletes by grapheme clusters.
@@ -710,6 +712,15 @@ part of the buffer.
 +++
 ** 'count-words' will now report sentence count when used interactively.
 
+** New user option 'set-message-functions'.
+It allows selecting more functions for 'set-message-function'
+in addition to the default function that handles messages
+in the active minibuffer.  The most useful are 'inhibit-message'
+that allows specifying a list of messages to inhibit via
+'inhibit-message-regexps', and 'set-multi-message' that
+accumulates recent messages and displays them stacked
+in the echo area.
+
 ---
 ** New user option 'find-library-include-other-files'.
 If set to nil, commands like 'find-library' will only include library
@@ -814,22 +825,6 @@ tooltips.  The existing GTK-specific option
 This means Emacs built with GNUstep or built on macOS is now able to
 display different faces and images inside tooltips when the
 'use-system-tooltips' user option is nil.
-
-** Connection-local variables
-
-+++
-*** Some connection-local variables are now user options.
-The variables 'connection-local-profile-alist' and
-'connection-local-criteria-alist' are now user options, in order to
-make it more convenient to inspect and modify them.
-
-+++
-*** The default connection-local application can be changed temporarily.
-Running 'with-connection-local-variables' defaults to application
-'tramp'.  This can be changed by let-binding
-'connection-local-default-application' to another symbol.  This is
-useful when running code in a buffer where Tramp has already set some
-connection-local variables.
 
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
@@ -1024,6 +1019,12 @@ The apropos commands will now select the apropos window if
 If the symbol at point is a keymap, 'describe-keymap' suggests it as
 the default candidate.
 
+---
+*** New command 'help-quick' displays an overview of common commands.
+The command pops up a buffer at the bottom of the screen with a few
+helpful commands for various tasks.  You can toggle the display using
+'C-h q'.
+
 ** Outline Mode
 
 +++
@@ -1041,15 +1042,11 @@ or is itself too long.
 +++
 *** New user option 'outline-minor-mode-use-buttons'.
 If non-nil, Outline Minor Mode will use buttons to hide/show outlines
-in addition to the ellipsis.  The default is nil in editing modes, but
-non-nil in 'help-mode' and its derivatives.
-
-+++
-*** New user option 'outline-minor-mode-use-margins'.
-If non-nil, Outline Minor Mode will use the window margins to
-hide/show outlines in addition to the ellipsis.  The default is
-non-nil in 'special-mode' and its derivatives, and it can be used in
-editing modes.
+in addition to the ellipsis.  The default is nil, but in 'help-mode'
+it has the value 'insert' that inserts the buttons directly to the
+buffer where you can use 'RET' to cycle outline visibility.  When
+the value is 'in-margins', Outline Minor Mode uses the window margins
+to hide/show outlines.
 
 ** Windows
 
@@ -1093,6 +1090,13 @@ between 1 and 16, where 1 is the most recently deleted frame, undelete
 the corresponding deleted frame.
 
 ** Tab Bars and Tab Lines
+
+---
+*** New user option 'tab-bar-auto-width' to automatically determine tab width.
+This option is non-nil by default, which resizes tab-bar tabs so that
+their width is evenly distributed across the tab bar.  A companion
+option 'tab-bar-auto-width-max' controls the maximum width of a tab
+before its name on display is truncated.
 
 ---
 *** 'C-x t RET' creates a new tab when the provided tab name doesn't exist.
@@ -1362,6 +1366,16 @@ The default input method for the Tamil language environment is now
 change the input method's translation rules, customize the user option
 'tamil-translation-rules'.
 
+---
+*** New tamil99 input method for the Tamil language.
+This supports the keyboard layout specifically designed for the Tamil
+language.
+
+---
+*** New input method 'slovak-qwerty'.
+This is a variant of the 'slovak' input method, which corresponds to
+the QWERTY Slovak keyboards.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
@@ -1375,6 +1389,11 @@ the ecomplete database.
 ---
 *** New user option 'ecomplete-auto-select'.
 If non-nil and there's only one matching option, auto-select that.
+
+---
+*** New user option 'ecomplete-filter-regexp'.
+If non-nil, this user option describes what entries not to add to the
+database stored on disk.
 
 ** Dired
 
@@ -1472,6 +1491,10 @@ This controls how statements like the following are indented:
 It is enabled by default, but requires that the external "shellcheck"
 command is installed.
 
+** CC Mode
+---
+*** C++ Mode now supports most of the new features in the C++20 standard.
+
 ** Cperl Mode
 
 ---
@@ -1551,6 +1574,48 @@ These commands can be useful if the ".elc" files are out of date
 If no packages are marked, 'x' will install the package under point if
 it isn't already, and remove it if it is installed.
 
++++
+*** New command 'package-vc-install'
+Packages can now be installed directly from source by cloning from a
+repository.
+
++++
+*** New command 'package-vc-install-from-checkout'
+An existing checkout can now be loaded via package.el, by creating a
+symbolic link from the usual package directory to the checkout.
+
++++
+*** New command 'package-vc-checkout'
+Used to fetch the source of a package by cloning a repository without
+activating the package.
+
++++
+*** New command 'package-vc-prepare-patch'
+This command allows you to send patches to package maintainers, for
+packages checked out using 'package-vc-install'.
+
++++
+*** New command 'package-report-bug'
+This command helps you compose an email for sending bug reports to
+package maintainers.
+
++++
+*** New user option 'package-vc-selected-packages'
+By customizing this user option you can specify specific packages to
+install.
+
+** Emacs Sessions (Desktop)
+
++++
+*** New user option to load a locked desktop if locking Emacs is not running.
+The option 'desktop-load-locked-desktop' can now be set to the value
+'check-pid', which means to allow loading a locked ".emacs.desktop"
+file if the Emacs process which locked it is no longer running on the
+local machine.  This allows avoiding questions about locked desktop
+files when the Emacs session which locked it crashes, or was otherwise
+interrupted, and didn't exit gracefully.  See the "(emacs) Saving
+Emacs Sessions" node in the Emacs manual for more details.
+
 ** Miscellaneous
 
 +++
@@ -1627,7 +1692,7 @@ This mode adds some highlighting, fixes the 'M-q' command, and has
 commands for doing maintenance of the Emacs NEWS files.  In addition,
 this mode turns on 'outline-minor-mode', and thus displays
 customizable icons (see 'icon-preference') in the margins.  To
-disable these icons, customize 'outline-minor-mode-use-margins' to a
+disable these icons, set 'outline-minor-mode-use-buttons' to a
 nil value.
 
 ---
@@ -1688,6 +1753,10 @@ always hides the completion buffer after some completion is made.
 but completes on the history items instead of the default completion
 table.  'minibuffer-complete-defaults' ('C-x <down>') completes
 on the list of default items.
+
++++
+*** User option 'minibuffer-eldef-shorten-default' is now obsolete.
+Customize the user option 'minibuffer-default-prompt-format' instead.
 
 +++
 *** New user option 'completions-sort'.
@@ -1845,8 +1914,6 @@ with the changes against the last commit, e.g. with 'C-x v D'
 want to commit.  Finally, type 'C-x v v' in that diff buffer to commit
 only part of your changes, those whose hunks were left in the buffer.
 
-Currently this feature works only with the Git as 'vc-backend'.
-
 ---
 *** 'C-x v v' on an unregistered file will now use the most specific backend.
 Previously, if you had an SVN-covered "~/" directory, and a Git-covered
@@ -1912,6 +1979,13 @@ It narrows to the current node.
 ** EUDC
 
 +++
+*** New user option 'eudc-ignore-options-file' that defaults to 'nil'
+The 'eudc-ignore-options-file' user option can be configured to ignore
+the 'eudc-options-file' (typically "~/.emacs.d/eudc-options").  Most
+users should configure this to 't' and put EUDC configuration in the
+main Emacs initialization file (".emacs" or "~/.emacs.d/init.el").
+
++++
 *** 'eudc-expansion-overwrites-query' to 'eudc-expansion-save-query-as-kill'.
 'eudc-expansion-overwrites-query' is renamed to
 'eudc-expansion-save-query-as-kill' to reflect the actual behavior of
@@ -1956,6 +2030,25 @@ adding the new function 'eudc-capf-complete' to
 The EUDC back-end for the macOS Contacts app now provides a wider set
 of attributes to use for queries, and delivers more attributes in
 query results.
+
++++
+*** New back-end for ecomplete
+A new back-end for ecomplete allows information from that database to
+be queried by EUDC, too.  The attributes present in the EUDC query are
+used to select the entry type in the ecomplete database.
+
++++
+*** New back-end for mailabbrev
+A new back-end for mailabbrev allows information from that database to
+be queried by EUDC, too.  The attributes email, name, and firstname
+are supported only.
+
++++
+*** New default for 'eudc-server-hotlist' includes built-in backends
+The 'eudc-server-hotlist' user option now defaults to including
+entries for the new built-in ecomplete and mailabbrev EUDC backends.
+As a result, 'C-u M-x eudc-expand-try-all' will query both of these
+backends for email address completions, by default.
 
 ** EWW/SHR
 
@@ -2044,6 +2137,18 @@ supports the unified search syntax.
 Formerly it was a pair of numbers '(A B)' that represented 65536*A + B,
 to cater to older Emacs implementations that lacked bignums.
 The older form still works but is undocumented.
+
+** Rmail
+
+---
+*** Rmail partial summaries can now be applied one on top of the other.
+You can now narrow the filtering of messages by the summary's criteria
+(recipients, topic, senders, etc.) by making a summary of the already
+summarized messages.  For example, invoking 'rmail-summary-by-senders',
+followed by 'rmail-summary-by-topic' will produce a summary where both
+the senders and the topic are according to your selection.  The new
+user option 'rmail-summary-apply-filters-consecutively' controls
+whether the stacking of the filters is in effect.
 
 ** EIEIO
 
@@ -2511,6 +2616,12 @@ the user requesting such a connection, and not of the user who is the
 target.  This has always been needed, just the password prompt and the
 related 'auth-sources' entry were wrong.
 
++++
+*** New user option 'tramp-completion-use-cache'.
+During user and host name completion in the minibuffer, results from
+Tramp's connection cache are taken into account.  This can be disabled
+by setting the user option 'tramp-completion-use-cache' to nil.
+
 ** Browse URL
 
 ---
@@ -2590,7 +2701,7 @@ otherwise be returned.
 *** Concatenating Eshell expansions now works more similarly to other shells.
 When concatenating an Eshell expansion that returns a list, "adjacent"
 elements of each operand are now concatenated together,
-e.g. '$list("a" "b")c' returns '("a" "bc")'.  See the "(eshell)
+e.g. '$(list "a" "b")c' returns '("a" "bc")'.  See the "(eshell)
 Expansion" node in the Eshell manual for more details.
 
 +++
@@ -2639,6 +2750,14 @@ commands with a warning face as you type.
 +++
 *** New user option 'calc-kill-line-numbering'.
 Set it to nil to exclude line numbering from kills and copies.
+
+** Hierarchy
+
++++
+*** Tree Display can delay computation of children.
+'hierarchy-add-tree' and 'hierarchy-add-trees' have an optional
+argument which allows tree-widget display to be activated and computed
+only when the user expands the node.
 
 ** Miscellaneous
 
@@ -2750,6 +2869,13 @@ name.
 * New Modes and Packages in Emacs 29.1
 
 +++
+** Eglot: Emacs Client for the Language Server Protocol.
+Emacs now comes with the Eglot package, which enhances various Emacs
+features, such as completion, documentation, error detection, etc.,
+based on data provided by language servers using the Language Server
+Protocol (LSP).
+
++++
 ** New commands 'image-crop' and 'image-cut.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'i c' and 'i x' (respectively)
@@ -2834,6 +2960,11 @@ In addition, files are scanned in a slightly different way.
 Previously, ';;;###' specs inside a top-level form (i.e., something
 like '(when ... ;;;### ...)' would be ignored.  They are now parsed as
 normal.
+
+---
+** Themes have special autoload cookies.
+All built-in themes are scraped for ';;;###theme-autoload' cookies
+that are loaded along with the regular auto-loaded code.
 
 +++
 ** 'buffer-modified-p' has been extended.
@@ -3148,7 +3279,16 @@ The following generalized variables have been made obsolete:
 * Lisp Changes in Emacs 29.1
 
 +++
-** New accessor function 'file-attribute-file-number'.
+** Interpreted closures are "safe for space".
+As was already the case for byte-compiled closures, instead of capturing
+the whole current lexical environment, interpreted closures now only
+capture the part of the environment that they need.
+The previous behavior could occasionally lead to memory leaks or
+to problems where a printed closure would not be 'read'able because
+of an un'read'able value in an unrelated lexical variable.
+
++++
+** New accessor function 'file-attribute-file-identifier'.
 It returns the list of the inode number and device identifier
 retrieved by 'file-attributes'.  This value can be used to identify a
 file uniquely.  The device identifier can be a single number or (for
@@ -3202,6 +3342,33 @@ map, including a special formatting spec to list available keys.
 TIMEOUT is the idle time after which to deactivate the transient map.
 The default timeout value can be defined by the new variable
 'set-transient-map-timeout'.
+
+** Connection-local variables
+
++++
+*** Some connection-local variables are now user options.
+The variables 'connection-local-profile-alist' and
+'connection-local-criteria-alist' are now user options, in order to
+make it more convenient to inspect and modify them.
+
++++
+*** New function 'connection-local-update-profile-variables'.
+This function allows to modify the settings of an existing
+connection-local profile.
+
++++
+*** New macro 'with-connection-local-application-variables'.
+This macro works like 'with-connection-local-variables', but it allows
+to use another application but 'tramp'.  This is useful when running
+code in a buffer where Tramp has already set some connection-local
+variables.
+
++++
+*** New macro 'setq-connection-local'.
+This allows dynamically setting variable values for a particular
+connection within the body of 'with-connection-local-{application-}variables'.
+See the "(elisp) Connection Local Variables" node in the Lisp
+Reference manual for more information.
 
 +++
 ** 'plist-get', 'plist-put' and 'plist-member' are no longer limited to 'eq'.
@@ -4165,5 +4332,5 @@ Local variables:
 coding: utf-8
 mode: outline
 mode: emacs-news
-paragraph-separate: "[ 	]*$"
+paragraph-separate: "[ 	]"
 end:

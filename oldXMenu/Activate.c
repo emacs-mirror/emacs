@@ -122,7 +122,6 @@ int x_menu_grab_keyboard = 1;
 static Wait_func wait_func;
 static void* wait_data;
 static Translate_func translate_func = NULL;
-static Expose_func expose_func = NULL;
 
 void
 XMenuActivateSetWaitFunction (Wait_func func, void *data)
@@ -135,12 +134,6 @@ void
 XMenuActivateSetTranslateFunction (Translate_func func)
 {
   translate_func = func;
-}
-
-void
-XMenuActivateSetExposeFunction (Expose_func func)
-{
-  expose_func = func;
 }
 
 int
@@ -346,9 +339,6 @@ XMenuActivate(
 		    feq = feq_tmp;
 		}
 		else if (_XMEventHandler) (*_XMEventHandler)(&event);
-
-		if (expose_func)
-		  expose_func (&event);
 		break;
 	    }
 	    if (event_xmp->activated) {

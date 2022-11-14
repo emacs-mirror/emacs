@@ -131,17 +131,13 @@
 ;; feedmail-send-it.  Hers's the best way to use the stuff in this
 ;; file:
 ;;
-;; Save this file as feedmail.el somewhere on your elisp loadpath;
-;; byte-compile it.  Put the following lines in your init file:
+;; Put the following lines in your init file:
 ;;
 ;;     (setq send-mail-function 'feedmail-send-it)
-;;     (autoload 'feedmail-send-it "feedmail")
 ;;
 ;; If you plan to use the queue stuff, also use this:
 ;;
 ;;     (setq feedmail-enable-queue t)
-;;     (autoload 'feedmail-run-the-queue "feedmail")
-;;     (autoload 'feedmail-run-the-queue-no-prompts "feedmail")
 ;;     (setq auto-mode-alist (cons '("\\.fqm$" . mail-mode) auto-mode-alist))
 ;;
 ;; though VM users might find it more comfortable to use this instead of
@@ -173,11 +169,6 @@
 ;; If you are using the desktop.el library to restore your sessions, you might
 ;; like to add the suffix ".fqm" to the list of non-saved things via the variable
 ;; desktop-files-not-to-save.
-;;
-;; If you are planning to call feedmail-queue-reminder from your .emacs or
-;; something similar, you might need this:
-;;
-;;     (autoload 'feedmail-queue-reminder "feedmail")
 ;;
 ;; If you ever use rmail-resend and queue messages, you should do this:
 ;;

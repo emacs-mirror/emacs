@@ -56,7 +56,7 @@
 ;; which includes a kind of tutorial to get started with SMIE:
 ;;
 ;;     SMIE: Weakness is Power!  Auto-indentation with incomplete information
-;;     Stefan Monnier, <Programming> Journal 2020, volumn 5, issue 1.
+;;     Stefan Monnier, <Programming> Journal 2020, volume 5, issue 1.
 ;;     doi: 10.22152/programming-journal.org/2021/5/1
 
 ;; A good background to understand the development (especially the parts

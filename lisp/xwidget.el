@@ -20,14 +20,16 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
-;; See xwidget.c for more api functions.
+
+;; See the node "(emacs)Embedded WebKit Widgets" in the Emacs manual for
+;; help on user-facing features, and "(elisp)Embedded Native Widgets" in
+;; the Emacs Lisp reference manual for help on more API functions.
+
+;;; Code:
 
 ;; This breaks compilation when we don't have xwidgets.
 ;; And is pointless when we do, since it's in C and so preloaded.
 ;;(require 'xwidget-internal)
-
-;;; Code:
 
 (require 'cl-lib)
 (require 'bookmark)
@@ -1198,7 +1200,7 @@ Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit
     (xwidget-webkit-goto-history xwidget-webkit-history--session id))
   (xwidget-webkit-history-reload))
 
-(defun xwidget-webkit-history-reload (&rest ignored)
+(defun xwidget-webkit-history-reload (&rest _ignored)
   "Reload the current history buffer."
   (interactive)
   (setq tabulated-list-entries nil)

@@ -448,6 +448,11 @@
 ;; - mergebase (rev1 &optional rev2)
 ;;
 ;;   Return the common ancestor between REV1 and REV2 revisions.
+;;
+;; - last-change (file line)
+;;
+;;   Return the most recent revision of FILE that made a change
+;;   on LINE.
 
 ;; TAG/BRANCH SYSTEM
 ;;
@@ -584,6 +589,15 @@
 ;;   buffer should be inserted into an inline patch.  If the two last
 ;;   properties are omitted, `point-min' and `point-max' will
 ;;   respectively be used instead.
+;;
+;; - clone (remote directory rev)
+;;
+;;   Attempt to clone a REMOTE repository, into a local DIRECTORY.
+;;   Returns a string with the directory with the contents of the
+;;   repository if successful, otherwise nil.  With a non-nil value
+;;   for REV the backend will attempt to check out a specific
+;;   revision, if possible without first checking out the default
+;;   branch.
 
 ;;; Changes from the pre-25.1 API:
 ;;
@@ -1682,6 +1696,47 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
    'vc-checkin-hook
    backend
    patch-string))
+
+(defun vc-default-checkin-patch (_backend patch-string comment)
+  (pcase-let* ((`(,backend ,files) (with-temp-buffer
+                                     (insert patch-string)
+                                     (diff-vc-deduce-fileset)))
+               (tmpdir (make-temp-file "vc-checkin-patch" t)))
+    (dolist (f files)
+      (make-directory (file-name-directory (expand-file-name f tmpdir)) t)
+      (copy-file (expand-file-name f)
+                 (expand-file-name f tmpdir)))
+    (unwind-protect
+        (progn
+          (dolist (f files)
+            (with-current-buffer (find-file-noselect f)
+              (vc-revert-file buffer-file-name)))
+          (with-temp-buffer
+            ;; Trying to support CVS too.  Assuming that vc-diff
+            ;; there will usually have diff root in default-directory.
+            (when (vc-find-backend-function backend 'root)
+              (setq-local default-directory
+                          (vc-call-backend backend 'root (car files))))
+            (unless (eq 0
+                        (call-process-region patch-string
+                                             nil
+                                             "patch"
+                                             nil
+                                             t
+                                             nil
+                                             "-p1"
+                                             "-r" null-device
+                                             "--no-backup-if-mismatch"
+                                             "-i" "-"))
+              (user-error "Patch failed: %s" (buffer-string))))
+          (vc-call-backend backend 'checkin files comment))
+      (dolist (f files)
+        (copy-file (expand-file-name f tmpdir)
+                   (expand-file-name f)
+                   t)
+        (with-current-buffer (get-file-buffer f)
+          (revert-buffer t t t)))
+      (delete-directory tmpdir t))))
 
 ;;; Additional entry points for examining version histories
 
@@ -3315,7 +3370,7 @@ If nil, no default will be used.  This option may be set locally."
                   (buffer &optional type description disposition))
 (declare-function log-view-get-marked "log-view" ())
 
-(defun vc-default-prepare-patch (rev)
+(defun vc-default-prepare-patch (_backend rev)
   (let ((backend (vc-backend buffer-file-name)))
     (with-current-buffer (generate-new-buffer " *vc-default-prepare-patch*")
       (vc-diff-internal
@@ -3341,8 +3396,12 @@ invidividual commits.
 When invoked interactively in a Log View buffer with marked
 revisions, those revisions will be used."
   (interactive
-   (let ((revs (or (log-view-get-marked)
-                   (vc-read-multiple-revisions "Revisions: ")))
+   (let ((revs (vc-read-multiple-revisions
+                "Revisions: " nil nil nil
+                (or (and-let* ((revs (log-view-get-marked)))
+                      (mapconcat #'identity revs ","))
+                    (and-let* ((file (buffer-file-name)))
+                      (vc-working-revision file)))))
          to)
      (require 'message)
      (while (null (setq to (completing-read-multiple
@@ -3366,19 +3425,19 @@ revisions, those revisions will be used."
                               'prepare-patch rev))
                            revisions)))
       (if vc-prepare-patches-separately
-          (dolist (patch patches)
+          (dolist (patch (reverse patches)
+                         (message "Prepared %d patch%s..." (length patches)
+                                  (if (length> patches 1) "es" "")))
             (compose-mail addressee
                           (plist-get patch :subject)
                           nil nil nil nil
-                          `((kill-buffer ,(plist-get patch :buffer))
-                            (exit-recursive-edit)))
+                          `((kill-buffer ,(plist-get patch :buffer))))
             (rfc822-goto-eoh) (forward-line)
             (save-excursion             ;don't jump to the end
               (insert-buffer-substring
                (plist-get patch :buffer)
                (plist-get patch :body-start)
-               (plist-get patch :body-end)))
-            (recursive-edit))
+               (plist-get patch :body-end))))
         (compose-mail addressee subject nil nil nil nil
                       (mapcar
                        (lambda (p)
@@ -3505,6 +3564,43 @@ to provide the `find-revision' operation instead."
   "Check if the current file has any headers in it."
   (interactive)
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
+
+(defun vc-clone (remote &optional backend directory rev)
+  "Use BACKEND to clone REMOTE into DIRECTORY.
+If successful, returns the a string with the directory of the
+checkout.  If BACKEND is nil, iterate through every known backend
+in `vc-handled-backends' until one succeeds.  If REV is non-nil,
+it indicates a specific revision to check out."
+  (unless directory
+    (setq directory default-directory))
+  (if backend
+      (progn
+        (unless (memq backend vc-handled-backends)
+          (error "Unknown VC backend %s" backend))
+        (vc-call-backend backend 'clone remote directory rev))
+    (catch 'ok
+      (dolist (backend vc-handled-backends)
+        (ignore-error vc-not-supported
+          (when-let ((res (vc-call-backend
+                           backend 'clone
+                           remote directory rev)))
+            (throw 'ok res)))))))
+
+(declare-function log-view-current-tag "log-view" (&optional pos))
+(defun vc-default-last-change (_backend file line)
+  "Default `last-change' implementation.
+It returns the last revision that changed LINE number in FILE."
+  (unless (file-exists-p file)
+    (signal 'file-error "File doesn't exist"))
+  (with-temp-buffer
+    (vc-call-backend (vc-backend file) 'annotate-command
+                     file (current-buffer))
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (let ((rev (vc-call-backend
+                (vc-backend file)
+                'annotate-extract-revision-at-line)))
+      (if (consp rev) (car rev) rev))))
 
 
 

@@ -259,7 +259,6 @@ typedef void (*Wait_func)(void*);
    XPutBackEvent on an equivalent artificial core event on any
    function it wants to translate.  */
 typedef void (*Translate_func)(XEvent *);
-typedef void (*Expose_func)(XEvent *);
 
 /*
  * XMenu library routine declarations.
@@ -281,7 +280,6 @@ int XMenuLocate(Display *display, XMenu *menu, int p_num, int s_num, int x_pos, 
 void XMenuSetFreeze(XMenu *menu, int freeze);
 void XMenuActivateSetWaitFunction(Wait_func func, void *data);
 void XMenuActivateSetTranslateFunction(Translate_func func);
-void XMenuActivateSetExposeFunction(Expose_func func);
 int XMenuActivate(Display *display, XMenu *menu, int *p_num, int *s_num, int x_pos, int y_pos, unsigned int event_mask, char **data, void (*help_callback) (char const *, int, int));
 char *XMenuPost(Display *display, XMenu *menu, int *p_num, int *s_num, int x_pos, int y_pos, int event_mask);
 int XMenuDeletePane(Display *display, XMenu *menu, int p_num);

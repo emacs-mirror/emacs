@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
-;; Version: 0.8.2
+;; Version: 0.8.3
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -296,7 +296,6 @@ to find the list of ignores for each directory."
 (defun project--files-in-directory (dir ignores &optional files)
   (require 'find-dired)
   (require 'xref)
-  (defvar find-name-arg)
   (let* ((default-directory dir)
          ;; Make sure ~/ etc. in local directory name is
          ;; expanded and not left for the shell command
@@ -308,11 +307,11 @@ to find the list of ignores for each directory."
                           (xref--find-ignores-arguments ignores "./")
                           (if files
                               (concat (shell-quote-argument "(")
-                                      " " find-name-arg " "
+                                      " -name "
                                       (mapconcat
                                        #'shell-quote-argument
                                        (split-string files)
-                                       (concat " -o " find-name-arg " "))
+                                       (concat " -o -name "))
                                       " "
                                       (shell-quote-argument ")"))
                             "")))
@@ -353,7 +352,10 @@ Also quote LOCAL-FILES if `default-directory' is quoted."
               local-files))))
 
 (cl-defgeneric project-buffers (project)
-  "Return the list of all live buffers that belong to PROJECT."
+  "Return the list of all live buffers that belong to PROJECT.
+
+The default implementation matches each buffer to PROJECT root using
+the buffer's value of `default-directory'."
   (let ((root (expand-file-name (file-name-as-directory (project-root project))))
         bufs)
     (dolist (buf (buffer-list))
@@ -1222,11 +1224,14 @@ displayed."
 
 (defcustom project-kill-buffer-conditions
   '(buffer-file-name    ; All file-visiting buffers are included.
-    ;; Most of the temp buffers in the background:
-    (major-mode . fundamental-mode)
+    ;; Most of temp and logging buffers (aside from hidden ones):
+    (and
+     (major-mode . fundamental-mode)
+     "\\`[^ ]")
     ;; non-text buffer such as xref, occur, vc, log, ...
     (and (derived-mode . special-mode)
-         (not (major-mode . help-mode)))
+         (not (major-mode . help-mode))
+         (not (derived-mode . gnus-mode)))
     (derived-mode . compilation-mode)
     (derived-mode . dired-mode)
     (derived-mode . diff-mode)
@@ -1276,21 +1281,6 @@ Used by `project-kill-buffers'."
   :group 'project
   :package-version '(project . "0.8.2")
   :safe #'booleanp)
-
-(defun project--buffer-list (pr)
-  "Return the list of all buffers in project PR."
-  (let ((conn (file-remote-p (project-root pr)))
-        bufs)
-    (dolist (buf (buffer-list))
-      ;; For now we go with the assumption that a project must reside
-      ;; entirely on one host.  We might relax that in the future.
-      (when (and (equal conn
-                        (file-remote-p (buffer-local-value 'default-directory buf)))
-                 (equal pr
-                        (with-current-buffer buf
-                          (project-current))))
-        (push buf bufs)))
-    (nreverse bufs)))
 
 (defun project--buffer-check (buf conditions)
   "Check if buffer BUF matches any element of the list CONDITIONS.
@@ -1667,9 +1657,10 @@ to directory DIR."
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command))))
-    (let ((default-directory dir)
-          (project-current-inhibit-prompt t))
-      (call-interactively command))))
+    (with-temp-buffer
+      (let ((default-directory dir)
+            (project-current-inhibit-prompt t))
+        (call-interactively command)))))
 
 (provide 'project)
 ;;; project.el ends here

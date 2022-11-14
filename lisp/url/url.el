@@ -293,7 +293,7 @@ how long to wait for a response before giving up."
 (declare-function mm-display-part "mm-decode"
 		  (handle &optional no-default force))
 
-(defun url-mm-callback (&rest ignored)
+(defun url-mm-callback (&rest _ignored)
   (let ((handle (mm-dissect-buffer t)))
     (url-mark-buffer-as-dead (current-buffer))
     (with-current-buffer

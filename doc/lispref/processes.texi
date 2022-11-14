@@ -507,7 +507,7 @@ string describing this signal.
 Since there are processes violating this rule, returning exit codes
 greater than 128 which are not bound to a signal, @code{process-file}
 returns always the exit code as natural number for remote processes.
-Setting this user option to non-nil forces @code{process-file} to
+Setting this user option to non-@code{nil} forces @code{process-file} to
 interpret such exit codes as signals, and to return a corresponding
 string.
 @end defopt
@@ -2584,6 +2584,10 @@ that are mainly relevant to encrypted connections:
 
 @item :nowait @var{boolean}
 If non-@code{nil}, try to make an asynchronous connection.
+
+@item :noquery @var{query-flag}
+Initialize the process query flag to @var{query-flag}.
+@xref{Query Before Exit}.
 
 @item :coding @var{coding}
 Use this to set the coding systems used by the network process, in

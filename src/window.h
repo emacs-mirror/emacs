@@ -1212,6 +1212,16 @@ output_cursor_to (struct window *w, int vpos, int hpos, int y, int x)
   w->output_cursor.y = y;
 }
 
+/* Return true, if overlay OV's properties should have an effect in
+   window W. */
+INLINE bool
+overlay_matches_window (const struct window *w, Lisp_Object ov)
+{
+  eassert (OVERLAYP (ov));
+  Lisp_Object  window = Foverlay_get (ov, Qwindow);
+  return (! WINDOWP (window) || XWINDOW (window) == w);
+}
+
 INLINE_HEADER_END
 
 #endif /* not WINDOW_H_INCLUDED */

@@ -2177,7 +2177,7 @@ Operation is inhibited by `allout-inhibit-body-modification-handler'."
 ;; ?? Escapes removal (before changes) is not done when edits span multiple
 ;; items, recognizing that item structure is being preserved, including
 ;; escaping of item-prefix-like text within bodies.  See
-;; `allout-before-modification-handler' and
+;; `allout-body-modification-handler' and
 ;; `allout-inhibit-body-modification-handler'.
 ;;
 ;; Adds the overlay to the `allout-unresolved-body-mod-workroster' during

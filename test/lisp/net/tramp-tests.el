@@ -4616,10 +4616,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (load tmp-name 'noerror 'nomessage))
 	    (should-not (featurep 'tramp-test-load))
 	    (write-region "(provide 'tramp-test-load)" nil tmp-name)
-	    ;; `load' in lread.c does not pass `must-suffix'.  Why?
-	    ;;(should-error
-	    ;; (load tmp-name nil 'nomessage 'nosuffix 'must-suffix)
-	    ;; :type 'file-error)
+	    ;; `load' in lread.c passes `must-suffix' since Emacs 29.
+	    ;; In Ange-FTP, `must-suffix' is ignored.
+	    (when (and (tramp--test-emacs29-p)
+                       (not (tramp--test-ange-ftp-p)))
+	      (should-error
+	       (load tmp-name nil 'nomessage 'nosuffix 'must-suffix)
+	       :type 'file-error))
 	    (load tmp-name nil 'nomessage 'nosuffix)
 	    (should (featurep 'tramp-test-load)))
 

@@ -469,12 +469,9 @@
     (list (assoc 'secret (cdr found)))))
 
 (defvar erc-join-tests--auth-source-pass-entries
-  '(("irc.gnu.org:irc/#chan"
-     ("port" . "irc") ("user" . "#chan") (secret . "bar"))
-    ("my.gnu.org:irc/#chan"
-     ("port" . "irc") ("user" . "#chan") (secret . "baz"))
-    ("GNU.chat:irc/#chan"
-     ("port" . "irc") ("user" . "#chan") (secret . "foo"))))
+  '(("irc.gnu.org:irc/#chan" (secret . "bar"))
+    ("my.gnu.org:irc/#chan" (secret . "baz"))
+    ("GNU.chat:irc/#chan" (secret . "foo"))))
 
 (ert-deftest erc--auth-source-search--pass-standard ()
   (ert-skip "Pass backend not yet supported")
@@ -506,16 +503,11 @@
   (ert-skip "Pass backend not yet supported")
   (let ((store
          `(,@erc-join-tests--auth-source-pass-entries
-           ("GNU.chat:6697/#chan"
-            ("port" . "6697") ("user" . "#chan") (secret . "spam"))
-           ("my.gnu.org:irc/#fsf"
-            ("port" . "irc") ("user" . "#fsf") (secret . "42"))
-           ("irc.gnu.org:6667"
-            ("port" . "6667") (secret . "sesame"))
-           ("MyHost:irc"
-            ("port" . "irc") (secret . "456"))
-           ("MyHost:6667"
-            ("port" . "6667") (secret . "123"))))
+           ("GNU.chat:6697/#chan" (secret . "spam"))
+           ("my.gnu.org:irc/#fsf" (secret . "42"))
+           ("irc.gnu.org:6667" (secret . "sesame"))
+           ("MyHost:irc" (secret . "456"))
+           ("MyHost:6667" (secret . "123"))))
         (auth-sources '(password-store))
         (auth-source-do-cache nil))
 

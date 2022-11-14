@@ -1,6 +1,6 @@
 ;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -82,18 +82,16 @@ Return a pattern."
   (concat "\\`\\(" (regexp-opt rng-c-keywords) "\\)\\'")
   "Regular expression to match a keyword in the compact syntax.")
 
-(defvar rng-c-syntax-table nil
+(defvar rng-c-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?#  "<" st)
+    (modify-syntax-entry ?\n ">" st)
+    (modify-syntax-entry ?-  "w" st)
+    (modify-syntax-entry ?.  "w" st)
+    (modify-syntax-entry ?_  "w" st)
+    (modify-syntax-entry ?:  "_" st)
+    st)
   "Syntax table for parsing the compact syntax.")
-
-(if rng-c-syntax-table
-    ()
-  (setq rng-c-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?# "<" rng-c-syntax-table)
-  (modify-syntax-entry ?\n ">" rng-c-syntax-table)
-  (modify-syntax-entry ?- "w" rng-c-syntax-table)
-  (modify-syntax-entry ?. "w" rng-c-syntax-table)
-  (modify-syntax-entry ?_ "w" rng-c-syntax-table)
-  (modify-syntax-entry ?: "_" rng-c-syntax-table))
 
 (defconst rng-c-literal-1-re
   "'\\(''\\([^']\\|'[^']\\|''[^']\\)*''\\|[^'\n]*\\)'"

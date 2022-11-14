@@ -918,6 +918,13 @@ x_handle_selection_request (struct selection_input_event *event)
 	}
       /* Save conversion results */
       lisp_data_to_selection_data (dpyinfo, multprop, &cs);
+
+      /* If cs.type is ATOM, change it to ATOM_PAIR.  This is because
+	 the parameters to a MULTIPLE are ATOM_PAIRs.  */
+
+      if (cs.type == XA_ATOM)
+	cs.type = dpyinfo->Xatom_ATOM_PAIR;
+
       XChangeProperty (dpyinfo->display, requestor, property,
 		       cs.type, cs.format, PropModeReplace,
 		       cs.data, cs.size);
@@ -2376,12 +2383,19 @@ On Nextstep, TERMINAL is unused.  */)
 {
   Window owner;
   Atom atom;
+#ifdef HAVE_XFIXES
+  Window temp_owner;
+#endif
   struct frame *f = frame_for_x_selection (terminal);
   struct x_display_info *dpyinfo;
 
   CHECK_SYMBOL (selection);
-  if (NILP (selection)) selection = QPRIMARY;
-  if (EQ (selection, Qt)) selection = QSECONDARY;
+
+  if (NILP (selection))
+    selection = QPRIMARY;
+
+  if (EQ (selection, Qt))
+    selection = QSECONDARY;
 
   if (!f)
     return Qnil;
@@ -2392,10 +2406,22 @@ On Nextstep, TERMINAL is unused.  */)
     return Qt;
 
   atom = symbol_to_x_atom (dpyinfo, selection);
-  if (atom == 0) return Qnil;
+
+  if (!atom)
+    return Qnil;
+
+#ifdef HAVE_XFIXES
+  /* See if this information can be obtained without a roundtrip.  */
+  temp_owner = x_find_selection_owner (dpyinfo, atom);
+
+  if (temp_owner != X_INVALID_WINDOW)
+    return (temp_owner != None ? Qt : Qnil);
+#endif
+
   block_input ();
   owner = XGetSelectionOwner (dpyinfo->display, atom);
   unblock_input ();
+
   return (owner ? Qt : Qnil);
 }
 
@@ -2768,7 +2794,6 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
   unsigned char *data = (unsigned char *) event->data.b;
   int idata[5];
   ptrdiff_t i;
-  Window child_return;
 
   for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i)
     if (dpyinfo->x_dnd_atoms[i] == event->message_type) break;
@@ -2803,11 +2828,7 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
   if (!root_window_coords)
     x_relative_mouse_position (f, &x, &y);
   else
-    XTranslateCoordinates (dpyinfo->display,
-			   dpyinfo->root_window,
-			   FRAME_X_WINDOW (f),
-			   root_x, root_y,
-			   &x, &y, &child_return);
+    x_translate_coordinates (f, root_x, root_y, &x, &y);
 
   bufp->kind = DRAG_N_DROP_EVENT;
   bufp->frame_or_window = frame;

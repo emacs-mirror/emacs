@@ -68,8 +68,8 @@ of Org, as well as additional information, frequently asked questions
 [[https://orgmode.org]].
 
 #+cindex: print edition
-An earlier version (7.3) of this manual is available as a [[http://www.network-theory.co.uk/org/manual/][paperback
-book from Network Theory Ltd.]].
+An earlier version (7.3) of this manual was published as a paperback book by
+Network Theory Ltd. in 2010.
 
 ** Installation
 :PROPERTIES:
@@ -3234,7 +3234,7 @@ options:
 
 | Link Type  | Example                                                  |
 |------------+----------------------------------------------------------|
-| http       | =http://staff.science.uva.nl/c.dominik/=                 |
+| http       | =https://staff.science.uva.nl/c.dominik/=                |
 | https      | =https://orgmode.org/=                                   |
 | doi        | =doi:10.1000/182=                                        |
 | file       | =file:/home/dominik/images/jupiter.jpg=                  |
@@ -3567,7 +3567,7 @@ replacement text.  Here is an example:
       '(("bugzilla"        . "http://10.1.2.9/bugzilla/show_bug.cgi?id=")
         ("Nu Html Checker" . "https://validator.w3.org/nu/?doc=%h")
 	("duckduckgo"      . "https://duckduckgo.com/?q=%s")
-        ("omap"            . "http://nominatim.openstreetmap.org/search?q=%s&polygon=1")
+        ("omap"            . "https://nominatim.openstreetmap.org/search?q=%s&polygon=1")
         ("ads"             . "https://ui.adsabs.harvard.edu/search/q=%20author%3A\"%s\"")))
 #+end_src
 
@@ -3596,7 +3596,7 @@ can define them in the file with
 
 #+cindex: @samp{LINK}, keyword
 #+begin_example
-,#+LINK: bugzilla  http://10.1.2.9/bugzilla/show_bug.cgi?id=
+,#+LINK: bugzilla  https://10.1.2.9/bugzilla/show_bug.cgi?id=
 ,#+LINK: duckduckgo https://duckduckgo.com/?q=%s
 #+end_example
 
@@ -13642,7 +13642,7 @@ not have descriptions, such as these links =[[file:img.jpg]]= or
 =[[./img.jpg]]=, as direct image insertions in the final PDF output.  In
 the PDF, they are no longer links but actual images embedded on the
 page.  The LaTeX export back-end uses =\includegraphics= macro to
-insert the image.  But for TikZ (http://sourceforge.net/projects/pgf/)
+insert the image.  But for TikZ (https://sourceforge.net/projects/pgf/)
 images, the back-end uses an ~\input~ macro wrapped within
 a ~tikzpicture~ environment.
 
@@ -13982,7 +13982,7 @@ some text in German...
 #+cindex: Markdown export
 
 The Markdown export back-end, "md", converts an Org file to Markdown
-format, as defined at http://daringfireball.net/projects/markdown/.
+format, as defined at https://daringfireball.net/projects/markdown/.
 
 Since it is built on top of the HTML back-end (see [[*HTML Export]]), it
 converts every Org construct not defined in Markdown syntax, such as
@@ -22053,7 +22053,7 @@ MathJax are processed.  When dvipng, dvisvgm, or ImageMagick suite is
 used to create images, any LaTeX environment is handled.
 
 [fn:112] These are respectively available at
-[[http://sourceforge.net/projects/dvipng/]], [[http://dvisvgm.bplaced.net/]]
+[[https://sourceforge.net/projects/dvipng/]], [[http://dvisvgm.bplaced.net/]]
 and from the ImageMagick suite.  Choose the converter by setting the
 variable ~org-preview-latex-default-process~ accordingly.
 
@@ -22123,9 +22123,9 @@ semantic relevance.
 
 [fn:130] Please note that exported formulas are part of an HTML
 document, and that signs such as =<=, =>=, or =&= have special
-meanings.  See [[http://docs.mathjax.org/en/latest/tex.html#tex-and-latex-in-html-documents][MathJax TeX and LaTeX support]].
+meanings.  See [[https://docs.mathjax.org/en/latest/tex.html#tex-and-latex-in-html-documents][MathJax TeX and LaTeX support]].
 
-[fn:131] See [[http://docs.mathjax.org/en/latest/tex.html#tex-extensions][TeX and LaTeX extensions]] in the [[http://docs.mathjax.org][MathJax manual]] to learn
+[fn:131] See [[https://docs.mathjax.org/en/latest/tex.html#tex-extensions][TeX and LaTeX extensions]] in the [[https://docs.mathjax.org][MathJax manual]] to learn
 about extensions.
 
 [fn:132] If the classes on TODO keywords and tags lead to conflicts,
@@ -22140,14 +22140,14 @@ as latexmk, can select the correct bibliography compiler.
 which requires the flag =-shell-escape= to be added to
 ~org-latex-pdf-process~.
 
-[fn:135] See [[http://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.html][Open Document Format for Office Applications
+[fn:135] See [[https://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.html][Open Document Format for Office Applications
 (OpenDocument) Version 1.2]].
 
 [fn:136] See [[http://www.mathtoweb.com/cgi-bin/mathtoweb_home.pl][MathToWeb]].
 
-[fn:137] See [[http://dlmf.nist.gov/LaTeXML/]].
+[fn:137] See [[https://dlmf.nist.gov/LaTeXML/]].
 
-[fn:138] [[http://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.html][OpenDocument-v1.2 Specification]]
+[fn:138] [[https://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.html][OpenDocument-v1.2 Specification]]
 
 [fn:139] See the =<table:table-template>= element of the
 OpenDocument-v1.2 specification.
@@ -22170,7 +22170,7 @@ are not evaluated when they appear in a keyword (see [[*Summary of
 In-Buffer Settings]]).
 
 [fn:144] For noweb literate programming details, see
-http://www.cs.tufts.edu/~nr/noweb/.
+https://www.cs.tufts.edu/~nr/noweb/.
 
 [fn:145] For more information, please refer to the commentary section
 in =org-tempo.el=.

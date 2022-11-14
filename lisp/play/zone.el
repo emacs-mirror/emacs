@@ -103,9 +103,24 @@ If the element is a function or a list of a function and a number,
                  program))))
 
 ;;;###autoload
-(defun zone ()
-  "Zone out, completely."
-  (interactive)
+(defun zone (&optional pgm)
+  "Zone out, completely.
+With a prefix argument the user is prompted for a program to run.
+When called from Lisp the optional argument PGM can be used to
+run a specific program.  The program must be a member of
+`zone-programs'."
+  (interactive
+   (and current-prefix-arg
+        (let ((choice (completing-read
+                       "Program: "
+                       (mapcar
+                        (lambda (prog)
+                          (substring (symbol-name prog) 9))
+                        zone-programs)
+                       nil t)))
+          (list (intern (concat "zone-pgm-" choice))))))
+  (unless pgm
+    (setq pgm (aref zone-programs (random (length zone-programs)))))
   (save-window-excursion
     (let ((f (selected-frame))
           (outbuf (get-buffer-create "*zone*"))
@@ -124,9 +139,8 @@ If the element is a function or a list of a function and a number,
       (untabify (point-min) (point-max))
       (set-window-start (selected-window) (point-min))
       (set-window-point (selected-window) wp)
-      (sit-for 0 500)
-      (let ((pgm (elt zone-programs (random (length zone-programs))))
-            (ct (and f (frame-parameter f 'cursor-type)))
+      (sit-for 0.500)
+      (let ((ct (and f (frame-parameter f 'cursor-type)))
             (show-trailing-whitespace nil)
             restore)
         (when ct
@@ -235,7 +249,7 @@ If the element is a function or a list of a function and a number,
     (while (not (input-pending-p))
       (funcall (elt ops (random (length ops))))
       (goto-char (point-min))
-      (sit-for 0 10))))
+      (sit-for 0.01))))
 
 
 ;;;; whacking chars
@@ -248,7 +262,7 @@ If the element is a function or a list of a function and a number,
           (aset tbl i (+ 48 (random (- 123 48))))
           (setq i (1+ i)))
         (translate-region (point-min) (point-max) tbl)
-        (sit-for 0 2)))))
+        (sit-for 0.002)))))
 
 (put 'zone-pgm-whack-chars 'wc-tbl
      (let ((tbl (make-string 128 ?x))
@@ -276,7 +290,7 @@ If the element is a function or a list of a function and a number,
                   (delete-char 1)
                   (insert " ")))
             (forward-char 1))))
-      (sit-for 0 2))))
+      (sit-for 0.002))))
 
 (defun zone-pgm-dissolve ()
   (zone-remove-text)
@@ -298,7 +312,7 @@ If the element is a function or a list of a function and a number,
                 (insert " ")))
           (forward-char 1)))
       (setq i (1+ i))
-      (sit-for 0 2)))
+      (sit-for 0.002)))
   (zone-pgm-jitter))
 
 (defun zone-pgm-explode ()
@@ -333,7 +347,7 @@ If the element is a function or a list of a function and a number,
                 (upcase i)))
         (setq i (+ i (1+ (random 5)))))
       (translate-region (point-min) (point-max) tbl)
-      (sit-for 0 2))))
+      (sit-for 0.002))))
 
 (defun zone-pgm-putz-with-case ()
   (goto-char (point-min))
@@ -345,7 +359,7 @@ If the element is a function or a list of a function and a number,
                    'downcase-region) (1- np) np)
         (setq np (+ np (1+ (random 5))))))
     (goto-char (point-min))
-    (sit-for 0 2)))
+    (sit-for 0.002)))
 
 
 ;;;; rotating

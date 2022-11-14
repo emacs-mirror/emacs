@@ -204,9 +204,10 @@ The GNU Emacs Manual}).  Currently, function names can be indexed.
 
 @cindex ElDoc Mode Support
 @vindex octave-eldoc-message-style
-ElDoc mode (@pxref{Lisp Doc,,, emacs, The GNU Emacs Manual}) is
-supported.  By customizing @code{octave-eldoc-message-style} it can be
-changed from displaying one or multi line hints.
+ElDoc mode (@pxref{Programming Language Doc,,, emacs, The GNU Emacs
+Manual}) is supported.  By customizing
+@code{octave-eldoc-message-style} it can be changed from displaying
+one or multi line hints.
 
 @c @cindex TAGS
 @c @cindex Emacs TAGS files

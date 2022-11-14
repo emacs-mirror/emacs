@@ -34,7 +34,9 @@ specifically to editing.
 
   This is
 @iftex
+@ifset VERSION
 edition @value{VERSION} of
+@end ifset
 @end iftex
 the @cite{GNU Emacs Lisp Reference Manual},
 corresponding to Emacs version @value{EMACSVER}.

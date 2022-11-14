@@ -156,7 +156,7 @@ Valid properties include:
   "The name of the ldapsearch command line program."
   :type '(string :tag "`ldapsearch' Program"))
 
-(defcustom ldap-ldapsearch-args '("-LLL" "-tt")
+(defcustom ldap-ldapsearch-args nil
   "A list of additional arguments to pass to `ldapsearch'."
   :type '(repeat :tag "`ldapsearch' Arguments"
 		 (string :tag "Argument")))
@@ -609,7 +609,8 @@ an alist of attribute/value pairs."
 	(sizelimit (plist-get search-plist 'sizelimit))
 	(withdn (plist-get search-plist 'withdn))
 	(numres 0)
-	arglist dn name value record result)
+        (arglist (list "-LLL" "-tt"))
+	dn name value record result)
     (if (or (null filter)
 	    (equal "" filter))
 	(error "No search filter"))
@@ -715,14 +716,14 @@ an alist of attribute/value pairs."
                      (eq (string-match "/\\(.:.*\\)$" value) 0))
                 (setq value (match-string 1 value)))
 	    ;; Do not try to open non-existent files
-	    (if (equal value "")
-		(setq value " ")
-	      (with-current-buffer bufval
+            (if (match-string 3)
+              (with-current-buffer bufval
 		(erase-buffer)
 		(set-buffer-multibyte nil)
 		(insert-file-contents-literally value)
 		(delete-file value)
-		(setq value (buffer-string))))
+		(setq value (buffer-string)))
+              (setq value " "))
 	    (setq record (cons (list name value)
 			       record))
 	    (forward-line 1))

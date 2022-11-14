@@ -803,4 +803,10 @@ See Bug#57915."
             (macroexpand form)
             (should (string-empty-p messages))))))))
 
+(ert-deftest cl-&key-arguments ()
+  (cl-flet ((fn (&key x) x))
+    (should-error (fn :x))
+    (should (eq (fn :x :a) :a))))
+
+
 ;;; cl-macs-tests.el ends here

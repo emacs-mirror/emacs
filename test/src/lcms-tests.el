@@ -28,7 +28,7 @@
 ;; https://github.com/njsmith/colorspacious
 
 ;; Other references:
-;; http://www.babelcolor.com/index_htm_files/A%20review%20of%20RGB%20color%20spaces.pdf
+;; https://www.babelcolor.com/index_htm_files/A%20review%20of%20RGB%20color%20spaces.pdf
 
 ;;; Code:
 

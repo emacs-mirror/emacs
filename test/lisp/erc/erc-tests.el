@@ -24,7 +24,6 @@
 (require 'ert-x)
 (require 'erc)
 (require 'erc-ring)
-(require 'erc-networks)
 
 (ert-deftest erc--read-time-period ()
   (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "")))
@@ -47,27 +46,6 @@
 
   (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "1d")))
     (should (equal (erc--read-time-period "foo: ") 86400))))
-
-(ert-deftest erc--meta--backend-dependencies ()
-  (with-temp-buffer
-    (insert-file-contents-literally
-     (concat (file-name-sans-extension (symbol-file 'erc)) ".el"))
-    (let ((beg (search-forward ";; Defined in erc-backend"))
-          (end (search-forward "\n\n"))
-          vars)
-      (save-excursion
-        (save-restriction
-          (narrow-to-region beg end)
-          (goto-char (point-min))
-          (with-syntax-table lisp-data-mode-syntax-table
-            (condition-case _
-                (while (push (cadr (read (current-buffer))) vars))
-              (end-of-file)))))
-      (should (= (point) end))
-      (dolist (var vars)
-        (setq var (concat "\\_<" (symbol-name var) "\\_>"))
-        (ert-info (var)
-          (should (save-excursion (search-forward-regexp var nil t))))))))
 
 (ert-deftest erc-with-all-buffers-of-server ()
   (let (proc-exnet

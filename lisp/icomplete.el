@@ -139,7 +139,7 @@ See `icomplete-delay-completions-threshold'."
 
 (defvar icomplete-in-buffer nil
   "If non-nil, also use Icomplete when completing in non-mini buffers.
-This affects commands like `complete-in-region', but not commands
+This affects commands like `completion-in-region', but not commands
 that use their own completions setup.")
 
 (defcustom icomplete-minibuffer-setup-hook nil
@@ -228,7 +228,7 @@ the default otherwise."
 ;; Apropos `icomplete-scroll', we implement "scrolling icomplete"
 ;; within classic icomplete, which is "rotating", by contrast.
 ;;
-;; The two variables supporing this are
+;; The two variables supporting this are
 ;; `icomplete--scrolled-completions' and `icomplete--scrolled-past'.
 ;; They come into play when:
 ;;

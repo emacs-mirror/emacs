@@ -4080,15 +4080,18 @@ using that one instead of current buffer's process."
                  (buffer-substring-no-properties line-start (point)))
             (buffer-substring-no-properties line-start (point))))
          (start
-          (save-excursion
-            (if (not (re-search-backward
-                      (python-rx
-                       (or whitespace open-paren close-paren string-delimiter simple-operator))
-                      line-start
-                      t 1))
-                line-start
-              (forward-char (length (match-string-no-properties 0)))
-              (point))))
+          (if (< (point) line-start)
+              (point)
+            (save-excursion
+              (if (not (re-search-backward
+                        (python-rx
+                         (or whitespace open-paren close-paren
+                             string-delimiter simple-operator))
+                        line-start
+                        t 1))
+                  line-start
+                (forward-char (length (match-string-no-properties 0)))
+                (point)))))
          (end (point))
          (prompt-boundaries
           (with-current-buffer (process-buffer process)
@@ -4102,7 +4105,10 @@ using that one instead of current buffer's process."
           (with-current-buffer (process-buffer process)
             (cond ((or (null prompt)
                        (and is-shell-buffer
-                            (< (point) (cdr prompt-boundaries))))
+                            (< (point) (cdr prompt-boundaries)))
+                       (and (not is-shell-buffer)
+                            (string-match-p
+                             python-shell-prompt-pdb-regexp prompt)))
                    #'ignore)
                   ((or (not python-shell-completion-native-enable)
                        ;; Even if native completion is enabled, for
@@ -4369,7 +4375,9 @@ For this to work as best as possible you should call
 `python-shell-send-buffer' from time to time so context in
 inferior Python process is updated properly."
   (let ((process (python-shell-get-process)))
-    (when process
+    (when (and process
+               (python-shell-with-shell-buffer
+                 (python-util-comint-end-of-output-p)))
       (python-shell-completion-at-point process))))
 
 (define-obsolete-function-alias
@@ -4794,6 +4802,8 @@ def __FFAP_get_module_path(objstr):
 (defun python-ffap-module-path (module)
   "Function for `ffap-alist' to return path for MODULE."
   (when-let ((process (python-shell-get-process))
+             (ready (python-shell-with-shell-buffer
+                      (python-util-comint-end-of-output-p)))
              (module-file
               (python-shell-send-string-no-output
                (format "%s\nprint(__FFAP_get_module_path(%s))"
@@ -4912,7 +4922,9 @@ If not FORCE-INPUT is passed then what `python-eldoc--get-symbol-at-point'
 returns will be used.  If not FORCE-PROCESS is passed what
 `python-shell-get-process' returns is used."
   (let ((process (or force-process (python-shell-get-process))))
-    (when process
+    (when (and process
+               (python-shell-with-shell-buffer
+                 (python-util-comint-end-of-output-p)))
       (let* ((input (or force-input
                         (python-eldoc--get-symbol-at-point)))
              (docstring
@@ -5365,6 +5377,7 @@ likely an invalid python file."
                            ;; block and the current line, otherwise it
                            ;; is not an opening block.
                            (save-excursion
+                             (python-nav-end-of-statement)
                              (forward-line)
                              (let ((no-back-indent t))
                                (save-match-data
@@ -5657,6 +5670,13 @@ This is for compatibility with Emacs < 24.4."
         ((bound-and-true-p comint-last-prompt)
          comint-last-prompt)
         (t nil)))
+
+(defun python-util-comint-end-of-output-p ()
+  "Return non-nil if the last prompt matches input prompt."
+  (when-let ((prompt (python-util-comint-last-prompt)))
+    (python-shell-comint-end-of-output-p
+     (buffer-substring-no-properties
+      (car prompt) (cdr prompt)))))
 
 (defun python-util-forward-comment (&optional direction)
   "Python mode specific version of `forward-comment'.

@@ -812,7 +812,7 @@ but still contains full information about each coding system."
 
 (declare-function font-info "font.c" (name &optional frame))
 
-(defun describe-font-internal (font-info &optional ignored)
+(defun describe-font-internal (font-info &optional _ignored)
   "Print information about a font in FONT-INFO.
 The IGNORED argument is ignored."
   (print-list "name (opened by):" (aref font-info 0))

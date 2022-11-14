@@ -374,8 +374,8 @@ Remove the DIRECTORY(ies), if they are empty.")
 	     (file-attribute-inode-number attr)
 	     (file-attribute-device-number attr-target)
 	     (file-attribute-device-number attr)
-	     (equal (file-attribute-file-number attr-target)
-		    (file-attribute-file-number attr)))
+	     (equal (file-attribute-file-identifier attr-target)
+		    (file-attribute-file-identifier attr)))
 	(eshell-error (format-message "%s: `%s' and `%s' are the same file\n"
 				      command (car files) target)))
        (t

@@ -252,7 +252,24 @@
     (should (equal (bindat-unpack spec "abc\0") "abc"))
     ;; Missing null terminator.
     (should-error (bindat-unpack spec ""))
-    (should-error (bindat-unpack spec "a"))))
+    (should-error (bindat-unpack spec "a")))
+
+  (ert-deftest bindat-test--strz-array-unpack ()
+    (should (equal (bindat-unpack spec [#x61 #x62 #x63 #x00]) "abc"))))
+
+(let ((spec (bindat-type str 3)))
+  (ert-deftest bindat-test--str-simple-array-unpack ()
+    (should (equal (bindat-unpack spec [#x61 #x62 #x63]) "abc"))))
+
+(let ((spec (bindat-type
+              (first u8)
+              (string str 3)
+              (last uint 16))))
+  (ert-deftest bindat-test--str-combined-array-unpack ()
+    (let ((unpacked (bindat-unpack spec [#xff #x63 #x62 #x61 #xff #xff])))
+      (should (equal (bindat-get-field unpacked 'string) "cba"))
+      (should (equal (bindat-get-field unpacked 'first) (- (expt 2 8) 1)))
+      (should (equal (bindat-get-field unpacked 'last) (- (expt 2 16) 1))))))
 
 (let ((spec '((x strz 2))))
   (ert-deftest bindat-test--strz-legacy-fixedlen-len ()
