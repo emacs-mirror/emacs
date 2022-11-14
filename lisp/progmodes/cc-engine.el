@@ -11079,6 +11079,11 @@ This function might do hidden buffer changes."
 	     ;; `got-parens' or `got-suffix' is set it's "a()", "a[]", "a()[]",
 	     ;; or similar, which we accept only if the context rules out
 	     ;; expressions.
+	     ;;
+	     ;; If we've got at-type 'maybe, we cannot confidently promote the
+	     ;; possible type to a found type.
+	     (when (and (eq at-type 'maybe))
+	       (setq unsafe-maybe t))
 	     (throw 'at-decl-or-cast t)))
 
 	 ;; If we had a complete symbol table here (which rules out
