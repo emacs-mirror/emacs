@@ -34,6 +34,7 @@
 
 (defcustom css-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `ts-mode'."
+  :version "29.1"
   :type 'integer
   :safe 'integerp
   :group 'css)
@@ -113,6 +114,10 @@ the subtrees."
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules css-ts-mode--indent-rules)
+
+  ;; Electric
+  (setq-local electric-indent-chars
+              (append "{}():;," electric-indent-chars))
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp "rule_set")

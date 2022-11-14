@@ -30,6 +30,7 @@
 
 (defcustom ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `ts-mode'."
+  :version "29.1"
   :type 'integer
   :safe 'integerp
   :group 'typescript)
@@ -100,7 +101,6 @@
 
 (defvar ts-mode--font-lock-settings
   (treesit-font-lock-rules
-
    :language 'tsx
    :override t
    :feature 'comment
@@ -271,18 +271,26 @@
    ((treesit-ready-p nil 'tsx)
     ;; Tree-sitter.
     (treesit-parser-create 'tsx)
+
     ;; Comments.
     (setq-local comment-start "// ")
     (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
     (setq-local comment-end "")
+
+    ;; Electric
+    (setq-local electric-indent-chars
+                (append "{}():;," electric-indent-chars))
+
     ;; Indent.
     (setq-local treesit-simple-indent-rules ts-mode--indent-rules)
+
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
                 (rx (or "class_declaration"
                         "method_definition"
                         "function_declaration"
                         "lexical_declaration")))
+
     ;; Font-lock.
     (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
@@ -291,9 +299,12 @@
                   (property pattern jsx)))
     ;; Imenu.
     (setq-local imenu-create-index-function #'js--treesit-imenu)
+
     ;; Which-func (use imenu).
     (setq-local which-func-functions nil)
+
     (treesit-major-mode-setup))
+
    ;; Elisp.
    (t
     (js-mode)

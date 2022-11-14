@@ -33,6 +33,7 @@
 
 (defcustom c-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `c-ts-mode'."
+  :version "29.1"
   :type 'integer
   :safe 'integerp
   :group 'c)
@@ -44,6 +45,7 @@ The selected style could be one of GNU, K&R, LINUX or BSD.  If
 one of the supplied styles doesn't suffice a function could be
 set instead.  This function is expected return a list that
 follows the form of `treesit-simple-indent-rules'."
+  :version "29.1"
   :type '(choice (symbol :tag "Gnu" 'gnu)
                  (symbol :tag "K&R" 'k&r)
                  (symbol :tag "Linux" 'linux)
@@ -396,13 +398,7 @@ the subtrees."
 ;;;###autoload
 (define-derived-mode c-ts-mode--base-mode prog-mode "C"
   "Major mode for editing C, powered by tree-sitter."
-  :group 'c
   :syntax-table c-ts-mode--syntax-table
-
-  ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
-  (setq-local comment-end "")
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
@@ -415,7 +411,7 @@ the subtrees."
 
   ;; Electric
   (setq-local electric-indent-chars
-	      (append "{}():;," electric-indent-chars))
+              (append "{}():;," electric-indent-chars))
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'c-ts-mode--imenu)
@@ -436,6 +432,11 @@ the subtrees."
 
   (treesit-parser-create 'c)
 
+  ;; Comments.
+  (setq-local comment-start "/* ")
+  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
+  (setq-local comment-end " */")
+
   (setq-local treesit-simple-indent-rules
               (c-ts-mode--set-indent-style 'c))
 
@@ -451,6 +452,11 @@ the subtrees."
 
   (unless (treesit-ready-p nil 'cpp)
     (error "Tree-sitter for C++ isn't available"))
+
+  ;; Comments.
+  (setq-local comment-start "// ")
+  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
+  (setq-local comment-end "")
 
   (treesit-parser-create 'cpp)
 

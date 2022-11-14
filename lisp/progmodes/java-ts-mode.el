@@ -29,10 +29,10 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'rx)
 
 (defcustom java-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `java-ts-mode'."
+  :version "29.1"
   :type 'integer
   :safe 'integerp
   :group 'java)
@@ -241,18 +241,38 @@ the subtrees."
 (defun java-ts-mode--imenu ()
   "Return Imenu alist for the current buffer."
   (let* ((node (treesit-buffer-root-node))
-         (tree (treesit-induce-sparse-tree
-                node (rx (or "class_declaration"
-                             "interface_declaration"
-                             "enum_declaration"
-                             "record_declaration"
-                             "method_declaration")))))
-    (java-ts-mode--imenu-1 tree)))
+         (class-tree
+          `("Class" . ,(java-ts-mode--imenu-1
+                        (treesit-induce-sparse-tree
+                         node "^class_declaration$"))))
+         (interface-tree
+          `("Interface" . ,(java-ts-mode--imenu-1
+                            (treesit-induce-sparse-tree
+                             node "^interface_declaration$"))))
+         (enum-tree
+          `("Enum" . ,(java-ts-mode--imenu-1
+                       (treesit-induce-sparse-tree
+                        node "^enum_declaration$"))))
+         (record-tree
+          `("Record" . ,(java-ts-mode--imenu-1
+                         (treesit-induce-sparse-tree
+                          node "^record_declaration$"))))
+         (method-tree
+          `("Method" . ,(java-ts-mode--imenu-1
+                         (treesit-induce-sparse-tree
+                          node "^method_declaration$")))))
+    (cl-remove-if
+     #'null
+     `(,(when (cdr class-tree) class-tree)
+       ,(when (cdr interface-tree) interface-tree)
+       ,(when (cdr enum-tree) enum-tree)
+       ,(when (cdr record-tree) record-tree)
+       ,(when (cdr method-tree) method-tree)))))
 
 ;;;###autoload
 (define-derived-mode java-ts-mode prog-mode "Java"
   "Major mode for editing Java, powered by tree-sitter."
-  :group 'c
+  :group 'java
   :syntax-table java-ts-mode--syntax-table
 
   (unless (treesit-ready-p nil 'java)
@@ -268,9 +288,12 @@ the subtrees."
   ;; Indent.
   (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)
 
+  ;; Electric
+  (setq-local electric-indent-chars
+              (append "{}():;," electric-indent-chars))
+
   ;; Navigation.
-  (setq-local treesit-defun-type-regexp
-              (rx (or "declaration")))
+  (setq-local treesit-defun-type-regexp "declaration")
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)

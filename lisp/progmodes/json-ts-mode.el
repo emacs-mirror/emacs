@@ -33,6 +33,7 @@
 
 (defcustom json-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `json-ts-mode'."
+  :version "29.1"
   :type 'integer
   :safe 'integerp
   :group 'json)
@@ -67,20 +68,26 @@
 (defvar json-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'json
-   :feature 'minimal
+   :feature 'comment
    :override t
-   `((pair
-      key: (_) @font-lock-string-face)
-
-     (string) @font-lock-string-face
-
-     (number) @font-lock-constant-face
-
-     [(null) (true) (false)] @font-lock-constant-face
-
-     (escape_sequence) @font-lock-constant-face
-
-     (comment) @font-lock-comment-face))
+   '((comment) @font-lock-comment-face)
+   :language 'json
+   :feature 'string
+   :override t
+   '((escape_sequence) @font-lock-constant-face
+     (string) @font-lock-string-face)
+   :language 'json
+   :feature 'number
+   :override t
+   '((number) @font-lock-constant-face)
+   :language 'json
+   :feature 'constant
+   :override t
+   '([(null) (true) (false)] @font-lock-constant-face)
+   :language 'json
+   :feature 'pair
+   :override t
+   `((pair key: (_) @font-lock-variable-name-face)))
   "Font-lock settings for JSON.")
 
 (defun json-ts-mode--imenu-1 (node)
@@ -127,6 +134,10 @@ the subtrees."
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
 
+  ;; Electric
+  (setq-local electric-indent-chars
+              (append "{}():;," electric-indent-chars))
+
   ;; Indent.
   (setq-local treesit-simple-indent-rules json-ts--indent-rules)
 
@@ -137,7 +148,7 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings json-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((minimal) () ()))
+              '((comment string number) (constant pair) ()))
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'json-ts-mode--imenu)
