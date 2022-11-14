@@ -975,11 +975,8 @@ It makes underscores and dots word constituent chars.")
     "copyright" "credits" "exit" "license" "quit"))
 
 (defvar python--treesit-operators
-  ;; This is not used. And and, or, not, is, in are fontified as
-  ;; keywords.
   '("-" "-=" "!=" "*" "**" "**=" "*=" "/" "//" "//=" "/=" "&" "%" "%="
-    "^" "+" "+=" "<" "<<" "<=" "<>" "=" "==" ">" ">=" ">>" "|" "~"
-    "and" "in" "is" "not" "or"))
+    "^" "+" "+=" "<" "<<" "<=" "<>" "=" "==" ">" ">=" ">>" "|" "~"))
 
 (defvar python--treesit-special-attributes
   '("__annotations__" "__closure__" "__code__"
@@ -1117,7 +1114,38 @@ be fontified."
    :feature 'escape-sequence
    :language 'python
    :override t
-   '((escape_sequence) @font-lock-escape-face))
+   '((escape_sequence) @font-lock-escape-face)
+
+   :feature 'number
+   :language 'python
+   :override t
+   '([(integer) (float)] @font-lock-number-face)
+
+   :feature 'property
+   :language 'python
+   :override t
+   '((attribute
+      attribute: (identifier) @font-lock-property-face)
+     (class_definition
+      body: (block
+             (expression_statement
+              (assignment left:
+                          (identifier) @font-lock-property-face)))))
+
+   :feature 'operator
+   :language 'python
+   :override t
+   `([,@python--treesit-operators] @font-lock-operator-face)
+
+   :feature 'bracket
+   :language 'python
+   :override t
+   '(["(" ")" "[" "]" "{" "}"] @font-lock-bracket-face)
+
+   :feature 'delimiter
+   :language 'python
+   :override t
+   '(["," "." ":" ";" (ellipsis)] @font-lock-delimiter-face))
   "Tree-sitter font-lock settings.")
 
 
@@ -6553,7 +6581,8 @@ Add import for undefined name `%s' (empty to skip): "
                 '(( comment string function-name class-name)
                   ( keyword builtin constant type)
                   ( assignment decorator escape-sequence
-                    string-interpolation)))
+                    string-interpolation number property
+                    operator bracket delimiter)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)

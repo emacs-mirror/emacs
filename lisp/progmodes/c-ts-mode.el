@@ -230,19 +230,17 @@ MODE is either `c' or `cpp'."
 
    :language mode
    :feature 'operator
-   :override t
    `([,@c-ts-mode--operators] @font-lock-operator-face
      "!" @font-lock-negation-char-face)
 
    :language mode
    :feature 'string
    `((string_literal) @font-lock-string-face
-     (system_lib_string) @font-lock-string-face
-     (escape_sequence) @font-lock-escape-face)
+     (system_lib_string) @font-lock-string-face)
 
    :language mode
    :feature 'literal
-   `((number_literal) @font-lock-constant-face
+   `((number_literal) @font-lock-number-face
      (char_literal) @font-lock-constant-face)
 
    :language mode
@@ -268,14 +266,11 @@ MODE is either `c' or `cpp'."
       declarator: (_) @c-ts-mode--fontify-struct-declarator)
 
      (function_definition
-      declarator: (_) @c-ts-mode--fontify-struct-declarator)
+      declarator: (_) @c-ts-mode--fontify-struct-declarator))
 
-     ;; Should we highlight identifiers in the parameter list?
-     ;; (parameter_declaration
-     ;;  declarator: (_) @c-ts-mode--fontify-struct-declarator)
-
-     (enumerator
-      name: (identifier) @font-lock-variable-name-face))
+   ;; Should we highlight identifiers in the parameter list?
+   ;; (parameter_declaration
+   ;;  declarator: (_) @c-ts-mode--fontify-struct-declarator))
 
    :language mode
    :feature 'assignment
@@ -298,8 +293,7 @@ MODE is either `c' or `cpp'."
    '((call_expression
       function: (identifier) @font-lock-function-name-face)
      (field_expression
-      argument: (identifier) @font-lock-variable-name-face
-      field: (field_identifier) @font-lock-property-face)
+      argument: (identifier) @font-lock-variable-name-face)
      (pointer_expression
       (identifier) @font-lock-variable-name-face))
 
@@ -312,6 +306,25 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'error
    '((ERROR) @font-lock-warning-face)
+
+   :feature 'escape-sequence
+   :language mode
+   :override t
+   '((escape_sequence) @font-lock-escape-face)
+
+   :language mode
+   :feature 'property
+   '((field_identifier) @font-lock-property-face
+     (enumerator
+      name: (identifier) @font-lock-property-face))
+
+   :language mode
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+   :language mode
+   :feature 'delimiter
+   '((["," ":" ";"]) @font-lock-delimiter-face)
 
    :language mode
    :feature 'emacs-devel
@@ -471,9 +484,10 @@ the subtrees."
   (setq-local which-func-functions nil)
 
   (setq-local treesit-font-lock-feature-list
-              '((comment preprocessor constant string literal keyword)
-                (type definition label assignment)
-                (expression error operator))))
+              '(( comment constant keyword literal preprocessor string)
+                ( assignment definition label property type)
+                ( bracket delimiter error escape-sequence expression
+                  operator))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
@@ -500,7 +514,7 @@ the subtrees."
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-mode--base-mode "C++"
-  "Major mode for editing C, powered by tree-sitter."
+  "Major mode for editing C++, powered by tree-sitter."
   :group 'c++
 
   (unless (treesit-ready-p nil 'cpp)
