@@ -29,7 +29,7 @@
   "List of custom packages installed.")
 
 (defun use-package-ensure-system-package-consify (arg)
-  "Turn `arg' into a cons of (`package-name' . `install-command')."
+  "Turn ARG into a cons of (`package-name' . `install-command')."
   (cond
    ((stringp arg)
     (cons arg `(system-packages-install ,arg)))
@@ -54,7 +54,7 @@
 
 ;;;###autoload
 (defun use-package-normalize/:ensure-system-package (_name-symbol keyword args)
-  "Turn `arg' into a list of cons-es of (`package-name' . `install-command')."
+  "Turn ARGS into a list of conses of (`package-name' . `install-command')."
   (use-package-as-one (symbol-name keyword) args
     (lambda (_label arg)
       (cond

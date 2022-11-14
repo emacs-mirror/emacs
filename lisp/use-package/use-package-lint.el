@@ -63,7 +63,7 @@
 
 ;;;###autoload
 (defun use-package-lint ()
-  "Check for errors in use-package declarations.
+  "Check for errors in `use-package' declarations.
 For example, if the module's `:if' condition is met, but even
 with the specified `:load-path' the module cannot be found."
   (interactive)

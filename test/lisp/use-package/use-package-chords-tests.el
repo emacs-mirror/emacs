@@ -158,4 +158,4 @@
 ;; no-update-autoloads: t
 ;; End:
 
-;;; use-package-tests.el ends here
+;;; use-package-chords-tests.el ends here
