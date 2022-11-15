@@ -838,6 +838,14 @@ If LOUDLY is non-nil, display some debugging information."
                              face (treesit-node-type node)))))))))))
   `(jit-lock-bounds ,start . ,end))
 
+(defun treesit--font-lock-notifier (ranges parser)
+  "Ensures updated parts of the parse-tree is refontified.
+RANGES is a list of (BEG . END) ranges, PARSER is the tree-sitter
+parser notifying of the change."
+  (with-current-buffer (treesit-parser-buffer parser)
+    (dolist (range ranges)
+      (put-text-property (car range) (cdr range) 'fontified nil))))
+
 ;;; Indent
 
 (define-error 'treesit-indent-error
@@ -1527,7 +1535,10 @@ enable `font-lock-mode'.
 If `treesit-simple-indent-rules' is non-nil, setup indentation.
 
 If `treesit-defun-type-regexp' is non-nil, setup
-`beginning/end-of-defun' functions."
+`beginning/end-of-defun' functions.
+
+Make sure necessary parsers are created for the current buffer
+before calling this function."
   ;; Font-lock.
   (when treesit-font-lock-settings
     ;; `font-lock-mode' wouldn't setup properly if
@@ -1537,7 +1548,10 @@ If `treesit-defun-type-regexp' is non-nil, setup
                    (font-lock-fontify-syntactically-function
                     . treesit-font-lock-fontify-region)))
     (font-lock-mode 1)
-    (treesit-font-lock-recompute-features))
+    (treesit-font-lock-recompute-features)
+    (dolist (parser (treesit-parser-list))
+      (treesit-parser-add-notifier
+       parser #'treesit--font-lock-notifier)))
   ;; Indent.
   (when treesit-simple-indent-rules
     (setq-local treesit-simple-indent-rules

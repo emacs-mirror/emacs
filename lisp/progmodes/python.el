@@ -6548,6 +6548,7 @@ Add import for undefined name `%s' (empty to skip): "
   (cond
    ;; Tree-sitter.
    ((treesit-ready-p 'python-mode 'python)
+    (treesit-parser-create 'python)
     (setq-local treesit-font-lock-feature-list
                 '(( comment string function-name class-name)
                   ( keyword builtin constant type)
