@@ -42,7 +42,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_node_field_name_for_child
 #undef ts_node_first_child_for_byte
 #undef ts_node_first_named_child_for_byte
-#undef ts_node_has_changes
 #undef ts_node_has_error
 #undef ts_node_is_extra
 #undef ts_node_is_missing
@@ -84,6 +83,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_tree_cursor_new
 #undef ts_tree_delete
 #undef ts_tree_edit
+#undef ts_tree_get_changed_ranges
 #undef ts_tree_root_node
 
 DEF_DLL_FN (uint32_t, ts_language_version, (const TSLanguage *));
@@ -98,7 +98,6 @@ DEF_DLL_FN (bool, ts_node_eq, (TSNode, TSNode));
 DEF_DLL_FN (const char *, ts_node_field_name_for_child, (TSNode, uint32_t));
 DEF_DLL_FN (TSNode, ts_node_first_child_for_byte, (TSNode, uint32_t));
 DEF_DLL_FN (TSNode, ts_node_first_named_child_for_byte, (TSNode, uint32_t));
-DEF_DLL_FN (bool, ts_node_has_changes, (TSNode));
 DEF_DLL_FN (bool, ts_node_has_error, (TSNode));
 DEF_DLL_FN (bool, ts_node_is_extra, (TSNode));
 DEF_DLL_FN (bool, ts_node_is_missing, (TSNode));
@@ -151,6 +150,8 @@ DEF_DLL_FN (bool, ts_tree_cursor_goto_parent, (TSTreeCursor *));
 DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_new, (TSNode));
 DEF_DLL_FN (void, ts_tree_delete, (TSTree *));
 DEF_DLL_FN (void, ts_tree_edit, (TSTree *, const TSInputEdit *));
+DEF_DLL_FN (TSRange *, ts_tree_get_changed_ranges,
+	    (const TSTree *, const TSTree *, uint32_t *));
 DEF_DLL_FN (TSNode, ts_tree_root_node, (const TSTree *));
 
 static bool
@@ -171,7 +172,6 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_node_field_name_for_child);
   LOAD_DLL_FN (library, ts_node_first_child_for_byte);
   LOAD_DLL_FN (library, ts_node_first_named_child_for_byte);
-  LOAD_DLL_FN (library, ts_node_has_changes);
   LOAD_DLL_FN (library, ts_node_has_error);
   LOAD_DLL_FN (library, ts_node_is_extra);
   LOAD_DLL_FN (library, ts_node_is_missing);
@@ -213,6 +213,7 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_tree_cursor_new);
   LOAD_DLL_FN (library, ts_tree_delete);
   LOAD_DLL_FN (library, ts_tree_edit);
+  LOAD_DLL_FN (library, ts_tree_get_changed_ranges);
   LOAD_DLL_FN (library, ts_tree_root_node);
 
   return true;
@@ -228,7 +229,6 @@ init_treesit_functions (void)
 #define ts_node_field_name_for_child fn_ts_node_field_name_for_child
 #define ts_node_first_child_for_byte fn_ts_node_first_child_for_byte
 #define ts_node_first_named_child_for_byte fn_ts_node_first_named_child_for_byte
-#define ts_node_has_changes fn_ts_node_has_changes
 #define ts_node_has_error fn_ts_node_has_error
 #define ts_node_is_extra fn_ts_node_is_extra
 #define ts_node_is_missing fn_ts_node_is_missing
@@ -270,6 +270,7 @@ init_treesit_functions (void)
 #define ts_tree_cursor_new fn_ts_tree_cursor_new
 #define ts_tree_delete fn_ts_tree_delete
 #define ts_tree_edit fn_ts_tree_edit
+#define ts_tree_get_changed_ranges fn_ts_tree_get_changed_ranges
 #define ts_tree_root_node fn_ts_tree_root_node
 
 #endif	/* WINDOWSNT */
