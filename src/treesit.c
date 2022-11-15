@@ -854,7 +854,7 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
   uint32_t len;
   TSRange *ranges = ts_tree_get_changed_ranges (old_tree, new_tree, &len);
   struct buffer *buf = XBUFFER (XTS_PARSER (parser)->buffer);
-  Lisp_Object lisp_ranges = treesit_make_ranges(ranges, len, buf);
+  Lisp_Object lisp_ranges = treesit_make_ranges (ranges, len, buf);
   xfree (ranges);
 
   specpdl_ref count = SPECPDL_INDEX ();
@@ -863,7 +863,7 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
      for each of them.  */
   Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
   FOR_EACH_TAIL (functions)
-    safe_call2(XCAR (functions), lisp_ranges, parser);
+    safe_call2 (XCAR (functions), lisp_ranges, parser);
 
   unbind_to (count, Qnil);
 }
@@ -901,7 +901,7 @@ treesit_ensure_parsed (Lisp_Object parser)
 
   if (tree != NULL)
     {
-      treesit_call_after_change_functions(tree, new_tree, parser);
+      treesit_call_after_change_functions (tree, new_tree, parser);
       ts_tree_delete (tree);
     }
 
@@ -1366,9 +1366,8 @@ treesit_check_range_argument (Lisp_Object ranges)
 /* Generate a list of ranges in Lisp from RANGES.  This function
    doens't take ownership of RANGES.  BUFFER is used to convert
    between tree-sitter buffer offset and buffer position.  */
-static Lisp_Object
-treesit_make_ranges (const TSRange *ranges, uint32_t len,
-		     struct buffer *buffer)
+static Lisp_Object treesit_make_ranges (const TSRange *ranges, uint32_t len,
+					struct buffer *buffer)
 {
   Lisp_Object list = Qnil;
   for (int idx = 0; idx < len; idx++)
@@ -1386,7 +1385,6 @@ treesit_make_ranges (const TSRange *ranges, uint32_t len,
       list = Fcons (lisp_range, list);
     }
   return Fnreverse (list);
-
 }
 
 DEFUN ("treesit-parser-set-included-ranges",
@@ -1503,8 +1501,7 @@ return nil.  */)
   return treesit_make_ranges (ranges, len, buffer);
 }
 
-DEFUN ("treesit-parser-notifiers",
-       Ftreesit_parser_notifiers,
+DEFUN ("treesit-parser-notifiers", Ftreesit_parser_notifiers,
        Streesit_parser_notifiers,
        1, 1, 0,
        doc: /* Return the after-change functions for PARSER.  */)
@@ -1520,8 +1517,7 @@ DEFUN ("treesit-parser-notifiers",
   return return_list;
 }
 
-DEFUN ("treesit-parser-add-notifier",
-       Ftreesit_parser_add_notifier,
+DEFUN ("treesit-parser-add-notifier", Ftreesit_parser_add_notifier,
        Streesit_parser_add_notifier,
        2, 2, 0,
        doc: /* Add FUNCTION to PARSER's after-change notifiers.  */)
@@ -1537,8 +1533,7 @@ DEFUN ("treesit-parser-add-notifier",
   return Qnil;
 }
 
-DEFUN ("treesit-parser-remove-notifier",
-       Ftreesit_parser_remove_notifier,
+DEFUN ("treesit-parser-remove-notifier", Ftreesit_parser_remove_notifier,
        Streesit_parser_remove_notifier,
        2, 2, 0,
        doc: /* Remove FUNCTION from PARSER's after-change notifiers.  */)
