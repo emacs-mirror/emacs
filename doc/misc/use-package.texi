@@ -73,27 +73,27 @@ Installation
 
 Keywords
 
-* @code{:after}: @code{after}. 
-* @code{:bind-keymap}, @code{:bind-keymap*}: @code{bind-keymap} @code{bind-keymap*}. 
-* @code{:bind}, @code{:bind*}: @code{bind} @code{bind*}. 
-* @code{:commands}: @code{commands}. 
-* @code{:preface}, @code{:init}, @code{:config}: @code{preface} @code{init} @code{config}. 
-* @code{:custom}: @code{custom}. 
-* @code{:custom-face}: @code{custom-face}. 
-* @code{:defer}, @code{:demand}: @code{defer} @code{demand}. 
-* @code{:defines}, @code{:functions}: @code{defines} @code{functions}. 
-* @code{:diminish}, @code{:delight}: @code{diminish} @code{delight}. 
-* @code{:disabled}: @code{disabled}. 
-* @code{:ensure}, @code{:pin}: @code{ensure} @code{pin}. 
-* @code{:hook}: @code{hook}. 
-* @code{:if}, @code{:when}, @code{:unless}: @code{if} @code{when} @code{unless}. 
-* @code{:load-path}: @code{load-path}. 
-* @code{:mode}, @code{:interpreter}: @code{mode} @code{interpreter}. 
-* @code{:magic}, @code{:magic-fallback}: @code{magic} @code{magic-fallback}. 
-* @code{:no-require}: @code{no-require}. 
-* @code{:requires}: @code{requires}. 
+* @code{after}:: @code{:after}. 
+* @code{bind-keymap} @code{bind-keymap*}:: @code{:bind-keymap}, @code{:bind-keymap*}. 
+* @code{bind} @code{bind*}:: @code{:bind}, @code{:bind*}. 
+* @code{commands}:: @code{:commands}. 
+* @code{preface} @code{init} @code{config}:: @code{:preface}, @code{:init}, @code{:config}. 
+* @code{custom}:: @code{:custom}. 
+* @code{custom-face}:: @code{:custom-face}. 
+* @code{defer} @code{demand}:: @code{:defer}, @code{:demand}. 
+* @code{defines} @code{functions}:: @code{:defines}, @code{:functions}. 
+* @code{diminish} @code{delight}:: @code{:diminish}, @code{:delight}. 
+* @code{disabled}:: @code{:disabled}. 
+* @code{ensure} @code{pin}:: @code{:ensure}, @code{:pin}. 
+* @code{hook}:: @code{:hook}. 
+* @code{if} @code{when} @code{unless}:: @code{:if}, @code{:when}, @code{:unless}. 
+* @code{load-path}:: @code{:load-path}.
+* @code{mode} @code{interpreter}:: @code{:mode}, @code{:interpreter}. 
+* @code{magic} @code{magic-fallback}:: @code{:magic}, @code{:magic-fallback}. 
+* @code{no-require}:: @code{:no-require}.
+* @code{requires}:: @code{:requires}. 
 
-@code{:bind}, @code{:bind*}
+@code{bind}, @code{bind*}
 
 * Binding to local keymaps::
 
@@ -290,25 +290,25 @@ used for speed (reason 3), it can still be used as a sanity check.
 @chapter Keywords
 
 @menu
-* @code{:after}: @code{after}. 
-* @code{:bind-keymap}, @code{:bind-keymap*}: @code{bind-keymap} @code{bind-keymap*}. 
-* @code{:bind}, @code{:bind*}: @code{bind} @code{bind*}. 
-* @code{:commands}: @code{commands}. 
-* @code{:preface}, @code{:init}, @code{:config}: @code{preface} @code{init} @code{config}. 
-* @code{:custom}: @code{custom}. 
-* @code{:custom-face}: @code{custom-face}. 
-* @code{:defer}, @code{:demand}: @code{defer} @code{demand}. 
-* @code{:defines}, @code{:functions}: @code{defines} @code{functions}. 
-* @code{:diminish}, @code{:delight}: @code{diminish} @code{delight}. 
-* @code{:disabled}: @code{disabled}. 
-* @code{:ensure}, @code{:pin}: @code{ensure} @code{pin}. 
-* @code{:hook}: @code{hook}. 
-* @code{:if}, @code{:when}, @code{:unless}: @code{if} @code{when} @code{unless}. 
-* @code{:load-path}: @code{load-path}. 
-* @code{:mode}, @code{:interpreter}: @code{mode} @code{interpreter}. 
-* @code{:magic}, @code{:magic-fallback}: @code{magic} @code{magic-fallback}. 
-* @code{:no-require}: @code{no-require}. 
-* @code{:requires}: @code{requires}. 
+* @code{after}:: @code{after}. 
+* @code{bind-keymap} @code{bind-keymap*}:: @code{:bind-keymap}, @code{:bind-keymap*}. 
+* @code{bind} @code{bind*}:: @code{bind} @code{:bind*}.
+* @code{commands}:: @code{:commands}. 
+* @code{preface} @code{init} @code{config}:: @code{:preface}, @code{:init}, @code{:config}. 
+* @code{custom}:: @code{:custom}. 
+* @code{custom-face}:: @code{:custom-face}. 
+* @code{defer} @code{demand}:: @code{:defer}, @code{:demand}. 
+* @code{defines} @code{functions}:: @code{:defines}, @code{:functions}. 
+* @code{diminish} @code{delight}:: @code{:diminish}, @code{:delight}. 
+* @code{disabled}:: @code{:disabled}. 
+* @code{ensure} @code{pin}:: @code{:ensure}, @code{:pin}. 
+* @code{hook}:: @code{:hook}. 
+* @code{if} @code{when} @code{unless}:: @code{:if}, @code{:when}, @code{:unless}. 
+* @code{load-path}:: @code{:load-path}. 
+* @code{mode} @code{interpreter}:: @code{:mode}, @code{:interpreter}. 
+* @code{magic} @code{magic-fallback}:: @code{:magic}, @code{:magic-fallback}. 
+* @code{no-require}:: @code{:no-require}. 
+* @code{requires}:: @code{:requires}. 
 @end menu
 
 @node @code{after}
