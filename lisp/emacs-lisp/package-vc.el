@@ -355,14 +355,16 @@ FILE can be an Org file, indicated by its \".org\" extension,
 otherwise it's assumed to be an Info file."
   (let* ((pkg-name (package-desc-name pkg-desc))
          (default-directory (package-desc-dir pkg-desc))
-         (output (expand-file-name (format "%s.info" pkg-name))))
+         (output (expand-file-name (format "%s.info" pkg-name)))
+         clean-up)
     (when (string-match-p "\\.org\\'" file)
       (require 'ox)
       (require 'ox-texinfo)
       (with-temp-buffer
         (insert-file-contents file)
         (setq file (make-temp-file "ox-texinfo-"))
-        (org-export-to-file 'texinfo file)))
+        (org-export-to-file 'texinfo file)
+        (setq clean-up t)))
     (with-current-buffer (get-buffer-create " *package-vc doc*")
       (erase-buffer)
       (cond
@@ -374,7 +376,9 @@ otherwise it's assumed to be an Info file."
                             output (expand-file-name "dir")))
         (message "Failed to install manual %s, see buffer %S"
                  output (buffer-name)))
-       ((kill-buffer))))))
+       ((kill-buffer))))
+    (when clean-up
+      (delete-file file))))
 
 (defun package-vc--unpack-1 (pkg-desc pkg-dir)
   "Prepare PKG-DESC that is already checked-out in PKG-DIR.
