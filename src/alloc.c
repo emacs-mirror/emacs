@@ -2547,8 +2547,8 @@ pin_string (Lisp_Object string)
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
 
 const size_t float_block_floats_length = FLOAT_BLOCK_SIZE;
-const size_t float_block_gcmarkbits_length =
-  1 + FLOAT_BLOCK_SIZE / BITS_PER_BITS_WORD;
+const size_t float_block_gcmarkbits_length
+  = 1 + FLOAT_BLOCK_SIZE / BITS_PER_BITS_WORD;
 
 #define GETMARKBIT(block,n)				\
   (((block)->gcmarkbits[(n) / BITS_PER_BITS_WORD]	\
@@ -6961,18 +6961,18 @@ process_mark_stack (ptrdiff_t base_sp)
 		  ptrdiff_t size = ptr->header.size;
 		  eassert (size & PSEUDOVECTOR_FLAG);
 		  set_vector_marked (ptr);
-                  mark_stack_push_values (ptr->contents,
-                                          size
-                                            & PSEUDOVECTOR_SIZE_MASK);
-                  struct Lisp_Native_Comp_Unit *comp_u
-                    = XNATIVE_COMP_UNIT (obj);
+		  mark_stack_push_values (ptr->contents,
+					  size
+					    & PSEUDOVECTOR_SIZE_MASK);
+		  struct Lisp_Native_Comp_Unit *comp_u
+		    = XNATIVE_COMP_UNIT (obj);
 		  if (comp_u->have_static_lisp_data)
 		    {
-		      eassert (NILP (comp_u->lambda_gc_guard_h) &&
-			       NILP (comp_u->lambda_c_name_idx_h) &&
-			       NILP (comp_u->data_vec) &&
-			       NILP (comp_u->data_impure_vec) &&
-			       comp_u->data_imp_relocs == NULL);
+		      eassert (NILP (comp_u->lambda_gc_guard_h)
+			       && NILP (comp_u->lambda_c_name_idx_h)
+			       && NILP (comp_u->data_vec)
+			       && NILP (comp_u->data_impure_vec)
+			       && comp_u->data_imp_relocs == NULL);
 
 		      Lisp_Object staticpro = comp_u->staticpro;
 		      if (!NILP (staticpro))

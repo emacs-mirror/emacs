@@ -24,11 +24,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_NATIVE_COMP
 #include <libgccjit.h>
-#if defined(LIBGCCJIT_HAVE_REFLECTION)					\
-  && defined(LIBGCCJIT_HAVE_CTORS)					\
-  && defined(LIBGCCJIT_HAVE_gcc_jit_type_get_aligned)			\
-  && defined(LIBGCCJIT_HAVE_ALIGNMENT) && USE_STACK_LISP_OBJECTS	\
-  && !defined(GC_CHECK_MARKED_OBJECTS)
+#if defined (LIBGCCJIT_HAVE_REFLECTION)                           \
+  && defined (LIBGCCJIT_HAVE_CTORS)                               \
+  && defined (LIBGCCJIT_HAVE_gcc_jit_type_get_aligned)            \
+  && defined (LIBGCCJIT_HAVE_ALIGNMENT) && USE_STACK_LISP_OBJECTS \
+  && !defined (GC_CHECK_MARKED_OBJECTS)
 #define HAVE_STATIC_LISP_GLOBALS 1
 #endif
 #endif
