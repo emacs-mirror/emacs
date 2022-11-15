@@ -267,7 +267,6 @@ asynchronously."
       (error (message "Failed to download `%s' archive." (car archive))))))
 
 (add-hook 'package-read-archive-hook     #'package-vc--read-archive-data 20)
-(add-hook 'package-refresh-contents-hook #'package-vc--download-and-read-archives 20)
 
 (defun package-vc-commit (pkg)
   "Return the last commit of a development package PKG."
