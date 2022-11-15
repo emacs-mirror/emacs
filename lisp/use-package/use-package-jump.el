@@ -1,6 +1,6 @@
 ;;; use-package-jump.el --- Attempt to jump to a use-package declaration  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2017 John Wiegley
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
@@ -30,8 +30,8 @@
 
 ;; Provides the command `M-x use-package-jump-to-package-form', however it
 ;; only works if the package being jumped to was required during
-;; initialization. If it was delay-loaded, it will not work. Improvements are
-;; needed.
+;; initialization.  If it was delay-loaded, it will not work.
+;; Improvements are needed.
 
 ;;; Code:
 
@@ -48,11 +48,10 @@ Returns an absolute file path or nil if none is found."
 
 ;;;###autoload
 (defun use-package-jump-to-package-form (package)
-  "Attempt to find and jump to the `use-package' form that loaded
-PACKAGE. This will only find the form if that form actually
-required PACKAGE. If PACKAGE was previously required then this
-function will jump to the file that originally required PACKAGE
-instead."
+  "Attempt to find and jump to the `use-package' form that loaded PACKAGE.
+This will only find the form if that form actually required
+PACKAGE.  If PACKAGE was previously required then this function
+will jump to the file that originally required PACKAGE instead."
   (interactive (list (completing-read "Package: " features)))
   (let* ((package (if (stringp package) (intern package) package))
          (requiring-file (use-package-find-require package))

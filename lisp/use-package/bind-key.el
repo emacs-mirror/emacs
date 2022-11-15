@@ -1,12 +1,12 @@
 ;;; bind-key.el --- A simple way to manage personal keybindings  -*- lexical-binding: t; -*-
 
-;; Copyright (c) 2012-2017 John Wiegley
+;; Copyright (c) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
 ;; Created: 16 Jun 2012
 ;; Modified: 29 Nov 2017
-;; Version: 2.4
+;; Version: 2.4.1
 ;; Keywords: keys keybinding config dotemacs
 ;; URL: https://github.com/jwiegley/use-package
 
@@ -29,7 +29,7 @@
 
 ;; If you have lots of keybindings set in your .emacs file, it can be hard to
 ;; know which ones you haven't set yet, and which may now be overriding some
-;; new default in a new emacs version.  This module aims to solve that
+;; new default in a new Emacs version.  This module aims to solve that
 ;; problem.
 ;;
 ;; Bind keys as follows in your .emacs:
@@ -104,7 +104,7 @@
 (require 'easy-mmode)
 
 (defgroup bind-key nil
-  "A simple way to manage personal keybindings"
+  "A simple way to manage personal keybindings."
   :group 'emacs)
 
 (defcustom bind-key-column-widths '(18 . 40)
@@ -127,7 +127,7 @@
 ;; Create override-global-mode to force key remappings
 
 (defvar override-global-map (make-keymap)
-  "override-global-mode keymap")
+  "Keymap for `override-global-mode'.")
 
 (define-minor-mode override-global-mode
   "A minor mode so that keymap settings override other modes."
@@ -150,7 +150,7 @@ Elements have the form ((KEY . [MAP]) CMD ORIGINAL-CMD)")
 
 KEY-NAME may be a vector, in which case it is passed straight to
 `define-key'. Or it may be a string to be interpreted as
-spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
+spelled-out keystrokes, e.g., `C-c C-z'. See documentation of
 `edmacro-mode' for details.
 
 COMMAND must be an interactive function or lambda form.
@@ -223,11 +223,11 @@ See `bind-key' for more details."
 In contrast to `define-key', this function removes the binding from the keymap."
   (define-key keymap key nil)
   ;; Split M-key in ESC key
-  (setq key (mapcan (lambda (k)
-                      (if (and (integerp k) (/= (logand k ?\M-\0) 0))
-                          (list ?\e (logxor k ?\M-\0))
-                        (list k)))
-                    key))
+  (setq key (cl-mapcan (lambda (k)
+                         (if (and (integerp k) (/= (logand k ?\M-\0) 0))
+                             (list ?\e (logxor k ?\M-\0))
+                           (list k)))
+                       key))
   ;; Delete single keys directly
   (if (= (length key) 1)
       (delete key keymap)
@@ -241,7 +241,7 @@ In contrast to `define-key', this function removes the binding from the keymap."
       (delete (last key) submap)
       ;; Delete submap if it is empty
       (when (= 1 (length submap))
-          (bind-key--remove prefix keymap)))))
+        (bind-key--remove prefix keymap)))))
 
 ;;;###autoload
 (defmacro bind-key* (key-name command &optional predicate)

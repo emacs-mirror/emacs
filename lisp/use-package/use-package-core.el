@@ -1,12 +1,12 @@
 ;;; use-package-core.el --- A configuration macro for simplifying your .emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2017 John Wiegley
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
 ;; Created: 17 Jun 2012
 ;; Modified: 29 Nov 2017
-;; Version: 2.4.1
+;; Version: 2.4.4
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -53,21 +53,28 @@
 ;; iterating over them to "disable all themes" won't disable it.
 (setq custom-enabled-themes (remq 'use-package custom-enabled-themes))
 
-(if (and (eq emacs-major-version 24) (eq emacs-minor-version 3))
-    (defsubst hash-table-keys (hash-table)
-      "Return a list of keys in HASH-TABLE."
-      (cl-loop for k being the hash-keys of hash-table collect k))
-  (eval-when-compile (require 'subr-x)))
+(eval-when-compile
+  (if (and (eq emacs-major-version 24) (eq emacs-minor-version 3))
+      (progn
+        (defsubst hash-table-keys (hash-table)
+          "Return a list of keys in HASH-TABLE."
+          (cl-loop for k being the hash-keys of hash-table collect k))
+        (defsubst string-suffix-p (suffix string  &optional ignore-case)
+          (let ((start-pos (- (length string) (length suffix))))
+            (and (>= start-pos 0)
+                 (eq t (compare-strings suffix nil nil
+                                        string start-pos nil ignore-case))))))
+    (require 'subr-x)))
 
 (eval-when-compile
   (require 'regexp-opt))
 
 (defgroup use-package nil
-  "A use-package declaration for simplifying your `.emacs'."
+  "A `use-package' declaration for simplifying your `.emacs'."
   :group 'startup)
 
-(defconst use-package-version "2.4.1"
-  "This version of use-package.")
+(defconst use-package-version "2.4.4"
+  "This version of `use-package'.")
 
 (defcustom use-package-keywords
   '(:disabled
@@ -94,6 +101,7 @@
     ;; Any other keyword that also declares commands to be autoloaded (such as
     ;; :bind) must appear before this keyword.
     :commands
+    :autoload
     :init
     :defer
     :demand
@@ -105,13 +113,13 @@
   "The set of valid keywords, in the order they are processed in.
 The order of this list is *very important*, so it is only
 advisable to insert new keywords, never to delete or reorder
-them. Further, attention should be paid to the NEWS.md if the
+them.  Further, attention should be paid to the NEWS.md if the
 default order ever changes, as they may have subtle effects on
-the semantics of use-package declarations and may necessitate
+the semantics of `use-package' declarations and may necessitate
 changing where you had inserted a new keyword earlier.
 
 Note that `:disabled' is special in this list, as it causes
-nothing at all to happen, even if the rest of the use-package
+nothing at all to happen, even if the rest of the `use-package'
 declaration is incorrect."
   :type '(repeat symbol)
   :group 'use-package)
@@ -119,7 +127,8 @@ declaration is incorrect."
 (defcustom use-package-deferring-keywords
   '(:bind-keymap
     :bind-keymap*
-    :commands)
+    :commands
+    :autoload)
   "Unless `:demand' is used, keywords in this list imply deferred loading.
 The reason keywords like `:hook' are not in this list is that
 they only imply deferred loading if they reference actual
@@ -130,9 +139,9 @@ otherwise requested."
   :group 'use-package)
 
 (defcustom use-package-ignore-unknown-keywords nil
-  "If non-nil, issue warning instead of error when unknown
-keyword is encountered. The unknown keyword and its associated
-arguments will be ignored in the `use-package' expansion."
+  "If non-nil, warn instead of signaling error for unknown keywords.
+The unknown keyword and its associated arguments will be ignored
+in the `use-package' expansion."
   :type 'boolean
   :group 'use-package)
 
@@ -147,7 +156,7 @@ call)."
   "Whether to report about loading and configuration details.
 If you customize this, then you should require the `use-package'
 feature in files that use `use-package', even if these files only
-contain compiled expansions of the macros. If you don't do so,
+contain compiled expansions of the macros.  If you don't do so,
 then the expanded macros do their job silently."
   :type '(choice (const :tag "Quiet, without catching errors" errors)
                  (const :tag "Quiet" nil)
@@ -194,9 +203,9 @@ Each entry in the alist is a list of three elements:
 The first element is the `use-package' keyword.
 
 The second is a form that can be evaluated to get the default
-value. It can also be a function that will receive the name of
-the use-package declaration and the keyword plist given to
-`use-package', in normalized form. The value it returns should
+value.  It can also be a function that will receive the name of
+the `use-package' declaration and the keyword plist given to
+`use-package', in normalized form.  The value it returns should
 also be in normalized form (which is sometimes *not* what one
 would normally write in a `use-package' declaration, so use
 caution).
@@ -204,9 +213,9 @@ caution).
 The third element is a form that can be evaluated to determine
 whether or not to assign a default value; if it evaluates to nil,
 then the default value is not assigned even if the keyword is not
-present in the `use-package' form. This third element may also be
+present in the `use-package' form.  This third element may also be
 a function, in which case it receives the name of the package (as
-a symbol) and a list of keywords (in normalized form). It should
+a symbol) and a list of keywords (in normalized form).  It should
 return nil or non-nil depending on whether defaulting should be
 attempted."
   :type `(repeat
@@ -291,7 +300,7 @@ This disables:
 
 The main advantage to this variable is that, if you know your
 configuration works, it will make the byte-compiled file as
-minimal as possible. It can also help with reading macro-expanded
+minimal as possible.  It can also help with reading macro-expanded
 definitions, to understand the main intent of what's happening."
   :type 'boolean
   :group 'use-package)
@@ -303,7 +312,7 @@ definitions, to understand the main intent of what's happening."
                       "\\s-+\\("))
            (or (bound-and-true-p lisp-mode-symbol-regexp)
                "\\(?:\\sw\\|\\s_\\|\\\\.\\)+") "\\)")
-  "Sexp providing regexp for finding use-package forms in user files.
+  "Sexp providing regexp for finding `use-package' forms in user files.
 This is used by `use-package-jump-to-package-form' and
 `use-package-enable-imenu-support'."
   :type 'sexp
@@ -314,7 +323,7 @@ This is used by `use-package-jump-to-package-form' and
 This is done by adjusting `lisp-imenu-generic-expression' to
 include support for finding `use-package' and `require' forms.
 
-Must be set before loading use-package."
+Must be set before loading `use-package'."
   :type 'boolean
   :set
   #'(lambda (sym value)
@@ -336,8 +345,8 @@ Must be set before loading use-package."
 (font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
 
 (defcustom use-package-compute-statistics nil
-  "If non-nil, compute statistics concerned use-package declarations.
-View the statistical report using `use-package-report'. Note that
+  "If non-nil, compute statistics concerned `use-package' declarations.
+View the statistical report using `use-package-report'.  Note that
 if this option is enabled, you must require `use-package' in your
 user init file at loadup time, or you will see errors concerning
 undefined variables."
@@ -363,14 +372,14 @@ undefined variables."
   (and sym (symbolp sym)))
 
 (defsubst use-package-as-symbol (string-or-symbol)
-  "If STRING-OR-SYMBOL is already a symbol, return it.  Otherwise
-convert it to a symbol and return that."
+  "If STRING-OR-SYMBOL is already a symbol, return it.
+Otherwise convert it to a symbol and return that."
   (if (symbolp string-or-symbol) string-or-symbol
     (intern string-or-symbol)))
 
 (defsubst use-package-as-string (string-or-symbol)
-  "If STRING-OR-SYMBOL is already a string, return it.  Otherwise
-convert it to a string and return that."
+  "If STRING-OR-SYMBOL is already a string, return it.
+Otherwise convert it to a string and return that."
   (if (stringp string-or-symbol) string-or-symbol
     (symbol-name string-or-symbol)))
 
@@ -736,8 +745,8 @@ one.
 If AFTER is non-nil, insert KEYWORD either at the end of the
 keywords list, or after the ANCHOR if one has been provided.
 If TEST is non-nil, it is the test used to compare ELEM to list
-elements. The default is `eq'.
-The modified list is returned. The original list is not modified."
+elements.  The default is `eq'.
+The modified list is returned.  The original list is not modified."
   (let (result)
     (dolist (k xs)
       (if (funcall (or test #'eq) k anchor)
@@ -987,6 +996,8 @@ If RECURSED is non-nil, recurse into sublists."
 ;;
 
 (defun use-package-reset-statistics ()
+  "Reset statistics for `use-package'.
+See also `use-package-statistics'."
   (interactive)
   (setq use-package-statistics (make-hash-table)))
 
@@ -1029,7 +1040,7 @@ The information is formatted in a way suitable for
       (format "%.2f" (use-package-statistics-time statistics))))))
 
 (defun use-package-report ()
-  "Show current statistics gathered about use-package declarations.
+  "Show current statistics gathered about `use-package' declarations.
 In the table that's generated, the status field has the following
 meaning:
   Configured        :config has been processed (the package is loaded!)
@@ -1053,7 +1064,7 @@ meaning:
 
 (define-derived-mode use-package-statistics-mode tabulated-list-mode
   "use-package statistics"
-  "Show current statistics gathered about use-package declarations."
+  "Show current statistics gathered about `use-package' declarations."
   (setq tabulated-list-format
         ;; The sum of column width is 80 characters:
         [("Package" 25 t)
@@ -1347,6 +1358,28 @@ meaning:
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
+;;;; :autoload
+
+(defalias 'use-package-normalize/:autoload 'use-package-normalize/:commands)
+
+(defun use-package-handler/:autoload (name _keyword arg rest state)
+  (use-package-concat
+   ;; Since we deferring load, establish any necessary autoloads, and also
+   ;; keep the byte-compiler happy.
+   (let ((name-string (use-package-as-string name)))
+     (cl-mapcan
+      #'(lambda (command)
+          (when (symbolp command)
+            (append
+             (unless (plist-get state :demand)
+               `((unless (fboundp ',command)
+                   (autoload #',command ,name-string))))
+             (when (bound-and-true-p byte-compile-current-file)
+               `((eval-when-compile
+                   (declare-function ,command ,name-string)))))))
+      (delete-dups arg)))
+   (use-package-process-keywords name rest state)))
+
 ;;;; :defer
 
 (defalias 'use-package-normalize/:defer 'use-package-normalize-predicate)
@@ -1477,7 +1510,7 @@ no keyword implies `:all'."
 (defun use-package-normalize/:custom-face (name-symbol _keyword arg)
   "Normalize use-package custom-face keyword."
   (let ((error-msg
-         (format "%s wants a (<symbol> <face-spec>) or list of these"
+         (format "%s wants a (<symbol> <face-spec> [spec-type]) or list of these"
                  name-symbol)))
     (unless (listp arg)
       (use-package-error error-msg))
@@ -1488,13 +1521,13 @@ no keyword implies `:all'."
             (spec (nth 1 def)))
         (when (or (not face)
                   (not spec)
-                  (> (length def) 2))
+                  (> (length def) 3))
           (use-package-error error-msg))))))
 
 (defun use-package-handler/:custom-face (name _keyword args rest state)
   "Generate use-package custom-face keyword code."
   (use-package-concat
-   (mapcar #'(lambda (def) `(custom-set-faces (backquote ,def))) args)
+   (mapcar #'(lambda (def) `(apply #'face-spec-set (backquote ,def))) args)
    (use-package-process-keywords name rest state)))
 
 ;;;; :init
@@ -1633,6 +1666,7 @@ this file.  Usage:
                  package.  This is useful if the package is being lazily
                  loaded, and you wish to conditionally call functions in your
                  `:init' block that are defined in the package.
+:autoload        Similar to :commands, but it for no-interactive one.
 :hook            Specify hook(s) to attach this package to.
 
 :bind            Bind keys, and define autoloads for the bound commands.

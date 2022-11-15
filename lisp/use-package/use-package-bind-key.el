@@ -1,6 +1,6 @@
 ;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2017 John Wiegley
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
@@ -29,7 +29,7 @@
 ;;; Commentary:
 
 ;; Provides support for the :bind, :bind*, :bind-keymap and :bind-keymap*
-;; keywords. Note that these are currently still baked into
+;; keywords.  Note that these are currently still baked into
 ;; `use-package-keywords' and `use-package-deferring-keywords', although this
 ;; is harmless if they are never used.
 

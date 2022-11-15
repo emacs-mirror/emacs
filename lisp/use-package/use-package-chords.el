@@ -1,6 +1,6 @@
 ;;; use-package-chords.el --- key-chord keyword for use-package  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2019 Justin Talbott
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; Keywords: convenience, tools, extensions

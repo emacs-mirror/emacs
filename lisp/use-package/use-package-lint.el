@@ -1,6 +1,6 @@
 ;;; use-package-lint.el --- Attempt to find errors in use-package declarations  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2017 John Wiegley
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
@@ -63,7 +63,7 @@
 
 ;;;###autoload
 (defun use-package-lint ()
-  "Check for errors in use-package declarations.
+  "Check for errors in `use-package' declarations.
 For example, if the module's `:if' condition is met, but even
 with the specified `:load-path' the module cannot be found."
   (interactive)
