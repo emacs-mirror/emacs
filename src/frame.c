@@ -5962,8 +5962,15 @@ have changed.  */)
 
   f = decode_window_system_frame (frame);
 
+  /* First, call this to reinitialize any font backend specific
+     stuff.  */
+
   if (FRAME_RIF (f)->default_font_parameter)
     FRAME_RIF (f)->default_font_parameter (f, Qnil);
+
+  /* Now call this to apply the existing value(s) of the `default'
+     face.  */
+  call1 (Qface_set_after_frame_default, frame);
 
   return Qnil;
 }
