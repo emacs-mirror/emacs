@@ -740,12 +740,18 @@ Proced buffers."
         "Type \\<proced-mode-map>\\[quit-window] to quit, \\[proced-help] for help")))))
 
 (defun proced-auto-update-timer ()
-  "Auto-update Proced buffers using `run-at-time'."
-  (dolist (buf (buffer-list))
-    (with-current-buffer buf
-      (if (and (eq major-mode 'proced-mode)
-               proced-auto-update-flag)
-          (proced-update t t)))))
+  "Auto-update Proced buffers using `run-at-time'.
+
+If there are no proced buffers, cancel the timer."
+  (unless (seq-filter (lambda (buf)
+                        (with-current-buffer buf
+                          (when (eq major-mode 'proced-mode)
+                            (when proced-auto-update-flag
+                              (proced-update t t))
+                            t)))
+                      (buffer-list))
+    (cancel-timer proced-auto-update-timer)
+    (setq proced-auto-update-timer nil)))
 
 (defun proced-toggle-auto-update (arg)
   "Change whether this Proced buffer is updated automatically.
