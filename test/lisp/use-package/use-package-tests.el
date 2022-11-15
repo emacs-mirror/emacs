@@ -1964,15 +1964,92 @@
           (autoload #'nonexistent-mode "nonexistent" nil t))
         (add-hook 'lisp-mode-hook #'nonexistent-mode)))))
 
+(ert-deftest bind-key/:map ()
+  (match-expansion
+   (bind-keys
+    ("C-1" . command-1)
+    ("C-2" . command-2)
+    :map keymap-1
+    ("C-3" . command-3)
+    ("C-4" . command-4)
+    :map (keymap-2 keymap-3)
+    ("C-5" . command-5)
+    ("C-6" . command-6))
+   `(progn (bind-key "C-1" #'command-1 nil nil)
+           (bind-key "C-2" #'command-2 nil nil)
+           (bind-key "C-3" #'command-3 keymap-1 nil)
+           (bind-key "C-4" #'command-4 keymap-1 nil)
+           (bind-key "C-5" #'command-5 keymap-2 nil)
+           (bind-key "C-6" #'command-6 keymap-2 nil)
+           (bind-key "C-5" #'command-5 keymap-3 nil)
+           (bind-key "C-6" #'command-6 keymap-3 nil))))
+
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
-   (bind-keys :prefix "<f1>"
-              :prefix-map my/map)
+   (bind-keys ("C-1" . command-1)
+              :prefix "<f1>"
+              :prefix-map my/map
+              ("C-2" . command-2)
+              ("C-3" . command-3))
    `(progn
+      (bind-key "C-1" #'command-1 nil nil)
       (defvar my/map)
       (define-prefix-command 'my/map)
-      (bind-key "<f1>" 'my/map nil nil))))
+      (bind-key "<f1>" 'my/map nil nil)
+      (bind-key "C-2" #'command-2 my/map nil)
+      (bind-key "C-3" #'command-3 my/map nil))))
 
+(ert-deftest bind-key/:repeat-map-1 ()
+  ;; NOTE: This test is pulled from the discussion in issue #964,
+  ;; adjusting for the final syntax that was implemented.
+  (match-expansion
+   (bind-keys
+    ("C-c n" . git-gutter+-next-hunk)
+    ("C-c p" . git-gutter+-previous-hunk)
+    ("C-c s" . git-gutter+-stage-hunks)
+    ("C-c r" . git-gutter+-revert-hunk)
+    :repeat-map my/git-gutter+-repeat-map
+                 ("n" . git-gutter+-next-hunk)
+                 ("p" . git-gutter+-previous-hunk)
+                 ("s" . git-gutter+-stage-hunks)
+                 ("r" . git-gutter+-revert-hunk)
+                 :repeat-docstring
+                 "Keymap to repeat git-gutter+-* commands.")
+   `(progn
+     (bind-key "C-c n" #'git-gutter+-next-hunk nil nil)
+     (bind-key "C-c p" #'git-gutter+-previous-hunk nil nil)
+     (bind-key "C-c s" #'git-gutter+-stage-hunks nil nil)
+     (bind-key "C-c r" #'git-gutter+-revert-hunk nil nil)
+     (defvar my/git-gutter+-repeat-map (make-sparse-keymap))
+     (put #'git-gutter+-next-hunk 'repeat-map 'my/git-gutter+-repeat-map)
+     (bind-key "n" #'git-gutter+-next-hunk my/git-gutter+-repeat-map nil)
+     (put #'git-gutter+-previous-hunk 'repeat-map 'my/git-gutter+-repeat-map)
+     (bind-key "p" #'git-gutter+-previous-hunk my/git-gutter+-repeat-map nil)
+     (put #'git-gutter+-stage-hunks 'repeat-map 'my/git-gutter+-repeat-map)
+     (bind-key "s" #'git-gutter+-stage-hunks my/git-gutter+-repeat-map nil)
+     (put #'git-gutter+-revert-hunk 'repeat-map 'my/git-gutter+-repeat-map)
+     (bind-key "r" #'git-gutter+-revert-hunk my/git-gutter+-repeat-map nil)
+     (defvar my/git-gutter+-repeat-map (make-sparse-keymap) "Keymap to repeat git-gutter+-* commands."))))
+
+(ert-deftest bind-key/:repeat-map-2 ()
+  (match-expansion
+   (bind-keys :map m ("x" . cmd1) :repeat-map rm ("y" . cmd2))
+   `(progn
+      (bind-key "x" #'cmd1 m nil)
+      (defvar rm (make-sparse-keymap))
+      (put #'cmd2 'repeat-map 'rm)
+      (bind-key "y" #'cmd2 rm nil))))
+
+(ert-deftest bind-key/:repeat-map-3 ()
+  (match-expansion
+   (bind-keys :repeat-map rm ("y" . cmd2) :map m ("x" . cmd1))
+   `(progn
+      (defvar rm (make-sparse-keymap))
+      (put #'cmd2 'repeat-map 'rm)
+      (bind-key "y" #'cmd2 rm nil)
+      (defvar rm (make-sparse-keymap))
+      (put #'cmd1 'repeat-map 'rm)
+      (bind-key "x" #'cmd1 m nil))))
 
 (ert-deftest bind-key/845 ()
   (defvar test-map (make-keymap))
