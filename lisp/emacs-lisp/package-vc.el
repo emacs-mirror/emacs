@@ -386,6 +386,11 @@ This includes downloading missing dependencies, generating
 autoloads, generating a package description file (used to
 identify a package as a source package later on), building
 documentation and marking the package as installed."
+  ;; Remove any previous instance of PKG-DESC from `package-alist'
+  (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
+    (when pkgs
+      (setf (cdr pkgs) (delq pkg-desc (cdr pkgs)))))
+
   ;; In case the package was installed directly from source, the
   ;; dependency list wasn't know beforehand, and they might have
   ;; to be installed explicitly.
