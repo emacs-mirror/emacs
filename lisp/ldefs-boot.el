@@ -10010,7 +10010,7 @@ If ERC is already connected to HOST:PORT, simply /join CHANNEL.
 Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 
 (fn HOST PORT CHANNEL USER PASSWORD)")
-(register-definition-prefixes "erc" '("define-erc-module" "erc-"))
+(register-definition-prefixes "erc" '("erc-"))
 
 
 ;;; Generated autoloads from erc/erc-autoaway.el
@@ -10031,6 +10031,11 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 ;;; Generated autoloads from erc/erc-capab.el
 
 (register-definition-prefixes "erc-capab" '("erc-capab-identify-"))
+
+
+;;; Generated autoloads from erc/erc-common.el
+
+(register-definition-prefixes "erc-common" '("define-erc-module" "erc-"))
 
 
 ;;; Generated autoloads from erc/erc-compat.el
@@ -10931,6 +10936,23 @@ Edit the hotlist of directory servers in a specialized buffer." t)
 (register-definition-prefixes "eudcb-bbdb" '("eudc-bbdb-"))
 
 
+;;; Generated autoloads from net/eudcb-ecomplete.el
+
+(autoload 'eudc-ecomplete-query-internal "eudcb-ecomplete" "\
+Query `ecomplete' with QUERY.
+QUERY is a list of cons cells (ATTR . VALUE).  Since `ecomplete'
+does not provide attributes in the usual sense, the
+back-end-specific attribute names in
+`eudc-ecomplete-attributes-translation-alist' are used as the
+KEY (that is, the \"type\" of match) when looking for matches in
+`ecomplete-database'.
+
+RETURN-ATTRS is ignored.
+
+(fn QUERY &optional RETURN-ATTRS)")
+(register-definition-prefixes "eudcb-ecomplete" '("eudc-ecomplete-attributes-translation-alist"))
+
+
 ;;; Generated autoloads from net/eudcb-ldap.el
 
 (register-definition-prefixes "eudcb-ldap" '("eudc-"))
@@ -10944,6 +10966,26 @@ Edit the hotlist of directory servers in a specialized buffer." t)
 ;;; Generated autoloads from net/eudcb-macos-contacts.el
 
 (register-definition-prefixes "eudcb-macos-contacts" '("eudc-macos-contacts-"))
+
+
+;;; Generated autoloads from net/eudcb-mailabbrev.el
+
+(autoload 'eudc-mailabbrev-query-internal "eudcb-mailabbrev" "\
+Query `mailabbrev' with QUERY.
+QUERY is a list of cons cells (ATTR . VALUE).  Since `mailabbrev'
+does not provide attributes in the usual sense, only the email,
+name, and firstname attributes in the QUERY are considered, and
+their values are matched against the alias names in the mailrc
+file.  When a mailrc alias is a distribution list, that is it
+expands to more that one email address, the individual recipient
+specifications are formatted using `eudc-rfc5322-make-address',
+and returned as a comma-separated list in the email address
+attribute.
+
+RETURN-ATTRS is a list of attributes to return, defaulting to
+`eudc-default-return-attributes'.
+
+(fn QUERY &optional RETURN-ATTRS)")
 
 
 ;;; Generated autoloads from emacs-lisp/ewoc.el
@@ -11280,7 +11322,7 @@ See `text-scale-increase' for more details.
  (define-key ctl-x-map [(control ?0)] 'text-scale-adjust)
 (autoload 'text-scale-adjust "face-remap" "\
 Adjust the font size in the current buffer by INC steps.
-INC may be passed as a numeric prefix argument.
+Interactively, INC is the prefix numeric argument, and defaults to 1.
 
 The actual adjustment made depends on the final component of the
 keybinding used to invoke the command, with all modifiers removed:
@@ -11290,13 +11332,14 @@ keybinding used to invoke the command, with all modifiers removed:
    \\`0'      Reset the font size to the global default
 
 After adjusting, continue to read input events and further adjust
-the font size as long as the input event read
-(with all modifiers removed) is one of the above characters.
+the font size as long as the input event (with all modifiers removed)
+is one of the above characters.
 
-Each step scales the height of the default face by the variable
-`text-scale-mode-step' (a negative number of steps decreases the
-height by the same amount).  As a special case, an argument of 0
-will remove any scaling currently active.
+Each step scales the height of the default face by the factor that
+is the value of `text-scale-mode-step' (a negative number of steps
+decreases the height by that factor).  As a special case, an argument
+of 0 will remove any scaling currently active, thus resetting the
+font size to the original value.
 
 This command is a special-purpose wrapper around the
 `text-scale-increase' command which makes repetition convenient
@@ -11322,19 +11365,22 @@ Adjust the height of the default face by the scale in the pinch event EVENT.
  (define-key ctl-x-map [(control meta ?-)] 'global-text-scale-adjust)
  (define-key ctl-x-map [(control meta ?0)] 'global-text-scale-adjust)
 (autoload 'global-text-scale-adjust "face-remap" "\
-Globally adjust the font size by INCREMENT.
+Change (a.k.a. \"adjust\") the font size of all faces by INCREMENT.
 
-Interactively, INCREMENT may be passed as a numeric prefix argument.
+Interactively, INCREMENT is the prefix numeric argument, and defaults
+to 1.  Positive values of INCREMENT increase the font size, negative
+values decrease it.
 
-The adjustment made depends on the final component of the key binding
-used to invoke the command, with all modifiers removed:
+When you invoke this command, it performs the initial change of the
+font size, and after that allows further changes by typing one of the
+following keys immediately after invoking the command:
 
    \\`+', \\`='   Globally increase the height of the default face
    \\`-'      Globally decrease the height of the default face
    \\`0'      Globally reset the height of the default face
 
-After adjusting, further adjust the font size as long as the key,
-with all modifiers removed, is one of the above characters.
+(The change of the font size produced by these keys depends on the
+final component of the key sequence, with all modifiers removed.)
 
 Buffer-local face adjustments have higher priority than global
 face adjustments.
@@ -21217,6 +21263,9 @@ a greeting from the server.
 :nowait, if non-nil, says the connection should be made
 asynchronously, if possible.
 
+:noquery - when exiting Emacs and the network process is running,
+don't query the user if it's non-nil.
+
 :shell-command is a `format-spec' string that can be used if
 :type is `shell'.  It has two specs, %s for host and %p for port
 number.  Example: \"ssh gateway nc %s %p\".
@@ -23064,6 +23113,81 @@ Location of the file used to speed up activation of packages at startup." :type 
 (register-definition-prefixes "package" '("bad-signature" "define-package" "describe-package-1" "package-"))
 
 
+;;; Generated autoloads from emacs-lisp/package-vc.el
+
+(defvar package-vc-selected-packages 'nil "\
+List of packages that must be installed.
+Each member of the list is of the form (NAME . SPEC), where NAME
+is a symbol designating the package and SPEC is one of:
+
+- nil, if any package version can be installed;
+- a version string, if that specific revision is to be installed;
+- a property list of the form described in
+  `package-vc-archive-spec-alist', giving a package
+  specification.
+
+This user option differs from `package-selected-packages' in that
+it is meant to be specified manually.  You can also use the
+function `package-vc-selected-packages' to apply the changes.")
+(custom-autoload 'package-vc-selected-packages "package-vc" nil)
+(autoload 'package-vc-install "package-vc" "\
+Fetch a package NAME-OR-URL and set it up for using with Emacs.
+If NAME-OR-URL is a URL, download the package from the repository
+at that URL; the function will try to guess the name of the package
+from the URL.  Otherwise NAME-OR-URL should be a symbol whose name
+is the package name, and the URL for the package will be taken from
+the package's metadata.
+By default, this function installs the last version of the package
+available from its repository, but if REV is given and non-nil, it
+specifies the revision to install.  If REV has the special value
+`:last-release' (interactively, the prefix argument), that stands
+for the last released version of the package.
+When calling from Lisp, optional argument NAME overrides the package
+name as deduced from NAME-OR-URL.
+Optional argument BACKEND specifies the VC backend to use for cloning
+the package's repository; this is only possible if NAME-OR-URL is a URL,
+a string.  If BACKEND is omitted or nil, the function
+uses `package-vc--guess-backend' to guess the backend.
+
+(fn NAME-OR-URL &optional NAME REV BACKEND)" t)
+(autoload 'package-vc-checkout "package-vc" "\
+Clone the sources for PKG-DESC into DIRECTORY and visit that directory.
+Unlike `package-vc-install', this does not yet set up the package
+for use with Emacs; use `package-vc-link-directory' for setting
+the package up after this function finishes.
+Optional argument REV means to clone a specific version of the
+package; it defaults to the last version available from the
+package's repository.  If REV has the special value
+`:last-release' (interactively, the prefix argument), that stands
+for the last released version of the package.
+
+(fn PKG-DESC DIRECTORY &optional REV)" t)
+(autoload 'package-vc-install-from-checkout "package-vc" "\
+Set up the package NAME in DIR by linking it into the ELPA directory.
+Interactively, prompt the user for DIR, which should be a directory
+under version control, typically one created by `package-vc-checkout'.
+If invoked interactively with a prefix argument, prompt the user
+for the NAME of the package to set up.  Otherwise infer the package
+name from the base name of DIR.
+
+(fn DIR NAME)" t)
+(autoload 'package-vc-refresh "package-vc" "\
+Refresh the installation for package given by PKG-DESC.
+Interactively, prompt for the name of the package to refresh.
+
+(fn PKG-DESC)" t)
+(autoload 'package-vc-prepare-patch "package-vc" "\
+Send patch for REVISIONS to maintainer of the package PKG using SUBJECT.
+SUBJECT and REVISIONS are passed on to `vc-prepare-patch', which see.
+PKG must be a package description.
+Interactively, prompt for PKG, SUBJECT, and REVISIONS.  However,
+if the current buffer has marked commit log entries, REVISIONS
+are the tags of the marked entries, see `log-view-get-marked'.
+
+(fn PKG SUBJECT REVISIONS)" t)
+(register-definition-prefixes "package-vc" '("package-vc-"))
+
+
 ;;; Generated autoloads from emacs-lisp/package-x.el
 
 (autoload 'package-upload-file "package-x" "\
@@ -24616,7 +24740,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 8 2)) package--builtin-versions)
+(push (purecopy '(project 0 8 3)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -26744,6 +26868,8 @@ Return ROT13 encryption of STRING.
 (fn STRING)")
 (autoload 'rot13-region "rot13" "\
 ROT13 encrypt the region between START and END in current buffer.
+If invoked interactively and the buffer is read-only, a message
+will be printed instead.
 
 (fn START END)" t)
 (autoload 'rot13-other-window "rot13" "\
