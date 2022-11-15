@@ -218,7 +218,7 @@ name for PKG-DESC."
    (if (package-desc-archive pkg-desc)
        (alist-get (intern (package-desc-archive pkg-desc))
                   package-vc--archive-spec-alist)
-     (mapcan #'append (mapcar #'cdr package-vc--archive-spec-alist)))
+     (apply #'append (mapcar #'cdr package-vc--archive-spec-alist)))
    nil nil #'string=))
 
 (define-inline package-vc--query-spec (pkg-desc prop)
