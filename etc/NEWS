@@ -2213,6 +2213,10 @@ it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 a prefix argument which is interpreted to mean "include all files".
 
 +++
+*** New command 'project-list-buffers' bound to 'C-x p C-b'.
+This command displays a list of buffers from the current project.
+
++++
 *** 'project-kill-buffers' can display the list of buffers to kill.
 Customize the user option 'project-kill-buffers-display-buffer-list'
 to enable the display of the buffer list.

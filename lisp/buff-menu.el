@@ -100,6 +100,13 @@ as it is by default."
 This is set by the prefix argument to `buffer-menu' and related
 commands.")
 
+(defvar-local Buffer-menu-filter-predicate nil
+  "Function to filter out buffers in the buffer list.
+Buffers that don't satisfy the predicate will be skipped.
+The value should be a function of one argument; it will be
+called with the buffer.  If this function returns non-nil,
+then the buffer will be displayed in the buffer list.")
+
 (defvar-keymap Buffer-menu-mode-map
   :doc "Local keymap for `Buffer-menu-mode' buffers."
   :parent tabulated-list-mode-map
@@ -616,19 +623,23 @@ This behaves like invoking \\[read-only-mode] in that buffer."
 ;;; Functions for populating the Buffer Menu.
 
 ;;;###autoload
-(defun list-buffers-noselect (&optional files-only buffer-list)
+(defun list-buffers-noselect (&optional files-only buffer-list filter-predicate)
   "Create and return a Buffer Menu buffer.
 This is called by `buffer-menu' and others as a subroutine.
 
 If FILES-ONLY is non-nil, show only file-visiting buffers.
 If BUFFER-LIST is non-nil, it should be a list of buffers; it
-means list those buffers and no others."
+means list those buffers and no others.
+If FILTER-PREDICATE is non-nil, it should be a function
+that filters out buffers from the list of buffers.
+See more at `Buffer-menu-filter-predicate'."
   (let ((old-buffer (current-buffer))
 	(buffer (get-buffer-create "*Buffer List*")))
     (with-current-buffer buffer
       (Buffer-menu-mode)
       (setq Buffer-menu-files-only
 	    (and files-only (>= (prefix-numeric-value files-only) 0)))
+      (setq Buffer-menu-filter-predicate filter-predicate)
       (list-buffers--refresh buffer-list old-buffer)
       (tabulated-list-print))
     buffer))
@@ -650,6 +661,8 @@ means list those buffers and no others."
         (marked-buffers (Buffer-menu-marked-buffers))
         (buffer-menu-buffer (current-buffer))
 	(show-non-file (not Buffer-menu-files-only))
+	(filter-predicate (and (functionp Buffer-menu-filter-predicate)
+			       Buffer-menu-filter-predicate))
 	entries name-width)
     ;; Collect info for each buffer we're interested in.
     (dolist (buffer (or buffer-list
@@ -663,7 +676,9 @@ means list those buffers and no others."
 			 (and (or (not (string= (substring name 0 1) " "))
                                   file)
 			      (not (eq buffer buffer-menu-buffer))
-			      (or file show-non-file))))
+			      (or file show-non-file)
+			      (or (not filter-predicate)
+				  (funcall filter-predicate buffer)))))
 	    (push (list buffer
 			(vector (cond
                                  ((eq buffer old-buffer) ".")
