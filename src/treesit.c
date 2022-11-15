@@ -1333,6 +1333,32 @@ treesit_check_range_argument (Lisp_Object ranges)
   CHECK_LIST_END (tail, ranges);
 }
 
+/* Generate a list of ranges in Lisp from RANGES.  This function
+   doens't take ownership of RANGES.  BUFFER is used to convert
+   between tree-sitter buffer offset and buffer position.  */
+static Lisp_Object
+treesit_make_ranges (const TSRange *ranges, uint32_t len,
+		     struct buffer *buffer)
+{
+  Lisp_Object list = Qnil;
+  for (int idx = 0; idx < len; idx++)
+    {
+      TSRange range = ranges[idx];
+      uint32_t beg_byte = range.start_byte + BUF_BEGV_BYTE (buffer);
+      uint32_t end_byte = range.end_byte + BUF_BEGV_BYTE (buffer);
+      eassert (BUF_BEGV_BYTE (buffer) <= beg_byte);
+      eassert (beg_byte <= end_byte);
+      eassert (end_byte <= BUF_ZV_BYTE (buffer));
+
+      Lisp_Object lisp_range
+	= Fcons (make_fixnum (buf_bytepos_to_charpos (buffer, beg_byte)),
+		 make_fixnum (buf_bytepos_to_charpos (buffer, end_byte)));
+      list = Fcons (lisp_range, list);
+    }
+  return Fnreverse (list);
+
+}
+
 DEFUN ("treesit-parser-set-included-ranges",
        Ftreesit_parser_set_included_ranges,
        Streesit_parser_set_included_ranges,
@@ -1444,23 +1470,7 @@ return nil.  */)
   treesit_ensure_position_synced (parser);
 
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
-
-  Lisp_Object list = Qnil;
-  for (int idx = 0; idx < len; idx++)
-    {
-      TSRange range = ranges[idx];
-      uint32_t beg_byte = range.start_byte + BUF_BEGV_BYTE (buffer);
-      uint32_t end_byte = range.end_byte + BUF_BEGV_BYTE (buffer);
-      eassert (BUF_BEGV_BYTE (buffer) <= beg_byte);
-      eassert (beg_byte <= end_byte);
-      eassert (end_byte <= BUF_ZV_BYTE (buffer));
-
-      Lisp_Object lisp_range
-	= Fcons (make_fixnum (buf_bytepos_to_charpos (buffer, beg_byte)),
-		 make_fixnum (buf_bytepos_to_charpos (buffer, end_byte)));
-      list = Fcons (lisp_range, list);
-    }
-  return Fnreverse (list);
+  return treesit_make_ranges (ranges, len, buffer);
 }
 
 /*** Node API  */
