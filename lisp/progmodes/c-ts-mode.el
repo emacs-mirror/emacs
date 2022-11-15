@@ -332,7 +332,54 @@ MODE is either `c' or `cpp'."
    :language mode
    :override t
    :feature 'error
-   '((ERROR) @font-lock-warning-face)))
+   '((ERROR) @font-lock-warning-face)
+   :language mode
+   :feature 'emacs-devel
+   :override 't
+   '(((call_expression function: (identifier) @fn)
+      @c-ts-mode--fontify-defun
+      (:match "^DEFUN$" @fn)))))
+
+(defun c-ts-mode--fontify-defun (node override start end &rest _)
+  "Correctly fontify the DEFUN macro.
+For NODE, OVERRIDE, START, and END, see
+`treesit-font-lock-rules'.  The captured NODE is a
+call_expression where DEFUN is the function.
+
+This function corrects the fontification on the colon in
+\"doc:\", and the parameter list."
+  (let* ((parent (treesit-node-parent node))
+         ;; ARG-LIST-1 and 2 are like this:
+         ;;
+         ;; DEFUN (ARG-LIST-1)
+         ;; (ARG-LIST-2)
+         (arg-list-1 (treesit-node-children
+                      (treesit-node-child-by-field-name
+                       node "arguments")))
+         ;; ARG-LIST-2 is the
+         (arg-list-2 (treesit-node-children
+                      (treesit-node-child-by-field-name
+                       parent "arguments") t)))
+    ;; Fix the colon.
+    (dolist (node arg-list-1)
+      (when (equal (treesit-node-text node t) ":")
+        (treesit-fontify-with-override
+         (treesit-node-start node) (treesit-node-end node)
+         'default override)))
+    ;; Fix the parameter list.
+    (while arg-list-2
+      (let ((type (and arg-list-2 (pop arg-list-2)))
+            (arg (and arg-list-2 (pop arg-list-2))))
+        (when type
+          (treesit-fontify-with-override
+           (max start (treesit-node-start type))
+           (min end (treesit-node-end type))
+           'font-lock-type-face t))
+        (when arg
+          (treesit-fontify-with-override
+           (max start(treesit-node-start arg))
+           (min end (treesit-node-end arg))
+           'default t))))))
 
 (defun c-ts-mode--imenu-1 (node)
   "Helper for `c-ts-mode--imenu'.
