@@ -33,6 +33,10 @@ struct Lisp_TS_Parser
   /* A symbol representing the language this parser uses.  See the
      manual for more explanation.  */
   Lisp_Object language_symbol;
+  /* A list of functions to call after re-parse.  Every function is
+     called with the changed ranges and the parser.  The changed
+     ranges is a list of (BEG . END).  */
+  Lisp_Object after_change_functions;
   /* The buffer associated with this parser.  */
   Lisp_Object buffer;
   /* The pointer to the tree-sitter parser.  Never NULL.  */

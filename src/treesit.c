@@ -843,6 +843,30 @@ treesit_check_buffer_size (struct buffer *buffer)
 	      make_fixnum (buffer_size));
 }
 
+static Lisp_Object
+treesit_make_ranges (const TSRange *, uint32_t, struct buffer *);
+
+static void
+treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
+				     Lisp_Object parser)
+{
+  uint32_t len;
+  TSRange *ranges = ts_tree_get_changed_ranges (old_tree, new_tree, &len);
+  struct buffer *buf = XBUFFER (XTS_PARSER (parser)->buffer);
+  Lisp_Object lisp_ranges = treesit_make_ranges(ranges, len, buf);
+  xfree (ranges);
+
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  /* let's trust the after change functions and not clone a new ranges
+     for each of them.  */
+  Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
+  FOR_EACH_TAIL (functions)
+    safe_call2(XCAR (functions), lisp_ranges, parser);
+
+  unbind_to (count, Qnil);
+}
+
 /* Parse the buffer.  We don't parse until we have to.  When we have
    to, we call this function to parse and update the tree.  */
 static void
@@ -875,7 +899,11 @@ treesit_ensure_parsed (Lisp_Object parser)
     }
 
   if (tree != NULL)
-    ts_tree_delete (tree);
+    {
+      treesit_call_after_change_functions(tree, new_tree, parser);
+      ts_tree_delete (tree);
+    }
+
   XTS_PARSER (parser)->tree = new_tree;
   XTS_PARSER (parser)->need_reparse = false;
 }
@@ -945,6 +973,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 				       buffer, PVEC_TS_PARSER);
 
   lisp_parser->language_symbol = language_symbol;
+  lisp_parser->after_change_functions = Qnil;
   lisp_parser->buffer = buffer;
   lisp_parser->parser = parser;
   lisp_parser->tree = tree;
@@ -1471,6 +1500,57 @@ return nil.  */)
 
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
   return treesit_make_ranges (ranges, len, buffer);
+}
+
+DEFUN ("treesit-parser-notifiers",
+       Ftreesit_parser_notifiers,
+       Streesit_parser_notifiers,
+       1, 1, 0,
+       doc: /* Return the after-change functions for PARSER.  */)
+  (Lisp_Object parser)
+{
+  treesit_check_parser (parser);
+
+  Lisp_Object return_list = Qnil;
+  Lisp_Object tail = XTS_PARSER (parser)->after_change_functions;
+  FOR_EACH_TAIL (tail)
+    return_list = Fcons (XCAR (tail), return_list);
+
+  return return_list;
+}
+
+DEFUN ("treesit-parser-add-notifier",
+       Ftreesit_parser_add_notifier,
+       Streesit_parser_add_notifier,
+       2, 2, 0,
+       doc: /* Add FUNCTION to PARSER's after-change notifiers.  */)
+  (Lisp_Object parser, Lisp_Object function)
+{
+  treesit_check_parser (parser);
+  /* For simplicity we don't accept lambda functions.  */
+  CHECK_SYMBOL (function);
+
+  Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
+  if (!Fmemq (function, functions))
+    XTS_PARSER (parser)->after_change_functions = Fcons (function, functions);
+  return Qnil;
+}
+
+DEFUN ("treesit-parser-remove-notifier",
+       Ftreesit_parser_remove_notifier,
+       Streesit_parser_remove_notifier,
+       2, 2, 0,
+       doc: /* Remove FUNCTION from PARSER's after-change notifiers.  */)
+  (Lisp_Object parser, Lisp_Object function)
+{
+  treesit_check_parser (parser);
+  /* For simplicity we don't accept lambda functions.  */
+  CHECK_SYMBOL (function);
+
+  Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
+  if (Fmemq (function, functions))
+    XTS_PARSER (parser)->after_change_functions = Fdelq (function, functions);
+  return Qnil;
 }
 
 /*** Node API  */
@@ -2933,6 +3013,10 @@ then in the system default locations for dynamic libraries, in that order.  */);
 
   defsubr (&Streesit_parser_set_included_ranges);
   defsubr (&Streesit_parser_included_ranges);
+
+  defsubr (&Streesit_parser_notifiers);
+  defsubr (&Streesit_parser_add_notifier);
+  defsubr (&Streesit_parser_remove_notifier);
 
   defsubr (&Streesit_node_type);
   defsubr (&Streesit_node_start);
