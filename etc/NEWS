@@ -2156,13 +2156,20 @@ The older form still works but is undocumented.
 
 ---
 *** Rmail partial summaries can now be applied one on top of the other.
-You can now narrow the filtering of messages by the summary's criteria
-(recipients, topic, senders, etc.) by making a summary of the already
-summarized messages.  For example, invoking 'rmail-summary-by-senders',
-followed by 'rmail-summary-by-topic' will produce a summary where both
-the senders and the topic are according to your selection.  The new
-user option 'rmail-summary-apply-filters-consecutively' controls
-whether the stacking of the filters is in effect.
+You can now narrow the set of messages selected by Rmail summary's
+criteria (recipients, topic, senders, etc.) by making a summary of the
+already summarized messages.  For example, invoking
+'rmail-summary-by-senders', followed by 'rmail-summary-by-topic' will
+produce a summary where both the senders and the topic are according
+to your selection.  The new user option
+'rmail-summary-progressively-narrow' controls whether the stacking of
+the filters is in effect; customize it to a non-nil value to enable
+this feature.
+
+---
+*** New Rmail summary: by thread.
+The new command 'rmail-summary-by-thread' produces a summary of
+messages that belong to a single thread of discussion.
 
 ** EIEIO
 

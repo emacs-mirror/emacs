@@ -72,6 +72,18 @@ commands consecutively.  Filled by
 `rmail-summary-populate-displayed-messages'.")
 (put 'rmail-summary-currently-displayed-msgs 'permanent-local t)
 
+(defvar rmail-summary-message-ids-hash-table nil
+  "Hash table linking Message IDs of messages with their indices.")
+
+(defvar rmail-summary-subjects-hash-table nil
+  "Hash table linking subjects with index of the first message with that subject.")
+
+(defvar rmail-summary-message-parents-vector nil
+  "Vector that holds a list of indices of parents for each message.
+Message A is parent to message B if the id of A appear in the
+References or In-reply-to fields of B, or if A is the first
+message with the same subject as B.  First element is ignored.")
+
 (defvar rmail-summary-font-lock-keywords
   '(("^ *[0-9]+D.*" . font-lock-string-face)			; Deleted.
     ("^ *[0-9]+-.*" . font-lock-type-face)			; Unread.
@@ -303,6 +315,52 @@ commands consecutively.  Filled by
 		t)
 	  (forward-line 1))))))
 
+(defun rmail-summary-fill-message-ids-hash-table ()
+  "Fill `rmail-summary-message-ids-hash-table'."
+  (with-current-buffer rmail-buffer
+    (setq rmail-summary-message-ids-hash-table (make-hash-table :test 'equal :size 1024))
+    (let ((msgnum 1))
+      (while (<= msgnum rmail-total-messages)
+	(let ((id (rmail-get-header "Message-ID" msgnum)))
+	  (puthash id (cons (cons id msgnum) (gethash id rmail-summary-message-ids-hash-table))
+		   rmail-summary-message-ids-hash-table))
+	(setq msgnum (1+ msgnum))))))
+
+(defun rmail-summary--split-header-field (name &optional msgnum)
+  (let ((header (rmail-get-header name msgnum)))
+    (if header
+	(split-string header "[ \f\t\n\r\v,;]+"))))
+
+(defun rmail-summary-fill-message-parents-vector ()
+  "Fill `rmail-summary-message-parents-vector'."
+  (with-current-buffer rmail-buffer
+    (rmail-summary-fill-message-ids-hash-table)
+    (setq rmail-summary-subjects-hash-table
+          (make-hash-table :test 'equal :size 1024))
+    (setq rmail-summary-message-parents-vector
+          (make-vector (1+ rmail-total-messages) nil))
+    (let ((msgnum 1))
+      (while (<= msgnum rmail-total-messages)
+	(let* ((parents nil)
+	       (subject (rmail-simplified-subject msgnum))
+	       (subj-cell (gethash subject rmail-summary-subjects-hash-table))
+	       (subj-par (assoc subject subj-cell))
+	       (refs (rmail-summary--split-header-field "References" msgnum))
+	       (reply-to (rmail-summary--split-header-field "In-reply-to"
+                                                            msgnum)))
+	  (if subj-par
+	      (setq parents (cons (cdr subj-par) parents))
+	    (puthash subject (cons (cons subject msgnum) subj-cell)
+		     rmail-summary-subjects-hash-table))
+	  (dolist (id (append refs reply-to))
+	    (let ((ent
+                   (assoc id
+                          (gethash id rmail-summary-message-ids-hash-table))))
+	      (if ent
+		  (setq parents (cons (cdr ent) parents)))))
+	  (aset rmail-summary-message-parents-vector msgnum parents)
+	  (setq msgnum (1+ msgnum)))))))
+
 (defun rmail-summary-invert ()
   "Invert the criteria of the current summary.
 That is, show the messages that are not displayed, and hide
@@ -329,6 +387,63 @@ the messages that are displayed."
   "Display a summary of all messages, one line per message."
   (interactive)
   (rmail-new-summary "All" '(rmail-summary) nil))
+
+(defun rmail-summary-direct-descendants (msgnum encountered-msgs)
+  "Find all direct descendants of MSGNUM, ignoring ENCOUNTERED-MSGS.
+Assumes `rmail-summary-message-parents-vector' is filled.  Ignores messages
+already ticked in ENCOUNTERED-MSGS."
+  (let (desc
+	(msg 1))
+    (while (<= msg rmail-total-messages)
+      (when (and
+	     (eq nil (aref encountered-msgs msg))
+	     (memq msgnum (aref rmail-summary-message-parents-vector msg)))
+	(setq desc (cons msg desc)))
+      (setq msg (1+ msg)))
+    desc))
+
+(defun rmail-summary--walk-thread-message-recursively (msgnum encountered-msgs)
+  "Add parents and descendants of message MSGNUM to ENCOUNTERED-MSGS, recursively."
+  (unless (eq (aref encountered-msgs msgnum) t)
+    (aset encountered-msgs msgnum t)
+    (let ((walk-thread-msg
+           (lambda (msg)
+             (rmail-summary--walk-thread-message-recursively
+              msg encountered-msgs))))
+      (mapcar walk-thread-msg
+              (aref rmail-summary-message-parents-vector msgnum))
+      (mapcar walk-thread-msg
+              (rmail-summary-direct-descendants msgnum encountered-msgs)))))
+
+;;;###autoload
+(defun rmail-summary-by-thread (&optional msgnum)
+  "Display a summary of messages in the same discussion thread as MSGNUM.
+Interactively, prompt for MSGNUM, defaulting to the current message.
+Threads are based on the \"Subject\", \"References\" and \"In-reply-to\"
+headers of the messages."
+  (interactive
+   (let* ((msg rmail-current-message)
+	  (prompt (concat "Show thread containing message number")))
+     (list (read-number prompt msg))))
+  (with-current-buffer rmail-buffer
+    (unless msgnum
+      (setq msgnum rmail-current-message))
+    (unless (and rmail-summary-message-parents-vector
+		 (= (length rmail-summary-message-parents-vector)
+		    (1+ rmail-total-messages)))
+      (rmail-summary-fill-message-parents-vector))
+    (let ((enc-msgs (make-bool-vector (1+ rmail-total-messages) nil)))
+      (rmail-summary--walk-thread-message-recursively msgnum enc-msgs)
+      (rmail-new-summary (format "thread containing message %d" msgnum)
+			 (list 'rmail-summary-by-thread msgnum)
+			 (if (and rmail-summary-intersect-consecutive-filters
+				  (rmail-summary--exists-1))
+			     (lambda (msg msgnum)
+			       (and (eq (aref rmail-summary-currently-displayed-msgs msg)
+					t)
+				    (eq (aref enc-msgs msg) t)))
+			   (lambda (msg msgnum) (eq (aref enc-msgs msg) t)))
+			 msgnum))))
 
 ;;;###autoload
 (defun rmail-summary-by-labels (labels)
