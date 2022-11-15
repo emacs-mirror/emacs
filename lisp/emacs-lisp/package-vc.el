@@ -562,7 +562,7 @@ installed package."
 
 (defun package-vc-update (pkg-desc)
   "Attempt to update the package PKG-DESC."
-  (interactive (list (package-vc--read-package-desc "Update source package:")))
+  (interactive (list (package-vc--read-package-desc "Update source package: " t)))
   ;; HACK: To run `package-vc--unpack-1' after checking out the new
   ;; revision, we insert a hook into `vc-post-command-functions', and
   ;; remove it right after it ran.  To avoid running the hook multiple
@@ -577,28 +577,23 @@ installed package."
   ;; If there is a better way to do this, it should be done.
   (cl-assert (package-vc-p pkg-desc))
   (letrec ((pkg-dir (package-desc-dir pkg-desc))
-           (empty (make-symbol "empty"))
-           (args (list empty empty empty empty))
+           (vc-flags)
            (vc-filter-command-function
             (lambda (command file-or-list flags)
-              (setf (nth 0 args) command
-                    (nth 1 args) file-or-list
-                    (nth 2 args) flags
-                    (nth 3 args) default-directory)
+              (setq vc-flags flags)
               (list command file-or-list flags)))
            (post-upgrade
-            (lambda (command file-or-list flags)
-              (when (and (memq (nth 0 args) (list command empty))
-                         (memq (nth 1 args) (list file-or-list empty))
-                         (memq (nth 2 args) (list flags empty))
-                         (or (eq (nth 3 args) empty)
-                             (file-equal-p (nth 3 args) default-directory)))
-                (with-demoted-errors "Failed to activate: %S"
-                  (package-vc--unpack-1 pkg-desc pkg-dir))
-                (remove-hook 'vc-post-command-functions post-upgrade)))))
+            (lambda (_command _file-or-list flags)
+              (when (and (file-equal-p pkg-dir default-directory)
+                         (eq flags vc-flags))
+                (unwind-protect
+                    (with-demoted-errors "Failed to activate: %S"
+                      (package-vc--unpack-1 pkg-desc pkg-dir))
+                  (remove-hook 'vc-post-command-functions post-upgrade))))))
     (add-hook 'vc-post-command-functions post-upgrade)
     (with-demoted-errors "Failed to fetch: %S"
-      (vc-pull))))
+      (let ((default-directory pkg-dir))
+        (vc-pull)))))
 
 (defun package-vc--archives-initialize ()
   "Initialize package.el and fetch package specifications."
