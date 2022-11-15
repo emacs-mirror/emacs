@@ -836,6 +836,7 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS
 
 %.elc: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
+		ELN_COMPILE_FLAGS='--eval "(setq native-comp-compile-static-data nil)"' \
 		THEFILE=$< $<c
 
 ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
