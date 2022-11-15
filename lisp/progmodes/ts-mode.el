@@ -104,8 +104,7 @@
    :language 'tsx
    :override t
    :feature 'comment
-   `((comment) @font-lock-comment-face
-     (comment) @contextual)
+   `((comment) @font-lock-comment-face)
 
    :language 'tsx
    :override t
@@ -127,9 +126,7 @@
    :feature 'string
    `((regex pattern: (regex_pattern)) @font-lock-string-face
      (string) @font-lock-string-face
-     (string) @contextual
      (template_string) @js--fontify-template-string
-     (template_string) @contextual
      (template_substitution ["${" "}"] @font-lock-builtin-face))
 
    :language 'tsx

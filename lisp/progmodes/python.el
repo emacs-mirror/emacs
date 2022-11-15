@@ -1047,8 +1047,7 @@ be fontified."
    :language 'python
    :override t
    ;; TODO Document on why we do this.
-   '((string :anchor "\"" @python--treesit-fontify-string)
-     (string) @contextual)
+   '((string :anchor "\"" @python--treesit-fontify-string))
 
    :feature 'string-interpolation
    :language 'python

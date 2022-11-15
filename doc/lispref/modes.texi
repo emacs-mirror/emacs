@@ -4064,26 +4064,6 @@ priority.  If a capture name is neither a face nor a function, it is
 ignored.
 @end defun
 
-Contextual entities, like multi-line strings, or @code{/* */} style
-comments, need special care, because change in these entities might
-cause change in a large portion of the buffer.  For example, inserting
-the closing comment delimiter @code{*/} will change all the text
-between it and the opening delimiter to comment face.  Such entities
-should be captured in a special name @code{contextual}, so Emacs can
-correctly update their fontification.  Here is an example for
-comments:
-
-@example
-@group
-(treesit-font-lock-rules
- :language 'javascript
- :feature 'comment
- :override t
- '((comment) @@font-lock-comment-face)
-   (comment) @@contextual))
-@end group
-@end example
-
 @defvar treesit-font-lock-feature-list
 This is a list of lists of feature symbols.  Each element of the list
 is a list that represents a decoration level.
