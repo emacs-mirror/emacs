@@ -7061,7 +7061,7 @@ CONDITION is either:
 
 (defun match-buffers (condition &optional buffers arg)
   "Return a list of buffers that match CONDITION.
-See `buffer-match' for details on CONDITION.  By default all
+See `buffer-match-p' for details on CONDITION.  By default all
 buffers are checked, this can be restricted by passing an
 optional argument BUFFERS, set to a list of buffers to check.
 ARG is passed to `buffer-match', for predicate conditions in
