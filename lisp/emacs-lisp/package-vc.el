@@ -631,20 +631,25 @@ If no such revision can be found, return nil."
                              (line-number-at-pos nil t))))))))
 
 ;;;###autoload
-(defun package-vc-install (name-or-url &optional name rev backend)
-  "Fetch a package NAME-OR-URL and set it up for using with Emacs.
-If NAME-OR-URL is a URL, download the package from the repository
-at that URL; the function will try to guess the name of the package
-from the URL.  Otherwise NAME-OR-URL should be a symbol whose name
-is the package name, and the URL for the package will be taken from
-the package's metadata.
+(defun package-vc-install (package &optional name rev backend)
+  "Fetch a PACKAGE and set it up for using with Emacs.
+
+If PACKAGE is a string containing an URL, download the package
+from the repository at that URL; the function will try to guess
+the name of the package from the URL.  This can be overridden by
+passing the optional argument NAME.  If PACKAGE is a cons-cell,
+it should have the form (NAME . SPEC), where NAME is a symbol
+indicating the package name and SPEC is a plist as described in
+`package-vc-selected-packages'.  Otherwise PACKAGE should be a
+symbol whose name is the package name, and the URL for the
+package will be taken from the package's metadata.
+
 By default, this function installs the last version of the package
 available from its repository, but if REV is given and non-nil, it
 specifies the revision to install.  If REV has the special value
 `:last-release' (interactively, the prefix argument), that stands
 for the last released version of the package.
-When calling from Lisp, optional argument NAME overrides the package
-name as deduced from NAME-OR-URL.
+
 Optional argument BACKEND specifies the VC backend to use for cloning
 the package's repository; this is only possible if NAME-OR-URL is a URL,
 a string.  If BACKEND is omitted or nil, the function
@@ -663,17 +668,23 @@ regular package, but it will not remove a source package."
              (and current-prefix-arg :last-release)))))
   (package-vc--archives-initialize)
   (cond
-   ((null name-or-url)
+   ((null package)
     (signal 'wrong-type-argument nil))
-   ((and-let* (((stringp name-or-url))
-               (backend (or backend (package-vc--guess-backend name-or-url))))
+   ((consp package)
+    (package-vc--unpack
+     (package-desc-create :name (car package)
+                          :kind 'vc)
+     (cdr package)
+     rev))
+   ((and-let* (((stringp package))
+               (backend (or backend (package-vc--guess-backend package))))
       (package-vc--unpack
        (package-desc-create
-        :name (or name (intern (file-name-base name-or-url)))
+        :name (or name (intern (file-name-base package)))
         :kind 'vc)
-       (list :vc-backend backend :url name-or-url)
+       (list :vc-backend backend :url package)
        rev)))
-   ((and-let* ((desc (assoc name-or-url package-archive-contents #'string=)))
+   ((and-let* ((desc (assoc package package-archive-contents #'string=)))
       (package-vc--unpack
        (let ((copy (copy-package-desc (cadr desc))))
          (setf (package-desc-kind copy) 'vc)
@@ -683,9 +694,9 @@ regular package, but it will not remove a source package."
                       (url (alist-get :url extras))
                       (backend (package-vc--guess-backend url)))
              (list :vc-backend backend :url url))
-           (user-error "Package `%s' has no VC data" name-or-url))
+           (user-error "Package `%s' has no VC data" package))
        rev)))
-   ((user-error "Unknown package to fetch: %s" name-or-url))))
+   ((user-error "Unknown package to fetch: %s" package))))
 
 ;;;###autoload
 (defun package-vc-checkout (pkg-desc directory &optional rev)
