@@ -420,7 +420,7 @@ the subtrees."
   (setq-local treesit-font-lock-feature-list
               '((comment preprocessor operator constant string literal keyword)
                 (type definition expression statement)
-                ())))
+                (error))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
