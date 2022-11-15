@@ -4506,9 +4506,11 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
     }
 
   if (NILP (font))
-      font = !NILP (font_param) ? font_param
-      : gui_display_get_arg (dpyinfo, parms, Qfont, "font", "Font",
-                             RES_TYPE_STRING);
+    font = (!NILP (font_param)
+	    ? font_param
+	    : gui_display_get_arg (dpyinfo, parms,
+				   Qfont, "font", "Font",
+				   RES_TYPE_STRING));
 
   if (! FONTP (font) && ! STRINGP (font))
     {
