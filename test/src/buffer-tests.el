@@ -42,7 +42,6 @@ recorded calls conveniently."
      overlay
      hooks-property
      (list (lambda (ov &rest args)
-             (message "  %S called on %S with args %S" hooks-property ov args)
              (should inhibit-modification-hooks)
              (should (eq ov overlay))
              (push (list hooks-property args)
@@ -175,47 +174,41 @@ properties."
                                     (t 1 2 0))
                                    (insert-behind-hooks
                                     (t 1 2 0)))))))
-      (message "BEGIN overlay-modification-hooks test-case %S" test-case)
+      (ert-info ((format "test-case: %S" test-case))
+        ;; All three hooks ignore the overlay's `front-advance' and
+        ;; `rear-advance' option, so test both ways while expecting the same
+        ;; result.
+        (dolist (advance '(nil t))
+          (ert-info ((format "advance is %S" advance))
+            (let-alist test-case
+              (with-temp-buffer
+                ;; Set up the temporary buffer and overlay as specified by
+                ;; the test case.
+                (insert (or .buffer-text "1234"))
+                (let ((overlay (make-overlay
+                                (or .overlay-beg 2)
+                                (or .overlay-end 4)
+                                nil
+                                advance advance)))
+                  (overlay-tests-start-recording-modification-hooks overlay)
 
-      ;; All three hooks ignore the overlay's `front-advance' and
-      ;; `rear-advance' option, so test both ways while expecting the same
-      ;; result.
-      (dolist (advance '(nil t))
-        (message "  advance is %S" advance)
-        (let-alist test-case
-          (with-temp-buffer
-            ;; Set up the temporary buffer and overlay as specified by
-            ;; the test case.
-            (insert (or .buffer-text "1234"))
-            (let ((overlay (make-overlay
-                            (or .overlay-beg 2)
-                            (or .overlay-end 4)
-                            nil
-                            advance advance)))
-              (message "  (buffer-string) is %S" (buffer-string))
-              (message "  overlay is %S" overlay)
-              (overlay-tests-start-recording-modification-hooks overlay)
+                  ;; Modify the buffer, possibly inducing calls to the
+                  ;; overlay's modification hooks.
+                  (should (or .insert-at .replace))
+                  (when .insert-at
+                    (goto-char .insert-at)
+                    (insert "x"))
+                  (when .replace
+                    (goto-char (point-min))
+                    (search-forward .replace)
+                    (replace-match "x"))
 
-              ;; Modify the buffer, possibly inducing calls to the
-              ;; overlay's modification hooks.
-              (should (or .insert-at .replace))
-              (when .insert-at
-                (goto-char .insert-at)
-                (insert "x")
-                (message "  inserted \"x\" at %S, buffer-string now %S"
-                         .insert-at (buffer-string)))
-              (when .replace
-                (goto-char (point-min))
-                (search-forward .replace)
-                (replace-match "x")
-                (message "  replaced %S with \"x\"" .replace))
-
-              ;; Verify that the expected and actual modification hook
-              ;; calls match.
-              (should (equal
-                       .expected-calls
-                       (overlay-tests-get-recorded-modification-hooks
-                        overlay)))))))))
+                  ;; Verify that the expected and actual modification hook
+                  ;; calls match.
+                  (should (equal
+                           .expected-calls
+                           (overlay-tests-get-recorded-modification-hooks
+                            overlay)))))))))))
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()
   "Test for bug#21824.
