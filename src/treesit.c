@@ -1723,7 +1723,7 @@ DEFUN ("treesit-node-check",
        Ftreesit_node_check, Streesit_node_check, 2, 2, 0,
        doc: /* Return non-nil if NODE has PROPERTY, nil otherwise.
 
-PROPERTY could be `named', `missing', `extra', or `has-error'.
+PROPERTY could be `named', `missing', `extra', `outdated', or `has-error'.
 
 Named nodes correspond to named rules in the language definition,
 whereas "anonymous" nodes correspond to string literals in the
@@ -1735,17 +1735,25 @@ certain kinds of syntax errors, i.e., should be there but not there.
 Extra nodes represent things like comments, which are not required the
 language definition, but can appear anywhere.
 
+A node is "outdated" if the parser has reparsed at least once after
+the node was created.
+
 A node "has error" if itself is a syntax error or contains any syntax
 errors.  */)
   (Lisp_Object node, Lisp_Object property)
 {
   if (NILP (node)) return Qnil;
-  treesit_check_node (node);
+  CHECK_TS_NODE (node);
   CHECK_SYMBOL (property);
   treesit_initialize ();
 
   TSNode treesit_node = XTS_NODE (node)->node;
   bool result;
+
+  if (EQ (property, Qoutdated))
+    return treesit_node_uptodate_p (node) ? Qnil : Qt;
+
+  treesit_check_node (node);
   if (EQ (property, Qnamed))
     result = ts_node_is_named (treesit_node);
   else if (EQ (property, Qmissing))
@@ -1756,7 +1764,7 @@ errors.  */)
     result = ts_node_has_error (treesit_node);
   else
     signal_error ("Expecting `named', `missing', `extra', "
-		  "or `has-error', but got",
+		  "`outdated', or `has-error', but got",
 		  property);
   return result ? Qt : Qnil;
 }
@@ -2918,6 +2926,7 @@ syms_of_treesit (void)
   DEFSYM (Qnamed, "named");
   DEFSYM (Qmissing, "missing");
   DEFSYM (Qextra, "extra");
+  DEFSYM (Qoutdated, "outdated");
   DEFSYM (Qhas_error, "has-error");
 
   DEFSYM (Qnot_found, "not-found");

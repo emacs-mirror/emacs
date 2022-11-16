@@ -516,8 +516,11 @@ visible_end.)"
     (should (treesit-node-check comment-node 'extra))
     (should (treesit-node-check array-node 'has-error))
     (should-error (treesit-node-check array-node 'xxx))
-    ;; TODO: Test for `missing'.
-    ))
+    (should (treesit-node-check (treesit-node-child array-node -1)
+                                'missing))
+    (goto-char (point-max))
+    (insert "]")
+    (should (treesit-node-check array-node 'outdated))))
 
 (ert-deftest treesit-misc ()
   "Misc helper functions."

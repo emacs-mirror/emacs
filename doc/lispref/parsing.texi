@@ -930,6 +930,11 @@ is not yet in its final form.
 A node can be ``extra'': such nodes represent things like comments,
 which can appear anywhere in the text.
 
+@cindex tree-sitter outdated node
+@cindex outdated node, tree-sitter
+A node can be ``outdated'': If its parser has reparse at least once
+after the node was created, the node is outdated.
+
 @cindex tree-sitter node that has error
 @cindex has error, tree-sitter node
 A node ``has error'' if the text it spans contains a syntax error.  It
@@ -938,14 +943,16 @@ has an error.
 
 @defun treesit-node-check node property
 This function checks if @var{node} has the specified @var{property}.
-@var{property} can be @code{named}, @code{missing}, @code{extra}, or
-@code{has-error}.
+@var{property} can be @code{named}, @code{missing}, @code{extra},
+@code{outdated}, or @code{has-error}.
 @end defun
 
 @defun treesit-node-type node
 Named nodes have ``types'' (@pxref{tree-sitter node type, node type}).
 For example, a named node can be a @code{string_literal} node, where
-@code{string_literal} is its type.
+@code{string_literal} is its type.  The type of an anonymous node is
+just the text that node represents, e.g., the type of a @samp{,} node
+is just @samp{,}.
 
 This function returns @var{node}'s type as a string.
 @end defun
