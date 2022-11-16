@@ -2033,6 +2033,11 @@ window."
   (treesit-parser-language
    :no-eval (treesit-parser-language parser)
    :eg-result c)
+  (treesit-parser-add-notifier)
+  (treesit-parser-remove-notifier)
+  (treesit-parser-notifiers
+   :no-eval (treesit-parser-notifiers parser)
+   :eg-result (function1 function2 function3))
 
 
   "Parser ranges"
