@@ -296,15 +296,14 @@ asynchronously."
 (defun package-vc--main-file (pkg-desc)
   "Return the name of the main file for PKG-DESC."
   (cl-assert (package-vc-p pkg-desc))
-  (let ((pkg-spec (package-vc--desc->spec pkg-desc)))
+  (let ((pkg-spec (package-vc--desc->spec pkg-desc))
+        (name (symbol-name (package-desc-name pkg-desc))))
     (or (plist-get pkg-spec :main-file)
         (expand-file-name
-         (format "%s.el" (package-desc-name pkg-desc))
+         (concat name ".el")
          (file-name-concat
           (or (package-desc-dir pkg-desc)
-              (expand-file-name
-               (package-desc-name pkg-desc)
-               package-user-dir))
+              (expand-file-name name package-user-dir))
           (plist-get pkg-spec :lisp-dir))))))
 
 (defun package-vc--generate-description-file (pkg-desc pkg-file)
@@ -396,8 +395,8 @@ documentation and marking the package as installed."
   ;; In case the package was installed directly from source, the
   ;; dependency list wasn't know beforehand, and they might have
   ;; to be installed explicitly.
-  (let (deps)
-    (dolist (file (directory-files (package-lisp-dir pkg-desc) t "\\.el\\'" t))
+  (let ((deps '()))
+    (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
       (with-temp-buffer
         (insert-file-contents file)
         (when-let* ((require-lines (lm-header-multiline "package-requires")))
@@ -748,11 +747,12 @@ name from the base name of DIR."
   (package-vc--archives-initialize)
   (let* ((name (or name (file-name-base (directory-file-name dir))))
          (pkg-dir (expand-file-name name package-user-dir)))
-    (make-symbolic-link dir pkg-dir)
-    (package-vc--unpack-1 (package-desc-create
-                          :name (intern name)
-                          :kind 'vc)
-                         pkg-dir)))
+    (make-symbolic-link (expand-file-name dir) pkg-dir)
+    (package-vc--unpack-1
+     (package-desc-create
+      :name (intern name)
+      :kind 'vc)
+     (file-name-as-directory pkg-dir))))
 
 ;;;###autoload
 (defun package-vc-rebuild (pkg-desc)
