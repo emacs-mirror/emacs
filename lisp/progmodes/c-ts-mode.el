@@ -388,42 +388,41 @@ the subtrees."
   (let* ((ts-node (car node))
          (subtrees (mapcan #'c-ts-mode--imenu-1 (cdr node)))
          (name (when ts-node
-                 (or (treesit-node-text
-                      (pcase (treesit-node-type ts-node)
-                        ("function_definition"
-                         (treesit-node-child-by-field-name
-                          (treesit-node-child-by-field-name
-                           ts-node "declarator")
-                          "declarator"))
-                        ("declaration"
-                         (let ((child (treesit-node-child ts-node -1 t)))
-                           (pcase (treesit-node-type child)
-                             ("identifier" child)
-                             (_ (treesit-node-child-by-field-name
-                                 child "declarator")))))
-                        ("struct_specifier"
-                         (treesit-node-child-by-field-name
-                          ts-node "name")))
-                      t)
-                     "Unnamed node")))
+                 (treesit-node-text
+                  (pcase (treesit-node-type ts-node)
+                    ("function_definition"
+                     (treesit-node-child-by-field-name
+                      (treesit-node-child-by-field-name
+                       ts-node "declarator")
+                      "declarator"))
+                    ("declaration"
+                     (let ((child (treesit-node-child ts-node -1 t)))
+                       (pcase (treesit-node-type child)
+                         ("identifier" child)
+                         (_ (treesit-node-child-by-field-name
+                             child "declarator")))))
+                    ("struct_specifier"
+                     (treesit-node-child-by-field-name
+                      ts-node "name"))))))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
-    ;; A struct_specifier could be inside a parameter list, another
-    ;; struct definition, a variable declaration, a function
-    ;; declaration.  In those cases we don't include it.
     (cond
+     ;; A struct_specifier could be inside a parameter list, another
+     ;; struct definition, a variable declaration, a function
+     ;; declaration.  In those cases we don't include it.
      ((string-match-p
        (rx (or "parameter_declaration" "field_declaration"
                "declaration" "function_definition"))
        (or (treesit-node-type (treesit-node-parent ts-node))
            ""))
       nil)
+     ;; Ignore function local variable declarations.
      ((and (equal (treesit-node-type ts-node) "declaration")
            (not (equal (treesit-node-type (treesit-node-parent ts-node))
                        "translation_unit")))
       nil)
-     ((null ts-node) subtrees)
+     ((or (null ts-node) (null name)) subtrees)
      (subtrees
       `((,name ,(cons name marker) ,@subtrees)))
      (t
@@ -437,10 +436,14 @@ the subtrees."
          (var-tree (treesit-induce-sparse-tree
                     node "^declaration$"))
          (struct-tree (treesit-induce-sparse-tree
-                       node "^struct_specifier$")))
-    `(("Struct" . ,(c-ts-mode--imenu-1 struct-tree))
-      ("Variable" . ,(c-ts-mode--imenu-1 var-tree))
-      ("Function" . ,(c-ts-mode--imenu-1 func-tree)))))
+                       node "^struct_specifier$"))
+         (func-index (c-ts-mode--imenu-1 func-tree))
+         (var-index (c-ts-mode--imenu-1 var-tree))
+         (struct-index (c-ts-mode--imenu-1 struct-tree)))
+    (append
+     (when struct-index `(("Struct" . ,struct-index)))
+     (when var-index `(("Variable" . ,var-index)))
+     (when func-index `(("Function" . ,func-index))))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode--base-mode prog-mode "C"
