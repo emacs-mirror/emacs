@@ -153,7 +153,6 @@
             '(bind-chord "C-u" #'key3 my-map2)))))))
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
 ;; End:

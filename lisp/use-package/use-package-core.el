@@ -1721,8 +1721,4 @@ this file.  Usage:
 
 (provide 'use-package-core)
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; use-package-core.el ends here
