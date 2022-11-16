@@ -1678,6 +1678,285 @@ to the offending pattern and highlight the pattern."
              (forward-char start)))
          (pop-to-buffer buf))))))
 
+;;; Explorer
+
+(defvar-local treesit--explorer-buffer nil
+  "Buffer used to display the syntax tree.")
+
+(defvar-local treesit--explorer-source-buffer nil
+  "Source buffer corresponding to the playground buffer.")
+
+(defvar-local treesit--explorer-language nil
+  "The language used in the playground.")
+
+(defvar-local treesit--explorer-refresh-timer nil
+  "Timer for refreshing the syntax tree buffer.")
+
+(defvar-local treesit--explorer-highlight-overlay nil
+  "Overlay used to highlight in syntax tree and source buffer.")
+
+(defvar-local treesit--explorer-last-node nil
+  "Last top-level node used to generate syntax tree.")
+
+(defvar treesit-explore-mode)
+
+(defun treesit--explorer--nodes-to-highlight (language)
+  "Return nodes for LANGUAGE covered in region.
+This function tries to return the largest node possible.  So it
+will return a single large node rather than a bunch of small
+nodes.  If it end up returning multiple small nodes, it only
+returns the first and last node, and omits the ones in between."
+  (let* ((beg (region-beginning))
+         (end (region-end))
+         (node (treesit-node-on beg end language))
+         (node (or (treesit-parent-while
+                    node
+                    (lambda (n)
+                      (<= beg (treesit-node-start n)
+                          (treesit-node-end n) end)))
+                   node)))
+    ;; If NODE is completely contained in the region, return NODE,
+    ;; otherwise return its children that are in the region.
+    (if (<= beg (treesit-node-start node)
+            (treesit-node-end node) end)
+        (list node)
+      (list (treesit-node-at beg)
+            (treesit-search-forward
+             (treesit-node-at end)
+             (lambda (n)
+               (<= (treesit-node-end n) end))
+             t t)))))
+
+(defun treesit--explorer-refresh ()
+  "Update the syntax tree buffer."
+  (when (and treesit-explore-mode
+             (buffer-live-p treesit--explorer-buffer))
+    (let* ((root (treesit-node-on
+                  (window-start) (window-end) treesit--explorer-language))
+           ;; Only highlight the current top-level construct.
+           ;; Highlighting the whole buffer is slow and unnecessary.
+           (top-level (treesit-node-first-child-for-pos
+                       root (if (eolp)
+                                (max (point-min) (1- (point)))
+                              (point))
+                       t))
+           ;; Only highlight node when region is active, if we
+           ;; highlight node at point the syntax tree is too jumpy.
+           (nodes-hl
+            (when (region-active-p)
+              (treesit--explorer--nodes-to-highlight
+               treesit--explorer-language)))
+           ;; If we didn't edit the buffer nor change the top-level
+           ;; node, don't redraw the whole syntax tree.
+           (highlight-only (treesit-node-eq
+                            top-level treesit--explorer-last-node))
+           (source-buffer (current-buffer)))
+      (setq-local treesit--explorer-last-node top-level)
+      (with-current-buffer treesit--explorer-buffer
+        (let ((inhibit-read-only t))
+          (setq-local treesit--explorer-source-buffer source-buffer)
+          ;; Redraw the syntax tree or just rehighlight the focused
+          ;; node.
+          (when (and top-level (not highlight-only))
+            (erase-buffer)
+            (treesit--explorer-draw-node top-level))
+          (when-let ((pos (treesit--explorer-highlight-node nodes-hl))
+                     (window (get-buffer-window
+                              treesit--explorer-buffer)))
+            (if highlight-only
+                (goto-char pos)
+              ;; If HIGHLIGHT-ONLY is nil, we erased the buffer and
+              ;; re-inserted text, scroll down from the very top until
+              ;; we can see the highlighted node.
+              (goto-char (point-min))
+              (while (and (null (pos-visible-in-window-p pos window))
+                          (= (forward-line 4) 0))
+                (set-window-start window (point))))
+            (set-window-point window pos)))))))
+
+(defun treesit--explorer-post-command (&rest _)
+  "Post-command function that runs in the source buffer."
+  (when treesit-explore-mode
+    (when treesit--explorer-highlight-overlay
+      (delete-overlay treesit--explorer-highlight-overlay))
+    (when treesit--explorer-refresh-timer
+      (cancel-timer treesit--explorer-refresh-timer))
+    (setq-local treesit--explorer-refresh-timer
+                (run-with-timer 0.1 nil #'treesit--explorer-refresh))))
+
+(defun treesit--explorer-jump (button)
+  "Mark the original text corresponding to BUTTON."
+  (interactive)
+  (when (and (derived-mode-p 'treesit--explorer-tree-mode)
+             (buffer-live-p treesit--explorer-source-buffer))
+    (with-current-buffer treesit--explorer-source-buffer
+      (let ((start (button-get button 'node-start))
+            (end (button-get button 'node-end)))
+        (when treesit--explorer-highlight-overlay
+          (delete-overlay treesit--explorer-highlight-overlay))
+        (setq-local treesit--explorer-highlight-overlay
+                    (make-overlay start end nil t nil))
+        (overlay-put treesit--explorer-highlight-overlay
+                     'face 'highlight)))))
+
+(defun treesit--explorer-highlight-node (nodes)
+  "Highlight nodes in NODES in the syntax tree buffer.
+Return the start of the syntax tree text corresponding to NODE."
+  (when treesit--explorer-highlight-overlay
+    (delete-overlay treesit--explorer-highlight-overlay))
+  (let ((start-node (car nodes))
+        (end-node (car (last nodes)))
+        start end)
+    (when (and start-node end-node)
+      (cl-loop for ov in (overlays-in (point-min) (point-max))
+               while (or (null start) (null end))
+               if (treesit-node-eq start-node
+                                   (overlay-get ov 'treesit-node))
+               do (setq start (overlay-start ov))
+               if (treesit-node-eq end-node (overlay-get ov 'treesit-node))
+               do (setq end (overlay-end ov)))
+      (when (and start end)
+        (setq-local treesit--explorer-highlight-overlay
+                    (make-overlay start end))
+        (overlay-put treesit--explorer-highlight-overlay
+                     'face 'highlight)
+        start))))
+
+(defun treesit--explorer-draw-node (node)
+  "Draw the syntax tree of NODE.
+If NODE and NODE-HIGHLIGHT are the same node, highlight it.
+
+When this function is called, point should be at an empty line,
+when appropriate indent in front of point.  When this function
+returns, it leaves point at the end of the last line of NODE.
+
+Return the start position of NODE-HIGHLIGHT in the buffer, if any."
+  (let* ((type (treesit-node-type node))
+         (field-name (treesit-node-field-name node))
+         (children (treesit-node-children node))
+         (named (treesit-node-check node 'named))
+         ;; Column number of the start of the field-name, aka start of
+         ;; the whole node.
+         (before-field-column (current-column))
+         ;; Column number after the field-name.
+         after-field-column
+         ;; Column number after the type.
+         after-type-column
+         ;; Are all children suitable for inline?
+         (all-children-inline
+          (eq 0 (apply #'+ (mapcar #'treesit-node-child-count children))))
+         ;; If the child is the first child, we can inline, if the
+         ;; previous child is suitable for inline, this child can
+         ;; inline, if the previous child is not suitable for inline,
+         ;; this child cannot inline.
+         (can-inline t)
+         ;; The beg and end of this node.
+         beg end)
+    (when treesit--explorer-highlight-overlay
+      (delete-overlay treesit--explorer-highlight-overlay))
+
+    (setq beg (point))
+    ;; Draw field name.  If all children are suitable for inline, we
+    ;; draw everything in one line, other wise draw field name and the
+    ;; rest of the node in two lines.
+    (when field-name
+      (insert field-name ": ")
+      (when (and children (not all-children-inline))
+        (insert "\n")
+        (indent-to-column (1+ before-field-column))))
+    (setq after-field-column (current-column))
+
+    ;; Draw type.
+    (if named
+        (progn
+          (insert "(")
+          (insert-text-button
+           type 'action #'treesit--explorer-jump
+           'follow-link t
+           'node-start (treesit-node-start node)
+           'node-end (treesit-node-end node)))
+      (pcase type
+        ("\n" (insert "\\n"))
+        ("\t" (insert "\\t"))
+        (" " (insert "SPC"))
+        (_ (insert type))))
+    (setq after-type-column (current-column))
+
+    ;; Draw children.
+    (dolist (child children)
+      ;; If a child doesn't have children, it is suitable for inline.
+      (let ((draw-inline (eq 0 (treesit-node-child-count child)))
+            (children-indent (1+ after-field-column)))
+        (while
+            ;; This form returns t if it wants to run another
+            ;; iteration, returns nil if it wants to stop.
+            (if (and draw-inline can-inline)
+                ;; Draw children on the same line.
+                (let ((inline-beg (point)))
+                  (insert " ")
+                  (treesit--explorer-draw-node child)
+                  ;; If we exceeds window width, draw on the next line.
+                  (if (< (current-column) (window-width))
+                      nil
+                    (delete-region inline-beg (point))
+                    (setq draw-inline nil
+                          children-indent (1+ after-type-column))
+                    t))
+              ;; Draw children on the new line.
+              (insert "\n")
+              (indent-to-column children-indent)
+              (treesit--explorer-draw-node child)
+              nil))
+        (setq can-inline draw-inline)))
+
+    ;; Done drawing children, draw the ending paren.
+    (when named (insert ")"))
+    (setq end (point))
+
+    ;; Associate the text with NODE, so we can later find a piece of
+    ;; text by a node.
+    (let ((ov (make-overlay beg end)))
+      (overlay-put ov 'treesit-node node)
+      (overlay-put ov 'evaporate t)
+      (when (not named)
+        (overlay-put ov 'face 'shadow)))))
+
+(define-derived-mode treesit--explorer-tree-mode special-mode
+  "TS Explorer"
+  "Mode for displaying syntax trees for `treesit-explore-mode'."
+  nil)
+
+(define-minor-mode treesit-explore-mode
+  "Enable exploring the current buffer's syntax tree.
+Pops up a window showing the syntax tree of the source in the
+current buffer in real time.  The corresponding node enclosing
+the text in the active region is highlighted in the explorer
+window."
+  :lighter " TSplay"
+  (if treesit-explore-mode
+      (progn
+        (unless (buffer-live-p treesit--explorer-buffer)
+          (setq-local treesit--explorer-buffer
+                      (get-buffer-create
+                       (format "*tree-sitter playground for %s*"
+                               (buffer-name))))
+          (setq-local treesit--explorer-language
+                      (intern (completing-read
+                               "Language: "
+                               (mapcar #'treesit-parser-language
+                                       (treesit-parser-list)))))
+          (with-current-buffer treesit--explorer-buffer
+            (treesit--explorer-tree-mode)))
+        (display-buffer treesit--explorer-buffer
+                        (cons nil '((inhibit-same-window . t))))
+        (treesit--explorer-refresh)
+        (add-hook 'post-command-hook
+                  #'treesit--explorer-post-command 0 t)
+        (setq-local treesit--explorer-last-node nil))
+    (remove-hook 'post-command-hook
+                 #'treesit--explorer-post-command t)
+    (kill-buffer treesit--explorer-buffer)))
+
 ;;; Etc
 
 (declare-function find-library-name "find-func.el")

@@ -223,6 +223,22 @@ assign @dfn{field names} to child nodes.  For example, a
 @end group
 @end example
 
+@heading Exploring the syntax tree
+
+To aid understanding the syntax of a language and debugging, Emacs
+provides a ``explore'' mode, which displays the syntax tree of the
+source in the current buffer in real time.  Emacs also comes with a
+``inspect mode'', which displays information of the nodes at point in
+the mode-line.
+
+@deffn Command treesit-explore-mode
+This mode pops up a window displaying the syntax tree of the source in
+the current buffer.  Emacs highlights nodes in the syntax tree if
+their corresponding text in the source buffer is selected.  Clicking
+on nodes in the syntax tree highlights the corresponding text in the
+source buffer.
+@end deffn
+
 @deffn Command treesit-inspect-mode
 This minor mode displays on the mode-line the node that @emph{starts}
 at point.  The mode-line will display
