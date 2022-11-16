@@ -141,7 +141,8 @@ is a symbol designating the package and SPEC is one of:
 
 - nil, if any package version can be installed;
 - a version string, if that specific revision is to be installed;
-- a property list.  Valid key/value pairs are
+- a property list, describing a package specification.  Valid
+  key/value pairs are
 
    `:url' (string)
       The URL of the repository used to fetch the package source.
@@ -165,7 +166,7 @@ is a symbol designating the package and SPEC is one of:
       `vc-clone' will fall back onto the archive default or on
       `package-vc-default-backend'.
 
-  All other values are ignored.
+  All other keys are ignored.
 
 This user option differs from `package-selected-packages' in that
 it is meant to be specified manually.  If you want to install all
