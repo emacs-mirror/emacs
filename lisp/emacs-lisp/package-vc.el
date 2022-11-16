@@ -390,7 +390,7 @@ documentation and marking the package as installed."
   ;; Remove any previous instance of PKG-DESC from `package-alist'
   (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
     (when pkgs
-      (setf (cdr pkgs) (delq pkg-desc (cdr pkgs)))))
+      (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
 
   ;; In case the package was installed directly from source, the
   ;; dependency list wasn't know beforehand, and they might have
