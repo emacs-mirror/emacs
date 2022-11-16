@@ -2191,10 +2191,13 @@ emit_lisp_string_constructor_rval (Lisp_Object str)
 	// not attempt to modify them.
 	: gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					       comp.ptrdiff_type, -3);
+  // Perma-mark all string constants, which lets us declare them as
+  // constants.
   gcc_jit_rvalue *size
-    = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.ptrdiff_type,
-					   SCHARS (str));
+    = gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					    comp.ptrdiff_type,
+					    SCHARS (str)
+					      | ARRAY_MARK_FLAG);
   gcc_jit_field *u_s_fields[]
     = { comp.lisp_string_u_s_size, comp.lisp_string_u_s_size_bytes,
 	comp.lisp_string_u_s_intervals, comp.lisp_string_u_s_data };
@@ -2563,10 +2566,12 @@ push_cons_block (void)
   gcc_jit_lvalue *var
     = gcc_jit_context_new_global (comp.ctxt, NULL,
 				  GCC_JIT_GLOBAL_INTERNAL,
-				  comp.cons_block_aligned_type, name);
+				  comp.cons_block_aligned_type,
+				  name);
   Lisp_Object entry
     = CALLN (Fvector, make_mint_ptr (var), make_fixnum (-1),
-	     Fmake_vector (make_fixnum (cons_block_conses_length), Qnil));
+	     Fmake_vector (make_fixnum (cons_block_conses_length),
+			   Qnil));
   comp.cons_block_list = Fcons (entry, comp.cons_block_list);
   return entry;
 }
@@ -2580,10 +2585,13 @@ push_float_block (void)
   gcc_jit_lvalue *var
     = gcc_jit_context_new_global (comp.ctxt, NULL,
 				  GCC_JIT_GLOBAL_INTERNAL,
-				  comp.float_block_aligned_type, name);
+				  gcc_jit_type_get_const (
+				    comp.float_block_aligned_type),
+				  name);
   Lisp_Object entry
     = CALLN (Fvector, make_mint_ptr (var), make_fixnum (-1),
-	     Fmake_vector (make_fixnum (float_block_floats_length), Qnil));
+	     Fmake_vector (make_fixnum (float_block_floats_length),
+			   Qnil));
   comp.float_block_list = Fcons (entry, comp.float_block_list);
   return entry;
 }
@@ -2631,7 +2639,8 @@ cons_block_emit_constructor (Lisp_Object block)
   SAFE_NALLOCA (gcmarkbits, 1, cons_block_gcmarkbits_length);
   for (ptrdiff_t i = 0; i < cons_block_gcmarkbits_length; i++)
     gcmarkbits[i]
-      = gcc_jit_context_zero (comp.ctxt, comp.ptrdiff_type);
+      = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.ptrdiff_type, ~0u);
 
   gcc_jit_field *fields[] = {
     comp.cons_block_conses,
@@ -2681,7 +2690,8 @@ float_block_emit_constructor (Lisp_Object block)
   SAFE_NALLOCA (gcmarkbits, 1, float_block_gcmarkbits_length);
   for (ptrdiff_t i = 0; i < float_block_gcmarkbits_length; i++)
     gcmarkbits[i]
-      = gcc_jit_context_zero (comp.ctxt, comp.ptrdiff_type);
+      = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.ptrdiff_type, ~0u);
 
   gcc_jit_field *fields[] = {
     comp.float_block_floats,
@@ -2855,6 +2865,7 @@ comp_lisp_const_get_lisp_obj_rval (Lisp_Object lobj,
     {
       if (type_lisp_vector_p (type))
 	type = gcc_jit_type_get_aligned (type, GCALIGNMENT);
+      type = gcc_jit_type_get_const (type);
 
       gcc_jit_lvalue *var
 	= emit_lisp_data_var (type, GCC_JIT_GLOBAL_INTERNAL);
@@ -2998,9 +3009,12 @@ emit_comp_lisp_obj (Lisp_Object obj,
 	  expr.expr.with_type.init = lisp_float;
 	  expr.expr.with_type.type = Lisp_Float;
 	}
-      else if (VECTORP (obj))
+      else if (COMPILEDP (obj) || VECTORP (obj) || RECORDP (obj))
 	{
 	  ptrdiff_t size = ASIZE (obj);
+	  if (size & PSEUDOVECTOR_FLAG)
+	    size &= PSEUDOVECTOR_SIZE_MASK;
+
 	  ptrdiff_t i;
 
 	  jit_vector_type_t vec_type
@@ -3058,7 +3072,8 @@ emit_comp_lisp_obj (Lisp_Object obj,
 	  gcc_jit_rvalue *struct_values[] = {
 	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						 comp.ptrdiff_type,
-						 size),
+						 ASIZE (obj)
+						   | ARRAY_MARK_FLAG),
 	    gcc_jit_context_new_array_constructor (comp.ctxt, NULL,
 						   vec_type
 						     .contents_type,

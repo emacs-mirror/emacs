@@ -2527,7 +2527,8 @@ pin_string (Lisp_Object string)
       old_sdata->string = NULL;
       SDATA_NBYTES (old_sdata) = size;
     }
-  s->u.s.size_byte = -3;
+  if (s->u.s.size_byte != -3)
+    s->u.s.size_byte = -3;
 }
 
 
