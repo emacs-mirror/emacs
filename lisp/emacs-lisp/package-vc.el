@@ -780,8 +780,9 @@ marked revisions, use those."
          (and (not vc-prepare-patches-separately)
               (read-string "Subject: " "[PATCH] " nil nil t))
          (vc-prepare-patch-prompt-revisions)))
-  (vc-prepare-patch (package-maintainers pkg-desc t)
-                    subject revisions))
+  (let ((default-directory (package-desc-dir pkg-desc)))
+    (vc-prepare-patch (package-maintainers pkg-desc t)
+                      subject revisions)))
 
 (provide 'package-vc)
 ;;; package-vc.el ends here
