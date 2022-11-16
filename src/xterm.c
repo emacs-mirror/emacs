@@ -27632,8 +27632,6 @@ x_focus_frame (struct frame *f, bool noactivate)
 	  return;
 	}
 
-      /* Ignore any BadMatch error this request might result in.  */
-      x_ignore_errors_for_next_request (dpyinfo);
       if (NILP (Vx_no_window_manager))
 	{
 	  /* Use the last user time.  It is invalid to use CurrentTime
@@ -27651,15 +27649,24 @@ x_focus_frame (struct frame *f, bool noactivate)
 	      && !dpyinfo->x_focus_frame)
 	    time = x_get_server_time (f);
 
+	  /* Ignore any BadMatch error this request might result in.
+	     A BadMatch error can occur if the window was obscured
+	     after the time of the last user interaction without
+	     changing the last-focus-change-time.  */
+	  x_ignore_errors_for_next_request (dpyinfo);
 	  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 			  RevertToParent, time);
+	  x_stop_ignoring_errors (dpyinfo);
 	}
       else
-	XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			/* But when no window manager is in use, we
-			   don't care.  */
-			RevertToParent, CurrentTime);
-      x_stop_ignoring_errors (dpyinfo);
+	{
+	  x_ignore_errors_for_next_request (dpyinfo);
+	  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+			  /* But when no window manager is in use, we
+			     don't care.  */
+			  RevertToParent, CurrentTime);
+	  x_stop_ignoring_errors (dpyinfo);
+	}
     }
 }
 
