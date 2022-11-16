@@ -539,7 +539,6 @@ function symbol (unquoted)."
 
 ;; Local Variables:
 ;; outline-regexp: ";;;\\(;* [^\s\t\n]\\|###autoload\\)\\|("
-;; indent-tabs-mode: nil
 ;; End:
 
 ;;; bind-key.el ends here

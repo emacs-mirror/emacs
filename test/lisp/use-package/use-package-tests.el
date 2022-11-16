@@ -1981,7 +1981,6 @@
     (should (eq (nth 2 binding) nil))))
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
 ;; End:
