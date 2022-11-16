@@ -651,7 +651,8 @@ while a list of strings is used as a word list."
 (defun apropos (pattern &optional do-all)
   "Show all meaningful Lisp symbols whose names match PATTERN.
 Symbols are shown if they are defined as functions, variables, or
-faces, or if they have nonempty property lists.
+faces, or if they have nonempty property lists, or if they are
+known keywords.
 
 PATTERN can be a word, a list of words (separated by spaces),
 or a regexp (using some regexp special characters).  If it is a word,
