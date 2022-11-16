@@ -4,12 +4,6 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
-;; Created: 17 Jun 2012
-;; Modified: 29 Nov 2017
-;; Version: 2.4.4
-;; Package-Requires: ((emacs "24.3"))
-;; Keywords: dotemacs startup speed config package
-;; URL: https://github.com/jwiegley/use-package
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
