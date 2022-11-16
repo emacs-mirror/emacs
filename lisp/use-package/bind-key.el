@@ -10,21 +10,19 @@
 ;; Keywords: keys keybinding config dotemacs
 ;; URL: https://github.com/jwiegley/use-package
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the gnu general public license as
-;; published by the free software foundation; either version 3, or (at
-;; your option) any later version.
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful, but
-;; without any warranty; without even the implied warranty of
-;; merchantability or fitness for a particular purpose.  see the gnu
-;; general public license for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the gnu general public license
-;; along with gnu emacs; see the file copying.  if not, write to the
-;; free software foundation, inc., 59 temple place - suite 330,
-;; boston, ma 02111-1307, usa.
-
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 
 ;; If you have lots of keybindings set in your .emacs file, it can be hard to
