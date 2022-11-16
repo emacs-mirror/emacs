@@ -190,12 +190,11 @@ MODE is either `c' or `cpp'."
 MODE is either `c' or `cpp'."
   (treesit-font-lock-rules
    :language mode
-   :override t
    :feature 'comment
    `((comment) @font-lock-comment-face
      (comment) @contextual)
+
    :language mode
-   :override t
    :feature 'preprocessor
    `((preproc_directive) @font-lock-preprocessor-face
 
@@ -214,40 +213,43 @@ MODE is either `c' or `cpp'."
      (preproc_defined) @font-lock-preprocessor-face
      (preproc_defined (identifier) @font-lock-variable-name-face)
      [,@c-ts-mode--preproc-keywords] @font-lock-preprocessor-face)
+
    :language mode
-   :override t
    :feature 'constant
    `((true) @font-lock-constant-face
      (false) @font-lock-constant-face
      (null) @font-lock-constant-face
      ,@(when (eq mode 'cpp)
          '((this) @font-lock-constant-face)))
+
    :language mode
-   :override t
    :feature 'keyword
    `([,@(c-ts-mode--keywords mode)] @font-lock-keyword-face
      ,@(when (eq mode 'cpp)
          '((auto) @font-lock-keyword-face)))
+
    :language mode
-   :override t
    :feature 'operator
-   `([,@c-ts-mode--operators] @font-lock-builtin-face)
-   :language mode
    :override t
+   `([,@c-ts-mode--operators] @font-lock-operator-face
+     "!" @font-lock-negation-char-face)
+
+   :language mode
    :feature 'string
    `((string_literal) @font-lock-string-face
-     ((string_literal)) @contextual
      (system_lib_string) @font-lock-string-face
-     (escape_sequence) @font-lock-string-face)
+     (escape_sequence) @font-lock-escape-face)
+
    :language mode
-   :override t
    :feature 'literal
    `((number_literal) @font-lock-constant-face
      (char_literal) @font-lock-constant-face)
+
    :language mode
-   :override t
    :feature 'type
    `((primitive_type) @font-lock-type-face
+     (type_identifier) @font-lock-type-face
+     (sized_type_specifier) @font-lock-type-face
      ,@(when (eq mode 'cpp)
          '((type_qualifier) @font-lock-type-face
 
@@ -255,90 +257,91 @@ MODE is either `c' or `cpp'."
             scope: (namespace_identifier) @font-lock-type-face)
 
            (operator_cast) type: (type_identifier) @font-lock-type-face)))
+
    :language mode
-   :override t
    :feature 'definition
+   ;; Highlights identifiers in declarations.
    `((declaration
-      declarator: (identifier) @font-lock-variable-name-face)
-
-     (declaration
-      type: (type_identifier) @font-lock-type-face)
+      declarator: (_) @font-lock-variable-name-face)
 
      (field_declaration
-      declarator: (field_identifier) @font-lock-variable-name-face)
-
-     (field_declaration
-      type: (type_identifier) @font-lock-type-face)
-
-     (parameter_declaration
-      type: (type_identifier) @font-lock-type-face)
+      declarator: (_) @c-ts-mode--fontify-struct-declarator)
 
      (function_definition
-      type: (type_identifier) @font-lock-type-face)
+      declarator: (_) @c-ts-mode--fontify-struct-declarator)
 
-     (function_declarator
-      declarator: (identifier) @font-lock-function-name-face)
-
-     (array_declarator
-      declarator: (identifier) @font-lock-variable-name-face)
-
-     (init_declarator
-      declarator: (identifier) @font-lock-variable-name-face)
-
-     (struct_specifier
-      name: (type_identifier) @font-lock-type-face)
-
-     (sized_type_specifier) @font-lock-type-face
-
-     (enum_specifier
-      name: (type_identifier) @font-lock-type-face)
+     ;; Should we highlight identifiers in the parameter list?
+     ;; (parameter_declaration
+     ;;  declarator: (_) @c-ts-mode--fontify-struct-declarator)
 
      (enumerator
-      name: (identifier) @font-lock-variable-name-face)
+      name: (identifier) @font-lock-variable-name-face))
 
-     (parameter_declaration
-      type: (_) @font-lock-type-face
-      declarator: (identifier) @font-lock-variable-name-face)
-
-     (pointer_declarator
-      declarator: (identifier) @font-lock-variable-name-face)
-
-     (pointer_declarator
-      declarator: (field_identifier) @font-lock-variable-name-face))
    :language mode
-   :override t
-   :feature 'expression
+   :feature 'assignment
+   ;; TODO: Recursively highlight identifiers in parenthesized
+   ;; expressions, see `c-ts-mode--fontify-struct-declarator' for
+   ;; inspiration.
    '((assignment_expression
       left: (identifier) @font-lock-variable-name-face)
+     (assignment_expression
+      left: (field_expression field: (_) @font-lock-property-face))
+     (assignment_expression
+      left: (pointer_expression
+             (identifier) @font-lock-variable-name-face))
+     (assignment_expression
+      left: (subscript_expression
+             (identifier) @font-lock-variable-name-face)))
 
-     (call_expression
+   :language mode
+   :feature 'expression
+   '((call_expression
       function: (identifier) @font-lock-function-name-face)
-
-     (field_expression
-      field: (field_identifier) @font-lock-variable-name-face)
-
      (field_expression
       argument: (identifier) @font-lock-variable-name-face
-      field: (field_identifier) @font-lock-variable-name-face)
-
+      field: (field_identifier) @font-lock-property-face)
      (pointer_expression
-      argument: (identifier) @font-lock-variable-name-face))
+      (identifier) @font-lock-variable-name-face))
+
    :language mode
-   :override t
-   :feature 'statement
+   :feature 'label
    '((expression_statement (identifier) @font-lock-variable-name-face)
      (labeled_statement
       label: (statement_identifier) @font-lock-type-face))
+
    :language mode
-   :override t
    :feature 'error
    '((ERROR) @font-lock-warning-face)
+
    :language mode
    :feature 'emacs-devel
-   :override 't
    '(((call_expression function: (identifier) @fn)
       @c-ts-mode--fontify-defun
       (:match "^DEFUN$" @fn)))))
+
+(defun c-ts-mode--fontify-declarator (node override start end &rest args)
+  "Fontify a declarator (whatever under the \"declarator\" field).
+For NODE, OVERRIDE, START, END, and ARGS, see
+`treesit-font-lock-rules'."
+  (pcase (treesit-node-type node)
+    ((or "attributed_declarator" "parenthesized_declarator")
+     (apply #'c-ts-mode--fontify-declarator
+            (treesit-node-child node 0 t) override start end args))
+    ("pointer_declarator"
+     (apply #'c-ts-mode--fontify-declarator
+            (treesit-node-child node -1) override start end args))
+    ((or "function_declarator" "array_declarator" "init_declarator")
+     (apply #'c-ts-mode--fontify-declarator
+            (treesit-node-child-by-field-name node "declarator")
+            override start end args))
+    ((or "identifier" "field_identifier")
+     (treesit-fontify-with-override
+      (max (treesit-node-start node) start)
+      (min (treesit-node-end node) end)
+      (pcase (treesit-node-type (treesit-node-parent node))
+        ("function_declarator" 'font-lock-function-name-face)
+        (_ 'font-lock-variable-name-face))
+      override))))
 
 (defun c-ts-mode--fontify-defun (node override start end &rest _)
   "Correctly fontify the DEFUN macro.
@@ -468,9 +471,9 @@ the subtrees."
   (setq-local which-func-functions nil)
 
   (setq-local treesit-font-lock-feature-list
-              '((comment preprocessor operator constant string literal keyword)
-                (type definition expression statement)
-                (error))))
+              '((comment preprocessor constant string literal keyword)
+                (type definition label assignment)
+                (expression error operator))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
