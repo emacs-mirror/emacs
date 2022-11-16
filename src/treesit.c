@@ -2654,8 +2654,17 @@ treesit_search_forward (TSNode *start, Lisp_Object pred, Lisp_Object parser,
 
      (while node (setq node (treesit-search-forward node)))
   */
+  bool initial = true;
   while (true)
     {
+      if (!initial /* We don't match START.  */
+	  && treesit_traverse_match_predicate (node, pred, parser))
+	{
+	  *start = node;
+	  return true;
+	}
+      initial = false;
+
       TSNode next = treesit_traverse_sibling_helper (node, forward, named);
       while (ts_node_is_null (next))
 	{
