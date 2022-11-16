@@ -504,6 +504,14 @@ option) and can be set to nil to disable Just-in-time Lock mode.
 
 * Changes in Emacs 29.1
 
+---
+** New user option `proced-enable-color-flag` to enable coloring of proced buffers
+This option prompts some format functions to furnish their respective
+process attributes with colors in a manner similar to htop.
+
+This option is disabled by default and needs setting to a non-nil
+value to take effect.
+
 +++
 ** New user option 'major-mode-remap-alist' to specify favorite major modes.
 This user option lets you remap the default modes (e.g. 'perl-mode' or
