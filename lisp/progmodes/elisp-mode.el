@@ -1690,15 +1690,21 @@ Return the result of evaluation."
     elisp--eval-defun-result))
 
 (defun eval-defun (edebug-it)
-  "Evaluate EDEBUG-IT or the top-level form containing point.
+  "Evaluate top-level form around point and instrument it if EDEBUG-IT is non-nil.
+Interactively, EDEBUG-IT is the prefix argument.
+If `edebug-all-defs' is non-nil, that inverts the meaning of EDEBUG-IT
+and the prefix argument: this function will instrument the form
+unless EDEBUG-IT is non-nil.  The command `edebug-all-defs' toggles
+the value of the variable `edebug-all-defs'.
+
 If point isn't in a top-level form, evaluate the first top-level
 form after point.  If there is no top-level form after point,
-eval the first preceeding top-level form.
+evaluate the first preceeding top-level form.
 
 If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value
 expression (using the defcustom's :set function if there is one), even
-if the variable already has some other value.  \(Normally `defvar' and
+if the variable already has some other value.  (Normally `defvar' and
 `defcustom' do not alter the value if there already is one.)  In an
 analogous way, evaluating a `defface' overrides any customizations of
 the face, so that it becomes defined exactly as the `defface' expression
@@ -1706,8 +1712,6 @@ says.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger.
-
-With a prefix argument, instrument the code for Edebug.
 
 If acting on a `defun' for FUNCTION, and the function was
 instrumented, `Edebug: FUNCTION' is printed in the echo area.  If not
