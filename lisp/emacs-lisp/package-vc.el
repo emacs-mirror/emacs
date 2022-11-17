@@ -562,6 +562,7 @@ installed package."
                (if installed package-alist package-archive-contents)
                #'string=)))
 
+;;;###autoload
 (defun package-vc-update-all ()
   "Attempt to update all installed VC packages."
   (interactive)
@@ -571,6 +572,7 @@ installed package."
         (package-vc-update pkg-desc))))
   (message "Done updating packages."))
 
+;;;###autoload
 (defun package-vc-update (pkg-desc)
   "Attempt to update the package PKG-DESC."
   (interactive (list (package-vc--read-package-desc "Update source package: " t)))
