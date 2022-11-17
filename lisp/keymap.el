@@ -582,11 +582,11 @@ symbol property on its symbol.
       (let ((keyword (pop defs)))
         (unless defs
           (error "Uneven number of keywords"))
-        (pcase keyword
-          (:doc (setq doc (pop defs)))
-          (:repeat (setq repeat (pop defs)))
-          (_ (push keyword opts)
-             (push (pop defs) opts)))))
+        (cond
+         ((eq keyword :doc) (setq doc (pop defs)))
+         ((eq keyword :repeat) (setq repeat (pop defs)))
+         (t (push keyword opts)
+            (push (pop defs) opts)))))
     (unless (zerop (% (length defs) 2))
       (error "Uneven number of key/definition pairs: %s" defs))
 
