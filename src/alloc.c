@@ -6279,11 +6279,6 @@ garbage_collect (void)
   image_prune_animation_caches (false);
 #endif
 
-  /* ELisp code run by `gc-post-hook' could result in itree iteration,
-     which must not happen while the itree is already busy.  See
-     bug#58639.  */
-  eassert (!itree_iterator_busy_p ());
-
   if (!NILP (Vpost_gc_hook))
     {
       specpdl_ref gc_count = inhibit_garbage_collection ();

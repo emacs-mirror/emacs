@@ -238,71 +238,11 @@ itree_stack_pop (struct itree_stack *stack)
 
 /* +-----------------------------------------------------------------------+ */
 
-/* State used when iterating interval. */
-struct itree_iterator
-{
-  struct itree_stack *stack;
-  struct itree_node *node;
-  ptrdiff_t begin;
-  ptrdiff_t end;
-
-  /* A copy of the tree's `otick`.  */
-  uintmax_t otick;
-  enum itree_order order;
-  bool running;
-  const char *file;
-  int line;
-};
-
-/* Ideally, every iteration would use its own `iter` object, so we could
-   have several iterations active at the same time.  In practice, iterations
-   are limited by the fact we don't allow modifying the tree at the same
-   time, making the use of nested iterations quite rare anyway.
-   So we just use a single global iterator instead for now.  */
-static struct itree_iterator *iter = NULL;
-
 static int
 itree_max_height (const struct itree_tree *tree)
 {
   return 2 * log (tree->size + 1) / log (2) + 0.5;
 }
-
-/* Allocate a new iterator for TREE. */
-
-static struct itree_iterator *
-itree_iterator_create (struct itree_tree *tree)
-{
-  struct itree_iterator *g = xmalloc (sizeof *g);
-  /* 19 here just avoids starting with a silly-small stack.
-     FIXME: Since this stack only needs to be about 2*max_depth
-     in the worst case, we could completely pre-allocate it to something
-     like word-bit-size * 2 and then never worry about growing it.  */
-  const int size = (tree ? itree_max_height (tree) : 19) + 1;
-
-  g->stack = itree_stack_create (size);
-  g->node = NULL;
-  g->running = false;
-  g->begin = 0;
-  g->end = 0;
-  g->file = NULL;
-  g->line = 0;
-  return g;
-}
-
-void
-init_itree (void)
-{
-  eassert (!iter);
-  iter = itree_iterator_create (NULL);
-}
-
-#ifdef HAVE_UNEXEC
-void
-forget_itree (void)
-{
-  iter = NULL;
-}
-#endif
 
 struct check_subtree_result
 {
@@ -871,7 +811,7 @@ itree_node_set_region (struct itree_tree *tree,
 static bool
 itree_contains (struct itree_tree *tree, struct itree_node *node)
 {
-  eassert (iter && node);
+  eassert (node);
   struct itree_node *other;
   ITREE_FOREACH (other, tree, node->begin, PTRDIFF_MAX, ASCENDING)
     if (other == node)
@@ -1304,18 +1244,13 @@ itree_delete_gap (struct itree_tree *tree,
  * | Iterator
  * +=======================================================================+ */
 
-bool
-itree_iterator_busy_p (void)
-{
-  return (iter && iter->running);
-}
-
 /* Stop using the iterator. */
 
 void
 itree_iterator_finish (struct itree_iterator *iter)
 {
   eassert (iter && iter->running);
+  itree_stack_destroy (iter->stack);
   iter->running = false;
 }
 
@@ -1504,18 +1439,18 @@ itree_iterator_first_node (struct itree_tree *tree,
    given ORDER.  Only one iterator per tree can be running at any time.  */
 
 struct itree_iterator *
-itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
-		      ptrdiff_t end, enum itree_order order,
-		      const char *file, int line)
+itree_iterator_start (struct itree_iterator *iter,
+		      struct itree_tree *tree,
+		      ptrdiff_t begin, ptrdiff_t end, enum itree_order order)
 {
   eassert (iter);
-  if (iter->running)
-    {
-      fprintf (stderr,
-	       "Detected nested iteration!\nOuter: %s:%d\nInner: %s:%d\n",
-	       iter->file, iter->line, file, line);
-      emacs_abort ();
-    }
+  /* eassert (!iter->running); */
+  /* 19 here just avoids starting with a silly-small stack.
+     FIXME: Since this stack only needs to be about 2*max_depth
+     in the worst case, we could completely pre-allocate it to something
+     like word-bit-size * 2 and then never worry about growing it.  */
+  const int size = (tree ? itree_max_height (tree) : 19) + 1;
+  iter->stack = itree_stack_create (size);
   uintmax_t otick= tree->otick;
   iter->begin = begin;
   iter->end = end;
@@ -1524,8 +1459,6 @@ itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
   itree_stack_clear (iter->stack);
   if (begin <= end && tree->root != NULL)
     itree_stack_push_flagged (iter->stack, tree->root, false);
-  iter->file = file;
-  iter->line = line;
   iter->running = true;
   /* itree_stack_ensure_space (iter->stack,
 			       2 * itree_max_height (tree)); */
