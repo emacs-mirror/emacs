@@ -595,22 +595,37 @@ Used in `repeat-mode'."
                           (car keymap)))
                    (repeat-commands (cdr keymap))
                    map-commands commands-enter commands-exit)
-              (map-keymap (lambda (_key cmd) (when (symbolp cmd) (push cmd map-commands))) map)
+              (map-keymap (lambda (_key cmd)
+                            (when (symbolp cmd) (push cmd map-commands)))
+                          map)
               (setq map-commands (seq-uniq map-commands))
               (setq commands-enter (seq-difference repeat-commands map-commands))
               (setq commands-exit  (seq-difference map-commands repeat-commands))
 
-              (when (or commands-enter commands-exit) (insert "\n"))
-              (when commands-enter
-                (insert (concat "Entered with: "
-                                (mapconcat (lambda (cmd) (format-message "`%s'" cmd))
-                                           commands-enter ", ")
-                                "\n")))
-              (when commands-exit
-                (insert (concat "Exited with: "
-                                (mapconcat (lambda (cmd) (format-message "`%s'" cmd))
-                                           commands-exit ", ")
-                                "\n"))))
+              (when (or commands-enter commands-exit)
+                (insert "\n")
+                (when commands-enter
+                  (fill-region-as-paragraph
+                   (point)
+                   (progn
+                     (insert (concat "Entered with: "
+                                     (mapconcat (lambda (cmd)
+                                                  (format-message "`%s'" cmd))
+                                                (sort commands-enter #'string<)
+                                                ", ")
+                                     "\n"))
+                     (point))))
+                (when commands-exit
+                  (fill-region-as-paragraph
+                   (point)
+                   (progn
+                     (insert (concat "Exited with: "
+                                     (mapconcat (lambda (cmd)
+                                                  (format-message "`%s'" cmd))
+                                                (sort commands-exit #'string<)
+                                                ", ")
+                                     "\n"))
+                     (point))))))
 
             (when (symbolp (car keymap))
               (insert (substitute-command-keys (format-message "\\{%s}" (car keymap)))))
