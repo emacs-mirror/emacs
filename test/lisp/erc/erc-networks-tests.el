@@ -1704,4 +1704,21 @@
 
   (erc-networks-tests--clean-bufs))
 
+(ert-deftest erc-networks--determine ()
+  (should (eq (erc-networks--determine "irc.libera.chat") 'Libera.Chat))
+  (should (eq (erc-networks--determine "irc.oftc.net") 'OFTC))
+  (should (eq (erc-networks--determine "irc.dal.net") 'DALnet))
+
+  (let ((erc-server-announced-name "zirconium.libera.chat"))
+    (should (eq (erc-networks--determine) 'Libera.Chat)))
+  (let ((erc-server-announced-name "weber.oftc.net"))
+    (should (eq (erc-networks--determine) 'OFTC)))
+  (let ((erc-server-announced-name "redemption.ix.us.dal.net"))
+    (should (eq (erc-networks--determine) 'DALnet)))
+
+  ;; Failure
+  (let ((erc-server-announced-name "irc-us2.alphachat.net"))
+    (should (eq (erc-networks--determine)
+                erc-networks--name-missing-sentinel))))
+
 ;;; erc-networks-tests.el ends here

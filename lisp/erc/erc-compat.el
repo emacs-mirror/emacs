@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'compat nil 'noerror)
+(eval-when-compile (require 'cl-lib) (require 'url-parse))
 
 ;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
 (define-obsolete-function-alias 'erc-define-minor-mode
@@ -157,6 +158,121 @@ If START or END is negative, it counts from the end."
 	       res))))))
 
 
+;;;; Auth Source
+
+(declare-function auth-source-pass--get-attr
+                  "auth-source-pass" (key entry-data))
+(declare-function auth-source-pass--disambiguate
+                  "auth-source-pass" (host &optional user port))
+(declare-function auth-source-backend-parse-parameters
+                  "auth-source-pass" (entry backend))
+(declare-function auth-source-backend "auth-source" (&rest slots))
+(declare-function auth-source-pass-entries "auth-source-pass" nil)
+(declare-function auth-source-pass-parse-entry "auth-source-pass" (entry))
+
+(defvar auth-sources)
+(defvar auth-source-backend-parser-functions)
+
+;; This hard codes `auth-source-pass-port-separator' to ":"
+(defun erc-compat--29-auth-source-pass--retrieve-parsed (seen e port-number-p)
+  (when (string-match (rx (or bot "/")
+                          (or (: (? (group-n 20 (+ (not (in " /@")))) "@")
+                                 (group-n 10 (+ (not (in " /:@"))))
+                                 (? ":" (group-n 30 (+ (not (in " /:"))))))
+                              (: (group-n 11 (+ (not (in " /:@"))))
+                                 (? ":" (group-n 31 (+ (not (in " /:")))))
+                                 (? "/" (group-n 21 (+ (not (in " /:")))))))
+                          eot)
+                      e)
+    (puthash e `( :host ,(or (match-string 10 e) (match-string 11 e))
+                  ,@(if-let* ((tr (match-string 21 e)))
+                        (list :user tr :suffix t)
+                      (list :user (match-string 20 e)))
+                  :port ,(and-let* ((p (or (match-string 30 e)
+                                           (match-string 31 e)))
+                                    (n (string-to-number p)))
+                           (if (or (zerop n) (not port-number-p))
+                               (format "%s" p)
+                             n)))
+             seen)))
+
+;; This looks bad, but it just inlines `auth-source-pass--find-match-many'.
+(defun erc-compat--29-auth-source-pass--build-result-many
+    (hosts users ports require max)
+  "Return a plist of HOSTS, PORTS, USERS, and secret."
+  (unless (listp hosts) (setq hosts (list hosts)))
+  (unless (listp users) (setq users (list users)))
+  (unless (listp ports) (setq ports (list ports)))
+  (unless max (setq max 1))
+  (let ((seen (make-hash-table :test #'equal))
+        (entries (auth-source-pass-entries))
+        (check (lambda (m k v)
+                 (let ((mv (plist-get m k)))
+                   (if (memq k require)
+                       (and v (equal mv v))
+                     (or (not v) (not mv) (equal mv v))))))
+        out suffixed suffixedp)
+    (catch 'done
+      (dolist (host hosts)
+        (pcase-let ((`(,_ ,u ,p) (auth-source-pass--disambiguate host)))
+          (unless (or (not (equal "443" p)) (string-prefix-p "https://" host))
+            (setq p nil))
+          (dolist (user (or users (list u)))
+            (dolist (port (or ports (list p)))
+              (dolist (e entries)
+                (when-let*
+                    ((m (or (gethash e seen)
+                            (erc-compat--29-auth-source-pass--retrieve-parsed
+                             seen e (integerp port))))
+                     ((equal host (plist-get m :host)))
+                     ((funcall check m :port port))
+                     ((funcall check m :user user))
+                     (parsed (auth-source-pass-parse-entry e))
+                     (secret (or (auth-source-pass--get-attr 'secret parsed)
+                                 (not (memq :secret require)))))
+                  (push
+                   `( :host ,host ; prefer user-provided :host over h
+                      ,@(and-let* ((u (plist-get m :user))) (list :user u))
+                      ,@(and-let* ((p (plist-get m :port))) (list :port p))
+                      ,@(and secret (not (eq secret t)) (list :secret secret)))
+                   (if (setq suffixedp (plist-get m :suffix)) suffixed out))
+                  (unless suffixedp
+                    (when (or (zerop (cl-decf max))
+                              (null (setq entries (delete e entries))))
+                      (throw 'done out)))))
+              (setq suffixed (nreverse suffixed))
+              (while suffixed
+                (push (pop suffixed) out)
+                (when (zerop (cl-decf max))
+                  (throw 'done out))))))))
+    (reverse out)))
+
+(cl-defun erc-compat--29-auth-source-pass-search
+    (&rest spec &key host user port require max &allow-other-keys)
+  ;; From `auth-source-pass-search'
+  (cl-assert (and host (not (eq host t)))
+             t "Invalid password-store search: %s %s")
+  (erc-compat--29-auth-source-pass--build-result-many
+   host user port require max))
+
+(defun erc-compat--29-auth-source-pass-backend-parse (entry)
+  (when (eq entry 'password-store)
+    (auth-source-backend-parse-parameters
+     entry (auth-source-backend
+            :source "."
+            :type 'password-store
+            :search-function #'erc-compat--29-auth-source-pass-search))))
+
+(defun erc-compat--auth-source-backend-parser-functions ()
+  (if (memq 'password-store auth-sources)
+      (progn
+        (require 'auth-source-pass)
+        `(,@(unless (bound-and-true-p auth-source-pass-extra-query-keywords)
+              '(erc-compat--29-auth-source-pass-backend-parse))
+          ,@auth-source-backend-parser-functions))
+    auth-source-backend-parser-functions))
+
+
 ;;;; Misc 29.1
 
 (defmacro erc-compat--with-memoization (table &rest forms)
@@ -167,6 +283,35 @@ If START or END is negative, it counts from the end."
    ((fboundp 'cl--generic-with-memoization)
     `(cl--generic-with-memoization ,table ,@forms))
    (t `(progn ,@forms))))
+
+(defvar url-irc-function)
+
+(defun erc-compat--29-browse-url-irc (string &rest _)
+  (require 'url-irc)
+  (let* ((url (url-generic-parse-url string))
+         (url-irc-function
+          (if (function-equal url-irc-function 'url-irc-erc)
+              (lambda (host port chan user pass)
+                (erc-handle-irc-url host port chan user pass (url-type url)))
+            url-irc-function)))
+    (url-irc url)))
+
+(cond ((fboundp 'browse-url-irc)) ; 29
+      ((boundp 'browse-url-default-handlers) ; 28
+       (cl-pushnew '("\\`irc6?s?://" . erc-compat--29-browse-url-irc)
+                   browse-url-default-handlers))
+      ((boundp 'browse-url-browser-function) ; 27
+       (require 'browse-url)
+       (let ((existing browse-url-browser-function))
+         (setq browse-url-browser-function
+               (if (functionp existing)
+                   (lambda (u &rest r)
+                     (apply (if (string-match-p "\\`irc6?s?://" u)
+                                #'erc-compat--29-browse-url-irc
+                              existing)
+                            u r))
+                 (cons '("\\`irc6?s?://" . erc-compat--29-browse-url-irc)
+                       existing))))))
 
 (provide 'erc-compat)
 

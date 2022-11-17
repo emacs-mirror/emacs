@@ -1237,16 +1237,21 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
          (max-height (/ (window-height) 2))
          (size-fun (lambda (window)
                      (fit-window-to-buffer window max-height)))
+         xref-alist
          buf)
     (cond
      ((not (cdr xrefs))
       (xref-pop-to-location (car xrefs)
                             (assoc-default 'display-action alist)))
      (t
+      ;; Call it here because it can call (project-current), and that
+      ;; might depend on individual buffer, not just directory.
+      (setq xref-alist (xref--analyze xrefs))
+
       (with-current-buffer (get-buffer-create xref-buffer-name)
         (xref--ensure-default-directory dd (current-buffer))
         (xref--transient-buffer-mode)
-        (xref--show-common-initialize (xref--analyze xrefs) fetcher alist)
+        (xref--show-common-initialize xref-alist fetcher alist)
         (pop-to-buffer (current-buffer)
                        `(display-buffer-in-direction . ((direction . below)
                                                         (window-height . ,size-fun))))

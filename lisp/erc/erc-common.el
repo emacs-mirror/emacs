@@ -77,6 +77,9 @@
 (cl-defstruct (erc--target-channel (:include erc--target)))
 (cl-defstruct (erc--target-channel-local (:include erc--target-channel)))
 
+;; Beginning in 5.5/29.1, the `tags' field may take on one of two
+;; differing types.  See `erc-tags-format' for details.
+
 (cl-defstruct (erc-response (:conc-name erc-response.))
   (unparsed "" :type string)
   (sender "" :type string)

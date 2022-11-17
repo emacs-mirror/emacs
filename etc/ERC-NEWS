@@ -77,6 +77,13 @@ blanks when 'erc-send-whitespace-lines' is active.  New options have
 also been added for warning when input spans multiple lines.  Although
 off by default, new users are encouraged to enable them.
 
+** URL handling has improved.
+Clicking on 'irc://' and 'ircs://' links elsewhere in Emacs now does
+the right thing most of the time.  However, for security reasons,
+users are now prompted to confirm connection parameters prior to lift
+off.  See the new '(erc) Integrations' section in the Info manual to
+override this.
+
 ** Miscellaneous behavioral changes impacting the user experience.
 A bug has been fixed that saw prompts being mangled, doubled, or
 erased in server buffers upon disconnection.  Instead, input prompts

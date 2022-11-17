@@ -4749,7 +4749,7 @@ gui_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_va
   if (FRAME_FONT (f))
     {
       /* Reconsider default font after backend(s) change (Bug#23386).  */
-      FRAME_RIF(f)->default_font_parameter (f, Qnil);
+      FRAME_RIF (f)->default_font_parameter (f, Qnil);
       face_change = true;
       windows_or_buffers_changed = 18;
     }
@@ -5946,6 +5946,37 @@ This function is for internal use only.  */)
 
   return f->was_invisible ? Qt : Qnil;
 }
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+DEFUN ("reconsider-frame-fonts", Freconsider_frame_fonts,
+       Sreconsider_frame_fonts, 1, 1, 0,
+       doc: /* Recreate FRAME's default font using updated font parameters.
+Signal an error if FRAME is not a window system frame.  This should be
+called after a `config-changed' event is received, signalling that the
+parameters (such as pixel density) used by the system to open fonts
+have changed.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f;
+
+  f = decode_window_system_frame (frame);
+
+  /* First, call this to reinitialize any font backend specific
+     stuff.  */
+
+  if (FRAME_RIF (f)->default_font_parameter)
+    FRAME_RIF (f)->default_font_parameter (f, Qnil);
+
+  /* Now call this to apply the existing value(s) of the `default'
+     face.  */
+  call1 (Qface_set_after_frame_default, frame);
+
+  return Qnil;
+}
+
+#endif
+
 
 /***********************************************************************
 			Multimonitor data
@@ -6634,6 +6665,6 @@ iconify the top level frame instead.  */);
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sx_get_resource);
   defsubr (&Sx_parse_geometry);
+  defsubr (&Sreconsider_frame_fonts);
 #endif
-
 }

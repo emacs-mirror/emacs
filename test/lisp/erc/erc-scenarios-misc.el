@@ -177,4 +177,32 @@
         (erc-scenarios-common-say "Hi")
         (funcall expect 10 "Hola")))))
 
+(defvar url-irc-function)
+
+(ert-deftest erc-scenarios-handle-irc-url ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "join/legacy")
+       (dumb-server (erc-d-run "localhost" t 'foonet))
+       (port (process-contact dumb-server :service))
+       (expect (erc-d-t-make-expecter))
+       (url-irc-function 'url-irc-erc)
+       (erc-url-connect-function
+        (lambda (scheme &rest r)
+          (ert-info ("Connect to foonet")
+            (should (equal scheme "irc"))
+            (with-current-buffer (apply #'erc `(:full-name "tester" ,@r))
+              (should (string= (buffer-name)
+                               (format "127.0.0.1:%d" port)))
+              (current-buffer))))))
+
+    (with-temp-buffer
+      (insert (format ";; irc://tester:changeme@127.0.0.1:%d/#chan" port))
+      (goto-char 10)
+      (browse-url-at-point))
+
+    (ert-info ("Connected")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
+        (funcall expect 10 "welcome")))))
+
 ;;; erc-scenarios-misc.el ends here

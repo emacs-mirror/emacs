@@ -1688,7 +1688,7 @@ For example, to keep your Company customization, add the symbol
 `company' to this variable.")
 
 (defun eglot--stay-out-of-p (symbol)
-  "Tell if Eglot should stay of of SYMBOL."
+  "Tell if Eglot should stay out of SYMBOL."
   (cl-find (symbol-name symbol) eglot-stay-out-of
            :test (lambda (s thing)
                    (let ((re (if (symbolp thing) (symbol-name thing) thing)))
@@ -2298,8 +2298,7 @@ Instead of a plist, an alist ((SECTION . VALUE) ...) can be used
 instead, but this variant is less reliable and not recommended.
 
 This variable should be set as a directory-local variable.  See
-See info node `(emacs)Directory Variables' for various ways to to
-that.
+info node `(emacs)Directory Variables' for various ways to do that.
 
 Here's an example value that establishes two sections relevant to
 the Pylsp and Gopls LSP servers:
@@ -3213,7 +3212,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
       actions)))
 
 (defun eglot--read-execute-code-action (actions server &optional action-kind)
-  "Helper for interactive calls to `eglot-code-actions'"
+  "Helper for interactive calls to `eglot-code-actions'."
   (let* ((menu-items
           (or (cl-loop for a in actions
                        collect (cons (plist-get a :title) a))

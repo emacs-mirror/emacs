@@ -3567,7 +3567,7 @@ to provide the `find-revision' operation instead."
 
 (defun vc-clone (remote &optional backend directory rev)
   "Use BACKEND to clone REMOTE into DIRECTORY.
-If successful, returns the a string with the directory of the
+If successful, returns the string with the directory of the
 checkout.  If BACKEND is nil, iterate through every known backend
 in `vc-handled-backends' until one succeeds.  If REV is non-nil,
 it indicates a specific revision to check out."

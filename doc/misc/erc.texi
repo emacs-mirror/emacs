@@ -79,6 +79,7 @@ Advanced Usage
 
 * Connecting::                  Ways of connecting to an IRC server.
 * Sample Configuration::        An example configuration file.
+* Integrations::                Integrations available for ERC.
 * Options::                     Options that are available for ERC.
 
 @end detailmenu
@@ -526,6 +527,7 @@ Translate morse code in messages
 @menu
 * Connecting::                  Ways of connecting to an IRC server.
 * Sample Configuration::        An example configuration file.
+* Integrations::                Integrations available for ERC.
 * Options::                     Options that are available for ERC.
 @end menu
 
@@ -861,7 +863,8 @@ The default value for all three options is the function
 @code{erc-auth-source-search}.  It tries to merge relevant contextual
 parameters with those provided or discovered from the logical connection
 or the underlying transport.  Some auth-source back ends may not be
-compatible; netrc, plstore, json, and secrets are currently supported.
+compatible; netrc, plstore, json, secrets, and pass are currently
+supported.
 @end defopt
 
 @subheading Full name
@@ -989,6 +992,32 @@ stuff, to the current ERC buffer."
 ;; Kill buffers for server messages after quitting the server
 ;; (setq erc-kill-server-buffer-on-quit t)
 @end lisp
+
+@node Integrations
+@section Integrations
+@cindex integrations
+
+@subheading URL
+For anything to work, you'll want to set @code{url-irc-function} to
+@code{url-irc-erc}.  As a rule of thumb, libraries relying directly on
+@code{url-retrieve} should be fine out the box from Emacs 29.1 onward.
+On older versions of Emacs, you may need to @code{(require 'erc)}
+beforehand. @pxref{Retrieving URLs,,, url, URL}.
+
+For other apps and libraries, such as those relying on the
+higher-level @code{browse-url}, you'll oftentimes be asked to specify
+a pattern, sometimes paired with a function that accepts a string URL
+as a first argument.  For example, with EWW, you may need to tack
+something like @code{"\\|\\`irc6?s?:"} onto the end of
+@code{eww-use-browse-url}.  But with @code{gnus-button-alist}, you'll
+need a function as well:
+
+@lisp
+  '("\\birc6?s?://[][a-z0-9.,@@_:+%?&/#-]+" 0 t browse-url-irc 0)
+@end lisp
+
+@noindent
+Users on Emacs 28 and below may need to use @code{browse-url} instead.
 
 @node Options
 @section Options

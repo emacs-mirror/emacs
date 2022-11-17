@@ -280,7 +280,9 @@ Comments in the form will be lost."
   (remove-hook 'electric-pair-mode-hook #'emacs-lisp-set-electric-text-pairs))
 
 (defun elisp-enable-lexical-binding (&optional interactive)
-  "Make the current buffer use `lexical-binding'."
+  "Make the current buffer use `lexical-binding'.
+INTERACTIVE non-nil means ask the user for confirmation; this
+happens in interactive invocations."
   (interactive "p")
   (if lexical-binding
       (when interactive
@@ -360,7 +362,7 @@ be used instead.
 ;;; Completion at point for Elisp
 
 (defun elisp--local-variables-1 (vars sexp)
-  "Return the vars locally bound around the witness, or nil if not found."
+  "Return VARS locally bound around the witness, or nil if not found."
   (let (res)
     (while
         (unless
@@ -463,7 +465,7 @@ be used instead.
          lastvars)))))
 
 (defun elisp--expect-function-p (pos)
-  "Return non-nil if the symbol at point is expected to be a function."
+  "Return non-nil if the symbol at position POS is expected to be a function."
   (or
    (and (eq (char-before pos) ?')
         (eq (char-before (1- pos)) ?#))
@@ -1331,12 +1333,12 @@ Semicolons start comments.
 (defun eval-print-last-sexp (&optional eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value into current buffer.
 
+Interactively, EVAL-LAST-SEXP-ARG-INTERNAL is the prefix numeric argument.
 Normally, this function truncates long output according to the value
 of the variables `eval-expression-print-length' and
-`eval-expression-print-level'.  With a prefix argument of zero,
-however, there is no such truncation.  Such a prefix argument
-also causes integers to be printed in several additional formats
-\(octal, hexadecimal, and character).
+`eval-expression-print-level'.  But if EVAL-LAST-SEXP-ARG-INTERNAL is zero,
+there is no such truncation, and integers are printed in several additional
+formats (octal, hexadecimal, and character).
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
@@ -1557,8 +1559,8 @@ POS specifies the starting position where EXP was found and defaults to point."
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in the echo area.
-Interactively, with a non `-' prefix argument, print output into
-current buffer.
+Interactively, EVAL-LAST-SEXP-ARG-INTERNAL is the prefix argument.
+With a non `-' prefix argument, print output into current buffer.
 
 This commands handles `defvar', `defcustom' and `defface' the
 same way that `eval-defun' does.  See the doc string of that
@@ -1588,7 +1590,7 @@ this command arranges for all errors to enter the debugger."
       (car value))))
 
 (defun elisp--eval-defun-1 (form)
-  "Treat some expressions specially.
+  "Treat some expressions in FORM specially.
 Reset the `defvar' and `defcustom' variables to the initial value.
 \(For `defcustom', use the :set function if there is one.)
 Reinitialize the face according to the `defface' specification."
@@ -1688,7 +1690,7 @@ Return the result of evaluation."
     elisp--eval-defun-result))
 
 (defun eval-defun (edebug-it)
-  "Evaluate the top-level form containing point.
+  "Evaluate EDEBUG-IT or the top-level form containing point.
 If point isn't in a top-level form, evaluate the first top-level
 form after point.  If there is no top-level form after point,
 eval the first preceeding top-level form.
@@ -1734,7 +1736,8 @@ which see."
 ;;; ElDoc Support
 
 (defvar elisp--eldoc-last-data (make-vector 3 nil)
-  "Bookkeeping; elements are as follows:
+  "Bookkeeping.
+Elements are as follows:
   0 - contains the last symbol read from the buffer.
   1 - contains the string last displayed in the echo area for variables,
       or argument string for functions.
@@ -1766,7 +1769,7 @@ it is preferable to use ElDoc's interfaces directly.")
                "use ElDoc's interfaces instead." "28.1")
 
 (defun elisp-eldoc-funcall (callback &rest _ignored)
-  "Document function call at point.
+  "Document function call at point by calling CALLBACK.
 Intended for `eldoc-documentation-functions' (which see)."
   (let* ((sym-info (elisp--fnsym-in-current-sexp))
          (fn-sym (car sym-info)))
@@ -1778,7 +1781,7 @@ Intended for `eldoc-documentation-functions' (which see)."
                        'font-lock-keyword-face)))))
 
 (defun elisp-eldoc-var-docstring (callback &rest _ignored)
-  "Document variable at point.
+  "Document variable at point by calling CALLBACK.
 Intended for `eldoc-documentation-functions' (which see).
 Also see `elisp-eldoc-var-docstring-with-value'."
   (let* ((sym (elisp--current-symbol))
@@ -1789,7 +1792,7 @@ Also see `elisp-eldoc-var-docstring-with-value'."
                :face 'font-lock-variable-name-face))))
 
 (defun elisp-eldoc-var-docstring-with-value (callback &rest _)
-  "Document variable at point.
+  "Document variable at point by calling CALLBACK.
 Intended for `eldoc-documentation-functions' (which see).
 Compared to `elisp-eldoc-var-docstring', this also includes the
 current variable value and a bigger chunk of the docstring."
@@ -1817,6 +1820,7 @@ current variable value and a bigger chunk of the docstring."
 
 (defun elisp-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.
+INDEX is the index of the parameter in the returned string to highlight.
 If SYM is a subr and no arglist is obtainable from the docstring
 or elsewhere, return a 1-line docstring."
   (let ((argstring
@@ -1847,7 +1851,8 @@ or elsewhere, return a 1-line docstring."
          sym argstring index))))
 
 (defun elisp--highlight-function-argument (sym args index)
-  "Highlight argument INDEX in ARGS list for function SYM."
+  "Highlight the argument of function SYM whose index is INDEX.
+ARGS is the argument list of function SYM."
   ;; FIXME: This should probably work on the list representation of `args'
   ;; rather than its string representation.
   ;; FIXME: This function is much too long, we need to split it up!

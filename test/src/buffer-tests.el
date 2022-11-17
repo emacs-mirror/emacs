@@ -42,7 +42,6 @@ recorded calls conveniently."
      overlay
      hooks-property
      (list (lambda (ov &rest args)
-             (message "  %S called on %S with args %S" hooks-property ov args)
              (should inhibit-modification-hooks)
              (should (eq ov overlay))
              (push (list hooks-property args)
@@ -175,47 +174,41 @@ properties."
                                     (t 1 2 0))
                                    (insert-behind-hooks
                                     (t 1 2 0)))))))
-      (message "BEGIN overlay-modification-hooks test-case %S" test-case)
+      (ert-info ((format "test-case: %S" test-case))
+        ;; All three hooks ignore the overlay's `front-advance' and
+        ;; `rear-advance' option, so test both ways while expecting the same
+        ;; result.
+        (dolist (advance '(nil t))
+          (ert-info ((format "advance is %S" advance))
+            (let-alist test-case
+              (with-temp-buffer
+                ;; Set up the temporary buffer and overlay as specified by
+                ;; the test case.
+                (insert (or .buffer-text "1234"))
+                (let ((overlay (make-overlay
+                                (or .overlay-beg 2)
+                                (or .overlay-end 4)
+                                nil
+                                advance advance)))
+                  (overlay-tests-start-recording-modification-hooks overlay)
 
-      ;; All three hooks ignore the overlay's `front-advance' and
-      ;; `rear-advance' option, so test both ways while expecting the same
-      ;; result.
-      (dolist (advance '(nil t))
-        (message "  advance is %S" advance)
-        (let-alist test-case
-          (with-temp-buffer
-            ;; Set up the temporary buffer and overlay as specified by
-            ;; the test case.
-            (insert (or .buffer-text "1234"))
-            (let ((overlay (make-overlay
-                            (or .overlay-beg 2)
-                            (or .overlay-end 4)
-                            nil
-                            advance advance)))
-              (message "  (buffer-string) is %S" (buffer-string))
-              (message "  overlay is %S" overlay)
-              (overlay-tests-start-recording-modification-hooks overlay)
+                  ;; Modify the buffer, possibly inducing calls to the
+                  ;; overlay's modification hooks.
+                  (should (or .insert-at .replace))
+                  (when .insert-at
+                    (goto-char .insert-at)
+                    (insert "x"))
+                  (when .replace
+                    (goto-char (point-min))
+                    (search-forward .replace)
+                    (replace-match "x"))
 
-              ;; Modify the buffer, possibly inducing calls to the
-              ;; overlay's modification hooks.
-              (should (or .insert-at .replace))
-              (when .insert-at
-                (goto-char .insert-at)
-                (insert "x")
-                (message "  inserted \"x\" at %S, buffer-string now %S"
-                         .insert-at (buffer-string)))
-              (when .replace
-                (goto-char (point-min))
-                (search-forward .replace)
-                (replace-match "x")
-                (message "  replaced %S with \"x\"" .replace))
-
-              ;; Verify that the expected and actual modification hook
-              ;; calls match.
-              (should (equal
-                       .expected-calls
-                       (overlay-tests-get-recorded-modification-hooks
-                        overlay)))))))))
+                  ;; Verify that the expected and actual modification hook
+                  ;; calls match.
+                  (should (equal
+                           .expected-calls
+                           (overlay-tests-get-recorded-modification-hooks
+                            overlay)))))))))))
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()
   "Test for bug#21824.
@@ -8429,7 +8422,7 @@ Finally, kill the buffer and its temporary file."
          (insert "foo\n")
          (should buffer-auto-save-file-name)
          (setq auto-save buffer-auto-save-file-name)
-         (do-auto-save)
+         (do-auto-save t)
          (should (file-exists-p auto-save))
          (kill-buffer (current-buffer))
          (should (file-exists-p auto-save)))))))
@@ -8444,7 +8437,7 @@ Finally, kill the buffer and its temporary file."
          (insert "foo\n")
          (should buffer-auto-save-file-name)
          (setq auto-save buffer-auto-save-file-name)
-         (do-auto-save)
+         (do-auto-save t)
          (should (file-exists-p auto-save))
          ;; This should delete the auto-save file.
          (kill-buffer (current-buffer))
@@ -8460,7 +8453,7 @@ Finally, kill the buffer and its temporary file."
          (insert "foo\n")
          (should buffer-auto-save-file-name)
          (setq auto-save buffer-auto-save-file-name)
-         (do-auto-save)
+         (do-auto-save t)
          (should (file-exists-p auto-save))
          ;; This should not delete the auto-save file.
          (kill-buffer (current-buffer))
@@ -8475,7 +8468,7 @@ Finally, kill the buffer and its temporary file."
       (insert "foo")
       (should (buffer-modified-p))
       (should-not (eq (buffer-modified-p) 'autosaved))
-      (do-auto-save nil t)
+      (do-auto-save t t)
       (should (eq (buffer-modified-p) 'autosaved))
       (with-silent-modifications
         (put-text-property 1 3 'face 'bold))
@@ -8499,7 +8492,7 @@ Finally, kill the buffer and its temporary file."
       (restore-buffer-modified-p nil)
       (should-not (buffer-modified-p))
       (insert "bar")
-      (do-auto-save nil t)
+      (do-auto-save t t)
       (should (eq (buffer-modified-p) 'autosaved))
       (insert "zot")
       (restore-buffer-modified-p 'autosaved)

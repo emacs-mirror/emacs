@@ -2494,9 +2494,10 @@ Also see `suggest-key-bindings'."
 (defun execute-extended-command--describe-binding-msg (function binding shorter)
   (format-message "You can run the command `%s' with %s"
                   function
-                  (cond (shorter (concat "M-x " shorter))
-                        ((stringp binding) binding)
-                        (t (key-description binding)))))
+                  (propertize (cond (shorter (concat "M-x " shorter))
+                                    ((stringp binding) binding)
+                                    (t (key-description binding)))
+                              'face 'help-key-binding)))
 
 (defun execute-extended-command (prefixarg &optional command-name typed)
   "Read a command name, then read the arguments and call the command.

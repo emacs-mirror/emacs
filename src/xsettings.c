@@ -56,6 +56,7 @@ typedef unsigned int CARD32;
 
 #ifdef USE_CAIRO
 #include <fontconfig/fontconfig.h>
+#include "ftfont.h"
 #elif defined HAVE_XFT
 #include <X11/Xft/Xft.h>
 #endif
@@ -826,6 +827,7 @@ apply_xft_settings (Display_Info *dpyinfo,
 #else
   FcConfigSubstitute (NULL, pat, FcMatchPattern);
   options = cairo_font_options_create ();
+  ftcrfont_get_default_font_options (dpyinfo, options);
   cairo_ft_font_options_substitute (options, pat);
   cairo_font_options_destroy (options);
   FcDefaultSubstitute (pat);
