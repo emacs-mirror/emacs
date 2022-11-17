@@ -1466,6 +1466,8 @@ When the region is active, send the region instead."
                       (symbol-name sh-shell)
                     sh-shell))))
 
+(defvar sh-mode--treesit-settings)
+
 ;;;###autoload
 (define-derived-mode sh-mode prog-mode "Shell-script"
   "Major mode for editing shell scripts.
@@ -1584,12 +1586,12 @@ with your script for an edit-interpret-debug cycle."
     #'sh-after-hack-local-variables nil t)
 
   (cond
-   ;; Tree-sitter
-   ((treesit-ready-p 'sh-mode 'bash)
+   ;; Tree-sitter.  If the shell is bash, we can enable tree-sitter.
+   ((treesit-ready-p 'sh-mode sh-shell)
     (setq-local treesit-font-lock-feature-list
-                '((comments functions strings heredocs)
-                  (variables keywords commands decl-commands)
-                  (constants operators builtin-variables)))
+                '((comment function string heredoc)
+                  (variable keyword command declaration-command)
+                  (constant operator builtin-variable)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
     (treesit-major-mode-setup))
@@ -3238,50 +3240,33 @@ See `sh-mode--treesit-other-keywords' and
       (if (not (member keyword minimal))
           (setq others (cons keyword others))))))
 
-(defun sh-mode--treesit-fontify-decl-command (node override start end &rest _)
-  "Fontifies only the name of declaration_command nodes.
-
-NODE should be the first child of a declaration_command node.
-For OVERRIDE, START and END see `treesit-font-lock-rules'.
-
-This is used instead of `font-lock-builtion-face' directly
-because otherwise the whole command, including the variable
-assignment part, is fontified with with `font-lock-builtin-face'.
-An alternative to this would be to declaration_command to have a
-`name:' field."
-  (let* ((maybe-decl-cmd (treesit-node-parent node))
-         (node-type (treesit-node-type maybe-decl-cmd)))
-    (when (string= node-type "declaration_command")
-      (let* ((name-node (treesit-node-child maybe-decl-cmd 0))
-             (name-beg (treesit-node-start name-node))
-             (name-end (treesit-node-end name-node)))
-        (treesit-fontify-with-override
-         (max start name-beg) (min end name-end)
-         'font-lock-builtin-face override)))))
+(defvar sh-mode--treesit-declaration-commands
+  '("declare" "typeset" "export" "readonly" "local")
+  "Keywords in declaration commands.")
 
 (defvar sh-mode--treesit-settings
   (treesit-font-lock-rules
-   :feature 'comments
+   :feature 'comment
    :language 'bash
    '((comment) @font-lock-comment-face)
 
-   :feature 'functions
+   :feature 'function
    :language 'bash
    '((function_definition name: (word) @font-lock-function-name-face))
 
-   :feature 'strings
+   :feature 'string
    :language 'bash
    '([(string) (raw_string)] @font-lock-string-face)
 
-   :feature 'heredocs
+   :feature 'heredoc
    :language 'bash
    '([(heredoc_start) (heredoc_body)] @sh-heredoc)
 
-   :feature 'variables
+   :feature 'variable
    :language 'bash
    '((variable_name) @font-lock-variable-name-face)
 
-   :feature 'keywords
+   :feature 'keyword
    :language 'bash
    `(;; keywords
      [ ,@sh-mode--treesit-keywords ] @font-lock-keyword-face
@@ -3295,7 +3280,7 @@ An alternative to this would be to declaration_command to have a
                 eol))
         @font-lock-keyword-face))))
 
-   :feature 'commands
+   :feature 'command
    :language 'bash
    `(;; function/non-builtin command calls
      (command_name (word) @font-lock-function-name-face)
@@ -3310,21 +3295,20 @@ An alternative to this would be to declaration_command to have a
                          eol)))
                @font-lock-builtin-face))))
 
-   :feature 'decl-commands
+   :feature 'declaration-command
    :language 'bash
-   '(;; declaration commands
-     (declaration_command _ @sh-mode--treesit-fontify-decl-command))
+   `([,@sh-mode--treesit-declaration-commands] @font-lock-builtin-face)
 
-   :feature 'constants
+   :feature 'constant
    :language 'bash
    '((case_item value: (word) @font-lock-constant-face)
      (file_descriptor) @font-lock-constant-face)
 
-   :feature 'operators
+   :feature 'operator
    :language 'bash
    `([ ,@sh-mode--treesit-operators ] @font-lock-builtin-face)
 
-   :feature 'builtin-variables
+   :feature 'builtin-variable
    :language 'bash
    `(((special_variable_name) @font-lock-builtin-face
       (:match ,(let ((builtin-vars (sh-feature sh-variables)))
