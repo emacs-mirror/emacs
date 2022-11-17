@@ -1134,6 +1134,7 @@ static void x_clean_failable_requests (struct x_display_info *);
 static struct frame *x_tooltip_window_to_frame (struct x_display_info *,
 						Window, bool *);
 static Window x_get_window_below (Display *, Window, int, int, int *, int *);
+static void x_set_input_focus (struct x_display_info *, Window, Time);
 
 #ifndef USE_TOOLKIT_SCROLL_BARS
 static void x_scroll_bar_redraw (struct scroll_bar *);
@@ -27535,11 +27536,10 @@ x_ewmh_activate_frame (struct frame *f)
 	    {
 	      time = x_get_server_time (f);
 
-	      x_ignore_errors_for_next_request (dpyinfo);
-	      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			      RevertToParent, time);
+	      x_set_input_focus (FRAME_DISPLAY_INFO (f),
+				 FRAME_OUTER_WINDOW (f),
+				 time);
 	      XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
-	      x_stop_ignoring_errors (dpyinfo);
 
 	      return;
 	    }
@@ -27582,6 +27582,57 @@ x_get_toplevel_parent (struct frame *f)
     parent = FRAME_PARENT_FRAME (parent);
 
   return parent;
+}
+
+static void
+x_set_input_focus (struct x_display_info *dpyinfo, Window window,
+		   Time time)
+{
+#ifdef HAVE_XINPUT2
+  struct xi_device_t *device;
+#endif
+
+  /* Do the equivalent of XSetInputFocus with the specified window and
+     time, but use the attachment to the device that Emacs has
+     designated the client pointer on X Input Extension builds.
+     Asynchronously trap errors around the generated XI_SetFocus or
+     SetInputFocus request, in case the device has been destroyed or
+     the window obscured.
+
+     The revert_to will be set to RevertToParent for generated
+     SetInputFocus requests.  */
+
+#ifdef HAVE_XINPUT2
+  if (dpyinfo->supports_xi2
+      && dpyinfo->client_pointer_device != -1)
+    {
+      device = xi_device_from_id (dpyinfo, dpyinfo->client_pointer_device);
+
+      /* The device is a master pointer.  Use its attachment, which
+	 should be the master keyboard.  */
+
+      if (device)
+	{
+	  eassert (device->use == XIMasterPointer);
+
+	  x_ignore_errors_for_next_request (dpyinfo);
+	  XISetFocus (dpyinfo->display, device->attachment,
+		      /* Note that the input extension
+			 only supports RevertToParent-type
+			 behavior.  */
+		      window, time);
+	  x_stop_ignoring_errors (dpyinfo);
+
+	  return;
+	}
+    }
+#endif
+
+  /* Otherwise, use the pointer device that the X server says is the
+     client pointer.  */
+  x_ignore_errors_for_next_request (dpyinfo);
+  XSetInputFocus (dpyinfo->display, window, RevertToParent, time);
+  x_stop_ignoring_errors (dpyinfo);
 }
 
 /* In certain situations, when the window manager follows a
@@ -27653,20 +27704,15 @@ x_focus_frame (struct frame *f, bool noactivate)
 	     A BadMatch error can occur if the window was obscured
 	     after the time of the last user interaction without
 	     changing the last-focus-change-time.  */
-	  x_ignore_errors_for_next_request (dpyinfo);
-	  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			  RevertToParent, time);
-	  x_stop_ignoring_errors (dpyinfo);
+	  x_set_input_focus (FRAME_DISPLAY_INFO (f), FRAME_OUTER_WINDOW (f),
+			     time);
 	}
       else
-	{
-	  x_ignore_errors_for_next_request (dpyinfo);
-	  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			  /* But when no window manager is in use, we
-			     don't care.  */
-			  RevertToParent, CurrentTime);
-	  x_stop_ignoring_errors (dpyinfo);
-	}
+	x_set_input_focus (FRAME_DISPLAY_INFO (f), FRAME_OUTER_WINDOW (f),
+			   /* But when no window manager is in use,
+			      respecting the ICCCM doesn't really
+			      matter.  */
+			   CurrentTime);
     }
 }
 
