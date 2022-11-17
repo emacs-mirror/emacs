@@ -7,7 +7,7 @@
 ;; Created: 16 Jun 2012
 ;; Version: 2.4.1
 ;; Package-Requires: ((emacs "24.3"))
-;; Keywords: keys keybinding config dotemacs
+;; Keywords: keys keybinding config dotemacs extensions
 ;; URL: https://github.com/jwiegley/use-package
 
 ;; This program is free software; you can redistribute it and/or modify
