@@ -336,7 +336,7 @@ TYPE can be one of the following symbols: `vector', `string' or
 
 ;;;###autoload
 (cl-defgeneric seq-filter (pred sequence)
-  "Return a list of the all elements in SEQUENCE for which PRED returns non-nil."
+  "Return a list of all the elements in SEQUENCE for which PRED returns non-nil."
   (let ((exclude (make-symbol "exclude")))
     (delq exclude (seq-map (lambda (elt)
                              (if (funcall pred elt)
