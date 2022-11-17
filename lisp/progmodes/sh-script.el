@@ -3210,7 +3210,7 @@ member of `flymake-diagnostic-functions'."
 (defvar sh-mode--treesit-operators
   '("|" "|&" "||" "&&" ">" ">>" "<" "<<" "<<-" "<<<" "==" "!=" ";"
     ";;" ";&" ";;&")
-  "List of `sh-mode' operator to fontify")
+  "A list of `sh-mode' operators to fontify.")
 
 (defvar sh-mode--treesit-keywords
   '("case" "do" "done" "elif" "else" "esac" "export" "fi" "for"
@@ -3218,15 +3218,15 @@ member of `flymake-diagnostic-functions'."
   "Minimal list of keywords that belong to tree-sitter-bash's grammar.
 
 Some reserved words are not recognize to keep the grammar
-simpler. Those are identified with regex-based filtered queries.
+simpler.  Those are identified with regex-based filtered queries.
 
-See `sh-mode--treesit-other-keywords' and
+\(See `sh-mode--treesit-other-keywords' and
 `sh-mode--treesit-settings').")
 
 (defun sh-mode--treesit-other-keywords ()
-  "Returns a list `others' of key/reserved words to be fontified with
-regex-based queries as they are not part of tree-sitter-bash's
-grammar.
+  "Return a list `others' of key/reserved words.
+These words are fontified with regex-based queries as they are
+not part of tree-sitter-bash's grammar.
 
 See `sh-mode--treesit-other-keywords' and
 `sh-mode--treesit-settings')."
@@ -3238,41 +3238,49 @@ See `sh-mode--treesit-other-keywords' and
       (if (not (member keyword minimal))
           (setq others (cons keyword others))))))
 
-(defun sh-mode--treesit-fontify-decl-command (node override _start _end)
+(defun sh-mode--treesit-fontify-decl-command (node override start end &rest _)
   "Fontifies only the name of declaration_command nodes.
 
-This is used instead of `font-lock-builtion-face' directly because
-otherwise the whole command, including the variable assignment part,
-is fontified with with `font-lock-builtin-face'. An alternative to
-this would be to declaration_command to have a `name:' field."
+NODE should be the first child of a declaration_command node.
+For OVERRIDE, START and END see `treesit-font-lock-rules'.
+
+This is used instead of `font-lock-builtion-face' directly
+because otherwise the whole command, including the variable
+assignment part, is fontified with with `font-lock-builtin-face'.
+An alternative to this would be to declaration_command to have a
+`name:' field."
   (let* ((maybe-decl-cmd (treesit-node-parent node))
          (node-type (treesit-node-type maybe-decl-cmd)))
     (when (string= node-type "declaration_command")
-      (let* ((name-node (car (treesit-node-children maybe-decl-cmd)))
+      (let* ((name-node (treesit-node-child maybe-decl-cmd 0))
              (name-beg (treesit-node-start name-node))
              (name-end (treesit-node-end name-node)))
-        (put-text-property name-beg
-                           name-end
-                           'face
-                           font-lock-builtin-face)))))
+        (treesit-fontify-with-override
+         (max start name-beg) (min end name-end)
+         'font-lock-builtin-face override)))))
 
 (defvar sh-mode--treesit-settings
   (treesit-font-lock-rules
    :feature 'comments
    :language 'bash
    '((comment) @font-lock-comment-face)
+
    :feature 'functions
    :language 'bash
    '((function_definition name: (word) @font-lock-function-name-face))
+
    :feature 'strings
    :language 'bash
    '([(string) (raw_string)] @font-lock-string-face)
+
    :feature 'heredocs
    :language 'bash
    '([(heredoc_start) (heredoc_body)] @sh-heredoc)
+
    :feature 'variables
    :language 'bash
    '((variable_name) @font-lock-variable-name-face)
+
    :feature 'keywords
    :language 'bash
    `(;; keywords
@@ -3282,10 +3290,11 @@ this would be to declaration_command to have a `name:' field."
       ((word) @font-lock-keyword-face
        (:match
         ,(rx-to-string
-            `(seq bol
-                  (or ,@(sh-mode--treesit-other-keywords))
-                  eol))
+          `(seq bol
+                (or ,@(sh-mode--treesit-other-keywords))
+                eol))
         @font-lock-keyword-face))))
+
    :feature 'commands
    :language 'bash
    `(;; function/non-builtin command calls
@@ -3300,17 +3309,21 @@ this would be to declaration_command to have a `name:' field."
                          (or ,@builtins)
                          eol)))
                @font-lock-builtin-face))))
+
    :feature 'decl-commands
    :language 'bash
    '(;; declaration commands
      (declaration_command _ @sh-mode--treesit-fontify-decl-command))
+
    :feature 'constants
    :language 'bash
    '((case_item value: (word) @font-lock-constant-face)
      (file_descriptor) @font-lock-constant-face)
+
    :feature 'operators
    :language 'bash
    `([ ,@sh-mode--treesit-operators ] @font-lock-builtin-face)
+
    :feature 'builtin-variables
    :language 'bash
    `(((special_variable_name) @font-lock-builtin-face
