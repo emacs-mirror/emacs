@@ -194,7 +194,6 @@ chosen (interactively or automatically)."
                                 ((php-mode phps-mode)
                                  . ,(eglot-alternatives
                                      '(("phpactor" "language-server")
-                                       ("intelephense" "--stdio")
                                        ("php" "vendor/felixfbecker/language-server/bin/php-language-server.php"))))
                                 ((c++-mode c-mode) . ,(eglot-alternatives
                                                        '("clangd" "ccls")))
