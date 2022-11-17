@@ -365,8 +365,8 @@ BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'."
   (car bookmark-record))
 
 (defun bookmark-type-from-full-record (bookmark-record)
-  "Return then type of BOOKMARK-RECORD.
-BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'. It's
+  "Return the type of BOOKMARK-RECORD.
+BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'.  Its
 type is read from the symbol property named
 `bookmark-handler-type' read on the record handler function."
   (let ((handler (bookmark-get-handler bookmark-record)))
