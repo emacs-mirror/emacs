@@ -123,11 +123,12 @@ queried for email addresses, and the results delivered to
                       (match-end 0)))
                (end (point))
                (prefix (save-excursion (buffer-substring-no-properties beg end))))
-          (list beg end
-                (completion-table-with-cache
-                 (lambda (_)
-                   (eudc-query-with-words (split-string prefix "[ \t]+") t))
-                 t))))))
+          (let ((result
+                 (eudc-query-with-words (split-string prefix "[ \t]+") t)))
+            (when result
+              (list beg end
+                    (completion-table-with-cache
+                     (lambda (_) result) t))))))))
 
 (provide 'eudc-capf)
 ;;; eudc-capf.el ends here
