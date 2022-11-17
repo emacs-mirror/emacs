@@ -371,8 +371,7 @@ the messages that are displayed."
 		     '(rmail-summary-by-regexp ".*")
 		     (lambda (msg)
 		       (if
-			   (eq (aref rmail-summary-currently-displayed-msgs msg)
-			       nil)
+			   (not (aref rmail-summary-currently-displayed-msgs msg))
 			   (aset rmail-summary-currently-displayed-msgs msg t)
 			 (aset rmail-summary-currently-displayed-msgs msg nil)))))
 
@@ -396,7 +395,7 @@ already ticked in ENCOUNTERED-MSGS."
 	(msg 1))
     (while (<= msg rmail-total-messages)
       (when (and
-	     (eq nil (aref encountered-msgs msg))
+	     (not (aref encountered-msgs msg))
 	     (memq msgnum (aref rmail-summary-message-parents-vector msg)))
 	(setq desc (cons msg desc)))
       (setq msg (1+ msg)))
@@ -404,7 +403,7 @@ already ticked in ENCOUNTERED-MSGS."
 
 (defun rmail-summary--walk-thread-message-recursively (msgnum encountered-msgs)
   "Add parents and descendants of message MSGNUM to ENCOUNTERED-MSGS, recursively."
-  (unless (eq (aref encountered-msgs msgnum) t)
+  (unless (aref encountered-msgs msgnum)
     (aset encountered-msgs msgnum t)
     (let ((walk-thread-msg
            (lambda (msg)
@@ -439,10 +438,9 @@ headers of the messages."
 			 (if (and rmail-summary-progressively-narrow
 				  (rmail-summary--exists-1))
 			     (lambda (msg msgnum)
-			       (and (eq (aref rmail-summary-currently-displayed-msgs msg)
-					t)
-				    (eq (aref enc-msgs msg) t)))
-			   (lambda (msg msgnum) (eq (aref enc-msgs msg) t)))
+			       (and (aref rmail-summary-currently-displayed-msgs msg)
+				    (aref enc-msgs msg)))
+			   (lambda (msg msgnum) (aref enc-msgs msg)))
 			 msgnum))))
 
 ;;;###autoload
@@ -462,8 +460,7 @@ LABELS should be a string containing the desired labels, separated by commas."
 		     (if (and rmail-summary-progressively-narrow
 			      (rmail-summary--exists-1))
 			 (lambda (msg l)
-			   (and (eq (aref rmail-summary-currently-displayed-msgs msg)
-				    t)
+			   (and (aref rmail-summary-currently-displayed-msgs msg)
 				(rmail-message-labels-p msg l)))
 		       'rmail-message-labels-p)
 		     (concat " \\("
@@ -487,8 +484,7 @@ RECIPIENTS is a regular expression."
    (if (and rmail-summary-progressively-narrow
 	    (rmail-summary--exists-1))
        (lambda (msg r &optional po)
-	 (and (eq (aref rmail-summary-currently-displayed-msgs msg)
-		  t)
+	 (and (aref rmail-summary-currently-displayed-msgs msg)
 	      (rmail-message-recipients-p msg r po)))
      'rmail-message-recipients-p)
    recipients primary-only))
@@ -527,8 +523,7 @@ Emacs will list the message in the summary."
 		     (if (and rmail-summary-progressively-narrow
 			      (rmail-summary--exists-1))
 			 (lambda (msg r)
-			   (and (eq (aref rmail-summary-currently-displayed-msgs msg)
-				    t)
+			   (and (aref rmail-summary-currently-displayed-msgs msg)
 				(rmail-message-regexp-p msg r)))
 		       'rmail-message-regexp-p)
                      regexp))
@@ -585,8 +580,7 @@ SUBJECT is a regular expression."
    (if (and rmail-summary-progressively-narrow
 	    (rmail-summary--exists-1))
        (lambda (msg s &optional wm)
-	 (and (eq (aref rmail-summary-currently-displayed-msgs msg)
-		  t)
+	 (and (aref rmail-summary-currently-displayed-msgs msg)
 	      (rmail-message-subject-p msg s wm)))
      'rmail-message-subject-p)
    subject whole-message))
@@ -621,8 +615,7 @@ sender of the current message."
    (if (and rmail-summary-progressively-narrow
 	    (rmail-summary--exists-1))
        (lambda (msg s)
-	 (and (eq (aref rmail-summary-currently-displayed-msgs msg)
-		  t)
+	 (and (aref rmail-summary-currently-displayed-msgs msg)
 	      (rmail-message-senders-p msg s)))
      'rmail-message-senders-p)
    senders))
