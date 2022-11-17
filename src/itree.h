@@ -104,6 +104,7 @@ enum itree_order
     ITREE_ASCENDING,
     ITREE_DESCENDING,
     ITREE_PRE_ORDER,
+    ITREE_POST_ORDER,
   };
 
 extern void init_itree (void);

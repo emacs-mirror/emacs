@@ -242,6 +242,7 @@ itree_stack_pop (struct itree_stack *stack)
 struct itree_iterator
 {
   struct itree_stack *stack;
+  struct itree_node *node;
   ptrdiff_t begin;
   ptrdiff_t end;
 
@@ -279,6 +280,7 @@ itree_iterator_create (struct itree_tree *tree)
   const int size = (tree ? itree_max_height (tree) : 19) + 1;
 
   g->stack = itree_stack_create (size);
+  g->node = NULL;
   g->running = false;
   g->begin = 0;
   g->end = 0;
@@ -1138,52 +1140,6 @@ itree_remove (struct itree_tree *tree, struct itree_node *node)
   return node;
 }
 
-bool
-itree_iterator_busy_p (void)
-{
-  return (iter && iter->running);
-}
-
-/* Start a iterator enumerating all intervals in [BEGIN,END) in the
-   given ORDER.  Only one iterator per tree can be running at any time.  */
-
-struct itree_iterator *
-itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
-		      ptrdiff_t end, enum itree_order order,
-		      const char *file, int line)
-{
-  eassert (iter);
-  if (iter->running)
-    {
-      fprintf (stderr,
-	       "Detected nested iteration!\nOuter: %s:%d\nInner: %s:%d\n",
-	       iter->file, iter->line, file, line);
-      emacs_abort ();
-    }
-  iter->begin = begin;
-  iter->end = end;
-  iter->otick = tree->otick;
-  iter->order = order;
-  itree_stack_clear (iter->stack);
-  if (begin <= end && tree->root != NULL)
-    itree_stack_push_flagged (iter->stack, tree->root, false);
-  iter->file = file;
-  iter->line = line;
-  iter->running = true;
-  /* itree_stack_ensure_space (iter->stack,
-				  2 * itree_max_height (tree)); */
-  return iter;
-}
-
-/* Stop using the iterator. */
-
-void
-itree_iterator_finish (struct itree_iterator *iter)
-{
-  eassert (iter && iter->running);
-  iter->running = false;
-}
-
 
 /* +=======================================================================+
  * | Insert/Delete Gaps
@@ -1214,6 +1170,7 @@ itree_insert_gap (struct itree_tree *tree,
   struct itree_node *node = NULL;
   if (!before_markers)
     {
+      /* Actually any order would do.  */
       ITREE_FOREACH (node, tree, pos, pos + 1, PRE_ORDER)
 	{
 	  if (node->begin == pos && node->front_advance
@@ -1347,6 +1304,21 @@ itree_delete_gap (struct itree_tree *tree,
  * | Iterator
  * +=======================================================================+ */
 
+bool
+itree_iterator_busy_p (void)
+{
+  return (iter && iter->running);
+}
+
+/* Stop using the iterator. */
+
+void
+itree_iterator_finish (struct itree_iterator *iter)
+{
+  eassert (iter && iter->running);
+  iter->running = false;
+}
+
 /* Return true, if NODE's interval intersects with [BEGIN, END).
    Note: We always include empty nodes at BEGIN (and not at END),
    but if BEGIN==END, then we don't include non-empty nodes starting
@@ -1357,10 +1329,221 @@ itree_delete_gap (struct itree_tree *tree,
 
 static inline bool
 itree_node_intersects (const struct itree_node *node,
-			  ptrdiff_t begin, ptrdiff_t end)
+		       ptrdiff_t begin, ptrdiff_t end)
 {
   return (begin < node->end && node->begin < end)
     || (node->begin == node->end && begin == node->begin);
+}
+
+/* Return the "next" node in the current traversal order.
+
+   Note that this should return all the nodes that we need to traverse
+   in order to traverse the nodes selected by the current narrowing (i.e.
+   `ITER->begin..ITER->end`) so it will also return some nodes which aren't in
+   that narrowing simply because they may have children which are.
+
+   The code itself is very unsatifactory because the code of each one
+   of the supported traversals seems completely different from the others.
+   If someone knows how to make it more uniform and "obviously correct",
+   please make yourself heard.  */
+
+static struct itree_node *
+itree_iter_next_in_subtree (struct itree_node *node,
+                            struct itree_iterator *iter)
+{
+  struct itree_node *next;
+  switch (iter->order)
+    {
+    case ITREE_ASCENDING:
+      next = node->right;
+      if (!next)
+        {
+          while ((next = node->parent)
+                 && next->right == node)
+            node = next;
+          if (!next)
+            return NULL;   /* No more nodes to visit. */
+          node = next;
+        }
+      else
+        {
+          node = next;
+          itree_inherit_offset (iter->otick, node);
+          while ((next = node->left)
+                 && (itree_inherit_offset (iter->otick, next),
+                     iter->begin <= next->limit))
+            node = next;
+        }
+      if (node->begin > iter->end)
+        return NULL;  /* No more nodes within begin..end.  */
+      return node;
+
+    case ITREE_DESCENDING:
+      next = node->left;
+      if (!next
+          || (itree_inherit_offset (iter->otick, next),
+              next->limit < iter->begin))
+        {
+          while ((next = node->parent)
+                 && next->left == node)
+            node = next;
+          if (!next)
+            return NULL;   /* No more nodes to visit. */
+          node = next;
+        }
+      else
+        {
+          node = next;
+          while (node->begin <= iter->end
+                 && (next = node->right))
+            {
+              itree_inherit_offset (iter->otick, next),
+              node = next;
+            }
+        }
+      return node;
+
+    case ITREE_PRE_ORDER:
+      next = node->left;
+      if (next
+          && (itree_inherit_offset (iter->otick, next),
+              !(next->limit < iter->begin)))
+        return next;
+      next = node->right;
+      if (node->begin <= iter->end && next)
+        {
+          itree_inherit_offset (iter->otick, next);
+          return next;
+        }
+      while ((next = node->parent))
+        {
+          if (next->right == node)
+            node = next;
+          else
+            {
+              eassert (next->left == node);
+              node = next;
+              next = node->right;
+              if (node->begin <= iter->end && next)
+                {
+                  itree_inherit_offset (iter->otick, next);
+                  return next;
+                }
+            }
+          }
+      return NULL;
+
+    case ITREE_POST_ORDER:
+      next = node->parent;
+      if (!next || next->right == node)
+        return next;
+      eassert (next->left == node);
+      node = next;
+      next = node->right;
+      if (!(node->begin <= iter->end && next))
+        return node;
+      node = next;
+      itree_inherit_offset (iter->otick, node);
+      while (((next = node->left)
+              && (itree_inherit_offset (iter->otick, next),
+                  iter->begin <= next->limit))
+             || (node->begin <= iter->end
+                 && (next = node->right)
+                 && (itree_inherit_offset (iter->otick, next), true)))
+        node = next;
+      return node;
+
+    default:
+    emacs_abort ();
+    }
+}
+
+static struct itree_node *
+itree_iterator_first_node (struct itree_tree *tree,
+                           struct itree_iterator *iter)
+{
+  struct itree_node *node = tree->root;
+  if (node)
+    {
+      struct itree_node dummy;
+      dummy.left = NULL;
+      dummy.parent = NULL;
+      dummy.right = NULL;
+      itree_inherit_offset (iter->otick, node);
+      switch (iter->order)
+        {
+        case ITREE_ASCENDING:
+          dummy.right = node;
+          dummy.begin = PTRDIFF_MIN;
+          node = itree_iter_next_in_subtree (&dummy, iter);
+          break;
+
+        case ITREE_DESCENDING:
+          dummy.left = node;
+          node = itree_iter_next_in_subtree (&dummy, iter);
+          break;
+
+        case ITREE_PRE_ORDER:
+          break;
+
+        case ITREE_POST_ORDER:
+          dummy.parent = &dummy;
+          dummy.left = &dummy;
+          dummy.right = node;
+          dummy.begin = PTRDIFF_MIN;
+          node = itree_iter_next_in_subtree (&dummy, iter);
+          break;
+        default:
+          emacs_abort ();
+        }
+    }
+  return node;
+}
+
+/* Start a iterator enumerating all intervals in [BEGIN,END) in the
+   given ORDER.  Only one iterator per tree can be running at any time.  */
+
+struct itree_iterator *
+itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
+		      ptrdiff_t end, enum itree_order order,
+		      const char *file, int line)
+{
+  eassert (iter);
+  if (iter->running)
+    {
+      fprintf (stderr,
+	       "Detected nested iteration!\nOuter: %s:%d\nInner: %s:%d\n",
+	       iter->file, iter->line, file, line);
+      emacs_abort ();
+    }
+  uintmax_t otick= tree->otick;
+  iter->begin = begin;
+  iter->end = end;
+  iter->otick = otick;
+  iter->order = order;
+  itree_stack_clear (iter->stack);
+  if (begin <= end && tree->root != NULL)
+    itree_stack_push_flagged (iter->stack, tree->root, false);
+  iter->file = file;
+  iter->line = line;
+  iter->running = true;
+  /* itree_stack_ensure_space (iter->stack,
+			       2 * itree_max_height (tree)); */
+  iter->node = itree_iterator_first_node (tree, iter);
+  return iter;
+}
+
+static struct itree_node *
+itree_iter_next (struct itree_iterator *iter)
+{
+  struct itree_node *node = iter->node;
+  while (node
+         && !itree_node_intersects (node, iter->begin, iter->end))
+    {
+      node = itree_iter_next_in_subtree (node, iter);
+    }
+  iter->node = node ? itree_iter_next_in_subtree (node, iter) : NULL;
+  return node;
 }
 
 /* Return the next node of the iterator in the order given when it was
@@ -1425,12 +1608,33 @@ itree_iterator_next (struct itree_iterator *g)
 	      if (itree_node_intersects (node, g->begin, g->end))
 		itree_stack_push_flagged (g->stack, node, true);
 	      break;
+	    case ITREE_POST_ORDER:
+	      if (itree_node_intersects (node, g->begin, g->end))
+		itree_stack_push_flagged (g->stack, node, true);
+	      if (right != null && node->begin <= g->end)
+		itree_stack_push_flagged (g->stack, right, false);
+	      if (left != null && g->begin <= left->limit + left->offset)
+		itree_stack_push_flagged (g->stack, left, false);
+	      break;
 	    }
 	}
       /* Node may have been invalidated by itree_iterator_narrow
 	 after it was pushed: Check if it still intersects. */
     } while (node && ! itree_node_intersects (node, g->begin, g->end));
 
+  struct itree_node *old_node = g->node;
+  struct itree_node *other_node = itree_iter_next (g);
+  if (other_node != node)
+    {
+      fprintf (stderr, "WOW!! %ld..%ld vs %ld..%ld\n",
+               other_node ? other_node->begin : -1,
+               other_node ? other_node->end : -1,
+               node ? node->begin : -1,
+               node ? node->end : -1);
+      fprintf (stderr, "ON=%lx N=%lx OlN=%lx\n", other_node, node,
+               old_node);
+      emacs_abort ();
+    }
   return node;
 }
 
