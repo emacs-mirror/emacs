@@ -2985,17 +2985,13 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
       if (node->begin > end)
         {
           next = min (next, node->begin);
-          ITREE_FOREACH_ABORT ();
           break;
         }
       else if (node->begin == end)
         {
           next = node->begin;
           if ((! empty || end < ZV) && beg < end)
-            {
-              ITREE_FOREACH_ABORT ();
-              break;
-            }
+            break;
           if (empty && node->begin != node->end)
             continue;
         }
@@ -3050,7 +3046,6 @@ next_overlay_change (ptrdiff_t pos)
              of pos, because the search is limited to [pos,next) . */
           eassert (node->begin < next);
           next = node->begin;
-          ITREE_FOREACH_ABORT ();
           break;
         }
       else if (node->begin < node->end && node->end < next)
@@ -3155,10 +3150,7 @@ overlay_touches_p (ptrdiff_t pos)
      pos. */
   ITREE_FOREACH (node, current_buffer->overlays, pos - 1, pos + 1, DESCENDING)
     if (node->begin == pos || node->end == pos)
-      {
-        ITREE_FOREACH_ABORT ();
-        return true;
-      }
+      return true;
   return false;
 }
 

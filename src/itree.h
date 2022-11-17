@@ -132,24 +132,21 @@ extern struct itree_iterator *itree_iterator_start (struct itree_iterator *,
 						    enum itree_order);
 extern void itree_iterator_narrow (struct itree_iterator *, ptrdiff_t,
 				   ptrdiff_t);
-extern void itree_iterator_finish (struct itree_iterator *);
 extern struct itree_node *itree_iterator_next (struct itree_iterator *);
 
 /* State used when iterating interval. */
 struct itree_iterator
   {
-    struct itree_node *node; /* FIXME: It should be either `node` or `stack`. */
-    struct itree_stack *stack;
+    struct itree_node *node;
     ptrdiff_t begin;
     ptrdiff_t end;
     uintmax_t otick;    /* A copy of the tree's `otick`.  */
     enum itree_order order;
-    bool running;
   };
 
 /* Iterate over the intervals between BEG and END in the tree T.
    N will hold successive nodes.  ORDER can be one of : `ASCENDING`,
-   `DESCENDING`, or `PRE_ORDER`.
+   `DESCENDING`, `POST_ORDER`, or `PRE_ORDER`.
    It should be used as:
 
       ITREE_FOREACH (n, t, beg, end, order)
@@ -160,9 +157,6 @@ struct itree_iterator
    BEWARE:
    - The expression T may be evaluated more than once, so make sure
      it is cheap and pure.
-   - If you need to exit the loop early, you *have* to call `ITREE_ABORT`
-     just before exiting (e.g. with `break` or `return`).
-   - Non-local exits are not supported within the body of the loop.
    - Don't modify the tree during the iteration.
  */
 #define ITREE_FOREACH(n, t, beg, end, order)                        \
@@ -179,11 +173,7 @@ struct itree_iterator
                                *itree_iter_                      \
             = itree_iterator_start (&itree_local_iter_,          \
                                     t, beg, end, ITREE_##order); \
-          ((n = itree_iterator_next (itree_iter_))               \
-           || (itree_iterator_finish (itree_iter_), false));)
-
-#define ITREE_FOREACH_ABORT() \
-  itree_iterator_finish (itree_iter_)
+          ((n = itree_iterator_next (itree_iter_)));)
 
 #define ITREE_FOREACH_NARROW(beg, end) \
   itree_iterator_narrow (itree_iter_, beg, end)
