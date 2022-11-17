@@ -77,7 +77,7 @@ this variable to the list of fields to be ignored.")
   "List of RSS addresses.")
 
 (defvar nnrss-use-local nil
-  "If non-nil nnrss will read the feeds from local files in nnrss-directory.")
+  "If non-nil nnrss will read the feeds from local files in `nnrss-directory'.")
 
 (defvar nnrss-description-field 'X-Gnus-Description
   "Field name used for DESCRIPTION.
@@ -398,7 +398,7 @@ otherwise return nil."
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url discard-comments))
 (defun nnrss-fetch (url &optional local)
-  "Fetch URL and put it in a the expected Lisp structure."
+  "Fetch URL and put it in the expected Lisp structure."
   (mm-with-unibyte-buffer
     ;;some versions of url.el need this to close the connection quickly
     (let (cs xmlform htmlform)
@@ -800,7 +800,7 @@ It is useful when `(setq nnrss-use-local t)'."
     node))
 
 (defun nnrss-find-el (tag data &optional found-list)
-  "Find the all matching elements in the data.
+  "Find all the matching elements in the data.
 Careful with this on large documents!"
   (when (consp data)
     (dolist (bit data)

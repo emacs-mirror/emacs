@@ -339,7 +339,7 @@ another window."
 (defcustom org-link-search-must-match-exact-headline 'query-to-create
   "Non-nil means internal fuzzy links can only match headlines.
 
-When nil, the a fuzzy link may point to a target or a named
+When nil, the fuzzy link may point to a target or a named
 construct in the document.  When set to the special value
 `query-to-create', offer to create a new headline when none
 matched.
