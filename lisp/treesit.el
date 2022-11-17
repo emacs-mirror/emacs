@@ -542,11 +542,11 @@ Removing a feature symbol from this list disables the
 corresponding query during font-lock.
 
 Common feature names (for general programming languages) include
-function-name, type, variable-name (LHS of assignments), builtin,
-constant, keyword, string-interpolation, comment, doc, string,
-operator, preprocessor, escape-sequence, key (in key-value
-pairs).  Major modes are free to subdivide or extend on these
-common features.
+definition, type, assignment, builtin, constant, keyword,
+string-interpolation, comment, doc, string, operator, property,
+preprocessor, escape-sequence, key (in key-value pairs).  Major
+modes are free to subdivide or extend on these common features.
+See the manual for more explanations on some of the feature.
 
 For changes to this variable to take effect, run
 `treesit-font-lock-recompute-features'.")

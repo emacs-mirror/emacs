@@ -4077,11 +4077,20 @@ Each element of the list is a list of the form @w{@code{(@var{feature}
 list disables the corresponding query during font-lock.
 
 Common feature names, for many programming languages, include
-function-name, type, variable-name (left-hand-side or @acronym{LHS} of
-assignments), builtin, constant, keyword, string-interpolation,
-comment, doc, string, operator, preprocessor, escape-sequence, and key
-(in key-value pairs).  Major modes are free to subdivide or extend
-these common features.
+@code{definition}, @code{type}, @code{assignment}, @code{builtin},
+@code{constant}, @code{keyword}, @code{string-interpolation},
+@code{comment}, @code{doc}, @code{string}, @code{operator},
+@code{preprocessor}, @code{escape-sequence}, and @code{key}.  Major
+modes are free to subdivide or extend these common features.
+
+Some of these features warrant some explanation: @code{definition}
+highlights whatever is being defined, e.g., the function name in a
+function definition, the struct name in a struct definition, the
+variable name in a variable definition; @code{assignment} highlights
+the whatever is being assigned to, e.g., the variable or field in an
+assignment statement; @code{key} highlights keys in key-value pairs,
+e.g., keys in a JSON object, or a Python dictionary; @code{doc}
+highlights docstrings or doc-comments.
 
 For example, the value of this variable could be:
 @example
