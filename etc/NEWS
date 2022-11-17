@@ -4075,6 +4075,10 @@ This function allows defining a number of keystrokes with one form.
 ** New macro 'defvar-keymap'.
 This macro allows defining keymap variables more conveniently.
 
+** 'repeat-map' can be defined in the macro 'defvar-keymap'.
+This is possible either by using ':repeat t' or more advanced
+':repeat (:enter (commands ...) :exit (commands ...))'.
+
 ---
 ** 'kbd' can now be used in built-in, preloaded libraries.
 It no longer depends on edmacro.el and cl-lib.el.
