@@ -3869,6 +3869,14 @@ possible for good performance."
 		     t)
 	 "\\>")))
 
+(c-lang-defconst c-maybe-typeless-specifier-re
+  "Regexp matching keywords which might, but needn't, declare variables with
+no explicit type given, or nil in languages without such specifiers."
+  t (c-lang-const c-opt-type-modifier-prefix-key)
+  c (c-lang-const c-type-decl-prefix-keywords-key))
+(c-lang-defvar c-maybe-typeless-specifier-re
+  (c-lang-const c-maybe-typeless-specifier-re))
+
 (c-lang-defconst c-type-decl-prefix-key
   "Regexp matching any declarator operator that might precede the
 identifier in a declaration, e.g. the \"*\" in \"char *argv\".  This
