@@ -1716,7 +1716,6 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
   Lisp_Object clause = Qnil;
   struct handler *h;
 
-  eassert (!itree_iterator_busy_p ());
   if (gc_in_progress || waiting_for_input)
     emacs_abort ();
 

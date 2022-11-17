@@ -7044,17 +7044,11 @@ strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
       str = Foverlay_get (overlay, Qbefore_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	{
-	  ITREE_FOREACH_ABORT ();
-	  return true;
-	}
+	return true;
       str = Foverlay_get (overlay, Qafter_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	{
-	  ITREE_FOREACH_ABORT ();
-	  return true;
-	}
+	return true;
     }
 
   /* Check for 'display' properties whose values include strings.  */

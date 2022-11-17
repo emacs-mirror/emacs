@@ -104,12 +104,9 @@ enum itree_order
     ITREE_ASCENDING,
     ITREE_DESCENDING,
     ITREE_PRE_ORDER,
+    ITREE_POST_ORDER,
   };
 
-extern void init_itree (void);
-#ifdef HAVE_UNEXEC
-extern void forget_itree (void);
-#endif
 extern void itree_node_init (struct itree_node *, bool, bool, Lisp_Object);
 extern ptrdiff_t itree_node_begin (struct itree_tree *, struct itree_node *);
 extern ptrdiff_t itree_node_end (struct itree_tree *, struct itree_node *);
@@ -128,20 +125,28 @@ extern void itree_delete_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
 
 /* Iteration functions.  Almost all code should use ITREE_FOREACH
    instead.  */
-extern bool itree_iterator_busy_p (void);
-extern struct itree_iterator *itree_iterator_start (struct itree_tree *,
+extern struct itree_iterator *itree_iterator_start (struct itree_iterator *,
+						    struct itree_tree *,
 						    ptrdiff_t,
 						    ptrdiff_t,
-						    enum itree_order,
-						    const char *, int);
+						    enum itree_order);
 extern void itree_iterator_narrow (struct itree_iterator *, ptrdiff_t,
 				   ptrdiff_t);
-extern void itree_iterator_finish (struct itree_iterator *);
 extern struct itree_node *itree_iterator_next (struct itree_iterator *);
+
+/* State used when iterating interval. */
+struct itree_iterator
+  {
+    struct itree_node *node;
+    ptrdiff_t begin;
+    ptrdiff_t end;
+    uintmax_t otick;    /* A copy of the tree's `otick`.  */
+    enum itree_order order;
+  };
 
 /* Iterate over the intervals between BEG and END in the tree T.
    N will hold successive nodes.  ORDER can be one of : `ASCENDING`,
-   `DESCENDING`, or `PRE_ORDER`.
+   `DESCENDING`, `POST_ORDER`, or `PRE_ORDER`.
    It should be used as:
 
       ITREE_FOREACH (n, t, beg, end, order)
@@ -152,33 +157,23 @@ extern struct itree_node *itree_iterator_next (struct itree_iterator *);
    BEWARE:
    - The expression T may be evaluated more than once, so make sure
      it is cheap and pure.
-   - Only a single iteration can happen at a time, so make sure none of the
-     code within the loop can start another tree iteration, i.e. it shouldn't
-     be able to run ELisp code, nor GC since GC can run ELisp by way
-     of `post-gc-hook`.
-   - If you need to exit the loop early, you *have* to call `ITREE_ABORT`
-     just before exiting (e.g. with `break` or `return`).
-   - Non-local exits are not supported within the body of the loop.
    - Don't modify the tree during the iteration.
  */
 #define ITREE_FOREACH(n, t, beg, end, order)                        \
-  /* FIXME: We'd want to declare `x` right here, but I can't figure out
+  /* FIXME: We'd want to declare `n` right here, but I can't figure out
      how to make that work here: the `for` syntax only allows a single
      clause for the var declarations where we need 2 different types.
      We could use the `struct {foo x; bar y; } p;` trick to declare two
      vars `p.x` and `p.y` of unrelated types, but then none of the names
-     of the vars matches the `n` we receive :-(.  */                \
-  if (!t)                                                           \
-    { }                                                             \
-  else                                                              \
-    for (struct itree_iterator *itree_iter_                         \
-            = itree_iterator_start (t, beg, end, ITREE_##order,     \
-                                        __FILE__, __LINE__);        \
-          ((n = itree_iterator_next (itree_iter_))                  \
-           || (itree_iterator_finish (itree_iter_), false));)
-
-#define ITREE_FOREACH_ABORT() \
-  itree_iterator_finish (itree_iter_)
+     of the vars matches the `n` we receive :-(.  */             \
+  if (!t)                                                        \
+    { }                                                          \
+  else                                                           \
+    for (struct itree_iterator itree_local_iter_,                \
+                               *itree_iter_                      \
+            = itree_iterator_start (&itree_local_iter_,          \
+                                    t, beg, end, ITREE_##order); \
+          ((n = itree_iterator_next (itree_iter_)));)
 
 #define ITREE_FOREACH_NARROW(beg, end) \
   itree_iterator_narrow (itree_iter_, beg, end)
