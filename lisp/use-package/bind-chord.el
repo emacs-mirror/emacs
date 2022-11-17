@@ -6,7 +6,7 @@
 ;; Keywords: convenience, tools, extensions
 ;; URL: https://github.com/jwiegley/use-package
 ;; Version: 0.2.1
-;; Package-Requires: ((bind-key "1.0") (key-chord "0.6"))
+;; Package-Requires: ((emacs "24.3") (bind-key "1.0") (key-chord "0.6"))
 ;; Filename: bind-chord.el
 
 ;; This program is free software; you can redistribute it and/or modify

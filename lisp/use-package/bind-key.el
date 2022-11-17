@@ -6,6 +6,7 @@
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
 ;; Created: 16 Jun 2012
 ;; Version: 2.4.1
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: keys keybinding config dotemacs
 ;; URL: https://github.com/jwiegley/use-package
 
@@ -516,8 +517,7 @@ function symbol (unquoted)."
                (command-desc (get-binding-description command))
                (was-command-desc (and was-command
                                       (get-binding-description was-command)))
-               (at-present-desc (get-binding-description at-present))
-               )
+               (at-present-desc (get-binding-description at-present)))
           (let ((line
                  (format
                   (format "%%-%ds%%-%ds%%s\n" (car bind-key-column-widths)
