@@ -4358,6 +4358,6 @@ of (commands) to run simultaneously."
 
 (provide 'comp)
 
-;; LocalWords: limplified limplified limplification limplify Limple LIMPLE libgccjit elc eln
+;; LocalWords: limplified limplification limplify Limple LIMPLE libgccjit elc eln
 
 ;;; comp.el ends here

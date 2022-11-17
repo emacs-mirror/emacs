@@ -9,7 +9,7 @@
 ;; Keywords: convenience, languages
 ;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0") (seq "2.23"))
 
-;; This is is a GNU ELPA :core package.  Avoid adding functionality
+;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
 ;; of the package dependencies.
 

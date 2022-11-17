@@ -111,7 +111,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    In order to avoid this, we introduce yet another node attribute,
    called OFFSET.
 
-   The OFFSET of some some subtree, represented by its root, is the
+   The OFFSET of some subtree, represented by its root, is the
    amount of shift that needs to be applied to its BEGIN, END and
    LIMIT values, in order to get to the actual buffer positions.
    Coming back to the example, all we would need to do in this case,

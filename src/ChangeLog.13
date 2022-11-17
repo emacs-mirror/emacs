@@ -1459,11 +1459,11 @@
 	(frame_default_tool_bar_height): Extern.
 	* gtkutil.c (xg_frame_set_char_size): Pass Qxg_frame_set_char_size
 	to adjust_frame_size.
-	* nsfns.m (Fx_create_frame): Pass Pass Qx_create_frame_1 and
+	* nsfns.m (Fx_create_frame): Pass Qx_create_frame_1 and
 	Qx_create_frame_2 to adjust_frame_size.
 	* w32fns.c (x_change_tool_bar_height): Call adjust_frame_size with
 	inhibit 1 when we have not redisplayed the tool bar yet.
-	(Fx_create_frame): Pass Pass Qx_create_frame_1 and
+	(Fx_create_frame): Pass Qx_create_frame_1 and
 	Qx_create_frame_2 to adjust_frame_size.
 	* w32menu.c (set_frame_menubar): Simplify adjust_frame_size
 	call.
@@ -1476,7 +1476,7 @@
 	frame size accordingly.
 	* xfns.c (x_change_tool_bar_height): Call adjust_frame_size with
 	inhibit 1 when we have not redisplayed the tool bar yet.
-	(Fx_create_frame): Pass Pass Qx_create_frame_1 and
+	(Fx_create_frame): Pass Qx_create_frame_1 and
 	Qx_create_frame_2 to adjust_frame_size.
 
 2015-01-12  Paul Eggert  <eggert@cs.ucla.edu>

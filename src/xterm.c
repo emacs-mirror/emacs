@@ -30072,7 +30072,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
 
     /* Do not destroy the font struct returned above with XFreeFont;
-       that also destroys the font, leading to to X protocol errors at
+       that also destroys the font, leading to X protocol errors at
        XtCloseDisplay.  Just free the font info structure.
        (Bug#18403) */
     XFreeFontInfo (NULL, query_result, 1);

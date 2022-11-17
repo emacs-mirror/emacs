@@ -1133,7 +1133,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
     (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function t t)
 
-    ;; If Flymake happened to be already already ON, we must cleanup
+    ;; If Flymake happened to be already ON, we must cleanup
     ;; existing diagnostic overlays, lest we forget them by blindly
     ;; reinitializing `flymake--state' in the next line.
     ;; See https://github.com/joaotavora/eglot/issues/223.

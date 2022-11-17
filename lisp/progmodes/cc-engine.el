@@ -6963,7 +6963,7 @@ comment at the start of cc-engine.el for more info."
 ;; At each buffer change, the syntax-table properties are removed in a
 ;; before-change function and reapplied, when needed, in an
 ;; after-change function.  It is far more important that the
-;; properties get removed when they they are spurious than that they
+;; properties get removed when they are spurious than that they
 ;; be present when wanted.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun c-clear-<-pair-props (&optional pos)
