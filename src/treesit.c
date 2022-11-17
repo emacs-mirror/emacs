@@ -1504,7 +1504,7 @@ return nil.  */)
 DEFUN ("treesit-parser-notifiers", Ftreesit_parser_notifiers,
        Streesit_parser_notifiers,
        1, 1, 0,
-       doc: /* Return the after-change notifier functions for PARSER.  */)
+       doc: /* Return the list of after-change notifier functions for PARSER.  */)
   (Lisp_Object parser)
 {
   treesit_check_parser (parser);
@@ -1520,10 +1520,10 @@ DEFUN ("treesit-parser-notifiers", Ftreesit_parser_notifiers,
 DEFUN ("treesit-parser-add-notifier", Ftreesit_parser_add_notifier,
        Streesit_parser_add_notifier,
        2, 2, 0,
-       doc: /* Add FUNCTION to PARSER's after-change notifiers list.
+       doc: /* Add FUNCTION to the list of PARSER's after-change notifiers.
 FUNCTION must be a function symbol, rather than a lambda form.
 FUNCTION should take 2 arguments, RANGES and PARSER.  RANGES is a list
-of cons of the form (START . END), where START and END are buffer
+of cons cells of the form (START . END), where START and END are buffer
 positions.  PARSER is the parser issuing the notification.  */)
   (Lisp_Object parser, Lisp_Object function)
 {
@@ -1540,8 +1540,8 @@ positions.  PARSER is the parser issuing the notification.  */)
 DEFUN ("treesit-parser-remove-notifier", Ftreesit_parser_remove_notifier,
        Streesit_parser_remove_notifier,
        2, 2, 0,
-       doc: /* Remove FUNCTION from PARSER's after-change notifiers
-list.  FUNCTION must be a function symbol, rather than a lambda form.
+       doc: /* Remove FUNCTION from the list of PARSER's after-change notifiers.
+  FUNCTION must be a function symbol, rather than a lambda form.
 FUNCTION should take 2 arguments, RANGES and PARSER.  RANGES is a list
 of cons of the form (START . END), where START and END are buffer
 positions.  PARSER is the parser issuing the notification.   */)

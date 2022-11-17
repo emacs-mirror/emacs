@@ -224,33 +224,36 @@ assign @dfn{field names} to child nodes.  For example, a
 @end example
 
 @heading Exploring the syntax tree
+@cindex explore tree-sitter syntax tree
+@cindex inspection of tree-sitter parse tree nodes
 
-To aid understanding the syntax of a language and debugging, Emacs
-provides a ``explore'' mode, which displays the syntax tree of the
-source in the current buffer in real time.  Emacs also comes with a
-``inspect mode'', which displays information of the nodes at point in
-the mode-line.
+To aid in understanding the syntax of a language and in debugging of
+Lisp program that use the syntax tree, Emacs provides an ``explore''
+mode, which displays the syntax tree of the source in the current
+buffer in real time.  Emacs also comes with an ``inspect mode'', which
+displays information of the nodes at point in the mode-line.
 
 @deffn Command treesit-explore-mode
 This mode pops up a window displaying the syntax tree of the source in
-the current buffer.  Emacs highlights nodes in the syntax tree if
-their corresponding text in the source buffer is selected.  Clicking
+the current buffer.  Selecting text in the source buffer highlights
+the corresponding nodes in the syntax tree display.  Clicking
 on nodes in the syntax tree highlights the corresponding text in the
 source buffer.
 @end deffn
 
 @deffn Command treesit-inspect-mode
 This minor mode displays on the mode-line the node that @emph{starts}
-at point.  The mode-line will display
+at point.  For example, the mode-line can display
 
 @example
 @var{parent} @var{field}: (@var{node} (@var{child} (@dots{})))
 @end example
 
-where @var{node}, @var{child}, etc, are nodes which begin at point.
+@noindent
+where @var{node}, @var{child}, etc., are nodes which begin at point.
 @var{parent} is the parent of @var{node}.  @var{node} is displayed in
-bold typeface.  @var{field-name}s are field names of @var{node} and
-@var{child}, etc.
+a bold typeface.  @var{field-name}s are field names of @var{node} and
+of @var{child}, etc.
 
 If no node starts at point, i.e., point is in the middle of a node,
 then the mode line displays the earliest node that spans point, and
@@ -478,43 +481,44 @@ This function parses @var{string} using @var{language}, and returns
 the root node of the generated syntax tree.
 @end defun
 
-@cindex parse-tree update callback, tree-sitter
-@cindex parse-tree after-change notifer, tree-sitter
-@cindex tree-sitter parse-tree update callback
-@cindex tree-sitter parse-tree after-change notifer
 @heading Be notified by changes to the parse tree
+@cindex update callback, for tree-sitter parse-tree
+@cindex after-change notifier, for tree-sitter parse-tree
+@cindex tree-sitter parse-tree, update and after-change callback
+@cindex notifiers, tree-sitter
 
-A Lisp program might want to be notified of affected text of a
-incremental parse.  For example, inserting a closing comment token
-converts text before that closing comment token into comments.  Even
-though those text are not directly edited, they are changed
+A Lisp program might want to be notified of text affected by
+incremental parsing.  For example, inserting a comment-closing token
+converts text before that token into a comment.  Even
+though the text is not directly edited, it is deemed to be ``changed''
 nevertheless.
 
 Emacs lets a Lisp program to register callback functions
-(@dfn{notifiers}) for this kind of changes.  A notifier function takes
-2 arguments: @var{ranges} and @var{parser}.  @var{ranges} is a list of
-cons of the form @w{@code{(@var{start} . @var{end})}}, where
-@var{start} and @var{end} marks the start and end position of a range.
-@var{parser} is the parser issuing the notification.
+(a.k.a.@: @dfn{notifiers}) for this kind of changes.  A notifier
+function takes two arguments: @var{ranges} and @var{parser}.
+@var{ranges} is a list of cons cells of the form @w{@code{(@var{start}
+. @var{end})}}, where @var{start} and @var{end} mark the start and the
+end positions of a range.  @var{parser} is the parser issuing the
+notification.
 
 Every time a parser reparses a buffer, it compares the old and new
 parse-tree, computes the ranges in which nodes have changed, and
 passes the ranges to notifier functions.
 
 @defun treesit-parser-add-notifier parser function
-This function adds @var{function} to @var{parser}'s after-change
-notifier functions list.  @var{function} must be a function symbol,
-rather than a lambda function.
+This function adds @var{function} to @var{parser}'s list of
+after-change notifier functions.  @var{function} must be a function
+symbol, not a lambda function (@pxref{Anonymous Functions}).
 @end defun
 
 @defun treesit-parser-remove-notifier parser function
-This function removes @var{function} from @var{parser}'s after-change
-notifier functions list.  @var{function} must be a function symbol,
-rather than a lambda function.
+This function removes @var{function} from the list of @var{parser}'s
+after-change notifier functions.  @var{function} must be a function
+symbol, rather than a lambda function.
 @end defun
 
 @defun treesit-parser-notifiers parser
-This function returns @var{parser}'s notifier function list.
+This function returns the list of @var{parser}'s notifier functions.
 @end defun
 
 @node Retrieving Nodes
@@ -932,8 +936,8 @@ which can appear anywhere in the text.
 
 @cindex tree-sitter outdated node
 @cindex outdated node, tree-sitter
-A node can be ``outdated'': If its parser has reparse at least once
-after the node was created, the node is outdated.
+A node can be ``outdated'', if its parser has reparsed at least once
+after the node was created.
 
 @cindex tree-sitter node that has error
 @cindex has error, tree-sitter node
@@ -951,8 +955,8 @@ This function checks if @var{node} has the specified @var{property}.
 Named nodes have ``types'' (@pxref{tree-sitter node type, node type}).
 For example, a named node can be a @code{string_literal} node, where
 @code{string_literal} is its type.  The type of an anonymous node is
-just the text that node represents, e.g., the type of a @samp{,} node
-is just @samp{,}.
+just the text that the node represents; e.g., the type of a @samp{,}
+node 480is just @samp{,}.
 
 This function returns @var{node}'s type as a string.
 @end defun
