@@ -805,12 +805,12 @@ C-h v fill-column @key{RET}
 displays something like this:
 
 @example
-fill-column is a variable defined in ‘C source code’.
+fill-column is a variable defined in @quoteleft{}C source code@quoteright{}.
 Its value is 70
 
   Automatically becomes buffer-local when set.
   This variable is safe as a file local variable if its value
-  satisfies the predicate ‘integerp’.
+  satisfies the predicate @quoteleft{}integerp@quoteright{}.
   Probably introduced at or before Emacs version 18.
 
 Documentation:
@@ -1659,7 +1659,7 @@ events.
 or lower case; @acronym{ASCII} or non-@acronym{ASCII}) are reserved
 for users.  Emacs itself will never bind those key sequences, and
 Emacs extensions should avoid binding them.  In other words, users can
-bind key sequences like @kbd{C-c a} or @kbd{C-c ç} and rely on these
+bind key sequences like @kbd{C-c a} or @kbd{C-c @,{c}} and rely on these
 never being shadowed by other Emacs bindings.
 
 @node Prefix Keymaps
