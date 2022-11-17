@@ -833,7 +833,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (seq-set-equal-p
    :eval (seq-set-equal-p '(1 2 3) '(3 1 2)))
   (seq-some
-   :eval (seq-some #'cl-evenp '(1 2 3)))
+   :eval (seq-some #'floatp '(1 2.0 3)))
   "Building Sequences"
   (seq-concatenate
    :eval (seq-concatenate 'vector '(1 2) '(c d)))
@@ -898,14 +898,14 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (seq-filter
    :eval (seq-filter #'numberp '(a b 3 4 f 6)))
   (seq-keep
-   :eval (seq-keep #'cl-digit-char-p '(?6 ?a ?7)))
+   :eval (seq-keep #'car-safe '((1 2) 3 t (a . b))))
   (seq-remove
    :eval (seq-remove #'numberp '(1 2 c d 5)))
   (seq-remove-at-position
    :eval (seq-remove-at-position '(a b c d e) 3)
    :eval (seq-remove-at-position [a b c d e] 0))
   (seq-group-by
-   :eval (seq-group-by #'cl-plusp '(-1 2 3 -4 -5 6)))
+   :eval (seq-group-by #'natnump '(-1 2 3 -4 -5 6)))
   (seq-union
    :eval (seq-union '(1 2 3) '(3 5)))
   (seq-difference
@@ -921,7 +921,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (seq-split
    :eval (seq-split [0 1 2 3 5] 2))
   (seq-take-while
-   :eval (seq-take-while #'cl-evenp [2 4 9 6 5]))
+   :eval (seq-take-while #'integerp [1 2 3.0 4]))
   (seq-uniq
    :eval (seq-uniq '(a b d b a c))))
 
