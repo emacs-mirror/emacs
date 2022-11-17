@@ -1353,10 +1353,10 @@ inserting the new one."
     (if (use-region-p)
         (let ((beg (region-beginning)))
           (goto-char (region-end))
-          (insert "")
+          (insert "\^O")
           (goto-char beg)
           (insert pre))
-      (insert pre "")))
+      (insert pre "\^O")))
   (when (or (not (region-active-p)) (< (point) (mark)))
     (forward-char (length pre))))
 
@@ -1364,11 +1364,11 @@ inserting the new one."
   "Remove the closes formatting found closes to the current point."
   (interactive)
   (save-excursion
-    (when (and (search-backward-regexp (rx (or "" "" "" "" ""))
+    (when (and (search-backward-regexp (rx (or "\^B" "\^]" "\^_" "\^^" "\^Q"))
                                        rcirc-prompt-end-marker t)
-               (looking-at (rx (group (or "" "" "" "" ""))
+               (looking-at (rx (group (or "\^B" "\^]" "\^_" "\^^" "\^Q"))
                                (*? nonl)
-                               (group ""))))
+                               (group "\^O"))))
       (replace-match "" nil nil nil 2)
       (replace-match "" nil nil nil 1))))
 
@@ -1378,7 +1378,7 @@ If REPLACE is non-nil or a prefix argument is given, any prior
 formatting will be replaced before the bold formatting is
 inserted."
   (interactive "P")
-  (rcirc-format "" replace))
+  (rcirc-format "\^B" replace))
 
 (defun rcirc-format-italic (replace)
   "Insert italic formatting.
@@ -1386,7 +1386,7 @@ If REPLACE is non-nil or a prefix argument is given, any prior
 formatting will be replaced before the italic formatting is
 inserted."
   (interactive "P")
-  (rcirc-format "" replace))
+  (rcirc-format "\^]" replace))
 
 (defun rcirc-format-underline (replace)
   "Insert underlining formatting.
@@ -1394,7 +1394,7 @@ If REPLACE is non-nil or a prefix argument is given, any prior
 formatting will be replaced before the underline formatting is
 inserted."
   (interactive "P")
-  (rcirc-format "" replace))
+  (rcirc-format "\^_" replace))
 
 (defun rcirc-format-strike-trough (replace)
   "Insert strike-trough formatting.
@@ -1402,7 +1402,7 @@ If REPLACE is non-nil or a prefix argument is given, any prior
 formatting will be replaced before the strike-trough formatting
 is inserted."
   (interactive "P")
-  (rcirc-format "" replace))
+  (rcirc-format "\^^" replace))
 
 (defun rcirc-format-fixed-width (replace)
   "Insert fixed-width formatting.
@@ -1410,7 +1410,7 @@ If REPLACE is non-nil or a prefix argument is given, any prior
 formatting will be replaced before the fixed width formatting is
 inserted."
   (interactive "P")
-  (rcirc-format "" replace))
+  (rcirc-format "\^Q" replace))
 
 (defvar-keymap rcirc-mode-map
   :doc "Keymap for rcirc mode."
