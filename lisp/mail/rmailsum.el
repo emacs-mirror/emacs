@@ -437,10 +437,11 @@ headers of the messages."
 			 (list 'rmail-summary-by-thread msgnum)
 			 (if (and rmail-summary-progressively-narrow
 				  (rmail-summary--exists-1))
-			     (lambda (msg msgnum)
+			     (lambda (msg _msgnum)
 			       (and (aref rmail-summary-currently-displayed-msgs msg)
 				    (aref enc-msgs msg)))
-			   (lambda (msg msgnum) (aref enc-msgs msg)))
+			   (lambda (msg _msgnum)
+                             (aref enc-msgs msg)))
 			 msgnum))))
 
 ;;;###autoload
