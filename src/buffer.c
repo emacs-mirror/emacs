@@ -937,19 +937,16 @@ delete_all_overlays (struct buffer *b)
   if (! b->overlays)
     return;
 
-  /* FIXME: This loop sets the overlays' `buffer` field to NULL but
-     doesn't set the itree_nodes' `parent`, `left` and `right`
-     fields accordingly.  I believe it's harmless, but a bit untidy since
-     other parts of the code are careful to set those fields to NULL when
-     the overlay is deleted.
-     Of course, we can't set them to NULL from within the iteration
-     because the iterator may need them (tho we could if we added
-     an ITREE_POST_ORDER iteration order).  */
-  ITREE_FOREACH (node, b->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
+  /* The general rule is that the tree cannot be modified from within
+     ITREE_FOREACH, but here we bend this rule a little because we know
+     that the POST_ORDER iterator will not need to look at `node` again.  */
+  ITREE_FOREACH (node, b->overlays, PTRDIFF_MIN, PTRDIFF_MAX, POST_ORDER)
     {
       modify_overlay (b, node->begin, node->end);
-      /* Where are the nodes freed ? --ap */
       XOVERLAY (node->data)->buffer = NULL;
+      node->parent = NULL;
+      node->left = NULL;
+      node->right = NULL;
     }
   itree_clear (b->overlays);
 }

@@ -676,10 +676,8 @@ static void
 itree_insert_node (struct itree_tree *tree, struct itree_node *node)
 {
   eassert (node && node->begin <= node->end);
-  /* FIXME: The assertion below fails because `delete_all_overlays`
-     doesn't set left/right/parent to NULL.  */
-  /* eassert (node->left == NULL && node->right == NULL
-	     && node->parent == NULL) */;
+  eassert (node->left == NULL && node->right == NULL
+	   && node->parent == NULL);
   eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 
   struct itree_node *parent = NULL;
@@ -1224,6 +1222,11 @@ static struct itree_node *
 itree_iter_next_in_subtree (struct itree_node *node,
                             struct itree_iterator *iter)
 {
+  /* FIXME: Like in the previous version of the iterator, we
+     prune based on `limit` only when moving to a left child,
+     but `limit` can also get smaller when moving to a right child
+     It's actually fairly common, so maybe it would be worthwhile
+     to prune a bit more aggressively here.  */
   struct itree_node *next;
   switch (iter->order)
     {
@@ -1386,6 +1389,12 @@ itree_iterator_start (struct itree_iterator *iter,
   iter->end = end;
   iter->otick = tree->otick;
   iter->order = order;
+  /* Beware: the `node` field alwyas holds "the next" node to consider.
+     so it's always "one node ahead" of what the iterator loop sees.
+     In most respects this makes no difference, but we depend on this
+     detail in `delete_all_overlays` where this allows us to modify
+     the current node knowing that the iterator will not need it to
+     find the next.  */
   iter->node = itree_iterator_first_node (tree, iter);
   return iter;
 }
