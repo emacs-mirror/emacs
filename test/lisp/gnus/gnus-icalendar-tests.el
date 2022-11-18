@@ -75,7 +75,7 @@ UID:iipdt88slddpeu7hheuu09sfmd@google.com
 X-MICROSOFT-CDO-OWNERAPPTID:-362490173
 RECURRENCE-ID;TZID=America/New_York:20201208T091500
 CREATED:20200309T134939Z
-DESCRIPTION:In this meeting\\, we will cover topics from product and engine
+DESCRIPTION:In this meeting\\, we will cover topics from product and enginee
  ring presentations and demos to new hire announcements to watching the late
 LAST-MODIFIED:20200728T182852Z
 LOCATION:New York-22-Town Hall Space (250) [Chrome Box]
