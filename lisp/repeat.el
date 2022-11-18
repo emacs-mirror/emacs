@@ -582,13 +582,15 @@ Used in `repeat-mode'."
                          (push s (alist-get (get s 'repeat-map) keymaps)))))
       (with-help-window (help-buffer)
         (with-current-buffer standard-output
-          (insert "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
+          (insert "A list of keymaps used by commands with the symbol property `repeat-map'.\n")
 
           (dolist (keymap (sort keymaps (lambda (a b)
                                           (when (and (symbolp (car a))
                                                      (symbolp (car b)))
-                                            (string-lessp (car a) (car b))))))
-            (insert (format-message "* `%s'\n" (car keymap)))
+                                            (string< (car a) (car b))))))
+            (insert (format-message "\f\n* `%s'\n" (car keymap)))
+            (when (symbolp (car keymap))
+              (insert (substitute-command-keys (format-message "\\{%s}" (car keymap)))))
 
             (let* ((map (if (symbolp (car keymap))
                             (symbol-value (car keymap))
@@ -603,33 +605,34 @@ Used in `repeat-mode'."
               (setq commands-exit  (seq-difference map-commands repeat-commands))
 
               (when (or commands-enter commands-exit)
-                (insert "\n")
                 (when commands-enter
+                  (insert "\n** Entered with:\n\n")
                   (fill-region-as-paragraph
                    (point)
                    (progn
-                     (insert (concat "Entered with: "
-                                     (mapconcat (lambda (cmd)
-                                                  (format-message "`%s'" cmd))
-                                                (sort commands-enter #'string<)
-                                                ", ")
-                                     "\n"))
-                     (point))))
+                     (insert (mapconcat (lambda (cmd)
+                                          (format-message "`%s'" cmd))
+                                        (sort commands-enter #'string<)
+                                        ", "))
+                     (point)))
+                  (insert "\n"))
                 (when commands-exit
+                  (insert "\n** Exited with:\n\n")
                   (fill-region-as-paragraph
                    (point)
                    (progn
-                     (insert (concat "Exited with: "
-                                     (mapconcat (lambda (cmd)
-                                                  (format-message "`%s'" cmd))
-                                                (sort commands-exit #'string<)
-                                                ", ")
-                                     "\n"))
-                     (point))))))
+                     (insert (mapconcat (lambda (cmd)
+                                          (format-message "`%s'" cmd))
+                                        (sort commands-exit #'string<)
+                                        ", "))
+                     (point)))
+                  (insert "\n")))))
 
-            (when (symbolp (car keymap))
-              (insert (substitute-command-keys (format-message "\\{%s}" (car keymap)))))
-            (insert "\n")))))))
+          ;; Hide ^Ls.
+          (goto-char (point-min))
+          (while (search-forward "\n\f\n" nil t)
+	    (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
+                               'invisible t)))))))
 
 (provide 'repeat)
 
