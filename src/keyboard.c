@@ -5974,8 +5974,22 @@ make_lispy_event (struct input_event *event)
 	       in a menu (non-toolkit version).  */
 	    if (!toolkit_menubar_in_use (f))
 	      {
-		pixel_to_glyph_coords (f, XFIXNUM (event->x), XFIXNUM (event->y),
-				       &column, &row, NULL, 1);
+#if defined HAVE_WINDOW_SYSTEM
+		if (FRAME_WINDOW_P (f))
+		  {
+		    struct window *menu_w = XWINDOW (f->menu_bar_window);
+		    int x, y, dummy;
+
+		    x = FRAME_TO_WINDOW_PIXEL_X (menu_w, XFIXNUM (event->x));
+		    y = FRAME_TO_WINDOW_PIXEL_Y (menu_w, XFIXNUM (event->y));
+
+		    x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), x, y, &column, &row,
+				      NULL, NULL, &dummy);
+		  }
+		else
+#endif
+		  pixel_to_glyph_coords (f, XFIXNUM (event->x), XFIXNUM (event->y),
+					 &column, &row, NULL, 1);
 
 		/* In the non-toolkit version, clicks on the menu bar
 		   are ordinary button events in the event buffer.
