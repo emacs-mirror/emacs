@@ -2745,7 +2745,7 @@ Here's a typical use case:
 If @code{my-client-handling-function} ends up calling something that
 asks the user for something (via @code{y-or-n-p} or
 @code{read-from-minibuffer} or the like), an
-@code{inhibited-interaction} error is signalled instead.  The server
+@code{inhibited-interaction} error is signaled instead.  The server
 code then catches that error and reports it to the client.
 
 @node Minibuffer Misc

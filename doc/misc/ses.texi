@@ -750,13 +750,13 @@ when you pass a cell name to the @command{ses-jump} command (@kbd{j}),
 it changes the entered cell name to that where to jump. The default
 setting @code{upcase} allows you to enter the cell name in low
 case. Another use of @code{ses-jump-cell-name-function} could be some
-internationalisation to convert non latin characters into latin
+internationalization to convert non latin characters into latin
 equivalents to name the cell. Instead of a cell name, the function may
 return cell coordinates in the form of a cons, for instance @code{(0
 . 0)} for cell @code{A1}, @code{(1 . 0)} for cell @code{A2}, etc.
 
 @vindex ses-jump-prefix-function
-@code{ses-jump-prefix-function} is a customisable variable by default
+@code{ses-jump-prefix-function} is a customizable variable by default
 set to the @code{ses-jump-prefix} function. This function is called
 when you give a prefix argument to the @command{ses-jump} command
 (@kbd{j}). It returns a cell name or cell coordinates corresponding to

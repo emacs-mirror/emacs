@@ -6911,7 +6911,7 @@ string will be displayed only if BODY takes longer than TIMEOUT seconds.
 If FUNC is a function alias, return the function alias chain.
 
 If the function alias chain contains loops, an error will be
-signalled.  If NOERROR, the non-loop parts of the chain is returned."
+signaled.  If NOERROR, the non-loop parts of the chain is returned."
   (declare (side-effect-free t))
   (let ((chain nil)
         (orig-func func))

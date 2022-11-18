@@ -5953,7 +5953,7 @@ DEFUN ("reconsider-frame-fonts", Freconsider_frame_fonts,
        Sreconsider_frame_fonts, 1, 1, 0,
        doc: /* Recreate FRAME's default font using updated font parameters.
 Signal an error if FRAME is not a window system frame.  This should be
-called after a `config-changed' event is received, signalling that the
+called after a `config-changed' event is received, signaling that the
 parameters (such as pixel density) used by the system to open fonts
 have changed.  */)
   (Lisp_Object frame)

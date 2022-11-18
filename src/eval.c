@@ -1329,7 +1329,7 @@ Then the value of the last BODY form is returned from the `condition-case'
 expression.
 
 The special handler (:success BODY...) is invoked if BODYFORM terminated
-without signalling an error.  BODY is then evaluated with VAR bound to
+without signaling an error.  BODY is then evaluated with VAR bound to
 the value returned by BODYFORM.
 
 See also the function `signal' for more info.
@@ -1809,7 +1809,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       unbind_to (count, Qnil);
     }
 
-  /* If an error is signalled during a Lisp hook in redisplay, write a
+  /* If an error is signaled during a Lisp hook in redisplay, write a
      backtrace into the buffer *Redisplay-trace*.  */
   if (!debugger_called && !NILP (error_symbol)
       && backtrace_on_redisplay_error

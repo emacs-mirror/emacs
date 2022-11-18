@@ -4536,8 +4536,8 @@ DESC must be a `package-desc' object."
   "Return an email address for the maintainers of PKG-DESC.
 The email address may contain commas, if there are multiple
 maintainers.  If no maintainers are found, an error will be
-signalled.  If the optional argument NO-ERROR is non-nil no error
-will be signalled in that case."
+signaled.  If the optional argument NO-ERROR is non-nil no error
+will be signaled in that case."
   (unless pkg-desc
     (error "Invalid package description"))
   (let* ((extras (package-desc-extras pkg-desc))

@@ -1093,7 +1093,7 @@ is in progress."
     (dbus-unregister-service :session dbus--test-service)))
 
 (ert-deftest dbus-test06-register-property-emits-signal ()
-  "Check property registration for an own service, including signalling."
+  "Check property registration for an own service, including signaling."
   (skip-unless dbus--test-enabled-session-bus)
   (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
 
@@ -1136,7 +1136,7 @@ is in progress."
            dbus--test-interface property)
           "foo"))
 
-        ;; Set property.  The new value shall be signalled.
+        ;; Set property.  The new value shall be signaled.
         (setq dbus--test-signal-received nil)
         (should
          (equal

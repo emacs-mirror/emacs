@@ -3649,7 +3649,7 @@ specification of that variable looks like this:
 
 With the exception of ~org-verbatim~ and ~org-code~ faces, everything else
 uses the corresponding type of emphasis: a bold typographic weight, or
-italicised, underlined, and struck through text.
+italicized, underlined, and struck through text.
 
 The best way for users to add some extra attributes, such as a
 foreground color, is to define their own faces and assign them to the

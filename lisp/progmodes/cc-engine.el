@@ -12626,7 +12626,7 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-laomib-fix-elt (lwm elt paren-state)
   ;; Correct a c-laomib-cache entry ELT with respect to buffer changes, either
-  ;; doing nothing, signalling it is to be deleted, or replacing its start
+  ;; doing nothing, signaling it is to be deleted, or replacing its start
   ;; point with one lower in the buffer than LWM.  PAREN-STATE is the paren
   ;; state at LWM.  Return the corrected entry, or nil (if it needs deleting).
   ;; Note that corrections are made by `setcar'ing the original structure,

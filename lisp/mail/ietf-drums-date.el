@@ -126,7 +126,7 @@ treat them as whitespace (per RFC822)."
 (defun ietf-drums-parse-date-string (time-string &optional error no-822)
   "Parse an RFC5322 or RFC822 date, passed as TIME-STRING.
 The optional ERROR parameter causes syntax errors to be flagged
-by signalling an instance of the date-parse-error condition.  The
+by signaling an instance of the date-parse-error condition.  The
 optional NO-822 parameter disables the more lax RFC822 syntax,
 which is permitted by default.
 
@@ -162,7 +162,7 @@ DST is returned as -1)."
         (time (list nil nil nil nil nil nil nil -1 nil)))
     (cl-labels ((set-matched-slot (slot index token)
                   ;; Assign a slot value from match data if index is
-                  ;; non-nil, else from token, signalling an error if
+                  ;; non-nil, else from token, signaling an error if
                   ;; enabled and it's out of range.
                   (let ((value (if index
                                    (cl-parse-integer (match-string index token))
