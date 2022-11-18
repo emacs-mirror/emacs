@@ -85,15 +85,16 @@
                  "di-n")))
 
 (ert-deftest simple-execute-extended-command--describe-binding-msg ()
-  (should (equal (execute-extended-command--describe-binding-msg
-                  'foo "m" nil)
-                 "You can run the command ‘foo’ with m"))
-  (should (equal (execute-extended-command--describe-binding-msg
-                  'foo [14] nil)
-                 "You can run the command ‘foo’ with C-n"))
-  (should (equal (execute-extended-command--describe-binding-msg
-                  'display-line-numbers-mode nil "di-n")
-                 "You can run the command ‘display-line-numbers-mode’ with M-x di-n")))
+  (let ((text-quoting-style 'grave))
+    (should (equal (execute-extended-command--describe-binding-msg
+                    'foo "m" nil)
+                   "You can run the command `foo' with m"))
+    (should (equal (execute-extended-command--describe-binding-msg
+                    'foo [14] nil)
+                   "You can run the command `foo' with C-n"))
+    (should (equal (execute-extended-command--describe-binding-msg
+                    'display-line-numbers-mode nil "di-n")
+                   "You can run the command `display-line-numbers-mode' with M-x di-n"))))
 
 
 ;;; `transpose-sexps'
