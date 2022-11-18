@@ -559,18 +559,26 @@ In addition to the keywords accepted by `define-keymap', this
 macro also accepts a `:doc' keyword, which (if present) is used
 as the variable documentation string.
 
-When a `:repeat' keyword is non-nil, put `repeat-map' symbol
-properties on commands in this map for `repeat-mode'.  The value
-could also be a property list with properties `:enter' and `:exit',
-for example, :repeat (:enter (commands ...) :exit (commands ...)).
-`:enter' is a list of additional commands that only enter `repeat-mode'.
-When the list is empty then by default all commands in the map enter
-`repeat-mode'.  This is applicable when a command has the `repeat-map'
-symbol property on its symbol, but doesn't exist in the map.  `:exit'
-is a list of commands that exit `repeat-mode'.  When the list is
-empty, no commands in the map exit `repeat-mode'.  This is applicable
-when a command exists in the map, but doesn't have the `repeat-map'
-symbol property on its symbol.
+The `:repeat' keyword can also be specified; it controls the
+`repeat-mode' behavior of the bindings in the keymap.  When it is
+non-nil, all commands in the map will have the `repeat-map'
+symbol property.
+
+More control is available over which commands are repeatable; the
+value can also be a property list with properties `:enter' and
+`:exit', for example:
+
+     :repeat (:enter (commands ...) :exit (commands ...))
+
+`:enter' specifies the list of additional commands that only
+enter `repeat-mode'.  When the list is empty, then by default all
+commands in the map enter `repeat-mode'.  This is useful when
+there is a command that has the `repeat-map' symbol property, but
+doesn't exist in this specific map.  `:exit' is a list of
+commands that exit `repeat-mode'.  When the list is empty, no
+commands in the map exit `repeat-mode'.  This is useful when a
+command exists in this specific map, but it doesn't have the
+`repeat-map' symbol property on its symbol.
 
 \(fn VARIABLE-NAME &key DOC FULL PARENT SUPPRESS NAME PREFIX KEYMAP REPEAT &rest [KEY DEFINITION]...)"
   (declare (indent 1))
