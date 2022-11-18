@@ -1010,7 +1010,7 @@
                          :nick "nick"
                          :password nil))))
 
-  (ert-info ("Addresss includes nick and password")
+  (ert-info ("Address includes nick and password")
     (should (equal (ert-simulate-keys "nick:sesame@localhost:6667\r"
                      (erc-select-read-args))
                    (list :server "localhost"

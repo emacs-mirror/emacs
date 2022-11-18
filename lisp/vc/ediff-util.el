@@ -1748,7 +1748,7 @@ With a prefix argument ARG, go back that many differences."
 		     regexp-skip
 		     ;; skip clashes, if necessary
 		     non-clash-skip
-		     ;; skipp changed regions
+                     ;; skip changed regions
 		     skip-changed
 		     ;; skip difference regions that differ in white space
 		     (and ediff-ignore-similar-regions

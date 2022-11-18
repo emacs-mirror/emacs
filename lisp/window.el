@@ -9172,7 +9172,7 @@ present.  See also `fit-frame-to-buffer-sizes'."
 This list specifies the total maximum and minimum numbers of
 lines and the maximum and minimum numbers of columns of the body
 of the root window of any frame that shall be fit to its buffer.
-Any value specified by ths variable will be overridden by the
+Any value specified by this variable will be overridden by the
 corresponding argument of `fit-frame-to-buffer', if non-nil.
 
 On window systems where the menubar can wrap, fitting a frame to

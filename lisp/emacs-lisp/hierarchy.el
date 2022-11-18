@@ -191,7 +191,7 @@ PARENTFN, CHILDRENFN, ACCEPTFN, and DELAY-CHILDREN-P have the same meaning as in
 (defun hierarchy-add-list (hierarchy list &optional wrap childrenfn)
   "Add to HIERARCHY the sub-lists in LIST.
 
-If WRAP is non-nil, allow duplicate items in LIST by wraping each
+If WRAP is non-nil, allow duplicate items in LIST by wrapping each
 item in a cons (id . item).  The root's id is 1.
 
 CHILDRENFN is a function (defaults to `cdr') taking LIST as a

@@ -15340,7 +15340,7 @@
 	* subr.el (with-selected-frame): Mention that the selected frame
 	is restored (bug#9980).
 
-	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
+	* ibuffer.el (ibuffer-mode): List the bindings in the correct map
 	(bug#9759).
 
 	* mail/smtpmail.el (password-cache-add): Remove unused declaration.

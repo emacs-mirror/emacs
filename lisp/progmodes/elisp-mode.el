@@ -1699,7 +1699,7 @@ the value of the variable `edebug-all-defs'.
 
 If point isn't in a top-level form, evaluate the first top-level
 form after point.  If there is no top-level form after point,
-evaluate the first preceeding top-level form.
+evaluate the first preceding top-level form.
 
 If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value

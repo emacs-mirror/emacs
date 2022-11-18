@@ -2847,7 +2847,7 @@ can pass the converted path to the =sqlcmd= tool.
 
 **** Improved support of header arguments for postgresql
 
-The postgresql engine in a sql code block supports now ~:dbport~ nd
+The postgresql engine in a sql code block now supports ~:dbport~ and
 ~:dbpassword~ as header arguments.
 
 **** Support for additional plantuml output formats

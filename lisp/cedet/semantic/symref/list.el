@@ -378,7 +378,8 @@ BUTTON is the button that was clicked."
 
 (defun semantic-symref-list-on-hit-p ()
   "Return the line number if the cursor is on a buffer line with a hit.
-Hits are the line of code from the buffer, not the tag summar or file lines."
+Hits are the line of code from the buffer, not the tag summary or
+file lines."
   (save-excursion
     (end-of-line)
     (let* ((ol (car (overlays-at (1- (point)))))) ;; trust this for now

@@ -454,7 +454,7 @@ bindings, per the current major mode."
 
 (defcustom outline-minor-mode-highlight nil
   "Whether to highlight headings in `outline-minor-mode' using font-lock keywords.
-This option controles whether `outline-minor-mode' will use its font-lock
+This option controls whether `outline-minor-mode' will use its font-lock
 keywords to highlight headings, which could potentially conflict with
 font-lock faces defined by the major mode.  Thus, a non-nil value will
 work well only when there's no such conflict.

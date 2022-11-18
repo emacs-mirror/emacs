@@ -2823,7 +2823,7 @@ blocks."
             (first-processed (l)
               (if-let ((p (cl-find-if (lambda (p) (comp-block-idom p)) l)))
                   p
-                (signal 'native-ice "cant't find first preprocessed"))))
+                (signal 'native-ice "can't find first preprocessed"))))
 
     (when-let ((blocks (comp-func-blocks comp-func))
                (entry (gethash 'entry blocks))

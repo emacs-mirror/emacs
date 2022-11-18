@@ -7498,7 +7498,7 @@
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* insdel.c (invalidate_buffer_caches): When deleting or replacing
-	text, invalidate the bidi_paragraph_cache upto and including the
+	text, invalidate the bidi_paragraph_cache up to and including the
 	preceding newline.
 
 2014-04-16  Paul Eggert  <eggert@cs.ucla.edu>
@@ -10868,7 +10868,7 @@
 
 	* xdisp.c (syms_of_xdisp): New vars redisplay--all-windows-cause and
 	redisplay--mode-lines-cause.
-	(redisplay_internal): Keep them uptodate.  Remove redundant check of
+	(redisplay_internal): Keep them up-to-date.  Remove redundant check of
 	buffer_shared_and_changed.
 	* *.[chm]: Number every assignment to update_mode_lines so we
 	can track why it is set.
@@ -12566,7 +12566,7 @@
 2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not copy X event in handle_one_xevent except KeyPress case.
-	Wnen XEvent is processed, it is unlikely to be changed except
+	When XEvent is processed, it is unlikely to be changed except
 	KeyPress case, so we can avoid copying and use const pointer to
 	const data to make sure that an event is not changed elsewhere.
 	* xterm.c (handle_one_xevent): Change 2nd arg to 'const XEvent *

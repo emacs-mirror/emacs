@@ -2713,7 +2713,7 @@ before the type, so such things are not necessary to mention here.
 Mentioning them here is necessary only if they can occur in other
 places, or if they are followed by a construct that must be skipped
 over (like the parens in the \"__attribute__\" and \"__declspec\"
-examples above).  In the last case, they alse need to be present on
+examples above).  In the last case, they also need to be present on
 one of `c-type-list-kwds', `c-ref-list-kwds',
 `c-colon-type-list-kwds', `c-paren-nontype-kwds', `c-paren-type-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds'."

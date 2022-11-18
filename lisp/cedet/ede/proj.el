@@ -543,7 +543,7 @@ Converts all symbols into the objects to be used."
   (when (slot-exists-p obj 'compiler)
     (let ((comp (oref obj compiler)))
       (if comp
-	  ;; Now that we have a pre-set compilers to use, convert tye symbols
+          ;; Now that we have a pre-set compilers to use, convert type symbols
 	  ;; into objects for ease of use
 	  (setq comp (if (listp comp)
 	                 (mapcar #'symbol-value comp)

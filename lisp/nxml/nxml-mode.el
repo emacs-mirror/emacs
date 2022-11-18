@@ -195,7 +195,7 @@ This is not used directly, but only via inheritance by other faces."
 (defface nxml-char-ref-number
   '((t (:inherit nxml-ref)))
   "Face used for the number in character references.
-This includes ths `x' in hex references."
+This includes the `x' in hex references."
   :group 'nxml-faces)
 
 (defface nxml-char-ref-delimiter

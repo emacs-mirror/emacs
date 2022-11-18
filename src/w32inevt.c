@@ -648,7 +648,7 @@ handle_file_notifications (struct input_event *hold_quit)
       ns = NULL;
 
       /* Find out if there is a record available in the linked list of
-	 notifications sets.  If so, unlink te set from the linked list.
+	 notifications sets.  If so, unlink the set from the linked list.
 	 Use the critical section.  */
       enter_crit ();
       if (notifications_set_head->next != notifications_set_head)

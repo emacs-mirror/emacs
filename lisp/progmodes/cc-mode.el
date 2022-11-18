@@ -1235,7 +1235,7 @@ Note that the style variables are always made local to the buffer."
 
 (defun c-multiline-string-check-final-quote ()
   ;; Check that the final quote in the buffer is correctly marked or not with
-  ;; a string-fence syntax-table text propery.  The return value has no
+  ;; a string-fence syntax-table text property.  The return value has no
   ;; significance.
   (let (pos-ll pos-lt)
     (save-excursion

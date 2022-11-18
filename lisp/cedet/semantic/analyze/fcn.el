@@ -72,7 +72,7 @@ If SEQUENCE is all prototypes, or has no prototypes, get the first one.
 Optional TAGCLASS indicates to restrict the return to only
 tags of TAGCLASS."
 
-  ;; If there is a srew up and we get just one tag.. massage over it.
+  ;; If there is a screw up and we get just one tag.. massage over it.
   (when (semantic-tag-p sequence)
     (setq sequence (list sequence)))
 

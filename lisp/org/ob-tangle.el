@@ -433,7 +433,7 @@ non-nil, return the full association list to be used by
                       ;; The created link is transient.  Using ID is
                       ;; not necessary, but could have side-effects if
                       ;; used.  An ID property may be added to
-                      ;; existing entries thus creatin unexpected file
+                      ;; existing entries thus creating unexpected file
                       ;; modifications.
                       (org-id-link-to-org-use-id nil)
                       (l (org-no-properties (org-store-link nil))))
@@ -525,7 +525,7 @@ by `org-babel-get-src-block-info'."
 			("link" . ,(let (;; The created link is transient.  Using ID is
                                          ;; not necessary, but could have side-effects if
                                          ;; used.  An ID property may be added to
-                                         ;; existing entries thus creatin unexpected file
+                                         ;; existing entries thus creating unexpected file
                                          ;; modifications.
                                          (org-id-link-to-org-use-id nil))
                                      (org-no-properties (org-store-link nil))))

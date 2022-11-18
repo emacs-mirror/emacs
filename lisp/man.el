@@ -1077,13 +1077,13 @@ to auto-complete your input based on the installed manual pages."
     ;; unless COLUMNS or MANWIDTH is set.  This isn't a problem on
     ;; a tty.  man(1) says:
     ;;        MANWIDTH
-    ;;               If $MANWIDTH is set, its value is used as the  line
-    ;;               length  for which manual pages should be formatted.
-    ;;               If it is not set, manual pages  will  be  formatted
-    ;;               with  a line length appropriate to the current ter-
-    ;;               minal (using an ioctl(2) if available, the value of
-    ;;               $COLUMNS,  or falling back to 80 characters if nei-
-    ;;               ther is available).
+    ;;               If $MANWIDTH is set, its value is used as the line
+    ;;               length for which manual pages should be formatted.
+    ;;               If it is not set, manual pages will be formatted
+    ;;               with a line length appropriate to the current
+    ;;               terminal (using an ioctl(2) if available, the value
+    ;;               of $COLUMNS, or falling back to 80 characters if
+    ;;               neither is available).
     (when (or window-system
 	      (not (or (getenv "MANWIDTH") (getenv "COLUMNS"))))
       ;; Since the page buffer is displayed beforehand,

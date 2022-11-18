@@ -157,7 +157,7 @@ Return test-total elapsed time."
       (cond ((string-match-p "\\`-[cn]\\'" (car args))
              (unless (and (cdr args)
                           (string-match-p "\\`[0-9]+\\'" (cadr args)))
-               (error "%s expectes a natnum argument" (car args)))
+               (error "%s expects a natnum argument" (car args)))
              (if (equal (car args) "-c")
                  (setq k (string-to-number (cadr args)))
                (setq n (string-to-number (cadr args))))

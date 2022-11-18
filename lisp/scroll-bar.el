@@ -390,7 +390,7 @@ EVENT should be a scroll bar click."
 	(setq point-before-scroll before-scroll)))))
 
 
-;;; Tookit scroll bars.
+;;; Toolkit scroll bars.
 
 (defun scroll-bar-toolkit-scroll (event)
   "Handle event EVENT on vertical scroll bar."

@@ -14490,7 +14490,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		    break;
 		  }
 #ifdef USE_GTK
-		/* We don't wan't to know the innermost window.  We
+		/* We don't want to know the innermost window.  We
 		   want the edit window.  For non-Gtk+ the innermost
 		   window is the edit window.  For Gtk+ it might not
 		   be.  It might be the tool bar for example.  */
@@ -14521,7 +14521,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	       never use them in that case.)  */
 
 #ifdef USE_GTK
-	    /* We don't wan't to know the innermost window.  We
+	    /* We don't want to know the innermost window.  We
 	       want the edit window.  */
 	    f1 = x_window_to_frame (dpyinfo, win);
 #else
