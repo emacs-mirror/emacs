@@ -580,7 +580,9 @@ struct x_display_info
   Time last_user_time;
 
   /* Position where the mouse was last time we reported a motion.
-     This is a position on last_mouse_motion_frame.  */
+     This is a position on last_mouse_motion_frame.  It is used in
+     some situations to report the mouse position as well: see
+     XTmouse_position.  */
   int last_mouse_motion_x;
   int last_mouse_motion_y;
 
@@ -1605,22 +1607,15 @@ SELECTION_EVENT_DISPLAY (struct selection_input_event *ev)
 
 extern void x_free_gcs (struct frame *);
 extern void x_relative_mouse_position (struct frame *, int *, int *);
-extern void x_real_pos_and_offsets (struct frame *f,
-                                    int *left_offset_x,
-                                    int *right_offset_x,
-                                    int *top_offset_y,
-                                    int *bottom_offset_y,
-                                    int *x_pixels_diff,
-                                    int *y_pixels_diff,
-                                    int *xptr,
-                                    int *yptr,
-                                    int *outer_border);
+extern void x_real_pos_and_offsets (struct frame *, int *, int *, int *,
+                                    int *, int *, int *, int *, int *,
+				    int *);
 extern void x_default_font_parameter (struct frame *, Lisp_Object);
 
 /* From xrdb.c.  */
 
-XrmDatabase x_load_resources (Display *, const char *, const char *,
-			      const char *);
+extern XrmDatabase x_load_resources (Display *, const char *, const char *,
+				     const char *);
 extern const char *x_get_string_resource (void *, const char *, const char *);
 
 /* Defined in xterm.c */

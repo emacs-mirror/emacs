@@ -14261,8 +14261,113 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		  Time *timestamp)
 {
   struct frame *f1, *maybe_tooltip;
-  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
+  struct x_display_info *dpyinfo;
   bool unrelated_tooltip;
+  Lisp_Object tail, frame;
+
+  dpyinfo = FRAME_DISPLAY_INFO (*fp);
+
+  if (!NILP (Vx_use_fast_mouse_position))
+    {
+      /* The user says that Emacs is running over the network, and a
+	 fast approximation of `mouse-position' should be used.
+
+         Depending on what the value of `x-use-fast-mouse-position'
+         is, do one of two things: only perform the XQueryPointer to
+         obtain the coordinates from the last mouse frame, or only
+         return the last mouse motion frame and the
+         last_mouse_motion_x and Y.  */
+
+      if (!EQ (Vx_use_fast_mouse_position, Qreally_fast))
+	{
+	  int root_x, root_y, win_x, win_y;
+	  unsigned int mask;
+	  Window dummy;
+
+	  /* This means that Emacs should select a frame and report
+	     the mouse position relative to it.  The approach used
+	     here avoids making multiple roundtrips to the X server
+	     querying for the window beneath the pointer, and was
+	     borrowed from haiku_mouse_position in haikuterm.c.  */
+
+	  FOR_EACH_FRAME (tail, frame)
+	    {
+	      if (FRAME_X_P (XFRAME (frame)))
+		XFRAME (frame)->mouse_moved = false;
+	    }
+
+	  if (gui_mouse_grabbed (dpyinfo)
+	      && !EQ (track_mouse, Qdropping)
+	      && !EQ (track_mouse, Qdrag_source))
+	    /* Pick the last mouse frame if dropping.  */
+	    f1 = x_display_list->last_mouse_frame;
+	  else
+	    /* Otherwise, pick the last mouse motion frame.  */
+	    f1 = x_display_list->last_mouse_motion_frame;
+
+	  if (!f1 && FRAME_X_P (SELECTED_FRAME ()))
+	    f1 = SELECTED_FRAME ();
+
+	  if (!f1 || (!FRAME_X_P (f1) && (insist > 0)))
+	    FOR_EACH_FRAME (tail, frame)
+	      if (FRAME_X_P (XFRAME (frame)) &&
+		  !FRAME_X_P (XFRAME (frame)))
+		f1 = XFRAME (frame);
+
+	  if (f1 && FRAME_TOOLTIP_P (f1))
+	    f1 = NULL;
+
+	  if (f1 && FRAME_X_P (f1) && FRAME_X_WINDOW (f1))
+	    {
+	      if (!x_query_pointer (dpyinfo->display, FRAME_X_WINDOW (f1),
+				    &dummy, &dummy, &root_x, &root_y,
+				    &win_x, &win_y, &mask))
+		/* The pointer is out of the screen.  */
+		return;
+
+	      remember_mouse_glyph (f1, win_x, win_y,
+				    &dpyinfo->last_mouse_glyph);
+	      x_display_list->last_mouse_glyph_frame = f1;
+
+	      *bar_window = Qnil;
+	      *part = scroll_bar_nowhere;
+
+	      /* If track-mouse is `drag-source' and the mouse pointer is
+		 certain to not be actually under the chosen frame, return
+		 NULL in FP.  */
+	      if (EQ (track_mouse, Qdrag_source)
+		  && (win_x < 0 || win_y < 0
+		      || win_x >= FRAME_PIXEL_WIDTH (f1)
+		      || win_y >= FRAME_PIXEL_HEIGHT (f1)))
+		*fp = NULL;
+	      else
+		*fp = f1;
+
+	      *timestamp = dpyinfo->last_mouse_movement_time;
+	      XSETINT (*x, win_x);
+	      XSETINT (*y, win_y);
+	    }
+	}
+      else
+	{
+	  /* This means Emacs should only report the coordinates of
+	     the last mouse motion.  */
+
+	  if (dpyinfo->last_mouse_motion_frame)
+	    {
+	      *fp = dpyinfo->last_mouse_motion_frame;
+	      *timestamp = dpyinfo->last_mouse_movement_time;
+	      *x = make_fixnum (dpyinfo->last_mouse_motion_x);
+	      *y = make_fixnum (dpyinfo->last_mouse_motion_y);
+	      *bar_window = Qnil;
+	      *part = scroll_bar_nowhere;
+
+	      dpyinfo->last_mouse_motion_frame->mouse_moved = false;
+	    }
+	}
+
+      return;
+    }
 
   block_input ();
 
@@ -31131,6 +31236,7 @@ With MS Windows, Haiku windowing or Nextstep, the value is t.  */);
   DEFSYM (Qimitate_pager, "imitate-pager");
   DEFSYM (Qnewer_time, "newer-time");
   DEFSYM (Qraise_and_focus, "raise-and-focus");
+  DEFSYM (Qreally_fast, "really-fast");
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* Which keys Emacs uses for the ctrl modifier.
@@ -31410,4 +31516,19 @@ not bypass window manager focus stealing prevention):
   - The symbol `raise-and-focus', which means to raise the window and
     focus it manually.  */);
   Vx_allow_focus_stealing = Qnewer_time;
+
+  DEFVAR_LISP ("x-use-fast-mouse-position", Vx_use_fast_mouse_position,
+    doc: /* How to make `mouse-position' faster.
+
+`mouse-position' and `mouse-pixel-position' default to querying the X
+server for the window under the mouse pointer.  This results in
+accurate results, but is also very slow when the X connection has
+moderate to high latency.  Setting this variable to a non-nil value
+makes Emacs query only for the position of the pointer, which is
+usually faster.  Doing so improves the performance of dragging to
+select text over slow X connections.
+
+If that is still too slow, setting this variable to the symbol
+`really-fast' will make Emacs return only cached values.  */);
+  Vx_use_fast_mouse_position = Qnil;
 }
