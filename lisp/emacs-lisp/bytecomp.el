@@ -3637,7 +3637,7 @@ lambda-expression."
     (byte-compile-out base-op tmp)))
 
 (defun byte-compile-dynamic-variable-bind (var)
-  "Generate code to bind the lexical variable VAR to the top-of-stack value."
+  "Generate code to bind the dynamic variable VAR to the top-of-stack value."
   (byte-compile-check-variable var 'let-bind)
   (push var byte-compile-bound-variables)
   (byte-compile-dynamic-variable-op 'byte-varbind var))
