@@ -5974,7 +5974,7 @@ make_lispy_event (struct input_event *event)
 	       in a menu (non-toolkit version).  */
 	    if (!toolkit_menubar_in_use (f))
 	      {
-#if defined HAVE_WINDOW_SYSTEM
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
 		if (FRAME_WINDOW_P (f))
 		  {
 		    struct window *menu_w = XWINDOW (f->menu_bar_window);
