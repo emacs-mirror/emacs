@@ -2184,12 +2184,12 @@ emit_lisp_string_constructor_rval (Lisp_Object str)
   gcc_jit_global_set_initializer (str_data, SDATA (str), str_size);
   gcc_jit_rvalue *size_bytes
     = STRING_MULTIBYTE (str)
-	? gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+	? gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 					       comp.ptrdiff_type,
 					       SBYTES (str))
 	// Mark unibyte strings as immovable, so that pin_string does
 	// not attempt to modify them.
-	: gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+	: gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 					       comp.ptrdiff_type, -3);
   // Perma-mark all string constants, which lets us declare them as
   // constants.
@@ -2690,8 +2690,8 @@ float_block_emit_constructor (Lisp_Object block)
   SAFE_NALLOCA (gcmarkbits, 1, float_block_gcmarkbits_length);
   for (ptrdiff_t i = 0; i < float_block_gcmarkbits_length; i++)
     gcmarkbits[i]
-      = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					     comp.ptrdiff_type, ~0u);
+      = gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					      comp.ptrdiff_type, ~0u);
 
   gcc_jit_field *fields[] = {
     comp.float_block_floats,
@@ -3069,8 +3069,10 @@ emit_comp_lisp_obj (Lisp_Object obj,
 		}
 	    }
 
+	  /* Perma-mark static vectors, so that they can be declared
+	   * as consts.  */
 	  gcc_jit_rvalue *struct_values[] = {
-	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+	    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 						 comp.ptrdiff_type,
 						 ASIZE (obj)
 						   | ARRAY_MARK_FLAG),
