@@ -2240,7 +2240,7 @@ main (int argc, char **argv)
               char *str = unquote_argument (p + strlen ("-error "));
               if (!skiplf)
                 printf ("\n");
-              fprintf (stderr, "*ERROR*: %s", str);
+	      message (true, "*ERROR*: %s", str);
               if (str[0])
 	        skiplf = str[strlen (str) - 1] == '\n';
               exit_status = EXIT_FAILURE;

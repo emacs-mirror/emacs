@@ -717,7 +717,10 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.  Also don't get
 		       ;; confused by CRs since we don't quote them.
-		       :coding 'raw-text-unix
+                       ;; For encoding, we must use the locale's encoding,
+                       ;; since emacsclient shows that verbatim on the
+                       ;; console.
+		       :coding (cons 'raw-text-unix locale-coding-system)
 		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
 			   (list :family 'ipv4  ;; We're not ready for IPv6 yet
