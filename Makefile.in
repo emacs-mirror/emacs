@@ -410,7 +410,7 @@ advice-on-failure:
 	@echo >&2 '***'
 	@cat Makefile | \
 	  sed -n '/^# ADVICE-ON-FAILURE-BEGIN:${make-target}/,$${p;/^# ADVICE-ON-FAILURE-END:${make-target}/q};' | \
-	  sed 's/^# /*** /' | grep -v '^*** ADVICE-ON-FAILURE-' >&2
+	  sed 's/^# /*** /' | grep -v '^\*\*\* ADVICE-ON-FAILURE-' >&2
 	@echo >&2 '***'
 	@exit ${exit-status}
 
@@ -424,7 +424,7 @@ sanity-check:
 	echo >&2 '***'; \
 	cat Makefile | \
 	  sed -n '/^# ADVICE-ON-FAILURE-BEGIN:${make-target}/,$${p;/^# ADVICE-ON-FAILURE-END:${make-target}/q};' | \
-	  sed 's/^# /*** /' | grep -v '^*** ADVICE-ON-FAILURE-' >&2; \
+	  sed 's/^# /*** /' | grep -v '^\*\*\* ADVICE-ON-FAILURE-' >&2; \
 	echo >&2 '***'; \
 	exit 1
 
