@@ -4532,19 +4532,28 @@ DESC must be a `package-desc' object."
         (funcall browse-url-secondary-browser-function url)
       (browse-url url))))
 
+(declare-function ietf-drums-parse-address "ietf-drums"
+                  (string &optional decode))
+
 (defun package-maintainers (pkg-desc &optional no-error)
   "Return an email address for the maintainers of PKG-DESC.
 The email address may contain commas, if there are multiple
 maintainers.  If no maintainers are found, an error will be
 signaled.  If the optional argument NO-ERROR is non-nil no error
 will be signaled in that case."
-  (unless pkg-desc
-    (error "Invalid package description"))
-  (let* ((extras (package-desc-extras pkg-desc))
+  (unless (package-desc-p pkg-desc)
+    (error "Invalid package description: %S" pkg-desc))
+  (let* ((name (package-desc-name pkg-desc))
+         (extras (package-desc-extras pkg-desc))
          (maint (alist-get :maintainer extras)))
     (cond
      ((and (null maint) (null no-error))
-      (user-error "Package has no explicit maintainer"))
+      (user-error "Package `%s' has no explicit maintainer" name))
+     ((and (not (progn
+                  (require 'ietf-drums)
+                  (ietf-drums-parse-address maint)))
+           (null no-error))
+      (user-error "Package `%s' has no maintainer address" name))
      ((not (null maint))
       (with-temp-buffer
         (package--print-email-button maint)
