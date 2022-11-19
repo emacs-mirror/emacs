@@ -3297,7 +3297,7 @@ See `sh-mode--treesit-other-keywords' and
 
    :feature 'declaration-command
    :language 'bash
-   `([,@sh-mode--treesit-declaration-commands] @font-lock-builtin-face)
+   `([,@sh-mode--treesit-declaration-commands] @font-lock-keyword-face)
 
    :feature 'constant
    :language 'bash
