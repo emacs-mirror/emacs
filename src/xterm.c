@@ -14235,6 +14235,136 @@ x_get_window_below (Display *dpy, Window window,
   return value;
 }
 
+/* Like XTmouse_position, but much faster.  */
+
+static void
+x_fast_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
+		       enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
+		       Time *timestamp)
+{
+  int root_x, root_y, win_x, win_y;
+  unsigned int mask;
+  Window dummy;
+  struct scroll_bar *bar;
+  struct x_display_info *dpyinfo;
+  Lisp_Object tail, frame;
+  struct frame *f1;
+
+  dpyinfo = FRAME_DISPLAY_INFO (*fp);
+
+  if (dpyinfo->last_mouse_scroll_bar && !insist)
+    {
+      bar = dpyinfo->last_mouse_scroll_bar;
+
+      if (bar->horizontal)
+	x_horizontal_scroll_bar_report_motion (fp, bar_window, part,
+					       x, y, timestamp);
+      else
+	x_scroll_bar_report_motion (fp, bar_window, part,
+				    x, y, timestamp);
+
+      return;
+    }
+
+  if (!EQ (Vx_use_fast_mouse_position, Qreally_fast))
+    {
+      /* This means that Emacs should select a frame and report the
+	 mouse position relative to it.  The approach used here avoids
+	 making multiple roundtrips to the X server querying for the
+	 window beneath the pointer, and was borrowed from
+	 haiku_mouse_position in haikuterm.c.  */
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  if (FRAME_X_P (XFRAME (frame))
+	      && (FRAME_DISPLAY_INFO (XFRAME (frame))
+		  == dpyinfo))
+	    XFRAME (frame)->mouse_moved = false;
+	}
+
+      if (gui_mouse_grabbed (dpyinfo)
+	  && !EQ (track_mouse, Qdropping)
+	  && !EQ (track_mouse, Qdrag_source))
+	/* Pick the last mouse frame if dropping.  */
+	f1 = dpyinfo->last_mouse_frame;
+      else
+	/* Otherwise, pick the last mouse motion frame.  */
+	f1 = dpyinfo->last_mouse_motion_frame;
+
+      if (!f1 && (FRAME_X_P (SELECTED_FRAME ())
+		  && (FRAME_DISPLAY_INFO (SELECTED_FRAME ())
+		      == dpyinfo)))
+	f1 = SELECTED_FRAME ();
+
+      if (!f1 || (!FRAME_X_P (f1) && (insist > 0)))
+	FOR_EACH_FRAME (tail, frame)
+	  if (FRAME_X_P (XFRAME (frame))
+	      && (FRAME_DISPLAY_INFO (XFRAME (frame))
+		  == dpyinfo)
+	      && !FRAME_TOOLTIP_P (XFRAME (frame)))
+	    f1 = XFRAME (frame);
+
+      if (f1 && FRAME_TOOLTIP_P (f1))
+	f1 = NULL;
+
+      if (f1 && FRAME_X_P (f1) && FRAME_X_WINDOW (f1))
+	{
+	  if (!x_query_pointer (dpyinfo->display, FRAME_X_WINDOW (f1),
+				&dummy, &dummy, &root_x, &root_y,
+				&win_x, &win_y, &mask))
+	    /* The pointer is out of the screen.  */
+	    return;
+
+	  remember_mouse_glyph (f1, win_x, win_y,
+				&dpyinfo->last_mouse_glyph);
+	  dpyinfo->last_mouse_glyph_frame = f1;
+
+	  *bar_window = Qnil;
+	  *part = scroll_bar_nowhere;
+
+	  /* If track-mouse is `drag-source' and the mouse pointer is
+	     certain to not be actually under the chosen frame, return
+	     NULL in FP.  */
+	  if (EQ (track_mouse, Qdrag_source)
+	      && (win_x < 0 || win_y < 0
+		  || win_x >= FRAME_PIXEL_WIDTH (f1)
+		  || win_y >= FRAME_PIXEL_HEIGHT (f1)))
+	    *fp = NULL;
+	  else
+	    *fp = f1;
+
+	  *timestamp = dpyinfo->last_mouse_movement_time;
+	  XSETINT (*x, win_x);
+	  XSETINT (*y, win_y);
+	}
+    }
+  else
+    {
+      /* This means Emacs should only report the coordinates of the
+	 last mouse motion.  */
+
+      if (dpyinfo->last_mouse_motion_frame)
+	{
+	  *fp = dpyinfo->last_mouse_motion_frame;
+	  *timestamp = dpyinfo->last_mouse_movement_time;
+	  *x = make_fixnum (dpyinfo->last_mouse_motion_x);
+	  *y = make_fixnum (dpyinfo->last_mouse_motion_y);
+	  *bar_window = Qnil;
+	  *part = scroll_bar_nowhere;
+
+	  FOR_EACH_FRAME (tail, frame)
+	    {
+	      if (FRAME_X_P (XFRAME (frame))
+		  && (FRAME_DISPLAY_INFO (XFRAME (frame))
+		      == dpyinfo))
+		XFRAME (frame)->mouse_moved = false;
+	    }
+
+	  dpyinfo->last_mouse_motion_frame->mouse_moved = false;
+	}
+    }
+}
+
 /* Return the current position of the mouse.
    *FP should be a frame which indicates which display to ask about.
 
@@ -14263,7 +14393,6 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   struct frame *f1, *maybe_tooltip;
   struct x_display_info *dpyinfo;
   bool unrelated_tooltip;
-  Lisp_Object tail, frame;
 
   dpyinfo = FRAME_DISPLAY_INFO (*fp);
 
@@ -14272,100 +14401,14 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       /* The user says that Emacs is running over the network, and a
 	 fast approximation of `mouse-position' should be used.
 
-         Depending on what the value of `x-use-fast-mouse-position'
-         is, do one of two things: only perform the XQueryPointer to
-         obtain the coordinates from the last mouse frame, or only
-         return the last mouse motion frame and the
-         last_mouse_motion_x and Y.  */
+	 Depending on what the value of `x-use-fast-mouse-position'
+	 is, do one of two things: only perform the XQueryPointer to
+	 obtain the coordinates from the last mouse frame, or only
+	 return the last mouse motion frame and the
+	 last_mouse_motion_x and Y.  */
 
-      if (!EQ (Vx_use_fast_mouse_position, Qreally_fast))
-	{
-	  int root_x, root_y, win_x, win_y;
-	  unsigned int mask;
-	  Window dummy;
-
-	  /* This means that Emacs should select a frame and report
-	     the mouse position relative to it.  The approach used
-	     here avoids making multiple roundtrips to the X server
-	     querying for the window beneath the pointer, and was
-	     borrowed from haiku_mouse_position in haikuterm.c.  */
-
-	  FOR_EACH_FRAME (tail, frame)
-	    {
-	      if (FRAME_X_P (XFRAME (frame)))
-		XFRAME (frame)->mouse_moved = false;
-	    }
-
-	  if (gui_mouse_grabbed (dpyinfo)
-	      && !EQ (track_mouse, Qdropping)
-	      && !EQ (track_mouse, Qdrag_source))
-	    /* Pick the last mouse frame if dropping.  */
-	    f1 = x_display_list->last_mouse_frame;
-	  else
-	    /* Otherwise, pick the last mouse motion frame.  */
-	    f1 = x_display_list->last_mouse_motion_frame;
-
-	  if (!f1 && FRAME_X_P (SELECTED_FRAME ()))
-	    f1 = SELECTED_FRAME ();
-
-	  if (!f1 || (!FRAME_X_P (f1) && (insist > 0)))
-	    FOR_EACH_FRAME (tail, frame)
-	      if (FRAME_X_P (XFRAME (frame)) &&
-		  !FRAME_X_P (XFRAME (frame)))
-		f1 = XFRAME (frame);
-
-	  if (f1 && FRAME_TOOLTIP_P (f1))
-	    f1 = NULL;
-
-	  if (f1 && FRAME_X_P (f1) && FRAME_X_WINDOW (f1))
-	    {
-	      if (!x_query_pointer (dpyinfo->display, FRAME_X_WINDOW (f1),
-				    &dummy, &dummy, &root_x, &root_y,
-				    &win_x, &win_y, &mask))
-		/* The pointer is out of the screen.  */
-		return;
-
-	      remember_mouse_glyph (f1, win_x, win_y,
-				    &dpyinfo->last_mouse_glyph);
-	      x_display_list->last_mouse_glyph_frame = f1;
-
-	      *bar_window = Qnil;
-	      *part = scroll_bar_nowhere;
-
-	      /* If track-mouse is `drag-source' and the mouse pointer is
-		 certain to not be actually under the chosen frame, return
-		 NULL in FP.  */
-	      if (EQ (track_mouse, Qdrag_source)
-		  && (win_x < 0 || win_y < 0
-		      || win_x >= FRAME_PIXEL_WIDTH (f1)
-		      || win_y >= FRAME_PIXEL_HEIGHT (f1)))
-		*fp = NULL;
-	      else
-		*fp = f1;
-
-	      *timestamp = dpyinfo->last_mouse_movement_time;
-	      XSETINT (*x, win_x);
-	      XSETINT (*y, win_y);
-	    }
-	}
-      else
-	{
-	  /* This means Emacs should only report the coordinates of
-	     the last mouse motion.  */
-
-	  if (dpyinfo->last_mouse_motion_frame)
-	    {
-	      *fp = dpyinfo->last_mouse_motion_frame;
-	      *timestamp = dpyinfo->last_mouse_movement_time;
-	      *x = make_fixnum (dpyinfo->last_mouse_motion_x);
-	      *y = make_fixnum (dpyinfo->last_mouse_motion_y);
-	      *bar_window = Qnil;
-	      *part = scroll_bar_nowhere;
-
-	      dpyinfo->last_mouse_motion_frame->mouse_moved = false;
-	    }
-	}
-
+      x_fast_mouse_position (fp, insist, bar_window, part, x,
+			     y, timestamp);
       return;
     }
 
