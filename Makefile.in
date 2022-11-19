@@ -405,6 +405,7 @@ actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lis
 # ADVICE-ON-FAILURE-END:bootstrap
 
 advice-on-failure:
+	@[ -f .no-advice-on-failure ] && exit ${exit-status}; true
 	@echo >&2 '***'
 	@echo >&2 '*** '"\"make ${make-target}\" failed with exit status ${exit-status}."
 	@echo >&2 '***'
@@ -415,6 +416,7 @@ advice-on-failure:
 	@exit ${exit-status}
 
 sanity-check:
+	@[ -f .no-advice-on-failure ] && exit 0; true
 	@v=$$(src/emacs${EXEEXT} --batch --eval \
 	  '(progn (defun f (n) (if (= 0 n) 1 (* n (f (- n 1))))) (princ (f 10)))' \
 	  2> /dev/null); \
