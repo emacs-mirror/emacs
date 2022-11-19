@@ -1076,7 +1076,10 @@ init-file, or to a default value if loading is not possible."
                       (sit-for 1))
                     (setq user-init-file source)))
               ;; Else, perhaps the user init file was compiled
-              (when (equal (file-name-extension user-init-file) "eln")
+              (when (and (equal (file-name-extension user-init-file) "eln")
+                         ;; The next test is for builds without native
+                         ;; compilation support or builds with unexec.
+                         (boundp 'comp-eln-to-el-h))
                 (if-let (source (gethash (file-name-nondirectory user-init-file)
                                          comp-eln-to-el-h))
                     ;; source exists or the .eln file would not load
