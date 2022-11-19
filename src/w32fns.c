@@ -5794,13 +5794,7 @@ w32_default_font_parameter (struct frame *f, Lisp_Object parms)
       if (NILP (font))
 	error ("No suitable font was found");
     }
-  else if (!NILP (font_param))
-    {
-      /* Remember the explicit font parameter, so we can re-apply it after
-	 we've applied the `default' face settings.  */
-      gui_set_frame_parameters (f, Fcons (Fcons (Qfont_parameter, font_param),
-                                          Qnil));
-    }
+
   gui_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
 

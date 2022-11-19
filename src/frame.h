@@ -1670,6 +1670,7 @@ IMAGE_OPT_FROM_ID (struct frame *f, int id)
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
 
+extern void gui_set_frame_parameters_1 (struct frame *, Lisp_Object, bool);
 extern void gui_set_frame_parameters (struct frame *, Lisp_Object);
 extern void gui_set_fullscreen (struct frame *, Lisp_Object, Lisp_Object);
 extern void gui_set_line_spacing (struct frame *, Lisp_Object, Lisp_Object);

@@ -1663,7 +1663,17 @@ overwrites the previous settings.  */)
 	    {
 	      update_auto_fontset_alist (font_object, fontset_obj);
 	      AUTO_FRAME_ARG (arg, Qfont, Fcons (fontset, font_object));
-	      Fmodify_frame_parameters (fr, arg);
+
+#ifdef HAVE_WINDOW_SYSTEM
+	      if (FRAME_WINDOW_P (f))
+		/* This is a window-system frame.  Prevent changes of
+		   the `font' parameter here from messing with the
+		   `font-parameter' frame property, as the frame
+		   parameter is not being changed by the user.  */
+	        gui_set_frame_parameters_1 (f, arg, true);
+	      else
+#endif
+		Fmodify_frame_parameters (fr, arg);
 	    }
 	}
     }
