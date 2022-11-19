@@ -1014,16 +1014,15 @@ It makes underscores and dots word constituent chars.")
 
 (defun python--treesit-fontify-string (node override start end &rest _)
   "Fontify string.
-NODE is the leading quote in the string.  Do not fontify the
-initial f for f-strings.  OVERRIDE is the override flag described
-in `treesit-font-lock-rules'.  START and END marks the region to
-be fontified."
-  (let* ((string (treesit-node-parent node))
-         (string-beg (treesit-node-start string))
-         (string-end (treesit-node-end string))
+NODE is the string node.  Do not fontify the initial f for
+f-strings.  OVERRIDE is the override flag described in
+`treesit-font-lock-rules'.  START and END marks the region to be
+fontified."
+  (let* ((string-beg (treesit-node-start node))
+         (string-end (treesit-node-end node))
          (maybe-defun (treesit-node-parent
                        (treesit-node-parent
-                        (treesit-node-parent string))))
+                        (treesit-node-parent node))))
          (face (if (member (treesit-node-type maybe-defun)
                            '("function_definition"
                              "class_definition"))
@@ -1043,8 +1042,7 @@ be fontified."
    :feature 'string
    :language 'python
    :override t
-   ;; TODO Document on why we do this.
-   '((string :anchor "\"" @python--treesit-fontify-string))
+   '((string) @python--treesit-fontify-string)
 
    :feature 'string-interpolation
    :language 'python
