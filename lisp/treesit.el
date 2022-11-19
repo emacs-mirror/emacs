@@ -902,10 +902,10 @@ See `treesit-simple-indent-presets'.")
                             node-field
                             (or (treesit-node-field-name node) "")))
                        (or (null node-index-min)
-                           (>= (treesit-node-index node t)
+                           (>= (treesit-node-index node)
                                node-index-min))
                        (or (null node-index-max)
-                           (<= (treesit-node-index node t)
+                           (<= (treesit-node-index node)
                                node-index-max))))))
         ;; TODO: Document if genuinely useful.
         (cons 'n-p-gp
