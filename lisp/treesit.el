@@ -844,6 +844,9 @@ RANGES is a list of (BEG . END) ranges, PARSER is the tree-sitter
 parser notifying of the change."
   (with-current-buffer (treesit-parser-buffer parser)
     (dolist (range ranges)
+      (when treesit--font-lock-verbose
+        (message "Notifier recieved range: %s-%s"
+                 (car range) (cdr range)))
       (put-text-property (car range) (cdr range) 'fontified nil))))
 
 ;;; Indent
