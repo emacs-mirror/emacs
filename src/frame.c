@@ -5959,18 +5959,26 @@ have changed.  */)
   (Lisp_Object frame)
 {
   struct frame *f;
+  Lisp_Object params;
 
   f = decode_window_system_frame (frame);
+
+  /* Kludge: if a `font' parameter was already specified,
+     create an alist containing just that parameter.  (bug#59371) */
+  params = Qnil;
+
+  if (!NILP (get_frame_param (f, Qfont)))
+    params = list1 (Fcons (Qfont, get_frame_param (f, Qfont)));
 
   /* First, call this to reinitialize any font backend specific
      stuff.  */
 
   if (FRAME_RIF (f)->default_font_parameter)
-    FRAME_RIF (f)->default_font_parameter (f, Qnil);
+    FRAME_RIF (f)->default_font_parameter (f, params);
 
   /* Now call this to apply the existing value(s) of the `default'
      face.  */
-  call1 (Qface_set_after_frame_default, frame);
+  call2 (Qface_set_after_frame_default, frame, params);
 
   return Qnil;
 }
