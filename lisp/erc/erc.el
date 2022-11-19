@@ -3834,10 +3834,8 @@ the message given by REASON."
       (with-suppressed-warnings ((obsolete erc-server-reconnecting)
                                  (obsolete erc-reuse-buffers))
         (if erc-reuse-buffers
-            (progn (cl-assert (not erc--server-reconnecting))
-                   (cl-assert (not erc-server-reconnecting)))
-          (setq erc--server-reconnecting nil
-                erc-server-reconnecting nil)))))
+            (cl-assert (not erc-server-reconnecting))
+          (setq erc-server-reconnecting nil)))))
   t)
 
 (defun erc-cmd-RECONNECT (&rest args)

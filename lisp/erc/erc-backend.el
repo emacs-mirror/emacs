@@ -311,8 +311,13 @@ current IRC process is still alive.")
 (make-obsolete-variable 'erc-server-reconnecting
                         "see `erc--server-reconnecting'" "29.1")
 
-(defvar-local erc--server-reconnecting nil
-  "Non-nil when reconnecting.")
+(defvar erc--server-reconnecting nil
+  "An alist of buffer-local vars and their values when reconnecting.
+This is for the benefit of local modules and `erc-mode-hook'
+members so they can access buffer-local data from the previous
+session when reconnecting.  Once `erc-reuse-buffers' is retired
+and fully removed, modules can switch to leveraging the
+`permanent-local' property instead.")
 
 (defvar-local erc-server-timed-out nil
   "Non-nil if the IRC server failed to respond to a ping.")
@@ -664,7 +669,6 @@ TLS (see `erc-session-client-certificate' for more details)."
       (setq erc-server-process process)
       (setq erc-server-quitting nil)
       (setq erc-server-reconnecting nil
-            erc--server-reconnecting nil
             erc--server-reconnect-timer nil)
       (setq erc-server-timed-out nil)
       (setq erc-server-banned nil)
@@ -706,11 +710,11 @@ Make sure you are in an ERC buffer when running this."
     (with-current-buffer buffer
       (erc-update-mode-line)
       (erc-set-active-buffer (current-buffer))
-      (setq erc--server-reconnecting t)
       (setq erc-server-last-sent-time 0)
       (setq erc-server-lines-sent 0)
       (let ((erc-server-connect-function (or erc-session-connector
-                                             #'erc-open-network-stream)))
+                                             #'erc-open-network-stream))
+            (erc--server-reconnecting (buffer-local-variables)))
         (erc-open erc-session-server erc-session-port erc-server-current-nick
                   erc-session-user-full-name t erc-session-password
                   nil nil nil erc-session-client-certificate
@@ -824,8 +828,7 @@ When `erc-server-reconnect-attempts' is a number, increment
         (if (not reconnect-p)
             ;; terminate, do not reconnect
             (progn
-              (setq erc--server-reconnecting nil
-                    erc--server-reconnect-timer nil)
+              (setq erc--server-reconnect-timer nil)
               (erc-display-message nil 'error (current-buffer)
                                    'terminated ?e event)
               (set-buffer-modified-p nil))
