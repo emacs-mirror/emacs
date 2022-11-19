@@ -1054,7 +1054,9 @@ lisp_free (void *block)
 #define BLOCK_ALIGN (1 << 10)
 verify (POWER_OF_2 (BLOCK_ALIGN));
 
+#ifdef HAVE_NATIVE_COMP
 const size_t block_align = BLOCK_ALIGN;
+#endif
 
 /* Use aligned_alloc if it or a simple substitute is available.
    Aligned allocation is incompatible with unexmacosx.c, so don't use
@@ -2547,9 +2549,11 @@ pin_string (Lisp_Object string)
      - (sizeof (struct Lisp_Float) - sizeof (bits_word))) * CHAR_BIT) \
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
 
+#ifdef HAVE_NATIVE_COMP
 const size_t float_block_floats_length = FLOAT_BLOCK_SIZE;
 const size_t float_block_gcmarkbits_length
   = 1 + FLOAT_BLOCK_SIZE / BITS_PER_BITS_WORD;
+#endif
 
 #define GETMARKBIT(block,n)				\
   (((block)->gcmarkbits[(n) / BITS_PER_BITS_WORD]	\
@@ -2655,9 +2659,11 @@ make_float (double float_value)
      - (sizeof (struct Lisp_Cons) - sizeof (bits_word))) * CHAR_BIT)	\
    / (sizeof (struct Lisp_Cons) * CHAR_BIT + 1))
 
+#ifdef HAVE_NATIVE_COMP
 const size_t cons_block_conses_length = CONS_BLOCK_SIZE;
 const size_t cons_block_gcmarkbits_length
   = 1 + CONS_BLOCK_SIZE / BITS_PER_BITS_WORD;
+#endif
 
 #define CONS_BLOCK(fptr) \
   (eassert (!pdumper_object_p (fptr)),                                  \
