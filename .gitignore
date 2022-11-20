@@ -25,6 +25,7 @@
 
 # Personal customization.
 .dir-locals-2.el
+.no-advice-on-failure
 
 # Built by 'autogen.sh'.
 /aclocal.m4
