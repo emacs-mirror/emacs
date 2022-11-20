@@ -3008,7 +3008,7 @@ emit_comp_lisp_obj (Lisp_Object obj,
 	  expr.expr.with_type.init = lisp_float;
 	  expr.expr.with_type.type = Lisp_Float;
 	}
-      else if (COMPILEDP (obj) || VECTORP (obj) || RECORDP (obj))
+      else if (VECTORP (obj) || RECORDP (obj))
 	{
 	  ptrdiff_t size = ASIZE (obj);
 	  if (size & PSEUDOVECTOR_FLAG)
