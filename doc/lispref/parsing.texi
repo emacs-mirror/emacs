@@ -1735,7 +1735,7 @@ For example, it should match @samp{//}, @samp{////}, @samp{/*},
 @end defvar
 
 @defvar treesit-comment-end
-This should be a regular expression matching an closing comment token.
+This should be a regular expression matching a closing comment token.
 For example, it should match @samp{*/}, @samp{****/}, etc., in C.
 @end defvar
 

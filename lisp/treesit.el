@@ -822,15 +822,15 @@ parser notifying of the change."
 
 ;;; Indent
 
-;; `comment-start' and `comment-end' assumes there is only one type of
-;; comment and comment spans only one line.  So they are not
+;; `comment-start' and `comment-end' assume there is only one type of
+;; comment, and that the comment spans only one line.  So they are not
 ;; sufficient for our purpose.
 
 (defvar-local treesit-comment-start nil
   "Regular expression matching an opening comment token.")
 
 (defvar-local treesit-comment-end nil
-  "Regular expression matching an closing comment token.")
+  "Regular expression matching a closing comment token.")
 
 (define-error 'treesit-indent-error
               "Generic tree-sitter indentation error"
@@ -1069,14 +1069,14 @@ point-min
 
 comment-start
 
-    Returns the ending position after matching `treesit-comment-start'.
-    Assuming PARENT is a comment node.
+    Returns the position after a match for `treesit-comment-start'.
+    Assumes PARENT is a comment node.
 
 comment-start-skip
 
-    Goes to the position comment-start would return, skip
-    whitespaces forward, and return the resulting position.
-    Assuming PARENT is a comment node.")
+    Goes to the position that comment-start would return, skips
+    whitespace after that, and returns the resulting position.
+    Assumes PARENT is a comment node.")
 
 (defun treesit--simple-indent-eval (exp)
   "Evaluate EXP.
@@ -1463,7 +1463,7 @@ LANGUAGE is the language symbol to check for availability.
 It can also be a list of language symbols.
 
 If tree-sitter is not ready, emit a warning and return nil.  If
-the user has chosen to activate tree-sitter for MODE and
+the user has chosen to activate tree-sitter for LANGUAGE and
 tree-sitter is ready, return non-nil.  If QUIET is t, don't emit
 warning in either case; if quiet is `message', display a message
 instead of emitting warning."

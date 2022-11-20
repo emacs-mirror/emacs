@@ -1751,7 +1751,7 @@ rgb()/rgba()."
   "Generic mode to edit Cascading Style Sheets (CSS).
 
 This is a generic major mode intended to be inherited by a
-concrete implementation.  Currently there two concrete
+concrete implementation.  Currently there are two concrete
 implementations: `css-mode' and `css-ts-mode'."
   (setq-local comment-start "/*")
   (setq-local comment-start-skip "/\\*+[ \t]*")

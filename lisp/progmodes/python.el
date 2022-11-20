@@ -1016,7 +1016,7 @@ It makes underscores and dots word constituent chars.")
   "Fontify string.
 NODE is the string node.  Do not fontify the initial f for
 f-strings.  OVERRIDE is the override flag described in
-`treesit-font-lock-rules'.  START and END marks the region to be
+`treesit-font-lock-rules'.  START and END mark the region to be
 fontified."
   (let* ((string-beg (treesit-node-start node))
          (string-end (treesit-node-end node))
@@ -6482,8 +6482,8 @@ Add import for undefined name `%s' (empty to skip): "
 (define-derived-mode python-base-mode prog-mode "Python"
   "Generic major mode for editing Python files.
 
-This is a generic major mode intended to be inherited by a
-concrete implementations.  Currently there two concrete
+This is a generic major mode intended to be inherited by
+concrete implementations.  Currently there are two concrete
 implementations: `python-mode' and `python-ts-mode'."
   (setq-local tab-width 8)
   (setq-local indent-tabs-mode nil)
