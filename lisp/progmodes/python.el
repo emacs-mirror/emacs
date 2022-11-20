@@ -6482,10 +6482,12 @@ Add import for undefined name `%s' (empty to skip): "
 (defvar prettify-symbols-alist)
 
 ;;;###autoload
-(define-derived-mode python-mode prog-mode "Python"
-  "Major mode for editing Python files.
+(define-derived-mode python-base-mode prog-mode "Python"
+  "Generic major mode for editing Python files.
 
-\\{python-mode-map}"
+This is a generic major mode intended to be inherited by a
+concrete implementations.  Currently there two concrete
+implementations: `python-mode' and `python-ts-mode'."
   (setq-local tab-width 8)
   (setq-local indent-tabs-mode nil)
 
@@ -6569,11 +6571,30 @@ Add import for undefined name `%s' (empty to skip): "
   (when python-indent-guess-indent-offset
     (python-indent-guess-indent-offset))
 
-  (add-hook 'flymake-diagnostic-functions #'python-flymake nil t)
+  (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
 
-  (cond
-   ;; Tree-sitter.
-   ((treesit-ready-p 'python-mode 'python)
+;;;###autoload
+(define-derived-mode python-mode python-base-mode "Python"
+  "Major mode for editing Python files.
+
+\\{python-mode-map}"
+  (setq-local font-lock-defaults
+              `(,python-font-lock-keywords
+                nil nil nil nil
+                (font-lock-syntactic-face-function
+                 . python-font-lock-syntactic-face-function)))
+  (setq-local syntax-propertize-function
+              python-syntax-propertize-function)
+  (setq-local imenu-create-index-function
+              #'python-imenu-create-index)
+  (add-hook 'which-func-functions #'python-info-current-defun nil t))
+
+;;;###autoload
+(define-derived-mode python-ts-mode python-base-mode "Python"
+  "Major mode for editing Python files, using tree-sitter library.
+
+\\{python-mode-map}"
+  (when (treesit-ready-p 'python-mode 'python)
     (treesit-parser-create 'python)
     (setq-local treesit-font-lock-feature-list
                 '(( comment string function-name class-name)
@@ -6587,19 +6608,7 @@ Add import for undefined name `%s' (empty to skip): "
     (setq-local beginning-of-defun-function
                 #'python-treesit-beginning-of-defun)
     (setq-local end-of-defun-function #'python-treesit-end-of-defun)
-    (treesit-major-mode-setup))
-   ;; Elisp.
-   (t
-    (setq-local font-lock-defaults
-                `(,python-font-lock-keywords
-                  nil nil nil nil
-                  (font-lock-syntactic-face-function
-                   . python-font-lock-syntactic-face-function)))
-    (setq-local syntax-propertize-function
-                python-syntax-propertize-function)
-    (setq-local imenu-create-index-function
-                #'python-imenu-create-index)
-    (add-hook 'which-func-functions #'python-info-current-defun nil t))))
+    (treesit-major-mode-setup)))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code
