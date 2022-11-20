@@ -737,6 +737,10 @@ treated as in `eglot--dbind'."
                                            t
                                          :json-false)
                                       :deprecatedSupport t
+                                      :resolveSupport (:properties
+                                                       ["documentation"
+                                                        "details"
+                                                        "additionalTextEdits"])
                                       :tagSupport (:valueSet [1]))
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
