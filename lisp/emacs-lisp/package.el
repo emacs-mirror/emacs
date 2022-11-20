@@ -483,9 +483,7 @@ synchronously."
                                (if (eq 'quote (car requirements))
                                    (nth 1 requirements)
                                  requirements)))
-                 (kind (if (eq (car-safe version-string) 'vc)
-                           'vc
-                         (plist-get rest-plist :kind)))
+                 (kind (plist-get rest-plist :kind))
                  (archive (plist-get rest-plist :archive))
                  (extras (let (alist)
                            (while rest-plist

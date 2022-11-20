@@ -334,7 +334,7 @@ asynchronously."
          (nconc
           (list 'define-package
                 (symbol-name name)
-                (cons 'vc (package-vc--version pkg-desc))
+                (package-vc--version pkg-desc)
                 (package-desc-summary pkg-desc)
                 (let ((requires (package-desc-reqs pkg-desc)))
                   (list 'quote
@@ -344,6 +344,7 @@ asynchronously."
                            (list (car elt)
                                  (package-version-join (cadr elt))))
                          requires))))
+          (list :kind 'vc)
           (package--alist-to-plist-args
            (package-desc-extras pkg-desc))))
         "\n")
