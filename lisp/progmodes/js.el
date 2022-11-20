@@ -3799,7 +3799,7 @@ Currently there are `js-mode' and `js-ts-mode'."
 
 \\<js-ts-mode-map>"
   :group 'js
-  (when (treesit-ready-p 'js-mode 'javascript)
+  (when (treesit-ready-p 'javascript)
     ;; Borrowed from `js-mode'.
     (setq-local prettify-symbols-alist js--prettify-symbols-alist)
     (setq-local parse-sexp-ignore-comments t)

@@ -124,7 +124,7 @@ the subtrees."
   :group 'json
   :syntax-table json-ts-mode--syntax-table
 
-  (unless (treesit-ready-p nil 'json)
+  (unless (treesit-ready-p 'json)
     (error "Tree-sitter for JSON isn't available"))
 
   (treesit-parser-create 'json)

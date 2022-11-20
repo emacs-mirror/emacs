@@ -6591,7 +6591,7 @@ implementations: `python-mode' and `python-ts-mode'."
   "Major mode for editing Python files, using tree-sitter library.
 
 \\{python-mode-map}"
-  (when (treesit-ready-p 'python-mode 'python)
+  (when (treesit-ready-p 'python)
     (treesit-parser-create 'python)
     (setq-local treesit-font-lock-feature-list
                 '(( comment string definition)

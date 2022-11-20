@@ -1587,7 +1587,7 @@ with your script for an edit-interpret-debug cycle."
 
   (cond
    ;; Tree-sitter.  If the shell is bash, we can enable tree-sitter.
-   ((treesit-ready-p 'sh-mode sh-shell)
+   ((treesit-ready-p sh-shell)
     (setq-local treesit-font-lock-feature-list
                 '((comment function string heredoc)
                   (variable keyword command declaration-command)

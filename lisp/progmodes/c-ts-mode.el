@@ -494,7 +494,7 @@ the subtrees."
   "Major mode for editing C, powered by tree-sitter."
   :group 'c
 
-  (unless (treesit-ready-p nil 'c)
+  (unless (treesit-ready-p 'c)
     (error "Tree-sitter for C isn't available"))
 
   (treesit-parser-create 'c)
@@ -519,7 +519,7 @@ the subtrees."
   "Major mode for editing C++, powered by tree-sitter."
   :group 'c++
 
-  (unless (treesit-ready-p nil 'cpp)
+  (unless (treesit-ready-p 'cpp)
     (error "Tree-sitter for C++ isn't available"))
 
   ;; Comments.

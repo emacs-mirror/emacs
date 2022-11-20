@@ -277,7 +277,7 @@ the subtrees."
   :group 'java
   :syntax-table java-ts-mode--syntax-table
 
-  (unless (treesit-ready-p nil 'java)
+  (unless (treesit-ready-p 'java)
     (error "Tree-sitter for Java isn't available"))
 
   (treesit-parser-create 'java)

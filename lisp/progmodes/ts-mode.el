@@ -267,7 +267,7 @@
   (cond
    ;; `ts-mode' requires tree-sitter to work, so we don't check if
    ;; user enables tree-sitter for it.
-   ((treesit-ready-p nil 'tsx)
+   ((treesit-ready-p 'tsx)
     ;; Tree-sitter.
     (treesit-parser-create 'tsx)
 
