@@ -770,6 +770,8 @@ typedef struct {
   gcc_jit_type *aligned_lisp_subr_type;
   gcc_jit_type *aligned_lisp_subr_ptr_type;
   gcc_jit_field *aligned_lisp_subr_s;
+  gcc_jit_field *aligned_lisp_subr_pvec_subr;
+  gcc_jit_type *aligned_lisp_subr_pvec_type;
 #endif
   /* struct jmp_buf.  */
   gcc_jit_struct *jmp_buf_s;
@@ -2285,10 +2287,11 @@ get_comp_func_doc_idx (Lisp_Object func)
 }
 
 static gcc_jit_rvalue *
-emit_aligned_lisp_subr_constructor_rval (const char *symbol_name,
-					 gcc_jit_rvalue *native_comp_u,
-					 Lisp_Object func)
+emit_aligned_lisp_subr_constructor_rval (
+  const char *symbol_name, gcc_jit_rvalue *native_comp_u,
+  Lisp_Object func, bool *const_p)
 {
+  bool is_const = true;
   gcc_jit_rvalue *sym_name
     = gcc_jit_context_new_string_literal (comp.ctxt, symbol_name);
   Lisp_Object c_name_l = CALL1I (comp-func-c-name, func);
@@ -2309,7 +2312,8 @@ emit_aligned_lisp_subr_constructor_rval (const char *symbol_name,
     }
   else if (comp_func_d_p (func))
     {
-      Lisp_Object args = Ffunc_arity (CALL1I (com-func-byte-func, func));
+      Lisp_Object args
+	= Ffunc_arity (CALL1I (com-func-byte-func, func));
       minargs = XFIXNUM (XCAR (args));
 
       if (FIXNUMP (XCDR (args)))
@@ -2318,49 +2322,55 @@ emit_aligned_lisp_subr_constructor_rval (const char *symbol_name,
 	maxargs = MANY;
 
       Lisp_Object l = CALL1I (comp-func-d-lambda-list, func);
-      comp_lisp_const_t expr
-	= emit_comp_lisp_obj (l, Qd_default);
+      comp_lisp_const_t expr = emit_comp_lisp_obj (l, Qd_default);
+      is_const &= expr.const_expr_p;
       lambda_list = comp_lisp_const_get_lisp_obj_rval (l, expr);
     }
   else
-    xsignal2 (Qnative_ice, build_string ("invalid function"),
-	      func);
+    xsignal2 (Qnative_ice, build_string ("invalid function"), func);
 
-  eassert (lambda_list != NULL);;
+  eassert (lambda_list != NULL);
 
-  gcc_jit_rvalue *type = emit_mvar_rval (CALL1I (comp-func-type,
-						 func));
+  gcc_jit_rvalue *type
+    = emit_mvar_rval (CALL1I (comp-func-type, func));
   gcc_jit_rvalue *doc
     = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.emacs_int_type,
 					   get_comp_func_doc_idx (
 					     func));
   Lisp_Object int_spec_l = CALL1I (comp-func-int-spec, func);
+  comp_lisp_const_t intspec_expr
+    = emit_comp_lisp_obj (int_spec_l, Qd_default);
+  is_const &= intspec_expr.const_expr_p;
   gcc_jit_rvalue *intspec = gcc_jit_context_new_union_constructor (
     comp.ctxt, NULL, comp.lisp_subr_intspec_type,
     comp.lisp_subr_intspec_native,
-    comp_lisp_const_get_lisp_obj_rval (
-      int_spec_l, emit_comp_lisp_obj (int_spec_l, Qd_default)));
+    comp_lisp_const_get_lisp_obj_rval (int_spec_l, intspec_expr));
 
-  Lisp_Object command_modes_l = CALL1I (comp-func-command-modes, func);
-  gcc_jit_rvalue *command_modes = comp_lisp_const_get_lisp_obj_rval (
-    command_modes_l,
-    emit_comp_lisp_obj (command_modes_l, Qd_default));
+  Lisp_Object command_modes_l
+    = CALL1I (comp-func-command-modes, func);
+  comp_lisp_const_t command_modes_expr
+    = emit_comp_lisp_obj (command_modes_l, Qd_default);
+  is_const &= command_modes_expr.const_expr_p;
+  gcc_jit_rvalue *command_modes
+    = comp_lisp_const_get_lisp_obj_rval (command_modes_l,
+					 command_modes_expr);
 
   Lisp_Object gcc_func
     = Fgethash (c_name_l, comp.exported_funcs_h, Qnil);
   if (NILP (gcc_func))
-    xsignal2 (Qnative_ice,
-	      build_string ("missing function"),
+    xsignal2 (Qnative_ice, build_string ("missing function"),
 	      gcc_func);
   gcc_jit_rvalue *function = gcc_jit_context_new_cast (
     comp.ctxt, NULL,
     gcc_jit_function_get_address (xmint_pointer (gcc_func), NULL),
     comp.void_ptr_type);
-  gcc_jit_rvalue *header = gcc_jit_context_new_rvalue_from_long (
-    comp.ctxt, comp.ptrdiff_type,
-    PVECHEADERSIZE (PVEC_SUBR, 0, VECSIZE (union Aligned_Lisp_Subr)));
-
+  ptrdiff_t header_val
+    = (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) | PSEUDOVECTOR_FLAG;
+  gcc_jit_rvalue *header
+    = gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					    comp.ptrdiff_type,
+					    header_val);
 
   gcc_jit_rvalue *values[] = {
     header,
@@ -2380,7 +2390,7 @@ emit_aligned_lisp_subr_constructor_rval (const char *symbol_name,
   };
 
   gcc_jit_field *fields[]
-    = { comp.lisp_subr_header,        comp.lisp_subr_function,
+    = { comp.lisp_subr_header,	      comp.lisp_subr_function,
 	comp.lisp_subr_min_args,      comp.lisp_subr_max_args,
 	comp.lisp_subr_symbol_name,   comp.lisp_subr_intspec,
 	comp.lisp_subr_command_modes, comp.lisp_subr_doc,
@@ -2391,6 +2401,7 @@ emit_aligned_lisp_subr_constructor_rval (const char *symbol_name,
     = gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
 					      comp.lisp_subr_s_type,
 					      12, fields, values);
+  *const_p = is_const;
   return gcc_jit_context_new_union_constructor (
     comp.ctxt, NULL, comp.aligned_lisp_subr_type,
     comp.aligned_lisp_subr_s, subr);
@@ -2972,12 +2983,8 @@ emit_comp_lisp_obj (Lisp_Object obj,
 		  Qnil);
       if (!NILP (func))
 	{
-	  jit_vector_type_t pvec_type = make_lisp_vector_struct_type (
-	    VECSIZE (union Aligned_Lisp_Subr));
-
 	  gcc_jit_lvalue *subr_var = emit_lisp_data_var (
-	    gcc_jit_type_get_aligned (pvec_type.lisp_vector_type,
-				      GCALIGNMENT),
+	    comp.aligned_lisp_subr_pvec_type,
 	    GCC_JIT_GLOBAL_INTERNAL);
 	  comp.lambda_init_lvals
 	    = Fcons (CALLN (Fvector, make_mint_ptr (subr_var), func),
@@ -3507,32 +3514,44 @@ define_init_objs (void)
   gcc_jit_block_end_with_jump (init_vars_block, NULL, final_block);
   comp.block = final_block;
 
-  Lisp_Object lambda = comp.lambda_init_lvals;
+  Lisp_Object lambda = Freverse (comp.lambda_init_lvals);
   FOR_EACH_TAIL_SAFE (lambda)
     {
       Lisp_Object elt;
       gcc_jit_lvalue *accessor;
+      bool is_const;
 
       elt = XCAR (lambda);
 
       accessor = xmint_pointer (AREF (elt, 0));
       Lisp_Object func = AREF (elt, 1);
-      Lisp_Object c_name
-	= CALL1I (comp-func-c-name, func);
+      Lisp_Object c_name = CALL1I (comp-func-c-name, func);
 
-      gcc_jit_rvalue *subr
-	= emit_aligned_lisp_subr_constructor_rval (
-	  SSDATA (c_name),
-	  gcc_jit_param_as_rvalue (native_comp_u), func);
-      accessor = gcc_jit_rvalue_dereference (
-	gcc_jit_context_new_bitcast (
-	  comp.ctxt, NULL,
-	  gcc_jit_lvalue_get_address (accessor, NULL),
-	  comp.aligned_lisp_subr_ptr_type),
-	NULL);
+      gcc_jit_rvalue *subr = emit_aligned_lisp_subr_constructor_rval (
+	SSDATA (c_name), emit_rvalue_from_lisp_obj (Qnil),
+	func, &is_const);
 
-      gcc_jit_block_add_assignment (comp.block, NULL, accessor,
-				    subr);
+      gcc_jit_rvalue *subr_constructor
+	= gcc_jit_context_new_union_constructor (
+	  comp.ctxt, NULL, comp.aligned_lisp_subr_pvec_type,
+	  comp.aligned_lisp_subr_pvec_subr, subr);
+
+      if (is_const)
+	gcc_jit_global_set_initializer_rvalue (accessor,
+					       subr_constructor);
+      else
+	gcc_jit_block_add_assignment (comp.block, NULL, accessor,
+				      subr_constructor);
+
+      gcc_jit_lvalue *subr_comp_u = gcc_jit_lvalue_access_field (
+	gcc_jit_lvalue_access_field (
+	  gcc_jit_lvalue_access_field (
+	    accessor, NULL, comp.aligned_lisp_subr_pvec_subr),
+	  NULL, comp.aligned_lisp_subr_s),
+	NULL, comp.lisp_subr_native_comp_u);
+      gcc_jit_block_add_assignment (comp.block, NULL, subr_comp_u,
+				    gcc_jit_param_as_rvalue (
+				      native_comp_u));
     }
 
   gcc_jit_context_new_global (comp.ctxt, NULL,
@@ -5561,12 +5580,29 @@ define_aligned_lisp_subr (void)
 				 comp.lisp_subr_s_gcaligned_type,
 				 "s");
   gcc_jit_field *gcaligned = make_gcaligned_union_field ();
-  gcc_jit_field *fields[] = {comp.aligned_lisp_subr_s, gcaligned};
+  gcc_jit_field *fields[] = { comp.aligned_lisp_subr_s, gcaligned };
   comp.aligned_lisp_subr_type
     = gcc_jit_context_new_union_type (comp.ctxt, NULL,
 				      "comp_Aligned_Subr", 2, fields);
   comp.aligned_lisp_subr_ptr_type
     = gcc_jit_type_get_pointer (comp.aligned_lisp_subr_type);
+
+  jit_vector_type_t pvec_type = make_lisp_vector_struct_type (
+    VECSIZE (union Aligned_Lisp_Subr));
+  gcc_jit_field *subr_pvec_vec
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+				 pvec_type.lisp_vector_type,
+				 "vector");
+  comp.aligned_lisp_subr_pvec_subr
+    = gcc_jit_context_new_field (comp.ctxt, NULL,
+				 comp.aligned_lisp_subr_type,
+				 "aligned_subr");
+  gcc_jit_field *pvec_fields[]
+    = { subr_pvec_vec, comp.aligned_lisp_subr_pvec_subr };
+  comp.aligned_lisp_subr_pvec_type
+    = gcc_jit_context_new_union_type (comp.ctxt, NULL,
+				      "comp_Lisp_Pseudovector_Subr",
+				      2, pvec_fields);
 }
 
 /* Opaque jmp_buf definition.  */
