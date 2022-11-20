@@ -19,7 +19,9 @@
 
 ;;; Commentary:
 
-;;
+;; Tests for the emacsclient executable.  For tests involving the
+;; interaction between emacsclient and an Emacs server, see
+;; test/lisp/server-tests.el.
 
 ;;; Code:
 
