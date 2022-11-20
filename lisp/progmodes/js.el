@@ -3412,6 +3412,9 @@ This function is intended for use in `after-change-functions'."
        ((node-is ")") parent-bol 0)
        ((node-is "]") parent-bol 0)
        ((node-is ">") parent-bol 0)
+       ((parent-is "comment") comment-start 0)
+       ((and (parent-is "comment") comment-end) comment-start -1)
+       ((parent-is "comment") comment-start-skip 0)
        ((parent-is "ternary_expression") parent-bol js-indent-level)
        ((parent-is "member_expression") parent-bol js-indent-level)
        ((node-is ,switch-case) parent-bol 0)
@@ -3807,6 +3810,8 @@ Currently there are `js-mode' and `js-ts-mode'."
     (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
     (setq-local comment-end "")
     (setq-local comment-multi-line t)
+    (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
+    (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
     ;; Electric-indent.
     (setq-local electric-indent-chars
 	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".

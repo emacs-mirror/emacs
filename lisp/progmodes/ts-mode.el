@@ -61,6 +61,8 @@
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is ">") parent-bol 0)
+     ((and (parent-is "comment") comment-end) comment-start -1)
+     ((parent-is "comment") comment-start-skip 0)
      ((parent-is "ternary_expression") parent-bol ts-mode-indent-offset)
      ((parent-is "member_expression") parent-bol ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol ts-mode-indent-offset)
@@ -273,6 +275,8 @@
     (setq-local comment-start "// ")
     (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
     (setq-local comment-end "")
+    (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
+    (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
 
     ;; Electric
     (setq-local electric-indent-chars

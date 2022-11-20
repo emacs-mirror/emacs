@@ -61,6 +61,8 @@
      ((node-is "}") (and parent parent-bol) 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
+     ((and (parent-is "comment") comment-end) comment-start -1)
+     ((parent-is "comment") comment-start-skip 0)
      ((parent-is "class_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "interface_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "constructor_body") parent-bol java-ts-mode-indent-offset)
@@ -284,6 +286,8 @@ the subtrees."
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
+  (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
+  (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)

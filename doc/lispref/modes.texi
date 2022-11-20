@@ -4964,6 +4964,12 @@ first child where parent is @code{argument_list}, use
 (match nil "argument_list" nil nil 0 0)
 @end example
 
+@item comment-end
+This matcher is a function of 3 arguments: @var{node}, @var{parent},
+and @var{bol}, and returns non-@code{nil} if point is before a comment
+ending token.  Comment ending tokens are defined by regular expression
+@code{treesit-comment-end}.
+
 @item first-sibling
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the start of the first child
@@ -4996,8 +5002,22 @@ charater on the previous line.
 This anchor is a function is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the beginning of the buffer.
 This is useful as the beginning of the buffer is always at column 0.
-@end ftable
 
+@item comment-start
+This anchor is a function is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the position right after the
+opening comment token.  Opening comment tokens are defined by regular
+expression @code{treesit-comment-start}.  This function assumes
+@var{parent} is the comment node.
+
+@item coment-start-skip
+This anchor is a function is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the position after the
+opening comment token, after skipping forward any whitespace
+characters.  Opening comment tokens are defined by regular expression
+@code{treesit-comment-start}.  This function assumes @var{parent} is
+the comment node.
+@end ftable
 @end defvar
 
 @heading Indentation utilities

@@ -851,6 +851,16 @@ parser notifying of the change."
 
 ;;; Indent
 
+;; `comment-start' and `comment-end' assumes there is only one type of
+;; comment and comment spans only one line.  So they are not
+;; sufficient for our purpose.
+
+(defvar-local treesit-comment-start nil
+  "Regular expression matching an opening comment token.")
+
+(defvar-local treesit-comment-end nil
+  "Regular expression matching an closing comment token.")
+
 (define-error 'treesit-indent-error
               "Generic tree-sitter indentation error"
               'treesit-error)
@@ -936,6 +946,8 @@ See `treesit-simple-indent-presets'.")
                           (lambda (node &rest _)
                             (string-match-p
                              name (or (treesit-node-field-name node) "")))))
+        (cons 'comment-end (lambda (&rest _)
+                             (looking-at-p treesit-comment-end)))
         ;; TODO: Document.
         (cons 'catch-all (lambda (&rest _) t))
 
@@ -957,6 +969,19 @@ See `treesit-simple-indent-presets'.")
                                 (treesit-node-child parent n named)))))
         (cons 'parent (lambda (_n parent &rest _)
                         (treesit-node-start parent)))
+        (cons 'comment-start
+              (lambda (_n parent &rest _)
+                (save-excursion
+                  (goto-char (treesit-node-start parent))
+                  (re-search-forward treesit-comment-start)
+                  (point))))
+        (cons 'comment-start-skip
+              (lambda (_n parent &rest _)
+                (save-excursion
+                  (goto-char (treesit-node-start parent))
+                  (re-search-forward treesit-comment-start)
+                  (skip-syntax-forward "-")
+                  (point))))
         ;; TODO: Document.
         (cons 'grand-parent
               (lambda (_n parent &rest _)
@@ -1036,6 +1061,10 @@ no-node
     Queries PARENT with QUERY, and checks if NODE is
     captured (by any capture name).
 
+comment-end
+
+    Matches if text after point matches `treesit-comment-end'.
+
 ANCHOR:
 
 first-sibling
@@ -1065,7 +1094,18 @@ prev-line
 
 point-min
 
-    Returns the beginning of buffer, which is always at column 0.")
+    Returns the beginning of buffer, which is always at column 0.
+
+comment-start
+
+    Returns the ending position after matching `treesit-comment-start'.
+    Assuming PARENT is a comment node.
+
+comment-start-skip
+
+    Goes to the position comment-start would return, skip
+    whitespaces forward, and return the resulting position.
+    Assuming PARENT is a comment node.")
 
 (defun treesit--simple-indent-eval (exp)
   "Evaluate EXP.
