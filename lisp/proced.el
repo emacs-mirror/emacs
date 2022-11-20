@@ -746,8 +746,8 @@ If there are no proced buffers, cancel the timer."
   (unless (seq-filter (lambda (buf)
                         (with-current-buffer buf
                           (when (eq major-mode 'proced-mode)
-                            (when proced-auto-update-flag
-                              (proced-update t t))
+                            (if proced-auto-update-flag
+                                (proced-update t t))
                             t)))
                       (buffer-list))
     (cancel-timer proced-auto-update-timer)
