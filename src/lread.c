@@ -1741,12 +1741,15 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
 					       Vload_path,
 					       Qnil, Qnil)))
 		return;
-	      call2 (intern_c_string ("display-warning"),
-		     Qcomp,
-		     CALLN (Fformat,
-			    build_string ("Cannot look up eln file as "
-					  "no source file was found for %s"),
-			    *filename));
+	      Vdelayed_warnings_list
+		= Fcons (list2
+			 (Qcomp,
+			  CALLN (Fformat,
+				 build_string ("Cannot look up eln "
+					       "file as no source file "
+					       "was found for %s"),
+				 *filename)),
+			 Vdelayed_warnings_list);
 	      return;
 	    }
 	}
