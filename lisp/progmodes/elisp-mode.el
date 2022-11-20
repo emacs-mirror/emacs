@@ -52,7 +52,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
   :parent lisp-mode-shared-map
   "M-TAB" #'completion-at-point
   "C-M-x" #'eval-defun
-  "C-c C-e" #'elisp-eval-buffer
+  "C-c C-e" #'elisp-eval-region-or-buffer
   "C-c C-f" #'elisp-byte-compile-file
   "C-c C-b" #'elisp-byte-compile-buffer
   "C-M-q" #'indent-pp-sexp)
@@ -1234,7 +1234,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
   :parent lisp-mode-shared-map
   "C-M-x" #'eval-defun
   "C-M-q" #'indent-pp-sexp
-  "C-c C-e" #'elisp-eval-buffer
+  "C-c C-e" #'elisp-eval-region-or-buffer
   "C-c C-b" #'elisp-byte-compile-buffer
   "M-TAB" #'completion-at-point
   "C-j"   #'eval-print-last-sexp)
@@ -2212,11 +2212,17 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (terpri)
     (pp collected)))
 
-(defun elisp-eval-buffer ()
-  "Evaluate the forms in the current buffer."
+(defun elisp-eval-region-or-buffer ()
+  "Evaluate the forms in the active region or the whole current buffer.
+In Transient Mark mode when the mark is active, call `eval-region'.
+Otherwise, call `eval-buffer'."
   (interactive)
-  (eval-buffer)
-  (message "Evaluated the %s buffer" (buffer-name)))
+  (if (use-region-p)
+      (eval-region (region-beginning) (region-end))
+    (eval-buffer))
+  (message "Evaluated the %s%s buffer"
+           (if (use-region-p) "region in the " "")
+           (buffer-name)))
 
 (defun elisp-byte-compile-file (&optional load)
   "Byte compile the file the current buffer is visiting.

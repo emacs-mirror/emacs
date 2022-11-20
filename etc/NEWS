@@ -1464,8 +1464,8 @@ This command visits the file on the current line with EWW.
 ** Elisp
 
 ---
-*** New command 'elisp-eval-buffer' (bound to 'C-c C-e').
-This command evals the forms in the current buffer.
+*** New command 'elisp-eval-region-or-buffer' (bound to 'C-c C-e').
+This command evals the forms in the active region or in the whole buffer.
 
 ---
 *** New commands 'elisp-byte-compile-file' and 'elisp-byte-compile-buffer'.
