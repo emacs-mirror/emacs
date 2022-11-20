@@ -1049,14 +1049,11 @@ fontified."
    :override t
    '((interpolation (identifier) @font-lock-variable-name-face))
 
-   :feature 'function-name
+   :feature 'definition
    :language 'python
    '((function_definition
-      name: (identifier) @font-lock-function-name-face))
-
-   :feature 'class-name
-   :language 'python
-   '((class_definition
+      name: (identifier) @font-lock-function-name-face)
+     (class_definition
       name: (identifier) @font-lock-type-face))
 
    :feature 'keyword
@@ -6597,7 +6594,7 @@ implementations: `python-mode' and `python-ts-mode'."
   (when (treesit-ready-p 'python-mode 'python)
     (treesit-parser-create 'python)
     (setq-local treesit-font-lock-feature-list
-                '(( comment string function-name class-name)
+                '(( comment string definition)
                   ( keyword builtin constant type)
                   ( assignment decorator escape-sequence
                     string-interpolation number property
