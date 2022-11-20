@@ -821,9 +821,6 @@ treated as in `eglot--dbind'."
    (project
     :documentation "Project associated with server."
     :accessor eglot--project)
-   (spinner
-    :documentation "List (ID DOING-WHAT DONE-P) representing server progress."
-    :initform `(nil nil t) :accessor eglot--spinner)
    (inhibit-autoreconnect
     :initform t
     :documentation "Generalized boolean inhibiting auto-reconnection if true."
@@ -1924,12 +1921,11 @@ Uses THING, FACE, DEFS and PREPEND."
 
 (defun eglot--mode-line-format ()
   "Compose the Eglot's mode-line."
-  (pcase-let* ((server (eglot-current-server))
-               (nick (and server (eglot-project-nickname server)))
-               (pending (and server (hash-table-count
-                                     (jsonrpc--request-continuations server))))
-               (`(,_id ,doing ,done-p ,_detail) (and server (eglot--spinner server)))
-               (last-error (and server (jsonrpc-last-error server))))
+  (let* ((server (eglot-current-server))
+         (nick (and server (eglot-project-nickname server)))
+         (pending (and server (hash-table-count
+                               (jsonrpc--request-continuations server))))
+         (last-error (and server (jsonrpc-last-error server))))
     (append
      `(,(propertize
          eglot-menu-string
@@ -1955,14 +1951,11 @@ Uses THING, FACE, DEFS and PREPEND."
                      '((mouse-3 eglot-clear-status  "Clear this status"))
                      (format "An error occurred: %s\n" (plist-get last-error
                                                                  :message)))))
-         ,@(when (and doing (not done-p))
-             `("/" ,(eglot--mode-line-props doing
-                                            'compilation-mode-line-run '())))
-         ,@(when (cl-plusp pending)
-             `("/" ,(eglot--mode-line-props
-                     (format "%d" pending) 'warning
-                     '((mouse-3 eglot-forget-pending-continuations
-                                "Forget pending continuations"))
+       ,@(when (cl-plusp pending)
+           `("/" ,(eglot--mode-line-props
+                   (format "%d" pending) 'warning
+                   '((mouse-3 eglot-forget-pending-continuations
+                              "Forget pending continuations"))
                      "Number of outgoing, \
 still unanswered LSP requests to the server\n"))))))))
 
@@ -2414,7 +2407,6 @@ When called interactively, use the currently active server"
                    vconcat `[,(list :range `(:start ,beg :end ,end)
                                     :rangeLength len :text text)]))))
       (setq eglot--recent-changes nil)
-      (setf (eglot--spinner server) (list nil :textDocument/didChange t))
       (jsonrpc--call-deferred server))))
 
 (defun eglot--signal-textDocument/didOpen ()
