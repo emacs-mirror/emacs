@@ -99,35 +99,6 @@ indent, imenu, etc."
   :type 'integer
   :version "29.1")
 
-(defcustom treesit-settings '((t nil t))
-  "Tree-sitter toggle settings for major modes.
-
-A list of (MODE ACTIVATE INHERIT) where MODE is a major mode, and
-ACTIVATE can be one of the following:
-
-  `demand'  Demand the use of tree-sitter, and warn if it can't
-            be activated.
-  t         Enable tree-sitter if it is available.
-  nil       Don't enable tree-sitter.
-
-If INHERIT is t, the setting for MODE is inherited by all its
-derived modes.  For a derived mode, closer ancestor mode's
-setting takes higher precedence.
-
-A special MODE, t, is considered the ancestor of every mode, and
-its INHERIT flag is ignored."
-  :type '(repeat
-          (list :tag "Setting"
-                (symbol :tag "Mode")
-                (choice :tag "Activate"
-                        (const :tag "No" nil)
-                        (const :tag "Yes" t)
-                        (const :tag "Demand" demand))
-                (choice :tag "Inherit"
-                        (const :tag "Yes" t)
-                        (const :tag "No" nil))))
-  :version "29.1")
-
 ;;; Parser API supplement
 
 (defun treesit-parse-string (string language)
@@ -1485,89 +1456,48 @@ to `imenu-create-index-function'.")
 
 ;;; Activating tree-sitter
 
-(defun treesit--setting-for-mode (mode settings)
-  "Get the setting for MODE in SETTINGS.
-MODE is a major mode symbol.  SETTINGS should be `treesit-settings'."
-  ;;    A setting for exactly this MODE.  The shape is (FLAG INHERIT).
-  (let ((self (alist-get mode settings))
-        ;; Fallback setting, shape is (FLAG INHERIT).
-        (fallback (alist-get t settings))
-        ;; Settings for ancestor modes of MODE.  Its shape is
-        ;; ((MODE . FLAG)...)
-        (applicable (cl-loop for setting in settings
-                             for m = (nth 0 setting)
-                             for flag = (nth 1 setting)
-                             for inherit = (nth 2 setting)
-                             if (and (not (eq m t))
-                                     (not (eq m mode))
-                                     inherit
-                                     (provided-mode-derived-p mode m))
-                             collect (cons m flag))))
-    (cond
-     (self (car self))
-     ((null applicable) (car fallback))
-     (t
-      ;; After sort, the most specific setting is at the top.
-      (setq applicable
-            (cl-sort applicable
-                     (lambda (a b)
-                       ;; Major mode inheritance has a total ordering
-                       ;; right?
-                       (provided-mode-derived-p (car a) (car b)))))
-      (cdar applicable)))))
-
-(defun treesit-ready-p (mode language &optional quiet)
+(defun treesit-ready-p (language &optional quiet)
   "Check whether tree-sitter is ready to be used for MODE and LANGUAGE.
 
 LANGUAGE is the language symbol to check for availability.
 It can also be a list of language symbols.
 
-This function checks the user setting in `treesit-settings'.  If the
-user has set `demand' for MODE, and tree-sitter is not ready, emit a
-warning and return nil.  If the user has chosen to activate tree-sitter
-for MODE and tree-sitter is ready, return non-nil.  If QUIET is t, don't
-emit warning in either case; if quiet is `message', display a message
-instead of emitting warning.
-
-If MODE is nil, don't check for user setting and assume the
-setting is t."
+If tree-sitter is not ready, emit a warning and return nil.  If
+the user has chosen to activate tree-sitter for MODE and
+tree-sitter is ready, return non-nil.  If QUIET is t, don't emit
+warning in either case; if quiet is `message', display a message
+instead of emitting warning."
   (let ((language-list (if (consp language)
                            language
                          (list language)))
-        (activate (if mode
-                      (treesit--setting-for-mode mode treesit-settings)
-                    t))
         msg)
     ;; Check for each condition and set MSG.
-    (if (null activate)
-        nil
-      (catch 'term
-        (when (not (treesit-available-p))
-          (setq msg "tree-sitter library is not compiled with Emacs")
-          (throw 'term nil))
-        (when (> (buffer-size) treesit-max-buffer-size)
-          (setq msg "buffer larger than `treesit-max-buffer-size'")
-          (throw 'term nil))
-        (dolist (lang language-list)
-          (pcase-let ((`(,available . ,err)
-                       (treesit-language-available-p lang t)))
-            (when (not available)
-              (setq msg (format "language definition for %s is unavailable (%s): %s"
-                                lang (nth 0 err)
-                                (string-join
-                                 (mapcar (lambda (x) (format "%s" x))
-                                         (cdr err))
-                                 " ")))
-              (throw 'term nil)))))
-      ;; Decide if all conditions met and whether emit a warning.
-      (if (not msg)
-          t
-        (when (eq activate 'demand)
-          (setq msg (concat "Cannot activate tree-sitter, because " msg))
-          (pcase quiet
-            ('nil (display-warning 'treesit msg))
-            ('message (message "%s" msg))))
-        nil))))
+    (catch 'term
+      (when (not (treesit-available-p))
+        (setq msg "tree-sitter library is not compiled with Emacs")
+        (throw 'term nil))
+      (when (> (buffer-size) treesit-max-buffer-size)
+        (setq msg "buffer larger than `treesit-max-buffer-size'")
+        (throw 'term nil))
+      (dolist (lang language-list)
+        (pcase-let ((`(,available . ,err)
+                     (treesit-language-available-p lang t)))
+          (when (not available)
+            (setq msg (format "language definition for %s is unavailable (%s): %s"
+                              lang (nth 0 err)
+                              (string-join
+                               (mapcar (lambda (x) (format "%s" x))
+                                       (cdr err))
+                               " ")))
+            (throw 'term nil)))))
+    ;; Decide if all conditions met and whether emit a warning.
+    (if (not msg)
+        t
+      (setq msg (concat "Cannot activate tree-sitter, because " msg))
+      (pcase quiet
+        ('nil (display-warning 'treesit msg))
+        ('message (message "%s" msg)))
+      nil)))
 
 (defun treesit-major-mode-setup ()
   "Activate tree-sitter to power major-mode features.

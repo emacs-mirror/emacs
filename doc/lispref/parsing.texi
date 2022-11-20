@@ -1661,6 +1661,7 @@ integration for a major mode.
 A major mode supporting tree-sitter features should roughly follow
 this pattern:
 
+@c FIXME: Update this part once we settle on the exact format.
 @example
 @group
 (define-derived-mode woomy-mode prog-mode "Woomy"
@@ -1679,25 +1680,18 @@ this pattern:
 @end example
 
 First, the major mode should use @code{treesit-ready-p} to determine
-whether the user wants to activate tree-sitter features for the mode,
-and whether tree-sitter can be activated in this mode.
+whether tree-sitter can be activated in this mode.
 
 @defun treesit-ready-p mode language &optional quiet
 This function checks for conditions for activating tree-sitter.  It
-checks whether the user turned on tree-sitter for @var{mode}
-(according to @code{treesit-settings}), whether Emacs was built with
-tree-sitter, whether the buffer's size is not too large for
-tree-sitter to handle it, and whether the language definition for
-@var{language} is available on the system (@pxref{Language
-Definitions}).
+checks whether Emacs was built with tree-sitter, whether the buffer's
+size is not too large for tree-sitter to handle it, and whether the
+language definition for @var{language} is available on the system
+(@pxref{Language Definitions}).
 
-When the user sets @var{mode} to @var{demand} in @code{treesit-settings},
-this function emits a warning if tree-sitter cannot be activated.  If
+This function emits a warning if tree-sitter cannot be activated.  If
 @var{quiet} is @code{message}, the warning is turned into a message;
 if @var{quiet} is @code{nil}, no warning or message is displayed.
-
-If @var{mode} is nil, this function doesn't check user's preference in
-@code{treesit-settings}.
 
 If all the necessary conditions are met, this function returns
 non-@code{nil}; otherwise it returns @code{nil}.
