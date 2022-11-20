@@ -3347,6 +3347,8 @@ immediately after this one."
           (lambda (&rest args)
             (apply #'vc-user-edit-command (apply old args))))))
 
+;; This is used in .dir-locals.el in the Emacs source tree.
+;;;###autoload (put 'vc-prepare-patches-separately 'safe-local-variable 'booleanp)
 (defcustom vc-prepare-patches-separately t
   "Whether `vc-prepare-patch' should generate a separate message for each patch.
 If nil, `vc-prepare-patch' creates a single email message by attaching
