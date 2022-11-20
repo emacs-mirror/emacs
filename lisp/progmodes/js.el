@@ -3697,12 +3697,33 @@ definition*\"."
 ;;; Main Function
 
 ;;;###autoload
-(define-derived-mode js-mode prog-mode "JavaScript"
+(define-derived-mode js-base-mode prog-mode "JavaScript"
+  "Generic major mode for editing JavaScript.
+
+This mode is intended to be inherited by concrete major modes.
+Currently there are `js-mode' and `js-ts-mode'."
+  :group 'js
+  nil)
+
+;;;###autoload
+(define-derived-mode js-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript."
   :group 'js
   ;; Ensure all CC Mode "lang variables" are set to valid values.
   (c-init-language-vars js-mode)
+  (setq-local indent-line-function #'js-indent-line)
+  (setq-local beginning-of-defun-function #'js-beginning-of-defun)
+  (setq-local end-of-defun-function #'js-end-of-defun)
   (setq-local open-paren-in-column-0-is-defun-start nil)
+  (setq-local font-lock-defaults
+              (list js--font-lock-keywords nil nil nil nil
+                    '(font-lock-syntactic-face-function
+                      . js-font-lock-syntactic-face-function)))
+  (setq-local syntax-propertize-function #'js-syntax-propertize)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'syntax-propertize-multiline 'append 'local)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'js--syntax-propertize-extend-region 'append 'local)
   (setq-local prettify-symbols-alist js--prettify-symbols-alist)
 
   (setq-local parse-sexp-ignore-comments t)
@@ -3768,10 +3789,31 @@ definition*\"."
   ;; FIXME: We should instead do this fontification lazily by adding
   ;; calls to syntax-propertize wherever it's really needed.
   ;;(syntax-propertize (point-max))
+  )
 
-  (cond
-   ;; Tree-sitter.
-   ((treesit-ready-p 'js-mode 'javascript)
+(define-derived-mode js-ts-mode js-base-mode "JavaScript"
+  "Major mode for editing JavaScript.
+
+\\<js-ts-mode-map>"
+  :group 'js
+  (when (treesit-ready-p 'js-mode 'javascript)
+    ;; Borrowed from `js-mode'.
+    (setq-local prettify-symbols-alist js--prettify-symbols-alist)
+    (setq-local parse-sexp-ignore-comments t)
+    ;; Which-func.
+    (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
+    ;; Comment.
+    (setq-local comment-start "// ")
+    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
+    (setq-local comment-end "")
+    (setq-local comment-multi-line t)
+    ;; Electric-indent.
+    (setq-local electric-indent-chars
+	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
+    (setq-local electric-layout-rules
+	        '((?\; . after) (?\{ . after) (?\} . before)))
+
+    ;; Tree-sitter setup.
     (treesit-parser-create 'javascript)
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
@@ -3792,23 +3834,7 @@ definition*\"."
                 #'js--treesit-imenu)
     ;; Which-func (use imenu).
     (setq-local which-func-functions nil)
-    (treesit-major-mode-setup))
-   ;; Elisp.
-   (t
-    ;; Ensure all CC Mode "lang variables" are set to valid values
-    ;; (continued).
-    (setq-local indent-line-function #'js-indent-line)
-    (setq-local beginning-of-defun-function #'js-beginning-of-defun)
-    (setq-local end-of-defun-function #'js-end-of-defun)
-    (setq-local font-lock-defaults
-                (list js--font-lock-keywords nil nil nil nil
-                      '(font-lock-syntactic-face-function
-                        . js-font-lock-syntactic-face-function)))
-    (setq-local syntax-propertize-function #'js-syntax-propertize)
-    (add-hook 'syntax-propertize-extend-region-functions
-              #'syntax-propertize-multiline 'append 'local)
-    (add-hook 'syntax-propertize-extend-region-functions
-              #'js--syntax-propertize-extend-region 'append 'local))))
+    (treesit-major-mode-setup)))
 
 (defvar js-json--treesit-font-lock-settings
   (treesit-font-lock-rules
