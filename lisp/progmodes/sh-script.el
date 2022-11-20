@@ -1608,9 +1608,10 @@ with your script for an edit-interpret-debug cycle."
   "Major mode for editing Bash shell scripts."
   (when (treesit-ready-p 'bash)
     (setq-local treesit-font-lock-feature-list
-                '((comment function string heredoc)
-                  (variable keyword command declaration-command)
-                  (constant operator builtin-variable)))
+                '(( comment function heredoc string)
+                  ( command declaration-command keyword number variable)
+                  ( bracket builtin-variable constant delimiter
+                    misc-punctuation operator)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
     (treesit-major-mode-setup)))
@@ -3216,8 +3217,7 @@ member of `flymake-diagnostic-functions'."
 ;;; Tree-sitter font-lock
 
 (defvar sh-mode--treesit-operators
-  '("|" "|&" "||" "&&" ">" ">>" "<" "<<" "<<-" "<<<" "==" "!=" ";"
-    ";;" ";&" ";;&")
+  '("|" "|&" "||" "&&" ">" ">>" "<" "<<" "<<-" "<<<" "==" "!=" ";&" ";;&")
   "A list of `sh-mode' operators to fontify.")
 
 (defvar sh-mode--treesit-keywords
@@ -3312,7 +3312,7 @@ See `sh-mode--treesit-other-keywords' and
 
    :feature 'operator
    :language 'bash
-   `([ ,@sh-mode--treesit-operators ] @font-lock-builtin-face)
+   `([,@sh-mode--treesit-operators] @font-lock-operator-face)
 
    :feature 'builtin-variable
    :language 'bash
@@ -3322,7 +3322,24 @@ See `sh-mode--treesit-other-keywords' and
                   `(seq bol
                         (or ,@builtin-vars)
                         eol)))
-              @font-lock-builtin-face))))
+              @font-lock-builtin-face)))
+
+   :feature 'number
+   :language 'bash
+   `(((word) @font-lock-number-face
+      (:match "^[0-9]+$" @font-lock-number-face)))
+
+   :feature 'bracket
+   :language 'bash
+   '((["(" ")" "((" "))" "[" "]" "[[" "]]" "{" "}"]) @font-lock-bracket-face)
+
+   :feature 'delimiter
+   :language 'bash
+   '(([";" ";;"]) @font-lock-delimiter-face)
+
+   :feature 'misc-punctuation
+   :language 'bash
+   '((["$"]) @font-lock-misc-punctuation-face))
   "Tree-sitter font-lock settings for `sh-mode'.")
 
 (provide 'sh-script)
