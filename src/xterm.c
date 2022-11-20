@@ -5323,6 +5323,46 @@ struct xi_known_valuator
   struct xi_known_valuator *next;
 };
 
+/* Populate the scroll valuator at INDEX in DEVICE with the scroll
+   valuator information provided in INFO.
+
+   The information consists of:
+
+     - whether or not the valuator is horizontal.
+
+     - whether or not the valuator's value is currently unknown,
+       until the next XI_Motion event is received or the valuator's
+       value is restored by the caller upon encountering valuator
+       class data.
+
+     - what the current value of the valuator is.  This is set to
+       DBL_MIN for debugging purposes, but can be any value, as
+       invalid_p is currently true.
+
+     - the increment, which defines the amount of movement equal to a
+       single unit of scrolling.  For example, if the increment is
+       2.0, then a WHEEL_DOWN or WHEEL_UP event will be sent every
+       time the valuator value changes by 2.0, unless
+       mwheel-coalesce-scroll-events is nil.
+
+     - the number used in XI_Motion events and elsewhere to identify
+       the valuator.  */
+
+static void
+xi_populate_scroll_valuator (struct xi_device_t *device,
+			     int index, XIScrollClassInfo *info)
+{
+  struct xi_scroll_valuator_t *valuator;
+
+  valuator = &device->valuators[index];
+  valuator->horizontal
+    = (info->scroll_type == XIScrollTypeHorizontal);
+  valuator->invalid_p = true;
+  valuator->emacs_value = DBL_MIN;
+  valuator->increment = info->increment;
+  valuator->number = info->number;
+}
+
 #endif
 
 static void
@@ -5331,7 +5371,6 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
 			      XIDeviceInfo *device)
 {
 #ifdef HAVE_XINPUT2_1
-  struct xi_scroll_valuator_t *valuator;
   struct xi_known_valuator *values, *tem;
   int actual_valuator_count, c;
   XIScrollClassInfo *info;
@@ -5432,15 +5471,8 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
 	case XIScrollClass:
 	  {
 	    info = (XIScrollClassInfo *) device->classes[c];
-
-	    valuator = &xi_device->valuators[actual_valuator_count++];
-	    valuator->horizontal
-	      = (info->scroll_type == XIScrollTypeHorizontal);
-	    valuator->invalid_p = true;
-	    valuator->emacs_value = DBL_MIN;
-	    valuator->increment = info->increment;
-	    valuator->number = info->number;
-
+	    xi_populate_scroll_valuator (xi_device, actual_valuator_count++,
+					 info);
 	    break;
 	  }
 
@@ -13164,13 +13196,9 @@ xi_handle_new_classes (struct x_display_info *dpyinfo, struct xi_device_t *devic
 	case XIScrollClass:
 	  scroll = (XIScrollClassInfo *) classes[i];
 
-	  valuator = &device->valuators[device->scroll_valuator_count++];
-	  valuator->horizontal = (scroll->scroll_type
-				  == XIScrollTypeHorizontal);
-	  valuator->invalid_p = true;
-	  valuator->emacs_value = 0;
-	  valuator->increment = scroll->increment;
-	  valuator->number = scroll->number;
+	  xi_populate_scroll_valuator (device,
+				       device->scroll_valuator_count++,
+				       scroll);
 	  break;
 
 #ifdef HAVE_XINPUT2_2
