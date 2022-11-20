@@ -68,13 +68,13 @@ DOCMISC_W32 = @DOCMISC_W32@
 
 ## Info files to build and install on all platforms.
 INFO_COMMON = auth autotype bovine calc ccmode cl \
-	dbus dired-x ebrowse ede ediff edt eglot eieio \
-	emacs-mime epa erc ert eshell eudc efaq eww \
-	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
-	mairix-el message mh-e modus-themes newsticker nxml-mode octave-mode \
-	org pcl-cvs pgg rcirc remember reftex sasl \
-	sc semantic ses sieve smtpmail speedbar srecode todo-mode transient \
-	tramp url vhdl-mode vip viper vtable widget wisent woman
+	dbus dired-x ebrowse ede ediff edt efaq eglot eieio \
+	emacs-gnutls emacs-mime epa erc ert eshell eudc eww \
+	flymake forms gnus htmlfontify idlwave ido info.info \
+	mairix-el message mh-e modus-themes newsticker nxml-mode \
+	octave-mode org pcl-cvs pgg rcirc reftex remember sasl \
+	sc semantic ses sieve smtpmail speedbar srecode todo-mode \
+	tramp transient url vhdl-mode vip viper vtable widget wisent woman
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
