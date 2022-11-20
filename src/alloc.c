@@ -7775,13 +7775,23 @@ allocated since the last garbage collection.  All data types count.
 Garbage collection happens automatically only when `eval' is called.
 
 By binding this temporarily to a large number, you can effectively
-prevent garbage collection during a part of the program.
+prevent garbage collection during a part of the program.  But be
+sure to get back to the normal value soon enough, to avoid system-wide
+memory pressure, and never use a too-high value for prolonged periods
+of time.
 See also `gc-cons-percentage'.  */);
 
   DEFVAR_LISP ("gc-cons-percentage", Vgc_cons_percentage,
 	       doc: /* Portion of the heap used for allocation.
 Garbage collection can happen automatically once this portion of the heap
 has been allocated since the last garbage collection.
+
+By binding this temporarily to a large number, you can effectively
+prevent garbage collection during a part of the program.  But be
+sure to get back to the normal value soon enough, to avoid system-wide
+memory pressure, and never use a too-high value for prolonged periods
+of time.
+
 If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
   Vgc_cons_percentage = make_float (0.1);
 
