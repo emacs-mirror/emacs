@@ -3841,49 +3841,12 @@ Currently there are `js-mode' and `js-ts-mode'."
     (setq-local which-func-functions nil)
     (treesit-major-mode-setup)))
 
-(defvar js-json--treesit-font-lock-settings
-  (treesit-font-lock-rules
-   :language 'json
-   :feature 'minimal
-   :override t
-   `(
-     (pair
-      key: (_) @font-lock-string-face)
-
-     (string) @font-lock-string-face
-
-     (number) @font-lock-constant-face
-
-     [(null) (true) (false)] @font-lock-constant-face
-
-     (escape_sequence) @font-lock-constant-face
-
-     (comment) @font-lock-comment-face))
-  "Font-lock settings for JSON.")
-
-
-(defvar js--json-treesit-indent-rules
-  `((json
-     (no-node (js--treesit-backward-up-list) js-indent-level)
-     ((node-is "}") parent-bol 0)
-     ((node-is ")") parent-bol 0)
-     ((node-is "]") parent-bol 0)
-     ((parent-is "object") parent-bol js-indent-level)
-     )))
-
 ;;;###autoload
 (define-derived-mode js-json-mode js-mode "JSON"
   (setq-local js-enabled-frameworks nil)
   ;; Speed up `syntax-ppss': JSON files can be big but can't hold
   ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
-  (setq-local syntax-propertize-function #'ignore)
-
-  (cond
-   ;; Tree-sitter.
-   ((treesit-ready-p 'js-json-mode 'json)
-    (setq-local treesit-simple-indent-rules js--json-treesit-indent-rules)
-    (setq-local treesit-font-lock-settings js-json--treesit-font-lock-settings)
-    (treesit-major-mode-setup))))
+  (setq-local syntax-propertize-function #'ignore))
 
 ;; Since we made JSX support available and automatically-enabled in
 ;; the base `js-mode' (for ease of use), now `js-jsx-mode' simply
