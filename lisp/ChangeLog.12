@@ -5551,7 +5551,7 @@
 	(cperl-next-interpolated-REx-1): Likewise.
 	"\C-c\C-x", "\C-c\C-y", "\C-c\C-v": New keybinding for these functions.
 	Perl/Regexp menu: 3 new entries for `cperl-next-interpolated-REx'.
-	(cperl-praise): Mention finded interpolated RExen.
+	(cperl-praise): Mention finding interpolated RExen.
 
 	After 5.19:
 	(cperl-init-faces): Highlight %$foo, @$foo too.

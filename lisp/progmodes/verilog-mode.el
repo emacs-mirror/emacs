@@ -7719,7 +7719,7 @@ nil otherwise."
                           (setq match t)
                           (setq elm nil))
                       (setq elm (cdr elm)))))
-                ;; If this is a test just for exact match, return nil ot t
+                ;; If this is a test just for exact match, return nil or t
                 (if (and (equal flag 'lambda) (not (equal match 't)))
                     nil
                   match))))

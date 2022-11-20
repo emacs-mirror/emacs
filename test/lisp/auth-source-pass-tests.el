@@ -59,7 +59,7 @@
   "Contains a list of all messages passed to `auth-source-do-debug'.")
 
 (defun auth-source-pass--have-message-matching (regexp)
-  "Return non-nil iff at least one `auth-source-do-debug' match REGEXP."
+  "Return non-nil if at least one `auth-source-do-debug' match REGEXP."
   (seq-find (lambda (message)
               (string-match regexp message))
             auth-source-pass--debug-log))
@@ -109,7 +109,7 @@ ENTRY, HOSTNAME, USER and PORT are the same as in
 (put 'auth-source-pass-match-entry-p 'ert-explainer #'auth-source-pass--explain-match-entry-p)
 
 (defun auth-source-pass--includes-sorted-entries (entries hostname &optional user port)
-  "Return non-nil iff ENTRIES matching the parameters are found in store.
+  "Return non-nil if ENTRIES matching the parameters are found in store.
 ENTRIES should be sorted from most specific to least specific.
 
 HOSTNAME, USER and PORT are passed unchanged to
@@ -157,7 +157,7 @@ result is ordered the same way as the suffixes."
             (auth-source-pass--generate-entry-suffixes hostname user port))))
 
 (defun auth-source-pass-match-entry-p (entry hostname &optional user port)
-  "Return non-nil iff an ENTRY matching the parameters is found in store.
+  "Return non-nil if an ENTRY matching the parameters is found in store.
 
 HOSTNAME, USER and PORT are passed unchanged to
 `auth-source-pass--matching-entries'."
@@ -166,7 +166,7 @@ HOSTNAME, USER and PORT are passed unchanged to
    (auth-source-pass--matching-entries hostname user port)))
 
 (defun auth-source-pass-match-any-entry-p (hostname &optional user port)
-  "Return non-nil iff there is at least one entry matching the parameters.
+  "Return non-nil if there is at least one entry matching the parameters.
 
 HOSTNAME, USER and PORT are passed unchanged to
 `auth-source-pass--matching-entries'."

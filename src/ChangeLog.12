@@ -14132,7 +14132,7 @@
 	(coding_set_destination): Return how many bytes
 	coding->destination was relocated.
 	(CODING_DECODE_CHAR, CODING_ENCODE_CHAR, CODING_CHAR_CHARSET)
-	(CODING_CHAR_CHARSET_P): Adjust for the avove changes.
+	(CODING_CHAR_CHARSET_P): Adjust for the above changes.
 
 2011-12-05  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 

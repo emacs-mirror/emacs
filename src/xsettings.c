@@ -766,7 +766,7 @@ parse_settings (unsigned char *prop,
 #ifndef HAVE_PGTK
 /* Read settings from the XSettings property window on display for DPYINFO.
    Store settings read in SETTINGS.
-   Return true iff successful.  */
+   Return true if successful.  */
 
 static bool
 read_settings (Display_Info *dpyinfo, struct xsettings *settings)

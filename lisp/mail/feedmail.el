@@ -2766,7 +2766,7 @@ return that value."
   (cond
    ;; nil means do nothing
    ((eq nil feedmail-date-generator) nil)
-   ;; t is the same a using the function feedmail-default-date-generator, so let it and recurse
+   ;; t is the same as using the function feedmail-default-date-generator, so let it and recurse
    ((eq t feedmail-date-generator)
     (let ((feedmail-date-generator (feedmail-default-date-generator maybe-file)))
       (feedmail-fiddle-date maybe-file)))
@@ -2822,7 +2822,7 @@ probably not appropriate for you."
   (cond
    ;; nil means do nothing
    ((eq nil feedmail-message-id-generator) nil)
-   ;; t is the same a using the function feedmail-default-message-id-generator, so let it and recurse
+   ;; t is the same as using the function feedmail-default-message-id-generator, so let it and recurse
    ((eq t feedmail-message-id-generator)
     (let ((feedmail-message-id-generator (feedmail-default-message-id-generator maybe-file)))
       (feedmail-fiddle-message-id maybe-file)))
@@ -2864,7 +2864,7 @@ probably not appropriate for you."
   (cond
    ;; nil means do nothing
    ((eq nil feedmail-x-mailer-line) nil)
-   ;; t is the same a using the function feedmail-default-x-mailer-generator, so let it and recurse
+   ;; t is the same as using the function feedmail-default-x-mailer-generator, so let it and recurse
    ((eq t feedmail-x-mailer-line)
     (let ((feedmail-x-mailer-line (feedmail-default-x-mailer-generator)))
       (feedmail-fiddle-x-mailer)))

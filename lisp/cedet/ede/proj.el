@@ -43,7 +43,7 @@
 (autoload 'ede-proj-target-scheme "ede/proj-scheme"
   "Target class for a group of lisp files." nil nil)
 (autoload 'ede-proj-target-makefile-miscelaneous "ede/proj-misc"
-  "Target class for a group of miscellaneous w/ a special makefile." nil nil)
+  "Target class for a group of miscellaneous with a special makefile." nil nil)
 (autoload 'ede-proj-target-makefile-program "ede/proj-prog"
   "Target class for building a program." nil nil)
 (autoload 'ede-proj-target-makefile-archive "ede/proj-archive"
@@ -67,7 +67,7 @@
   "Target class for a group of lisp files.")
 (eieio-defclass-autoload 'ede-proj-target-makefile-miscelaneous '(ede-proj-target-makefile)
   "ede/proj-misc"
-  "Target class for a group of miscellaneous w/ a special makefile.")
+  "Target class for a group of miscellaneous with a special makefile.")
 (eieio-defclass-autoload 'ede-proj-target-makefile-program '(ede-proj-target-makefile-objectcode)
   "ede/proj-prog"
   "Target class for building a program.")

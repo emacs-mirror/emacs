@@ -11988,7 +11988,7 @@
 
 	* cmds.c (nonundocount): New global variable.
 	(keys_of_cmds): Initialize it.
-	(Fself_insert_command): Use it to combine upto 20 sequential chars
+	(Fself_insert_command): Use it to combine up to 20 sequential chars
 	into a single undo entry, just like the Qself_insert_command code in
 	keyboard.c does.
 	Call frame_make_pointer_invisible, also like the Qself_insert_command

@@ -407,7 +407,7 @@
     :session dbus--test-service
     '(:array (:dict-entry :string "string" :boolean t :boolean t)))
    :type 'wrong-type-argument)
-  ;; The first element ist not of a basic type.
+  ;; The first element is not of a basic type.
   (should-error
    (dbus-check-arguments
     :session dbus--test-service

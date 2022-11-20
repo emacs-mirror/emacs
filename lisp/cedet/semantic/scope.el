@@ -577,7 +577,7 @@ such as `public' or `private'."
 	    (if (semantic-tag-file-name TAG)
 		;; If it has a filename, just go with it...
 		(setq copyslots (cons TAG copyslots))
-	      ;; Otherwise, copy the tag w/ the guessed filename.
+              ;; Otherwise, copy the tag with the guessed filename.
 	      (setq copyslots (cons (semantic-tag-copy TAG nil fname)
 				    copyslots)))
 	    )

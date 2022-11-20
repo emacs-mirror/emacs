@@ -1192,7 +1192,7 @@ variable `vc-rcs-release' is set to the returned value."
 (defun vc-rcs-parse (&optional buffer)
   "Parse current buffer, presumed to be in RCS-style masterfile format.
 Optional arg BUFFER specifies another buffer to parse.  Return an alist
-of two elements, w/ keys `headers' and `revisions' and values in turn
+of two elements, with keys `headers' and `revisions' and values in turn
 sub-alists.  For `headers', the values unless otherwise specified are
 strings and the keys are:
 

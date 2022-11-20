@@ -51,7 +51,7 @@ Display the references in `semantic-symref-results-mode'."
   (let ((ct (semantic-current-tag)))
     ;; Must have a tag...
     (when (not ct) (error "Place cursor inside tag to be searched for"))
-    ;; Check w/ user.
+    ;; Check with user.
     (when (not (y-or-n-p (format "Find references for %s? "
                                  (semantic-tag-name ct))))
       (error "Quit"))

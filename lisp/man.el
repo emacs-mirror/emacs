@@ -331,7 +331,7 @@ This regexp should not start with a `^' character.")
 ;; This used to have leading space [ \t]*, but was removed because it
 ;; causes false page splits on an occasional NAME with leading space
 ;; inside a manpage.  And `Man-heading-regexp' doesn't have [ \t]* anyway.
-(defvar Man-first-heading-regexp "^NAME$\\|^[ \t]*No manual entry fo.*$"
+(defvar Man-first-heading-regexp "^NAME$\\|^[ \t]*No manual entry for.*$"
   "Regular expression describing first heading on a manpage.
 This regular expression should start with a `^' character.")
 

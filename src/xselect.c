@@ -967,7 +967,7 @@ x_handle_selection_request (struct selection_input_event *event)
    x_reply_selection_request.  If FOR_MULTIPLE, write out
    the data even if conversion fails, using conversion_fail_tag.
 
-   Return true iff successful.  */
+   Return true if successful.  */
 
 static bool
 x_convert_selection (Lisp_Object selection_symbol,

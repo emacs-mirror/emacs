@@ -2584,7 +2584,7 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 (defun major-mode-restore (&optional avoided-modes)
   "Restore major mode earlier suspended with `major-mode-suspend'.
 If there was no earlier suspended major mode, then fallback to `normal-mode',
-tho trying to avoid AVOIDED-MODES."
+though trying to avoid AVOIDED-MODES."
   (if major-mode--suspended
       (funcall (prog1 major-mode--suspended
                  (kill-local-variable 'major-mode--suspended)))

@@ -22575,7 +22575,7 @@
 
 2009-06-28  Juri Linkov  <juri@jurta.org>
 
-	* help-fns.el (describe-function-1): Correctly locate adviced
+	* help-fns.el (describe-function-1): Correctly locate advised
 	functions in hyperlink (Bug#2438).
 
 2009-06-28  Chong Yidong  <cyd@stupidchicken.com>

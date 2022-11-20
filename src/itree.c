@@ -1389,7 +1389,7 @@ itree_iterator_start (struct itree_iterator *iter,
   iter->end = end;
   iter->otick = tree->otick;
   iter->order = order;
-  /* Beware: the `node` field alwyas holds "the next" node to consider.
+  /* Beware: the `node` field always holds "the next" node to consider.
      so it's always "one node ahead" of what the iterator loop sees.
      In most respects this makes no difference, but we depend on this
      detail in `delete_all_overlays` where this allows us to modify

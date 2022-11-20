@@ -40,7 +40,7 @@
 ;;    of themselves that can be edited w/out affecting the definition of
 ;;    that tag.
 ;;
-;; 2. Tags w/ positioned children could have a property of an
+;; 2. Tags with positioned children could have a property of an
 ;;    overlay marking the region in themselves that contain the
 ;;    children.  This could be used to better improve splicing near
 ;;    the beginning and end of the child lists.

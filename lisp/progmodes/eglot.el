@@ -1238,7 +1238,7 @@ This docstring appeases checkdoc, that's all."
            :request-dispatcher (funcall spread #'eglot-handle-request)
            :on-shutdown #'eglot--on-shutdown
            initargs))
-         (cancelled nil)
+         (canceled nil)
          (tag (make-symbol "connected-catch-tag")))
     (when server-info
       (jsonrpc--debug server "Running language server: %s"
@@ -1277,7 +1277,7 @@ This docstring appeases checkdoc, that's all."
                             :workspaceFolders (eglot-workspace-folders server))
                       :success-fn
                       (eglot--lambda ((InitializeResult) capabilities serverInfo)
-                        (unless cancelled
+                        (unless canceled
                           (push server
                                 (gethash project eglot--servers-by-project))
                           (setf (eglot--capabilities server) capabilities)
@@ -1315,13 +1315,13 @@ in project `%s'."
                           (when tag (throw tag t))))
                       :timeout eglot-connect-timeout
                       :error-fn (eglot--lambda ((ResponseError) code message)
-                                  (unless cancelled
+                                  (unless canceled
                                     (jsonrpc-shutdown server)
                                     (let ((msg (format "%s: %s" code message)))
                                       (if tag (throw tag `(error . ,msg))
                                         (eglot--error msg)))))
                       :timeout-fn (lambda ()
-                                    (unless cancelled
+                                    (unless canceled
                                       (jsonrpc-shutdown server)
                                       (let ((msg (format "Timed out after %s seconds"
                                                          eglot-connect-timeout)))
@@ -1338,7 +1338,7 @@ in project `%s'."
                                       (jsonrpc-name server))
                       nil)
                 (_ server)))
-          (quit (jsonrpc-shutdown server) (setq cancelled 'quit)))
+          (quit (jsonrpc-shutdown server) (setq canceled 'quit)))
       (setq tag nil))))
 
 (defun eglot--inferior-bootstrap (name contact &optional connect-args)
