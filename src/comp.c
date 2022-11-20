@@ -2585,8 +2585,7 @@ push_float_block (void)
   gcc_jit_lvalue *var
     = gcc_jit_context_new_global (comp.ctxt, NULL,
 				  GCC_JIT_GLOBAL_INTERNAL,
-				  gcc_jit_type_get_const (
-				    comp.float_block_aligned_type),
+				  comp.float_block_aligned_type,
 				  name);
   Lisp_Object entry
     = CALLN (Fvector, make_mint_ptr (var), make_fixnum (-1),
