@@ -4253,8 +4253,9 @@ Furthermore, this approach has the following limitations:
 
 @itemize
 @item
-It works only for connection methods defined in @file{tramp-adb.el},
-@file{tramp-sh.el} and @file{tramp-sshfs.el}.
+It works only for some connection methods defined in
+@file{tramp-adb.el}, @file{tramp-container.el}, @file{tramp-sh.el} and
+@file{tramp-sshfs.el}.
 
 @item
 It does not support interactive user authentication.  With
