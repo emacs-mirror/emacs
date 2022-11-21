@@ -8566,7 +8566,8 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 
 	       ;; Make a .trashinfo file.  Use O_EXCL, as per trash-spec 1.0.
 	       (let* ((files-base (file-name-nondirectory fn))
-                      (is-directory (file-directory-p fn))
+                      (is-directory (and (file-directory-p fn)
+					 (not (file-symlink-p fn))))
                       (overwrite nil)
                       info-fn)
                  ;; We're checking further down whether the info file
