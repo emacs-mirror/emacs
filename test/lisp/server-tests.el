@@ -131,4 +131,39 @@
        "--eval" (format "(setq server-tests/variable %d)" value))
       (server-tests/wait-until (eq server-tests/variable value)))))
 
+(ert-deftest server-tests/server-force-stop/keeps-frames ()
+  "Ensure that `server-force-stop' doesn't delete frames.  See bug#58877.
+Note: since that bug is about a behavior when killing Emacs, this
+test is somewhat indirect. (Killing the current Emacs instance
+would make it hard to check test results!)  Instead, it only
+tests that `server-force-stop' doesn't delete frames (and even
+then, requires a few tricks to run as a regression test).  So
+long as this works, the problem in bug#58877 shouldn't occur."
+  (let (terminal)
+    (unwind-protect
+        (server-tests/with-server
+          (let ((emacsclient (server-tests/start-emacsclient "-c")))
+            (server-tests/wait-until (length= (frame-list) 2))
+            (should (eq (process-status emacsclient) 'run))
+
+            ;; Don't delete the terminal for the client; that would
+            ;; kill its frame immediately too.  (This is only an issue
+            ;; when running these tests via the command line;
+            ;; normally, in an interactive session, we don't need to
+            ;; worry about this.  But since we want to check that
+            ;; `server-force-stop' doesn't delete frames under normal
+            ;; circumstances, we need to bypass terminal deletion
+            ;; here.)
+            (setq terminal (process-get (car server-clients) 'terminal))
+            (process-put (car server-clients) 'no-delete-terminal t)
+
+            (server-force-stop))
+          ;; Ensure we didn't delete the frame.
+          (should (length= (frame-list) 2)))
+      ;; Clean up after ourselves and delete the terminal.
+      (when (and terminal
+                 (eq (terminal-live-p terminal) t)
+                 (not (eq system-type 'windows-nt)))
+        (delete-terminal terminal)))))
+
 ;;; server-tests.el ends here

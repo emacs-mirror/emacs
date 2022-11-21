@@ -287,6 +287,8 @@ If nil, no instructions are displayed."
   "The directory in which to place the server socket.
 If local sockets are not supported, this is nil.")
 
+(define-error 'server-running-external "External server running")
+
 (defun server-clients-with (property value)
   "Return a list of clients with PROPERTY set to VALUE."
   (let (result)
@@ -610,6 +612,54 @@ If the key is not valid, signal an error."
       (error "The key `%s' is invalid" server-auth-key))
     (server-generate-key)))
 
+(defsubst server--file-name ()
+  "Return the file name to use for the server socket."
+  (let ((server-dir (if server-use-tcp server-auth-dir server-socket-dir)))
+    (expand-file-name server-name server-dir)))
+
+(defun server-stop (&optional noframe)
+  "If this Emacs process has a server communication subprocess, stop it.
+If the server is running in some other Emacs process (see
+`server-running-p'), signal a `server-running-external' error.
+
+If NOFRAME is non-nil, don't delete any existing frames
+associated with a client process.  This is useful, for example,
+when killing Emacs, in which case the frames will get deleted
+anyway."
+  (let ((server-file (server--file-name)))
+    (when server-process
+      ;; Kill it dead!
+      (ignore-errors (delete-process server-process))
+      (unless noframe
+        (server-log (message "Server stopped")))
+      (setq server-process nil
+            server-mode nil
+            global-minor-modes (delq 'server-mode global-minor-modes)))
+    (unwind-protect
+        ;; Delete the socket files made by previous server
+        ;; invocations.
+        (if (not (eq t (server-running-p server-name)))
+            ;; Remove any leftover socket or authentication file.
+            (ignore-errors
+              (let (delete-by-moving-to-trash)
+                (delete-file server-file)
+                ;; Also delete the directory that the server file was
+                ;; created in -- but only in /tmp (see bug#44644).
+                ;; There may be other servers running, too, so this may
+                ;; fail.
+                (when (equal (file-name-directory
+                              (directory-file-name
+                               (file-name-directory server-file)))
+                             "/tmp/")
+                  (ignore-errors
+                    (delete-directory (file-name-directory server-file))))))
+            (signal 'server-running-external
+                    (list (format "There is an existing Emacs server, named %S"
+                                  server-name))))
+      ;; If this Emacs already had a server, clear out associated status.
+      (while server-clients
+        (server-delete-client (car server-clients) noframe)))))
+
 ;;;###autoload
 (defun server-start (&optional leave-dead inhibit-prompt)
   "Allow this Emacs process to be a server for client processes.
@@ -643,55 +693,30 @@ the `server-process' variable."
 	     (inhibit-prompt t)
 	     (t (yes-or-no-p
 		 "The current server still has clients; delete them? "))))
-    (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
-	   (server-file (expand-file-name server-name server-dir)))
-      (when server-process
-	;; kill it dead!
-	(ignore-errors (delete-process server-process)))
-      ;; Check to see if an uninitialized external socket has been
-      ;; passed in, if that is the case, skip checking
-      ;; `server-running-p' as this will return the wrong result.
-      (if (and internal--daemon-sockname
-               (not server--external-socket-initialized))
-          (setq server--external-socket-initialized t)
-        ;; Delete the socket files made by previous server invocations.
-        (if (not (eq t (server-running-p server-name)))
-           ;; Remove any leftover socket or authentication file.
-           (ignore-errors
-             (let (delete-by-moving-to-trash)
-               (delete-file server-file)
-               ;; Also delete the directory that the server file was
-               ;; created in -- but only in /tmp (see bug#44644).
-               ;; There may be other servers running, too, so this may
-               ;; fail.
-               (when (equal (file-name-directory
-                             (directory-file-name
-                              (file-name-directory server-file)))
-                            "/tmp/")
-                 (ignore-errors
-                   (delete-directory (file-name-directory server-file))))))
-         (display-warning
-          'server
-          (concat "Unable to start the Emacs server.\n"
-                  (format "There is an existing Emacs server, named %S.\n"
-                          server-name)
-                  (substitute-command-keys
-                    "To start the server in this Emacs process, stop the existing
-server or call `\\[server-force-delete]' to forcibly disconnect it."))
-          :warning)
-         (setq leave-dead t)))
-      ;; If this Emacs already had a server, clear out associated status.
-      (while server-clients
-	(server-delete-client (car server-clients)))
+    ;; If a server is already running, try to stop it.
+    (condition-case err
+        ;; Check to see if an uninitialized external socket has been
+        ;; passed in.  If that is the case, don't try to stop the
+        ;; server.  (`server-stop' checks `server-running-p', which
+        ;; would return the wrong result).
+        (if (and internal--daemon-sockname
+                 (not server--external-socket-initialized))
+            (setq server--external-socket-initialized t)
+          (server-stop))
+      (server-running-external
+       (display-warning
+        'server
+        (concat "Unable to start the Emacs server.\n"
+                (cadr err)
+                (substitute-command-keys
+                 "\nTo start the server in this Emacs process, stop the existingserver or call `\\[server-force-delete]' to forcibly disconnect it."))
+        :warning)
+       (setq leave-dead t)))
       ;; Now any previous server is properly stopped.
-      (if leave-dead
-	  (progn
-	    (unless (eq t leave-dead) (server-log (message "Server stopped")))
-            (setq server-mode nil
-                  global-minor-modes (delq 'server-mode global-minor-modes)
-                  server-process nil))
+    (unless leave-dead
+      (let ((server-file (server--file-name)))
 	;; Make sure there is a safe directory in which to place the socket.
-	(server-ensure-safe-dir server-dir)
+	(server-ensure-safe-dir (file-name-directory server-file))
 	(when server-process
 	  (server-log (message "Restarting server")))
         (with-file-modes ?\700
@@ -748,7 +773,7 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 (defun server-force-stop ()
   "Kill all connections to the current server.
 This function is meant to be called from `kill-emacs-hook'."
-  (server-start t t))
+  (ignore-errors (server-stop 'noframe)))
 
 ;;;###autoload
 (defun server-force-delete (&optional name)
@@ -1869,11 +1894,10 @@ Returns the result of the evaluation, or signals an error if it
 cannot contact the specified server.  For example:
   (server-eval-at \"server\" \\='(emacs-pid))
 returns the process ID of the Emacs instance running \"server\"."
-  (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
-	 (server-file (expand-file-name server server-dir))
-	 (coding-system-for-read 'binary)
-	 (coding-system-for-write 'binary)
-	 address port secret process)
+  (let ((server-file (server--file-name))
+        (coding-system-for-read 'binary)
+        (coding-system-for-write 'binary)
+        address port secret process)
     (unless (file-exists-p server-file)
       (error "No such server: %s" server))
     (with-temp-buffer
