@@ -844,8 +844,7 @@ treesit_check_buffer_size (struct buffer *buffer)
 	      make_fixnum (buffer_size));
 }
 
-static Lisp_Object
-treesit_make_ranges (const TSRange *, uint32_t, struct buffer *);
+static Lisp_Object treesit_make_ranges (const TSRange *, uint32_t, struct buffer *);
 
 static void
 treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
@@ -1366,8 +1365,9 @@ treesit_check_range_argument (Lisp_Object ranges)
 /* Generate a list of ranges in Lisp from RANGES.  This function
    doens't take ownership of RANGES.  BUFFER is used to convert
    between tree-sitter buffer offset and buffer position.  */
-static Lisp_Object treesit_make_ranges (const TSRange *ranges, uint32_t len,
-					struct buffer *buffer)
+static Lisp_Object
+treesit_make_ranges (const TSRange *ranges, uint32_t len,
+		     struct buffer *buffer)
 {
   Lisp_Object list = Qnil;
   for (int idx = 0; idx < len; idx++)
@@ -1430,7 +1430,7 @@ buffer.  */)
       if (list_length (ranges) > UINT32_MAX)
 	xsignal (Qargs_out_of_range, list2 (ranges, Flength (ranges)));
       uint32_t len = (uint32_t) list_length (ranges);
-      TSRange *treesit_ranges = xmalloc (sizeof(TSRange) * len);
+      TSRange *treesit_ranges = xmalloc (sizeof (TSRange) * len);
       struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
       for (int idx = 0; !NILP (ranges); idx++, ranges = XCDR (ranges))
@@ -1446,7 +1446,7 @@ buffer.  */)
 	  eassert (end_byte - BUF_BEGV_BYTE (buffer) <= UINT32_MAX);
 	  /* We don't care about start and end points, put in dummy
 	     values.  */
-	  TSRange rg = {{0,0}, {0,0},
+	  TSRange rg = {{0, 0}, {0, 0},
 			(uint32_t) beg_byte - BUF_BEGV_BYTE (buffer),
 			(uint32_t) end_byte - BUF_BEGV_BYTE (buffer)};
 	  treesit_ranges[idx] = rg;
