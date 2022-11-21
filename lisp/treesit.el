@@ -784,6 +784,12 @@ range is between START and END."
   "Return the length of the text of NODE."
   (- (treesit-node-end node) (treesit-node-start node)))
 
+(defvar-local treesit--font-lock-fast-mode nil
+  "If this variable is t, change the way we query so its faster.
+This is not a general optimization and should be RARELY needed!
+See comments in `treesit-font-lock-fontify-region' for more
+detail.")
+
 ;; Some details worth explaining:
 ;;
 ;; 1. When we apply face to a node, we clip the face into the
@@ -808,40 +814,39 @@ If LOUDLY is non-nil, display some debugging information."
       ;; wants to fontify that single quote, and (treesit-node-on
       ;; start end) will give you that quote node.  We want to capture
       ;; the string and apply string face to it, but querying on the
-      ;; quote node will not give us the string node.  OTOH, if you
-      ;; query the root node, it will be very slow in very large
-      ;; (MB's) buffers.  So we still use `treesit-node-on', but try
-      ;; to enlarge it if the node seems small.  (The threshold for
-      ;; small is arbitrary.) TODO: Sometimes the node returned by
-      ;; `treesit-node-on' is still much larger than the region we
-      ;; want to fontify.  I tried to recursively go down to its
-      ;; children and get a set of smaller nodes that span the region.
-      ;; But this didn't work too well.
-      (when-let ((node-on (treesit-node-on start end language))
+      ;; quote node will not give us the string node.  So we don't use
+      ;; treesit-node-on: using the root node with a restricted range
+      ;; is very fast anyway (even in large files of size ~10MB).
+      ;; Plus, querying non-root nodes with restricted range sometimes
+      ;; misses nodes in the range and returns nodes outside of that
+      ;; range, using root node frees us from all those quirks.
+      ;;
+      ;; Sometimes the source file has some errors that causes
+      ;; tree-sitter to parse it into a enormously tall tree (10k
+      ;; levels tall).  In that case querying the root node is very
+      ;; slow.
+      (when-let ((nodes (list (treesit-buffer-root-node language)))
                  ;; Only activate if ENABLE flag is t.
                  (activate (eq t enable)))
         (ignore activate)
 
-        ;; Heuristic 1: The node seems small, enlarge it.
-        (while (and (< (treesit--node-length node-on) 40)
-                    (treesit-node-parent node-on))
-          (setq node-on (treesit-node-parent node-on)))
+        ;; If we run into problematic files, use the "fast mode" to
+        ;; try to recover.
+        (when treesit--font-lock-fast-mode
+          (setq nodes (treesit--children-covering-range
+                       (car nodes) start end)))
 
-        ;; Heuristic 2: Maybe the node returned by `treesit-node-on'
-        ;; is the root node or some excessively large node, because
-        ;; the region between START and END contains several top-level
-        ;; constructs (e.g., variable declarations in C), try find a
-        ;; list of children that spans the fontification range.
-        (if (> (treesit--node-length node-on)
-               (* 4 (max jit-lock-chunk-size (- end start))))
-            (setq node-on (treesit--children-covering-range
-                           node-on start end))
-          (setq node-on (list node-on)))
-
-        (dolist (sub-node node-on)
-          (let ((captures (treesit-query-capture
+        (dolist (sub-node nodes)
+          (let ((start-time (current-time))
+                (captures (treesit-query-capture
                            sub-node query start end))
+                (end-time (current-time))
                 (inhibit-point-motion-hooks t))
+            ;; If for any query the query time is strangely long,
+            ;; switch to fast mode (see comments above).
+            (when (> (time-to-seconds (time-subtract end-time start-time))
+                     0.01)
+              (setq-local treesit--font-lock-fast-mode t))
             (with-silent-modifications
               (dolist (capture captures)
                 (let* ((face (car capture))
