@@ -272,14 +272,14 @@ MODE is either `c' or `cpp'."
       declarator: (_) @font-lock-variable-name-face)
 
      (field_declaration
-      declarator: (_) @c-ts-mode--fontify-struct-declarator)
+      declarator: (_) @c-ts-mode--fontify-declarator)
 
      (function_definition
-      declarator: (_) @c-ts-mode--fontify-struct-declarator))
+      declarator: (_) @c-ts-mode--fontify-declarator))
 
    ;; Should we highlight identifiers in the parameter list?
    ;; (parameter_declaration
-   ;;  declarator: (_) @c-ts-mode--fontify-struct-declarator))
+   ;;  declarator: (_) @c-ts-mode--fontify-declarator))
 
    :language mode
    :feature 'assignment
