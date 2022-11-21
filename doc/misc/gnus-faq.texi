@@ -189,7 +189,7 @@ through them?
 Gnus offers the topic mode, it allows you to sort your
 groups in, well, topics, e.g., all groups dealing with
 Linux under the topic linux, all dealing with music under
-the topic music and all dealing with scottish music under
+the topic music and all dealing with Scottish music under
 the topic scottish which is a subtopic of music.
 
 To enter topic mode, just hit t while in Group buffer.  Now

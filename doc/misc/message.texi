@@ -935,7 +935,7 @@ Manual}).
 @section IDNA
 @cindex IDNA
 @cindex internationalized domain names
-@cindex non-ascii domain names
+@cindex non-ASCII domain names
 
 @acronym{IDNA} is a standard way to encode non-@acronym{ASCII} domain
 names into a readable @acronym{ASCII} string.  The details can be

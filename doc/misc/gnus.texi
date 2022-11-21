@@ -589,7 +589,7 @@ Decoding Variables
 Article Treatment
 
 * Article Highlighting::        You want to make the article look like fruit salad.
-* Article Fontisizing::         Making emphasized text look nice.
+* Article Fontifying::          Making emphasized text look nice.
 * Article Hiding::              You also want to make certain info go away.
 * Article Washing::             Lots of way-neat functions to make life better.
 * Article Header::              Doing various header transformations.
@@ -1002,7 +1002,7 @@ The fundamental building blocks of Gnus are @dfn{servers},
 Each server maintains a list of groups, and those groups contain
 articles.  Because Gnus presents a unified interface to a wide variety
 of servers, the vocabulary doesn't always quite line up (@pxref{FAQ
-- Glossary}, for a more complete glossary).  Thus a local maildir is
+- Glossary}, for a more complete glossary).  Thus a local Maildir is
 referred to as a ``server'' (@pxref{Finding the News}) the same as a
 Usenet or IMAP server is; ``groups'' (@pxref{Group Buffer}) might mean
 an NNTP group, IMAP folder, or local mail directory; and an
@@ -1039,7 +1039,7 @@ the News}, for details.
 
 New mail has to come from somewhere.  Some servers, such as NNTP or
 IMAP, are themselves responsible for fetching newly-arrived articles.
-Others, such as maildir or mbox servers, only store articles and don't
+Others, such as Maildir or mbox servers, only store articles and don't
 fetch them from anywhere.
 
 In the latter case, Gnus provides for @code{mail sources}: places
@@ -8718,7 +8718,7 @@ these articles easier.
 
 @menu
 * Article Highlighting::        You want to make the article look like fruit salad.
-* Article Fontisizing::         Making emphasized text look nice.
+* Article Fontifying::         Making emphasized text look nice.
 * Article Hiding::              You also want to make certain info go away.
 * Article Washing::             Lots of way-neat functions to make life better.
 * Article Header::              Doing various header transformations.
@@ -8840,8 +8840,8 @@ default.
 @xref{Customizing Articles}, for how to highlight articles automatically.
 
 
-@node Article Fontisizing
-@subsection Article Fontisizing
+@node Article Fontifying
+@subsection Article Fontifying
 @cindex emphasis
 @cindex article emphasis
 

@@ -295,7 +295,7 @@ init_treesit_functions (void)
      a node.  But since we can just retrieve a new node, it shouldn't
      be a limitation.
 
-   - I didn't expose setting timeout and cancellation flag for a
+   - I didn't expose setting timeout and cancelation flag for a
      parser, mainly because I don't think they are really necessary
      in Emacs's use cases.
 
@@ -891,7 +891,7 @@ treesit_ensure_parsed (Lisp_Object parser)
      when 1) language is not set (impossible in Emacs because the user
      has to supply a language to create a parser), 2) parse canceled
      due to timeout (impossible because we don't set a timeout), 3)
-     parse canceled due to cancellation flag (impossible because we
+     parse canceled due to cancelation flag (impossible because we
      don't set the flag).  (See comments for ts_parser_parse in
      tree_sitter/api.h.)  */
   if (new_tree == NULL)
@@ -1079,7 +1079,7 @@ treesit_compose_query_signal_data (uint32_t error_offset,
 
 /* Ensure the QUERY is compiled.  Return the TSQuery.  It could be
    NULL if error occurs, in which case ERROR_OFFSET and ERROR_TYPE are
-   bound.  If error occures, return NULL, and assign SIGNAL_SYMBOL and
+   bound.  If error occurs, return NULL, and assign SIGNAL_SYMBOL and
    SIGNAL_DATA accordingly.  */
 static TSQuery *
 treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
@@ -1366,7 +1366,7 @@ treesit_check_range_argument (Lisp_Object ranges)
 }
 
 /* Generate a list of ranges in Lisp from RANGES.  This function
-   doens't take ownership of RANGES.  BUFFER is used to convert
+   doesn't take ownership of RANGES.  BUFFER is used to convert
    between tree-sitter buffer offset and buffer position.  */
 static Lisp_Object
 treesit_make_ranges (const TSRange *ranges, uint32_t len,
@@ -2538,7 +2538,7 @@ treesit_traverse_sibling_helper (TSNode node, bool forward, bool named)
     }
 }
 
-/* Return the first/last named/unamed child of NODE.  FORWARD controls
+/* Return the first/last named/unnamed child of NODE.  FORWARD controls
    the direction and NAMED controls the nameness.  */
 static TSNode
 treesit_traverse_child_helper (TSNode node, bool forward, bool named)

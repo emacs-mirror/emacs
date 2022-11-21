@@ -1,4 +1,4 @@
-STARTER GUIDE ON WRITTING MAJOR MODE WITH TREE-SITTER -*- org -*-
+STARTER GUIDE ON WRITING MAJOR MODE WITH TREE-SITTER -*- org -*-
 
 This document guides you on adding tree-sitter support to a major
 mode.
@@ -274,7 +274,7 @@ the anchor point. Below are some convenient builtin matchers and anchors.
 For MATHCER we have
 
     (parent-is TYPE) => matches if PARENT’s type matches TYPE as regexp
-    (node-is TYPE) => mathces NODE’s type
+    (node-is TYPE) => matches NODE’s type
     (query QUERY) => matches if querying PARENT with QUERY
                      captures NODE.
 

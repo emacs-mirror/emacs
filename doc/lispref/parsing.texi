@@ -1611,7 +1611,7 @@ a @var{query} preceded by zero or more @var{keyword}/@var{value}
 pairs.  Each @var{query} is a tree-sitter query in either the
 string, s-expression or compiled form, or a function.
 
-If @var{query} is a tree-sitter query, it should be preceeded by two
+If @var{query} is a tree-sitter query, it should be preceded by two
 @var{:keyword}/@var{value} pairs, where the @code{:embed} keyword
 specifies the embedded language, and the @code{:host} keyword
 specified the host language.

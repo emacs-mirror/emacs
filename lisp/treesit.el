@@ -361,7 +361,7 @@ to change.  Use `treesit-range-rules' to set this variable.")
   "Produce settings for `treesit-range-settings'.
 
 QUERY-SPECS are a series of QUERY-SPECs, where each QUERY-SPEC is
-a QUERY preceeded by zero or more pairs of :KEYWORD and VALUE,
+a QUERY preceded by zero or more pairs of :KEYWORD and VALUE,
 like this:
 
     :KEYWORD VALUE... QUERY
@@ -572,7 +572,7 @@ QUERY is a tree-sitter query in either the string, s-expression
 or compiled form.  For each query, captured nodes are highlighted
 with the capture name as its face.
 
-:KEYWORD and VALUE pairs preceeding a QUERY add meta information
+:KEYWORD and VALUE pairs preceding a QUERY add meta information
 to QUERY.  For example,
 
     (treesit-font-lock-rules
@@ -742,7 +742,7 @@ See `treesit-font-lock-rules' for their semantic."
 
 (defun treesit--set-nonsticky (start end sym &optional remove)
   "Set `rear-nonsticky' property between START and END.
-Set the proeprty to a list containing SYM.  If there is already a
+Set the property to a list containing SYM.  If there is already a
 list, add SYM to that list.  If REMOVE is non-nil, remove SYM
 instead."
   (let* ((prop (get-text-property start 'rear-nonsticky))
@@ -902,7 +902,7 @@ parser notifying of the change."
   (with-current-buffer (treesit-parser-buffer parser)
     (dolist (range ranges)
       (when treesit--font-lock-verbose
-        (message "Notifier recieved range: %s-%s"
+        (message "Notifier received range: %s-%s"
                  (car range) (cdr range)))
       (put-text-property (car range) (cdr range) 'fontified nil))))
 

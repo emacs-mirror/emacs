@@ -5000,7 +5000,7 @@ This anchor is a function that is called with 3 arguments: @var{node},
 @item prev-line
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the first non-whitespace
-charater on the previous line.
+character on the previous line.
 
 @item point-min
 This anchor is a function that is called with 3 arguments: @var{node},

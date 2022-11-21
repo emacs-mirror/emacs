@@ -7520,7 +7520,7 @@ to match all of yours addresses."
 ;;;###autoload
 (defun message-cancel-news (&optional arg)
   "Cancel an article you posted.
-If ARG, allow editing of the cancellation message."
+If ARG, allow editing of the cancelation message."
   (interactive "P")
   (unless (message-news-p)
     (error "This is not a news article; canceling is impossible"))
