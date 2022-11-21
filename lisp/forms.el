@@ -487,17 +487,11 @@ Commands:                        Equivalent keys in read-only mode:
 	(make-local-variable 'forms-insert-after)
 	(make-local-variable 'forms-use-text-properties)
 
-	;; Filter functions.
-	(make-local-variable 'forms-read-file-filter)
-	(make-local-variable 'forms-write-file-filter)
-	(make-local-variable 'forms-new-record-filter)
-	(make-local-variable 'forms-modified-record-filter)
-
-	;; Make sure no filters exist.
-	(setq forms-read-file-filter nil)
-	(setq forms-write-file-filter nil)
-	(setq forms-new-record-filter nil)
-	(setq forms-modified-record-filter nil)
+        ;; Make sure no filters exist.
+        (setq-local forms-read-file-filter nil)
+        (setq-local forms-write-file-filter nil)
+        (setq-local forms-new-record-filter nil)
+        (setq-local forms-modified-record-filter nil)
 
 	;; Setup faces to show read-only and read-write fields.
 	(make-local-variable 'forms-ro-face)
@@ -615,10 +609,10 @@ Commands:                        Equivalent keys in read-only mode:
   (make-local-variable 'forms--the-record-list)
   (make-local-variable 'forms--search-regexp)
 
-  ; The keymaps are global, so multiple forms mode buffers can share them.
-  ;(make-local-variable 'forms-mode-map)
-  ;(make-local-variable 'forms-mode-ro-map)
-  ;(make-local-variable 'forms-mode-edit-map)
+  ;; The keymaps are global, so multiple forms mode buffers can share them.
+  ;;(make-local-variable 'forms-mode-map)
+  ;;(make-local-variable 'forms-mode-ro-map)
+  ;;(make-local-variable 'forms-mode-edit-map)
   (if forms-mode-map			; already defined
       nil
     ;;(message "forms: building keymap...")
@@ -715,8 +709,8 @@ Commands:                        Equivalent keys in read-only mode:
   ;;(message "forms: setting up... done.")
 
   ;; be helpful
-  (forms--help)
-)
+  (forms--help))
+
 
 (defun forms--process-format-list ()
   ;; Validate `forms-format-list' and set some global variables.
