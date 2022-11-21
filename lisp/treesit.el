@@ -748,6 +748,37 @@ instead."
         (remove-text-properties start end '(rear-nonsticky nil))
       (put-text-property start end 'rear-nonsticky new-prop))))
 
+(defun treesit--children-covering-range (node start end)
+  "Return a list of children of NODE covering a range.
+The range is between START and END."
+  (let* ((child (treesit-node-first-child-for-pos node start))
+         (result (list child)))
+    (while (and (< (treesit-node-end child) end)
+                (setq child (treesit-node-next-sibling child)))
+      (push child result))
+    (nreverse result)))
+
+(defun treesit--children-covering-range-recurse (node start end threshold)
+  "Return a list of children of NODE covering a range.
+Recursively go down the parse tree and collect children, until
+all nodes in the returned list are smaller than THRESHOLD.  The
+range is between START and END."
+  (let* ((child (treesit-node-first-child-for-pos node start))
+         result)
+    (while (and child (<= (treesit-node-start child) end))
+      ;; If child still too large, recurse down.  Otherwise collect
+      ;; child.
+      (if (> (- (treesit-node-end child)
+                (treesit-node-start child))
+             threshold)
+          (dolist (r (treesit--children-covering-range-recurse
+                      child start end threshold))
+            (push r result))
+        (push child result))
+      (setq child (treesit-node-next-sibling child)))
+    ;; If NODE has no child, keep NODE.
+    (or result node)))
+
 ;; Some details worth explaining:
 ;;
 ;; 1. When we apply face to a node, we clip the face into the
@@ -768,18 +799,31 @@ If LOUDLY is non-nil, display some debugging information."
            (enable (nth 1 setting))
            (override (nth 3 setting))
            (language (treesit-query-language query)))
-      ;; Why root node rather than (treesit-node-on start end)?  If
-      ;; you insert an ending quote into a buffer, jit-lock only wants
-      ;; to fontify that single quote, and (treesit-node-on start end)
-      ;; will give you that quote node.  We want to capture the string
-      ;; and apply string face to it, but querying on the quote node
-      ;; will not give us the string node.
-      (when-let ((root (treesit-buffer-root-node language))
+      ;; If you insert an ending quote into a buffer, jit-lock only
+      ;; wants to fontify that single quote, and (treesit-node-on
+      ;; start end) will give you that quote node.  We want to capture
+      ;; the string and apply string face to it, but querying on the
+      ;; quote node will not give us the string node.  OTOH, if you
+      ;; query the root node, it will be very slow in very large
+      ;; (MB's) buffers.  So we still use `treesit-node-on', but try
+      ;; to enlarge it if the node seems small.  (The threshold for
+      ;; small is arbitrary.) TODO: Sometimes the node returned by
+      ;; `treesit-node-on' is still much larger than the region we
+      ;; want to fontify.  I tried to recursively go down to its
+      ;; children and get a set of smaller nodes that span the region.
+      ;; But this didn't work too well.
+      (when-let ((node-on (treesit-node-on start end language))
                  ;; Only activate if ENABLE flag is t.
                  (activate (eq t enable)))
         (ignore activate)
+        ;; The node seems small, enlarge it.
+        (while (and (< (- (treesit-node-end node-on)
+                          (treesit-node-start node-on))
+                       40)
+                    (treesit-node-parent node-on))
+          (setq node-on (treesit-node-parent node-on)))
         (let ((captures (treesit-query-capture
-                         root query start end))
+                         node-on query start end))
               (inhibit-point-motion-hooks t))
           (with-silent-modifications
             (dolist (capture captures)
