@@ -2042,7 +2042,7 @@ PATTERN can be
 See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
   (Lisp_Object pattern)
 {
-  if (EQ (pattern, intern_c_string (":anchor")))
+  if (EQ (pattern, QCanchor))
     return build_pure_c_string (".");
   if (EQ (pattern, intern_c_string (":?")))
     return build_pure_c_string ("?");
@@ -2050,9 +2050,9 @@ See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
     return build_pure_c_string ("*");
   if (EQ (pattern, intern_c_string (":+")))
     return build_pure_c_string ("+");
-  if (EQ (pattern, intern_c_string (":equal")))
+  if (EQ (pattern, QCequal))
     return build_pure_c_string ("#equal");
-  if (EQ (pattern, intern_c_string (":match")))
+  if (EQ (pattern, QCmatch))
     return build_pure_c_string ("#match");
   Lisp_Object opening_delimeter
     = build_pure_c_string (VECTORP (pattern) ? "[" : "(");
@@ -2060,7 +2060,7 @@ See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
     = build_pure_c_string (VECTORP (pattern) ? "]" : ")");
   if (VECTORP (pattern) || CONSP (pattern))
     return concat3 (opening_delimeter,
-		    Fmapconcat (intern_c_string ("treesit-pattern-expand"),
+		    Fmapconcat (Qtreesit_pattern_expand,
 				pattern,
 				build_pure_c_string (" ")),
 		    closing_delimiter);
@@ -2937,6 +2937,10 @@ syms_of_treesit (void)
   DEFSYM (Qextra, "extra");
   DEFSYM (Qoutdated, "outdated");
   DEFSYM (Qhas_error, "has-error");
+
+  DEFSYM (QCanchor, ":anchor");
+  DEFSYM (QCequal, ":equal");
+  DEFSYM (QCmatch, ":match");
 
   DEFSYM (Qnot_found, "not-found");
   DEFSYM (Qsymbol_error, "symbol-error");
