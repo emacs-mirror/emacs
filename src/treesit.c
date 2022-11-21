@@ -570,9 +570,6 @@ treesit_load_language (Lisp_Object language_symbol,
 	break;
     }
 
-  /* ??? */
-  eassume (handle != NULL);
-
   if (error != NULL)
     {
       *signal_symbol = Qtreesit_load_language_error;
@@ -582,6 +579,7 @@ treesit_load_language (Lisp_Object language_symbol,
     }
 
   /* Load TSLanguage.  */
+  eassume (handle != NULL);
   dynlib_error ();
   TSLanguage *(*langfn) (void);
   char *c_name = xstrdup (SSDATA (base_name));
