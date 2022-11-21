@@ -56,6 +56,7 @@
 
 (declare-function treesit-parser-set-included-ranges "treesit.c")
 (declare-function treesit-parser-included-ranges "treesit.c")
+(declare-function treesit-parser-add-notifier "treesit.c")
 
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-start "treesit.c")
