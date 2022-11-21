@@ -301,7 +301,7 @@ MODE is either `c' or `cpp'."
    :feature 'label
    '((expression_statement (identifier) @font-lock-variable-name-face)
      (labeled_statement
-      label: (statement_identifier) @font-lock-type-face))
+      label: (statement_identifier) @font-lock-constant-face))
 
    :language mode
    :feature 'error
