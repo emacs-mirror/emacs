@@ -2452,7 +2452,7 @@ When called interactively, use the currently active server"
 Calls REPORT-FN (or arranges for it to be called) when the server
 publishes diagnostics.  Between calls to this function, REPORT-FN
 may be called multiple times (respecting the protocol of
-`flymake-backend-functions')."
+`flymake-diagnostic-functions')."
   (cond (eglot--managed-mode
          (setq eglot--current-flymake-report-fn report-fn)
          (eglot--report-to-flymake eglot--diagnostics))

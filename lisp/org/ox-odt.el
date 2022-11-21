@@ -3227,8 +3227,7 @@ Return a cons of (TABLE-CELL-STYLE-NAME . PARAGRAPH-STYLE-NAME).
 When STYLE-SPEC is nil, style the table cell the conventional way
 - choose cell borders based on row and column groupings and
 choose paragraph alignment based on `org-col-cookies' text
-property.  See also
-`org-odt-get-paragraph-style-cookie-for-table-cell'.
+property.  See also `org-odt-table-style-spec'.
 
 When STYLE-SPEC is non-nil, ignore the above cookie and return
 styles congruent with the ODF-1.2 specification."
@@ -3573,8 +3572,7 @@ pertaining to indentation here."
     ;;   item, but also within description lists and low-level
     ;;   headlines.
 
-    ;; See `org-odt-translate-description-lists' and
-    ;; `org-odt-translate-low-level-headlines' for how this is
+    ;; See `org-odt--translate-description-lists' for how this is
     ;; tackled.
 
     (concat "\n"

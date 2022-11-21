@@ -234,7 +234,7 @@ return nil."
 
 (defun package-vc--read-archive-data (archive)
   "Update `package-vc--archive-spec-alist' for ARCHIVE.
-This function is meant to be used as a hook for `package--read-archive-hook'."
+This function is meant to be used as a hook for `package-read-archive-hook'."
   (let ((contents-file (expand-file-name
                         (format "archives/%s/elpa-packages.eld" archive)
                         package-user-dir)))

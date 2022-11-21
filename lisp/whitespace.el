@@ -746,7 +746,7 @@ The value should be a cons whose car specifies the regexp to match
 visualization of SPACEs, and the cdr specifies the regexp to match
 visualization of TABs.
 
-The indentation characters are highlighted using the `whitespace-indentationp'
+The indentation characters are highlighted using the `whitespace-indentation'
 face.
 This variable is used when `whitespace-style' includes `indentation',
 `indentation::tab' or  `indentation::space'."

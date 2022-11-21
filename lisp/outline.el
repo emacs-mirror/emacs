@@ -1065,6 +1065,8 @@ Note that this does not hide the lines preceding the first heading line."
   ;; Nullify the hook to avoid repeated calls to `outline-flag-region'
   ;; wasting lots of time running `lazy-lock-fontify-after-outline'
   ;; and run the hook finally.
+  ;; FIXME: The above comment seems outdated, as lazy-lock has been
+  ;;        removed from Emacs.
   (let (outline-view-change-hook)
     (save-excursion
       (save-restriction
