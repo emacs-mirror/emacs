@@ -498,6 +498,19 @@ omitted, default END to BEG."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
+(defvar-local treesit--font-lock-query-expand-range (cons 0 0)
+  "The amount to expand the start and end of the region when fontifying.
+This should be a cons cell (START . END).  When fontifying a
+buffer, Emacs will move the start of the query range backward by
+START amount, and the end of the query range by END amount.  Both
+START and END should be positive integers or 0.  This doesn't
+affect the fontified range.
+
+Sometimes, querying on some parser with a restricted range
+returns nodes not in that range but before it, which breaks
+fontification.  Major modes can adjust this variable as a
+temporarily fix.")
+
 (defvar-local treesit-font-lock-feature-list nil
   "A list of lists of feature symbols.
 
@@ -817,14 +830,17 @@ If LOUDLY is non-nil, display some debugging information."
       ;; quote node will not give us the string node.  So we don't use
       ;; treesit-node-on: using the root node with a restricted range
       ;; is very fast anyway (even in large files of size ~10MB).
-      ;; Plus, querying non-root nodes with restricted range sometimes
-      ;; misses nodes in the range and returns nodes outside of that
-      ;; range, using root node frees us from all those quirks.
+      ;; Plus, querying the result of `treesit-node-on' could still
+      ;; miss patterns even if we use some heuristic to enlarge the
+      ;; node (how much to enlarge? to which extent?), its much safer
+      ;; to just use the root node.
       ;;
       ;; Sometimes the source file has some errors that causes
       ;; tree-sitter to parse it into a enormously tall tree (10k
       ;; levels tall).  In that case querying the root node is very
-      ;; slow.
+      ;; slow.  So we try to get top-level nodes and query them.  This
+      ;; ensures that querying is fast everywhere else, except for the
+      ;; problematic region.
       (when-let ((nodes (list (treesit-buffer-root-node language)))
                  ;; Only activate if ENABLE flag is t.
                  (activate (eq t enable)))
@@ -837,11 +853,15 @@ If LOUDLY is non-nil, display some debugging information."
                        (car nodes) start end)))
 
         (dolist (sub-node nodes)
-          (let ((start-time (current-time))
-                (captures (treesit-query-capture
-                           sub-node query start end))
-                (end-time (current-time))
-                (inhibit-point-motion-hooks t))
+          (let* ((delta-start (car treesit--font-lock-query-expand-range))
+                 (delta-end (cdr treesit--font-lock-query-expand-range))
+                 (start-time (current-time))
+                 (captures (treesit-query-capture
+                            sub-node query
+                            (max (- start delta-start) (point-min))
+                            (min (+ end delta-end) (point-max))))
+                 (end-time (current-time))
+                 (inhibit-point-motion-hooks t))
             ;; If for any query the query time is strangely long,
             ;; switch to fast mode (see comments above).
             (when (> (time-to-seconds (time-subtract end-time start-time))
