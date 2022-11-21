@@ -337,8 +337,10 @@ MODE is either `c' or `cpp'."
 
    :language mode
    :feature 'emacs-devel
-   '(((call_expression function: (identifier) @fn)
-      @c-ts-mode--fontify-defun
+   :override t
+   '(((call_expression
+       (call_expression function: (identifier) @fn)
+       @c-ts-mode--fontify-defun)
       (:match "^DEFUN$" @fn)))))
 
 (defun c-ts-mode--fontify-declarator (node override start end &rest args)
@@ -399,12 +401,12 @@ This function corrects the fontification on the colon in
           (treesit-fontify-with-override
            (max start (treesit-node-start type))
            (min end (treesit-node-end type))
-           'font-lock-type-face t))
+           'font-lock-type-face override))
         (when arg
           (treesit-fontify-with-override
-           (max start(treesit-node-start arg))
+           (max start (treesit-node-start arg))
            (min end (treesit-node-end arg))
-           'default t))))))
+           'default override))))))
 
 (defun c-ts-mode--imenu-1 (node)
   "Helper for `c-ts-mode--imenu'.
