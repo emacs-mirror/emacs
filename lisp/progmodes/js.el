@@ -3808,6 +3808,7 @@ Currently there are `js-mode' and `js-ts-mode'."
   ;;(syntax-propertize (point-max))
   )
 
+;;;###autoload
 (define-derived-mode js-ts-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript.
 
