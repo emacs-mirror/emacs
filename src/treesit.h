@@ -20,6 +20,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef EMACS_TREESIT_H
 #define EMACS_TREESIT_H
 
+#include <config.h>
+
+#ifdef HAVE_TREE_SITTER
+
 #include <tree_sitter/api.h>
 #include "lisp.h"
 
@@ -176,6 +180,8 @@ CHECK_TS_COMPILED_QUERY (Lisp_Object query)
 	      Qtreesit_compiled_query_p, query);
 }
 
+INLINE_HEADER_END
+
 extern void treesit_record_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_treesit_parser (Lisp_Object, TSParser *, TSTree *,
 					Lisp_Object);
@@ -187,8 +193,8 @@ extern void treesit_delete_parser (struct Lisp_TS_Parser *);
 extern void treesit_delete_query (struct Lisp_TS_Query *);
 extern bool treesit_named_node_p (TSNode);
 
-extern void syms_of_treesit (void);
+#endif	/* HAVE_TREE_SITTER */
 
-INLINE_HEADER_END
+extern void syms_of_treesit (void);
 
 #endif /* EMACS_TREESIT_H */

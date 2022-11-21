@@ -21,9 +21,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "buffer.h"
 
-#if HAVE_TREE_SITTER
-
 #include "treesit.h"
+
+#if HAVE_TREE_SITTER
 
 
 /* Dynamic loading of libtree-sitter.  */
