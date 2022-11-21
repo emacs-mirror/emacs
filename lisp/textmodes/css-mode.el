@@ -1789,7 +1789,7 @@ Use `\\[fill-paragraph]' to reformat CSS declaration blocks.  It
 can also be used to fill comments.
 
 \\{css-mode-map}"
-  (when (treesit-ready-p 'css-mode 'css)
+  (when (treesit-ready-p 'css)
     ;; Borrowed from `css-native-mode'.
     (add-hook 'completion-at-point-functions
               #'css-completion-at-point nil 'local)
