@@ -1751,21 +1751,17 @@ Leave point at end of new text.  Return length of inserted text."
 
 ;;; Major mode (Man) interface:
 
-(defvar woman-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map Man-mode-map)
-
-    (define-key map "R" #'woman-reformat-last-file)
-    (define-key map "w" #'woman)
-    (define-key map "\en" #'WoMan-next-manpage)
-    (define-key map "\ep" #'WoMan-previous-manpage)
-    (define-key map [M-mouse-2] #'woman-follow-word)
-
-    ;; We don't need to call `man' when we are in `woman-mode'.
-    (define-key map [remap man] #'woman)
-    (define-key map [remap man-follow] #'woman-follow)
-    map)
-  "Keymap for `woman-mode'.")
+(defvar-keymap woman-mode-map
+  :doc "Keymap for `woman-mode'."
+  :parent Man-mode-map
+  "R"   #'woman-reformat-last-file
+  "w"   #'woman
+  "M-n" #'WoMan-next-manpage
+  "M-p" #'WoMan-previous-manpage
+  "M-<mouse-2>"          #'woman-follow-word
+  ;; We don't need to call `man' when we are in `woman-mode'.
+  "<remap> <man>"        #'woman
+  "<remap> <man-follow>" #'woman-follow)
 
 (defun woman-follow (topic)
   "Get a Un*x manual page of the item under point and put it in a buffer."
