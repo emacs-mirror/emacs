@@ -524,6 +524,7 @@ visible_end.)"
 
 (ert-deftest treesit-misc ()
   "Misc helper functions."
+  (skip-unless (treesit-available-p))
   (let ((settings '((t 0 t)
                     (c-mode 1 t)
                     (text-mode 2 nil)
