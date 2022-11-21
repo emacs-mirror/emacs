@@ -779,6 +779,10 @@ range is between START and END."
     ;; If NODE has no child, keep NODE.
     (or result node)))
 
+(defsubst treesit--node-length (node)
+  "Return the length of the text of NODE."
+  (- (treesit-node-end node) (treesit-node-start node)))
+
 ;; Some details worth explaining:
 ;;
 ;; 1. When we apply face to a node, we clip the face into the
@@ -817,19 +821,21 @@ If LOUDLY is non-nil, display some debugging information."
                  (activate (eq t enable)))
         (ignore activate)
 
-        ;; The node seems small, enlarge it.
-        (while (and (< (- (treesit-node-end node-on)
-                          (treesit-node-start node-on))
-                       40)
+        ;; Heuristic 1: The node seems small, enlarge it.
+        (while (and (< (treesit--node-length node-on) 40)
                     (treesit-node-parent node-on))
           (setq node-on (treesit-node-parent node-on)))
 
-        ;; Maybe the node returned by `treesit-node-on' is the root
-        ;; node, because the region between START and END contains
-        ;; several top-level constructs (e.g., variable declarations
-        ;; in C).
-        (setq node-on (treesit--children-covering-range
-                       node-on start end))
+        ;; Heuristic 2: Maybe the node returned by `treesit-node-on'
+        ;; is the root node or some excessively large node, because
+        ;; the region between START and END contains several top-level
+        ;; constructs (e.g., variable declarations in C), try find a
+        ;; list of children that spans the fontification range.
+        (if (> (treesit--node-length node-on)
+               (* 4 (max jit-lock-chunk-size (- end start))))
+            (setq node-on (treesit--children-covering-range
+                           node-on start end))
+          (setq node-on (list node-on)))
 
         (dolist (sub-node node-on)
           (let ((captures (treesit-query-capture
