@@ -230,19 +230,38 @@ assign <em>field names</em> to child nodes.  For example, a
  body: (compound_statement))
 </pre></div>
 
+<span id="Exploring-the-syntax-tree"></span><h3 class="heading">Exploring the syntax tree</h3>
+<span id="index-explore-tree_002dsitter-syntax-tree"></span>
+<span id="index-inspection-of-tree_002dsitter-parse-tree-nodes"></span>
+
+<p>To aid in understanding the syntax of a language and in debugging of
+Lisp program that use the syntax tree, Emacs provides an &ldquo;explore&rdquo;
+mode, which displays the syntax tree of the source in the current
+buffer in real time.  Emacs also comes with an &ldquo;inspect mode&rdquo;, which
+displays information of the nodes at point in the mode-line.
+</p>
+<dl class="def">
+<dt id="index-treesit_002dexplore_002dmode"><span class="category">Command: </span><span><strong>treesit-explore-mode</strong><a href='#index-treesit_002dexplore_002dmode' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This mode pops up a window displaying the syntax tree of the source in
+the current buffer.  Selecting text in the source buffer highlights
+the corresponding nodes in the syntax tree display.  Clicking
+on nodes in the syntax tree highlights the corresponding text in the
+source buffer.
+</p></dd></dl>
+
 <dl class="def">
 <dt id="index-treesit_002dinspect_002dmode"><span class="category">Command: </span><span><strong>treesit-inspect-mode</strong><a href='#index-treesit_002dinspect_002dmode' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This minor mode displays on the mode-line the node that <em>starts</em>
-at point.  The mode-line will display
+at point.  For example, the mode-line can display
 </p>
 <div class="example">
 <pre class="example"><var>parent</var> <var>field</var>: (<var>node</var> (<var>child</var> (&hellip;)))
 </pre></div>
 
-<p>where <var>node</var>, <var>child</var>, etc, are nodes which begin at point.
+<p>where <var>node</var>, <var>child</var>, etc., are nodes which begin at point.
 <var>parent</var> is the parent of <var>node</var>.  <var>node</var> is displayed in
-bold typeface.  <var>field-name</var>s are field names of <var>node</var> and
-<var>child</var>, etc.
+a bold typeface.  <var>field-name</var>s are field names of <var>node</var> and
+of <var>child</var>, etc.
 </p>
 <p>If no node starts at point, i.e., point is in the middle of a node,
 then the mode line displays the earliest node that spans point, and
@@ -343,7 +362,7 @@ language definition.
 <dt><span><code>token(<var>rule</var>)</code></span></dt>
 <dd><p>marks <var>rule</var> to produce a single leaf node.  That is, instead of
 generating a parent node with individual child nodes under it,
-everything is combined into a single leaf node.
+everything is combined into a single leaf node.  See <a href="Retrieving-Nodes.html">Retrieving Nodes</a>.
 </p></dd>
 <dt><span><code>token.immediate(<var>rule</var>)</code></span></dt>
 <dd><p>Normally, grammar rules ignore preceding whitespace; this

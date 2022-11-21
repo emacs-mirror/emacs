@@ -130,17 +130,17 @@ example:
 </pre></div>
 
 <p>This function takes a series of <var>query-spec</var>s, where each
-<var>query-spec</var> is a <var>query</var> preceded by multiple pairs of
-<var>:keyword</var> and <var>value</var>.  Each <var>query</var> is a tree-sitter
-query in either the string, s-expression or compiled form.
+<var>query-spec</var> is a <var>query</var> preceded by one or more
+<var>:keyword</var>/<var>value</var> pairs.  Each <var>query</var> is a
+tree-sitter query in either the string, s-expression or compiled form.
 </p>
-<p>For each <var>query</var>, the <var>:keyword</var> and <var>value</var> pairs add
-meta information to it.  The <code>:lang</code> keyword declares
-<var>query</var>&rsquo;s language.  The <code>:feature</code> keyword sets the feature
-name of <var>query</var>.  Users can control which features are enabled
-with <code>font-lock-maximum-decoration</code> and
+<p>For each <var>query</var>, the <var>:keyword</var>/<var>value</var> pairs that
+precede it add meta information to it.  The <code>:lang</code> keyword
+declares <var>query</var>&rsquo;s language.  The <code>:feature</code> keyword sets the
+feature name of <var>query</var>.  Users can control which features are
+enabled with <code>font-lock-maximum-decoration</code> and
 <code>treesit-font-lock-feature-list</code> (described below).  These two
-keywords are mandated.
+keywords are mandatory.
 </p>
 <p>Other keywords are optional:
 </p>
@@ -177,24 +177,6 @@ priority.  If a capture name is neither a face nor a function, it is
 ignored.
 </p></dd></dl>
 
-<p>Contextual entities, like multi-line strings, or <code>/* */</code> style
-comments, need special care, because change in these entities might
-cause change in a large portion of the buffer.  For example, inserting
-the closing comment delimiter <code>*/</code> will change all the text
-between it and the opening delimiter to comment face.  Such entities
-should be captured in a special name <code>contextual</code>, so Emacs can
-correctly update their fontification.  Here is an example for
-comments:
-</p>
-<div class="example">
-<pre class="example">(treesit-font-lock-rules
- :language 'javascript
- :feature 'comment
- :override t
- '((comment) @font-lock-comment-face)
-   (comment) @contextual))
-</pre></div>
-
 <dl class="def">
 <dt id="index-treesit_002dfont_002dlock_002dfeature_002dlist"><span class="category">Variable: </span><span><strong>treesit-font-lock-feature-list</strong><a href='#index-treesit_002dfont_002dlock_002dfeature_002dlist' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This is a list of lists of feature symbols.  Each element of the list
@@ -208,11 +190,20 @@ activated.
 list disables the corresponding query during font-lock.
 </p>
 <p>Common feature names, for many programming languages, include
-function-name, type, variable-name (left-hand-side or <acronym>LHS</acronym> of
-assignments), builtin, constant, keyword, string-interpolation,
-comment, doc, string, operator, preprocessor, escape-sequence, and key
-(in key-value pairs).  Major modes are free to subdivide or extend
-these common features.
+<code>definition</code>, <code>type</code>, <code>assignment</code>, <code>builtin</code>,
+<code>constant</code>, <code>keyword</code>, <code>string-interpolation</code>,
+<code>comment</code>, <code>doc</code>, <code>string</code>, <code>operator</code>,
+<code>preprocessor</code>, <code>escape-sequence</code>, and <code>key</code>.  Major
+modes are free to subdivide or extend these common features.
+</p>
+<p>Some of these features warrant some explanation: <code>definition</code>
+highlights whatever is being defined, e.g., the function name in a
+function definition, the struct name in a struct definition, the
+variable name in a variable definition; <code>assignment</code> highlights
+the whatever is being assigned to, e.g., the variable or field in an
+assignment statement; <code>key</code> highlights keys in key-value pairs,
+e.g., keys in a JSON object, or a Python dictionary; <code>doc</code>
+highlights docstrings or doc-comments.
 </p>
 <p>For example, the value of this variable could be:
 </p><div class="example">

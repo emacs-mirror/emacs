@@ -70,7 +70,7 @@ organization has all the "official" language definitions:
 
 * Setting up for adding major mode features
 
-Start Emacs, and load tree-sitter with
+Start Emacs and load tree-sitter with
 
     (require 'treesit)
 
@@ -78,20 +78,22 @@ Now check if Emacs is built with tree-sitter library
 
     (treesit-available-p)
 
-Users toggle tree-sitter for each major mode with a central variable,
-‘treesit-settings’.  You can check whether to enable tree-sitter with
-‘treesit-ready-p’, which takes a major-mode symbol and one or more
-language symbol. The major mode body should use a branch like this:
+* Tree-sitter major modes
 
-#+begin_src emacs-lisp
-(cond
- ;; Tree-sitter setup.
- ((treesit-ready-p 'python-mode 'python)
-  ...)
- (t
-  ;; Non-tree-sitter setup.
-  ...))
-#+end_src
+Tree-sitter modes should be separate major modes, so other modes
+inheriting from the original mode don't break if tree-sitter is
+enabled.  For example js2-mode inherits js-mode, we can't enable
+tree-sitter in js-mode, lest js-mode would not setup things that
+js2-mode expects to inherit from. So it's best to use separate major
+modes.
+
+If the tree-sitter variant and the "native" variant could share some
+setup, you can create a "base mode", which only contains the common
+setup.  For example, there is python-base-mode (shared), python-mode
+(native), and python-ts-mode (tree-sitter).
+
+In the tree-sitter mode, check if we can use tree-sitter with
+treesit-ready-p, it will error out if tree-sitter is not ready.
 
 * Naming convention
 
@@ -114,14 +116,6 @@ function should only fontify within that region.  The function should
 also allow more optional arguments with (&rest _), for future
 extensibility.  For OVERRIDE check out the docstring of
 treesit-font-lock-rules.
-
-Contextual syntax like multi-line comments and multi-line strings,
-needs special care.  Because change in this type of things can affect
-a large portion of the buffer. Think of inserting a closing comment
-delimeter, it causes all the text before it (to the opening comment
-delimeter) to change to comment face.  These things needs to be
-captured in a special name “contextual”, so that Emacs can give them
-special treatment.  Se the example below for how it looks like.
 
 ** Query syntax
 
@@ -159,16 +153,12 @@ These are the common syntax, see all of them in the manual
 
 ** Query references
 
-But how do one come up with the queries? Take python for an
-example, open any python source file, evaluate
-
-    (treesit-parser-create 'python)
-
-so there is a parser available, then enable ‘treesit-inspect-mode’.
-Now you should see information of the node under point in
-mode-line. Move around and you should be able to get a good
-picture. Besides this, you can consult the grammar of the language
-definition. For example, Python’s grammar file is at
+But how do one come up with the queries? Take python for an example,
+open any python source file, type M-x treesit-explore-mode RET.  Now
+you should see the parse-tree in a separate window, automatically
+updated as you select text or edit the buffer.  Besides this, you can
+consult the grammar of the language definition. For example, Python’s
+grammar file is at
 
     https://github.com/tree-sitter/tree-sitter-python/blob/master/grammar.js
 
@@ -349,8 +339,9 @@ Then you set ‘treesit-simple-indent-rules’ to your rules, and call
 
 * Imenu
 
-Not much to say except for utilizing ‘treesit-induce-sparse-tree’.
-See ‘js--treesit-imenu-1’ in js.el for an example.
+Not much to say except for utilizing ‘treesit-induce-sparse-tree’ (and
+explicitly pass a LIMIT argument: most of the time you don't need more
+than 10).  See ‘js--treesit-imenu-1’ in js.el for an example.
 
 Once you have the index builder, set ‘imenu-create-index-function’ to
 it.

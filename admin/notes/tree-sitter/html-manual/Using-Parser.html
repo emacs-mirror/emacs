@@ -33,7 +33,7 @@ developing GNU and promoting software freedom." -->
 <link href="Index.html" rel="index" title="Index">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
 <link href="Parsing-Program-Source.html" rel="up" title="Parsing Program Source">
-<link href="Retrieving-Node.html" rel="next" title="Retrieving Node">
+<link href="Retrieving-Nodes.html" rel="next" title="Retrieving Nodes">
 <link href="Language-Definitions.html" rel="prev" title="Language Definitions">
 <style type="text/css">
 <!--
@@ -63,7 +63,7 @@ ul.no-bullet {list-style: none}
 <div class="section" id="Using-Parser">
 <div class="header">
 <p>
-Next: <a href="Retrieving-Node.html" accesskey="n" rel="next">Retrieving Node</a>, Previous: <a href="Language-Definitions.html" accesskey="p" rel="prev">Tree-sitter Language Definitions</a>, Up: <a href="Parsing-Program-Source.html" accesskey="u" rel="up">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+Next: <a href="Retrieving-Nodes.html" accesskey="n" rel="next">Retrieving Nodes</a>, Previous: <a href="Language-Definitions.html" accesskey="p" rel="prev">Tree-sitter Language Definitions</a>, Up: <a href="Parsing-Program-Source.html" accesskey="u" rel="up">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
 </div>
 <hr>
 <span id="Using-Tree_002dsitter-Parser"></span><h3 class="section">37.2 Using Tree-sitter Parser</h3>
@@ -176,11 +176,53 @@ there is no way to update the result.
 the root node of the generated syntax tree.
 </p></dd></dl>
 
+<span id="Be-notified-by-changes-to-the-parse-tree"></span><h3 class="heading">Be notified by changes to the parse tree</h3>
+<span id="index-update-callback_002c-for-tree_002dsitter-parse_002dtree"></span>
+<span id="index-after_002dchange-notifier_002c-for-tree_002dsitter-parse_002dtree"></span>
+<span id="index-tree_002dsitter-parse_002dtree_002c-update-and-after_002dchange-callback"></span>
+<span id="index-notifiers_002c-tree_002dsitter"></span>
+
+<p>A Lisp program might want to be notified of text affected by
+incremental parsing.  For example, inserting a comment-closing token
+converts text before that token into a comment.  Even
+though the text is not directly edited, it is deemed to be &ldquo;changed&rdquo;
+nevertheless.
+</p>
+<p>Emacs lets a Lisp program to register callback functions
+(a.k.a. <em>notifiers</em>) for this kind of changes.  A notifier
+function takes two arguments: <var>ranges</var> and <var>parser</var>.
+<var>ranges</var> is a list of cons cells of the form <code>(<var>start</var>&nbsp;.&nbsp;<var>end</var>)</code><!-- /@w -->, where <var>start</var> and <var>end</var> mark the start and the
+end positions of a range.  <var>parser</var> is the parser issuing the
+notification.
+</p>
+<p>Every time a parser reparses a buffer, it compares the old and new
+parse-tree, computes the ranges in which nodes have changed, and
+passes the ranges to notifier functions.
+</p>
+<dl class="def">
+<dt id="index-treesit_002dparser_002dadd_002dnotifier"><span class="category">Function: </span><span><strong>treesit-parser-add-notifier</strong> <em>parser function</em><a href='#index-treesit_002dparser_002dadd_002dnotifier' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function adds <var>function</var> to <var>parser</var>&rsquo;s list of
+after-change notifier functions.  <var>function</var> must be a function
+symbol, not a lambda function (see <a href="Anonymous-Functions.html">Anonymous Functions</a>).
+</p></dd></dl>
+
+<dl class="def">
+<dt id="index-treesit_002dparser_002dremove_002dnotifier"><span class="category">Function: </span><span><strong>treesit-parser-remove-notifier</strong> <em>parser function</em><a href='#index-treesit_002dparser_002dremove_002dnotifier' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function removes <var>function</var> from the list of <var>parser</var>&rsquo;s
+after-change notifier functions.  <var>function</var> must be a function
+symbol, rather than a lambda function.
+</p></dd></dl>
+
+<dl class="def">
+<dt id="index-treesit_002dparser_002dnotifiers"><span class="category">Function: </span><span><strong>treesit-parser-notifiers</strong> <em>parser</em><a href='#index-treesit_002dparser_002dnotifiers' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function returns the list of <var>parser</var>&rsquo;s notifier functions.
+</p></dd></dl>
+
 </div>
 <hr>
 <div class="header">
 <p>
-Next: <a href="Retrieving-Node.html">Retrieving Node</a>, Previous: <a href="Language-Definitions.html">Tree-sitter Language Definitions</a>, Up: <a href="Parsing-Program-Source.html">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+Next: <a href="Retrieving-Nodes.html">Retrieving Nodes</a>, Previous: <a href="Language-Definitions.html">Tree-sitter Language Definitions</a>, Up: <a href="Parsing-Program-Source.html">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
 </div>
 
 

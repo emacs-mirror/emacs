@@ -184,6 +184,14 @@ first child where parent is <code>argument_list</code>, use
 </pre></div>
 
 </dd>
+<dt id='index-comment_002dend'><span><code>comment-end</code><a href='#index-comment_002dend' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This matcher is a function that is called with 3 arguments:
+<var>node</var>, <var>parent</var>, and <var>bol</var>, and returns non-<code>nil</code> if
+point is before a comment ending token.  Comment ending tokens are
+defined by regular expression <code>treesit-comment-end</code>
+(see <a href="Tree_002dsitter-major-modes.html">treesit-comment-end</a>).
+</p>
+</dd>
 <dt id='index-first_002dsibling'><span><code>first-sibling</code><a href='#index-first_002dsibling' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This anchor is a function that is called with 3 arguments: <var>node</var>,
 <var>parent</var>, and <var>bol</var>, and returns the start of the first child
@@ -219,12 +227,28 @@ charater on the previous line.
 </p>
 </dd>
 <dt id='index-point_002dmin'><span><code>point-min</code><a href='#index-point_002dmin' class='copiable-anchor'> &para;</a></span></dt>
-<dd><p>This anchor is a function is called with 3 arguments: <var>node</var>,
+<dd><p>This anchor is a function that is called with 3 arguments: <var>node</var>,
 <var>parent</var>, and <var>bol</var>, and returns the beginning of the buffer.
 This is useful as the beginning of the buffer is always at column 0.
+</p>
+</dd>
+<dt id='index-comment_002dstart'><span><code>comment-start</code><a href='#index-comment_002dstart' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This anchor is a function that is called with 3 arguments: <var>node</var>,
+<var>parent</var>, and <var>bol</var>, and returns the position right after the
+comment-start token.  Comment-start tokens are defined by regular
+expression <code>treesit-comment-start</code> (see <a href="Tree_002dsitter-major-modes.html">treesit-comment-start</a>).  This function assumes <var>parent</var> is
+the comment node.
+</p>
+</dd>
+<dt id='index-coment_002dstart_002dskip'><span><code>coment-start-skip</code><a href='#index-coment_002dstart_002dskip' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This anchor is a function that is called with 3 arguments: <var>node</var>,
+<var>parent</var>, and <var>bol</var>, and returns the position after the
+comment-start token and any whitespace characters following that
+token.  Comment-start tokens are defined by regular expression
+<code>treesit-comment-start</code>.  This function assumes <var>parent</var> is
+the comment node.
 </p></dd>
 </dl>
-
 </dd></dl>
 
 <span id="Indentation-utilities"></span><h3 class="heading">Indentation utilities</h3>

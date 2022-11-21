@@ -273,12 +273,12 @@ takes care of compiling queries and other post-processing, and outputs
 a value that <var>treesit-range-settings</var> can have.
 </p>
 <p>It takes a series of <var>query-spec</var>s, where each <var>query-spec</var> is
-a <var>query</var> preceded by zero or more pairs of <var>keyword</var> and
-<var>value</var>.  Each <var>query</var> is a tree-sitter query in either the
+a <var>query</var> preceded by zero or more <var>keyword</var>/<var>value</var>
+pairs.  Each <var>query</var> is a tree-sitter query in either the
 string, s-expression or compiled form, or a function.
 </p>
 <p>If <var>query</var> is a tree-sitter query, it should be preceeded by two
-<var>:keyword</var> <var>value</var> pairs, where the <code>:embed</code> keyword
+<var>:keyword</var>/<var>value</var> pairs, where the <code>:embed</code> keyword
 specifies the embedded language, and the <code>:host</code> keyword
 specified the host language.
 </p>
