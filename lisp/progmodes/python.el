@@ -396,6 +396,9 @@ instead."
     map)
   "Keymap for `python-mode'.")
 
+(defvar python-ts-mode-map (copy-keymap python-mode-map)
+  "Keymap for `(copy-keymap python-mode-map)'.")
+
 
 ;;; Python specialized rx
 
@@ -6597,7 +6600,7 @@ implementations: `python-mode' and `python-ts-mode'."
 (define-derived-mode python-ts-mode python-base-mode "Python"
   "Major mode for editing Python files, using tree-sitter library.
 
-\\{python-mode-map}"
+\\{python-ts-mode-map}"
   (when (treesit-ready-p 'python)
     (treesit-parser-create 'python)
     (setq-local treesit-font-lock-feature-list

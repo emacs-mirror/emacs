@@ -1323,6 +1323,9 @@ for determining whether point is within a selector."
 
 ;;; Tree-sitter
 
+(defvar css-ts-mode-map (copy-keymap css-mode-map)
+  "Keymap used in `css-ts-mode'.")
+
 (defvar css--treesit-indent-rules
   '((css
      ((node-is "}") parent-bol 0)
