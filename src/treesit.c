@@ -554,9 +554,11 @@ treesit_load_language (Lisp_Object language_symbol,
      when succeed, record the error message and try the next one when
      fail.  */
   dynlib_handle_ptr handle;
-  char const *error;
+  const char *error;
 
   tail = path_candidates;
+  error = NULL;
+  handle = NULL;
 
   FOR_EACH_TAIL (tail)
     {
@@ -567,6 +569,9 @@ treesit_load_language (Lisp_Object language_symbol,
       if (error == NULL)
 	break;
     }
+
+  /* ??? */
+  eassume (handle != NULL);
 
   if (error != NULL)
     {
