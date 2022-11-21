@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; This mode provides syntax highlighting for Less CSS files
-;; (http://lesscss.org/), plus optional support for compilation of
+;; (https://lesscss.org/), plus optional support for compilation of
 ;; .less files to .css files at the time they are saved: use
 ;; `less-css-compile-at-save' to enable this.
 ;;

@@ -385,7 +385,7 @@ Return the buffer associated with the connection."
 (defun sieve-manage-open (server &optional port stream auth buffer)
   "Open a network connection to a managesieve SERVER (string).
 Optional argument PORT is port number (integer) on remote server.
-Optional argument STREAM is any of `sieve-manage-streams' (a symbol).
+Optional argument STREAM is any of `sieve-manage-stream' (a symbol).
 Optional argument AUTH indicates authenticator to use, see
 `sieve-manage-authenticators' for available authenticators.
 If nil, chooses the best stream the server is capable of.

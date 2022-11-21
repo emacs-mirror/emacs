@@ -4,9 +4,9 @@
 #+language:              en
 #+options:               ':t toc:nil author:t email:t num:t
 #+startup:               content
-#+macro:                 stable-version 2.7.0
-#+macro:                 release-date 2022-10-01
-#+macro:                 development-version 2.8.0-dev
+#+macro:                 stable-version 3.0.0
+#+macro:                 release-date 2022-10-28
+#+macro:                 development-version 3.1.0-dev
 #+macro:                 file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro:                 space @@texinfo:@: @@
 #+macro:                 kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -35,6 +35,7 @@ Current development target is {{{development-version}}}.
 + Homepage: https://protesilaos.com/emacs/modus-themes.
 + Git repository: https://git.sr.ht/~protesilaos/modus-themes.
 + Mailing list: https://lists.sr.ht/~protesilaos/modus-themes.
++ Backronym: My Old Display Unexpectedly Sharpened ... themes
 
 #+toc: headlines 8 insert TOC here, with eight headline levels
 
@@ -632,7 +633,7 @@ to user options to take effect ([[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enabl
 :end:
 #+vindex: modus-themes-deuteranopia
 
-Brief: When non-nil use red/blue color-coding instead of red/green,
+Brief: When non-~nil~ use red/blue color-coding instead of red/green,
 where appropriate.
 
 Symbol: ~modus-themes-deuteranopia~ (=boolean= type)
@@ -679,7 +680,7 @@ Possible values:
 The default is to use a bold typographic weight only when it is
 required.
 
-With a non-nil value (~t~) display several syntactic constructs in bold
+With a non-~nil~ value (~t~) display several syntactic constructs in bold
 weight.  This concerns keywords and other important aspects of code
 syntax.  It also affects certain mode line indicators and command-line
 prompts.
@@ -709,7 +710,7 @@ Possible values:
 The default is to not use slanted text forms (italics) unless it is
 absolutely necessary.
 
-With a non-nil value (~t~) choose to render more faces in italics.  This
+With a non-~nil~ value (~t~) choose to render more faces in italics.  This
 typically affects documentation strings and code comments.
 
 Advanced users may also want to configure the exact attributes of the
@@ -799,7 +800,7 @@ Possible values:
 1. ~nil~ (default)
 2. ~t~
 
-When set to non-nil (~t~), configure some spacing-sensitive faces like Org
+When set to non-~nil~ (~t~), configure some spacing-sensitive faces like Org
 tables and code blocks to always inherit from the ~fixed-pitch~ face.
 This is to ensure that certain constructs like code blocks and tables
 remain monospaced even when users opt for a mode that remaps typeface
@@ -926,8 +927,8 @@ an empty list).  The list can include any of the following symbols:
   the form of =(height . FLOAT)=
 + ~all-buttons~
 
-The default (a nil value or an empty list) is a gray background combined
-with a pseudo three-dimensional effect.
+The default (a ~nil~ value or an empty list) is a gray background
+combined with a pseudo three-dimensional effect.
 
 The ~flat~ property makes the button two dimensional.
 
@@ -1068,7 +1069,7 @@ effect, color, and border visibility:
 + A floating point to set the height of the mode line's text.  It can
   also be a cons cell in the form of ~(height . FLOAT)~.
 
-The default (a nil value or an empty list) is a two-dimensional
+The default (a ~nil~ value or an empty list) is a two-dimensional
 rectangle with a border around it.  The active and the inactive mode
 lines use different shades of grayscale values for the background,
 foreground, border.
@@ -1097,7 +1098,7 @@ of NATNUM pixels at the boundaries of the mode lines.  The default value
 is 1 and does not need to be specified explicitly.  The padding has no
 effect when the ~moody~ property is also used, because Moody already
 applies its own tweaks.  To ensure that the underline is placed at the
-bottom of the mode line, set ~x-underline-at-descent-line~ to non-nil
+bottom of the mode line, set ~x-underline-at-descent-line~ to non-~nil~
 (this is not needed when the ~borderless~ property is also set).  For
 users on Emacs 29, the ~x-use-underline-position-properties~ variable must
 also be set to nil.
@@ -1159,7 +1160,7 @@ colors (which have been carefully designed to be highly accessible).
 
 Furthermore, because Moody expects an underline and overline instead of
 a box style, it is strongly advised to set ~x-underline-at-descent-line~
-to a non-nil value.
+to a non-~nil~ value.
 
 Finally, note that various packages which heavily modify the mode line,
 such as =doom-modeline=, =nano-modeline=, =powerline=, =spaceline= may not look
@@ -1183,7 +1184,7 @@ Possible values:
 + ~t~
 
 By default, all tab interfaces use backgrounds which are shades of gray.
-When this option is set to non-nil, the backgrounds become colorful.
+When this option is set to non-~nil~, the backgrounds become colorful.
 
 This affects the built-in ~tab-bar-mode~ and ~tab-line-mode~, as well as the
 Centaur tabs package.
@@ -1202,8 +1203,9 @@ Symbol: ~modus-themes-completions~ (=alist= type properties)
 
 This affects Company, Corfu, Flx, Helm, Icomplete/Fido, Ido, Ivy,
 Orderless, Selectrum, Vertico.  The value is an alist that takes the
-form of a =(key . properties)= combination.  Here is a sample, followed
-by a description of the particularities:
+form of a =(KEY . PROPERTIES)= combination.  =KEY= is a symbol, while
+=PROPERTIES= is a list.  Here is a sample, followed by a description
+of the particularities:
 
 #+begin_src emacs-lisp
 (setq modus-themes-completions
@@ -1213,10 +1215,10 @@ by a description of the particularities:
 #+end_src
 
 The ~matches~ key refers to the highlighted characters that correspond
-to the user's input.  By default (nil or an empty list), they have a
-bold weight and a colored foreground.  The list of properties may
-include any of the following symbols regardless of the order they may
-appear in:
+to the user's input.  When its properties are ~nil~ or an empty list,
+matching characters in the user interface will have a bold weight and
+a colored foreground.  The list of properties may include any of the
+following symbols regardless of the order they may appear in:
 
 - ~background~ to add a background color;
 
@@ -1232,10 +1234,10 @@ appear in:
   variable.  The absence of a weight means that bold will be used.
 
 The ~selection~ key applies to the current line or currently matched
-candidate, depending on the specifics of the User Interface.  By default
-(nil or an empty list), it has a subtle gray background, a bold weight,
-and the base foreground value for the text. The list of properties it
-accepts is as follows (order is not significant):
+candidate, depending on the specifics of the user interface.  When its
+properties are ~nil~ or an empty list, it has a subtle gray background,
+a bold weight, and the base foreground value for the text.  The list
+of properties it accepts is as follows (order is not significant):
 
 - ~accented~ to make the background colorful instead of gray;
 
@@ -1251,7 +1253,11 @@ accepts is as follows (order is not significant):
   cetera.  Valid symbols are defined in the ~modus-themes-weights~
   variable.  The absence of a weight means that bold will be used.
 
-The ~popup~ key takes the same values as ~selection~.
+The ~popup~ key takes the same values as ~selection~.  The only
+difference is that it applies specifically to user interfaces that
+display an inline popup and thus have slightly different styling
+requirements than the minibuffer.  The two prominent packages are
+=company= and =corfu=.
 
 Apart from specifying each key separately, a fallback list is accepted.
 This is only useful when the desired aesthetic is the same across all
@@ -1276,21 +1282,10 @@ corresponding key is simply ignored (~matches~ does not have ~accented~
 and ~text-also~, while ~selection~ and ~popup~ do not have
 ~background~).
 
-A concise expression of those associations can be written as follows,
-where the ~car~ is always the key and the ~cdr~ is the list of
-properties (whatever order they may appear in):
-
-#+begin_src emacs-lisp
-(setq modus-themes-completions
-      '((matches extrabold background intense)
-        (selection semibold accented intense)
-        (popup accented)))
-#+end_src
-
 [[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
 
-Also refer to the Orderless documentation for its intersection with
-Company (if you choose to use those in tandem).
+Also refer to the documentation of the ~orderless~ package for its
+intersection with ~company~ (if you choose to use those in tandem).
 
 ** Option for mail citations
 :properties:
@@ -1312,7 +1307,7 @@ Possible values:
 3. ~faint~
 4. ~monochrome~
 
-By default (a nil value) citations are styled with contrasting hues to
+By default (a ~nil~ value) citations are styled with contrasting hues to
 denote their depth.  Colors are easy to tell apart because they
 complement each other, but they otherwise are not very prominent.
 
@@ -1342,17 +1337,16 @@ Symbol: ~modus-themes-fringes~ (=choice= type)
 
 Possible values:
 
-1. ~nil~ (default)
+1. ~nil~
 2. ~subtle~
 3. ~intense~
 
-The default is to use the same color as that of the main background,
-meaning that the fringes are not obvious though they still occupy the
-space given to them by ~fringe-mode~.
+When the value is nil, do not apply a distinct background color.
 
-Options ~subtle~ and ~intense~ apply a gray background, making the fringes
-visible.  The difference between the two is one of degree, as their
-names imply.
+With a value of ~subtle~ use a gray background color that is
+visible yet close to the main background color.
+
+With ~intense~ use a more pronounced gray background color.
 
 ** Option for language checkers
 :properties:
@@ -1435,15 +1429,15 @@ Brief: Control the style of the current line of ~hl-line-mode~.
 
 Symbol: ~modus-themes-hl-line~ (=choice= type, list of properties)
 
-Possible values are expressed as a list of properties (default is ~nil~ or
-an empty list).  The list can include any of the following symbols:
+The value is a list of properties, each designated by a symbol.  With
+a ~nil~ value, or an empty list, the style is a subtle gray background
+color.
+
+Possible properties are the following symbols:
 
 + ~accented~
 + ~intense~
 + ~underline~
-
-The default (a ~nil~ value or an empty list) is a subtle gray background
-color.
 
 The property ~accented~ changes the background to a colored variant.
 
@@ -1471,8 +1465,9 @@ In user configuration files the form may look like this:
 (setq modus-themes-hl-line '(underline accented))
 #+end_src
 
-Set ~x-underline-at-descent-line~ to a non-nil value for better results
-with underlines.
+Set ~x-underline-at-descent-line~ to a non-~nil~ value so that the
+placement of the underline coincides with the lower boundary of the
+colored background.
 
 This style affects several packages that enable ~hl-line-mode~, such as
 =elfeed=, =notmuch=, and =mu4e=.
@@ -1506,7 +1501,7 @@ Similarly, the faces for ~display-line-numbers-major-tick~ and its
 counterpart ~display-line-numbers-minor-tick~ use appropriate styles that
 involve a bespoke background and foreground combination.
 
-With a non-nil value (~t~), line numbers have no background of their own.
+With a non-~nil~ value (~t~), line numbers have no background of their own.
 Instead they retain the primary background of the theme, blending with
 the rest of the buffer.  Foreground values for all relevant faces are
 updated to accommodate this aesthetic.
@@ -1529,7 +1524,7 @@ Possible value:
 2. ~t~
 
 By default all mouseover effects apply a highlight with a subtle colored
-background.  When non-nil, these have a more pronounced effect.
+background.  When non-~nil~, these have a more pronounced effect.
 
 Note that this affects the generic ~highlight~ which, strictly speaking,
 is not limited to mouse usage.
@@ -1713,11 +1708,11 @@ Option ~desaturated~ follows the same principles as with the default
 (~nil~), though it tones down all relevant colors.
 
 Option ~bg-only~ applies a background but does not override the text's
-foreground.  This makes it suitable for a non-nil value passed to
+foreground.  This makes it suitable for a non-~nil~ value passed to
 ~diff-font-lock-syntax~ (note: Magit does not support syntax highlighting
 in diffs---last checked on 2021-12-02).
 
-When the user option ~modus-themes-deuteranopia~ is non-nil, all diffs
+When the user option ~modus-themes-deuteranopia~ is non-~nil~, all diffs
 will use a red/blue color-coding system instead of the standard
 red/green.  Other stylistic changes are made in the interest of
 optimizing for such a use-case.
@@ -1776,8 +1771,8 @@ of the block.  Disable the extension of such backgrounds by setting
 ~org-fontify-whole-block-delimiter-line~ to nil.
 
 Code blocks use their major mode's colors only when the variable
-~org-src-fontify-natively~ is non-nil.  While quote/verse blocks require
-setting ~org-fontify-quote-and-verse-blocks~ to a non-nil value.
+~org-src-fontify-natively~ is non-~nil~.  While quote/verse blocks require
+setting ~org-fontify-quote-and-verse-blocks~ to a non-~nil~ value.
 
 [[#h:f44cc6e3-b0f1-4a5e-8a90-9e48fa557b50][Update Org block delimiter fontification]].
 
@@ -1894,7 +1889,7 @@ An ~event~ key covers (i) headings with a plain time stamp that are
 shown on the agenda, also known as events, (ii) entries imported from
 the diary, and (iii) other items that derive from a symbolic expression
 or sexp (phases of the moon, holidays, etc.).  By default all those look
-the same and have a subtle foreground color (the default is a nil value
+the same and have a subtle foreground color (the default is a ~nil~ value
 or an empty list).  This key accepts a list of properties.  Those are:
 
 - ~accented~ applies an accent value to the event's foreground,
@@ -1925,7 +1920,7 @@ A ~scheduled~ key applies to tasks with a scheduled date.  By default (a
 ~nil~ value), those use varying shades of yellow to denote (i) a past or
 current date and (ii) a future date.  Valid values are symbols:
 
-- nil (default);
+- ~nil~ (default);
 - ~uniform~ to make all scheduled dates the same color;
 - ~rainbow~ to use contrasting colors for past, present, future
   scheduled dates.
@@ -1963,7 +1958,7 @@ passed as a symbol.  Those are:
   being too late.  The difference between ready and clear states is
   attenuated by painting both of them using shades of green.  This
   option thus highlights the alert and overdue states.
-- When ~modus-themes-deuteranopia~ is non-nil the exact style of the habit
+- When ~modus-themes-deuteranopia~ is non-~nil~ the exact style of the habit
   graph adapts to the needs of users with red-green color deficiency by
   substituting every instance of green with blue or cyan (depending on
   the specifics).
@@ -2108,7 +2103,7 @@ In user configuration files the form may look like this:
 #+end_src
 
 When defining the styles per heading level, it is possible to pass a
-non-nil value (~t~) instead of a list of properties.  This will retain the
+non-~nil~ value (~t~) instead of a list of properties.  This will retain the
 original aesthetic for that level.  For example:
 
 #+begin_src emacs-lisp
@@ -2153,7 +2148,7 @@ and tab line.
 The default is to use the same font as the rest of Emacs, which usually
 is a monospaced family.
 
-With a non-nil value (~t~) apply a proportionately spaced typeface.  This
+With a non-~nil~ value (~t~) apply a proportionately spaced typeface.  This
 is done by assigning the ~variable-pitch~ face to the relevant items.
 
 [[#h:defcf4fc-8fa8-4c29-b12e-7119582cc929][Font configurations for Org and others]].
@@ -2839,7 +2834,7 @@ To reset the changes, we apply this and reload the theme:
 
 Users who wish to leverage such a mechanism can opt to implement it
 on-demand by means of a global minor mode.  The following snippet covers
-both themes and expands to some more assosiations in the palette:
+both themes and expands to some more associations in the palette:
 
 #+begin_src emacs-lisp
 (define-minor-mode my-modus-themes-tinted
@@ -3654,7 +3649,7 @@ specification of that variable looks like this:
 
 With the exception of ~org-verbatim~ and ~org-code~ faces, everything else
 uses the corresponding type of emphasis: a bold typographic weight, or
-italicised, underlined, and struck through text.
+italicized, underlined, and struck through text.
 
 The best way for users to add some extra attributes, such as a
 foreground color, is to define their own faces and assign them to the
@@ -4681,6 +4676,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + notmuch
 + num3-mode
 + nxml-mode
++ olivetti
 + orderless
 + org*
 + org-journal
@@ -4753,7 +4749,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + tab-bar-groups
 + tab-bar-mode
 + tab-line-mode
-+ table (built-in table.el)
++ table (built-in {{{file(table.el)}}})
 + telega
 + telephone-line
 + terraform-mode
@@ -4768,7 +4764,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + tuareg
 + typescript
 + undo-tree
-+ vc (vc-dir.el, vc-hooks.el)
++ vc ({{{file(vc-dir.el)}}}, {{{file(vc-hooks.el)}}})
 + vertico
 + vertico-quick
 + vimish-fold
@@ -4793,8 +4789,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + yasnippet
 + ztree
 
-Plus many other miscellaneous faces that are provided by the upstream
-GNU Emacs distribution.
+Plus many other miscellaneous faces that are provided by Emacs.
 
 ** Indirectly covered packages
 :properties:
@@ -5397,7 +5392,7 @@ https://github.com/tumashu/company-posframe/]
 :custom_id: h:98bdf319-1e32-4469-8a01-771200fba65c
 :end:
 
-The built-in IRC client ~erc~ has the ability to colorise any text using
+The built-in IRC client ~erc~ has the ability to colorize any text using
 escape sequences that start with =^C= (inserted with {{{kbd(C-q C-c)}}}) and are
 followed by a number for the foreground and background.[fn:: This page
 explains the basics, though it is not specific to Emacs:
@@ -5453,7 +5448,7 @@ Consult the doc string of ~shr-use-colors~.
 
 By default, packages that build on top of the Simple HTML Remember (=shr=)
 use proportionately spaced fonts.  This is controlled by the user option
-~shr-use-fonts~, which is set to non-nil by default.  To use the standard
+~shr-use-fonts~, which is set to non-~nil~ by default.  To use the standard
 font instead, set that variable to nil.
 
 [[#h:defcf4fc-8fa8-4c29-b12e-7119582cc929][Font configurations for Org and others]].
@@ -5543,9 +5538,9 @@ ANSI color number 1 (red) from the already-supported array of
 :end:
 
 Hints are drawn by [[https://imagemagick.org/][ImageMagick]], not Emacs, i.e., ImageMagick doesn't
-know about the hint face unless you tell ImageMagick about it. By
+know about the hint face unless you tell ImageMagick about it.  By
 default, only the foreground and background color attributes are
-passed. The below snippet adds to those the various font attributes.  As
+passed.  The below snippet adds to those the various font attributes.  As
 it queries various faces, specifically ~pdf-links-read-link~ and the faces
 it inherits, it needs to be added to your initialization file after
 you've customized any faces.
@@ -5816,9 +5811,9 @@ In general, an additional source of light other than that of the monitor
 can help reduce eye strain: the eyes are more relaxed when they do not
 have to focus on one point to gather light.
 
-The monitor's display settings must be accounted for. Gamma values, in
+The monitor's display settings must be accounted for.  Gamma values, in
 particular, need to be calibrated to neither amplify nor distort the
-perception of black. Same principle for sharpness, brightness, and
+perception of black.  Same principle for sharpness, brightness, and
 contrast as determined by the hardware, which all have an effect on how
 text is read on the screen.
 
@@ -5883,7 +5878,7 @@ interface virtually unusable.
 
 [[#h:5808be52-361a-4d18-88fd-90129d206f9b][Option for links]].
 
-Again, one must exercise judgement in order to avoid discrimination,
+Again, one must exercise judgment in order to avoid discrimination,
 where "discrimination" refers to:
 
 + The treatment of substantially different magnitudes as if they were of
@@ -6125,22 +6120,22 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Yiltiz, Ilja Kocken, Iris Garcia, Ivan Popovych, Jeremy Friesen,
   Jerry Zhang, Johannes Grødem, John Haman, Jonas Collberg, Jorge
   Morais, Joshua O'Connor, Julio C. Villasante, Kenta Usami, Kevin
-  Fleming, Kévin Le Gouguec, Kostadin Ninev, Len Trigg, Lennart
-  C. Karssen, Luis Miguel Castañeda, Magne Hov, Manuel Uberti, Mark
-  Bestley, Mark Burton, Mark Simpson, Markus Beppler, Matt Armstrong,
-  Mauro Aranda, Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan
-  Willcock, Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere,
-  Paul Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu, Philip
-  Kaludercic, Pierre Téchoueyres, Przemysław Kryger, Robert Hepple,
-  Roman Rudakov, Ryan Phillips, Rytis Paškauskas, Rudolf Adamkovič,
-  Sam Kleinman, Samuel Culpepper, Saša Janiška, Shreyas Ragavan, Simon
-  Pugnet, Tassilo Horn, Thibaut Verron, Thomas Heartman, Togan
-  Muftuoglu, Tony Zorman, Trey Merkley, Tomasz Hołubowicz, Toon Claes,
-  Uri Sharf, Utkarsh Singh, Vincent Foley.  As well as users: Ben,
-  CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux, Fredrik, Moesasji,
-  Nick, Summer Emacs, TheBlob42, Trey, bepolymathe, bit9tream,
-  derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn,
-  pRot0ta1p.
+  Fleming, Kévin Le Gouguec, Kevin Kainan Li, Kostadin Ninev, Len
+  Trigg, Lennart C. Karssen, Luis Miguel Castañeda, Magne Hov, Manuel
+  Uberti, Mark Bestley, Mark Burton, Mark Simpson, Markus Beppler,
+  Matt Armstrong, Matthias Fuchs, Mauro Aranda, Maxime Tréca, Michael
+  Goldenberg, Morgan Smith, Morgan Willcock, Murilo Pereira, Nicky van
+  Foreest, Nicolas De Jaeghere, Pablo Stafforini, Paul Poloskov,
+  Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic, Pierre
+  Téchoueyres, Przemysław Kryger, Robert Hepple, Roman Rudakov, Ryan
+  Phillips, Rytis Paškauskas, Rudolf Adamkovič, Sam Kleinman, Samuel
+  Culpepper, Saša Janiška, Shreyas Ragavan, Simon Pugnet, Tassilo
+  Horn, Thibaut Verron, Thomas Heartman, Togan Muftuoglu, Tony Zorman,
+  Trey Merkley, Tomasz Hołubowicz, Toon Claes, Uri Sharf, Utkarsh
+  Singh, Vincent Foley.  As well as users: Ben, CsBigDataHub1, Emacs
+  Contrib, Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer Emacs,
+  TheBlob42, Trey, bepolymathe, bit9tream, derek-upham, doolio,
+  fleimgruber, gitrj95, iSeeU, jixiuf, okamsn, pRot0ta1p.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,
   Glenn Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core

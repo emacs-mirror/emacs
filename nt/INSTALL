@@ -214,7 +214,7 @@ build will run on Windows 9X and newer systems).
   of the 'bsdtar' program to unpack the tarballs.  'bsdtar' is
   available as part of the 'libarchive' package from here:
 
-    http://sourceforge.net/projects/ezwinports/files/
+    https://sourceforge.net/projects/ezwinports/files/
 
   The recommended place to install these packages is a single tree
   starting from some directory on a drive other than the system drive
@@ -242,16 +242,16 @@ build will run on Windows 9X and newer systems).
    . Texinfo (needed to produce the Info manuals when building from
      the repository, and for "make install")
 
-     Available from http://sourceforge.net/projects/ezwinports/files/.
+     Available from https://sourceforge.net/projects/ezwinports/files/.
 
    . pkg-config (invoked by the configure script to look for optional
      packages)
 
-     Available from http://sourceforge.net/projects/ezwinports/files/.
+     Available from https://sourceforge.net/projects/ezwinports/files/.
 
    . gzip (needed to compress files during "make install")
 
-     Available from http://gnuwin32.sourceforge.net/packages/gzip.htm.
+     Available from https://gnuwin32.sourceforge.net/packages/gzip.htm.
 
   Each package might list other packages as prerequisites on its
   download page (under "Runtime requirements"); download those as
@@ -294,7 +294,7 @@ build will run on Windows 9X and newer systems).
    . Additional package (needed only if building from the repository):
      Autoconf.  It is available from here:
 
-       http://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
+       https://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
 
   MSYS packages are distributed as .tar.lzma compressed archives.  To
   install the packages manually, we recommend to use the Windows port
@@ -642,7 +642,7 @@ build will run on Windows 9X and newer systems).
 
   To support XPM images (required for color tool-bar icons), you will
   need the libXpm library.  It is available from the ezwinports site,
-  http://sourceforge.net/projects/ezwinports/files/ and from
+  https://sourceforge.net/projects/ezwinports/files/ and from
   https://ftp.gnu.org/gnu/emacs/windows/.
 
   For PNG images, we recommend to use versions 1.4.x and later of
@@ -665,7 +665,7 @@ build will run on Windows 9X and newer systems).
   For GIF images, we recommend to use versions 5.0.0 or later of
   giflib, as it is much enhanced wrt previous versions.  You can find
   precompiled binaries and headers for giflib on the ezwinports site,
-  http://sourceforge.net/projects/ezwinports/files/ and on
+  https://sourceforge.net/projects/ezwinports/files/ and on
   https://ftp.gnu.org/gnu/emacs/windows/.
 
   Version 5.0.0 and later of giflib are binary incompatible with
@@ -689,7 +689,7 @@ build will run on Windows 9X and newer systems).
   Pre-built versions of librsvg and its dependencies can be found
   here:
 
-    http://sourceforge.net/projects/ezwinports/files/
+    https://sourceforge.net/projects/ezwinports/files/
 
     This site includes a minimal (as much as possible for librsvg)
     build of the library and its dependencies; it is also more
@@ -739,7 +739,7 @@ build will run on Windows 9X and newer systems).
 
   For WebP images you will need libwebp.  You can find it here:
 
-    http://sourceforge.net/projects/ezwinports/files/
+    https://sourceforge.net/projects/ezwinports/files/
 
   Note: the MS-Windows binary distribution on the Google site:
 
@@ -779,7 +779,7 @@ build will run on Windows 9X and newer systems).
   session.
 
   You can get pre-built binaries (including any required DLL and the
-  header files) at http://sourceforge.net/projects/ezwinports/files/
+  header files) at https://sourceforge.net/projects/ezwinports/files/
   and on https://ftp.gnu.org/gnu/emacs/windows/.
 
 * Optional libxml2 support
@@ -801,7 +801,7 @@ build will run on Windows 9X and newer systems).
   One place where you can get pre-built Windows binaries of libxml2
   (including any required DLL and the header files) is here:
 
-     http://sourceforge.net/projects/ezwinports/files/
+     https://sourceforge.net/projects/ezwinports/files/
      https://ftp.gnu.org/gnu/emacs/windows/
 
   For runtime support of libxml2, you will also need to install the
@@ -809,7 +809,7 @@ build will run on Windows 9X and newer systems).
   be available to the compiler when you compile with libxml2 support.
   A MinGW port of libiconv can be found on the MinGW site:
 
-   http://sourceforge.net/projects/mingw/files/MinGW/Base/libiconv/
+   https://sourceforge.net/projects/mingw/files/MinGW/Base/libiconv/
 
   You need the libiconv-X.Y.Z-N-mingw32-dev.tar.lzma tarball from that
   site.

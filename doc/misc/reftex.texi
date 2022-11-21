@@ -3605,7 +3605,7 @@ menu.  @xref{Key Bindings}.
 
 @deffn Command reftex-toc
 Show the table of contents for the current document.  When called with
-one ore two @kbd{C-u} prefixes, rescan the document first.
+one or two @kbd{C-u} prefixes, rescan the document first.
 @end deffn
 
 @deffn Command reftex-label
@@ -5292,7 +5292,7 @@ Some improvements for XEmacs compatibility.
 @itemize @bullet
 @item
 Fixed bug with @samp{%F} in a label prefix.  Added new escapes
-@samp{%m} and @samp{%M} for mater file name and master directory.
+@samp{%m} and @samp{%M} for master file name and master directory.
 @end itemize
 
 @noindent @b{Version 4.24}

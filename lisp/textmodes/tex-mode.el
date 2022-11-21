@@ -1039,7 +1039,7 @@ says which mode to use."
 ;; have files annotated with -*- LaTeX -*- (e.g. because they received
 ;; them from someone using AUCTeX).
 ;; FIXME: Turn them into autoloads so that AUCTeX can override them
-;; with it's own autoloads?  Or maybe rely on `major-mode-remap-alist'?
+;; with its own autoloads?  Or maybe rely on `major-mode-remap-alist'?
 ;;;###autoload (defalias 'TeX-mode #'tex-mode)
 ;;;###autoload (defalias 'plain-TeX-mode #'plain-tex-mode)
 ;;;###autoload (defalias 'LaTeX-mode #'latex-mode)
@@ -2238,7 +2238,7 @@ of the current buffer."
 	       "&")))
 
 (defun tex-uptodate-p (file)
-  "Return non-nil if FILE is not uptodate w.r.t the document source files.
+  "Return non-nil if FILE is not up-to-date w.r.t the document source files.
 FILE is typically the output DVI or PDF file."
   ;; We should check all the files included !!!
   (and
@@ -2375,7 +2375,7 @@ Only applies the FSPEC to the args part of FORMAT."
 	  (push cmd tmp)))
       ;; Only remove if there's something left.
       (if tmp (setq cmds (nreverse tmp))))
-    ;; Remove commands whose input is not uptodate either.
+    ;; Remove commands whose input is not up-to-date either.
     (let ((outs (delq nil (mapcar (lambda (x) (nth 2 x)) cmds)))
 	  (tmp nil))
       (dolist (cmd cmds)

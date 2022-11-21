@@ -1362,12 +1362,20 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       char *xmessage = alloca (1 + message_length);
       memcpy (xmessage, cursor_data.error_string, message_length);
 
-      x_uncatch_errors ();
+      x_uncatch_errors_after_check ();
+
+      /* XFreeCursor can generate BadCursor errors, because
+	 XCreateFontCursor is not a request that waits for a reply,
+	 and as such can return IDs that will not actually be used by
+	 the server.  */
+      x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
 
       /* Free any successfully created cursors.  */
       for (i = 0; i < mouse_cursor_max; i++)
 	if (cursor_data.cursor[i] != 0)
 	  XFreeCursor (dpy, cursor_data.cursor[i]);
+
+      x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
 
       /* This should only be able to fail if the server's serial
 	 number tracking is broken.  */
@@ -1750,10 +1758,19 @@ x_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 void
 x_change_tab_bar_height (struct frame *f, int height)
 {
-  int unit = FRAME_LINE_HEIGHT (f);
-  int old_height = FRAME_TAB_BAR_HEIGHT (f);
-  int lines = (height + unit - 1) / unit;
-  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+  int unit, old_height, lines;
+  Lisp_Object fullscreen;
+
+  unit = FRAME_LINE_HEIGHT (f);
+  old_height = FRAME_TAB_BAR_HEIGHT (f);
+  fullscreen = get_frame_param (f, Qfullscreen);
+
+  /* This differs from the tool bar code in that the tab bar height is
+     not rounded up.  Otherwise, if redisplay_tab_bar decides to grow
+     the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
+     leading to the tab bar height being incorrectly set upon the next
+     call to x_set_font.  (bug#59285) */
+  lines = height / unit;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -4179,11 +4196,15 @@ x_window (struct frame *f)
 	{
 	  /* XIM server might require some X events. */
 	  unsigned long fevent = NoEventMask;
-	  XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
-	  attributes.event_mask |= fevent;
-	  attribute_mask = CWEventMask;
-	  XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				   attribute_mask, &attributes);
+
+	  if (fevent)
+	    {
+	      XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+	      attributes.event_mask |= fevent;
+	      attribute_mask = CWEventMask;
+	      XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				       attribute_mask, &attributes);
+	    }
 	}
     }
 #endif /* HAVE_X_I18N */
@@ -4502,9 +4523,11 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
     }
 
   if (NILP (font))
-      font = !NILP (font_param) ? font_param
-      : gui_display_get_arg (dpyinfo, parms, Qfont, "font", "Font",
-                             RES_TYPE_STRING);
+    font = (!NILP (font_param)
+	    ? font_param
+	    : gui_display_get_arg (dpyinfo, parms,
+				   Qfont, "font", "Font",
+				   RES_TYPE_STRING));
 
   if (! FONTP (font) && ! STRINGP (font))
     {
@@ -4535,13 +4558,6 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 	}
       if (NILP (font))
 	error ("No suitable font was found");
-    }
-  else if (!NILP (font_param))
-    {
-      /* Remember the explicit font parameter, so we can re-apply it after
-	 we've applied the `default' face settings.  */
-      AUTO_FRAME_ARG (arg, Qfont_parameter, font_param);
-      gui_set_frame_parameters (f, arg);
     }
 
   /* This call will make X resources override any system font setting.  */
@@ -7909,7 +7925,7 @@ Otherwise, the return value is a vector with the following fields:
 
 DEFUN ("x-translate-coordinates", Fx_translate_coordinates,
        Sx_translate_coordinates,
-       1, 5, 0, doc: /* Translate coordinates from FRAME.
+       1, 6, 0, doc: /* Translate coordinates from FRAME.
 Translate the given coordinates SOURCE-X and SOURCE-Y from
 SOURCE-WINDOW's coordinate space to that of DEST-WINDOW, on FRAME.
 
@@ -7925,16 +7941,21 @@ Return a list of (X Y CHILD) if the given coordinates are on the same
 screen, or nil otherwise, where X and Y are the coordinates in
 DEST-WINDOW's coordinate space, and CHILD is the window ID of any
 mapped child in DEST-WINDOW at those coordinates, or nil if there is
-no such window.  */)
+no such window.  If REQUIRE-CHILD is nil, avoid fetching CHILD if it
+would result in an avoidable request to the X server, thereby
+improving performance when the X connection is over a slow network.
+Otherwise, always obtain the mapped child window from the X
+server.  */)
   (Lisp_Object frame, Lisp_Object source_window,
    Lisp_Object dest_window, Lisp_Object source_x,
-   Lisp_Object source_y)
+   Lisp_Object source_y, Lisp_Object require_child)
 {
   struct x_display_info *dpyinfo;
   struct frame *source_frame;
   int dest_x, dest_y;
   Window child_return, src, dest;
   Bool rc;
+  Lisp_Object temp_result;
 
   dpyinfo = check_x_display_info (frame);
   dest_x = 0;
@@ -7952,12 +7973,25 @@ no such window.  */)
       dest_y = XFIXNUM (source_y);
     }
 
+  source_frame = NULL;
+
   if (!NILP (source_window))
     CONS_TO_INTEGER (source_window, Window, src);
   else
     {
       source_frame = decode_window_system_frame (frame);
       src = FRAME_X_WINDOW (source_frame);
+    }
+
+  /* If require_child is nil, try to avoid an avoidable roundtrip to
+     the X server.  */
+  if (NILP (require_child) && source_frame)
+    {
+      temp_result
+	= x_handle_translate_coordinates (source_frame, dest_window, dest_x,
+					  dest_y);
+      if (!NILP (temp_result))
+	return temp_result;
     }
 
   if (!src)
@@ -8439,7 +8473,17 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
       unblock_input ();
 
       XSETFRAME (frame, f);
-      attributes = Fx_display_monitor_attributes_list (frame);
+
+#if defined HAVE_XRANDR || defined USE_GTK
+      if (!NILP (FRAME_DISPLAY_INFO (f)->last_monitor_attributes_list))
+	/* Use cached values if available to avoid fetching the
+	   monitor list from the X server.  If XRandR is not
+	   available, then fetching the attributes will probably not
+	   sync anyway, and will thus be relatively harmless.  */
+	attributes = FRAME_DISPLAY_INFO (f)->last_monitor_attributes_list;
+      else
+#endif
+	attributes = Fx_display_monitor_attributes_list (frame);
 
       /* Try to determine the monitor where the mouse pointer is and
          its geometry.  See bug#22549.  */
@@ -8689,9 +8733,6 @@ Text larger than the specified size is clipped.  */)
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object window, size, tip_buf;
-  Window child;
-  XWindowAttributes child_attrs;
-  int dest_x_return, dest_y_return;
   bool displayed;
 #ifdef ENABLE_CHECKING
   struct glyph_row *row, *end;
@@ -8942,41 +8983,6 @@ Text larger than the specified size is clipped.  */)
 
   /* Show tooltip frame.  */
   block_input ();
-  /* If the display is composited, then WM_TRANSIENT_FOR must be set
-     as well, or else the compositing manager won't display
-     decorations correctly, even though the tooltip window is override
-     redirect. See
-     https://specifications.freedesktop.org/wm-spec/1.4/ar01s08.html
-
-     Perhaps WM_TRANSIENT_FOR should be used in place of
-     override-redirect anyway.  The ICCCM only recommends
-     override-redirect if the pointer will be grabbed.  */
-
-  if (XTranslateCoordinates (FRAME_X_DISPLAY (f),
-			     FRAME_DISPLAY_INFO (f)->root_window,
-			     FRAME_DISPLAY_INFO (f)->root_window,
-			     root_x, root_y, &dest_x_return,
-			     &dest_y_return, &child)
-      && child != None)
-    {
-      /* But only if the child is not override-redirect, which can
-	 happen if the pointer is above a menu.  */
-
-      if (XGetWindowAttributes (FRAME_X_DISPLAY (f),
-				child, &child_attrs)
-	  || child_attrs.override_redirect)
-	XDeleteProperty (FRAME_X_DISPLAY (tip_f),
-			 FRAME_X_WINDOW (tip_f),
-			 FRAME_DISPLAY_INFO (tip_f)->Xatom_wm_transient_for);
-      else
-	XSetTransientForHint (FRAME_X_DISPLAY (tip_f),
-			      FRAME_X_WINDOW (tip_f), child);
-    }
-  else
-    XDeleteProperty (FRAME_X_DISPLAY (tip_f),
-		     FRAME_X_WINDOW (tip_f),
-		     FRAME_DISPLAY_INFO (tip_f)->Xatom_wm_transient_for);
-
 #ifndef USE_XCB
   XMoveResizeWindow (FRAME_X_DISPLAY (tip_f), FRAME_X_WINDOW (tip_f),
 		     root_x, root_y, width, height);
@@ -9448,13 +9454,21 @@ usual X keysyms.  Value is `lambda' if we cannot determine if both keys are
 present and mapped to the usual X keysyms.  */)
   (Lisp_Object frame)
 {
+#ifdef HAVE_XKB
+  XkbDescPtr kb;
+  struct frame *f;
+  Display *dpy;
+  Lisp_Object have_keys;
+  int delete_keycode, backspace_keycode, i;
+#endif
+
 #ifndef HAVE_XKB
   return Qlambda;
 #else
-  XkbDescPtr kb;
-  struct frame *f = decode_window_system_frame (frame);
-  Display *dpy = FRAME_X_DISPLAY (f);
-  Lisp_Object have_keys;
+  delete_keycode = 0;
+  backspace_keycode = 0;
+  f = decode_window_system_frame (frame);
+  dpy = FRAME_X_DISPLAY (f);
 
   if (!FRAME_DISPLAY_INFO (f)->supports_xkb)
     return Qlambda;
@@ -9470,50 +9484,39 @@ present and mapped to the usual X keysyms.  */)
      XK_Delete are mapped to any key.  But if any of those are mapped to
      some non-intuitive key combination (Meta-Shift-Ctrl-whatever) and the
      user doesn't know about it, it is better to return false here.
-     It is more obvious to the user what to do if she/he has two keys
+     It is more obvious to the user what to do if there are two keys
      clearly marked with names/symbols and one key does something not
-     expected (i.e. she/he then tries the other).
+     expected (and the user then tries the other).
      The cases where Backspace/Delete is mapped to some other key combination
      are rare, and in those cases, normal-erase-is-backspace can be turned on
      manually.  */
 
   have_keys = Qnil;
-  kb = XkbGetMap (dpy, XkbAllMapComponentsMask, XkbUseCoreKbd);
-  if (kb)
+  kb = FRAME_DISPLAY_INFO (f)->xkb_desc;
+  if (kb && kb->names)
     {
-      int delete_keycode = 0, backspace_keycode = 0, i;
-
-      if (XkbGetNames (dpy, XkbAllNamesMask, kb) == Success)
+      for (i = kb->min_key_code; (i < kb->max_key_code
+				  && (delete_keycode == 0
+				      || backspace_keycode == 0));
+	   ++i)
 	{
-	  for (i = kb->min_key_code;
-	       (i < kb->max_key_code
-		&& (delete_keycode == 0 || backspace_keycode == 0));
-	       ++i)
-	    {
-	      /* The XKB symbolic key names can be seen most easily in
-		 the PS file generated by `xkbprint -label name
-		 $DISPLAY'.  */
-	      if (memcmp ("DELE", kb->names->keys[i].name, 4) == 0)
-		delete_keycode = i;
-	      else if (memcmp ("BKSP", kb->names->keys[i].name, 4) == 0)
-		backspace_keycode = i;
-	    }
-
-	  XkbFreeNames (kb, 0, True);
+	  /* The XKB symbolic key names can be seen most easily in
+	     the PS file generated by `xkbprint -label name
+	     $DISPLAY'.  */
+	  if (!memcmp ("DELE", kb->names->keys[i].name, 4))
+	    delete_keycode = i;
+	  else if (!memcmp ("BKSP", kb->names->keys[i].name, 4))
+	    backspace_keycode = i;
 	}
 
-      /* As of libX11-1.6.2, XkbGetMap manual says that you should use
-	 XkbFreeClientMap to free the data returned by XkbGetMap.  But
-	 this function just frees the data referenced from KB and not
-	 KB itself.  To free KB as well, call XkbFreeKeyboard.  */
-      XkbFreeKeyboard (kb, XkbAllMapComponentsMask, True);
-
-      if (delete_keycode
-	  && backspace_keycode
+      if (delete_keycode && backspace_keycode
 	  && XKeysymToKeycode (dpy, XK_Delete) == delete_keycode
 	  && XKeysymToKeycode (dpy, XK_BackSpace) == backspace_keycode)
 	have_keys = Qt;
     }
+  else
+    /* The keyboard names couldn't be obtained for some reason.  */
+    have_keys = Qlambda;
   unblock_input ();
   return have_keys;
 #endif

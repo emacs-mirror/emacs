@@ -35,7 +35,7 @@
 ;; `org-koma-letter-export-to-pdf' ("pdf" file).
 ;;
 ;; On top of buffer keywords supported by `latex' back-end (see
-;; `org-latex-options-alist'), this back-end introduces the following
+;; `org-latex-packages-alist'), this back-end introduces the following
 ;; keywords:
 ;;   - CLOSING: see `org-koma-letter-closing',
 ;;   - FROM_ADDRESS: see `org-koma-letter-from-address',
@@ -66,7 +66,7 @@
 ;;   - from-logo (see `org-koma-letter-use-from-logo')
 ;;   - email (see `org-koma-letter-use-email')
 ;;   - place (see `org-koma-letter-use-place')
-;;   - location (see `org-koma-letter-use-location')
+;;   - location (see `org-koma-letter-location')
 ;;   - subject, a list of format options
 ;;     (see `org-koma-letter-subject-format')
 ;;   - after-closing-order, a list of the ordering of headings with

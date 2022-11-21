@@ -113,7 +113,7 @@
 (require 'pcomplete)
 (require 'ring)
 
-(defconst eshell-inside-emacs (format "%s,eshell" emacs-version)
+(defvar-local eshell-inside-emacs (format "%s,eshell" emacs-version)
   "Value for the `INSIDE_EMACS' environment variable.")
 
 (defgroup eshell-var nil
@@ -156,14 +156,21 @@ if they are quoted with a backslash."
     ("LINES" ,(lambda () (window-body-height nil 'remap)) t t)
     ("INSIDE_EMACS" eshell-inside-emacs t)
 
-    ;; for eshell-cmd.el
+    ;; for esh-ext.el
+    ("PATH" (,(lambda () (string-join (eshell-get-path t) (path-separator)))
+             . ,(lambda (_ value)
+                  (eshell-set-path value)
+                  value))
+     t t)
+
+    ;; for esh-cmd.el
     ("_" ,(lambda (indices quoted)
 	    (if (not indices)
 	        (car (last eshell-last-arguments))
 	      (eshell-apply-indices eshell-last-arguments
 				    indices quoted))))
-    ("?" eshell-last-command-status)
-    ("$" eshell-last-command-result)
+    ("?" (eshell-last-command-status . nil))
+    ("$" (eshell-last-command-result . nil))
 
     ;; for em-alias.el and em-script.el
     ("0" eshell-command-name)
@@ -176,7 +183,7 @@ if they are quoted with a backslash."
     ("7" ,(lambda () (nth 6 eshell-command-arguments)) nil t)
     ("8" ,(lambda () (nth 7 eshell-command-arguments)) nil t)
     ("9" ,(lambda () (nth 8 eshell-command-arguments)) nil t)
-    ("*" eshell-command-arguments))
+    ("*" (eshell-command-arguments . nil)))
   "This list provides aliasing for variable references.
 Each member is of the following form:
 
@@ -186,6 +193,11 @@ NAME defines the name of the variable, VALUE is a Lisp value used to
 compute the string value that will be returned when the variable is
 accessed via the syntax `$NAME'.
 
+If VALUE is a cons (GET . SET), then variable references to NAME
+will use GET to get the value, and SET to set it.  GET and SET
+can be one of the forms described below.  If SET is nil, the
+variable is read-only.
+
 If VALUE is a function, its behavior depends on the value of
 SIMPLE-FUNCTION.  If SIMPLE-FUNCTION is nil, call VALUE with two
 arguments: the list of the indices that were used in the reference,
@@ -193,23 +205,30 @@ and either t or nil depending on whether or not the variable was
 quoted with double quotes.  For example, if `NAME' were aliased
 to a function, a reference of `$NAME[10][20]' would result in that
 function being called with the arguments `((\"10\") (\"20\"))' and
-nil.
-If SIMPLE-FUNCTION is non-nil, call the function with no arguments
-and then pass its return value to `eshell-apply-indices'.
+nil.  If SIMPLE-FUNCTION is non-nil, call the function with no
+arguments and then pass its return value to `eshell-apply-indices'.
 
-If VALUE is a string, return the value for the variable with that
-name in the current environment.  If no variable with that name exists
-in the environment, but if a symbol with that same name exists and has
-a value bound to it, return that symbol's value instead.  You can
-prefer symbol values over environment values by setting the value
-of `eshell-prefer-lisp-variables' to t.
+When VALUE is a function, it's read-only by default.  To make it
+writeable, use the (GET . SET) form described above.  If SET is a
+function, it takes two arguments: a list of indices (currently
+always nil, but reserved for future enhancement), and the new
+value to set.
 
-If VALUE is a symbol, return the value bound to it.
+If VALUE is a string, get/set the value for the variable with
+that name in the current environment.  When getting the value, if
+no variable with that name exists in the environment, but if a
+symbol with that same name exists and has a value bound to it,
+return that symbol's value instead.  You can prefer symbol values
+over environment values by setting the value of
+`eshell-prefer-lisp-variables' to t.
+
+If VALUE is a symbol, get/set the value bound to it.
 
 If VALUE has any other type, signal an error.
 
 Additionally, if COPY-TO-ENVIRONMENT is non-nil, the alias should be
 copied (a.k.a. \"exported\") to the environment of created subprocesses."
+  :version "29.1"
   :type '(repeat (list string sexp
 		       (choice (const :tag "Copy to environment" t)
                                (const :tag "Use only in Eshell" nil))
@@ -234,6 +253,12 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
   ;; changing a variable will affect all of Emacs.
   (unless eshell-modify-global-environment
     (setq-local process-environment (eshell-copy-environment)))
+  (setq-local eshell-subcommand-bindings
+              (append
+               '((process-environment (eshell-copy-environment))
+                 (eshell-variable-aliases-list eshell-variable-aliases-list)
+                 (eshell-path-env-list eshell-path-env-list))
+               eshell-subcommand-bindings))
 
   (setq-local eshell-special-chars-inside-quoting
        (append eshell-special-chars-inside-quoting '(?$)))
@@ -282,9 +307,9 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
 	     (while (string-match setvar command)
 	       (nconc
 		l (list
-		   (list 'setenv (match-string 1 command)
-			 (match-string 2 command)
-			 (= (length (match-string 2 command)) 0))))
+                   (list 'eshell-set-variable
+                         (match-string 1 command)
+                         (match-string 2 command))))
 	       (setq command (eshell-stringify (car args))
 		     args (cdr args)))
 	     (cdr l))
@@ -302,6 +327,11 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 
 (defun eshell/define (var-alias definition)
   "Define a VAR-ALIAS using DEFINITION."
+  ;; FIXME: This function doesn't work (it produces variable aliases
+  ;; in a form not recognized by other parts of the code), and likely
+  ;; hasn't worked since before its introduction into Emacs.  It
+  ;; should either be removed or fixed up.
+  (declare (obsolete nil "29.1"))
   (if (not definition)
       (setq eshell-variable-aliases-list
 	    (delq (assoc var-alias eshell-variable-aliases-list)
@@ -323,12 +353,11 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 
 (defun eshell/export (&rest sets)
   "This alias allows the `export' command to act as bash users expect."
-  (while sets
-    (if (and (stringp (car sets))
-	     (string-match "^\\([^=]+\\)=\\(.*\\)" (car sets)))
-	(setenv (match-string 1 (car sets))
-		(match-string 2 (car sets))))
-    (setq sets (cdr sets))))
+  (dolist (set sets)
+    (when (and (stringp set)
+               (string-match "^\\([^=]+\\)=\\(.*\\)" set))
+      (eshell-set-variable (match-string 1 set)
+                           (match-string 2 set)))))
 
 (defun pcomplete/eshell-mode/export ()
   "Completion function for Eshell's `export'."
@@ -338,14 +367,26 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 	    (eshell-envvar-names)))))
 
 (defun eshell/unset (&rest args)
-  "Unset an environment variable."
-  (while args
-    (if (stringp (car args))
-	(setenv (car args) nil t))
-    (setq args (cdr args))))
+  "Unset one or more variables.
+This is equivalent to calling `eshell/set' for all of ARGS with
+the values of nil for each."
+  (dolist (arg args)
+    (eshell-set-variable arg nil)))
 
 (defun pcomplete/eshell-mode/unset ()
   "Completion function for Eshell's `unset'."
+  (while (pcomplete-here (eshell-envvar-names))))
+
+(defun eshell/set (&rest args)
+  "Allow command-ish use of `set'."
+  (let (last-value)
+    (while args
+      (setq last-value (eshell-set-variable (car args) (cadr args))
+            args (cddr args)))
+    last-value))
+
+(defun pcomplete/eshell-mode/set ()
+  "Completion function for Eshell's `set'."
   (while (pcomplete-here (eshell-envvar-names))))
 
 (defun eshell/setq (&rest args)
@@ -561,18 +602,21 @@ INDICES is a list of index-lists (see `eshell-parse-indices').
 If QUOTED is non-nil, this was invoked inside double-quotes."
   (if-let ((alias (assoc name eshell-variable-aliases-list)))
       (let ((target (nth 1 alias)))
+        (when (and (not (functionp target))
+                   (consp target))
+          (setq target (car target)))
         (cond
          ((functionp target)
           (if (nth 3 alias)
               (eshell-apply-indices (funcall target) indices quoted)
-            (condition-case nil
-	        (funcall target indices quoted)
-              (wrong-number-of-arguments
-               (display-warning
-                :warning (concat "Function for `eshell-variable-aliases-list' "
-                                 "entry should accept two arguments: INDICES "
-                                 "and QUOTED.'"))
-               (funcall target indices)))))
+            (let ((max-arity (cdr (func-arity target))))
+              (if (or (eq max-arity 'many) (>= max-arity 2))
+                  (funcall target indices quoted)
+                (display-warning
+                 :warning (concat "Function for `eshell-variable-aliases-list' "
+                                  "entry should accept two arguments: INDICES "
+                                  "and QUOTED.'"))
+                (funcall target indices)))))
          ((symbolp target)
           (eshell-apply-indices (symbol-value target) indices quoted))
          (t
@@ -588,6 +632,44 @@ If QUOTED is non-nil, this was invoked inside double-quotes."
 	   (symbol-value sym)
 	 (getenv name)))
      indices quoted)))
+
+(defun eshell-set-variable (name value)
+  "Set the variable named NAME to VALUE.
+NAME can be a string (in which case it refers to an environment
+variable or variable alias) or a symbol (in which case it refers
+to a Lisp variable)."
+  (if-let ((alias (assoc name eshell-variable-aliases-list)))
+      (let ((target (nth 1 alias)))
+        (cond
+         ((functionp target)
+          (setq target nil))
+         ((consp target)
+          (setq target (cdr target))))
+        (cond
+         ((functionp target)
+          (funcall target nil value))
+         ((null target)
+          (unless eshell-in-subcommand-p
+            (error "Variable `%s' is not settable" (eshell-stringify name)))
+          (push `(,name ,(lambda () value) t t)
+                eshell-variable-aliases-list)
+          value)
+         ;; Since getting a variable alias with a string target and
+         ;; `eshell-prefer-lisp-variables' non-nil gets the
+         ;; corresponding Lisp variable, make sure setting does the
+         ;; same.
+         ((and eshell-prefer-lisp-variables
+               (stringp target))
+          (eshell-set-variable (intern target) value))
+         (t
+          (eshell-set-variable target value))))
+    (cond
+     ((stringp name)
+      (setenv name value))
+     ((symbolp name)
+      (set name value))
+     (t
+      (error "Unknown variable `%s'" (eshell-stringify name))))))
 
 (defun eshell-apply-indices (value indices &optional quoted)
   "Apply to VALUE all of the given INDICES, returning the sub-result.

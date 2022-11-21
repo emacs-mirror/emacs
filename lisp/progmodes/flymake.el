@@ -1133,7 +1133,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
     (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function t t)
 
-    ;; If Flymake happened to be already already ON, we must cleanup
+    ;; If Flymake happened to be already ON, we must cleanup
     ;; existing diagnostic overlays, lest we forget them by blindly
     ;; reinitializing `flymake--state' in the next line.
     ;; See https://github.com/joaotavora/eglot/issues/223.
@@ -1360,8 +1360,9 @@ default) no filter is applied."
     flymake-mode-line-warning-counter
     flymake-mode-line-note-counter "]")
   "Mode-line construct for formatting Flymake diagnostic counters.
-This is a suitable place for placing the `flymake-error-counter',
-`flymake-warning-counter' and `flymake-note-counter' constructs.
+This is a suitable place for placing the `flymake-mode-line-error-counter',
+`flymake-mode-line-warning-counter' and `flymake-mode-line-note-counter'
+constructs.
 Separating each of these with space is not necessary."
   :type '(repeat (choice string symbol)))
 

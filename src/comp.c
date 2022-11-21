@@ -947,7 +947,7 @@ obj_to_reloc (Lisp_Object obj)
     }
 
   xsignal1 (Qnative_ice,
-	    build_string ("cant't find data in relocation containers"));
+	    build_string ("can't find data in relocation containers"));
   assume (false);
 
  found:
@@ -5609,7 +5609,7 @@ file_in_eln_sys_dir (Lisp_Object filename)
 /* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
        doc: /* Load native elisp code FILENAME.
-LATE_LOAD has to be non-nil when loading for deferred compilation.  */)
+LATE-LOAD has to be non-nil when loading for deferred compilation.  */)
   (Lisp_Object filename, Lisp_Object late_load)
 {
   CHECK_STRING (filename);
@@ -5868,8 +5868,21 @@ The last directory of this list is assumed to be the system one.  */);
   Vnative_comp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
   DEFVAR_BOOL ("comp-enable-subr-trampolines", comp_enable_subr_trampolines,
-	       doc: /* If non-nil enable primitive trampoline synthesis.
-This makes primitive functions redefinable or advisable effectively.  */);
+	       doc: /* If non-nil, enable primitive trampoline synthesis.
+This makes Emacs respect redefinition or advises of primitive functions
+when they are called from Lisp code natively-compiled at `native-comp-speed'
+of 2.
+
+By default, this is enabled, and when Emacs sees a redefined or advised
+primitive called from natively-compiled Lisp, it generates a trampoline
+for it on-the-fly.
+
+Disabling this, when a trampoline for a redefined or advised primitive is
+not available from previous compilations, means that such redefinition
+or advise will not have effect on calls from natively-compiled Lisp code.
+That is, calls to primitives without existing trampolines from
+natively-compiled Lisp will behave as if the primitive was called
+directly from C.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
 	       doc: /* Hash table subr-name -> installed trampoline.

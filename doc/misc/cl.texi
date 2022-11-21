@@ -3381,9 +3381,9 @@ true for all elements.
 
 @defun cl-reduce function seq @t{&key :from-end :start :end :initial-value :key}
 This function returns the result of calling @var{function} on the
-first and second element of @var{seq}, then calling @var{function}
+first and second elements of @var{seq}, then calling @var{function}
 with that result and the third element of @var{seq}, then with that
-result and the third element of @var{seq}, etc.
+result and the fourth element of @var{seq}, etc.
 
 Here is an example.  Suppose @var{function} is @code{*} and @var{seq}
 is the list @code{(2 3 4 5)}.  The first two elements of the list are
@@ -4051,7 +4051,7 @@ following keywords can be used:
 
 @table @code
 @item :read-only
-A non-nil value means the slot should not be @code{setf}-able;
+A non-@code{nil} value means the slot should not be @code{setf}-able;
 the slot's value is determined when the object is created and does
 not change afterward.
 

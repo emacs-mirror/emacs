@@ -208,8 +208,14 @@ and if a matching region is found, place point at the start of the region."
                 (goto-char end)
                 (setq ended t)))))
       ;; End this at the first place the property changes value.
-      (setq end (previous-single-property-change
-                 (point) property nil (point-min)))
+      (setq end
+            (if (and (> (point) (point-min))
+                     (text-property--match-p
+                      value (get-text-property (1- (point)) property)
+                      predicate))
+                (previous-single-property-change (point)
+                                                 property nil (point-min))
+              (point)))
       (goto-char end))
     (make-prop-match :beginning end
                      :end (1+ start)

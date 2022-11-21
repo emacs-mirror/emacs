@@ -278,8 +278,16 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
 
   * `tramp-direct-async'
     Whether the method supports direct asynchronous processes.
-    Until now, just \"ssh\"-based, \"sshfs\"-based and
-    \"adb\"-based methods do.
+    Until now, just \"ssh\"-based, \"sshfs\"-based, \"adb\"-based
+    and container methods do.  If it is a list of strings, they
+    are used to construct the remote command.
+
+  * `tramp-config-check'
+    A function to be called with one argument, VEC.  It should
+    return a string which is used to check, whether the
+    configuration of the remote host has been changed (which
+    would require to flush the cache data).  This string is kept
+    as connection property \"config-check-data\".
 
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
@@ -1088,34 +1096,18 @@ Derived from `tramp-postfix-host-format'.")
 (defun tramp-build-remote-file-name-spec-regexp ()
   "Construct a regexp matching a Tramp file name for a Tramp syntax.
 It is expected, that `tramp-syntax' has the proper value."
-  ;; Starting with Emacs 27, we can use `rx-let'.
-  (let* ((user-regexp
-	  (tramp-compat-rx
-	   (group-n 6 (regexp tramp-user-regexp))
-	   (regexp tramp-postfix-user-regexp)))
-	 (host-regexp
-	  (tramp-compat-rx
-	   (group-n 7 (| (regexp tramp-host-regexp)
-			 (: (regexp tramp-prefix-ipv6-regexp)
-			    (? (regexp tramp-ipv6-regexp))
-			    (regexp tramp-postfix-ipv6-regexp)))
-		    ;; Optional port.
-		    (? (regexp tramp-prefix-port-regexp)
-		       (regexp tramp-port-regexp)))))
-	 (user-host-regexp
-	  (if (eq tramp-syntax 'simplified)
-	      ;; There must be either user or host.
-	      (tramp-compat-rx
-	       (| (: (regexp user-regexp) (? (regexp host-regexp)))
-		  (: (? (regexp user-regexp)) (regexp host-regexp))))
-	    (tramp-compat-rx
-	     (? (regexp user-regexp)) (? (regexp host-regexp))))))
-    (tramp-compat-rx
-     ;; Method.
-     (group-n 5 (regexp tramp-method-regexp))
-     (regexp tramp-postfix-method-regexp)
-     ;; User and host.
-     (regexp user-host-regexp))))
+  (tramp-compat-rx
+   ;; Method.
+   (group (regexp tramp-method-regexp)) (regexp tramp-postfix-method-regexp)
+   ;; Optional user.  This includes domain.
+   (? (group (regexp tramp-user-regexp)) (regexp tramp-postfix-user-regexp))
+   ;; Optional host.
+   (? (group (| (regexp tramp-host-regexp)
+                (: (regexp tramp-prefix-ipv6-regexp)
+		   (? (regexp tramp-ipv6-regexp))
+		   (regexp tramp-postfix-ipv6-regexp)))
+   ;; Optional port.
+   (? (regexp tramp-prefix-port-regexp) (regexp tramp-port-regexp))))))
 
 (defvar tramp-remote-file-name-spec-regexp
   nil ; Initialized when defining `tramp-syntax'!
@@ -1214,7 +1206,8 @@ The `ftp' syntax does not support methods.")
      ;; "/ssh:host:~/path" becomes "c:/ssh:host:~/path".  See also
      ;; `tramp-drop-volume-letter'.
      (? (regexp tramp-volume-letter-regexp))
-     (regexp tramp-prefix-regexp)
+     ;; We cannot use `tramp-prefix-regexp', because it starts with `bol'.
+     (literal tramp-prefix-format)
 
      ;; Optional multi hops.
      (* (regexp tramp-remote-file-name-spec-regexp)
@@ -1541,7 +1534,8 @@ same connection.  Make a copy in order to avoid side effects."
 
 ;; Comparison of file names is performed by `tramp-equal-remote'.
 (defun tramp-file-name-equal-p (vec1 vec2)
-  "Check, whether VEC1 and VEC2 denote the same `tramp-file-name'."
+  "Check, whether VEC1 and VEC2 denote the same `tramp-file-name'.
+LOCALNAME and HOP do not count."
   (and (tramp-file-name-p vec1) (tramp-file-name-p vec2)
        (equal (tramp-file-name-unify vec1)
 	      (tramp-file-name-unify vec2))))
@@ -1862,7 +1856,8 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
     tramp-prefix-regexp ""
     (replace-regexp-in-string
      (tramp-compat-rx
-      (regexp tramp-postfix-host-regexp) eos) tramp-postfix-hop-format
+      (regexp tramp-postfix-host-regexp) eos)
+     tramp-postfix-hop-format
      (tramp-make-tramp-file-name vec 'noloc)))))
 
 (defun tramp-completion-make-tramp-file-name (method user host localname)
@@ -4003,6 +3998,17 @@ Let-bind it when necessary.")
   (cond
    ((not (file-exists-p file1)) nil)
    ((not (file-exists-p file2)) t)
+   ;; Tramp reads and writes timestamps on second level.  So we round
+   ;; the timestamps to seconds w/o fractions.
+   ;; `time-convert' has been introduced with Emacs 27.1.
+   ((fboundp 'time-convert)
+    (time-less-p
+     (tramp-compat-funcall
+      'time-convert
+      (file-attribute-modification-time (file-attributes file2)) 'integer)
+     (tramp-compat-funcall
+      'time-convert
+      (file-attribute-modification-time (file-attributes file1)) 'integer)))
    (t (time-less-p
        (file-attribute-modification-time (file-attributes file2))
        (file-attribute-modification-time (file-attributes file1))))))
@@ -4579,14 +4585,9 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	     (setq file (concat file ".elc")))
 	    ((file-exists-p (concat file ".el"))
 	     (setq file (concat file ".el")))))
-    (when must-suffix
-      ;; The first condition is always true for absolute file names.
-      ;; Included for safety's sake.
-      (unless (or (file-name-directory file)
-		  (string-match-p (rx ".el" (? "c") eos) file))
-	(tramp-error
-	 v 'file-error
-	 "File `%s' does not include a `.el' or `.elc' suffix" file)))
+    (when (and must-suffix (not (string-match-p (rx ".el" (? "c") eos) file)))
+      (tramp-error
+       v 'file-error "File `%s' does not include a `.el' or `.elc' suffix" file))
     (unless (or noerror (file-exists-p file))
       (tramp-error v 'file-missing file))
     (if (not (file-exists-p file))
@@ -4804,7 +4805,14 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	       (command
 	        (append
 		 `("cd" ,(tramp-shell-quote-argument localname) "&&" "(" "env")
-		 env `(,command ")"))))
+		 env `(,command ")")))
+		;; Add remote shell if needed.
+	       (command
+		(if (consp (tramp-get-method-parameter v 'tramp-direct-async))
+		    (append
+		     (tramp-get-method-parameter v 'tramp-direct-async)
+                     `(,(mapconcat #'identity command " ")))
+		  command)))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
 	  ;; is different between tramp-sh.el, and tramp-adb.el or

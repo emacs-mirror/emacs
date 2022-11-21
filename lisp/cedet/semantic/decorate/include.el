@@ -330,7 +330,7 @@ This mode provides a nice context menu on the include statements."
 	)
       ))
 
-    ;; @TODO - if not a tag w/ a position, we need to get one.  How?
+    ;; @TODO - if not a tag with a position, we need to get one.  How?
 
     (when (semantic-tag-with-position-p tag)
       (let ((ol (semantic-decorate-tag tag

@@ -552,8 +552,7 @@ the name is not known."
             (apply (or class 'transient-prefix) :command name
                    (cons :variable-pitch (cons t slots))))
        (put name 'transient--layout
-            (cl-mapcan (lambda (s) (transient--parse-child name s))
-                       suffixes)))
+            (transient-parse-suffixes name suffixes)))
     name))
 
 (defun emoji--recent-transient (end-function)

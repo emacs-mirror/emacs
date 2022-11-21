@@ -3649,8 +3649,7 @@ Optional third argument, if t, means if fail just return nil (no error).
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
-      (let ((inhibit-point-motion-hooks isearch-invisible)
-	    (inhibit-quit nil)
+      (let ((inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
 	    (search-invisible isearch-invisible)
 	    (retry t))

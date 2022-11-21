@@ -82,6 +82,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #include "bignum.h"
+#include "itree.h"
 #include "intervals.h"
 #include "character.h"
 #include "buffer.h"
@@ -435,9 +436,9 @@ terminate_due_to_signal (int sig, int backtrace_limit)
           if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
 	    {
 	      /* Avoid abort in shut_down_emacs if we were interrupted
-		 by SIGINT in noninteractive usage, as in that case we
-		 don't care about the message stack.  */
-	      if (sig == SIGINT && noninteractive)
+		 in noninteractive usage, as in that case we don't
+		 care about the message stack.  */
+	      if (noninteractive)
 		clear_message_stack ();
 	      Fkill_emacs (make_fixnum (sig), Qnil);
 	    }
@@ -2570,6 +2571,7 @@ static const struct standard_args standard_args[] =
   { "-init-directory", "--init-directory", 30, 1 },
   { "-no-x-resources", "--no-x-resources", 40, 0 },
   { "-no-site-file", "--no-site-file", 40, 0 },
+  { "-no-comp-spawn", "--no-comp-spawn", 60, 0 },
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },

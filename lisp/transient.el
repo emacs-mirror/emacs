@@ -68,26 +68,6 @@
 (defvar display-line-numbers) ; since Emacs 26.1
 (defvar Man-notify-method)
 
-(define-obsolete-function-alias 'define-transient-command
-  'transient-define-prefix "Transient 0.3.0")
-(define-obsolete-function-alias 'define-suffix-command
-  'transient-define-suffix "Transient 0.3.0")
-(define-obsolete-function-alias 'define-infix-command
-  'transient-define-infix "Transient 0.3.0")
-(define-obsolete-function-alias 'define-infix-argument
-  #'transient-define-argument "Transient 0.3.0")
-
-(define-obsolete-variable-alias 'transient--source-buffer
-  'transient--original-buffer "Transient 0.2.0")
-(define-obsolete-variable-alias 'current-transient-prefix
-  'transient-current-prefix "Transient 0.3.0")
-(define-obsolete-variable-alias 'current-transient-command
-  'transient-current-command "Transient 0.3.0")
-(define-obsolete-variable-alias 'current-transient-suffixes
-  'transient-current-suffixes "Transient 0.3.0")
-(define-obsolete-variable-alias 'post-transient-hook
-  'transient-exit-hook "Transient 0.3.0")
-
 (defmacro transient--with-emergency-exit (&rest body)
   (declare (indent defun))
   `(condition-case err
@@ -893,8 +873,20 @@ to the setup function:
        (put ',name 'transient--prefix
             (,(or class 'transient-prefix) :command ',name ,@slots))
        (put ',name 'transient--layout
-            ',(cl-mapcan (lambda (s) (transient--parse-child name s))
-                         suffixes)))))
+            (list ,@(cl-mapcan (lambda (s) (transient--parse-child name s))
+                               suffixes))))))
+
+(defmacro transient-define-groups (name &rest groups)
+  "Define one or more GROUPS and store them in symbol NAME.
+GROUPS, defined using this macro, can be used inside the
+definition of transient prefix commands, by using the symbol
+NAME where a group vector is expected.  GROUPS has the same
+form as for `transient-define-prefix'."
+  (declare (debug (&define name [&rest vectorp]))
+           (indent defun))
+  `(put ',name 'transient--layout
+        (list ,@(cl-mapcan (lambda (group) (transient--parse-child name group))
+                           groups))))
 
 (defmacro transient-define-suffix (name arglist &rest args)
   "Define NAME as a transient suffix command.
@@ -1000,9 +992,8 @@ example, sets a variable use `transient-define-infix' instead.
           (push k keys)
           (push v keys))))
     (while (let ((arg (car args)))
-             (if (vectorp arg)
-                 (setcar args (eval (cdr (backquote-process arg))))
-               (and arg (symbolp arg))))
+             (or (vectorp arg)
+                 (and arg (symbolp arg))))
       (push (pop args) suffixes))
     (list (if (eq (car-safe class) 'quote)
               (cadr class)
@@ -1035,17 +1026,24 @@ example, sets a variable use `transient-define-infix' instead.
       (when (stringp car)
         (setq args (plist-put args :description pop)))
       (while (keywordp car)
-        (let ((k pop))
-          (if (eq k :class)
-              (setq class pop)
-            (setq args (plist-put args k pop)))))
-      (vector (or level transient--default-child-level)
-              (or class
-                  (if (vectorp car)
-                      'transient-columns
-                    'transient-column))
-              args
-              (cl-mapcan (lambda (s) (transient--parse-child prefix s)) spec)))))
+        (let ((key pop)
+              (val pop))
+          (cond ((eq key :class)
+                 (setq class (macroexp-quote val)))
+                ((or (symbolp val)
+                     (and (listp val) (not (eq (car val) 'lambda))))
+                 (setq args (plist-put args key (macroexp-quote val))))
+                ((setq args (plist-put args key val))))))
+      (list 'vector
+            (or level transient--default-child-level)
+            (or class
+                (if (vectorp car)
+                    (quote 'transient-columns)
+                  (quote 'transient-column)))
+            (and args (cons 'list args))
+            (cons 'list
+                  (cl-mapcan (lambda (s) (transient--parse-child prefix s))
+                             spec))))))
 
 (defun transient--parse-suffix (prefix spec)
   (let (level class args)
@@ -1057,17 +1055,19 @@ example, sets a variable use `transient-define-infix' instead.
       (when (or (stringp car)
                 (vectorp car))
         (setq args (plist-put args :key pop)))
-      (when (or (stringp car)
-                (eq (car-safe car) 'lambda)
-                (and (symbolp car)
-                     (not (commandp car))
-                     (commandp (cadr spec))))
+      (cond
+       ((or (stringp car)
+            (eq (car-safe car) 'lambda))
         (setq args (plist-put args :description pop)))
+       ((and (symbolp car)
+             (not (commandp car))
+             (commandp (cadr spec)))
+        (setq args (plist-put args :description (macroexp-quote pop)))))
       (cond
        ((keywordp car)
         (error "Need command, got %S" car))
        ((symbolp car)
-        (setq args (plist-put args :command pop)))
+        (setq args (plist-put args :command (macroexp-quote pop))))
        ((and (commandp car)
              (not (stringp car)))
         (let ((cmd pop)
@@ -1076,7 +1076,7 @@ example, sets a variable use `transient-define-infix' instead.
                                    (or (plist-get args :description)
                                        (plist-get args :key))))))
           (defalias sym cmd)
-          (setq args (plist-put args :command sym))))
+          (setq args (plist-put args :command (macroexp-quote sym)))))
        ((or (stringp car)
             (and car (listp car)))
         (let ((arg pop))
@@ -1090,11 +1090,11 @@ example, sets a variable use `transient-define-infix' instead.
                (setq args (plist-put args :shortarg shortarg)))
              (setq args (plist-put args :argument arg))))
           (setq args (plist-put args :command
-                                (intern (format "transient:%s:%s"
-                                                prefix arg))))
+                                (list 'quote (intern (format "transient:%s:%s"
+                                                             prefix arg)))))
           (cond ((and car (not (keywordp car)))
                  (setq class 'transient-option)
-                 (setq args (plist-put args :reader pop)))
+                 (setq args (plist-put args :reader (macroexp-quote pop))))
                 ((not (string-suffix-p "=" arg))
                  (setq class 'transient-switch))
                 (t
@@ -1102,17 +1102,23 @@ example, sets a variable use `transient-define-infix' instead.
        (t
         (error "Needed command or argument, got %S" car)))
       (while (keywordp car)
-        (let ((k pop))
-          (cl-case k
-            (:class (setq class pop))
-            (:level (setq level pop))
-            (t (setq args (plist-put args k pop)))))))
+        (let ((key pop)
+              (val pop))
+          (cond ((eq key :class) (setq class val))
+                ((eq key :level) (setq level val))
+                ((eq (car-safe val) '\,)
+                 (setq args (plist-put args key (cadr val))))
+                ((or (symbolp val)
+                     (and (listp val) (not (eq (car val) 'lambda))))
+                 (setq args (plist-put args key (macroexp-quote val))))
+                ((setq args (plist-put args key val)))))))
     (unless (plist-get args :key)
       (when-let ((shortarg (plist-get args :shortarg)))
         (setq args (plist-put args :key shortarg))))
-    (list (or level transient--default-child-level)
-          (or class 'transient-suffix)
-          args)))
+    (list 'list
+          (or level transient--default-child-level)
+          (macroexp-quote (or class 'transient-suffix))
+          (cons 'list args))))
 
 (defun transient--default-infix-command ()
   (cons 'lambda
@@ -1139,6 +1145,22 @@ example, sets a variable use `transient-define-infix' instead.
     (and (string-match "\\`\\(-[a-zA-Z]\\)\\(\\'\\|=\\)" arg)
          (match-string 1 arg))))
 
+(defun transient-parse-suffix (prefix suffix)
+  "Parse SUFFIX, to be added to PREFIX.
+PREFIX is a prefix command, a symbol.
+SUFFIX is a suffix command or a group specification (of
+  the same forms as expected by `transient-define-prefix').
+Intended for use in PREFIX's `:setup-children' function."
+  (eval (car (transient--parse-child prefix suffix))))
+
+(defun transient-parse-suffixes (prefix suffixes)
+  "Parse SUFFIXES, to be added to PREFIX.
+PREFIX is a prefix command, a symbol.
+SUFFIXES is a list of suffix command or a group specification
+  (of the same forms as expected by `transient-define-prefix').
+Intended for use in PREFIX's `:setup-children' function."
+  (mapcar (apply-partially #'transient-parse-suffix prefix) suffixes))
+
 ;;; Edit
 
 (defun transient--insert-suffix (prefix loc suffix action &optional keep-other)
@@ -1148,6 +1170,7 @@ example, sets a variable use `transient-define-infix' instead.
                 (string suffix)))
          (mem (transient--layout-member loc prefix))
          (elt (car mem)))
+    (setq suf (eval suf))
     (cond
      ((not mem)
       (message "Cannot insert %S into %s; %s not found"
@@ -1448,7 +1471,10 @@ probably use this instead:
           transient-current-prefix)
       (cl-find-if (lambda (obj)
                     (eq (transient--suffix-command obj)
-                        (or command this-command)))
+                        ;; When `this-command' is `transient-set-level',
+                        ;; its reader needs to know what command is being
+                        ;; configured.
+                        (or command this-original-command)))
                   (or transient--suffixes
                       transient-current-suffixes))
     (when-let* ((obj (get (or command this-command) 'transient--suffix))
@@ -1555,32 +1581,39 @@ to `transient-predicate-map'.  Also see `transient-base-map'.")
 
 (put 'transient-common-commands
      'transient--layout
-     (cl-mapcan
-      (lambda (s) (transient--parse-child 'transient-common-commands s))
-      `([:hide ,(lambda ()
-                  (and (not (memq (car (bound-and-true-p
-                                        transient--redisplay-key))
-                                  transient--common-command-prefixes))
-                       (not transient-show-common-commands)))
-         ["Value commands"
-          ("C-x s  " "Set"            transient-set)
-          ("C-x C-s" "Save"           transient-save)
-          ("C-x C-k" "Reset"          transient-reset)
-          ("C-x p  " "Previous value" transient-history-prev)
-          ("C-x n  " "Next value"     transient-history-next)]
-         ["Sticky commands"
-          ;; Like `transient-sticky-map' except that
-          ;; "C-g" has to be bound to a different command.
-          ("C-g" "Quit prefix or transient" transient-quit-one)
-          ("C-q" "Quit transient stack"     transient-quit-all)
-          ("C-z" "Suspend transient stack"  transient-suspend)]
-         ["Customize"
-          ("C-x t" transient-toggle-common
-           :description ,(lambda ()
-                           (if transient-show-common-commands
-                               "Hide common commands"
-                             "Show common permanently")))
-          ("C-x l" "Show/hide suffixes" transient-set-level)]])))
+     (list
+      (eval
+       (car (transient--parse-child
+             'transient-common-commands
+             (vector
+              :hide
+              (lambda ()
+                (and (not (memq
+                           (car (bound-and-true-p transient--redisplay-key))
+                           transient--common-command-prefixes))
+                     (not transient-show-common-commands)))
+              (vector
+               "Value commands"
+               (list "C-x s  " "Set"            #'transient-set)
+               (list "C-x C-s" "Save"           #'transient-save)
+               (list "C-x C-k" "Reset"          #'transient-reset)
+               (list "C-x p  " "Previous value" #'transient-history-prev)
+               (list "C-x n  " "Next value"     #'transient-history-next))
+              (vector
+               "Sticky commands"
+               ;; Like `transient-sticky-map' except that
+               ;; "C-g" has to be bound to a different command.
+               (list "C-g" "Quit prefix or transient" #'transient-quit-one)
+               (list "C-q" "Quit transient stack"     #'transient-quit-all)
+               (list "C-z" "Suspend transient stack"  #'transient-suspend))
+              (vector
+               "Customize"
+               (list "C-x t" 'transient-toggle-common :description
+                     (lambda ()
+                       (if transient-show-common-commands
+                           "Hide common commands"
+                         "Show common permanently")))
+               (list "C-x l" "Show/hide suffixes" #'transient-set-level))))))))
 
 (defvar transient-popup-navigation-map
   (let ((map (make-sparse-keymap)))
@@ -2176,7 +2209,8 @@ value.  Otherwise return CHILDREN as is."
                                   ;; used to call another command
                                   ;; that also uses the minibuffer.
                                   (equal
-                                   (string-to-multibyte (this-command-keys))
+                                   (ignore-errors
+                                     (string-to-multibyte (this-command-keys)))
                                    (format "\M-x%s\r" this-command))))))
                 (transient--debug 'post-command-hook "act: %s" act)
                 (when act
@@ -3501,7 +3535,7 @@ Optional support for popup buttons is also implemented here."
 
 (cl-defmethod transient-format-description ((obj transient-child))
   "The `description' slot may be a function, in which case that is
-called inside the correct buffer (see `transient-insert-group')
+called inside the correct buffer (see `transient--insert-group')
 and its value is returned to the caller."
   (and-let* ((desc (oref obj description)))
     (if (functionp desc)
@@ -3669,7 +3703,14 @@ manpage, then try to jump to the correct location."
 
 (defun transient--describe-function (fn)
   (describe-function (if (symbolp fn) fn 'transient--anonymous-infix-argument))
-  (select-window (get-buffer-window (help-buffer))))
+  (unless (derived-mode-p 'help-mode)
+    (when-let* ((buf (get-buffer "*Help*"))
+                (win (or (and buf (get-buffer-window buf))
+                         (cl-find-if (lambda (win)
+                                       (with-current-buffer (window-buffer win)
+                                         (derived-mode-p 'help-mode)))
+                                     (window-list)))))
+      (select-window win))))
 
 (defun transient--anonymous-infix-argument ()
   "Cannot show any documentation for this anonymous infix command.

@@ -737,7 +737,7 @@ struct font_driver const ftcrfont_driver =
   .filter_properties = ftfont_filter_properties,
   .combining_capability = ftfont_combining_capability,
 #ifdef HAVE_PGTK
-  .cached_font_ok = ftcrfont_cached_font_ok
+  .cached_font_ok = ftcrfont_cached_font_ok,
 #endif
   };
 #ifdef HAVE_HARFBUZZ
@@ -754,6 +754,42 @@ syms_of_ftcrfont (void)
 #endif	/* HAVE_HARFBUZZ */
   pdumper_do_now_and_after_load (syms_of_ftcrfont_for_pdumper);
 }
+
+#ifdef HAVE_X_WINDOWS
+
+/* Place the default font options used by Cairo on the given display
+   in OPTIONS.  */
+
+void
+ftcrfont_get_default_font_options (struct x_display_info *dpyinfo,
+				   cairo_font_options_t *options)
+{
+  Pixmap drawable;
+  cairo_surface_t *surface;
+
+  /* Cairo doesn't allow fetching the default font options for a
+     display, so the only option is to create a drawable, and an Xlib
+     surface for that drawable, and to get the font options from there
+     instead.  */
+
+  drawable = XCreatePixmap (dpyinfo->display, dpyinfo->root_window,
+			    1, 1, dpyinfo->n_planes);
+  surface = cairo_xlib_surface_create (dpyinfo->display, drawable,
+				       dpyinfo->visual, 1, 1);
+
+  if (!surface)
+    {
+      XFreePixmap (dpyinfo->display, drawable);
+      return;
+    }
+
+  cairo_surface_get_font_options (surface, options);
+  XFreePixmap (dpyinfo->display, drawable);
+  cairo_surface_destroy (surface);
+  return;
+}
+
+#endif
 
 static void
 syms_of_ftcrfont_for_pdumper (void)

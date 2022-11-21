@@ -202,9 +202,10 @@ them right the first time, so here are guidelines for formatting them:
   you can put a paragraph (after the empty line and before the
   individual ChangeLog entries) that further describes the commit.
 
-- Limit lines in commit messages to 78 characters, unless they consist
-  of a single word of at most 140 characters; this is enforced by a
-  commit hook.
+- Lines in ChangeLog entries should preferably be not longer than 63
+  characters, and must not exceed 78 characters, unless they consist
+  of a single word of at most 140 characters; this 78/140 limit is
+  enforced by a commit hook.
 
 - If only a single file is changed, the summary line can be the normal
   file first line (starting with the asterisk).  Then there is no

@@ -1540,7 +1540,7 @@ color is supported.  Therefore, Emacs provides an option
 @code{comint-terminfo-terminal} to let you choose a terminal with more
 advanced features, as defined in your system's terminfo database.
 Emacs will use this option as the value for @env{TERM} so long as
-@code{system-uses-terminfo} is non-nil.
+@code{system-uses-terminfo} is non-@code{nil}.
 
 Both @code{comint-terminfo-terminal} and @code{system-uses-terminfo}
 can be declared as connection-local variables to adjust these options

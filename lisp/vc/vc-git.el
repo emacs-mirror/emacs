@@ -95,6 +95,7 @@
 ;; - find-file-hook ()                             OK
 ;; - conflicted-files                              OK
 ;; - repository-url (file-or-dir)                  OK
+;; - prepare-patch (rev)                           OK
 
 ;;; Code:
 
@@ -1266,6 +1267,12 @@ This prompts for a branch to merge from."
       (add-hook 'after-save-hook #'vc-git-resolve-when-done nil 'local))
     (vc-message-unresolved-conflicts buffer-file-name)))
 
+(defun vc-git-clone (remote directory rev)
+  (if rev
+      (vc-git--out-ok "clone" "--branch" rev remote directory)
+    (vc-git--out-ok "clone" remote directory))
+  directory)
+
 ;;; HISTORY FUNCTIONS
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
@@ -1624,6 +1631,19 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 		    (expand-file-name fname (vc-git-root default-directory))))
 	  revision)))))
 
+(defun vc-git-last-change (file line)
+  (vc-buffer-sync)
+  (let ((file (file-relative-name file (vc-git-root (buffer-file-name)))))
+    (with-temp-buffer
+      (when (vc-git--out-ok
+             "blame" "--porcelain"
+             (format "-L%d,+1" line)
+             file)
+        (goto-char (point-min))
+        (save-match-data
+          (when (looking-at "\\`\\([[:alnum:]]+\\)[[:space:]]+")
+            (match-string 1)))))))
+
 ;;; TAG/BRANCH SYSTEM
 
 (declare-function vc-read-revision "vc"
@@ -1634,7 +1654,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
         (start-point (when branchp (vc-read-revision
                                     (format-prompt "Start point"
                                                    (car (vc-git-branches)))
-                                    (list dir) 'Git))))
+                                    (list dir) 'Git (car (vc-git-branches))))))
     (and (or (zerop (vc-git-command nil t nil "update-index" "--refresh"))
              (y-or-n-p "Modified files exist.  Proceed? ")
              (user-error (format "Can't create %s with modified files"
@@ -1742,6 +1762,29 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (defun vc-git-root (file)
   (vc-find-root file ".git"))
 
+(defun vc-git-prepare-patch (rev)
+  (with-current-buffer (generate-new-buffer " *vc-git-prepare-patch*")
+    (vc-git-command
+     t 0 '()  "format-patch"
+     "--no-numbered" "--stdout"
+     ;; From gitrevisions(7): ^<n> means the <n>th parent
+     ;; (i.e.  <rev>^ is equivalent to <rev>^1). As a
+     ;; special rule, <rev>^0 means the commit itself and
+     ;; is used when <rev> is the object name of a tag
+     ;; object that refers to a commit object.
+     (concat rev "^.." rev))
+    (let (subject)
+      ;; Extract the subject line
+      (goto-char (point-min))
+      (search-forward-regexp "^Subject: \\(.+\\)")
+      (setq subject (match-string 1))
+      ;; Jump to the beginning for the patch
+      (search-forward-regexp "\n\n")
+      ;; Return the extracted data
+      (list :subject subject
+            :buffer (current-buffer)
+            :body-start (point)))))
+
 ;; grep-compute-defaults autoloads grep.
 (declare-function grep-read-regexp "grep" ())
 (declare-function grep-read-files "grep" (regexp))
@@ -1840,7 +1883,8 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   "Show the contents of stash NAME."
   (interactive (list (vc-git-stash-read "Show stash: ")))
   (vc-setup-buffer "*vc-git-stash*")
-  (vc-git-command "*vc-git-stash*" 'async nil "stash" "show" "-p" name)
+  (vc-git-command "*vc-git-stash*" 'async nil
+                  "stash" "show" "--color=never" "-p" name)
   (set-buffer "*vc-git-stash*")
   (setq buffer-read-only t)
   (diff-mode)
@@ -2001,19 +2045,23 @@ FILE can be nil."
                     (setq ok nil))))))
     (and ok str)))
 
-(defun vc-git-symbolic-commit (commit)
-  "Translate COMMIT string into symbolic form.
-Returns nil if not possible."
+(defun vc-git-symbolic-commit (commit &optional force)
+  "Translate revision string of COMMIT to a symbolic form.
+If the optional argument FORCE is non-nil, the returned value is
+allowed to include revision specifications like \"master~8\"
+\(the 8th parent of the commit currently pointed to by the master
+branch), otherwise such revision specifications are rejected, and
+the function returns nil."
   (and commit
-       (let ((name (with-temp-buffer
-                     (and
-                      (vc-git--out-ok "name-rev" "--name-only" commit)
-                      (goto-char (point-min))
-                      (= (forward-line 2) 1)
-                      (bolp)
-                      (buffer-substring-no-properties (point-min)
-                                                      (1- (point-max)))))))
-         (and name (not (string= name "undefined")) name))))
+       (with-temp-buffer
+         (and
+          (vc-git--out-ok "name-rev" "--no-undefined" "--name-only" commit)
+          (goto-char (point-min))
+          (or force (not (looking-at "^.*[~^].*$" t)))
+          (= (forward-line 2) 1)
+          (bolp)
+          (buffer-substring-no-properties (point-min)
+                                          (1- (point-max)))))))
 
 (defvar-keymap vc-dir-git-mode-map
   "z c" #'vc-git-stash

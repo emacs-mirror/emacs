@@ -667,7 +667,7 @@ Similar to `minibuffer-contents' when completing in the minibuffer."
 		)
 	    (delete-overlay semantic-complete-inline-overlay)
 	    (setq semantic-complete-inline-overlay nil)
-	    ;; DONT restore the window configuration if we just
+	    ;; DON'T restore the window configuration if we just
 	    ;; switched windows!
 	    (when (eq buf (current-buffer))
 	      (set-window-configuration wc))

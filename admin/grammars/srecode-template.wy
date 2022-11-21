@@ -126,7 +126,7 @@ variable
   : SET symbol insertable-string-list newline
     (VARIABLE-TAG $2 nil $3)
   | SET symbol number newline
-    ;; This so a common error w/ priority works.
+    ;; This so a common error with priority works.
     ;; Note that "number" still has a string value in the lexer.
     (VARIABLE-TAG $2 nil (list $3))
   | SHOW symbol newline

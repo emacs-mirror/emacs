@@ -1171,6 +1171,13 @@ if test "$emacs_cv_clang" = yes; then
   gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
 fi
 
+# Suppress deprecation warnings from using sprintf variants,
+# starting with Xcode 14.1 on macOS 13.
+# These warnings are false alarms, as Emacs usage of sprintf is safe.
+if test $opsys = darwin; then
+  gl_WARN_ADD([-Wno-deprecated-declarations])
+fi
+
 # Use a slightly smaller set of warning options for lib/.
 nw=
 nw="$nw -Wunused-macros"
@@ -6771,6 +6778,7 @@ if test -f "$srcdir/$opt_makefile.in"; then
   dnl Again, it's best not to use a variable.  Though you can add
   dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
   AC_CONFIG_FILES([test/Makefile])
+  AC_CONFIG_FILES([test/manual/noverlay/Makefile])
 fi
 opt_makefile=test/infra/Makefile
 if test -f "$srcdir/$opt_makefile.in"; then

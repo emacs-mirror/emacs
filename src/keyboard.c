@@ -503,9 +503,11 @@ echo_add_key (Lisp_Object c)
   if ((NILP (echo_string) || SCHARS (echo_string) == 0)
       && help_char_p (c))
     {
-      AUTO_STRING (str, " (Type ? for further options)");
+      AUTO_STRING (str, " (Type ? for further options, q for quick help)");
       AUTO_LIST2 (props, Qface, Qhelp_key_binding);
       Fadd_text_properties (make_fixnum (7), make_fixnum (8), props, str);
+      Fadd_text_properties (make_fixnum (30), make_fixnum (31), props,
+str);
       new_string = concat2 (new_string, str);
     }
 
@@ -1268,7 +1270,6 @@ command_loop_1 (void)
 {
   modiff_count prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
-  bool already_adjusted = 0;
 
   kset_prefix_arg (current_kboard, Qnil);
   kset_last_prefix_arg (current_kboard, Qnil);
@@ -1458,8 +1459,6 @@ command_loop_1 (void)
       safe_run_hooks_maybe_narrowed (Qpre_command_hook,
 				     XWINDOW (selected_window));
 
-      already_adjusted = 0;
-
       if (NILP (Vthis_command))
 	/* nil means key is undefined.  */
 	call0 (Qundefined);
@@ -1615,9 +1614,8 @@ command_loop_1 (void)
 		   the automatic composition, we must update the
 		   display.  */
 		windows_or_buffers_changed = 21;
-	      if (!already_adjusted)
-		adjust_point_for_property (last_point_position,
-					   MODIFF != prev_modiff);
+	      adjust_point_for_property (last_point_position,
+					 MODIFF != prev_modiff);
 	    }
 	  else if (PT > BEGV && PT < ZV
 		   && (composition_adjust_point (last_point_position, PT)
@@ -1699,8 +1697,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 	  && display_prop_intangible_p (val, overlay, PT, PT_BYTE)
 	  && (!OVERLAYP (overlay)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
-	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),
-		 end = OVERLAY_POSITION (OVERLAY_END (overlay))))
+	      : (beg = OVERLAY_START (overlay),
+		 end = OVERLAY_END (overlay)))
 	  && (beg < PT /* && end > PT   <- It's always the case.  */
 	      || (beg <= PT && STRINGP (val) && SCHARS (val) == 0)))
 	{
@@ -5722,6 +5720,29 @@ make_scroll_bar_position (struct input_event *ev, Lisp_Object type)
 		builtin_lisp_symbol (scroll_bar_parts[ev->part]));
 }
 
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+
+/* Return whether or not the coordinates X and Y are inside the
+   box of the menu-bar window of frame F.  */
+
+static bool
+coords_in_menu_bar_window (struct frame *f, int x, int y)
+{
+  struct window *window;
+
+  if (!WINDOWP (f->menu_bar_window))
+    return false;
+
+  window = XWINDOW (f->menu_bar_window);
+
+  return (y >= WINDOW_TOP_EDGE_Y (window)
+	  && x >= WINDOW_LEFT_EDGE_X (window)
+	  && y <= WINDOW_BOTTOM_EDGE_Y (window)
+	  && x <= WINDOW_RIGHT_EDGE_X (window));
+}
+
+#endif
+
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
    movement buffer, which should have a movement event in it.
@@ -5974,10 +5995,32 @@ make_lispy_event (struct input_event *event)
 	       and ROW are set to frame relative glyph coordinates
 	       which are then used to determine whether this click is
 	       in a menu (non-toolkit version).  */
-	    if (!toolkit_menubar_in_use (f))
+	    if (!toolkit_menubar_in_use (f)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+		/* Don't process events for menu bars if they are not
+		   in the menu bar window.  */
+		&& (!FRAME_WINDOW_P (f)
+		    || coords_in_menu_bar_window (f, XFIXNUM (event->x),
+						  XFIXNUM (event->y)))
+#endif
+		)
 	      {
-		pixel_to_glyph_coords (f, XFIXNUM (event->x), XFIXNUM (event->y),
-				       &column, &row, NULL, 1);
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+		if (FRAME_WINDOW_P (f))
+		  {
+		    struct window *menu_w = XWINDOW (f->menu_bar_window);
+		    int x, y, dummy;
+
+		    x = FRAME_TO_WINDOW_PIXEL_X (menu_w, XFIXNUM (event->x));
+		    y = FRAME_TO_WINDOW_PIXEL_Y (menu_w, XFIXNUM (event->y));
+
+		    x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), x, y, &column, &row,
+				      NULL, NULL, &dummy);
+		  }
+		else
+#endif
+		  pixel_to_glyph_coords (f, XFIXNUM (event->x), XFIXNUM (event->y),
+					 &column, &row, NULL, 1);
 
 		/* In the non-toolkit version, clicks on the menu bar
 		   are ordinary button events in the event buffer.
@@ -5987,7 +6030,7 @@ make_lispy_event (struct input_event *event)
 		   menu bar and Emacs doesn't know about it until
 		   after the user makes a selection.)  */
 		if (row >= 0 && row < FRAME_MENU_BAR_LINES (f)
-		  && (event->modifiers & down_modifier))
+		    && (event->modifiers & down_modifier))
 		  {
 		    Lisp_Object items, item;
 

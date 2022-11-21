@@ -30,4 +30,5 @@ rm $KEYRING
 #$GPG --export-secret-keys -armor > "../key.sec"
 $GPG --import ../key.sec
 $GPG --detach-sign --sign "./archive-contents"
+$GPG --detach-sign --sign "./elpa-packages.eld"
 $GPG --detach-sign --sign "./signed-good-1.0.el"

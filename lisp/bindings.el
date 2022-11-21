@@ -1029,6 +1029,14 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key global-map [XF86Back] 'previous-buffer)
 (put 'previous-buffer :advertised-binding [?\C-x left])
 
+(defvar-keymap buffer-navigation-repeat-map
+  :doc "Keymap to repeat `next-buffer' and `previous-buffer'.  Used in `repeat-mode'."
+  "<right>" #'next-buffer
+  "<left>"  #'previous-buffer)
+
+(put 'next-buffer 'repeat-map 'buffer-navigation-repeat-map)
+(put 'previous-buffer 'repeat-map 'buffer-navigation-repeat-map)
+
 (let ((map minibuffer-local-map))
   (define-key map "\en"   'next-history-element)
   (define-key map [next]  'next-history-element)

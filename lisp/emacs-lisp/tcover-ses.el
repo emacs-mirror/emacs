@@ -569,7 +569,7 @@ spreadsheet files with invalid formatting."
 	  (signal 'singularity-error nil)) ;Shouldn't get here
       (singularity-error (error "No error from %s?" x))
       (error nil)))
-  ;;Test quit-handling in ses-update-cells.  Cant' use `eval' here.
+  ;; Test quit-handling in ses-update-cells.  Can't use `eval' here.
   (let ((inhibit-quit t))
     (setq quit-flag t)
     (condition-case nil

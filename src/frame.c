@@ -1503,17 +1503,7 @@ do_switch_frame (Lisp_Object frame, int for_deletion, Lisp_Object norecord)
 
   sf->select_mini_window_flag = MINI_WINDOW_P (XWINDOW (sf->selected_window));
 
-  selected_frame = frame;
-
-  move_minibuffers_onto_frame (sf, for_deletion);
-
-  if (f->select_mini_window_flag
-      && !NILP (Fminibufferp (XWINDOW (f->minibuffer_window)->contents, Qt)))
-    f->selected_window = f->minibuffer_window;
-  f->select_mini_window_flag = false;
-
-  if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
-    last_nonminibuf_frame = XFRAME (selected_frame);
+  move_minibuffers_onto_frame (sf, frame, for_deletion);
 
   /* If the selected window in the target frame is its mini-window, we move
      to a different window, the most recently used one, unless there is a
@@ -1527,6 +1517,20 @@ do_switch_frame (Lisp_Object frame, int for_deletion, Lisp_Object norecord)
       if (WINDOW_LIVE_P (w)) /* W can be nil in minibuffer-only frames.  */
         Fset_frame_selected_window (frame, w, Qnil);
     }
+
+  /* After setting `selected_frame`, we're temporarily in an inconsistent
+     state where (selected-window) != (frame-selected-window).  Until this
+     invariant is restored we should be very careful not to run ELisp code.
+     (bug#58343)  */
+  selected_frame = frame;
+
+  if (f->select_mini_window_flag
+      && !NILP (Fminibufferp (XWINDOW (f->minibuffer_window)->contents, Qt)))
+    f->selected_window = f->minibuffer_window;
+  f->select_mini_window_flag = false;
+
+  if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
+    last_nonminibuf_frame = XFRAME (selected_frame);
 
   Fselect_window (f->selected_window, norecord);
 
@@ -2110,7 +2114,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   else
     /* Ensure any minibuffers on FRAME are moved onto the selected
        frame.  */
-    move_minibuffers_onto_frame (f, true);
+    move_minibuffers_onto_frame (f, selected_frame, true);
 
   /* Don't let echo_area_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, echo_area_window))
@@ -4115,10 +4119,17 @@ frame_float (struct frame *f, Lisp_Object val, enum frame_float_type what,
    If a parameter is not specially recognized, do nothing special;
    otherwise call the `gui_set_...' function for that parameter.
    Except for certain geometry properties, always call store_frame_param
-   to store the new value in the parameter alist.  */
+   to store the new value in the parameter alist.
+
+   DEFAULT_PARAMETER should be set if the alist was not specified by
+   the user, or by the face code to set the `font' parameter.  In that
+   case, the `font-parameter' frame parameter should not be changed,
+   so dynamic-setting.el can restore the user's selected font
+   correctly.  */
 
 void
-gui_set_frame_parameters (struct frame *f, Lisp_Object alist)
+gui_set_frame_parameters_1 (struct frame *f, Lisp_Object alist,
+			    bool default_parameter)
 {
   Lisp_Object tail, frame;
 
@@ -4245,7 +4256,7 @@ gui_set_frame_parameters (struct frame *f, Lisp_Object alist)
 	}
       else
 	{
-	  register Lisp_Object param_index, old_value;
+	  Lisp_Object param_index, old_value;
 
 	  old_value = get_frame_param (f, prop);
 
@@ -4256,6 +4267,12 @@ gui_set_frame_parameters (struct frame *f, Lisp_Object alist)
 	      && XFIXNAT (param_index) < ARRAYELTS (frame_parms)
 	      && FRAME_RIF (f)->frame_parm_handlers[XFIXNUM (param_index)])
 	    (*(FRAME_RIF (f)->frame_parm_handlers[XFIXNUM (param_index)])) (f, val, old_value);
+
+	  if (!default_parameter && EQ (prop, Qfont))
+	    /* The user manually specified the `font' frame parameter.
+	       Save that parameter for future use by the
+	       dynamic-setting code.  */
+	    store_frame_param (f, Qfont_parameter, val);
 	}
     }
 
@@ -4406,6 +4423,11 @@ gui_set_frame_parameters (struct frame *f, Lisp_Object alist)
   SAFE_FREE ();
 }
 
+void
+gui_set_frame_parameters (struct frame *f, Lisp_Object alist)
+{
+  gui_set_frame_parameters_1 (f, alist, false);
+}
 
 /* Insert a description of internally-recorded parameters of frame F
    into the parameter alist *ALISTPTR that is to be given to the user.
@@ -4582,9 +4604,6 @@ gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   Lisp_Object font_object;
   int fontset = -1;
-#ifdef HAVE_X_WINDOWS
-  Lisp_Object font_param = arg;
-#endif
 
   /* Set the frame parameter back to the old value because we may
      fail to use ARG as the new parameter value.  */
@@ -4623,16 +4642,10 @@ gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	error ("Unknown fontset: %s", SDATA (XCAR (arg)));
       font_object = XCDR (arg);
       arg = AREF (font_object, FONT_NAME_INDEX);
-#ifdef HAVE_X_WINDOWS
-      font_param = Ffont_get (font_object, QCname);
-#endif
     }
   else if (FONT_OBJECT_P (arg))
     {
       font_object = arg;
-#ifdef HAVE_X_WINDOWS
-      font_param = Ffont_get (font_object, QCname);
-#endif
       /* This is to store the XLFD font name in the frame parameter for
 	 backward compatibility.  We should store the font-object
 	 itself in the future.  */
@@ -4663,9 +4676,7 @@ gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   if (FRAME_TERMINAL (f)->set_new_font_hook)
     FRAME_TERMINAL (f)->set_new_font_hook (f, font_object, fontset);
   store_frame_param (f, Qfont, arg);
-#ifdef HAVE_X_WINDOWS
-  store_frame_param (f, Qfont_parameter, font_param);
-#endif
+
   /* Recalculate tabbar height.  */
   f->n_tab_bar_rows = 0;
   /* Recalculate toolbar height.  */
@@ -4745,7 +4756,7 @@ gui_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_va
   if (FRAME_FONT (f))
     {
       /* Reconsider default font after backend(s) change (Bug#23386).  */
-      FRAME_RIF(f)->default_font_parameter (f, Qnil);
+      FRAME_RIF (f)->default_font_parameter (f, Qnil);
       face_change = true;
       windows_or_buffers_changed = 18;
     }
@@ -5447,12 +5458,20 @@ gui_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
                        enum resource_types type)
 {
   Lisp_Object tem;
+  bool was_unbound;
 
   tem = gui_frame_get_arg (f, alist, prop, xprop, xclass, type);
+
   if (BASE_EQ (tem, Qunbound))
-    tem = deflt;
+    {
+      tem = deflt;
+      was_unbound = true;
+    }
+  else
+    was_unbound = false;
+
   AUTO_FRAME_ARG (arg, prop, tem);
-  gui_set_frame_parameters (f, arg);
+  gui_set_frame_parameters_1 (f, arg, was_unbound);
   return tem;
 }
 
@@ -5942,6 +5961,67 @@ This function is for internal use only.  */)
 
   return f->was_invisible ? Qt : Qnil;
 }
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+DEFUN ("reconsider-frame-fonts", Freconsider_frame_fonts,
+       Sreconsider_frame_fonts, 1, 1, 0,
+       doc: /* Recreate FRAME's default font using updated font parameters.
+Signal an error if FRAME is not a window system frame.  This should be
+called after a `config-changed' event is received, signaling that the
+parameters (such as pixel density) used by the system to open fonts
+have changed.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f;
+  Lisp_Object params, font_parameter;
+
+  f = decode_window_system_frame (frame);
+
+  /* Kludge: if a `font' parameter was already specified,
+     create an alist containing just that parameter.  (bug#59371)
+
+     This sounds so simple, right?  Well, read on below: */
+  params = Qnil;
+
+  /* The difference between Qfont and Qfont_parameter is that the
+     latter is not set automatically by the likes of x_new_font, and
+     implicitly as the default face is realized.  It is only set when
+     the user specifically specifies a `font' frame parameter, and is
+     cleared the moment the frame's font becomes defined by a face
+     attribute, instead of through the `font' frame parameter.  */
+  font_parameter = get_frame_param (f, Qfont_parameter);
+
+  if (!NILP (font_parameter))
+    params = list1 (Fcons (Qfont, font_parameter));
+
+  /* First, call this to reinitialize any font backend specific
+     stuff.  */
+
+  if (FRAME_RIF (f)->default_font_parameter)
+    FRAME_RIF (f)->default_font_parameter (f, params);
+
+  /* For a mysterious reason, x_default_font_parameter sets Qfont to
+     nil in the alist!  */
+
+  if (!NILP (font_parameter))
+    params = list1 (Fcons (Qfont, font_parameter));
+
+  /* Now call this to apply the existing value(s) of the `default'
+     face.  */
+  call2 (Qface_set_after_frame_default, frame, params);
+
+  /* Restore the value of the `font-parameter' parameter, as
+     `face-set-after-frame-default' will have changed it through its
+     calls to `set-face-attribute'.  */
+  if (!NILP (font_parameter))
+    store_frame_param (f, Qfont_parameter, font_parameter);
+
+  return Qnil;
+}
+
+#endif
+
 
 /***********************************************************************
 			Multimonitor data
@@ -6197,6 +6277,7 @@ syms_of_frame (void)
   DEFSYM (Qiconify_top_level, "iconify-top-level");
   DEFSYM (Qmake_invisible, "make-invisible");
   DEFSYM (Quse_frame_synchronization, "use-frame-synchronization");
+  DEFSYM (Qfont_parameter, "font-parameter");
 
   {
     int i;
@@ -6630,6 +6711,6 @@ iconify the top level frame instead.  */);
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sx_get_resource);
   defsubr (&Sx_parse_geometry);
+  defsubr (&Sreconsider_frame_fonts);
 #endif
-
 }

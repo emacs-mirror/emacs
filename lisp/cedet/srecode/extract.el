@@ -219,7 +219,7 @@ Return nil if nothing was extracted."
       ;; With a name, do the insertion.
       (let ((subdict (srecode-dictionary-add-section-dictionary
 		      dict (oref ins object-name))))
-	(error "Need to implement include w/ name extractor")
+        (error "Need to implement include with name extractor")
 	;; Recurse into the new template while no errors.
 	(while (condition-case nil
 		   (progn

@@ -424,13 +424,6 @@ The default priority for remembered mail messages.
 @section Saving to an Org Mode file
 @cindex org mode, integration
 
-@ignore
-From org.texi:
-Up to version 6.36 Org used a special setup
-for @file{remember.el}.  @file{org-remember.el} is still part of Org mode for
-backward compatibility with existing setups.  You can find the documentation
-for org-remember at @url{http://orgmode.org/org-remember.pdf}.
-@end ignore
 For instructions on how to integrate Remember with Org Mode,
 consult @ref{Capture, , , org}.
 

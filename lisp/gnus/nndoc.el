@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; For Outlook mail boxes format, see http://mbx2mbox.sourceforge.net/
+;; For Outlook mail boxes format, see https://mbx2mbox.sourceforge.net/
 
 ;;; Code:
 

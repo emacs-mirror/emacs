@@ -66,12 +66,12 @@
 ;; You can get the latest version of CC Mode, including PostScript
 ;; documentation and separate individual files from:
 ;;
-;;     http://cc-mode.sourceforge.net/
+;;     https://cc-mode.sourceforge.net/
 ;;
 ;; You can join a moderated CC Mode announcement-only mailing list by
 ;; visiting
 ;;
-;;    http://lists.sourceforge.net/mailman/listinfo/cc-mode-announce
+;;    https://lists.sourceforge.net/mailman/listinfo/cc-mode-announce
 
 ;; Externally maintained major modes which use CC-mode's engine include:
 ;; - cuda-mode
@@ -172,7 +172,7 @@
 ;; `c-font-lock-init' too to set up CC Mode's font lock support.
 ;;
 ;; See cc-langs.el for further info.  A small example of a derived mode
-;; is also available at <http://cc-mode.sourceforge.net/
+;; is also available at <https://cc-mode.sourceforge.net/
 ;; derived-mode-ex.el>.
 
 (defun c-leave-cc-mode-mode ()
@@ -1235,7 +1235,7 @@ Note that the style variables are always made local to the buffer."
 
 (defun c-multiline-string-check-final-quote ()
   ;; Check that the final quote in the buffer is correctly marked or not with
-  ;; a string-fence syntax-table text propery.  The return value has no
+  ;; a string-fence syntax-table text property.  The return value has no
   ;; significance.
   (let (pos-ll pos-lt)
     (save-excursion
@@ -2080,13 +2080,14 @@ with // and /*, not more generic line and block comments."
 (defun c-update-new-id (end)
   ;; Note the bounds of any identifier that END is in or just after, in
   ;; `c-new-id-start' and `c-new-id-end'.  Otherwise set these variables to
-  ;; nil.
+  ;; nil.  Set `c-new-id-is-type' unconditionally to nil.
   (save-excursion
     (goto-char end)
     (let ((id-beg (c-on-identifier)))
       (setq c-new-id-start id-beg
 	    c-new-id-end (and id-beg
-			      (progn (c-end-of-current-token) (point)))))))
+			      (progn (c-end-of-current-token) (point)))
+	    c-new-id-is-type nil))))
 
 (defun c-post-command ()
   ;; If point was inside of a new identifier and no longer is, record that
@@ -2389,6 +2390,8 @@ with // and /*, not more generic line and block comments."
 	  ;; Go to a less nested declaration each time round this loop.
 	  (and
 	   (setq old-pos (point))
+	   ;; The following form tries to move to the end of the previous
+	   ;; declaration without moving outside of an enclosing {.
 	   (let (pseudo)
 	     (while
 		 (and
@@ -2403,7 +2406,9 @@ with // and /*, not more generic line and block comments."
 			   (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
 	       (goto-char pseudo))
 	     t)
-	   (>= (point) bod-lim)
+	   (or (> (point) bod-lim)
+	       (eq bod-lim (point-min)))
+	   ;; Move forward to the start of the next declaration.
 	   (progn (c-forward-syntactic-ws)
 		  ;; Have we got stuck in a comment at EOB?
 		  (not (and (eobp)
@@ -2500,7 +2505,7 @@ with // and /*, not more generic line and block comments."
 		     (not (eobp)))
 	      (progn
 		(c-forward-over-token)
-		;; Cope with having POS withing a syntactically invalid
+		;; Cope with having POS within a syntactically invalid
 		;; (...), by moving backward out of the parens and trying
 		;; again.
 		(when (and (eq (char-before) ?\))

@@ -127,7 +127,7 @@ see which mode is actually being entered.
 Modes}).  For example, you can put the following lines in your init
 file to enable Flyspell minor mode in all text-based major modes
 (@pxref{Spelling}), and ElDoc minor mode in Emacs Lisp mode
-(@pxref{Lisp Doc}):
+(@pxref{Programming Language Doc}):
 
 @example
 (add-hook 'text-mode-hook 'flyspell-mode)

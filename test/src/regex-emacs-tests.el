@@ -867,4 +867,9 @@ This evaluates the TESTS test cases from glibc."
     (should (equal (string-match "[[:lower:]]" "ẞ") 0))
     (should (equal (string-match "[[:upper:]]" "ẞ") 0))))
 
+(ert-deftest regexp-atomic-failure ()
+  "Bug#58726."
+  (should (equal (string-match "\\`\\(?:ab\\)*\\'" "a") nil))
+  (should (equal (string-match "\\`a\\{2\\}*\\'" "a") nil)))
+
 ;;; regex-emacs-tests.el ends here

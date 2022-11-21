@@ -1,12 +1,18 @@
 Language: Cpp
 BasedOnStyle: GNU
 AlignEscapedNewlinesLeft: true
+AlignOperands: Align
 AlwaysBreakAfterReturnType: TopLevelDefinitions
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: GNU
 ColumnLimit: 70
 ContinuationIndentWidth: 2
-ForEachMacros: [FOR_EACH_TAIL, FOR_EACH_TAIL_SAFE]
+ForEachMacros:
+  - FOR_EACH_TAIL
+  - FOR_EACH_TAIL_SAFE
+  - FOR_EACH_LIVE_BUFFER
+  - ITREE_FOREACH
+  - FOR_EACH_ALIST_VALUE
 IncludeCategories:
   - Regex: '^<config\.h>$'
     Priority: -1
@@ -16,11 +22,17 @@ IncludeCategories:
     Priority: 2
   - Regex: '.*'
     Priority: 3
+WhitespaceSensitiveMacros:
+  - STR
+  - CALL1I
+  - CALL2I
+  - STR_VALUE
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 1
 PenaltyBreakBeforeFirstCallParameter: 2000
 SpaceAfterCStyleCast: true
 SpaceBeforeParens: Always
+UseTab: Always
 
 # Local Variables:
 # mode: yaml

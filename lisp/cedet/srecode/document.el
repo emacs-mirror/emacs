@@ -29,7 +29,8 @@
 ;;
 ;;; Origins:
 ;;
-;; Document was first written w/ cparse, a custom regexp based c parser.
+;; Document was first written with cparse, a custom regexp based c
+;; parser.
 ;;
 ;; Document was then ported to cedet/semantic using sformat (super
 ;; format) as the templating engine.

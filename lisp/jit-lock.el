@@ -27,16 +27,6 @@
 
 ;;; Code:
 
-
-(eval-when-compile
-  (defmacro with-buffer-prepared-for-jit-lock (&rest body)
-    "Execute BODY in current buffer, overriding several variables.
-Preserves the `buffer-modified-p' state of the current buffer."
-    (declare (debug t))
-    `(let ((inhibit-point-motion-hooks t))
-       (with-silent-modifications
-         ,@body))))
-
 ;;; Customization.
 
 (defgroup jit-lock nil
@@ -328,7 +318,7 @@ like `debug-on-error' and Edebug can be used."
         (when (buffer-live-p buffer)
           (with-current-buffer buffer
             ;; (message "Jit-Debug %s" (buffer-name))
-            (with-buffer-prepared-for-jit-lock
+            (with-silent-modifications
                 (let ((pos (point-min)))
                   (while
                       (progn
@@ -365,7 +355,7 @@ Only applies to the current buffer."
 
 (defun jit-lock-refontify (&optional beg end)
   "Force refontification of the region BEG..END (default whole buffer)."
-  (with-buffer-prepared-for-jit-lock
+  (with-silent-modifications
    (save-restriction
      (widen)
      (put-text-property (or beg (point-min)) (or end (point-max))
@@ -392,7 +382,7 @@ is active."
 	(push (current-buffer) jit-lock-defer-buffers))
       ;; Mark the area as defer-fontified so that the redisplay engine
       ;; is happy and so that the idle timer can find the places to fontify.
-      (with-buffer-prepared-for-jit-lock
+      (with-silent-modifications
        (put-text-property start
 			  (next-single-property-change
 			   start 'fontified nil
@@ -426,7 +416,7 @@ is active."
 (defun jit-lock-fontify-now (&optional start end)
   "Fontify current buffer from START to END.
 Defaults to the whole buffer.  END can be out of bounds."
-  (with-buffer-prepared-for-jit-lock
+  (with-silent-modifications
    (save-excursion
      (unless start (setq start (point-min)))
      (setq end (if end (min end (point-max)) (point-max)))
@@ -502,7 +492,7 @@ Defaults to the whole buffer.  END can be out of bounds."
 This applies to the buffer associated with marker START."
   (when (marker-buffer start)
     (with-current-buffer (marker-buffer start)
-      (with-buffer-prepared-for-jit-lock
+      (with-silent-modifications
        (when (> end (point-max))
          (setq end (point-max) start (min start end)))
        (when (< start (point-min))
@@ -616,7 +606,7 @@ non-nil in a repeated invocation of this function."
       (when (buffer-live-p buffer)
 	(with-current-buffer buffer
 	  ;; (message "Jit-Defer %s" (buffer-name))
-	  (with-buffer-prepared-for-jit-lock
+	  (with-silent-modifications
 	   (let ((pos (point-min)))
 	     (while
 		 (progn
@@ -664,7 +654,7 @@ non-nil in a repeated invocation of this function."
 			   jit-lock-context-unfontify-pos
 			   'jit-lock-defer-multiline)
 			  (point-min))))
-	      (with-buffer-prepared-for-jit-lock
+	      (with-silent-modifications
 	       ;; Force contextual refontification.
 	       (remove-text-properties
 		jit-lock-context-unfontify-pos (point-max)
@@ -695,7 +685,7 @@ will take place when text is fontified stealthily."
   (when (and jit-lock-mode (not memory-full))
     (let ((jit-lock-start start)
           (jit-lock-end end))
-      (with-buffer-prepared-for-jit-lock
+      (with-silent-modifications
        (run-hook-with-args 'jit-lock-after-change-extend-region-functions
 			   start end old-len)
        ;; Make sure we change at least one char (in case of deletions).

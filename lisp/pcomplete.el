@@ -646,15 +646,12 @@ parts of the list.
 The OFFSET argument is added to/taken away from the index that will be
 used.  This is really only useful with `first' and `last', for
 accessing absolute argument positions."
-  (setq index
-	(if (eq index 'first)
-	    0
-	  (if (eq index 'last)
-	      pcomplete-last
-	    (- pcomplete-index (or index 0)))))
-  (if offset
-      (setq index (+ index offset)))
-  (nth index pcomplete-args))
+  (nth (+ (pcase index
+	   ('first 0)
+	   ('last  pcomplete-last)
+	   (_      (- pcomplete-index (or index 0))))
+	  (or offset 0))
+       pcomplete-args))
 
 (defun pcomplete-begin (&optional index offset)
   "Return the beginning position of the INDEXth argument.
@@ -1213,9 +1210,7 @@ Returns nil if no completion was inserted.
 Returns `sole' if completed with the only completion match.
 Returns `shortest' if completed with the shortest of the matches.
 Returns `partial' if completed as far as possible with the matches.
-Returns `listed' if a completion listing was shown.
-
-See also `pcomplete-filename'."
+Returns `listed' if a completion listing was shown."
   (let* ((completion-ignore-case completion-ignore-case)
 	 (completions (all-completions stub candidates))
          (entry (try-completion stub candidates))

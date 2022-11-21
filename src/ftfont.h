@@ -84,4 +84,11 @@ struct font_info
 #endif
 };
 
+#if defined USE_CAIRO && defined HAVE_X_WINDOWS
+
+extern void ftcrfont_get_default_font_options (struct x_display_info *,
+					       cairo_font_options_t *);
+
+#endif /* USE_CAIRO && HAVE_X_WINDOWS */
+
 #endif	/* EMACS_FTFONT_H */

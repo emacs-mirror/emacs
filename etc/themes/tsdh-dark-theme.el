@@ -19,8 +19,12 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme tsdh-dark
-  "A dark theme used and created by Tassilo Horn.")
+  "A dark theme used and created by Tassilo Horn."
+  :background-mode 'dark
+  :kind 'color-scheme
+  :family 'tsdh)
 
 (custom-theme-set-faces
  'tsdh-dark

@@ -1596,7 +1596,8 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 		       (list :eww-form eww-form
 			     :value value
 			     :type "textarea"
-			     :name (dom-attr dom 'name)))))
+			     :name (dom-attr dom 'name)))
+    (put-text-property start (1+ start) 'shr-tab-stop t)))
 
 (defun eww-tag-input (dom)
   (let ((type (downcase (or (dom-attr dom 'type) "text")))
@@ -1660,7 +1661,8 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
       (add-face-text-property start (point) 'eww-form-select)
       (put-text-property start (point) 'keymap eww-select-map)
       (unless (= start (point))
-       (put-text-property start (1+ start) 'help-echo "select field"))
+       (put-text-property start (1+ start) 'help-echo "select field")
+       (put-text-property start (1+ start) 'shr-tab-stop t))
       (shr-ensure-paragraph))))
 
 (defun eww-select-display (select)

@@ -294,10 +294,13 @@ x_menu_translate_generic_event (XEvent *event)
 #endif
 
 #if !defined USE_X_TOOLKIT && !defined USE_GTK
-static void
-x_menu_expose_event (XEvent *event)
+static int
+x_menu_dispatch_event (XEvent *event)
 {
   x_dispatch_event (event, event->xexpose.display);
+
+  /* The return doesn't really matter.  */
+  return 0;
 }
 #endif
 #endif /* ! MSDOS */
@@ -1521,26 +1524,15 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
   if (use_pos_func)
     {
-      Window dummy_window;
-
       /* Not invoked by a click.  pop up at x/y.  */
       pos_func = menu_position_func;
 
       /* Adjust coordinates to be root-window-relative.  */
       block_input ();
-      XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-                             /* From-window, to-window.  */
-                             FRAME_X_WINDOW (f),
-                             FRAME_DISPLAY_INFO (f)->root_window,
-
-                             /* From-position, to-position.  */
-                             x, y, &x, &y,
-
-                             /* Child of win.  */
-                             &dummy_window);
+      x_translate_coordinates_to_root (f, x, y, &x, &y);
 #ifdef HAVE_GTK3
-      /* Use window scaling factor to adjust position for hidpi screens. */
+      /* Use window scaling factor to adjust position for scaled
+	 outputs.  */
       x /= xg_get_scale (f);
       y /= xg_get_scale (f);
 #endif
@@ -1743,7 +1735,6 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   XButtonPressedEvent *event = &(dummy.xbutton);
   LWLIB_ID menu_id;
   Widget menu;
-  Window dummy_window;
 #if defined HAVE_XINPUT2 && defined USE_MOTIF
   XEvent property_dummy;
   Atom property_atom;
@@ -1775,17 +1766,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   /* Adjust coordinates to be root-window-relative.  */
   block_input ();
   x += FRAME_LEFT_SCROLL_BAR_AREA_WIDTH (f);
-  XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-                         /* From-window, to-window.  */
-                         FRAME_X_WINDOW (f),
-                         FRAME_DISPLAY_INFO (f)->root_window,
-
-                         /* From-position, to-position.  */
-                         x, y, &x, &y,
-
-                         /* Child of win.  */
-                         &dummy_window);
+  x_translate_coordinates_to_root (f, x, y, &x, &y);
   unblock_input ();
 
   event->x_root = x;
@@ -2559,6 +2540,8 @@ pop_down_menu (void *arg)
     }
 #endif
 
+  /* Decrement the popup_activated_flag.  */
+  popup_activated_flag = 0;
 #endif /* HAVE_X_WINDOWS */
 
   unblock_input ();
@@ -2569,9 +2552,6 @@ Lisp_Object
 x_menu_show (struct frame *f, int x, int y, int menuflags,
 	     Lisp_Object title, const char **error_name)
 {
-#ifdef HAVE_X_WINDOWS
-  Window dummy_window;
-#endif
   Window root;
   XMenu *menu;
   int pane, selidx, lpane, status;
@@ -2620,17 +2600,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   inhibit_garbage_collection ();
 
 #ifdef HAVE_X_WINDOWS
-  XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-                         /* From-window, to-window.  */
-                         FRAME_X_WINDOW (f),
-                         FRAME_DISPLAY_INFO (f)->root_window,
-
-                         /* From-position, to-position.  */
-                         x, y, &x, &y,
-
-                         /* Child of win.  */
-                         &dummy_window);
+  x_translate_coordinates_to_root (f, x, y, &x, &y);
 #else
   /* MSDOS without X support.  */
   x += f->left_pos;
@@ -2782,21 +2752,22 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
       y += 1.5 * height/ (maxlines + 2);
     }
 
-  XMenuSetAEQ (menu, true);
   XMenuSetFreeze (menu, true);
   pane = selidx = 0;
 
 #ifndef MSDOS
   DEFER_SELECTIONS;
 
-  XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
+  XMenuActivateSetWaitFunction (x_menu_wait_for_event,
+				FRAME_X_DISPLAY (f));
+  XMenuEventHandler (x_menu_dispatch_event);
+
   /* When the input extension is in use, the owner_events grab will
      report extension events on frames, which the XMenu library does
      not normally understand.  */
 #ifdef HAVE_XINPUT2
   XMenuActivateSetTranslateFunction (x_menu_translate_generic_event);
 #endif
-  XMenuActivateSetExposeFunction (x_menu_expose_event);
 #endif
 
   record_unwind_protect_ptr (pop_down_menu,
@@ -2822,6 +2793,12 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 #endif
 
+#ifdef HAVE_X_WINDOWS
+  /* Increment the popup flag; this prevents nested popups from being
+     displayed by user Lisp code in help-echo callbacks, and also
+     prevents mouse face from being displayed.  */
+  popup_activated_flag = 1;
+#endif
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
                           x, y, ButtonReleaseMask, &datap,
                           menu_help_callback);

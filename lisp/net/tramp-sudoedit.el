@@ -369,33 +369,36 @@ the result will be a local, non-Tramp, file name."
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
-  (with-parsed-tramp-file-name name nil
-    ;; Tilde expansion if necessary.  We cannot accept "~/", because
-    ;; under sudo "~/" is expanded to the local user home directory
-    ;; but to the root home directory.
-    (when (zerop (length localname))
-      (setq localname "~"))
-    (unless (file-name-absolute-p localname)
-      (setq localname (format "~%s/%s" user localname)))
-    (when (string-match
-	   (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
-	   localname)
-      (let ((uname (match-string 1 localname))
-	    (fname (match-string 2 localname))
-	    hname)
-	(when (zerop (length uname))
-	  (setq uname user))
-	(when (setq hname (tramp-get-home-directory v uname))
-	  (setq localname (concat hname fname)))))
-    ;; Do not keep "/..".
-    (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
-      (setq localname "/"))
-    ;; Do normal `expand-file-name' (this does "~user/", "/./" and "/../").
-    (tramp-make-tramp-file-name
-     v (if (string-prefix-p "~" localname)
-	   localname
-	 (tramp-run-real-handler
-	  #'expand-file-name (list localname))))))
+  ;; If NAME is not a Tramp file, run the real handler.
+  (if (not (tramp-tramp-file-p name))
+      (tramp-run-real-handler #'expand-file-name (list name))
+    (with-parsed-tramp-file-name name nil
+      ;; Tilde expansion if necessary.  We cannot accept "~/", because
+      ;; under sudo "~/" is expanded to the local user home directory
+      ;; but to the root home directory.
+      (when (zerop (length localname))
+	(setq localname "~"))
+      (unless (file-name-absolute-p localname)
+	(setq localname (format "~%s/%s" user localname)))
+      (when (string-match
+	     (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
+	     localname)
+	(let ((uname (match-string 1 localname))
+	      (fname (match-string 2 localname))
+	      hname)
+	  (when (zerop (length uname))
+	    (setq uname user))
+	  (when (setq hname (tramp-get-home-directory v uname))
+	    (setq localname (concat hname fname)))))
+      ;; Do not keep "/..".
+      (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
+	(setq localname "/"))
+      ;; Do normal `expand-file-name' (this does "~user/", "/./" and "/../").
+      (tramp-make-tramp-file-name
+       v (if (string-prefix-p "~" localname)
+	     localname
+	   (tramp-run-real-handler
+	    #'expand-file-name (list localname)))))))
 
 (defun tramp-sudoedit-remote-acl-p (vec)
   "Check, whether ACL is enabled on the remote host."

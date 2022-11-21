@@ -4167,8 +4167,7 @@ by calling `format-decode', which see.  */)
 		  bset_read_only (buf, Qnil);
 		  bset_filename (buf, Qnil);
 		  bset_undo_list (buf, Qt);
-		  eassert (buf->overlays_before == NULL);
-		  eassert (buf->overlays_after == NULL);
+		  eassert (buf->overlays == NULL);
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();
@@ -5000,9 +4999,10 @@ by calling `format-decode', which see.  */)
       unbind_to (count1, Qnil);
     }
 
-  if (!NILP (visit) && current_buffer->modtime.tv_nsec < 0)
+  if (save_errno != 0)
     {
       /* Signal an error if visiting a file that could not be opened.  */
+      eassert (!NILP (visit) && NILP (handler));
       report_file_errno ("Opening input file", orig_filename, save_errno);
     }
 
@@ -6362,7 +6362,7 @@ init_fileio (void)
      For more on why fsync does not suffice even if it works properly, see:
      Roche X. Necessary step(s) to synchronize filename operations on disk.
      Austin Group Defect 672, 2013-03-19
-     http://austingroupbugs.net/view.php?id=672  */
+     https://austingroupbugs.net/view.php?id=672  */
   write_region_inhibit_fsync = noninteractive;
 }
 

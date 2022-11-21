@@ -25,6 +25,7 @@
 
 # Personal customization.
 .dir-locals-2.el
+.no-advice-on-failure
 
 # Built by 'autogen.sh'.
 /aclocal.m4
@@ -324,7 +325,7 @@ lib-src/seccomp-filter-exec.pfc
 /etc/*.gschema.valid
 
 # Ignore directory made by admin/make-manuals.
-manual/
+/manual/
 
 # Ignore Finder files on MacOS.
 .DS_Store

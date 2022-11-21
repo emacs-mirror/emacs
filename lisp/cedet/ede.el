@@ -598,7 +598,7 @@ an EDE controlled project."
      "\\.#"
      "~$"
      )
-  "List of file name patters that EDE will never ask about.")
+  "List of file name patterns that EDE will never ask about.")
 
 (defun ede-ignore-file (filename)
   "Should we ignore FILENAME?"

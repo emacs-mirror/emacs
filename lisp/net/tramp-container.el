@@ -101,7 +101,8 @@
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  (when-let ((raw-list (shell-command-to-string
+  (when-let ((default-directory tramp-compat-temporary-file-directory)
+	     (raw-list (shell-command-to-string
 			(concat tramp-docker-program
 				" ps --format '{{.ID}}\t{{.Names}}'")))
              (lines (split-string raw-list "\n" 'omit))
@@ -121,7 +122,8 @@ see its function help for a description of the format."
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  (when-let ((raw-list (shell-command-to-string
+  (when-let ((default-directory tramp-compat-temporary-file-directory)
+	     (raw-list (shell-command-to-string
 			(concat tramp-kubernetes-program
                                 " get pods --no-headers "
                                 "-o custom-columns=NAME:.metadata.name")))
@@ -129,6 +131,24 @@ see its function help for a description of the format."
     (mapcar (lambda (name)
               (list nil name))
             names)))
+
+(defun tramp-kubernetes--current-context-data (vec)
+  "Return Kubernetes current context data as JSON string."
+  (with-temp-buffer
+    (when (zerop
+	   (tramp-call-process
+	    vec tramp-kubernetes-program nil t nil
+	    "config" "current-context"))
+      (goto-char (point-min))
+      (let ((current-context (buffer-substring (point) (line-end-position))))
+	(erase-buffer)
+	(when (zerop
+	       (tramp-call-process
+		vec tramp-kubernetes-program nil t nil
+		"config" "view" "-o"
+		(format
+		 "jsonpath='{.contexts[?(@.name == \"%s\")]}'" current-context)))
+	  (buffer-string))))))
 
 ;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.
@@ -143,6 +163,7 @@ see its function help for a description of the format."
                                    ("-u" "%u")
                                    ("%h")
 			           ("%l")))
+		(tramp-direct-async (,tramp-default-remote-shell "-c"))
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
@@ -154,6 +175,7 @@ see its function help for a description of the format."
                                    ("-u" "%u")
                                    ("%h")
 			           ("%l")))
+		(tramp-direct-async (,tramp-default-remote-shell "-c"))
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
@@ -165,6 +187,8 @@ see its function help for a description of the format."
                                    ("-it")
                                    ("--")
 			           ("%l")))
+		(tramp-config-check tramp-kubernetes--current-context-data)
+		(tramp-direct-async (,tramp-default-remote-shell "-c"))
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))

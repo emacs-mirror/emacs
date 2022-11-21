@@ -27,10 +27,15 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme tango-dark
   "Face colors using the Tango palette (dark background).
 Basic, Font Lock, Isearch, Gnus, Message, Ediff, Flyspell,
-Semantic, and Ansi-Color faces are included.")
+Semantic, and Ansi-Color faces are included."
+  :background-mode 'dark
+  :kind 'color-scheme
+  :family 'tango)
+
 
 (let ((class '((class color) (min-colors 89)))
       ;; Tango palette colors.

@@ -1032,7 +1032,6 @@ Mostly we check word delimiters."
 (defun flyspell-word-search-backward (word bound &optional ignore-case)
   (save-excursion
     (let* ((r '())
-	   (inhibit-point-motion-hooks t)
 	   (flyspell-not-casechars (flyspell-get-not-casechars))
 	   (bound (if (and bound
 			   (> bound (point-min)))
@@ -1066,7 +1065,6 @@ Mostly we check word delimiters."
 (defun flyspell-word-search-forward (word bound)
   (save-excursion
     (let* ((r '())
-	   (inhibit-point-motion-hooks t)
 	   (flyspell-not-casechars (flyspell-get-not-casechars))
 	   (bound (if (and bound
 			   (< bound (point-max)))
@@ -2133,7 +2131,9 @@ But don't look beyond what's visible on the screen."
 	  ;; only reset if a new overlay exists
 	  (setq flyspell-auto-correct-previous-pos nil)
 
-	  (let ((overlay-list (overlays-in (point-min) position))
+	  (let ((overlay-list (seq-sort-by
+                               #'overlay-start #'>
+                               (overlays-in (point-min) position)))
 		(new-overlay 'dummy-value))
 
 	    ;; search for previous (new) flyspell overlay

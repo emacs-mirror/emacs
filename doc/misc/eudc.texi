@@ -85,6 +85,10 @@ LDAP, Lightweight Directory Access Protocol
 BBDB, Big Brother's Insidious Database
 @item
 macOS Contacts
+@item
+@code{ecomplete}, Emacs's electrical completion
+@item
+@code{mailabbrev}, Emacs's abbrev-expansion of mail aliases
 @end itemize
 
 The main features of the EUDC interface are:
@@ -110,6 +114,8 @@ Interface to BBDB to let you insert server records into your own BBDB database
 * LDAP::                        What is LDAP ?
 * BBDB::                        What is BBDB ?
 * macOS Contacts::              What is macOS Contacts ?
+* ecomplete::                   What is @code{ecomplete} ?
+* mailabbrev::                  What is @code{mailabbrev}?
 @end menu
 
 
@@ -173,14 +179,73 @@ Address Book; the EUDC macOS Contacts back end also works on those
 older versions.
 
 
+@node ecomplete
+@section @code{ecomplete}
+
+@code{ecomplete} is Emacs's ``electric completion'', and it is part of
+Emacs.  It stores all information in an @file{ecompleterc} file, whose
+location, and name can be configured via the variable
+@code{ecomplete-database-file} (which see).  The format of the file
+is:
+
+@display
+((TYPE_1 ITEM_1 ITEM_2 ...)
+ (TYPE_2 ITEM_N+1 ITEM_N+2 ...)
+ ...)
+@end display
+
+That is, it is an alist map where the key is the type of match (so
+that you can have one list of things for ``mail'', and one for, say,
+``mastodon'').  In each of these sections you then have a list where
+each item is of the form:
+
+@display
+(KEY TIMES-USED LAST-TIME-USED STRING)
+@end display
+
+When performing a query, the result will be all items where the search
+term matches all, or part of STRING.
+
+When EUDC performs queries with @code{ecomplete}, the name of each
+attribute making up the query is used as the type in which the lookup
+is performed.  The mapping from EUDC attribute names to
+@code{ecomplete} type names is performed according to the variable
+@code{eudc-ecomplete-attributes-translation-alist} (which see).
+
+
+@node mailabbrev
+@section @code{mailabbrev}
+
+@code{mailabbrev} is Emacs's ``abbrev-expansion of mail aliases'', and
+it is part of Emacs.  It stores all information in a @file{mailrc}
+file, whose location, and name can be configured via the variable
+@code{mail-personal-alias-file} (which see).  The @file{mailrc} file
+has the same format as the @command{mail} and @command{mailx} commands
+use for their startup configuration file.  @code{mailabbrev} processes
+@samp{alias}, and @samp{source} statements in the @file{mailrc} file.
+@samp{alias} statements can define simple aliases and distribution
+lists, and can be nested in that the alias expansion can contain
+references to other alias definitions.  Forward references, that is
+references to aliases before they are actually defined, are possible,
+too.
+
+Originally, @code{mailabbrev} was designed to be used with
+@code{abbrev-mode}.  The @code{mailabbrev} EUDC backend does not use
+@code{abbrev-mode}, but queries @code{mailabbrev} for alias entries
+only, and returns these as EUDC results.  All entries where the alias
+name exactly equals either the @code{email}, @code{name}, or
+@code{firstname} attribute value in the EUDC query, will be returned
+as matches.  When a @file{mailrc} alias defines a distribution list,
+that is it expands to more than one email address, the EUDC result
+will contain a single entry, which will contain an email attribute
+only, whose value will be a comma-separated list of RFC 5322 formatted
+recipient specifications.
+
+
 @node Installation
 @chapter Installation
 
-Add the following to your @file{.emacs} init file:
-@lisp
-(require 'eudc)
-@end lisp
-This will install EUDC at startup.
+EUDC is built-in to Emacs, and its main functions are autoloaded.
 
 After installing EUDC you will find (the next time you launch Emacs) a
 new @code{Directory Search} submenu in the @samp{Tools} menu that will
@@ -200,6 +265,8 @@ email composition buffers (@pxref{Inline Query Expansion})
 @menu
 * LDAP Configuration::           EUDC needs external support for LDAP
 * macOS Contacts Configuration:: Enable the macOS Contacts backend
+* ecomplete Configuration::      Enable the ecomplete backend
+* mailabbrev Configuration::     Enable the mailabbrev backend
 @end menu
 
 @node LDAP Configuration
@@ -256,7 +323,7 @@ will return all LDAP entries with surnames that begin with
 @code{Smith}.  In every LDAP query it makes, EUDC implicitly appends
 the wildcard character to the end of the last word, except if the word
 corresponds to an attribute which is a member of
-`eudc-ldap-no-wildcard-attributes'.
+@code{eudc-ldap-no-wildcard-attributes}.
 
 @menu
 * Emacs-only Configuration::    Configure with @file{.emacs}
@@ -406,9 +473,9 @@ level to 5 by appending @code{-d 5} to the command line.
 macOS Contacts support is added by means of @file{eudcb-mab.el}, or
 @file{eudcb-macos-contacts.el} which are part of Emacs.
 
-To enable a macOS Contacts backend, first `require' the respective
-library to load it, and then set the `eudc-server' to localhost in
-your init file:
+To enable a macOS Contacts backend, first @code{require} the
+respective library to load it, and then set the @code{eudc-server} to
+localhost in your init file:
 @lisp
 (require 'eudcb-macos-contacts)
 (eudc-macos-contacts-set-server "localhost")
@@ -431,6 +498,32 @@ the compatibility of @file{eudcb-mab.el} and the required, external
 command-line utility before upgrading to a new version of macOS.
 @file{eudcb-mab.el} is retained for backwards compatibility with
 existing configurations, and may be removed in a future release.
+
+
+@node ecomplete Configuration
+@section @code{ecomplete} Configuration
+
+@code{ecomplete} is Emacs's ``electrical completion'', and is part of
+Emacs.  To use it, you will need to set up a database file
+(@pxref{ecomplete}) first.
+
+It will be autoloaded on demand.
+
+You can also enable multi-server queries as described in
+@pxref{Multi-server Queries}.
+
+
+@node mailabbrev Configuration
+@section @code{mailabbrev} Configuration
+
+@code{mailabbrev} is Emacs's ``abbrev-expansion of mail aliases'', and
+it is part of Emacs.  To use it, you will need to set up a database file
+(@pxref{mailabbrev}) first.
+
+It will be autoloaded on demand.
+
+You can also enable multi-server queries as described in
+@pxref{Multi-server Queries}.
 
 
 @node Usage
@@ -916,13 +1009,23 @@ in other places, like for example the body of the message.
 @section The Server Hotlist
 
 EUDC lets you maintain a list of frequently used servers so that you
-can easily switch from one to another.  This hotlist appears in the
-@samp{Server} submenu.  You select a server in this list by clicking on
-its name.  You can add the current server to the list with the command
-@kbd{M-x eudc-bookmark-current-server}.  The list is contained in the variable
-@code{eudc-server-hotlist} which is stored in and retrieved from the file
-designated by @code{eudc-options-file}.  EUDC also provides a facility to
-edit the hotlist interactively (@pxref{The Hotlist Edit Buffer}).
+can easily switch from one to another.  Most users should configure
+the hotlist via Customize, and store the configuration in the main
+Emacs initialization file.  Configuring it dynamically can be
+confusing, particularly if the hotlist settings are saved to
+@code{eudc-options-file} automatically.  @code{eudc-options-file} is
+historical and support for it is still maintained, but new EUDC users
+should set @code{eudc-ignore-options-file} to @code{t}.
+
+However, this hotlist also appears in the @samp{Server} submenu.  You
+select a server in this list by clicking on its name.  You can add the
+current server to the list with the command @kbd{M-x
+eudc-bookmark-current-server}.  The list is contained in the variable
+@code{eudc-server-hotlist} which is stored in and retrieved from the
+file designated by @code{eudc-options-file}, or normal Emacs
+initialization if @code{eudc-ignore-options-file} is non-nil.  EUDC
+also provides a facility to edit the hotlist interactively (@pxref{The
+Hotlist Edit Buffer}).
 
 The hotlist is also used to make queries on multiple servers
 successively (@pxref{Multi-server Queries}).  The order in which the
@@ -936,6 +1039,14 @@ Add @var{server} to the hotlist of servers
 @deffn Command eudc-bookmark-current-server
 Add the current server to the hotlist of servers
 @end deffn
+
+@defvar eudc-ignore-options-file
+If non-nil, then EUDC ignores @code{eudc-options-file} and warns or
+issues an error when an attempt is made to use it.  Most users should
+set this, and keep their EUDC configuration in the main Emacs
+initialization file instead.  The separate eudc-options file has
+created confusion for users in the past.
+@end defvar
 
 @defvar eudc-options-file
 The name of a file where EUDC stores its internal variables (the

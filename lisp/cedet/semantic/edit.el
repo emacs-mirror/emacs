@@ -40,7 +40,7 @@
 ;;    of themselves that can be edited w/out affecting the definition of
 ;;    that tag.
 ;;
-;; 2. Tags w/ positioned children could have a property of an
+;; 2. Tags with positioned children could have a property of an
 ;;    overlay marking the region in themselves that contain the
 ;;    children.  This could be used to better improve splicing near
 ;;    the beginning and end of the child lists.
@@ -128,11 +128,9 @@ If nil, errors are still displayed, but informative messages are not."
   "Provide a mechanism for semantic tag management.
 Argument START, END, and LENGTH specify the bounds of the change."
    (setq semantic-unmatched-syntax-cache-check t)
-   (let ((inhibit-point-motion-hooks t)
-	 )
-     (save-match-data
-       (run-hook-with-args 'semantic-change-functions start end length)
-       )))
+   (save-match-data
+     (run-hook-with-args 'semantic-change-functions start end length)
+     ))
 
 (defun semantic-changes-in-region (start end &optional buffer)
   "Find change overlays which exist in whole or in part between START and END.

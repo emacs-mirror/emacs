@@ -96,7 +96,7 @@ Integer values are handled in the `range' slot.")
 `comp-common-supertype'.")
   (subtype-p-mem (make-hash-table :test #'equal) :type hash-table
                  :documentation "Serve memoization for
-`comp-subtype-p-mem'.")
+`comp-cstr-ctxt-subtype-p-mem'.")
   (union-1-mem-no-range (make-hash-table :test #'equal) :type hash-table
                         :documentation "Serve memoization for
 `comp-cstr-union-1'.")

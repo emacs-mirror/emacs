@@ -1,7 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2022 Free Software Foundation,
-Inc.
+Copyright (C) 1985-2022  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1159,7 +1158,6 @@ static enum move_it_result
 static void get_visually_first_element (struct it *);
 static void compute_stop_pos (struct it *);
 static int face_before_or_after_it_pos (struct it *, bool);
-static ptrdiff_t next_overlay_change (ptrdiff_t);
 static int handle_display_spec (struct it *, Lisp_Object, Lisp_Object,
 				Lisp_Object, struct text_pos *, ptrdiff_t, bool);
 static int handle_single_display_spec (struct it *, Lisp_Object, Lisp_Object,
@@ -2332,7 +2330,7 @@ pixel_to_glyph_coords (struct frame *f, int pix_x, int pix_y, int *x, int *y,
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-static struct glyph *
+struct glyph *
 x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
 		  int *dx, int *dy, int *area)
 {
@@ -3344,7 +3342,8 @@ init_iterator (struct it *it, struct window *w,
     {
       /* Mode lines, menu bar in terminal frames.  */
       it->first_visible_x = 0;
-      it->last_visible_x = body_width = WINDOW_PIXEL_WIDTH (w);
+      it->last_visible_x =
+	WINDOW_PIXEL_WIDTH (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
     }
   else
     {
@@ -3412,8 +3411,13 @@ init_iterator (struct it *it, struct window *w,
       face = FACE_FROM_ID_OR_NULL (it->f, remapped_base_face_id);
       if (face && face->box != FACE_NO_BOX)
 	{
+	  int box_thickness = face->box_vertical_line_width;
 	  it->face_box_p = true;
 	  it->start_of_box_run_p = true;
+	  /* Make sure we will have enough horizontal space to add the
+	     right box line at the end.  */
+	  if (box_thickness > 0)
+	    it->last_visible_x -= box_thickness;
 	}
     }
 
@@ -4166,39 +4170,6 @@ compute_stop_pos (struct it *it)
   eassert (STRINGP (it->string)
 	   || (it->stop_charpos >= BEGV
 	       && it->stop_charpos >= IT_CHARPOS (*it)));
-}
-
-
-/* Return the position of the next overlay change after POS in
-   current_buffer.  Value is point-max if no overlay change
-   follows.  This is like `next-overlay-change' but doesn't use
-   xmalloc.  */
-
-static ptrdiff_t
-next_overlay_change (ptrdiff_t pos)
-{
-  ptrdiff_t i, noverlays;
-  ptrdiff_t endpos;
-  Lisp_Object *overlays;
-  USE_SAFE_ALLOCA;
-
-  /* Get all overlays at the given position.  */
-  GET_OVERLAYS_AT (pos, overlays, noverlays, &endpos, true);
-
-  /* If any of these overlays ends before endpos,
-     use its ending point instead.  */
-  for (i = 0; i < noverlays; ++i)
-    {
-      Lisp_Object oend;
-      ptrdiff_t oendpos;
-
-      oend = OVERLAY_END (overlays[i]);
-      oendpos = OVERLAY_POSITION (oend);
-      endpos = min (endpos, oendpos);
-    }
-
-  SAFE_FREE ();
-  return endpos;
 }
 
 /* How many characters forward to search for a display property or
@@ -5359,6 +5330,8 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
 	  /* Insert the stretch glyph.  */
 	  it->object = list3 (Qspace, QCwidth, w);
 	  produce_stretch_glyph (it);
+	  if (it->area == TEXT_AREA)
+	    it->current_x += it->pixel_width;
 	  it->min_width_property = Qnil;
 	}
     }
@@ -5838,7 +5811,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	 overlay's display string/image twice.  */
       if (!NILP (overlay))
 	{
-	  ptrdiff_t ovendpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+	  ptrdiff_t ovendpos = OVERLAY_END (overlay);
 
 	  /* Some borderline-sane Lisp might call us with the current
 	     buffer narrowed so that overlay-end is outside the
@@ -6572,6 +6545,8 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
   struct overlay_entry entriesbuf[20];
   ptrdiff_t size = ARRAYELTS (entriesbuf);
   struct overlay_entry *entries = entriesbuf;
+  struct itree_node *node;
+
   USE_SAFE_ALLOCA;
 
   if (charpos <= 0)
@@ -6603,27 +6578,24 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
     }									\
   while (false)
 
-  /* Process overlay before the overlay center.  */
-  for (struct Lisp_Overlay *ov = current_buffer->overlays_before;
-       ov; ov = ov->next)
-    {
-      Lisp_Object overlay = make_lisp_ptr (ov, Lisp_Vectorlike);
-      eassert (OVERLAYP (overlay));
-      ptrdiff_t start = OVERLAY_POSITION (OVERLAY_START (overlay));
-      ptrdiff_t end = OVERLAY_POSITION (OVERLAY_END (overlay));
 
-      if (end < charpos)
-	break;
+  /* Process overlays.  */
+  ITREE_FOREACH (node, current_buffer->overlays, charpos - 1, charpos + 1, DESCENDING)
+    {
+      Lisp_Object overlay = node->data;
+      eassert (OVERLAYP (overlay));
+      ptrdiff_t start = node->begin;
+      ptrdiff_t end = node->end;
 
       /* Skip this overlay if it doesn't start or end at IT's current
-	 position.  */
+         position.  */
       if (end != charpos && start != charpos)
-	continue;
+        continue;
 
       /* Skip this overlay if it doesn't apply to IT->w.  */
       Lisp_Object window = Foverlay_get (overlay, Qwindow);
       if (WINDOWP (window) && XWINDOW (window) != it->w)
-	continue;
+        continue;
 
       /* If the text ``under'' the overlay is invisible, both before-
 	 and after-strings from this overlay are visible; start and
@@ -6634,56 +6606,15 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
       /* If overlay has a non-empty before-string, record it.  */
       Lisp_Object str;
       if ((start == charpos || (end == charpos && invis != 0))
-	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
-	  && SCHARS (str))
-	RECORD_OVERLAY_STRING (overlay, str, false);
+          && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
+          && SCHARS (str))
+        RECORD_OVERLAY_STRING (overlay, str, false);
 
       /* If overlay has a non-empty after-string, record it.  */
       if ((end == charpos || (start == charpos && invis != 0))
-	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
-	  && SCHARS (str))
-	RECORD_OVERLAY_STRING (overlay, str, true);
-    }
-
-  /* Process overlays after the overlay center.  */
-  for (struct Lisp_Overlay *ov = current_buffer->overlays_after;
-       ov; ov = ov->next)
-    {
-      Lisp_Object overlay = make_lisp_ptr (ov, Lisp_Vectorlike);
-      eassert (OVERLAYP (overlay));
-      ptrdiff_t start = OVERLAY_POSITION (OVERLAY_START (overlay));
-      ptrdiff_t end = OVERLAY_POSITION (OVERLAY_END (overlay));
-
-      if (start > charpos)
-	break;
-
-      /* Skip this overlay if it doesn't start or end at IT's current
-	 position.  */
-      if (end != charpos && start != charpos)
-	continue;
-
-      /* Skip this overlay if it doesn't apply to IT->w.  */
-      Lisp_Object window = Foverlay_get (overlay, Qwindow);
-      if (WINDOWP (window) && XWINDOW (window) != it->w)
-	continue;
-
-      /* If the text ``under'' the overlay is invisible, it has a zero
-	 dimension, and both before- and after-strings apply.  */
-      Lisp_Object invisible = Foverlay_get (overlay, Qinvisible);
-      int invis = TEXT_PROP_MEANS_INVISIBLE (invisible);
-
-      /* If overlay has a non-empty before-string, record it.  */
-      Lisp_Object str;
-      if ((start == charpos || (end == charpos && invis != 0))
-	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
-	  && SCHARS (str))
-	RECORD_OVERLAY_STRING (overlay, str, false);
-
-      /* If overlay has a non-empty after-string, record it.  */
-      if ((end == charpos || (start == charpos && invis != 0))
-	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
-	  && SCHARS (str))
-	RECORD_OVERLAY_STRING (overlay, str, true);
+          && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
+          && SCHARS (str))
+        RECORD_OVERLAY_STRING (overlay, str, true);
     }
 
 #undef RECORD_OVERLAY_STRING
@@ -7088,11 +7019,11 @@ back_to_previous_line_start (struct it *it)
 static bool
 strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
 {
-  /* Process overlays before the overlay center.  */
-  for (struct Lisp_Overlay *ov = current_buffer->overlays_before;
-       ov; ov = ov->next)
+  struct itree_node *node;
+  /* Process overlays.  */
+  ITREE_FOREACH (node, current_buffer->overlays, startpos, endpos, DESCENDING)
     {
-      Lisp_Object overlay = make_lisp_ptr (ov, Lisp_Vectorlike);
+      Lisp_Object overlay = node->data;
       eassert (OVERLAYP (overlay));
 
       /* Skip this overlay if it doesn't apply to our window.  */
@@ -7100,52 +7031,8 @@ strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
       if (WINDOWP (window) && XWINDOW (window) != w)
 	continue;
 
-      ptrdiff_t ostart = OVERLAY_POSITION (OVERLAY_START (overlay));
-      ptrdiff_t oend = OVERLAY_POSITION (OVERLAY_END (overlay));
-
-      /* Due to the order of overlays in overlays_before, once we get
-	 to an overlay whose end position is before STARTPOS, all the
-	 rest also end before STARTPOS, and thus are of no concern to us.  */
-      if (oend < startpos)
-	break;
-
-      /* Skip overlays that don't overlap the range.  */
-      if (!((startpos < oend && ostart < endpos)
-	    || (ostart == oend
-		&& (startpos == oend || (endpos == ZV && oend == endpos)))))
-	continue;
-
-      Lisp_Object str;
-      str = Foverlay_get (overlay, Qbefore_string);
-      if (STRINGP (str) && SCHARS (str)
-	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	return true;
-      str = Foverlay_get (overlay, Qafter_string);
-      if (STRINGP (str) && SCHARS (str)
-	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	return true;
-    }
-
-  /* Process overlays after the overlay center.  */
-  for (struct Lisp_Overlay *ov = current_buffer->overlays_after;
-       ov; ov = ov->next)
-    {
-      Lisp_Object overlay = make_lisp_ptr (ov, Lisp_Vectorlike);
-      eassert (OVERLAYP (overlay));
-
-      /* Skip this overlay if it doesn't apply to our window.  */
-      Lisp_Object window = Foverlay_get (overlay, Qwindow);
-      if (WINDOWP (window) && XWINDOW (window) != w)
-	continue;
-
-      ptrdiff_t ostart = OVERLAY_POSITION (OVERLAY_START (overlay));
-      ptrdiff_t oend = OVERLAY_POSITION (OVERLAY_END (overlay));
-
-      /* Due to the order of overlays in overlays_after, once we get
-	 to an overlay whose start position is after ENDPOS, all the
-	 rest also start after ENDPOS, and thus are of no concern to us.  */
-      if (ostart > endpos)
-	break;
+      ptrdiff_t ostart = node->begin;
+      ptrdiff_t oend = node->end;
 
       /* Skip overlays that don't overlap the range.  */
       if (!((startpos < oend && ostart < endpos)
@@ -7404,7 +7291,7 @@ back_to_previous_visible_line_start (struct it *it)
 	    && !NILP (val = get_char_property_and_overlay
 		      (make_fixnum (pos), Qdisplay, Qnil, &overlay))
 	    && (OVERLAYP (overlay)
-		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
+		? (beg = OVERLAY_START (overlay))
 		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
 	  {
 	    RESTORE_IT (it, it, it2data);
@@ -10639,7 +10526,6 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	}
 
       /* Reset/increment for the next run.  */
-      recenter_overlay_lists (current_buffer, IT_CHARPOS (*it));
       it->current_x = line_start_x;
       line_start_x = 0;
       it->hpos = 0;
@@ -13334,7 +13220,10 @@ unwind_format_mode_line (Lisp_Object vector)
 	  if (!EQ (frame, WINDOW_FRAME (XWINDOW (old_window))))
 	    Fselect_window (target_frame_window, Qt);
 
-	  if (!NILP (old_top_frame) && !EQ (old_top_frame, frame))
+	  if (!NILP (old_top_frame) && !EQ (old_top_frame, frame)
+	      /* This could've been destroyed during the formatting,
+		 possibly because the terminal was deleted.  */
+	      && FRAME_LIVE_P (XFRAME (old_top_frame)))
 	    Fselect_frame (old_top_frame, Qt);
 	}
 
@@ -13437,6 +13326,7 @@ void
 gui_consider_frame_title (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
+  Lisp_Object format_data;
 
   if ((FRAME_WINDOW_P (f)
        || FRAME_MINIBUF_ONLY_P (f)
@@ -13481,15 +13371,19 @@ gui_consider_frame_title (Lisp_Object frame)
       specbind (Qinhibit_redisplay, Qt);
 
       /* Switch to the buffer of selected window of the frame.  Set up
-	 mode_line_target so that display_mode_element will output into
-	 mode_line_noprop_buf; then display the title.  */
-      record_unwind_protect (unwind_format_mode_line,
-			     format_mode_line_unwind_data
-			     (f, current_buffer, selected_window, false));
+	 mode_line_target so that display_mode_element will output
+	 into mode_line_noprop_buf; then display the title.  Save the
+	 original frame and selected window, and possibly the topmost
+	 frame of the tty (for tty frames) into a vector; it will be
+	 restored later.  */
+
+      format_data = format_mode_line_unwind_data (f, current_buffer,
+						  selected_window,
+						  false);
+      record_unwind_protect (unwind_format_mode_line, format_data);
 
       Fselect_window (f->selected_window, Qt);
-      set_buffer_internal_1
-	(XBUFFER (XWINDOW (f->selected_window)->contents));
+      set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->contents));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
 
       mode_line_target = MODE_LINE_TITLE;
@@ -13502,8 +13396,9 @@ gui_consider_frame_title (Lisp_Object frame)
       /* Make sure that any raw bytes in the title are properly
          represented by their multibyte sequences.  */
       ptrdiff_t nchars = 0;
-      len = str_as_multibyte ((unsigned char *)title,
-			      mode_line_noprop_buf_end - title, len, &nchars);
+      len = str_as_multibyte ((unsigned char *) title,
+			      mode_line_noprop_buf_end - title,
+			      len, &nchars);
       unbind_to (count, Qnil);
 
       /* Set the title only if it's changed.  This avoids consing in
@@ -18917,7 +18812,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
 		     && MATRIX_ROW_END_CHARPOS (row) == PT
 		     && row < MATRIX_MODE_LINE_ROW (w->current_matrix)
-		     && MATRIX_ROW_START_CHARPOS (row+1) == PT
+		     && MATRIX_ROW_START_CHARPOS (row+1) >= PT
 		     && !cursor_row_p (row))
 		++row;
 
@@ -19014,7 +18909,12 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 		 rc = CURSOR_MOVEMENT_SUCCESS;
 	    }
 
-	  if (PT < MATRIX_ROW_START_CHARPOS (row)
+	  if ((PT < MATRIX_ROW_START_CHARPOS (row)
+	       && (row == MATRIX_FIRST_TEXT_ROW (w->current_matrix)
+		   /* Don't give up if point is inside invisible text
+		      at the beginning of its glyph row.  */
+		   || (MATRIX_ROW_END_CHARPOS (row-1)
+		       == MATRIX_ROW_START_CHARPOS (row))))
 	      || PT > MATRIX_ROW_END_CHARPOS (row))
 	    {
 	      /* if PT is not in the glyph row, give up.  */
@@ -19096,12 +18996,23 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 		 continuation lines' rows is implemented for
 		 bidi-reordered rows.  */
 	      bool rv = false;
+	      bool pt_invis = false;
+	      Lisp_Object val = get_char_property_and_overlay (make_fixnum (PT),
+							       Qinvisible,
+							       Qnil, NULL);
+
+	      if (TEXT_PROP_MEANS_INVISIBLE (val) != 0)
+		pt_invis = true;
 
 	      do
 		{
 		  bool at_zv_p = false, exact_match_p = false;
 
-		  if (MATRIX_ROW_START_CHARPOS (row) <= PT
+		  /* If point is in invisible text, we cannot assume
+		     it must be after row's start position, since the
+		     row could have invisible text at its beginning
+		     where point is located.  */
+		  if ((pt_invis || MATRIX_ROW_START_CHARPOS (row) <= PT)
 		      && PT <= MATRIX_ROW_END_CHARPOS (row)
 		      && cursor_row_p (row))
 		    rv |= set_cursor_from_row (w, row, w->current_matrix,
@@ -19133,16 +19044,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 			     invisible text?  In that case, we trust
 			     'set_cursor_from_row' to do its job and
 			     find the best position for the cursor.  */
-			  if (!exact_match_p)
-			    {
-			      Lisp_Object val =
-				get_char_property_and_overlay (make_fixnum (PT),
-							       Qinvisible,
-							       Qnil, NULL);
-
-			      if (TEXT_PROP_MEANS_INVISIBLE (val) != 0)
-				exact_match_p = true;
-			    }
+			  if (!exact_match_p && pt_invis)
+			    exact_match_p = true;
 			}
 		      if (at_zv_p || exact_match_p)
 			{
@@ -20165,7 +20068,20 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	   from point.  */
 	centering_position = window_box_height (w) / 2;
     }
-  move_it_vertically_backward (&it, centering_position);
+  if (current_buffer->long_line_optimizations_p
+      && it.line_wrap == TRUNCATE)
+    {
+      /* For very long and truncated lines, go back using a simplified
+	 method, which ignored any inaccuracies due to line-height
+	 differences, display properties/overlays, etc.  */
+      int nlines = centering_position / frame_line_height;
+
+      while (nlines-- && IT_CHARPOS (it) > BEGV)
+	back_to_previous_visible_line_start (&it);
+      reseat_1 (&it, it.current.pos, true);
+    }
+  else
+    move_it_vertically_backward (&it, centering_position);
 
   eassert (IT_CHARPOS (it) >= BEGV);
 
@@ -23239,10 +23155,18 @@ extend_face_to_end_of_line (struct it *it)
      this is called when redisplaying a non-selected window, with
      point temporarily moved to window-point.  */
   specbind (Qinhibit_quit, Qt);
-  const int extend_face_id = (it->face_id == DEFAULT_FACE_ID
-                              || it->s != NULL)
-    ? DEFAULT_FACE_ID
-    : face_at_pos (it, LFACE_EXTEND_INDEX);
+  /* The default face, possibly remapped. */
+  struct face *default_face =
+    FACE_FROM_ID_OR_NULL (f, lookup_basic_face (it->w, f, DEFAULT_FACE_ID));
+  if (!default_face)
+    return;
+
+  const int extend_face_id =
+    (it->face_id == default_face->id || it->s != NULL)
+    ? it->face_id
+    : (it->glyph_row->ends_at_zv_p
+       ? default_face->id
+       : face_at_pos (it, LFACE_EXTEND_INDEX));
   unbind_to (count, Qnil);
 
   /* Face extension extends the background and box of IT->extend_face_id
@@ -23279,14 +23203,8 @@ extend_face_to_end_of_line (struct it *it)
   if (!ASCII_CHAR_P (it->c))
     it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
 
-  /* The default face, possibly remapped. */
-  struct face *default_face =
-    FACE_FROM_ID (f, lookup_basic_face (it->w, f, DEFAULT_FACE_ID));
 
 #ifdef HAVE_WINDOW_SYSTEM
-  if (default_face == NULL)
-    error ("extend_face_to_end_of_line: default_face is not set!");
-
   if (FRAME_WINDOW_P (f))
     {
       /* If the row is empty, add a space with the current face of IT,
@@ -24587,13 +24505,6 @@ display_line (struct it *it, int cursor_vpos)
   it->starts_in_middle_of_char_p = false;
   it->stretch_adjust = 0;
   it->line_number_produced_p = false;
-
-  /* Arrange the overlays nicely for our purposes.  Usually, we call
-     display_line on only one line at a time, in which case this
-     can't really hurt too much, or we call it on lines which appear
-     one after another in the buffer, in which case all calls to
-     recenter_overlay_lists but the first will be pretty cheap.  */
-  recenter_overlay_lists (current_buffer, IT_CHARPOS (*it));
 
   /* If we are going to display the cursor's line, account for the
      hscroll of that line.  We subtract the window's min_hscroll,
@@ -26809,7 +26720,17 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
     {
       struct glyph *last = (it.glyph_row->glyphs[TEXT_AREA]
 			    + it.glyph_row->used[TEXT_AREA] - 1);
+      int box_thickness = face->box_vertical_line_width;
       last->right_box_line_p = true;
+      /* Add back the space for the right box line we subtracted in
+	 init_iterator, since the right_box_line_p flag will make the
+	 glyph wider.  We actually add only as much space as is
+	 available for the last glyph of the modeline and whatever
+	 space is left beyond it, since that glyph could be only
+	 partially visible */
+      if (box_thickness > 0)
+	last->pixel_width += max (0, (box_thickness
+				      - (it.current_x - it.last_visible_x)));
     }
 
   return it.glyph_row->height;
@@ -33655,8 +33576,14 @@ coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
 bool
 cursor_in_mouse_face_p (struct window *w)
 {
-  int hpos = w->phys_cursor.hpos;
   int vpos = w->phys_cursor.vpos;
+
+  /* If the cursor is outside the matrix glyph rows, it cannot be
+     within the mouse face.  */
+  if (!(0 <= vpos && vpos < w->current_matrix->nrows))
+    return false;
+
+  int hpos = w->phys_cursor.hpos;
   struct glyph_row *row = MATRIX_ROW (w->current_matrix, vpos);
 
   /* When the window is hscrolled, cursor hpos can legitimately be out
@@ -34899,7 +34826,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || (defined (USE_GTK) && !defined (HAVE_PGTK)) || defined (HAVE_NS) || defined (MSDOS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS) || defined (MSDOS)
   if (popup_activated ())
     return;
 #endif
@@ -35226,7 +35153,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       if (BUFFERP (object))
 	{
 	  /* Put all the overlays we want in a vector in overlay_vec.  */
-	  GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, false);
+	  GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL);
 	  /* Sort overlays into increasing priority order.  */
 	  noverlays = sort_overlays (overlay_vec, noverlays, w);
 	}
@@ -35254,7 +35181,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	  || (!hlinfo->mouse_face_hidden
 	      && OVERLAYP (hlinfo->mouse_face_overlay)
 	      /* It's possible the overlay was deleted (Bug#35273).  */
-              && XMARKER (OVERLAY_START (hlinfo->mouse_face_overlay))->buffer
+              && OVERLAY_BUFFER (hlinfo->mouse_face_overlay)
               && mouse_face_overlay_overlaps (hlinfo->mouse_face_overlay)))
 	{
 	  /* Find the highest priority overlay with a mouse-face.  */

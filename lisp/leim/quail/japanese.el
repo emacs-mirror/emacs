@@ -359,7 +359,7 @@ input method.
 The input method `japanese-zenkaku' is used to enter full width
 JISX0208 characters corresponding to typed ASCII characters.
 
-List of the all key sequences for Roman-Kana transliteration is shown
+List of all the key sequences for Roman-Kana transliteration is shown
 at the tail.
 
 :: Kana-Kanji conversion ::

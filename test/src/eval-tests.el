@@ -222,7 +222,7 @@ expressions works for identifiers starting with period."
 
 (ert-deftest eval-tests/funcall-with-delayed-message ()
   ;; Check that `funcall-with-delayed-message' displays its message before
-  ;; its function terminates iff the timeout is short enough.
+  ;; its function terminates if the timeout is short enough.
 
   ;; This also serves as regression test for bug#55628 where a short
   ;; timeout was rounded up to the next whole second.

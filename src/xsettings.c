@@ -54,12 +54,15 @@ typedef unsigned int CARD32;
 #include <gconf/gconf-client.h>
 #endif
 
-#if defined USE_CAIRO || defined HAVE_XFT
 #ifdef USE_CAIRO
 #include <fontconfig/fontconfig.h>
-#else  /* HAVE_XFT */
+#include "ftfont.h"
+#elif defined HAVE_XFT
 #include <X11/Xft/Xft.h>
 #endif
+
+#if defined USE_CAIRO && defined CAIRO_HAS_FT_FONT
+#include <cairo/cairo-ft.h>
 #endif
 
 static char *current_mono_font;
@@ -763,7 +766,7 @@ parse_settings (unsigned char *prop,
 #ifndef HAVE_PGTK
 /* Read settings from the XSettings property window on display for DPYINFO.
    Store settings read in SETTINGS.
-   Return true iff successful.  */
+   Return true if successful.  */
 
 static bool
 read_settings (Display_Info *dpyinfo, struct xsettings *settings)
@@ -804,16 +807,31 @@ static void
 apply_xft_settings (Display_Info *dpyinfo,
                     struct xsettings *settings)
 {
-#ifdef HAVE_XFT
+#if defined HAVE_XFT					\
+  || (defined USE_CAIRO && defined CAIRO_HAS_FC_FONT	\
+      && defined CAIRO_HAS_FT_FONT)
   FcPattern *pat;
   struct xsettings oldsettings;
   bool changed = false;
+#ifndef HAVE_XFT
+  cairo_font_options_t *options;
+#endif
+
 
   memset (&oldsettings, 0, sizeof (oldsettings));
   pat = FcPatternCreate ();
+#ifdef HAVE_XFT
   XftDefaultSubstitute (dpyinfo->display,
                         XScreenNumberOfScreen (dpyinfo->screen),
                         pat);
+#else
+  FcConfigSubstitute (NULL, pat, FcMatchPattern);
+  options = cairo_font_options_create ();
+  ftcrfont_get_default_font_options (dpyinfo, options);
+  cairo_ft_font_options_substitute (options, pat);
+  cairo_font_options_destroy (options);
+  FcDefaultSubstitute (pat);
+#endif
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &oldsettings.aa);
   FcPatternGetBool (pat, FC_HINTING, 0, &oldsettings.hinting);
 #ifdef FC_HINT_STYLE
@@ -868,6 +886,14 @@ apply_xft_settings (Display_Info *dpyinfo,
     }
 #endif
 
+#ifdef USE_CAIRO
+  /* When Cairo is being used, set oldsettings.dpi to dpyinfo->resx.
+     This is a gross hack, but seeing as Cairo fails to report
+     anything reasonable, just use it to avoid config-changed events
+     being sent at startup.  */
+  oldsettings.dpi = dpyinfo->resx;
+#endif
+
   if ((settings->seen & SEEN_DPI) != 0
       && settings->dpi > 0
       /* The following conjunct avoids setting `changed' to true when
@@ -912,8 +938,11 @@ apply_xft_settings (Display_Info *dpyinfo,
 		     - sizeof "%f")
       };
       char buf[sizeof format + d_formats * d_growth + lf_formats * lf_growth];
-
+#ifdef HAVE_XFT
       XftDefaultSet (dpyinfo->display, pat);
+#else
+      FcPatternDestroy (pat);
+#endif
       store_config_changed_event (Qfont_render,
 				  XCAR (dpyinfo->name_list_element));
       Vxft_settings
@@ -925,7 +954,7 @@ apply_xft_settings (Display_Info *dpyinfo,
     }
   else
     FcPatternDestroy (pat);
-#endif /* HAVE_XFT */
+#endif /* HAVE_XFT || (USE_CAIRO && CAIRO_HAS_FC_FONT && CAIRO_HAS_FT_FONT) */
 }
 #endif
 

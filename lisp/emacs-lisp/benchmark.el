@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (eval-when-compile (require 'subr-x))   ;For `named-let'.
 
 (defmacro benchmark-elapse (&rest forms)

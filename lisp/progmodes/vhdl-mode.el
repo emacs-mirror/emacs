@@ -2507,11 +2507,10 @@ consistent searching."
 
 (defmacro vhdl-prepare-search-2 (&rest body)
   "Enable case insensitive search, switch to syntax table that includes `_',
-arrange to ignore `intangible' overlays, then execute BODY, and finally restore
-the old environment.  Used for consistent searching."
+then execute BODY, and finally restore the old environment.
+Used for consistent searching."
   (declare (debug t))
-  `(let ((case-fold-search t)		; case insensitive search
-         (inhibit-point-motion-hooks t))
+  `(let ((case-fold-search t))		; case insensitive search
      ;; use extended syntax table
      (with-syntax-table vhdl-mode-ext-syntax-table
        ;; execute BODY safely

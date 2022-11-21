@@ -322,6 +322,10 @@ as the new values of the bound variables in the recursive invocation."
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
     (with-current-buffer (get-buffer-create " *string-pixel-width*")
+      ;; `display-line-numbers-mode' is enabled in internal buffers
+      ;; that breaks width calculation, so need to disable (bug#59311)
+      (when (bound-and-true-p display-line-numbers-mode)
+        (display-line-numbers-mode -1))
       (delete-region (point-min) (point-max))
       (insert string)
       (car (buffer-text-pixel-size nil nil t)))))

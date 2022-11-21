@@ -312,7 +312,7 @@ been reported.
 Which fringe (if any) should show the warning/error bitmaps.
 
 @item flymake-wrap-around
-If non-nil, moving to errors with @code{flymake-goto-next-error} and
+If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
 @code{flymake-goto-prev-error} wraps around buffer boundaries.
 @end vtable
 
@@ -615,7 +615,7 @@ delimited by @var{beg} and @var{end}.  @var{type} is a diagnostic
 symbol (@pxref{Flymake error types}), and @var{text} is a description
 of the problem detected in this region.  Most commonly @var{locus} is
 the buffer object designating for the current buffer being
-syntax-checked.  However, it may be a string nameing a file relative
+syntax-checked.  However, it may be a string naming a file relative
 to the current working directory.  @xref{Foreign and list-only
 diagnostics}, for when this may be useful.  Depending on the type of
 @var{locus}, @var{beg} and @var{end} are both either buffer positions
@@ -844,8 +844,8 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
 * Interaction with other modes::
 @end menu
 
-@findex flymake-proc-legacy-backend
-The backend @code{flymake-proc-legacy-backend} was originally designed
+@findex flymake-proc-legacy-flymake
+The backend @code{flymake-proc-legacy-flymake} was originally designed
 to be extended for supporting new syntax check tools and error message
 patterns.  It is also controlled by its own set of customization variables
 
@@ -878,7 +878,7 @@ line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
 @item flymake-proc-diagnostic-type-pred
 A function to classify a diagnostic text as particular type of error.
 Should be a function taking an error text and returning a diagnostic
-symbol (@pxref{Flymake error types}).  If non-nil is returned but
+symbol (@pxref{Flymake error types}).  If non-@code{nil} is returned but
 there is no such symbol in that table, a warning is assumed.  If nil
 is returned, an error is assumed.  Can also be a regular expression
 that should match only warnings.  This variable replaces the old
@@ -1053,7 +1053,7 @@ check-syntax:
 @cindex syntax check models
 @cindex master file
 
-@code{flymake-proc-legacy-backend} saves a copy of the buffer in a
+@code{flymake-proc-legacy-flymake} saves a copy of the buffer in a
 temporary file in the buffer's directory (or in the system temporary
 directory, for Java files), creates a syntax check command and
 launches a process with this command.  The output is parsed using a

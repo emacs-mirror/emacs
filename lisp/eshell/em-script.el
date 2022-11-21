@@ -90,8 +90,7 @@ This includes when running `eshell-command'."
   "Execute a series of Eshell commands in FILE, passing ARGS.
 Comments begin with `#'."
   (let ((orig (point))
-	(here (point-max))
-	(inhibit-point-motion-hooks t))
+	(here (point-max)))
     (goto-char (point-max))
     (with-silent-modifications
       ;; FIXME: Why not use a temporary buffer and avoid this

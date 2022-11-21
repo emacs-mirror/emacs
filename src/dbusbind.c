@@ -422,7 +422,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
     case DBUS_TYPE_STRING:
     case DBUS_TYPE_OBJECT_PATH:
     case DBUS_TYPE_SIGNATURE:
-      /* We dont check the syntax of signature.  This will be done by
+      /* We don't check the syntax of signature.  This will be done by
 	 libdbus.  */
       if (dtype == DBUS_TYPE_OBJECT_PATH)
 	XD_DBUS_VALIDATE_PATH (object)
@@ -748,7 +748,7 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_STRING:
       case DBUS_TYPE_OBJECT_PATH:
       case DBUS_TYPE_SIGNATURE:
-	/* We dont check the syntax of signature.  This will be done
+	/* We don't check the syntax of signature.  This will be done
 	   by libdbus.  */
 	if (dtype == DBUS_TYPE_OBJECT_PATH)
 	  XD_DBUS_VALIDATE_PATH (object)

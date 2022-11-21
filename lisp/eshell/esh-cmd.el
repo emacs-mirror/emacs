@@ -261,9 +261,9 @@ the command."
 (defcustom eshell-subcommand-bindings
   '((eshell-in-subcommand-p t)
     (eshell-in-pipeline-p nil)
-    (default-directory default-directory)
-    (process-environment (eshell-copy-environment)))
+    (default-directory default-directory))
   "A list of `let' bindings for subcommand environments."
+  :version "29.1"		       ; removed `process-environment'
   :type 'sexp
   :risky t)
 
@@ -372,8 +372,7 @@ The value returned is the last form in BODY."
          ;; Since parsing relies partly on buffer-local state
          ;; (e.g. that of `eshell-parse-argument-hook'), we need to
          ;; perform the parsing in the Eshell buffer.
-         (let ((begin (point)) end
-	       (inhibit-point-motion-hooks t))
+         (let ((begin (point)) end)
            (with-silent-modifications
              (insert reg)
              (setq end (point))
@@ -1275,8 +1274,9 @@ be finished later after the completion of an asynchronous subprocess."
                         name)
                   (eshell-search-path name)))))
       (if (not program)
-	  (eshell-error (format "which: no %s in (%s)\n"
-				name (getenv "PATH")))
+          (eshell-error (format "which: no %s in (%s)\n"
+                                name (string-join (eshell-get-path t)
+                                                  (path-separator))))
 	(eshell-printn program)))))
 
 (put 'eshell/which 'eshell-no-numeric-conversions t)

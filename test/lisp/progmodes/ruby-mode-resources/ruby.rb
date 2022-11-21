@@ -177,11 +177,11 @@ qux :+,
 b = $:
 c = ??
 
-# Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
+# Example from https://ruby-doc.com/docs/ProgrammingRuby/
 d = 4 + 5 +      # no '\' needed
     6 + 7
 
-# Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
+# Example from https://www.ruby-doc.org/docs/ProgrammingRuby/
 e = 8 + 9   \
     + 10         # '\' needed
 

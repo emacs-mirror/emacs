@@ -3532,9 +3532,14 @@ the @file{~/.authinfo.gpg} authentication file.  The user option
 @code{tramp-completion-use-auth-sources} controls, whether such a
 search is performed during completion.
 
+@vindex tramp-completion-use-cache
 Remote hosts previously visited or hosts whose connections are kept
 persistently (@pxref{Connection caching}) will be included in the
-completion lists.
+completion lists.  If you want to suppress this completion because
+there are invalid entries in the persistency file, for example if the
+host configuration changes often, or if you plug your laptop to
+different networks frequently, you can set the user option
+@code{tramp-completion-use-cache} to nil.
 
 After remote host name completion comes completion of file names on
 the remote host.  It works the same as with local host file completion
@@ -4220,7 +4225,7 @@ non-@code{nil}, or invoke that command with a negative argument like
 @value{tramp}'s implementation of @code{make-process} and
 @code{start-file-process} requires a serious overhead for
 initialization, every process invocation.  This is needed for handling
-interactive dialogues when connecting the remote host (like providing
+interactive dialogs when connecting the remote host (like providing
 a password), and initial environment setup.
 
 Sometimes, this is not needed.  Instead of starting a remote shell and
@@ -4248,8 +4253,9 @@ Furthermore, this approach has the following limitations:
 
 @itemize
 @item
-It works only for connection methods defined in @file{tramp-adb.el},
-@file{tramp-sh.el} and @file{tramp-sshfs.el}.
+It works only for some connection methods defined in
+@file{tramp-adb.el}, @file{tramp-container.el}, @file{tramp-sh.el} and
+@file{tramp-sshfs.el}.
 
 @item
 It does not support interactive user authentication.  With

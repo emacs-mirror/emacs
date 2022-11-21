@@ -411,8 +411,11 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
   "Provide completion for the /DCC command."
   (pcomplete-here (append '("chat" "close" "get" "list")
                           (when (fboundp 'make-network-process) '("send"))))
+  (when (equal "get" (downcase (pcomplete-arg 1)))
+    (pcomplete-opt "ts")
+    (pcomplete-opt (if (equal "-s" (pcomplete-arg 'first 2)) "t" "s")))
   (pcomplete-here
-   (pcase (intern (downcase (pcomplete-arg 1)))
+   (pcase (intern (downcase (pcomplete-arg 'first 1)))
      ('chat (mapcar (lambda (elt) (plist-get elt :nick))
                     (cl-remove-if-not
                      (lambda (elt)
@@ -428,7 +431,7 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                     erc-dcc-list)))
      ('send (pcomplete-erc-all-nicks))))
   (pcomplete-here
-   (pcase (intern (downcase (pcomplete-arg 2)))
+   (pcase (intern (downcase (pcomplete-arg 'first 1)))
      ('get (mapcar (lambda (elt) (plist-get elt :file))
                    (cl-remove-if-not
                     (lambda (elt)

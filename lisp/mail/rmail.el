@@ -1751,6 +1751,7 @@ not be a new one).  It returns non-nil if it got any new messages."
 	    (spam-filter-p (and (featurep 'rmail-spam-filter)
 				rmail-use-spam-filter))
 	    (blurb "")
+            (mod-p (buffer-modified-p))
 	    result success suffix)
 	(narrow-to-region (point) (point))
 	;; Read in the contents of the inbox files, renaming them as
@@ -1766,10 +1767,11 @@ not be a new one).  It returns non-nil if it got any new messages."
 		  (rmail-insert-inbox-text files nil)
 		(setq delete-files (rmail-insert-inbox-text files t))))
 	  ;; If there was no new mail, or we aborted before actually
-	  ;; trying to get any, mark buffer unmodified.  Otherwise the
-	  ;; buffer is correctly marked modified and the file locked
-	  ;; until we save out the new mail.
-	  (if (= (point-min) (point-max))
+	  ;; trying to get any, mark buffer unmodified, unless it was
+	  ;; modified originally.  Otherwise the buffer is correctly
+	  ;; marked modified and the file locked until we save out the
+	  ;; new mail.
+	  (if (and (null mod-p) (= (point-min) (point-max)))
 	      (set-buffer-modified-p nil)))
 	;; Scan the new text and convert each message to
 	;; Rmail/mbox format.
@@ -2597,7 +2599,7 @@ is greater than zero; otherwise, show it in full."
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
 Ask the user whether to add that list name to `mail-mailing-lists'."
   ;; FIXME s-r not needed?  Use rmail-get-header?
-  ;; We have not narrowed to the headers at ths point?
+  ;; We have not narrowed to the headers at this point?
    (save-restriction
      (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
        (when mail-followup-to
@@ -4693,15 +4695,23 @@ Argument MIME is non-nil if this is a mime message."
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward "--------------[0-9a-zA-Z]+\n" nil t)
-      (let ((delim (concat (substring (match-string 0) 0 -1) "--\n")))
+      ;; The ending delimiter is a start delimiter if another section follows.
+      ;; Otherwise it is an end delimiter, with -- affixed.
+      (let ((delim (concat (substring (match-string 0) 0 -1) "\\(\\|--\\)\n")))
         (when (looking-at "\
 Content-Type: text/[a-z]+; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: base64\n")
           (goto-char (match-end 0))
+          ;; Sometimes the attachment's headers are followed by blank lines
+          (while (eolp)
+            (forward-line 1))
           (let ((start (point))
                 (inhibit-read-only t))
-            (search-forward delim)
+            (re-search-forward delim)
             (forward-line -1)
+            ;; Sometimes the attachment's contents are followed by blank lines
+            (while (save-excursion (forward-line -1) (eolp))
+              (forward-line -1))
             (base64-decode-region start (point))
             (forward-line 1)))))))
 

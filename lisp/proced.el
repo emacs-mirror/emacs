@@ -140,8 +140,8 @@ the external command (usually \"kill\")."
     (nice    "Ni"      "%3d" 3 proced-< t (nice pid) (t t nil))
     (thcount "THCount" "%d" right proced-< t (thcount pid) (nil t t))
     (start   "Start"   proced-format-start 6 proced-time-lessp nil (start pid) (t t nil))
-    (vsize   "VSize"   "%d" right proced-< t (vsize pid) (nil t t))
-    (rss     "RSS"     "%d" right proced-< t (rss pid) (nil t t))
+    (vsize   "VSize"   proced-format-memory right proced-< t (vsize pid) (nil t t))
+    (rss     "RSS"     proced-format-memory right proced-< t (rss pid) (nil t t))
     (etime   "ETime"   proced-format-time right proced-time-lessp t (etime pid) (nil t t))
     (pcpu    "%CPU"    "%.1f" right proced-< t (pcpu pid) (nil t t))
     (pmem    "%Mem"    "%.1f" right proced-< t (pmem pid) (nil t t))
@@ -740,12 +740,18 @@ Proced buffers."
         "Type \\<proced-mode-map>\\[quit-window] to quit, \\[proced-help] for help")))))
 
 (defun proced-auto-update-timer ()
-  "Auto-update Proced buffers using `run-at-time'."
-  (dolist (buf (buffer-list))
-    (with-current-buffer buf
-      (if (and (eq major-mode 'proced-mode)
-               proced-auto-update-flag)
-          (proced-update t t)))))
+  "Auto-update Proced buffers using `run-at-time'.
+
+If there are no proced buffers, cancel the timer."
+  (unless (seq-filter (lambda (buf)
+                        (with-current-buffer buf
+                          (when (eq major-mode 'proced-mode)
+                            (if proced-auto-update-flag
+                                (proced-update t t))
+                            t)))
+                      (buffer-list))
+    (cancel-timer proced-auto-update-timer)
+    (setq proced-auto-update-timer nil)))
 
 (defun proced-toggle-auto-update (arg)
   "Change whether this Proced buffer is updated automatically.
@@ -1424,6 +1430,10 @@ The return string is always 6 characters wide."
   "Format attribute ARGS.
 Replace newline characters by \"^J\" (two characters)."
   (string-replace "\n" "^J" args))
+
+(defun proced-format-memory (kilobytes)
+  "Format KILOBYTES in a human readable format."
+  (funcall byte-count-to-string-function (* 1024 kilobytes)))
 
 (defun proced-format (process-alist format)
   "Display PROCESS-ALIST using FORMAT."

@@ -268,7 +268,7 @@ Currently, only Latin-1 characters are supported.")
   ;; prefer tidy because (o)nsgmls is often built without --enable-http
   ;; which makes it next to useless
   (cond ((executable-find "tidy")
-         ;; tidy is available from http://tidy.sourceforge.net/
+         ;; tidy is available from https://tidy.sourceforge.net/
          "tidy --gnu-emacs yes -utf8 -e -q")
         ((executable-find "nsgmls")
          ;; nsgmls is a free SGML parser in the SP suite available from
@@ -276,7 +276,7 @@ Currently, only Latin-1 characters are supported.")
          "nsgmls -s")
         ((executable-find "onsgmls")
          ;; onsgmls is the community version of `nsgmls'
-         ;; hosted on http://openjade.sourceforge.net/
+         ;; hosted on https://openjade.sourceforge.net/
          "onsgmls -s")
         (t "Install (o)nsgmls, tidy, or some other SGML validator, and set `sgml-validate-command'"))
   "The command to validate an SGML document.

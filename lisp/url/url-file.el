@@ -150,7 +150,6 @@ it up to them."
 	 (uncompressed-filename nil)
 	 (content-type nil)
 	 (content-encoding nil)
-	 (coding-system-for-read 'binary)
 	 (filename (url-file-build-filename url)))
     (or filename (error "File does not exist: %s" (url-recreate-url url)))
     ;; Need to figure out the content-type from the real extension,

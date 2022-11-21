@@ -1236,7 +1236,8 @@ Return t if the file exists and loads successfully.  */)
   /* If file name is magic, call the handler.  */
   handler = Ffind_file_name_handler (file, Qload);
   if (!NILP (handler))
-    return call5 (handler, Qload, file, noerror, nomessage, nosuffix);
+    return
+      call6 (handler, Qload, file, noerror, nomessage, nosuffix, must_suffix);
 
   /* The presence of this call is the result of a historical accident:
      it used to be in every file-operation and when it got removed
@@ -1740,12 +1741,15 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
 					       Vload_path,
 					       Qnil, Qnil)))
 		return;
-	      call2 (intern_c_string ("display-warning"),
-		     Qcomp,
-		     CALLN (Fformat,
-			    build_string ("Cannot look up eln file as "
-					  "no source file was found for %s"),
-			    *filename));
+	      Vdelayed_warnings_list
+		= Fcons (list2
+			 (Qcomp,
+			  CALLN (Fformat,
+				 build_string ("Cannot look up eln "
+					       "file as no source file "
+					       "was found for %s"),
+				 *filename)),
+			 Vdelayed_warnings_list);
 	      return;
 	    }
 	}
@@ -5627,7 +5631,8 @@ from the file, and matches them against this regular expression.
 When the regular expression matches, the file is considered to be safe
 to load.  */);
   Vbytecomp_version_regexp
-    = build_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
+    = build_pure_c_string
+        ("^;;;.\\(?:in Emacs version\\|bytecomp version FSF\\)");
 
   DEFSYM (Qlexical_binding, "lexical-binding");
   DEFVAR_LISP ("lexical-binding", Vlexical_binding,

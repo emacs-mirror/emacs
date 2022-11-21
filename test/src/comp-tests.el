@@ -298,9 +298,9 @@ Check that the resulting binaries do not differ."
 (comp-deftest non-locals ()
   "Test non locals."
   (should (string= (comp-tests-condition-case-0-f)
-                   "arith-error Arithmetic error catched"))
+                   "arith-error Arithmetic error caught"))
   (should (string= (comp-tests-condition-case-1-f)
-                   "error Foo catched"))
+                   "error Foo caught"))
   (should (= (comp-tests-catch-f
               (lambda () (throw 'foo 3)))
              3))
@@ -823,7 +823,7 @@ Return a list of results."
     (should (= (comp-tests-tco-f 1 0 10) 55))))
 
 (defun comp-tests-fw-prop-checker-1 (_)
-  "Check that inside `comp-tests-fw-prop-f' `concat' and `length' are folded."
+  "Check that inside `comp-tests-fw-prop-1-f' `concat' and `length' are folded."
   (should
    (cl-notany
     #'identity

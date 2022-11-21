@@ -125,13 +125,11 @@ and `shell-dirtrack-mode'."
 
 ;; Hyperlink handling (OSC 8)
 
-(defvar ansi-osc-hyperlink-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\r" 'browse-url-button-open)
-    (define-key map [mouse-2] 'browse-url-button-open)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Keymap used by OSC 8 hyperlink buttons.")
+(defvar-keymap ansi-osc-hyperlink-map
+  :doc "Keymap used by OSC 8 hyperlink buttons."
+  "C-c RET"       #'browse-url-button-open
+  "<mouse-2>"     #'browse-url-button-open
+  "<follow-link>" 'mouse-face)
 
 (define-button-type 'ansi-osc-hyperlink
   'keymap ansi-osc-hyperlink-map
@@ -143,7 +141,7 @@ and `shell-dirtrack-mode'."
 
 (defun ansi-osc-hyperlink-handler (_ text)
   "Create a hyperlink from an OSC 8 escape sequence.
-This function is intended to be included as an elemnt of the list
+This function is intended to be included as an element of the list
 that is the value of `ansi-osc-handlers'."
   (when ansi-osc-hyperlink--state
     (let ((start (car ansi-osc-hyperlink--state))

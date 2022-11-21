@@ -272,6 +272,7 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
 	  m->bytepos = from_byte;
 	}
     }
+  adjust_overlays_for_delete (from, to - from);
 }
 
 
@@ -288,7 +289,6 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte, bool before_markers)
 {
   struct Lisp_Marker *m;
-  bool adjusted = 0;
   ptrdiff_t nchars = to - from;
   ptrdiff_t nbytes = to_byte - from_byte;
 
@@ -304,8 +304,6 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 	    {
 	      m->bytepos = to_byte;
 	      m->charpos = to;
-	      if (m->insertion_type)
-		adjusted = 1;
 	    }
 	}
       else if (m->bytepos > from_byte)
@@ -314,15 +312,7 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 	  m->charpos += nchars;
 	}
     }
-
-  /* Adjusting only markers whose insertion-type is t may result in
-     - disordered start and end in overlays, and
-     - disordered overlays in the slot `overlays_before' of current_buffer.  */
-  if (adjusted)
-    {
-      fix_start_end_in_overlays (from, to);
-      fix_overlays_before (current_buffer, from, to);
-    }
+  adjust_overlays_for_insert (from, to - from, before_markers);
 }
 
 /* Adjust point for an insertion of NBYTES bytes, which are NCHARS characters.
@@ -359,6 +349,11 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
   ptrdiff_t diff_bytes = new_bytes - old_bytes;
 
   adjust_suspend_auto_hscroll (from, from + old_chars);
+
+  /* FIXME: When OLD_CHARS is 0, this "replacement" is really just an
+     insertion, but the behavior we provide here in that case is that of
+     `insert-before-markers` rather than that of `insert`.
+     Maybe not a bug, but not a feature either.  */
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
       if (m->bytepos >= prev_to_byte)
@@ -374,6 +369,10 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
     }
 
   check_markers ();
+
+  adjust_overlays_for_insert (from + old_chars, new_chars, true);
+  if (old_chars)
+    adjust_overlays_for_delete (from, old_chars);
 }
 
 /* Starting at POS (BYTEPOS), find the byte position corresponding to
@@ -933,7 +932,6 @@ insert_1_both (const char *string,
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
-  adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE,
 			     PT + nchars, PT_BYTE + nbytes,
 			     before_markers);
@@ -1065,7 +1063,6 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
-  adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE, PT + nchars,
 			     PT_BYTE + outgoing_nbytes,
 			     before_markers);
@@ -1143,9 +1140,8 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 
   insert_from_gap_1 (nchars, nbytes, text_at_gap_tail);
 
-  adjust_overlays_for_insert (ins_charpos, nchars);
   adjust_markers_for_insert (ins_charpos, ins_bytepos,
-			     ins_charpos + nchars, ins_bytepos + nbytes, 0);
+			     ins_charpos + nchars, ins_bytepos + nbytes, false);
 
   if (buffer_intervals (current_buffer))
     {
@@ -1291,10 +1287,9 @@ insert_from_buffer_1 (struct buffer *buf,
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
-  adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE, PT + nchars,
 			     PT_BYTE + outgoing_nbytes,
-			     0);
+			     false);
 
   offset_intervals (current_buffer, PT, nchars);
 
@@ -1356,16 +1351,11 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 				len, len_byte);
   else
     adjust_markers_for_insert (from, from_byte,
-			       from + len, from_byte + len_byte, 0);
+			       from + len, from_byte + len_byte, false);
 
   if (nchars_del > 0)
     record_delete (from, prev_text, false);
   record_insert (from, len);
-
-  if (len > nchars_del)
-    adjust_overlays_for_insert (from, len - nchars_del);
-  else if (len < nchars_del)
-    adjust_overlays_for_delete (from, nchars_del - len);
 
   offset_intervals (current_buffer, from, len - nchars_del);
 
@@ -1378,8 +1368,6 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 
   check_markers ();
 
-  if (len == 0)
-    evaporate_overlays (from);
   modiff_incr (&MODIFF, nchars_del + len);
   CHARS_MODIFF = MODIFF;
 }
@@ -1547,13 +1535,8 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 	 which make the original byte positions of the markers
 	 invalid.  */
       adjust_markers_bytepos (from, from_byte, from + inschars,
-			      from_byte + outgoing_insbytes, 1);
+			      from_byte + outgoing_insbytes, true);
     }
-
-  /* Adjust the overlay center as needed.  This must be done after
-     adjusting the markers that bound the overlays.  */
-  adjust_overlays_for_delete (from, nchars_del);
-  adjust_overlays_for_insert (from, inschars);
 
   offset_intervals (current_buffer, from, inschars - nchars_del);
 
@@ -1576,9 +1559,6 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
     adjust_point ((from + inschars - (PT < to ? PT : to)),
 		  (from_byte + outgoing_insbytes
 		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
-
-  if (outgoing_insbytes == 0)
-    evaporate_overlays (from);
 
   check_markers ();
 
@@ -1691,16 +1671,8 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 	     sequences which make the original byte positions of the
 	     markers invalid.  */
 	  adjust_markers_bytepos (from, from_byte, from + inschars,
-				  from_byte + insbytes, 1);
+				  from_byte + insbytes, true);
 	}
-    }
-
-  /* Adjust the overlay center as needed.  This must be done after
-     adjusting the markers that bound the overlays.  */
-  if (nchars_del != inschars)
-    {
-      adjust_overlays_for_insert (from, inschars);
-      adjust_overlays_for_delete (from + inschars, nchars_del);
     }
 
   offset_intervals (current_buffer, from, inschars - nchars_del);
@@ -1714,9 +1686,6 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
       else
 	adjust_point (inschars - nchars_del, insbytes - nbytes_del);
     }
-
-  if (insbytes == 0)
-    evaporate_overlays (from);
 
   check_markers ();
 
@@ -1905,10 +1874,6 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   offset_intervals (current_buffer, from, - nchars_del);
 
-  /* Adjust the overlay center as needed.  This must be done after
-     adjusting the markers that bound the overlays.  */
-  adjust_overlays_for_delete (from, nchars_del);
-
   GAP_SIZE += nbytes_del;
   ZV_BYTE -= nbytes_del;
   Z_BYTE -= nbytes_del;
@@ -1929,8 +1894,6 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
     END_UNCHANGED = Z - GPT;
 
   check_markers ();
-
-  evaporate_overlays (from);
 
 #ifdef HAVE_TREE_SITTER
   eassert (from_byte <= to_byte);

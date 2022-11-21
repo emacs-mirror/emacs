@@ -1310,7 +1310,7 @@ SUMMARY:and diary-anniversary
                                 "import-real-world-2003-05-29.diary-european"
                                 "import-real-world-2003-05-29.diary-american")
 
-  ;; created with http://apps.marudot.com/ical/
+  ;; created with https://apps.marudot.com/ical/
   (icalendar-tests--test-import "import-real-world-no-dst.ics"
                                 nil
                                 "import-real-world-no-dst.diary-european"

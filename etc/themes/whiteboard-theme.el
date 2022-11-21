@@ -21,8 +21,11 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme whiteboard
-  "Face colors similar to markers on a whiteboard.")
+  "Face colors similar to markers on a whiteboard."
+  :background-mode 'light
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

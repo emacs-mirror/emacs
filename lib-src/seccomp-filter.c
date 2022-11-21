@@ -206,6 +206,9 @@ main (int argc, char **argv)
         SCMP_A2_32 (SCMP_CMP_MASKED_EQ,
                     ~(PROT_NONE | PROT_READ | PROT_WRITE), 0));
 
+  /* Allow restartable sequences.  The dynamic linker uses them.  */
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (rseq));
+
   /* Futexes are used everywhere.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (futex),
         SCMP_A1_32 (SCMP_CMP_EQ, FUTEX_WAKE_PRIVATE));
@@ -218,6 +221,7 @@ main (int argc, char **argv)
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (getuid));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (geteuid));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (getpid));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (gettid));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (getpgrp));
 
   /* Allow operations on open file descriptors.  File descriptors are
@@ -324,6 +328,8 @@ main (int argc, char **argv)
                       | CLONE_SETTLS | CLONE_PARENT_SETTID
                       | CLONE_CHILD_CLEARTID),
                     0));
+  /* glibc 2.34+ pthread_create uses clone3.  */
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (clone3));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (sigaltstack));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (set_robust_list));
 

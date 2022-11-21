@@ -789,8 +789,8 @@ use strict;
 use warnings;
 use POSIX qw(getgroups);
 
-my ($user, $passwd, $uid, $gid) = getpwuid $< ;
-my $group = getgrgid $gid ;
+my ( $uid, $user ) = ( $>, scalar getpwuid $> );
+my ( $gid, $group ) = ( $), scalar getgrgid $) );
 my @groups = map { $_ . \"(\" . getgrgid ($_) . \")\" } getgroups ();
 
 printf \"uid=%%d(%%s) gid=%%d(%%s) groups=%%s\\n\",
@@ -2827,11 +2827,14 @@ the result will be a local, non-Tramp, file name."
   ;; Handle empty NAME.
   (when (zerop (length name)) (setq name "."))
   ;; On MS Windows, some special file names are not returned properly
-  ;; by `file-name-absolute-p'.
-  (if (and (eq system-type 'windows-nt)
-	   (string-match-p
-	    (tramp-compat-rx bol (| (: alpha ":") (: (literal null-device) eol)))
-	    name))
+  ;; by `file-name-absolute-p'.  If `tramp-syntax' is `simplified',
+  ;; there could be the falso positive "/:".
+  (if (or (and (eq system-type 'windows-nt)
+	       (string-match-p
+		(tramp-compat-rx bol (| (: alpha ":") (: (literal null-device) eol)))
+		name))
+	  (and (not (tramp-tramp-file-p name))
+	       (not (tramp-tramp-file-p dir))))
       (tramp-run-real-handler #'expand-file-name (list name dir))
     ;; Unless NAME is absolute, concat DIR and NAME.
     (unless (file-name-absolute-p name)
@@ -4469,7 +4472,8 @@ process to set up.  VEC specifies the connection."
   ;; Check whether the output of "uname -sr" has been changed.  If
   ;; yes, this is a strong indication that we must expire all
   ;; connection properties.  We start again with
-  ;; `tramp-maybe-open-connection', it will be caught there.
+  ;; `tramp-maybe-open-connection', it will be caught there.  The same
+  ;; check will be applied with the function kept in `tramp-config-check'.
   (tramp-message vec 5 "Checking system information")
   (let* ((old-uname (tramp-get-connection-property vec "uname"))
 	 (uname
@@ -4478,12 +4482,36 @@ process to set up.  VEC specifies the connection."
 	      old-uname
 	    (tramp-set-connection-property
 	     vec "uname"
-	     (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\"")))))
-    (when (and (stringp old-uname) (not (string-equal old-uname uname)))
+	     (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\""))))
+	 (config-check-function
+	  (tramp-get-method-parameter vec 'tramp-config-check))
+	 (old-config-check
+	  (and config-check-function
+	       (tramp-get-connection-property vec "config-check-data")))
+	 (config-check
+	  (and config-check-function
+	       ;; If we are in `make-process', we don't need to recompute.
+	       (if (and old-config-check
+			(tramp-get-connection-property vec "process-name"))
+		   old-config-check
+		 (tramp-set-connection-property
+		  vec "config-check-data"
+		  (tramp-compat-funcall config-check-function vec))))))
+    (when (and (stringp old-uname) (stringp uname)
+	       (not (string-equal old-uname uname)))
       (tramp-message
        vec 3
        "Connection reset, because remote host changed from `%s' to `%s'"
        old-uname uname)
+      ;; We want to keep the password.
+      (tramp-cleanup-connection vec t t)
+      (throw 'uname-changed (tramp-maybe-open-connection vec)))
+    (when (and (stringp old-config-check) (stringp config-check)
+	       (not (string-equal old-config-check config-check)))
+      (tramp-message
+       vec 3
+       "Connection reset, because remote configuration changed from `%s' to `%s'"
+       old-config-check config-check)
       ;; We want to keep the password.
       (tramp-cleanup-connection vec t t)
       (throw 'uname-changed (tramp-maybe-open-connection vec)))

@@ -201,7 +201,7 @@ This function is modeled after `minibuffer-complete-and-exit'."
     (if doexit (exit-minibuffer))))
 
 (defun crm--choose-completion-string (choice buffer base-position
-                                             &rest ignored)
+                                             &rest _ignored)
   "Completion string chooser for `completing-read-multiple'.
 This is called from `choose-completion-string-functions'.
 It replaces the string that is currently being completed, without

@@ -532,6 +532,12 @@ in the branch repository (or whose status not be determined)."
     (add-hook 'after-save-hook #'vc-bzr-resolve-when-done nil t)
     (vc-message-unresolved-conflicts buffer-file-name)))
 
+(defun vc-bzr-clone (remote directory rev)
+  (if rev
+      (vc-bzr-command nil 0 '() "branch" "-r" rev remote directory)
+    (vc-bzr-command nil 0 '() "branch" remote directory))
+  directory)
+
 (defun vc-bzr-version-dirstate (dir)
   "Try to return as a string the bzr revision ID of directory DIR.
 This uses the dirstate file's parent revision entry.
@@ -1323,6 +1329,20 @@ stream.  Standard error output is discarded."
       (if (re-search-forward "parent branch: \\(.*\\)$" nil t)
           (match-string 1)
         (error "Cannot determine Bzr repository URL")))))
+
+(defun vc-bzr-prepare-patch (rev)
+  (with-current-buffer (generate-new-buffer " *vc-bzr-prepare-patch*")
+    (vc-bzr-command
+     "send" t 0 '()
+     "--revision" (concat (vc-bzr-previous-revision nil rev) ".." rev)
+     "--output" "-")
+    (let (subject)
+      ;; Extract the subject line
+      (goto-char (point-min))
+      (search-forward-regexp "^[^#].*")
+      (setq subject (match-string 0))
+      ;; Return the extracted data
+      (list :subject subject :buffer (current-buffer)))))
 
 (provide 'vc-bzr)
 

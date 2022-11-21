@@ -82,7 +82,7 @@ hippie-expand, and several other parts of Emacs.
 
 To send bug reports, or participate in discussions about semantic,
 use the mailing list cedet-semantic@@sourceforge.net via the URL:
-@url{http://lists.sourceforge.net/lists/listinfo/cedet-semantic}
+@url{https://lists.sourceforge.net/lists/listinfo/cedet-semantic}
 
 @ifnottex
 @insertcopying

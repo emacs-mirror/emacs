@@ -1025,8 +1025,9 @@ If PROGRAM exits successfully, display \"MSG...done\" and return nil.
 If PROGRAM exits abnormally, save in `dired-log-buffer' the command
 that invoked PROGRAM and the messages it emitted, and return either
 the offending ARGUMENTS or PROGRAM if no ARGUMENTS were provided."
-  (let (err-buffer err (dir default-directory))
-    (message "%s..." msg)
+  (let ((dir default-directory)
+        (reporter (make-progress-reporter msg))
+        err-buffer err)
     (save-excursion
       ;; Get a clean buffer for error output:
       (setq err-buffer (get-buffer-create " *dired-check-process output*"))
@@ -1041,8 +1042,8 @@ the offending ARGUMENTS or PROGRAM if no ARGUMENTS were provided."
 	    (dired-log err-buffer)
 	    (or arguments program t))
 	(kill-buffer err-buffer)
-	(message "%s...done" msg)
-	nil))))
+        (progress-reporter-done reporter)
+        nil))))
 
 (defun dired-shell-command (cmd)
   "Run CMD, and check for output.
@@ -3478,7 +3479,7 @@ Use \\[dired-hide-all] to (un)hide all directories."
       (dired-next-subdir 1 t))))
 
 ;;;###autoload
-(defun dired-hide-all (&optional ignored)
+(defun dired-hide-all (&optional _ignored)
   "Hide all subdirectories, leaving only their header lines.
 If there is already something hidden, make everything visible again.
 Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
@@ -3718,9 +3719,9 @@ function works."
 ;;;###autoload
 (defun dired-show-file-type (file &optional deref-symlinks)
   "Print the type of FILE, according to the `file' command.
-If you give a prefix to this command, and FILE is a symbolic
-link, then the type of the file linked to by FILE is printed
-instead."
+If you give a prefix argument \\[universal-argument] to this command, and
+FILE is a symbolic link, then the command will print the type
+of the target of the link instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
   (let (process-file-side-effects)
     (with-temp-buffer

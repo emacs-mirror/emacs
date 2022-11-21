@@ -209,7 +209,7 @@ month_data='
 if type mktemp >/dev/null 2>&1; then
 	logdir=`mktemp -d`
 else
-	logdir=$TMPDIR/rcs2log$$
+	logdir="${TMPDIR-/tmp}/rcs2log$$"
 	(umask 077 && mkdir "$logdir")
 fi || exit
 case $logdir in

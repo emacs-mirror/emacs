@@ -367,7 +367,7 @@ See `text-scale-increase' for more details."
 ;;;###autoload
 (defun text-scale-adjust (inc)
   "Adjust the font size in the current buffer by INC steps.
-INC may be passed as a numeric prefix argument.
+Interactively, INC is the prefix numeric argument, and defaults to 1.
 
 The actual adjustment made depends on the final component of the
 keybinding used to invoke the command, with all modifiers removed:
@@ -377,13 +377,14 @@ keybinding used to invoke the command, with all modifiers removed:
    \\`0'      Reset the font size to the global default
 
 After adjusting, continue to read input events and further adjust
-the font size as long as the input event read
-\(with all modifiers removed) is one of the above characters.
+the font size as long as the input event (with all modifiers removed)
+is one of the above characters.
 
-Each step scales the height of the default face by the variable
-`text-scale-mode-step' (a negative number of steps decreases the
-height by the same amount).  As a special case, an argument of 0
-will remove any scaling currently active.
+Each step scales the height of the default face by the factor that
+is the value of `text-scale-mode-step' (a negative number of steps
+decreases the height by that factor).  As a special case, an argument
+of 0 will remove any scaling currently active, thus resetting the
+font size to the original value.
 
 This command is a special-purpose wrapper around the
 `text-scale-increase' command which makes repetition convenient
@@ -396,7 +397,11 @@ that have an explicit `:height' setting.  The two exceptions to
 this are the `default' and `header-line' faces: they will both be
 scaled even if they have an explicit `:height' setting.
 
-See also the related command `global-text-scale-adjust'."
+See also the related command `global-text-scale-adjust'.  Unlike
+that command, which scales the font size with a increment,
+`text-scale-adjust' scales the font size with a factor,
+`text-scale-mode-step'.  With a small `text-scale-mode-step'
+factor, the two commands behave similarly."
   (interactive "p")
   (let ((ev last-command-event)
 	(echo-keystrokes nil))
@@ -461,25 +466,30 @@ the `cdr' has the maximum font size, in units of 1/10 pt."
 
 (defvar global-text-scale-adjust--default-height nil)
 
+(defvar global-text-scale-adjust--increment-factor 5)
+
 ;;;###autoload (define-key ctl-x-map [(control meta ?+)] 'global-text-scale-adjust)
 ;;;###autoload (define-key ctl-x-map [(control meta ?=)] 'global-text-scale-adjust)
 ;;;###autoload (define-key ctl-x-map [(control meta ?-)] 'global-text-scale-adjust)
 ;;;###autoload (define-key ctl-x-map [(control meta ?0)] 'global-text-scale-adjust)
 ;;;###autoload
 (defun global-text-scale-adjust (increment)
-  "Globally adjust the font size by INCREMENT.
+  "Change (a.k.a. \"adjust\") the font size of all faces by INCREMENT.
 
-Interactively, INCREMENT may be passed as a numeric prefix argument.
+Interactively, INCREMENT is the prefix numeric argument, and defaults
+to 1.  Positive values of INCREMENT increase the font size, negative
+values decrease it.
 
-The adjustment made depends on the final component of the key binding
-used to invoke the command, with all modifiers removed:
+When you invoke this command, it performs the initial change of the
+font size, and after that allows further changes by typing one of the
+following keys immediately after invoking the command:
 
    \\`+', \\`='   Globally increase the height of the default face
    \\`-'      Globally decrease the height of the default face
    \\`0'      Globally reset the height of the default face
 
-After adjusting, further adjust the font size as long as the key,
-with all modifiers removed, is one of the above characters.
+(The change of the font size produced by these keys depends on the
+final component of the key sequence, with all modifiers removed.)
 
 Buffer-local face adjustments have higher priority than global
 face adjustments.
@@ -488,7 +498,10 @@ The variable `global-text-scale-adjust-resizes-frames' controls
 whether the frames are resized to keep the same number of lines
 and characters per line when the font size is adjusted.
 
-See also the related command `text-scale-adjust'."
+See also the related command `text-scale-adjust'.  Unlike that
+command, which scales the font size with a factor,
+`global-text-scale-adjust' scales the font size with an
+increment."
   (interactive "p")
   (when (display-graphic-p)
     (unless global-text-scale-adjust--default-height
@@ -499,16 +512,24 @@ See also the related command `text-scale-adjust'."
            (cur (face-attribute 'default :height))
            (inc
             (pcase key
-              (?- (* (- increment) 5))
+              (?- (* (- increment)
+                     global-text-scale-adjust--increment-factor))
               (?0 (- global-text-scale-adjust--default-height cur))
-              (_ (* increment 5))))
+              (_ (* increment
+                    global-text-scale-adjust--increment-factor))))
            (new (+ cur inc)))
       (when (< (car global-text-scale-adjust-limits)
                new
                (cdr global-text-scale-adjust-limits))
         (let ((frame-inhibit-implied-resize
                (not global-text-scale-adjust-resizes-frames)))
-          (set-face-attribute 'default nil :height new)))
+          (set-face-attribute 'default nil :height new)
+          (redisplay 'force)
+          (when (and (not (and (characterp key) (= key ?0)))
+                     (= cur (face-attribute 'default :height)))
+            (setq global-text-scale-adjust--increment-factor
+                  (1+ global-text-scale-adjust--increment-factor))
+            (global-text-scale-adjust increment))))
       (when (characterp key)
         (set-transient-map
          (let ((map (make-sparse-keymap)))

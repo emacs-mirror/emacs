@@ -64,10 +64,13 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme manoj-dark
   "Very high contrast faces with a black background.
 This theme avoids subtle color variations, while avoiding the
-jarring angry fruit salad look to reduce eye fatigue.")
+jarring angry fruit salad look to reduce eye fatigue."
+  :background-mode 'dark
+  :kind 'color-scheme)
 
 (custom-theme-set-faces
  'manoj-dark

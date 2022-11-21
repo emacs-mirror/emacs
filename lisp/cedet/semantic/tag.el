@@ -1176,7 +1176,7 @@ This function is for internal use only."
 (defsubst semantic--tag-expanded-p (tag)
   "Return non-nil if TAG is expanded.
 This function is for internal use only.
-See also the function `semantic--expand-tag'."
+See also the function `semantic--tag-expand'."
   ;; In fact a cooked tag is actually a list of cooked tags
   ;; because a raw tag can be expanded in several cooked ones!
   (when (consp tag)

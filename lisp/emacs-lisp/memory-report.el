@@ -262,12 +262,7 @@ by counted more than once."
                    (cl-struct-slot-info struct-type)))))
 
 (defun memory-report--format (bytes)
-  (setq bytes (/ bytes 1024.0))
-  (let ((units '("KiB" "MiB" "GiB" "TiB")))
-    (while (>= bytes 1024)
-      (setq bytes (/ bytes 1024.0))
-      (setq units (cdr units)))
-    (format "%6.1f %s" bytes (car units))))
+  (format "%10s" (file-size-human-readable bytes 'iec " ")))
 
 (defun memory-report--gc-elem (elems type)
   (* (nth 1 (assq type elems))

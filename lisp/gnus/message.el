@@ -2172,8 +2172,7 @@ If FIRST is non-nil, only the first value is returned.
 
 The buffer is expected to be narrowed to just the header of the message;
 see `message-narrow-to-headers-or-head'."
-  (let* ((inhibit-point-motion-hooks t)
-	 (value (mail-fetch-field header nil (not first))))
+  (let* ((value (mail-fetch-field header nil (not first))))
     (when value
       (while (string-match "\n[\t ]+" value)
 	(setq value (replace-match " " t t value)))
@@ -4362,10 +4361,10 @@ arguments.  If METHOD is nil in this case, the return value of
 the function will be inserted instead.
 If the buffer already has a\"X-Message-SMTP-Method\" header,
 it is left unchanged."
-  :type '(alist :key-type '(choice
-                            (string :tag "From Address")
-                            (function :tag "Predicate"))
-                :value-type 'string)
+  :type '(alist :key-type (choice
+                           (string :tag "From Address")
+                           (function :tag "Predicate"))
+                :value-type string)
   :version "29.1"
   :group 'message-sending)
 
@@ -4386,7 +4385,7 @@ it is left unchanged."
                      (setq method (or (cdr server) res))
                      (throw 'exit nil))))
                 ((and (stringp (car server))
-                      (string= (car server) from))
+                      (string-equal-ignore-case (car server) from))
                  (setq method (cdr server))
                  (throw 'exit nil)))))
       (when method
@@ -5193,10 +5192,7 @@ command evaluates `message-send-mail-hook' just before sending a message."
 (defun message-canlock-generate ()
   "Return a string that is non-trivial to guess.
 Do not use this for anything important, it is cryptographically weak."
-  (sha1 (concat (message-unique-id)
-                (format "%x%x%x" (random) (random) (random))
-                (prin1-to-string (recent-keys))
-                (prin1-to-string (garbage-collect)))))
+  (secure-hash 'sha1 'iv-auto 128))
 
 (defvar canlock-password)
 (defvar canlock-password-for-verify)
@@ -7038,6 +7034,7 @@ is a function used to switch to and display the mail buffer."
           ;; Firefox sends us In-Reply-To headers that are Message-IDs
           ;; without <> around them.  Fix that.
           (when (and (eq (car h) 'In-Reply-To)
+                     (stringp (cdr h))
                      ;; Looks like a Message-ID.
                      (string-match-p "\\`[^ @]+@[^ @]+\\'" (cdr h))
                      (not (string-match-p "\\`<.*>\\'" (cdr h))))
@@ -7309,7 +7306,6 @@ specified by FUNCTIONS, if non-nil, or by the variable
   (let ((cur (current-buffer))
 	from subject date
 	references message-id follow-to
-	(inhibit-point-motion-hooks t)
 	(message-this-is-mail t)
 	gnus-warning)
     (save-restriction
@@ -7370,7 +7366,6 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
   (let ((cur (current-buffer))
 	from subject date reply-to mrt mct
 	references message-id follow-to
-	(inhibit-point-motion-hooks t)
 	(message-this-is-news t)
 	followup-to distribution newsgroups gnus-warning posted-to)
     (save-restriction
@@ -8609,7 +8604,6 @@ From headers in the original article."
   (let ((regexps (if (stringp message-hidden-headers)
 		     (list message-hidden-headers)
 		   message-hidden-headers))
-	(inhibit-point-motion-hooks t)
 	(inhibit-modification-hooks t)
 	end-of-headers)
     (when regexps

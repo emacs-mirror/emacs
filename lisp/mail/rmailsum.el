@@ -50,6 +50,40 @@ Setting this option to nil might speed up the generation of summaries."
   :type 'boolean
   :group 'rmail-summary)
 
+(defcustom rmail-summary-progressively-narrow nil
+  "Non-nil means progressively narrow the set of messages produced by summary.
+This allows to apply the summary criteria on top one another,
+thus progressively narrowing the selection of the messages produced
+by each summary criteria.
+For example, applying `rmail-summary-by-senders' on top
+of `rmail-summary-by-topic' produces a summary of messages
+with the specified Subjects that were sent from specified
+sending addresses.
+This way, the user can apply one summary on top of another,
+and keep narrowing the resulting list of messages."
+  :type 'boolean
+  :version "29.1"
+  :group 'rmail-summary)
+
+(defvar rmail-summary-currently-displayed-msgs nil
+  "Boolean vector that tells which messages are displayed in the summary.
+First element is ignored.  Used when applying rmail-summary-by-*
+commands consecutively.  Filled by
+`rmail-summary-populate-displayed-messages'.")
+(put 'rmail-summary-currently-displayed-msgs 'permanent-local t)
+
+(defvar rmail-summary-message-ids-hash-table nil
+  "Hash table linking Message IDs of messages with their indices.")
+
+(defvar rmail-summary-subjects-hash-table nil
+  "Hash table linking subjects with index of the first message with that subject.")
+
+(defvar rmail-summary-message-parents-vector nil
+  "Vector that holds a list of indices of parents for each message.
+Message A is parent to message B if the id of A appear in the
+References or In-reply-to fields of B, or if A is the first
+message with the same subject as B.  First element is ignored.")
+
 (defvar rmail-summary-font-lock-keywords
   '(("^ *[0-9]+D.*" . font-lock-string-face)			; Deleted.
     ("^ *[0-9]+-.*" . font-lock-type-face)			; Unread.
@@ -267,11 +301,148 @@ Setting this option to nil might speed up the generation of summaries."
 (defun rmail-update-summary (&rest _)
   (apply (car rmail-summary-redo) (cdr rmail-summary-redo)))
 
+(defun rmail-summary-populate-displayed-messages ()
+  "Populate the `rmail-summary-currently-displayed-msgs' vector."
+  (with-current-buffer rmail-buffer
+    (let ((totmsgs rmail-total-messages))
+      (with-current-buffer rmail-summary-buffer
+	(setq rmail-summary-currently-displayed-msgs
+	      (make-bool-vector (1+ totmsgs) nil))
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (aset rmail-summary-currently-displayed-msgs
+		(string-to-number (thing-at-point 'line))
+		t)
+	  (forward-line 1))))))
+
+(defun rmail-summary-fill-message-ids-hash-table ()
+  "Fill `rmail-summary-message-ids-hash-table'."
+  (with-current-buffer rmail-buffer
+    (setq rmail-summary-message-ids-hash-table (make-hash-table :test 'equal :size 1024))
+    (let ((msgnum 1))
+      (while (<= msgnum rmail-total-messages)
+	(let ((id (rmail-get-header "Message-ID" msgnum)))
+	  (puthash id (cons (cons id msgnum) (gethash id rmail-summary-message-ids-hash-table))
+		   rmail-summary-message-ids-hash-table))
+	(setq msgnum (1+ msgnum))))))
+
+(defun rmail-summary--split-header-field (name &optional msgnum)
+  (let ((header (rmail-get-header name msgnum)))
+    (if header
+	(split-string header "[ \f\t\n\r\v,;]+"))))
+
+(defun rmail-summary-fill-message-parents-vector ()
+  "Fill `rmail-summary-message-parents-vector'."
+  (with-current-buffer rmail-buffer
+    (rmail-summary-fill-message-ids-hash-table)
+    (setq rmail-summary-subjects-hash-table
+          (make-hash-table :test 'equal :size 1024))
+    (setq rmail-summary-message-parents-vector
+          (make-vector (1+ rmail-total-messages) nil))
+    (let ((msgnum 1))
+      (while (<= msgnum rmail-total-messages)
+	(let* ((parents nil)
+	       (subject (rmail-simplified-subject msgnum))
+	       (subj-cell (gethash subject rmail-summary-subjects-hash-table))
+	       (subj-par (assoc subject subj-cell))
+	       (refs (rmail-summary--split-header-field "References" msgnum))
+	       (reply-to (rmail-summary--split-header-field "In-reply-to"
+                                                            msgnum)))
+	  (if subj-par
+	      (setq parents (cons (cdr subj-par) parents))
+	    (puthash subject (cons (cons subject msgnum) subj-cell)
+		     rmail-summary-subjects-hash-table))
+	  (dolist (id (append refs reply-to))
+	    (let ((ent
+                   (assoc id
+                          (gethash id rmail-summary-message-ids-hash-table))))
+	      (if ent
+		  (setq parents (cons (cdr ent) parents)))))
+	  (aset rmail-summary-message-parents-vector msgnum parents)
+	  (setq msgnum (1+ msgnum)))))))
+
+(defun rmail-summary-invert ()
+  "Invert the criteria of the current summary.
+That is, show the messages that are not displayed, and hide
+the messages that are displayed."
+  (interactive)
+  (rmail-summary-populate-displayed-messages)
+  (rmail-new-summary "Invert"
+		     '(rmail-summary-by-regexp ".*")
+		     (lambda (msg)
+		       (if
+			   (not (aref rmail-summary-currently-displayed-msgs msg))
+			   (aset rmail-summary-currently-displayed-msgs msg t)
+			 (aset rmail-summary-currently-displayed-msgs msg nil)))))
+
+(defun rmail-summary--exists-1 ()
+  "Like `rmail-summary-exists', but works in both main and summary buffers."
+  (with-current-buffer rmail-buffer
+    (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
+	 rmail-summary-buffer)))
+
 ;;;###autoload
 (defun rmail-summary ()
   "Display a summary of all messages, one line per message."
   (interactive)
   (rmail-new-summary "All" '(rmail-summary) nil))
+
+(defun rmail-summary-direct-descendants (msgnum encountered-msgs)
+  "Find all direct descendants of MSGNUM, ignoring ENCOUNTERED-MSGS.
+Assumes `rmail-summary-message-parents-vector' is filled.  Ignores messages
+already ticked in ENCOUNTERED-MSGS."
+  (let (desc
+	(msg 1))
+    (while (<= msg rmail-total-messages)
+      (when (and
+	     (not (aref encountered-msgs msg))
+	     (memq msgnum (aref rmail-summary-message-parents-vector msg)))
+	(setq desc (cons msg desc)))
+      (setq msg (1+ msg)))
+    desc))
+
+(defun rmail-summary--walk-thread-message-recursively (msgnum encountered-msgs)
+  "Add parents and descendants of message MSGNUM to ENCOUNTERED-MSGS, recursively."
+  (unless (aref encountered-msgs msgnum)
+    (aset encountered-msgs msgnum t)
+    (let ((walk-thread-msg
+           (lambda (msg)
+             (rmail-summary--walk-thread-message-recursively
+              msg encountered-msgs))))
+      (mapc walk-thread-msg
+            (aref rmail-summary-message-parents-vector msgnum))
+      (mapc walk-thread-msg
+            (rmail-summary-direct-descendants msgnum encountered-msgs)))))
+
+;;;###autoload
+(defun rmail-summary-by-thread (&optional msgnum)
+  "Display a summary of messages in the same discussion thread as MSGNUM.
+Interactively, prompt for MSGNUM, defaulting to the current message.
+Threads are based on the \"Subject\", \"References\" and \"In-reply-to\"
+headers of the messages."
+  (interactive
+   (let* ((msg rmail-current-message)
+	  (prompt (concat "Show thread containing message number")))
+     (list (read-number prompt msg))))
+  (with-current-buffer rmail-buffer
+    (unless msgnum
+      (setq msgnum rmail-current-message))
+    (unless (and rmail-summary-message-parents-vector
+		 (= (length rmail-summary-message-parents-vector)
+		    (1+ rmail-total-messages)))
+      (rmail-summary-fill-message-parents-vector))
+    (let ((enc-msgs (make-bool-vector (1+ rmail-total-messages) nil)))
+      (rmail-summary--walk-thread-message-recursively msgnum enc-msgs)
+      (rmail-new-summary (format "thread containing message %d" msgnum)
+			 (list 'rmail-summary-by-thread msgnum)
+			 (if (and rmail-summary-progressively-narrow
+				  (rmail-summary--exists-1))
+			     (lambda (msg _msgnum)
+			       (and (aref rmail-summary-currently-displayed-msgs msg)
+				    (aref enc-msgs msg)))
+			   (lambda (msg _msgnum)
+                             (aref enc-msgs msg)))
+			 msgnum))))
 
 ;;;###autoload
 (defun rmail-summary-by-labels (labels)
@@ -282,9 +453,17 @@ LABELS should be a string containing the desired labels, separated by commas."
       (setq labels (or rmail-last-multi-labels
 		       (error "No label specified"))))
   (setq rmail-last-multi-labels labels)
+  (if (and rmail-summary-progressively-narrow
+	   (rmail-summary--exists-1))
+      (rmail-summary-populate-displayed-messages))
   (rmail-new-summary (concat "labels " labels)
 		     (list 'rmail-summary-by-labels labels)
-		     'rmail-message-labels-p
+		     (if (and rmail-summary-progressively-narrow
+			      (rmail-summary--exists-1))
+			 (lambda (msg l)
+			   (and (aref rmail-summary-currently-displayed-msgs msg)
+				(rmail-message-labels-p msg l)))
+		       'rmail-message-labels-p)
 		     (concat " \\("
 			     (mail-comma-list-regexp labels)
 			     "\\)\\(,\\|\\'\\)")))
@@ -297,10 +476,19 @@ but if PRIMARY-ONLY is non-nil (prefix arg given),
  only look in the To and From fields.
 RECIPIENTS is a regular expression."
   (interactive "sRecipients to summarize by: \nP")
+  (if (and rmail-summary-progressively-narrow
+	   (rmail-summary--exists-1))
+      (rmail-summary-populate-displayed-messages))
   (rmail-new-summary
    (concat "recipients " recipients)
    (list 'rmail-summary-by-recipients recipients primary-only)
-   'rmail-message-recipients-p recipients primary-only))
+   (if (and rmail-summary-progressively-narrow
+	    (rmail-summary--exists-1))
+       (lambda (msg r &optional po)
+	 (and (aref rmail-summary-currently-displayed-msgs msg)
+	      (rmail-message-recipients-p msg r po)))
+     'rmail-message-recipients-p)
+   recipients primary-only))
 
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
   (rmail-apply-in-message msg 'rmail-message-recipients-p-1
@@ -328,9 +516,17 @@ Emacs will list the message in the summary."
       (setq regexp (or rmail-last-regexp
 			 (error "No regexp specified"))))
   (setq rmail-last-regexp regexp)
+  (if (and rmail-summary-progressively-narrow
+	   (rmail-summary--exists-1))
+      (rmail-summary-populate-displayed-messages))
   (rmail-new-summary (concat "regexp " regexp)
 		     (list 'rmail-summary-by-regexp regexp)
-		     'rmail-message-regexp-p
+		     (if (and rmail-summary-progressively-narrow
+			      (rmail-summary--exists-1))
+			 (lambda (msg r)
+			   (and (aref rmail-summary-currently-displayed-msgs msg)
+				(rmail-message-regexp-p msg r)))
+		       'rmail-message-regexp-p)
                      regexp))
 
 (defun rmail-message-regexp-p (msg regexp)
@@ -365,7 +561,7 @@ Emacs will list the message in the summary."
 ;;;###autoload
 (defun rmail-summary-by-topic (subject &optional whole-message)
   "Display a summary of all messages with the given SUBJECT.
-Normally checks just the Subject field of headers; but with prefix
+Normally checks just the Subject field of headers; but when prefix
 argument WHOLE-MESSAGE is non-nil, looks in the whole message.
 SUBJECT is a regular expression."
   (interactive
@@ -376,10 +572,19 @@ SUBJECT is a regular expression."
 			  (if subject ", default current subject" "")
 			  "): ")))
      (list (read-string prompt nil nil subject) current-prefix-arg)))
+  (if (and rmail-summary-progressively-narrow
+	   (rmail-summary--exists-1))
+      (rmail-summary-populate-displayed-messages))
   (rmail-new-summary
    (concat "about " subject)
    (list 'rmail-summary-by-topic subject whole-message)
-   'rmail-message-subject-p subject whole-message))
+   (if (and rmail-summary-progressively-narrow
+	    (rmail-summary--exists-1))
+       (lambda (msg s &optional wm)
+	 (and (aref rmail-summary-currently-displayed-msgs msg)
+	      (rmail-message-subject-p msg s wm)))
+     'rmail-message-subject-p)
+   subject whole-message))
 
 (defun rmail-message-subject-p (msg subject &optional whole-message)
   (if whole-message
@@ -402,9 +607,19 @@ sender of the current message."
 			  (if sender ", default this message's sender" "")
 			  "): ")))
      (list (read-string prompt nil nil sender))))
+  (if (and rmail-summary-progressively-narrow
+	   (rmail-summary--exists-1))
+      (rmail-summary-populate-displayed-messages))
   (rmail-new-summary
    (concat "senders " senders)
-   (list 'rmail-summary-by-senders senders) 'rmail-message-senders-p senders))
+   (list 'rmail-summary-by-senders senders)
+   (if (and rmail-summary-progressively-narrow
+	    (rmail-summary--exists-1))
+       (lambda (msg s)
+	 (and (aref rmail-summary-currently-displayed-msgs msg)
+	      (rmail-message-senders-p msg s)))
+     'rmail-message-senders-p)
+   senders))
 
 (defun rmail-message-senders-p (msg senders)
   (string-match senders (or (rmail-get-header "From" msg) "")))

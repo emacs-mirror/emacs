@@ -781,7 +781,7 @@ host key."
       ;; Perform search
       (dolist (s (auth-source-search :max 1000))
         (when (and
-               ;; Is PRODUCT specified, in the enty, and they are equal
+               ;; Is PRODUCT specified, in the entry, and they are equal
                (if product
                    (if (plist-member s :product)
                        (equal (plist-get s :product) product)
@@ -1358,37 +1358,33 @@ specified, it's `sql-product' or `sql-connection' must match."
 
 ;; Keymap for sql-interactive-mode.
 
-(defvar sql-interactive-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map comint-mode-map)
-    (define-key map (kbd "C-j") 'sql-accumulate-and-indent)
-    (define-key map (kbd "C-c C-w") 'sql-copy-column)
-    (define-key map (kbd "O") 'sql-magic-go)
-    (define-key map (kbd "o") 'sql-magic-go)
-    (define-key map (kbd ";") 'sql-magic-semicolon)
-    (define-key map (kbd "C-c C-l a") 'sql-list-all)
-    (define-key map (kbd "C-c C-l t") 'sql-list-table)
-    map)
-  "Mode map used for `sql-interactive-mode'.
-Based on `comint-mode-map'.")
+(defvar-keymap sql-interactive-mode-map
+  :doc "Mode map used for `sql-interactive-mode'.
+Based on `comint-mode-map'."
+  :parent comint-mode-map
+  "C-j"       #'sql-accumulate-and-indent
+  "C-c C-w"   #'sql-copy-column
+  "O"         #'sql-magic-go
+  "o"         #'sql-magic-go
+  ";"         #'sql-magic-semicolon
+  "C-c C-l a" #'sql-list-all
+  "C-c C-l t" #'sql-list-table)
 
 ;; Keymap for sql-mode.
 
-(defvar sql-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-c") 'sql-send-paragraph)
-    (define-key map (kbd "C-c C-r") 'sql-send-region)
-    (define-key map (kbd "C-c C-s") 'sql-send-string)
-    (define-key map (kbd "C-c C-b") 'sql-send-buffer)
-    (define-key map (kbd "C-c C-n") 'sql-send-line-and-next)
-    (define-key map (kbd "C-c C-i") 'sql-product-interactive)
-    (define-key map (kbd "C-c C-z") 'sql-show-sqli-buffer)
-    (define-key map (kbd "C-c C-l a") 'sql-list-all)
-    (define-key map (kbd "C-c C-l t") 'sql-list-table)
-    (define-key map [remap beginning-of-defun] 'sql-beginning-of-statement)
-    (define-key map [remap end-of-defun] 'sql-end-of-statement)
-    map)
-  "Mode map used for `sql-mode'.")
+(defvar-keymap sql-mode-map
+  :doc "Mode map used for `sql-mode'."
+  "C-c C-c"   #'sql-send-paragraph
+  "C-c C-r"   #'sql-send-region
+  "C-c C-s"   #'sql-send-string
+  "C-c C-b"   #'sql-send-buffer
+  "C-c C-n"   #'sql-send-line-and-next
+  "C-c C-i"   #'sql-product-interactive
+  "C-c C-z"   #'sql-show-sqli-buffer
+  "C-c C-l a" #'sql-list-all
+  "C-c C-l t" #'sql-list-table
+  "<remap> <beginning-of-defun>" #'sql-beginning-of-statement
+  "<remap> <end-of-defun>"       #'sql-end-of-statement)
 
 ;; easy menu for sql-mode.
 
@@ -3030,9 +3026,10 @@ displayed."
 
     ;; Our start must be between them
     (goto-char last)
-    ;; Find a beginning-of-stmt that's not in a comment
+    ;; Find a beginning-of-stmt that's not in a string or comment
     (while (and (re-search-forward regexp next t 1)
-                (nth 7 (syntax-ppss)))
+                (or (nth 3 (syntax-ppss))
+                    (nth 7 (syntax-ppss))))
       (goto-char (match-end 0)))
     (goto-char
      (if (match-data)
@@ -3062,8 +3059,9 @@ displayed."
       ;; If we found another end-of-stmt
       (if (not (apply re-search term nil t n nil))
           (setq arg 0)
-        ;; count it if we're not in a comment
-        (unless (nth 7 (syntax-ppss))
+        ;; count it if we're not in a string or comment
+        (unless (or (nth 3 (syntax-ppss))
+                    (nth 7 (syntax-ppss)))
           (setq arg (- arg (cl-signum arg))))))
     (goto-char (if (match-data)
                    (match-end 0)

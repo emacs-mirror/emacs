@@ -74,8 +74,10 @@ ns_can_use_native_image_api (Lisp_Object type)
     imageType = @"com.compuserve.gif";
   else if (EQ (type, Qtiff))
     imageType = @"public.tiff";
+#ifndef HAVE_RSVG
   else if (EQ (type, Qsvg))
     imageType = @"public.svg-image";
+#endif
   else if (EQ (type, Qheic))
     imageType = @"public.heic";
 

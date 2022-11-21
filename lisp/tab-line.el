@@ -483,7 +483,7 @@ which the tab will represent."
     (dolist (fn tab-line-tab-face-functions)
       (setf face (funcall fn tab tabs face buffer-p selected-p)))
     (apply 'propertize
-           (concat (propertize name
+           (concat (propertize (string-replace "%" "%%" name) ;; (bug#57848)
                                'keymap tab-line-tab-map
                                'help-echo (if selected-p "Current tab"
                                             "Click to select tab")
@@ -572,19 +572,31 @@ For use in `tab-line-tab-face-functions'."
 
 (defvar tab-line-auto-hscroll)
 
+(defun tab-line-cache-key-default (_tabs)
+  "Return default list of cache keys."
+  (list
+   ;; for setting face 'tab-line-tab-current'
+   (mode-line-window-selected-p)
+   ;; for `tab-line-tab-face-modified'
+   (and (memq 'tab-line-tab-face-modified
+              tab-line-tab-face-functions)
+        (buffer-file-name)
+        (buffer-modified-p))))
+
+(defvar tab-line-cache-key-function #'tab-line-cache-key-default
+  "Function that adds more cache keys.
+It is called with one argument, a list of tabs, and should return a list
+of cache keys.  You can use `add-function' to add more cache keys.")
+
 (defun tab-line-format ()
   "Format for displaying the tab line of the selected window."
   (let* ((tabs (funcall tab-line-tabs-function))
-         (cache-key (list tabs
-                          ;; handle buffer renames
-                          (buffer-name (window-buffer))
-                          ;; handle tab-line scrolling
-                          (window-parameter nil 'tab-line-hscroll)
-                          ;; for setting face 'tab-line-tab-current'
-                          (mode-line-window-selected-p)
-                          (and (memq 'tab-line-tab-face-modified
-                                     tab-line-tab-face-functions)
-                               (buffer-file-name) (buffer-modified-p))))
+         (cache-key (append (list tabs
+                                  ;; handle buffer renames
+                                  (buffer-name (window-buffer))
+                                  ;; handle tab-line scrolling
+                                  (window-parameter nil 'tab-line-hscroll))
+                            (funcall tab-line-cache-key-function tabs)))
          (cache (window-parameter nil 'tab-line-cache)))
     ;; Enable auto-hscroll again after it was disabled on manual scrolling.
     ;; The moment to enable it is when the window-buffer was updated.
@@ -620,7 +632,8 @@ the selected tab visible."
     (let ((truncate-partial-width-windows nil)
           (inhibit-modification-hooks t)
           show-arrows)
-      (setq truncate-lines nil)
+      (setq truncate-lines nil
+            word-wrap nil)
       (erase-buffer)
       (apply 'insert strings)
       (goto-char (point-min))

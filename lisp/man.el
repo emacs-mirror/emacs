@@ -331,7 +331,7 @@ This regexp should not start with a `^' character.")
 ;; This used to have leading space [ \t]*, but was removed because it
 ;; causes false page splits on an occasional NAME with leading space
 ;; inside a manpage.  And `Man-heading-regexp' doesn't have [ \t]* anyway.
-(defvar Man-first-heading-regexp "^NAME$\\|^[ \t]*No manual entry fo.*$"
+(defvar Man-first-heading-regexp "^NAME$\\|^[ \t]*No manual entry for.*$"
   "Regular expression describing first heading on a manpage.
 This regular expression should start with a `^' character.")
 
@@ -451,50 +451,45 @@ Otherwise, the value is whatever the function
     table)
   "Syntax table used in Man mode buffers.")
 
-(defvar Man-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (set-keymap-parent map
-      (make-composed-keymap button-buffer-map special-mode-map))
+(defvar-keymap Man-mode-map
+  :doc "Keymap for Man mode."
+  :suppress t
+  :parent (make-composed-keymap button-buffer-map special-mode-map)
+  "n"   #'Man-next-section
+  "p"   #'Man-previous-section
+  "M-n" #'Man-next-manpage
+  "M-p" #'Man-previous-manpage
+  "."   #'beginning-of-buffer
+  "r"   #'Man-follow-manual-reference
+  "g"   #'Man-goto-section
+  "s"   #'Man-goto-see-also-section
+  "k"   #'Man-kill
+  "u"   #'Man-update-manpage
+  "m"   #'man
+  ;; Not all the man references get buttons currently.  The text in the
+  ;; manual page can contain references to other man pages
+  "RET" #'man-follow
 
-    (define-key map "n"    'Man-next-section)
-    (define-key map "p"    'Man-previous-section)
-    (define-key map "\en"  'Man-next-manpage)
-    (define-key map "\ep"  'Man-previous-manpage)
-    (define-key map "."    'beginning-of-buffer)
-    (define-key map "r"    'Man-follow-manual-reference)
-    (define-key map "g"    'Man-goto-section)
-    (define-key map "s"    'Man-goto-see-also-section)
-    (define-key map "k"    'Man-kill)
-    (define-key map "u"    'Man-update-manpage)
-    (define-key map "m"    'man)
-    ;; Not all the man references get buttons currently.  The text in the
-    ;; manual page can contain references to other man pages
-    (define-key map "\r"   'man-follow)
-
-    (easy-menu-define nil map
-      "`Man-mode' menu."
-      '("Man"
-        ["Next Section" Man-next-section t]
-        ["Previous Section" Man-previous-section t]
-        ["Go To Section..." Man-goto-section t]
-        ["Go To \"SEE ALSO\" Section" Man-goto-see-also-section
-         :active (cl-member Man-see-also-regexp Man--sections
-                            :test #'string-match-p)]
-        ["Follow Reference..." Man-follow-manual-reference
-         :active Man--refpages
-         :help "Go to a manpage referred to in the \"SEE ALSO\" section"]
-        "--"
-        ["Next Manpage" Man-next-manpage
-         :active (> (length Man-page-list) 1)]
-        ["Previous Manpage" Man-previous-manpage
-         :active (> (length Man-page-list) 1)]
-        "--"
-        ["Man..." man t]
-        ["Kill Buffer" Man-kill t]
-        ["Quit" quit-window t]))
-    map)
-  "Keymap for Man mode.")
+  :menu
+  '("Man"
+    ["Next Section" Man-next-section t]
+    ["Previous Section" Man-previous-section t]
+    ["Go To Section..." Man-goto-section t]
+    ["Go To \"SEE ALSO\" Section" Man-goto-see-also-section
+     :active (cl-member Man-see-also-regexp Man--sections
+                        :test #'string-match-p)]
+    ["Follow Reference..." Man-follow-manual-reference
+     :active Man--refpages
+     :help "Go to a manpage referred to in the \"SEE ALSO\" section"]
+    "--"
+    ["Next Manpage" Man-next-manpage
+     :active (> (length Man-page-list) 1)]
+    ["Previous Manpage" Man-previous-manpage
+     :active (> (length Man-page-list) 1)]
+    "--"
+    ["Man..." man t]
+    ["Kill Buffer" Man-kill t]
+    ["Quit" quit-window t]))
 
 ;; buttons
 (define-button-type 'Man-abstract-xref-man-page
@@ -1082,13 +1077,13 @@ to auto-complete your input based on the installed manual pages."
     ;; unless COLUMNS or MANWIDTH is set.  This isn't a problem on
     ;; a tty.  man(1) says:
     ;;        MANWIDTH
-    ;;               If $MANWIDTH is set, its value is used as the  line
-    ;;               length  for which manual pages should be formatted.
-    ;;               If it is not set, manual pages  will  be  formatted
-    ;;               with  a line length appropriate to the current ter-
-    ;;               minal (using an ioctl(2) if available, the value of
-    ;;               $COLUMNS,  or falling back to 80 characters if nei-
-    ;;               ther is available).
+    ;;               If $MANWIDTH is set, its value is used as the line
+    ;;               length for which manual pages should be formatted.
+    ;;               If it is not set, manual pages will be formatted
+    ;;               with a line length appropriate to the current
+    ;;               terminal (using an ioctl(2) if available, the value
+    ;;               of $COLUMNS, or falling back to 80 characters if
+    ;;               neither is available).
     (when (or window-system
 	      (not (or (getenv "MANWIDTH") (getenv "COLUMNS"))))
       ;; Since the page buffer is displayed beforehand,

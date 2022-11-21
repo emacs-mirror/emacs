@@ -1223,7 +1223,7 @@ specialized for editing freedesktop.org desktop entries.
 editing Less files.
 
 ** New package 'auth-source-pass' integrates 'auth-source' with the
-password manager password-store (http://passwordstore.org).
+password manager password-store (https://passwordstore.org).
 
 
 * Incompatible Lisp Changes in Emacs 26.1

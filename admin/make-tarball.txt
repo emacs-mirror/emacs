@@ -390,7 +390,7 @@ Next, regenerate the various manuals in HTML, PDF, and PS formats:
 
 Now change to the 'manual' directory and invoke upload-manuals:
 
-    ../admin/updload-manuals /path/to/webpages/cvs/checkout
+    ../admin/upload-manuals /path/to/webpages/cvs/checkout
 
   where /path/to/webpages/cvs/checkout is the place where you have the
   CVS checkout of the Emacs Web pages, with subdirectories 'manual'

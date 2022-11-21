@@ -1,0 +1,40 @@
+#!/bin/bash
+
+### Start a git bisection, and prune the branches that are the result of
+### merging external trees into the Emacs repository.
+
+## Copyright (C) 2022 Free Software Foundation, Inc.
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## Marking the last commits of external tree merges as "good" ensures
+## that all the commits between the external tree root and the merge
+## (excluding the merge-commit itself) are regarded as "good", so "git
+## bisect" will never descend into these branches, which only have the
+## files of the external tree, and in which Emacs can therefore not be
+## built.  The last commit is the parent of the merge commit in the
+## external tree, that is, the parent of the merge commit that is not
+## on master.
+
+### Code:
+
+git bisect start
+
+# Prune commits 1e5b753bf4..806734c1b1 introduced by 0186faf2a1 (Eglot
+# merge on Oct 20 2022)
+git bisect good 806734c1b1f433de43d59d9a5e3a1e89d64315f6

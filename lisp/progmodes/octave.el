@@ -1,6 +1,6 @@
 ;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;;	   John Eaton <jwe@octave.org>
@@ -65,43 +65,39 @@ The string `function' and its name are given by the first and third
 parenthetical grouping.")
 
 
-(defvar octave-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\M-."     'octave-find-definition)
-    (define-key map "\M-\C-j"  'octave-indent-new-comment-line)
-    (define-key map "\C-c\C-p" 'octave-previous-code-line)
-    (define-key map "\C-c\C-n" 'octave-next-code-line)
-    (define-key map "\C-c\C-a" 'octave-beginning-of-line)
-    (define-key map "\C-c\C-e" 'octave-end-of-line)
-    (define-key map [remap down-list] 'smie-down-list)
-    (define-key map "\C-c\M-\C-h" 'octave-mark-block)
-    (define-key map "\C-c]" 'smie-close-block)
-    (define-key map "\C-c/" 'smie-close-block)
-    (define-key map "\C-c;" 'octave-update-function-file-comment)
-    (define-key map "\C-hd" 'octave-help)
-    (define-key map "\C-ha" 'octave-lookfor)
-    (define-key map "\C-c\C-l" 'octave-source-file)
-    (define-key map "\C-c\C-f" 'octave-insert-defun)
-    (define-key map "\C-c\C-il" 'octave-send-line)
-    (define-key map "\C-c\C-ib" 'octave-send-block)
-    (define-key map "\C-c\C-if" 'octave-send-defun)
-    (define-key map "\C-c\C-ir" 'octave-send-region)
-    (define-key map "\C-c\C-ia" 'octave-send-buffer)
-    (define-key map "\C-c\C-is" 'octave-show-process-buffer)
-    (define-key map "\C-c\C-iq" 'octave-hide-process-buffer)
-    (define-key map "\C-c\C-ik" 'octave-kill-process)
-    (define-key map "\C-c\C-i\C-l" 'octave-send-line)
-    (define-key map "\C-c\C-i\C-b" 'octave-send-block)
-    (define-key map "\C-c\C-i\C-f" 'octave-send-defun)
-    (define-key map "\C-c\C-i\C-r" 'octave-send-region)
-    (define-key map "\C-c\C-i\C-a" 'octave-send-buffer)
-    (define-key map "\C-c\C-i\C-s" 'octave-show-process-buffer)
-    (define-key map "\C-c\C-i\C-q" 'octave-hide-process-buffer)
-    (define-key map "\C-c\C-i\C-k" 'octave-kill-process)
-    map)
-  "Keymap used in Octave mode.")
-
-
+(defvar-keymap octave-mode-map
+  :doc "Keymap used in Octave mode."
+  "M-."         #'octave-find-definition
+  "C-M-j"       #'octave-indent-new-comment-line
+  "C-c C-p"     #'octave-previous-code-line
+  "C-c C-n"     #'octave-next-code-line
+  "C-c C-a"     #'octave-beginning-of-line
+  "C-c C-e"     #'octave-end-of-line
+  "<remap> <down-list>" #'smie-down-list
+  "C-c C-M-h"   #'octave-mark-block
+  "C-c ]"       #'smie-close-block
+  "C-c /"       #'smie-close-block
+  "C-c ;"       #'octave-update-function-file-comment
+  "C-h d"       #'octave-help
+  "C-h a"       #'octave-lookfor
+  "C-c C-l"     #'octave-source-file
+  "C-c C-f"     #'octave-insert-defun
+  "C-c C-i l"   #'octave-send-line
+  "C-c C-i b"   #'octave-send-block
+  "C-c C-i f"   #'octave-send-defun
+  "C-c C-i r"   #'octave-send-region
+  "C-c C-i a"   #'octave-send-buffer
+  "C-c C-i s"   #'octave-show-process-buffer
+  "C-c C-i q"   #'octave-hide-process-buffer
+  "C-c C-i k"   #'octave-kill-process
+  "C-c C-i C-l" #'octave-send-line
+  "C-c C-i C-b" #'octave-send-block
+  "C-c C-i C-f" #'octave-send-defun
+  "C-c C-i C-r" #'octave-send-region
+  "C-c C-i C-a" #'octave-send-buffer
+  "C-c C-i C-s" #'octave-show-process-buffer
+  "C-c C-i C-q" #'octave-hide-process-buffer
+  "C-c C-i C-k" #'octave-kill-process)
 
 (easy-menu-define octave-mode-menu octave-mode-map
   "Menu for Octave mode."

@@ -21,10 +21,13 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme adwaita
   "Face colors similar to the default theme of Gnome 3 (Adwaita).
 The colors are chosen to match Adwaita window decorations and the
-default look of the Gnome 3 desktop.")
+default look of the Gnome 3 desktop."
+  :background-mode 'light
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

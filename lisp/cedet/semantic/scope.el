@@ -577,7 +577,7 @@ such as `public' or `private'."
 	    (if (semantic-tag-file-name TAG)
 		;; If it has a filename, just go with it...
 		(setq copyslots (cons TAG copyslots))
-	      ;; Otherwise, copy the tag w/ the guessed filename.
+              ;; Otherwise, copy the tag with the guessed filename.
 	      (setq copyslots (cons (semantic-tag-copy TAG nil fname)
 				    copyslots)))
 	    )
@@ -822,7 +822,7 @@ hits in order, with the first tag being in the closest scope."
 	  ans)
       ;; Not a real scope.  Our scope calculation analyze parts of
       ;; what it finds, and needs to pass lists through to do it's work.
-      ;; Tread that list as a singly entry.
+      ;; Treat that list as a singly entry.
       (if class
 	  (semantic-find-tags-by-class class scope)
 	scope)

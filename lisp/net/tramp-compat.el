@@ -179,7 +179,7 @@ A nil value for either argument stands for the current time."
     (lambda (reporter &optional value _suffix)
       (progress-reporter-update reporter value))))
 
-;; `ignore-error' is new in Emacs Emacs 27.1.
+;; `ignore-error' is new in Emacs 27.1.
 (defmacro tramp-compat-ignore-error (condition &rest body)
   "Execute BODY; if the error CONDITION occurs, return nil.
 Otherwise, return result of last form in BODY.

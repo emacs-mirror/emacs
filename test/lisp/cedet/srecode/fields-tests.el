@@ -66,7 +66,7 @@ It is filled with some text."
 
       (when (and (overlayp (oref f overlay))
 		 (not (overlay-get (oref f overlay) 'srecode-init-only)))
-	(error "Field creation overlay is not tagged w/ init flag"))
+        (error "Field creation overlay is not tagged with init flag"))
 
       (srecode-overlaid-activate f)
 

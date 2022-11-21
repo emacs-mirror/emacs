@@ -63,8 +63,7 @@
 ;; preloaded.  See also Bug#39761#26.
 
 (defmacro seq-doseq (spec &rest body)
-  "Loop over a sequence.
-Evaluate BODY with VAR bound to each element of SEQUENCE, in turn.
+  "Loop over a SEQUENCE, evaluating BODY with VAR bound to each of its elements.
 
 Similar to `dolist' but can be applied to lists, strings, and vectors.
 
@@ -95,7 +94,7 @@ name to be bound to the rest of SEQUENCE."
      ,@body))
 
 (defmacro seq-setq (args sequence)
-  "Assign to the variables in ARGS the elements of SEQUENCE.
+  "Assign the elements of SEQUENCE to the variables in ARGS.
 
 ARGS can also include the `&rest' marker followed by a variable
 name to be bound to the rest of SEQUENCE."
@@ -105,7 +104,7 @@ name to be bound to the rest of SEQUENCE."
 
 ;;; Basic seq functions that have to be implemented by new sequence types
 (cl-defgeneric seq-elt (sequence n)
-  "Return Nth element of SEQUENCE."
+  "Return the Nth element of SEQUENCE."
   (elt sequence n))
 
 ;; Default gv setters for `seq-elt'.
@@ -118,7 +117,7 @@ name to be bound to the rest of SEQUENCE."
   (setcar (nthcdr n sequence) store))
 
 (cl-defgeneric seq-length (sequence)
-  "Return the number of elements of SEQUENCE."
+  "Return the number of elements in SEQUENCE."
   (length sequence))
 
 (defun seq-first (sequence)
@@ -126,11 +125,12 @@ name to be bound to the rest of SEQUENCE."
   (seq-elt sequence 0))
 
 (defun seq-rest (sequence)
-  "Return a sequence of the elements of SEQUENCE except the first one."
+  "Return SEQUENCE with its first element removed."
   (seq-drop sequence 1))
 
 (cl-defgeneric seq-do (function sequence)
-  "Apply FUNCTION to each element of SEQUENCE, presumably for side effects.
+  "Apply FUNCTION to each element of SEQUENCE.
+Presumably, FUNCTION has useful side effects.
 Return SEQUENCE."
   (mapc function sequence))
 
@@ -216,8 +216,9 @@ the sequence, and its index within the sequence."
   (mapcar function sequence))
 
 (cl-defgeneric seq-mapn (function sequence &rest sequences)
-  "Like `seq-map' but FUNCTION is mapped over all SEQUENCES.
-The arity of FUNCTION must match the number of SEQUENCES, and the
+  "Return the result of applying FUNCTION to each element of SEQUENCEs.
+Like `seq-map', but FUNCTION is mapped over all SEQUENCEs.
+The arity of FUNCTION must match the number of SEQUENCEs, and the
 mapping stops on the shortest sequence.
 Return a list of the results.
 
@@ -232,7 +233,7 @@ Return a list of the results.
     (nreverse result)))
 
 (cl-defgeneric seq-drop (sequence n)
-  "Remove the first N elements of SEQUENCE and return the result.
+  "Remove the first N elements of SEQUENCE and return the resulting sequence.
 The result is a sequence of the same type as SEQUENCE.
 
 If N is a negative integer or zero, SEQUENCE is returned."
@@ -243,7 +244,7 @@ If N is a negative integer or zero, SEQUENCE is returned."
 
 ;;;###autoload
 (cl-defgeneric seq-take (sequence n)
-  "Take the first N elements of SEQUENCE and return the result.
+  "Return the sequence made of the first N elements of SEQUENCE.
 The result is a sequence of the same type as SEQUENCE.
 
 If N is a negative integer or zero, an empty sequence is
@@ -252,14 +253,17 @@ returned."
 
 (cl-defgeneric seq-drop-while (pred sequence)
   "Remove the successive elements of SEQUENCE for which PRED returns non-nil.
-PRED is a function of one argument.  The result is a sequence of
-the same type as SEQUENCE."
+PRED is a function of one argument.  The function keeps removing
+elements from SEQUENCE until PRED returns nil for an element.
+Value is a sequence of the same type as SEQUENCE."
   (seq-drop sequence (seq--count-successive pred sequence)))
 
 (cl-defgeneric seq-take-while (pred sequence)
   "Take the successive elements of SEQUENCE for which PRED returns non-nil.
-PRED is a function of one argument.  The result is a sequence of
-the same type as SEQUENCE."
+PRED is a function of one argument.  The function keeps collecting
+elements from SEQUENCE and adding them to the result until PRED
+returns nil for an element.
+Value is a sequence of the same type as SEQUENCE."
   (seq-take sequence (seq--count-successive pred sequence)))
 
 (cl-defgeneric seq-empty-p (sequence)
@@ -267,7 +271,7 @@ the same type as SEQUENCE."
   (= 0 (seq-length sequence)))
 
 (cl-defgeneric seq-sort (pred sequence)
-  "Sort SEQUENCE using PRED as comparison function.
+  "Sort SEQUENCE using PRED as the sorting comparison function.
 The result is a sequence of the same type as SEQUENCE."
   (let ((result (seq-sort pred (append sequence nil))))
     (seq-into result (type-of sequence))))
@@ -277,7 +281,7 @@ The result is a sequence of the same type as SEQUENCE."
 
 ;;;###autoload
 (defun seq-sort-by (function pred sequence)
-  "Sort SEQUENCE using PRED as a comparison function.
+  "Sort SEQUENCE transformed by FUNCTION using PRED as the comparison function.
 Elements of SEQUENCE are transformed by FUNCTION before being
 sorted.  FUNCTION must be a function of one argument."
   (seq-sort (lambda (a b)
@@ -300,7 +304,7 @@ sorted.  FUNCTION must be a function of one argument."
 
 (cl-defgeneric seq-concatenate (type &rest sequences)
   "Concatenate SEQUENCES into a single sequence of type TYPE.
-TYPE must be one of following symbols: vector, string or list.
+TYPE must be one of following symbols: `vector', `string' or `list'.
 
 \n(fn TYPE SEQUENCE...)"
   (setq sequences (mapcar #'seq-into-sequence sequences))
@@ -322,8 +326,8 @@ of sequence."
 
 (cl-defgeneric seq-into (sequence type)
   "Concatenate the elements of SEQUENCE into a sequence of type TYPE.
-TYPE can be one of the following symbols: vector, string or
-list."
+TYPE can be one of the following symbols: `vector', `string' or
+`list'."
   (pcase type
     (`vector (seq--into-vector sequence))
     (`string (seq--into-string sequence))
@@ -332,7 +336,7 @@ list."
 
 ;;;###autoload
 (cl-defgeneric seq-filter (pred sequence)
-  "Return a list of all elements for which (PRED element) is non-nil in SEQUENCE."
+  "Return a list of all the elements in SEQUENCE for which PRED returns non-nil."
   (let ((exclude (make-symbol "exclude")))
     (delq exclude (seq-map (lambda (elt)
                              (if (funcall pred elt)
@@ -342,13 +346,13 @@ list."
 
 ;;;###autoload
 (cl-defgeneric seq-remove (pred sequence)
-  "Return a list of all the elements for which (PRED element) is nil in SEQUENCE."
+  "Return a list of all the elements in SEQUENCE for which PRED returns nil."
   (seq-filter (lambda (elt) (not (funcall pred elt)))
               sequence))
 
 ;;;###autoload
 (cl-defgeneric seq-remove-at-position (sequence n)
-  "Return a copy of SEQUENCE where the element at N got removed.
+  "Return a copy of SEQUENCE with the element at index N removed.
 
 N is the (zero-based) index of the element that should not be in
 the result.
@@ -381,7 +385,7 @@ If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called."
 
 ;;;###autoload
 (cl-defgeneric seq-every-p (pred sequence)
-  "Return non-nil if (PRED element) is non-nil for all elements of SEQUENCE."
+  "Return non-nil if PRED returns non-nil for all the elements of SEQUENCE."
   (catch 'seq--break
     (seq-doseq (elt sequence)
       (or (funcall pred elt)
@@ -390,8 +394,8 @@ If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called."
 
 ;;;###autoload
 (cl-defgeneric seq-some (pred sequence)
-  "Return non-nil if PRED is satisfied for at least one element of SEQUENCE.
-If so, return the first non-nil value returned by PRED."
+  "Return non-nil if PRED returns non-nil for at least one element of SEQUENCE.
+If the value is non-nil, it is the first non-nil value returned by PRED."
   (catch 'seq--break
     (seq-doseq (elt sequence)
       (let ((result (funcall pred elt)))
@@ -401,12 +405,12 @@ If so, return the first non-nil value returned by PRED."
 
 ;;;###autoload
 (cl-defgeneric seq-find (pred sequence &optional default)
-  "Return the first element for which (PRED element) is non-nil in SEQUENCE.
-If no element is found, return DEFAULT.
+  "Return the first element in SEQUENCE for which PRED returns non-nil.
+If no such element is found, return DEFAULT.
 
 Note that `seq-find' has an ambiguity if the found element is
-identical to DEFAULT, as it cannot be known if an element was
-found or not."
+identical to DEFAULT, as in that case it is impossible to know
+whether an element was found or not."
   (catch 'seq--break
     (seq-doseq (elt sequence)
       (when (funcall pred elt)
@@ -414,7 +418,7 @@ found or not."
     default))
 
 (cl-defgeneric seq-count (pred sequence)
-  "Return the number of elements for which (PRED element) is non-nil in SEQUENCE."
+  "Return the number of elements in SEQUENCE for which PRED returns non-nil."
   (let ((count 0))
     (seq-doseq (elt sequence)
       (when (funcall pred elt)
@@ -422,8 +426,8 @@ found or not."
     count))
 
 (cl-defgeneric seq-contains (sequence elt &optional testfn)
-  "Return the first element in SEQUENCE that is equal to ELT.
-Equality is defined by the function TESTFN, which defaults to `equal'."
+  "Return the first element in SEQUENCE that is \"equal\" to ELT.
+\"Equality\" is defined by the function TESTFN, which defaults to `equal'."
   (declare (obsolete seq-contains-p "27.1"))
   (seq-some (lambda (e)
               (when (funcall (or testfn #'equal) elt e)
@@ -431,8 +435,8 @@ Equality is defined by the function TESTFN, which defaults to `equal'."
             sequence))
 
 (cl-defgeneric seq-contains-p (sequence elt &optional testfn)
-  "Return non-nil if SEQUENCE contains an element equal to ELT.
-Equality is defined by the function TESTFN, which defaults to `equal'."
+  "Return non-nil if SEQUENCE contains an element \"equal\" to ELT.
+\"Equality\" is defined by the function TESTFN, which defaults to `equal'."
     (catch 'seq--break
       (seq-doseq (e sequence)
         (let ((r (funcall (or testfn #'equal) e elt)))
@@ -442,15 +446,16 @@ Equality is defined by the function TESTFN, which defaults to `equal'."
 
 (cl-defgeneric seq-set-equal-p (sequence1 sequence2 &optional testfn)
   "Return non-nil if SEQUENCE1 and SEQUENCE2 contain the same elements.
-This does not depend on the order of the elements.
-Equality is defined by the function TESTFN, which defaults to `equal'."
+The order of the elements in the sequences is not important.
+\"Equality\" of elements is defined by the function TESTFN, which
+defaults to `equal'."
   (and (seq-every-p (lambda (item1) (seq-contains-p sequence2 item1 testfn)) sequence1)
        (seq-every-p (lambda (item2) (seq-contains-p sequence1 item2 testfn)) sequence2)))
 
 ;;;###autoload
 (cl-defgeneric seq-position (sequence elt &optional testfn)
-  "Return the (zero-based) index of the first element in SEQUENCE equal to ELT.
-Equality is defined by the function TESTFN, which defaults to `equal'."
+  "Return the (zero-based) index of the first element in SEQUENCE \"equal\" to ELT.
+\"Equality\" is defined by the function TESTFN, which defaults to `equal'."
   (let ((index 0))
     (catch 'seq--break
       (seq-doseq (e sequence)
@@ -461,11 +466,11 @@ Equality is defined by the function TESTFN, which defaults to `equal'."
 
 ;;;###autoload
 (cl-defgeneric seq-positions (sequence elt &optional testfn)
-  "Return indices for which (TESTFN (seq-elt SEQUENCE index) ELT) is non-nil.
+  "Return list of indices of SEQUENCE elements for which TESTFN returns non-nil.
 
-TESTFN is a two-argument function which is passed each element of
-SEQUENCE as first argument and ELT as second. TESTFN defaults to
-`equal'.
+TESTFN is a two-argument function which is called with each element of
+SEQUENCE as the first argument and ELT as the second.
+TESTFN defaults to `equal'.
 
 The result is a list of (zero-based) indices."
   (let ((result '()))
@@ -479,7 +484,7 @@ The result is a list of (zero-based) indices."
 ;;;###autoload
 (cl-defgeneric seq-uniq (sequence &optional testfn)
   "Return a list of the elements of SEQUENCE with duplicates removed.
-TESTFN is used to compare elements, or `equal' if TESTFN is nil."
+TESTFN is used to compare elements, and defaults to `equal'."
   (let ((result '()))
     (seq-doseq (elt sequence)
       (unless (seq-contains-p result elt testfn)
@@ -514,15 +519,15 @@ TESTFN is used to compare elements, or `equal' if TESTFN is nil."
     (nreverse result)))
 
 (cl-defgeneric seq-mapcat (function sequence &optional type)
-  "Concatenate the result of applying FUNCTION to each element of SEQUENCE.
-The result is a sequence of type TYPE, or a list if TYPE is nil."
+  "Concatenate the results of applying FUNCTION to each element of SEQUENCE.
+The result is a sequence of type TYPE; TYPE defaults to `list'."
   (apply #'seq-concatenate (or type 'list)
          (seq-map function sequence)))
 
 (cl-defgeneric seq-partition (sequence n)
   "Return list of elements of SEQUENCE grouped into sub-sequences of length N.
 The last sequence may contain less than N elements.  If N is a
-negative integer or 0, nil is returned."
+negative integer or 0, the function returns nil."
   (unless (< n 1)
     (let ((result '()))
       (while (not (seq-empty-p sequence))
@@ -532,8 +537,9 @@ negative integer or 0, nil is returned."
 
 ;;;###autoload
 (cl-defgeneric seq-union (sequence1 sequence2 &optional testfn)
-  "Return a list of all elements that appear in either SEQUENCE1 or SEQUENCE2.
-Equality is defined by the function TESTFN, which defaults to `equal'."
+  "Return a list of all the elements that appear in either SEQUENCE1 or SEQUENCE2.
+\"Equality\" of elements is defined by the function TESTFN, which
+defaults to `equal'."
   (let* ((accum (lambda (acc elt)
                   (if (seq-contains-p acc elt testfn)
                       acc
@@ -544,8 +550,9 @@ Equality is defined by the function TESTFN, which defaults to `equal'."
 
 ;;;###autoload
 (cl-defgeneric seq-intersection (sequence1 sequence2 &optional testfn)
-  "Return a list of the elements that appear in both SEQUENCE1 and SEQUENCE2.
-Equality is defined by the function TESTFN, which defaults to `equal'."
+  "Return a list of all the elements that appear in both SEQUENCE1 and SEQUENCE2.
+\"Equality\" of elements is defined by the function TESTFN, which
+defaults to `equal'."
   (seq-reduce (lambda (acc elt)
                 (if (seq-contains-p sequence2 elt testfn)
                     (cons elt acc)
@@ -554,8 +561,9 @@ Equality is defined by the function TESTFN, which defaults to `equal'."
               '()))
 
 (cl-defgeneric seq-difference (sequence1 sequence2 &optional testfn)
-  "Return a list of the elements that appear in SEQUENCE1 but not in SEQUENCE2.
-Equality is defined by the function TESTFN, which defaults to `equal'."
+  "Return list of all the elements that appear in SEQUENCE1 but not in SEQUENCE2.
+\"Equality\" of elements is defined by the function TESTFN, which
+defaults to `equal'."
   (seq-reduce (lambda (acc elt)
                 (if (seq-contains-p sequence2 elt testfn)
                     acc
@@ -591,7 +599,7 @@ SEQUENCE must be a sequence of numbers or markers."
   (apply #'max (seq-into sequence 'list)))
 
 (defun seq--count-successive (pred sequence)
-  "Count successive elements for which (PRED element) is non-nil in SEQUENCE."
+  "Count successive elements in SEQUENCE for which PRED returns non-nil."
   (let ((n 0)
         (len (seq-length sequence)))
     (while (and (< n len)
@@ -628,13 +636,13 @@ SEQUENCE must be a sequence of numbers or markers."
 
 ;; TODO: make public?
 (defun seq--elt-safe (sequence n)
-  "Return element of SEQUENCE at the index N.
+  "Return the element of SEQUENCE whose zero-based index is N.
 If no element is found, return nil."
   (ignore-errors (seq-elt sequence n)))
 
 ;;;###autoload
 (cl-defgeneric seq-random-elt (sequence)
-  "Return a random element from SEQUENCE.
+  "Return a randomly chosen element from SEQUENCE.
 Signal an error if SEQUENCE is empty."
   (if (seq-empty-p sequence)
       (error "Sequence cannot be empty")
@@ -681,8 +689,8 @@ Signal an error if SEQUENCE is empty."
     (concat sequence)))
 
 (defun seq-split (sequence length)
-  "Split SEQUENCE into a list of sub-sequences of at most LENGTH.
-All the sub-sequences will be of LENGTH, except the last one,
+  "Split SEQUENCE into a list of sub-sequences of at most LENGTH elements.
+All the sub-sequences will be LENGTH long, except the last one,
 which may be shorter."
   (when (< length 1)
     (error "Sub-sequence length must be larger than zero"))
@@ -696,7 +704,7 @@ which may be shorter."
     (nreverse result)))
 
 (defun seq-keep (function sequence)
-  "Apply FUNCTION to SEQUENCE and return all non-nil results."
+  "Apply FUNCTION to SEQUENCE and return the list of all the non-nil results."
   (delq nil (seq-map function sequence)))
 
 (provide 'seq)

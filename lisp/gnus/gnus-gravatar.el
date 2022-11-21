@@ -87,7 +87,6 @@ callback for `gravatar-retrieve'."
         (let ((real-name (car address))
               (mail-address (cadr address))
               (mark (point-marker))
-              (inhibit-point-motion-hooks t)
               (case-fold-search t))
           (save-restriction
             (article-narrow-to-head)

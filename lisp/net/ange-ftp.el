@@ -4242,7 +4242,7 @@ directory, so that Emacs will know its current contents."
 	  ((eq identification 'localname) localname)
 	  (t (ange-ftp-replace-name-component file ""))))))
 
-(defun ange-ftp-load (file &optional noerror nomessage nosuffix)
+(defun ange-ftp-load (file &optional noerror nomessage nosuffix must-suffix)
   (if (ange-ftp-ftp-name file)
       (let ((tryfiles (if nosuffix
 			  (list file)
@@ -4264,7 +4264,7 @@ directory, so that Emacs will know its current contents."
 	  (or noerror
 	      (signal 'file-error (list "Cannot open load file" file)))
 	  nil))
-    (ange-ftp-real-load file noerror nomessage nosuffix)))
+    (ange-ftp-real-load file noerror nomessage nosuffix must-suffix)))
 
 ;; Calculate default-unhandled-directory for a given ange-ftp buffer.
 (defun ange-ftp-unhandled-file-name-directory (_filename)

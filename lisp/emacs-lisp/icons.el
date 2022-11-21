@@ -196,18 +196,21 @@ present if the icon is represented by an image."
          (image-supported-file-p file)
          (propertize
           " " 'display
-          (if-let ((height (plist-get keywords :height)))
-              (create-image file
-                            nil nil
-                            :height (if (eq height 'line)
+          (let ((props
+                 (append
+                  (if-let ((height (plist-get keywords :height)))
+                      (list :height (if (eq height 'line)
                                         (window-default-line-height)
-                                      height)
-                            :scale 1
-                            :rotation (or (plist-get keywords :rotation) 0)
-                            :ascent (if (plist-member keywords :ascent)
-                                        (plist-get keywords :ascent)
-                                      'center))
-            (create-image file))))))
+                                      height)))
+                  '(:scale 1)
+                  (if-let ((rotation (plist-get keywords :rotation)))
+                      (list :rotation rotation))
+                  (if-let ((margin (plist-get keywords :margin)))
+                      (list :margin margin))
+                  (list :ascent (if (plist-member keywords :ascent)
+                                    (plist-get keywords :ascent)
+                                  'center)))))
+            (apply 'create-image file nil nil props))))))
 
 (cl-defmethod icons--create ((_type (eql 'emoji)) icon _keywords)
   (when-let ((font (and (display-multi-font-p)

@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'ert)
 
 (ert-deftest fns-tests-identity ()
   (let ((num 12345)) (should (eq (identity num) num)))
@@ -29,9 +30,22 @@
   (let ((lst '(11))) (should (eq (identity lst) lst))))
 
 (ert-deftest fns-tests-random ()
-  (should (integerp (random)))
-  (should (>= (random 10) 0))
-  (should (< (random 10) 10)))
+  (unwind-protect
+      (progn
+        (should-error (random -1) :type 'args-out-of-range)
+        (should-error (random 0) :type 'args-out-of-range)
+        (should (integerp (random)))
+        (should (= (random 1) 0))
+        (should (>= (random 10) 0))
+        (should (< (random 10) 10))
+        (should (equal (random "seed") (random "seed")))
+        ;; The probability of four calls being the same is low.
+        ;; This makes sure that the value isn't constant.
+        (should (not (= (random t) (random t) (random t) (random t))))
+        ;; Handle bignums.
+        (should (integerp (random (1+ most-positive-fixnum)))))
+    ;; Reset the PRNG seed after testing.
+    (random t)))
 
 (ert-deftest fns-tests-length ()
   (should (= (length nil) 0))
@@ -152,6 +166,8 @@
     (,(string-to-multibyte "abc") < "abd")
     (,(string-to-multibyte "abc") < ,(string-to-multibyte "abd"))
     (,(string-to-multibyte "\x80") = ,(string-to-multibyte "\x80"))
+    ("Liberté, Égalité, Fraternité" = "Liberté, Égalité, Fraternité")
+    ("Liberté, Égalité, Fraternité" < "Liberté, Égalité, Sororité")
 
     ;; Cases concerning the ordering of raw bytes: these are
     ;; troublesome because the current `string<' order is not very useful as
@@ -841,6 +857,14 @@
   (should-error (reverse (dot1 1)) :type 'wrong-type-argument)
   (should-error (reverse (dot2 1 2)) :type 'wrong-type-argument))
 
+(ert-deftest test-cycle-equal ()
+  (should-error (equal (cyc1 1) (cyc1 1)))
+  (should-error (equal (cyc2 1 2) (cyc2 1 2))))
+
+(ert-deftest test-cycle-nconc ()
+  (should-error (nconc (cyc1 1) 'tail) :type 'circular-list)
+  (should-error (nconc (cyc2 1 2) 'tail) :type 'circular-list))
+
 (ert-deftest test-cycle-plist-get ()
   (let ((c1 (cyc1 1))
         (c2 (cyc2 1 2))
@@ -895,29 +919,46 @@
     (should-error (plist-put d1 3 3) :type 'wrong-type-argument)
     (should-error (plist-put d2 3 3) :type 'wrong-type-argument)))
 
-(ert-deftest test-cycle-equal ()
-  (should-error (equal (cyc1 1) (cyc1 1)))
-  (should-error (equal (cyc2 1 2) (cyc2 1 2))))
-
-(ert-deftest test-cycle-nconc ()
-  (should-error (nconc (cyc1 1) 'tail) :type 'circular-list)
-  (should-error (nconc (cyc2 1 2) 'tail) :type 'circular-list))
-
 (ert-deftest plist-get/odd-number-of-elements ()
   "Test that `plist-get' doesn't signal an error on degenerate plists."
   (should-not (plist-get '(:foo 1 :bar) :bar)))
 
 (ert-deftest plist-put/odd-number-of-elements ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (plist-put '(:foo 1 :bar) :zot 2)
-                               :type 'wrong-type-argument)
+  "Check for bug#27726."
+  (should (equal (should-error (plist-put (list :foo 1 :bar) :zot 2))
                  '(wrong-type-argument plistp (:foo 1 :bar)))))
 
 (ert-deftest plist-member/improper-list ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (plist-member '(:foo 1 . :bar) :qux)
-                               :type 'wrong-type-argument)
+  "Check for bug#27726."
+  (should (equal (should-error (plist-member '(:foo 1 . :bar) :qux))
                  '(wrong-type-argument plistp (:foo 1 . :bar)))))
+
+(ert-deftest test-plist ()
+  (let ((plist (list :a "b")))
+    (setq plist (plist-put plist :b "c"))
+    (should (equal (plist-get plist :b) "c"))
+    (should (equal (plist-member plist :b) '(:b "c"))))
+
+  (let ((plist (list "1" "2" "a" "b")))
+    (setq plist (plist-put plist (string ?a) "c"))
+    (should (equal plist '("1" "2" "a" "b" "a" "c")))
+    (should-not (plist-get plist (string ?a)))
+    (should-not (plist-member plist (string ?a))))
+
+  (let ((plist (list "1" "2" "a" "b")))
+    (setq plist (plist-put plist (string ?a) "c" #'equal))
+    (should (equal plist '("1" "2" "a" "c")))
+    (should (equal (plist-get plist (string ?a) #'equal) "c"))
+    (should (equal (plist-member plist (string ?a) #'equal) '("a" "c"))))
+
+  (let ((plist (list :a 1 :b 2 :c 3)))
+    (setq plist (plist-put plist ":a" 4 #'string>))
+    (should (equal plist '(:a 1 :b 4 :c 3)))
+    (should (equal (plist-get plist ":b" #'string>) 3))
+    (should (equal (plist-member plist ":c" #'string<) plist))
+    (dolist (fn '(plist-get plist-member))
+      (should-not (funcall fn plist ":a" #'string<))
+      (should-not (funcall fn plist ":c" #'string>)))))
 
 (ert-deftest test-string-distance ()
   "Test `string-distance' behavior."
@@ -1333,23 +1374,6 @@
     (setcdr (cdr loop) loop)
     (should-error (append loop '(end))
                   :type 'circular-list)))
-
-(ert-deftest test-plist ()
-  (let ((plist '(:a "b")))
-    (setq plist (plist-put plist :b "c"))
-    (should (equal (plist-get plist :b) "c"))
-    (should (equal (plist-member plist :b) '(:b "c"))))
-
-  (let ((plist '("1" "2" "a" "b")))
-    (setq plist (plist-put plist (copy-sequence "a") "c"))
-    (should-not (equal (plist-get plist (copy-sequence "a")) "c"))
-    (should-not (equal (plist-member plist (copy-sequence "a")) '("a" "c"))))
-
-  (let ((plist '("1" "2" "a" "b")))
-    (setq plist (plist-put plist (copy-sequence "a") "c" #'equal))
-    (should (equal (plist-get plist (copy-sequence "a") #'equal) "c"))
-    (should (equal (plist-member plist (copy-sequence "a") #'equal)
-                   '("a" "c")))))
 
 (ert-deftest fns--string-to-unibyte-multibyte ()
   (dolist (str (list "" "a" "abc" "a\x00\x7fz" "a\xaa\xbbz" "\x80\xdd\xff"

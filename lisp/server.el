@@ -670,7 +670,6 @@ the `server-process' variable."
                             "/tmp/")
                  (ignore-errors
                    (delete-directory (file-name-directory server-file))))))
-         (setq server-mode nil) ;; already set by the minor mode code
          (display-warning
           'server
           (concat "Unable to start the Emacs server.\n"
@@ -688,7 +687,9 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
       (if leave-dead
 	  (progn
 	    (unless (eq t leave-dead) (server-log (message "Server stopped")))
-	    (setq server-process nil))
+            (setq server-mode nil
+                  global-minor-modes (delq 'server-mode global-minor-modes)
+                  server-process nil))
 	;; Make sure there is a safe directory in which to place the socket.
 	(server-ensure-safe-dir server-dir)
 	(when server-process
@@ -716,7 +717,10 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.  Also don't get
 		       ;; confused by CRs since we don't quote them.
-		       :coding 'raw-text-unix
+                       ;; For encoding, we must use the locale's encoding,
+                       ;; since emacsclient shows that verbatim on the
+                       ;; console.
+		       :coding (cons 'raw-text-unix locale-coding-system)
 		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
 			   (list :family 'ipv4  ;; We're not ready for IPv6 yet
@@ -728,6 +732,8 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 			       :plist '(:authenticated t)))))
 	  (unless server-process (error "Could not start server process"))
 	  (process-put server-process :server-file server-file)
+          (setq server-mode t)
+          (push 'server-mode global-minor-modes)
 	  (when server-use-tcp
 	    (let ((auth-key (server-get-auth-key)))
 	      (process-put server-process :auth-key auth-key)
@@ -796,6 +802,10 @@ by the current Emacs process, use the `server-process' variable."
 	t)
     (file-error nil)))
 
+;; This keymap is empty, but allows users to define keybindings to use
+;; when `server-mode' is active.
+(defvar-keymap server-mode-map)
+
 ;;;###autoload
 (define-minor-mode server-mode
   "Toggle Server mode.
@@ -805,6 +815,7 @@ Server mode runs a process that accepts commands from the
 `server-start' for details."
   :global t
   :version "22.1"
+  :keymap server-mode-map
   ;; Fixme: Should this check for an existing server socket and do
   ;; nothing if there is one (for multiple Emacs sessions)?
   (server-start (not server-mode)))
@@ -1589,14 +1600,19 @@ specifically for the clients and did not exist before their request for it."
     (server-buffer-done (current-buffer))))
 
 (defun server-kill-emacs-query-function ()
-  "Ask before exiting Emacs if it has live clients.
+  "Ask before exiting Emacs if it has other live clients.
 A \"live client\" is a client with at least one live buffer
-associated with it."
-  (or (not (seq-some (lambda (proc)
-                       (seq-some #'buffer-live-p
-                                 (process-get proc 'buffers)))
-                     server-clients))
-      (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
+associated with it.  These clients were (probably) started by
+external processes that are waiting for some buffers to be
+edited.  If there are any other clients, we don't want to fail
+their waiting processes, so ask the user to be sure."
+  (let ((this-client (frame-parameter nil 'client)))
+    (or (not (seq-some (lambda (proc)
+                         (unless (eq proc this-client)
+                           (seq-some #'buffer-live-p
+                                     (process-get proc 'buffers))))
+                       server-clients))
+        (yes-or-no-p "This Emacs session has other clients; exit anyway? "))))
 
 (defun server-kill-buffer ()
   "Remove the current buffer from its clients' buffer list.

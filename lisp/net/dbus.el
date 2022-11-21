@@ -37,6 +37,7 @@
 (declare-function dbus-message-internal "dbusbind.c")
 (declare-function dbus--init-bus "dbusbind.c")
 (declare-function libxml-parse-xml-region "xml.c")
+(defvar dbus-debug)
 (defvar dbus-message-type-invalid)
 (defvar dbus-message-type-method-call)
 (defvar dbus-message-type-method-return)

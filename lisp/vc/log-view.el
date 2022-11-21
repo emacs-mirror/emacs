@@ -359,6 +359,7 @@ log entries."
 	    (overlay-put ov 'log-view-self ov)
 	    (overlay-put ov 'log-view-marked (nth 1 entry))))))))
 
+;;;###autoload
 (defun log-view-get-marked ()
   "Return the list of tags for the marked log entries."
   (save-excursion

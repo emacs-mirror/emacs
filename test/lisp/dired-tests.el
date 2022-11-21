@@ -354,6 +354,17 @@
         (should (equal "subdir" (dired-get-filename 'local t)))))))
 
 
+(ert-deftest dired-test-bug59047 ()
+  "Test for https://debbugs.gnu.org/59047 ."
+  (dired (list (expand-file-name "src" source-directory)
+               "cygw32.c" "alloc.c" "w32xfns.c" "xdisp.c"))
+  (dired-hide-all)
+  (dired-hide-all)
+  (dired-next-line 1)
+  (should (equal 'dired-hide-details-detail
+                 (get-text-property
+                  (1+ (line-beginning-position)) 'invisible))))
+
 (defmacro dired-test-with-temp-dirs (just-empty-dirs &rest body)
   "Helper macro for Bug#27940 test."
   (declare (indent 1) (debug body))

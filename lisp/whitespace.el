@@ -272,42 +272,40 @@
     indentation empty space-after-tab
     space-mark tab-mark newline-mark
     missing-newline-at-eof)
-  "Specify which kind of blank is visualized.
+  "Determine the kinds of whitespace are visualized.
 
-It's a list containing some or all of the following values:
+The value is a list containing one or more of the following symbols:
 
-   face                 enable all visualization via faces (see below).
+   face                 visualize by using faces (see below).
 
-   trailing             trailing blanks are visualized via faces.
-                        It has effect only if `face' (see above)
+   trailing             visualize trailing blanks via faces.
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   tabs                 TABs are visualized via faces.
-                        It has effect only if `face' (see above)
+   tabs                 visualize TABs via faces.
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   spaces               SPACEs and HARD SPACEs are visualized via
+   spaces               visualize SPACEs and HARD SPACEs via
                         faces.
-                        It has effect only if `face' (see above)
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   lines                lines which have columns beyond
-                        `whitespace-line-column' are highlighted via
-                        faces.
+   lines                highlight lines which have columns beyond
+                        `whitespace-line-column' via faces.
                         Whole line is highlighted.
-                        It has precedence over `lines-tail' and
+                        This has precedence over `lines-tail' and
                         `lines-char' (see below).
-                        It has effect only if `face' (see above)
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   lines-tail           lines which have columns beyond
-                        `whitespace-line-column' are highlighted via
-                        faces.
-                        But only the part of line which goes
-                        beyond `whitespace-line-column' column.
-                        It has effect only if `lines' (see above)
-                        is not present in `whitespace-style'
-                        and if `face' (see above) is present in
+   lines-tail           highlighted lines which have columns beyond
+                        `whitespace-line-column' via faces.
+                        Only the part of line which goes beyond
+                        `whitespace-line-column' column.
+                        This has effect only if `lines' (see above)
+                        is NOT present in `whitespace-style',
+                        and if `face' (see above) IS present in
                         `whitespace-style'.
 
    lines-char           lines which have columns beyond
@@ -319,82 +317,81 @@ It's a list containing some or all of the following values:
                         in `whitespace-style' and if `face' (see
                         above) is present in `whitespace-style'.
 
-   newline              NEWLINEs are visualized via faces.
-                        It has effect only if `face' (see above)
+   newline              visualize NEWLINEs via faces.
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   missing-newline-at-eof Missing newline at the end of the file is
-                        visualized via faces.
-                        It has effect only if `face' (see above)
+   missing-newline-at-eof visualize missing newline at the end of
+                        the file via faces.
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   empty                empty lines at beginning and/or end of buffer
-                        are visualized via faces.
-                        It has effect only if `face' (see above)
+   empty                visualize empty lines at beginning and/or
+                        end of buffer via faces.
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   indentation::tab     `tab-width' or more SPACEs at beginning of line
-                        are visualized via faces.
-                        It has effect only if `face' (see above)
+   indentation::tab     visualize `tab-width' or more SPACEs at
+                        beginning of line via faces.
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   indentation::space   TABs at beginning of line are visualized via
+   indentation::space   visualize TABs at beginning of line via
                         faces.
-                        It has effect only if `face' (see above)
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   indentation          `tab-width' or more SPACEs at beginning of line
-                        are visualized, if `indent-tabs-mode' (which
-                        see) is non-nil; otherwise, TABs at beginning
-                        of line are visualized via faces.
-                        It has effect only if `face' (see above)
+   indentation          visualize `tab-width' or more SPACEs at
+                        beginning of line, if `indent-tabs-mode' (which
+                        see) is non-nil; otherwise, visualize TABs
+                        at beginning of line via faces.
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   big-indent           Big indentations are visualized via faces.
-                        It has effect only if `face' (see above)
+   big-indent           visualize big indentations via faces.
+                        This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   space-after-tab::tab         `tab-width' or more SPACEs after a TAB
-                                are visualized via faces.
-                                It has effect only if `face' (see above)
+   space-after-tab::tab         visualize `tab-width' or more SPACEs
+                                after a TAB via faces.
+                                This has effect only if `face' (see above)
                                 is present in `whitespace-style'.
 
-   space-after-tab::space       TABs are visualized when `tab-width' or
+   space-after-tab::space       visualize TABs when `tab-width' or
                                 more SPACEs occur after a TAB, via
                                 faces.
-                                It has effect only if `face' (see above)
+                                This has effect only if `face' (see above)
                                 is present in `whitespace-style'.
 
-   space-after-tab              `tab-width' or more SPACEs after a TAB
-                                are visualized, if `indent-tabs-mode'
+   space-after-tab              visualize `tab-width' or more SPACEs
+                                after a TAB, if `indent-tabs-mode'
                                 (which see) is non-nil; otherwise,
-                                the TABs are visualized via faces.
-                                It has effect only if `face' (see above)
+                                visualize the TABs via faces.
+                                This has effect only if `face' (see above)
                                 is present in `whitespace-style'.
 
-   space-before-tab::tab        SPACEs before TAB are visualized via
-                                faces.
-                                It has effect only if `face' (see above)
+   space-before-tab::tab        visualize SPACEs before TAB via faces.
+                                This has effect only if `face' (see above)
                                 is present in `whitespace-style'.
 
-   space-before-tab::space      TABs are visualized when SPACEs occur
+   space-before-tab::space      visualize TABs when SPACEs occur
                                 before TAB, via faces.
-                                It has effect only if `face' (see above)
+                                This has effect only if `face' (see above)
                                 is present in `whitespace-style'.
 
-   space-before-tab             SPACEs before TAB are visualized, if
+   space-before-tab             visualize SPACEs before TAB, if
                                 `indent-tabs-mode' (which see) is
-                                non-nil; otherwise, the TABs are
-                                visualized via faces.
-                                It has effect only if `face' (see above)
+                                non-nil; otherwise, visualize TABs
+                                via faces.
+                                This has effect only if `face' (see above)
                                 is present in `whitespace-style'.
 
-   space-mark           SPACEs and HARD SPACEs are visualized via
+   space-mark           visualize SPACEs and HARD SPACEs via
                         display table.
 
-   tab-mark             TABs are visualized via display table.
+   tab-mark             visualize TABs via display table.
 
-   newline-mark         NEWLINEs are visualized via display table.
+   newline-mark         visualize NEWLINEs via display table.
 
 Any other value is ignored.
 
@@ -404,8 +401,7 @@ via display table.
 There is an evaluation order for some values, if they are
 included in `whitespace-style' list.  For example, if
 indentation, indentation::tab and/or indentation::space are
-included in `whitespace-style' list.  The evaluation order for
-these values is:
+included in `whitespace-style' list, the evaluation order is:
 
  * For indentation:
    1. indentation
@@ -477,7 +473,9 @@ Used when `whitespace-style' includes the value `spaces'.")
     (((class color) (background light))
      :background "LightYellow" :foreground "lightgray")
     (t :inverse-video t))
-  "Face used to visualize SPACE."
+  "Face used to visualize SPACE.
+
+See `whitespace-space-regexp'."
   :group 'whitespace)
 
 
@@ -492,7 +490,9 @@ Used when `whitespace-style' includes the value `spaces'.")
     (((class color) (background light))
      :background "LemonChiffon3" :foreground "lightgray")
     (t :inverse-video t))
-  "Face used to visualize HARD SPACE."
+  "Face used to visualize HARD SPACE.
+
+See `whitespace-hspace-regexp'."
   :group 'whitespace)
 
 
@@ -508,7 +508,9 @@ Used when `whitespace-style' includes the value `tabs'.")
     (((class color) (background light))
      :background "beige"  :foreground "lightgray")
     (t :inverse-video t))
-  "Face used to visualize TAB."
+  "Face used to visualize TAB.
+
+See `whitespace-tab-regexp'."
   :group 'whitespace)
 
 
@@ -542,7 +544,9 @@ Used when `whitespace-style' includes the value `trailing'.")
   '((default :weight bold)
     (((class mono)) :inverse-video t :underline t)
     (t :background "red1" :foreground "yellow"))
-  "Face used to visualize trailing blanks."
+  "Face used to visualize trailing blanks.
+
+See `whitespace-trailing-regexp'."
   :group 'whitespace)
 
 
@@ -570,7 +574,9 @@ Used when `whitespace-style' includes the value `space-before-tab'.")
 (defface whitespace-space-before-tab
   '((((class mono)) :inverse-video t :weight bold :underline t)
     (t :background "DarkOrange" :foreground "firebrick"))
-  "Face used to visualize SPACEs before TAB."
+  "Face used to visualize SPACEs before TAB.
+
+See `whitespace-space-before-tab-regexp'."
   :group 'whitespace)
 
 
@@ -582,13 +588,17 @@ Used when `whitespace-style' includes the value `indentation'.")
 (defface whitespace-indentation
   '((((class mono)) :inverse-video t :weight bold :underline t)
     (t :background "yellow" :foreground "firebrick"))
-  "Face used to visualize `tab-width' or more SPACEs at beginning of line."
+  "Face used to visualize `tab-width' or more SPACEs at beginning of line.
+
+See `whitespace-indentation-regexp'."
   :group 'whitespace)
 
 (defface whitespace-big-indent
   '((((class mono)) :inverse-video t :weight bold :underline t)
     (t :background "red" :foreground "firebrick"))
-  "Face used to visualize big indentation."
+  "Face used to visualize big indentation.
+
+See `whitespace-big-indent-regexp'."
   :group 'whitespace)
 
 (defface whitespace-missing-newline-at-eof
@@ -604,7 +614,9 @@ Used when `whitespace-style' includes the value `empty'.")
 (defface whitespace-empty
   '((((class mono)) :inverse-video t :weight bold :underline t)
     (t :background "yellow" :foreground "firebrick" :extend t))
-  "Face used to visualize empty lines at beginning and/or end of buffer."
+  "Face used to visualize empty lines at beginning and/or end of buffer.
+
+See `whitespace-empty-at-bob-regexp' and `whitespace-empty-at-eob-regexp."
   :group 'whitespace)
 
 
@@ -617,14 +629,17 @@ Used when `whitespace-style' includes the value `space-after-tab'.")
 (defface whitespace-space-after-tab
   '((((class mono)) :inverse-video t :weight bold :underline t)
     (t :background "yellow" :foreground "firebrick"))
-  "Face used to visualize `tab-width' or more SPACEs after TAB."
+  "Face used to visualize `tab-width' or more SPACEs after TAB.
+
+See `whitespace-space-after-tab-regexp'."
   :group 'whitespace)
 
 
 (defcustom whitespace-hspace-regexp
   "\\(\u00A0+\\)"
-  "Specify HARD SPACE characters regexp.
+  "Regexp to match HARD SPACE characters that should be visualized.
 
+The HARD SPACE characters are highlighted using the `whitespace-hspace' face.
 Here are some examples:
 
    \"\\\\(^\\xA0+\\\\)\"		\
@@ -636,19 +651,21 @@ visualize leading and/or trailing HARD SPACEs.
    \"\\t\\\\(\\xA0+\\\\)\\t\"		\
 visualize only HARD SPACEs between TABs.
 
-NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
+NOTE: Always enclose the elements to highlight in \\\\(...\\\\).
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style' includes `spaces'."
+This variable is used when `whitespace-style' includes `spaces'."
   :type '(regexp :tag "HARD SPACE Chars")
   :group 'whitespace)
 
 
 (defcustom whitespace-space-regexp "\\( +\\)"
-  "Specify SPACE characters regexp.
+  "Regexp to match SPACE characters that should be visualized.
 
-If you're using `mule' package, there may be other characters
-besides \" \" that should be considered SPACE.
+The SPACE characters are highlighted using the `whitespace-space' face.
+By default only ASCII SPACE character is visualized, but if you
+are typing in some non-Latin language, there may be other
+characters besides \" \" that should be considered SPACE.
 
 Here are some examples:
 
@@ -658,19 +675,21 @@ Here are some examples:
 visualize leading and/or trailing SPACEs.
    \"\\t\\\\( +\\\\)\\t\"	visualize only SPACEs between TABs.
 
-NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
+NOTE: Always enclose the elements to highlight in \\\\(...\\\\).
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style' includes `spaces'."
+This variable is used when `whitespace-style' includes `spaces'."
   :type '(regexp :tag "SPACE Chars")
   :group 'whitespace)
 
 
 (defcustom whitespace-tab-regexp "\\(\t+\\)"
-  "Specify TAB characters regexp.
+  "Regexp to match TAB characters that should be visualized.
 
-If you're using `mule' package, there may be other characters
-besides \"\\t\" that should be considered TAB.
+The TAB characters are highlighted using the `whitespace-tab' face.
+By default only ASCII TAB character is visualized, but if you
+are typing in some non-Latin language, there may be other
+characters besides \" \" that should be considered a TAB.
 
 Here are some examples:
 
@@ -680,37 +699,40 @@ Here are some examples:
 visualize leading and/or trailing TABs.
    \" \\\\(\\t+\\\\) \"	visualize only TABs between SPACEs.
 
-NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
+NOTE: Always enclose the elements to highlight in \\\\(...\\\\).
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style' includes `tabs'."
+This variable is used when `whitespace-style' includes `tabs'."
   :type '(regexp :tag "TAB Chars")
   :group 'whitespace)
 
 
 (defcustom whitespace-trailing-regexp
   "\\([\t \u00A0]+\\)$"
-  "Specify trailing characters regexp.
+  "Regexp to match trailing characters that should be visualized.
 
+The trailing characters are highlighted using the `whitespace-trailing' face.
 There may be other characters besides:
 
    \" \"  \"\\t\"  \"\\u00A0\"
 
 that should be considered blank.
 
-NOTE: Enclose always by \"\\\\(\" and \"\\\\)$\" the elements to highlight.
+NOTE: Always enclose the elements to highlight in \"\\\\(\"...\"\\\\)$\".
       Use exactly one pair of enclosing elements above.
 
-Used when `whitespace-style' includes `trailing'."
+This variable is used when `whitespace-style' includes `trailing'."
   :type '(regexp :tag "Trailing Chars")
   :group 'whitespace)
 
 
 (defcustom whitespace-space-before-tab-regexp "\\( +\\)\\(\t+\\)"
-  "Specify SPACEs before TAB regexp.
+  "Regexp to match SPACEs before TAB that should be visualized.
 
-Used when `whitespace-style' includes `space-before-tab',
-`space-before-tab::tab' or  `space-before-tab::space'."
+The SPACE characters are highlighted using the `whitespace-space-before-tab'
+face.
+This variable is used when `whitespace-style' includes
+`space-before-tab', `space-before-tab::tab' or `space-before-tab::space'."
   :type '(regexp :tag "SPACEs Before TAB")
   :group 'whitespace)
 
@@ -718,12 +740,15 @@ Used when `whitespace-style' includes `space-before-tab',
 (defcustom whitespace-indentation-regexp
   '("^\t*\\(\\( \\{%d\\}\\)+\\)[^\n\t]"
     . "^ *\\(\t+\\)[^\n]")
-  "Specify regexp for `tab-width' or more SPACEs at beginning of line.
+  "Regexps to match indentation whitespace that should be visualized.
 
-It is a cons where the cons car is used for SPACEs visualization
-and the cons cdr is used for TABs visualization.
+The value should be a cons whose car specifies the regexp to match
+visualization of SPACEs, and the cdr specifies the regexp to match
+visualization of TABs.
 
-Used when `whitespace-style' includes `indentation',
+The indentation characters are highlighted using the `whitespace-indentation'
+face.
+This variable is used when `whitespace-style' includes `indentation',
 `indentation::tab' or  `indentation::space'."
   :type '(cons (string :tag "Indentation SPACEs")
 	       (regexp :tag "Indentation TABs"))
@@ -731,17 +756,19 @@ Used when `whitespace-style' includes `indentation',
 
 
 (defcustom whitespace-empty-at-bob-regexp "\\`\\([ \t\n]*\\(?:\n\\|$\\)\\)"
-  "Specify regexp for empty lines at beginning of buffer.
+  "Regexp to match empty lines at beginning of buffer that should be visualized.
 
-Used when `whitespace-style' includes `empty'."
+The empty lines are highlighted using the `whitespace-empty' face.
+This variable is used when `whitespace-style' includes `empty'."
   :type '(regexp :tag "Empty Lines At Beginning Of Buffer")
   :group 'whitespace)
 
 
 (defcustom whitespace-empty-at-eob-regexp "^\\([ \t\n]+\\)\\'"
-  "Specify regexp for empty lines at end of buffer.
+  "Regexp to match empty lines at end of buffer that should be visualized.
 
-Used when `whitespace-style' includes `empty'."
+The empty lines are highlighted using the `whitespace-empty' face.
+This variable is used when `whitespace-style' includes `empty'."
   :type '(regexp :tag "Empty Lines At End Of Buffer")
   :group 'whitespace)
 
@@ -749,12 +776,16 @@ Used when `whitespace-style' includes `empty'."
 (defcustom whitespace-space-after-tab-regexp
   '("\t+\\(\\( \\{%d,\\}\\)+\\)"
     . "\\(\t+\\) \\{%d,\\}")
-  "Specify regexp for `tab-width' or more SPACEs after TAB.
+  "Regexps to match multiple SPACEs after TAB that should be visualized.
 
-It is a cons where the cons car is used for SPACEs visualization
-and the cons cdr is used for TABs visualization.
+The SPACE and TAB characters will be visualized if there at least
+as many SPACEs as `tab-width' after a TAB.
+The value should be a cons whose car is used for SPACEs visualization
+and whose cdr is used for TABs visualization.
 
-Used when `whitespace-style' includes `space-after-tab',
+The SPACE characters are highlighted using the `whitespace-space-after-tab'
+face.
+This variable is used when `whitespace-style' includes `space-after-tab',
 `space-after-tab::tab' or `space-after-tab::space'."
   :type '(cons (string :tag "SPACEs After TAB")
 	       string)
@@ -762,28 +793,33 @@ Used when `whitespace-style' includes `space-after-tab',
 
 (defcustom whitespace-big-indent-regexp
   "^\\(\\(?:\t\\{4,\\}\\| \\{32,\\}\\)[\t ]*\\)"
-  "Specify big indentation regexp.
+  "Regexp to match big indentation at BOL that should be visualized.
 
-If you're using `mule' package, there may be other characters
-besides \"\\t\" that should be considered TAB.
+The indentation characters are highlighted using the `whitespace-big-indent'
+face.
+If you're using non-Latin languages, there may be other characters
+besides \"\\t\" that should be considered a TAB.
 
-NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
+NOTE: Always enclose the elements to highlight in \\\\(...\\\\).
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style' includes `big-indent'."
+This variable is used when `whitespace-style' includes `big-indent'."
   :version "25.1"
   :type '(regexp :tag "Detect too much indentation at the beginning of a line")
   :group 'whitespace)
 
 
 (defcustom whitespace-line-column 80
-  "Specify column beyond which the line is highlighted.
+  "Column beyond which the line is highlighted.
 
-It must be an integer or nil.  If nil, the `fill-column' variable value is
-used.
+The value must be an integer or nil.  If nil, use the value
+of the `fill-column' variable.
 
-Used when `whitespace-style' includes `lines', `lines-tail' or
-`lines-char'."
+The characters beyond the column specified by this variable are
+highlighted using the `whitespace-line' face.
+
+This variable is used when `whitespace-style' includes `lines',
+`lines-tail' or `lines-char'."
   :type '(choice :tag "Line Length Limit"
 		 (integer :tag "Line Length")
 		 (const :tag "Use fill-column" nil))
@@ -811,7 +847,7 @@ Used when `whitespace-style' includes `lines', `lines-tail' or
     ;; If this is a problem for you, please, comment the line below.
     (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])	; tab - right guillemet
     )
-  "Specify an alist of mappings for displaying characters.
+  "Alist of mappings for displaying characters.
 
 Each element has the following form:
 
@@ -831,15 +867,15 @@ KIND    is the kind of character.
 CHAR    is the character to be mapped.
 
 VECTOR  is a vector of characters to be displayed in place of CHAR.
-        The first display vector that can be displayed is used;
+        The first vector that can be displayed by the terminal is used;
         if no display vector for a mapping can be displayed, then
         that character is displayed unmodified.
 
 The NEWLINE character is displayed using the face given by
 `whitespace-newline' variable.
 
-Used when `whitespace-style' includes `tab-mark', `space-mark' or
-`newline-mark'."
+This variable is used when `whitespace-style' includes `tab-mark',
+`space-mark' or `newline-mark'."
   :type '(repeat
 	  (list :tag "Character Mapping"
 		(choice :tag "Char Kind"
@@ -861,8 +897,7 @@ Used when `whitespace-style' includes `tab-mark', `space-mark' or
 Global `whitespace-mode' is controlled by the command
 `global-whitespace-mode'.
 
-If nil, means no modes have `whitespace-mode' automatically
-turned on.
+If nil, no modes have `whitespace-mode' automatically turned on.
 
 If t, all modes that support `whitespace-mode' have it
 automatically turned on.
@@ -889,16 +924,16 @@ C++ modes only."
 (defcustom whitespace-action nil
   "Specify which action is taken when a buffer is visited or written.
 
-It's a list containing some or all of the following values:
+The value is a list containing one or more of the following symbols:
 
    nil                  no action is taken.
 
-   cleanup              cleanup any bogus whitespace always when local
+   cleanup              always cleanup any bogus whitespace when local
                         whitespace is turned on.
                         See `whitespace-cleanup' and
                         `whitespace-cleanup-region'.
 
-   report-on-bogus      report if there is any bogus whitespace always
+   report-on-bogus      always report if there is any bogus whitespace
                         when local whitespace is turned on.
 
    auto-cleanup         cleanup any bogus whitespace when buffer is
@@ -906,8 +941,8 @@ It's a list containing some or all of the following values:
                         See `whitespace-cleanup' and
                         `whitespace-cleanup-region'.
 
-   abort-on-bogus       abort if there is any bogus whitespace and the
-                        buffer is written.
+   abort-on-bogus       signal an error when writing the buffer if there is
+                        any bogus whitespace in the buffer.
 
    warn-if-read-only    give a warning if `cleanup' or `auto-cleanup'
                         is included in `whitespace-action' and the

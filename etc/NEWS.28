@@ -199,7 +199,7 @@ lacks the terminfo database, you can instruct Emacs to support 24-bit
 true color by setting 'COLORTERM=truecolor' in the environment.  This is
 useful on systems such as FreeBSD which ships only with "etc/termcap".
 
-** File names given on the command line are now be pushed onto history.
+** File names given on the command line are now pushed onto history.
 The file names will be pushed onto 'file-name-history', like the names
 of files visited via 'C-x C-f' and other commands.
 
@@ -2771,7 +2771,7 @@ If non-nil, it is a regexp that should match a valid cover image.
 *** 'shell-script-mode' now supports 'outline-minor-mode'.
 The outline headings have lines that start with "###".
 
-*** fileloop will now skip missing files instead of signalling an error.
+*** fileloop will now skip missing files instead of signaling an error.
 
 *** 'tabulated-list-mode' can now restore original display order.
 Many commands (like 'C-x C-b') are derived from 'tabulated-list-mode',

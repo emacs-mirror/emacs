@@ -1717,10 +1717,19 @@ w32_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 void
 w32_change_tab_bar_height (struct frame *f, int height)
 {
-  int unit = FRAME_LINE_HEIGHT (f);
-  int old_height = FRAME_TAB_BAR_HEIGHT (f);
-  int lines = (height + unit - 1) / unit;
-  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+  int unit, old_height, lines;
+  Lisp_Object fullscreen;
+
+  unit = FRAME_LINE_HEIGHT (f);
+  old_height = FRAME_TAB_BAR_HEIGHT (f);
+  fullscreen = get_frame_param (f, Qfullscreen);
+
+  /* This differs from the tool bar code in that the tab bar height is
+     not rounded up.  Otherwise, if redisplay_tab_bar decides to grow
+     the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
+     leading to the tab bar height being incorrectly set upon the next
+     call to x_set_font.  (bug#59285) */
+  lines = height / unit;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -2734,8 +2743,7 @@ setup_w32_kbdhook (void)
 	  int i;
 
 	  CoCreateGuid (&guid);
-	  StringFromGUID2 (&guid, newTitle, 64);
-	  if (newTitle != NULL)
+	  if (oldTitle != NULL && StringFromGUID2 (&guid, newTitle, 64))
 	    {
 	      GetConsoleTitleW (oldTitle, 1024);
 	      SetConsoleTitleW (newTitle);
@@ -5786,13 +5794,7 @@ w32_default_font_parameter (struct frame *f, Lisp_Object parms)
       if (NILP (font))
 	error ("No suitable font was found");
     }
-  else if (!NILP (font_param))
-    {
-      /* Remember the explicit font parameter, so we can re-apply it after
-	 we've applied the `default' face settings.  */
-      gui_set_frame_parameters (f, Fcons (Fcons (Qfont_parameter, font_param),
-                                          Qnil));
-    }
+
   gui_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
 
@@ -8418,7 +8420,7 @@ a ShowWindow flag:
 
   current_dir = ENCODE_FILE (current_dir);
   /* Cannot use filename_to_utf16/ansi with DOCUMENT, since it could
-     be a URL that is not limited to MAX_PATH chararcters.  */
+     be a URL that is not limited to MAX_PATH characters.  */
   doclen = pMultiByteToWideChar (CP_UTF8, multiByteToWideCharFlags,
 				 SSDATA (document), -1, NULL, 0);
   doc_w = xmalloc (doclen * sizeof (wchar_t));

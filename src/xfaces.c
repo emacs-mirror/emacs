@@ -3809,8 +3809,12 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
 	  ASET (lface, LFACE_FONT_INDEX, font);
 	}
       f->default_face_done_p = false;
-      AUTO_FRAME_ARG (arg, Qfont, font);
-      Fmodify_frame_parameters (frame, arg);
+      AUTO_LIST2 (arg, AUTO_CONS_EXPR (Qfont, font),
+		  /* Clear the `font-parameter' frame property, as the
+		     font is now being specified by a face, not a
+		     frame property.  */
+		  AUTO_CONS_EXPR (Qfont_parameter, Qnil));
+      gui_set_frame_parameters_1 (f, arg, true);
     }
 }
 
@@ -4208,7 +4212,17 @@ Default face attributes override any local face attributes.  */)
 	    {
 	      Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
 	      AUTO_FRAME_ARG (arg, Qfont, name);
-	      Fmodify_frame_parameters (frame, arg);
+
+#ifdef HAVE_WINDOW_SYSTEM
+	      if (FRAME_WINDOW_P (f))
+		/* This is a window-system frame.  Prevent changes of
+		   the `font' parameter here from messing with the
+		   `font-parameter' frame property, as the frame
+		   parameter is not being changed by the user.  */
+	        gui_set_frame_parameters_1 (f, arg, true);
+	      else
+#endif
+		Fmodify_frame_parameters (frame, arg);
 	    }
 
 	  if (STRINGP (gvec[LFACE_FOREGROUND_INDEX]))
@@ -6540,8 +6554,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   USE_SAFE_ALLOCA;
   {
     ptrdiff_t next_overlay;
-
-    GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay, false);
+    GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay);
     if (next_overlay < endpos)
       endpos = next_overlay;
   }
@@ -6594,7 +6607,6 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     {
       for (prop = Qnil, i = noverlays - 1; i >= 0 && NILP (prop); --i)
 	{
-	  Lisp_Object oend;
 	  ptrdiff_t oendpos;
 
 	  prop = Foverlay_get (overlay_vec[i], propname);
@@ -6607,8 +6619,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 	      merge_face_ref (w, f, prop, attrs, true, NULL, attr_filter);
 	    }
 
-	  oend = OVERLAY_END (overlay_vec[i]);
-	  oendpos = OVERLAY_POSITION (oend);
+	  oendpos = OVERLAY_END (overlay_vec[i]);
 	  if (oendpos < endpos)
 	    endpos = oendpos;
 	}
@@ -6617,7 +6628,6 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     {
       for (i = 0; i < noverlays; i++)
 	{
-	  Lisp_Object oend;
 	  ptrdiff_t oendpos;
 
 	  prop = Foverlay_get (overlay_vec[i], propname);
@@ -6625,11 +6635,10 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 	  if (!NILP (prop))
 	    merge_face_ref (w, f, prop, attrs, true, NULL, attr_filter);
 
-	  oend = OVERLAY_END (overlay_vec[i]);
-	  oendpos = OVERLAY_POSITION (oend);
-	  if (oendpos < endpos)
-	    endpos = oendpos;
-	}
+          oendpos = OVERLAY_END (overlay_vec[i]);
+          if (oendpos < endpos)
+            endpos = oendpos;
+        }
     }
 
   *endptr = endpos;

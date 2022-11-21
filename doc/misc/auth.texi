@@ -526,6 +526,8 @@ If several entries match, the one matching the most items (where an
 while searching for an entry matching the @code{rms} user on host
 @code{gnu.org} and port @code{22}, then the entry
 @file{gnu.org:22/rms.gpg} is preferred over @file{gnu.org.gpg}.
+However, such processing is not applied when the option
+@code{auth-source-pass-extra-parameters} is set to @code{t}.
 
 Users of @code{pass} may also be interested in functionality provided
 by other Emacs packages:
@@ -547,6 +549,22 @@ Defaults to @file{~/.password-store}.
 @defvar auth-source-pass-port-separator
 Set this variable to a string that should separate an host name from a
 port in an entry.  Defaults to @samp{:}.
+@end defvar
+
+@defvar auth-source-pass-extra-query-keywords
+This expands the selection of available keywords to include
+@code{:max} and @code{:require} and tells more of them to accept a
+list of query parameters as an argument.  When searching, it also
+favors the @samp{rms@@gnu.org.gpg} form for usernames over the
+@samp{gnu.org/rms.gpg} form, regardless of whether a @code{:user}
+param was provided.
+
+In general, if you prefer idiosyncrasies traditionally exhibited by
+this backend, such as prioritizing field count in a filename, try
+setting this option to @code{nil}.  But, if you experience problems
+predicting the outcome of searches relative to other auth-source
+backends or encounter code expecting to query multiple backends
+uniformly, try flipping it back to @code{t} (the default).
 @end defvar
 
 @node Help for developers

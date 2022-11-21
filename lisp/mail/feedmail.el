@@ -131,17 +131,13 @@
 ;; feedmail-send-it.  Hers's the best way to use the stuff in this
 ;; file:
 ;;
-;; Save this file as feedmail.el somewhere on your elisp loadpath;
-;; byte-compile it.  Put the following lines in your init file:
+;; Put the following lines in your init file:
 ;;
 ;;     (setq send-mail-function 'feedmail-send-it)
-;;     (autoload 'feedmail-send-it "feedmail")
 ;;
 ;; If you plan to use the queue stuff, also use this:
 ;;
 ;;     (setq feedmail-enable-queue t)
-;;     (autoload 'feedmail-run-the-queue "feedmail")
-;;     (autoload 'feedmail-run-the-queue-no-prompts "feedmail")
 ;;     (setq auto-mode-alist (cons '("\\.fqm$" . mail-mode) auto-mode-alist))
 ;;
 ;; though VM users might find it more comfortable to use this instead of
@@ -173,11 +169,6 @@
 ;; If you are using the desktop.el library to restore your sessions, you might
 ;; like to add the suffix ".fqm" to the list of non-saved things via the variable
 ;; desktop-files-not-to-save.
-;;
-;; If you are planning to call feedmail-queue-reminder from your .emacs or
-;; something similar, you might need this:
-;;
-;;     (autoload 'feedmail-queue-reminder "feedmail")
 ;;
 ;; If you ever use rmail-resend and queue messages, you should do this:
 ;;
@@ -2775,7 +2766,7 @@ return that value."
   (cond
    ;; nil means do nothing
    ((eq nil feedmail-date-generator) nil)
-   ;; t is the same a using the function feedmail-default-date-generator, so let it and recurse
+   ;; t is the same as using the function feedmail-default-date-generator, so let it and recurse
    ((eq t feedmail-date-generator)
     (let ((feedmail-date-generator (feedmail-default-date-generator maybe-file)))
       (feedmail-fiddle-date maybe-file)))
@@ -2831,7 +2822,7 @@ probably not appropriate for you."
   (cond
    ;; nil means do nothing
    ((eq nil feedmail-message-id-generator) nil)
-   ;; t is the same a using the function feedmail-default-message-id-generator, so let it and recurse
+   ;; t is the same as using the function feedmail-default-message-id-generator, so let it and recurse
    ((eq t feedmail-message-id-generator)
     (let ((feedmail-message-id-generator (feedmail-default-message-id-generator maybe-file)))
       (feedmail-fiddle-message-id maybe-file)))
@@ -2873,7 +2864,7 @@ probably not appropriate for you."
   (cond
    ;; nil means do nothing
    ((eq nil feedmail-x-mailer-line) nil)
-   ;; t is the same a using the function feedmail-default-x-mailer-generator, so let it and recurse
+   ;; t is the same as using the function feedmail-default-x-mailer-generator, so let it and recurse
    ((eq t feedmail-x-mailer-line)
     (let ((feedmail-x-mailer-line (feedmail-default-x-mailer-generator)))
       (feedmail-fiddle-x-mailer)))

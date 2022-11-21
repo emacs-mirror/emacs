@@ -139,7 +139,7 @@ is not sufficient to know if point is at a paragraph ending.  See
 (defvar org-element--object-regexp nil
   "Regexp possibly matching the beginning of an object.
 This regexp allows false positives.  Dedicated parser (e.g.,
-`org-export-bold-parser') will take care of further filtering.
+`org-element-bold-parser') will take care of further filtering.
 Radio links are not matched by this regexp, as they are treated
 specially in `org-element--object-lex'.")
 

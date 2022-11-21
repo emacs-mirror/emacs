@@ -839,7 +839,7 @@ was established."
     )
   ;; It's not clear to me whether all of these would be problematic, but they
   ;; seemed like reasonable targets.  Some are certainly excessive in smaller
-  ;; buffers of minified code, but we should be aiming to maximise performance
+  ;; buffers of minified code, but we should be aiming to maximize performance
   ;; by default, so that Emacs is as responsive as we can manage in even very
   ;; large buffers of minified code.
   "List of buffer-local minor modes to explicitly disable.
@@ -880,7 +880,7 @@ If `so-long-revert' is subsequently invoked, then the variables are restored
 to their original states.
 
 The combination of `line-move-visual' (enabled) and `truncate-lines' (disabled)
-is important for maximising responsiveness when moving vertically within an
+is important for maximizing responsiveness when moving vertically within an
 extremely long line, as otherwise the full length of the line may need to be
 scanned to find the next position.
 

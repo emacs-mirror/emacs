@@ -562,6 +562,7 @@ DUMB-SERVER-VAR are bound accordingly in BODY."
           ;;
           (erc-server-flood-penalty 0.05)
           erc-autojoin-channels-alist
+          erc-after-connect
           erc-server-auto-reconnect)
      (should-not erc-d--slow-mo)
      (with-current-buffer "*erc-d-server*" (erc-d-t-search-for 4 "Starting"))

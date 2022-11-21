@@ -1106,7 +1106,7 @@ final or penultimate step during initialization."))
 
 (ert-deftest test-keymap-parse-macros ()
   (should (equal (key-parse "C-x ( C-d C-x )") [24 40 4 24 41]))
-  (should (equal (kbd "C-x ( C-d C-x )") ""))
+  (should (equal (kbd "C-x ( C-d C-x )") "\^D"))
   (should (equal (kbd "C-x ( C-x )") "")))
 
 (defvar subr-test--global)
@@ -1139,7 +1139,10 @@ final or penultimate step during initialization."))
   (should-not (plistp '(1 . 2)))
   (should (plistp '(1 2 3 4)))
   (should-not (plistp '(1 2 3)))
-  (should-not (plistp '(1 2 3 . 4))))
+  (should-not (plistp '(1 2 3 . 4)))
+  (let ((cycle (list 1 2 3)))
+    (nconc cycle cycle)
+    (should-not (plistp cycle))))
 
 (defun subr-tests--butlast-ref (list &optional n)
   "Reference implementation of `butlast'."

@@ -561,7 +561,7 @@ static struct Lisp_Module_Function *
 allocate_module_function (void)
 {
   return ALLOCATE_PSEUDOVECTOR (struct Lisp_Module_Function,
-                                interactive_form, PVEC_MODULE_FUNCTION);
+                                command_modes, PVEC_MODULE_FUNCTION);
 }
 
 #define XSET_MODULE_FUNCTION(var, ptr) \

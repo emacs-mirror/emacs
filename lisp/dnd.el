@@ -325,7 +325,7 @@ in that list instead."
 
 (defun dnd-begin-text-drag (text &optional frame action allow-same-frame)
   "Begin dragging TEXT from FRAME.
-Initate a drag-and-drop operation allowing the user to drag text
+Initiate a drag-and-drop operation allowing the user to drag text
 from Emacs to another program (the drop target), then block until
 the drop is completed or is canceled.
 
@@ -381,7 +381,7 @@ currently being held down.  It should only be called upon a
 
 (defun dnd-begin-file-drag (file &optional frame action allow-same-frame)
   "Begin dragging FILE from FRAME.
-Initate a drag-and-drop operation allowing the user to drag a file
+Initiate a drag-and-drop operation allowing the user to drag a file
 from Emacs to another program (the drop target), then block until
 the drop happens or is canceled.
 

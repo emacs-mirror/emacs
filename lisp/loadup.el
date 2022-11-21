@@ -366,6 +366,11 @@
 (load "emacs-lisp/shorthands")
 
 (load "emacs-lisp/eldoc")
+(load "emacs-lisp/cconv")
+(when (and (compiled-function-p (symbol-function 'cconv-fv))
+           (compiled-function-p (symbol-function 'macroexpand-all)))
+  (setq internal-make-interpreted-closure-function
+        #'cconv-make-interpreted-closure))
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
 (if (not (eq system-type 'ms-dos))
     (load "tooltip"))
@@ -501,7 +506,10 @@ lost after dumping")))
                                          bin-dest-dir)
                      ;; Relative filename from the built uninstalled binary.
                      (file-relative-name file invocation-directory)))))
-	       comp-loaded-comp-units-h))))
+	       comp-loaded-comp-units-h)))
+  ;; Set up the mechanism to allow inhibiting native-comp via
+  ;; file-local variables.
+  (defvar comp--no-native-compile (make-hash-table :test #'equal)))
 
 (when (hash-table-p purify-flag)
   (let ((strings 0)

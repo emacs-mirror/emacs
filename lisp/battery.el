@@ -938,16 +938,14 @@ The following %-sequences are provided:
 %t Remaining time (to charge or discharge) in the form `h:min'"
   (let* ((os-name (car (split-string
                         ;; FIXME: Can't we use something like `system-type'?
-                        (battery--call-process-to-string
-                         (executable-find "uname")))))
+                        (battery--call-process-to-string "uname"))))
          (apm-flag (pcase os-name
                      ("OpenBSD" "mP")
                      ("FreeBSD" "st")
                      (_         "ms")))
          (apm-args (concat "-abl" apm-flag))
          (apm-output (split-string
-                      (battery--call-process-to-string
-                       (executable-find "apm") apm-args)))
+                      (battery--call-process-to-string "apm" apm-args)))
          (indices (pcase os-name
                     ;; FreeBSD's manpage documents that multiple
                     ;; outputs are ordered by "the order in which

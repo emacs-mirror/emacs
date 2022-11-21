@@ -71,7 +71,8 @@
                (:conc-name hierarchy--))
   (roots (list)) ; list of the hierarchy roots (no parent)
   (parents (make-hash-table :test 'equal)) ; map an item to its parent
-  (children (make-hash-table :test 'equal)) ; map an item to its childre
+  (children (make-hash-table :test 'equal)) ; map an item to its children
+  (delaying-parents (make-hash-table :test 'equal)) ; map an item to its childrenfn
   ;; cache containing the set of all items in the hierarchy
   (seen-items (make-hash-table :test 'equal)))  ; map an item to t
 
@@ -133,7 +134,8 @@ keys are :key and :test."
   "Create a hierarchy and return it."
   (hierarchy--make))
 
-(defun hierarchy-add-tree (hierarchy item parentfn &optional childrenfn acceptfn)
+(defun hierarchy-add-tree (hierarchy item parentfn
+                                     &optional childrenfn acceptfn delay-children-p)
   "In HIERARCHY, add ITEM.
 
 PARENTFN is either nil or a function defining the child-to-parent
@@ -151,33 +153,45 @@ CHILDRENFN are expected to be coherent with each other.
 
 ACCEPTFN is a function returning non-nil if its parameter (any object)
 should be an item of the hierarchy.  By default, ACCEPTFN returns non-nil
-if its parameter is non-nil."
+if its parameter is non-nil.
+
+DELAY-CHILDREN-P is a predicate determining whether the children that would
+normally be processed by CHILDRENFN should, instead, have their processing be
+delayed and stored to be processed by CHILDRENFN when the child is selected
+during use of the hierarchy."
   (unless (hierarchy-has-item hierarchy item)
     (let ((acceptfn (or acceptfn #'identity)))
       (hierarchy--seen-items-add hierarchy item)
       (let ((parent (and parentfn (funcall parentfn item))))
         (when (funcall acceptfn parent)
           (hierarchy--add-relation hierarchy item parent acceptfn)
-          (hierarchy-add-tree hierarchy parent parentfn childrenfn)))
-      (let ((children (and childrenfn (funcall childrenfn item))))
-        (mapc (lambda (child)
-                (when (funcall acceptfn child)
-                  (hierarchy--add-relation hierarchy child item acceptfn)
-                  (hierarchy-add-tree hierarchy child parentfn childrenfn)))
-              children)))))
+          (hierarchy-add-tree hierarchy parent
+                              parentfn (if delay-children-p nil childrenfn))))
+      (if (and childrenfn delay-children-p)
+          (map-put! (hierarchy--delaying-parents hierarchy) item childrenfn)
+        (let ((children (and childrenfn (funcall childrenfn item))))
+          (map-put! (hierarchy--delaying-parents hierarchy) item nil)
+          (mapc (lambda (child)
+                  (when (funcall acceptfn child)
+                    (hierarchy--add-relation hierarchy child item acceptfn)
+                    (hierarchy-add-tree hierarchy child parentfn childrenfn)))
+                children))))))
 
-(defun hierarchy-add-trees (hierarchy items parentfn &optional childrenfn acceptfn)
+(defun hierarchy-add-trees (hierarchy items parentfn
+                                      &optional childrenfn acceptfn delay-children-p)
   "Call `hierarchy-add-tree' on HIERARCHY and each element of ITEMS.
 
-PARENTFN, CHILDRENFN and ACCEPTFN have the same meaning as in `hierarchy-add'."
+PARENTFN, CHILDRENFN, ACCEPTFN, and DELAY-CHILDREN-P have the same meaning as in
+`hierarchy-add'."
   (seq-map (lambda (item)
-             (hierarchy-add-tree hierarchy item parentfn childrenfn acceptfn))
+             (hierarchy-add-tree hierarchy item parentfn
+                                 childrenfn acceptfn delay-children-p))
            items))
 
 (defun hierarchy-add-list (hierarchy list &optional wrap childrenfn)
   "Add to HIERARCHY the sub-lists in LIST.
 
-If WRAP is non-nil, allow duplicate items in LIST by wraping each
+If WRAP is non-nil, allow duplicate items in LIST by wrapping each
 item in a cons (id . item).  The root's id is 1.
 
 CHILDRENFN is a function (defaults to `cdr') taking LIST as a
@@ -541,6 +555,30 @@ nil.  The buffer is returned."
     buffer))
 
 (declare-function widget-convert "wid-edit")
+(defun hierarchy--create-delayed-tree-widget (elem labelfn indent childrenfn)
+  "Return a list of tree-widgets for the children generated.
+
+ELEM is the element of the hierarchy passed from
+`hierarchy-convert-to-tree-widget'; it and the CHILDRENFN are used to generate
+the children of the element dynamically.
+
+LABELFN is the same function passed to `hierarchy-convert-to-tree-widget'.
+
+INDENT is the same function passed to `hierarchy-convert-to-tree-widget'.
+
+CHILDRENFN is the function used to discover the children of ELEM."
+  (lambda (_widget)
+    (mapcar
+     (lambda (item)
+       (widget-convert
+        'tree-widget
+        :tag (hierarchy-labelfn-to-string labelfn item indent)
+        :expander (hierarchy--create-delayed-tree-widget
+                   item
+                   labelfn
+                   (1+ indent)
+                   childrenfn)))
+     (funcall childrenfn elem))))
 (defun hierarchy-convert-to-tree-widget (hierarchy labelfn)
   "Return a tree-widget for HIERARCHY.
 
@@ -550,10 +588,21 @@ node label."
   (require 'wid-edit)
   (require 'tree-widget)
   (hierarchy-map-tree (lambda (item indent children)
-                        (widget-convert
-                         'tree-widget
-                         :tag (hierarchy-labelfn-to-string labelfn item indent)
-                         :args children))
+                        (let ((childrenfn (map-elt
+                                           (hierarchy--delaying-parents hierarchy)
+                                           item)))
+                          (apply
+                           #'widget-convert
+                           (list 'tree-widget
+                                 :tag (hierarchy-labelfn-to-string labelfn item indent)
+                                 (if childrenfn :expander :args)
+                                 (if childrenfn
+                                     (hierarchy--create-delayed-tree-widget
+                                      item
+                                      labelfn
+                                      (1+ indent)
+                                      childrenfn)
+                                   children)))))
                       hierarchy))
 
 (defun hierarchy-tree-display (hierarchy labelfn &optional buffer)
