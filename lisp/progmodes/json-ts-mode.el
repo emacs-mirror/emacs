@@ -115,7 +115,7 @@ the subtrees."
   "Return Imenu alist for the current buffer."
   (let* ((node (treesit-buffer-root-node))
          (tree (treesit-induce-sparse-tree
-                node "pair")))
+                node "pair" nil 1000)))
     (json-ts-mode--imenu-1 tree)))
 
 ;;;###autoload

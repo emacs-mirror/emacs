@@ -5492,7 +5492,8 @@ Similar to `python-imenu-create-index' but use tree-sitter."
                 (rx (seq bol
                          (or "function" "class")
                          "_definition"
-                         eol)))))
+                         eol))
+                nil 1000)))
     (python--imenu-treesit-create-index-1 tree)))
 
 (defun python-imenu-treesit-create-flat-index ()

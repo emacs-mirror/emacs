@@ -448,11 +448,11 @@ the subtrees."
   "Return Imenu alist for the current buffer."
   (let* ((node (treesit-buffer-root-node))
          (func-tree (treesit-induce-sparse-tree
-                     node "^function_definition$"))
+                     node "^function_definition$" nil 1000))
          (var-tree (treesit-induce-sparse-tree
-                    node "^declaration$"))
+                    node "^declaration$" nil 1000))
          (struct-tree (treesit-induce-sparse-tree
-                       node "^struct_specifier$"))
+                       node "^struct_specifier$" nil 1000))
          (func-index (c-ts-mode--imenu-1 func-tree))
          (var-index (c-ts-mode--imenu-1 var-tree))
          (struct-index (c-ts-mode--imenu-1 struct-tree)))

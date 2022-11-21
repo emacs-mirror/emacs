@@ -1406,7 +1406,8 @@ the subtrees."
   "Return Imenu alist for the current buffer."
   (let* ((node (treesit-buffer-root-node))
          (tree (treesit-induce-sparse-tree
-                node (rx (or "rule_set" "media_statement")))))
+                node (rx (or "rule_set" "media_statement"))
+                nil 1000)))
     (css--treesit-imenu-1 tree)))
 
 ;;; Completion

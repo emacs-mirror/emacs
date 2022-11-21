@@ -246,23 +246,23 @@ the subtrees."
          (class-tree
           `("Class" . ,(java-ts-mode--imenu-1
                         (treesit-induce-sparse-tree
-                         node "^class_declaration$"))))
+                         node "^class_declaration$" nil 1000))))
          (interface-tree
           `("Interface" . ,(java-ts-mode--imenu-1
                             (treesit-induce-sparse-tree
-                             node "^interface_declaration$"))))
+                             node "^interface_declaration$"  nil 1000))))
          (enum-tree
           `("Enum" . ,(java-ts-mode--imenu-1
                        (treesit-induce-sparse-tree
-                        node "^enum_declaration$"))))
+                        node "^enum_declaration$"  nil 1000))))
          (record-tree
           `("Record" . ,(java-ts-mode--imenu-1
                          (treesit-induce-sparse-tree
-                          node "^record_declaration$"))))
+                          node "^record_declaration$"  nil 1000))))
          (method-tree
           `("Method" . ,(java-ts-mode--imenu-1
                          (treesit-induce-sparse-tree
-                          node "^method_declaration$")))))
+                          node "^method_declaration$"  nil 1000)))))
     (cl-remove-if
      #'null
      `(,(when (cdr class-tree) class-tree)

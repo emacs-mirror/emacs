@@ -3688,11 +3688,12 @@ definition*\"."
   (let* ((node (treesit-buffer-root-node))
          (class-tree (treesit-induce-sparse-tree
                       node (rx (or "class_declaration"
-                                   "method_definition"))))
+                                   "method_definition"))
+                      nil 1000))
          (func-tree (treesit-induce-sparse-tree
-                     node "function_declaration"))
+                     node "function_declaration" nil 1000))
          (var-tree (treesit-induce-sparse-tree
-                    node "lexical_declaration")))
+                    node "lexical_declaration" nil 1000)))
     `(("Class" . ,(js--treesit-imenu-1 class-tree))
       ("Varieable" . ,(js--treesit-imenu-1 var-tree))
       ("Function" . ,(js--treesit-imenu-1 func-tree)))))
