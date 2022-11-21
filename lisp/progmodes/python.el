@@ -1020,12 +1020,18 @@ f-strings.  OVERRIDE is the override flag described in
 fontified."
   (let* ((string-beg (treesit-node-start node))
          (string-end (treesit-node-end node))
+         (maybe-expression (treesit-node-parent node))
          (maybe-defun (treesit-node-parent
                        (treesit-node-parent
-                        (treesit-node-parent node))))
-         (face (if (member (treesit-node-type maybe-defun)
-                           '("function_definition"
-                             "class_definition"))
+                        maybe-expression)))
+         (face (if (and (member (treesit-node-type maybe-defun)
+                                '("function_definition"
+                                  "class_definition"))
+                        ;; This check filters out this case:
+                        ;; def function():
+                        ;;     return "some string"
+                        (equal (treesit-node-type maybe-expression)
+                               "expression_statement"))
                    'font-lock-doc-face
                  'font-lock-string-face)))
     (when (eq (char-after string-beg) ?f)
