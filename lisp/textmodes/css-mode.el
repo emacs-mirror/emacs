@@ -44,6 +44,13 @@
                    (require 'rx))
 (require 'treesit)
 
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+
+
 (defgroup css nil
   "Cascading Style Sheets (CSS) editing mode."
   :group 'languages)

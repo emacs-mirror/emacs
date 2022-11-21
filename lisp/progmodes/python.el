@@ -272,6 +272,15 @@
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
 
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+
+
 (autoload 'comint-mode "comint")
 (autoload 'help-function-arglist "help-fns")
 

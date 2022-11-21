@@ -63,6 +63,16 @@
 (defvar ido-cur-list)
 (defvar electric-layout-rules)
 (declare-function ido-mode "ido" (&optional arg))
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-next-sibling "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 
 ;;; Constants
 
