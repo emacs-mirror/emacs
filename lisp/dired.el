@@ -1541,7 +1541,7 @@ BEG..END is the line where the file info is located."
 	    (when (< alt-col other-col)
 	      (setq other-col alt-col)
 	      (setq other (point)))))
-	;; Keep positions uptodate when we insert stuff.
+	;; Keep positions up-to-date when we insert stuff.
 	(if (> other file) (setq other (copy-marker other)))
 	(setq file (copy-marker file))
 	;; Main loop.

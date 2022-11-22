@@ -1203,11 +1203,11 @@ Move point backward to the character @var{ch} on the line.  Signal error if
 @var{ch} could not be found (@code{vip-find-char-backward}).
 @item t @var{ch}
 @kindex 164 t @r{(}@code{vip-goto-char-forward}@r{)}
-Move point forward upto the character @var{ch} on the line.  Signal error if
+Move point forward up to the character @var{ch} on the line.  Signal error if
 @var{ch} could not be found (@code{vip-goto-char-forward}).
 @item T @var{ch}
 @kindex 124 T @r{(}@code{vip-goto-char-backward}@r{)}
-Move point backward upto the character @var{ch} on the line.  Signal error if
+Move point backward up to the character @var{ch} on the line.  Signal error if
 @var{ch} could not be found (@code{vip-goto-char-backward}).
 @item ;
 @kindex 073 ; @r{(}@code{vip-repeat-find}@r{)}

@@ -280,7 +280,7 @@ able to find it.
 
 Sometimes, multiple servers are acceptable alternatives for handling a
 given major-mode.  In those cases, you may combine the helper function
-@code{eglot-alternatives} with the funcional form of
+@code{eglot-alternatives} with the functional form of
 @code{eglot-server-programs}.
 
 @lisp
@@ -994,8 +994,8 @@ this variable should be a property list of the following format:
 Here @code{:@var{server}} identifies a particular language server and
 @var{plist} is the corresponding keyword-value property list of one or
 more parameter settings for that server, serialized by Eglot as a JSON
-object.  @var{plist} may be arbitrarity complex, generally containing
-other keywork-value property sublists corresponding to JSON subobjects.
+object.  @var{plist} may be arbitrarily complex, generally containing
+other keyword-value property sublists corresponding to JSON subobjects.
 The JSON values @code{true}, @code{false}, @code{null} and @code{@{@}}
 are represented by the Lisp values @code{t}, @code{:json-false},
 @code{nil}, and @code{eglot-@{@}}, respectively.

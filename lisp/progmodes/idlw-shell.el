@@ -448,7 +448,7 @@ a face highlighting may be better."
 We use a single character by default, since the main block of IDL procedures
 often has no indentation.  Where possible, IDLWAVE will use overlays to
 display the stop-lines.  The arrow is only used on character-based terminals.
-See also `idlwave-shell-use-overlay-arrow'."
+See also `idlwave-shell-mark-stop-line'."
   :group 'idlwave-shell-highlighting-and-faces
   :type 'string)
 

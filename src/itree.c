@@ -111,7 +111,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    In order to avoid this, we introduce yet another node attribute,
    called OFFSET.
 
-   The OFFSET of some some subtree, represented by its root, is the
+   The OFFSET of some subtree, represented by its root, is the
    amount of shift that needs to be applied to its BEGIN, END and
    LIMIT values, in order to get to the actual buffer positions.
    Coming back to the example, all we would need to do in this case,
@@ -131,43 +131,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  * | Stack
  * +=======================================================================+ */
 
-typedef uintptr_t nodeptr_and_flag;
-
-static inline nodeptr_and_flag
-make_nav (struct itree_node *ptr, bool flag)
-{
-  uintptr_t v = (uintptr_t) ptr;
-  /* We assume alignment imposes the LSB is clear for us to use it.  */
-  eassert (!(v & 1));
-  return v | !!flag;
-}
-
-static inline struct itree_node *
-nav_nodeptr (nodeptr_and_flag nav)
-{
-  return (struct itree_node *) (nav & (~(uintptr_t)1));
-}
-
-static inline bool
-nav_flag (nodeptr_and_flag nav)
-{
-  return (bool) (nav & 1);
-}
-
 /* Simple dynamic array. */
-struct interval_stack
+struct itree_stack
 {
-  nodeptr_and_flag *nodes;
+  struct itree_node **nodes;
   size_t size;
   size_t length;
 };
 
 /* This is just a simple dynamic array with stack semantics. */
 
-static struct interval_stack*
-interval_stack_create (intmax_t initial_size)
+static struct itree_stack*
+itree_stack_create (intmax_t initial_size)
 {
-  struct interval_stack *stack = xmalloc (sizeof (struct interval_stack));
+  struct itree_stack *stack = xmalloc (sizeof (struct itree_stack));
   stack->size = max (0, initial_size);
   stack->nodes = xmalloc (stack->size * sizeof (struct itree_node*));
   stack->length = 0;
@@ -175,7 +152,7 @@ interval_stack_create (intmax_t initial_size)
 }
 
 static void
-interval_stack_destroy (struct interval_stack *stack)
+itree_stack_destroy (struct itree_stack *stack)
 {
   if (! stack)
     return;
@@ -184,14 +161,8 @@ interval_stack_destroy (struct interval_stack *stack)
   xfree (stack);
 }
 
-static void
-interval_stack_clear (struct interval_stack *stack)
-{
-  stack->length = 0;
-}
-
 static inline void
-interval_stack_ensure_space (struct interval_stack *stack, uintmax_t nelements)
+itree_stack_ensure_space (struct itree_stack *stack, uintmax_t nelements)
 {
   if (nelements > stack->size)
     {
@@ -204,103 +175,31 @@ interval_stack_ensure_space (struct interval_stack *stack, uintmax_t nelements)
 /* Push NODE on the STACK, while settings its visited flag to FLAG. */
 
 static inline void
-interval_stack_push_flagged (struct interval_stack *stack,
-			     struct itree_node *node, bool flag)
+itree_stack_push (struct itree_stack *stack, struct itree_node *node)
 {
   eassert (node);
+  itree_stack_ensure_space (stack, stack->length + 1);
 
-  /* FIXME: While the stack used in the iterator is bounded by the tree
-     depth and could be easily pre-allocated to a large enough size to avoid
-     this "ensure" check, `interval_stack_push` is also used elsewhere to
-     simply collect some subset of the overlays, where it's only bounded by
-     the total number of overlays in the buffer (which can be large and thus
-     preferably not pre-allocated needlessly).  */
-  interval_stack_ensure_space (stack, stack->length + 1);
-
-  stack->nodes[stack->length] = make_nav (node, flag);
+  stack->nodes[stack->length] = node;
   stack->length++;
 }
 
-static inline void
-interval_stack_push (struct interval_stack *stack, struct itree_node *node)
-{
-  interval_stack_push_flagged (stack, node, false);
-}
-
-static inline nodeptr_and_flag
-interval_stack_pop (struct interval_stack *stack)
+static inline struct itree_node *
+itree_stack_pop (struct itree_stack *stack)
 {
   if (stack->length == 0)
-    return make_nav (NULL, false);
+    return NULL;
   return stack->nodes[--stack->length];
 }
 
 
 /* +-----------------------------------------------------------------------+ */
 
-/* State used when iterating interval. */
-struct itree_iterator
-{
-  struct interval_stack *stack;
-  ptrdiff_t begin;
-  ptrdiff_t end;
-
-  /* A copy of the tree's `otick`.  */
-  uintmax_t otick;
-  enum itree_order order;
-  bool running;
-  const char *file;
-  int line;
-};
-
-/* Ideally, every iteration would use its own `iter` object, so we could
-   have several iterations active at the same time.  In practice, iterations
-   are limited by the fact we don't allow modifying the tree at the same
-   time, making the use of nested iterations quite rare anyway.
-   So we just use a single global iterator instead for now.  */
-static struct itree_iterator *iter = NULL;
-
 static int
-interval_tree_max_height (const struct itree_tree *tree)
+itree_max_height (const struct itree_tree *tree)
 {
   return 2 * log (tree->size + 1) / log (2) + 0.5;
 }
-
-/* Allocate a new iterator for TREE. */
-
-static struct itree_iterator *
-itree_iterator_create (struct itree_tree *tree)
-{
-  struct itree_iterator *g = xmalloc (sizeof *g);
-  /* 19 here just avoids starting with a silly-small stack.
-     FIXME: Since this stack only needs to be about 2*max_depth
-     in the worst case, we could completely pre-allocate it to something
-     like word-bit-size * 2 and then never worry about growing it.  */
-  const int size = (tree ? interval_tree_max_height (tree) : 19) + 1;
-
-  g->stack = interval_stack_create (size);
-  g->running = false;
-  g->begin = 0;
-  g->end = 0;
-  g->file = NULL;
-  g->line = 0;
-  return g;
-}
-
-void
-init_itree (void)
-{
-  eassert (!iter);
-  iter = itree_iterator_create (NULL);
-}
-
-#ifdef HAVE_UNEXEC
-void
-forget_itree (void)
-{
-  iter = NULL;
-}
-#endif
 
 struct check_subtree_result
 {
@@ -334,7 +233,7 @@ check_subtree (struct itree_node *node,
      and <= to its parent's otick.
 
      Note: we cannot assert that (NODE.otick == NODE.parent.otick)
-     implies (NODE.offset == 0) because interval_tree_inherit_offset()
+     implies (NODE.offset == 0) because itree_inherit_offset()
      doesn't always update otick.  It could, but it is not clear there
      is a need.  */
   eassert (node->otick <= tree_otick);
@@ -438,7 +337,7 @@ itree_newlimit (struct itree_node *node)
 /* Update NODE's limit attribute according to its children. */
 
 static void
-interval_tree_update_limit (struct itree_node *node)
+itree_update_limit (struct itree_node *node)
 {
   if (node == NULL)
     return;
@@ -453,7 +352,7 @@ interval_tree_update_limit (struct itree_node *node)
 */
 
 static void
-interval_tree_inherit_offset (uintmax_t otick, struct itree_node *node)
+itree_inherit_offset (uintmax_t otick, struct itree_node *node)
 {
   eassert (node->parent == NULL || node->parent->otick >= node->otick);
   if (node->otick == otick)
@@ -490,7 +389,7 @@ interval_tree_inherit_offset (uintmax_t otick, struct itree_node *node)
    stable, i.e. new_limit = old_limit.  */
 
 static void
-interval_tree_propagate_limit (struct itree_node *node)
+itree_propagate_limit (struct itree_node *node)
 {
   ptrdiff_t newlimit;
 
@@ -511,15 +410,15 @@ interval_tree_propagate_limit (struct itree_node *node)
 }
 
 static struct itree_node*
-interval_tree_validate (struct itree_tree *tree, struct itree_node *node)
+itree_validate (struct itree_tree *tree, struct itree_node *node)
 {
 
   if (tree->otick == node->otick || node == NULL)
     return node;
   if (node != tree->root)
-    interval_tree_validate (tree, node->parent);
+    itree_validate (tree, node->parent);
 
-  interval_tree_inherit_offset (tree->otick, node);
+  itree_inherit_offset (tree->otick, node);
   return node;
 }
 
@@ -550,7 +449,7 @@ ptrdiff_t
 itree_node_begin (struct itree_tree *tree,
 		  struct itree_node *node)
 {
-  interval_tree_validate (tree, node);
+  itree_validate (tree, node);
   return node->begin;
 }
 
@@ -560,7 +459,7 @@ ptrdiff_t
 itree_node_end (struct itree_tree *tree,
 		struct itree_node *node)
 {
-  interval_tree_validate (tree, node);
+  itree_validate (tree, node);
   return node->end;
 }
 
@@ -588,7 +487,7 @@ itree_clear (struct itree_tree *tree)
 /* Initialize a pre-allocated tree (presumably on the stack).  */
 
 static void
-interval_tree_init (struct itree_tree *tree)
+itree_init (struct itree_tree *tree)
 {
   itree_clear (tree);
 }
@@ -613,15 +512,15 @@ itree_size (struct itree_tree *tree)
 /* Perform the familiar left-rotation on node NODE.  */
 
 static void
-interval_tree_rotate_left (struct itree_tree *tree,
+itree_rotate_left (struct itree_tree *tree,
 			   struct itree_node *node)
 {
   eassert (node->right != NULL);
 
   struct itree_node *right = node->right;
 
-  interval_tree_inherit_offset (tree->otick, node);
-  interval_tree_inherit_offset (tree->otick, right);
+  itree_inherit_offset (tree->otick, node);
+  itree_inherit_offset (tree->otick, right);
 
   /* Turn right's left subtree into node's right subtree.  */
   node->right = right->left;
@@ -649,22 +548,22 @@ interval_tree_rotate_left (struct itree_tree *tree,
     node->parent = right;
 
   /* Order matters here.  */
-  interval_tree_update_limit (node);
-  interval_tree_update_limit (right);
+  itree_update_limit (node);
+  itree_update_limit (right);
 }
 
 /* Perform the familiar right-rotation on node NODE.  */
 
 static void
-interval_tree_rotate_right (struct itree_tree *tree,
+itree_rotate_right (struct itree_tree *tree,
 			    struct itree_node *node)
 {
   eassert (tree && node && node->left != NULL);
 
   struct itree_node *left = node->left;
 
-  interval_tree_inherit_offset (tree->otick, node);
-  interval_tree_inherit_offset (tree->otick, left);
+  itree_inherit_offset (tree->otick, node);
+  itree_inherit_offset (tree->otick, left);
 
   node->left = left->right;
   if (left->right != NULL)
@@ -686,8 +585,8 @@ interval_tree_rotate_right (struct itree_tree *tree,
   if (node != NULL)
     node->parent = left;
 
-  interval_tree_update_limit (left);
-  interval_tree_update_limit (node);
+  itree_update_limit (left);
+  itree_update_limit (node);
 }
 
 /* Repair the tree after an insertion.
@@ -695,7 +594,7 @@ interval_tree_rotate_right (struct itree_tree *tree,
    Rebalance the parents as needed to re-establish the RB invariants.  */
 
 static void
-interval_tree_insert_fix (struct itree_tree *tree,
+itree_insert_fix (struct itree_tree *tree,
 			  struct itree_node *node)
 {
   eassert (tree->root->red == false);
@@ -729,12 +628,12 @@ interval_tree_insert_fix (struct itree_tree *tree,
 	      if (node == node->parent->right) /* case 2.a */
 		{
 		  node = node->parent;
-		  interval_tree_rotate_left (tree, node);
+		  itree_rotate_left (tree, node);
 		}
 	      /* case 3.a */
 	      node->parent->red = false;
 	      node->parent->parent->red = true;
-	      interval_tree_rotate_right (tree, node->parent->parent);
+	      itree_rotate_right (tree, node->parent->parent);
 	    }
 	}
       else
@@ -754,12 +653,12 @@ interval_tree_insert_fix (struct itree_tree *tree,
 	      if (node == node->parent->left) /* case 2.b */
 		{
 		  node = node->parent;
-		  interval_tree_rotate_right (tree, node);
+		  itree_rotate_right (tree, node);
 		}
 	      /* case 3.b */
 	      node->parent->red = false;
 	      node->parent->parent->red = true;
-	      interval_tree_rotate_left (tree, node->parent->parent);
+	      itree_rotate_left (tree, node->parent->parent);
 	    }
 	}
     }
@@ -774,13 +673,11 @@ interval_tree_insert_fix (struct itree_tree *tree,
    Note, that inserting a node twice results in undefined behavior.  */
 
 static void
-interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
+itree_insert_node (struct itree_tree *tree, struct itree_node *node)
 {
   eassert (node && node->begin <= node->end);
-  /* FIXME: The assertion below fails because `delete_all_overlays`
-     doesn't set left/right/parent to NULL.  */
-  /* eassert (node->left == NULL && node->right == NULL
-	     && node->parent == NULL) */;
+  eassert (node->left == NULL && node->right == NULL
+	   && node->parent == NULL);
   eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 
   struct itree_node *parent = NULL;
@@ -794,7 +691,7 @@ interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
      ancestors limit values.  */
   while (child != NULL)
     {
-      interval_tree_inherit_offset (otick, child);
+      itree_inherit_offset (otick, child);
       parent = child;
       eassert (child->offset == 0);
       child->limit = max (child->limit, node->end);
@@ -827,7 +724,7 @@ interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
     {
       node->red = true;
       eassert (check_tree (tree, false)); /* FIXME: Too expensive.  */
-      interval_tree_insert_fix (tree, node);
+      itree_insert_fix (tree, node);
     }
 }
 
@@ -838,7 +735,7 @@ itree_insert (struct itree_tree *tree, struct itree_node *node,
   node->begin = begin;
   node->end = end;
   node->otick = tree->otick;
-  interval_tree_insert (tree, node);
+  itree_insert_node (tree, node);
 }
 
 /* Safely modify a node's interval. */
@@ -848,35 +745,32 @@ itree_node_set_region (struct itree_tree *tree,
 		       struct itree_node *node,
 		       ptrdiff_t begin, ptrdiff_t end)
 {
-  interval_tree_validate (tree, node);
+  itree_validate (tree, node);
   if (begin != node->begin)
     {
       itree_remove (tree, node);
       node->begin = min (begin, PTRDIFF_MAX - 1);
       node->end = max (node->begin, end);
-      interval_tree_insert (tree, node);
+      itree_insert_node (tree, node);
     }
   else if (end != node->end)
     {
       node->end = max (node->begin, end);
       eassert (node != NULL);
-      interval_tree_propagate_limit (node);
+      itree_propagate_limit (node);
     }
 }
 
 /* Return true, if NODE is a member of TREE. */
 
 static bool
-interval_tree_contains (struct itree_tree *tree, struct itree_node *node)
+itree_contains (struct itree_tree *tree, struct itree_node *node)
 {
-  eassert (iter && node);
+  eassert (node);
   struct itree_node *other;
   ITREE_FOREACH (other, tree, node->begin, PTRDIFF_MAX, ASCENDING)
     if (other == node)
-      {
-	ITREE_FOREACH_ABORT ();
-	return true;
-      }
+      return true;
 
   return false;
 }
@@ -891,11 +785,11 @@ itree_limit_is_stable (struct itree_node *node)
 }
 
 static struct itree_node*
-interval_tree_subtree_min (uintmax_t otick, struct itree_node *node)
+itree_subtree_min (uintmax_t otick, struct itree_node *node)
 {
   if (node == NULL)
     return node;
-  while ((interval_tree_inherit_offset (otick, node),
+  while ((itree_inherit_offset (otick, node),
 	  node->left != NULL))
     node = node->left;
   return node;
@@ -906,7 +800,7 @@ interval_tree_subtree_min (uintmax_t otick, struct itree_node *node)
    so re-balance the parents to re-establish the RB invariants.  */
 
 static void
-interval_tree_remove_fix (struct itree_tree *tree,
+itree_remove_fix (struct itree_tree *tree,
 			  struct itree_node *node,
 			  struct itree_node *parent)
 {
@@ -927,7 +821,7 @@ interval_tree_remove_fix (struct itree_tree *tree,
 	    {
 	      other->red = false;
 	      parent->red = true;
-	      interval_tree_rotate_left (tree, parent);
+	      itree_rotate_left (tree, parent);
 	      other = parent->right;
 	    }
 	  eassume (other != NULL);
@@ -946,13 +840,13 @@ interval_tree_remove_fix (struct itree_tree *tree,
 		{
 		  other->left->red = false;
 		  other->red = true;
-		  interval_tree_rotate_right (tree, other);
+		  itree_rotate_right (tree, other);
 		  other = parent->right;
 		}
 	      other->red = parent->red; /* 4.a */
 	      parent->red = false;
 	      other->right->red = false;
-	      interval_tree_rotate_left (tree, parent);
+	      itree_rotate_left (tree, parent);
 	      node = tree->root;
 	      parent = NULL;
 	    }
@@ -965,7 +859,7 @@ interval_tree_remove_fix (struct itree_tree *tree,
 	    {
 	      other->red = false;
 	      parent->red = true;
-	      interval_tree_rotate_right (tree, parent);
+	      itree_rotate_right (tree, parent);
 	      other = parent->left;
 	    }
 	  eassume (other != NULL);
@@ -984,14 +878,14 @@ interval_tree_remove_fix (struct itree_tree *tree,
 		{
 		  other->right->red = false;
 		  other->red = true;
-		  interval_tree_rotate_left (tree, other);
+		  itree_rotate_left (tree, other);
 		  other = parent->left;
 		}
 
 	      other->red = parent->red; /* 4.b */
 	      parent->red = false;
 	      other->left->red = false;
-	      interval_tree_rotate_right (tree, parent);
+	      itree_rotate_right (tree, parent);
 	      node = tree->root;
 	      parent = NULL;
 	    }
@@ -1024,7 +918,7 @@ itree_total_offset (struct itree_node *node)
    unchanged.  Caller is responsible for recalculation of `limit`.
    Requires both nodes to be using the same effective `offset`.  */
 static void
-interval_tree_replace_child (struct itree_tree *tree,
+itree_replace_child (struct itree_tree *tree,
 			     struct itree_node *source,
 			     struct itree_node *dest)
 {
@@ -1050,11 +944,11 @@ interval_tree_replace_child (struct itree_tree *tree,
    recalculation of `limit`.  Requires both nodes to be using the same
    effective `offset`. */
 static void
-interval_tree_transplant (struct itree_tree *tree,
+itree_transplant (struct itree_tree *tree,
 			  struct itree_node *source,
 			  struct itree_node *dest)
 {
-  interval_tree_replace_child (tree, source, dest);
+  itree_replace_child (tree, source, dest);
   source->left = dest->left;
   if (source->left != NULL)
     source->left->parent = source;
@@ -1069,17 +963,17 @@ interval_tree_transplant (struct itree_tree *tree,
 struct itree_node*
 itree_remove (struct itree_tree *tree, struct itree_node *node)
 {
-  eassert (interval_tree_contains (tree, node));
+  eassert (itree_contains (tree, node));
   eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 
   /* Find `splice`, the leaf node to splice out of the tree.  When
      `node` has at most one child this is `node` itself.  Otherwise,
      it is the in order successor of `node`.  */
-  interval_tree_inherit_offset (tree->otick, node);
+  itree_inherit_offset (tree->otick, node);
   struct itree_node *splice
     = (node->left == NULL || node->right == NULL)
 	? node
-	: interval_tree_subtree_min (tree->otick, node->right);
+	: itree_subtree_min (tree->otick, node->right);
 
   /* Find `subtree`, the only child of `splice` (may be NULL).  Note:
      `subtree` will not be modified other than changing its parent to
@@ -1100,7 +994,7 @@ itree_remove (struct itree_tree *tree, struct itree_node *node)
      `splice` is black, this creates a red-red violation, so remember
      this now as the field can be overwritten when splice is
      transplanted below.  */
-  interval_tree_replace_child (tree, subtree, splice);
+  itree_replace_child (tree, subtree, splice);
   bool removed_black = !splice->red;
 
   /* Replace `node` with `splice` in the tree and propagate limit
@@ -1109,18 +1003,18 @@ itree_remove (struct itree_tree *tree, struct itree_node *node)
      has a new child.  */
   if (splice != node)
     {
-      interval_tree_transplant (tree, splice, node);
-      interval_tree_propagate_limit (subtree_parent);
+      itree_transplant (tree, splice, node);
+      itree_propagate_limit (subtree_parent);
       if (splice != subtree_parent)
-	interval_tree_update_limit (splice);
+	itree_update_limit (splice);
     }
-  interval_tree_propagate_limit (splice->parent);
+  itree_propagate_limit (splice->parent);
 
   --tree->size;
 
   /* Fix any black height violation caused by removing a black node.  */
   if (removed_black)
-    interval_tree_remove_fix (tree, subtree, subtree_parent);
+    itree_remove_fix (tree, subtree, subtree_parent);
 
   eassert ((tree->size == 0) == (tree->root == NULL));
   eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
@@ -1136,52 +1030,6 @@ itree_remove (struct itree_tree *tree, struct itree_node *node)
   eassert (node->offset == 0);
 
   return node;
-}
-
-bool
-itree_iterator_busy_p (void)
-{
-  return (iter && iter->running);
-}
-
-/* Start a iterator enumerating all intervals in [BEGIN,END) in the
-   given ORDER.  Only one iterator per tree can be running at any time.  */
-
-struct itree_iterator *
-itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
-		      ptrdiff_t end, enum itree_order order,
-		      const char *file, int line)
-{
-  eassert (iter);
-  if (iter->running)
-    {
-      fprintf (stderr,
-	       "Detected nested iteration!\nOuter: %s:%d\nInner: %s:%d\n",
-	       iter->file, iter->line, file, line);
-      emacs_abort ();
-    }
-  iter->begin = begin;
-  iter->end = end;
-  iter->otick = tree->otick;
-  iter->order = order;
-  interval_stack_clear (iter->stack);
-  if (begin <= end && tree->root != NULL)
-    interval_stack_push_flagged (iter->stack, tree->root, false);
-  iter->file = file;
-  iter->line = line;
-  iter->running = true;
-  /* interval_stack_ensure_space (iter->stack,
-				  2 * interval_tree_max_height (tree)); */
-  return iter;
-}
-
-/* Stop using the iterator. */
-
-void
-itree_iterator_finish (struct itree_iterator *iter)
-{
-  eassert (iter && iter->running);
-  iter->running = false;
 }
 
 
@@ -1210,10 +1058,11 @@ itree_insert_gap (struct itree_tree *tree,
      order, so we need to remove them first.  This doesn't apply for
      `before_markers` since in that case, all positions move identically
      regardless of `front_advance` or `rear_advance`.  */
-  struct interval_stack *saved = interval_stack_create (0);
+  struct itree_stack *saved = itree_stack_create (0);
   struct itree_node *node = NULL;
   if (!before_markers)
     {
+      /* Actually any order would do.  */
       ITREE_FOREACH (node, tree, pos, pos + 1, PRE_ORDER)
 	{
 	  if (node->begin == pos && node->front_advance
@@ -1221,25 +1070,23 @@ itree_insert_gap (struct itree_tree *tree,
 	         the overlay is empty, make sure we don't move
 	         begin past end by pretending it's !front_advance.  */
 	      && (node->begin != node->end || node->rear_advance))
-	    interval_stack_push (saved, node);
+	    itree_stack_push (saved, node);
 	}
     }
   for (size_t i = 0; i < saved->length; ++i)
-    itree_remove (tree, nav_nodeptr (saved->nodes[i]));
+    itree_remove (tree, saved->nodes[i]);
 
   /* We can't use an iterator here, because we can't effectively
      narrow AND shift some subtree at the same time.  */
   if (tree->root != NULL)
     {
-      const int size = interval_tree_max_height (tree) + 1;
-      struct interval_stack *stack = interval_stack_create (size);
-      interval_stack_push (stack, tree->root);
-      nodeptr_and_flag nav;
-      while ((nav = interval_stack_pop (stack),
-	      node = nav_nodeptr (nav)))
+      const int size = itree_max_height (tree) + 1;
+      struct itree_stack *stack = itree_stack_create (size);
+      itree_stack_push (stack, tree->root);
+      while ((node = itree_stack_pop (stack)))
 	{
 	  /* Process in pre-order. */
-	  interval_tree_inherit_offset (tree->otick, node);
+	  itree_inherit_offset (tree->otick, node);
 	  if (pos > node->limit)
 	    continue;
 	  if (node->right != NULL)
@@ -1251,10 +1098,10 @@ itree_insert_gap (struct itree_tree *tree,
 		  ++tree->otick;
 		}
 	      else
-		interval_stack_push (stack, node->right);
+		itree_stack_push (stack, node->right);
 	    }
 	  if (node->left != NULL)
-	    interval_stack_push (stack, node->left);
+	    itree_stack_push (stack, node->left);
 
 	  if (before_markers
 	      ? node->begin >= pos
@@ -1265,17 +1112,15 @@ itree_insert_gap (struct itree_tree *tree,
 	    {
 	      node->end += length;
 	      eassert (node != NULL);
-	      interval_tree_propagate_limit (node);
+	      itree_propagate_limit (node);
 	    }
 	}
-      interval_stack_destroy (stack);
+      itree_stack_destroy (stack);
     }
 
   /* Reinsert nodes starting at POS having front-advance.  */
   uintmax_t notick = tree->otick;
-  nodeptr_and_flag nav;
-  while ((nav = interval_stack_pop (saved),
-	  node = nav_nodeptr (nav)))
+  while ((node = itree_stack_pop (saved)))
     {
       eassert (node->otick == ootick);
       eassert (node->begin == pos);
@@ -1283,10 +1128,10 @@ itree_insert_gap (struct itree_tree *tree,
       node->begin += length;
       node->end += length;
       node->otick = notick;
-      interval_tree_insert (tree, node);
+      itree_insert_node (tree, node);
     }
 
-  interval_stack_destroy (saved);
+  itree_stack_destroy (saved);
 }
 
 /* Delete a gap at POS of length LENGTH, contracting all intervals
@@ -1303,16 +1148,14 @@ itree_delete_gap (struct itree_tree *tree,
 
   /* Can't use the iterator here, because by decrementing begin, we
      might unintentionally bring shifted nodes back into our search space.  */
-  const int size = interval_tree_max_height (tree) + 1;
-  struct interval_stack *stack = interval_stack_create (size);
+  const int size = itree_max_height (tree) + 1;
+  struct itree_stack *stack = itree_stack_create (size);
   struct itree_node *node;
 
-  interval_stack_push (stack, tree->root);
-  nodeptr_and_flag nav;
-  while ((nav = interval_stack_pop (stack)))
+  itree_stack_push (stack, tree->root);
+  while ((node = itree_stack_pop (stack)))
     {
-      node = nav_nodeptr (nav);
-      interval_tree_inherit_offset (tree->otick, node);
+      itree_inherit_offset (tree->otick, node);
       if (pos > node->limit)
 	continue;
       if (node->right != NULL)
@@ -1324,10 +1167,10 @@ itree_delete_gap (struct itree_tree *tree,
 	      ++tree->otick;
 	    }
 	  else
-	    interval_stack_push (stack, node->right);
+	    itree_stack_push (stack, node->right);
 	}
       if (node->left != NULL)
-	interval_stack_push (stack, node->left);
+	itree_stack_push (stack, node->left);
 
       if (pos < node->begin)
 	node->begin = max (pos, node->begin - length);
@@ -1335,10 +1178,10 @@ itree_delete_gap (struct itree_tree *tree,
 	{
 	  node->end = max (pos , node->end - length);
 	  eassert (node != NULL);
-	  interval_tree_propagate_limit (node);
+	  itree_propagate_limit (node);
 	}
     }
-  interval_stack_destroy (stack);
+  itree_stack_destroy (stack);
 }
 
 
@@ -1356,81 +1199,217 @@ itree_delete_gap (struct itree_tree *tree,
    a NODE2 strictly bigger than NODE1 should also be included).  */
 
 static inline bool
-interval_node_intersects (const struct itree_node *node,
-			  ptrdiff_t begin, ptrdiff_t end)
+itree_node_intersects (const struct itree_node *node,
+		       ptrdiff_t begin, ptrdiff_t end)
 {
   return (begin < node->end && node->begin < end)
     || (node->begin == node->end && begin == node->begin);
 }
 
-/* Return the next node of the iterator in the order given when it was
-   started; or NULL if there are no more nodes. */
+/* Return the "next" node in the current traversal order.
+
+   Note that this should return all the nodes that we need to traverse
+   in order to traverse the nodes selected by the current narrowing (i.e.
+   `ITER->begin..ITER->end`) so it will also return some nodes which aren't in
+   that narrowing simply because they may have children which are.
+
+   The code itself is very unsatifactory because the code of each one
+   of the supported traversals seems completely different from the others.
+   If someone knows how to make it more uniform and "obviously correct",
+   please make yourself heard.  */
+
+static struct itree_node *
+itree_iter_next_in_subtree (struct itree_node *node,
+                            struct itree_iterator *iter)
+{
+  /* FIXME: Like in the previous version of the iterator, we
+     prune based on `limit` only when moving to a left child,
+     but `limit` can also get smaller when moving to a right child
+     It's actually fairly common, so maybe it would be worthwhile
+     to prune a bit more aggressively here.  */
+  struct itree_node *next;
+  switch (iter->order)
+    {
+    case ITREE_ASCENDING:
+      next = node->right;
+      if (!next)
+        {
+          while ((next = node->parent)
+                 && next->right == node)
+            node = next;
+          if (!next)
+            return NULL;   /* No more nodes to visit. */
+          node = next;
+        }
+      else
+        {
+          node = next;
+          itree_inherit_offset (iter->otick, node);
+          while ((next = node->left)
+                 && (itree_inherit_offset (iter->otick, next),
+                     iter->begin <= next->limit))
+            node = next;
+        }
+      if (node->begin > iter->end)
+        return NULL;  /* No more nodes within begin..end.  */
+      return node;
+
+    case ITREE_DESCENDING:
+      next = node->left;
+      if (!next
+          || (itree_inherit_offset (iter->otick, next),
+              next->limit < iter->begin))
+        {
+          while ((next = node->parent)
+                 && next->left == node)
+            node = next;
+          if (!next)
+            return NULL;   /* No more nodes to visit. */
+          node = next;
+        }
+      else
+        {
+          node = next;
+          while (node->begin <= iter->end
+                 && (next = node->right))
+            {
+              itree_inherit_offset (iter->otick, next),
+              node = next;
+            }
+        }
+      return node;
+
+    case ITREE_PRE_ORDER:
+      next = node->left;
+      if (next
+          && (itree_inherit_offset (iter->otick, next),
+              !(next->limit < iter->begin)))
+        return next;
+      next = node->right;
+      if (node->begin <= iter->end && next)
+        {
+          itree_inherit_offset (iter->otick, next);
+          return next;
+        }
+      while ((next = node->parent))
+        {
+          if (next->right == node)
+            node = next;
+          else
+            {
+              eassert (next->left == node);
+              node = next;
+              next = node->right;
+              if (node->begin <= iter->end && next)
+                {
+                  itree_inherit_offset (iter->otick, next);
+                  return next;
+                }
+            }
+          }
+      return NULL;
+
+    case ITREE_POST_ORDER:
+      next = node->parent;
+      if (!next || next->right == node)
+        return next;
+      eassert (next->left == node);
+      node = next;
+      next = node->right;
+      if (!(node->begin <= iter->end && next))
+        return node;
+      node = next;
+      itree_inherit_offset (iter->otick, node);
+      while (((next = node->left)
+              && (itree_inherit_offset (iter->otick, next),
+                  iter->begin <= next->limit))
+             || (node->begin <= iter->end
+                 && (next = node->right)
+                 && (itree_inherit_offset (iter->otick, next), true)))
+        node = next;
+      return node;
+
+    default:
+    emacs_abort ();
+    }
+}
+
+static struct itree_node *
+itree_iterator_first_node (struct itree_tree *tree,
+                           struct itree_iterator *iter)
+{
+  struct itree_node *node = tree->root;
+  if (node)
+    {
+      struct itree_node dummy;
+      dummy.left = NULL;
+      dummy.parent = NULL;
+      dummy.right = NULL;
+      itree_inherit_offset (iter->otick, node);
+      switch (iter->order)
+        {
+        case ITREE_ASCENDING:
+          dummy.right = node;
+          dummy.begin = PTRDIFF_MIN;
+          node = itree_iter_next_in_subtree (&dummy, iter);
+          break;
+
+        case ITREE_DESCENDING:
+          dummy.left = node;
+          node = itree_iter_next_in_subtree (&dummy, iter);
+          break;
+
+        case ITREE_PRE_ORDER:
+          break;
+
+        case ITREE_POST_ORDER:
+          dummy.parent = &dummy;
+          dummy.left = &dummy;
+          dummy.right = node;
+          dummy.begin = PTRDIFF_MIN;
+          node = itree_iter_next_in_subtree (&dummy, iter);
+          break;
+        default:
+          emacs_abort ();
+        }
+    }
+  return node;
+}
+
+/* Start a iterator enumerating all intervals in [BEGIN,END) in the
+   given ORDER.  */
+
+struct itree_iterator *
+itree_iterator_start (struct itree_iterator *iter,
+		      struct itree_tree *tree,
+		      ptrdiff_t begin, ptrdiff_t end, enum itree_order order)
+{
+  eassert (iter);
+  iter->begin = begin;
+  iter->end = end;
+  iter->otick = tree->otick;
+  iter->order = order;
+  /* Beware: the `node` field always holds "the next" node to consider.
+     so it's always "one node ahead" of what the iterator loop sees.
+     In most respects this makes no difference, but we depend on this
+     detail in `delete_all_overlays` where this allows us to modify
+     the current node knowing that the iterator will not need it to
+     find the next.  */
+  iter->node = itree_iterator_first_node (tree, iter);
+  return iter;
+}
 
 struct itree_node *
-itree_iterator_next (struct itree_iterator *g)
+itree_iterator_next (struct itree_iterator *iter)
 {
-  eassert (g && g->running);
-
-  struct itree_node *const null = NULL;
-  struct itree_node *node;
-
-  /* The `visited` flag stored in each node is used here (and only here):
-     We keep a "workstack" of nodes we need to consider.  This stack
-     consist of nodes of two types: nodes that we have decided
-     should be returned by the iterator, and nodes which we may
-     need to consider (including checking their children).
-     We start an iteration with a stack containing just the root
-     node marked as "not visited" which means that it (and its children)
-     needs to be considered but we haven't yet decided whether it's included
-     in the iterator's output.  */
-
-  do
+  struct itree_node *node = iter->node;
+  while (node
+         && !itree_node_intersects (node, iter->begin, iter->end))
     {
-      nodeptr_and_flag nav;
-      bool visited;
-      while ((nav = interval_stack_pop (g->stack),
-	      node = nav_nodeptr (nav),
-	      visited = nav_flag (nav),
-	      node && !visited))
-	{
-	  struct itree_node *const left = node->left;
-	  struct itree_node *const right = node->right;
-
-	  interval_tree_inherit_offset (g->otick, node);
-	  eassert (itree_limit_is_stable (node));
-	  switch (g->order)
-	    {
-	    case ITREE_ASCENDING:
-	      if (right != null && node->begin <= g->end)
-		interval_stack_push_flagged (g->stack, right, false);
-	      if (interval_node_intersects (node, g->begin, g->end))
-		interval_stack_push_flagged (g->stack, node, true);
-	      /* Node's children may still be off-set and we need to add it.  */
-	      if (left != null && g->begin <= left->limit + left->offset)
-		interval_stack_push_flagged (g->stack, left, false);
-	      break;
-	    case ITREE_DESCENDING:
-	      if (left != null && g->begin <= left->limit + left->offset)
-		interval_stack_push_flagged (g->stack, left, false);
-	      if (interval_node_intersects (node, g->begin, g->end))
-		interval_stack_push_flagged (g->stack, node, true);
-	      if (right != null && node->begin <= g->end)
-		interval_stack_push_flagged (g->stack, right, false);
-	      break;
-	    case ITREE_PRE_ORDER:
-	      if (right != null && node->begin <= g->end)
-		interval_stack_push_flagged (g->stack, right, false);
-	      if (left != null && g->begin <= left->limit + left->offset)
-		interval_stack_push_flagged (g->stack, left, false);
-	      if (interval_node_intersects (node, g->begin, g->end))
-		interval_stack_push_flagged (g->stack, node, true);
-	      break;
-	    }
-	}
-      /* Node may have been invalidated by itree_iterator_narrow
-	 after it was pushed: Check if it still intersects. */
-    } while (node && ! interval_node_intersects (node, g->begin, g->end));
-
+      node = itree_iter_next_in_subtree (node, iter);
+      eassert (itree_limit_is_stable (node));
+    }
+  iter->node = node ? itree_iter_next_in_subtree (node, iter) : NULL;
   return node;
 }
 
@@ -1441,7 +1420,7 @@ void
 itree_iterator_narrow (struct itree_iterator *g,
 		       ptrdiff_t begin, ptrdiff_t end)
 {
-  eassert (g && g->running);
+  eassert (g);
   eassert (begin >= g->begin);
   eassert (end <= g->end);
   g->begin = max (begin, g->begin);

@@ -73,7 +73,7 @@ the ones that are not reproducible on the current release.
          know if you are able to?  If I don't hear back in a few
          weeks, I'll just close this bug as unreproducible."
      [ ] Check that the priority is reasonable.  Most bugs should be
-         marked as normal, but crashers and security issues can be
+         marked as normal, but crashes and security issues can be
          marked as serious.
   3. Your changes will take some time to take effect.  After a period of minutes
      to hours, you will get a mail telling you the control message has been

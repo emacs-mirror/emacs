@@ -440,6 +440,12 @@ The user options 'url-gateway-rlogin-host',
 are also obsolete.
 
 ---
+** The user function 'url-irc-function' now takes a 'scheme' argument.
+The user option 'url-irc-function' is now called with a sixth argument
+corresponding to the scheme portion of the target URL.  For example,
+this would be "ircs" for a URL like "ircs://irc.libera.chat".
+
+---
 ** The linum.el library is now obsolete.
 We recommend using either the built-in 'display-line-numbers-mode', or
 the 'nlinum' package from GNU ELPA instead.  The former has better
@@ -742,6 +748,14 @@ If the current buffer is visiting a file that is executable, the
 ** New user option 'process-error-pause-time'.
 This determines how long to pause Emacs after a process
 filter/sentinel error has been handled.
+
++++
+** New faces for font-lock.
+These faces are primarily meant for use with tree-sitter.  They are:
+'font-lock-bracket-face', 'font-lock-delimiter-face',
+'font-lock-escape-face', 'font-lock-number-face',
+'font-lock-misc-punctuation-face', 'font-lock-operator-face',
+'font-lock-property-face', and 'font-lock-punctuation-face'.
 
 +++
 ** New face 'variable-pitch-text'.
@@ -1395,6 +1409,14 @@ If non-nil and there's only one matching option, auto-select that.
 If non-nil, this user option describes what entries not to add to the
 database stored on disk.
 
+** Auth-Source
+
++++
+*** New user option 'auth-source-pass-extra-query-keywords'.
+Whether to recognize additional keyword params, like ':max' and
+':require', as well as accept lists of query terms paired with
+applicable keywords.
+
 ** Dired
 
 +++
@@ -1450,8 +1472,8 @@ This command visits the file on the current line with EWW.
 ** Elisp
 
 ---
-*** New command 'elisp-eval-buffer' (bound to 'C-c C-e').
-This command evals the forms in the current buffer.
+*** New command 'elisp-eval-region-or-buffer' (bound to 'C-c C-e').
+This command evals the forms in the active region or in the whole buffer.
 
 ---
 *** New commands 'elisp-byte-compile-file' and 'elisp-byte-compile-buffer'.
@@ -2043,13 +2065,6 @@ A new back-end for mailabbrev allows information from that database to
 be queried by EUDC, too.  The attributes email, name, and firstname
 are supported only.
 
-+++
-*** New default for 'eudc-server-hotlist' includes built-in backends
-The 'eudc-server-hotlist' user option now defaults to including
-entries for the new built-in ecomplete and mailabbrev EUDC backends.
-As a result, 'C-u M-x eudc-expand-try-all' will query both of these
-backends for email address completions, by default.
-
 ** EWW/SHR
 
 +++
@@ -2142,13 +2157,20 @@ The older form still works but is undocumented.
 
 ---
 *** Rmail partial summaries can now be applied one on top of the other.
-You can now narrow the filtering of messages by the summary's criteria
-(recipients, topic, senders, etc.) by making a summary of the already
-summarized messages.  For example, invoking 'rmail-summary-by-senders',
-followed by 'rmail-summary-by-topic' will produce a summary where both
-the senders and the topic are according to your selection.  The new
-user option 'rmail-summary-apply-filters-consecutively' controls
-whether the stacking of the filters is in effect.
+You can now narrow the set of messages selected by Rmail summary's
+criteria (recipients, topic, senders, etc.) by making a summary of the
+already summarized messages.  For example, invoking
+'rmail-summary-by-senders', followed by 'rmail-summary-by-topic' will
+produce a summary where both the senders and the topic are according
+to your selection.  The new user option
+'rmail-summary-progressively-narrow' controls whether the stacking of
+the filters is in effect; customize it to a non-nil value to enable
+this feature.
+
+---
+*** New Rmail summary: by thread.
+The new command 'rmail-summary-by-thread' produces a summary of
+messages that belong to a single thread of discussion.
 
 ** EIEIO
 
@@ -2211,6 +2233,10 @@ it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 +++
 *** 'project-find-file' and 'project-or-external-find-file' now accept
 a prefix argument which is interpreted to mean "include all files".
+
++++
+*** New command 'project-list-buffers' bound to 'C-x p C-b'.
+This command displays a list of buffers from the current project.
 
 +++
 *** 'project-kill-buffers' can display the list of buffers to kill.
@@ -2631,6 +2657,17 @@ related functions will use by default.  For example, you could
 customize this to "https" to always prefer HTTPS URLs.
 
 ---
+*** New user option 'browse-url-irc-function'.
+This option specifies a function for opening irc:// links.  It
+defaults to the new function 'browse-url-irc'.
+
+---
+*** New function 'browse-url-irc'.
+This multipurpose autoloaded function can be used for opening irc://
+and ircs:// URLS by any caller that passes a URL string as an initial
+arg.
+
+---
 *** Support for the Netscape web browser has been removed.
 This support has been obsolete since Emacs 25.1.  The final version of
 the Netscape web browser was released in February, 2008.
@@ -2857,6 +2894,9 @@ remote host are shown.  Alternatively, the user option
 The old name is still available as an obsolete function alias.
 
 ---
+*** The url-irc library now understands ircs:// links.
+
+---
 *** New command 'world-clock-copy-time-as-kill' for 'M-x world-clock'.
 It copies the current line into the kill ring.
 
@@ -2918,6 +2958,37 @@ Emacs buffers, like indentation and the like.  The new ert function
 ** New mode 'js-json-mode'.
 This is a lightweight variant of 'js-mode' that is used by default
 when visiting JSON files.
+
+
+** New mode 'ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the TypeScript language.  It includes support for font-locking,
+indentation, and navigation.
+
+** New mode 'c-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the C language.  It includes support for font-locking,
+indentation, Imenu, which-func, and navigation.
+
+** New mode 'c++-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the C++ language.  It includes support for font-locking,
+indentation, Imenu, which-func, and navigation.
+
+** New mode 'java-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the Java language.  It includes support for font-locking,
+indentation, Imenu, which-func, and navigation.
+
+** New mode 'css-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the CSS language.  It includes support for font-locking,
+indentation, Imenu, which-func, and navigation.
+
+** New mode 'json-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the JSON language.  It includes support for font-locking,
+indentation, Imenu, which-func, and navigation.
 
 
 * Incompatible Lisp Changes in Emacs 29.1
@@ -4042,6 +4113,12 @@ This function allows defining a number of keystrokes with one form.
 +++
 ** New macro 'defvar-keymap'.
 This macro allows defining keymap variables more conveniently.
+
+** 'defvar-keymap' can specify 'repeat-mode' behavior for the keymap.
+Use ':repeat t' to have all bindings be repeatable or for more
+advanced usage:
+
+    ':repeat (:enter (commands ...) :exit (commands ...))'
 
 ---
 ** 'kbd' can now be used in built-in, preloaded libraries.

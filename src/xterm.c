@@ -1134,6 +1134,7 @@ static void x_clean_failable_requests (struct x_display_info *);
 static struct frame *x_tooltip_window_to_frame (struct x_display_info *,
 						Window, bool *);
 static Window x_get_window_below (Display *, Window, int, int, int *, int *);
+static void x_set_input_focus (struct x_display_info *, Window, Time);
 
 #ifndef USE_TOOLKIT_SCROLL_BARS
 static void x_scroll_bar_redraw (struct scroll_bar *);
@@ -5322,6 +5323,46 @@ struct xi_known_valuator
   struct xi_known_valuator *next;
 };
 
+/* Populate the scroll valuator at INDEX in DEVICE with the scroll
+   valuator information provided in INFO.
+
+   The information consists of:
+
+     - whether or not the valuator is horizontal.
+
+     - whether or not the valuator's value is currently unknown,
+       until the next XI_Motion event is received or the valuator's
+       value is restored by the caller upon encountering valuator
+       class data.
+
+     - what the current value of the valuator is.  This is set to
+       DBL_MIN for debugging purposes, but can be any value, as
+       invalid_p is currently true.
+
+     - the increment, which defines the amount of movement equal to a
+       single unit of scrolling.  For example, if the increment is
+       2.0, then a WHEEL_DOWN or WHEEL_UP event will be sent every
+       time the valuator value changes by 2.0, unless
+       mwheel-coalesce-scroll-events is nil.
+
+     - the number used in XI_Motion events and elsewhere to identify
+       the valuator.  */
+
+static void
+xi_populate_scroll_valuator (struct xi_device_t *device,
+			     int index, XIScrollClassInfo *info)
+{
+  struct xi_scroll_valuator_t *valuator;
+
+  valuator = &device->valuators[index];
+  valuator->horizontal
+    = (info->scroll_type == XIScrollTypeHorizontal);
+  valuator->invalid_p = true;
+  valuator->emacs_value = DBL_MIN;
+  valuator->increment = info->increment;
+  valuator->number = info->number;
+}
+
 #endif
 
 static void
@@ -5330,7 +5371,6 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
 			      XIDeviceInfo *device)
 {
 #ifdef HAVE_XINPUT2_1
-  struct xi_scroll_valuator_t *valuator;
   struct xi_known_valuator *values, *tem;
   int actual_valuator_count, c;
   XIScrollClassInfo *info;
@@ -5431,15 +5471,8 @@ xi_populate_device_from_info (struct x_display_info *dpyinfo,
 	case XIScrollClass:
 	  {
 	    info = (XIScrollClassInfo *) device->classes[c];
-
-	    valuator = &xi_device->valuators[actual_valuator_count++];
-	    valuator->horizontal
-	      = (info->scroll_type == XIScrollTypeHorizontal);
-	    valuator->invalid_p = true;
-	    valuator->emacs_value = DBL_MIN;
-	    valuator->increment = info->increment;
-	    valuator->number = info->number;
-
+	    xi_populate_scroll_valuator (xi_device, actual_valuator_count++,
+					 info);
 	    break;
 	  }
 
@@ -13163,13 +13196,9 @@ xi_handle_new_classes (struct x_display_info *dpyinfo, struct xi_device_t *devic
 	case XIScrollClass:
 	  scroll = (XIScrollClassInfo *) classes[i];
 
-	  valuator = &device->valuators[device->scroll_valuator_count++];
-	  valuator->horizontal = (scroll->scroll_type
-				  == XIScrollTypeHorizontal);
-	  valuator->invalid_p = true;
-	  valuator->emacs_value = 0;
-	  valuator->increment = scroll->increment;
-	  valuator->number = scroll->number;
+	  xi_populate_scroll_valuator (device,
+				       device->scroll_valuator_count++,
+				       scroll);
 	  break;
 
 #ifdef HAVE_XINPUT2_2
@@ -14234,6 +14263,136 @@ x_get_window_below (Display *dpy, Window window,
   return value;
 }
 
+/* Like XTmouse_position, but much faster.  */
+
+static void
+x_fast_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
+		       enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
+		       Time *timestamp)
+{
+  int root_x, root_y, win_x, win_y;
+  unsigned int mask;
+  Window dummy;
+  struct scroll_bar *bar;
+  struct x_display_info *dpyinfo;
+  Lisp_Object tail, frame;
+  struct frame *f1;
+
+  dpyinfo = FRAME_DISPLAY_INFO (*fp);
+
+  if (dpyinfo->last_mouse_scroll_bar && !insist)
+    {
+      bar = dpyinfo->last_mouse_scroll_bar;
+
+      if (bar->horizontal)
+	x_horizontal_scroll_bar_report_motion (fp, bar_window, part,
+					       x, y, timestamp);
+      else
+	x_scroll_bar_report_motion (fp, bar_window, part,
+				    x, y, timestamp);
+
+      return;
+    }
+
+  if (!EQ (Vx_use_fast_mouse_position, Qreally_fast))
+    {
+      /* This means that Emacs should select a frame and report the
+	 mouse position relative to it.  The approach used here avoids
+	 making multiple roundtrips to the X server querying for the
+	 window beneath the pointer, and was borrowed from
+	 haiku_mouse_position in haikuterm.c.  */
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  if (FRAME_X_P (XFRAME (frame))
+	      && (FRAME_DISPLAY_INFO (XFRAME (frame))
+		  == dpyinfo))
+	    XFRAME (frame)->mouse_moved = false;
+	}
+
+      if (gui_mouse_grabbed (dpyinfo)
+	  && !EQ (track_mouse, Qdropping)
+	  && !EQ (track_mouse, Qdrag_source))
+	/* Pick the last mouse frame if dropping.  */
+	f1 = dpyinfo->last_mouse_frame;
+      else
+	/* Otherwise, pick the last mouse motion frame.  */
+	f1 = dpyinfo->last_mouse_motion_frame;
+
+      if (!f1 && (FRAME_X_P (SELECTED_FRAME ())
+		  && (FRAME_DISPLAY_INFO (SELECTED_FRAME ())
+		      == dpyinfo)))
+	f1 = SELECTED_FRAME ();
+
+      if (!f1 || (!FRAME_X_P (f1) && (insist > 0)))
+	FOR_EACH_FRAME (tail, frame)
+	  if (FRAME_X_P (XFRAME (frame))
+	      && (FRAME_DISPLAY_INFO (XFRAME (frame))
+		  == dpyinfo)
+	      && !FRAME_TOOLTIP_P (XFRAME (frame)))
+	    f1 = XFRAME (frame);
+
+      if (f1 && FRAME_TOOLTIP_P (f1))
+	f1 = NULL;
+
+      if (f1 && FRAME_X_P (f1) && FRAME_X_WINDOW (f1))
+	{
+	  if (!x_query_pointer (dpyinfo->display, FRAME_X_WINDOW (f1),
+				&dummy, &dummy, &root_x, &root_y,
+				&win_x, &win_y, &mask))
+	    /* The pointer is out of the screen.  */
+	    return;
+
+	  remember_mouse_glyph (f1, win_x, win_y,
+				&dpyinfo->last_mouse_glyph);
+	  dpyinfo->last_mouse_glyph_frame = f1;
+
+	  *bar_window = Qnil;
+	  *part = scroll_bar_nowhere;
+
+	  /* If track-mouse is `drag-source' and the mouse pointer is
+	     certain to not be actually under the chosen frame, return
+	     NULL in FP.  */
+	  if (EQ (track_mouse, Qdrag_source)
+	      && (win_x < 0 || win_y < 0
+		  || win_x >= FRAME_PIXEL_WIDTH (f1)
+		  || win_y >= FRAME_PIXEL_HEIGHT (f1)))
+	    *fp = NULL;
+	  else
+	    *fp = f1;
+
+	  *timestamp = dpyinfo->last_mouse_movement_time;
+	  XSETINT (*x, win_x);
+	  XSETINT (*y, win_y);
+	}
+    }
+  else
+    {
+      /* This means Emacs should only report the coordinates of the
+	 last mouse motion.  */
+
+      if (dpyinfo->last_mouse_motion_frame)
+	{
+	  *fp = dpyinfo->last_mouse_motion_frame;
+	  *timestamp = dpyinfo->last_mouse_movement_time;
+	  *x = make_fixnum (dpyinfo->last_mouse_motion_x);
+	  *y = make_fixnum (dpyinfo->last_mouse_motion_y);
+	  *bar_window = Qnil;
+	  *part = scroll_bar_nowhere;
+
+	  FOR_EACH_FRAME (tail, frame)
+	    {
+	      if (FRAME_X_P (XFRAME (frame))
+		  && (FRAME_DISPLAY_INFO (XFRAME (frame))
+		      == dpyinfo))
+		XFRAME (frame)->mouse_moved = false;
+	    }
+
+	  dpyinfo->last_mouse_motion_frame->mouse_moved = false;
+	}
+    }
+}
+
 /* Return the current position of the mouse.
    *FP should be a frame which indicates which display to ask about.
 
@@ -14260,8 +14419,26 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		  Time *timestamp)
 {
   struct frame *f1, *maybe_tooltip;
-  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
+  struct x_display_info *dpyinfo;
   bool unrelated_tooltip;
+
+  dpyinfo = FRAME_DISPLAY_INFO (*fp);
+
+  if (!NILP (Vx_use_fast_mouse_position))
+    {
+      /* The user says that Emacs is running over the network, and a
+	 fast approximation of `mouse-position' should be used.
+
+	 Depending on what the value of `x-use-fast-mouse-position'
+	 is, do one of two things: only perform the XQueryPointer to
+	 obtain the coordinates from the last mouse frame, or only
+	 return the last mouse motion frame and the
+	 last_mouse_motion_x and Y.  */
+
+      x_fast_mouse_position (fp, insist, bar_window, part, x,
+			     y, timestamp);
+      return;
+    }
 
   block_input ();
 
@@ -14384,7 +14561,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		    break;
 		  }
 #ifdef USE_GTK
-		/* We don't wan't to know the innermost window.  We
+		/* We don't want to know the innermost window.  We
 		   want the edit window.  For non-Gtk+ the innermost
 		   window is the edit window.  For Gtk+ it might not
 		   be.  It might be the tool bar for example.  */
@@ -14415,7 +14592,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	       never use them in that case.)  */
 
 #ifdef USE_GTK
-	    /* We don't wan't to know the innermost window.  We
+	    /* We don't want to know the innermost window.  We
 	       want the edit window.  */
 	    f1 = x_window_to_frame (dpyinfo, win);
 #else
@@ -27535,11 +27712,10 @@ x_ewmh_activate_frame (struct frame *f)
 	    {
 	      time = x_get_server_time (f);
 
-	      x_ignore_errors_for_next_request (dpyinfo);
-	      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			      RevertToParent, time);
+	      x_set_input_focus (FRAME_DISPLAY_INFO (f),
+				 FRAME_OUTER_WINDOW (f),
+				 time);
 	      XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
-	      x_stop_ignoring_errors (dpyinfo);
 
 	      return;
 	    }
@@ -27582,6 +27758,57 @@ x_get_toplevel_parent (struct frame *f)
     parent = FRAME_PARENT_FRAME (parent);
 
   return parent;
+}
+
+static void
+x_set_input_focus (struct x_display_info *dpyinfo, Window window,
+		   Time time)
+{
+#ifdef HAVE_XINPUT2
+  struct xi_device_t *device;
+#endif
+
+  /* Do the equivalent of XSetInputFocus with the specified window and
+     time, but use the attachment to the device that Emacs has
+     designated the client pointer on X Input Extension builds.
+     Asynchronously trap errors around the generated XI_SetFocus or
+     SetInputFocus request, in case the device has been destroyed or
+     the window obscured.
+
+     The revert_to will be set to RevertToParent for generated
+     SetInputFocus requests.  */
+
+#ifdef HAVE_XINPUT2
+  if (dpyinfo->supports_xi2
+      && dpyinfo->client_pointer_device != -1)
+    {
+      device = xi_device_from_id (dpyinfo, dpyinfo->client_pointer_device);
+
+      /* The device is a master pointer.  Use its attachment, which
+	 should be the master keyboard.  */
+
+      if (device)
+	{
+	  eassert (device->use == XIMasterPointer);
+
+	  x_ignore_errors_for_next_request (dpyinfo);
+	  XISetFocus (dpyinfo->display, device->attachment,
+		      /* Note that the input extension
+			 only supports RevertToParent-type
+			 behavior.  */
+		      window, time);
+	  x_stop_ignoring_errors (dpyinfo);
+
+	  return;
+	}
+    }
+#endif
+
+  /* Otherwise, use the pointer device that the X server says is the
+     client pointer.  */
+  x_ignore_errors_for_next_request (dpyinfo);
+  XSetInputFocus (dpyinfo->display, window, RevertToParent, time);
+  x_stop_ignoring_errors (dpyinfo);
 }
 
 /* In certain situations, when the window manager follows a
@@ -27632,8 +27859,6 @@ x_focus_frame (struct frame *f, bool noactivate)
 	  return;
 	}
 
-      /* Ignore any BadMatch error this request might result in.  */
-      x_ignore_errors_for_next_request (dpyinfo);
       if (NILP (Vx_no_window_manager))
 	{
 	  /* Use the last user time.  It is invalid to use CurrentTime
@@ -27651,15 +27876,19 @@ x_focus_frame (struct frame *f, bool noactivate)
 	      && !dpyinfo->x_focus_frame)
 	    time = x_get_server_time (f);
 
-	  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			  RevertToParent, time);
+	  /* Ignore any BadMatch error this request might result in.
+	     A BadMatch error can occur if the window was obscured
+	     after the time of the last user interaction without
+	     changing the last-focus-change-time.  */
+	  x_set_input_focus (FRAME_DISPLAY_INFO (f), FRAME_OUTER_WINDOW (f),
+			     time);
 	}
       else
-	XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			/* But when no window manager is in use, we
-			   don't care.  */
-			RevertToParent, CurrentTime);
-      x_stop_ignoring_errors (dpyinfo);
+	x_set_input_focus (FRAME_DISPLAY_INFO (f), FRAME_OUTER_WINDOW (f),
+			   /* But when no window manager is in use,
+			      respecting the ICCCM doesn't really
+			      matter.  */
+			   CurrentTime);
     }
 }
 
@@ -30019,7 +30248,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
 
     /* Do not destroy the font struct returned above with XFreeFont;
-       that also destroys the font, leading to to X protocol errors at
+       that also destroys the font, leading to X protocol errors at
        XtCloseDisplay.  Just free the font info structure.
        (Bug#18403) */
     XFreeFontInfo (NULL, query_result, 1);
@@ -31078,6 +31307,7 @@ With MS Windows, Haiku windowing or Nextstep, the value is t.  */);
   DEFSYM (Qimitate_pager, "imitate-pager");
   DEFSYM (Qnewer_time, "newer-time");
   DEFSYM (Qraise_and_focus, "raise-and-focus");
+  DEFSYM (Qreally_fast, "really-fast");
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* Which keys Emacs uses for the ctrl modifier.
@@ -31357,4 +31587,19 @@ not bypass window manager focus stealing prevention):
   - The symbol `raise-and-focus', which means to raise the window and
     focus it manually.  */);
   Vx_allow_focus_stealing = Qnewer_time;
+
+  DEFVAR_LISP ("x-use-fast-mouse-position", Vx_use_fast_mouse_position,
+    doc: /* How to make `mouse-position' faster.
+
+`mouse-position' and `mouse-pixel-position' default to querying the X
+server for the window under the mouse pointer.  This results in
+accurate results, but is also very slow when the X connection has
+moderate to high latency.  Setting this variable to a non-nil value
+makes Emacs query only for the position of the pointer, which is
+usually faster.  Doing so improves the performance of dragging to
+select text over slow X connections.
+
+If that is still too slow, setting this variable to the symbol
+`really-fast' will make Emacs return only cached values.  */);
+  Vx_use_fast_mouse_position = Qnil;
 }

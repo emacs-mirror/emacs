@@ -2536,7 +2536,7 @@ Call this when a user finishes customizing @var{TARGET}.
 @end deffn
 
 @deffn Method project-edit-file-target :AFTER ot
-Edit the target @var{OT} associated w/ this file.
+Edit the target @var{OT} associated with this file.
 @end deffn
 
 @deffn Method ede-documentation :AFTER this
@@ -3563,7 +3563,7 @@ Run the current project in the debugger.
 @end deffn
 
 @deffn Method project-edit-file-target :AFTER obj
-Edit the target associated w/ this file.
+Edit the target associated with this file.
 @end deffn
 
 @node project-am-objectcode

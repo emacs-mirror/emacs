@@ -1741,12 +1741,15 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
 					       Vload_path,
 					       Qnil, Qnil)))
 		return;
-	      call2 (intern_c_string ("display-warning"),
-		     Qcomp,
-		     CALLN (Fformat,
-			    build_string ("Cannot look up eln file as "
-					  "no source file was found for %s"),
-			    *filename));
+	      Vdelayed_warnings_list
+		= Fcons (list2
+			 (Qcomp,
+			  CALLN (Fformat,
+				 build_string ("Cannot look up eln "
+					       "file as no source file "
+					       "was found for %s"),
+				 *filename)),
+			 Vdelayed_warnings_list);
 	      return;
 	    }
 	}
@@ -5263,6 +5266,14 @@ to the specified file name if a suffix is allowed or required.  */);
   Vload_suffixes =
     Fcons (build_pure_c_string (MODULES_SECONDARY_SUFFIX), Vload_suffixes);
 #endif
+
+  DEFVAR_LISP ("dynamic-library-suffixes", Vdynamic_library_suffixes,
+	       doc: /* A list of suffixes for loadable dynamic libraries.  */);
+  Vdynamic_library_suffixes =
+    Fcons (build_pure_c_string (DYNAMIC_LIB_SECONDARY_SUFFIX), Qnil);
+  Vdynamic_library_suffixes =
+    Fcons (build_pure_c_string (DYNAMIC_LIB_SUFFIX),
+	   Vdynamic_library_suffixes);
 
 #endif
   DEFVAR_LISP ("module-file-suffix", Vmodule_file_suffix,

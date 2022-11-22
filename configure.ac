@@ -463,6 +463,7 @@ OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([native-image-api], [don't use native image APIs (GDI+ on Windows)])
 OPTION_DEFAULT_IFAVAILABLE([json], [compile with native JSON support])
+OPTION_DEFAULT_IFAVAILABLE([tree-sitter], [compile with tree-sitter])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([harfbuzz],[don't use HarfBuzz for text shaping])
@@ -3217,6 +3218,50 @@ AC_SUBST([JSON_LIBS])
 AC_SUBST([JSON_CFLAGS])
 AC_SUBST([JSON_OBJ])
 
+HAVE_TREE_SITTER=no
+TREE_SITTER_OBJ=
+
+if test "${with_tree_sitter}" != "no"; then
+   dnl Tree-sitter 0.20.2 added support to change the malloc it uses
+   dnl at runtime, we need that feature.  However, tree-sitter's
+   dnl Makefile has problems, until that's fixed, all tree-sitter
+   dnl libraries distributed are versioned 0.6.3.  We try to
+   dnl accept a tree-sitter library that has incorrect version as long
+   dnl as it supports changing malloc.
+  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.20.2],
+    [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
+  if test "${HAVE_TREE_SITTER}" = yes; then
+    AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
+  else
+    EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.6.3],
+      [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
+    if test "${HAVE_TREE_SITTER}" = yes; then
+      OLD_CFLAGS=$CFLAGS
+      OLD_LIBS=$LIBS
+      CFLAGS="$CFLAGS $TREE_SITTER_CFLAGS"
+      LIBS="$TREE_SITTER_LIBS $LIBS"
+      AC_CHECK_FUNCS([ts_set_allocator])
+      CFLAGS=$OLD_CFLAGS
+      LIBS=$OLD_LIBS
+      if test "$ac_cv_func_ts_set_allocator" == yes; then
+        AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
+      else
+        AC_MSG_ERROR([Tree-sitter library exists but its version is too old]);
+        TREE_SITTER_CFLAGS=
+        TREE_SITTER_LIBS=
+      fi
+    fi
+  fi
+
+  # Windows loads tree-sitter dynamically
+  if test "${opsys}" = "mingw32"; then
+    TREE_SITTER_LIBS=
+  fi
+fi
+
+AC_SUBST(TREE_SITTER_LIBS)
+AC_SUBST(TREE_SITTER_CFLAGS)
+
 NOTIFY_OBJ=
 NOTIFY_SUMMARY=no
 
@@ -4087,20 +4132,31 @@ if test "${HAVE_ZLIB}" = "yes"; then
 fi
 AC_SUBST([LIBZ])
 
+### Dynamic library support
+case $opsys in
+  cygwin|mingw32) DYNAMIC_LIB_SUFFIX=".dll" ;;
+  darwin) DYNAMIC_LIB_SUFFIX=".dylib" ;;
+  *) DYNAMIC_LIB_SUFFIX=".so" ;;
+esac
+case "${opsys}" in
+  darwin) DYNAMIC_LIB_SECONDARY_SUFFIX='.so' ;;
+  *) DYNAMIC_LIB_SECONDARY_SUFFIX='' ;;
+esac
+AC_DEFINE_UNQUOTED(DYNAMIC_LIB_SUFFIX, "$DYNAMIC_LIB_SUFFIX",
+  [System extension for dynamic libraries])
+AC_DEFINE_UNQUOTED(DYNAMIC_LIB_SECONDARY_SUFFIX, "$DYNAMIC_LIB_SECONDARY_SUFFIX",
+  [Alternative system extension for dynamic libraries.])
+
+AC_SUBST(DYNAMIC_LIB_SUFFIX)
+AC_SUBST(DYNAMIC_LIB_SECONDARY_SUFFIX)
+
 ### Dynamic modules support
 LIBMODULES=
 HAVE_MODULES=no
 MODULES_OBJ=
 NEED_DYNLIB=no
-case $opsys in
-  cygwin|mingw32) MODULES_SUFFIX=".dll" ;;
-  darwin) MODULES_SUFFIX=".dylib" ;;
-  *) MODULES_SUFFIX=".so" ;;
-esac
-case "${opsys}" in
-  darwin) MODULES_SECONDARY_SUFFIX='.so' ;;
-  *) MODULES_SECONDARY_SUFFIX='' ;;
-esac
+MODULES_SUFFIX="${DYNAMIC_LIB_SUFFIX}"
+MODULES_SECONDARY_SUFFIX="${DYNAMIC_LIB_SECONDARY_SUFFIX}"
 
 # pgtkterm.c uses dlsym
 if test $window_system = pgtk; then
@@ -4517,6 +4573,12 @@ case $with_json,$HAVE_JSON in
   *) MISSING="$MISSING json"
      WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-json=ifavailable";;
 esac
+case $with_tree_sitter,$HAVE_TREE_SITTER in
+  no,* | ifavailable,* | *,yes) ;;
+  *) MISSING="$MISSING tree-sitter"
+     WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-tree-sitter=ifavailable";;
+esac
+
 if test "X${MISSING}" != X; then
   # If we have a missing library, and we don't have pkg-config installed,
   # the missing pkg-config may be the reason.  Give the user a hint.
@@ -6559,7 +6621,7 @@ emacs_config_features=
 for opt in ACL BE_APP CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
  HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
  M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SECCOMP \
- SOUND SQLITE3 THREADS TIFF TOOLKIT_SCROLL_BARS \
+ SOUND SQLITE3 THREADS TIFF TOOLKIT_SCROLL_BARS TREE_SITTER \
  UNEXEC WEBP X11 XAW3D XDBE XFT XIM XINPUT2 XPM XWIDGETS X_TOOLKIT \
  ZLIB; do
 
@@ -6628,6 +6690,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use -lxft?                                   ${HAVE_XFT}
   Does Emacs use -lsystemd?                               ${HAVE_LIBSYSTEMD}
   Does Emacs use -ljansson?                               ${HAVE_JSON}
+  Does Emacs use -ltree-sitter?                           ${HAVE_TREE_SITTER}
   Does Emacs use the GMP library?                         ${HAVE_GMP}
   Does Emacs directly use zlib?                           ${HAVE_ZLIB}
   Does Emacs have dynamic modules support?                ${HAVE_MODULES}

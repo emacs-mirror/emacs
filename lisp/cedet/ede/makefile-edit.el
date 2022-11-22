@@ -35,7 +35,7 @@
 ;;    SOURCE always keep in the order of .c, .h, the other stuff.
 
 ;;; Things to do
-;; makefile-fill-paragraph -- refill a macro w/ backslashes
+;; makefile-fill-paragraph -- refill a macro with backslashes
 ;; makefile-insert-macro -- insert "foo = "
 
 

@@ -1737,7 +1737,7 @@
 	(bibtex-find-crossref, bibtex-find-entry): New funs.
 	(bibtex-find-entry-location): Rename to bibtex-prepare-new-entry, use
 	bibtex-lessp, Simplify.
-	(bibtex-validate): Simplify.  Fixe bug of internal variable
+	(bibtex-validate): Simplify.  Fix bug of internal variable
 	questionable-month.
 	(bibtex-remove-OPT-or-ALT): Use when.
 	(bibtex-remove-delimiters, bibtex-kill-field, bibtex-kill-entry)
@@ -9449,7 +9449,7 @@
 	Use shy group.
 	(outline-level) <var>: Update calling convention.
 	(outline-level) <fun>: Take advantage of it.
-	(outline-demote): Don't assume the match-data is still uptodate.
+	(outline-demote): Don't assume the match-data is still up-to-date.
 	(outline-up-heading): Simplify and make sure the match data is
 	properly set at the end.
 

@@ -114,7 +114,7 @@ process that is passed the current buffer's contents via stdin.
 REPORT-FN is Flymake's callback."
   ;; HACK: XXX: Assuming this backend function is run before it in
   ;; `flymake-diagnostic-functions', very hackingly convince the other
-  ;; backend `flymake-proc-legacy-backend', which is on by default, to
+  ;; backend `flymake-proc-legacy-flymake', which is on by default, to
   ;; disable itself.
   ;;
   (setq-local flymake-proc-allowed-file-name-masks nil)

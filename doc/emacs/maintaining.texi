@@ -1832,6 +1832,8 @@ directory.  @xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
 @item C-x p b
 Switch to another buffer belonging to the current project
 (@code{project-switch-to-buffer}).
+@item C-x p C-b
+List the project buffers (@code{project-list-buffers}).
 @item C-x p k
 Kill all live buffers that belong to the current project
 (@code{project-kill-buffers}).
@@ -1846,6 +1848,11 @@ command @kbd{C-x p b} (@code{project-switch-to-buffer}) helps you
 switch between buffers that belong to the current project by prompting
 for a buffer to switch and considering only the current project's
 buffers as candidates for completion.
+
+@findex project-list-buffers
+  Like the command @code{list-buffers} (@pxref{List Buffers}), the
+command @kbd{C-x p C-b} (@code{project-list-buffers}) displays a list
+of existing buffers, but only belonging to the current project.
 
 @findex project-kill-buffers
 @vindex project-kill-buffer-conditions

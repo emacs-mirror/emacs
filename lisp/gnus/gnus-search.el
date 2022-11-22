@@ -1943,7 +1943,7 @@ Assume \"size\" key is equal to \"larger\"."
 	(thread (alist-get 'thread query)))
     (with-slots (switches config-directory) engine
       `("find" 			; command must come first
-	"--nocolor"		; mu will always give coloured output otherwise
+	"--nocolor"		; mu will always give colored output otherwise
 	,(format "--muhome=%s" config-directory)
 	,@switches
 	,(if thread "-r" "")

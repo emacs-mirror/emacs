@@ -5292,7 +5292,7 @@ Some improvements for XEmacs compatibility.
 @itemize @bullet
 @item
 Fixed bug with @samp{%F} in a label prefix.  Added new escapes
-@samp{%m} and @samp{%M} for mater file name and master directory.
+@samp{%m} and @samp{%M} for master file name and master directory.
 @end itemize
 
 @noindent @b{Version 4.24}

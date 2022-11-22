@@ -276,7 +276,7 @@ START, END and COMMENT-START are regular expressions.  A block is
 defined as text surrounded by START and END.
 
 As a special case, START may be a list of the form (COMPLEX-START
-MDATA-SELECTOR), where COMPLEX-START is a regexp w/ multiple parts and
+MDATA-SELECTOR), where COMPLEX-START is a regexp with multiple parts and
 MDATA-SELECTOR an integer that specifies which sub-match is the proper
 place to adjust point, before calling `hs-forward-sexp-func'.  Point
 is adjusted to the beginning of the specified match.  For example,
@@ -576,7 +576,7 @@ property of an overlay."
        (save-match-data (not (nth 8 (syntax-ppss))))))
 
 (defun hs-forward-sexp (match-data arg)
-  "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
+  "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' with ARG.
 Original match data is restored upon return."
   (save-match-data
     (set-match-data match-data)

@@ -1070,7 +1070,7 @@
 	* international/mule-cmds.el (char-code-property-alist): New variable.
 	(define-char-code-property): New function.
 	(get-char-code-property, put-char-code-property): Handle a
-	char-table registerd in char-code-property-alist.
+	char-table registered in char-code-property-alist.
 	(set-language-environment): Check :ascii-compatible-p property of
 	nonascii charset instead of its dimension.
 
@@ -13901,7 +13901,7 @@
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
-	underlying file is uptodate.
+	underlying file is up-to-date.
 
 2007-07-23  Christopher J. Madsen  <cjm@cjmweb.net>
 
@@ -15245,7 +15245,7 @@
 2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-modified-buffers): New var.
-	(autoload-find-destination): Keep it uptodate.
+	(autoload-find-destination): Keep it up-to-date.
 	(autoload-save-buffers): New fun.
 	(update-file-autoloads): Use it.  Re-add the "up to date" message.
 

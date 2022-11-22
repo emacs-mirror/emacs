@@ -898,7 +898,7 @@ lines.
 @vindex defun-tactic @r{(c-)}
 
 Move to the beginning or end of the current or next function.  Other
-constructs (such as a structs or classes) which have a brace block
+constructs (such as structs or classes) which have a brace block
 also count as ``functions'' here.  To move over several functions, you
 can give these commands a repeat count.
 

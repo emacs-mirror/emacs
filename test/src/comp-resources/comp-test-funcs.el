@@ -211,10 +211,10 @@
       (comp-tests-err-arith-f)
     (arith-error (concat "arith-error "
                          (error-message-string err)
-                         " catched"))
+                         " caught"))
     (error (concat "error "
                    (error-message-string err)
-                   " catched"))))
+                   " caught"))))
 (defun comp-tests-condition-case-1-f ()
   ;; Bpushhandler Bpophandler
   (condition-case
@@ -222,10 +222,10 @@
       (comp-tests-err-foo-f)
     (arith-error (concat "arith-error "
                          (error-message-string err)
-                         " catched"))
+                         " caught"))
     (error (concat "error "
                    (error-message-string err)
-                   " catched"))))
+                   " caught"))))
 (defun comp-tests-catch-f (f)
   (catch 'foo
     (funcall f)))

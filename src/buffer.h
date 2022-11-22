@@ -573,6 +573,10 @@ struct buffer
      in the display of this buffer.  */
   Lisp_Object extra_line_spacing_;
 
+#ifdef HAVE_TREE_SITTER
+  /* A list of tree-sitter parsers for this buffer.  */
+  Lisp_Object ts_parser_list_;
+#endif
   /* Cursor type to display in non-selected windows.
      t means to use hollow box cursor.
      See `cursor-type' for other values.  */

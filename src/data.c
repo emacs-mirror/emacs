@@ -262,6 +262,12 @@ for example, (type-of 1) returns `integer'.  */)
           return Qxwidget;
         case PVEC_XWIDGET_VIEW:
           return Qxwidget_view;
+	case PVEC_TS_PARSER:
+	  return Qtreesit_parser;
+	case PVEC_TS_NODE:
+	  return Qtreesit_node;
+	case PVEC_TS_COMPILED_QUERY:
+	  return Qtreesit_compiled_query;
         case PVEC_SQLITE:
           return Qsqlite;
         /* "Impossible" cases.  */
@@ -4283,6 +4289,9 @@ syms_of_data (void)
   DEFSYM (Qterminal, "terminal");
   DEFSYM (Qxwidget, "xwidget");
   DEFSYM (Qxwidget_view, "xwidget-view");
+  DEFSYM (Qtreesit_parser, "treesit-parser");
+  DEFSYM (Qtreesit_node, "treesit-node");
+  DEFSYM (Qtreesit_compiled_query, "treesit-compiled-query");
 
   DEFSYM (Qdefun, "defun");
 

@@ -5356,9 +5356,6 @@ alternate presentation form:
 
  `flat' -- Present prefix as numeric section.subsection..., starting with
 	 section indicated by the START-NUM, innermost nesting first.
- X`flat-indented' -- Prefix is like `flat' for first topic at each
- X		   level, but subsequent topics have only leaf topic
- X		   number, padded with blanks to line up with first.
  `indent' (symbol) --  Convert header prefixes to all white space,
 		       except for distinctive bullets.
 

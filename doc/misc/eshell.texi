@@ -1126,7 +1126,7 @@ Repeatedly evaluate @var{commands} until @var{conditional} is
 satisfied.
 
 @item for @var{var} in @var{list}@dots{} @{ @var{commands} @}
-Iterate over each element of of @var{list}, storing the element in
+Iterate over each element of @var{list}, storing the element in
 @var{var} and evaluating @var{commands}.  If @var{list} is not a list,
 treat it as a list of one element.  If you specify multiple
 @var{lists}, this will iterate over each of them in turn.

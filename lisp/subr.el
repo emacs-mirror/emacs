@@ -2584,7 +2584,7 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 (defun major-mode-restore (&optional avoided-modes)
   "Restore major mode earlier suspended with `major-mode-suspend'.
 If there was no earlier suspended major mode, then fallback to `normal-mode',
-tho trying to avoid AVOIDED-MODES."
+though trying to avoid AVOIDED-MODES."
   (if major-mode--suspended
       (funcall (prog1 major-mode--suspended
                  (kill-local-variable 'major-mode--suspended)))
@@ -6911,7 +6911,7 @@ string will be displayed only if BODY takes longer than TIMEOUT seconds.
 If FUNC is a function alias, return the function alias chain.
 
 If the function alias chain contains loops, an error will be
-signalled.  If NOERROR, the non-loop parts of the chain is returned."
+signaled.  If NOERROR, the non-loop parts of the chain is returned."
   (declare (side-effect-free t))
   (let ((chain nil)
         (orig-func func))
@@ -7061,7 +7061,7 @@ CONDITION is either:
 
 (defun match-buffers (condition &optional buffers arg)
   "Return a list of buffers that match CONDITION.
-See `buffer-match' for details on CONDITION.  By default all
+See `buffer-match-p' for details on CONDITION.  By default all
 buffers are checked, this can be restricted by passing an
 optional argument BUFFERS, set to a list of buffers to check.
 ARG is passed to `buffer-match', for predicate conditions in

@@ -140,10 +140,11 @@ A resource file is in the resource directory as per
        ((eq system-type 'windows-nt) null-device)
        (t (add-to-list
            'tramp-methods
-           '("mock"
-	     (tramp-login-program	"sh")
+           `("mock"
+	     (tramp-login-program	,tramp-default-remote-shell)
 	     (tramp-login-args		(("-i")))
-	     (tramp-remote-shell	"/bin/sh")
+             (tramp-direct-async	("-c"))
+	     (tramp-remote-shell	,tramp-default-remote-shell)
 	     (tramp-remote-shell-args	("-c"))
 	     (tramp-connection-timeout	10)))
           (add-to-list

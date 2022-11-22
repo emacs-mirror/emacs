@@ -511,16 +511,16 @@ pgtk_free_frame_resources (struct frame *f)
 
   if (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider != NULL)
     {
-      GtkCssProvider *old =
-	FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider;
+      GtkCssProvider *old
+	= FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider;
       g_object_unref (old);
       FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider = NULL;
     }
 
   if (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider != NULL)
     {
-      GtkCssProvider *old =
-	FRAME_X_OUTPUT (f)->scrollbar_background_css_provider;
+      GtkCssProvider *old
+	= FRAME_X_OUTPUT (f)->scrollbar_background_css_provider;
       g_object_unref (old);
       FRAME_X_OUTPUT (f)->scrollbar_background_css_provider = NULL;
     }
@@ -1333,8 +1333,8 @@ fill_background_by_face (struct frame *f, struct face *face, int x, int y,
 
   if (face->stipple != 0)
     {
-      cairo_pattern_t *mask =
-	FRAME_DISPLAY_INFO (f)->bitmaps[face->stipple - 1].pattern;
+      cairo_pattern_t *mask
+	= FRAME_DISPLAY_INFO (f)->bitmaps[face->stipple - 1].pattern;
 
       double r = ((face->foreground >> 16) & 0xff) / 255.0;
       double g = ((face->foreground >> 8) & 0xff) / 255.0;
@@ -1606,8 +1606,8 @@ pgtk_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
 	  /* It is assured that all LEN characters in STR is ASCII.  */
 	  for (j = 0; j < len; j++)
-	    char2b[j] =
-	      s->font->driver->encode_char (s->font, str[j]) & 0xFFFF;
+	    char2b[j]
+	      = s->font->driver->encode_char (s->font, str[j]) & 0xFFFF;
 	  s->font->driver->draw (s, 0, upper_len,
 				 x + glyph->slice.glyphless.upper_xoff,
 				 s->ybase + glyph->slice.glyphless.upper_yoff,
@@ -2958,8 +2958,8 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 
       if (w == XWINDOW (f->selected_window))
 	{
-	  int frame_x =
-	    WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w);
+	  int frame_x = (WINDOW_TO_FRAME_PIXEL_X (w, x)
+			 + WINDOW_LEFT_FRINGE_WIDTH (w));
 	  int frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, y);
 	  pgtk_im_set_cursor_location (f, frame_x, frame_y,
 				       w->phys_cursor_width,
@@ -4518,16 +4518,29 @@ pgtk_free_pixmap (struct frame *f, Emacs_Pixmap pixmap)
 void
 pgtk_focus_frame (struct frame *f, bool noactivate)
 {
-  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  struct pgtk_display_info *dpyinfo;
+  GtkWidget *widget;
+  GtkWindow *window;
 
-  GtkWidget *wid = FRAME_WIDGET (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  if (dpyinfo->x_focus_frame != f && wid != NULL)
+  if (FRAME_GTK_OUTER_WIDGET (f) && !noactivate)
     {
-      block_input ();
-      gtk_widget_grab_focus (wid);
-      unblock_input ();
+      /* The user says it is okay to activate the frame.  Call
+	 gtk_window_present_with_time.  If the timestamp specified
+	 (actually a display serial on Wayland) is new enough, then
+	 any Wayland compositor supporting gtk_surface1_present will
+	 cause the frame to be activated.  */
+
+      window = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
+      gtk_window_present_with_time (window, dpyinfo->last_user_time);
+      return;
     }
+
+  widget = FRAME_WIDGET (f);
+
+  if (widget)
+    gtk_widget_grab_focus (widget);
 }
 
 static void
@@ -5144,13 +5157,15 @@ static gboolean
 key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
   union buffered_input_event inev;
-  ptrdiff_t nbytes = 0;
+  ptrdiff_t nbytes;
   Mouse_HLInfo *hlinfo;
   struct frame *f;
+  struct pgtk_display_info *dpyinfo;
 
   f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
   EVENT_INIT (inev.ie);
   hlinfo = MOUSE_HL_INFO (f);
+  nbytes = 0;
 
   /* If mouse-highlight is an integer, input clears out
      mouse highlighting.  */
@@ -5180,6 +5195,12 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
       int modifiers;
       Lisp_Object c;
       guint state;
+
+      dpyinfo = FRAME_DISPLAY_INFO (f);
+
+      /* Set the last user time for pgtk_focus_frame to work
+	 correctly.  */
+      dpyinfo->last_user_time = event->key.time;
 
       state = event->key.state;
 
@@ -5214,8 +5235,8 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 
       /* Common for all keysym input events.  */
       XSETFRAME (inev.ie.frame_or_window, f);
-      inev.ie.modifiers =
-	pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), modifiers);
+      inev.ie.modifiers
+	= pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), modifiers);
       inev.ie.timestamp = event->key.time;
 
       /* First deal with keysyms which have defined
@@ -5363,11 +5384,37 @@ done:
   return TRUE;
 }
 
+static struct pgtk_display_info *
+pgtk_display_info_for_display (GdkDisplay *dpy)
+{
+  struct pgtk_display_info *dpyinfo;
+
+  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+    {
+      if (dpyinfo->display == dpy)
+	return dpyinfo;
+    }
+
+  return NULL;
+}
+
 static gboolean
 key_release_event (GtkWidget *widget,
 		   GdkEvent *event,
 		   gpointer *user_data)
 {
+  GdkDisplay *display;
+  struct pgtk_display_info *dpyinfo;
+
+  display = gtk_widget_get_display (widget);
+  dpyinfo = pgtk_display_info_for_display (display);
+
+  if (dpyinfo)
+    /* This is needed on Wayland because of some brain dead
+       compositors.  Without them, we would not have to keep track of
+       the serial of key release events.  */
+    dpyinfo->last_user_time = event->key.time;
+
   return TRUE;
 }
 
@@ -5904,9 +5951,10 @@ construct_mouse_click (struct input_event *result,
   result->kind = MOUSE_CLICK_EVENT;
   result->code = event->button - 1;
   result->timestamp = event->time;
-  result->modifiers =
-    (pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), event->state) |
-     (event->type == GDK_BUTTON_RELEASE ? up_modifier : down_modifier));
+  result->modifiers = (pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f),
+						    event->state)
+		       | (event->type == GDK_BUTTON_RELEASE
+			  ? up_modifier : down_modifier));
 
   XSETINT (result->x, event->x);
   XSETINT (result->y, event->y);
@@ -5971,6 +6019,10 @@ button_event (GtkWidget *widget, GdkEvent *event,
 	}
     }
 
+  /* Set the last user time, used to activate the frame in
+     pgtk_focus_frame.  */
+  dpyinfo->last_user_time = event->button.time;
+
   if (f)
     {
       /* Is this in the tab-bar?  */
@@ -5989,10 +6041,7 @@ button_event (GtkWidget *widget, GdkEvent *event,
 	      (f, x, y, event->type == GDK_BUTTON_PRESS,
 	       pgtk_gtk_to_emacs_modifiers (dpyinfo, event->button.state));
 	}
-    }
 
-  if (f)
-    {
       if (!(tab_bar_p && NILP (tab_bar_arg)) && !tool_bar_p)
 	{
 	  if (ignore_next_mouse_click_timeout)
@@ -6060,8 +6109,8 @@ scroll_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 
   inev.ie.kind = NO_EVENT;
   inev.ie.timestamp = event->scroll.time;
-  inev.ie.modifiers =
-    pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), event->scroll.state);
+  inev.ie.modifiers
+    = pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), event->scroll.state);
   XSETINT (inev.ie.x, event->scroll.x);
   XSETINT (inev.ie.y, event->scroll.y);
   XSETFRAME (inev.ie.frame_or_window, f);
@@ -6986,10 +7035,9 @@ pgtk_parse_color (struct frame *f, const char *color_name,
       color->red = rgba.red * 65535;
       color->green = rgba.green * 65535;
       color->blue = rgba.blue * 65535;
-      color->pixel =
-	(color->red >> 8) << 16 |
-	(color->green >> 8) << 8 |
-	(color->blue >> 8) << 0;
+      color->pixel = ((color->red >> 8) << 16
+		      | (color->green >> 8) << 8
+		      | (color->blue >> 8) << 0);
       return 1;
     }
   return 0;
@@ -7118,10 +7166,9 @@ If set to a non-float value, there will be no wait at all.  */);
   Vpgtk_wait_for_event_timeout = make_float (0.1);
 
   DEFVAR_LISP ("pgtk-keysym-table", Vpgtk_keysym_table,
-	       doc: /* Hash table of character codes indexed by X keysym codes.  */);
-  Vpgtk_keysym_table =
-    make_hash_table (hashtest_eql, 900, DEFAULT_REHASH_SIZE,
-		     DEFAULT_REHASH_THRESHOLD, Qnil, false);
+    doc: /* Hash table of character codes indexed by X keysym codes.  */);
+  Vpgtk_keysym_table = make_hash_table (hashtest_eql, 900, DEFAULT_REHASH_SIZE,
+					DEFAULT_REHASH_THRESHOLD, Qnil, false);
 
   window_being_scrolled = Qnil;
   staticpro (&window_being_scrolled);
@@ -7159,13 +7206,13 @@ pgtk_begin_cr_clip (struct frame *f)
 
   if (!cr)
     {
-      cairo_surface_t *surface =
-	gdk_window_create_similar_surface (gtk_widget_get_window
-					   (FRAME_GTK_WIDGET (f)),
-					   CAIRO_CONTENT_COLOR_ALPHA,
-					   FRAME_CR_SURFACE_DESIRED_WIDTH (f),
-					   FRAME_CR_SURFACE_DESIRED_HEIGHT
-					   (f));
+      cairo_surface_t *surface
+	= gdk_window_create_similar_surface (gtk_widget_get_window
+					     (FRAME_GTK_WIDGET (f)),
+					     CAIRO_CONTENT_COLOR_ALPHA,
+					     FRAME_CR_SURFACE_DESIRED_WIDTH (f),
+					     FRAME_CR_SURFACE_DESIRED_HEIGHT
+					     (f));
 
       cr = FRAME_CR_CONTEXT (f) = cairo_create (surface);
       cairo_surface_destroy (surface);

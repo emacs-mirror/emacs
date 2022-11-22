@@ -3347,6 +3347,8 @@ immediately after this one."
           (lambda (&rest args)
             (apply #'vc-user-edit-command (apply old args))))))
 
+;; This is used in .dir-locals.el in the Emacs source tree.
+;;;###autoload (put 'vc-prepare-patches-separately 'safe-local-variable 'booleanp)
 (defcustom vc-prepare-patches-separately t
   "Whether `vc-prepare-patch' should generate a separate message for each patch.
 If nil, `vc-prepare-patch' creates a single email message by attaching
@@ -3384,25 +3386,43 @@ If nil, no default will be used.  This option may be set locally."
                                (vc-root-dir))))
             :buffer (current-buffer)))))
 
+(defun vc-prepare-patch-prompt-revisions ()
+  "Prompt the user for a list revisions.
+Prepare a default value, depending on the current context.  With
+a numerical prefix argument, use the last N revisions as the
+default value.  If the current buffer is a log-view buffer, use
+the marked commits.  Otherwise fall back to the working revision
+of the current file."
+  (vc-read-multiple-revisions
+   "Revisions: " nil nil nil
+   (or (and-let* ((arg current-prefix-arg)
+                  (fs (vc-deduce-fileset t)))
+         (cl-loop with file = (caadr fs)
+                  repeat (prefix-numeric-value arg)
+                  for rev = (vc-working-revision file)
+                  then (vc-call-backend
+                        (car fs) 'previous-revision
+                        file rev)
+                  when rev collect it into revs
+                  finally return (mapconcat #'identity revs ",")))
+       (and-let* ((revs (log-view-get-marked)))
+         (mapconcat #'identity revs ","))
+       (and-let* ((file (buffer-file-name)))
+         (vc-working-revision file)))))
+
 ;;;###autoload
 (defun vc-prepare-patch (addressee subject revisions)
   "Compose an Email sending patches for REVISIONS to ADDRESSEE.
-If `vc-prepare-patches-separately' is nil, SUBJECT will be used
-as the default subject for the message (and it will be prompted
-for when called interactively).  Otherwise a separate message
-will be composed for each revision, with SUBJECT derived from the
-invidividual commits.
-
-When invoked interactively in a Log View buffer with marked
-revisions, those revisions will be used."
+If `vc-prepare-patches-separately' is nil, use SUBJECT as the
+default subject for the message, or prompt a subject when invoked
+interactively.  Otherwise compose a separate message for each
+revision, with SUBJECT derived from each revision subject.
+When invoked with a numerical prefix argument, use the last N
+revisions.
+When invoked interactively in a Log View buffer with
+marked revisions, use those these."
   (interactive
-   (let ((revs (vc-read-multiple-revisions
-                "Revisions: " nil nil nil
-                (or (and-let* ((revs (log-view-get-marked)))
-                      (mapconcat #'identity revs ","))
-                    (and-let* ((file (buffer-file-name)))
-                      (vc-working-revision file)))))
-         to)
+   (let ((revs (vc-prepare-patch-prompt-revisions)) to)
      (require 'message)
      (while (null (setq to (completing-read-multiple
                             (format-prompt
@@ -3567,7 +3587,7 @@ to provide the `find-revision' operation instead."
 
 (defun vc-clone (remote &optional backend directory rev)
   "Use BACKEND to clone REMOTE into DIRECTORY.
-If successful, returns the a string with the directory of the
+If successful, returns the string with the directory of the
 checkout.  If BACKEND is nil, iterate through every known backend
 in `vc-handled-backends' until one succeeds.  If REV is non-nil,
 it indicates a specific revision to check out."
@@ -3597,9 +3617,7 @@ It returns the last revision that changed LINE number in FILE."
                      file (current-buffer))
     (goto-char (point-min))
     (forward-line (1- line))
-    (let ((rev (vc-call-backend
-                (vc-backend file)
-                'annotate-extract-revision-at-line)))
+    (let ((rev (vc-call annotate-extract-revision-at-line file)))
       (if (consp rev) (car rev) rev))))
 
 

@@ -927,13 +927,13 @@ it is used instead of the saved one."
   (vi-repeat-last-find-char count))
 
 (defun vi-backward-upto-char (count char)
-  "Find upto the COUNT'th CHAR backward on current line."
+  "Find up to the COUNT'th CHAR backward on current line."
   (interactive "p\nc")
   (setq vi-last-find-char (cons -1 (cons char t)))
   (vi-repeat-last-find-char count))
 
 (defun vi-forward-upto-char (count char)
-  "Find upto the COUNT'th CHAR forward on current line."
+  "Find up to the COUNT'th CHAR forward on current line."
   (interactive "p\nc")
   (setq vi-last-find-char (cons 1 (cons char t)))
   (vi-repeat-last-find-char count))

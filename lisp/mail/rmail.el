@@ -2599,7 +2599,7 @@ is greater than zero; otherwise, show it in full."
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
 Ask the user whether to add that list name to `mail-mailing-lists'."
   ;; FIXME s-r not needed?  Use rmail-get-header?
-  ;; We have not narrowed to the headers at ths point?
+  ;; We have not narrowed to the headers at this point?
    (save-restriction
      (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
        (when mail-followup-to

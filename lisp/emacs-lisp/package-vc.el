@@ -39,6 +39,9 @@
 
 ;; - Allow maintaining patches that are ported back onto regular
 ;;   packages and maintained between versions.
+;;
+;; - Add a heuristic for guessing a `:lisp-dir' when cloning directly
+;;  from a URL.
 
 ;;; Code:
 
@@ -49,7 +52,6 @@
 (require 'lisp-mnt)
 (require 'vc)
 (require 'seq)
-(require 'xdg)
 
 (defgroup package-vc nil
   "Manage packages from VC checkouts."
@@ -100,12 +102,6 @@
                                               vc-handled-backends)))
   :version "29.1")
 
-(defcustom package-vc-repository-store
-  (expand-file-name "emacs/vc-packages" (xdg-data-home))
-  "Directory used by `package-vc--unpack' to store repositories."
-  :type 'directory
-  :version "29.1")
-
 (defcustom package-vc-default-backend 'Git
   "Default VC backend used when cloning a package repository.
 If no repository type was specified or could be guessed by
@@ -118,13 +114,16 @@ the `clone' function."
   :version "29.1")
 
 (defvar package-vc-selected-packages) ; pacify byte-compiler
-(defun package-vc-ensure-packages ()
+
+;;;###autoload
+(defun package-vc-install-selected-packages ()
   "Ensure packages specified in `package-vc-selected-packages' are installed."
-  (pcase-dolist (`(,(and (pred symbolp) name) . ,spec)
-                 package-vc-selected-packages)
-    (let ((pkg-desc (cadr (assoc name package-alist #'string=))))
-      (unless (and name (package-installed-p name)
-                   (package-vc-p pkg-desc))
+  (interactive)
+  (pcase-dolist (`(,name . ,spec) package-vc-selected-packages)
+    (when (stringp name)
+      (setq name (intern name)))
+    (let ((pkg-descs (assoc name package-alist #'string=)))
+      (unless (seq-some #'package-vc-p (cdr pkg-descs))
         (cond
          ((null spec)
           (package-vc-install name))
@@ -132,7 +131,7 @@ the `clone' function."
           (package-vc-install name nil spec))
          ((listp spec)
           (package-vc--archives-initialize)
-          (package-vc--unpack pkg-desc spec)))))))
+          (package-vc--unpack (cadr pkg-descs) spec)))))))
 
 ;;;###autoload
 (defcustom package-vc-selected-packages '()
@@ -142,13 +141,40 @@ is a symbol designating the package and SPEC is one of:
 
 - nil, if any package version can be installed;
 - a version string, if that specific revision is to be installed;
-- a property list of the form described in
-  `package-vc-archive-spec-alist', giving a package
-  specification.
+- a property list, describing a package specification.  Valid
+  key/value pairs are
+
+   `:url' (string)
+      The URL of the repository used to fetch the package source.
+
+   `:branch' (string)
+      If given, the name of the branch to checkout after cloning the directory.
+
+   `:lisp-dir' (string)
+      The repository-relative name of the directory to use for loading the Lisp
+      sources.  If not given, the value defaults to the root directory
+      of the repository.
+
+   `:main-file' (string)
+      The main file of the project, relevant to gather package metadata.
+      If not given, the assumed default is the package name with \".el\"
+      appended to it.
+
+   `:vc-backend' (symbol)
+      A symbol of the VC backend to use for cloning the package.  The
+      value ought to be a member of `vc-handled-backends'.  If omitted,
+      `vc-clone' will fall back onto the archive default or on
+      `package-vc-default-backend'.
+
+  All other keys are ignored.
 
 This user option differs from `package-selected-packages' in that
-it is meant to be specified manually.  You can also use the
-function `package-vc-selected-packages' to apply the changes."
+it is meant to be specified manually.  If you want to install all
+the packages in the list, you cal also use
+`package-vc-install-selected-packages'.
+
+Note that this option will not override an existing source
+package installation or revert the checked out revision."
   :type '(alist :tag "List of packages you want to be installed"
                 :key-type (symbol :tag "Package")
                 :value-type
@@ -159,39 +185,16 @@ function `package-vc-selected-packages' to apply the changes."
                                          (:lisp-dir string)
                                          (:main-file string)
                                          (:vc-backend symbol)))))
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (custom-set-default sym val)
-         (package-vc-ensure-packages))
+         (package-vc-install-selected-packages))
   :version "29.1")
 
 (defvar package-vc--archive-spec-alist nil
   "List of package specifications for each archive.
-The list maps each package name, as a string, to a plist.
-Valid keys and the corresponding value types are:
-
- `:url' (string)
-    The URL of the repository used to fetch the package source.
-
- `:branch' (string)
-    If given, the name of the branch to checkout after cloning the directory.
-
- `:lisp-dir' (string)
-    The repository-relative name of the directory to use for loading the Lisp
-    sources.  If not given, the value defaults to the root directory
-    of the repository.
-
- `:main-file' (string)
-    The main file of the project, relevant to gather package metadata.
-    If not given, the assumed default is the package name with \".el\"
-    appended to it.
-
- `:vc-backend' (symbol)
-    A symbol of the VC backend to use for cloning the package.  The
-    value ought to be a member of `vc-handled-backends'.  If omitted,
-    `vc-clone' will fall back onto the archive default or on
-    `package-vc-default-backend'.
-
-All other values are ignored.")
+The list maps each package name, as a string, to a plist as
+specified in `package-vc-selected-packages'.")
 
 (defvar package-vc--archive-data-alist nil
   "List of package specification metadata for archives.
@@ -219,7 +222,7 @@ name for PKG-DESC."
    (if (package-desc-archive pkg-desc)
        (alist-get (intern (package-desc-archive pkg-desc))
                   package-vc--archive-spec-alist)
-     (mapcan #'append (mapcar #'cdr package-vc--archive-spec-alist)))
+     (apply #'append (mapcar #'cdr package-vc--archive-spec-alist)))
    nil nil #'string=))
 
 (define-inline package-vc--query-spec (pkg-desc prop)
@@ -231,7 +234,7 @@ return nil."
 
 (defun package-vc--read-archive-data (archive)
   "Update `package-vc--archive-spec-alist' for ARCHIVE.
-This function is meant to be used as a hook for `package--read-archive-hook'."
+This function is meant to be used as a hook for `package-read-archive-hook'."
   (let ((contents-file (expand-file-name
                         (format "archives/%s/elpa-packages.eld" archive)
                         package-user-dir)))
@@ -268,7 +271,6 @@ asynchronously."
       (error (message "Failed to download `%s' archive." (car archive))))))
 
 (add-hook 'package-read-archive-hook     #'package-vc--read-archive-data 20)
-(add-hook 'package-refresh-contents-hook #'package-vc--download-and-read-archives 20)
 
 (defun package-vc-commit (pkg)
   "Return the last commit of a development package PKG."
@@ -282,7 +284,7 @@ asynchronously."
            finally return "unknown"))
 
 (defun package-vc--version (pkg)
-  "Extract the commit of a development package PKG."
+  "Return the version number for the source package PKG."
   (cl-assert (package-vc-p pkg))
   (if-let ((main-file (package-vc--main-file pkg)))
       (with-temp-buffer
@@ -295,15 +297,14 @@ asynchronously."
 (defun package-vc--main-file (pkg-desc)
   "Return the name of the main file for PKG-DESC."
   (cl-assert (package-vc-p pkg-desc))
-  (let ((pkg-spec (package-vc--desc->spec pkg-desc)))
+  (let ((pkg-spec (package-vc--desc->spec pkg-desc))
+        (name (symbol-name (package-desc-name pkg-desc))))
     (or (plist-get pkg-spec :main-file)
         (expand-file-name
-         (format "%s.el" (package-desc-name pkg-desc))
+         (concat name ".el")
          (file-name-concat
           (or (package-desc-dir pkg-desc)
-              (expand-file-name
-               (package-desc-name pkg-desc)
-               package-user-dir))
+              (expand-file-name name package-user-dir))
           (plist-get pkg-spec :lisp-dir))))))
 
 (defun package-vc--generate-description-file (pkg-desc pkg-file)
@@ -351,26 +352,51 @@ asynchronously."
 (declare-function org-export-to-file "ox" (backend file))
 
 (defun package-vc--build-documentation (pkg-desc file)
-  "Build documentation FILE for PKG-DESC.
+  "Build documentation for package PKG-DESC from documentation source in FILE.
 FILE can be an Org file, indicated by its \".org\" extension,
 otherwise it's assumed to be an Info file."
-  (let ((pkg-dir (package-desc-dir pkg-desc)))
+  (let* ((pkg-name (package-desc-name pkg-desc))
+         (default-directory (package-desc-dir pkg-desc))
+         (output (expand-file-name (format "%s.info" pkg-name)))
+         clean-up)
     (when (string-match-p "\\.org\\'" file)
       (require 'ox)
       (require 'ox-texinfo)
       (with-temp-buffer
         (insert-file-contents file)
         (setq file (make-temp-file "ox-texinfo-"))
-        (org-export-to-file 'texinfo file)))
-    (call-process "install-info" nil nil nil
-                  file pkg-dir)))
+        (org-export-to-file 'texinfo file)
+        (setq clean-up t)))
+    (with-current-buffer (get-buffer-create " *package-vc doc*")
+      (erase-buffer)
+      (cond
+       ((/= 0 (call-process "makeinfo" nil t nil
+                            "--no-split" file "-o" output))
+        (message "Failed to build manual %s, see buffer %S"
+                 file (buffer-name)))
+       ((/= 0 (call-process "install-info" nil t nil
+                            output (expand-file-name "dir")))
+        (message "Failed to install manual %s, see buffer %S"
+                 output (buffer-name)))
+       ((kill-buffer))))
+    (when clean-up
+      (delete-file file))))
 
 (defun package-vc--unpack-1 (pkg-desc pkg-dir)
-  "Install PKG-DESC that is already checked-out in PKG-DIR."
+  "Prepare PKG-DESC that is already checked-out in PKG-DIR.
+This includes downloading missing dependencies, generating
+autoloads, generating a package description file (used to
+identify a package as a source package later on), building
+documentation and marking the package as installed."
+  ;; Remove any previous instance of PKG-DESC from `package-alist'
+  (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
+    (when pkgs
+      (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
+
   ;; In case the package was installed directly from source, the
   ;; dependency list wasn't know beforehand, and they might have
   ;; to be installed explicitly.
-  (let (deps)
+  (let ((deps '()))
     (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
       (with-temp-buffer
         (insert-file-contents file)
@@ -387,10 +413,26 @@ otherwise it's assumed to be an Info file."
      (package-compute-transaction nil (delete-dups deps))))
 
   (let ((default-directory (file-name-as-directory pkg-dir))
-        (name (package-desc-name pkg-desc))
         (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
     ;; Generate autoloads
-    (package-generate-autoloads name pkg-dir)
+    (let* ((name (package-desc-name pkg-desc))
+           (auto-name (format "%s-autoloads.el" name))
+           (extras (package-desc-extras pkg-desc))
+           (lisp-dir (alist-get :lisp-dir extras)))
+      (package-generate-autoloads
+       name (file-name-concat pkg-dir lisp-dir))
+      (when lisp-dir
+        (write-region
+         (with-temp-buffer
+           (insert ";; Autoload indirection for package-vc\n\n")
+           (prin1 `(load (expand-file-name
+                          ,(file-name-concat lisp-dir auto-name)
+                          (or (and load-file-name
+                                   (file-name-directory load-file-name))
+                              (car load-path))))
+                  (current-buffer))
+           (buffer-string))
+         nil (expand-file-name auto-name pkg-dir))))
 
     ;; Generate package file
     (package-vc--generate-description-file pkg-desc pkg-file)
@@ -474,48 +516,66 @@ PKG-SPEC is a package specification, a property list describing
 how to fetch and build the package.  See `package-vc--archive-spec-alist'
 for details.  The optional argument REV specifies a specific revision to
 checkout.  This overrides the `:branch' attribute in PKG-SPEC."
-  (pcase-let* (((map :url :lisp-dir) pkg-spec)
+  (pcase-let* (((map :lisp-dir) pkg-spec)
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))
-               (pkg-dir (expand-file-name dirname package-user-dir))
-               (real-dir (if (null lisp-dir)
-                             pkg-dir
-                           (unless (file-exists-p package-vc-repository-store)
-                             (make-directory package-vc-repository-store t))
-                           (file-name-concat
-                            package-vc-repository-store
-                            ;; FIXME: We aren't sure this directory
-                            ;; will be unique, but we can try other
-                            ;; names to avoid an unnecessary error.
-                            (file-name-base url)))))
+               (pkg-dir (expand-file-name dirname package-user-dir)))
     (setf (package-desc-dir pkg-desc) pkg-dir)
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p "Overwrite previous checkout?")
-          (package--delete-directory pkg-dir pkg-desc)
+          (package--delete-directory pkg-dir)
         (error "There already exists a checkout for %s" name)))
-    (package-vc--clone pkg-desc pkg-spec real-dir rev)
-    (unless (eq pkg-dir real-dir)
-      ;; Link from the right position in `repo-dir' to the package
-      ;; directory in the ELPA store.
-      (make-symbolic-link (file-name-concat real-dir lisp-dir) pkg-dir))
+    (package-vc--clone pkg-desc pkg-spec pkg-dir rev)
 
+    (when lisp-dir
+      (push (cons :lisp-dir lisp-dir)
+            (package-desc-extras pkg-desc)))
     (package-vc--unpack-1 pkg-desc pkg-dir)))
 
-(defun package-vc--sourced-packages-list ()
-  "Generate a list of packages with VC data."
-  (seq-filter
-   (lambda (pkg)
-     (or (package-vc--desc->spec (cadr pkg))
-         ;; If we have no explicit VC data, we can try a kind of
-         ;; heuristic and use the URL header, that might already be
-         ;; pointing towards a repository, and use that as a backup
-         (and-let* ((extras (package-desc-extras (cadr pkg)))
-                    (url (alist-get :url extras))
-                    ((package-vc--guess-backend url))))))
-   package-archive-contents))
+(defun package-vc--read-package-name (prompt &optional allow-url installed)
+  "Query the user for a source package and return a name with PROMPT.
+If the optional argument ALLOW-URL is non-nil, the user is also
+allowed to specify a non-package name.  If the optional argument
+INSTALLED is non-nil, the selection will be filtered down to
+source packages that have already been installed."
+  (package-vc--archives-initialize)
+  (completing-read prompt (if installed package-alist package-archive-contents)
+                   (if installed
+                       (lambda (pkg) (package-vc-p (cadr pkg)))
+                     (lambda (pkg)
+                       (or (package-vc--desc->spec (cadr pkg))
+                           ;; If we have no explicit VC data, we can try a kind of
+                           ;; heuristic and use the URL header, that might already be
+                           ;; pointing towards a repository, and use that as a backup
+                           (and-let* ((extras (package-desc-extras (cadr pkg)))
+                                      (url (alist-get :url extras))
+                                      ((package-vc--guess-backend url)))))))
+                   (not allow-url)))
 
+(defun package-vc--read-package-desc (prompt &optional installed)
+  "Query the user for a source package and return a description with PROMPT.
+If the optional argument INSTALLED is non-nil, the selection will
+be filtered down to source packages that have already been
+installed, and the package description will be that of an
+installed package."
+  (cadr (assoc (package-vc--read-package-name prompt nil installed)
+               (if installed package-alist package-archive-contents)
+               #'string=)))
+
+;;;###autoload
+(defun package-vc-update-all ()
+  "Attempt to update all installed VC packages."
+  (interactive)
+  (dolist (package package-alist)
+    (dolist (pkg-desc (cdr package))
+      (when (package-vc-p pkg-desc)
+        (package-vc-update pkg-desc))))
+  (message "Done updating packages."))
+
+;;;###autoload
 (defun package-vc-update (pkg-desc)
   "Attempt to update the package PKG-DESC."
+  (interactive (list (package-vc--read-package-desc "Update source package: " t)))
   ;; HACK: To run `package-vc--unpack-1' after checking out the new
   ;; revision, we insert a hook into `vc-post-command-functions', and
   ;; remove it right after it ran.  To avoid running the hook multiple
@@ -528,26 +588,25 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
   ;; `package-vc--unpack-1'.  Ugh...
   ;;
   ;; If there is a better way to do this, it should be done.
+  (cl-assert (package-vc-p pkg-desc))
   (letrec ((pkg-dir (package-desc-dir pkg-desc))
-           (empty (make-symbol empty))
-           (args (list empty empty empty))
+           (vc-flags)
            (vc-filter-command-function
             (lambda (command file-or-list flags)
-              (setf (nth 0 args) command
-                    (nth 1 args) file-or-list
-                    (nth 2 args) flags)
+              (setq vc-flags flags)
               (list command file-or-list flags)))
            (post-upgrade
-            (lambda (command file-or-list flags)
-              (when (and (memq (nth 0 args) (list command empty))
-                         (memq (nth 1 args) (list file-or-list empty))
-                         (memq (nth 2 args) (list flags empty)))
-                (with-demoted-errors "Failed to activate: %S"
-                  (package-vc--unpack-1 pkg-desc pkg-dir))
-                (remove-hook 'vc-post-command-functions post-upgrade)))))
+            (lambda (_command _file-or-list flags)
+              (when (and (file-equal-p pkg-dir default-directory)
+                         (eq flags vc-flags))
+                (unwind-protect
+                    (with-demoted-errors "Failed to activate: %S"
+                      (package-vc--unpack-1 pkg-desc pkg-dir))
+                  (remove-hook 'vc-post-command-functions post-upgrade))))))
     (add-hook 'vc-post-command-functions post-upgrade)
     (with-demoted-errors "Failed to fetch: %S"
-      (vc-pull))))
+      (let ((default-directory pkg-dir))
+        (vc-pull)))))
 
 (defun package-vc--archives-initialize ()
   "Initialize package.el and fetch package specifications."
@@ -577,46 +636,60 @@ If no such revision can be found, return nil."
                              (line-number-at-pos nil t))))))))
 
 ;;;###autoload
-(defun package-vc-install (name-or-url &optional name rev backend)
-  "Fetch a package NAME-OR-URL and set it up for using with Emacs.
-If NAME-OR-URL is a URL, download the package from the repository
-at that URL; the function will try to guess the name of the package
-from the URL.  Otherwise NAME-OR-URL should be a symbol whose name
-is the package name, and the URL for the package will be taken from
-the package's metadata.
+(defun package-vc-install (package &optional name rev backend)
+  "Fetch a PACKAGE and set it up for using with Emacs.
+
+If PACKAGE is a string containing an URL, download the package
+from the repository at that URL; the function will try to guess
+the name of the package from the URL.  This can be overridden by
+passing the optional argument NAME.  If PACKAGE is a cons-cell,
+it should have the form (NAME . SPEC), where NAME is a symbol
+indicating the package name and SPEC is a plist as described in
+`package-vc-selected-packages'.  Otherwise PACKAGE should be a
+symbol whose name is the package name, and the URL for the
+package will be taken from the package's metadata.
+
 By default, this function installs the last version of the package
 available from its repository, but if REV is given and non-nil, it
 specifies the revision to install.  If REV has the special value
 `:last-release' (interactively, the prefix argument), that stands
 for the last released version of the package.
-When calling from Lisp, optional argument NAME overrides the package
-name as deduced from NAME-OR-URL.
+
 Optional argument BACKEND specifies the VC backend to use for cloning
 the package's repository; this is only possible if NAME-OR-URL is a URL,
 a string.  If BACKEND is omitted or nil, the function
-uses `package-vc--guess-backend' to guess the backend."
+uses `package-vc-heuristic-alist' to guess the backend.
+Note that by default, a source package will be prioritized over a
+regular package, but it will not remove a source package."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
      ;; symbols for completion.
      (package-vc--archives-initialize)
-     (let* ((packages (package-vc--sourced-packages-list))
-            (input (completing-read
-                    "Fetch package source (name or URL): " packages))
-            (name (file-name-base input)))
-       (list input (intern (string-remove-prefix "emacs-" name))
+     (let* ((name-or-url (package-vc--read-package-name
+                          "Fetch and install package: " t))
+            (name (file-name-base name-or-url)))
+       (list name-or-url (intern (string-remove-prefix "emacs-" name))
              (and current-prefix-arg :last-release)))))
   (package-vc--archives-initialize)
   (cond
-   ((and-let* (((stringp name-or-url))
-               (backend (or backend (package-vc--guess-backend name-or-url))))
+   ((null package)
+    (signal 'wrong-type-argument nil))
+   ((consp package)
+    (package-vc--unpack
+     (package-desc-create :name (car package)
+                          :kind 'vc)
+     (cdr package)
+     rev))
+   ((and-let* (((stringp package))
+               (backend (or backend (package-vc--guess-backend package))))
       (package-vc--unpack
        (package-desc-create
-        :name (or name (intern (file-name-base name-or-url)))
+        :name (or name (intern (file-name-base package)))
         :kind 'vc)
-       (list :vc-backend backend :url name-or-url)
+       (list :vc-backend backend :url package)
        rev)))
-   ((and-let* ((desc (assoc name-or-url package-archive-contents #'string=)))
+   ((and-let* ((desc (assoc package package-archive-contents #'string=)))
       (package-vc--unpack
        (let ((copy (copy-package-desc (cadr desc))))
          (setf (package-desc-kind copy) 'vc)
@@ -626,9 +699,9 @@ uses `package-vc--guess-backend' to guess the backend."
                       (url (alist-get :url extras))
                       (backend (package-vc--guess-backend url)))
              (list :vc-backend backend :url url))
-           (user-error "Package has no VC data"))
+           (user-error "Package `%s' has no VC data" package))
        rev)))
-   ((user-error "Unknown package to fetch: %s" name-or-url))))
+   ((user-error "Unknown package to fetch: %s" package))))
 
 ;;;###autoload
 (defun package-vc-checkout (pkg-desc directory &optional rev)
@@ -642,25 +715,20 @@ package's repository.  If REV has the special value
 `:last-release' (interactively, the prefix argument), that stands
 for the last released version of the package."
   (interactive
-   (progn
-     ;; Initialize the package system to get the list of package
-     ;; symbols for completion.
-     (package-vc--archives-initialize)
-     (let* ((packages (package-vc--sourced-packages-list))
-            (input (completing-read
-                    "Fetch package source (name or URL): " packages)))
-       (list (cadr (assoc input package-archive-contents #'string=))
-             (read-file-name "Clone into new or empty directory: " nil nil t nil
-                             (lambda (dir) (or (not (file-exists-p dir))
-                                               (directory-empty-p dir))))
-             (and current-prefix-arg :last-release)))))
+   (let* ((name (package-vc--read-package-name "Fetch package source: ")))
+     (list (cadr (assoc name package-archive-contents #'string=))
+           (read-file-name "Clone into new or empty directory: " nil nil t nil
+                           (lambda (dir) (or (not (file-exists-p dir))
+                                             (directory-empty-p dir))))
+           (and current-prefix-arg :last-release))))
   (package-vc--archives-initialize)
   (let ((pkg-spec (or (package-vc--desc->spec pkg-desc)
                       (and-let* ((extras (package-desc-extras pkg-desc))
                                  (url (alist-get :url extras))
                                  (backend (package-vc--guess-backend url)))
                         (list :vc-backend backend :url url))
-                      (user-error "Package has no VC data"))))
+                      (user-error "Package `%s' has no VC data"
+                                  (package-desc-name pkg-desc)))))
     (package-vc--clone pkg-desc pkg-spec directory rev)
     (find-file directory)))
 
@@ -682,45 +750,42 @@ name from the base name of DIR."
   (package-vc--archives-initialize)
   (let* ((name (or name (file-name-base (directory-file-name dir))))
          (pkg-dir (expand-file-name name package-user-dir)))
-    (make-symbolic-link dir pkg-dir)
-    (package-vc--unpack-1 (package-desc-create
-                          :name (intern name)
-                          :kind 'vc)
-                         pkg-dir)))
+    (make-symbolic-link (expand-file-name dir) pkg-dir)
+    (package-vc--unpack-1
+     (package-desc-create
+      :name (intern name)
+      :kind 'vc)
+     (file-name-as-directory pkg-dir))))
 
 ;;;###autoload
-(defun package-vc-refresh (pkg-desc)
-  "Refresh the installation for package given by PKG-DESC.
-Interactively, prompt for the name of the package to refresh."
-  (interactive (package-vc--read-pkg "Refresh package: "))
+(defun package-vc-rebuild (pkg-desc)
+  "Rebuild the installation for package given by PKG-DESC.
+Rebuilding an installation means scraping for new autoload
+cookies, re-compiling Emacs Lisp files, building and installing
+any documentation, downloading any missing dependencies.  This
+command does not fetch new revisions from a remote server.  That
+is the responsibility of `package-vc-update'.  Interactively,
+prompt for the name of the package to rebuild."
+  (interactive (list (package-vc--read-package-desc "Rebuild package: " t)))
   (package-vc--unpack-1 pkg-desc (package-desc-dir pkg-desc)))
 
-(defun package-vc--read-pkg (prompt)
-  "Query for a source package description with PROMPT."
-  (cadr (assoc (completing-read
-                prompt
-                package-alist
-                (lambda (pkg) (package-vc-p (cadr pkg)))
-                t)
-               package-alist
-               #'string=)))
-
 ;;;###autoload
-(defun package-vc-prepare-patch (pkg subject revisions)
+(defun package-vc-prepare-patch (pkg-desc subject revisions)
   "Send patch for REVISIONS to maintainer of the package PKG using SUBJECT.
-SUBJECT and REVISIONS are passed on to `vc-prepare-patch', which see.
-PKG must be a package description.
-Interactively, prompt for PKG, SUBJECT, and REVISIONS.  However,
-if the current buffer has marked commit log entries, REVISIONS
-are the tags of the marked entries, see `log-view-get-marked'."
+The function uses `vc-prepare-patch', passing SUBJECT and
+REVISIONS directly.  PKG-DESC must be a package description.
+Interactively, prompt for PKG-DESC, SUBJECT, and REVISIONS.  When
+invoked with a numerical prefix argument, use the last N
+revisions.  When invoked interactively in a Log View buffer with
+marked revisions, use those."
   (interactive
-   (list (package-vc--read-pkg "Package to prepare a patch for: ")
+   (list (package-vc--read-package-desc "Package to prepare a patch for: " t)
          (and (not vc-prepare-patches-separately)
               (read-string "Subject: " "[PATCH] " nil nil t))
-         (or (log-view-get-marked)
-             (vc-read-multiple-revisions "Revisions: "))))
-  (vc-prepare-patch (package-maintainers pkg t)
-                    subject revisions))
+         (vc-prepare-patch-prompt-revisions)))
+  (let ((default-directory (package-desc-dir pkg-desc)))
+    (vc-prepare-patch (package-maintainers pkg-desc t)
+                      subject revisions)))
 
 (provide 'package-vc)
 ;;; package-vc.el ends here

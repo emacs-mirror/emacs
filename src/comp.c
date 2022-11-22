@@ -947,7 +947,7 @@ obj_to_reloc (Lisp_Object obj)
     }
 
   xsignal1 (Qnative_ice,
-	    build_string ("cant't find data in relocation containers"));
+	    build_string ("can't find data in relocation containers"));
   assume (false);
 
  found:
@@ -5609,7 +5609,7 @@ file_in_eln_sys_dir (Lisp_Object filename)
 /* Load related routines.  */
 DEFUN ("native-elisp-load", Fnative_elisp_load, Snative_elisp_load, 1, 2, 0,
        doc: /* Load native elisp code FILENAME.
-LATE_LOAD has to be non-nil when loading for deferred compilation.  */)
+LATE-LOAD has to be non-nil when loading for deferred compilation.  */)
   (Lisp_Object filename, Lisp_Object late_load)
 {
   CHECK_STRING (filename);

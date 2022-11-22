@@ -179,6 +179,10 @@ for use on `completion-at-point-function'."
 (defun pcomplete/erc-mode/UNIGNORE ()
   (pcomplete-here (erc-with-server-buffer erc-ignore-list)))
 
+(defun pcomplete/erc-mode/RECONNECT ()
+  (pcomplete-here '("cancel"))
+  (pcomplete-opt "a"))
+
 ;;; Functions that provide possible completions.
 
 (defun pcomplete-erc-commands ()

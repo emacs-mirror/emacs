@@ -545,7 +545,7 @@ by `org-babel-comint-async-filter'."
 
 (defun ob-session-async-R-value-callback (params tmp-file)
   "Callback for async value results.
-Assigned locally to `ob-session-async-file-callback' in R
+Assigned locally to `org-babel-comint-async-file-callback' in R
 comint buffers used for asynchronous Babel evaluation."
   (let* ((graphics-file (and (member "graphics" (assq :result-params params))
 			     (org-babel-graphical-output-file params)))

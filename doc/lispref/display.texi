@@ -2273,7 +2273,7 @@ complex text shaping requires that for some scripts.  When that
 happens, characters no longer map in a simple way to display columns,
 and display layout decisions with such strings, such as truncating too
 wide strings, can be a complex job.  This function helps in performing
-suvh jobs: it splits up its argument @var{string} into a list of
+such jobs: it splits up its argument @var{string} into a list of
 substrings, where each substring produces a single grapheme cluster
 that should be displayed as a unit.  Lisp programs can then use this
 list to construct visually-valid substrings of @var{string} which will

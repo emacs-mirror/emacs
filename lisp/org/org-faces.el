@@ -137,7 +137,7 @@ The following faces apply, with this priority.
 
 Since column view works by putting overlays with a display property
 over individual characters in the buffer, the face of the underlining
-character (this might for example be the a TODO keyword) might still
+character (this might for example be the TODO keyword) might still
 shine through in some properties.  So when your column view looks
 funny, with \"random\" colors, weight, strike-through, try to explicitly
 set the properties in the `org-column' face.  For example, set

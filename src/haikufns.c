@@ -175,10 +175,19 @@ haiku_change_tool_bar_height (struct frame *f, int height)
 void
 haiku_change_tab_bar_height (struct frame *f, int height)
 {
-  int unit = FRAME_LINE_HEIGHT (f);
-  int old_height = FRAME_TAB_BAR_HEIGHT (f);
-  int lines = (height + unit - 1) / unit;
-  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+  int unit, old_height, lines;
+  Lisp_Object fullscreen;
+
+  unit = FRAME_LINE_HEIGHT (f);
+  old_height = FRAME_TAB_BAR_HEIGHT (f);
+  fullscreen = get_frame_param (f, Qfullscreen);
+
+  /* This differs from the tool bar code in that the tab bar height is
+     not rounded up.  Otherwise, if redisplay_tab_bar decides to grow
+     the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
+     leading to the tab bar height being incorrectly set upon the next
+     call to x_set_font.  (bug#59285) */
+  lines = height / unit;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);

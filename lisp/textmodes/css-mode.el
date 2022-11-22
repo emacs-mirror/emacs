@@ -40,7 +40,16 @@
 (require 'sgml-mode)
 (require 'smie)
 (require 'thingatpt)
-(eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'subr-x)
+                   (require 'rx))
+(require 'treesit)
+
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+
 
 (defgroup css nil
   "Cascading Style Sheets (CSS) editing mode."
@@ -1317,6 +1326,98 @@ for determining whether point is within a selector."
      (when (smie-rule-hanging-p)
        css-indent-offset))))
 
+;;; Tree-sitter
+
+(defvar css-ts-mode-map (copy-keymap css-mode-map)
+  "Keymap used in `css-ts-mode'.")
+
+(defvar css--treesit-indent-rules
+  '((css
+     ((node-is "}") parent-bol 0)
+     ((node-is ")") parent-bol 0)
+     ((node-is "]") parent-bol 0)
+
+     ((parent-is "block") parent-bol css-indent-offset)
+     ((parent-is "arguments") parent-bol css-indent-offset)
+     ((match nil "declaration" nil 0 3) parent-bol css-indent-offset)
+     ((match nil "declaration" nil 3) (nth-sibling 2) 0)))
+  "Tree-sitter indentation rules for `css-ts-mode'.")
+
+(defvar css--treesit-settings
+  (treesit-font-lock-rules
+   :feature 'comment
+   :language 'css
+   '((comment) @font-lock-comment-face)
+
+   :feature 'string
+   :language 'css
+   '((string_value) @font-lock-string-face)
+
+   :feature 'variable
+   :language 'css
+   '((plain_value) @font-lock-variable-name-face)
+
+   :feature 'selector
+   :language 'css
+   '((class_selector) @css-selector
+     (child_selector) @css-selector
+     (id_selector) @css-selector
+     (tag_name) @css-selector
+     (class_name) @css-selector)
+
+   :feature 'property
+   :language 'css
+   `((property_name) @css-property)
+
+   :feature 'function
+   :language 'css
+   '((function_name) @font-lock-function-name-face)
+
+   :feature 'constant
+   :language 'css
+   '((integer_value) @font-lock-number-face
+     (float_value) @font-lock-number-face
+     (unit) @font-lock-constant-face)
+
+   :feature 'error
+   :language 'css
+   '((ERROR) @error))
+  "Tree-sitter font-lock settings for `css-ts-mode'.")
+
+(defun css--treesit-imenu-1 (node)
+  "Helper for `css--treesit-imenu'.
+Find string representation for NODE and set marker, then recurse
+the subtrees."
+  (let* ((ts-node (car node))
+         (subtrees (mapcan #'css--treesit-imenu-1 (cdr node)))
+         (name (when ts-node
+                 (pcase (treesit-node-type ts-node)
+                   ("rule_set" (treesit-node-text
+                                (treesit-node-child ts-node 0) t))
+                   ("media_statement"
+                    (let ((block (treesit-node-child ts-node -1)))
+                      (string-trim
+                       (buffer-substring-no-properties
+                        (treesit-node-start ts-node)
+                        (treesit-node-start block))))))))
+         (marker (when ts-node
+                   (set-marker (make-marker)
+                               (treesit-node-start ts-node)))))
+    (cond
+     ((or (null ts-node) (null name)) subtrees)
+     (subtrees
+      `((,name ,(cons name marker) ,@subtrees)))
+     (t
+      `((,name . ,marker))))))
+
+(defun css--treesit-imenu ()
+  "Return Imenu alist for the current buffer."
+  (let* ((node (treesit-buffer-root-node))
+         (tree (treesit-induce-sparse-tree
+                node (rx (or "rule_set" "media_statement"))
+                nil 1000)))
+    (css--treesit-imenu-1 tree)))
+
 ;;; Completion
 
 (defun css--complete-property ()
@@ -1655,8 +1756,72 @@ rgb()/rgba()."
               (replace-regexp-in-string "[\n ]+" " " s)))
            res)))))))
 
+(define-derived-mode css-base-mode prog-mode "CSS"
+  "Generic mode to edit Cascading Style Sheets (CSS).
+
+This is a generic major mode intended to be inherited by a
+concrete implementation.  Currently there are two concrete
+implementations: `css-mode' and `css-ts-mode'."
+  (setq-local comment-start "/*")
+  (setq-local comment-start-skip "/\\*+[ \t]*")
+  (setq-local comment-end "*/")
+  (setq-local comment-end-skip "[ \t]*\\*+/")
+  (setq-local electric-indent-chars
+              (append css-electric-keys electric-indent-chars))
+  ;; The default "." creates ambiguity with class selectors.
+  (setq-local imenu-space-replacement " "))
+
 ;;;###autoload
-(define-derived-mode css-mode prog-mode "CSS"
+(define-derived-mode css-ts-mode css-base-mode "CSS"
+  "Major mode to edit Cascading Style Sheets (CSS).
+\\<css-ts-mode-map>
+
+This mode provides syntax highlighting, indentation, completion,
+and documentation lookup for CSS, based on the tree-sitter
+library.
+
+Use `\\[completion-at-point]' to complete CSS properties,
+property values, pseudo-elements, pseudo-classes, at-rules,
+bang-rules, and HTML tags, classes and IDs.  Completion
+candidates for HTML class names and IDs are found by looking
+through open HTML mode buffers.
+
+Use `\\[info-lookup-symbol]' to look up documentation of CSS
+properties, at-rules, pseudo-classes, and pseudo-elements on the
+Mozilla Developer Network (MDN).
+
+Use `\\[fill-paragraph]' to reformat CSS declaration blocks.  It
+can also be used to fill comments.
+
+\\{css-mode-map}"
+  (when (treesit-ready-p 'css)
+    ;; Borrowed from `css-native-mode'.
+    (add-hook 'completion-at-point-functions
+              #'css-completion-at-point nil 'local)
+    (setq-local fill-paragraph-function #'css-fill-paragraph)
+    (setq-local adaptive-fill-function #'css-adaptive-fill)
+    (setq-local add-log-current-defun-function #'css-current-defun-name)
+
+    ;; Tree-sitter specific setup.
+    (treesit-parser-create 'css)
+    (setq-local treesit-simple-indent-rules css--treesit-indent-rules)
+    (setq-local treesit-defun-type-regexp "rule_set")
+    (setq-local treesit-font-lock-settings css--treesit-settings)
+    (setq-local treesit-font-lock-feature-list
+                '((selector comment)
+                  (property constant string)
+                  (error variable function)))
+    ;; Tree-sitter-css, for whatever reason, cannot reliably return
+    ;; the captured nodes in a given range (it instead returns the
+    ;; nodes preceding range).  Before this is fixed in
+    ;; tree-sitter-css, use this heuristic as a temporary fix.
+    (setq-local treesit--font-lock-query-expand-range (cons 80 80))
+    (setq-local imenu-create-index-function #'css--treesit-imenu)
+    (setq-local which-func-functions nil)
+    (treesit-major-mode-setup)))
+
+;;;###autoload
+(define-derived-mode css-mode css-base-mode "CSS"
   "Major mode to edit Cascading Style Sheets (CSS).
 \\<css-mode-map>
 This mode provides syntax highlighting, indentation, completion,
@@ -1677,10 +1842,6 @@ be used to fill comments.
 
 \\{css-mode-map}"
   (setq-local font-lock-defaults css-font-lock-defaults)
-  (setq-local comment-start "/*")
-  (setq-local comment-start-skip "/\\*+[ \t]*")
-  (setq-local comment-end "*/")
-  (setq-local comment-end-skip "[ \t]*\\*+/")
   (setq-local syntax-propertize-function
               css-syntax-propertize-function)
   (setq-local fill-paragraph-function #'css-fill-paragraph)
@@ -1689,13 +1850,9 @@ be used to fill comments.
   (smie-setup css-smie-grammar #'css-smie-rules
               :forward-token #'css-smie--forward-token
               :backward-token #'css-smie--backward-token)
-  (setq-local electric-indent-chars
-              (append css-electric-keys electric-indent-chars))
   (setq-local font-lock-fontify-region-function #'css--fontify-region)
   (add-hook 'completion-at-point-functions
             #'css-completion-at-point nil 'local)
-  ;; The default "." creates ambiguity with class selectors.
-  (setq-local imenu-space-replacement " ")
   (setq-local imenu-prev-index-position-function
               #'css--prev-index-position)
   (setq-local imenu-extract-index-name-function

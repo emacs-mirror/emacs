@@ -131,7 +131,7 @@ Names should be as they appear in loaddefs.el.")
 ;; Don't create a file `abbrev-file-name'.
 (setq save-abbrevs nil)
 
-;; Avoid compile logs from adviced functions.
+;; Avoid compile logs from advised functions.
 (eval-after-load "bytecomp"
   '(setq ad-default-compilation-action 'never))
 

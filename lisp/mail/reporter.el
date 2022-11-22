@@ -357,7 +357,7 @@ mail-sending package is used for editing and sending the message."
 	  (goto-char final-resting-place))
       (set-marker final-resting-place nil))
 
-    ;; save initial text and set up the `no-empty-submission' hook.
+    ;; save initial text and set up the no empty submission hook.
     ;; This only works for mailers that support a pre-send hook, and
     ;; for which the paradigm has a non-nil value for the `hookvar'
     ;; key in its agent (i.e. sendmail.el's mail-send-hook).

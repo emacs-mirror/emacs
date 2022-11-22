@@ -7520,7 +7520,7 @@ to match all of yours addresses."
 ;;;###autoload
 (defun message-cancel-news (&optional arg)
   "Cancel an article you posted.
-If ARG, allow editing of the cancellation message."
+If ARG, allow editing of the cancelation message."
   (interactive "P")
   (unless (message-news-p)
     (error "This is not a news article; canceling is impossible"))
@@ -8811,8 +8811,6 @@ headers.  If FORCE, insert new field even if NEW-VALUE is empty."
 	"bug-gnu-emacs@gnu.org")
   "Mail addresses that have no full name.
 Used in `message-simplify-recipients'."
-  ;; Maybe the addresses could be extracted from
-  ;; `gnus-parameter-to-list-alist'?
   :type '(choice (const :tag "None" nil)
 		 (repeat string))
   :version "23.1" ;; No Gnus

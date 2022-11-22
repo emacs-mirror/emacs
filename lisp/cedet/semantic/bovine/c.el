@@ -1344,7 +1344,7 @@ Optional argument STAR and REF indicate the number of * and & in the typedef."
 	    :reentrant-flag (if (member "reentrant" (nth 6 tokenpart)) t)
 	    ;; A function post-const is funky.  Try stuff
 	    :methodconst-flag (if (member "const" (nth 6 tokenpart)) t)
-	    ;; prototypes are functions w/ no body
+            ;; prototypes are functions with no body
 	    :prototype-flag (if (nth 8 tokenpart) t)
 	    ;; Pure virtual
 	    :pure-virtual-flag (if (eq (nth 8 tokenpart) :pure-virtual-flag) t)
@@ -2015,7 +2015,7 @@ have to be wrapped in that namespace."
 	    (setq txt (concat txt (format "%S" arg)))
 	    (setq sv (cdr sv)))
 
-	  ;; This is optional, and potentially fraught w/ errors.
+          ;; This is optional, and potentially fraught with errors.
 	  (condition-case nil
 	      (dolist (lt sv)
 		(setq txt (concat txt " " (semantic-lex-token-text lt))))

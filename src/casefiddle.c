@@ -30,6 +30,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "keymap.h"
 
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 enum case_action {CASE_UP, CASE_DOWN, CASE_CAPITALIZE, CASE_CAPITALIZE_UP};
 
 /* State for casing individual characters.  */
@@ -530,6 +534,11 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   modify_text (start, end);
   prepare_casing_context (&ctx, flag, true);
 
+#ifdef HAVE_TREE_SITTER
+  ptrdiff_t start_byte = CHAR_TO_BYTE (start);
+  ptrdiff_t old_end_byte = CHAR_TO_BYTE (end);
+#endif
+
   ptrdiff_t orig_end = end;
   record_delete (start, make_buffer_string (start, end, true), false);
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
@@ -548,6 +557,9 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
     {
       signal_after_change (start, end - start - added, end - start);
       update_compositions (start, end, CHECK_ALL);
+#ifdef HAVE_TREE_SITTER
+      treesit_record_change (start_byte, old_end_byte, CHAR_TO_BYTE (end));
+#endif
     }
 
   return orig_end + added;

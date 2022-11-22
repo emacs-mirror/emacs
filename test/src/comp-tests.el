@@ -298,9 +298,9 @@ Check that the resulting binaries do not differ."
 (comp-deftest non-locals ()
   "Test non locals."
   (should (string= (comp-tests-condition-case-0-f)
-                   "arith-error Arithmetic error catched"))
+                   "arith-error Arithmetic error caught"))
   (should (string= (comp-tests-condition-case-1-f)
-                   "error Foo catched"))
+                   "error Foo caught"))
   (should (= (comp-tests-catch-f
               (lambda () (throw 'foo 3)))
              3))

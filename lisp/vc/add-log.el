@@ -1188,7 +1188,7 @@ file were isearch was started."
      ((and wrap (null file))
       (current-buffer))
      ;; When there is no next file, file-exists-p raises the error to be
-     ;; catched by the search function that displays the error message.
+     ;; caught by the search function that displays the error message.
      ((file-exists-p file)
       (find-file-noselect file))
      (t

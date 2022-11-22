@@ -712,6 +712,7 @@ DIRS must contain directory names."
     (define-key map "G" 'project-or-external-find-regexp)
     (define-key map "r" 'project-query-replace-regexp)
     (define-key map "x" 'project-execute-extended-command)
+    (define-key map "\C-b" 'project-list-buffers)
     map)
   "Keymap for project commands.")
 
@@ -1221,6 +1222,28 @@ which see for how it is determined where the buffer will be
 displayed."
   (interactive (list (project--read-project-buffer)))
   (display-buffer-other-frame buffer-or-name))
+
+;;;###autoload
+(defun project-list-buffers (&optional arg)
+  "Display a list of project buffers.
+The list is displayed in a buffer named \"*Buffer List*\".
+
+By default, all project buffers are listed except those whose names
+start with a space (which are for internal use).  With prefix argument
+ARG, show only buffers that are visiting files."
+  (interactive "P")
+  (let ((pr (project-current t)))
+    (display-buffer
+     (if (version< emacs-version "29.0.50")
+         (let ((buf (list-buffers-noselect arg (project-buffers pr))))
+           (with-current-buffer buf
+             (setq-local revert-buffer-function
+                         (lambda (&rest _ignored)
+                           (list-buffers--refresh (project-buffers pr))
+                           (tabulated-list-print t))))
+           buf)
+       (list-buffers-noselect
+        arg nil (lambda (buf) (memq buf (project-buffers pr))))))))
 
 (defcustom project-kill-buffer-conditions
   '(buffer-file-name    ; All file-visiting buffers are included.

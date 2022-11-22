@@ -195,7 +195,7 @@ other meta-variable based on this name.")
   "Add the current buffer into a project.
 _FILE is ignored.
 OT is the object target.  DIR is the directory to start in."
-  (let* ((target (if ede-object (error "Already associated w/ a target")
+  (let* ((target (if ede-object (error "Already associated with a target")
 		   (let ((amf (project-am-load default-directory)))
 		     (if (not amf) (error "No project file"))
 		     (completing-read "Target: "
@@ -231,7 +231,7 @@ OT is the object target.  DIR is the directory to start in."
   (setq ede-object nil))
 
 (cl-defmethod project-edit-file-target ((obj project-am-target))
-  "Edit the target associated w/ this file."
+  "Edit the target associated with this file."
   (find-file (concat (oref obj path) "Makefile.am"))
   (goto-char (point-min))
   (makefile-move-to-macro (project-am-macro obj))

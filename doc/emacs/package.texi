@@ -559,7 +559,7 @@ package, without adding it to the package list, use
 @code{package-vc-checkout}.
 
 @vindex package-vc-selected-packages
-@findex package-vc-ensure-packages
+@findex package-vc-install-selected-packages
   An alternative way to use @code{package-vc-install} is via the
 @code{package-vc-selected-packages} user option.  This is an alist of
 packages to install, where each key is a package name and the value is
@@ -567,8 +567,8 @@ packages to install, where each key is a package name and the value is
 indicating a specific revision or a package specification plist.  The
 side effect of setting the user option is to install the package, but
 the process can also be manually triggered using the function
-@code{package-vc-ensure-packages}.  Here is an example of how the user
-option:
+@code{package-vc-install-selected-packages}.  Here is an example of
+how the user option:
 
 @example
 @group
@@ -593,7 +593,7 @@ with the maintainers, first commit your changes then use the command
 @code{package-vc-prepare-patch} to share it.  @xref{Preparing Patches}.
 
 @findex package-vc-install-from-checkout
-@findex package-vc-refresh
+@findex package-vc-rebuild
   If you maintain your own packages you might want to use a local
 checkout instead of cloning a remote repository.  You can do this by
 using @code{package-vc-install-from-checkout}, which creates a symbolic link

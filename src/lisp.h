@@ -583,6 +583,8 @@ enum Lisp_Fwd_Type
    your object -- this way, the same object could be used to represent
    several disparate C structures.
 
+   In addition, you need to add switch branches in data.c for Ftype_of.
+
    You also need to add the new type to the constant
    `cl--typeof-types' in lisp/emacs-lisp/cl-preloaded.el.  */
 
@@ -1061,6 +1063,9 @@ enum pvec_type
   PVEC_CONDVAR,
   PVEC_MODULE_FUNCTION,
   PVEC_NATIVE_COMP_UNIT,
+  PVEC_TS_PARSER,
+  PVEC_TS_NODE,
+  PVEC_TS_COMPILED_QUERY,
   PVEC_SQLITE,
 
   /* These should be last, for internal_equal and sxhash_obj.  */
@@ -4855,6 +4860,8 @@ extern void update_search_regs (ptrdiff_t oldstart,
 extern void record_unwind_save_match_data (void);
 extern ptrdiff_t fast_string_match_internal (Lisp_Object, Lisp_Object,
 					     Lisp_Object);
+extern ptrdiff_t fast_c_string_match_internal (Lisp_Object, const char *,
+					       ptrdiff_t, Lisp_Object);
 
 INLINE ptrdiff_t
 fast_string_match (Lisp_Object regexp, Lisp_Object string)
@@ -4868,8 +4875,21 @@ fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
   return fast_string_match_internal (regexp, string, Vascii_canon_table);
 }
 
-extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *,
-						  ptrdiff_t);
+INLINE ptrdiff_t
+fast_c_string_match (Lisp_Object regexp,
+		     const char *string, ptrdiff_t len)
+{
+  return fast_c_string_match_internal (regexp, string, len, Qnil);
+}
+
+INLINE ptrdiff_t
+fast_c_string_match_ignore_case (Lisp_Object regexp,
+				 const char *string, ptrdiff_t len)
+{
+  return fast_c_string_match_internal (regexp, string, len,
+				       Vascii_canon_table);
+}
+
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 extern ptrdiff_t find_newline1 (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
@@ -5668,6 +5688,11 @@ maybe_gc (void)
   if (consing_until_gc < 0)
     maybe_garbage_collect ();
 }
+
+/* Simplified version of 'define-error' that works with pure
+   objects.  */
+void
+define_error (Lisp_Object name, const char *message, Lisp_Object parent);
 
 INLINE_HEADER_END
 

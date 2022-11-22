@@ -1640,16 +1640,21 @@ X expects to find it.
 
 *** Improving performance with slow X connections.
 
-There are several ways to improve this performance, any subset of which can
-be carried out at the same time:
+There are several ways to improve this performance, any subset of
+which can be carried out at the same time:
 
-1) If you don't need X Input Methods (XIM) for entering text in some
+1) Use the "--with-x-toolkit=no" build of Emacs.  By not relying on
+   any toolkit (exhibiting potentially slow behavior), it has been
+   made very fast over networks exhibiting high latency, but suitable
+   bandwidth.
+
+2) If you don't need X Input Methods (XIM) for entering text in some
    language you use, you can improve performance on WAN links by using
    the X resource useXIM to turn off use of XIM.  This does not affect
    the use of Emacs's own input methods, which are part of the Leim
    package.
 
-2) If the connection is very slow, you might also want to consider
+3) If the connection is very slow, you might also want to consider
    switching off scroll bars, menu bar, and tool bar.  Adding the
    following forms to your .emacs file will accomplish that, but only
    after the initial frame is displayed:
@@ -1665,25 +1670,44 @@ be carried out at the same time:
     Emacs.menuBar: off
     Emacs.toolBar: off
 
-3) Use ssh to forward the X connection, and enable compression on this
+4) Use ssh to forward the X connection, and enable compression on this
    forwarded X connection (ssh -XC remotehostname emacs ...).
 
-4) Use lbxproxy on the remote end of the connection.  This is an interface
-   to the low bandwidth X extension in most modern X servers, which
-   improves performance dramatically, at the slight expense of correctness
-   of the X protocol.  lbxproxy achieves the performance gain by grouping
-   several X requests in one TCP packet and sending them off together,
-   instead of requiring a round-trip for each X request in a separate
-   packet.  The switches that seem to work best for emacs are:
-    -noatomsfile  -nowinattr  -cheaterrors -cheatevents
-   Note that the -nograbcmap option is known to cause problems.
-   For more about lbxproxy, see:
+   Keep in mind that this does not help with latency problems, only
+   andwidth ones.
+
+5) Use lbxproxy on the remote end of the connection.  This is an
+   interface to the low bandwidth X extension in some outdated X
+   servers, which improves performance dramatically, at the slight
+   expense of correctness of the X protocol.  lbxproxy achieves the
+   performance gain by grouping several X requests in one TCP packet
+   and sending them off together, instead of requiring a round-trip
+   for each X request in a separate packet.  The switches that seem to
+   work best for emacs are: -noatomsfile -nowinattr -cheaterrors
+   -cheatevents Note that the -nograbcmap option is known to cause
+   problems.  For more about lbxproxy, see:
    http://www.x.org/archive/X11R6.8.0/doc/lbxproxy.1.html
 
-5) If copying and killing is slow, try to disable the interaction with the
+   Keep in mind that lbxproxy and the LBX extension are now obsolete.
+
+6) If copying and killing is slow, try to disable the interaction with the
    native system's clipboard by adding these lines to your .emacs file:
+
      (setq interprogram-cut-function nil)
      (setq interprogram-paste-function nil)
+
+7) If selecting text with the mouse is slow, the main culprit is
+   likely `select-active-regions', coupled with a program monitoring
+   the clipboard on the X server you are connected to.  Try turning
+   that off.
+
+   However, over networks with moderate to high latency, with no
+   clipboard monitor running, the bottleneck is likely to be
+   `mouse-position' instead.  Set the variable
+   `x-use-fast-mouse-position' to either any non-nil value, or to the
+   symbol `really-fast' if that is still too slow.  Doing so will also
+   cause Emacs features that relies on accurate mouse position
+   reporting to stop working reliably.
 
 *** Emacs gives the error, Couldn't find per display information.
 

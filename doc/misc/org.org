@@ -16569,7 +16569,7 @@ identifying a reference in the bibliography.
 
 - Each key can be qualified by a /prefix/ (e.g.\nbsp{}"see ") and/or
   a /suffix/ (e.g.\nbsp{}"p.\nbsp{}123"), giving information useful or necessary
-  fo the comprehension of the citation but not included in the
+  for the comprehension of the citation but not included in the
   reference.
 
 - A single citation can cite more than one reference ; the keys are

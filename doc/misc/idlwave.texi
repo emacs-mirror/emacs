@@ -3799,7 +3799,7 @@ configuration is not possible, but choices abound.  The default
 @code{idlwave-help-browser-function} inherits the browser configured
 in @code{browse-url-browser-function}.
 
-Note that the HTML files decompiled from the help sources contain
+Note that the HTML files recompiled from the help sources contain
 specific references to the @samp{Symbol} font, which by default is not
 permitted in normal encodings (it's invalid, technically).  Though it
 only impacts a few symbols, you can trick Mozilla-based browsers into

@@ -125,7 +125,7 @@
 ;;;###autoload
 (defun read-multiple-choice (prompt choices &optional help-string show-help
                                     long-form)
-  "Ask user to select an entry from CHOICES, promting with PROMPT.
+  "Ask user to select an entry from CHOICES, prompting with PROMPT.
 This function allows to ask the user a multiple-choice question.
 
 CHOICES should be a list of the form (KEY NAME [DESCRIPTION]).

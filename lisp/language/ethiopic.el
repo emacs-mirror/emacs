@@ -27,6 +27,13 @@
 
 ;;; Commentary:
 
+;; Note: This file includes several codepoints outside of the Unicode
+;; 0..#x10FFFF range, which are characters that were not unified into
+;; Unicode.  Therefore, this file is encoded in utf-8-emacs, because
+;; UTF-8 cannot encode such codepoints.  We include these codepoints
+;; literally in the file to have them displayed by suitable fonts,
+;; which makes maintenance easier.
+
 ;;; Code:
 
 (define-ccl-program ccl-encode-ethio-font

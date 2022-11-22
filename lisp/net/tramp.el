@@ -278,8 +278,9 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
 
   * `tramp-direct-async'
     Whether the method supports direct asynchronous processes.
-    Until now, just \"ssh\"-based, \"sshfs\"-based and
-    \"adb\"-based methods do.
+    Until now, just \"ssh\"-based, \"sshfs\"-based, \"adb\"-based
+    and container methods do.  If it is a list of strings, they
+    are used to construct the remote command.
 
   * `tramp-config-check'
     A function to be called with one argument, VEC.  It should
@@ -4804,7 +4805,14 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	       (command
 	        (append
 		 `("cd" ,(tramp-shell-quote-argument localname) "&&" "(" "env")
-		 env `(,command ")"))))
+		 env `(,command ")")))
+		;; Add remote shell if needed.
+	       (command
+		(if (consp (tramp-get-method-parameter v 'tramp-direct-async))
+		    (append
+		     (tramp-get-method-parameter v 'tramp-direct-async)
+                     `(,(mapconcat #'identity command " ")))
+		  command)))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
 	  ;; is different between tramp-sh.el, and tramp-adb.el or

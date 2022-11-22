@@ -73,7 +73,7 @@
     (require 'erc-d-t)
     (require 'erc-d)))
 
-(require 'erc-backend)
+(require 'erc)
 
 (eval-when-compile (require 'erc-join)
                    (require 'erc-services))
@@ -125,6 +125,7 @@
       (erc-auth-source-parameters-join-function nil)
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)
+      (erc-after-connect nil)
       (erc-d-linger-secs 10)
       ,@bindings)))
 
@@ -295,7 +296,7 @@ buffer-naming collisions involving bouncers in ERC."
         (erc-d-t-search-for 1 "<joe>")
         (erc-d-t-absent-for 0.1 "<bob>")
         (erc-d-t-wait-for 5 (eq erc-server-process erc-server-process-bar))
-        (erc-d-t-search-for 15 "keeps you from dishonour")
+        (erc-d-t-search-for 15 "joe: It is a rupture")
         (erc-d-t-wait-for 5 (not (erc-server-process-alive)))))
 
     (when after (funcall after))))

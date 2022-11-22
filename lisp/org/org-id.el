@@ -591,7 +591,7 @@ If SILENT is non-nil, messages are suppressed."
 			(setf (car item) (expand-file-name (car item) loc))))
 		    org-id-locations)))
 	(error
-	 (message "Could not read `org-id-values' from %s, setting it to nil"
+         (message "Could not read `org-id-locations' from %s, setting it to nil"
 		  org-id-locations-file))))
     (setq org-id-files (mapcar 'car org-id-locations))
     (setq org-id-locations (org-id-alist-to-hash org-id-locations))))

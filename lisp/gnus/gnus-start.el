@@ -173,7 +173,7 @@ properly with all servers."
 
 Groups with levels less than `gnus-level-subscribed', which
 should be less than this variable, are subscribed.  Groups with
-levels from `gnus-level-subscribed' (exclusive) upto this
+levels from `gnus-level-subscribed' (exclusive) up to this
 variable (inclusive) are unsubscribed.  See also
 `gnus-level-zombie', `gnus-level-killed' and the Info node `(gnus)Group
 Levels' for details.")
