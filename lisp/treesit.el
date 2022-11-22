@@ -95,7 +95,12 @@ indent, imenu, etc."
   :group 'tools
   :version "29.1")
 
-(defcustom treesit-max-buffer-size (* 4 1024 1024)
+(defcustom treesit-max-buffer-size
+  (let ((mb (* 1024 1024)))
+    ;; 40MB for 64-bit systems, 15 for 32-bit.
+    (if (> most-positive-fixnum (* 4 1024 mb))
+        (* 40 mb)
+      (* 15 mb)))
   "Maximum buffer size for enabling tree-sitter parsing (in bytes)."
   :type 'integer
   :version "29.1")
