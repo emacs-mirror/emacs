@@ -402,21 +402,21 @@ This manual corresponds to Gnus v5.13
 @end iftex
 
 @menu
-* Don't Panic::              Your first 20 minutes with Gnus.
-* Starting Up::              Finding news can be a pain.
-* Group Buffer::             Selecting, subscribing and killing groups.
-* Summary Buffer::           Reading, saving and posting articles.
-* Article Buffer::           Displaying and handling articles.
-* Composing Messages::       Information on sending mail and news.
-* Select Methods::           Gnus reads all messages from various select methods.
-* Scoring::                  Assigning values to articles.
-* Searching::                Mail and News search engines.
-* Various::                  General purpose settings.
-* The End::                  Farewell and goodbye.
-* Appendices::               Terminology, Emacs intro, @acronym{FAQ}, History, Internals.
-* GNU Free Documentation License:: The license for this documentation.
-* Index::                    Variable, function and concept index.
-* Key Index::                Key Index.
+* Don't Panic::                 Your first 20 minutes with Gnus.
+* Starting Up::                 Finding news can be a pain.
+* Group Buffer::                Selecting, subscribing and killing groups.
+* Summary Buffer::              Reading, saving and posting articles.
+* Article Buffer::              Displaying and handling articles.
+* Composing Messages::          Information on sending mail and news.
+* Select Methods::              Gnus reads all messages from various select methods.
+* Scoring::                     Assigning values to articles.
+* Searching::                   Mail and News search engines.
+* Various::                     General purpose settings.
+* The End::                     Farewell and goodbye.
+* Appendices::                  Terminology, Emacs intro, @acronym{FAQ}, History, Internals.
+* GNU Free Documentation License::  The license for this documentation.
+* Index::                       Variable, function and concept index.
+* Key Index::                   Key Index.
 
 @c Doesn't work right in html.
 @c FIXME Do this in a more standard way.
@@ -596,7 +596,8 @@ Article Treatment
 * Article Buttons::             Click on URLs, Message-IDs, addresses and the like.
 * Article Button Levels::       Controlling appearance of buttons.
 * Article Date::                Grumble, UT!
-* Article Display::             Display various stuff---X-Face, Picons, Smileys, Gravatars
+* Article Display::             Display various stuff:
+                                X-Face, Picons, Gravatars, Smileys.
 * Article Signature::           What is a signature?
 * Article Miscellanea::         Various other stuff.
 
@@ -641,7 +642,7 @@ Select Methods
 * Getting Mail::                Reading your personal mail with Gnus.
 * Browsing the Web::            Getting messages from a plethora of Web sources.
 * Other Sources::               Reading directories, files.
-* Virtual Groups::              Combining articles from multiple sources.
+* Virtual Groups::              Combining articles and groups together.
 * Email Based Diary::           Using mails to manage diary events in Gnus.
 * Gnus Unplugged::              Reading news and mail offline.
 
@@ -666,6 +667,13 @@ Getting News
 * Indirect Functions::          Connecting indirectly to the server.
 * Common Variables::            Understood by several connection functions.
 
+Using IMAP
+
+* Connecting to an IMAP Server::  Getting started with @acronym{IMAP}.
+* Customizing the IMAP Connection::  Variables for @acronym{IMAP} connection.
+* Client-Side IMAP Splitting::  Put mail in the correct mail box.
+* Support for IMAP Extensions::  Getting extensions and labels from servers.
+
 Getting Mail
 
 * Mail in a Newsreader::        Important introductory notes.
@@ -685,6 +693,7 @@ Getting Mail
 Mail Sources
 
 * Mail Source Specifiers::      How to specify what a mail source is.
+* Mail Source Functions::
 * Mail Source Customization::   Some variables that influence things.
 * Fetching Mail::               Using the mail source specifiers.
 
@@ -695,6 +704,10 @@ Choosing a Mail Back End
 * Mail Spool::                  Store your mail in a private spool?
 * MH Spool::                    An mhspool-like back end.
 * Maildir::                     Another one-file-per-message format.
+* nnmaildir Group Parameters::
+* Article Identification::
+* NOV Data::
+* Article Marks::
 * Mail Folders::                Having one file for each group.
 * Comparing Mail Back Ends::    An in-depth looks at pros and cons.
 
@@ -734,10 +747,10 @@ The NNDiary Back End
 
 The Gnus Diary Library
 
-* Diary Summary Line Format::           A nicer summary buffer line format.
-* Diary Articles Sorting::              A nicer way to sort messages.
-* Diary Headers Generation::            Not doing it manually.
-* Diary Group Parameters::              Not handling them manually.
+* Diary Summary Line Format::   A nicer summary buffer line format.
+* Diary Articles Sorting::      A nicer way to sort messages.
+* Diary Headers Generation::    Not doing it manually.
+* Diary Group Parameters::      Not handling them manually.
 
 Gnus Unplugged
 
@@ -796,9 +809,22 @@ Advanced Scoring
 Searching
 
 * Search Engines::              Selecting and configuring search engines.
-* Creating Search Groups::      Creating search groups.
+* Creating Search Groups::      How and where.
 * Search Queries::              Gnus' built-in search syntax.
 * nnmairix::                    Searching with Mairix.
+* nnir::
+
+nnmairix
+
+* About mairix::                About the mairix mail search engine
+* nnmairix requirements::       What you will need for using nnmairix
+* What nnmairix does::          What does nnmairix actually do?
+* Setting up mairix::           Set up your mairix installation
+* Configuring nnmairix::        Set up the nnmairix back end
+* nnmairix keyboard shortcuts::  List of available keyboard shortcuts
+* Propagating marks::           How to propagate marks from nnmairix groups
+* nnmairix tips and tricks::    Some tips, tricks and examples
+* nnmairix caveats::            Some more stuff you might want to know
 
 Various
 
@@ -839,8 +865,7 @@ Image Enhancements
 
 * X-Face::                      Display a funky, teensy black-and-white image.
 * Face::                        Display a funkier, teensier colored image.
-* Smileys::                     Show all those happy faces the way they were
-                                  meant to be shown.
+* Smileys::                     Show all those happy faces the way they were meant to be shown.
 * Picons::                      How to display pictures of what you're reading.
 * Gravatars::                   Display the avatar of people you read.
 
@@ -862,11 +887,38 @@ Spam Package
 * Extending the Spam package::
 * Spam Statistics Package::
 
+Spam Back Ends
+
+* Blacklists and Whitelists::
+* BBDB Whitelists::
+* Gmane Spam Reporting::
+* Anti-spam Hashcash Payments::
+* Blackholes::
+* Regular Expressions Header Matching::
+* Bogofilter::
+* SpamAssassin back end::
+* ifile spam filtering::
+* Spam Statistics Filtering::
+* SpamOracle::
+
 Spam Statistics Package
 
 * Creating a spam-stat dictionary::
 * Splitting mail using spam-stat::
 * Low-level interface to the spam-stat dictionary::
+
+The Gnus Registry
+
+* Gnus Registry Setup::
+* Registry Article Refer Method::
+* Fancy splitting to parent::
+* Store custom flags and keywords::
+* Store arbitrary data::
+
+The Gnus Cloud
+
+* Gnus Cloud Setup::
+* Gnus Cloud Usage::
 
 Appendices
 
@@ -895,7 +947,7 @@ New Features
 * Quassia Gnus::                Two times two is four, or Gnus 5.6/5.7.
 * Pterodactyl Gnus::            Pentad also starts with P, AKA Gnus 5.8/5.9.
 * Oort Gnus::                   It's big.  It's far out.  Gnus 5.10/5.11.
-* No Gnus::                     Very punny.  Gnus 5.12/5.13
+* No Gnus::                     Very punny.  Gnus 5.12/5.13.
 * Ma Gnus::                     Celebrating 25 years of Gnus.
 
 Customization
@@ -1099,15 +1151,15 @@ If you puzzle at any terms used in this manual, please refer to the
 terminology section (@pxref{Terminology}).
 
 @menu
-* Finding the News::      Choosing a method for getting news.
-* The Server is Down::    How can I read my mail then?
-* Child Gnusae::          You can have more than one Gnus active at a time.
-* New Groups::            What is Gnus supposed to do with new groups?
-* Changing Servers::      You may want to move from one server to another.
-* Startup Files::         Those pesky startup files---@file{.newsrc}.
-* Auto Save::             Recovering from a crash.
-* The Active File::       Reading the active file over a slow line Takes Time.
-* Startup Variables::     Other variables you might change.
+* Finding the News::            Choosing a method for getting news.
+* The Server is Down::          How can I read my mail then?
+* Child Gnusae::                You can have more than one Gnus active at a time.
+* New Groups::                  What is Gnus supposed to do with new groups?
+* Changing Servers::            You may want to move from one server to another.
+* Startup Files::               Those pesky startup files---@file{.newsrc}.
+* Auto Save::                   Recovering from a crash.
+* The Active File::             Reading the active file over a slow line Takes Time.
+* Startup Variables::           Other variables you might change.
 @end menu
 
 
@@ -8718,7 +8770,7 @@ these articles easier.
 
 @menu
 * Article Highlighting::        You want to make the article look like fruit salad.
-* Article Fontifying::         Making emphasized text look nice.
+* Article Fontifying::          Making emphasized text look nice.
 * Article Hiding::              You also want to make certain info go away.
 * Article Washing::             Lots of way-neat functions to make life better.
 * Article Header::              Doing various header transformations.
@@ -18399,10 +18451,10 @@ useful things for you.
 
 
 @menu
-* Diary Summary Line Format::           A nicer summary buffer line format.
-* Diary Articles Sorting::              A nicer way to sort messages.
-* Diary Headers Generation::            Not doing it manually.
-* Diary Group Parameters::              Not handling them manually.
+* Diary Summary Line Format::   A nicer summary buffer line format.
+* Diary Articles Sorting::      A nicer way to sort messages.
+* Diary Headers Generation::    Not doing it manually.
+* Diary Group Parameters::      Not handling them manually.
 @end menu
 
 @node Diary Summary Line Format
@@ -21579,10 +21631,11 @@ relative date parsing and tie-ins into other Emacs packages.  For
 details on Gnus' query language, see @ref{Search Queries}.
 
 @menu
-* Search Engines::             Selecting and configuring search engines.
-* Creating Search Groups::     How and where.
-* Search Queries::             Gnus' built-in search syntax.
-* nnmairix::                   Searching with Mairix.
+* Search Engines::              Selecting and configuring search engines.
+* Creating Search Groups::      How and where.
+* Search Queries::              Gnus' built-in search syntax.
+* nnmairix::                    Searching with Mairix.
+* nnir::
 @end menu
 
 @node Search Engines
@@ -21878,7 +21931,7 @@ bound to mairix searches and are automatically updated.
 * What nnmairix does::          What does nnmairix actually do?
 * Setting up mairix::           Set up your mairix installation
 * Configuring nnmairix::        Set up the nnmairix back end
-* nnmairix keyboard shortcuts:: List of available keyboard shortcuts
+* nnmairix keyboard shortcuts::  List of available keyboard shortcuts
 * Propagating marks::           How to propagate marks from nnmairix groups
 * nnmairix tips and tricks::    Some tips, tricks and examples
 * nnmairix caveats::            Some more stuff you might want to know
