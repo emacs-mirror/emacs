@@ -818,7 +818,7 @@ has been pressed."
               (let ((inhibit-message t))
                 (funcall function amt))
             ;; Do not error at buffer limits.  Show a message instead.
-            ;; This is especially important here because signalling an
+            ;; This is especially important here because signaling an
             ;; error will mess up the drag-and-drop operation.
             (beginning-of-buffer
              (message (error-message-string '(beginning-of-buffer))))
@@ -1468,7 +1468,7 @@ instead of returning \"E\".")
                           (dnd-get-local-file-name local-file-uri))))
     (if (not local-name)
         '(STRING . "F")
-      ;; We want errors to be signalled immediately during ERT
+      ;; We want errors to be signaled immediately during ERT
       ;; testing, instead of being silently handled.  (bug#56712)
       (if x-dnd-xds-testing
           (prog1 '(STRING . "S")

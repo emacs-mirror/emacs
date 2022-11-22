@@ -10931,7 +10931,7 @@
 
 2012-05-29  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
-	* vc/vc.el (vc-revert, vc-rollback): Dont kill vc-diff buffer on
+	* vc/vc.el (vc-revert, vc-rollback): Don't kill vc-diff buffer on
 	revert (Bug#11488).
 
 2012-05-29  Juri Linkov  <juri@jurta.org>
@@ -15340,7 +15340,7 @@
 	* subr.el (with-selected-frame): Mention that the selected frame
 	is restored (bug#9980).
 
-	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
+	* ibuffer.el (ibuffer-mode): List the bindings in the correct map
 	(bug#9759).
 
 	* mail/smtpmail.el (password-cache-add): Remove unused declaration.
@@ -22838,15 +22838,14 @@
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
 	Fix doubled-word typos.
-	* international/quail.el (quail-insert-kbd-layout): and and -> and.
-	* kermit.el: and and -> and.
-	* net/ldap.el (ldap-search-internal): to to -> to.
-	* progmodes/vhdl-mode.el (vhdl-offsets-alist): Likewise.
-	* progmodes/js.el (js-mode): and and -> and.
-	* textmodes/artist.el (artist-move-to-xy): at at -> at.
-	(artist-draw-region-trim-line-endings): if if -> if.
-	And Safetyc -> Safety.
-	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a.
+	* international/quail.el (quail-insert-kbd-layout):
+	* kermit.el:
+	* net/ldap.el (ldap-search-internal):
+	* progmodes/vhdl-mode.el (vhdl-offsets-alist):
+	* progmodes/js.el (js-mode):
+	* textmodes/artist.el (artist-move-to-xy):
+	(artist-draw-region-trim-line-endings):
+	* textmodes/reftex-dcr.el (reftex-view-crossref): Fix typos.
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
 	    Stefan Monnier  <monnier@iro.umontreal.ca>

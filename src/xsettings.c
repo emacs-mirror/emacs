@@ -766,7 +766,7 @@ parse_settings (unsigned char *prop,
 #ifndef HAVE_PGTK
 /* Read settings from the XSettings property window on display for DPYINFO.
    Store settings read in SETTINGS.
-   Return true iff successful.  */
+   Return true if successful.  */
 
 static bool
 read_settings (Display_Info *dpyinfo, struct xsettings *settings)
@@ -884,6 +884,14 @@ apply_xft_settings (Display_Info *dpyinfo,
       changed = true;
       oldsettings.hintstyle = settings->hintstyle;
     }
+#endif
+
+#ifdef USE_CAIRO
+  /* When Cairo is being used, set oldsettings.dpi to dpyinfo->resx.
+     This is a gross hack, but seeing as Cairo fails to report
+     anything reasonable, just use it to avoid config-changed events
+     being sent at startup.  */
+  oldsettings.dpi = dpyinfo->resx;
 #endif
 
   if ((settings->seen & SEEN_DPI) != 0

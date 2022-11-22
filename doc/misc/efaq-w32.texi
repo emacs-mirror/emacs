@@ -457,12 +457,12 @@ to your init file:
 @node Using with Explorer
 @subsection For use with Internet Explorer
 @cindex Internet Explorer, view source in Emacs
-@cindex mailto urls, associating with Emacs
-@cindex news urls, associating with Emacs
+@cindex mailto URLs, associating with Emacs
+@cindex news URLs, associating with Emacs
 @cindex URLs, associating mail and news URLs with Emacs
 
 You can use Emacs as the editor for composing mail for
-@indicateurl{mailto:} links, reading usenet for @indicateurl{news:}
+@indicateurl{mailto:} links, reading Usenet for @indicateurl{news:}
 links, and viewing source.  The following registry entries control
 this:
 

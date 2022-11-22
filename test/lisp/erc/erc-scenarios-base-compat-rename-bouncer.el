@@ -106,7 +106,7 @@
         (erc-d-t-search-for 1 "<joe>")
         (erc-d-t-absent-for 0.1 "<bob>")
         (should (eq erc-server-process erc-server-process-bar))
-        (erc-d-t-search-for 10 "keeps you from dishonour")
+        (erc-d-t-search-for 10 "joe: It is a rupture")
         (erc-d-t-wait-for 5 (not (erc-server-process-alive)))))
 
     (when more (funcall more))))

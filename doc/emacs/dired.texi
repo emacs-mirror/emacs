@@ -807,7 +807,7 @@ should create non-existent directories in @var{new}.
 
 The option @code{dired-create-destination-dirs-on-trailing-dirsep},
 when set in addition to @code{dired-create-destination-dirs}, controls
-wether a trailing directory separator at the destination is treated
+whether a trailing directory separator at the destination is treated
 specially.  In that case, when renaming a directory @samp{old} to
 @samp{new/} and no directory @samp{new} exists already, it will be
 created and @samp{old} is moved into the newly created directory.

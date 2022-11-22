@@ -2330,7 +2330,7 @@ pixel_to_glyph_coords (struct frame *f, int pix_x, int pix_y, int *x, int *y,
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-static struct glyph *
+struct glyph *
 x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
 		  int *dx, int *dy, int *area)
 {
@@ -3342,7 +3342,8 @@ init_iterator (struct it *it, struct window *w,
     {
       /* Mode lines, menu bar in terminal frames.  */
       it->first_visible_x = 0;
-      it->last_visible_x = body_width = WINDOW_PIXEL_WIDTH (w);
+      it->last_visible_x =
+	WINDOW_PIXEL_WIDTH (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
     }
   else
     {
@@ -3410,8 +3411,13 @@ init_iterator (struct it *it, struct window *w,
       face = FACE_FROM_ID_OR_NULL (it->f, remapped_base_face_id);
       if (face && face->box != FACE_NO_BOX)
 	{
+	  int box_thickness = face->box_vertical_line_width;
 	  it->face_box_p = true;
 	  it->start_of_box_run_p = true;
+	  /* Make sure we will have enough horizontal space to add the
+	     right box line at the end.  */
+	  if (box_thickness > 0)
+	    it->last_visible_x -= box_thickness;
 	}
     }
 
@@ -5324,6 +5330,8 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
 	  /* Insert the stretch glyph.  */
 	  it->object = list3 (Qspace, QCwidth, w);
 	  produce_stretch_glyph (it);
+	  if (it->area == TEXT_AREA)
+	    it->current_x += it->pixel_width;
 	  it->min_width_property = Qnil;
 	}
     }
@@ -7036,17 +7044,11 @@ strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
       str = Foverlay_get (overlay, Qbefore_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	{
-	  ITREE_FOREACH_ABORT ();
-	  return true;
-	}
+	return true;
       str = Foverlay_get (overlay, Qafter_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	{
-	  ITREE_FOREACH_ABORT ();
-	  return true;
-	}
+	return true;
     }
 
   /* Check for 'display' properties whose values include strings.  */
@@ -26718,7 +26720,17 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
     {
       struct glyph *last = (it.glyph_row->glyphs[TEXT_AREA]
 			    + it.glyph_row->used[TEXT_AREA] - 1);
+      int box_thickness = face->box_vertical_line_width;
       last->right_box_line_p = true;
+      /* Add back the space for the right box line we subtracted in
+	 init_iterator, since the right_box_line_p flag will make the
+	 glyph wider.  We actually add only as much space as is
+	 available for the last glyph of the modeline and whatever
+	 space is left beyond it, since that glyph could be only
+	 partially visible */
+      if (box_thickness > 0)
+	last->pixel_width += max (0, (box_thickness
+				      - (it.current_x - it.last_visible_x)));
     }
 
   return it.glyph_row->height;

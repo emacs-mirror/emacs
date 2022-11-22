@@ -217,7 +217,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    whether the gnulib module scanf shall be considered present. */
 #undef GNULIB_SCANF
 
-/* Define if ths system is compatible with GNU/Linux. */
+/* Define if this system is compatible with GNU/Linux. */
 #undef GNU_LINUX
 
 /* Define to 1 if you want to use the GNU memory allocator. */

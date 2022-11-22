@@ -31,6 +31,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "region-cache.h"
 #include "pdumper.h"
 
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 static void insert_from_string_1 (Lisp_Object, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				  ptrdiff_t, bool, bool);
 static void insert_from_buffer_1 (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
@@ -938,6 +942,12 @@ insert_1_both (const char *string,
     set_text_properties (make_fixnum (PT), make_fixnum (PT + nchars),
 			 Qnil, Qnil, Qnil);
 
+#ifdef HAVE_TREE_SITTER
+  eassert (nbytes >= 0);
+  eassert (PT_BYTE >= 0);
+  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + nbytes);
+#endif
+
   adjust_point (nchars, nbytes);
 
   check_markers ();
@@ -1068,6 +1078,12 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
   graft_intervals_into_buffer (intervals, PT, nchars,
 			       current_buffer, inherit);
 
+#ifdef HAVE_TREE_SITTER
+  eassert (nbytes >= 0);
+  eassert (PT_BYTE >= 0);
+  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + nbytes);
+#endif
+
   adjust_point (nchars, outgoing_nbytes);
 
   check_markers ();
@@ -1133,6 +1149,12 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
       graft_intervals_into_buffer (NULL, ins_charpos, nchars,
 				   current_buffer, 0);
     }
+
+#ifdef HAVE_TREE_SITTER
+  eassert (nbytes >= 0);
+  eassert (ins_bytepos >= 0);
+  treesit_record_change (ins_bytepos, ins_bytepos, ins_bytepos + nbytes);
+#endif
 
   if (ins_charpos < PT)
     adjust_point (nchars, nbytes);
@@ -1282,6 +1304,12 @@ insert_from_buffer_1 (struct buffer *buf,
 
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, PT, nchars, current_buffer, inherit);
+
+#ifdef HAVE_TREE_SITTER
+  eassert (outgoing_nbytes >= 0);
+  eassert (PT_BYTE >= 0);
+  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + outgoing_nbytes);
+#endif
 
   adjust_point (nchars, outgoing_nbytes);
 }
@@ -1519,6 +1547,13 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   graft_intervals_into_buffer (intervals, from, inschars,
 			       current_buffer, inherit);
 
+#ifdef HAVE_TREE_SITTER
+  eassert (to_byte >= from_byte);
+  eassert (outgoing_insbytes >= 0);
+  eassert (from_byte >= 0);
+  treesit_record_change (from_byte, to_byte, from_byte + outgoing_insbytes);
+#endif
+
   /* Relocate point as if it were a marker.  */
   if (from < PT)
     adjust_point ((from + inschars - (PT < to ? PT : to)),
@@ -1550,7 +1585,11 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
    If MARKERS, relocate markers.
 
    Unlike most functions at this level, never call
-   prepare_to_modify_buffer and never call signal_after_change.  */
+   prepare_to_modify_buffer and never call signal_after_change.
+   Because this function is called in a loop, one character at a time.
+   The caller of 'replace_range_2' calls these hooks for the entire
+   region once.  Apart from signal_after_change, any caller of this
+   function should also call treesit_record_change.  */
 
 void
 replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
@@ -1855,6 +1894,12 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
     END_UNCHANGED = Z - GPT;
 
   check_markers ();
+
+#ifdef HAVE_TREE_SITTER
+  eassert (from_byte <= to_byte);
+  eassert (from_byte >= 0);
+  treesit_record_change (from_byte, to_byte, from_byte);
+#endif
 
   return deletion;
 }

@@ -206,7 +206,7 @@ Release History
 				keys, fix border and box drawing, remove
 				glitches in modeline drawing, support
 				overstrike for unavailable bold fonts, fix XPM
-				related crasher bugs.  Incremental font
+				related crashes.  Incremental font
 				metrics caching and other performance
 				improvements.  Shared-lisp builds now possible.
 

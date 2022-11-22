@@ -43,9 +43,9 @@ string instead of decoding as utf-8."
 
 (defun rfc6068-parse-mailto-url (mailto-url)
   "Parse MAILTO-URL, and return an alist of header-name, header-value pairs.
-MAILTO-URL should be a RFC 6068 (mailto) compliant url.  A cons cell w/ a
+MAILTO-URL should be a RFC 6068 (mailto) compliant url.  A cons cell with a
 key of `Body' is a special case and is considered a header for this purpose.
-The returned alist is intended for use w/ the `compose-mail' interface.
+The returned alist is intended for use with the `compose-mail' interface.
 Note: make sure MAILTO-URL has been \"unhtmlized\" (e.g., &amp; -> &), before
 calling this function."
   (let ((case-fold-search t)

@@ -3809,8 +3809,12 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
 	  ASET (lface, LFACE_FONT_INDEX, font);
 	}
       f->default_face_done_p = false;
-      AUTO_FRAME_ARG (arg, Qfont, font);
-      Fmodify_frame_parameters (frame, arg);
+      AUTO_LIST2 (arg, AUTO_CONS_EXPR (Qfont, font),
+		  /* Clear the `font-parameter' frame property, as the
+		     font is now being specified by a face, not a
+		     frame property.  */
+		  AUTO_CONS_EXPR (Qfont_parameter, Qnil));
+      gui_set_frame_parameters_1 (f, arg, true);
     }
 }
 
@@ -4208,7 +4212,17 @@ Default face attributes override any local face attributes.  */)
 	    {
 	      Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
 	      AUTO_FRAME_ARG (arg, Qfont, name);
-	      Fmodify_frame_parameters (frame, arg);
+
+#ifdef HAVE_WINDOW_SYSTEM
+	      if (FRAME_WINDOW_P (f))
+		/* This is a window-system frame.  Prevent changes of
+		   the `font' parameter here from messing with the
+		   `font-parameter' frame property, as the frame
+		   parameter is not being changed by the user.  */
+	        gui_set_frame_parameters_1 (f, arg, true);
+	      else
+#endif
+		Fmodify_frame_parameters (frame, arg);
 	    }
 
 	  if (STRINGP (gvec[LFACE_FOREGROUND_INDEX]))

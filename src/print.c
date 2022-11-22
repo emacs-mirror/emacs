@@ -47,6 +47,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <sys/socket.h> /* for F_DUPFD_CLOEXEC */
 #endif
 
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 struct terminal;
 
 /* Avoid actual stack overflow in print.  */
@@ -2007,6 +2011,45 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       }
       break;
 #endif
+
+#ifdef HAVE_TREE_SITTER
+    case PVEC_TS_PARSER:
+      print_c_string ("#<treesit-parser for ", printcharfun);
+      Lisp_Object language = XTS_PARSER (obj)->language_symbol;
+      /* No need to print the buffer because it's not that useful: we
+	 usually know which buffer a parser belongs to.  */
+      print_string (Fsymbol_name (language), printcharfun);
+      printchar ('>', printcharfun);
+      break;
+    case PVEC_TS_NODE:
+      /* Prints #<treesit-node (identifier) in 12-15> or
+         #<treesit-node "keyword" in 28-31>. */
+      print_c_string ("#<treesit-node", printcharfun);
+      if (!treesit_node_uptodate_p (obj))
+	{
+	  print_c_string ("-outdated>", printcharfun);
+	  break;
+	}
+      printchar (' ', printcharfun);
+      /* Now the node must be up-to-date, and calling functions like
+	 Ftreesit_node_start will not signal.  */
+      bool named = treesit_named_node_p (XTS_NODE (obj)->node);
+      const char *delim1 = named ? "(" : "\"";
+      const char *delim2 = named ? ")" : "\"";
+      print_c_string (delim1, printcharfun);
+      print_string (Ftreesit_node_type (obj), printcharfun);
+      print_c_string (delim2, printcharfun);
+      print_c_string (" in ", printcharfun);
+      print_object (Ftreesit_node_start (obj), printcharfun, escapeflag);
+      printchar ('-', printcharfun);
+      print_object (Ftreesit_node_end (obj), printcharfun, escapeflag);
+      printchar ('>', printcharfun);
+      break;
+    case PVEC_TS_COMPILED_QUERY:
+      print_c_string ("#<treesit-compiled-query>", printcharfun);
+      break;
+#endif
+
     case PVEC_SQLITE:
       {
 	print_c_string ("#<sqlite ", printcharfun);

@@ -261,14 +261,25 @@
 (require 'ansi-color)
 (require 'cl-lib)
 (require 'comint)
+(eval-when-compile (require 'subr-x))   ;For `string-empty-p' and `string-join'.
+(require 'treesit)
+(require 'pcase)
 (require 'compat nil 'noerror)
 (require 'project nil 'noerror)
 (require 'seq)
-(eval-when-compile (require 'subr-x))   ;For `string-empty-p'.
 
 ;; Avoid compiler warnings
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
+
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+
 
 (autoload 'comint-mode "comint")
 (autoload 'help-function-arglist "help-fns")
@@ -290,6 +301,7 @@ To customize the Python shell, modify `python-shell-interpreter'
 instead."
   :version "29.1"
   :type 'string)
+
 
 
 ;;; Bindings
@@ -392,6 +404,9 @@ instead."
         ))
     map)
   "Keymap for `python-mode'.")
+
+(defvar python-ts-mode-map (copy-keymap python-mode-map)
+  "Keymap for `(copy-keymap python-mode-map)'.")
 
 
 ;;; Python specialized rx
@@ -940,6 +955,211 @@ is used to limit the scan."
     table)
   "Dotty syntax table for Python files.
 It makes underscores and dots word constituent chars.")
+
+;;; Tree-sitter font-lock
+
+;; NOTE: Tree-sitter and font-lock works differently so this can't
+;; merge with `python-font-lock-keywords-level-2'.
+
+(defvar python--treesit-keywords
+  '("as" "assert" "async" "await" "break" "class" "continue" "def"
+    "del" "elif" "else" "except" "exec" "finally" "for" "from"
+    "global" "if" "import" "lambda" "nonlocal" "pass" "print"
+    "raise" "return" "try" "while" "with" "yield"
+    ;; These are technically operators, but we fontify them as
+    ;; keywords.
+    "and" "in" "is" "not" "or"))
+
+(defvar python--treesit-builtins
+  '("abs" "all" "any" "ascii" "bin" "bool" "breakpoint" "bytearray"
+    "bytes" "callable" "chr" "classmethod" "compile" "complex"
+    "delattr" "dict" "dir" "divmod" "enumerate" "eval" "exec"
+    "filter" "float" "format" "frozenset" "getattr" "globals"
+    "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
+    "issubclass" "iter" "len" "list" "locals" "map" "max"
+    "memoryview" "min" "next" "object" "oct" "open" "ord" "pow"
+    "print" "property" "range" "repr" "reversed" "round" "set"
+    "setattr" "slice" "sorted" "staticmethod" "str" "sum" "super"
+    "tuple" "type" "vars" "zip" "__import__"))
+
+(defvar python--treesit-constants
+  '("Ellipsis" "False" "None" "NotImplemented" "True" "__debug__"
+    "copyright" "credits" "exit" "license" "quit"))
+
+(defvar python--treesit-operators
+  '("-" "-=" "!=" "*" "**" "**=" "*=" "/" "//" "//=" "/=" "&" "%" "%="
+    "^" "+" "+=" "<" "<<" "<=" "<>" "=" "==" ">" ">=" ">>" "|" "~"))
+
+(defvar python--treesit-special-attributes
+  '("__annotations__" "__closure__" "__code__"
+    "__defaults__" "__dict__" "__doc__" "__globals__"
+    "__kwdefaults__" "__name__" "__module__" "__package__"
+    "__qualname__" "__all__"))
+
+(defvar python--treesit-exceptions
+  '(;; Python 2 and 3:
+    "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
+    "BufferError" "BytesWarning" "DeprecationWarning" "EOFError"
+    "EnvironmentError" "Exception" "FloatingPointError" "FutureWarning"
+    "GeneratorExit" "IOError" "ImportError" "ImportWarning"
+    "IndentationError" "IndexError" "KeyError" "KeyboardInterrupt"
+    "LookupError" "MemoryError" "NameError" "NotImplementedError"
+    "OSError" "OverflowError" "PendingDeprecationWarning"
+    "ReferenceError" "RuntimeError" "RuntimeWarning" "StopIteration"
+    "SyntaxError" "SyntaxWarning" "SystemError" "SystemExit" "TabError"
+    "TypeError" "UnboundLocalError" "UnicodeDecodeError"
+    "UnicodeEncodeError" "UnicodeError" "UnicodeTranslateError"
+    "UnicodeWarning" "UserWarning" "ValueError" "Warning"
+    "ZeroDivisionError"
+    ;; Python 2:
+    "StandardError"
+    ;; Python 3:
+    "BlockingIOError" "BrokenPipeError" "ChildProcessError"
+    "ConnectionAbortedError" "ConnectionError" "ConnectionRefusedError"
+    "ConnectionResetError" "FileExistsError" "FileNotFoundError"
+    "InterruptedError" "IsADirectoryError" "NotADirectoryError"
+    "PermissionError" "ProcessLookupError" "RecursionError"
+    "ResourceWarning" "StopAsyncIteration" "TimeoutError"
+    ;; OS specific
+    "VMSError" "WindowsError"
+    ))
+
+(defun python--treesit-fontify-string (node override start end &rest _)
+  "Fontify string.
+NODE is the string node.  Do not fontify the initial f for
+f-strings.  OVERRIDE is the override flag described in
+`treesit-font-lock-rules'.  START and END mark the region to be
+fontified."
+  (let* ((string-beg (treesit-node-start node))
+         (string-end (treesit-node-end node))
+         (maybe-expression (treesit-node-parent node))
+         (maybe-defun (treesit-node-parent
+                       (treesit-node-parent
+                        maybe-expression)))
+         (face (if (and (member (treesit-node-type maybe-defun)
+                                '("function_definition"
+                                  "class_definition"))
+                        ;; This check filters out this case:
+                        ;; def function():
+                        ;;     return "some string"
+                        (equal (treesit-node-type maybe-expression)
+                               "expression_statement"))
+                   'font-lock-doc-face
+                 'font-lock-string-face)))
+    (when (eq (char-after string-beg) ?f)
+      (cl-incf string-beg))
+    (treesit-fontify-with-override
+     (max start string-beg) (min end string-end) face override)))
+
+(defvar python--treesit-settings
+  (treesit-font-lock-rules
+   :feature 'comment
+   :language 'python
+   '((comment) @font-lock-comment-face)
+
+   :feature 'string
+   :language 'python
+   :override t
+   '((string) @python--treesit-fontify-string)
+
+   :feature 'string-interpolation
+   :language 'python
+   :override t
+   '((interpolation (identifier) @font-lock-variable-name-face))
+
+   :feature 'definition
+   :language 'python
+   '((function_definition
+      name: (identifier) @font-lock-function-name-face)
+     (class_definition
+      name: (identifier) @font-lock-type-face))
+
+   :feature 'keyword
+   :language 'python
+   `([,@python--treesit-keywords] @font-lock-keyword-face
+     ((identifier) @font-lock-keyword-face
+      (:match "^self$" @font-lock-keyword-face)))
+
+   :feature 'builtin
+   :language 'python
+   `(((identifier) @font-lock-builtin-face
+      (:match ,(rx-to-string
+                `(seq bol
+                      (or ,@python--treesit-builtins
+                          ,@python--treesit-special-attributes)
+                      eol))
+              @font-lock-builtin-face)))
+
+   :feature 'constant
+   :language 'python
+   '([(true) (false) (none)] @font-lock-constant-face)
+
+   :feature 'assignment
+   :language 'python
+   `(;; Variable names and LHS.
+     (assignment left: (identifier)
+                 @font-lock-variable-name-face)
+     (assignment left: (attribute
+                        attribute: (identifier)
+                        @font-lock-variable-name-face))
+     (pattern_list (identifier)
+                   @font-lock-variable-name-face)
+     (tuple_pattern (identifier)
+                    @font-lock-variable-name-face)
+     (list_pattern (identifier)
+                   @font-lock-variable-name-face)
+     (list_splat_pattern (identifier)
+                         @font-lock-variable-name-face))
+
+   :feature 'decorator
+   :language 'python
+   '((decorator) @font-lock-type-face)
+
+   :feature 'type
+   :language 'python
+   `(((identifier) @font-lock-type-face
+      (:match ,(rx-to-string
+                `(seq bol (or ,@python--treesit-exceptions)
+                      eol))
+              @font-lock-type-face))
+     (type (identifier) @font-lock-type-face))
+
+   :feature 'escape-sequence
+   :language 'python
+   :override t
+   '((escape_sequence) @font-lock-escape-face)
+
+   :feature 'number
+   :language 'python
+   :override t
+   '([(integer) (float)] @font-lock-number-face)
+
+   :feature 'property
+   :language 'python
+   :override t
+   '((attribute
+      attribute: (identifier) @font-lock-property-face)
+     (class_definition
+      body: (block
+             (expression_statement
+              (assignment left:
+                          (identifier) @font-lock-property-face)))))
+
+   :feature 'operator
+   :language 'python
+   :override t
+   `([,@python--treesit-operators] @font-lock-operator-face)
+
+   :feature 'bracket
+   :language 'python
+   :override t
+   '(["(" ")" "[" "]" "{" "}"] @font-lock-bracket-face)
+
+   :feature 'delimiter
+   :language 'python
+   :override t
+   '(["," "." ":" ";" (ellipsis)] @font-lock-delimiter-face))
+  "Tree-sitter font-lock settings.")
 
 
 ;;; Indentation
@@ -2172,6 +2392,55 @@ position, else returns nil."
     (if found
         (point)
       (ignore (goto-char point)))))
+
+
+;;; Tree-sitter navigation
+
+(defun python-treesit-beginning-of-defun (&optional arg)
+  "Tree-sitter `beginning-of-defun' function.
+ARG is the same as in `beginning-of-defun'."
+  (let ((arg (or arg 1))
+        (node (treesit-node-at (point)))
+        (function-or-class (rx (or "function" "class") "_definition")))
+    (if (> arg 0)
+        ;; Go backward.
+        (while (and (> arg 0)
+                    (setq node (treesit-search-forward-goto
+                                node function-or-class t t)))
+          ;; Here we deviate from `treesit-beginning-of-defun': if
+          ;; NODE is function_definition, find the top-level
+          ;; function_definition, if NODE is class_definition, find
+          ;; the top-level class_definition, don't mix the two like
+          ;; `treesit-beginning-of-defun' would.
+          (setq node (or (treesit-node-top-level node)
+                         node))
+          (setq arg (1- arg)))
+      ;; Go forward.
+      (while (and (< arg 0)
+                  (setq node (treesit-search-forward-goto
+                              node function-or-class)))
+        (setq node (or (treesit-node-top-level node)
+                       node))
+        (setq arg (1+ arg))))
+    (when node
+      (goto-char (treesit-node-start node))
+      t)))
+
+(defun python-treesit-end-of-defun ()
+  "Tree-sitter `end-of-defun' function."
+  ;; Why not simply get the largest node at point: when point is at
+  ;; (point-min), that gives us the root node.
+  (let* ((node (treesit-node-at (point)))
+         (top-func (treesit-node-top-level
+                    node
+                    "function_definition"))
+         (top-class (treesit-node-top-level
+                     node
+                     "class_definition")))
+    ;; Prefer function_definition over class_definition: when we are
+    ;; in a function_definition inside a class_definition, jump to the
+    ;; end of function_definition.
+    (goto-char (or (treesit-node-end (or top-func top-class)) (point)))))
 
 
 ;;; Shell integration
@@ -5195,6 +5464,92 @@ To this:
               (python-imenu-format-parent-item-jump-label-function fn))
           (python-imenu-create-index))))))
 
+;;; Tree-sitter imenu
+
+(defun python--imenu-treesit-create-index-1 (node)
+  "Given a sparse tree, create an imenu alist.
+
+NODE is the root node of the tree returned by
+`treesit-induce-sparse-tree' (not a tree-sitter node, its car is
+a tree-sitter node).  Walk that tree and return an imenu alist.
+
+Return a list of ENTRY where
+
+ENTRY := (NAME . MARKER)
+       | (NAME . ((JUMP-LABEL . MARKER)
+                  ENTRY
+                  ...)
+
+NAME is the function/class's name, JUMP-LABEL is like \"*function
+definition*\"."
+  (let* ((ts-node (car node))
+         (children (cdr node))
+         (subtrees (mapcan #'python--imenu-treesit-create-index-1
+                           children))
+         (type (pcase (treesit-node-type ts-node)
+                 ("function_definition" 'def)
+                 ("class_definition" 'class)))
+         ;; The root of the tree could have a nil ts-node.
+         (name (when ts-node
+                 (treesit-node-text
+                  (treesit-node-child-by-field-name
+                   ts-node "name") t)))
+         (marker (when ts-node
+                   (set-marker (make-marker)
+                               (treesit-node-start ts-node)))))
+    (cond
+     ((null ts-node)
+      subtrees)
+     (subtrees
+      (let ((parent-label
+             (funcall python-imenu-format-parent-item-label-function
+                      type name))
+            (jump-label
+             (funcall
+              python-imenu-format-parent-item-jump-label-function
+              type name)))
+        `((,parent-label
+           ,(cons jump-label marker)
+           ,@subtrees))))
+     (t (let ((label
+               (funcall python-imenu-format-item-label-function
+                        type name)))
+          (list (cons label marker)))))))
+
+(defun python-imenu-treesit-create-index (&optional node)
+  "Return tree Imenu alist for the current Python buffer.
+
+Change `python-imenu-format-item-label-function',
+`python-imenu-format-parent-item-label-function',
+`python-imenu-format-parent-item-jump-label-function' to
+customize how labels are formatted.
+
+NODE is the root node of the subtree you want to build an index
+of.  If nil, use the root node of the whole parse tree.
+
+Similar to `python-imenu-create-index' but use tree-sitter."
+  (let* ((node (or node (treesit-buffer-root-node 'python)))
+         (tree (treesit-induce-sparse-tree
+                node
+                (rx (seq bol
+                         (or "function" "class")
+                         "_definition"
+                         eol))
+                nil 1000)))
+    (python--imenu-treesit-create-index-1 tree)))
+
+(defun python-imenu-treesit-create-flat-index ()
+  "Return flat outline of the current Python buffer for Imenu.
+
+Change `python-imenu-format-item-label-function',
+`python-imenu-format-parent-item-label-function',
+`python-imenu-format-parent-item-jump-label-function' to
+customize how labels are formatted.
+
+Similar to `python-imenu-create-flat-index' but use
+tree-sitter."
+  (python-imenu-create-flat-index
+   (python-imenu-treesit-create-index)))
 
 ;;; Misc helpers
 
@@ -5259,6 +5614,29 @@ since it returns nil if point is not inside a defun."
         (and names
              (concat (and type (format "%s " type))
                      (mapconcat #'identity names ".")))))))
+
+(defun python-info-treesit-current-defun (&optional include-type)
+  "Identical to `python-info-current-defun' but use tree-sitter.
+For INCLUDE-TYPE see `python-info-current-defun'."
+  (let ((node (treesit-node-at (point)))
+        (name-list ())
+        (type 'def))
+    (cl-loop while node
+             if (pcase (treesit-node-type node)
+                  ("function_definition"
+                   (setq type 'def))
+                  ("class_definition"
+                   (setq type 'class))
+                  (_ nil))
+             do (push (treesit-node-text
+                       (treesit-node-child-by-field-name node "name")
+                       t)
+                      name-list)
+             do (setq node (treesit-node-parent node))
+             finally return (concat (if include-type
+                                        (format "%s " type)
+                                      "")
+                                    (string-join name-list ".")))))
 
 (defun python-info-current-symbol (&optional replace-self)
   "Return current symbol using dotty syntax.
@@ -6152,10 +6530,12 @@ Add import for undefined name `%s' (empty to skip): "
 (defvar prettify-symbols-alist)
 
 ;;;###autoload
-(define-derived-mode python-mode prog-mode "Python"
-  "Major mode for editing Python files.
+(define-derived-mode python-base-mode prog-mode "Python"
+  "Generic major mode for editing Python files.
 
-\\{python-mode-map}"
+This is a generic major mode intended to be inherited by
+concrete implementations.  Currently there are two concrete
+implementations: `python-mode' and `python-ts-mode'."
   (setq-local tab-width 8)
   (setq-local indent-tabs-mode nil)
 
@@ -6166,17 +6546,6 @@ Add import for undefined name `%s' (empty to skip): "
   (setq-local parse-sexp-ignore-comments t)
 
   (setq-local forward-sexp-function python-forward-sexp-function)
-
-  (setq-local font-lock-defaults
-              `(,python-font-lock-keywords
-                nil nil nil nil
-                (font-lock-syntactic-face-function
-                 . python-font-lock-syntactic-face-function)
-                (font-lock-extend-after-change-region-function
-                 . python-font-lock-extend-region)))
-
-  (setq-local syntax-propertize-function
-              python-syntax-propertize-function)
 
   (setq-local indent-line-function #'python-indent-line-function)
   (setq-local indent-region-function #'python-indent-region)
@@ -6202,13 +6571,8 @@ Add import for undefined name `%s' (empty to skip): "
   (add-hook 'post-self-insert-hook
             #'python-indent-post-self-insert-function 'append 'local)
 
-  (setq-local imenu-create-index-function
-              #'python-imenu-create-index)
-
   (setq-local add-log-current-defun-function
               #'python-info-current-defun)
-
-  (add-hook 'which-func-functions #'python-info-current-defun nil t)
 
   (setq-local skeleton-further-elements
               '((abbrev-mode nil)
@@ -6218,13 +6582,13 @@ Add import for undefined name `%s' (empty to skip): "
 
   (with-no-warnings
     ;; suppress warnings about eldoc-documentation-function being obsolete
-   (if (null eldoc-documentation-function)
-       ;; Emacs<25
-       (setq-local eldoc-documentation-function #'python-eldoc-function)
-     (if (boundp 'eldoc-documentation-functions)
-         (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
-       (add-function :before-until (local 'eldoc-documentation-function)
-                     #'python-eldoc-function))))
+    (if (null eldoc-documentation-function)
+        ;; Emacs<25
+        (setq-local eldoc-documentation-function #'python-eldoc-function)
+      (if (boundp 'eldoc-documentation-functions)
+          (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
+        (add-function :before-until (local 'eldoc-documentation-function)
+                      #'python-eldoc-function))))
 
   (add-to-list
    'hs-special-modes-alist
@@ -6256,6 +6620,43 @@ Add import for undefined name `%s' (empty to skip): "
     (python-indent-guess-indent-offset))
 
   (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
+
+;;;###autoload
+(define-derived-mode python-mode python-base-mode "Python"
+  "Major mode for editing Python files.
+
+\\{python-mode-map}"
+  (setq-local font-lock-defaults
+              `(,python-font-lock-keywords
+                nil nil nil nil
+                (font-lock-syntactic-face-function
+                 . python-font-lock-syntactic-face-function)))
+  (setq-local syntax-propertize-function
+              python-syntax-propertize-function)
+  (setq-local imenu-create-index-function
+              #'python-imenu-create-index)
+  (add-hook 'which-func-functions #'python-info-current-defun nil t))
+
+;;;###autoload
+(define-derived-mode python-ts-mode python-base-mode "Python"
+  "Major mode for editing Python files, using tree-sitter library.
+
+\\{python-ts-mode-map}"
+  (when (treesit-ready-p 'python)
+    (treesit-parser-create 'python)
+    (setq-local treesit-font-lock-feature-list
+                '(( comment string definition)
+                  ( keyword builtin constant type)
+                  ( assignment decorator escape-sequence
+                    string-interpolation number property
+                    operator bracket delimiter)))
+    (setq-local treesit-font-lock-settings python--treesit-settings)
+    (setq-local imenu-create-index-function
+                #'python-imenu-treesit-create-index)
+    (setq-local beginning-of-defun-function
+                #'python-treesit-beginning-of-defun)
+    (setq-local end-of-defun-function #'python-treesit-end-of-defun)
+    (treesit-major-mode-setup)))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code

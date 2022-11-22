@@ -115,7 +115,7 @@ expected font properties from parsing NAME.")
 (defun test-font-parse ()
   "Test font name parsing."
   (interactive)
-  (switch-to-buffer (generate-new-buffer "*Font Pase Test*"))
+  (switch-to-buffer (generate-new-buffer "*Font Parse Test*"))
   (setq show-trailing-whitespace nil)
   (let ((pass-face '((t :foreground "green")))
 	(fail-face '((t :foreground "red"))))

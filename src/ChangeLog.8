@@ -1272,7 +1272,7 @@
 
 	* xdisp.c (display_line): Set charpos of first glyph in blank
 	lines not corresponding to any text to -1, even if no glyphs are
-	filled in in that line.
+	filled in on that line.
 
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
@@ -3155,7 +3155,7 @@
 
 	* xdisp.c (resize_mini_window): Don't resize if
 	Vmax_mini_window_height is nil.  Otherwise, use a default if
-	Vmax_mini_window_height is not ot a number.
+	Vmax_mini_window_height is not a number.
 	(syms_of_xdisp): Extend documentation of Vmax_mini_window_height.
 
 1999-08-25  Alexandre Oliva  <oliva@dcc.unicamp.br>
@@ -5704,7 +5704,7 @@
 	(x_scroll_bar_expose): Make no-op for toolkit scroll bars.
 	(x_scroll_bar_create): Create and show a scroll bar widget
 	if using toolkit scroll bars.
-	(x_scroll_bar_move): Handle tookit scroll bars.
+	(x_scroll_bar_move): Handle toolkit scroll bars.
 
 	* Makefile.in (LIBW): Use Xaw3d if present.
 

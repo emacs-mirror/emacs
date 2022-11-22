@@ -492,7 +492,7 @@ Intended as a value for `revert-buffer-function'."
 \\{apropos-mode-map}"
   (make-local-variable 'apropos--current)
   (setq-local revert-buffer-function #'apropos--revert-buffer)
-  (setq-local outline-regexp "^[^ \n]+"
+  (setq-local outline-search-function #'outline-search-level
               outline-level (lambda () 1)
               outline-minor-mode-cycle t
               outline-minor-mode-highlight t
@@ -1188,7 +1188,8 @@ as a heading."
 	  (insert-text-button (symbol-name symbol)
 			      'type 'apropos-symbol
 			      'skip apropos-multi-type
-			      'face 'apropos-symbol)
+			      'face 'apropos-symbol
+			      'outline-level 1)
 	  (setq button-end (point))
 	  (if (and (eq apropos-sort-by-scores 'verbose)
 		   (cadr apropos-item))

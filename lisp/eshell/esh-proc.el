@@ -552,7 +552,7 @@ See the variable `eshell-kill-processes-on-exit'."
 	(setq sigs (cdr sigs))))))
 
 (defun eshell-query-kill-processes ()
-  "Kill processes belonging to the current Eshell buffer, possibly w/ query."
+  "Kill processes belonging to the current Eshell buffer, possibly with query."
   (when (and eshell-kill-processes-on-exit
 	     eshell-process-list)
     (save-window-excursion

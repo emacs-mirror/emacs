@@ -64,13 +64,17 @@ Do not call this mode function yourself.  It is meant for internal use."
   variable-pitch escape-glyph homoglyph
   minibuffer-prompt highlight region
   shadow secondary-selection trailing-whitespace
-  font-lock-builtin-face font-lock-comment-delimiter-face
-  font-lock-comment-face font-lock-constant-face
-  font-lock-doc-face font-lock-doc-markup-face font-lock-function-name-face
+  font-lock-bracket-face font-lock-builtin-face
+  font-lock-comment-delimiter-face font-lock-comment-face
+  font-lock-constant-face font-lock-delimiter-face
+  font-lock-doc-face font-lock-doc-markup-face
+  font-lock-escape-face font-lock-function-name-face
   font-lock-keyword-face font-lock-negation-char-face
-  font-lock-preprocessor-face font-lock-regexp-grouping-backslash
-  font-lock-regexp-grouping-construct font-lock-string-face
-  font-lock-type-face font-lock-variable-name-face
+  font-lock-number-face font-lock-misc-punctuation-face
+  font-lock-operator-face font-lock-preprocessor-face
+  font-lock-property-face font-lock-punctuation-face
+  font-lock-regexp-grouping-backslash font-lock-regexp-grouping-construct
+  font-lock-string-face font-lock-type-face font-lock-variable-name-face
   font-lock-warning-face button link link-visited fringe
   header-line tooltip mode-line mode-line-buffer-id
   mode-line-emphasis mode-line-highlight mode-line-inactive

@@ -373,7 +373,7 @@ Full key sequences are listed below:")
 
 ;; Define the input method straight away.
 (quail-define-package "tamil-phonetic" "Tamil" "ழ" t
- "Customisable Tamil phonetic input method.
+ "Customizable Tamil phonetic input method.
 To change the translation rules of the input method, customize
 `tamil-translation-rules'.
 

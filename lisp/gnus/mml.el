@@ -1446,7 +1446,7 @@ will be computed and used."
     (mml-insert-empty-tag 'part
 			  'type type
 			  ;; icicles redefines read-file-name and returns a
-			  ;; string w/ text properties :-/
+                          ;; string with text properties :-/
 			  'filename (substring-no-properties file)
 			  'disposition (or disposition "attachment")
 			  'description description)

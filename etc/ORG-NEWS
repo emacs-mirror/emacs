@@ -2847,7 +2847,7 @@ can pass the converted path to the =sqlcmd= tool.
 
 **** Improved support of header arguments for postgresql
 
-The postgresql engine in a sql code block supports now ~:dbport~ nd
+The postgresql engine in a sql code block now supports ~:dbport~ and
 ~:dbpassword~ as header arguments.
 
 **** Support for additional plantuml output formats
@@ -5763,7 +5763,7 @@ that Calc formulas can operate on them.
 **** org-ctags.el (Paul Sexton)
 
      Targets like =<<my target>>= can now be found by Emacs' etag
-     functionality, and Org-mode links can be used to to link to
+     functionality, and Org-mode links can be used to link to
      etags, also in non-Org-mode files.  For details, see the file
      /org-ctags.el/.
 
@@ -6120,7 +6120,7 @@ that Calc formulas can operate on them.
     code that is actually evaluated comprises the code block contents,
     augmented with the extra code which assigns the referenced data to
     variables. It is now possible to preview expanded contents, and
-    also to expand code during during tangling. This expansion takes
+    also to expand code during tangling. This expansion takes
     into account all header arguments, and variables.
 
     A new keybinding `C-c M-b p' bound to `org-babel-expand-src-block'
@@ -6235,7 +6235,7 @@ that Calc formulas can operate on them.
 
 **** Localized clock tables
 
-     Clock tables now support a new new =:lang= parameter, allowing
+     Clock tables now support a new =:lang= parameter, allowing
      the user to customize the localization of the table headers.  See
      the variable =org-clock-clocktable-language-setup= which controls
      available translated strings.

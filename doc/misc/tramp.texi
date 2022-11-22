@@ -4225,7 +4225,7 @@ non-@code{nil}, or invoke that command with a negative argument like
 @value{tramp}'s implementation of @code{make-process} and
 @code{start-file-process} requires a serious overhead for
 initialization, every process invocation.  This is needed for handling
-interactive dialogues when connecting the remote host (like providing
+interactive dialogs when connecting the remote host (like providing
 a password), and initial environment setup.
 
 Sometimes, this is not needed.  Instead of starting a remote shell and
@@ -4253,8 +4253,9 @@ Furthermore, this approach has the following limitations:
 
 @itemize
 @item
-It works only for connection methods defined in @file{tramp-adb.el},
-@file{tramp-sh.el} and @file{tramp-sshfs.el}.
+It works only for some connection methods defined in
+@file{tramp-adb.el}, @file{tramp-container.el}, @file{tramp-sh.el} and
+@file{tramp-sshfs.el}.
 
 @item
 It does not support interactive user authentication.  With

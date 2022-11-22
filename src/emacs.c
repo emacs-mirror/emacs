@@ -137,6 +137,10 @@ extern char etext;
 #include <sys/resource.h>
 #endif
 
+/* We don't guard this with HAVE_TREE_SITTER because treesit.o is
+   always compiled (to provide treesit-available-p).  */
+#include "treesit.h"
+
 #include "pdumper.h"
 #include "fingerprint.h"
 #include "epaths.h"
@@ -1932,7 +1936,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   running_asynch_code = 0;
   init_random ();
   init_xfaces ();
-  init_itree ();
 
 #if defined HAVE_JSON && !defined WINDOWSNT
   init_json ();
@@ -2267,7 +2270,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_MODULES
       syms_of_module ();
 #endif
-
+      /* We don't guard this with HAVE_TREE_SITTER because treesit.o
+	 is always compiled (to provide treesit-available-p).  */
+      syms_of_treesit ();
 #ifdef HAVE_SOUND
       syms_of_sound ();
 #endif
@@ -3104,8 +3109,6 @@ You must run Emacs in batch mode in order to dump it.  */)
   gflags.will_dump_ = false;
   gflags.will_dump_with_unexec_ = false;
   gflags.dumped_with_unexec_ = true;
-
-  forget_itree ();
 
   alloc_unexec_pre ();
 

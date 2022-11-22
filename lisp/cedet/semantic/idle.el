@@ -396,7 +396,7 @@ Uses `semantic-idle-work-for-on-buffer' to do the work."
 	      (semanticdb-save-all-db-idle)
 	      )
 
-	    ;; Done w/ processing
+            ;; Done with processing
 	    nil))))
 
     ;; Done

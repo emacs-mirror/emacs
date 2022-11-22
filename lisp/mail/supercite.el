@@ -1350,7 +1350,7 @@ buffer."
      nesting)))
 
 (defun sc-add-citation-level ()
-  "Add a citation level for nested citation style w/ coercion."
+  "Add a citation level for nested citation style with coercion."
   (let* ((nesting (sc-guess-nesting))
 	 (citation (make-string (1+ (length nesting))
 				(string-to-char sc-citation-delimiter)))

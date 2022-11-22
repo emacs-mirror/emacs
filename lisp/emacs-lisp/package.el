@@ -1090,10 +1090,15 @@ untar into a directory named DIR; otherwise, signal an error."
          (backup-inhibited t)
          (version-control 'never))
     (loaddefs-generate
-     pkg-dir output-file
-     nil
-     "(add-to-list 'load-path (directory-file-name
-                         (or (file-name-directory #$) (car load-path))))")
+     pkg-dir output-file nil
+     (prin1-to-string
+      '(add-to-list
+        'load-path
+        ;; Add the directory that will contain the autoload file to
+        ;; the load path.  We don't hard-code `pkg-dir', to avoid
+        ;; issues if the package directory is moved around.
+        (or (and load-file-name (file-name-directory load-file-name))
+            (car load-path)))))
     (let ((buf (find-buffer-visiting output-file)))
       (when buf (kill-buffer buf)))
     auto-name))
@@ -1358,10 +1363,7 @@ is non-nil, don't propagate connection errors (does not apply to
 errors signaled by ERROR-FORM or by BODY).
 
 \(fn URL &key ASYNC FILE ERROR-FORM NOERROR &rest BODY)"
-  (declare (indent defun)
-           ;; FIXME: This should be something like
-           ;; `form def-body &rest form', but that doesn't work.
-           (debug (form &rest sexp)))
+  (declare (indent defun) (debug (sexp body)))
   (while (keywordp (car body))
     (setq body (cdr (cdr body))))
   `(package--with-response-buffer-1 ,url (lambda () ,@body)
@@ -1785,7 +1787,7 @@ similar to an entry in `package-alist'.  Save the cached copy to
 \"archives/NAME/FILE\" in `package-user-dir'."
   ;; The downloaded archive contents will be read as part of
   ;; `package--update-downloads-in-progress'.
-  (dolist (archive package-archives)
+  (when async
     (cl-pushnew (cons archive file) package--downloads-in-progress
                 :test #'equal))
   (package--with-response-buffer (cdr archive) :file file
@@ -2419,7 +2421,7 @@ installed), maybe you need to \\[package-refresh-contents]")
 
 (declare-function comp-el-to-eln-filename "comp.c")
 (defvar package-vc-repository-store)
-(defun package--delete-directory (dir pkg-desc)
+(defun package--delete-directory (dir)
   "Delete PKG-DESC directory DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled."
@@ -2427,17 +2429,8 @@ compiled."
     (cl-loop
      for file in (directory-files-recursively dir "\\.el\\'")
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
-  (if (and (package-vc-p pkg-desc)
-           (require 'package-vc)   ;load `package-vc-repository-store'
-           (file-in-directory-p dir package-vc-repository-store))
-      (progn
-        (delete-directory
-         (expand-file-name
-          (car (file-name-split
-                (file-relative-name dir package-vc-repository-store)))
-          package-vc-repository-store)
-         t)
-        (delete-file (directory-file-name dir)))
+  (if (file-symlink-p (directory-file-name dir))
+      (delete-file (directory-file-name dir))
     (delete-directory dir t)))
 
 
@@ -2493,7 +2486,7 @@ If NOSAVE is non-nil, the package is not removed from
                   (package-desc-name pkg-used-elsewhere-by)))
           (t
            (add-hook 'post-command-hook #'package-menu--post-refresh)
-           (package--delete-directory dir pkg-desc)
+           (package--delete-directory dir)
            ;; Remove NAME-VERSION.signed and NAME-readme.txt files.
            ;;
            ;; NAME-readme.txt files are no longer created, but they
@@ -4539,19 +4532,28 @@ DESC must be a `package-desc' object."
         (funcall browse-url-secondary-browser-function url)
       (browse-url url))))
 
+(declare-function ietf-drums-parse-address "ietf-drums"
+                  (string &optional decode))
+
 (defun package-maintainers (pkg-desc &optional no-error)
   "Return an email address for the maintainers of PKG-DESC.
 The email address may contain commas, if there are multiple
 maintainers.  If no maintainers are found, an error will be
-signalled.  If the optional argument NO-ERROR is non-nil no error
-will be signalled in that case."
-  (unless pkg-desc
-    (error "Invalid package description"))
-  (let* ((extras (package-desc-extras pkg-desc))
+signaled.  If the optional argument NO-ERROR is non-nil no error
+will be signaled in that case."
+  (unless (package-desc-p pkg-desc)
+    (error "Invalid package description: %S" pkg-desc))
+  (let* ((name (package-desc-name pkg-desc))
+         (extras (package-desc-extras pkg-desc))
          (maint (alist-get :maintainer extras)))
     (cond
      ((and (null maint) (null no-error))
-      (user-error "Package has no explicit maintainer"))
+      (user-error "Package `%s' has no explicit maintainer" name))
+     ((and (not (progn
+                  (require 'ietf-drums)
+                  (ietf-drums-parse-address maint)))
+           (null no-error))
+      (user-error "Package `%s' has no maintainer address" name))
      ((not (null maint))
       (with-temp-buffer
         (package--print-email-button maint)

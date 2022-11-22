@@ -217,7 +217,7 @@
        (while (not threads-mutex-key)
 	 (thread-yield))
        (thread-signal thr 'quit nil)
-       ;; `quit' is not catched by `should-error'.  We must indicate it.
+       ;; `quit' is not caught by `should-error'.  We must indicate it.
        (condition-case nil
            (thread-join thr)
          (quit (signal 'error nil)))))))

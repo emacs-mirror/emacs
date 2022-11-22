@@ -1362,12 +1362,20 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       char *xmessage = alloca (1 + message_length);
       memcpy (xmessage, cursor_data.error_string, message_length);
 
-      x_uncatch_errors ();
+      x_uncatch_errors_after_check ();
+
+      /* XFreeCursor can generate BadCursor errors, because
+	 XCreateFontCursor is not a request that waits for a reply,
+	 and as such can return IDs that will not actually be used by
+	 the server.  */
+      x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
 
       /* Free any successfully created cursors.  */
       for (i = 0; i < mouse_cursor_max; i++)
 	if (cursor_data.cursor[i] != 0)
 	  XFreeCursor (dpy, cursor_data.cursor[i]);
+
+      x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
 
       /* This should only be able to fail if the server's serial
 	 number tracking is broken.  */
@@ -4550,13 +4558,6 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 	}
       if (NILP (font))
 	error ("No suitable font was found");
-    }
-  else if (!NILP (font_param))
-    {
-      /* Remember the explicit font parameter, so we can re-apply it after
-	 we've applied the `default' face settings.  */
-      AUTO_FRAME_ARG (arg, Qfont_parameter, font_param);
-      gui_set_frame_parameters (f, arg);
     }
 
   /* This call will make X resources override any system font setting.  */

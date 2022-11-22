@@ -78,7 +78,10 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
     (dolist (term query)
       (let* ((attr (car term))
              (value (cdr term))
-             (raw-matches (symbol-value (intern-soft value mail-abbrevs))))
+             (soft (intern-soft value mail-abbrevs))
+             (raw-matches (and
+                           (boundp soft)
+                           (symbol-value soft))))
         (when (and raw-matches
                    (memq attr '(email firstname name)))
           (let* ((matches (split-string raw-matches ", "))

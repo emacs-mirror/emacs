@@ -687,7 +687,7 @@ to deal with new-style links.")
       fname)))
 
 (defadvice server-visit-files (before org-protocol-detect-protocol-server activate)
-  "Advice server-visit-flist to call `org-protocol-modify-filename-for-protocol'."
+  "Advice server-visit-flist to call `org-protocol-check-filename-for-protocol'."
   (let ((flist (if org-protocol-reverse-list-of-files
                    (reverse  (ad-get-arg 0))
                  (ad-get-arg 0)))

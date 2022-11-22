@@ -220,13 +220,13 @@ enum font_property_index
 #define FONT_WIDTH_FOR_FACE(font)	\
   font_style_symbolic (font, FONT_WIDTH_INDEX, true)
 
-/* Return the numeric weight value corresponding ot the symbol NAME.  */
+/* Return the numeric weight value corresponding to the symbol NAME.  */
 #define FONT_WEIGHT_NAME_NUMERIC(name)	\
   (font_style_to_value (FONT_WEIGHT_INDEX, (name), false) >> 8)
-/* Return the numeric slant value corresponding ot the symbol NAME.  */
+/* Return the numeric slant value corresponding to the symbol NAME.  */
 #define FONT_SLANT_NAME_NUMERIC(name)	\
   (font_style_to_value (FONT_SLANT_INDEX, (name), false) >> 8)
-/* Return the numeric width value corresponding ot the symbol NAME.  */
+/* Return the numeric width value corresponding to the symbol NAME.  */
 #define FONT_WIDTH_NAME_NUMERIC(name)	\
   (font_style_to_value (FONT_WIDTH_INDEX, (name), false) >> 8)
 

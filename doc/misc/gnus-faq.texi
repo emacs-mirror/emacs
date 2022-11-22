@@ -144,9 +144,8 @@ information to disk (e.g., which messages you read), you
 are now asked if you want to restore that information
 from the auto-save file.
 
-To prevent this message make sure you exit Gnus
-via @samp{q} in group buffer instead of
-just killing Emacs.
+To prevent this message make sure you exit Gnus via @kbd{q} in group
+buffer instead of just killing Emacs.
 
 @node FAQ 2-2
 @subsubheading Question 2.2
@@ -180,25 +179,23 @@ example for this (guess from whose .gnus :-)):
 @node FAQ 2-4
 @subsubheading Question 2.4
 
-My group buffer becomes a bit crowded, is there a way to
-sort my groups into categories so I can easier browse
-through them?
+My group buffer is a bit crowded.  Is there a way to sort groups into
+categories so I can browse them more easily?
 
 @subsubheading Answer
 
-Gnus offers the topic mode, it allows you to sort your
-groups in, well, topics, e.g., all groups dealing with
-Linux under the topic linux, all dealing with music under
-the topic music and all dealing with scottish music under
-the topic scottish which is a subtopic of music.
+Gnus offers the topic mode, it allows you to sort your groups in,
+well, topics.  For example, all groups dealing with Linux under the
+topic @samp{linux}, all dealing with music under the topic
+@samp{music} and all dealing with Scottish music under the topic
+@samp{scottish} which is a subtopic of @samp{music}.
 
-To enter topic mode, just hit t while in Group buffer.  Now
-you can use @samp{T n} to create a topic
-at point and @samp{T m} to move a group to
-a specific topic.  For more commands see the manual or the
-menu.  You might want to include the %P specifier at the
-beginning of your gnus-group-line-format variable to have
-the groups nicely indented.
+To enter topic mode, just hit @kbd{t} while in Group buffer.  Now you
+can use @kbd{T n} to create a topic at point and @kbd{T m} to move a
+group to a specific topic.  For more commands see the manual or the
+menu.  You might want to include the @samp{%P} specifier at the
+beginning of your @var{gnus-group-line-format} variable to have the
+groups nicely indented.
 
 @node FAQ 2-5
 @subsubheading Question 2.5
@@ -208,16 +205,14 @@ sort the groups in a topic?
 
 @subsubheading Answer
 
-Move point over the group you want to move and
-hit @samp{C-k}, now move point to the
-place where you want the group to be and
-hit @samp{C-y}.
+Move point over the group you want to move and hit @kbd{C-k}, now move
+point to the place where you want the group to be and hit @kbd{C-y}.
 
 @node FAQ 3 - Getting Messages
 @subsection Getting Messages
 
 @menu
-* FAQ 3-1::     I just installed Gnus, started it via  @samp{M-x gnus}
+* FAQ 3-1::     I just installed Gnus, started it via  @kbd{M-x gnus}
                 but it only says "nntp (news) open error", what to do?
 * FAQ 3-2::     I'm working under Windows and have no idea what
                 ~/.gnus.el means.
@@ -242,9 +237,8 @@ hit @samp{C-y}.
 @node FAQ 3-1
 @subsubheading Question 3.1
 
-I just installed Gnus, started it via
-@samp{M-x gnus}
-but it only says "nntp (news) open error", what to do?
+I just installed Gnus, started it via @kbd{M-x gnus} but it only says
+"nntp (news) open error", what to do?
 
 @subsubheading Answer
 
@@ -270,7 +264,7 @@ The ~/ means the home directory where Gnus and Emacs look
 for the configuration files.  However, you don't really
 need to know what this means, it suffices that Emacs knows
 what it means :-) You can type
-@samp{C-x C-f ~/.gnus.el @key{RET}}
+@kbd{C-x C-f ~/.gnus.el @key{RET}}
 (yes, with the forward slash, even on Windows), and
 Emacs will open the right file for you.  (It will most
 likely be new, and thus empty.)
@@ -295,7 +289,7 @@ possibility to set environment variables.  Create a new one with
 name HOME and value C:\myhome.  Rebooting is not necessary.
 
 Now to create @file{~/.gnus.el}, say
-@samp{C-x C-f ~/.gnus.el @key{RET} C-x C-s}.
+@kbd{C-x C-f ~/.gnus.el @key{RET} C-x C-s}.
 in Emacs.
 
 @node FAQ 3-3
@@ -331,14 +325,12 @@ subscribe to a group.
 
 @subsubheading Answer
 
-If you know the name of the group say @samp{U
-name.of.group @key{RET}} in group buffer (use the
-tab-completion Luke).  Otherwise hit ^ in group buffer,
-this brings you to the server buffer.  Now place point (the
-cursor) over the server which carries the group you want,
-hit @samp{@key{RET}}, move point to the group
-you want to subscribe to and say @samp{u}
-to subscribe to it.
+If you know the name of the group say @kbd{U name.of.group @key{RET}}
+in group buffer (use the tab-completion Luke).  Otherwise hit @kbd{^}
+in group buffer, this brings you to the server buffer.  Now place
+point (the cursor) over the server which carries the group you want,
+hit @kbd{RET}, move point to the group you want to subscribe to and
+say @kbd{u} to subscribe to it.
 
 @node FAQ 3-5
 @subsubheading Question 3.5
@@ -625,12 +617,10 @@ When I enter a group, all read messages are gone.  How to view them again?
 
 @subsubheading Answer
 
-If you enter the group by saying
-@samp{@key{RET}}
-in group buffer with point over the group, only unread and ticked messages are loaded.  Say
-@samp{C-u @key{RET}}
-instead to load all available messages.  If you want only the 300 newest say
-@samp{C-u 300 @key{RET}}
+If you enter the group by saying @kbd{@key{RET}} in group buffer with
+point over the group, only unread and ticked messages are loaded.  Say
+@kbd{C-u @key{RET}} instead to load all available messages.  If you
+want only the 300 newest say @kbd{C-u 300 @key{RET}}
 
 Loading only unread messages can be annoying if you have threaded view enabled, say
 
@@ -643,12 +633,12 @@ in @file{~/.gnus.el} to load enough old articles to prevent teared threads, repl
 all articles (Warning: Both settings enlarge the amount of data which is
 fetched when you enter a group and slow down the process of entering a group).
 
-You can say @samp{/o N} in the summary buffer to load the last N
+You can say @kbd{/o N} in the summary buffer to load the last N
 messages.
 
 If you don't want all old messages, but the parent of the message you're just reading,
-you can say @samp{^}, if you want to retrieve the whole thread
-the message you're just reading belongs to, @samp{A T} is your friend.
+you can say @kbd{^}, if you want to retrieve the whole thread
+the message you're just reading belongs to, @kbd{A T} is your friend.
 
 @node FAQ 4-2
 @subsubheading Question 4.2
@@ -659,10 +649,10 @@ enter a group, even when it's read?
 @subsubheading Answer
 
 You can tick important messages.  To do this hit
-@samp{u} while point is in summary buffer
+@kbd{u} while point is in summary buffer
 over the message.  When you want to remove the mark, hit
-either @samp{d} (this deletes the tick
-mark and set's unread mark) or @samp{M c}
+either @kbd{d} (this deletes the tick
+mark and set's unread mark) or @kbd{M c}
 (which deletes all marks for the message).
 
 @node FAQ 4-3
@@ -672,10 +662,7 @@ How to view the headers of a message?
 
 @subsubheading Answer
 
-Say @samp{t}
-to show all headers, one more
-@samp{t}
-hides them again.
+Say @kbd{t} to show all headers, one more @kbd{t} hides them again.
 
 @node FAQ 4-4
 @subsubheading Question 4.4
@@ -684,11 +671,8 @@ How to view the raw unformatted message?
 
 @subsubheading Answer
 
-Say
-@samp{C-u g}
-to show the raw message
-@samp{g}
-returns to normal view.
+Type @kbd{C-u g} to show the raw message @kbd{g} returns to normal
+view.
 
 @node FAQ 4-5
 @subsubheading Question 4.5
@@ -765,11 +749,11 @@ more readable?
 Gnus offers you several functions to ``wash'' incoming mail, you can
 find them if you browse through the menu, item
 Article->Washing.  The most interesting ones are probably ``Wrap
-long lines'' (@samp{W w}), ``Decode ROT13''
-(@samp{W r}) and ``Outlook Deuglify'' which repairs
+long lines'' (@kbd{W w}), ``Decode ROT13''
+(@kbd{W r}) and ``Outlook Deuglify'' which repairs
 the dumb quoting used by many users of Microsoft products
-(@samp{W Y f} gives you full deuglify.
-See @samp{W Y C-h} or have a look at the menus for
+(@kbd{W Y f} gives you full deuglify.
+See @kbd{W Y C-h} or have a look at the menus for
 other deuglifications).
 
 @node FAQ 4-9
@@ -792,21 +776,21 @@ the scoring-value to messages.  The first and easiest way is to set
 up rules based on the article you are just reading.  Say you're
 reading a message by a guy who always writes nonsense and you want
 to ignore his messages in the future.  Hit
-@samp{L}, to set up a rule which lowers the score.
+@kbd{L}, to set up a rule which lowers the score.
 Now Gnus asks you which the criteria for lowering the Score shall
-be.  Hit @samp{?} twice to see all possibilities,
-we want @samp{a} which means the author (the from
+be.  Hit @kbd{?} twice to see all possibilities,
+we want @kbd{a} which means the author (the from
 header).  Now Gnus wants to know which kind of matching we want.
-Hit either @samp{e} for an exact match or
-@samp{s} for substring-match and delete afterwards
+Hit either @kbd{e} for an exact match or
+@kbd{s} for substring-match and delete afterwards
 everything but the name to score down all authors with the given
 name no matter which email address is used.  Now you need to tell
 Gnus when to apply the rule and how long it should last, hit
-@samp{p} to apply the rule now and let it last
+@kbd{p} to apply the rule now and let it last
 forever.  If you want to raise the score instead of lowering it say
-@samp{I} instead of @samp{L}.
+@kbd{I} instead of @kbd{L}.
 
-You can also set up rules by hand.  To do this say @samp{V
+You can also set up rules by hand.  To do this say @kbd{V
 f} in summary buffer.  Then you are asked for the name
 of the score file, it's name.of.group.SCORE for rules valid in
 only one group or all.Score for rules valid in all groups.  See the
@@ -851,7 +835,7 @@ set other variables specific for some groups?
 @subsubheading Answer
 
 While in group buffer move point over the group and hit
-@samp{G c}, this opens a buffer where you
+@kbd{G c}, this opens a buffer where you
 can set options for the group.  At the bottom of the buffer
 you'll find an item that allows you to set variables
 locally for the group.  To disable threading enter
@@ -889,10 +873,10 @@ back ends.  Gnus thinks ``highest-article-number @minus{}
 lowest-article-number = total-number-of-articles''.  This
 works OK for Usenet groups, but if you delete and move
 many messages in mail groups, this fails.  To cure the
-symptom, enter the group via @samp{C-u @key{RET}}
+symptom, enter the group via @kbd{C-u @key{RET}}
 (this makes Gnus get all messages), then
-hit @samp{M P b} to mark all messages and
-then say @samp{B m name.of.group} to move
+hit @kbd{M P b} to mark all messages and
+then say @kbd{B m name.of.group} to move
 all messages to the group they have been in before, they
 get new message numbers in this process and the count is
 right again (until you delete and move your mail to other
@@ -1110,28 +1094,20 @@ What are the basic commands I need to know for sending mail and postings?
 
 @subsubheading Answer
 
-To start composing a new mail hit @samp{m}
-either in Group or Summary buffer, for a posting, it's
-either @samp{a} in Group buffer and
-filling the Newsgroups header manually
-or @samp{a} in the Summary buffer of the
-group where the posting shall be send to.  Replying by mail
-is
-@samp{r} if you don't want to cite the
-author, or import the cited text manually and
-@samp{R} to cite the text of the original
-message.  For a follow up to a newsgroup, it's
-@samp{f} and @samp{F}
-(analogously to @samp{r} and
-@samp{R}).
+To start composing a new mail hit @kbd{m} either in Group or Summary
+buffer, for a posting, it's either @kbd{a} in Group buffer and filling
+the Newsgroups header manually or @kbd{a} in the Summary buffer of the
+group where the posting shall be send to.  Replying by mail is @kbd{r}
+if you don't want to cite the author, or import the cited text
+manually and @kbd{R} to cite the text of the original message.  For a
+follow up to a newsgroup, it's @kbd{f} and @kbd{F} (analogously to
+@kbd{r} and @kbd{R}).
 
-Enter new headers above the line saying "--text follows
-this line--", enter the text below the line.  When ready
-hit @samp{C-c C-c}, to send the message,
-if you want to finish it later hit @samp{C-c
-C-d} to save it in the drafts group, where you
-can start editing it again by saying @samp{D
-e}.
+Enter new headers above the line saying "--text follows this line--",
+enter the text below the line.  When ready hit @kbd{C-c C-c}, to send
+the message, if you want to finish it later hit @kbd{C-c C-d} to save
+it in the drafts group, where you can start editing it again by saying
+@kbd{D e}.
 
 @node FAQ 5-2
 @subsubheading Question 5.2
@@ -1156,8 +1132,7 @@ For other versions of Gnus, say
 
 in @file{~/.gnus.el}.
 
-You can reformat a paragraph by hitting @samp{M-q}
-(as usual).
+You can reformat a paragraph by hitting @kbd{M-q} (as usual).
 
 @node FAQ 5-3
 @subsubheading Question 5.3
@@ -1358,16 +1333,13 @@ place them in ~/.emacs:
 @end example
 @noindent
 
-Now you should be ready to go.  Say @samp{M-x bbdb @key{RET}
-@key{RET}} to open a bbdb buffer showing all
-entries.  Say @samp{c} to create a new
-entry, @samp{b} to search your BBDB and
-@samp{C-o} to add a new field to an
-entry.  If you want to add a sender to the BBDB you can
-also just hit @kbd{:} on the posting in the summary buffer and
-you are done.  When you now compose a new mail,
-hit @samp{TAB} to cycle through know
-recipients.
+Now you should be ready to go.  Say @kbd{M-x bbdb @key{RET} @key{RET}}
+to open a bbdb buffer showing all entries.  Say @kbd{c} to create a
+new entry, @kbd{b} to search your BBDB and @kbd{C-o} to add a new
+field to an entry.  If you want to add a sender to the BBDB you can
+also just hit @kbd{:} on the posting in the summary buffer and you are
+done.  When you now compose a new mail, hit @kbd{TAB} to cycle through
+know recipients.
 
 @node FAQ 5-8
 @subsubheading Question 5.8
@@ -1576,17 +1548,17 @@ world, you may find tools at
 
 Now you've got to import this mbox file into Gnus.  To do
 this, create a nndoc group based on the mbox file by
-saying @samp{G f /path/file.mbox @key{RET}} in
+saying @kbd{G f /path/file.mbox @key{RET}} in
 Group buffer.  You now have read-only access to your
 mail.  If you want to import the messages to your normal
 Gnus mail groups hierarchy, enter the nndoc group you've
-just created by saying @samp{C-u @key{RET}}
+just created by saying @kbd{C-u @key{RET}}
 (thus making sure all messages are retrieved), mark all
-messages by saying @samp{M P b} and
+messages by saying @kbd{M P b} and
 either copy them to the desired group by saying
-@samp{B c name.of.group @key{RET}} or send them
+@kbd{B c name.of.group @key{RET}} or send them
 through nnmail-split-methods (respool them) by saying
-@samp{B r}.
+@kbd{B r}.
 
 @node FAQ 6-2
 @subsubheading Question 6.2
@@ -1598,7 +1570,7 @@ How to archive interesting messages?
 If you stumble across an interesting message, say in
 gnu.emacs.gnus and want to archive it there are several
 solutions.  The first and easiest is to save it to a file
-by saying @samp{O f}.  However, wouldn't
+by saying @kbd{O f}.  However, wouldn't
 it be much more convenient to have more direct access to
 the archived message from Gnus? If you say yes, put this
 snippet by Frank Haun <pille3003@@fhaun.de> in
@@ -1621,10 +1593,9 @@ more then one article."
 @end example
 @noindent
 
-You can now say @samp{M-x
-my-archive-article} in summary buffer to
-archive the article under the cursor in a nnml
-group. (Change nnml to your preferred back end.)
+You can now say @kbd{M-x my-archive-article} in summary buffer to
+archive the article under the cursor in a nnml group. (Change nnml to
+your preferred back end.)
 
 Of course you can also make sure the cache is enabled by saying
 
@@ -1644,26 +1615,20 @@ How to search for a specific message?
 
 @subsubheading Answer
 
-There are several ways for this, too.  For a posting from
-a Usenet group the easiest solution is probably to ask
-@uref{https://groups.google.com, groups.google.com},
-if you found the posting there, tell Google to display
-the raw message, look for the message-id, and say
-@samp{M-^ the@@message.id @key{RET}} in a
-summary buffer.
-There's a Gnus interface for
-groups.google.com which you can call with
-@samp{G W}) in group buffer.
+There are several ways for this, too.  For a posting from a Usenet
+group the easiest solution is probably to ask
+@uref{https://groups.google.com, groups.google.com}, if you found the
+posting there, tell Google to display the raw message, look for the
+message-id, and say @kbd{M-^ the@@message.id @key{RET}} in a summary
+buffer.  There's a Gnus interface for @samp{groups.google.com} which
+you can call with @kbd{G W}) in group buffer.
 
-Another idea which works for both mail and news groups
-is to enter the group where the message you are
-searching is and use the standard Emacs search
-@samp{C-s}, it's smart enough to look at
-articles in collapsed threads, too.  If you want to
-search bodies, too try @samp{M-s}
-instead.  Further on there are the
-gnus-summary-limit-to-foo functions, which can help you,
-too.
+Another idea which works for both mail and news groups is to enter the
+group where the message you are searching is and use the standard
+Emacs search @kbd{C-s}, it's smart enough to look at articles in
+collapsed threads, too.  If you want to search bodies, too try
+@kbd{M-s} instead.  Further on there are the gnus-summary-limit-to-foo
+functions, which can help you, too.
 
 @node FAQ 6-4
 @subsubheading Question 6.4
@@ -1673,18 +1638,18 @@ How to get rid of old unwanted mail?
 @subsubheading Answer
 
 You can of course just mark the mail you don't need
-anymore by saying @samp{#} with point
-over the mail and then say @samp{B @key{DEL}}
+anymore by saying @kbd{#} with point
+over the mail and then say @kbd{B @key{DEL}}
 to get rid of them forever.  You could also instead of
 actually deleting them, send them to a junk-group by
-saying @samp{B m nnml:trash-bin} which
+saying @kbd{B m nnml:trash-bin} which
 you clear from time to time, but both are not the intended
 way in Gnus.
 
 In Gnus, we let mail expire like news expires on a news
 server.  That means you tell Gnus the message is
 expirable (you tell Gnus "I don't need this mail
-anymore") by saying @samp{E} with point
+anymore") by saying @kbd{E} with point
 over the mail in summary buffer.  Now when you leave the
 group, Gnus looks at all messages which you marked as
 expirable before and if they are old enough (default is
@@ -1703,13 +1668,13 @@ mailing lists where there's an online archive), you've
 got two choices: auto-expire and
 total-expire.  Auto-expire means, that every article
 which has no marks set and is selected for reading is
-marked as expirable, Gnus hits @samp{E}
+marked as expirable, Gnus hits @kbd{E}
 for you every time you read a message.  Total-expire
 follows a slightly different approach, here all article
 where the read mark is set are expirable.
 
 To activate auto-expire, include auto-expire in the
-Group parameters for the group. (Hit @samp{G
+Group parameters for the group. (Hit @kbd{G
 c} in summary buffer with point over the
 group to change group parameters).  For total-expire add
 total-expire to the group-parameters.
@@ -1721,10 +1686,10 @@ you should use total-expire.
 
 If you want a message to be excluded from expiration in
 a group where total or auto expire is active, set either
-tick (hit @samp{u}) or dormant mark (hit
-@samp{u}), when you use auto-expire, you
+tick (hit @kbd{u}) or dormant mark (hit
+@kbd{u}), when you use auto-expire, you
 can also set the read mark (hit
-@samp{d}).
+@kbd{d}).
 
 @node FAQ 6-6
 @subsubheading Question 6.6
@@ -1817,12 +1782,12 @@ newsreaders like Forte Agent.  It is enabled by default.
 
 You've got to select the servers whose groups can be
 stored locally.  To do this, open the server buffer
-(that is press @samp{^} while in the
+(that is press @kbd{^} while in the
 group buffer).  Now select a server by moving point to
 the line naming that server.  Finally, agentize the
-server by typing @samp{J a}.  If you
+server by typing @kbd{J a}.  If you
 make a mistake, or change your mind, you can undo this
-action by typing @samp{J r}.  When
+action by typing @kbd{J r}.  When
 you're done, type 'q' to return to the group buffer.
 Now the next time you enter a group on an agentized
 server, the headers will be stored on disk and read from
@@ -1838,7 +1803,7 @@ I want to store article bodies on disk, too.  How to do it?
 You can tell the agent to automatically fetch the bodies
 of articles which fulfill certain predicates, this is
 done in a special buffer which can be reached by
-saying @samp{J c} in group
+saying @kbd{J c} in group
 buffer.  Please refer to the documentation for
 information which predicates are possible and how
 exactly to do it.
@@ -1847,12 +1812,12 @@ Further on you can tell the agent manually which
 articles to store on disk.  There are two ways to do
 this: Number one: In the summary buffer, process mark a
 set of articles that shall be stored in the agent by
-saying @samp{#} with point over the
-article and then type @samp{J s}.  The
+saying @kbd{#} with point over the
+article and then type @kbd{J s}.  The
 other possibility is to set, again in the summary
 buffer, downloadable (%) marks for the articles you
-want by typing @samp{@@} with point over
-the article and then typing @samp{J u}.
+want by typing @kbd{@@} with point over
+the article and then typing @kbd{J u}.
 What's the difference? Well, process marks are erased as
 soon as you exit the summary buffer while downloadable
 marks are permanent.  You can actually set downloadable
@@ -1874,10 +1839,10 @@ while I'm offline?
 All you've got to do is to tell Gnus when you are online
 (plugged) and when you are offline (unplugged), the rest
 works automatically.  You can toggle plugged/unplugged
-state by saying @samp{J j} in group
-buffer.  To start Gnus unplugged say @samp{M-x
+state by saying @kbd{J j} in group
+buffer.  To start Gnus unplugged say @kbd{M-x
 gnus-unplugged} instead of
-@samp{M-x gnus}.  Note that for this to
+@kbd{M-x gnus}.  Note that for this to
 work, the agent must be active.
 
 @node FAQ 8 - Getting help
@@ -1901,14 +1866,14 @@ How to find information and help inside Emacs?
 @subsubheading Answer
 
 The first stop should be the Gnus manual (Say
-@samp{C-h i d m Gnus @key{RET}} to start the
+@kbd{C-h i d m Gnus @key{RET}} to start the
 Gnus manual, then walk through the menus or do a
-full-text search with @samp{s}).  Then
+full-text search with @kbd{s}).  Then
 there are the general Emacs help commands starting with
-C-h, type @samp{C-h ? ?} to get a list
+@kbd{C-h}, type @kbd{C-h ? ?} to get a list
 of all available help commands and their meaning.  Finally
-@samp{M-x apropos-command} lets you
-search through all available functions and @samp{M-x
+@kbd{M-x apropos-command} lets you
+search through all available functions and @kbd{M-x
 apropos} searches the bound variables.
 
 @node FAQ 8-2
@@ -1963,7 +1928,7 @@ Where to report bugs?
 
 @subsubheading Answer
 
-Say @samp{M-x gnus-bug}, this will start
+Say @kbd{M-x gnus-bug}, this will start
 a message to the
 @email{bugs@@gnus.org, gnus bug mailing list}
 including information about your environment which make
@@ -1998,7 +1963,7 @@ The reason for this could be the way Gnus reads its
 active file, see the node "The Active File" in the Gnus
 manual for things you might try to speed the process up.
 An other idea would be to byte compile your @file{~/.gnus.el} (say
-@samp{M-x byte-compile-file @key{RET} ~/.gnus.el
+@kbd{M-x byte-compile-file @key{RET} ~/.gnus.el
 @key{RET}} to do it).  Finally, if you have require
 statements in your .gnus, you could replace them with
 @code{with-eval-after-load}, which loads the stuff not at startup

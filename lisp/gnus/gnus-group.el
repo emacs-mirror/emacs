@@ -393,17 +393,15 @@ variables in the Lisp expression:
   "Add Icons to your group buffer."
   :group 'gnus-group-visual)
 
-(defcustom gnus-group-icon-list
-  nil
+(defcustom gnus-group-icon-list nil
   "Controls the insertion of icons into group buffer lines.
 
 Below is a list of `Form'/`File' pairs.  When deciding how a
 particular group line should be displayed, each form is evaluated.
 The icon from the file field after the first true form is used.  You
 can change how those group lines are displayed by editing the file
-field.  The File will either be found in the
-`gnus-group-glyph-directory' or by designating absolute name of the
-file.
+field.  The File will either be found in the `image-load-path'
+or by specifying the absolute name of the file.
 
 It is also possible to change and add form fields, but currently that
 requires an understanding of Lisp expressions.  Hopefully this will

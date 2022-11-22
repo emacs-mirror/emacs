@@ -78,6 +78,9 @@
     (font-spec atom) (font-entity atom) (font-object atom)
     (vector array sequence atom)
     (user-ptr atom)
+    (tree-sitter-parser atom)
+    (tree-sitter-node atom)
+    (tree-sitter-compiled-query atom)
     ;; Plus, really hand made:
     (null symbol list sequence atom))
   "Alist of supertypes.

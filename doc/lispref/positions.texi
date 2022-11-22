@@ -834,6 +834,22 @@ a defun.  The function @code{end-of-defun} calls this function instead
 of using its normal method.
 @end defvar
 
+@findex treesit-beginning-of-defun
+@findex treesit-end-of-defun
+If Emacs is compiled with tree-sitter, it can use the tree-sitter parser
+information to move across syntax constructs.  A major mode can set
+@code{treesit-defun-type-regexp} and get navigation functionality for
+free, by using @code{treesit-beginning-of-defun} and
+@code{treesit-end-of-defun}.
+
+@defvar treesit-defun-type-regexp
+The value of this variable is a regexp matching the node type of defun
+nodes.  (For ``node'', ``node type'', @pxref{Parsing Program Source}.)
+
+For example, @code{python-mode} sets this variable to a regexp that
+matches either @code{function_definition} or @code{class_definition}.
+@end defvar
+
 @node Skipping Characters
 @subsection Skipping Characters
 @cindex skipping characters

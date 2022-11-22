@@ -554,12 +554,17 @@ trigger another garbage collection.  You can use the result returned by
 object type; space allocated to the contents of buffers does not count.
 
 The initial threshold value is @code{GC_DEFAULT_THRESHOLD}, defined in
-@file{alloc.c}.  Since it's defined in @code{word_size} units, the value
-is 400,000 for the default 32-bit configuration and 800,000 for the 64-bit
-one.  If you specify a larger value, garbage collection will happen less
-often.  This reduces the amount of time spent garbage collecting, but
-increases total memory use.  You may want to do this when running a program
-that creates lots of Lisp data.
+@file{alloc.c}.  Since it's defined in @code{word_size} units, the
+value is 400,000 for the default 32-bit configuration and 800,000 for
+the 64-bit one.  If you specify a larger value, garbage collection
+will happen less often.  This reduces the amount of time spent garbage
+collecting, but increases total memory use.  You may want to do this
+when running a program that creates lots of Lisp data.  However, we
+recommend against increasing the threshold for prolonged periods of
+time, and advise that you never set it higher than needed for the
+program to run in reasonable time.  Using thresholds higher than
+necessary could potentially cause system-wide memory pressure, and
+should therefore be avoided.
 
 You can make collections more frequent by specifying a smaller value, down
 to 1/10th of @code{GC_DEFAULT_THRESHOLD}.  A value less than this minimum
@@ -576,6 +581,9 @@ garbage collection occurs only when both criteria are satisfied.
 As the heap size increases, the time to perform a garbage collection
 increases.  Thus, it can be desirable to do them less frequently in
 proportion.
+
+As with @code{gc-cons-threshold}, do not enlarge this more than
+necessary, and never for prolonged periods of time.
 @end defopt
 
   Control over the garbage collector via @code{gc-cons-threshold} and

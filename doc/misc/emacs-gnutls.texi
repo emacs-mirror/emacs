@@ -132,7 +132,7 @@ PEM or DER format and examples can be found in most Unix
 distributions.  By default the following locations are tried in this
 order: @file{/etc/ssl/certs/ca-certificates.crt} for Debian, Ubuntu,
 Gentoo and Arch Linux; @file{/etc/pki/tls/certs/ca-bundle.crt} for
-Fedora and RHEL; @file{/etc/ssl/ca-bundle.pem} for Suse;
+Fedora and RHEL; @file{/etc/ssl/ca-bundle.pem} for SUSE;
 @file{/usr/ssl/certs/ca-bundle.crt} for Cygwin;
 @file{/usr/local/share/certs/ca-root-nss.crt} for FreeBSD@.  You can
 easily customize @code{gnutls-trustfiles} to be something else, but

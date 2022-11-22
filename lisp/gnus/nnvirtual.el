@@ -172,7 +172,7 @@ It is computed from the marks of individual component groups.")
 	      (with-current-buffer nntp-server-buffer
 		(erase-buffer)
 		(insert-buffer-substring vbuf)
-		;; FIX FIX FIX, we should be able to sort faster than
+                ;; FIXME: we should be able to sort faster than
 		;; this if needed, since each cgroup is sorted, we just
 		;; need to merge
 		(sort-numeric-fields 1 (point-min) (point-max))

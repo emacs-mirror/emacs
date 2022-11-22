@@ -1210,9 +1210,7 @@ Returns nil if no completion was inserted.
 Returns `sole' if completed with the only completion match.
 Returns `shortest' if completed with the shortest of the matches.
 Returns `partial' if completed as far as possible with the matches.
-Returns `listed' if a completion listing was shown.
-
-See also `pcomplete-filename'."
+Returns `listed' if a completion listing was shown."
   (let* ((completion-ignore-case completion-ignore-case)
 	 (completions (all-completions stub candidates))
          (entry (try-completion stub candidates))

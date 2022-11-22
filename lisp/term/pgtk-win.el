@@ -184,7 +184,7 @@ DISPLAY is the name of the display Emacs should connect to."
 (defun pgtk-preedit-text (event)
   "An internal function to display preedit text from input method.
 
-EVENT is a `preedit-text-event'."
+EVENT is a `preedit-text' event."
   (interactive "e")
   (when pgtk-preedit-overlay
     (delete-overlay pgtk-preedit-overlay))

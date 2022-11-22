@@ -267,5 +267,45 @@
                      '(((email . "Lars Ingebrigtsen <larsi@mail-abbrev.com>, \
 Karl Fogel <kfogel@mail-abbrev.com")))))))))
 
+(require 'ldap)
+(ert-deftest eudcb-ldap ()
+  "Test the LDAP back-end."
+  (skip-unless (and (file-exists-p "/usr/sbin/slapd")
+                    (file-exists-p "/usr/bin/ldapsearch")))
+  (cd (concat (ert-resource-directory) ".."))
+  (let ((ldap-process
+         (start-process "slapd" "*slapd*" "/usr/sbin/slapd"
+                        "-h" "ldap://127.0.0.1:3899" "-d" "0" "-4"
+                        "-f" (ert-resource-file "slapd.conf")))
+        (ldap-host-parameters-alist '(("ldap://localhost:3899"
+                                       base "dc=gnu,dc=org" auth simple)))
+        (eudc-server-hotlist '(("ldap://localhost:3899" . ldap)))
+        (eudc-ignore-options-file t))
+    (sleep-for 1) ; Wait for slapd to start.
+    (should (equal (with-temp-buffer
+                     (insert "emacs-ert-test-1")
+                     (eudc-expand-try-all)
+                     (buffer-string))
+                   "Emacs ERT1 <emacs-ert-test-1@ldap.gnu.org>"))
+    (kill-process ldap-process)))
+
+(eval-and-compile
+  (push (expand-file-name "../elpa/packages/bbdb/lisp" source-directory)
+        load-path)
+  (defvar bbdb-file)
+  (require 'bbdb nil t))
+
+(ert-deftest eudcb-bbdb ()
+  "Test the BBDB back-end."
+  (skip-unless (featurep 'bbdb))
+  (let ((bbdb-file (ert-resource-file "bbdb"))
+        (eudc-server-hotlist '(("" . bbdb)))
+        (eudc-ignore-options-file t))
+    (should (equal (with-temp-buffer
+                     (insert "emacs-ert-test-3")
+                     (eudc-expand-try-all)
+                     (buffer-string))
+                   "Emacs ERT3 <emacs-ert-test-3@bbdb.gnu.org>"))))
+
 (provide 'eudc-tests)
 ;;; eudc-tests.el ends here

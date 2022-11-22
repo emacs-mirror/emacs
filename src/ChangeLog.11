@@ -7503,7 +7503,7 @@
 2010-05-28  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_delete_unmatched): Check Vface_ignored_fonts.
-	Don't sheck SPEC if it is nil.
+	Don't check SPEC if it is nil.
 	(font_list_entities): Call font_delete_unmatched if
 	Vface_ignored_fonts is non-nil.  (Bug#6287)
 
@@ -8639,7 +8639,7 @@
 
 	* keyboard.c: QClabel is new.
 	(parse_tool_bar_item): Take out QClabel from tool bar items.
-	Try to construct a label if ther is no QClabel.
+	Try to construct a label if there is no QClabel.
 	(syms_of_keyboard): Intern :label as QClabel.
 
 	* dispextern.h (tool_bar_item_idx): TOOL_BAR_ITEM_LABEL is new.
@@ -11988,7 +11988,7 @@
 
 	* cmds.c (nonundocount): New global variable.
 	(keys_of_cmds): Initialize it.
-	(Fself_insert_command): Use it to combine upto 20 sequential chars
+	(Fself_insert_command): Use it to combine up to 20 sequential chars
 	into a single undo entry, just like the Qself_insert_command code in
 	keyboard.c does.
 	Call frame_make_pointer_invisible, also like the Qself_insert_command

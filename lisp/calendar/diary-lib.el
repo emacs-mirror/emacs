@@ -1769,7 +1769,7 @@ These functions give the date in alternative calendrical systems:
 `diary-islamic-date', `diary-julian-date', `diary-mayan-date',
 `diary-persian-date'
 
-Theses functions only produce output on certain dates:
+These functions only produce output on certain dates:
 
 `diary-lunar-phases'           - phases of moon (on the appropriate days)
 `diary-hebrew-omer'            - Omer count, within 50 days after Passover

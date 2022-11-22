@@ -1807,7 +1807,7 @@ With optional arg ALLOW-NEWLINE, allow single newline between words."
 (defun reftex-index-phrases-find-dup-re (phrase &optional sub)
   "Return a regexp which matches variations of PHRASE (with additional space).
 When SUB ins non-nil, the regexp will also match when PHRASE is a subphrase
-of another phrase.  The regexp works lonly in the phrase buffer."
+of another phrase.  The regexp works only in the phrase buffer."
   (concat (if sub "^\\S-?\t\\([^\t\n]*" "^\\S-?\t")
           (mapconcat #'regexp-quote (split-string phrase) " +")
           (if sub "[^\t\n]*\\)\\([\t\n]\\|$\\)" " *\\([\t\n]\\|$\\)")))

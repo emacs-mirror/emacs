@@ -208,7 +208,7 @@ is run.  If a macro (possibly with side effects) is to be tested,
 it has to be wrapped in `(eval (quote ...))'.
 
 If NAME is already defined as a test and Emacs is running
-in batch mode, an error is signalled.
+in batch mode, an error is signaled.
 
 \(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] BODY...)"

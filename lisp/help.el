@@ -1945,10 +1945,7 @@ of a horizontal combination, restrain its new size by
 `fit-window-to-buffer-horizontally' can inhibit resizing.
 
 If WINDOW is the root window of its frame, resize the frame
-provided `fit-frame-to-buffer' is non-nil.
-
-This function may call `preserve-window-size' to preserve the
-size of WINDOW."
+provided `fit-frame-to-buffer' is non-nil."
   (setq window (window-normalize-window window t))
   (let* ((buffer (window-buffer window))
          (height (if (functionp temp-buffer-max-height)

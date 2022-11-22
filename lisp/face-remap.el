@@ -397,7 +397,11 @@ that have an explicit `:height' setting.  The two exceptions to
 this are the `default' and `header-line' faces: they will both be
 scaled even if they have an explicit `:height' setting.
 
-See also the related command `global-text-scale-adjust'."
+See also the related command `global-text-scale-adjust'.  Unlike
+that command, which scales the font size with a increment,
+`text-scale-adjust' scales the font size with a factor,
+`text-scale-mode-step'.  With a small `text-scale-mode-step'
+factor, the two commands behave similarly."
   (interactive "p")
   (let ((ev last-command-event)
 	(echo-keystrokes nil))
@@ -462,6 +466,8 @@ the `cdr' has the maximum font size, in units of 1/10 pt."
 
 (defvar global-text-scale-adjust--default-height nil)
 
+(defvar global-text-scale-adjust--increment-factor 5)
+
 ;;;###autoload (define-key ctl-x-map [(control meta ?+)] 'global-text-scale-adjust)
 ;;;###autoload (define-key ctl-x-map [(control meta ?=)] 'global-text-scale-adjust)
 ;;;###autoload (define-key ctl-x-map [(control meta ?-)] 'global-text-scale-adjust)
@@ -492,7 +498,10 @@ The variable `global-text-scale-adjust-resizes-frames' controls
 whether the frames are resized to keep the same number of lines
 and characters per line when the font size is adjusted.
 
-See also the related command `text-scale-adjust'."
+See also the related command `text-scale-adjust'.  Unlike that
+command, which scales the font size with a factor,
+`global-text-scale-adjust' scales the font size with an
+increment."
   (interactive "p")
   (when (display-graphic-p)
     (unless global-text-scale-adjust--default-height
@@ -503,16 +512,24 @@ See also the related command `text-scale-adjust'."
            (cur (face-attribute 'default :height))
            (inc
             (pcase key
-              (?- (* (- increment) 5))
+              (?- (* (- increment)
+                     global-text-scale-adjust--increment-factor))
               (?0 (- global-text-scale-adjust--default-height cur))
-              (_ (* increment 5))))
+              (_ (* increment
+                    global-text-scale-adjust--increment-factor))))
            (new (+ cur inc)))
       (when (< (car global-text-scale-adjust-limits)
                new
                (cdr global-text-scale-adjust-limits))
         (let ((frame-inhibit-implied-resize
                (not global-text-scale-adjust-resizes-frames)))
-          (set-face-attribute 'default nil :height new)))
+          (set-face-attribute 'default nil :height new)
+          (redisplay 'force)
+          (when (and (not (and (characterp key) (= key ?0)))
+                     (= cur (face-attribute 'default :height)))
+            (setq global-text-scale-adjust--increment-factor
+                  (1+ global-text-scale-adjust--increment-factor))
+            (global-text-scale-adjust increment))))
       (when (characterp key)
         (set-transient-map
          (let ((map (make-sparse-keymap)))

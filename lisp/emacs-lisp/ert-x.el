@@ -560,6 +560,7 @@ The same keyword arguments are supported as in
          '("mock"
 	   (tramp-login-program	     "sh")
 	   (tramp-login-args	     (("-i")))
+           (tramp-direct-async       ("-c"))
 	   (tramp-remote-shell	     "/bin/sh")
 	   (tramp-remote-shell-args  ("-c"))
 	   (tramp-connection-timeout 10)))

@@ -1,7 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1989, 1992-1994, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -9173,7 +9172,7 @@ present.  See also `fit-frame-to-buffer-sizes'."
 This list specifies the total maximum and minimum numbers of
 lines and the maximum and minimum numbers of columns of the body
 of the root window of any frame that shall be fit to its buffer.
-Any value specified by ths variable will be overridden by the
+Any value specified by this variable will be overridden by the
 corresponding argument of `fit-frame-to-buffer', if non-nil.
 
 On window systems where the menubar can wrap, fitting a frame to
@@ -10562,27 +10561,25 @@ displaying that processes's buffer."
 (define-key ctl-x-4-map "1" 'same-window-prefix)
 (define-key ctl-x-4-map "4" 'other-window-prefix)
 
-(defvar other-window-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "o" 'other-window)
-    (define-key map "O" (lambda ()
-                          (interactive)
-                          (setq repeat-map 'other-window-repeat-map)
-                          (other-window -1)))
-    map)
-  "Keymap to repeat `other-window' key sequences.  Used in `repeat-mode'.")
+(defvar-keymap other-window-repeat-map
+  :doc "Keymap to repeat `other-window' key sequences.
+Used in `repeat-mode'."
+  "o" #'other-window
+  "O" (lambda ()
+        (interactive)
+        (setq repeat-map 'other-window-repeat-map)
+        (other-window -1)))
 (put 'other-window 'repeat-map 'other-window-repeat-map)
 
-(defvar resize-window-repeat-map
-  (let ((map (make-sparse-keymap)))
-    ;; Standard keys:
-    (define-key map "^" 'enlarge-window)
-    (define-key map "}" 'enlarge-window-horizontally)
-    (define-key map "{" 'shrink-window-horizontally)
-    ;; Additional keys:
-    (define-key map "v" 'shrink-window)
-    map)
-  "Keymap to repeat window resizing commands.  Used in `repeat-mode'.")
+(defvar-keymap resize-window-repeat-map
+  :doc "Keymap to repeat window resizing commands.
+Used in `repeat-mode'."
+  ;; Standard keys:
+  "^" #'enlarge-window
+  "}" #'enlarge-window-horizontally
+  "{" #'shrink-window-horizontally
+  ;; Additional keys:
+  "v" #'shrink-window)
 (put 'enlarge-window 'repeat-map 'resize-window-repeat-map)
 (put 'enlarge-window-horizontally 'repeat-map 'resize-window-repeat-map)
 (put 'shrink-window-horizontally 'repeat-map 'resize-window-repeat-map)

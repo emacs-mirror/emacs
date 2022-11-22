@@ -133,7 +133,7 @@ symbol whose value is such a string."
                                        semantic-minor-mode-alist))))
   (semantic-mode-line-update)
 
-  ;; Semantic minor modes don't work w/ Desktop restore.
+  ;; Semantic minor modes don't work with Desktop restore.
   ;; This line will disable this minor mode from being restored
   ;; by Desktop.
   (when (boundp 'desktop-minor-mode-handlers)

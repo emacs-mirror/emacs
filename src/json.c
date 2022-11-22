@@ -1092,22 +1092,6 @@ usage: (json-parse-buffer &rest args) */)
   return unbind_to (count, lisp);
 }
 
-/* Simplified version of 'define-error' that works with pure
-   objects.  */
-
-static void
-define_error (Lisp_Object name, const char *message, Lisp_Object parent)
-{
-  eassert (SYMBOLP (name));
-  eassert (SYMBOLP (parent));
-  Lisp_Object parent_conditions = Fget (parent, Qerror_conditions);
-  eassert (CONSP (parent_conditions));
-  eassert (!NILP (Fmemq (parent, parent_conditions)));
-  eassert (NILP (Fmemq (name, parent_conditions)));
-  Fput (name, Qerror_conditions, pure_cons (name, parent_conditions));
-  Fput (name, Qerror_message, build_pure_c_string (message));
-}
-
 void
 syms_of_json (void)
 {

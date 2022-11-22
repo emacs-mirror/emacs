@@ -781,7 +781,7 @@ host key."
       ;; Perform search
       (dolist (s (auth-source-search :max 1000))
         (when (and
-               ;; Is PRODUCT specified, in the enty, and they are equal
+               ;; Is PRODUCT specified, in the entry, and they are equal
                (if product
                    (if (plist-member s :product)
                        (equal (plist-get s :product) product)

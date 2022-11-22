@@ -39,7 +39,7 @@ Ansi-Color faces are included."
       (bluegreen "#009e73")
       (yellow "#f8ec59")
       (blue "#0072b2")
-      (vermillion "#d55e00")
+      (vermilion "#d55e00")
       (redpurple "#cc79a7")
       (bluegray "#848ea9"))
   (custom-theme-set-faces
@@ -51,9 +51,9 @@ Ansi-Color faces are included."
    `(highlight ((,class (:foreground ,blue :background "#e5e5e5"))))
    `(region ((,class (:foreground unspecified :background ,yellow))))
    `(secondary-selection ((,class (:background "#e5e5e5"))))
-   `(isearch ((,class (:foreground "white" :background ,vermillion))))
+   `(isearch ((,class (:foreground "white" :background ,vermilion))))
    `(lazy-highlight ((,class (:foreground "white" :background ,redpurple))))
-   `(trailing-whitespace ((,class (:background ,vermillion))))
+   `(trailing-whitespace ((,class (:background ,vermilion))))
    ;; Mode line faces
    `(mode-line ((,class (:box (:line-width -1 :style released-button)
 			      :background "#e5e5e5" :foreground "black"))))
@@ -62,17 +62,17 @@ Ansi-Color faces are included."
 				       :foreground "black"))))
    ;; Escape and prompt faces
    `(minibuffer-prompt ((,class (:weight bold :foreground ,blue))))
-   `(escape-glyph ((,class (:foreground ,vermillion))))
-   `(homoglyph ((,class (:foreground ,vermillion))))
+   `(escape-glyph ((,class (:foreground ,vermilion))))
+   `(homoglyph ((,class (:foreground ,vermilion))))
    `(error ((,class (:weight bold :slant italic
-			     :foreground ,vermillion))))
+			     :foreground ,vermilion))))
    `(warning ((,class (:foreground ,orange))))
    `(success ((,class (:foreground ,bluegreen))))
    ;; Font lock faces
    `(font-lock-builtin-face ((,class (:foreground ,blue))))
    `(font-lock-comment-face ((,class (:slant italic :foreground ,bluegreen))))
-   `(font-lock-constant-face ((,class (:weight bold :foreground ,vermillion))))
-   `(font-lock-function-name-face ((,class (:foreground ,vermillion))))
+   `(font-lock-constant-face ((,class (:weight bold :foreground ,vermilion))))
+   `(font-lock-function-name-face ((,class (:foreground ,vermilion))))
    `(font-lock-keyword-face ((,class (:weight bold :foreground ,skyblue))))
    `(font-lock-string-face ((,class (:foreground ,bluegray))))
    `(font-lock-type-face ((,class (:weight bold :foreground ,blue))))
@@ -81,8 +81,8 @@ Ansi-Color faces are included."
    `(link ((,class (:underline t :foreground ,blue))))
    `(link-visited ((,class (:underline t :foreground ,redpurple))))
    ;; Gnus faces
-   `(gnus-group-news-1 ((,class (:weight bold :foreground ,vermillion))))
-   `(gnus-group-news-1-low ((,class (:foreground ,vermillion))))
+   `(gnus-group-news-1 ((,class (:weight bold :foreground ,vermilion))))
+   `(gnus-group-news-1-low ((,class (:foreground ,vermilion))))
    `(gnus-group-news-2 ((,class (:weight bold :foreground ,orange))))
    `(gnus-group-news-2-low ((,class (:foreground ,orange))))
    `(gnus-group-news-3 ((,class (:weight bold :foreground ,skyblue))))
@@ -92,8 +92,8 @@ Ansi-Color faces are included."
    `(gnus-group-news-5 ((,class (:weight bold :foreground ,blue))))
    `(gnus-group-news-5-low ((,class (:foreground ,blue))))
    `(gnus-group-news-low ((,class (:foreground ,bluegreen))))
-   `(gnus-group-mail-1 ((,class (:weight bold :foreground ,vermillion))))
-   `(gnus-group-mail-1-low ((,class (:foreground ,vermillion))))
+   `(gnus-group-mail-1 ((,class (:weight bold :foreground ,vermilion))))
+   `(gnus-group-mail-1-low ((,class (:foreground ,vermilion))))
    `(gnus-group-mail-2 ((,class (:weight bold :foreground ,orange))))
    `(gnus-group-mail-2-low ((,class (:foreground ,orange))))
    `(gnus-group-mail-3 ((,class (:weight bold :foreground ,skyblue))))
@@ -103,13 +103,13 @@ Ansi-Color faces are included."
    `(gnus-header-from ((,class (:weight bold :foreground ,blue))))
    `(gnus-header-subject ((,class (:foreground ,orange))))
    `(gnus-header-name ((,class (:foreground ,skyblue))))
-   `(gnus-header-newsgroups ((,class (:foreground ,vermillion))))
+   `(gnus-header-newsgroups ((,class (:foreground ,vermilion))))
    ;; Image-Dired
-   `(image-dired-thumb-flagged ((,class (:background ,vermillion))))
+   `(image-dired-thumb-flagged ((,class (:background ,vermilion))))
    `(image-dired-thumb-mark ((,class (:background ,orange))))
    ;; Message faces
    `(message-header-name ((,class (:foreground ,skyblue))))
-   `(message-header-cc ((,class (:foreground ,vermillion))))
+   `(message-header-cc ((,class (:foreground ,vermilion))))
    `(message-header-other ((,class (:foreground ,bluegreen))))
    `(message-header-subject ((,class (:foreground ,orange))))
    `(message-header-to ((,class (:weight bold :foreground ,blue))))
@@ -122,8 +122,8 @@ Ansi-Color faces are included."
 				  :slant unspecified :underline ,redpurple))))
    ;; ANSI color
    `(ansi-color-black ((,class (:background "black" :foreground "black"))))
-   `(ansi-color-red ((,class (:background ,vermillion
-			      :foreground ,vermillion))))
+   `(ansi-color-red ((,class (:background ,vermilion
+			      :foreground ,vermilion))))
    `(ansi-color-green ((,class (:background ,bluegreen
 				:foreground ,bluegreen))))
    `(ansi-color-yellow ((,class (:background ,yellow :foreground ,yellow))))
@@ -134,8 +134,8 @@ Ansi-Color faces are included."
    `(ansi-color-white ((,class (:background "gray90" :foreground "gray90"))))
    `(ansi-color-bright-black ((,class (:background "black"
 				       :foreground "black"))))
-   `(ansi-color-bright-red ((,class (:background ,vermillion
-				     :foreground ,vermillion))))
+   `(ansi-color-bright-red ((,class (:background ,vermilion
+				     :foreground ,vermilion))))
    `(ansi-color-bright-green ((,class (:background ,bluegreen
 				       :foreground ,bluegreen))))
    `(ansi-color-bright-yellow ((,class (:background ,yellow

@@ -224,7 +224,7 @@ has the same format as the @command{mail} and @command{mailx} commands
 use for their startup configuration file.  @code{mailabbrev} processes
 @samp{alias}, and @samp{source} statements in the @file{mailrc} file.
 @samp{alias} statements can define simple aliases and distribution
-lists, and and can be nested in that the alias expansion can contain
+lists, and can be nested in that the alias expansion can contain
 references to other alias definitions.  Forward references, that is
 references to aliases before they are actually defined, are possible,
 too.

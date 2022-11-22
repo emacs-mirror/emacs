@@ -53,14 +53,26 @@
 (require 'imenu)
 (require 'json)
 (require 'prog-mode)
+(require 'treesit)
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'ido))
+  (require 'ido)
+  (require 'rx))
 
 (defvar ido-cur-list)
 (defvar electric-layout-rules)
 (declare-function ido-mode "ido" (&optional arg))
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-next-sibling "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 
 ;;; Constants
 
@@ -662,6 +674,9 @@ This variable is like `sgml-attribute-offset'."
 (defvar-keymap js-mode-map
   :doc "Keymap for `js-mode'."
   "M-." #'js-find-symbol)
+
+(defvar js-ts-mode-map (copy-keymap js-mode-map)
+  "Keymap used in `js-ts-mode'.")
 
 ;;; Syntax table and parsing
 
@@ -3400,10 +3415,315 @@ This function is intended for use in `after-change-functions'."
 (c-lang-defconst c-paragraph-start
   js-mode "\\(@[[:alpha:]]+\\>\\|$\\)")
 
+;;; Tree sitter integration
+
+(defvar js--treesit-indent-rules
+  (let ((switch-case (rx "switch_" (or "case" "default"))))
+    `((javascript
+       ((parent-is "program") parent-bol 0)
+       ((node-is "}") parent-bol 0)
+       ((node-is ")") parent-bol 0)
+       ((node-is "]") parent-bol 0)
+       ((node-is ">") parent-bol 0)
+       ((parent-is "comment") comment-start 0)
+       ((and (parent-is "comment") comment-end) comment-start -1)
+       ((parent-is "comment") comment-start-skip 0)
+       ((parent-is "ternary_expression") parent-bol js-indent-level)
+       ((parent-is "member_expression") parent-bol js-indent-level)
+       ((node-is ,switch-case) parent-bol 0)
+       ;; "{" on the newline.
+       ((node-is "statement_block") parent-bol js-indent-level)
+       ((parent-is "named_imports") parent-bol js-indent-level)
+       ((parent-is "statement_block") parent-bol js-indent-level)
+       ((parent-is "variable_declarator") parent-bol js-indent-level)
+       ((parent-is "arguments") parent-bol js-indent-level)
+       ((parent-is "array") parent-bol js-indent-level)
+       ((parent-is "formal_parameters") parent-bol js-indent-level)
+       ((parent-is "template_substitution") parent-bol js-indent-level)
+       ((parent-is "object_pattern") parent-bol js-indent-level)
+       ((parent-is "object") parent-bol js-indent-level)
+       ((parent-is "pair") parent-bol js-indent-level)
+       ((parent-is "arrow_function") parent-bol js-indent-level)
+       ((parent-is "parenthesized_expression") parent-bol js-indent-level)
+       ((parent-is "class_body") parent-bol js-indent-level)
+       ((parent-is ,switch-case) parent-bol js-indent-level)
+       ((parent-is "statement_block") parent-bol js-indent-level)
+
+       ;; JSX
+       ((parent-is "jsx_opening_element") parent js-indent-level)
+       ((node-is "jsx_closing_element") parent 0)
+       ((node-is "jsx_text") parent js-indent-level)
+       ((parent-is "jsx_element") parent js-indent-level)
+       ((node-is "/") parent 0)
+       ((parent-is "jsx_self_closing_element") parent js-indent-level)))))
+
+(defvar js--treesit-keywords
+  '("as" "async" "await" "break" "case" "catch" "class" "const" "continue"
+    "debugger" "default" "delete" "do" "else" "export" "extends" "finally"
+    "for" "from" "function" "get" "if" "import" "in" "instanceof" "let" "new"
+    "of" "return" "set" "static" "switch" "switch" "target" "throw" "try"
+    "typeof" "var" "void" "while" "with" "yield")
+  "JavaScript keywords for tree-sitter font-locking.")
+
+(defvar js--treesit-font-lock-settings
+  (treesit-font-lock-rules
+
+   :language 'javascript
+   :override t
+   :feature 'comment
+   `((comment) @font-lock-comment-face)
+
+   :language 'javascript
+   :override t
+   :feature 'constant
+   `(((identifier) @font-lock-constant-face
+      (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
+
+     [(true) (false) (null)] @font-lock-constant-face
+     (number) @font-lock-constant-face)
+
+   :language 'javascript
+   :override t
+   :feature 'keyword
+   `([,@js--treesit-keywords] @font-lock-keyword-face
+     [(this) (super)] @font-lock-keyword-face)
+
+   :language 'javascript
+   :override t
+   :feature 'string
+   `((regex pattern: (regex_pattern)) @font-lock-string-face
+     (string) @font-lock-string-face
+     (template_string) @js--fontify-template-string
+     (template_substitution ["${" "}"] @font-lock-builtin-face))
+
+   :language 'javascript
+   :override t
+   :feature 'declaration
+   `((function
+      name: (identifier) @font-lock-function-name-face)
+
+     (class_declaration
+      name: (identifier) @font-lock-type-face)
+
+     (function_declaration
+      name: (identifier) @font-lock-function-name-face)
+
+     (method_definition
+      name: (property_identifier) @font-lock-function-name-face)
+
+     (variable_declarator
+      name: (identifier) @font-lock-variable-name-face)
+
+     (variable_declarator
+      name: (identifier) @font-lock-function-name-face
+      value: [(function) (arrow_function)])
+
+     (variable_declarator
+      name: (array_pattern
+             (identifier)
+             (identifier)
+             @font-lock-function-name-face)
+      value: (array (number) (function))))
+
+   :language 'javascript
+   :override t
+   :feature 'identifier
+   `((new_expression
+      constructor: (identifier) @font-lock-type-face)
+
+     (for_in_statement
+      left: (identifier) @font-lock-variable-name-face)
+
+     (arrow_function
+      parameter: (identifier) @font-lock-variable-name-face))
+
+   :language 'javascript
+   :override t
+   :feature 'expression
+   `((assignment_expression
+      left: [(identifier) @font-lock-function-name-face
+             (member_expression property: (property_identifier)
+                                @font-lock-function-name-face)]
+      right: [(function) (arrow_function)])
+
+     (call_expression
+      function: [(identifier) @font-lock-function-name-face
+                 (member_expression
+                  property:
+                  (property_identifier) @font-lock-function-name-face)])
+
+     (assignment_expression
+      left: [(identifier) @font-lock-variable-name-face
+             (member_expression
+              property: (property_identifier) @font-lock-variable-name-face)]))
+
+   :language 'javascript
+   :override t
+   :feature 'property
+   `((pair key: (property_identifier) @font-lock-variable-name-face)
+
+     (pair value: (identifier) @font-lock-variable-name-face)
+
+     (pair
+      key: (property_identifier) @font-lock-function-name-face
+      value: [(function) (arrow_function)])
+
+     ((shorthand_property_identifier) @font-lock-variable-name-face)
+
+     ((shorthand_property_identifier_pattern) @font-lock-variable-name-face))
+
+   :language 'javascript
+   :override t
+   :feature 'pattern
+   `((pair_pattern key: (property_identifier) @font-lock-variable-name-face)
+     (array_pattern (identifier) @font-lock-variable-name-face))
+
+   :language 'javascript
+   :override t
+   :feature 'jsx
+   `(
+     (jsx_opening_element
+      [(nested_identifier (identifier)) (identifier)]
+      @font-lock-function-name-face)
+
+     (jsx_closing_element
+      [(nested_identifier (identifier)) (identifier)]
+      @font-lock-function-name-face)
+
+     (jsx_self_closing_element
+      [(nested_identifier (identifier)) (identifier)]
+      @font-lock-function-name-face)
+
+     (jsx_attribute
+      (property_identifier)
+      @font-lock-constant-face)))
+  "Tree-sitter font-lock settings.")
+
+(defun js--fontify-template-string (node override start end &rest _)
+  "Fontify template string but not substitution inside it.
+NODE is the template_string node.  START and END mark the region
+to be fontified.
+
+OVERRIDE is the override flag described in
+`treesit-font-lock-rules'."
+  ;; You would have thought that the children of the string node spans
+  ;; the whole string.  No, the children of the template_string only
+  ;; includes the starting "`", any template_substitution, and the
+  ;; closing "`".  That's why we have to track BEG instead of just
+  ;; fontifying each child.
+  (let ((child (treesit-node-child node 0))
+        (font-beg (treesit-node-start node)))
+    (while child
+      (let ((font-end (if (equal (treesit-node-type child)
+                                 "template_substitution")
+                          (treesit-node-start child)
+                        (treesit-node-end child))))
+        (setq font-beg (max start font-beg))
+        (when (< font-beg end)
+          (treesit-fontify-with-override
+           font-beg font-end 'font-lock-string-face override)))
+      (setq font-beg (treesit-node-end child)
+            child (treesit-node-next-sibling child)))))
+
+(defun js-treesit-current-defun ()
+  "Return name of surrounding function.
+This function can be used as a value in `which-func-functions'"
+  (let ((node (treesit-node-at (point)))
+        (name-list ()))
+    (cl-loop while node
+             if (pcase (treesit-node-type node)
+                  ("function_declaration" t)
+                  ("method_definition" t)
+                  ("class_declaration" t)
+                  ("variable_declarator" t)
+                  (_ nil))
+             do (push (treesit-node-text
+                       (treesit-node-child-by-field-name node "name")
+                       t)
+                      name-list)
+             do (setq node (treesit-node-parent node))
+             finally return  (string-join name-list "."))))
+
+(defun js--treesit-imenu-1 (node)
+  "Given a sparse tree, create an imenu alist.
+
+NODE is the root node of the tree returned by
+`treesit-induce-sparse-tree' (not a tree-sitter node, its car is
+a tree-sitter node).  Walk that tree and return an imenu alist.
+
+Return a list of ENTRY where
+
+ENTRY := (NAME . MARKER)
+       | (NAME . ((JUMP-LABEL . MARKER)
+                  ENTRY
+                  ...)
+
+NAME is the function/class's name, JUMP-LABEL is like \"*function
+definition*\"."
+  (let* ((ts-node (car node))
+         (children (cdr node))
+         (subtrees (mapcan #'js--treesit-imenu-1
+                           children))
+         (type (pcase (treesit-node-type ts-node)
+                 ("lexical_declaration" 'variable)
+                 ("class_declaration" 'class)
+                 ("method_definition" 'method)
+                 ("function_declaration" 'function)))
+         ;; The root of the tree could have a nil ts-node.
+         (name (when ts-node
+                 (let ((ts-node-1
+                        (if (eq type 'variable)
+                            (treesit-search-subtree
+                             ts-node "variable_declarator" nil nil 1)
+                          ts-node)))
+                   (treesit-node-text
+                    (treesit-node-child-by-field-name
+                     ts-node-1 "name")
+                    t))))
+         (marker (when ts-node
+                   (set-marker (make-marker)
+                               (treesit-node-start ts-node)))))
+    (cond
+     ((null ts-node)
+      subtrees)
+     ;; Don't included non-top-level variable declarations.
+     ((and (eq type 'variable)
+           (treesit-node-top-level ts-node))
+      nil)
+     (subtrees
+      `((,name
+         ,(cons "" marker)
+         ,@subtrees)))
+     (t (list (cons name marker))))))
+
+(defun js--treesit-imenu ()
+  "Return Imenu alist for the current buffer."
+  (let* ((node (treesit-buffer-root-node))
+         (class-tree (treesit-induce-sparse-tree
+                      node (rx (or "class_declaration"
+                                   "method_definition"))
+                      nil 1000))
+         (func-tree (treesit-induce-sparse-tree
+                     node "function_declaration" nil 1000))
+         (var-tree (treesit-induce-sparse-tree
+                    node "lexical_declaration" nil 1000)))
+    `(("Class" . ,(js--treesit-imenu-1 class-tree))
+      ("Varieable" . ,(js--treesit-imenu-1 var-tree))
+      ("Function" . ,(js--treesit-imenu-1 func-tree)))))
+
 ;;; Main Function
 
 ;;;###autoload
-(define-derived-mode js-mode prog-mode "JavaScript"
+(define-derived-mode js-base-mode prog-mode "JavaScript"
+  "Generic major mode for editing JavaScript.
+
+This mode is intended to be inherited by concrete major modes.
+Currently there are `js-mode' and `js-ts-mode'."
+  :group 'js
+  nil)
+
+;;;###autoload
+(define-derived-mode js-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript."
   :group 'js
   ;; Ensure all CC Mode "lang variables" are set to valid values.
@@ -3487,6 +3807,54 @@ This function is intended for use in `after-change-functions'."
   ;; calls to syntax-propertize wherever it's really needed.
   ;;(syntax-propertize (point-max))
   )
+
+;;;###autoload
+(define-derived-mode js-ts-mode js-base-mode "JavaScript"
+  "Major mode for editing JavaScript.
+
+\\<js-ts-mode-map>"
+  :group 'js
+  (when (treesit-ready-p 'javascript)
+    ;; Borrowed from `js-mode'.
+    (setq-local prettify-symbols-alist js--prettify-symbols-alist)
+    (setq-local parse-sexp-ignore-comments t)
+    ;; Which-func.
+    (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
+    ;; Comment.
+    (setq-local comment-start "// ")
+    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
+    (setq-local comment-end "")
+    (setq-local comment-multi-line t)
+    (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
+    (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
+    ;; Electric-indent.
+    (setq-local electric-indent-chars
+	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
+    (setq-local electric-layout-rules
+	        '((?\; . after) (?\{ . after) (?\} . before)))
+
+    ;; Tree-sitter setup.
+    (treesit-parser-create 'javascript)
+    ;; Indent.
+    (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
+    ;; Navigation.
+    (setq-local treesit-defun-type-regexp
+                (rx (or "class_declaration"
+                        "method_definition"
+                        "function_declaration"
+                        "lexical_declaration")))
+    ;; Fontification.
+    (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
+    (setq-local treesit-font-lock-feature-list
+                '((comment declaration)
+                  (string keyword identifier expression constant)
+                  (property pattern jsx )))
+    ;; Imenu
+    (setq-local imenu-create-index-function
+                #'js--treesit-imenu)
+    ;; Which-func (use imenu).
+    (setq-local which-func-functions nil)
+    (treesit-major-mode-setup)))
 
 ;;;###autoload
 (define-derived-mode js-json-mode js-mode "JSON"

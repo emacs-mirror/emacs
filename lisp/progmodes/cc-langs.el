@@ -2713,7 +2713,7 @@ before the type, so such things are not necessary to mention here.
 Mentioning them here is necessary only if they can occur in other
 places, or if they are followed by a construct that must be skipped
 over (like the parens in the \"__attribute__\" and \"__declspec\"
-examples above).  In the last case, they alse need to be present on
+examples above).  In the last case, they also need to be present on
 one of `c-type-list-kwds', `c-ref-list-kwds',
 `c-colon-type-list-kwds', `c-paren-nontype-kwds', `c-paren-type-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds'."
@@ -3868,6 +3868,14 @@ possible for good performance."
 		      :test 'string-equal)
 		     t)
 	 "\\>")))
+
+(c-lang-defconst c-maybe-typeless-specifier-re
+  "Regexp matching keywords which might, but needn't, declare variables with
+no explicit type given, or nil in languages without such specifiers."
+  t (c-lang-const c-opt-type-modifier-prefix-key)
+  c (c-lang-const c-type-decl-prefix-keywords-key))
+(c-lang-defvar c-maybe-typeless-specifier-re
+  (c-lang-const c-maybe-typeless-specifier-re))
 
 (c-lang-defconst c-type-decl-prefix-key
   "Regexp matching any declarator operator that might precede the

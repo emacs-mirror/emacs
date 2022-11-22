@@ -1456,7 +1456,7 @@ keyword on the line, the keyword is not inserted inside a literal, and
 
 (defun c-align-cpp-indent-to-body ()
   "Align a \"#pragma\" line under the previous line.
-This function is intented for use as a member of `c-special-indent-hook'."
+This function is intended for use as a member of `c-special-indent-hook'."
   (when (assq 'cpp-macro c-syntactic-context)
     (when
 	(save-excursion

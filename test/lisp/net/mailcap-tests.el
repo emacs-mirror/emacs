@@ -125,7 +125,7 @@
 
 (ert-deftest mailcap-view-file ()
   (with-pristine-mailcap
-   ;; Try using a lambda as viewer and check wether
+   ;; Try using a lambda as viewer and check whether
    ;; `mailcap-view-file' works correctly.
    (let* ((mailcap-mime-extensions '((".test" . "test/test"))))
      (mailcap-add "test/test" 'mailcap--test-viewer)

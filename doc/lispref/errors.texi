@@ -242,7 +242,7 @@ The message is @samp{Cannot determine image type}.  @xref{Images}.
 
 @item inhibited-interaction
 The message is @samp{User interaction while inhibited}.  This error is
-signalled when @code{inhibit-interaction} is non-@code{nil} and a user
+signaled when @code{inhibit-interaction} is non-@code{nil} and a user
 interaction function (like @code{read-from-minibuffer}) is called.
 @end table
 

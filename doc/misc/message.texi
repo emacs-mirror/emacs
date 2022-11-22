@@ -935,7 +935,7 @@ Manual}).
 @section IDNA
 @cindex IDNA
 @cindex internationalized domain names
-@cindex non-ascii domain names
+@cindex non-ASCII domain names
 
 @acronym{IDNA} is a standard way to encode non-@acronym{ASCII} domain
 names into a readable @acronym{ASCII} string.  The details can be
@@ -1005,7 +1005,7 @@ that they can deposit messages and lock the door, while your private
 key corresponds to the opening combination for the safe.)
 
 Thus, you need to perform the following steps for e-mail encryption,
-typically outside Emacs.  See, for example, the
+typically outside Emacs.  See, for example,
 @uref{https://www.gnupg.org/gph/en/manual.html, The GNU Privacy
 Handbook} for details covering the standard @acronym{OpenPGP} with
 @acronym{GnuPG}.

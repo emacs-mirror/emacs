@@ -6291,7 +6291,7 @@ to `:default' encoding.  If it fails, return S."
 ;;
 ;; Export Stack is viewed through a dedicated major mode
 ;;`org-export-stack-mode' and tools: `org-export-stack-refresh',
-;;`org-export-stack-delete', `org-export-stack-view' and
+;;`org-export-stack-remove', `org-export-stack-view' and
 ;;`org-export-stack-clear'.
 ;;
 ;; For back-ends, `org-export-add-to-stack' add a new source to stack.

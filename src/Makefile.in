@@ -343,6 +343,9 @@ JSON_LIBS = @JSON_LIBS@
 JSON_CFLAGS = @JSON_CFLAGS@
 JSON_OBJ = @JSON_OBJ@
 
+TREE_SITTER_LIBS = @TREE_SITTER_LIBS@
+TREE_SITTER_CFLAGS = @TREE_SITTER_CFLAGS@
+
 INTERVALS_H = dispextern.h intervals.h composite.h
 
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
@@ -406,7 +409,7 @@ EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   $(XINPUT_CFLAGS) $(WEBP_CFLAGS) $(WEBKIT_CFLAGS) $(LCMS2_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(HARFBUZZ_CFLAGS) $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
-  $(LIBSYSTEMD_CFLAGS) $(JSON_CFLAGS) $(XSYNC_CFLAGS) \
+  $(LIBSYSTEMD_CFLAGS) $(JSON_CFLAGS) $(XSYNC_CFLAGS) $(TREE_SITTER_CFLAGS) \
   $(LIBGNUTLS_CFLAGS) $(NOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
   $(WERROR_CFLAGS) $(HAIKU_CFLAGS) $(XCOMPOSITE_CFLAGS) $(XSHAPE_CFLAGS)
 ALL_CFLAGS = $(EMACS_CFLAGS) $(WARN_CFLAGS) $(CFLAGS)
@@ -441,7 +444,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) 						       \
 	profiler.o decompress.o 					       \
-	thread.o systhread.o sqlite.o 					       \
+	thread.o systhread.o sqlite.o  treesit.o			       \
 	itree.o 							       \
 	$(if $(HYBRID_MALLOC),sheap.o) 					       \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)        \
@@ -566,7 +569,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LCMS2_LIBS) \
    $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
    $(JSON_LIBS) $(LIBGMP) $(LIBGCCJIT_LIBS) $(XINPUT_LIBS) $(HAIKU_LIBS) \
-   $(SQLITE3_LIBS) $(XCOMPOSITE_LIBS) $(XSHAPE_LIBS)
+   $(TREE_SITTER_LIBS) $(SQLITE3_LIBS) $(XCOMPOSITE_LIBS) $(XSHAPE_LIBS)
 
 ## FORCE it so that admin/unidata can decide whether this file is
 ## up-to-date.  Although since charprop depends on bootstrap-emacs,

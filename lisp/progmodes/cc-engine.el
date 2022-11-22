@@ -6963,7 +6963,7 @@ comment at the start of cc-engine.el for more info."
 ;; At each buffer change, the syntax-table properties are removed in a
 ;; before-change function and reapplied, when needed, in an
 ;; after-change function.  It is far more important that the
-;; properties get removed when they they are spurious than that they
+;; properties get removed when they are spurious than that they
 ;; be present when wanted.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun c-clear-<-pair-props (&optional pos)
@@ -9036,7 +9036,8 @@ multi-line strings (but not C++, for example)."
   ;;   o - 'found if it's a type that matches one in `c-found-types';
   ;;   o - 'maybe if it's an identifier that might be a type;
   ;;   o - 'decltype if it's a decltype(variable) declaration; - or
-  ;;   o - 'no-id if "auto" precluded parsing a type identifier.
+  ;;   o - 'no-id if "auto" precluded parsing a type identifier (C++)
+  ;;      or the type int was implicit (C).
   ;;   o -  nil if it can't be a type (the point isn't moved then).
   ;;
   ;; The point is assumed to be at the beginning of a token.
@@ -9060,10 +9061,11 @@ multi-line strings (but not C++, for example)."
 
     ;; Skip leading type modifiers.  If any are found we know it's a
     ;; prefix of a type.
-    (when c-opt-type-modifier-prefix-key ; e.g. "const" "volatile", but NOT "typedef"
-      (while (looking-at c-opt-type-modifier-prefix-key)
-	(when (looking-at c-no-type-key)
-	  (setq res 'no-id))
+    (when c-maybe-typeless-specifier-re
+      (while (looking-at c-maybe-typeless-specifier-re)
+	(save-match-data
+	  (when (looking-at c-no-type-key)
+	    (setq res 'no-id)))
 	(goto-char (match-end 1))
 	(c-forward-syntactic-ws)
 	(or (eq res 'no-id)
@@ -9128,6 +9130,9 @@ multi-line strings (but not C++, for example)."
        (not (eq res 'no-id))
        (progn
 	 (setq pos nil)
+	 (while (and c-opt-cpp-prefix
+		     (looking-at c-noise-macro-with-parens-name-re))
+	   (c-forward-noise-clause))
 	 (if (looking-at c-identifier-start)
 	     (save-excursion
 	       (setq id-start (point)
@@ -9187,6 +9192,18 @@ multi-line strings (but not C++, for example)."
 	    (goto-char (match-end 1))
 	    (c-forward-syntactic-ws)))))
 
+     ((and (eq name-res t)
+	   (eq res 'prefix)
+	   (c-major-mode-is 'c-mode)
+	   (save-excursion
+	     (goto-char id-end)
+	     (and (not (looking-at c-symbol-start))
+		  (not (looking-at c-type-decl-prefix-key)))))
+      ;; A C specifier followed by an implicit int, e.g.
+      ;; "register count;"
+      (goto-char id-start)
+      (setq res 'no-id))
+
      (name-res
       (cond ((eq name-res t)
 	     ;; A normal identifier.
@@ -9224,7 +9241,11 @@ multi-line strings (but not C++, for example)."
 	    (t
 	     ;; Otherwise it's an operator identifier, which is not a type.
 	     (goto-char start)
-	     (setq res nil)))))
+	     (setq res nil))))
+
+     ((eq res 'prefix)
+      ;; Deal with "extern "C" foo_t my_foo;"
+      (setq res nil)))
 
     (when (not (memq res '(nil no-id)))
       ;; Skip trailing type modifiers.  If any are found we know it's
@@ -10012,9 +10033,11 @@ This function might do hidden buffer changes."
 	       got-suffix-after-parens id-start
 	       paren-depth 0))
 
-     (if (setq at-type (if (eq backup-at-type 'prefix)
-			   t
-			 backup-at-type))
+     (if (not (memq
+	       (setq at-type (if (eq backup-at-type 'prefix)
+				 t
+			       backup-at-type))
+	       '(nil no-id)))
 	 (setq type-start backup-type-start
 	       id-start backup-id-start)
        (setq type-start start-pos
@@ -11219,7 +11242,8 @@ This function might do hidden buffer changes."
 
       ;; Record the type's coordinates in `c-record-type-identifiers' for
       ;; later fontification.
-      (when (and c-record-type-identifiers at-type ;; (not (eq at-type t))
+      (when (and c-record-type-identifiers
+		 (not (memq at-type '(nil no-id)))
 		 ;; There seems no reason to exclude a token from
 		 ;; fontification just because it's "a known type that can't
 		 ;; be a name or other expression".  2013-09-18.
@@ -12602,7 +12626,7 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-laomib-fix-elt (lwm elt paren-state)
   ;; Correct a c-laomib-cache entry ELT with respect to buffer changes, either
-  ;; doing nothing, signalling it is to be deleted, or replacing its start
+  ;; doing nothing, signaling it is to be deleted, or replacing its start
   ;; point with one lower in the buffer than LWM.  PAREN-STATE is the paren
   ;; state at LWM.  Return the corrected entry, or nil (if it needs deleting).
   ;; Note that corrections are made by `setcar'ing the original structure,
