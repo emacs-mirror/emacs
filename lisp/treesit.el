@@ -414,8 +414,8 @@ that encompasses the region between START and END."
 
 (defun treesit--merge-ranges (old-ranges new-ranges start end)
   "Merge OLD-RANGES and NEW-RANGES, discarding ranges between START and END.
-OLD-RANGES and NEW-RANGES are lists of cons of the form (BEG . END).  When
-merging the two ranges, if a range in OLD-RANGES intersects with
+OLD-RANGES and NEW-RANGES are lists of cons of the form (BEG . END).
+When merging the two ranges, if a range in OLD-RANGES intersects with
 another range in NEW-RANGES, discard the one in OLD-RANGES and
 keep the one in NEW-RANGES.  Also discard any range in OLD-RANGES
 that intersects the region marked by START and END.
@@ -521,7 +521,7 @@ Each sublist represents a decoration level.
 `font-lock-maximum-decoration' controls which levels are
 activated.
 
-Inside each sublist are feature symbols, which corresponds to the
+Inside each sublist are feature symbols, which correspond to the
 :feature value of a query defined in `treesit-font-lock-rules'.
 Removing a feature symbol from this list disables the
 corresponding query during font-lock.
@@ -531,7 +531,7 @@ definition, type, assignment, builtin, constant, keyword,
 string-interpolation, comment, doc, string, operator, property,
 preprocessor, escape-sequence, key (in key-value pairs).  Major
 modes are free to subdivide or extend on these common features.
-See the manual for more explanations on some of the feature.
+See the manual for more explanations on some of the features.
 
 For changes to this variable to take effect, run
 `treesit-font-lock-recompute-features'.")
@@ -585,7 +585,7 @@ to QUERY.  For example,
      :feature \\='script
      \"(script_element) @font-lock-builtin-face\")
 
-For each QUERY, a :language keyword and a :feature keyword is
+For each QUERY, a :language keyword and a :feature keyword are
 required.  Each query's :feature is a symbol summarizing what the
 query fontifies.  It is used to allow users to enable/disable
 certain features.  See `treesit-font-lock-kind-list' for more.
@@ -798,7 +798,7 @@ range is between START and END."
   (- (treesit-node-end node) (treesit-node-start node)))
 
 (defvar-local treesit--font-lock-fast-mode nil
-  "If this variable is t, change the way we query so its faster.
+  "If this variable is t, change the way we query so it's faster.
 This is not a general optimization and should be RARELY needed!
 See comments in `treesit-font-lock-fontify-region' for more
 detail.")
@@ -810,8 +810,7 @@ detail.")
 ;; applied by regexp-based font-lock.  The clipped part will be
 ;; fontified fine when Emacs fontifies the region containing it.
 ;;
-(defun treesit-font-lock-fontify-region
-    (start end &optional loudly)
+(defun treesit-font-lock-fontify-region (start end &optional loudly)
   "Fontify the region between START and END.
 If LOUDLY is non-nil, display some debugging information."
   (when (or loudly treesit--font-lock-verbose)
@@ -832,10 +831,10 @@ If LOUDLY is non-nil, display some debugging information."
       ;; is very fast anyway (even in large files of size ~10MB).
       ;; Plus, querying the result of `treesit-node-on' could still
       ;; miss patterns even if we use some heuristic to enlarge the
-      ;; node (how much to enlarge? to which extent?), its much safer
+      ;; node (how much to enlarge? to which extent?), it's much safer
       ;; to just use the root node.
       ;;
-      ;; Sometimes the source file has some errors that causes
+      ;; Sometimes the source file has some errors that cause
       ;; tree-sitter to parse it into a enormously tall tree (10k
       ;; levels tall).  In that case querying the root node is very
       ;; slow.  So we try to get top-level nodes and query them.  This
@@ -896,7 +895,7 @@ If LOUDLY is non-nil, display some debugging information."
   `(jit-lock-bounds ,start . ,end))
 
 (defun treesit--font-lock-notifier (ranges parser)
-  "Ensures updated parts of the parse-tree is refontified.
+  "Ensures updated parts of the parse-tree are refontified.
 RANGES is a list of (BEG . END) ranges, PARSER is the tree-sitter
 parser notifying of the change."
   (with-current-buffer (treesit-parser-buffer parser)
@@ -1083,15 +1082,15 @@ See `treesit-simple-indent-presets'.")
   "A list of presets.
 These presets that can be used as MATHER and ANCHOR in
 `treesit-simple-indent-rules'.  MACHTERs and ANCHORs are
-functions that takes 3 arguments: NODE, PARENT and BOL.
+functions that take 3 arguments: NODE, PARENT and BOL.
 
 MATCHER:
 
 \(match NODE-TYPE PARENT-TYPE NODE-FIELD NODE-INDEX-MIN NODE-INDEX-MAX)
 
     NODE-TYPE checks for NODE's type, PARENT-TYPE checks for
-    PARENT's type, NODE-FIELD checks for the filed name of NODE
-    in PARENT, NODE-INDEX-MIN and NODE-INDEX-MAX checks for
+    PARENT's type, NODE-FIELD checks for the field name of NODE
+    in PARENT, NODE-INDEX-MIN and NODE-INDEX-MAX check for
     NODE's index in PARENT.  Therefore, to match the first child
     where PARENT is \"argument_list\", use
 
@@ -1147,7 +1146,7 @@ no-indent
 
 prev-line
 
-    Returns the  first non-whitespace character on the previous line.
+    Returns the first non-whitespace character on the previous line.
 
 point-min
 
@@ -1278,7 +1277,7 @@ Return (ANCHOR . OFFSET).  This function is used by
   "How many lines of indent value do we precompute.
 In `treesit-indent-region' we indent in batches: precompute
 indent for each line, apply them in one go, let parser reparse,
-and do it again.  This way the parser don't need to unnecessarily
+and do it again.  This way the parser doesn't need to unnecessarily
 reparse after indenting every single line.")
 
 (defun treesit-indent-region (beg end)
@@ -1412,7 +1411,7 @@ indentation (target) is in green, current indentation is in red."
 RULES should be a value suitable for
 `treesit-simple-indent-rules'.  Return the optimized version of
 RULES."
-  ;; Right now this function just compiles queries.  it doesn't
+  ;; Right now this function just compiles queries.  It doesn't
   ;; byte-compile matchers and anchors because it doesn't make much
   ;; difference.
   (cl-loop for setting in rules
@@ -1551,8 +1550,8 @@ It can also be a list of language symbols.
 If tree-sitter is not ready, emit a warning and return nil.  If
 the user has chosen to activate tree-sitter for LANGUAGE and
 tree-sitter is ready, return non-nil.  If QUIET is t, don't emit
-warning in either case; if quiet is `message', display a message
-instead of emitting warning."
+a warning in either case; if quiet is `message', display a message
+instead of emitting a warning."
   (let ((language-list (if (consp language)
                            language
                          (list language)))
