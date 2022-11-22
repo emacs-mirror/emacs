@@ -2991,6 +2991,14 @@ A major mode based on the tree-sitter library for editing programs
 in the JSON language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
+** New mode 'csharp-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the C# language.  It includes support for font-locking,
+indentation, Imenu, which-func, and navigation.
+
+** New mode 'csharp-mode'.
+A major mode based on CC Mode for editing programs in the C# language.
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 
