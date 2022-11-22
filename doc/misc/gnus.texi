@@ -2959,8 +2959,6 @@ sending the message if @code{gnus-add-to-list} is set to @code{t}.
 If this variable is set, @code{gnus-mailing-list-mode} is turned on when
 entering summary buffer.
 
-See also @code{gnus-parameter-to-list-alist}.
-
 @anchor{subscribed}
 @item subscribed
 @cindex subscribed
