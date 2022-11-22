@@ -483,6 +483,7 @@ system, including many technical ones.  Examples:
  ("\\rhd" ?▷)
  ("\\ll" ?≪)
  ("\\llcorner" ?⌞)
+ ("\\lll" ?⋘)
  ("\\lnapprox" ?⋦)
  ("\\lneq" ?≨)
  ("\\lneqq" ?≨)
