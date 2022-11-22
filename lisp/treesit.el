@@ -1766,10 +1766,11 @@ to the offending pattern and highlight the pattern."
 
 (defun treesit--explorer--nodes-to-highlight (language)
   "Return nodes for LANGUAGE covered in region.
-This function tries to return the largest node possible.  So it
-will return a single large node rather than a bunch of small
-nodes.  If it end up returning multiple small nodes, it only
-returns the first and last node, and omits the ones in between."
+This function tries to return the largest node possible.  If the
+region covers exactly one node, that node is returned (in a
+list).  If the region covers more than one node, two nodes are
+returned: the very first one in the region and the very last one
+in the region."
   (let* ((beg (region-beginning))
          (end (region-end))
          (node (treesit-node-on beg end language))
@@ -1888,13 +1889,10 @@ Return the start of the syntax tree text corresponding to NODE."
 
 (defun treesit--explorer-draw-node (node)
   "Draw the syntax tree of NODE.
-If NODE and NODE-HIGHLIGHT are the same node, highlight it.
 
-When this function is called, point should be at an empty line,
-when appropriate indent in front of point.  When this function
-returns, it leaves point at the end of the last line of NODE.
-
-Return the start position of NODE-HIGHLIGHT in the buffer, if any."
+When this function is called, point should be at the position
+where the node should start.  When this function returns, it
+leaves point at the end of the last line of NODE."
   (let* ((type (treesit-node-type node))
          (field-name (treesit-node-field-name node))
          (children (treesit-node-children node))
