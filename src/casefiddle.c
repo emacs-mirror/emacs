@@ -559,7 +559,8 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
       update_compositions (start, end, CHECK_ALL);
     }
 #ifdef HAVE_TREE_SITTER
-      treesit_record_change (start_byte, old_end_byte, CHAR_TO_BYTE (orig_end + added));
+      treesit_record_change (start_byte, old_end_byte,
+			     CHAR_TO_BYTE (orig_end + added));
 #endif
 
   return orig_end + added;
