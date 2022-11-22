@@ -596,8 +596,9 @@ To emulate Unicode-compliant collation on MS-Windows systems,
 bind `w32-collate-ignore-punctuation' to a non-nil value, since
 the codeset part of the locale cannot be \"UTF-8\" on MS-Windows.
 
-If your system does not support a locale environment, this function
-behaves like `string-lessp'.  */)
+Some operating systems do not implement correct collation (in specific
+locale environments or at all).  Then, this functions falls back to
+case-sensitive `string-lessp' and IGNORE-CASE argument is ignored.  */)
   (Lisp_Object s1, Lisp_Object s2, Lisp_Object locale, Lisp_Object ignore_case)
 {
 #if defined __STDC_ISO_10646__ || defined WINDOWSNT
