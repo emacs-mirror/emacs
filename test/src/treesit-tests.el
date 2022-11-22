@@ -22,6 +22,39 @@
 (require 'ert)
 (require 'treesit)
 
+(declare-function treesit-language-available-p "treesit.c")
+
+(declare-function treesit-parser-root-node "treesit.c")
+(declare-function treesit-parser-set-included-ranges "treesit.c")
+(declare-function treesit-parser-included-ranges "treesit.c")
+
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-parser-delete "treesit.c")
+(declare-function treesit-parser-list "treesit.c")
+(declare-function treesit-parser-buffer "treesit.c")
+(declare-function treesit-parser-language "treesit.c")
+
+(declare-function treesit-query-expand "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
+
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-string "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+(declare-function treesit-node-check "treesit.c")
+(declare-function treesit-node-field-name-for-child "treesit.c")
+(declare-function treesit-node-child-count "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-next-sibling "treesit.c")
+(declare-function treesit-node-prev-sibling "treesit.c")
+(declare-function treesit-node-first-child-for-pos "treesit.c")
+(declare-function treesit-node-descendant-for-range "treesit.c")
+(declare-function treesit-node-eq "treesit.c")
+
+
 (ert-deftest treesit-basic-parsing ()
   "Test basic parsing routines."
   (skip-unless (treesit-language-available-p 'json))
@@ -127,7 +160,7 @@
   "Tests for query API."
   (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
-    (let (parser root-node pattern doc-node object-node pair-node)
+    (let (parser root-node)
       (progn
         (insert "[1,2,{\"name\": \"Bob\"},3]")
         (setq parser (treesit-parser-create 'json))
@@ -178,13 +211,12 @@
   "Tests if narrowing works."
   (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
-    (let (parser root-node pattern doc-node object-node pair-node)
+    (let (parser)
       (progn
         (insert "xxx[1,{\"name\": \"Bob\"},2,3]xxx")
         (narrow-to-region (+ (point-min) 3) (- (point-max) 3))
         (setq parser (treesit-parser-create 'json))
-        (setq root-node (treesit-parser-root-node
-                         parser)))
+        (treesit-parser-root-node parser))
       ;; This test is from the basic test.
       (should
        (equal
@@ -236,13 +268,13 @@ bunch of assertions that checks e.g. visible_beg <=
 visible_end.)"
   (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
-    (let (parser root-node pattern doc-node object-node pair-node)
+    (let (parser)
       (progn
         (insert "xxx[1,{\"name\": \"Bob\"},2,3]xxx")
         (narrow-to-region (+ (point-min) 3) (- (point-max) 3))
         (setq parser (treesit-parser-create 'json))
         ;; Now visible_beg/end = visible boundary.
-        (setq root-node (treesit-parser-root-node parser)))
+        (treesit-parser-root-node parser))
       ;; Now parser knows the content of the visible region.
       (widen)
       ;; Now visible_beg/end don't change, but visible region expanded.
@@ -315,12 +347,11 @@ visible_end.)"
   "Tests if range works."
   (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
-    (let (parser root-node pattern doc-node object-node pair-node)
+    (let (parser)
       (progn
         (insert "[[1],oooxxx[1,2,3],xxx[1,2]]")
         (setq parser (treesit-parser-create 'json))
-        (setq root-node (treesit-parser-root-node
-                         parser)))
+        (treesit-parser-root-node parser))
 
       (should (eq (treesit-parser-included-ranges parser) nil))
 
@@ -371,10 +402,10 @@ visible_end.)"
                     (treesit-language-available-p 'css)
                     (treesit-language-available-p 'javascript)))
   (with-temp-buffer
-    (let (html css js html-range css-range js-range)
+    (let (css js css-range js-range)
       (progn
         (insert "<html><script>1</script><style>body {}</style></html>")
-        (setq html (treesit-parser-create 'html))
+        (treesit-parser-create 'html)
         (setq css (treesit-parser-create 'css))
         (setq js (treesit-parser-create 'javascript)))
       ;; JavaScript.
@@ -411,19 +442,19 @@ visible_end.)"
                    'json))
                  "(document (array (number) (number) (object (pair key: (string (string_content)) value: (string (string_content)))) (number)))"))
   (with-temp-buffer
-    (let (parser root-node doc-node object-node pair-node)
+    (let (parser root-node)
       (progn
         (insert "[1,2,{\"name\": \"Bob\"},3]")
         (setq parser (treesit-parser-create 'json))
         (setq root-node (treesit-parser-root-node
                          parser))
-        (setq doc-node (treesit-node-child root-node 0)))
+        (treesit-node-child root-node 0))
       )))
 
 (ert-deftest treesit-node-supplemental ()
   "Supplemental node functions."
   (skip-unless (treesit-language-available-p 'json))
-  (let (parser root-node doc-node array-node)
+  (let (parser root-node doc-node)
     (progn
       (insert "[1,2,{\"name\": \"Bob\"},3]")
       (setq parser (treesit-parser-create 'json))
@@ -473,12 +504,11 @@ visible_end.)"
 (ert-deftest treesit-node-at ()
   "Test `treesit-node-at'."
   (skip-unless (treesit-language-available-p 'json))
-  (let (parser root-node)
+  (let (parser)
     (progn
       (insert "[1,  2, 3,4]  ")
       (setq parser (treesit-parser-create 'json))
-      (setq root-node (treesit-parser-root-node
-                       parser)))
+      (treesit-parser-root-node parser))
     ;; Point at ",", should return ",".
     (goto-char (point-min))
     (search-forward "1")
