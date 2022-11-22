@@ -98,10 +98,16 @@ indent, imenu, etc."
 (defcustom treesit-max-buffer-size
   (let ((mb (* 1024 1024)))
     ;; 40MB for 64-bit systems, 15 for 32-bit.
-    (if (> most-positive-fixnum (* 4 1024 mb))
-        (* 40 mb)
-      (* 15 mb)))
-  "Maximum buffer size for enabling tree-sitter parsing (in bytes)."
+    (if (or (< most-positive-fixnum (* 2.0 1024 mb))
+            ;; 32-bit system with wide ints.
+            (string-match-p "--with-wide-int" system-configuration-options))
+        (* 15 mb)
+      (* 40 mb)))
+  "Maximum buffer size (in bytes) for enabling tree-sitter parsing.
+
+A typical tree-sitter parser needs 10 times as much memory as the
+buffer it parses.  Also, the tree-sitter library has a hard limit
+of max unsigned 32-bit value for byte offsets into buffer text."
   :type 'integer
   :version "29.1")
 
@@ -1583,7 +1589,7 @@ instead of emitting a warning."
       (when (not (treesit-available-p))
         (setq msg "tree-sitter library is not compiled with Emacs")
         (throw 'term nil))
-      (when (> (buffer-size) treesit-max-buffer-size)
+      (when (> (position-bytes (1- (point-max))) treesit-max-buffer-size)
         (setq msg "buffer larger than `treesit-max-buffer-size'")
         (throw 'term nil))
       (dolist (lang language-list)
