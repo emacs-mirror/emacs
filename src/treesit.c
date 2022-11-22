@@ -1535,7 +1535,7 @@ positions.  PARSER is the parser issuing the notification.  */)
   CHECK_SYMBOL (function);
 
   Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
-  if (!Fmemq (function, functions))
+  if (NILP (Fmemq (function, functions)))
     XTS_PARSER (parser)->after_change_functions = Fcons (function, functions);
   return Qnil;
 }
@@ -1555,7 +1555,7 @@ positions.  PARSER is the parser issuing the notification.   */)
   CHECK_SYMBOL (function);
 
   Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
-  if (Fmemq (function, functions))
+  if (!NILP (Fmemq (function, functions)))
     XTS_PARSER (parser)->after_change_functions = Fdelq (function, functions);
   return Qnil;
 }
