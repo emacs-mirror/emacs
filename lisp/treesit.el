@@ -793,12 +793,14 @@ instead."
 (defun treesit--children-covering-range (node start end)
   "Return a list of children of NODE covering a range.
 The range is between START and END."
-  (let* ((child (treesit-node-first-child-for-pos node start))
-         (result (list child)))
-    (while (and (< (treesit-node-end child) end)
-                (setq child (treesit-node-next-sibling child)))
-      (push child result))
-    (nreverse result)))
+  (if-let* ((child (treesit-node-first-child-for-pos node start))
+            (result (list child)))
+      (progn
+        (while (and child (< (treesit-node-end child) end)
+                    (setq child (treesit-node-next-sibling child)))
+          (push child result))
+        (nreverse result))
+    (list node)))
 
 (defun treesit--children-covering-range-recurse (node start end threshold)
   "Return a list of children of NODE covering a range.
