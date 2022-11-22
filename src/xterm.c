@@ -27517,9 +27517,14 @@ static void
 x_raise_frame (struct frame *f)
 {
   block_input ();
+
   if (FRAME_VISIBLE_P (f))
-    XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
-  XFlush (FRAME_X_DISPLAY (f));
+    {
+      XRaiseWindow (FRAME_X_DISPLAY (f),
+		    FRAME_OUTER_WINDOW (f));
+      XFlush (FRAME_X_DISPLAY (f));
+    }
+
   unblock_input ();
 }
 
@@ -27567,8 +27572,6 @@ x_lower_frame (struct frame *f)
     XLowerWindow (FRAME_X_DISPLAY (f),
 		  FRAME_OUTER_WINDOW (f));
 
-  XFlush (FRAME_X_DISPLAY (f));
-
 #ifdef HAVE_XWIDGETS
   /* Make sure any X windows owned by xwidget views of the parent
      still display below the lowered frame.  */
@@ -27576,6 +27579,8 @@ x_lower_frame (struct frame *f)
   if (FRAME_PARENT_FRAME (f))
     lower_frame_xwidget_views (FRAME_PARENT_FRAME (f));
 #endif
+
+  XFlush (FRAME_X_DISPLAY (f));
 }
 
 static void
