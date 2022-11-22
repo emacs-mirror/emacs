@@ -460,6 +460,15 @@ Return the merged list of ranges."
         (push range result)))
     (nreverse result)))
 
+(defun treesit--clip-ranges (ranges start end)
+  "Clip RANGES in between START and END.
+RANGES is a list of ranges of the form (BEG . END).  Ranges
+outside of the region between START and END are thrown away, and
+those inside are kept."
+  (cl-loop for range in ranges
+           if (<= start (car range) (cdr range) end)
+           collect range))
+
 (defun treesit-update-ranges (&optional beg end)
   "Update the ranges for each language in the current buffer.
 If BEG and END are non-nil, only update parser ranges in that
@@ -480,8 +489,10 @@ region."
                (old-ranges (treesit-parser-included-ranges parser))
                (new-ranges (treesit-query-range
                             host-lang query beg end))
-               (set-ranges (treesit--merge-ranges
-                            old-ranges new-ranges beg end)))
+               (set-ranges (treesit--clip-ranges
+                            (treesit--merge-ranges
+                             old-ranges new-ranges beg end)
+                            (point-min) (point-max))))
           (dolist (parser (treesit-parser-list))
             (when (eq (treesit-parser-language parser)
                       language)
