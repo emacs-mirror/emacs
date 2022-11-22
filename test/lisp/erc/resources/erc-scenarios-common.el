@@ -296,7 +296,7 @@ buffer-naming collisions involving bouncers in ERC."
         (erc-d-t-search-for 1 "<joe>")
         (erc-d-t-absent-for 0.1 "<bob>")
         (erc-d-t-wait-for 5 (eq erc-server-process erc-server-process-bar))
-        (erc-d-t-search-for 15 "keeps you from dishonour")
+        (erc-d-t-search-for 15 "joe: It is a rupture")
         (erc-d-t-wait-for 5 (not (erc-server-process-alive)))))
 
     (when after (funcall after))))
