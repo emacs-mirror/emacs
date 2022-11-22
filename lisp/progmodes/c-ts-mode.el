@@ -269,7 +269,7 @@ MODE is either `c' or `cpp'."
    :feature 'definition
    ;; Highlights identifiers in declarations.
    `((declaration
-      declarator: (_) @font-lock-variable-name-face)
+      declarator: (_) @c-ts-mode--fontify-declarator)
 
      (field_declaration
       declarator: (_) @c-ts-mode--fontify-declarator)
@@ -295,21 +295,21 @@ MODE is either `c' or `cpp'."
              (identifier) @font-lock-variable-name-face))
      (assignment_expression
       left: (subscript_expression
-             (identifier) @font-lock-variable-name-face)))
+             (identifier) @font-lock-variable-name-face))
+     (init_declarator declarator: (_) @c-ts-mode--fontify-declarator))
 
    :language mode
-   :feature 'expression
+   :feature 'function
    '((call_expression
-      function: (identifier) @font-lock-function-name-face)
-     (field_expression
-      argument: (identifier) @font-lock-variable-name-face)
-     (pointer_expression
-      (identifier) @font-lock-variable-name-face))
+      function: (identifier) @font-lock-function-name-face))
+
+   :language mode
+   :feature 'variable
+   '((identifier) @c-ts-mode--fontify-variable)
 
    :language mode
    :feature 'label
-   '((expression_statement (identifier) @font-lock-variable-name-face)
-     (labeled_statement
+   '((labeled_statement
       label: (statement_identifier) @font-lock-constant-face))
 
    :language mode
@@ -366,6 +366,19 @@ For NODE, OVERRIDE, START, END, and ARGS, see
         ("function_declarator" 'font-lock-function-name-face)
         (_ 'font-lock-variable-name-face))
       override))))
+
+(defun c-ts-mode--fontify-variable (node override start end &rest _)
+  "Fontify an identifier node.
+Fontify it if NODE is not a function identifier.  For NODE,
+OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
+  (when (not (equal (treesit-node-type
+                     (treesit-node-parent node))
+                    "call_expression"))
+    (treesit-fontify-with-override
+     (max (treesit-node-start node) start)
+     (min (treesit-node-end node) end)
+     'font-lock-variable-name-face
+     override)))
 
 (defun c-ts-mode--fontify-defun (node override start end &rest _)
   "Correctly fontify the DEFUN macro.
@@ -497,8 +510,8 @@ the subtrees."
   (setq-local treesit-font-lock-feature-list
               '(( comment constant keyword literal preprocessor string)
                 ( assignment definition label property type)
-                ( bracket delimiter error escape-sequence expression
-                  operator))))
+                ( delimiter error escape-sequence function
+                  operator variable bracket))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
