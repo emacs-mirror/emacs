@@ -1391,7 +1391,7 @@ Note that the style variables are always made local to the buffer."
 (defvar c-bc-changed-stringiness nil)
 ;; Non-nil when, in a before-change function, the deletion of a range of text
 ;; will change the "stringiness" of the subsequent text.  Only used when
-;; `c-multiline-sting-start-char' is a non-nil value which isn't a character.
+;; `c-multiline-string-start-char' is a non-nil value which isn't a character.
 
 (defun c-remove-string-fences (&optional here)
   ;; The character after HERE (default point) is either a string delimiter or
@@ -1713,7 +1713,7 @@ position of `after-change-functions'.")
   ;;
   ;; This function is called exclusively as an after-change function via
   ;; `c-before-font-lock-functions'.  In C++ Mode, it should come before
-  ;; `c-after-change-unmark-raw-strings' in that lang variable.
+  ;; `c-after-change-unmark-ml-strings' in that lang variable.
   (let (lit-start		       ; Don't calculate this till we have to.
 	lim)
     (when

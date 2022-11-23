@@ -4017,7 +4017,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	 (t from))))))
 
 (defun c-remove-stale-state-cache (start-point here pps-point)
-  ;; Remove stale entries from the `c-cache-state', i.e. those which will
+  ;; Remove stale entries from the `c-state-cache', i.e. those which will
   ;; not be in it when it is amended for position HERE.  This may involve
   ;; replacing a CONS element for a brace pair containing HERE with its car.
   ;; Additionally, the "outermost" open-brace entry before HERE will be
@@ -10103,7 +10103,7 @@ This function might do hidden buffer changes."
   ;;   Specifically it is nil, or a three element list (A B C) where C is t
   ;;   when context is '<> and the "identifier" is a found type, B is t when a
   ;;   `c-typedef-kwds' ("typedef") is present, and A is t when some other
-  ;;   `c-typedef-declkwds' (e.g. class, struct, enum) specifier is present.
+  ;;   `c-typedef-decl-kwds' (e.g. class, struct, enum) specifier is present.
   ;;   I.e., (some of) the declared identifier(s) are types.
   ;;
   ;;   The third element of the return value is non-nil when the declaration
@@ -15518,7 +15518,7 @@ Cannot combine absolute offsets %S and %S in `add' method"
 
 (defun c-get-syntactic-indentation (langelems)
   ;; Calculate the syntactic indentation from a syntactic description
-  ;; as returned by `c-guess-syntax'.
+  ;; as returned by `c-guess-basic-syntax'.
   ;;
   ;; Note that topmost-intro always has an anchor position at bol, for
   ;; historical reasons.  It's often used together with other symbols

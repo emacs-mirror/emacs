@@ -610,7 +610,7 @@ to QUERY.  For example,
 For each QUERY, a :language keyword and a :feature keyword are
 required.  Each query's :feature is a symbol summarizing what the
 query fontifies.  It is used to allow users to enable/disable
-certain features.  See `treesit-font-lock-kind-list' for more.
+certain features.  See `treesit-font-lock-feature-list' for more.
 Other keywords include:
 
   KEYWORD    VALUE      DESCRIPTION

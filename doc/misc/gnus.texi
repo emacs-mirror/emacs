@@ -26539,7 +26539,7 @@ keyboard shortcuts like @kbd{M M i} for Important, using the first
 letter.
 @end defvar
 
-@defun gnus-registry-mark-article
+@defun gnus-registry-set-article-mark
 Call this function to mark an article with a custom registry mark.  It
 will offer the available marks for completion.
 @end defun

@@ -119,7 +119,7 @@
 
   "List of registry marks and their options.
 
-`gnus-registry-mark-article' will offer symbols from this list
+`gnus-registry-set-article-mark' will offer symbols from this list
 for completion.
 
 Each entry must have a character to be useful for summary mode
