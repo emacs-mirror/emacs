@@ -7981,7 +7981,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
          (progn (message "Read only text copied to kill ring") nil)
        (barf-if-buffer-read-only)
        ;; If the buffer isn't read-only, the text is.
-       (signal 'text-read-only (list (current-buffer)))))
+       (signal 'text-read-only (list (current-buffer)))))))
 @end group
 @end smallexample
 
