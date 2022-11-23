@@ -1492,7 +1492,8 @@ beginning rather than the end of a node.
 
 This function guarantees that the matched node it returns makes
 progress in terms of buffer position: the start/end position of
-the returned node is always greater than that of NODE.
+the returned node is always STRICTLY greater/less than that of
+NODE.
 
 BACKWARD and ALL are the same as in `treesit-search-forward'."
   (when-let* ((start-pos (if start
@@ -1534,6 +1535,38 @@ For example, \"(function|class)_definition\".
 
 This is used by `treesit-beginning-of-defun' and friends.")
 
+(defvar-local treesit-defun-prefer-top-level nil
+  "When non-nil, `treesit-beginning-of-defun' prefers top-level defun.
+
+In some languages, a defun (function, class, struct) could be
+nested in another one.  Normally `treesit-beginning-of-defun'
+just finds the first defun it encounter.  If this variable's
+value is t, `treesit-beginning-of-defun' tries to find the
+top-level defun, and ignores nested ones.
+
+This variable can also be a list of tree-sitter node type
+regexps.  Then, when `treesit-beginning-of-defun' finds a defun
+node and that node's type matches one in the list,
+`treesit-beginning-of-defun' finds the top-level node matching
+that particular regexp (as opposed to any node matched by
+`treesit-defun-type-regexp').")
+
+(defun treesit--defun-maybe-top-level (node)
+  "Maybe return the top-level equivalent of NODE.
+For the detailed semantic see `treesit-defun-prefer-top-level'."
+  (pcase treesit-defun-prefer-top-level
+    ('nil node)
+    ('t (or (treesit-node-top-level
+             node treesit-defun-type-regexp)
+            node))
+    ((pred consp)
+     (cl-loop
+      for re in treesit-defun-prefer-top-level
+      if (string-match-p re (treesit-node-type node))
+      return (or (treesit-node-top-level node re)
+                 node)
+      finally return node))))
+
 (defun treesit-beginning-of-defun (&optional arg)
   "Tree-sitter `beginning-of-defun' function.
 ARG is the same as in `beginning-of-defun'."
@@ -1544,17 +1577,13 @@ ARG is the same as in `beginning-of-defun'."
         (while (and (> arg 0)
                     (setq node (treesit-search-forward-goto
                                 node treesit-defun-type-regexp t t)))
-          (setq node (or (treesit-node-top-level
-                          node treesit-defun-type-regexp)
-                         node))
+          (setq node (treesit--defun-maybe-top-level node))
           (setq arg (1- arg)))
       ;; Go forward.
       (while (and (< arg 0)
                   (setq node (treesit-search-forward-goto
                               node treesit-defun-type-regexp)))
-        (setq node (or (treesit-node-top-level
-                        node treesit-defun-type-regexp)
-                       node))
+        (setq node (treesit--defun-maybe-top-level node))
         (setq arg (1+ arg))))
     (when node
       (goto-char (treesit-node-start node))
@@ -1564,11 +1593,9 @@ ARG is the same as in `beginning-of-defun'."
   "Tree-sitter `end-of-defun' function."
   ;; Why not simply get the largest node at point: when point is at
   ;; (point-min), that gives us the root node.
-  (let* ((node (treesit-node-at (point)))
-         (top (or (treesit-node-top-level
-                   node
-                   treesit-defun-type-regexp)
-                  node)))
+  (let* ((node (treesit-search-forward
+                (treesit-node-at (point)) treesit-defun-type-regexp t t))
+         (top (treesit--defun-maybe-top-level node)))
     (goto-char (treesit-node-end top))))
 
 ;;; Imenu
