@@ -1561,7 +1561,7 @@ Argument BACKEND is the backend to use."
     (insert-file-contents file)
     (split-string (buffer-string) "\n" t)))
 
-;; Subroutine for `vc-git-ignore' and `vc-hg-ignore'.
+;; Subroutine for `vc-default-ignore'.
 (defun vc--add-line (string file)
   "Add STRING as a line to FILE."
   (with-current-buffer (find-file-noselect file)

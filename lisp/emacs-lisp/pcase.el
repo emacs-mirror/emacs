@@ -395,7 +395,7 @@ how many time this CODEGEN is called."
                          (push (setq prev (list case)) seen))
                        ;; Put a counter in the cdr just so that not
                        ;; all branches look identical (to avoid things
-                       ;; like `macroexp--if' optimizing them too
+                       ;; like `macroexp-if' optimizing them too
                        ;; optimistically).
                        (let ((ph (cons 'pcase--placeholder
                                        (setq phcounter (1+ phcounter)))))

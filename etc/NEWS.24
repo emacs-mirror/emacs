@@ -951,7 +951,7 @@ Also the following files used by the now obsolete otodo-mode.el:
 
 *** the old version of todo-mode.el (renamed to otodo-mode.el).
 
-*** xesam.el (owing to the cancelation of the XESAM project).
+*** xesam.el (owing to the cancellation of the XESAM project).
 
 *** yow.el; use fortune.el or cookie1.el instead.
 

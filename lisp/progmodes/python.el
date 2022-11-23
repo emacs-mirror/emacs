@@ -578,7 +578,7 @@ the {...} holes that appear within f-strings."
   ;; FIXME: This will fail to properly highlight strings appearing
   ;; within the {...} of an f-string.
   ;; We could presumably fix it by running
-  ;; `font-lock-fontify-syntactically-region' (as is done in
+  ;; `font-lock-default-fontify-syntactically-region' (as is done in
   ;; `sm-c--cpp-fontify-syntactically', for example) after removing
   ;; the `face' property, but I'm not sure it's worth the effort and
   ;; the risks.
@@ -1113,7 +1113,9 @@ fontified."
 
    :feature 'decorator
    :language 'python
-   '((decorator) @font-lock-type-face)
+   '((decorator "@" @font-lock-type-face)
+     (decorator (call function: (identifier) @font-lock-type-face))
+     (decorator (identifier) @font-lock-type-face))
 
    :feature 'type
    :language 'python

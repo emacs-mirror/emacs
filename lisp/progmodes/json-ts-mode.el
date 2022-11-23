@@ -74,26 +74,28 @@
 (defvar json-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'json
-   :feature 'comment
-   :override t
-   '((comment) @font-lock-comment-face)
-   :language 'json
-   :feature 'string
-   :override t
-   '((escape_sequence) @font-lock-constant-face
-     (string) @font-lock-string-face)
-   :language 'json
-   :feature 'number
-   :override t
-   '((number) @font-lock-constant-face)
+   :feature 'bracket
+   '((["[" "]" "{" "}"]) @font-lock-bracket-face)
    :language 'json
    :feature 'constant
-   :override t
    '([(null) (true) (false)] @font-lock-constant-face)
    :language 'json
-   :feature 'pair
+   :feature 'delimiter
+   '((["," ":"]) @font-lock-delimiter-face)
+   :language 'json
+   :feature 'number
+   '((number) @font-lock-number-face)
+   :language 'json
+   :feature 'string
+   '((string) @font-lock-string-face)
+   :language 'json
+   :feature 'escape-sequence
    :override t
-   `((pair key: (_) @font-lock-variable-name-face)))
+   '((escape_sequence) @font-lock-escape-face)
+   :language 'json
+   :feature 'error
+   :override t
+   '((ERROR) @font-lock-warning-face))
   "Font-lock settings for JSON.")
 
 (defun json-ts-mode--imenu-1 (node)
@@ -154,7 +156,9 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings json-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((comment string number) (constant pair) ()))
+              '((constant number string)
+                (escape-sequence)
+                (bracket delimiter error)))
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'json-ts-mode--imenu)

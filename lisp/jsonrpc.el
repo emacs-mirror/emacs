@@ -308,7 +308,7 @@ ignored."
                          (setq canceled t))
                        `(canceled ,cancel-on-input-retval))
                       (t (while t (accept-process-output nil 30)))))
-            ;; In normal operation, cancelation is handled by the
+            ;; In normal operation, cancellation is handled by the
             ;; timeout function and response filter, but we still have
             ;; to protect against user-quit (C-g) or the
             ;; `cancel-on-input' case.

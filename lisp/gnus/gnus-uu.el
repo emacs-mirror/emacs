@@ -1622,7 +1622,7 @@ Gnus might fail to display all of it.")
     state))
 
 ;; `gnus-uu-choose-action' chooses what action to perform given the name
-;; and `gnus-uu-file-action-list'.  Returns either nil if no action is
+;; and FILE-ACTION-LIST.  Return either nil if no action is
 ;; found, or the name of the command to run if such a rule is found.
 (defun gnus-uu-choose-action (file-name file-action-list &optional no-ignore)
   (let ((action-list (copy-sequence file-action-list))

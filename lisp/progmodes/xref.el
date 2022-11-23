@@ -919,6 +919,8 @@ ITEMS is an xref item which " ; FIXME: Expand documentation.
     (define-key map (kbd "M-,") #'xref-quit-and-pop-marker-stack)
     map))
 
+(declare-function outline-search-text-property "outline" (property &optional value bound move backward looking-at))
+
 (define-derived-mode xref--xref-buffer-mode special-mode "XREF"
   "Mode for displaying cross-references."
   (setq buffer-read-only t)
@@ -927,7 +929,14 @@ ITEMS is an xref item which " ; FIXME: Expand documentation.
   (setq imenu-prev-index-position-function
         #'xref--imenu-prev-index-position)
   (setq imenu-extract-index-name-function
-        #'xref--imenu-extract-index-name))
+        #'xref--imenu-extract-index-name)
+  (setq-local outline-minor-mode-cycle t
+              outline-minor-mode-use-buttons t
+              outline-search-function
+              (lambda (&optional bound move backward looking-at)
+                (outline-search-text-property
+                 'xref-group nil bound move backward looking-at))
+              outline-level (lambda () 1)))
 
 (defvar xref--transient-buffer-mode-map
   (let ((map (make-sparse-keymap)))

@@ -98,10 +98,16 @@ indent, imenu, etc."
 (defcustom treesit-max-buffer-size
   (let ((mb (* 1024 1024)))
     ;; 40MB for 64-bit systems, 15 for 32-bit.
-    (if (> most-positive-fixnum (* 4 1024 mb))
-        (* 40 mb)
-      (* 15 mb)))
-  "Maximum buffer size for enabling tree-sitter parsing (in bytes)."
+    (if (or (< most-positive-fixnum (* 2.0 1024 mb))
+            ;; 32-bit system with wide ints.
+            (string-match-p "--with-wide-int" system-configuration-options))
+        (* 15 mb)
+      (* 40 mb)))
+  "Maximum buffer size (in bytes) for enabling tree-sitter parsing.
+
+A typical tree-sitter parser needs 10 times as much memory as the
+buffer it parses.  Also, the tree-sitter library has a hard limit
+of max unsigned 32-bit value for byte offsets into buffer text."
   :type 'integer
   :version "29.1")
 
@@ -454,6 +460,15 @@ Return the merged list of ranges."
         (push range result)))
     (nreverse result)))
 
+(defun treesit--clip-ranges (ranges start end)
+  "Clip RANGES in between START and END.
+RANGES is a list of ranges of the form (BEG . END).  Ranges
+outside of the region between START and END are thrown away, and
+those inside are kept."
+  (cl-loop for range in ranges
+           if (<= start (car range) (cdr range) end)
+           collect range))
+
 (defun treesit-update-ranges (&optional beg end)
   "Update the ranges for each language in the current buffer.
 If BEG and END are non-nil, only update parser ranges in that
@@ -474,8 +489,10 @@ region."
                (old-ranges (treesit-parser-included-ranges parser))
                (new-ranges (treesit-query-range
                             host-lang query beg end))
-               (set-ranges (treesit--merge-ranges
-                            old-ranges new-ranges beg end)))
+               (set-ranges (treesit--clip-ranges
+                            (treesit--merge-ranges
+                             old-ranges new-ranges beg end)
+                            (point-min) (point-max))))
           (dolist (parser (treesit-parser-list))
             (when (eq (treesit-parser-language parser)
                       language)
@@ -593,7 +610,7 @@ to QUERY.  For example,
 For each QUERY, a :language keyword and a :feature keyword are
 required.  Each query's :feature is a symbol summarizing what the
 query fontifies.  It is used to allow users to enable/disable
-certain features.  See `treesit-font-lock-kind-list' for more.
+certain features.  See `treesit-font-lock-feature-list' for more.
 Other keywords include:
 
   KEYWORD    VALUE      DESCRIPTION
@@ -787,12 +804,14 @@ instead."
 (defun treesit--children-covering-range (node start end)
   "Return a list of children of NODE covering a range.
 The range is between START and END."
-  (let* ((child (treesit-node-first-child-for-pos node start))
-         (result (list child)))
-    (while (and (< (treesit-node-end child) end)
-                (setq child (treesit-node-next-sibling child)))
-      (push child result))
-    (nreverse result)))
+  (if-let* ((child (treesit-node-first-child-for-pos node start))
+            (result (list child)))
+      (progn
+        (while (and child (< (treesit-node-end child) end)
+                    (setq child (treesit-node-next-sibling child)))
+          (push child result))
+        (nreverse result))
+    (list node)))
 
 (defun treesit--children-covering-range-recurse (node start end threshold)
   "Return a list of children of NODE covering a range.
@@ -881,8 +900,7 @@ If LOUDLY is non-nil, display some debugging information."
                             sub-node query
                             (max (- start delta-start) (point-min))
                             (min (+ end delta-end) (point-max))))
-                 (end-time (current-time))
-                 (inhibit-point-motion-hooks t))
+                 (end-time (current-time)))
             ;; If for any query the query time is strangely long,
             ;; switch to fast mode (see comments above).
             (when (> (time-to-seconds (time-subtract end-time start-time))
@@ -1583,7 +1601,8 @@ instead of emitting a warning."
       (when (not (treesit-available-p))
         (setq msg "tree-sitter library is not compiled with Emacs")
         (throw 'term nil))
-      (when (> (buffer-size) treesit-max-buffer-size)
+      (when (> (position-bytes (max (point-min) (1- (point-max))))
+               treesit-max-buffer-size)
         (setq msg "buffer larger than `treesit-max-buffer-size'")
         (throw 'term nil))
       (dolist (lang language-list)

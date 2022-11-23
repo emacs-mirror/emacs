@@ -134,8 +134,7 @@
    :feature 'constant
    `(((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
-     (true) @font-lock-constant-face
-     (false) @font-lock-constant-face)
+     [(true) (false)] @font-lock-constant-face)
    :language 'java
    :override t
    :feature 'keyword
@@ -163,8 +162,12 @@
    :override t
    :feature 'literal
    `((null_literal) @font-lock-constant-face
-     (decimal_floating_point_literal)  @font-lock-constant-face
-     (hex_floating_point_literal) @font-lock-constant-face)
+     (binary_integer_literal)  @font-lock-number-face
+     (decimal_integer_literal) @font-lock-number-face
+     (hex_integer_literal) @font-lock-number-face
+     (octal_integer_literal) @font-lock-number-face
+     (decimal_floating_point_literal) @font-lock-number-face
+     (hex_floating_point_literal) @font-lock-number-face)
    :language 'java
    :override t
    :feature 'type
@@ -314,8 +317,8 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((comment keyword constant string)
-                (type definition expression literal annotation)
+              '((comment constant keyword string)
+                (annotation definition expression literal type)
                 (bracket delimiter operator)))
 
   ;; Imenu.

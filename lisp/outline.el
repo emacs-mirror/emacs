@@ -1777,7 +1777,12 @@ With a prefix argument, show headings up to that LEVEL."
         (propertize (icon-string icon-name)
                     'mouse-face 'default
                     'follow-link 'mouse-face
-                    'keymap (define-keymap "<mouse-2>" #'outline-cycle)))
+                    'keymap (define-keymap
+                              "<mouse-2>" #'outline-cycle
+                              ;; Need to override the global binding
+                              ;; `mouse-appearance-menu' with <down->:
+                              "S-<down-mouse-1>" #'ignore
+                              "S-<mouse-1>" #'outline-cycle-buffer)))
       (list 'outline-open
             (if outline--use-rtl 'outline-close-rtl 'outline-close))))))
 
@@ -1805,10 +1810,11 @@ With a prefix argument, show headings up to that LEVEL."
            (overlay-put o 'mouse-face 'highlight)
            (overlay-put o 'keymap (define-keymap
                                     "RET" #'outline-cycle
-                                    "<mouse-2>" #'outline-cycle))
-           (overlay-put o 'help-echo (if (eq type 'close)
-                                         "Click to show"
-                                       "Click to hide")))
+                                    "<mouse-2>" #'outline-cycle
+                                    ;; Need to override the global binding
+                                    ;; `mouse-appearance-menu' with <down->:
+                                    "S-<down-mouse-1>" #'ignore
+                                    "S-<mouse-1>" #'outline-cycle-buffer)))
           ('in-margins
            (overlay-put o 'before-string icon)
            (overlay-put o 'keymap (define-keymap "RET" #'outline-cycle)))

@@ -122,7 +122,7 @@
 Don't set it globally, the functions should be let-bound.")
 
 (defun vc-test--revision-granularity-function (backend)
-  "Run the `vc-revision-granularity' backend function."
+  "Run the `revision-granularity' backend function."
   (vc-call-backend backend 'revision-granularity))
 
 (defun vc-test--create-repo-function (backend)

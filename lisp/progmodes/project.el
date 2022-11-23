@@ -251,6 +251,11 @@ depending on the languages used, this list should include the
 headers search path, load path, class path, and so on."
   nil)
 
+(cl-defgeneric project-name (project)
+  "A human-readable name for the project.
+Nominally unique, but not enforced."
+  (file-name-base (directory-file-name (project-root project))))
+
 (cl-defgeneric project-ignores (_project _dir)
   "Return the list of glob patterns to ignore inside DIR.
 Patterns can match both regular files and directories.
@@ -389,6 +394,15 @@ you might have to restart Emacs to see the effect."
   :type 'boolean
   :version "29.1"
   :safe #'booleanp)
+
+(defcustom project-vc-name nil
+  "When non-nil, the name of the current VC project.
+
+The best way to change the value a VC project reports as its
+name, is by setting this in .dir-locals.el."
+  :type 'string
+  :version "29.1"
+  :safe #'stringp)
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
@@ -688,6 +702,10 @@ DIRS must contain directory names."
                                   modules)))
         (push buf bufs)))
     (nreverse bufs)))
+
+(cl-defmethod project-name ((_project (head vc)))
+  (or project-vc-name
+      (cl-call-next-method)))
 
 
 ;;; Project commands
