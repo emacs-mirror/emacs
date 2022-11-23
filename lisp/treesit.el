@@ -912,12 +912,17 @@ If LOUDLY is non-nil, display some debugging information."
                        (node (cdr capture))
                        (node-start (treesit-node-start node))
                        (node-end (treesit-node-end node)))
-                  ;; Turns out it is possible to capture a node that's
+                  ;; It is possible to capture a node that's
                   ;; completely outside the region between START and
-                  ;; END.  If the node is outside of that region, (max
-                  ;; node-start start) and friends return bad values.
-                  (when (and (< start node-end)
-                             (< node-start end))
+                  ;; END: as long as the whole pattern intersects the
+                  ;; region, all the captured nodes in that pattern
+                  ;; are returned.  If the node is outside of that
+                  ;; region, (max node-start start) and friends return
+                  ;; bad values.
+                  (if (and (facep face) (or (>= start node-end)
+                                            (>= node-start end)))
+                      (when (or loudly treesit--font-lock-verbose)
+                        (message "Captured node %s(%s-%s) but it is outside of fontifing region" node node-start node-end))
                     (cond
                      ((facep face)
                       (treesit-fontify-with-override
