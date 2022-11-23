@@ -2568,7 +2568,8 @@ treesit_traverse_child_helper (TSNode node, bool forward, bool named)
 }
 
 /* Return true if NODE matches PRED.  PRED can be a string or a
-   function.  This function doesn't check for PRED's type.  */
+   function.  This function assumes PRED is either a string or a
+   function.  */
 static bool
 treesit_traverse_match_predicate (TSNode node, Lisp_Object pred,
 				  Lisp_Object parser)
