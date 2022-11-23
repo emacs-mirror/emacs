@@ -774,7 +774,7 @@ static const char Rust_help [] =
 
 /* Can't do the `SCM' or `scm' prefix with a version number. */
 static const char *Scheme_suffixes [] =
-  { "oak", "sch", "scheme", "SCM", "scm", "SM", "sm", "ss", "t", NULL };
+  { "oak", "rkt", "sch", "scheme", "SCM", "scm", "SM", "sm", "ss", "t", NULL };
 static const char Scheme_help [] =
 "In Scheme code, tags include anything defined with 'def' or with a\n\
 construct whose name starts with 'def'.  They also include\n\
