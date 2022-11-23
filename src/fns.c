@@ -644,7 +644,8 @@ bind `w32-collate-ignore-punctuation' to a non-nil value, since
 the codeset part of the locale cannot be \"UTF-8\" on MS-Windows.
 
 If your system does not support a locale environment, this function
-behaves like `string-equal'.
+behaves like `string-equal', and in that case the IGNORE-CASE argument
+is ignored.
 
 Do NOT use this function to compare file names for equality.  */)
   (Lisp_Object s1, Lisp_Object s2, Lisp_Object locale, Lisp_Object ignore_case)
