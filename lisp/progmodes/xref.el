@@ -346,7 +346,9 @@ backward."
         (value nil))
     (while (progn
              (goto-char (funcall next (point) property))
-             (not (or (setq value (get-text-property (point) property))
+             (not (or (and
+                       (memq (get-char-property (point) 'invisible) '(ellipsis nil))
+                       (setq value (get-text-property (point) property)))
                       (eobp)
                       (bobp)))))
     (cond (value)
