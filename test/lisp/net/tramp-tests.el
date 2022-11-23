@@ -7630,6 +7630,9 @@ Since it unloads Tramp, it shall be the last test to run."
 	  (string-prefix-p "tramp" (symbol-name x))
 	  ;; `tramp-completion-mode' is autoloaded in Emacs < 28.1.
 	  (not (eq 'tramp-completion-mode x))
+	  ;; `tramp-register-archive-file-name-handler' is autoloaded
+	  ;; in Emacs < 29.1.
+	  (not (eq 'tramp-register-archive-file-name-handler x))
 	  (not (string-match-p
 		(rx bol "tramp" (? "-archive") (** 1 2 "-") "test")
 		(symbol-name x)))

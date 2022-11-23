@@ -183,23 +183,32 @@ It must be supported by libarchive(3).")
 ;; The definition of `tramp-archive-file-name-regexp' contains calls
 ;; to `regexp-opt', which cannot be autoloaded while loading
 ;; loaddefs.el.  So we use a macro, which is evaluated only when needed.
-;; When tramp-archive.el is unloaded and reloaded, it gripes about
-;; missing `tramp-archive{-compression]-suffixes'.  We protect this.
+;; Emacs 26 and earlier cannot use the autoload form
+;; `tramp-compat-rx'.  So we refrain from using `rx'.
 ;;;###autoload
 (progn (defmacro tramp-archive-autoload-file-name-regexp ()
   "Regular expression matching archive file names."
-  `(tramp-compat-rx
+  (if (<= emacs-major-version 26)
+  '(concat
+    "\\`" "\\(" ".+" "\\."
+      ;; Default suffixes ...
+      (regexp-opt tramp-archive-suffixes)
+      ;; ... with compression.
+      "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*"
+    "\\)" ;; \1
+    "\\(" "/" ".*" "\\)" "\\'") ;; \2
+  `(rx
     bos
     ;; This group is used in `tramp-archive-file-name-archive'.
     (group
      (+ nonl)
      ;; Default suffixes ...
-     "." ,(cons '| (bound-and-true-p tramp-archive-suffixes))
+     "." (| ,@tramp-archive-suffixes)
      ;; ... with compression.
-     (? "." ,(cons '| (bound-and-true-p tramp-archive-compression-suffixes))))
+     (? "." (| ,@tramp-archive-compression-suffixes)))
     ;; This group is used in `tramp-archive-file-name-localname'.
     (group "/" (* nonl))
-    eos)))
+    eos))))
 
 (put #'tramp-archive-autoload-file-name-regexp 'tramp-autoload t)
 
