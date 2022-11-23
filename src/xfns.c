@@ -9728,10 +9728,12 @@ selected frame's display.  */)
   (Lisp_Object time_object, Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo;
-  Time time;
+  uint32_t time;
 
+  /* time should be a 32-bit integer, regardless of what the size of
+     the X type `Time' is on this system.  */
   dpyinfo = check_x_display_info (terminal);
-  CONS_TO_INTEGER (time_object, Time, time);
+  CONS_TO_INTEGER (time_object, uint32_t, time);
 
   x_set_last_user_time_from_lisp (dpyinfo, time);
   return Qnil;

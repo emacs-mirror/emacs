@@ -7749,11 +7749,6 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
   old_time = dpyinfo->last_user_time;
 #endif
 
-  /* Time can be sign extended if retrieved from a client message.
-     Make sure it is always 32 bits, or systems with 64-bit longs
-     will crash after 24 days of X server uptime.  (bug#59480) */
-  time &= X_ULONG_MAX;
-
 #ifdef ENABLE_CHECKING
   eassert (time <= X_ULONG_MAX);
 #endif
@@ -18626,7 +18621,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		/* Set the provided time as the user time, which is
 		   required for SetInputFocus to work correctly after
 		   taking the input focus.  */
-		x_display_set_last_user_time (dpyinfo, event->xclient.data.l[1],
+
+		/* Time can be sign extended if retrieved from a client message.
+		   Make sure it is always 32 bits, or systems with 64-bit longs
+		   will crash after 24 days of X server uptime.  (bug#59480) */
+		x_display_set_last_user_time (dpyinfo, (event->xclient.data.l[1]
+							& 0xffffffff),
 					      true, true);
 		goto done;
               }
