@@ -900,8 +900,7 @@ If LOUDLY is non-nil, display some debugging information."
                             sub-node query
                             (max (- start delta-start) (point-min))
                             (min (+ end delta-end) (point-max))))
-                 (end-time (current-time))
-                 (inhibit-point-motion-hooks t))
+                 (end-time (current-time)))
             ;; If for any query the query time is strangely long,
             ;; switch to fast mode (see comments above).
             (when (> (time-to-seconds (time-subtract end-time start-time))
