@@ -34576,8 +34576,11 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
     }
 #endif	/* HAVE_WINDOW_SYSTEM */
 
+  /* CHARPOS can be beyond the last position of STRING due, e.g., to
+     min-width 'display' property.  Fix that, to let all the calls to
+     get-text-property below do their thing.  */
   if (STRINGP (string))
-    pos = make_fixnum (charpos);
+    pos = make_fixnum (min (charpos, SCHARS (string) - 1));
 
   /* Set the help text and mouse pointer.  If the mouse is on a part
      of the mode line without any text (e.g. past the right edge of
