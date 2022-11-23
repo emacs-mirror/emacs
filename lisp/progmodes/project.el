@@ -395,6 +395,15 @@ you might have to restart Emacs to see the effect."
   :version "29.1"
   :safe #'booleanp)
 
+(defcustom project-vc-name nil
+  "When non-nil, the name of the current VC project.
+
+The best way to change the value a VC project reports as its
+name, is by setting this in .dir-locals.el."
+  :type 'string
+  :version "29.1"
+  :safe #'stringp)
+
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
 ;; the "external roots" of language A from buffers of language B, which
@@ -693,6 +702,10 @@ DIRS must contain directory names."
                                   modules)))
         (push buf bufs)))
     (nreverse bufs)))
+
+(cl-defmethod project-name ((_project (head vc)))
+  (or project-vc-name
+      (cl-call-next-method)))
 
 
 ;;; Project commands
