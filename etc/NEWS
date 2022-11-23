@@ -1757,9 +1757,10 @@ the second one will switch to the "*Completions*" buffer.
 
 ---
 *** New user option 'completion-auto-wrap'.
-When non-nil, the commands 'next-completion' and 'previous-completion'
-automatically wrap around on reaching the beginning or the end of
-the "*Completions*" buffer.
+When non-nil, the commands 'next-completion', 'previous-completion',
+'next-line-completion' and 'previous-line-completion' automatically
+wrap around on reaching the beginning or the end of the "*Completions*"
+buffer.
 
 +++
 *** New values for the 'completion-auto-help' user option.
