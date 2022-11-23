@@ -1113,7 +1113,9 @@ fontified."
 
    :feature 'decorator
    :language 'python
-   '((decorator) @font-lock-type-face)
+   '((decorator "@" @font-lock-type-face)
+     (decorator (call function: (identifier) @font-lock-type-face))
+     (decorator (identifier) @font-lock-type-face))
 
    :feature 'type
    :language 'python
