@@ -314,7 +314,7 @@ MODE is either `c' or `cpp'."
 
    :language mode
    :feature 'error
-   '((ERROR) @font-lock-warning-face)
+   '((ERROR) @c-ts-fontify-error)
 
    :feature 'escape-sequence
    :language mode
@@ -420,6 +420,26 @@ This function corrects the fontification on the colon in
            (max start (treesit-node-start arg))
            (min end (treesit-node-end arg))
            'default override))))))
+
+(defun c-ts-fontify-error (node override start end &rest _)
+  "Fontify the error nodes.
+For NODE, OVERRIDE, START, and END, see
+`treesit-font-lock-rules'."
+  (let ((parent (treesit-node-parent node))
+        (child (treesit-node-child node 0)))
+    (treesit-fontify-with-override
+     (max start (treesit-node-start node))
+     (min end (treesit-node-end node))
+     (cond
+      ;; This matches the case MACRO(struct a, b, c)
+      ;; where struct is seen as error.
+      ((and (equal (treesit-node-type child) "identifier")
+            (equal (treesit-node-type parent) "argument_list")
+            (member (treesit-node-text child)
+                    '("struct" "long" "short" "enum" "union")))
+       'font-lock-keyword-face)
+      (t 'font-lock-warning-face))
+     override)))
 
 (defun c-ts-mode--imenu-1 (node)
   "Helper for `c-ts-mode--imenu'.
