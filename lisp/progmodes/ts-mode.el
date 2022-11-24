@@ -28,6 +28,8 @@
 (require 'rx)
 (require 'js)
 
+(declare-function treesit-parser-create "treesit.c")
+
 (defcustom ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `ts-mode'."
   :version "29.1"
