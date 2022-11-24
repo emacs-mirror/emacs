@@ -983,8 +983,8 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   TSInput input = {lisp_parser, treesit_read_buffer, TSInputEncodingUTF8};
   lisp_parser->input = input;
   lisp_parser->need_reparse = true;
-  lisp_parser->visible_beg = BUF_BEGV (XBUFFER (buffer));
-  lisp_parser->visible_end = BUF_ZV (XBUFFER (buffer));
+  lisp_parser->visible_beg = BUF_BEGV_BYTE (XBUFFER (buffer));
+  lisp_parser->visible_end = BUF_ZV_BYTE (XBUFFER (buffer));
   lisp_parser->timestamp = 0;
   lisp_parser->deleted = false;
   lisp_parser->has_range = false;
