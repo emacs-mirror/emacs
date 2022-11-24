@@ -31,14 +31,14 @@
 ;; are available, implementing block hiding and showing.  They (and their
 ;; keybindings) are:
 ;;
-;;   hs-hide-block                      C-c @ C-h
-;;   hs-show-block                      C-c @ C-s
-;;   hs-hide-all                        C-c @ C-M-h
-;;   hs-show-all                        C-c @ C-M-s
-;;   hs-hide-level                      C-c @ C-l
-;;   hs-toggle-hiding                   C-c @ C-c
-;;   hs-toggle-hiding                   [(shift mouse-2)]
-;;   hs-hide-initial-comment-block
+;;   `hs-hide-block'                      C-c @ C-h
+;;   `hs-show-block'                      C-c @ C-s
+;;   `hs-hide-all'                        C-c @ C-M-h
+;;   `hs-show-all'                        C-c @ C-M-s
+;;   `hs-hide-level'                      C-c @ C-l
+;;   `hs-toggle-hiding'                   C-c @ C-c
+;;   `hs-toggle-hiding'                   S-<mouse-2>
+;;   `hs-hide-initial-comment-block'
 ;;
 ;; Blocks are defined per mode.  In c-mode, c++-mode and java-mode, they
 ;; are simply text between curly braces, while in Lisp-ish modes parens
@@ -50,16 +50,14 @@
 
 ;; * Suggested usage
 ;;
-;; First make sure hideshow.el is in a directory in your `load-path'.
-;; You can optionally byte-compile it using `M-x byte-compile-file'.
-;; Then, add the following to your init file:
+;; Add the following to your init file:
 ;;
-;; (load-library "hideshow")
-;; (add-hook 'X-mode-hook #'hs-minor-mode)           ; other modes similarly
+;;     (require 'hideshow)
+;;     (add-hook 'X-mode-hook #'hs-minor-mode)       ; other modes similarly
 ;;
 ;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
 ;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
-;; activated or deactivated, `hs-minor-mode-hook' is run w/ `run-hooks'.
+;; activated or deactivated, `hs-minor-mode-hook' is run with `run-hooks'.
 ;;
 ;; Additionally, Joseph Eydelnant writes:
 ;;   I enjoy your package hideshow.el Version 5.24 2001/02/13
@@ -67,14 +65,14 @@
 ;;   toggle hide/show all with a single key.
 ;;   Here are a few lines of code that lets me do just that.
 ;;
-;;   (defvar my-hs-hide nil "Current state of hideshow for toggling all.")
-;;   ;;;###autoload
-;;   (defun my-toggle-hideshow-all () "Toggle hideshow all."
-;;     (interactive)
-;;     (setq my-hs-hide (not my-hs-hide))
-;;     (if my-hs-hide
-;;         (hs-hide-all)
-;;       (hs-show-all)))
+;;     (defvar my-hs-hide nil "Current state of hideshow for toggling all.")
+;;     ;;;###autoload
+;;     (defun my-toggle-hideshow-all () "Toggle hideshow all."
+;;       (interactive)
+;;       (setq my-hs-hide (not my-hs-hide))
+;;       (if my-hs-hide
+;;           (hs-hide-all)
+;;         (hs-show-all)))
 ;;
 ;; [Your hideshow hacks here!]
 
@@ -82,12 +80,12 @@
 ;;
 ;; You can use `M-x customize-variable' on the following variables:
 ;;
-;; - hs-hide-comments-when-hiding-all -- self-explanatory!
-;; - hs-hide-all-non-comment-function -- if non-nil, when doing a
-;;                                       `hs-hide-all', this function
-;;                                       is called w/ no arguments
-;; - hs-isearch-open                  -- what kind of hidden blocks to
-;;                                       open when doing isearch
+;; - `hs-hide-comments-when-hiding-all' -- self-explanatory!
+;; - `hs-hide-all-non-comment-function' -- if non-nil, when doing a
+;;                                         `hs-hide-all', this function
+;;                                         is called with no arguments
+;; - `hs-isearch-open'                  -- what kind of hidden blocks to
+;;                                         open when doing isearch
 ;;
 ;; Some languages (e.g., Java) are deeply nested, so the normal behavior
 ;; of `hs-hide-all' (hiding all but top-level blocks) results in very
@@ -96,21 +94,21 @@
 ;; what is more useful.  For example, the following code shows the next
 ;; nested level in addition to the top-level:
 ;;
-;;   (defun ttn-hs-hide-level-1 ()
-;;     (when (hs-looking-at-block-start-p)
-;;       (hs-hide-level 1))
-;;     (forward-sexp 1))
-;;   (setq hs-hide-all-non-comment-function 'ttn-hs-hide-level-1)
+;;     (defun ttn-hs-hide-level-1 ()
+;;       (when (hs-looking-at-block-start-p)
+;;         (hs-hide-level 1))
+;;       (forward-sexp 1))
+;;     (setq hs-hide-all-non-comment-function 'ttn-hs-hide-level-1)
 ;;
-;; Hideshow works w/ incremental search (isearch) by setting the variable
+;; Hideshow works with incremental search (isearch) by setting the variable
 ;; `hs-headline', which is the line of text at the beginning of a hidden
 ;; block that contains a match for the search.  You can have this show up
 ;; in the mode line by modifying the variable `mode-line-format'.  For
 ;; example, the following code prepends this info to the mode line:
 ;;
-;;   (unless (memq 'hs-headline mode-line-format)
-;;     (setq mode-line-format
-;;           (append '("-" hs-headline) mode-line-format)))
+;;     (unless (memq 'hs-headline mode-line-format)
+;;       (setq mode-line-format
+;;             (append '("-" hs-headline) mode-line-format)))
 ;;
 ;; See documentation for `mode-line-format' for more info.
 ;;
@@ -121,8 +119,8 @@
 ;;
 ;; One of `hs-hide-hook' or `hs-show-hook' is run for the toggling
 ;; commands when the result of the toggle is to hide or show blocks,
-;; respectively.  All hooks are run w/ `run-hooks'.  See docs for each
-;; variable or hook for more info.
+;; respectively.  All hooks are run with `run-hooks'.  See the
+;; documentation for each variable or hook for more information.
 ;;
 ;; Normally, hideshow tries to determine appropriate values for block
 ;; and comment definitions by examining the buffer's major mode.  If
@@ -278,7 +276,7 @@ START, END and COMMENT-START are regular expressions.  A block is
 defined as text surrounded by START and END.
 
 As a special case, START may be a list of the form (COMPLEX-START
-MDATA-SELECTOR), where COMPLEX-START is a regexp w/ multiple parts and
+MDATA-SELECTOR), where COMPLEX-START is a regexp with multiple parts and
 MDATA-SELECTOR an integer that specifies which sub-match is the proper
 place to adjust point, before calling `hs-forward-sexp-func'.  Point
 is adjusted to the beginning of the specified match.  For example,
@@ -348,22 +346,20 @@ info node `(elisp)Overlays'."
   "Non-nil if using hideshow mode as a minor mode of some other mode.
 Use the command `hs-minor-mode' to toggle or set this variable.")
 
-(defvar hs-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; These bindings roughly imitate those used by Outline mode.
-    (define-key map "\C-c@\C-h"	      #'hs-hide-block)
-    (define-key map "\C-c@\C-s"	      #'hs-show-block)
-    (define-key map "\C-c@\C-\M-h"    #'hs-hide-all)
-    (define-key map "\C-c@\C-\M-s"    #'hs-show-all)
-    (define-key map "\C-c@\C-l"	      #'hs-hide-level)
-    (define-key map "\C-c@\C-c"	      #'hs-toggle-hiding)
-    (define-key map "\C-c@\C-a"       #'hs-show-all)
-    (define-key map "\C-c@\C-t"       #'hs-hide-all)
-    (define-key map "\C-c@\C-d"       #'hs-hide-block)
-    (define-key map "\C-c@\C-e"       #'hs-toggle-hiding)
-    (define-key map [(shift mouse-2)] #'hs-toggle-hiding)
-    map)
-  "Keymap for hideshow minor mode.")
+(defvar-keymap hs-minor-mode-map
+  :doc "Keymap for hideshow minor mode."
+  ;; These bindings roughly imitate those used by Outline mode.
+  "C-c @ C-h"   #'hs-hide-block
+  "C-c @ C-s"   #'hs-show-block
+  "C-c @ C-M-h" #'hs-hide-all
+  "C-c @ C-M-s" #'hs-show-all
+  "C-c @ C-l"   #'hs-hide-level
+  "C-c @ C-c"   #'hs-toggle-hiding
+  "C-c @ C-a"   #'hs-show-all
+  "C-c @ C-t"   #'hs-hide-all
+  "C-c @ C-d"   #'hs-hide-block
+  "C-c @ C-e"   #'hs-toggle-hiding
+  "S-<mouse-2>" #'hs-toggle-hiding)
 
 (easy-menu-define hs-minor-mode-menu hs-minor-mode-map
   "Menu used when hideshow minor mode is active."
@@ -580,7 +576,7 @@ property of an overlay."
        (save-match-data (not (nth 8 (syntax-ppss))))))
 
 (defun hs-forward-sexp (match-data arg)
-  "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
+  "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' with ARG.
 Original match data is restored upon return."
   (save-match-data
     (set-match-data match-data)

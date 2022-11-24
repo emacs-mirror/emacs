@@ -19,7 +19,18 @@
 
 ;;; Commentary:
 
+;; This library provides multisession variables for Emacs Lisp, to
+;; make them persist between sessions.
 ;;
+;; Use `define-multisession-variable' to define a multisession
+;; variable, and `multisession-value' to read its value.  Use
+;; `list-multisession-values' to list multisession variables.
+;;
+;; Users might want to customize `multisession-storage' and
+;; `multisession-directory'.
+;;
+;; See Info node `(elisp) Multisession Variables' for more
+;; information.
 
 ;;; Code:
 

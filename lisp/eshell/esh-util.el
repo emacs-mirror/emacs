@@ -296,7 +296,7 @@ directories separated by `path-separator'."
      (if (listp path)
 	 path
        ;; Don't use `parse-colon-path' here, since we don't want
-       ;; the additonal translations it does on each element.
+       ;; the additional translations it does on each element.
        (split-string path (path-separator))))))
 
 (defun eshell-parse-colon-path (path-env)
@@ -350,16 +350,13 @@ Prepend remote identification of `default-directory', if any."
   "Convert OBJECT into a string value."
   (cond
    ((stringp object) object)
-   ((and (listp object)
-	 (not (eq object nil)))
-    (let ((string (pp-to-string object)))
-      (substring string 0 (1- (length string)))))
    ((numberp object)
     (number-to-string object))
+   ((and (eq object t)
+	 (not eshell-stringify-t))
+    nil)
    (t
-    (unless (and (eq object t)
-		 (not eshell-stringify-t))
-      (pp-to-string object)))))
+    (string-trim-right (pp-to-string object)))))
 
 (defsubst eshell-stringify-list (args)
   "Convert each element of ARGS into a string value."

@@ -2137,8 +2137,8 @@ static dump_off
 dump_interval_node (struct dump_context *ctx, struct itree_node *node,
                     dump_off parent_offset)
 {
-#if CHECK_STRUCTS && !defined (HASH_interval_node_5765524F7E)
-# error "interval_node changed. See CHECK_STRUCTS comment in config.h."
+#if CHECK_STRUCTS && !defined (HASH_itree_node_50DE304F13)
+# error "itree_node changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct itree_node out;
   dump_object_start (ctx, &out, sizeof (out));
@@ -2179,7 +2179,7 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node,
 static dump_off
 dump_overlay (struct dump_context *ctx, const struct Lisp_Overlay *overlay)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_1CD4249AEC)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_EB4C05D8D2)
 # error "Lisp_Overlay changed. See CHECK_STRUCTS comment in config.h."
 #endif
   START_DUMP_PVEC (ctx, &overlay->header, struct Lisp_Overlay, out);
@@ -2748,7 +2748,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_F0F08347A5
+#if CHECK_STRUCTS && !defined HASH_buffer_193CAA5E45
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;

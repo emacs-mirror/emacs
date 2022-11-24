@@ -990,7 +990,7 @@ in the repository.")
 ;; to how a file was mentioned in the respective ChangeLog.  It is
 ;; advisable to run a Grep command such as
 ;;
-;;   fgrep -R BASENAME . --include='ChangeLog*'
+;;   grep -F -R BASENAME . --include='ChangeLog*'
 ;;
 ;; where BASENAME is the old basename of the renamed file.  This will
 ;; show all the different reference forms of the file in the various

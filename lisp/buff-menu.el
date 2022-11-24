@@ -1,7 +1,6 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -101,6 +100,13 @@ as it is by default."
 This is set by the prefix argument to `buffer-menu' and related
 commands.")
 
+(defvar-local Buffer-menu-filter-predicate nil
+  "Function to filter out buffers in the buffer list.
+Buffers that don't satisfy the predicate will be skipped.
+The value should be a function of one argument; it will be
+called with the buffer.  If this function returns non-nil,
+then the buffer will be displayed in the buffer list.")
+
 (defvar-keymap Buffer-menu-mode-map
   :doc "Local keymap for `Buffer-menu-mode' buffers."
   :parent tabulated-list-mode-map
@@ -133,9 +139,11 @@ commands.")
   "M-s a C-s"   #'Buffer-menu-isearch-buffers
   "M-s a C-M-s" #'Buffer-menu-isearch-buffers-regexp
   "M-s a C-o"   #'Buffer-menu-multi-occur
-
   "<mouse-2>"     #'Buffer-menu-mouse-select
   "<follow-link>" 'mouse-face)
+
+(put 'Buffer-menu-delete :advertised-binding "d")
+(put 'Buffer-menu-this-window :advertised-binding "f")
 
 (easy-menu-define Buffer-menu-mode-menu Buffer-menu-mode-map
   "Menu for `Buffer-menu-mode' buffers."
@@ -236,6 +244,26 @@ In Buffer Menu mode, the following commands are defined:
               (lambda (&optional _noconfirm) 'fast))
   (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
 
+(defun buffer-menu--display-help ()
+  (message "%s"
+           (substitute-command-keys
+            (concat
+             "Commands: "
+             "\\<Buffer-menu-mode-map>"
+             "\\[Buffer-menu-delete], "
+             "\\[Buffer-menu-save], "
+             "\\[Buffer-menu-execute], "
+             "\\[Buffer-menu-unmark]; "
+             "\\[Buffer-menu-this-window], "
+             "\\[Buffer-menu-other-window], "
+             "\\[Buffer-menu-1-window], "
+             "\\[Buffer-menu-2-window], "
+             "\\[Buffer-menu-mark], "
+             "\\[Buffer-menu-select]; "
+             "\\[Buffer-menu-not-modified], "
+             "\\[Buffer-menu-toggle-read-only]; "
+             "\\[quit-window] to quit; \\[describe-mode] for help"))))
+
 (defun buffer-menu (&optional arg)
   "Switch to the Buffer Menu.
 By default, the Buffer Menu lists all buffers except those whose
@@ -261,8 +289,7 @@ the `Buffer-menu-name-width', `Buffer-menu-size-width' and
 `Buffer-menu-mode-width' variables."
   (interactive "P")
   (switch-to-buffer (list-buffers-noselect arg))
-  (message
-   "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
+  (buffer-menu--display-help))
 
 (defun buffer-menu-other-window (&optional arg)
   "Display the Buffer Menu in another window.
@@ -273,8 +300,7 @@ with a space (which are for internal use).  With prefix argument
 ARG, show only buffers that are visiting files."
   (interactive "P")
   (switch-to-buffer-other-window (list-buffers-noselect arg))
-  (message
-   "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
+  (buffer-menu--display-help))
 
 ;;;###autoload
 (defun list-buffers (&optional arg)
@@ -597,19 +623,23 @@ This behaves like invoking \\[read-only-mode] in that buffer."
 ;;; Functions for populating the Buffer Menu.
 
 ;;;###autoload
-(defun list-buffers-noselect (&optional files-only buffer-list)
+(defun list-buffers-noselect (&optional files-only buffer-list filter-predicate)
   "Create and return a Buffer Menu buffer.
 This is called by `buffer-menu' and others as a subroutine.
 
 If FILES-ONLY is non-nil, show only file-visiting buffers.
 If BUFFER-LIST is non-nil, it should be a list of buffers; it
-means list those buffers and no others."
+means list those buffers and no others.
+If FILTER-PREDICATE is non-nil, it should be a function
+that filters out buffers from the list of buffers.
+See more at `Buffer-menu-filter-predicate'."
   (let ((old-buffer (current-buffer))
 	(buffer (get-buffer-create "*Buffer List*")))
     (with-current-buffer buffer
       (Buffer-menu-mode)
       (setq Buffer-menu-files-only
 	    (and files-only (>= (prefix-numeric-value files-only) 0)))
+      (setq Buffer-menu-filter-predicate filter-predicate)
       (list-buffers--refresh buffer-list old-buffer)
       (tabulated-list-print))
     buffer))
@@ -631,6 +661,8 @@ means list those buffers and no others."
         (marked-buffers (Buffer-menu-marked-buffers))
         (buffer-menu-buffer (current-buffer))
 	(show-non-file (not Buffer-menu-files-only))
+	(filter-predicate (and (functionp Buffer-menu-filter-predicate)
+			       Buffer-menu-filter-predicate))
 	entries name-width)
     ;; Collect info for each buffer we're interested in.
     (dolist (buffer (or buffer-list
@@ -644,7 +676,9 @@ means list those buffers and no others."
 			 (and (or (not (string= (substring name 0 1) " "))
                                   file)
 			      (not (eq buffer buffer-menu-buffer))
-			      (or file show-non-file))))
+			      (or file show-non-file)
+			      (or (not filter-predicate)
+				  (funcall filter-predicate buffer)))))
 	    (push (list buffer
 			(vector (cond
                                  ((eq buffer old-buffer) ".")

@@ -20,8 +20,9 @@
 ;;; Commentary:
 
 ;;; Code:
-(require 'ert)
+(require 'ert-x)
 (require 'erc-dcc)
+(require 'erc-pcomplete)
 
 (ert-deftest erc-dcc-ctcp-query-send-regexp ()
   (let ((s "DCC SEND \"file name\" 2130706433 9899 1405135128"))
@@ -163,5 +164,122 @@
           (erc-send-current-line)
           (should (eq t (plist-get (car erc-dcc-list) :turbo)))
           (should (equal (pop calls) (list elt "foo.bin" proc))))))))
+
+(defun erc-dcc-tests--pcomplete-common (test-fn)
+  (with-current-buffer (get-buffer-create "*erc-dcc-do-GET-command*")
+    (let* ((inhibit-message noninteractive)
+           (proc (start-process "fake" (current-buffer) "sleep" "10"))
+           (elt (list :nick "tester!~tester@fake.irc"
+                      :type 'GET
+                      :peer nil
+                      :parent proc
+                      :ip "127.0.0.1"
+                      :port "9899"
+                      :file "foo.bin"
+                      :size 1405135128))
+           ;;
+           erc-accidental-paste-threshold-seconds
+           erc-insert-modify-hook erc-send-completed-hook
+           erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+      (erc-mode)
+      (pcomplete-erc-setup)
+      (add-hook 'erc-complete-functions #'erc-pcompletions-at-point 0 t)
+      (setq erc-server-process proc
+            erc-input-marker (make-marker)
+            erc-insert-marker (make-marker)
+            erc-server-current-nick "dummy")
+      (setq-local erc-dcc-list (list elt)) ; for interactive noodling
+      (set-process-query-on-exit-flag proc nil)
+      (goto-char (point-max))
+      (set-marker erc-insert-marker (point-max))
+      (erc-display-prompt)
+      (goto-char erc-input-marker)
+      (funcall test-fn))
+    (when noninteractive
+      (kill-buffer))))
+
+(ert-deftest pcomplete/erc-mode/DCC--get-basic ()
+  (erc-dcc-tests--pcomplete-common
+   (lambda ()
+     (insert "/dcc get ")
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get tester" nil t)))
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get tester foo.bin" nil t))))))
+
+(ert-deftest pcomplete/erc-mode/DCC--get-1flag ()
+  (erc-dcc-tests--pcomplete-common
+   (lambda ()
+     (goto-char erc-input-marker)
+     (delete-region (point) (point-max))
+     (insert "/dcc get -")
+     (call-interactively #'completion-at-point)
+     (with-current-buffer (get-buffer "*Completions*")
+       (goto-char (point-min))
+       (search-forward "-s")
+       (search-forward "-t"))
+     (insert "s ")
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get -s tester" nil t)))
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get -s tester foo.bin" nil t))))))
+
+(ert-deftest pcomplete/erc-mode/DCC--get-2flags ()
+  (erc-dcc-tests--pcomplete-common
+   (lambda ()
+     (goto-char erc-input-marker)
+     (delete-region (point) (point-max))
+     (insert "/dcc get -")
+     (call-interactively #'completion-at-point)
+     (with-current-buffer (get-buffer "*Completions*")
+       (goto-char (point-min))
+       (search-forward "-s")
+       (search-forward "-t"))
+     (insert "s -")
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get -s -t " nil t)))
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get -s -t tester" nil t)))
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get -s -t tester foo.bin" nil t))))))
+
+(ert-deftest pcomplete/erc-mode/DCC--get-2flags-reverse ()
+  (erc-dcc-tests--pcomplete-common
+   (lambda ()
+     (goto-char erc-input-marker)
+     (delete-region (point) (point-max))
+     (insert "/dcc get -")
+     (call-interactively #'completion-at-point)
+     (with-current-buffer (get-buffer "*Completions*")
+       (goto-char (point-min))
+       (search-forward "-s")
+       (search-forward "-t"))
+     (insert "t -")
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get -t -s " nil t)))
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get -t -s tester" nil t)))
+     (call-interactively #'completion-at-point)
+     (save-excursion
+       (beginning-of-line)
+       (should (search-forward "/dcc get -t -s tester foo.bin" nil t))))))
 
 ;;; erc-dcc-tests.el ends here

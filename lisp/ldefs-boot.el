@@ -3925,18 +3925,6 @@ See the documentation of `define-ccl-program' for the detail of CCL program.
 (register-definition-prefixes "ccl" '("ccl-"))
 
 
-;;; Generated autoloads from emacs-lisp/cconv.el
-
-(autoload 'cconv-closure-convert "cconv" "\
-Main entry point for closure conversion.
-FORM is a piece of Elisp code after macroexpansion.
-
-Returns a form where all lambdas don't have any free variables.
-
-(fn FORM)")
-(register-definition-prefixes "cconv" '("cconv-"))
-
-
 ;;; Generated autoloads from cdl.el
 
 (register-definition-prefixes "cdl" '("cdl-"))
@@ -4959,6 +4947,8 @@ evaluate `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{compilation-shell-minor-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile" "\
 Toggle Compilation minor mode.
@@ -4981,6 +4971,8 @@ evaluate `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
+
+\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile" "\
@@ -8366,7 +8358,7 @@ A second call of this function without changing point inserts the next match.
 A call with prefix PREFIX reads the symbol to insert from the minibuffer with
 completion.
 
-(fn PREFIX)" '("P"))
+(fn PREFIX)" t)
 (autoload 'ebrowse-tags-loop-continue "ebrowse" "\
 Repeat last operation on files in tree.
 FIRST-TIME non-nil means this is not a repetition, but the first time.
@@ -8974,6 +8966,55 @@ Turn on EDT Emulation." t)
 ;;; Generated autoloads from emulation/edt-vt100.el
 
 (register-definition-prefixes "edt-vt100" '("edt-set-term-width-"))
+
+
+;;; Generated autoloads from progmodes/eglot.el
+
+(push (purecopy '(eglot 1 9)) package--builtin-versions)
+(autoload 'eglot "eglot" "\
+Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
+
+This starts a Language Server Protocol (LSP) server suitable for the
+buffers of PROJECT whose `major-mode' is MANAGED-MAJOR-MODE.
+CLASS is the class of the LSP server to start and CONTACT specifies
+how to connect to the server.
+
+Interactively, the command attempts to guess MANAGED-MAJOR-MODE
+from the current buffer's `major-mode', CLASS and CONTACT from
+`eglot-server-programs' looked up by the major mode, and PROJECT from
+`project-find-functions'.  The search for active projects in this
+context binds `eglot-lsp-context' (which see).
+
+If it can't guess, it prompts the user for the mode and the server.
+With a single \\[universal-argument] prefix arg, it always prompts for COMMAND.
+With two \\[universal-argument], it also always prompts for MANAGED-MAJOR-MODE.
+
+The LSP server of CLASS is started (or contacted) via CONTACT.
+If this operation is successful, current *and future* file
+buffers of MANAGED-MAJOR-MODE inside PROJECT become \"managed\"
+by the LSP server, meaning the information about their contents is
+exchanged periodically with the server to provide enhanced
+code-analysis via `xref-find-definitions', `flymake-mode',
+`eldoc-mode', and `completion-at-point', among others.
+
+PROJECT is a project object as returned by `project-current'.
+
+CLASS is a subclass of `eglot-lsp-server'.
+
+CONTACT specifies how to contact the server.  It is a
+keyword-value plist used to initialize CLASS or a plain list as
+described in `eglot-server-programs', which see.
+
+LANGUAGE-ID is the language ID string to send to the server for
+MANAGED-MAJOR-MODE, which matters to a minority of servers.
+
+INTERACTIVE is t if called interactively.
+
+(fn MANAGED-MAJOR-MODE PROJECT CLASS CONTACT LANGUAGE-ID &optional INTERACTIVE)" t)
+(autoload 'eglot-ensure "eglot" "\
+Start Eglot session for current buffer if there isn't one.")
+(put 'eglot-workspace-configuration 'safe-local-variable 'listp)
+(register-definition-prefixes "eglot" '("eglot-"))
 
 
 ;;; Generated autoloads from ehelp.el
@@ -9915,7 +9956,7 @@ When present, ID should be an opaque object used to identify the
 connection unequivocally.  This is rarely needed and not available
 interactively.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" '((erc-select-read-args)))
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" t)
 (defalias 'erc-select #'erc)
 (autoload 'erc-tls "erc" "\
 ERC is a powerful, modular, and extensible IRC client.
@@ -9962,14 +10003,14 @@ symbol composed of letters from the Latin alphabet.)  This option is
 generally unneeded, however.  See info node `(erc) Connecting' for use
 cases.  Not available interactively.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" '((let ((erc-default-port erc-default-port-tls)) (erc-select-read-args))))
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" t)
 (autoload 'erc-handle-irc-url "erc" "\
 Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
 If ERC is already connected to HOST:PORT, simply /join CHANNEL.
 Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 
 (fn HOST PORT CHANNEL USER PASSWORD)")
-(register-definition-prefixes "erc" '("define-erc-module" "erc-"))
+(register-definition-prefixes "erc" '("erc-"))
 
 
 ;;; Generated autoloads from erc/erc-autoaway.el
@@ -9990,6 +10031,11 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 ;;; Generated autoloads from erc/erc-capab.el
 
 (register-definition-prefixes "erc-capab" '("erc-capab-identify-"))
+
+
+;;; Generated autoloads from erc/erc-common.el
+
+(register-definition-prefixes "erc-common" '("define-erc-module" "erc-"))
 
 
 ;;; Generated autoloads from erc/erc-compat.el
@@ -10178,7 +10224,9 @@ it has to be wrapped in `(eval (quote ...))'.
 If NAME is already defined as a test and Emacs is running
 in batch mode, an error is signalled.
 
-(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil 'macro)
+(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil t)
+(function-put 'ert-deftest 'doc-string-elt 3)
+(function-put 'ert-deftest 'lisp-indent-function 2)
 (autoload 'ert-run-tests-batch "ert" "\
 Run the tests specified by SELECTOR, printing results to the terminal.
 
@@ -10888,6 +10936,23 @@ Edit the hotlist of directory servers in a specialized buffer." t)
 (register-definition-prefixes "eudcb-bbdb" '("eudc-bbdb-"))
 
 
+;;; Generated autoloads from net/eudcb-ecomplete.el
+
+(autoload 'eudc-ecomplete-query-internal "eudcb-ecomplete" "\
+Query `ecomplete' with QUERY.
+QUERY is a list of cons cells (ATTR . VALUE).  Since `ecomplete'
+does not provide attributes in the usual sense, the
+back-end-specific attribute names in
+`eudc-ecomplete-attributes-translation-alist' are used as the
+KEY (that is, the \"type\" of match) when looking for matches in
+`ecomplete-database'.
+
+RETURN-ATTRS is ignored.
+
+(fn QUERY &optional RETURN-ATTRS)")
+(register-definition-prefixes "eudcb-ecomplete" '("eudc-ecomplete-attributes-translation-alist"))
+
+
 ;;; Generated autoloads from net/eudcb-ldap.el
 
 (register-definition-prefixes "eudcb-ldap" '("eudc-"))
@@ -10901,6 +10966,26 @@ Edit the hotlist of directory servers in a specialized buffer." t)
 ;;; Generated autoloads from net/eudcb-macos-contacts.el
 
 (register-definition-prefixes "eudcb-macos-contacts" '("eudc-macos-contacts-"))
+
+
+;;; Generated autoloads from net/eudcb-mailabbrev.el
+
+(autoload 'eudc-mailabbrev-query-internal "eudcb-mailabbrev" "\
+Query `mailabbrev' with QUERY.
+QUERY is a list of cons cells (ATTR . VALUE).  Since `mailabbrev'
+does not provide attributes in the usual sense, only the email,
+name, and firstname attributes in the QUERY are considered, and
+their values are matched against the alias names in the mailrc
+file.  When a mailrc alias is a distribution list, that is it
+expands to more that one email address, the individual recipient
+specifications are formatted using `eudc-rfc5322-make-address',
+and returned as a comma-separated list in the email address
+attribute.
+
+RETURN-ATTRS is a list of attributes to return, defaulting to
+`eudc-default-return-attributes'.
+
+(fn QUERY &optional RETURN-ATTRS)")
 
 
 ;;; Generated autoloads from emacs-lisp/ewoc.el
@@ -11237,7 +11322,7 @@ See `text-scale-increase' for more details.
  (define-key ctl-x-map [(control ?0)] 'text-scale-adjust)
 (autoload 'text-scale-adjust "face-remap" "\
 Adjust the font size in the current buffer by INC steps.
-INC may be passed as a numeric prefix argument.
+Interactively, INC is the prefix numeric argument, and defaults to 1.
 
 The actual adjustment made depends on the final component of the
 keybinding used to invoke the command, with all modifiers removed:
@@ -11247,13 +11332,14 @@ keybinding used to invoke the command, with all modifiers removed:
    \\`0'      Reset the font size to the global default
 
 After adjusting, continue to read input events and further adjust
-the font size as long as the input event read
-(with all modifiers removed) is one of the above characters.
+the font size as long as the input event (with all modifiers removed)
+is one of the above characters.
 
-Each step scales the height of the default face by the variable
-`text-scale-mode-step' (a negative number of steps decreases the
-height by the same amount).  As a special case, an argument of 0
-will remove any scaling currently active.
+Each step scales the height of the default face by the factor that
+is the value of `text-scale-mode-step' (a negative number of steps
+decreases the height by that factor).  As a special case, an argument
+of 0 will remove any scaling currently active, thus resetting the
+font size to the original value.
 
 This command is a special-purpose wrapper around the
 `text-scale-increase' command which makes repetition convenient
@@ -11279,19 +11365,22 @@ Adjust the height of the default face by the scale in the pinch event EVENT.
  (define-key ctl-x-map [(control meta ?-)] 'global-text-scale-adjust)
  (define-key ctl-x-map [(control meta ?0)] 'global-text-scale-adjust)
 (autoload 'global-text-scale-adjust "face-remap" "\
-Globally adjust the font size by INCREMENT.
+Change (a.k.a. \"adjust\") the font size of all faces by INCREMENT.
 
-Interactively, INCREMENT may be passed as a numeric prefix argument.
+Interactively, INCREMENT is the prefix numeric argument, and defaults
+to 1.  Positive values of INCREMENT increase the font size, negative
+values decrease it.
 
-The adjustment made depends on the final component of the key binding
-used to invoke the command, with all modifiers removed:
+When you invoke this command, it performs the initial change of the
+font size, and after that allows further changes by typing one of the
+following keys immediately after invoking the command:
 
    \\`+', \\`='   Globally increase the height of the default face
    \\`-'      Globally decrease the height of the default face
    \\`0'      Globally reset the height of the default face
 
-After adjusting, further adjust the font size as long as the key,
-with all modifiers removed, is one of the above characters.
+(The change of the font size produced by these keys depends on the
+final component of the key sequence, with all modifiers removed.)
 
 Buffer-local face adjustments have higher priority than global
 face adjustments.
@@ -12291,6 +12380,8 @@ evaluate `flymake-mode'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
+
+\\{flymake-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake" "\
@@ -14396,7 +14487,12 @@ Run gdb passing it COMMAND-LINE as arguments.
 If COMMAND-LINE names a program FILE to debug, gdb will run in
 a buffer named *gud-FILE*, and the directory containing FILE
 becomes the initial working directory and source-file directory
-for your debugger.
+for your debugger.  If you don't want `default-directory' to
+change to the directory of FILE, specify FILE without leading
+directories, in which case FILE should reside either in the
+directory of the buffer from which this command is invoked, or
+it can be found by searching PATH.
+
 If COMMAND-LINE requests that gdb attaches to a process PID, gdb
 will run in *gud-PID*, otherwise it will run in *gud*; in these
 cases the initial working directory is the `default-directory' of
@@ -15917,7 +16013,8 @@ inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
 `ibuffer-recompile-formats'.
 
-(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil 'macro)
+(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil t)
+(function-put 'define-ibuffer-column 'lisp-indent-function 'defun)
 (autoload 'define-ibuffer-sorter "ibuf-macs" "\
 Define a method of sorting named NAME.
 DOCUMENTATION is the documentation of the function, which will be called
@@ -15928,7 +16025,9 @@ For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
-(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil 'macro)
+(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil t)
+(function-put 'define-ibuffer-sorter 'lisp-indent-function 1)
+(function-put 'define-ibuffer-sorter 'doc-string-elt 2)
 (autoload 'define-ibuffer-op "ibuf-macs" "\
 Generate a function which operates on a buffer.
 OP becomes the name of the function; if it doesn't begin with
@@ -15967,7 +16066,9 @@ BODY define the operation; they are forms to evaluate per each
 marked buffer.  BODY is evaluated with `buf' bound to the
 buffer object.
 
-(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil 'macro)
+(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil t)
+(function-put 'define-ibuffer-op 'lisp-indent-function 2)
+(function-put 'define-ibuffer-op 'doc-string-elt 3)
 (autoload 'define-ibuffer-filter "ibuf-macs" "\
 Define a filter named NAME.
 DOCUMENTATION is the documentation of the function.
@@ -15982,7 +16083,9 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
-(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil 'macro)
+(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil t)
+(function-put 'define-ibuffer-filter 'lisp-indent-function 2)
+(function-put 'define-ibuffer-filter 'doc-string-elt 2)
 (register-definition-prefixes "ibuf-macs" '("ibuffer-"))
 
 
@@ -17401,7 +17504,7 @@ Convert old Emacs Devanagari characters to UCS.
 
 ;;; Generated autoloads from leim/quail/indian.el
 
-(register-definition-prefixes "quail/indian" '("indian-mlm-mozhi-u" "inscript-" "quail-" "tamil-"))
+(register-definition-prefixes "quail/indian" '("indian-mlm-mozhi-u" "inscript-" "quail-" "tamil"))
 
 
 ;;; Generated autoloads from progmodes/inf-lisp.el
@@ -19555,7 +19658,7 @@ Populate MENU with commands that open a man page at point.
 
 ;;; Generated autoloads from emacs-lisp/map.el
 
-(push (purecopy '(map 3 2 1)) package--builtin-versions)
+(push (purecopy '(map 3 3 1)) package--builtin-versions)
 (register-definition-prefixes "map" '("map-"))
 
 
@@ -21159,6 +21262,9 @@ a greeting from the server.
 
 :nowait, if non-nil, says the connection should be made
 asynchronously, if possible.
+
+:noquery - when exiting Emacs and the network process is running,
+don't query the user if it's non-nil.
 
 :shell-command is a `format-spec' string that can be used if
 :type is `shell'.  It has two specs, %s for host and %p for port
@@ -23007,6 +23113,81 @@ Location of the file used to speed up activation of packages at startup." :type 
 (register-definition-prefixes "package" '("bad-signature" "define-package" "describe-package-1" "package-"))
 
 
+;;; Generated autoloads from emacs-lisp/package-vc.el
+
+(defvar package-vc-selected-packages 'nil "\
+List of packages that must be installed.
+Each member of the list is of the form (NAME . SPEC), where NAME
+is a symbol designating the package and SPEC is one of:
+
+- nil, if any package version can be installed;
+- a version string, if that specific revision is to be installed;
+- a property list of the form described in
+  `package-vc-archive-spec-alist', giving a package
+  specification.
+
+This user option differs from `package-selected-packages' in that
+it is meant to be specified manually.  You can also use the
+function `package-vc-selected-packages' to apply the changes.")
+(custom-autoload 'package-vc-selected-packages "package-vc" nil)
+(autoload 'package-vc-install "package-vc" "\
+Fetch a package NAME-OR-URL and set it up for using with Emacs.
+If NAME-OR-URL is a URL, download the package from the repository
+at that URL; the function will try to guess the name of the package
+from the URL.  Otherwise NAME-OR-URL should be a symbol whose name
+is the package name, and the URL for the package will be taken from
+the package's metadata.
+By default, this function installs the last version of the package
+available from its repository, but if REV is given and non-nil, it
+specifies the revision to install.  If REV has the special value
+`:last-release' (interactively, the prefix argument), that stands
+for the last released version of the package.
+When calling from Lisp, optional argument NAME overrides the package
+name as deduced from NAME-OR-URL.
+Optional argument BACKEND specifies the VC backend to use for cloning
+the package's repository; this is only possible if NAME-OR-URL is a URL,
+a string.  If BACKEND is omitted or nil, the function
+uses `package-vc--guess-backend' to guess the backend.
+
+(fn NAME-OR-URL &optional NAME REV BACKEND)" t)
+(autoload 'package-vc-checkout "package-vc" "\
+Clone the sources for PKG-DESC into DIRECTORY and visit that directory.
+Unlike `package-vc-install', this does not yet set up the package
+for use with Emacs; use `package-vc-link-directory' for setting
+the package up after this function finishes.
+Optional argument REV means to clone a specific version of the
+package; it defaults to the last version available from the
+package's repository.  If REV has the special value
+`:last-release' (interactively, the prefix argument), that stands
+for the last released version of the package.
+
+(fn PKG-DESC DIRECTORY &optional REV)" t)
+(autoload 'package-vc-install-from-checkout "package-vc" "\
+Set up the package NAME in DIR by linking it into the ELPA directory.
+Interactively, prompt the user for DIR, which should be a directory
+under version control, typically one created by `package-vc-checkout'.
+If invoked interactively with a prefix argument, prompt the user
+for the NAME of the package to set up.  Otherwise infer the package
+name from the base name of DIR.
+
+(fn DIR NAME)" t)
+(autoload 'package-vc-refresh "package-vc" "\
+Refresh the installation for package given by PKG-DESC.
+Interactively, prompt for the name of the package to refresh.
+
+(fn PKG-DESC)" t)
+(autoload 'package-vc-prepare-patch "package-vc" "\
+Send patch for REVISIONS to maintainer of the package PKG using SUBJECT.
+SUBJECT and REVISIONS are passed on to `vc-prepare-patch', which see.
+PKG must be a package description.
+Interactively, prompt for PKG, SUBJECT, and REVISIONS.  However,
+if the current buffer has marked commit log entries, REVISIONS
+are the tags of the marked entries, see `log-view-get-marked'.
+
+(fn PKG SUBJECT REVISIONS)" t)
+(register-definition-prefixes "package-vc" '("package-vc-"))
+
+
 ;;; Generated autoloads from emacs-lisp/package-x.el
 
 (autoload 'package-upload-file "package-x" "\
@@ -24559,7 +24740,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 8 2)) package--builtin-versions)
+(push (purecopy '(project 0 8 3)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -25621,6 +25802,8 @@ evaluate `rectangle-mark-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{rectangle-mark-mode-map}
+
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
 
@@ -26500,7 +26683,7 @@ Emacs will list the message in the summary.
 (fn REGEXP)" t)
 (autoload 'rmail-summary-by-topic "rmailsum" "\
 Display a summary of all messages with the given SUBJECT.
-Normally checks just the Subject field of headers; but with prefix
+Normally checks just the Subject field of headers; but when prefix
 argument WHOLE-MESSAGE is non-nil, looks in the whole message.
 SUBJECT is a regular expression.
 
@@ -26685,6 +26868,8 @@ Return ROT13 encryption of STRING.
 (fn STRING)")
 (autoload 'rot13-region "rot13" "\
 ROT13 encrypt the region between START and END in current buffer.
+If invoked interactively and the buffer is read-only, a message
+will be printed instead.
 
 (fn START END)" t)
 (autoload 'rot13-other-window "rot13" "\
@@ -33026,7 +33211,7 @@ Like `message', but do nothing if `url-show-status' is nil.
 
 
 (fn X Y)")
-(defalias 'url-basepath 'url-file-directory)
+(defalias 'url-basepath #'url-file-directory)
 (autoload 'url-file-directory "url-util" "\
 Return the directory part of FILE, for a URL.
 

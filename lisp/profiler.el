@@ -534,72 +534,71 @@ RET: expand or collapse"))
 
 ;;; Report mode
 
-(defvar profiler-report-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "n"	    'profiler-report-next-entry)
-    (define-key map "p"	    'profiler-report-previous-entry)
-    ;; I find it annoying more than helpful to not be able to navigate
-    ;; normally with the cursor keys.  --Stef
-    ;; (define-key map [down]  'profiler-report-next-entry)
-    ;; (define-key map [up]    'profiler-report-previous-entry)
-    (define-key map "\r"    'profiler-report-toggle-entry)
-    (define-key map "\t"    'profiler-report-toggle-entry)
-    (define-key map "i"     'profiler-report-toggle-entry)
-    (define-key map "f"     'profiler-report-find-entry)
-    (define-key map "j"     'profiler-report-find-entry)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'profiler-report-find-entry)
-    (define-key map "d"	    'profiler-report-describe-entry)
-    (define-key map "C"	    'profiler-report-render-calltree)
-    (define-key map "B"	    'profiler-report-render-reversed-calltree)
-    (define-key map "A"	    'profiler-report-ascending-sort)
-    (define-key map "D"	    'profiler-report-descending-sort)
-    (define-key map "="	    'profiler-report-compare-profile)
-    (define-key map (kbd "C-x C-w") 'profiler-report-write-profile)
-    (easy-menu-define  profiler-report-menu map "Menu for Profiler Report mode."
-      '("Profiler"
-        ["Next Entry" profiler-report-next-entry :active t
-         :help "Move to next entry"]
-        ["Previous Entry" profiler-report-previous-entry :active t
-         :help "Move to previous entry"]
-        "--"
-        ["Toggle Entry" profiler-report-toggle-entry
-         :active (profiler-report-calltree-at-point)
-         :help "Expand or collapse the current entry"]
-        ["Find Entry" profiler-report-find-entry
-         ;; FIXME should deactivate if not on a known function.
-         :active (profiler-report-calltree-at-point)
-         :help "Find the definition of the current entry"]
-        ["Describe Entry" profiler-report-describe-entry
-         :active (profiler-report-calltree-at-point)
-         :help "Show the documentation of the current entry"]
-        "--"
-        ["Show Calltree" profiler-report-render-calltree
-         :active profiler-report-reversed
-         :help "Show calltree view"]
-        ["Show Reversed Calltree" profiler-report-render-reversed-calltree
-         :active (not profiler-report-reversed)
-         :help "Show reversed calltree view"]
-        ["Sort Ascending" profiler-report-ascending-sort
-         :active (not (eq profiler-report-order 'ascending))
-         :help "Sort calltree view in ascending order"]
-        ["Sort Descending" profiler-report-descending-sort
-         :active (not (eq profiler-report-order 'descending))
-         :help "Sort calltree view in descending order"]
-        "--"
-        ["Compare Profile..." profiler-report-compare-profile :active t
-         :help "Compare current profile with another"]
-        ["Write Profile..." profiler-report-write-profile :active t
-         :help "Write current profile to a file"]
-        "--"
-        ["Start Profiler" profiler-start :active (not (profiler-running-p))
-         :help "Start profiling"]
-        ["Stop Profiler" profiler-stop :active (profiler-running-p)
-         :help "Stop profiling"]
-        ["New Report" profiler-report :active (profiler-running-p)
-         :help "Make a new report"]))
-      map)
-  "Keymap for `profiler-report-mode'.")
+(defvar-keymap profiler-report-mode-map
+  :doc "Keymap for `profiler-report-mode'."
+  "n"       #'profiler-report-next-entry
+  "p"       #'profiler-report-previous-entry
+  ;; I find it annoying more than helpful to not be able to navigate
+  ;; normally with the cursor keys.  --Stef
+  ;; "<down>" #'profiler-report-next-entry
+  ;; "<up>"   #'profiler-report-previous-entry
+  "RET"     #'profiler-report-toggle-entry
+  "TAB"     #'profiler-report-toggle-entry
+  "i"       #'profiler-report-toggle-entry
+  "f"       #'profiler-report-find-entry
+  "j"       #'profiler-report-find-entry
+  "d"       #'profiler-report-describe-entry
+  "C"       #'profiler-report-render-calltree
+  "B"       #'profiler-report-render-reversed-calltree
+  "A"       #'profiler-report-ascending-sort
+  "D"       #'profiler-report-descending-sort
+  "="       #'profiler-report-compare-profile
+  "C-x C-w" #'profiler-report-write-profile
+  "<follow-link>" 'mouse-face
+  "<mouse-2>"     #'profiler-report-find-entry
+
+  :menu
+  '("Profiler"
+    ["Next Entry" profiler-report-next-entry :active t
+     :help "Move to next entry"]
+    ["Previous Entry" profiler-report-previous-entry :active t
+     :help "Move to previous entry"]
+    "--"
+    ["Toggle Entry" profiler-report-toggle-entry
+     :active (profiler-report-calltree-at-point)
+     :help "Expand or collapse the current entry"]
+    ["Find Entry" profiler-report-find-entry
+     ;; FIXME should deactivate if not on a known function.
+     :active (profiler-report-calltree-at-point)
+     :help "Find the definition of the current entry"]
+    ["Describe Entry" profiler-report-describe-entry
+     :active (profiler-report-calltree-at-point)
+     :help "Show the documentation of the current entry"]
+    "--"
+    ["Show Calltree" profiler-report-render-calltree
+     :active profiler-report-reversed
+     :help "Show calltree view"]
+    ["Show Reversed Calltree" profiler-report-render-reversed-calltree
+     :active (not profiler-report-reversed)
+     :help "Show reversed calltree view"]
+    ["Sort Ascending" profiler-report-ascending-sort
+     :active (not (eq profiler-report-order 'ascending))
+     :help "Sort calltree view in ascending order"]
+    ["Sort Descending" profiler-report-descending-sort
+     :active (not (eq profiler-report-order 'descending))
+     :help "Sort calltree view in descending order"]
+    "--"
+    ["Compare Profile..." profiler-report-compare-profile :active t
+     :help "Compare current profile with another"]
+    ["Write Profile..." profiler-report-write-profile :active t
+     :help "Write current profile to a file"]
+    "--"
+    ["Start Profiler" profiler-start :active (not (profiler-running-p))
+     :help "Start profiling"]
+    ["Stop Profiler" profiler-stop :active (profiler-running-p)
+     :help "Stop profiling"]
+    ["New Report" profiler-report :active (profiler-running-p)
+     :help "Make a new report"]))
 
 (defun profiler-report-make-buffer-name (profile)
   (format "*%s-Profiler-Report %s*"

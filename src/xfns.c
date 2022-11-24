@@ -1362,12 +1362,20 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       char *xmessage = alloca (1 + message_length);
       memcpy (xmessage, cursor_data.error_string, message_length);
 
-      x_uncatch_errors ();
+      x_uncatch_errors_after_check ();
+
+      /* XFreeCursor can generate BadCursor errors, because
+	 XCreateFontCursor is not a request that waits for a reply,
+	 and as such can return IDs that will not actually be used by
+	 the server.  */
+      x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
 
       /* Free any successfully created cursors.  */
       for (i = 0; i < mouse_cursor_max; i++)
 	if (cursor_data.cursor[i] != 0)
 	  XFreeCursor (dpy, cursor_data.cursor[i]);
+
+      x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
 
       /* This should only be able to fail if the server's serial
 	 number tracking is broken.  */
@@ -1750,10 +1758,19 @@ x_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 void
 x_change_tab_bar_height (struct frame *f, int height)
 {
-  int unit = FRAME_LINE_HEIGHT (f);
-  int old_height = FRAME_TAB_BAR_HEIGHT (f);
-  int lines = (height + unit - 1) / unit;
-  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+  int unit, old_height, lines;
+  Lisp_Object fullscreen;
+
+  unit = FRAME_LINE_HEIGHT (f);
+  old_height = FRAME_TAB_BAR_HEIGHT (f);
+  fullscreen = get_frame_param (f, Qfullscreen);
+
+  /* This differs from the tool bar code in that the tab bar height is
+     not rounded up.  Otherwise, if redisplay_tab_bar decides to grow
+     the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
+     leading to the tab bar height being incorrectly set upon the next
+     call to x_set_font.  (bug#59285) */
+  lines = height / unit;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -4506,9 +4523,11 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
     }
 
   if (NILP (font))
-      font = !NILP (font_param) ? font_param
-      : gui_display_get_arg (dpyinfo, parms, Qfont, "font", "Font",
-                             RES_TYPE_STRING);
+    font = (!NILP (font_param)
+	    ? font_param
+	    : gui_display_get_arg (dpyinfo, parms,
+				   Qfont, "font", "Font",
+				   RES_TYPE_STRING));
 
   if (! FONTP (font) && ! STRINGP (font))
     {
@@ -4539,13 +4558,6 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 	}
       if (NILP (font))
 	error ("No suitable font was found");
-    }
-  else if (!NILP (font_param))
-    {
-      /* Remember the explicit font parameter, so we can re-apply it after
-	 we've applied the `default' face settings.  */
-      AUTO_FRAME_ARG (arg, Qfont_parameter, font_param);
-      gui_set_frame_parameters (f, arg);
     }
 
   /* This call will make X resources override any system font setting.  */

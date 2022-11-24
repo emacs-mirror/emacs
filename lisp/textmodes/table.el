@@ -125,9 +125,7 @@
 ;; are tired of guessing how it works come back to this document
 ;; again.
 ;;
-;; To use the package regularly place this file in the site library
-;; directory and add the next expression in your init file.  Make
-;; sure that directory is included in the `load-path'.
+;; To use the package regularly, add this to your init file:
 ;;
 ;;   (require 'table)
 ;;

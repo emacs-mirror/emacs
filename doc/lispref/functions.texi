@@ -734,7 +734,7 @@ a list of symbols representing the function alias chain, else
     @result{} (b c)
 @end example
 
-If there's a loop in the definitions, an error will be signalled.  If
+If there's a loop in the definitions, an error will be signaled.  If
 @var{noerror} is non-@code{nil}, the non-looping parts of the chain is
 returned instead.
 @end defun

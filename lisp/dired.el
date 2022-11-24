@@ -1541,7 +1541,7 @@ BEG..END is the line where the file info is located."
 	    (when (< alt-col other-col)
 	      (setq other-col alt-col)
 	      (setq other (point)))))
-	;; Keep positions uptodate when we insert stuff.
+	;; Keep positions up-to-date when we insert stuff.
 	(if (> other file) (setq other (copy-marker other)))
 	(setq file (copy-marker file))
 	;; Main loop.
@@ -3028,13 +3028,13 @@ See options: `dired-hide-details-hide-symlink-targets' and
   ;; The old code used selective-display which only works at
   ;; a line-granularity, so it used start and end positions that where
   ;; approximate ("anywhere on the line is fine").
-  ;; FIXME: This also removes other invisible properties!
   (save-excursion
     (let ((inhibit-read-only t))
       (remove-list-of-text-properties
        (progn (goto-char start) (line-end-position))
        (progn (goto-char end) (line-end-position))
-       '(invisible)))))
+       '(invisible))
+      (dired-insert-set-properties start end))))
 
 ;;; Functions for finding the file name in a dired buffer line
 

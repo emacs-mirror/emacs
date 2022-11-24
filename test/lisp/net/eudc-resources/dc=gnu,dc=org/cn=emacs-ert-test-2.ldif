@@ -1,0 +1,17 @@
+# AUTO-GENERATED FILE - DO NOT EDIT!! Use ldapmodify.
+# CRC32 56119237
+dn: cn=emacs-ert-test-2
+objectClass: OpenLDAPperson
+cn: emacs-ert-test-2
+description:: RW1hY3Mg
+uid: 2
+sn: ERT2
+givenName: Emacs
+mail: emacs-ert-test-2@ldap.gnu.org
+structuralObjectClass: OpenLDAPperson
+entryUUID: 43dd92b0-fc0d-103c-8d5e-7dbac5615d14
+creatorsName:
+createTimestamp: 20221119042038Z
+entryCSN: 20221119042038.100819Z#000000#000#000000
+modifiersName:
+modifyTimestamp: 20221119042038Z

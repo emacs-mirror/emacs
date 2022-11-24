@@ -112,7 +112,8 @@ efficient than the original one, and should speed up all the
 operations that involve overlays, especially when there are lots of
 them in a buffer.  However, no changes in behavior of overlays should
 be visible on the Lisp or user level, with the exception of better
-performance.
+performance and the order of overlays returned by functions that don't
+promise any particular order.
 
 ---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
@@ -164,7 +165,7 @@ time.
 +++
 *** New variable 'inhibit-automatic-native-compilation'.
 If set, Emacs will inhibit native compilation (and won't write
-anything to the eln cache automatically).  The variable is initialised
+anything to the eln cache automatically).  The variable is initialized
 from the 'EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION' environment
 variable on Emacs startup.
 
@@ -370,6 +371,11 @@ node in the Eshell manual for more details.
 *** Eshell pipelines now only pipe stdout by default.
 To pipe both stdout and stderr, use the '|&' operator instead of '|'.
 
+*** New eshell built-in command 'doas'.
+The privilege-escalation program 'doas' has been added to the existing
+'su' and 'sudo' commands from the 'eshell-tramp' module.  The external
+command may still be accessed by using '*doas'.
+
 ---
 ** The 'delete-forward-char' command now deletes by grapheme clusters.
 This command is by default bound to the <Delete> function key
@@ -432,6 +438,12 @@ Emacs will now display a warning when setting it to that value.
 The user options 'url-gateway-rlogin-host',
 'url-gateway-rlogin-parameters', and 'url-gateway-rlogin-user-name'
 are also obsolete.
+
+---
+** The user function 'url-irc-function' now takes a 'scheme' argument.
+The user option 'url-irc-function' is now called with a sixth argument
+corresponding to the scheme portion of the target URL.  For example,
+this would be "ircs" for a URL like "ircs://irc.libera.chat".
 
 ---
 ** The linum.el library is now obsolete.
@@ -705,6 +717,15 @@ part of the buffer.
 
 +++
 ** 'count-words' will now report sentence count when used interactively.
+
+** New user option 'set-message-functions'.
+It allows selecting more functions for 'set-message-function'
+in addition to the default function that handles messages
+in the active minibuffer.  The most useful are 'inhibit-message'
+that allows specifying a list of messages to inhibit via
+'inhibit-message-regexps', and 'set-multi-message' that
+accumulates recent messages and displays them stacked
+in the echo area.
 
 ---
 ** New user option 'find-library-include-other-files'.
@@ -1077,6 +1098,13 @@ the corresponding deleted frame.
 ** Tab Bars and Tab Lines
 
 ---
+*** New user option 'tab-bar-auto-width' to automatically determine tab width.
+This option is non-nil by default, which resizes tab-bar tabs so that
+their width is evenly distributed across the tab bar.  A companion
+option 'tab-bar-auto-width-max' controls the maximum width of a tab
+before its name on display is truncated.
+
+---
 *** 'C-x t RET' creates a new tab when the provided tab name doesn't exist.
 
 ---
@@ -1373,6 +1401,14 @@ If non-nil and there's only one matching option, auto-select that.
 If non-nil, this user option describes what entries not to add to the
 database stored on disk.
 
+** Auth-Source
+
++++
+*** New user option 'auth-source-pass-extra-query-keywords'.
+Whether to recognize additional keyword params, like ':max' and
+':require', as well as accept lists of query terms paired with
+applicable keywords.
+
 ** Dired
 
 +++
@@ -1428,8 +1464,8 @@ This command visits the file on the current line with EWW.
 ** Elisp
 
 ---
-*** New command 'elisp-eval-buffer' (bound to 'C-c C-e').
-This command evals the forms in the current buffer.
+*** New command 'elisp-eval-region-or-buffer' (bound to 'C-c C-e').
+This command evals the forms in the active region or in the whole buffer.
 
 ---
 *** New commands 'elisp-byte-compile-file' and 'elisp-byte-compile-buffer'.
@@ -1468,6 +1504,10 @@ This controls how statements like the following are indented:
 *** New Flymake backend using the ShellCheck program.
 It is enabled by default, but requires that the external "shellcheck"
 command is installed.
+
+** CC Mode
+---
+*** C++ Mode now supports most of the new features in the C++20 standard.
 
 ** Cperl Mode
 
@@ -1547,6 +1587,36 @@ These commands can be useful if the ".elc" files are out of date
 *** New DWIM action on 'x' in "*Packages*" buffer.
 If no packages are marked, 'x' will install the package under point if
 it isn't already, and remove it if it is installed.
+
++++
+*** New command 'package-vc-install'
+Packages can now be installed directly from source by cloning from a
+repository.
+
++++
+*** New command 'package-vc-install-from-checkout'
+An existing checkout can now be loaded via package.el, by creating a
+symbolic link from the usual package directory to the checkout.
+
++++
+*** New command 'package-vc-checkout'
+Used to fetch the source of a package by cloning a repository without
+activating the package.
+
++++
+*** New command 'package-vc-prepare-patch'
+This command allows you to send patches to package maintainers, for
+packages checked out using 'package-vc-install'.
+
++++
+*** New command 'package-report-bug'
+This command helps you compose an email for sending bug reports to
+package maintainers.
+
++++
+*** New user option 'package-vc-selected-packages'
+By customizing this user option you can specify specific packages to
+install.
 
 ** Emacs Sessions (Desktop)
 
@@ -1858,8 +1928,6 @@ with the changes against the last commit, e.g. with 'C-x v D'
 want to commit.  Finally, type 'C-x v v' in that diff buffer to commit
 only part of your changes, those whose hunks were left in the buffer.
 
-Currently this feature works only with the Git as 'vc-backend'.
-
 ---
 *** 'C-x v v' on an unregistered file will now use the most specific backend.
 Previously, if you had an SVN-covered "~/" directory, and a Git-covered
@@ -1925,6 +1993,13 @@ It narrows to the current node.
 ** EUDC
 
 +++
+*** New user option 'eudc-ignore-options-file' that defaults to 'nil'
+The 'eudc-ignore-options-file' user option can be configured to ignore
+the 'eudc-options-file' (typically "~/.emacs.d/eudc-options").  Most
+users should configure this to 't' and put EUDC configuration in the
+main Emacs initialization file (".emacs" or "~/.emacs.d/init.el").
+
++++
 *** 'eudc-expansion-overwrites-query' to 'eudc-expansion-save-query-as-kill'.
 'eudc-expansion-overwrites-query' is renamed to
 'eudc-expansion-save-query-as-kill' to reflect the actual behavior of
@@ -1969,6 +2044,18 @@ adding the new function 'eudc-capf-complete' to
 The EUDC back-end for the macOS Contacts app now provides a wider set
 of attributes to use for queries, and delivers more attributes in
 query results.
+
++++
+*** New back-end for ecomplete
+A new back-end for ecomplete allows information from that database to
+be queried by EUDC, too.  The attributes present in the EUDC query are
+used to select the entry type in the ecomplete database.
+
++++
+*** New back-end for mailabbrev
+A new back-end for mailabbrev allows information from that database to
+be queried by EUDC, too.  The attributes email, name, and firstname
+are supported only.
 
 ** EWW/SHR
 
@@ -2062,13 +2149,20 @@ The older form still works but is undocumented.
 
 ---
 *** Rmail partial summaries can now be applied one on top of the other.
-You can now narrow the filtering of messages by the summary's criteria
-(recipients, topic, senders, etc.) by making a summary of the already
-summarized messages.  For example, invoking 'rmail-summary-by-senders',
-followed by 'rmail-summary-by-topic' will produce a summary where both
-the senders and the topic are according to your selection.  The new
-user option 'rmail-summary-apply-filters-consecutively' controls
-whether the stacking of the filters is in effect.
+You can now narrow the set of messages selected by Rmail summary's
+criteria (recipients, topic, senders, etc.) by making a summary of the
+already summarized messages.  For example, invoking
+'rmail-summary-by-senders', followed by 'rmail-summary-by-topic' will
+produce a summary where both the senders and the topic are according
+to your selection.  The new user option
+'rmail-summary-progressively-narrow' controls whether the stacking of
+the filters is in effect; customize it to a non-nil value to enable
+this feature.
+
+---
+*** New Rmail summary: by thread.
+The new command 'rmail-summary-by-thread' produces a summary of
+messages that belong to a single thread of discussion.
 
 ** EIEIO
 
@@ -2131,6 +2225,10 @@ it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 +++
 *** 'project-find-file' and 'project-or-external-find-file' now accept
 a prefix argument which is interpreted to mean "include all files".
+
++++
+*** New command 'project-list-buffers' bound to 'C-x p C-b'.
+This command displays a list of buffers from the current project.
 
 +++
 *** 'project-kill-buffers' can display the list of buffers to kill.
@@ -2551,6 +2649,17 @@ related functions will use by default.  For example, you could
 customize this to "https" to always prefer HTTPS URLs.
 
 ---
+*** New user option 'browse-url-irc-function'.
+This option specifies a function for opening irc:// links.  It
+defaults to the new function 'browse-url-irc'.
+
+---
+*** New function 'browse-url-irc'.
+This multipurpose autoloaded function can be used for opening irc://
+and ircs:// URLS by any caller that passes a URL string as an initial
+arg.
+
+---
 *** Support for the Netscape web browser has been removed.
 This support has been obsolete since Emacs 25.1.  The final version of
 the Netscape web browser was released in February, 2008.
@@ -2777,6 +2886,9 @@ remote host are shown.  Alternatively, the user option
 The old name is still available as an obsolete function alias.
 
 ---
+*** The url-irc library now understands ircs:// links.
+
+---
 *** New command 'world-clock-copy-time-as-kill' for 'M-x world-clock'.
 It copies the current line into the kill ring.
 
@@ -2883,7 +2995,7 @@ normal.
 
 ---
 ** Themes have special autoload cookies.
-All build-in themes are scraped for ';;;###theme-autoload' cookies
+All built-in themes are scraped for ';;;###theme-autoload' cookies
 that are loaded along with the regular auto-loaded code.
 
 +++
@@ -3963,6 +4075,12 @@ This function allows defining a number of keystrokes with one form.
 ** New macro 'defvar-keymap'.
 This macro allows defining keymap variables more conveniently.
 
+** 'defvar-keymap' can specify 'repeat-mode' behavior for the keymap.
+Use ':repeat t' to have all bindings be repeatable or for more
+advanced usage:
+
+    ':repeat (:enter (commands ...) :exit (commands ...))'
+
 ---
 ** 'kbd' can now be used in built-in, preloaded libraries.
 It no longer depends on edmacro.el and cl-lib.el.
@@ -4252,5 +4370,5 @@ Local variables:
 coding: utf-8
 mode: outline
 mode: emacs-news
-paragraph-separate: "[ 	]*$"
+paragraph-separate: "[ 	]"
 end:

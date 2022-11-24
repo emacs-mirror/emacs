@@ -7899,7 +7899,7 @@
 	* buffer.c (scroll-up-aggressively, scroll-down-aggressively):
 	* keymap.c (Fminor_mode_key_binding):
 	* macterm.c (mac-emulate-three-button-mouse):
-	Delete duplicate duplicate words.
+	Delete duplicate words.
 
 2005-07-18  Ken Raeburn  <raeburn@gnu.org>
 

@@ -264,8 +264,9 @@ Emacs major-mode @code{foo-mode}, you can add it to the alist like
 this:
 
 @lisp
-(add-to-list 'eglot-server-programs
-             '(foo-mode . ("fools" "--stdio")))
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(foo-mode . ("fools" "--stdio"))))
 @end lisp
 
 This will invoke the program @command{fools} with the command-line
@@ -276,6 +277,24 @@ executable file @file{fools} should be in one of the directories
 mentioned by the @code{exec-path} variable (@pxref{Subprocess
 Creation,,, elisp, GNU Emacs Lisp Reference Manual}), for Eglot to be
 able to find it.
+
+Sometimes, multiple servers are acceptable alternatives for handling a
+given major-mode.  In those cases, you may combine the helper function
+@code{eglot-alternatives} with the funcional form of
+@code{eglot-server-programs}.
+
+@lisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               `(foo-mode . ,(eglot-alternatives
+                               '(("fools" "--stdio")
+                                 ("phewls" "--fast"))))))
+@end lisp
+
+If you have @command{fools} and @command{phewls} installed, the
+function produced by @code{eglot-alternatives} will prompt for the
+server to use in @code{foo-mode} buffers.  Else it will use whichever
+is available.
 
 @node Starting Eglot
 @section Starting Eglot
@@ -872,7 +891,7 @@ Eglot supports and enhances (@pxref{Eglot Features}).  For example:
 @item
 To configure the face used for server-derived errors and warnings,
 customize the Flymake faces @code{flymake-error} and
-@code{flymake-error}.
+@code{flymake-warning}.
 
 @item
 To configure the amount of space taken up by documentation in the
@@ -945,9 +964,9 @@ provide per-project settings, as described below in more detail.
 Some language servers need to know project-specific settings, which
 the LSP calls @dfn{workspace configuration}.  Eglot allows such fine
 tuning of per-project settings via the variable
-@code{eglot-workspace-configuration}.  Eglot sends the portion of the
-settings contained in this variable to each server for which such
-settings were defined in the variable.  These settings are
+@code{eglot-workspace-configuration}.  Eglot sends the settings in
+this variable to each server, and each server applies the portion of the
+settings relevant to it and ignores the rest.  These settings are
 communicated to the server initially (upon establishing the
 connection) or when the settings are changed, or in response to a
 configuration request from the server.
@@ -1022,8 +1041,8 @@ Alternatively, the same configuration could be defined as follows:
 @end lisp
 
 This is an equivalent setup which sets the value for all the
-major-modes inside the project; Eglot will use for each server only
-the section of the parameters intended for that server.
+major-modes inside the project; each server will use only the section
+of the parameters intended for that server, and ignore the rest.
 
 As yet another alternative, you can set the value of
 @code{eglot-workspace-configuration} programmatically, via the
@@ -1046,8 +1065,10 @@ Eglot via Elisp to adapt to it, by defining a suitable
 Here's an example:
 
 @lisp
+(require 'eglot)
+
 (add-to-list 'eglot-server-programs
-             '((c++ mode c-mode) . (eglot-cquery "cquery")))
+             '((c++-mode c-mode) . (eglot-cquery "cquery")))
 
 (defclass eglot-cquery (eglot-lsp-server) ()
   :documentation "A custom class for cquery's C/C++ langserver.")

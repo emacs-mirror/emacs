@@ -2017,8 +2017,8 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	    i = sprintf (buf, " stmt=%p", XSQLITE (obj)->stmt);
 	    strout (buf, i, i, printcharfun);
 	  }
-	i = sprintf (buf, " name=%s", XSQLITE (obj)->name);
-	strout (buf, i, i, printcharfun);
+	print_c_string (" name=", printcharfun);
+	print_c_string (XSQLITE (obj)->name, printcharfun);
 	printchar ('>', printcharfun);
       }
       break;

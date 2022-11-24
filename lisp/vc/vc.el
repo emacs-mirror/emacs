@@ -448,6 +448,11 @@
 ;; - mergebase (rev1 &optional rev2)
 ;;
 ;;   Return the common ancestor between REV1 and REV2 revisions.
+;;
+;; - last-change (file line)
+;;
+;;   Return the most recent revision of FILE that made a change
+;;   on LINE.
 
 ;; TAG/BRANCH SYSTEM
 ;;
@@ -584,6 +589,15 @@
 ;;   buffer should be inserted into an inline patch.  If the two last
 ;;   properties are omitted, `point-min' and `point-max' will
 ;;   respectively be used instead.
+;;
+;; - clone (remote directory rev)
+;;
+;;   Attempt to clone a REMOTE repository, into a local DIRECTORY.
+;;   Returns a string with the directory with the contents of the
+;;   repository if successful, otherwise nil.  With a non-nil value
+;;   for REV the backend will attempt to check out a specific
+;;   revision, if possible without first checking out the default
+;;   branch.
 
 ;;; Changes from the pre-25.1 API:
 ;;
@@ -1715,9 +1729,6 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
                                              "--no-backup-if-mismatch"
                                              "-i" "-"))
               (user-error "Patch failed: %s" (buffer-string))))
-          (dolist (f files)
-            (with-current-buffer (get-file-buffer f)
-              (revert-buffer t t t)))
           (vc-call-backend backend 'checkin files comment))
       (dolist (f files)
         (copy-file (expand-file-name f tmpdir)
@@ -3336,6 +3347,8 @@ immediately after this one."
           (lambda (&rest args)
             (apply #'vc-user-edit-command (apply old args))))))
 
+;; This is used in .dir-locals.el in the Emacs source tree.
+;;;###autoload (put 'vc-prepare-patches-separately 'safe-local-variable 'booleanp)
 (defcustom vc-prepare-patches-separately t
   "Whether `vc-prepare-patch' should generate a separate message for each patch.
 If nil, `vc-prepare-patch' creates a single email message by attaching
@@ -3373,25 +3386,43 @@ If nil, no default will be used.  This option may be set locally."
                                (vc-root-dir))))
             :buffer (current-buffer)))))
 
+(defun vc-prepare-patch-prompt-revisions ()
+  "Prompt the user for a list revisions.
+Prepare a default value, depending on the current context.  With
+a numerical prefix argument, use the last N revisions as the
+default value.  If the current buffer is a log-view buffer, use
+the marked commits.  Otherwise fall back to the working revision
+of the current file."
+  (vc-read-multiple-revisions
+   "Revisions: " nil nil nil
+   (or (and-let* ((arg current-prefix-arg)
+                  (fs (vc-deduce-fileset t)))
+         (cl-loop with file = (caadr fs)
+                  repeat (prefix-numeric-value arg)
+                  for rev = (vc-working-revision file)
+                  then (vc-call-backend
+                        (car fs) 'previous-revision
+                        file rev)
+                  when rev collect it into revs
+                  finally return (mapconcat #'identity revs ",")))
+       (and-let* ((revs (log-view-get-marked)))
+         (mapconcat #'identity revs ","))
+       (and-let* ((file (buffer-file-name)))
+         (vc-working-revision file)))))
+
 ;;;###autoload
 (defun vc-prepare-patch (addressee subject revisions)
   "Compose an Email sending patches for REVISIONS to ADDRESSEE.
-If `vc-prepare-patches-separately' is nil, SUBJECT will be used
-as the default subject for the message (and it will be prompted
-for when called interactively).  Otherwise a separate message
-will be composed for each revision, with SUBJECT derived from the
-invidividual commits.
-
-When invoked interactively in a Log View buffer with marked
-revisions, those revisions will be used."
+If `vc-prepare-patches-separately' is nil, use SUBJECT as the
+default subject for the message, or prompt a subject when invoked
+interactively.  Otherwise compose a separate message for each
+revision, with SUBJECT derived from each revision subject.
+When invoked with a numerical prefix argument, use the last N
+revisions.
+When invoked interactively in a Log View buffer with
+marked revisions, use those these."
   (interactive
-   (let ((revs (vc-read-multiple-revisions
-                "Revisions: " nil nil nil
-                (or (and-let* ((revs (log-view-get-marked)))
-                      (mapconcat #'identity revs ","))
-                    (and-let* ((file (buffer-file-name)))
-                      (vc-working-revision file)))))
-         to)
+   (let ((revs (vc-prepare-patch-prompt-revisions)) to)
      (require 'message)
      (while (null (setq to (completing-read-multiple
                             (format-prompt
@@ -3553,6 +3584,41 @@ to provide the `find-revision' operation instead."
   "Check if the current file has any headers in it."
   (interactive)
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
+
+(defun vc-clone (remote &optional backend directory rev)
+  "Use BACKEND to clone REMOTE into DIRECTORY.
+If successful, returns the string with the directory of the
+checkout.  If BACKEND is nil, iterate through every known backend
+in `vc-handled-backends' until one succeeds.  If REV is non-nil,
+it indicates a specific revision to check out."
+  (unless directory
+    (setq directory default-directory))
+  (if backend
+      (progn
+        (unless (memq backend vc-handled-backends)
+          (error "Unknown VC backend %s" backend))
+        (vc-call-backend backend 'clone remote directory rev))
+    (catch 'ok
+      (dolist (backend vc-handled-backends)
+        (ignore-error vc-not-supported
+          (when-let ((res (vc-call-backend
+                           backend 'clone
+                           remote directory rev)))
+            (throw 'ok res)))))))
+
+(declare-function log-view-current-tag "log-view" (&optional pos))
+(defun vc-default-last-change (_backend file line)
+  "Default `last-change' implementation.
+It returns the last revision that changed LINE number in FILE."
+  (unless (file-exists-p file)
+    (signal 'file-error "File doesn't exist"))
+  (with-temp-buffer
+    (vc-call-backend (vc-backend file) 'annotate-command
+                     file (current-buffer))
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (let ((rev (vc-call annotate-extract-revision-at-line file)))
+      (if (consp rev) (car rev) rev))))
 
 
 

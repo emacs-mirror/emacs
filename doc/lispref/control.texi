@@ -1534,7 +1534,7 @@ iterator with @code{iter-next} for anything interesting to happen.
 Each call to a generator function produces a @emph{different}
 iterator, each with its own state.
 
-@defun iter-next iterator value
+@defun iter-next iterator &optional value
 Retrieve the next value from @var{iterator}.  If there are no more
 values to be generated (because @var{iterator}'s generator function
 returned), @code{iter-next} signals the @code{iter-end-of-sequence}

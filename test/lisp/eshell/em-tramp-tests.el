@@ -85,4 +85,79 @@
              `(,(format "/sudo:USER@%s:%s" tramp-default-host default-directory)
                ("echo" ("-u" "hi")))))))
 
+(ert-deftest em-tramp-test/sudo-shell ()
+  "Test Eshell `sudo' command with -s/--shell option."
+  (dolist (args '(("--shell")
+                  ("-s")))
+    (should (equal
+             (catch 'eshell-replace-command (apply #'eshell/sudo args))
+             `(eshell-trap-errors
+               (eshell-named-command
+                "cd"
+                (list ,(format "/sudo:root@%s:%s"
+                               tramp-default-host default-directory))))))))
+
+(ert-deftest em-tramp-test/sudo-user-shell ()
+  "Test Eshell `sudo' command with -s and -u options."
+  (should (equal
+           (catch 'eshell-replace-command (eshell/sudo "-u" "USER" "-s"))
+           `(eshell-trap-errors
+             (eshell-named-command
+              "cd"
+              (list ,(format "/sudo:USER@%s:%s"
+                             tramp-default-host default-directory)))))))
+
+(ert-deftest em-tramp-test/doas-basic ()
+  "Test Eshell `doas' command with default user."
+  (cl-letf (((symbol-function 'eshell-named-command)
+             #'mock-eshell-named-command))
+    (should (equal
+             (catch 'eshell-external (eshell/doas "echo" "hi"))
+             `(,(format "/doas:root@%s:%s"
+                        tramp-default-host default-directory)
+               ("echo" ("hi")))))
+    (should (equal
+             (catch 'eshell-external (eshell/doas "echo" "-u" "hi"))
+             `(,(format "/doas:root@%s:%s"
+                        tramp-default-host default-directory)
+               ("echo" ("-u" "hi")))))))
+
+(ert-deftest em-tramp-test/doas-user ()
+  "Test Eshell `doas' command with specified user."
+  (cl-letf (((symbol-function 'eshell-named-command)
+             #'mock-eshell-named-command))
+    (should (equal
+             (catch 'eshell-external (eshell/doas "-u" "USER" "echo" "hi"))
+             `(,(format "/doas:USER@%s:%s"
+                        tramp-default-host default-directory)
+               ("echo" ("hi")))))
+    (should (equal
+             (catch 'eshell-external
+               (eshell/doas "-u" "USER" "echo" "-u" "hi"))
+             `(,(format "/doas:USER@%s:%s"
+                        tramp-default-host default-directory)
+               ("echo" ("-u" "hi")))))))
+
+(ert-deftest em-tramp-test/doas-shell ()
+  "Test Eshell `doas' command with -s/--shell option."
+  (dolist (args '(("--shell")
+                  ("-s")))
+    (should (equal
+             (catch 'eshell-replace-command (apply #'eshell/doas args))
+             `(eshell-trap-errors
+               (eshell-named-command
+                "cd"
+                (list ,(format "/doas:root@%s:%s"
+                               tramp-default-host default-directory))))))))
+
+(ert-deftest em-tramp-test/doas-user-shell ()
+  "Test Eshell `doas' command with -s and -u options."
+  (should (equal
+           (catch 'eshell-replace-command (eshell/doas "-u" "USER" "-s"))
+           `(eshell-trap-errors
+             (eshell-named-command
+              "cd"
+              (list ,(format "/doas:USER@%s:%s"
+                             tramp-default-host default-directory)))))))
+
 ;;; em-tramp-tests.el ends here

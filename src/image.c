@@ -1843,7 +1843,9 @@ image_clear_image (struct frame *f, struct image *img)
 {
   block_input ();
   image_clear_image_1 (f, img,
-		   CLEAR_IMAGE_PIXMAP | CLEAR_IMAGE_MASK | CLEAR_IMAGE_COLORS);
+		       (CLEAR_IMAGE_PIXMAP
+			| CLEAR_IMAGE_MASK
+			| CLEAR_IMAGE_COLORS));
   unblock_input ();
 }
 
@@ -2980,7 +2982,8 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       unblock_input ();
     }
 
-  /* We're using IMG, so set its timestamp to `now'.  */
+  /* IMG is now being used, so set its timestamp to the current
+     time.  */
   img->timestamp = current_timespec ();
 
   /* Value is the image id.  */
@@ -3238,12 +3241,13 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 static void
 x_destroy_x_image (XImage *ximg)
 {
-  eassert (input_blocked_p ());
   if (ximg)
     {
       xfree (ximg->data);
       ximg->data = NULL;
     }
+
+  XDestroyImage (ximg);
 }
 
 # if !defined USE_CAIRO && defined HAVE_XRENDER
@@ -6224,26 +6228,28 @@ static void
 image_from_emacs_colors (struct frame *f, struct image *img, Emacs_Color *colors)
 {
   int x, y;
-  Emacs_Pix_Container oimg = NULL;
+  Emacs_Pix_Container ximage;
   Emacs_Color *p;
+
+  ximage = NULL;
 
   init_color_table ();
 
   image_clear_image_1 (f, img, CLEAR_IMAGE_PIXMAP | CLEAR_IMAGE_COLORS);
   image_create_x_image_and_pixmap (f, img, img->width, img->height, 0,
-				   &oimg, 0);
+				   &ximage, 0);
   p = colors;
   for (y = 0; y < img->height; ++y)
     for (x = 0; x < img->width; ++x, ++p)
       {
 	unsigned long pixel;
 	pixel = lookup_rgb_color (f, p->red, p->green, p->blue);
-	PUT_PIXEL (oimg, x, y, pixel);
+	PUT_PIXEL (ximage, x, y, pixel);
       }
 
   xfree (colors);
 
-  image_put_x_image (f, img, oimg, 0);
+  image_put_x_image (f, img, ximage, false);
 #ifdef COLOR_TABLE_SUPPORT
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
@@ -12207,7 +12213,15 @@ non-numeric, there is no explicit limit on the size of images.  */);
 # endif
   DEFSYM (Qgobject, "gobject");
 #endif /* HAVE_NTGUI  */
-#endif /* HAVE_RSVG  */
+#elif defined HAVE_NATIVE_IMAGE_API			\
+  && ((defined HAVE_NS && defined NS_IMPL_COCOA)	\
+      || defined HAVE_HAIKU)
+  DEFSYM (Qsvg, "svg");
+
+  /* On Haiku, the SVG translator may not be installed.  */
+  if (image_can_use_native_api (Qsvg))
+    add_image_type (Qsvg);
+#endif
 
 #ifdef HAVE_NS
   DEFSYM (Qheic, "heic");

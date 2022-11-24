@@ -1106,7 +1106,7 @@ final or penultimate step during initialization."))
 
 (ert-deftest test-keymap-parse-macros ()
   (should (equal (key-parse "C-x ( C-d C-x )") [24 40 4 24 41]))
-  (should (equal (kbd "C-x ( C-d C-x )") ""))
+  (should (equal (kbd "C-x ( C-d C-x )") "\^D"))
   (should (equal (kbd "C-x ( C-x )") "")))
 
 (defvar subr-test--global)

@@ -280,6 +280,14 @@ This is used by `eshell-watch-for-password-prompt'."
   "C-w" #'backward-kill-word
   "C-y" #'eshell-repeat-argument)
 
+(defvar-keymap eshell-command-repeat-map
+  :doc "Keymap to repeat eshell-command key sequences.  Used in `repeat-mode'."
+  "C-f" #'eshell-forward-argument
+  "C-b" #'eshell-backward-argument)
+
+(put #'eshell-forward-argument 'repeat-map 'eshell-command-repeat-map)
+(put #'eshell-backward-argument 'repeat-map 'eshell-command-repeat-map)
+
 ;;; User Functions:
 
 (defun eshell-kill-buffer-function ()

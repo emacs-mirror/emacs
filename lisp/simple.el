@@ -2491,9 +2491,15 @@ Also see `suggest-key-bindings'."
 
 (defvar execute-extended-command--binding-timer nil)
 
+(defun execute-extended-command--describe-binding-msg (function binding shorter)
+  (format-message "You can run the command `%s' with %s"
+                  function
+                  (propertize (cond (shorter (concat "M-x " shorter))
+                                    ((stringp binding) binding)
+                                    (t (key-description binding)))
+                              'face 'help-key-binding)))
+
 (defun execute-extended-command (prefixarg &optional command-name typed)
-  ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
-  ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
   "Read a command name, then read the arguments and call the command.
 To pass a prefix argument to the command you are
 invoking, give a prefix argument to `execute-extended-command'."
@@ -2516,7 +2522,7 @@ invoking, give a prefix argument to `execute-extended-command'."
 		       (not executing-kbd-macro)
 		       (where-is-internal function overriding-local-map t)))
          (delay-before-suggest 0)
-         (find-shorter nil))
+         find-shorter shorter)
     (unless (commandp function)
       (error "`%s' is not a valid command name" command-name))
     ;; If we're executing a command that's remapped, we can't actually
@@ -2540,11 +2546,11 @@ invoking, give a prefix argument to `execute-extended-command'."
     ;; flight.
     (when execute-extended-command--binding-timer
       (cancel-timer execute-extended-command--binding-timer))
-    ;; If this command displayed something in the echo area, then
-    ;; postpone the display of our suggestion message a bit.
     (when (and suggest-key-bindings
                (or binding
                    (and extended-command-suggest-shorter typed)))
+      ;; If this command displayed something in the echo area, then
+      ;; postpone the display of our suggestion message a bit.
       (setq delay-before-suggest
             (cond
              ((zerop (length (current-message))) 0)
@@ -2556,7 +2562,7 @@ invoking, give a prefix argument to `execute-extended-command'."
                  (symbolp function)
                  (> (length (symbol-name function)) 2))
         ;; There's no binding for CMD.  Let's try and find the shortest
-        ;; string to use in M-x.
+        ;; string to use in M-x.  But don't actually do anything yet.
         (setq find-shorter t))
       (when (or binding find-shorter)
         (setq execute-extended-command--binding-timer
@@ -2570,15 +2576,12 @@ invoking, give a prefix argument to `execute-extended-command'."
                    (when find-shorter
                      (while-no-input
                        ;; FIXME: Can be slow.  Cache it maybe?
-                       (setq binding (execute-extended-command--shorter
+                       (setq shorter (execute-extended-command--shorter
                                       (symbol-name function) typed))))
-                   (when binding
+                   (when (or binding shorter)
                      (with-temp-message
-                         (format-message "You can run the command `%s' with %s"
-                                         function
-                                         (if (stringp binding)
-                                             (concat "M-x " binding " RET")
-                                           (key-description binding)))
+                         (execute-extended-command--describe-binding-msg
+                          function binding shorter)
                        (sit-for (if (numberp suggest-key-bindings)
                                     suggest-key-bindings
                                   2))))))))))))
@@ -2647,10 +2650,7 @@ function as needed."
       ((or `(lambda ,_args . ,body) `(closure ,_env ,_args . ,body)
            `(autoload ,_file . ,body))
        (let ((doc (car body)))
-	 (when (and (funcall docstring-p doc)
-	            ;; Handle a doc reference--but these never come last
-	            ;; in the function body, so reject them if they are last.
-	            (or (cdr body) (eq 'autoload (car-safe function))))
+	 (when (funcall docstring-p doc)
            doc)))
       (_ (signal 'invalid-function (list function))))))
 

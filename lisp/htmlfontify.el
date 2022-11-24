@@ -1937,7 +1937,7 @@ Otherwise, the link should be to the index file.
 We are not yet concerned with the file extensions/tag line number and so on at
 this point.
 
-If `hfy-split-index' is set, and the href wil be to an index file rather than
+If `hfy-split-index' is set, and the href will be to an index file rather than
 a source file, append a .X to `hfy-index-file', where X is the uppercased
 first character of TAG.
 

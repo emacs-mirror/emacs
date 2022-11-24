@@ -2265,8 +2265,8 @@ buffer, otherwise stop after the first error."
             (unless (and sym (or (boundp sym) (fboundp sym)))
               ;; Find out how we spell-check this word.
               (unless (or
-                       ;; All caps w/ option th, or s tacked on the end
-                       ;; for pluralization or number.
+                       ;; All caps with option th, or s tacked on the
+                       ;; end for pluralization or number.
                        (string-match "^[A-Z][A-Z]+\\(s\\|th\\)?$" word)
                        (looking-at "}") ; a keymap expression
                        )

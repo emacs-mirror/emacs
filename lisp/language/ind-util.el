@@ -27,11 +27,18 @@
 ;; Finally, this program provides the compatibility support with
 ;; old implementation of Devanagari script.
 
+;; Note: This file includes several codepoints outside of the Unicode
+;; 0..#x10FFFF range, which are characters that were not unified into
+;; Unicode.  Therefore, this file is encoded in utf-8-emacs, because
+;; UTF-8 cannot encode such codepoints.  We include these codepoints
+;; literally in the file to have them displayed by suitable fonts,
+;; which makes maintenance easier.
+
 ;;; Code:
 
 ;;; Transliteration
 
-;; The followings provide the various transliteration schemes (such as
+;; The following provides the various transliteration schemes (such as
 ;; ITRANS, kyoto-harvard, and Aiba) of Indian scripts.  They are also
 ;; used in quail/indian.el for typing Indian script in Emacs.
 
@@ -638,7 +645,7 @@
 
 ;;; IS 13194 utilities
 
-;; The followings provide conversion between IS 13194 (ISCII) and UCS.
+;; The following provides conversion between IS 13194 (ISCII) and UCS.
 
 (dlet
     ;;Unicode vs IS13194  ;; only Devanagari is supported now.

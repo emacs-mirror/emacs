@@ -11955,7 +11955,7 @@
 	(verilog-skip-backward-comments, verilog-skip-forward-comment-p):
 	fix bug for /* / comments.
 	(verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
-	Speed up and simplfy as this is never called with a bound.
+	Speed up and simplify as this is never called with a bound.
 	(verilog-pretty-declarations): Enhance to line up declarations
 	inside a parameter list, suggested by Alan Morgan.
 	(verilog-pretty-expr): Tune assignment regular expression match
@@ -15783,7 +15783,7 @@
 	* simple.el (with-wrapper-hook): Fix thinko.
 
 	* hfy-cmap.el (hfy-rgb-file): Use locate-file.
-	(htmlfontify-load-rgb-file): Remove unnused var `ff'.
+	(htmlfontify-load-rgb-file): Remove unused var `ff'.
 	Use with-current-buffer and string-to-number.
 	(hfy-fallback-colour-values): Use assoc-string.
 	* htmlfontify.el (hfy-face-to-css): Remove unused var `style'.
@@ -22575,7 +22575,7 @@
 
 2009-06-28  Juri Linkov  <juri@jurta.org>
 
-	* help-fns.el (describe-function-1): Correctly locate adviced
+	* help-fns.el (describe-function-1): Correctly locate advised
 	functions in hyperlink (Bug#2438).
 
 2009-06-28  Chong Yidong  <cyd@stupidchicken.com>

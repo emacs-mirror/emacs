@@ -2814,7 +2814,7 @@
 2012-12-12  Jonas Bernoulli  <jonas@bernoul.li>
 
 	* emacs-lisp/eieio.el: Prettier object pretty-printing (bug#13115).
-	(eieio-override-prin1): Don't quote kewords and booleans.
+	(eieio-override-prin1): Don't quote keywords and booleans.
 	(object-write) <eieio-default-superclass>: Don't put closing parens
 	on new line, avoid needless empty lines, align values that are objects
 	with the slot keyword (instead of beginning on the same line).
@@ -10765,7 +10765,7 @@
 
 	* play/zone.el (zone-hiding-mode-line): Rename from
 	zone-hiding-modeline.  All callers changed.
-	(zone): Remove unusued `modeline-hidden-level' property.
+	(zone): Remove unused `modeline-hidden-level' property.
 
 	* progmodes/xscheme.el (xscheme-mode-line-initialize): Rename from
 	xscheme-modeline-initialize.  All callers changed.
@@ -10931,7 +10931,7 @@
 
 2012-05-29  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
-	* vc/vc.el (vc-revert, vc-rollback): Dont kill vc-diff buffer on
+	* vc/vc.el (vc-revert, vc-rollback): Don't kill vc-diff buffer on
 	revert (Bug#11488).
 
 2012-05-29  Juri Linkov  <juri@jurta.org>
@@ -15340,7 +15340,7 @@
 	* subr.el (with-selected-frame): Mention that the selected frame
 	is restored (bug#9980).
 
-	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
+	* ibuffer.el (ibuffer-mode): List the bindings in the correct map
 	(bug#9759).
 
 	* mail/smtpmail.el (password-cache-add): Remove unused declaration.
@@ -22838,15 +22838,14 @@
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
 	Fix doubled-word typos.
-	* international/quail.el (quail-insert-kbd-layout): and and -> and.
-	* kermit.el: and and -> and.
-	* net/ldap.el (ldap-search-internal): to to -> to.
-	* progmodes/vhdl-mode.el (vhdl-offsets-alist): Likewise.
-	* progmodes/js.el (js-mode): and and -> and.
-	* textmodes/artist.el (artist-move-to-xy): at at -> at.
-	(artist-draw-region-trim-line-endings): if if -> if.
-	And Safetyc -> Safety.
-	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a.
+	* international/quail.el (quail-insert-kbd-layout):
+	* kermit.el:
+	* net/ldap.el (ldap-search-internal):
+	* progmodes/vhdl-mode.el (vhdl-offsets-alist):
+	* progmodes/js.el (js-mode):
+	* textmodes/artist.el (artist-move-to-xy):
+	(artist-draw-region-trim-line-endings):
+	* textmodes/reftex-dcr.el (reftex-view-crossref): Fix typos.
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
 	    Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -24104,7 +24103,7 @@
 
 	* emacs-lisp/lisp-mode.el (eval-defun-2): Use eval-sexp-add-defvars.
 
-	* htmlfontify.el (hfy-etags-cmd): Remove inoperant eval-and-compile.
+	* htmlfontify.el (hfy-etags-cmd): Remove inoperative eval-and-compile.
 	(hfy-e2x-etags-cmd, hfy-etags-cmd-alist-default)
 	(hfy-etags-cmd-alist): Don't eval-and-compile any more.
 

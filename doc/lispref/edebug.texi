@@ -1076,15 +1076,24 @@ current buffer, are saved and restored.
 @cindex window configuration (Edebug)
 The outside window configuration is saved and restored if
 @code{edebug-save-windows} is non-@code{nil} (@pxref{Edebug Options}).
+If the value of @code{edebug-save-windows} is a list, only the listed
+windows are saved and restored.
 
 The window configuration is not restored on error or quit, but the
 outside selected window @emph{is} reselected even on error or quit in
-case a @code{save-excursion} is active.  If the value of
-@code{edebug-save-windows} is a list, only the listed windows are saved
-and restored.
+case a @code{save-excursion} is active.
 
 The window start and horizontal scrolling of the source code buffer are
 not restored, however, so that the display remains coherent within Edebug.
+
+@cindex buffer point changed by Edebug
+@cindex edebug overwrites buffer point position
+Saving and restoring the outside window configuration can sometimes
+change the positions of point in the buffers on which the Lisp program
+you are debugging operates, especially if your program moves point.
+If this happens and interferes with your debugging, we recommend to
+set @code{edebug-save-windows} to @code{nil}
+(@pxref{Edebug Options}).
 
 @item
 The value of point in each displayed buffer is saved and restored if
@@ -1655,10 +1664,16 @@ specify an Edebug form specification.
 If this is non-@code{nil}, Edebug saves and restores the window
 configuration.  That takes some time, so if your program does not care
 what happens to the window configurations, it is better to set this
-variable to @code{nil}.
+variable to @code{nil}.  We also recommend to set this to @code{nil}
+if the default value causes Edebug to overwrite the positions of point
+in buffers that are involved in the program you are debugging, as
+result of saving and restoring the window configuration; this could
+happen if your program moves point in one or more of those buffers.
+Another option to try to customize in this case is
+@code{edebug-save-displayed-buffer-points}, described below.
 
-If the value is a list, only the listed windows are saved and
-restored.
+If the value of @code{edebug-save-windows} is a list, only the listed
+windows are saved and restored.
 
 You can use the @kbd{W} command in Edebug to change this variable
 interactively.  @xref{Edebug Display Update}.

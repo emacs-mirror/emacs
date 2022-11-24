@@ -43,8 +43,8 @@
 
 ;;; The SEMANTIC TAG inserter
 ;;
-;; Put a tag into the dictionary that can be used w/ arbitrary
-;; lisp expressions.
+;; Put a tag into the dictionary that can be used with arbitrary
+;; Lisp expressions.
 
 (defclass srecode-semantic-tag (srecode-dictionary-compound-value)
   ((prime :initarg :prime

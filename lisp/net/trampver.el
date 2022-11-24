@@ -83,7 +83,7 @@
   (unless (string-equal "ok" x) (error "%s" x)))
 
 (defun tramp-inside-emacs ()
-  "Version string provided by INSIDE_EMACS enmvironment variable."
+  "Version string provided by INSIDE_EMACS environment variable."
   (concat (or (getenv "INSIDE_EMACS") emacs-version)
 	  ",tramp:" tramp-version))
 

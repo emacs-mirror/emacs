@@ -1063,19 +1063,30 @@ init-file, or to a default value if loading is not possible."
 
             ;; If we loaded a compiled file, set `user-init-file' to
             ;; the source version if that exists.
-            (when (equal (file-name-extension user-init-file)
-                         "elc")
-              (let* ((source (file-name-sans-extension user-init-file))
-                     (alt (concat source ".el")))
-                (setq source (cond ((file-exists-p alt) alt)
-                                   ((file-exists-p source) source)
-                                   (t nil)))
-                (when source
-                  (when (file-newer-than-file-p source user-init-file)
-                    (message "Warning: %s is newer than %s"
-                             source user-init-file)
-                    (sit-for 1))
-                  (setq user-init-file source))))
+            (if (equal (file-name-extension user-init-file) "elc")
+                (let* ((source (file-name-sans-extension user-init-file))
+                       (alt (concat source ".el")))
+                  (setq source (cond ((file-exists-p alt) alt)
+                                     ((file-exists-p source) source)
+                                     (t nil)))
+                  (when source
+                    (when (file-newer-than-file-p source user-init-file)
+                      (message "Warning: %s is newer than %s"
+                               source user-init-file)
+                      (sit-for 1))
+                    (setq user-init-file source)))
+              ;; Else, perhaps the user init file was compiled
+              (when (and (equal (file-name-extension user-init-file) "eln")
+                         ;; The next test is for builds without native
+                         ;; compilation support or builds with unexec.
+                         (boundp 'comp-eln-to-el-h))
+                (if-let (source (gethash (file-name-nondirectory user-init-file)
+                                         comp-eln-to-el-h))
+                    ;; source exists or the .eln file would not load
+                    (setq user-init-file source)
+                  (message "Warning: unknown source file for init file %S"
+                           user-init-file)
+                  (sit-for 1))))
 
             (when (and load-defaults
                        (not inhibit-default-init))

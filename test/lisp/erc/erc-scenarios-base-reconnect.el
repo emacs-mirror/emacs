@@ -224,4 +224,50 @@
       (with-current-buffer "#chan"
         (funcall expect 10 "here comes the lady")))))
 
+
+(ert-deftest erc-scenarios-base-cancel-reconnect ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "base/reconnect")
+       (dumb-server (erc-d-run "localhost" t 'timer 'timer 'timer-last))
+       (port (process-contact dumb-server :service))
+       (expect (erc-d-t-make-expecter))
+       (erc-server-auto-reconnect t)
+       erc-autojoin-channels-alist
+       erc-server-buffer)
+
+    (ert-info ("Connect to foonet")
+      (setq erc-server-buffer (erc :server "127.0.0.1"
+                                   :port port
+                                   :nick "tester"
+                                   :password "changeme"
+                                   :full-name "tester"))
+      (with-current-buffer erc-server-buffer
+        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))))
+
+    (ert-info ("Two connection attempts, all stymied")
+      (with-current-buffer erc-server-buffer
+        (ert-info ("First two attempts behave normally")
+          (dotimes (n 2)
+            (ert-info ((format "Initial attempt %d" (1+ n)))
+              (funcall expect 3 "Opening connection")
+              (funcall expect 2 "Password incorrect")
+              (funcall expect 2 "Connection failed!")
+              (funcall expect 2 "Re-establishing connection"))))
+        (ert-info ("/RECONNECT cancels timer but still attempts to connect")
+          (erc-cmd-RECONNECT)
+          (funcall expect 2 "Canceled")
+          (funcall expect 3 "Opening connection")
+          (funcall expect 2 "Password incorrect")
+          (funcall expect 2 "Connection failed!")
+          (funcall expect 2 "Re-establishing connection"))
+        (ert-info ("Explicitly cancel timer")
+          (erc-cmd-RECONNECT "cancel")
+          (funcall expect 2 "Canceled")
+          (erc-d-t-absent-for 1 "Opening connection" (point)))))
+
+    (ert-info ("Server buffer is unique and temp name is absent")
+      (should (equal (list (get-buffer (format "127.0.0.1:%d" port)))
+                     (erc-scenarios-common-buflist "127.0.0.1"))))))
+
 ;;; erc-scenarios-base-reconnect.el ends here

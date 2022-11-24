@@ -918,6 +918,13 @@ x_handle_selection_request (struct selection_input_event *event)
 	}
       /* Save conversion results */
       lisp_data_to_selection_data (dpyinfo, multprop, &cs);
+
+      /* If cs.type is ATOM, change it to ATOM_PAIR.  This is because
+	 the parameters to a MULTIPLE are ATOM_PAIRs.  */
+
+      if (cs.type == XA_ATOM)
+	cs.type = dpyinfo->Xatom_ATOM_PAIR;
+
       XChangeProperty (dpyinfo->display, requestor, property,
 		       cs.type, cs.format, PropModeReplace,
 		       cs.data, cs.size);
@@ -960,7 +967,7 @@ x_handle_selection_request (struct selection_input_event *event)
    x_reply_selection_request.  If FOR_MULTIPLE, write out
    the data even if conversion fails, using conversion_fail_tag.
 
-   Return true iff successful.  */
+   Return true if successful.  */
 
 static bool
 x_convert_selection (Lisp_Object selection_symbol,

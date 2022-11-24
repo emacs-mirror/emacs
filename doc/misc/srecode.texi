@@ -1595,7 +1595,7 @@ from a user perspective during basic interactive insertion via
 
 NOTES ON THIS CHAPTER:
 
-These conventions are being worked on.  Check w/ CEDET-DEVEL mailing
+These conventions are being worked on.  Check with CEDET-DEVEL mailing
 list if you want to support a language, or write an application and
 provide your opinions on this topic.  Any help is appreciated.
 

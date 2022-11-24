@@ -52,7 +52,9 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_bind_null, (sqlite3_stmt*, int));
 DEF_DLL_FN (SQLITE_API int, sqlite3_bind_int, (sqlite3_stmt*, int, int));
 DEF_DLL_FN (SQLITE_API int, sqlite3_extended_errcode, (sqlite3*));
 DEF_DLL_FN (SQLITE_API const char*, sqlite3_errmsg, (sqlite3*));
+#if SQLITE_VERSION_NUMBER >= 3007015
 DEF_DLL_FN (SQLITE_API const char*, sqlite3_errstr, (int));
+#endif
 DEF_DLL_FN (SQLITE_API int, sqlite3_step, (sqlite3_stmt*));
 DEF_DLL_FN (SQLITE_API int, sqlite3_changes, (sqlite3*));
 DEF_DLL_FN (SQLITE_API int, sqlite3_column_count, (sqlite3_stmt*));
@@ -91,7 +93,9 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 # undef sqlite3_bind_int
 # undef sqlite3_extended_errcode
 # undef sqlite3_errmsg
-# undef sqlite3_errstr
+# if SQLITE_VERSION_NUMBER >= 3007015
+#  undef sqlite3_errstr
+# endif
 # undef sqlite3_step
 # undef sqlite3_changes
 # undef sqlite3_column_count
@@ -117,7 +121,9 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 # define sqlite3_bind_int fn_sqlite3_bind_int
 # define sqlite3_extended_errcode fn_sqlite3_extended_errcode
 # define sqlite3_errmsg fn_sqlite3_errmsg
-# define sqlite3_errstr fn_sqlite3_errstr
+# if SQLITE_VERSION_NUMBER >= 3007015
+#  define sqlite3_errstr fn_sqlite3_errstr
+# endif
 # define sqlite3_step fn_sqlite3_step
 # define sqlite3_changes fn_sqlite3_changes
 # define sqlite3_column_count fn_sqlite3_column_count
@@ -146,7 +152,9 @@ load_dll_functions (HMODULE library)
   LOAD_DLL_FN (library, sqlite3_bind_int);
   LOAD_DLL_FN (library, sqlite3_extended_errcode);
   LOAD_DLL_FN (library, sqlite3_errmsg);
+#if SQLITE_VERSION_NUMBER >= 3007015
   LOAD_DLL_FN (library, sqlite3_errstr);
+#endif
   LOAD_DLL_FN (library, sqlite3_step);
   LOAD_DLL_FN (library, sqlite3_changes);
   LOAD_DLL_FN (library, sqlite3_column_count);
@@ -428,13 +436,27 @@ row_to_value (sqlite3_stmt *stmt)
 static Lisp_Object
 sqlite_prepare_errdata (int code, sqlite3 *sdb)
 {
-  Lisp_Object errstr = build_string (sqlite3_errstr (code));
   Lisp_Object errcode = make_fixnum (code);
-  /* More details about what went wrong.  */
-  Lisp_Object ext_errcode = make_fixnum (sqlite3_extended_errcode (sdb));
   const char *errmsg = sqlite3_errmsg (sdb);
-  return list4 (errstr, errmsg ? build_string (errmsg) : Qnil,
-		errcode, ext_errcode);
+  Lisp_Object lerrmsg = errmsg ? build_string (errmsg) : Qnil;
+  Lisp_Object errstr, ext_errcode;
+
+#if SQLITE_VERSION_NUMBER >= 3007015
+  errstr = build_string (sqlite3_errstr (code));
+#else
+  /* The internet says this is identical to sqlite3_errstr (code).  */
+  errstr = lerrmsg;
+#endif
+
+  /* More details about what went wrong.  */
+#if SQLITE_VERSION_NUMBER >= 3006005
+  ext_errcode = make_fixnum (sqlite3_extended_errcode (sdb));
+#else
+  /* What value to use here?  */
+  ext_errcode = make_fixnum (0);
+#endif
+
+  return list4 (errstr, lerrmsg, errcode, ext_errcode);
 }
 
 DEFUN ("sqlite-execute", Fsqlite_execute, Ssqlite_execute, 2, 3, 0,

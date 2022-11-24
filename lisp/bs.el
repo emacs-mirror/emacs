@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; The bs-package contains a main function bs-show for popping up a
+;; The bs package contains a main function `bs-show' for popping up a
 ;; buffer in a way similar to `list-buffers' and `electric-buffer-list':
 ;; The new buffer offers a Buffer Selection Menu for manipulating
 ;; the buffer list and buffers.
@@ -42,18 +42,18 @@
 
 ;;; Quick Installation and Customization:
 
-;; To display the bs menu, do
+;; To display the bs menu, type
 ;;   M-x bs-show
-;; To customize its behavior, do
+;; To customize its behavior, type
 ;;   M-x bs-customize
 
 ;;; More Commentary:
 
-;; bs-show will generate a new buffer named *buffer-selection*, which shows
+;; `bs-show' will generate a new buffer named *buffer-selection*, which shows
 ;; all buffers or a subset of them, and has possibilities for deleting,
-;; saving and selecting buffers. For more details see docstring of
-;; function `bs-mode'. A current configuration describes which buffers appear
-;; in *buffer-selection*. See docstring of variable `bs-configurations' for
+;; saving and selecting buffers.  For more details see docstring of
+;; function `bs-mode'.  A current configuration describes which buffers appear
+;; in *buffer-selection*.  See docstring of variable `bs-configurations' for
 ;; more details.
 ;;
 ;; The package bs combines the advantages of the Emacs functions
@@ -70,7 +70,7 @@
 
 ;;; Cycling through buffers
 
-;; This package offers two functions for buffer cycling. If you want to cycle
+;; This package offers two functions for buffer cycling.  If you want to cycle
 ;; through buffer list you can use `bs-cycle-next' or `bs-cycle-previous'.
 ;; Bind these function to a key like
 ;;   (global-set-key [(f9)]   'bs-cycle-previous)
@@ -80,7 +80,7 @@
 ;; to go through internal buffers like *Messages*.
 ;;
 ;; Cycling through buffers ignores sorting because sorting destroys
-;; the logical buffer list. If buffer list is sorted by size you
+;; the logical buffer list.  If buffer list is sorted by size you
 ;; won't be able to cycle to the smallest buffer.
 
 ;;; Customization:
@@ -114,7 +114,7 @@
 ;; When cycling through buffer list the functions for cycling will use
 ;; the current configuration of bs to calculate the buffer list.
 ;; If you want to use a different configuration for cycling you have to set
-;; the variable `bs-cycle-configuration-name'. You can customize this variable.
+;; the variable `bs-cycle-configuration-name'.  You can customize this variable.
 ;;
 ;; For example: If you use the configuration called "files-and-scratch" you
 ;; can cycle through all file buffers and *scratch* although your current
@@ -390,9 +390,9 @@ column title to highlight.
 FACE is a face used to fontify the sorted column title.  A value of nil means
 don't highlight.
 The new sort aspect will be inserted into list `bs-sort-functions'."
-  (let ((tupel (assoc name bs-sort-functions)))
-    (if tupel
-	(setcdr tupel (list fun regexp-for-sorting face))
+  (let ((tuple (assoc name bs-sort-functions)))
+    (if tuple
+        (setcdr tuple (list fun regexp-for-sorting face))
       (setq bs-sort-functions
 	    (cons (list name fun regexp-for-sorting face)
 		  bs-sort-functions)))))
@@ -823,10 +823,14 @@ Leave Buffer Selection Menu."
   "Visit the tags table in the buffer on this line.
 See `visit-tags-table'."
   (interactive)
-  (let ((file (buffer-file-name (bs--current-buffer))))
-    (if file
-	(visit-tags-table file)
-      (error "Specified buffer has no file"))))
+  (let* ((buf (bs--current-buffer))
+         (file (buffer-file-name buf)))
+    (cond
+      ((not file) (error "Specified buffer has no file"))
+      ((and buf (with-current-buffer buf
+                  (etags-verify-tags-table)))
+       (visit-tags-table file))
+      (t (error "Specified buffer is not a tags-table")))))
 
 (defun bs-toggle-current-to-show ()
   "Toggle status of showing flag for buffer in current line."
@@ -1236,13 +1240,13 @@ by buffer configuration `bs-cycle-configuration-name'."
     (bs-set-configuration (or bs-cycle-configuration-name bs-default-configuration))
     (let ((bs-buffer-sort-function nil)
 	  (bs--current-sort-function nil))
-      (let* ((tupel (bs-next-buffer (if (or (eq last-command
+      (let* ((tuple (bs-next-buffer (if (or (eq last-command
 						'bs-cycle-next)
 					    (eq last-command
 						'bs-cycle-previous))
 					bs--cycle-list)))
-	     (next (car tupel))
-	     (cycle-list (cdr tupel)))
+             (next (car tuple))
+             (cycle-list (cdr tuple)))
         ;; We don't want the frame iconified if the only window in the frame
         ;; happens to be dedicated.
         (bury-buffer (current-buffer))
@@ -1268,13 +1272,13 @@ by buffer configuration `bs-cycle-configuration-name'."
     (bs-set-configuration (or bs-cycle-configuration-name bs-default-configuration))
     (let ((bs-buffer-sort-function nil)
 	  (bs--current-sort-function nil))
-      (let* ((tupel (bs-previous-buffer (if (or (eq last-command
+      (let* ((tuple (bs-previous-buffer (if (or (eq last-command
 						    'bs-cycle-next)
 						(eq last-command
 						    'bs-cycle-previous))
 					    bs--cycle-list)))
-	     (prev-buffer (car tupel))
-	     (cycle-list (cdr tupel)))
+             (prev-buffer (car tuple))
+             (cycle-list (cdr tuple)))
 	(switch-to-buffer prev-buffer nil t)
 	(setq bs--cycle-list (append (last cycle-list)
 				     (reverse (cdr (reverse cycle-list)))))

@@ -1,7 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
-;;
-;; Copyright (C) 1996-1997, 1999-2022 Free Software Foundation, Inc.
-;;
+
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, faces
@@ -23,7 +23,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This file implements the code to create and edit customize buffers.
 ;;
 ;; See `custom.el'.
@@ -428,32 +428,30 @@ Use group `text' for this instead.  This group is deprecated."
 
 ;;; Custom mode keymaps
 
-(defvar custom-mode-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (define-key map [remap self-insert-command] 'Custom-no-edit)
-    (define-key map "\^m" 'Custom-newline)
-    (define-key map " " 'scroll-up-command)
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map "\177" 'scroll-down-command)
-    (define-key map "\C-c\C-c" 'Custom-set)
-    (define-key map "\C-x\C-s" 'Custom-save)
-    (define-key map "q" 'Custom-buffer-done)
-    (define-key map "u" 'Custom-goto-parent)
-    (define-key map "n" 'widget-forward)
-    (define-key map "p" 'widget-backward)
-    (define-key map "H" 'custom-toggle-hide-all-widgets)
-    map)
-  "Keymap for `Custom-mode'.")
+(defvar-keymap custom-mode-map
+  :doc "Keymap for `Custom-mode'."
+  :full t
+  :parent widget-keymap
+  "<remap> <self-insert-command>" #'Custom-no-edit
+  "RET"     #'Custom-newline
+  "SPC"     #'scroll-up-command
+  "S-SPC"   #'scroll-down-command
+  "DEL"     #'scroll-down-command
+  "C-c C-c" #'Custom-set
+  "C-x C-s" #'Custom-save
+  "q"       #'Custom-buffer-done
+  "u"       #'Custom-goto-parent
+  "n"       #'widget-forward
+  "p"       #'widget-backward
+  "H"       #'custom-toggle-hide-all-widgets)
 
-(defvar custom-mode-link-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map custom-mode-map)
-    (define-key map [down-mouse-2] nil)
-    (define-key map [down-mouse-1] 'mouse-drag-region)
-    (define-key map [mouse-2] 'widget-move-and-invoke)
-    map)
-  "Local keymap for links in `Custom-mode'.")
+(defvar-keymap custom-mode-link-map
+  :doc "Local keymap for links in `Custom-mode'."
+  :full t
+  :parent custom-mode-map
+  "<down-mouse-2>" nil
+  "<down-mouse-1>" #'mouse-drag-region
+  "<mouse-2>"      #'widget-move-and-invoke)
 
 (defvar custom-field-keymap
   (let ((map (copy-keymap widget-field-keymap)))

@@ -96,7 +96,7 @@ Find the bof of the current file."
   "Return list of bibfiles for current document.
 When using the chapterbib or bibunits package you should either
 use the same database files everywhere, or separate parts using
-different databases into different files (included into the mater file).
+different databases into different files (included into the master file).
 Then this function will return the applicable database files."
 
   ;; Ensure access to scanning info

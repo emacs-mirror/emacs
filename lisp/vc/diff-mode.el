@@ -306,7 +306,7 @@ well."
 ;; terminal supporting 24 bit colors) doesn't render well in terminal
 ;; supporting only 256 colors.  Concretely, both #ffeeee
 ;; (diff-removed) and #eeffee (diff-added) are mapped to the same
-;; greyish color.  "min-colors 257" ensures that those colors are not
+;; grayish color.  "min-colors 257" ensures that those colors are not
 ;; used terminals supporting only 256 colors.  However, any number
 ;; between 257 and 2^24 (16777216) would do.
 

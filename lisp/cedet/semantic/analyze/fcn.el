@@ -67,12 +67,12 @@ Return the string representing the compound name.")
   "For a SEQUENCE of tags, all with good names, pick the best one.
 If SEQUENCE is made up of namespaces, merge the namespaces together.
 If SEQUENCE has several prototypes, find the non-prototype.
-If SEQUENCE has some items w/ no type information, find the one with a type.
+If SEQUENCE has some items with no type information, find the one with a type.
 If SEQUENCE is all prototypes, or has no prototypes, get the first one.
 Optional TAGCLASS indicates to restrict the return to only
 tags of TAGCLASS."
 
-  ;; If there is a srew up and we get just one tag.. massage over it.
+  ;; If there is a screw up and we get just one tag.. massage over it.
   (when (semantic-tag-p sequence)
     (setq sequence (list sequence)))
 

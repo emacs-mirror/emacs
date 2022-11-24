@@ -275,7 +275,7 @@ For instance: /home/<username>/.semanticdb/!usr!include!BROWSE"
       (let ((ans nil)
 	    (efcn (symbol-function 'ebrowse-show-progress)))
         (fset 'ebrowse-show-progress (lambda (&rest _junk) nil))
-	(unwind-protect ;; Protect against errors w/ ebrowse
+        (unwind-protect ; Protect against errors with ebrowse
 	    (setq ans (list B (ebrowse-read)))
 	  ;; These items must always happen
 	  (erase-buffer)

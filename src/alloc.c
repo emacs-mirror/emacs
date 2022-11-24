@@ -6279,11 +6279,6 @@ garbage_collect (void)
   image_prune_animation_caches (false);
 #endif
 
-  /* ELisp code run by `gc-post-hook' could result in itree iteration,
-     which must not happen while the itree is already busy.  See
-     bug#58639.  */
-  eassert (!itree_iterator_busy_p ());
-
   if (!NILP (Vpost_gc_hook))
     {
       specpdl_ref gc_count = inhibit_garbage_collection ();
@@ -6508,7 +6503,7 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
 static void
 mark_overlay (struct Lisp_Overlay *ov)
 {
-  /* We don't mark the `interval_node` object, because it is managed manually
+  /* We don't mark the `itree_node` object, because it is managed manually
      rather than by the GC.  */
   eassert (BASE_EQ (ov->interval->data, make_lisp_ptr (ov, Lisp_Vectorlike)));
   set_vectorlike_marked (&ov->header);
@@ -7780,13 +7775,23 @@ allocated since the last garbage collection.  All data types count.
 Garbage collection happens automatically only when `eval' is called.
 
 By binding this temporarily to a large number, you can effectively
-prevent garbage collection during a part of the program.
+prevent garbage collection during a part of the program.  But be
+sure to get back to the normal value soon enough, to avoid system-wide
+memory pressure, and never use a too-high value for prolonged periods
+of time.
 See also `gc-cons-percentage'.  */);
 
   DEFVAR_LISP ("gc-cons-percentage", Vgc_cons_percentage,
 	       doc: /* Portion of the heap used for allocation.
 Garbage collection can happen automatically once this portion of the heap
 has been allocated since the last garbage collection.
+
+By binding this temporarily to a large number, you can effectively
+prevent garbage collection during a part of the program.  But be
+sure to get back to the normal value soon enough, to avoid system-wide
+memory pressure, and never use a too-high value for prolonged periods
+of time.
+
 If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
   Vgc_cons_percentage = make_float (0.1);
 

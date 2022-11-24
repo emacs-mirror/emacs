@@ -875,26 +875,24 @@ cannot be completed sensibly: `custom-ident',
     (modify-syntax-entry ?? "." st)
     st))
 
-(defvar css-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap info-lookup-symbol] 'css-lookup-symbol)
-    ;; `info-complete-symbol' is not used.
-    (define-key map [remap complete-symbol] 'completion-at-point)
-    (define-key map "\C-c\C-f" 'css-cycle-color-format)
-    (easy-menu-define css-menu map "CSS mode menu"
-      '("CSS"
-        :help "CSS-specific features"
-        ["Reformat block" fill-paragraph
-         :help "Reformat declaration block or fill comment at point"]
-        ["Cycle color format" css-cycle-color-format
-         :help "Cycle color at point between different formats"]
-        "-"
-        ["Describe symbol" css-lookup-symbol
-         :help "Display documentation for a CSS symbol"]
-        ["Complete symbol" completion-at-point
-         :help "Complete symbol before point"]))
-    map)
-  "Keymap used in `css-mode'.")
+(defvar-keymap css-mode-map
+  :doc "Keymap used in `css-mode'."
+  "<remap> <info-lookup-symbol>" #'css-lookup-symbol
+  ;; `info-complete-symbol' is not used.
+  "<remap> <complete-symbol>" #'completion-at-point
+  "C-c C-f" #'css-cycle-color-format
+  :menu
+  '("CSS"
+    :help "CSS-specific features"
+    ["Reformat block" fill-paragraph
+     :help "Reformat declaration block or fill comment at point"]
+    ["Cycle color format" css-cycle-color-format
+     :help "Cycle color at point between different formats"]
+    "-"
+    ["Describe symbol" css-lookup-symbol
+     :help "Display documentation for a CSS symbol"]
+    ["Complete symbol" completion-at-point
+     :help "Complete symbol before point"]))
 
 (eval-and-compile
   (defconst css--uri-re

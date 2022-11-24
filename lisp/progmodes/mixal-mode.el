@@ -33,9 +33,6 @@
 ;; GNU MDK from `https://savannah.gnu.org/projects/mdk/' and
 ;; `https://ftp.gnu.org/pub/gnu/mdk'.
 ;;
-;; To use this mode, place the following in your init file:
-;; `(load-file "/PATH-TO-FILE/mixal-mode.el")'.
-;;
 ;; When you load a file with the extension .mixal the mode will be started
 ;; automatically.  If you want to start the mode manually, use `M-x mixal-mode'.
 ;; Font locking will work, the behavior of tabs is the same as Emacs's

@@ -395,13 +395,12 @@ range should not be the starting point of another one; for example,
 @samp{[a-m-z]} should be avoided.
 
 A character alternative can also specify named character classes
-(@pxref{Char Classes}).  This is a POSIX feature.  For example,
-@samp{[[:ascii:]]} matches any @acronym{ASCII} character.
-Using a character class is equivalent to mentioning each of the
-characters in that class; but the latter is not feasible in practice,
-since some classes include thousands of different characters.
-A character class should not appear as the lower or upper bound
-of a range.
+(@pxref{Char Classes}).  For example, @samp{[[:ascii:]]} matches any
+@acronym{ASCII} character.  Using a character class is equivalent to
+mentioning each of the characters in that class; but the latter is not
+feasible in practice, since some classes include thousands of
+different characters.  A character class should not appear as the
+lower or upper bound of a range.
 
 The usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters is
@@ -617,7 +616,7 @@ This matches any character whose code is in the range 0--31.
 This matches @samp{0} through @samp{9}.  Thus, @samp{[-+[:digit:]]}
 matches any digit, as well as @samp{+} and @samp{-}.
 @item [:graph:]
-This matches graphic characters---everything except whitespace,
+This matches graphic characters---everything except spaces,
 @acronym{ASCII} and non-@acronym{ASCII} control characters,
 surrogates, and codepoints unassigned by Unicode, as indicated by the
 Unicode @samp{general-category} property (@pxref{Character
@@ -625,29 +624,39 @@ Properties}).
 @item [:lower:]
 This matches any lower-case letter, as determined by the current case
 table (@pxref{Case Tables}).  If @code{case-fold-search} is
-non-@code{nil}, this also matches any upper-case letter.
+non-@code{nil}, this also matches any upper-case letter.  Note that a
+buffer can have its own local case table different from the default
+one.
 @item [:multibyte:]
 This matches any multibyte character (@pxref{Text Representations}).
 @item [:nonascii:]
 This matches any non-@acronym{ASCII} character.
 @item [:print:]
-This matches any printing character---either whitespace, or a graphic
-character matched by @samp{[:graph:]}.
+This matches any printing character---either spaces or graphic
+characters matched by @samp{[:graph:]}.
 @item [:punct:]
 This matches any punctuation character.  (At present, for multibyte
-characters, it matches anything that has non-word syntax.)
+characters, it matches anything that has non-word syntax, and thus its
+exact definition can vary from one major mode to another, since the
+syntax of a character depends on the major mode.)
 @item [:space:]
 This matches any character that has whitespace syntax
-(@pxref{Syntax Class Table}).
+(@pxref{Syntax Class Table}).  Note that the syntax of a character,
+and thus which characters are considered ``whitespace'',
+depends on the major mode.
 @item [:unibyte:]
 This matches any unibyte character (@pxref{Text Representations}).
 @item [:upper:]
 This matches any upper-case letter, as determined by the current case
 table (@pxref{Case Tables}).  If @code{case-fold-search} is
-non-@code{nil}, this also matches any lower-case letter.
+non-@code{nil}, this also matches any lower-case letter.  Note that a
+buffer can have its own local case table different from the default
+one.
 @item [:word:]
 This matches any character that has word syntax (@pxref{Syntax Class
-Table}).
+Table}).  Note that the syntax of a character, and thus which
+characters are considered ``word-constituent'', depends on the major
+mode.
 @item [:xdigit:]
 This matches the hexadecimal digits: @samp{0} through @samp{9}, @samp{a}
 through @samp{f} and @samp{A} through @samp{F}.

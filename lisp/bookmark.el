@@ -365,8 +365,8 @@ BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'."
   (car bookmark-record))
 
 (defun bookmark-type-from-full-record (bookmark-record)
-  "Return then type of BOOKMARK-RECORD.
-BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'. It's
+  "Return the type of BOOKMARK-RECORD.
+BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'.  Its
 type is read from the symbol property named
 `bookmark-handler-type' read on the record handler function."
   (let ((handler (bookmark-get-handler bookmark-record)))
@@ -1396,20 +1396,25 @@ after a bookmark was set in it."
   (interactive (list (bookmark-completing-read "Bookmark to relocate")))
   (bookmark-maybe-historicize-string bookmark-name)
   (bookmark-maybe-load-default-file)
-  (let* ((bmrk-filename (bookmark-get-filename bookmark-name))
-         (newloc (abbreviate-file-name
-                  (expand-file-name
-                   (read-file-name
-                    (format "Relocate %s to: " bookmark-name)
-                    (file-name-directory bmrk-filename))))))
-    (bookmark-set-filename bookmark-name newloc)
-    (bookmark-update-last-modified bookmark-name)
-    (setq bookmark-alist-modification-count
-          (1+ bookmark-alist-modification-count))
-    (if (bookmark-time-to-save-p)
+  (let ((bmrk-filename (bookmark-get-filename bookmark-name)))
+    ;; FIXME: Make `bookmark-relocate' support bookmark Types
+    ;; besides files and directories.
+    (unless bmrk-filename
+      (user-error "Cannot relocate bookmark of type \"%s\""
+                  (bookmark-type-from-full-record
+                   (bookmark-get-bookmark bookmark-name))))
+    (let ((newloc (abbreviate-file-name
+                   (expand-file-name
+                    (read-file-name
+                     (format "Relocate %s to: " bookmark-name)
+                     (file-name-directory bmrk-filename))))))
+      (bookmark-set-filename bookmark-name newloc)
+      (bookmark-update-last-modified bookmark-name)
+      (setq bookmark-alist-modification-count
+            (1+ bookmark-alist-modification-count))
+      (when (bookmark-time-to-save-p)
         (bookmark-save))
-    (bookmark-bmenu-surreptitiously-rebuild-list)))
-
+      (bookmark-bmenu-surreptitiously-rebuild-list))))
 
 ;;;###autoload
 (defun bookmark-insert-location (bookmark-name &optional no-history)

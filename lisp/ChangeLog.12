@@ -1556,7 +1556,7 @@
 	(org-search-not-self): Rename from `org-search-not-link'.
 	(org-open-link-marker): New variable.
 	(org-open-at-point): Set `org-open-link-marker'.
-	(org-print-icalendar-entries): Fixe bug with excluding DONE
+	(org-print-icalendar-entries): Fix bug with excluding DONE
 	entries from the exported list.
 	(org-edit-formula-lisp-indent): New command.
 	(orgtbl-to-texinfo, orgtbl-to-html): New functions.
@@ -5243,7 +5243,7 @@
 
 2006-10-11  Ilya Zakharevich  <ilyaz@cpan.org>
 
-	* progmodes/cperl-mode.el: Merge from upstream, upto version 5.22.
+	* progmodes/cperl-mode.el: Merge from upstream, up to version 5.22.
 	After 5.0:
 	(cperl-add-tags-recurse-noxs-fullpath): New function (for -batch mode).
 
@@ -5551,7 +5551,7 @@
 	(cperl-next-interpolated-REx-1): Likewise.
 	"\C-c\C-x", "\C-c\C-y", "\C-c\C-v": New keybinding for these functions.
 	Perl/Regexp menu: 3 new entries for `cperl-next-interpolated-REx'.
-	(cperl-praise): Mention finded interpolated RExen.
+	(cperl-praise): Mention finding interpolated RExen.
 
 	After 5.19:
 	(cperl-init-faces): Highlight %$foo, @$foo too.
@@ -11874,7 +11874,7 @@
 
 	* files.el (hack-local-variables-confirm): Don't prompt for ! if
 	enable-local-variables is set to always query, or there is no
-	savable variable.
+	saveable variable.
 
 2006-03-10  Bill Wohler  <wohler@newt.com>
 

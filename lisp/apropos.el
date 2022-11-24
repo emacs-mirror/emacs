@@ -25,8 +25,7 @@
 ;;; Commentary:
 
 ;; The ideas for this package were derived from the C code in
-;; src/keymap.c and elsewhere.  The functions in this file should
-;; always be byte-compiled for speed.
+;; src/keymap.c and elsewhere.
 
 ;; The idea for super-apropos is based on the original implementation
 ;; by Lynn Slater <lrs@esl.com>.
@@ -493,7 +492,7 @@ Intended as a value for `revert-buffer-function'."
 \\{apropos-mode-map}"
   (make-local-variable 'apropos--current)
   (setq-local revert-buffer-function #'apropos--revert-buffer)
-  (setq-local outline-regexp "^[^ \n]+"
+  (setq-local outline-search-function #'outline-search-level
               outline-level (lambda () 1)
               outline-minor-mode-cycle t
               outline-minor-mode-highlight t
@@ -652,7 +651,8 @@ while a list of strings is used as a word list."
 (defun apropos (pattern &optional do-all)
   "Show all meaningful Lisp symbols whose names match PATTERN.
 Symbols are shown if they are defined as functions, variables, or
-faces, or if they have nonempty property lists.
+faces, or if they have nonempty property lists, or if they are
+known keywords.
 
 PATTERN can be a word, a list of words (separated by spaces),
 or a regexp (using some regexp special characters).  If it is a word,
@@ -1188,7 +1188,8 @@ as a heading."
 	  (insert-text-button (symbol-name symbol)
 			      'type 'apropos-symbol
 			      'skip apropos-multi-type
-			      'face 'apropos-symbol)
+			      'face 'apropos-symbol
+			      'outline-level 1)
 	  (setq button-end (point))
 	  (if (and (eq apropos-sort-by-scores 'verbose)
 		   (cadr apropos-item))

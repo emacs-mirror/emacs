@@ -2330,7 +2330,7 @@ pixel_to_glyph_coords (struct frame *f, int pix_x, int pix_y, int *x, int *y,
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-static struct glyph *
+struct glyph *
 x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
 		  int *dx, int *dy, int *area)
 {
@@ -3342,7 +3342,8 @@ init_iterator (struct it *it, struct window *w,
     {
       /* Mode lines, menu bar in terminal frames.  */
       it->first_visible_x = 0;
-      it->last_visible_x = body_width = WINDOW_PIXEL_WIDTH (w);
+      it->last_visible_x =
+	WINDOW_PIXEL_WIDTH (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
     }
   else
     {
@@ -3410,8 +3411,13 @@ init_iterator (struct it *it, struct window *w,
       face = FACE_FROM_ID_OR_NULL (it->f, remapped_base_face_id);
       if (face && face->box != FACE_NO_BOX)
 	{
+	  int box_thickness = face->box_vertical_line_width;
 	  it->face_box_p = true;
 	  it->start_of_box_run_p = true;
+	  /* Make sure we will have enough horizontal space to add the
+	     right box line at the end.  */
+	  if (box_thickness > 0)
+	    it->last_visible_x -= box_thickness;
 	}
     }
 
@@ -5324,6 +5330,8 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
 	  /* Insert the stretch glyph.  */
 	  it->object = list3 (Qspace, QCwidth, w);
 	  produce_stretch_glyph (it);
+	  if (it->area == TEXT_AREA)
+	    it->current_x += it->pixel_width;
 	  it->min_width_property = Qnil;
 	}
     }
@@ -7036,17 +7044,11 @@ strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
       str = Foverlay_get (overlay, Qbefore_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	{
-	  ITREE_FOREACH_ABORT ();
-	  return true;
-	}
+	return true;
       str = Foverlay_get (overlay, Qafter_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	{
-	  ITREE_FOREACH_ABORT ();
-	  return true;
-	}
+	return true;
     }
 
   /* Check for 'display' properties whose values include strings.  */
@@ -23188,10 +23190,18 @@ extend_face_to_end_of_line (struct it *it)
      this is called when redisplaying a non-selected window, with
      point temporarily moved to window-point.  */
   specbind (Qinhibit_quit, Qt);
-  const int extend_face_id = (it->face_id == DEFAULT_FACE_ID
-                              || it->s != NULL)
-    ? DEFAULT_FACE_ID
-    : face_at_pos (it, LFACE_EXTEND_INDEX);
+  /* The default face, possibly remapped. */
+  struct face *default_face =
+    FACE_FROM_ID_OR_NULL (f, lookup_basic_face (it->w, f, DEFAULT_FACE_ID));
+  if (!default_face)
+    return;
+
+  const int extend_face_id =
+    (it->face_id == default_face->id || it->s != NULL)
+    ? it->face_id
+    : (it->glyph_row->ends_at_zv_p
+       ? default_face->id
+       : face_at_pos (it, LFACE_EXTEND_INDEX));
   unbind_to (count, Qnil);
 
   /* Face extension extends the background and box of IT->extend_face_id
@@ -23228,14 +23238,8 @@ extend_face_to_end_of_line (struct it *it)
   if (!ASCII_CHAR_P (it->c))
     it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
 
-  /* The default face, possibly remapped. */
-  struct face *default_face =
-    FACE_FROM_ID (f, lookup_basic_face (it->w, f, DEFAULT_FACE_ID));
 
 #ifdef HAVE_WINDOW_SYSTEM
-  if (default_face == NULL)
-    error ("extend_face_to_end_of_line: default_face is not set!");
-
   if (FRAME_WINDOW_P (f))
     {
       /* If the row is empty, add a space with the current face of IT,
@@ -26751,7 +26755,17 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
     {
       struct glyph *last = (it.glyph_row->glyphs[TEXT_AREA]
 			    + it.glyph_row->used[TEXT_AREA] - 1);
+      int box_thickness = face->box_vertical_line_width;
       last->right_box_line_p = true;
+      /* Add back the space for the right box line we subtracted in
+	 init_iterator, since the right_box_line_p flag will make the
+	 glyph wider.  We actually add only as much space as is
+	 available for the last glyph of the modeline and whatever
+	 space is left beyond it, since that glyph could be only
+	 partially visible */
+      if (box_thickness > 0)
+	last->pixel_width += max (0, (box_thickness
+				      - (it.current_x - it.last_visible_x)));
     }
 
   return it.glyph_row->height;
@@ -33597,8 +33611,14 @@ coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
 bool
 cursor_in_mouse_face_p (struct window *w)
 {
-  int hpos = w->phys_cursor.hpos;
   int vpos = w->phys_cursor.vpos;
+
+  /* If the cursor is outside the matrix glyph rows, it cannot be
+     within the mouse face.  */
+  if (!(0 <= vpos && vpos < w->current_matrix->nrows))
+    return false;
+
+  int hpos = w->phys_cursor.hpos;
   struct glyph_row *row = MATRIX_ROW (w->current_matrix, vpos);
 
   /* When the window is hscrolled, cursor hpos can legitimately be out

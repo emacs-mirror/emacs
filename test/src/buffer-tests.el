@@ -42,7 +42,6 @@ recorded calls conveniently."
      overlay
      hooks-property
      (list (lambda (ov &rest args)
-             (message "  %S called on %S with args %S" hooks-property ov args)
              (should inhibit-modification-hooks)
              (should (eq ov overlay))
              (push (list hooks-property args)
@@ -175,47 +174,41 @@ properties."
                                     (t 1 2 0))
                                    (insert-behind-hooks
                                     (t 1 2 0)))))))
-      (message "BEGIN overlay-modification-hooks test-case %S" test-case)
+      (ert-info ((format "test-case: %S" test-case))
+        ;; All three hooks ignore the overlay's `front-advance' and
+        ;; `rear-advance' option, so test both ways while expecting the same
+        ;; result.
+        (dolist (advance '(nil t))
+          (ert-info ((format "advance is %S" advance))
+            (let-alist test-case
+              (with-temp-buffer
+                ;; Set up the temporary buffer and overlay as specified by
+                ;; the test case.
+                (insert (or .buffer-text "1234"))
+                (let ((overlay (make-overlay
+                                (or .overlay-beg 2)
+                                (or .overlay-end 4)
+                                nil
+                                advance advance)))
+                  (overlay-tests-start-recording-modification-hooks overlay)
 
-      ;; All three hooks ignore the overlay's `front-advance' and
-      ;; `rear-advance' option, so test both ways while expecting the same
-      ;; result.
-      (dolist (advance '(nil t))
-        (message "  advance is %S" advance)
-        (let-alist test-case
-          (with-temp-buffer
-            ;; Set up the temporary buffer and overlay as specified by
-            ;; the test case.
-            (insert (or .buffer-text "1234"))
-            (let ((overlay (make-overlay
-                            (or .overlay-beg 2)
-                            (or .overlay-end 4)
-                            nil
-                            advance advance)))
-              (message "  (buffer-string) is %S" (buffer-string))
-              (message "  overlay is %S" overlay)
-              (overlay-tests-start-recording-modification-hooks overlay)
+                  ;; Modify the buffer, possibly inducing calls to the
+                  ;; overlay's modification hooks.
+                  (should (or .insert-at .replace))
+                  (when .insert-at
+                    (goto-char .insert-at)
+                    (insert "x"))
+                  (when .replace
+                    (goto-char (point-min))
+                    (search-forward .replace)
+                    (replace-match "x"))
 
-              ;; Modify the buffer, possibly inducing calls to the
-              ;; overlay's modification hooks.
-              (should (or .insert-at .replace))
-              (when .insert-at
-                (goto-char .insert-at)
-                (insert "x")
-                (message "  inserted \"x\" at %S, buffer-string now %S"
-                         .insert-at (buffer-string)))
-              (when .replace
-                (goto-char (point-min))
-                (search-forward .replace)
-                (replace-match "x")
-                (message "  replaced %S with \"x\"" .replace))
-
-              ;; Verify that the expected and actual modification hook
-              ;; calls match.
-              (should (equal
-                       .expected-calls
-                       (overlay-tests-get-recorded-modification-hooks
-                        overlay)))))))))
+                  ;; Verify that the expected and actual modification hook
+                  ;; calls match.
+                  (should (equal
+                           .expected-calls
+                           (overlay-tests-get-recorded-modification-hooks
+                            overlay)))))))))))
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()
   "Test for bug#21824.
@@ -274,6 +267,62 @@ with parameters from the *Messages* buffer modification."
 (ert-deftest test-buffer-base-buffer-non-indirect ()
   (with-temp-buffer
     (should (eq (buffer-base-buffer (current-buffer)) nil))))
+
+(ert-deftest buffer-tests--overlays-indirect-bug58928 ()
+  (with-temp-buffer
+    (insert "hello world")
+    (let* ((base (current-buffer))
+           (ol1 (make-overlay (+ 2 (point-min)) (+ 8 (point-min))))
+           (ib (make-indirect-buffer
+                base (generate-new-buffer-name "bug58928")))
+           (ol2 (with-current-buffer ib
+                  (make-overlay (+ 2 (point-min)) (+ 8 (point-min))))))
+      (should (equal (overlay-start ol1) (overlay-start ol2)))
+      (should (equal (overlay-end ol1) (overlay-end ol2)))
+      (goto-char (+ 3 (point-min)))
+      (insert "a") (delete-char 2)
+      (should (equal (overlay-start ol1) (overlay-start ol2)))
+      (should (equal (overlay-end ol1) (overlay-end ol2)))
+      (with-current-buffer ib
+        (goto-char (+ 4 (point-min)))
+        (insert "a") (delete-char 2))
+      (should (equal (overlay-start ol1) (overlay-start ol2)))
+      (should (equal (overlay-end ol1) (overlay-end ol2))))))
+
+(ert-deftest buffer-tests--overlays-indirect-evaporate ()
+  "Verify that deleting text evaporates overlays in every related buffer.
+
+Deleting characters from either a base or an indirect buffer
+should evaporate overlays in both."
+  ;; Loop twice, erasing from the base buffer the first time and the
+  ;; indirect buffer the second.
+  (dolist (erase-where '(base indirect))
+    (ert-info ((format "erase-where %S" erase-where))
+      (with-temp-buffer
+        (insert "xxx")
+        (let* ((beg 2)
+               (end 3)
+               (base (current-buffer))
+               (base-overlay (make-overlay beg end base))
+               (indirect (make-indirect-buffer
+                          base
+                          (generate-new-buffer-name
+                           (concat (buffer-name base) "-indirect"))))
+               (indirect-overlay (make-overlay beg end indirect)))
+          (overlay-put base-overlay 'evaporate t)
+          (overlay-put indirect-overlay 'evaporate t)
+          (with-current-buffer (pcase-exhaustive erase-where
+                                 (`base base)
+                                 (`indirect indirect))
+            (delete-region beg end))
+          (ert-info ((prin1-to-string
+                      `(,base ,base-overlay ,indirect ,indirect-overlay)))
+            (should (not (buffer-live-p (overlay-buffer base-overlay))))
+            (should (not (buffer-live-p (overlay-buffer indirect-overlay))))
+            (should (equal nil (with-current-buffer base
+                                 (overlays-in (point-min) (point-max)))))
+            (should (equal nil (with-current-buffer indirect
+                                 (overlays-in (point-min) (point-max)))))))))))
 
 (ert-deftest overlay-evaporation-after-killed-buffer ()
   (let* ((ols (with-temp-buffer
@@ -1272,7 +1321,51 @@ Regression test for bug#58706."
       (delete-overlay left)
       (should (= 2 (length (overlays-in 1 (point-max))))))))
 
+;; +==========================================================================+
+;; | Moving overlays with insert-before-markers
+;; +==========================================================================+
 
+(ert-deftest test-overlay-insert-before-markers-at-start ()
+  "`insert-before-markers' always advances an overlay's start.
+Test both front-advance and non-front-advance overlays."
+  (dolist (front-advance '(nil t))
+    (ert-info ((format "front-advance %S" front-advance))
+      (with-temp-buffer
+        (insert "1234")
+        (let* ((beg (1+ (point-min)))
+               (end (1+ beg))
+               (overlay (make-overlay beg end nil front-advance nil)))
+          (goto-char beg)
+          (insert-before-markers "x")
+          (should (equal (1+ beg) (overlay-start overlay)))
+          (should (equal (1+ end) (overlay-end overlay))))))))
+
+(ert-deftest test-overlay-insert-before-markers-at-end ()
+  "`insert-before-markers' always advances an overlay's end.
+Test both rear-advance and non-rear-advance overlays."
+  (dolist (rear-advance '(nil t))
+    (ert-info ((format "rear-advance %S" rear-advance))
+      (with-temp-buffer
+        (insert "1234")
+        (let* ((beg (1+ (point-min)))
+               (end (1+ beg))
+               (overlay (make-overlay beg end nil nil rear-advance)))
+          (goto-char end)
+          (insert-before-markers "x")
+          (should (equal beg (overlay-start overlay)))
+          (should (equal (1+ end) (overlay-end overlay))))))))
+
+(ert-deftest test-overlay-insert-before-markers-empty ()
+  (dolist (advance-args '((nil nil) (t nil) (nil t) (t t)))
+    (ert-info ((format "advance args %S" advance-args))
+      (with-temp-buffer
+        (insert "1234")
+        (let* ((pos (1+ (point-min)))
+               (overlay (apply #'make-overlay pos pos nil advance-args)))
+          (goto-char pos)
+          (insert-before-markers "x")
+          (should (equal (1+ pos) (overlay-start overlay)))
+          (should (equal (1+ pos) (overlay-end overlay))))))))
 
 ;; +==========================================================================+
 ;; | Moving by deletions
@@ -1624,7 +1717,7 @@ Regression test for bug#58706."
 
 This test works best when Emacs is configured with
 --enable-checking=yes.  This is a little bit like fuzz testing,
-except this test has no way to reduce to a minimal failng test
+except this test has no way to reduce to a minimal failing test
 case.  Regardless, by exercising many corner cases bugs can be
 found using Emacs' internal consistency assertions."
   (let* (
@@ -8280,65 +8373,92 @@ dicta sunt, explicabo.  "))
     (remove-overlays)
     (should (= (length (overlays-in (point-min) (point-max))) 0))))
 
-(ert-deftest test-kill-buffer-auto-save-default ()
-  (ert-with-temp-file file
-    (let (auto-save)
-      ;; Always answer yes.
-      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
-        (unwind-protect
-            (progn
-              (find-file file)
-              (auto-save-mode t)
-              (insert "foo\n")
-              (should buffer-auto-save-file-name)
-              (setq auto-save buffer-auto-save-file-name)
-              (do-auto-save)
-              (should (file-exists-p auto-save))
-              (kill-buffer (current-buffer))
-              (should (file-exists-p auto-save)))
-          (when auto-save
-            (ignore-errors (delete-file auto-save))))))))
+(defun test-kill-buffer-auto-save (auto-save-answer body-func)
+  "Test helper for `kill-buffer-delete-auto-save' tests.
 
-(ert-deftest test-kill-buffer-auto-save-delete ()
+Call BODY-FUNC with the current buffer set to a buffer visiting a
+temporary file.  Around the call, mock the \"Buffer modified;
+kill anyway?\" and \"Delete auto-save file?\" prompts, answering
+\"yes\" for the former and AUTO-SAVE-ANSWER for the latter.  The
+expectation should be the characters `?y' or `?n', or `nil' if no
+prompt is expected.  The test fails if the \"Delete auto-save
+file?\" prompt does not either prompt is not issued as expected.
+Finally, kill the buffer and its temporary file."
   (ert-with-temp-file file
-    (let (auto-save)
-      (should (file-exists-p file))
-      (setq kill-buffer-delete-auto-save-files t)
-      ;; Always answer yes.
-      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
-        (unwind-protect
-            (progn
-              (find-file file)
-              (auto-save-mode t)
-              (insert "foo\n")
-              (should buffer-auto-save-file-name)
-              (setq auto-save buffer-auto-save-file-name)
-              (do-auto-save)
-              (should (file-exists-p auto-save))
-              ;; This should delete the auto-save file.
-              (kill-buffer (current-buffer))
-              (should-not (file-exists-p auto-save)))
-          (ignore-errors (delete-file file))
-          (when auto-save
-            (ignore-errors (delete-file auto-save)))))
-      ;; Answer no to deletion.
-      (cl-letf (((symbol-function #'yes-or-no-p)
-                 (lambda (prompt)
-                   (not (string-search "Delete auto-save file" prompt)))))
-        (unwind-protect
-            (progn
-              (find-file file)
-              (auto-save-mode t)
-              (insert "foo\n")
-              (should buffer-auto-save-file-name)
-              (setq auto-save buffer-auto-save-file-name)
-              (do-auto-save)
-              (should (file-exists-p auto-save))
-              ;; This should not delete the auto-save file.
-              (kill-buffer (current-buffer))
-              (should (file-exists-p auto-save)))
-          (when auto-save
-            (ignore-errors (delete-file auto-save))))))))
+    (should (file-exists-p file))
+    (save-excursion
+      (find-file file)
+      (should (equal file (buffer-file-name)))
+      (let ((buffer (current-buffer))
+            (auto-save-prompt-happened nil))
+        (cl-letf (((symbol-function #'read-multiple-choice)
+                   (lambda (prompt choices &rest _)
+                     (should (string-search "modified; kill anyway?" prompt))
+                     (let ((answer (assq ?y choices)))
+                       (should answer)
+                       answer)))
+                  ((symbol-function #'yes-or-no-p)
+                   (lambda (prompt)
+                     (should (string-search "Delete auto-save file?" prompt))
+                     (setq auto-save-prompt-happened t)
+                     (pcase-exhaustive auto-save-answer
+                       (?y t)
+                       (?n nil)))))
+          (funcall body-func)
+          (should (equal (null auto-save-prompt-happened)
+                         (null auto-save-answer))))
+        (when (buffer-live-p buffer)
+          (with-current-buffer buffer
+            (set-buffer-modified-p nil)
+            (kill-buffer)))))))
+
+(ert-deftest test-kill-buffer-auto-save-default ()
+  (let ((kill-buffer-delete-auto-save-files nil))
+    (test-kill-buffer-auto-save
+     nil
+     (lambda ()
+       (let (auto-save)
+         (auto-save-mode t)
+         (insert "foo\n")
+         (should buffer-auto-save-file-name)
+         (setq auto-save buffer-auto-save-file-name)
+         (do-auto-save t)
+         (should (file-exists-p auto-save))
+         (kill-buffer (current-buffer))
+         (should (file-exists-p auto-save)))))))
+
+(ert-deftest test-kill-buffer-auto-save-delete-yes ()
+  (let ((kill-buffer-delete-auto-save-files t))
+    (test-kill-buffer-auto-save
+     ?y
+     (lambda ()
+       (let (auto-save)
+         (auto-save-mode t)
+         (insert "foo\n")
+         (should buffer-auto-save-file-name)
+         (setq auto-save buffer-auto-save-file-name)
+         (do-auto-save t)
+         (should (file-exists-p auto-save))
+         ;; This should delete the auto-save file.
+         (kill-buffer (current-buffer))
+         (should-not (file-exists-p auto-save)))))))
+
+(ert-deftest test-kill-buffer-auto-save-delete-no ()
+  (let ((kill-buffer-delete-auto-save-files t))
+    (test-kill-buffer-auto-save
+     ?n
+     (lambda ()
+       (let (auto-save)
+         (auto-save-mode t)
+         (insert "foo\n")
+         (should buffer-auto-save-file-name)
+         (setq auto-save buffer-auto-save-file-name)
+         (do-auto-save t)
+         (should (file-exists-p auto-save))
+         ;; This should not delete the auto-save file.
+         (kill-buffer (current-buffer))
+         (should (file-exists-p auto-save))
+         (delete-file auto-save))))))
 
 (ert-deftest test-buffer-modifications ()
   (ert-with-temp-file file
@@ -8348,7 +8468,7 @@ dicta sunt, explicabo.  "))
       (insert "foo")
       (should (buffer-modified-p))
       (should-not (eq (buffer-modified-p) 'autosaved))
-      (do-auto-save nil t)
+      (do-auto-save t t)
       (should (eq (buffer-modified-p) 'autosaved))
       (with-silent-modifications
         (put-text-property 1 3 'face 'bold))
@@ -8372,7 +8492,7 @@ dicta sunt, explicabo.  "))
       (restore-buffer-modified-p nil)
       (should-not (buffer-modified-p))
       (insert "bar")
-      (do-auto-save nil t)
+      (do-auto-save t t)
       (should (eq (buffer-modified-p) 'autosaved))
       (insert "zot")
       (restore-buffer-modified-p 'autosaved)

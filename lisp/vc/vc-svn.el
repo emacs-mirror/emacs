@@ -364,7 +364,7 @@ DIRECTORY or absolute."
   (with-temp-buffer
     (when (zerop (vc-svn-command
                   t t nil "propget" "svn:ignore" (expand-file-name directory)))
-      (split-string (buffer-string) "\n"))))
+      (split-string (buffer-string) "\n" t))))
 
 (defun vc-svn-find-admin-dir (file)
   "Return the administrative directory of FILE."
@@ -816,6 +816,13 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
       (vc-svn-command (current-buffer) 0 nil
                       "info" "--show-item" "repos-root-url")
       (buffer-substring-no-properties (point-min) (1- (point-max))))))
+
+(defun vc-svn-clone (remote directory rev)
+  (if rev
+      (vc-svn-command nil 0 '() "checkout" "--revision" rev remote directory)
+    (vc-svn-command nil 0 '() "checkout" remote directory))
+
+  (file-name-concat directory "trunk"))
 
 (provide 'vc-svn)
 

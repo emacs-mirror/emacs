@@ -166,8 +166,6 @@
 ;;
 ;; Where setup-ebnf2ps.el should be a file containing:
 ;;
-;;    ;; set load-path if ebnf2ps isn't installed in your Emacs environment
-;;    (setq load-path (append (list "/dir/of/ebnf2ps") load-path))
 ;;    (require 'ebnf2ps)
 ;;    ;; insert here your ebnf2ps settings
 ;;    (setq ebnf-terminal-shape 'bevel)
@@ -4284,7 +4282,7 @@ end
   (ebnf-eps-header-footer ebnf-eps-footer))
 
 
-;; hacked fom `ps-output-string-prim' (ps-print.el)
+;; hacked from `ps-output-string-prim' (ps-print.el)
 (defun ebnf-eps-string (string)
   (let* ((str   string)
 	 (len   (length str))
@@ -4405,9 +4403,9 @@ end
 (defvar ebnf-nprod 0)
 
 
-(defsubst ebnf-message-info (messag)
+(defsubst ebnf-message-info (msg)
   (message "%s...%3d%%"
-	   messag
+           msg
 	   (round (/ (* (setq ebnf-nprod (1+ ebnf-nprod)) 100.0) ebnf-total))))
 
 

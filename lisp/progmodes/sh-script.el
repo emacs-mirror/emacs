@@ -522,7 +522,7 @@ This is buffer-local in every such buffer.")
     (rc . "\\<\\([[:alnum:]_*]+\\)[ \t]*=")
     (sh . "\\<\\([[:alnum:]_]+\\)="))
   "Regexp for the variable name and what may follow in an assignment.
-First grouping matches the variable name.  This is upto and including the `='
+First grouping matches the variable name.  This is up to and including the `='
 sign.  See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice regexp

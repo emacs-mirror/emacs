@@ -4690,7 +4690,7 @@ extern void syms_of_editfns (void);
 extern bool mouse_face_overlay_overlaps (Lisp_Object);
 extern Lisp_Object disable_line_numbers_overlay_at_eob (void);
 extern AVOID nsberror (Lisp_Object);
-extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t);
+extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t, bool);
 extern void adjust_overlays_for_delete (ptrdiff_t, ptrdiff_t);
 extern void fix_start_end_in_overlays (ptrdiff_t, ptrdiff_t);
 extern void report_overlay_modification (Lisp_Object, Lisp_Object, bool,
@@ -4915,6 +4915,7 @@ extern bool running_asynch_code;
 
 /* Defined in process.c.  */
 struct Lisp_Process;
+extern void child_signal_init (void);
 extern void kill_buffer_processes (Lisp_Object);
 extern int wait_reading_process_output (intmax_t, int, int, bool, Lisp_Object,
 					struct Lisp_Process *, int);

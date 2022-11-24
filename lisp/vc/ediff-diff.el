@@ -942,6 +942,9 @@ one optional arguments, diff-number to refine.")
 	(c-prev-pt nil)
 	(anc-prev 1)
 	diff-list shift-A shift-B shift-C
+        (A-idx "1")
+        (B-idx (if three-way-comp "2" "3"))
+        (C-idx (if three-way-comp "3" "2"))
 	)
 
     ;; diff list contains word numbers or points, depending on word-mode
@@ -979,23 +982,23 @@ one optional arguments, diff-number to refine.")
        (let ((agreement (buffer-substring (match-beginning 1) (match-end 1))))
 	 ;; if the files A and B are the same and not 3way-comparison,
 	 ;; ignore the difference
-	 (if (or three-way-comp (not (string-equal agreement "3")))
-	     (let* ((a-begin (car (ediff-get-diff3-group "1")))
-		    (a-end  (nth 1 (ediff-get-diff3-group "1")))
-		    (b-begin (car (ediff-get-diff3-group "2")))
-		    (b-end (nth 1 (ediff-get-diff3-group "2")))
-		    (c-or-anc-begin (car (ediff-get-diff3-group "3")))
-		    (c-or-anc-end (nth 1 (ediff-get-diff3-group "3")))
+	 (if (or three-way-comp (not (string-equal agreement C-idx)))
+	     (let* ((a-begin (car (ediff-get-diff3-group A-idx)))
+		    (a-end  (nth 1 (ediff-get-diff3-group A-idx)))
+		    (b-begin (car (ediff-get-diff3-group B-idx)))
+		    (b-end (nth 1 (ediff-get-diff3-group B-idx)))
+		    (c-or-anc-begin (car (ediff-get-diff3-group C-idx)))
+		    (c-or-anc-end (nth 1 (ediff-get-diff3-group C-idx)))
 		    (state-of-merge
-		     (cond ((string-equal agreement "1") 'prefer-A)
-			   ((string-equal agreement "2") 'prefer-B)
+		     (cond ((string-equal agreement A-idx) 'prefer-A)
+			   ((string-equal agreement B-idx) 'prefer-B)
 			   (t ediff-default-variant)))
 		    (state-of-diff-merge
 		     (if (memq state-of-merge '(default-A prefer-A)) 'B 'A))
 		    (state-of-diff-comparison
-		     (cond ((string-equal agreement "1") 'A)
-			   ((string-equal agreement "2") 'B)
-			   ((string-equal agreement "3") 'C)))
+		     (cond ((string-equal agreement A-idx) 'A)
+			   ((string-equal agreement B-idx) 'B)
+			   ((string-equal agreement C-idx) 'C)))
 		    state-of-ancestor
 		    c-begin c-end
 		    a-begin-pt a-end-pt
@@ -1108,8 +1111,12 @@ one optional arguments, diff-number to refine.")
 	    (get-buffer-create (ediff-unique-buffer-name "*ediff-diff" "*"))))
 
   (message "Computing differences ...")
-  (ediff-exec-process ediff-diff3-program ediff-diff-buffer 'synchronize
-		      ediff-actual-diff3-options file-A file-B file-C)
+  (apply #'ediff-exec-process ediff-diff3-program ediff-diff-buffer 'synchronize
+	 ediff-actual-diff3-options
+         (cons file-A (if ediff-merge-with-ancestor-job
+                          ;; Ancestor must be the middle file
+                          (list file-C file-B)
+                          (list file-B file-C))))
 
   (ediff-prepare-error-list ediff-diff3-ok-lines-regexp ediff-diff-buffer)
   ;;(message "Computing differences ... done")

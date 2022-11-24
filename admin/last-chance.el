@@ -41,7 +41,7 @@
 ;;
 ;; will show you any references to `change-log-date-face' in the
 ;; *.el files in a new buffer (in Grep mode).  Hopefully you see
-;; only the obsolete declaration and can proceed w/ its removal.
+;; only the obsolete declaration and can proceed with its removal.
 ;; If not, please DTRT and refrain from the removal until those
 ;; references are properly transitioned.
 ;;
