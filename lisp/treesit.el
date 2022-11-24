@@ -851,6 +851,32 @@ detail.")
 ;; applied by regexp-based font-lock.  The clipped part will be
 ;; fontified fine when Emacs fontifies the region containing it.
 ;;
+;; 2. If you insert an ending quote into a buffer, jit-lock only wants
+;; to fontify that single quote, and (treesit-node-on start end) will
+;; give you that quote node.  We want to capture the string and apply
+;; string face to it, but querying on the quote node will not give us
+;; the string node.  So we don't use treesit-node-on: using the root
+;; node with a restricted range is very fast anyway (even in large
+;; files of size ~10MB).  Plus, querying the result of
+;; `treesit-node-on' could still miss patterns even if we use some
+;; heuristic to enlarge the node (how much to enlarge? to which
+;; extent?), it's much safer to just use the root node.
+;;
+;; Sometimes the source file has some errors that cause tree-sitter to
+;; parse it into a enormously tall tree (10k levels tall).  In that
+;; case querying the root node is very slow.  So we try to get
+;; top-level nodes and query them.  This ensures that querying is fast
+;; everywhere else, except for the problematic region.
+;;
+;; 3. It is possible to capture a node that's completely outside the
+;; region between START and END: as long as the whole pattern
+;; intersects the region, all the captured nodes in that pattern are
+;; returned.  If the node is outside of that region, (max node-start
+;; start) and friends return bad values, so we filter them out.
+;; However, we don't filter these nodes out if a function will process
+;; the node, because could (and often do) fontify the relatives of the
+;; captured node, not just the node itself.  If we took out those
+;; nodes author of those functions would be very confused.
 (defun treesit-font-lock-fontify-region (start end &optional loudly)
   "Fontify the region between START and END.
 If LOUDLY is non-nil, display some debugging information."
@@ -863,35 +889,18 @@ If LOUDLY is non-nil, display some debugging information."
            (enable (nth 1 setting))
            (override (nth 3 setting))
            (language (treesit-query-language query)))
-      ;; If you insert an ending quote into a buffer, jit-lock only
-      ;; wants to fontify that single quote, and (treesit-node-on
-      ;; start end) will give you that quote node.  We want to capture
-      ;; the string and apply string face to it, but querying on the
-      ;; quote node will not give us the string node.  So we don't use
-      ;; treesit-node-on: using the root node with a restricted range
-      ;; is very fast anyway (even in large files of size ~10MB).
-      ;; Plus, querying the result of `treesit-node-on' could still
-      ;; miss patterns even if we use some heuristic to enlarge the
-      ;; node (how much to enlarge? to which extent?), it's much safer
-      ;; to just use the root node.
-      ;;
-      ;; Sometimes the source file has some errors that cause
-      ;; tree-sitter to parse it into a enormously tall tree (10k
-      ;; levels tall).  In that case querying the root node is very
-      ;; slow.  So we try to get top-level nodes and query them.  This
-      ;; ensures that querying is fast everywhere else, except for the
-      ;; problematic region.
       (when-let ((nodes (list (treesit-buffer-root-node language)))
                  ;; Only activate if ENABLE flag is t.
                  (activate (eq t enable)))
         (ignore activate)
 
         ;; If we run into problematic files, use the "fast mode" to
-        ;; try to recover.
+        ;; try to recover.  See comment #2 above for more explanation.
         (when treesit--font-lock-fast-mode
           (setq nodes (treesit--children-covering-range
                        (car nodes) start end)))
 
+        ;; Query each node.
         (dolist (sub-node nodes)
           (let* ((delta-start (car treesit--font-lock-query-expand-range))
                  (delta-end (cdr treesit--font-lock-query-expand-range))
@@ -906,21 +915,18 @@ If LOUDLY is non-nil, display some debugging information."
             (when (> (time-to-seconds (time-subtract end-time start-time))
                      0.01)
               (setq-local treesit--font-lock-fast-mode t))
+
+            ;; For each captured node, fontify that node.
             (with-silent-modifications
               (dolist (capture captures)
                 (let* ((face (car capture))
                        (node (cdr capture))
                        (node-start (treesit-node-start node))
                        (node-end (treesit-node-end node)))
-                  ;; It is possible to capture a node that's
-                  ;; completely outside the region between START and
-                  ;; END: as long as the whole pattern intersects the
-                  ;; region, all the captured nodes in that pattern
-                  ;; are returned.  If the node is outside of that
-                  ;; region, (max node-start start) and friends return
-                  ;; bad values.
-                  (if (and (facep face) (or (>= start node-end)
-                                            (>= node-start end)))
+                  ;; If node is not in the region, take them out.  See
+                  ;; comment #3 above for more detail.
+                  (if (and (facep face)
+                           (or (>= start node-end) (>= node-start end)))
                       (when (or loudly treesit--font-lock-verbose)
                         (message "Captured node %s(%s-%s) but it is outside of fontifing region" node node-start node-end))
                     (cond
