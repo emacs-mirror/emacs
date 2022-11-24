@@ -175,8 +175,14 @@ function; the only practical limitation is to use values that
 `cl-defmethod' can dispatch on, like a cons cell, or a list, or a
 CL struct.")
 
-(defvar project-current-inhibit-prompt nil
-  "Non-nil to skip prompting the user in `project-current'.")
+(define-obsolete-variable-alias
+  'project-current-inhibit-prompt
+  'project-current-directory-override
+  "29.1")
+
+(defvar project-current-directory-override nil
+  "Value to use instead of `default-directory' when detecting the project.
+When it is non-nil, `project-current' will always skip prompting too.")
 
 ;;;###autoload
 (defun project-current (&optional maybe-prompt directory)
@@ -195,11 +201,12 @@ ignored (per `project-ignores').
 
 See the doc string of `project-find-functions' for the general form
 of the project instance object."
-  (unless directory (setq directory default-directory))
+  (unless directory (setq directory (or project-current-directory-override
+                                        default-directory)))
   (let ((pr (project--find-in-directory directory)))
     (cond
      (pr)
-     ((unless project-current-inhibit-prompt
+     ((unless project-current-directory-override
         maybe-prompt)
       (setq directory (project-prompt-project-dir)
             pr (project--find-in-directory directory))))
@@ -1698,10 +1705,8 @@ to directory DIR."
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command))))
-    (with-temp-buffer
-      (let ((default-directory dir)
-            (project-current-inhibit-prompt t))
-        (call-interactively command)))))
+    (let ((project-current-directory-override dir))
+      (call-interactively command))))
 
 (provide 'project)
 ;;; project.el ends here
