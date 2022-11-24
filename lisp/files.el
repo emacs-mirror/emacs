@@ -1533,7 +1533,7 @@ in all cases, since that is the standard symbol for byte."
   (let ((power (if (or (null flavor) (eq flavor 'iec))
 		   1024.0
 		 1000.0))
-	(prefixes '("" "k" "M" "G" "T" "P" "E" "Z" "Y")))
+	(prefixes '("" "k" "M" "G" "T" "P" "E" "Z" "Y" "R" "Q")))
     (while (and (>= file-size power) (cdr prefixes))
       (setq file-size (/ file-size power)
 	    prefixes (cdr prefixes)))

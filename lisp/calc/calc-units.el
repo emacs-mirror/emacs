@@ -317,7 +317,9 @@ If you change this, be sure to set `math-units-table' to nil to ensure
 that the combined units table will be rebuilt.")
 
 (defvar math-unit-prefixes
-  '( ( ?Y  (^ 10 24)  "Yotta"  )
+  '( ( ?Q  (^ 10 30)  "quetta"  )
+     ( ?R  (^ 10 27)  "ronna"  )
+     ( ?Y  (^ 10 24)  "Yotta"  )
      ( ?Z  (^ 10 21)  "Zetta"  )
      ( ?E  (^ 10 18)  "Exa"    )
      ( ?P  (^ 10 15)  "Peta"   )
@@ -340,7 +342,10 @@ that the combined units table will be rebuilt.")
      ( ?f  (^ 10 -15) "Femto"  )
      ( ?a  (^ 10 -18) "Atto"   )
      ( ?z  (^ 10 -21) "zepto"  )
-     ( ?y  (^ 10 -24) "yocto"  )))
+     ( ?y  (^ 10 -24) "yocto"  )
+     ( ?r  (^ 10 -27) "ronto"  )
+     ( ?q  (^ 10 -30) "quecto"  )
+     ))
 
 (defvar math-standard-units-systems
   '( ( base  nil )
