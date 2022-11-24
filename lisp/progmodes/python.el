@@ -988,7 +988,7 @@ It makes underscores and dots word constituent chars.")
 
 (defvar python--treesit-operators
   '("-" "-=" "!=" "*" "**" "**=" "*=" "/" "//" "//=" "/=" "&" "%" "%="
-    "^" "+" "+=" "<" "<<" "<=" "<>" "=" "==" ">" ">=" ">>" "|" "~"))
+    "^" "+" "+=" "<" "<<" "<=" "<>" "=" "==" ">" ">=" ">>" "|" "~" "@" "@="))
 
 (defvar python--treesit-special-attributes
   '("__annotations__" "__closure__" "__code__"
@@ -1033,12 +1033,27 @@ fontified."
   (let* ((string-beg (treesit-node-start node))
          (string-end (treesit-node-end node))
          (maybe-expression (treesit-node-parent node))
-         (maybe-defun (treesit-node-parent
+         (grandparent (treesit-node-parent
                        (treesit-node-parent
                         maybe-expression)))
-         (face (if (and (member (treesit-node-type maybe-defun)
-                                '("function_definition"
-                                  "class_definition"))
+         (maybe-defun grandparent)
+         (face (if (and (or (member (treesit-node-type maybe-defun)
+                                    '("function_definition"
+                                      "class_definition"))
+                            ;; If the grandparent is null, meaning the
+                            ;; string is top-level, and the string has
+                            ;; no node or only comment preceding it,
+                            ;; it's a BOF docstring.
+                            (and (null grandparent)
+                                 (cl-loop
+                                  for prev = (treesit-node-prev-sibling
+                                              maybe-expression)
+                                  then (treesit-node-prev-sibling prev)
+                                  while prev
+                                  if (not (equal (treesit-node-type prev)
+                                                 "comment"))
+                                  return nil
+                                  finally return t)))
                         ;; This check filters out this case:
                         ;; def function():
                         ;;     return "some string"
