@@ -281,7 +281,12 @@ Karl Fogel <kfogel@mail-abbrev.com")))))))))
                                        base "dc=gnu,dc=org" auth simple)))
         (eudc-server-hotlist '(("ldap://localhost:3899" . ldap)))
         (eudc-ignore-options-file t))
-    (sleep-for 1) ; Wait for slapd to start.
+    (catch 'sldapd-up
+      (dotimes (_tries 20)
+        (when (eudc-query-with-words '("emacs-ert-test-1"))
+          (throw 'sldapd-up nil)))
+      (kill-process ldap-process)
+      (error "Failed to confirm slapd is running"))
     (should (equal (with-temp-buffer
                      (insert "emacs-ert-test-1")
                      (eudc-expand-try-all)
