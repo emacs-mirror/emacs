@@ -4951,30 +4951,31 @@ comment at the start of cc-engine.el for more info."
       "\\w\\|\\s_\\|\\s\"\\|\\s|"
     "\\w\\|\\s_\\|\\s\""))
 
-(defun c-forward-over-token (&optional balanced)
+(defun c-forward-over-token (&optional balanced limit)
   "Move forward over a token.
 Return t if we moved, nil otherwise (i.e. we were at EOB, or a
 non-token or BALANCED is non-nil and we can't move).  If we
 are at syntactic whitespace, move over this in place of a token.
 
 If BALANCED is non-nil move over any balanced parens we are at, and never move
-out of an enclosing paren."
+out of an enclosing paren.  LIMIT is the limit to where we might move to."
   (let ((jump-syntax (if balanced
 			 c-jump-syntax-balanced
 		       c-jump-syntax-unbalanced))
-	(here (point)))
+	(here (point))
+	(limit (or limit (point-max))))
     (condition-case nil
 	(cond
 	 ((/= (point)
-	      (progn (c-forward-syntactic-ws) (point)))
+	      (progn (c-forward-syntactic-ws limit) (point)))
 	  ;; If we're at whitespace, count this as the token.
 	  t)
 	 ((eobp) nil)
 	 ((looking-at jump-syntax)
-	  (goto-char (scan-sexps (point) 1))
+	  (goto-char (min limit (scan-sexps (point) 1)))
 	  t)
 	 ((looking-at c-nonsymbol-token-regexp)
-	  (goto-char (match-end 0))
+	  (goto-char (min (match-end 0) limit))
 	  t)
 	 ((save-restriction
 	    (widen)

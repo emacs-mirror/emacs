@@ -1188,7 +1188,7 @@ definition, or nil if the language doesn't have any."
   t (if (c-lang-const c-opt-cpp-macro-define)
 	(concat (c-lang-const c-anchored-cpp-prefix)
 		(c-lang-const c-opt-cpp-macro-define)
-		"[ \t]+\\(\\sw\\|_\\)+\\([^(a-zA-Z0-9_]\\|$\\)")))
+		"[ \t]+[a-zA-Z0-9_]+\\([^(a-zA-Z0-9_]\\|$\\)")))
 
 (c-lang-defconst c-cpp-expr-directives
   "List of cpp directives (without the prefix) that are followed by an
