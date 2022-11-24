@@ -137,10 +137,11 @@ PROMPT is passed to `read-passwd' if necessary."
       ((found (pcase (alist-get 'password erc-sasl--options)
                 (:password erc-session-password)
                 ((and (pred stringp) v) (unless (string-empty-p v) v))
-                ((and (guard erc-sasl-auth-source-function)
-                      v (let host
-                          (or v (erc-networks--id-given erc-networks--id))))
-                 (apply erc-sasl-auth-source-function
+                ((and (let fn (alist-get 'authfn erc-sasl--options))
+                      (guard fn) v
+                      (let host
+                        (or v (erc-networks--id-given erc-networks--id))))
+                 (apply fn
                         :user (erc-sasl--get-user)
                         (and host (list :host (symbol-name host))))))))
       (copy-sequence (erc--unfun found))
@@ -293,6 +294,7 @@ PROMPT is passed to `read-passwd' if necessary."
             `((user . ,erc-sasl-user)
               (password . ,erc-sasl-password)
               (mechanism . ,erc-sasl-mechanism)
+              (authfn . ,erc-sasl-auth-source-function)
               (authzid . ,erc-sasl-authzid)))))
 
 (defun erc-sasl--mechanism-offered-p (offered)
