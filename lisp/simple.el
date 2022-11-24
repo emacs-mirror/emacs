@@ -9184,33 +9184,39 @@ The function should return non-nil if the two tokens do not match.")
   "Return the line string that contains the openparen at POS."
   (save-excursion
     (goto-char pos)
-    ;; Show what precedes the open in its line, if anything.
-    (cond
-     ((save-excursion (skip-chars-backward " \t") (not (bolp)))
-      (buffer-substring (line-beginning-position)
-                        (1+ pos)))
-     ;; Show what follows the open in its line, if anything.
-     ((save-excursion
-        (forward-char 1)
-        (skip-chars-forward " \t")
-        (not (eolp)))
-      (buffer-substring pos
-                        (line-end-position)))
-     ;; Otherwise show the previous nonblank line,
-     ;; if there is one.
-     ((save-excursion (skip-chars-backward "\n \t") (not (bobp)))
-      (concat
-       (buffer-substring (progn
-                           (skip-chars-backward "\n \t")
-                           (line-beginning-position))
-                         (progn (end-of-line)
-                                (skip-chars-backward " \t")
-                                (point)))
-       ;; Replace the newline and other whitespace with `...'.
-       "..."
-       (buffer-substring pos (1+ pos))))
-     ;; There is nothing to show except the char itself.
-     (t (buffer-substring pos (1+ pos))))))
+    ;; Capture the regions in terms of (beg . end) conses whose
+    ;; buffer-substrings we want to show as a context string.  Ensure
+    ;; they are font-locked (bug#59527).
+    (let (regions)
+      ;; Show what precedes the open in its line, if anything.
+      (cond
+       ((save-excursion (skip-chars-backward " \t") (not (bolp)))
+        (setq regions (list (cons (line-beginning-position)
+                                  (1+ pos)))))
+       ;; Show what follows the open in its line, if anything.
+       ((save-excursion
+          (forward-char 1)
+          (skip-chars-forward " \t")
+          (not (eolp)))
+        (setq regions (list (cons pos (line-end-position)))))
+       ;; Otherwise show the previous nonblank line,
+       ;; if there is one.
+       ((save-excursion (skip-chars-backward "\n \t") (not (bobp)))
+        (setq regions (list (cons (progn
+                                    (skip-chars-backward "\n \t")
+                                    (line-beginning-position))
+                                  (progn (end-of-line)
+                                         (skip-chars-backward " \t")
+                                         (point)))
+                            (cons pos (1+ pos)))))
+       ;; There is nothing to show except the char itself.
+       (t (setq regions (list (cons pos (1+ pos))))))
+      ;; Ensure we've font-locked the context region.
+      (font-lock-ensure (caar regions) (cdar (last regions)))
+      (mapconcat (lambda (region)
+                   (buffer-substring (car region) (cdr region)))
+                 regions
+                 "..."))))
 
 (defvar blink-paren-function 'blink-matching-open
   "Function called, if non-nil, whenever a close parenthesis is inserted.
