@@ -27,6 +27,7 @@
 (require 'compile)
 (require 'cc-mode)
 (require 'cc-langs)
+(require 'treesit)
 
 (eval-when-compile
   (require 'cc-fonts))
