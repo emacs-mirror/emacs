@@ -2229,8 +2229,6 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 
   Lisp_Object regexp = XCAR (args);
   Lisp_Object capture_name = XCAR (XCDR (args));
-  Lisp_Object text = treesit_predicate_capture_name_to_text (capture_name,
-							     captures);
 
   /* It's probably common to get the argument order backwards.  Catch
      this mistake early and show helpful explanation, because Emacs
@@ -2244,6 +2242,9 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
     xsignal1 (Qtreesit_query_error,
 	      build_pure_c_string ("The second argument to `match' should "
 				   "be a capture name, not a string"));
+
+  Lisp_Object text = treesit_predicate_capture_name_to_text (capture_name,
+							     captures);
 
   if (fast_string_match (regexp, text) >= 0)
     return true;
