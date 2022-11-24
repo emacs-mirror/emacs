@@ -1194,7 +1194,7 @@ For example, nil stands for the current time.  */)
      quicker while we're at it.  This means (time-subtract X X) does
      not signal an error if X is not a valid time value, but that's OK.  */
   if (BASE_EQ (a, b))
-    return timespec_to_lisp ((struct timespec) {0});
+    return make_lisp_time ((struct timespec) {0});
 
   return time_arith (a, b, true);
 }
