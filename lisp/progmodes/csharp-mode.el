@@ -840,6 +840,18 @@ compilation and evaluation time conflicts."
      (method_declaration type: (_) @font-lock-type-face)
      (method_declaration name: (_) @font-lock-function-name-face)
 
+     (invocation_expression
+      (member_access_expression
+       (generic_name (identifier) @font-lock-function-name-face)))
+     (invocation_expression
+      (member_access_expression
+       ((identifier) @font-lock-variable-name-face
+        (identifier) @font-lock-function-name-face)))
+     (invocation_expression
+      (identifier) @font-lock-function-name-face)
+     (invocation_expression
+      (member_access_expression (identifier) @font-lock-function-name-face))
+
      (variable_declaration (identifier) @font-lock-type-face)
      (variable_declarator (identifier) @font-lock-variable-name-face)
 
