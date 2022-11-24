@@ -523,7 +523,7 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
                (pkg-dir (expand-file-name dirname package-user-dir)))
     (setf (package-desc-dir pkg-desc) pkg-dir)
     (when (file-exists-p pkg-dir)
-      (if (yes-or-no-p "Overwrite previous checkout?")
+      (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))
           (package--delete-directory pkg-dir)
         (error "There already exists a checkout for %s" name)))
     (package-vc--clone pkg-desc pkg-spec pkg-dir rev)
