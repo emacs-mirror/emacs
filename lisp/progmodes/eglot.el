@@ -184,7 +184,7 @@ chosen (interactively or automatically)."
 (defvar eglot-server-programs `((rust-mode . ,(eglot-alternatives '("rust-analyzer" "rls")))
                                 (cmake-mode . ("cmake-language-server"))
                                 (vimrc-mode . ("vim-language-server" "--stdio"))
-                                (python-mode
+                                ((python-mode python-ts-mode)
                                  . ,(eglot-alternatives
                                      '("pylsp" "pyls" ("pyright-langserver" "--stdio") "jedi-language-server")))
                                 ((js-json-mode json-mode json-ts-mode)
@@ -192,7 +192,7 @@ chosen (interactively or automatically)."
                                                           ("json-languageserver" "--stdio"))))
                                 ((js-mode ts-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
-                                (sh-mode . ("bash-language-server" "start"))
+                                ((bash-ts-mode sh-mode) . ("bash-language-server" "start"))
                                 ((php-mode phps-mode)
                                  . ,(eglot-alternatives
                                      '(("phpactor" "language-server")
