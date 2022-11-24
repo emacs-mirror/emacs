@@ -1014,15 +1014,15 @@ END:VALARM
 ;;                                  diary-string))))
 ;;           '("%%(diary-float 7 0 1) First Sunday in July 1"
 ;;             "%%(icalendar-tests--diary-float 7 0 1) First Sunday in July 2"))))
-;; 
-;; (ert-deftest icalendar-export-bug-56241-nested-sexps ()
-;;   "Reported in #bug56241 -- needs to be fixed!"
-;;   (let ((icalendar-export-sexp-enumeration-days 366))
-;;     (mapc (lambda (diary-string)
-;;             (should (string= "" (icalendar-tests--get-error-string-for-export
-;;                                  diary-string))))
-;;           '("%%(= (calendar-day-of-week date) 0) Sunday 1"
-;;             "%%(= 0 (calendar-day-of-week date)) Sunday 2"))))
+
+(ert-deftest icalendar-export-bug-56241-nested-sexps ()
+  "Reported in #bug56241 -- needs to be fixed!"
+  (let ((icalendar-export-sexp-enumeration-days 366))
+    (mapc (lambda (diary-string)
+            (should (string= "" (icalendar-tests--get-error-string-for-export
+                                 diary-string))))
+          '("%%(= (calendar-day-of-week date) 0) Sunday 1"
+            "%%(= 0 (calendar-day-of-week date)) Sunday 2"))))
 
 ;; ======================================================================
 ;; Import tests
@@ -1482,12 +1482,15 @@ DTEND;VALUE=DATE:19570922
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=21
 SUMMARY:ff birthday (%d years old)")
 
-
-  (icalendar-tests--test-export
-   nil
-   nil
-   "%%(diary-offset '(diary-float t 3 4) 1) asdf"
-   nil)
+  ;; FIXME: this testcase verifies that icalendar-export fails to
+  ;; export the nested sexp. After repairing bug56241 icalendar-export
+  ;; works correctly for this sexp but now the testcase fails.
+  ;; Therefore this testcase is disabled for the time being.
+  ;;  (icalendar-tests--test-export
+  ;;   nil
+  ;;   nil
+  ;;   "%%(diary-offset '(diary-float t 3 4) 1) asdf"
+  ;;   nil)
 
 
   ;; FIXME!
