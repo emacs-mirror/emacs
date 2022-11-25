@@ -21430,7 +21430,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  if (!NILP (tab_bar_arg))
 		    inev.ie.arg = tab_bar_arg;
                 }
-            if (FRAME_X_EMBEDDED_P (f))
+
+            if (FRAME_X_EMBEDDED_P (f)
+		&& !FRAME_NO_ACCEPT_FOCUS (f))
               xembed_send_message (f, event->xbutton.time,
                                    XEMBED_REQUEST_FOCUS, 0, 0, 0);
           }
@@ -23198,7 +23200,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			if (!NILP (tab_bar_arg))
 			  inev.ie.arg = tab_bar_arg;
 		      }
-		  if (FRAME_X_EMBEDDED_P (f))
+
+		  if (FRAME_X_EMBEDDED_P (f)
+		      && !FRAME_NO_ACCEPT_FOCUS (f))
 		    xembed_send_message (f, xev->time,
 					 XEMBED_REQUEST_FOCUS, 0, 0, 0);
 		}
