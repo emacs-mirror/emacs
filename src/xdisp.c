@@ -26310,11 +26310,11 @@ display_menu_bar (struct window *w)
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_PIXEL_WIDTH (f);
 #elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
+  struct window *menu_w;
   if (FRAME_WINDOW_P (f))
     {
       /* Menu bar lines are displayed in the desired matrix of the
 	 dummy window menu_bar_window.  */
-      struct window *menu_w;
       menu_w = XWINDOW (f->menu_bar_window);
       init_iterator (&it, menu_w, -1, -1, menu_w->desired_matrix->rows,
 		     MENU_FACE_ID);
@@ -26373,6 +26373,22 @@ display_menu_bar (struct window *w)
 
   /* Compute the total height of the lines.  */
   compute_line_metrics (&it);
+
+#if defined (HAVE_X_WINDOWS) && !defined (USE_X_TOOLKIT) && !defined (USE_GTK)
+  /* With the non-toolkit version, modify the menu bar window height
+     accordingly.  */
+  if (FRAME_WINDOW_P (it.f))
+    {
+      struct glyph_row *row = it.glyph_row;
+      int delta_height = ((row->y + row->height)
+			  - WINDOW_BOX_HEIGHT_NO_MODE_LINE (menu_w));
+      if (delta_height != 0)
+        {
+	  FRAME_MENU_BAR_HEIGHT (it.f) += delta_height;
+	  adjust_frame_size (it.f, -1, -1, 3, false, Qmenu_bar_lines);
+	}
+    }
+#endif
 }
 
 /* Deep copy of a glyph row, including the glyphs.  */
