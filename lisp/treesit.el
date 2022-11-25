@@ -1053,8 +1053,10 @@ See `treesit-simple-indent-presets'.")
                           (lambda (node &rest _)
                             (string-match-p
                              name (or (treesit-node-field-name node) "")))))
-        (cons 'comment-end (lambda (&rest _)
-                             (looking-at-p treesit-comment-end)))
+        (cons 'comment-end (lambda (_node _parent bol &rest _)
+                             (save-excursion
+                               (goto-char bol)
+                               (looking-at-p treesit-comment-end))))
         ;; TODO: Document.
         (cons 'catch-all (lambda (&rest _) t))
 
