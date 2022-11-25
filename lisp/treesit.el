@@ -1609,14 +1609,6 @@ ARG is the same as in `beginning-of-defun'."
          (top (treesit--defun-maybe-top-level node)))
     (goto-char (treesit-node-end top))))
 
-;;; Imenu
-
-(defvar-local treesit-imenu-function nil
-  "Tree-sitter version of `imenu-create-index-function'.
-
-Set this variable to a function and `treesit-mode' will bind it
-to `imenu-create-index-function'.")
-
 ;;; Activating tree-sitter
 
 (defun treesit-ready-p (language &optional quiet)
