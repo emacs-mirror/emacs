@@ -371,11 +371,6 @@ node in the Eshell manual for more details.
 *** Eshell pipelines now only pipe stdout by default.
 To pipe both stdout and stderr, use the '|&' operator instead of '|'.
 
-*** New eshell built-in command 'doas'.
-The privilege-escalation program 'doas' has been added to the existing
-'su' and 'sudo' commands from the 'eshell-tramp' module.  The external
-command may still be accessed by using '*doas'.
-
 ---
 ** The 'delete-forward-char' command now deletes by grapheme clusters.
 This command is by default bound to the <Delete> function key
@@ -2730,6 +2725,12 @@ duplicate one output handle to another via 'NEW-FD>&OLD-FD'.  For more
 information, see the "(eshell) Redirection" node in the Eshell manual.
 
 +++
+*** New eshell built-in command 'doas'.
+The privilege-escalation program 'doas' has been added to the existing
+'su' and 'sudo' commands from the 'eshell-tramp' module.  The external
+command may still be accessed by using '*doas'.
+
++++
 *** Double-quoting an Eshell expansion now treats the result as a single string.
 If an Eshell expansion like '$FOO' is surrounded by double quotes, the
 result will always be a single string, no matter the type that would
@@ -2765,10 +2766,11 @@ symlinks in the latter case).
 
 +++
 *** Lisp forms in Eshell now treat a 'nil' result as a failed exit status.
-When executing a command that looks like '(lisp form)', Eshell will
-set the exit status (available in the '$?' variable) to 2.  This
-allows commands like that to be used as conditionals.  To change this
-behavior, customize the new 'eshell-lisp-form-nil-is-failure' option.
+When executing a command that looks like '(lisp form)' and returns
+'nil', Eshell will set the exit status (available in the '$?'
+variable) to 2.  This allows commands like that to be used in
+conditionals.  To change this behavior, customize the new
+'eshell-lisp-form-nil-is-failure' option.
 
 ** Shell
 
