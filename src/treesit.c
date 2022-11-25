@@ -314,7 +314,7 @@ init_treesit_functions (void)
      See: https://github.com/tree-sitter/tree-sitter/issues/445
 
    treesit.h has some commentary on the two main data structure for
-   the parser and node.  treesit_ensure_position_synced has some
+   the parser and node.  treesit_sync_visible_region has some
    commentary on how we make tree-sitter play well with narrowing (the
    tree-sitter parser only sees the visible region, so we need to
    translate positions back and forth).  Most action happens in
@@ -782,7 +782,7 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
    matches that of the buffer, and update visible_beg/end.
 
    That is, the whole purpose of visible_beg/end (and
-   treesit_record_change and treesit_ensure_position_synced) is to
+   treesit_record_change and treesit_sync_visible_region) is to
    update the tree (by ts_tree_edit).  So if the tree is NULL, we
    don't update the tree and there is no need to keep tracking of
    them.  Only when we already have a tree, do we need to keep track
@@ -796,8 +796,8 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
    treesit_record_change(tree)  | user edits buffer
    ...                          /
 
-   treesit_ensure_position_synced(tree) \ treesit_ensure_parsed
-   ts_parser_parse(tree) -> tree        /
+   treesit_sync_visible_region(tree) \ treesit_ensure_parsed
+   ts_parser_parse(tree) -> tree     /
 
    treesit_record_change(tree)  \
    treesit_record_change(tree)  | user edits buffer
@@ -805,13 +805,14 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 
    and so on.  */
 
-/* Make sure PARSER's visible_beg and visible_end are in sync with
-   BUF_BEGV_BYTE and BUG_ZV_BYTE.  When calling this function you must
-   make sure the current buffer's size is not larger than UINT32_MAX.
-   Basically always call treesit_check_buffer_size before this
-   function.  */
+/* Make sure the tree's visible range is in sync with the buffer's
+   visible range, and PARSER's visible_beg and visible_end are in sync
+   with BUF_BEGV_BYTE and BUG_ZV_BYTE.  When calling this function you
+   must make sure the current buffer's size is not larger than
+   UINT32_MAX.  Basically always call treesit_check_buffer_size before
+   this function.  */
 static void
-treesit_ensure_position_synced (Lisp_Object parser)
+treesit_sync_visible_region (Lisp_Object parser)
 {
   TSTree *tree = XTS_PARSER (parser)->tree;
 
@@ -924,7 +925,7 @@ treesit_ensure_parsed (Lisp_Object parser)
 
   /* Before we parse, catch up with the narrowing situation.  */
   treesit_check_buffer_size (buffer);
-  treesit_ensure_position_synced (parser);
+  treesit_sync_visible_region (parser);
 
   TSTree *new_tree = ts_parser_parse (treesit_parser, tree, input);
   /* This should be very rare (impossible, really): it only happens
@@ -1453,7 +1454,7 @@ buffer.  */)
   treesit_initialize ();
   /* Before we parse, catch up with narrowing/widening.  */
   treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
-  treesit_ensure_position_synced (parser);
+  treesit_sync_visible_region (parser);
 
   bool success;
   if (NILP (ranges))
@@ -1539,7 +1540,7 @@ return nil.  */)
   /* Our return value depends on the buffer state (BUF_BEGV_BYTE,
      etc), so we need to sync up.  */
   treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
-  treesit_ensure_position_synced (parser);
+  treesit_sync_visible_region (parser);
 
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
   return treesit_make_ranges (ranges, len, buffer);
