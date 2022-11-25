@@ -367,11 +367,16 @@ See also `with-current-buffer'.
   "Execute BODY in the current ERC server buffer.
 If no server buffer exists, return nil."
   (declare (indent 0) (debug (body)))
-  (let ((buffer (make-symbol "buffer")))
+  (let ((varp (and (symbolp (car body))
+                   (not (cdr body))
+                   (special-variable-p (car body))))
+        (buffer (make-symbol "buffer")))
     `(let ((,buffer (erc-server-buffer)))
        (when (buffer-live-p ,buffer)
-         (with-current-buffer ,buffer
-           ,@body)))))
+         ,(if varp
+              `(buffer-local-value ',(car body) ,buffer)
+            `(with-current-buffer ,buffer
+               ,@body))))))
 
 (defmacro erc-with-all-buffers-of-server (process pred &rest forms)
   "Execute FORMS in all buffers which have same process as this server.

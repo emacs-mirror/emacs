@@ -113,6 +113,22 @@
     (should (get-buffer "#spam"))
     (kill-buffer "#spam")))
 
+(ert-deftest erc-with-server-buffer ()
+  (setq erc-away 1)
+  (erc-tests--set-fake-server-process "sleep" "1")
+
+  (let (calls)
+    (advice-add 'buffer-local-value :after (lambda (&rest r) (push r calls))
+                '((name . erc-with-server-buffer)))
+
+    (should (= 1 (erc-with-server-buffer erc-away)))
+    (should (equal (pop calls) (list 'erc-away (current-buffer))))
+
+    (should (= 1 (erc-with-server-buffer (ignore 'me) erc-away)))
+    (should-not calls)
+
+    (advice-remove 'buffer-local-value 'erc-with-server-buffer)))
+
 (defun erc-tests--send-prep ()
   ;; Caller should probably shadow `erc-insert-modify-hook' or
   ;; populate user tables for erc-button.
