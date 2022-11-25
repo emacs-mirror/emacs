@@ -1410,7 +1410,8 @@ database stored on disk.
 *** New user option 'auth-source-pass-extra-query-keywords'.
 Whether to recognize additional keyword params, like ':max' and
 ':require', as well as accept lists of query terms paired with
-applicable keywords.
+applicable keywords.  This disables most known behavioral quirks
+unique to auth-source-pass, such as wildcard subdomain matching.
 
 ** Dired
 

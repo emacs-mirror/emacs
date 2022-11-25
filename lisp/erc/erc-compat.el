@@ -176,7 +176,7 @@ If START or END is negative, it counts from the end."
 ;; This hard codes `auth-source-pass-port-separator' to ":"
 (defun erc-compat--29-auth-source-pass--retrieve-parsed (seen e port-number-p)
   (when (string-match (rx (or bot "/")
-                          (or (: (? (group-n 20 (+ (not (in " /@")))) "@")
+                          (or (: (? (group-n 20 (+ (not (in " /:")))) "@")
                                  (group-n 10 (+ (not (in " /:@"))))
                                  (? ":" (group-n 30 (+ (not (in " /:"))))))
                               (: (group-n 11 (+ (not (in " /:@"))))

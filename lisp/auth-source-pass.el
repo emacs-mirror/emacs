@@ -55,12 +55,13 @@
   :type 'string
   :version "27.1")
 
-(defcustom auth-source-pass-extra-query-keywords t
+(defcustom auth-source-pass-extra-query-keywords nil
   "Whether to consider additional keywords when performing a query.
 Specifically, when the value is t, recognize the `:max' and
 `:require' keywords and accept lists of query parameters for
-certain keywords, such as `:host' and `:user'.  Also, wrap all
-returned secrets in a function and forgo any further results
+certain keywords, such as `:host' and `:user'.  Beyond that, wrap
+all returned secrets in a function and don't bother considering
+subdomains when matching hosts.  Also, forgo any further results
 filtering unless given an applicable `:require' argument.  When
 this option is nil, do none of that, and enact the narrowing
 behavior described toward the bottom of the Info node `(auth) The
@@ -110,7 +111,7 @@ HOSTS can be a string or a list of strings."
 (defun auth-source-pass--match-regexp (s)
   (rx-to-string ; autoloaded
    `(: (or bot "/")
-       (or (: (? (group-n 20 (+ (not (in ?\  ?/ ?@ ,s)))) "@")
+       (or (: (? (group-n 20 (+ (not (in ?\  ?/ ,s)))) "@")
               (group-n 10 (+ (not (in ?\  ?/ ?@ ,s))))
               (? ,s (group-n 30 (+ (not (in ?\  ?/ ,s))))))
            (: (group-n 11 (+ (not (in ?\  ?/ ?@ ,s))))
