@@ -709,7 +709,7 @@ the `server-process' variable."
         (concat "Unable to start the Emacs server.\n"
                 (cadr err)
                 (substitute-command-keys
-                 "\nTo start the server in this Emacs process, stop the existingserver or call `\\[server-force-delete]' to forcibly disconnect it."))
+                 "\nTo start the server in this Emacs process, stop the existing server or call `\\[server-force-delete]' to forcibly disconnect it."))
         :warning)
        (setq leave-dead t)))
       ;; Now any previous server is properly stopped.
