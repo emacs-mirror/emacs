@@ -432,18 +432,20 @@ or earlier: it can break `dired-do-find-regexp-and-replace'."
 (defcustom xref-history-storage #'xref-global-history
   "Function that returns xref history.
 
-The following functions are predefined:
+The following functions that can be used as this variable's value
+are predefined:
 
 - `xref-global-history'
     Return a single, global history used across the entire Emacs
-    instance.
+    session.  This is the default.
 - `xref-window-local-history'
-    Return different xref histories, one per window.  Allows you
-    to navigate code independently in different windows.  A new
+    Return separate xref histories, one per window.  Allows
+    independent navigation of code in each window.  A new
     xref history is created for every new window."
   :type '(radio
-          (function-item :tag "Per-window" xref-window-local-history)
-          (function-item :tag "Global history for Emacs instance" xref-global-history)
+          (function-item :tag "Per-window history" xref-window-local-history)
+          (function-item :tag "Global history for Emacs session"
+                         xref-global-history)
           (function :tag "Other"))
   :version "29.1"
   :package-version '(xref . "1.6.0"))
@@ -462,7 +464,7 @@ The following functions are predefined:
   "(BACKWARD-STACK . FORWARD-STACK) of markers to visited Xref locations.")
 
 (defun xref-global-history (&optional new-value)
-  "Return the xref history global to this Emacs instance.
+  "Return the xref history that is global for the current Emacs session.
 
 Override existing value with NEW-VALUE if NEW-VALUE is set."
   (if new-value
@@ -470,7 +472,7 @@ Override existing value with NEW-VALUE if NEW-VALUE is set."
     xref--history))
 
 (defun xref-window-local-history (&optional new-value)
-  "Return window-local xref history.
+  "Return window-local xref history for the selected window.
 
 Override existing value with NEW-VALUE if NEW-VALUE is set."
   (let ((w (selected-window)))
