@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
-;; Version: 1.5.1
+;; Version: 1.6.0
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -429,32 +429,80 @@ or earlier: it can break `dired-do-find-regexp-and-replace'."
   :version "28.1"
   :package-version '(xref . "1.2.0"))
 
+(defcustom xref-history-storage #'xref-global-history
+  "Function that returns xref history.
+
+The following functions are predefined:
+
+- `xref-global-history'
+    Return a single, global history used across the entire Emacs
+    instance.
+- `xref-window-local-history'
+    Return different xref histories, one per window.  Allows you
+    to navigate code independently in different windows.  A new
+    xref history is created for every new window."
+  :type '(radio
+          (function-item :tag "Per-window" xref-window-local-history)
+          (function-item :tag "Global history for Emacs instance" xref-global-history)
+          (function :tag "Other"))
+  :version "29.1"
+  :package-version '(xref . "1.6.0"))
+
 (make-obsolete-variable 'xref--marker-ring 'xref--history "29.1")
 
 (defun xref-set-marker-ring-length (_var _val)
   (declare (obsolete nil "29.1"))
   nil)
 
-(defvar xref--history (cons nil nil)
+(defun xref--make-xref-history ()
+  "Return a new xref history."
+  (cons nil nil))
+
+(defvar xref--history (xref--make-xref-history)
   "(BACKWARD-STACK . FORWARD-STACK) of markers to visited Xref locations.")
+
+(defun xref-global-history (&optional new-value)
+  "Return the xref history global to this Emacs instance.
+
+Override existing value with NEW-VALUE if NEW-VALUE is set."
+  (if new-value
+      (setq xref--history new-value)
+    xref--history))
+
+(defun xref-window-local-history (&optional new-value)
+  "Return window-local xref history.
+
+Override existing value with NEW-VALUE if NEW-VALUE is set."
+  (let ((w (selected-window)))
+    (if new-value
+        (set-window-parameter w 'xref--history new-value)
+      (or (window-parameter w 'xref--history)
+          (set-window-parameter w 'xref--history (xref--make-xref-history))))))
+
+(defun xref--get-history ()
+  "Return xref history using xref-history-storage."
+  (funcall xref-history-storage))
 
 (defun xref--push-backward (m)
   "Push marker M onto the backward history stack."
-  (unless (equal m (caar xref--history))
-    (push m (car xref--history))))
+  (let ((history (xref--get-history)))
+    (unless (equal m (caar history))
+      (push m (car history)))))
 
 (defun xref--push-forward (m)
   "Push marker M onto the forward history stack."
-  (unless (equal m (cadr xref--history))
-    (push m (cdr xref--history))))
+  (let ((history (xref--get-history)))
+    (unless (equal m (cadr history))
+      (push m (cdr history)))))
 
 (defun xref-push-marker-stack (&optional m)
   "Add point M (defaults to `point-marker') to the marker stack.
 The future stack is erased."
   (xref--push-backward (or m (point-marker)))
-  (dolist (mk (cdr xref--history))
-    (set-marker mk nil nil))
-  (setcdr xref--history nil))
+  (let ((history (xref--get-history)))
+    (dolist (mk (cdr history))
+      (set-marker mk nil nil))
+    (setcdr history nil)))
 
 ;;;###autoload
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
@@ -464,29 +512,31 @@ The future stack is erased."
   "Go back to the previous position in xref history.
 To undo, use \\[xref-go-forward]."
   (interactive)
-  (if (null (car xref--history))
-      (user-error "At start of xref history")
-    (let ((marker (pop (car xref--history))))
-      (xref--push-forward (point-marker))
-      (switch-to-buffer (or (marker-buffer marker)
-                            (user-error "The marked buffer has been deleted")))
-      (goto-char (marker-position marker))
-      (set-marker marker nil nil)
-      (run-hooks 'xref-after-return-hook))))
+  (let ((history (xref--get-history)))
+    (if (null (car history))
+        (user-error "At start of xref history")
+      (let ((marker (pop (car history))))
+        (xref--push-forward (point-marker))
+        (switch-to-buffer (or (marker-buffer marker)
+                              (user-error "The marked buffer has been deleted")))
+        (goto-char (marker-position marker))
+        (set-marker marker nil nil)
+        (run-hooks 'xref-after-return-hook)))))
 
 ;;;###autoload
 (defun xref-go-forward ()
   "Got to the point where a previous \\[xref-go-back] was invoked."
   (interactive)
-  (if (null (cdr xref--history))
-      (user-error "At end of xref history")
-    (let ((marker (pop (cdr xref--history))))
-      (xref--push-backward (point-marker))
-      (switch-to-buffer (or (marker-buffer marker)
-                            (user-error "The marked buffer has been deleted")))
-      (goto-char (marker-position marker))
-      (set-marker marker nil nil)
-      (run-hooks 'xref-after-return-hook))))
+  (let ((history (xref--get-history)))
+    (if (null (cdr history))
+        (user-error "At end of xref history")
+      (let ((marker (pop (cdr history))))
+        (xref--push-backward (point-marker))
+        (switch-to-buffer (or (marker-buffer marker)
+                              (user-error "The marked buffer has been deleted")))
+        (goto-char (marker-position marker))
+        (set-marker marker nil nil)
+        (run-hooks 'xref-after-return-hook)))))
 
 (define-obsolete-variable-alias
   'xref--current-item
@@ -512,22 +562,23 @@ This can be used from `xref-after-jump-hook', for instance.")
 ;; etags.el needs this
 (defun xref-clear-marker-stack ()
   "Discard all markers from the xref history."
-  (dolist (l (list (car xref--history) (cdr xref--history)))
-    (dolist (m l)
-      (set-marker m nil nil)))
-  (setq xref--history (cons nil nil))
+  (let ((history (xref--get-history)))
+    (dolist (l (list (car history) (cdr history)))
+      (dolist (m l)
+        (set-marker m nil nil)))
+    (setq history (cons nil nil)))
   nil)
 
 ;;;###autoload
 (defun xref-marker-stack-empty-p ()
   "Whether the xref back-history is empty."
-  (null (car xref--history)))
+  (null (car (xref--get-history))))
 ;; FIXME: rename this to `xref-back-history-empty-p'.
 
 ;;;###autoload
 (defun xref-forward-history-empty-p ()
   "Whether the xref forward-history is empty."
-  (null (cdr xref--history)))
+  (null (cdr (xref--get-history))))
 
 
 (defun xref--goto-char (pos)
