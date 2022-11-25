@@ -2969,7 +2969,7 @@ This is a lightweight variant of 'js-mode' that is used by default
 when visiting JSON files.
 
 
-** New mode 'ts-mode'.
+** New mode 'typescript-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the TypeScript language.  It includes support for font-locking,
 indentation, and navigation.
