@@ -768,7 +768,8 @@ This will free the resources held by SET.  */)
 }
 
 DEFUN ("sqlite-version", Fsqlite_version, Ssqlite_version, 0, 0, 0,
-       doc: /* SQLite library version string.  */)
+       doc: /* Return the version string of the SQLite library.
+Signal an error if SQLite support is not available.  */)
   (void)
 {
   if (!init_sqlite_functions ())
