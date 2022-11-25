@@ -1376,7 +1376,7 @@ itree_iterator_first_node (struct itree_tree *tree,
   return node;
 }
 
-/* Start a iterator enumerating all intervals in [BEGIN,END) in the
+/* Start an iterator enumerating all intervals in [BEGIN,END) in the
    given ORDER.  */
 
 struct itree_iterator *
