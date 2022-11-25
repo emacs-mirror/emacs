@@ -27,16 +27,6 @@
 ;; located in mode line.  It assumes that you work with the imenu
 ;; package and `imenu--index-alist' is up to date.
 
-;; KNOWN BUGS
-;; ----------
-;; Really this package shows not "function where the current point is
-;; located now", but "nearest function which defined above the current
-;; point".  So if your current point is located after the end of
-;; function FOO but before the beginning of function BAR, FOO will be
-;; displayed in the mode line.
-;; - If two windows display the same buffer, both windows
-;;   show the same `which-func' information.
-
 ;; TODO LIST
 ;; ---------
 ;;     1. Dependence on imenu package should be removed.  Separate
