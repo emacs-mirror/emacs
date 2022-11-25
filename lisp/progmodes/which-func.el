@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
-;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
-;;           (doesn't seem to be responsive any more)
+;; Author: Alex Rezinsky <alexr@msil.sps.mot.com>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mode-line, imenu, tools
 
 ;; This file is part of GNU Emacs.
@@ -40,8 +40,8 @@
 ;; THANKS TO
 ;; ---------
 ;; Per Abrahamsen   <abraham@iesd.auc.dk>
-;;     Some ideas (inserting  in mode-line,  using of post-command  hook
-;;     and toggling this  mode) have  been   borrowed from  his  package
+;;     Some ideas (inserting in mode-line, using of post-command hook
+;;     and toggling this mode) have been borrowed from his package
 ;;     column.el
 ;; Peter Eisenhauer <pipe@fzi.de>
 ;;     Bug fixing in case nested indexes.
