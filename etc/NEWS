@@ -4407,6 +4407,14 @@ Now 'max-lisp-eval-depth' alone is used for limiting Lisp recursion
 and stack usage.  'max-specpdl-size' is still present as a plain
 variable for compatibility but its limiting powers have been taken away.
 
+** New function 'external-completion-table'.
+This function returns a completion table designed to ease
+communication between Emacs's completion facilities and external tools
+offering completion services, particularly tools whose full working
+set is too big to transfer to Emacs's every time a completion is
+needed.  The table uses new 'external' completion style exclusively
+and cannot work with regular styles such as 'basic' or 'flex'.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
