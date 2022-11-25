@@ -2906,6 +2906,11 @@ It copies the current line into the kill ring.
 The new face 'abbrev-table-name' is used to display the abbrev table
 name.
 
+---
+*** New key binding "O" in `M-x list-buffer'.
+This key is now bound to 'Buffer-menu-view-other-window', which will
+view this line's buffer in View mode in another window.
+
 
 * New Modes and Packages in Emacs 29.1
 

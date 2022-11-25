@@ -24,8 +24,8 @@
 ;;; Commentary:
 
 ;; The Buffer Menu is used to view, edit, delete, or change attributes
-;; of buffers.  The entry points are C-x C-b (`list-buffers') and
-;; M-x buffer-menu.
+;; of buffers.  The entry points are `C-x C-b' (`list-buffers') and
+;; `M-x buffer-menu'.
 
 ;;; Code:
 
@@ -135,6 +135,7 @@ then the buffer will be displayed in the buffer list.")
   "%"           #'Buffer-menu-toggle-read-only
   "b"           #'Buffer-menu-bury
   "V"           #'Buffer-menu-view
+  "O"           #'Buffer-menu-view-other-window
   "T"           #'Buffer-menu-toggle-files-only
   "M-s a C-s"   #'Buffer-menu-isearch-buffers
   "M-s a C-M-s" #'Buffer-menu-isearch-buffers-regexp
@@ -208,26 +209,25 @@ See `buffer-menu' for a description of its contents.
 In Buffer Menu mode, the following commands are defined:
 \\<Buffer-menu-mode-map>
 \\[quit-window]    Remove the Buffer Menu from the display.
-\\[Buffer-menu-this-window]  Select current line's buffer in place of the buffer menu.
+\\[Buffer-menu-this-window]    Select current line's buffer in place of the buffer menu.
 \\[Buffer-menu-other-window]    Select that buffer in another window,
      so the Buffer Menu remains visible in its window.
-\\[Buffer-menu-view]    Select current line's buffer, in View mode.
-\\[Buffer-menu-view-other-window]  Select that buffer in
-     another window, in `view-mode'.
+\\[Buffer-menu-view]    Select current line's buffer, in `view-mode'.
+\\[Buffer-menu-view-other-window]    Select that buffer in another window, in `view-mode'.
 \\[Buffer-menu-switch-other-window]  Make another window display that buffer.
 \\[Buffer-menu-mark]    Mark current line's buffer to be displayed.
 \\[Buffer-menu-select]    Select current line's buffer.
-     Also show buffers marked with m, in other windows.
+     Also show buffers marked with \"m\", in other windows.
 \\[Buffer-menu-1-window]    Select that buffer in full-frame window.
 \\[Buffer-menu-2-window]    Select that buffer in one window, together with the
      buffer selected before this one in another window.
 \\[Buffer-menu-isearch-buffers]    Incremental search in the marked buffers.
 \\[Buffer-menu-isearch-buffers-regexp]  Isearch for regexp in the marked buffers.
-\\[Buffer-menu-multi-occur] Show lines matching regexp in the marked buffers.
+\\[Buffer-menu-multi-occur]    Show lines matching regexp in the marked buffers.
 \\[Buffer-menu-visit-tags-table]    `visit-tags-table' this buffer.
 \\[Buffer-menu-not-modified]    Clear modified-flag on that buffer.
 \\[Buffer-menu-save]    Mark that buffer to be saved, and move down.
-\\[Buffer-menu-delete]  Mark that buffer to be deleted, and move down.
+\\[Buffer-menu-delete]    Mark that buffer to be deleted, and move down.
 \\[Buffer-menu-delete-backwards]  Mark that buffer to be deleted, and move up.
 \\[Buffer-menu-execute]    Delete or save marked buffers.
 \\[Buffer-menu-unmark]    Remove all marks from current line.
