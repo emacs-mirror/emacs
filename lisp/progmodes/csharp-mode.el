@@ -3,7 +3,9 @@
 ;; Copyright (C) 2022  Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
+;;              Jostein Kjønigsen <jostein@kjonigsen.net>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
+;;              Jostein Kjønigsen <jostein@kjonigsen.net>
 ;; Created    : September 2022
 ;; Keywords   : c# languages oop
 
