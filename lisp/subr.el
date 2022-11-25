@@ -3943,14 +3943,17 @@ within the START and END limits, unless the restrictions are
 unlocked by calling `narrowing-unlock' with TAG.  See
 `narrowing-lock' for a more detailed description.  The current
 restrictions, if any, are restored upon return."
-  `(save-restriction
-     (unwind-protect
-         (progn
-           (narrow-to-region ,start ,end)
-           (narrowing-lock ,tag)
-           ,@body)
-       (narrowing-unlock ,tag)
-       (widen))))
+  `(with-locked-narrowing-1 ,start ,end ,tag (lambda () ,@body)))
+
+(defun with-locked-narrowing-1 (start end tag body)
+  "Helper function for `with-locked-narrowing', which see."
+  (save-restriction
+    (unwind-protect
+        (progn
+           (narrow-to-region start end)
+           (narrowing-lock tag)
+           (funcall body))
+       (narrowing-unlock tag))))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.

@@ -16266,40 +16266,6 @@ do { if (! polling_stopped_here) stop_polling ();	\
 do { if (polling_stopped_here) start_polling ();	\
        polling_stopped_here = false; } while (false)
 
-static void
-unwind_reset_outermost_narrowing (Lisp_Object buf)
-{
-  Lisp_Object innermost_narrowing =
-    Fcar (buffer_local_value (Qnarrowing_locks, buf));
-  if (! NILP (innermost_narrowing))
-    {
-      SET_BUF_BEGV (XBUFFER (buf),
-		    XFIXNUM (Fcar (Fcdr (innermost_narrowing))));
-      SET_BUF_ZV (XBUFFER (buf),
-		  XFIXNUM (Fcdr (Fcdr (innermost_narrowing))));
-    }
-}
-
-static void
-reset_outermost_narrowings (void)
-{
-  Lisp_Object tail, buf, outermost_narrowing;
-  FOR_EACH_LIVE_BUFFER (tail, buf)
-    {
-      outermost_narrowing =
-	Fassq (Qoutermost_narrowing,
-	       buffer_local_value (Qnarrowing_locks, buf));
-      if (!NILP (outermost_narrowing))
-	{
-	  SET_BUF_BEGV (XBUFFER (buf),
-			XFIXNUM (Fcar (Fcdr (outermost_narrowing))));
-	  SET_BUF_ZV (XBUFFER (buf),
-		      XFIXNUM (Fcdr (Fcdr (outermost_narrowing))));
-	  record_unwind_protect (unwind_reset_outermost_narrowing, buf);
-	}
-    }
-}
-
 /* Perhaps in the future avoid recentering windows if it
    is not necessary; currently that causes some problems.  */
 
