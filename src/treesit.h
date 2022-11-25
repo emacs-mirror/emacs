@@ -56,13 +56,12 @@ struct Lisp_TS_Parser
      this field to true to force tree-sitter to re-parse.  */
   bool need_reparse;
   /* These two positions record the buffer byte position (1-based) of
-     the "visible region" that tree-sitter sees.  Unlike markers,
-     These two positions do not change as the user inserts and deletes
-     text around them.  Before re-parse, we move these positions to
-     match BUF_BEGV_BYTE and BUF_ZV_BYTE.  Note that we don't need to
-     synchronize these positions when retrieving them in a function
-     that involves a node: if the node is not outdated, these
-     positions are synchronized.  */
+     the "visible region" that tree-sitter sees.  Before re-parse, we
+     move these positions to match BUF_BEGV_BYTE and BUF_ZV_BYTE.
+     Note that we don't need to synchronize these positions when
+     retrieving them in a function that involves a node: if the node
+     is not outdated, these positions are synchronized.  See comment
+     (ref:visible-beg-null) in treesit.c for more explanation.  */
   ptrdiff_t visible_beg;
   ptrdiff_t visible_end;
   /* This counter is incremented every time a change is made to the

@@ -707,6 +707,8 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
       Lisp_Object lisp_parser = XCAR (parser_list);
       treesit_check_parser (lisp_parser);
       TSTree *tree = XTS_PARSER (lisp_parser)->tree;
+      /* See comment (ref:visible-beg-null) if you wonder why we don't
+      update visible_beg/end when tree is NULL.  */
       if (tree != NULL)
 	{
 	  eassert (start_byte <= old_end_byte);
@@ -742,7 +744,7 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	  XTS_PARSER (lisp_parser)->timestamp++;
 
 	  /* VISIBLE_BEG/END records tree-sitter's range of view in
-	     the buffer.  Ee need to adjust them when tree-sitter's
+	     the buffer.  We need to adjust them when tree-sitter's
 	     view changes.  */
 	  ptrdiff_t visi_beg_delta;
 	  if (old_end_byte > new_end_byte)
@@ -764,6 +766,44 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	}
     }
 }
+
+/* Comment (ref:visible-beg-null) So the purpose of visible_beg/end
+   are to keep track of "which part of the buffer does the tree-sitter
+   tree sees", in order to update the tree correctly.  Visible_beg/end
+   has two purposes: "clips" buffer changes within them, and translate
+   position in buffer to position in the tree (buf position - visi_beg
+   = tree position).
+
+   Conceptually, visible_beg/end marks the visible region of the
+   buffer when we last reparsed.  In between two reparse, we don't
+   really care if the visible region of the buffer changes.
+
+   Right before we reparse, we make tree-sitter's visible region
+   matches that of the buffer, and update visible_beg/end.
+
+   That is, the whole purpose of visible_beg/end (and
+   treesit_record_change and treesit_ensure_position_synced) is to
+   update the tree (by ts_tree_edit).  So if the tree is NULL, we
+   don't update the tree and there is no need to keep tracking of
+   them.  Only when we already have a tree, do we need to keep track
+   of position changes and update it correctly, so it can be feed into
+   ts_parser_parse as the old tree, so that tree-sitter only parses
+   the changed part (aka incremental).
+
+   In a nutshell, tree-sitter incremental parsing in Emacs looks like:
+
+   treesit_record_change(tree)  \
+   treesit_record_change(tree)  | user edits buffer
+   ...                          /
+
+   treesit_ensure_position_synced(tree) \ treesit_ensure_parsed
+   ts_parser_parse(tree) -> tree        /
+
+   treesit_record_change(tree)  \
+   treesit_record_change(tree)  | user edits buffer
+   ...                          /
+
+   and so on.  */
 
 /* Make sure PARSER's visible_beg and visible_end are in sync with
    BUF_BEGV_BYTE and BUG_ZV_BYTE.  When calling this function you must
@@ -1365,9 +1405,10 @@ treesit_check_range_argument (Lisp_Object ranges)
   CHECK_LIST_END (tail, ranges);
 }
 
-/* Generate a list of ranges in Lisp from RANGES.  This function
-   doesn't take ownership of RANGES.  BUFFER is used to convert
-   between tree-sitter buffer offset and buffer position.  */
+/* Generate a list of ranges in Lisp from RANGES.  Assumes tree-sitter
+   tree and the buffer has the same visible region (w.r.t narrowing).
+   This function doesn't take ownership of RANGES.  BUFFER is used to
+   convert between tree-sitter buffer offset and buffer position.  */
 static Lisp_Object
 treesit_make_ranges (const TSRange *ranges, uint32_t len,
 		     struct buffer *buffer)
