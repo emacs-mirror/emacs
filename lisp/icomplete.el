@@ -416,7 +416,6 @@ if that doesn't produce a completion match."
                 icomplete-scroll (not (null icomplete-vertical-mode))
                 completion-styles '(flex)
                 completion-flex-nospace nil
-                completion-category-defaults nil
                 completion-ignore-case t
                 read-buffer-completion-ignore-case t
                 read-file-name-completion-ignore-case t)))
