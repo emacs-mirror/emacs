@@ -222,14 +222,14 @@ and `goto-address-fontify-p'."
 
 ;;;###autoload
 (defun goto-address-at-point (&optional event)
-  "Start composing a new message to the e-mail address at point or
-open URL at point.
+  "Compose a new message to the e-mail address or open URL at point.
 
-If no e-mail address is found at point, use the URL at or before
-point.  See `goto-address-find-address-at-point'.
+Compose message to address at point.  See documentation for
+`goto-address-find-address-at-point'.
 
-With prefix argument, use the secondary browser to open the URL.
-See `browse-url-button-open-url'."
+If no e-mail address is found at point, open the URL at or before
+point using `browse-url'.  With a prefix argument, open the URL
+using `browse-url-secondary-browser-function' instead."
   (interactive (list last-input-event))
   (save-excursion
     (if event (posn-set-point (event-end event)))
