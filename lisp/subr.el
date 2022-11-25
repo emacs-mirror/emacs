@@ -3935,25 +3935,40 @@ See also `locate-user-emacs-file'.")
   "Return non-nil if the current buffer is narrowed."
   (/= (- (point-max) (point-min)) (buffer-size)))
 
-(defmacro with-locked-narrowing (start end tag &rest body)
-  "Execute BODY with restrictions set to START and END and locked with TAG.
+(defmacro with-narrowing (start end &rest rest)
+  "Execute BODY with restrictions set to START and END.
 
-Inside BODY, `narrow-to-region' and `widen' can be used only
-within the START and END limits, unless the restrictions are
-unlocked by calling `narrowing-unlock' with TAG.  See
-`narrowing-lock' for a more detailed description.  The current
-restrictions, if any, are restored upon return."
-  `(with-locked-narrowing-1 ,start ,end ,tag (lambda () ,@body)))
+The current restrictions, if any, are restored upon return.
 
-(defun with-locked-narrowing-1 (start end tag body)
-  "Helper function for `with-locked-narrowing', which see."
+With the optional :locked TAG argument, inside BODY,
+`narrow-to-region' and `widen' can be used only within the START
+and END limits, unless the restrictions are unlocked by calling
+`narrowing-unlock' with TAG.  See `narrowing-lock' for a more
+detailed description.
+
+\(fn START END [:locked TAG] BODY)"
+  (if (eq (car rest) :locked)
+      `(with-narrowing-1 ,start ,end ,(cadr rest)
+                         (lambda () ,@(cddr rest)))
+    `(with-narrowing-2 ,start ,end
+                       (lambda () ,@rest))))
+
+(defun with-narrowing-1 (start end tag body)
+  "Helper function for `with-narrowing', which see."
   (save-restriction
     (unwind-protect
         (progn
-           (narrow-to-region start end)
-           (narrowing-lock tag)
-           (funcall body))
-       (narrowing-unlock tag))))
+          (narrow-to-region start end)
+          (narrowing-lock tag)
+          (funcall body))
+      (narrowing-unlock tag))))
+
+(defun with-narrowing-2 (start end body)
+  "Helper function for `with-narrowing', which see."
+  (save-restriction
+    (progn
+      (narrow-to-region start end)
+      (funcall body))))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.
