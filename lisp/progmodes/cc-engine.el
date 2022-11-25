@@ -11077,8 +11077,9 @@ This function might do hidden buffer changes."
 			      at-decl-start))
 		 (let ((space-before-id
 			(save-excursion
-			  (goto-char name-start)
-			  (or (bolp) (memq (char-before) '(?\  ?\t)))))
+			  (goto-char id-start) ; Position of "*".
+			  (and (> (skip-chars-forward "* \t\n\r") 0)
+			       (memq (char-before) '(?\  ?\t ?\n ?\r)))))
 		       (space-after-type
 			(save-excursion
 			  (goto-char type-start)
@@ -11088,6 +11089,8 @@ This function might do hidden buffer changes."
 				   (memq (char-after) '(?\  ?\t)))))))
 		   (when (not (eq (not space-before-id)
 				  (not space-after-type)))
+		     (when (eq at-type 'maybe)
+		       (setq unsafe-maybe t))
 		     (setq maybe-expression t)
 		     (throw 'at-decl-or-cast t)))))
 
