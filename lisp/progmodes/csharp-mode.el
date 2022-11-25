@@ -812,7 +812,8 @@ compilation and evaluation time conflicts."
      (cast_expression (identifier) @font-lock-type-face)
      ["operator"] @font-lock-type-face
      (type_parameter_constraints_clause
-      target: (identifier) @font-lock-type-face))
+      target: (identifier) @font-lock-type-face)
+     (type_of_expression (identifier) @font-lock-type-face))
    :language 'c-sharp
    :feature 'definition
    :override t
