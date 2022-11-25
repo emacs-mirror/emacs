@@ -279,7 +279,7 @@
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
-
+(declare-function treesit-node-prev-sibling "treesit.c")
 
 (autoload 'comint-mode "comint")
 (autoload 'help-function-arglist "help-fns")
