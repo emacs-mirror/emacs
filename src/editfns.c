@@ -2663,28 +2663,26 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
 static Lisp_Object narrowing_locks;
 
 /* Retrieve one of the BEGV/ZV bounds of a narrowing in BUF from the
-   narrowing_locks alist.  When OUTERMOST is true, the bounds that
-   were set by the user and that are visible on display are returned.
-   Otherwise the innermost locked narrowing bounds are returned.  */
-static ptrdiff_t
+   narrowing_locks alist, as a pointer to a struct Lisp_Marker, or
+   NULL if BUF is not in narrowing_locks.  When OUTERMOST is true, the
+   bounds that were set by the user and that are visible on display
+   are returned.  Otherwise the innermost locked narrowing bounds are
+   returned.  */
+static struct Lisp_Marker *
 narrowing_lock_get_bound (Lisp_Object buf, bool begv, bool outermost)
 {
-  if (NILP (Fbuffer_live_p (buf)))
-    return 0;
   Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
   if (NILP (buffer_locks))
-    return 0;
-  buffer_locks = Fcar (Fcdr (buffer_locks));
+    return NULL;
+  buffer_locks = XCAR (XCDR (buffer_locks));
   Lisp_Object bounds
     = outermost
-      ? Fcdr (assq_no_quit (Qoutermost_narrowing, buffer_locks))
-      : Fcdr (Fcar (buffer_locks));
+      ? XCDR (assq_no_quit (Qoutermost_narrowing, buffer_locks))
+      : XCDR (XCAR (buffer_locks));
   eassert (! NILP (bounds));
-  Lisp_Object marker = begv ? Fcar (bounds) : Fcar (Fcdr (bounds));
-  eassert (MARKERP (marker));
-  Lisp_Object pos = Fmarker_position (marker);
-  eassert (! NILP (pos));
-  return XFIXNUM (pos);
+  Lisp_Object marker = begv ? XCAR (bounds) : XCAR (XCDR (bounds));
+  eassert (EQ (Fmarker_buffer (marker), buf));
+  return XMARKER (marker);
 }
 
 /* Retrieve the tag of the innermost narrowing in BUF.  */
@@ -2696,7 +2694,7 @@ narrowing_lock_peek_tag (Lisp_Object buf)
   Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
   if (NILP (buffer_locks))
     return Qnil;
-  Lisp_Object tag = Fcar (Fcar (Fcar (Fcdr (buffer_locks))));
+  Lisp_Object tag = XCAR (XCAR (XCAR (XCDR (buffer_locks))));
   eassert (! NILP (tag));
   return tag;
 }
@@ -2710,8 +2708,8 @@ narrowing_lock_push (Lisp_Object buf, Lisp_Object lock)
     narrowing_locks = nconc2 (list1 (list2 (buf, list1 (lock))),
 			      narrowing_locks);
   else
-    Fsetcdr (buffer_locks, list1 (nconc2 (list1 (lock),
-					  Fcar (Fcdr (buffer_locks)))));
+    XSETCDR (buffer_locks, list1 (nconc2 (list1 (lock),
+					  XCAR (XCDR (buffer_locks)))));
 }
 
 /* Remove the innermost lock in BUF from the narrowing_lock alist.  */
@@ -2724,38 +2722,40 @@ narrowing_lock_pop (Lisp_Object buf)
     narrowing_locks = Fdelq (Fassoc (buf, narrowing_locks, Qnil),
 			     narrowing_locks);
   else
-    Fsetcdr (buffer_locks, list1 (Fcdr (Fcar (Fcdr (buffer_locks)))));
+    XSETCDR (buffer_locks, list1 (XCDR (XCAR (XCDR (buffer_locks)))));
 }
 
 static void
 unwind_reset_outermost_narrowing (Lisp_Object buf)
 {
-  ptrdiff_t begv, zv;
-  begv = narrowing_lock_get_bound (buf, true, false);
-  zv = narrowing_lock_get_bound (buf, false, false);
-  if (begv && zv)
+  struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, false);
+  struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, false);
+  if (begv != NULL && zv != NULL)
     {
-      SET_BUF_BEGV (XBUFFER (buf), begv);
-      SET_BUF_ZV (XBUFFER (buf), zv);
+      SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
+      SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
     }
 }
 
-/* When redisplay is called in a function executed while a locked
-   narrowing is in effect, restore the narrowing bounds that were set
-   by the user, and restore the bounds of the locked narrowing when
-   returning from redisplay.  */
+/* Restore the narrowing bounds that were set by the user, and restore
+   the bounds of the locked narrowing upon return.
+   In particular, this function is called when redisplay starts, so
+   that if a Lisp function executed during redisplay calls (redisplay)
+   while a locked narrowing is in effect, the locked narrowing will
+   not be visible on display.  */
 void
 reset_outermost_narrowings (void)
 {
   Lisp_Object val, buf;
   for (val = narrowing_locks; CONSP (val); val = XCDR (val))
     {
-      buf = Fcar (Fcar (val));
+      buf = XCAR (XCAR (val));
       eassert (BUFFERP (buf));
-      ptrdiff_t begv = narrowing_lock_get_bound (buf, true, true);
-      ptrdiff_t zv = narrowing_lock_get_bound (buf, false, true);
-      SET_BUF_BEGV (XBUFFER (buf), begv);
-      SET_BUF_ZV (XBUFFER (buf), zv);
+      struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, true);
+      struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, true);
+      eassert (begv != NULL && zv != NULL);
+      SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
+      SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
       record_unwind_protect (unwind_reset_outermost_narrowing, buf);
     }
 }
@@ -2769,7 +2769,7 @@ narrowing_locks_save (void)
   Lisp_Object locks = assq_no_quit (buf, narrowing_locks);
   if (NILP (locks))
     return Qnil;
-  locks = Fcar (Fcdr (locks));
+  locks = XCAR (XCDR (locks));
   return Fcons (buf, Fcopy_sequence (locks));
 }
 
@@ -2778,9 +2778,9 @@ narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
 {
   if (NILP (buf_and_saved_locks))
     return;
-  Lisp_Object buf = Fcar (buf_and_saved_locks);
+  Lisp_Object buf = XCAR (buf_and_saved_locks);
   eassert (BUFFERP (buf));
-  Lisp_Object saved_locks = Fcdr (buf_and_saved_locks);
+  Lisp_Object saved_locks = XCDR (buf_and_saved_locks);
   eassert (! NILP (saved_locks));
   Lisp_Object current_locks = assq_no_quit (buf, narrowing_locks);
   if (! NILP (current_locks))
@@ -2830,12 +2830,13 @@ called is restored.  */)
     }
   else
     {
-      ptrdiff_t begv = narrowing_lock_get_bound (buf, true, false);
-      ptrdiff_t zv = narrowing_lock_get_bound (buf, false, false);
-      if (begv != BEGV || zv != ZV)
+      struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, false);
+      struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, false);
+      eassert (begv != NULL && zv != NULL);
+      if (begv->charpos != BEGV || zv->charpos != ZV)
 	current_buffer->clip_changed = 1;
-      SET_BUF_BEGV (current_buffer, begv);
-      SET_BUF_ZV (current_buffer, zv);
+      SET_BUF_BEGV_BOTH (current_buffer, begv->charpos, begv->bytepos);
+      SET_BUF_ZV_BOTH (current_buffer, zv->charpos, zv->bytepos);
       /* If the only remaining bounds in narrowing_locks for
 	 current_buffer are the bounds that were set by the user, no
 	 locked narrowing is in effect in current_buffer anymore:
@@ -2879,14 +2880,15 @@ limit of the locked restriction is used instead of the argument.  */)
   Lisp_Object buf = Fcurrent_buffer ();
   if (! NILP (narrowing_lock_peek_tag (buf)))
     {
-      ptrdiff_t begv = narrowing_lock_get_bound (buf, true, false);
-      ptrdiff_t zv = narrowing_lock_get_bound (buf, false, false);
+      struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, false);
+      struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, false);
+      eassert (begv != NULL && zv != NULL);
       /* Limit the start and end positions to those of the locked
 	 narrowing.  */
-      if (s < begv) s = begv;
-      if (s > zv) s = zv;
-      if (e < begv) e = begv;
-      if (e > zv) e = zv;
+      if (s < begv->charpos) s = begv->charpos;
+      if (s > zv->charpos) s = zv->charpos;
+      if (e < begv->charpos) e = begv->charpos;
+      if (e > zv->charpos) e = zv->charpos;
     }
 
   /* Record the accessible range of the buffer when narrow-to-region
