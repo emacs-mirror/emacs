@@ -6598,7 +6598,9 @@ implementations: `python-mode' and `python-ts-mode'."
               `(,python-font-lock-keywords
                 nil nil nil nil
                 (font-lock-syntactic-face-function
-                 . python-font-lock-syntactic-face-function)))
+                 . python-font-lock-syntactic-face-function)
+                (font-lock-extend-after-change-region-function
+                 . python-font-lock-extend-region)))
   (setq-local syntax-propertize-function
               python-syntax-propertize-function)
   (setq-local imenu-create-index-function
