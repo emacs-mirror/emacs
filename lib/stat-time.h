@@ -20,9 +20,8 @@
 #ifndef STAT_TIME_H
 #define STAT_TIME_H 1
 
-#include "intprops.h"
-
 #include <errno.h>
+#include <stdckdint.h>
 #include <stddef.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -232,7 +231,7 @@ stat_time_normalize (int result, _GL_UNUSED struct stat *st)
           /* Overflow is possible, as Solaris 11 stat can yield
              tv_sec == TYPE_MINIMUM (time_t) && tv_nsec == -1000000000.
              INT_ADD_WRAPV is OK, since time_t is signed on Solaris.  */
-          if (INT_ADD_WRAPV (q, ts->tv_sec, &ts->tv_sec))
+          if (ckd_add (&ts->tv_sec, q, ts->tv_sec))
             {
               errno = EOVERFLOW;
               return -1;
