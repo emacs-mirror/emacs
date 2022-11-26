@@ -974,9 +974,10 @@ Key bindings:
   ;; Font-lock.
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((comment keyword constant string)
-                (type definition expression literal attribute)
-                (bracket delimiter)))
+              '(( comment definition)
+                ( keyword string type)
+                ( attribute constant expression literal)
+                ( bracket delimiter)))
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'csharp-ts-mode--imenu)

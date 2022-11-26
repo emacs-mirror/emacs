@@ -3873,9 +3873,10 @@ Currently there are `js-mode' and `js-ts-mode'."
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list
                 '(( comment declaration)
-                  ( constant expression identifier keyword number string)
-                  ( bracket delimiter escape-sequence jsx operator
-                    pattern property)))
+                  ( keyword string)
+                  ( constant escape-sequence expression
+                    identifier jsx number pattern property)
+                  ( bracket delimiter operator)))
     ;; Imenu
     (setq-local imenu-create-index-function
                 #'js--treesit-imenu)

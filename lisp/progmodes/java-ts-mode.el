@@ -317,9 +317,10 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((comment constant keyword string)
-                (annotation definition expression literal type)
-                (bracket delimiter operator)))
+              '(( comment definition )
+                ( constant keyword string type)
+                ( annotation expression literal)
+                ( bracket delimiter operator)))
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'java-ts-mode--imenu)

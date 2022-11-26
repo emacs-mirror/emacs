@@ -1608,10 +1608,10 @@ with your script for an edit-interpret-debug cycle."
   "Major mode for editing Bash shell scripts."
   (when (treesit-ready-p 'bash)
     (setq-local treesit-font-lock-feature-list
-                '(( comment function heredoc string)
-                  ( command declaration-command keyword number variable)
-                  ( bracket builtin-variable constant delimiter
-                    misc-punctuation operator)))
+                '(( comment function)
+                  ( command declaration-command keyword string)
+                  ( builtin-variable constant heredoc number variable)
+                  ( bracket delimiter misc-punctuation operator)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
     (treesit-major-mode-setup)))

@@ -6615,11 +6615,11 @@ implementations: `python-mode' and `python-ts-mode'."
   (when (treesit-ready-p 'python)
     (treesit-parser-create 'python)
     (setq-local treesit-font-lock-feature-list
-                '(( comment string definition)
-                  ( keyword builtin constant type)
-                  ( assignment decorator escape-sequence
-                    string-interpolation number property
-                    operator bracket delimiter)))
+                '(( comment definition)
+                  ( keyword string type)
+                  ( assignment builtin constant decorator
+                    escape-sequence number property string-interpolation )
+                  ( bracket delimiter operator)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)

@@ -528,10 +528,10 @@ the subtrees."
   (setq-local which-func-functions nil)
 
   (setq-local treesit-font-lock-feature-list
-              '(( comment constant keyword literal preprocessor string)
-                ( assignment definition label property type)
-                ( delimiter error escape-sequence function
-                  operator variable bracket))))
+              '(( comment definition)
+                ( keyword preprocessor string type)
+                ( assignment constant escape-sequence label literal property )
+                ( bracket delimiter error function operator variable))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-mode--base-mode "C"

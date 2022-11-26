@@ -320,9 +320,10 @@
     ;; Font-lock.
     (setq-local treesit-font-lock-settings typescript-ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (constant expression identifier keyword number string)
-                  (bracket delimiter jsx pattern property)))
+                '(( comment declaration)
+                  ( keyword string)
+                  ( constant expression identifier jsx number pattern property)
+                  ( bracket delimiter)))
     ;; Imenu.
     (setq-local imenu-create-index-function #'js--treesit-imenu)
 
