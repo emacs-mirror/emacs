@@ -782,13 +782,13 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
    matches that of the buffer, and update visible_beg/end.
 
    That is, the whole purpose of visible_beg/end (and
-   treesit_record_change and treesit_sync_visible_region) is to
-   update the tree (by ts_tree_edit).  So if the tree is NULL, we
-   don't update the tree and there is no need to keep tracking of
-   them.  Only when we already have a tree, do we need to keep track
-   of position changes and update it correctly, so it can be feed into
-   ts_parser_parse as the old tree, so that tree-sitter only parses
-   the changed part (aka incremental).
+   treesit_record_change and treesit_sync_visible_region) is to update
+   the tree (by ts_tree_edit).  So if the tree is NULL,
+   visible_beg/end are considered uninitialized.  Only when we already
+   have a tree, do we need to keep track of position changes and
+   update it correctly, so it can be feed into ts_parser_parse as the
+   old tree, so that tree-sitter only parses the changed part (aka
+   incremental).
 
    In a nutshell, tree-sitter incremental parsing in Emacs looks like:
 
@@ -815,11 +815,17 @@ static void
 treesit_sync_visible_region (Lisp_Object parser)
 {
   TSTree *tree = XTS_PARSER (parser)->tree;
-
-  if (tree == NULL)
-    return;
-
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
+
+  /* If we are setting visible_beg/end for the first time, we can skip
+  the offset acrobatics and updating the tree below.  */
+  if (tree == NULL)
+    {
+      XTS_PARSER (parser)->visible_beg = BUF_BEGV_BYTE (buffer);
+      XTS_PARSER (parser)->visible_end = BUF_ZV_BYTE (buffer);
+      return;
+    }
+
   ptrdiff_t visible_beg = XTS_PARSER (parser)->visible_beg;
   ptrdiff_t visible_end = XTS_PARSER (parser)->visible_end;
   eassert (0 <= visible_beg);
