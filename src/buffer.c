@@ -5897,6 +5897,8 @@ variable specifies the size of the narrowed region around point.
 
 To disable that narrowing, set this variable to 0.
 
+See also `long-line-locked-narrowing-bol-search-limit'.
+
 There is no reason to change that value except for debugging purposes.  */);
   long_line_locked_narrowing_region_size = 500000;
 
@@ -5912,7 +5914,7 @@ narrowed buffer, with a narrowing locked with `narrowing-lock'.  The
 variable `long-line-locked-narrowing-region-size' specifies the size
 of the narrowed region around point.  This variable, which should be a
 small integer, specifies the number of characters by which that region
-can be extended backwards to start it at the beginning of a line.
+can be extended backwards to make it start at the beginning of a line.
 
 There is no reason to change that value except for debugging purposes.  */);
   long_line_locked_narrowing_bol_search_limit = 128;

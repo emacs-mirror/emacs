@@ -12727,7 +12727,8 @@ the error might happen repeatedly and make Emacs nonfunctional.
 
 Note that, when the current buffer contains one or more lines whose
 length is above `long-line-threshold', these hook functions are called
-with the buffer narrowed to a small portion around point, and the
+with the buffer narrowed to a small portion around point (whose size
+is specified by `long-line-locked-narrowing-region-size'), and the
 narrowing is locked (see `narrow-to-region'), so that these hook
 functions cannot use `widen' to gain access to other portions of
 buffer text.
@@ -12748,7 +12749,8 @@ avoid making Emacs unresponsive while the user types.
 
 Note that, when the current buffer contains one or more lines whose
 length is above `long-line-threshold', these hook functions are called
-with the buffer narrowed to a small portion around point, and the
+with the buffer narrowed to a small portion around point (whose size
+is specified by `long-line-locked-narrowing-region-size'), and the
 narrowing is locked (see `narrow-to-region'), so that these hook
 functions cannot use `widen' to gain access to other portions of
 buffer text.

@@ -36745,10 +36745,11 @@ fontify a region starting at POS in the current buffer, and give
 fontified regions the property `fontified' with a non-nil value.
 
 Note that, when the buffer contains one or more lines whose length is
-above `long-line-threshold', these functions are called with the buffer
-narrowed to a small portion around POS, and the narrowing is locked (see
-`narrow-to-region'), so that these functions cannot use `widen' to gain
-access to other portions of buffer text.  */);
+above `long-line-threshold', these functions are called with the
+buffer narrowed to a small portion around POS (whose size is specified
+by `long-line-locked-narrowing-region-size'), and the narrowing is
+locked (see `narrow-to-region'), so that these functions cannot use
+`widen' to gain access to other portions of buffer text.  */);
   Vfontification_functions = Qnil;
   Fmake_variable_buffer_local (Qfontification_functions);
 
