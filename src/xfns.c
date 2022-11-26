@@ -8455,10 +8455,10 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
   int min_x, min_y, max_x, max_y = -1;
 
   /* User-specified position?  */
-  left = Fcdr (Fassq (Qleft, parms));
-  top  = Fcdr (Fassq (Qtop, parms));
-  right = Fcdr (Fassq (Qright, parms));
-  bottom = Fcdr (Fassq (Qbottom, parms));
+  left = CDR (Fassq (Qleft, parms));
+  top  = CDR (Fassq (Qtop, parms));
+  right = CDR (Fassq (Qright, parms));
+  bottom = CDR (Fassq (Qbottom, parms));
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
@@ -8824,14 +8824,14 @@ Text larger than the specified size is clipped.  */)
 	  for (tail = parms; CONSP (tail); tail = XCDR (tail))
 	    {
 	      elt = XCAR (tail);
-	      parm = Fcar (elt);
+	      parm = CAR (elt);
 	      /* The left, top, right and bottom parameters are handled
 		 by compute_tip_xy so they can be ignored here.  */
 	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop)
 		  && !EQ (parm, Qright) && !EQ (parm, Qbottom))
 		{
 		  last = Fassq (parm, tip_last_parms);
-		  if (NILP (Fequal (Fcdr (elt), Fcdr (last))))
+		  if (NILP (Fequal (CDR (elt), CDR (last))))
 		    {
 		      /* We lost, delete the old tooltip.  */
 		      delete = true;
@@ -8852,9 +8852,9 @@ Text larger than the specified size is clipped.  */)
 	  for (tail = tip_last_parms; CONSP (tail); tail = XCDR (tail))
 	    {
 	      elt = XCAR (tail);
-	      parm = Fcar (elt);
+	      parm = CAR (elt);
 	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop) && !EQ (parm, Qright)
-		  && !EQ (parm, Qbottom) && !NILP (Fcdr (elt)))
+		  && !EQ (parm, Qbottom) && !NILP (CDR (elt)))
 		{
 		  /* We lost, delete the old tooltip.  */
 		  delete = true;
@@ -8975,8 +8975,8 @@ Text larger than the specified size is clipped.  */)
 				  make_fixnum (w->pixel_height), Qnil,
 				  Qnil);
   /* Add the frame's internal border to calculated size.  */
-  width = XFIXNUM (Fcar (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
-  height = XFIXNUM (Fcdr (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
+  width = XFIXNUM (CAR (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
+  height = XFIXNUM (CDR (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
 
   /* Calculate position of tooltip frame.  */
   compute_tip_xy (tip_f, parms, dx, dy, width, height, &root_x, &root_y);
