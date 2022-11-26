@@ -520,6 +520,24 @@ omitted, default END to BEG."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
+(defvar-local treesit-font-lock-level 3
+  "The decoration level used by tree-sitter fontification.
+Major modes categorize their fontification features into levels,
+from 1 being the absolute minimal, to 4 being maximally
+fontified.
+
+Level 1 usually contains only comments and definitions.
+Level 2 usually adds keywords, strings, constants, types, etc.
+Level 3 usually represents a full-blown fontification, including
+assignment, constants, numbers, properties, etc.
+Level 4 fontifies everything that can be fontified: delimiters,
+operators, brackets, all functions and variables, etc.
+
+In addition to the decoration level, individual features can be
+turned on/off by `treesit-font-lock-recompute-features'.  Changes
+to this variable also requires calling
+`treesit-font-lock-recompute-features' to have an effect.")
+
 (defvar-local treesit--font-lock-query-expand-range (cons 0 0)
   "The amount to expand the start and end of the region when fontifying.
 This should be a cons cell (START . END).  When fontifying a
@@ -537,11 +555,10 @@ temporarily fix.")
   "A list of lists of feature symbols.
 
 Use `treesit-font-lock-recompute-features' and
-`font-lock-maximum-decoration' to configure enabled features.
+`treesit-font-lock-level' to configure enabled features.
 
 Each sublist represents a decoration level.
-`font-lock-maximum-decoration' controls which levels are
-activated.
+`treesit-font-lock-level' controls which levels are activated.
 
 Inside each sublist are feature symbols, which correspond to the
 :feature value of a query defined in `treesit-font-lock-rules'.
@@ -575,8 +592,8 @@ For SETTING to be activated for font-lock, ENABLE must be t.  To
 disable this SETTING, set ENABLE to nil.
 
 FEATURE is the \"feature name\" of the query.  Users can control
-which features are enabled with `font-lock-maximum-decoration'
-and `treesit-font-lock-feature-list'.
+which features are enabled with `treesit-font-lock-level' and
+`treesit-font-lock-feature-list'.
 
 OVERRIDE is the override flag for this query.  Its value can be
 t, nil, append, prepend, keep.  See more in
@@ -718,12 +735,10 @@ REMOVE-LIST.
 
 If both ADD-LIST and REMOVE-LIST are omitted, recompute each
 feature according to `treesit-font-lock-feature-list' and
-`font-lock-maximum-decoration'.  Let N be the value of
-`font-lock-maximum-decoration', features in the first Nth sublist
-of `treesit-font-lock-feature-list' are enabled, and the rest
-features are disabled.  If `font-lock-maximum-decoration' is t,
-all features in `treesit-font-lock-feature-list' are enabled, and
-the rest are disabled.
+`treesit-font-lock-level'.  Let N be the value of
+`treesit-font-lock-level', features in the first N sublists of
+`treesit-font-lock-feature-list' are enabled, and other features
+are disabled.
 
 ADD-LIST and REMOVE-LIST are each a list of feature symbols.  The
 same feature symbol cannot appear in both lists; the function
@@ -732,8 +747,7 @@ signals the `treesit-font-lock-error' error if that happens."
     (signal 'treesit-font-lock-error
             (list "ADD-LIST and REMOVE-LIST contain the same feature"
                   intersection)))
-  (let* ((level (font-lock-value-in-major-mode
-                 font-lock-maximum-decoration))
+  (let* ((level treesit-font-lock-level)
          (base-features (cl-loop
                          for idx = 0 then (1+ idx)
                          for features in treesit-font-lock-feature-list
