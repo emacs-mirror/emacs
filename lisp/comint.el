@@ -4121,9 +4121,15 @@ function called, or nil, if no function was called (if BEG = END)."
         (save-restriction
           (let ((beg2 beg1)
                 (end2 end1))
-            (when (= beg2 beg)
+            (when (and (= beg2 beg)
+                       (> beg2 (point-min))
+                       (eq is-output
+                           (eq (get-text-property (1- beg2) 'field) 'output)))
               (setq beg2 (field-beginning beg2)))
-            (when (= end2 end)
+            (when (and (= end2 end)
+                       (< end2 (point-max))
+                       (eq is-output
+                           (eq (get-text-property (1+ end2) 'field) 'output)))
               (setq end2 (field-end end2)))
             ;; Narrow to the whole field surrounding the region
             (narrow-to-region beg2 end2))
