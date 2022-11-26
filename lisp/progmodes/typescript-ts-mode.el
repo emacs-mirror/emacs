@@ -289,11 +289,7 @@
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
-  (cond
-   ;; `typescript-ts-mode' requires tree-sitter to work, so we don't check if
-   ;; user enables tree-sitter for it.
-   ((treesit-ready-p 'tsx)
-    ;; Tree-sitter.
+  (when (treesit-ready-p 'tsx)
     (treesit-parser-create 'tsx)
 
     ;; Comments.
@@ -330,12 +326,8 @@
     ;; Which-func (use imenu).
     (setq-local which-func-functions nil)
 
-    (treesit-major-mode-setup))
+    (treesit-major-mode-setup)))
 
-   ;; Elisp.
-   (t
-    (js-mode)
-    (message "Tree-sitter for TypeScript isn't available, falling back to `js-mode'"))))
 
 (provide 'typescript-ts-mode)
 
