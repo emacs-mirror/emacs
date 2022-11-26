@@ -83,6 +83,11 @@ mode for the C programming language is @code{c-mode}.
 @cindex DNS mode
 @cindex Javascript mode
 @cindex Awk mode
+@cindex C# mode
+@cindex IDLWAVE mode
+@cindex JSON mode
+@cindex SQL mode
+@cindex TypeScript mode
   Emacs has programming language modes for Lisp, Scheme, the
 Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++, C#,
 Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, M4, Makefiles,
