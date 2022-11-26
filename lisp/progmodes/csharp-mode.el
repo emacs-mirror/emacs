@@ -50,7 +50,7 @@
 (eval-and-compile
   (defconst csharp--regex-identifier
     "[A-Za-z][A-Za-z0-9_]*"
-    "Regex describing an dentifier in C#.")
+    "Regex describing an identifier in C#.")
 
   (defconst csharp--regex-identifier-matcher
     (concat "\\(" csharp--regex-identifier "\\)")

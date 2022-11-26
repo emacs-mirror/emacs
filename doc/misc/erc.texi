@@ -1045,7 +1045,7 @@ login differs from the @code{:user} you're connecting with.
 
 @defopt erc-sasl-password
 As noted elsewhere, the @code{:password} parameter for @code{erc-tls}
-was orignally intended for traditional ``server passwords,'' but these
+was originally intended for traditional ``server passwords,'' but these
 aren't really used any more.  As such, this option defaults to
 borrowing that parameter for its own uses, thus allowing you to call
 @code{erc-tls} with @code{:password} set to your NickServ password.
