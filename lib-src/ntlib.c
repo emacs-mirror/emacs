@@ -138,15 +138,6 @@ getlogin (void)
   return NULL;
 }
 
-char *
-cuserid (char * s)
-{
-  char * name = getlogin ();
-  if (s)
-    return strcpy (s, name ? name : "");
-  return name;
-}
-
 unsigned
 getuid (void)
 {
