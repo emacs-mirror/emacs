@@ -206,40 +206,40 @@ format, that effectively converts the file to Unix EOL style, like the
 @code{dos2unix} program.
 
 @cindex untranslated file system
-@findex add-untranslated-filesystem
+@findex w32-add-untranslated-filesystem
   When you use NFS, Samba, or some other similar method to access file
 systems that reside on computers using GNU or Unix systems, Emacs
 should not perform end-of-line translation on any files in these file
 systems---not even when you create a new file.  To request this,
 designate these file systems as @dfn{untranslated} file systems by
-calling the function @code{add-untranslated-filesystem}.  It takes one
-argument: the file system name, including a drive letter and
+calling the function @code{w32-add-untranslated-filesystem}.  It takes
+one argument: the file system name, including a drive letter and
 optionally a directory.  For example,
 
 @example
-(add-untranslated-filesystem "Z:")
+(w32-add-untranslated-filesystem "Z:")
 @end example
 
 @noindent
 designates drive Z as an untranslated file system, and
 
 @example
-(add-untranslated-filesystem "Z:\\foo")
+(w32-add-untranslated-filesystem "Z:\\foo")
 @end example
 
 @noindent
 designates directory @file{\foo} on drive Z as an untranslated file
 system.
 
-  Most often you would use @code{add-untranslated-filesystem} in your
+  Most often you would use @code{w32-add-untranslated-filesystem} in your
 @file{.emacs} or @file{init.el} init file, or in @file{site-start.el}
 so that all the users at your site get the benefit of it.
 
-@findex remove-untranslated-filesystem
-  To countermand the effect of @code{add-untranslated-filesystem}, use
-the function @code{remove-untranslated-filesystem}.  This function takes
-one argument, which should be a string just like the one that was used
-previously with @code{add-untranslated-filesystem}.
+@findex w32-remove-untranslated-filesystem
+  To countermand the effect of @code{w32-add-untranslated-filesystem},
+use the function @code{w32-remove-untranslated-filesystem}.  This
+function takes one argument, which should be a string just like the
+one that was used previously with @code{w32-add-untranslated-filesystem}.
 
   Designating a file system as untranslated does not affect character
 set conversion, only end-of-line conversion.  Essentially, it directs
