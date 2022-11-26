@@ -531,6 +531,7 @@ COMPOSITION-PREDICATE will be used to compose region."
 ;; --------------------------------------------------------------------------------
 
 (defmacro ucs-normalize-string (ucs-normalize-region)
+  "Normalize string STR using the function UCS-NORMALIZE-REGION."
   `(with-temp-buffer
      (insert str)
      (,ucs-normalize-region (point-min) (point-max))
