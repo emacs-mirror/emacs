@@ -2644,19 +2644,18 @@ treesit_traverse_match_predicate (TSNode node, Lisp_Object pred,
    return true.  If no node satisfies PRED, return FALSE.  PARSER is
    the parser of ROOT.
 
-   LIMIT is the number of levels we descend in the tree.  If NO_LIMIT
-   is true, LIMIT is ignored.  FORWARD controls the direction in which
-   we traverse the tree, true means forward, false backward.  If NAMED
-   is true, only traverse named nodes, if false, all nodes.  If
-   SKIP_ROOT is true, don't match ROOT.  */
+   LIMIT is the number of levels we descend in the tree.  FORWARD
+   controls the direction in which we traverse the tree, true means
+   forward, false backward.  If NAMED is true, only traverse named
+   nodes, if false, all nodes.  If SKIP_ROOT is true, don't match
+   ROOT.  */
 static bool
 treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
-		    bool named, bool forward, ptrdiff_t limit, bool no_limit,
+		    bool named, bool forward, ptrdiff_t limit,
 		    bool skip_root)
 {
   /* TSTreeCursor doesn't allow us to move backward, so we can't use
-     it.  We could use limit == -1 to indicate no_limit == true, but
-     separating them is safer.  */
+     it.  */
   TSNode node = *root;
 
   if (!skip_root && treesit_traverse_match_predicate (node, pred, parser))
@@ -2665,7 +2664,7 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
       return true;
     }
 
-  if (!no_limit && limit <= 0)
+  if (limit <= 0)
     return false;
   else
     {
@@ -2681,7 +2680,7 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
 
 	  if (!ts_node_is_null (child)
 	      && treesit_search_dfs (&child, pred, parser, named,
-				     forward, limit - 1, no_limit, false))
+				     forward, limit - 1, false))
 	    {
 	      *root = child;
 	      return true;
@@ -2757,7 +2756,8 @@ node's type, or a function that takes a node and returns nil/non-nil.
 
 By default, only traverse named nodes, but if ALL is non-nil, traverse
 all nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
-non-nil, only traverse nodes up to that number of levels down in the tree.
+non-nil, only traverse nodes up to that number of levels down in the
+tree.  If LIMIT is nil, default to 1000.
 
 Return the first matched node, or nil if none matches.  */)
   (Lisp_Object node, Lisp_Object predicate, Lisp_Object backward,
@@ -2769,11 +2769,10 @@ Return the first matched node, or nil if none matches.  */)
   CHECK_SYMBOL (all);
   CHECK_SYMBOL (backward);
 
-  ptrdiff_t the_limit = 0;
-  bool no_limit = false;
-  if (NILP (limit))
-    no_limit = true;
-  else
+  /* We use a default limit to 1000.  See bug#59426 for the
+     discussion.  */
+  ptrdiff_t the_limit = 1000;
+  if (!NILP (limit))
     {
       CHECK_FIXNUM (limit);
       the_limit = XFIXNUM (limit);
@@ -2784,7 +2783,7 @@ Return the first matched node, or nil if none matches.  */)
   TSNode treesit_node = XTS_NODE (node)->node;
   Lisp_Object parser = XTS_NODE (node)->parser;
   if (treesit_search_dfs (&treesit_node, predicate, parser, NILP (all),
-			  NILP (backward), the_limit, no_limit, false))
+			  NILP (backward), the_limit, false))
     return make_treesit_node (parser, treesit_node);
   else
     return Qnil;
@@ -2847,7 +2846,7 @@ always traverse leaf nodes first, then upwards.  */)
 static void
 treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
 			   Lisp_Object pred, Lisp_Object process_fn,
-			   ptrdiff_t limit, bool no_limit, Lisp_Object parser)
+			   ptrdiff_t limit, Lisp_Object parser)
 {
 
   TSNode node = ts_tree_cursor_current_node (cursor);
@@ -2866,8 +2865,7 @@ treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
       parent = this;
     }
   /* Go through each child.  */
-  if ((no_limit || limit > 0)
-      && ts_tree_cursor_goto_first_child (cursor))
+  if (limit > 0 && ts_tree_cursor_goto_first_child (cursor))
     {
       do
 	{
@@ -2875,7 +2873,7 @@ treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
 	     Then C compilers should be smart enough not to copy NODE
 	     to stack.  */
 	  treesit_build_sparse_tree (cursor, parent, pred, process_fn,
-				     limit - 1, no_limit, parser);
+				     limit - 1, parser);
 	}
       while (ts_tree_cursor_goto_next_sibling (cursor));
       /* Don't forget to come back to this node.  */
@@ -2916,7 +2914,8 @@ If PROCESS-FN is non-nil, it should be a function of one argument.  In
 that case, instead of returning the matched nodes, pass each node to
 PROCESS-FN, and use its return value instead.
 
-If non-nil, LIMIT is the number of levels to go down the tree from ROOT.
+If non-nil, LIMIT is the number of levels to go down the tree from
+ROOT.  If LIMIT is nil, default to 1000.
 
 Each node in the returned tree looks like (NODE . (CHILD ...)).  The
 root of this tree might be nil, if ROOT doesn't match PREDICATE.
@@ -2935,11 +2934,11 @@ a regexp.  */)
 
   if (!NILP (process_fn))
     CHECK_TYPE (FUNCTIONP (process_fn), Qfunctionp, process_fn);
-  ptrdiff_t the_limit = 0;
-  bool no_limit = false;
-  if (NILP (limit))
-    no_limit = true;
-  else
+
+  /* We use a default limit to 1000.  See bug#59426 for the
+     discussion.  */
+  ptrdiff_t the_limit = 1000;
+  if (!NILP (limit))
     {
       CHECK_FIXNUM (limit);
       the_limit = XFIXNUM (limit);
@@ -2951,7 +2950,7 @@ a regexp.  */)
   Lisp_Object parser = XTS_NODE (root)->parser;
   Lisp_Object parent = Fcons (Qnil, Qnil);
   treesit_build_sparse_tree (&cursor, parent, predicate, process_fn,
-			     the_limit, no_limit, parser);
+			     the_limit, parser);
   Fsetcdr (parent, Fnreverse (Fcdr (parent)));
   if (NILP (Fcdr (parent)))
     return Qnil;
