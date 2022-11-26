@@ -2712,12 +2712,14 @@ narrowing_lock_push (Lisp_Object buf, Lisp_Object lock)
 					  XCAR (XCDR (buffer_locks)))));
 }
 
-/* Remove the innermost lock in BUF from the narrowing_lock alist.  */
+/* Remove the innermost lock in BUF from the narrowing_lock alist.
+   Do nothing if BUF is not in narrowing_lock.  */
 static void
 narrowing_lock_pop (Lisp_Object buf)
 {
   Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
-  eassert (! NILP (buffer_locks));
+  if (NILP (buffer_locks))
+    return;
   if (EQ (narrowing_lock_peek_tag (buf), Qoutermost_narrowing))
     narrowing_locks = Fdelq (Fassoc (buf, narrowing_locks, Qnil),
 			     narrowing_locks);
@@ -2779,8 +2781,12 @@ narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
   if (NILP (buf_and_saved_locks))
     return;
   Lisp_Object buf = XCAR (buf_and_saved_locks);
+  /* This cannot fail when buf_and_saved_locks was returned by
+     narrowing_locks_save.  */
   eassert (BUFFERP (buf));
   Lisp_Object saved_locks = XCDR (buf_and_saved_locks);
+  /* This cannot fail when buf_and_saved_locks was returned by
+     narrowing_locks_save.  */
   eassert (! NILP (saved_locks));
   Lisp_Object current_locks = assq_no_quit (buf, narrowing_locks);
   if (! NILP (current_locks))

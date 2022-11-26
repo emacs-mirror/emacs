@@ -3948,24 +3948,16 @@ detailed description.
 
 \(fn START END [:locked TAG] BODY)"
   (if (eq (car rest) :locked)
-      `(with-narrowing-1 ,start ,end ,(cadr rest)
-                         (lambda () ,@(cddr rest)))
-    `(with-narrowing-2 ,start ,end
-                       (lambda () ,@rest))))
+      `(internal--with-narrowing ,start ,end (lambda () ,@(cddr rest))
+                                 ,(cadr rest))
+    `(internal--with-narrowing ,start ,end (lambda () ,@rest))))
 
-(defun with-narrowing-1 (start end tag body)
+(defun internal--with-narrowing (start end body &optional tag)
   "Helper function for `with-narrowing', which see."
   (save-restriction
     (progn
       (narrow-to-region start end)
-      (narrowing-lock tag)
-      (funcall body))))
-
-(defun with-narrowing-2 (start end body)
-  "Helper function for `with-narrowing', which see."
-  (save-restriction
-    (progn
-      (narrow-to-region start end)
+      (if tag (narrowing-lock tag))
       (funcall body))))
 
 (defun find-tag-default-bounds ()
