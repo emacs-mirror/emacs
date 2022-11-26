@@ -2659,7 +2659,7 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
    the (uninterned) Qoutermost_narrowing tag and records the narrowing
    bounds that were set by the user and that are visible on display.
    This alist is used internally by narrow-to-region, widen,
-   narrowing-lock and narrowing-unlock.  */
+   narrowing-lock, narrowing-unlock and save-restriction.  */
 static Lisp_Object narrowing_locks;
 
 /* Retrieve one of the BEGV/ZV bounds of a narrowing in BUF from the
@@ -3061,11 +3061,12 @@ DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0
        doc: /* Execute BODY, saving and restoring current buffer's restrictions.
 The buffer's restrictions make parts of the beginning and end invisible.
 \(They are set up with `narrow-to-region' and eliminated with `widen'.)
-This special form, `save-restriction', saves the current buffer's restrictions
-when it is entered, and restores them when it is exited.
+This special form, `save-restriction', saves the current buffer's
+restrictions, as well as their locks if they have been locked with
+`narrowing-lock', when it is entered, and restores them when it is exited.
 So any `narrow-to-region' within BODY lasts only until the end of the form.
-The old restrictions settings are restored
-even in case of abnormal exit (throw or error).
+The old restrictions settings are restored even in case of abnormal exit
+\(throw or error).
 
 The value returned is the value of the last form in BODY.
 

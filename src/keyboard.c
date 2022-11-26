@@ -1911,8 +1911,8 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
   specbind (Qinhibit_quit, Qt);
 
   if (current_buffer->long_line_optimizations_p)
-    narrow_to_region_locked (make_fixnum (get_narrowed_begv (w, PT)),
-			     make_fixnum (get_narrowed_zv (w, PT)),
+    narrow_to_region_locked (make_fixnum (get_locked_narrowing_begv (PT)),
+			     make_fixnum (get_locked_narrowing_zv (PT)),
 			     hook);
 
   run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
