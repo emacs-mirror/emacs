@@ -12729,7 +12729,7 @@ Note that, when the current buffer contains one or more lines whose
 length is above `long-line-threshold', these hook functions are called
 with the buffer narrowed to a small portion around point (whose size
 is specified by `long-line-locked-narrowing-region-size'), and the
-narrowing is locked (see `narrow-to-region'), so that these hook
+narrowing is locked (see `narrowing-lock'), so that these hook
 functions cannot use `widen' to gain access to other portions of
 buffer text.
 
@@ -12751,7 +12751,7 @@ Note that, when the current buffer contains one or more lines whose
 length is above `long-line-threshold', these hook functions are called
 with the buffer narrowed to a small portion around point (whose size
 is specified by `long-line-locked-narrowing-region-size'), and the
-narrowing is locked (see `narrow-to-region'), so that these hook
+narrowing is locked (see `narrowing-lock'), so that these hook
 functions cannot use `widen' to gain access to other portions of
 buffer text.
 
