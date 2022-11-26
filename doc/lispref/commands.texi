@@ -1676,10 +1676,14 @@ as returned by @code{find-image} (@pxref{Defining Images}); otherwise
 this is @code{nil}.
 
 @item @var{dx}, @var{dy}
-These are the pixel coordinates of the click, relative to the top left
-corner of @var{object}, which is @code{(0 . 0)}.  If @var{object} is
-@code{nil}, which stands for a buffer, the coordinates are relative to
-the top left corner of the character glyph clicked on.
+These are the pixel offsets of the click relative to the top left
+corner of the @var{object}'s glyph that is the nearest one to the
+click. The relevant @var{object}s can be either a buffer, or a string,
+or an image, see above.  If @var{object} is @code{nil} or a string,
+the coordinates are relative to the top left corner of the character
+glyph clicked on.  Note that the offsets are always zero on text-mode
+frames, when @var{object} is @code{nil}, since each glyph there is
+considered to have exactly 1x1 pixel dimensions.
 
 @item @var{width}, @var{height}
 If the click is on a character, either from buffer text or from

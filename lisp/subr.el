@@ -1792,10 +1792,11 @@ and `event-end' functions."
   (or (posn-image position) (posn-string position)))
 
 (defsubst posn-object-x-y (position)
-  "Return the x and y coordinates relative to the object of POSITION.
+  "Return the x and y coordinates relative to the glyph of object of POSITION.
 The return value has the form (DX . DY), where DX and DY are
-given in pixels.  POSITION should be a list of the form returned
-by `event-start' and `event-end'."
+given in pixels, and they are relative to the top-left corner of
+the clicked glyph of object at POSITION.  POSITION should be a
+list of the form returned by `event-start' and `event-end'."
   (nth 8 position))
 
 (defsubst posn-object-width-height (position)
