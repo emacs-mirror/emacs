@@ -3956,12 +3956,10 @@ detailed description.
 (defun with-narrowing-1 (start end tag body)
   "Helper function for `with-narrowing', which see."
   (save-restriction
-    (unwind-protect
-        (progn
-          (narrow-to-region start end)
-          (narrowing-lock tag)
-          (funcall body))
-      (narrowing-unlock tag))))
+    (progn
+      (narrow-to-region start end)
+      (narrowing-lock tag)
+      (funcall body))))
 
 (defun with-narrowing-2 (start end body)
   "Helper function for `with-narrowing', which see."

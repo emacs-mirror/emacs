@@ -2760,6 +2760,36 @@ reset_outermost_narrowings (void)
     }
 }
 
+/* Helper functions to save and restore the narrowing locks of the
+   current buffer in save-restriction.  */
+static Lisp_Object
+narrowing_locks_save (void)
+{
+  Lisp_Object buf = Fcurrent_buffer ();
+  Lisp_Object locks = assq_no_quit (buf, narrowing_locks);
+  if (NILP (locks))
+    return Qnil;
+  locks = Fcar (Fcdr (locks));
+  return Fcons (buf, Fcopy_sequence (locks));
+}
+
+static void
+narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
+{
+  if (NILP (buf_and_saved_locks))
+    return;
+  Lisp_Object buf = Fcar (buf_and_saved_locks);
+  eassert (BUFFERP (buf));
+  Lisp_Object saved_locks = Fcdr (buf_and_saved_locks);
+  eassert (! NILP (saved_locks));
+  Lisp_Object current_locks = assq_no_quit (buf, narrowing_locks);
+  if (! NILP (current_locks))
+    narrowing_locks = Fdelq (Fassoc (buf, narrowing_locks, Qnil),
+			     narrowing_locks);
+  narrowing_locks = nconc2 (list1 (list2 (buf, saved_locks)),
+			    narrowing_locks);
+}
+
 static void
 unwind_narrow_to_region_locked (Lisp_Object tag)
 {
@@ -3050,6 +3080,7 @@ usage: (save-restriction &rest BODY)  */)
   specpdl_ref count = SPECPDL_INDEX ();
 
   record_unwind_protect (save_restriction_restore, save_restriction_save ());
+  record_unwind_protect (narrowing_locks_restore, narrowing_locks_save ());
   val = Fprogn (body);
   return unbind_to (count, val);
 }
