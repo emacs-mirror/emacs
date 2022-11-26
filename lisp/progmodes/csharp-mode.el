@@ -319,12 +319,7 @@
 (c-lang-defconst c-basic-matchers-before
   csharp `(
            ;; Warning face on unclosed strings
-           ,@(if (version< emacs-version "27.0")
-                 ;; Taken from 26.1 branch
-                 `(,(c-make-font-lock-search-function
-                     (concat ".\\(" c-string-limit-regexp "\\)")
-                     '((c-font-lock-invalid-string))))
-               `(("\\s|" 0 font-lock-warning-face t nil)))
+           ("\\s|" 0 font-lock-warning-face t nil)
 
            ;; Invalid single quotes
            c-font-lock-invalid-single-quotes
@@ -345,7 +340,6 @@
                 `((csharp--color-forwards font-lock-variable-name-face)
                   nil
                   (goto-char (match-end 0)))))
-
 
            ;; Negation character
            (eval . (list "\\(!\\)[^=]" 1 c-negation-char-face-name))
@@ -375,8 +369,7 @@
            (eval . (list (concat "\\<catch\\> *( *"
                                  csharp--regex-type-name-matcher
                                  " *) *")
-                         1 font-lock-type-face))
-           ))
+                         1 font-lock-type-face))))
 
 (c-lang-defconst c-basic-matchers-after
   csharp (append
@@ -504,70 +497,6 @@ compilation and evaluation time conflicts."
     (apply orig-fun args))))
 
 ;;; End of new syntax constructs
-
-
-
-;;; Fix for strings on version 27.1
-
-(when (version= emacs-version "27.1")
-  ;; See:
-  ;; https://github.com/emacs-csharp/csharp-mode/issues/175
-  ;; https://github.com/emacs-csharp/csharp-mode/issues/151
-  ;; for the full story.
-  (defun c-pps-to-string-delim (end)
-    (let* ((start (point))
-           (no-st-s `(0 nil nil ?\" nil nil 0 nil ,start nil nil))
-           (st-s `(0 nil nil t nil nil 0 nil ,start nil nil))
-           no-st-pos st-pos
-           )
-      (parse-partial-sexp start end nil nil no-st-s 'syntax-table)
-      (setq no-st-pos (point))
-      (goto-char start)
-      (while (progn
-               (parse-partial-sexp (point) end nil nil st-s 'syntax-table)
-               (unless (bobp)
-                 (c-clear-syn-tab (1- (point))))
-               (setq st-pos (point))
-               (and (< (point) end)
-                    (not (eq (char-before) ?\")))))
-      (goto-char (min no-st-pos st-pos))
-      nil))
-
-  (defun c-multiline-string-check-final-quote ()
-    (let (pos-ll pos-lt)
-      (save-excursion
-        (goto-char (point-max))
-        (skip-chars-backward "^\"")
-        (while
-            (and
-             (not (bobp))
-             (cond
-              ((progn
-                 (setq pos-ll (c-literal-limits)
-                       pos-lt (c-literal-type pos-ll))
-                 (memq pos-lt '(c c++)))
-               ;; In a comment.
-               (goto-char (car pos-ll)))
-              ((save-excursion
-                 (backward-char)        ; over "
-                 (c-is-escaped (point)))
-               ;; At an escaped string.
-               (backward-char)
-               t)
-              (t
-               ;; At a significant "
-               (c-clear-syn-tab (1- (point)))
-               (setq pos-ll (c-literal-limits)
-                     pos-lt (c-literal-type pos-ll))
-               nil)))
-          (skip-chars-backward "^\""))
-        (cond
-         ((bobp))
-         ((eq pos-lt 'string)
-          (c-put-syn-tab (1- (point)) '(15)))
-         (t nil))))))
-
-;;; End of fix for strings on version 27.1
 
 ;; When invoked by MSBuild, csc’s errors look like this:
 ;; subfolder\file.cs(6,18): error CS1006: Name of constructor must
