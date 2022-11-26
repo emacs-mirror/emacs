@@ -16808,8 +16808,7 @@ value is @code{nil}.
 Do @emph{not} use the same maildir both in @code{mail-sources} and as
 an @code{nnmaildir} group.  The results might happen to be useful, but
 that would be by chance, not by design, and the results might be
-different in the future.  If your split rules create new groups,
-remember to supply a @code{create-directory} server parameter.
+different in the future.
 @end table
 
 @node nnmaildir Group Parameters
