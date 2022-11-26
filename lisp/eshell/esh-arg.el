@@ -146,9 +146,10 @@ If POS is nil, the location of point is checked."
 When each function on this hook is called, point will be at the
 current position within the argument list.  The function should either
 return nil, meaning that it did no argument parsing, or it should
-return the result of the parse as a sexp.  It is also responsible for
-moving the point forward to reflect the amount of input text that was
-parsed.
+return the result of the parse as a sexp.  If the function did do
+argument parsing, but the result was nothing at all, it should return
+`eshell-empty-token'.  The function is also responsible for moving the
+point forward to reflect the amount of input text that was parsed.
 
 If the hook determines that it has reached the end of an argument, it
 should call `eshell-finish-arg' to complete processing of the current
@@ -325,13 +326,14 @@ Point is left at the end of the arguments."
 		   (prog1
 		       (char-to-string (char-after))
 		     (forward-char)))))
-	  (if (not eshell-current-argument)
-	      (setq eshell-current-argument result)
-	    (unless eshell-arg-listified
-	      (setq eshell-current-argument
-		    (list eshell-current-argument)
-		    eshell-arg-listified t))
-	    (nconc eshell-current-argument (list result))))))
+          (unless (eq result 'eshell-empty-token)
+            (if (not eshell-current-argument)
+                (setq eshell-current-argument result)
+              (unless eshell-arg-listified
+                (setq eshell-current-argument
+                      (list eshell-current-argument)
+                      eshell-arg-listified t))
+              (nconc eshell-current-argument (list result)))))))
     (when (and outer eshell-current-argument)
       (add-text-properties arg-begin (1+ arg-begin)
 			   '(arg-begin t rear-nonsticky
@@ -375,15 +377,20 @@ after are both returned."
     (when (eshell-looking-at-backslash-return (point))
 	(throw 'eshell-incomplete ?\\))
     (forward-char 2) ; Move one char past the backslash.
-    ;; If the char is in a quote, backslash only has special meaning
-    ;; if it is escaping a special char.
-    (if eshell-current-quoted
-        (if (memq (char-before) eshell-special-chars-inside-quoting)
+    (if (eq (char-before) ?\n)
+        ;; Escaped newlines are extra-special: they expand to an empty
+        ;; token to allow for continuing Eshell commands across
+        ;; multiple lines.
+        'eshell-empty-token
+      ;; If the char is in a quote, backslash only has special meaning
+      ;; if it is escaping a special char.
+      (if eshell-current-quoted
+          (if (memq (char-before) eshell-special-chars-inside-quoting)
+              (list 'eshell-escape-arg (char-to-string (char-before)))
+            (concat "\\" (char-to-string (char-before))))
+        (if (memq (char-before) eshell-special-chars-outside-quoting)
             (list 'eshell-escape-arg (char-to-string (char-before)))
-          (concat "\\" (char-to-string (char-before))))
-      (if (memq (char-before) eshell-special-chars-outside-quoting)
-          (list 'eshell-escape-arg (char-to-string (char-before)))
-        (char-to-string (char-before))))))
+          (char-to-string (char-before)))))))
 
 (defun eshell-parse-literal-quote ()
   "Parse a literally quoted string.  Nothing has special meaning!"
