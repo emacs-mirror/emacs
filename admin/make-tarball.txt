@@ -150,6 +150,12 @@ General steps (for each step, check for possible errors):
 4.    autoreconf -i -I m4 --force
       make bootstrap
 
+      ./admin/check-man-pages
+
+    The above script checks for any mistakes in the source text of
+    manual pages.  Fix any errors and re-run the script to verify.
+    Then do this:
+
       make -C etc/refcards
       make -C etc/refcards clean
 
