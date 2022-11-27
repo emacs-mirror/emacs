@@ -20564,7 +20564,7 @@ returned value is required to be an integer.
 (score-fn (custom-scoring))
 @end example
 
-The user-defined function is called with an associative list with the
+The user-defined function is called with an association list with the
 keys @code{number subject from date id refs chars lines xref extra}
 followed by the article's score before the function is run.
 
