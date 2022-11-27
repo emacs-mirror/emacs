@@ -1165,7 +1165,7 @@ to that style.  Otherwise it is returned unchanged."
   (cl-ecase xref-file-name-display
     (abs group)
     (nondirectory
-     (if (string-match-p "\\`~?/" group)
+     (if (file-name-absolute-p group)
          (file-name-nondirectory group)
        group))
     (project-relative
