@@ -1911,9 +1911,9 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
   specbind (Qinhibit_quit, Qt);
 
   if (current_buffer->long_line_optimizations_p)
-    narrow_to_region_internal (make_fixnum (get_narrowed_begv (w, PT)),
-			       make_fixnum (get_narrowed_zv (w, PT)),
-			       true);
+    narrow_to_region_locked (make_fixnum (get_locked_narrowing_begv (PT)),
+			     make_fixnum (get_locked_narrowing_zv (PT)),
+			     hook);
 
   run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
                       safe_run_hook_funcall);
@@ -12727,8 +12727,9 @@ the error might happen repeatedly and make Emacs nonfunctional.
 
 Note that, when the current buffer contains one or more lines whose
 length is above `long-line-threshold', these hook functions are called
-with the buffer narrowed to a small portion around point, and the
-narrowing is locked (see `narrow-to-region'), so that these hook
+with the buffer narrowed to a small portion around point (whose size
+is specified by `long-line-locked-narrowing-region-size'), and the
+narrowing is locked (see `narrowing-lock'), so that these hook
 functions cannot use `widen' to gain access to other portions of
 buffer text.
 
@@ -12748,8 +12749,9 @@ avoid making Emacs unresponsive while the user types.
 
 Note that, when the current buffer contains one or more lines whose
 length is above `long-line-threshold', these hook functions are called
-with the buffer narrowed to a small portion around point, and the
-narrowing is locked (see `narrow-to-region'), so that these hook
+with the buffer narrowed to a small portion around point (whose size
+is specified by `long-line-locked-narrowing-region-size'), and the
+narrowing is locked (see `narrowing-lock'), so that these hook
 functions cannot use `widen' to gain access to other portions of
 buffer text.
 
