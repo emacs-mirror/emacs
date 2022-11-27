@@ -2703,7 +2703,8 @@ narrowing_lock_get_bound (Lisp_Object buf, bool begv, bool outermost)
   return XMARKER (marker);
 }
 
-/* Retrieve the tag of the innermost narrowing in BUF.  */
+/* Retrieve the tag of the innermost narrowing in BUF.  Return nil if
+   BUF is not in narrowing_locks or is a killed buffer.  */
 static Lisp_Object
 narrowing_lock_peek_tag (Lisp_Object buf)
 {
@@ -2815,7 +2816,7 @@ unwind_narrow_to_region_locked (Lisp_Object tag)
   Fwiden ();
 }
 
-/* Narrow current_buffer to BEGV-ZV with a locked narrowing */
+/* Narrow current_buffer to BEGV-ZV with a narrowing locked with TAG.  */
 void
 narrow_to_region_locked (Lisp_Object begv, Lisp_Object zv, Lisp_Object tag)
 {
