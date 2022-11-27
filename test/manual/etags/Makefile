@@ -72,11 +72,15 @@ ctags_update: CTAGS.good_update ${infiles}
 	head -n 100 CTAGS.good_update > CTAGS
 	tail -n 100 CTAGS.good_update >> CTAGS
 	${RUN} ${CTAGS_PROG} -o CTAGS -u ${ARGS}
-	diff -u --suppress-common-lines --width=80 CTAGS.good_update CTAGS
+	sort CTAGS > CTAGS.sorted
+	sort CTAGS.good_update > CTAGS.good_update.sorted
+	diff -u --suppress-common-lines --width=80 CTAGS.good_update.sorted CTAGS.sorted
 
 	cp crlf CTAGS
 	${RUN} ${CTAGS_PROG} -o CTAGS -u ${ARGS}
-	diff -u --suppress-common-lines --width=80 CTAGS.good_crlf CTAGS
+	sort CTAGS > CTAGS.sorted
+	sort CTAGS.good_crlf > CTAGS.good_crlf.sorted
+	diff -u --suppress-common-lines --width=80 CTAGS.good_crlf.sorted CTAGS.sorted
 
 ETAGS: ${infiles}
 	${RUN} ${ETAGS_PROG} ${OPTIONS} -o $@ ${ARGS}
