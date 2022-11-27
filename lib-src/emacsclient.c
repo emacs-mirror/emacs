@@ -689,7 +689,7 @@ The following OPTIONS are accepted:\n\
 			Set the parameters of a new frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
--w, --timeout		Seconds to wait before timing out\n\
+-w, --timeout=SECONDS	Seconds to wait before timing out\n\
 -q, --quiet		Don't display messages on success\n\
 -u, --suppress-output   Don't display return values from the server\n\
 -d DISPLAY, --display=DISPLAY\n\
