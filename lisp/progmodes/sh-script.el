@@ -1628,7 +1628,7 @@ not written in Bash or sh."
 
 (defvar sh--redirect-recursing nil)
 (defun sh--redirect-bash-ts-mode (oldfn)
-  "Redirect to `sh-mode' if the current file is not written in Bash.
+  "Redirect to `sh-mode' if the current file is not written in Bash or sh.
 OLDFN should be `bash-ts-mode'."
   (let ((sh--redirect-recursing sh--redirect-recursing))
     (funcall (if (or delay-mode-hooks sh--redirect-recursing)
