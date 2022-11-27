@@ -284,7 +284,7 @@ asynchronously."
            finally return "unknown"))
 
 (defun package-vc--version (pkg)
-  "Return the version number for the source package PKG."
+  "Return the version number for the VC package PKG."
   (cl-assert (package-vc-p pkg))
   (if-let ((main-file (package-vc--main-file pkg)))
       (with-temp-buffer
@@ -387,7 +387,7 @@ otherwise it's assumed to be an Info file."
   "Prepare PKG-DESC that is already checked-out in PKG-DIR.
 This includes downloading missing dependencies, generating
 autoloads, generating a package description file (used to
-identify a package as a source package later on), building
+identify a package as a VC package later on), building
 documentation and marking the package as installed."
   ;; Remove any previous instance of PKG-DESC from `package-alist'
   (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
@@ -467,7 +467,7 @@ documentation and marking the package as installed."
 
   ;; Confirm that the installation was successful
   (let ((main-file (package-vc--main-file pkg-desc)))
-    (message "Source package `%s' installed (Version %s, Revision %S)."
+    (message "VC package `%s' installed (Version %s, Revision %S)."
              (package-desc-name pkg-desc)
              (lm-with-file main-file
                (package-strip-rcs-id
@@ -534,11 +534,11 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
     (package-vc--unpack-1 pkg-desc pkg-dir)))
 
 (defun package-vc--read-package-name (prompt &optional allow-url installed)
-  "Query the user for a source package and return a name with PROMPT.
+  "Query the user for a VC package and return a name with PROMPT.
 If the optional argument ALLOW-URL is non-nil, the user is also
 allowed to specify a non-package name.  If the optional argument
 INSTALLED is non-nil, the selection will be filtered down to
-source packages that have already been installed."
+VC packages that have already been installed."
   (package-vc--archives-initialize)
   (completing-read prompt (if installed package-alist package-archive-contents)
                    (if installed
@@ -554,9 +554,9 @@ source packages that have already been installed."
                    (not allow-url)))
 
 (defun package-vc--read-package-desc (prompt &optional installed)
-  "Query the user for a source package and return a description with PROMPT.
+  "Query the user for a VC package and return a description with PROMPT.
 If the optional argument INSTALLED is non-nil, the selection will
-be filtered down to source packages that have already been
+be filtered down to VC packages that have already been
 installed, and the package description will be that of an
 installed package."
   (cadr (assoc (package-vc--read-package-name prompt nil installed)
@@ -576,7 +576,7 @@ installed package."
 ;;;###autoload
 (defun package-vc-update (pkg-desc)
   "Attempt to update the package PKG-DESC."
-  (interactive (list (package-vc--read-package-desc "Update source package: " t)))
+  (interactive (list (package-vc--read-package-desc "Update VC package: " t)))
   ;; HACK: To run `package-vc--unpack-1' after checking out the new
   ;; revision, we insert a hook into `vc-post-command-functions', and
   ;; remove it right after it ran.  To avoid running the hook multiple
@@ -660,8 +660,8 @@ Optional argument BACKEND specifies the VC backend to use for cloning
 the package's repository; this is only possible if NAME-OR-URL is a URL,
 a string.  If BACKEND is omitted or nil, the function
 uses `package-vc-heuristic-alist' to guess the backend.
-Note that by default, a source package will be prioritized over a
-regular package, but it will not remove a source package."
+Note that by default, a VC package will be prioritized over a
+regular package, but it will not remove a VC package."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
