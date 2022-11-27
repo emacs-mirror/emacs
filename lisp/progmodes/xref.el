@@ -985,6 +985,8 @@ ITEMS is an xref item which " ; FIXME: Expand documentation.
         #'xref--imenu-prev-index-position)
   (setq imenu-extract-index-name-function
         #'xref--imenu-extract-index-name)
+  (setq-local add-log-current-defun-function
+	      #'xref--add-log-current-defun)
   (setq-local outline-minor-mode-cycle t
               outline-minor-mode-use-buttons t
               outline-search-function
@@ -1018,6 +1020,15 @@ This function is used as a value for
 beginning of the line."
   (buffer-substring-no-properties (line-beginning-position)
                                   (line-end-position)))
+
+(defun xref--add-log-current-defun ()
+  "Return the string used to group a set of locations.
+This function is used as a value for `add-log-current-defun-function'."
+  (xref--group-name-for-display
+   (if-let (item (xref--item-at-point))
+       (xref-location-group (xref-match-item-location item))
+     (xref--imenu-extract-index-name))
+   (xref--project-root (project-current))))
 
 (defun xref--next-error-function (n reset?)
   (when reset?
