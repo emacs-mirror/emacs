@@ -3848,11 +3848,14 @@ Currently there are `js-mode' and `js-ts-mode'."
     (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
     ;; Comment.
     (setq-local comment-start "// ")
-    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
     (setq-local comment-end "")
+    (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                       (* (syntax whitespace))))
+    (setq-local comment-end-skip
+                (rx (* (syntax whitespace))
+                    (group (or (syntax comment-end)
+                               (seq (+ "*") "/")))))
     (setq-local comment-multi-line t)
-    (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
-    (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
     ;; Electric-indent.
     (setq-local electric-indent-chars
 	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".

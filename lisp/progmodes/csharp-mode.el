@@ -36,7 +36,8 @@
 (require 'treesit)
 
 (eval-when-compile
-  (require 'cc-fonts))
+  (require 'cc-fonts)
+  (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -888,8 +889,13 @@ Key bindings:
 
   ;; Comments.
   (setq-local comment-start "// ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
+  (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules csharp-ts-mode--indent-rules)

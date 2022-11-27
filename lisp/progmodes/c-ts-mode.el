@@ -29,7 +29,7 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'rx)
+(eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -545,10 +545,13 @@ the subtrees."
 
   ;; Comments.
   (setq-local comment-start "/* ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end " */")
-  (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
-  (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
+  (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
 
   (setq-local treesit-simple-indent-rules
               (c-ts-mode--set-indent-style 'c))
@@ -568,8 +571,13 @@ the subtrees."
 
   ;; Comments.
   (setq-local comment-start "// ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
+  (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
 
   (treesit-parser-create 'cpp)
 

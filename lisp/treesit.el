@@ -973,16 +973,6 @@ parser notifying of the change."
 
 ;;; Indent
 
-;; `comment-start' and `comment-end' assume there is only one type of
-;; comment, and that the comment spans only one line.  So they are not
-;; sufficient for our purpose.
-
-(defvar-local treesit-comment-start nil
-  "Regular expression matching an opening comment token.")
-
-(defvar-local treesit-comment-end nil
-  "Regular expression matching a closing comment token.")
-
 (define-error 'treesit-indent-error
               "Generic tree-sitter indentation error"
               'treesit-error)
@@ -1071,7 +1061,7 @@ See `treesit-simple-indent-presets'.")
         (cons 'comment-end (lambda (_node _parent bol &rest _)
                              (save-excursion
                                (goto-char bol)
-                               (looking-at-p treesit-comment-end))))
+                               (looking-at-p comment-end-skip))))
         ;; TODO: Document.
         (cons 'catch-all (lambda (&rest _) t))
 
@@ -1097,14 +1087,14 @@ See `treesit-simple-indent-presets'.")
               (lambda (_n parent &rest _)
                 (save-excursion
                   (goto-char (treesit-node-start parent))
-                  (re-search-forward treesit-comment-start)
+                  (re-search-forward comment-start-skip)
+                  (skip-syntax-backward "-")
                   (point))))
         (cons 'comment-start-skip
               (lambda (_n parent &rest _)
                 (save-excursion
                   (goto-char (treesit-node-start parent))
-                  (re-search-forward treesit-comment-start)
-                  (skip-syntax-forward "-")
+                  (re-search-forward comment-start-skip)
                   (point))))
         ;; TODO: Document.
         (cons 'grand-parent

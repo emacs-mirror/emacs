@@ -25,8 +25,8 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'rx)
 (require 'js)
+(eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
 
@@ -294,10 +294,13 @@
 
     ;; Comments.
     (setq-local comment-start "// ")
-    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
     (setq-local comment-end "")
-    (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
-    (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
+    (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                       (* (syntax whitespace))))
+    (setq-local comment-end-skip
+                (rx (* (syntax whitespace))
+                    (group (or (syntax comment-end)
+                               (seq (+ "*") "/")))))
 
     ;; Electric
     (setq-local electric-indent-chars
