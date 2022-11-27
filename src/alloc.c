@@ -7435,9 +7435,17 @@ DEFUN ("memory-info", Fmemory_info, Smemory_info, 0, 0, 0,
        doc: /* Return a list of (TOTAL-RAM FREE-RAM TOTAL-SWAP FREE-SWAP).
 All values are in Kbytes.  If there is no swap space,
 last two values are zero.  If the system is not supported
-or memory information can't be obtained, return nil.  */)
+or memory information can't be obtained, return nil.
+If `default-directory’ is remote, return memory information of the
+respective remote host.  */)
   (void)
 {
+  Lisp_Object handler
+    = Ffind_file_name_handler (BVAR (current_buffer, directory),
+			       Qmemory_info);
+  if (!NILP (handler))
+    return call1 (handler, Qmemory_info);
+
 #if defined HAVE_LINUX_SYSINFO
   struct sysinfo si;
   uintmax_t units;
@@ -7858,6 +7866,8 @@ do hash-consing of the objects allocated to pure space.  */);
   DEFVAR_LISP ("memory-full", Vmemory_full,
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
+
+  DEFSYM (Qmemory_info, "memory-info");
 
   DEFSYM (Qconses, "conses");
   DEFSYM (Qsymbols, "symbols");

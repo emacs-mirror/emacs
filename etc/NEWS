@@ -435,7 +435,7 @@ The user options 'url-gateway-rlogin-host',
 are also obsolete.
 
 ---
-** The user function 'url-irc-function' now takes a 'scheme' argument.
+** The user function 'url-irc-function' now takes a SCHEME argument.
 The user option 'url-irc-function' is now called with a sixth argument
 corresponding to the scheme portion of the target URL.  For example,
 this would be "ircs" for a URL like "ircs://irc.libera.chat".
@@ -1388,7 +1388,7 @@ the QWERTY Slovak keyboards.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
-** ecomplete
+** Ecomplete
 
 ---
 *** New commands 'ecomplete-edit' and 'ecomplete-remove'.
@@ -1510,6 +1510,7 @@ It is enabled by default, but requires that the external "shellcheck"
 command is installed.
 
 ** CC Mode
+
 ---
 *** C++ Mode now supports most of the new features in the C++20 standard.
 
@@ -1593,32 +1594,32 @@ If no packages are marked, 'x' will install the package under point if
 it isn't already, and remove it if it is installed.
 
 +++
-*** New command 'package-vc-install'
+*** New command 'package-vc-install'.
 Packages can now be installed directly from source by cloning from a
 repository.
 
 +++
-*** New command 'package-vc-install-from-checkout'
+*** New command 'package-vc-install-from-checkout'.
 An existing checkout can now be loaded via package.el, by creating a
 symbolic link from the usual package directory to the checkout.
 
 +++
-*** New command 'package-vc-checkout'
+*** New command 'package-vc-checkout'.
 Used to fetch the source of a package by cloning a repository without
 activating the package.
 
 +++
-*** New command 'package-vc-prepare-patch'
+*** New command 'package-vc-prepare-patch'.
 This command allows you to send patches to package maintainers, for
 packages checked out using 'package-vc-install'.
 
 +++
-*** New command 'package-report-bug'
+*** New command 'package-report-bug'.
 This command helps you compose an email for sending bug reports to
 package maintainers.
 
 +++
-*** New user option 'package-vc-selected-packages'
+*** New user option 'package-vc-selected-packages'.
 By customizing this user option you can specify specific packages to
 install.
 
@@ -1764,7 +1765,7 @@ There are two new values to control the way the "*Completions*" buffer
 behaves after pressing a 'TAB' if completion is not unique.  The value
 'always' updates or shows the "*Completions*" buffer after any attempt
 to complete.  The value 'visual' is like 'always', but only updates
-the completions if they are already visible.  The default value 't'
+the completions if they are already visible.  The default value t
 always hides the completion buffer after some completion is made.
 
 *** New commands to complete the minibuffer history.
@@ -1998,11 +1999,11 @@ It narrows to the current node.
 ** EUDC
 
 +++
-*** New user option 'eudc-ignore-options-file' that defaults to 'nil'
+*** New user option 'eudc-ignore-options-file' that defaults to nil.
 The 'eudc-ignore-options-file' user option can be configured to ignore
 the 'eudc-options-file' (typically "~/.emacs.d/eudc-options").  Most
-users should configure this to 't' and put EUDC configuration in the
-main Emacs initialization file (".emacs" or "~/.emacs.d/init.el").
+users should configure this to t and put EUDC configuration in the
+main Emacs initialization file ("~/.emacs" or "~/.emacs.d/init.el").
 
 +++
 *** 'eudc-expansion-overwrites-query' to 'eudc-expansion-save-query-as-kill'.
@@ -2051,15 +2052,15 @@ of attributes to use for queries, and delivers more attributes in
 query results.
 
 +++
-*** New back-end for ecomplete
+*** New back-end for ecomplete.
 A new back-end for ecomplete allows information from that database to
 be queried by EUDC, too.  The attributes present in the EUDC query are
 used to select the entry type in the ecomplete database.
 
 +++
-*** New back-end for mailabbrev
+*** New back-end for mailabbrev.
 A new back-end for mailabbrev allows information from that database to
-be queried by EUDC, too.  The attributes email, name, and firstname
+be queried by EUDC, too.  The attributes 'email', 'name', and 'firstname'
 are supported only.
 
 ** EWW/SHR
@@ -2655,13 +2656,13 @@ customize this to "https" to always prefer HTTPS URLs.
 
 ---
 *** New user option 'browse-url-irc-function'.
-This option specifies a function for opening irc:// links.  It
+This option specifies a function for opening "irc://" links.  It
 defaults to the new function 'browse-url-irc'.
 
 ---
 *** New function 'browse-url-irc'.
-This multipurpose autoloaded function can be used for opening irc://
-and ircs:// URLS by any caller that passes a URL string as an initial
+This multipurpose autoloaded function can be used for opening "irc://"
+and "ircs://" URLS by any caller that passes a URL string as an initial
 arg.
 
 ---
@@ -2766,12 +2767,12 @@ error, and now expand to all directories recursively (following
 symlinks in the latter case).
 
 +++
-*** Lisp forms in Eshell now treat a 'nil' result as a failed exit status.
+*** Lisp forms in Eshell now treat a nil result as a failed exit status.
 When executing a command that looks like '(lisp form)' and returns
-'nil', Eshell will set the exit status (available in the '$?'
+nil, Eshell will set the exit status (available in the '$?'
 variable) to 2.  This allows commands like that to be used in
 conditionals.  To change this behavior, customize the new
-'eshell-lisp-form-nil-is-failure' option.
+'eshell-lisp-form-nil-is-failure' user option.
 
 ** Shell
 
@@ -2898,7 +2899,7 @@ remote host are shown.  Alternatively, the user option
 The old name is still available as an obsolete function alias.
 
 ---
-*** The url-irc library now understands ircs:// links.
+*** The url-irc library now understands "ircs://" links.
 
 ---
 *** New command 'world-clock-copy-time-as-kill' for 'M-x world-clock'.
@@ -2910,7 +2911,7 @@ The new face 'abbrev-table-name' is used to display the abbrev table
 name.
 
 ---
-*** New key binding "O" in `M-x list-buffer'.
+*** New key binding 'O' in 'M-x list-buffer'.
 This key is now bound to 'Buffer-menu-view-other-window', which will
 view this line's buffer in View mode in another window.
 
@@ -2968,7 +2969,6 @@ Emacs buffers, like indentation and the like.  The new ert function
 This is a lightweight variant of 'js-mode' that is used by default
 when visiting JSON files.
 
-
 ** New mode 'typescript-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the TypeScript language.  It includes support for font-locking,
@@ -4318,21 +4318,16 @@ asynchronous processes.  The hitherto existing implementation has been
 moved to 'internal-default-signal-process'.
 
 +++
-** 'list-system-processes' now returns remote process IDs.
+** Some system information functions honor remote systems now.
+'list-system-processes' returns remote process IDs.
+'memory-info' returns memory information of remote systems.
+'process-attributes' expects a remote process ID.
 This happens only when the current buffer's 'default-directory' is
-remote.  In order to preserve the old behavior, apply
+remote.  In order to preserve the old behavior, bind
+'default-directory' to a local directory, like
 
     (let ((default-directory temporary-file-directory))
       (list-system-processes))
-
-+++
-** 'process-attributes' expects a remote process ID now.
-When current buffer's 'default-directory' is remote, the PID argument
-of 'process-attributes' is regarded as a remote process ID.  In order
-to preserve the old behavior, apply
-
-    (let ((default-directory temporary-file-directory))
-      (process-attributes pid))
 
 +++
 ** New functions 'take' and 'ntake'.
@@ -4420,11 +4415,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-
-Local variables:
-coding: utf-8
-mode: outline
-mode: emacs-news
-paragraph-separate: "[ 	]"
-end:

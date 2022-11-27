@@ -622,6 +622,9 @@ a certain kind of object.  See the documentation string for details.
 @defun memory-info
 This functions returns an amount of total system memory and how much
 of it is free.  On an unsupported system, the value may be @code{nil}.
+
+If @code{default-directory} points to a remote host, memory
+information of that host is returned.
 @end defun
 
 @defvar gcs-done

@@ -2308,7 +2308,8 @@ it returns nil or exits non-locally."
   "Warn if an attempt to open file of SIZE bytes may run out of memory."
   (when (and (numberp size) (not (zerop size))
 	     (integerp out-of-memory-warning-percentage))
-    (let ((meminfo (memory-info)))
+    (let* ((default-directory temporary-file-directory)
+           (meminfo (memory-info)))
       (when (consp meminfo)
 	(let ((total-free-memory (float (+ (nth 1 meminfo) (nth 3 meminfo)))))
 	  (when (> (/ size 1024)

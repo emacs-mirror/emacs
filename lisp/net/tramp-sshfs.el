@@ -139,6 +139,7 @@
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-handle-make-process)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (memory-info . tramp-handle-memory-info)
     (process-attributes . tramp-handle-process-attributes)
     (process-file . tramp-sshfs-handle-process-file)
     (rename-file . tramp-sshfs-handle-rename-file)
@@ -214,7 +215,8 @@ arguments to pass to the OPERATION."
    (with-parsed-tramp-file-name default-directory nil
      (with-tramp-connection-property (tramp-get-process v) "remote-path"
        (with-temp-buffer
-	 (process-file "getconf" nil t nil "PATH")
+         (let (process-file-side-effects)
+	   (process-file "getconf" nil t nil "PATH"))
 	 (split-string
 	  (progn
 	    ;; Read the expression.
