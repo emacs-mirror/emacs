@@ -2662,15 +2662,33 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
    narrowing-lock, narrowing-unlock and save-restriction.  */
 static Lisp_Object narrowing_locks;
 
+/* Add BUF with its LOCKS in the narrowing_locks alist.  */
+static void
+narrowing_locks_add (Lisp_Object buf, Lisp_Object locks)
+{
+  narrowing_locks = nconc2 (list1 (list2 (buf, locks)), narrowing_locks);
+}
+
+/* Remove BUF from the narrowing_locks alist.  Do nothing if BUF is
+   not present in narrowing_locks.  */
+static void
+narrowing_locks_remove (Lisp_Object buf)
+{
+  narrowing_locks = Fdelq (Fassoc (buf, narrowing_locks, Qnil),
+			   narrowing_locks);
+}
+
 /* Retrieve one of the BEGV/ZV bounds of a narrowing in BUF from the
    narrowing_locks alist, as a pointer to a struct Lisp_Marker, or
-   NULL if BUF is not in narrowing_locks.  When OUTERMOST is true, the
-   bounds that were set by the user and that are visible on display
-   are returned.  Otherwise the innermost locked narrowing bounds are
-   returned.  */
+   NULL if BUF is not in narrowing_locks or is a killed buffer.  When
+   OUTERMOST is true, the bounds that were set by the user and that
+   are visible on display are returned.  Otherwise the innermost
+   locked narrowing bounds are returned.  */
 static struct Lisp_Marker *
 narrowing_lock_get_bound (Lisp_Object buf, bool begv, bool outermost)
 {
+  if (NILP (Fbuffer_live_p (buf)))
+    return NULL;
   Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
   if (NILP (buffer_locks))
     return NULL;
@@ -2699,21 +2717,20 @@ narrowing_lock_peek_tag (Lisp_Object buf)
   return tag;
 }
 
-/* Add a LOCK in BUF in the narrowing_locks alist.  */
+/* Add a LOCK for BUF in the narrowing_locks alist.  */
 static void
 narrowing_lock_push (Lisp_Object buf, Lisp_Object lock)
 {
   Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
   if (NILP (buffer_locks))
-    narrowing_locks = nconc2 (list1 (list2 (buf, list1 (lock))),
-			      narrowing_locks);
+    narrowing_locks_add (buf, list1 (lock));
   else
     XSETCDR (buffer_locks, list1 (nconc2 (list1 (lock),
 					  XCAR (XCDR (buffer_locks)))));
 }
 
-/* Remove the innermost lock in BUF from the narrowing_lock alist.
-   Do nothing if BUF is not in narrowing_lock.  */
+/* Remove the innermost lock in BUF from the narrowing_locks alist.
+   Do nothing if BUF is not present in narrowing_locks.  */
 static void
 narrowing_lock_pop (Lisp_Object buf)
 {
@@ -2721,8 +2738,7 @@ narrowing_lock_pop (Lisp_Object buf)
   if (NILP (buffer_locks))
     return;
   if (EQ (narrowing_lock_peek_tag (buf), Qoutermost_narrowing))
-    narrowing_locks = Fdelq (Fassoc (buf, narrowing_locks, Qnil),
-			     narrowing_locks);
+    narrowing_locks_remove (buf);
   else
     XSETCDR (buffer_locks, list1 (XCDR (XCAR (XCDR (buffer_locks)))));
 }
@@ -2737,6 +2753,8 @@ unwind_reset_outermost_narrowing (Lisp_Object buf)
       SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
       SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
     }
+  else
+    narrowing_locks_remove (buf);
 }
 
 /* Restore the narrowing bounds that were set by the user, and restore
@@ -2755,10 +2773,14 @@ reset_outermost_narrowings (void)
       eassert (BUFFERP (buf));
       struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, true);
       struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, true);
-      eassert (begv != NULL && zv != NULL);
-      SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
-      SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
-      record_unwind_protect (unwind_reset_outermost_narrowing, buf);
+      if (begv != NULL && zv != NULL)
+	{
+	  SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
+	  SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
+	  record_unwind_protect (unwind_reset_outermost_narrowing, buf);
+	}
+      else
+	narrowing_locks_remove (buf);
     }
 }
 
@@ -2790,10 +2812,8 @@ narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
   eassert (! NILP (saved_locks));
   Lisp_Object current_locks = assq_no_quit (buf, narrowing_locks);
   if (! NILP (current_locks))
-    narrowing_locks = Fdelq (Fassoc (buf, narrowing_locks, Qnil),
-			     narrowing_locks);
-  narrowing_locks = nconc2 (list1 (list2 (buf, saved_locks)),
-			    narrowing_locks);
+    narrowing_locks_remove (buf);
+  narrowing_locks_add (buf, saved_locks);
 }
 
 static void
