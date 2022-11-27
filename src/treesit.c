@@ -1524,8 +1524,8 @@ DEFUN ("treesit-parser-included-ranges",
        Streesit_parser_included_ranges,
        1, 1, 0,
        doc: /* Return the ranges set for PARSER.
-See `treesit-parser-set-included-ranges'.  If no ranges are set for
-PARSER, return nil.  */)
+If no ranges are set for PARSER, return nil.
+See also `treesit-parser-set-included-ranges'.  */)
   (Lisp_Object parser)
 {
   treesit_check_parser (parser);
