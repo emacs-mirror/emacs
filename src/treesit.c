@@ -2915,7 +2915,7 @@ that case, instead of returning the matched nodes, pass each node to
 PROCESS-FN, and use its return value instead.
 
 If non-nil, LIMIT is the number of levels to go down the tree from
-ROOT.  If LIMIT is nil, default to 1000.
+ROOT.  If LIMIT is nil or omitted, it defaults to 1000.
 
 Each node in the returned tree looks like (NODE . (CHILD ...)).  The
 root of this tree might be nil, if ROOT doesn't match PREDICATE.
