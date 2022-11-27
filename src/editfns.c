@@ -2786,7 +2786,7 @@ reset_outermost_narrowings (void)
 }
 
 /* Helper functions to save and restore the narrowing locks of the
-   current buffer in save-restriction.  */
+   current buffer in Fsave_restriction.  */
 static Lisp_Object
 narrowing_locks_save (void)
 {

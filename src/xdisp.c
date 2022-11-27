@@ -3538,9 +3538,8 @@ get_locked_narrowing_begv (ptrdiff_t pos)
 {
   if (long_line_locked_narrowing_region_size == 0)
     return BEGV;
-  int begv;
   int len = long_line_locked_narrowing_region_size / 2;
-  begv = max (pos - len, BEGV);
+  int begv = max (pos - len, BEGV);
   int limit = long_line_locked_narrowing_bol_search_limit;
   while (limit)
     {
