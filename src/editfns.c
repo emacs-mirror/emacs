@@ -2669,8 +2669,8 @@ narrowing_locks_add (Lisp_Object buf, Lisp_Object locks)
   narrowing_locks = nconc2 (list1 (list2 (buf, locks)), narrowing_locks);
 }
 
-/* Remove BUF from the narrowing_locks alist.  Do nothing if BUF is
-   not present in narrowing_locks.  */
+/* Remove BUF and its locks from the narrowing_locks alist.  Do
+   nothing if BUF is not present in narrowing_locks.  */
 static void
 narrowing_locks_remove (Lisp_Object buf)
 {
@@ -2803,16 +2803,8 @@ narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
   if (NILP (buf_and_saved_locks))
     return;
   Lisp_Object buf = XCAR (buf_and_saved_locks);
-  /* This cannot fail when buf_and_saved_locks was returned by
-     narrowing_locks_save.  */
-  eassert (BUFFERP (buf));
   Lisp_Object saved_locks = XCDR (buf_and_saved_locks);
-  /* This cannot fail when buf_and_saved_locks was returned by
-     narrowing_locks_save.  */
-  eassert (! NILP (saved_locks));
-  Lisp_Object current_locks = assq_no_quit (buf, narrowing_locks);
-  if (! NILP (current_locks))
-    narrowing_locks_remove (buf);
+  narrowing_locks_remove (buf);
   narrowing_locks_add (buf, saved_locks);
 }
 
