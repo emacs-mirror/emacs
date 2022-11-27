@@ -6919,13 +6919,27 @@ x_sync_wait_for_frame_drawn_event (struct frame *f)
 		  x_sync_is_frame_drawn_event, (XPointer) f,
 		  make_timespec (1, 0)))
     {
-      /* TODO: display this warning in the echo area.  */
-      fprintf (stderr, "Warning: compositing manager spent more than 1 second "
-	       "drawing a frame.  Frame synchronization has been disabled\n");
-      FRAME_X_OUTPUT (f)->use_vsync_p = false;
+      /* The first time a draw hangs, treat it as a random fluctuation
+	 on the part of the compositor.  If the next draw continues to
+	 hang, disable frame synchronization.  */
+      if (FRAME_X_DRAW_JUST_HUNG (f))
+	{
+	  fprintf (stderr, "Warning: compositing manager spent more than 1 "
+		   "second drawing a frame.  Frame synchronization has "
+		   "been disabled\n");
+	  FRAME_X_OUTPUT (f)->use_vsync_p = false;
 
-      /* Also change the frame parameter to reflect the new state.  */
-      store_frame_param (f, Quse_frame_synchronization, Qnil);
+	  /* Also change the frame parameter to reflect the new
+	     state.  */
+	  store_frame_param (f, Quse_frame_synchronization, Qnil);
+	}
+      else
+	{
+	  fprintf (stderr, "Warning: compositing manager spent more than 1 "
+		   "second drawing a frame.  Frame synchronization will be "
+		   "disabled if this happens again\n");
+	  FRAME_X_DRAW_JUST_HUNG (f) = true;
+	}
     }
   else
     x_sync_note_frame_times (FRAME_DISPLAY_INFO (f), f, &event);
@@ -7128,8 +7142,26 @@ static void
 x_sync_handle_frame_drawn (struct x_display_info *dpyinfo,
 			   XEvent *message, struct frame *f)
 {
+  XSyncValue value, counter;
+
   if (FRAME_OUTER_WINDOW (f) == message->xclient.window)
-    FRAME_X_WAITING_FOR_DRAW (f) = false;
+    {
+      counter = FRAME_X_COUNTER_VALUE (f);
+
+      /* Check that the counter in the message is the same as the
+	 counter in the frame.  */
+      XSyncIntsToValue (&value,
+			message->xclient.data.l[0] & 0xffffffff,
+			message->xclient.data.l[1] & 0xffffffff);
+
+      if (XSyncValueEqual (value, counter))
+	FRAME_X_WAITING_FOR_DRAW (f) = false;
+
+      /* As long as a _NET_WM_FRAME_DRAWN message arrives, we know
+	 that the compositor is still sending events, so avoid timing
+	 out.  */
+      FRAME_X_DRAW_JUST_HUNG (f) = false;
+    }
 
   x_sync_note_frame_times (dpyinfo, f, message);
 }
