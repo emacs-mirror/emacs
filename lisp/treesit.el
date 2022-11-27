@@ -521,21 +521,22 @@ omitted, default END to BEG."
               'treesit-error)
 
 (defvar-local treesit-font-lock-level 3
-  "The decoration level used by tree-sitter fontification.
+  "Decoration level to be used by tree-sitter fontifications.
+
 Major modes categorize their fontification features into levels,
-from 1 being the absolute minimal, to 4 being maximally
-fontified.
+from 1 which is the absolute minimum, to 4 that yields the maximum
+fontifications.
 
 Level 1 usually contains only comments and definitions.
 Level 2 usually adds keywords, strings, constants, types, etc.
 Level 3 usually represents a full-blown fontification, including
 assignment, constants, numbers, properties, etc.
-Level 4 fontifies everything that can be fontified: delimiters,
+Level 4 adds everything else that can be fontified: delimiters,
 operators, brackets, all functions and variables, etc.
 
 In addition to the decoration level, individual features can be
-turned on/off by `treesit-font-lock-recompute-features'.  Changes
-to this variable also requires calling
+turned on/off by calling `treesit-font-lock-recompute-features'.
+Changing the decoration level requires calling
 `treesit-font-lock-recompute-features' to have an effect.")
 
 (defvar-local treesit--font-lock-query-expand-range (cons 0 0)
@@ -735,12 +736,12 @@ REMOVE-LIST.
 
 If both ADD-LIST and REMOVE-LIST are omitted, recompute each
 feature according to `treesit-font-lock-feature-list' and
-`treesit-font-lock-level'.  Let N be the value of
-`treesit-font-lock-level', features in the first N sublists of
-`treesit-font-lock-feature-list' are enabled, and other features
-are disabled.
+`treesit-font-lock-level'.  If the value of `treesit-font-lock-level',
+is N, then the features in the first N sublists of
+`treesit-font-lock-feature-list' are enabled, and the rest of
+the features are disabled.
 
-ADD-LIST and REMOVE-LIST are each a list of feature symbols.  The
+ADD-LIST and REMOVE-LIST are lists of feature symbols.  The
 same feature symbol cannot appear in both lists; the function
 signals the `treesit-font-lock-error' error if that happens."
   (when-let ((intersection (cl-intersection add-list remove-list)))
