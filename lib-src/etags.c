@@ -399,7 +399,7 @@ static void free_fdesc (fdesc *);
 static void pfnote (char *, bool, char *, ptrdiff_t, intmax_t, intmax_t);
 static void invalidate_nodes (fdesc *, node **);
 static void put_entries (node *);
-static void clean_matched_file_tag (char const * const, char const * const);
+static void cleanup_tags_file (char const * const, char const * const);
 
 static void do_move_file (const char *, const char *);
 static char *concat (const char *, const char *, const char *);
@@ -1392,7 +1392,7 @@ main (int argc, char **argv)
 	    default:
 	      continue;		/* the for loop */
 	    }
-          clean_matched_file_tag (tagfile, argbuffer[i].what);
+          cleanup_tags_file (tagfile, argbuffer[i].what);
 	}
       append_to_tagfile = true;
     }
@@ -1442,7 +1442,7 @@ main (int argc, char **argv)
  * Equivalent to: mv tags OTAGS;grep -Fv ' filename ' OTAGS >tags;rm OTAGS
  */
 static void
-clean_matched_file_tag (const char* tagfile, const char* match_file_name)
+cleanup_tags_file (const char* tagfile, const char* match_file_name)
 {
   FILE *otags_f = fopen ("OTAGS", "wb");
   FILE *tag_f = fopen (tagfile, "rb");
@@ -7275,7 +7275,8 @@ get_lispy_tag (register char *bp)
  * appended to `filebuf'.
  */
 static ptrdiff_t
-readline_internal (linebuffer *lbp, FILE *stream, char const *filename, const bool leave_cr)
+readline_internal (linebuffer *lbp, FILE *stream, char const *filename,
+		   const bool leave_cr)
 {
   char *buffer = lbp->buffer;
   char *p = lbp->buffer;
