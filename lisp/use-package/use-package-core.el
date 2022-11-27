@@ -100,8 +100,7 @@
     :load
     ;; This must occur almost last; the only forms which should appear after
     ;; are those that must happen directly after the config forms.
-    :config
-    :local)
+    :config)
   "The set of valid keywords, in the order they are processed in.
 The order of this list is *very important*, so it is only
 advisable to insert new keywords, never to delete or reorder
@@ -1579,31 +1578,6 @@ no keyword implies `:all'."
                    (list t)))))
      (when use-package-compute-statistics
        `((use-package-statistics-gather :config ',name t))))))
-
-;;;; :local
-
-(defun use-package-normalize/:local (name keyword args)
-  (let ((first-arg-name (symbol-name (caar args))))
-    (if (not (string-suffix-p "-hook" first-arg-name))
-        (let* ((sym-name (symbol-name name))
-               (addition (if (string-suffix-p "-mode" sym-name)
-                             "-hook"
-                           "-mode-hook"))
-               (hook (intern (concat sym-name addition))))
-          `((,hook . ,(use-package-normalize-forms name keyword args))))
-      (cl-loop for (hook . code) in args
-               collect `(,hook . ,(use-package-normalize-forms name keyword code))))))
-
-(defun use-package-handler/:local (name _keyword arg rest state)
-  (let* ((body (use-package-process-keywords name rest state)))
-    (use-package-concat
-     body
-     (cl-loop for (hook . code) in arg
-              for func-name = (intern (concat "use-package-func/" (symbol-name hook)))
-              collect (progn
-                        (push 'progn code)
-                        `(defun ,func-name () ,code))
-              collect `(add-hook ',hook ',func-name)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
