@@ -619,20 +619,22 @@ If the key is not valid, signal an error."
 
 (defun server-stop (&optional noframe)
   "If this Emacs process has a server communication subprocess, stop it.
-If the server is running in some other Emacs process (see
+If this actually stopped the server, return non-nil.  If the
+server is running in some other Emacs process (see
 `server-running-p'), signal a `server-running-external' error.
 
 If NOFRAME is non-nil, don't delete any existing frames
 associated with a client process.  This is useful, for example,
 when killing Emacs, in which case the frames will get deleted
 anyway."
-  (let ((server-file (server--file-name)))
+  (let ((server-file (server--file-name))
+        stopped-p)
     (when server-process
       ;; Kill it dead!
       (ignore-errors (delete-process server-process))
-      (unless noframe
-        (server-log (message "Server stopped")))
-      (setq server-process nil
+      (server-log "Stopped server")
+      (setq stopped-p t
+            server-process nil
             server-mode nil
             global-minor-modes (delq 'server-mode global-minor-modes)))
     (unwind-protect
@@ -658,7 +660,8 @@ anyway."
                                   server-name))))
       ;; If this Emacs already had a server, clear out associated status.
       (while server-clients
-        (server-delete-client (car server-clients) noframe)))))
+        (server-delete-client (car server-clients) noframe)))
+    stopped-p))
 
 ;;;###autoload
 (defun server-start (&optional leave-dead inhibit-prompt)
@@ -702,7 +705,8 @@ the `server-process' variable."
         (if (and internal--daemon-sockname
                  (not server--external-socket-initialized))
             (setq server--external-socket-initialized t)
-          (server-stop))
+          (when (server-stop)
+            (message (if leave-dead "Stopped server" "Restarting server"))))
       (server-running-external
        (display-warning
         'server
@@ -717,8 +721,6 @@ the `server-process' variable."
       (let ((server-file (server--file-name)))
 	;; Make sure there is a safe directory in which to place the socket.
 	(server-ensure-safe-dir (file-name-directory server-file))
-	(when server-process
-	  (server-log (message "Restarting server")))
         (with-file-modes ?\700
 	  (add-hook 'suspend-tty-functions #'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions #'server-handle-delete-frame)
@@ -756,7 +758,7 @@ the `server-process' variable."
 			       :service server-file
 			       :plist '(:authenticated t)))))
 	  (unless server-process (error "Could not start server process"))
-          (server-log "Starting server")
+          (server-log "Started server")
 	  (process-put server-process :server-file server-file)
           (setq server-mode t)
           (push 'server-mode global-minor-modes)
