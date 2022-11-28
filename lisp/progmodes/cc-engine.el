@@ -4017,7 +4017,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	 (t from))))))
 
 (defun c-remove-stale-state-cache (start-point here pps-point)
-  ;; Remove stale entries from the `c-cache-state', i.e. those which will
+  ;; Remove stale entries from the `c-state-cache', i.e. those which will
   ;; not be in it when it is amended for position HERE.  This may involve
   ;; replacing a CONS element for a brace pair containing HERE with its car.
   ;; Additionally, the "outermost" open-brace entry before HERE will be
@@ -4951,30 +4951,31 @@ comment at the start of cc-engine.el for more info."
       "\\w\\|\\s_\\|\\s\"\\|\\s|"
     "\\w\\|\\s_\\|\\s\""))
 
-(defun c-forward-over-token (&optional balanced)
+(defun c-forward-over-token (&optional balanced limit)
   "Move forward over a token.
 Return t if we moved, nil otherwise (i.e. we were at EOB, or a
 non-token or BALANCED is non-nil and we can't move).  If we
 are at syntactic whitespace, move over this in place of a token.
 
 If BALANCED is non-nil move over any balanced parens we are at, and never move
-out of an enclosing paren."
+out of an enclosing paren.  LIMIT is the limit to where we might move to."
   (let ((jump-syntax (if balanced
 			 c-jump-syntax-balanced
 		       c-jump-syntax-unbalanced))
-	(here (point)))
+	(here (point))
+	(limit (or limit (point-max))))
     (condition-case nil
 	(cond
 	 ((/= (point)
-	      (progn (c-forward-syntactic-ws) (point)))
+	      (progn (c-forward-syntactic-ws limit) (point)))
 	  ;; If we're at whitespace, count this as the token.
 	  t)
 	 ((eobp) nil)
 	 ((looking-at jump-syntax)
-	  (goto-char (scan-sexps (point) 1))
+	  (goto-char (min limit (scan-sexps (point) 1)))
 	  t)
 	 ((looking-at c-nonsymbol-token-regexp)
-	  (goto-char (match-end 0))
+	  (goto-char (min (match-end 0) limit))
 	  t)
 	 ((save-restriction
 	    (widen)
@@ -10103,7 +10104,7 @@ This function might do hidden buffer changes."
   ;;   Specifically it is nil, or a three element list (A B C) where C is t
   ;;   when context is '<> and the "identifier" is a found type, B is t when a
   ;;   `c-typedef-kwds' ("typedef") is present, and A is t when some other
-  ;;   `c-typedef-declkwds' (e.g. class, struct, enum) specifier is present.
+  ;;   `c-typedef-decl-kwds' (e.g. class, struct, enum) specifier is present.
   ;;   I.e., (some of) the declared identifier(s) are types.
   ;;
   ;;   The third element of the return value is non-nil when the declaration
@@ -11076,8 +11077,9 @@ This function might do hidden buffer changes."
 			      at-decl-start))
 		 (let ((space-before-id
 			(save-excursion
-			  (goto-char name-start)
-			  (or (bolp) (memq (char-before) '(?\  ?\t)))))
+			  (goto-char id-start) ; Position of "*".
+			  (and (> (skip-chars-forward "* \t\n\r") 0)
+			       (memq (char-before) '(?\  ?\t ?\n ?\r)))))
 		       (space-after-type
 			(save-excursion
 			  (goto-char type-start)
@@ -11087,6 +11089,8 @@ This function might do hidden buffer changes."
 				   (memq (char-after) '(?\  ?\t)))))))
 		   (when (not (eq (not space-before-id)
 				  (not space-after-type)))
+		     (when (eq at-type 'maybe)
+		       (setq unsafe-maybe t))
 		     (setq maybe-expression t)
 		     (throw 'at-decl-or-cast t)))))
 
@@ -15518,7 +15522,7 @@ Cannot combine absolute offsets %S and %S in `add' method"
 
 (defun c-get-syntactic-indentation (langelems)
   ;; Calculate the syntactic indentation from a syntactic description
-  ;; as returned by `c-guess-syntax'.
+  ;; as returned by `c-guess-basic-syntax'.
   ;;
   ;; Note that topmost-intro always has an anchor position at bol, for
   ;; historical reasons.  It's often used together with other symbols

@@ -3533,6 +3533,33 @@ get_closer_narrowed_begv (struct window *w, ptrdiff_t pos)
   return max ((pos / len - 1) * len, BEGV);
 }
 
+ptrdiff_t
+get_locked_narrowing_begv (ptrdiff_t pos)
+{
+  if (long_line_locked_narrowing_region_size <= 0)
+    return BEGV;
+  int len = long_line_locked_narrowing_region_size / 2;
+  int begv = max (pos - len, BEGV);
+  int limit = long_line_locked_narrowing_bol_search_limit;
+  while (limit > 0)
+    {
+      if (begv == BEGV || FETCH_BYTE (CHAR_TO_BYTE (begv) - 1) == '\n')
+	return begv;
+      begv--;
+      limit--;
+    }
+  return begv;
+}
+
+ptrdiff_t
+get_locked_narrowing_zv (ptrdiff_t pos)
+{
+  if (long_line_locked_narrowing_region_size <= 0)
+    return ZV;
+  int len = long_line_locked_narrowing_region_size / 2;
+  return min (pos + len, ZV);
+}
+
 static void
 unwind_narrowed_begv (Lisp_Object point_min)
 {
@@ -4366,18 +4393,20 @@ handle_fontified_prop (struct it *it)
 
       eassert (it->end_charpos == ZV);
 
-      if (current_buffer->long_line_optimizations_p)
+      if (current_buffer->long_line_optimizations_p
+	  && long_line_locked_narrowing_region_size > 0)
 	{
-	  ptrdiff_t begv = it->narrowed_begv;
-	  ptrdiff_t zv = it->narrowed_zv;
+	  ptrdiff_t begv = it->locked_narrowing_begv;
+	  ptrdiff_t zv = it->locked_narrowing_zv;
 	  ptrdiff_t charpos = IT_CHARPOS (*it);
 	  if (charpos < begv || charpos > zv)
 	    {
-	      begv = get_narrowed_begv (it->w, charpos);
-	      zv = get_narrowed_zv (it->w, charpos);
+	      begv = get_locked_narrowing_begv (charpos);
+	      zv = get_locked_narrowing_zv (charpos);
 	    }
-	  narrow_to_region_internal (make_fixnum (begv), make_fixnum (zv), true);
-	  specbind (Qrestrictions_locked, Qt);
+	  if (begv != BEG || zv != Z)
+	    narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv),
+				     Qfontification_functions);
 	}
 
       /* Don't allow Lisp that runs from 'fontification-functions'
@@ -7435,12 +7464,20 @@ reseat (struct it *it, struct text_pos pos, bool force_p)
 	{
 	  it->narrowed_begv = get_narrowed_begv (it->w, window_point (it->w));
 	  it->narrowed_zv = get_narrowed_zv (it->w, window_point (it->w));
+	  it->locked_narrowing_begv
+	    = get_locked_narrowing_begv (window_point (it->w));
+	  it->locked_narrowing_zv
+	    = get_locked_narrowing_zv (window_point (it->w));
 	}
       else if ((pos.charpos < it->narrowed_begv || pos.charpos > it->narrowed_zv)
 		&& (!redisplaying_p || it->line_wrap == TRUNCATE))
 	{
 	  it->narrowed_begv = get_narrowed_begv (it->w, pos.charpos);
 	  it->narrowed_zv = get_narrowed_zv (it->w, pos.charpos);
+	  it->locked_narrowing_begv
+	    = get_locked_narrowing_begv (window_point (it->w));
+	  it->locked_narrowing_zv
+	    = get_locked_narrowing_zv (window_point (it->w));
 	}
     }
 
@@ -16266,7 +16303,6 @@ do { if (! polling_stopped_here) stop_polling ();	\
 do { if (polling_stopped_here) start_polling ();	\
        polling_stopped_here = false; } while (false)
 
-
 /* Perhaps in the future avoid recentering windows if it
    is not necessary; currently that causes some problems.  */
 
@@ -16351,6 +16387,8 @@ redisplay_internal (void)
 
   FOR_EACH_FRAME (tail, frame)
     XFRAME (frame)->already_hscrolled_p = false;
+
+  reset_outermost_narrowings ();
 
  retry:
   /* Remember the currently selected window.  */
@@ -34576,8 +34614,11 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
     }
 #endif	/* HAVE_WINDOW_SYSTEM */
 
+  /* CHARPOS can be beyond the last position of STRING due, e.g., to
+     min-width 'display' property.  Fix that, to let all the calls to
+     get-text-property below do their thing.  */
   if (STRINGP (string))
-    pos = make_fixnum (charpos);
+    pos = make_fixnum (min (charpos, SCHARS (string) - 1));
 
   /* Set the help text and mouse pointer.  If the mouse is on a part
      of the mode line without any text (e.g. past the right edge of
@@ -36708,10 +36749,11 @@ fontify a region starting at POS in the current buffer, and give
 fontified regions the property `fontified' with a non-nil value.
 
 Note that, when the buffer contains one or more lines whose length is
-above `long-line-threshold', these functions are called with the buffer
-narrowed to a small portion around POS, and the narrowing is locked (see
-`narrow-to-region'), so that these functions cannot use `widen' to gain
-access to other portions of buffer text.  */);
+above `long-line-threshold', these functions are called with the
+buffer narrowed to a small portion around POS (whose size is specified
+by `long-line-locked-narrowing-region-size'), and the narrowing is
+locked (see `narrowing-lock'), so that these functions cannot use
+`widen' to gain access to other portions of buffer text.  */);
   Vfontification_functions = Qnil;
   Fmake_variable_buffer_local (Qfontification_functions);
 

@@ -308,7 +308,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
 	/* We know it's not the CAR, so it's easy.  */
 	Lisp_Object rest = dpyinfo->terminal->Vselection_alist;
 	for (; CONSP (rest); rest = XCDR (rest))
-	  if (EQ (prev_value, Fcar (XCDR (rest))))
+	  if (EQ (prev_value, CAR (XCDR (rest))))
 	    {
 	      XSETCDR (rest, XCDR (XCDR (rest)));
 	      break;
@@ -369,7 +369,7 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 	specbind (Qinhibit_quit, Qt);
 
       CHECK_SYMBOL (target_type);
-      handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
+      handler_fn = CDR (Fassq (target_type, Vselection_converter_alist));
 
       if (CONSP (handler_fn))
 	handler_fn = XCDR (handler_fn);
@@ -1129,14 +1129,14 @@ x_clear_frame_selections (struct frame *f)
   while (CONSP (t->Vselection_alist)
 	 && EQ (frame, XCAR (XCDR (XCDR (XCDR (XCAR (t->Vselection_alist)))))))
     {
-      selection = Fcar (Fcar (t->Vselection_alist));
+      selection = CAR (CAR (t->Vselection_alist));
 
       if (!x_should_preserve_selection (selection))
 	/* Run the `x-lost-selection-functions' abnormal hook.  */
 	CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
 	       selection);
       else
-	lost = Fcons (Fcar (t->Vselection_alist), lost);
+	lost = Fcons (CAR (t->Vselection_alist), lost);
 
       tset_selection_alist (t, XCDR (t->Vselection_alist));
     }

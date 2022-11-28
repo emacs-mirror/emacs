@@ -169,7 +169,7 @@ greater than this number."
 (defcustom antlr-indent-comment 'tab
   "Non-nil, if the indentation should touch lines in block comments.
 If nil, no continuation line of a block comment is changed.  If t, they
-are changed according to `c-indentation-line'.  When not nil and not t,
+are changed according to `c-indent-line'.  When not nil and not t,
 they are only changed by \\[antlr-indent-command]."
   :type '(radio (const :tag "No" nil)
 		(const :tag "Always" t)

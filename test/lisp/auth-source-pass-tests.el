@@ -697,29 +697,29 @@ machine Libera.Chat password b
 ;; with slightly more realistic and less legible values.
 
 (ert-deftest auth-source-pass-extra-query-keywords--suffixed-user ()
-  (let ((store (sort (copy-sequence '(("x.com:42/bar" (secret . "a"))
-                                      ("bar@x.com" (secret . "b"))
+  (let ((store (sort (copy-sequence '(("x.com:42/b@r" (secret . "a"))
+                                      ("b@r@x.com" (secret . "b"))
                                       ("x.com" (secret . "?"))
-                                      ("bar@y.org" (secret . "c"))
+                                      ("b@r@y.org" (secret . "c"))
                                       ("fake.com" (secret . "?"))
-                                      ("fake.com/bar" (secret . "d"))
-                                      ("y.org/bar" (secret . "?"))
-                                      ("bar@fake.com" (secret . "e"))))
+                                      ("fake.com/b@r" (secret . "d"))
+                                      ("y.org/b@r" (secret . "?"))
+                                      ("b@r@fake.com" (secret . "e"))))
                      (lambda (&rest _) (zerop (random 2))))))
     (auth-source-pass--with-store store
       (auth-source-pass-enable)
       (let* ((auth-source-pass-extra-query-keywords t)
              (results (auth-source-search :host '("x.com" "fake.com" "y.org")
-                                          :user "bar"
+                                          :user "b@r"
                                           :require '(:user) :max 5)))
         (dolist (result results)
           (setf (plist-get result :secret) (auth-info-password result)))
         (should (equal results
-                       '((:host "x.com" :user "bar" :secret "b")
-                         (:host "x.com" :user "bar" :port "42" :secret "a")
-                         (:host "fake.com" :user "bar" :secret "e")
-                         (:host "fake.com" :user "bar" :secret "d")
-                         (:host "y.org" :user "bar" :secret "c"))))))))
+                       '((:host "x.com" :user "b@r" :secret "b")
+                         (:host "x.com" :user "b@r" :port "42" :secret "a")
+                         (:host "fake.com" :user "b@r" :secret "e")
+                         (:host "fake.com" :user "b@r" :secret "d")
+                         (:host "y.org" :user "b@r" :secret "c"))))))))
 
 ;; This is a more distilled version of `suffixed-user', above.  It
 ;; better illustrates that search order takes precedence over "/user"

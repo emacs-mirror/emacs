@@ -295,7 +295,7 @@ init_treesit_functions (void)
      a node.  But since we can just retrieve a new node, it shouldn't
      be a limitation.
 
-   - I didn't expose setting timeout and cancelation flag for a
+   - I didn't expose setting timeout and cancellation flag for a
      parser, mainly because I don't think they are really necessary
      in Emacs's use cases.
 
@@ -314,7 +314,7 @@ init_treesit_functions (void)
      See: https://github.com/tree-sitter/tree-sitter/issues/445
 
    treesit.h has some commentary on the two main data structure for
-   the parser and node.  treesit_ensure_position_synced has some
+   the parser and node.  treesit_sync_visible_region has some
    commentary on how we make tree-sitter play well with narrowing (the
    tree-sitter parser only sees the visible region, so we need to
    translate positions back and forth).  Most action happens in
@@ -707,6 +707,8 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
       Lisp_Object lisp_parser = XCAR (parser_list);
       treesit_check_parser (lisp_parser);
       TSTree *tree = XTS_PARSER (lisp_parser)->tree;
+      /* See comment (ref:visible-beg-null) if you wonder why we don't
+      update visible_beg/end when tree is NULL.  */
       if (tree != NULL)
 	{
 	  eassert (start_byte <= old_end_byte);
@@ -742,7 +744,7 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	  XTS_PARSER (lisp_parser)->timestamp++;
 
 	  /* VISIBLE_BEG/END records tree-sitter's range of view in
-	     the buffer.  Ee need to adjust them when tree-sitter's
+	     the buffer.  We need to adjust them when tree-sitter's
 	     view changes.  */
 	  ptrdiff_t visi_beg_delta;
 	  if (old_end_byte > new_end_byte)
@@ -765,20 +767,65 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
     }
 }
 
-/* Make sure PARSER's visible_beg and visible_end are in sync with
-   BUF_BEGV_BYTE and BUG_ZV_BYTE.  When calling this function you must
-   make sure the current buffer's size is not larger than UINT32_MAX.
-   Basically always call treesit_check_buffer_size before this
-   function.  */
+/* Comment (ref:visible-beg-null) The purpose of visible_beg/end is to
+   keep track of "which part of the buffer does the tree-sitter tree
+   see", in order to update the tree correctly.  Visible_beg/end have
+   two purposes: they "clip" buffer changes within them, and they
+   translate positions in the buffer to positions in the tree
+   (buffer position - visible_beg = tree position).
+
+   Conceptually, visible_beg/end hold the visible region of the buffer
+   when we last reparsed.  In-between two reparses, we don't really
+   care if the visible region of the buffer changes.
+
+   Right before we reparse, we make tree-sitter's visible region
+   match that of the buffer, and update visible_beg/end.
+
+   That is, the whole purpose of visible_beg/end (and also of
+   treesit_record_change and treesit_sync_visible_region) is to update
+   the tree (by ts_tree_edit).  So if the tree is NULL,
+   visible_beg/end are considered uninitialized.  Only when we already
+   have a tree, do we need to keep track of position changes and
+   update it correctly, so it can be fed into ts_parser_parse as the
+   old tree, so that tree-sitter will only parse the changed part,
+   incrementally.
+
+   In a nutshell, tree-sitter incremental parsing in Emacs looks like:
+
+   treesit_record_change (tree)  \
+   treesit_record_change (tree)  | user edits buffer
+   ...                           /
+
+   treesit_sync_visible_region (tree) \ treesit_ensure_parsed
+   ts_parser_parse(tree) -> tree      /
+
+   treesit_record_change (tree)  \
+   treesit_record_change (tree)  | user edits buffer
+   ...                           /
+
+   and so on.  */
+
+/* Make sure the tree's visible range is in sync with the buffer's
+   visible range, and PARSER's visible_beg and visible_end are in sync
+   with BUF_BEGV_BYTE and BUG_ZV_BYTE.  When calling this function you
+   must make sure the current buffer's size in bytes is not larger than
+   UINT32_MAX.  Basically, always call treesit_check_buffer_size before
+   this function.  */
 static void
-treesit_ensure_position_synced (Lisp_Object parser)
+treesit_sync_visible_region (Lisp_Object parser)
 {
   TSTree *tree = XTS_PARSER (parser)->tree;
-
-  if (tree == NULL)
-    return;
-
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
+
+  /* If we are setting visible_beg/end for the first time, we can skip
+  the offset acrobatics and updating the tree below.  */
+  if (tree == NULL)
+    {
+      XTS_PARSER (parser)->visible_beg = BUF_BEGV_BYTE (buffer);
+      XTS_PARSER (parser)->visible_end = BUF_ZV_BYTE (buffer);
+      return;
+    }
+
   ptrdiff_t visible_beg = XTS_PARSER (parser)->visible_beg;
   ptrdiff_t visible_end = XTS_PARSER (parser)->visible_end;
   eassert (0 <= visible_beg);
@@ -840,11 +887,11 @@ treesit_ensure_position_synced (Lisp_Object parser)
 static void
 treesit_check_buffer_size (struct buffer *buffer)
 {
-  ptrdiff_t buffer_size = (BUF_Z (buffer) - BUF_BEG (buffer));
-  if (buffer_size > UINT32_MAX)
+  ptrdiff_t buffer_size_bytes = (BUF_Z_BYTE (buffer) - BUF_BEG_BYTE (buffer));
+  if (buffer_size_bytes > UINT32_MAX)
     xsignal2 (Qtreesit_buffer_too_large,
 	      build_pure_c_string ("Buffer size cannot be larger than 4GB"),
-	      make_fixnum (buffer_size));
+	      make_fixnum (buffer_size_bytes));
 }
 
 static Lisp_Object treesit_make_ranges (const TSRange *, uint32_t, struct buffer *);
@@ -884,14 +931,14 @@ treesit_ensure_parsed (Lisp_Object parser)
 
   /* Before we parse, catch up with the narrowing situation.  */
   treesit_check_buffer_size (buffer);
-  treesit_ensure_position_synced (parser);
+  treesit_sync_visible_region (parser);
 
   TSTree *new_tree = ts_parser_parse (treesit_parser, tree, input);
   /* This should be very rare (impossible, really): it only happens
      when 1) language is not set (impossible in Emacs because the user
      has to supply a language to create a parser), 2) parse canceled
      due to timeout (impossible because we don't set a timeout), 3)
-     parse canceled due to cancelation flag (impossible because we
+     parse canceled due to cancellation flag (impossible because we
      don't set the flag).  (See comments for ts_parser_parse in
      tree_sitter/api.h.)  */
   if (new_tree == NULL)
@@ -983,8 +1030,8 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   TSInput input = {lisp_parser, treesit_read_buffer, TSInputEncodingUTF8};
   lisp_parser->input = input;
   lisp_parser->need_reparse = true;
-  lisp_parser->visible_beg = BUF_BEGV (XBUFFER (buffer));
-  lisp_parser->visible_end = BUF_ZV (XBUFFER (buffer));
+  lisp_parser->visible_beg = BUF_BEGV_BYTE (XBUFFER (buffer));
+  lisp_parser->visible_end = BUF_ZV_BYTE (XBUFFER (buffer));
   lisp_parser->timestamp = 0;
   lisp_parser->deleted = false;
   lisp_parser->has_range = false;
@@ -1365,9 +1412,10 @@ treesit_check_range_argument (Lisp_Object ranges)
   CHECK_LIST_END (tail, ranges);
 }
 
-/* Generate a list of ranges in Lisp from RANGES.  This function
-   doesn't take ownership of RANGES.  BUFFER is used to convert
-   between tree-sitter buffer offset and buffer position.  */
+/* Generate a list of ranges in Lisp from RANGES.  Assumes tree-sitter
+   tree and the buffer has the same visible region (wrt narrowing).
+   This function doesn't take ownership of RANGES.  BUFFER is used to
+   convert between tree-sitter buffer offset and buffer position.  */
 static Lisp_Object
 treesit_make_ranges (const TSRange *ranges, uint32_t len,
 		     struct buffer *buffer)
@@ -1412,7 +1460,7 @@ buffer.  */)
   treesit_initialize ();
   /* Before we parse, catch up with narrowing/widening.  */
   treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
-  treesit_ensure_position_synced (parser);
+  treesit_sync_visible_region (parser);
 
   bool success;
   if (NILP (ranges))
@@ -1476,8 +1524,8 @@ DEFUN ("treesit-parser-included-ranges",
        Streesit_parser_included_ranges,
        1, 1, 0,
        doc: /* Return the ranges set for PARSER.
-See `treesit-parser-set-ranges'.  If no ranges are set for PARSER,
-return nil.  */)
+If no ranges are set for PARSER, return nil.
+See also `treesit-parser-set-included-ranges'.  */)
   (Lisp_Object parser)
 {
   treesit_check_parser (parser);
@@ -1498,7 +1546,7 @@ return nil.  */)
   /* Our return value depends on the buffer state (BUF_BEGV_BYTE,
      etc), so we need to sync up.  */
   treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
-  treesit_ensure_position_synced (parser);
+  treesit_sync_visible_region (parser);
 
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
   return treesit_make_ranges (ranges, len, buffer);
@@ -1535,7 +1583,7 @@ positions.  PARSER is the parser issuing the notification.  */)
   CHECK_SYMBOL (function);
 
   Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
-  if (!Fmemq (function, functions))
+  if (NILP (Fmemq (function, functions)))
     XTS_PARSER (parser)->after_change_functions = Fcons (function, functions);
   return Qnil;
 }
@@ -1555,7 +1603,7 @@ positions.  PARSER is the parser issuing the notification.   */)
   CHECK_SYMBOL (function);
 
   Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
-  if (Fmemq (function, functions))
+  if (!NILP (Fmemq (function, functions)))
     XTS_PARSER (parser)->after_change_functions = Fdelq (function, functions);
   return Qnil;
 }
@@ -2229,8 +2277,6 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 
   Lisp_Object regexp = XCAR (args);
   Lisp_Object capture_name = XCAR (XCDR (args));
-  Lisp_Object text = treesit_predicate_capture_name_to_text (capture_name,
-							     captures);
 
   /* It's probably common to get the argument order backwards.  Catch
      this mistake early and show helpful explanation, because Emacs
@@ -2244,6 +2290,9 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
     xsignal1 (Qtreesit_query_error,
 	      build_pure_c_string ("The second argument to `match' should "
 				   "be a capture name, not a string"));
+
+  Lisp_Object text = treesit_predicate_capture_name_to_text (capture_name,
+							     captures);
 
   if (fast_string_match (regexp, text) >= 0)
     return true;
@@ -2568,7 +2617,8 @@ treesit_traverse_child_helper (TSNode node, bool forward, bool named)
 }
 
 /* Return true if NODE matches PRED.  PRED can be a string or a
-   function.  This function doesn't check for PRED's type.  */
+   function.  This function assumes PRED is either a string or a
+   function.  */
 static bool
 treesit_traverse_match_predicate (TSNode node, Lisp_Object pred,
 				  Lisp_Object parser)
@@ -2594,19 +2644,18 @@ treesit_traverse_match_predicate (TSNode node, Lisp_Object pred,
    return true.  If no node satisfies PRED, return FALSE.  PARSER is
    the parser of ROOT.
 
-   LIMIT is the number of levels we descend in the tree.  If NO_LIMIT
-   is true, LIMIT is ignored.  FORWARD controls the direction in which
-   we traverse the tree, true means forward, false backward.  If NAMED
-   is true, only traverse named nodes, if false, all nodes.  If
-   SKIP_ROOT is true, don't match ROOT.  */
+   LIMIT is the number of levels we descend in the tree.  FORWARD
+   controls the direction in which we traverse the tree, true means
+   forward, false backward.  If NAMED is true, only traverse named
+   nodes, if false, all nodes.  If SKIP_ROOT is true, don't match
+   ROOT.  */
 static bool
 treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
-		    bool named, bool forward, ptrdiff_t limit, bool no_limit,
+		    bool named, bool forward, ptrdiff_t limit,
 		    bool skip_root)
 {
   /* TSTreeCursor doesn't allow us to move backward, so we can't use
-     it.  We could use limit == -1 to indicate no_limit == true, but
-     separating them is safer.  */
+     it.  */
   TSNode node = *root;
 
   if (!skip_root && treesit_traverse_match_predicate (node, pred, parser))
@@ -2615,7 +2664,7 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
       return true;
     }
 
-  if (!no_limit && limit <= 0)
+  if (limit <= 0)
     return false;
   else
     {
@@ -2631,7 +2680,7 @@ treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
 
 	  if (!ts_node_is_null (child)
 	      && treesit_search_dfs (&child, pred, parser, named,
-				     forward, limit - 1, no_limit, false))
+				     forward, limit - 1, false))
 	    {
 	      *root = child;
 	      return true;
@@ -2707,7 +2756,8 @@ node's type, or a function that takes a node and returns nil/non-nil.
 
 By default, only traverse named nodes, but if ALL is non-nil, traverse
 all nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
-non-nil, only traverse nodes up to that number of levels down in the tree.
+non-nil, only traverse nodes up to that number of levels down in the
+tree.  If LIMIT is nil, default to 1000.
 
 Return the first matched node, or nil if none matches.  */)
   (Lisp_Object node, Lisp_Object predicate, Lisp_Object backward,
@@ -2719,11 +2769,10 @@ Return the first matched node, or nil if none matches.  */)
   CHECK_SYMBOL (all);
   CHECK_SYMBOL (backward);
 
-  ptrdiff_t the_limit = 0;
-  bool no_limit = false;
-  if (NILP (limit))
-    no_limit = true;
-  else
+  /* We use a default limit to 1000.  See bug#59426 for the
+     discussion.  */
+  ptrdiff_t the_limit = 1000;
+  if (!NILP (limit))
     {
       CHECK_FIXNUM (limit);
       the_limit = XFIXNUM (limit);
@@ -2734,7 +2783,7 @@ Return the first matched node, or nil if none matches.  */)
   TSNode treesit_node = XTS_NODE (node)->node;
   Lisp_Object parser = XTS_NODE (node)->parser;
   if (treesit_search_dfs (&treesit_node, predicate, parser, NILP (all),
-			  NILP (backward), the_limit, no_limit, false))
+			  NILP (backward), the_limit, false))
     return make_treesit_node (parser, treesit_node);
   else
     return Qnil;
@@ -2797,7 +2846,7 @@ always traverse leaf nodes first, then upwards.  */)
 static void
 treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
 			   Lisp_Object pred, Lisp_Object process_fn,
-			   ptrdiff_t limit, bool no_limit, Lisp_Object parser)
+			   ptrdiff_t limit, Lisp_Object parser)
 {
 
   TSNode node = ts_tree_cursor_current_node (cursor);
@@ -2816,8 +2865,7 @@ treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
       parent = this;
     }
   /* Go through each child.  */
-  if ((no_limit || limit > 0)
-      && ts_tree_cursor_goto_first_child (cursor))
+  if (limit > 0 && ts_tree_cursor_goto_first_child (cursor))
     {
       do
 	{
@@ -2825,7 +2873,7 @@ treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
 	     Then C compilers should be smart enough not to copy NODE
 	     to stack.  */
 	  treesit_build_sparse_tree (cursor, parent, pred, process_fn,
-				     limit - 1, no_limit, parser);
+				     limit - 1, parser);
 	}
       while (ts_tree_cursor_goto_next_sibling (cursor));
       /* Don't forget to come back to this node.  */
@@ -2866,7 +2914,8 @@ If PROCESS-FN is non-nil, it should be a function of one argument.  In
 that case, instead of returning the matched nodes, pass each node to
 PROCESS-FN, and use its return value instead.
 
-If non-nil, LIMIT is the number of levels to go down the tree from ROOT.
+If non-nil, LIMIT is the number of levels to go down the tree from
+ROOT.  If LIMIT is nil or omitted, it defaults to 1000.
 
 Each node in the returned tree looks like (NODE . (CHILD ...)).  The
 root of this tree might be nil, if ROOT doesn't match PREDICATE.
@@ -2885,11 +2934,11 @@ a regexp.  */)
 
   if (!NILP (process_fn))
     CHECK_TYPE (FUNCTIONP (process_fn), Qfunctionp, process_fn);
-  ptrdiff_t the_limit = 0;
-  bool no_limit = false;
-  if (NILP (limit))
-    no_limit = true;
-  else
+
+  /* We use a default limit to 1000.  See bug#59426 for the
+     discussion.  */
+  ptrdiff_t the_limit = 1000;
+  if (!NILP (limit))
     {
       CHECK_FIXNUM (limit);
       the_limit = XFIXNUM (limit);
@@ -2901,7 +2950,7 @@ a regexp.  */)
   Lisp_Object parser = XTS_NODE (root)->parser;
   Lisp_Object parent = Fcons (Qnil, Qnil);
   treesit_build_sparse_tree (&cursor, parent, predicate, process_fn,
-			     the_limit, no_limit, parser);
+			     the_limit, parser);
   Fsetcdr (parent, Fnreverse (Fcdr (parent)));
   if (NILP (Fcdr (parent)))
     return Qnil;

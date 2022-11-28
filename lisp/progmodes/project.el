@@ -175,8 +175,14 @@ function; the only practical limitation is to use values that
 `cl-defmethod' can dispatch on, like a cons cell, or a list, or a
 CL struct.")
 
-(defvar project-current-inhibit-prompt nil
-  "Non-nil to skip prompting the user in `project-current'.")
+(define-obsolete-variable-alias
+  'project-current-inhibit-prompt
+  'project-current-directory-override
+  "29.1")
+
+(defvar project-current-directory-override nil
+  "Value to use instead of `default-directory' when detecting the project.
+When it is non-nil, `project-current' will always skip prompting too.")
 
 ;;;###autoload
 (defun project-current (&optional maybe-prompt directory)
@@ -195,11 +201,12 @@ ignored (per `project-ignores').
 
 See the doc string of `project-find-functions' for the general form
 of the project instance object."
-  (unless directory (setq directory default-directory))
+  (unless directory (setq directory (or project-current-directory-override
+                                        default-directory)))
   (let ((pr (project--find-in-directory directory)))
     (cond
      (pr)
-     ((unless project-current-inhibit-prompt
+     ((unless project-current-directory-override
         maybe-prompt)
       (setq directory (project-prompt-project-dir)
             pr (project--find-in-directory directory))))
@@ -250,6 +257,11 @@ still related to it.  If the project deals with source code then,
 depending on the languages used, this list should include the
 headers search path, load path, class path, and so on."
   nil)
+
+(cl-defgeneric project-name (project)
+  "A human-readable name for the project.
+Nominally unique, but not enforced."
+  (file-name-base (directory-file-name (project-root project))))
 
 (cl-defgeneric project-ignores (_project _dir)
   "Return the list of glob patterns to ignore inside DIR.
@@ -390,6 +402,15 @@ you might have to restart Emacs to see the effect."
   :version "29.1"
   :safe #'booleanp)
 
+(defcustom project-vc-name nil
+  "When non-nil, the name of the current VC project.
+
+The best way to change the value a VC project reports as its
+name, is by setting this in .dir-locals.el."
+  :type 'string
+  :version "29.1"
+  :safe #'stringp)
+
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
 ;; the "external roots" of language A from buffers of language B, which
@@ -439,7 +460,7 @@ backend implementation of `project-external-roots'.")
                         (if (and
                              ;; FIXME: Invalidate the cache when the value
                              ;; of this variable changes.
-                             (project--vc-merge-submodules-p root)
+                             project-vc-merge-submodules
                              (project--submodule-p root))
                             (let* ((parent (file-name-directory
                                             (directory-file-name root))))
@@ -491,7 +512,7 @@ backend implementation of `project-external-roots'.")
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (mapcan
    (lambda (dir)
-     (let ((ignores (project--value-in-dir 'project-vc-ignores dir))
+     (let ((ignores project-vc-ignores)
            backend)
        (if (and (file-equal-p dir (nth 2 project))
                 (setq backend (cadr project))
@@ -555,7 +576,7 @@ backend implementation of `project-external-roots'.")
               (split-string
                (apply #'vc-git--run-command-string nil "ls-files" args)
                "\0" t)))
-       (when (project--vc-merge-submodules-p default-directory)
+       (when project-vc-merge-submodules
          ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
          (let* ((submodules (project--git-submodules))
                 (sub-files
@@ -588,11 +609,6 @@ backend implementation of `project-external-roots'.")
          (mapcar
           (lambda (s) (concat default-directory s))
           (split-string (buffer-string) "\0" t)))))))
-
-(defun project--vc-merge-submodules-p (dir)
-  (project--value-in-dir
-   'project-vc-merge-submodules
-   dir))
 
 (defun project--git-submodules ()
   ;; 'git submodule foreach' is much slower.
@@ -634,7 +650,7 @@ backend implementation of `project-external-roots'.")
          (condition-case nil
              (vc-call-backend backend 'ignore-completion-table root)
            (vc-not-supported () nil)))))
-     (project--value-in-dir 'project-vc-ignores root)
+     project-vc-ignores
      (mapcar
       (lambda (dir)
         (concat dir "/"))
@@ -665,16 +681,9 @@ DIRS must contain directory names."
   ;; Sidestep the issue of expanded/abbreviated file names here.
   (cl-set-difference files dirs :test #'file-in-directory-p))
 
-(defun project--value-in-dir (var dir)
-  (with-temp-buffer
-    (setq default-directory dir)
-    (let ((enable-local-variables :all))
-      (hack-dir-local-variables-non-file-buffer))
-    (symbol-value var)))
-
 (cl-defmethod project-buffers ((project (head vc)))
   (let* ((root (expand-file-name (file-name-as-directory (project-root project))))
-         (modules (unless (or (project--vc-merge-submodules-p root)
+         (modules (unless (or project-vc-merge-submodules
                               (project--submodule-p root))
                     (mapcar
                      (lambda (m) (format "%s%s/" root m))
@@ -688,6 +697,10 @@ DIRS must contain directory names."
                                   modules)))
         (push buf bufs)))
     (nreverse bufs)))
+
+(cl-defmethod project-name ((_project (head vc)))
+  (or project-vc-name
+      (cl-call-next-method)))
 
 
 ;;; Project commands
@@ -934,11 +947,15 @@ by the user at will."
          (_ (when included-cpd
               (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
-         (res (project--completing-read-strict prompt
-                                               new-collection
-                                               predicate
-                                               hist mb-default)))
-    (concat common-parent-directory res)))
+         (relname (let ((history-add-new-input nil))
+                    (project--completing-read-strict prompt
+                                                     new-collection
+                                                     predicate
+                                                     hist mb-default)))
+         (absname (expand-file-name relname common-parent-directory)))
+    (when (and hist history-add-new-input)
+      (add-to-history hist absname))
+    absname))
 
 (defun project--read-file-absolute (prompt
                                     all-files &optional predicate
@@ -1680,10 +1697,8 @@ to directory DIR."
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command))))
-    (with-temp-buffer
-      (let ((default-directory dir)
-            (project-current-inhibit-prompt t))
-        (call-interactively command)))))
+    (let ((project-current-directory-override dir))
+      (call-interactively command))))
 
 (provide 'project)
 ;;; project.el ends here

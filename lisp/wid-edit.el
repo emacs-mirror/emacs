@@ -3816,7 +3816,7 @@ thus allowing recursive data structures to be described.
 The :type parameter takes the same arguments as the defcustom
 parameter with the same name.
 
-Most composite widgets, i.e. widgets containing other widgets, does
+Most composite widgets, i.e. widgets containing other widgets, do
 not allow recursion.  That is, when you define a new widget type, none
 of the inferior widgets may be of the same type you are currently
 defining.

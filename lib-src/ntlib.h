@@ -33,7 +33,6 @@ unsigned sleep (unsigned seconds);
 char *getwd (char *dir);
 int getppid (void);
 char * getlogin (void);
-char * cuserid (char * s);
 unsigned getegid (void);
 unsigned getgid (void);
 int setuid (unsigned uid);

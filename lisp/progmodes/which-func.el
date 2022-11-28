@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
-;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
-;;           (doesn't seem to be responsive any more)
+;; Author: Alex Rezinsky <alexr@msil.sps.mot.com>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mode-line, imenu, tools
 
 ;; This file is part of GNU Emacs.
@@ -27,16 +27,6 @@
 ;; located in mode line.  It assumes that you work with the imenu
 ;; package and `imenu--index-alist' is up to date.
 
-;; KNOWN BUGS
-;; ----------
-;; Really this package shows not "function where the current point is
-;; located now", but "nearest function which defined above the current
-;; point".  So if your current point is located after the end of
-;; function FOO but before the beginning of function BAR, FOO will be
-;; displayed in the mode line.
-;; - If two windows display the same buffer, both windows
-;;   show the same `which-func' information.
-
 ;; TODO LIST
 ;; ---------
 ;;     1. Dependence on imenu package should be removed.  Separate
@@ -50,8 +40,8 @@
 ;; THANKS TO
 ;; ---------
 ;; Per Abrahamsen   <abraham@iesd.auc.dk>
-;;     Some ideas (inserting  in mode-line,  using of post-command  hook
-;;     and toggling this  mode) have  been   borrowed from  his  package
+;;     Some ideas (inserting in mode-line, using of post-command hook
+;;     and toggling this mode) have been borrowed from his package
 ;;     column.el
 ;; Peter Eisenhauer <pipe@fzi.de>
 ;;     Bug fixing in case nested indexes.

@@ -89,8 +89,8 @@
   :group 'gnus-article)
 
 (defgroup gnus-article-emphasis nil
-  "Fontisizing articles."
-  :link '(custom-manual "(gnus)Article Fontisizing")
+  "Fontifying articles."
+  :link '(custom-manual "(gnus)Article Fontifying")
   :group 'gnus-article)
 
 (defgroup gnus-article-saving nil
@@ -2008,9 +2008,9 @@ always hide."
 		    (gnus-article-hide-header "reply-to")))))
 	     ((eq elem 'date)
 	      (let ((date (with-current-buffer gnus-original-article-buffer
-			    ;; If date in `gnus-article-buffer' is localized
-			    ;; (`gnus-treat-date-user-defined'),
-			    ;; `days-between' might fail.
+                            ;; If date in `gnus-article-buffer' is localized
+                            ;; (`gnus-article-date-headers'),
+                            ;; `days-between' might fail.
 			    (message-fetch-field "date"))))
 		(when (and date
 			   (< (days-between (current-time-string) date)

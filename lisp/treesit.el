@@ -95,8 +95,19 @@ indent, imenu, etc."
   :group 'tools
   :version "29.1")
 
-(defcustom treesit-max-buffer-size (* 4 1024 1024)
-  "Maximum buffer size for enabling tree-sitter parsing (in bytes)."
+(defcustom treesit-max-buffer-size
+  (let ((mb (* 1024 1024)))
+    ;; 40MB for 64-bit systems, 15 for 32-bit.
+    (if (or (< most-positive-fixnum (* 2.0 1024 mb))
+            ;; 32-bit system with wide ints.
+            (string-match-p "--with-wide-int" system-configuration-options))
+        (* 15 mb)
+      (* 40 mb)))
+  "Maximum buffer size (in bytes) for enabling tree-sitter parsing.
+
+A typical tree-sitter parser needs 10 times as much memory as the
+buffer it parses.  Also, the tree-sitter library has a hard limit
+of max unsigned 32-bit value for byte offsets into buffer text."
   :type 'integer
   :version "29.1")
 
@@ -449,6 +460,15 @@ Return the merged list of ranges."
         (push range result)))
     (nreverse result)))
 
+(defun treesit--clip-ranges (ranges start end)
+  "Clip RANGES in between START and END.
+RANGES is a list of ranges of the form (BEG . END).  Ranges
+outside of the region between START and END are thrown away, and
+those inside are kept."
+  (cl-loop for range in ranges
+           if (<= start (car range) (cdr range) end)
+           collect range))
+
 (defun treesit-update-ranges (&optional beg end)
   "Update the ranges for each language in the current buffer.
 If BEG and END are non-nil, only update parser ranges in that
@@ -469,8 +489,10 @@ region."
                (old-ranges (treesit-parser-included-ranges parser))
                (new-ranges (treesit-query-range
                             host-lang query beg end))
-               (set-ranges (treesit--merge-ranges
-                            old-ranges new-ranges beg end)))
+               (set-ranges (treesit--clip-ranges
+                            (treesit--merge-ranges
+                             old-ranges new-ranges beg end)
+                            (point-min) (point-max))))
           (dolist (parser (treesit-parser-list))
             (when (eq (treesit-parser-language parser)
                       language)
@@ -498,6 +520,25 @@ omitted, default END to BEG."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
+(defvar-local treesit-font-lock-level 3
+  "Decoration level to be used by tree-sitter fontifications.
+
+Major modes categorize their fontification features into levels,
+from 1 which is the absolute minimum, to 4 that yields the maximum
+fontifications.
+
+Level 1 usually contains only comments and definitions.
+Level 2 usually adds keywords, strings, constants, types, etc.
+Level 3 usually represents a full-blown fontification, including
+assignment, constants, numbers, properties, etc.
+Level 4 adds everything else that can be fontified: delimiters,
+operators, brackets, all functions and variables, etc.
+
+In addition to the decoration level, individual features can be
+turned on/off by calling `treesit-font-lock-recompute-features'.
+Changing the decoration level requires calling
+`treesit-font-lock-recompute-features' to have an effect.")
+
 (defvar-local treesit--font-lock-query-expand-range (cons 0 0)
   "The amount to expand the start and end of the region when fontifying.
 This should be a cons cell (START . END).  When fontifying a
@@ -515,11 +556,10 @@ temporarily fix.")
   "A list of lists of feature symbols.
 
 Use `treesit-font-lock-recompute-features' and
-`font-lock-maximum-decoration' to configure enabled features.
+`treesit-font-lock-level' to configure enabled features.
 
 Each sublist represents a decoration level.
-`font-lock-maximum-decoration' controls which levels are
-activated.
+`treesit-font-lock-level' controls which levels are activated.
 
 Inside each sublist are feature symbols, which correspond to the
 :feature value of a query defined in `treesit-font-lock-rules'.
@@ -553,8 +593,8 @@ For SETTING to be activated for font-lock, ENABLE must be t.  To
 disable this SETTING, set ENABLE to nil.
 
 FEATURE is the \"feature name\" of the query.  Users can control
-which features are enabled with `font-lock-maximum-decoration'
-and `treesit-font-lock-feature-list'.
+which features are enabled with `treesit-font-lock-level' and
+`treesit-font-lock-feature-list'.
 
 OVERRIDE is the override flag for this query.  Its value can be
 t, nil, append, prepend, keep.  See more in
@@ -588,7 +628,7 @@ to QUERY.  For example,
 For each QUERY, a :language keyword and a :feature keyword are
 required.  Each query's :feature is a symbol summarizing what the
 query fontifies.  It is used to allow users to enable/disable
-certain features.  See `treesit-font-lock-kind-list' for more.
+certain features.  See `treesit-font-lock-feature-list' for more.
 Other keywords include:
 
   KEYWORD    VALUE      DESCRIPTION
@@ -689,22 +729,26 @@ name, it is ignored."
   "If non-nil, print debug messages when fontifying.")
 
 (defun treesit-font-lock-recompute-features (&optional add-list remove-list)
-  "Enable/disable font-lock settings according to decoration level.
+  "Enable/disable font-lock features.
 
-First compute the enabled features according to
-`treesit-font-lock-feature-list' and `font-lock-maximum-decoration',
-then, if ADD-LIST or REMOVE-LIST are not omitted, further add and
-remove features accordingly.
+Enable each feature in ADD-LIST, disable each feature in
+REMOVE-LIST.
 
-ADD-LIST and REMOVE-LIST are each a list of feature symbols.  The
+If both ADD-LIST and REMOVE-LIST are omitted, recompute each
+feature according to `treesit-font-lock-feature-list' and
+`treesit-font-lock-level'.  If the value of `treesit-font-lock-level',
+is N, then the features in the first N sublists of
+`treesit-font-lock-feature-list' are enabled, and the rest of
+the features are disabled.
+
+ADD-LIST and REMOVE-LIST are lists of feature symbols.  The
 same feature symbol cannot appear in both lists; the function
-signals the `treesit-font-lock-error' error if so."
+signals the `treesit-font-lock-error' error if that happens."
   (when-let ((intersection (cl-intersection add-list remove-list)))
     (signal 'treesit-font-lock-error
             (list "ADD-LIST and REMOVE-LIST contain the same feature"
                   intersection)))
-  (let* ((level (font-lock-value-in-major-mode
-                 font-lock-maximum-decoration))
+  (let* ((level treesit-font-lock-level)
          (base-features (cl-loop
                          for idx = 0 then (1+ idx)
                          for features in treesit-font-lock-feature-list
@@ -712,13 +756,23 @@ signals the `treesit-font-lock-error' error if so."
                                 (>= level (1+ idx)))
                          append features))
          (features (cl-set-difference (cl-union base-features add-list)
-                                      remove-list)))
+                                      remove-list))
+         ;; If additive non-nil, we are configuring on top of the
+         ;; existing configuration, if nil, we are resetting
+         ;; everything according to `treesit-font-lock-feature-list'.
+         (additive (or add-list remove-list)))
     (cl-loop for idx = 0 then (1+ idx)
              for setting in treesit-font-lock-settings
              for feature = (nth 2 setting)
+             for current-value = (nth 1 setting)
              ;; Set the ENABLE flag for the setting.
              do (setf (nth 1 (nth idx treesit-font-lock-settings))
-                      (if (memq feature features) t nil)))))
+                      (cond
+                       ((not additive)
+                        (if (memq feature features) t nil))
+                       ((memq feature add-list) t)
+                       ((memq feature remove-list) nil)
+                       (t current-value))))))
 
 (defun treesit-fontify-with-override (start end face override)
   "Apply FACE to the region between START and END.
@@ -765,12 +819,14 @@ instead."
 (defun treesit--children-covering-range (node start end)
   "Return a list of children of NODE covering a range.
 The range is between START and END."
-  (let* ((child (treesit-node-first-child-for-pos node start))
-         (result (list child)))
-    (while (and (< (treesit-node-end child) end)
-                (setq child (treesit-node-next-sibling child)))
-      (push child result))
-    (nreverse result)))
+  (if-let* ((child (treesit-node-first-child-for-pos node start))
+            (result (list child)))
+      (progn
+        (while (and child (< (treesit-node-end child) end)
+                    (setq child (treesit-node-next-sibling child)))
+          (push child result))
+        (nreverse result))
+    (list node)))
 
 (defun treesit--children-covering-range-recurse (node start end threshold)
   "Return a list of children of NODE covering a range.
@@ -810,6 +866,32 @@ detail.")
 ;; applied by regexp-based font-lock.  The clipped part will be
 ;; fontified fine when Emacs fontifies the region containing it.
 ;;
+;; 2. If you insert an ending quote into a buffer, jit-lock only wants
+;; to fontify that single quote, and (treesit-node-on start end) will
+;; give you that quote node.  We want to capture the string and apply
+;; string face to it, but querying on the quote node will not give us
+;; the string node.  So we don't use treesit-node-on: using the root
+;; node with a restricted range is very fast anyway (even in large
+;; files of size ~10MB).  Plus, querying the result of
+;; `treesit-node-on' could still miss patterns even if we use some
+;; heuristic to enlarge the node (how much to enlarge? to which
+;; extent?), it's much safer to just use the root node.
+;;
+;; Sometimes the source file has some errors that cause tree-sitter to
+;; parse it into a enormously tall tree (10k levels tall).  In that
+;; case querying the root node is very slow.  So we try to get
+;; top-level nodes and query them.  This ensures that querying is fast
+;; everywhere else, except for the problematic region.
+;;
+;; 3. It is possible to capture a node that's completely outside the
+;; region between START and END: as long as the whole pattern
+;; intersects the region, all the captured nodes in that pattern are
+;; returned.  If the node is outside of that region, (max node-start
+;; start) and friends return bad values, so we filter them out.
+;; However, we don't filter these nodes out if a function will process
+;; the node, because could (and often do) fontify the relatives of the
+;; captured node, not just the node itself.  If we took out those
+;; nodes author of those functions would be very confused.
 (defun treesit-font-lock-fontify-region (start end &optional loudly)
   "Fontify the region between START and END.
 If LOUDLY is non-nil, display some debugging information."
@@ -822,35 +904,18 @@ If LOUDLY is non-nil, display some debugging information."
            (enable (nth 1 setting))
            (override (nth 3 setting))
            (language (treesit-query-language query)))
-      ;; If you insert an ending quote into a buffer, jit-lock only
-      ;; wants to fontify that single quote, and (treesit-node-on
-      ;; start end) will give you that quote node.  We want to capture
-      ;; the string and apply string face to it, but querying on the
-      ;; quote node will not give us the string node.  So we don't use
-      ;; treesit-node-on: using the root node with a restricted range
-      ;; is very fast anyway (even in large files of size ~10MB).
-      ;; Plus, querying the result of `treesit-node-on' could still
-      ;; miss patterns even if we use some heuristic to enlarge the
-      ;; node (how much to enlarge? to which extent?), it's much safer
-      ;; to just use the root node.
-      ;;
-      ;; Sometimes the source file has some errors that cause
-      ;; tree-sitter to parse it into a enormously tall tree (10k
-      ;; levels tall).  In that case querying the root node is very
-      ;; slow.  So we try to get top-level nodes and query them.  This
-      ;; ensures that querying is fast everywhere else, except for the
-      ;; problematic region.
       (when-let ((nodes (list (treesit-buffer-root-node language)))
                  ;; Only activate if ENABLE flag is t.
                  (activate (eq t enable)))
         (ignore activate)
 
         ;; If we run into problematic files, use the "fast mode" to
-        ;; try to recover.
+        ;; try to recover.  See comment #2 above for more explanation.
         (when treesit--font-lock-fast-mode
           (setq nodes (treesit--children-covering-range
                        (car nodes) start end)))
 
+        ;; Query each node.
         (dolist (sub-node nodes)
           (let* ((delta-start (car treesit--font-lock-query-expand-range))
                  (delta-end (cdr treesit--font-lock-query-expand-range))
@@ -859,25 +924,26 @@ If LOUDLY is non-nil, display some debugging information."
                             sub-node query
                             (max (- start delta-start) (point-min))
                             (min (+ end delta-end) (point-max))))
-                 (end-time (current-time))
-                 (inhibit-point-motion-hooks t))
+                 (end-time (current-time)))
             ;; If for any query the query time is strangely long,
             ;; switch to fast mode (see comments above).
             (when (> (time-to-seconds (time-subtract end-time start-time))
                      0.01)
               (setq-local treesit--font-lock-fast-mode t))
+
+            ;; For each captured node, fontify that node.
             (with-silent-modifications
               (dolist (capture captures)
                 (let* ((face (car capture))
                        (node (cdr capture))
                        (node-start (treesit-node-start node))
                        (node-end (treesit-node-end node)))
-                  ;; Turns out it is possible to capture a node that's
-                  ;; completely outside the region between START and
-                  ;; END.  If the node is outside of that region, (max
-                  ;; node-start start) and friends return bad values.
-                  (when (and (< start node-end)
-                             (< node-start end))
+                  ;; If node is not in the region, take them out.  See
+                  ;; comment #3 above for more detail.
+                  (if (and (facep face)
+                           (or (>= start node-end) (>= node-start end)))
+                      (when (or loudly treesit--font-lock-verbose)
+                        (message "Captured node %s(%s-%s) but it is outside of fontifing region" node node-start node-end))
                     (cond
                      ((facep face)
                       (treesit-fontify-with-override
@@ -906,16 +972,6 @@ parser notifying of the change."
       (put-text-property (car range) (cdr range) 'fontified nil))))
 
 ;;; Indent
-
-;; `comment-start' and `comment-end' assume there is only one type of
-;; comment, and that the comment spans only one line.  So they are not
-;; sufficient for our purpose.
-
-(defvar-local treesit-comment-start nil
-  "Regular expression matching an opening comment token.")
-
-(defvar-local treesit-comment-end nil
-  "Regular expression matching a closing comment token.")
 
 (define-error 'treesit-indent-error
               "Generic tree-sitter indentation error"
@@ -1002,8 +1058,10 @@ See `treesit-simple-indent-presets'.")
                           (lambda (node &rest _)
                             (string-match-p
                              name (or (treesit-node-field-name node) "")))))
-        (cons 'comment-end (lambda (&rest _)
-                             (looking-at-p treesit-comment-end)))
+        (cons 'comment-end (lambda (_node _parent bol &rest _)
+                             (save-excursion
+                               (goto-char bol)
+                               (looking-at-p comment-end-skip))))
         ;; TODO: Document.
         (cons 'catch-all (lambda (&rest _) t))
 
@@ -1029,14 +1087,14 @@ See `treesit-simple-indent-presets'.")
               (lambda (_n parent &rest _)
                 (save-excursion
                   (goto-char (treesit-node-start parent))
-                  (re-search-forward treesit-comment-start)
+                  (re-search-forward comment-start-skip)
+                  (skip-syntax-backward "-")
                   (point))))
         (cons 'comment-start-skip
               (lambda (_n parent &rest _)
                 (save-excursion
                   (goto-char (treesit-node-start parent))
-                  (re-search-forward treesit-comment-start)
-                  (skip-syntax-forward "-")
+                  (re-search-forward comment-start-skip)
                   (point))))
         ;; TODO: Document.
         (cons 'grand-parent
@@ -1452,7 +1510,8 @@ beginning rather than the end of a node.
 
 This function guarantees that the matched node it returns makes
 progress in terms of buffer position: the start/end position of
-the returned node is always greater than that of NODE.
+the returned node is always STRICTLY greater/less than that of
+NODE.
 
 BACKWARD and ALL are the same as in `treesit-search-forward'."
   (when-let* ((start-pos (if start
@@ -1494,6 +1553,38 @@ For example, \"(function|class)_definition\".
 
 This is used by `treesit-beginning-of-defun' and friends.")
 
+(defvar-local treesit-defun-prefer-top-level nil
+  "When non-nil, `treesit-beginning-of-defun' prefers top-level defun.
+
+In some languages, a defun (function, class, struct) could be
+nested in another one.  Normally `treesit-beginning-of-defun'
+just finds the first defun it encounter.  If this variable's
+value is t, `treesit-beginning-of-defun' tries to find the
+top-level defun, and ignores nested ones.
+
+This variable can also be a list of tree-sitter node type
+regexps.  Then, when `treesit-beginning-of-defun' finds a defun
+node and that node's type matches one in the list,
+`treesit-beginning-of-defun' finds the top-level node matching
+that particular regexp (as opposed to any node matched by
+`treesit-defun-type-regexp').")
+
+(defun treesit--defun-maybe-top-level (node)
+  "Maybe return the top-level equivalent of NODE.
+For the detailed semantic see `treesit-defun-prefer-top-level'."
+  (pcase treesit-defun-prefer-top-level
+    ('nil node)
+    ('t (or (treesit-node-top-level
+             node treesit-defun-type-regexp)
+            node))
+    ((pred consp)
+     (cl-loop
+      for re in treesit-defun-prefer-top-level
+      if (string-match-p re (treesit-node-type node))
+      return (or (treesit-node-top-level node re)
+                 node)
+      finally return node))))
+
 (defun treesit-beginning-of-defun (&optional arg)
   "Tree-sitter `beginning-of-defun' function.
 ARG is the same as in `beginning-of-defun'."
@@ -1504,17 +1595,13 @@ ARG is the same as in `beginning-of-defun'."
         (while (and (> arg 0)
                     (setq node (treesit-search-forward-goto
                                 node treesit-defun-type-regexp t t)))
-          (setq node (or (treesit-node-top-level
-                          node treesit-defun-type-regexp)
-                         node))
+          (setq node (treesit--defun-maybe-top-level node))
           (setq arg (1- arg)))
       ;; Go forward.
       (while (and (< arg 0)
                   (setq node (treesit-search-forward-goto
                               node treesit-defun-type-regexp)))
-        (setq node (or (treesit-node-top-level
-                        node treesit-defun-type-regexp)
-                       node))
+        (setq node (treesit--defun-maybe-top-level node))
         (setq arg (1+ arg))))
     (when node
       (goto-char (treesit-node-start node))
@@ -1524,20 +1611,10 @@ ARG is the same as in `beginning-of-defun'."
   "Tree-sitter `end-of-defun' function."
   ;; Why not simply get the largest node at point: when point is at
   ;; (point-min), that gives us the root node.
-  (let* ((node (treesit-node-at (point)))
-         (top (or (treesit-node-top-level
-                   node
-                   treesit-defun-type-regexp)
-                  node)))
+  (let* ((node (treesit-search-forward
+                (treesit-node-at (point)) treesit-defun-type-regexp t t))
+         (top (treesit--defun-maybe-top-level node)))
     (goto-char (treesit-node-end top))))
-
-;;; Imenu
-
-(defvar-local treesit-imenu-function nil
-  "Tree-sitter version of `imenu-create-index-function'.
-
-Set this variable to a function and `treesit-mode' will bind it
-to `imenu-create-index-function'.")
 
 ;;; Activating tree-sitter
 
@@ -1561,7 +1638,8 @@ instead of emitting a warning."
       (when (not (treesit-available-p))
         (setq msg "tree-sitter library is not compiled with Emacs")
         (throw 'term nil))
-      (when (> (buffer-size) treesit-max-buffer-size)
+      (when (> (position-bytes (max (point-min) (1- (point-max))))
+               treesit-max-buffer-size)
         (setq msg "buffer larger than `treesit-max-buffer-size'")
         (throw 'term nil))
       (dolist (lang language-list)
@@ -1760,10 +1838,11 @@ to the offending pattern and highlight the pattern."
 
 (defun treesit--explorer--nodes-to-highlight (language)
   "Return nodes for LANGUAGE covered in region.
-This function tries to return the largest node possible.  So it
-will return a single large node rather than a bunch of small
-nodes.  If it end up returning multiple small nodes, it only
-returns the first and last node, and omits the ones in between."
+This function tries to return the largest node possible.  If the
+region covers exactly one node, that node is returned (in a
+list).  If the region covers more than one node, two nodes are
+returned: the very first one in the region and the very last one
+in the region."
   (let* ((beg (region-beginning))
          (end (region-end))
          (node (treesit-node-on beg end language))
@@ -1882,13 +1961,10 @@ Return the start of the syntax tree text corresponding to NODE."
 
 (defun treesit--explorer-draw-node (node)
   "Draw the syntax tree of NODE.
-If NODE and NODE-HIGHLIGHT are the same node, highlight it.
 
-When this function is called, point should be at an empty line,
-when appropriate indent in front of point.  When this function
-returns, it leaves point at the end of the last line of NODE.
-
-Return the start position of NODE-HIGHLIGHT in the buffer, if any."
+When this function is called, point should be at the position
+where the node should start.  When this function returns, it
+leaves point at the end of the last line of NODE."
   (let* ((type (treesit-node-type node))
          (field-name (treesit-node-field-name node))
          (children (treesit-node-children node))

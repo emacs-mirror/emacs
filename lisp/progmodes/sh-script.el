@@ -1468,8 +1468,83 @@ When the region is active, send the region instead."
 
 (defvar sh-mode--treesit-settings)
 
+(defun sh--guess-shell ()
+  "Guess the shell used in the current buffer.
+Return the name of the shell suitable for `sh-set-shell'."
+  (cond ((save-excursion
+           (goto-char (point-min))
+           (looking-at auto-mode-interpreter-regexp))
+         (match-string 2))
+        ((not buffer-file-name) sh-shell-file)
+        ;; Checks that use `buffer-file-name' follow.
+        ((string-match "\\.m?spec\\'" buffer-file-name) "rpm")
+        ((string-match "[.]sh\\>"     buffer-file-name) "sh")
+        ((string-match "[.]bash\\(rc\\)?\\>"   buffer-file-name) "bash")
+        ((string-match "[.]ksh\\>"    buffer-file-name) "ksh")
+        ((string-match "[.]mkshrc\\>" buffer-file-name) "mksh")
+        ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")
+        ((string-match "[.]zsh\\(rc\\|env\\)?\\>" buffer-file-name) "zsh")
+	((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
+        (t sh-shell-file)))
+
 ;;;###autoload
-(define-derived-mode sh-mode prog-mode "Shell-script"
+(define-derived-mode sh-base-mode prog-mode "Shell-script"
+  "Generic major mode for editing shell scripts.
+
+This is a generic major mode intended to be inherited by concrete
+implementations.  Currently there are two: `sh-mode' and
+`bash-ts-mode'."
+  (make-local-variable 'sh-shell-file)
+  (make-local-variable 'sh-shell)
+
+  (setq-local skeleton-pair-default-alist
+	      sh-skeleton-pair-default-alist)
+
+  (setq-local paragraph-start (concat page-delimiter "\\|$"))
+  (setq-local paragraph-separate (concat paragraph-start "\\|#!/"))
+  (setq-local comment-start "# ")
+  (setq-local comment-start-skip "#+[\t ]*")
+  (setq-local local-abbrev-table sh-mode-abbrev-table)
+  (setq-local comint-dynamic-complete-functions
+	      sh-dynamic-complete-functions)
+  (add-hook 'completion-at-point-functions #'comint-completion-at-point nil t)
+  ;; we can't look if previous line ended with `\'
+  (setq-local comint-prompt-regexp "^[ \t]*")
+  (setq-local imenu-case-fold-search nil)
+  (setq-local syntax-propertize-function #'sh-syntax-propertize-function)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'syntax-propertize-multiline 'append 'local)
+  (setq-local skeleton-pair-alist '((?` _ ?`)))
+  (setq-local skeleton-pair-filter-function #'sh-quoted-p)
+  (setq-local skeleton-further-elements
+	      '((< '(- (min sh-basic-offset (current-column))))))
+  (setq-local skeleton-filter-function #'sh-feature)
+  (setq-local skeleton-newline-indent-rigidly t)
+  (setq-local defun-prompt-regexp
+              (concat
+               "^\\("
+               "\\(function[ \t]\\)?[ \t]*[[:alnum:]_]+[ \t]*([ \t]*)"
+               "\\|"
+               "function[ \t]+[[:alnum:]_]+[ \t]*\\(([ \t]*)\\)?"
+               "\\)[ \t]*"))
+  (setq-local add-log-current-defun-function #'sh-current-defun-name)
+  (add-hook 'completion-at-point-functions
+            #'sh-completion-at-point-function nil t)
+  (setq-local outline-regexp "###")
+  (setq-local escaped-string-quote
+              (lambda (terminator)
+                (if (eq terminator ?')
+                    "'\\'"
+                  "\\")))
+  ;; Parse or insert magic number for exec, and set all variables depending
+  ;; on the shell thus determined.
+  (sh-set-shell (sh--guess-shell) nil nil)
+  (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
+  (add-hook 'hack-local-variables-hook
+            #'sh-after-hack-local-variables nil t))
+
+;;;###autoload
+(define-derived-mode sh-mode sh-base-mode "Shell-script"
   "Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
 as far as commands, arguments, variables, pipes, comments etc. are concerned.
@@ -1520,94 +1595,48 @@ indicate what shell it is use `sh-alias-alist' to translate.
 
 If your shell gives error messages with line numbers, you can use \\[executable-interpret]
 with your script for an edit-interpret-debug cycle."
-  (make-local-variable 'sh-shell-file)
-  (make-local-variable 'sh-shell)
-
-  (setq-local skeleton-pair-default-alist
-	      sh-skeleton-pair-default-alist)
-
-  (setq-local paragraph-start (concat page-delimiter "\\|$"))
-  (setq-local paragraph-separate (concat paragraph-start "\\|#!/"))
-  (setq-local comment-start "# ")
-  (setq-local comment-start-skip "#+[\t ]*")
-  (setq-local local-abbrev-table sh-mode-abbrev-table)
-  (setq-local comint-dynamic-complete-functions
-	      sh-dynamic-complete-functions)
-  (add-hook 'completion-at-point-functions #'comint-completion-at-point nil t)
-  ;; we can't look if previous line ended with `\'
-  (setq-local comint-prompt-regexp "^[ \t]*")
-  (setq-local imenu-case-fold-search nil)
-  (setq-local syntax-propertize-function #'sh-syntax-propertize-function)
-  (add-hook 'syntax-propertize-extend-region-functions
-            #'syntax-propertize-multiline 'append 'local)
-  (setq-local skeleton-pair-alist '((?` _ ?`)))
-  (setq-local skeleton-pair-filter-function #'sh-quoted-p)
-  (setq-local skeleton-further-elements
-	      '((< '(- (min sh-basic-offset (current-column))))))
-  (setq-local skeleton-filter-function #'sh-feature)
-  (setq-local skeleton-newline-indent-rigidly t)
-  (setq-local defun-prompt-regexp
-              (concat
-               "^\\("
-               "\\(function[ \t]\\)?[ \t]*[[:alnum:]_]+[ \t]*([ \t]*)"
-               "\\|"
-               "function[ \t]+[[:alnum:]_]+[ \t]*\\(([ \t]*)\\)?"
-               "\\)[ \t]*"))
-  (setq-local add-log-current-defun-function #'sh-current-defun-name)
-  (add-hook 'completion-at-point-functions
-            #'sh-completion-at-point-function nil t)
-  (setq-local outline-regexp "###")
-  (setq-local escaped-string-quote
-              (lambda (terminator)
-                (if (eq terminator ?')
-                    "'\\'"
-                  "\\")))
-  ;; Parse or insert magic number for exec, and set all variables depending
-  ;; on the shell thus determined.
-  (sh-set-shell
-   (cond ((save-excursion
-            (goto-char (point-min))
-            (looking-at auto-mode-interpreter-regexp))
-          (match-string 2))
-         ((not buffer-file-name) sh-shell-file)
-         ;; Checks that use `buffer-file-name' follow.
-         ((string-match "\\.m?spec\\'" buffer-file-name) "rpm")
-         ((string-match "[.]sh\\>"     buffer-file-name) "sh")
-         ((string-match "[.]bash\\(rc\\)?\\>"   buffer-file-name) "bash")
-         ((string-match "[.]ksh\\>"    buffer-file-name) "ksh")
-         ((string-match "[.]mkshrc\\>" buffer-file-name) "mksh")
-         ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")
-         ((string-match "[.]zsh\\(rc\\|env\\)?\\>" buffer-file-name) "zsh")
-	 ((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
-         (t sh-shell-file))
-   nil nil)
-  (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
-  (add-hook 'hack-local-variables-hook
-    #'sh-after-hack-local-variables nil t)
-
-  (cond
-   ;; Tree-sitter.  If the shell is bash, we can enable tree-sitter.
-   ((treesit-ready-p sh-shell)
-    (setq-local treesit-font-lock-feature-list
-                '((comment function string heredoc)
-                  (variable keyword command declaration-command)
-                  (constant operator builtin-variable)))
-    (setq-local treesit-font-lock-settings
-                sh-mode--treesit-settings)
-    (treesit-major-mode-setup))
-   ;; Elisp.
-   (t
-    (setq font-lock-defaults
-          `((sh-font-lock-keywords
-             sh-font-lock-keywords-1 sh-font-lock-keywords-2)
-            nil nil
-            ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-            (font-lock-syntactic-face-function
-             . ,#'sh-font-lock-syntactic-face-function))))))
+  (setq font-lock-defaults
+        `((sh-font-lock-keywords
+           sh-font-lock-keywords-1 sh-font-lock-keywords-2)
+          nil nil
+          ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
+          (font-lock-syntactic-face-function
+           . ,#'sh-font-lock-syntactic-face-function))))
 
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
 
+;;;###autoload
+(define-derived-mode bash-ts-mode sh-base-mode "Bash"
+  "Major mode for editing Bash shell scripts.
+This mode automatically falls back to `sh-mode' if the buffer is
+not written in Bash or sh."
+  (when (treesit-ready-p 'bash)
+    (setq-local treesit-font-lock-feature-list
+                '(( comment function)
+                  ( command declaration-command keyword string)
+                  ( builtin-variable constant heredoc number variable)
+                  ( bracket delimiter misc-punctuation operator)))
+    (setq-local treesit-font-lock-settings
+                sh-mode--treesit-settings)
+    (treesit-major-mode-setup)))
+
+(advice-add 'bash-ts-mode :around #'sh--redirect-bash-ts-mode
+            ;; Give it lower precedence than normal advice, so other
+            ;; advices take precedence over it.
+            '((depth . 50)))
+
+(defvar sh--redirect-recursing nil)
+(defun sh--redirect-bash-ts-mode (oldfn)
+  "Redirect to `sh-mode' if the current file is not written in Bash or sh.
+OLDFN should be `bash-ts-mode'."
+  (let ((sh--redirect-recursing sh--redirect-recursing))
+    (funcall (if (or delay-mode-hooks sh--redirect-recursing)
+                 oldfn
+               (setq sh--redirect-recursing t)
+               (if (member (file-name-base (sh--guess-shell)) '("bash" "sh"))
+                   oldfn
+                 #'sh-mode)))))
 
 (defun sh-font-lock-keywords (&optional keywords)
   "Function to get simple fontification based on `sh-font-lock-keywords'.
@@ -3210,8 +3239,7 @@ member of `flymake-diagnostic-functions'."
 ;;; Tree-sitter font-lock
 
 (defvar sh-mode--treesit-operators
-  '("|" "|&" "||" "&&" ">" ">>" "<" "<<" "<<-" "<<<" "==" "!=" ";"
-    ";;" ";&" ";;&")
+  '("|" "|&" "||" "&&" ">" ">>" "<" "<<" "<<-" "<<<" "==" "!=" ";&" ";;&")
   "A list of `sh-mode' operators to fontify.")
 
 (defvar sh-mode--treesit-keywords
@@ -3306,7 +3334,7 @@ See `sh-mode--treesit-other-keywords' and
 
    :feature 'operator
    :language 'bash
-   `([ ,@sh-mode--treesit-operators ] @font-lock-builtin-face)
+   `([,@sh-mode--treesit-operators] @font-lock-operator-face)
 
    :feature 'builtin-variable
    :language 'bash
@@ -3316,7 +3344,24 @@ See `sh-mode--treesit-other-keywords' and
                   `(seq bol
                         (or ,@builtin-vars)
                         eol)))
-              @font-lock-builtin-face))))
+              @font-lock-builtin-face)))
+
+   :feature 'number
+   :language 'bash
+   `(((word) @font-lock-number-face
+      (:match "^[0-9]+$" @font-lock-number-face)))
+
+   :feature 'bracket
+   :language 'bash
+   '((["(" ")" "((" "))" "[" "]" "[[" "]]" "{" "}"]) @font-lock-bracket-face)
+
+   :feature 'delimiter
+   :language 'bash
+   '(([";" ";;"]) @font-lock-delimiter-face)
+
+   :feature 'misc-punctuation
+   :language 'bash
+   '((["$"]) @font-lock-misc-punctuation-face))
   "Tree-sitter font-lock settings for `sh-mode'.")
 
 (provide 'sh-script)

@@ -36,6 +36,6 @@
  (0.1 ":joe!~u@awyxgybtkx7uq.irc PRIVMSG #chan :mike: Why, will shall break it; will, and nothing else.")
  (0.1 ":mike!~u@awyxgybtkx7uq.irc PRIVMSG #chan :joe: Yes, a dozen; and as many to the vantage, as would store the world they played for.")
  (0.05 ":joe!~u@awyxgybtkx7uq.irc PRIVMSG #chan :mike: As he regards his aged father's life.")
- (0.05 ":mike!~u@awyxgybtkx7uq.irc PRIVMSG #chan :joe: It is a rupture that you may easily heal; and the cure of it not only saves your brother, but keeps you from dishonour in doing it."))
+ (0.05 ":mike!~u@awyxgybtkx7uq.irc PRIVMSG #chan :joe: It is a rupture that you may easily heal; and the cure of it not only saves your brother, but keeps you from dishonor in doing it."))
 
 ((drop 0 DROP))

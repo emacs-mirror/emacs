@@ -62,9 +62,13 @@
                            :x ("x")
                            :require (:secret))))))
 
+(defun erc-services-tests--wrap-search (s)
+  (lambda (&rest r) (erc--unfun (apply s r))))
+
 ;; Some of the following may be related to bug#23438.
 
 (defun erc-services-tests--auth-source-standard (search)
+  (setq search (erc-services-tests--wrap-search search))
 
   (ert-info ("Session wins")
     (let ((erc-session-server "irc.gnu.org")
@@ -93,6 +97,7 @@
       (should (string= (funcall search :user "#chan") "baz")))))
 
 (defun erc-services-tests--auth-source-announced (search)
+  (setq search (erc-services-tests--wrap-search search))
   (let* ((erc--isupport-params (make-hash-table))
          (erc-server-parameters '(("CHANTYPES" . "&#")))
          (erc--target (erc--target-from-string "&chan")))
@@ -124,6 +129,7 @@
           (should (string= (funcall search :user "#chan") "foo")))))))
 
 (defun erc-services-tests--auth-source-overrides (search)
+  (setq search (erc-services-tests--wrap-search search))
   (let* ((erc-session-server "irc.gnu.org")
          (erc-server-announced-name "my.gnu.org")
          (erc-network 'GNU.chat)
@@ -537,18 +543,20 @@
            (erc-network 'FSF.chat)
            (erc-server-current-nick "tester")
            (erc-networks--id (erc-networks--id-create nil))
-           (erc-session-port 6697))
+           (erc-session-port 6697)
+           (search (erc-services-tests--wrap-search
+                    #'erc-nickserv-get-password)))
 
       (ert-info ("Lookup custom option")
-        (should (string= (erc-nickserv-get-password "alice") "foo")))
+        (should (string= (funcall search "alice") "foo")))
 
       (ert-info ("Auth source")
         (ert-info ("Network")
-          (should (string= (erc-nickserv-get-password "bob") "sesame")))
+          (should (string= (funcall search "bob") "sesame")))
 
         (ert-info ("Network ID")
           (let ((erc-networks--id (erc-networks--id-create 'GNU/chat)))
-            (should (string= (erc-nickserv-get-password "bob") "spam")))))
+            (should (string= (funcall search "bob") "spam")))))
 
       (ert-info ("Read input")
         (should (string=

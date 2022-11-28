@@ -3243,7 +3243,7 @@ if test "${with_tree_sitter}" != "no"; then
       AC_CHECK_FUNCS([ts_set_allocator])
       CFLAGS=$OLD_CFLAGS
       LIBS=$OLD_LIBS
-      if test "$ac_cv_func_ts_set_allocator" == yes; then
+      if test "$ac_cv_func_ts_set_allocator" = yes; then
         AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
       else
         AC_MSG_ERROR([Tree-sitter library exists but its version is too old]);

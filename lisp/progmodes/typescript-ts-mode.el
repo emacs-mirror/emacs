@@ -1,4 +1,4 @@
-;;; ts-mode.el --- tree sitter support for TypeScript  -*- lexical-binding: t; -*-
+;;; typescript-ts-mode.el --- tree sitter support for TypeScript  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
@@ -25,17 +25,19 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'rx)
 (require 'js)
+(eval-when-compile (require 'rx))
 
-(defcustom ts-mode-indent-offset 2
-  "Number of spaces for each indentation step in `ts-mode'."
+(declare-function treesit-parser-create "treesit.c")
+
+(defcustom typescript-ts-mode-indent-offset 2
+  "Number of spaces for each indentation step in `typescript-ts-mode'."
   :version "29.1"
   :type 'integer
   :safe 'integerp
   :group 'typescript)
 
-(defvar ts-mode--syntax-table
+(defvar typescript-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     ;; Taken from the cc-langs version
     (modify-syntax-entry ?_  "_"     table)
@@ -52,9 +54,9 @@
     (modify-syntax-entry ?` "\""     table)
     (modify-syntax-entry ?\240 "."   table)
     table)
-  "Syntax table for `ts-mode'.")
+  "Syntax table for `typescript-ts-mode'.")
 
-(defvar ts-mode--indent-rules
+(defvar typescript-ts-mode--indent-rules
   `((tsx
      ((parent-is "program") parent-bol 0)
      ((node-is "}") parent-bol 0)
@@ -63,33 +65,33 @@
      ((node-is ">") parent-bol 0)
      ((and (parent-is "comment") comment-end) comment-start -1)
      ((parent-is "comment") comment-start-skip 0)
-     ((parent-is "ternary_expression") parent-bol ts-mode-indent-offset)
-     ((parent-is "member_expression") parent-bol ts-mode-indent-offset)
-     ((parent-is "named_imports") parent-bol ts-mode-indent-offset)
-     ((parent-is "statement_block") parent-bol ts-mode-indent-offset)
-     ((parent-is "type_arguments") parent-bol ts-mode-indent-offset)
-     ((parent-is "variable_declarator") parent-bol ts-mode-indent-offset)
-     ((parent-is "arguments") parent-bol ts-mode-indent-offset)
-     ((parent-is "array") parent-bol ts-mode-indent-offset)
-     ((parent-is "formal_parameters") parent-bol ts-mode-indent-offset)
-     ((parent-is "template_substitution") parent-bol ts-mode-indent-offset)
-     ((parent-is "object_pattern") parent-bol ts-mode-indent-offset)
-     ((parent-is "object") parent-bol ts-mode-indent-offset)
-     ((parent-is "object_type") parent-bol ts-mode-indent-offset)
-     ((parent-is "enum_body") parent-bol ts-mode-indent-offset)
-     ((parent-is "arrow_function") parent-bol ts-mode-indent-offset)
-     ((parent-is "parenthesized_expression") parent-bol ts-mode-indent-offset)
+     ((parent-is "ternary_expression") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "statement_block") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "variable_declarator") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "array") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "formal_parameters") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "template_substitution") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "object_pattern") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "object") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "object_type") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "enum_body") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "arrow_function") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "parenthesized_expression") parent-bol typescript-ts-mode-indent-offset)
 
      ;; TSX
-     ((parent-is "jsx_opening_element") parent ts-mode-indent-offset)
+     ((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
      ((node-is "jsx_closing_element") parent 0)
-     ((parent-is "jsx_element") parent ts-mode-indent-offset)
+     ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
      ((node-is "/") parent 0)
-     ((parent-is "jsx_self_closing_element") parent ts-mode-indent-offset)
+     ((parent-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)
      (no-node parent-bol 0)))
   "Tree-sitter indent rules.")
 
-(defvar ts-mode--keywords
+(defvar typescript-ts-mode--keywords
   '("!" "abstract" "as" "async" "await" "break"
     "case" "catch" "class" "const" "continue" "debugger"
     "declare" "default" "delete" "do" "else" "enum"
@@ -101,7 +103,14 @@
     "while" "with" "yield")
   "TypeScript keywords for tree-sitter font-locking.")
 
-(defvar ts-mode--font-lock-settings
+(defvar typescript-ts-mode--operators
+  '("=" "+=" "-=" "*=" "/=" "%=" "**=" "<<=" ">>=" ">>>=" "&=" "^="
+    "|=" "&&=" "||=" "??=" "==" "!=" "===" "!==" ">" ">=" "<" "<=" "+"
+    "-" "*" "/" "%" "++" "--" "**" "&" "|" "^" "~" "<<" ">>" ">>>"
+    "&&" "||" "!" "?.")
+  "TypeScript operators for tree-sitter font-locking.")
+
+(defvar typescript-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'tsx
    :override t
@@ -114,13 +123,12 @@
    `(((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
-     [(true) (false) (null)] @font-lock-constant-face
-     (number) @font-lock-constant-face)
+     [(true) (false) (null)] @font-lock-constant-face)
 
    :language 'tsx
    :override t
    :feature 'keyword
-   `([,@ts-mode--keywords] @font-lock-keyword-face
+   `([,@typescript-ts-mode--keywords] @font-lock-keyword-face
      [(this) (super)] @font-lock-keyword-face)
 
    :language 'tsx
@@ -209,28 +217,9 @@
 
    :language 'tsx
    :override t
-   :feature 'property
-   `((pair key: (property_identifier) @font-lock-variable-name-face)
-
-     (pair value: (identifier) @font-lock-variable-name-face)
-
-     (pair
-      key: (property_identifier) @font-lock-function-name-face
-      value: [(function) (arrow_function)])
-
-     (property_signature
-      name: (property_identifier) @font-lock-variable-name-face)
-
-     ((shorthand_property_identifier) @font-lock-variable-name-face)
-
-     ((shorthand_property_identifier_pattern)
-      @font-lock-variable-name-face))
-
-   :language 'tsx
-   :override t
    :feature 'pattern
    `((pair_pattern
-      key: (property_identifier) @font-lock-variable-name-face)
+      key: (property_identifier) @font-lock-property-face)
 
      (array_pattern (identifier) @font-lock-variable-name-face))
 
@@ -249,41 +238,76 @@
       [(nested_identifier (identifier)) (identifier)]
       @font-lock-function-name-face)
 
-     (jsx_attribute (property_identifier) @font-lock-constant-face)))
+     (jsx_attribute (property_identifier) @font-lock-constant-face))
+
+   :language 'tsx
+   :feature 'number
+   `((number) @font-lock-number-face
+     ((identifier) @font-lock-number-face
+      (:match "^\\(:?NaN\\|Infinity\\)$" @font-lock-number-face)))
+
+   :language 'tsx
+   :feature 'operator
+   `([,@typescript-ts-mode--operators] @font-lock-operator-face
+     (ternary_expression ["?" ":"] @font-lock-operator-face))
+
+   :language 'tsx
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+   :language 'tsx
+   :feature 'delimiter
+   '((["," "." ";" ":"]) @font-lock-delimiter-face)
+
+   :language 'tsx
+   :feature 'escape-sequence
+   :override t
+   '((escape_sequence) @font-lock-escape-face)
+
+   :language 'tsx
+   :override t
+   :feature 'property
+   `(((property_identifier) @font-lock-property-face)
+
+     (pair value: (identifier) @font-lock-variable-name-face)
+
+     ((shorthand_property_identifier) @font-lock-property-face)
+
+     ((shorthand_property_identifier_pattern)
+      @font-lock-property-face)))
   "Tree-sitter font-lock settings.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ts\\'" . ts-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.tsx\\'" . ts-mode))
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . typescript-ts-mode))
 
 ;;;###autoload
-(define-derived-mode ts-mode prog-mode "TypeScript"
+(define-derived-mode typescript-ts-mode prog-mode "TypeScript"
   "Major mode for editing TypeScript."
   :group 'typescript
-  :syntax-table ts-mode--syntax-table
+  :syntax-table typescript-ts-mode--syntax-table
 
-  (cond
-   ;; `ts-mode' requires tree-sitter to work, so we don't check if
-   ;; user enables tree-sitter for it.
-   ((treesit-ready-p 'tsx)
-    ;; Tree-sitter.
+  (when (treesit-ready-p 'tsx)
     (treesit-parser-create 'tsx)
 
     ;; Comments.
     (setq-local comment-start "// ")
-    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
     (setq-local comment-end "")
-    (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
-    (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
+    (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                       (* (syntax whitespace))))
+    (setq-local comment-end-skip
+                (rx (* (syntax whitespace))
+                    (group (or (syntax comment-end)
+                               (seq (+ "*") "/")))))
 
     ;; Electric
     (setq-local electric-indent-chars
                 (append "{}():;," electric-indent-chars))
 
     ;; Indent.
-    (setq-local treesit-simple-indent-rules ts-mode--indent-rules)
+    (setq-local treesit-simple-indent-rules typescript-ts-mode--indent-rules)
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
@@ -293,24 +317,21 @@
                         "lexical_declaration")))
 
     ;; Font-lock.
-    (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
+    (setq-local treesit-font-lock-settings typescript-ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (string keyword identifier expression constant)
-                  (property pattern jsx)))
+                '(( comment declaration)
+                  ( keyword string)
+                  ( constant expression identifier jsx number pattern property)
+                  ( bracket delimiter)))
     ;; Imenu.
     (setq-local imenu-create-index-function #'js--treesit-imenu)
 
     ;; Which-func (use imenu).
     (setq-local which-func-functions nil)
 
-    (treesit-major-mode-setup))
+    (treesit-major-mode-setup)))
 
-   ;; Elisp.
-   (t
-    (js-mode)
-    (message "Tree-sitter for TypeScript isn't available, falling back to `js-mode'"))))
 
-(provide 'ts-mode)
+(provide 'typescript-ts-mode)
 
-;;; ts-mode.el ends here
+;;; typescript-ts-mode.el ends here

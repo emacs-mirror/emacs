@@ -16808,8 +16808,7 @@ value is @code{nil}.
 Do @emph{not} use the same maildir both in @code{mail-sources} and as
 an @code{nnmaildir} group.  The results might happen to be useful, but
 that would be by chance, not by design, and the results might be
-different in the future.  If your split rules create new groups,
-remember to supply a @code{create-directory} server parameter.
+different in the future.
 @end table
 
 @node nnmaildir Group Parameters
@@ -20565,7 +20564,7 @@ returned value is required to be an integer.
 (score-fn (custom-scoring))
 @end example
 
-The user-defined function is called with an associative list with the
+The user-defined function is called with an association list with the
 keys @code{number subject from date id refs chars lines xref extra}
 followed by the article's score before the function is run.
 
@@ -26539,7 +26538,7 @@ keyboard shortcuts like @kbd{M M i} for Important, using the first
 letter.
 @end defvar
 
-@defun gnus-registry-mark-article
+@defun gnus-registry-set-article-mark
 Call this function to mark an article with a custom registry mark.  It
 will offer the available marks for completion.
 @end defun

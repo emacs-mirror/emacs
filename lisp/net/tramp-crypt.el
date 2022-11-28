@@ -219,6 +219,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (memory-info . ignore)
     (process-attributes . ignore)
     (process-file . ignore)
     (rename-file . tramp-crypt-handle-rename-file)

@@ -390,10 +390,13 @@ ITEM defines an item as in `easy-menu-define'."
     (let ((key (easy-menu-intern name)))
       (cons key
             (and (not remove)
-                 (cons 'menu-item
-                       (cons label
-                             (and name
-                                  (cons command prop)))))))))
+                 (if (and (stringp label)
+                          (seq-every-p (lambda (c) (char-equal c ?-)) label))
+                     menu-bar-separator
+                   (cons 'menu-item
+                         (cons label
+                               (and name
+                                    (cons command prop))))))))))
 
 (defun easy-menu-define-key (menu key item &optional before)
   "Add binding in MENU for KEY => ITEM.  Similar to `define-key-after'.

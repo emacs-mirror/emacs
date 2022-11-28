@@ -108,21 +108,26 @@ scanning for autoloads and will be in the `load-path'."
   (let* ((name (file-relative-name file (file-name-directory outfile)))
          (names '())
          (dir (file-name-directory outfile)))
-    ;; If `name' has directory components, only keep the
-    ;; last few that are really needed.
-    (while name
-      (setq name (directory-file-name name))
-      (push (file-name-nondirectory name) names)
-      (setq name (file-name-directory name)))
-    (while (not name)
-      (cond
-       ((null (cdr names)) (setq name (car names)))
-       ((file-exists-p (expand-file-name "subdirs.el" dir))
-        ;; FIXME: here we only check the existence of subdirs.el,
-        ;; without checking its content.  This makes it generate wrong load
-        ;; names for cases like lisp/term which is not added to load-path.
-        (setq dir (expand-file-name (pop names) dir)))
-       (t (setq name (mapconcat #'identity names "/")))))
+    ;; If `name' lives inside an ancestor directory of OUTFILE, only
+    ;; keep the last few leading directories that are really needed.
+    ;; (It will always live in an ancestor directory of OUTFILE on
+    ;; Posix systems, but on DOS/Windows it could not be, if FILE and
+    ;; OUTFILE are on different drives.)
+    (when (not (file-name-absolute-p name))
+      (while name
+        (setq name (directory-file-name name))
+        (push (file-name-nondirectory name) names)
+        (setq name (file-name-directory name)))
+      (while (not name)
+        (cond
+         ((null (cdr names)) (setq name (car names)))
+         ((file-exists-p (expand-file-name "subdirs.el" dir))
+          ;; FIXME: here we only check the existence of subdirs.el,
+          ;; without checking its content.  This makes it generate
+          ;; wrong load names for cases like lisp/term which is not
+          ;; added to load-path.
+          (setq dir (expand-file-name (pop names) dir)))
+         (t (setq name (mapconcat #'identity names "/"))))))
     (if (string-match "\\.elc?\\(\\.\\|\\'\\)" name)
         (substring name 0 (match-beginning 0))
       name)))

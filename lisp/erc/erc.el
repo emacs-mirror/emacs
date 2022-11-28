@@ -1791,10 +1791,7 @@ buffer rather than a server buffer.")
   "Migrate old names of ERC modules to new ones."
   ;; modify `transforms' to specify what needs to be changed
   ;; each item is in the format '(old . new)
-  (let ((transforms '((pcomplete . completion))))
-    (delete-dups
-     (mapcar (lambda (m) (or (cdr (assoc m transforms)) m))
-             mods))))
+  (delete-dups (mapcar #'erc--normalize-module-symbol mods)))
 
 (defcustom erc-modules '(netsplit fill button match track completion readonly
                                   networks ring autojoin noncommands irccontrols
@@ -1813,9 +1810,16 @@ removed from the list will be disabled."
            (dolist (module erc-modules)
              (unless (member module val)
                (let ((f (intern-soft (format "erc-%s-mode" module))))
-                 (when (and (fboundp f) (boundp f) (symbol-value f))
-                   (message "Disabling `erc-%s'" module)
-                   (funcall f 0))))))
+                 (when (and (fboundp f) (boundp f))
+                   (when (symbol-value f)
+                     (message "Disabling `erc-%s'" module)
+                     (funcall f 0))
+                   (unless (or (custom-variable-p f)
+                               (not (fboundp 'erc-buffer-filter)))
+                     (erc-buffer-filter (lambda ()
+                                          (when (symbol-value f)
+                                            (funcall f 0))
+                                          (kill-local-variable f)))))))))
          (set sym val)
          ;; this test is for the case where erc hasn't been loaded yet
          (when (fboundp 'erc-update-modules)
@@ -1856,6 +1860,7 @@ removed from the list will be disabled."
     (const :tag "readonly: Make displayed lines read-only" readonly)
     (const :tag "replace: Replace text in messages" replace)
     (const :tag "ring: Enable an input history" ring)
+    (const :tag "sasl: Enable SASL authentication" sasl)
     (const :tag "scrolltobottom: Scroll to the bottom of the buffer"
            scrolltobottom)
     (const :tag "services: Identify to Nickserv (IRC Services) automatically"
@@ -1873,27 +1878,23 @@ removed from the list will be disabled."
   :group 'erc)
 
 (defun erc-update-modules ()
-  "Run this to enable erc-foo-mode for all modules in `erc-modules'."
-  (let (req)
-    (dolist (mod erc-modules)
-      (setq req (concat "erc-" (symbol-name mod)))
-      (cond
-       ;; yuck. perhaps we should bring the filenames into sync?
-       ((string= req "erc-capab-identify")
-        (setq req "erc-capab"))
-       ((string= req "erc-completion")
-        (setq req "erc-pcomplete"))
-       ((string= req "erc-pcomplete")
-        (setq mod 'completion))
-       ((string= req "erc-autojoin")
-        (setq req "erc-join")))
-      (condition-case nil
-          (require (intern req))
-        (error nil))
-      (let ((sym (intern-soft (concat "erc-" (symbol-name mod) "-mode"))))
-        (if (fboundp sym)
-            (funcall sym 1)
-          (error "`%s' is not a known ERC module" mod))))))
+  "Enable minor mode for every module in `erc-modules'.
+Except ignore all local modules, which were introduced in ERC 5.5."
+  (erc--update-modules)
+  nil)
+
+(defun erc--update-modules ()
+  (let (local-modes)
+    (dolist (module erc-modules local-modes)
+      (require (or (alist-get module erc--modules-to-features)
+                   (intern (concat "erc-" (symbol-name module))))
+               nil 'noerror) ; some modules don't have a corresponding feature
+      (let ((mode (intern-soft (concat "erc-" (symbol-name module) "-mode"))))
+        (unless (and mode (fboundp mode))
+          (error "`%s' is not a known ERC module" module))
+        (if (custom-variable-p mode)
+            (funcall mode 1)
+          (push mode local-modes))))))
 
 (defun erc-setup-buffer (buffer)
   "Consults `erc-join-buffer' to find out how to display `BUFFER'."
@@ -1924,6 +1925,24 @@ removed from the list will be disabled."
          (display-buffer buffer)
        (switch-to-buffer buffer)))))
 
+(defun erc--merge-local-modes (new-modes old-vars)
+  "Return a cons of two lists, each containing local-module modes.
+In the first, put modes to be enabled in a new ERC buffer by
+calling their associated functions.  In the second, put modes to
+be marked as disabled by setting their associated variables to
+nil."
+  (if old-vars
+      (let ((out (list (reverse new-modes))))
+        (pcase-dolist (`(,k . ,v) old-vars)
+          (when (and (string-prefix-p "erc-" (symbol-name k))
+                     (string-suffix-p "-mode" (symbol-name k)))
+            (if v
+                (cl-pushnew k (car out))
+              (setf (car out) (delq k (car out)))
+              (cl-pushnew k (cdr out)))))
+        (cons (nreverse (car out)) (nreverse (cdr out))))
+    (list new-modes)))
+
 (defun erc-open (&optional server port nick full-name
                            connect passwd tgt-list channel process
                            client-certificate user id)
@@ -1951,18 +1970,25 @@ Returns the buffer for the given server or channel."
   (let* ((target (and channel (erc--target-from-string channel)))
          (buffer (erc-get-buffer-create server port nil target id))
          (old-buffer (current-buffer))
-         old-point
+         (old-vars (and (not connect) (buffer-local-variables)))
+         (old-recon-count erc-server-reconnect-count)
+         (old-point nil)
+         (delayed-modules nil)
          (continued-session (and erc--server-reconnecting
                                  (with-suppressed-warnings
                                      ((obsolete erc-reuse-buffers))
                                    erc-reuse-buffers))))
     (when connect (run-hook-with-args 'erc-before-connect server port nick))
-    (erc-update-modules)
     (set-buffer buffer)
     (setq old-point (point))
-    (let ((old-recon-count erc-server-reconnect-count))
-      (erc-mode)
-      (setq erc-server-reconnect-count old-recon-count))
+    (setq delayed-modules
+          (erc--merge-local-modes (erc--update-modules)
+                                  (or erc--server-reconnecting old-vars)))
+
+    (delay-mode-hooks (erc-mode))
+
+    (setq erc-server-reconnect-count old-recon-count)
+
     (when (setq erc-server-connected (not connect))
       (setq erc-server-announced-name
             (buffer-local-value 'erc-server-announced-name old-buffer)))
@@ -2017,14 +2043,23 @@ Returns the buffer for the given server or channel."
     (setq erc-default-nicks (if (consp erc-nick) erc-nick (list erc-nick)))
     ;; client certificate (only useful if connecting over TLS)
     (setq erc-session-client-certificate client-certificate)
-    (setq erc-networks--id (if connect
-                               (erc-networks--id-create id)
-                             (buffer-local-value 'erc-networks--id
-                                                 old-buffer)))
+    (setq erc-networks--id
+          (if connect
+              (or (and erc--server-reconnecting
+                       (alist-get 'erc-networks--id erc--server-reconnecting))
+                  (and id (erc-networks--id-create id)))
+            (buffer-local-value 'erc-networks--id old-buffer)))
     ;; debug output buffer
     (setq erc-dbuf
           (when erc-log-p
             (get-buffer-create (concat "*ERC-DEBUG: " server "*"))))
+
+    (erc-determine-parameters server port nick full-name user passwd)
+
+    (save-excursion (run-mode-hooks))
+    (dolist (mod (car delayed-modules)) (funcall mod +1))
+    (dolist (var (cdr delayed-modules)) (set var nil))
+
     ;; set up prompt
     (unless continued-session
       (goto-char (point-max))
@@ -2035,8 +2070,6 @@ Returns the buffer for the given server or channel."
       (set-marker erc-insert-marker (point))
       (erc-display-prompt)
       (goto-char (point-max)))
-
-    (erc-determine-parameters server port nick full-name user passwd)
 
     ;; Saving log file on exit
     (run-hook-with-args 'erc-connect-pre-hook buffer)
@@ -2302,6 +2335,23 @@ but you won't see it.
 WARNING: Do not set this variable directly!  Instead, use the
 function `erc-toggle-debug-irc-protocol' to toggle its value.")
 
+(defvar erc--debug-irc-protocol-mask-secrets t
+  "Whether to hide secrets in a debug log.
+They are still visible on screen but are replaced by question
+marks when yanked.")
+
+(defun erc--mask-secrets (string)
+  (when-let* ((eot (length string))
+              (beg (text-property-any 0 eot 'erc-secret t string))
+              (end (text-property-not-all beg eot 'erc-secret t string))
+              (sec (substring string beg end)))
+    (setq string (concat (substring string 0 beg)
+                         (make-string 10 ??)
+                         (substring string end eot)))
+    (put-text-property beg (+ 10 beg) 'face 'erc-inverse-face string)
+    (put-text-property beg (+ 10 beg) 'display sec string))
+  string)
+
 (defun erc-log-irc-protocol (string &optional outbound)
   "Append STRING to the buffer *erc-protocol*.
 
@@ -2327,6 +2377,8 @@ workaround."
                       (format "%s:%s" erc-session-server erc-session-port))))
           (ts (when erc-debug-irc-protocol-time-format
                 (format-time-string erc-debug-irc-protocol-time-format))))
+      (when erc--debug-irc-protocol-mask-secrets
+        (setq string (erc--mask-secrets string)))
       (with-current-buffer (get-buffer-create "*erc-protocol*")
         (save-excursion
           (goto-char (point-max))
@@ -3179,7 +3231,8 @@ node `(erc) Connecting'."
                  function))
 
 (defun erc--auth-source-determine-params-defaults ()
-  (let* ((net (and-let* ((esid (erc-networks--id-symbol erc-networks--id))
+  (let* ((net (and-let* ((erc-networks--id)
+                         (esid (erc-networks--id-symbol erc-networks--id))
                          ((symbol-name esid)))))
          (localp (and erc--target (erc--target-channel-local-p erc--target)))
          (hosts (if localp
@@ -3251,9 +3304,8 @@ the one with host foo would win."
       (setq plist (plist-put plist :max 5000))) ; `auth-source-netrc-parse'
     (unless (plist-get defaults :require)
       (setq plist (plist-put plist :require '(:secret))))
-    (when-let* ((sorted (sort (apply #'auth-source-search plist) test))
-                (secret (plist-get (car sorted) :secret)))
-      (if (functionp secret) (funcall secret) secret))))
+    (when-let* ((sorted (sort (apply #'auth-source-search plist) test)))
+      (plist-get (car sorted) :secret))))
 
 (defun erc-auth-source-search (&rest plist)
   "Call `auth-source-search', possibly with keyword params in PLIST."
@@ -3274,7 +3326,8 @@ Without SECRET, consult auth-source, possibly passing SERVER as the
     (setq secret (apply erc-auth-source-join-function
                         `(,@(and server (list :host server)) :user ,channel))))
   (erc-log (format "cmd: JOIN: %s" channel))
-  (erc-server-send (concat "JOIN " channel (and secret (concat " " secret)))))
+  (erc-server-send (concat "JOIN " channel
+                           (and secret (concat " " (erc--unfun secret))))))
 
 (defun erc--valid-local-channel-p (channel)
   "Non-nil when channel is server-local on a network that allows them."
@@ -3831,10 +3884,8 @@ the message given by REASON."
       (with-suppressed-warnings ((obsolete erc-server-reconnecting)
                                  (obsolete erc-reuse-buffers))
         (if erc-reuse-buffers
-            (progn (cl-assert (not erc--server-reconnecting))
-                   (cl-assert (not erc-server-reconnecting)))
-          (setq erc--server-reconnecting nil
-                erc-server-reconnecting nil)))))
+            (cl-assert (not erc-server-reconnecting))
+          (setq erc-server-reconnecting nil)))))
   t)
 
 (defun erc-cmd-RECONNECT (&rest args)
@@ -5904,7 +5955,13 @@ strings over to the next call."
   (with-current-buffer (if (buffer-live-p (erc-server-buffer))
                            (erc-server-buffer)
                          (current-buffer))
-    (setq erc-server-current-nick nick)))
+    (unless (equal erc-server-current-nick nick)
+      (setq erc-server-current-nick nick)
+      ;; This seems sensible but may well be superfluous.  Should
+      ;; really prove that it's actually needed via test scenario.
+      (when erc-server-connected
+        (erc-networks--id-reload erc-networks--id)))
+    nick))
 
 (defun erc-current-nick ()
   "Return the current nickname."
@@ -6306,6 +6363,15 @@ user input."
 
 ;; authentication
 
+(defun erc--unfun (maybe-fn)
+  "Return MAYBE-FN or whatever it returns."
+  (let ((s (if (functionp maybe-fn) (funcall maybe-fn) maybe-fn)))
+    (when (and erc-debug-irc-protocol
+               erc--debug-irc-protocol-mask-secrets
+               (stringp s))
+      (put-text-property 0 (length s) 'erc-secret t s))
+    s))
+
 (defun erc-login ()
   "Perform user authentication at the IRC server."
   (erc-log (format "login: nick: %s, user: %s %s %s :%s"
@@ -6315,7 +6381,7 @@ user input."
                    erc-session-server
                    erc-session-user-full-name))
   (if erc-session-password
-      (erc-server-send (concat "PASS :" erc-session-password))
+      (erc-server-send (concat "PASS :" (erc--unfun erc-session-password)))
     (message "Logging in without password"))
   (erc-server-send (format "NICK %s" (erc-current-nick)))
   (erc-server-send

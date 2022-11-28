@@ -266,7 +266,7 @@ extends to the end of the match for the regular expression."
   :type 'regexp)
 
 (defcustom idlwave-use-last-hang-indent nil
-  "If non-nil then use last match on line for `idlwave-indent-regexp'."
+  "If non-nil then use last match on line for `idlwave-hang-indent-regexp'."
   :group 'idlwave-code-formatting
   :type 'boolean)
 

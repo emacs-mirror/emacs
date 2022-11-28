@@ -48,7 +48,7 @@
 ;; The general flow is:
 
 ;; 1. The user calls one of `gnus-group-make-search-group' or
-;; `gnus-group-make-permanent-search-group' (or a few other entry
+;; `gnus-group-read-ephemeral-search-group' (or a few other entry
 ;; points).  These functions prompt for a search query, and collect
 ;; the groups to search, then create an nnselect group, setting an
 ;; 'nnselect-specs group parameter where 'nnselect-function is

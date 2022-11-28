@@ -1188,7 +1188,7 @@ definition, or nil if the language doesn't have any."
   t (if (c-lang-const c-opt-cpp-macro-define)
 	(concat (c-lang-const c-anchored-cpp-prefix)
 		(c-lang-const c-opt-cpp-macro-define)
-		"[ \t]+\\(\\sw\\|_\\)+\\([^(a-zA-Z0-9_]\\|$\\)")))
+		"[ \t]+[a-zA-Z0-9_]+\\([^(a-zA-Z0-9_]\\|$\\)")))
 
 (c-lang-defconst c-cpp-expr-directives
   "List of cpp directives (without the prefix) that are followed by an
@@ -1440,7 +1440,7 @@ since CC Mode treats every identifier as an expression."
 
 (c-lang-defconst c-overloadable-operators
   "List of the operators that are overloadable, in their \"identifier
-form\".  See also `c-op-identifier-prefix'."
+form\".  See also `c-opt-op-identifier-prefix'."
   t    nil
   c++  '("new" "delete" ;; Can be followed by "[]" but we ignore that.
 	 "+" "-" "*" "/" "%"
@@ -2526,7 +2526,7 @@ their matching \"in\" syntactic symbols.")
 	    (c-lang-const c-brace-list-decl-kwds)))
 
 (c-lang-defconst c-defun-type-name-decl-key
-  ;; Regexp matching a keyword in `c-defun-name-decl-kwds'.
+  ;; Regexp matching a keyword in `c-defun-type-name-decl-kwds'.
   t (c-make-keywords-re t (c-lang-const c-defun-type-name-decl-kwds)))
 (c-lang-defvar c-defun-type-name-decl-key
   (c-lang-const c-defun-type-name-decl-key))
@@ -2620,7 +2620,7 @@ type."
 
 (c-lang-defconst c-equals-nontype-decl-key
   ;; An unadorned regular expression which matches any member of
-  ;; `c-equals-decl-kwds', or nil if such don't exist in the current language.
+  ;; `c-equals-nontype-decl-kwds', or nil if such don't exist in the current language.
   t (when (c-lang-const c-equals-nontype-decl-kwds)
       (c-make-keywords-re nil (c-lang-const c-equals-nontype-decl-kwds))))
 (c-lang-defvar c-equals-nontype-decl-key
@@ -4486,7 +4486,7 @@ accomplish that conveniently."
 	   (error
 	    (if current-var
 		(message
-		 "Eval error in the `c-lang-defvar' or `c-lang-setver' for `%s' (source eval): %S"
+		 "Eval error in the `c-lang-defvar' or `c-lang-setvar' for `%s' (source eval): %S"
 		 current-var err)
 	      (signal (car err) (cdr err)))))))
     ))

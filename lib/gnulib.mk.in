@@ -222,6 +222,8 @@ DEFS = @DEFS@
 DESLIB = @DESLIB@
 DOCMISC_W32 = @DOCMISC_W32@
 DUMPING = @DUMPING@
+DYNAMIC_LIB_SECONDARY_SUFFIX = @DYNAMIC_LIB_SECONDARY_SUFFIX@
+DYNAMIC_LIB_SUFFIX = @DYNAMIC_LIB_SUFFIX@
 DYNLIB_OBJ = @DYNLIB_OBJ@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -953,6 +955,7 @@ MKDIR_P = @MKDIR_P@
 MODULES_OBJ = @MODULES_OBJ@
 MODULES_SECONDARY_SUFFIX = @MODULES_SECONDARY_SUFFIX@
 MODULES_SUFFIX = @MODULES_SUFFIX@
+NATIVE_COMPILATION_AOT = @NATIVE_COMPILATION_AOT@
 NEXT_ASSERT_H = @NEXT_ASSERT_H@
 NEXT_AS_FIRST_DIRECTIVE_ASSERT_H = @NEXT_AS_FIRST_DIRECTIVE_ASSERT_H@
 NEXT_AS_FIRST_DIRECTIVE_DIRENT_H = @NEXT_AS_FIRST_DIRECTIVE_DIRENT_H@
@@ -1218,6 +1221,8 @@ TERMCAP_OBJ = @TERMCAP_OBJ@
 TIME_H_DEFINES_STRUCT_TIMESPEC = @TIME_H_DEFINES_STRUCT_TIMESPEC@
 TIME_H_DEFINES_TIME_UTC = @TIME_H_DEFINES_TIME_UTC@
 TOOLKIT_LIBW = @TOOLKIT_LIBW@
+TREE_SITTER_CFLAGS = @TREE_SITTER_CFLAGS@
+TREE_SITTER_LIBS = @TREE_SITTER_LIBS@
 UINT32_MAX_LT_UINTMAX_MAX = @UINT32_MAX_LT_UINTMAX_MAX@
 UINT64_MAX_EQ_ULONG_MAX = @UINT64_MAX_EQ_ULONG_MAX@
 UNDEFINE_STRTOK_R = @UNDEFINE_STRTOK_R@
@@ -1309,23 +1314,22 @@ gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31_CONDITION = @gl_GNULIB_ENABLE
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_CONDITION = @gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_CONDITION@
 gl_GNULIB_ENABLED_61bcaca76b3e6f9ae55d57a1c3193bc4_CONDITION = @gl_GNULIB_ENABLED_61bcaca76b3e6f9ae55d57a1c3193bc4_CONDITION@
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_CONDITION = @gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_CONDITION@
+gl_GNULIB_ENABLED_8444034ea779b88768865bb60b4fb8c9_CONDITION = @gl_GNULIB_ENABLED_8444034ea779b88768865bb60b4fb8c9_CONDITION@
 gl_GNULIB_ENABLED_925677f0343de64b89a9f0c790b4104c_CONDITION = @gl_GNULIB_ENABLED_925677f0343de64b89a9f0c790b4104c_CONDITION@
 gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_CONDITION = @gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_CONDITION@
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_CONDITION = @gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_CONDITION@
 gl_GNULIB_ENABLED_cloexec_CONDITION = @gl_GNULIB_ENABLED_cloexec_CONDITION@
 gl_GNULIB_ENABLED_d3b2383720ee0e541357aa2aac598e2b_CONDITION = @gl_GNULIB_ENABLED_d3b2383720ee0e541357aa2aac598e2b_CONDITION@
 gl_GNULIB_ENABLED_dirfd_CONDITION = @gl_GNULIB_ENABLED_dirfd_CONDITION@
-gl_GNULIB_ENABLED_dynarray_CONDITION = @gl_GNULIB_ENABLED_dynarray_CONDITION@
 gl_GNULIB_ENABLED_e80bf6f757095d2e5fc94dafb8f8fc8b_CONDITION = @gl_GNULIB_ENABLED_e80bf6f757095d2e5fc94dafb8f8fc8b_CONDITION@
 gl_GNULIB_ENABLED_ef455225c00f5049c808c2eda3e76866_CONDITION = @gl_GNULIB_ENABLED_ef455225c00f5049c808c2eda3e76866_CONDITION@
 gl_GNULIB_ENABLED_euidaccess_CONDITION = @gl_GNULIB_ENABLED_euidaccess_CONDITION@
+gl_GNULIB_ENABLED_fd38c7e463b54744b77b98aeafb4fa7c_CONDITION = @gl_GNULIB_ENABLED_fd38c7e463b54744b77b98aeafb4fa7c_CONDITION@
 gl_GNULIB_ENABLED_getdtablesize_CONDITION = @gl_GNULIB_ENABLED_getdtablesize_CONDITION@
 gl_GNULIB_ENABLED_getgroups_CONDITION = @gl_GNULIB_ENABLED_getgroups_CONDITION@
 gl_GNULIB_ENABLED_lchmod_CONDITION = @gl_GNULIB_ENABLED_lchmod_CONDITION@
 gl_GNULIB_ENABLED_open_CONDITION = @gl_GNULIB_ENABLED_open_CONDITION@
 gl_GNULIB_ENABLED_rawmemchr_CONDITION = @gl_GNULIB_ENABLED_rawmemchr_CONDITION@
-gl_GNULIB_ENABLED_scratch_buffer_CONDITION = @gl_GNULIB_ENABLED_scratch_buffer_CONDITION@
-gl_GNULIB_ENABLED_stdckdint_CONDITION = @gl_GNULIB_ENABLED_stdckdint_CONDITION@
 gl_GNULIB_ENABLED_strtoll_CONDITION = @gl_GNULIB_ENABLED_strtoll_CONDITION@
 gl_GNULIB_ENABLED_utimens_CONDITION = @gl_GNULIB_ENABLED_utimens_CONDITION@
 gl_LIBOBJDEPS = @gl_LIBOBJDEPS@
@@ -1770,43 +1774,6 @@ endif
 endif
 ## end   gnulib module dup2
 
-## begin gnulib module dynarray
-ifeq (,$(OMIT_GNULIB_MODULE_dynarray))
-
-ifneq (,$(gl_GNULIB_ENABLED_dynarray_CONDITION))
-BUILT_SOURCES += malloc/dynarray.gl.h malloc/dynarray-skeleton.gl.h
-
-malloc/dynarray.gl.h: malloc/dynarray.h
-	$(AM_V_GEN)$(MKDIR_P) 'malloc'
-	$(AM_V_at)$(SED_HEADER_STDOUT) \
-	  -e '/libc_hidden_proto/d' \
-	  $(srcdir)/malloc/dynarray.h > $@-t
-	$(AM_V_at)mv $@-t $@
-MOSTLYCLEANFILES += malloc/dynarray.gl.h malloc/dynarray.gl.h-t
-
-malloc/dynarray-skeleton.gl.h: malloc/dynarray-skeleton.c
-	$(AM_V_GEN)$(MKDIR_P) 'malloc'
-	$(AM_V_at)$(SED_HEADER_STDOUT) \
-	      -e 's|<malloc/dynarray\.h>|<malloc/dynarray.gl.h>|g' \
-	      -e 's|__attribute_maybe_unused__|_GL_ATTRIBUTE_MAYBE_UNUSED|g' \
-	      -e 's|__attribute_nonnull__|_GL_ATTRIBUTE_NONNULL|g' \
-	      -e 's|__attribute_warn_unused_result__|_GL_ATTRIBUTE_NODISCARD|g' \
-	      -e 's|__glibc_likely|_GL_LIKELY|g' \
-	      -e 's|__glibc_unlikely|_GL_UNLIKELY|g' \
-	      $(srcdir)/malloc/dynarray-skeleton.c > $@-t
-	$(AM_V_at)mv $@-t $@
-MOSTLYCLEANFILES += malloc/dynarray-skeleton.gl.h malloc/dynarray-skeleton.gl.h-t
-
-libgnu_a_SOURCES += malloc/dynarray_at_failure.c                 malloc/dynarray_emplace_enlarge.c                 malloc/dynarray_finalize.c                 malloc/dynarray_resize.c                 malloc/dynarray_resize_clear.c
-
-endif
-EXTRA_DIST += dynarray.h malloc/dynarray-skeleton.c malloc/dynarray.h
-
-EXTRA_libgnu_a_SOURCES += malloc/dynarray-skeleton.c
-
-endif
-## end   gnulib module dynarray
-
 ## begin gnulib module eloop-threshold
 ifeq (,$(OMIT_GNULIB_MODULE_eloop-threshold))
 
@@ -2250,6 +2217,68 @@ EXTRA_DIST += $(top_srcdir)/build-aux/gitlog-to-changelog
 
 endif
 ## end   gnulib module gitlog-to-changelog
+
+## begin gnulib module glibc-internal/dynarray
+ifeq (,$(OMIT_GNULIB_MODULE_glibc-internal/dynarray))
+
+ifneq (,$(gl_GNULIB_ENABLED_fd38c7e463b54744b77b98aeafb4fa7c_CONDITION))
+BUILT_SOURCES += malloc/dynarray.gl.h malloc/dynarray-skeleton.gl.h
+
+malloc/dynarray.gl.h: malloc/dynarray.h
+	$(AM_V_GEN)$(MKDIR_P) 'malloc'
+	$(AM_V_at)$(SED_HEADER_STDOUT) \
+	  -e '/libc_hidden_proto/d' \
+	  $(srcdir)/malloc/dynarray.h > $@-t
+	$(AM_V_at)mv $@-t $@
+MOSTLYCLEANFILES += malloc/dynarray.gl.h malloc/dynarray.gl.h-t
+
+malloc/dynarray-skeleton.gl.h: malloc/dynarray-skeleton.c
+	$(AM_V_GEN)$(MKDIR_P) 'malloc'
+	$(AM_V_at)$(SED_HEADER_STDOUT) \
+	      -e 's|<malloc/dynarray\.h>|<malloc/dynarray.gl.h>|g' \
+	      -e 's|__attribute_maybe_unused__|_GL_ATTRIBUTE_MAYBE_UNUSED|g' \
+	      -e 's|__attribute_nonnull__|_GL_ATTRIBUTE_NONNULL|g' \
+	      -e 's|__attribute_warn_unused_result__|_GL_ATTRIBUTE_NODISCARD|g' \
+	      -e 's|__glibc_likely|_GL_LIKELY|g' \
+	      -e 's|__glibc_unlikely|_GL_UNLIKELY|g' \
+	      $(srcdir)/malloc/dynarray-skeleton.c > $@-t
+	$(AM_V_at)mv $@-t $@
+MOSTLYCLEANFILES += malloc/dynarray-skeleton.gl.h malloc/dynarray-skeleton.gl.h-t
+
+libgnu_a_SOURCES += malloc/dynarray_at_failure.c                 malloc/dynarray_emplace_enlarge.c                 malloc/dynarray_finalize.c                 malloc/dynarray_resize.c                 malloc/dynarray_resize_clear.c
+
+endif
+EXTRA_DIST += dynarray.h malloc/dynarray-skeleton.c malloc/dynarray.h
+
+EXTRA_libgnu_a_SOURCES += malloc/dynarray-skeleton.c
+
+endif
+## end   gnulib module glibc-internal/dynarray
+
+## begin gnulib module glibc-internal/scratch_buffer
+ifeq (,$(OMIT_GNULIB_MODULE_glibc-internal/scratch_buffer))
+
+ifneq (,$(gl_GNULIB_ENABLED_8444034ea779b88768865bb60b4fb8c9_CONDITION))
+BUILT_SOURCES += malloc/scratch_buffer.gl.h
+
+malloc/scratch_buffer.gl.h: malloc/scratch_buffer.h
+	$(AM_V_GEN)$(MKDIR_P) 'malloc'
+	$(AM_V_at)$(SED_HEADER_STDOUT) \
+	      -e 's|__always_inline|inline _GL_ATTRIBUTE_ALWAYS_INLINE|g' \
+	      -e 's|__glibc_likely|_GL_LIKELY|g' \
+	      -e 's|__glibc_unlikely|_GL_UNLIKELY|g' \
+	      -e '/libc_hidden_proto/d' \
+	      $(srcdir)/malloc/scratch_buffer.h > $@-t
+	$(AM_V_at)mv $@-t $@
+MOSTLYCLEANFILES += malloc/scratch_buffer.gl.h malloc/scratch_buffer.gl.h-t
+
+libgnu_a_SOURCES += malloc/scratch_buffer_grow.c                 malloc/scratch_buffer_grow_preserve.c                 malloc/scratch_buffer_set_array_size.c
+
+endif
+EXTRA_DIST += malloc/scratch_buffer.h scratch_buffer.h
+
+endif
+## end   gnulib module glibc-internal/scratch_buffer
 
 ## begin gnulib module group-member
 ifeq (,$(OMIT_GNULIB_MODULE_group-member))
@@ -2736,31 +2765,6 @@ EXTRA_DIST += root-uid.h
 endif
 ## end   gnulib module root-uid
 
-## begin gnulib module scratch_buffer
-ifeq (,$(OMIT_GNULIB_MODULE_scratch_buffer))
-
-ifneq (,$(gl_GNULIB_ENABLED_scratch_buffer_CONDITION))
-BUILT_SOURCES += malloc/scratch_buffer.gl.h
-
-malloc/scratch_buffer.gl.h: malloc/scratch_buffer.h
-	$(AM_V_GEN)$(MKDIR_P) 'malloc'
-	$(AM_V_at)$(SED_HEADER_STDOUT) \
-	      -e 's|__always_inline|inline _GL_ATTRIBUTE_ALWAYS_INLINE|g' \
-	      -e 's|__glibc_likely|_GL_LIKELY|g' \
-	      -e 's|__glibc_unlikely|_GL_UNLIKELY|g' \
-	      -e '/libc_hidden_proto/d' \
-	      $(srcdir)/malloc/scratch_buffer.h > $@-t
-	$(AM_V_at)mv $@-t $@
-MOSTLYCLEANFILES += malloc/scratch_buffer.gl.h malloc/scratch_buffer.gl.h-t
-
-libgnu_a_SOURCES += malloc/scratch_buffer_dupfree.c                 malloc/scratch_buffer_grow.c                 malloc/scratch_buffer_grow_preserve.c                 malloc/scratch_buffer_set_array_size.c
-
-endif
-EXTRA_DIST += malloc/scratch_buffer.h scratch_buffer.h
-
-endif
-## end   gnulib module scratch_buffer
-
 ## begin gnulib module sig2str
 ifeq (,$(OMIT_GNULIB_MODULE_sig2str))
 
@@ -2916,7 +2920,6 @@ endif
 ## begin gnulib module stdckdint
 ifeq (,$(OMIT_GNULIB_MODULE_stdckdint))
 
-ifneq (,$(gl_GNULIB_ENABLED_stdckdint_CONDITION))
 BUILT_SOURCES += $(STDCKDINT_H)
 
 # We need the following in order to create <stdckdint.h> when the system
@@ -2932,7 +2935,6 @@ stdckdint.h: $(top_builddir)/config.status
 endif
 MOSTLYCLEANFILES += stdckdint.h stdckdint.h-t
 
-endif
 EXTRA_DIST += intprops-internal.h stdckdint.in.h
 
 endif

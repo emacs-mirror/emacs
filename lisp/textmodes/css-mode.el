@@ -1795,7 +1795,7 @@ can also be used to fill comments.
 
 \\{css-mode-map}"
   (when (treesit-ready-p 'css)
-    ;; Borrowed from `css-native-mode'.
+    ;; Borrowed from `css-mode'.
     (add-hook 'completion-at-point-functions
               #'css-completion-at-point nil 'local)
     (setq-local fill-paragraph-function #'css-fill-paragraph)

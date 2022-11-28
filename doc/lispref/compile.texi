@@ -516,7 +516,7 @@ using the @code{with-suppressed-warnings} macro:
 @defspec with-suppressed-warnings warnings body@dots{}
 In execution, this is equivalent to @code{(progn @var{body}...)}, but
 the compiler does not issue warnings for the specified conditions in
-@var{body}.  @var{warnings} is an associative list of warning symbols
+@var{body}.  @var{warnings} is an association list of warning symbols
 and function/variable symbols they apply to.  For instance, if you
 wish to call an obsolete function called @code{foo}, but want to
 suppress the compilation warning, say:

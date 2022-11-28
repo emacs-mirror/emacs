@@ -3465,6 +3465,13 @@ This function is intended for use in `after-change-functions'."
     "typeof" "var" "void" "while" "with" "yield")
   "JavaScript keywords for tree-sitter font-locking.")
 
+(defvar js--treesit-operators
+  '("=" "+=" "-=" "*=" "/=" "%=" "**=" "<<=" ">>=" ">>>=" "&=" "^="
+    "|=" "&&=" "||=" "??=" "==" "!=" "===" "!==" ">" ">=" "<" "<=" "+"
+    "-" "*" "/" "%" "++" "--" "**" "&" "|" "^" "~" "<<" ">>" ">>>"
+    "&&" "||" "!")
+  "JavaScript operators for tree-sitter font-locking.")
+
 (defvar js--treesit-font-lock-settings
   (treesit-font-lock-rules
 
@@ -3479,8 +3486,7 @@ This function is intended for use in `after-change-functions'."
    `(((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
-     [(true) (false) (null)] @font-lock-constant-face
-     (number) @font-lock-constant-face)
+     [(true) (false) (null)] @font-lock-constant-face)
 
    :language 'javascript
    :override t
@@ -3559,21 +3565,6 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :override t
-   :feature 'property
-   `((pair key: (property_identifier) @font-lock-variable-name-face)
-
-     (pair value: (identifier) @font-lock-variable-name-face)
-
-     (pair
-      key: (property_identifier) @font-lock-function-name-face
-      value: [(function) (arrow_function)])
-
-     ((shorthand_property_identifier) @font-lock-variable-name-face)
-
-     ((shorthand_property_identifier_pattern) @font-lock-variable-name-face))
-
-   :language 'javascript
-   :override t
    :feature 'pattern
    `((pair_pattern key: (property_identifier) @font-lock-variable-name-face)
      (array_pattern (identifier) @font-lock-variable-name-face))
@@ -3596,7 +3587,42 @@ This function is intended for use in `after-change-functions'."
 
      (jsx_attribute
       (property_identifier)
-      @font-lock-constant-face)))
+      @font-lock-constant-face))
+
+   :language 'javascript
+   :feature 'number
+   `((number) @font-lock-number-face
+     ((identifier) @font-lock-number-face
+      (:match "^\\(:?NaN\\|Infinity\\)$" @font-lock-number-face)))
+
+   :language 'javascript
+   :feature 'operator
+   `([,@js--treesit-operators] @font-lock-operator-face
+     (ternary_expression ["?" ":"] @font-lock-operator-face))
+
+   :language 'javascript
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+   :language 'javascript
+   :feature 'delimiter
+   '((["," "." ";" ":"]) @font-lock-delimiter-face)
+
+   :language 'javascript
+   :feature 'escape-sequence
+   :override t
+   '((escape_sequence) @font-lock-escape-face)
+
+   :language 'javascript
+   :override t
+   :feature 'property
+   `((property_identifier) @font-lock-property-face
+
+     (pair value: (identifier) @font-lock-variable-name-face)
+
+     ((shorthand_property_identifier) @font-lock-property-face)
+
+     ((shorthand_property_identifier_pattern) @font-lock-property-face)))
   "Tree-sitter font-lock settings.")
 
 (defun js--fontify-template-string (node override start end &rest _)
@@ -3822,11 +3848,14 @@ Currently there are `js-mode' and `js-ts-mode'."
     (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
     ;; Comment.
     (setq-local comment-start "// ")
-    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
     (setq-local comment-end "")
+    (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                       (* (syntax whitespace))))
+    (setq-local comment-end-skip
+                (rx (* (syntax whitespace))
+                    (group (or (syntax comment-end)
+                               (seq (+ "*") "/")))))
     (setq-local comment-multi-line t)
-    (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
-    (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
     ;; Electric-indent.
     (setq-local electric-indent-chars
 	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
@@ -3846,9 +3875,11 @@ Currently there are `js-mode' and `js-ts-mode'."
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (string keyword identifier expression constant)
-                  (property pattern jsx )))
+                '(( comment declaration)
+                  ( keyword string)
+                  ( constant escape-sequence expression
+                    identifier jsx number pattern property)
+                  ( bracket delimiter operator)))
     ;; Imenu
     (setq-local imenu-create-index-function
                 #'js--treesit-imenu)

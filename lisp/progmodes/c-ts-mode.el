@@ -29,7 +29,7 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'rx)
+(eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -269,7 +269,7 @@ MODE is either `c' or `cpp'."
    :feature 'definition
    ;; Highlights identifiers in declarations.
    `((declaration
-      declarator: (_) @font-lock-variable-name-face)
+      declarator: (_) @c-ts-mode--fontify-declarator)
 
      (field_declaration
       declarator: (_) @c-ts-mode--fontify-declarator)
@@ -295,26 +295,26 @@ MODE is either `c' or `cpp'."
              (identifier) @font-lock-variable-name-face))
      (assignment_expression
       left: (subscript_expression
-             (identifier) @font-lock-variable-name-face)))
+             (identifier) @font-lock-variable-name-face))
+     (init_declarator declarator: (_) @c-ts-mode--fontify-declarator))
 
    :language mode
-   :feature 'expression
+   :feature 'function
    '((call_expression
-      function: (identifier) @font-lock-function-name-face)
-     (field_expression
-      argument: (identifier) @font-lock-variable-name-face)
-     (pointer_expression
-      (identifier) @font-lock-variable-name-face))
+      function: (identifier) @font-lock-function-name-face))
+
+   :language mode
+   :feature 'variable
+   '((identifier) @c-ts-mode--fontify-variable)
 
    :language mode
    :feature 'label
-   '((expression_statement (identifier) @font-lock-variable-name-face)
-     (labeled_statement
+   '((labeled_statement
       label: (statement_identifier) @font-lock-constant-face))
 
    :language mode
    :feature 'error
-   '((ERROR) @font-lock-warning-face)
+   '((ERROR) @c-ts-fontify-error)
 
    :feature 'escape-sequence
    :language mode
@@ -367,6 +367,19 @@ For NODE, OVERRIDE, START, END, and ARGS, see
         (_ 'font-lock-variable-name-face))
       override))))
 
+(defun c-ts-mode--fontify-variable (node override start end &rest _)
+  "Fontify an identifier node.
+Fontify it if NODE is not a function identifier.  For NODE,
+OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
+  (when (not (equal (treesit-node-type
+                     (treesit-node-parent node))
+                    "call_expression"))
+    (treesit-fontify-with-override
+     (max (treesit-node-start node) start)
+     (min (treesit-node-end node) end)
+     'font-lock-variable-name-face
+     override)))
+
 (defun c-ts-mode--fontify-defun (node override start end &rest _)
   "Correctly fontify the DEFUN macro.
 For NODE, OVERRIDE, START, and END, see
@@ -407,6 +420,26 @@ This function corrects the fontification on the colon in
            (max start (treesit-node-start arg))
            (min end (treesit-node-end arg))
            'default override))))))
+
+(defun c-ts-fontify-error (node override start end &rest _)
+  "Fontify the error nodes.
+For NODE, OVERRIDE, START, and END, see
+`treesit-font-lock-rules'."
+  (let ((parent (treesit-node-parent node))
+        (child (treesit-node-child node 0)))
+    (treesit-fontify-with-override
+     (max start (treesit-node-start node))
+     (min end (treesit-node-end node))
+     (cond
+      ;; This matches the case MACRO(struct a, b, c)
+      ;; where struct is seen as error.
+      ((and (equal (treesit-node-type child) "identifier")
+            (equal (treesit-node-type parent) "argument_list")
+            (member (treesit-node-text child)
+                    '("struct" "long" "short" "enum" "union")))
+       'font-lock-keyword-face)
+      (t 'font-lock-warning-face))
+     override)))
 
 (defun c-ts-mode--imenu-1 (node)
   "Helper for `c-ts-mode--imenu'.
@@ -495,10 +528,10 @@ the subtrees."
   (setq-local which-func-functions nil)
 
   (setq-local treesit-font-lock-feature-list
-              '(( comment constant keyword literal preprocessor string)
-                ( assignment definition label property type)
-                ( bracket delimiter error escape-sequence expression
-                  operator))))
+              '(( comment definition)
+                ( keyword preprocessor string type)
+                ( assignment constant escape-sequence label literal property )
+                ( bracket delimiter error function operator variable))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
@@ -512,10 +545,13 @@ the subtrees."
 
   ;; Comments.
   (setq-local comment-start "/* ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end " */")
-  (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
-  (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
+  (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
 
   (setq-local treesit-simple-indent-rules
               (c-ts-mode--set-indent-style 'c))
@@ -535,8 +571,13 @@ the subtrees."
 
   ;; Comments.
   (setq-local comment-start "// ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
+  (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
 
   (treesit-parser-create 'cpp)
 

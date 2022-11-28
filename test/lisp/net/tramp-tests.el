@@ -5388,6 +5388,21 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
       ;; Cleanup.
       (ignore-errors (delete-process proc)))))
 
+(ert-deftest tramp-test31-memory-info ()
+  "Check `memory-info'."
+  :tags '(:expensive-test)
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-supports-processes-p))
+  ;; `memory-info' is supported since Emacs 29.1.
+  (skip-unless (tramp--test-emacs29-p))
+
+  (when-let ((default-directory ert-remote-temporary-file-directory)
+             (mi (memory-info)))
+    (should (consp mi))
+    (should (= (length mi) 4))
+    (dotimes (i (length mi))
+      (should (natnump (nth i mi))))))
+
 (defun tramp--test-async-shell-command
     (command output-buffer &optional error-buffer input)
   "Like `async-shell-command', reading the output.
@@ -7630,6 +7645,9 @@ Since it unloads Tramp, it shall be the last test to run."
 	  (string-prefix-p "tramp" (symbol-name x))
 	  ;; `tramp-completion-mode' is autoloaded in Emacs < 28.1.
 	  (not (eq 'tramp-completion-mode x))
+	  ;; `tramp-register-archive-file-name-handler' is autoloaded
+	  ;; in Emacs < 29.1.
+	  (not (eq 'tramp-register-archive-file-name-handler x))
 	  (not (string-match-p
 		(rx bol "tramp" (? "-archive") (** 1 2 "-") "test")
 		(symbol-name x)))

@@ -1579,6 +1579,7 @@ its value is returned."
         ;; `category' property at PT while doing the (get-char-property
         ;; pt property w)!
 	(or (and str
+                 (< (cdr str) (length (car str)))
 		 (get-text-property (cdr str) property (car str)))
             ;; Mouse clicks in the fringe come with a position in
             ;; (nth 5).  This is useful but is not exactly where we clicked, so

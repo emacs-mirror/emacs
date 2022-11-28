@@ -1179,6 +1179,10 @@ struct x_output
      frame.  */
   bool_bf waiting_for_frame_p : 1;
 
+  /* Whether or not Emacs just skipped waiting for a frame due to a
+     timeout.  */
+  bool_bf draw_just_hung_p : 1;
+
 #if !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   /* Whether or not Emacs should wait for the compositing manager to
      draw frames before starting a new frame.  */
@@ -1392,6 +1396,8 @@ extern void x_mark_frame_dirty (struct frame *f);
   FRAME_X_OUTPUT (f)->extended_frame_counter
 #define FRAME_X_WAITING_FOR_DRAW(f)		\
   FRAME_X_OUTPUT (f)->waiting_for_frame_p
+#define FRAME_X_DRAW_JUST_HUNG(f)		\
+  FRAME_X_OUTPUT (f)->draw_just_hung_p
 #define FRAME_X_COUNTER_VALUE(f)		\
   FRAME_X_OUTPUT (f)->current_extended_counter_value
 #endif

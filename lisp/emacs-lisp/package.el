@@ -458,7 +458,7 @@ synchronously."
 (defvar package--default-summary "No description available.")
 
 (define-inline package-vc-p (pkg-desc)
-  "Return non-nil if PKG-DESC is a source package."
+  "Return non-nil if PKG-DESC is a VC package."
   (inline-letevals (pkg-desc)
     (inline-quote (eq (package-desc-kind ,pkg-desc) 'vc))))
 
@@ -483,9 +483,7 @@ synchronously."
                                (if (eq 'quote (car requirements))
                                    (nth 1 requirements)
                                  requirements)))
-                 (kind (if (eq (car-safe version-string) 'vc)
-                           'vc
-                         (plist-get rest-plist :kind)))
+                 (kind (plist-get rest-plist :kind))
                  (archive (plist-get rest-plist :archive))
                  (extras (let (alist)
                            (while rest-plist
@@ -911,7 +909,7 @@ correspond to previously loaded files."
                            (let ((v1 (package-desc-version p1))
                                  (v2 (package-desc-version p2)))
                              (or
-                              ;; Prefer source packages.
+                              ;; Prefer VC packages.
                               (package-vc-p p1)
                               (package-vc-p p2)
                               ;; Prefer builtin packages.

@@ -1,0 +1,33 @@
+;; -*- mode: lisp-data; -*-
+((cap-req 10 "CAP REQ :sasl"))
+((nick 1 "NICK tester"))
+((user 1 "USER tester 0 * :tester"))
+
+((auth-req 3.2 "AUTHENTICATE EXTERNAL")
+ (0.0 ":irc.example.org CAP * ACK :sasl")
+ (0.0 "AUTHENTICATE +"))
+
+((auth-noop 3.2 "AUTHENTICATE +")
+ (0.0 ":irc.example.org 900 * * tester :You are now logged in as tester")
+ (0.0 ":irc.example.org 903 * :Authentication successful"))
+
+((cap-end 3.2 "CAP END")
+ (0.0 ":irc.example.org 001 tester :Welcome to the ExampleOrg IRC Network tester")
+ (0.01 ":irc.example.org 002 tester :Your host is irc.example.org, running version oragono-2.6.1")
+ (0.01 ":irc.example.org 003 tester :This server was created Sat, 17 Jul 2021 09:06:42 UTC")
+ (0.01 ":irc.example.org 004 tester irc.example.org oragono-2.6.1 BERTZios CEIMRUabefhiklmnoqstuv Iabefhkloqv")
+ (0.0 ":irc.example.org 005 tester AWAYLEN=200 BOT=B CASEMAPPING=ascii CHANLIMIT=#:100 CHANMODES=Ibe,k,fl,CEMRUimnstu CHANNELLEN=64 CHANTYPES=# ELIST=U EXCEPTS EXTBAN=,m FORWARD=f INVEX KICKLEN=390 :are supported by this server")
+ (0.01 ":irc.example.org 005 tester MAXLIST=beI:60 MAXTARGETS=4 MODES MONITOR=100 NETWORK=ExampleOrg NICKLEN=32 PREFIX=(qaohv)~&@%+ STATUSMSG=~&@%+ TARGMAX=NAMES:1,LIST:1,KICK:1,WHOIS:1,USERHOST:10,PRIVMSG:4,TAGMSG:4,NOTICE:4,MONITOR:100 TOPICLEN=390 UTF8MAPPING=rfc8265 UTF8ONLY :are supported by this server")
+ (0.01 ":irc.example.org 005 tester draft/CHATHISTORY=100 :are supported by this server")
+ (0.0 ":irc.example.org 251 tester :There are 1 users and 0 invisible on 1 server(s)")
+ (0.0 ":irc.example.org 252 tester 0 :IRC Operators online")
+ (0.0 ":irc.example.org 253 tester 0 :unregistered connections")
+ (0.0 ":irc.example.org 254 tester 0 :channels formed")
+ (0.0 ":irc.example.org 255 tester :I have 1 clients and 0 servers")
+ (0.0 ":irc.example.org 265 tester 1 1 :Current local users 1, max 1")
+ (0.21 ":irc.example.org 266 tester 1 1 :Current global users 1, max 1")
+ (0.0 ":irc.example.org 422 tester :MOTD File is missing"))
+
+((mode-user 1.2 "MODE tester +i")
+ (0.0 ":irc.example.org 221 tester +Zi")
+ (0.0 ":irc.example.org NOTICE tester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
