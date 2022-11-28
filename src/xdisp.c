@@ -4404,8 +4404,9 @@ handle_fontified_prop (struct it *it)
 	      begv = get_locked_narrowing_begv (charpos);
 	      zv = get_locked_narrowing_zv (charpos);
 	    }
-	  narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv),
-				   Qfontification_functions);
+	  if (begv != BEG || zv != Z)
+	    narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv),
+				     Qfontification_functions);
 	}
 
       /* Don't allow Lisp that runs from 'fontification-functions'
