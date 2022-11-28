@@ -885,7 +885,12 @@ some of the references to the identifiers."
 
 (defun xref--outdated-p (item)
   "Check that the match location at current position is up-to-date.
-ITEMS is an xref item which " ; FIXME: Expand documentation.
+
+ITEM is an xref item which is expected to be produced by a search
+command and have summary that matches buffer contents near point.
+Depending on whether it's the first of the matches on the line,
+the summary should either start from bol, or only match after
+point."
   ;; FIXME: The check should most likely be a generic function instead
   ;; of the assumption that all matches' summaries relate to the
   ;; buffer text in a particular way.
