@@ -2696,7 +2696,10 @@ Helper function for `describe-package'."
          (signed (if desc (package-desc-signed desc)))
          (maintainer (cdr (assoc :maintainer extras)))
          (authors (cdr (assoc :authors extras)))
-         (news (and-let* ((file (expand-file-name "news" pkg-dir))
+         (news (and-let* (pkg-dir
+                          ((not built-in))
+                          (file (expand-file-name "news" pkg-dir))
+                          ((file-regular-p file))
                           ((file-readable-p file)))
                  file)))
     (when (string= status "avail-obso")
