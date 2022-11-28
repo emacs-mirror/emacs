@@ -189,7 +189,7 @@ For easier selection of tabs by their numbers, consider customizing
       '(;; (emoji "🍔")
         (symbol "☰")
         (text "Menu" :face tab-bar-tab-inactive))
-      "Icon for for the menu bar."
+      "Icon for the menu bar."
       :version "29.1"
       :help-echo "Menu bar"))
   (setq tab-bar-menu-bar-button (icon-string 'tab-bar-menu-bar)))
