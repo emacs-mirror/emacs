@@ -955,7 +955,7 @@ by the user at will."
                                                      hist mb-default)))
          (absname (expand-file-name relname common-parent-directory)))
     (when (and hist history-add-new-input)
-      (add-to-history hist absname))
+      (add-to-history hist (abbreviate-file-name absname)))
     absname))
 
 (defun project--read-file-absolute (prompt
