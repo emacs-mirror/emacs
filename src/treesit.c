@@ -2182,7 +2182,7 @@ treesit_predicates_for_pattern (TSQuery *query, uint32_t pattern_index)
 	    const char *str = ts_query_capture_name_for_id (query,
 							    step.value_id,
 							    &str_len);
-	    predicate = Fcons (intern_c_string_1 (str, str_len),
+	    predicate = Fcons (intern_c_string_1 (str, str_len, true),
 			       predicate);
 	    break;
 	  }
@@ -2537,7 +2537,7 @@ the query.  */)
 	      const char *capture_name
 		= ts_query_capture_name_for_id (treesit_query, capture.index,
 						&capture_name_len);
-	      cap = Fcons (intern_c_string_1 (capture_name, capture_name_len),
+	      cap = Fcons (intern_c_string_1 (capture_name, capture_name_len, true),
 			   captured_node);
 	    }
 	  else
