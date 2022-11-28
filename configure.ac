@@ -4222,7 +4222,7 @@ module_env_snippet_26="$srcdir/src/module-env-26.h"
 module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
-module_env_snippet_29="$srcdir/src/module-env-30.h"
+module_env_snippet_30="$srcdir/src/module-env-30.h"
 emacs_major_version="${PACKAGE_VERSION%%.*}"
 AC_SUBST([emacs_major_version])
 
