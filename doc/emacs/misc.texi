@@ -1808,31 +1808,28 @@ you can give each daemon its own server name like this:
   emacs --daemon=foo
 @end example
 
-@findex server-stop-automatically
+@vindex server-stop-automatically
   The Emacs server can optionally be stopped automatically when
-certain conditions are met.  To do this, call the function
-@code{server-stop-automatically} in your init file (@pxref{Init
-File}), with one of the following arguments:
+certain conditions are met.  To do this, set the option
+@code{server-stop-automatically} to one of the following values:
 
-@itemize
-@item
-With the argument @code{empty}, the server is stopped when it has no
-clients, no unsaved file-visiting buffers and no running processes
-anymore.
+@table @code
+@item empty
+This value causes the server to be stopped when it has no clients, no
+unsaved file-visiting buffers and no running processes anymore.
 
-@item
-With the argument @code{delete-frame}, when the last client frame is
-being closed, you are asked whether each unsaved file-visiting buffer
-must be saved and each unfinished process can be stopped, and if so,
-the server is stopped.
-
-@item
-With the argument @code{kill-terminal}, when the last client frame is
-being closed with @kbd{C-x C-c} (@code{save-buffers-kill-terminal}),
-you are asked whether each unsaved file-visiting buffer must be saved
-and each unfinished process can be stopped, and if so, the server is
+@item delete-frame
+This value means that when the last client frame is being closed, you
+are asked whether each unsaved file-visiting buffer must be saved and
+each unfinished process can be stopped, and if so, the server is
 stopped.
-@end itemize
+
+@item kill-terminal
+This value means that when the last client frame is being closed with
+@kbd{C-x C-c} (@code{save-buffers-kill-terminal}), you are asked
+whether each unsaved file-visiting buffer must be saved and each
+unfinished process can be stopped, and if so, the server is stopped.
+@end table
 
 @findex server-eval-at
   If you have defined a server by a unique server name, it is possible
