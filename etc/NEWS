@@ -2989,7 +2989,14 @@ when visiting JSON files.
 ** New major mode 'typescript-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the TypeScript language.  It includes support for font-locking,
-indentation, and navigation.
+indentation, and navigation.  This mode will be auto-enabled for
+files with the '.ts' extension.
+
+** New major mode 'tsx-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the TypeScript language, with support for TSX.  It includes
+support for font-locking, indentation, and navigation.  This mode
+will be auto-enabled for files with the '.tsx' extension.
 
 ** New major mode 'c-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
