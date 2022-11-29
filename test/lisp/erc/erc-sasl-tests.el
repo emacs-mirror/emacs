@@ -42,20 +42,22 @@
           (erc-sasl--options '((password . :password))))
       (should (string= (erc-sasl--read-password nil) "foo"))))
 
-  (ert-info ("Fallback to prompt skip auth-source")
-    (should-not erc-sasl-auth-source-function)
-    (let ((erc-session-password "bar")
-          (erc-networks--id (erc-networks--id-create nil)))
+  (ert-info ("Prompt when no authfn and :password resolves to nil")
+    (let ((erc-session-password nil)
+          (erc-sasl--options
+           '((password . :password) (user . :user) (authfn))))
       (should (string= (ert-simulate-keys "bar\r"
                          (erc-sasl--read-password "?"))
                        "bar"))))
 
-  (ert-info ("Prompt when auth-source fails and `erc-sasl-password' null")
-    (let ((erc-sasl--options '((password)))
-          (erc-sasl-auth-source-function #'ignore))
+  (ert-info ("Prompt when auth-source fails and `erc-session-password' null")
+    (should-not erc-session-password)
+    (let ((erc-sasl--options '((password) (authfn . ignore))))
       (should (string= (ert-simulate-keys "baz\r"
                          (erc-sasl--read-password "pwd:"))
                        "baz")))))
+
+;; This mainly tests `erc-sasl-auth-source-password-as-host'.
 
 (ert-deftest erc-sasl--read-password--auth-source ()
   (ert-with-temp-file netrc-file
@@ -70,40 +72,53 @@
            (erc-session-server "irc.gnu.org")
            (erc-session-port 6697)
            (erc-networks--id (erc-networks--id-create nil))
-           calls
-           (erc-sasl-auth-source-function
-            (lambda (&rest r)
-              (push r calls)
-              (apply #'erc--auth-source-search r)))
            erc-server-announced-name ; too early
-           auth-source-do-cache)
+           auth-source-do-cache
+           ;;
+           (fn #'erc-sasl-auth-source-password-as-host)
+           calls)
+
+      (advice-add 'erc-auth-source-search :before
+                  (lambda (&rest r) (push r calls))
+                  '((name . erc-sasl--read-password--auth-source)))
 
       (ert-info ("Symbol as password specifies machine")
-        (let ((erc-sasl--options '((user . "bob") (password . FSF.chat)))
-              (erc-networks--id (make-erc-networks--id)))
+        (let ((erc-sasl--options
+               `((user . "bob") (password . FSF.chat) (authfn . ,fn))))
           (should (string= (erc-sasl--read-password nil) "sesame"))
           (should (equal (pop calls) '(:user "bob" :host "FSF.chat")))))
 
-      (ert-info ("ID for :host and `erc-session-username' for :user") ; *1
-        (let ((erc-session-username "bob")
-              (erc-sasl--options '((user . :user) (password)))
-              (erc-networks--id (erc-networks--id-create 'GNU/chat)))
-          (should (string= (erc-sasl--read-password nil) "spam"))
-          (should (equal (pop calls) '(:user "bob" :host "GNU/chat")))))
+      (ert-info (":password as password resolved to machine")
+        (let ((erc-session-password "FSF.chat")
+              (erc-sasl--options
+               `((user . "bob") (password . :password) (authfn . ,fn))))
+          (should (string= (erc-sasl--read-password nil) "sesame"))
+          (should (equal (pop calls) '(:user "bob" :host "FSF.chat")))))
 
-      (ert-info ("ID for :host and current nick for :user") ; *1
-        (let ((erc-server-current-nick "bob")
-              (erc-sasl--options '((user . :nick) (password)))
+      (ert-info (":user resolved to `erc-session-username'") ; *1
+        (let ((erc-session-username "bob")
+              (erc-sasl--options `((user . :user) (password) (authfn . ,fn)))
               (erc-networks--id (erc-networks--id-create 'GNU/chat)))
           (should (string= (erc-sasl--read-password nil) "spam"))
-          (should (equal (pop calls) '(:user "bob" :host "GNU/chat")))))
+          (should (equal (pop calls) '(:user "bob")))))
+
+      (ert-info (":user resolved to current nick") ; *1
+        (let ((erc-server-current-nick "bob")
+              (erc-sasl--options `((user . :nick) (password) (authfn . ,fn)))
+              (erc-networks--id (erc-networks--id-create 'GNU/chat)))
+          (should (string= (erc-sasl--read-password nil) "spam"))
+          (should (equal (pop calls) '(:user "bob")))))
 
       (ert-info ("Symbol as password, entry lacks user field")
         (let ((erc-server-current-nick "fake")
-              (erc-sasl--options '((user . :nick) (password . MyHost)))
+              (erc-sasl--options
+               `((user . :nick) (password . MyHost) (authfn . ,fn)))
               (erc-networks--id (erc-networks--id-create 'GNU/chat)))
           (should (string= (erc-sasl--read-password nil) "123"))
-          (should (equal (pop calls) '(:user "fake" :host "MyHost"))))))))
+          (should (equal (pop calls) '(:user "fake" :host "MyHost")))))
+
+      (advice-remove 'erc-auth-source-search
+                     'erc-sasl--read-password--auth-source))))
 
 (ert-deftest erc-sasl-create-client--plain ()
   (let* ((erc-session-password "password123")

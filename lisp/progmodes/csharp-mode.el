@@ -743,7 +743,8 @@ compilation and evaluation time conflicts."
      ["operator"] @font-lock-type-face
      (type_parameter_constraints_clause
       target: (identifier) @font-lock-type-face)
-     (type_of_expression (identifier) @font-lock-type-face))
+     (type_of_expression (identifier) @font-lock-type-face)
+     (object_creation_expression (identifier) @font-lock-type-face))
    :language 'c-sharp
    :feature 'definition
    :override t
@@ -789,11 +790,20 @@ compilation and evaluation time conflicts."
      (invocation_expression
       (member_access_expression (identifier) @font-lock-function-name-face))
 
+     (catch_declaration
+      ((identifier) @font-lock-type-face))
+     (catch_declaration
+      ((identifier) @font-lock-type-face
+       (identifier) @font-lock-variable-name-face))
+
      (variable_declaration (identifier) @font-lock-type-face)
      (variable_declarator (identifier) @font-lock-variable-name-face)
 
      (parameter type: (identifier) @font-lock-type-face)
-     (parameter name: (identifier) @font-lock-variable-name-face))
+     (parameter name: (identifier) @font-lock-variable-name-face)
+
+     (binary_expression (identifier) @font-lock-variable-name-face)
+     (argument (identifier) @font-lock-variable-name-face))
    :language 'c-sharp
    :feature 'expression
    '((conditional_expression (identifier) @font-lock-variable-name-face)
