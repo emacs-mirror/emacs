@@ -4355,6 +4355,24 @@ member."
   :group 'gud
   :version "29.1")
 
+(defcustom gdb-locals-table-row-config `((name . 20)
+                                         (type . 20)
+                                         (value . ,gdb-locals-value-limit))
+  "Configuration for table rows in the local variable display.
+
+An alist that controls the display of the name, type and value of
+local variables inside the currently active stack-frame.  The key
+controls which column to change whereas the value determines the
+maximum number of characters to display in each column.  A value
+of 0 means there is no limit.
+
+Additionally, the order the element in the alist determines the
+left-to-right display order of the properties."
+  :type '(alist :key-type 'symbol :value-type 'integer)
+  :group 'gud
+  :version "30.1")
+
+
 (defvar gdb-locals-values-table (make-hash-table :test #'equal)
   "Mapping of local variable names to a string with their value.")
 
@@ -4384,12 +4402,9 @@ member."
 
 (defun gdb-locals-value-filter (value)
   "Filter function for the local variable VALUE."
-  (let* ((no-nl (replace-regexp-in-string "\n" " " value))
-         (str (replace-regexp-in-string "[[:space:]]+" " " no-nl))
-         (limit gdb-locals-value-limit))
-    (if (>= (length str) limit)
-        (concat (substring str 0 limit) "...")
-      str)))
+  (let* ((no-nl (replace-regexp-in-string "\n" " " (or value "<Unknown>")))
+         (str (replace-regexp-in-string "[[:space:]]+" " " no-nl)))
+    str))
 
 (defun gdb-edit-locals-value (&optional event)
   "Assign a value to a variable displayed in the locals buffer."
@@ -4402,6 +4417,22 @@ member."
 	   (value (read-string (format "New value (%s): " var))))
       (gud-basic-call
        (concat  "-gdb-set variable " var " = " value)))))
+
+
+(defun gdb-locals-table-columns-list (alist)
+  "Format and arrange the columns in locals display based on ALIST."
+  (let (columns)
+    (dolist (config gdb-locals-table-row-config columns)
+      (let* ((key  (car config))
+             (max  (cdr config))
+             (prop (alist-get key alist)))
+        (when prop
+          (if (and (> max 0) (length> prop max))
+              (push (propertize (string-truncate-left prop max) 'help-echo prop)
+                    columns)
+            (push prop columns)))))
+    (nreverse columns)))
+
 
 ;; Complex data types are looked up in `gdb-locals-values-table'.
 (defun gdb-locals-handler-custom ()
@@ -4431,12 +4462,14 @@ member."
                                             help-echo "mouse-2: edit value"
                                             local-map ,gdb-edit-locals-map-1)
                                value))
+        (setf (gdb-table-right-align table) t)
+        (setq name (propertize name 'font-lock-face font-lock-variable-name-face))
+        (setq type (propertize type 'font-lock-face font-lock-type-face))
         (gdb-table-add-row
          table
-         (list
-          (propertize type 'font-lock-face font-lock-type-face)
-          (propertize name 'font-lock-face font-lock-variable-name-face)
-          value)
+         (gdb-locals-table-columns-list `((name  . ,name)
+                                          (type  . ,type)
+                                          (value . ,value)))
          `(gdb-local-variable ,local))))
     (insert (gdb-table-string table " "))
     (setq mode-name

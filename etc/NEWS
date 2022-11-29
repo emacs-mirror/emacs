@@ -40,6 +40,20 @@ connection.
 
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
+---
+** Variable order and truncation can now be configured in gdb-many-window mode.
+The new variable `gdb-locals-table-row-config' allows users to
+configure the order and max length of various properties in the local
+variables buffer when using `gdb-many-windows'.
+
+By default, this variable is set to write the properties in the order:
+name, type and value.  Where the name and type are truncated to 20
+characters, and the value is truncated to the value of
+`gdb-locals-value-limit'.
+
+In order to restore the old display behavior, set
+`gdb-locals-table-row-config' to `((type . 0)(name . 0)(value
+. ,gdb-locals-value-limit)).
 
 ** VC
 
