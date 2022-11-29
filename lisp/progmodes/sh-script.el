@@ -1688,19 +1688,17 @@ This adds rules for comments and assignments."
 ;; (defun sh--var-completion-table (string pred action)
 ;;   (complete-with-action action (sh--vars-before-point) string pred))
 
-(defun sh--cmd-completion-table (string pred action)
-  (let ((cmds
-         (append (when (fboundp 'imenu--make-index-alist)
-                   (mapcar #'car
-                           (condition-case nil
-                               (imenu--make-index-alist)
-                             (imenu-unavailable nil))))
-                 (mapcar (lambda (v) (concat v "="))
-                         (sh--vars-before-point))
-                 (locate-file-completion-table
-                  exec-path exec-suffixes string pred t)
-                 sh--completion-keywords)))
-    (complete-with-action action cmds string pred)))
+(defun sh--cmd-completion-table-gen (string)
+  (append (when (fboundp 'imenu--make-index-alist)
+            (mapcar #'car
+                    (condition-case nil
+                        (imenu--make-index-alist)
+                      (imenu-unavailable nil))))
+          (mapcar (lambda (v) (concat v "="))
+                  (sh--vars-before-point))
+          (locate-file-completion-table
+           exec-path exec-suffixes string nil t)
+          sh--completion-keywords))
 
 (defun sh-completion-at-point-function ()
   (save-excursion
@@ -1713,14 +1711,14 @@ This adds rules for comments and assignments."
         (list start end (sh--vars-before-point)
               :company-kind (lambda (_) 'variable)))
        ((sh-smie--keyword-p)
-        (list start end #'sh--cmd-completion-table
+        (list start end
+              (completion-table-with-cache #'sh--cmd-completion-table-gen)
               :company-kind
               (lambda (s)
                 (cond
                  ((member s sh--completion-keywords) 'keyword)
                  ((string-suffix-p "=" s) 'variable)
-                 (t 'function)))
-              ))))))
+                 (t 'function)))))))))
 
 ;;; Indentation and navigation with SMIE.
 
