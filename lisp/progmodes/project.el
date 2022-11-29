@@ -407,7 +407,8 @@ you might have to restart Emacs to see the effect."
 
 The best way to change the value a VC project reports as its
 name, is by setting this in .dir-locals.el."
-  :type 'string
+  :type '(choice (const :tag "Default to the base name" nil)
+                 (string :tag "Custom name"))
   :version "29.1"
   :safe #'stringp)
 
