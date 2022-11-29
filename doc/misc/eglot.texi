@@ -178,6 +178,7 @@ start it.
 @node Setting Up LSP Servers
 @section Setting Up LSP Servers
 @cindex setting up LSP server for Eglot
+@cindex LSP server for Eglot, setting up
 @cindex language server for Eglot
 
 For Eglot to be useful, it must first be combined with a suitable
