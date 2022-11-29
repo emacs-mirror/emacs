@@ -7441,7 +7441,7 @@ The \"sibling\" file is defined by the `find-sibling-rules' variable."
                           relatives nil t nil nil (car relatives))))))))
 
 (defun find-sibling-file-search (file &optional rules)
-  "Return a list of FILE's \"siblings\"
+  "Return a list of FILE's \"siblings\".
 RULES should be a list on the form defined by `find-sibling-rules' (which
 see), and if nil, defaults to `find-sibling-rules'."
   (let ((results nil))
