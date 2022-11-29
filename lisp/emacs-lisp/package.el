@@ -4549,7 +4549,7 @@ will be signaled in that case."
       (user-error "Package `%s' has no explicit maintainer" name))
      ((and (not (progn
                   (require 'ietf-drums)
-                  (ietf-drums-parse-address maint)))
+                  (ietf-drums-parse-address (cdr maint))))
            (null no-error))
       (user-error "Package `%s' has no maintainer address" name))
      ((not (null maint))
