@@ -2926,7 +2926,7 @@ based on data provided by language servers using the Language Server
 Protocol (LSP).
 
 +++
-** New commands 'image-crop' and 'image-cut.
+** New commands 'image-crop' and 'image-cut'.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'i c' and 'i x' (respectively)
 in the local keymap over images.  They rely on external programs, by
