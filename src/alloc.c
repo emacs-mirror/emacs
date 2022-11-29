@@ -80,6 +80,38 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <valgrind/memcheck.h>
 #endif
 
+/* AddressSanitizer exposes additional functions for manually marking
+   memory as poisoned/unpoisoned.  When ASan is enabled and the needed
+   header is available, memory is poisoned when:
+
+   * An ablock is freed (lisp_align_free), or ablocks are initially
+   allocated (lisp_align_malloc).
+   * An interval_block is initially allocated (make_interval).
+   * A dead INTERVAL is put on the interval free list
+   (sweep_intervals).
+   * A sdata is marked as dead (sweep_strings, pin_string).
+   * An sblock is initially allocated (allocate_string_data).
+   * A string_block is initially allocated (allocate_string).
+   * A dead string is put on string_free_list (sweep_strings).
+   * A float_block is initially allocated (make_float).
+   * A dead float is put on float_free_list.
+   * A cons_block is initially allocated (Fcons).
+   * A dead cons is put on cons_free_list (sweep_cons).
+   * A dead vector is put on vector_free_list (setup_on_free_list),
+   or a new vector block is allocated (allocate_vector_from_block).
+   Accordingly, objects reused from the free list are unpoisoned.
+
+   This feature can be disabled wtih the run-time flag
+   `allow_user_poisoning' set to zero.
+*/
+#if ADDRESS_SANITIZER && defined HAVE_SANITIZER_ASAN_INTERFACE_H \
+  && !defined GC_ASAN_POISON_OBJECTS
+# define GC_ASAN_POISON_OBJECTS 1
+# include <sanitizer/asan_interface.h>
+#else
+# define GC_ASAN_POISON_OBJECTS 0
+#endif
+
 /* GC_CHECK_MARKED_OBJECTS means do sanity checks on allocated objects.
    We turn that on by default when ENABLE_CHECKING is defined;
    define GC_CHECK_MARKED_OBJECTS to zero to disable.  */
@@ -1157,6 +1189,26 @@ struct ablocks
   (1 & (intptr_t) ABLOCKS_BUSY (abase) ? abase : ((void **) (abase))[-1])
 #endif
 
+static void
+ASAN_POISON_ABLOCK (const volatile struct ablock *b)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (&b->x, sizeof (b->x));
+#else
+  (void) (b);
+#endif
+}
+
+static void
+ASAN_UNPOISON_ABLOCK (const volatile struct ablock *b)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (&b->x, sizeof (b->x));
+#else
+  (void) (b);
+#endif
+}
+
 /* The list of free ablock.   */
 static struct ablock *free_ablock;
 
@@ -1235,6 +1287,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 	{
 	  abase->blocks[i].abase = abase;
 	  abase->blocks[i].x.next_free = free_ablock;
+	  ASAN_POISON_ABLOCK (&abase->blocks[i]);
 	  free_ablock = &abase->blocks[i];
 	}
       intptr_t ialigned = aligned;
@@ -1247,6 +1300,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
       eassert ((intptr_t) ABLOCKS_BUSY (abase) == aligned);
     }
 
+  ASAN_UNPOISON_ABLOCK (free_ablock);
   abase = ABLOCK_ABASE (free_ablock);
   ABLOCKS_BUSY (abase)
     = (struct ablocks *) (2 + (intptr_t) ABLOCKS_BUSY (abase));
@@ -1278,6 +1332,7 @@ lisp_align_free (void *block)
 #endif
   /* Put on free list.  */
   ablock->x.next_free = free_ablock;
+  ASAN_POISON_ABLOCK (ablock);
   free_ablock = ablock;
   /* Update busy count.  */
   intptr_t busy = (intptr_t) ABLOCKS_BUSY (abase) - 2;
@@ -1290,9 +1345,12 @@ lisp_align_free (void *block)
       bool aligned = busy;
       struct ablock **tem = &free_ablock;
       struct ablock *atop = &abase->blocks[aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1];
-
       while (*tem)
 	{
+#if GC_ASAN_POISON_OBJECTS
+	  __asan_unpoison_memory_region (&(*tem)->x,
+					 sizeof ((*tem)->x));
+#endif
 	  if (*tem >= (struct ablock *) abase && *tem < atop)
 	    {
 	      i++;
@@ -1421,6 +1479,47 @@ static int interval_block_index = INTERVAL_BLOCK_SIZE;
 
 static INTERVAL interval_free_list;
 
+static void
+ASAN_POISON_INTERVAL_BLOCK (const volatile struct interval_block *b)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (b->intervals, sizeof (b->intervals));
+#else
+  (void) (b);
+#endif
+}
+
+static void
+ASAN_UNPOISON_INTERVAL_BLOCK (const volatile struct interval_block *b)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (b->intervals, sizeof (b->intervals));
+#else
+  (void) (b);
+#endif
+}
+
+
+static void
+ASAN_POISON_INTERVAL (const volatile INTERVAL i)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (i, sizeof (*i));
+#else
+  (void) (i);
+#endif
+}
+
+static void
+ASAN_UNPOISON_INTERVAL (const volatile INTERVAL i)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (i, sizeof (*i));
+#else
+  (void) (i);
+#endif
+}
+
 /* Return a new interval.  */
 
 INTERVAL
@@ -1433,6 +1532,7 @@ make_interval (void)
   if (interval_free_list)
     {
       val = interval_free_list;
+      ASAN_UNPOISON_INTERVAL (val);
       interval_free_list = INTERVAL_PARENT (interval_free_list);
     }
   else
@@ -1443,10 +1543,12 @@ make_interval (void)
 	    = lisp_malloc (sizeof *newi, false, MEM_TYPE_NON_LISP);
 
 	  newi->next = interval_block;
+	  ASAN_POISON_INTERVAL_BLOCK (newi);
 	  interval_block = newi;
 	  interval_block_index = 0;
 	}
       val = &interval_block->intervals[interval_block_index++];
+      ASAN_UNPOISON_INTERVAL (val);
     }
 
   MALLOC_UNBLOCK_INPUT;
@@ -1687,6 +1789,91 @@ init_strings (void)
   staticpro (&empty_multibyte_string);
 }
 
+/* Prepare s for denoting a free sdata struct, i.e, poison all bytes
+ * in the flexible array member, except the first SDATA_OFFSET bytes.
+ * This is only effective for strings of size n where n > sdata_size
+ * (n). */
+static void
+ASAN_PREPARE_DEAD_SDATA (const volatile sdata *s, ptrdiff_t size)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (s, sdata_size (size));
+  __asan_unpoison_memory_region (&s->string,
+				 sizeof (struct Lisp_String *));
+  __asan_unpoison_memory_region (&SDATA_NBYTES (s),
+				 sizeof (SDATA_NBYTES (s)));
+#else
+  (void) size;
+  (void) s;
+#endif
+}
+
+/* Prepare s for storing string data for NBYTES bytes.  */
+static void
+ASAN_PREPARE_LIVE_SDATA (const volatile sdata *s,
+			 ptrdiff_t nbytes)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (s, sdata_size (nbytes));
+#else
+  (void) (s);
+  (void) (nbytes);
+#endif
+}
+
+static void
+ASAN_POISON_SBLOCK_DATA (const volatile struct sblock *b,
+			size_t size)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (b->data, size);
+#else
+  (void) (b);
+  (void) (offset);
+  (void) (size);
+#endif
+}
+
+static void
+ASAN_POISON_STRING_BLOCK (const volatile struct string_block *b)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (b->strings, STRING_BLOCK_SIZE);
+#else
+  (void) (b);
+#endif
+}
+
+static void
+ASAN_UNPOISON_STRING_BLOCK (const volatile struct string_block *b)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (b->strings, STRING_BLOCK_SIZE);
+#else
+  (void) (b);
+#endif
+}
+
+static void
+ASAN_POISON_STRING (const volatile struct Lisp_String *s)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (s, sizeof (*s));
+#else
+  (void) (s);
+#endif
+}
+
+static void
+ASAN_UNPOISON_STRING (const volatile struct Lisp_String *s)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (s, sizeof (*s));
+#else
+  (void) (s);
+#endif
+}
+
 
 #ifdef GC_CHECK_STRING_BYTES
 
@@ -1805,12 +1992,14 @@ allocate_string (void)
 	  NEXT_FREE_LISP_STRING (s) = string_free_list;
 	  string_free_list = s;
 	}
+      ASAN_POISON_STRING_BLOCK (b);
     }
 
   check_string_free_list ();
 
   /* Pop a Lisp_String off the free-list.  */
   s = string_free_list;
+  ASAN_UNPOISON_STRING (s);
   string_free_list = NEXT_FREE_LISP_STRING (s);
 
   MALLOC_UNBLOCK_INPUT;
@@ -1870,6 +2059,7 @@ allocate_string_data (struct Lisp_String *s,
 #endif
 
       b = lisp_malloc (size + GC_STRING_EXTRA, clearit, MEM_TYPE_NON_LISP);
+      ASAN_POISON_SBLOCK_DATA (b, size);
 
 #ifdef DOUG_LEA_MALLOC
       if (!mmap_lisp_allowed_p ())
@@ -1891,6 +2081,8 @@ allocate_string_data (struct Lisp_String *s,
 	{
 	  /* Not enough room in the current sblock.  */
 	  b = lisp_malloc (SBLOCK_SIZE, false, MEM_TYPE_NON_LISP);
+	  ASAN_POISON_SBLOCK_DATA (b, SBLOCK_SIZE);
+
 	  data = b->data;
 	  b->next = NULL;
 	  b->next_free = data;
@@ -1903,10 +2095,19 @@ allocate_string_data (struct Lisp_String *s,
 	}
 
       data = b->next_free;
+
       if (clearit)
-	memset (SDATA_DATA (data), 0, nbytes);
+	{
+#if GC_ASAN_POISON_OBJECTS
+	  /* We are accessing SDATA_DATA (data) before it gets
+	   * normally unpoisoned, so do it manually.  */
+	  __asan_unpoison_memory_region (SDATA_DATA (data), nbytes);
+#endif
+	  memset (SDATA_DATA (data), 0, nbytes);
+	}
     }
 
+  ASAN_PREPARE_LIVE_SDATA (data, nbytes);
   data->string = s;
   b->next_free = (sdata *) ((char *) data + needed + GC_STRING_EXTRA);
   eassert ((uintptr_t) b->next_free % alignof (sdata) == 0);
@@ -1998,11 +2199,15 @@ sweep_strings (void)
       int i, nfree = 0;
       struct Lisp_String *free_list_before = string_free_list;
 
+      ASAN_UNPOISON_STRING_BLOCK (b);
+
       next = b->next;
 
       for (i = 0; i < STRING_BLOCK_SIZE; ++i)
 	{
 	  struct Lisp_String *s = b->strings + i;
+
+	  ASAN_UNPOISON_STRING (s);
 
 	  if (s->u.s.data)
 	    {
@@ -2040,6 +2245,8 @@ sweep_strings (void)
 
 		  /* Put the string on the free-list.  */
 		  NEXT_FREE_LISP_STRING (s) = string_free_list;
+		  ASAN_POISON_STRING (s);
+		  ASAN_PREPARE_DEAD_SDATA (data, SDATA_NBYTES (data));
 		  string_free_list = s;
 		  ++nfree;
 		}
@@ -2048,6 +2255,8 @@ sweep_strings (void)
 	    {
 	      /* S was on the free-list before.  Put it there again.  */
 	      NEXT_FREE_LISP_STRING (s) = string_free_list;
+	      ASAN_POISON_STRING (s);
+
 	      string_free_list = s;
 	      ++nfree;
 	    }
@@ -2174,6 +2383,7 @@ compact_small_strings (void)
 		  if (from != to)
 		    {
 		      eassert (tb != b || to < from);
+		      ASAN_PREPARE_LIVE_SDATA (to, nbytes);
 		      memmove (to, from, size + GC_STRING_EXTRA);
 		      to->string->u.s.data = SDATA_DATA (to);
 		    }
@@ -2525,6 +2735,7 @@ pin_string (Lisp_Object string)
       memcpy (s->u.s.data, data, size);
       old_sdata->string = NULL;
       SDATA_NBYTES (old_sdata) = size;
+      ASAN_PREPARE_DEAD_SDATA (old_sdata, size);
     }
   s->u.s.size_byte = -3;
 }
@@ -2582,6 +2793,48 @@ struct float_block
 #define XFLOAT_UNMARK(fptr) \
   UNSETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
 
+static void
+ASAN_POISON_FLOAT_BLOCK (const volatile struct float_block *fblk)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (fblk->floats,
+				 sizeof (fblk->floats));
+#else
+  (void) (fblk);
+#endif
+}
+
+static void
+ASAN_UNPOISON_FLOAT_BLOCK (const volatile struct float_block *fblk)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (fblk->floats,
+				 sizeof (fblk->floats));
+#else
+  (void) (fblk);
+#endif
+}
+
+static void
+ASAN_POISON_FLOAT (const volatile struct Lisp_Float *p)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (p, sizeof (struct Lisp_Float));
+#else
+  (void) (p);
+#endif
+}
+
+static void
+ASAN_UNPOISON_FLOAT (const volatile struct Lisp_Float *p)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (p, sizeof (struct Lisp_Float));
+#else
+  (void) (p);
+#endif
+}
+
 /* Current float_block.  */
 
 static struct float_block *float_block;
@@ -2606,6 +2859,7 @@ make_float (double float_value)
   if (float_free_list)
     {
       XSETFLOAT (val, float_free_list);
+      ASAN_UNPOISON_FLOAT (float_free_list);
       float_free_list = float_free_list->u.chain;
     }
   else
@@ -2616,9 +2870,11 @@ make_float (double float_value)
 	    = lisp_align_malloc (sizeof *new, MEM_TYPE_FLOAT);
 	  new->next = float_block;
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
+	  ASAN_POISON_FLOAT_BLOCK (new);
 	  float_block = new;
 	  float_block_index = 0;
 	}
+      ASAN_UNPOISON_FLOAT (&float_block->floats[float_block_index]);
       XSETFLOAT (val, &float_block->floats[float_block_index]);
       float_block_index++;
     }
@@ -2690,6 +2946,36 @@ static int cons_block_index = CONS_BLOCK_SIZE;
 
 static struct Lisp_Cons *cons_free_list;
 
+static void
+ASAN_POISON_CONS_BLOCK (const volatile struct cons_block *b)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (b->conses, sizeof (b->conses));
+#else
+    (void) (b);
+#endif
+}
+
+static void
+ASAN_POISON_CONS (const volatile struct Lisp_Cons *p)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (p, sizeof (struct Lisp_Cons));
+#else
+  (void) (p);
+#endif
+}
+
+static void
+ASAN_UNPOISON_CONS (const volatile struct Lisp_Cons *p)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (p, sizeof (struct Lisp_Cons));
+#else
+  (void) (p);
+#endif
+}
+
 /* Explicitly free a cons cell by putting it on the free-list.  */
 
 void
@@ -2700,6 +2986,7 @@ free_cons (struct Lisp_Cons *ptr)
   cons_free_list = ptr;
   ptrdiff_t nbytes = sizeof *ptr;
   tally_consing (-nbytes);
+  ASAN_POISON_CONS (ptr);
 }
 
 DEFUN ("cons", Fcons, Scons, 2, 2, 0,
@@ -2712,6 +2999,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 
   if (cons_free_list)
     {
+      ASAN_UNPOISON_CONS (cons_free_list);
       XSETCONS (val, cons_free_list);
       cons_free_list = cons_free_list->u.s.u.chain;
     }
@@ -2722,10 +3010,12 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  struct cons_block *new
 	    = lisp_align_malloc (sizeof *new, MEM_TYPE_CONS);
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
+	  ASAN_POISON_CONS_BLOCK (new);
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
 	}
+      ASAN_UNPOISON_CONS (&cons_block->conses[cons_block_index]);
       XSETCONS (val, &cons_block->conses[cons_block_index]);
       cons_block_index++;
     }
@@ -2980,6 +3270,38 @@ static struct large_vector *large_vectors;
 
 Lisp_Object zero_vector;
 
+static void
+ASAN_POISON_VECTOR_CONTENTS (const volatile struct Lisp_Vector *v,
+			     ptrdiff_t bytes)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (v->contents, bytes);
+#else
+  (void) (v);
+#endif
+}
+
+static void
+ASAN_UNPOISON_VECTOR_CONTENTS (const volatile struct Lisp_Vector *v,
+			       ptrdiff_t bytes)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (v->contents, bytes);
+#else
+  (void) (v);
+#endif
+}
+
+static void
+ASAN_UNPOISON_VECTOR_BLOCK (const volatile struct vector_block *b)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (b->data, sizeof (b->data));
+#else
+  (void) (v);
+#endif
+}
+
 /* Common shortcut to setup vector on a free list.  */
 
 static void
@@ -2992,6 +3314,7 @@ setup_on_free_list (struct Lisp_Vector *v, ptrdiff_t nbytes)
   ptrdiff_t vindex = VINDEX (nbytes);
   eassert (vindex < VECTOR_MAX_FREE_LIST_INDEX);
   set_next_vector (v, vector_free_lists[vindex]);
+  ASAN_POISON_VECTOR_CONTENTS (v, nbytes - header_size);
   vector_free_lists[vindex] = v;
 }
 
@@ -3039,6 +3362,7 @@ allocate_vector_from_block (ptrdiff_t nbytes)
   if (vector_free_lists[index])
     {
       vector = vector_free_lists[index];
+      ASAN_UNPOISON_VECTOR_CONTENTS (vector, nbytes - header_size);
       vector_free_lists[index] = next_vector (vector);
       return vector;
     }
@@ -3052,12 +3376,19 @@ allocate_vector_from_block (ptrdiff_t nbytes)
       {
 	/* This vector is larger than requested.  */
 	vector = vector_free_lists[index];
+	ASAN_UNPOISON_VECTOR_CONTENTS (vector, nbytes - header_size);
 	vector_free_lists[index] = next_vector (vector);
 
 	/* Excess bytes are used for the smaller vector,
 	   which should be set on an appropriate free list.  */
 	restbytes = index * roundup_size + VBLOCK_BYTES_MIN - nbytes;
 	eassert (restbytes % roundup_size == 0);
+#if GC_ASAN_POISON_OBJECTS
+	/* Ensure that accessing excess bytes does not trigger ASan.
+	 */
+	__asan_unpoison_memory_region (ADVANCE (vector, nbytes),
+				       restbytes);
+#endif
 	setup_on_free_list (ADVANCE (vector, nbytes), restbytes);
 	return vector;
       }
@@ -3233,6 +3564,7 @@ sweep_vectors (void)
       for (vector = (struct Lisp_Vector *) block->data;
 	   VECTOR_IN_BLOCK (vector, block); vector = next)
 	{
+	  ASAN_UNPOISON_VECTOR_BLOCK (block);
 	  if (XVECTOR_MARKED_P (vector))
 	    {
 	      XUNMARK_VECTOR (vector);
@@ -3608,6 +3940,47 @@ struct symbol_block
   struct symbol_block *next;
 };
 
+static void
+ASAN_POISON_SYMBOL_BLOCK (const volatile struct symbol_block *s)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (s->symbols, sizeof (s->symbols));
+#else
+  (void) (s);
+#endif
+}
+
+static void
+ASAN_UNPOISON_SYMBOL_BLOCK (const volatile struct symbol_block *s)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (s->symbols, sizeof (s->symbols));
+#else
+  (void) (s);
+#endif
+}
+
+static void
+ASAN_POISON_SYMBOL (const volatile struct Lisp_Symbol *sym)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_poison_memory_region (sym, sizeof (*sym));
+#else
+  (void) (sym);
+#endif
+}
+
+static void
+ASAN_UNPOISON_SYMBOL (const volatile struct Lisp_Symbol *sym)
+{
+#if GC_ASAN_POISON_OBJECTS
+  __asan_unpoison_memory_region (sym, sizeof (*sym));
+#else
+  (void) (sym);
+#endif
+
+}
+
 /* Current symbol block and index of first unused Lisp_Symbol
    structure in it.  */
 
@@ -3661,6 +4034,7 @@ Its value is void, and its function definition and property list are nil.  */)
 
   if (symbol_free_list)
     {
+      ASAN_UNPOISON_SYMBOL (symbol_free_list);
       XSETSYMBOL (val, symbol_free_list);
       symbol_free_list = symbol_free_list->u.s.next;
     }
@@ -3670,10 +4044,13 @@ Its value is void, and its function definition and property list are nil.  */)
 	{
 	  struct symbol_block *new
 	    = lisp_malloc (sizeof *new, false, MEM_TYPE_SYMBOL);
+	  ASAN_POISON_SYMBOL_BLOCK (new);
 	  new->next = symbol_block;
 	  symbol_block = new;
 	  symbol_block_index = 0;
 	}
+
+      ASAN_UNPOISON_SYMBOL (&symbol_block->symbols[symbol_block_index]);
       XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index]);
       symbol_block_index++;
     }
@@ -7179,11 +7556,13 @@ sweep_conses (void)
 		  struct Lisp_Cons *acons = &cblk->conses[pos];
 		  if (!XCONS_MARKED_P (acons))
                     {
+		      ASAN_UNPOISON_CONS (&cblk->conses[pos]);
                       this_free++;
                       cblk->conses[pos].u.s.u.chain = cons_free_list;
                       cons_free_list = &cblk->conses[pos];
                       cons_free_list->u.s.car = dead_object ();
-                    }
+		      ASAN_POISON_CONS (&cblk->conses[pos]);
+		    }
                   else
                     {
                       num_used++;
@@ -7201,6 +7580,7 @@ sweep_conses (void)
         {
           *cprev = cblk->next;
           /* Unhook from the free list.  */
+	  ASAN_UNPOISON_CONS (&cblk->conses[0]);
           cons_free_list = cblk->conses[0].u.s.u.chain;
           lisp_align_free (cblk);
         }
@@ -7227,6 +7607,7 @@ sweep_floats (void)
   for (struct float_block *fblk; (fblk = *fprev); )
     {
       int this_free = 0;
+      ASAN_UNPOISON_FLOAT_BLOCK (fblk);
       for (int i = 0; i < lim; i++)
 	{
 	  struct Lisp_Float *afloat = &fblk->floats[i];
@@ -7234,6 +7615,7 @@ sweep_floats (void)
 	    {
 	      this_free++;
 	      fblk->floats[i].u.chain = float_free_list;
+	      ASAN_POISON_FLOAT (&fblk->floats[i]);
 	      float_free_list = &fblk->floats[i];
 	    }
 	  else
@@ -7250,7 +7632,8 @@ sweep_floats (void)
         {
           *fprev = fblk->next;
           /* Unhook from the free list.  */
-          float_free_list = fblk->floats[0].u.chain;
+	  ASAN_UNPOISON_FLOAT (&fblk->floats[0]);
+	  float_free_list = fblk->floats[0].u.chain;
           lisp_align_free (fblk);
         }
       else
@@ -7276,13 +7659,14 @@ sweep_intervals (void)
   for (struct interval_block *iblk; (iblk = *iprev); )
     {
       int this_free = 0;
-
+      ASAN_UNPOISON_INTERVAL_BLOCK (iblk);
       for (int i = 0; i < lim; i++)
         {
           if (!iblk->intervals[i].gcmarkbit)
             {
               set_interval_parent (&iblk->intervals[i], interval_free_list);
               interval_free_list = &iblk->intervals[i];
+	      ASAN_POISON_INTERVAL (&iblk->intervals[i]);
               this_free++;
             }
           else
@@ -7299,6 +7683,7 @@ sweep_intervals (void)
         {
           *iprev = iblk->next;
           /* Unhook from the free list.  */
+	  ASAN_UNPOISON_INTERVAL (&iblk->intervals[0]);
           interval_free_list = INTERVAL_PARENT (&iblk->intervals[0]);
           lisp_free (iblk);
         }
@@ -7328,6 +7713,8 @@ sweep_symbols (void)
 
   for (sblk = symbol_block; sblk; sblk = *sprev)
     {
+      ASAN_UNPOISON_SYMBOL_BLOCK (sblk);
+
       int this_free = 0;
       struct Lisp_Symbol *sym = sblk->symbols;
       struct Lisp_Symbol *end = sym + lim;
@@ -7349,7 +7736,8 @@ sweep_symbols (void)
               sym->u.s.next = symbol_free_list;
               symbol_free_list = sym;
               symbol_free_list->u.s.function = dead_object ();
-              ++this_free;
+	      ASAN_POISON_SYMBOL (sym);
+	      ++this_free;
             }
           else
             {
@@ -7368,6 +7756,7 @@ sweep_symbols (void)
         {
           *sprev = sblk->next;
           /* Unhook from the free list.  */
+	  ASAN_UNPOISON_SYMBOL (&sblk->symbols[0]);
           symbol_free_list = sblk->symbols[0].u.s.next;
           lisp_free (sblk);
         }
