@@ -4562,6 +4562,7 @@ will be signaled in that case."
         (package--print-email-button maint)
         (string-trim (substring-no-properties (buffer-string))))))))
 
+;;;###autoload
 (defun package-report-bug (desc)
   "Prepare a message to send to the maintainers of a package.
 DESC must be a `package-desc' object."
