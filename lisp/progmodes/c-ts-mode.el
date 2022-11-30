@@ -505,6 +505,19 @@ the subtrees."
      (when var-index `(("Variable" . ,var-index)))
      (when func-index `(("Function" . ,func-index))))))
 
+(defun c-ts-mode--end-of-defun ()
+  "`end-of-defun-function' of `c-ts-mode'."
+  ;; A struct/enum/union_specifier node doesn't include the ; at the
+  ;; end, so we manually skip it.
+  (treesit-end-of-defun)
+  (when (looking-at (rx (* " ") ";"))
+    (goto-char (match-end 0))
+    ;; This part is copied from `end-of-defun'.
+    (unless (bolp)
+      (skip-chars-forward " \t")
+      (if (looking-at "\\s<\\|\n")
+	  (forward-line 1)))))
+
 ;;;###autoload
 (define-derived-mode c-ts-mode--base-mode prog-mode "C"
   "Major mode for editing C, powered by tree-sitter."
@@ -512,8 +525,15 @@ the subtrees."
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
-              (rx (or "specifier"
-                      "definition")))
+              (rx (or "function_definition"
+                      "type_definition"
+                      "struct_specifier"
+                      "enum_specifier"
+                      "union_specifier")))
+
+  ;; Nodes like struct/enum/union_specifier can appear in
+  ;; function_definitions, so we need to find the top-level node.
+  (setq-local treesit-defun-prefer-top-level t)
 
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
@@ -559,7 +579,11 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  ;; Override default value of end-of-defun-function set by
+  ;; `treesit-major-mode-setup'.
+  (setq-local end-of-defun-function #'c-ts-mode--end-of-defun))
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-mode--base-mode "C++"
@@ -587,7 +611,11 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  ;; Override default value of end-of-defun-function set by
+  ;; `treesit-major-mode-setup'.
+  (setq-local end-of-defun-function #'c-ts-mode--end-of-defun))
 
 (provide 'c-ts-mode)
 
