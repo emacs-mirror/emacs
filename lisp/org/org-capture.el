@@ -757,7 +757,7 @@ of the day at point (if any) or the current HH:MM time."
      (_ "* Invalid capture template"))))
 
 (defun org-capture--run-template-functions (keyword &optional local)
-  "Run funcitons associated with KEYWORD on template's plist.
+  "Run functions associated with KEYWORD on template's plist.
 For valid values of KEYWORD see `org-capture-templates'.
 If LOCAL is non-nil use the buffer-local value of `org-capture-plist'."
   ;; Used in place of `run-hooks' because these functions have no associated symbol.

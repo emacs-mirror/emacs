@@ -55,7 +55,7 @@ The old folding backend used in Org is poorly scalable when the file
 size increases beyond few Mbs.  The symptoms usually include slow
 cursor motion, especially in long-running Emacs sessions.
 
-A new optimised folding backend is now available, and enabled by
+A new optimized folding backend is now available, and enabled by
 default.  To disable it, put the following to the Emacs config *before*
 loading Org:
 
@@ -63,14 +63,14 @@ loading Org:
 (setq org-fold-core-style 'overlays)
 #+end_src
 
-Even more performance optimisation can be enabled by customising
+Even more performance optimization can be enabled by customizing
 =org-fold-core--optimise-for-huge-buffers=.  However, this option may
 be dangerous.  Please, read the variable docstring carefully to
 understand the possible consequences.
 
 When =org-fold-core-style= is set to =text-properties=, several new
 features will become available and several notable changes will happen
-to the Org behaviour.  The new features and changes are listed below.
+to the Org behavior.  The new features and changes are listed below.
 
 **** Hidden parts of the links can now be searched and revealed during isearch
 
@@ -78,7 +78,7 @@ In the past, hidden parts of the links could not be searched using
 isearch (=C-s=).  Now, they are searchable by default.  The hidden
 match is also revealed temporarily during isearch.
 
-To restore the old behaviour add the following core to your Emacs
+To restore the old behavior add the following core to your Emacs
 config:
 
 #+begin_src emacs-lisp
@@ -130,13 +130,13 @@ Now, it is not the case anymore.  The drawer folding state is
 preserved.  The initial folding state of all the drawers in buffer is
 set according to the startup visibility settings.
 
-To restore the old behaviour, add the following code to Emacs config:
+To restore the old behavior, add the following code to Emacs config:
 
 #+begin_src emacs-lisp
 (add-hook 'org-cycle-hook #'org-cycle-hide-drawers)
 #+end_src
 
-Note that old behaviour may cause performance issues when cycling
+Note that old behavior may cause performance issues when cycling
 headline visibility in large buffers.
 
 **** =outline-*= functions may no longer work correctly in Org mode
@@ -338,7 +338,7 @@ This is done by adding =#+ATTR_LATEX: :mode tabbing= at the top
 of the table.
 The default column width is set to 1/n times the latex textwidth,
 where n is the number of columns.
-This behaviour can be changed by supplying a =:align= parameter.
+This behavior can be changed by supplying a =:align= parameter.
 
 The tabbing environment can be useful when generating simple tables which
 can be span multiple pages and when table cells are allowed to overflow.
@@ -527,7 +527,7 @@ Diagnostic information about execution speed can be provided according
 to ~org-element--cache-map-statistics~ and
 ~org-element--cache-map-statistics-threshold~.
 
-~org-scan-tags~ and tag views in agenda utilise the new function.
+~org-scan-tags~ and tag views in agenda utilize the new function.
 *** New function ~org-element-at-point-no-context~
 
 This function is like ~org-element-at-point~, but it does not try to
@@ -552,10 +552,10 @@ argument.
 This function is intended for us in the definition of a ~kbd~ macro in
 files that are exported to Texinfo.
 
-*** =org-at-heading-p= now recognises optional argument. Its meaning is inverted.
+*** =org-at-heading-p= now recognizes optional argument. Its meaning is inverted.
 
 =org-at-heading-p= now returns t by default on headings inside folds.
-Passing optional argument will produce the old behaviour.
+Passing optional argument will produce the old behavior.
 
 *** =org-babel-execute:plantuml= can output ASCII graphs in the buffer
 
@@ -679,7 +679,7 @@ a function (called with the same arguments as
 
 An example of a such function for =info:= links is
 ~org-info-description-as-command~.  To access a manual section outside
-of Org, description may be pasted to shell prompt or evaluated withing
+of Org, description may be pasted to shell prompt or evaluated within
 Emacs using =M-:= (wrapped into parenthesis).  For example,
 description of the =info:org#Tags= link is =info "(org) Tags"=.  To
 restore earlier behavior add to your Emacs init file the following:

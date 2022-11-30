@@ -189,7 +189,7 @@
 (defcustom org-persist-remote-files 100
   "Whether to keep persistent data for remote files.
 
-When this variable is nil, never save persitent data associated with
+When this variable is nil, never save persistent data associated with
 remote files.  When t, always keep the data.  When
 `check-existence', contact remote server containing the file and only
 keep the data when the file exists on the server.  When a number, keep

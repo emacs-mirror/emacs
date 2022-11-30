@@ -5943,7 +5943,7 @@ displayed in agenda view."
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (catch :skip
-        ;; We do not run `org-agenda-skip' righ away because every single sexp
+        ;; We do not run `org-agenda-skip' right away because every single sexp
         ;; in the buffer is matched here, unlike day-specific search
         ;; in ordinary timestamps.  Most of the sexps will not match
         ;; the agenda day and it is quicker to run `org-agenda-skip' only for

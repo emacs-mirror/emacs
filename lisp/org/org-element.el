@@ -713,11 +713,11 @@ is cleared and contents are removed in the process."
            ;; DATUM is i.e. a headline, it's property list (`:title'
            ;; in case of headline) can contain parsed objects.  The
            ;; objects will contain `:parent' property set to the DATUM
-           ;; itself.  When copied, these inner `:parent' propery
+           ;; itself.  When copied, these inner `:parent' property
            ;; values will contain incorrect object decoupled from
            ;; DATUM.  Changes to the DATUM copy will not longer be
            ;; reflected in the `:parent' properties.  So, we need to
-           ;; reassign inner `:parent' propreties to the DATUM copy
+           ;; reassign inner `:parent' properties to the DATUM copy
            ;; explicitly.
            (org-element-map element-copy (cons 'plain-text org-element-all-objects)
              (lambda (obj) (when (equal datum (org-element-property :parent obj))
@@ -4780,7 +4780,7 @@ Elements are accumulated into ACC."
                            ;; elements.  Below code reassigns
                            ;; `:parent' property of the element and
                            ;; may interfere with cache
-                           ;; synchronisation if parent element is not
+                           ;; synchronization if parent element is not
                            ;; yet in cache.  Moreover, the returned
                            ;; structure may be altered by caller code
                            ;; arbitrarily.  Hence, we return a copy of
@@ -5434,14 +5434,14 @@ OFFSET and, if they belong to element PARENT, are adopted by it.
 
 PHASE specifies the phase number, as an integer.
 
-For any synchronisation request, all the later requests in the cache
+For any synchronization request, all the later requests in the cache
 must not start at or before END.  See `org-element--cache-submit-request'.")
 
 (defvar-local org-element--cache-sync-timer nil
   "Timer used for cache synchronization.")
 
 (defvar-local org-element--cache-sync-keys-value nil
-  "Id value used to identify keys during synchronisation.
+  "Id value used to identify keys during synchronization.
 See `org-element--cache-key' for more information.")
 
 (defvar-local org-element--cache-change-tic nil
@@ -5468,9 +5468,9 @@ See `org-element--cache-key' for more information.")
 This variable is used to determine when re-parsing buffer is not going
 to slow down the command.
 
-If the commends end up modifying the cache, the worst case scenario is
+If the commands end up modifying the cache, the worst case scenario is
 performance drop.  So, advicing these commands is safe.  Yet, it is
-better to remove the commands adviced in such way from this list.")
+better to remove the commands advised in such a way from this list.")
 
 (defmacro org-element--request-key (request)
   "Get NEXT part of a `org-element--cache-sync-requests' REQUEST."
@@ -6291,7 +6291,7 @@ completing the request."
 	         (key (org-element--cache-key data)))
             ;; Traverse the cache tree.  Ignore all the elements before
             ;; START.  Note that `avl-tree-stack' would not bypass the
-            ;; elements before START and thus would have beeen less
+            ;; elements before START and thus would have been less
             ;; efficient.
 	    (if (and leftp (avl-tree--node-left node)
 		     (not (org-element--cache-key-less-p key start)))
@@ -6793,7 +6793,7 @@ By default (when this variable is nil), cache re-parses modified
 headlines immediately after modification preserving all the unaffected
 elements inside the headline.
 
-The default behaviour works best when users types inside Org buffer of
+The default behavior works best when users types inside Org buffer of
 when buffer modifications are mixed with cache requests.  However,
 large automated edits inserting/deleting many headlines are somewhat
 slower by default (as in `org-archive-subtree').  Let-binding this
@@ -7383,7 +7383,7 @@ the cache."
     (save-excursion
       (save-restriction
         (unless narrow (widen))
-        ;; Synchronise cache up to the end of mapped region.
+        ;; Synchronize cache up to the end of mapped region.
         (org-element-at-point to-pos)
         (cl-macrolet ((cache-root
                         ;; Use the most optimal version of cache available.
@@ -7418,7 +7418,7 @@ the cache."
                         ;; point.
                         () `(progn
                               ;; Parsing is one of the performance
-                              ;; bottlenecks.  Make sure to optimise it as
+                              ;; bottlenecks.  Make sure to optimize it as
                               ;; much as possible.
                               ;;
                               ;; Avoid extra staff like timer cancels et al
@@ -7737,7 +7737,7 @@ the cache."
                       ;; longer trust STACK.
                       (cache-walk-restart)))
                   ;; Second, move to the right branch of the tree or skip
-                  ;; it alltogether.
+                  ;; it altogether.
                   (if continue-flag
 	              (setq continue-flag nil)
 	            (setq node (if (and (car stack)
