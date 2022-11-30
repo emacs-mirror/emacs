@@ -47,18 +47,18 @@ From now on, only the most essential operations will be officially
 supported in its absence, and users will see a warning upon
 entry-point invocation when it's not present.
 
-** Tighter auth-source integration with bigger changes on the horizon.
+** Tighter auth-source integration.
 The days of hit-and-miss auth-source queries are hopefully behind us.
 With the overhaul of the services module temporarily shelved and the
 transition to SASL-based authentication still underway, users may feel
 left in the lurch to endure yet another release cycle of backtick
 hell.  For some, auth-source may provide a workaround in the form of
-nonstandard server passwords.  See the section titled "auth-source" in
-the Integrations chapter of ERC's manual.
+nonstandard server passwords.  See the section entitled "auth-source"
+in the Integrations chapter of ERC's manual.
 
 ** Rudimentary SASL support has arrived.
-A new module, 'erc-sasl', now ships with ERC 5.5.  See the SASL
-section in the manual for details.
+A new module, 'erc-sasl', now ships with ERC.  See Info node "(erc)
+SASL" in the manual for details.
 
 ** Username argument for entry-point commands.
 Commands 'erc' and 'erc-tls' now accept a ':user' keyword argument,
@@ -88,8 +88,8 @@ off by default, new users are encouraged to enable them.
 Clicking on 'irc://' and 'ircs://' links elsewhere in Emacs now does
 the right thing most of the time.  However, for security reasons,
 users are now prompted to confirm connection parameters prior to lift
-off.  See the new '(erc) Integrations' section in the Info manual to
-override this.
+off.  See the new '(erc) Integrations' section in the Info manual for
+details.
 
 ** Miscellaneous behavioral changes impacting the user experience.
 A bug has been fixed that saw prompts being mangled, doubled, or
@@ -116,6 +116,12 @@ A number of core macros and other definitions have been moved to a new
 file called erc-common.el.  This was done to further lessen the
 various complications arising from the mutual dependency between 'erc'
 and 'erc-backend'.
+
+ERC now relies on the Compat library from GNU ELPA to supply forward
+compatibility shims for users running older versions of Emacs.  The
+required Compat version resides atop ERC's main library file, in the
+'Package-Requires' header.  Third-party ERC modules will benefit
+automatically from this adoption.
 
 The function 'erc-network' always returns non-nil in server and target
 buffers belonging to a successfully established IRC connection, even

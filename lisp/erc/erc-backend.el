@@ -425,7 +425,7 @@ Called with a server buffer as its only argument.  Potential uses
 include exponential backoff and probing for connectivity prior to
 dialing.  Use `erc-schedule-reconnect' to instead try again later
 and optionally alter the attempts tally."
-  :package-version '(ERC . "5.4.1") ; FIXME on next release
+  :package-version '(ERC . "5.5")
   :type '(choice (function-item erc-server-delayed-reconnect)
                  function))
 
@@ -1167,7 +1167,7 @@ Note that future bundled modules providing IRCv3 functionality
 will not be compatible with the legacy format.  User code should
 eventually transition to expecting this \"5.5+ variant\" and set
 this option to nil."
-  :package-version '(ERC . "5.4.1") ; FIXME increment on next release
+  :package-version '(ERC . "5.5")
   :type '(choice (const nil)
                  (const legacy)
                  (const overridable)))
@@ -1201,7 +1201,7 @@ instead, leave them as a single string."
                 (get 'erc-parse-tags 'erc-v3-warned-p))
       (put 'erc-parse-tags 'erc-v3-warned-p t)
       (display-warning
-       'ERC
+       'erc
        (concat
         "Legacy ERC tags behavior is currently in effect, but other modules,"
         " including those bundled with ERC, may override this in future"
