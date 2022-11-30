@@ -466,6 +466,7 @@ documentation and marking the package as installed."
   (package--save-selected-packages
    (cons (package-desc-name pkg-desc)
          package-selected-packages))
+  (package--quickstart-maybe-refresh)
 
   ;; Confirm that the installation was successful
   (let ((main-file (package-vc--main-file pkg-desc)))
