@@ -42,6 +42,10 @@
 ;; Bibliography accepts any style supported by "natbib" package.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'oc)
 
 (declare-function org-element-property "org-element" (property element))

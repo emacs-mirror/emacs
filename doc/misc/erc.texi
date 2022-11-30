@@ -392,10 +392,14 @@ modules are loaded.
 There is a spiffy customize interface, which may be reached by typing
 @kbd{M-x customize-option @key{RET} erc-modules @key{RET}}.
 When removing a module outside of the Custom ecosystem, you may wish
-to ensure it's disabled by invoking its associated minor-mode toggle,
-such as @kbd{M-x erc-spelling-mode @key{RET}}.  Note that, these days,
-calling @code{erc-update-modules} in an init file is typically
-unnecessary.
+to ensure it's disabled by invoking its associated minor-mode toggle
+with a nonpositive prefix argument, for example, @kbd{C-u - M-x
+erc-spelling-mode @key{RET}}.  Additionally, if you plan on loading
+third-party modules that perform atypical setup on activation, you may
+need to arrange for calling @code{erc-update-modules} in your init
+file.  Examples of such setup might include registering an
+@code{erc-before-connect} hook, advising @code{erc-open}, and
+modifying @code{erc-modules} itself.
 
 The following is a list of available modules.
 
@@ -1051,17 +1055,10 @@ borrowing that parameter for its own uses, thus allowing you to call
 @code{erc-tls} with @code{:password} set to your NickServ password.
 
 You can also set this to a nonemtpy string, and ERC will send that
-when needed, no questions asked.  If you instead give a non-@code{nil}
-symbol (other than @code{:password}), like @samp{Libera.Chat}, ERC
-will use it for the @code{:host} field in an auth-source query.
-Actually, the same goes for when this option is @code{nil} but an
-explicit session ID is already on file (@pxref{Network Identifier}).
-For all such queries, ERC specifies the resolved value of
-@code{erc-sasl-user} for the @code{:user} (@code{:login}) param.  Keep
-in mind that none of this matters unless
-@code{erc-sasl-auth-source-function} holds a function, and it's
-@code{nil} by default.  As a last resort, ERC will prompt you for
-input.
+when needed, no questions asked.  Or, if you'd rather use auth-source,
+set @code{erc-sasl-auth-source-function} to a function, and ERC will
+perform an auth-source query instead.  As last resort in all cases,
+ERC will prompt you for input.
 
 Lastly, if your mechanism is @code{ecdsa-nist256p-challenge}, this
 option should instead hold the file name of your key.
@@ -1071,7 +1068,23 @@ option should instead hold the file name of your key.
 This is nearly identical to the other ERC @samp{auth-source} function
 options (@pxref{ERC auth-source functions}) except that the default
 value here is @code{nil}, meaning you have to set it to something like
-@code{erc-auth-source-search} for queries to be performed.
+@code{erc-auth-source-search} for queries to be performed.  For
+convenience, this module provides the following as a possible value:
+
+@defun erc-sasl-auth-source-password-as-host &rest plist
+Setting @code{erc-sasl-auth-source-function} to this function tells
+ERC to use @code{erc-sasl-password} for the @code{:host} field when
+querying auth-source, even if its value is the default
+@code{:password}, in which case ERC knows to ``resolve'' it to
+@code{erc-session-password} and use that as long as it's
+non-@code{nil}.  Otherwise, ERC just defers to
+@code{erc-auth-source-search} to determine the @code{:host}, along
+with everything else.
+@end defun
+
+As long as this option specifies a function, ERC will pass it the
+``resolved'' value of @code{erc-sasl-user} for the auth-source
+@code{:user} param.
 @end defopt
 
 @defopt erc-sasl-authzid
@@ -1081,6 +1094,78 @@ happens because the server is buggy or misconfigured.  If you suspect
 such a thing, please contact your network operator.  Otherwise, just
 leave this set to @code{nil}.
 @end defopt
+
+@subheading Examples
+
+@itemize @bullet
+@item
+Defaults
+
+@lisp
+(erc-tls :server "irc.libera.chat" :port 6697
+         :nick "aph"
+         :user "APHacker"
+         :password "changeme")
+@end lisp
+
+Here, after adding @code{sasl} to @code{erc-modules} via the Customize
+interface, you authenticate to Libera.Chat using the @samp{PLAIN}
+mechanism and your NickServ credentials, @samp{APHacker} and
+@samp{changeme}.
+
+@item
+External
+
+@lisp
+(setopt erc-sasl-mechanism 'external)
+
+(erc-tls :server "irc.libera.chat" :port 6697 :nick "aph"
+         :client-certificate
+         '("/home/aph/my.key" "/home/aph/my.crt"))
+@end lisp
+
+You decide to switch things up and try out the @samp{EXTERNAL}
+mechanism.  You follow your network's instructions for telling
+NickServ about your client-certificate's fingerprint, and you
+authenticate successfully.
+
+@item
+Multiple networks
+
+@example
+# ~/.authinfo.gpg
+
+machine irc.libera.chat key /home/aph/my.key cert /home/aph/my.crt
+machine Example.Net login alyssa password sEcReT
+machine Example.Net login aph-bot password sesame
+@end example
+
+@lisp
+;; init.el
+
+(defun my-erc-up (network)
+  (interactive "Snetwork: ")
+
+  (pcase network
+    ('libera
+     (let ((erc-sasl-mechanism 'external))
+       (erc-tls :server "irc.libera.chat" :port 6697
+                :client-certificate t)))
+    ('example
+     (let ((erc-sasl-auth-source-function
+            #'erc-sasl-auth-source-password-as-host))
+       (erc-tls :server "irc.example.net" :port 6697
+                :user "alyssa"
+                :password "Example.Net")))))
+@end lisp
+
+You've started storing your credentials with auth-source and have
+decided to try SASL on another network as well.  But there's a catch:
+this network doesn't support @samp{EXTERNAL}.  You use
+@code{let}-binding to get around this and successfully authenticate to
+both networks.
+
+@end itemize
 
 @subheading Troubleshooting
 

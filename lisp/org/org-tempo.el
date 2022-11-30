@@ -4,7 +4,7 @@
 ;;
 ;; Author: Rasmus Pank Roulund <emacs at pank dot eu>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -38,6 +38,9 @@
 ;;
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'tempo)
 (require 'cl-lib)
 (require 'org)
@@ -67,7 +70,6 @@ just like `org-structure-template-alist'.  The tempo snippet
 
 Do not use \"I\" as a KEY, as it is reserved for expanding
 \"#+include\"."
-  :group 'org-tempo
   :type '(repeat (cons (string :tag "Key")
 		       (string :tag "Keyword")))
   :package-version '(Org . "9.2"))
@@ -102,8 +104,8 @@ Tempo templates will be added."
 
 Go through `org-structure-template-alist' and
 `org-tempo-keywords-alist' and update tempo templates."
-  (mapc 'org--check-org-structure-template-alist '(org-structure-template-alist
-						   org-tempo-keywords-alist))
+  (mapc #'org--check-org-structure-template-alist '(org-structure-template-alist
+						    org-tempo-keywords-alist))
   (let ((keys (org-tempo--keys)))
     ;; Check for duplicated snippet keys and warn if any are found.
     (when (> (length keys) (length (delete-dups keys)))
@@ -119,11 +121,18 @@ Go through `org-structure-template-alist' and
   "Add block entry from `org-structure-template-alist'."
   (let* ((key (format "<%s" (car entry)))
 	 (name (cdr entry))
-	 (special (member name '("src" "export"))))
+	 (special (member name '("src" "export")))
+         (upcase? (string= (car (split-string name))
+                           (upcase (car (split-string name))))))
     (tempo-define-template (format "org-%s" (replace-regexp-in-string " " "-" name))
-			   `(,(format "#+begin_%s%s" name (if special " " ""))
+			   `(,(format "#+%s_%s%s"
+                                      (if upcase? "BEGIN" "begin")
+                                      name
+                                      (if special " " ""))
 			     ,(when special 'p) '> n ,(unless special 'p) n
-			     ,(format "#+end_%s" (car (split-string name " ")))
+			     ,(format "#+%s_%s"
+                                      (if upcase? "END" "end")
+                                      (car (split-string name " ")))
 			     >)
 			   key
 			   (format "Insert a %s block" name)
@@ -176,8 +185,8 @@ didn't succeed."
 ;; Org Tempo is set up with each new Org buffer and potentially in the
 ;; current Org buffer.
 
-(add-hook 'org-mode-hook 'org-tempo-setup)
-(add-hook 'org-tab-before-tab-emulation-hook 'org-tempo-complete-tag)
+(add-hook 'org-mode-hook #'org-tempo-setup)
+(add-hook 'org-tab-before-tab-emulation-hook #'org-tempo-complete-tag)
 
 ;; Enable Org Tempo in all open Org buffers.
 (dolist (b (org-buffer-list 'files))

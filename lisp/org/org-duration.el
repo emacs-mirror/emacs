@@ -51,6 +51,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-macs)
 
@@ -98,7 +101,7 @@ sure to call the following command:
   :version "26.1"
   :package-version '(Org . "9.1")
   :set (lambda (var val)
-         (set-default var val)
+         (set-default-toplevel-value var val)
          ;; Avoid recursive load at startup.
 	 (when (featurep 'org-duration)
            (org-duration-set-regexps)))
@@ -284,30 +287,31 @@ translated into 0.0.
 
 Return value as a float.  Raise an error if duration format is
 not recognized."
-  (cond
-   ((equal duration "") 0.0)
-   ((numberp duration) (float duration))
-   ((string-match-p org-duration--h:mm-re duration)
-    (pcase-let ((`(,hours ,minutes ,seconds)
-		 (mapcar #'string-to-number (split-string duration ":"))))
-      (+ (/ (or seconds 0) 60.0) minutes (* 60 hours))))
-   ((string-match-p org-duration--full-re duration)
-    (let ((minutes 0)
-	  (s 0))
-      (while (string-match org-duration--unit-re duration s)
-	(setq s (match-end 0))
-	(let ((value (string-to-number (match-string 1 duration)))
-	      (unit (match-string 2 duration)))
-	  (cl-incf minutes (* value (org-duration--modifier unit canonical)))))
-      (float minutes)))
-   ((string-match org-duration--mixed-re duration)
-    (let ((units-part (match-string 1 duration))
-	  (hms-part (match-string 2 duration)))
-      (+ (org-duration-to-minutes units-part)
-	 (org-duration-to-minutes hms-part))))
-   ((string-match-p "\\`[0-9]+\\(\\.[0-9]*\\)?\\'" duration)
-    (float (string-to-number duration)))
-   (t (error "Invalid duration format: %S" duration))))
+  (save-match-data
+    (cond
+     ((equal duration "") 0.0)
+     ((numberp duration) (float duration))
+     ((string-match-p org-duration--h:mm-re duration)
+      (pcase-let ((`(,hours ,minutes ,seconds)
+		   (mapcar #'string-to-number (split-string duration ":"))))
+        (+ (/ (or seconds 0) 60.0) minutes (* 60 hours))))
+     ((string-match-p org-duration--full-re duration)
+      (let ((minutes 0)
+	    (s 0))
+        (while (string-match org-duration--unit-re duration s)
+	  (setq s (match-end 0))
+	  (let ((value (string-to-number (match-string 1 duration)))
+	        (unit (match-string 2 duration)))
+	    (cl-incf minutes (* value (org-duration--modifier unit canonical)))))
+        (float minutes)))
+     ((string-match org-duration--mixed-re duration)
+      (let ((units-part (match-string 1 duration))
+	    (hms-part (match-string 2 duration)))
+        (+ (org-duration-to-minutes units-part)
+	   (org-duration-to-minutes hms-part))))
+     ((string-match-p "\\`[0-9]+\\(\\.[0-9]*\\)?\\'" duration)
+      (float (string-to-number duration)))
+     (t (error "Invalid duration format: %S" duration)))))
 
 ;;;###autoload
 (defun org-duration-from-minutes (minutes &optional fmt canonical)

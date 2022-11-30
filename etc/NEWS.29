@@ -499,7 +499,7 @@ instead.
 ** The url-dired.el library is now obsolete.
 
 ---
-** The fast-lock.el and lazy-lock.el library have been removed.
+** The fast-lock.el and lazy-lock.el libraries have been removed.
 They have been obsolete since Emacs 22.1.
 
 The variable 'font-lock-support-mode' is occasionally useful for
@@ -1033,6 +1033,9 @@ the default candidate.
 The command pops up a buffer at the bottom of the screen with a few
 helpful commands for various tasks.  You can toggle the display using
 'C-h q'.
+
+** Emacs 29.1 comes with Org v9.6.
+See the file ORG-NEWS for user-visible changes in Org.
 
 ** Outline Mode
 
@@ -2911,7 +2914,7 @@ The new face 'abbrev-table-name' is used to display the abbrev table
 name.
 
 ---
-*** New key binding 'O' in 'M-x list-buffer'.
+*** New key binding 'O' in 'M-x list-buffers'.
 This key is now bound to 'Buffer-menu-view-other-window', which will
 view this line's buffer in View mode in another window.
 
@@ -2926,7 +2929,7 @@ based on data provided by language servers using the Language Server
 Protocol (LSP).
 
 +++
-** New commands 'image-crop' and 'image-cut.
+** New commands 'image-crop' and 'image-cut'.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'i c' and 'i x' (respectively)
 in the local keymap over images.  They rely on external programs, by
@@ -3667,7 +3670,7 @@ If the function returns 'dont-clear-message', then the message is not
 cleared, with the assumption that the function cleared it itself.
 
 +++
-** The local variable section now supports defining fallback modes.
+** The local variables section now supports defining fallback modes.
 This was previously only available when using a property line (i.e.,
 putting the modes on the first line of a file).
 
@@ -3714,8 +3717,7 @@ compliant.
 +++
 ** New macro 'setopt'.
 This is like 'setq', but is meant to be used for user options instead
-of plain variables, and
-uses 'custom-set'/'set-default' to set them.
+of plain variables, and uses 'custom-set'/'set-default' to set them.
 
 +++
 ** New utility predicate 'mode-line-window-selected-p'.

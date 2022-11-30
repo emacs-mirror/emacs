@@ -136,6 +136,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'org)
 (require 'cl-lib)
 
@@ -208,7 +211,11 @@ this function is called.  Otherwise, the current major mode menu is used."
   (interactive "@e \nP")
   (if (and (= (event-click-count event) 1)
 	   (or (not mark-active)
-               (sit-for (/ (mouse-double-click-time) 1000.0))))
+               (sit-for
+                (/ (if (fboundp 'mouse-double-click-time) ; Emacs >= 29
+                       (mouse-double-click-time)
+                     double-click-time)
+                   1000.0))))
       (progn
 	(select-window (posn-window (event-start event)))
 	(when (not (org-mouse-mark-active))
@@ -217,10 +224,7 @@ this function is called.  Otherwise, the current major mode menu is used."
 	  (sit-for 0))
 	(if (functionp org-mouse-context-menu-function)
 	    (funcall org-mouse-context-menu-function event)
-	  (if (fboundp 'mouse-menu-major-mode-map)
-	      (popup-menu (mouse-menu-major-mode-map) event prefix)
-	    (with-no-warnings ; don't warn about fallback, obsolete since 23.1
-	      (mouse-major-mode-menu event prefix)))))
+          (popup-menu (mouse-menu-major-mode-map) event prefix)))
     (setq this-command 'mouse-save-then-kill)
     (mouse-save-then-kill event)))
 
@@ -580,15 +584,17 @@ This means, between the beginning of line and the point."
   (insert text)
   (beginning-of-line))
 
-(defadvice dnd-insert-text (around org-mouse-dnd-insert-text activate)
+(advice-add 'dnd-insert-text :around #'org--mouse-dnd-insert-text)
+(defun org--mouse-dnd-insert-text (orig-fun window action text &rest args)
   (if (derived-mode-p 'org-mode)
       (org-mouse-insert-item text)
-    ad-do-it))
+    (apply orig-fun window action text args)))
 
-(defadvice dnd-open-file (around org-mouse-dnd-open-file activate)
+(advice-add 'dnd-open-file :around #'org--mouse-dnd-open-file)
+(defun org--mouse-dnd-open-file (orig-fun uri &rest args)
   (if (derived-mode-p 'org-mode)
       (org-mouse-insert-item uri)
-    ad-do-it))
+    (apply orig-fun uri args)))
 
 (defun org-mouse-match-closure (function)
   (let ((match (match-data t)))
@@ -894,15 +900,17 @@ This means, between the beginning of line and the point."
                   (1 `(face nil keymap ,org-mouse-map mouse-face highlight) prepend)))
                t))
 
-            (defadvice org-open-at-point (around org-mouse-open-at-point activate)
-              (let ((context (org-context)))
-                (cond
-                 ((assq :headline-stars context) (org-cycle))
-                 ((assq :checkbox context) (org-toggle-checkbox))
-                 ((assq :item-bullet context)
-                  (let ((org-cycle-include-plain-lists t)) (org-cycle)))
-                 ((org-footnote-at-reference-p) nil)
-                 (t ad-do-it))))))
+            (advice-add 'org-open-at-point :around #'org--mouse-open-at-point)))
+
+(defun org--mouse-open-at-point (orig-fun &rest args)
+  (let ((context (org-context)))
+    (cond
+     ((assq :headline-stars context) (org-cycle))
+     ((assq :checkbox context) (org-toggle-checkbox))
+     ((assq :item-bullet context)
+      (let ((org-cycle-include-plain-lists t)) (org-cycle)))
+     ((org-footnote-at-reference-p) nil)
+     (t (apply orig-fun args)))))
 
 (defun org-mouse-move-tree-start (_event)
   (interactive "e")
@@ -1003,10 +1011,10 @@ This means, between the beginning of line and the point."
 	    (with-current-buffer buffer
 	      (widen)
 	      (goto-char pos)
-	      (org-show-hidden-entry)
+	      (org-fold-show-hidden-entry)
 	      (save-excursion
 		(and (outline-next-heading)
-		     (org-flag-heading nil)))   ; show the next heading
+		     (org-fold-heading nil)))   ; show the next heading
 	      (org-back-to-heading)
 	      (setq marker (point-marker))
               (goto-char (max (line-beginning-position) (- (line-end-position) anticol)))

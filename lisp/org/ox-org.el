@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
-;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
+;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: org, wp
 
 ;; This file is part of GNU Emacs.
@@ -24,6 +24,9 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'ox)
 (declare-function htmlize-buffer "ext:htmlize" (&optional buffer))
@@ -328,8 +331,8 @@ Return output file name."
 	   (work-buffer (or visitingp (find-file-noselect filename)))
 	   newbuf)
       (with-current-buffer work-buffer
-        (org-font-lock-ensure)
-        (org-show-all)
+        (font-lock-ensure)
+        (org-fold-show-all)
         (setq newbuf (htmlize-buffer)))
       (with-current-buffer newbuf
 	(when org-org-htmlized-css-url

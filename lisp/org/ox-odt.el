@@ -4,7 +4,7 @@
 
 ;; Author: Jambunathan K <kjambunathan at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -25,12 +25,19 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'format-spec)
 (require 'org-compat)
 (require 'org-macs)
 (require 'ox)
 (require 'table nil 'noerror)
+
+(declare-function org-at-heading-p "org" (&optional _))
+(declare-function org-back-to-heading "org" (&optional invisible-ok))
+(declare-function org-next-visible-heading "org" (arg))
 
 ;;; Define Back-End
 
@@ -362,7 +369,6 @@ When this option is turned on, `indent-region' is run on all
 component xml buffers before they are saved.  Turn this off for
 regular use.  Turn this on if you need to examine the xml
 visually."
-  :group 'org-export-odt
   :version "24.1"
   :type 'boolean)
 
@@ -399,14 +405,13 @@ with GNU ELPA tar or standard Emacs distribution."
   :type '(choice
 	  (const :tag "Not set" nil)
 	  (directory :tag "Schema directory"))
-  :group 'org-export-odt
   :version "24.1"
   :set
   (lambda (var value)
     "Set `org-odt-schema-dir'.
 Also add it to `rng-schema-locating-files'."
     (let ((schema-dir value))
-      (set var
+      (set-default-toplevel-value var
 	   (if (and
 		(file-expand-wildcards
 		 (expand-file-name "od-manifest-schema*.rnc" schema-dir))
@@ -437,7 +442,6 @@ If unspecified, the file named \"OrgOdtContentTemplate.xml\"
 under `org-odt-styles-dir' is used."
   :type '(choice (const nil)
 		 (file))
-  :group 'org-export-odt
   :version "24.3")
 
 (defcustom org-odt-styles-file nil
@@ -471,7 +475,6 @@ a per-file basis.  For example,
 
 #+ODT_STYLES_FILE: \"/path/to/styles.xml\" or
 #+ODT_STYLES_FILE: (\"/path/to/file.ott\" (\"styles.xml\" \"image/hdr.png\"))."
-  :group 'org-export-odt
   :version "24.1"
   :type
   '(choice
@@ -486,7 +489,6 @@ a per-file basis.  For example,
 
 (defcustom org-odt-display-outline-level 2
   "Outline levels considered for enumerating captioned entities."
-  :group 'org-export-odt
   :version "24.4"
   :package-version '(Org . "8.0")
   :type 'integer)
@@ -516,7 +518,6 @@ specifiers are interpreted as below:
 %d output dir in full
 %D output dir as a URL.
 %x extra options as set in `org-odt-convert-capabilities'."
-  :group 'org-export-odt
   :version "24.1"
   :type
   '(choice
@@ -529,7 +530,6 @@ specifiers are interpreted as below:
   "Use this converter to convert from \"odt\" format to other formats.
 During customization, the list of converter names are populated
 from `org-odt-convert-processes'."
-  :group 'org-export-odt
   :version "24.1"
   :type '(choice :convert-widget
 		 (lambda (w)
@@ -591,7 +591,6 @@ format) to be converted to any of the export formats associated
 with that class.
 
 See default setting of this variable for a typical configuration."
-  :group 'org-export-odt
   :version "24.1"
   :type
   '(choice
@@ -618,7 +617,6 @@ variable, the list of valid values are populated based on
 
 You can set this option on per-file basis using file local
 values.  See Info node `(emacs) File Variables'."
-  :group 'org-export-odt
   :version "24.1"
   :type '(choice :convert-widget
 		 (lambda (w)
@@ -644,7 +642,6 @@ The function must accept two parameters:
 The function should return the string to be exported.
 
 The default value simply returns the value of CONTENTS."
-  :group 'org-export-odt
   :version "26.1"
   :package-version '(Org . "8.3")
   :type 'function)
@@ -664,7 +661,6 @@ TEXT      the main headline text (string).
 TAGS      the tags string, separated with colons (string or nil).
 
 The function result will be used as headline text."
-  :group 'org-export-odt
   :version "26.1"
   :package-version '(Org . "8.3")
   :type 'function)
@@ -685,7 +681,6 @@ The function must accept six parameters:
   CONTENTS  the contents of the inlinetask, as a string.
 
 The function should return the string to be exported."
-  :group 'org-export-odt
   :version "26.1"
   :package-version '(Org . "8.3")
   :type 'function)
@@ -712,7 +707,6 @@ nil            Ignore math snippets.
                be loaded.
 
 Any other symbol is a synonym for `mathjax'."
-  :group 'org-export-odt
   :version "24.4"
   :package-version '(Org . "8.0")
   :type '(choice
@@ -732,7 +726,6 @@ Any other symbol is a synonym for `mathjax'."
 A rule consists in an association whose key is the type of link
 to consider, and value is a regexp that will be matched against
 link's path."
-  :group 'org-export-odt
   :version "24.4"
   :package-version '(Org . "8.0")
   :type '(alist :key-type (string :tag "Type")
@@ -745,7 +738,6 @@ link's path."
 A rule consists in an association whose key is the type of link
 to consider, and value is a regexp that will be matched against
 link's path."
-  :group 'org-export-odt
   :version "26.1"
   :package-version '(Org . "8.3")
   :type '(alist :key-type (string :tag "Type")
@@ -756,7 +748,6 @@ link's path."
 Use this for sizing of embedded images.  See Info node `(org)
 Images in ODT export' for more information."
   :type 'float
-  :group 'org-export-odt
   :version "24.4"
   :package-version '(Org . "8.1"))
 
@@ -778,7 +769,6 @@ styles.xml already contains needed styles for colorizing to work.
 
 This variable is effective only if `org-odt-fontify-srcblocks' is
 turned on."
-  :group 'org-export-odt
   :version "24.1"
   :type 'boolean)
 
@@ -788,7 +778,6 @@ Turn this option on if you want to colorize the source code
 blocks in the exported file.  For colorization to work, you need
 to make available an enhanced version of `htmlfontify' library."
   :type 'boolean
-  :group 'org-export-odt
   :version "24.1")
 
 
@@ -873,7 +862,6 @@ implementation filed under `org-odt-get-table-cell-styles'.
 The TABLE-STYLE-NAME \"OrgEquation\" is used internally for
 formatting of numbered display equations.  Do not delete this
 style from the list."
-  :group 'org-export-odt
   :version "24.1"
   :type '(choice
           (const :tag "None" nil)
@@ -918,7 +906,6 @@ document by setting the default language and country either using
 the application UI or through a custom styles file.
 
 See `org-odt--build-date-styles' for implementation details."
-  :group 'org-export-odt
   :version "24.4"
   :package-version '(Org . "8.0")
   :type 'boolean)
@@ -933,7 +920,7 @@ See `org-odt--build-date-styles' for implementation details."
   (let* ((format-timestamp
 	  (lambda (timestamp format &optional end utc)
 	    (if timestamp
-		(org-timestamp-format timestamp format end utc)
+		(org-format-timestamp timestamp format end utc)
 	      (format-time-string format nil utc))))
 	 (has-time-p (or (not timestamp)
 			 (org-timestamp-has-time-p timestamp)))
@@ -949,14 +936,8 @@ See `org-odt--build-date-styles' for implementation details."
 	     ;; don't bother about formatting the date contents to be
 	     ;; compatible with "OrgDate1" and "OrgDateTime" styles.  A
 	     ;; simple Org-style date should suffice.
-	     (date (let* ((formats
-			   (if org-display-custom-times
-			       (cons (substring
-				      (car org-time-stamp-custom-formats) 1 -1)
-				     (substring
-				      (cdr org-time-stamp-custom-formats) 1 -1))
-			     '("%Y-%m-%d %a" . "%Y-%m-%d %a %H:%M")))
-			  (format (if has-time-p (cdr formats) (car formats))))
+	     (date (let ((format (org-time-stamp-format
+                                  has-time-p 'no-brackets 'custom)))
 		     (funcall format-timestamp timestamp format end)))
 	     (repeater (let ((repeater-type (org-element-property
 					     :repeater-type timestamp))
@@ -1435,8 +1416,10 @@ original parsed data.  INFO is a plist holding export options."
 	 ;; value before moving on to temp-buffer context down below.
 	 (custom-time-fmts
 	  (if org-display-custom-times
-	      (cons (substring (car org-time-stamp-custom-formats) 1 -1)
-		    (substring (cdr org-time-stamp-custom-formats) 1 -1))
+              (cons (org-time-stamp-format
+                     nil 'no-brackets 'custom)
+                    (org-time-stamp-format
+                     'with-time 'no-brackets 'custom))
 	    '("%Y-%M-%d %a" . "%Y-%M-%d %a %H:%M"))))
     (with-temp-buffer
       (insert-file-contents
@@ -2005,14 +1988,16 @@ information."
 
 ;;;; Latex Environment
 
-
 ;; (eval-after-load 'ox-odt '(ad-deactivate 'org-format-latex-as-mathml))
-;; (defadvice org-format-latex-as-mathml	; FIXME
-;;   (after org-odt-protect-latex-fragment activate)
+;; (advice-add 'org-format-latex-as-mathml	; FIXME
+;;   :around #'org--odt-protect-latex-fragment)
+;; (defun org--odt-protect-latex-fragment (orig-fun latex-frag &rest args)
 ;;   "Encode LaTeX fragment as XML.
 ;; Do this when translation to MathML fails."
-;;   (unless (> (length ad-return-value) 0)
-;;     (setq ad-return-value (org-odt--encode-plain-text (ad-get-arg 0)))))
+;;   (let ((retval (apply orig-fun latex-frag args)))
+;;     (if (> (length retval) 0)
+;;         retval
+;;       (org-odt--encode-plain-text latex-frag))))
 
 (defun org-odt-latex-environment (latex-environment _contents info)
   "Transcode a LATEX-ENVIRONMENT element from Org to ODT.
@@ -2699,7 +2684,14 @@ INFO is a plist holding contextual information.  See
 		((member type '("http" "https" "ftp" "mailto"))
 		 (concat type ":" raw-path))
 		((string= type "file")
-		 (org-export-file-uri raw-path))
+                 (let ((path-uri (org-export-file-uri raw-path)))
+                   (if (string-prefix-p "file://" path-uri)
+                       path-uri
+                     ;; Otherwise, it is a relative path.
+                     ;; OpenOffice treats base directory inside the odt
+                     ;; archive.  The directory containing the odt file
+                     ;; is "../".
+                     (concat "../" path-uri))))
 		(t raw-path)))
 	 ;; Convert & to &amp; for correct XML representation
 	 (path (replace-regexp-in-string "&" "&amp;" path)))
@@ -2748,6 +2740,16 @@ INFO is a plist holding contextual information.  See
 	   (format "<text:a xlink:type=\"simple\" xlink:href=\"#%s\">%s</text:a>"
 		   (org-export-get-reference destination info)
 		   (or desc (org-export-get-ordinal destination info))))
+          ;; Link to a file, corresponding to string return value of
+          ;; `org-export-resolve-id-link'.  Export it is file link.
+          (plain-text
+           (let ((file-link (org-element-copy link)))
+             (org-element-put-property file-link :type "file")
+             (org-element-put-property file-link :path destination)
+             (org-element-put-property
+              file-link
+              :raw-link (format "file:%s" destination))
+             (org-odt-link file-link desc info)))
 	  ;; Fuzzy link points to some element (e.g., an inline image,
 	  ;; a math formula or a table).
 	  (otherwise
@@ -2914,9 +2916,28 @@ contextual information."
 	(setq output
 	      (replace-regexp-in-string (car pair) (cdr pair) output t nil))))
     ;; Handle break preservation if required.
-    (when (plist-get info :preserve-breaks)
-      (setq output (replace-regexp-in-string
-		    "\\(\\\\\\\\\\)?[ \t]*\n" "<text:line-break/>" output t)))
+    (if (plist-get info :preserve-breaks)
+        (setq output (replace-regexp-in-string
+		      "\\(\\\\\\\\\\)?[ \t]*\n" "<text:line-break/>" output t))
+      ;; OpenDocument schema recognizes newlines as spaces, which may
+      ;; not be desired in scripts that do not separate words with
+      ;; spaces (for example, Han script).  `fill-region' is able to
+      ;; handle such situations.
+      ;; FIXME: The unnecessary spaced may still remain when a newline
+      ;; is at a boundary between Org objects (e.g. italics markup
+      ;; followed by newline).
+      (setq output
+            (with-temp-buffer
+              (insert output)
+              (save-match-data
+                (let ((leading (and (string-match (rx bos (1+ blank)) output)
+                                    (match-string 0 output)))
+                      (trailing (and (string-match (rx (1+ blank) eos) output)
+                                     (match-string 0 output))))
+                  ;; Unfill, retaining leading/trailing space.
+                  (let ((fill-column (point-max)))
+                    (fill-region (point-min) (point-max)))
+                  (concat leading (buffer-string) trailing))))))
     ;; Return value.
     output))
 
@@ -3101,7 +3122,7 @@ and prefix with \"OrgSrc\".  For example,
 		 (with-temp-buffer
 		   (insert code)
 		   (funcall lang-mode)
-		   (org-font-lock-ensure)
+                   (font-lock-ensure)
 		   (buffer-string))))
 	 (fontifier (if use-htmlfontify-p 'org-odt-htmlfontify-string
 		      'org-odt--encode-plain-text))

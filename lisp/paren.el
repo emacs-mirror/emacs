@@ -120,7 +120,7 @@ On non-graphical frames, the context is shown in the echo area."
 
 (defcustom show-paren-predicate '(not (derived-mode . special-mode))
   "Whether to use `show-paren-mode' in a buffer.
-The default is to enable the mode in all buffers that have don't
+The default is to enable the mode in all buffers that don't
 derive from `special-mode', which means that it's on (by default)
 in all editing buffers."
   :type 'buffer-predicate

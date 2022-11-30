@@ -71,9 +71,11 @@ be_perror (status_t code, char *arg)
 	}
     }
   else
-    {
-      abort ();
-    }
+    abort ();
+
+  fprintf (stderr, "Setting resources failed on the `src/Emacs' binary.\n"
+	   "This may result in the installed `Emacs' binary not launching\n"
+	   " from the tracker, but is inconsequential during packaging.\n");
 }
 
 int
@@ -111,19 +113,19 @@ main (int argc, char **argv)
   if (code != B_OK)
     {
       be_perror (code, argv[2]);
-      return EXIT_FAILURE;
+      return 0;
     }
   code = info.SetTo (&file);
   if (code != B_OK)
     {
       be_perror (code, argv[2]);
-      return EXIT_FAILURE;
+      return 0;
     }
   code = info.SetAppFlags (B_EXCLUSIVE_LAUNCH | B_ARGV_ONLY);
   if (code != B_OK)
     {
       be_perror (code, argv[2]);
-      return EXIT_FAILURE;
+      return 0;
     }
 
   icon = BTranslationUtils::GetBitmapFile (argv[1], NULL);

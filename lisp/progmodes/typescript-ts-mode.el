@@ -150,11 +150,19 @@
 
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
+     (required_parameter (identifier) @font-lock-variable-name-face)
+     (optional_parameter (identifier) @font-lock-variable-name-face)
 
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
 
      (enum_declaration (identifier) @font-lock-type-face)
+
+     (extends_clause value: (identifier) @font-lock-type-face)
+     ;; extends React.Component<T>
+     (extends_clause value: (member_expression
+                             object: (identifier) @font-lock-type-face
+                             property: (property_identifier) @font-lock-type-face))
 
      (arrow_function
       parameter: (identifier) @font-lock-variable-name-face)
@@ -267,9 +275,7 @@
    :language 'tsx
    :override t
    :feature 'property
-   `(((property_identifier) @font-lock-property-face)
-
-     (pair value: (identifier) @font-lock-variable-name-face)
+   `((pair value: (identifier) @font-lock-variable-name-face)
 
      ((shorthand_property_identifier) @font-lock-property-face)
 

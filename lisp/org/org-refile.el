@@ -25,6 +25,8 @@
 ;; Org Refile allows you to refile subtrees to various locations.
 
 ;;; Code:
+(require 'org-macs)
+(org-assert-version)
 
 (require 'org)
 
@@ -95,7 +97,7 @@ You can set the variable `org-refile-target-verify-function' to a function
 to verify each headline found by the simple criteria above.
 
 When this variable is nil, all top-level headlines in the current buffer
-are used, equivalent to the value `((nil . (:level . 1))'."
+are used, equivalent to the value `((nil . (:level . 1)))'."
   :group 'org-refile
   :type '(repeat
 	  (cons
@@ -153,12 +155,14 @@ When `full-file-path', include the full file path.
 
 When `buffer-name', use the buffer name."
   :group 'org-refile
+  :package-version '(Org . "9.6")
   :type '(choice
 	  (const :tag "Not" nil)
 	  (const :tag "Yes" t)
 	  (const :tag "Start with file name" file)
 	  (const :tag "Start with full file path" full-file-path)
-	  (const :tag "Start with buffer name" buffer-name)))
+	  (const :tag "Start with buffer name" buffer-name)
+	  (const :tag "Start with document title" title)))
 
 (defcustom org-outline-path-complete-in-steps t
   "Non-nil means complete the outline path in hierarchical steps.
@@ -317,6 +321,11 @@ converted to a headline before refiling."
 		 (push (list (and (buffer-file-name (buffer-base-buffer))
                                   (file-truename (buffer-file-name (buffer-base-buffer))))
                              f nil nil) tgs))
+               (when (eq org-refile-use-outline-path 'title)
+                 (push (list (or (org-get-title)
+                                 (and f (file-name-nondirectory f)))
+                             f nil nil)
+                       tgs))
 	       (org-with-wide-buffer
 		(goto-char (point-min))
 		(setq org-outline-path-cache nil)
@@ -343,7 +352,12 @@ converted to a headline before refiling."
                                            (and (buffer-file-name (buffer-base-buffer))
                                                 (file-name-nondirectory
                                                  (buffer-file-name (buffer-base-buffer))))))
-				   (`full-file-path
+                                   (`title (list
+                                            (or (org-get-title)
+                                                (and (buffer-file-name (buffer-base-buffer))
+                                                     (file-name-nondirectory
+                                                      (buffer-file-name (buffer-base-buffer)))))))
+                                   (`full-file-path
 				    (list (buffer-file-name
 					   (buffer-base-buffer))))
 				   (`buffer-name
@@ -521,7 +535,7 @@ prefix argument (`C-u C-u C-u C-c C-w')."
 		(goto-char (cond (pos)
 				 ((org-notes-order-reversed-p) (point-min))
 				 (t (point-max))))
-		(org-show-context 'org-goto))
+		(org-fold-show-context 'org-goto))
 	    (if regionp
 		(progn
 		  (org-kill-new (buffer-substring region-start region-end))
@@ -631,7 +645,7 @@ this function appends the default value from
 	 (tbl (mapcar
 	       (lambda (x)
 		 (if (and (not (member org-refile-use-outline-path
-				       '(file full-file-path)))
+				       '(file full-file-path title)))
 			  (not (equal filename (nth 1 x))))
 		     (cons (concat (car x) extra " ("
 				   (file-name-nondirectory (nth 1 x)) ")")
@@ -643,10 +657,7 @@ this function appends the default value from
          (prompt (let ((default (or (car org-refile-history)
                                     (and (assoc cbnex tbl) (setq cdef cbnex)
                                          cbnex))))
-                   ;; `format-prompt' is new in Emacs 28.1.
-                   (if (fboundp 'format-prompt)
-                       (format-prompt prompt default)
-                     (concat prompt " (default " default ": "))))
+                   (org-format-prompt prompt default)))
 	 pa answ parent-target child parent old-hist)
     (setq old-hist org-refile-history)
     (setq answ (funcall cfunc prompt tbl nil (not new-nodes)
