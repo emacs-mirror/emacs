@@ -168,7 +168,7 @@ MODE is either `c' or `cpp'."
   (let ((c-keywords
          '("break" "case" "const" "continue"
            "default" "do" "else" "enum"
-           "extern" "for" "goto" "if"
+           "extern" "for" "goto" "if" "inline"
            "long" "register" "return" "short"
            "signed" "sizeof" "static" "struct"
            "switch" "typedef" "union" "unsigned"
