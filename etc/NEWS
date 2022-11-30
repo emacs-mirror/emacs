@@ -143,11 +143,6 @@ reaches the end of the script, Emacs will exit with an exit code from
 the value of the final form.
 
 +++
-** New function 'substitute-quotes'.
-This function works like 'substitute-command-keys' but only
-substitutes quote characters.
-
-+++
 ** Emacs now supports setting 'user-emacs-directory' via '--init-directory'.
 
 +++
@@ -3017,6 +3012,11 @@ A major mode based on CC Mode for editing programs in the C# language.
 ** 'format-prompt' now uses 'substitute-command-keys'.
 This means that both the prompt and 'minibuffer-default-prompt-format'
 will have key definitions and single quotes handled specially.
+
++++
+** New function 'substitute-quotes'.
+This function works like 'substitute-command-keys' but only
+substitutes quote characters.
 
 ---
 ** 'find-image' now uses 'create-image'.
