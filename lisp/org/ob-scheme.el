@@ -5,7 +5,7 @@
 ;; Authors: Eric Schulte
 ;;	    Michael Gauland
 ;; Keywords: literate programming, reproducible research, scheme
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -38,6 +38,10 @@
 ;;   ELPA.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'geiser nil t)
 (require 'geiser-impl nil t)
@@ -52,9 +56,12 @@
 (defvar geiser-repl-window-allow-split)	; Defined in geiser-repl.el
 
 (declare-function run-geiser "ext:geiser-repl" (impl))
+(declare-function geiser "ext:geiser-repl" (impl))
 (declare-function geiser-mode "ext:geiser-mode" ())
 (declare-function geiser-eval-region "ext:geiser-mode"
                   (start end &optional and-go raw nomsg))
+(declare-function geiser-eval-region/wait "ext:geiser-mode"
+                  (start end &optional timeout))
 (declare-function geiser-repl-exit "ext:geiser-repl" (&optional arg))
 (declare-function geiser-eval--retort-output "ext:geiser-eval" (ret))
 (declare-function geiser-eval--retort-result-str "ext:geiser-eval" (ret prefix))
@@ -114,7 +121,10 @@
   (let ((buffer (org-babel-scheme-get-session-buffer name)))
     (or buffer
 	(progn
-	  (run-geiser impl)
+          (if (fboundp 'geiser)
+              (geiser impl)
+            ;; Obsolete since Geiser 0.26.
+	    (run-geiser impl))
 	  (when name
 	    (rename-buffer name t)
 	    (org-babel-scheme-set-session-buffer name (current-buffer)))
@@ -176,7 +186,13 @@ is true; otherwise returns the last value."
 	  (setq geiser-impl--implementation nil)
 	  (let ((geiser-debug-jump-to-debug-p nil)
 		(geiser-debug-show-debug-p nil))
-	    (let ((ret (geiser-eval-region (point-min) (point-max))))
+            ;; `geiser-eval-region/wait' was introduced to await the
+            ;; result of async evaluation in geiser version 0.22.
+	    (let ((ret (funcall (if (fboundp 'geiser-eval-region/wait)
+                                    #'geiser-eval-region/wait
+                                  #'geiser-eval-region)
+                                (point-min)
+                                (point-max))))
 	      (setq result (if output
 			       (or (geiser-eval--retort-output ret)
 				   "Geiser Interpreter produced no output")

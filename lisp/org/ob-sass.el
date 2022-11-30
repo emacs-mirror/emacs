@@ -4,7 +4,7 @@
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -38,6 +38,10 @@
 ;; - sass-mode :: https://github.com/nex3/haml/blob/master/extra/sass-mode.el
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 
 (defvar org-babel-default-header-args:sass '())

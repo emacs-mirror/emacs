@@ -4,7 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,6 +27,9 @@
 ;; This file contains the face definitions for Org.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (defgroup org-faces nil
   "Faces in Org mode."
@@ -338,7 +341,7 @@ determines if it is a foreground or a background color."
 
 (defvar org-tags-special-faces-re nil)
 (defun org-set-tag-faces (var value)
-  (set var value)
+  (set-default-toplevel-value var value)
   (if (not value)
       (setq org-tags-special-faces-re nil)
     (setq org-tags-special-faces-re
@@ -453,6 +456,10 @@ verse and quote blocks are fontified using the `org-verse' and
 
 (defface org-block-end-line '((t (:inherit org-block-begin-line)))
   "Face used for the line delimiting the end of source blocks."
+  :group 'org-faces)
+
+(defface org-inline-src-block '((t (:inherit org-block)))
+  "Face used for inline source blocks as a whole."
   :group 'org-faces)
 
 (defface org-verbatim '((t (:inherit shadow)))
@@ -593,7 +600,7 @@ See also `org-agenda-deadline-faces'.")
     (0.0 . org-upcoming-distant-deadline))
   "Faces for showing deadlines in the agenda.
 This is a list of cons cells.  The cdr of each cell is a face to be used,
-and it can also just be like \\='(:foreground \"yellow\").
+and it can also just be like (:foreground \"yellow\").
 Each car is a fraction of the head-warning time that must have passed for
 this the face in the cdr to be used for display.  The numbers must be
 given in descending order.  The head-warning time is normally taken

@@ -4,7 +4,7 @@
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -27,6 +27,10 @@
 ;; contents of the code block are returned in a raw result.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 
 (declare-function org-export-string-as "ox"

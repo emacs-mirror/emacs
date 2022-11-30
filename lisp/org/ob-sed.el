@@ -35,11 +35,15 @@
 ;; In addition to the normal header arguments, ob-sed also provides
 ;; :cmd-line and :in-file. :cmd-line allows one to pass other flags to
 ;; the sed command like the "--in-place" flag which makes sed edit the
-;; file pass to it instead of outputting to standard out or to a
+;; file passed to it instead of outputting to standard out or to a
 ;; different file. :in-file is a header arguments that allows one to
 ;; tell Org Babel which file the sed script to act on.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 
 (defvar org-babel-sed-command "sed"
@@ -61,7 +65,7 @@
 BODY is the source inside a sed source block and PARAMS is an
 association list over the source block configurations.  This
 function is called by `org-babel-execute-src-block'."
-  (message "executing sed source code block")
+  (message "Executing sed source code block")
   (let* ((result-params (cdr (assq :result-params params)))
          (cmd-line (cdr (assq :cmd-line params)))
          (in-file (cdr (assq :in-file params)))

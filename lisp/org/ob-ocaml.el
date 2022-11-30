@@ -4,7 +4,7 @@
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -35,6 +35,10 @@
 ;; - tuareg-mode :: https://elpa.nongnu.org/nongnu/tuareg.html
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'comint)
 (require 'org-macs)

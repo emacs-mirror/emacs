@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Maintainer: Ihor Radchenko <yantar92@gmail.com>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -39,6 +39,10 @@
 ;; - gnuplot-mode :: you can search the web for the latest active one.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-macs)
 
@@ -94,12 +98,15 @@ code."
 	       (let* ((first  (car val))
 		      (tablep (or (listp first) (symbolp first))))
 		 (if tablep val (mapcar 'list val)))
-	       (org-babel-temp-file "gnuplot-") params)
+               ;; Make temporary file name stable with respect to data.
+               ;; If we do not do it, :cache argument becomes useless.
+               (org-babel-temp-stable-file (cons val params) "gnuplot-")
+               params)
 	    (if (and (stringp val)
 		     (file-remote-p val)  ;; check if val is a remote file
 		     (file-exists-p val)) ;; call to file-exists-p is slow, maybe remove it
 		(let* ((local-name (concat ;; create a unique filename to avoid multiple downloads
-				    org-babel-temporary-directory
+				    (org-babel-temp-directory)
 				    "/gnuplot/"
 				    (file-remote-p val 'host)
 				    (org-babel-local-file-name val))))
@@ -135,8 +142,7 @@ code."
            (timefmt (cdr (assq :timefmt params)))
            (time-ind (or (cdr (assq :timeind params))
                          (when timefmt 1)))
-	   (directory (and (buffer-file-name)
-			   (file-name-directory (buffer-file-name))))
+	   (directory default-directory)
 	   (add-to-body (lambda (text) (setq body (concat text "\n" body)))))
       ;; append header argument settings to body
       (when missing (funcall add-to-body (format "set datafile missing '%s'" missing)))

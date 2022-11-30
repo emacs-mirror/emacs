@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 
 (defvar org-outline-regexp)
@@ -67,8 +70,8 @@
 (declare-function org-ctrl-c-tab "org" (&optional arg))
 (declare-function org-cut-special "org" ())
 (declare-function org-cut-subtree "org" (&optional n))
-(declare-function org-cycle "org" (&optional arg))
-(declare-function org-cycle-agenda-files "org" ())
+(declare-function org-cycle "org-cycle" (&optional arg))
+(declare-function org-cycle-agenda-files "org-cycle" ())
 (declare-function org-date-from-calendar "org" ())
 (declare-function org-dynamic-block-insert-dblock "org" (&optional arg))
 (declare-function org-dblock-update "org" (&optional arg))
@@ -81,7 +84,7 @@
 (declare-function org-display-outline-path "org" (&optional file current separator just-return-string))
 (declare-function org-down-element "org" ())
 (declare-function org-edit-special "org" (&optional arg))
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-type "org-element" (element))
 (declare-function org-emphasize "org" (&optional char))
 (declare-function org-end-of-line "org" (&optional n))
@@ -94,7 +97,7 @@
 (declare-function org-fill-paragraph "org" (&optional justify region))
 (declare-function org-find-file-at-mouse "org" (ev))
 (declare-function org-footnote-action "org" (&optional special))
-(declare-function org-force-cycle-archived "org" ())
+(declare-function org-cycle-force-archived "org-cycle" ())
 (declare-function org-force-self-insert "org" (n))
 (declare-function org-forward-element "org" ())
 (declare-function org-forward-heading-same-level "org" (arg &optional invisible-ok))
@@ -128,7 +131,7 @@
 (declare-function org-metaup "org" (&optional _arg))
 (declare-function org-narrow-to-block "org" ())
 (declare-function org-narrow-to-element "org" ())
-(declare-function org-narrow-to-subtree "org" ())
+(declare-function org-narrow-to-subtree "org" (&optional element))
 (declare-function org-next-block "org" (arg &optional backward block-regexp))
 (declare-function org-next-link "org" (&optional search-backward))
 (declare-function org-next-visible-heading "org" (arg))
@@ -143,8 +146,8 @@
 (declare-function org-priority "org" (&optional action show))
 (declare-function org-promote-subtree "org" ())
 (declare-function org-redisplay-inline-images "org" ())
-(declare-function org-refile "org" (&optional arg1 default-buffer rfloc msg))
-(declare-function org-refile-copy "org" ())
+(declare-function org-refile "org-refile" (&optional arg1 default-buffer rfloc msg))
+(declare-function org-refile-copy "org-refile" ())
 (declare-function org-refile-reverse "org-refile" (&optional arg default-buffer rfloc msg))
 (declare-function org-reftex-citation "org" ())
 (declare-function org-reload "org" (&optional arg1))
@@ -152,7 +155,7 @@
 (declare-function org-resolve-clocks "org" (&optional only-dangling-p prompt-fn last-valid))
 (declare-function org-return "org" (&optional indent))
 (declare-function org-return-and-maybe-indent "org" ())
-(declare-function org-reveal "org" (&optional siblings))
+(declare-function org-fold-reveal "org-fold" (&optional siblings))
 (declare-function org-schedule "org" (arg &optional time))
 (declare-function org-self-insert-command "org" (N))
 (declare-function org-set-effort "org" (&optional increment value))
@@ -172,9 +175,9 @@
 (declare-function org-shiftright "org" (&optional arg))
 (declare-function org-shifttab "org" (&optional arg))
 (declare-function org-shiftup "org" (&optional arg))
-(declare-function org-show-all "org" (&optional types))
-(declare-function org-show-children "org" (&optional level))
-(declare-function org-show-subtree "org" ())
+(declare-function org-fold-show-all "org-fold" (&optional types))
+(declare-function org-fold-show-children "org-fold" (&optional level))
+(declare-function org-fold-show-subtree "org-fold" ())
 (declare-function org-sort "org" (&optional with-case))
 (declare-function org-sparse-tree "org" (&optional arg type))
 (declare-function org-table-copy-down "org" (n))
@@ -201,7 +204,7 @@
 (declare-function org-toggle-radio-button "org" (&optional arg))
 (declare-function org-toggle-comment "org" ())
 (declare-function org-toggle-fixed-width "org" ())
-(declare-function org-toggle-inline-images "org" (&optional include-linked))
+(declare-function org-toggle-inline-images "org" (&optional include-linked beg end))
 (declare-function org-latex-preview "org" (&optional arg))
 (declare-function org-toggle-narrow-to-subtree "org" ())
 (declare-function org-toggle-ordered-property "org" ())
@@ -244,7 +247,7 @@ become effective."
 
 (defcustom org-use-extra-keys nil
   "Non-nil means use extra key sequence definitions for certain commands.
-This happens automatically if `window-system' is nil.  This
+This happens automatically if `display-graphic-p' returns nil.  This
 variable lets you do the same manually.  You must set it before
 loading Org."
   :group 'org-startup
@@ -423,7 +426,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (define-key org-mode-map [menu-bar show] 'undefined)
 
 (define-key org-mode-map [remap outline-mark-subtree] #'org-mark-subtree)
-(define-key org-mode-map [remap outline-show-subtree] #'org-show-subtree)
+(define-key org-mode-map [remap outline-show-subtree] #'org-fold-show-subtree)
 (define-key org-mode-map [remap outline-forward-same-level]
   #'org-forward-heading-same-level)
 (define-key org-mode-map [remap outline-backward-same-level]
@@ -437,14 +440,14 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
   #'org-next-visible-heading)
 (define-key org-mode-map [remap outline-previous-visible-heading]
   #'org-previous-visible-heading)
-(define-key org-mode-map [remap show-children] #'org-show-children)
+(define-key org-mode-map [remap outline-show-children] #'org-fold-show-children)
 
 ;;;; Make `C-c C-x' a prefix key
 (org-defkey org-mode-map (kbd "C-c C-x") (make-sparse-keymap))
 
 ;;;; TAB key with modifiers
 (org-defkey org-mode-map (kbd "TAB") #'org-cycle)
-(org-defkey org-mode-map (kbd "C-c C-<tab>") #'org-force-cycle-archived)
+(org-defkey org-mode-map (kbd "C-c C-<tab>") #'org-cycle-force-archived)
 ;; Override text-mode binding to expose `complete-symbol' for
 ;; pcomplete functionality.
 (org-defkey org-mode-map (kbd "M-TAB") nil)
@@ -462,6 +465,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 
 ;;;; Cursor keys with modifiers
 (org-defkey org-mode-map (kbd "M-<left>") #'org-metaleft)
+(org-defkey org-mode-map (kbd "ESC <left>") #'org-metaleft)
 (org-defkey org-mode-map (kbd "M-<right>") #'org-metaright)
 (org-defkey org-mode-map (kbd "ESC <right>") #'org-metaright)
 (org-defkey org-mode-map (kbd "M-<up>") #'org-metaup)
@@ -495,7 +499,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 ;;  We only set them when really needed because otherwise the
 ;;  menus don't show the simple keys
 
-(when (or org-use-extra-keys (not window-system))
+(when (or org-use-extra-keys (not (display-graphic-p)))
   (org-defkey org-mode-map (kbd "C-c C-x c") #'org-table-copy-down)
   (org-defkey org-mode-map (kbd "C-c C-x m") #'org-meta-return)
   (org-defkey org-mode-map (kbd "C-c C-x M") #'org-insert-todo-heading)
@@ -544,7 +548,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 
 ;;;; All the other keys
 (org-defkey org-mode-map (kbd "|") #'org-force-self-insert)
-(org-defkey org-mode-map (kbd "C-c C-r") #'org-reveal)
+(org-defkey org-mode-map (kbd "C-c C-r") #'org-fold-reveal)
 (org-defkey org-mode-map (kbd "C-M-t") #'org-transpose-element)
 (org-defkey org-mode-map (kbd "M-}") #'org-forward-element)
 (org-defkey org-mode-map (kbd "ESC }") #'org-forward-element)
@@ -804,10 +808,6 @@ command."
   (interactive)
   (unless org-use-speed-commands
     (user-error "Speed commands are not activated, customize `org-use-speed-commands'"))
-  ;; FIXME: remove this warning for 9.6
-  (when (boundp 'org-speed-commands-user)
-    (message "`org-speed-command-user' is obsolete, please use `org-speed-commands'")
-    (sit-for 3))
   (with-output-to-temp-buffer "*Help*"
     (princ "Speed commands\n==============\n")
     (mapc #'org-print-speed-command

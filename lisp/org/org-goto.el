@@ -22,6 +22,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'org)
 (require 'org-refile)
 
@@ -110,10 +113,8 @@ When nil, you can use these keybindings to navigate the buffer:
 	  (org-defkey map [(down)] 'outline-next-visible-heading)
 	  (org-defkey map [(up)] 'outline-previous-visible-heading)
 	  (if org-goto-auto-isearch
-	      (if (fboundp 'define-key-after)
-		  (define-key-after map [t] 'org-goto-local-auto-isearch)
-		nil)
-	    (org-defkey map "q" 'org-goto-quit)
+              (define-key-after map [t] 'org-goto-local-auto-isearch)
+            (org-defkey map "q" 'org-goto-quit)
 	    (org-defkey map "n" 'outline-next-visible-heading)
 	    (org-defkey map "p" 'outline-previous-visible-heading)
 	    (org-defkey map "f" 'outline-forward-same-level)
@@ -157,7 +158,7 @@ When nil, you can use these keybindings to navigate the buffer:
     (when (eq (lookup-key isearch-mode-map keys) 'isearch-printing-char)
       (isearch-mode t)
       (isearch-process-search-char (string-to-char keys))
-      (org-font-lock-ensure))))
+      (font-lock-ensure))))
 
 (defun org-goto-ret (&optional _arg)
   "Finish `org-goto' by going to the new location."
@@ -222,13 +223,13 @@ position or nil."
 				    "  Just type for auto-isearch."
 				  "  n/p/f/b/u to navigate, q to quit.")))))
 	(org-fit-window-to-buffer (get-buffer-window "*Org Help*"))
-	(org-overview)
+	(org-cycle-overview)
 	(setq buffer-read-only t)
 	(if (and (boundp 'org-goto-start-pos)
 		 (integer-or-marker-p org-goto-start-pos))
 	    (progn (goto-char org-goto-start-pos)
 		   (when (org-invisible-p)
-		     (org-show-set-visibility 'lineage)))
+		     (org-fold-show-set-visibility 'lineage)))
 	  (goto-char (point-min)))
 	(let (org-special-ctrl-a/e) (org-beginning-of-line))
 	(message "Select location and press RET")
@@ -279,7 +280,7 @@ With a prefix argument, use the alternative interface: e.g., if
 	  (org-mark-ring-push org-goto-start-pos)
 	  (goto-char selected-point)
 	  (when (or (org-invisible-p) (org-invisible-p2))
-	    (org-show-context 'org-goto)))
+	    (org-fold-show-context 'org-goto)))
       (message "Quit"))))
 
 (provide 'org-goto)

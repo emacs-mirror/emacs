@@ -4,7 +4,7 @@
 ;;
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -87,6 +87,9 @@
 ;;  similar mechanism using shell and awk scripts.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'org)
 (require 'sha1)
@@ -412,8 +415,8 @@ it can be a list structured like an entry in `org-feed-alist'."
 
 	  ;; Normalize the visibility of the inbox tree
 	  (goto-char inbox-pos)
-	  (org-flag-subtree t)
-	  (org-show-children)
+	  (org-fold-subtree t)
+	  (org-fold-show-children)
 
 	  ;; Hooks and messages
 	  (when org-feed-save-after-adding (save-buffer))

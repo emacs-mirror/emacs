@@ -4,7 +4,7 @@
 ;;
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -77,6 +77,9 @@
 ;; C-c C-x t      Insert a new inline task with END line
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'org)
 
@@ -305,8 +308,10 @@ If the task has an end part, also demote it."
       (add-text-properties (match-beginning 3) (match-end 3)
 			   '(face org-inlinetask font-lock-fontified t)))))
 
-(defun org-inlinetask-toggle-visibility ()
-  "Toggle visibility of inline task at point."
+(defun org-inlinetask-toggle-visibility (&optional state)
+  "Toggle visibility of inline task at point.
+When optional argument STATE is `fold', fold unconditionally.
+When STATE is `unfold', unfold unconditionally."
   (let ((end (save-excursion
 	       (org-inlinetask-goto-end)
 	       (if (bolp) (1- (point)) (point))))
@@ -317,9 +322,11 @@ If the task has an end part, also demote it."
      ;; Nothing to show/hide.
      ((= end start))
      ;; Inlinetask was folded: expand it.
-     ((eq (get-char-property (1+ start) 'invisible) 'outline)
-      (org-flag-region start end nil 'outline))
-     (t (org-flag-region start end t 'outline)))))
+     ((and (not (eq state 'fold))
+           (or (eq state 'unfold)
+               (org-fold-get-folding-spec 'headline (1+ start))))
+      (org-fold-region start end nil 'headline))
+     (t (org-fold-region start end t 'headline)))))
 
 (defun org-inlinetask-hide-tasks (state)
   "Hide inline tasks in buffer when STATE is `contents' or `children'.
@@ -330,14 +337,14 @@ This function is meant to be used in `org-cycle-hook'."
        (save-excursion
 	 (goto-char (point-min))
 	 (while (re-search-forward regexp nil t)
-	   (org-inlinetask-toggle-visibility)
+	   (org-inlinetask-toggle-visibility 'fold)
 	   (org-inlinetask-goto-end)))))
     (`children
      (save-excursion
        (while
 	   (or (org-inlinetask-at-task-p)
 	       (and (outline-next-heading) (org-inlinetask-at-task-p)))
-	 (org-inlinetask-toggle-visibility)
+	 (org-inlinetask-toggle-visibility 'fold)
 	 (org-inlinetask-goto-end))))))
 
 (defun org-inlinetask-remove-END-maybe ()

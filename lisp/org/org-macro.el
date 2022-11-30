@@ -46,22 +46,28 @@
 ;; {{{email}}} and {{{title}}} macros.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-macs)
 (require 'org-compat)
 
 (declare-function org-collect-keywords "org" (keywords &optional unique directory))
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-copy "org-element" (datum))
 (declare-function org-element-macro-parser "org-element" ())
+(declare-function org-element-keyword-parser "org-element" (limit affiliated))
+(declare-function org-element-put-property "org-element" (element property value))
 (declare-function org-element-parse-secondary-string "org-element" (string restriction &optional parent))
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-element-restriction "org-element" (element))
 (declare-function org-element-type "org-element" (element))
 (declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-file-contents "org" (file &optional noerror nocache))
-(declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
+(declare-function org-in-commented-heading-p "org" (&optional no-inheritance element))
 (declare-function org-link-search "ol" (s &optional avoid-pos stealth))
 (declare-function org-mode "org" ())
 (declare-function vc-backend "vc-hooks" (f))
@@ -239,6 +245,13 @@ a definition in TEMPLATES."
 		     (goto-char (match-beginning 0))
 		     (org-element-macro-parser))))))
 	   (when macro
+             ;; `:parent' property might change as we modify buffer.
+             ;; We do not care about it when checking for circular
+             ;; dependencies.  So, setting `:parent' to nil making sure
+             ;; that actual macro element (if org-element-cache is
+             ;; active) is unchanged.
+             (setq macro (cl-copy-list macro))
+             (org-element-put-property macro :parent nil)
 	     (let* ((key (org-element-property :key macro))
 		    (value (org-macro-expand macro templates))
 		    (begin (org-element-property :begin macro))
@@ -338,7 +351,7 @@ in the buffer."
 	  (result nil))
       (catch :exit
 	(while (re-search-forward regexp nil t)
-	  (let ((element (org-element-at-point)))
+	  (let ((element (org-with-point-at (match-beginning 0) (org-element-keyword-parser (line-end-position) (list (match-beginning 0))))))
 	    (when (eq 'keyword (org-element-type element))
 	      (let ((value (org-element-property :value element)))
 		(if (not collect) (throw :exit value)
@@ -355,12 +368,13 @@ Return value as a string."
 	     (not (cdr date))
 	     (eq 'timestamp (org-element-type (car date))))
 	(format "(eval (if (org-string-nw-p $1) %s %S))"
-		(format "(org-timestamp-format '%S $1)"
+		(format "(org-format-timestamp '%S $1)"
 			(org-element-copy (car date)))
 		value)
       value)))
 
 (defun org-macro--vc-modified-time (file)
+  (require 'vc) ; Not everything we need is autoloaded.
   (save-window-excursion
     (when (vc-backend file)
       (let ((buf (get-buffer-create " *org-vc*"))
@@ -378,7 +392,7 @@ Return value as a string."
 				  (buffer-substring
 				   (point) (line-end-position)))))
 		       (when (cl-some #'identity time)
-			 (setq date (apply #'encode-time time))))))))
+			 (setq date (org-encode-time time))))))))
 	      (let ((proc (get-buffer-process buf)))
 		(while (and proc (accept-process-output proc .5 nil t)))))
 	  (kill-buffer buf))

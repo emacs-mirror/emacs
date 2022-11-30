@@ -3,9 +3,9 @@
 ;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Andresen
-;; Maintainer: Ken Mankoff
+;; Maintainer: Ken Mankoff <mankoff@gmail.com>
 ;; Keywords: literate programming, interactive shell
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -34,6 +34,10 @@
 ;; M-x org-babel-screen-test RET
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 
 (defvar org-babel-screen-location "screen"
