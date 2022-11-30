@@ -1920,13 +1920,16 @@ function `tab-bar-tab-name-function'."
     (when pos
       (tab-bar-move-tab-to pos (1+ tab-index)))))
 
-(defcustom tab-bar-tab-post-change-group-functions nil
+(defcustom tab-bar-tab-post-change-group-functions '(tab-bar-move-tab-to-group)
   "List of functions to call after changing a tab group.
-The current tab is supplied as an argument."
+This hook is run at the end of the function `tab-bar-change-tab-group'.
+The current tab is supplied as an argument.  You can use any function,
+but by default it enables the function `tab-bar-move-tab-to-group'
+that moves the tab closer to its group."
   :type 'hook
   :options '(tab-bar-move-tab-to-group)
   :group 'tab-bar
-  :version "28.1")
+  :version "29.1")
 
 (defun tab-bar-change-tab-group (group-name &optional tab-number)
   "Add the tab specified by its absolute position TAB-NUMBER to GROUP-NAME.
@@ -1937,7 +1940,8 @@ TAB-NUMBER counts from 1.
 If GROUP-NAME is the empty string, then remove the tab from any group.
 While using this command, you might also want to replace
 `tab-bar-format-tabs' with `tab-bar-format-tabs-groups' in
-`tab-bar-format' to group tabs on the tab bar."
+`tab-bar-format' to group tabs on the tab bar.
+At the end it runs the hook `tab-bar-tab-post-change-group-functions'."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
           (tab-number (or current-prefix-arg
