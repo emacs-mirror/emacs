@@ -593,7 +593,8 @@ COLLECTION is the plist holding data collection."
         (mapc (lambda (collection) (org-persist--add-to-index collection 'hash)) org-persist--index)
       (setq org-persist--index nil)
       (when (file-exists-p org-persist-directory)
-        (dolist (file (directory-files org-persist-directory 'absolute "^[^.][^.]"))
+        (dolist (file (directory-files org-persist-directory 'absolute
+                                       "\\`[^.][^.]"))
           (if (file-directory-p file)
               (delete-directory file t)
             (delete-file file))))

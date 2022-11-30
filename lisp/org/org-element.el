@@ -1040,7 +1040,7 @@ parse properties for property drawer at point."
                  (property-value (match-string-no-properties 3)))
             (cond
              ((and (plist-member properties property-name-symbol)
-                   (string-match-p "+$" property-name))
+                   (string-match-p "\\+$" property-name))
               (let ((val (plist-get properties property-name-symbol)))
                 (if (listp val)
                     (setq properties
