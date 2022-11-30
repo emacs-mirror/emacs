@@ -6584,9 +6584,6 @@ implementations: `python-mode' and `python-ts-mode'."
 
   (make-local-variable 'python-shell-internal-buffer)
 
-  (when python-indent-guess-indent-offset
-    (python-indent-guess-indent-offset))
-
   (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
 
 ;;;###autoload
@@ -6605,7 +6602,11 @@ implementations: `python-mode' and `python-ts-mode'."
               python-syntax-propertize-function)
   (setq-local imenu-create-index-function
               #'python-imenu-create-index)
-  (add-hook 'which-func-functions #'python-info-current-defun nil t))
+
+  (add-hook 'which-func-functions #'python-info-current-defun nil t)
+
+  (when python-indent-guess-indent-offset
+    (python-indent-guess-indent-offset)))
 
 ;;;###autoload
 (define-derived-mode python-ts-mode python-base-mode "Python"
@@ -6625,7 +6626,10 @@ implementations: `python-mode' and `python-ts-mode'."
                 #'python-imenu-treesit-create-index)
     (setq-local treesit-defun-type-regexp (rx (or "function" "class")
                                               "_definition"))
-    (treesit-major-mode-setup)))
+    (treesit-major-mode-setup)
+
+  (when python-indent-guess-indent-offset
+    (python-indent-guess-indent-offset))))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code
