@@ -102,8 +102,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    Accordingly, objects reused from the free list are unpoisoned.
 
    This feature can be disabled wtih the run-time flag
-   `allow_user_poisoning' set to zero.
-*/
+   `allow_user_poisoning' set to zero.  */
 #if ADDRESS_SANITIZER && defined HAVE_SANITIZER_ASAN_INTERFACE_H \
   && !defined GC_ASAN_POISON_OBJECTS
 # define GC_ASAN_POISON_OBJECTS 1
@@ -3384,8 +3383,7 @@ allocate_vector_from_block (ptrdiff_t nbytes)
 	restbytes = index * roundup_size + VBLOCK_BYTES_MIN - nbytes;
 	eassert (restbytes % roundup_size == 0);
 #if GC_ASAN_POISON_OBJECTS
-	/* Ensure that accessing excess bytes does not trigger ASan.
-	 */
+	/* Ensure that accessing excess bytes does not trigger ASan.  */
 	__asan_unpoison_memory_region (ADVANCE (vector, nbytes),
 				       restbytes);
 #endif
