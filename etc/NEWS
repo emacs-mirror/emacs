@@ -1034,6 +1034,9 @@ The command pops up a buffer at the bottom of the screen with a few
 helpful commands for various tasks.  You can toggle the display using
 'C-h q'.
 
+** Emacs 29.1 comes with Org v9.6.
+See the file ORG-NEWS for user-visible changes in Org.
+
 ** Outline Mode
 
 +++
