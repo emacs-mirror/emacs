@@ -504,14 +504,6 @@ option) and can be set to nil to disable Just-in-time Lock mode.
 
 * Changes in Emacs 29.1
 
----
-** New user option `proced-enable-color-flag` to enable coloring of proced buffers
-This option prompts some format functions to furnish their respective
-process attributes with colors in a manner similar to htop.
-
-This option is disabled by default and needs setting to a non-nil
-value to take effect.
-
 +++
 ** New user option 'major-mode-remap-alist' to specify favorite major modes.
 This user option lets you remap the default modes (e.g. 'perl-mode' or
@@ -2818,6 +2810,22 @@ Set it to nil to exclude line numbering from kills and copies.
 argument which allows tree-widget display to be activated and computed
 only when the user expands the node.
 
+** Proced
+
+---
+*** proced.el shows system processes of remote hosts.
+When 'default-directory' is remote, and 'proced' is invoked with a
+negative argument like 'C-u - proced', the system processes of that
+remote host are shown.  Alternatively, the user option
+'proced-show-remote-processes' can be set to non-nil.
+'proced-signal-function' has been marked obsolete.
+
+---
+*** Proced can now optionally show process details in color.
+New user option 'proced-enable-color-flag' enables coloring of Proced
+buffers.  This option is disabled by default; customize it to a
+non-nil value to enable colors.
+
 ** Miscellaneous
 
 ---
@@ -2902,14 +2910,6 @@ also been renamed:
     'return-key-bib'   to  'bib-return-key'
     'mark-bib'         to  'bib-mark'
     'unread-bib'       to  'bib-unread'
-
----
-*** proced.el shows system processes of remote hosts.
-When 'default-directory' is remote, and 'proced' is invoked with a
-negative argument like 'C-u - proced', the system processes of that
-remote host are shown.  Alternatively, the user option
-'proced-show-remote-processes' can be set to non-nil.
-'proced-signal-function' has been marked obsolete.
 
 ---
 *** 'outlineify-sticky' command is renamed to 'allout-outlinify-sticky'.
