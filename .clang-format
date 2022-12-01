@@ -7,7 +7,7 @@ BreakBeforeBinaryOperators: All
 BreakBeforeBraces: GNU
 ColumnLimit: 70
 ContinuationIndentWidth: 2
-IndentPPDDirectives: AfterHash
+IndentPPDirectives: AfterHash
 PPIndentWidth: 1
 ForEachMacros:
   - FOR_EACH_TAIL
