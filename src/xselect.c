@@ -285,10 +285,8 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
     timestamp = dpyinfo->last_user_time;
 
   block_input ();
-  x_catch_errors (display);
-  XSetSelectionOwner (display, selection_atom, selecting_window, timestamp);
-  x_check_errors (display, "Can't set selection: %s");
-  x_uncatch_errors_after_check ();
+  XSetSelectionOwner (display, selection_atom, selecting_window,
+		      timestamp);
   unblock_input ();
 
   /* Now update the local cache */
