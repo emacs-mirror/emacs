@@ -180,7 +180,7 @@ Called with a subset of keyword parameters known to
 `auth-source-search' and relevant to authenticating to nickname
 services.  In return, ERC expects a string to send as the
 password, or nil, to fall through to the next method, such as
-prompting.  See info node `(erc) Connecting' for details."
+prompting.  See info node `(erc) auth-source' for details."
   :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
   :type '(choice (const erc-auth-source-search)
                  (const nil)

@@ -102,7 +102,7 @@ ERC binds all options defined in this library, such as
 `erc-sasl-password', to their values from entry-point invocation.
 In return, ERC expects a string to send as the SASL password, or
 nil, in which case, ERC will prompt the for input.  See info
-node `(erc) Connecting' for details on ERC's auth-source
+node `(erc) auth-source' for details on ERC's auth-source
 integration."
   :type '(choice (function-item erc-sasl-auth-source-password-as-host)
                  (function-item erc-auth-source-search)

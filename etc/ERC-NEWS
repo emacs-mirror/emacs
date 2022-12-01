@@ -45,8 +45,8 @@ With the overhaul of the services module temporarily shelved and the
 transition to SASL-based authentication still underway, users may feel
 left in the lurch to endure yet another release cycle of backtick
 hell.  For some, auth-source may provide a workaround in the form of
-nonstandard server passwords.  See the "Connection" node in the manual
-under the subheading "Password".
+nonstandard server passwords.  See the section titled "auth-source" in
+the Integrations chapter of ERC's manual.
 
 ** Rudimentary SASL support has arrived.
 A new module, 'erc-sasl', now ships with ERC 5.5.  See the SASL

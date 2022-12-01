@@ -219,7 +219,7 @@ parameters and authentication."
 This variable only exists for legacy reasons.  It's not customizable and
 is limited to a single server password.  Users looking for similar
 functionality should consider auth-source instead.  See info
-node `(auth) Top' and info node `(erc) Connecting'.")
+node `(auth) Top' and info node `(erc) auth-source'.")
 
 (make-obsolete-variable 'erc-password "use auth-source instead" "29.1")
 
@@ -3208,7 +3208,7 @@ if any.  In return, ERC expects a string to send as the server
 password, or nil, to skip the \"PASS\" command completely.  An
 explicit `:password' argument to entry-point commands `erc' and
 `erc-tls' also inhibits lookup, as does setting this option to
-nil.  See info node `(erc) Connecting' for details."
+nil.  See info node `(erc) auth-source' for details."
   :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
   :group 'erc
   :type '(choice (const erc-auth-source-search)
@@ -3223,7 +3223,7 @@ channel.  In return, ERC expects a string to use as the channel
 \"key\", or nil to just join the channel normally.  Setting the
 option itself to nil tells ERC to always forgo consulting
 auth-source for channel keys.  For more information, see info
-node `(erc) Connecting'."
+node `(erc) auth-source'."
   :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
   :group 'erc
   :type '(choice (const erc-auth-source-search)
