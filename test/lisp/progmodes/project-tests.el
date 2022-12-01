@@ -123,8 +123,8 @@ When `project-ignores' includes a name matching project dir."
          (project-vc-extra-root-markers nil)
          (project (project-current nil dir)))
     (should-not (null project))
-    (should (equal
-             "test/lisp/progmodes/project-tests.el"
+    (should (string-match-p
+             "\\`test/lisp/progmodes/project-tests\\.elc?"
              (file-relative-name
               project-tests--this-file
               (project-root project))))))
