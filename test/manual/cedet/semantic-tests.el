@@ -87,7 +87,8 @@ run the test again")))
 (defun semanticdb-test-gnu-global (searchfor &optional standardfile)
   "Test the GNU Global semanticdb.
 Argument SEARCHFOR is the text to search for.
-If optional arg STANDARDFILE is non-nil, use a standard file w/ global enabled."
+If optional arg STANDARDFILE is non-nil, use a standard file with
+global enabled."
   (interactive "sSearch For Tag: \nP")
 
   (require 'data-debug)

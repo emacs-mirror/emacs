@@ -78,7 +78,7 @@
 ;;
 ;; Not bound by default in comint-mode (some are in shell mode)
 ;; comint-run				Run a program under comint-mode
-;; comint-send-invisible		Read a line w/o echo, and send to proc
+;; comint-send-invisible		Read a line without echo, and send to proc
 ;; comint-dynamic-complete-filename	Complete filename at point.
 ;; comint-dynamic-list-filename-completions List completions in help buffer.
 ;; comint-replace-by-expanded-filename	Expand and complete filename at point;

@@ -35,7 +35,7 @@
 ;; anything encapsulated in a nice eieio object.
 ;;
 ;;   Current example apps for chart can be accessed via these commands:
-;; `chart-file-count'     - count files w/ matching extensions
+;; `chart-file-count'     - count files with matching extensions
 ;; `chart-space-usage'    - display space used by files/directories
 ;; `chart-emacs-storage'  - Emacs storage units used/free (garbage-collect)
 ;; `chart-emacs-lists'    - length of Emacs lists

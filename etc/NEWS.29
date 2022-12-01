@@ -2227,8 +2227,10 @@ it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 ** Project
 
 +++
-*** 'project-find-file' and 'project-or-external-find-file' now accept
-a prefix argument which is interpreted to mean "include all files".
+*** 'project-find-file' and 'project-or-external-find-file' can include all.
+The commands 'project-find-file' and 'project-or-external-find-file'
+now accept a prefix argument, which is interpreted to mean "include
+all files".
 
 +++
 *** New command 'project-list-buffers' bound to 'C-x p C-b'.
@@ -2239,7 +2241,7 @@ This command displays a list of buffers from the current project.
 Customize the user option 'project-kill-buffers-display-buffer-list'
 to enable the display of the buffer list.
 
-*** New user option 'project-vc-extra-root-markers'
+*** New user option 'project-vc-extra-root-markers'.
 Use it to add detection of nested projects (inside a VCS repository),
 or projects outside of VCS repositories.
 

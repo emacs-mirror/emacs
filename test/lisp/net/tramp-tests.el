@@ -6597,20 +6597,20 @@ INPUT, if non-nil, is a string sent to the process."
 
 (defun tramp--test-emacs27-p ()
   "Check for Emacs version >= 27.1.
-Some semantics has been changed for there, w/o new functions or
-variables, so we check the Emacs version directly."
+Some semantics has been changed for there, without new functions
+or variables, so we check the Emacs version directly."
   (>= emacs-major-version 27))
 
 (defun tramp--test-emacs28-p ()
   "Check for Emacs version >= 28.1.
-Some semantics has been changed for there, w/o new functions or
-variables, so we check the Emacs version directly."
+Some semantics has been changed for there, without new functions
+or variables, so we check the Emacs version directly."
   (>= emacs-major-version 28))
 
 (defun tramp--test-emacs29-p ()
   "Check for Emacs version >= 29.1.
-Some semantics has been changed for there, w/o new functions or
-variables, so we check the Emacs version directly."
+Some semantics has been changed for there, without new functions
+or variables, so we check the Emacs version directly."
   (>= emacs-major-version 29))
 
 (defun tramp--test-adb-p ()

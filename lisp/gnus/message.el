@@ -2909,7 +2909,7 @@ Consider adding this function to `message-header-setup-hook'"
   "C-c C-f s"    #'message-change-subject
   ;;
   "C-c C-f x"    #'message-cross-post-followup-to
-  ;; prefix+message-cross-post-followup-to = same w/o cross-post
+  ;; prefix+message-cross-post-followup-to = same without cross-post
   "C-c C-f t"    #'message-reduce-to-to-cc
   "C-c C-f a"    #'message-add-archive-header
   ;; mark inserted text

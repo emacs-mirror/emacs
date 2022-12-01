@@ -123,7 +123,7 @@ the origin of the temporary TMPFILE, have no write permissions."
 
 (defun tramp-archive--test-emacs27-p ()
   "Check for Emacs version >= 27.1.
-Some semantics has been changed for there, w/o new functions or
+Some semantics has been changed for there, without new functions or
 variables, so we check the Emacs version directly."
   (>= emacs-major-version 27))
 

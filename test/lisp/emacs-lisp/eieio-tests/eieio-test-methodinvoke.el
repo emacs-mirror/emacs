@@ -308,7 +308,7 @@
     (setq eieio-test-method-order-list (nreverse eieio-test-method-order-list))
     (eieio-test-match ans)))
 
-;;; Jan's methodinvoke order w/ multiple inheritance and :after methods.
+;;; Jan's methodinvoke order with multiple inheritance and :after methods.
 ;;
 (defclass eitest-Ja ()
   ())
