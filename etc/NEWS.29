@@ -143,11 +143,6 @@ reaches the end of the script, Emacs will exit with an exit code from
 the value of the final form.
 
 +++
-** New function 'substitute-quotes'.
-This function works like 'substitute-command-keys' but only
-substitutes quote characters.
-
-+++
 ** Emacs now supports setting 'user-emacs-directory' via '--init-directory'.
 
 +++
@@ -2968,47 +2963,57 @@ Emacs buffers, like indentation and the like.  The new ert function
 'ert-test-erts-file' is used to parse these files.
 
 ---
-** New mode 'js-json-mode'.
+** New major mode 'js-json-mode'.
 This is a lightweight variant of 'js-mode' that is used by default
 when visiting JSON files.
 
-** New mode 'typescript-ts-mode'.
+** New major mode 'typescript-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the TypeScript language.  It includes support for font-locking,
 indentation, and navigation.
 
-** New mode 'c-ts-mode'.
+** New major mode 'c-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the C language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode 'c++-ts-mode'.
+** New major mode 'c++-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the C++ language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode 'java-ts-mode'.
+** New major mode 'java-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the Java language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode 'css-ts-mode'.
+** New major mode 'python-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
-in the CSS language.  It includes support for font-locking,
+in the Python language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode 'json-ts-mode'.
+** New major mode 'css-ts-mode'.
+A major mode based on the tree-sitter library for editing CSS
+(Cascading Style Sheets).  It includes support for font-locking,
+indentation, Imenu, which-func, and navigation.
+
+** New major mode 'json-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the JSON language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode 'csharp-ts-mode'.
+** New major mode 'csharp-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the C# language.  It includes support for font-locking,
 indentation, Imenu, which-func, and navigation.
 
-** New mode 'csharp-mode'.
+** New major mode 'csharp-mode'.
 A major mode based on CC Mode for editing programs in the C# language.
+
+** New major mode 'bash-ts-mode'.
+A major mode based on the tree-sitter library for editing Bash shell
+scripts.  It includes support for font-locking, indentation, Imenu,
+which-func, and navigation.
 
 
 * Incompatible Lisp Changes in Emacs 29.1
@@ -3017,6 +3022,11 @@ A major mode based on CC Mode for editing programs in the C# language.
 ** 'format-prompt' now uses 'substitute-command-keys'.
 This means that both the prompt and 'minibuffer-default-prompt-format'
 will have key definitions and single quotes handled specially.
+
++++
+** New function 'substitute-quotes'.
+This function works like 'substitute-command-keys' but only
+substitutes quote characters.
 
 ---
 ** 'find-image' now uses 'create-image'.

@@ -1082,7 +1082,7 @@ Return width in pixels when PIXELS is non-nil."
         (setq-local buffer-invisibility-spec
                     (if (listp current-invisibility-spec)
                         (mapcar (lambda (el)
-                                  ;; Consider elipsis to have 0 width.
+                                  ;; Consider ellipsis to have 0 width.
                                   ;; It is what Emacs 28+ does, but we have
                                   ;; to force it in earlier Emacs versions.
                                   (if (and (consp el) (cdr el))

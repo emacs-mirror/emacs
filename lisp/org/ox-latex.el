@@ -928,7 +928,7 @@ The function should return the string to be exported."
 (defcustom org-latex-src-block-backend 'verbatim
   "Backend used to generate source code listings.
 
-This sets the behaviour for fontifying source code, possibly even with
+This sets the behavior for fontifying source code, possibly even with
 color.  There are four implementations of this functionality you may
 choose from (ordered from least to most capable):
 1. Verbatim
@@ -942,7 +942,7 @@ highlighting (listings), or none at all (verbatim).
 When using listings, you also need to make use of LaTeX package
 \"listings\".  The \"color\" LaTeX package is also needed if you
 would like color too.  These can simply be added to
-`org-latex-packages-alist', using customise or something like:
+`org-latex-packages-alist', using customize or something like:
 
   (require \\='ox-latex)
   (add-to-list \\='org-latex-packages-alist \\='(\"\" \"listings\"))
@@ -981,7 +981,7 @@ Emacs' font-lock information.  This requires the Emacs package
 engrave-faces (available from ELPA), and the LaTeX package
 fvextra be installed.
 
-The styling of the engraved result can be customised with
+The styling of the engraved result can be customized with
 `org-latex-engraved-preamble' and `org-latex-engraved-options'.
 The default preamble also uses the LaTeX package tcolorbox in
 addition to fvextra."
@@ -1202,11 +1202,11 @@ as long as it:
   \"Verbatim\" environments (provided by fvextra) will be wrapped with.
 
 In the default value the colors \"EFD\" and \"EfD\" are provided
-as they are respectively the foreground and background colours,
+as they are respectively the foreground and background colors,
 just in case they aren't provided by the generated preamble, so
 we can assume they are always set.
 
-Within this preamble there are two recognised macro-like placeholders:
+Within this preamble there are two recognized macro-like placeholders:
 
   [FVEXTRA-SETUP]
 

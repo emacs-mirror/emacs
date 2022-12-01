@@ -1554,20 +1554,18 @@ For example, \"(function|class)_definition\".
 This is used by `treesit-beginning-of-defun' and friends.")
 
 (defvar-local treesit-defun-prefer-top-level nil
-  "When non-nil, `treesit-beginning-of-defun' prefers top-level defun.
+  "When non-nil, Emacs prefers top-level defun.
 
-In some languages, a defun (function, class, struct) could be
-nested in another one.  Normally `treesit-beginning-of-defun'
-just finds the first defun it encounter.  If this variable's
-value is t, `treesit-beginning-of-defun' tries to find the
-top-level defun, and ignores nested ones.
+In some languages, a defun could be nested in another one.
+Normally Emacs stops at the first defun it encounters.  If this
+variable's value is t, Emacs tries to find the top-level defun,
+and ignores nested ones.
 
-This variable can also be a list of tree-sitter node type
-regexps.  Then, when `treesit-beginning-of-defun' finds a defun
-node and that node's type matches one in the list,
-`treesit-beginning-of-defun' finds the top-level node matching
-that particular regexp (as opposed to any node matched by
-`treesit-defun-type-regexp').")
+This variable can also be a list of cons cells of the form (FROM
+. TO), where FROM and TO are tree-sitter node type regexps.  When
+Emacs finds a defun node whose type matches any of the FROM
+regexp in the list, Emacs then tries to find the top-level node
+matching the corresponding TO regexp.")
 
 (defun treesit--defun-maybe-top-level (node)
   "Maybe return the top-level equivalent of NODE.
@@ -1579,9 +1577,11 @@ For the detailed semantic see `treesit-defun-prefer-top-level'."
             node))
     ((pred consp)
      (cl-loop
-      for re in treesit-defun-prefer-top-level
-      if (string-match-p re (treesit-node-type node))
-      return (or (treesit-node-top-level node re)
+      for con in treesit-defun-prefer-top-level
+      for from = (car con)
+      for to = (cdr con)
+      if (string-match-p from (treesit-node-type node))
+      return (or (treesit-node-top-level node to)
                  node)
       finally return node))))
 

@@ -75,7 +75,7 @@ for timed events.  If non-zero, alarms are created.
 (defcustom org-icalendar-force-alarm nil
   "Non-nil means alarm will be created even if is set to zero.
 
-This overrides default behaviour where zero means no alarm.  With
+This overrides default behavior where zero means no alarm.  With
 this set to non-nil and alarm set to zero, alarm will be created
 and will fire at the event start."
   :group 'org-export-icalendar

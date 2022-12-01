@@ -524,7 +524,7 @@ DIR-property exists (that is different from the unset one)."
   "Attach URL."
   (interactive "MURL of the file to attach: \n")
   (let ((org-attach-method 'url)
-        (org-safe-remote-resources ; Assume saftey if in an interactive session.
+        (org-safe-remote-resources ; Assume safety if in an interactive session.
          (if noninteractive org-safe-remote-resources '(""))))
     (org-attach-attach url)))
 

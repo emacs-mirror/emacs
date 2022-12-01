@@ -2696,7 +2696,10 @@ Helper function for `describe-package'."
          (signed (if desc (package-desc-signed desc)))
          (maintainer (cdr (assoc :maintainer extras)))
          (authors (cdr (assoc :authors extras)))
-         (news (and-let* ((file (expand-file-name "news" pkg-dir))
+         (news (and-let* (pkg-dir
+                          ((not built-in))
+                          (file (expand-file-name "news" pkg-dir))
+                          ((file-regular-p file))
                           ((file-readable-p file)))
                  file)))
     (when (string= status "avail-obso")
@@ -4549,7 +4552,7 @@ will be signaled in that case."
       (user-error "Package `%s' has no explicit maintainer" name))
      ((and (not (progn
                   (require 'ietf-drums)
-                  (ietf-drums-parse-address maint)))
+                  (ietf-drums-parse-address (cdr maint))))
            (null no-error))
       (user-error "Package `%s' has no maintainer address" name))
      ((not (null maint))

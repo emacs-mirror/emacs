@@ -13722,7 +13722,7 @@ A sample Org file with the above headers:
 #+vindex: org-export-default-language
 LaTeX packages =babel= or =polyglossia= can also be loaded in a
 document.  The "AUTO" string will be replaced in both cases by the
-appropiate value for the =LANGUAGE= keyword, if present in the
+appropriate value for the =LANGUAGE= keyword, if present in the
 document, or by the value of ~org-export-default-language~.  Let's see
 some examples in one or another case.
 
@@ -18491,7 +18491,7 @@ options; they are mutually exclusive.
 
   Ignore the results completely.  This option is similar to =none=,
   but no processing is performed on the return value.  Calling the
-  code block programatically (see [[*How to evaluate source code]]) or by
+  code block programmatically (see [[*How to evaluate source code]]) or by
   reference (see [[*Passing arguments]] and [[*Noweb Reference Syntax]]) will
   always yield nil.
 
@@ -18784,7 +18784,7 @@ a octal shorthand is defined, =oXXX= (=o= for octal). Using this, our
 read-only example is =:tangle-mode o444=. Omitting the =o= prefix will
 cause the argument to be interpreted as an integer, which can lead to
 unexpected results (=444= is the same as =o674=).
-Two other shorthands are recognised, ls-style strings like
+Two other shorthands are recognized, ls-style strings like
 =rw-r--r--=, and chmod-style permissions like =g+w=.
 Note that chmod-style permissions are based on
 ~org-babel-tangle-default-file-mode~, which is =#o544= by default.
@@ -18792,7 +18792,7 @@ Note that chmod-style permissions are based on
 When =:tangle-mode= and =:shebang= are both specified, the give
 =:tangle-mode= will override the permissions from =:shebang=. When
 multiple source code blocks tangle to a single file with conflicting
-=:tangle-mode= header arguments, Org's behaviour is undefined.
+=:tangle-mode= header arguments, Org's behavior is undefined.
 
 #+cindex: @samp{no-expand}, header argument
 By default Org expands code blocks during tangling.  The =no-expand=

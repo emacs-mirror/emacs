@@ -850,6 +850,23 @@ For example, @code{python-mode} sets this variable to a regexp that
 matches either @code{function_definition} or @code{class_definition}.
 @end defvar
 
+@defvar treesit-defun-prefer-top-level
+If this variable is non-@code{nil}, Emacs skips nested defun and
+prefers the top-level defun.
+
+In some languages, a defun could be nested in another one.  Normally
+Emacs stops at the first defun it encounters.  If this variable's
+value is @code{t}, whenever Emacs finds a defun node, it tries to go
+up the parse tree and find the top-level defun.
+
+This variable can also be a list of cons cells of the form
+@w{@code{(@var{from} . @var{to}))}}, where @var{from} and @var{to} are
+regexp matching tree-sitter node types.  When Emacs finds a defun node
+whose type matches any of the @var{from} regexp in the list, Emacs
+then tries to go up the parse tree to find the top-level node matching
+the corresponding @var{to} regexp.
+@end defvar
+
 @node Skipping Characters
 @subsection Skipping Characters
 @cindex skipping characters
