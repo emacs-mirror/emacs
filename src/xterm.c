@@ -1052,6 +1052,20 @@ static const struct x_atom_ref x_atom_refs[] =
     /* Old OffiX (a.k.a. old KDE) drop protocol support.  */
     ATOM_REFS_INIT ("DndProtocol", Xatom_DndProtocol)
     ATOM_REFS_INIT ("_DND_PROTOCOL", Xatom_DND_PROTOCOL)
+    /* Here are some atoms that are not actually used from C, just
+       defined to make replying to selection requests fast.  */
+    ATOM_REFS_INIT ("text/plain;charset=utf-8", Xatom_text_plain_charset_utf_8)
+    ATOM_REFS_INIT ("LENGTH", Xatom_LENGTH)
+    ATOM_REFS_INIT ("FILE_NAME", Xatom_FILE_NAME)
+    ATOM_REFS_INIT ("CHARACTER_POSITION", Xatom_CHARACTER_POSITION)
+    ATOM_REFS_INIT ("LINE_NUMBER", Xatom_LINE_NUMBER)
+    ATOM_REFS_INIT ("COLUMN_NUMBER", Xatom_COLUMN_NUMBER)
+    ATOM_REFS_INIT ("OWNER_OS", Xatom_OWNER_OS)
+    ATOM_REFS_INIT ("HOST_NAME", Xatom_HOST_NAME)
+    ATOM_REFS_INIT ("USER", Xatom_USER)
+    ATOM_REFS_INIT ("CLASS", Xatom_CLASS)
+    ATOM_REFS_INIT ("NAME", Xatom_NAME)
+    ATOM_REFS_INIT ("SAVE_TARGETS", Xatom_SAVE_TARGETS)
   };
 
 enum

@@ -537,6 +537,12 @@ struct x_display_info
      KDE" protocol in x-dnd.el). */
   Atom Xatom_DndProtocol, Xatom_DND_PROTOCOL;
 
+  /* Atoms to make x_intern_cached_atom fast.  */
+  Atom Xatom_text_plain_charset_utf_8, Xatom_LENGTH, Xatom_FILE_NAME,
+    Xatom_CHARACTER_POSITION, Xatom_LINE_NUMBER, Xatom_COLUMN_NUMBER,
+    Xatom_OWNER_OS, Xatom_HOST_NAME, Xatom_USER, Xatom_CLASS,
+    Xatom_NAME, Xatom_SAVE_TARGETS;
+
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
