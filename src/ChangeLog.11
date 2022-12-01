@@ -14235,7 +14235,7 @@
 	ns_alternate_modifier.  (Bug#1217)
 
 	* nsmenu.m (EmacsMenu-parseKeyEquiv:, addItemWithWidgetValue:):
-	Display all shortcuts, including those w/o super modifier.
+	Display all shortcuts, including those without super modifier.
 
 	* nsfns.m (ns-read-file-name): Fix typo in assignment statement.
 

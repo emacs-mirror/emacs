@@ -212,7 +212,7 @@
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (buffer-save-without-query): New var (buffer-local).
-	(save-some-buffers): Save those buffers first, w/o asking.
+	(save-some-buffers): Save those buffers first, without asking.
 
 	* files.el (insert-directory-ls-version): New variable.
 	(insert-directory): When ls returns an error, test the version
@@ -491,7 +491,7 @@
 	instead of `direction'.  Update callers.  When `del-count' is
 	non-nil, delete that many characters, otherwise `count' characters
 	backwards.  Insert the newly-replaced string `count' times.
-	(zone-fret): Handle chars w/ width greater than one.
+	(zone-fret): Handle chars with width greater than one.
 	(zone-fall-through-ws): No longer take window width `ww'.
 	Update callers.  Add handling for `char-width' greater than one.
 	(zone-pgm-drip): Update var holding window-end position every cycle.
@@ -3584,7 +3584,8 @@
 	* startup.el (fancy-splash-tail, normal-splash-screen):
 	Update copyright year.
 
-	* shadowfile.el (shadowfile-unload-hook): Set as variable w/ add-hook.
+	* shadowfile.el (shadowfile-unload-hook): Set as variable with
+	add-hook.
 
 	* server.el (server-unload-hook): Set as a variable with add-hook.
 
@@ -8939,7 +8940,7 @@
 	(compilation-skip-visited, compilation-context-lines):
 	Declare :version when added to Emacs.
 	(compilation-error-regexp-alist-alist): Extend caml and irix.
-	(compilation-setup): Fix if font-locked w/o font-lock-defaults.
+	(compilation-setup): Fix if font-locked without font-lock-defaults.
 	(compilation-mode-font-lock-keywords): Temporarily undo line as
 	function patch, which wasn't ready.
 

@@ -27,7 +27,7 @@
 ;;
 ;;   -repeat after me: "the colon is not part of the header name..."
 ;;   -if w3 becomes part of emacs, then it may make sense to have this
-;;    file depend on w3 -- the maintainer of w3 says merging w/ Emacs
+;;    file depend on w3 -- the maintainer of w3 says merging with Emacs
 ;;    is planned!
 ;;
 ;; historical note:
@@ -36,8 +36,8 @@
 ;;
 ;; acknowledgments:
 ;;
-;;   the functions that deal w/ unhexifying in this file were basically
-;; taken from w3 -- i hope to replace them w/ something else soon OR
+;;   the functions that deal with unhexifying in this file were basically
+;; taken from w3 -- i hope to replace them with something else soon OR
 ;; perhaps if w3 becomes a part of emacs soon, use the functions from w3.
 
 ;;; History:
@@ -85,9 +85,9 @@
 
 (defun rfc2368-parse-mailto-url (mailto-url)
   "Parse MAILTO-URL, and return an alist of header-name, header-value pairs.
-MAILTO-URL should be a RFC 2368 (mailto) compliant url.  A cons cell w/ a
+MAILTO-URL should be a RFC 2368 (mailto) compliant url.  A cons cell with a
 key of `Body' is a special case and is considered a header for this purpose.
-The returned alist is intended for use w/ the `compose-mail' interface.
+The returned alist is intended for use with the `compose-mail' interface.
 Note: make sure MAILTO-URL has been \"unhtmlized\" (e.g., &amp; -> &), before
 calling this function."
   (let ((case-fold-search t)
@@ -114,7 +114,7 @@ calling this function."
 			  (rfc2368-unhexify-string header-value))))
 		     (split-string query "&"))))
 
-	  ;; deal w/ multiple 'To' recipients
+	  ;; deal with multiple 'To' recipients
 	  (if prequery
 	      (progn
 		(setq prequery (rfc2368-unhexify-string prequery))

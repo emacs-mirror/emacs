@@ -320,7 +320,7 @@ run a specific program.  The program must be a member of
   (zone-pgm-jitter))
 
 
-;;;; putzing w/ case
+;;;; putzing with case
 
 ;; Faster than `zone-pgm-putz-with-case', but not as good: all
 ;; instances of the same letter have the same case, which produces a
