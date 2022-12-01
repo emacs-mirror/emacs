@@ -3396,6 +3396,9 @@ Note that this does not affect setting or owning selections.  */);
 static void
 syms_of_xselect_for_pdumper (void)
 {
+  outstanding_transfers.next = &outstanding_transfers;
+  outstanding_transfers.last = &outstanding_transfers;
+
   reading_selection_window = 0;
   reading_which_selection = 0;
   property_change_wait_list = 0;
