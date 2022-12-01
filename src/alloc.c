@@ -6220,6 +6220,7 @@ garbage_collect (void)
 
 #ifdef HAVE_X_WINDOWS
   mark_xterm ();
+  mark_xselect ();
 #endif
 
 #ifdef HAVE_NS

@@ -1798,6 +1798,8 @@ extern void x_handle_property_notify (const XPropertyEvent *);
 extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct selection_input_event *);
 extern void x_clear_frame_selections (struct frame *);
+extern void x_remove_selection_transfers (struct x_display_info *);
+
 extern Lisp_Object x_atom_to_symbol (struct x_display_info *, Atom);
 extern Atom symbol_to_x_atom (struct x_display_info *, Lisp_Object);
 
@@ -1828,6 +1830,10 @@ extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
 				  bool);
 extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)
   ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
+
+extern void mark_xselect (void);
+
+/* Misc definitions.  */
 
 #ifdef USE_GTK
 extern bool xg_set_icon (struct frame *, Lisp_Object);

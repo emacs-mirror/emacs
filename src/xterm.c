@@ -30600,7 +30600,12 @@ x_delete_display (struct x_display_info *dpyinfo)
       last = ie;
     }
 
+  /* Delete selection requests bound for dpyinfo from the keyboard
+     buffer.  */
   x_delete_selection_requests (dpyinfo);
+
+  /* And remove any outstanding selection transfers.  */
+  x_remove_selection_transfers (dpyinfo);
 
   if (next_noop_dpyinfo == dpyinfo)
     next_noop_dpyinfo = dpyinfo->next;
