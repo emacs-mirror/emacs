@@ -1561,11 +1561,11 @@ Normally Emacs stops at the first defun it encounters.  If this
 variable's value is t, Emacs tries to find the top-level defun,
 and ignores nested ones.
 
-This variable can also be a list of cons cells of the form (FROM
-. TO), where FROM and TO are tree-sitter node type regexps.  When
-Emacs finds a defun node whose type matches any of the FROM
-regexp in the list, Emacs then tries to find the top-level node
-matching the corresponding TO regexp.")
+This variable can also be a list of cons cells of the
+form (FROM . TO), where FROM and TO are tree-sitter node type
+regexps.  When Emacs finds a defun node whose type matches any of
+the FROM regexps in the list, it then tries to find a
+higher-level node matching the corresponding TO regexp.")
 
 (defun treesit--defun-maybe-top-level (node)
   "Maybe return the top-level equivalent of NODE.
