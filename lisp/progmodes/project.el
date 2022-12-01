@@ -196,8 +196,8 @@ project instance.
 
 The \"transient\" project instance is a special kind of value
 which denotes a project rooted in that directory and includes all
-the files under the directory except for those that should be
-ignored (per `project-ignores').
+the files under the directory except for those that match entries
+in `vc-directory-exclusion-list' or `grep-find-ignored-files'.
 
 See the doc string of `project-find-functions' for the general form
 of the project instance object."
