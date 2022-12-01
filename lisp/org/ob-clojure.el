@@ -101,13 +101,13 @@
 
 (defcustom ob-clojure-babashka-command (executable-find "bb")
   "Path to the babashka executable."
-  :type 'file
+  :type '(choice file (const nil))
   :group 'org-babel
   :package-version '(Org . "9.6"))
 
 (defcustom ob-clojure-nbb-command (executable-find "nbb")
   "Path to the nbb executable."
-  :type 'file
+  :type '(choice file (const nil))
   :group 'org-babel
   :package-version '(Org . "9.6"))
 

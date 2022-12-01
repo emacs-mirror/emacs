@@ -87,7 +87,7 @@ included into another document or application that reserves top-level
 headings for its own use."
   :group 'org-export-md
   :package-version '(Org . "9.6")
-  :type 'string)
+  :type 'natnum)
 
 
 

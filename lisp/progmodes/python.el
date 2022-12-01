@@ -454,7 +454,7 @@ This variant of `rx' supports common Python named REGEXPS."
             (close-paren       (or "}" "]" ")"))
             (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
             (not-simple-operator (not (or simple-operator ?\n)))
-            (operator          (or "==" ">=" "is" "not"
+            (operator          (or "==" ">="
                                    "**" "//" "<<" ">>" "<=" "!="
                                    "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
                                    "=" "%"))
@@ -791,6 +791,7 @@ sign in chained assignment."
                    (? (or ")" "]") (* sp-bsnl))
                    (group assignment-operator)))
      (1 font-lock-variable-name-face)
+     (2 'font-lock-operator-face)
      (,(python-rx grouped-assignment-target)
       (progn
         (goto-char (match-end 1))       ; go back after the first symbol
@@ -806,8 +807,9 @@ sign in chained assignment."
        (python-rx (or line-start ?\;) (* sp-bsnl)
                   grouped-assignment-target (* sp-bsnl)
                   (? ?: (* sp-bsnl) (+ not-simple-operator) (* sp-bsnl))
-                  assignment-operator))
-     (1 font-lock-variable-name-face))
+                  (group assignment-operator)))
+     (1 font-lock-variable-name-face)
+     (2 'font-lock-operator-face))
     ;; special cases
     ;;   (a) = 5
     ;;   [a] = 5,
@@ -817,8 +819,11 @@ sign in chained assignment."
                   (or "[" "(") (* sp-nl)
                   grouped-assignment-target (* sp-nl)
                   (or ")" "]") (* sp-bsnl)
-                  assignment-operator))
-     (1 font-lock-variable-name-face))
+                  (group assignment-operator)))
+     (1 font-lock-variable-name-face)
+     (2 'font-lock-operator-face))
+    ;; Operators.
+    (,(python-rx operator) . 'font-lock-operator-face)
     ;; escape sequences within bytes literals
     ;;   "\\" "\'" "\a" "\b" "\f" "\n" "\r" "\t" "\v"
     ;;   "\ooo" character with octal value ooo
