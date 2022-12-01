@@ -1408,7 +1408,7 @@ URI regexps are applied to both URLs and Org files requesting
 remote resources."
   :group 'org
   :package-version '(Org . "9.6")
-  :type '(list regexp))
+  :type '(repeat regexp))
 
 (defcustom org-open-non-existing-files nil
   "Non-nil means `org-open-file' opens non-existing files.

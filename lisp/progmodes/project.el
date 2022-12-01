@@ -453,7 +453,7 @@ repositories.
 
 In either case, their behavior will still obey the relevant
 variables, such as `project-vc-ignores' or `project-vc-name'."
-  :type 'list
+  :type '(repeat string)
   :version "29.1"
   :package-version '(project . "0.9.0")
   :safe (lambda (val) (and (listp val) (cl-every #'stringp val))))
