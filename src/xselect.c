@@ -3415,6 +3415,11 @@ mark_xselect (void)
      request stack or the list of outstanding transfers.  */
 
   next = outstanding_transfers.next;
+
+  if (!next)
+    /* syms_of_xselect has not yet been called.  */
+    return;
+
   while (next != &outstanding_transfers)
     {
       mark_object (next->data.string);
