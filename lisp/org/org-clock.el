@@ -1198,8 +1198,11 @@ If `only-dangling-p' is non-nil, only ask to resolve dangling
   (string-to-number (shell-command-to-string "ioreg -c IOHIDSystem | perl -ane 'if (/Idle/) {$idle=(pop @F)/1000000000; print $idle; last}'")))
 
 (defvar org-x11idle-exists-p
-  ;; Check that x11idle exists
-  (and (eq 0 (call-process-shell-command
+  ;; Check that x11idle exists.  But don't do that on DOS/Windows,
+  ;; since the command definitely does NOT exist there, and invoking
+  ;; COMMAND.COM on MS-Windows is a bad idea -- it hangs.
+  (and (null (memq system-type '(windows-nt ms-dos)))
+       (eq 0 (call-process-shell-command
               (format "command -v %s" org-clock-x11idle-program-name)))
        ;; Check that x11idle can retrieve the idle time
        ;; FIXME: Why "..-shell-command" rather than just `call-process'?
