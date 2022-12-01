@@ -11,7 +11,8 @@
          (vc-prepare-patches-separately . nil)))
  (c-mode . ((c-file-style . "GNU")
             (c-noise-macro-names . ("INLINE" "NO_INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED"
-                                    "UNINIT" "CALLBACK" "ALIGN_STACK"))
+                                    "UNINIT" "CALLBACK" "ALIGN_STACK" "ATTRIBUTE_MALLOC"
+                                    "ATTRIBUTE_DEALLOC_FREE"))
             (electric-quote-comment . nil)
             (electric-quote-string . nil)
             (indent-tabs-mode . t)
