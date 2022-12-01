@@ -482,7 +482,7 @@ callback data (if any)."
 	      (format "      skipped new keys: %d\n"
 		      (epg-import-result-not-imported import-result)))
 	  (if (> (epg-import-result-no-user-id import-result) 0)
-	      (format "          w/o user IDs: %d\n"
+	      (format "          without user IDs: %d\n"
 		      (epg-import-result-no-user-id import-result)))
 	  (if (> (epg-import-result-imported import-result) 0)
 	      (concat (format "              imported: %d"

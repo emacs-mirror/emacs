@@ -278,7 +278,7 @@
 ;; C-c C-h term-dynamic-list-input-ring  List input history
 ;;
 ;; Not bound by default in term-mode
-;; term-send-invisible			Read a line w/o echo, and send to proc
+;; term-send-invisible			Read a line without echo, and send to proc
 ;; (These are bound in shell-mode)
 ;; term-dynamic-complete		Complete filename at point.
 ;; term-dynamic-list-completions	List completions in help buffer.
