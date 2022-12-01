@@ -1941,7 +1941,7 @@ If GROUP-NAME is the empty string, then remove the tab from any group.
 While using this command, you might also want to replace
 `tab-bar-format-tabs' with `tab-bar-format-tabs-groups' in
 `tab-bar-format' to group tabs on the tab bar.
-At the end it runs the hook `tab-bar-tab-post-change-group-functions'."
+Runs the hook `tab-bar-tab-post-change-group-functions' at the end."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
           (tab-number (or current-prefix-arg
