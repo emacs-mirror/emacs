@@ -1820,26 +1820,10 @@ only these files will be asked to be saved."
 
 (defun server-stop-automatically--handle-delete-frame (frame)
   "Handle deletion of FRAME when `server-stop-automatically' is used."
-  (when server-stop-automatically
-    (if (if (and (processp (frame-parameter frame 'client))
-		 (eq this-command 'save-buffers-kill-terminal))
-	    (progn
-	      (dolist (f (frame-list))
-		(when (and (eq (frame-parameter frame 'client)
-			       (frame-parameter f 'client))
-			   (not (eq frame f)))
-		  (set-frame-parameter f 'client nil)
-		  (let ((server-stop-automatically nil))
-		    (delete-frame f))))
-	      (if (cddr (frame-list))
-		  (let ((server-stop-automatically nil))
-		    (delete-frame frame)
-		    nil)
-		t))
-	  (null (cddr (frame-list))))
-	(let ((server-stop-automatically nil))
-	  (save-buffers-kill-emacs)
-	  (delete-frame frame)))))
+  (when (and server-stop-automatically
+             (null (cddr (frame-list))))
+    (let ((server-stop-automatically nil))
+      (save-buffers-kill-emacs))))
 
 (defun server-stop-automatically--maybe-kill-emacs ()
   "Handle closing of Emacs daemon when `server-stop-automatically' is used."
