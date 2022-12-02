@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
-;; Version: 0.9.1
+;; Version: 0.9.2
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -278,7 +278,7 @@ headers search path, load path, class path, and so on."
 (cl-defgeneric project-name (project)
   "A human-readable name for the project.
 Nominally unique, but not enforced."
-  (file-name-base (directory-file-name (project-root project))))
+  (file-name-nondirectory (directory-file-name (project-root project))))
 
 (cl-defgeneric project-ignores (_project _dir)
   "Return the list of glob patterns to ignore inside DIR.
