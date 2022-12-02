@@ -25,8 +25,8 @@
 
 (defconst server-tests/can-create-frames-p
   (and (not (memq system-type '(windows-nt ms-dos)))
-       ;; TERM=dumb is what we get when running from `compile'.
-       (not (equal (getenv "TERM") "dumb")))
+       nil
+       (not (member (getenv "TERM") '("dumb" "" nil))))
   "Non-nil if we can create a new frame in the tests.
 Some tests below need to create new frames for the emacsclient.
 However, this doesn't work on all platforms.  In particular,
@@ -119,6 +119,8 @@ process's status matches it."
 
 (ert-deftest server-tests/server-start/sets-minor-mode ()
   "Ensure that calling `server-start' also sets `server-mode' properly."
+  (message "TERM=%S" (getenv "TERM"))
+  (should nil)
   (server-tests/with-server
     ;; Make sure starting the server activates the minor mode.
     (should (eq server-mode t))
