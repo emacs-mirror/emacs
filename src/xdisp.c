@@ -26312,13 +26312,17 @@ display_menu_bar (struct window *w)
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_PIXEL_WIDTH (f);
 #elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
-  struct window *menu_w;
+  struct window *menu_window;
+
+  menu_window = NULL;
+
   if (FRAME_WINDOW_P (f))
     {
       /* Menu bar lines are displayed in the desired matrix of the
 	 dummy window menu_bar_window.  */
-      menu_w = XWINDOW (f->menu_bar_window);
-      init_iterator (&it, menu_w, -1, -1, menu_w->desired_matrix->rows,
+      menu_window = XWINDOW (f->menu_bar_window);
+      init_iterator (&it, menu_window, -1, -1,
+		     menu_window->desired_matrix->rows,
 		     MENU_FACE_ID);
       it.first_visible_x = 0;
       it.last_visible_x = FRAME_PIXEL_WIDTH (f);
@@ -26379,11 +26383,16 @@ display_menu_bar (struct window *w)
 #if defined (HAVE_X_WINDOWS) && !defined (USE_X_TOOLKIT) && !defined (USE_GTK)
   /* With the non-toolkit version, modify the menu bar window height
      accordingly.  */
-  if (FRAME_WINDOW_P (it.f))
+  if (FRAME_WINDOW_P (it.f) && menu_window)
     {
-      struct glyph_row *row = it.glyph_row;
-      int delta_height = ((row->y + row->height)
-			  - WINDOW_BOX_HEIGHT_NO_MODE_LINE (menu_w));
+      struct glyph_row *row;
+      int delta_height;
+
+      row = it.glyph_row;
+      delta_height
+	= ((row->y + row->height)
+	   - WINDOW_BOX_HEIGHT_NO_MODE_LINE (menu_window));
+
       if (delta_height != 0)
         {
 	  FRAME_MENU_BAR_HEIGHT (it.f) += delta_height;

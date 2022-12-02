@@ -1723,6 +1723,11 @@ extern Lisp_Object x_handle_translate_coordinates (struct frame *, Lisp_Object,
 
 extern Bool x_query_pointer (Display *, Window, Window *, Window *, int *,
 			     int *, int *, int *, unsigned int *);
+extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
+				  bool);
+extern void x_intern_atoms (struct x_display_info *, char **, int, Atom *);
+extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
 
 #ifdef HAVE_GTK3
 extern void x_scroll_bar_configure (GdkEvent *);
@@ -1815,11 +1820,8 @@ extern bool x_handle_dnd_message (struct frame *,
 				  struct input_event *,
 				  bool, int, int);
 extern int x_check_property_data (Lisp_Object);
-extern void x_fill_property_data (Display *,
-                                  Lisp_Object,
-                                  void *,
-				  int,
-                                  int);
+extern void x_fill_property_data (struct x_display_info *, Lisp_Object,
+                                  void *, int, int);
 extern Lisp_Object x_property_data_to_lisp (struct frame *,
                                             const unsigned char *,
                                             Atom,
@@ -1832,10 +1834,6 @@ extern Lisp_Object x_timestamp_for_selection (struct x_display_info *,
 					      Lisp_Object);
 extern void x_own_selection (Lisp_Object, Lisp_Object, Lisp_Object,
 			     Lisp_Object, Time);
-extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
-				  bool);
-extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)
-  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
 
 extern void mark_xselect (void);
 

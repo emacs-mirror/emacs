@@ -2216,7 +2216,12 @@ static void
 lisp_data_to_selection_data (struct x_display_info *dpyinfo,
 			     Lisp_Object obj, struct selection_data *cs)
 {
-  Lisp_Object type = Qnil;
+  Lisp_Object type;
+  char **name_buffer;
+
+  USE_SAFE_ALLOCA;
+
+  type = Qnil;
 
   eassert (cs != NULL);
 
@@ -2321,8 +2326,19 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
 	  x_atoms = data;
 	  cs->format = 32;
 	  cs->size = size;
-	  for (i = 0; i < size; i++)
-	    x_atoms[i] = symbol_to_x_atom (dpyinfo, AREF (obj, i));
+
+	  if (size == 1)
+	    x_atoms[0] = symbol_to_x_atom (dpyinfo, AREF (obj, i));
+	  else
+	    {
+	      SAFE_NALLOCA (name_buffer, sizeof *x_atoms, size);
+
+	      for (i = 0; i < size; i++)
+		name_buffer[i] = SSDATA (SYMBOL_NAME (AREF (obj, i)));
+
+	      x_intern_atoms (dpyinfo, name_buffer, size,
+			      x_atoms);
+	    }
 	}
       else
 	/* This vector is an INTEGER set, or something like it */
@@ -2364,6 +2380,8 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
     signal_error (/* Qselection_error */ "Unrecognized selection data", obj);
 
   cs->type = symbol_to_x_atom (dpyinfo, type);
+
+  SAFE_FREE ();
 }
 
 static Lisp_Object
@@ -2891,8 +2909,8 @@ x_check_property_data (Lisp_Object data)
    XClientMessageEvent).  */
 
 void
-x_fill_property_data (Display *dpy, Lisp_Object data, void *ret,
-		      int nelements_max, int format)
+x_fill_property_data (struct x_display_info *dpyinfo, Lisp_Object data,
+		      void *ret, int nelements_max, int format)
 {
   unsigned long val;
   unsigned long  *d32 = (unsigned long  *) ret;
@@ -2927,7 +2945,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret,
       else if (STRINGP (o))
         {
           block_input ();
-          val = XInternAtom (dpy, SSDATA (o), False);
+          val = x_intern_cached_atom (dpyinfo, SSDATA (o), false);
           unblock_input ();
         }
       else
@@ -3215,7 +3233,7 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 
   memset (event.xclient.data.l, 0, sizeof (event.xclient.data.l));
   /* event.xclient.data can hold 20 chars, 10 shorts, or 5 longs.  */
-  x_fill_property_data (dpyinfo->display, values, event.xclient.data.b,
+  x_fill_property_data (dpyinfo, values, event.xclient.data.b,
                         5 * 32 / event.xclient.format,
                         event.xclient.format);
 

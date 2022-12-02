@@ -28875,6 +28875,53 @@ x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
   return value;
 }
 
+/* Intern an array of atoms, and do so quickly, avoiding extraneous
+   roundtrips to the X server.
+
+   Avoid sending atoms that have already been found to the X server.
+   This cannot do anything that will end up triggering garbage
+   collection.  */
+
+void
+x_intern_atoms (struct x_display_info *dpyinfo, char **names, int count,
+		Atom *atoms_return)
+{
+  int i, j, indices[256];
+  char *new_names[256];
+  Atom results[256], candidate;
+
+  if (count > 256)
+    /* Atoms array too big to inspect reasonably, just send it to the
+       server and back.  */
+    XInternAtoms (dpyinfo->display, new_names, count, False, atoms_return);
+  else
+    {
+      for (i = 0, j = 0; i < count; ++i)
+	{
+	  candidate = x_intern_cached_atom (dpyinfo, names[i],
+					    true);
+
+	  if (candidate)
+	    atoms_return[i] = candidate;
+	  else
+	    {
+	      indices[j++] = i;
+	      new_names[j - 1] = names[i];
+	    }
+	}
+
+      if (!j)
+	return;
+
+      /* Now, get the results back from the X server.  */
+      XInternAtoms (dpyinfo->display, new_names, j, False,
+		    results);
+
+      for (i = 0; i < j; ++i)
+	atoms_return[indices[i]] = results[i];
+    }
+}
+
 #ifndef USE_GTK
 
 /* Set up XEmbed for F, and change its save set to handle the parent
