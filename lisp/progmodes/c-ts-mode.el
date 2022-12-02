@@ -525,11 +525,11 @@ the subtrees."
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
-              (rx (or "function_definition"
-                      "type_definition"
-                      "struct_specifier"
-                      "enum_specifier"
-                      "union_specifier")))
+              (regexp-opt '("function_definition"
+                            "type_definition"
+                            "struct_specifier"
+                            "enum_specifier"
+                            "union_specifier")))
 
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
