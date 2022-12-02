@@ -976,7 +976,7 @@ underlying shell."
                                        'term-mode))
             (buffer-list))))
       (easy-menu-change
-       '("Terminal")
+       nil
        "Terminal Buffers"
        (mapcar
         (lambda (buffer)
@@ -986,7 +986,9 @@ underlying shell."
                   (lambda ()
                     (interactive)
                     (switch-to-buffer buffer))))
-        buffer-list)))))
+        buffer-list)
+       nil
+       term-terminal-menu))))
 
 (easy-menu-define term-signals-menu
  (list term-mode-map term-raw-map term-pager-break-map)

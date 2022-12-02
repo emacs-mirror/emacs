@@ -7124,6 +7124,12 @@ This is only valid for @code{image} icons, and can be either a number
 (which specifies the height in pixels), or the symbol @code{line},
 which will use the default line height in the currently selected
 window.
+
+@item :width
+This is only valid for @code{image} icons, and can be either a number
+(which specifies the width in pixels), or the symbol @code{font},
+which will use the width in pixels of the current buffer’s default
+face font.
 @end table
 
 @var{doc} should be a doc string.

@@ -114,41 +114,58 @@ the external command (usually \"kill\")."
 (defcustom proced-grammar-alist
   '( ;; attributes defined in `process-attributes'
     (euid    "EUID"    "%d" right proced-< nil (euid pid) (nil t nil))
-    (user    "User"    nil left proced-string-lessp nil (user pid) (nil t nil))
+    (user    "User"    proced-format-user left proced-string-lessp nil
+                       (user pid) (nil t nil))
     (egid    "EGID"    "%d" right proced-< nil (egid euid pid) (nil t nil))
-    (group   "Group"   nil left proced-string-lessp nil (group user pid) (nil t nil))
+    (group   "Group"   nil left proced-string-lessp nil (group user pid)
+                       (nil t nil))
     (comm    "Command" nil left proced-string-lessp nil (comm pid) (nil t nil))
-    (state   "Stat"    nil left proced-string-lessp nil (state pid) (nil t nil))
-    (ppid    "PPID"    "%d" right proced-< nil (ppid pid)
-             ((lambda (ppid) (proced-filter-parents proced-process-alist ppid))
-              "refine to process parents"))
-    (pgrp    "PGrp"    "%d" right proced-< nil (pgrp euid pid) (nil t nil))
-    (sess    "Sess"    "%d" right proced-< nil (sess pid) (nil t nil))
-    (ttname  "TTY"     proced-format-ttname left proced-string-lessp nil (ttname pid) (nil t nil))
+    (state   "Stat"    proced-format-state left proced-string-lessp nil
+                       (state pid) (nil t nil))
+    (ppid    "PPID"    proced-format-ppid right proced-< nil (ppid pid)
+                       ((lambda (ppid)
+                          (proced-filter-parents proced-process-alist ppid))
+                        "refine to process parents"))
+    (pgrp    "PGrp"    proced-format-pgrp right proced-< nil (pgrp euid pid)
+                       (nil t nil))
+    (sess    "Sess"    proced-format-sess right proced-< nil (sess pid)
+                       (nil t nil))
+    (ttname  "TTY"     proced-format-ttname left proced-string-lessp nil
+                       (ttname pid) (nil t nil))
     (tpgid   "TPGID"   "%d" right proced-< nil (tpgid pid) (nil t nil))
     (minflt  "MinFlt"  "%d" right proced-< nil (minflt pid) (nil t t))
     (majflt  "MajFlt"  "%d" right proced-< nil (majflt pid) (nil t t))
     (cminflt "CMinFlt" "%d" right proced-< nil (cminflt pid) (nil t t))
     (cmajflt "CMajFlt" "%d" right proced-< nil (cmajflt pid) (nil t t))
-    (utime   "UTime"   proced-format-time right proced-time-lessp t (utime pid) (nil t t))
-    (stime   "STime"   proced-format-time right proced-time-lessp t (stime pid) (nil t t))
-    (time    "Time"   proced-format-time right proced-time-lessp t (time pid) (nil t t))
-    (cutime  "CUTime"  proced-format-time right proced-time-lessp t (cutime pid) (nil t t))
-    (cstime  "CSTime"  proced-format-time right proced-time-lessp t (cstime pid) (nil t t))
-    (ctime   "CTime"  proced-format-time right proced-time-lessp t (ctime pid) (nil t t))
+    (utime   "UTime"   proced-format-time right proced-time-lessp t (utime pid)
+                       (nil t t))
+    (stime   "STime"   proced-format-time right proced-time-lessp t (stime pid)
+                       (nil t t))
+    (time    "Time"    proced-format-time right proced-time-lessp t (time pid)
+                       (nil t t))
+    (cutime  "CUTime"  proced-format-time right proced-time-lessp t (cutime pid)
+                       (nil t t))
+    (cstime  "CSTime"  proced-format-time right proced-time-lessp t (cstime pid)
+                       (nil t t))
+    (ctime   "CTime"   proced-format-time right proced-time-lessp t (ctime pid)
+                       (nil t t))
     (pri     "Pr"      "%d" right proced-< t (pri pid) (nil t t))
     (nice    "Ni"      "%3d" 3 proced-< t (nice pid) (t t nil))
     (thcount "THCount" "%d" right proced-< t (thcount pid) (nil t t))
-    (start   "Start"   proced-format-start 6 proced-time-lessp nil (start pid) (t t nil))
-    (vsize   "VSize"   proced-format-memory right proced-< t (vsize pid) (nil t t))
-    (rss     "RSS"     proced-format-memory right proced-< t (rss pid) (nil t t))
-    (etime   "ETime"   proced-format-time right proced-time-lessp t (etime pid) (nil t t))
-    (pcpu    "%CPU"    "%.1f" right proced-< t (pcpu pid) (nil t t))
-    (pmem    "%Mem"    "%.1f" right proced-< t (pmem pid) (nil t t))
-    (args    "Args"    proced-format-args left proced-string-lessp nil (args pid) (nil t nil))
+    (start   "Start"   proced-format-start 6 proced-time-lessp nil (start pid)
+                       (t t nil))
+    (vsize   "VSize"   proced-format-memory right proced-< t (vsize pid)
+                       (nil t t))
+    (rss     "RSS"     proced-format-rss right proced-< t (rss pid) (nil t t))
+    (etime   "ETime"   proced-format-time right proced-time-lessp t (etime pid)
+                       (nil t t))
+    (pcpu    "%CPU"    proced-format-cpu right proced-< t (pcpu pid) (nil t t))
+    (pmem    "%Mem"    proced-format-mem right proced-< t (pmem pid) (nil t t))
+    (args    "Args"    proced-format-args left proced-string-lessp nil
+                       (args pid) (nil t nil))
     ;;
     ;; attributes defined by proced (see `proced-process-attributes')
-    (pid     "PID"     "%d" right proced-< nil (pid)
+    (pid     "PID"     proced-format-pid right proced-< nil (pid)
              ((lambda (ppid) (proced-filter-children proced-process-alist ppid))
               "refine to process children"))
     ;; process tree
@@ -367,6 +384,32 @@ May be used to revert the process listing."
   :type 'hook
   :options '(proced-revert))
 
+(defcustom proced-enable-color-flag nil
+  "Non-nil means Proced should display some process attributes with color."
+  :type 'boolean
+  :version "29.1")
+
+(defcustom proced-low-memory-usage-threshold 0.1
+  "The upper bound for low relative memory usage display in Proced.
+
+When `proced-enable-color-flag' is non-nil, RSS values denoting a
+proportion of memory, relative to total memory, that is lower
+than this value will be displayed using the `proced-memory-low-usage' face."
+  :type 'float
+  :version "29.1")
+
+(defcustom proced-medium-memory-usage-threshold 0.5
+  "The upper bound for medium relative memory usage display in Proced.
+
+When `proced-enable-color-flag' is non-nil, RSS values denoting a
+proportion of memory, relative to total memory, that is less than
+this value, but greater than `proced-low-memory-usage-threshold',
+will be displayed using the `proced-memory-medium-usage' face.
+RSS values denoting a greater proportion than this value will be
+displayed using the `proced-memory-high-usage' face."
+  :type 'float
+  :version "29.1")
+
 ;; Internal variables
 
 (defvar proced-available t;(not (null (list-system-processes)))
@@ -402,6 +445,114 @@ It is a list of lists (KEY PREDICATE REVERSE).")
 (defface proced-sort-header
   '((t (:inherit font-lock-keyword-face)))
   "Face used for header of attribute used for sorting.")
+
+(defface proced-run-status-code
+  '((t (:foreground "green")))
+  "Face used in Proced buffers for running or runnable status code character \"R\"."
+  :version "29.1")
+
+(defface proced-interruptible-sleep-status-code
+  '((((class color) (min-colors 88)) (:foreground "DimGrey"))
+    (t (:italic t)))
+  "Face used in Proced buffers for interruptible sleep status code character \"S\"."
+  :version "29.1")
+
+(defface proced-uninterruptible-sleep-status-code
+  '((((class color)) (:foreground "red"))
+    (t (:bold t)))
+  "Face used in Proced buffers for uninterruptible sleep status code character \"D\"."
+  :version "29.1")
+
+(defface proced-executable
+  '((((class color) (min-colors 88) (background dark)) (:foreground "DeepSkyBlue"))
+    (((class color) (background dark)) (:foreground "cyan"))
+    (((class color) (background light)) (:foreground "blue"))
+    (t (:bold t)))
+  "Face used in Proced buffers for executable names.
+The first word in the process arguments attribute is assumed to
+be the executable that runs in the process."
+  :version "29.1")
+
+(defface proced-memory-high-usage
+  '((((class color) (min-colors 88) (background dark)) (:foreground "orange"))
+    (((class color) (min-colors 88) (background light)) (:foreground "OrangeRed"))
+    (((class color)) (:foreground "red"))
+    (t (:underline t)))
+  "Face used in Proced buffers for high memory usage."
+  :version "29.1")
+
+(defface proced-memory-medium-usage
+  '((((class color) (min-colors 88) (background dark)) (:foreground "yellow3"))
+    (((class color) (min-colors 88) (background light)) (:foreground "orange"))
+    (((class color)) (:foreground "yellow")))
+  "Face used in Proced buffers for medium memory usage."
+  :version "29.1")
+
+(defface proced-memory-low-usage
+  '((((class color) (min-colors 88) (background dark)) (:foreground "#8bcd50"))
+    (((class color)) (:foreground "green")))
+  "Face used in Proced buffers for low memory usage."
+  :version "29.1")
+
+(defface proced-emacs-pid
+  '((((class color) (min-colors 88)) (:foreground "purple"))
+    (((class color)) (:foreground "magenta")))
+  "Face used in Proced buffers for the process ID of the current Emacs process."
+  :version "29.1")
+
+(defface proced-pid
+  '((((class color) (min-colors 88)) (:foreground "#5085ef"))
+    (((class color)) (:foreground "blue")))
+  "Face used in Proced buffers for process IDs."
+  :version "29.1")
+
+(defface proced-session-leader-pid
+  '((((class color) (min-colors 88)) (:foreground "#5085ef" :underline t))
+    (((class color)) (:foreground "blue" :underline t))
+    (t (:underline t)))
+  "Face used in Proced buffers for process IDs which are session leaders."
+  :version "29.1")
+
+(defface proced-ppid
+  '((((class color) (min-colors 88)) (:foreground "#5085bf"))
+    (((class color)) (:foreground "blue")))
+  "Face used in Proced buffers for parent process IDs."
+  :version "29.1")
+
+(defface proced-pgrp
+  '((((class color) (min-colors 88)) (:foreground "#4785bf"))
+    (((class color)) (:foreground "blue")))
+  "Face used in Proced buffers for process group IDs."
+  :version "29.1")
+
+(defface proced-sess
+  '((((class color) (min-colors 88)) (:foreground "#41729f"))
+    (((class color)) (:foreground "MidnightBlue")))
+  "Face used in Proced buffers for process session IDs."
+  :version "29.1")
+
+(defface proced-cpu
+  '((((class color) (min-colors 88)) (:foreground "#6d5cc3" :bold t))
+    (t (:bold t)))
+  "Face used in Proced buffers for process CPU utilization."
+  :version "29.1")
+
+(defface proced-mem
+  '((((class color) (min-colors 88))
+     (:foreground "#6d5cc3")))
+  "Face used in Proced buffers for process memory utilization."
+  :version "29.1")
+
+(defface proced-user
+  '((t (:bold t)))
+  "Face used in Proced buffers for the user owning the process."
+  :version "29.1")
+
+(defface proced-time-colon
+  '((((class color) (min-colors 88)) (:foreground "DarkMagenta"))
+    (t (:bold t)))
+  "Face used in Proced buffers for the colon in time strings."
+  :version "29.1")
 
 (defvar proced-re-mark "^[^ \n]"
   "Regexp matching a marked line.
@@ -1392,26 +1543,32 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
          (hours (truncate ftime 3600))
          (ftime (mod ftime 3600))
          (minutes (truncate ftime 60))
-         (seconds (mod ftime 60)))
+         (seconds (mod ftime 60))
+         (colon (if proced-enable-color-flag
+                    (propertize ":" 'font-lock-face 'proced-time-colon)
+                  ":")))
     (cond ((< 0 days)
-           (format "%d-%02d:%02d:%02d" days hours minutes seconds))
+           (format "%d-%02d%s%02d%s%02d" days hours colon minutes colon seconds))
           ((< 0 hours)
-           (format "%02d:%02d:%02d" hours minutes seconds))
+           (format "%02d%s%02d%s%02d" hours colon minutes colon seconds))
           (t
-           (format "%02d:%02d" minutes seconds)))))
+           (format "%02d%s%02d" minutes colon seconds)))))
 
 (defun proced-format-start (start)
   "Format time START.
 The return string is always 6 characters wide."
   (let ((d-start (decode-time start))
-        (d-current (decode-time)))
+        (d-current (decode-time))
+        (colon (if proced-enable-color-flag
+                   (propertize ":" 'font-lock-face 'proced-time-colon)
+                 ":")))
     (cond (;; process started in previous years
            (< (decoded-time-year d-start) (decoded-time-year d-current))
            (format-time-string "  %Y" start))
           ;; process started today
           ((and (= (decoded-time-day d-start) (decoded-time-day d-current))
                 (= (decoded-time-month d-start) (decoded-time-month d-current)))
-           (format-time-string " %H:%M" start))
+           (string-replace ":" colon (format-time-string " %H:%M" start)))
           (t ;; process started this year
            (format-time-string "%b %e" start)))))
 
@@ -1429,11 +1586,96 @@ The return string is always 6 characters wide."
 (defun proced-format-args (args)
   "Format attribute ARGS.
 Replace newline characters by \"^J\" (two characters)."
-  (string-replace "\n" "^J" args))
+  (string-replace "\n" "^J"
+                  (pcase-let* ((`(,exe . ,rest) (split-string args))
+                               (exe-prop (if proced-enable-color-flag
+                                             (propertize exe 'font-lock-face 'proced-executable)
+                                           exe)))
+                    (mapconcat #'identity (cons exe-prop rest) " "))))
 
 (defun proced-format-memory (kilobytes)
   "Format KILOBYTES in a human readable format."
   (funcall byte-count-to-string-function (* 1024 kilobytes)))
+
+(defun proced-format-rss (kilobytes)
+  "Format RSS KILOBYTES in a human readable format."
+  (let ((formatted (proced-format-memory kilobytes)))
+    (if-let* ((proced-enable-color-flag)
+              (total (car (memory-info)))
+              (proportion (/ (float kilobytes) total)))
+        (cond ((< proportion proced-low-memory-usage-threshold)
+               (propertize formatted 'font-lock-face 'proced-memory-low-usage))
+              ((< proportion proced-medium-memory-usage-threshold)
+               (propertize formatted 'font-lock-face 'proced-memory-medium-usage))
+              (t (propertize formatted 'font-lock-face 'proced-memory-high-usage)))
+      formatted)))
+
+(defun proced-format-state (state)
+  "Format STATE."
+  (cond ((and proced-enable-color-flag (string= state "R"))
+         (propertize state 'font-lock-face 'proced-run-status-code))
+        ((and proced-enable-color-flag (string= state "S"))
+         (propertize state 'font-lock-face 'proced-interruptible-sleep-status-code))
+        ((and proced-enable-color-flag (string= state "D"))
+         (propertize state 'font-lock-face 'proced-uninterruptible-sleep-status-code))
+        (t state)))
+
+(defun proced-format-pid (pid)
+  "Format PID."
+  (let ((proc-info (process-attributes pid))
+        (pid-s (number-to-string pid)))
+    (cond ((and proced-enable-color-flag
+                (not (file-remote-p default-directory))
+                (equal pid (emacs-pid)))
+           (propertize pid-s 'font-lock-face 'proced-emacs-pid))
+          ((and proced-enable-color-flag (equal pid (alist-get 'sess proc-info)))
+           (propertize pid-s 'font-lock-face 'proced-session-leader-pid))
+          (proced-enable-color-flag
+           (propertize pid-s 'font-lock-face 'proced-pid))
+          (t pid-s))))
+
+(defun proced-format-ppid (ppid)
+  "Format PPID."
+  (let ((ppid-s (number-to-string ppid)))
+    (cond ((and proced-enable-color-flag
+                (not (file-remote-p default-directory))
+                (= ppid (emacs-pid)))
+           (propertize ppid-s 'font-lock-face 'proced-emacs-pid))
+          (proced-enable-color-flag
+           (propertize ppid-s 'font-lock-face 'proced-ppid))
+          (t ppid-s))))
+
+(defun proced-format-pgrp (pgrp)
+  "Format PGRP."
+  (if proced-enable-color-flag
+      (propertize (number-to-string pgrp) 'font-lock-face 'proced-pgrp)
+    (number-to-string pgrp)))
+
+(defun proced-format-sess (sess)
+  "Format SESS."
+  (if proced-enable-color-flag
+      (propertize (number-to-string sess) 'font-lock-face 'proced-sess)
+    (number-to-string sess)))
+
+(defun proced-format-cpu (cpu)
+  "Format CPU."
+  (let ((formatted (format "%.1f" cpu)))
+    (if proced-enable-color-flag
+        (propertize formatted 'font-lock-face 'proced-cpu)
+      formatted)))
+
+(defun proced-format-mem (mem)
+  "Format MEM."
+  (let ((formatted (format "%.1f" mem)))
+    (if proced-enable-color-flag
+        (propertize formatted 'font-lock-face 'proced-mem)
+      formatted)))
+
+(defun proced-format-user (user)
+  "Format USER."
+  (if proced-enable-color-flag
+      (propertize user 'font-lock-face 'proced-user)
+    user))
 
 (defun proced-format (process-alist format)
   "Display PROCESS-ALIST using FORMAT."

@@ -519,17 +519,17 @@ the subtrees."
 	  (forward-line 1)))))
 
 ;;;###autoload
-(define-derived-mode c-ts-mode--base-mode prog-mode "C"
+(define-derived-mode c-ts-base-mode prog-mode "C"
   "Major mode for editing C, powered by tree-sitter."
   :syntax-table c-ts-mode--syntax-table
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
-              (rx (or "function_definition"
-                      "type_definition"
-                      "struct_specifier"
-                      "enum_specifier"
-                      "union_specifier")))
+              (regexp-opt '("function_definition"
+                            "type_definition"
+                            "struct_specifier"
+                            "enum_specifier"
+                            "union_specifier")))
 
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
@@ -554,7 +554,7 @@ the subtrees."
                 ( bracket delimiter error function operator variable))))
 
 ;;;###autoload
-(define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
+(define-derived-mode c-ts-mode c-ts-base-mode "C"
   "Major mode for editing C, powered by tree-sitter."
   :group 'c
 
@@ -586,7 +586,7 @@ the subtrees."
   (setq-local end-of-defun-function #'c-ts-mode--end-of-defun))
 
 ;;;###autoload
-(define-derived-mode c++-ts-mode c-ts-mode--base-mode "C++"
+(define-derived-mode c++-ts-mode c-ts-base-mode "C++"
   "Major mode for editing C++, powered by tree-sitter."
   :group 'c++
 

@@ -2810,6 +2810,22 @@ Set it to nil to exclude line numbering from kills and copies.
 argument which allows tree-widget display to be activated and computed
 only when the user expands the node.
 
+** Proced
+
+---
+*** proced.el shows system processes of remote hosts.
+When 'default-directory' is remote, and 'proced' is invoked with a
+negative argument like 'C-u - proced', the system processes of that
+remote host are shown.  Alternatively, the user option
+'proced-show-remote-processes' can be set to non-nil.
+'proced-signal-function' has been marked obsolete.
+
+---
+*** Proced can now optionally show process details in color.
+New user option 'proced-enable-color-flag' enables coloring of Proced
+buffers.  This option is disabled by default; customize it to a
+non-nil value to enable colors.
+
 ** Miscellaneous
 
 ---
@@ -2896,14 +2912,6 @@ also been renamed:
     'unread-bib'       to  'bib-unread'
 
 ---
-*** proced.el shows system processes of remote hosts.
-When 'default-directory' is remote, and 'proced' is invoked with a
-negative argument like 'C-u - proced', the system processes of that
-remote host are shown.  Alternatively, the user option
-'proced-show-remote-processes' can be set to non-nil.
-'proced-signal-function' has been marked obsolete.
-
----
 *** 'outlineify-sticky' command is renamed to 'allout-outlinify-sticky'.
 The old name is still available as an obsolete function alias.
 
@@ -2981,7 +2989,14 @@ when visiting JSON files.
 ** New major mode 'typescript-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the TypeScript language.  It includes support for font-locking,
-indentation, and navigation.
+indentation, and navigation.  This mode will be auto-enabled for
+files with the '.ts' extension.
+
+** New major mode 'tsx-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the TypeScript language, with support for TSX.  It includes
+support for font-locking, indentation, and navigation.  This mode
+will be auto-enabled for files with the '.tsx' extension.
 
 ** New major mode 'c-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
