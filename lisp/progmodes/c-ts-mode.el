@@ -519,7 +519,7 @@ the subtrees."
 	  (forward-line 1)))))
 
 ;;;###autoload
-(define-derived-mode c-ts-mode--base-mode prog-mode "C"
+(define-derived-mode c-ts-base-mode prog-mode "C"
   "Major mode for editing C, powered by tree-sitter."
   :syntax-table c-ts-mode--syntax-table
 
@@ -554,7 +554,7 @@ the subtrees."
                 ( bracket delimiter error function operator variable))))
 
 ;;;###autoload
-(define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
+(define-derived-mode c-ts-mode c-ts-base-mode "C"
   "Major mode for editing C, powered by tree-sitter."
   :group 'c
 
@@ -586,7 +586,7 @@ the subtrees."
   (setq-local end-of-defun-function #'c-ts-mode--end-of-defun))
 
 ;;;###autoload
-(define-derived-mode c++-ts-mode c-ts-mode--base-mode "C++"
+(define-derived-mode c++-ts-mode c-ts-base-mode "C++"
   "Major mode for editing C++, powered by tree-sitter."
   :group 'c++
 
