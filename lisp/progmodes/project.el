@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
-;; Version: 0.9.0
+;; Version: 0.9.1
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -583,9 +583,10 @@ project backend implementation of `project-external-roots'.")
   (mapcan
    (lambda (dir)
      (let ((ignores project-vc-ignores)
-           backend)
+           (backend (cadr project)))
+       (when backend
+         (require (intern (concat "vc-" (downcase (symbol-name backend))))))
        (if (and (file-equal-p dir (nth 2 project))
-                (setq backend (cadr project))
                 (cond
                  ((eq backend 'Hg))
                  ((and (eq backend 'Git)
