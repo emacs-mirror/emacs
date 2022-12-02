@@ -1,5 +1,7 @@
 ;;; use-package-chords-tests.el --- Tests for use-package-chords.el  -*- lexical-binding: t; -*-
 
+;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -15,13 +17,23 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'use-package)
-(require 'use-package-tests)
 (require 'use-package-chords)
+
+(setq use-package-always-ensure nil
+      use-package-verbose 'errors
+      use-package-expand-minimally t)
 
 (defmacro match-expansion (form &rest value)
   `(should (pcase (expand-minimally ,form)
              ,@(mapcar #'(lambda (x) (list x t)) value))))
+
+;; Copied from use-package-tests.el.
+(defmacro expand-minimally (form)
+  `(let ((use-package-verbose 'errors)
+         (use-package-expand-minimally t))
+     (macroexpand-1 ',form)))
 
 (defun use-package-test-normalize-chord (&rest args)
   (apply #'use-package-normalize-binder 'foo :chords args))
@@ -50,6 +62,8 @@
                         ("C-b" . beta)))))
 
 (ert-deftest use-package-test/:chords-1 ()
+  ;; FIXME:
+  :tags '(:unstable)
   (match-expansion
    (use-package foo :chords ("C-k" . key1) ("C-u" . key2))
    `(progn
@@ -63,6 +77,8 @@
       (bind-chord "C-u" #'key2 nil))))
 
 (ert-deftest use-package-test/:chords-2 ()
+  ;; FIXME:
+  :tags '(:unstable)
   (match-expansion
    (use-package foo :chords (("C-k" . key1) ("C-u" . key2)))
    `(progn
