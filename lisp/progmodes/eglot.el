@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0") (seq "2.23") (backend-completion "0.1"))
+;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0") (seq "2.23") (external-completion "0.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -110,7 +110,7 @@
 (require 'filenotify)
 (require 'ert)
 (require 'array)
-(require 'backend-completion)
+(require 'external-completion)
 
 ;; ElDoc is preloaded in Emacs, so `require'-ing won't guarantee we are
 ;; using the latest version from GNU Elpa when we load eglot.el.  Use an
@@ -2566,7 +2566,7 @@ If BUFFER, switch to it before."
                   (let ((probe (gethash pat cache :missing)))
                     (if (eq probe :missing) (puthash pat (refresh pat) cache)
                       probe)))
-                (lookup (pat)
+                (lookup (pat _point)
                   (let ((res (lookup-1 pat))
                         (def (and (string= pat "") (gethash :default cache))))
                     (append def res nil)))
@@ -2574,18 +2574,12 @@ If BUFFER, switch to it before."
                   (cl-getf (get-text-property
                             0 'eglot--lsp-workspaceSymbol c)
                            :score 0)))
-      (lambda (string _pred action)
-        (pcase action
-          (`metadata `(metadata
-                       (cycle-sort-function
-                        . ,(lambda (completions)
-                             (cl-sort completions #'> :key #'score)))
-                       (category . eglot-indirection-joy)))
-          (`(backend-completion-tryc . ,point)
-           `(backend-completion-tryc . (,string . ,point)))
-          (`(backend-completion-allc . ,_point)
-           `(backend-completion-allc . ,(lookup string)))
-          (_ nil))))))
+      (external-completion-table
+       #'lookup
+       'eglot-indirection-joy
+       `((cycle-sort-function
+          . ,(lambda (completions)
+               (cl-sort completions #'> :key #'score))))))))
 
 (defun eglot--recover-workspace-symbol-meta (string)
   "Search `eglot--workspace-symbols-cache' for rich entry of STRING."
