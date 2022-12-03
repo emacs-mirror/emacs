@@ -1970,7 +1970,7 @@ Returns the buffer for the given server or channel."
   (let* ((target (and channel (erc--target-from-string channel)))
          (buffer (erc-get-buffer-create server port nil target id))
          (old-buffer (current-buffer))
-         (old-vars (and (not connect) (buffer-local-variables)))
+         (old-vars (and target (buffer-local-variables)))
          (old-recon-count erc-server-reconnect-count)
          (old-point nil)
          (delayed-modules nil)
@@ -6451,6 +6451,8 @@ non-nil value is found.
 When `erc-auth-source-server-function' is non-nil, call it with NICK for
 the user field and use whatever it returns as the server password."
   (or password (and erc-auth-source-server-function
+                    (not erc--server-reconnecting)
+                    (not erc--target)
                     (funcall erc-auth-source-server-function :user nick))))
 
 (defun erc-compute-full-name (&optional full-name)
