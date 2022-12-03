@@ -1892,12 +1892,61 @@ other_frames (struct frame *f, bool invisible, bool force)
 
       if (f != f1)
 	{
+	  /* The following code is defined out because it is
+	     responsible for a performance drop under X connections
+	     over a network, and its purpose is unclear.  XSync does
+	     not handle events (or call any callbacks defined by
+	     Emacs), and as such it should not note any "recent change
+	     in visibility".
+
+	     When writing new code, please try as hard as possible to
+	     avoid calls that require a roundtrip to the X server.
+	     When such calls are inevitable, use the XCB library to
+	     handle multiple consecutive requests with a data reply in
+	     a more asynchronous fashion.  The following code
+	     demonstrates why:
+
+	       rc = XGetWindowProperty (dpyinfo->display, window, ...
+	       status = XGrabKeyboard (dpyinfo->display, ...
+
+	     here, `XGetWindowProperty' will wait for a reply from the
+	     X server before returning, and thus allowing Emacs to
+	     make the XGrabKeyboard request, which in itself also
+	     requires waiting a reply.  When XCB is available, this
+	     code could be written:
+
+#ifdef HAVE_XCB
+	       xcb_get_property_cookie_t cookie1;
+	       xcb_get_property_reply_t *reply1;
+	       xcb_grab_keyboard_cookie_t cookie2;
+	       xcb_grab_keyboard_reply_t *reply2;
+
+	       cookie1 = xcb_get_property (dpyinfo->xcb_connection, window, ...
+	       cookie2 = xcb_grab_keyboard (dpyinfo->xcb_connection, ...
+	       reply1 = xcb_get_property_reply (dpyinfo->xcb_connection,
+						cookie1);
+	       reply2 = xcb_grab_keyboard_reply (dpyinfo->xcb_connection,
+						cookie2);
+#endif
+
+	     In this code, the GetProperty and GrabKeyboard requests
+	     are made simultaneously, and replies are then obtained
+	     from the server at once, avoiding the extraneous
+	     roundtrip to the X server after the call to
+	     `XGetWindowProperty'.
+
+	     However, please keep an alternative implementation
+	     available for use when Emacs is built without XCB.  */
+
+#if 0
 	  /* Verify that we can still talk to the frame's X window, and
 	     note any recent change in visibility.  */
 #ifdef HAVE_X_WINDOWS
 	  if (FRAME_WINDOW_P (f1))
 	    x_sync (f1);
 #endif
+#endif
+
 	  if (!FRAME_TOOLTIP_P (f1)
 	      /* Tooltips and child frames count neither for
 		 invisibility nor for deletions.  */

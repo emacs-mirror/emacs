@@ -27202,13 +27202,12 @@ do_ewmh_fullscreen (struct frame *f)
 static void
 XTfullscreen_hook (struct frame *f)
 {
-  if (FRAME_VISIBLE_P (f))
-    {
-      block_input ();
-      x_check_fullscreen (f);
-      x_sync (f);
-      unblock_input ();
-    }
+  if (!FRAME_VISIBLE_P (f))
+    return;
+
+  block_input ();
+  x_check_fullscreen (f);
+  unblock_input ();
 }
 
 
@@ -27302,10 +27301,7 @@ x_check_fullscreen (struct frame *f)
       if (FRAME_VISIBLE_P (f))
 	x_wait_for_event (f, ConfigureNotify);
       else
-	{
-	  change_frame_size (f, width, height, false, true, false);
-	  x_sync (f);
-	}
+	change_frame_size (f, width, height, false, true, false);
     }
 
   /* `x_net_wm_state' might have reset the fullscreen frame parameter,
@@ -27519,8 +27515,6 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
       adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
 			 FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
 			 5, 0, Qx_set_window_size_1);
-
-      x_sync (f);
     }
 }
 
