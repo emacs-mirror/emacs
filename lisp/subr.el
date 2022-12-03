@@ -1729,7 +1729,7 @@ and `event-end' functions."
      ((eq area 'horizontal-scroll-bar)
       (cons (scroll-bar-scale pair (window-width window)) 0))
      (t
-      (if use-window
+      (if (and (windowp frame-or-window) use-window)
           (cons (/ (car pair) (window-font-width window))
                 (/ (cdr pair) (window-font-height window)))
         ;; FIXME: This should take line-spacing properties on

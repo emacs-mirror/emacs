@@ -861,11 +861,13 @@ in the selected window."
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
 			    (memq 'drag modifiers))
                         " at that spot" ""))
+         (click-pos (event-end event))
          ;; Use `posn-set-point' to handle the case when a menu item
          ;; is selected from the context menu that should describe KEY
          ;; at the position of mouse click that opened the context menu.
-         ;; When no mouse was involved, don't use `posn-set-point'.
-         (defn (if buffer
+         ;; When no mouse was involved, or the event doesn't provide a
+         ;; valid position, don't use `posn-set-point'.
+         (defn (if (or buffer (not (consp click-pos)))
                    (key-binding key t)
                  (save-excursion (posn-set-point (event-end event))
                                  (key-binding key t)))))
