@@ -656,6 +656,14 @@ Important: the match ends just after the marker.")
   )
 (put 'proced-mark :advertised-binding "m")
 
+(defvar-local proced-refinements nil
+  "Information about the current buffer refinements.
+
+It should be a list of elements of the form (REFINER PID KEY GRAMMAR), where
+REFINER and GRAMMAR are as described in `proced-grammar-alist', PID is the
+process ID of the process used to create the refinement, and KEY the attribute
+of the process.  A value of nil indicates that there are no active refinements.")
+
 (easy-menu-define proced-menu proced-mode-map
   "Proced Menu."
   `("Proced"
@@ -1337,20 +1345,7 @@ a certain refinement, consider defining a new filter in `proced-filter-alist'."
         (let* ((grammar (assq key proced-grammar-alist))
                (refiner (nth 7 grammar)))
           (when refiner
-            (cond ((functionp (car refiner))
-                   (setq proced-process-alist (funcall (car refiner) pid)))
-                  ((consp refiner)
-                   (let ((predicate (nth 4 grammar))
-                         (ref (cdr (assq key (cdr (assq pid proced-process-alist)))))
-                         val new-alist)
-                     (dolist (process proced-process-alist)
-                       (setq val (funcall predicate (cdr (assq key (cdr process))) ref))
-                       (if (cond ((not val) (nth 2 refiner))
-                                 ((eq val 'equal) (nth 1 refiner))
-                                 (val (car refiner)))
-                           (push process new-alist)))
-                     (setq proced-process-alist new-alist))))
-            ;; Do not revert listing.
+            (add-to-list 'proced-refinements (list refiner pid key grammar) t)
             (proced-update)))
       (message "No refiner defined here."))))
 
@@ -1859,10 +1854,29 @@ After updating a displayed Proced buffer run the normal hook
                        "Updating process display...")))
   (if revert ;; evaluate all processes
       (setq proced-process-alist (proced-process-attributes)))
-  ;; filtering and sorting
+  ;; filtering
+  (setq proced-process-alist (proced-filter proced-process-alist proced-filter))
+  ;; refinements
+  (pcase-dolist (`(,refiner ,pid ,key ,grammar) proced-refinements)
+    ;; It's possible the process has exited since the refinement was made
+    (when (assq pid proced-process-alist)
+      (cond ((functionp (car refiner))
+             (setq proced-process-alist (funcall (car refiner) pid)))
+            ((consp refiner)
+             (let ((predicate (nth 4 grammar))
+                   (ref (cdr (assq key (cdr (assq pid proced-process-alist)))))
+                   val new-alist)
+               (dolist (process proced-process-alist)
+                 (setq val (funcall predicate (cdr (assq key (cdr process))) ref))
+                 (when (cond ((not val) (nth 2 refiner))
+                             ((eq val 'equal) (nth 1 refiner))
+                             (val (car refiner)))
+                   (push process new-alist)))
+               (setq proced-process-alist new-alist))))))
+
+  ;; sorting
   (setq proced-process-alist
-        (proced-sort (proced-filter proced-process-alist proced-filter)
-                     proced-sort proced-descend))
+        (proced-sort proced-process-alist proced-sort proced-descend))
 
   ;; display as process tree?
   (setq proced-process-alist
@@ -1976,7 +1990,9 @@ After updating a displayed Proced buffer run the normal hook
 
 (defun proced-revert (&rest _args)
   "Reevaluate the process listing based on the currently running processes.
-Preserves point and marks."
+Preserves point and marks, but not refinements (see `proced-refine' for
+information on refinements)."
+  (setq proced-refinements nil)
   (proced-update t))
 
 (defun proced-marked-processes ()
