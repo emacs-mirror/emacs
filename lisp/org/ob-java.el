@@ -6,7 +6,7 @@
 ;;          Dan Davison
 ;; Maintainer: Ian Martins <ianxm@jhu.edu>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -28,6 +28,10 @@
 ;; Org-Babel support for evaluating java source code.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 
 (defvar org-babel-tangle-lang-exts)
@@ -49,7 +53,13 @@ directory, so we keep that as the default behavior.
 
 [1] https://orgmode.org/manual/Results-of-Evaluation.html")
 
-(defconst org-babel-header-args:java '((imports . :any))
+(defconst org-babel-header-args:java
+  '((dir       . :any)
+    (classname . :any)
+    (imports   . :any)
+    (cmpflag   . :any)
+    (cmdline   . :any)
+    (cmdarg    . :any))
   "Java-specific header arguments.")
 
 (defcustom org-babel-java-command "java"
@@ -184,13 +194,10 @@ replaced in this string.")
          (packagename (if (string-match-p "\\." fullclassname)
                           (file-name-base fullclassname)))
          ;; the base dir that contains the top level package dir
-         (basedir (file-name-as-directory (if run-from-temp
-                                              (if (file-remote-p default-directory)
-                                                  (concat
-                                                   (file-remote-p default-directory)
-                                                   org-babel-remote-temporary-directory)
-                                                org-babel-temporary-directory)
-                                            default-directory)))
+         (basedir (file-name-as-directory
+                   (if run-from-temp
+                       (org-babel-temp-directory)
+                     default-directory)))
          ;; the dir to write the source file
          (packagedir (if (and (not run-from-temp) packagename)
                          (file-name-as-directory

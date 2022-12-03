@@ -166,7 +166,7 @@ chosen (interactively or automatically)."
                (cond ((cdr available)
                       (cdr (assoc
                             (completing-read
-                             "[eglot] More than one server executable available:"
+                             "[eglot] More than one server executable available: "
                              (mapcar #'car available)
                              nil t nil nil (car (car available)))
                             available #'equal)))
@@ -184,19 +184,22 @@ chosen (interactively or automatically)."
 (defvar eglot-server-programs `((rust-mode . ,(eglot-alternatives '("rust-analyzer" "rls")))
                                 (cmake-mode . ("cmake-language-server"))
                                 (vimrc-mode . ("vim-language-server" "--stdio"))
-                                (python-mode
+                                ((python-mode python-ts-mode)
                                  . ,(eglot-alternatives
                                      '("pylsp" "pyls" ("pyright-langserver" "--stdio") "jedi-language-server")))
-                                ((js-json-mode json-mode) . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio"))))
-                                ((js-mode ts-mode typescript-mode)
+                                ((js-json-mode json-mode json-ts-mode)
+                                 . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
+                                                          ("json-languageserver" "--stdio"))))
+                                ((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
-                                (sh-mode . ("bash-language-server" "start"))
+                                ((bash-ts-mode sh-mode) . ("bash-language-server" "start"))
                                 ((php-mode phps-mode)
                                  . ,(eglot-alternatives
                                      '(("phpactor" "language-server")
                                        ("php" "vendor/felixfbecker/language-server/bin/php-language-server.php"))))
-                                ((c++-mode c-mode) . ,(eglot-alternatives
-                                                       '("clangd" "ccls")))
+                                ((c-mode c-ts-mode c++-mode c++-ts-mode)
+                                 . ,(eglot-alternatives
+                                     '("clangd" "ccls")))
                                 (((caml-mode :language-id "ocaml")
                                   (tuareg-mode :language-id "ocaml") reason-mode)
                                  . ("ocamllsp"))
@@ -210,7 +213,7 @@ chosen (interactively or automatically)."
                                 ((go-mode go-dot-mod-mode go-dot-work-mode) . ("gopls"))
                                 ((R-mode ess-r-mode) . ("R" "--slave" "-e"
                                                         "languageserver::run()"))
-                                (java-mode . ("jdtls"))
+                                ((java-mode java-ts-mode) . ("jdtls"))
                                 (dart-mode . ("dart" "language-server"
                                               "--client-id" "emacs.eglot-dart"))
                                 (elixir-mode . ("language_server.sh"))
@@ -228,12 +231,15 @@ chosen (interactively or automatically)."
                                 (lua-mode . ,(eglot-alternatives
                                               '("lua-language-server" "lua-lsp")))
                                 (zig-mode . ("zls"))
-                                (css-mode . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio") ("css-languageserver" "--stdio"))))
+                                ((css-mode css-ts-mode)
+                                 . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio")
+                                                          ("css-languageserver" "--stdio"))))
                                 (html-mode . ,(eglot-alternatives '(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio"))))
                                 (dockerfile-mode . ("docker-langserver" "--stdio"))
                                 ((clojure-mode clojurescript-mode clojurec-mode)
                                  . ("clojure-lsp"))
-                                (csharp-mode . ("omnisharp" "-lsp"))
+                                ((csharp-mode csharp-ts-mode)
+                                 . ("omnisharp" "-lsp"))
                                 (purescript-mode . ("purescript-language-server" "--stdio"))
                                 ((perl-mode cperl-mode) . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run"))
                                 (markdown-mode . ("marksman" "server")))
@@ -737,6 +743,10 @@ treated as in `eglot--dbind'."
                                            t
                                          :json-false)
                                       :deprecatedSupport t
+                                      :resolveSupport (:properties
+                                                       ["documentation"
+                                                        "details"
+                                                        "additionalTextEdits"])
                                       :tagSupport (:valueSet [1]))
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
@@ -1001,7 +1011,7 @@ be guessed."
           (and base-prompt
                (cond (current-prefix-arg base-prompt)
                      ((null guess)
-                      (format "[eglot] Sorry, couldn't guess for `%s'!\n%s"
+                      (format "[eglot] Couldn't guess LSP server for `%s'\n%s"
                               main-mode base-prompt))
                      ((and program
                            (not (file-name-absolute-p program))
@@ -1181,9 +1191,7 @@ Each function is passed the server as an argument")
   "Connect to MANAGED-MODES, LANGUAGE-ID, PROJECT, CLASS and CONTACT.
 This docstring appeases checkdoc, that's all."
   (let* ((default-directory (project-root project))
-         (nickname (if (fboundp 'project-name)
-                       (project-name project)
-                     (file-name-base (directory-file-name default-directory))))
+         (nickname (project-name project))
          (readable-name (format "EGLOT (%s/%s)" nickname managed-modes))
          autostart-inferior-process
          server-info
@@ -1501,11 +1509,15 @@ If optional MARKER, return a marker instead"
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
   (let ((truepath (file-truename path)))
-    (if (url-type (url-generic-parse-url truepath))
+    (if (and (url-type (url-generic-parse-url path))
+             ;; It might be MS Windows path which includes a drive
+             ;; letter that looks like a URL scheme (bug#59338)
+             (not (and (eq system-type 'windows-nt)
+                       (file-name-absolute-p truepath))))
         ;; Path is already a URI, so forward it to the LSP server
         ;; untouched.  The server should be able to handle it, since
         ;; it provided this URI to clients in the first place.
-        truepath
+        path
       (concat "file://"
               ;; Add a leading "/" for local MS Windows-style paths.
               (if (and (eq system-type 'windows-nt)

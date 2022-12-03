@@ -278,7 +278,7 @@
 ;; C-c C-h term-dynamic-list-input-ring  List input history
 ;;
 ;; Not bound by default in term-mode
-;; term-send-invisible			Read a line w/o echo, and send to proc
+;; term-send-invisible			Read a line without echo, and send to proc
 ;; (These are bound in shell-mode)
 ;; term-dynamic-complete		Complete filename at point.
 ;; term-dynamic-list-completions	List completions in help buffer.
@@ -976,7 +976,7 @@ underlying shell."
                                        'term-mode))
             (buffer-list))))
       (easy-menu-change
-       '("Terminal")
+       nil
        "Terminal Buffers"
        (mapcar
         (lambda (buffer)
@@ -986,7 +986,9 @@ underlying shell."
                   (lambda ()
                     (interactive)
                     (switch-to-buffer buffer))))
-        buffer-list)))))
+        buffer-list)
+       nil
+       term-terminal-menu))))
 
 (easy-menu-define term-signals-menu
  (list term-mode-map term-raw-map term-pager-break-map)

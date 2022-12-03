@@ -222,25 +222,28 @@ and `goto-address-fontify-p'."
 
 ;;;###autoload
 (defun goto-address-at-point (&optional event)
-  "Send to the e-mail address or load the URL at point.
-Send mail to address at point.  See documentation for
-`goto-address-find-address-at-point'.  If no address is found
-there, then load the URL at or before point."
+  "Compose a new message to the e-mail address or open URL at point.
+
+Compose message to address at point.  See documentation for
+`goto-address-find-address-at-point'.
+
+If no e-mail address is found at point, open the URL at or before
+point using `browse-url'.  With a prefix argument, open the URL
+using `browse-url-secondary-browser-function' instead."
   (interactive (list last-input-event))
   (save-excursion
     (if event (posn-set-point (event-end event)))
     (let ((address (save-excursion (goto-address-find-address-at-point))))
       (if (and address
-	       (save-excursion
-		 (goto-char (previous-single-char-property-change
-			     (point) 'goto-address nil
-			     (line-beginning-position)))
-		 (not (looking-at goto-address-url-regexp))))
-	  (compose-mail address)
-	(let ((url (browse-url-url-at-point)))
-	  (if url
-	      (browse-url url)
-	    (error "No e-mail address or URL found")))))))
+               (save-excursion
+                 (goto-char (previous-single-char-property-change
+                             (point) 'goto-address nil
+                             (line-beginning-position)))
+                 (not (looking-at goto-address-url-regexp))))
+          (compose-mail address)
+        (if-let ((url (browse-url-url-at-point)))
+            (browse-url-button-open-url url)
+          (error "No e-mail address or URL found"))))))
 
 (defun goto-address-find-address-at-point ()
   "Find e-mail address around or before point.

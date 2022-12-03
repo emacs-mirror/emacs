@@ -1,9 +1,9 @@
 \input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
-@setfilename ../../info/tramp.info
+@setfilename ../info/tramp
 @c %**start of header
 @include docstyle.texi
-@c In the Tramp GIT, the version number is auto-frobbed from tramp.el,
-@c and the bug report address is auto-frobbed from configure.ac.
+@c In the Tramp GIT, the version number and the bug report address
+@c are auto-frobbed from configure.ac.
 @include trampver.texi
 @settitle @value{tramp} @value{trampver} User Manual
 @c %**end of header
@@ -3659,9 +3659,9 @@ directory:
 @end group
 @end example
 
-Since Tramp cannot know in advance which share directory is intended
-to use, this expansion can be applied only when a share directory has
-been used already.
+Since @value{tramp} cannot know in advance which share directory is
+intended to use, this expansion can be applied only when a share
+directory has been used already.
 
 The methods @option{adb}, @option{rclone} and @option{sshfs} do not
 support home directory expansion at all.  However, @value{tramp} keeps
@@ -4398,7 +4398,7 @@ specifies the target to be applied for renaming buffer file names from
 source via @code{tramp-rename-files}.  @code{source} is a regular
 expressions, which matches a remote file name.  @code{target} must be
 a directory name, which could be remote (including remote directories
-Tramp infers by default, such as @samp{@trampfn{method,user@@host,}}).
+@value{tramp} infers by default, such as @samp{@trampfn{method,user@@host,}}).
 
 @code{target} can contain the patterns @code{%m}, @code{%u} or
 @code{%h}, which are replaced by the method name, user name or host

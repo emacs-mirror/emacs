@@ -110,4 +110,33 @@ When `project-ignores' includes a name matching project dir."
                      (list
                       (expand-file-name "some-file" dir)))))))
 
+(defvar project-tests--this-file (or (bound-and-true-p byte-compile-current-file)
+                                     (and load-in-progress load-file-name)
+                                     buffer-file-name))
+
+(ert-deftest project-vc-recognizes-git ()
+  "Check that Git repository is detected."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (let* ((vc-handled-backends '(Git))
+         (dir (file-name-directory project-tests--this-file))
+         (_ (vc-file-clearprops dir))
+         (project-vc-extra-root-markers nil)
+         (project (project-current nil dir)))
+    (should-not (null project))
+    (should (string-match-p
+             "\\`test/lisp/progmodes/project-tests\\.elc?"
+             (file-relative-name
+              project-tests--this-file
+              (project-root project))))))
+
+(ert-deftest project-vc-extra-root-markers-supports-wildcards ()
+  "Check that one can add wildcard entries."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (let* ((dir (file-name-directory project-tests--this-file))
+         (_ (vc-file-clearprops dir))
+         (project-vc-extra-root-markers '("files-x-tests.*"))
+         (project (project-current nil dir)))
+    (should-not (null project))
+    (should (string-match-p "/test/lisp/\\'" (project-root project)))))
+
 ;;; project-tests.el ends here

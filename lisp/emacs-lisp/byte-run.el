@@ -632,7 +632,7 @@ enabled."
 (defmacro with-suppressed-warnings (warnings &rest body)
   "Like `progn', but prevents compiler WARNINGS in BODY.
 
-WARNINGS is an associative list where the first element of each
+WARNINGS is an association list where the first element of each
 item is a warning type, and the rest of the elements in each item
 are symbols they apply to.  For instance, if you want to suppress
 byte compilation warnings about the two obsolete functions `foo'

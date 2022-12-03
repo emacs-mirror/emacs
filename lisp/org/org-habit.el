@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,6 +27,9 @@
 ;; This file contains the habit tracking code for Org mode
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'org)
@@ -423,8 +426,7 @@ current time."
   "Insert consistency graph for any habitual tasks."
   (let ((inhibit-read-only t)
 	(buffer-invisibility-spec '(org-link))
-	(moment (org-time-subtract nil
-				   (* 3600 org-extend-today-until))))
+	(moment (time-subtract nil (* 3600 org-extend-today-until))))
     (save-excursion
       (goto-char (if line (line-beginning-position) (point-min)))
       (while (not (eobp))

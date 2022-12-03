@@ -725,10 +725,11 @@ the first node that matches, or @code{nil} if none does.
 
 By default, this function only traverses named nodes, but if @var{all}
 is non-@code{nil}, it traverses all the nodes.  If @var{backward} is
-non-@code{nil}, it traverses backwards (i.e., it visits the last child first
-when traversing down the tree).  If @var{limit} is non-@code{nil}, it
-must be a number that limits the tree traversal to that many levels
-down the tree.
+non-@code{nil}, it traverses backwards (i.e., it visits the last child
+first when traversing down the tree).  If @var{limit} is
+non-@code{nil}, it must be a number that limits the tree traversal to
+that many levels down the tree.  If @var{limit} is @code{nil}, it
+defaults to 1000.
 @end defun
 
 @defun treesit-search-forward start predicate &optional backward all
@@ -814,10 +815,11 @@ b   1   2         b   |   |      b   c   d
 @end group
 @end example
 
-If @var{process-fn} is non-@code{nil}, instead of returning the matched
-nodes, this function passes each node to @var{process-fn} and uses the
-returned value instead.  If non-@code{nil}, @var{limit} is the number of
-levels to go down from @var{root}.
+If @var{process-fn} is non-@code{nil}, instead of returning the
+matched nodes, this function passes each node to @var{process-fn} and
+uses the returned value instead.  If non-@code{nil}, @var{limit} is
+the number of levels to go down from @var{root}.  If @var{limit} is
+@code{nil}, it defaults to 1000.
 
 Each node in the returned tree looks like
 @w{@code{(@var{tree-sitter-node} . (@var{child} @dots{}))}}.  The

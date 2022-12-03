@@ -295,6 +295,7 @@ Initialization options:\n\
 --no-site-lisp, -nsl        do not add site-lisp directories to load-path\n\
 --no-splash                 do not display a splash screen on startup\n\
 --no-window-system, -nw     do not communicate with X, ignoring $DISPLAY\n\
+--init-directory=DIR        use DIR when looking for the Emacs init files.\n\
 ",
     "\
 --quick, -Q                 equivalent to:\n\

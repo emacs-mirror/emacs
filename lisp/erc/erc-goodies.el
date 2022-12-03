@@ -31,6 +31,7 @@
 
 ;;; Imenu support
 
+(eval-when-compile (require 'cl-lib))
 (require 'erc-common)
 
 (defvar erc-controls-highlight-regexp)

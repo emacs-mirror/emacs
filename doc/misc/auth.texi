@@ -560,11 +560,12 @@ favors the @samp{rms@@gnu.org.gpg} form for usernames over the
 param was provided.
 
 In general, if you prefer idiosyncrasies traditionally exhibited by
-this backend, such as prioritizing field count in a filename, try
-setting this option to @code{nil}.  But, if you experience problems
-predicting the outcome of searches relative to other auth-source
-backends or encounter code expecting to query multiple backends
-uniformly, try flipping it back to @code{t} (the default).
+this backend, such as prioritizing field count in a filename or
+matching against subdomain labels, keep this option set to @code{nil}
+(the default).  But, if you experience problems predicting the outcome
+of searches relative to other auth-source backends or encounter code
+expecting to query multiple backends uniformly, try flipping it to
+@code{t}.
 @end defvar
 
 @node Help for developers

@@ -1641,9 +1641,11 @@ enumeration, given as a Lisp time value -- used for test purposes."
                        entry-main)
          ;; regular sexp entry
          (icalendar--dmsg "diary-sexp %s" entry-main)
-         (let ((p1 (substring entry-main (match-beginning 1) (match-end 1)))
-               (p2 (substring entry-main (match-beginning 2) (match-end 2)))
-               (now (or start (current-time))))
+         (let* ((entry-main (substring entry-main 2))
+                (res (read-from-string entry-main))
+                (p1 (prin1-to-string (car res)))
+                (p2 (substring entry-main (cdr res)))
+                (now (or start (current-time))))
            (delete nil
                    (mapcar
                     (lambda (offset)

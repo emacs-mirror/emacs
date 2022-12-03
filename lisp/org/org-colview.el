@@ -4,7 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,6 +27,9 @@
 ;; This file contains the column view for Org.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'org)
@@ -159,8 +162,8 @@ See `org-columns-summary-types' for details.")
 (defun org-columns-content ()
   "Switch to contents view while in columns view."
   (interactive)
-  (org-overview)
-  (org-content))
+  (org-cycle-overview)
+  (org-cycle-content))
 
 (org-defkey org-columns-map "c"        #'org-columns-content)
 (org-defkey org-columns-map "o"        #'org-overview)
@@ -377,7 +380,8 @@ This is needed to later remove this relative remapping.")
 COLUMNS is an alist (SPEC VALUE DISPLAYED).  Optional argument
 DATELINE is non-nil when the face used should be
 `org-agenda-column-dateline'."
-  (when (ignore-errors (require 'face-remap))
+  (when (and (ignore-errors (require 'face-remap))
+             org-columns-header-line-remap)
     (setq org-columns-header-line-remap
 	  (face-remap-add-relative 'header-line '(:inherit default))))
   (save-excursion
@@ -512,9 +516,9 @@ for the duration of the command.")
 (defun org-columns-remove-overlays ()
   "Remove all currently active column overlays."
   (interactive)
-  (when (and (fboundp 'face-remap-remove-relative)
-	     org-columns-header-line-remap)
-    (face-remap-remove-relative org-columns-header-line-remap))
+  (when org-columns-header-line-remap
+    (face-remap-remove-relative org-columns-header-line-remap)
+    (setq org-columns-header-line-remap nil))
   (when org-columns-overlays
     (when (local-variable-p 'org-previous-header-line-format)
       (setq header-line-format org-previous-header-line-format)
@@ -556,7 +560,7 @@ for the duration of the command.")
 
 (defun org-columns-check-computed ()
   "Throw an error if current column value is computed."
-  (let ((spec (nth (current-column) org-columns-current-fmt-compiled)))
+  (let ((spec (nth (org-current-text-column) org-columns-current-fmt-compiled)))
     (and
      (nth 3 spec)
      (assoc spec (get-text-property (line-beginning-position) 'org-summaries))
@@ -697,9 +701,9 @@ FUN is a function called with no argument."
   (let ((hide-body (and (/= (line-end-position) (point-max))
 			(save-excursion
 			  (move-beginning-of-line 2)
-			  (org-at-heading-p t)))))
+			  (org-at-heading-p)))))
     (unwind-protect (funcall fun)
-      (when hide-body (outline-hide-entry)))))
+      (when hide-body (org-fold-hide-entry)))))
 
 (defun org-columns-previous-allowed-value ()
   "Switch to the previous allowed value for this column."
@@ -712,7 +716,8 @@ When PREVIOUS is set, go to the previous value.  When NTH is
 an integer, select that value."
   (interactive)
   (org-columns-check-computed)
-  (let* ((column (current-column))
+  (let* ((column (org-current-text-column))
+         (visible-column (current-column))
 	 (key (get-char-property (point) 'org-columns-key))
 	 (value (get-char-property (point) 'org-columns-value))
 	 (pom (or (get-text-property (line-beginning-position) 'org-hd-marker)
@@ -762,7 +767,7 @@ an integer, select that value."
 	;; the right place on the current line.
 	(let ((org-columns-inhibit-recalculation)) (org-columns-redo))
 	(org-columns-update key)
-	(org-move-to-column column))))))
+	(org-move-to-column visible-column))))))
 
 (defun org-colview-construct-allowed-dates (s)
   "Construct a list of three dates around the date in S.
@@ -772,9 +777,8 @@ around it."
   (when (and s (string-match (concat "^" org-ts-regexp3 "$") s))
     (let* ((time (org-parse-time-string s 'nodefaults))
 	   (active (equal (string-to-char s) ?<))
-	   (fmt (funcall (if (nth 1 time) 'cdr 'car) org-time-stamp-formats))
+	   (fmt (org-time-stamp-format (nth 1 time) (not active)))
 	   time-before time-after)
-      (unless active (setq fmt (concat "[" (substring fmt 1 -1) "]")))
       (setf (car time) (or (car time) 0))
       (setf (nth 1 time) (or (nth 1 time) 0))
       (setf (nth 2 time) (or (nth 2 time) 0))
@@ -782,7 +786,7 @@ around it."
       (setq time-after (copy-sequence time))
       (setf (nth 3 time-before) (1- (nth 3 time)))
       (setf (nth 3 time-after) (1+ (nth 3 time)))
-      (mapcar (lambda (x) (format-time-string fmt (apply #'encode-time x)))
+      (mapcar (lambda (x) (format-time-string fmt (org-encode-time x)))
 	      (list time-before time time-after)))))
 
 (defun org-columns-open-link (&optional arg)
@@ -924,14 +928,14 @@ details."
     (if spec
 	(progn (setcar spec (car new))
 	       (setcdr spec (cdr new)))
-      (push new (nthcdr (current-column) org-columns-current-fmt-compiled)))
+      (push new (nthcdr (org-current-text-column) org-columns-current-fmt-compiled)))
     (org-columns-store-format)
     (org-columns-redo)))
 
 (defun org-columns-delete ()
   "Delete the column at point from columns view."
   (interactive)
-  (let ((spec (nth (current-column) org-columns-current-fmt-compiled)))
+  (let ((spec (nth (org-current-text-column) org-columns-current-fmt-compiled)))
     (when (y-or-n-p (format "Are you sure you want to remove column %S? "
 			    (nth 1 spec)))
       (setq org-columns-current-fmt-compiled
@@ -941,18 +945,18 @@ details."
       ;; updating it may prove counter-intuitive.  See comments in
       ;; `org-columns-move-right' for details.
       (let ((org-columns-inhibit-recalculation t)) (org-columns-redo))
-      (when (>= (current-column) (length org-columns-current-fmt-compiled))
+      (when (>= (org-current-text-column) (length org-columns-current-fmt-compiled))
 	(backward-char)))))
 
 (defun org-columns-edit-attributes ()
   "Edit the attributes of the current column."
   (interactive)
-  (org-columns-new (nth (current-column) org-columns-current-fmt-compiled)))
+  (org-columns-new (nth (org-current-text-column) org-columns-current-fmt-compiled)))
 
 (defun org-columns-widen (arg)
   "Make the column wider by ARG characters."
   (interactive "p")
-  (let* ((n (current-column))
+  (let* ((n (org-current-text-column))
 	 (entry (nth n org-columns-current-fmt-compiled))
 	 (width (aref org-columns-current-maxwidths n)))
     (setq width (max 1 (+ width arg)))
@@ -968,7 +972,7 @@ details."
 (defun org-columns-move-right ()
   "Swap this column with the one to the right."
   (interactive)
-  (let* ((n (current-column))
+  (let* ((n (org-current-text-column))
 	 (cell (nthcdr n org-columns-current-fmt-compiled))
 	 e)
     (when (>= n (1- (length org-columns-current-fmt-compiled)))
@@ -992,7 +996,7 @@ details."
 (defun org-columns-move-left ()
   "Swap this column with the one to the left."
   (interactive)
-  (let* ((n (current-column)))
+  (let* ((n (org-current-text-column)))
     (when (= n 0)
       (error "Cannot shift this column further to the left"))
     (backward-char 1)
@@ -1024,7 +1028,7 @@ the current buffer."
 	      ;; No COLUMNS keyword in the buffer.  Insert one at the
 	      ;; beginning, right before the first heading, if any.
 	      (goto-char (point-min))
-	      (unless (org-at-heading-p t) (outline-next-heading))
+	      (unless (org-at-heading-p) (outline-next-heading))
 	      (let ((inhibit-read-only t))
 		(insert-before-markers "#+COLUMNS: " fmt "\n"))))
 	  (setq-local org-columns-default-format fmt))))))
@@ -1038,7 +1042,7 @@ the current buffer."
        (let ((key (overlay-get ov 'org-columns-key)))
 	 (when (and key (equal key p) (overlay-start ov))
 	   (goto-char (overlay-start ov))
-	   (let* ((spec (nth (current-column) org-columns-current-fmt-compiled))
+	   (let* ((spec (nth (org-current-text-column) org-columns-current-fmt-compiled))
 		  (value
 		   (or (cdr (assoc spec
 				   (get-text-property (line-beginning-position)
@@ -1048,7 +1052,7 @@ the current buffer."
 	       (let ((displayed (org-columns--displayed-value spec value))
 		     (format (overlay-get ov 'org-columns-format))
 		     (width
-		      (aref org-columns-current-maxwidths (current-column))))
+		      (aref org-columns-current-maxwidths (org-current-text-column))))
 		 (overlay-put ov 'org-columns-value value)
 		 (overlay-put ov 'org-columns-value-modified displayed)
 		 (overlay-put ov

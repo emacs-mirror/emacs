@@ -120,7 +120,7 @@ On non-graphical frames, the context is shown in the echo area."
 
 (defcustom show-paren-predicate '(not (derived-mode . special-mode))
   "Whether to use `show-paren-mode' in a buffer.
-The default is to enable the mode in all buffers that have don't
+The default is to enable the mode in all buffers that don't
 derive from `special-mode', which means that it's on (by default)
 in all editing buffers."
   :type 'buffer-predicate
@@ -410,6 +410,10 @@ It is the default value of `show-paren-data-function'."
                 (line-end-position))))
     (setq show-paren--context-overlay (make-overlay beg end)))
   (overlay-put show-paren--context-overlay 'display text)
+  ;; Use the (default very high) `show-paren-priority' ensuring that
+  ;; not other overlays shine through (bug#59527).
+  (overlay-put show-paren--context-overlay 'priority
+               show-paren-priority)
   (overlay-put show-paren--context-overlay
                'face `(:box
                        ( :line-width (1 . -1)

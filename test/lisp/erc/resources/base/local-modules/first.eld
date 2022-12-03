@@ -1,0 +1,53 @@
+;; -*- mode: lisp-data; -*-
+((cap 10 "CAP REQ :sasl"))
+((nick 1 "NICK tester"))
+((user 1 "USER tester 0 * :tester"))
+
+((authenticate 5 "AUTHENTICATE PLAIN")
+ (0.0 ":irc.foonet.org CAP * ACK sasl")
+ (0.0 "AUTHENTICATE +"))
+
+((authenticate 5 "AUTHENTICATE AHRlc3RlcgBjaGFuZ2VtZQ==")
+ (0.0 ":irc.foonet.org 900 * * tester :You are now logged in as tester")
+ (0.01 ":irc.foonet.org 903 * :Authentication successful"))
+
+((cap 3.2 "CAP END")
+ (0.0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
+ (0.0 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version ergo-v2.8.0")
+ (0.2 ":irc.foonet.org 003 tester :This server was created Sun, 20 Nov 2022 23:10:36 UTC")
+ (0.0 ":irc.foonet.org 004 tester irc.foonet.org ergo-v2.8.0 BERTZios CEIMRUabefhiklmnoqstuv Iabefhkloqv")
+ (0.0 ":irc.foonet.org 005 tester AWAYLEN=390 BOT=B CASEMAPPING=ascii CHANLIMIT=#:100 CHANMODES=Ibe,k,fl,CEMRUimnstu CHANNELLEN=64 CHANTYPES=# ELIST=U EXCEPTS EXTBAN=,m FORWARD=f INVEX KICKLEN=390 :are supported by this server")
+ (0.0 ":irc.foonet.org 005 tester MAXLIST=beI:60 MAXTARGETS=4 MODES MONITOR=100 NETWORK=foonet NICKLEN=32 PREFIX=(qaohv)~&@%+ STATUSMSG=~&@%+ TARGMAX=NAMES:1,LIST:1,KICK:,WHOIS:1,USERHOST:10,PRIVMSG:4,TAGMSG:4,NOTICE:4,MONITOR:100 TOPICLEN=390 UTF8MAPPING=rfc8265 UTF8ONLY WHOX :are supported by this server")
+ (0.0 ":irc.foonet.org 005 tester draft/CHATHISTORY=100 :are supported by this server")
+ (0.0 ":irc.foonet.org 251 tester :There are 0 users and 3 invisible on 1 server(s)")
+ (0.0 ":irc.foonet.org 252 tester 0 :IRC Operators online")
+ (0.0 ":irc.foonet.org 253 tester 0 :unregistered connections")
+ (0.0 ":irc.foonet.org 254 tester 1 :channels formed")
+ (0.0 ":irc.foonet.org 255 tester :I have 3 clients and 0 servers")
+ (0.0 ":irc.foonet.org 265 tester 3 3 :Current local users 3, max 3")
+ (0.0 ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
+ (0.0 ":irc.foonet.org 422 tester :MOTD File is missing")
+ (0.0 ":irc.foonet.org 221 tester +i")
+ (0.0 ":irc.foonet.org NOTICE tester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
+
+((mode 10 "MODE tester +i")
+ (0.02 ":irc.foonet.org 221 tester +i"))
+
+((join 10 "JOIN #chan")
+ (0.00 ":tester!~u@u9iqi96sfwk9s.irc JOIN #chan")
+ (0.06 ":irc.foonet.org 353 tester = #chan :@bob alice tester")
+ (0.01 ":irc.foonet.org 366 tester #chan :End of NAMES list")
+ (0.02 ":bob!~u@2fzfcku68ehqa.irc PRIVMSG #chan :tester, welcome!")
+ (0.01 ":alice!~u@2fzfcku68ehqa.irc PRIVMSG #chan :tester, welcome!")
+ (0.04 ":alice!~u@2fzfcku68ehqa.irc PRIVMSG #chan :bob: Either your unparagoned mistress is dead, or she's outprized by a trifle."))
+
+((mode 12 "MODE #chan")
+ (0.00 ":irc.foonet.org 324 tester #chan +nt")
+ (0.02 ":irc.foonet.org 329 tester #chan 1668985854")
+ (0.98 ":bob!~u@2fzfcku68ehqa.irc PRIVMSG #chan :alice: Come, you are a tedious fool: to the purpose. What was done to Elbow's wife, that he hath cause to complain of ? Come me to what was done to her.")
+ (0.01 ":alice!~u@2fzfcku68ehqa.irc PRIVMSG #chan :bob: She is Lavinia, therefore must be lov'd."))
+
+((quit 10 "QUIT :\2ERC\2")
+ (0.02 ":tester!~u@u9iqi96sfwk9s.irc QUIT :Quit"))
+
+((drop 0 DROP))

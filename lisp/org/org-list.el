@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;;	   Bastien Guerry <bzg@gnu.org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -76,9 +76,14 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-macs)
 (require 'org-compat)
+(require 'org-fold-core)
+(require 'org-footnote)
 
 (defvar org-M-RET-may-split-line)
 (defvar org-adapt-indentation)
@@ -103,7 +108,7 @@
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-current-level "org" ())
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-interpret-data "org-element" (data))
 (declare-function org-element-lineage "org-element" (blob &optional types with-self))
@@ -133,12 +138,13 @@
 (declare-function org-inlinetask-outline-regexp "org-inlinetask" ())
 (declare-function org-level-increment "org" ())
 (declare-function org-mode "org" ())
-(declare-function org-narrow-to-subtree "org" ())
+(declare-function org-narrow-to-subtree "org" (&optional element))
 (declare-function org-outline-level "org" ())
 (declare-function org-previous-line-empty-p "org" ())
 (declare-function org-reduced-level "org" (L))
 (declare-function org-set-tags "org" (tags))
-(declare-function org-show-subtree "org" ())
+(declare-function org-fold-show-subtree "org-fold" ())
+(declare-function org-fold-region "org-fold" (from to flag &optional spec))
 (declare-function org-sort-remove-invisible "org" (S))
 (declare-function org-time-string-to-seconds "org" (s))
 (declare-function org-timer-hms-to-secs "org-timer" (hms))
@@ -233,7 +239,7 @@ interface or run the following code after updating it:
   :type '(choice (const :tag "dot like in \"2.\"" ?.)
 		 (const :tag "paren like in \"2)\"" ?\))
 		 (const :tag "both" t))
-  :set (lambda (var val) (set var val)
+  :set (lambda (var val) (set-default-toplevel-value var val)
 	 (when (featurep 'org-element) (org-element-update-syntax))))
 
 (defcustom org-list-allow-alphabetical nil
@@ -251,7 +257,7 @@ interface or run the following code after updating it:
   :group 'org-plain-lists
   :version "24.1"
   :type 'boolean
-  :set (lambda (var val) (set var val)
+  :set (lambda (var val) (set-default-toplevel-value var val)
 	 (when (featurep 'org-element) (org-element-update-syntax))))
 
 (defcustom org-list-two-spaces-after-bullet-regexp nil
@@ -406,7 +412,7 @@ group 4: description tag")
 	   (ind-ref (if (or (looking-at "^[ \t]*$")
 			    (and inlinetask-re (looking-at inlinetask-re)))
 			10000
-		      (current-indentation))))
+		      (org-current-text-indentation))))
       (cond
        ((eq (nth 2 context) 'invalid) nil)
        ((looking-at item-re) (point))
@@ -428,7 +434,7 @@ group 4: description tag")
 	;; Look for an item, less indented that reference line.
 	(catch 'exit
 	  (while t
-	    (let ((ind (current-indentation)))
+	    (let ((ind (org-current-text-indentation)))
 	      (cond
 	       ;; This is exactly what we want.
 	       ((and (looking-at item-re) (< ind ind-ref))
@@ -598,7 +604,7 @@ Assume point is at an item."
 	   (item-re (org-item-re))
 	   (inlinetask-re (and (featurep 'org-inlinetask)
 			       (org-inlinetask-outline-regexp)))
-	   (beg-cell (cons (point) (current-indentation)))
+	   (beg-cell (cons (point) (org-current-text-indentation)))
            itm-lst itm-lst-2 end-lst end-lst-2 struct
 	   (assoc-at-point
 	    ;; Return association at point.
@@ -624,7 +630,7 @@ Assume point is at an item."
       (save-excursion
 	(catch 'exit
 	  (while t
-	    (let ((ind (current-indentation)))
+	    (let ((ind (org-current-text-indentation)))
 	      (cond
 	       ((<= (point) lim-up)
 		;; At upward limit: if we ended at an item, store it,
@@ -684,7 +690,7 @@ Assume point is at an item."
       ;;    position of items in END-LST-2.
       (catch 'exit
 	(while t
-	  (let ((ind (current-indentation)))
+	  (let ((ind (org-current-text-indentation)))
 	    (cond
 	     ((>= (point) lim-down)
 	      ;; At downward limit: this is de facto the end of the
@@ -1089,79 +1095,64 @@ to the same sub-list.
 
 This function modifies STRUCT."
   (save-excursion
-    (let* ((end-A-no-blank (org-list-get-item-end-before-blank beg-A struct))
-	   (end-B-no-blank (org-list-get-item-end-before-blank beg-B struct))
-	   (end-A (org-list-get-item-end beg-A struct))
-	   (end-B (org-list-get-item-end beg-B struct))
-	   (size-A (- end-A-no-blank beg-A))
-	   (size-B (- end-B-no-blank beg-B))
-	   (body-A (buffer-substring beg-A end-A-no-blank))
-	   (body-B (buffer-substring beg-B end-B-no-blank))
-	   (between-A-no-blank-and-B (buffer-substring end-A-no-blank beg-B))
-	   (sub-A (cons beg-A (org-list-get-subtree beg-A struct)))
-	   (sub-B (cons beg-B (org-list-get-subtree beg-B struct)))
-	   ;; Store overlays responsible for visibility status.  We
-	   ;; also need to store their boundaries as they will be
-	   ;; removed from buffer.
-	   (overlays
-	    (cons
-	     (delq nil
-		   (mapcar (lambda (o)
-			     (and (>= (overlay-start o) beg-A)
-				  (<= (overlay-end o) end-A)
-				  (list o (overlay-start o) (overlay-end o))))
-			   (overlays-in beg-A end-A)))
-	     (delq nil
-		   (mapcar (lambda (o)
-			     (and (>= (overlay-start o) beg-B)
-				  (<= (overlay-end o) end-B)
-				  (list o (overlay-start o) (overlay-end o))))
-			   (overlays-in beg-B end-B))))))
-      ;; 1. Move effectively items in buffer.
-      (goto-char beg-A)
-      (delete-region beg-A end-B-no-blank)
-      (insert (concat body-B between-A-no-blank-and-B body-A))
-      ;; 2. Now modify struct.  No need to re-read the list, the
-      ;;    transformation is just a shift of positions.  Some special
-      ;;    attention is required for items ending at END-A and END-B
-      ;;    as empty spaces are not moved there.  In others words,
-      ;;    item BEG-A will end with whitespaces that were at the end
-      ;;    of BEG-B and the same applies to BEG-B.
-      (dolist (e struct)
-	(let ((pos (car e)))
-	  (cond
-	   ((< pos beg-A))
-	   ((memq pos sub-A)
-	    (let ((end-e (nth 6 e)))
-	      (setcar e (+ pos (- end-B-no-blank end-A-no-blank)))
-	      (setcar (nthcdr 6 e)
-		      (+ end-e (- end-B-no-blank end-A-no-blank)))
-	      (when (= end-e end-A) (setcar (nthcdr 6 e) end-B))))
-	   ((memq pos sub-B)
-	    (let ((end-e (nth 6 e)))
-	      (setcar e (- (+ pos beg-A) beg-B))
-	      (setcar (nthcdr 6 e) (+ end-e (- beg-A beg-B)))
-	      (when (= end-e end-B)
-		(setcar (nthcdr 6 e)
-			(+ beg-A size-B (- end-A end-A-no-blank))))))
-	   ((< pos beg-B)
-	    (let ((end-e (nth 6 e)))
-	      (setcar e (+ pos (- size-B size-A)))
-	      (setcar (nthcdr 6 e) (+ end-e (- size-B size-A))))))))
-      (setq struct (sort struct #'car-less-than-car))
-      ;; Restore visibility status, by moving overlays to their new
-      ;; position.
-      (dolist (ov (car overlays))
-	(move-overlay
-	 (car ov)
-	 (+ (nth 1 ov) (- (+ beg-B (- size-B size-A)) beg-A))
-	 (+ (nth 2 ov) (- (+ beg-B (- size-B size-A)) beg-A))))
-      (dolist (ov (cdr overlays))
-	(move-overlay (car ov)
-		      (+ (nth 1 ov) (- beg-A beg-B))
-		      (+ (nth 2 ov) (- beg-A beg-B))))
-      ;; Return structure.
-      struct)))
+    (org-fold-core-ignore-modifications
+      (let* ((end-A-no-blank (org-list-get-item-end-before-blank beg-A struct))
+	     (end-B-no-blank (org-list-get-item-end-before-blank beg-B struct))
+	     (end-A (org-list-get-item-end beg-A struct))
+	     (end-B (org-list-get-item-end beg-B struct))
+	     (size-A (- end-A-no-blank beg-A))
+	     (size-B (- end-B-no-blank beg-B))
+	     (body-A (buffer-substring beg-A end-A-no-blank))
+	     (body-B (buffer-substring beg-B end-B-no-blank))
+	     (between-A-no-blank-and-B (buffer-substring end-A-no-blank beg-B))
+	     (sub-A (cons beg-A (org-list-get-subtree beg-A struct)))
+	     (sub-B (cons beg-B (org-list-get-subtree beg-B struct)))
+	     ;; Store inner folds responsible for visibility status.
+	     (folds
+	      (cons
+               (org-fold-core-get-regions :from beg-A :to end-A :relative t)
+               (org-fold-core-get-regions :from beg-B :to end-B :relative t))))
+        ;; Clear up the folds.
+        (org-fold-region beg-A end-B-no-blank nil)
+        ;; 1. Move effectively items in buffer.
+        (goto-char beg-A)
+        (delete-region beg-A end-B-no-blank)
+        (insert (concat body-B between-A-no-blank-and-B body-A))
+        ;; Restore visibility status.
+        (org-fold-core-regions (cdr folds) :relative beg-A)
+        (org-fold-core-regions
+         (car folds)
+         :relative (+ beg-B (- size-B size-A (length between-A-no-blank-and-B))))
+        ;; 2. Now modify struct.  No need to re-read the list, the
+        ;;    transformation is just a shift of positions.  Some special
+        ;;    attention is required for items ending at END-A and END-B
+        ;;    as empty spaces are not moved there.  In others words,
+        ;;    item BEG-A will end with whitespaces that were at the end
+        ;;    of BEG-B and the same applies to BEG-B.
+        (dolist (e struct)
+	  (let ((pos (car e)))
+	    (cond
+	     ((< pos beg-A))
+	     ((memq pos sub-A)
+	      (let ((end-e (nth 6 e)))
+	        (setcar e (+ pos (- end-B-no-blank end-A-no-blank)))
+	        (setcar (nthcdr 6 e)
+		        (+ end-e (- end-B-no-blank end-A-no-blank)))
+	        (when (= end-e end-A) (setcar (nthcdr 6 e) end-B))))
+	     ((memq pos sub-B)
+	      (let ((end-e (nth 6 e)))
+	        (setcar e (- (+ pos beg-A) beg-B))
+	        (setcar (nthcdr 6 e) (+ end-e (- beg-A beg-B)))
+	        (when (= end-e end-B)
+		  (setcar (nthcdr 6 e)
+			  (+ beg-A size-B (- end-A end-A-no-blank))))))
+	     ((< pos beg-B)
+	      (let ((end-e (nth 6 e)))
+	        (setcar e (+ pos (- size-B size-A)))
+	        (setcar (nthcdr 6 e) (+ end-e (- size-B size-A))))))))
+        (setq struct (sort struct #'car-less-than-car))
+        ;; Return structure.
+        struct))))
 
 (defun org-list-separating-blank-lines-number (pos struct prevs)
   "Return number of blank lines that should separate items in list.
@@ -1850,7 +1841,7 @@ Initial position of cursor is restored after the changes."
 		(org-inlinetask-goto-beginning))
 	       ;; Shift only non-empty lines.
 	       ((looking-at-p "^[ \t]*\\S-")
-		(indent-line-to (+ (current-indentation) delta))))
+		(indent-line-to (+ (org-current-text-indentation) delta))))
 	      (forward-line -1))))
 	 (modify-item
 	  ;; Replace ITEM first line elements with new elements from
@@ -1858,7 +1849,7 @@ Initial position of cursor is restored after the changes."
 	  (lambda (item)
 	    (goto-char item)
 	    (let* ((new-ind (org-list-get-ind item struct))
-		   (old-ind (current-indentation))
+		   (old-ind (org-current-text-indentation))
 		   (new-bul (org-list-bullet-string
 			     (org-list-get-bullet item struct)))
 		   (old-bul (org-list-get-bullet item old-struct))
@@ -1866,7 +1857,22 @@ Initial position of cursor is restored after the changes."
 	      (looking-at org-list-full-item-re)
 	      ;; a.  Replace bullet
 	      (unless (equal old-bul new-bul)
-		(replace-match new-bul nil nil nil 1))
+                (let ((keep-space ""))
+                  (save-excursion
+                    ;; If origin is inside the bullet, preserve the
+                    ;; spaces after origin.
+                    (when (<= (match-beginning 1) origin (match-end 1))
+                      (org-with-point-at origin
+                        (save-match-data
+                          (when (looking-at "[ \t]+")
+                            (setq keep-space (match-string 0))))))
+                    (replace-match "" nil nil nil 1)
+                    (goto-char (match-end 1))
+                    (insert-before-markers new-bul)
+                    (insert keep-space))))
+              ;; Refresh potentially shifted match markers.
+              (goto-char item)
+              (looking-at org-list-full-item-re)
 	      ;; b.  Replace checkbox.
 	      (cond
 	       ((equal (match-string 3) new-box))
@@ -1933,7 +1939,7 @@ Initial position of cursor is restored after the changes."
 			;; Ignore empty lines.  Also ignore blocks and
 			;; drawers contents.
 			(unless (looking-at-p "[ \t]*$")
-			  (setq min-ind (min (current-indentation) min-ind))
+			  (setq min-ind (min (org-current-text-indentation) min-ind))
 			  (cond
 			   ((and (looking-at "#\\+BEGIN\\(:\\|_\\S-+\\)")
 				 (re-search-forward
@@ -2029,7 +2035,7 @@ Possible values are: `folded', `children' or `subtree'.  See
    ((eq view 'folded)
     (let ((item-end (org-list-get-item-end-before-blank item struct)))
       ;; Hide from eol
-      (org-flag-region (save-excursion (goto-char item) (line-end-position))
+      (org-fold-region (save-excursion (goto-char item) (line-end-position))
 		       item-end t 'outline)))
    ((eq view 'children)
     ;; First show everything.
@@ -2042,7 +2048,7 @@ Possible values are: `folded', `children' or `subtree'.  See
    ((eq view 'subtree)
     ;; Show everything
     (let ((item-end (org-list-get-item-end item struct)))
-      (org-flag-region item item-end nil 'outline)))))
+      (org-fold-region item item-end nil 'outline)))))
 
 (defun org-list-item-body-column (item)
   "Return column at which body of ITEM should start."
@@ -2212,6 +2218,7 @@ item is invisible."
 	  (setq struct (org-list-insert-item pos struct prevs checkbox desc))
 	  (org-list-write-struct struct (org-list-parents-alist struct))
 	  (when checkbox (org-update-checkbox-count-maybe))
+          (beginning-of-line)
 	  (looking-at org-list-full-item-re)
 	  (goto-char (if (and (match-beginning 4)
 			      (save-match-data
@@ -2240,12 +2247,19 @@ is an integer, 0 means `-', 1 means `+' etc.  If WHICH is
 `previous', cycle backwards."
   (interactive "P")
   (unless (org-at-item-p) (error "Not at an item"))
-  (save-excursion
+  (let ((origin (point-marker)))
     (beginning-of-line)
     (let* ((struct (org-list-struct))
            (parents (org-list-parents-alist struct))
            (prevs (org-list-prevs-alist struct))
            (list-beg (org-list-get-first-item (point) struct prevs))
+           ;; Record relative point position to bullet beginning.
+           (origin-offset (- origin
+                             (+ (point) (org-list-get-ind (point) struct))))
+           ;; Record relative point position to bullet end.
+           (origin-offset2 (- origin
+                              (+ (point) (org-list-get-ind (point) struct)
+                                 (length (org-list-get-bullet (point) struct)))))
            (bullet (org-list-get-bullet list-beg struct))
 	   (alpha-p (org-list-use-alpha-bul-p list-beg struct prevs))
 	   (case-fold-search nil)
@@ -2291,7 +2305,24 @@ is an integer, 0 means `-', 1 means `+' etc.  If WHICH is
         (org-list-set-bullet list-beg struct (org-list-bullet-string new))
         (org-list-struct-fix-bul struct prevs)
         (org-list-struct-fix-ind struct parents)
-        (org-list-struct-apply-struct struct old-struct)))))
+        (org-list-struct-apply-struct struct old-struct))
+      (goto-char origin)
+      (setq struct (org-list-struct))
+      (cond
+       ((>= origin-offset2 0)
+        (beginning-of-line)
+        (move-marker origin (+ (point)
+                               (org-list-get-ind (point) struct)
+                               (length (org-list-get-bullet (point) struct))
+                               origin-offset2))
+        (goto-char origin))
+       ((>= origin-offset 0)
+        (beginning-of-line)
+        (move-marker origin (+ (point)
+                               (org-list-get-ind (point) struct)
+                               origin-offset))
+        (goto-char origin)))
+      (move-marker origin nil))))
 
 ;;;###autoload
 (define-minor-mode org-list-checkbox-radio-mode
@@ -2455,7 +2486,7 @@ subtree, ignoring planning line and any drawer following it."
     (save-restriction
       (save-excursion
 	(org-narrow-to-subtree)
-	(org-show-subtree)
+	(org-fold-show-subtree)
 	(goto-char (point-min))
 	(let ((end (point-max)))
 	  (while (< (point) end)
@@ -2910,7 +2941,7 @@ function is being called interactively."
 		   (error "Missing key extractor"))))
 	 (sort-func
 	  (cond
-	   ((= dcst ?a) #'org-string-collate-lessp)
+	   ((= dcst ?a) #'string-collate-lessp)
 	   ((= dcst ?f)
 	    (or compare-func
 		(and interactive?
@@ -2991,7 +3022,38 @@ If it is an item, convert all items to normal lines.
 If it is normal text, change region into a list of items.
 With a prefix argument ARG, change the region in a single item."
   (interactive "P")
-  (let ((shift-text
+  (let ((extract-footnote-definitions
+         (lambda (end)
+           ;; Remove footnote definitions from point to END.
+           ;; Return the list of the extracted definitions.
+           (let (definitions element)
+             (save-excursion
+               (while (re-search-forward org-footnote-definition-re end t)
+                 (setq element (org-element-at-point))
+                 (when (eq 'footnote-definition
+                           (org-element-type element))
+                   (push (buffer-substring-no-properties
+                          (org-element-property :begin element)
+                          (org-element-property :end element))
+                         definitions)
+                   ;; Ensure at least 2 blank lines after the last
+                   ;; footnote definition, thus not slurping the
+                   ;; following element.
+                   (unless (<= 2 (org-element-property
+                                 :post-blank
+                                 (org-element-at-point)))
+                     (setf (car definitions)
+                           (concat (car definitions)
+                                   (make-string
+                                    (- 2 (org-element-property
+                                          :post-blank
+                                          (org-element-at-point)))
+                                    ?\n))))
+                   (delete-region
+                    (org-element-property :begin element)
+                    (org-element-property :end element))))
+               definitions))))
+        (shift-text
 	 (lambda (ind end)
 	   ;; Shift text in current section to IND, from point to END.
 	   ;; The function leaves point to END line.
@@ -3001,7 +3063,7 @@ With a prefix argument ARG, change the region in a single item."
 	     (save-excursion
 	       (catch 'exit
 		 (while (< (point) end)
-		   (let ((i (current-indentation)))
+		   (let ((i (org-current-text-indentation)))
 		     (cond
 		      ;; Skip blank lines and inline tasks.
 		      ((looking-at "^[ \t]*$"))
@@ -3017,7 +3079,7 @@ With a prefix argument ARG, change the region in a single item."
 	       (while (< (point) end)
 		 (unless (or (looking-at "^[ \t]*$")
 			     (looking-at org-outline-regexp-bol))
-		   (indent-line-to (+ (current-indentation) delta)))
+		   (indent-line-to (+ (org-current-text-indentation) delta)))
 		 (forward-line))))))
 	(skip-blanks
 	 (lambda (pos)
@@ -3049,7 +3111,7 @@ With a prefix argument ARG, change the region in a single item."
 	     (skip-chars-forward " \t")
 	     (delete-region (point) (match-end 0)))
 	   (forward-line)))
-	;; Case 2. Start at an heading: convert to items.
+	;; Case 2. Start at a heading: convert to items.
 	((org-at-heading-p)
 	 ;; Remove metadata
 	 (let (org-loop-over-headlines-in-active-region)
@@ -3065,7 +3127,9 @@ With a prefix argument ARG, change the region in a single item."
 			      (t (length (match-string 0))))))
 		;; Level of first heading.  Further headings will be
 		;; compared to it to determine hierarchy in the list.
-		(ref-level (org-reduced-level (org-outline-level))))
+		(ref-level (org-reduced-level (org-outline-level)))
+                (footnote-definitions
+                 (funcall extract-footnote-definitions end)))
 	   (while (< (point) end)
 	     (let* ((level (org-reduced-level (org-outline-level)))
 		    (delta (max 0 (- level ref-level)))
@@ -3094,8 +3158,8 @@ With a prefix argument ARG, change the region in a single item."
 			"[X]"
 		      "[ ]"))
 		   (org-list-write-struct struct
-					  (org-list-parents-alist struct)
-					  old)))
+				  (org-list-parents-alist struct)
+				  old)))
 	       ;; Ensure all text down to END (or SECTION-END) belongs
 	       ;; to the newly created item.
 	       (let ((section-end (save-excursion
@@ -3103,13 +3167,23 @@ With a prefix argument ARG, change the region in a single item."
 		 (forward-line)
 		 (funcall shift-text
 			  (+ start-ind (* (1+ delta) bul-len))
-			  (min end section-end)))))))
+			  (min end section-end)))))
+           (when footnote-definitions
+             (goto-char end)
+             ;; Insert footnote definitions after the list.
+             (unless (bolp) (beginning-of-line 2))
+             ;; At (point-max).
+             (unless (bolp) (insert "\n"))
+             (dolist (def footnote-definitions)
+               (insert def)))))
 	;; Case 3. Normal line with ARG: make the first line of region
 	;;         an item, and shift indentation of others lines to
 	;;         set them as item's body.
 	(arg (let* ((bul (org-list-bullet-string "-"))
 		    (bul-len (length bul))
-		    (ref-ind (current-indentation)))
+		    (ref-ind (org-current-text-indentation))
+                    (footnote-definitions
+                     (funcall extract-footnote-definitions end)))
 	       (skip-chars-forward " \t")
 	       (insert bul)
 	       (forward-line)
@@ -3120,7 +3194,21 @@ With a prefix argument ARG, change the region in a single item."
 			  (+ ref-ind bul-len)
 			  (min end (save-excursion (or (outline-next-heading)
 						       (point)))))
-		 (forward-line))))
+		 (forward-line))
+               (when footnote-definitions
+                 ;; If the new list is followed by same-level items,
+                 ;; move past them as well.
+                 (goto-char (org-element-property
+                             :end
+                             (org-element-lineage
+                              (org-element-at-point (1- end))
+                              '(plain-list) t)))
+                 ;; Insert footnote definitions after the list.
+                 (unless (bolp) (beginning-of-line 2))
+                 ;; At (point-max).
+                 (unless (bolp) (insert "\n"))
+                 (dolist (def footnote-definitions)
+                   (insert def)))))
 	;; Case 4. Normal line without ARG: turn each non-item line
 	;;         into an item.
 	(t

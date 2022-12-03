@@ -1993,7 +1993,7 @@ It is a modern replacement for 'zone-mode', which is now obsolete.
 ** 'cfengine-mode' is a major mode for editing GNU Cfengine
 configuration files.
 
-** The TCL package tcl-mode.el was replaced by tcl.el.
+** The Tcl package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:

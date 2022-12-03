@@ -335,7 +335,7 @@
               (start-process "true" (current-buffer) "true")
               erc-server-current-nick "tester"
               erc-server-announced-name "foo.gnu.chat"
-              ;; Assume special case w/o known network
+              ;; Assume special case without known network
               erc-networks--id (make-erc-networks--id))
         (set-process-query-on-exit-flag erc-server-process nil)
         (should-not calls)

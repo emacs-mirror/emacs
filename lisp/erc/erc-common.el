@@ -88,6 +88,65 @@
   (contents "" :type string)
   (tags '() :type list))
 
+;; TODO move goodies modules here after 29 is released.
+(defconst erc--features-to-modules
+  '((erc-pcomplete completion pcomplete)
+    (erc-capab capab-identify)
+    (erc-join autojoin)
+    (erc-page page ctcp-page)
+    (erc-sound sound ctcp-sound)
+    (erc-stamp stamp timestamp)
+    (erc-services services nickserv))
+  "Migration alist mapping a library feature to module names.
+Keys need not be unique: a library may define more than one
+module.  Sometimes a module's downcased alias will be its
+canonical name.")
+
+(defconst erc--modules-to-features
+  (let (pairs)
+    (pcase-dolist (`(,feature . ,names) erc--features-to-modules)
+      (dolist (name names)
+        (push (cons name feature) pairs)))
+    (nreverse pairs))
+  "Migration alist mapping a module's name to its home library feature.")
+
+(defconst erc--module-name-migrations
+  (let (pairs)
+    (pcase-dolist (`(,_ ,canonical . ,rest) erc--features-to-modules)
+      (dolist (obsolete rest)
+        (push (cons obsolete canonical) pairs)))
+    pairs)
+  "Association list of obsolete module names to canonical names.")
+
+(defun erc--normalize-module-symbol (symbol)
+  "Return preferred SYMBOL for `erc-modules'."
+  (setq symbol (intern (downcase (symbol-name symbol))))
+  (or (cdr (assq symbol erc--module-name-migrations)) symbol))
+
+(defun erc--assemble-toggle (localp name ablsym mode val body)
+  (let ((arg (make-symbol "arg")))
+    `(defun ,ablsym ,(if localp `(&optional ,arg) '())
+       ,(concat
+         (if val "Enable" "Disable")
+         " ERC " (symbol-name name) " mode."
+         (when localp
+           "\nWith ARG, do so in all buffers for the current connection."))
+       (interactive ,@(when localp '("p")))
+       ,@(if localp
+             `((when (derived-mode-p 'erc-mode)
+                 (if ,arg
+                     (erc-with-all-buffers-of-server erc-server-process nil
+                       (,ablsym))
+                   (setq ,mode ,val)
+                   ,@body)))
+           `(,(if val
+                  `(cl-pushnew ',(erc--normalize-module-symbol name)
+                               erc-modules)
+                `(setq erc-modules (delq ',(erc--normalize-module-symbol name)
+                                         erc-modules)))
+             (setq ,mode ,val)
+             ,@body)))))
+
 (defmacro define-erc-module (name alias doc enable-body disable-body
                                   &optional local-p)
   "Define a new minor mode using ERC conventions.
@@ -102,6 +161,13 @@ mode, rather than a global one.
 This will define a minor mode called erc-NAME-mode, possibly
 an alias erc-ALIAS-mode, as well as the helper functions
 erc-NAME-enable, and erc-NAME-disable.
+
+With LOCAL-P, these helpers take on an optional argument that,
+when non-nil, causes them to act on all buffers of a connection.
+This feature is mainly intended for interactive use and does not
+carry over to their respective minor-mode toggles.  Beware that
+for global modules, these helpers and toggles all mutate
+`erc-modules'.
 
 Example:
 
@@ -133,20 +199,8 @@ if ARG is omitted or nil.
          (if ,mode
              (,enable)
            (,disable)))
-       (defun ,enable ()
-         ,(format "Enable ERC %S mode."
-                  name)
-         (interactive)
-         (add-to-list 'erc-modules (quote ,name))
-         (setq ,mode t)
-         ,@enable-body)
-       (defun ,disable ()
-         ,(format "Disable ERC %S mode."
-                  name)
-         (interactive)
-         (setq erc-modules (delq (quote ,name) erc-modules))
-         (setq ,mode nil)
-         ,@disable-body)
+       ,(erc--assemble-toggle local-p name enable mode t enable-body)
+       ,(erc--assemble-toggle local-p name disable mode nil disable-body)
        ,(when (and alias (not (eq name alias)))
           `(defalias
              ',(intern

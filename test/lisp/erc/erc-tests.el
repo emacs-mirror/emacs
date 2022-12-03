@@ -530,6 +530,28 @@
   (when noninteractive
     (kill-buffer "*#fake*")))
 
+(ert-deftest erc--debug-irc-protocol-mask-secrets ()
+  (should-not erc-debug-irc-protocol)
+  (should erc--debug-irc-protocol-mask-secrets)
+  (with-temp-buffer
+    (setq erc-server-process (start-process "fake" (current-buffer) "true")
+          erc-server-current-nick "tester"
+          erc-session-server "myproxy.localhost"
+          erc-session-port 6667)
+    (let ((inhibit-message noninteractive))
+      (erc-toggle-debug-irc-protocol)
+      (erc-log-irc-protocol
+       (concat "PASS :" (erc--unfun (lambda () "changeme")) "\r\n")
+       'outgoing)
+      (set-process-query-on-exit-flag erc-server-process nil))
+    (with-current-buffer "*erc-protocol*"
+      (goto-char (point-min))
+      (search-forward "\r\n\r\n")
+      (search-forward "myproxy.localhost:6667 >> PASS :????????" (pos-eol)))
+    (when noninteractive
+      (kill-buffer "*erc-protocol*")
+      (should-not erc-debug-irc-protocol))))
+
 (ert-deftest erc-log-irc-protocol ()
   (should-not erc-debug-irc-protocol)
   (with-temp-buffer
@@ -1177,5 +1199,161 @@
     (kill-buffer "barnet")
     (kill-buffer "baznet")
     (kill-buffer "#chan")))
+
+(ert-deftest erc-migrate-modules ()
+  (should (equal (erc-migrate-modules '(autojoin timestamp button))
+                 '(autojoin stamp button)))
+  ;; Default unchanged
+  (should (equal (erc-migrate-modules erc-modules) erc-modules)))
+
+(ert-deftest erc--update-modules ()
+  (let (calls
+        erc-modules
+        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+    (cl-letf (((symbol-function 'require)
+               (lambda (s &rest _) (push s calls)))
+
+              ;; Local modules
+              ((symbol-function 'erc-fake-bar-mode)
+               (lambda (n) (push (cons 'fake-bar n) calls)))
+
+              ;; Global modules
+              ((symbol-function 'erc-fake-foo-mode)
+               (lambda (n) (push (cons 'fake-foo n) calls)))
+              ((get 'erc-fake-foo-mode 'standard-value) 'ignore)
+              ((symbol-function 'erc-autojoin-mode)
+               (lambda (n) (push (cons 'autojoin n) calls)))
+              ((get 'erc-autojoin-mode 'standard-value) 'ignore)
+              ((symbol-function 'erc-networks-mode)
+               (lambda (n) (push (cons 'networks n) calls)))
+              ((get 'erc-networks-mode 'standard-value) 'ignore)
+              ((symbol-function 'erc-completion-mode)
+               (lambda (n) (push (cons 'completion n) calls)))
+              ((get 'erc-completion-mode 'standard-value) 'ignore))
+
+      (ert-info ("Local modules")
+        (setq erc-modules '(fake-foo fake-bar))
+        (should (equal (erc--update-modules) '(erc-fake-bar-mode)))
+        ;; Bar the feature is still required but the mode is not activated
+        (should (equal (nreverse calls)
+                       '(erc-fake-foo (fake-foo . 1) erc-fake-bar)))
+        (setq calls nil))
+
+      (ert-info ("Module name overrides")
+        (setq erc-modules '(completion autojoin networks))
+        (should-not (erc--update-modules)) ; no locals
+        (should (equal (nreverse calls) '( erc-pcomplete (completion . 1)
+                                           erc-join (autojoin . 1)
+                                           erc-networks (networks . 1))))
+        (setq calls nil)))))
+
+(ert-deftest erc--merge-local-modes ()
+
+  (ert-info ("No existing modes")
+    (let ((old '((a) (b . t)))
+          (new '(erc-c-mode erc-d-mode)))
+      (should (equal (erc--merge-local-modes new old)
+                     '((erc-c-mode erc-d-mode))))))
+
+  (ert-info ("Active existing added, inactive existing removed, deduped")
+    (let ((old '((a) (erc-b-mode) (c . t) (erc-d-mode . t) (erc-e-mode . t)))
+          (new '(erc-b-mode erc-d-mode)))
+      (should (equal (erc--merge-local-modes new old)
+                     '((erc-d-mode erc-e-mode) . (erc-b-mode)))))))
+
+(ert-deftest define-erc-module--global ()
+  (let ((global-module '(define-erc-module mname malias
+                          "Some docstring"
+                          ((ignore a) (ignore b))
+                          ((ignore c) (ignore d)))))
+
+    (should (equal (macroexpand global-module)
+                   `(progn
+
+                      (define-minor-mode erc-mname-mode
+                        "Toggle ERC mname mode.
+With a prefix argument ARG, enable mname if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+Some docstring"
+                        :global t
+                        :group 'erc-mname
+                        (if erc-mname-mode
+                            (erc-mname-enable)
+                          (erc-mname-disable)))
+
+                      (defun erc-mname-enable ()
+                        "Enable ERC mname mode."
+                        (interactive)
+                        (cl-pushnew 'mname erc-modules)
+                        (setq erc-mname-mode t)
+                        (ignore a) (ignore b))
+
+                      (defun erc-mname-disable ()
+                        "Disable ERC mname mode."
+                        (interactive)
+                        (setq erc-modules (delq 'mname erc-modules))
+                        (setq erc-mname-mode nil)
+                        (ignore c) (ignore d))
+
+                      (defalias 'erc-malias-mode #'erc-mname-mode)
+
+                      (put 'erc-mname-mode 'definition-name 'mname)
+                      (put 'erc-mname-enable 'definition-name 'mname)
+                      (put 'erc-mname-disable 'definition-name 'mname))))))
+
+(ert-deftest define-erc-module--local ()
+  (let* ((global-module '(define-erc-module mname malias
+                           "Some docstring"
+                           ((ignore a) (ignore b))
+                           ((ignore c) (ignore d))
+                           'local))
+         (got (macroexpand global-module))
+         (arg-en (cadr (nth 2 (nth 2 got))))
+         (arg-dis (cadr (nth 2 (nth 3 got)))))
+
+    (should (equal got
+                   `(progn
+                      (define-minor-mode erc-mname-mode
+                        "Toggle ERC mname mode.
+With a prefix argument ARG, enable mname if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+Some docstring"
+                        :global nil
+                        :group 'erc-mname
+                        (if erc-mname-mode
+                            (erc-mname-enable)
+                          (erc-mname-disable)))
+
+                      (defun erc-mname-enable (&optional ,arg-en)
+                        "Enable ERC mname mode.
+With ARG, do so in all buffers for the current connection."
+                        (interactive "p")
+                        (when (derived-mode-p 'erc-mode)
+                          (if ,arg-en
+                              (erc-with-all-buffers-of-server
+                                  erc-server-process nil
+                                (erc-mname-enable))
+                            (setq erc-mname-mode t)
+                            (ignore a) (ignore b))))
+
+                      (defun erc-mname-disable (&optional ,arg-dis)
+                        "Disable ERC mname mode.
+With ARG, do so in all buffers for the current connection."
+                        (interactive "p")
+                        (when (derived-mode-p 'erc-mode)
+                          (if ,arg-dis
+                              (erc-with-all-buffers-of-server
+                                  erc-server-process nil
+                                (erc-mname-disable))
+                            (setq erc-mname-mode nil)
+                            (ignore c) (ignore d))))
+
+                      (defalias 'erc-malias-mode #'erc-mname-mode)
+
+                      (put 'erc-mname-mode 'definition-name 'mname)
+                      (put 'erc-mname-enable 'definition-name 'mname)
+                      (put 'erc-mname-disable 'definition-name 'mname))))))
 
 ;;; erc-tests.el ends here

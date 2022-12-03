@@ -2342,6 +2342,14 @@ struct it
      optimize display.  */
   ptrdiff_t narrowed_zv;
 
+  /* Begin position of the buffer for the locked narrowing around
+     low-level hooks.  */
+  ptrdiff_t locked_narrowing_begv;
+
+  /* End position of the buffer for the locked narrowing around
+     low-level hooks.  */
+  ptrdiff_t locked_narrowing_zv;
+
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
      or it->string.  */
@@ -3405,6 +3413,8 @@ void init_iterator (struct it *, struct window *, ptrdiff_t,
 ptrdiff_t get_narrowed_begv (struct window *, ptrdiff_t);
 ptrdiff_t get_narrowed_zv (struct window *, ptrdiff_t);
 ptrdiff_t get_closer_narrowed_begv (struct window *, ptrdiff_t);
+ptrdiff_t get_locked_narrowing_begv (ptrdiff_t);
+ptrdiff_t get_locked_narrowing_zv (ptrdiff_t);
 void init_iterator_to_row_start (struct it *, struct window *,
                                  struct glyph_row *);
 void start_display (struct it *, struct window *, struct text_pos);

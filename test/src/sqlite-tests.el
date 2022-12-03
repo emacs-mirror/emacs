@@ -243,6 +243,7 @@
 
 (ert-deftest sqlite-returning ()
   (skip-unless (sqlite-available-p))
+  (skip-unless (version<= "3.35" (sqlite-version)))
   (let (db)
     (progn
       (setq db (sqlite-open))

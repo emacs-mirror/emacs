@@ -57,5 +57,11 @@ AC_DEFUN([gl_ASSERT_H],
              && __GNUG__ < 6 && __clang_major__ < 6)))
  #include <assert.h>
  #undef/**/assert
+ /* Solaris 11.4 <assert.h> defines static_assert as a macro with 2 arguments.
+    We need it also to be invocable with a single argument.  */
+ #if defined __sun && (__STDC_VERSION__ - 0 >= 201112L) && !defined __cplusplus
+  #undef static_assert
+  #define static_assert _Static_assert
+ #endif
 #endif])
 ])

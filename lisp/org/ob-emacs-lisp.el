@@ -4,7 +4,7 @@
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -26,6 +26,9 @@
 ;; Org-Babel support for evaluating emacs-lisp code
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'ob-core)
 
@@ -55,7 +58,7 @@ by `org-edit-src-code'.")
       (format "(let (%s)\n%s\n)"
 	      (mapconcat
 	       (lambda (var)
-		 (format "%S" (print `(,(car var) ',(cdr var)))))
+		 (format "%S" `(,(car var) ',(cdr var))))
 	       vars "\n      ")
 	      body))))
 

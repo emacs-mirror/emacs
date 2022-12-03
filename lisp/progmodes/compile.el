@@ -2807,7 +2807,7 @@ This is the value of `next-error-function' in Compilation buffers."
             (goto-char (point-min))
             ;; Treat file's found lines in forward order, 1 by 1.
             (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
-              (when (car line)		; else this is a filename w/o a line#
+              (when (car line)		; else this is a filename without a line#
                 (compilation-beginning-of-line (- (car line) last -1))
                 (setq last (car line)))
               ;; Treat line's found columns and store/update a marker for each.

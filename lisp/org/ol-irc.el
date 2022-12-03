@@ -48,6 +48,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ol)
 
 (declare-function erc-buffer-filter "erc" (predicate &optional proc))

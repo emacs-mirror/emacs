@@ -670,7 +670,7 @@ This variable is set by `nnmaildir-request-article'.")
 (defun nnmaildir-open-server (server-string &optional defs)
   (let ((server (alist-get server-string nnmaildir--servers
 			   nil nil #'equal))
-	dir size x)
+	dir size x prefix)
     (catch 'return
       (if server
 	  (and (nnmaildir--srv-groups server)
@@ -710,20 +710,11 @@ This variable is set by `nnmaildir-request-article'.")
 	   (car x)
 	   (setf (nnmaildir--srv-gnm server) t)
 	   (require 'nnmail))
-      (setq x (assq 'target-prefix defs))
-      (if x
-	  (progn
-	    (setq x (cadr x)
-		  x (eval x t))	;FIXME: Why `eval'?
-	    (setf (nnmaildir--srv-target-prefix server) x))
-	(setq x (assq 'create-directory defs))
-	(if x
-	    (progn
-	      (setq x (cadr x)
-		    x (eval x t) ;FIXME: Why `eval'?
-		    x (file-name-as-directory x))
-	      (setf (nnmaildir--srv-target-prefix server) x))
-	  (setf (nnmaildir--srv-target-prefix server) "")))
+      (setf prefix (cl-second (assq 'target-prefix defs))
+            (nnmaildir--srv-target-prefix server)
+            (if prefix
+                (eval prefix t)
+              ""))
       (setf (nnmaildir--srv-groups server)
 	    (gnus-make-hashtable size))
       (setq nnmaildir--cur-server server)

@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'treesit)
+(eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -299,10 +300,13 @@ the subtrees."
 
   ;; Comments.
   (setq-local comment-start "// ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
-  (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
-  (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
+  (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)
@@ -317,9 +321,10 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((comment constant keyword string)
-                (annotation definition expression literal type)
-                (bracket delimiter operator)))
+              '(( comment definition )
+                ( constant keyword string type)
+                ( annotation expression literal)
+                ( bracket delimiter operator)))
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'java-ts-mode--imenu)

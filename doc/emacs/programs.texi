@@ -83,15 +83,20 @@ mode for the C programming language is @code{c-mode}.
 @cindex DNS mode
 @cindex Javascript mode
 @cindex Awk mode
+@cindex C# mode
+@cindex IDLWAVE mode
+@cindex JSON mode
+@cindex SQL mode
+@cindex TypeScript mode
   Emacs has programming language modes for Lisp, Scheme, the
-Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++,
+Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++, C#,
 Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, M4, Makefiles,
 Metafont (@TeX{}'s companion for font creation), Modula2, Object
 Pascal, Objective-C, Octave, Pascal, Perl, Pike, PostScript, Prolog,
-Python, Ruby, Simula, SQL, Tcl, Verilog, and VHDL@.  An alternative
-mode for Perl is called CPerl mode.  Modes are also available for the
-scripting languages of the common GNU and Unix shells, and
-MS-DOS/MS-Windows @samp{BAT} files, and for makefiles, DNS master
+Python, Ruby, Simula, SQL, Tcl, TypeScript, Verilog, and VHDL@.  An
+alternative mode for Perl is called CPerl mode.  Modes are also
+available for the scripting languages of the common GNU and Unix
+shells, and MS-DOS/MS-Windows @samp{BAT} files, JSON, DNS master
 files, and various sorts of configuration files.
 
   Ideally, Emacs should have a major mode for each programming
@@ -1419,7 +1424,7 @@ displaying all of the documentation texts concatenated together.
 This abnormal hook's value is a list of functions that can produce
 documentation for the symbol at point as appropriate for the current
 buffer's major-mode.  These functions act as a collection of backends
-for ElDoc.  Major mode register their documentation lookup functions
+for ElDoc.  Major modes register their documentation lookup functions
 with ElDoc by adding their functions to the buffer-local value of this
 variable.
 @end vtable

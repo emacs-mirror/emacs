@@ -26,6 +26,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ol)
 
 (defcustom org-link-doi-server-url "https://doi.org/"

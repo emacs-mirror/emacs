@@ -177,7 +177,7 @@ May be manually changed by user with `gdb-select-frame'.")
   "Number of selected line for main current thread.")
 
 (defvar gdb-threads-list nil
-  "Associative list of threads provided by \"-thread-info\" MI command.
+  "Association list of threads provided by \"-thread-info\" MI command.
 
 Keys are thread numbers (in strings) and values are structures as
 returned from -thread-info by `gdb-mi--partial-output'.  Updated in
@@ -196,7 +196,7 @@ Updated in `gdb-thread-list-handler-custom'.")
 See also `gdb-running-threads-count'.")
 
 (defvar gdb-breakpoints-list nil
-  "Associative list of breakpoints provided by \"-break-list\" MI command.
+  "Association list of breakpoints provided by \"-break-list\" MI command.
 
 Keys are breakpoint numbers (in string) and values are structures
 as returned from \"-break-list\" by `gdb-mi--partial-output'
@@ -3159,7 +3159,7 @@ See `def-gdb-auto-update-handler'."
           (gdb-remove-breakpoint-icons (point-min) (point-max)))))
   (dolist (breakpoint gdb-breakpoints-list)
     (let* ((breakpoint (cdr breakpoint)) ; gdb-breakpoints-list is
-                                        ; an associative list
+                                        ; an association list
            (line (gdb-mi--field breakpoint 'line)))
       (when line
         (let ((file (gdb-mi--field breakpoint 'fullname))

@@ -48,10 +48,9 @@ hell.  For some, auth-source may provide a workaround in the form of
 nonstandard server passwords.  See the "Connection" node in the manual
 under the subheading "Password".
 
-If you require SASL immediately, please participate in ERC development
-by volunteering to try (and give feedback on) edge features, one of
-which is SASL.  All known external offerings, past and present, are
-valiant efforts whose use is nevertheless discouraged.
+** Rudimentary SASL support has arrived.
+A new module, 'erc-sasl', now ships with ERC 5.5.  See the SASL
+section in the manual for details.
 
 ** Username argument for entry-point commands.
 Commands 'erc' and 'erc-tls' now accept a ':user' keyword argument,
@@ -124,6 +123,15 @@ unequivocally identifying a connection in a human-readable way.
 The function 'erc-auto-query' was deemed too difficult to reason
 through and has thus been deprecated with no public replacement; it
 has also been removed from the client code path.
+
+The function 'erc-open' now delays running 'erc-mode-hook' members
+until most local session variables have been initialized (minus those
+connection-related ones in erc-backend).  'erc-open' also no longer
+calls 'erc-update-modules', although modules are still activated
+in an identical fashion.
+
+Some groundwork has been laid for what may become a new breed of ERC
+module, namely, "connection-local" (or simply "local") modules.
 
 A few internal variables have been introduced that could just as well
 have been made public, possibly as user options.  Likewise for some

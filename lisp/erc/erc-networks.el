@@ -826,12 +826,11 @@ respectively.  The separator is given by `erc-networks--id-sep'."
 
 ;; For now, please use this instead of `erc-networks--id-fixed-p'.
 (cl-defgeneric erc-networks--id-given (net-id)
-  "Return the preassigned identifier for a network presence, if any.
-This may have originated from an `:id' arg to entry-point commands
-`erc-tls' or `erc'.")
+  "Return the preassigned identifier for a network context, if any.
+When non-nil, assume NET-ID originated from an `:id' argument to
+entry-point commands `erc-tls' or `erc'.")
 
-(cl-defmethod erc-networks--id-given ((_ erc-networks--id))
-  nil)
+(cl-defmethod erc-networks--id-given (_) nil) ; _ may be nil
 
 (cl-defmethod erc-networks--id-given ((nid erc-networks--id-fixed))
   (erc-networks--id-symbol nid))
@@ -866,22 +865,15 @@ This may have originated from an `:id' arg to entry-point commands
   ((_ symbol) &context (erc-obsolete-var erc-reuse-buffers null))
   (erc-networks--id-fixed-create (intern (buffer-name))))
 
-(cl-defgeneric erc-networks--id-on-connect (net-id)
-  "Update NET-ID `erc-networks--id' after connection params known.
-This is typically during or just after MOTD.")
-
-(cl-defmethod erc-networks--id-on-connect ((_ erc-networks--id))
-  nil)
-
-(cl-defmethod erc-networks--id-on-connect ((id erc-networks--id-qualifying))
-  (erc-networks--id-qualifying-update id (erc-networks--id-qualifying-create)))
-
 (cl-defgeneric erc-networks--id-equal-p (self other)
-  "Return non-nil when two network identities exhibit underlying equality.
-SELF and OTHER are `erc-networks--id' struct instances.  This
-should normally be used only for ID recovery or merging, after
-which no two identities should be `equal' (timestamps aside) that
-aren't also `eq'.")
+  "Return non-nil when two network IDs exhibit underlying equality.
+Expect SELF and OTHER to be `erc-networks--id' struct instances
+and that this will only be called for ID recovery or merging,
+after which no two identities should be `equal' (timestamps
+aside) that aren't also `eq'.")
+
+(cl-defmethod erc-networks--id-equal-p ((_ null) (_ erc-networks--id)) nil)
+(cl-defmethod erc-networks--id-equal-p ((_ erc-networks--id) (_ null)) nil)
 
 (cl-defmethod erc-networks--id-equal-p ((self erc-networks--id)
                                         (other erc-networks--id))
@@ -1382,7 +1374,8 @@ considered as well because server buffers are often killed."
   (let* ((identity erc-networks--id)
          (buffer (current-buffer))
          (f (lambda ()
-              (unless (or (eq (current-buffer) buffer)
+              (unless (or (not erc-networks--id)
+                          (eq (current-buffer) buffer)
                           (eq erc-networks--id identity))
                 (if (erc-networks--id-equal-p identity erc-networks--id)
                     (throw 'buffer erc-networks--id)
@@ -1397,16 +1390,17 @@ considered as well because server buffers are often killed."
 ;; server buffer, whereas `erc-networks--rename-server-buffer' can run
 ;; mid-session, after an identity's core components have changed.
 
-(defun erc-networks--init-identity (_proc _parsed)
+(defun erc-networks--init-identity (proc parsed)
   "Update identity with real network name."
   ;; Initialize identity for real now that we know the network
   (cl-assert erc-network)
-  (unless (erc-networks--id-symbol erc-networks--id) ; unless just reconnected
-    (erc-networks--id-on-connect erc-networks--id))
-  ;; Find duplicate identities or other conflicting ones and act
-  ;; accordingly.
-  (erc-networks--update-server-identity)
-  ;;
+  (if erc-networks--id
+      (erc-networks--id-reload erc-networks--id proc parsed)
+    (setq erc-networks--id (erc-networks--id-create nil))
+    ;; Find duplicate identities or other conflicting ones and act
+    ;; accordingly.
+    (erc-networks--update-server-identity)
+    (erc-networks--rename-server-buffer proc parsed))
   nil)
 
 (defun erc-networks--rename-server-buffer (new-proc &optional _parsed)
@@ -1474,8 +1468,7 @@ This must run before `erc-server-connected' is set."
   ;; For now, retain compatibility with erc-server-NNN-functions.
   (or (erc-networks--ensure-announced proc parsed)
       (erc-networks--set-name proc parsed)
-      (erc-networks--init-identity proc parsed)
-      (erc-networks--rename-server-buffer proc parsed)))
+      (erc-networks--init-identity proc parsed)))
 
 (define-erc-module networks nil
   "Provide data about IRC networks."

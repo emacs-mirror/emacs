@@ -205,7 +205,8 @@
 ;;;; Variables and options
 
 (defvar-local erc-session-password nil
-  "The password used for the current session.")
+  "The password used for the current session.
+This should be a string or a function returning a string.")
 
 (defvar erc-server-responses (make-hash-table :test #'equal)
   "Hash table mapping server responses to their handler hooks.")
@@ -311,8 +312,13 @@ current IRC process is still alive.")
 (make-obsolete-variable 'erc-server-reconnecting
                         "see `erc--server-reconnecting'" "29.1")
 
-(defvar-local erc--server-reconnecting nil
-  "Non-nil when reconnecting.")
+(defvar erc--server-reconnecting nil
+  "An alist of buffer-local vars and their values when reconnecting.
+This is for the benefit of local modules and `erc-mode-hook'
+members so they can access buffer-local data from the previous
+session when reconnecting.  Once `erc-reuse-buffers' is retired
+and fully removed, modules can switch to leveraging the
+`permanent-local' property instead.")
 
 (defvar-local erc-server-timed-out nil
   "Non-nil if the IRC server failed to respond to a ping.")
@@ -638,6 +644,10 @@ The current buffer is given by BUFFER."
   (let ((p (plist-put parameters :nowait t)))
     (apply #'open-network-stream name buffer host service p)))
 
+(cl-defmethod erc--register-connection ()
+  "Perform opening IRC protocol exchange with server."
+  (erc-login))
+
 (defvar erc--server-connect-dumb-ipv6-regexp
   ;; Not for validation (gives false positives).
   (rx bot "[" (group (+ (any xdigit digit ":.")) (? "%" (+ alnum))) "]" eot))
@@ -664,7 +674,6 @@ TLS (see `erc-session-client-certificate' for more details)."
       (setq erc-server-process process)
       (setq erc-server-quitting nil)
       (setq erc-server-reconnecting nil
-            erc--server-reconnecting nil
             erc--server-reconnect-timer nil)
       (setq erc-server-timed-out nil)
       (setq erc-server-banned nil)
@@ -693,7 +702,7 @@ TLS (see `erc-session-client-certificate' for more details)."
         ;; waiting for a non-blocking connect - keep the user informed
         (erc-display-message nil nil buffer "Opening connection..\n")
       (message "%s...done" msg)
-      (erc-login)) ))
+      (erc--register-connection))))
 
 (defun erc-server-reconnect ()
   "Reestablish the current IRC connection.
@@ -706,11 +715,11 @@ Make sure you are in an ERC buffer when running this."
     (with-current-buffer buffer
       (erc-update-mode-line)
       (erc-set-active-buffer (current-buffer))
-      (setq erc--server-reconnecting t)
       (setq erc-server-last-sent-time 0)
       (setq erc-server-lines-sent 0)
       (let ((erc-server-connect-function (or erc-session-connector
-                                             #'erc-open-network-stream)))
+                                             #'erc-open-network-stream))
+            (erc--server-reconnecting (buffer-local-variables)))
         (erc-open erc-session-server erc-session-port erc-server-current-nick
                   erc-session-user-full-name t erc-session-password
                   nil nil nil erc-session-client-certificate
@@ -824,8 +833,7 @@ When `erc-server-reconnect-attempts' is a number, increment
         (if (not reconnect-p)
             ;; terminate, do not reconnect
             (progn
-              (setq erc--server-reconnecting nil
-                    erc--server-reconnect-timer nil)
+              (setq erc--server-reconnect-timer nil)
               (erc-display-message nil 'error (current-buffer)
                                    'terminated ?e event)
               (set-buffer-modified-p nil))
@@ -894,7 +902,7 @@ Conditionally try to reconnect and take appropriate action."
                   cproc (process-status cproc) event erc-server-quitting))
         (if (string-match "^open" event)
             ;; newly opened connection (no wait)
-            (erc-login)
+            (erc--register-connection)
           ;; assume event is 'failed
           (erc-with-all-buffers-of-server cproc nil
                                           (setq erc-server-connected nil))
@@ -1619,7 +1627,7 @@ add things to `%s' instead."
         (cl-pushnew (erc-server-buffer) bufs)
         (erc-set-current-nick nn)
         ;; Rename session, possibly rename server buf and all targets
-        (when (erc-network)
+        (when erc-server-connected
           (erc-networks--id-reload erc-networks--id proc parsed))
         (erc-update-mode-line)
         (setq erc-nick-change-attempt-count 0)
@@ -1629,6 +1637,8 @@ add things to `%s' instead."
          'NICK-you ?n nick ?N nn)
         (run-hook-with-args 'erc-nick-changed-functions nn nick))
        (t
+        (when erc-server-connected
+          (erc-networks--id-reload erc-networks--id proc parsed))
         (erc-handle-user-status-change 'nick (list nick login host) (list nn))
         (erc-display-message parsed 'notice bufs 'NICK ?n nick
                              ?u login ?h host ?N nn))))))
@@ -2255,6 +2265,8 @@ See `erc-display-server-message'." nil
 
 (define-erc-response-handler (433)
   "Login-time \"nick in use\"." nil
+  (when erc-server-connected
+    (erc-networks--id-reload erc-networks--id proc parsed))
   (erc-nickname-in-use (cadr (erc-response.command-args parsed))
                        "already in use"))
 
@@ -2322,6 +2334,15 @@ See `erc-display-server-message'." nil
         (securemsg (erc-response.contents parsed)))
     (erc-display-message parsed 'notice 'active 's671
                          ?n nick ?a securemsg)))
+
+(define-erc-response-handler (900)
+  "Handle a \"RPL_LOGGEDIN\" server command.
+Some servers don't consider this SASL-specific but rather just an
+indication of a server-side state change from logged-out to
+logged-in." nil
+  ;; Whenever ERC starts caring about user accounts, it should record
+  ;; the session as being logged here.
+  (erc-display-message parsed 'notice proc (erc-response.contents parsed)))
 
 (define-erc-response-handler (431 445 446 451 462 463 464 481 483 484 485
                                   491 501 502)

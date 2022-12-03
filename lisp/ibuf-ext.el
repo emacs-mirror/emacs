@@ -1336,10 +1336,12 @@ against '/a/b'.  For a buffer not associated with a file, this
 matches against the value of `default-directory' in that buffer."
   ( :description "directory name"
     :reader (read-from-minibuffer "Filter by directory name (regex): "))
-  (if-let ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
-      (when-let ((dirname (file-name-directory it)))
-        (string-match qualifier dirname))
-    (when default-directory (string-match qualifier default-directory))))
+  (with-current-buffer buf
+    (if-let* ((filename (ibuffer-buffer-file-name))
+              (dirname (file-name-directory filename)))
+        (string-match qualifier dirname)
+      (when default-directory
+        (string-match qualifier default-directory)))))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")
 (define-ibuffer-filter size-gt

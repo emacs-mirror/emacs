@@ -537,6 +537,12 @@ struct x_display_info
      KDE" protocol in x-dnd.el). */
   Atom Xatom_DndProtocol, Xatom_DND_PROTOCOL;
 
+  /* Atoms to make x_intern_cached_atom fast.  */
+  Atom Xatom_text_plain_charset_utf_8, Xatom_LENGTH, Xatom_FILE_NAME,
+    Xatom_CHARACTER_POSITION, Xatom_LINE_NUMBER, Xatom_COLUMN_NUMBER,
+    Xatom_OWNER_OS, Xatom_HOST_NAME, Xatom_USER, Xatom_CLASS,
+    Xatom_NAME, Xatom_SAVE_TARGETS;
+
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
@@ -1179,6 +1185,10 @@ struct x_output
      frame.  */
   bool_bf waiting_for_frame_p : 1;
 
+  /* Whether or not Emacs just skipped waiting for a frame due to a
+     timeout.  */
+  bool_bf draw_just_hung_p : 1;
+
 #if !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   /* Whether or not Emacs should wait for the compositing manager to
      draw frames before starting a new frame.  */
@@ -1392,6 +1402,8 @@ extern void x_mark_frame_dirty (struct frame *f);
   FRAME_X_OUTPUT (f)->extended_frame_counter
 #define FRAME_X_WAITING_FOR_DRAW(f)		\
   FRAME_X_OUTPUT (f)->waiting_for_frame_p
+#define FRAME_X_DRAW_JUST_HUNG(f)		\
+  FRAME_X_OUTPUT (f)->draw_just_hung_p
 #define FRAME_X_COUNTER_VALUE(f)		\
   FRAME_X_OUTPUT (f)->current_extended_counter_value
 #endif
@@ -1711,6 +1723,11 @@ extern Lisp_Object x_handle_translate_coordinates (struct frame *, Lisp_Object,
 
 extern Bool x_query_pointer (Display *, Window, Window *, Window *, int *,
 			     int *, int *, int *, unsigned int *);
+extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
+				  bool);
+extern void x_intern_atoms (struct x_display_info *, char **, int, Atom *);
+extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
 
 #ifdef HAVE_GTK3
 extern void x_scroll_bar_configure (GdkEvent *);
@@ -1792,6 +1809,8 @@ extern void x_handle_property_notify (const XPropertyEvent *);
 extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct selection_input_event *);
 extern void x_clear_frame_selections (struct frame *);
+extern void x_remove_selection_transfers (struct x_display_info *);
+
 extern Lisp_Object x_atom_to_symbol (struct x_display_info *, Atom);
 extern Atom symbol_to_x_atom (struct x_display_info *, Lisp_Object);
 
@@ -1801,11 +1820,8 @@ extern bool x_handle_dnd_message (struct frame *,
 				  struct input_event *,
 				  bool, int, int);
 extern int x_check_property_data (Lisp_Object);
-extern void x_fill_property_data (Display *,
-                                  Lisp_Object,
-                                  void *,
-				  int,
-                                  int);
+extern void x_fill_property_data (struct x_display_info *, Lisp_Object,
+                                  void *, int, int);
 extern Lisp_Object x_property_data_to_lisp (struct frame *,
                                             const unsigned char *,
                                             Atom,
@@ -1818,10 +1834,10 @@ extern Lisp_Object x_timestamp_for_selection (struct x_display_info *,
 					      Lisp_Object);
 extern void x_own_selection (Lisp_Object, Lisp_Object, Lisp_Object,
 			     Lisp_Object, Time);
-extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
-				  bool);
-extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)
-  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
+
+extern void mark_xselect (void);
+
+/* Misc definitions.  */
 
 #ifdef USE_GTK
 extern bool xg_set_icon (struct frame *, Lisp_Object);

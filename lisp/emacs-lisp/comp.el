@@ -4333,7 +4333,9 @@ of (commands) to run simultaneously."
   (interactive)
   (unless (featurep 'native-compile)
     (user-error "This Emacs isn't built with native-compile support"))
-  (dolist (dir native-comp-eln-load-path)
+  ;; The last item in native-comp-eln-load-path is assumed to be a system
+  ;; directory, so don't try to delete anything there (bug#59658).
+  (dolist (dir (butlast native-comp-eln-load-path))
     ;; If a directory is non absolute it is assumed to be relative to
     ;; `invocation-directory'.
     (setq dir (expand-file-name dir invocation-directory))

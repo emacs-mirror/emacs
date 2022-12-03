@@ -1468,6 +1468,25 @@ When the region is active, send the region instead."
 
 (defvar sh-mode--treesit-settings)
 
+(defun sh--guess-shell ()
+  "Guess the shell used in the current buffer.
+Return the name of the shell suitable for `sh-set-shell'."
+  (cond ((save-excursion
+           (goto-char (point-min))
+           (looking-at auto-mode-interpreter-regexp))
+         (match-string 2))
+        ((not buffer-file-name) sh-shell-file)
+        ;; Checks that use `buffer-file-name' follow.
+        ((string-match "\\.m?spec\\'" buffer-file-name) "rpm")
+        ((string-match "[.]sh\\>"     buffer-file-name) "sh")
+        ((string-match "[.]bash\\(rc\\)?\\>"   buffer-file-name) "bash")
+        ((string-match "[.]ksh\\>"    buffer-file-name) "ksh")
+        ((string-match "[.]mkshrc\\>" buffer-file-name) "mksh")
+        ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")
+        ((string-match "[.]zsh\\(rc\\|env\\)?\\>" buffer-file-name) "zsh")
+	((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
+        (t sh-shell-file)))
+
 ;;;###autoload
 (define-derived-mode sh-base-mode prog-mode "Shell-script"
   "Generic major mode for editing shell scripts.
@@ -1519,23 +1538,7 @@ implementations.  Currently there are two: `sh-mode' and
                   "\\")))
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
-  (sh-set-shell
-   (cond ((save-excursion
-            (goto-char (point-min))
-            (looking-at auto-mode-interpreter-regexp))
-          (match-string 2))
-         ((not buffer-file-name) sh-shell-file)
-         ;; Checks that use `buffer-file-name' follow.
-         ((string-match "\\.m?spec\\'" buffer-file-name) "rpm")
-         ((string-match "[.]sh\\>"     buffer-file-name) "sh")
-         ((string-match "[.]bash\\(rc\\)?\\>"   buffer-file-name) "bash")
-         ((string-match "[.]ksh\\>"    buffer-file-name) "ksh")
-         ((string-match "[.]mkshrc\\>" buffer-file-name) "mksh")
-         ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")
-         ((string-match "[.]zsh\\(rc\\|env\\)?\\>" buffer-file-name) "zsh")
-	 ((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
-         (t sh-shell-file))
-   nil nil)
+  (sh-set-shell (sh--guess-shell) nil nil)
   (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
   (add-hook 'hack-local-variables-hook
             #'sh-after-hack-local-variables nil t))
@@ -1605,16 +1608,35 @@ with your script for an edit-interpret-debug cycle."
 
 ;;;###autoload
 (define-derived-mode bash-ts-mode sh-base-mode "Bash"
-  "Major mode for editing Bash shell scripts."
+  "Major mode for editing Bash shell scripts.
+This mode automatically falls back to `sh-mode' if the buffer is
+not written in Bash or sh."
   (when (treesit-ready-p 'bash)
     (setq-local treesit-font-lock-feature-list
-                '(( comment function heredoc string)
-                  ( command declaration-command keyword number variable)
-                  ( bracket builtin-variable constant delimiter
-                    misc-punctuation operator)))
+                '(( comment function)
+                  ( command declaration-command keyword string)
+                  ( builtin-variable constant heredoc number variable)
+                  ( bracket delimiter misc-punctuation operator)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
     (treesit-major-mode-setup)))
+
+(advice-add 'bash-ts-mode :around #'sh--redirect-bash-ts-mode
+            ;; Give it lower precedence than normal advice, so other
+            ;; advices take precedence over it.
+            '((depth . 50)))
+
+(defvar sh--redirect-recursing nil)
+(defun sh--redirect-bash-ts-mode (oldfn)
+  "Redirect to `sh-mode' if the current file is not written in Bash or sh.
+OLDFN should be `bash-ts-mode'."
+  (let ((sh--redirect-recursing sh--redirect-recursing))
+    (funcall (if (or delay-mode-hooks sh--redirect-recursing)
+                 oldfn
+               (setq sh--redirect-recursing t)
+               (if (member (file-name-base (sh--guess-shell)) '("bash" "sh"))
+                   oldfn
+                 #'sh-mode)))))
 
 (defun sh-font-lock-keywords (&optional keywords)
   "Function to get simple fontification based on `sh-font-lock-keywords'.
@@ -1666,19 +1688,17 @@ This adds rules for comments and assignments."
 ;; (defun sh--var-completion-table (string pred action)
 ;;   (complete-with-action action (sh--vars-before-point) string pred))
 
-(defun sh--cmd-completion-table (string pred action)
-  (let ((cmds
-         (append (when (fboundp 'imenu--make-index-alist)
-                   (mapcar #'car
-                           (condition-case nil
-                               (imenu--make-index-alist)
-                             (imenu-unavailable nil))))
-                 (mapcar (lambda (v) (concat v "="))
-                         (sh--vars-before-point))
-                 (locate-file-completion-table
-                  exec-path exec-suffixes string pred t)
-                 sh--completion-keywords)))
-    (complete-with-action action cmds string pred)))
+(defun sh--cmd-completion-table-gen (string)
+  (append (when (fboundp 'imenu--make-index-alist)
+            (mapcar #'car
+                    (condition-case nil
+                        (imenu--make-index-alist)
+                      (imenu-unavailable nil))))
+          (mapcar (lambda (v) (concat v "="))
+                  (sh--vars-before-point))
+          (locate-file-completion-table
+           exec-path exec-suffixes string nil t)
+          sh--completion-keywords))
 
 (defun sh-completion-at-point-function ()
   (save-excursion
@@ -1691,14 +1711,14 @@ This adds rules for comments and assignments."
         (list start end (sh--vars-before-point)
               :company-kind (lambda (_) 'variable)))
        ((sh-smie--keyword-p)
-        (list start end #'sh--cmd-completion-table
+        (list start end
+              (completion-table-with-cache #'sh--cmd-completion-table-gen)
               :company-kind
               (lambda (s)
                 (cond
                  ((member s sh--completion-keywords) 'keyword)
                  ((string-suffix-p "=" s) 'variable)
-                 (t 'function)))
-              ))))))
+                 (t 'function)))))))))
 
 ;;; Indentation and navigation with SMIE.
 

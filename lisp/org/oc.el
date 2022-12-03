@@ -61,6 +61,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'org-compat)
 (require 'org-macs)
 (require 'seq)
@@ -323,12 +326,6 @@ place note numbers according to rules defined in `org-cite-note-rules'."
 See `org-cite-register-processor' for more information about
 processors.")
 
-(defun org-cite--get-processor (name)
-  "Return citation processor named after symbol NAME.
-Return nil if no such processor is found."
-  (seq-find (lambda (p) (eq name (org-cite-processor-name p)))
-	    org-cite--processors))
-
 (defun org-cite-register-processor (name &rest body)
   "Mark citation processor NAME as available.
 
@@ -415,14 +412,30 @@ optional keys can be set:
     The \"nil\" style denotes the processor fall-back style.  It
     should have a corresponding entry in the value.
 
+    The value can also be a function.  It will be called without
+    any argument and should return a list structured as the above.
+
 Return a non-nil value on a successful operation."
   (declare (indent 1))
   (unless (and name (symbolp name))
     (error "Invalid processor name: %S" name))
-  (when (org-cite--get-processor name)
-    (org-cite-unregister-processor name))
-  (push (apply #'org-cite--make-processor :name name body)
-	org-cite--processors))
+  (setq org-cite--processors
+        (cons (apply #'org-cite--make-processor :name name body)
+              (seq-remove (lambda (p) (eq name (org-cite-processor-name p)))
+                          org-cite--processors))))
+
+(defun org-cite-try-load-processor (name)
+  "Try loading citation processor NAME if unavailable.
+NAME is a symbol.  When the NAME processor is unregistered, try
+loading \"oc-NAME\" library beforehand, then cross fingers."
+  (unless (org-cite-get-processor name)
+    (require (intern (format "oc-%s" name)) nil t)))
+
+(defun org-cite-get-processor (name)
+  "Return citation processor named after symbol NAME.
+Return nil if no such processor is found."
+  (seq-find (lambda (p) (eq name (org-cite-processor-name p)))
+	    org-cite--processors))
 
 (defun org-cite-unregister-processor (name)
   "Unregister citation processor NAME.
@@ -430,7 +443,7 @@ NAME is a symbol.  Raise an error if processor is not registered.
 Return a non-nil value on a successful operation."
   (unless (and name (symbolp name))
     (error "Invalid processor name: %S" name))
-  (pcase (org-cite--get-processor name)
+  (pcase (org-cite-get-processor name)
     ('nil (error "Processor %S not registered" name))
     (processor
      (setq org-cite--processors (delete processor org-cite--processors))))
@@ -440,7 +453,7 @@ Return a non-nil value on a successful operation."
   "Return non-nil if PROCESSOR is able to handle CAPABILITY.
 PROCESSOR is the name of a cite processor, as a symbol.  CAPABILITY is
 `activate', `export', `follow', or `insert'."
-  (let ((p (org-cite--get-processor processor)))
+  (let ((p (org-cite-get-processor processor)))
     (pcase capability
       ((guard (not p)) nil)             ;undefined processor
       ('activate (functionp (org-cite-processor-activate p)))
@@ -673,7 +686,10 @@ strings."
   (let ((collection
          (seq-mapcat
           (lambda (name)
-            (org-cite-processor-cite-styles (org-cite--get-processor name)))
+            (pcase (org-cite-processor-cite-styles
+                    (org-cite-get-processor name))
+              ((and (pred functionp) f) (funcall f))
+              (static-data static-data)))
           (or processors
               (mapcar (pcase-lambda (`(,_ . (,name . ,_))) name)
                       org-cite-export-processors))))
@@ -788,6 +804,39 @@ INFO is a plist used as a communication channel."
      (t
       (cons (org-not-nil (car global))
             (or (cdr local) (cdr global)))))))
+
+(defun org-cite-read-processor-declaration (s)
+  "Read processor declaration from string S.
+
+Return (NAME BIBLIOGRAPHY-STYLE CITATION-STYLE) triplet, when
+NAME is the processor name, as a symbol, and both
+BIBLIOGRAPHY-STYLE and CITATION-STYLE are strings or nil.  Those
+strings may contain spaces if they are enclosed within double
+quotes.
+
+String S is expected to contain between 1 and 3 tokens.  The
+function raises an error when it contains too few or too many
+tokens.  Spurious spaces are ignored."
+  (with-temp-buffer
+    (save-excursion (insert s))
+    (let ((result (list (read (current-buffer)))))
+      (dotimes (_ 2)
+        (skip-chars-forward " \t")
+        (cond
+         ((eobp) (push nil result))
+         ((char-equal ?\" (char-after))
+          (push (org-not-nil (read (current-buffer)))
+                result))
+         (t
+          (let ((origin (point)))
+            (skip-chars-forward "^ \t")
+            (push (org-not-nil (buffer-substring origin (point)))
+                  result)))))
+      (skip-chars-forward " \t")
+      (unless (eobp)
+        (error "Trailing garbage following cite export processor declaration %S"
+               s))
+      (nreverse result))))
 
 (defun org-cite-bibliography-style (info)
   "Return expected bibliography style.
@@ -1177,7 +1226,7 @@ from the processor set in `org-cite-activate-processor'."
          (activate
           (or (and name
                    (org-cite-processor-has-capability-p name 'activate)
-                   (org-cite-processor-activate (org-cite--get-processor name)))
+                   (org-cite-processor-activate (org-cite-get-processor name)))
               #'org-cite-fontify-default)))
     (when (re-search-forward org-element-citation-prefix-re limit t)
       (let ((cite (org-with-point-at (match-beginning 0)
@@ -1204,40 +1253,22 @@ INFO is the communication channel, as a plist.  It is modified by side-effect."
 
 Export processor is stored as a triplet, or nil.
 
-When non-nil, it is defined as (NAME BIBLIOGRAPHY-STYLE CITATION-STYLE) where
-NAME is a symbol, whereas BIBLIOGRAPHY-STYLE and CITATION-STYLE are strings,
-or nil.
+When non-nil, it is defined as (NAME BIBLIOGRAPHY-STYLE
+CITATION-STYLE) where NAME is a symbol, whereas
+BIBLIOGRAPHY-STYLE and CITATION-STYLE are strings, or nil.
 
-INFO is the communication channel, as a plist.  It is modified by side-effect."
+INFO is the communication channel, as a plist.  It is modified by
+side-effect."
   (let* ((err
           (lambda (s)
-            (user-error "Invalid cite export processor definition: %S" s)))
+            (user-error "Invalid cite export processor declaration: %S" s)))
          (processor
           (pcase (plist-get info :cite-export)
             ((or "" `nil) nil)
             ;; Value is a string.  It comes from a "cite_export"
-            ;; keyword.  It may contain between 1 and 3 tokens, the
-            ;; first one being a symbol and the other (optional) two,
-            ;; strings.
+            ;; keyword.
             ((and (pred stringp) s)
-             (with-temp-buffer
-               (save-excursion (insert s))
-               (let ((result (list (read (current-buffer)))))
-                 (dotimes (_ 2)
-                   (skip-chars-forward " \t")
-                   (cond
-                    ((eobp) (push nil result))
-                    ((char-equal ?\" (char-after))
-                     (condition-case _
-                         (push (org-not-nil (read (current-buffer))) result)
-                       (error (funcall err s))))
-                    (t
-                     (let ((origin (point)))
-                       (skip-chars-forward "^ \t")
-                       (push (org-not-nil (buffer-substring origin (point)))
-                             result)))))
-                 (unless (eobp) (funcall err s))
-                 (nreverse result))))
+             (org-cite-read-processor-declaration s))
             ;; Value is an alist.  It must come from
             ;; `org-cite-export-processors' variable.  Find the most
             ;; appropriate processor according to current export
@@ -1274,8 +1305,9 @@ INFO is the communication channel, as a plist.  It is modified by side-effect."
     (pcase processor
       ('nil nil)
       (`(,name . ,_)
+       (org-cite-try-load-processor name)
        (cond
-        ((not (org-cite--get-processor name))
+        ((not (org-cite-get-processor name))
          (user-error "Unknown processor %S" name))
         ((not (org-cite-processor-has-capability-p name 'export))
          (user-error "Processor %S is unable to handle citation export" name)))))
@@ -1288,7 +1320,7 @@ selected citation processor."
   (pcase (plist-get info :cite-export)
     ('nil nil)
     (`(,p ,_ ,_)
-     (funcall (org-cite-processor-export-citation (org-cite--get-processor p))
+     (funcall (org-cite-processor-export-citation (org-cite-get-processor p))
 	      citation
               (org-cite-citation-style citation info)
               (plist-get info :back-end)
@@ -1304,7 +1336,7 @@ used as a communication channel."
     (`(,p ,_ ,_)
      (let ((export-bibilography
             (org-cite-processor-export-bibliography
-             (org-cite--get-processor p))))
+             (org-cite-get-processor p))))
        (when export-bibilography
          (funcall export-bibilography
 	          (org-cite-list-keys info)
@@ -1405,7 +1437,7 @@ channel, as a property list."
     ('nil output)
     (`(,p ,_ ,_)
      (let ((finalizer
-            (org-cite-processor-export-finalizer (org-cite--get-processor p))))
+            (org-cite-processor-export-finalizer (org-cite-get-processor p))))
        (if (not finalizer)
            output
          (funcall finalizer
@@ -1423,16 +1455,17 @@ channel, as a property list."
   "Follow citation or citation-reference DATUM.
 Following is done according to the processor set in `org-cite-follow-processor'.
 ARG is the prefix argument received when calling `org-open-at-point', or nil."
+  (unless org-cite-follow-processor
+    (user-error "No processor set to follow citations"))
+  (org-cite-try-load-processor org-cite-follow-processor)
   (let ((name org-cite-follow-processor))
     (cond
-     ((null name)
-      (user-error "No processor set to follow citations"))
-     ((not (org-cite--get-processor name))
+     ((not (org-cite-get-processor name))
       (user-error "Unknown processor %S" name))
      ((not (org-cite-processor-has-capability-p name 'follow))
       (user-error "Processor %S cannot follow citations" name))
      (t
-      (let ((follow (org-cite-processor-follow (org-cite--get-processor name))))
+      (let ((follow (org-cite-processor-follow (org-cite-get-processor name))))
         (funcall follow datum arg))))))
 
 
@@ -1474,8 +1507,15 @@ CONTEXT is the element or object at point, as returned by `org-element-context'.
 			(not (looking-at-p "\\*+ END[ \t]*$")))
 		      (let ((case-fold-search nil))
 			(looking-at org-complex-heading-regexp))))
-	       (match-beginning 4)
-	       (>= (point) (match-beginning 4))
+	       (>= (point) (or
+                           ;; Real heading.
+                           (match-beginning 4)
+                           ;; If no heading, end of priority.
+                           (match-end 3)
+                           ;; ... end of todo keyword.
+                           (match-end 2)
+                           ;; ... after stars.
+                           (1+ (match-end 1))))
 	       (or (not (match-beginning 5))
 		   (< (point) (match-beginning 5))))))
      ;; White spaces after an object or blank lines after an element
@@ -1492,7 +1532,7 @@ CONTEXT is the element or object at point, as returned by `org-element-context'.
      ;; unaffected.
      ((eq type 'item)
       (> (point) (+ (org-element-property :begin context)
-                    (current-indentation)
+                    (org-current-text-indentation)
                     (if (org-element-property :checkbox context)
                         5 1))))
      ;; Other elements are invalid.
@@ -1537,38 +1577,42 @@ Citation keys are strings without the leading \"@\"."
 (defun org-cite-make-insert-processor (select-key select-style)
   "Build a function appropriate as an insert processor.
 
-SELECT-KEY is a function called with one argument.  When it is nil, the function
-should return a citation key as a string, or nil.  Otherwise, the function
-should return a list of such keys, or nil.  The keys should not have any leading
-\"@\" character.
+SELECT-KEY is a function called with one argument.  When it is
+nil, the function should return a citation key as a string, or
+nil.  Otherwise, the function should return a list of such keys,
+or nil.  The keys should not have any leading \"@\" character.
 
-SELECT-STYLE is a function called with one argument, the citation object being
-edited or constructed so far.  It should return a style string, or nil.
+SELECT-STYLE is a function called with one argument, the citation
+object being edited or constructed so far.  It should return
+a style string, or nil.
 
-The return value is a function of two arguments: CONTEXT and ARG.  CONTEXT is
-either a citation reference, a citation object, or nil.  ARG is a prefix
-argument.
+The return value is a function of two arguments: CONTEXT and ARG.
+CONTEXT is either a citation reference, a citation object, or
+nil.  ARG is a prefix argument.
 
-The generated function inserts or edit a citation at point.  More specifically,
+The generated function inserts or edits a citation at point.
+More specifically,
 
   On a citation reference:
 
-    - on the prefix or right before the \"@\" character, insert a new reference
-      before the current one,
+    - on the prefix or right before the \"@\" character, insert
+      a new reference before the current one,
     - on the suffix, insert it after the reference,
     - otherwise, update the cite key, preserving both affixes.
 
-    When ARG is non-nil, remove the reference, possibly removing the whole
-    citation if it contains a single reference.
+    When ARG is non-nil, remove the reference, possibly removing
+    the whole citation if it contains a single reference.
 
   On a citation object:
 
     - on the style part, offer to update it,
-    - on the global prefix, add a new reference before the first one,
-    - on the global suffix, add a new reference after the last one,
+    - on the global prefix, add a new reference before the first
+      one,
+    - on the global suffix, add a new reference after the last
+      one.
 
-  Elsewhere, insert a citation at point.  When ARG is non-nil, offer to complete
-  style in addition to references."
+  Elsewhere, insert a citation at point.  When ARG is non-nil,
+  offer to complete style in addition to references."
   (unless (and (functionp select-key) (functionp select-style))
     (error "Wrong argument type(s)"))
   (lambda (context arg)
@@ -1589,7 +1633,7 @@ The generated function inserts or edit a citation at point.  More specifically,
            (if (>= style-end (point))
                ;; On style part, edit the style.
                (let ((style-start (+ 5 begin))
-                     (style (funcall select-style)))
+                     (style (funcall select-style context)))
                  (unless style (user-error "Aborted"))
                  (org-with-point-at style-start
                    (delete-region style-start style-end)
@@ -1640,17 +1684,18 @@ The generated function inserts or edit a citation at point.  More specifically,
 Insertion is done according to the processor set in `org-cite-insert-processor'.
 ARG is the prefix argument received when calling interactively the function."
   (interactive "P")
+  (unless org-cite-insert-processor
+    (user-error "No processor set to insert citations"))
+  (org-cite-try-load-processor org-cite-insert-processor)
   (let ((name org-cite-insert-processor))
     (cond
-     ((null name)
-      (user-error "No processor set to insert citations"))
-     ((not (org-cite--get-processor name))
+     ((not (org-cite-get-processor name))
       (user-error "Unknown processor %S" name))
      ((not (org-cite-processor-has-capability-p name 'insert))
       (user-error "Processor %S cannot insert citations" name))
      (t
       (let ((context (org-element-context))
-            (insert (org-cite-processor-insert (org-cite--get-processor name))))
+            (insert (org-cite-processor-insert (org-cite-get-processor name))))
         (cond
          ((memq (org-element-type context) '(citation citation-reference))
           (funcall insert context arg))

@@ -41,7 +41,7 @@
 ;;
 ;; - author (a), including caps (c), full (f) and caps-full (cf) variants,
 ;; - locators (l), including bare (b), caps (c) and bare-caps (bc) variants,
-;; - noauthor (na),
+;; - noauthor (na), including bare (b) variant,
 ;; - nocite (n),
 ;; - text (t), including caps (c) variant,
 ;; - default style, including bare (b), caps (c) and bare-caps (bc) variants.
@@ -62,12 +62,16 @@
 ;;    #+print_bibliography: :keyword abc,xyz :title "Primary Sources"
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
+(require 'map)
 (require 'org-macs)
 (require 'oc)
 
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-export-data "org-export" (data info))
-(declare-function org-export-get-next-element "org-export" (blob info &optional n))
 
 
 ;;; Customization
@@ -81,6 +85,100 @@ If \"biblatex\" package is already required in the document, e.g., through
           (string :tag "Options (key=value,key2=value2...)")
           (const :tag "No option" nil))
   :safe #'string-or-null-p)
+
+(defcustom org-cite-biblatex-styles
+  '(("author"   "caps"      "Citeauthor*" nil         nil)
+    ("author"   "full"      "citeauthor"  nil         nil)
+    ("author"   "caps-full" "Citeauthor"  nil         nil)
+    ("author"   nil         "citeauthor*" nil         nil)
+    ("locators" "bare"      "notecite"    nil         nil)
+    ("locators" "caps"      "Pnotecite"   nil         nil)
+    ("locators" "bare-caps" "Notecite"    nil         nil)
+    ("locators" nil         "pnotecite"   nil         nil)
+    ("noauthor" "bare"      "cite*"       nil         nil)
+    ("noauthor" nil         "autocite*"   nil         nil)
+    ("nocite"   nil         "nocite"      nil         t)
+    ("text"     "caps"      "Textcite"    "Textcites" nil)
+    ("text"     nil         "textcite"    "textcites" nil)
+    (nil        "bare"      "cite"        "cites"     nil)
+    (nil        "caps"      "Autocite"    "Autocites" nil)
+    (nil        "bare-caps" "Cite"        "Cites"     nil)
+    (nil        nil         "autocite"    "autocites" nil))
+  "List of styles and variants, with associated BibLaTeX commands.
+
+Each style follows the pattern
+
+  (NAME VARIANT COMMAND MULTI-COMMAND NO-OPTION)
+
+where:
+
+  NAME is the name of the style, as a string, or nil.  The nil
+  style is the default style.  As such, it must have an entry in
+  the list.
+
+  VARIANT is the name of the style variant, as a string or nil.
+  The nil variant is the default variant for the current style.
+  As such, each style name must be associated to a nil variant.
+
+  COMMAND is the LaTeX command to use, as a string.  It should
+  not contain the leading backslash character.
+
+  MULTI-COMMAND is the LaTeX command to use when a multi-cite
+  command is appropriate.  When nil, the style is deemed
+  inappropriate for multi-cites.  The command should not contain
+  the leading backslash character.
+
+  NO-OPTION is a boolean.  When non-nil, no optional argument
+  should be added to the LaTeX command.
+
+Each NAME-VARIANT pair should be unique in the list.
+
+It is also possible to provide shortcuts for style and variant
+names.  See `org-cite-biblatex-style-shortcuts'."
+  :group 'org-cite
+  :package-version '(Org . "9.6")
+  :type '(repeat
+          (list :tag "Style/variant combination"
+                ;; Name part.
+                (choice :tag "Style"
+                        (string :tag "Name")
+                        (const :tag "Default style" nil))
+                ;; Variant part.
+                (choice :tag "Variant"
+                        (string :tag "Name")
+                        (const :tag "Default variant" nil))
+                ;; Command part.
+                (string :tag "Command name")
+                (choice :tag "Multicite command"
+                        (string :tag "Command name")
+                        (const :tag "No multicite support" nil))
+                (choice :tag "Skip optional arguments"
+                        (const :tag "Yes" t)
+                        (const :tag "No" nil)))))
+
+(defcustom org-cite-biblatex-style-shortcuts
+  '(("a"  . "author")
+    ("b"  . "bare")
+    ("bc" . "bare-caps")
+    ("c"  . "caps")
+    ("cf" . "caps-full")
+    ("f"  . "full")
+    ("l"  . "locators")
+    ("n"  . "nocite")
+    ("na" . "noauthor")
+    ("t"  . "text"))
+  "List of shortcuts associated to style or variant names.
+
+Each entry is a pair (NAME . STYLE-NAME) where NAME is the name
+of the shortcut, as a string, and STYLE-NAME is the name of
+a style in `org-cite-biblatex-styles'."
+  :group 'org-cite
+  :package-version '(Org . "9.6")
+  :type '(repeat
+          (cons :tag "Shortcut"
+                (string :tag "Name")
+                (string :tag "Full name")))
+  :safe t)
 
 
 ;;; Internal functions
@@ -166,20 +264,50 @@ INFO is the export state, as a property list."
                        (org-cite-get-references citation)
                        ""))))
 
-(defun org-cite-biblatex--command (citation info base &optional multi no-opt)
-  "Return biblatex command using BASE name for CITATION object.
+(defun org-cite-biblatex--command (citation info name &optional multi no-opt)
+  "Return BibLaTeX command NAME for CITATION object.
 
 INFO is the export state, as a property list.
 
-When optional argument MULTI is non-nil, generate a \"multicite\" command when
-appropriate.  When optional argument NO-OPT is non-nil, do not add optional
-arguments to the command."
-  (format "\\%s%s"
-          base
-          (if (and multi (org-cite-biblatex--multicite-p citation))
-              (concat "s" (org-cite-biblatex--multi-arguments citation info))
+When optional argument MULTI is non-nil, use it as a multicite
+command name when appropriate.  When optional argument NO-OPT is
+non-nil, do not add optional arguments to the command."
+  (if (and multi (org-cite-biblatex--multicite-p citation))
+      (format "\\%s%s" multi (org-cite-biblatex--multi-arguments citation info))
+    (format "\\%s%s"
+            name
             (org-cite-biblatex--atomic-arguments
              (org-cite-get-references citation) info no-opt))))
+
+(defun org-cite-biblatex--expand-shortcuts (style)
+  "Return STYLE pair with shortcuts expanded."
+  (pcase style
+    (`(,style . ,variant)
+     (cons (or (alist-get style org-cite-biblatex-style-shortcuts
+                          nil nil #'equal)
+               style)
+           (or (alist-get variant org-cite-biblatex-style-shortcuts
+                          nil nil #'equal)
+               variant)))
+    (_ (error "This should not happen"))))
+
+(defun org-cite-biblatex-list-styles ()
+  "List styles and variants supported in `biblatex' citation processor.
+The output format is appropriate as a value for `:cite-styles' keyword
+in `org-cite-register-processor', which see."
+  (let ((shortcuts (make-hash-table :test #'equal))
+        (variants (make-hash-table :test #'equal)))
+    (pcase-dolist (`(,name . ,full-name) org-cite-biblatex-style-shortcuts)
+      (push name (gethash full-name shortcuts)))
+    (pcase-dolist (`(,name ,variant . ,_) org-cite-biblatex-styles)
+      (unless (null variant) (push variant (gethash name variants))))
+    (map-apply (lambda (style-name variants)
+                 (cons (cons (or style-name "nil")
+                             (gethash style-name shortcuts))
+                       (mapcar (lambda (v)
+                                 (cons v (gethash v shortcuts)))
+                               variants)))
+               variants)))
 
 
 ;;; Export capability
@@ -210,41 +338,42 @@ PROPS is the local properties of the bibliography, as a property list."
   "Export CITATION object.
 STYLE is the citation style, as a pair of either strings or nil.
 INFO is the export state, as a property list."
-  (apply
-   #'org-cite-biblatex--command citation info
-   (pcase style
-     ;; "author" style.
-     (`(,(or "author" "a") . ,variant)
-      (pcase variant
-        ((or "caps" "c")            '("Citeauthor*"))
-        ((or "full" "f")            '("citeauthor"))
-        ((or "caps-full" "cf")      '("Citeauthor"))
-        (_                          '("citeauthor*"))))
-     ;; "locators" style.
-     (`(,(or "locators" "l") . ,variant)
-      (pcase variant
-        ((or "bare" "b")            '("notecite"))
-        ((or "caps" "c")            '("Pnotecite"))
-        ((or "bare-caps" "bc")      '("Notecite"))
-        (_                          '("pnotecite"))))
-     ;; "noauthor" style.
-     (`(,(or "noauthor" "na") . ,_) '("autocite*"))
-     ;; "nocite" style.
-     (`(,(or "nocite" "n") . ,_)    '("nocite" nil t))
-     ;; "text" style.
-     (`(,(or "text" "t") . ,variant)
-      (pcase variant
-        ((or "caps" "c")            '("Textcite" t))
-        (_                          '("textcite" t))))
-     ;; Default "nil" style.
-     (`(,_ . ,variant)
-      (pcase variant
-        ((or "bare" "b")            '("cite" t))
-        ((or "caps" "c")            '("Autocite" t))
-        ((or "bare-caps" "bc")      '("Cite" t))
-        (_                          '("autocite" t))))
-     ;; This should not happen.
-     (_ (error "Invalid style: %S" style)))))
+  (pcase-let* ((`(,name . ,variant) (org-cite-biblatex--expand-shortcuts style))
+               (candidates nil)
+               (style-match-flag nil))
+    (catch :match
+      ;; Walk `org-cite-biblatex-styles' and prioritize matching
+      ;; candidates.  At the end of the process, the optimal candidate
+      ;; should appear in front of CANDIDATES.
+      (dolist (style org-cite-biblatex-styles)
+        (pcase style
+          ;; A matching style-variant pair trumps anything else.
+          ;; Return it.
+          (`(,(pred (equal name)) ,(pred (equal variant)) . ,_)
+           (throw :match (setq candidates (list style))))
+          ;; nil-nil style-variant is the fallback value.  Consider it
+          ;; only if nothing else matches.
+          (`(nil nil . ,_)
+           (unless candidates (push style candidates)))
+          ;; A matching style with default variant trumps a matching
+          ;; variant without the adequate style.  Ensure the former
+          ;; appears first in the list.
+          (`(,(pred (equal name)) nil . ,_)
+           (push style candidates)
+           (setq style-match-flag t))
+          (`(nil ,(pred (equal variant)) . ,_)
+           (unless style-match-flag (push style candidates)))
+          ;; Discard anything else.
+          (_ nil))))
+    (apply
+     #'org-cite-biblatex--command citation info
+     (pcase (seq-elt candidates 0) ;; `seq-first' is not available in Emacs 26.
+       (`(,_ ,_ . ,command-parameters) command-parameters)
+       ('nil
+        (user-error
+         "Missing default style or variant in `org-cite-biblatex-styles'"))
+       (other
+        (user-error "Invalid entry %S in `org-cite-biblatex-styles'" other))))))
 
 (defun org-cite-biblatex-prepare-preamble (output _keys files style &rest _)
   "Prepare document preamble for \"biblatex\" usage.
@@ -301,13 +430,7 @@ to the document, and set styles."
   :export-bibliography #'org-cite-biblatex-export-bibliography
   :export-citation #'org-cite-biblatex-export-citation
   :export-finalizer #'org-cite-biblatex-prepare-preamble
-  :cite-styles
-  '((("author" "a") ("caps" "c") ("full" "f") ("caps-full" "cf"))
-    (("locators" "l") ("bare" "b") ("caps" "c") ("bare-caps" "bc"))
-    (("noauthor" "na"))
-    (("nocite" "n"))
-    (("text" "t") ("caps" "c"))
-    (("nil") ("bare" "b") ("caps" "c") ("bare-caps" "bc"))))
+  :cite-styles #'org-cite-biblatex-list-styles)
 
 (provide 'oc-biblatex)
 ;;; oc-biblatex.el ends here

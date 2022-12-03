@@ -1151,7 +1151,7 @@ the stroke as a character in some language."
 						     strokes-last-stroke)
 						 31))))
 	  (lift-flag t)
-	  (rainbow-chars (list ?R ?O ?Y ?G ?B ?P))) ; ROYGBIV w/o indigo
+	  (rainbow-chars (list ?R ?O ?Y ?G ?B ?P))) ; ROYGBIV without indigo
       (set-buffer buf)
       (erase-buffer)
       (insert strokes-xpm-header)

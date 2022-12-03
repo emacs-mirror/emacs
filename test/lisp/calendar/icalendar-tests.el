@@ -61,6 +61,15 @@
        (ert-resource-file filename))
       (buffer-string))))
 
+(defun icalendar-tests--get-error-string-for-export (diary-string)
+  "Call icalendar-export for DIARY-STRING and return resulting error-string."
+  (let ((file (make-temp-file "export.ics")))
+    (with-temp-buffer
+      (insert diary-string)
+      (icalendar-export-region (point-min) (point-max) file))
+    (with-current-buffer (get-buffer "*icalendar-errors*")
+      (buffer-string))))
+
 ;; ======================================================================
 ;; Tests of functions
 ;; ======================================================================
@@ -982,6 +991,40 @@ END:VALARM
    '(2 ((email ("att.one@email.com" "att.two@email.com")) (audio) (display)))))
 
 ;; ======================================================================
+;; #bug56241
+;; ======================================================================
+(defun icalendar-tests--diary-float (&rest args)
+  (apply #'diary-float args))
+
+(ert-deftest icalendar-export-bug-56241-dotted-pair ()
+  "See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=56241#5"
+  (let ((icalendar-export-sexp-enumeration-days 366))
+    (mapc (lambda (diary-string)
+            (should (string= "" (icalendar-tests--get-error-string-for-export
+                                 diary-string))))
+          '("%%(diary-float 7 0 1) First Sunday in July 1"
+            "%%(icalendar-tests--diary-float 7 0 1) First Sunday in July 2"))))
+
+
+;; (ert-deftest icalendar-export-bug-56241-sexp-does-not-match ()
+;;   "Reported in #bug56241 -- needs to be fixed!"
+;;   (let ((icalendar-export-sexp-enumeration-days 0))
+;;     (mapc (lambda (diary-string)
+;;             (should (string= "" (icalendar-tests--get-error-string-for-export
+;;                                  diary-string))))
+;;           '("%%(diary-float 7 0 1) First Sunday in July 1"
+;;             "%%(icalendar-tests--diary-float 7 0 1) First Sunday in July 2"))))
+
+(ert-deftest icalendar-export-bug-56241-nested-sexps ()
+  "Reported in #bug56241 -- needs to be fixed!"
+  (let ((icalendar-export-sexp-enumeration-days 366))
+    (mapc (lambda (diary-string)
+            (should (string= "" (icalendar-tests--get-error-string-for-export
+                                 diary-string))))
+          '("%%(= (calendar-day-of-week date) 0) Sunday 1"
+            "%%(= 0 (calendar-day-of-week date)) Sunday 2"))))
+
+;; ======================================================================
 ;; Import tests
 ;; ======================================================================
 
@@ -1439,12 +1482,15 @@ DTEND;VALUE=DATE:19570922
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=21
 SUMMARY:ff birthday (%d years old)")
 
-
-  (icalendar-tests--test-export
-   nil
-   nil
-   "%%(diary-offset '(diary-float t 3 4) 1) asdf"
-   nil)
+  ;; FIXME: this testcase verifies that icalendar-export fails to
+  ;; export the nested sexp. After repairing bug56241 icalendar-export
+  ;; works correctly for this sexp but now the testcase fails.
+  ;; Therefore this testcase is disabled for the time being.
+  ;;  (icalendar-tests--test-export
+  ;;   nil
+  ;;   nil
+  ;;   "%%(diary-offset '(diary-float t 3 4) 1) asdf"
+  ;;   nil)
 
 
   ;; FIXME!

@@ -22,7 +22,7 @@
 
 #include <cmath>
 
-// Test 1 - Functions w/ prototypes
+// Test 1 - Functions with prototypes
 namespace proto {
 
   int pt_func1(int arg1);
@@ -32,7 +32,7 @@ namespace proto {
 
 }
 
-// Test 2 - Functions w/ different arg lists.
+// Test 2 - Functions with different arg lists.
 namespace fcn_poly {
 
   int pm_func(void) {
@@ -50,7 +50,7 @@ namespace fcn_poly {
 
 }
 
-// Test 3 - Methods w/ different arg lists.
+// Test 3 - Methods with different arg lists.
 class meth_poly {
 public:
   int pm_meth(void) {
@@ -68,7 +68,7 @@ public:
 
 };
 
-// Test 4 - Templates w/ partial specifiers.
+// Test 4 - Templates with partial specifiers.
 namespace template_partial_spec {
   template <typename T> class test
   {
@@ -83,7 +83,7 @@ namespace template_partial_spec {
   };
 }
 
-// Test 5 - Templates w/ full specialization which may or may not share
+// Test 5 - Templates with full specialization which may or may not share
 // common functions.
 namespace template_full_spec {
   template <typename T> class test

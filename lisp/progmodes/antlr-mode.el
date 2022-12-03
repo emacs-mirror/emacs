@@ -1777,7 +1777,7 @@ For AREA and OLD, see `antlr-insert-option-do'."
 	(skip-chars-forward " \t")
 
 	(if (looking-at "$\\|//")
-	    ;; just comment after point => skip (+ lines w/ same col comment)
+            ;; just comment after point => skip (+ lines with same col comment)
 	    (let ((same (if (> (match-end 0) (match-beginning 0))
 			    (current-column))))
 	      (beginning-of-line 2)

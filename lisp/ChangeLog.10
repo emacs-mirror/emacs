@@ -4788,7 +4788,7 @@
 2003-03-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/scheme.el (scheme-mode-syntax-table):
-	Construct w/o using `with-syntax-table'.
+	Construct without using `with-syntax-table'.
 
 2003-03-10  John Paul Wallington  <jpw@gnu.org>
 

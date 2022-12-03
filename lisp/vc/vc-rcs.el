@@ -683,11 +683,11 @@ Optional arg REVISION is a revision to annotate from."
         ;; *BEFORE* editing occurs) to start from, but line numbers
         ;; change as a result of edits.  To DTRT, we apply edits in
         ;; order of descending buffer position so that edits further
-        ;; down in the buffer occur first w/o corrupting specified
+        ;; down in the buffer occur first without corrupting specified
         ;; buffer positions of edits occurring towards the beginning of
         ;; the buffer.  In this way we avoid using markers.  A pleasant
         ;; property of this approach is ability to push instructions
-        ;; onto `path' directly, w/o need to maintain rev boundaries.
+        ;; onto `path' directly, without need to maintain rev boundaries.
         (dolist (insn (cdr (assq :insn meta)))
           (goto-char (point-min))
           (forward-line (1- (pop insn)))
