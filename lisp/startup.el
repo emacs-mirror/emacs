@@ -1261,7 +1261,9 @@ please check its value")
 	  (setq user-emacs-directory (or argval (pop args))
                 user-emacs-directory (if (stringp user-emacs-directory)
                                          (file-name-as-directory
-                                          user-emacs-directory)
+                                          (expand-file-name
+                                           user-emacs-directory
+                                           command-line-default-directory))
                                        user-emacs-directory)
                 argval nil))
 	 ((member argi '("-u" "-user"))
