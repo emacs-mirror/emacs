@@ -388,7 +388,8 @@ Each element is a cons cell of the form (LINE . FILENAME).")
 	     :type list
 	     :documentation
 	     "The list of tags with hits in them.
-Use the `semantic-symref-hit-tags' method to get this list.")
+Use the `semantic-symref-hit-to-tag-via-buffer' method to get
+this list.")
    )
   "The results from a symbol reference search.")
 
