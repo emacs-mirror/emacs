@@ -4936,6 +4936,11 @@ static struct Lisp_String *
 live_string_holding (struct mem_node *m, void *p)
 {
   eassert (m->type == MEM_TYPE_STRING);
+#if GC_ASAN_POISON_OBJECTS
+  if (__asan_address_is_poisoned (p))
+    return NULL;
+#endif
+
   struct string_block *b = m->start;
   char *cp = p;
   ptrdiff_t offset = cp - (char *) &b->strings[0];
@@ -4952,6 +4957,10 @@ live_string_holding (struct mem_node *m, void *p)
 	  || off == offsetof (struct Lisp_String, u.s.data))
 	{
 	  struct Lisp_String *s = p = cp -= off;
+#if GC_ASAN_POISON_OBJECTS
+	  if (__asan_region_is_poisoned (s, sizeof (*s)))
+	    return NULL;
+#endif
 	  if (s->u.s.data)
 	    return s;
 	}
@@ -4973,6 +4982,11 @@ static struct Lisp_Cons *
 live_cons_holding (struct mem_node *m, void *p)
 {
   eassert (m->type == MEM_TYPE_CONS);
+#if GC_ASAN_POISON_OBJECTS
+  if (__asan_address_is_poisoned (p))
+    return NULL;
+#endif
+
   struct cons_block *b = m->start;
   char *cp = p;
   ptrdiff_t offset = cp - (char *) &b->conses[0];
@@ -4990,6 +5004,10 @@ live_cons_holding (struct mem_node *m, void *p)
 	  || off == offsetof (struct Lisp_Cons, u.s.u.cdr))
 	{
 	  struct Lisp_Cons *s = p = cp -= off;
+#if GC_ASAN_POISON_OBJECTS
+	  if (__asan_region_is_poisoned (s, sizeof (*s)))
+	    return NULL;
+#endif
 	  if (!deadp (s->u.s.car))
 	    return s;
 	}
@@ -5012,6 +5030,10 @@ static struct Lisp_Symbol *
 live_symbol_holding (struct mem_node *m, void *p)
 {
   eassert (m->type == MEM_TYPE_SYMBOL);
+#if GC_ASAN_POISON_OBJECTS
+  if (__asan_address_is_poisoned (p))
+    return NULL;
+#endif
   struct symbol_block *b = m->start;
   char *cp = p;
   ptrdiff_t offset = cp - (char *) &b->symbols[0];
@@ -5037,6 +5059,10 @@ live_symbol_holding (struct mem_node *m, void *p)
 	  || off == offsetof (struct Lisp_Symbol, u.s.next))
 	{
 	  struct Lisp_Symbol *s = p = cp -= off;
+#if GC_ASAN_POISON_OBJECTS
+	  if (__asan_region_is_poisoned (s, sizeof (*s)))
+	    return NULL;
+#endif
 	  if (!deadp (s->u.s.function))
 	    return s;
 	}
@@ -5059,6 +5085,11 @@ static struct Lisp_Float *
 live_float_holding (struct mem_node *m, void *p)
 {
   eassert (m->type == MEM_TYPE_FLOAT);
+#if GC_ASAN_POISON_OBJECTS
+  if (__asan_address_is_poisoned (p))
+    return NULL;
+#endif
+
   struct float_block *b = m->start;
   char *cp = p;
   ptrdiff_t offset = cp - (char *) &b->floats[0];
@@ -5073,8 +5104,12 @@ live_float_holding (struct mem_node *m, void *p)
 	  && (b != float_block
 	      || offset / sizeof b->floats[0] < float_block_index))
 	{
-	  p = cp - off;
-	  return p;
+	  struct Lisp_Float *f = (struct Lisp_Float *) cp - off;
+#ifdef GC_ASAN_POISON_OBJECTS
+	  if (__asan_region_is_poisoned (f, sizeof (*f)))
+	    return NULL;
+#endif
+	  return f;
 	}
     }
   return NULL;
