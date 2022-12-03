@@ -6703,8 +6703,16 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
 - (void)resetCursorRects
 {
-  NSRect visible = [self visibleRect];
-  NSCursor *currentCursor = FRAME_POINTER_TYPE (emacsframe);
+  NSRect visible;
+  NSCursor *currentCursor;
+
+  /* On macOS 13, [resetCursorRects:] could be called even after the
+     window is closed. */
+  if (! emacsframe || ! FRAME_OUTPUT_DATA (emacsframe))
+    return;
+
+  visible = [self visibleRect];
+  currentCursor = FRAME_POINTER_TYPE (emacsframe);
   NSTRACE ("[EmacsView resetCursorRects]");
 
   if (currentCursor == nil)
