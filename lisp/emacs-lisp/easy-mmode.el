@@ -417,8 +417,6 @@ No problems result if this variable is not bound.
 	  `(defvar ,keymap-sym
 	     (let ((m ,keymap))
 	       (cond ((keymapp m) m)
-                     ;; FIXME: `easy-mmode-define-keymap' is obsolete,
-                     ;; so this form should also be obsolete somehow.
 		     ((listp m)
                       (with-suppressed-warnings ((obsolete
                                                   easy-mmode-define-keymap))
@@ -684,7 +682,6 @@ Valid keywords and arguments are:
   :group     Ignored.
   :suppress  Non-nil to call `suppress-keymap' on keymap,
              `nodigits' to suppress digits as prefix arguments."
-  (declare (obsolete define-keymap "29.1"))
   (let (inherit dense suppress)
     (while args
       (let ((key (pop args))
