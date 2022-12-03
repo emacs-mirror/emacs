@@ -1325,7 +1325,7 @@ If LIMIT is a revision string, use it as an end-revision."
                     ,(format "--pretty=tformat:%s"
                              (car vc-git-root-log-format))
                     "--abbrev-commit"))
-                vc-git-log-switches
+                (ensure-list vc-git-log-switches)
                 (when (numberp limit)
                   (list "-n" (format "%s" limit)))
 		(when start-revision
