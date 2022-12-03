@@ -104,8 +104,10 @@ taking a (STRING POINT) as arguments.  The default is to set to
          `(external-completion-allc . ,(if pred (seq-filter pred all) all))))
       (`(boundaries . ,_) nil)
       (_
-       (let ((all (funcall lookup string (length string))))
-         (complete-with-action action all string pred))))))
+       ;; FIXME: Stefan had a call to `lookup' and
+       ;; `complete-with-action' again here, but that just seems to
+       ;; slow down things for no good reason, so I took it out.
+       ))))
 
 ;; Note: the "tryc", "allc" suffixes are made akward on purpose, so
 ;; it's easy to pick them apart from the jungle of combinations of
