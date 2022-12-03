@@ -25,88 +25,95 @@
 ;; Written by Stefan Monnier circa 2016.  Variants of this code have
 ;; been working stably in SLY and other packages for a long time.
 
-;; This completion style is meant to be used with a "programmable
-;; completion" table that interfaces with an external tool provinding
-;; completions, such as a shell utility, an inferior process, an http
-;; server.  The table and external tool are tasked to do the matching
-;; of the pattern string to the potential candidates of completion,
-;; and as such it fully controls the style.
+;; The `external' completion style is used with a "programmable
+;; completion" table that gathers completions from an external tool
+;; such as a shell utility, an inferior process, an http server.
 
-;; When this completion style is in use, the usual styles configured
-;; by the user or other in `completion-styles' are completely
-;; overriden.  This can be seen as a drawback, but, on the other hand,
-;; the regular the full data set to be available in Emacs' addressing
-;; space, which is often not feasible.
+;; The table and external tool are fully in control of the matching of
+;; the pattern string to the potential candidates of completion.  When
+;; `external' is in use, the usual styles configured by the user or
+;; other in `completion-styles' are ignored.
 ;;
-;; To make use of this style, the function `external-completion-table'
-;; should be used.  See its docstring.
+;; This compromise is for speed: all other styles need the full data
+;; set to be available in Emacs' addressing space, which is often slow
+;; if not completely unfeasible.
+;;
+;; To make use of the `external' style the function
+;; `external-completion-table' should be used.  See its docstring.
 
 ;;; Code:
 (add-to-list 'completion-styles-alist
-             '(external-completion-style
+             '(external
                external-completion--try-completion
                external-completion--all-completions
                "Ad-hoc completion style provided by the completion table."))
 
-(defun external-completion-table (lookup
-                                 category &optional metadata
-                                 try-completion-function)
-  "Make completion table using `external-completion-style'.
+(defun external-completion-table (category lookup
+                                           &optional metadata
+                                           try-completion-function)
+  "Make completion table using the `external' completion style.
 
-The completion table produced will forego any styles normally set
-in `completion-styles' and will setup an entry for the symbol
-CATEGORY in `completion-category-defaults' linking it to the
-special style `external-completion-style'.
+The completion table produced foregoes any styles normally set in
+`completion-styles' and will sets up an entry for the symbol
+CATEGORY in `completion-category-defaults', linking it to the
+special completion style `external'.
 
 This style is useful when the caller interfaces with an external
-tool providing completions.  This may be a shell utility, an
-inferior process, an http server, etc.  In contrast to the usual
-case where a rich variety of styles do different types of pattern
-matching on the full set of potential candidates, here it's the
-tool who does all the matching.  The advantage of this style is
-that the full set of candidates doesn't need to be transferred to
-Emacs's address space, potentially slowing it down.
+tool that provides completions.  This may be a shell utility, an
+inferior process, an http server, etc.  The external tool does
+the matching, and the full set of candidates doesn't need to be
+transferred to Emacs's address space.  This often results in much
+faster overall completion at the expense of the convenience of
+offered by the rich variety of usual completion styles usually
+available.
 
-LOOKUP is a function taking (PATTERN POINT). The function should
-contact the backend and return a list of strings representing the
-candidates matching the string PATTERN given that POINT is the
-location of point within it.  The candidate strings may be
-propertized with `completions-common-part' to illustrate how the
-backend interpreted PATTERN.  To maintain responsiveness in the
-face of all but the spiffiest external tools, LOOKUP should
-detect timeouts and user input with `while-no-input' or
-`sit-for' (which see), cancel the request if possible and
-immediately return any non-list.
+LOOKUP is a function taking a string PATTERN and a number
+POINT. The function should contact the backend and return a list
+of strings representing the candidates matching PATTERN given
+that POINT is the location of point within it.  LOOKUP decides if
+PATTERN is interpreted as a substring, a regular expression, or
+any other type of matching key.  Strings returned by LOOKUP may
+be propertized with `completions-common-part' to illustrate the
+specific interpretationq.  To maintain responsiveness in the face
+of all but the spiffiest external tools, LOOKUP should detect
+timeouts and pending user input with `while-no-input' or
+`sit-for' (which see), cancel the request (if that is possible)
+and immediately return any non-list.
 
 CATEGORY is a symbol identifying the external tool.  METADATA is
 an alist of additional properties such as `cycle-sort-function'
 to associate with CATEGORY.  This means that the caller may still
-want to control the sorting of the candidates while the tool
+retain control the sorting of the candidates while the tool
 controls the matching.
 
-TRY-COMPLETION-FUNCTION is an poorly understood implementation
-detail.  If you understand what it's for, great!  It's a function
-taking a (STRING POINT) as arguments.  The default is to set to
-`cons' which returns the arguments as a cons cell."
+Despite the original authors's best efforts,
+TRY-COMPLETION-FUNCTION is still a poorly understood
+implementation detail.  If you understand what it's for, you
+should definitely update this docstring, really!  Anyway, it's a
+function taking a (STRING POINT) as arguments.  The default is to
+use the function `cons' which returns the arguments as a cons
+cell."
   (unless (assq category completion-category-defaults)
-    (push `(,category (styles external-completion-style))
+    (push `(,category (styles external))
           completion-category-defaults))
   (lambda (string pred action)
     (pcase action
       (`metadata
        `(metadata (category . ,category) . ,metadata))
-      (`(external-completion-tryc . ,point)
+      (`(external-completion--tryc . ,point)
        ;; FIXME: Obey `pred'?  Pass it to `try-completion-function'?
-       `(external-completion-tryc
+       `(external-completion--tryc
          . ,(funcall (or try-completion-function #'cons) string point)))
-      (`(external-completion-allc . ,point)
+      (`(external-completion--allc . ,point)
        (let ((all (funcall lookup string point)))
-         `(external-completion-allc . ,(if pred (seq-filter pred all) all))))
+         `(external-completion--allc . ,(if pred (seq-filter pred all) all))))
       (`(boundaries . ,_) nil)
       (_
-       ;; FIXME: Stefan had a call to `lookup' and
-       ;; `complete-with-action' again here, but that just seems to
-       ;; slow down things for no good reason, so I took it out.
+       ;; FIXME: Stefan had an extra call to `lookup' and
+       ;; `complete-with-action' again here.  `action' is usually
+       ;; `lambda' or `nil' in those cases.  Since calling `lookup'
+       ;; again is potentially slow and no useful result seems to come
+       ;; from it, I took it out.
        ))))
 
 ;; Note: the "tryc", "allc" suffixes are made akward on purpose, so
@@ -120,10 +127,10 @@ taking a (STRING POINT) as arguments.  The default is to set to
         (cdr res)))))
 
 (defun external-completion--try-completion (string table pred point)
-  (external-completion--call 'external-completion-tryc string table pred point))
+  (external-completion--call 'external-completion--tryc string table pred point))
 
 (defun external-completion--all-completions (string table pred point)
-  (external-completion--call 'external-completion-allc string table pred point))
+  (external-completion--call 'external-completion--allc string table pred point))
 
 (provide 'external-completion)
 ;;; external-completion.el ends here
