@@ -159,96 +159,143 @@ Used to gray out relevant toolbar icons.")
           (t
            (comint-interrupt-subjob)))))
 
-(defvar-keymap gud-mode-map
-  ;; Will inherit from comint-mode via define-derived-mode.
-  :doc "`gud-mode' keymap.")
-
-(defvar-keymap gud-minor-mode-map
-  :parent gud-mode-map)
-
-(easy-menu-define gud-menu-map gud-mode-map
+(easy-mmode-defmap gud-menu-map
+  '(([help]     "Info (debugger)" . gud-goto-info)
+    ([tooltips] menu-item "Show GUD tooltips" gud-tooltip-mode
+                  :enable (and (not emacs-basic-display)
+			       (display-graphic-p)
+			       (fboundp 'x-show-tip))
+		  :visible (memq gud-minor-mode
+				'(gdbmi guiler dbx sdb xdb pdb))
+	          :button (:toggle . gud-tooltip-mode))
+    ([refresh]	"Refresh" . gud-refresh)
+    ([run]	menu-item "Run" gud-run
+                  :enable (not gud-running)
+		  :visible (or (memq gud-minor-mode '(gdb dbx jdb))
+			       (and (eq gud-minor-mode 'gdbmi)
+				    (or (not (gdb-show-run-p))
+					(bound-and-true-p
+					 gdb-active-process)))))
+    ([go]     .	(menu-item (if (bound-and-true-p gdb-active-process)
+			       "Continue" "Run")
+			   gud-go
+		  :visible (and (eq gud-minor-mode 'gdbmi)
+                                (gdb-show-run-p))))
+    ([stop]	menu-item "Stop" gud-stop-subjob
+		  :visible (or (not (memq gud-minor-mode '(gdbmi pdb)))
+			       (and (eq gud-minor-mode 'gdbmi)
+                                    (gdb-show-stop-p))))
+    ([until]	menu-item "Continue to selection" gud-until
+                  :enable (not gud-running)
+		  :visible (and (memq gud-minor-mode '(gdbmi gdb perldb))
+				(gud-tool-bar-item-visible-no-fringe)))
+    ([remove]	menu-item "Remove Breakpoint" gud-remove
+                  :enable (not gud-running)
+		  :visible (gud-tool-bar-item-visible-no-fringe))
+    ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode
+				'(gdbmi gdb sdb xdb)))
+    ([break]	menu-item "Set Breakpoint" gud-break
+                  :enable (not gud-running)
+		  :visible (gud-tool-bar-item-visible-no-fringe))
+    ([up]	menu-item "Up Stack" gud-up
+		  :enable (not gud-running)
+		  :visible (memq gud-minor-mode
+				 '(gdbmi gdb guiler dbx xdb jdb pdb)))
+    ([down]	menu-item "Down Stack" gud-down
+		  :enable (not gud-running)
+		  :visible (memq gud-minor-mode
+				 '(gdbmi gdb guiler dbx xdb jdb pdb)))
+    ([pp]	menu-item "Print S-expression" gud-pp
+                  :enable (and (not gud-running)
+				  (bound-and-true-p gdb-active-process))
+		  :visible (and (string-equal
+				 (buffer-local-value
+				  'gud-target-name gud-comint-buffer)
+				 "emacs")
+				(eq gud-minor-mode 'gdbmi)))
+    ([print*] . (menu-item (if (eq gud-minor-mode 'jdb)
+			       "Dump object"
+			     "Print Dereference")
+			   gud-pstar
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode '(gdbmi gdb jdb))))
+    ([print]	menu-item "Print Expression" gud-print
+                  :enable (not gud-running))
+    ([watch]	menu-item "Watch Expression" gud-watch
+		  :enable (not gud-running)
+	  	  :visible (eq gud-minor-mode 'gdbmi))
+    ([finish]	menu-item "Finish Function" gud-finish
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode
+				 '(gdbmi gdb guiler xdb jdb pdb)))
+    ([stepi]	menu-item "Step Instruction" gud-stepi
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode '(gdbmi gdb dbx)))
+    ([nexti]	menu-item "Next Instruction" gud-nexti
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode '(gdbmi gdb dbx)))
+    ([step]	menu-item "Step Line" gud-step
+                  :enable (not gud-running))
+    ([next]	menu-item "Next Line" gud-next
+                  :enable (not gud-running))
+    ([cont]	menu-item "Continue" gud-cont
+                  :enable (not gud-running)
+		  :visible (not (eq gud-minor-mode 'gdbmi))))
   "Menu for `gud-mode'."
-  '("Gud"
-    ["Continue" gud-cont
-     :enable (not gud-running)
-     :visible (not (eq gud-minor-mode 'gdbmi))]
-    ["Next Line" gud-next
-     :enable (not gud-running)]
-    ["Step Line" gud-step
-     :enable (not gud-running)]
-    ["Next Instruction" gud-nexti
-     :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb dbx))]
-    ["Step Instruction" gud-stepi
-     :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb dbx))]
-    ["Finish Function" gud-finish
-     :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb guiler xdb jdb pdb))]
-    ["Watch Expression" gud-watch
-     :enable (not gud-running)
-     :visible (eq gud-minor-mode 'gdbmi)]
-    ["Print Expression" gud-print
-     :enable (not gud-running)]
-    ["Dump object-Derefenrece" gud-pstar
-     :label (if (eq gud-minor-mode 'jdb)
-	        "Dump object"
-              "Print Dereference")
-     :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb jdb))]
-    ["Print S-expression" gud-pp
-     :enable (and (not gud-running)
-		  (bound-and-true-p gdb-active-process))
-     :visible (and (string-equal
-		    (buffer-local-value
-		     'gud-target-name gud-comint-buffer)
-		    "emacs")
-		   (eq gud-minor-mode 'gdbmi))]
-    ["Down Stack" gud-down
-     :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb guiler dbx xdb jdb pdb))]
-    ["Up Stack" gud-up
-     :enable (not gud-running)
-     :visible (memq gud-minor-mode
-		    '(gdbmi gdb guiler dbx xdb jdb pdb))]
-    ["Set Breakpoint" gud-break
-     :enable (not gud-running)
-     :visible (gud-tool-bar-item-visible-no-fringe)]
-    ["Temporary Breakpoint" gud-tbreak
-     :enable (not gud-running)
-     :visible (memq gud-minor-mode '(gdbmi gdb sdb xdb))]
-    ["Remove Breakpoint" gud-remove
-     :enable (not gud-running)
-     :visible (gud-tool-bar-item-visible-no-fringe)]
-    ["Continue to selection" gud-until
-     :enable (not gud-running)
-     :visible (and (memq gud-minor-mode '(gdbmi gdb perldb))
-		   (gud-tool-bar-item-visible-no-fringe))]
-    ["Stop" gud-stop-subjob
-     :visible (or (not (memq gud-minor-mode '(gdbmi pdb)))
-		  (and (eq gud-minor-mode 'gdbmi)
-                       (gdb-show-stop-p)))]
-    ["Continue-Run" gud-go
-     :label (if (bound-and-true-p gdb-active-process)
-	        "Continue" "Run")
-     :visible (and (eq gud-minor-mode 'gdbmi)
-                   (gdb-show-run-p))]
-    ["Run" gud-run
-     :enable (not gud-running)
-     :visible (or (memq gud-minor-mode '(gdb dbx jdb))
-		  (and (eq gud-minor-mode 'gdbmi)
-		       (or (not (gdb-show-run-p))
-			   (bound-and-true-p
-			    gdb-active-process))))]
-    ["Refresh" gud-refresh]
-    ["Show GUD tooltips" gud-tooltip-mode
-     :enable (and (not emacs-basic-display)
-		  (display-graphic-p)
-		  (fboundp 'x-show-tip))
-     :visible (memq gud-minor-mode
-		    '(gdbmi guiler dbx sdb xdb pdb))
-     :button (:toggle . gud-tooltip-mode)]
-    ["Info (debugger)" gud-goto-info]))
+  :name "Gud")
+
+(easy-mmode-defmap gud-minor-mode-map
+  (append
+     `(([menu-bar debug] . ("Gud" . ,gud-menu-map)))
+     ;; Get tool bar like functionality from the menu bar on a text only
+     ;; terminal.
+   (unless window-system
+     `(([menu-bar down]
+	. (,(propertize "down" 'face 'font-lock-doc-face) . gud-down))
+       ([menu-bar up]
+	. (,(propertize "up" 'face 'font-lock-doc-face) . gud-up))
+       ([menu-bar finish]
+	. (,(propertize "finish" 'face 'font-lock-doc-face) . gud-finish))
+       ([menu-bar step]
+	. (,(propertize "step" 'face 'font-lock-doc-face) . gud-step))
+       ([menu-bar next]
+	. (,(propertize "next" 'face 'font-lock-doc-face) . gud-next))
+       ([menu-bar until] menu-item
+	,(propertize "until" 'face 'font-lock-doc-face) gud-until
+		  :visible (memq gud-minor-mode '(gdbmi gdb perldb)))
+       ([menu-bar cont] menu-item
+	,(propertize "cont" 'face 'font-lock-doc-face) gud-cont
+	:visible (not (eq gud-minor-mode 'gdbmi)))
+       ([menu-bar run] menu-item
+	,(propertize "run" 'face 'font-lock-doc-face) gud-run
+	:visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
+       ([menu-bar go] menu-item
+	,(propertize " go " 'face 'font-lock-doc-face) gud-go
+	:visible (and (eq gud-minor-mode 'gdbmi)
+                      (gdb-show-run-p)))
+       ([menu-bar stop] menu-item
+	,(propertize "stop" 'face 'font-lock-doc-face) gud-stop-subjob
+	:visible (or (and (eq gud-minor-mode 'gdbmi)
+                          (gdb-show-stop-p))
+		     (not (eq gud-minor-mode 'gdbmi))))
+       ([menu-bar print]
+	. (,(propertize "print" 'face 'font-lock-doc-face) . gud-print))
+       ([menu-bar tools] . undefined)
+       ([menu-bar buffer] . undefined)
+       ([menu-bar options] . undefined)
+       ([menu-bar edit] . undefined)
+       ([menu-bar file] . undefined))))
+  "Map used in visited files.")
+
+(setf (alist-get 'gud-minor-mode minor-mode-map-alist)
+      gud-minor-mode-map)
+
+(defvar gud-mode-map
+  ;; Will inherit from comint-mode via define-derived-mode.
+  (make-sparse-keymap)
+  "`gud-mode' keymap.")
 
 (setf (alist-get 'gud-minor-mode minor-mode-map-alist)
       gud-minor-mode-map)
