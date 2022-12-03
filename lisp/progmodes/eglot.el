@@ -190,7 +190,7 @@ chosen (interactively or automatically)."
                                 ((js-json-mode json-mode json-ts-mode)
                                  . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
                                                           ("json-languageserver" "--stdio"))))
-                                ((js-mode js-ts-mode typescript-ts-mode typescript-mode)
+                                ((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
                                 ((bash-ts-mode sh-mode) . ("bash-language-server" "start"))
                                 ((php-mode phps-mode)
