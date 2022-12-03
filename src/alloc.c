@@ -5105,7 +5105,7 @@ live_float_holding (struct mem_node *m, void *p)
 	      || offset / sizeof b->floats[0] < float_block_index))
 	{
 	  struct Lisp_Float *f = (struct Lisp_Float *) cp - off;
-#ifdef GC_ASAN_POISON_OBJECTS
+#if GC_ASAN_POISON_OBJECTS
 	  if (__asan_region_is_poisoned (f, sizeof (*f)))
 	    return NULL;
 #endif
