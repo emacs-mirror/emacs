@@ -900,7 +900,8 @@ Key bindings:
   ;; Comments.
   (setq-local comment-start "// ")
   (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
+                                         (seq "/" (+ "*")))
                                      (* (syntax whitespace))))
   (setq-local comment-end-skip
               (rx (* (syntax whitespace))

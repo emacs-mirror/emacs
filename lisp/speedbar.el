@@ -349,7 +349,7 @@ determined automatically."
 
 (defcustom speedbar-sort-tags nil
   "If non-nil, sort tags in the speedbar display.  *Obsolete*.
-Use `semantic-tag-hierarchy-method' instead."
+Use `speedbar-tag-hierarchy-method' instead."
   :group 'speedbar
   :type 'boolean)
 

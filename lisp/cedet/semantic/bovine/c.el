@@ -1578,7 +1578,7 @@ Optional PARENT and COLOR as specified with
   c-mode (token &optional parent color)
   "Return an UML string describing TOKEN for C and C++.
 Optional PARENT and COLOR as specified with
-`semantic-abbreviate-tag-default'."
+`semantic-format-tag-abbreviate-default'."
   ;; If we have special template things, append.
   (concat  (semantic-format-tag-uml-prototype-default token parent color)
 	   (semantic-c-template-string token parent color)))

@@ -4115,7 +4115,6 @@ the deferred compilation mechanism."
                      comp-ctxt
                      (comp-ctxt-output comp-ctxt)
                      (file-exists-p (comp-ctxt-output comp-ctxt)))
-            (message "Deleting %s" (comp-ctxt-output comp-ctxt))
             (delete-file (comp-ctxt-output comp-ctxt))))))))
 
 (defun native-compile-async-skip-p (file load selector)
