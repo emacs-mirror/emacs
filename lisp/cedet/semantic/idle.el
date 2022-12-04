@@ -347,7 +347,7 @@ Returns t if all processing succeeded."
   "Core handler for idle work processing of long running tasks.
 Visits Semantic controlled buffers, and makes sure all needed
 include files have been parsed, and that the typecache is up to date.
-Uses `semantic-idle-work-for-on-buffer' to do the work."
+Uses `semantic-idle-work-for-one-buffer' to do the work."
   (let*
       ((errbuf nil)
        (interrupted

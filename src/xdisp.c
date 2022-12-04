@@ -26312,9 +26312,8 @@ display_menu_bar (struct window *w)
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_PIXEL_WIDTH (f);
 #elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
-  struct window *menu_window;
-
-  menu_window = NULL;
+  struct window *menu_window = NULL;
+  struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
 
   if (FRAME_WINDOW_P (f))
     {
@@ -26324,8 +26323,6 @@ display_menu_bar (struct window *w)
       init_iterator (&it, menu_window, -1, -1,
 		     menu_window->desired_matrix->rows,
 		     MENU_FACE_ID);
-      it.first_visible_x = 0;
-      it.last_visible_x = FRAME_PIXEL_WIDTH (f);
     }
   else
 #endif /* not USE_X_TOOLKIT and not USE_GTK */
@@ -26379,8 +26376,31 @@ display_menu_bar (struct window *w)
 
   /* Compute the total height of the lines.  */
   compute_line_metrics (&it);
+  it.glyph_row->full_width_p = true;
+  it.glyph_row->continued_p = false;
+  it.glyph_row->truncated_on_left_p = false;
+  it.glyph_row->truncated_on_right_p = false;
 
 #if defined (HAVE_X_WINDOWS) && !defined (USE_X_TOOLKIT) && !defined (USE_GTK)
+  /* Make a 3D menu bar have a shadow at its right end.  */
+  extend_face_to_end_of_line (&it);
+  if (face->box != FACE_NO_BOX)
+    {
+      struct glyph *last = (it.glyph_row->glyphs[TEXT_AREA]
+			    + it.glyph_row->used[TEXT_AREA] - 1);
+      int box_thickness = face->box_vertical_line_width;
+      last->right_box_line_p = true;
+      /* Add back the space for the right box line we subtracted in
+	 init_iterator, since the right_box_line_p flag will make the
+	 glyph wider.  We actually add only as much space as is
+	 available for the last glyph of the menu bar and whatever
+	 space is left beyond it, since that glyph could be only
+	 partially visible.  */
+      if (box_thickness > 0)
+	last->pixel_width += max (0, (box_thickness
+				      - (it.current_x - it.last_visible_x)));
+    }
+
   /* With the non-toolkit version, modify the menu bar window height
      accordingly.  */
   if (FRAME_WINDOW_P (it.f) && menu_window)

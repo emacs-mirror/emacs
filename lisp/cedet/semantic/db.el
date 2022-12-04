@@ -351,7 +351,7 @@ Note: This index will not be saved in a persistent file.")
 	   ;; the tables without using the accessor.
 	   :accessor semanticdb-get-database-tables
 	   :protection :protected
-	   :documentation "List of `semantic-db-table' objects."))
+           :documentation "List of `semanticdb-table' objects."))
   "Database of file tables.")
 
 (cl-defmethod semanticdb-full-filename ((obj semanticdb-table))

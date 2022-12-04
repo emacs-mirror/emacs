@@ -1614,7 +1614,12 @@ ARG is the same as in `beginning-of-defun'."
   (let* ((node (treesit-search-forward
                 (treesit-node-at (point)) treesit-defun-type-regexp t t))
          (top (treesit--defun-maybe-top-level node)))
-    (goto-char (treesit-node-end top))))
+    ;; Technically `end-of-defun' should only call this function when
+    ;; point is at the beginning of a defun, so TOP should always be
+    ;; non-nil, but things happen, and we want to be safe, so check
+    ;; for TOP anyway.
+    (when top
+      (goto-char (treesit-node-end top)))))
 
 ;;; Activating tree-sitter
 
