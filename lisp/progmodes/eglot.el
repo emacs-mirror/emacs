@@ -2575,8 +2575,8 @@ If BUFFER, switch to it before."
                             0 'eglot--lsp-workspaceSymbol c)
                            :score 0)))
       (external-completion-table
-       #'lookup
        'eglot-indirection-joy
+       #'lookup
        `((cycle-sort-function
           . ,(lambda (completions)
                (cl-sort completions #'> :key #'score))))))))
