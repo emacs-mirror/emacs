@@ -586,7 +586,7 @@ and `tab-bar-select-tab-modifiers'."
 
 (defun tab-bar-separator ()
   "Separator between tabs."
-  (or tab-bar-separator (if window-system " " "|")))
+  (or tab-bar-separator (if (window-system) " " "|")))
 
 
 (defcustom tab-bar-tab-name-function #'tab-bar-tab-name-current
@@ -939,7 +939,7 @@ when the tab is current.  Return the result as a keymap."
          (str (propertize " " 'display
                           ;; The `right' spec doesn't work on TTY frames
                           ;; when windows are split horizontally (bug#59620)
-                          (if window-system
+                          (if (window-system)
                               `(space :align-to (- right (,hpos)))
                             `(space :align-to (,(- (frame-inner-width) hpos)))))))
     `((align-right menu-item ,str ignore))))
@@ -1060,11 +1060,11 @@ tab bar might wrap to the second line when it shouldn't.")
                         (string-pixel-width non-tabs))
                      (length tabs)))
       (when tab-bar-auto-width-min
-        (setq width (max width (if window-system
+        (setq width (max width (if (window-system)
                                    (nth 0 tab-bar-auto-width-min)
                                  (nth 1 tab-bar-auto-width-min)))))
       (when tab-bar-auto-width-max
-        (setq width (min width (if window-system
+        (setq width (min width (if (window-system)
                                    (nth 0 tab-bar-auto-width-max)
                                  (nth 1 tab-bar-auto-width-max)))))
       (dolist (item tabs)

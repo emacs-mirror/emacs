@@ -504,7 +504,7 @@ which the tab will represent."
 (defun tab-line-format-template (tabs)
   "Template of the format for displaying tab line for selected window.
 This is used by `tab-line-format'."
-  (let* ((separator (or tab-line-separator (if window-system " " "|")))
+  (let* ((separator (or tab-line-separator (if (window-system) " " "|")))
          (hscroll (window-parameter nil 'tab-line-hscroll))
          (strings
           (mapcar
