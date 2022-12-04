@@ -3647,7 +3647,7 @@ OVERRIDE is the override flag described in
         (setq font-beg (max start font-beg))
         (when (< font-beg end)
           (treesit-fontify-with-override
-           font-beg font-end 'font-lock-string-face override)))
+           font-beg font-end 'font-lock-string-face override start end)))
       (setq font-beg (treesit-node-end child)
             child (treesit-node-next-sibling child)))))
 

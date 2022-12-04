@@ -774,25 +774,35 @@ signals the `treesit-font-lock-error' error if that happens."
                        ((memq feature remove-list) nil)
                        (t current-value))))))
 
-(defun treesit-fontify-with-override (start end face override)
+(defun treesit-fontify-with-override
+    (start end face override &optional bound-start bound-end)
   "Apply FACE to the region between START and END.
 OVERRIDE can be nil, t, `append', `prepend', or `keep'.
-See `treesit-font-lock-rules' for their semantic."
-  (pcase override
-    ('nil (unless (text-property-not-all
-                   start end 'face nil)
-            (put-text-property start end 'face face)))
-    ('t (put-text-property start end 'face face))
-    ('append (font-lock-append-text-property
+See `treesit-font-lock-rules' for their semantic.
+
+If BOUND-START and BOUND-END are non-nil, only fontify the region
+in between them."
+  (when (or (null bound-start) (null bound-end)
+            (and bound-start bound-end
+                 (<= bound-start end)
+                 (>= bound-end start)))
+    (when (and bound-start bound-end)
+      (setq start (max bound-start start)
+            end (min bound-end end)))
+    (pcase override
+      ('nil (unless (text-property-not-all start end 'face nil)
+              (put-text-property start end 'face face)))
+      ('t (put-text-property start end 'face face))
+      ('append (font-lock-append-text-property
+                start end 'face face))
+      ('prepend (font-lock-prepend-text-property
+                 start end 'face face))
+      ('keep (font-lock-fillin-text-property
               start end 'face face))
-    ('prepend (font-lock-prepend-text-property
-               start end 'face face))
-    ('keep (font-lock-fillin-text-property
-            start end 'face face))
-    (_ (signal 'treesit-font-lock-error
-               (list
-                "Unrecognized value of :override option"
-                override)))))
+      (_ (signal 'treesit-font-lock-error
+                 (list
+                  "Unrecognized value of :override option"
+                  override))))))
 
 (defun treesit--set-nonsticky (start end sym &optional remove)
   "Set `rear-nonsticky' property between START and END.

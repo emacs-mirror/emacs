@@ -1069,7 +1069,7 @@ fontified."
     (when (eq (char-after string-beg) ?f)
       (cl-incf string-beg))
     (treesit-fontify-with-override
-     (max start string-beg) (min end string-end) face override)))
+     string-beg string-end face override start end)))
 
 (defvar python--treesit-settings
   (treesit-font-lock-rules
