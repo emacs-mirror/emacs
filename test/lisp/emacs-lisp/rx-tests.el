@@ -207,6 +207,12 @@
                    (list 'ok z))
                  '(ok "F"))))
 
+(ert-deftest rx-let-pcase ()
+  "Test `rx-let' around `pcase' with `rx' patterns (bug#59814)."
+  (should (equal (rx-let ((tata "ab"))
+                   (pcase "abc" ((rx tata) 'toto)))
+                 'toto)))
+
 (ert-deftest rx-kleene ()
   "Test greedy and non-greedy repetition operators."
   (should (equal (rx (* "a") (+ "b") (\? "c") (?\s "d")
