@@ -42,6 +42,8 @@
 ;; `external-completion-table' should be used.  See its docstring.
 
 ;;; Code:
+(require 'cl-lib)
+
 (add-to-list 'completion-styles-alist
              '(external
                external-completion--try-completion
@@ -86,35 +88,66 @@ to associate with CATEGORY.  This means that the caller may still
 retain control the sorting of the candidates while the tool
 controls the matching.
 
-Despite the original authors's best efforts,
-TRY-COMPLETION-FUNCTION is still a poorly understood
-implementation detail.  If you understand what it's for, you
-should definitely update this docstring, really!  Anyway, it's a
-function taking a (STRING POINT) as arguments.  The default is to
-use the function `cons' which returns the arguments as a cons
-cell."
+TRY-COMPLETION-FUNCTION is if you want to get fancy.  It's a
+function taking a (PATTERN POINT ALL-COMPLETIONS), where PATTERN
+and POINT are as described above and ALL-COMPLETIONS are all
+candidates previously gathered by LOOKUP (don't worry, we do some
+caching so it doesn't get called more than needed).  If you know
+how the external tool is interpreting PATTERN,
+TRY-COMPLETION-FUNCTION may return a cons cell (NEW-PATTERN
+. NEW-POINT) to partially (or fully) complete the user's
+completion input.  For example, if the tool is completing by
+prefix, you could use `try-completion' to find the largest prefix
+in ALL-COMPLETIONS and then return that as NEW-PATTERN.  If the
+tool is using something else, like \"flex\", it's probably
+useless.  Anyway, the default is to return simply a (PATTERN
+. POINT) unaltered."
   (unless (assq category completion-category-defaults)
     (push `(,category (styles external))
           completion-category-defaults))
-  (lambda (string pred action)
-    (pcase action
-      (`metadata
-       `(metadata (category . ,category) . ,metadata))
-      (`(external-completion--tryc . ,point)
-       ;; FIXME: Obey `pred'?  Pass it to `try-completion-function'?
-       `(external-completion--tryc
-         . ,(funcall (or try-completion-function #'cons) string point)))
-      (`(external-completion--allc . ,point)
-       (let ((all (funcall lookup string point)))
-         `(external-completion--allc . ,(if pred (seq-filter pred all) all))))
-      (`(boundaries . ,_) nil)
-      (_
-       ;; FIXME: Stefan had an extra call to `lookup' and
-       ;; `complete-with-action' again here.  `action' is usually
-       ;; `lambda' or `nil' in those cases.  Since calling `lookup'
-       ;; again is potentially slow and no useful result seems to come
-       ;; from it, I took it out.
-       ))))
+  (let ((cache (make-hash-table :test #'equal)))
+    (cl-flet ((lookup-internal (string point)
+                (let* ((key (cons string point))
+                       (probe (gethash key cache 'external--notfound)))
+                  (if (eq probe 'external--notfound)
+                      (puthash key (funcall lookup string point) cache)
+                    probe))))
+      (lambda (string pred action)
+        (pcase action
+          (`metadata
+           `(metadata (category . ,category) . ,metadata))
+          (`(external-completion--tryc . ,point)
+           ;; FIXME: Obey `pred'?  Pass it to `try-completion-function'?
+           `(external-completion--tryc
+             . ,(if try-completion-function
+                    (funcall try-completion-function
+                             string
+                             point
+                             (lookup-internal string point))
+                  (cons string point))))
+          (`(external-completion--allc . ,point)
+           (let ((all (lookup-internal string point)))
+             `(external-completion--allc
+               . ,(if pred (cl-remove-if-not pred all) all))))
+          (`(boundaries . ,_) nil)
+          (_method
+           (let ((all (lookup-internal string (length string))))
+             ;; This is here for two reasons:
+             ;;
+             ;; * for when users try to work around
+             ;;   `completion-category-defaults' and access this table a
+             ;;   non-`external' completion style.  It won't work very
+             ;;   well, as this `all' here very often doesn't equate
+             ;;   "the full set" (many tools cap to sth like 100-1000
+             ;;   results).  FIXME: I think it would be better to just
+             ;;   error here.
+             ;;
+             ;; * for when `_method' above can also be `nil' or `lambda'
+             ;;   which has some semantics and use I don't fully
+             ;;   understand.  It doesn't seem to do anything very
+             ;;   useful in my tests, but since we have caching it
+             ;;   doesn't seem to hurt much either.
+             (complete-with-action action all string pred))))))))
 
 ;; Note: the "tryc", "allc" suffixes are made akward on purpose, so
 ;; it's easy to pick them apart from the jungle of combinations of
