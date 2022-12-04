@@ -41,6 +41,13 @@ connection.
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 
+** VC
+
+---
+*** New user option 'vc-git-shortlog-switches'
+String or list of strings giving Git log switches for shortlogs, such
+as 'C-x v L'.  'vc-git-log-switches' is no longer used for shortlogs.
+
 
 * New Modes and Packages in Emacs 30.1
 
