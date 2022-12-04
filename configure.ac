@@ -4704,7 +4704,7 @@ AC_SUBST([XINERAMA_LIBS])
 ### Use Xfixes (-lXfixes) if available
 HAVE_XFIXES=no
 if test "${HAVE_X11}" = "yes"; then
-  XFIXES_REQUIRED=4.0.0
+  XFIXES_REQUIRED=1.0.0
   XFIXES_MODULES="xfixes >= $XFIXES_REQUIRED"
   EMACS_CHECK_MODULES([XFIXES], [$XFIXES_MODULES])
   if test $HAVE_XFIXES = no; then

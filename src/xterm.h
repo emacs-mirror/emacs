@@ -21,6 +21,22 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define XTERM_H
 
 #include <X11/Xlib.h>
+
+#ifdef HAVE_XFIXES
+#include <X11/extensions/Xfixes.h>
+
+#if defined HAVE_XINPUT2 && XFIXES_MAJOR < 5
+/* XI2 headers need PointerBarrier, which is not defined in old
+   versions of the fixes library.  Define that type here.  */
+typedef XID PointerBarrier;
+#endif
+#if defined HAVE_XCOMPOSITE && XFIXES_MAJOR < 2
+/* Recent Composite headers need XserverRegion, which is not defined
+   in old versions of the fixes library.  Define that type here.  */
+typedef XID XserverRegion;
+#endif
+#endif
+
 #include <X11/cursorfont.h>
 
 /* Include Xutil.h after keysym.h to work around a bug that prevents
@@ -406,7 +422,7 @@ struct x_display_info
      Unused if this display supports Xfixes extension.  */
   Cursor invisible_cursor;
 
-#ifdef HAVE_XFIXES
+#if defined HAVE_XFIXES && XFIXES_VERSION >= 40000
   /* Whether or not to use Xfixes for pointer blanking.  */
   bool fixes_pointer_blanking;
 #endif
