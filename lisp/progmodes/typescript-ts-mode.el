@@ -45,7 +45,6 @@
   (let ((table (make-syntax-table)))
     ;; Taken from the cc-langs version
     (modify-syntax-entry ?_  "_"     table)
-    (modify-syntax-entry ?$ "_"      table)
     (modify-syntax-entry ?\\ "\\"    table)
     (modify-syntax-entry ?+  "."     table)
     (modify-syntax-entry ?-  "."     table)
@@ -55,8 +54,14 @@
     (modify-syntax-entry ?>  "."     table)
     (modify-syntax-entry ?&  "."     table)
     (modify-syntax-entry ?|  "."     table)
-    (modify-syntax-entry ?` "\""     table)
+    (modify-syntax-entry ?\' "\""    table)
     (modify-syntax-entry ?\240 "."   table)
+    (modify-syntax-entry ?/  ". 124b" table)
+    (modify-syntax-entry ?*  ". 23"   table)
+    (modify-syntax-entry ?\n "> b"  table)
+    (modify-syntax-entry ?\^m "> b" table)
+    (modify-syntax-entry ?$ "_" table)
+    (modify-syntax-entry ?` "\"" table)
     table)
   "Syntax table for `typescript-ts-mode'.")
 

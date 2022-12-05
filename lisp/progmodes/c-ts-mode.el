@@ -79,6 +79,8 @@ follows the form of `treesit-simple-indent-rules'."
     (modify-syntax-entry ?\240 "."   table)
     (modify-syntax-entry ?/  ". 124b" table)
     (modify-syntax-entry ?*  ". 23"   table)
+    (modify-syntax-entry ?\n "> b"  table)
+    (modify-syntax-entry ?\^m "> b" table)
     table)
   "Syntax table for `c-ts-mode'.")
 
