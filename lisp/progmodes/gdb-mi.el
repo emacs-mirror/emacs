@@ -1113,13 +1113,13 @@ no input, and GDB is waiting for input."
              (process-live-p proc)
 	     (not gud-running)
 	     (= (point) (marker-position (process-mark proc))))
-	;; Sending an EOF does not work with GDB-MI; submit an
-	;; explicit quit command.
-	(progn
-          (if (> gdb-control-level 0)
-              (process-send-eof proc)
-            (insert "quit")
-            (comint-send-input t t)))
+      ;; Exit a recursive reading loop or quit.
+      (if (> gdb-control-level 0)
+          (process-send-eof proc)
+        ;; Sending an EOF does not work with GDB-MI; submit an
+        ;; explicit quit command.
+        (insert "quit")
+        (comint-send-input t t))
       (delete-char arg))))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
@@ -5157,6 +5157,8 @@ This arrangement depends on the values of variable
 (defun gdb-reset ()
   "Exit a debugging session cleanly.
 Kills the gdb buffers, and resets variables and the source buffers."
+  ;; Save GDB history
+  (comint-write-input-ring)
   ;; The gdb-inferior buffer has a pty hooked up to the main gdb
   ;; process.  This pty must be deleted explicitly.
   (let ((pty (get-process "gdb-inferior")))
