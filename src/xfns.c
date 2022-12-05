@@ -5723,13 +5723,13 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
     = xcb_get_property (dpyinfo->xcb_connection, 0,
 			(xcb_window_t) dpyinfo->root_window,
 			(xcb_atom_t) dpyinfo->Xatom_net_current_desktop,
-			XCB_ATOM_CARDINAL, 0, 1);
+			XA_CARDINAL, 0, 1);
 
   workarea_cookie
     = xcb_get_property (dpyinfo->xcb_connection, 0,
 			(xcb_window_t) dpyinfo->root_window,
 			(xcb_atom_t) dpyinfo->Xatom_net_workarea,
-			XCB_ATOM_CARDINAL, 0, UINT32_MAX);
+			XA_CARDINAL, 0, UINT32_MAX);
 
   reply = xcb_get_property_reply (dpyinfo->xcb_connection,
 				  current_desktop_cookie, &error);
@@ -5740,7 +5740,7 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
   else
     {
       if (xcb_get_property_value_length (reply) != 4
-	  || reply->type != XCB_ATOM_CARDINAL || reply->format != 32)
+	  || reply->type != XA_CARDINAL || reply->format != 32)
 	rc = false;
       else
 	current_workspace = *(uint32_t *) xcb_get_property_value (reply);
@@ -5755,7 +5755,7 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
     free (error), rc = false;
   else
     {
-      if (rc && reply->type == XCB_ATOM_CARDINAL && reply->format == 32
+      if (rc && reply->type == XA_CARDINAL && reply->format == 32
 	  && (xcb_get_property_value_length (reply) / sizeof (uint32_t)
 	      >= current_workspace + 4))
 	{
