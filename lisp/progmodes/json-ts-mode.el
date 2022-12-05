@@ -93,6 +93,10 @@
    :override t
    '((escape_sequence) @font-lock-escape-face)
    :language 'json
+   :feature 'pair
+   :override t ; Needed for overriding string face on keys.
+   '((pair key: (_) @font-lock-variable-name-face))
+   :language 'json
    :feature 'error
    :override t
    '((ERROR) @font-lock-warning-face))
@@ -156,7 +160,7 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings json-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((constant number string)
+              '((constant number pair string)
                 (escape-sequence)
                 (bracket delimiter error)))
 
