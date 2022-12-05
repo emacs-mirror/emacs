@@ -2103,7 +2103,7 @@ xg_frame_restack (struct frame *f1, struct frame *f2, bool above_flag)
 
       gdk_window_restack (gwin1, gwin2, above_flag);
 #ifndef HAVE_PGTK
-      x_sync (f1);
+      XSync (FRAME_X_DISPLAY (f1), False);
 #else
       gdk_flush ();
 #endif
@@ -4793,7 +4793,7 @@ xg_update_scrollbar_pos (struct frame *f,
          here to get some events.  */
 
 #ifndef HAVE_PGTK
-      x_sync (f);
+      XSync (FRAME_X_DISPLAY (f), False);
 #else
       gdk_flush ();
 #endif
@@ -4894,7 +4894,7 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
       }
 
 #ifndef HAVE_PGTK
-      x_sync (f);
+      XSync (FRAME_X_DISPLAY (f), False);
 #else
       gdk_flush ();
 #endif

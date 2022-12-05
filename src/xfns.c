@@ -7377,20 +7377,6 @@ If TERMINAL is omitted or nil, that stands for the selected frame's display.  */
   return Qnil;
 }
 
-/* Wait for responses to all X commands issued so far for frame F.  */
-
-void
-x_sync (struct frame *f)
-{
-  block_input ();
-#ifndef USE_XCB
-  XSync (FRAME_X_DISPLAY (f), False);
-#else
-  xcb_aux_sync (FRAME_DISPLAY_INFO (f)->xcb_connection);
-#endif
-  unblock_input ();
-}
-
 
 /***********************************************************************
                            Window properties
