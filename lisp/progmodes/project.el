@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
-;; Version: 0.8.3
+;; Version: 0.9.2
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -58,13 +58,30 @@
 ;;
 ;; This list can change in future versions.
 ;;
-;; VC project:
+;; Transient project:
+;;
+;; An instance of this type can be returned by `project-current' if no
+;; project was detected automatically, and the user had to pick a
+;; directory manually.  The fileset it describes is the whole
+;; directory, with the exception of some standard ignored files and
+;; directories.  This type has little purpose otherwise, as the only
+;; generic function it provides an override for is `project-root'.
+;;
+;; VC-aware project:
 ;;
 ;; Originally conceived as an example implementation, now it's a
 ;; relatively fast backend that delegates to 'git ls-files' or 'hg
 ;; status' to list the project's files.  It honors the VC ignore
 ;; files, but supports additions to the list using the user option
-;; `project-vc-ignores' (usually through .dir-locals.el).
+;; `project-vc-ignores' (usually through .dir-locals.el).  See the
+;; customization group `project-vc' for other options that control its
+;; behavior.
+;;
+;; If the repository is using any other VCS than Git or Hg, the file
+;; listing uses the default mechanism based on `find-program'.
+;;
+;; This project type can also be used for non-VCS controlled
+;; directories, see the variable `project-vc-extra-root-markers'.
 ;;
 ;; Utils:
 ;;
@@ -196,8 +213,8 @@ project instance.
 
 The \"transient\" project instance is a special kind of value
 which denotes a project rooted in that directory and includes all
-the files under the directory except for those that should be
-ignored (per `project-ignores').
+the files under the directory except for those that match entries
+in `vc-directory-exclusion-list' or `grep-find-ignored-files'.
 
 See the doc string of `project-find-functions' for the general form
 of the project instance object."
@@ -261,7 +278,7 @@ headers search path, load path, class path, and so on."
 (cl-defgeneric project-name (project)
   "A human-readable name for the project.
 Nominally unique, but not enforced."
-  (file-name-base (directory-file-name (project-root project))))
+  (file-name-nondirectory (directory-file-name (project-root project))))
 
 (cl-defgeneric project-ignores (_project _dir)
   "Return the list of glob patterns to ignore inside DIR.
@@ -377,7 +394,7 @@ the buffer's value of `default-directory'."
     (nreverse bufs)))
 
 (defgroup project-vc nil
-  "Project implementation based on the VC package."
+  "VC-aware project implementation."
   :version "25.1"
   :group 'project)
 
@@ -397,19 +414,49 @@ you might have to restart Emacs to see the effect."
   :safe #'booleanp)
 
 (defcustom project-vc-include-untracked t
-  "When non-nil, the VC project backend includes untracked files."
+  "When non-nil, the VC-aware project backend includes untracked files."
   :type 'boolean
   :version "29.1"
   :safe #'booleanp)
 
 (defcustom project-vc-name nil
-  "When non-nil, the name of the current VC project.
+  "When non-nil, the name of the current VC-aware project.
 
-The best way to change the value a VC project reports as its
-name, is by setting this in .dir-locals.el."
-  :type 'string
+The best way to change the value a VC-aware project reports as
+its name, is by setting this in .dir-locals.el."
+  :type '(choice (const :tag "Default to the base name" nil)
+                 (string :tag "Custom name"))
   :version "29.1"
+  :package-version '(project . "0.9.0")
   :safe #'stringp)
+
+;; Not using regexps because these wouldn't work in Git pathspecs, in
+;; case we decide we need to be able to list nested projects.
+(defcustom project-vc-extra-root-markers nil
+  "List of additional markers to signal project roots.
+
+A marker is either a base file name or a glob pattern for such.
+
+A directory containing such a marker file or a file matching a
+marker pattern will be recognized as the root of a VC-aware
+project.
+
+Example values: \".dir-locals.el\", \"package.json\", \"pom.xml\",
+\"requirements.txt\", \"Gemfile\", \"*.gemspec\", \"autogen.sh\".
+
+These will be used in addition to regular directory markers such
+as \".git\", \".hg\", and so on, depending on the value of
+`vc-handled-backends'.  It is most useful when a project has
+subdirectories inside it that need to be considered as separate
+projects.  It can also be used for projects outside of VC
+repositories.
+
+In either case, their behavior will still obey the relevant
+variables, such as `project-vc-ignores' or `project-vc-name'."
+  :type '(repeat string)
+  :version "29.1"
+  :package-version '(project . "0.9.0")
+  :safe (lambda (val) (and (listp val) (cl-every #'stringp val))))
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
@@ -419,7 +466,7 @@ name, is by setting this in .dir-locals.el."
 ;;
 ;; We could add a second argument to this function: a file extension,
 ;; or a language name.  Some projects will know the set of languages
-;; used in them; for others, like VC-based projects, we'll need
+;; used in them; for others, like the VC-aware type, we'll need
 ;; auto-detection.  I see two options:
 ;;
 ;; - That could be implemented as a separate second hook, with a
@@ -443,32 +490,55 @@ name, is by setting this in .dir-locals.el."
 It should return a list of directory roots that contain source
 files related to the current buffer.
 
-The directory names should be absolute.  Used in the VC project
-backend implementation of `project-external-roots'.")
+The directory names should be absolute.  Used in the VC-aware
+project backend implementation of `project-external-roots'.")
 
 (defun project-try-vc (dir)
+  (defvar vc-svn-admin-directory)
+  (require 'vc-svn)
+  ;; FIXME: Learn to invalidate when the value of
+  ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'
+  ;; changes.
   (or (vc-file-getprop dir 'project-vc)
-      (let* ((backend (ignore-errors (vc-responsible-backend dir)))
+      (let* ((backend-markers-alist `((Git . ".git")
+                                      (Hg . ".hg")
+                                      (Bzr . ".bzr")
+                                      (SVN . ,vc-svn-admin-directory)
+                                      (DARCS . "_darcs")
+                                      (Fossil . ".fslckout")))
+             (backend-markers
+              (delete
+               nil
+               (mapcar
+                (lambda (b) (assoc-default b backend-markers-alist))
+                vc-handled-backends)))
+             (marker-re
+              (mapconcat
+               (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
+               (append backend-markers project-vc-extra-root-markers)
+               "\\|"))
+             (locate-dominating-stop-dir-regexp
+              (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp))
+             last-matches
              (root
-              (pcase backend
-                ('Git
-                 ;; Don't stop at submodule boundary.
-                 (or (vc-file-getprop dir 'project-git-root)
-                     (let ((root (vc-call-backend backend 'root dir)))
-                       (vc-file-setprop
-                        dir 'project-git-root
-                        (if (and
-                             ;; FIXME: Invalidate the cache when the value
-                             ;; of this variable changes.
-                             project-vc-merge-submodules
-                             (project--submodule-p root))
-                            (let* ((parent (file-name-directory
-                                            (directory-file-name root))))
-                              (vc-call-backend backend 'root parent))
-                          root)))))
-                ('nil nil)
-                (_ (ignore-errors (vc-call-backend backend 'root dir)))))
+              (locate-dominating-file
+               dir
+               (lambda (d)
+                 ;; Maybe limit count to 100 when we can drop Emacs < 28.
+                 (setq last-matches (directory-files d nil marker-re t)))))
+             (backend
+              (cl-find-if
+               (lambda (b)
+                 (member (assoc-default b backend-markers-alist)
+                         last-matches))
+               vc-handled-backends))
              project)
+        (when (and
+               (eq backend 'Git)
+               project-vc-merge-submodules
+               (project--submodule-p root))
+          (let* ((parent (file-name-directory (directory-file-name root))))
+            (setq root (vc-call-backend 'Git 'root parent))))
         (when root
           (setq project (list 'vc backend root))
           ;; FIXME: Cache for a shorter time.
@@ -513,9 +583,10 @@ backend implementation of `project-external-roots'.")
   (mapcan
    (lambda (dir)
      (let ((ignores project-vc-ignores)
-           backend)
+           (backend (cadr project)))
+       (when backend
+         (require (intern (concat "vc-" (downcase (symbol-name backend))))))
        (if (and (file-equal-p dir (nth 2 project))
-                (setq backend (cadr project))
                 (cond
                  ((eq backend 'Hg))
                  ((and (eq backend 'Git)
@@ -626,7 +697,8 @@ backend implementation of `project-external-roots'.")
   (let* ((root (nth 2 project))
          backend)
     (append
-     (when (file-equal-p dir root)
+     (when (and backend
+                (file-equal-p dir root))
        (setq backend (cadr project))
        (delq
         nil
@@ -954,7 +1026,7 @@ by the user at will."
                                                      hist mb-default)))
          (absname (expand-file-name relname common-parent-directory)))
     (when (and hist history-add-new-input)
-      (add-to-history hist absname))
+      (add-to-history hist (abbreviate-file-name absname)))
     absname))
 
 (defun project--read-file-absolute (prompt

@@ -297,7 +297,7 @@ It must be supported by libarchive(3).")
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-archive-handle-not-implemented)
-    ;; `memory-info' performed by default handler.
+    (memory-info . ignore)
     (process-attributes . ignore)
     (process-file . ignore)
     (rename-file . tramp-archive-handle-not-implemented)

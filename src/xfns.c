@@ -7079,8 +7079,8 @@ that mouse buttons are being held down, such as immediately after a
   /* Catch errors since interning lots of targets can potentially
      generate a BadAlloc error.  */
   x_catch_errors (FRAME_X_DISPLAY (f));
-  XInternAtoms (FRAME_X_DISPLAY (f), target_names,
-		ntargets, False, target_atoms);
+  x_intern_atoms (FRAME_DISPLAY_INFO (f), target_names,
+		  ntargets, target_atoms);
   x_check_errors (FRAME_X_DISPLAY (f),
 		  "Failed to intern target atoms: %s");
   x_uncatch_errors_after_check ();
@@ -7484,7 +7484,7 @@ silently ignored.  */)
       elsize = element_format == 32 ? sizeof (long) : element_format >> 3;
       data = xnmalloc (nelements, elsize);
 
-      x_fill_property_data (FRAME_X_DISPLAY (f), value, data, nelements,
+      x_fill_property_data (FRAME_DISPLAY_INFO (f), value, data, nelements,
                             element_format);
     }
   else

@@ -334,7 +334,9 @@ Letter-case is significant, but text properties are ignored. */)
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
        doc: /* Return t if two strings have identical contents.
 Case is significant, but text properties are ignored.
-Symbols are also allowed; their print names are used instead.  */)
+Symbols are also allowed; their print names are used instead.
+
+See also `string-equal-ignore-case'.  */)
   (register Lisp_Object s1, Lisp_Object s2)
 {
   if (SYMBOLP (s1))

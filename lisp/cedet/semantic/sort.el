@@ -474,7 +474,7 @@ The default behavior, if not overridden with
 the name of TAG.
 
 If this function is overridden, use
-`semantic-tag-external-member-children-p-default' to also
+`semantic-tag-external-member-children-default' to also
 include the default behavior, and merely extend your own."
   )
 

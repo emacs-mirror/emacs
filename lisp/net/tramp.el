@@ -2949,7 +2949,7 @@ They are completed by \"M-x TAB\" only if the current buffer is remote."
   (tramp-tramp-file-p (tramp-get-default-directory buffer)))
 
 (defun tramp-connectable-p (vec-or-filename)
-  "Check, whether it is possible to connect the remote host w/o side-effects.
+  "Check if it is possible to connect the remote host without side-effects.
 This is true, if either the remote host is already connected, or if we are
 not in completion mode."
   (let ((tramp-verbose 0)
@@ -3999,7 +3999,7 @@ Let-bind it when necessary.")
    ((not (file-exists-p file1)) nil)
    ((not (file-exists-p file2)) t)
    ;; Tramp reads and writes timestamps on second level.  So we round
-   ;; the timestamps to seconds w/o fractions.
+   ;; the timestamps to seconds without fractions.
    ;; `time-convert' has been introduced with Emacs 27.1.
    ((fboundp 'time-convert)
     (time-less-p

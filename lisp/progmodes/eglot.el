@@ -166,7 +166,7 @@ chosen (interactively or automatically)."
                (cond ((cdr available)
                       (cdr (assoc
                             (completing-read
-                             "[eglot] More than one server executable available:"
+                             "[eglot] More than one server executable available: "
                              (mapcar #'car available)
                              nil t nil nil (car (car available)))
                             available #'equal)))
@@ -190,7 +190,7 @@ chosen (interactively or automatically)."
                                 ((js-json-mode json-mode json-ts-mode)
                                  . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
                                                           ("json-languageserver" "--stdio"))))
-                                ((js-mode js-ts-mode typescript-ts-mode typescript-mode)
+                                ((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
                                 ((bash-ts-mode sh-mode) . ("bash-language-server" "start"))
                                 ((php-mode phps-mode)
@@ -1011,7 +1011,7 @@ be guessed."
           (and base-prompt
                (cond (current-prefix-arg base-prompt)
                      ((null guess)
-                      (format "[eglot] Sorry, couldn't guess for `%s'!\n%s"
+                      (format "[eglot] Couldn't guess LSP server for `%s'\n%s"
                               main-mode base-prompt))
                      ((and program
                            (not (file-name-absolute-p program))

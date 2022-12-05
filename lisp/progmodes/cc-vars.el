@@ -1044,6 +1044,8 @@ can always override the use of `c-default-style' by making calls to
 	    (cons :format "%v"
 		  (const :format "AWK   " awk-mode) (string :format "%v"))
 	    (cons :format "%v"
+		  (const :format "C#   "  csharp-mode) (string :format "%v"))
+	    (cons :format "%v"
 		  (const :format "Other " other) (string :format "%v"))))
   :group 'c)
 

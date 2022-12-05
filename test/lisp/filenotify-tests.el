@@ -1590,8 +1590,8 @@ the file watch."
   (unwind-protect
       (progn
 	(write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
-        ;; Some systems, like MS Windows w/o sufficient privileges, do
-        ;; not allow creation of symbolic links.
+        ;; Some systems, like MS Windows without sufficient
+        ;; privileges, do not allow creation of symbolic links.
         (condition-case nil
             (make-symbolic-link
              file-notify--test-tmpfile1 file-notify--test-tmpfile)

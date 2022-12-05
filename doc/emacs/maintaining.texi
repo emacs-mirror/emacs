@@ -1673,16 +1673,16 @@ is known as the @dfn{project root}.
 @cindex project back-end
   Whether a given directory is a root of some project is determined by
 the project-specific infrastructure, known as @dfn{project back-end}.
-Emacs currently supports two such back-ends: VC (@pxref{Version
+Emacs currently supports two such back-ends: VC-aware (@pxref{Version
 Control}), whereby a VCS repository is considered a project; and EDE
 (@pxref{EDE}).  This is expected to be extended in the future to
 support additional types of projects.
 
   Which files do or don't belong to a project is also determined by
-the project back-end.  For example, the VC back-end doesn't consider
-``ignored'' files (@pxref{VC Ignore}) to be part of the project.
-Also, the VC Project back-end considers ``untracked'' files by default.
-That behavior is controllable with the variable
+the project back-end.  For example, the VC-aware back-end doesn't
+consider ``ignored'' files (@pxref{VC Ignore}) to be part of the
+project.  Also, the VC-aware Project back-end considers ``untracked''
+files by default.  That behavior is controllable with the variable
 @code{project-vc-include-untracked}.
 
 @menu

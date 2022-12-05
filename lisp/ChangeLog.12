@@ -24499,8 +24499,9 @@
 	is updated.
 
 	* whitespace.el (whitespace-buffer-leading-cleanup):
-	Simplify w/ skip-chars-forward.
-	(whitespace-buffer-trailing-cleanup): Simplify w/ skip-chars-backward.
+	Simplify with skip-chars-forward.
+	(whitespace-buffer-trailing-cleanup): Simplify with
+	skip-chars-backward.
 
 	* mail/rmail.el (rmail-only-expunge): Fix paren error.
 	Unconditionally try to leave point at the same old place.
@@ -31346,7 +31347,7 @@
 
 	* facemenu.el (list-colors-print): Print #RRGGBB in default face.
 	Remove 1 space before #RRGGBB to not truncate it on terminal
-	windows w/o fringes.  Remove 1 space between bg and fg examples
+	windows without fringes.  Remove 1 space between bg and fg examples
 	to get more space.
 	(list-colors-duplicates): Replace `and' with `if' for `boundp' to
 	avoid byte-compile warnings.

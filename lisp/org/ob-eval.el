@@ -4,7 +4,7 @@
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +27,11 @@
 ;; shell commands.
 
 ;;; Code:
+
 (require 'org-macs)
+(org-assert-version)
+
+(eval-when-compile (require 'subr-x))  ; For `string-empty-p', Emacs < 29
 
 (defvar org-babel-error-buffer-name "*Org-Babel Error Output*")
 (declare-function org-babel-temp-file "ob-core" (prefix &optional suffix))
@@ -37,36 +41,45 @@
   (let ((buf (get-buffer-create org-babel-error-buffer-name)))
     (with-current-buffer buf
       (goto-char (point-max))
-      (save-excursion (insert stderr)))
+      (save-excursion
+        (unless (bolp) (insert "\n"))
+        (insert stderr)
+        (insert (format "[ Babel evaluation exited with code %S ]" exit-code))))
     (display-buffer buf))
   (message "Babel evaluation exited with code %S" exit-code))
 
 (defun org-babel-eval (command query)
   "Run COMMAND on QUERY.
+Return standard output produced by COMMAND.  If COMMAND exits
+with a non-zero code or produces error output, show it with
+`org-babel-eval-error-notify'.
+
 Writes QUERY into a temp-buffer that is processed with
-`org-babel--shell-command-on-region'.  If COMMAND succeeds then return
-its results, otherwise display STDERR with
-`org-babel-eval-error-notify'."
+`org-babel--shell-command-on-region'."
   (let ((error-buffer (get-buffer-create " *Org-Babel Error*")) exit-code)
     (with-current-buffer error-buffer (erase-buffer))
     (with-temp-buffer
       (insert query)
       (setq exit-code
-	    (org-babel--shell-command-on-region
-	     command error-buffer))
-      (if (or (not (numberp exit-code)) (> exit-code 0))
-	  (progn
-	    (with-current-buffer error-buffer
-	      (org-babel-eval-error-notify exit-code (buffer-string)))
-	    (save-excursion
-	      (when (get-buffer org-babel-error-buffer-name)
-		(with-current-buffer org-babel-error-buffer-name
-		  (unless (derived-mode-p 'compilation-mode)
-		    (compilation-mode))
-		  ;; Compilation-mode enforces read-only, but Babel expects the buffer modifiable.
-		  (setq buffer-read-only nil))))
-	    nil)
-	(buffer-string)))))
+            (org-babel--shell-command-on-region
+             command error-buffer))
+      (let ((stderr (with-current-buffer error-buffer (buffer-string))))
+        (if (or (not (numberp exit-code))
+                (> exit-code 0)
+                (not (string-empty-p stderr)))
+            (progn
+              (org-babel-eval-error-notify exit-code stderr)
+              (save-excursion
+                (when (get-buffer org-babel-error-buffer-name)
+                  (with-current-buffer org-babel-error-buffer-name
+                    (unless (derived-mode-p 'compilation-mode)
+                      (compilation-mode))
+                    ;; Compilation-mode enforces read-only, but
+                    ;; Babel expects the buffer modifiable.
+                    (setq buffer-read-only nil))))
+              ;; Return output, if any.
+              (buffer-string))
+          (buffer-string))))))
 
 (defun org-babel-eval-read-file (file)
   "Return the contents of FILE as a string."
@@ -146,7 +159,8 @@ This buffer is named by `org-babel-error-buffer-name'."
   "Return system `shell-file-name', defaulting to /bin/sh.
 Unfortunately, `executable-find' does not support file name
 handlers.  Therefore, we could use it in the local case only."
-  ;; FIXME: This is generic enough that it should probably be in emacs, not org-mode
+  ;; FIXME: Since Emacs 27, `executable-find' accepts optional second
+  ;; argument supporting remote hosts.
   (cond ((and (not (file-remote-p default-directory))
 	      (executable-find shell-file-name))
 	 shell-file-name)

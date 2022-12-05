@@ -2696,7 +2696,10 @@ Helper function for `describe-package'."
          (signed (if desc (package-desc-signed desc)))
          (maintainer (cdr (assoc :maintainer extras)))
          (authors (cdr (assoc :authors extras)))
-         (news (and-let* ((file (expand-file-name "news" pkg-dir))
+         (news (and-let* (pkg-dir
+                          ((not built-in))
+                          (file (expand-file-name "news" pkg-dir))
+                          ((file-regular-p file))
                           ((file-readable-p file)))
                  file)))
     (when (string= status "avail-obso")
@@ -3107,7 +3110,7 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
   "If non-nil, include packages that don't have a version in `list-packages'.")
 
 (defvar package-list-unsigned nil
-  "If non-nil, mention in the list which packages were installed w/o signature.")
+  "If non-nil, mention in the list which packages were installed without signature.")
 
 (defvar package--emacs-version-list (version-to-list emacs-version)
   "The value of variable `emacs-version' as a list.")
@@ -4549,7 +4552,7 @@ will be signaled in that case."
       (user-error "Package `%s' has no explicit maintainer" name))
      ((and (not (progn
                   (require 'ietf-drums)
-                  (ietf-drums-parse-address maint)))
+                  (ietf-drums-parse-address (cdr maint))))
            (null no-error))
       (user-error "Package `%s' has no maintainer address" name))
      ((not (null maint))

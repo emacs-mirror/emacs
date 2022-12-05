@@ -4,7 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -34,6 +34,9 @@
 ;; and `org-timer-set-timer' to start the countdown timer.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'org-clock)
@@ -139,7 +142,7 @@ the region 0:00:00."
 		   (format "Restart timer with offset [%s]: " def)))
 	  (unless (string-match "\\S-" s) (setq s def))
 	  (setq delta (org-timer-hms-to-secs (org-timer-fix-incomplete s)))))
-	(setq org-timer-start-time (org-time-since delta)))
+	(setq org-timer-start-time (time-since delta)))
       (setq org-timer-pause-time nil)
       (org-timer-set-mode-line 'on)
       (message "Timer start time set to %s, current value is %s"
@@ -163,9 +166,9 @@ With prefix arg STOP, stop it entirely."
 	    (setq org-timer-countdown-timer
 		  (org-timer--run-countdown-timer
 		   new-secs org-timer-countdown-timer-title))
-	    (setq org-timer-start-time (org-time-add nil new-secs)))
+	    (setq org-timer-start-time (time-add nil new-secs)))
 	(setq org-timer-start-time
-	      (org-time-since (- pause-secs start-secs))))
+	      (time-since (- pause-secs start-secs))))
       (setq org-timer-pause-time nil)
       (org-timer-set-mode-line 'on)
       (run-hooks 'org-timer-continue-hook)
@@ -387,7 +390,7 @@ VALUE can be `on', `off', or `paused'."
       ;; Note: Once our minimal require is Emacs 27, we can drop this
       ;; org-time-convert-to-integer call.
       (org-time-convert-to-integer
-       (org-time-subtract (timer--time org-timer-countdown-timer) nil))))))
+       (time-subtract (timer--time org-timer-countdown-timer) nil))))))
 
 ;;;###autoload
 (defun org-timer-set-timer (&optional opt)
@@ -448,7 +451,7 @@ using three \\[universal-argument] prefix arguments."
 		(org-timer--run-countdown-timer
 		 secs org-timer-countdown-timer-title))
 	  (run-hooks 'org-timer-set-hook)
-	  (setq org-timer-start-time (org-time-add nil secs))
+	  (setq org-timer-start-time (time-add nil secs))
 	  (setq org-timer-pause-time nil)
 	  (org-timer-set-mode-line 'on))))))
 
@@ -478,7 +481,6 @@ Try to use an Org header, otherwise use the buffer name."
 	(with-current-buffer (marker-buffer marker)
 	  (org-with-wide-buffer
 	   (goto-char hdmarker)
-	   (org-show-entry)
 	   (or (ignore-errors (org-get-heading))
 	       (buffer-name (buffer-base-buffer))))))))
    ((derived-mode-p 'org-mode)

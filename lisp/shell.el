@@ -71,7 +71,7 @@
 ;; c-c c-o comint-delete-output		   Delete last batch of process output
 ;; c-c c-r comint-show-output		   Show last batch of process output
 ;; c-c c-l comint-dynamic-list-input-ring  List input history
-;;         comint-send-invisible           Read line w/o echo & send to proc
+;;         comint-send-invisible           Read line without echo & send to proc
 ;;         comint-continue-subjob	   Useful if you accidentally suspend
 ;;					        top-level job
 ;; comint-mode-hook is the comint mode hook.

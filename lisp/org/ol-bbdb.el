@@ -5,7 +5,7 @@
 ;; Authors: Carsten Dominik <carsten.dominik@gmail.com>
 ;;       Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -93,6 +93,9 @@
 ;;
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-compat)
 (require 'org-macs)
@@ -132,7 +135,7 @@
 
 (defgroup org-bbdb-anniversaries nil
   "Customizations for including anniversaries from BBDB into Agenda."
-  :group 'org-bbdb)
+  :group 'org-agenda)
 
 (defcustom org-bbdb-default-anniversary-format "birthday"
   "Default anniversary class."

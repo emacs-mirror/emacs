@@ -189,7 +189,7 @@ For easier selection of tabs by their numbers, consider customizing
       '(;; (emoji "🍔")
         (symbol "☰")
         (text "Menu" :face tab-bar-tab-inactive))
-      "Icon for for the menu bar."
+      "Icon for the menu bar."
       :version "29.1"
       :help-echo "Menu bar"))
   (setq tab-bar-menu-bar-button (icon-string 'tab-bar-menu-bar)))
@@ -586,7 +586,7 @@ and `tab-bar-select-tab-modifiers'."
 
 (defun tab-bar-separator ()
   "Separator between tabs."
-  (or tab-bar-separator (if window-system " " "|")))
+  (or tab-bar-separator (if (window-system) " " "|")))
 
 
 (defcustom tab-bar-tab-name-function #'tab-bar-tab-name-current
@@ -936,7 +936,12 @@ when the tab is current.  Return the result as a keymap."
          (hpos (progn
                  (add-face-text-property 0 (length rest) 'tab-bar t rest)
                  (string-pixel-width rest)))
-         (str (propertize " " 'display `(space :align-to (- right (,hpos))))))
+         (str (propertize " " 'display
+                          ;; The `right' spec doesn't work on TTY frames
+                          ;; when windows are split horizontally (bug#59620)
+                          (if (window-system)
+                              `(space :align-to (- right (,hpos)))
+                            `(space :align-to (,(- (frame-inner-width) hpos)))))))
     `((align-right menu-item ,str ignore))))
 
 (defun tab-bar-format-global ()
@@ -1055,11 +1060,11 @@ tab bar might wrap to the second line when it shouldn't.")
                         (string-pixel-width non-tabs))
                      (length tabs)))
       (when tab-bar-auto-width-min
-        (setq width (max width (if window-system
+        (setq width (max width (if (window-system)
                                    (nth 0 tab-bar-auto-width-min)
                                  (nth 1 tab-bar-auto-width-min)))))
       (when tab-bar-auto-width-max
-        (setq width (min width (if window-system
+        (setq width (min width (if (window-system)
                                    (nth 0 tab-bar-auto-width-max)
                                  (nth 1 tab-bar-auto-width-max)))))
       (dolist (item tabs)
@@ -1083,7 +1088,7 @@ tab bar might wrap to the second line when it shouldn't.")
                         (setf (substring name ins-pos ins-pos) space)
                         (setq curr-width (string-pixel-width name))
                         (if (and (< curr-width width)
-                                 (not (eq curr-width prev-width)))
+                                 (> curr-width prev-width))
                             (setq prev-width curr-width
                                   prev-name name)
                           ;; Set back a shorter name
@@ -1096,7 +1101,7 @@ tab bar might wrap to the second line when it shouldn't.")
                         (setf (substring name del-pos1 del-pos2) "")
                         (setq curr-width (string-pixel-width name))
                         (if (and (> curr-width width)
-                                 (not (eq curr-width prev-width)))
+                                 (< curr-width prev-width))
                             (setq prev-width curr-width)
                           (setq continue nil)))
                       (let* ((len (length name))
@@ -1920,13 +1925,16 @@ function `tab-bar-tab-name-function'."
     (when pos
       (tab-bar-move-tab-to pos (1+ tab-index)))))
 
-(defcustom tab-bar-tab-post-change-group-functions nil
+(defcustom tab-bar-tab-post-change-group-functions '(tab-bar-move-tab-to-group)
   "List of functions to call after changing a tab group.
-The current tab is supplied as an argument."
+This hook is run at the end of the function `tab-bar-change-tab-group'.
+The current tab is supplied as an argument.  You can use any function,
+but by default it enables the function `tab-bar-move-tab-to-group'
+that moves the tab closer to its group."
   :type 'hook
   :options '(tab-bar-move-tab-to-group)
   :group 'tab-bar
-  :version "28.1")
+  :version "29.1")
 
 (defun tab-bar-change-tab-group (group-name &optional tab-number)
   "Add the tab specified by its absolute position TAB-NUMBER to GROUP-NAME.
@@ -1937,7 +1945,8 @@ TAB-NUMBER counts from 1.
 If GROUP-NAME is the empty string, then remove the tab from any group.
 While using this command, you might also want to replace
 `tab-bar-format-tabs' with `tab-bar-format-tabs-groups' in
-`tab-bar-format' to group tabs on the tab bar."
+`tab-bar-format' to group tabs on the tab bar.
+Runs the hook `tab-bar-tab-post-change-group-functions' at the end."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
           (tab-number (or current-prefix-arg

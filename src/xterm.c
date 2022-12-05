@@ -1052,6 +1052,20 @@ static const struct x_atom_ref x_atom_refs[] =
     /* Old OffiX (a.k.a. old KDE) drop protocol support.  */
     ATOM_REFS_INIT ("DndProtocol", Xatom_DndProtocol)
     ATOM_REFS_INIT ("_DND_PROTOCOL", Xatom_DND_PROTOCOL)
+    /* Here are some atoms that are not actually used from C, just
+       defined to make replying to selection requests fast.  */
+    ATOM_REFS_INIT ("text/plain;charset=utf-8", Xatom_text_plain_charset_utf_8)
+    ATOM_REFS_INIT ("LENGTH", Xatom_LENGTH)
+    ATOM_REFS_INIT ("FILE_NAME", Xatom_FILE_NAME)
+    ATOM_REFS_INIT ("CHARACTER_POSITION", Xatom_CHARACTER_POSITION)
+    ATOM_REFS_INIT ("LINE_NUMBER", Xatom_LINE_NUMBER)
+    ATOM_REFS_INIT ("COLUMN_NUMBER", Xatom_COLUMN_NUMBER)
+    ATOM_REFS_INIT ("OWNER_OS", Xatom_OWNER_OS)
+    ATOM_REFS_INIT ("HOST_NAME", Xatom_HOST_NAME)
+    ATOM_REFS_INIT ("USER", Xatom_USER)
+    ATOM_REFS_INIT ("CLASS", Xatom_CLASS)
+    ATOM_REFS_INIT ("NAME", Xatom_NAME)
+    ATOM_REFS_INIT ("SAVE_TARGETS", Xatom_SAVE_TARGETS)
   };
 
 enum
@@ -11564,7 +11578,7 @@ x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
   x_frame_rehighlight (dpyinfo);
 }
 
-#ifdef HAVE_XFIXES
+#if defined HAVE_XFIXES && XFIXES_VERSION >= 40000
 
 /* True if the display in DPYINFO supports a version of Xfixes
    sufficient for pointer blanking.  */
@@ -11576,11 +11590,12 @@ x_fixes_pointer_blanking_supported (struct x_display_info *dpyinfo)
 	  && dpyinfo->xfixes_major >= 4);
 }
 
-#endif /* HAVE_XFIXES */
+#endif /* HAVE_XFIXES && XFIXES_VERSION >= 40000 */
 
 /* Toggle mouse pointer visibility on frame F using the XFixes
    extension.  */
-#ifdef HAVE_XFIXES
+#if defined HAVE_XFIXES && XFIXES_VERSION >= 40000
+
 static void
 xfixes_toggle_visible_pointer (struct frame *f, bool invisible)
 
@@ -11591,6 +11606,7 @@ xfixes_toggle_visible_pointer (struct frame *f, bool invisible)
     XFixesShowCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
   f->pointer_invisible = invisible;
 }
+
 #endif /* HAVE_XFIXES */
 
 /* Create invisible cursor on the X display referred by DPYINFO.  */
@@ -11639,7 +11655,7 @@ x_toggle_visible_pointer (struct frame *f, bool invisible)
   if (dpyinfo->invisible_cursor == None)
     dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
 
-#ifndef HAVE_XFIXES
+#if !defined HAVE_XFIXES || XFIXES_VERSION < 40000
   if (dpyinfo->invisible_cursor == None)
     invisible = false;
 #else
@@ -11672,7 +11688,7 @@ static void
 XTtoggle_invisible_pointer (struct frame *f, bool invisible)
 {
   block_input ();
-#ifdef HAVE_XFIXES
+#if defined HAVE_XFIXES && XFIXES_VERSION >= 40000
   if (FRAME_DISPLAY_INFO (f)->fixes_pointer_blanking
       && x_fixes_pointer_blanking_supported (FRAME_DISPLAY_INFO (f)))
     xfixes_toggle_visible_pointer (f, invisible);
@@ -26768,13 +26784,14 @@ x_wm_supports_1 (struct x_display_info *dpyinfo, Atom want_atom)
 
       if (rc != Success || actual_type != XA_ATOM || x_had_errors_p (dpy))
         {
-          if (tmp_data) XFree (tmp_data);
+          if (tmp_data)
+	    XFree (tmp_data);
           x_uncatch_errors ();
           unblock_input ();
           return false;
         }
 
-      dpyinfo->net_supported_atoms = (Atom *)tmp_data;
+      dpyinfo->net_supported_atoms = (Atom *) tmp_data;
       dpyinfo->nr_net_supported_atoms = actual_size;
       dpyinfo->net_supported_window = wmcheck_window;
     }
@@ -27187,13 +27204,12 @@ do_ewmh_fullscreen (struct frame *f)
 static void
 XTfullscreen_hook (struct frame *f)
 {
-  if (FRAME_VISIBLE_P (f))
-    {
-      block_input ();
-      x_check_fullscreen (f);
-      x_sync (f);
-      unblock_input ();
-    }
+  if (!FRAME_VISIBLE_P (f))
+    return;
+
+  block_input ();
+  x_check_fullscreen (f);
+  unblock_input ();
 }
 
 
@@ -27287,10 +27303,7 @@ x_check_fullscreen (struct frame *f)
       if (FRAME_VISIBLE_P (f))
 	x_wait_for_event (f, ConfigureNotify);
       else
-	{
-	  change_frame_size (f, width, height, false, true, false);
-	  x_sync (f);
-	}
+	change_frame_size (f, width, height, false, true, false);
     }
 
   /* `x_net_wm_state' might have reset the fullscreen frame parameter,
@@ -27504,8 +27517,6 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
       adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
 			 FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
 			 5, 0, Qx_set_window_size_1);
-
-      x_sync (f);
     }
 }
 
@@ -28858,6 +28869,53 @@ x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
     }
 
   return value;
+}
+
+/* Intern an array of atoms, and do so quickly, avoiding extraneous
+   roundtrips to the X server.
+
+   Avoid sending atoms that have already been found to the X server.
+   This cannot do anything that will end up triggering garbage
+   collection.  */
+
+void
+x_intern_atoms (struct x_display_info *dpyinfo, char **names, int count,
+		Atom *atoms_return)
+{
+  int i, j, indices[256];
+  char *new_names[256];
+  Atom results[256], candidate;
+
+  if (count > 256)
+    /* Atoms array too big to inspect reasonably, just send it to the
+       server and back.  */
+    XInternAtoms (dpyinfo->display, new_names, count, False, atoms_return);
+  else
+    {
+      for (i = 0, j = 0; i < count; ++i)
+	{
+	  candidate = x_intern_cached_atom (dpyinfo, names[i],
+					    true);
+
+	  if (candidate)
+	    atoms_return[i] = candidate;
+	  else
+	    {
+	      indices[j++] = i;
+	      new_names[j - 1] = names[i];
+	    }
+	}
+
+      if (!j)
+	return;
+
+      /* Now, get the results back from the X server.  */
+      XInternAtoms (dpyinfo->display, new_names, j, False,
+		    results);
+
+      for (i = 0; i < j; ++i)
+	atoms_return[indices[i]] = results[i];
+    }
 }
 
 #ifndef USE_GTK
@@ -30271,7 +30329,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				   1, 0, 1);
 
   dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
-#ifdef HAVE_XFIXES
+#if defined HAVE_XFIXES && XFIXES_VERSION >= 40000
   dpyinfo->fixes_pointer_blanking = egetenv ("EMACS_XFIXES");
 #endif
 
@@ -30599,7 +30657,12 @@ x_delete_display (struct x_display_info *dpyinfo)
       last = ie;
     }
 
+  /* Delete selection requests bound for dpyinfo from the keyboard
+     buffer.  */
   x_delete_selection_requests (dpyinfo);
+
+  /* And remove any outstanding selection transfers.  */
+  x_remove_selection_transfers (dpyinfo);
 
   if (next_noop_dpyinfo == dpyinfo)
     next_noop_dpyinfo = dpyinfo->next;
@@ -30629,6 +30692,9 @@ x_delete_display (struct x_display_info *dpyinfo)
 	  xfree (color_entry);
 	}
     }
+
+  if (dpyinfo->net_supported_atoms)
+    XFree (dpyinfo->net_supported_atoms);
 
   xfree (dpyinfo->color_names);
   xfree (dpyinfo->color_names_length);
@@ -30741,7 +30807,11 @@ static struct redisplay_interface x_redisplay_interface =
 void
 x_delete_terminal (struct terminal *terminal)
 {
-  struct x_display_info *dpyinfo = terminal->display_info.x;
+  struct x_display_info *dpyinfo;
+  struct frame *f;
+  Lisp_Object tail, frame;
+
+  dpyinfo = terminal->display_info.x;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
@@ -30749,6 +30819,19 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   block_input ();
+
+  /* Delete all remaining frames on the display that is going away.
+     Otherwise, font backends assume the display is still up, and
+     xftfont_end_for_frame crashes.  */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+
+      if (FRAME_LIVE_P (f) && f->terminal == terminal)
+	/* Pass Qnoelisp rather than Qt.  */
+	delete_frame (frame, Qnoelisp);
+    }
+
 #ifdef HAVE_X_I18N
   /* We must close our connection to the XIM server before closing the
      X display.  */
@@ -30761,6 +30844,10 @@ x_delete_terminal (struct terminal *terminal)
     {
       image_destroy_all_bitmaps (dpyinfo);
       XSetCloseDownMode (dpyinfo->display, DestroyAll);
+
+      /* Delete the scratch cursor GC, should it exist.  */
+      if (dpyinfo->scratch_cursor_gc)
+	XFreeGC (dpyinfo->display, dpyinfo->scratch_cursor_gc);
 
       /* Get rid of any drag-and-drop operation that might be in
 	 progress as well.  */

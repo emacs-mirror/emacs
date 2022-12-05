@@ -4,7 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -47,6 +47,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org)
 (require 'org-refile)
@@ -57,7 +60,7 @@
 (declare-function org-datetree-find-date-create "org-datetree" (date &optional keep-restriction))
 (declare-function org-datetree-find-month-create (d &optional keep-restriction))
 (declare-function org-decrypt-entry "org-crypt" ())
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-lineage "org-element" (datum &optional types with-self))
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-encrypt-entry "org-crypt" ())
@@ -83,7 +86,7 @@
 (defvar org-table-hlines)
 
 (defvar org-capture-clock-was-started nil
-  "Internal flag, noting if the clock was started.")
+  "Internal flag, keeping marker to the started clock.")
 
 (defvar org-capture-last-stored-marker (make-marker)
   "Marker pointing to the entry most recently stored with `org-capture'.")
@@ -294,6 +297,21 @@ properties are:
 
  :no-save            Do not save the target file after finishing the capture.
 
+ :hook               A nullary function or list of nullary functions run before
+                     `org-capture-mode-hook' when the template is selected.
+
+ :prepare-finalize   A nullary function or list of nullary functions run before
+                     `org-capture-prepare-finalize-hook'
+                     when the template is selected.
+
+ :before-finalize    A nullary function or list of nullary functions run before
+                     `org-capture-before-finalize-hook'
+                     when the template is selected.
+
+ :after-finalize     A nullary function or list of nullary functions run before
+                     `org-capture-after-finalize-hook'
+                     when the template is selected.
+
 The template defines the text to be inserted.  Often this is an
 Org mode entry (so the first line should start with a star) that
 will be filed as a child of the target headline.  It can also be
@@ -309,6 +327,8 @@ be replaced with content and expanded:
               introduced with %[pathname] are expanded this way.
               Since this happens after expanding non-interactive
               %-escapes, those can be used to fill the expression.
+              The evaluation happens with Org mode set as major mode
+              in a temporary buffer.
   %<...>      The result of `format-time-string' on the ... format
               specification.
   %t          Time stamp, date only.  The time stamp is the current
@@ -373,8 +393,8 @@ calendar                |  %:type %:date
 When you need to insert a literal percent sign in the template,
 you can escape ambiguous cases with a backward slash, e.g., \\%i."
   :group 'org-capture
-  :package-version '(Org . "9.5")
-  :set (lambda (s v) (set s (org-capture-upgrade-templates v)))
+  :package-version '(Org . "9.6")
+  :set (lambda (s v) (set-default-toplevel-value s (org-capture-upgrade-templates v)))
   :type
   (let ((file-variants '(choice :tag "Filename       "
 				(file :tag "Literal")
@@ -558,7 +578,8 @@ For example, if you have a capture template \"c\" and you want
 this template to be accessible only from `message-mode' buffers,
 use this:
 
-   \\='((\"c\" ((in-mode . \"message-mode\"))))
+  (setq org-capture-templates-contexts
+        \\='((\"c\" ((in-mode . \"message-mode\")))))
 
 Here are the available contexts definitions:
 
@@ -576,7 +597,8 @@ accessible if there is at least one valid check.
 You can also bind a key to another capture template depending on
 contextual rules.
 
-    \\='((\"c\" \"d\" ((in-mode . \"message-mode\"))))
+  (setq org-capture-templates-contexts
+        \\='((\"c\" \"d\" ((in-mode . \"message-mode\")))))
 
 Here it means: in `message-mode buffers', use \"c\" as the
 key for the capture template otherwise associated with \"d\".
@@ -712,7 +734,8 @@ of the day at point (if any) or the current HH:MM time."
 		  (org-capture-put :interrupted-clock
 				   (copy-marker org-clock-marker)))
 		(org-clock-in)
-		(setq-local org-capture-clock-was-started t))
+		(setq-local org-capture-clock-was-started
+                            (copy-marker org-clock-marker)))
 	    (error "Could not start the clock in this capture buffer")))
 	(when (org-capture-get :immediate-finish)
 	  (org-capture-finalize))))))))
@@ -733,6 +756,17 @@ of the day at point (if any) or the current HH:MM time."
 	(format "* Template function %S not found" f)))
      (_ "* Invalid capture template"))))
 
+(defun org-capture--run-template-functions (keyword &optional local)
+  "Run functions associated with KEYWORD on template's plist.
+For valid values of KEYWORD see `org-capture-templates'.
+If LOCAL is non-nil use the buffer-local value of `org-capture-plist'."
+  ;; Used in place of `run-hooks' because these functions have no associated symbol.
+  ;; They are stored directly on `org-capture-plist'.
+  (let ((value (org-capture-get keyword local)))
+    (if (functionp value)
+        (funcall value)
+      (mapc #'funcall value))))
+
 (defun org-capture-finalize (&optional stay-with-capture)
   "Finalize the capture process.
 With prefix argument STAY-WITH-CAPTURE, jump to the location of the
@@ -744,6 +778,7 @@ captured item after finalizing."
 	       (buffer-base-buffer (current-buffer)))
     (error "This does not seem to be a capture buffer for Org mode"))
 
+  (org-capture--run-template-functions :prepare-finalize 'local)
   (run-hooks 'org-capture-prepare-finalize-hook)
 
   ;; Update `org-capture-plist' with the buffer-local value.  Since
@@ -753,10 +788,7 @@ captured item after finalizing."
 
   ;; Did we start the clock in this capture buffer?
   (when (and org-capture-clock-was-started
-	     org-clock-marker
-	     (eq (marker-buffer org-clock-marker) (buffer-base-buffer))
-	     (>= org-clock-marker (point-min))
-	     (< org-clock-marker (point-max)))
+	     (equal org-clock-marker org-capture-clock-was-started))
     ;; Looks like the clock we started is still running.
     (if org-capture-clock-keep
 	;; User may have completed clocked heading from the template.
@@ -816,6 +848,7 @@ captured item after finalizing."
       ;; the indirect buffer has been killed.
       (org-capture-store-last-position)
 
+      (org-capture--run-template-functions :before-finalize 'local)
       ;; Run the hook
       (run-hooks 'org-capture-before-finalize-hook))
 
@@ -864,6 +897,9 @@ captured item after finalizing."
       ;; Restore the window configuration before capture
       (set-window-configuration return-wconf))
 
+    ;; Do not use the local arg to `org-capture--run-template-functions' here.
+    ;; The buffer-local value has been stored on `org-capture-plist'.
+    (org-capture--run-template-functions :after-finalize)
     (run-hooks 'org-capture-after-finalize-hook)
     ;; Special cases
     (cond
@@ -1050,9 +1086,10 @@ Store them in the capture property list."
                       prompt-time
                     ;; Use 00:00 when no time is given for another
                     ;; date than today?
-                    (apply #'encode-time 0 0
-                           org-extend-today-until
-                           (cl-cdddr (decode-time prompt-time)))))
+                    (org-encode-time
+                     (apply #'list
+                            0 0 org-extend-today-until
+                            (cl-cdddr (decode-time prompt-time))))))
 		 (time-to-days prompt-time)))
 	      (t
 	       ;; Current date, possibly corrected for late night
@@ -1129,7 +1166,7 @@ may have been stored before."
   (org-switch-to-buffer-other-window
    (org-capture-get-indirect-buffer (org-capture-get :buffer) "CAPTURE"))
   (widen)
-  (org-show-all)
+  (org-fold-show-all)
   (goto-char (org-capture-get :pos))
   (setq-local outline-level 'org-outline-level)
   (pcase (org-capture-get :type)
@@ -1139,6 +1176,7 @@ may have been stored before."
     (`item (org-capture-place-item))
     (`checkitem (org-capture-place-item)))
   (setq-local org-capture-current-plist org-capture-plist)
+  (org-capture--run-template-functions :hook 'local)
   (org-capture-mode 1))
 
 (defun org-capture-place-entry ()
@@ -1171,8 +1209,11 @@ may have been stored before."
       (goto-char (point-min))
       (unless (org-at-heading-p) (outline-next-heading)))
      ;; Otherwise, insert as a top-level entry at the end of the file.
-     (t (goto-char (point-max))))
-    (let ((origin (point)))
+     (t (goto-char (point-max))
+        ;; Make sure that last point is not folded.
+        (org-fold-core-cycle-over-indirect-buffers
+          (org-fold-region (max 1 (1- (point-max))) (point-max) nil))))
+    (let ((origin (point-marker)))
       (unless (bolp) (insert "\n"))
       (org-capture-empty-lines-before)
       (let ((beg (point)))
@@ -1237,7 +1278,7 @@ may have been stored before."
 				     (point))
 				   beg)))))))
     ;; Insert template.
-    (let ((origin (point)))
+    (let ((origin (point-marker)))
       (unless (bolp) (insert "\n"))
       ;; When a new list is created, always obey to `:empty-lines' and
       ;; friends.
@@ -1264,7 +1305,7 @@ may have been stored before."
 	(when item
 	  (let ((i (save-excursion
 		     (goto-char (org-element-property :post-affiliated item))
-		     (current-indentation))))
+		     (org-current-text-indentation))))
 	    (save-excursion
 	      (goto-char beg)
 	      (save-excursion
@@ -1338,7 +1379,7 @@ may have been stored before."
       ;; No table found.  Create it with an empty header.
       (goto-char end)
       (unless (bolp) (insert "\n"))
-      (let ((origin (point)))
+      (let ((origin (point-marker)))
 	(insert "|   |\n|---|\n")
 	(narrow-to-region origin (point))))
     ;; In the current table, find the appropriate location for TEXT.
@@ -1367,7 +1408,7 @@ may have been stored before."
      (t
       (goto-char (org-table-end))))
     ;; Insert text and position point according to template.
-    (let ((origin (point)))
+    (let ((origin (point-marker)))
       (unless (bolp) (insert "\n"))
       (let ((beg (point))
 	    (end (save-excursion
@@ -1399,7 +1440,7 @@ Of course, if exact position has been required, just put it there."
    (t
     ;; Beginning or end of file.
     (goto-char (if (org-capture-get :prepend) (point-min) (point-max)))))
-  (let ((origin (point)))
+  (let ((origin (point-marker)))
     (unless (bolp) (insert "\n"))
     (org-capture-empty-lines-before)
     (org-capture-position-for-last-stored (point))
@@ -1569,14 +1610,16 @@ Lisp programs can force the template by setting KEYS to a string."
   "Fill a TEMPLATE and return the filled template as a string.
 The template may still contain \"%?\" for cursor positioning.
 INITIAL content and/or ANNOTATION may be specified, but will be overridden
-by their respective `org-store-link-plist' properties if present."
+by their respective `org-store-link-plist' properties if present.
+
+Expansion occurs in a temporary Org mode buffer."
   (let* ((template (or template (org-capture-get :template)))
 	 (buffer (org-capture-get :buffer))
 	 (file (buffer-file-name (or (buffer-base-buffer buffer) buffer)))
 	 (time (let* ((c (or (org-capture-get :default-time) (current-time)))
 		      (d (decode-time c)))
 		 (if (< (nth 2 d) org-extend-today-until)
-		     (encode-time 0 59 23 (1- (nth 3 d)) (nth 4 d) (nth 5 d))
+		     (org-encode-time 0 59 23 (1- (nth 3 d)) (nth 4 d) (nth 5 d))
 		   c)))
 	 (v-t (format-time-string (org-time-stamp-format nil) time))
 	 (v-T (format-time-string (org-time-stamp-format t) time))
@@ -1642,6 +1685,7 @@ by their respective `org-store-link-plist' properties if present."
       (setq buffer-file-name nil)
       (setq mark-active nil)
       (insert template)
+      (org-mode)
       (goto-char (point-min))
       ;; %[] insert contents of a file.
       (save-excursion
@@ -1817,12 +1861,7 @@ by their respective `org-store-link-plist' properties if present."
 		     (setq org-capture--prompt-history
 			   (gethash prompt org-capture--prompt-history-table))
                      (push (org-completing-read
-                            ;; `format-prompt' is new in Emacs 28.1.
-                            (if (fboundp 'format-prompt)
-                                (format-prompt (or prompt "Enter string") default)
-                              (concat (or prompt "Enter string")
-                                      (and default (format " [%s]" default))
-                                      ": "))
+                            (org-format-prompt (or prompt "Enter string") default)
 			    completions
 			    nil nil nil 'org-capture--prompt-history default)
 			   strings)

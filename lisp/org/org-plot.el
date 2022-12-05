@@ -3,9 +3,9 @@
 ;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
-;; Maintainer: TEC <tecosaur@gmail.com>
+;; Maintainer: TEC <orgmode@tec.tecosaur.net>
 ;; Keywords: tables, plotting
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -30,6 +30,9 @@
 ;; feature suggestions
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'org)
@@ -280,7 +283,7 @@ When NORMALIZE is non-nil, the count is divided by the number of values."
 	     collect (cons n (/ (length m) normaliser)))))
 
 (defun org--plot/prime-factors (value)
-  "Return the prime decomposition of VALUE, e.g. for 12, \\='(3 2 2)."
+  "Return the prime decomposition of VALUE, e.g. for 12, (3 2 2)."
   (let ((factors '(1)) (i 1))
     (while (/= 1 value)
       (setq i (1+ i))
@@ -290,6 +293,11 @@ When NORMALIZE is non-nil, the count is divided by the number of values."
 	(setq i (1- i))
 	))
     (cl-subseq factors 0 -1)))
+
+(defgroup org-plot nil
+  "Options for plotting in Org mode."
+  :tag "Org Plot"
+  :group 'org)
 
 (defcustom org-plot/gnuplot-script-preamble ""
   "String of function to be inserted before the gnuplot plot command is run.
@@ -668,7 +676,8 @@ line directly before or after the table."
 	   (num-cols (length (if (eq (nth 0 table) 'hline) (nth 1 table)
 			       (nth 0 table))))
 	   (type (assoc (plist-get params :plot-type)
-			org-plot/preset-plot-types)))
+			org-plot/preset-plot-types))
+           gnuplot-script)
 
       (unless type
 	(user-error "Org-plot type `%s' is undefined" (plist-get params :plot-type)))
@@ -702,16 +711,17 @@ line directly before or after the table."
 				  ind-column))
 		 (plist-put params :textind t))))) ; ind holds text
       ;; Write script.
+      (setq gnuplot-script
+            (org-plot/gnuplot-script
+             table data-file num-cols params (plist-get params :script)))
       (with-temp-buffer
 	(if (plist-get params :script)	; user script
-	    (progn (insert
-		    (org-plot/gnuplot-script table data-file num-cols params t))
-		   (insert "\n")
+	    (progn (insert gnuplot-script "\n")
 		   (insert-file-contents (plist-get params :script))
 		   (goto-char (point-min))
 		   (while (re-search-forward "\\$datafile" nil t)
 		     (replace-match data-file nil nil)))
-	  (insert (org-plot/gnuplot-script table data-file num-cols params)))
+	  (insert gnuplot-script))
 	;; Graph table.
 	(gnuplot-mode)
         (condition-case nil

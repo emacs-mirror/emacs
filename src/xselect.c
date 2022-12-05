@@ -77,18 +77,20 @@ static void x_send_client_event (Lisp_Object, Lisp_Object, Lisp_Object,
 #define TRACE0(fmt)		(void) 0
 #define TRACE1(fmt, a0)		(void) 0
 #define TRACE2(fmt, a0, a1)	(void) 0
+#define TRACE3(fmt, a0, a1, a2) (void) 0
 #endif
 
 /* Bytes needed to represent 'long' data.  This is as per libX11; it
    is not necessarily sizeof (long).  */
 #define X_LONG_SIZE 4
 
-/* If this is a smaller number than the max-request-size of the display,
-   emacs will use INCR selection transfer when the selection is larger
-   than this.  The max-request-size is usually around 64k, so if you want
-   emacs to use incremental selection transfers when the selection is
-   smaller than that, set this.  I added this mostly for debugging the
-   incremental transfer stuff, but it might improve server performance.
+/* If this is a smaller number than the max-request-size of the
+   display, Emacs will use INCR selection transfer when the selection
+   is larger than this.  The max-request-size is usually around 64k,
+   so if you want emacs to use incremental selection transfers when
+   the selection is smaller than that, set this.  I added this mostly
+   for debugging the incremental transfer stuff, but it might improve
+   server performance.
 
    This value cannot exceed INT_MAX / max (X_LONG_SIZE, sizeof (long))
    because it is multiplied by X_LONG_SIZE and by sizeof (long) in
@@ -101,7 +103,9 @@ static void x_send_client_event (Lisp_Object, Lisp_Object, Lisp_Object,
 static int
 selection_quantum (Display *display)
 {
-  long mrs = XExtendedMaxRequestSize (display);
+  long mrs;
+
+  mrs = XExtendedMaxRequestSize (display);
 
   if (!mrs)
     mrs = XMaxRequestSize (display);
@@ -281,10 +285,8 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
     timestamp = dpyinfo->last_user_time;
 
   block_input ();
-  x_catch_errors (display);
-  XSetSelectionOwner (display, selection_atom, selecting_window, timestamp);
-  x_check_errors (display, "Can't set selection: %s");
-  x_uncatch_errors_after_check ();
+  XSetSelectionOwner (display, selection_atom, selecting_window,
+		      timestamp);
   unblock_input ();
 
   /* Now update the local cache */
@@ -472,18 +474,61 @@ x_decline_selection_request (struct selection_input_event *event)
 
 struct selection_data
 {
+  /* Pointer to the selection data.  */
   unsigned char *data;
+
+  /* A Lisp_Object containing the selection data.  This is either
+     Qnil, or `data' is NULL.  If non-nil, then this must be a string
+     whose contents will be written out verbatim.  */
+  Lisp_Object string;
+
+  /* The size, in number of items, of the selection data.
+     The value is meaningless if string is non-nil.  */
   ptrdiff_t size;
+
+  /* The format of the selection data.  */
   int format;
+
+  /* The type of the selection data.  */
   Atom type;
-  bool nofree;
+
+  /* The property describing the selection data.  */
   Atom property;
-  /* This can be set to non-NULL during x_reply_selection_request, if
-     the selection is waiting for an INCR transfer to complete.  Don't
-     free these; that's done by unexpect_property_change.  */
-  struct prop_location *wait_object;
+
+  /* The next piece of selection data in the current selection request
+     stack frame.  This can be NULL.  */
   struct selection_data *next;
 };
+
+/* Structure representing a single outstanding selection request (or
+   subrequest if MULTIPLE is being used.)  */
+
+struct transfer
+{
+  /* The requestor of this transfer.  */
+  Window requestor;
+
+  /* The current offset in items into the selection data, and the
+     number of items to send with each ChangeProperty request.  */
+  size_t offset, items_per_request;
+
+  /* The display info associated with the transfer.  */
+  struct x_display_info *dpyinfo;
+
+  /* The converted selection data.  */
+  struct selection_data data;
+
+  /* The next and last selection transfers on this list.  */
+  struct transfer *next, *last;
+
+  /* The atimer for the timeout.  */
+  struct atimer *timeout;
+
+  /* Flags.  */
+  int flags;
+};
+
+#define SELECTED_EVENTS 1
 
 struct x_selection_request
 {
@@ -510,6 +555,46 @@ struct x_selection_request
    NULL if all requests have been fully processed.  */
 
 struct x_selection_request *selection_request_stack;
+
+/* List of all outstanding selection transfers which are currently
+   being processed.  */
+
+struct transfer outstanding_transfers;
+
+
+
+struct prop_location
+{
+  int identifier;
+  Display *display;
+  Window window;
+  Atom property;
+  int desired_state;
+  bool arrived;
+  struct prop_location *next;
+};
+
+static int prop_location_identifier;
+
+static Lisp_Object property_change_reply;
+
+static struct prop_location *property_change_reply_object;
+
+static struct prop_location *property_change_wait_list;
+
+static void
+set_property_change_object (struct prop_location *location)
+{
+  /* Input must be blocked so we don't get the event before we set
+     these.  */
+  if (! input_blocked_p ())
+    emacs_abort ();
+
+  XSETCAR (property_change_reply, Qnil);
+  property_change_reply_object = location;
+}
+
+
 
 static void
 x_push_current_selection_request (struct selection_input_event *se,
@@ -554,7 +639,7 @@ x_selection_request_lisp_error (void)
   for (cs = frame->converted_selections; cs; cs = next)
     {
       next = cs->next;
-      if (! cs->nofree && cs->data)
+      if (cs->data)
 	xfree (cs->data);
       xfree (cs);
     }
@@ -564,250 +649,408 @@ x_selection_request_lisp_error (void)
     x_decline_selection_request (frame->request);
 }
 
-static void
-x_catch_errors_unwind (void)
-{
-  block_input ();
-  x_uncatch_errors ();
-  unblock_input ();
-}
 
 
-/* This stuff is so that INCR selections are reentrant (that is, so we can
-   be servicing multiple INCR selection requests simultaneously.)  I haven't
-   actually tested that yet.  */
-
-/* Keep a list of the property changes that are awaited.  */
-
-struct prop_location
+static size_t
+c_size_for_format (int format)
 {
-  int identifier;
-  Display *display;
-  Window window;
-  Atom property;
-  int desired_state;
-  bool arrived;
-  struct prop_location *next;
-};
+  switch (format)
+    {
+    case 8:
+      return sizeof (char);
 
-static int prop_location_identifier;
+    case 16:
+      return sizeof (short);
 
-static Lisp_Object property_change_reply;
+    case 32:
+      return sizeof (long);
+    }
 
-static struct prop_location *property_change_reply_object;
-
-static struct prop_location *property_change_wait_list;
-
-static void
-set_property_change_object (struct prop_location *location)
-{
-  /* Input must be blocked so we don't get the event before we set these.  */
-  if (! input_blocked_p ())
-    emacs_abort ();
-  XSETCAR (property_change_reply, Qnil);
-  property_change_reply_object = location;
+  emacs_abort ();
 }
 
-
+static size_t
+x_size_for_format (int format)
+{
+  switch (format)
+    {
+    case 8:
+      return 1;
+
+    case 16:
+      return 2;
+
+    case 32:
+      return 4;
+    }
+
+  emacs_abort ();
+}
+
+/* Return a pointer to the remaining part of the selection data, given
+   a pointer to a struct selection_data and an offset in items.  Place
+   the number of items remaining in REMAINING.  Garbage collection
+   must not happen, or the returned pointer becomes invalid.  */
+
+static unsigned char *
+selection_data_for_offset (struct selection_data *data,
+			   long offset, size_t *remaining)
+{
+  unsigned char *base;
+  size_t size;
+
+  if (!NILP (data->string))
+    {
+      base = SDATA (data->string);
+      size = SBYTES (data->string);
+    }
+  else
+    {
+      base = data->data;
+      size = data->size;
+    }
+
+  if (offset >= size)
+    {
+      *remaining = 0;
+      return NULL;
+    }
+
+  base += (offset * c_size_for_format (data->format));
+  *remaining = size - offset;
+  return base;
+}
+
+/* Return the size, in bytes transferred to the X server, of
+   data->size items of selection data in data->format-bit
+   quantities.  */
+
+static size_t
+selection_data_size (struct selection_data *data)
+{
+  size_t scratch;
+
+  if (!NILP (data->string))
+    return SBYTES (data->string);
+
+  switch (data->format)
+    {
+    case 8:
+      return (size_t) data->size;
+
+    case 16:
+      if (INT_MULTIPLY_WRAPV (data->size, 2, &scratch))
+	return SIZE_MAX;
+
+      return scratch;
+
+    case 32:
+      if (INT_MULTIPLY_WRAPV (data->size, 4, &scratch))
+	return SIZE_MAX;
+
+      return scratch;
+    }
+
+  /* The specified format is invalid.  */
+  emacs_abort ();
+}
+
+/* Return whether or not another outstanding selection transfer is
+   still selecting for events on the specified requestor window.  */
+
+static bool
+transfer_selecting_event (struct x_display_info *dpyinfo,
+			  Window requestor)
+{
+  struct transfer *next;
+
+  next = outstanding_transfers.next;
+  for (; next != &outstanding_transfers; next = next->next)
+    {
+      if (next->requestor == requestor
+	  && next->dpyinfo == dpyinfo)
+	return true;
+    }
+
+  return false;
+}
+
+/* Cancel the specified selection transfer.  When called by
+   `start_transfer', the transfer may be partially formed.  */
+
+static void
+x_cancel_selection_transfer (struct transfer *transfer)
+{
+  xfree (transfer->data.data);
+
+  if (transfer->next)
+    {
+      transfer->next->last = transfer->last;
+      transfer->last->next = transfer->next;
+    }
+
+  if (transfer->flags & SELECTED_EVENTS
+      && !transfer_selecting_event (transfer->dpyinfo,
+				    transfer->requestor)
+      /* This can be called from x_delete_display.  */
+      && transfer->dpyinfo->display)
+    {
+      /* Ignore errors generated by the change window request in case
+	 the window has gone away.  */
+      block_input ();
+      x_ignore_errors_for_next_request (transfer->dpyinfo);
+      XSelectInput (transfer->dpyinfo->display,
+		    transfer->requestor, NoEventMask);
+      x_stop_ignoring_errors (transfer->dpyinfo);
+      unblock_input ();
+    }
+
+  cancel_atimer (transfer->timeout);
+  xfree (transfer);
+}
+
+static void
+x_selection_transfer_timeout (struct atimer *atimer)
+{
+  struct transfer *transfer;
+
+  transfer = atimer->client_data;
+  x_cancel_selection_transfer (transfer);
+}
+
+/* Start a selection transfer to write the specified selection data to
+   its requestor.  If the data is small enough, write it to the
+   requestor window and return.  Otherwise, start INCR transfer and
+   begin listening for PropertyNotify events on the requestor.  */
+
+static void
+x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
+			    struct selection_data *data)
+{
+  struct transfer *transfer;
+  intmax_t timeout;
+  intmax_t secs;
+  int nsecs;
+  size_t remaining, max_size;
+  unsigned char *xdata;
+  unsigned long data_size;
+
+  timeout = max (0, x_selection_timeout);
+  secs = timeout / 1000;
+  nsecs = (timeout % 1000) * 1000000;
+
+  if ((Atom *) data->data
+      == &selection_request_stack->conversion_fail_tag)
+    return;
+
+  transfer = xzalloc (sizeof *transfer);
+  transfer->requestor = requestor;
+  transfer->dpyinfo = dpyinfo;
+
+  transfer->timeout = start_atimer (ATIMER_RELATIVE,
+				    make_timespec (secs, nsecs),
+				    x_selection_transfer_timeout,
+				    transfer);
+
+  /* Note that DATA is copied into transfer.  DATA->data is then set
+     to NULL, giving the struct transfer ownership over the selection
+     data.  */
+
+  transfer->data = *data;
+  data->data = NULL;
+
+  /* Finally, transfer now holds a reference to data->string, if it is
+     present.  GC cannot be allowed to happen until this function
+     returns.  */
+  data->string = Qnil;
+
+  /* Now, try to write the selection data.  If it is bigger than
+     selection_quantum (dpyinfo->display), start incremental transfer
+     and link the transfer onto the list of pending selections.
+     Otherwise, write the transfer at once.  */
+
+  max_size = selection_quantum (dpyinfo->display);
+
+  TRACE3 (" x_start_selection_transfer: transferring to 0x%lx.  "
+	  "transfer consists of %zu bytes, quantum being %zu",
+	  requestor, selection_data_size (&transfer->data),
+	  max_size);
+
+  if (selection_data_size (&transfer->data) > max_size)
+    {
+      /* Begin incremental selection transfer.  First, calculate how
+	 many elements it is ok to write for every ChangeProperty
+	 request.  */
+      transfer->items_per_request
+	= (max_size / x_size_for_format (transfer->data.format));
+      TRACE1 (" x_start_selection_transfer: starting incremental"
+	      " selection transfer, with %zu items per request",
+	      transfer->items_per_request);
+
+      /* Next, link the transfer onto the list of pending selection
+	 transfers.  */
+      transfer->next = outstanding_transfers.next;
+      transfer->last = &outstanding_transfers;
+      transfer->next->last = transfer;
+      transfer->last->next = transfer;
+
+      /* Now, write the INCR property to begin incremental selection
+	 transfer.  offset is currently 0.  */
+
+      data_size = selection_data_size (&transfer->data);
+
+      x_ignore_errors_for_next_request (dpyinfo);
+      XChangeProperty (dpyinfo->display, requestor,
+		       transfer->data.property,
+		       dpyinfo->Xatom_INCR, 32, PropModeReplace,
+		       (unsigned char *) &data_size, 1);
+
+      /* This assumes that Emacs is not selecting for any other events
+	 from the requestor!
+
+         If the holder of some manager selections (i.e. the settings
+         manager) asks Emacs for selection data, things will subtly go
+         wrong.  */
+      XSelectInput (dpyinfo->display, requestor, PropertyChangeMask);
+      transfer->flags |= SELECTED_EVENTS;
+      x_stop_ignoring_errors (dpyinfo);
+    }
+  else
+    {
+      /* Write the property data now.  */
+      xdata = selection_data_for_offset (&transfer->data,
+					 0, &remaining);
+      eassert (remaining <= INT_MAX);
+
+      TRACE1 (" x_start_selection_transfer:  writing"
+	      " %zu elements directly to requestor window",
+	      remaining);
+
+      x_ignore_errors_for_next_request (dpyinfo);
+      XChangeProperty (dpyinfo->display, requestor,
+		       transfer->data.property,
+		       transfer->data.type,
+		       transfer->data.format,
+		       PropModeReplace, xdata, remaining);
+      x_stop_ignoring_errors (dpyinfo);
+
+      /* Next, get rid of the transfer.  */
+      x_cancel_selection_transfer (transfer);
+    }
+}
+
+/* Write out the next piece of data that is part of the specified
+   selection transfer.  If no more data remains to be written, write
+   the EOF property and complete the transfer.  */
+
+static void
+x_continue_selection_transfer (struct transfer *transfer)
+{
+  size_t remaining;
+  unsigned char *xdata;
+
+  xdata = selection_data_for_offset (&transfer->data,
+				     transfer->offset,
+				     &remaining);
+  remaining = min (remaining, transfer->items_per_request);
+
+  if (!remaining)
+    {
+      /* The transfer is finished.  Write zero-length property data to
+	 signal EOF and remove the transfer.  */
+      TRACE0 (" x_continue_selection_transfer: writing 0 items to"
+	      " indicate EOF");
+      x_ignore_errors_for_next_request (transfer->dpyinfo);
+      XChangeProperty (transfer->dpyinfo->display,
+		       transfer->requestor,
+		       transfer->data.property,
+		       transfer->data.type,
+		       transfer->data.format,
+		       PropModeReplace,
+		       NULL, 0);
+      x_stop_ignoring_errors (transfer->dpyinfo);
+      TRACE0 (" x_continue_selection_transfer: done sending incrementally");
+
+      x_cancel_selection_transfer (transfer);
+    }
+  else
+    {
+      TRACE2 (" x_continue_selection_transfer: writing %zu items"
+	      "; current offset is %zu", remaining, transfer->offset);
+      eassert (remaining <= INT_MAX);
+
+      x_ignore_errors_for_next_request (transfer->dpyinfo);
+      XChangeProperty (transfer->dpyinfo->display,
+		       transfer->requestor,
+		       transfer->data.property,
+		       transfer->data.type,
+		       transfer->data.format,
+		       PropModeReplace, xdata,
+		       remaining);
+      x_stop_ignoring_errors (transfer->dpyinfo);
+      transfer->offset += remaining;
+    }
+}
+
+void
+x_remove_selection_transfers (struct x_display_info *dpyinfo)
+{
+  struct transfer *next, *last;
+
+  next = outstanding_transfers.next;
+  while (next != &outstanding_transfers)
+    {
+      last = next;
+      next = next->next;
+
+      if (last->dpyinfo == dpyinfo)
+	x_cancel_selection_transfer (last);
+    }
+}
+
 /* Send the reply to a selection request event EVENT.  */
-
-#ifdef TRACE_SELECTION
-static int x_reply_selection_request_cnt;
-#endif  /* TRACE_SELECTION */
 
 static void
 x_reply_selection_request (struct selection_input_event *event,
                            struct x_display_info *dpyinfo)
 {
-  XEvent reply_base;
-  XSelectionEvent *reply = &(reply_base.xselection);
-  Display *display = SELECTION_EVENT_DISPLAY (event);
-  Window window = SELECTION_EVENT_REQUESTOR (event);
-  ptrdiff_t bytes_remaining;
-  int max_bytes = selection_quantum (display);
-  specpdl_ref count = SPECPDL_INDEX ();
+  XEvent message;
   struct selection_data *cs;
   struct x_selection_request *frame;
 
+  block_input ();
   frame = selection_request_stack;
 
-  reply->type = SelectionNotify;
-  reply->display = display;
-  reply->requestor = window;
-  reply->selection = SELECTION_EVENT_SELECTION (event);
-  reply->time = SELECTION_EVENT_TIME (event);
-  reply->target = SELECTION_EVENT_TARGET (event);
-  reply->property = SELECTION_EVENT_PROPERTY (event);
-  if (reply->property == None)
-    reply->property = reply->target;
+  message.xselection.type = SelectionNotify;
+  message.xselection.display = dpyinfo->display;
+  message.xselection.requestor = SELECTION_EVENT_REQUESTOR (event);
+  message.xselection.selection = SELECTION_EVENT_SELECTION (event);
+  message.xselection.time = SELECTION_EVENT_TIME (event);
+  message.xselection.target = SELECTION_EVENT_TARGET (event);
+  message.xselection.property = SELECTION_EVENT_PROPERTY (event);
 
-  block_input ();
-  /* The protected block contains wait_for_property_change, which can
-     run random lisp code (process handlers) or signal.  Therefore, we
-     put the x_uncatch_errors call in an unwind.  */
-  record_unwind_protect_void (x_catch_errors_unwind);
-  x_catch_errors (display);
+  if (message.xselection.property == None)
+    message.xselection.property = message.xselection.target;
 
-  /* Loop over converted selections, storing them in the requested
-     properties.  If data is large, only store the first N bytes
-     (section 2.7.2 of ICCCM).  Note that we store the data for a
-     MULTIPLE request in the opposite order; the ICCM says only that
-     the conversion itself must be done in the same order. */
+  /* For each of the converted selections, start a write transfer from
+     Emacs to the requestor.  */
   for (cs = frame->converted_selections; cs; cs = cs->next)
-    {
-      if (cs->property == None)
-	continue;
+    x_start_selection_transfer (dpyinfo,
+				SELECTION_EVENT_REQUESTOR (event),
+				cs);
 
-      bytes_remaining = cs->size;
-      bytes_remaining *= cs->format >> 3;
-      if (bytes_remaining <= max_bytes)
-	{
-	  /* Send all the data at once, with minimal handshaking.  */
-	  TRACE1 ("Sending all %"pD"d bytes", bytes_remaining);
-	  XChangeProperty (display, window, cs->property,
-			   cs->type, cs->format, PropModeReplace,
-			   cs->data, cs->size);
-	}
-      else
-	{
-	  /* Send an INCR tag to initiate incremental transfer.  */
-	  long value[1];
 
-	  TRACE2 ("Start sending %"pD"d bytes incrementally (%s)",
-		  bytes_remaining, XGetAtomName (display, cs->property));
-	  cs->wait_object
-	    = expect_property_change (display, window, cs->property,
-				      PropertyDelete);
-
-	  /* XChangeProperty expects an array of long even if long is
-	     more than 32 bits.  */
-	  value[0] = min (bytes_remaining, X_LONG_MAX);
-	  XChangeProperty (display, window, cs->property,
-			   dpyinfo->Xatom_INCR, 32, PropModeReplace,
-			   (unsigned char *) value, 1);
-	  XSelectInput (display, window, PropertyChangeMask);
-	}
-    }
-
-  /* Now issue the SelectionNotify event.  */
-  XSendEvent (display, window, False, 0, &reply_base);
-  XFlush (display);
-
-#ifdef TRACE_SELECTION
-  {
-    char *sel = XGetAtomName (display, reply->selection);
-    char *tgt = XGetAtomName (display, reply->target);
-    TRACE3 ("Sent SelectionNotify: %s, target %s (%d)",
-	    sel, tgt, ++x_reply_selection_request_cnt);
-    if (sel) XFree (sel);
-    if (tgt) XFree (tgt);
-  }
-#endif /* TRACE_SELECTION */
-
-  /* Finish sending the rest of each of the INCR values.  This should
-     be improved; there's a chance of deadlock if more than one
-     subtarget in a MULTIPLE selection requires an INCR transfer, and
-     the requestor and Emacs loop waiting on different transfers.  */
-  for (cs = frame->converted_selections; cs; cs = cs->next)
-    if (cs->wait_object)
-      {
-	int format_bytes = cs->format / 8;
-	bool had_errors_p = x_had_errors_p (display);
-
-        /* Must set this inside block_input ().  unblock_input may read
-           events and setting property_change_reply in
-           wait_for_property_change is then too late.  */
-        set_property_change_object (cs->wait_object);
-	unblock_input ();
-
-	bytes_remaining = cs->size;
-	bytes_remaining *= format_bytes;
-
-	/* Wait for the requestor to ack by deleting the property.
-	   This can run Lisp code (process handlers) or signal.  */
-	if (! had_errors_p)
-	  {
-	    TRACE1 ("Waiting for ACK (deletion of %s)",
-		    XGetAtomName (display, cs->property));
-	    wait_for_property_change (cs->wait_object);
-	  }
-	else
-	  unexpect_property_change (cs->wait_object);
-
-	while (bytes_remaining)
-	  {
-	    int i = ((bytes_remaining < max_bytes)
-		     ? bytes_remaining
-		     : max_bytes) / format_bytes;
-	    block_input ();
-
-	    cs->wait_object
-	      = expect_property_change (display, window, cs->property,
-					PropertyDelete);
-
-	    TRACE1 ("Sending increment of %d elements", i);
-	    TRACE1 ("Set %s to increment data",
-		    XGetAtomName (display, cs->property));
-
-	    /* Append the next chunk of data to the property.  */
-	    XChangeProperty (display, window, cs->property,
-			     cs->type, cs->format, PropModeAppend,
-			     cs->data, i);
-	    bytes_remaining -= i * format_bytes;
-	    cs->data += i * ((cs->format == 32) ? sizeof (long)
-			     : format_bytes);
-	    XFlush (display);
-	    had_errors_p = x_had_errors_p (display);
-            /* See comment above about property_change_reply.  */
-            set_property_change_object (cs->wait_object);
-	    unblock_input ();
-
-	    if (had_errors_p) break;
-
-	    /* Wait for the requestor to ack this chunk by deleting
-	       the property.  This can run Lisp code or signal.  */
-	    TRACE1 ("Waiting for increment ACK (deletion of %s)",
-		    XGetAtomName (display, cs->property));
-	    wait_for_property_change (cs->wait_object);
-	  }
-
-	/* Now write a zero-length chunk to the property to tell the
-	   requestor that we're done.  */
-	block_input ();
-	if (! waiting_for_other_props_on_window (display, window))
-	  XSelectInput (display, window, 0);
-
-	TRACE1 ("Set %s to a 0-length chunk to indicate EOF",
-		XGetAtomName (display, cs->property));
-	XChangeProperty (display, window, cs->property,
-			 cs->type, cs->format, PropModeReplace,
-			 cs->data, 0);
-	TRACE0 ("Done sending incrementally");
-      }
-
-  /* rms, 2003-01-03: I think I have fixed this bug.  */
-  /* The window we're communicating with may have been deleted
-     in the meantime (that's a real situation from a bug report).
-     In this case, there may be events in the event queue still
-     referring to the deleted window, and we'll get a BadWindow error
-     in XTread_socket when processing the events.  I don't have
-     an idea how to fix that.  gerd, 2001-01-98.   */
-  /* 2004-09-10: XSync and UNBLOCK so that possible protocol errors are
-     delivered before uncatch errors.  */
-  XSync (display, False);
-  unblock_input ();
-
-  /* GTK queues events in addition to the queue in Xlib.  So we
-     UNBLOCK to enter the event loop and get possible errors delivered,
-     and then BLOCK again because x_uncatch_errors requires it.  */
-  block_input ();
-  /* This calls x_uncatch_errors.  */
-  unbind_to (count, Qnil);
+  /* Send the SelectionNotify event to the requestor, telling it that
+     the property data has arrived.  */
+  x_ignore_errors_for_next_request (dpyinfo);
+  XSendEvent (dpyinfo->display, SELECTION_EVENT_REQUESTOR (event),
+	      False, NoEventMask, &message);
+  x_stop_ignoring_errors (dpyinfo);
   unblock_input ();
 }
-
-/* Handle a SelectionRequest event EVENT.
-   This is called from keyboard.c when such an event is found in the queue.  */
+
+/* Handle a SelectionRequest event EVENT.  This is called from
+   keyboard.c when such an event is found in the queue.  */
 
 static void
 x_handle_selection_request (struct selection_input_event *event)
@@ -916,11 +1159,12 @@ x_handle_selection_request (struct selection_input_event *event)
 	  if (!subsuccess)
 	    ASET (multprop, 2*j+1, Qnil);
 	}
+
       /* Save conversion results */
       lisp_data_to_selection_data (dpyinfo, multprop, &cs);
 
-      /* If cs.type is ATOM, change it to ATOM_PAIR.  This is because
-	 the parameters to a MULTIPLE are ATOM_PAIRs.  */
+      /* If cs.type is ATOM, change it to ATOM_PAIR.  This is
+	 because the parameters to a MULTIPLE are ATOM_PAIRs.  */
 
       if (cs.type == XA_ATOM)
 	cs.type = dpyinfo->Xatom_ATOM_PAIR;
@@ -929,11 +1173,14 @@ x_handle_selection_request (struct selection_input_event *event)
 		       cs.type, cs.format, PropModeReplace,
 		       cs.data, cs.size);
       success = true;
+
+      xfree (cs.data);
     }
   else
     {
       if (property == None)
 	property = SELECTION_EVENT_TARGET (event);
+
       success = x_convert_selection (selection_symbol,
 				     target_symbol, property,
 				     false, dpyinfo,
@@ -942,13 +1189,13 @@ x_handle_selection_request (struct selection_input_event *event)
 
  DONE:
 
-  if (pushed)
-    selection_request_stack->converted = true;
-
   if (success)
     x_reply_selection_request (event, dpyinfo);
   else
     x_decline_selection_request (event);
+
+  if (pushed)
+    selection_request_stack->converted = true;
 
   /* Run the `x-sent-selection-functions' abnormal hook.  */
   if (!NILP (Vx_sent_selection_functions)
@@ -960,6 +1207,7 @@ x_handle_selection_request (struct selection_input_event *event)
  REALLY_DONE:
 
   unbind_to (count, Qnil);
+  return;
 }
 
 /* Perform the requested selection conversion, and write the data to
@@ -995,11 +1243,10 @@ x_convert_selection (Lisp_Object selection_symbol,
 	  cs->data = ((unsigned char *)
 		      &selection_request_stack->conversion_fail_tag);
 	  cs->size = 1;
+	  cs->string = Qnil;
 	  cs->format = 32;
 	  cs->type = XA_ATOM;
-	  cs->nofree = true;
 	  cs->property = property;
-	  cs->wait_object = NULL;
 	  cs->next = frame->converted_selections;
 	  frame->converted_selections = cs;
 	}
@@ -1010,11 +1257,11 @@ x_convert_selection (Lisp_Object selection_symbol,
   /* Otherwise, record the converted selection to binary.  */
   cs = xmalloc (sizeof *cs);
   cs->data = NULL;
-  cs->nofree = true;
+  cs->string = Qnil;
   cs->property = property;
-  cs->wait_object = NULL;
   cs->next = frame->converted_selections;
   frame->converted_selections = cs;
+
   lisp_data_to_selection_data (dpyinfo, lisp_selection, cs);
   return true;
 }
@@ -1274,6 +1521,10 @@ void
 x_handle_property_notify (const XPropertyEvent *event)
 {
   struct prop_location *rest;
+  struct transfer *next;
+#ifdef TRACE_SELECTION
+  char *name;
+#endif
 
   for (rest = property_change_wait_list; rest; rest = rest->next)
     {
@@ -1283,9 +1534,16 @@ x_handle_property_notify (const XPropertyEvent *event)
 	  && rest->display == event->display
 	  && rest->desired_state == event->state)
 	{
+#ifdef TRACE_SELECTION
+	  name = XGetAtomName (event->display, event->atom);
+
 	  TRACE2 ("Expected %s of property %s",
 		  (event->state == PropertyDelete ? "deletion" : "change"),
-		  XGetAtomName (event->display, event->atom));
+		  name ? name : "unknown");
+
+	  if (name)
+	    XFree (name);
+#endif
 
 	  rest->arrived = true;
 
@@ -1296,6 +1554,26 @@ x_handle_property_notify (const XPropertyEvent *event)
 
 	  return;
 	}
+    }
+
+  /* Look for a property change for an outstanding selection
+     transfer.  */
+  next = outstanding_transfers.next;
+  while (next != &outstanding_transfers)
+    {
+      if (next->dpyinfo->display == event->display
+	  && next->requestor == event->window
+	  && next->data.property == event->atom
+	  && event->state == PropertyDelete)
+	{
+	  TRACE1 ("Expected PropertyDelete event arrived from the"
+		  " requestor window %lx", next->requestor);
+
+	  x_continue_selection_transfer (next);
+	  return;
+	}
+
+      next = next->next;
     }
 }
 
@@ -1450,10 +1728,10 @@ x_get_window_property (Display *display, Window window, Atom property,
   /* Maximum value for TOTAL_SIZE.  It cannot exceed PTRDIFF_MAX - 1
      and SIZE_MAX - 1, for an extra byte at the end.  And it cannot
      exceed LONG_MAX * X_LONG_SIZE, for XGetWindowProperty.  */
-  ptrdiff_t total_size_max =
-    ((min (PTRDIFF_MAX, SIZE_MAX) - 1) / x_long_size < LONG_MAX
-     ? min (PTRDIFF_MAX, SIZE_MAX) - 1
-     : LONG_MAX * x_long_size);
+  ptrdiff_t total_size_max
+    = ((min (PTRDIFF_MAX, SIZE_MAX) - 1) / x_long_size < LONG_MAX
+       ? min (PTRDIFF_MAX, SIZE_MAX) - 1
+       : LONG_MAX * x_long_size);
 
   block_input ();
 
@@ -1946,10 +2224,14 @@ static void
 lisp_data_to_selection_data (struct x_display_info *dpyinfo,
 			     Lisp_Object obj, struct selection_data *cs)
 {
-  Lisp_Object type = Qnil;
+  Lisp_Object type;
+  char **name_buffer;
+
+  USE_SAFE_ALLOCA;
+
+  type = Qnil;
 
   eassert (cs != NULL);
-  cs->nofree = false;
 
   if (CONSP (obj) && SYMBOLP (XCAR (obj)))
     {
@@ -1959,8 +2241,10 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
 	obj = XCAR (obj);
     }
 
+  /* This is not the same as declining.  */
+
   if (EQ (obj, QNULL) || (EQ (type, QNULL)))
-    {				/* This is not the same as declining */
+    {
       cs->format = 32;
       cs->size = 0;
       cs->data = NULL;
@@ -1971,12 +2255,14 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
       if (SCHARS (obj) < SBYTES (obj))
 	/* OBJ is a multibyte string containing a non-ASCII char.  */
 	signal_error ("Non-ASCII string must be encoded in advance", obj);
+
       if (NILP (type))
 	type = QSTRING;
+
       cs->format = 8;
-      cs->size = SBYTES (obj);
-      cs->data = SDATA (obj);
-      cs->nofree = true;
+      cs->size = -1;
+      cs->data = NULL;
+      cs->string = obj;
     }
   else if (SYMBOLP (obj))
     {
@@ -2048,8 +2334,19 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
 	  x_atoms = data;
 	  cs->format = 32;
 	  cs->size = size;
-	  for (i = 0; i < size; i++)
-	    x_atoms[i] = symbol_to_x_atom (dpyinfo, AREF (obj, i));
+
+	  if (size == 1)
+	    x_atoms[0] = symbol_to_x_atom (dpyinfo, AREF (obj, i));
+	  else
+	    {
+	      SAFE_NALLOCA (name_buffer, sizeof *x_atoms, size);
+
+	      for (i = 0; i < size; i++)
+		name_buffer[i] = SSDATA (SYMBOL_NAME (AREF (obj, i)));
+
+	      x_intern_atoms (dpyinfo, name_buffer, size,
+			      x_atoms);
+	    }
 	}
       else
 	/* This vector is an INTEGER set, or something like it */
@@ -2091,6 +2388,8 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
     signal_error (/* Qselection_error */ "Unrecognized selection data", obj);
 
   cs->type = symbol_to_x_atom (dpyinfo, type);
+
+  SAFE_FREE ();
 }
 
 static Lisp_Object
@@ -2618,8 +2917,8 @@ x_check_property_data (Lisp_Object data)
    XClientMessageEvent).  */
 
 void
-x_fill_property_data (Display *dpy, Lisp_Object data, void *ret,
-		      int nelements_max, int format)
+x_fill_property_data (struct x_display_info *dpyinfo, Lisp_Object data,
+		      void *ret, int nelements_max, int format)
 {
   unsigned long val;
   unsigned long  *d32 = (unsigned long  *) ret;
@@ -2654,7 +2953,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret,
       else if (STRINGP (o))
         {
           block_input ();
-          val = XInternAtom (dpy, SSDATA (o), False);
+          val = x_intern_cached_atom (dpyinfo, SSDATA (o), false);
           unblock_input ();
         }
       else
@@ -2942,7 +3241,7 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 
   memset (event.xclient.data.l, 0, sizeof (event.xclient.data.l));
   /* event.xclient.data can hold 20 chars, 10 shorts, or 5 longs.  */
-  x_fill_property_data (dpyinfo->display, values, event.xclient.data.b,
+  x_fill_property_data (dpyinfo, values, event.xclient.data.b,
                         5 * 32 / event.xclient.format,
                         event.xclient.format);
 
@@ -3002,10 +3301,11 @@ syms_of_xselect (void)
 
   reading_selection_reply = Fcons (Qnil, Qnil);
   staticpro (&reading_selection_reply);
-
   staticpro (&property_change_reply);
 
-  /* FIXME: Duplicate definition in nsselect.c.  */
+  outstanding_transfers.next = &outstanding_transfers;
+  outstanding_transfers.last = &outstanding_transfers;
+
   DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
 	       doc: /* An alist associating X Windows selection-types with functions.
 These functions are called to convert the selection, with three args:
@@ -3120,9 +3420,43 @@ Note that this does not affect setting or owning selections.  */);
 static void
 syms_of_xselect_for_pdumper (void)
 {
+  outstanding_transfers.next = &outstanding_transfers;
+  outstanding_transfers.last = &outstanding_transfers;
+
   reading_selection_window = 0;
   reading_which_selection = 0;
   property_change_wait_list = 0;
   prop_location_identifier = 0;
   property_change_reply = Fcons (Qnil, Qnil);
+}
+
+void
+mark_xselect (void)
+{
+  struct transfer *next;
+  struct x_selection_request *frame;
+  struct selection_data *cs;
+
+  /* Mark all the strings being used as selection data.  A string that
+     is still reachable is always reachable via either the selection
+     request stack or the list of outstanding transfers.  */
+
+  next = outstanding_transfers.next;
+
+  if (!next)
+    /* syms_of_xselect has not yet been called.  */
+    return;
+
+  while (next != &outstanding_transfers)
+    {
+      mark_object (next->data.string);
+      next = next->next;
+    }
+
+  frame = selection_request_stack;
+  for (; frame; frame = frame->last)
+    {
+      for (cs = frame->converted_selections; cs; cs = cs->next)
+	mark_object (cs->string);
+    }
 }

@@ -361,7 +361,7 @@ See `run-hooks'."
 	       ) t)
         "\\>") 1)
       ;;
-      ;; It wouldn't be Scheme w/o named-let.
+      ;; It wouldn't be Scheme without named-let.
       '("(let\\s-+\\(\\sw+\\)"
         (1 font-lock-function-name-face))
       ;;

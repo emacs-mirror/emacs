@@ -4871,7 +4871,8 @@
 
 2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* help-fns.el (describe-function-1): Handle autoloads w/o docstrings.
+	* help-fns.el (describe-function-1): Handle autoloads without
+	docstrings.
 
 	* emacs-lisp/bytecomp.el (byte-compile-eval): Adjust to long-ago
 	changes to the format of load-history.

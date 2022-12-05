@@ -2052,7 +2052,8 @@ info node `(cl) Function Bindings' for details.
     (dolist (binding bindings)
       (let ((var (make-symbol (format "--cl-%s--" (car binding))))
             (args-and-body (cdr binding)))
-        (if (and (= (length args-and-body) 1) (symbolp (car args-and-body)))
+        (if (and (= (length args-and-body) 1)
+                 (macroexp-copyable-p (car args-and-body)))
             ;; Optimize (cl-flet ((fun var)) body).
             (setq var (car args-and-body))
           (push (list var (if (= (length args-and-body) 1)

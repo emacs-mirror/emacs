@@ -77,15 +77,14 @@ version is used."
 
 (defcustom erc-sasl-password :password
   "Optional account password to send when authenticating.
-When the value is a string, ERC will use it unconditionally for
-most mechanisms.  Likewise with `:password', except ERC will
-instead use the \"session password\" on file, which often
-originates from the entry-point commands `erc' or `erc-tls'.
-Otherwise, when `erc-sasl-auth-source-function' is a function,
-ERC will attempt an auth-source query, possibly using a non-nil
-symbol for the suggested `:host' parameter if set as this
-option's value or passed as an `:id' to `erc-tls'.  Failing that,
-ERC will prompt for input.
+When `erc-sasl-auth-source-function' is a function, ERC will
+attempt an auth-source query and prompt for input if it fails.
+Otherwise, when the value is a nonempty string, ERC will use it
+unconditionally for most mechanisms.  Likewise with `:password',
+except ERC will instead use the \"session password\" on file, if
+any, which often originates from the entry-point commands `erc'
+or `erc-tls'.  As with auth-source, ERC will prompt for input as
+a fallback.
 
 Note that, with `:password', ERC will forgo sending a traditional
 server password via the IRC \"PASS\" command.  Also, when
@@ -95,15 +94,18 @@ option should hold the file name of the key."
 
 (defcustom erc-sasl-auth-source-function nil
   "Function to query auth-source for an SASL password.
-Called with keyword params known to `auth-source-search', which
-includes `erc-sasl-user' for the `:user' field and
-`erc-sasl-password' for the `:host' field, when the latter option
-is a non-nil, non-keyword symbol.  In return, ERC expects a
-string to send as the SASL password, or nil, to move on to the
-next approach, as described in the doc string for the option
-`erc-sasl-password'.  See info node `(erc) Connecting' for
-details on ERC's auth-source integration."
-  :type '(choice (function-item erc-auth-source-search)
+If provided, this function should expect to be called with any
+number of keyword params known to `auth-source-search', even
+though ERC itself only specifies `:user' paired with a
+\"resolved\" `erc-sasl-user' value.  When calling this function,
+ERC binds all options defined in this library, such as
+`erc-sasl-password', to their values from entry-point invocation.
+In return, ERC expects a string to send as the SASL password, or
+nil, in which case, ERC will prompt the for input.  See info
+node `(erc) Connecting' for details on ERC's auth-source
+integration."
+  :type '(choice (function-item erc-sasl-auth-source-password-as-host)
+                 (function-item erc-auth-source-search)
                  (const nil)
                  function))
 
@@ -130,19 +132,35 @@ details on ERC's auth-source integration."
     (:nick (erc-downcase (erc-current-nick)))
     (v v)))
 
+(defun erc-sasl-auth-source-password-as-host (&rest plist)
+  "Call `erc-auth-source-search' with `erc-sasl-password' as `:host'.
+But only do so when it's a string or a non-nil symbol, unless
+that symbol is `:password', in which case, use a non-nil
+`erc-session-password' instead.  Otherwise, just defer to
+`erc-auth-source-search' to pick a suitable `:host'.  Expect
+PLIST to contain keyword params known to `auth-source-search'."
+  (when erc-sasl-password
+    (when-let ((host (if (eq :password erc-sasl-password)
+                         (and (not (functionp erc-session-password))
+                              erc-session-password)
+                       erc-sasl-password)))
+      (setq plist `(,@plist :host ,(format "%s" host)))))
+  (apply #'erc-auth-source-search plist))
+
 (defun erc-sasl--read-password (prompt)
   "Return configured option or server password.
-PROMPT is passed to `read-passwd' if necessary."
-  (if-let
-      ((found (pcase (alist-get 'password erc-sasl--options)
-                (:password erc-session-password)
-                ((and (pred stringp) v) (unless (string-empty-p v) v))
-                ((and (guard erc-sasl-auth-source-function)
-                      v (let host
-                          (or v (erc-networks--id-given erc-networks--id))))
-                 (apply erc-sasl-auth-source-function
-                        :user (erc-sasl--get-user)
-                        (and host (list :host (symbol-name host))))))))
+If necessary, pass PROMPT to `read-passwd'."
+  (if-let ((found (pcase (alist-get 'password erc-sasl--options)
+                    ((guard (alist-get 'authfn erc-sasl--options))
+                     (let-alist erc-sasl--options
+                       (let ((erc-sasl-user .user)
+                             (erc-sasl-password .password)
+                             (erc-sasl-mechanism .mechanism)
+                             (erc-sasl-authzid .authzid)
+                             (erc-sasl-auth-source-function .authfn))
+                         (funcall .authfn :user (erc-sasl--get-user)))))
+                    (:password erc-session-password)
+                    ((and (pred stringp) v) (unless (string-empty-p v) v)))))
       (copy-sequence (erc--unfun found))
     (read-passwd prompt)))
 
@@ -293,6 +311,7 @@ PROMPT is passed to `read-passwd' if necessary."
             `((user . ,erc-sasl-user)
               (password . ,erc-sasl-password)
               (mechanism . ,erc-sasl-mechanism)
+              (authfn . ,erc-sasl-auth-source-function)
               (authzid . ,erc-sasl-authzid)))))
 
 (defun erc-sasl--mechanism-offered-p (offered)

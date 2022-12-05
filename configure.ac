@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.65])
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT([GNU Emacs], [29.0.50], [bug-gnu-emacs@gnu.org], [],
+AC_INIT([GNU Emacs], [30.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
@@ -4216,11 +4216,13 @@ AC_SUBST_FILE([module_env_snippet_26])
 AC_SUBST_FILE([module_env_snippet_27])
 AC_SUBST_FILE([module_env_snippet_28])
 AC_SUBST_FILE([module_env_snippet_29])
+AC_SUBST_FILE([module_env_snippet_30])
 module_env_snippet_25="$srcdir/src/module-env-25.h"
 module_env_snippet_26="$srcdir/src/module-env-26.h"
 module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
+module_env_snippet_30="$srcdir/src/module-env-30.h"
 emacs_major_version="${PACKAGE_VERSION%%.*}"
 AC_SUBST([emacs_major_version])
 
@@ -4702,7 +4704,7 @@ AC_SUBST([XINERAMA_LIBS])
 ### Use Xfixes (-lXfixes) if available
 HAVE_XFIXES=no
 if test "${HAVE_X11}" = "yes"; then
-  XFIXES_REQUIRED=4.0.0
+  XFIXES_REQUIRED=1.0.0
   XFIXES_MODULES="xfixes >= $XFIXES_REQUIRED"
   EMACS_CHECK_MODULES([XFIXES], [$XFIXES_MODULES])
   if test $HAVE_XFIXES = no; then

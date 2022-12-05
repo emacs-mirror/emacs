@@ -5,7 +5,7 @@
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -23,12 +23,16 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'ob-core)
 (require 'ob-table)
 
 (declare-function org-babel-ref-split-args "ob-ref" (arg-string))
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-element-type "org-element" (element))
@@ -50,7 +54,7 @@ should not be inherited from a source block.")
   (interactive "fFile: ")
   (let ((lob-ingest-count 0))
     (org-babel-map-src-blocks file
-      (let* ((info (org-babel-get-src-block-info 'light))
+      (let* ((info (org-babel-get-src-block-info 'no-eval))
 	     (source-name (nth 4 info)))
 	(when source-name
 	  (setf (nth 1 info)
@@ -74,9 +78,10 @@ should not be inherited from a source block.")
 Detect if this is context for a Library Of Babel source block and
 if so then run the appropriate source block from the Library."
   (interactive)
-  (let ((info (org-babel-lob-get-info)))
+  (let* ((datum (org-element-context))
+         (info (org-babel-lob-get-info datum)))
     (when info
-      (org-babel-execute-src-block nil info)
+      (org-babel-execute-src-block nil info nil (org-element-type datum))
       t)))
 
 (defun org-babel-lob--src-info (ref)
@@ -114,10 +119,15 @@ after REF in the Library of Babel."
 	    (cdr (assoc-string ref org-babel-library-of-babel))))))))
 
 ;;;###autoload
-(defun org-babel-lob-get-info (&optional datum)
+(defun org-babel-lob-get-info (&optional datum no-eval)
   "Return internal representation for Library of Babel function call.
 
 Consider DATUM, when provided, or element at point otherwise.
+
+When optional argument NO-EVAL is non-nil, Babel does not resolve
+remote variable references; a process which could likely result
+in the execution of other code blocks, and do not evaluate Lisp
+values in parameters.
 
 Return nil when not on an appropriate location.  Otherwise return
 a list compatible with `org-babel-get-src-block-info', which
@@ -139,16 +149,16 @@ see."
 			org-babel-default-lob-header-args
 			(append
 			 (org-with-point-at begin
-			   (org-babel-params-from-properties language))
+			   (org-babel-params-from-properties language no-eval))
 			 (list
 			  (org-babel-parse-header-arguments
-			   (org-element-property :inside-header context))
+			   (org-element-property :inside-header context) no-eval)
 			  (let ((args (org-element-property :arguments context)))
 			    (and args
 				 (mapcar (lambda (ref) (cons :var ref))
 					 (org-babel-ref-split-args args))))
 			  (org-babel-parse-header-arguments
-			   (org-element-property :end-header context)))))
+			   (org-element-property :end-header context) no-eval))))
 		 nil
 		 (org-element-property :name context)
 		 begin

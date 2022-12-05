@@ -10678,6 +10678,8 @@ This function might do hidden buffer changes."
 	(c-forward-syntactic-ws))
 
       (when (and (not got-identifier)
+		 (or backup-at-type
+		     (not (memq context '(arglist decl))))
 		 (or (and new-style-auto
 			  (looking-at c-auto-ops-re))
 		     (and (or maybe-typeless backup-maybe-typeless)

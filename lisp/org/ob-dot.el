@@ -3,9 +3,9 @@
 ;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
-;; Maintainer: Justin Abrahms
+;; Maintainer: Justin Abrahms <justin@abrah.ms>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -39,6 +39,10 @@
 ;; 4) there are no variables (at least for now)
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 
 (defvar org-babel-default-header-args:dot

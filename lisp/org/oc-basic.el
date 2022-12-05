@@ -66,6 +66,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'bibtex)
 (require 'json)
 (require 'map)
@@ -222,6 +225,10 @@ Return a hash table with citation references as keys and fields alist as values.
   (let ((entries (make-hash-table :test #'equal))
         (bibtex-sort-ignore-string-entries t))
     (bibtex-set-dialect dialect t)
+    ;; Throw an error if bibliography is malformed.
+    (unless (bibtex-validate)
+      (user-error "Malformed bibliography at %S"
+                  (or (buffer-file-name) (current-buffer))))
     (bibtex-map-entries
      (lambda (key &rest _)
        ;; Normalize entries: field names are turned into symbols
@@ -237,7 +244,11 @@ Return a hash table with citation references as keys and fields alist as values.
                       (cons
                        (intern (downcase field))
                        (replace-regexp-in-string "[ \t\n]+" " " value)))))
-                 (bibtex-parse-entry t))
+                 ;; Parse, substituting the @string replacements.
+                 ;; See Emacs bug#56475 discussion.
+                 (let ((bibtex-string-files `(,(buffer-file-name)))
+                       (bibtex-expand-strings t))
+                   (bibtex-parse-entry t)))
                 entries)))
     entries))
 
@@ -266,21 +277,26 @@ Optional argument INFO is the export state, as a property list."
             (when (or (org-file-has-changed-p file)
                       (not (gethash file org-cite-basic--file-id-cache)))
               (insert-file-contents file)
+              (set-visited-file-name file t)
               (puthash file (org-buffer-hash) org-cite-basic--file-id-cache))
-	    (let* ((file-id (cons file (gethash file org-cite-basic--file-id-cache)))
-                   (entries
-                    (or (cdr (assoc file-id org-cite-basic--bibliography-cache))
-                        (let ((table
-                               (pcase (file-name-extension file)
-                                 ("json" (org-cite-basic--parse-json))
-                                 ("bib" (org-cite-basic--parse-bibtex 'biblatex))
-                                 ("bibtex" (org-cite-basic--parse-bibtex 'BibTeX))
-                                 (ext
-                                  (user-error "Unknown bibliography extension: %S"
-                                              ext)))))
-                          (push (cons file-id table) org-cite-basic--bibliography-cache)
-                          table))))
-              (push (cons file entries) results)))))
+            (condition-case nil
+                (unwind-protect
+	            (let* ((file-id (cons file (gethash file org-cite-basic--file-id-cache)))
+                           (entries
+                            (or (cdr (assoc file-id org-cite-basic--bibliography-cache))
+                                (let ((table
+                                       (pcase (file-name-extension file)
+                                         ("json" (org-cite-basic--parse-json))
+                                         ("bib" (org-cite-basic--parse-bibtex 'biblatex))
+                                         ("bibtex" (org-cite-basic--parse-bibtex 'BibTeX))
+                                         (ext
+                                          (user-error "Unknown bibliography extension: %S"
+                                                      ext)))))
+                                  (push (cons file-id table) org-cite-basic--bibliography-cache)
+                                  table))))
+                      (push (cons file entries) results))
+                  (set-visited-file-name nil t))
+              (error (setq org-cite-basic--file-id-cache nil))))))
       (when info (plist-put info :cite-basic/bibliography results))
       results)))
 
@@ -333,6 +349,20 @@ non-nil."
         (org-export-raw-string value)
       value)))
 
+(defun org-cite-basic--shorten-names (names)
+  "Return a list of family names from a list of full NAMES.
+
+To better accomomodate corporate names, this will only shorten
+personal names of the form \"family, given\"."
+  (when (stringp names)
+    (mapconcat
+     (lambda (name)
+       (if (eq 1 (length name))
+           (cdr (split-string name))
+         (car (split-string name ", "))))
+     (split-string names " and ")
+     ", ")))
+
 (defun org-cite-basic--number-to-suffix (n)
   "Compute suffix associated to number N.
 This is used for disambiguation."
@@ -348,6 +378,17 @@ This is used for disambiguation."
                         ((< n 27) (throw :complete (cons (1- n) result)))
                         ((= n 27) (throw :complete (cons 0 (cons 0 result))))
                         (t nil))))))))
+
+(defun org-cite-basic--get-author (entry-or-key &optional info raw)
+  "Return author associated to ENTRY-OR-KEY.
+
+ENTRY-OR-KEY, INFO and RAW arguments are the same arguments as
+used in `org-cite-basic--get-field', which see.
+
+Author is obtained from the \"author\" field, if available, or
+from the \"editor\" field otherwise."
+  (or (org-cite-basic--get-field 'author entry-or-key info raw)
+      (org-cite-basic--get-field 'editor entry-or-key info raw)))
 
 (defun org-cite-basic--get-year (entry-or-key info &optional no-suffix)
   "Return year associated to ENTRY-OR-KEY.
@@ -372,7 +413,7 @@ necessary, unless optional argument NO-SUFFIX is non-nil."
   ;; KEY-SUFFIX-ALIST is an association (KEY . SUFFIX), where KEY is
   ;; the cite key, as a string, and SUFFIX is the generated suffix
   ;; string, or the empty string.
-  (let* ((author (org-cite-basic--get-field 'author entry-or-key info 'raw))
+  (let* ((author (org-cite-basic--get-author entry-or-key info 'raw))
          (year
           (or (org-cite-basic--get-field 'year entry-or-key info 'raw)
               (let ((date
@@ -408,7 +449,7 @@ necessary, unless optional argument NO-SUFFIX is non-nil."
   "Format ENTRY according to STYLE string.
 ENTRY is an alist, as returned by `org-cite-basic--get-entry'.
 Optional argument INFO is the export state, as a property list."
-  (let ((author (org-cite-basic--get-field 'author entry info))
+  (let ((author (org-cite-basic--get-author entry info))
         (title (org-cite-basic--get-field 'title entry info))
         (from
          (or (org-cite-basic--get-field 'publisher entry info)
@@ -419,7 +460,8 @@ Optional argument INFO is the export state, as a property list."
       ("plain"
        (let ((year (org-cite-basic--get-year entry info 'no-suffix)))
          (org-cite-concat
-          author ". " title (and from (list ", " from)) ", " year ".")))
+          (org-cite-basic--shorten-names author) ". "
+          title (and from (list ", " from)) ", " year ".")))
       ("numeric"
        (let ((n (org-cite-basic--key-number (cdr (assq 'id entry)) info))
              (year (org-cite-basic--get-year entry info 'no-suffix)))
@@ -460,13 +502,15 @@ substitutes for the unknown key.  Finally, it may be the symbol
         (_
          (lambda ()
            (interactive)
-           (goto-char beg)
-           (delete-region beg end)
-           (insert "@"
-                   (if (= 1 (length suggestions))
-                       (car suggestions)
-                     (completing-read "Did you mean: "
-                                      suggestions nil t)))))))
+           (save-excursion
+             (goto-char beg)
+             (delete-region beg end)
+             (insert
+              "@"
+              (if (= 1 (length suggestions))
+                  (car suggestions)
+                (completing-read "Did you mean: "
+                                 suggestions nil t))))))))
     (put-text-property beg end 'keymap km)))
 
 (defun org-cite-basic-activate (citation)
@@ -536,7 +580,7 @@ INFO is the export state, as a property list."
                      (suffix (org-element-property :suffix ref)))
                  (funcall format-ref
                           prefix
-                          (org-cite-basic--get-field 'author k info)
+                          (org-cite-basic--get-author k info)
                           (org-cite-basic--get-year k info)
                           suffix)))
              (org-cite-get-references citation)
@@ -575,7 +619,7 @@ INFO is the export state as a property list."
 INFO is the export state, as a property list."
   (and field
        (lambda (a b)
-         (org-string-collate-lessp
+         (string-collate-lessp
           (org-cite-basic--get-field field a info 'raw)
           (org-cite-basic--get-field field b info 'raw)
           nil t))))
@@ -608,7 +652,7 @@ export communication channel, as a property list."
          (org-export-data
           (mapconcat
            (lambda (key)
-             (let ((author (org-cite-basic--get-field 'author key info)))
+             (let ((author (org-cite-basic--get-author key info)))
                (if caps (capitalize author) author)))
            (org-cite-get-references citation t)
            org-cite-basic-author-year-separator)
@@ -669,15 +713,17 @@ KEYS is the list of cited keys, as strings.  STYLE is the expected bibliography
 style, as a string.  BACKEND is the export back-end, as a symbol.  INFO is the
 export state, as a property list."
   (mapconcat
-   (lambda (k)
-     (let ((entry (org-cite-basic--get-entry k info)))
-       (org-export-data
-        (org-cite-make-paragraph
-         (and (org-export-derived-backend-p backend 'latex)
-              (org-export-raw-string "\\noindent\n"))
-         (org-cite-basic--print-entry entry style info))
-        info)))
-   (org-cite-basic--sort-keys keys info)
+   (lambda (entry)
+     (org-export-data
+      (org-cite-make-paragraph
+       (and (org-export-derived-backend-p backend 'latex)
+            (org-export-raw-string "\\noindent\n"))
+       (org-cite-basic--print-entry entry style info))
+      info))
+   (delq nil
+         (mapcar
+          (lambda (k) (org-cite-basic--get-entry k info))
+          (org-cite-basic--sort-keys keys info)))
    "\n"))
 
 
@@ -750,7 +796,7 @@ Return nil if there are no bibliography files or no entries."
                        (list :cite-basic/bibliography entries)))
                (completion
                 (concat
-                 (let ((author (org-cite-basic--get-field 'author entry nil 'raw)))
+                 (let ((author (org-cite-basic--get-author entry nil 'raw)))
                    (if author
                        (truncate-string-to-width
                         (replace-regexp-in-string " and " "; " author)

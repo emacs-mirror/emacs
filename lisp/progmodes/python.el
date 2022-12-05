@@ -454,7 +454,7 @@ This variant of `rx' supports common Python named REGEXPS."
             (close-paren       (or "}" "]" ")"))
             (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
             (not-simple-operator (not (or simple-operator ?\n)))
-            (operator          (or "==" ">=" "is" "not"
+            (operator          (or "==" ">="
                                    "**" "//" "<<" ">>" "<=" "!="
                                    "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
                                    "=" "%"))
@@ -791,6 +791,7 @@ sign in chained assignment."
                    (? (or ")" "]") (* sp-bsnl))
                    (group assignment-operator)))
      (1 font-lock-variable-name-face)
+     (2 'font-lock-operator-face)
      (,(python-rx grouped-assignment-target)
       (progn
         (goto-char (match-end 1))       ; go back after the first symbol
@@ -806,8 +807,9 @@ sign in chained assignment."
        (python-rx (or line-start ?\;) (* sp-bsnl)
                   grouped-assignment-target (* sp-bsnl)
                   (? ?: (* sp-bsnl) (+ not-simple-operator) (* sp-bsnl))
-                  assignment-operator))
-     (1 font-lock-variable-name-face))
+                  (group assignment-operator)))
+     (1 font-lock-variable-name-face)
+     (2 'font-lock-operator-face))
     ;; special cases
     ;;   (a) = 5
     ;;   [a] = 5,
@@ -817,8 +819,11 @@ sign in chained assignment."
                   (or "[" "(") (* sp-nl)
                   grouped-assignment-target (* sp-nl)
                   (or ")" "]") (* sp-bsnl)
-                  assignment-operator))
-     (1 font-lock-variable-name-face))
+                  (group assignment-operator)))
+     (1 font-lock-variable-name-face)
+     (2 'font-lock-operator-face))
+    ;; Operators.
+    (,(python-rx operator) . 'font-lock-operator-face)
     ;; escape sequences within bytes literals
     ;;   "\\" "\'" "\a" "\b" "\f" "\n" "\r" "\t" "\v"
     ;;   "\ooo" character with octal value ooo
@@ -962,9 +967,9 @@ It makes underscores and dots word constituent chars.")
 ;; merge with `python-font-lock-keywords-level-2'.
 
 (defvar python--treesit-keywords
-  '("as" "assert" "async" "await" "break" "class" "continue" "def"
+  '("as" "assert" "async" "await" "break" "case" "class" "continue" "def"
     "del" "elif" "else" "except" "exec" "finally" "for" "from"
-    "global" "if" "import" "lambda" "nonlocal" "pass" "print"
+    "global" "if" "import" "lambda" "match" "nonlocal" "pass" "print"
     "raise" "return" "try" "while" "with" "yield"
     ;; These are technically operators, but we fontify them as
     ;; keywords.
@@ -1064,7 +1069,7 @@ fontified."
     (when (eq (char-after string-beg) ?f)
       (cl-incf string-beg))
     (treesit-fontify-with-override
-     (max start string-beg) (min end string-end) face override)))
+     string-beg string-end face override start end)))
 
 (defvar python--treesit-settings
   (treesit-font-lock-rules
@@ -6584,9 +6589,6 @@ implementations: `python-mode' and `python-ts-mode'."
 
   (make-local-variable 'python-shell-internal-buffer)
 
-  (when python-indent-guess-indent-offset
-    (python-indent-guess-indent-offset))
-
   (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
 
 ;;;###autoload
@@ -6605,7 +6607,11 @@ implementations: `python-mode' and `python-ts-mode'."
               python-syntax-propertize-function)
   (setq-local imenu-create-index-function
               #'python-imenu-create-index)
-  (add-hook 'which-func-functions #'python-info-current-defun nil t))
+
+  (add-hook 'which-func-functions #'python-info-current-defun nil t)
+
+  (when python-indent-guess-indent-offset
+    (python-indent-guess-indent-offset)))
 
 ;;;###autoload
 (define-derived-mode python-ts-mode python-base-mode "Python"
@@ -6625,7 +6631,10 @@ implementations: `python-mode' and `python-ts-mode'."
                 #'python-imenu-treesit-create-index)
     (setq-local treesit-defun-type-regexp (rx (or "function" "class")
                                               "_definition"))
-    (treesit-major-mode-setup)))
+    (treesit-major-mode-setup)
+
+  (when python-indent-guess-indent-offset
+    (python-indent-guess-indent-offset))))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code

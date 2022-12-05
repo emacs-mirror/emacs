@@ -136,11 +136,18 @@ If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
 ;;;###autoload(put 'vc-git-annotate-switches 'safe-local-variable (lambda (switches) (equal switches "-w")))
 
 (defcustom vc-git-log-switches nil
-  "String or list of strings specifying switches for Git log under VC."
+  "String or list of strings giving Git log switches for non-shortlogs."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
   :version "28.1")
+
+(defcustom vc-git-shortlog-switches nil
+  "String or list of strings giving Git log switches for shortlogs."
+  :type '(choice (const :tag "None" nil)
+                 (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string))
+  :version "30.1")
 
 (defcustom vc-git-resolve-conflicts t
   "When non-nil, mark conflicted file as resolved upon saving.
@@ -1325,7 +1332,8 @@ If LIMIT is a revision string, use it as an end-revision."
                     ,(format "--pretty=tformat:%s"
                              (car vc-git-root-log-format))
                     "--abbrev-commit"))
-                vc-git-log-switches
+                (ensure-list
+                 (if shortlog vc-git-shortlog-switches vc-git-log-switches))
                 (when (numberp limit)
                   (list "-n" (format "%s" limit)))
 		(when start-revision
@@ -1340,16 +1348,16 @@ If LIMIT is a revision string, use it as an end-revision."
 
 (defun vc-git-log-outgoing (buffer remote-location)
   (vc-setup-buffer buffer)
-  (vc-git-command
-   buffer 'async nil
-   "log"
-   "--no-color" "--graph" "--decorate" "--date=short"
-   (format "--pretty=tformat:%s" (car vc-git-root-log-format))
-   "--abbrev-commit"
-   (concat (if (string= remote-location "")
-	       "@{upstream}"
-	     remote-location)
-	   "..HEAD")))
+  (apply #'vc-git-command buffer 'async nil
+         `("log"
+           "--no-color" "--graph" "--decorate" "--date=short"
+           ,(format "--pretty=tformat:%s" (car vc-git-root-log-format))
+           "--abbrev-commit"
+           ,@(ensure-list vc-git-shortlog-switches)
+           ,(concat (if (string= remote-location "")
+	                "@{upstream}"
+	              remote-location)
+	            "..HEAD"))))
 
 (defun vc-git-log-incoming (buffer remote-location)
   (vc-setup-buffer buffer)
@@ -1359,15 +1367,15 @@ If LIMIT is a revision string, use it as an end-revision."
                     ;; so remove everything except a repository name.
                     (replace-regexp-in-string
                      "/.*" "" remote-location)))
-  (vc-git-command
-   buffer 'async nil
-   "log"
-   "--no-color" "--graph" "--decorate" "--date=short"
-   (format "--pretty=tformat:%s" (car vc-git-root-log-format))
-   "--abbrev-commit"
-   (concat "HEAD.." (if (string= remote-location "")
-			"@{upstream}"
-		      remote-location))))
+  (apply #'vc-git-command buffer 'async nil
+         `("log"
+           "--no-color" "--graph" "--decorate" "--date=short"
+           ,(format "--pretty=tformat:%s" (car vc-git-root-log-format))
+           "--abbrev-commit"
+           ,@(ensure-list vc-git-shortlog-switches)
+           ,(concat "HEAD.." (if (string= remote-location "")
+			         "@{upstream}"
+		               remote-location)))))
 
 (defun vc-git-log-search (buffer pattern)
   "Search the log of changes for PATTERN and output results into BUFFER.
@@ -1378,6 +1386,7 @@ Display all entries that match log messages in long format.
 With a prefix argument, ask for a command to run that will output
 log entries."
   (let ((args `("log" "--no-color" "-i"
+                ,@(ensure-list vc-git-log-switches)
                 ,(format "--grep=%s" (or pattern "")))))
     (when current-prefix-arg
       (setq args (cdr (split-string
@@ -1462,7 +1471,11 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-expanded-log-entry (revision)
   (with-temp-buffer
-    (apply #'vc-git-command t nil nil (list "log" revision "-1"  "--no-color" "--"))
+    (apply #'vc-git-command t nil nil
+           `("log"
+             ,revision
+             "-1"  "--no-color" ,@(ensure-list vc-git-log-switches)
+             "--"))
     (goto-char (point-min))
     (unless (eobp)
       ;; Indent the expanded log entry.

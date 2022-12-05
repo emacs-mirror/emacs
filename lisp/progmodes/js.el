@@ -3647,7 +3647,7 @@ OVERRIDE is the override flag described in
         (setq font-beg (max start font-beg))
         (when (< font-beg end)
           (treesit-fontify-with-override
-           font-beg font-end 'font-lock-string-face override)))
+           font-beg font-end 'font-lock-string-face override start end)))
       (setq font-beg (treesit-node-end child)
             child (treesit-node-next-sibling child)))))
 
@@ -3849,7 +3849,8 @@ Currently there are `js-mode' and `js-ts-mode'."
     ;; Comment.
     (setq-local comment-start "// ")
     (setq-local comment-end "")
-    (setq-local comment-start-skip (rx (group "/" (or (+ "/") (+ "*")))
+    (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
+                                           (seq "/" (+ "*")))
                                        (* (syntax whitespace))))
     (setq-local comment-end-skip
                 (rx (* (syntax whitespace))

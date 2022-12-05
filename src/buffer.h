@@ -1277,8 +1277,7 @@ set_buffer_intervals (struct buffer *b, INTERVAL i)
 INLINE bool
 buffer_has_overlays (void)
 {
-  return current_buffer->overlays
-         && (current_buffer->overlays->root != NULL);
+  return !itree_empty_p (current_buffer->overlays);
 }
 
 /* Functions for accessing a character or byte,

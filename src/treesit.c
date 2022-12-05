@@ -810,7 +810,10 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
    with BUF_BEGV_BYTE and BUG_ZV_BYTE.  When calling this function you
    must make sure the current buffer's size in bytes is not larger than
    UINT32_MAX.  Basically, always call treesit_check_buffer_size before
-   this function.  */
+   this function.
+
+   If buffer range changed since last parse (visible_beg/end doesn't
+   match buffer visible beginning/end), set need_reparse to true.  */
 static void
 treesit_sync_visible_region (Lisp_Object parser)
 {
@@ -833,6 +836,12 @@ treesit_sync_visible_region (Lisp_Object parser)
 
   eassert (BUF_BEGV_BYTE (buffer) <= UINT32_MAX);
   eassert (BUF_ZV_BYTE (buffer) <= UINT32_MAX);
+
+  /* If buffer restriction changed and user requests for a node (hence
+     this function is called), we need to reparse.  */
+  if (visible_beg != BUF_BEGV_BYTE (buffer)
+      || visible_end != BUF_ZV_BYTE (buffer))
+    XTS_PARSER (parser)->need_reparse = true;
 
   /* Before we parse or set ranges, catch up with the narrowing
      situation.  We change visible_beg and visible_end to match
@@ -879,6 +888,8 @@ treesit_sync_visible_region (Lisp_Object parser)
     }
   eassert (0 <= visible_beg);
   eassert (visible_beg <= visible_end);
+  eassert (visible_beg == BUF_BEGV_BYTE (buffer));
+  eassert (visible_end == BUF_ZV_BYTE (buffer));
 
   XTS_PARSER (parser)->visible_beg = visible_beg;
   XTS_PARSER (parser)->visible_end = visible_end;
@@ -922,16 +933,19 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
 static void
 treesit_ensure_parsed (Lisp_Object parser)
 {
+  struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
+
+  /* Before we parse, catch up with the narrowing situation.  */
+  treesit_check_buffer_size (buffer);
+  /* This function has to run before we check for need_reparse flag,
+     because it might set the flag to true.  */
+  treesit_sync_visible_region (parser);
+
   if (!XTS_PARSER (parser)->need_reparse)
     return;
   TSParser *treesit_parser = XTS_PARSER (parser)->parser;
   TSTree *tree = XTS_PARSER (parser)->tree;
   TSInput input = XTS_PARSER (parser)->input;
-  struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
-
-  /* Before we parse, catch up with the narrowing situation.  */
-  treesit_check_buffer_size (buffer);
-  treesit_sync_visible_region (parser);
 
   TSTree *new_tree = ts_parser_parse (treesit_parser, tree, input);
   /* This should be very rare (impossible, really): it only happens

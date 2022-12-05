@@ -21,9 +21,11 @@
 
 (require 'ert)
 (require 'server)
+(require 'cl-lib)
 
 (defconst server-tests/can-create-frames-p
-  (not (memq system-type '(windows-nt ms-dos)))
+  (and (not (memq system-type '(windows-nt ms-dos)))
+       (not (member (getenv "TERM") '("dumb" "" nil))))
   "Non-nil if we can create a new frame in the tests.
 Some tests below need to create new frames for the emacsclient.
 However, this doesn't work on all platforms.  In particular,
@@ -188,8 +190,9 @@ tests that `server-force-stop' doesn't delete frames (and even
 then, requires a few tricks to run as a regression test).  So
 long as this works, the problem in bug#58877 shouldn't occur."
   (skip-unless server-tests/can-create-frames-p)
-  (let ((starting-frame-count (length (frame-list)))
-        terminal)
+  (let* ((starting-frames (frame-list))
+         (starting-frame-count (length starting-frames))
+         terminal)
     (unwind-protect
         (server-tests/with-server
           (server-tests/with-client emacsclient '("-c") 'exit
@@ -214,6 +217,9 @@ long as this works, the problem in bug#58877 shouldn't occur."
       (when (and terminal
                  (eq (terminal-live-p terminal) t)
                  (not (eq system-type 'windows-nt)))
-        (delete-terminal terminal)))))
+        (delete-terminal terminal)))
+    ;; Delete the created frame.
+    (delete-frame (car (cl-set-difference (frame-list) starting-frames))
+                  t)))
 
 ;;; server-tests.el ends here
