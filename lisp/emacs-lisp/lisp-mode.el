@@ -514,7 +514,7 @@ This will generate compile-time constants from BINDINGS."
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
          (,(lambda (bound) (lisp-mode--search-key "&" bound))
-          (0 font-lock-builtin-face))
+          (0 font-lock-type-face))
          ;; ELisp regexp grouping constructs
          (,(lambda (bound)
              (catch 'found
@@ -567,7 +567,7 @@ This will generate compile-time constants from BINDINGS."
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
          (,(lambda (bound) (lisp-mode--search-key "&" bound))
-          (0 font-lock-builtin-face))
+          (0 font-lock-type-face))
          ;; ELisp regexp grouping constructs
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'

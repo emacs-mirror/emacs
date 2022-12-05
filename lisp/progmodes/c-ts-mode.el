@@ -360,12 +360,11 @@ For NODE, OVERRIDE, START, END, and ARGS, see
             override start end args))
     ((or "identifier" "field_identifier")
      (treesit-fontify-with-override
-      (max (treesit-node-start node) start)
-      (min (treesit-node-end node) end)
+      (treesit-node-start node) (treesit-node-end node)
       (pcase (treesit-node-type (treesit-node-parent node))
         ("function_declarator" 'font-lock-function-name-face)
         (_ 'font-lock-variable-name-face))
-      override))))
+      override start end))))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
   "Fontify an identifier node.
@@ -375,10 +374,8 @@ OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
                      (treesit-node-parent node))
                     "call_expression"))
     (treesit-fontify-with-override
-     (max (treesit-node-start node) start)
-     (min (treesit-node-end node) end)
-     'font-lock-variable-name-face
-     override)))
+     (treesit-node-start node) (treesit-node-end node)
+     'font-lock-variable-name-face override start end)))
 
 (defun c-ts-mode--fontify-defun (node override start end &rest _)
   "Correctly fontify the DEFUN macro.
@@ -405,21 +402,19 @@ This function corrects the fontification on the colon in
       (when (equal (treesit-node-text node t) ":")
         (treesit-fontify-with-override
          (treesit-node-start node) (treesit-node-end node)
-         'default override)))
+         'default override start end)))
     ;; Fix the parameter list.
     (while arg-list-2
       (let ((type (and arg-list-2 (pop arg-list-2)))
             (arg (and arg-list-2 (pop arg-list-2))))
         (when type
           (treesit-fontify-with-override
-           (max start (treesit-node-start type))
-           (min end (treesit-node-end type))
-           'font-lock-type-face override))
+           (treesit-node-start type) (treesit-node-end type)
+           'font-lock-type-face override start end))
         (when arg
           (treesit-fontify-with-override
-           (max start (treesit-node-start arg))
-           (min end (treesit-node-end arg))
-           'default override))))))
+           (treesit-node-start arg) (treesit-node-end arg)
+           'default override start end))))))
 
 (defun c-ts-fontify-error (node override start end &rest _)
   "Fontify the error nodes.
@@ -428,8 +423,7 @@ For NODE, OVERRIDE, START, and END, see
   (let ((parent (treesit-node-parent node))
         (child (treesit-node-child node 0)))
     (treesit-fontify-with-override
-     (max start (treesit-node-start node))
-     (min end (treesit-node-end node))
+     (treesit-node-start node) (treesit-node-end node)
      (cond
       ;; This matches the case MACRO(struct a, b, c)
       ;; where struct is seen as error.
@@ -439,7 +433,7 @@ For NODE, OVERRIDE, START, and END, see
                     '("struct" "long" "short" "enum" "union")))
        'font-lock-keyword-face)
       (t 'font-lock-warning-face))
-     override)))
+     override start end)))
 
 (defun c-ts-mode--imenu-1 (node)
   "Helper for `c-ts-mode--imenu'.
