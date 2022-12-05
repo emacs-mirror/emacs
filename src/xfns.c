@@ -43,7 +43,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef USE_XCB
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
-#include <xcb/xcb_aux.h>
 #endif
 
 #include "bitmaps/gray.xbm"
