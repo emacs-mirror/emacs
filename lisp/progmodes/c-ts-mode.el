@@ -169,9 +169,9 @@ MODE is either `c' or `cpp'."
          '("break" "case" "const" "continue"
            "default" "do" "else" "enum"
            "extern" "for" "goto" "if" "inline"
-           "long" "register" "return" "short"
-           "signed" "sizeof" "static" "struct"
-           "switch" "typedef" "union" "unsigned"
+           "register" "return"
+           "sizeof" "static" "struct"
+           "switch" "typedef" "union"
            "volatile" "while")))
     (if (eq mode 'cpp)
         (append c-keywords
@@ -187,6 +187,10 @@ MODE is either `c' or `cpp'."
                   "try" "typename" "using" "virtual"
                   "xor" "xor_eq"))
       (append '("auto") c-keywords))))
+
+(defvar c-ts-mode--type-keywords
+  '("long" "short" "signed" "unsigned")
+  "Keywords that should be considered as part of a type.")
 
 (defvar c-ts-mode--operators
   '("=" "-" "*" "/" "+" "%" "~" "|" "&" "^" "<<" ">>" "->"
@@ -263,7 +267,8 @@ MODE is either `c' or `cpp'."
            (qualified_identifier
             scope: (namespace_identifier) @font-lock-type-face)
 
-           (operator_cast) type: (type_identifier) @font-lock-type-face)))
+           (operator_cast) type: (type_identifier) @font-lock-type-face))
+     [,@c-ts-mode--type-keywords] @font-lock-type-face)
 
    :language mode
    :feature 'definition
