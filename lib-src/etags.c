@@ -401,7 +401,7 @@ static void invalidate_nodes (fdesc *, node **);
 static void put_entries (node *);
 static void cleanup_tags_file (char const * const, char const * const);
 
-#if !defined (MSDOS) && !defined (DOS_NT)
+#if !MSDOS && !defined (DOS_NT)
 static char *escape_shell_arg_string (char *);
 #endif
 static void do_move_file (const char *, const char *);
@@ -1416,7 +1416,7 @@ main (int argc, char **argv)
 	   setenv ("LC_COLLATE", "C", 1);
 	   setenv ("LC_ALL", "C", 1); */
 	char *cmd = xmalloc (8 * strlen (tagfile) + sizeof "sort -u -o '' ''");
-#if defined WINDOWSNT || defined MSDOS
+#if defined WINDOWSNT || MSDOS
 	/* Quote "like this".  No need to escape the quotes in the file name,
 	   since it is not allowed in file names on these systems.  */
 	char *z = stpcpy (cmd, "sort -u -o \"");
@@ -7720,7 +7720,7 @@ etags_mktmp (void)
   return templt;
 }
 
-#if !defined (MSDOS) && !defined (DOS_NT)
+#if !MSDOS && !defined (DOS_NT)
 /*
  * Adds single quotes around a string, if found single quotes, escaped it.
  * Return a newly-allocated string.
