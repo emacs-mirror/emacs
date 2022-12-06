@@ -408,6 +408,7 @@ static void invalidate_nodes (fdesc *, node **);
 static void put_entries (node *);
 static void clean_matched_file_tag (char const * const, char const * const);
 
+static char *escape_shell_arg_string (char *);
 static void do_move_file (const char *, const char *);
 static char *concat (const char *, const char *, const char *);
 static char *skip_spaces (char *);
@@ -1704,13 +1705,16 @@ process_file_name (char *file, language *lang)
       else
 	{
 #if MSDOS || defined (DOS_NT)
-	  char *cmd1 = concat (compr->command, " \"", real_name);
-	  char *cmd = concat (cmd1, "\" > ", tmp_name);
+          int buf_len = strlen (compr->command) + strlen (" \"\" > \"\"") + strlen (real_name) + strlen (tmp_name) + 1;
+          char *cmd = xmalloc (buf_len);
+          snprintf (cmd, buf_len, "%s \"%s\" > \"%s\"", compr->command, real_name, tmp_name);
 #else
-	  char *cmd1 = concat (compr->command, " '", real_name);
-	  char *cmd = concat (cmd1, "' > ", tmp_name);
+          char *new_real_name = escape_shell_arg_string (real_name);
+          char *new_tmp_name = escape_shell_arg_string (tmp_name);
+          int buf_len = strlen (compr->command) + strlen ("  > ") + strlen (new_real_name) + strlen (new_tmp_name) + 1;
+          char *cmd = xmalloc (buf_len);
+          snprintf (cmd, buf_len, "%s %s > %s", compr->command, new_real_name, new_tmp_name);
 #endif
-	  free (cmd1);
 	  inf = (system (cmd) == -1
 		 ? NULL
 		 : fopen (tmp_name, "r" FOPEN_BINARY));
@@ -7687,6 +7691,55 @@ etags_mktmp (void)
 #endif
 
   return templt;
+}
+
+/*
+ * Adds single quotes around a string, if found single quotes, escaped it.
+ * Return a newly-allocated string.
+ *
+ * For example:
+ * escape_shell_arg_string("test.txt") => 'test.txt'
+ * escape_shell_arg_string("'test.txt") => ''\''test.txt'
+ */
+static char *
+escape_shell_arg_string (char *str)
+{
+  char *p = str;
+  int need_space = 2;           /* ' at begin and end */
+
+  while (*p != '\0')
+    {
+      if (*p == '\'')
+        need_space += 4;        /* ' to '\'', length is 4 */
+      else
+        need_space++;
+
+      p++;
+    }
+
+  char *new_str = xnew (need_space + 1, char);
+  new_str[0] = '\'';
+  new_str[need_space-1] = '\'';
+
+  int i = 1;                    /* skip first byte */
+  p = str;
+  while (*p != '\0')
+    {
+      new_str[i] = *p;
+      if (*p == '\'')
+        {
+          new_str[i+1] = '\\';
+          new_str[i+2] = '\'';
+          new_str[i+3] = '\'';
+          i += 3;
+        }
+
+      i++;
+      p++;
+    }
+
+  new_str[need_space] = '\0';
+  return new_str;
 }
 
 static void
