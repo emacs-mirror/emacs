@@ -372,8 +372,8 @@ For NODE, OVERRIDE, START, END, and ARGS, see
       override start end))))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
-  "Fontify an identifier node.
-Fontify it if NODE is not a function identifier.  For NODE,
+  "Fontify an identifier node if it is a variable.
+Don't fontify if it is a function identifier.  For NODE,
 OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
   (when (not (equal (treesit-node-type
                      (treesit-node-parent node))
