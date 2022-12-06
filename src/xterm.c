@@ -11251,21 +11251,32 @@ XTflash (struct frame *f)
 static void
 XTring_bell (struct frame *f)
 {
-  if (FRAME_X_DISPLAY (f))
+  struct x_display_info *dpyinfo;
+
+  if (!FRAME_X_DISPLAY (f))
+    return;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  if (visible_bell)
+    XTflash (f);
+  else
     {
-      if (visible_bell)
-	XTflash (f);
-      else
-	{
-	  block_input ();
+      /* When Emacs is untrusted, Bell requests sometimes generate
+	 Access errors.  This is not in the security extension
+	 specification but seems to be a bug in the X consortium XKB
+	 implementation.  */
+
+      block_input ();
+      x_ignore_errors_for_next_request (dpyinfo);
 #ifdef HAVE_XKB
-          XkbBell (FRAME_X_DISPLAY (f), None, 0, None);
+      XkbBell (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 0, None);
 #else
-	  XBell (FRAME_X_DISPLAY (f), 0);
+      XBell (FRAME_X_DISPLAY (f), 0);
 #endif
-	  XFlush (FRAME_X_DISPLAY (f));
-	  unblock_input ();
-	}
+      XFlush (FRAME_X_DISPLAY (f));
+      x_stop_ignoring_errors (dpyinfo);
+      unblock_input ();
     }
 }
 
