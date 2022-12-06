@@ -5998,7 +5998,7 @@ case $opsys in
   gnu-linux | gnu-kfreebsd )
     AC_DEFINE([USG], [])
     AC_DEFINE([GNU_LINUX], [],
-      [Define if ths system is compatible with GNU/Linux.])
+      [Define if this system is compatible with GNU/Linux.])
     ;;
 
   hpux*)

@@ -154,7 +154,7 @@ EXPANDED-PATTERN."
              ;;
              ;; * when `_method' is `nil' or `lambda' which some
              ;;   frontends will invoke.  Here, `all' should be
-             ;;   suficient information for `complete-with-action' to
+             ;;   sufficient information for `complete-with-action' to
              ;;   do the job correctly.
              (complete-with-action action all string pred))))))))
 
