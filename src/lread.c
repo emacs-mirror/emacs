@@ -5468,6 +5468,14 @@ to the specified file name if a suffix is allowed or required.  */);
   Vload_suffixes =
     Fcons (build_pure_c_string (MODULES_SECONDARY_SUFFIX), Vload_suffixes);
 #endif
+#endif
+  DEFVAR_LISP ("module-file-suffix", Vmodule_file_suffix,
+	       doc: /* Suffix of loadable module file, or nil if modules are not supported.  */);
+#ifdef HAVE_MODULES
+  Vmodule_file_suffix = build_pure_c_string (MODULES_SUFFIX);
+#else
+  Vmodule_file_suffix = Qnil;
+#endif
 
   DEFVAR_LISP ("dynamic-library-suffixes", Vdynamic_library_suffixes,
 	       doc: /* A list of suffixes for loadable dynamic libraries.  */);
@@ -5477,14 +5485,6 @@ to the specified file name if a suffix is allowed or required.  */);
     Fcons (build_pure_c_string (DYNAMIC_LIB_SUFFIX),
 	   Vdynamic_library_suffixes);
 
-#endif
-  DEFVAR_LISP ("module-file-suffix", Vmodule_file_suffix,
-	       doc: /* Suffix of loadable module file, or nil if modules are not supported.  */);
-#ifdef HAVE_MODULES
-  Vmodule_file_suffix = build_pure_c_string (MODULES_SUFFIX);
-#else
-  Vmodule_file_suffix = Qnil;
-#endif
   DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.
