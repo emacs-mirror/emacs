@@ -1924,6 +1924,12 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	 Vcoding_system_hash_table.  */
       syms_of_coding ();	/* This should be after syms_of_fileio.  */
       init_frame_once ();       /* Before init_window_once.  */
+      /* init_window_once calls make_initial_frame, which calls
+	 Fcurrent_time and bset_display_time, both of which allocate
+	 bignums.  Without the following call to init_bignums, crashes
+	 happen on Windows 9X after dumping when GC tries to free a
+	 pointer allocated on the system heap.  */
+      init_bignum ();
       init_window_once ();	/* Init the window system.  */
 #ifdef HAVE_WINDOW_SYSTEM
       init_fringe_once ();	/* Swap bitmaps if necessary.  */
