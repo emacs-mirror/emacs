@@ -7722,12 +7722,12 @@ etags_mktmp (void)
 
 #if !MSDOS && !defined (DOS_NT)
 /*
- * Adds single quotes around a string, if found single quotes, escaped it.
+ * Add single quotes around a string, and escape any single quotes.
  * Return a newly-allocated string.
  *
  * For example:
- * escape_shell_arg_string("test.txt") => 'test.txt'
- * escape_shell_arg_string("'test.txt") => ''\''test.txt'
+ * escape_shell_arg_string ("test.txt")  => "'test.txt'"
+ * escape_shell_arg_string ("'test.txt") => "''\''test.txt'"
  */
 static char *
 escape_shell_arg_string (char *str)
