@@ -3375,7 +3375,7 @@ read_bool_vector (Lisp_Object readcharfun)
 	  break;
 	}
       if (INT_MULTIPLY_WRAPV (length, 10, &length)
-	  | INT_ADD_WRAPV (length, c - '0', &length))
+	  || INT_ADD_WRAPV (length, c - '0', &length))
 	invalid_syntax ("#&", readcharfun);
     }
 
@@ -3421,7 +3421,7 @@ skip_lazy_string (Lisp_Object readcharfun)
 	  break;
 	}
       if (INT_MULTIPLY_WRAPV (nskip, 10, &nskip)
-	  | INT_ADD_WRAPV (nskip, c - '0', &nskip))
+	  || INT_ADD_WRAPV (nskip, c - '0', &nskip))
 	invalid_syntax ("#@", readcharfun);
       digits++;
       if (digits == 2 && nskip == 0)
