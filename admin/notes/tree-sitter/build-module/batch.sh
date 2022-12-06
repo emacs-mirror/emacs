@@ -12,6 +12,7 @@ languages=(
     'python'
     'rust'
     'typescript'
+    'tsx'
 )
 
 for language in "${languages[@]}"
