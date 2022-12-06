@@ -319,7 +319,7 @@ MODE is either `c' or `cpp'."
 
    :language mode
    :feature 'error
-   '((ERROR) @c-ts-fontify-error)
+   '((ERROR) @c-ts-mode--fontify-error)
 
    :feature 'escape-sequence
    :language mode
@@ -421,7 +421,7 @@ This function corrects the fontification on the colon in
            (treesit-node-start arg) (treesit-node-end arg)
            'default override start end))))))
 
-(defun c-ts-fontify-error (node override start end &rest _)
+(defun c-ts-mode--fontify-error (node override start end &rest _)
   "Fontify the error nodes.
 For NODE, OVERRIDE, START, and END, see
 `treesit-font-lock-rules'."
