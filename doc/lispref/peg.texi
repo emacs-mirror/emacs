@@ -1,0 +1,351 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Foundation, Inc.
+@c See the file elisp.texi for copying conditions.
+@node Parsing Expression Grammars
+@chapter Parsing Expression Grammars
+@cindex text parsing
+@cindex parsing expression grammar
+
+  Emacs Lisp provides several tools for parsing and matching text,
+from regular expressions (@pxref{Regular Expressions}) to full
+@acronym{LL} grammar parsers (@pxref{Top,, Bovine parser
+development,bovine}).  @dfn{Parsing Expression Grammars}
+(@acronym{PEG}) are another approach to text parsing that offer more
+structure and composibility than regular expressions, but less
+complexity than context-free grammars.
+
+A @acronym{PEG} parser is defined as a list of named rules, each of
+which matches text patterns, and/or contains references to other
+rules.  Parsing is initiated with the function @code{peg-run} or the
+macro @code{peg-parse} (see below), and parses text after point in the
+current buffer, using a given set of rules.
+
+@cindex parsing expression
+The definition of each rule is referred to as a @dfn{parsing
+expression} (@acronym{PEX}), and can consist of a literal string, a
+regexp-like character range or set, a peg-specific construct
+resembling an elisp function call, a reference to another rule, or a
+combination of any of these.  A grammar is expressed as a tree of
+rules in which one rule is typically treated as a ``root'' or
+``entry-point'' rule.  For instance:
+
+@example
+@group
+((number sign digit (* digit))
+ (sign   (or "+" "-" ""))
+ (digit  [0-9]))
+@end group
+@end example
+
+Once defined, grammars can be used to parse text after point in the
+current buffer, in the following ways:
+
+@defmac peg-parse &rest pexs
+Match @var{pexs} at point.  If @var{pexs} is a list of PEG rules, the
+first rule is considered the ``entry-point'':
+@end defmac
+
+@example
+@group
+(peg-parse
+  ((number sign digit (* digit))
+   (sign   (or "+" "-" ""))
+   (digit  [0-9])))
+@end group
+@end example
+
+This macro represents the simplest use of the @acronym{PEG} library,
+but also the least flexible, as the rules must be written directly
+into the source code.  A more flexible approach involves use of three
+macros in conjunction: @code{with-peg-rules}, a @code{let}-like
+construct that makes a set of rules available within the macro body;
+@code{peg-run}, which initiates parsing given a single rule; and
+@code{peg}, which is used to wrap the entry-point rule name.  In fact,
+a call to @code{peg-parse} expands to just this set of calls.  The
+above example could be written as:
+
+@example
+@group
+(with-peg-rules
+    ((number sign digit (* digit))
+     (sign   (or "+" "-" ""))
+     (digit  [0-9]))
+  (peg-run (peg number)))
+@end group
+@end example
+
+This allows more explicit control over the ``entry-point'' of parsing,
+and allows the combination of rules from different sources.
+
+Individual rules can also be defined using a more @code{defun}-like
+syntax, using the macro @code{define-peg-rule}:
+
+@example
+(define-peg-rule digit ()
+  [0-9])
+@end example
+
+This also allows for rules that accept an argument (supplied by the
+@code{funcall} PEG rule).
+
+Another possibility is to define a named set of rules with
+@code{define-peg-ruleset}:
+
+@example
+(define-peg-ruleset number-grammar
+        '((number sign digit (* digit))
+          digit  ;; A reference to the definition above.
+          (sign (or "+" "-" ""))))
+@end example
+
+Rules and rulesets defined this way can be referred to by name in
+later calls to @code{peg-run} or @code{with-peg-rules}:
+
+@example
+(with-peg-rules number-grammar
+  (peg-run (peg number)))
+@end example
+
+By default, calls to @code{peg-run} or @code{peg-parse} produce no
+output: parsing simply moves point.  In order to return or otherwise
+act upon parsed strings, rules can include @dfn{actions}, see
+@ref{Parsing Actions}.
+
+@menu
+* PEX Definitions::             The syntax of PEX rules.
+* Parsing Actions::             Running actions upon successful parsing.
+* Writing PEG Rules::           Tips for writing parsing rules.
+@end menu
+
+@node PEX Definitions
+@section PEX Definitions
+
+Parsing expressions can be defined using the following syntax:
+
+@table @code
+@item (and E1 E2 ...)
+A sequence of @acronym{PEX}s that must all be matched.  The @code{and} form is
+optional and implicit.
+
+@item (or E1 E2 ...)
+Prioritized choices, meaning that, as in Elisp, the choices are tried
+in order, and the first successful match is used.  Note that this is
+distinct from context-free grammars, in which selection between
+multiple matches is indeterminate.
+
+@item (any)
+Matches any single character, as the regexp ``.''.
+
+@item @var{string}
+A literal string.
+
+@item (char @var{C})
+A single character @var{C}, as an Elisp character literal.
+
+@item (* @var{E})
+Zero or more instances of expression @var{E}, as the regexp @samp{*}.
+Matching is always ``greedy''.
+
+@item (+ @var{E})
+One or more instances of expression @var{E}, as the regexp @samp{+}.
+Matching is always ``greedy''.
+
+@item (opt @var{E})
+Zero or one instance of expression @var{E}, as the regexp @samp{?}.
+
+@item SYMBOL
+A symbol representing a previously-defined PEG rule.
+
+@item (range CH1 CH2)
+The character range between CH1 and CH2, as the regexp @samp{[CH1-CH2]}.
+
+@item [CH1-CH2 "+*" ?x]
+A character set, which can include ranges, character literals, or
+strings of characters.
+
+@item [ascii cntrl]
+A list of named character classes.
+
+@item (syntax-class @var{NAME})
+A single syntax class.
+
+@item (funcall E ARGS...)
+Call @acronym{PEX} E (previously defined with @code{define-peg-rule})
+with arguments @var{ARGS}.
+
+@item (null)
+The empty string.
+
+@end table
+
+The following expressions are used as anchors or tests -- they do not
+move point, but return a boolean value which can be used to constrain
+matches as a way of controlling the parsing process (@pxref{Writing
+PEG Rules}).
+
+@table @code
+@item (bob)
+Beginning of buffer.
+
+@item (eob)
+End of buffer.
+
+@item (bol)
+Beginning of line.
+
+@item (eol)
+End of line.
+
+@item (bow)
+Beginning of word.
+
+@item (eow)
+End of word.
+
+@item (bos)
+Beginning of symbol.
+
+@item (eos)
+End of symbol.
+
+@item (if E)
+Returns non-@code{nil} if parsing @acronym{PEX} E from point succeeds (point
+is not moved).
+
+@item (not E)
+Returns non-@code{nil} if parsing @acronym{PEX} E from point fails (point
+is not moved).
+
+@item (guard EXP)
+Treats the value of the Lisp expression EXP as a boolean.
+
+@end table
+
+@vindex peg-char-classes
+Character class matching can use the same named character classes as
+in regular expressions (@pxref{Top,, Character Classes,elisp})
+
+@node Parsing Actions
+@section Parsing Actions
+
+@cindex parsing actions
+@cindex parsing stack
+By default the process of parsing simply moves point in the current
+buffer, ultimately returning @code{t} if the parsing succeeds, and
+@code{nil} if it doesn't.  It's also possible to define ``actions''
+that can run arbitrary Elisp at certain points in the parsed text.
+These actions can optionally affect something called the @dfn{parsing
+stack}, which is a list of values returned by the parsing process.
+These actions only run (and only return values) if the parsing process
+ultimately succeeds; if it fails the action code is not run at all.
+
+Actions can be added anywhere in the definition of a rule.  They are
+distinguished from parsing expressions by an initial backquote
+(@samp{`}), followed by a parenthetical form that must contain a pair
+of hyphens (@samp{--}) somewhere within it.  Symbols to the left of
+the hyphens are bound to values popped from the stack (they are
+somewhat analogous to the argument list of a lambda form).  Values
+produced by code to the right are pushed to the stack (analogous to
+the return value of the lambda).  For instance, the previous grammar
+can be augmented with actions to return the parsed number as an actual
+integer:
+
+@example
+(with-peg-rules ((number sign digit (* digit
+                                       `(a b -- (+ (* a 10) b)))
+                         `(sign val -- (* sign val)))
+                 (sign (or (and "+" `(-- 1))
+                           (and "-" `(-- -1))
+                           (and ""  `(-- 1))))
+                 (digit [0-9] `(-- (- (char-before) ?0))))
+  (peg-run (peg number)))
+@end example
+
+There must be values on the stack before they can be popped and
+returned -- if there aren't enough stack values to bind to an action's
+left-hand terms, they will be bound to @code{nil}.  An action with
+only right-hand terms will push values to the stack; an action with
+only left-hand terms will consume (and discard) values from the stack.
+At the end of parsing, stack values are returned as a flat list.
+
+To return the string matched by a @acronym{PEX} (instead of simply
+moving point over it), a rule like this can be used:
+
+@example
+(one-word
+  `(-- (point))
+  (+ [word])
+  `(start -- (buffer-substring start (point))))
+@end example
+
+The first action pushes the initial value of point to the stack.  The
+intervening @acronym{PEX} moves point over the next word.  The second
+action pops the previous value from the stack (binding it to the
+variable @code{start}), and uses that value to extract a substring
+from the buffer and push it to the stack.  This pattern is so common
+that @acronym{PEG} provides a shorthand function that does exactly the
+above, along with a few other shorthands for common scenarios:
+
+@table @code
+@item (substring @var{E})
+Match @acronym{PEX} @var{E} and push the matched string to the stack.
+
+@item (region @var{E})
+Match @var{E} and push the start and end positions of the matched
+region to the stack.
+
+@item (replace @var{E} @var{replacement})
+Match @var{E} and replaced the matched region with the string @var{replacement}.
+
+@item (list @var{E})
+Match @var{E}, collect all values produced by @var{E} (and its
+sub-expressions) into a list, and push that list to the stack.  Stack
+values are typically returned as a flat list; this is a way of
+``grouping'' values together.
+@end table
+
+@node Writing PEG Rules
+@section Writing PEG Rules
+
+Something to be aware of when writing PEG rules is that they are
+greedy.  Rules which can consume a variable amount of text will always
+consume the maximum amount possible, even if that causes a rule that
+might otherwise have matched to fail later on -- there is no
+backtracking.  For instance, this rule will never succeed:
+
+@example
+(forest (+ "tree" (* [blank])) "tree" (eol))
+@end example
+
+The @acronym{PEX} @code{(+ "tree" (* [blank]))} will consume all
+repetitions of the word ``tree'', leaving none to match the final
+@code{"tree"}.
+
+In these situations, the desired result can be obtained by using
+predicates and guards -- namely the @code{not}, @code{if} and
+@code{guard} expressions -- to constrain behavior.  For instance:
+
+@example
+(forest (+ "tree" (* [blank])) (not (eol)) "tree" (eol))
+@end example
+
+The @code{if} and @code{not} operators accept a parsing expression and
+interpret it as a boolean, without moving point.  The contents of a
+@code{guard} operator are evaluated as regular Lisp (not a
+@acronym{PEX}) and should return a boolean value.  A @code{nil} value
+causes the match to fail.
+
+Another potentially unexpected behavior is that parsing will move
+point as far as possible, even if the parsing ultimately fails.  This
+rule:
+
+@example
+(end-game "game" (eob))
+@end example
+
+when run in a buffer containing the text ``game over'' after point,
+will move point to just after ``game'' then halt parsing, returning
+@code{nil}.  Successful parsing will always return @code{t}, or the
+contexts of the parsing stack.
