@@ -545,12 +545,7 @@ This should be a cons cell (START . END).  When fontifying a
 buffer, Emacs will move the start of the query range backward by
 START amount, and the end of the query range by END amount.  Both
 START and END should be positive integers or 0.  This doesn't
-affect the fontified range.
-
-Sometimes, querying on some parser with a restricted range
-returns nodes not in that range but before it, which breaks
-fontification.  Major modes can adjust this variable as a
-temporarily fix.")
+affect the fontified range.")
 
 (defvar-local treesit-font-lock-feature-list nil
   "A list of lists of feature symbols.

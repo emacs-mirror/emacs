@@ -3734,7 +3734,7 @@ definition*\"."
          (var-tree (treesit-induce-sparse-tree
                     node "lexical_declaration" nil 1000)))
     `(("Class" . ,(js--treesit-imenu-1 class-tree))
-      ("Varieable" . ,(js--treesit-imenu-1 var-tree))
+      ("Variable" . ,(js--treesit-imenu-1 var-tree))
       ("Function" . ,(js--treesit-imenu-1 func-tree)))))
 
 ;;; Main Function

@@ -2507,14 +2507,17 @@ the query.  */)
   /* Set query range.  */
   if (!NILP (beg) && !NILP (end))
     {
-      EMACS_INT beg_byte = XFIXNUM (beg);
-      EMACS_INT end_byte = XFIXNUM (end);
+      EMACS_INT beg_byte = buf_charpos_to_bytepos (current_buffer,
+						   XFIXNUM (beg));
+      EMACS_INT end_byte = buf_charpos_to_bytepos (current_buffer,
+						   XFIXNUM (end));
       /* We never let tree-sitter run on buffers too large, so these
 	 assertion should never hit.  */
       eassert (beg_byte - visible_beg <= UINT32_MAX);
       eassert (end_byte - visible_beg <= UINT32_MAX);
-      ts_query_cursor_set_byte_range (cursor, (uint32_t) beg_byte - visible_beg,
-				      (uint32_t) end_byte - visible_beg);
+      ts_query_cursor_set_byte_range (cursor,
+				      (uint32_t) (beg_byte - visible_beg),
+				      (uint32_t) (end_byte - visible_beg));
     }
 
   /* Execute query.  */

@@ -5467,8 +5467,9 @@ or an image descriptor.
 
   To display something in the margin @emph{in association with}
 certain buffer text, without altering or preventing the display of
-that text, put a @code{before-string} property on the text and put the
-margin display specification on the contents of the before-string.
+that text, put on that text an overlay with a @code{before-string}
+property, and put the margin display specification on the contents of
+the before-string.
 
   Note that if the string to be displayed in the margin doesn't
 specify a face, its face is determined using the same rules and
