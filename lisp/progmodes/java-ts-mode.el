@@ -321,7 +321,15 @@ the subtrees."
               (append "{}():;," electric-indent-chars))
 
   ;; Navigation.
-  (setq-local treesit-defun-type-regexp "declaration")
+  (setq-local treesit-defun-type-regexp
+              (regexp-opt '("method_declaration"
+                            "class_declaration"
+                            "record_declaration"
+                            "interface_declaration"
+                            "enum_declaration"
+                            "import_declaration"
+                            "package_declaration"
+                            "module_declaration")))
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
