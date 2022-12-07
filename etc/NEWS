@@ -53,8 +53,8 @@ switches for shortlogs, such as the one produced by 'C-x v L'.
 
 ---
 *** New user option 'bs-default-action-list'.
-How to display the "*buffer-selection*" buffer can now be configured
-with this new option or by setting 'display-buffer-alist'.
+You can now configure how to display the "*buffer-selection*" buffer
+using this new option.  (Or set 'display-buffer-alist' directly.)
 
 
 * New Modes and Packages in Emacs 30.1
