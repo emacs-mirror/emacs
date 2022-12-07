@@ -377,20 +377,24 @@ after are both returned."
     (when (eshell-looking-at-backslash-return (point))
 	(throw 'eshell-incomplete ?\\))
     (forward-char 2) ; Move one char past the backslash.
-    (if (eq (char-before) ?\n)
-        ;; Escaped newlines are extra-special: they expand to an empty
-        ;; token to allow for continuing Eshell commands across
-        ;; multiple lines.
-        'eshell-empty-token
-      ;; If the char is in a quote, backslash only has special meaning
-      ;; if it is escaping a special char.
-      (if eshell-current-quoted
-          (if (memq (char-before) eshell-special-chars-inside-quoting)
-              (list 'eshell-escape-arg (char-to-string (char-before)))
-            (concat "\\" (char-to-string (char-before))))
-        (if (memq (char-before) eshell-special-chars-outside-quoting)
-            (list 'eshell-escape-arg (char-to-string (char-before)))
-          (char-to-string (char-before)))))))
+    (let ((special-chars (if eshell-current-quoted
+                             eshell-special-chars-inside-quoting
+                           eshell-special-chars-outside-quoting)))
+      (cond
+       ;; Escaped newlines are extra-special: they expand to an empty
+       ;; token to allow for continuing Eshell commands across
+       ;; multiple lines.
+       ((eq (char-before) ?\n)
+        'eshell-empty-token)
+       ((memq (char-before) special-chars)
+        (list 'eshell-escape-arg (char-to-string (char-before))))
+       ;; If the char is in a quote, backslash only has special
+       ;; meaning if it is escaping a special char.  Otherwise, the
+       ;; result is the literal string "\c".
+       (eshell-current-quoted
+        (concat "\\" (char-to-string (char-before))))
+       (t
+        (char-to-string (char-before)))))))
 
 (defun eshell-parse-literal-quote ()
   "Parse a literally quoted string.  Nothing has special meaning!"
