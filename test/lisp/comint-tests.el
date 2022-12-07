@@ -59,7 +59,7 @@
   (dolist (str comint-testsuite-password-strings)
     (should (string-match comint-password-prompt-regexp str))))
 
-(declare-function 'w32-application-type "w32proc.c")
+(declare-function w32-application-type "w32proc.c")
 (defun w32-native-executable-p (fname)
   "Predicate to test program FNAME for being a native Windows application."
   (and (memq (w32-application-type fname) '(w32-native dos))
