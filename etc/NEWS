@@ -95,6 +95,15 @@ If you want to get back the old behavior, set the user option to the value
     (setopt gdb-locals-table-row-config
             `((type . 0) (name . 0) (value . ,gdb-locals-value-limit)))
 
+** Compile
+
+*** New user option 'grep-use-headings'.
+When non-nil, the output of Grep is split into sections, one for each
+file, instead of having file names prefixed to each line.  It is
+equivalent to the --heading option of some tools such as 'git grep'
+and 'rg'.  The headings are displayed using the new 'grep-heading'
+face.
+
 ** VC
 
 ---

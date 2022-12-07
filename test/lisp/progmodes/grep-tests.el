@@ -66,4 +66,18 @@
     (cl-letf (((symbol-function 'w32-shell-dos-semantics) #'ignore))
       (grep-tests--check-rgrep-abbreviation))))
 
+(ert-deftest grep-tests--grep-heading-regexp-without-null ()
+  (dolist (sep '(?: ?- ?=))
+    (let ((string (format "filename%c123%ctext" sep sep)))
+      (should (string-match grep-heading-regexp string))
+      (should (equal (match-string 1 string) "filename"))
+      (should (equal (match-string 2 string) (format "filename%c" sep))))))
+
+(ert-deftest grep-tests--grep-heading-regexp-with-null ()
+  (dolist (sep '(?: ?- ?=))
+    (let ((string (format "funny:0:filename%c123%ctext" 0 sep)))
+      (should (string-match grep-heading-regexp string))
+      (should (equal (match-string 1 string) "funny:0:filename"))
+      (should (equal (match-string 2 string) "funny:0:filename\0")))))
+
 ;;; grep-tests.el ends here
