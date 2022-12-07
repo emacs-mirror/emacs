@@ -1434,11 +1434,11 @@ log entries."
 	  `((,log-view-message-re (1 'change-log-acknowledgment)))
 	  ;; Handle the case:
 	  ;; user: foo@bar
-	  '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	  '(("^\\(?:Author\\|Commit\\):[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
 	     (1 'change-log-email))
 	    ;; Handle the case:
 	    ;; user: FirstName LastName <foo@bar>
-	    ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	    ("^\\(?:Author\\|Commit\\):[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
 	     (1 'change-log-name)
 	     (2 'change-log-email))
 	    ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
@@ -1449,7 +1449,7 @@ log entries."
 	    ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
 	     (1 'change-log-acknowledgment)
 	     (2 'change-log-acknowledgment))
-	    ("^\\(?:Date:   \\|AuthorDate: \\)\\(.+\\)" (1 'change-log-date))
+	    ("^\\(?:Date:   \\|AuthorDate: \\|CommitDate: \\)\\(.+\\)" (1 'change-log-date))
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
 
