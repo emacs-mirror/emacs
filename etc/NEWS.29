@@ -1997,6 +1997,26 @@ It narrows to the current node.
 ** EUDC
 
 +++
+*** Deprecations planned for next release.
+After Emacs 29.1, some aspects of EUDC will be deprecated.  The goal
+of these deprecations is to simplify EUDC server configuration by
+making 'eudc-server-hotlist' the only place to add servers.  There
+will not be a need to set the server using the 'eudc-set-server'
+function.  Instead, the 'eudc-server-hotlist' variable should be
+customized to have an entry for the server.  The plan is to obsolete
+the 'eudc-hotlist' editor since Customize is sufficient for changing
+'eudc-server-hotlist'.  How the 'eudc-server' variable works in this
+context is to-be-determined; it can't be removed, because that would
+break compatibility, but it may become synchronized with
+'eudc-server-hotlist' so that 'eudc-server' is always equal to (first
+eudc-server-hotlist).  The first entry in 'eudc-server-hotlist' is the
+first server tried by 'eudc-expand-try-all'.  The hotlist
+simplification will allow 'eudc-query-form' to show a drop down of
+possible servers, instead of requiring a call to 'eudc-set-server'
+like it does in this release.  The default value of
+'eudc-ignore-options-file' will be changed from nil to t.
+
++++
 *** New user option 'eudc-ignore-options-file' that defaults to nil.
 The 'eudc-ignore-options-file' user option can be configured to ignore
 the 'eudc-options-file' (typically "~/.emacs.d/eudc-options").  Most

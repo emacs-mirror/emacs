@@ -1501,9 +1501,9 @@ buffer.  */)
       for (int idx = 0; !NILP (ranges); idx++, ranges = XCDR (ranges))
 	{
 	  Lisp_Object range = XCAR (ranges);
-	  EMACS_INT beg_byte = buf_charpos_to_bytepos (buffer,
+	  ptrdiff_t beg_byte = buf_charpos_to_bytepos (buffer,
 						       XFIXNUM (XCAR (range)));
-	  EMACS_INT end_byte = buf_charpos_to_bytepos (buffer,
+	  ptrdiff_t end_byte = buf_charpos_to_bytepos (buffer,
 						       XFIXNUM (XCDR (range)));
 	  /* Shouldn't violate assertion since we just checked for
 	     buffer size at the beginning of this function.  */
@@ -2507,10 +2507,8 @@ the query.  */)
   /* Set query range.  */
   if (!NILP (beg) && !NILP (end))
     {
-      EMACS_INT beg_byte = buf_charpos_to_bytepos (current_buffer,
-						   XFIXNUM (beg));
-      EMACS_INT end_byte = buf_charpos_to_bytepos (current_buffer,
-						   XFIXNUM (end));
+      ptrdiff_t beg_byte = CHAR_TO_BYTE (XFIXNUM (beg));
+      ptrdiff_t end_byte = CHAR_TO_BYTE (XFIXNUM (end));
       /* We never let tree-sitter run on buffers too large, so these
 	 assertion should never hit.  */
       eassert (beg_byte - visible_beg <= UINT32_MAX);

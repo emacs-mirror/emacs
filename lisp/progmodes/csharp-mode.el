@@ -748,8 +748,11 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :feature 'definition
    :override t
-   '((qualified_name (identifier) @font-lock-variable-name-face)
+   '((qualified_name (identifier) @font-lock-type-face)
      (using_directive (identifier) @font-lock-type-face)
+     (using_directive (name_equals
+                       (identifier) @font-lock-type-face
+                       ["="] @default-face))
 
      (enum_declaration (identifier) @font-lock-type-face)
      (enum_member_declaration (identifier) @font-lock-variable-name-face)

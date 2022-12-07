@@ -169,9 +169,9 @@ MODE is either `c' or `cpp'."
          '("break" "case" "const" "continue"
            "default" "do" "else" "enum"
            "extern" "for" "goto" "if" "inline"
-           "long" "register" "return" "short"
-           "signed" "sizeof" "static" "struct"
-           "switch" "typedef" "union" "unsigned"
+           "register" "return"
+           "sizeof" "static" "struct"
+           "switch" "typedef" "union"
            "volatile" "while")))
     (if (eq mode 'cpp)
         (append c-keywords
@@ -187,6 +187,10 @@ MODE is either `c' or `cpp'."
                   "try" "typename" "using" "virtual"
                   "xor" "xor_eq"))
       (append '("auto") c-keywords))))
+
+(defvar c-ts-mode--type-keywords
+  '("long" "short" "signed" "unsigned")
+  "Keywords that should be considered as part of a type.")
 
 (defvar c-ts-mode--operators
   '("=" "-" "*" "/" "+" "%" "~" "|" "&" "^" "<<" ">>" "->"
@@ -263,7 +267,8 @@ MODE is either `c' or `cpp'."
            (qualified_identifier
             scope: (namespace_identifier) @font-lock-type-face)
 
-           (operator_cast) type: (type_identifier) @font-lock-type-face)))
+           (operator_cast) type: (type_identifier) @font-lock-type-face))
+     [,@c-ts-mode--type-keywords] @font-lock-type-face)
 
    :language mode
    :feature 'definition
@@ -314,7 +319,7 @@ MODE is either `c' or `cpp'."
 
    :language mode
    :feature 'error
-   '((ERROR) @c-ts-fontify-error)
+   '((ERROR) @c-ts-mode--fontify-error)
 
    :feature 'escape-sequence
    :language mode
@@ -367,8 +372,8 @@ For NODE, OVERRIDE, START, END, and ARGS, see
       override start end))))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
-  "Fontify an identifier node.
-Fontify it if NODE is not a function identifier.  For NODE,
+  "Fontify an identifier node if it is a variable.
+Don't fontify if it is a function identifier.  For NODE,
 OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
   (when (not (equal (treesit-node-type
                      (treesit-node-parent node))
@@ -416,7 +421,7 @@ This function corrects the fontification on the colon in
            (treesit-node-start arg) (treesit-node-end arg)
            'default override start end))))))
 
-(defun c-ts-fontify-error (node override start end &rest _)
+(defun c-ts-mode--fontify-error (node override start end &rest _)
   "Fontify the error nodes.
 For NODE, OVERRIDE, START, and END, see
 `treesit-font-lock-rules'."
