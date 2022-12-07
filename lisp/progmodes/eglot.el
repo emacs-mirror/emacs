@@ -2060,9 +2060,11 @@ COMMAND is a symbol naming the command."
                     (t          'eglot-note)))
             (mess (source code message)
               (concat source (and code (format " [%s]" code)) ": " message)))
-    (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
+    (if-let* ((path (expand-file-name (eglot--uri-to-path uri)))
+              (buffer (find-buffer-visiting path)))
         (with-current-buffer buffer
           (cl-loop
+           initially (assoc-delete-all path flymake-list-only-diagnostics #'string=)
            for diag-spec across diagnostics
            collect (eglot--dbind ((Diagnostic) range code message severity source tags)
                        diag-spec
@@ -2105,7 +2107,6 @@ COMMAND is a symbol naming the command."
                          (t
                           (setq eglot--diagnostics diags)))))
       (cl-loop
-       with path = (expand-file-name (eglot--uri-to-path uri))
        for diag-spec across diagnostics
        collect (eglot--dbind ((Diagnostic) code range message severity source) diag-spec
                  (setq message (mess source code message))
