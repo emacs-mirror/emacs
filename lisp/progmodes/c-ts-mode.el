@@ -233,7 +233,8 @@ MODE is either `c' or `cpp'."
      (false) @font-lock-constant-face
      (null) @font-lock-constant-face
      ,@(when (eq mode 'cpp)
-         '((this) @font-lock-constant-face)))
+         '((this) @font-lock-constant-face
+           (nullptr) @font-lock-constant-face)))
 
    :language mode
    :feature 'keyword
