@@ -143,6 +143,8 @@
                      (treesit-node-string
                       (treesit-node-first-child-for-pos
                        doc-node 3))))
+      (should-error (treesit-node-first-child-for-pos doc-node 100)
+                    :type 'args-out-of-range)
       ;; `treesit-node-descendant-for-range'.
       (should (equal "(\"{\")"
                      (treesit-node-string
@@ -152,6 +154,9 @@
                      (treesit-node-string
                       (treesit-node-descendant-for-range
                        root-node 6 7 t))))
+      (should-error (treesit-node-descendant-for-range
+                     root-node 100 101)
+                    :type 'args-out-of-range)
       ;; `treesit-node-eq'.
       (should (treesit-node-eq root-node root-node))
       (should (not (treesit-node-eq root-node doc-node))))))
@@ -166,6 +171,9 @@
         (setq parser (treesit-parser-create 'json))
         (setq root-node (treesit-parser-root-node
                          parser)))
+
+      (should-error (treesit-query-capture root-node "" 100 101)
+                    :type 'args-out-of-range)
 
       ;; Test `treesit-query-capture' on string, sexp and compiled
       ;; queries.

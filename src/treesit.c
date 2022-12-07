@@ -1642,6 +1642,17 @@ treesit_check_node (Lisp_Object obj)
     xsignal1 (Qtreesit_node_outdated, obj);
 }
 
+/* Checks that OBJ is a positive integer and it is within the visible
+   portion of BUF. */
+static void
+treesit_check_position (Lisp_Object obj, struct buffer *buf)
+{
+  treesit_check_positive_integer (obj);
+  ptrdiff_t pos = XFIXNUM (obj);
+  if (pos < BUF_BEGV (buf) || pos > BUF_ZV (buf))
+    xsignal1 (Qargs_out_of_range, obj);
+}
+
 bool
 treesit_node_uptodate_p (Lisp_Object obj)
 {
@@ -1990,14 +2001,12 @@ Note that this function returns an immediate child, not the smallest
   if (NILP (node))
     return Qnil;
   treesit_check_node (node);
-  treesit_check_positive_integer (pos);
 
   struct buffer *buf = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
   ptrdiff_t byte_pos = buf_charpos_to_bytepos (buf, XFIXNUM (pos));
 
-  if (byte_pos < BUF_BEGV_BYTE (buf) || byte_pos > BUF_ZV_BYTE (buf))
-    xsignal1 (Qargs_out_of_range, pos);
+  treesit_check_position (pos, buf);
 
   treesit_initialize ();
 
@@ -2028,19 +2037,14 @@ If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   treesit_check_node (node);
-  CHECK_INTEGER (beg);
-  CHECK_INTEGER (end);
 
   struct buffer *buf = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
   ptrdiff_t byte_beg = buf_charpos_to_bytepos (buf, XFIXNUM (beg));
   ptrdiff_t byte_end = buf_charpos_to_bytepos (buf, XFIXNUM (end));
 
-  /* Checks for BUFFER_BEG <= BEG <= END <= BUFFER_END.  */
-  if (!(BUF_BEGV_BYTE (buf) <= byte_beg
-	&& byte_beg <= byte_end
-	&& byte_end <= BUF_ZV_BYTE (buf)))
-    xsignal2 (Qargs_out_of_range, beg, end);
+  treesit_check_position (beg, buf);
+  treesit_check_position (end, buf);
 
   treesit_initialize ();
 
@@ -2426,21 +2430,24 @@ the query.  */)
   (Lisp_Object node, Lisp_Object query,
    Lisp_Object beg, Lisp_Object end, Lisp_Object node_only)
 {
-  if (!NILP (beg))
-    CHECK_INTEGER (beg);
-  if (!NILP (end))
-    CHECK_INTEGER (end);
-
   if (!(TS_COMPILED_QUERY_P (query)
 	|| CONSP (query) || STRINGP (query)))
     wrong_type_argument (Qtreesit_query_p, query);
 
+  treesit_initialize ();
+
   /* Resolve NODE into an actual node.  */
   Lisp_Object lisp_node;
   if (TS_NODEP (node))
-    lisp_node = node;
+    {
+      treesit_check_node (node); /* Check if up-to-date.  */
+      lisp_node = node;
+    }
   else if (TS_PARSERP (node))
-    lisp_node = Ftreesit_parser_root_node (node);
+    {
+      treesit_check_parser (node); /* Check if deleted.  */
+      lisp_node = Ftreesit_parser_root_node (node);
+    }
   else if (SYMBOLP (node))
     {
       Lisp_Object parser
@@ -2452,8 +2459,6 @@ the query.  */)
 	      list4 (Qor, Qtreesit_node_p, Qtreesit_parser_p, Qsymbolp),
 	      node);
 
-  treesit_initialize ();
-
   /* Extract C values from Lisp objects.  */
   TSNode treesit_node
     = XTS_NODE (lisp_node)->node;
@@ -2463,6 +2468,13 @@ the query.  */)
     = XTS_PARSER (XTS_NODE (lisp_node)->parser)->visible_beg;
   const TSLanguage *lang
     = ts_parser_language (XTS_PARSER (lisp_parser)->parser);
+
+  /* Check BEG and END.  */
+  struct buffer *buf = XBUFFER (XTS_PARSER (lisp_parser)->buffer);
+  if (!NILP (beg))
+    treesit_check_position (beg, buf);
+  if (!NILP (end))
+    treesit_check_position (end, buf);
 
   /* Initialize query objects.  At the end of this block, we should
      have a working TSQuery and a TSQueryCursor.  */
