@@ -384,7 +384,18 @@ init_treesit_functions (void)
    mysteriously drops.  3) what if a user uses so many stuff that the
    default cache size (20) is not enough and we end up thrashing?
    These are all imaginary scenarios but they are not impossible
-   :-) */
+   :-)
+
+   Parsers in indirect buffers: We make indirect buffers to share the
+   parser of its base buffer.  Indirect buffers and their base buffer
+   share the same buffer content but not other buffer attributes.  If
+   they have separate parser lists, changes made in an indirect buffer
+   will only update parsers of that indirect buffer, and not parsers
+   in the base buffer or other indirect buffers, and vice versa.  We
+   could keep track of all the base and indirect buffers, and update
+   all of their parsers, but ultimately decide to take a simpler
+   approach, which is to make indirect buffers share their base
+   buffer's parser list.  The discussion can be found in bug#59693.  */
 
 
 /*** Initialization */
@@ -697,9 +708,10 @@ void
 treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 		       ptrdiff_t new_end_byte)
 {
-  Lisp_Object parser_list;
-
-  parser_list = BVAR (current_buffer, ts_parser_list);
+  struct buffer *base_buffer = current_buffer;
+  if (current_buffer->base_buffer)
+    base_buffer = current_buffer->base_buffer;
+  Lisp_Object parser_list = BVAR (base_buffer, ts_parser_list);
 
   FOR_EACH_TAIL_SAFE (parser_list)
     {
@@ -1252,12 +1264,16 @@ DEFUN ("treesit-parser-create",
        1, 3, 0,
        doc: /* Create and return a parser in BUFFER for LANGUAGE.
 
-The parser is automatically added to BUFFER's parser list, as
-returned by `treesit-parser-list'.
-LANGUAGE is a language symbol.  If BUFFER is nil or omitted, it
-defaults to the current buffer.  If BUFFER already has a parser for
-LANGUAGE, return that parser, but if NO-REUSE is non-nil, always
-create a new parser.  */)
+The parser is automatically added to BUFFER's parser list, as returned
+by `treesit-parser-list'.  LANGUAGE is a language symbol.  If BUFFER
+is nil or omitted, it defaults to the current buffer.  If BUFFER
+already has a parser for LANGUAGE, return that parser, but if NO-REUSE
+is non-nil, always create a new parser.
+
+If that buffer is an indirect buffer, its base buffer is used instead.
+That is, indirect buffers use their base buffer's parsers.  Lisp
+programs should widen as necessary should they want to use a parser in
+an indirect buffer.  */)
   (Lisp_Object language, Lisp_Object buffer, Lisp_Object no_reuse)
 {
   treesit_initialize ();
@@ -1271,16 +1287,21 @@ create a new parser.  */)
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
     }
+  if (buf->base_buffer)
+    buf = buf->base_buffer;
+
   treesit_check_buffer_size (buf);
 
   /* See if we can reuse a parser.  */
-  for (Lisp_Object tail = BVAR (buf, ts_parser_list);
-       NILP (no_reuse) && !NILP (tail);
-       tail = XCDR (tail))
+  if (NILP (no_reuse))
     {
-      struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
-      if (EQ (parser->language_symbol, language))
-	return XCAR (tail);
+      Lisp_Object tail = BVAR (buf, ts_parser_list);
+      FOR_EACH_TAIL (tail)
+      {
+	struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
+	if (EQ (parser->language_symbol, language))
+	  return XCAR (tail);
+      }
     }
 
   /* Load language.  */
@@ -1329,7 +1350,10 @@ DEFUN ("treesit-parser-list",
        Ftreesit_parser_list, Streesit_parser_list,
        0, 1, 0,
        doc: /* Return BUFFER's parser list.
-BUFFER defaults to the current buffer.  */)
+
+BUFFER defaults to the current buffer.  If that buffer is an indirect
+buffer, its base buffer is used instead.  That is, indirect buffers
+use their base buffer's parsers.  */)
   (Lisp_Object buffer)
 {
   struct buffer *buf;
@@ -1340,6 +1364,9 @@ BUFFER defaults to the current buffer.  */)
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
     }
+  if (buf->base_buffer)
+    buf = buf->base_buffer;
+
   /* Return a fresh list so messing with that list doesn't affect our
      internal data.  */
   Lisp_Object return_list = Qnil;

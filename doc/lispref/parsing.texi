@@ -409,6 +409,13 @@ Create a parser for the specified @var{buffer} and @var{language}
 By default, this function reuses a parser if one already exists for
 @var{language} in @var{buffer}, but if @var{no-reuse} is
 non-@code{nil}, this function always creates a new parser.
+
+If that buffer is an indirect buffer, its base buffer is used instead.
+That is, indirect buffers use their base buffer's parsers.  If the
+base buffer is narrowed, an indirect buffer might not be able to
+retrieve information of the portion of the buffer text that are
+invisible in the base buffer.  Lisp programs should widen as necessary
+should they want to use a parser in an indirect buffer.
 @end defun
 
 Given a parser, we can query information about it.
@@ -447,7 +454,8 @@ tree incrementally.
 @defun treesit-parser-list &optional buffer
 This function returns the parser list of @var{buffer}.  If
 @var{buffer} is @code{nil} or omitted, it defaults to the current
-buffer.
+buffer.  If that buffer is an indirect buffer, its base buffer is used
+instead.  That is, indirect buffers use their base buffer's parsers.
 @end defun
 
 @defun treesit-parser-delete parser
