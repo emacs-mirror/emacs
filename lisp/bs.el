@@ -488,9 +488,8 @@ Used internally, only.")
   "<mouse-2>" #'bs-mouse-select
   "<mouse-3>" #'bs-mouse-select-other-frame)
 
-(defcustom bs-default-action-list '((display-buffer-reuse-window
-				     display-buffer-below-selected)
-				    (window-height . bs-max-window-height))
+(defcustom bs-default-action-list '((display-buffer-below-selected)
+				    (window-height . window-min-height))
   "Default action list for showing the '*bs-selection*' buffer.
 
 This list will be passed to `pop-to-buffer' as its ACTION argument.
@@ -1170,7 +1169,18 @@ Select buffer *buffer-selection* and display buffers according to current
 configuration `bs-current-configuration'.  Set window height, fontify buffer
 and move point to current buffer."
   (setq bs-current-list list)
-  (switch-to-buffer (get-buffer-create "*buffer-selection*"))
+  (let* ((window-combination-limit 'window-size)
+	 (bs-buf (get-buffer-create "*buffer-selection*"))
+	 (bs-win (progn
+		   (pop-to-buffer bs-buf bs-default-action-list)
+		   (selected-window))))
+    ;; Delete other windows showing *buffer-selection*.
+    ;; Done after pop-to-buffer, instead of just calling delete-windows-on,
+    ;; to allow display-buffer-reuse(-mode)?-window to be used in ALIST.
+    (dolist (w (get-buffer-window-list bs-buf 'not t))
+      (unless (eq w bs-win)
+	(with-demoted-errors "Error deleting window: %S"
+	  (delete-window w)))))
   (bs-mode)
   (let* ((inhibit-read-only t)
 	 (map-fun (lambda (entry)
@@ -1442,9 +1452,6 @@ for buffer selection."
       ;; Only when not in buffer *buffer-selection*
       ;; we have to set the buffer we started the command
       (setq bs--buffer-coming-from (current-buffer)))
-    (let ((window-combination-limit 'window-size))
-      (pop-to-buffer (get-buffer-create "*buffer-selection*")
-		     bs-default-action-list))
     (bs-show-in-buffer (bs-buffer-list))
     (bs-message-without-log "%s" (bs--current-config-message))))
 
