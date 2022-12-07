@@ -1227,6 +1227,20 @@ you should use an Emacs input method instead.
 
 * X runtime problems
 
+** X security problems
+
+*** Emacs faces trouble when running as an untrusted client.
+
+When Emacs is running as an untrusted client under X servers with the
+Security extension, it is unable to use some window manager features
+but reports them to the window manager anyway.  This can lead to
+constant prompting by the window manager about Emacs being
+unresponsive.  To resolve the problem, place:
+
+  (setq x-detect-server-trust t)
+
+in your early-init.el.
+
 ** X keyboard problems
 
 *** `x-focus-frame' fails to activate the frame.

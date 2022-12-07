@@ -376,6 +376,10 @@ struct x_display_info
   /* Number of frames that are on this display.  */
   int reference_count;
 
+  /* True if this client cannot communicate with the window manager
+     because it is untrusted.  */
+  bool untrusted;
+
   /* The Screen this connection is connected to.  */
   Screen *screen;
 
