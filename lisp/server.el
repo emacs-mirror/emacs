@@ -1818,7 +1818,7 @@ only these files will be asked to be saved."
              (save-buffers-kill-emacs arg)))
 	  (t (error "Invalid client frame")))))
 
-(defun server-stop-automatically--handle-delete-frame (frame)
+(defun server-stop-automatically--handle-delete-frame (_frame)
   "Handle deletion of FRAME when `server-stop-automatically' is used."
   (when (and server-stop-automatically
              (null (cddr (frame-list))))
