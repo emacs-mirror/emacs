@@ -49,6 +49,13 @@ This is a string or a list of strings that specifies the Git log
 switches for shortlogs, such as the one produced by 'C-x v L'.
 'vc-git-log-switches' is no longer used for shortlogs.
 
+** bs
+
+---
+*** New user option 'bs-default-action-list'.
+How to display the "*buffer-selection*" buffer can now be configured
+with this new option or by setting 'display-buffer-alist'.
+
 
 * New Modes and Packages in Emacs 30.1
 
