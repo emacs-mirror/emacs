@@ -522,6 +522,7 @@ simply use @code{:if} and the appropriate Lisp expression.
 @node Load path
 @section Setting a custom @code{load-path}
 
+@findex :load-path
 If a package resides in some directory that is not in your
 @code{load-path}, use the @code{:load-path} keyword to add it.  It
 takes a symbol, a function, a string or a list of strings.  If the
@@ -723,6 +724,7 @@ can simplify this using the @code{:bind} keyword.
 @node Global keybindings
 @subsection Global keybindings
 
+@findex :bind
 To bind keys globally, the @code{:bind} keyword takes either a single
 cons or a list of conses.  Every cons has the form @code{(@var{key}
 . @var{command}}, where @var{key} is a string indicating the key to
@@ -969,6 +971,7 @@ keybindings you've set using either the @code{:bind} keyword or the
 @section Hooks
 
 @cindex hooks
+@findex :hook
 The @code{:hook} keyword allows adding functions onto hooks.  It takes
 one argument of the form @var{hooks}, specifying one or more functions
 to add to one or more hooks.  For the purposes of @code{:hook}, the
@@ -1055,6 +1058,8 @@ implied by @code{:hook}.
 @node Modes and interpreters
 @section Modes and interpreters
 
+@findex :mode
+@findex :interpreter
 Similar to @code{:bind}, you can use @code{:mode} and
 @code{:interpreter} to establish a deferred binding within the
 @code{auto-mode-alist} and @code{interpreter-mode-alist} variables.
@@ -1131,6 +1136,7 @@ tricky and tedious to debug.
 @node Faces
 @section Faces
 
+@findex :custom-face
 The @code{:custom-face} keyword allows customization of package custom
 faces.
 
@@ -1259,6 +1265,7 @@ file on more than one system.
 @node Install package
 @section Installing package
 
+@findex :ensure
 The @code{:ensure} keyword makes use-package ask the Emacs package
 manager to install a package if it is not already present on your
 system.
