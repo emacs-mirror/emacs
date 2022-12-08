@@ -115,8 +115,7 @@
 
 (defcustom bind-key-segregation-regexp
   "\\`\\(\\(C-[chx] \\|M-[gso] \\)\\([CM]-\\)?\\|.+-\\)"
-  "Regular expression used to divide key sets in the output from
-\\[describe-personal-keybindings]."
+  "Regexp used by \\[describe-personal-keybindings] to divide key sets."
   :type 'regexp
   :group 'bind-key)
 
@@ -161,9 +160,9 @@ Elements have the form ((KEY . [MAP]) CMD ORIGINAL-CMD)")
   "Bind KEY-NAME to COMMAND in KEYMAP (`global-map' if not passed).
 
 KEY-NAME may be a vector, in which case it is passed straight to
-`define-key'. Or it may be a string to be interpreted as
-spelled-out keystrokes, e.g., `C-c C-z'. See documentation of
-`edmacro-mode' for details.
+`define-key'.  Or it may be a string to be interpreted as
+spelled-out keystrokes, e.g., \"C-c C-z\".  See the documentation
+of `edmacro-mode' for details.
 
 COMMAND must be an interactive function or lambda form.
 
