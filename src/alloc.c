@@ -7055,7 +7055,8 @@ process_mark_stack (ptrdiff_t base_sp)
 		break;
 	      default: emacs_abort ();
 	      }
-	    if (!PURE_P (XSTRING (ptr->u.s.name)))
+	    if (!PURE_P (XSTRING (ptr->u.s.name))
+		&& !string_marked_p (XSTRING (ptr->u.s.name)))
 	      set_string_marked (XSTRING (ptr->u.s.name));
 	    mark_interval_tree (string_intervals (ptr->u.s.name));
 	    /* Inner loop to mark next symbol in this bucket, if any.  */
