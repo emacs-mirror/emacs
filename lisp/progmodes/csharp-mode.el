@@ -786,6 +786,10 @@ compilation and evaluation time conflicts."
        (generic_name (identifier) @font-lock-function-name-face)))
      (invocation_expression
       (member_access_expression
+       expression: (identifier) @font-lock-variable-name-face
+       name: (generic_name (type_argument_list (identifier)))))
+     (invocation_expression
+      (member_access_expression
        ((identifier) @font-lock-variable-name-face
         (identifier) @font-lock-function-name-face)))
      (invocation_expression
