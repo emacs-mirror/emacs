@@ -103,7 +103,10 @@
 
 (defgroup bind-key nil
   "A simple way to manage personal keybindings."
-  :group 'emacs)
+  :group 'keyboard
+  :group 'convenience
+  :link '(emacs-commentary-link :tag "Commentary" "bind-key.el")
+  :version "29.1")
 
 (defcustom bind-key-column-widths '(18 . 40)
   "Width of columns in `describe-personal-keybindings'."

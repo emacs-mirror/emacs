@@ -30,7 +30,9 @@
 
 (defgroup use-package-ensure nil
   "Support for :ensure and :pin keywords in `use-package' declarations."
-  :group 'use-package)
+  :group 'use-package
+  :link '(custom-manual "(use-package) Installing packages")
+  :version "29.1")
 
 (eval-when-compile
   (declare-function package-installed-p "package")

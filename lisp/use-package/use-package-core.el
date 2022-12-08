@@ -63,7 +63,9 @@
 
 (defgroup use-package nil
   "A `use-package' declaration for simplifying your `.emacs'."
-  :group 'initialization)
+  :group 'initialization
+  :link '(custom-manual "(use-package) Top")
+  :version "29.1")
 
 (defconst use-package-version "2.4.4"
   "This version of `use-package'.")
