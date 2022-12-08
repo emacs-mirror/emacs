@@ -361,8 +361,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'typescript))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (keyword string)
+                '((comment declaration keyword string escape-sequence)
                   (constant expression identifier number pattern property)
                   (bracket delimiter)))
 
@@ -396,8 +395,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'tsx))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (keyword string)
+                '((comment declaration keyword string escape-sequence)
                   (constant expression identifier jsx number pattern property)
                   (bracket delimiter)))
 
