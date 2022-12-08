@@ -119,7 +119,7 @@
     "static" "strictfp" "switch" "synchronized"
     "throw" "throws" "to" "transient" "transitive"
     "try" "uses" "volatile" "while" "with" "record")
-  "C keywords for tree-sitter font-locking.")
+  "Java keywords for tree-sitter font-locking.")
 
 (defvar java-ts-mode--operators
   '("+" ":" "++" "-" "--" "&" "&&" "|" "||" "="
