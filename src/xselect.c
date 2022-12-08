@@ -16,7 +16,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-
 /* Rewritten by jwz */
 
 #include <config.h>
@@ -44,7 +43,7 @@ struct prop_location;
 struct selection_data;
 
 static void x_decline_selection_request (struct selection_input_event *);
-static bool x_convert_selection (Lisp_Object, Lisp_Object, Atom, bool,
+static bool x_convert_selection (Lisp_Object, Lisp_Object, Atom,
 				 struct x_display_info *, bool);
 static bool waiting_for_other_props_on_window (Display *, Window);
 static struct prop_location *expect_property_change (Display *, Window,
@@ -544,9 +543,6 @@ struct x_selection_request
   /* Linked list of the above (in support of MULTIPLE targets).  */
   struct selection_data *converted_selections;
 
-  /* "Data" to send a requestor for a failed MULTIPLE subtarget.  */
-  Atom conversion_fail_tag;
-
   /* Whether or not conversion was successful.  */
   bool converted;
 };
@@ -608,7 +604,6 @@ x_push_current_selection_request (struct selection_input_event *se,
   frame->request = se;
   frame->dpyinfo = dpyinfo;
   frame->converted_selections = NULL;
-  frame->conversion_fail_tag = None;
 
   selection_request_stack = frame;
 }
@@ -838,10 +833,6 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
   timeout = max (0, x_selection_timeout);
   secs = timeout / 1000;
   nsecs = (timeout % 1000) * 1000000;
-
-  if ((Atom *) data->data
-      == &selection_request_stack->conversion_fail_tag)
-    return;
 
   transfer = xzalloc (sizeof *transfer);
   transfer->requestor = requestor;
@@ -1135,7 +1126,9 @@ x_handle_selection_request (struct selection_input_event *event)
       ptrdiff_t j, nselections;
       struct selection_data cs;
 
-      if (property == None) goto DONE;
+      if (property == None)
+	goto DONE;
+
       multprop
 	= x_get_window_property_as_lisp_data (dpyinfo, requestor, property,
 					      QMULTIPLE, selection, true);
@@ -1147,17 +1140,17 @@ x_handle_selection_request (struct selection_input_event *event)
       /* Perform conversions.  This can signal.  */
       for (j = 0; j < nselections; j++)
 	{
-	  Lisp_Object subtarget = AREF (multprop, 2*j);
+	  Lisp_Object subtarget = AREF (multprop, 2 * j);
 	  Atom subproperty = symbol_to_x_atom (dpyinfo,
 					       AREF (multprop, 2*j+1));
 	  bool subsuccess = false;
 
 	  if (subproperty != None)
 	    subsuccess = x_convert_selection (selection_symbol, subtarget,
-					      subproperty, true, dpyinfo,
+					      subproperty, dpyinfo,
 					      use_alternate);
 	  if (!subsuccess)
-	    ASET (multprop, 2*j+1, Qnil);
+	    ASET (multprop, 2 * j + 1, Qnil);
 	}
 
       /* Save conversion results */
@@ -1183,8 +1176,7 @@ x_handle_selection_request (struct selection_input_event *event)
 
       success = x_convert_selection (selection_symbol,
 				     target_symbol, property,
-				     false, dpyinfo,
-				     use_alternate);
+				     dpyinfo, use_alternate);
     }
 
  DONE:
@@ -1212,15 +1204,13 @@ x_handle_selection_request (struct selection_input_event *event)
 
 /* Perform the requested selection conversion, and write the data to
    the converted_selections linked list, where it can be accessed by
-   x_reply_selection_request.  If FOR_MULTIPLE, write out
-   the data even if conversion fails, using conversion_fail_tag.
+   x_reply_selection_request.
 
    Return true if successful.  */
 
 static bool
-x_convert_selection (Lisp_Object selection_symbol,
-		     Lisp_Object target_symbol, Atom property,
-		     bool for_multiple, struct x_display_info *dpyinfo,
+x_convert_selection (Lisp_Object selection_symbol, Lisp_Object target_symbol,
+		     Atom property, struct x_display_info *dpyinfo,
 		     bool use_alternate)
 {
   Lisp_Object lisp_selection;
@@ -1236,23 +1226,7 @@ x_convert_selection (Lisp_Object selection_symbol,
   /* A nil return value means we can't perform the conversion.  */
   if (NILP (lisp_selection)
       || (CONSP (lisp_selection) && NILP (XCDR (lisp_selection))))
-    {
-      if (for_multiple)
-	{
-	  cs = xmalloc (sizeof *cs);
-	  cs->data = ((unsigned char *)
-		      &selection_request_stack->conversion_fail_tag);
-	  cs->size = 1;
-	  cs->string = Qnil;
-	  cs->format = 32;
-	  cs->type = XA_ATOM;
-	  cs->property = property;
-	  cs->next = frame->converted_selections;
-	  frame->converted_selections = cs;
-	}
-
-      return false;
-    }
+    return false;
 
   /* Otherwise, record the converted selection to binary.  */
   cs = xmalloc (sizeof *cs);
