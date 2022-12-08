@@ -23,6 +23,8 @@
 ;;; Commentary:
 
 ;; Provides the command `M-x use-package-lint'.
+;;
+;; See the `use-package' info manual for more information.
 
 ;;; Code:
 

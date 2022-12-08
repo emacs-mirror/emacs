@@ -26,6 +26,10 @@
 ;; keywords.  Note that these are currently still baked into
 ;; `use-package-keywords' and `use-package-deferring-keywords', although this
 ;; is harmless if they are never used.
+;;
+;; These keywords are made available by default by requiring `use-package'.
+;;
+;; See the `use-package' info manual for more information.
 
 ;;; Code:
 

@@ -22,8 +22,11 @@
 
 ;;; Commentary:
 
-;; Provides support for the :diminish keyword, which is made available by
-;; default by requiring `use-package'.
+;; Provides support for the :diminish keyword, which is made available
+;; by default by requiring `use-package'.  Using it requires the
+;; `diminish' package to be installed (available on GNU ELPA).
+;;
+;; See the `use-package' info manual for more information.
 
 ;;; Code:
 

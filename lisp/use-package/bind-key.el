@@ -27,14 +27,12 @@
 
 ;;; Commentary:
 
-;; If you have lots of keybindings set in your .emacs file, it can be hard to
-;; know which ones you haven't set yet, and which may now be overriding some
-;; new default in a new Emacs version.  This module aims to solve that
-;; problem.
+;; If you have lots of keybindings set in your init file, it can be
+;; hard to know which ones you haven't set yet, and which may now be
+;; overriding some new default in a new Emacs version.  This module
+;; aims to solve that problem.
 ;;
-;; Bind keys as follows in your .emacs:
-;;
-;;   (require 'bind-key)
+;; Bind keys as follows in your init file:
 ;;
 ;;   (bind-key "C-c x" 'my-ctrl-c-x-command)
 ;;
@@ -97,6 +95,8 @@
 ;; This display will tell you if you've overridden a default keybinding, and
 ;; what the default was.  Also, it will tell you if the key was rebound after
 ;; your binding it with `bind-key', and what it was rebound it to.
+;;
+;; See the `use-package' info manual for more information.
 
 ;;; Code:
 

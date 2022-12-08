@@ -22,8 +22,10 @@
 
 ;;; Commentary:
 
-;; Provides support for the :ensure and :pin keywords, which is made available
-;; by default by requiring `use-package'.
+;; Provides support for the :ensure and :pin keywords, which are made
+;; available by default by requiring `use-package'.
+;;
+;; See the `use-package' info manual for more information.
 
 ;;; Code:
 

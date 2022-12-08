@@ -22,10 +22,12 @@
 
 ;;; Commentary:
 
-;; Provides the command `M-x use-package-jump-to-package-form', however it
+;; Provides the command `M-x use-package-jump-to-package-form'.  However, it
 ;; only works if the package being jumped to was required during
-;; initialization.  If it was delay-loaded, it will not work.
+;; initialization.  If it was autoloaded, it will not work.
 ;; Improvements are needed.
+;;
+;; See the `use-package' info manual for more information.
 
 ;;; Code:
 
