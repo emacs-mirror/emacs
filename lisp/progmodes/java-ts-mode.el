@@ -22,7 +22,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 ;;; Commentary:
 ;;
 
@@ -126,7 +125,7 @@
     "!=" "==" "*" "/" "%" "<" "<=" ">" ">="
     "-=" "+=" "*=" "/=" "%=" "->" "^" "^="
     "|=" "~" ">>" ">>>" "<<" "::" "?" "&=")
-  "C operators for tree-sitter font-locking.")
+  "Java operators for tree-sitter font-locking.")
 
 (defvar java-ts-mode--font-lock-settings
   (treesit-font-lock-rules
@@ -243,7 +242,7 @@
    :language 'java
    :feature 'delimiter
    '((["," ":" ";"]) @font-lock-delimiter-face))
-  "Tree-sitter font-lock settings.")
+  "Tree-sitter font-lock settings for `java-ts-mode'.")
 
 (defun java-ts-mode--imenu-1 (node)
   "Helper for `java-ts-mode--imenu'.
