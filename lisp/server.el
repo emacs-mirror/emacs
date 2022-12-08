@@ -1911,10 +1911,11 @@ Returns the result of the evaluation, or signals an error if it
 cannot contact the specified server.  For example:
   (server-eval-at \"server\" \\='(emacs-pid))
 returns the process ID of the Emacs instance running \"server\"."
-  (let ((server-file (server--file-name))
-        (coding-system-for-read 'binary)
-        (coding-system-for-write 'binary)
-        address port secret process)
+  (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
+         (server-file (expand-file-name server server-dir))
+         (coding-system-for-read 'binary)
+         (coding-system-for-write 'binary)
+         address port secret process)
     (unless (file-exists-p server-file)
       (error "No such server: %s" server))
     (with-temp-buffer
