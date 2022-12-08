@@ -1553,14 +1553,18 @@ reload your packages, normally by restarting Emacs, to make sure that
 use-package can gather statistics for all your packages.
 
 @cindex use-package-report
-Run the command @code{M-x use-package-report} to see the results.  The
+Run the command @kbd{M-x use-package-report} to see the results.  The
 buffer displayed is a tabulated list.  To sort rows based on a
 particular column, move point to it and type @kbd{S}, or click the
 column name at the top of the buffer on graphical displays.
 
+@cindex use-package-reset-statistics
+To reset all statistics that use-package has gathered for the current
+Emacs invocation, run the command @kbd{M-x use-package-reset-statistics}.
+
 Note that, if you are setting @code{use-package-compute-statistics}
 directly in your init file, and not with @code{customize}, you must do
-this after loading @code{use-package} but before any
+this after loading @code{use-package}, but before any
 @code{use-package} forms.
 
 @node Disabling a package
