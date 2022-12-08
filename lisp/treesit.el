@@ -888,6 +888,12 @@ detail.")
 ;; top-level nodes and query them.  This ensures that querying is fast
 ;; everywhere else, except for the problematic region.
 ;;
+;; Some other time the source file has a top-level node that contains
+;; a huge number of children (say, 10k children), querying that node
+;; is also very slow, so instead of getting the top-level node, we
+;; recursively go down the tree to find nodes that cover the region
+;; but are reasonably small.
+;;
 ;; 3. It is possible to capture a node that's completely outside the
 ;; region between START and END: as long as the whole pattern
 ;; intersects the region, all the captured nodes in that pattern are
@@ -917,8 +923,8 @@ If LOUDLY is non-nil, display some debugging information."
         ;; If we run into problematic files, use the "fast mode" to
         ;; try to recover.  See comment #2 above for more explanation.
         (when treesit--font-lock-fast-mode
-          (setq nodes (treesit--children-covering-range
-                       (car nodes) start end)))
+          (setq nodes (treesit--children-covering-range-recurse
+                       (car nodes) start end (* 4 jit-lock-chunk-size))))
 
         ;; Query each node.
         (dolist (sub-node nodes)
