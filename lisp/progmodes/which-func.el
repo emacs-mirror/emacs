@@ -51,9 +51,6 @@
 
 ;;; Code:
 
-;; So that we can use the edebug spec in `lisp-current-defun-name'.
-(require 'edebug)
-
 ;; Variables for customization
 ;; ---------------------------
 ;;
