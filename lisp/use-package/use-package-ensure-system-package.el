@@ -37,10 +37,10 @@
   (declare-function system-packages-get-command "system-packages"))
 
 (defvar use-package-ensure-system-package--custom-packages '()
-  "List of custom packages installed.")
+  "List of commands used to install custom packages.")
 
 (defun use-package-ensure-system-package-consify (arg)
-  "Turn ARG into a cons of (`package-name' . `install-command')."
+  "Turn ARG into a cons of the form (PACKAGE-NAME . INSTALL-COMMAND')."
   (cond
    ((stringp arg)
     (cons arg `(system-packages-install ,arg)))
@@ -59,13 +59,15 @@
 	    `(system-packages-install ,(symbol-name (cdr arg)))))))))
 
 (defun use-package-ensure-system-package-update-custom-packages ()
+  "Update custom packages (not installed by system package manager).
+Run the same commands used for installing them."
   (interactive)
   (dolist (cmd use-package-ensure-system-package--custom-packages)
     (async-shell-command cmd)))
 
 ;;;###autoload
 (defun use-package-normalize/:ensure-system-package (_name-symbol keyword args)
-  "Turn ARGS into a list of conses of (`package-name' . `install-command')."
+  "Turn ARGS into a list of conses of the form (PACKAGE-NAME . INSTALL-COMMAND)."
   (use-package-as-one (symbol-name keyword) args
     (lambda (_label arg)
       (cond
@@ -75,7 +77,7 @@
         (list (use-package-ensure-system-package-consify arg)))))))
 
 (defun use-package-ensure-system-package-exists? (file-or-exe)
-  "If variable is a string, ensure the file path exists.
+  "If FILE-OR-EXE is a string, ensure the file path exists.
 If it is a symbol, ensure the binary exist."
   (if (stringp file-or-exe)
       (file-exists-p file-or-exe)
