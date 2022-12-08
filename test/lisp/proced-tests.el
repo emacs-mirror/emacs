@@ -1,0 +1,109 @@
+;;; proced-tests.el --- Test suite for proced.el -*- lexical-binding: t -*-
+
+;; Copyright (C) 2022 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Code:
+(require 'ert)
+(require 'proced)
+
+(cl-defmacro proced--within-buffer (format filter &body body)
+  "Execute BODY within a proced buffer using format FORMAT and filter FILTER."
+  `(let ((proced-format ,format)
+         (proced-filter ,filter)
+         (proced-auto-update-flag nil)
+         (inhibit-message t))
+     (proced)
+     (unwind-protect
+         (with-current-buffer "*Proced*"
+           ,@body)
+       (kill-buffer "*Proced*"))))
+
+(defun proced--assert-emacs-pid-in-buffer ()
+  "Fail unless the process ID of the current Emacs process exists in buffer."
+  (should (string-match-p
+           (number-to-string (emacs-pid))
+           (buffer-substring-no-properties (point-min) (point-max)))))
+
+(defun proced--move-to-column (attribute)
+  "Move to the column under ATTRIBUTE in the current proced buffer."
+  (move-to-column (string-match attribute proced-header-line)))
+
+(ert-deftest proced-format-test ()
+  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
+  (dolist (format '(short medium long verbose))
+    (proced--within-buffer
+     format
+     'user
+     (proced--assert-emacs-pid-in-buffer))))
+
+(ert-deftest proced-update-test ()
+  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
+  (proced--within-buffer
+   'short
+   'user
+   (proced-update)
+   (proced--assert-emacs-pid-in-buffer)))
+
+(ert-deftest proced-revert-test ()
+  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
+  (proced--within-buffer
+   'short
+   'user
+   (proced-revert)
+   (proced--assert-emacs-pid-in-buffer)))
+
+(ert-deftest proced-color-test ()
+  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
+  (let ((proced-enable-color-flag t))
+    (proced--within-buffer
+     'short
+     'user
+     (proced--assert-emacs-pid-in-buffer))))
+
+(ert-deftest proced-refine-test ()
+  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
+  (proced--within-buffer
+   'medium
+   'user
+   ;; When refining on Args for process A, a process is kept if and only
+   ;; if its args are the same as process A, which more or less guarentees
+   ;; the refinement will remove some processes.
+   (proced--move-to-column "Args")
+   (let ((args (buffer-substring-no-properties (point) (line-end-position))))
+     (proced-refine)
+     (while (not (eobp))
+       (proced--move-to-column "Args")
+       (should (string= args (buffer-substring-no-properties (point) (line-end-position))))
+       (forward-line)))))
+
+(ert-deftest proced-refine-with-update-test ()
+  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
+  (proced--within-buffer
+   'medium
+   'user
+   (proced--move-to-column "Args")
+   (let ((args (buffer-substring-no-properties (point) (line-end-position))))
+     (proced-refine)
+     (proced-update t)
+     (while (not (eobp))
+       (proced--move-to-column "Args")
+       (should (string= args (buffer-substring-no-properties (point) (line-end-position))))
+       (forward-line)))))
+
+(provide 'proced-tests)
+;;; proced-tests.el ends here
