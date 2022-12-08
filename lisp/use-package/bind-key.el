@@ -128,7 +128,18 @@
   "Keymap for `override-global-mode'.")
 
 (define-minor-mode override-global-mode
-  "A minor mode so that keymap settings override other modes."
+  "A minor mode for allowing keybindings to override other modes.
+The main purpose of this mode is to simplify bindings keys in
+such a way that they take precedence over other modes.
+
+To achieve this, the keymap `override-global-map' is added to
+`emulation-mode-map-alists', which makes it take precedence over
+keymaps in `minor-mode-map-alist'.  Thereby, key bindings get an
+even higher precedence than global key bindings defined with
+`keymap-global-set' (or, in Emacs 28 or older, `global-set-key').
+
+The macro `bind-key*' (which see) provides a convenient way to
+add keys to that keymap."
   :init-value t
   :lighter "")
 
@@ -425,6 +436,11 @@ function symbol (unquoted)."
 
 ;;;###autoload
 (defmacro bind-keys* (&rest args)
+  "Bind multiple keys at once, in `override-global-map'.
+Accepts the same keyword arguments as `bind-keys' (which see).
+
+This binds keys in such a way that bindings are not overridden by
+other modes.  See `override-global-mode'."
   (macroexp-progn (bind-keys-form args 'override-global-map)))
 
 (defun get-binding-description (elem)
