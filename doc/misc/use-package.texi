@@ -1064,17 +1064,41 @@ Similar to @code{:bind}, you can use @code{:mode} and
 @code{:interpreter} to establish a deferred binding within the
 @code{auto-mode-alist} and @code{interpreter-mode-alist} variables.
 The specifier to either keyword can be a cons cell, a list of cons
-cells, or a string or regexp:
+cells, or a string or regexp.
+
+The following example reproduces the default @code{ruby-mode}
+configuration, exactly as it is in Emacs out-of-the-box.  That mode is
+enabled automatically when a file whose name matches the regexp
+@code{"\\.rb\\'"} (a file with the @samp{.rb} extension), or when the
+first line of the file (known as the ``shebang'') matches the string
+@code{"ruby"}:
 
 @lisp
 (use-package ruby-mode
   :mode "\\.rb\\'"
   :interpreter "ruby")
+@end lisp
 
+The default @code{python-mode} configuration can be reproduced using
+the below declaration.  Note that the package that should be loaded
+differs from the mode name in this case, so we must use a cons:
+
+@lisp
 ;; The package is "python" but the mode is "python-mode":
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
+@end lisp
+
+Both the @code{:mode} and @code{:interpreter} keywords also accept a
+list of regexps:
+
+@lisp
+(use-package foo
+  ;; Equivalent to "\\(ba[rz]\\)\\'":
+  :mode ("\\.bar\\'" "\\.baz\\'")
+  ;; Equivalent to "\\(foo[ab]\\)":
+  :interpreter ("fooa" "foob"))
 @end lisp
 
 @node Magic handlers
