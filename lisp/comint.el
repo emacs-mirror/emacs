@@ -384,7 +384,7 @@ This variable is buffer-local."
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
    "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:space:]]*\\'"
-   ;; The ccrypt encryption dialogue doesn't end with a colon, so
+   ;; The ccrypt encryption dialog doesn't end with a colon, so
    ;; treat it specially.
    "\\|^Enter encryption key: (repeat) *\\'"
    ;; openssh-8.6p1 format: "(user@host) Password:".

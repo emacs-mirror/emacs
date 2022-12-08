@@ -2559,7 +2559,7 @@ variable and do not do anything that might alter it (like calling a
 major mode) to prevent data corruption.  Also, do note that Emacs may
 jump into the created buffer if the original file buffer is closed and
 then re-opened.  Making edits in the buffer copy may also trigger
-Emacs save dialogue.  Prefer using `org-export-with-buffer-copy' macro
+Emacs save dialog.  Prefer using `org-export-with-buffer-copy' macro
 when possible.
 
 When optional key `:to-buffer' is non-nil, copy into BUFFER.

@@ -35,6 +35,10 @@
 
 git bisect start
 
-# Prune commits 1e5b753bf4..806734c1b1 introduced by 0186faf2a1 (Eglot
-# merge on Oct 20 2022)
+# Prune commits 1e5b753bf4..806734c1b1 introduced by 0186faf2a1
+# (Eglot merge on Oct 20 2022)
 git bisect good 806734c1b1f433de43d59d9a5e3a1e89d64315f6
+
+# Prune commits 31ea42e15e..a6cbfdd8f1 introduced by 4a1e9d61b5
+# (use-package merge on Nov 30 2022)
+git bisect good 4a1e9d61b57c36255752437a2668e037e79fe870

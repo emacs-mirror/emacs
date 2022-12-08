@@ -2963,6 +2963,13 @@ based on data provided by language servers using the Language Server
 Protocol (LSP).
 
 +++
+*** use-package: Declarative package configuration.
+use-package is shipped with Emacs.  It provides the 'use-package'
+macro, which allows you to isolate package configuration in your init
+file in a way that is declarative, tidy, and performance-oriented.
+See the new Info manual 'use-package' for more.
+
++++
 ** New commands 'image-crop' and 'image-cut'.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'i c' and 'i x' (respectively)

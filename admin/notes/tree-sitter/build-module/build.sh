@@ -34,7 +34,7 @@ git clone "https://github.com/tree-sitter/${repo}.git" \
     --depth 1 --quiet
 cp "${grammardir}"/grammar.js "${sourcedir}"
 # We have to go into the source directory to compile, because some
-# C files referes to files like "../../common/scanner.h".
+# C files refer to files like "../../common/scanner.h".
 cd "${sourcedir}"
 
 ### Build

@@ -256,12 +256,40 @@ as an argument will ``spread'' the elements into multiple arguments:
 @end example
 
 @subsection Quoting and escaping
-As with other shells, you can escape special characters and spaces
-with by prefixing the character with a backslash (@code{\}), or by
-surrounding the string with apostrophes (@code{''}) or double quotes
-(@code{""}).  This is needed especially for file names with special
-characters like pipe (@code{|}), which could be part of remote file
-names.
+As with other shells, you can escape special characters and spaces by
+prefixing the character with a backslash (@samp{\}), or by surrounding
+the string with apostrophes (@samp{''}) or double quotes (@samp{""}).
+This is needed especially for file names with special characters like
+pipe (@samp{|}), which could be part of remote file names.
+
+When you escape a character with @samp{\} outside of any quotes, the
+result is the literal character immediately following it.  For
+example, @code{\$10} means the literal string @code{$10}.
+
+Inside of double quotes, most characters have no special meaning.
+However, @samp{\}, @samp{"}, and @samp{$} are still special; to escape
+them, use backslash as above.  Thus, if the value of the variable
+@var{answer} is @code{42}, then @code{"The answer is: \"$answer\""}
+returns the string @code{The answer is: "42"}.  However, when escaping
+characters with no special meaning, the result is the full
+@code{\@var{c}} sequence.  For example, @code{"foo\bar"} means the
+literal string @code{foo\bar}.
+
+Additionally, when escaping a newline, the whole escape sequence is
+removed by the parser.  This lets you continue commands across
+multiple lines:
+
+@example
+~ $ echo "foo\
+bar"
+foobar
+@end example
+
+Inside apostrophes, escaping works differently.  All characters
+between the apostrophes have their literal meaning except @samp{'},
+which ends the quoted string.  To insert a literal apostrophe, you can
+use @samp{''}, so @code{'It''s me'} means the literal string
+@code{It's me}.
 
 When using expansions (@pxref{Expansion}) in an Eshell command, the
 result may potentially be of any data type.  To ensure that the result
