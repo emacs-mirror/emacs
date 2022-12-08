@@ -63,7 +63,7 @@
 
 (defgroup use-package nil
   "A `use-package' declaration for simplifying your `.emacs'."
-  :group 'startup)
+  :group 'initialization)
 
 (defconst use-package-version "2.4.4"
   "This version of `use-package'.")
