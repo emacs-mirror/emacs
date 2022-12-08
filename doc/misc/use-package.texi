@@ -1604,7 +1604,6 @@ be optionally enabled.
 
 @menu
 * use-package-ensure-system-package::
-* use-package-chords::
 * Creating an extension::
 @end menu
 
@@ -1709,32 +1708,6 @@ The user options @code{system-packages-package-manager} and
 @code{system-packages-use-sudo} are honored, but not for custom
 commands.  Custom commands should include the call to sudo in the
 command if needed.
-
-@node use-package-chords
-@section @code{(use-package-chords)}
-
-The @code{:chords} keyword allows you to define
-@uref{https://www.emacswiki.org/emacs/key-chord.el,@code{key-chord}}
-bindings for @code{use-package} declarations in the same manner as the
-@code{:bind} keyword.
-
-To enable the extension:
-
-@lisp
-(use-package use-package-chords
-  :ensure t
-  :config (key-chord-mode 1))
-@end lisp
-
-Then you can define your chord bindings in the same manner as
-@code{:bind} using a cons or a list of conses:
-
-@lisp
-(use-package ace-jump-mode
-  :chords (("jj" . ace-jump-char-mode)
-           ("jk" . ace-jump-word-mode)
-           ("jl" . ace-jump-line-mode)))
-@end lisp
 
 @node Creating an extension
 @section How to create an extension keyword
