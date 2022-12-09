@@ -409,6 +409,9 @@ large chunks of code:
 @table @kbd
 @item C-M-q
 Reindent all the lines within one parenthetical grouping.
+@item M-q
+Fill a single paragraph in a defun, or reindent all the lines within
+that defun.
 @item C-u @key{TAB}
 Shift an entire parenthetical grouping rigidly sideways so that its
 first line is properly indented.
@@ -428,6 +431,22 @@ indentation of the line where the grouping starts).  The function that
 @code{indent-pp-sexp} in Lisp mode, @code{c-indent-exp} in C mode,
 etc.  To correct the overall indentation as well, type @kbd{@key{TAB}}
 first.
+
+@kindex M-q
+@findex prog-fill-reindent-defun
+@vindex beginning-of-defun-function
+@vindex end-of-defun-function
+@vindex fill-paragraph-function
+  Major modes that derive from @code{prog-mode} can either fill a
+single paragraph in a defun, such as a doc-string, or a comment, or
+(re)indent the surrounding defun if point is not in a comment or a
+string by typing @kbd{M-q} or using the command @kbd{M-x
+prog-fill-reindent-defun}.  The bounds of a defun is decided by the
+variable @code{beginning-of-defun-function} and
+@code{end-of-defun-function}, and the filling mechanism is decided by
+@code{fill-paragraph-function} (@ref{List Motion,,, elisp, The Emacs
+Lisp Reference Manual}, or @ref{Filling,,, elisp, The Emacs Lisp
+Reference Manual} for more information).
 
 @kindex C-u TAB
   If you like the relative indentation within a grouping but not the

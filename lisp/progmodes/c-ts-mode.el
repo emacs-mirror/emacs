@@ -627,6 +627,10 @@ the subtrees."
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
 
+  (setq-local treesit-text-type-regexp
+              (regexp-opt '("comment"
+                            "raw_string_literal")))
+
   (treesit-parser-create 'cpp)
 
   (setq-local treesit-simple-indent-rules

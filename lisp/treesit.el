@@ -1639,6 +1639,15 @@ ARG is the same as in `beginning-of-defun'."
     (when top
       (goto-char (treesit-node-end top)))))
 
+(defvar-local treesit-text-type-regexp "\\`comment\\'"
+  "A regexp that matches the node type of textual nodes.
+
+A textual node is a node that is not normal code, such as
+comments and multiline string literals.  For example,
+\"(line|block)_comment\" in the case of a comment, or
+\"text_block\" in the case of a string.  This is used by
+`prog-fill-reindent-defun' and friends.")
+
 ;;; Activating tree-sitter
 
 (defun treesit-ready-p (language &optional quiet)

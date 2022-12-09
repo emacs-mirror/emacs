@@ -1619,6 +1619,10 @@ not written in Bash or sh."
                   ( bracket delimiter misc-punctuation operator)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
+    (setq-local treesit-text-type-regexp
+                (regexp-opt '("comment"
+                              "heredoc_start"
+                              "heredoc_body")))
     (treesit-major-mode-setup)))
 
 (advice-add 'bash-ts-mode :around #'sh--redirect-bash-ts-mode

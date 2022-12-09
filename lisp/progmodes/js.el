@@ -3860,6 +3860,11 @@ Currently there are `js-mode' and `js-ts-mode'."
                     (group (or (syntax comment-end)
                                (seq (+ "*") "/")))))
     (setq-local comment-multi-line t)
+
+    (setq-local treesit-text-type-regexp
+                (regexp-opt '("comment"
+                              "template_string")))
+
     ;; Electric-indent.
     (setq-local electric-indent-chars
 	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".

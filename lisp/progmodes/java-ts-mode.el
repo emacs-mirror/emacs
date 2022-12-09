@@ -313,6 +313,11 @@ the subtrees."
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
 
+  (setq-local treesit-text-type-regexp
+              (regexp-opt '("line_comment"
+                            "block_comment"
+                            "text_block")))
+
   ;; Indent.
   (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)
 

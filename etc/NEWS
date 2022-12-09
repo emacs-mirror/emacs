@@ -76,6 +76,13 @@ using this new option.  (Or set 'display-buffer-alist' directly.)
 After manually editing 'eshell-aliases-file', you can use
 'M-x eshell-read-aliases-list' to load the edited aliases.
 
+** Prog Mode
++++
+*** New command 'prog-fill-reindent-defun'
+This command either fills a single paragraph in a defun, such as a
+doc-string, or a comment, or (re)indents the surrounding defun if
+point is not in a comment or a string.  It is by default bound to
+'M-q' in 'prog-mode' and all its descendants.
 
 * New Modes and Packages in Emacs 30.1
 
