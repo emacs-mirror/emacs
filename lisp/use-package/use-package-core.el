@@ -1609,8 +1609,8 @@ no keyword implies `:all'."
 (defmacro use-package (name &rest args)
   "Declare an Emacs package by specifying a group of configuration options.
 
-For full documentation, please see the README file that came with
-this file.  Usage:
+For the full documentation, see Info node `(use-package) top'.
+Usage:
 
   (use-package package-name
      [:keyword [option]]...)
