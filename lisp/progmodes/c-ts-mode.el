@@ -234,14 +234,14 @@ MODE is either `c' or `cpp'."
      (false) @font-lock-constant-face
      (null) @font-lock-constant-face
      ,@(when (eq mode 'cpp)
-         '((this) @font-lock-constant-face
-           (nullptr) @font-lock-constant-face)))
+         '((nullptr) @font-lock-constant-face)))
 
    :language mode
    :feature 'keyword
    `([,@(c-ts-mode--keywords mode)] @font-lock-keyword-face
      ,@(when (eq mode 'cpp)
-         '((auto) @font-lock-keyword-face)))
+         '((auto) @font-lock-keyword-face
+           (this) @font-lock-keyword-face)))
 
    :language mode
    :feature 'operator
