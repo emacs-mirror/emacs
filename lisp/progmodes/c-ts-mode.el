@@ -251,7 +251,9 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'string
    `((string_literal) @font-lock-string-face
-     (system_lib_string) @font-lock-string-face)
+     (system_lib_string) @font-lock-string-face
+     ,@(when (eq mode 'cpp)
+         '((raw_string_literal) @font-lock-string-face)))
 
    :language mode
    :feature 'literal

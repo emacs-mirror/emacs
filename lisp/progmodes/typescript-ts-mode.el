@@ -329,6 +329,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
 
+  (setq-local treesit-defun-prefer-top-level t)
+
   ;; Electric
   (setq-local electric-indent-chars
               (append "{}():;," electric-indent-chars))

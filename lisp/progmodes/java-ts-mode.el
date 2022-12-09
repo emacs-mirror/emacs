@@ -73,6 +73,7 @@
      ((node-is "]") parent-bol 0)
      ((and (parent-is "comment") comment-end) comment-start -1)
      ((parent-is "comment") comment-start-skip 0)
+     ((parent-is "text_block") no-indent)
      ((parent-is "class_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "interface_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "constructor_body") parent-bol java-ts-mode-indent-offset)
@@ -162,7 +163,8 @@
    :language 'java
    :override t
    :feature 'string
-   `((string_literal) @font-lock-string-face)
+   `((string_literal) @font-lock-string-face
+     (text_block) @font-lock-string-face)
    :language 'java
    :override t
    :feature 'literal
