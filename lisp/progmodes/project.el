@@ -609,13 +609,16 @@ project backend implementation of `project-external-roots'.")
   (defvar vc-git-use-literal-pathspecs)
   (pcase backend
     (`Git
-     (let ((default-directory (expand-file-name (file-name-as-directory dir)))
-           (args '("-z"))
-           (vc-git-use-literal-pathspecs nil)
-           files)
+     (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
+            (args '("-z"))
+            (vc-git-use-literal-pathspecs nil)
+            (include-untracked (project--value-in-dir
+                                'project-vc-include-untracked
+                                dir))
+            files)
        (setq args (append args
                           '("-c" "--exclude-standard")
-                          (and project-vc-include-untracked '("-o"))))
+                          (and include-untracked '("-o"))))
        (when extra-ignores
          (setq args (append args
                             (cons "--"
@@ -666,10 +669,13 @@ project backend implementation of `project-external-roots'.")
        ;; XXX: Better solutions welcome, but this seems cheap enough.
        (delete-consecutive-dups files)))
     (`Hg
-     (let ((default-directory (expand-file-name (file-name-as-directory dir)))
-           (args (list (concat "-mcard" (and project-vc-include-untracked "u"))
-                       "--no-status"
-                       "-0")))
+     (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
+            (include-untracked (project--value-in-dir
+                                'project-vc-include-untracked
+                                dir))
+            (args (list (concat "-mcard" (and include-untracked "u"))
+                        "--no-status"
+                        "-0")))
        (when extra-ignores
          (setq args (nconc args
                            (mapcan
