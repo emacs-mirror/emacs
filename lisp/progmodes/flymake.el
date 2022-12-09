@@ -54,9 +54,8 @@
 ;; (question mark) if no backends were even configured.
 ;;
 ;; For programmers interested in writing a new Flymake backend, the
-;; docstring of `flymake-diagnostic-functions', the Flymake manual,
-;; and the code of existing backends are probably a good starting
-;; point.
+;; docstring of `flymake-diagnostic-functions', the Flymake manual, and the
+;; code of existing backends are probably good starting points.
 ;;
 ;; The user wishing to customize the appearance of error types should
 ;; set properties on the symbols associated with each diagnostic type.
