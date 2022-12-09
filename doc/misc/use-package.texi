@@ -394,21 +394,60 @@ is provided as an alias for @code{:if}.  Finally, the @code{:unless}
 keyword is the inverse of @code{:if}, such that @w{@code{:unless foo}}
 means the same thing as @w{@code{:if (not foo)}}.
 
-For example, if you only want @samp{foo} in graphical Emacs sessions,
-you could use the following:
+For example, if you only want to load @samp{foo} in graphical Emacs
+sessions, you could use the following:
 
 @lisp
 (use-package foo
   :if (display-graphic-p))
 @end lisp
 
-Another common use case is to make it conditional on the operating
-system:
+@subheading Some common use cases
+
+Here are some common cases for conditional loading, and how to achieve
+them.
+
+@itemize
+
+@item Operating system
+
+This example loads a package only on GNU/Linux.  See the
+@code{system-type} docstring for other valid values.
 
 @lisp
-(use-package foo
-  :if (memq window-system '(mac ns)))
+:if (eq system-type 'gnu/linux)
 @end lisp
+
+@item Window system
+
+This example loads a package only on macOS and X.  See the
+@code{window-system} docstring for valid values.
+
+@lisp
+:if (memq window-system '(ns x))
+@end lisp
+
+@item Installed package
+
+This example loads a package only when the @samp{foo} package is
+installed.
+
+@lisp
+:if (package-installed-p 'foo)
+@end lisp
+
+@item Libraries in @code{load-path}
+
+This example loads a package only when @file{foo.el} is available in
+your @code{load-path} (for example, if you installed that file
+manually):
+
+@lisp
+:if (locate-library "foo.el")
+@end lisp
+@end itemize
+
+@subheading Making conditional loading affect @code{:preface} and @code{:ensure}
 
 @cindex conditional loading before @code{:preface} or @code{:ensure}
 If you need to conditionalize a use-package form so that the condition
@@ -1204,10 +1243,12 @@ install the corresponding package from @acronym{GNU ELPA}.
 @findex :diminish
 When diminish@footnote{The diminish package is installable from
 @acronym{GNU ELPA}.} is installed, you can use the @code{:diminish}
-keyword.  First, add the following declaration to the beginning of
-your init file.  The optional @w{@code{:ensure t}} makes sure the
-package is installed if it isn't already (@pxref{Installing
-packages}).
+keyword.  If diminish is not installed, the @code{:diminish} keyword
+does nothing.
+
+First, add the following declaration to the beginning of your init
+file.  The optional @w{@code{:ensure t}} makes sure the package is
+installed if it isn't already (@pxref{Installing packages}).
 
 @lisp
 (use-package diminish :ensure t)
@@ -1231,7 +1272,9 @@ package name with @samp{-mode} appended at the end:
 
 @findex :delight
 When delight@footnote{The @samp{delight} package is installable from
-GNU ELPA.} is installed, you can use the @code{:delight} keyword.
+GNU ELPA.} is installed, you can use the @code{:delight} keyword.  If
+delight is not installed, the @code{:delight} keyword does nothing.
+
 First, add the following declaration to the beginning of your init
 file.  The optional @w{@code{:ensure t}} makes sure the package is
 installed if it isn't already (@pxref{Installing packages}).
@@ -1242,25 +1285,41 @@ installed if it isn't already (@pxref{Installing packages}).
 
 The @code{:delight} keyword takes a minor mode symbol, a replacement
 string, or quoted mode line data (in which case the minor mode symbol
-is guessed to be the package name with @samp{-mode} appended at the
+is assumed to be the package name with @samp{-mode} appended at the
 end), both of these, or several lists of both.  @xref{Mode Line
 Data,,, elisp, GNU Emacs Lisp Reference Manual}.  If no arguments are
 provided, the default mode name is hidden completely.
 
-@lisp
-;; Don't show anything for rainbow-mode.
-(use-package rainbow-mode
-  :delight)
+For example, the following hides everything for the @samp{foo-mode}
+minor mode in the @samp{foo} package:
 
+@lisp
+(use-package foo
+  :delight)
+@end lisp
+
+If the mode name doesn't match the package name with @samp{-mode}
+appended, provide a symbol instead.  For example, the following hides
+@code{auto-revert-mode} from the mode line:
+
+@lisp
 ;; Don't show anything for auto-revert-mode, which doesn't match
 ;; its package name.
 (use-package autorevert
   :delight auto-revert-mode)
+@end lisp
 
-;; Remove the mode name for projectile-mode, but show the project name.
-(use-package projectile
-  :delight '(:eval (concat " " (projectile-project-name))))
+You can also run arbitrary Lisp code.  For example, to replace
+@samp{foo-mode} with the value of the current buffer:
 
+@lisp
+(use-package foo
+  :delight '(:eval buffer-file-name))
+@end lisp
+
+Here is an example of hiding several built-in minor modes:
+
+@lisp
 ;; Completely hide visual-line-mode and change auto-fill-mode to " AF".
 (use-package emacs
   :delight
