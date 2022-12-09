@@ -387,6 +387,11 @@ done by `eglot-reconnect'."
   "String displayed in mode line when Eglot is active."
   :type 'string)
 
+(defcustom eglot-report-progress t
+  "If non-nil, show progress of long running LSP server work"
+  :type 'boolean
+  :version "29.1")
+
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
 This can be useful when using docker to run a language server.")
@@ -471,6 +476,7 @@ This can be useful when using docker to run a language server.")
       (TextDocumentEdit (:textDocument :edits) ())
       (TextEdit (:range :newText))
       (VersionedTextDocumentIdentifier (:uri :version) ())
+      (WorkDoneProgress (:kind) (:title :message :percentage :cancellable))
       (WorkspaceEdit () (:changes :documentChanges))
       (WorkspaceSymbol (:name :kind) (:containerName :location :data)))
     "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
@@ -832,6 +838,9 @@ treated as in `eglot--dbind'."
    (project
     :documentation "Project associated with server."
     :accessor eglot--project)
+   (progress-reporters
+    :initform (make-hash-table :test #'equal) :accessor eglot--progress-reporters
+    :documentation "Maps LSP progress tokens to progress reporters.")
    (inhibit-autoreconnect
     :initform t
     :documentation "Generalized boolean inhibiting auto-reconnection if true."
@@ -2049,6 +2058,27 @@ COMMAND is a symbol naming the command."
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql telemetry/event)) &rest _any)
   "Handle notification telemetry/event.") ;; noop, use events buffer
+
+(cl-defmethod eglot-handle-notification
+  (server (_method (eql $/progress)) &key token value)
+  "Handle $/progress notification identified by TOKEN from SERVER."
+  (when eglot-report-progress
+    (cl-flet ((fmt (&rest args) (mapconcat #'identity args " ")))
+      (eglot--dbind ((WorkDoneProgress) kind title percentage message) value
+        (pcase kind
+          ("begin"
+           (let* ((prefix (format (concat "[eglot] %s %s:" (when percentage " "))
+                                  (eglot-project-nickname server) token))
+                  (pr (puthash token
+                       (if percentage
+                           (make-progress-reporter prefix 0 100 percentage 1 0)
+                         (make-progress-reporter prefix nil nil nil 1 0))
+                       (eglot--progress-reporters server))))
+             (progress-reporter-update pr percentage (fmt title message))))
+          ("report"
+           (when-let ((pr (gethash token (eglot--progress-reporters server))))
+             (progress-reporter-update pr percentage (fmt title message))))
+          ("end" (remhash token (eglot--progress-reporters server))))))))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
