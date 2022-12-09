@@ -493,6 +493,23 @@ test-lisp-url-inotify:
     target: emacs-inotify
     make_params: "-k -C test check-lisp-url"
 
+test-lisp-use-package-inotify:
+  stage: normal
+  extends: [.job-template, .test-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - changes:
+        - lisp/use-package/*.el
+        - test/lisp/use-package/*.el
+        - test/lisp/use-package/*resources/**
+  variables:
+    target: emacs-inotify
+    make_params: "-k -C test check-lisp-use-package"
+
 test-lisp-vc-inotify:
   stage: normal
   extends: [.job-template, .test-template]
