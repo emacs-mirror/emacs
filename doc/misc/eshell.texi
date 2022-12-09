@@ -1028,14 +1028,15 @@ necessary.  Its value is @code{@var{emacs-version},eshell}.
 @section Aliases
 
 @vindex $*
+@findex eshell-expand-history-references
 Aliases are commands that expand to a longer input line.  For example,
 @command{ll} is a common alias for @code{ls -l}, and would be defined
 with the command invocation @kbd{alias ll 'ls -l $*'}; with this defined,
 running @samp{ll foo} in Eshell will actually run @samp{ls -l foo}.
 Aliases defined (or deleted) by the @command{alias} command are
 automatically written to the file named by @code{eshell-aliases-file},
-which you can also edit directly (although you will have to manually
-reload it).
+which you can also edit directly.  After doing so, use @w{@kbd{M-x
+eshell-read-aliases-list}} to load the edited aliases.
 
 @vindex $1, $2, @dots{}
 Note that unlike aliases in Bash, arguments must be handled

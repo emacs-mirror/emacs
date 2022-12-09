@@ -56,6 +56,11 @@ switches for shortlogs, such as the one produced by 'C-x v L'.
 You can now configure how to display the "*buffer-selection*" buffer
 using this new option.  (Or set 'display-buffer-alist' directly.)
 
++++
+*** 'eshell-read-aliases-list' is now an interactive command.
+After manually editing 'eshell-aliases-file', you can use
+'M-x eshell-read-aliases-list' to load the edited aliases.
+
 
 * New Modes and Packages in Emacs 30.1
 
