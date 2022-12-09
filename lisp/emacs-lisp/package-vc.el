@@ -754,6 +754,10 @@ name from the base name of DIR."
   (package-vc--archives-initialize)
   (let* ((name (or name (file-name-base (directory-file-name dir))))
          (pkg-dir (expand-file-name name package-user-dir)))
+    (when (file-exists-p pkg-dir)
+      (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))
+          (package--delete-directory pkg-dir)
+        (error "There already exists a checkout for %s" name)))
     (make-symbolic-link (expand-file-name dir) pkg-dir)
     (package-vc--unpack-1
      (package-desc-create
