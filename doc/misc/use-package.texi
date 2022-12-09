@@ -190,7 +190,7 @@ immediately.  In most cases, this is not necessary or desirable, as
 that will slow down Emacs startup.  Instead, you should try to set
 things up so that packages are only loaded when they are actually
 needed (a.k.a. ``autoloading'').  If you have installed a package from
-@acronym{GNU ELPA} that provides it's own autoloads, it is often
+@acronym{GNU} @acronym{ELPA} that provides it's own autoloads, it is often
 enough to say:
 
 @lisp
