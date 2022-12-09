@@ -38,15 +38,14 @@
 
 ;;;###autoload
 (defun use-package-autoload-keymap (keymap-symbol package override)
-  "Loads PACKAGE and then binds the key sequence used to invoke
-this function to KEYMAP-SYMBOL. It then simulates pressing the
-same key sequence a again, so that the next key pressed is routed
-to the newly loaded keymap.
+  "Load PACKAGE and bind key sequence invoking this function to KEYMAP-SYMBOL.
+Then simulate pressing the same key sequence a again, so that the
+next key pressed is routed to the newly loaded keymap.
 
-This function supports use-package's :bind-keymap keyword. It
+This function supports use-package's :bind-keymap keyword.  It
 works by binding the given key sequence to an invocation of this
-function for a particular keymap. The keymap is expected to be
-defined by the package. In this way, loading the package is
+function for a particular keymap.  The keymap is expected to be
+defined by the package.  In this way, loading the package is
 deferred until the prefix key sequence is pressed."
   (if (not (require package nil t))
       (use-package-error (format "Cannot load package.el: %s" package))
