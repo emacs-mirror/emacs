@@ -838,7 +838,6 @@ startup time will not suffer one bit.
 @node Key bindings
 @section Key bindings
 
-@cindex :bind
 @cindex binding keys for package commands
 @cindex key bindings for package commands
 One common thing to do when loading a package is to bind keys to
@@ -1661,7 +1660,7 @@ from the special @samp{manual} archive).
 @section Non-standard package managers
 @cindex non-standard package managers
 @cindex package managers, other than @file{package.el}
-@cindex installing packages using non-standard package managers
+@cindex installing using non-standard package managers
 
 By default, use-package assumes that you are using the Emacs built-in
 @file{package.el} package manager.  We expect that most users will
