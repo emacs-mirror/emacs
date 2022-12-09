@@ -711,6 +711,14 @@ without specifying a file, like this:
 *** New user option 'image-dired-thumb-naming'.
 You can now configure how a thumbnail is named using this option.
 
+** checkdoc
+
+---
+*** New checkdock warning if not using lexical-binding.
+Checkdoc now warns if the first line of an Emacs Lisp file does not
+end with a "-*- lexical-binding: t -*-" cookie.  Customize the user
+option 'checkdoc-lexical-binding-flag' to nil to disable this warning.
+
 
 * New Modes and Packages in Emacs 30.1
 
