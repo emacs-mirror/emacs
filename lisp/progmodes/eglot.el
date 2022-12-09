@@ -541,7 +541,7 @@ on unknown notifications and errors on unknown requests."))
        for type = (or (cdr (assoc k types)) t) ;; FIXME: enforce nil type?
        unless (cl-typep v type)
        do (eglot--error "A `%s' must have a %s as %s, but has %s"
-                        interface-name )))
+                        interface-name)))
     t))
 
 (eval-and-compile
@@ -1126,11 +1126,11 @@ INTERACTIVE is t if called interactively."
   (let ((buffer (current-buffer)))
     (cl-labels
         ((maybe-connect
-          ()
-          (remove-hook 'post-command-hook #'maybe-connect nil)
-          (eglot--when-live-buffer buffer
-            (unless eglot--managed-mode
-              (apply #'eglot--connect (eglot--guess-contact))))))
+           ()
+           (remove-hook 'post-command-hook #'maybe-connect nil)
+           (eglot--when-live-buffer buffer
+             (unless eglot--managed-mode
+               (apply #'eglot--connect (eglot--guess-contact))))))
       (when buffer-file-name
         (add-hook 'post-command-hook #'maybe-connect 'append nil)))))
 
@@ -1182,7 +1182,7 @@ Each function is passed the server as an argument")
       (list "sh" "-c"
             (string-join (cons "stty raw > /dev/null;"
                                (mapcar #'shell-quote-argument contact))
-             " "))
+                         " "))
     contact))
 
 (defvar-local eglot--cached-server nil
@@ -1236,7 +1236,7 @@ This docstring appeases checkdoc, that's all."
                      ,@more-initargs)))))
          (spread (lambda (fn) (lambda (server method params)
                                 (let ((eglot--cached-server server))
-                                 (apply fn server method (append params nil))))))
+                                  (apply fn server method (append params nil))))))
          (server
           (apply
            #'make-instance class
@@ -1570,7 +1570,7 @@ Doubles as an indicator of snippet support."
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
       (let ((inhibit-message t)
-	    (message-log-max nil))
+            (message-log-max nil))
         (ignore-errors (delay-mode-hooks (funcall mode))))
       (font-lock-ensure)
       (string-trim (buffer-string)))))
@@ -1855,8 +1855,8 @@ If it is activated, also signal textDocument/didOpen."
                                            (force-mode-line-update t))))))
 
 (defun eglot-manual () "Open documentation."
-  (declare (obsolete info "29.1"))
-  (interactive) (info "(eglot)"))
+       (declare (obsolete info "29.1"))
+       (interactive) (info "(eglot)"))
 
 (easy-menu-define eglot-menu nil "Eglot"
   `("Eglot"
@@ -1960,17 +1960,17 @@ Uses THING, FACE, DEFS and PREPEND."
            'keymap (let ((map (make-sparse-keymap)))
                      (define-key map [mode-line down-mouse-1] eglot-server-menu)
                      map))
-       ,@(when last-error
+         ,@(when last-error
              `("/" ,(eglot--mode-line-props
                      "error" 'compilation-mode-line-fail
                      '((mouse-3 eglot-clear-status  "Clear this status"))
                      (format "An error occurred: %s\n" (plist-get last-error
-                                                                 :message)))))
-       ,@(when (cl-plusp pending)
-           `("/" ,(eglot--mode-line-props
-                   (format "%d" pending) 'warning
-                   '((mouse-3 eglot-forget-pending-continuations
-                              "Forget pending continuations"))
+                                                                  :message)))))
+         ,@(when (cl-plusp pending)
+             `("/" ,(eglot--mode-line-props
+                     (format "%d" pending) 'warning
+                     '((mouse-3 eglot-forget-pending-continuations
+                                "Forget pending continuations"))
                      "Number of outgoing, \
 still unanswered LSP requests to the server\n"))))))))
 
@@ -1988,13 +1988,13 @@ still unanswered LSP requests to the server\n"))))))))
 (defalias 'eglot--diag-data 'flymake-diagnostic-data)
 
 (cl-loop for i from 1
-         for type in '(eglot-note eglot-warning eglot-error )
+         for type in '(eglot-note eglot-warning eglot-error)
          do (put type 'flymake-overlay-control
                  `((mouse-face . highlight)
                    (priority . ,(+ 50 i))
                    (keymap . ,(let ((map (make-sparse-keymap)))
                                 (define-key map [mouse-1]
-                                  (eglot--mouse-call 'eglot-code-actions))
+                                            (eglot--mouse-call 'eglot-code-actions))
                                 map)))))
 
 
@@ -2174,7 +2174,7 @@ THINGS are either registrations or unregisterations (sic)."
   (append
    (eglot--VersionedTextDocumentIdentifier)
    (list :languageId
-	 (eglot--language-id (eglot--current-server-or-lose))
+         (eglot--language-id (eglot--current-server-or-lose))
          :text
          (eglot--widening
           (buffer-substring-no-properties (point-min) (point-max))))))
@@ -2636,7 +2636,7 @@ If BUFFER, switch to it before."
                                                uri range))))))
        (if (vectorp response) response (and response (list response)))))))
 
-(cl-defun eglot--lsp-xref-helper (method &key extra-params capability )
+(cl-defun eglot--lsp-xref-helper (method &key extra-params capability)
   "Helper for `eglot-find-declaration' & friends."
   (let ((eglot--lsp-xref-refs (eglot--lsp-xrefs-for-method
                                method
@@ -2668,7 +2668,7 @@ If BUFFER, switch to it before."
             (get-text-property 0 'eglot--lsp-workspaceSymbol probe)
           (eglot--dbind ((Location) uri range) location
             (list (eglot--xref-make-match name uri range))))
-        (eglot--lsp-xrefs-for-method :textDocument/definition))))
+      (eglot--lsp-xrefs-for-method :textDocument/definition))))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) _identifier)
   (or
@@ -2707,7 +2707,7 @@ for which LSP on-type-formatting should be requested."
                  `(:textDocument/onTypeFormatting
                    :documentOnTypeFormattingProvider
                    ,`(:position ,(eglot--pos-to-lsp-position beg)
-                      :ch ,(string on-type-format))))
+                                :ch ,(string on-type-format))))
                 ((and beg end)
                  `(:textDocument/rangeFormatting
                    :documentRangeFormattingProvider
@@ -3280,24 +3280,24 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                 (eglot--project server))))))
     (cl-labels
         ((handle-event
-          (event)
-          (pcase-let* ((`(,desc ,action ,file ,file1) event)
-                       (action-type (cl-case action
-                                      (created 1) (changed 2) (deleted 3)))
-                       (action-bit (when action-type
-                                     (ash 1 (1- action-type)))))
-            (cond
-             ((and (memq action '(created changed deleted))
-                   (cl-loop for (glob . kind-bitmask) in globs
-                            thereis (and (> (logand kind-bitmask action-bit) 0)
-                                         (funcall glob file))))
-              (jsonrpc-notify
-               server :workspace/didChangeWatchedFiles
-               `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
-                                          :type ,action-type)))))
-             ((eq action 'renamed)
-              (handle-event `(,desc 'deleted ,file))
-              (handle-event `(,desc 'created ,file1)))))))
+           (event)
+           (pcase-let* ((`(,desc ,action ,file ,file1) event)
+                        (action-type (cl-case action
+                                       (created 1) (changed 2) (deleted 3)))
+                        (action-bit (when action-type
+                                      (ash 1 (1- action-type)))))
+             (cond
+              ((and (memq action '(created changed deleted))
+                    (cl-loop for (glob . kind-bitmask) in globs
+                             thereis (and (> (logand kind-bitmask action-bit) 0)
+                                          (funcall glob file))))
+               (jsonrpc-notify
+                server :workspace/didChangeWatchedFiles
+                `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
+                                           :type ,action-type)))))
+              ((eq action 'renamed)
+               (handle-event `(,desc 'deleted ,file))
+               (handle-event `(,desc 'created ,file1)))))))
       (unwind-protect
           (progn
             (dolist (dir dirs-to-watch)
