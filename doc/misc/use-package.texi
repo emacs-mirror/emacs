@@ -1273,7 +1273,7 @@ cells, or a string or regexp.
 The following example reproduces the default @code{ruby-mode}
 configuration, exactly as it is in Emacs out-of-the-box.  That mode is
 enabled automatically when a file whose name matches the regexp
-@code{"\\.rb\\'"} (a file with the @samp{.rb} extension), or when the
+@code{"\\.rb\\'"} (a file with the @file{.rb} extension), or when the
 first line of the file (known as the ``shebang'') matches the string
 @code{"ruby"}:
 
