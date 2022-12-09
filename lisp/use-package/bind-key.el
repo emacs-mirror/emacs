@@ -10,29 +10,29 @@
 ;; Keywords: keys keybinding config dotemacs extensions
 ;; URL: https://github.com/jwiegley/use-package
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; If you have lots of keybindings set in your .emacs file, it can be hard to
-;; know which ones you haven't set yet, and which may now be overriding some
-;; new default in a new Emacs version.  This module aims to solve that
-;; problem.
+;; If you have lots of keybindings set in your init file, it can be
+;; hard to know which ones you haven't set yet, and which may now be
+;; overriding some new default in a new Emacs version.  This module
+;; aims to solve that problem.
 ;;
-;; Bind keys as follows in your .emacs:
-;;
-;;   (require 'bind-key)
+;; Bind keys as follows in your init file:
 ;;
 ;;   (bind-key "C-c x" 'my-ctrl-c-x-command)
 ;;
@@ -95,6 +95,8 @@
 ;; This display will tell you if you've overridden a default keybinding, and
 ;; what the default was.  Also, it will tell you if the key was rebound after
 ;; your binding it with `bind-key', and what it was rebound it to.
+;;
+;; See the `use-package' info manual for more information.
 
 ;;; Code:
 

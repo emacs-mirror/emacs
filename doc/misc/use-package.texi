@@ -128,7 +128,6 @@ top of your init file:
 
 @lisp
 (require 'use-package)
-(require 'bind-key)            ; if you use any :bind variant
 @end lisp
 
 The above makes the @code{use-macro} for in the rest of your init
