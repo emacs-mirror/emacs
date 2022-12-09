@@ -1937,9 +1937,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_alloc ();
-#ifndef HAVE_UNEXEC
   init_bignum ();
-#endif
   init_threads ();
   init_eval ();
   running_asynch_code = 0;
