@@ -12,6 +12,183 @@ extensible IRC (Internet Relay Chat) client distributed with
 GNU Emacs since Emacs version 22.1.
 
 
+* Changes in ERC 5.6
+
+** Module 'keep-place' now offers a visual indicator.
+Remember your place in ERC buffers a bit more easily while retaining
+the freedom to look around.  Optionally sync the indicator to any
+progress made when you haven't yet caught up to the live stream.  See
+options 'erc-keep-place-indicator-style' and friends and new module
+'keep-place-indicator', which for now must be added manually to
+'erc-modules'.
+
+** Module 'fill' now offers a style based on 'visual-line-mode'.
+This fill style mimics the "hanging indent" look of 'erc-fill-static'
+and provides some movement and editing commands to optionally tame the
+less familiar aspects of 'visual-line' behavior.  An interactive
+helper called 'erc-fill-wrap-nudge' allows for dynamic "refilling" of
+buffers on the fly.  Set 'erc-fill-function' to 'erc-fill-wrap' to get
+started.
+
+** A unified interactive entry point.
+New users are often dismayed to discover that M-x ERC doesn't connect
+to its default network, Libera.Chat, over TLS.  Though perhaps a
+decade overdue, this is no longer the case.  Other UX improvements in
+this area aim to make the process of connecting interactively slightly
+more streamlined and less repetitive, even for veteran users.
+
+** New buffer-display option 'erc-interactive-display'.
+A point of friction for new users and one only just introduced with
+ERC 5.5 has been the lack of visual feedback when first connecting via
+M-x erc.  As explained below in the news for 5.5, the discovery of a
+security issue led to new ERC buffers being "buried" on creation.  On
+further reflection, this was judged to have been an overcorrection in
+the case of interactive invocations, hence the new option
+'erc-interactive-display', which is set to 'buffer' (i.e., "take me
+there") by default.  Accompanying this addition are "display"-suffixed
+aliases for related options 'erc-join-buffer' and 'erc-auto-query',
+which users have reported as being difficult to discover and remember.
+
+** Setting a module's mode variable via Customize earns a warning.
+Trying and failing to activate a module via its minor mode's Custom
+widget has been an age-old annoyance for new users.  Previously
+ineffective, this method now actually works, but it also admonishes
+users to edit the 'erc-modules' widget instead.
+
+** The option 'erc-timestamp-use-align-to' is more versatile.
+While this option has always offered to right-align stamps via the
+'display' text property, it's now more effective at doing so when set
+to a number indicating an offset from the right edge.  And when set to
+the symbol 'margin', it displays stamps in the right margin, although,
+at the moment, this is mostly intended for use by other modules, such
+as 'fill-wrap', described above.  For both these variants, users of
+the 'log' module may want to customize 'erc-log-filter-function' to
+'erc-stamp-prefix-log-filter' to avoid ragged right-hand stamps
+appearing in their saved logs.
+
+** Smarter reconnect handling for users on the move.
+ERC now offers a new, experimental reconnect strategy in the function
+'erc-server-delayed-check-reconnect', which tests for underlying
+connectivity before attempting to reconnect in earnest.  See options
+'erc-server-reconnect-function' and 'erc-nickname-in-use-functions' to
+get started.
+
+** Easily constrain all ERC-related business to a dedicated frame.
+The option 'erc-reuse-frames' can now be set to 'displayed', which
+tells ERC to show new buffers in frames already occupied by buffers
+from the same connection.  This customization depends on the option
+'erc-buffer-display' (formerly 'erc-join-buffer') being set to
+'frame'.  If you find the name 'displayed' unhelpful, please suggest
+an alternative by writing to the mailing list.
+
+** Some keybindings are now set by modules rather than their libraries.
+To put it another way, simply loading a built-in module's library no
+longer modifies 'erc-mode-map'.  Instead, modifications occur during
+module setup.  This should not impact most user configs since ERC
+doesn't bother with keys already taken and only removes bindings it's
+previously created.  Note that while all affected bindings still
+reside in 'erc-mode-map', future built-in modules will use their own
+minor-mode maps, and new third-party modules should do the same.
+
+** The option 'erc-timestamp-format-right' has been deprecated.
+Having to account for this option prevented other ERC modules from
+easily determining what right-hand stamps would look like before
+insertion, which is knowledge needed for certain UI decisions.  The
+way ERC has chosen to address this is imperfect and boils down to
+asking users who've customized this option to switch to
+'erc-timestamp-format' instead.  If you're affected by this and feel
+that some other solution, like automatic migration, is justified,
+please make that known on the bug list.
+
+** The 'nicknames' entry in 'erc-button-alist' is officially exceptional.
+It's no secret that the 'buttons' module treats potential nicknames
+specially.  To simplify ERC's move to next-gen "rich UI" extensions,
+this special treatment is being canonized.  From now on, all values
+other than the symbol 'erc-button-buttonize-nicks' appearing in the
+"FORM" field (third element) of this entry are considered deprecated
+and will incur a warning.
+
+** Miscellaneous UX changes.
+Some minor quality-of-life niceties have finally made their way to
+ERC.  For example, the function 'erc-echo-timestamp' is now
+interactive and can be invoked on any message to view its timestamp in
+the echo area.  Also, the 'irccontrols' module now supports additional
+colors and special handling for "spoilers" (hidden text).  And issuing
+an "/MOTD" now dispatches a purpose-built command handler.
+
+** Changes in the library API.
+
+*** Some top-level dependencies have been removed.
+The library 'erc-goodies' is no longer loaded by ERC's main library.
+This was done to further cement the move toward a unidirectional
+dependency flow begun in 5.5.  Additionally, a few barely used and
+newly introduced dependencies are now lazily loaded, which may upset
+some third-party code.  The first of these is 'pp' because its
+'pp-to-string' is autoloaded in all supported ERC versions.  Also gone
+are 'thingatpt', 'time-date', and 'iso8601'.  All were used ultra
+sparingly, and the latter two have only been around for one minor
+release cycle, so their removal hopefully won't cause much churn.
+
+*** Some ERC-applied text properties have changed.
+Chiefly, 'rear-sticky' has been replaced by 'erc-command', which
+records the IRC command (or numeric) associated with a message.  Less
+impactfully, the value of the 'field' property for ERC's prompt has
+changed from 't' to the more useful 'erc-prompt', although the
+property of the same name has been retained.
+
+*** ERC now manages timestamp-related properties a bit differently.
+For starters, the 'cursor-sensor-functions' property no longer
+contains unique closures and thus no longer proves effective for
+traversing messages.  To compensate, a new property, 'erc-timestamp',
+now spans message bodies but not the newlines delimiting them.
+Somewhat relatedly, the function 'erc-insert-aligned' has been
+deprecated and removed from the primary client code path.
+
+*** The role of a module's Custom group is now more clearly defined.
+Associating built-in modules with Custom groups and provided library
+features has improved.  More specifically, a module's group now enjoys
+the singular purpose of determining where the module's minor mode
+variable lives in the Customize interface.  And although ERC is now
+slightly more adept at linking these entities, third-parties are still
+encouraged to keep a module's name aligned with its group's as well as
+the provided feature of its containing library, if only for the usual
+reasons of namespace hygiene and discoverability.
+
+*** ERC now supports arbitrary CHANTYPES.
+Specifically, channels can be prefixed with any predesignated
+character, mainly to afford more flexibility to specialty services,
+like bridges to other protocols.
+
+*** 'erc-cmd-HELP' recognizes subcommands.
+Some IRC "slash" commands are hierarchical and require users to
+specify a subcommand to actually carry out anything of consequence.
+Built-in modules can now provide more detailed help for a particular
+subcommand by telling ERC to defer to a specialized handler.
+
+*** Longtime quasi modules have been made proper.
+The 'fill' module is now defined by 'define-erc-module'.  The same
+goes for ERC's imenu integration, which has 'imenu' now appearing in
+the default value of 'erc-modules'.
+
+*** ERC's prompt survives the insertion of user input and messages.
+Previously, ERC's prompt and its input marker disappeared while
+running hooks during message insertion, and the position of its
+"insert marker" (ERC's per-buffer process mark) was inconsistent
+during these spells.  To make insertion handling more predictable in
+preparation for incorporating various protocol extensions, the prompt
+and its bounding markers have become perennial fixtures.  In rare
+cases, these changes may mean third-party code needs tweaking, for
+example, requiring the use of 'insert-before-markers' instead of
+'insert'.  As always, users feeling unduly inconvenienced by these
+changes are encouraged to voice their concerns on the bug list.
+
+*** Miscellaneous changes
+For autoloading purposes, 'Info-goto-node' has been supplanted by
+plain old 'info' in 'erc-button-alist', and two helper macros from GNU
+ELPA's Compat library are now available to third-party modules as
+'erc-compat-call' and 'erc-compat-function'.
+
+
 * Changes in ERC 5.5
 
 ** Smarter buffer naming for withstanding collisions.
