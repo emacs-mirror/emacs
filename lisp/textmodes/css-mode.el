@@ -1822,6 +1822,7 @@ Use `\\[fill-paragraph]' to reformat CSS declaration blocks.  It
 can also be used to fill comments.
 
 \\{css-mode-map}"
+  :syntax-table css-mode-syntax-table
   (when (treesit-ready-p 'css)
     ;; Borrowed from `css-mode'.
     (add-hook 'completion-at-point-functions

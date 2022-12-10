@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0") (seq "2.23"))
+;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0") (seq "2.23") (external-completion "0.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -110,6 +110,7 @@
 (require 'filenotify)
 (require 'ert)
 (require 'array)
+(require 'external-completion)
 
 ;; ElDoc is preloaded in Emacs, so `require'-ing won't guarantee we are
 ;; using the latest version from GNU Elpa when we load eglot.el.  Use an
@@ -2060,9 +2061,11 @@ COMMAND is a symbol naming the command."
                     (t          'eglot-note)))
             (mess (source code message)
               (concat source (and code (format " [%s]" code)) ": " message)))
-    (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
+    (if-let* ((path (expand-file-name (eglot--uri-to-path uri)))
+              (buffer (find-buffer-visiting path)))
         (with-current-buffer buffer
           (cl-loop
+           initially (assoc-delete-all path flymake-list-only-diagnostics #'string=)
            for diag-spec across diagnostics
            collect (eglot--dbind ((Diagnostic) range code message severity source tags)
                        diag-spec
@@ -2105,7 +2108,6 @@ COMMAND is a symbol naming the command."
                          (t
                           (setq eglot--diagnostics diags)))))
       (cl-loop
-       with path = (expand-file-name (eglot--uri-to-path uri))
        for diag-spec across diagnostics
        collect (eglot--dbind ((Diagnostic) code range message severity source) diag-spec
                  (setq message (mess source code message))
@@ -2571,7 +2573,7 @@ If BUFFER, switch to it before."
                   (let ((probe (gethash pat cache :missing)))
                     (if (eq probe :missing) (puthash pat (refresh pat) cache)
                       probe)))
-                (lookup (pat)
+                (lookup (pat _point)
                   (let ((res (lookup-1 pat))
                         (def (and (string= pat "") (gethash :default cache))))
                     (append def res nil)))
@@ -2579,16 +2581,12 @@ If BUFFER, switch to it before."
                   (cl-getf (get-text-property
                             0 'eglot--lsp-workspaceSymbol c)
                            :score 0)))
-      (lambda (string _pred action)
-        (pcase action
-          (`metadata `(metadata
-                       (cycle-sort-function
-                        . ,(lambda (completions)
-                             (cl-sort completions #'> :key #'score)))
-                       (category . eglot-indirection-joy)))
-          (`(eglot--lsp-tryc . ,point) `(eglot--lsp-tryc . (,string . ,point)))
-          (`(eglot--lsp-allc . ,_point) `(eglot--lsp-allc . ,(lookup string)))
-          (_ nil))))))
+      (external-completion-table
+       'eglot-indirection-joy
+       #'lookup
+       `((cycle-sort-function
+          . ,(lambda (completions)
+               (cl-sort completions #'> :key #'score))))))))
 
 (defun eglot--recover-workspace-symbol-meta (string)
   "Search `eglot--workspace-symbols-cache' for rich entry of STRING."
@@ -2599,9 +2597,6 @@ If BUFFER, switch to it before."
                  (when (equal (car v) string) (throw 'found (car v)))
                  (setq v (cdr v))))
              eglot--workspace-symbols-cache)))
-
-(add-to-list 'completion-category-overrides
-             '(eglot-indirection-joy (styles . (eglot--lsp-backend-style))))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
   (let ((attempt
@@ -3436,42 +3431,6 @@ If NOERROR, return predicate, else erroring function."
 (make-obsolete-variable 'eglot--managed-mode-hook
                         'eglot-managed-mode-hook "1.6")
 (provide 'eglot)
-
-
-;;; Backend completion
-
-;; Written by Stefan Monnier circa 2016.  Something to move to
-;; minibuffer.el "ASAP" (with all the `eglot--lsp-' replaced by
-;; something else. The very same code already in SLY and stable for a
-;; long time.
-
-;; This "completion style" delegates all the work to the "programmable
-;; completion" table which is then free to implement its own
-;; completion style.  Typically this is used to take advantage of some
-;; external tool which already has its own completion system and
-;; doesn't give you efficient access to the prefix completion needed
-;; by other completion styles.  The table should recognize the symbols
-;; 'eglot--lsp-tryc and 'eglot--lsp-allc as ACTION, reply with
-;; (eglot--lsp-tryc COMP...) or (eglot--lsp-allc . (STRING . POINT)),
-;; accordingly.  tryc/allc names made akward/recognizable on purpose.
-
-(add-to-list 'completion-styles-alist
-             '(eglot--lsp-backend-style
-               eglot--lsp-backend-style-try-completion
-               eglot--lsp-backend-style-all-completions
-               "Ad-hoc completion style provided by the completion table."))
-
-(defun eglot--lsp-backend-style-call (op string table pred point)
-  (when (functionp table)
-    (let ((res (funcall table string pred (cons op point))))
-      (when (eq op (car-safe res))
-        (cdr res)))))
-
-(defun eglot--lsp-backend-style-try-completion (string table pred point)
-  (eglot--lsp-backend-style-call 'eglot--lsp-tryc string table pred point))
-
-(defun eglot--lsp-backend-style-all-completions (string table pred point)
-  (eglot--lsp-backend-style-call 'eglot--lsp-allc string table pred point))
 
 
 ;; Local Variables:

@@ -59,9 +59,23 @@
   (dolist (str comint-testsuite-password-strings)
     (should (string-match comint-password-prompt-regexp str))))
 
+(declare-function w32-application-type "w32proc.c")
+(defun w32-native-executable-p (fname)
+  "Predicate to test program FNAME for being a native Windows application."
+  (and (memq (w32-application-type fname) '(w32-native dos))
+       (file-executable-p fname)))
+
+(defun w32-native-executable-find (name)
+  "Find a native MS-Windows application named NAME.
+This is needed to avoid invoking MSYS or Cygwin executables that
+happen to lurk on PATH when running the test suite."
+  (locate-file name exec-path exec-suffixes 'w32-native-executable-p))
+
 (defun comint-tests/test-password-function (password-function)
   "PASSWORD-FUNCTION can return nil or a string."
-  (when-let ((cat (executable-find "cat")))
+  (when-let ((cat (if (eq system-type 'windows-nt)
+                      (w32-native-executable-find "cat")
+                    (executable-find "cat"))))
     (let ((comint-password-function password-function))
       (cl-letf (((symbol-function 'read-passwd)
                  (lambda (&rest _args) "non-nil")))

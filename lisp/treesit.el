@@ -833,21 +833,28 @@ The range is between START and END."
         (nreverse result))
     (list node)))
 
-(defun treesit--children-covering-range-recurse (node start end threshold)
+(defun treesit--children-covering-range-recurse
+    (node start end threshold &optional limit)
   "Return a list of children of NODE covering a range.
+
 Recursively go down the parse tree and collect children, until
 all nodes in the returned list are smaller than THRESHOLD.  The
-range is between START and END."
+range is between START and END.
+
+LIMIT is the recursion limit, which defaults to 100."
   (let* ((child (treesit-node-first-child-for-pos node start))
+         (limit (or limit 100))
          result)
-    (while (and child (<= (treesit-node-start child) end))
+    ;; If LIMIT is exceeded, we are probably seeing the erroneously
+    ;; tall tree, in that case, just give up.
+    (while (and (> limit 0) child (<= (treesit-node-start child) end))
       ;; If child still too large, recurse down.  Otherwise collect
       ;; child.
       (if (> (- (treesit-node-end child)
                 (treesit-node-start child))
              threshold)
           (dolist (r (treesit--children-covering-range-recurse
-                      child start end threshold))
+                      child start end threshold (1- limit)))
             (push r result))
         (push child result))
       (setq child (treesit-node-next-sibling child)))
@@ -888,6 +895,12 @@ detail.")
 ;; top-level nodes and query them.  This ensures that querying is fast
 ;; everywhere else, except for the problematic region.
 ;;
+;; Some other time the source file has a top-level node that contains
+;; a huge number of children (say, 10k children), querying that node
+;; is also very slow, so instead of getting the top-level node, we
+;; recursively go down the tree to find nodes that cover the region
+;; but are reasonably small.
+;;
 ;; 3. It is possible to capture a node that's completely outside the
 ;; region between START and END: as long as the whole pattern
 ;; intersects the region, all the captured nodes in that pattern are
@@ -917,8 +930,8 @@ If LOUDLY is non-nil, display some debugging information."
         ;; If we run into problematic files, use the "fast mode" to
         ;; try to recover.  See comment #2 above for more explanation.
         (when treesit--font-lock-fast-mode
-          (setq nodes (treesit--children-covering-range
-                       (car nodes) start end)))
+          (setq nodes (treesit--children-covering-range-recurse
+                       (car nodes) start end (* 4 jit-lock-chunk-size))))
 
         ;; Query each node.
         (dolist (sub-node nodes)

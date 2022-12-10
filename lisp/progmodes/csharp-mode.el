@@ -893,6 +893,7 @@ Key bindings:
 ;;;###autoload
 (define-derived-mode csharp-ts-mode prog-mode "C#"
   "Major mode for editing C# code."
+  :syntax-table (csharp--make-mode-syntax-table)
 
   (unless (treesit-ready-p 'c-sharp)
     (error "Tree-sitter for C# isn't available"))
