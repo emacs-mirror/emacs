@@ -26050,7 +26050,8 @@ For details, see etc/PROBLEMS.\n",
 	      /* Dump the list of error handlers for debugging
 		 purposes if the list exists.  */
 
-	      if (dpyinfo->failable_requests || x_error_message)
+	      if ((dpyinfo->failable_requests
+		   != dpyinfo->next_failable_request) || x_error_message)
 		fprintf (stderr, "X error handlers currently installed:\n");
 
 	      for (failable = dpyinfo->failable_requests;
