@@ -41,7 +41,7 @@ quoted directory names (Bug#47799)."
   (skip-unless (executable-find "grep"))
   (ert-with-temp-directory directory
     (let ((default-directory directory)
-          (project-current-inhibit-prompt t)
+          (project-current-directory-override t)
           (project-find-functions nil)
           (project-list-file
            (expand-file-name "projects" directory))
