@@ -6071,8 +6071,42 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	    emacs_abort ();
 	}
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
-	attrs[LFACE_FONT_INDEX]
-	  = font_load_for_lface (f, attrs, attrs[LFACE_FONT_INDEX]);
+	{
+	  Lisp_Object spec = copy_font_spec (attrs[LFACE_FONT_INDEX]);
+#define   MAYBE_UNSET_ATTRIBUTE(ATTR)			\
+	  if (realize_gui_face_ignored_spec_attributes	\
+	      & (1 << FONT_##ATTR##_INDEX))		\
+	    ASET (spec, FONT_##ATTR##_INDEX, Qnil);
+	  /* The default value of
+	     realize_gui_face_ignored_spec_attributes unsets the
+	     weight, slant and width in spec.  The best possible
+	     values for these attributes is determined in
+	     font_find_for_lface, called by font_load_for_lface, when
+	     the candidate list returned by font_list_entities is
+	     sorted by font_select_entity (which calls
+	     font_sort_entities, which calls font_score).  If these
+	     attributes are not unset here, the candidate font list
+	     returned by font_list_entities only contains fonts that
+	     are exact matches for these weight, slant and width
+	     attributes, which leads to suboptimal or wrong font
+	     choices.  See bug#59347.  */
+	  MAYBE_UNSET_ATTRIBUTE (WEIGHT);
+	  MAYBE_UNSET_ATTRIBUTE (SLANT);
+	  MAYBE_UNSET_ATTRIBUTE (WIDTH);
+	  /* Also allow unsetting other attributes for debugging
+	     purposes.  */
+	  MAYBE_UNSET_ATTRIBUTE (FAMILY);
+	  MAYBE_UNSET_ATTRIBUTE (FOUNDRY);
+	  MAYBE_UNSET_ATTRIBUTE (REGISTRY);
+	  MAYBE_UNSET_ATTRIBUTE (ADSTYLE);
+	  MAYBE_UNSET_ATTRIBUTE (SIZE);
+	  MAYBE_UNSET_ATTRIBUTE (DPI);
+	  MAYBE_UNSET_ATTRIBUTE (SPACING);
+	  MAYBE_UNSET_ATTRIBUTE (AVGWIDTH);
+	  MAYBE_UNSET_ATTRIBUTE (EXTRA);
+#undef    MAYBE_UNSET_ATTRIBUTE
+	  attrs[LFACE_FONT_INDEX] = font_load_for_lface (f, attrs, spec);
+	}
       if (FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	{
 	  face->font = XFONT_OBJECT (attrs[LFACE_FONT_INDEX]);
@@ -7359,6 +7393,28 @@ will be used for the face instead of the foreground color.
 Lisp programs that change the value of this variable should also
 clear the face cache, see `clear-face-cache'.  */);
   face_near_same_color_threshold = 30000;
+
+  DEFVAR_INT ("realize-gui-face-ignored-spec-attributes",
+	      realize_gui_face_ignored_spec_attributes,
+	      doc: /* Ignored font-spec attributes in realize_gui_face.
+
+The value is an integer number and represents a bit mask.
+The attribute corresponding to each bit that is set is cleared in
+realize_gui_face.  The bits are: 1 = :foundry, 2 = :family,
+3 = :adstyle, 4 = :registry, 5 = :weight, 6 = :slant, 7 = :width,
+8 = :size, 9 = :dpi, 10 = :spacing, 11 = :avgwidth, 12 = extra
+attributes (:name, :script, :lang and :otf).
+
+Bits 5 to 7 are set in the default value.  When these bits are not
+set, and when the font chosen for the default face has a weight, slant
+or width that is not supported by other available fonts on the system,
+such as 'medium', Emacs may select suboptimal fonts for other faces.
+
+There is no reason to change that value except for debugging purposes.  */);
+  realize_gui_face_ignored_spec_attributes =
+    (1 << FONT_WEIGHT_INDEX) |
+    (1 << FONT_SLANT_INDEX) |
+    (1 << FONT_WIDTH_INDEX);
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);
