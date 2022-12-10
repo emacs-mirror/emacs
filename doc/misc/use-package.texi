@@ -1918,11 +1918,12 @@ be optionally enabled.
 @findex :ensure-system-package
 The @code{:ensure-system-package} keyword allows you to ensure certain
 executables are available on your system alongside your package
-declarations.@footnote{On macOS, you will want to make sure
-@code{exec-path} is cognisant of all binary package names that you
-would like to ensure are installed.  The
+declarations.@footnote{On macOS, your @code{exec-path} might be
+different if you are starting Emacs as a GUI app instead of from a
+shell.  If you find that Emacs on macOS cannot find some executables
+that you know are already installed, you could try the
 @uref{https://github.com/purcell/exec-path-from-shell,@samp{exec-path-from-shell}}
-package is often a good way to do this.}
+package.}
 
 To use this extension, add this immediately after loading
 @code{use-package}:
