@@ -652,12 +652,11 @@ elisp, GNU Emacs Lisp Reference Manual}).  Further, this value is fixed at
 whatever was determined during compilation, to avoid looking up the
 same information again on each startup.  For example:
 
-@c FIXME: the below should use shell-command-to-string, surely?
 @lisp
 @group
 (eval-and-compile
   (defun ess-site-load-path ()
-    (shell-command "find ~ -path ess/lisp")))
+    (shell-command-to-string "find ~ -path ess/lisp")))
 @end group
 
 @group
@@ -739,10 +738,8 @@ function and variable definitions that will:
 
 @enumerate
 @item
-@c FIXME: ``within a guard block''? what's that??
 Make the byte-compiler happy: it will not complain about functions
-whose definitions are unknown because you have them within a guard
-block.
+whose definitions are unknown.
 
 @item
 Define functions and variables that will be used in an @code{:if}
@@ -1684,9 +1681,9 @@ them directly to the developers of that package manager.
 
 Some users might want to byte-compile their init file to make Emacs
 startup faster.  This is not recommended in most cases, as the
-speed-up is often too small to be worth it, and can lead to confusion
-if the byte-compiled files are out-of-date.  If you still want to do
-it, this chapter explains how to do that.
+speed-up is usually too small to be worth it, and it can lead to
+confusion if the byte-compiled files are out-of-date.  If you still
+want to do it, this chapter explains how to do that.
 
 @code{use-package} always loads every library that it can while a file
 is being byte-compiled.  This helps silence spurious warnings about
@@ -1962,7 +1959,7 @@ together with @code{:ensure}.
 @end group
 @end lisp
 
-For example, on a @code{Debian GNU/Linux} system, this would call
+For example, on a Debian GNU/Linux system, this would call
 @samp{apt-get install foo}.
 
 If the package is named differently than the binary, you can use a
@@ -1976,11 +1973,10 @@ cons in the form of @code{(binary . package-name)}.  For example:
 @end group
 @end lisp
 
-On a @code{Debian GNU/Linux} system, this would call @code{apt install
-foo} if Emacs could not locate the executable
-@code{foocmd}.@footnote{For manual testing, you could use the
-@code{executable-find} function, which is what @samp{system-packages}
-uses internally.}
+On a Debian GNU/Linux system, this would call @code{apt install foo}
+if Emacs could not locate the executable @code{foocmd}.@footnote{For
+manual testing, you could use the @code{executable-find} function,
+which is what @samp{system-packages} uses internally.}
 
 @code{:ensure-system-package} can also take a cons where the
 @code{cdr} is a string that will get called by
