@@ -294,7 +294,8 @@ asynchronously."
         (insert-file-contents main-file)
         (package-strip-rcs-id
          (or (lm-header "package-version")
-             (lm-header "version"))))
+             (lm-header "version")
+             "0")))
     "0"))
 
 (defun package-vc--main-file (pkg-desc)
