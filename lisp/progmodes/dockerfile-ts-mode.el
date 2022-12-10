@@ -132,7 +132,7 @@ the subtrees."
 ;;;###autoload
 (add-to-list 'auto-mode-alist
              ;; NOTE: We can't use `rx' here, as it breaks bootstrap.
-             '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)$"
+             '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
                . dockerfile-ts-mode))
 
 ;;;###autoload
