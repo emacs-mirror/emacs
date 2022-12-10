@@ -1401,7 +1401,7 @@ you, configure the option ~org-table-auto-blank-field~.
 - {{{kbd(M-x org-table-blank-field)}}} ::
 
   #+findex: org-table-blank-field
-  Blank the field at point.
+  Blank the current table field or active region.
 
 - {{{kbd(S-TAB)}}} (~org-table-previous-field~) ::
 

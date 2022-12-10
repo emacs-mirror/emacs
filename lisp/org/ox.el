@@ -3036,6 +3036,11 @@ Return code as a string."
 	       (org-narrow-to-subtree)
 	       (goto-char (point-min))
 	       (org-end-of-meta-data)
+               ;; Make the region include top heading in the subtree.
+               ;; This way, we will be able to retrieve its export
+               ;; options when calling
+               ;; `org-export--get-subtree-options'.
+               (backward-char)
 	       (narrow-to-region (point) (point-max))))
         ;; Initialize communication channel with original buffer
         ;; attributes, unavailable in its copy.

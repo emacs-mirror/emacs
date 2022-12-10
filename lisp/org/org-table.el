@@ -41,6 +41,7 @@
 (require 'org-macs)
 (require 'org-compat)
 (require 'org-keys)
+(require 'org-fold-core)
 
 (declare-function calc-eval "calc" (str &optional separator &rest args))
 (declare-function face-remap-remove-relative "face-remap" (cookie))
@@ -4448,6 +4449,13 @@ FIELD is a string.  WIDTH is a number.  ALIGN is either \"c\",
 (defun org-table-justify-field-maybe (&optional new)
   "Justify the current field, text to left, number to right.
 Optional argument NEW may specify text to replace the current field content."
+  ;; FIXME: Prevent newlines inside field.  They are currently not
+  ;; supported.
+  (when (and (stringp new) (string-match-p "\n" new))
+    (message "Removing newlines from formula result: %S" new)
+    (setq new (replace-regexp-in-string
+               "\n" " "
+               (replace-regexp-in-string "\\(^\n+\\)\\|\\(\n+$\\)" "" new))))
   (cond
    ((and (not new) org-table-may-need-update)) ; Realignment will happen anyway
    ((org-at-table-hline-p))
@@ -5721,31 +5729,32 @@ This may be either a string or a function of two arguments:
     ;; Initialize communication channel in INFO.
     (with-temp-buffer
       (let ((org-inhibit-startup t)) (org-mode))
-      (let ((standard-output (current-buffer))
-	    (org-element-use-cache nil))
-	(dolist (e table)
-	  (cond ((eq e 'hline) (princ "|--\n"))
-		((consp e)
-		 (princ "| ") (dolist (c e) (princ c) (princ " |"))
-		 (princ "\n")))))
-      (org-element-cache-reset)
-      ;; Add back-end specific filters, but not user-defined ones.  In
-      ;; particular, make sure to call parse-tree filters on the
-      ;; table.
-      (setq info
-	    (let ((org-export-filters-alist nil))
-	      (org-export-install-filters
-	       (org-combine-plists
-		(org-export-get-environment backend nil params)
-		`(:back-end ,(org-export-get-backend backend))))))
-      (setq data
-	    (org-export-filter-apply-functions
-	     (plist-get info :filter-parse-tree)
-	     (org-element-map (org-element-parse-buffer) 'table
-	       #'identity nil t)
-	     info)))
-    (when (and backend (symbolp backend) (not (org-export-get-backend backend)))
-      (user-error "Unknown :backend value"))
+      (org-fold-core-ignore-modifications
+        (let ((standard-output (current-buffer))
+	      (org-element-use-cache nil))
+	  (dolist (e table)
+	    (cond ((eq e 'hline) (princ "|--\n"))
+		  ((consp e)
+		   (princ "| ") (dolist (c e) (princ c) (princ " |"))
+		   (princ "\n")))))
+        (org-element-cache-reset)
+        ;; Add back-end specific filters, but not user-defined ones.  In
+        ;; particular, make sure to call parse-tree filters on the
+        ;; table.
+        (setq info
+	      (let ((org-export-filters-alist nil))
+	        (org-export-install-filters
+	         (org-combine-plists
+		  (org-export-get-environment backend nil params)
+		  `(:back-end ,(org-export-get-backend backend))))))
+        (setq data
+	      (org-export-filter-apply-functions
+	       (plist-get info :filter-parse-tree)
+	       (org-element-map (org-element-parse-buffer) 'table
+	         #'identity nil t)
+	       info))
+        (when (and backend (symbolp backend) (not (org-export-get-backend backend)))
+          (user-error "Unknown :backend value"))))
     (when (or (not backend) (plist-get info :raw)) (require 'ox-org))
     ;; Handle :skip parameter.
     (let ((skip (plist-get info :skip)))

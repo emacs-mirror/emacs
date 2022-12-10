@@ -497,7 +497,7 @@ hanging around."
   (declare (debug (form body)) (indent 0))
   `(let (buffers dead-properties)
      (if (and (not (buffer-base-buffer))
-              (not (eq (current-buffer) (car org-fold-core--indirect-buffers))))
+              (not (memq (current-buffer) org-fold-core--indirect-buffers)))
          ;; We are in base buffer with `org-fold-core--indirect-buffers' value from
          ;; different buffer.  This can happen, for example, when
          ;; org-capture copies local variables into *Capture* buffer.
@@ -930,6 +930,8 @@ are provided.
 
 If FROM is non-nil and TO is nil, search the folded regions at FROM.
 
+When both FROM and TO are nil, search folded regions in the whole buffer.
+
 When SPECS is non-nil it should be a list of folding specs or a symbol.
 Only return the matching fold types.
 
@@ -946,6 +948,9 @@ WITH-MARKERS must be nil when RELATIVE is non-nil."
   (unless (listp specs) (setq specs (list specs)))
   (let (regions region mk-region)
     (org-with-wide-buffer
+     (when (and (not from) (not to))
+       (setq from (point-min)
+             to (point-max)))
      (when (and from (not to)) (setq to (point-max)))
      (when (and from (< from (point-min))) (setq from (point-min)))
      (when (and to (> to (point-max))) (setq to (point-max)))
@@ -1058,7 +1063,7 @@ means that the buffer should stay alive during the operation,
 because otherwise all these markers will point to nowhere."
   (declare (debug (form body)) (indent 1))
   (org-with-gensyms (regions)
-    `(let* ((,regions ,(org-fold-core-get-regions :with-markers use-markers)))
+    `(let* ((,regions (org-fold-core-get-regions :with-markers ,use-markers)))
        (unwind-protect (progn ,@body)
          (org-fold-core-regions ,regions :override t :clean-markers t)))))
 
