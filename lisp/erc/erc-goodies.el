@@ -32,6 +32,10 @@
 (eval-when-compile (require 'cl-lib))
 (require 'erc)
 
+(declare-function fringe-columns "fringe" (side &optional real))
+(declare-function pulse-available-p "pulse" nil)
+(declare-function pulse-momentary-highlight-overlay "pulse" (o &optional face))
+
 
 ;;; Automatically scroll to bottom
 (defcustom erc-input-line-position nil
@@ -143,6 +147,154 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
   ((add-hook 'erc-insert-pre-hook  #'erc-keep-place))
   ((remove-hook 'erc-insert-pre-hook  #'erc-keep-place)))
 
+(defcustom erc-keep-place-indicator-style t
+  "Flavor of visual indicator applied to kept place.
+For use with the `keep-place-indicator' module.  A value of `arrow'
+displays an arrow in the left fringe or margin.  When it's
+`face', ERC adds the face `erc-keep-place-indicator-line' to the
+appropriate line.  A value of t does both."
+  :group 'erc
+  :package-version '(ERC . "5.6")
+  :type '(choice (const t) (const server) (const target)))
+
+(defcustom erc-keep-place-indicator-buffer-type t
+  "ERC buffer type in which to display `keep-place-indicator'.
+A value of t means \"all\" ERC buffers."
+  :group 'erc
+  :package-version '(ERC . "5.6")
+  :type '(choice (const t) (const server) (const target)))
+
+(defcustom erc-keep-place-indicator-follow nil
+  "Whether to sync visual kept place to window's top when reading.
+For use with `erc-keep-place-indicator-mode'."
+  :group 'erc
+  :package-version '(ERC . "5.6")
+  :type 'boolean)
+
+(defface erc-keep-place-indicator-line
+  '((((class color) (min-colors 88) (background light)
+      (supports :underline (:style wave)))
+     (:underline (:color "PaleGreen3" :style wave)))
+    (((class color) (min-colors 88) (background dark)
+      (supports :underline (:style wave)))
+     (:underline (:color "PaleGreen1" :style wave)))
+    (t :underline t))
+  "Face for option `erc-keep-place-indicator-style'."
+  :group 'erc-faces)
+
+(defface erc-keep-place-indicator-arrow
+  '((((class color) (min-colors 88) (background light))
+     (:foreground "PaleGreen3"))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "PaleGreen1"))
+    (t :inherit fringe))
+  "Face for arrow value of option `erc-keep-place-indicator-style'."
+  :group 'erc-faces)
+
+(defvar-local erc--keep-place-indicator-overlay nil
+  "Overlay for `erc-keep-place-indicator-mode'.")
+
+(defun erc--keep-place-indicator-on-window-configuration-change ()
+  "Maybe sync `erc--keep-place-indicator-overlay'.
+Specifically, do so unless switching to or from another window in
+the active frame."
+  (when erc-keep-place-indicator-follow
+    (unless (or (minibuffer-window-active-p (minibuffer-window))
+                (eq (window-old-buffer) (current-buffer)))
+      (when (< (overlay-end erc--keep-place-indicator-overlay)
+               (window-start)
+               erc-insert-marker)
+        (erc-keep-place-move (window-start))))))
+
+(defun erc--keep-place-indicator-setup ()
+  "Initialize buffer for maintaining `erc--keep-place-indicator-overlay'."
+  (require 'fringe)
+  (setq erc--keep-place-indicator-overlay
+        (if-let* ((vars (or erc--server-reconnecting erc--target-priors))
+                  ((alist-get 'erc-keep-place-indicator-mode vars)))
+            (alist-get 'erc--keep-place-indicator-overlay vars)
+          (make-overlay 0 0)))
+  (add-hook 'window-configuration-change-hook
+            #'erc--keep-place-indicator-on-window-configuration-change nil t)
+  (when-let* (((memq erc-keep-place-indicator-style '(t arrow)))
+              (display (if (zerop (fringe-columns 'left))
+                           `((margin left-margin) ,overlay-arrow-string)
+                         '(left-fringe right-triangle
+                                       erc-keep-place-indicator-arrow)))
+              (bef (propertize " " 'display display)))
+    (overlay-put erc--keep-place-indicator-overlay 'before-string bef))
+  (when (memq erc-keep-place-indicator-style '(t face))
+    (overlay-put erc--keep-place-indicator-overlay 'face
+                 'erc-keep-place-indicator-line)))
+
+;;;###autoload(put 'keep-place-indicator 'erc--feature 'erc-goodies)
+(define-erc-module keep-place-indicator nil
+  "`keep-place' with a fringe arrow and/or highlighted face."
+  ((unless erc-keep-place-mode
+     (unless (memq 'keep-place erc-modules)
+       ;; FIXME use `erc-button--display-error-notice-with-keys'
+       ;; to display this message when bug#60933 is ready.
+       (erc-display-error-notice
+        nil (concat
+             "Local module `keep-place-indicator' needs module `keep-place'."
+             "  Enabling now.  This will affect \C-]all\C-] ERC sessions."
+             "  Add `keep-place' to `erc-modules' to silence this message.")))
+     (erc-keep-place-mode +1))
+   (if (pcase erc-keep-place-indicator-buffer-type
+         ('target erc--target)
+         ('server (not erc--target))
+         ('t t))
+       (erc--keep-place-indicator-setup)
+     (setq erc-keep-place-indicator-mode nil)))
+  ((when erc--keep-place-indicator-overlay
+     (delete-overlay erc--keep-place-indicator-overlay)
+     (remove-hook 'window-configuration-change-hook
+                  #'erc--keep-place-indicator-on-window-configuration-change t)
+     (kill-local-variable 'erc--keep-place-indicator-overlay)))
+  'local)
+
+(defun erc-keep-place-move (pos)
+  "Move keep-place indicator to current line or POS.
+For use with `keep-place-indicator' module.  When called
+interactively, interpret POS as an offset.  Specifically, when
+POS is a raw prefix arg, like (4), move the indicator to the
+window's last line.  When it's the minus sign, put it on the
+window's first line.  Interpret an integer as an offset in lines."
+  (interactive
+   (progn
+     (unless erc-keep-place-indicator-mode
+       (user-error "`erc-keep-place-indicator-mode' not enabled"))
+     (list (pcase current-prefix-arg
+             ((and (pred integerp) v)
+              (save-excursion
+                (let ((inhibit-field-text-motion t))
+                  (forward-line v)
+                  (point))))
+             (`(,_) (1- (min erc-insert-marker (window-end))))
+             ('- (min (1- erc-insert-marker) (window-start)))))))
+  (save-excursion
+    (let ((inhibit-field-text-motion t))
+      (when pos
+        (goto-char pos))
+      (move-overlay erc--keep-place-indicator-overlay
+                    (line-beginning-position)
+                    (line-end-position)))))
+
+(defun erc-keep-place-goto ()
+  "Jump to keep-place indicator.
+For use with `keep-place-indicator' module."
+  (interactive
+   (prog1 nil
+     (unless erc-keep-place-indicator-mode
+       (user-error "`erc-keep-place-indicator-mode' not enabled"))
+     (deactivate-mark)
+     (push-mark)))
+  (goto-char (overlay-start erc--keep-place-indicator-overlay))
+  (recenter (truncate (* (window-height) 0.25)) t)
+  (require 'pulse)
+  (when (pulse-available-p)
+    (pulse-momentary-highlight-overlay erc--keep-place-indicator-overlay)))
+
 (defun erc-keep-place (_ignored)
   "Move point away from the last line in a non-selected ERC buffer."
   (when (and (not (eq (window-buffer (selected-window))
@@ -151,6 +303,11 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
     (deactivate-mark)
     (goto-char (erc-beg-of-input-line))
     (forward-line -1)
+    (when erc-keep-place-indicator-mode
+      (unless (or (minibuffer-window-active-p (selected-window))
+                  (and (frame-visible-p (selected-frame))
+                       (get-buffer-window (current-buffer) (selected-frame))))
+        (erc-keep-place-move nil)))
     ;; if `switch-to-buffer-preserve-window-point' is set,
     ;; we cannot rely on point being saved, and must commit
     ;; it to window-prev-buffers.

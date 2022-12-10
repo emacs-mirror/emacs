@@ -250,4 +250,85 @@
       (when noninteractive
         (kill-buffer)))))
 
+
+;; Among other things, this test also asserts that a local module's
+;; minor-mode toggle is allowed to disable its mode variable as
+;; needed.
+
+(ert-deftest erc-keep-place-indicator-mode ()
+  ;; FIXME remove after adding
+  (unless (fboundp 'erc--initialize-markers)
+    (ert-skip "Missing required function"))
+  (with-current-buffer (get-buffer-create "*erc-keep-place-indicator-mode*")
+    (erc-mode)
+    (erc--initialize-markers (point) nil)
+    (let ((assert-off
+           (lambda ()
+             (should-not erc-keep-place-indicator-mode)
+             (should-not (local-variable-p 'window-configuration-change-hook))
+             (should-not erc--keep-place-indicator-overlay)))
+          (assert-on
+           (lambda ()
+             (should erc--keep-place-indicator-overlay)
+             (should (local-variable-p 'window-configuration-change-hook))
+             (should window-configuration-change-hook)
+             (should erc-keep-place-mode)))
+          ;;
+          erc-insert-pre-hook
+          erc-modules)
+
+      (funcall assert-off)
+
+      (ert-info ("Value t")
+        (should (eq erc-keep-place-indicator-buffer-type t))
+        (erc-keep-place-indicator-mode +1)
+        (funcall assert-on)
+        (goto-char (point-min))
+        (should (search-forward "Enabling" nil t))
+        (should (memq 'keep-place erc-modules)))
+
+      (erc-keep-place-indicator-mode -1)
+      (funcall assert-off)
+
+      (ert-info ("Value `target'")
+        (let ((erc-keep-place-indicator-buffer-type 'target))
+          (erc-keep-place-indicator-mode +1)
+          (funcall assert-off)
+          (setq erc--target (erc--target-from-string "#chan"))
+          (erc-keep-place-indicator-mode +1)
+          (funcall assert-on)))
+
+      (erc-keep-place-indicator-mode -1)
+      (funcall assert-off)
+
+      (ert-info ("Value `server'")
+        (let ((erc-keep-place-indicator-buffer-type 'server))
+          (erc-keep-place-indicator-mode +1)
+          (funcall assert-off)
+          (setq erc--target nil)
+          (erc-keep-place-indicator-mode +1)
+          (funcall assert-on)))
+
+      ;; Populate buffer
+      (erc-display-message nil 'notice (current-buffer)
+                           "This buffer is for text that is not saved")
+      (erc-display-message nil 'notice (current-buffer)
+                           "and for lisp evaluation")
+      (should (search-forward "saved" nil t))
+      (erc-keep-place-move nil)
+      (goto-char erc-input-marker)
+
+      (ert-info ("Indicator survives reconnect")
+        (let ((erc--server-reconnecting (buffer-local-variables)))
+          (cl-letf (((symbol-function 'erc-server-connect) #'ignore))
+            (erc-open "localhost" 6667 "tester" "Tester" 'connect
+                      nil nil nil nil nil "tester" nil)))
+        (funcall assert-on)
+        (should (= (point) erc-input-marker))
+        (goto-char (overlay-start erc--keep-place-indicator-overlay))
+        (should (looking-at (rx "*** This buffer is for text")))))
+
+    (when noninteractive
+      (kill-buffer))))
+
 ;;; erc-goodies-tests.el ends here
