@@ -26048,9 +26048,10 @@ For details, see etc/PROBLEMS.\n",
 	  if (!ioerror && dpyinfo)
 	    {
 	      /* Dump the list of error handlers for debugging
-		 purposes.  */
+		 purposes if the list exists.  */
 
-	      fprintf (stderr, "X error handlers currently installed:\n");
+	      if (dpyinfo->failable_requests || x_error_message)
+		fprintf (stderr, "X error handlers currently installed:\n");
 
 	      for (failable = dpyinfo->failable_requests;
 		   failable < dpyinfo->next_failable_request;
