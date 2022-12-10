@@ -491,11 +491,11 @@ PROC is the process that's exiting.  STRING is the exit message."
                             (eshell-close-handles
                              status
                              (when status (list 'quote (= status 0)))
-                             handles)))))
+                             handles)
+                            (eshell-kill-process-function proc string)))))
                 (funcall finish-io))))
         (when-let ((entry (assq proc eshell-process-list)))
-          (eshell-remove-process-entry entry))
-        (eshell-kill-process-function proc string)))))
+          (eshell-remove-process-entry entry))))))
 
 (defun eshell-process-interact (func &optional all query)
   "Interact with a process, using PROMPT if more than one, via FUNC.
