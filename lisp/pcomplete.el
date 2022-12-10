@@ -1456,7 +1456,7 @@ COMMAND and ARGS as arguments."
                            (pcomplete-match-string 1 0)))
           ((string-prefix-p "-" (pcomplete-arg 0))
            (pcomplete-here (apply #'pcomplete-from-help command args)))
-          (t (pcomplete-here (pcomplete-entries))))))
+          (t (pcomplete-here* (pcomplete-entries))))))
 
 (provide 'pcomplete)
 
