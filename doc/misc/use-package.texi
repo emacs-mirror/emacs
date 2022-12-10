@@ -1720,9 +1720,8 @@ If you need to silence a missing function warning, you can use
   (defun my-ruby-mode-hook ()
     (require 'inf-ruby)
     (inf-ruby-keys))
-@end group
-
   (add-hook 'ruby-mode-hook 'my-ruby-mode-hook))
+@end group
 @end lisp
 
 @findex :no-require
