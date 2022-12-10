@@ -218,8 +218,8 @@ long as this works, the problem in bug#58877 shouldn't occur."
                  (eq (terminal-live-p terminal) t)
                  (not (eq system-type 'windows-nt)))
         (delete-terminal terminal)))
-    ;; Delete the created frame.
-    (delete-frame (car (cl-set-difference (frame-list) starting-frames))
-                  t)))
+    ;; If there are any new frames remaining, delete them.
+    (mapc (lambda (frame) (delete-frame frame t))
+          (cl-set-difference (frame-list) starting-frames))))
 
 ;;; server-tests.el ends here
