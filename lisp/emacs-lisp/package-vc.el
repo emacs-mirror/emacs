@@ -50,6 +50,7 @@
 (eval-when-compile (require 'rx))
 (eval-when-compile (require 'inline))
 (eval-when-compile (require 'map))
+(eval-when-compile (require 'cl-lib))
 (require 'package)
 (require 'lisp-mnt)
 (require 'vc)
@@ -299,15 +300,34 @@ asynchronously."
 (defun package-vc--main-file (pkg-desc)
   "Return the name of the main file for PKG-DESC."
   (cl-assert (package-vc-p pkg-desc))
-  (let ((pkg-spec (package-vc--desc->spec pkg-desc))
-        (name (symbol-name (package-desc-name pkg-desc))))
-    (or (plist-get pkg-spec :main-file)
-        (expand-file-name
-         (concat name ".el")
-         (file-name-concat
-          (or (package-desc-dir pkg-desc)
-              (expand-file-name name package-user-dir))
-          (plist-get pkg-spec :lisp-dir))))))
+  (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
+         (name (symbol-name (package-desc-name pkg-desc)))
+         (directory (file-name-concat
+                     (or (package-desc-dir pkg-desc)
+                         (expand-file-name name package-user-dir))
+                     (plist-get pkg-spec :lisp-dir)))
+         (file (or (plist-get pkg-spec :main-file)
+                   (expand-file-name
+                    (concat name ".el")
+                    directory))))
+    (if (file-exists-p file) file
+      ;; The following heuristic is only necessary when fetching a
+      ;; repository with URL that would break the above assumptions.
+      ;; Concrete example: https://github.com/sachac/waveform-el does
+      ;; not have a file waveform-el.el, but a file waveform.el, so we
+      ;; try and find the closest match.
+      (let ((distance most-positive-fixnum) (best nil))
+        (dolist (alt (directory-files directory t "\\.el\\'" t))
+          (let ((sd (string-distance file alt)))
+            (when (and (not (string-match-p (rx (or (: "-autoloads.el")
+                                                    (: "-pkg.el"))
+                                                eos)
+                                            alt))
+                       (< sd distance))
+              (when (< sd distance)
+                (setq distance (string-distance file alt)
+                      best alt)))))
+        best))))
 
 (defun package-vc--generate-description-file (pkg-desc pkg-file)
   "Generate a package description file for PKG-DESC and write it to PKG-FILE."
