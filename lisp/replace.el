@@ -1101,7 +1101,10 @@ Hence, a match starting on the same line at which another match
 ended is ignored.
 
 Return the number of killed matching lines.  When called
-interactively, also print the number."
+interactively, also print the number.
+
+If you merely want to delete the lines, without adding them to
+the kill ring, the \\[flush-lines] command is faster."
   (interactive
    (progn
      (barf-if-buffer-read-only)

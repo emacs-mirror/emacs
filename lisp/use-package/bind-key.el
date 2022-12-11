@@ -282,7 +282,7 @@ Accepts keyword arguments:
                          key in the repeat map, but will not set the
                          `repeat-map' property of the bound command.
 :continue BINDINGS     - Within the scope of `:repeat-map' forces the
-                         same behaviour as if no special keyword had
+                         same behavior as if no special keyword had
                          been used (that is, the command is bound, and
                          it's `repeat-map' property set)
 :filter FORM           - optional form to determine when bindings apply
@@ -429,7 +429,7 @@ Accepts keyword arguments:
                          key in the repeat map, but will not set the
                          `repeat-map' property of the bound command.
 :continue BINDINGS     - Within the scope of `:repeat-map' forces the
-                         same behaviour as if no special keyword had
+                         same behavior as if no special keyword had
                          been used (that is, the command is bound, and
                          it's `repeat-map' property set)
 :filter FORM           - optional form to determine when bindings apply

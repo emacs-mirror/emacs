@@ -505,7 +505,7 @@ compilation and evaluation time conflicts."
 
 (defun csharp--compilation-error-file-resolve ()
   "Resolve an msbuild error to a (filename . dirname) cons cell."
-  ;; http://stackoverflow.com/a/18049590/429091
+  ;; https://stackoverflow.com/a/18049590/429091
   (cons (match-string 1) (file-name-directory (match-string 4))))
 
 (defconst csharp-compilation-re-msbuild-error

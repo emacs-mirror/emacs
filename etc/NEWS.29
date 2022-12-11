@@ -2002,14 +2002,14 @@ After Emacs 29.1, some aspects of EUDC will be deprecated.  The goal
 of these deprecations is to simplify EUDC server configuration by
 making 'eudc-server-hotlist' the only place to add servers.  There
 will not be a need to set the server using the 'eudc-set-server'
-function.  Instead, the 'eudc-server-hotlist' variable should be
+command.  Instead, the 'eudc-server-hotlist' user option should be
 customized to have an entry for the server.  The plan is to obsolete
-the 'eudc-hotlist' editor since Customize is sufficient for changing
-'eudc-server-hotlist'.  How the 'eudc-server' variable works in this
+the 'eudc-hotlist' package since Customize is sufficient for changing
+'eudc-server-hotlist'.  How the 'eudc-server' user option works in this
 context is to-be-determined; it can't be removed, because that would
 break compatibility, but it may become synchronized with
-'eudc-server-hotlist' so that 'eudc-server' is always equal to (first
-eudc-server-hotlist).  The first entry in 'eudc-server-hotlist' is the
+'eudc-server-hotlist' so that 'eudc-server' is always equal to '(car
+eudc-server-hotlist)'.  The first entry in 'eudc-server-hotlist' is the
 first server tried by 'eudc-expand-try-all'.  The hotlist
 simplification will allow 'eudc-query-form' to show a drop down of
 possible servers, instead of requiring a call to 'eudc-set-server'
@@ -2967,7 +2967,7 @@ Protocol (LSP).
 use-package is shipped with Emacs.  It provides the 'use-package'
 macro, which allows you to isolate package configuration in your init
 file in a way that is declarative, tidy, and performance-oriented.
-See the new Info manual 'use-package' for more.
+See the new Info manual "(use-package) Top" for more.
 
 +++
 ** New commands 'image-crop' and 'image-cut'.
@@ -3017,13 +3017,13 @@ when visiting JSON files.
 A major mode based on the tree-sitter library for editing programs
 in the TypeScript language.  It includes support for font-locking,
 indentation, and navigation.  This mode will be auto-enabled for
-files with the '.ts' extension.
+files with the ".ts" extension.
 
 ** New major mode 'tsx-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the TypeScript language, with support for TSX.  It includes
 support for font-locking, indentation, and navigation.  This mode
-will be auto-enabled for files with the '.tsx' extension.
+will be auto-enabled for files with the ".tsx" extension.
 
 ** New major mode 'c-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
@@ -4418,7 +4418,7 @@ variable for compatibility but its limiting powers have been taken away.
 This function returns a completion table designed to ease
 communication between Emacs's completion facilities and external tools
 offering completion services, particularly tools whose full working
-set is too big to transfer to Emacs's every time a completion is
+set is too big to transfer to Emacs every time a completion is
 needed.  The table uses new 'external' completion style exclusively
 and cannot work with regular styles such as 'basic' or 'flex'.
 

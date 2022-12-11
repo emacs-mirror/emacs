@@ -5994,18 +5994,17 @@ See also `erc-downcase'."
   (and (erc--target-channel-p erc--target)
        (erc-get-channel-user (erc-current-nick)) t))
 
-;; This function happens to return nil in channel buffers previously
-;; parted or those from which a user had been kicked.  While this
-;; "works" for detecting whether a channel is currently subscribed to,
-;; new code should consider using
+;; While `erc-default-target' happens to return nil in channel buffers
+;; you've parted or from which you've been kicked, using it to detect
+;; whether a channel is currently joined may become unreliable in the
+;; future.  For now, new code should consider using
 ;;
 ;;   (erc-get-channel-user (erc-current-nick))
 ;;
-;; instead.  For retrieving a target regardless of subscription or
-;; connection status, use replacements based on `erc--target'.
-;; (Coming soon.)
-;;
-;; TODO deprecate this
+;; and expect a nicer option eventually.  For retrieving a target
+;; regardless of subscription or connection status, use replacements
+;; based on `erc--target' instead.  See also `erc--default-target'.
+
 (defun erc-default-target ()
   "Return the current default target (as a character string) or nil if none."
   (let ((tgt (car erc-default-recipients)))
