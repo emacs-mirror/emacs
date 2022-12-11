@@ -1,15 +1,17 @@
 \input texinfo    @c -*- texinfo -*-
 @c %**start of header
-@setfilename ../../use-package.info
+@setfilename ../../info/use-package.info
 @settitle use-package User Manual
+@set USEP_VER 2.4.5
+@set USEP_DIST as distributed with Emacs @value{EMACSVER}
 @include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
+@include emacsver.texi
 @c %**end of header
 
 @copying
-This manual is for use-package, a configuration macro for simplifying
-your init file.
+This manual is for use-package @value{USEP_VER} @value{USEP_DIST}.
 
 Copyright @copyright{} 2022 Free Software Foundation, Inc.
 
@@ -34,7 +36,7 @@ modify this GNU manual.''
 @finalout
 @titlepage
 @title use-package User Manual
-@subtitle for version 2.4.5
+@subtitle for version USEP_VER
 @author John Wiegley & Stefan Kangas
 @page
 @vskip 0pt plus 1filll
