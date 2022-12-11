@@ -26,6 +26,11 @@ case "${lang}" in
     "cmake")
         org="uyha"
         ;;
+    "go-mod")
+        # The parser is called "gomod".
+        lang="gomod"
+        org="camdencheek"
+        ;;
     "typescript")
         sourcedir="tree-sitter-typescript/typescript/src"
         grammardir="tree-sitter-typescript/typescript"

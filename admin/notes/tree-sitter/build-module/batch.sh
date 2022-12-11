@@ -9,6 +9,7 @@ languages=(
     'c-sharp'
     'dockerfile'
     'go'
+    'go-mod'
     'html'
     'javascript'
     'json'
