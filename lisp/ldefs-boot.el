@@ -7980,7 +7980,7 @@ it is disabled.
 
 ;;; Generated autoloads from progmodes/dockerfile-ts-mode.el
 
-(add-to-list 'auto-mode-alist `(,(rx (| (: "Dockerfile" (32 "." (* nonl))) (: "." (any "dD") "ockerfile")) eol) . dockerfile-ts-mode))
+(add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)$" . dockerfile-ts-mode))
 (autoload 'dockerfile-ts-mode "dockerfile-ts-mode" "\
 Major mode for editing Dockerfiles, powered by tree-sitter.
 

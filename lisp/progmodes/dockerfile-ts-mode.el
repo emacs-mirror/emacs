@@ -131,10 +131,8 @@ the subtrees."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist
-             `(,(rx (|
-                     (: "Dockerfile" (? "." (* nonl)))
-                     (: "." (any "dD") "ockerfile"))
-                    eol)
+             ;; NOTE: We can't use `rx' here, as it breaks bootstrap.
+             '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)$"
                . dockerfile-ts-mode))
 
 ;;;###autoload
