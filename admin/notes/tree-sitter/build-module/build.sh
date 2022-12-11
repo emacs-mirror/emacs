@@ -46,7 +46,7 @@ cd "${sourcedir}"
 
 ### Build
 
-cc -c -I. parser.c
+cc -fPIC -c -I. parser.c
 # Compile scanner.c.
 if test -f scanner.c
 then
