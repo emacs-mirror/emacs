@@ -6018,8 +6018,8 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
    appears in `font-fallback-ignored-attributes'.  */
 
 static void
-font_unset_attribute (Lisp_Object font_object, enum font_property_index index,
-		      Lisp_Object symbol)
+font_maybe_unset_attribute (Lisp_Object font_object,
+			    enum font_property_index index, Lisp_Object symbol)
 {
   Lisp_Object tail = Vface_font_lax_matched_attributes;
 
@@ -6089,31 +6089,31 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	{
 	  Lisp_Object spec = copy_font_spec (attrs[LFACE_FONT_INDEX]);
 
-	  /* Unset several values in SPEC, usually the width, slant,
-	     and weight.  The best possible values for these
-	     attributes is determined in font_find_for_lface, called
-	     by font_load_for_lface, when the candidate list returned
-	     by font_list_entities is sorted by font_select_entity
+	  /* Maybe unset several values in SPEC, usually the width,
+	     slant, and weight.  The best possible values for these
+	     attributes are determined in font_find_for_lface, called
+	     by font_load_for_lface, when the list of candidate fonts
+	     returned by font_list_entities is sorted by font_select_entity
 	     (which calls font_sort_entities, which calls font_score).
 	     If these attributes are not unset here, the candidate
 	     font list returned by font_list_entities only contains
-	     fonts that are exact matches for these weight, slant and
-	     width attributes, which leads to suboptimal or wrong font
-	     choices.  (bug#5934)  */
-	  font_unset_attribute (spec, FONT_WEIGHT_INDEX, QCweight);
-	  font_unset_attribute (spec, FONT_SLANT_INDEX, QCslant);
-	  font_unset_attribute (spec, FONT_WIDTH_INDEX, QCwidth);
+	     fonts that are exact matches for these weight, slant, and
+	     width attributes, which could lead to suboptimal or wrong
+	     font selection.  (bug#5934) */
+	  font_maybe_unset_attribute (spec, FONT_WEIGHT_INDEX, QCweight);
+	  font_maybe_unset_attribute (spec, FONT_SLANT_INDEX, QCslant);
+	  font_maybe_unset_attribute (spec, FONT_WIDTH_INDEX, QCwidth);
 	  /* Also allow unsetting other attributes for debugging
 	     purposes.  But not FONT_EXTRA_INDEX; that is not safe to
-	     touch in the Haiku font backend.  */
-	  font_unset_attribute (spec, FONT_FAMILY_INDEX, QCfamily);
-	  font_unset_attribute (spec, FONT_FOUNDRY_INDEX, QCfoundry);
-	  font_unset_attribute (spec, FONT_REGISTRY_INDEX, QCregistry);
-	  font_unset_attribute (spec, FONT_ADSTYLE_INDEX, QCadstyle);
-	  font_unset_attribute (spec, FONT_SIZE_INDEX, QCsize);
-	  font_unset_attribute (spec, FONT_DPI_INDEX, QCdpi);
-	  font_unset_attribute (spec, FONT_SPACING_INDEX, QCspacing);
-	  font_unset_attribute (spec, FONT_AVGWIDTH_INDEX, QCavgwidth);
+	     touch, at least in the Haiku font backend.  */
+	  font_maybe_unset_attribute (spec, FONT_FAMILY_INDEX, QCfamily);
+	  font_maybe_unset_attribute (spec, FONT_FOUNDRY_INDEX, QCfoundry);
+	  font_maybe_unset_attribute (spec, FONT_REGISTRY_INDEX, QCregistry);
+	  font_maybe_unset_attribute (spec, FONT_ADSTYLE_INDEX, QCadstyle);
+	  font_maybe_unset_attribute (spec, FONT_SIZE_INDEX, QCsize);
+	  font_maybe_unset_attribute (spec, FONT_DPI_INDEX, QCdpi);
+	  font_maybe_unset_attribute (spec, FONT_SPACING_INDEX, QCspacing);
+	  font_maybe_unset_attribute (spec, FONT_AVGWIDTH_INDEX, QCavgwidth);
 
 	  attrs[LFACE_FONT_INDEX] = font_load_for_lface (f, attrs, spec);
 	}
@@ -7408,8 +7408,8 @@ clear the face cache, see `clear-face-cache'.  */);
 	       Vface_font_lax_matched_attributes,
 	       doc: /* Font-related face attributes to match in lax manner when realizing faces.
 
-The value should be a list of face attribute symbols; see
-`set-face-attribute' for the full list of attributes.  The
+The value should be a list of font-related face attribute symbols;
+see `set-face-attribute' for the full list of attributes.  The
 corresponding face attributes will be treated as "soft" constraints
 when looking for suitable fonts: if an exact match is not possible,
 a font can be selected that is a close, but not an exact, match.  For
