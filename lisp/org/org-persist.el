@@ -161,7 +161,7 @@
 (declare-function org-at-heading-p "org" (&optional invisible-not-ok))
 
 
-(defconst org-persist--storage-version "2.5"
+(defconst org-persist--storage-version "2.7"
   "Persistent storage layout version.")
 
 (defgroup org-persist nil
@@ -856,9 +856,16 @@ When IGNORE-RETURN is non-nil, just return t on success without calling
       (setq associated (org-persist--normalize-associated (get-file-buffer (plist-get associated :file)))))
     (let ((collection (org-persist--get-collection container associated)))
       (setf collection (plist-put collection :associated associated))
-      (unless (seq-find (lambda (v)
-                          (run-hook-with-args-until-success 'org-persist-before-write-hook v associated))
-                        (plist-get collection :container))
+      (unless (or
+               ;; Prevent data leakage from encrypted files.
+               ;; We do it in somewhat paranoid manner and do not
+               ;; allow anything related to encrypted files to be
+               ;; written.
+               (and (plist-get associated :file)
+                    (string-match-p epa-file-name-regexp (plist-get associated :file)))
+               (seq-find (lambda (v)
+                           (run-hook-with-args-until-success 'org-persist-before-write-hook v associated))
+                         (plist-get collection :container)))
         (when (or (file-exists-p org-persist-directory) (org-persist--save-index))
           (let ((file (org-file-name-concat org-persist-directory (plist-get collection :persist-file)))
                 (data (mapcar (lambda (c) (cons c (org-persist-write:generic c collection)))

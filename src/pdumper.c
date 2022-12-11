@@ -2811,7 +2811,6 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
       DUMP_FIELD_COPY (out, buffer, own_text.end_unchanged);
       DUMP_FIELD_COPY (out, buffer, own_text.unchanged_modified);
       DUMP_FIELD_COPY (out, buffer, own_text.overlay_unchanged_modified);
-      DUMP_FIELD_COPY (out, buffer, own_text.chars_unchanged_modified);
       if (buffer->own_text.intervals)
         dump_field_fixup_later (ctx, out, buffer, &buffer->own_text.intervals);
       dump_field_lv_rawptr (ctx, out, buffer, &buffer->own_text.markers,
