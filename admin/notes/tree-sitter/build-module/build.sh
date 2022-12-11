@@ -23,6 +23,9 @@ case "${lang}" in
     "dockerfile")
         namespace="camdencheek"
         ;;
+    "cmake")
+        namespace="uyha"
+        ;;
     "typescript")
         sourcedir="tree-sitter-typescript/typescript/src"
         grammardir="tree-sitter-typescript/typescript"

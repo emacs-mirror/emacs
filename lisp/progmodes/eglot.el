@@ -183,7 +183,7 @@ chosen (interactively or automatically)."
                       finally (funcall err)))))))
 
 (defvar eglot-server-programs `((rust-mode . ,(eglot-alternatives '("rust-analyzer" "rls")))
-                                (cmake-mode . ("cmake-language-server"))
+                                ((cmake-mode cmake-ts-mode) . ("cmake-language-server"))
                                 (vimrc-mode . ("vim-language-server" "--stdio"))
                                 ((python-mode python-ts-mode)
                                  . ,(eglot-alternatives

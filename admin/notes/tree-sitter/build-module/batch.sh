@@ -2,6 +2,7 @@
 
 languages=(
     'c'
+    'cmake'
     'cpp'
     'css'
     'c-sharp'
