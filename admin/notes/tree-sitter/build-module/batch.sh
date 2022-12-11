@@ -5,6 +5,7 @@ languages=(
     'cpp'
     'css'
     'c-sharp'
+    'dockerfile'
     'go'
     'html'
     'javascript'

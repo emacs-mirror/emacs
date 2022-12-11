@@ -50,6 +50,7 @@
 (eval-when-compile (require 'rx))
 (eval-when-compile (require 'inline))
 (eval-when-compile (require 'map))
+(eval-when-compile (require 'cl-lib))
 (require 'package)
 (require 'lisp-mnt)
 (require 'vc)
@@ -293,21 +294,41 @@ asynchronously."
         (insert-file-contents main-file)
         (package-strip-rcs-id
          (or (lm-header "package-version")
-             (lm-header "version"))))
+             (lm-header "version")
+             "0")))
     "0"))
 
 (defun package-vc--main-file (pkg-desc)
   "Return the name of the main file for PKG-DESC."
   (cl-assert (package-vc-p pkg-desc))
-  (let ((pkg-spec (package-vc--desc->spec pkg-desc))
-        (name (symbol-name (package-desc-name pkg-desc))))
-    (or (plist-get pkg-spec :main-file)
-        (expand-file-name
-         (concat name ".el")
-         (file-name-concat
-          (or (package-desc-dir pkg-desc)
-              (expand-file-name name package-user-dir))
-          (plist-get pkg-spec :lisp-dir))))))
+  (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
+         (name (symbol-name (package-desc-name pkg-desc)))
+         (directory (file-name-concat
+                     (or (package-desc-dir pkg-desc)
+                         (expand-file-name name package-user-dir))
+                     (plist-get pkg-spec :lisp-dir)))
+         (file (or (plist-get pkg-spec :main-file)
+                   (expand-file-name
+                    (concat name ".el")
+                    directory))))
+    (if (file-exists-p file) file
+      ;; The following heuristic is only necessary when fetching a
+      ;; repository with URL that would break the above assumptions.
+      ;; Concrete example: https://github.com/sachac/waveform-el does
+      ;; not have a file waveform-el.el, but a file waveform.el, so we
+      ;; try and find the closest match.
+      (let ((distance most-positive-fixnum) (best nil))
+        (dolist (alt (directory-files directory t "\\.el\\'" t))
+          (let ((sd (string-distance file alt)))
+            (when (and (not (string-match-p (rx (or (: "-autoloads.el")
+                                                    (: "-pkg.el"))
+                                                eos)
+                                            alt))
+                       (< sd distance))
+              (when (< sd distance)
+                (setq distance (string-distance file alt)
+                      best alt)))))
+        best))))
 
 (defun package-vc--generate-description-file (pkg-desc pkg-file)
   "Generate a package description file for PKG-DESC and write it to PKG-FILE."
@@ -466,6 +487,7 @@ documentation and marking the package as installed."
   (package--save-selected-packages
    (cons (package-desc-name pkg-desc)
          package-selected-packages))
+  (package--quickstart-maybe-refresh)
 
   ;; Confirm that the installation was successful
   (let ((main-file (package-vc--main-file pkg-desc)))
@@ -710,11 +732,11 @@ regular package, but it will not remove a VC package."
 (defun package-vc-checkout (pkg-desc directory &optional rev)
   "Clone the sources for PKG-DESC into DIRECTORY and visit that directory.
 Unlike `package-vc-install', this does not yet set up the package
-for use with Emacs; use `package-vc-link-directory' for setting
-the package up after this function finishes.
-Optional argument REV means to clone a specific version of the
-package; it defaults to the last version available from the
-package's repository.  If REV has the special value
+for use with Emacs; use `package-vc-install-from-checkout' for
+setting the package up after this function finishes.  Optional
+argument REV means to clone a specific version of the package; it
+defaults to the last version available from the package's
+repository.  If REV has the special value
 `:last-release' (interactively, the prefix argument), that stands
 for the last released version of the package."
   (interactive
@@ -753,6 +775,10 @@ name from the base name of DIR."
   (package-vc--archives-initialize)
   (let* ((name (or name (file-name-base (directory-file-name dir))))
          (pkg-dir (expand-file-name name package-user-dir)))
+    (when (file-exists-p pkg-dir)
+      (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))
+          (package--delete-directory pkg-dir)
+        (error "There already exists a checkout for %s" name)))
     (make-symbolic-link (expand-file-name dir) pkg-dir)
     (package-vc--unpack-1
      (package-desc-create

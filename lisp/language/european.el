@@ -585,7 +585,7 @@ and it selects the Spanish tutorial."))
 	     (nonascii-translation . iso-8859-9)
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "turkish-postfix")
-	     (sample-text . "Turkish (Türkçe)	Merhaba")
+	     (sample-text . "Turkish (Türkçe)	Esenlikler / Merhaba")
 	     (setup-function . turkish-case-conversion-enable)
 	     (exit-function . turkish-case-conversion-disable)
 	     (documentation . "Support for Turkish.

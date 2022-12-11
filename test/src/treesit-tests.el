@@ -161,6 +161,40 @@
       (should (treesit-node-eq root-node root-node))
       (should (not (treesit-node-eq root-node doc-node))))))
 
+(ert-deftest treesit-indirect-buffer ()
+  "Tests for indirect buffers."
+  (skip-unless (treesit-language-available-p 'json))
+  (let ((base (get-buffer-create "*treesit test*"))
+        parser indirect)
+    (unwind-protect
+        (progn
+          (with-current-buffer base
+            (setq indirect (clone-indirect-buffer "*treesit test 1*" nil)))
+          (with-current-buffer indirect
+            (setq parser (treesit-parser-create 'json)))
+          ;; 1. Parser created in the indirect buffer should be
+          ;; actually be created in the base buffer.
+          (with-current-buffer base
+            (should (equal (list parser)
+                           (treesit-parser-list)))
+            (insert "[1,2,3]"))
+          ;; Change in the base buffer should be reflected in the
+          ;; indirect buffer.
+          (with-current-buffer indirect
+            (should (eq (treesit-node-end
+                         (treesit-buffer-root-node))
+                        8))
+            (erase-buffer))
+          ;; Change in the indirect buffer should be reflected in the
+          ;; base buffer.
+          (with-current-buffer base
+            (should (eq (treesit-node-end
+                         (treesit-buffer-root-node))
+                        1))
+            (erase-buffer)))
+      (kill-buffer base)
+      (kill-buffer indirect))))
+
 (ert-deftest treesit-query-api ()
   "Tests for query API."
   (skip-unless (treesit-language-available-p 'json))

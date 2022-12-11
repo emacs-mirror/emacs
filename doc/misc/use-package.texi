@@ -190,7 +190,7 @@ immediately.  In most cases, this is not necessary or desirable, as
 that will slow down Emacs startup.  Instead, you should try to set
 things up so that packages are only loaded when they are actually
 needed (a.k.a. ``autoloading'').  If you have installed a package from
-@acronym{GNU ELPA} that provides it's own autoloads, it is often
+@acronym{GNU} @acronym{ELPA} that provides it's own autoloads, it is often
 enough to say:
 
 @lisp
@@ -1273,7 +1273,7 @@ cells, or a string or regexp.
 The following example reproduces the default @code{ruby-mode}
 configuration, exactly as it is in Emacs out-of-the-box.  That mode is
 enabled automatically when a file whose name matches the regexp
-@code{"\\.rb\\'"} (a file with the @samp{.rb} extension), or when the
+@code{"\\.rb\\'"} (a file with the @file{.rb} extension), or when the
 first line of the file (known as the ``shebang'') matches the string
 @code{"ruby"}:
 

@@ -818,7 +818,13 @@ compilation and evaluation time conflicts."
 
    :language 'c-sharp
    :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face)))
+   '((["," ":" ";"]) @font-lock-delimiter-face)
+
+   :language 'c-sharp
+   :feature 'escape-sequence
+   :override t
+   '((escape_sequence) @font-lock-escape-face
+     (ERROR) @font-lock-warning-face)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -926,7 +932,7 @@ Key bindings:
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
-                ( keyword string type)
+                ( keyword string escape-sequence type)
                 ( attribute constant expression literal)
                 ( bracket delimiter)))
 

@@ -89,6 +89,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "object") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "object_type") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "enum_body") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "class_body") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "arrow_function") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "parenthesized_expression") parent-bol typescript-ts-mode-indent-offset)
 
@@ -361,8 +362,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'typescript))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (keyword string)
+                '((comment declaration keyword string escape-sequence)
                   (constant expression identifier number pattern property)
                   (bracket delimiter)))
 
@@ -396,8 +396,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'tsx))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (keyword string)
+                '((comment declaration keyword string escape-sequence)
                   (constant expression identifier jsx number pattern property)
                   (bracket delimiter)))
 
