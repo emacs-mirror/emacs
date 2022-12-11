@@ -751,12 +751,13 @@ For example, to retrieve the second element of a user's record in
 
 (defun eshell-complete-variable-reference ()
   "If there is a variable reference, complete it."
-  (let ((arg (pcomplete-actual-arg)) index)
-    (when (setq index
-		(string-match
-		 (concat "\\$\\(" eshell-variable-name-regexp
-			 "\\)?\\'") arg))
-      (setq pcomplete-stub (substring arg (1+ index)))
+  (let ((arg (pcomplete-actual-arg)))
+    (when (string-match
+           (rx "$" (? "#")
+               (? (group (regexp eshell-variable-name-regexp)))
+               string-end)
+           arg)
+      (setq pcomplete-stub (substring arg (match-beginning 1)))
       (throw 'pcomplete-completions (eshell-variables-list)))))
 
 (defun eshell-variables-list ()
