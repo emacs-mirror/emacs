@@ -6014,21 +6014,6 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
 }
 #endif	/* HAVE_WINDOW_SYSTEM */
 
-/* Remove the attribute at INDEX from the font object if SYMBOL
-   appears in `font-fallback-ignored-attributes'.  */
-
-static void
-font_maybe_unset_attribute (Lisp_Object font_object,
-			    enum font_property_index index, Lisp_Object symbol)
-{
-  Lisp_Object tail = Vface_font_lax_matched_attributes;
-
-  FOR_EACH_TAIL_SAFE (tail)
-    {
-      if (EQ (XCAR (tail), symbol))
-	ASET (font_object, index, Qnil);
-    }
-}
 
 /* Realize the fully-specified face with attributes ATTRS in face
    cache CACHE for ASCII characters.  Do it for GUI frame CACHE->f.
@@ -6088,33 +6073,38 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	{
 	  Lisp_Object spec = copy_font_spec (attrs[LFACE_FONT_INDEX]);
-
-	  /* Maybe unset several values in SPEC, usually the width,
-	     slant, and weight.  The best possible values for these
-	     attributes are determined in font_find_for_lface, called
-	     by font_load_for_lface, when the list of candidate fonts
-	     returned by font_list_entities is sorted by font_select_entity
-	     (which calls font_sort_entities, which calls font_score).
-	     If these attributes are not unset here, the candidate
-	     font list returned by font_list_entities only contains
-	     fonts that are exact matches for these weight, slant, and
-	     width attributes, which could lead to suboptimal or wrong
-	     font selection.  (bug#5934) */
-	  font_maybe_unset_attribute (spec, FONT_WEIGHT_INDEX, QCweight);
-	  font_maybe_unset_attribute (spec, FONT_SLANT_INDEX, QCslant);
-	  font_maybe_unset_attribute (spec, FONT_WIDTH_INDEX, QCwidth);
+#define   MAYBE_UNSET_ATTRIBUTE(ATTR)			\
+	  if (realize_gui_face_ignored_spec_attributes	\
+	      & (1 << FONT_##ATTR##_INDEX))		\
+	    ASET (spec, FONT_##ATTR##_INDEX, Qnil);
+	  /* The default value of
+	     realize_gui_face_ignored_spec_attributes unsets the
+	     weight, slant and width in spec.  The best possible
+	     values for these attributes is determined in
+	     font_find_for_lface, called by font_load_for_lface, when
+	     the candidate list returned by font_list_entities is
+	     sorted by font_select_entity (which calls
+	     font_sort_entities, which calls font_score).  If these
+	     attributes are not unset here, the candidate font list
+	     returned by font_list_entities only contains fonts that
+	     are exact matches for these weight, slant and width
+	     attributes, which leads to suboptimal or wrong font
+	     choices.  See bug#59347.  */
+	  MAYBE_UNSET_ATTRIBUTE (WEIGHT);
+	  MAYBE_UNSET_ATTRIBUTE (SLANT);
+	  MAYBE_UNSET_ATTRIBUTE (WIDTH);
 	  /* Also allow unsetting other attributes for debugging
-	     purposes.  But not FONT_EXTRA_INDEX; that is not safe to
-	     touch, at least in the Haiku font backend.  */
-	  font_maybe_unset_attribute (spec, FONT_FAMILY_INDEX, QCfamily);
-	  font_maybe_unset_attribute (spec, FONT_FOUNDRY_INDEX, QCfoundry);
-	  font_maybe_unset_attribute (spec, FONT_REGISTRY_INDEX, QCregistry);
-	  font_maybe_unset_attribute (spec, FONT_ADSTYLE_INDEX, QCadstyle);
-	  font_maybe_unset_attribute (spec, FONT_SIZE_INDEX, QCsize);
-	  font_maybe_unset_attribute (spec, FONT_DPI_INDEX, QCdpi);
-	  font_maybe_unset_attribute (spec, FONT_SPACING_INDEX, QCspacing);
-	  font_maybe_unset_attribute (spec, FONT_AVGWIDTH_INDEX, QCavgwidth);
-
+	     purposes.  */
+	  MAYBE_UNSET_ATTRIBUTE (FAMILY);
+	  MAYBE_UNSET_ATTRIBUTE (FOUNDRY);
+	  MAYBE_UNSET_ATTRIBUTE (REGISTRY);
+	  MAYBE_UNSET_ATTRIBUTE (ADSTYLE);
+	  MAYBE_UNSET_ATTRIBUTE (SIZE);
+	  MAYBE_UNSET_ATTRIBUTE (DPI);
+	  MAYBE_UNSET_ATTRIBUTE (SPACING);
+	  MAYBE_UNSET_ATTRIBUTE (AVGWIDTH);
+	  MAYBE_UNSET_ATTRIBUTE (EXTRA);
+#undef    MAYBE_UNSET_ATTRIBUTE
 	  attrs[LFACE_FONT_INDEX] = font_load_for_lface (f, attrs, spec);
 	}
       if (FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
@@ -7404,24 +7394,27 @@ Lisp programs that change the value of this variable should also
 clear the face cache, see `clear-face-cache'.  */);
   face_near_same_color_threshold = 30000;
 
-  DEFVAR_LISP ("face-font-lax-matched-attributes",
-	       Vface_font_lax_matched_attributes,
-	       doc: /* Font-related face attributes to match in lax manner when realizing faces.
+  DEFVAR_INT ("realize-gui-face-ignored-spec-attributes",
+	      realize_gui_face_ignored_spec_attributes,
+	      doc: /* Ignored font-spec attributes in realize_gui_face.
 
-The value should be a list of font-related face attribute symbols;
-see `set-face-attribute' for the full list of attributes.  The
-corresponding face attributes will be treated as "soft" constraints
-when looking for suitable fonts: if an exact match is not possible,
-a font can be selected that is a close, but not an exact, match.  For
-example, looking for a semi-bold font might select a bold or a medium
-font if no semi-bold font matching other attributes is found.  Emacs
-still tries to find a font that is the closest possible match; in
-particular, if a font is available that matches the face attributes
-exactly, it will be selected.
+The value is an integer number and represents a bit mask.
+The attribute corresponding to each bit that is set is cleared in
+realize_gui_face.  The bits are: 1 = :foundry, 2 = :family,
+3 = :adstyle, 4 = :registry, 5 = :weight, 6 = :slant, 7 = :width,
+8 = :size, 9 = :dpi, 10 = :spacing, 11 = :avgwidth, 12 = extra
+attributes (:name, :script, :lang and :otf).
 
-Note that if the `:extra' attribute is present in the value, it
-will be ignored.  */);
-  Vface_font_lax_matched_attributes = list3 (QCweight, QCslant, QCwidth);
+Bits 5 to 7 are set in the default value.  When these bits are not
+set, and when the font chosen for the default face has a weight, slant
+or width that is not supported by other available fonts on the system,
+such as 'medium', Emacs may select suboptimal fonts for other faces.
+
+There is no reason to change that value except for debugging purposes.  */);
+  realize_gui_face_ignored_spec_attributes =
+    (1 << FONT_WEIGHT_INDEX) |
+    (1 << FONT_SLANT_INDEX) |
+    (1 << FONT_WIDTH_INDEX);
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);
