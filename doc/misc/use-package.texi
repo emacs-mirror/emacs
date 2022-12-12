@@ -248,10 +248,6 @@ packages using the built-in @code{install-package} command, it will do
 this automatically for you.  Packages shipped with Emacs (built-in
 packages) are always available.
 
-If you install packages manually, you must make sure they are
-available on your @code{load-path}.  @xref{Lisp Libraries,,, emacs,
-GNU Emacs Manual}, for details.
-
 Some packages have more than one library.  In those cases, you might
 need more than one @code{use-package} declaration to make sure the
 package is properly loaded.  For complex configurations, you might
@@ -267,8 +263,7 @@ on Emacs start.  @xref{Installing packages}, for details.
 * Conditional loading::         Loading packages conditionally.
 * Loading sequentially::        Loading packages in sequence.
 * Load dependencies::           Don't load without dependencies.
-* Load path::                   Using a custom @code{load-path}.
-* Manual autoloads::            Setting up autoloads manually.
+* Manual installation::         Loading manually installed packages.
 @end menu
 
 @node Loading basics
@@ -623,36 +618,54 @@ As a convenience, a list of such packages may be specified:
 For more complex logic, such as that supported by @code{:after},
 simply use @code{:if} and the appropriate Lisp expression.
 
+@node Manual installation
+@section Manually installed package
+
+When installing packages manually, without Emacs' built-in package
+manager (@file{package.el}), it will obviously not help you set up
+autoloads or add it to your @code{load-path}.  You must do it
+yourself.  However, use-package makes this more convenient.
+
+@menu
+* Load path::                   Using a custom @code{load-path}.
+* Manual autoloads::            Setting up autoloads manually.
+@end menu
+
 @node Load path
-@section Setting a custom @code{load-path}
+@subsection Setting a custom @code{load-path}
 @cindex custom @code{load-path} for loading a package
 @cindex @code{load-path}, add directories for loading a package
 
+When installing packages manually, you must make sure its libraries
+are available on your @code{load-path}.  @xref{Lisp Libraries,,,
+emacs, GNU Emacs Manual}, for more details about package loading.
+
 @findex :load-path
-If a package resides in some directory that is not in your
-@code{load-path}, use the @code{:load-path} keyword to add it.  It
-takes as argument a symbol, a function, a string or a list of strings.
-If a directory is specified as a relative file name, it is expanded
-relative to @code{user-emacs-directory}.
+The @code{:load-path} keyword provides a convenient way to add
+directories to your load path.  It takes as argument a symbol, a
+function, a string or a list of strings.  If a directory is specified
+as a relative file name, it is expanded relative to
+@code{user-emacs-directory}.
 
 For example:
 
 @lisp
 @group
-(use-package ess-site
-  :load-path "site-lisp/ess/lisp/"
-  :commands R)
+(use-package org
+  :load-path "site-lisp/org/lisp/"
+  :commands org-mode)
 @end group
 @end lisp
 
-Note that when using a symbol or a function to provide a dynamically
-generated list of directories, you must inform the byte-compiler of this
-definition so that the value is available at byte-compilation time.
+When using a symbol or a function to provide a dynamically generated
+list of directories, you must inform the byte-compiler of this
+definition, so that the value is available at byte-compilation time.
 This is done by using the special form @code{eval-and-compile} (as
 opposed to @code{eval-when-compile}, @pxref{Eval During Compile,,,
-elisp, GNU Emacs Lisp Reference Manual}).  Further, this value is fixed at
-whatever was determined during compilation, to avoid looking up the
-same information again on each startup.  For example:
+elisp, GNU Emacs Lisp Reference Manual}).  Furthermore, this value is
+fixed to the value it had during compilation.  If the operation is
+costly, you do not have to repeat it again on each startup.  For
+example:
 
 @lisp
 @group
@@ -669,20 +682,25 @@ same information again on each startup.  For example:
 @end lisp
 
 @node Manual autoloads
-@section Setting up autoloads manually
+@subsection Setting up autoloads manually
+
+Packages often document how to set up its autoloads when it is being
+manually installed.  If it does, follow those instructions.
+Otherwise, you might want to set them up manually.
+
 @cindex autoloads for packages, setting up manually
 @cindex package autoloads, setting up manually
 
 @findex :commands
 @findex :autoload
-To autoload an interactive command, use the @code{:commands} keyword.
-When you use the @code{:commands} keyword, it creates autoloads for
-those commands (which defers loading of the module until those commands are
-used).  The @code{:commands} keyword takes either a symbol or a list
-of symbols as its argument.
+To autoload an interactive command, use the @code{:commands} keyword,
+which takes either a symbol or a list of symbols as its argument.  It
+creates autoloads for those commands (which defers loading of the
+module until those commands are used).
 
-The @code{:autoload} keyword works like @code{:commands}, but is used
-to autoload non-interactive functions.  Here is an example:
+The @code{:autoload} keyword takes the same arguments as
+@code{:commands}, but is used to autoload non-interactive functions.
+Here is an example:
 
 @lisp
 @group

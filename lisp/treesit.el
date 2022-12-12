@@ -1848,6 +1848,18 @@ to the offending pattern and highlight the pattern."
 
 ;;; Explorer
 
+(defface treesit-explorer-anonymous-node
+  (let ((display t)
+        (atts '(:inherit shadow)))
+    `((,display . ,atts)))
+  "Face for anonymous nodes in tree-sitter explorer.")
+
+(defface treesit-explorer-field-name
+  (let ((display t)
+        (atts nil))
+    `((,display . ,atts)))
+  "Face for field names in tree-sitter explorer.")
+
 (defvar-local treesit--explorer-buffer nil
   "Buffer used to display the syntax tree.")
 
@@ -2026,7 +2038,8 @@ leaves point at the end of the last line of NODE."
     ;; draw everything in one line, other wise draw field name and the
     ;; rest of the node in two lines.
     (when field-name
-      (insert field-name ": ")
+      (insert (propertize (concat field-name ": ")
+                          'face 'treesit-explorer-field-name))
       (when (and children (not all-children-inline))
         (insert "\n")
         (indent-to-column (1+ before-field-column))))
@@ -2085,7 +2098,7 @@ leaves point at the end of the last line of NODE."
       (overlay-put ov 'treesit-node node)
       (overlay-put ov 'evaporate t)
       (when (not named)
-        (overlay-put ov 'face 'shadow)))))
+        (overlay-put ov 'face 'treesit-explorer-anonymous-node)))))
 
 (define-derived-mode treesit--explorer-tree-mode special-mode
   "TS Explorer"
@@ -2104,7 +2117,7 @@ window."
         (unless (buffer-live-p treesit--explorer-buffer)
           (setq-local treesit--explorer-buffer
                       (get-buffer-create
-                       (format "*tree-sitter playground for %s*"
+                       (format "*tree-sitter explorer for %s*"
                                (buffer-name))))
           (setq-local treesit--explorer-language
                       (intern (completing-read

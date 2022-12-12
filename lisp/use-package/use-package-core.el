@@ -210,9 +210,7 @@ a symbol) and a list of keywords (in normalized form).  It should
 return nil or non-nil depending on whether defaulting should be
 attempted."
   :type `(repeat
-          (list (choice :tag "Keyword"
-                        ,@(mapcar #'(lambda (k) (list 'const k))
-                                  use-package-keywords))
+          (list (symbol :tag "Keyword")
                 (choice :tag "Default value" sexp function)
                 (choice :tag "Enable if non-nil" sexp function)))
   :group 'use-package)

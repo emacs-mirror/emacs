@@ -499,7 +499,7 @@ Here's what an element of this alist might look like:
       ;; disallow-non-standard-keys
       ;; enforce-required-keys
       ;; enforce-optional-keys
-      )
+      no-unknown-interfaces)
     "How strictly to check LSP interfaces at compile- and run-time.
 
 Value is a list of symbols (if the list is empty, no checks are
@@ -520,7 +520,10 @@ happens at run-time.  At compile-time, a warning is raised if a
 destructuring spec doesn't use all optional fields.
 
 If the symbol `disallow-unknown-methods' is present, Eglot warns
-on unknown notifications and errors on unknown requests."))
+on unknown notifications and errors on unknown requests.
+
+If the symbol `no-unknown-interfaces' is present, Eglot warns at
+compile time if an undeclared LSP interface is used."))
 
 (cl-defun eglot--check-object (interface-name
                                object
@@ -594,7 +597,7 @@ on unknown notifications and errors on unknown requests."))
                (when missing-out (byte-compile-warn
                                   "Destructuring for %s is missing out on %s"
                                   interface-name missing-out))))
-            (t
+            ((memq 'no-unknown-interfaces eglot-strict-mode)
              (byte-compile-warn "Unknown LSP interface %s" interface-name))))))
 
 (cl-defmacro eglot--dbind (vars object &body body)
