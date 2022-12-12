@@ -1765,8 +1765,7 @@ all channel buffers on all servers."
 ;; to, it was never realized.
 ;;
 ;; New library code should use the `erc--target' struct instead.
-;; Third-party code can continue to use this until a getter for
-;; `erc--target' (or whatever replaces it) is exported.
+;; Third-party code can continue to use this and `erc-default-target'.
 (defvar-local erc-default-recipients nil
   "List of default recipients of the current buffer.")
 
@@ -6012,13 +6011,14 @@ See also `erc-downcase'."
 ;; While `erc-default-target' happens to return nil in channel buffers
 ;; you've parted or from which you've been kicked, using it to detect
 ;; whether a channel is currently joined may become unreliable in the
-;; future.  For now, new code should consider using
+;; future.  For now, third-party code can use
 ;;
 ;;   (erc-get-channel-user (erc-current-nick))
 ;;
-;; and expect a nicer option eventually.  For retrieving a target
-;; regardless of subscription or connection status, use replacements
-;; based on `erc--target' instead.  See also `erc--default-target'.
+;; A predicate may be provided eventually.  For retrieving a target's
+;; name regardless of subscription or connection status, new library
+;; code should use `erc--default-target'.  Third-party code should
+;; continue to use `erc-default-target'.
 
 (defun erc-default-target ()
   "Return the current default target (as a character string) or nil if none."
