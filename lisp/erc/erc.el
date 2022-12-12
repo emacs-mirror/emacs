@@ -407,15 +407,27 @@ erc-channel-user struct.")
   "Hash table of users on the current server.
 It associates nicknames with `erc-server-user' struct instances.")
 
-(defconst erc--casemapping-rfc1459
-  (make-translation-table
-   '((?\[ . ?\{) (?\] . ?\}) (?\\ . ?\|) (?~  . ?^))
-   (mapcar (lambda (c) (cons c (+ c 32))) "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
-
 (defconst erc--casemapping-rfc1459-strict
-  (make-translation-table
-   '((?\[ . ?\{) (?\] . ?\}) (?\\ . ?\|))
-   (mapcar (lambda (c) (cons c (+ c 32))) "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
+  (let ((tbl (copy-sequence ascii-case-table))
+        (cup (copy-sequence (char-table-extra-slot ascii-case-table 0))))
+    (set-char-table-extra-slot tbl 0 cup)
+    (set-char-table-extra-slot tbl 1 nil)
+    (set-char-table-extra-slot tbl 2 nil)
+    (pcase-dolist (`(,uc . ,lc) '((?\[ . ?\{) (?\] . ?\}) (?\\ . ?\|)))
+      (aset tbl uc lc)
+      (aset tbl lc lc)
+      (aset cup uc uc))
+    tbl))
+
+(defconst erc--casemapping-rfc1459
+  (let ((tbl (copy-sequence erc--casemapping-rfc1459-strict))
+        (cup (copy-sequence (char-table-extra-slot
+                             erc--casemapping-rfc1459-strict 0))))
+    (set-char-table-extra-slot tbl 0 cup)
+    (aset tbl ?~ ?^)
+    (aset tbl ?^ ?^)
+    (aset cup ?~ ?~)
+    tbl))
 
 (defun erc-add-server-user (nick user)
   "This function is for internal use only.
