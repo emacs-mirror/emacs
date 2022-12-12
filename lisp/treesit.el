@@ -1685,7 +1685,7 @@ the current line if the beginning of the defun is indented."
 
 Return a list of (PREV NEXT PARENT), where PREV and NEXT are
 previous and next sibling defuns around POS, and PARENT is the
-parent defun surrouding POS.  All of three could be nil if no
+parent defun surrounding POS.  All of three could be nil if no
 sound defun exists.
 
 REGEXP and PRED are the same as in `treesit-defun-type-regexp'."
@@ -1767,7 +1767,7 @@ If ARG is positive, move forward that many steps, if negative,
 move backward.  If SIDE is `beg', stop at the beginning of a
 defun, if SIDE is `end', stop at the end.
 
-This function doesn't actaully move point, it just returns the
+This function doesn't actually move point, it just returns the
 position it would move to.  If there aren't enough defuns to move
 across, return nil.
 

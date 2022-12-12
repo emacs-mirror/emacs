@@ -552,7 +552,7 @@ too large if positive or too small if negative)."
 			,new)))))
   (seq-subseq seq start end))
 
-;;; This isn't a defalias because autoloading defalises doesn't work
+;;; This isn't a defalias because autoloading defaliases doesn't work
 ;;; very well.
 
 ;;;###autoload

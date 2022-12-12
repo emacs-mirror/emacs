@@ -329,7 +329,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
        (should-error (eglot--current-server-or-lose))))))
 
 (ert-deftest auto-detect-running-server ()
-  "Visit a file and \\[eglot], then visit a neighbour."
+  "Visit a file and \\[eglot], then visit a neighbor."
   (skip-unless (executable-find "clangd"))
   (eglot-tests--auto-detect-running-server-1))
 
@@ -704,7 +704,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
        (string= (buffer-string) "def a():\n    pass\n\n\ndef b():\n    pass\n")))))
 
 (ert-deftest rust-on-type-formatting ()
-  "Test textDocument/onTypeFormatting agains rust-analyzer."
+  "Test textDocument/onTypeFormatting against rust-analyzer."
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
   (eglot--with-fixture

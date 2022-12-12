@@ -611,7 +611,7 @@ visible_end.)"
 ;;
 ;; I've setup a framework for easier testing of defun navigation.
 ;;
-;; To use it for a particular langauge, first write a test program
+;; To use it for a particular language, first write a test program
 ;; similar to `treesit--ert-defun-navigation-python-program', and
 ;; insert markers.  Markers that marks BOLs are defined as follows:
 ;;
@@ -661,7 +661,7 @@ marking's number, and POS is each marking's position."
     (nreverse result)))
 
 (defun treesit--ert-collect-positions (positions functions)
-  "Collect posifions after caling each function in FUNCTIONS.
+  "Collect positions after calling each function in FUNCTIONS.
 
 POSITIONS should be a list of buffer positions, FUNCTIONS should
 be a list of functions.  This function collects the return value
@@ -710,7 +710,7 @@ and \"]\"."
            ;; Collect positions each function returns.
            (positions
             (treesit--ert-collect-positions
-             ;; The first columnn of DECODED-MASTER.
+             ;; The first column of DECODED-MASTER.
              (mapcar #'car decoded-master)
              ;; Four functions: next-end, prev-beg, next-beg, prev-end.
              (mapcar (lambda (conf)

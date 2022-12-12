@@ -7443,7 +7443,7 @@ If the value is nil, candidate fonts might be rejected if the don't
 have exactly the same values of attributes as the face requests.
 
 This variable exists for debugging of the font-selection process,
-and we advise not to change it othersie.  */);
+and we advise not to change it otherwise.  */);
   Vface_font_lax_matched_attributes = Qt;
 
 #ifdef HAVE_WINDOW_SYSTEM
