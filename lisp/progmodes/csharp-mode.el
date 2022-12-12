@@ -709,8 +709,8 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :override t
    :feature 'literal
-   `((integer_literal) @font-lock-constant-face
-     (real_literal) @font-lock-constant-face
+   `((integer_literal) @font-lock-number-face
+     (real_literal) @font-lock-number-face
      (null_literal) @font-lock-constant-face
      (boolean_literal) @font-lock-constant-face)
    :language 'c-sharp
