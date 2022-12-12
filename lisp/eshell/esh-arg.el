@@ -301,7 +301,8 @@ argument list in place of the value of the current argument."
         (setq eshell-current-argument (car arguments))
       (cl-assert (and (not eshell-arg-listified)
                       (not eshell-current-modifiers)))
-      (setq eshell-current-argument (cons 'eshell-flatten-args arguments))))
+      (setq eshell-current-argument
+            (cons 'eshell-splice-immediately arguments))))
   (throw 'eshell-arg-done t))
 
 (defun eshell-quote-argument (string)
@@ -342,7 +343,8 @@ Point is left at the end of the arguments."
                                 (buffer-substring here (point-max))))
                      (when arg
                        (nconc args
-                              (if (eq (car-safe arg) 'eshell-flatten-args)
+                              (if (eq (car-safe arg)
+                                      'eshell-splice-immediately)
                                   (cdr arg)
                                 (list arg))))))))
               (throw 'eshell-incomplete (if (listp delim)
