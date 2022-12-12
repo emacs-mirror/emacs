@@ -431,6 +431,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
 (ert-deftest diagnostic-tags-unnecessary-code ()
   "Test rendering of diagnostics tagged \"unnecessary\"."
   (skip-unless (executable-find "rust-analyzer"))
+  (skip-unless (executable-find "cargo"))
   (eglot--with-fixture
       '(("diagnostic-tag-project" .
          (("main.rs" .
@@ -780,6 +781,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
 (ert-deftest project-wide-diagnostics-rust-analyzer ()
   "Test diagnostics through multiple files in a TypeScript LSP."
   (skip-unless (executable-find "rust-analyzer"))
+  (skip-unless (executable-find "cargo"))
   (eglot--with-fixture
       '(("project" .
          (("main.rs" .
