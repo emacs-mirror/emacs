@@ -1703,12 +1703,28 @@ OFFSET."
                         (message "No matched rule"))
                       (cons nil nil))))))
 
-(defun treesit-check-indent (mode)
-  "Check current buffer's indentation against a major mode MODE.
+(defun treesit--read-major-mode ()
+  "Read a major mode using completion.
+Helper function to use in the `interactive' spec of `treesit-check-indent'."
+  (let* ((default (and (symbolp major-mode) (symbol-name major-mode)))
+	 (mode
+	  (completing-read
+	   (format-prompt "Target major mode" default)
+	   obarray
+	   (lambda (sym)
+	     (and (string-match-p "-mode\\'" (symbol-name sym))
+		  (not (or (memq sym minor-mode-list)
+                           (string-match-p "-minor-mode\\'"
+                                           (symbol-name sym))))))
+	   nil nil nil default nil)))
+    (cond
+     ((equal mode "nil") nil)
+     ((and (stringp mode) (fboundp (intern mode))) (intern mode))
+     (t mode))))
 
-Pop up a diff buffer showing the difference.  Correct
-indentation (target) is in green, current indentation is in red."
-  (interactive "CTarget major mode: ")
+(defun treesit-check-indent (mode)
+  "Compare the current buffer with how major mode MODE would indent it."
+  (interactive (list (treesit--read-major-mode)))
   (let ((source-buf (current-buffer)))
     (with-temp-buffer
       (insert-buffer-substring source-buf)
