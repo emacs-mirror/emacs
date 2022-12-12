@@ -723,7 +723,8 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
 
 (ert-deftest javascript-basic ()
   "Test basic autocompletion in a JavaScript LSP."
-  (skip-unless (executable-find "typescript-language-server"))
+  (skip-unless (and (executable-find "typescript-language-server")
+                    (executable-find "tsserver")))
   (eglot--with-fixture
       '(("project" . (("hello.js" . "console.log('Hello world!');"))))
     (with-current-buffer
@@ -752,7 +753,8 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
 
 (ert-deftest project-wide-diagnostics-typescript ()
   "Test diagnostics through multiple files in a TypeScript LSP."
-  (skip-unless (executable-find "typescript-language-server"))
+  (skip-unless (and (executable-find "typescript-language-server")
+                    (executable-find "tsserver")))
   (eglot--with-fixture
       '(("project" . (("hello.ts" . "const thing = 5;\nexport { thin }")
                       ("hello2.ts" . "import { thing } from './hello'"))))
