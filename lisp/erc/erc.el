@@ -1607,11 +1607,12 @@ same manner."
     (if (and (with-suppressed-warnings ((obsolete erc-reuse-buffers))
                erc-reuse-buffers)
              id)
-        (progn
-          (when-let* ((buf (get-buffer (symbol-name id)))
+        (let ((string (symbol-name (erc-networks--id-symbol
+                                    (erc-networks--id-create id)))))
+          (when-let* ((buf (get-buffer string))
                       ((erc-server-process-alive buf)))
-            (user-error  "Session with ID %S already exists" id))
-          (symbol-name id))
+            (user-error  "Session with ID %S already exists" string))
+          string)
       (generate-new-buffer-name (if (and server port)
                                     (if (with-suppressed-warnings
                                             ((obsolete erc-reuse-buffers))
