@@ -673,7 +673,9 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
       (eglot-format (line-beginning-position) (line-end-position))
       (should (looking-at "ss"))
       (should
-       (string= (buffer-string) "def a():pass\n\n\ndef b(): pass\n"))
+       (or (string= (buffer-string) "def a():pass\n\n\ndef b(): pass\n")
+           ;; autopep8 2.0.0 (pycodestyle: 2.9.1)
+           (string= (buffer-string) "def a():pass\n\ndef b(): pass")))
       ;; now format the whole buffer
       (eglot-format-buffer)
       (should
