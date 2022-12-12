@@ -1712,8 +1712,8 @@ which can be carried out at the same time:
 
 7) If selecting text with the mouse is slow, the main culprit is
    likely `select-active-regions', coupled with a program monitoring
-   the clipboard on the X server you are connected to.  Try turning
-   that off.
+   the clipboard or primary selection on the X server you are
+   connected to.  Try turning that off.
 
    However, over networks with moderate to high latency, with no
    clipboard monitor running, the bottleneck is likely to be
@@ -1722,6 +1722,12 @@ which can be carried out at the same time:
    symbol `really-fast' if that is still too slow.  Doing so will also
    cause Emacs features that relies on accurate mouse position
    reporting to stop working reliably.
+
+8) If creating or resizing frames is slow, turn off
+   `frame-resize-pixelwise' (this will not take effect until you
+   create a new frame); then, enable `x-lax-frame-geometry'.  This
+   means frame placement will be less accurate, but makes frame
+   creation, movement, and resize visibly faster.
 
 *** Emacs gives the error, Couldn't find per display information.
 
