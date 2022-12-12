@@ -1,0 +1,42 @@
+;; -*- mode: lisp-data; -*-
+((nick 10 "NICK tester"))
+((user 1 "USER tester 0 * :tester")
+ (0.00 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
+ (0.00 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version ergo-v2.8.0")
+ (0.00 ":irc.foonet.org 003 tester :This server was created Mon, 12 Dec 2022 01:25:38 UTC")
+ (0.00 ":irc.foonet.org 004 tester irc.foonet.org ergo-v2.8.0 BERTZios CEIMRUabefhiklmnoqstuv Iabefhkloqv")
+ (0.00 ":irc.foonet.org 005 tester AWAYLEN=390 BOT=B CASEMAPPING=ascii CHANLIMIT=#:100 CHANMODES=Ibe,k,fl,CEMRUimnstu CHANNELLEN=64 CHANTYPES=# ELIST=U EXCEPTS EXTBAN=,m FORWARD=f INVEX KICKLEN=390 :are supported by this server")
+ (0.00 ":irc.foonet.org 005 tester MAXLIST=beI:60 MAXTARGETS=4 MODES MONITOR=100 NETWORK=foonet NICKLEN=32 PREFIX=(qaohv)~&@%+ STATUSMSG=~&@%+ TARGMAX=NAMES:1,LIST:1,KICK:,WHOIS:1,USERHOST:10,PRIVMSG:4,TAGMSG:4,NOTICE:4,MONITOR:100 TOPICLEN=390 UTF8MAPPING=rfc8265 UTF8ONLY WHOX :are supported by this server")
+ (0.01 ":irc.foonet.org 005 tester draft/CHATHISTORY=100 :are supported by this server")
+ (0.00 ":irc.foonet.org 251 tester :There are 0 users and 4 invisible on 1 server(s)")
+ (0.00 ":irc.foonet.org 252 tester 0 :IRC Operators online")
+ (0.00 ":irc.foonet.org 253 tester 0 :unregistered connections")
+ (0.00 ":irc.foonet.org 254 tester 1 :channels formed")
+ (0.00 ":irc.foonet.org 255 tester :I have 4 clients and 0 servers")
+ (0.00 ":irc.foonet.org 265 tester 4 4 :Current local users 4, max 4")
+ (0.01 ":irc.foonet.org 266 tester 4 4 :Current global users 4, max 4")
+ (0.00 ":irc.foonet.org 422 tester :MOTD File is missing"))
+
+((mode 10 "MODE tester +i")
+ (0.00 ":irc.foonet.org 221 tester +i")
+ (0.00 ":irc.foonet.org NOTICE tester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
+
+((join 10 "JOIN #chan")
+ (0.03 ":tester!~u@z5d6jyn8pwxge.irc JOIN #chan"))
+
+((mode-1 10 "MODE #chan")
+ (0.01 ":irc.foonet.org 353 tester = #chan :@alice bob foonet tester")
+ (0.00 ":irc.foonet.org 366 tester #chan :End of NAMES list")
+ (0.03 ":irc.foonet.org 324 tester #chan +nt")
+ (0.00 ":irc.foonet.org 329 tester #chan 1670808354")
+ (0.00 ":bob!~u@d6ftaiqzk8x2k.irc PRIVMSG #chan :tester, welcome!")
+ (0.00 ":alice!~u@d6ftaiqzk8x2k.irc PRIVMSG #chan :tester, welcome!")
+
+ (0.00 ":foonet!~u@z5d6jyn8pwxge.irc PRIVMSG tester :hi")
+
+ (0.03 ":bob!~u@d6ftaiqzk8x2k.irc PRIVMSG #chan :alice: Forbear it therefore; give your cause to heaven.")
+ (0.01 ":alice!~u@d6ftaiqzk8x2k.irc PRIVMSG #chan :bob: Even at thy teat thou hadst thy tyranny.")
+ (0.00 ":foonet!~u@z5d6jyn8pwxge.irc QUIT :connection closed"))
+
+((quit 10 "QUIT :\2ERC\2")
+ (0.03 ":tester!~u@z5d6jyn8pwxge.irc QUIT :Quit: \2ERC\2"))

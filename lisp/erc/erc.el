@@ -2226,9 +2226,7 @@ then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
 for the values of the other parameters.
 
-When present, ID should be an opaque object used to identify the
-connection unequivocally.  This is rarely needed and not available
-interactively."
+See `erc-tls' for the meaning of ID."
   (interactive (erc-select-read-args))
   (erc-open server port nick full-name t password nil nil nil nil user id))
 
@@ -2255,6 +2253,7 @@ Non-interactively, it takes the keyword arguments
    (server (erc-compute-server))
    (port   (erc-compute-port))
    (nick   (erc-compute-nick))
+   (user   (erc-compute-user))
    password
    (full-name (erc-compute-full-name))
    client-certificate
@@ -2283,11 +2282,11 @@ Example usage:
              \\='(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))
 
-When present, ID should be an opaque object for identifying the
-connection unequivocally.  (In most cases, this would be a string or a
-symbol composed of letters from the Latin alphabet.)  This option is
-generally unneeded, however.  See info node `(erc) Connecting' for use
-cases.  Not available interactively."
+When present, ID should be a symbol or a string to use for naming
+the server buffer and identifying the connection unequivocally.
+See info node `(erc) Network Identifier' for details.  Like USER
+and CLIENT-CERTIFICATE, this parameter cannot be specified
+interactively."
   (interactive (let ((erc-default-port erc-default-port-tls))
 		 (erc-select-read-args)))
   (let ((erc-server-connect-function 'erc-open-tls-stream))

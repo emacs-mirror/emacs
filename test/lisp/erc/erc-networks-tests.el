@@ -197,6 +197,36 @@
 
   (erc-networks-tests--clean-bufs))
 
+;; A non-ERC buffer exists named "bob", and we're killing one of two
+;; ERC target buffers named "bob@<netid>".  The surviving buffer
+;; retains its suffix.
+
+(ert-deftest erc-networks-rename-surviving-target-buffer--query-non-target ()
+  (should (memq #'erc-networks-rename-surviving-target-buffer
+                erc-kill-buffer-hook))
+
+  (let ((existing (get-buffer-create "bob"))
+        (bob-foonet (get-buffer-create "bob@foonet")))
+
+    (with-current-buffer bob-foonet
+      (erc-mode)
+      (setq erc-networks--id (make-erc-networks--id-qualifying
+                              :parts [foonet "bob"] :len 1)
+            erc--target (erc--target-from-string "bob")))
+
+    (with-current-buffer (get-buffer-create "bob@barnet")
+      (erc-mode)
+      (setq erc-networks--id (make-erc-networks--id-qualifying
+                              :parts [barnet "bob"] :len 1)
+            erc--target (erc--target-from-string "bob")))
+
+    (kill-buffer "bob@barnet")
+    (should (buffer-live-p existing))
+    (should (buffer-live-p bob-foonet))
+    (kill-buffer existing))
+
+  (erc-networks-tests--clean-bufs))
+
 (ert-deftest erc-networks-rename-surviving-target-buffer--multi ()
 
   (ert-info ("Multiple leftover channels untouched")
