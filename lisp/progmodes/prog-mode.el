@@ -151,8 +151,8 @@ instead."
 If the point is in a string or a comment, fill the paragraph that
 contains point or follows point.
 
-Otherwise, reindent the definition that contains point or follows
-point."
+Otherwise, reindent the function definition that contains point
+or follows point."
   (interactive "P")
   (save-excursion
     (let ((treesit-text-node

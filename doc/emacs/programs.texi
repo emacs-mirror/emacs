@@ -437,16 +437,15 @@ first.
 @vindex beginning-of-defun-function
 @vindex end-of-defun-function
 @vindex fill-paragraph-function
-  Major modes that derive from @code{prog-mode} can either fill a
-single paragraph in a defun, such as a doc-string, or a comment, or
-(re)indent the surrounding defun if point is not in a comment or a
-string by typing @kbd{M-q} or using the command @kbd{M-x
-prog-fill-reindent-defun}.  The bounds of a defun is decided by the
-variable @code{beginning-of-defun-function} and
-@code{end-of-defun-function}, and the filling mechanism is decided by
-@code{fill-paragraph-function} (@ref{List Motion,,, elisp, The Emacs
-Lisp Reference Manual}, or @ref{Filling,,, elisp, The Emacs Lisp
-Reference Manual} for more information).
+  To reindent the entire defun around point, type @kbd{M-q}
+(@code{prog-fill-reindent-defun}).  If point is in a comment or a
+string, this command fills and indents the comment or string instead.
+What exactly constitutes a comment, a string, or a defun depends on
+the major mode: the bounds of a defun are decided by the variables
+@code{beginning-of-defun-function} and @code{end-of-defun-function}
+(@pxref{List Motion,,, elisp, The Emacs Lisp Reference Manual}),
+and the filling mechanism is decided by @code{fill-paragraph-function}
+(@pxref{Filling,,, elisp, The Emacs Lisp Reference Manual}).
 
 @kindex C-u TAB
   If you like the relative indentation within a grouping but not the
