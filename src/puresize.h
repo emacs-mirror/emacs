@@ -96,8 +96,10 @@ PURE_P (void *ptr)
 
 /* Signal an error if OBJ is pure.  PTR is OBJ untagged.  */
 
-#define puresize_h_CHECK_IMPURE(obj, ptr) \
-  (PURE_P (ptr) ? pure_write_error (obj) : (void) 0)
+#define puresize_h_CHECK_IMPURE(obj, ptr)    \
+ (PURE_P (ptr) || static_comp_object_p (obj) \
+    ? pure_write_error (obj)                 \
+    : (void) 0)
 
 INLINE void
 CHECK_IMPURE (Lisp_Object obj, void *ptr)

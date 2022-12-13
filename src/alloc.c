@@ -2517,6 +2517,11 @@ make_formatted_string (char *buf, const char *format, ...)
 void
 pin_string (Lisp_Object string)
 {
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (static_comp_object_p (string))
+    return;
+#endif
+
   eassert (STRINGP (string) && !STRING_MULTIBYTE (string));
   struct Lisp_String *s = XSTRING (string);
   ptrdiff_t size = STRING_BYTES (s);
@@ -4083,6 +4088,44 @@ set_interval_marked (INTERVAL i)
     i->gcmarkbit = true;
 }
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+/* Certain self-evaluating Lisp objects in natively compiled code are
+ * emitted as permanently marked. Note that this function does not
+ * *truly* determine if an object was statically compiled, but instead
+ * serves as a (hopefully) fool-proof heuristic to know if it
+ * cannot be treated as an otherwise ordinary heap-allocated object
+ * (whether it is mutable or not, can be freed, etc).  */
+bool
+static_comp_object_p (Lisp_Object obj)
+{
+  if (pdumper_object_p (XPNTR (obj)))
+    return false;
+
+  switch (XTYPE (obj))
+    {
+    case Lisp_String:
+      /* see `emit_lisp_string_constructor_rval' in comp.c */
+      return XSTRING (obj)->u.s.intervals == NULL
+	     && string_marked_p (XSTRING (obj))
+	     && (STRING_MULTIBYTE (obj)
+		 || XSTRING (obj)->u.s.size_byte == -3);
+    case Lisp_Vectorlike:
+      /* see `emit_comp_lisp_obj' in comp.c */
+      return (VECTORP (obj) || RECORDP (obj) || COMPILEDP (obj))
+	     && vector_marked_p (XVECTOR (obj));
+    case Lisp_Cons:
+      return cons_marked_p (XCONS (obj));
+    case Lisp_Float:
+      return XFLOAT_MARKED_P (XFLOAT (obj));
+    case Lisp_Symbol:
+    case_Lisp_Int:
+      return false;
+    default:
+      emacs_abort ();
+    }
+}
+#endif
+
 
 /************************************************************************
 			   Memory Full Handling
@@ -5299,7 +5342,7 @@ valid_lisp_object_p (Lisp_Object obj)
 	return 1;
 
 #ifdef HAVE_STATIC_LISP_GLOBALS
-      return valid;
+      return static_comp_object_p (obj);
 #else
       return 0;
 #endif
@@ -6791,6 +6834,11 @@ process_mark_stack (ptrdiff_t base_sp)
   while (mark_stk.sp > base_sp)
     {
       Lisp_Object obj = mark_stack_pop ();
+#ifdef HAVE_STATIC_LISP_GLOBALS
+      if (static_comp_object_p (obj))
+	continue;
+#endif
+
     mark_obj: ;
       void *po = XPNTR (obj);
       if (PURE_P (po))
@@ -7115,6 +7163,10 @@ process_mark_stack (ptrdiff_t base_sp)
 void
 mark_object (Lisp_Object obj)
 {
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (static_comp_object_p (obj))
+    return;
+#endif
   ptrdiff_t sp = mark_stk.sp;
   mark_stack_push_value (obj);
   process_mark_stack (sp);
@@ -7155,6 +7207,11 @@ mark_terminals (void)
 bool
 survives_gc_p (Lisp_Object obj)
 {
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (static_comp_object_p (obj))
+    return true;
+#endif
+
   bool survives_p;
 
   switch (XTYPE (obj))

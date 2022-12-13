@@ -4237,6 +4237,15 @@ extern void alloc_unexec_post (void);
 extern void mark_c_stack (char const *, char const *);
 extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
 extern void mark_memory (void const *start, void const *end);
+#ifdef HAVE_STATIC_LISP_GLOBALS
+extern bool static_comp_object_p (Lisp_Object obj);
+#else
+INLINE bool
+static_comp_object_p (Lisp_Object obj)
+{
+  return false;
+}
+#endif
 
 /* Force callee-saved registers and register windows onto the stack,
    so that conservative garbage collection can see their values.  */
