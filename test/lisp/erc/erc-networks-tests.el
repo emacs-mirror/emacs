@@ -1171,6 +1171,8 @@
     (let (erc-server-announced-name
           (erc--isupport-params (make-hash-table))
           erc-network
+          erc-quit-hook
+          (erc-server-process (erc-networks-tests--create-live-proc))
           calls)
       (erc-mode)
 
@@ -1183,10 +1185,7 @@
 
         (ert-info ("Signals when table empty and NETWORK param unset")
           (setq erc-server-announced-name "irc.fake.gnu.org")
-          (let ((err (should-error (erc-networks--set-name
-                                    nil (make-erc-response)))))
-            (should (string-match-p "failed" (cadr err)))
-            (should (eq (car err) 'error)))
+          (should (eq 'error (erc-networks--set-name nil (make-erc-response))))
           (should (string-match-p (rx "*** Failed") (car (pop calls)))))))
 
     (erc-networks-tests--clean-bufs)))
