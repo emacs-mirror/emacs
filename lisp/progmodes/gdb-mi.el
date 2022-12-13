@@ -4368,7 +4368,7 @@ of 0 means there is no limit.
 
 Additionally, the order the element in the alist determines the
 left-to-right display order of the properties."
-  :type '(alist :key-type 'symbol :value-type 'integer)
+  :type '(alist :key-type symbol :value-type integer)
   :group 'gud
   :version "30.1")
 
