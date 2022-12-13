@@ -31932,14 +31932,14 @@ server.  If the X server reports the error, Emacs will disable certain
 features that do not work for untrusted clients.  */);
   Vx_detect_server_trust = Qnil;
 
-  DEFVAR_LISP ("x-lax-frame-geometry", Vx_lax_frame_positioning,
-    doc: /* If non-nil nil, Emacs won't compensate for WM geometry behavior.
+  DEFVAR_LISP ("x-lax-frame-positioning", Vx_lax_frame_positioning,
+    doc: /* If non-nil, Emacs won't compensate for WM geometry behavior.
 
 Setting this to non-nil is useful when the compensation proves to be
 too slow, which is usually true when the X server is located over a
 network connection with high latency.  Doing so will make frame
 creation and placement faster at the cost of reducing the accuracy of
-frame placement via frame properties, `set-frame-position', and
+frame placement via frame parameters, `set-frame-position', and
 `set-frame-size'.  */);
   Vx_lax_frame_positioning = Qnil;
 }
