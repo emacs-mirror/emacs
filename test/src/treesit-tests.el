@@ -54,6 +54,7 @@
 (declare-function treesit-node-descendant-for-range "treesit.c")
 (declare-function treesit-node-eq "treesit.c")
 
+;;; Basic API
 
 (ert-deftest treesit-basic-parsing ()
   "Test basic parsing routines."
@@ -161,6 +162,8 @@
       (should (treesit-node-eq root-node root-node))
       (should (not (treesit-node-eq root-node doc-node))))))
 
+;;; Indirect buffer
+
 (ert-deftest treesit-indirect-buffer ()
   "Tests for indirect buffers."
   (skip-unless (treesit-language-available-p 'json))
@@ -194,6 +197,8 @@
             (erase-buffer)))
       (kill-buffer base)
       (kill-buffer indirect))))
+
+;;; Query
 
 (ert-deftest treesit-query-api ()
   "Tests for query API."
@@ -248,6 +253,8 @@
         (treesit-query-expand
          '((type field: (_) @capture :anchor)
            :? :* :+ "return")))))))
+
+;;; Narrow
 
 (ert-deftest treesit-narrow ()
   "Tests if narrowing works."
@@ -385,6 +392,8 @@ visible_end.)"
       ;; that calls that.
       )))
 
+;;; Range
+
 (ert-deftest treesit-range ()
   "Tests if range works."
   (skip-unless (treesit-language-available-p 'json))
@@ -438,6 +447,8 @@ visible_end.)"
       ;; TODO: More tests.
       )))
 
+;;; Multiple language
+
 (ert-deftest treesit-multi-lang ()
   "Tests if parsing multiple language works."
   (skip-unless (and (treesit-language-available-p 'html)
@@ -473,6 +484,8 @@ visible_end.)"
                (treesit-parser-root-node css))))
       ;; TODO: More tests.
       )))
+
+;;; Supplemental functions
 
 (ert-deftest treesit-parser-supplemental ()
   "Supplemental node functions."
