@@ -18,6 +18,7 @@ languages=(
     'toml'
     'tsx'
     'typescript'
+    'yaml'
 )
 
 for language in "${languages[@]}"

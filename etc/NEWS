@@ -3094,6 +3094,11 @@ the Go language.  It is auto-enabled for files with the ".go" extension.
 A major mode based on the tree-sitter library for editing "go.mod"
 files.  It is auto-enabled for files which are named "go.mod".
 
+*** New major mode 'yaml-ts-mode'.
+A major mode based on the tree-sitter library for editing files
+written in YAML.  It is auto-enabled for files with the ".yaml" or
+".yml" extensions.
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 
