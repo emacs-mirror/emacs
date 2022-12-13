@@ -15105,15 +15105,11 @@ x_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
   ev->window = FRAME_X_WINDOW (f);
   ev->format = 32;
 
-  /* A 32-bit X client can pass a window pointer through the X server
-     as-is.
-
-     A 64-bit client is in trouble because a pointer does not fit in
-     the 32 bits given for ClientMessage data and will be truncated by
-     Xlib.  So use two slots and hope that X12 will resolve such
-     issues someday.  */
-  ev->data.l[0] = iw >> 31 >> 1;
-  ev->data.l[1] = sign_shift <= 0 ? iw : iw << sign_shift >> sign_shift;
+  /* These messages formerly contained a pointer to the window, but
+     now that information is kept internally.  The following two
+     fields are thus zero.  */
+  ev->data.l[0] = 0;
+  ev->data.l[1] = 0;
   ev->data.l[2] = part;
   ev->data.l[3] = portion;
   ev->data.l[4] = whole;
