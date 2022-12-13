@@ -1584,9 +1584,12 @@ defuns, if the value is `nested', Emacs recognizes nested defuns.")
 
 (defvar-local treesit-defun-skipper #'treesit-default-defun-skipper
   "A function called after tree-sitter navigation moved a step.
+
 It is called with no arguments.  By default, this function tries
 to move to the beginning of a line, either by moving to the empty
-newline after a defun, or the beginning of a defun.")
+newline after a defun, or the beginning of a defun.
+
+If the value is nil, no skipping is performed.")
 
 (defvar-local treesit-defun-prefer-top-level nil
   "When non-nil, Emacs prefers top-level defun.
@@ -1760,6 +1763,33 @@ REGEXP and PRED are the same as in `treesit-defun-type-regexp'."
              do (setq node cursor))
     node))
 
+;; The basic idea for nested defun navigation is that we first try to
+;; move across sibling defuns in the same level, if no more siblings
+;; exist, we move to parents's beg/end, rinse and repeat.  We never
+;; move into a defun, only outwards.
+;;
+;; Let me describe roughly what does this function do: there are four
+;; possible operations: prev-beg, next-end, prev-end, next-beg, and
+;; each of (prev-sibling next-sibling and parent) could exist or not
+;; exist.  So there are 4 times 8 = 32 situations.
+;;
+;; I'll only describe the situation when we go backward (prev-beg &
+;; prev-end), and consider only prev-sibling & parent. Deriving the
+;; reverse situations is left as an exercise for the reader.
+;;
+;; prev-beg (easy case):
+;; 1. prev-sibling or parent exists
+;;    -> go the prev-sibling/parent's beg
+;;
+;; prev-end (tricky):
+;; 1. prev-sibling exists
+;;    -> If you think about it, we are already at prev-sibling's end!
+;;       So we need to go one step further, either to
+;;       prev-prev-sibling's end, or parent's prev-sibling's end, etc.
+;; 2. prev-sibling is nil but parent exists
+;;    -> Obviously we don't want to go to parent's end, instead, we
+;;       want to go to parent's prev-sibling's end.  Again, we recurse
+;;       in the function to do that.
 (defun treesit--navigate-defun (pos arg side &optional recursing)
   "Navigate defun ARG steps from POS.
 
@@ -1793,9 +1823,9 @@ function is called recursively."
         (pcase-let
             ((`(,prev ,next ,parent)
               (treesit--defuns-around pos regexp pred)))
-          ;; When PARENT is nil, nested and top-level are the same,
-          ;; there there is a PARENT, make PARENT to be the top-level
-          ;; parent and pretend there is no nested PREV and NEXT.
+          ;; When PARENT is nil, nested and top-level are the same, if
+          ;; there is a PARENT, make PARENT to be the top-level parent
+          ;; and pretend there is no nested PREV and NEXT.
           (when (and (eq treesit-defun-tactic 'top-level)
                      parent)
             (setq parent (treesit--top-level-defun
@@ -1811,19 +1841,18 @@ function is called recursively."
                              (parent t) ; [2]
                              (t nil)))
                   ;; Special case: go to next beg-of-defun.  Set POS
-                  ;; to the end of next/parent defun, and run one more
-                  ;; step.  If there is a next defun, step over it, so
-                  ;; we only need to recurse once, so we don't need to
-                  ;; recurse if we are already recursing [1]. If there
-                  ;; is no next but a parent, keep stepping out
+                  ;; to the end of next-sib/parent defun, and run one
+                  ;; more step.  If there is a next-sib defun, we only
+                  ;; need to recurse once, so we don't need to recurse
+                  ;; if we are already recursing [1]. If there is no
+                  ;; next-sib but a parent, keep stepping out
                   ;; (recursing) until we got out of the parents until
                   ;; (1) there is a next sibling defun, or (2) no more
                   ;; parents [2].
-                  (setq pos
-                        (or (treesit--navigate-defun
-                             (treesit-node-end (or next parent))
-                             1 'beg t)
-                            (throw 'term nil)))
+                  (setq pos (or (treesit--navigate-defun
+                                 (treesit-node-end (or next parent))
+                                 1 'beg t)
+                                (throw 'term nil)))
                 ;; Normal case.
                 (setq pos (funcall advance (or next parent))))
             ;; ...backward.
@@ -1832,19 +1861,16 @@ function is called recursively."
                            (parent t)
                            (t nil)))
                 ;; Special case: go to prev end-of-defun.
-                (setq pos
-                      (or (treesit--navigate-defun
-                           (treesit-node-start (or prev parent))
-                           -1 'end t)
-                          (throw 'term nil)))
+                (setq pos (or (treesit--navigate-defun
+                               (treesit-node-start (or prev parent))
+                               -1 'end t)
+                              (throw 'term nil)))
               ;; Normal case.
               (setq pos (funcall advance (or prev parent)))))
           ;; A successful step! Decrement counter.
           (cl-decf counter))))
     ;; Counter equal to 0 means we successfully stepped ARG steps.
-    (if (eq counter 0)
-        pos
-      nil)))
+    (if (eq counter 0) pos nil)))
 
 ;;; Activating tree-sitter
 
