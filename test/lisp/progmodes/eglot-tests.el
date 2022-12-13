@@ -31,18 +31,29 @@
 ;; Some of these tests rely on the GNU ELPA package company.el and
 ;; yasnippet.el being available.
 
+;; Some of the tests require access to a remote host files.  Since
+;; this could be problematic, a mock-up connection method "mock" is
+;; used.  Emulating a remote connection, it simply calls "sh -i".
+;; Tramp's file name handlers still run, so this test is sufficient
+;; except for connection establishing.
+
+;; If you want to test a real Tramp connection, set
+;; $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order to
+;; overwrite the default value.  If you want to skip tests accessing a
+;; remote host, set this environment variable to "/dev/null" or
+;; whatever is appropriate on your system.
+
 ;;; Code:
 (require 'eglot)
 (require 'cl-lib)
 (require 'ert)
+(require 'tramp) ; must be prior ert-x
 (require 'ert-x) ; ert-simulate-command
 (require 'edebug)
 (require 'python) ; some tests use pylsp
 (require 'cc-mode) ; c-mode-hook
 (require 'company nil t)
 (require 'yasnippet nil t)
-(require 'tramp)
-(require 'tramp-sh)
 (require 'subr-x)
 (require 'flymake) ; project-diagnostics
 
@@ -159,7 +170,11 @@ then restored."
              do (set sym val))
     (dolist (buf buffers-to-delete) ;; have to save otherwise will get prompted
       (with-current-buffer buf (save-buffer) (kill-buffer)))
-    (delete-directory fixture-directory 'recursive)))
+    (delete-directory fixture-directory 'recursive)
+    ;; Delete Tramp buffers if needed.
+    (when (file-remote-p temporary-file-directory)
+      (tramp-cleanup-connection
+       (tramp-dissect-file-name temporary-file-directory) nil 'keep-password))))
 
 (cl-defmacro eglot--with-timeout (timeout &body body)
   (declare (indent 1) (debug t))
@@ -855,7 +870,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
           (funcall eglot-move-to-column-function 71)
           (should (looking-at "p")))))))
 
-(ert-deftest eglot-lsp-abiding-column ()
+(ert-deftest eglot-tests-lsp-abiding-column ()
   "Test basic `eglot-lsp-abiding-column' and `eglot-move-to-lsp-abiding-column'."
   (skip-unless (executable-find "clangd"))
   (eglot-tests--lsp-abiding-column-1))
@@ -1241,37 +1256,25 @@ macro will assume it exists."
   ;; (should (eglot--glob-match "prefix/{**/*.d.ts,**/*.js,foo.[0-9]}" "prefix/foo.8"))
   )
 
+(defvar tramp-histfile-override)
 (defun eglot--call-with-tramp-test (fn)
-  ;; Set up a loopback TRAMP method that’s just a shell so the remote
-  ;; host is really just the local host.
+  ;; Set up a Tramp method that’s just a shell so the remote host is
+  ;; really just the local host.
   (let ((tramp-remote-path (cons 'tramp-own-remote-path tramp-remote-path))
         (tramp-histfile-override t)
-        (tramp-methods '(("loopback"
-                          (tramp-login-program "/bin/sh")
-                          (tramp-remote-shell "/bin/sh")
-                          (tramp-remote-shell-login ("-l"))
-                          (tramp-remote-shell-args ("-c")))))
-        (temporary-file-directory (concat "/loopback::"
-                                          temporary-file-directory)))
-    ;; With ‘temporary-file-directory’ bound to the ‘loopback’ TRAMP
-    ;; method, fixtures will be automatically made “remote".
-    (unwind-protect
-        (funcall fn)
-      ;; Tramp leave some buffers behind, and some time later,
-      ;; `project-buffers' will trip over them causing a hard to debug
-      ;; intermittent test failure somewhere else.
-      (dolist (buf (buffer-list))
-        (when (string-match-p "^\\*tramp" (buffer-name buf))
-          (kill-buffer buf))))))
+        (temporary-file-directory ert-remote-temporary-file-directory))
+    ;; We must check the remote LSP server.  So far, just "clangd" is used.
+    (let ((default-directory temporary-file-directory))
+      (unless (executable-find "clangd" 'remote)
+        (ert-skip "Remote clangd not found")))
+    (funcall fn)))
 
 (ert-deftest eglot--tramp-test ()
   "Ensure LSP servers can be used over TRAMP."
-  (skip-unless (executable-find "clangd"))
   (eglot--call-with-tramp-test #'eglot-tests--auto-detect-running-server-1))
 
 (ert-deftest eglot--tramp-test-2 ()
   "Ensure LSP servers can be used over TRAMP."
-  (skip-unless (executable-find "clangd"))
   (eglot--call-with-tramp-test #'eglot-tests--lsp-abiding-column-1))
 
 (ert-deftest eglot--path-to-uri-windows ()
