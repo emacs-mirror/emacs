@@ -83,6 +83,14 @@ follows the form of `treesit-simple-indent-rules'."
     table)
   "Syntax table for `c-ts-mode'.")
 
+(defvar c++-ts-mode--syntax-table
+  (let ((table (make-syntax-table c-ts-mode--syntax-table)))
+    ;; Template delimiters.
+    (modify-syntax-entry ?<  "("     table)
+    (modify-syntax-entry ?>  ")"     table)
+    table)
+  "Syntax table for `c++-ts-mode'.")
+
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
@@ -616,6 +624,7 @@ the subtrees."
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
   "Major mode for editing C++, powered by tree-sitter."
   :group 'c++
+  :syntax-table c++-ts-mode--syntax-table
 
   (unless (treesit-ready-p 'cpp)
     (error "Tree-sitter for C++ isn't available"))
