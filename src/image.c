@@ -11309,6 +11309,15 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 						    img->face_font_size);
 	  viewbox_height = svg_css_length_to_pixels (iheight, dpi,
 						     img->face_font_size);
+
+	  /* Here one dimension could be zero because in percent unit.
+	     So calculate this dimension with the other.  */
+	  if (! (0 < viewbox_width) && (iwidth.unit == RSVG_UNIT_PERCENT))
+	    viewbox_width = (viewbox_height * viewbox.width / viewbox.height)
+	      * iwidth.length;
+	  else if (! (0 < viewbox_height) && (iheight.unit == RSVG_UNIT_PERCENT))
+	    viewbox_height = (viewbox_width * viewbox.height / viewbox.width)
+	      * iheight.length;
 	}
       else if (has_width && has_viewbox)
 	{
