@@ -91,11 +91,6 @@ A major mode based on the tree-sitter library for editing
 Dockerfiles.  It includes support for font-locking, indentation, Imenu,
 and which-func.
 
-** New major mode 'cmake-ts-mode'.
-A major mode based on the tree-sitter library for editing CMake files.
-It includes support for font-locking, indentation, Imenu, and
-which-func.
-
 
 * Incompatible Lisp Changes in Emacs 30.1
 

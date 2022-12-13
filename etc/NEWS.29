@@ -3068,6 +3068,16 @@ A major mode based on the tree-sitter library for editing Bash shell
 scripts.  It includes support for font-locking, indentation, Imenu,
 which-func, and navigation.
 
+** New major mode 'dockerfile-ts-mode'.
+A major mode based on the tree-sitter library for editing
+Dockerfiles.  It includes support for font-locking, indentation, Imenu,
+and which-func.
+
+** New major mode 'cmake-ts-mode'.
+A major mode based on the tree-sitter library for editing CMake files.
+It includes support for font-locking, indentation, Imenu, and
+which-func.
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 
