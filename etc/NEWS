@@ -86,11 +86,6 @@ point is not in a comment or a string.  It is by default bound to
 
 * New Modes and Packages in Emacs 30.1
 
-** New major mode 'dockerfile-ts-mode'.
-A major mode based on the tree-sitter library for editing
-Dockerfiles.  It includes support for font-locking, indentation, Imenu,
-and which-func.
-
 
 * Incompatible Lisp Changes in Emacs 30.1
 
