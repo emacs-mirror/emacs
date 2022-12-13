@@ -1579,7 +1579,7 @@ This is used by `treesit-beginning-of-defun' and friends.")
 
 (defvar-local treesit-defun-tactic 'nested
   "Determines how does Emacs treat nested defuns.
-If the value is `top-level', Emacs only move across top-level
+If the value is `top-level', Emacs only moves across top-level
 defuns, if the value is `nested', Emacs recognizes nested defuns.")
 
 (defvar-local treesit-defun-skipper #'treesit-default-defun-skipper
@@ -1658,7 +1658,7 @@ ARG is the same as in `beginning-of-defun'."
 
 (defun treesit-default-defun-skipper ()
   "Skips spaces after navigating a defun.
-This fucntion tries to move to the beginning of a line, either by
+This function tries to move to the beginning of a line, either by
 moving to the empty newline after a defun, or to the beginning of
 the current line if the beginning of the defun is indented."
   (cond ((and (looking-at (rx (* (or " " "\\t")) "\n"))
