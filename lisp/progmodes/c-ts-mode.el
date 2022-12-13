@@ -120,6 +120,8 @@ MODE is either `c' or `cpp'."
            ((query "(call_expression arguments: (_) @indent)") parent c-ts-mode-indent-offset)
            ((parent-is "call_expression") parent 0)
            ((parent-is "enumerator_list") parent-bol c-ts-mode-indent-offset)
+           ,@(when (eq mode 'cpp)
+               '(((node-is "access_specifier") parent-bol 0)))
            ((parent-is "field_declaration_list") parent-bol c-ts-mode-indent-offset)
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
            ((parent-is "if_statement") parent-bol c-ts-mode-indent-offset)
@@ -251,7 +253,9 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'string
    `((string_literal) @font-lock-string-face
-     (system_lib_string) @font-lock-string-face)
+     (system_lib_string) @font-lock-string-face
+     ,@(when (eq mode 'cpp)
+         '((raw_string_literal) @font-lock-string-face)))
 
    :language mode
    :feature 'literal

@@ -40,6 +40,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef WINDOWSNT
+extern clock_t sys_clock (void);
+#endif
+
 #ifdef HAVE_TIMEZONE_T
 # include <sys/param.h>
 # if defined __NetBSD_Version__ && __NetBSD_Version__ < 700000000

@@ -332,6 +332,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   (setq-local treesit-text-type-regexp
               (regexp-opt '("comment"
                             "template_string")))
+  (setq-local treesit-defun-prefer-top-level t)
 
   ;; Electric
   (setq-local electric-indent-chars

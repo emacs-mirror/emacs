@@ -75,6 +75,9 @@
 (defvar json-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'json
+   :feature 'comment
+   '((comment) @font-lock-comment-face)
+   :language 'json
    :feature 'bracket
    '((["[" "]" "{" "}"]) @font-lock-bracket-face)
    :language 'json
@@ -161,7 +164,7 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings json-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((constant number pair string)
+              '((comment constant number pair string)
                 (escape-sequence)
                 (bracket delimiter error)))
 

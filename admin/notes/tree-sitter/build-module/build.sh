@@ -23,6 +23,9 @@ case "${lang}" in
     "dockerfile")
         namespace="camdencheek"
         ;;
+    "cmake")
+        namespace="uyha"
+        ;;
     "typescript")
         sourcedir="tree-sitter-typescript/typescript/src"
         grammardir="tree-sitter-typescript/typescript"
@@ -43,7 +46,7 @@ cd "${sourcedir}"
 
 ### Build
 
-cc -c -I. parser.c
+cc -fPIC -c -I. parser.c
 # Compile scanner.c.
 if test -f scanner.c
 then

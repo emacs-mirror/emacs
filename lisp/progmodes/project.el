@@ -1340,18 +1340,33 @@ By default, all project buffers are listed except those whose names
 start with a space (which are for internal use).  With prefix argument
 ARG, show only buffers that are visiting files."
   (interactive "P")
-  (let ((pr (project-current t)))
+  (let* ((pr (project-current t))
+         (buffer-list-function
+          (lambda ()
+            (seq-filter
+             (lambda (buffer)
+               (let ((name (buffer-name buffer))
+                     (file (buffer-file-name buffer)))
+                 (and (or (not (string= (substring name 0 1) " "))
+                          file)
+                      (not (eq buffer (current-buffer)))
+                      (or file (not Buffer-menu-files-only)))))
+             (project-buffers pr)))))
     (display-buffer
      (if (version< emacs-version "29.0.50")
-         (let ((buf (list-buffers-noselect arg (project-buffers pr))))
+         (let ((buf (list-buffers-noselect
+                     arg (with-current-buffer
+                             (get-buffer-create "*Buffer List*")
+                           (let ((Buffer-menu-files-only arg))
+                             (funcall buffer-list-function))))))
            (with-current-buffer buf
              (setq-local revert-buffer-function
                          (lambda (&rest _ignored)
-                           (list-buffers--refresh (project-buffers pr))
+                           (list-buffers--refresh
+                            (funcall buffer-list-function))
                            (tabulated-list-print t))))
            buf)
-       (list-buffers-noselect
-        arg nil (lambda (buf) (memq buf (project-buffers pr))))))))
+       (list-buffers-noselect arg buffer-list-function)))))
 
 (defcustom project-kill-buffer-conditions
   '(buffer-file-name    ; All file-visiting buffers are included.

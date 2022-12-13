@@ -1817,7 +1817,7 @@ With a prefix argument, show headings up to that LEVEL."
         (unless o
           (when (eq outline-minor-mode-use-buttons 'insert)
             (let ((inhibit-read-only t))
-              (insert "  ")
+              (insert (apply #'propertize "  " (text-properties-at (point))))
               (beginning-of-line)))
           (setq o (make-overlay (point) (1+ (point))))
           (overlay-put o 'outline-button t)

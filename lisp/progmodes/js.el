@@ -3876,6 +3876,7 @@ Currently there are `js-mode' and `js-ts-mode'."
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
     ;; Navigation.
+    (setq-local treesit-defun-prefer-top-level t)
     (setq-local treesit-defun-type-regexp
                 (rx (or "class_declaration"
                         "method_definition"

@@ -496,7 +496,7 @@ Intended as a value for `revert-buffer-function'."
               outline-level (lambda () 1)
               outline-minor-mode-cycle t
               outline-minor-mode-highlight t
-              outline-minor-mode-use-buttons t))
+              outline-minor-mode-use-buttons 'insert))
 
 (defvar apropos-multi-type t
   "If non-nil, this apropos query concerns multiple types.

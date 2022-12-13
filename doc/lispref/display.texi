@@ -1462,17 +1462,7 @@ object that belongs to a particular buffer, and has a specified
 beginning and end.  It also has properties that you can examine and set;
 these affect the display of the text within the overlay.
 
-@cindex scalability of overlays
-@cindex overlays, scalability
-The visual effect of an overlay is the same as of the corresponding
-text property (@pxref{Text Properties}).  However, due to a different
-implementation, overlays generally don't scale well (many operations
-take a time that is proportional to the number of overlays in the
-buffer).  If you need to affect the visual appearance of many portions
-in the buffer, we recommend using text properties.
-
-An overlay uses markers to record its beginning and end; thus,
-editing the text of the buffer adjusts the beginning and end of each
+Editing the text of the buffer adjusts the beginning and end of each
 overlay so that it stays with the text.  When you create the overlay,
 you can specify whether text inserted at the beginning should be
 inside the overlay or outside, and likewise for the end of the overlay.

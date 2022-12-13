@@ -709,8 +709,8 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :override t
    :feature 'literal
-   `((integer_literal) @font-lock-constant-face
-     (real_literal) @font-lock-constant-face
+   `((integer_literal) @font-lock-number-face
+     (real_literal) @font-lock-number-face
      (null_literal) @font-lock-constant-face
      (boolean_literal) @font-lock-constant-face)
    :language 'c-sharp
@@ -784,6 +784,10 @@ compilation and evaluation time conflicts."
      (invocation_expression
       (member_access_expression
        (generic_name (identifier) @font-lock-function-name-face)))
+     (invocation_expression
+      (member_access_expression
+       expression: (identifier) @font-lock-variable-name-face
+       name: (generic_name (type_argument_list (identifier)))))
      (invocation_expression
       (member_access_expression
        ((identifier) @font-lock-variable-name-face

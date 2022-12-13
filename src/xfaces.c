@@ -6023,6 +6023,8 @@ font_maybe_unset_attribute (Lisp_Object font_object,
 {
   Lisp_Object tail = Vface_font_lax_matched_attributes;
 
+  eassert (CONSP (tail));
+
   FOR_EACH_TAIL_SAFE (tail)
     {
       if (EQ (XCAR (tail), symbol))
@@ -6100,20 +6102,31 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	     fonts that are exact matches for these weight, slant, and
 	     width attributes, which could lead to suboptimal or wrong
 	     font selection.  (bug#5934) */
-	  font_maybe_unset_attribute (spec, FONT_WEIGHT_INDEX, QCweight);
-	  font_maybe_unset_attribute (spec, FONT_SLANT_INDEX, QCslant);
-	  font_maybe_unset_attribute (spec, FONT_WIDTH_INDEX, QCwidth);
-	  /* Also allow unsetting other attributes for debugging
-	     purposes.  But not FONT_EXTRA_INDEX; that is not safe to
-	     touch, at least in the Haiku font backend.  */
-	  font_maybe_unset_attribute (spec, FONT_FAMILY_INDEX, QCfamily);
-	  font_maybe_unset_attribute (spec, FONT_FOUNDRY_INDEX, QCfoundry);
-	  font_maybe_unset_attribute (spec, FONT_REGISTRY_INDEX, QCregistry);
-	  font_maybe_unset_attribute (spec, FONT_ADSTYLE_INDEX, QCadstyle);
-	  font_maybe_unset_attribute (spec, FONT_SIZE_INDEX, QCsize);
-	  font_maybe_unset_attribute (spec, FONT_DPI_INDEX, QCdpi);
-	  font_maybe_unset_attribute (spec, FONT_SPACING_INDEX, QCspacing);
-	  font_maybe_unset_attribute (spec, FONT_AVGWIDTH_INDEX, QCavgwidth);
+	  if (EQ (Vface_font_lax_matched_attributes, Qt))
+	    {
+	      /* The default case: clear the font attributes that
+		 affect its appearance the least, to try to find some
+		 font that is close, if not exact, match.  */
+	      ASET (spec, FONT_WEIGHT_INDEX, Qnil);
+	      ASET (spec, FONT_SLANT_INDEX, Qnil);
+	      ASET (spec, FONT_WIDTH_INDEX, Qnil);
+	    }
+	  else if (!NILP (Vface_font_lax_matched_attributes))
+	    {
+	      /* Also allow unsetting specific attributes for
+		 debugging purposes.  */
+	      font_maybe_unset_attribute (spec, FONT_WEIGHT_INDEX, QCweight);
+	      font_maybe_unset_attribute (spec, FONT_SLANT_INDEX, QCslant);
+	      font_maybe_unset_attribute (spec, FONT_WIDTH_INDEX, QCwidth);
+	      font_maybe_unset_attribute (spec, FONT_FAMILY_INDEX, QCfamily);
+	      font_maybe_unset_attribute (spec, FONT_FOUNDRY_INDEX, QCfoundry);
+	      font_maybe_unset_attribute (spec, FONT_REGISTRY_INDEX, QCregistry);
+	      font_maybe_unset_attribute (spec, FONT_ADSTYLE_INDEX, QCadstyle);
+	      font_maybe_unset_attribute (spec, FONT_SIZE_INDEX, QCsize);
+	      font_maybe_unset_attribute (spec, FONT_DPI_INDEX, QCdpi);
+	      font_maybe_unset_attribute (spec, FONT_SPACING_INDEX, QCspacing);
+	      font_maybe_unset_attribute (spec, FONT_AVGWIDTH_INDEX, QCavgwidth);
+	    }
 
 	  attrs[LFACE_FONT_INDEX] = font_load_for_lface (f, attrs, spec);
 	}
@@ -7406,22 +7419,32 @@ clear the face cache, see `clear-face-cache'.  */);
 
   DEFVAR_LISP ("face-font-lax-matched-attributes",
 	       Vface_font_lax_matched_attributes,
-	       doc: /* Font-related face attributes to match in lax manner when realizing faces.
+	       doc: /* Whether to match some face attributes in lax manner when realizing faces.
 
-The value should be a list of font-related face attribute symbols;
-see `set-face-attribute' for the full list of attributes.  The
+If non-nil, some font-related face attributes will be matched in a lax
+manner when looking for candidate fonts.
+If the value is t, the default, the search for fonts will not insist
+on exact match for 3 font attributes: weight, width, and slant.
+Instead, it will examine the available fonts with various values of
+these attributes, and select the font that is the closest possible
+match.  (If an exact match is available, it will still be selected,
+as that is the closest match.)  For example, looking for a semi-bold
+font might select a bold or a medium-weight font if no semi-bold font
+matching other attributes can be found.  This is especially important
+when the `default' face specifies unusual values for one or more of
+these 3 attributes, which other installed fonts don't support.
+
+The value can also be a list of font-related face attribute symbols;
+see `set-face-attribute' for the full list of attributes.  Then the
 corresponding face attributes will be treated as "soft" constraints
-when looking for suitable fonts: if an exact match is not possible,
-a font can be selected that is a close, but not an exact, match.  For
-example, looking for a semi-bold font might select a bold or a medium
-font if no semi-bold font matching other attributes is found.  Emacs
-still tries to find a font that is the closest possible match; in
-particular, if a font is available that matches the face attributes
-exactly, it will be selected.
+in the manner described above, instead of the default 3 attributes.
 
-Note that if the `:extra' attribute is present in the value, it
-will be ignored.  */);
-  Vface_font_lax_matched_attributes = list3 (QCweight, QCslant, QCwidth);
+If the value is nil, candidate fonts might be rejected if the don't
+have exactly the same values of attributes as the face requests.
+
+This variable exists for debugging of the font-selection process,
+and we advise not to change it otherwise.  */);
+  Vface_font_lax_matched_attributes = Qt;
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);

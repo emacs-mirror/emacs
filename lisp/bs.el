@@ -157,15 +157,15 @@ HEADER         : String for header for first line or a function
                  which calculates column title.
 MINIMUM-LENGTH : Minimum width of column (number or name of function).
                  The function must return a positive integer.
-MAXIMUM-LENGTH : Maximum width of column (number or name of function)
-                 (currently ignored).
+MAXIMUM-LENGTH : Ignored.
 ALIGNMENT      : Alignment of column (`left', `right', `middle').
 FUN-OR-STRING  : Name of a function for calculating the value or a
                  string for a constant value.
 
-The function gets as parameter the buffer where we have started
-buffer selection and the list of all buffers to show.  The function must
-return a string representing the column's value."
+Functions for HEADER and MINIMUM-LENGTH are called with no arguments.
+FUN-OR-STRING gets as argument the buffer where we have started
+buffer selection and the list of all buffers to show.  The function
+must return a string representing the column's value."
   :group 'bs-appearance
   :type '(repeat sexp))
 

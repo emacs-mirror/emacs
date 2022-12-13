@@ -4435,7 +4435,7 @@ CASE-FOLD: The value of `isearch-case-fold' to use for lazy
 highlighting.
 LAX-WHITESPACE: The value of `isearch-lax-whitespace' and
 `isearch-regexp-lax-whitespace' to use for lazy highlighting."
-  (if (not highlight)
+  (if (or (not highlight) (minibufferp))
       #'ignore
     (let ((unwind (make-symbol "minibuffer-lazy-highlight--unwind"))
           (after-change (make-symbol "minibuffer-lazy-highlight--after-change"))
