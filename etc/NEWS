@@ -106,16 +106,6 @@ frame positioning and various issues with keyboard input of sequences
 such as 'C-;' and 'C-S-u'.
 
 ---
-** The implementation of overlays has changed.
-Emacs now uses an implementation of overlays that is much more
-efficient than the original one, and should speed up all the
-operations that involve overlays, especially when there are lots of
-them in a buffer.  However, no changes in behavior of overlays should
-be visible on the Lisp or user level, with the exception of better
-performance and the order of overlays returned by functions that don't
-promise any particular order.
-
----
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
 Instead, they're fetched as needed from the corresponding ".elc" file,
 as was already the case for all the non-preloaded files.
@@ -3080,6 +3070,35 @@ which-func.
 
 
 * Incompatible Lisp Changes in Emacs 29.1
+
++++
+** The implementation of overlays has changed.
+Emacs now uses an implementation of overlays that is much more
+efficient than the original one, and should speed up all the
+operations that involve overlays, especially when there are lots of
+them in a buffer.
+
+As result of this, some minor incompatibilities in behavior could be
+observed, as described below.  Except those minor incompatibilities,
+no other changes in behavior of overlays should be visible on the Lisp
+or user level, with the exception of better performance and the order
+of overlays returned by functions that don't promise any particular
+order.
+
+*** The function 'overlay-recenter' is now a no-op.
+This function does nothing, and in particular has no effect on the
+value returned by 'overlay-lists'.  The purpose of 'overlay-recenter'
+was to allow more efficient lookup of overlays around certain buffer
+position; however with the new implementation the lookup of overlays
+is efficient regardless of their position, and there's no longer any
+need to "optimize" the lookup, nor any notion of "center" of the
+overlays.
+
+*** The function 'overlay-lists' returns one unified list of overlays.
+This function used to return a cons of two lists, one with overlays
+before the "center" position, the other after that "center".  It now
+returns a list whose 'car' is the list of all the buffer overlays, and
+whose 'cdr' is always nil.
 
 +++
 ** 'format-prompt' now uses 'substitute-command-keys'.

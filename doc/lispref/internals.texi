@@ -2423,19 +2423,6 @@ Buffers}), and avoids slowing down internal or temporary buffers, such
 as those created by @code{with-temp-buffer} (@pxref{Definition of
 with-temp-buffer,, Current Buffer}).
 
-@item overlay_center
-This field holds the current overlay center position.  @xref{Managing
-Overlays}.
-
-@item overlays_before
-@itemx overlays_after
-These fields hold, respectively, a list of overlays that end at or
-before the current overlay center, and a list of overlays that end
-after the current overlay center.  @xref{Managing Overlays}.
-@code{overlays_before} is sorted in order of decreasing end position,
-and @code{overlays_after} is sorted in order of increasing beginning
-position.
-
 @item name
 A Lisp string that names the buffer.  It is guaranteed to be unique.
 @xref{Buffer Names}.  This and the following fields have their names
@@ -2561,6 +2548,9 @@ These fields store the values of Lisp variables that are automatically
 buffer-local (@pxref{Buffer-Local Variables}), whose corresponding
 variable names have underscores replaced with dashes.  For instance,
 @code{mode_line_format} stores the value of @code{mode-line-format}.
+
+@item overlays
+The inveral tree containing this buffer's overlays.
 
 @item last_selected_window
 This is the last window that was selected with this buffer in it, or @code{nil}

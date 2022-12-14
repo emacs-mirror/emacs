@@ -3898,11 +3898,11 @@ the value is (point-min).  */)
 /* These functions are for debugging overlays.  */
 
 DEFUN ("overlay-lists", Foverlay_lists, Soverlay_lists, 0, 0, 0,
-       doc: /* Return a pair of lists giving all the overlays of the current buffer.
-The car has all the overlays before the overlay center;
-the cdr has all the overlays after the overlay center.
-Recentering overlays moves overlays between these lists.
-The lists you get are copies, so that changing them has no effect.
+       doc: /* Return a list giving all the overlays of the current buffer.
+
+For backward compatibility, the value is actually a list that
+holds another list; the overlays are in the inner list.
+The list you get is a copy, so that changing it has no effect.
 However, the overlays you get are the real objects that the buffer uses. */)
   (void)
 {
@@ -3918,7 +3918,12 @@ However, the overlays you get are the real objects that the buffer uses. */)
 DEFUN ("overlay-recenter", Foverlay_recenter, Soverlay_recenter, 1, 1, 0,
        doc: /* Recenter the overlays of the current buffer around position POS.
 That makes overlay lookup faster for positions near POS (but perhaps slower
-for positions far away from POS).  */)
+for positions far away from POS).
+
+Since Emacs 29.1, this function is a no-op, because the implementation
+of overlays changed and their lookup is now fast regardless of their
+position in the buffer.  In particular, this function no longer affects
+the value returned by `overlay-lists'.  */)
   (Lisp_Object pos)
 {
   CHECK_FIXNUM_COERCE_MARKER (pos);
