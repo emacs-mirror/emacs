@@ -1041,7 +1041,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                         (string-replace file-diff "" vc-git-patch-string))
                 (user-error "Index not empty"))
               (setq pos (point))))))
-      (let ((patch-file (make-temp-file "git-patch")))
+      (let ((patch-file (make-nearby-temp-file "git-patch")))
         (with-temp-file patch-file
           (insert vc-git-patch-string))
         (unwind-protect
