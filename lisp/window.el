@@ -4636,7 +4636,7 @@ omitted in calls from `switch-to-next-buffer'."
                     (catch 'found
                       (dolist (regexp switch-to-prev-buffer-skip-regexp)
                         (when (string-match-p regexp (buffer-name buffer))
-                          (throw 'tag t)))))))))
+                          (throw 'found t)))))))))
 
 (defun switch-to-prev-buffer (&optional window bury-or-kill)
   "In WINDOW switch to previous buffer.
