@@ -20,6 +20,7 @@
 ;;; Code:
 (require 'ert)
 (require 'proced)
+(require 'thingatpt)
 
 (cl-defmacro proced--within-buffer (format filter &body body)
   "Execute BODY within a proced buffer using format FORMAT and filter FILTER."
@@ -44,7 +45,6 @@
   (move-to-column (string-match attribute proced-header-line)))
 
 (ert-deftest proced-format-test ()
-  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
   (dolist (format '(short medium long verbose))
     (proced--within-buffer
      format
@@ -52,7 +52,6 @@
      (proced--assert-emacs-pid-in-buffer))))
 
 (ert-deftest proced-update-test ()
-  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
   (proced--within-buffer
    'short
    'user
@@ -60,7 +59,6 @@
    (proced--assert-emacs-pid-in-buffer)))
 
 (ert-deftest proced-revert-test ()
-  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
   (proced--within-buffer
    'short
    'user
@@ -68,7 +66,6 @@
    (proced--assert-emacs-pid-in-buffer)))
 
 (ert-deftest proced-color-test ()
-  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
   (let ((proced-enable-color-flag t))
     (proced--within-buffer
      'short
@@ -76,33 +73,32 @@
      (proced--assert-emacs-pid-in-buffer))))
 
 (ert-deftest proced-refine-test ()
-  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
+  ;;(skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
   (proced--within-buffer
    'medium
    'user
-   ;; When refining on Args for process A, a process is kept if and only
-   ;; if its args are the same as process A, which more or less guarentees
+   ;; When refining on PID for process A, a process is kept if and only
+   ;; if its PID are the same as process A, which more or less guarentees
    ;; the refinement will remove some processes.
-   (proced--move-to-column "Args")
-   (let ((args (buffer-substring-no-properties (point) (line-end-position))))
+   (proced--move-to-column "PID")
+   (let ((pid (word-at-point)))
      (proced-refine)
      (while (not (eobp))
-       (proced--move-to-column "Args")
-       (should (string= args (buffer-substring-no-properties (point) (line-end-position))))
+       (proced--move-to-column "PID")
+       (should (string= pid (word-at-point)))
        (forward-line)))))
 
 (ert-deftest proced-refine-with-update-test ()
-  (skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
   (proced--within-buffer
    'medium
    'user
-   (proced--move-to-column "Args")
-   (let ((args (buffer-substring-no-properties (point) (line-end-position))))
+   (proced--move-to-column "PID")
+   (let ((pid (word-at-point)))
      (proced-refine)
      (proced-update t)
      (while (not (eobp))
-       (proced--move-to-column "Args")
-       (should (string= args (buffer-substring-no-properties (point) (line-end-position))))
+       (proced--move-to-column "PID")
+       (should (string= pid (word-at-point)))
        (forward-line)))))
 
 (provide 'proced-tests)
