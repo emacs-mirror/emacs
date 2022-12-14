@@ -4040,6 +4040,12 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   if (owner != FRAME_X_WINDOW (f))
     return;
 
+  /* mouse-drag-and-drop-region will immediately deactivate the mark
+     after this is set.  Make sure the primary selection is not
+     clobbered in that case by setting `deactivate-mark' to
+     Qdont_save.  */
+  Vdeactivate_mark = Qdont_save;
+
   event.xbutton.window = child;
   event.xbutton.subwindow = None;
   event.xbutton.x = dest_x;
@@ -31538,6 +31544,8 @@ syms_of_xterm (void)
   DEFSYM (Qnow, "now");
   DEFSYM (Qx_dnd_targets_list, "x-dnd-targets-list");
   DEFSYM (Qx_auto_preserve_selections, "x-auto-preserve-selections");
+  DEFSYM (Qexpose, "expose");
+  DEFSYM (Qdont_save, "dont-save");
 
 #ifdef USE_GTK
   xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
@@ -31707,7 +31715,6 @@ always uses gtk_window_move and ignores the value of this variable.  */);
 This option is only effective when Emacs is built with XInput 2
 support. */);
   Vx_scroll_event_delta_factor = make_float (1.0);
-  DEFSYM (Qexpose, "expose");
 
   DEFVAR_BOOL ("x-gtk-use-native-input", x_gtk_use_native_input,
 	       doc: /* Non-nil means to use GTK for input method support.
