@@ -92,9 +92,12 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "class_body") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "arrow_function") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "parenthesized_expression") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "binary_expression") parent-bol typescript-ts-mode-indent-offset)
 
      ,@(when (eq language 'tsx)
          `(((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
+           ((match "<" "jsx_fragment") parent 0)
+           ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
            ((node-is "jsx_closing_element") parent 0)
            ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
            ((node-is "/") parent 0)
