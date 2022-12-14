@@ -1635,6 +1635,7 @@ buffer."
 (define-derived-mode flymake-diagnostics-buffer-mode tabulated-list-mode
   "Flymake diagnostics"
   "A mode for listing Flymake diagnostics."
+  :interactive nil
   (setq tabulated-list-format flymake--diagnostics-base-tabulated-list-format)
   (setq tabulated-list-entries
         'flymake--diagnostics-buffer-entries)
@@ -1692,6 +1693,7 @@ some of this variable's contents the diagnostic listings.")
 (define-derived-mode flymake-project-diagnostics-mode tabulated-list-mode
   "Flymake diagnostics"
   "A mode for listing Flymake diagnostics."
+  :interactive nil
   (setq tabulated-list-format
         (vconcat [("File" 25 t)]
                  flymake--diagnostics-base-tabulated-list-format))
