@@ -627,7 +627,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (nconc
    :eval (nconc (list 1) (list 2 3 4)))
   (delq
-   :eval (delq 'a (list a b c d)))
+   :eval (delq 'a (list 'a 'b 'c 'd)))
   (delete
    :eval (delete 2 (list 1 2 3 4))
    :eval (delete "a" (list "a" "b" "c" "d")))
@@ -676,7 +676,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (member 2 '(1 2 3))
    :eval (member "b" '("a" "b" "c")))
   (remq
-   :eval (remq b '(a b c)))
+   :eval (remq 'b '(a b c)))
   (member-ignore-case
    :eval (member-ignore-case "foo" '("bar" "Foo" "zot")))
   "Association Lists"
@@ -733,9 +733,9 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (eq 'abc 'abc)
    :eval (eq 'abc 'abd))
   (eql
-   :eval (eq 'abc 'abc))
+   :eval (eql 'abc 'abc))
   (equal
-   :eval (eq 'abc 'abc))
+   :eval (equal 'abc 'abc))
   "Name"
   (symbol-name
    :eval (symbol-name 'abc)))
