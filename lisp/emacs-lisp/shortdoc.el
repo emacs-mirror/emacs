@@ -1440,14 +1440,16 @@ function's documentation in the Info manual"))
                do
                (cl-case type
                  (:eval
+                  (insert "  ")
                   (if (stringp value)
-                      (insert "  " value "\n")
-                    (insert "  ")
-                    (prin1 value (current-buffer))
-                    (insert "\n")
-                    (insert "    " double-arrow " ")
-                    (prin1 (eval value) (current-buffer))
-                    (insert "\n")))
+                      (insert value)
+                    (prin1 value (current-buffer)))
+                  (insert "\n    " double-arrow " ")
+                  (let ((expr (if (stringp value)
+                                  (car (read-from-string value))
+                                value)))
+                    (prin1 (eval expr) (current-buffer)))
+                    (insert "\n"))
                  (:no-eval*
                   (if (stringp value)
                       (insert "  " value "\n")
