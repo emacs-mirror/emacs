@@ -196,7 +196,7 @@ the subtrees."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist
-             '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)$" . cmake-ts-mode))
+             '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode))
 
 ;;;###autoload
 (define-derived-mode cmake-ts-mode prog-mode "CMake"
