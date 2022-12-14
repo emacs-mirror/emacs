@@ -188,15 +188,18 @@ It determines the value returned by evaluating the variable symbol,
 and it is the binding acted on by @code{setq}.
 
   For most purposes, you can think of the current binding as the
-innermost local binding, or the global binding if there is no
-local binding.  To be more precise, a rule called the @dfn{scoping
-rule} determines where in a program a local binding takes effect.  The
+innermost local binding, or the global binding if there is no local
+binding.  To be more precise, a rule called the @dfn{scoping rule}
+determines where in a program a local binding takes effect.  The
 default scoping rule in Emacs Lisp is called @dfn{dynamic scoping},
 which simply states that the current binding at any given point in the
 execution of a program is the most recently-created binding for that
 variable that still exists.  For details about dynamic scoping, and an
 alternative scoping rule called @dfn{lexical scoping}, @pxref{Variable
-Scoping}.
+Scoping}.  Lately Emacs is moving towards using lexical binding in
+more and more places, with the goal of eventually making lexical
+binding the default.  In particular, all Emacs Lisp source files and
+the @file{*scratch*} buffer use lexical scoping.
 
   The special forms @code{let} and @code{let*} exist to create local
 bindings:
@@ -266,6 +269,17 @@ Compare the following example with the example above for @code{let}.
      @result{} (1 1)
 @end group
 @end example
+
+@noindent
+Basically, the @code{let*} binding of @code{x} and @code{y} in the
+previous example is equivalent to using nested @code{let} bindings:
+
+@example
+(let ((y 1))
+  (let ((z y))
+    (list y z)))
+@end example
+
 @end defspec
 
 @defspec letrec (bindings@dots{}) forms@dots{}
@@ -973,6 +987,11 @@ binding can also be accessed from the Lisp debugger.}.  It also has
 @dfn{indefinite extent}, meaning that under some circumstances the
 binding can live on even after the binding construct has finished
 executing, by means of special objects called @dfn{closures}.
+
+  The dynamic binding was (and still is) the default in Emacs for many
+years, but lately Emacs is moving towards using lexical binding in
+more and more places, with the goal of eventually making that the
+default.
 
   The following subsections describe dynamic binding and lexical
 binding in greater detail, and how to enable lexical binding in Emacs
