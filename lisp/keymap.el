@@ -147,7 +147,7 @@ in KEYMAP as NEWDEF those keys that are defined as OLDDEF in OLDMAP.
 If you don't specify OLDMAP, you can usually get the same results
 in a cleaner way with command remapping, like this:
   (define-key KEYMAP [remap OLDDEF] NEWDEF)
-\n(fn OLDDEF NEWDEF KEYMAP &optional OLDMAP)"
+\n(fn KEYMAP OLDDEF NEWDEF &optional OLDMAP)"
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
