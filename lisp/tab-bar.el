@@ -416,7 +416,7 @@ at the mouse-down event to the position at mouse-up event."
   "S-<wheel-right>" #'tab-bar-move-tab)
 
 (global-set-key [tab-bar]
-                `(menu-item ,(purecopy "tab bar") ignore
+                `(menu-item ,(purecopy "tab bar") ,(make-sparse-keymap)
                             :filter tab-bar-make-keymap))
 
 (defun tab-bar-make-keymap (&optional _ignore)
@@ -844,8 +844,9 @@ Function gets one argument: a tab."
 
 (defcustom tab-bar-tab-group-format-function #'tab-bar-tab-group-format-default
   "Function to format a tab group name.
-Function gets two arguments, a tab with a group name and its number,
-and should return the formatted tab group name to display in the tab bar."
+Function gets three arguments, a tab with a group name, its number, and
+an optional value that is non-nil when the tab is from the current group.
+It should return the formatted tab group name to display in the tab bar."
   :type 'function
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
@@ -854,11 +855,11 @@ and should return the formatted tab group name to display in the tab bar."
   :group 'tab-bar
   :version "28.1")
 
-(defun tab-bar-tab-group-format-default (tab i)
+(defun tab-bar-tab-group-format-default (tab i &optional current-p)
   (propertize
-   (concat (if tab-bar-tab-hints (format "%d " i) "")
+   (concat (if (and tab-bar-tab-hints (not current-p)) (format "%d " i) "")
            (funcall tab-bar-tab-group-function tab))
-   'face 'tab-bar-tab-group-inactive))
+   'face (if current-p 'tab-bar-tab-group-current 'tab-bar-tab-group-inactive)))
 
 (defcustom tab-bar-tab-group-face-function #'tab-bar-tab-group-face-default
   "Function to define a tab group face.
@@ -882,8 +883,14 @@ when the tab is current.  Return the result as a keymap."
    `((,(intern (format "group-%i" i))
       menu-item
       ,(if current-p
-           (propertize (funcall tab-bar-tab-group-function tab)
-                       'face 'tab-bar-tab-group-current)
+           (condition-case nil
+               (funcall tab-bar-tab-group-format-function tab i current-p)
+             ;; We used to define tab-bar-tab-group-format-function as
+             ;; taking two arguments but after adding the third argument
+             ;; we need to provide backwards-compatibility.
+             (wrong-number-of-arguments
+              (propertize (funcall tab-bar-tab-group-function tab)
+                          'face 'tab-bar-tab-group-current)))
          (funcall tab-bar-tab-group-format-function tab i))
       ,(if current-p 'ignore
          (or

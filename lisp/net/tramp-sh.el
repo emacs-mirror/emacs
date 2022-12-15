@@ -3431,6 +3431,7 @@ implementation will be used."
 	     (signal (car err) (cdr err)))))
 
       ;; Impossible to copy.  Trigger `file-missing' error.
+      (delete-file tmpfile)
       (setq tmpfile nil))))
 
 (defun tramp-sh-handle-write-region

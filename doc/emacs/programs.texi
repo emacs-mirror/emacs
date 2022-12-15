@@ -88,6 +88,10 @@ mode for the C programming language is @code{c-mode}.
 @cindex JSON mode
 @cindex SQL mode
 @cindex TypeScript mode
+@cindex CSS mode
+@cindex Dockerfile mode
+@cindex CMake mode
+@cindex TOML mode
   Emacs has programming language modes for Lisp, Scheme, the
 Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++, C#,
 Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, M4, Makefiles,
@@ -97,12 +101,19 @@ Python, Ruby, Simula, SQL, Tcl, TypeScript, Verilog, and VHDL@.  An
 alternative mode for Perl is called CPerl mode.  Modes are also
 available for the scripting languages of the common GNU and Unix
 shells, and MS-DOS/MS-Windows @samp{BAT} files, JSON, DNS master
-files, and various sorts of configuration files.
+files, CSS (Cascading Style Sheets), Dockerfiles, CMake files, and various sorts of configuration files.
 
   Ideally, Emacs should have a major mode for each programming
 language that you might want to edit.  If it doesn't have a mode for
 your favorite language, the mode might be implemented in a package not
 distributed with Emacs (@pxref{Packages}); or you can contribute one.
+
+@cindex tree-sitter library, supported major modes
+  If Emacs has been compiled with the @samp{tree-sitter} library, it
+offers several optional editing modes based on that library, which
+utilize the incremental parsing capabilities provided by
+@samp{tree-sitter}.  These modes have @samp{-ts-} in their names; for
+example @code{c-ts-mode}, @code{python-ts-mode}, etc.
 
 @kindex DEL @r{(programming modes)}
 @findex backward-delete-char-untabify

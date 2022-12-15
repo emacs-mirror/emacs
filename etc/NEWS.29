@@ -31,6 +31,16 @@ in the Emacs tree should be natively compiled ahead of time.  (This is
 slow on most machines.)
 
 +++
+** Emacs can be built with the 'tree-sitter' parsing library.
+This library, together with grammar libraries, provides incremental
+parsing capabilities for several popular programming languages and
+other formatted files.  Emacs built with this library offers major
+modes, described elsewhere in this file, that are based on the
+'tree-sitter's parsers.  If you have the 'tree-sitter' library
+installed, the configure script will automatically include it in the
+build; use '--without-tree-sitter' at configure time to disable that.
+
++++
 ** Emacs can be built with built-in support for accessing SQLite databases.
 This uses the popular sqlite3 library, and can be disabled by using
 the '--without-sqlite3' option to the 'configure' script.
@@ -1742,10 +1752,9 @@ the second one will switch to the "*Completions*" buffer.
 
 ---
 *** New user option 'completion-auto-wrap'.
-When non-nil, the commands 'next-completion', 'previous-completion',
-'next-line-completion' and 'previous-line-completion' automatically
-wrap around on reaching the beginning or the end of the "*Completions*"
-buffer.
+When non-nil, the commands 'next-completion' and 'previous-completion'
+automatically wrap around on reaching the beginning or the end of
+the "*Completions*" buffer.
 
 +++
 *** New values for the 'completion-auto-help' user option.
@@ -3003,70 +3012,74 @@ Emacs buffers, like indentation and the like.  The new ert function
 This is a lightweight variant of 'js-mode' that is used by default
 when visiting JSON files.
 
-** New major mode 'typescript-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the TypeScript language.  It includes support for font-locking,
-indentation, and navigation.  This mode will be auto-enabled for
-files with the ".ts" extension.
-
-** New major mode 'tsx-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the TypeScript language, with support for TSX.  It includes
-support for font-locking, indentation, and navigation.  This mode
-will be auto-enabled for files with the ".tsx" extension.
-
-** New major mode 'c-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the C language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'c++-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the C++ language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'java-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the Java language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'python-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the Python language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'css-ts-mode'.
-A major mode based on the tree-sitter library for editing CSS
-(Cascading Style Sheets).  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'json-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the JSON language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'csharp-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the C# language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
 ** New major mode 'csharp-mode'.
 A major mode based on CC Mode for editing programs in the C# language.
+This mode is auto-enabled for files with the ".cs" extension.
 
-** New major mode 'bash-ts-mode'.
-A major mode based on the tree-sitter library for editing Bash shell
-scripts.  It includes support for font-locking, indentation, Imenu,
-which-func, and navigation.
+** New major modes based on the tree-sitter library.
+These new major modes are available if Emacs was built with the
+tree-sitter library.  They provide support for font-locking,
+indentation, and navigation by defuns based on parsing the buffer text
+by a tree-sitter parser.  Some major modes also offer support for
+Imenu and 'which-func'.
 
-** New major mode 'dockerfile-ts-mode'.
+*** New major mode 'typescript-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the TypeScript language.  This mode is auto-enabled for files with
+the ".ts" extension.
+
+*** New major mode 'tsx-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the TypeScript language, with support for TSX.  This mode is
+auto-enabled for files with the ".tsx" extension.
+
+*** New major mode 'c-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the C language.
+
+*** New major mode 'c++-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the C++ language.
+
+*** New major mode 'java-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the Java language.
+
+*** New major mode 'python-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the Python language.
+
+*** New major mode 'css-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+CSS (Cascading Style Sheets).
+
+*** New major mode 'json-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the JSON language.
+
+*** New major mode 'csharp-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the C# language.
+
+*** New major mode 'bash-ts-mode'.
+Am optional major mode based on the tree-sitter library for editing
+Bash shell scripts.
+
+*** New major mode 'dockerfile-ts-mode'.
 A major mode based on the tree-sitter library for editing
-Dockerfiles.  It includes support for font-locking, indentation, Imenu,
-and which-func.
+Dockerfiles.  This mode is auto-enabled for files which are named
+"Dockerfile", have the "Dockerfile." prefix, or have the ".dockerfile"
+extension.
 
-** New major mode 'cmake-ts-mode'.
+*** New major mode 'cmake-ts-mode'.
 A major mode based on the tree-sitter library for editing CMake files.
-It includes support for font-locking, indentation, Imenu, and
-which-func.
+It is auto-enabled for files whose name is "CMakeLists.txt" or whose
+extension is ".cmake".
+
+*** New major mode 'toml-ts-mode'.
+A major mode based on the tree-sitter library for editing files
+written in TOML, a format for writing configuration files.  It is
+auto-enabled for files with the ".toml" extension.
 
 
 * Incompatible Lisp Changes in Emacs 29.1
