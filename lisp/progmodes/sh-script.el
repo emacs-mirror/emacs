@@ -1611,6 +1611,7 @@ with your script for an edit-interpret-debug cycle."
   "Major mode for editing Bash shell scripts.
 This mode automatically falls back to `sh-mode' if the buffer is
 not written in Bash or sh."
+  :syntax-table sh-mode-syntax-table
   (when (treesit-ready-p 'bash)
     (setq-local treesit-font-lock-feature-list
                 '(( comment function)
