@@ -602,21 +602,6 @@ actually the line which begins with character in `bs-string-current' or
     (format "Show buffer by configuration %S"
 	    bs-current-configuration)))
 
-(defun bs--track-window-changes (frame)
-  "Track window changes to refresh the buffer list.
-Used from `window-size-change-functions'."
-  (let ((win (get-buffer-window "*buffer-selection*" frame)))
-    (when win
-      (with-selected-window win
-	(bs--set-window-height)))))
-
-(defun bs--remove-hooks ()
-  "Remove `bs--track-window-changes' and auxiliary hooks."
-  (remove-hook 'window-size-change-functions 'bs--track-window-changes)
-  ;; Remove itself
-  (remove-hook 'kill-buffer-hook 'bs--remove-hooks t)
-  (remove-hook 'change-major-mode-hook 'bs--remove-hooks t))
-
 (put 'bs-mode 'mode-class 'special)
 
 (define-derived-mode bs-mode nil "Buffer-Selection-Menu"
@@ -675,10 +660,7 @@ apply it.
   (setq-local font-lock-defaults '(bs-mode-font-lock-keywords t))
   (setq-local font-lock-verbose nil)
   (setq-local font-lock-global-modes '(not bs-mode))
-  (setq-local revert-buffer-function 'bs-refresh)
-  (add-hook 'window-size-change-functions 'bs--track-window-changes)
-  (add-hook 'kill-buffer-hook 'bs--remove-hooks nil t)
-  (add-hook 'change-major-mode-hook 'bs--remove-hooks nil t))
+  (setq-local revert-buffer-function 'bs-refresh))
 
 (defun bs-kill ()
   "Let buffer disappear and reset window configuration."
@@ -708,7 +690,9 @@ Arguments are IGNORED (for `revert-buffer')."
 (defun bs--set-window-height ()
   "Change the height of the selected window to suit the current buffer list."
   (unless (one-window-p t)
-    (fit-window-to-buffer (selected-window) bs-max-window-height)))
+    (fit-window-to-buffer (selected-window) bs-max-window-height nil nil nil
+			  ;; preserve-size
+			  t)))
 
 (defun bs--current-buffer ()
   "Return buffer on current line.
