@@ -2587,7 +2587,7 @@ xm_send_drop_message (struct x_display_info *dpyinfo, Window source,
   *((uint32_t *) &msg.xclient.data.b[12]) = dmsg->index_atom;
   *((uint32_t *) &msg.xclient.data.b[16]) = dmsg->source_window;
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
   x_stop_ignoring_errors (dpyinfo);
 }
@@ -2614,7 +2614,7 @@ xm_send_top_level_enter_message (struct x_display_info *dpyinfo, Window source,
   msg.xclient.data.b[18] = 0;
   msg.xclient.data.b[19] = 0;
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
   x_stop_ignoring_errors (dpyinfo);
 }
@@ -2645,7 +2645,7 @@ xm_send_drag_motion_message (struct x_display_info *dpyinfo, Window source,
   msg.xclient.data.b[18] = 0;
   msg.xclient.data.b[19] = 0;
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
   x_stop_ignoring_errors (dpyinfo);
 }
@@ -2704,7 +2704,7 @@ xm_send_top_level_leave_message (struct x_display_info *dpyinfo, Window source,
   msg.xclient.data.b[18] = 0;
   msg.xclient.data.b[19] = 0;
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
   x_stop_ignoring_errors (dpyinfo);
 }
@@ -2999,7 +2999,7 @@ x_dnd_free_toplevels (bool display_alive)
       if (n_windows)
 	{
 	  eassume (dpyinfo);
-	  x_ignore_errors_for_next_request (dpyinfo);
+	  x_ignore_errors_for_next_request (dpyinfo, 0);
 
 	  for (i = 0; i < n_windows; ++i)
 	    {
@@ -3369,7 +3369,7 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 
 	  if (dpyinfo->xshape_supported_p)
 	    {
-	      x_ignore_errors_for_next_request (dpyinfo);
+	      x_ignore_errors_for_next_request (dpyinfo, 0);
 	      XShapeSelectInput (dpyinfo->display,
 				 toplevels[i],
 				 ShapeNotifyMask);
@@ -3534,7 +3534,7 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	    }
 #endif
 
-	  x_ignore_errors_for_next_request (dpyinfo);
+	  x_ignore_errors_for_next_request (dpyinfo, 0);
 	  XSelectInput (dpyinfo->display, toplevels[i],
 			(attrs.your_event_mask
 			 | StructureNotifyMask
@@ -4059,7 +4059,7 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   event.xbutton.type = ButtonPress;
   event.xbutton.time = before + 1;
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSendEvent (dpyinfo->display, child,
 	      True, ButtonPressMask, &event);
 
@@ -4571,7 +4571,7 @@ x_dnd_send_enter (struct frame *f, Window target, Window toplevel,
      so we don't have to set it again.  */
   x_dnd_init_type_lists = true;
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
   x_stop_ignoring_errors (dpyinfo);
 }
@@ -4643,7 +4643,7 @@ x_dnd_send_position (struct frame *f, Window target, Window toplevel,
 	    return;
 	}
 
-      x_ignore_errors_for_next_request (dpyinfo);
+      x_ignore_errors_for_next_request (dpyinfo, 0);
       XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
       x_stop_ignoring_errors (dpyinfo);
 
@@ -4670,7 +4670,7 @@ x_dnd_send_leave (struct frame *f, Window target, Window toplevel)
   x_dnd_waiting_for_status_window = None;
   x_dnd_pending_send_position.type = 0;
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
   x_stop_ignoring_errors (dpyinfo);
 }
@@ -4703,7 +4703,7 @@ x_dnd_send_drop (struct frame *f, Window target, Window toplevel,
   if (supported >= 1)
     msg.xclient.data.l[2] = timestamp;
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
   x_stop_ignoring_errors (dpyinfo);
   return true;
@@ -6815,7 +6815,7 @@ x_set_frame_alpha (struct frame *f)
      Do this unconditionally as this function is called on reparent when
      alpha has not changed on the frame.  */
 
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
 
   if (!FRAME_PARENT_FRAME (f))
     {
@@ -11339,7 +11339,7 @@ XTring_bell (struct frame *f)
 	 implementation.  */
 
       block_input ();
-      x_ignore_errors_for_next_request (dpyinfo);
+      x_ignore_errors_for_next_request (dpyinfo, 0);
 #ifdef HAVE_XKB
       XkbBell (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 0, None);
 #else
@@ -11593,7 +11593,7 @@ x_frame_highlight (struct frame *f)
      the window-manager in use, tho something more is at play since I've been
      using that same window-manager binary for ever.  Let's not crash just
      because of this (bug#9310).  */
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    f->output_data.x->border_pixel);
   x_stop_ignoring_errors (dpyinfo);
@@ -11616,7 +11616,7 @@ x_frame_unhighlight (struct frame *f)
 
   block_input ();
   /* Same as above for XSetWindowBorder (bug#9310).  */
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSetWindowBorderPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			  f->output_data.x->border_tile);
   x_stop_ignoring_errors (dpyinfo);
@@ -18611,7 +18611,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      x_dnd_waiting_for_status_window = None;
 		    else
 		      {
-			x_ignore_errors_for_next_request (dpyinfo);
+			x_ignore_errors_for_next_request (dpyinfo, 0);
 			XSendEvent (dpyinfo->display, target,
 				    False, NoEventMask,
 				    &x_dnd_pending_send_position);
@@ -21480,7 +21480,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    if (FRAME_PARENT_FRAME (f) || (hf && frame_ancestor_p (f, hf)))
 	      {
-		x_ignore_errors_for_next_request (dpyinfo);
+		x_ignore_errors_for_next_request (dpyinfo, 0);
 		XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 				RevertToParent, event->xbutton.time);
 	        x_stop_ignoring_errors (dpyinfo);
@@ -23178,7 +23178,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  /* This can generate XI_BadDevice if the
 			     device's attachment was destroyed
 			     server-side.  */
-			  x_ignore_errors_for_next_request (dpyinfo);
+			  x_ignore_errors_for_next_request (dpyinfo, 0);
 			  XISetFocus (dpyinfo->display, device->attachment,
 				      /* Note that the input extension
 					 only supports RevertToParent-type
@@ -23191,7 +23191,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 events to handle focus.  Errors are still
 			 caught here in case the window is not
 			 viewable.  */
-		      x_ignore_errors_for_next_request (dpyinfo);
+		      x_ignore_errors_for_next_request (dpyinfo, 0);
 		      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 				      RevertToParent, xev->time);
 		      x_stop_ignoring_errors (dpyinfo);
@@ -24200,7 +24200,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifndef HAVE_GTK3
 		  else if (x_input_grab_touch_events)
 		    {
-		      x_ignore_errors_for_next_request (dpyinfo);
+		      x_ignore_errors_for_next_request (dpyinfo, 0);
 		      XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
 					  xev->detail, xev->event, XIRejectTouch);
 		      x_stop_ignoring_errors (dpyinfo);
@@ -25637,10 +25637,17 @@ x_clean_failable_requests (struct x_display_info *dpyinfo)
    x_uncatch_errors_after_check is that this function does not sync to
    catch errors if requests were made.  It should be used instead of
    those two functions for catching errors around requests that do not
-   require a reply.  */
+   require a reply.
+
+   As a special feature intended to support xselect.c,
+   SELECTION_SERIAL may be an arbitrary number greater than zero: when
+   that is the case, x_select_handle_selection_error is called with
+   the specified number to delete the selection request that
+   encountered the error.  */
 
 void
-x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
+x_ignore_errors_for_next_request (struct x_display_info *dpyinfo,
+				  unsigned int selection_serial)
 {
   struct x_failable_request *request, *max;
   unsigned long next_request;
@@ -25694,6 +25701,7 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
 
   request->start = next_request;
   request->end = 0;
+  request->selection_serial = selection_serial;
 
   dpyinfo->next_failable_request++;
 }
@@ -26207,6 +26215,12 @@ x_error_handler (Display *display, XErrorEvent *event)
 	      dpyinfo->next_failable_request = (dpyinfo->failable_requests
 						+ (last - fail));
 	    }
+
+	  /* If a selection transfer is the cause of this error,
+	     remove the selection transfer now.  */
+	  if (fail->selection_serial)
+	    x_handle_selection_error (fail->selection_serial,
+				      event);
 
 	  return 0;
 	}
@@ -27704,7 +27718,7 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
       && deviceid != -1)
     {
       block_input ();
-      x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
+      x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f), 0);
       XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
 		     FRAME_X_WINDOW (f), 0, 0, 0, 0, pix_x, pix_y);
       x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
@@ -28001,7 +28015,7 @@ x_set_input_focus (struct x_display_info *dpyinfo, Window window,
 	{
 	  eassert (device->use == XIMasterPointer);
 
-	  x_ignore_errors_for_next_request (dpyinfo);
+	  x_ignore_errors_for_next_request (dpyinfo, 0);
 	  XISetFocus (dpyinfo->display, device->attachment,
 		      /* Note that the input extension
 			 only supports RevertToParent-type
@@ -28016,7 +28030,7 @@ x_set_input_focus (struct x_display_info *dpyinfo, Window window,
 
   /* Otherwise, use the pointer device that the X server says is the
      client pointer.  */
-  x_ignore_errors_for_next_request (dpyinfo);
+  x_ignore_errors_for_next_request (dpyinfo, 0);
   XSetInputFocus (dpyinfo->display, window, RevertToParent, time);
   x_stop_ignoring_errors (dpyinfo);
 }
@@ -28158,7 +28172,7 @@ xembed_send_message (struct frame *f, Time t, enum xembed_message msg,
      but I don't understand why: there is no way for clients to
      survive the death of the parent anyway.  */
 
-  x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
+  x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f), 0);
   XSendEvent (FRAME_X_DISPLAY (f), FRAME_X_OUTPUT (f)->parent_desc,
 	      False, NoEventMask, &event);
   x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
@@ -31335,7 +31349,7 @@ x_catch_errors_for_lisp (struct x_display_info *dpyinfo)
   if (!x_fast_protocol_requests)
     x_catch_errors (dpyinfo->display);
   else
-    x_ignore_errors_for_next_request (dpyinfo);
+    x_ignore_errors_for_next_request (dpyinfo, 0);
 }
 
 void

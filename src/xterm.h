@@ -334,6 +334,9 @@ struct x_failable_request
   /* If this is zero, then the request has not yet been made.
      Otherwise, this is the request that ends this sequence.  */
   unsigned long end;
+
+  /* Any selection event serial associated with this error trap.  */
+  unsigned int selection_serial;
 };
 
 #ifdef HAVE_XFIXES
@@ -1670,7 +1673,8 @@ extern bool x_had_errors_p (Display *);
 extern void x_unwind_errors_to (int);
 extern void x_uncatch_errors (void);
 extern void x_uncatch_errors_after_check (void);
-extern void x_ignore_errors_for_next_request (struct x_display_info *);
+extern void x_ignore_errors_for_next_request (struct x_display_info *,
+					      unsigned int);
 extern void x_stop_ignoring_errors (struct x_display_info *);
 extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, bool, int, int);
@@ -1830,6 +1834,7 @@ extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct selection_input_event *);
 extern void x_clear_frame_selections (struct frame *);
 extern void x_remove_selection_transfers (struct x_display_info *);
+extern void x_handle_selection_error (unsigned int, XErrorEvent *);
 
 extern Lisp_Object x_atom_to_symbol (struct x_display_info *, Atom);
 extern Atom symbol_to_x_atom (struct x_display_info *, Lisp_Object);
