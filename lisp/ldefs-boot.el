@@ -2934,7 +2934,7 @@ Major mode for editing C, powered by tree-sitter.
 Major mode for editing C++, powered by tree-sitter.
 
 (fn)" t)
-(register-definition-prefixes "c-ts-mode" '("c-ts-mode-"))
+(register-definition-prefixes "c-ts-mode" '("c++-ts-mode--syntax-table" "c-ts-mode-"))
 
 
 ;;; Generated autoloads from calendar/cal-bahai.el
@@ -4627,6 +4627,16 @@ For use inside Lisp programs, see also `c-macro-expansion'.
 
 (fn START END SUBST)" t)
 (register-definition-prefixes "cmacexp" '("c-macro-"))
+
+
+;;; Generated autoloads from progmodes/cmake-ts-mode.el
+
+(add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode))
+(autoload 'cmake-ts-mode "cmake-ts-mode" "\
+Major mode for editing CMake files, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "cmake-ts-mode" '("cmake-ts-mode-"))
 
 
 ;;; Generated autoloads from cmuscheme.el
@@ -7980,7 +7990,7 @@ it is disabled.
 
 ;;; Generated autoloads from progmodes/dockerfile-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)$" . dockerfile-ts-mode))
+(add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-ts-mode))
 (autoload 'dockerfile-ts-mode "dockerfile-ts-mode" "\
 Major mode for editing Dockerfiles, powered by tree-sitter.
 
@@ -25065,7 +25075,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 9 2)) package--builtin-versions)
+(push (purecopy '(project 0 9 3)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -32371,6 +32381,16 @@ Mode for displaying and reprioritizing top priority Todo.
 
 (fn)" t)
 (register-definition-prefixes "todo-mode" '("todo-"))
+
+
+;;; Generated autoloads from textmodes/toml-ts-mode.el
+
+(add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
+(autoload 'toml-ts-mode "toml-ts-mode" "\
+Major mode for editing TOML, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "toml-ts-mode" '("toml-ts-mode-"))
 
 
 ;;; Generated autoloads from tool-bar.el
