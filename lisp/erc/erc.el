@@ -2323,7 +2323,7 @@ message instead, to make debugging easier."
 (defvar erc-debug-irc-protocol-time-format "%FT%T.%6N%z "
   "Timestamp format string for protocol logger.")
 
-(defconst erc-debug-irc-protocol-version "1"
+(defconst erc-debug-irc-protocol-version "2"
   "Protocol log format version number.
 This exists to help tooling track changes to the format.
 
@@ -2334,7 +2334,10 @@ interpreted as email-style headers.  Folding is not supported.  A second
 double CRLF, if present, signals the end of a log.  Session resumption
 is not supported.  Logger lines must adhere to the following format:
 TIMESTAMP PEER-NAME FLOW-INDICATOR IRC-MESSAGE CRLF.  Outgoing messages
-are indicated with a >> and incoming with a <<.")
+are indicated with a >> and incoming with a <<.
+
+In version 2, certain outgoing passwords are replaced by a string
+of ten question marks.")
 
 (defvar erc-debug-irc-protocol nil
   "If non-nil, log all IRC protocol traffic to the buffer \"*erc-protocol*\".
@@ -2390,7 +2393,7 @@ workaround."
                       (format "%s:%s" erc-session-server erc-session-port))))
           (ts (when erc-debug-irc-protocol-time-format
                 (format-time-string erc-debug-irc-protocol-time-format))))
-      (when erc--debug-irc-protocol-mask-secrets
+      (when (and outbound erc--debug-irc-protocol-mask-secrets)
         (setq string (erc--mask-secrets string)))
       (with-current-buffer (get-buffer-create "*erc-protocol*")
         (save-excursion
