@@ -241,7 +241,9 @@ chosen (interactively or automatically)."
                                 ((clojure-mode clojurescript-mode clojurec-mode)
                                  . ("clojure-lsp"))
                                 ((csharp-mode csharp-ts-mode)
-                                 . ("omnisharp" "-lsp"))
+                                 . ,(eglot-alternatives
+                                     '(("omnisharp" "-lsp")
+                                       ("csharp-ls"))))
                                 (purescript-mode . ("purescript-language-server" "--stdio"))
                                 ((perl-mode cperl-mode) . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run"))
                                 (markdown-mode . ("marksman" "server")))
