@@ -144,9 +144,10 @@
    :language 'java
    :override t
    :feature 'keyword
-   `([,@java-ts-mode--keywords] @font-lock-keyword-face
-     (labeled_statement
-      (identifier) @font-lock-keyword-face))
+   `([,@java-ts-mode--keywords
+      (this)] @font-lock-keyword-face
+      (labeled_statement
+       (identifier) @font-lock-keyword-face))
    :language 'java
    :override t
    :feature 'operator
