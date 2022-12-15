@@ -31,6 +31,16 @@ in the Emacs tree should be natively compiled ahead of time.  (This is
 slow on most machines.)
 
 +++
+** Emacs can be built with the 'tree-sitter' parsing library.
+This library, together with grammar libraries, provides incremental
+parsing capabilities for several popular programming languages and
+other formatted files.  Emacs built with this library offers major
+modes, described elsewhere in this file, that are based on the
+'tree-sitter's parsers.  If you have the 'tree-sitter' library
+installed, the configure script will automatically include it in the
+build; use '--without-tree-sitter' at configure time to disable that.
+
++++
 ** Emacs can be built with built-in support for accessing SQLite databases.
 This uses the popular sqlite3 library, and can be disabled by using
 the '--without-sqlite3' option to the 'configure' script.
