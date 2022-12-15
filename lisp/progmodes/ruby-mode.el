@@ -1611,7 +1611,8 @@ For example:
 See `add-log-current-defun-function'."
   (condition-case nil
       (save-excursion
-        (let* ((indent 0) mname mlist
+        (let* ((indent (ruby--add-log-current-indent))
+               mname mlist
                (start (point))
                (make-definition-re
                 (lambda (re &optional method-name?)
@@ -1626,18 +1627,30 @@ See `add-log-current-defun-function'."
                (definition-re (funcall make-definition-re ruby-defun-beg-re t))
                (module-re (funcall make-definition-re "\\(class\\|module\\)")))
           ;; Get the current method definition (or class/module).
-          (when (re-search-backward definition-re nil t)
+          (when (catch 'found
+                  (while (and (re-search-backward definition-re nil t)
+                              (if (if (string-equal "def" (match-string 1))
+                                      ;; We're inside a method.
+                                      (if (ruby-block-contains-point start)
+                                          t
+                                        ;; Try to match a method only once.
+                                        (setq definition-re module-re)
+                                        nil)
+                                    ;; Class/module. For performance,
+                                    ;; comparing indentation.
+                                    (or (not (numberp indent))
+                                        (> indent (current-indentation))))
+                                  (throw 'found t)
+                                t))))
             (goto-char (match-beginning 1))
             (if (not (string-equal "def" (match-string 1)))
                 (setq mlist (list (match-string 2)))
-              ;; We're inside the method. For classes and modules,
-              ;; this check is skipped for performance.
-              (when (ruby-block-contains-point start)
-                (setq mname (match-string 2))))
+              (setq mname (match-string 2)))
             (setq indent (current-column))
             (beginning-of-line))
           ;; Walk up the class/module nesting.
-          (while (and (> indent 0)
+          (while (and indent
+                      (> indent 0)
                       (re-search-backward module-re nil t))
             (goto-char (match-beginning 1))
             (when (< (current-column) indent)
@@ -1690,6 +1703,17 @@ See `add-log-current-defun-function'."
       (with-suppressed-warnings ((obsolete ruby-forward-sexp))
         (ruby-forward-sexp))
       (> (point) pt))))
+
+(defun ruby--add-log-current-indent ()
+  (save-excursion
+    (back-to-indentation)
+    (cond
+     ((looking-at "[[:graph:]]")
+      (current-indentation))
+     (ruby-use-smie
+      (smie-indent-calculate))
+     (t
+      (ruby-calculate-indent)))))
 
 (defun ruby-brace-to-do-end (orig end)
   (let (beg-marker end-marker)
