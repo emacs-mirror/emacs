@@ -844,8 +844,9 @@ Function gets one argument: a tab."
 
 (defcustom tab-bar-tab-group-format-function #'tab-bar-tab-group-format-default
   "Function to format a tab group name.
-Function gets two arguments, a tab with a group name and its number,
-and should return the formatted tab group name to display in the tab bar."
+Function gets three arguments, a tab with a group name, its
+number and an optional t when the tab is current, and should
+return the formatted tab group name to display in the tab bar."
   :type 'function
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
@@ -854,11 +855,13 @@ and should return the formatted tab group name to display in the tab bar."
   :group 'tab-bar
   :version "28.1")
 
-(defun tab-bar-tab-group-format-default (tab i)
-  (propertize
-   (concat (if tab-bar-tab-hints (format "%d " i) "")
-           (funcall tab-bar-tab-group-function tab))
-   'face 'tab-bar-tab-group-inactive))
+(defun tab-bar-tab-group-format-default (tab i &optional current-p)
+  (let ((name (concat (if tab-bar-tab-hints (format "%d " i) "")
+                      (funcall tab-bar-tab-group-function tab)))
+        (face (if current-p
+                  'tab-bar-tab-group-current
+                'tab-bar-tab-group-inactive)))
+    (propertize name 'face face)))
 
 (defcustom tab-bar-tab-group-face-function #'tab-bar-tab-group-face-default
   "Function to define a tab group face.
@@ -881,10 +884,7 @@ when the tab is current.  Return the result as a keymap."
    `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
    `((,(intern (format "group-%i" i))
       menu-item
-      ,(if current-p
-           (propertize (funcall tab-bar-tab-group-function tab)
-                       'face 'tab-bar-tab-group-current)
-         (funcall tab-bar-tab-group-format-function tab i))
+      ,(funcall tab-bar-tab-group-format-function tab i current-p)
       ,(if current-p 'ignore
          (or
           (alist-get 'binding tab)
