@@ -399,7 +399,7 @@ this defaults to the current buffer."
   "Query the user for a process and return the process object."
   ;; Currently supports only the PROCESS argument.
   ;; Must either return a list containing a process, or signal an error.
-  ;; (Returning `nil' would mean the current buffer's process.)
+  ;; (Returning nil would mean the current buffer's process.)
   (unless (fboundp 'process-list)
     (error "Asynchronous subprocesses are not supported on this system"))
   ;; Local function to return cons of a complete-able name, and the

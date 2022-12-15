@@ -248,8 +248,8 @@ or set the `:backend' header argument"))))
 				"value")))
 		result0)))
       (ob-clojure-string-or-list
-       ;; Filter out s-expressions that return `nil' (string "nil"
-       ;; from nrepl eval) or comment forms (actual `nil' from nrepl)
+       ;; Filter out s-expressions that return nil (string "nil"
+       ;; from nrepl eval) or comment forms (actual nil from nrepl)
        (reverse (delete "" (mapcar (lambda (r)
 				     (replace-regexp-in-string "nil" "" (or r "")))
 				   result0)))))))

@@ -154,7 +154,7 @@ EXPANDED-PATTERN."
              ;;   very often doesn't equate the full set of candidates
              ;;   (many tools cap to sth like 100-1000 results).
              ;;
-             ;; * when `_method' is `nil' or `lambda' which some
+             ;; * when `_method' is nil or `lambda' which some
              ;;   frontends will invoke.  Here, `all' should be
              ;;   sufficient information for `complete-with-action' to
              ;;   do the job correctly.
