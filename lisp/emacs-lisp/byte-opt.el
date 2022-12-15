@@ -755,7 +755,8 @@ for speeding up processing.")
                  ((eq head 'list) (cdr form))
                  ((memq head
                         ;; FIXME: Replace this list with a function property?
-                        '( length safe-length cons lambda
+                        '( lambda internal-make-closure
+                           length safe-length cons
                            string unibyte-string make-string concat
                            format format-message
                            substring substring-no-properties string-replace
