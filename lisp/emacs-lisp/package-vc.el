@@ -783,6 +783,7 @@ name from the base name of DIR."
     (package-vc--unpack-1
      (package-desc-create
       :name (intern name)
+      :dir pkg-dir
       :kind 'vc)
      (file-name-as-directory pkg-dir))))
 
