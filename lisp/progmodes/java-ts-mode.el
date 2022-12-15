@@ -86,6 +86,7 @@
      ((parent-is "method_invocation") parent-bol java-ts-mode-indent-offset)
      ((parent-is "switch_rule") parent-bol java-ts-mode-indent-offset)
      ((parent-is "ternary_expression") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "lambda_expression") parent-bol java-ts-mode-indent-offset)
      ((parent-is "element_value_array_initializer") parent-bol java-ts-mode-indent-offset)
      ((parent-is "function_definition") parent-bol 0)
      ((parent-is "conditional_expression") first-sibling 0)
