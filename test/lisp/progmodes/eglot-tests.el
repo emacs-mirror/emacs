@@ -88,7 +88,7 @@ then restored."
 
 (defun eglot--call-with-fixture (fixture fn)
   "Helper for `eglot--with-fixture'.  Run FN under FIXTURE."
-  (let* ((fixture-directory (make-temp-file "eglot--fixture" t))
+  (let* ((fixture-directory (make-nearby-temp-file "eglot--fixture" t))
          (default-directory fixture-directory)
          file-specs created-files
          syms-to-restore
@@ -311,7 +311,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
 
 ;;; Unit tests
 
-(ert-deftest eclipse-connect ()
+(ert-deftest eglot-test-eclipse-connect ()
   "Connect to eclipse.jdt.ls server."
   (skip-unless (executable-find "jdtls"))
   (eglot--with-fixture
@@ -343,12 +343,12 @@ Pass TIMEOUT to `eglot--with-timeout'."
          (eglot--find-file-noselect "anotherproject/cena.c")
        (should-error (eglot--current-server-or-lose))))))
 
-(ert-deftest auto-detect-running-server ()
+(ert-deftest eglot-test-auto-detect-running-server ()
   "Visit a file and \\[eglot], then visit a neighbor."
   (skip-unless (executable-find "clangd"))
   (eglot-tests--auto-detect-running-server-1))
 
-(ert-deftest auto-shutdown ()
+(ert-deftest eglot-test-auto-shutdown ()
   "Visit a file and \\[eglot], then kill buffer."
   (skip-unless (executable-find "clangd"))
   (let (server
@@ -367,7 +367,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
         (let ((eglot-autoshutdown t)) (kill-buffer buffer))
         (should (not (jsonrpc-running-p server)))))))
 
-(ert-deftest auto-reconnect ()
+(ert-deftest eglot-test-auto-reconnect ()
   "Start a server.  Kill it.  Watch it reconnect."
   (skip-unless (executable-find "clangd"))
   (let (server (eglot-autoreconnect 1))
@@ -390,7 +390,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
           (while (process-live-p proc) (accept-process-output nil 0.5)))
         (should (not (eglot-current-server)))))))
 
-(ert-deftest rust-analyzer-watches-files ()
+(ert-deftest eglot-test-rust-analyzer-watches-files ()
   "Start rust-analyzer.  Notify it when a critical file changes."
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
@@ -425,7 +425,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
                    (and (string= (eglot--path-to-uri "Cargo.toml") uri)
                         (= type 3))))))))))
 
-(ert-deftest basic-diagnostics ()
+(ert-deftest eglot-test-basic-diagnostics ()
   "Test basic diagnostics."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
@@ -443,7 +443,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
         (flymake-goto-next-error 1 '() t)
         (should (eq 'flymake-error (face-at-point)))))))
 
-(ert-deftest diagnostic-tags-unnecessary-code ()
+(ert-deftest eglot-test-diagnostic-tags-unnecessary-code ()
   "Test rendering of diagnostics tagged \"unnecessary\"."
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
@@ -486,7 +486,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
    do (sit-for 0.5)
    finally (error "eglot--tests-force-full-eldoc didn't deliver")))
 
-(ert-deftest rust-analyzer-hover-after-edit ()
+(ert-deftest eglot-test-rust-analyzer-hover-after-edit ()
   "Hover and highlightChanges."
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
@@ -519,7 +519,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
               (&key id &allow-other-keys)
             (eq id pending-id)))))))
 
-(ert-deftest rename-a-symbol ()
+(ert-deftest eglot-test-rename-a-symbol ()
   "Test basic symbol renaming."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
@@ -534,7 +534,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
       (should (equal (buffer-string)
                      "int bar() {return 42;} int main() {return bar();}")))))
 
-(ert-deftest basic-completions ()
+(ert-deftest eglot-test-basic-completions ()
   "Test basic autocompletion in a python LSP."
   (skip-unless (executable-find "pylsp"))
   (eglot--with-fixture
@@ -546,7 +546,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
       (completion-at-point)
       (should (looking-back "sys.exit")))))
 
-(ert-deftest non-unique-completions ()
+(ert-deftest eglot-test-non-unique-completions ()
   "Test completion resulting in 'Complete, but not unique'."
   (skip-unless (executable-find "pylsp"))
   (eglot--with-fixture
@@ -563,7 +563,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
         (forward-line -1)
         (should (looking-at "Complete, but not unique"))))))
 
-(ert-deftest basic-xref ()
+(ert-deftest eglot-test-basic-xref ()
   "Test basic xref functionality in a python LSP."
   (skip-unless (executable-find "pylsp"))
   (eglot--with-fixture
@@ -583,7 +583,7 @@ def foobazquuz(d, e, f): pass
 
 (declare-function yas-minor-mode nil)
 
-(ert-deftest snippet-completions ()
+(ert-deftest eglot-test-snippet-completions ()
   "Test simple snippet completion in a python LSP."
   (skip-unless (and (executable-find "pylsp")
                     (functionp 'yas-minor-mode)))
@@ -605,7 +605,7 @@ def foobazquuz(d, e, f): pass
 (declare-function company-mode nil)
 (declare-function company-complete nil)
 
-(ert-deftest snippet-completions-with-company ()
+(ert-deftest eglot-test-snippet-completions-with-company ()
   "Test simple snippet completion in a python LSP."
   (skip-unless (and (executable-find "pylsp")
                     (functionp 'yas-minor-mode)
@@ -628,7 +628,7 @@ def foobazquuz(d, e, f): pass
       ;; pylsp will change the representation of this candidate
       (should (member "foobazquuz(d, e, f)" company-candidates)))))
 
-(ert-deftest eglot-eldoc-after-completions ()
+(ert-deftest eglot-test-eldoc-after-completions ()
   "Test documentation echo in a python LSP."
   (skip-unless (executable-find "pylsp"))
   (eglot--with-fixture
@@ -641,7 +641,7 @@ def foobazquuz(d, e, f): pass
       (should (looking-back "sys.exit"))
       (should (string-match "^exit" (eglot--tests-force-full-eldoc))))))
 
-(ert-deftest eglot-multiline-eldoc ()
+(ert-deftest eglot-test-multiline-eldoc ()
   "Test if suitable amount of lines of hover info are shown."
   (skip-unless (executable-find "pylsp"))
   (eglot--with-fixture
@@ -656,7 +656,7 @@ def foobazquuz(d, e, f): pass
         (should (string-match "datetim" captured-message))
         (should (cl-find ?\n captured-message))))))
 
-(ert-deftest eglot-single-line-eldoc ()
+(ert-deftest eglot-test-single-line-eldoc ()
   "Test if suitable amount of lines of hover info are shown."
   (skip-unless (executable-find "pylsp"))
   (eglot--with-fixture
@@ -671,7 +671,7 @@ def foobazquuz(d, e, f): pass
         (should (string-match "datetim" captured-message))
         (should (not (cl-find ?\n eldoc-last-message)))))))
 
-(ert-deftest python-autopep-formatting ()
+(ert-deftest eglot-test-python-autopep-formatting ()
   "Test formatting in the pylsp python LSP.
 pylsp prefers autopep over yafp, despite its README stating the contrary."
   ;; Beware, default autopep rules can change over time, which may
@@ -696,7 +696,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
       (should
        (string= (buffer-string) "def a(): pass\n\n\ndef b(): pass\n")))))
 
-(ert-deftest python-yapf-formatting ()
+(ert-deftest eglot-test-python-yapf-formatting ()
   "Test formatting in the pylsp python LSP."
   (skip-unless (and (executable-find "pylsp")
                     (not (executable-find "autopep8"))
@@ -718,7 +718,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
       (should
        (string= (buffer-string) "def a():\n    pass\n\n\ndef b():\n    pass\n")))))
 
-(ert-deftest rust-on-type-formatting ()
+(ert-deftest eglot-test-rust-on-type-formatting ()
   "Test textDocument/onTypeFormatting against rust-analyzer."
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
@@ -738,7 +738,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
         (eglot--simulate-key-event ?.)
         (should (looking-back "^    \\."))))))
 
-(ert-deftest javascript-basic ()
+(ert-deftest eglot-test-javascript-basic ()
   "Test basic autocompletion in a JavaScript LSP."
   (skip-unless (and (executable-find "typescript-language-server")
                     (executable-find "tsserver")))
@@ -768,7 +768,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
                                  (= severity 1))
                                diagnostics)))))))))
 
-(ert-deftest project-wide-diagnostics-typescript ()
+(ert-deftest eglot-test-project-wide-diagnostics-typescript ()
   "Test diagnostics through multiple files in a TypeScript LSP."
   (skip-unless (and (executable-find "typescript-language-server")
                     (executable-find "tsserver")))
@@ -797,7 +797,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
               (string= method "textDocument/publishDiagnostics"))
             (should (= 4 (length (flymake--project-diagnostics))))))))))
 
-(ert-deftest project-wide-diagnostics-rust-analyzer ()
+(ert-deftest eglot-test-project-wide-diagnostics-rust-analyzer ()
   "Test diagnostics through multiple files in a TypeScript LSP."
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
@@ -826,7 +826,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
                      "main.rs"
                      (flymake-diagnostic-buffer (car diags))))))))))
 
-(ert-deftest json-basic ()
+(ert-deftest eglot-test-json-basic ()
   "Test basic autocompletion in vscode-json-languageserver."
   (skip-unless (executable-find "vscode-json-languageserver"))
   (eglot--with-fixture
@@ -870,12 +870,12 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
           (funcall eglot-move-to-column-function 71)
           (should (looking-at "p")))))))
 
-(ert-deftest eglot-tests-lsp-abiding-column ()
+(ert-deftest eglot-test-lsp-abiding-column ()
   "Test basic `eglot-lsp-abiding-column' and `eglot-move-to-lsp-abiding-column'."
   (skip-unless (executable-find "clangd"))
   (eglot-tests--lsp-abiding-column-1))
 
-(ert-deftest eglot-ensure ()
+(ert-deftest eglot-test-ensure ()
   "Test basic `eglot-ensure' functionality."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
@@ -897,7 +897,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
            '(find-file "project/bar.c"))
         (should (eq server (eglot-current-server)))))))
 
-(ert-deftest slow-sync-connection-wait ()
+(ert-deftest eglot-test-slow-sync-connection-wait ()
   "Connect with `eglot-sync-connect' set to t."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
@@ -909,7 +909,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
              `((c-mode . ("sh" "-c" "sleep 1 && clangd")))))
         (should (eglot--tests-connect 3))))))
 
-(ert-deftest slow-sync-connection-intime ()
+(ert-deftest eglot-test-slow-sync-connection-intime ()
   "Connect synchronously with `eglot-sync-connect' set to 2."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
@@ -921,7 +921,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
              `((c-mode . ("sh" "-c" "sleep 1 && clangd")))))
         (should (eglot--tests-connect 3))))))
 
-(ert-deftest slow-async-connection ()
+(ert-deftest eglot-test-slow-async-connection ()
   "Connect asynchronously with `eglot-sync-connect' set to 2."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
@@ -937,7 +937,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
             (accept-process-output nil 0.2))
           (should (eglot-current-server)))))))
 
-(ert-deftest slow-sync-timeout ()
+(ert-deftest eglot-test-slow-sync-timeout ()
   "Failed attempt at connection synchronously."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
@@ -950,7 +950,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
              `((c-mode . ("sh" "-c" "sleep 2 && clangd")))))
         (should-error (apply #'eglot--connect (eglot--guess-contact)))))))
 
-(ert-deftest eglot-capabilities ()
+(ert-deftest eglot-test-capabilities ()
   "Unit test for `eglot--server-capable'."
   (cl-letf (((symbol-function 'eglot--capabilities)
              (lambda (_dummy)
@@ -976,7 +976,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
   (let ((eglot-strict-mode nil))
     (macroexpand-all (macroexp-progn body) macroexpand-all-environment)))
 
-(ert-deftest eglot-strict-interfaces ()
+(ert-deftest eglot-test-strict-interfaces ()
   (let ((eglot--lsp-interface-alist
          `((FooObject . ((:foo :bar) (:baz))))))
     (eglot--without-interface-warnings
@@ -1018,7 +1018,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
         (eglot--dbind ((FooObject) foo bar) `(:foo "foo" :baz bargh)
           (cons foo bar)))))))
 
-(ert-deftest eglot-dcase ()
+(ert-deftest eglot-test-dcase ()
   (eglot--without-interface-warnings
    (let ((eglot--lsp-interface-alist
           `((FooObject . ((:foo :bar) (:baz)))
@@ -1049,7 +1049,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
          (((CodeAction) _title _edit _command)
           (ert-fail "Shouldn't have destructured this object as a CodeAction"))))))))
 
-(ert-deftest eglot-dcase-issue-452 ()
+(ert-deftest eglot-test-dcase-issue-452 ()
   (let ((eglot--lsp-interface-alist
          `((FooObject . ((:foo :bar) (:baz)))
            (CodeAction (:title) (:kind :diagnostics :edit :command))
@@ -1100,7 +1100,7 @@ macro will assume it exists."
                (eglot--guess-contact ,i-sym)
              ,@body))))))
 
-(ert-deftest eglot-server-programs-simple-executable ()
+(ert-deftest eglot-test-server-programs-simple-executable ()
   (let ((eglot-server-programs '((foo-mode "some-executable")))
         (major-mode 'foo-mode))
     (eglot--guessing-contact (_ prompt-args guessed-class guessed-contact)
@@ -1108,7 +1108,7 @@ macro will assume it exists."
       (should (equal guessed-class 'eglot-lsp-server))
       (should (equal guessed-contact '("some-executable"))))))
 
-(ert-deftest eglot-server-programs-simple-missing-executable ()
+(ert-deftest eglot-test-server-programs-simple-missing-executable ()
   (let ((eglot-server-programs '((foo-mode "a-missing-executable.exe")))
         (major-mode 'foo-mode))
     (eglot--guessing-contact (interactive-p prompt-args guessed-class guessed-contact)
@@ -1117,7 +1117,7 @@ macro will assume it exists."
       (should (or prompt-args
                   (equal guessed-contact '("a-missing-executable.exe")))))))
 
-(ert-deftest eglot-server-programs-executable-multiple-major-modes ()
+(ert-deftest eglot-test-server-programs-executable-multiple-major-modes ()
   (let ((eglot-server-programs '(((bar-mode foo-mode) "some-executable")))
         (major-mode 'foo-mode))
     (eglot--guessing-contact (_ prompt-args guessed-class guessed-contact)
@@ -1125,7 +1125,7 @@ macro will assume it exists."
       (should (equal guessed-class 'eglot-lsp-server))
       (should (equal guessed-contact '("some-executable"))))))
 
-(ert-deftest eglot-server-programs-executable-with-arg ()
+(ert-deftest eglot-test-server-programs-executable-with-arg ()
   (let ((eglot-server-programs '((foo-mode "some-executable" "arg1")))
         (major-mode 'foo-mode))
     (eglot--guessing-contact (_ prompt-args guessed-class guessed-contact)
@@ -1133,7 +1133,7 @@ macro will assume it exists."
       (should (equal guessed-class 'eglot-lsp-server))
       (should (equal guessed-contact '("some-executable" "arg1"))))))
 
-(ert-deftest eglot-server-programs-executable-with-args-and-autoport ()
+(ert-deftest eglot-test-server-programs-executable-with-args-and-autoport ()
   (let ((eglot-server-programs '((foo-mode "some-executable" "arg1"
                                            :autoport "arg2")))
         (major-mode 'foo-mode))
@@ -1143,7 +1143,7 @@ macro will assume it exists."
       (should (equal guessed-contact '("some-executable" "arg1"
                                        :autoport "arg2"))))))
 
-(ert-deftest eglot-server-programs-host-and-port ()
+(ert-deftest eglot-test-server-programs-host-and-port ()
   (let ((eglot-server-programs '((foo-mode "somehost.example.com" 7777)))
         (major-mode 'foo-mode))
     (eglot--guessing-contact (_ prompt-args guessed-class guessed-contact)
@@ -1151,7 +1151,7 @@ macro will assume it exists."
       (should (equal guessed-class 'eglot-lsp-server))
       (should (equal guessed-contact '("somehost.example.com" 7777))))))
 
-(ert-deftest eglot-server-programs-host-and-port-and-tcp-args ()
+(ert-deftest eglot-test-server-programs-host-and-port-and-tcp-args ()
   (let ((eglot-server-programs '((foo-mode "somehost.example.com" 7777
                                            :type network)))
         (major-mode 'foo-mode))
@@ -1161,7 +1161,7 @@ macro will assume it exists."
       (should (equal guessed-contact '("somehost.example.com" 7777
                                        :type network))))))
 
-(ert-deftest eglot-server-programs-class-name-and-plist ()
+(ert-deftest eglot-test-server-programs-class-name-and-plist ()
   (let ((eglot-server-programs '((foo-mode bar-class :init-key init-val)))
         (major-mode 'foo-mode))
     (eglot--guessing-contact (_ prompt-args guessed-class guessed-contact)
@@ -1169,7 +1169,7 @@ macro will assume it exists."
       (should (equal guessed-class 'bar-class))
       (should (equal guessed-contact '(:init-key init-val))))))
 
-(ert-deftest eglot-server-programs-class-name-and-contact-spec ()
+(ert-deftest eglot-test-server-programs-class-name-and-contact-spec ()
   (let ((eglot-server-programs '((foo-mode bar-class "some-executable" "arg1"
                                            :autoport "arg2")))
         (major-mode 'foo-mode))
@@ -1179,7 +1179,7 @@ macro will assume it exists."
       (should (equal guessed-contact '("some-executable" "arg1"
                                        :autoport "arg2"))))))
 
-(ert-deftest eglot-server-programs-function ()
+(ert-deftest eglot-test-server-programs-function ()
   (let ((eglot-server-programs '((foo-mode . (lambda (&optional _)
                                                '("some-executable")))))
         (major-mode 'foo-mode))
@@ -1188,7 +1188,7 @@ macro will assume it exists."
       (should (equal guessed-class 'eglot-lsp-server))
       (should (equal guessed-contact '("some-executable"))))))
 
-(ert-deftest eglot-server-programs-guess-lang ()
+(ert-deftest eglot-test-server-programs-guess-lang ()
   (let ((major-mode 'foo-mode))
     (let ((eglot-server-programs '((foo-mode . ("prog-executable")))))
       (eglot--guessing-contact (_ nil _ _ guessed-lang)
@@ -1205,7 +1205,7 @@ macro will assume it exists."
 (defun eglot--glob-match (glob str)
   (funcall (eglot--glob-compile glob t t) str))
 
-(ert-deftest eglot--glob-test ()
+(ert-deftest eglot-test-glob-test ()
   (should (eglot--glob-match "foo/**/baz" "foo/bar/baz"))
   (should (eglot--glob-match "foo/**/baz" "foo/baz"))
   (should-not (eglot--glob-match "foo/**/baz" "foo/bar"))
@@ -1260,31 +1260,34 @@ macro will assume it exists."
 (defun eglot--call-with-tramp-test (fn)
   ;; Set up a Tramp method that’s just a shell so the remote host is
   ;; really just the local host.
-  (let ((tramp-remote-path (cons 'tramp-own-remote-path tramp-remote-path))
-        (tramp-histfile-override t)
-        (temporary-file-directory ert-remote-temporary-file-directory))
+  (let* ((tramp-remote-path (cons 'tramp-own-remote-path tramp-remote-path))
+         (tramp-histfile-override t)
+         (tramp-verbose 1)
+         (temporary-file-directory ert-remote-temporary-file-directory)
+         (default-directory temporary-file-directory))
     ;; We must check the remote LSP server.  So far, just "clangd" is used.
-    (let ((default-directory temporary-file-directory))
-      (unless (executable-find "clangd" 'remote)
-        (ert-skip "Remote clangd not found")))
+    (unless (executable-find "clangd" 'remote)
+      (ert-skip "Remote clangd not found"))
     (funcall fn)))
 
-(ert-deftest eglot--tramp-test ()
+(ert-deftest eglot-test-tramp-test ()
   "Ensure LSP servers can be used over TRAMP."
+  :tags '(:expensive-test)
   (eglot--call-with-tramp-test #'eglot-tests--auto-detect-running-server-1))
 
-(ert-deftest eglot--tramp-test-2 ()
+(ert-deftest eglot-test-tramp-test-2 ()
   "Ensure LSP servers can be used over TRAMP."
+  :tags '(:expensive-test)
   (eglot--call-with-tramp-test #'eglot-tests--lsp-abiding-column-1))
 
-(ert-deftest eglot--path-to-uri-windows ()
+(ert-deftest eglot-test-path-to-uri-windows ()
   (skip-unless (eq system-type 'windows-nt))
   (should (string-prefix-p "file:///"
                              (eglot--path-to-uri "c:/Users/Foo/bar.lisp")))
   (should (string-suffix-p "c%3A/Users/Foo/bar.lisp"
                            (eglot--path-to-uri "c:/Users/Foo/bar.lisp"))))
 
-(ert-deftest eglot--same-server-multi-mode ()
+(ert-deftest eglot-test-same-server-multi-mode ()
   "Check single LSP instance manages multiple modes in same project."
   (skip-unless (executable-find "clangd"))
   (let (server)

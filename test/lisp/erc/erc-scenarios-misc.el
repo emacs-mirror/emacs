@@ -98,11 +98,10 @@
                                 :nick "tester"
                                 :full-name "tester")
         (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
-        (let ((err (should-error (sleep-for 1))))
-          (should (string-match-p "Failed to determine" (cadr err))))
         (funcall expect 1 "Failed to determine")
         (funcall expect 1 "Failed to determine")
-        (should-not erc-network)
+        (funcall expect 1 "Connection failed")
+        (should (string-prefix-p "Unknown" (erc-network-name)))
         (should (string= erc-server-announced-name "irc.foonet.org"))))))
 
 ;; Targets that are host/server masks like $*, $$*, and #* are routed

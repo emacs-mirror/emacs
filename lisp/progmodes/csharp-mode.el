@@ -786,16 +786,20 @@ compilation and evaluation time conflicts."
        (generic_name (identifier) @font-lock-function-name-face)))
      (invocation_expression
       (member_access_expression
-       expression: (identifier) @font-lock-variable-name-face
-       name: (generic_name (type_argument_list (identifier)))))
-     (invocation_expression
-      (member_access_expression
        ((identifier) @font-lock-variable-name-face
         (identifier) @font-lock-function-name-face)))
      (invocation_expression
       (identifier) @font-lock-function-name-face)
      (invocation_expression
-      (member_access_expression (identifier) @font-lock-function-name-face))
+      (member_access_expression
+       expression: (identifier) @font-lock-variable-name-face))
+     (invocation_expression
+      function: [(generic_name (identifier)) @font-lock-function-name-face
+                 (generic_name (type_argument_list
+                                ["<"] @font-lock-bracket-face
+                                (identifier) @font-lock-type-face
+                                [">"] @font-lock-bracket-face)
+                               )])
 
      (catch_declaration
       ((identifier) @font-lock-type-face))

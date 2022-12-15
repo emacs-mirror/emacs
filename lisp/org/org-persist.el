@@ -134,7 +134,7 @@
 ;; from the persistent storage at the end of Emacs session.  The
 ;; expiry condition can be set when saving/registering data
 ;; containers.  The expirty condition can be `never' - data will never
-;; expire; `nil' - data will expire at the end of current Emacs session;
+;; expire; nil - data will expire at the end of current Emacs session;
 ;; a number - data will expire after the number days from last access;
 ;; a function - data will expire if the function, called with a single
 ;; argument - collection, returns non-nil.

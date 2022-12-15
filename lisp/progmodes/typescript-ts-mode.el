@@ -92,9 +92,12 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "class_body") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "arrow_function") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "parenthesized_expression") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "binary_expression") parent-bol typescript-ts-mode-indent-offset)
 
      ,@(when (eq language 'tsx)
          `(((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
+           ((match "<" "jsx_fragment") parent 0)
+           ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
            ((node-is "jsx_closing_element") parent 0)
            ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
            ((node-is "/") parent 0)
@@ -225,7 +228,31 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      (binary_expression left: (identifier) @font-lock-variable-name-face)
      (binary_expression right: (identifier) @font-lock-variable-name-face)
 
-     (arguments (identifier) @font-lock-variable-name-face))
+     (arguments (identifier) @font-lock-variable-name-face)
+
+     (parenthesized_expression (identifier) @font-lock-variable-name-face)
+     (parenthesized_expression (_ (identifier)) @font-lock-variable-name-face))
+
+   :language language
+   :override t
+   :feature 'property
+   `((property_signature
+      name: (property_identifier) @font-lock-property-face)
+     (public_field_definition
+      name: (property_identifier) @font-lock-property-face)
+     (member_expression
+      object: (identifier) @font-lock-variable-name-face)
+     (member_expression
+      property: (_) @font-lock-property-face)
+
+     (pair key: (property_identifier) @font-lock-variable-name-face)
+
+     (pair value: (identifier) @font-lock-variable-name-face)
+
+     ((shorthand_property_identifier) @font-lock-property-face)
+
+     ((shorthand_property_identifier_pattern)
+      @font-lock-property-face))
 
    :language language
    :override t
@@ -291,22 +318,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :override t
    '((escape_sequence) @font-lock-escape-face)
 
-   :language language
-   :override t
-   :feature 'property
-   `((property_signature
-      name: (property_identifier) @font-lock-property-face)
-     (public_field_definition
-      name: (property_identifier) @font-lock-property-face)
 
-     (pair key: (property_identifier) @font-lock-variable-name-face)
-
-     (pair value: (identifier) @font-lock-variable-name-face)
-
-     ((shorthand_property_identifier) @font-lock-property-face)
-
-     ((shorthand_property_identifier_pattern)
-      @font-lock-property-face))))
+   ))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))

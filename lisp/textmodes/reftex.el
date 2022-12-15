@@ -1004,10 +1004,13 @@ This enforces rescanning the buffer on next use."
                   reftex-section-levels))
 
     ;; Calculate the regular expressions
-    (let* (
-;          (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
-           (wbol "\\(^\\)%?[ \t]*") ; Need to keep the empty group because
-                                    ; match numbers are hard coded
+    (let* (;; (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
+           ;; Need to keep the empty group because match numbers are
+           ;; hard coded
+           (wbol (concat "\\(^\\)"
+                         (when (string-suffix-p ".dtx" (buffer-file-name) t)
+                           "%")
+                         "[ \t]*"))
            (label-re (concat "\\(?:"
 			     (mapconcat #'identity reftex-label-regexps "\\|")
 			     "\\)"))

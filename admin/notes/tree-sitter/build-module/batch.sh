@@ -1,6 +1,7 @@
 #!/bin/bash
 
 languages=(
+    'bash'
     'c'
     'cmake'
     'cpp'
@@ -13,8 +14,9 @@ languages=(
     'json'
     'python'
     'rust'
-    'typescript'
+    'toml'
     'tsx'
+    'typescript'
 )
 
 for language in "${languages[@]}"

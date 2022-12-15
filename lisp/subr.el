@@ -3855,7 +3855,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (let ((o1 (if (overlay-buffer o)
                 (make-overlay (overlay-start o) (overlay-end o)
                               ;; FIXME: there's no easy way to find the
-                              ;; insertion-type of the two markers.
+                              ;; insertion-type of overlay's start and end.
                               (overlay-buffer o))
               (let ((o1 (make-overlay (point-min) (point-min))))
                 (delete-overlay o1)

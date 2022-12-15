@@ -428,18 +428,21 @@
 
     (ert-info ("ascii")
       (puthash 'CASEMAPPING  '("ascii") erc--isupport-params)
+      (should (equal (erc-downcase "ABC 123 ΔΞΩΣ") "abc 123 ΔΞΩΣ"))
       (should (equal (erc-downcase "Bob[m]`") "bob[m]`"))
       (should (equal (erc-downcase "Tilde~") "tilde~" ))
       (should (equal (erc-downcase "\\O/") "\\o/" )))
 
     (ert-info ("rfc1459")
       (puthash 'CASEMAPPING  '("rfc1459") erc--isupport-params)
+      (should (equal (erc-downcase "ABC 123 ΔΞΩΣ") "abc 123 ΔΞΩΣ"))
       (should (equal (erc-downcase "Bob[m]`") "bob{m}`" ))
       (should (equal (erc-downcase "Tilde~") "tilde^" ))
       (should (equal (erc-downcase "\\O/") "|o/" )))
 
     (ert-info ("rfc1459-strict")
       (puthash 'CASEMAPPING  '("rfc1459-strict") erc--isupport-params)
+      (should (equal (erc-downcase "ABC 123 ΔΞΩΣ") "abc 123 ΔΞΩΣ"))
       (should (equal (erc-downcase "Bob[m]`") "bob{m}`"))
       (should (equal (erc-downcase "Tilde~") "tilde~" ))
       (should (equal (erc-downcase "\\O/") "|o/" )))))

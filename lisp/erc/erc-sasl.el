@@ -102,7 +102,7 @@ ERC binds all options defined in this library, such as
 `erc-sasl-password', to their values from entry-point invocation.
 In return, ERC expects a string to send as the SASL password, or
 nil, in which case, ERC will prompt the for input.  See info
-node `(erc) Connecting' for details on ERC's auth-source
+node `(erc) auth-source' for details on ERC's auth-source
 integration."
   :type '(choice (function-item erc-sasl-auth-source-password-as-host)
                  (function-item erc-auth-source-search)
@@ -414,17 +414,30 @@ This doesn't solicit or validate a suite of supported mechanisms."
                                        " "))
   (erc-sasl--destroy proc))
 
+(defvar erc-sasl--send-cap-ls nil
+  "Whether to send an opening \"CAP LS\" command.
+This is an escape hatch for picky servers.  If you need it turned
+into a user option, please let ERC know via \\[erc-bug].
+Otherwise, expect it to disappear in subsequent versions.")
+
 (cl-defmethod erc--register-connection (&context (erc-sasl-mode (eql t)))
-  "Send speculative/pipelined CAP and AUTHENTICATE and hope for the best."
+  "Send speculative CAP and pipelined AUTHENTICATE and hope for the best."
   (if-let* ((c (erc-sasl--state-client erc-sasl--state))
             (m (sasl-mechanism-name (sasl-client-mechanism c))))
       (progn
-        (erc-server-send "CAP REQ :sasl")
-        (if (and erc-session-password
-                 (eq :password (alist-get 'password erc-sasl--options)))
-            (let (erc-session-password)
-              (erc-login))
+        (erc-server-send (if erc-sasl--send-cap-ls "CAP LS" "CAP REQ :sasl"))
+        (let ((erc-session-password
+               (and erc-session-password
+                    (not (eq :password (alist-get 'password erc-sasl--options)))
+                    erc-session-password))
+              (erc-session-username
+               ;; The username may contain a colon or a space
+               (if (eq :user (alist-get 'user erc-sasl--options))
+                   (erc-current-nick)
+                 erc-session-username)))
           (erc-login))
+        (when erc-sasl--send-cap-ls
+          (erc-server-send "CAP REQ :sasl"))
         (erc-server-send (format "AUTHENTICATE %s" m)))
     (erc-sasl--destroy erc-server-process)))
 

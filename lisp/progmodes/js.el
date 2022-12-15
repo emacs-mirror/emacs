@@ -3445,12 +3445,15 @@ This function is intended for use in `after-change-functions'."
        ((parent-is "pair") parent-bol js-indent-level)
        ((parent-is "arrow_function") parent-bol js-indent-level)
        ((parent-is "parenthesized_expression") parent-bol js-indent-level)
+       ((parent-is "binary_expression") parent-bol js-indent-level)
        ((parent-is "class_body") parent-bol js-indent-level)
        ((parent-is ,switch-case) parent-bol js-indent-level)
        ((parent-is "statement_block") parent-bol js-indent-level)
 
        ;; JSX
        ((parent-is "jsx_opening_element") parent js-indent-level)
+       ((match "<" "jsx_fragment") parent 0)
+       ((parent-is "jsx_fragment") parent js-indent-level)
        ((node-is "jsx_closing_element") parent 0)
        ((node-is "jsx_text") parent js-indent-level)
        ((parent-is "jsx_element") parent js-indent-level)

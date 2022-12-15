@@ -219,7 +219,7 @@ parameters and authentication."
 This variable only exists for legacy reasons.  It's not customizable and
 is limited to a single server password.  Users looking for similar
 functionality should consider auth-source instead.  See info
-node `(auth) Top' and info node `(erc) Connecting'.")
+node `(auth) Top' and info node `(erc) auth-source'.")
 
 (make-obsolete-variable 'erc-password "use auth-source instead" "29.1")
 
@@ -407,15 +407,27 @@ erc-channel-user struct.")
   "Hash table of users on the current server.
 It associates nicknames with `erc-server-user' struct instances.")
 
-(defconst erc--casemapping-rfc1459
-  (make-translation-table
-   '((?\[ . ?\{) (?\] . ?\}) (?\\ . ?\|) (?~  . ?^))
-   (mapcar (lambda (c) (cons c (+ c 32))) "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
-
 (defconst erc--casemapping-rfc1459-strict
-  (make-translation-table
-   '((?\[ . ?\{) (?\] . ?\}) (?\\ . ?\|))
-   (mapcar (lambda (c) (cons c (+ c 32))) "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
+  (let ((tbl (copy-sequence ascii-case-table))
+        (cup (copy-sequence (char-table-extra-slot ascii-case-table 0))))
+    (set-char-table-extra-slot tbl 0 cup)
+    (set-char-table-extra-slot tbl 1 nil)
+    (set-char-table-extra-slot tbl 2 nil)
+    (pcase-dolist (`(,uc . ,lc) '((?\[ . ?\{) (?\] . ?\}) (?\\ . ?\|)))
+      (aset tbl uc lc)
+      (aset tbl lc lc)
+      (aset cup uc uc))
+    tbl))
+
+(defconst erc--casemapping-rfc1459
+  (let ((tbl (copy-sequence erc--casemapping-rfc1459-strict))
+        (cup (copy-sequence (char-table-extra-slot
+                             erc--casemapping-rfc1459-strict 0))))
+    (set-char-table-extra-slot tbl 0 cup)
+    (aset tbl ?~ ?^)
+    (aset tbl ?^ ?^)
+    (aset cup ?~ ?~)
+    tbl))
 
 (defun erc-add-server-user (nick user)
   "This function is for internal use only.
@@ -1607,11 +1619,12 @@ same manner."
     (if (and (with-suppressed-warnings ((obsolete erc-reuse-buffers))
                erc-reuse-buffers)
              id)
-        (progn
-          (when-let* ((buf (get-buffer (symbol-name id)))
+        (let ((string (symbol-name (erc-networks--id-symbol
+                                    (erc-networks--id-create id)))))
+          (when-let* ((buf (get-buffer string))
                       ((erc-server-process-alive buf)))
-            (user-error  "Session with ID %S already exists" id))
-          (symbol-name id))
+            (user-error  "Session with ID %S already exists" string))
+          string)
       (generate-new-buffer-name (if (and server port)
                                     (if (with-suppressed-warnings
                                             ((obsolete erc-reuse-buffers))
@@ -1970,7 +1983,7 @@ Returns the buffer for the given server or channel."
   (let* ((target (and channel (erc--target-from-string channel)))
          (buffer (erc-get-buffer-create server port nil target id))
          (old-buffer (current-buffer))
-         (old-vars (and (not connect) (buffer-local-variables)))
+         (old-vars (and target (buffer-local-variables)))
          (old-recon-count erc-server-reconnect-count)
          (old-point nil)
          (delayed-modules nil)
@@ -3208,7 +3221,7 @@ if any.  In return, ERC expects a string to send as the server
 password, or nil, to skip the \"PASS\" command completely.  An
 explicit `:password' argument to entry-point commands `erc' and
 `erc-tls' also inhibits lookup, as does setting this option to
-nil.  See info node `(erc) Connecting' for details."
+nil.  See info node `(erc) auth-source' for details."
   :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
   :group 'erc
   :type '(choice (const erc-auth-source-search)
@@ -3223,7 +3236,7 @@ channel.  In return, ERC expects a string to use as the channel
 \"key\", or nil to just join the channel normally.  Setting the
 option itself to nil tells ERC to always forgo consulting
 auth-source for channel keys.  For more information, see info
-node `(erc) Connecting'."
+node `(erc) auth-source'."
   :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
   :group 'erc
   :type '(choice (const erc-auth-source-search)
@@ -6451,6 +6464,8 @@ non-nil value is found.
 When `erc-auth-source-server-function' is non-nil, call it with NICK for
 the user field and use whatever it returns as the server password."
   (or password (and erc-auth-source-server-function
+                    (not erc--server-reconnecting)
+                    (not erc--target)
                     (funcall erc-auth-source-server-function :user nick))))
 
 (defun erc-compute-full-name (&optional full-name)

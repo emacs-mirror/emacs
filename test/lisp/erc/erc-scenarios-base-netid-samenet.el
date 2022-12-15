@@ -40,6 +40,9 @@
        (erc-server-flood-margin 30)
        erc-serv-buf-a erc-serv-buf-b)
 
+    (when (and id-a (zerop (random 2))) (setq id-a (symbol-name id-a)))
+    (when (and id-b (zerop (random 2))) (setq id-b (symbol-name id-b)))
+
     (ert-info ("Connect to foonet with nick tester")
       (with-current-buffer
           (setq erc-serv-buf-a (erc :server "127.0.0.1"
