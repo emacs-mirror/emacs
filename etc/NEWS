@@ -3069,14 +3069,15 @@ Bash shell scripts.
 *** New major mode 'dockerfile-ts-mode'.
 A major mode based on the tree-sitter library for editing
 Dockerfiles.  This mode is auto-enabled for files which are named
-"Dockerfile" or have the ".dockerfile" extension.
+"Dockerfile", have the "Dockerfile." prefix, or have the ".dockerfile"
+extension.
 
 *** New major mode 'cmake-ts-mode'.
 A major mode based on the tree-sitter library for editing CMake files.
-It is auto-enabled for files whose name is "Cmakefile.txt" or whose
+It is auto-enabled for files whose name is "CMakeLists.txt" or whose
 extension is ".cmake".
 
-*** New major mode toml-ts-mode'.
+*** New major mode 'toml-ts-mode'.
 A major mode based on the tree-sitter library for editing files
 written in TOML, a format for writing configuration files.  It is
 auto-enabled for files with the ".toml" extension.
