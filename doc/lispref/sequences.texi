@@ -719,7 +719,7 @@ calling @var{function} on the elements in @var{sequence}.
 then with that result and the third element of @var{sequence}, etc.
 @var{function} should be a function of two arguments.
 
-@var{function} is called with two arguments.  @var{intial-value}
+@var{function} is called with two arguments.  @var{initial-value}
 (and then the accumulated value) is used as the first argument, and
 the elements in @var{sequence} are used for the second argument.
 

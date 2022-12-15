@@ -10579,7 +10579,7 @@
 	(../src/$(OLDXMENU), $(OLDXMENU)): Remove.
 	(temacs$(EXEEXT)): Depend on $(LIBXMENU), not stamp-oldxmenu.
 	($(lwlibdir)/liblw.a, $(oldXMenudir)/libXMenu11.a, FORCE): New targets.
-	(boostrap-clean): No need to remove stamp-oldxmenu.
+	(bootstrap-clean): No need to remove stamp-oldxmenu.
 
 	Fix recently introduced bool vector overrun.
 	This was due to an optimization that went awry.

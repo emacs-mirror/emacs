@@ -130,25 +130,25 @@ See the comments in Bug#24998."
     (re-search-forward goto-string)
     (checkdoc-in-abbreviation-p (point))))
 
-(ert-deftest checkdoc-tests-in-abbrevation-p/basic-case ()
+(ert-deftest checkdoc-tests-in-abbreviation-p/basic-case ()
   (should (checkdoc-tests--abbrev-test "foo bar e.g. baz" "e.g"))
   (should (checkdoc-tests--abbrev-test "behavior/errors etc. that" "etc"))
   (should (checkdoc-tests--abbrev-test "foo vs. bar" "vs"))
   (should (checkdoc-tests--abbrev-test "spy a.k.a. spy" "a.k.a")))
 
-(ert-deftest checkdoc-tests-in-abbrevation-p/with-parens ()
+(ert-deftest checkdoc-tests-in-abbreviation-p/with-parens ()
   (should (checkdoc-tests--abbrev-test "foo bar (e.g. baz)" "e.g")))
 
-(ert-deftest checkdoc-tests-in-abbrevation-p/with-escaped-parens ()
+(ert-deftest checkdoc-tests-in-abbreviation-p/with-escaped-parens ()
   (should (checkdoc-tests--abbrev-test "foo\n\\(e.g. baz)" "e.g")))
 
-(ert-deftest checkdoc-tests-in-abbrevation-p/single-char ()
+(ert-deftest checkdoc-tests-in-abbreviation-p/single-char ()
   (should (checkdoc-tests--abbrev-test "a. foo bar" "a")))
 
-(ert-deftest checkdoc-tests-in-abbrevation-p/with-em-dash ()
+(ert-deftest checkdoc-tests-in-abbreviation-p/with-em-dash ()
   (should (checkdoc-tests--abbrev-test "foo bar baz---e.g." "e.g")))
 
-(ert-deftest checkdoc-tests-in-abbrevation-p/incorrect-abbreviation ()
+(ert-deftest checkdoc-tests-in-abbreviation-p/incorrect-abbreviation ()
   (should-not (checkdoc-tests--abbrev-test "foo bar a.b.c." "a.b.c")))
 
 (defun checkdoc-test-error-format-is-good (msg &optional reverse literal)
