@@ -186,6 +186,7 @@ and a string describing how the process finished.")
                      face compilation-info
                      help-echo "Number of informational messages so far")
     "]"))
+(put 'compilation-mode-line-errors 'risky-local-variable t)
 
 ;; If you make any changes to `compilation-error-regexp-alist-alist',
 ;; be sure to run the ERT test in test/lisp/progmodes/compile-tests.el.
