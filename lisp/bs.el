@@ -321,7 +321,7 @@ Must be a string used in `bs-configurations' for naming a configuration."
   :group 'bs-appearance
   :type 'string)
 
-(defcustom bs-string-show-normally  " "
+(defcustom bs-string-show-normally " "
   "String added in column 1 indicating an unmarked buffer."
   :group 'bs-appearance
   :type 'string)
@@ -384,12 +384,12 @@ don't highlight."
   "Define a new function for buffer sorting in Buffer Selection Menu.
 NAME specifies the sort order defined by function FUN.
 A value of nil for FUN means don't sort the buffer list.  Otherwise the
-functions must have two parameters - the buffers to compare.
+function must have two arguments - the buffers to compare.
 REGEXP-FOR-SORTING is a regular expression which describes the
 column title to highlight.
 FACE is a face used to fontify the sorted column title.  A value of nil means
 don't highlight.
-The new sort aspect will be inserted into list `bs-sort-functions'."
+The new sort aspect will be inserted into the list `bs-sort-functions'."
   (let ((tuple (assoc name bs-sort-functions)))
     (if tuple
         (setcdr tuple (list fun regexp-for-sorting face))
@@ -501,8 +501,8 @@ LIST is a list of buffers to test for appearance in Buffer Selection Menu.
 The result list depends on the global variables `bs-dont-show-regexp',
 `bs-must-show-regexp', `bs-dont-show-function', `bs-must-show-function'
 and `bs-buffer-sort-function'.
-If SORT-DESCRIPTION isn't nil the list will be sorted by
-a special function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
+If SORT-DESCRIPTION isn't nil the list will be sorted by a special
+function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
   (setq sort-description (or sort-description bs--current-sort-function)
 	list (or list (buffer-list)))
   (let ((result nil))
@@ -568,9 +568,9 @@ SORT-DESCRIPTION is an element of `bs-sort-functions'."
     (beginning-of-line)))
 
 (defun bs--goto-current-buffer ()
-  "Goto line which represents the current buffer;
-actually the line which begins with character in `bs-string-current' or
-`bs-string-current-marked'."
+  "Go to line which represents the current buffer.
+Actually, it goes to the line which begins with the character
+in `bs-string-current' or `bs-string-current-marked'."
   (let ((regexp (concat "^"
 			(regexp-quote bs-string-current)
 			"\\|^"
@@ -847,9 +847,8 @@ See `visit-tags-table'."
 
 (defun bs-set-current-buffer-to-show-always (&optional not-to-show-p)
   "Toggle status of buffer on line to `always shown'.
-NOT-TO-SHOW-P: prefix argument.
-With no prefix argument the buffer on current line is marked to show
-always.  Otherwise it is marked to show never."
+With prefix argument NOT-TO-SHOW-P, the buffer on current line
+is marked to never show instead."
   (interactive "P")
   (if not-to-show-p
       (bs-set-current-buffer-to-show-never)
@@ -1247,8 +1246,6 @@ by buffer configuration `bs-cycle-configuration-name'."
 					bs--cycle-list)))
              (next (car tuple))
              (cycle-list (cdr tuple)))
-        ;; We don't want the frame iconified if the only window in the frame
-        ;; happens to be dedicated.
         (bury-buffer (current-buffer))
 	(switch-to-buffer next nil t)
 	(setq bs--cycle-list (append (cdr cycle-list)
@@ -1457,7 +1454,7 @@ for buffer selection."
 (defun bs--configuration-name-for-prefix-arg (prefix)
   "Convert prefix argument PREFIX to a name of a buffer configuration.
 If PREFIX is nil return `bs-default-configuration'.
-If PREFIX is an integer return PREFIX element of `bs-configurations'.
+If PREFIX is an integer return PREFIXth element of `bs-configurations'.
 Otherwise return `bs-alternative-configuration'."
   (cond ;; usually activation
    ((null prefix)
