@@ -404,7 +404,7 @@
 (ert-deftest cl-lib-nth-value-test-multiple-values ()
   "While CL multiple values are an alias to list, these won't work."
   :expected-result :failed
-  (should (eq (cl-nth-value 0 '(2 3)) '(2 3)))
+  (should (equal (cl-nth-value 0 '(2 3)) '(2 3)))
   (should (= (cl-nth-value 0 1) 1))
   (should (null (cl-nth-value 1 1)))
   (should-error (cl-nth-value -1 (cl-values 2 3)) :type 'args-out-of-range)
