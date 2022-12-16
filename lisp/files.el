@@ -8467,6 +8467,14 @@ If the value is nil, Emacs uses a freedesktop.org-style trashcan."
 
 (declare-function system-move-file-to-trash "w32fns.c" (filename))
 
+(defun file-exists-in-trash-p (filename)
+  "Return non-nil if FILENAME exists in the trash.
+
+This is like `file-exists-p', but it also returns non-nil
+if FILENAME is a dangling symlink, to allow trashing such files."
+  (or (file-exists-p filename)
+      (file-symlink-p filename)))
+
 (defun move-file-to-trash (filename)
   "Move the file (or directory) named FILENAME to the trash.
 When `delete-by-moving-to-trash' is non-nil, this function is
@@ -8497,7 +8505,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 	   (unless (file-directory-p trash-dir)
 	     (make-directory trash-dir t))
 	   ;; Ensure that the trashed file-name is unique.
-	   (if (file-exists-p new-fn)
+	   (if (file-exists-in-trash-p new-fn)
 	       (let ((version-control t)
 		     (backup-directory-alist nil))
 		 (setq new-fn (car (find-backup-file-name new-fn)))))
@@ -8574,7 +8582,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
                  ;; We're checking further down whether the info file
                  ;; exists, but the file name may exist in the trash
                  ;; directory even if there is no info file for it.
-                 (when (file-exists-p
+                 (when (file-exists-in-trash-p
                         (file-name-concat trash-files-dir files-base))
                    (setq overwrite t
                          files-base (file-name-nondirectory
@@ -8612,7 +8620,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		 (let ((delete-by-moving-to-trash nil)
 		       (new-fn (file-name-concat trash-files-dir files-base)))
                    (if (or (not is-directory)
-                           (not (file-exists-p new-fn)))
+                           (not (file-exists-in-trash-p new-fn)))
                        (rename-file fn new-fn overwrite)
                      (copy-directory fn
                                      (file-name-as-directory new-fn)
