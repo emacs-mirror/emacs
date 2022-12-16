@@ -366,7 +366,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;; description is added to the category name as a tooltip
 (defsubst describe-char-categories (category-set)
   (let ((mnemonics (category-set-mnemonics category-set)))
-    (unless (eq mnemonics "")
+    (unless (equal mnemonics "")
       (list (mapconcat
 	     (lambda (x)
 	       (let* ((c (category-docstring x))
