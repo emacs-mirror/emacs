@@ -3099,6 +3099,10 @@ A major mode based on the tree-sitter library for editing files
 written in YAML.  It is auto-enabled for files with the ".yaml" or
 ".yml" extensions.
 
+*** New major mode 'rust-ts-mode'.
+A major mode based on the tree-sitter library for editing programs in
+the Rust language.  It is auto-enabled for files with the ".rs" extension.
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 
