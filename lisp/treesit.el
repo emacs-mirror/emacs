@@ -1591,38 +1591,6 @@ newline after a defun, or the beginning of a defun.
 
 If the value is nil, no skipping is performed.")
 
-(defvar-local treesit-defun-prefer-top-level nil
-  "When non-nil, Emacs prefers top-level defun.
-
-In some languages, a defun could be nested in another one.
-Normally Emacs stops at the first defun it encounters.  If this
-variable's value is t, Emacs tries to find the top-level defun,
-and ignores nested ones.
-
-This variable can also be a list of cons cells of the
-form (FROM . TO), where FROM and TO are tree-sitter node type
-regexps.  When Emacs finds a defun node whose type matches any of
-the FROM regexps in the list, it then tries to find a
-higher-level node matching the corresponding TO regexp.")
-
-(defun treesit--defun-maybe-top-level (node)
-  "Maybe return the top-level equivalent of NODE.
-For the detailed semantic see `treesit-defun-prefer-top-level'."
-  (pcase treesit-defun-prefer-top-level
-    ('nil node)
-    ('t (or (treesit-node-top-level
-             node treesit-defun-type-regexp)
-            node))
-    ((pred consp)
-     (cl-loop
-      for con in treesit-defun-prefer-top-level
-      for from = (car con)
-      for to = (cdr con)
-      if (string-match-p from (treesit-node-type node))
-      return (or (treesit-node-top-level node to)
-                 node)
-      finally return node))))
-
 (defun treesit-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
 
