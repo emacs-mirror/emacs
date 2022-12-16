@@ -1095,6 +1095,14 @@ fontified."
      (class_definition
       name: (identifier) @font-lock-type-face))
 
+   :feature 'function
+   :language 'python
+   '((function_definition
+      name: (identifier) @font-lock-function-name-face)
+     (call function: (identifier) @font-lock-function-name-face)
+     (call function: (attribute
+                      attribute: (identifier) @font-lock-function-name-face)))
+
    :feature 'keyword
    :language 'python
    `([,@python--treesit-keywords] @font-lock-keyword-face
@@ -6629,7 +6637,7 @@ implementations: `python-mode' and `python-ts-mode'."
                   ( keyword string type)
                   ( assignment builtin constant decorator
                     escape-sequence number property string-interpolation )
-                  ( bracket delimiter operator)))
+                  ( function bracket delimiter operator)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)
@@ -6637,8 +6645,8 @@ implementations: `python-mode' and `python-ts-mode'."
                                               "_definition"))
     (treesit-major-mode-setup)
 
-  (when python-indent-guess-indent-offset
-    (python-indent-guess-indent-offset))))
+    (when python-indent-guess-indent-offset
+      (python-indent-guess-indent-offset))))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code
