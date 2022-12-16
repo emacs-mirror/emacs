@@ -3956,10 +3956,9 @@ detailed description.
 (defun internal--with-narrowing (start end body &optional tag)
   "Helper function for `with-narrowing', which see."
   (save-restriction
-    (progn
-      (narrow-to-region start end)
-      (if tag (narrowing-lock tag))
-      (funcall body))))
+    (narrow-to-region start end)
+    (when tag (narrowing-lock tag))
+    (funcall body)))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.
