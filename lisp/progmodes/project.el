@@ -174,6 +174,7 @@
 ;;; Code:
 
 (require 'cl-generic)
+(require 'cl-lib)
 (require 'seq)
 (eval-when-compile (require 'subr-x))
 
@@ -1038,7 +1039,14 @@ by the user at will."
          (_ (when included-cpd
               (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
-         (relname (let ((history-add-new-input nil))
+         (abbr-cpd (abbreviate-file-name common-parent-directory))
+         (relname (cl-letf ((history-add-new-input nil)
+                            ((symbol-value hist)
+                             (mapcan
+                              (lambda (s)
+                                (and (string-prefix-p abbr-cpd s)
+                                     (list (substring s (length abbr-cpd)))))
+                              (symbol-value hist))))
                     (project--completing-read-strict prompt
                                                      new-collection
                                                      predicate

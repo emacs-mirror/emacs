@@ -87,7 +87,7 @@ expected function symbol and function library, respectively."
   (test-locate-helper #'forward-char '(forward-char . "cmds.c"))
   (should-error (test-locate-helper 'wrong-function)))
 
-(ert-deftest find-func-tests--locate-adviced-symbols ()
+(ert-deftest find-func-tests--locate-advised-symbols ()
   (defun my-message ()
     (message "Hello!"))
   (advice-add #'mark-sexp :around 'my-message)

@@ -1928,7 +1928,7 @@ This performs fontification according to `js--class-styles'."
 ;; identified as such), then the `syntax-propertize' region won’t be
 ;; extended backwards to the start of the JSXOpeningElement:
 ;;
-;;   <div         ← This line wasn’t JSX when last edited.
+;;   <div         ← This line wasn't JSX when last edited.
 ;;     attr="">   ← Despite completing the JSX, the next
 ;;             ^    `syntax-propertize' region wouldn’t magically
 ;;                  extend back a few lines.
@@ -2090,7 +2090,7 @@ JSXElement or a JSXOpeningElement/JSXClosingElement pair."
                         ;; JSXOpeningElement has been found, so keep
                         ;; looking backwards for an enclosing one).
                         (or (not close-tag-pos) (<= start close-tag-pos)))))))))
-      ;; Don’t return the last tag pos, as it wasn’t enclosing.
+      ;; Don't return the last tag pos, as it wasn't enclosing.
       (setq tag-beg nil close-tag-pos nil))
     (and tag-beg (list tag-beg-pos tag-end-pos close-tag-pos))))
 

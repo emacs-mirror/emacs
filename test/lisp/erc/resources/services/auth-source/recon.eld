@@ -21,7 +21,7 @@
  (0.00 ":irc.foonet.net 376 tester :End of message of the day."))
 
 ((mode-a 10 "MODE tester +i")
- (0.00 ":irc.foonet.net 501 tester x :is not a recognised user mode.")
+ (0.00 ":irc.foonet.net 501 tester x :is not a recognized user mode.")
  (0.04 ":tester!tester@10.0.2.100 MODE tester :+i")
  (0.00 ":NickServ!NickServ@services.int NOTICE tester :This nickname is registered. Please choose a different nickname, or identify via \2/msg NickServ identify <password>\2."))
 

@@ -159,7 +159,7 @@ the subtrees."
 
     ;; Comments
     (setq-local comment-start "# ")
-    (setq-local commend-end "")
+    (setq-local comment-end "")
 
     ;; Indent.
     (setq-local treesit-simple-indent-rules toml-ts-mode--indent-rules)

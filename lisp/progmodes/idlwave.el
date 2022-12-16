@@ -133,7 +133,7 @@
 ;;   limited to comments only and occurs only when a comment
 ;;   paragraph is filled via `idlwave-fill-paragraph'.
 ;;
-;;   Muti-statement lines (using "&") on block begin and end lines can
+;;   Multi-statement lines (using "&") on block begin and end lines can
 ;;   ruin the formatting.  For example, multiple end statements on a
 ;;   line: endif & endif.  Using "&" outside of block begin/end lines
 ;;   should be okay.

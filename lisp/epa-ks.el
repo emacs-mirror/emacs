@@ -109,7 +109,7 @@ When all keys have been selected, use \\[epa-ks-do-key-to-fetch] to
 actually import the keys.
 
 When called interactively, `epa-ks-mark-key-to-fetch' will always
-add a \"F\" tag.  Non-interactivly the tag must be specified by
+add a \"F\" tag.  Non-interactively the tag must be specified by
 setting the TAG parameter."
   (interactive (list "F"))
   (if (region-active-p)

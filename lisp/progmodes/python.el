@@ -1095,6 +1095,14 @@ fontified."
      (class_definition
       name: (identifier) @font-lock-type-face))
 
+   :feature 'function
+   :language 'python
+   '((function_definition
+      name: (identifier) @font-lock-function-name-face)
+     (call function: (identifier) @font-lock-function-name-face)
+     (call function: (attribute
+                      attribute: (identifier) @font-lock-function-name-face)))
+
    :feature 'keyword
    :language 'python
    `([,@python--treesit-keywords] @font-lock-keyword-face
@@ -6564,19 +6572,21 @@ implementations: `python-mode' and `python-ts-mode'."
         (add-function :before-until (local 'eldoc-documentation-function)
                       #'python-eldoc-function))))
 
-  (add-to-list
-   'hs-special-modes-alist
-   `(python-mode
-     ,python-nav-beginning-of-block-regexp
-     ;; Use the empty string as end regexp so it doesn't default to
-     ;; "\\s)".  This way parens at end of defun are properly hidden.
-     ""
-     "#"
-     python-hideshow-forward-sexp-function
-     nil
-     python-nav-beginning-of-block
-     python-hideshow-find-next-block
-     python-info-looking-at-beginning-of-block))
+  ;; TODO: Use tree-sitter to figure out the block in `python-ts-mode'.
+  (dolist (mode '(python-mode python-ts-mode))
+    (add-to-list
+     'hs-special-modes-alist
+     `(,mode
+       ,python-nav-beginning-of-block-regexp
+       ;; Use the empty string as end regexp so it doesn't default to
+       ;; "\\s)".  This way parens at end of defun are properly hidden.
+       ""
+       "#"
+       python-hideshow-forward-sexp-function
+       nil
+       python-nav-beginning-of-block
+       python-hideshow-find-next-block
+       python-info-looking-at-beginning-of-block)))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
   (setq-local outline-level
@@ -6627,7 +6637,7 @@ implementations: `python-mode' and `python-ts-mode'."
                   ( keyword string type)
                   ( assignment builtin constant decorator
                     escape-sequence number property string-interpolation )
-                  ( bracket delimiter operator)))
+                  ( function bracket delimiter operator)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)
@@ -6635,8 +6645,8 @@ implementations: `python-mode' and `python-ts-mode'."
                                               "_definition"))
     (treesit-major-mode-setup)
 
-  (when python-indent-guess-indent-offset
-    (python-indent-guess-indent-offset))))
+    (when python-indent-guess-indent-offset
+      (python-indent-guess-indent-offset))))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code

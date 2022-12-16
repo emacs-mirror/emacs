@@ -1624,40 +1624,37 @@ For the detailed semantic see `treesit-defun-prefer-top-level'."
       finally return node))))
 
 (defun treesit-beginning-of-defun (&optional arg)
-  "Tree-sitter `beginning-of-defun' function.
-ARG is the same as in `beginning-of-defun'."
-  (let ((arg (or arg 1))
-        (node (treesit-node-at (point))))
-    (if (> arg 0)
-        ;; Go backward.
-        (while (and (> arg 0)
-                    (setq node (treesit-search-forward-goto
-                                node treesit-defun-type-regexp t t)))
-          (setq node (treesit--defun-maybe-top-level node))
-          (setq arg (1- arg)))
-      ;; Go forward.
-      (while (and (< arg 0)
-                  (setq node (treesit-search-forward-goto
-                              node treesit-defun-type-regexp)))
-        (setq node (treesit--defun-maybe-top-level node))
-        (setq arg (1+ arg))))
-    (when node
-      (goto-char (treesit-node-start node))
-      t)))
+  "Move backward to the beginning of a defun.
 
-(defun treesit-end-of-defun ()
-  "Tree-sitter `end-of-defun' function."
-  ;; Why not simply get the largest node at point: when point is at
-  ;; (point-min), that gives us the root node.
-  (let* ((node (treesit-search-forward
-                (treesit-node-at (point)) treesit-defun-type-regexp t t))
-         (top (treesit--defun-maybe-top-level node)))
-    ;; Technically `end-of-defun' should only call this function when
-    ;; point is at the beginning of a defun, so TOP should always be
-    ;; non-nil, but things happen, and we want to be safe, so check
-    ;; for TOP anyway.
-    (when top
-      (goto-char (treesit-node-end top)))))
+With argument ARG, do it that many times.  Negative ARG means
+move forward to the ARGth following beginning of defun.
+
+If search is successful, return t, otherwise return nil.
+
+This is a tree-sitter equivalent of `beginning-of-defun'.
+Behavior of this function depends on `treesit-defun-type-regexp'
+and `treesit-defun-skipper'."
+  (interactive "^p")
+  (when-let ((dest (treesit--navigate-defun (point) (- arg) 'beg)))
+    (goto-char dest)
+    (when treesit-defun-skipper
+      (funcall treesit-defun-skipper))
+    t))
+
+(defun treesit-end-of-defun (&optional arg _)
+  "Move forward to next end of defun.
+
+With argument ARG, do it that many times.
+Negative argument -N means move back to Nth preceding end of defun.
+
+This is a tree-sitter equivalent of `end-of-defun'.  Behavior of
+this function depends on `treesit-defun-type-regexp' and
+`treesit-defun-skipper'."
+  (interactive "^p\nd")
+  (when-let ((dest (treesit--navigate-defun (point) arg 'end)))
+    (goto-char dest)
+    (when treesit-defun-skipper
+      (funcall treesit-defun-skipper))))
 
 (defvar-local treesit-text-type-regexp "\\`comment\\'"
   "A regexp that matches the node type of textual nodes.
@@ -1962,8 +1959,10 @@ before calling this function."
     (setq-local indent-region-function #'treesit-indent-region))
   ;; Navigation.
   (when treesit-defun-type-regexp
-    (setq-local beginning-of-defun-function #'treesit-beginning-of-defun)
-    (setq-local end-of-defun-function #'treesit-end-of-defun)))
+    (keymap-set (current-local-map) "<remap> <beginning-of-defun>"
+                #'treesit-beginning-of-defun)
+    (keymap-set (current-local-map) "<remap> <end-of-defun>"
+                #'treesit-end-of-defun)))
 
 ;;; Debugging
 
@@ -1987,9 +1986,9 @@ in `treesit-parser-list'."
                    collect node))
          (largest-node (car (last node-list)))
          (parent (treesit-node-parent largest-node))
-         ;; node-list-acending contains all the node bottom-up, then
+         ;; node-list-ascending contains all the node bottom-up, then
          ;; the parent.
-         (node-list-acending
+         (node-list-ascending
           (if (null largest-node)
               ;; If there are no nodes that start at point, just show
               ;; the node at point and its parent.
@@ -2000,7 +1999,7 @@ in `treesit-parser-list'."
          (name ""))
     ;; We draw nodes like (parent field-name: (node)) recursively,
     ;; so it could be (node1 field-name: (node2 field-name: (node3))).
-    (dolist (node node-list-acending)
+    (dolist (node node-list-ascending)
       (setq
        name
        (concat

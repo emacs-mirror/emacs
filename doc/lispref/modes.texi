@@ -5015,7 +5015,7 @@ expression @code{treesit-comment-start} (@pxref{Tree-sitter major
 modes, treesit-comment-start}).  This function assumes @var{parent} is
 the comment node.
 
-@item coment-start-skip
+@item comment-start-skip
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the position after the
 comment-start token and any whitespace characters following that

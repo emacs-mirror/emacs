@@ -211,7 +211,8 @@ chosen (interactively or automatically)."
                                 (elm-mode . ("elm-language-server"))
                                 (mint-mode . ("mint" "ls"))
                                 (kotlin-mode . ("kotlin-language-server"))
-                                ((go-mode go-dot-mod-mode go-dot-work-mode) . ("gopls"))
+                                ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode)
+                                 . ("gopls"))
                                 ((R-mode ess-r-mode) . ("R" "--slave" "-e"
                                                         "languageserver::run()"))
                                 ((java-mode java-ts-mode) . ("jdtls"))
@@ -240,7 +241,9 @@ chosen (interactively or automatically)."
                                 ((clojure-mode clojurescript-mode clojurec-mode)
                                  . ("clojure-lsp"))
                                 ((csharp-mode csharp-ts-mode)
-                                 . ("omnisharp" "-lsp"))
+                                 . ,(eglot-alternatives
+                                     '(("omnisharp" "-lsp")
+                                       ("csharp-ls"))))
                                 (purescript-mode . ("purescript-language-server" "--stdio"))
                                 ((perl-mode cperl-mode) . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run"))
                                 (markdown-mode . ("marksman" "server")))
