@@ -2203,7 +2203,7 @@ value.  Otherwise return CHILDREN as is."
     (unless abort-only
       (setq post-command
             (lambda () "@transient--delay-post-command"
-              (let ((act (and (not (eq (this-command-keys-vector) []))
+              (let ((act (and (not (equal (this-command-keys-vector) []))
                               (or (eq this-command command)
                                   ;; `execute-extended-command' was
                                   ;; used to call another command
@@ -2241,7 +2241,7 @@ value.  Otherwise return CHILDREN as is."
   (transient--debug 'post-command)
   (transient--with-emergency-exit
     (cond
-     ((and (eq (this-command-keys-vector) [])
+     ((and (equal (this-command-keys-vector) [])
            (= (minibuffer-depth)
               (1+ transient--minibuffer-depth)))
       (transient--suspend-override)
