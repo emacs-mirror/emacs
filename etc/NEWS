@@ -1383,6 +1383,11 @@ language.
 This is a variant of the 'slovak' input method, which corresponds to
 the QWERTY Slovak keyboards.
 
+---
+*** New input method 'cyrillic-chuvash'.
+This input method is based on the russian-computer, and is intended
+for the Chuvash language written in the Cyrillic script.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
