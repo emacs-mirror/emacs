@@ -3081,6 +3081,14 @@ A major mode based on the tree-sitter library for editing files
 written in TOML, a format for writing configuration files.  It is
 auto-enabled for files with the ".toml" extension.
 
+*** New major mode 'go-ts-mode'.
+A major mode based on the tree-sitter library for editing programs in
+the Go language.  It is auto-enabled for files with the ".go" extension.
+
+*** New major mode 'go-mod-ts-mode'.
+A major mode based on the tree-sitter library for editing "go.mod"
+files.  It is auto-enabled for files which are named "go.mod".
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 
