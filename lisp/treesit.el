@@ -1635,7 +1635,8 @@ This is a tree-sitter equivalent of `beginning-of-defun'.
 Behavior of this function depends on `treesit-defun-type-regexp'
 and `treesit-defun-skipper'."
   (interactive "^p")
-  (when-let ((dest (treesit--navigate-defun (point) (- arg) 'beg)))
+  (when-let* ((arg (or arg 1))
+              (dest (treesit--navigate-defun (point) (- arg) 'beg)))
     (goto-char dest)
     (when treesit-defun-skipper
       (funcall treesit-defun-skipper))
@@ -1651,7 +1652,8 @@ This is a tree-sitter equivalent of `end-of-defun'.  Behavior of
 this function depends on `treesit-defun-type-regexp' and
 `treesit-defun-skipper'."
   (interactive "^p\nd")
-  (when-let ((dest (treesit--navigate-defun (point) arg 'end)))
+  (when-let* ((arg (or arg 1))
+              (dest (treesit--navigate-defun (point) arg 'end)))
     (goto-char dest)
     (when treesit-defun-skipper
       (funcall treesit-defun-skipper))))
