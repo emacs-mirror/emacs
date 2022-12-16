@@ -6564,19 +6564,21 @@ implementations: `python-mode' and `python-ts-mode'."
         (add-function :before-until (local 'eldoc-documentation-function)
                       #'python-eldoc-function))))
 
-  (add-to-list
-   'hs-special-modes-alist
-   `(python-mode
-     ,python-nav-beginning-of-block-regexp
-     ;; Use the empty string as end regexp so it doesn't default to
-     ;; "\\s)".  This way parens at end of defun are properly hidden.
-     ""
-     "#"
-     python-hideshow-forward-sexp-function
-     nil
-     python-nav-beginning-of-block
-     python-hideshow-find-next-block
-     python-info-looking-at-beginning-of-block))
+  ;; TODO: Use tree-sitter to figure out the block in `python-ts-mode'.
+  (dolist (mode '(python-mode python-ts-mode))
+    (add-to-list
+     'hs-special-modes-alist
+     `(,mode
+       ,python-nav-beginning-of-block-regexp
+       ;; Use the empty string as end regexp so it doesn't default to
+       ;; "\\s)".  This way parens at end of defun are properly hidden.
+       ""
+       "#"
+       python-hideshow-forward-sexp-function
+       nil
+       python-nav-beginning-of-block
+       python-hideshow-find-next-block
+       python-info-looking-at-beginning-of-block)))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
   (setq-local outline-level
