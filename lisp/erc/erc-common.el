@@ -130,7 +130,8 @@ canonical name.")
          (if val "Enable" "Disable")
          " ERC " (symbol-name name) " mode."
          (when localp
-           "\nWith ARG, do so in all buffers for the current connection."))
+           (concat "\nWhen called interactively,"
+                   " do so in all buffers for the current connection.")))
        (interactive ,@(when localp '("p")))
        ,@(if localp
              `((when (derived-mode-p 'erc-mode)

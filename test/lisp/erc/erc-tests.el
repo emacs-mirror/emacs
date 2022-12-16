@@ -1331,7 +1331,7 @@ Some docstring"
 
                       (defun erc-mname-enable (&optional ,arg-en)
                         "Enable ERC mname mode.
-With ARG, do so in all buffers for the current connection."
+When called interactively, do so in all buffers for the current connection."
                         (interactive "p")
                         (when (derived-mode-p 'erc-mode)
                           (if ,arg-en
@@ -1343,7 +1343,7 @@ With ARG, do so in all buffers for the current connection."
 
                       (defun erc-mname-disable (&optional ,arg-dis)
                         "Disable ERC mname mode.
-With ARG, do so in all buffers for the current connection."
+When called interactively, do so in all buffers for the current connection."
                         (interactive "p")
                         (when (derived-mode-p 'erc-mode)
                           (if ,arg-dis
