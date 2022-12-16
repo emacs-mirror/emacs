@@ -531,6 +531,27 @@ the subtrees."
       (if (looking-at "\\s<\\|\n")
 	  (forward-line 1)))))
 
+(defun c-ts-mode--defun-valid-p (node)
+  (if (string-match-p
+       (rx (or "struct_specifier"
+               "enum_specifier"
+               "union_specifier"))
+       (treesit-node-type node))
+      (null
+       (treesit-node-top-level
+        node (rx (or "function_definition"
+                     "type_definition"))))
+    t))
+
+(defun c-ts-mode--defun-skipper ()
+  "Custom defun skipper for `c-ts-mode' and friends.
+Structs in C ends with a semicolon, but the semicolon is not
+considered part of the struct node, so point would stop before
+the semicolon.  This function skips the semicolon."
+  (when (looking-at (rx (* (or " " "\t")) ";"))
+    (goto-char (match-end 0)))
+  (treesit-default-defun-skipper))
+
 (defun c-ts-mode-indent-defun ()
   "Indent the current top-level declaration syntactically.
 
@@ -559,12 +580,14 @@ the subtrees."
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
-              (regexp-opt '("function_definition"
-                            "type_definition"
-                            "struct_specifier"
-                            "enum_specifier"
-                            "union_specifier"
-                            "class_specifier")))
+              (cons (regexp-opt '("function_definition"
+                                  "type_definition"
+                                  "struct_specifier"
+                                  "enum_specifier"
+                                  "union_specifier"
+                                  "class_specifier"))
+                    #'c-ts-mode--defun-valid-p))
+  (setq-local treesit-defun-skipper #'c-ts-mode--defun-skipper)
 
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
