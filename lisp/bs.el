@@ -488,7 +488,9 @@ Used internally, only.")
   "<mouse-2>" #'bs-mouse-select
   "<mouse-3>" #'bs-mouse-select-other-frame)
 
-(defcustom bs-default-action-list '((display-buffer-below-selected)
+(defcustom bs-default-action-list '((display-buffer-reuse-window
+				     display-buffer-below-selected)
+				    (reusable-frames . nil)
 				    (window-height . window-min-height))
   "Default action list for showing the '*bs-selection*' buffer.
 
