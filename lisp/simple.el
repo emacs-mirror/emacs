@@ -10683,12 +10683,7 @@ too short to have a dst element.
         ;; we just created it.
         (with-current-buffer scratch
           (when initial-scratch-message
-            ;; We used to run this through substitute-command-keys,
-            ;; but that might be unsafe in some rare cases, and this
-            ;; function must never fail and signal an error, because
-            ;; it is called from other_buffer_safely, which must
-            ;; always produce a valid buffer.
-            (insert initial-scratch-message)
+            (insert (substitute-command-keys initial-scratch-message))
             (set-buffer-modified-p nil))
           (funcall initial-major-mode))
         scratch)))
