@@ -19429,6 +19429,13 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	    blank_row (w, row, y);
 	  goto finish_scroll_bars;
 	}
+      else if (minibuf_level >= 1)
+	{
+	  /* We could have a message produced by set-minibuffer-message
+	     displayed in the mini-window as an overlay, so resize the
+	     mini-window if needed.  */
+	  resize_mini_window (w, false);
+	}
 
       clear_glyph_matrix (w->desired_matrix);
     }
