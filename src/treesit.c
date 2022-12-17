@@ -2620,6 +2620,73 @@ the query.  */)
 
 /*** Navigation */
 
+static inline void
+treesit_assume_true (bool val)
+{
+  eassert (val == true);
+}
+
+/* Create a TSTreeCursor pointing at NODE.  PARSER is the lisp parser
+   that produced NODE.
+
+   The reason we need this instead of simply using ts_tree_cursor_new
+   is that we have to create the cursor on the root node and traverse
+   down to NODE, in order to record the correct stack of parent nodes.
+   Otherwise going to sibling or parent of NODE wouldn't work.
+
+   (Wow perfect filling.)  */
+static TSTreeCursor
+treesit_cursor_helper (TSNode node, Lisp_Object parser)
+{
+  uint32_t end_pos = ts_node_end_byte (node);
+  TSNode root = ts_tree_root_node (XTS_PARSER (parser)->tree);
+  TSTreeCursor cursor = ts_tree_cursor_new (root);
+  TSNode cursor_node = ts_tree_cursor_current_node (&cursor);
+  /* This is like treesit-node-at.  We go down from the root node,
+     either to first child or next sibling, repeatedly, and finally
+     arrive at NODE.  */
+  while (!ts_node_eq (node, cursor_node))
+    {
+      treesit_assume_true (ts_tree_cursor_goto_first_child (&cursor));
+      cursor_node = ts_tree_cursor_current_node (&cursor);
+      /* ts_tree_cursor_goto_first_child_for_byte is not reliable, so
+	 we just go through each sibling.  */
+      while (ts_node_is_missing (cursor_node)
+	     || ts_node_end_byte (cursor_node) < end_pos)
+	{
+	  /* A "missing" node has zero width, so it's possible that
+	     its end = NODE.end but it's not NODE, so we skip them.
+	     But we need to make sure this missing node is not the
+	     node we are looking for before skipping it.  */
+	  if (ts_node_is_missing (cursor_node)
+	      && ts_node_eq (node, cursor_node))
+	    return cursor;
+	  treesit_assume_true (ts_tree_cursor_goto_next_sibling (&cursor));
+	  cursor_node = ts_tree_cursor_current_node (&cursor);
+	}
+      /* Right now CURSOR.end >= NODE.end.  But what if CURSOR.end =
+	 NODE.end, and there are missing nodes after CURSOR, and the
+	 missing node after CURSOR is the NODE we are looking for??
+	 Well, create a probe and look ahead.  (This is tested by
+	 treesit-cursor-helper-with-missing-node.)  */
+      TSTreeCursor probe = ts_tree_cursor_copy (&cursor);
+      TSNode probe_node;
+      while (ts_tree_cursor_goto_next_sibling (&probe))
+	{
+	  probe_node = ts_tree_cursor_current_node (&probe);
+	  if (!ts_node_is_missing (probe_node))
+	    break;
+	  if (ts_node_eq (probe_node, node))
+	    {
+	      ts_tree_cursor_delete (&cursor);
+	      return probe;
+	    }
+	}
+      ts_tree_cursor_delete (&probe);
+    }
+  return cursor;
+}
+
 /* Return the next/previous named/unnamed sibling of NODE.  FORWARD
    controls the direction and NAMED controls the nameness.  */
 static TSNode
