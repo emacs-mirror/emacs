@@ -6224,7 +6224,12 @@ Signal an error if unsuccessful."
   ;; make sure we find its make-directory handler.
   (setq dir (expand-file-name dir))
   (let ((mkdir (if-let ((handler (find-file-name-handler dir 'make-directory)))
-                   #'(lambda (dir) (funcall handler 'make-directory dir))
+		   #'(lambda (dir)
+		       ;; Use 'ignore' since the handler might be designed for
+		       ;; Emacs 28-, so it might return an (undocumented)
+		       ;; non-nil value, whereas the Emacs 29+ convention is
+		       ;; to return nil here.
+		       (ignore (funcall handler 'make-directory dir)))
                  #'make-directory-internal)))
     (if (not parents)
         (funcall mkdir dir)
