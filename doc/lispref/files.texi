@@ -895,10 +895,14 @@ permissions of the file itself.)
 If the file does not exist, or if there was trouble determining
 whether the file exists, this function returns @code{nil}.
 
-Directories are files, so @code{file-exists-p} can return @code{t} when
-given a directory.  However, because @code{file-exists-p} follows
-symbolic links, it returns @code{t} for a symbolic link
-name only if the target file exists.
+@cindex dangling symlinks, testing for existence
+Directories are files, so @code{file-exists-p} can return @code{t}
+when given a directory.  However, because @code{file-exists-p} follows
+symbolic links, it returns @code{t} for a symbolic link name only if
+the target of the link exists; if your Lisp program needs to consider
+@dfn{dangling symlinks} whose target doesn't exist as existing files,
+use @code{file-attributes} (@pxref{File Attributes}) instead of
+@code{file-exists-p}.
 @end defun
 
 @defun file-readable-p filename
