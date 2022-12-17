@@ -1375,9 +1375,10 @@ With ARG, move backward multiple defuns.  Negative ARG means
 move forward."
   (interactive "p")
   (let (case-fold-search)
-    (and (re-search-backward (concat "^\\s *" ruby-defun-beg-re "\\_>")
-                             nil t (or arg 1))
-         (beginning-of-line))))
+    (when (re-search-backward (concat "^\\s *" ruby-defun-beg-re "\\_>")
+                              nil t (or arg 1))
+      (beginning-of-line)
+      t)))
 
 (defun ruby-end-of-defun ()
   "Move point to the end of the current defun.
