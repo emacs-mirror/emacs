@@ -3369,7 +3369,7 @@ If nil, no default will be used.  This option may be set locally."
 
 (declare-function message--name-table "message" (orig-string))
 (declare-function mml-attach-buffer "mml"
-                  (buffer &optional type description disposition))
+                  (buffer &optional type description disposition filename))
 (declare-function log-view-get-marked "log-view" ())
 
 (defun vc-default-prepare-patch (_backend rev)
@@ -3409,6 +3409,19 @@ of the current file."
          (mapconcat #'identity revs ","))
        (and-let* ((file (buffer-file-name)))
          (vc-working-revision file)))))
+
+(defun vc--subject-to-file-name (subject)
+  "Generate a file name for a patch with subject line SUBJECT."
+  (let* ((stripped
+          (replace-regexp-in-string "\\`\\[.*PATCH.*\\]\\s-*" ""
+                                    subject))
+         (truncated (if (length> stripped 50)
+                        (substring stripped 0 50)
+                      stripped)))
+    (concat
+     (string-trim (replace-regexp-in-string "\\W" "-" truncated)
+                  "-+" "-+")
+     ".patch")))
 
 ;;;###autoload
 (defun vc-prepare-patch (addressee subject revisions)
@@ -3466,11 +3479,17 @@ marked revisions, use those these."
         (rfc822-goto-eoh)
         (forward-line)
         (save-excursion
-          (dolist (patch patches)
-            (mml-attach-buffer (buffer-name (plist-get patch :buffer))
-                               "text/x-patch"
-                               (plist-get patch :subject)
-                               "attachment")))
+          (let ((i 0))
+            (dolist (patch patches)
+              (let* ((patch-subject (plist-get patch :subject))
+                     (filename
+                      (vc--subject-to-file-name patch-subject)))
+                (mml-attach-buffer
+                 (buffer-name (plist-get patch :buffer))
+                 "text/x-patch"
+                 patch-subject
+                 "attachment"
+                 (format "%04d-%s" (cl-incf i) filename))))))
         (open-line 2)))))
 
 (defun vc-default-responsible-p (_backend _file)
