@@ -115,29 +115,11 @@ of BODY, which makes it easier to use `execute-kbd-macro' to
 simulate user interaction.  The window configuration is restored
 before returning, even if BODY exits nonlocally.  The return
 value is the last form in BODY."
-  (declare (debug ((":name" form) def-body))
-           (indent 1))
-  (let ((ret (make-symbol "ert--with-test-buffer-selected-ret")))
-    `(save-window-excursion
-       (let (,ret)
-         (ert-with-test-buffer (:name ,name)
-           (with-current-buffer-window (current-buffer)
-               `(display-buffer-below-selected
-                 (body-function
-                  . ,(lambda (window)
-                       (select-window window t)
-                       ;; body-function is intended to initialize the
-                       ;; contents of a temporary read-only buffer, so
-                       ;; it is executed with some convenience
-                       ;; changes.  Undo those changes so that the
-                       ;; test buffer behaves more like an ordinary
-                       ;; buffer while the body executes.
-                       (let ((inhibit-modification-hooks nil)
-                             (inhibit-read-only nil)
-                             (buffer-read-only nil))
-                         (setq ,ret (progn ,@body))))))
-             nil))
-         ,ret))))
+  (declare (debug ((":name" form) body)) (indent 1))
+  `(ert-with-test-buffer (:name ,name)
+     (save-window-excursion
+       (with-selected-window (display-buffer (current-buffer))
+         ,@body))))
 
 ;;;###autoload
 (defun ert-kill-all-test-buffers ()
