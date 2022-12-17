@@ -231,7 +231,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      (arguments (identifier) @font-lock-variable-name-face)
 
      (parenthesized_expression (identifier) @font-lock-variable-name-face)
-     (parenthesized_expression (_ (identifier)) @font-lock-variable-name-face))
+     (parenthesized_expression (_ (identifier) @font-lock-variable-name-face)))
 
    :language language
    :override t
@@ -316,10 +316,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :language language
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face)
-
-
-   ))
+   '((escape_sequence) @font-lock-escape-face)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
