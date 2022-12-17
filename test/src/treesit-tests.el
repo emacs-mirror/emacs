@@ -198,6 +198,141 @@
       (kill-buffer base)
       (kill-buffer indirect))))
 
+;;; Tree traversal
+
+(ert-deftest treesit-search-subtree ()
+  "Test `treesit-search-subtree'."
+  (skip-unless (treesit-language-available-p 'json))
+  (with-temp-buffer
+    (let (parser root array)
+      (progn
+        (insert "[[1,2,3], [1,2,3], [1,2,3]]")
+        (setq parser (treesit-parser-create 'json))
+        (setq root (treesit-parser-root-node parser))
+        (setq array (treesit-node-child root 0)))
+      (dolist (subarray (treesit-node-children array t))
+        ;; Find named node forward.
+        (should (equal "1" (treesit-node-text
+                            (treesit-search-subtree
+                             subarray "number"))))
+        ;; Find named node backward.
+        (should (equal "3" (treesit-node-text
+                            (treesit-search-subtree
+                             subarray "number" t))))
+        ;; Find anonymous node forward.
+        (should (equal "[" (treesit-node-text
+                            (treesit-search-subtree
+                             subarray "\\[" nil t))))
+        ;; Find anonymous node backward.
+        (should (equal "]" (treesit-node-text
+                            (treesit-search-subtree
+                             subarray "\\]" t t))))
+        ;; If ALL=nil, it shouldn't find anonymous node.
+        (should (eq nil (treesit-node-text
+                         (treesit-search-subtree
+                          subarray "\\["))))
+        ;; If ALL=nil, searching for number should still find the
+        ;; numbers.
+        (should (equal "1" (treesit-node-text
+                            (treesit-search-subtree
+                             subarray "number" nil t))))
+        ;; Find named node backward.
+        (should (equal "3" (treesit-node-text
+                            (treesit-search-subtree
+                             subarray "number" t t))))
+        ))))
+
+(defmacro treesit--ert-search-setup (&rest body)
+  "Setup macro used by `treesit-search-forward' and friends.
+BODY is the test body."
+  `(with-temp-buffer
+     (let (parser root array)
+       (progn
+         (insert "[[1,2,3], [4,5,6], [7,8,9]]")
+         (setq parser (treesit-parser-create 'json))
+         (setq root (treesit-parser-root-node
+                     parser))
+         (setq array (treesit-node-child root 0))
+         ;; First bracket.
+         (setq cursor (treesit-node-child array 0)))
+       ,@body)))
+
+(ert-deftest treesit-search-forward ()
+  "Test `treesit-search-forward'."
+  (skip-unless (treesit-language-available-p 'json))
+  (treesit--ert-search-setup
+   (cl-loop for cursor = (treesit-node-child array 0)
+            then (treesit-search-forward cursor "" nil t)
+            for text in '("[" "[" "1" "," "2" "," "3" "]"
+                          "[1,2,3]" ","
+                          "[" "4" "," "5" "," "6" "]"
+                          "[4,5,6]" ","
+                          "[" "7" "," "8" "," "9" "]"
+                          "[7,8,9]" "]"
+                          "[[1,2,3], [4,5,6], [7,8,9]]")
+            while cursor
+            do (should (equal (treesit-node-text cursor)
+                              text)))))
+
+(ert-deftest treesit-search-forward-named-only ()
+  "Test `treesit-search-forward'."
+  (skip-unless (treesit-language-available-p 'json))
+  (treesit--ert-search-setup
+   (cl-loop for cursor = (treesit-node-child
+                          (treesit-node-child array 1) 1)
+            then (treesit-search-forward cursor "")
+            for text in '("1" "2"  "3" "[1,2,3]"
+                          "4" "5" "6" "[4,5,6]"
+                          "7" "8"  "9" "[7,8,9]"
+                          "[[1,2,3], [4,5,6], [7,8,9]]")
+            while cursor
+            do (should (equal (treesit-node-text cursor)
+                              text)))))
+
+(ert-deftest treesit-search-backward ()
+  "Test `treesit-search-forward'."
+  (skip-unless (treesit-language-available-p 'json))
+  (treesit--ert-search-setup
+   (cl-loop for cursor = (treesit-node-child array -1)
+            then (treesit-search-forward cursor "" t t)
+            for text in (reverse '("[[1,2,3], [4,5,6], [7,8,9]]"
+                                   "[" "[1,2,3]"
+                                   "[" "1" "," "2" "," "3" "]"
+                                   "," "[4,5,6]"
+                                   "[" "4" "," "5" "," "6" "]"
+                                   "," "[7,8,9]"
+                                   "[" "7" "," "8" "," "9" "]"
+                                   "]"))
+            while cursor
+            do (should (equal (treesit-node-text cursor)
+                              text)))))
+
+(ert-deftest treesit-search-backward-named-only ()
+  "Test `treesit-search-forward'."
+  (skip-unless (treesit-language-available-p 'json))
+  (treesit--ert-search-setup
+   (cl-loop for cursor = (treesit-node-child
+                          (treesit-node-child array -1 t) -1 t)
+            then (treesit-search-forward cursor "" t)
+            for text in (reverse '("[[1,2,3], [4,5,6], [7,8,9]]"
+                                   "[1,2,3]" "1" "2"  "3"
+                                   "[4,5,6]" "4" "5" "6"
+                                   "[7,8,9]" "7" "8"  "9"))
+            while cursor
+            do (should (equal (treesit-node-text cursor)
+                              text)))))
+
+(ert-deftest treesit-cursor-helper-with-missing-node ()
+  "Test treesit_cursor_helper with a missing node."
+  (skip-unless (treesit-language-available-p 'json))
+  (treesit--ert-search-setup
+   (delete-char -1)
+   (setq root (treesit-buffer-root-node))
+   (setq array (treesit-node-child root 0))
+   ;; If everything works, this should not hang.
+   (let ((missing-bracket (treesit-node-child array -1)))
+     (treesit-search-forward missing-bracket "" t))))
+
 ;;; Query
 
 (ert-deftest treesit-query-api ()

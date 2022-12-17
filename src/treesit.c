@@ -288,7 +288,7 @@ init_treesit_functions (void)
      slow enough to make insignificant any performance advantages from
      using the cursor.  Not exposing the cursor also minimizes the
      number of new types this adds to Emacs Lisp; currently, this adds
-     only the parser and node types.
+     only the parser, node, and compiled query types.
 
    - Because updating the change is handled on the C level as each
      change is made in the buffer, there is no way for Lisp to update
@@ -2687,63 +2687,143 @@ treesit_cursor_helper (TSNode node, Lisp_Object parser)
   return cursor;
 }
 
-/* Return the next/previous named/unnamed sibling of NODE.  FORWARD
-   controls the direction and NAMED controls the nameness.  */
-static TSNode
-treesit_traverse_sibling_helper (TSNode node, bool forward, bool named)
-{
-  if (forward)
-    {
-      if (named)
-	return ts_node_next_named_sibling (node);
-      else
-	return ts_node_next_sibling (node);
-    }
-  else
-    {
-      if (named)
-	return ts_node_prev_named_sibling (node);
-      else
-	return ts_node_prev_sibling (node);
-    }
-}
-
-/* Return the first/last named/unnamed child of NODE.  FORWARD controls
-   the direction and NAMED controls the nameness.  */
-static TSNode
-treesit_traverse_child_helper (TSNode node, bool forward, bool named)
-{
-  if (forward)
-    {
-      if (named)
-	return ts_node_named_child (node, 0);
-      else
-	return ts_node_child (node, 0);
-    }
-  else
-    {
-      if (named)
-	{
-	  uint32_t count = ts_node_named_child_count (node);
-	  uint32_t idx = count == 0 ? 0 : count - 1;
-	  return ts_node_named_child (node, idx);
-	}
-      else
-	{
-	  uint32_t count = ts_node_child_count (node);
-	  uint32_t idx = count == 0 ? 0 : count - 1;
-	  return ts_node_child (node, idx);
-	}
-    }
-}
-
-/* Return true if NODE matches PRED.  PRED can be a string or a
-   function.  This function assumes PRED is either a string or a
-   function.  */
+/* Move CURSOR to the next/previous sibling.  FORWARD controls the
+   direction.  NAMED controls the namedness.  If there is a valid
+   sibling, move CURSOR to it and return true, otherwise return false.
+   When false is returned, CURSOR points to a sibling node of the node
+   we started at, but exactly which is undefined.  */
 static bool
-treesit_traverse_match_predicate (TSNode node, Lisp_Object pred,
-				  Lisp_Object parser)
+treesit_traverse_sibling_helper (TSTreeCursor *cursor,
+				 bool forward, bool named)
 {
+  if (forward)
+    {
+      if (!named)
+	return ts_tree_cursor_goto_next_sibling (cursor);
+      /* Else named...  */
+      while (ts_tree_cursor_goto_next_sibling (cursor))
+	{
+	  if (ts_node_is_named (ts_tree_cursor_current_node (cursor)))
+	    return true;
+	}
+      return false;
+    }
+  else /* Backward.  */
+    {
+      /* Go to first child and go through each sibling, until we find
+	 the one just before the starting node.  */
+      TSNode start = ts_tree_cursor_current_node (cursor);
+      if (!ts_tree_cursor_goto_parent (cursor))
+	return false;
+      treesit_assume_true (ts_tree_cursor_goto_first_child (cursor));
+
+      /* Now CURSOR is at the first child.  If we started at the first
+	 child, then there is no further siblings.  */
+      TSNode first_child = ts_tree_cursor_current_node (cursor);
+      if (ts_node_eq (first_child, start))
+	return false;
+
+      /* PROBE is always DELTA siblings ahead of CURSOR. */
+      TSTreeCursor probe = ts_tree_cursor_copy (cursor);
+      /* This is position of PROBE minus position of CURSOR.  */
+      ptrdiff_t delta = 0;
+      TSNode probe_node;
+      TSNode cursor_node;
+      while (ts_tree_cursor_goto_next_sibling (&probe))
+	{
+	  /* Move PROBE forward, if it equals to the starting node,
+	     CURSOR points to the node we want (prev valid sibling of
+	     the starting node).  */
+	  delta++;
+	  probe_node = ts_tree_cursor_current_node (&probe);
+
+	  /* PROBE matched, depending on NAMED, return true/false.  */
+	  if (ts_node_eq (probe_node, start))
+	    {
+	      ts_tree_cursor_delete (&probe);
+	      cursor_node = ts_tree_cursor_current_node (cursor);
+	      ts_tree_cursor_delete (&probe);
+	      return (!named || (named && ts_node_is_named (cursor_node)));
+	    }
+
+	  /* PROBE didn't match, move CURSOR forward to PROBE's
+	     position, but if we are looking for named nodes, only
+	     move CURSOR to PROBE if PROBE is at a named node.  */
+	  if (!named || (named && ts_node_is_named (probe_node)))
+	    for (; delta > 0; delta--)
+	      treesit_assume_true (ts_tree_cursor_goto_next_sibling (cursor));
+	}
+      ts_tree_cursor_delete (&probe);
+      return false;
+    }
+}
+
+/* Move CURSOR to the first/last child.  FORWARD controls the
+   direction.  NAMED controls the namedness.  If there is a valid
+   child, move CURSOR to it and return true, otherwise don't move
+   CURSOR and return false.  */
+static bool
+treesit_traverse_child_helper (TSTreeCursor *cursor,
+			       bool forward, bool named)
+{
+  if (forward)
+    {
+      if (!named)
+	return ts_tree_cursor_goto_first_child (cursor);
+      else
+	{
+	  if (!ts_tree_cursor_goto_first_child (cursor))
+	    return false;
+	  /* After this point, if you return false, make sure to go
+	     back to parent.  */
+	  TSNode first_child = ts_tree_cursor_current_node (cursor);
+	  if (ts_node_is_named (first_child))
+	    return true;
+
+	  if (treesit_traverse_sibling_helper (cursor, true, true))
+	    return true;
+	  else
+	    {
+	      treesit_assume_true (ts_tree_cursor_goto_parent (cursor));
+	      return false;
+	    }
+	}
+    }
+  else /* Backward.  */
+    {
+      if (!ts_tree_cursor_goto_first_child (cursor))
+	return false;
+      /* After this point, if you return false, make sure to go
+	 back to parent.  */
+
+      /* First go to the last child.  */
+      while (ts_tree_cursor_goto_next_sibling (cursor));
+
+      if (!named)
+	return true;
+      /* Else named... */
+      if (treesit_traverse_sibling_helper(cursor, false, true))
+	return true;
+      else
+	{
+	  treesit_assume_true (ts_tree_cursor_goto_parent (cursor));
+	  return false;
+	}
+    }
+}
+
+/* Return true if the node at CURSOR matches PRED.  PRED can be a
+   string or a function.  This function assumes PRED is either a
+   string or a function.  If NAMED is true, also check that the node
+   is named.  */
+static bool
+treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
+				  Lisp_Object parser, bool named)
+{
+  TSNode node = ts_tree_cursor_current_node (cursor);
+  if (named && !ts_node_is_named (node))
+    return false;
+
   if (STRINGP (pred))
     {
       const char *type = ts_node_type (node);
@@ -2754,73 +2834,60 @@ treesit_traverse_match_predicate (TSNode node, Lisp_Object pred,
       Lisp_Object lisp_node = make_treesit_node (parser, node);
       return !NILP (CALLN (Ffuncall, pred, lisp_node));
     }
-
 }
 
-/* Traverse the parse tree starting from ROOT (but ROOT is not
-   matches against PRED).  PRED can be a function (takes a node and
-   returns nil/non-nil),or a string (treated as regexp matching the
-   node's type, ignores case, must be all single byte characters).  If
-   the node satisfies PRED , terminate, set ROOT to that node, and
-   return true.  If no node satisfies PRED, return FALSE.  PARSER is
-   the parser of ROOT.
+/* Traverse the parse tree starting from CURSOR.  PRED can be a
+   function (takes a node and returns nil/non-nil), or a string
+   (treated as regexp matching the node's type, must be all single
+   byte characters).  If the node satisfies PRED, leave CURSOR on that
+   node and return true.  If no node satisfies PRED, move CURSOR back
+   to starting position and return false.
 
    LIMIT is the number of levels we descend in the tree.  FORWARD
    controls the direction in which we traverse the tree, true means
-   forward, false backward.  If NAMED is true, only traverse named
-   nodes, if false, all nodes.  If SKIP_ROOT is true, don't match
-   ROOT.  */
+   forward, false backward.  If SKIP_ROOT is true, don't match ROOT.
+   */
 static bool
-treesit_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
-		    bool named, bool forward, ptrdiff_t limit,
+treesit_search_dfs (TSTreeCursor *cursor,
+		    Lisp_Object pred, Lisp_Object parser,
+		    bool forward, bool named, ptrdiff_t limit,
 		    bool skip_root)
 {
-  /* TSTreeCursor doesn't allow us to move backward, so we can't use
-     it.  */
-  TSNode node = *root;
+  if (!skip_root
+      && treesit_traverse_match_predicate (cursor, pred, parser, named))
+    return true;
 
-  if (!skip_root && treesit_traverse_match_predicate (node, pred, parser))
-    {
-      *root = node;
-      return true;
-    }
-
-  if (limit <= 0)
+  if (limit == 0)
     return false;
-  else
-    {
-      int count = (named
-		   ? ts_node_named_child_count (node)
-		   : ts_node_child_count (node));
-      for (int offset = 0; offset < count; offset++)
-	{
-	  uint32_t idx = forward ? offset : count - offset - 1;
-	  TSNode child = (named
-			  ? ts_node_named_child (node, idx)
-			  : ts_node_child (node, idx));
 
-	  if (!ts_node_is_null (child)
-	      && treesit_search_dfs (&child, pred, parser, named,
-				     forward, limit - 1, false))
-	    {
-	      *root = child;
-	      return true;
-	    }
-	}
-      return false;
+  if (!treesit_traverse_child_helper (cursor, forward, named))
+    return false;
+  /* After this point, if you return false, make sure to go back to
+     parent.  */
+
+  do /* Iterate through each child.  */
+    {
+      if (treesit_search_dfs (cursor, pred, parser, forward,
+			      named, limit - 1, false))
+	return true;
     }
+  while (treesit_traverse_sibling_helper (cursor, forward, false));
+
+  /* No match in any child's subtree, go back to starting node.  */
+  treesit_assume_true (ts_tree_cursor_goto_parent (cursor));
+  return false;
 }
 
 /* Go through the whole tree linearly, leaf-first, starting from
    START.  PRED, PARSER, NAMED, FORWARD are the same as in
-   ts_search_subtre.  If UP_ONLY is true, never go to children, only
-   sibling and parents.  */
+   ts_search_subtree.  If a match is found, leave CURSOR at that node,
+   and return true, if no match is found, return false, and CURSOR's
+   position is undefined.  */
 static bool
-treesit_search_forward (TSNode *start, Lisp_Object pred, Lisp_Object parser,
-			bool named, bool forward)
+treesit_search_forward (TSTreeCursor *cursor,
+			Lisp_Object pred, Lisp_Object parser,
+			bool forward, bool named)
 {
-  TSNode node = *start;
-
   /* We don't search for subtree and always search from the leaf
      nodes.  This way repeated call of this function traverses each
      node in the tree once and only once:
@@ -2830,39 +2897,26 @@ treesit_search_forward (TSNode *start, Lisp_Object pred, Lisp_Object parser,
   bool initial = true;
   while (true)
     {
-      if (!initial /* We don't match START.  */
-	  && treesit_traverse_match_predicate (node, pred, parser))
-	{
-	  *start = node;
-	  return true;
-	}
+      if (!initial /* We don't match the starting node.  */
+	  && treesit_traverse_match_predicate (cursor, pred, parser, named))
+	return true;
       initial = false;
 
-      TSNode next = treesit_traverse_sibling_helper (node, forward, named);
-      while (ts_node_is_null (next))
+      /* Try going to the next sibling, if there is no next sibling,
+	 go to parent and try again.  */
+      while (!treesit_traverse_sibling_helper (cursor, forward, named))
 	{
 	  /* There is no next sibling, go to parent.  */
-	  node = ts_node_parent (node);
-	  if (ts_node_is_null (node))
+	  if (!ts_tree_cursor_goto_parent (cursor))
 	    return false;
 
-	  if (treesit_traverse_match_predicate (node, pred, parser))
-	    {
-	      *start = node;
+	  if (treesit_traverse_match_predicate (cursor, pred, parser, named))
 	      return true;
-	    }
-	  next = treesit_traverse_sibling_helper (node, forward, named);
 	}
       /* We are at the next sibling, deep dive into the first leaf
 	 node.  */
-      TSNode next_next = treesit_traverse_child_helper (next, forward, named);
-      while (!ts_node_is_null (next_next))
-	{
-	  next = next_next;
-	  next_next = treesit_traverse_child_helper (next, forward, named);
-	}
-      /* At this point NEXT is a leaf node.  */
-      node = next;
+      while (treesit_traverse_child_helper (cursor, forward, false));
+      /* At this point CURSOR is at a leaf node.  */
     }
 }
 
@@ -2890,7 +2944,7 @@ Return the first matched node, or nil if none matches.  */)
   CHECK_SYMBOL (all);
   CHECK_SYMBOL (backward);
 
-  /* We use a default limit to 1000.  See bug#59426 for the
+  /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
   ptrdiff_t the_limit = 1000;
   if (!NILP (limit))
@@ -2901,13 +2955,17 @@ Return the first matched node, or nil if none matches.  */)
 
   treesit_initialize ();
 
-  TSNode treesit_node = XTS_NODE (node)->node;
   Lisp_Object parser = XTS_NODE (node)->parser;
-  if (treesit_search_dfs (&treesit_node, predicate, parser, NILP (all),
-			  NILP (backward), the_limit, false))
-    return make_treesit_node (parser, treesit_node);
-  else
-    return Qnil;
+  Lisp_Object return_value = Qnil;
+  TSTreeCursor cursor = treesit_cursor_helper (XTS_NODE (node)->node, parser);
+  if (treesit_search_dfs (&cursor, predicate, parser, NILP (backward),
+			  NILP (all), the_limit, false))
+    {
+      TSNode node = ts_tree_cursor_current_node (&cursor);
+      return_value = make_treesit_node (parser, node);
+    }
+  ts_tree_cursor_delete (&cursor);
+  return return_value;
 }
 
 DEFUN ("treesit-search-forward",
@@ -2951,13 +3009,17 @@ always traverse leaf nodes first, then upwards.  */)
 
   treesit_initialize ();
 
-  TSNode treesit_start = XTS_NODE (start)->node;
   Lisp_Object parser = XTS_NODE (start)->parser;
-  if (treesit_search_forward (&treesit_start, predicate, parser, NILP (all),
-			      NILP (backward)))
-    return make_treesit_node (parser, treesit_start);
-  else
-    return Qnil;
+  Lisp_Object return_value = Qnil;
+  TSTreeCursor cursor = treesit_cursor_helper (XTS_NODE (start)->node, parser);
+  if (treesit_search_forward (&cursor, predicate, parser,
+			      NILP (backward), NILP (all)))
+    {
+      TSNode node = ts_tree_cursor_current_node (&cursor);
+      return_value = make_treesit_node (parser, node);
+    }
+  ts_tree_cursor_delete (&cursor);
+  return return_value;
 }
 
 /* Recursively traverse the tree under CURSOR, and append the result
@@ -2969,13 +3031,12 @@ treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
 			   Lisp_Object pred, Lisp_Object process_fn,
 			   ptrdiff_t limit, Lisp_Object parser)
 {
-
-  TSNode node = ts_tree_cursor_current_node (cursor);
-  bool match = treesit_traverse_match_predicate (node, pred, parser);
+  bool match = treesit_traverse_match_predicate (cursor, pred, parser, false);
   if (match)
     {
       /* If this node matches pred, add a new node to the parent's
 	 children list.  */
+      TSNode node = ts_tree_cursor_current_node (cursor);
       Lisp_Object lisp_node = make_treesit_node (parser, node);
       if (!NILP (process_fn))
 	lisp_node = CALLN (Ffuncall, process_fn, lisp_node);
@@ -3056,7 +3117,7 @@ a regexp.  */)
   if (!NILP (process_fn))
     CHECK_TYPE (FUNCTIONP (process_fn), Qfunctionp, process_fn);
 
-  /* We use a default limit to 1000.  See bug#59426 for the
+  /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
   ptrdiff_t the_limit = 1000;
   if (!NILP (limit))
@@ -3067,11 +3128,12 @@ a regexp.  */)
 
   treesit_initialize ();
 
-  TSTreeCursor cursor = ts_tree_cursor_new (XTS_NODE (root)->node);
   Lisp_Object parser = XTS_NODE (root)->parser;
   Lisp_Object parent = Fcons (Qnil, Qnil);
+  TSTreeCursor cursor = treesit_cursor_helper (XTS_NODE (root)->node, parser);
   treesit_build_sparse_tree (&cursor, parent, predicate, process_fn,
 			     the_limit, parser);
+  ts_tree_cursor_delete (&cursor);
   Fsetcdr (parent, Fnreverse (Fcdr (parent)));
   if (NILP (Fcdr (parent)))
     return Qnil;
