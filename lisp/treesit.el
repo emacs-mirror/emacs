@@ -2037,8 +2037,8 @@ to the offending pattern and highlight the pattern."
              (goto-char (point-min))
              (insert (format "%s: %d\n" message start))
              (forward-char start)))
-         (pop-to-buffer buf)))))
-  (view-mode))
+         (pop-to-buffer buf)
+         (view-mode))))))
 
 ;;; Explorer
 
