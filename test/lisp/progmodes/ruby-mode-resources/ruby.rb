@@ -174,6 +174,9 @@ qux :+,
     bar,
     :a
 
+zzz @abc,
+    4
+
 b = $:
 c = ??
 

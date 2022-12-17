@@ -468,7 +468,7 @@ This only affects the output of the command `ruby-toggle-block'."
                                              "else" "elsif" "do" "end" "and")
                                            'symbols))))
          (memq (car (syntax-after pos)) '(7 15))
-         (looking-at "[([]\\|[-+!~:]\\(?:\\sw\\|\\s_\\)")))))
+         (looking-at "[([]\\|[-+!~:@$]\\(?:\\sw\\|\\s_\\)")))))
 
 (defun ruby-smie--before-method-name ()
   ;; Only need to be accurate when method has keyword name.
