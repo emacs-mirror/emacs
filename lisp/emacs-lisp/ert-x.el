@@ -102,24 +102,35 @@ the name of the test and the result of NAME-FORM."
            (indent 1))
   `(ert--call-with-test-buffer ,name-form (lambda () ,@body)))
 
-(cl-defmacro ert-with-test-buffer-selected ((&key name)
-                                            &body body)
-  "Create a test buffer, switch to it, and run BODY.
+(cl-defmacro ert-with-buffer-selected (buffer-or-name &body body)
+  "Display a buffer in a temporary selected window and run BODY.
 
-This extends `ert-with-test-buffer' by displaying the test
-buffer (whose name is derived from NAME) in a temporary window.
-The temporary window becomes the `selected-window' before BODY is
-evaluated.  The modification hooks `before-change-functions' and
+If BUFFER-OR-NAME is nil, the current buffer is used.
+
+The buffer is made the current buffer, and the temporary window
+becomes the `selected-window', before BODY is evaluated.  The
+modification hooks `before-change-functions' and
 `after-change-functions' are not inhibited during the evaluation
 of BODY, which makes it easier to use `execute-kbd-macro' to
 simulate user interaction.  The window configuration is restored
 before returning, even if BODY exits nonlocally.  The return
 value is the last form in BODY."
-  (declare (debug ((":name" form) body)) (indent 1))
-  `(ert-with-test-buffer (:name ,name)
-     (save-window-excursion
+  (declare (debug (form body)) (indent 1))
+  `(save-window-excursion
+     (with-current-buffer (or ,buffer-or-name (current-buffer))
        (with-selected-window (display-buffer (current-buffer))
          ,@body))))
+
+(cl-defmacro ert-with-test-buffer-selected ((&key name) &body body)
+  "Create a test buffer, switch to it, and run BODY.
+
+This combines `ert-with-test-buffer' and
+`ert-with-buffer-selected'.  The return value is the last form in
+BODY."
+  (declare (debug ((":name" form) body)) (indent 1))
+  `(ert-with-test-buffer (:name ,name)
+     (ert-with-buffer-selected (current-buffer)
+       ,@body)))
 
 ;;;###autoload
 (defun ert-kill-all-test-buffers ()
