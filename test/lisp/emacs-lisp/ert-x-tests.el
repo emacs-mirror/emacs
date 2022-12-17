@@ -90,6 +90,11 @@
   (ert-with-test-buffer-selected ()
     (should (null inhibit-modification-hooks))))
 
+(ert-deftest ert-test-with-test-buffer-selected/read-only ()
+  (ert-with-test-buffer-selected ()
+    (should (null inhibit-read-only))
+    (should (null buffer-read-only))))
+
 (ert-deftest ert-test-with-test-buffer-selected/return-value ()
   (should (equal (ert-with-test-buffer-selected () "foo") "foo")))
 
