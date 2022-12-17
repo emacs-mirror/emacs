@@ -3209,6 +3209,9 @@ This command creates a directory named @var{dirname}.  If
 @var{parents} is non-@code{nil}, as is always the case in an
 interactive call, that means to create the parent directories first,
 if they don't already exist.
+As a function, @code{make-directory} returns non-@code{nil} if @var{dirname}
+already exists as a directory and @var{parents} is non-@code{nil},
+and returns @code{nil} if it successfully created @var{dirname}.
 @code{mkdir} is an alias for this.
 @end deffn
 

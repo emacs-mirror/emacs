@@ -4486,6 +4486,11 @@ and cannot work with regular styles such as 'basic' or 'flex'.
 ** Magic file handlers for make-directory-internal are no longer needed.
 Instead, Emacs uses the already-existing make-directory handlers.
 
++++
+** (make-directory DIR t) returns non-nil if DIR already exists.
+This can let a caller know whether it created DIR.  Formerly,
+make-directory's return value was unspecified.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
