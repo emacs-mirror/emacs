@@ -6437,7 +6437,7 @@ into NEWNAME instead."
   ;; copy-directory handler.
   (let ((handler (or (find-file-name-handler directory 'copy-directory)
 		     (find-file-name-handler newname 'copy-directory)))
-	(follow parents))
+	follow)
     (if handler
 	(funcall handler 'copy-directory directory
                  newname keep-time parents copy-contents)
@@ -6457,19 +6457,24 @@ into NEWNAME instead."
 				    t)
 	      (make-symbolic-link target newname t)))
         ;; Else proceed to copy as a regular directory
-        (cond ((not (directory-name-p newname))
+	;; first by creating the destination directory if needed,
+	;; preparing to follow any symlink to a directory we did not create.
+	(setq follow
+	    (if (not (directory-name-p newname))
 	       ;; If NEWNAME is not a directory name, create it;
 	       ;; that is where we will copy the files of DIRECTORY.
-	       (make-directory newname parents))
+	       (make-directory newname parents)
 	      ;; NEWNAME is a directory name.  If COPY-CONTENTS is non-nil,
 	      ;; create NEWNAME if it is not already a directory;
 	      ;; otherwise, create NEWNAME/[DIRECTORY-BASENAME].
-	      ((if copy-contents
-		   (or parents (not (file-directory-p newname)))
+	      (unless copy-contents
 	         (setq newname (concat newname
 				       (file-name-nondirectory directory))))
-	       (make-directory (directory-file-name newname) parents))
-	      (t (setq follow t)))
+	      (condition-case err
+		  (make-directory (directory-file-name newname) parents)
+		(error
+		 (or (file-directory-p newname)
+		     (signal (car err) (cdr err)))))))
 
         ;; Copy recursively.
         (dolist (file
