@@ -1758,6 +1758,8 @@ If NODE is nil, return nil.  */)
   return build_string (string);
 }
 
+static TSTreeCursor treesit_cursor_helper (TSNode, Lisp_Object);
+
 DEFUN ("treesit-node-parent",
        Ftreesit_node_parent, Streesit_node_parent, 1, 1, 0,
        doc: /* Return the immediate parent of NODE.
@@ -1768,13 +1770,18 @@ Return nil if NODE has no parent.  If NODE is nil, return nil.  */)
   treesit_check_node (node);
   treesit_initialize ();
 
+  Lisp_Object return_value = Qnil;
+
   TSNode treesit_node = XTS_NODE (node)->node;
-  TSNode parent = ts_node_parent (treesit_node);
-
-  if (ts_node_is_null (parent))
-    return Qnil;
-
-  return make_treesit_node (XTS_NODE (node)->parser, parent);
+  Lisp_Object parser = XTS_NODE (node)->parser;
+  TSTreeCursor cursor = treesit_cursor_helper (treesit_node, parser);
+  if (ts_tree_cursor_goto_parent (&cursor))
+  {
+    TSNode parent = ts_tree_cursor_current_node (&cursor);
+    return_value = make_treesit_node (parser, parent);
+  }
+  ts_tree_cursor_delete (&cursor);
+  return return_value;
 }
 
 DEFUN ("treesit-node-child",
