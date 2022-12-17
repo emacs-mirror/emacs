@@ -5295,6 +5295,7 @@ indentation removed from its contents."
 ;; `org-element--cache-diagnostics-ring-size', `org-element--cache-map-statistics',
 ;; `org-element--cache-map-statistics-threshold'.
 
+;;;###autoload
 (defvar org-element-use-cache t
   "Non-nil when Org parser should cache its results.")
 

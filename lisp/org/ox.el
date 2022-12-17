@@ -4612,12 +4612,17 @@ If LINK refers to a remote resource, modify it to point to a local
 downloaded copy.  Otherwise, return unchanged LINK."
   (when (org-export-link-remote-p link)
     (let* ((local-path (org-export-link--remote-local-copy link)))
-      (setcdr link
-              (thread-first (cadr link)
-                            (plist-put :type "file")
-                            (plist-put :path local-path)
-                            (plist-put :raw-link (concat "file:" local-path))
-                            list))))
+      (if local-path
+          (setcdr link
+                  (thread-first (cadr link)
+                                (plist-put :type "file")
+                                (plist-put :path local-path)
+                                (plist-put :raw-link (concat "file:" local-path))
+                                list))
+        (display-warning
+         '(org export)
+         (format "unable to obtain local copy of %s"
+                 (org-element-property :raw-link link))))))
   link)
 
 ;;;; For References
@@ -4753,23 +4758,27 @@ objects of the same type."
      (let ((counter 0))
        ;; Increment counter until ELEMENT is found again.
        (org-element-map (plist-get info :parse-tree)
-	   (or types (org-element-type element))
+	   (or (and types (cons (org-element-type element) types))
+               (org-element-type element))
 	 (lambda (el)
            (let ((cached (org-element-property :org-export--counter el)))
 	     (cond
 	      ((eq element el) (1+ counter))
               ;; Use cached result.
-              ((and cached (equal predicate (car cached)))
-               (cdr cached))
+              ((and cached
+                    (equal predicate (car cached))
+                    (equal types (cadr cached)))
+               (setq counter (nth 2 cached))
+               nil)
 	      ((not predicate)
                (cl-incf counter)
                (org-element-put-property
-                el :org-export--counter (cons predicate counter))
+                el :org-export--counter (list predicate types counter))
                nil)
 	      ((funcall predicate el info)
                (cl-incf counter)
                (org-element-put-property
-                el :org-export--counter (cons predicate counter))
+                el :org-export--counter (list predicate types counter))
                nil))))
 	 info 'first-match)))))
 
