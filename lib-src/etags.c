@@ -7772,7 +7772,7 @@ escape_shell_arg_string (char *str)
 #endif
 
 static void
-do_move_file(const char *src_file, const char *dst_file)
+do_move_file (const char *src_file, const char *dst_file)
 {
   if (rename (src_file, dst_file) == 0)
     return;
