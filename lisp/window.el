@@ -2162,17 +2162,14 @@ the font."
     (let* ((window-width (window-body-width window t))
 	   (font-width (window-font-width window face))
 	   (ncols (- (/ window-width font-width)
-                     (ceiling (line-number-display-width 'columns)))))
+                     (ceiling (line-number-display-width 'columns))))
+           (fringes (window-fringes window))
+           (lfringe (car fringes))
+           (rfringe (nth 1 fringes)))
       (if (and (display-graphic-p)
 	       overflow-newline-into-fringe
-               (not
-                (or (eq left-fringe-width 0)
-                    (and (null left-fringe-width)
-                         (= (frame-parameter nil 'left-fringe) 0))))
-               (not
-                (or (eq right-fringe-width 0)
-                    (and (null right-fringe-width)
-                         (= (frame-parameter nil 'right-fringe) 0)))))
+               (not (eq lfringe 0))
+               (not (eq rfringe 0)))
 	  ncols
         ;; FIXME: This should remove 1 more column when there are no
         ;; fringes, lines are truncated, and the window is hscrolled,
