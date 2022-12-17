@@ -1038,17 +1038,6 @@ unquoted file names."
     (let ((default-directory nospecial-dir))
       (should-error (make-directory "dir")))))
 
-(ert-deftest files-tests-file-name-non-special-make-directory-internal ()
-  (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
-    (let ((default-directory nospecial-dir))
-      (make-directory-internal "dir")
-      (should (file-directory-p "dir"))
-      (delete-directory "dir")))
-  (files-tests--with-temp-non-special-and-file-name-handler
-      (tmpdir nospecial-dir t)
-    (let ((default-directory nospecial-dir))
-      (should-error (make-directory-internal "dir")))))
-
 (ert-deftest files-tests-file-name-non-special-make-nearby-temp-file ()
   (let* ((default-directory (file-name-quote temporary-file-directory))
          (near-tmpfile (make-nearby-temp-file "file")))

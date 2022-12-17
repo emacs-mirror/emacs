@@ -2427,15 +2427,10 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
   (Lisp_Object directory)
 {
   const char *dir;
-  Lisp_Object handler;
   Lisp_Object encoded_dir;
 
   CHECK_STRING (directory);
   directory = Fexpand_file_name (directory, Qnil);
-
-  handler = Ffind_file_name_handler (directory, Qmake_directory_internal);
-  if (!NILP (handler))
-    return call2 (handler, Qmake_directory_internal, directory);
 
   encoded_dir = ENCODE_FILE (directory);
 

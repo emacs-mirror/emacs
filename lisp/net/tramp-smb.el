@@ -1186,12 +1186,13 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(make-directory ldir parents))
       ;; Just do it.
       (when (file-directory-p ldir)
-	(make-directory-internal dir))
+	(make-directory dir))
       (unless (file-directory-p dir)
 	(tramp-error v 'file-error "Couldn't make directory %s" dir)))))
 
 (defun tramp-smb-handle-make-directory-internal (directory)
   "Like `make-directory-internal' for Tramp files."
+  (declare (obsolete nil "29.1"))
   (setq directory (directory-file-name (expand-file-name directory)))
   (unless (file-name-absolute-p directory)
     (setq directory (expand-file-name directory default-directory)))

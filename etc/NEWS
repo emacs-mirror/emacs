@@ -4482,6 +4482,10 @@ set is too big to transfer to Emacs every time a completion is
 needed.  The table uses new 'external' completion style exclusively
 and cannot work with regular styles such as 'basic' or 'flex'.
 
++++
+** Magic file handlers for make-directory-internal are no longer needed.
+Instead, Emacs uses the already-existing make-directory handlers.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
