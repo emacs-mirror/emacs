@@ -15165,9 +15165,7 @@ x_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
   XClientMessageEvent *ev = &event.xclient;
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  intptr_t iw = (intptr_t) w;
   verify (INTPTR_WIDTH <= 64);
-  int sign_shift = INTPTR_WIDTH - 32;
 
   /* Don't do anything if too many scroll bar events have been
      sent but not received.  */
