@@ -486,7 +486,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                          (setq form (macroexp--compiler-macro handler newform))
                          (if (eq newform form)
                              newform
-                           (macroexp--expand-all newform)))
+                           (macroexp--expand-all form)))
                      (macroexp--expand-all newform))))))
             (_ form))))
     (pop byte-compile-form-stack)))
