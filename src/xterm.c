@@ -6991,12 +6991,15 @@ static void
 x_sync_wait_for_frame_drawn_event (struct frame *f)
 {
   XEvent event;
+  struct x_display_info *dpyinfo;
 
   if (!FRAME_X_WAITING_FOR_DRAW (f)
       /* The compositing manager can't draw a frame if it is
 	 unmapped.  */
       || !FRAME_VISIBLE_P (f))
     return;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
   /* Wait for the frame drawn message to arrive.  */
   if (x_if_event (FRAME_X_DISPLAY (f), &event,
@@ -7013,6 +7016,11 @@ x_sync_wait_for_frame_drawn_event (struct frame *f)
 		   "been disabled\n");
 	  FRAME_X_OUTPUT (f)->use_vsync_p = false;
 
+	  /* Remove the compositor bypass property from the outer
+	     window.  */
+	  XDeleteProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+			   dpyinfo->Xatom_net_wm_bypass_compositor);
+
 	  /* Also change the frame parameter to reflect the new
 	     state.  */
 	  store_frame_param (f, Quse_frame_synchronization, Qnil);
@@ -7026,7 +7034,7 @@ x_sync_wait_for_frame_drawn_event (struct frame *f)
 	}
     }
   else
-    x_sync_note_frame_times (FRAME_DISPLAY_INFO (f), f, &event);
+    x_sync_note_frame_times (dpyinfo, f, &event);
 
   FRAME_X_WAITING_FOR_DRAW (f) = false;
 }
