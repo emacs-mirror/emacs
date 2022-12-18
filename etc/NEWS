@@ -31,12 +31,12 @@ in the Emacs tree should be natively compiled ahead of time.  (This is
 slow on most machines.)
 
 +++
-** Emacs can be built with the 'tree-sitter' parsing library.
+** Emacs can be built with the tree-sitter parsing library.
 This library, together with grammar libraries, provides incremental
 parsing capabilities for several popular programming languages and
 other formatted files.  Emacs built with this library offers major
 modes, described elsewhere in this file, that are based on the
-'tree-sitter's parsers.  If you have the 'tree-sitter' library
+tree-sitter's parsers.  If you have the tree-sitter library
 installed, the configure script will automatically include it in the
 build; use '--without-tree-sitter' at configure time to disable that.
 
@@ -49,17 +49,17 @@ required by some Emacs major mode, and your distro doesn't provide it
 as an installable package, you can compile and install such a library
 yourself.  Many libraries can be downloaded from the tree-sitter site:
 
-  https://github.com/tree-sitter
+    https://github.com/tree-sitter
 
-To compile such a library, compile the files scanner.c and parser.c
-(sometimes named scanner.cc and parser.cc) in the 'src' subdirectory
+To compile such a library, compile the files "scanner.c" and "parser.c"
+(sometimes named "scanner.cc" and "parser.cc") in the "src" subdirectory
 of the library's source tree using the C or C++ compiler, then link
-these two files into a shared library named 'libtree-sitter-LANG.so',
+these two files into a shared library named "libtree-sitter-LANG.so",
 where LANG is the name of the language supported by the grammar as it
-is expected by the Emacs major mode (for example, "c" for c-ts-mode,
-"cpp" for c++-ts-mode, "python" for python-ts-mode, etc.).  Then place
+is expected by the Emacs major mode (for example, "c" for 'c-ts-mode',
+"cpp" for 'c++-ts-mode', "python" for 'python-ts-mode', etc.).  Then place
 the shared library you've built in the same directory where you keep
-the other shared libraries used by Emacs, or in the 'tree-sitter'
+the other shared libraries used by Emacs, or in the "tree-sitter"
 subdirectory of your 'user-emacs-directory', or in a directory
 mentioned in the variable 'treesit-extra-load-path'.
 
@@ -3065,13 +3065,13 @@ optional, and you must turn them on manually, or customize
 'auto-mode-alist' to turn them on automatically.
 
 Each major mode based on tree-sitter needs a language grammar library,
-usually named 'libtree-sitter-LANG.so' ('libtree-sitter-LANG.dll' on
+usually named "libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on
 MS-Windows), where LANG is the corresponding language name.  Emacs
 looks for these libraries in the following places:
 
  . in the directories mentioned in the list 'treesit-extra-load-path'
- . in the 'tree-sitter' subdirectory of your 'user-emacs-directory'
-   (by default, '~/.emacs.d/tree-sitter')
+ . in the "tree-sitter" subdirectory of your 'user-emacs-directory'
+   (by default, "~/.emacs.d/tree-sitter")
  . in the standard system directories where other shared libraries are
    usually installed
 
@@ -4541,13 +4541,13 @@ needed.  The table uses new 'external' completion style exclusively
 and cannot work with regular styles such as 'basic' or 'flex'.
 
 +++
-** Magic file handlers for make-directory-internal are no longer needed.
-Instead, Emacs uses the already-existing make-directory handlers.
+** Magic file name handlers for 'make-directory-internal' are no longer needed.
+Instead, Emacs uses the already-existing 'make-directory' handlers.
 
 +++
-** (make-directory DIR t) returns non-nil if DIR already exists.
+** '(make-directory DIR t)' returns non-nil if DIR already exists.
 This can let a caller know whether it created DIR.  Formerly,
-make-directory's return value was unspecified.
+'make-directory's return value was unspecified.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
