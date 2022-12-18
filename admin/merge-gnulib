@@ -33,13 +33,14 @@ GNULIB_MODULES='
   crypto/md5 crypto/md5-buffer
   crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
   d-type diffseq double-slash-root dtoastr dtotimespec dup2
-  environ execinfo explicit_bzero faccessat
+  environ execinfo faccessat
   fchmodat fcntl fcntl-h fdopendir file-has-acl
   filemode filename filevercmp flexmember fpieee
   free-posix fstatat fsusage fsync futimens
   getloadavg getopt-gnu getrandom gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile libgmp lstat
-  manywarnings memmem-simple mempcpy memrchr minmax mkostemp mktime
+  manywarnings memmem-simple mempcpy memrchr memset_explicit
+  minmax mkostemp mktime
   nanosleep nproc nstrftime
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat regex

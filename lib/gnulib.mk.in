@@ -93,7 +93,6 @@
 #  dup2 \
 #  environ \
 #  execinfo \
-#  explicit_bzero \
 #  faccessat \
 #  fchmodat \
 #  fcntl \
@@ -126,6 +125,7 @@
 #  memmem-simple \
 #  mempcpy \
 #  memrchr \
+#  memset_explicit \
 #  minmax \
 #  mkostemp \
 #  mktime \
@@ -264,7 +264,6 @@ GL_COND_OBJ_DIRFD_CONDITION = @GL_COND_OBJ_DIRFD_CONDITION@
 GL_COND_OBJ_DUP2_CONDITION = @GL_COND_OBJ_DUP2_CONDITION@
 GL_COND_OBJ_EUIDACCESS_CONDITION = @GL_COND_OBJ_EUIDACCESS_CONDITION@
 GL_COND_OBJ_EXECINFO_CONDITION = @GL_COND_OBJ_EXECINFO_CONDITION@
-GL_COND_OBJ_EXPLICIT_BZERO_CONDITION = @GL_COND_OBJ_EXPLICIT_BZERO_CONDITION@
 GL_COND_OBJ_FACCESSAT_CONDITION = @GL_COND_OBJ_FACCESSAT_CONDITION@
 GL_COND_OBJ_FCHMODAT_CONDITION = @GL_COND_OBJ_FCHMODAT_CONDITION@
 GL_COND_OBJ_FCNTL_CONDITION = @GL_COND_OBJ_FCNTL_CONDITION@
@@ -1859,16 +1858,6 @@ EXTRA_DIST += execinfo.in.h
 
 endif
 ## end   gnulib module execinfo
-
-## begin gnulib module explicit_bzero
-ifeq (,$(OMIT_GNULIB_MODULE_explicit_bzero))
-
-ifneq (,$(GL_COND_OBJ_EXPLICIT_BZERO_CONDITION))
-libgnu_a_SOURCES += explicit_bzero.c
-endif
-
-endif
-## end   gnulib module explicit_bzero
 
 ## begin gnulib module faccessat
 ifeq (,$(OMIT_GNULIB_MODULE_faccessat))

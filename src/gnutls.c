@@ -2282,7 +2282,7 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
   Lisp_Object output;
   if (GNUTLS_E_SUCCESS <= ret)
     output = make_unibyte_string (storage, storage_length);
-  explicit_bzero (storage, storage_length);
+  memset_explicit (storage, 0, storage_length);
   gnutls_aead_cipher_deinit (acipher);
 
   if (ret < GNUTLS_E_SUCCESS)
