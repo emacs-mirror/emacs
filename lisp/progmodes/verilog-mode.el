@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2022.12.17.249810658
+;; Version: 2022.12.18.181110314
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2022-12-17-ee3cee2-vpo-GNU"
+(defconst verilog-mode-version "2022-12-18-acb862a-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -777,7 +777,8 @@ Only works if `verilog-align-decl-expr-comments' is non-nil."
 (defcustom verilog-align-typedef-regexp nil
   "Regexp that matches user typedefs for declaration alignment."
   :group 'verilog-mode-indent
-  :type 'string)
+  :type '(choice (regexp :tag "Regexp")
+                 (const :tag "None" nil)))
 (put 'verilog-align-typedef-regexp 'safe-local-variable #'stringp)
 
 (defcustom verilog-align-typedef-words nil
@@ -2888,7 +2889,7 @@ find the errors."
 (defconst verilog-interface-modport-re "\\(\\s-*\\([a-zA-Z0-9`_$]+\\.[a-zA-Z0-9`_$]+\\)[ \t\f]+\\)")
 (defconst verilog-comment-start-regexp "//\\|/\\*" "Dual comment value for `comment-start-regexp'.")
 (defconst verilog-typedef-enum-re
-  (concat "^\\s-*\\(typedef\\s-+\\)?enum\\(\\s-+" verilog-declaration-core-re "\\s-*" verilog-optional-signed-range-re "\\)?"))
+  (concat "^\\s-*\\(typedef\\s-+\\)?enum\\(\\s-+" verilog-declaration-core-re verilog-optional-signed-range-re "\\)?"))
 
 (defconst verilog-declaration-simple-re
   (concat "\\(" verilog-declaration-prefix-re "\\s-*\\)?" verilog-declaration-core-re))
@@ -4160,7 +4161,8 @@ Variables controlling indentation/edit style:
  `verilog-indent-level-directive'     (default 1)
    Indentation of \\=`ifdef/\\=`endif blocks.
  `verilog-indent-ignore-multiline-defines' (default t)
-   Non-nil means ignore indentation on lines that are part of a multiline define.
+   Non-nil means ignore indentation on lines that are part of a multiline
+   define.
  `verilog-indent-ignore-regexp'     (default nil
    Regexp that matches lines that should be ignored for indentation.
  `verilog-cexp-indent'              (default 1)
@@ -4232,17 +4234,20 @@ Some other functions are:
     \\[verilog-mark-defun]  Mark function.
     \\[verilog-beg-of-defun]  Move to beginning of current function.
     \\[verilog-end-of-defun]  Move to end of current function.
-    \\[verilog-label-be]  Label matching begin ... end, fork ... join, etc statements.
+    \\[verilog-label-be]  Label matching begin ... end, fork ... join, etc
+                          statements.
 
     \\[verilog-comment-region]  Put marked area in a comment.
-    \\[verilog-uncomment-region]  Uncomment an area commented with \\[verilog-comment-region].
+    \\[verilog-uncomment-region]  Uncomment an area commented with
+                                  \\[verilog-comment-region].
     \\[verilog-insert-block]  Insert begin ... end.
     \\[verilog-star-comment]    Insert /* ... */.
 
     \\[verilog-sk-always]  Insert an always @(AS) begin .. end block.
     \\[verilog-sk-begin]  Insert a begin .. end block.
     \\[verilog-sk-case]  Insert a case block, prompting for details.
-    \\[verilog-sk-for]  Insert a for (...) begin .. end block, prompting for details.
+    \\[verilog-sk-for]  Insert a for (...) begin .. end block, prompting for
+                        details.
     \\[verilog-sk-generate]  Insert a generate .. endgenerate block.
     \\[verilog-sk-header]  Insert a header block at the top of file.
     \\[verilog-sk-initial]  Insert an initial begin .. end block.
@@ -4265,14 +4270,17 @@ Some other functions are:
     \\[verilog-sk-else-if]  Insert an else if (..) begin .. end block.
     \\[verilog-sk-comment]  Insert a comment block.
     \\[verilog-sk-assign]  Insert an assign .. = ..; statement.
-    \\[verilog-sk-function]  Insert a function .. begin .. end endfunction block.
+    \\[verilog-sk-function]  Insert a function .. begin .. end endfunction
+                             block.
     \\[verilog-sk-input]  Insert an input declaration, prompting for details.
     \\[verilog-sk-output]  Insert an output declaration, prompting for details.
-    \\[verilog-sk-state-machine]  Insert a state machine definition, prompting for details.
+    \\[verilog-sk-state-machine]  Insert a state machine definition, prompting
+                                  for details.
     \\[verilog-sk-inout]  Insert an inout declaration, prompting for details.
     \\[verilog-sk-wire]  Insert a wire declaration, prompting for details.
     \\[verilog-sk-reg]  Insert a register declaration, prompting for details.
-    \\[verilog-sk-define-signal]  Define signal under point as a register at the top of the module.
+    \\[verilog-sk-define-signal]  Define signal under point as a register at
+                                  the top of the module.
 
 All key bindings can be seen in a Verilog-buffer with \\[describe-bindings].
 Key bindings specific to `verilog-mode-map' are:
@@ -6932,7 +6940,7 @@ Also move point to constraint."
                        ))
             ;; if first word token not keyword, it maybe the instance name
             ;;   check next word token
-            (if (looking-at "\\<\\w+\\>\\|\\s-*[\[(}]\\s-*\\S-+")
+            (if (looking-at "\\<\\w+\\>\\|\\s-*[[(}]\\s-*\\S-+")
                 (progn (verilog-beg-of-statement)
                        (if (and
                             (not (string-match verilog-named-block-re (buffer-substring pt (point)))) ;; Abort if 'begin' keyword is found
@@ -7397,7 +7405,7 @@ Do not count named blocks or case-statements."
                  (verilog-backward-up-list 1)
                  (setq pos (1+ (point)))
                  (backward-word)
-                 (or (looking-at (concat "$" verilog-identifier-re)) ; System function/task
+                 (or (looking-at (concat "\\$" verilog-identifier-re)) ; System function/task
                      (looking-at verilog-uvm-statement-re)))         ; `uvm_* macros
                (goto-char pos)
                (current-column))
