@@ -857,9 +857,10 @@ error is signaled.
 
 @defmac setopt [symbol form]@dots{}
 This is like @code{setq} (see above), but meant for user options.
-This macro uses the Customize machinery to set the variable(s).  In
-particular, @code{setopt} will run the setter function associated with
-the variable.  For instance, if you have:
+This macro uses the Customize machinery to set the variable(s)
+(@pxref{Variable Definitions}).  In particular, @code{setopt} will run
+the setter function associated with the variable.  For instance, if
+you have:
 
 @example
 @group
@@ -883,6 +884,12 @@ will also issue a message:
 @code{setopt} also checks whether the value is valid for the user
 option.  For instance, using @code{setopt} to set a user option
 defined with a @code{number} type to a string will signal an error.
+
+Unlike @code{defcustom} and related customization commands, such as
+@code{customize-variable}, @code{setopt} is meant for non-interactive
+use, in particular in the user init file.  For that reason, it doesn't
+record the standard, saved, and user-set values, and doesn't mark the
+variable as candidate for saving in the custom file.
 
 The @code{setopt} macro can be used on regular, non-user option
 variables, but is much less efficient than @code{setq}.  The main use
