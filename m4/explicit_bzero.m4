@@ -15,9 +15,3 @@ AC_DEFUN([gl_FUNC_EXPLICIT_BZERO],
     HAVE_EXPLICIT_BZERO=0
   fi
 ])
-
-AC_DEFUN([gl_PREREQ_EXPLICIT_BZERO],
-[
-  AC_CHECK_FUNCS([explicit_memset])
-  AC_CHECK_FUNCS_ONCE([memset_s])
-])
