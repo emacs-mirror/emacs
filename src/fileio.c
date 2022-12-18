@@ -2219,7 +2219,7 @@ permissions.  */)
       report_file_error ("Copying permissions to", newname);
     }
 #else /* not WINDOWSNT */
-  ifd = emacs_open (SSDATA (encoded_file), O_RDONLY, 0);
+  ifd = emacs_open (SSDATA (encoded_file), O_RDONLY | O_NONBLOCK, 0);
 
   if (ifd < 0)
     report_file_error ("Opening input file", file);
