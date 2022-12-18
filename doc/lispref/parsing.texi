@@ -1735,20 +1735,6 @@ For more information of these built-in tree-sitter features,
 For supporting mixing of multiple languages in a major mode,
 @pxref{Multiple Languages}.
 
-Setting the following local variables allows tree-sitter's indentation
-engine to correctly indent multi-line comments:
-
-@defvar treesit-comment-start
-This should be a regular expression matching an opening comment token.
-For example, it should match @samp{//}, @samp{////}, @samp{/*},
-@samp{/****}, etc., in C.
-@end defvar
-
-@defvar treesit-comment-end
-This should be a regular expression matching a closing comment token.
-For example, it should match @samp{*/}, @samp{****/}, etc., in C.
-@end defvar
-
 @node Tree-sitter C API
 @section Tree-sitter C API Correspondence
 
