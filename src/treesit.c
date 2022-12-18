@@ -52,7 +52,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_node_named_descendant_for_byte_range
 #undef ts_node_next_named_sibling
 #undef ts_node_next_sibling
-#undef ts_node_parent
 #undef ts_node_prev_named_sibling
 #undef ts_node_prev_sibling
 #undef ts_node_start_byte
@@ -76,7 +75,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_query_predicates_for_pattern
 #undef ts_query_string_value_for_id
 #undef ts_set_allocator
+#undef ts_tree_cursor_copy
 #undef ts_tree_cursor_current_node
+#undef ts_tree_cursor_delete
 #undef ts_tree_cursor_goto_first_child
 #undef ts_tree_cursor_goto_next_sibling
 #undef ts_tree_cursor_goto_parent
@@ -109,7 +110,6 @@ DEF_DLL_FN (TSNode, ts_node_named_descendant_for_byte_range,
 	    (TSNode, uint32_t, uint32_t));
 DEF_DLL_FN (TSNode, ts_node_next_named_sibling, (TSNode));
 DEF_DLL_FN (TSNode, ts_node_next_sibling, (TSNode));
-DEF_DLL_FN (TSNode, ts_node_parent, (TSNode));
 DEF_DLL_FN (TSNode, ts_node_prev_named_sibling, (TSNode));
 DEF_DLL_FN (TSNode, ts_node_prev_sibling, (TSNode));
 DEF_DLL_FN (uint32_t, ts_node_start_byte, (TSNode));
@@ -143,7 +143,9 @@ DEF_DLL_FN (const char *, ts_query_string_value_for_id,
 	    (const TSQuery *, uint32_t, uint32_t *));
 DEF_DLL_FN (void, ts_set_allocator,
 	    (void *(*)(size_t), void *(*)(size_t, size_t), void *(*)(void *, size_t), void (*)(void *)));
+DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_copy, (const TSTreeCursor *));
 DEF_DLL_FN (TSNode, ts_tree_cursor_current_node, (const TSTreeCursor *));
+DEF_DLL_FN (void, ts_tree_cursor_delete, (const TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_first_child, (TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_next_sibling, (TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_parent, (TSTreeCursor *));
@@ -182,7 +184,6 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_node_named_descendant_for_byte_range);
   LOAD_DLL_FN (library, ts_node_next_named_sibling);
   LOAD_DLL_FN (library, ts_node_next_sibling);
-  LOAD_DLL_FN (library, ts_node_parent);
   LOAD_DLL_FN (library, ts_node_prev_named_sibling);
   LOAD_DLL_FN (library, ts_node_prev_sibling);
   LOAD_DLL_FN (library, ts_node_start_byte);
@@ -206,7 +207,9 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_query_predicates_for_pattern);
   LOAD_DLL_FN (library, ts_query_string_value_for_id);
   LOAD_DLL_FN (library, ts_set_allocator);
+  LOAD_DLL_FN (library, ts_tree_cursor_copy);
   LOAD_DLL_FN (library, ts_tree_cursor_current_node);
+  LOAD_DLL_FN (library, ts_tree_cursor_delete);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_first_child);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_next_sibling);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_parent);
@@ -239,7 +242,6 @@ init_treesit_functions (void)
 #define ts_node_named_descendant_for_byte_range fn_ts_node_named_descendant_for_byte_range
 #define ts_node_next_named_sibling fn_ts_node_next_named_sibling
 #define ts_node_next_sibling fn_ts_node_next_sibling
-#define ts_node_parent fn_ts_node_parent
 #define ts_node_prev_named_sibling fn_ts_node_prev_named_sibling
 #define ts_node_prev_sibling fn_ts_node_prev_sibling
 #define ts_node_start_byte fn_ts_node_start_byte
@@ -263,7 +265,9 @@ init_treesit_functions (void)
 #define ts_query_predicates_for_pattern fn_ts_query_predicates_for_pattern
 #define ts_query_string_value_for_id fn_ts_query_string_value_for_id
 #define ts_set_allocator fn_ts_set_allocator
+#define ts_tree_cursor_copy fn_ts_tree_cursor_copy
 #define ts_tree_cursor_current_node fn_ts_tree_cursor_current_node
+#define ts_tree_cursor_delete fn_ts_tree_cursor_delete
 #define ts_tree_cursor_goto_first_child fn_ts_tree_cursor_goto_first_child
 #define ts_tree_cursor_goto_next_sibling fn_ts_tree_cursor_goto_next_sibling
 #define ts_tree_cursor_goto_parent fn_ts_tree_cursor_goto_parent
