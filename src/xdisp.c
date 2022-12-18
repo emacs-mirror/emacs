@@ -6281,13 +6281,16 @@ static ptrdiff_t
 string_buffer_position (Lisp_Object string, ptrdiff_t around_charpos)
 {
   const int MAX_DISTANCE = 1000;
+  ptrdiff_t forward_limit = min (around_charpos + MAX_DISTANCE, ZV);
   ptrdiff_t found = string_buffer_position_lim (string, around_charpos,
-						around_charpos + MAX_DISTANCE,
-						false);
+						forward_limit, false);
 
   if (!found)
-    found = string_buffer_position_lim (string, around_charpos,
-					around_charpos - MAX_DISTANCE, true);
+    {
+      ptrdiff_t backward_limit = max (around_charpos - MAX_DISTANCE, BEGV);
+      found = string_buffer_position_lim (string, around_charpos,
+					  backward_limit, true);
+    }
   return found;
 }
 
