@@ -40,6 +40,34 @@ modes, described elsewhere in this file, that are based on the
 installed, the configure script will automatically include it in the
 build; use '--without-tree-sitter' at configure time to disable that.
 
+Emacs modes based on the tree-sitter library require an additional
+grammar library for each mode.  These grammar libraries provide the
+tree-sitter library with language-specific lexical analysis and
+parsing capabilities, and are developed separately from the
+tree-sitter library itself.  If you don't have a grammar library
+required by some Emacs major mode, and your distro doesn't provide it
+as an installable package, you can compile and install such a library
+yourself.  Many libraries can be downloaded from the tree-sitter site:
+
+  https://github.com/tree-sitter
+
+To compile such a library, compile the files scanner.c and parser.c
+(sometimes named scanner.cc and parser.cc) in the 'src' subdirectory
+of the library's source tree using the C or C++ compiler, then link
+these two files into a shared library named 'libtree-sitter-LANG.so',
+where LANG is the name of the language supported by the grammar as it
+is expected by the Emacs major mode (for example, "c" for c-ts-mode,
+"cpp" for c++-ts-mode, "python" for python-ts-mode, etc.).  Then place
+the shared library you've built in the same directory where you keep
+the other shared libraries used by Emacs, or in the 'tree-sitter'
+subdirectory of your 'user-emacs-directory', or in a directory
+mentioned in the variable 'treesit-extra-load-path'.
+
+You only need to install language grammar libraries required by the
+Emacs modes you will use, as Emacs loads these libraries only when the
+corresponding mode is turned on in some buffer for the first time in
+an Emacs session.
+
 +++
 ** Emacs can be built with built-in support for accessing SQLite databases.
 This uses the popular sqlite3 library, and can be disabled by using
@@ -3027,6 +3055,29 @@ tree-sitter library.  They provide support for font-locking,
 indentation, and navigation by defuns based on parsing the buffer text
 by a tree-sitter parser.  Some major modes also offer support for
 Imenu and 'which-func'.
+
+Where major modes already exist in Emacs for editing certain kinds of
+files, the new modes based on tree-sitter are for now entirely
+optional, and you must turn them on manually, or customize
+'auto-mode-alist' to turn them on automatically.
+
+Each major mode based on tree-sitter needs a language grammar library,
+usually named 'libtree-sitter-LANG.so' ('libtree-sitter-LANG.dll' on
+MS-Windows), where LANG is the corresponding language name.  Emacs
+looks for these libraries in the following places:
+
+ . in the directories mentioned in the list 'treesit-extra-load-path'
+ . in the 'tree-sitter' subdirectory of your 'user-emacs-directory'
+   (by default, '~/.emacs.d/tree-sitter')
+ . in the standard system directories where other shared libraries are
+   usually installed
+
+We recommend to install these libraries in one of the standard system
+locations (the last place in the above list).
+
+If a language grammar library required by a mode is not found in any
+of the above places, the mode will signal an error when you try to
+turn it on.
 
 *** New major mode 'typescript-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
