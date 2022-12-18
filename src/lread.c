@@ -5479,11 +5479,16 @@ to the specified file name if a suffix is allowed or required.  */);
 
   DEFVAR_LISP ("dynamic-library-suffixes", Vdynamic_library_suffixes,
 	       doc: /* A list of suffixes for loadable dynamic libraries.  */);
-  Vdynamic_library_suffixes =
-    Fcons (build_pure_c_string (DYNAMIC_LIB_SECONDARY_SUFFIX), Qnil);
-  Vdynamic_library_suffixes =
-    Fcons (build_pure_c_string (DYNAMIC_LIB_SUFFIX),
-	   Vdynamic_library_suffixes);
+
+#ifndef MSDOS
+  Vdynamic_library_suffixes
+    = Fcons (build_pure_c_string (DYNAMIC_LIB_SECONDARY_SUFFIX), Qnil);
+  Vdynamic_library_suffixes
+    = Fcons (build_pure_c_string (DYNAMIC_LIB_SUFFIX),
+	     Vdynamic_library_suffixes);
+#else
+  Vdynamic_library_suffixes = Qnil;
+#endif
 
   DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
