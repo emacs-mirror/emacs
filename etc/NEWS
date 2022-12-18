@@ -2758,6 +2758,9 @@ project-dedicated or global) is specified by the new
 ---
 *** New user option 'ruby-toggle-block-space-before-parameters'.
 
+---
+*** Support for endless methods.
+
 ** Eshell
 
 +++

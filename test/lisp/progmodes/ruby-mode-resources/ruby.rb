@@ -177,6 +177,9 @@ qux :+,
 zzz @abc,
     4
 
+foo a = 5,
+    b
+
 b = $:
 c = ??
 
@@ -502,4 +505,34 @@ def resolve(**args)
   end
 
   member.call(**args)
+end
+
+# Endless methods.
+class Bar
+  def foo(abc) = bar +
+                 baz
+
+  def self.bar =
+    123 +
+    4
+
+  def foo(...) = z
+
+  def request_params = {
+    headers: request_headers,
+    body: request_body
+  }
+
+  def self.foo(
+        baz,
+        bar
+      ) =
+    what
+
+  def foo=(
+        baz,
+        bar
+      )
+    hello
+  end
 end
