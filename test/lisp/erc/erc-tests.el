@@ -1790,4 +1790,65 @@ connection."
                       (put 'erc-mname-enable 'definition-name 'mname)
                       (put 'erc-mname-disable 'definition-name 'mname))))))
 
+
+;; XXX move erc-button tests to new file if more added.
+(require 'erc-button)
+
+;; See also `erc-scenarios-networks-announced-missing' in
+;; erc-scenarios-misc.el for a more realistic example.
+(ert-deftest erc-button--display-error-notice-with-keys ()
+  (with-current-buffer (get-buffer-create "*fake*")
+    (let ((mode erc-button-mode)
+          (inhibit-message noninteractive)
+          erc-modules
+          erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+      (erc-mode)
+      (erc-tests--set-fake-server-process "sleep" "1")
+      (erc--initialize-markers (point) nil)
+      (erc-button-mode +1)
+      (should (equal (erc-button--display-error-notice-with-keys
+                      "If \\[erc-bol] fails, "
+                      "see \\[erc-bug] or `erc-mode-map'.")
+                     "*** If C-a fails, see M-x erc-bug or `erc-mode-map'."))
+      (goto-char (point-min))
+
+      (ert-info ("Keymap substitution succeeds")
+        (erc-button-next)
+        (should (looking-at "C-a"))
+        (should (eq (get-text-property (point) 'mouse-face) 'highlight))
+        (erc-button-press-button)
+        (with-current-buffer "*Help*"
+          (goto-char (point-min))
+          (should (search-forward "erc-bol" nil t)))
+        (erc-button-next)
+        (erc-button-previous) ; end of interval correct
+        (should (looking-at "a fails")))
+
+      (ert-info ("Extended command mapping succeeds")
+        (erc-button-next)
+        (should (looking-at "M-x erc-bug"))
+        (erc-button-press-button)
+        (should (eq (get-text-property (point) 'mouse-face) 'highlight))
+        (with-current-buffer "*Help*"
+          (goto-char (point-min))
+          (should (search-forward "erc-bug" nil t))))
+
+      (ert-info ("Symbol-description face preserved") ; mutated by d-e-n-w-k
+        (erc-button-next)
+        (should (equal (get-text-property (point) 'font-lock-face)
+                       '(erc-button erc-error-face)))
+        (should (eq (get-text-property (point) 'mouse-face) 'highlight))
+        (should (eq erc-button-face 'erc-button))) ; extent evaporates
+
+      (ert-info ("Format when trailing args include non-strings")
+        (should (equal (erc-button--display-error-notice-with-keys
+                        "abc" " %d def" " 45%s" 123 '\6)
+                       "*** abc 123 def 456")))
+
+      (when noninteractive
+        (unless mode
+          (erc-button-mode -1))
+        (kill-buffer "*Help*")
+        (kill-buffer)))))
+
 ;;; erc-tests.el ends here

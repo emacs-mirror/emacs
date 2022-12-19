@@ -67,6 +67,9 @@
 (declare-function erc-server-process-alive "erc-backend" (&optional buffer))
 (declare-function erc-set-active-buffer "erc" (buffer))
 
+(declare-function erc-button--display-error-notice-with-keys
+                  (parsed &rest strings))
+
 ;; Variables
 
 (defgroup erc-networks nil
@@ -1310,12 +1313,11 @@ shutting down the connection."
 Copy source (prefix) from MOTD-ish message as a last resort."
   ;; The 004 handler never ran; see 2004-03-10 Diane Murray in change log
   (unless erc-server-announced-name
-    (setq erc-server-announced-name (erc-response.sender parsed))
-    (erc-display-error-notice
-     parsed (concat "Failed to determine server name. Using \""
-                    erc-server-announced-name "\" instead."
-                    "  If this was unexpected, consider reporting it via "
-                    (substitute-command-keys "\\[erc-bug]") ".")))
+    (require 'erc-button)
+    (erc-button--display-error-notice-with-keys
+     parsed "Failed to determine server name.  Using \""
+     (setq erc-server-announced-name (erc-response.sender parsed)) "\" instead"
+     ".  If this was unexpected, consider reporting it via \\[erc-bug]" "."))
   nil)
 
 (defun erc-unset-network-name (_nick _ip _reason)
@@ -1493,9 +1495,9 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
                                       (memq (erc--target-symbol erc--target)
                                             erc-networks--bouncer-targets)))
                                proc)
-      (let ((m (concat "Unexpected state detected. Please report via "
-                       (substitute-command-keys "\\[erc-bug]") ".")))
-        (erc-display-error-notice parsed m))))
+      (require 'erc-button)
+      (erc-button--display-error-notice-with-keys
+       parsed "Unexpected state detected.  Please report via \\[erc-bug].")))
 
   ;; For now, retain compatibility with erc-server-NNN-functions.
   (or (erc-networks--ensure-announced proc parsed)
