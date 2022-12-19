@@ -133,7 +133,7 @@ longer than `erc-fill-column'."
     ("[`‘]\\([a-zA-Z][-a-zA-Z_0-9!*<=>+]+\\)['’]"
      1 t erc-button-describe-symbol 1)
     ;; pseudo links
-    ("\\bInfo:[\"]\\([^\"]+\\)[\"]" 0 t Info-goto-node 1)
+    ("\\(?:\\bInfo: ?\\|(info \\)[\"]\\(([^\"]+\\)[\"])?" 0 t info 1)
     ("\\b\\(Ward\\|Wiki\\|WardsWiki\\|TheWiki\\):\\([A-Z][a-z]+\\([A-Z][a-z]+\\)+\\)"
      0 t (lambda (page)
            (browse-url (concat "http://c2.com/cgi-bin/wiki?" page)))

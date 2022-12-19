@@ -1292,7 +1292,6 @@ shutting down the connection."
                      erc-server-announced-name "\" in `erc-networks-alist'"
                      " or consider calling `erc-tls' with the keyword `:id'."
                      "  See Info:\"(erc) Network Identifier\" for more.")))
-     (require 'info)
      (erc-display-error-notice parsed m)
      (if erc-networks--allow-unknown-network
          (progn
@@ -1514,7 +1513,6 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
   "Emit warning when the `networks' module hasn't been loaded.
 Ideally, do so upon opening the network process."
   (unless (or erc--target erc-networks-mode)
-    (require 'info nil t)
     (let ((m (concat "Required module `networks' not loaded.  If this "
                      " was unexpected, please add it to `erc-modules'.")))
       ;; Assume the server buffer has been marked as active.
