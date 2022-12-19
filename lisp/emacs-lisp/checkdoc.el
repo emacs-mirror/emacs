@@ -22,28 +22,35 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;;   The Emacs Lisp manual has a nice chapter on how to write
 ;; documentation strings.  Many stylistic suggestions are fairly
 ;; deterministic and easy to check for syntactically, but also easy
 ;; to forget.  The main checkdoc engine will perform the stylistic
 ;; checks needed to make sure these styles are remembered.
 ;;
-;; There are three ways to use checkdoc:
-;;   1) Use `flymake-mode'.
+;; There are four ways to use checkdoc:
+;;
+;;   1) Use `flymake-mode'.  Type `M-x flymake-mode' in any Emacs Lisp
+;;      buffer; the checkdoc back-end is enabled by default.
+;;
 ;;   2) Periodically use `checkdoc' or `checkdoc-current-buffer'.
-;;      `checkdoc' is a more interactive version of
-;;      `checkdoc-current-buffer'
+;;      The `checkdoc' command is a more interactive version of
+;;      `checkdoc-current-buffer'.
+;;
 ;;   3) Use `checkdoc-minor-mode' to automatically check your
 ;;      documentation whenever you evaluate Lisp code with C-M-x
 ;;      or [menu-bar emacs-lisp eval-buffer].  Additional key-bindings
 ;;      are also provided under C-c ? KEY
 ;;        (add-hook 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
 ;;
+;;   4) Use `checkdoc-ispell' to spellcheck docstrings interactively.
+;;
 ;; Using `checkdoc':
 ;;
-;;   The commands `checkdoc' and `checkdoc-ispell' are the top-level
-;; entry points to all of the different checks that are available.  It
+;;   Most users will probably use checkdoc through `flymake'.  The
+;; commands `checkdoc' and `checkdoc-ispell' are the top-level entry
+;; points to all of the different checks that are available.  It
 ;; breaks examination of your Lisp file into four sections (comments,
 ;; documentation, messages, and spacing) and indicates its current
 ;; state in a status buffer.
@@ -66,7 +73,7 @@
 ;; interface offers several options, including the ability to skip to
 ;; the next error, or back up to previous errors.  Auto-fixing is
 ;; turned off at this stage, but you can use the `f' or `F' key to fix
-;; a given error (if the fix is available.)
+;; a given error (if the fix is available).
 ;;
 ;; Auto-fixing:
 ;;
@@ -99,6 +106,7 @@
 ;; install into Ispell on the fly, but only if Ispell is not already
 ;; running.  Use `ispell-kill-ispell' to make checkdoc restart it with
 ;; these words enabled.
+;;   See also the `flyspell-prog-mode' minor mode.
 ;;
 ;; Checking parameters:
 ;;
@@ -176,6 +184,7 @@
   "Support for doc string checking in Emacs Lisp."
   :prefix "checkdoc"
   :group 'lisp
+  :link '(emacs-commentary-link "checkdoc.el")
   :version "20.3")
 
 (defcustom checkdoc-minor-mode-string " CDoc"

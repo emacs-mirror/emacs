@@ -1841,7 +1841,9 @@ AC_CHECK_HEADERS_ONCE(
   coff.h pty.h
   sys/resource.h
   sys/utsname.h pwd.h utmp.h util.h
-  sanitizer/lsan_interface.h])
+  sanitizer/lsan_interface.h
+  sanitizer/asan_interface.h
+  sanitizer/common_interface_defs.h])
 
 AC_CACHE_CHECK([for ADDR_NO_RANDOMIZE],
   [emacs_cv_personality_addr_no_randomize],
@@ -3933,21 +3935,10 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${HAVE_XCB}" = "yes"; then
     AC_CHECK_LIB([X11-xcb], [XGetXCBConnection], [HAVE_X11_XCB=yes])
     if test "${HAVE_X11_XCB}" = "yes"; then
-      AC_CHECK_LIB([xcb-util], [xcb_aux_sync], [HAVE_XCB_UTIL=yes])
-      if test "${HAVE_XCB_UTIL}" = "yes"; then
-	AC_DEFINE([USE_XCB], [1],
+      AC_DEFINE([USE_XCB], [1],
 [Define to 1 if you have the XCB library and X11-XCB library for mixed
-  X11/XCB programming.])
-        XCB_LIBS="-lX11-xcb -lxcb -lxcb-util"
-      else
-	AC_CHECK_LIB([xcb-aux], [xcb_aux_sync], [HAVE_XCB_AUX=yes])
-        if test "${HAVE_XCB_AUX}" = "yes"; then
-	  AC_DEFINE([USE_XCB], [1],
-[Define to 1 if you have the XCB library and X11-XCB library for mixed
- X11/XCB programming.])
-          XCB_LIBS="-lX11-xcb -lxcb -lxcb-aux"
-        fi
-      fi
+X11/XCB programming.])
+      XCB_LIBS="-lX11-xcb -lxcb"
     fi
   fi
 fi
@@ -5008,6 +4999,7 @@ pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 getpwent endpwent getgrent endgrent \
+renameat2 \
 cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np \
 pthread_set_name_np])
 LIBS=$OLD_LIBS
@@ -6000,7 +5992,7 @@ case $opsys in
   gnu-linux | gnu-kfreebsd )
     AC_DEFINE([USG], [])
     AC_DEFINE([GNU_LINUX], [],
-      [Define if ths system is compatible with GNU/Linux.])
+      [Define if this system is compatible with GNU/Linux.])
     ;;
 
   hpux*)

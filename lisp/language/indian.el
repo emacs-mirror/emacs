@@ -552,24 +552,40 @@ environment."))
    char-script-table))
 
 ;; Brahmi composition rules
-(let ((consonant     "[\U00011013-\U00011034]")
-      (non-consonant "[^\U00011013-\U00011034\U00011046\U0001107F]")
-      (vowel         "[\U00011038-\U00011045]")
-      (numeral       "[\U00011052-\U00011065]")
-      (multiplier    "[\U00011064\U00011065]")
-      (virama        "\U00011046")
-      (number-joiner "\U0001107F"))
+(let ((consonant            "[\x11013-\x11037\x11075]")
+      (independent-vowel    "[\x11005-\x11012\x11071\x11072]")
+      (vowel                "[\x11038-\x11045\x11073\x11074]")
+      (nasal                "[\x11000\x11001]")
+      (virama               "\x11046")
+      (jivhamuliya          "\x11003")
+      (upadhmaniya          "\x11004")
+      (ka-kha               "[\x11013\x11014]")
+      (pa-pha               "[\x11027\x11028]")
+      (number-joiner        "\x1107F")
+      (numeral              "[\x11052-\x11065]")
+      (multiplier           "[\x11064\x11065]"))
   (set-char-table-range composition-function-table
-		        '(#x11046 . #x11046)
+                        '(#x11046 . #x11046)
                         (list (vector
-                               ;; Consonant conjuncts
-                               (concat consonant "\\(?:" virama consonant "\\)+"
-                                       vowel "?")
+                               ;; Consonant based syllables
+                               (concat consonant "\\(?:" virama consonant
+                                       "\\)*\\(?:" virama "\\|" vowel "*"
+                                       nasal "?\\)")
                                1 'font-shape-gstring)
                               (vector
-                               ;; Vowelless consonants
-                               (concat consonant virama non-consonant)
+                               ;; Vowel based syllables
+                               (concat independent-vowel virama "?" vowel "?" nasal "?")
                                1 'font-shape-gstring)))
+  (set-char-table-range composition-function-table
+                        '(#x11003 . #x11004)
+                        (list (vector
+                               ;; Velar fricative
+                               (concat jivhamuliya ka-kha "?")
+                               0 'font-shape-gstring)
+                              (vector
+                               ;; Bilabial fricative
+                               (concat upadhmaniya pa-pha "?")
+                               0 'font-shape-gstring)))
   (set-char-table-range composition-function-table
                         '(#x1107F . #x1107F)
                         (list (vector

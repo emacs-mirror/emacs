@@ -263,8 +263,6 @@ Populated by `tabulated-list-init-header'.")
   'header-line-indent--line-number-width "29.1")
 (define-obsolete-function-alias 'tabulated-list-watch-line-number-width
   'header-line-indent--watch-line-number-width "29.1")
-(define-obsolete-function-alias 'tabulated-list-watch-line-number-width
-  'header-line-indent--watch-line-number-width "29.1")
 (define-obsolete-function-alias 'tabulated-list-window-scroll-function
   'header-line-indent--window-scroll-function "29.1")
 

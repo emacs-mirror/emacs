@@ -318,7 +318,7 @@ connection if a previous connection has died for some reason."
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)))
 
-  ;; The following operations must be performed w/o
+  ;; The following operations must be performed without
   ;; `tramp-crypt-file-name-handler'.
   (let* (tramp-crypt-enabled
 	 ;; Don't check for a proper method.

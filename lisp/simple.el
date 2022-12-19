@@ -2929,11 +2929,12 @@ that was current when the minibuffer was activated."
                       (window-buffer (minibuffer-selected-window))))
 
 (defun goto-history-element (nabs)
-  "Puts element of the minibuffer history in the minibuffer.
-The argument NABS specifies the absolute history position in
-descending order, where 0 means the current element and a
-positive number N means the Nth previous element.  NABS being a
-negative number -N means the Nth entry of \"future history.\""
+  "Insert into the minibuffer the element of minibuffer history specified by NABS.
+Interactively, NABS is the prefix numeric argument, and defaults to 1.
+It specifies the absolute history position in descending order,
+where 0 means the current element and a positive number N means
+the Nth previous element.  NABS that is a negative number -N means
+the Nth entry of \"future history.\""
   (interactive "p")
   (when (and (not minibuffer-default-add-done)
 	     (functionp minibuffer-default-add-function)
@@ -2989,17 +2990,17 @@ negative number -N means the Nth entry of \"future history.\""
     (goto-char (or minibuffer-temporary-goal-position (point-max)))))
 
 (defun next-history-element (n)
-  "Puts next element of the minibuffer history in the minibuffer.
-With argument N, it uses the Nth following element.  The position
-in the history can go beyond the current position and invoke \"future
-history.\""
+  "Insert into the minibuffer the Nth next element of minibuffer history.
+Interactively, N is the prefix numeric argument and defaults to 1.
+The value N can go beyond the current position in the minibuffer
+history,  and invoke \"future history.\""
   (interactive "p")
   (or (zerop n)
       (goto-history-element (- minibuffer-history-position n))))
 
 (defun previous-history-element (n)
-  "Puts previous element of the minibuffer history in the minibuffer.
-With argument N, it uses the Nth previous element."
+  "Insert into the minibuffer the Nth previous element of minibuffer history.
+Interactively, N is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (or (zerop n)
       (goto-history-element (+ minibuffer-history-position n))))
@@ -9578,8 +9579,6 @@ makes it easier to edit it."
     (define-key map "\C-m" 'choose-completion)
     (define-key map "\e\e\e" 'delete-completion-window)
     (define-key map [remap keyboard-quit] #'delete-completion-window)
-    (define-key map [up] 'previous-line-completion)
-    (define-key map [down] 'next-line-completion)
     (define-key map [left] 'previous-completion)
     (define-key map [right] 'next-completion)
     (define-key map [?\t] 'next-completion)
@@ -9639,8 +9638,7 @@ Go to the window from which completion was requested."
 
 (defcustom completion-auto-wrap t
   "Non-nil means to wrap around when selecting completion options.
-This affects the commands `next-completion', `previous-completion',
-`next-line-completion' and `previous-line-completion'.
+This affects the commands `next-completion' and `previous-completion'.
 When `completion-auto-select' is t, it wraps through the minibuffer
 for the commands bound to the TAB key."
   :type 'boolean
@@ -9745,73 +9743,6 @@ Also see the `completion-auto-wrap' variable."
 
     (when (/= 0 n)
       (switch-to-minibuffer))))
-
-(defun previous-line-completion (&optional n)
-  "Move to the item on the previous line in the completion list.
-With prefix argument N, move back N items line-wise (negative N
-means move forward).
-
-Also see the `completion-auto-wrap' variable."
-  (interactive "p")
-  (next-line-completion (- n)))
-
-(defun next-line-completion (&optional n)
-  "Move to the item on the next line in the completion list.
-With prefix argument N, move N items line-wise (negative N
-means move backward).
-
-Also see the `completion-auto-wrap' variable."
-  (interactive "p")
-  (let ((column (current-column))
-        pos)
-    (catch 'bound
-      (while (> n 0)
-        (setq pos nil)
-        (save-excursion
-          (while (and (not pos) (not (eobp)))
-            (forward-line 1)
-            (when (and (not (eobp))
-                       (eq (move-to-column column) column)
-                       (get-text-property (point) 'mouse-face))
-              (setq pos (point)))))
-        (if pos (goto-char pos)
-          (when completion-auto-wrap
-            (save-excursion
-              (goto-char (point-min))
-              (when (and (eq (move-to-column column) column)
-                         (get-text-property (point) 'mouse-face))
-                (setq pos (point)))
-              (while (and (not pos) (not (eobp)))
-                (forward-line 1)
-                (when (and (eq (move-to-column column) column)
-                           (get-text-property (point) 'mouse-face))
-                  (setq pos (point)))))
-            (if pos (goto-char pos))))
-        (setq n (1- n)))
-
-      (while (< n 0)
-        (setq pos nil)
-        (save-excursion
-          (while (and (not pos) (not (bobp)))
-            (forward-line -1)
-            (when (and (not (bobp))
-                       (eq (move-to-column column) column)
-                       (get-text-property (point) 'mouse-face))
-              (setq pos (point)))))
-        (if pos (goto-char pos)
-          (when completion-auto-wrap
-            (save-excursion
-              (goto-char (point-max))
-              (when (and (eq (move-to-column column) column)
-                         (get-text-property (point) 'mouse-face))
-                (setq pos (point)))
-              (while (and (not pos) (not (bobp)))
-                (forward-line -1)
-                (when (and (eq (move-to-column column) column)
-                           (get-text-property (point) 'mouse-face))
-                  (setq pos (point)))))
-            (if pos (goto-char pos))))
-        (setq n (1+ n))))))
 
 (defun choose-completion (&optional event no-exit no-quit)
   "Choose the completion at point.

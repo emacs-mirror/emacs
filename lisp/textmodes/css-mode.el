@@ -1822,6 +1822,7 @@ Use `\\[fill-paragraph]' to reformat CSS declaration blocks.  It
 can also be used to fill comments.
 
 \\{css-mode-map}"
+  :syntax-table css-mode-syntax-table
   (when (treesit-ready-p 'css)
     ;; Borrowed from `css-mode'.
     (add-hook 'completion-at-point-functions
@@ -1839,11 +1840,6 @@ can also be used to fill comments.
                 '((selector comment query keyword)
                   (property constant string)
                   (error variable function operator bracket)))
-    ;; Tree-sitter-css, for whatever reason, cannot reliably return
-    ;; the captured nodes in a given range (it instead returns the
-    ;; nodes preceding range).  Before this is fixed in
-    ;; tree-sitter-css, use this heuristic as a temporary fix.
-    (setq-local treesit--font-lock-query-expand-range (cons 80 80))
     (setq-local imenu-create-index-function #'css--treesit-imenu)
     (setq-local which-func-functions nil)
     (treesit-major-mode-setup)))

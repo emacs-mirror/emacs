@@ -134,6 +134,13 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 (defconst ruby-symbol-re (concat "[" ruby-symbol-chars "]")
   "Regexp to match symbols.")
 
+(defconst ruby-endless-method-head-re
+  (format " *\\(%s+\\.\\)?%s+[?!]? *\\(([^()]*)\\)? +="
+          ruby-symbol-re ruby-symbol-re)
+  "Regexp to match the beginning of an endless method definition.
+
+It should match the part after \"def\" and until \"=\".")
+
 (defvar ruby-use-smie t)
 (make-obsolete-variable 'ruby-use-smie nil "28.1")
 
@@ -351,7 +358,8 @@ This only affects the output of the command `ruby-toggle-block'."
        (exp  (exp1) (exp "," exp) (exp "=" exp)
              (id " @ " exp))
        (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
-       (exp2 (exp3) (exp3 "." exp3))
+       (exp2 (exp3) (exp3 "." exp3)
+             (exp3 "def=" exp3))
        (exp3 ("def" insts "end")
              ("begin" insts-rescue-insts "end")
              ("do" insts "end")
@@ -468,7 +476,7 @@ This only affects the output of the command `ruby-toggle-block'."
                                              "else" "elsif" "do" "end" "and")
                                            'symbols))))
          (memq (car (syntax-after pos)) '(7 15))
-         (looking-at "[([]\\|[-+!~:]\\(?:\\sw\\|\\s_\\)")))))
+         (looking-at "[([]\\|[-+!~:@$]\\(?:\\sw\\|\\s_\\)")))))
 
 (defun ruby-smie--before-method-name ()
   ;; Only need to be accurate when method has keyword name.
@@ -528,6 +536,9 @@ This only affects the output of the command `ruby-toggle-block'."
               (ruby-smie--forward-token)) ;Fully redundant.
              (t ";")))
            ((equal tok "&.") ".")
+           ((and (equal tok "def")
+                 (looking-at ruby-endless-method-head-re))
+            "def=")
            (t tok)))))))))
 
 (defun ruby-smie--backward-token ()
@@ -575,6 +586,9 @@ This only affects the output of the command `ruby-toggle-block'."
             (ruby-smie--backward-token)) ;Fully redundant.
            (t ";")))
          ((equal tok "&.") ".")
+         ((and (equal tok "def")
+               (looking-at (concat "def" ruby-endless-method-head-re)))
+          "def=")
          (t tok)))))))
 
 (defun ruby-smie--indent-to-stmt ()
@@ -629,6 +643,11 @@ This only affects the output of the command `ruby-toggle-block'."
                      (not (ruby-smie--bosp)))
            (forward-char -1))
          (smie-indent-virtual))
+        ((save-excursion
+           (and (smie-rule-parent-p " @ ")
+                (goto-char (nth 1 (smie-indent--parent)))
+                (smie-rule-prev-p "def=")
+                (cons 'column (- (current-column) 3)))))
         (t (smie-rule-parent))))))
     (`(:after . ,(or "(" "[" "{"))
      ;; FIXME: Shouldn't this be the default behavior of
@@ -672,6 +691,12 @@ This only affects the output of the command `ruby-toggle-block'."
      (and (smie-rule-parent-p ";" nil)
           (smie-indent--hanging-p)
           ruby-indent-level))
+    (`(:before . "=")
+     (save-excursion
+      (and (smie-rule-parent-p " @ ")
+           (goto-char (nth 1 (smie-indent--parent)))
+           (smie-rule-prev-p "def=")
+           (cons 'column (+ (current-column) ruby-indent-level -3)))))
     (`(:after . ,(or "?" ":")) ruby-indent-level)
     (`(:before . ,(guard (memq (intern-soft token) ruby-alignable-keywords)))
      (when (not (ruby--at-indentation-p))
@@ -1375,9 +1400,10 @@ With ARG, move backward multiple defuns.  Negative ARG means
 move forward."
   (interactive "p")
   (let (case-fold-search)
-    (and (re-search-backward (concat "^\\s *" ruby-defun-beg-re "\\_>")
-                             nil t (or arg 1))
-         (beginning-of-line))))
+    (when (re-search-backward (concat "^\\s *" ruby-defun-beg-re "\\_>")
+                              nil t (or arg 1))
+      (beginning-of-line)
+      t)))
 
 (defun ruby-end-of-defun ()
   "Move point to the end of the current defun.
@@ -1611,7 +1637,8 @@ For example:
 See `add-log-current-defun-function'."
   (condition-case nil
       (save-excursion
-        (let* ((indent 0) mname mlist
+        (let* ((indent (ruby--add-log-current-indent))
+               mname mlist
                (start (point))
                (make-definition-re
                 (lambda (re &optional method-name?)
@@ -1626,18 +1653,30 @@ See `add-log-current-defun-function'."
                (definition-re (funcall make-definition-re ruby-defun-beg-re t))
                (module-re (funcall make-definition-re "\\(class\\|module\\)")))
           ;; Get the current method definition (or class/module).
-          (when (re-search-backward definition-re nil t)
+          (when (catch 'found
+                  (while (and (re-search-backward definition-re nil t)
+                              (if (if (string-equal "def" (match-string 1))
+                                      ;; We're inside a method.
+                                      (if (ruby-block-contains-point (1- start))
+                                          t
+                                        ;; Try to match a method only once.
+                                        (setq definition-re module-re)
+                                        nil)
+                                    ;; Class/module. For performance,
+                                    ;; comparing indentation.
+                                    (or (not (numberp indent))
+                                        (> indent (current-indentation))))
+                                  (throw 'found t)
+                                t))))
             (goto-char (match-beginning 1))
             (if (not (string-equal "def" (match-string 1)))
                 (setq mlist (list (match-string 2)))
-              ;; We're inside the method. For classes and modules,
-              ;; this check is skipped for performance.
-              (when (ruby-block-contains-point start)
-                (setq mname (match-string 2))))
+              (setq mname (match-string 2)))
             (setq indent (current-column))
             (beginning-of-line))
           ;; Walk up the class/module nesting.
-          (while (and (> indent 0)
+          (while (and indent
+                      (> indent 0)
                       (re-search-backward module-re nil t))
             (goto-char (match-beginning 1))
             (when (< (current-column) indent)
@@ -1690,6 +1729,17 @@ See `add-log-current-defun-function'."
       (with-suppressed-warnings ((obsolete ruby-forward-sexp))
         (ruby-forward-sexp))
       (> (point) pt))))
+
+(defun ruby--add-log-current-indent ()
+  (save-excursion
+    (back-to-indentation)
+    (cond
+     ((looking-at "[[:graph:]]")
+      (current-indentation))
+     (ruby-use-smie
+      (smie-indent-calculate))
+     (t
+      (ruby-calculate-indent)))))
 
 (defun ruby-brace-to-do-end (orig end)
   (let (beg-marker end-marker)

@@ -31,6 +31,44 @@ in the Emacs tree should be natively compiled ahead of time.  (This is
 slow on most machines.)
 
 +++
+** Emacs can be built with the tree-sitter parsing library.
+This library, together with grammar libraries, provides incremental
+parsing capabilities for several popular programming languages and
+other formatted files.  Emacs built with this library offers major
+modes, described elsewhere in this file, that are based on the
+tree-sitter's parsers.  If you have the tree-sitter library
+installed, the configure script will automatically include it in the
+build; use '--without-tree-sitter' at configure time to disable that.
+
+Emacs modes based on the tree-sitter library require an additional
+grammar library for each mode.  These grammar libraries provide the
+tree-sitter library with language-specific lexical analysis and
+parsing capabilities, and are developed separately from the
+tree-sitter library itself.  If you don't have a grammar library
+required by some Emacs major mode, and your distro doesn't provide it
+as an installable package, you can compile and install such a library
+yourself.  Many libraries can be downloaded from the tree-sitter site:
+
+    https://github.com/tree-sitter
+
+To compile such a library, compile the files "scanner.c" and "parser.c"
+(sometimes named "scanner.cc" and "parser.cc") in the "src" subdirectory
+of the library's source tree using the C or C++ compiler, then link
+these two files into a shared library named "libtree-sitter-LANG.so",
+where LANG is the name of the language supported by the grammar as it
+is expected by the Emacs major mode (for example, "c" for 'c-ts-mode',
+"cpp" for 'c++-ts-mode', "python" for 'python-ts-mode', etc.).  Then place
+the shared library you've built in the same directory where you keep
+the other shared libraries used by Emacs, or in the "tree-sitter"
+subdirectory of your 'user-emacs-directory', or in a directory
+mentioned in the variable 'treesit-extra-load-path'.
+
+You only need to install language grammar libraries required by the
+Emacs modes you will use, as Emacs loads these libraries only when the
+corresponding mode is turned on in some buffer for the first time in
+an Emacs session.
+
++++
 ** Emacs can be built with built-in support for accessing SQLite databases.
 This uses the popular sqlite3 library, and can be disabled by using
 the '--without-sqlite3' option to the 'configure' script.
@@ -104,16 +142,6 @@ system that's supported by GDK other than X.  Running this
 configuration on X is known to have problems, such as undesirable
 frame positioning and various issues with keyboard input of sequences
 such as 'C-;' and 'C-S-u'.
-
----
-** The implementation of overlays has changed.
-Emacs now uses an implementation of overlays that is much more
-efficient than the original one, and should speed up all the
-operations that involve overlays, especially when there are lots of
-them in a buffer.  However, no changes in behavior of overlays should
-be visible on the Lisp or user level, with the exception of better
-performance and the order of overlays returned by functions that don't
-promise any particular order.
 
 ---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
@@ -1383,6 +1411,11 @@ language.
 This is a variant of the 'slovak' input method, which corresponds to
 the QWERTY Slovak keyboards.
 
+---
+*** New input method 'cyrillic-chuvash'.
+This input method is based on the russian-computer, and is intended
+for the Chuvash language written in the Cyrillic script.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
@@ -1752,10 +1785,9 @@ the second one will switch to the "*Completions*" buffer.
 
 ---
 *** New user option 'completion-auto-wrap'.
-When non-nil, the commands 'next-completion', 'previous-completion',
-'next-line-completion' and 'previous-line-completion' automatically
-wrap around on reaching the beginning or the end of the "*Completions*"
-buffer.
+When non-nil, the commands 'next-completion' and 'previous-completion'
+automatically wrap around on reaching the beginning or the end of
+the "*Completions*" buffer.
 
 +++
 *** New values for the 'completion-auto-help' user option.
@@ -1995,6 +2027,26 @@ header before sending a message.
 It narrows to the current node.
 
 ** EUDC
+
++++
+*** Deprecations planned for next release.
+After Emacs 29.1, some aspects of EUDC will be deprecated.  The goal
+of these deprecations is to simplify EUDC server configuration by
+making 'eudc-server-hotlist' the only place to add servers.  There
+will not be a need to set the server using the 'eudc-set-server'
+command.  Instead, the 'eudc-server-hotlist' user option should be
+customized to have an entry for the server.  The plan is to obsolete
+the 'eudc-hotlist' package since Customize is sufficient for changing
+'eudc-server-hotlist'.  How the 'eudc-server' user option works in this
+context is to-be-determined; it can't be removed, because that would
+break compatibility, but it may become synchronized with
+'eudc-server-hotlist' so that 'eudc-server' is always equal to '(car
+eudc-server-hotlist)'.  The first entry in 'eudc-server-hotlist' is the
+first server tried by 'eudc-expand-try-all'.  The hotlist
+simplification will allow 'eudc-query-form' to show a drop down of
+possible servers, instead of requiring a call to 'eudc-set-server'
+like it does in this release.  The default value of
+'eudc-ignore-options-file' will be changed from nil to t.
 
 +++
 *** New user option 'eudc-ignore-options-file' that defaults to nil.
@@ -2706,6 +2758,9 @@ project-dedicated or global) is specified by the new
 ---
 *** New user option 'ruby-toggle-block-space-before-parameters'.
 
+---
+*** Support for endless methods.
+
 ** Eshell
 
 +++
@@ -2943,6 +2998,13 @@ based on data provided by language servers using the Language Server
 Protocol (LSP).
 
 +++
+*** use-package: Declarative package configuration.
+use-package is shipped with Emacs.  It provides the 'use-package'
+macro, which allows you to isolate package configuration in your init
+file in a way that is declarative, tidy, and performance-oriented.
+See the new Info manual "(use-package) Top" for more.
+
++++
 ** New commands 'image-crop' and 'image-cut'.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'i c' and 'i x' (respectively)
@@ -2986,63 +3048,146 @@ Emacs buffers, like indentation and the like.  The new ert function
 This is a lightweight variant of 'js-mode' that is used by default
 when visiting JSON files.
 
-** New major mode 'typescript-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the TypeScript language.  It includes support for font-locking,
-indentation, and navigation.  This mode will be auto-enabled for
-files with the '.ts' extension.
-
-** New major mode 'tsx-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the TypeScript language, with support for TSX.  It includes
-support for font-locking, indentation, and navigation.  This mode
-will be auto-enabled for files with the '.tsx' extension.
-
-** New major mode 'c-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the C language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'c++-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the C++ language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'java-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the Java language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'python-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the Python language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'css-ts-mode'.
-A major mode based on the tree-sitter library for editing CSS
-(Cascading Style Sheets).  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'json-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the JSON language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
-** New major mode 'csharp-ts-mode'.
-A major mode based on the tree-sitter library for editing programs
-in the C# language.  It includes support for font-locking,
-indentation, Imenu, which-func, and navigation.
-
 ** New major mode 'csharp-mode'.
 A major mode based on CC Mode for editing programs in the C# language.
+This mode is auto-enabled for files with the ".cs" extension.
 
-** New major mode 'bash-ts-mode'.
-A major mode based on the tree-sitter library for editing Bash shell
-scripts.  It includes support for font-locking, indentation, Imenu,
-which-func, and navigation.
+** New major modes based on the tree-sitter library.
+These new major modes are available if Emacs was built with the
+tree-sitter library.  They provide support for font-locking,
+indentation, and navigation by defuns based on parsing the buffer text
+by a tree-sitter parser.  Some major modes also offer support for
+Imenu and 'which-func'.
+
+Where major modes already exist in Emacs for editing certain kinds of
+files, the new modes based on tree-sitter are for now entirely
+optional, and you must turn them on manually, or customize
+'auto-mode-alist' to turn them on automatically.
+
+Each major mode based on tree-sitter needs a language grammar library,
+usually named "libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on
+MS-Windows), where LANG is the corresponding language name.  Emacs
+looks for these libraries in the following places:
+
+ . in the directories mentioned in the list 'treesit-extra-load-path'
+ . in the "tree-sitter" subdirectory of your 'user-emacs-directory'
+   (by default, "~/.emacs.d/tree-sitter")
+ . in the standard system directories where other shared libraries are
+   usually installed
+
+We recommend to install these libraries in one of the standard system
+locations (the last place in the above list).
+
+If a language grammar library required by a mode is not found in any
+of the above places, the mode will signal an error when you try to
+turn it on.
+
+*** New major mode 'typescript-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the TypeScript language.  This mode is auto-enabled for files with
+the ".ts" extension.
+
+*** New major mode 'tsx-ts-mode'.
+A major mode based on the tree-sitter library for editing programs
+in the TypeScript language, with support for TSX.  This mode is
+auto-enabled for files with the ".tsx" extension.
+
+*** New major mode 'c-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the C language.
+
+*** New major mode 'c++-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the C++ language.
+
+*** New major mode 'java-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the Java language.
+
+*** New major mode 'python-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the Python language.
+
+*** New major mode 'css-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+CSS (Cascading Style Sheets).
+
+*** New major mode 'json-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the JSON language.
+
+*** New major mode 'csharp-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the C# language.
+
+*** New major mode 'bash-ts-mode'.
+Am optional major mode based on the tree-sitter library for editing
+Bash shell scripts.
+
+*** New major mode 'dockerfile-ts-mode'.
+A major mode based on the tree-sitter library for editing
+Dockerfiles.  This mode is auto-enabled for files which are named
+"Dockerfile", have the "Dockerfile." prefix, or have the ".dockerfile"
+extension.
+
+*** New major mode 'cmake-ts-mode'.
+A major mode based on the tree-sitter library for editing CMake files.
+It is auto-enabled for files whose name is "CMakeLists.txt" or whose
+extension is ".cmake".
+
+*** New major mode 'toml-ts-mode'.
+A major mode based on the tree-sitter library for editing files
+written in TOML, a format for writing configuration files.  It is
+auto-enabled for files with the ".toml" extension.
+
+*** New major mode 'go-ts-mode'.
+A major mode based on the tree-sitter library for editing programs in
+the Go language.  It is auto-enabled for files with the ".go" extension.
+
+*** New major mode 'go-mod-ts-mode'.
+A major mode based on the tree-sitter library for editing "go.mod"
+files.  It is auto-enabled for files which are named "go.mod".
+
+*** New major mode 'yaml-ts-mode'.
+A major mode based on the tree-sitter library for editing files
+written in YAML.  It is auto-enabled for files with the ".yaml" or
+".yml" extensions.
+
+*** New major mode 'rust-ts-mode'.
+A major mode based on the tree-sitter library for editing programs in
+the Rust language.  It is auto-enabled for files with the ".rs" extension.
 
 
 * Incompatible Lisp Changes in Emacs 29.1
+
++++
+** The implementation of overlays has changed.
+Emacs now uses an implementation of overlays that is much more
+efficient than the original one, and should speed up all the
+operations that involve overlays, especially when there are lots of
+them in a buffer.
+
+As result of this, some minor incompatibilities in behavior could be
+observed, as described below.  Except those minor incompatibilities,
+no other changes in behavior of overlays should be visible on the Lisp
+or user level, with the exception of better performance and the order
+of overlays returned by functions that don't promise any particular
+order.
+
+*** The function 'overlay-recenter' is now a no-op.
+This function does nothing, and in particular has no effect on the
+value returned by 'overlay-lists'.  The purpose of 'overlay-recenter'
+was to allow more efficient lookup of overlays around certain buffer
+position; however with the new implementation the lookup of overlays
+is efficient regardless of their position, and there's no longer any
+need to "optimize" the lookup, nor any notion of "center" of the
+overlays.
+
+*** The function 'overlay-lists' returns one unified list of overlays.
+This function used to return a cons of two lists, one with overlays
+before the "center" position, the other after that "center".  It now
+returns a list whose 'car' is the list of all the buffer overlays, and
+whose 'cdr' is always nil.
 
 +++
 ** 'format-prompt' now uses 'substitute-command-keys'.
@@ -4386,6 +4531,23 @@ actually being used for anything.
 Now 'max-lisp-eval-depth' alone is used for limiting Lisp recursion
 and stack usage.  'max-specpdl-size' is still present as a plain
 variable for compatibility but its limiting powers have been taken away.
+
+** New function 'external-completion-table'.
+This function returns a completion table designed to ease
+communication between Emacs's completion facilities and external tools
+offering completion services, particularly tools whose full working
+set is too big to transfer to Emacs every time a completion is
+needed.  The table uses new 'external' completion style exclusively
+and cannot work with regular styles such as 'basic' or 'flex'.
+
++++
+** Magic file name handlers for 'make-directory-internal' are no longer needed.
+Instead, Emacs uses the already-existing 'make-directory' handlers.
+
++++
+** '(make-directory DIR t)' returns non-nil if DIR already exists.
+This can let a caller know whether it created DIR.  Formerly,
+'make-directory's return value was unspecified.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

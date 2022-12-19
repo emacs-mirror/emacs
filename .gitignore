@@ -334,3 +334,7 @@ lib-src/seccomp-filter-exec.pfc
 # Ignore a directory used by dap-mode.
 .vscode
 /test/gmp.h
+
+# GDB history
+.gdb_history
+_gdb_history

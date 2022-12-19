@@ -1162,6 +1162,7 @@ line output and parses it to form the new directory stack."
          (dlsl nil)
          (pos 0)
          (ds nil))
+    (setq dls (string-trim-right dls "[ ]+"))
     ;; Split the dirlist into whitespace and non-whitespace chunks.
     ;; dlsl will be a reversed list of tokens.
     (while (string-match "\\(\\S-+\\|\\s-+\\)" dls pos)

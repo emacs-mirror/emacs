@@ -1039,7 +1039,10 @@ They are deleted _before_ looking for the next match.  Hence, a match
 starting on the same line at which another match ended is ignored.
 
 Return the number of deleted matching lines.  When called interactively,
-also print the number."
+also print the number.
+
+If you want to not just delete the lines, but also add them to
+the kill ring, use the \\[kill-matching-lines] command instead."
   (interactive
    (progn
      (barf-if-buffer-read-only)
@@ -1101,7 +1104,10 @@ Hence, a match starting on the same line at which another match
 ended is ignored.
 
 Return the number of killed matching lines.  When called
-interactively, also print the number."
+interactively, also print the number.
+
+If you merely want to delete the lines, without adding them to
+the kill ring, the \\[delete-matching-lines] command is faster."
   (interactive
    (progn
      (barf-if-buffer-read-only)

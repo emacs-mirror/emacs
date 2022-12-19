@@ -118,7 +118,7 @@ If the $EMACS_TEST_JUNIT_REPORT environment variable is set to a file
 name, a JUnit test report is generated under this name.
 
 Some of the tests require a remote temporary directory
-(autorevert-tests.el, dnd-tests.el, filenotify-tests.el,
+(autorevert-tests.el, dnd-tests.el, eglot-tests.el, filenotify-tests.el,
 shadowfile-tests.el and tramp-tests.el).  Per default, a mock-up
 connection method is used (this might not be possible when running on
 MS Windows).  If you want to test a real remote connection, set

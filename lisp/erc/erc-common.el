@@ -130,7 +130,8 @@ canonical name.")
          (if val "Enable" "Disable")
          " ERC " (symbol-name name) " mode."
          (when localp
-           "\nWith ARG, do so in all buffers for the current connection."))
+           (concat "\nWhen called interactively,"
+                   " do so in all buffers for the current connection.")))
        (interactive ,@(when localp '("p")))
        ,@(if localp
              `((when (derived-mode-p 'erc-mode)
@@ -301,17 +302,11 @@ nil."
 (defun erc-downcase (string)
   "Return a downcased copy of STRING with properties.
 Use the CASEMAPPING ISUPPORT parameter to determine the style."
-  (let* ((mapping (erc--get-isupport-entry 'CASEMAPPING 'single))
-         (inhibit-read-only t))
-    (if (equal mapping "ascii")
-        (downcase string)
-      (with-temp-buffer
-        (insert string)
-        (translate-region (point-min) (point-max)
-                          (if (equal mapping "rfc1459-strict")
-                              erc--casemapping-rfc1459-strict
-                            erc--casemapping-rfc1459))
-        (buffer-string)))))
+  (with-case-table (pcase (erc--get-isupport-entry 'CASEMAPPING 'single)
+                     ("ascii" ascii-case-table)
+                     ("rfc1459-strict" erc--casemapping-rfc1459-strict)
+                     (_ erc--casemapping-rfc1459))
+    (downcase string)))
 
 (define-inline erc-get-channel-user (nick)
   "Find NICK in the current buffer's `erc-channel-users' hash table."

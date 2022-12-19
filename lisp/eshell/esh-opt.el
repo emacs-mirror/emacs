@@ -132,7 +132,7 @@ This code doesn't really need to be macro expanded everywhere."
                       (setq args (eshell--process-args name args options))
                       nil))))
              (when usage-msg
-               (error "%s" usage-msg))))))
+               (user-error "%s" usage-msg))))))
     (if ext-command
         (throw 'eshell-external
                (eshell-external-command ext-command orig-args))
@@ -237,7 +237,7 @@ remaining characters in SWITCH to be processed later as further short
 options.
 
 If no matching handler is found, and an :external command is defined
-(and available), it will be called; otherwise, an error will be
+\(and available), it will be called; otherwise, an error will be
 triggered to say that the switch is unrecognized."
   (let ((switch (eshell--split-switch switch kind))
         (opts options)

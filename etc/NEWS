@@ -40,14 +40,59 @@ connection.
 
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
+---
+** Variable order and truncation can now be configured in gdb-many-window mode.
+The new variable 'gdb-locals-table-row-config' allows users to
+configure the order and max length of various properties in the local
+variables buffer when using 'gdb-many-windows'.
+
+By default, this variable is set to write the properties in the order:
+name, type and value, where the name and type are truncated to 20
+characters, and the value is truncated according to the value of
+'gdb-locals-value-limit'.
+
+If you want to get back the old behavior, set
+'gdb-locals-table-row-config' to  the value
+
+  ((type . 0)(name . 0)(value . ,gdb-locals-value-limit)).
 
 ** VC
 
 ---
-*** New user option 'vc-git-shortlog-switches'
-String or list of strings giving Git log switches for shortlogs, such
-as 'C-x v L'.  'vc-git-log-switches' is no longer used for shortlogs.
+*** New user option 'vc-git-shortlog-switches'.
+This is a string or a list of strings that specifies the Git log
+switches for shortlogs, such as the one produced by 'C-x v L'.
+'vc-git-log-switches' is no longer used for shortlogs.
 
+** bs
+
+---
+*** New user option 'bs-default-action-list'.
+You can now configure how to display the "*buffer-selection*" buffer
+using this new option.  (Or set 'display-buffer-alist' directly.)
+
+** Eshell
+
++++
+*** New splice operator for Eshell dollar expansions.
+Dollar expansions in Eshell now let you splice the elements of the
+expansion in-place using '$@expr'.  This makes it easier to fill lists
+of arguments into a command, such as when defining aliases.  For more
+information, see the "(eshell) Dollars Expansion" node in the Eshell
+manual.
+
++++
+*** 'eshell-read-aliases-list' is now an interactive command.
+After manually editing 'eshell-aliases-file', you can use
+'M-x eshell-read-aliases-list' to load the edited aliases.
+
+** Prog Mode
++++
+*** New command 'prog-fill-reindent-defun'
+This command either fills a single paragraph in a defun, such as a
+doc-string, or a comment, or (re)indents the surrounding defun if
+point is not in a comment or a string.  It is by default bound to
+'M-q' in 'prog-mode' and all its descendants.
 
 * New Modes and Packages in Emacs 30.1
 

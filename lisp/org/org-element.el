@@ -5295,6 +5295,7 @@ indentation removed from its contents."
 ;; `org-element--cache-diagnostics-ring-size', `org-element--cache-map-statistics',
 ;; `org-element--cache-map-statistics-threshold'.
 
+;;;###autoload
 (defvar org-element-use-cache t
   "Non-nil when Org parser should cache its results.")
 
@@ -5717,7 +5718,11 @@ This function assumes `org-element--headline-cache' is a valid AVL tree."
               ;; `combine-change-calls' because the buffer is potentially
               ;; changed without notice (the change will be registered
               ;; after exiting the `combine-change-calls' body though).
-              (memq #'org-element--cache-after-change after-change-functions))))))
+              (catch :inhibited
+                (org-fold-core-cycle-over-indirect-buffers
+                  (unless (memq #'org-element--cache-after-change after-change-functions)
+                    (throw :inhibited nil)))
+                t))))))
 
 ;; FIXME: Remove after we establish that hashing is effective.
 (defun org-element-cache-hash-show-statistics ()

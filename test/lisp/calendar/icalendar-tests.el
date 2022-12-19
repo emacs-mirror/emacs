@@ -63,7 +63,8 @@
 
 (defun icalendar-tests--get-error-string-for-export (diary-string)
   "Call icalendar-export for DIARY-STRING and return resulting error-string."
-  (let ((file (make-temp-file "export.ics")))
+  (ert-with-temp-file file
+    :suffix "-export.ics"
     (with-temp-buffer
       (insert diary-string)
       (icalendar-export-region (point-min) (point-max) file))

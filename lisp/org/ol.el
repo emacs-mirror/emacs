@@ -1488,9 +1488,9 @@ If the link is in hidden text, expose it."
 
 (defun org-link-descriptive-ensure ()
   "Toggle the literal or descriptive display of links in current buffer if needed."
-  (if org-link-descriptive
-      (org-fold-core-set-folding-spec-property (car org-link--link-folding-spec) :visible nil)
-    (org-fold-core-set-folding-spec-property (car org-link--link-folding-spec) :visible t)))
+  (org-fold-core-set-folding-spec-property
+   (car org-link--link-folding-spec)
+   :visible (not org-link-descriptive)))
 
 ;;;###autoload
 (defun org-toggle-link-display ()

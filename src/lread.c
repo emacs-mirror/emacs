@@ -3377,7 +3377,7 @@ read_bool_vector (Lisp_Object readcharfun)
 	  break;
 	}
       if (INT_MULTIPLY_WRAPV (length, 10, &length)
-	  | INT_ADD_WRAPV (length, c - '0', &length))
+	  || INT_ADD_WRAPV (length, c - '0', &length))
 	invalid_syntax ("#&", readcharfun);
     }
 
@@ -3423,7 +3423,7 @@ skip_lazy_string (Lisp_Object readcharfun)
 	  break;
 	}
       if (INT_MULTIPLY_WRAPV (nskip, 10, &nskip)
-	  | INT_ADD_WRAPV (nskip, c - '0', &nskip))
+	  || INT_ADD_WRAPV (nskip, c - '0', &nskip))
 	invalid_syntax ("#@", readcharfun);
       digits++;
       if (digits == 2 && nskip == 0)
@@ -5266,15 +5266,6 @@ to the specified file name if a suffix is allowed or required.  */);
   Vload_suffixes =
     Fcons (build_pure_c_string (MODULES_SECONDARY_SUFFIX), Vload_suffixes);
 #endif
-
-  DEFVAR_LISP ("dynamic-library-suffixes", Vdynamic_library_suffixes,
-	       doc: /* A list of suffixes for loadable dynamic libraries.  */);
-  Vdynamic_library_suffixes =
-    Fcons (build_pure_c_string (DYNAMIC_LIB_SECONDARY_SUFFIX), Qnil);
-  Vdynamic_library_suffixes =
-    Fcons (build_pure_c_string (DYNAMIC_LIB_SUFFIX),
-	   Vdynamic_library_suffixes);
-
 #endif
   DEFVAR_LISP ("module-file-suffix", Vmodule_file_suffix,
 	       doc: /* Suffix of loadable module file, or nil if modules are not supported.  */);
@@ -5283,6 +5274,20 @@ to the specified file name if a suffix is allowed or required.  */);
 #else
   Vmodule_file_suffix = Qnil;
 #endif
+
+  DEFVAR_LISP ("dynamic-library-suffixes", Vdynamic_library_suffixes,
+	       doc: /* A list of suffixes for loadable dynamic libraries.  */);
+
+#ifndef MSDOS
+  Vdynamic_library_suffixes
+    = Fcons (build_pure_c_string (DYNAMIC_LIB_SECONDARY_SUFFIX), Qnil);
+  Vdynamic_library_suffixes
+    = Fcons (build_pure_c_string (DYNAMIC_LIB_SUFFIX),
+	     Vdynamic_library_suffixes);
+#else
+  Vdynamic_library_suffixes = Qnil;
+#endif
+
   DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.

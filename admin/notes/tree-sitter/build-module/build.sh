@@ -1,6 +1,7 @@
 #!/bin/bash
 
 lang=$1
+topdir="$PWD"
 
 if [ $(uname) == "Darwin" ]
 then
@@ -11,25 +12,49 @@ fi
 
 echo "Building ${lang}"
 
-# Retrieve sources.
-git clone "https://github.com/tree-sitter/tree-sitter-${lang}.git" \
+### Retrieve sources
+
+org="tree-sitter"
+repo="tree-sitter-${lang}"
+sourcedir="tree-sitter-${lang}/src"
+grammardir="tree-sitter-${lang}"
+
+case "${lang}" in
+    "dockerfile")
+        org="camdencheek"
+        ;;
+    "cmake")
+        org="uyha"
+        ;;
+    "go-mod")
+        # The parser is called "gomod".
+        lang="gomod"
+        org="camdencheek"
+        ;;
+    "typescript")
+        sourcedir="tree-sitter-typescript/typescript/src"
+        grammardir="tree-sitter-typescript/typescript"
+        ;;
+    "tsx")
+        repo="tree-sitter-typescript"
+        sourcedir="tree-sitter-typescript/tsx/src"
+        grammardir="tree-sitter-typescript/tsx"
+        ;;
+    "yaml")
+        org="ikatyang"
+        ;;
+esac
+
+git clone "https://github.com/${org}/${repo}.git" \
     --depth 1 --quiet
-if [ "${lang}" == "typescript" ]
-then
-    lang="typescript/tsx"
-fi
-cp tree-sitter-lang.in "tree-sitter-${lang}/src"
-cp emacs-module.h "tree-sitter-${lang}/src"
-cp "tree-sitter-${lang}/grammar.js" "tree-sitter-${lang}/src"
-cd "tree-sitter-${lang}/src"
+cp "${grammardir}"/grammar.js "${sourcedir}"
+# We have to go into the source directory to compile, because some
+# C files refer to files like "../../common/scanner.h".
+cd "${sourcedir}"
 
-if [ "${lang}" == "typescript/tsx" ]
-then
-    lang="tsx"
-fi
+### Build
 
-# Build.
-cc -c -I. parser.c
+cc -fPIC -c -I. parser.c
 # Compile scanner.c.
 if test -f scanner.c
 then
@@ -48,15 +73,9 @@ else
     cc -fPIC -shared *.o -o "libtree-sitter-${lang}.${soext}"
 fi
 
-# Copy out.
+### Copy out
 
-if [ "${lang}" == "typescript" ]
-then
-    cp "libtree-sitter-${lang}.${soext}" ..
-    cd ..
-fi
-
-mkdir -p ../../dist
-cp "libtree-sitter-${lang}.${soext}" ../../dist
-cd ../../
-rm -rf "tree-sitter-${lang}"
+mkdir -p "${topdir}/dist"
+cp "libtree-sitter-${lang}.${soext}" "${topdir}/dist"
+cd "${topdir}"
+rm -rf "${repo}"

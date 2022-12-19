@@ -690,7 +690,7 @@ It has been changed in GVFS 1.14.")
     ("gvfs-set-attribute" . "set"))
   "List of cons cells, mapping \"gvfs-<command>\" to \"gio <command>\".")
 
-;; <http://www.pygtk.org/docs/pygobject/gio-constants.html>
+;; <https://www.pygtk.org/docs/pygobject/gio-constants.html>
 (eval-and-compile
   (defconst tramp-gvfs-file-attributes
     '("name"

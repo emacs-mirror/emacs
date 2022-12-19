@@ -117,6 +117,14 @@ or user `keyboard-quit' during execution of body."
 	 (goto-char (process-mark (get-buffer-process (current-buffer))))
 	 (insert dangling-text)
 
+         ;; Replace partially supplied input lines.
+         ;; This is needed when output filter spits partial lines that
+         ;; do not include a full prompt at a time.
+         (setq string-buffer
+               (replace-regexp-in-string
+                comint-prompt-regexp
+                ,org-babel-comint-prompt-separator
+                string-buffer))
 	 ;; remove echo'd FULL-BODY from input
 	 (when (and ,remove-echo ,full-body
 		    (string-match

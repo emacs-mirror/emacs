@@ -145,7 +145,8 @@ Names should be as they appear in loaddefs.el.")
 (require 'cus-load)
 
 (defvar cus-test-errors nil
-  "List of problematic variables found by `cus-test-apropos'.")
+  "List of problematic variables found by `cus-test-apropos'.
+Each element is (VARIABLE . PROBLEM); see `cus-test--format-problem'.")
 
 (defvar cus-test-tested-variables nil
   "List of options tested by last call of `cus-test-apropos'.")
@@ -181,6 +182,15 @@ Set by `cus-test-noloads'.")
 ;; (defvar cus-test-vars-cus-loaded nil
 ;;   "A list of options loaded by `custom-load-symbol'.")
 
+(defun cus-test--format-error (err)
+  "Format an element of `cus-test-errors'."
+  (pcase err
+    (`(,var :type-error ,value ,type)
+     (format "variable: %s\n   value: %S\n    type: %S" var value type))
+    (`(,var :other-error ,e)
+     (format "variable: %s\n   error: %S" var e))
+    (_ (format "%S" err))))
+
 (defun cus-test-apropos (regexp)
   "Check the options matching REGEXP.
 The detected problematic options are stored in `cus-test-errors'."
@@ -200,8 +210,7 @@ The detected problematic options are stored in `cus-test-errors'."
 	 (let* ((type (custom-variable-type symbol))
 		(conv (widget-convert type))
 		(get (or (get symbol 'custom-get) 'default-value))
-		values
-		mismatch)
+		values)
 	   (when (default-boundp symbol)
 	     (push (funcall get symbol) values)
 	     (push (eval (car (get symbol 'standard-value)) t) values))
@@ -215,7 +224,9 @@ The detected problematic options are stored in `cus-test-errors'."
 		   ;; TODO for booleans, check for values that can be
 		   ;; evaluated and are not t or nil.  Usually a bug.
 		   (unless (widget-apply conv :match value)
-		     (setq mismatch 'mismatch)))
+                     (let ((err (list symbol :type-error value type)))
+                       (unless (member err cus-test-errors)
+                         (push err cus-test-errors)))))
 		 values)
 
 	   ;; Store symbols with a custom-get property.
@@ -231,13 +242,12 @@ The detected problematic options are stored in `cus-test-errors'."
 	     (and (consp c-value)
 		  (boundp symbol)
 		  (not (equal (eval (car c-value) t) (symbol-value symbol)))
-		  (add-to-list 'cus-test-vars-with-changed-state symbol)))
-
-	   (if mismatch
-	       (push symbol cus-test-errors)))
+		  (add-to-list 'cus-test-vars-with-changed-state symbol))))
 
        (error
-	(push symbol cus-test-errors)
+        (let ((err (list symbol :other-error alpha)))
+          (unless (member err cus-test-errors)
+	    (push err cus-test-errors)))
 	(message "Error for %s: %s" symbol alpha))))
    (cus-test-get-options regexp))
   (message "%s options tested"
@@ -292,7 +302,7 @@ currently defined groups."
 	(insert "No errors found by cus-test.")
       (insert "The following variables seem to have problems:\n\n")
       (dolist (e cus-test-errors)
-	(insert (symbol-name e) "\n")))))
+	(insert (cus-test--format-error e) "\n")))))
 
 (defun cus-test-load-custom-loads ()
   "Call `custom-load-symbol' on all atoms."
@@ -399,7 +409,7 @@ Returns a list of variables with suspicious types."
         (message "No problems found")
         nil)
     (message "The following options might have problems:")
-    (cus-test-message cus-test-errors)
+    (cus-test-message (mapcar #'cus-test--format-error cus-test-errors))
     cus-test-errors))
 
 (defun cus-test-deps ()

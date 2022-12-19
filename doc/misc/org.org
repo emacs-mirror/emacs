@@ -1401,7 +1401,7 @@ you, configure the option ~org-table-auto-blank-field~.
 - {{{kbd(M-x org-table-blank-field)}}} ::
 
   #+findex: org-table-blank-field
-  Blank the field at point.
+  Blank the current table field or active region.
 
 - {{{kbd(S-TAB)}}} (~org-table-previous-field~) ::
 
@@ -20021,11 +20021,16 @@ changes.
   | =nofnadjust= | Do not renumber and sort automatically.                |
 
   #+vindex: org-hide-block-startup
-  To hide blocks on startup, use these keywords.  The
-  corresponding variable is ~org-hide-block-startup~.
+  #+vindex: org-hide-drawer-startup
+  To hide blocks or drawers on startup, use these keywords.  The
+  corresponding variables are ~org-hide-block-startup~ and
+  ~org-hide-drawer-startup~.
 
-  | =hideblocks=   | Hide all begin/end blocks on startup. |
-  | =nohideblocks= | Do not hide blocks on startup.        |
+  | =hideblocks=    | Hide all begin/end blocks on startup. |
+  | =nohideblocks=  | Do not hide blocks on startup.        |
+  | =hidedrawers=   | Hide all begin/end blocks on startup. |
+  | =nohidedrawers= | Do not hide blocks on startup.        |
+
 
   #+vindex: org-pretty-entities
   The display of entities as UTF-8 characters is governed by the

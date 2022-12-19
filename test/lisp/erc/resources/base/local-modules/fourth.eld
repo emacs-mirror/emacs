@@ -1,7 +1,7 @@
 ;; -*- mode: lisp-data; -*-
 ((cap 10 "CAP REQ :sasl"))
 ((nick 10 "NICK tester`"))
-((user 10 "USER tester 0 * :tester"))
+((user 10 "USER tester` 0 * :tester"))
 
 ((authenticate 10 "AUTHENTICATE PLAIN")
  (0.0 ":irc.foonet.org CAP * ACK sasl")

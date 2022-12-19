@@ -2435,7 +2435,7 @@ If cursor is not at the end of the user input, move to end of input."
                                 filename))
 	      (ido-record-command method dirname)
 	      (ido-record-work-directory dirname)
-	      (make-directory-internal dirname)
+	      (make-directory dirname)
 	      (funcall method dirname))
 	     (t
 	      ;; put make-directory command on history

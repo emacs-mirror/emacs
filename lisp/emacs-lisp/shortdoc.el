@@ -251,18 +251,17 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (string-glyph-decompose "Å"))
   "Predicates for Strings"
   (string-equal
-   :eval (string-equal "foo" "foo"))
+   :eval (string-equal "abc" "abc")
+   :eval (string-equal "abc" "ABC"))
   (string-equal-ignore-case
    :eval (string-equal-ignore-case "foo" "FOO"))
-  (eq
-   :eval (eq "foo" "foo"))
-  (eql
-   :eval (eql "foo" "foo"))
   (equal
    :eval (equal "foo" "foo"))
   (cl-equalp
    :eval (cl-equalp "Foo" "foo"))
   (stringp
+   :eval (stringp "a")
+   :eval (stringp 'a)
    :eval "(stringp ?a)")
   (string-empty-p
    :no-manual t
@@ -271,16 +270,16 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :no-manual t
    :eval (string-blank-p " \n"))
   (string-lessp
-   :eval (string-lessp "foo" "bar")
+   :eval (string-lessp "abc" "def")
    :eval (string-lessp "pic4.png" "pic32.png")
-   :eval (string-lessp "1.1" "1 2"))
+   :eval (string-lessp "1.1" "1.2"))
   (string-greaterp
    :eval (string-greaterp "foo" "bar"))
   (string-version-lessp
    :eval (string-version-lessp "pic4.png" "pic32.png")
-   :eval (string-version-lessp "1.1" "1 2"))
+   :eval (string-version-lessp "1.9.3" "1.10.2"))
   (string-collate-lessp
-   :eval (string-collate-lessp "1.1" "1 2"))
+   :eval (string-collate-lessp "abc" "abd"))
   (string-prefix-p
    :eval (string-prefix-p "foo" "foobar"))
   (string-suffix-p
@@ -297,7 +296,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   "Converting Strings"
   (string-to-number
    :eval (string-to-number "42")
-   :eval (string-to-number "deadbeef" 16))
+   :eval (string-to-number "deadbeef" 16)
+   :eval (string-to-number "2.5e+03"))
   (number-to-string
    :eval (number-to-string 42))
   "Data About Strings"
@@ -627,8 +627,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (nconc
    :eval (nconc (list 1) (list 2 3 4)))
   (delq
-   :eval (delq 2 (list 1 2 3 4))
-   :eval (delq "a" (list "a" "b" "c" "d")))
+   :eval (delq 'a (list 'a 'b 'c 'd)))
   (delete
    :eval (delete 2 (list 1 2 3 4))
    :eval (delete "a" (list "a" "b" "c" "d")))
@@ -670,29 +669,25 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (nlistp '(1 . 2)))
   "Finding Elements"
   (memq
-   :eval (memq 2 '(1 2 3))
-   :eval (memq 2.0 '(1.0 2.0 3.0))
-   :eval (memq "b" '("a" "b" "c")))
+   :eval (memq 'b '(a b c)))
+  (memql
+   :eval (memql 2.0 '(1.0 2.0 3.0)))
   (member
    :eval (member 2 '(1 2 3))
    :eval (member "b" '("a" "b" "c")))
   (remq
-   :eval (remq 2 '(1 2 3 2 4 2))
-   :eval (remq "b" '("a" "b" "c")))
-  (memql
-   :eval (memql 2.0 '(1.0 2.0 3.0)))
+   :eval (remq 'b '(a b c)))
   (member-ignore-case
    :eval (member-ignore-case "foo" '("bar" "Foo" "zot")))
   "Association Lists"
   (assoc
-   :eval (assoc 'b '((a 1) (b 2))))
+   :eval (assoc "b" '(("a" . 1) ("b" . 2))))
   (rassoc
-   :eval (rassoc '2 '((a . 1) (b . 2))))
+   :eval (rassoc "b" '((1 . "a") (2 . "b"))))
   (assq
-   :eval (assq 'b '((a 1) (b 2)))
-   :eval (assq "a" '(("a" 1) ("b" 2))))
+   :eval (assq 'b '((a . 1) (b . 2))))
   (rassq
-   :eval (rassq '2 '((a . 1) (b . 2))))
+   :eval (rassq 'b '((1 . a) (2 . b))))
   (assoc-string
    :eval (assoc-string "foo" '(("a" 1) (foo 2))))
   (alist-get
@@ -725,6 +720,88 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (safe-length
    :eval (safe-length '(a b c))))
 
+(define-short-documentation-group symbol
+  "Making symbols"
+  (intern
+   :eval (intern "abc"))
+  (intern-soft
+   :eval (intern-soft "Phooey!"))
+  (make-symbol
+   :eval (make-symbol "abc"))
+  "Comparing symbols"
+  (eq
+   :eval (eq 'abc 'abc)
+   :eval (eq 'abc 'abd))
+  (eql
+   :eval (eql 'abc 'abc))
+  (equal
+   :eval (equal 'abc 'abc))
+  "Name"
+  (symbol-name
+   :eval (symbol-name 'abc)))
+
+(define-short-documentation-group comparison
+  "General-purpose"
+  (eq
+   :eval (eq 'a 'a)
+   :eval "(eq ?A ?A)"
+   :eval (let ((x (list 'a "b" '(c) 4 5.0)))
+           (eq x x)))
+  (eql
+   :eval (eql 2 2)
+   :eval (eql 2.0 2.0)
+   :eval (eql 2.0 2))
+  (equal
+   :eval (equal "abc" "abc")
+   :eval (equal 2.0 2.0)
+   :eval (equal 2.0 2)
+   :eval (equal '(a "b" (c) 4.0) '(a "b" (c) 4.0)))
+  (cl-equalp
+   :eval (cl-equalp 2 2.0)
+   :eval (cl-equalp "ABC" "abc"))
+  "Numeric"
+  (=
+   :args (number &rest numbers)
+   :eval (= 2 2)
+   :eval (= 2.0 2.0)
+   :eval (= 2.0 2)
+   :eval (= 4 4 4 4))
+  (/=
+   :eval (/= 4 4))
+  (<
+   :args (number &rest numbers)
+   :eval (< 4 4)
+   :eval (< 1 2 3))
+  (<=
+   :args (number &rest numbers)
+   :eval (<= 4 4)
+   :eval (<= 1 2 2 3))
+  (>
+   :args (number &rest numbers)
+   :eval (> 4 4)
+   :eval (> 3 2 1))
+  (>=
+   :args (number &rest numbers)
+   :eval (>= 4 4)
+   :eval (>= 3 2 2 1))
+  "String"
+  (string-equal
+   :eval (string-equal "abc" "abc")
+   :eval (string-equal "abc" "ABC"))
+  (string-equal-ignore-case
+   :eval (string-equal-ignore-case "abc" "ABC"))
+  (string-lessp
+   :eval (string-lessp "abc" "abd")
+   :eval (string-lessp "abc" "abc")
+   :eval (string-lessp "pic4.png" "pic32.png"))
+  (string-greaterp
+   :eval (string-greaterp "abd" "abc")
+   :eval (string-greaterp "abc" "abc"))
+  (string-version-lessp
+   :eval (string-version-lessp "pic4.png" "pic32.png")
+   :eval (string-version-lessp "1.9.3" "1.10.2"))
+  (string-collate-lessp
+   :eval (string-collate-lessp "abc" "abd")))
 
 (define-short-documentation-group vector
   "Making Vectors"
@@ -1131,13 +1208,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :args (number &rest numbers)
    :eval (= 4 4)
    :eval (= 4.0 4.0)
-   :eval (= 4 5 6 7))
-  (eq
-   :eval (eq 4 4)
-   :eval (eq 4.0 4.0))
+   :eval (= 4 4.0)
+   :eval (= 4 4 4 4))
   (eql
    :eval (eql 4 4)
-   :eval (eql 4 "4")
    :eval (eql 4.0 4.0))
   (/=
    :eval (/= 4 4))
@@ -1148,15 +1222,15 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (<=
    :args (number &rest numbers)
    :eval (<= 4 4)
-   :eval (<= 1 2 3))
+   :eval (<= 1 2 2 3))
   (>
    :args (number &rest numbers)
    :eval (> 4 4)
-   :eval (> 1 2 3))
+   :eval (> 3 2 1))
   (>=
    :args (number &rest numbers)
    :eval (>= 4 4)
-   :eval (>= 1 2 3))
+   :eval (>= 3 2 2 1))
   (zerop
    :eval (zerop 0))
   (cl-plusp
@@ -1440,14 +1514,16 @@ function's documentation in the Info manual"))
                do
                (cl-case type
                  (:eval
+                  (insert "  ")
                   (if (stringp value)
-                      (insert "  " value "\n")
-                    (insert "  ")
-                    (prin1 value (current-buffer))
-                    (insert "\n")
-                    (insert "    " double-arrow " ")
-                    (prin1 (eval value) (current-buffer))
-                    (insert "\n")))
+                      (insert value)
+                    (prin1 value (current-buffer)))
+                  (insert "\n    " double-arrow " ")
+                  (let ((expr (if (stringp value)
+                                  (car (read-from-string value))
+                                value)))
+                    (prin1 (eval expr) (current-buffer)))
+                    (insert "\n"))
                  (:no-eval*
                   (if (stringp value)
                       (insert "  " value "\n")

@@ -833,13 +833,19 @@ byte-compiled.  Run with dynamic binding."
     ;; Should not warn that mt--test2 is not known to be defined.
     (should-not (re-search-forward "my--test2" nil t))))
 
-(defmacro bytecomp--with-warning-test (re-warning &rest form)
+(defmacro bytecomp--with-warning-test (re-warning form)
   (declare (indent 1))
   `(with-current-buffer (get-buffer-create "*Compile-Log*")
      (let ((inhibit-read-only t)) (erase-buffer))
-     (byte-compile ,@form)
-     (ert-info ((prin1-to-string (buffer-string)) :prefix "buffer: ")
-       (should (re-search-forward ,(string-replace " " "[ \n]+" re-warning))))))
+     (let ((text-quoting-style 'grave)
+           (macroexp--warned
+            (make-hash-table :test #'equal :weakness 'key))   ; oh dear
+           (form ,form))
+       (ert-info ((prin1-to-string form) :prefix "form: ")
+         (byte-compile form)
+         (ert-info ((prin1-to-string (buffer-string)) :prefix "buffer: ")
+           (should (re-search-forward
+                    (string-replace " " "[ \n]+" ,re-warning))))))))
 
 (ert-deftest bytecomp-warn-wrong-args ()
   (bytecomp--with-warning-test "remq.*3.*2"
@@ -862,6 +868,56 @@ byte-compiled.  Run with dynamic binding."
 (ert-deftest bytecomp-warn-wide-docstring/defvar ()
   (bytecomp--with-warning-test "defvar.*foo.*wider than.*characters"
     `(defvar foo t ,bytecomp-tests--docstring)))
+
+(ert-deftest bytecomp-warn-dodgy-args-eq ()
+  (dolist (fn '(eq eql))
+    (cl-flet ((msg (type arg)
+                (format
+                 "`%s' called with literal %s that may never match (arg %d)"
+                 fn type arg)))
+      (bytecomp--with-warning-test (msg "list" 1)   `(,fn '(a) 'x))
+      (bytecomp--with-warning-test (msg "string" 2) `(,fn 'x "a"))
+      (bytecomp--with-warning-test (msg "vector" 2) `(,fn 'x [a]))
+      (bytecomp--with-warning-test (msg "function" 2) `(,fn 'x (lambda () 1)))
+      (bytecomp--with-warning-test (msg "function" 2) `(,fn 'x #'(lambda () 1)))
+      (unless (eq fn 'eql)
+        (bytecomp--with-warning-test (msg "integer" 2) `(,fn 'x #x10000000000))
+        (bytecomp--with-warning-test (msg "float" 2)   `(,fn 'x 1.0))))))
+
+(ert-deftest bytecomp-warn-dodgy-args-memq ()
+  (dolist (fn '(memq memql remq delq assq rassq))
+    (cl-labels
+        ((msg1 (type)
+           (format
+            "`%s' called with literal %s that may never match (arg 1)"
+            fn type))
+         (msg2 (type)
+           (format
+            "`%s' called with literal %s that may never match (element 2 of arg 2)"
+            fn type))
+         (lst (elt)
+           (cond ((eq fn 'assq)  `((a . 1) (,elt . 2) (c . 3)))
+                 ((eq fn 'rassq) `((1 . a) (2 . ,elt) (3 . c)))
+                 (t              `(a       ,elt       c))))
+         (form2 (elt)
+           `(,fn 'x ',(lst elt))))
+
+    (bytecomp--with-warning-test (msg1 "list")   `(,fn '(a) '(x)))
+    (bytecomp--with-warning-test (msg1 "string") `(,fn "a" '(x)))
+    (bytecomp--with-warning-test (msg1 "vector") `(,fn [a] '(x)))
+    (bytecomp--with-warning-test (msg1 "function") `(,fn (lambda () 1) '(x)))
+    (bytecomp--with-warning-test (msg1 "function") `(,fn #'(lambda () 1) '(x)))
+    (unless (eq fn 'memql)
+      (bytecomp--with-warning-test (msg1 "integer") `(,fn #x10000000000 '(x)))
+      (bytecomp--with-warning-test (msg1 "float")   `(,fn 1.0 '(x))))
+
+    (bytecomp--with-warning-test (msg2 "list")   (form2 '(b)))
+    (bytecomp--with-warning-test (msg2 "list")   (form2 ''b))
+    (bytecomp--with-warning-test (msg2 "string") (form2 "b"))
+    (bytecomp--with-warning-test (msg2 "vector") (form2 [b]))
+    (unless (eq fn 'memql)
+      (bytecomp--with-warning-test (msg2 "integer") (form2 #x10000000000))
+      (bytecomp--with-warning-test (msg2 "float")   (form2 1.0))))))
 
 (defmacro bytecomp--define-warning-file-test (file re-warning &optional reverse)
   `(ert-deftest ,(intern (format "bytecomp/%s" file)) ()

@@ -37,7 +37,7 @@
           && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || 5 <= __clang_major__)))
 #  define _GL_HAVE__STATIC_ASSERT 1
 # endif
-# if (202000 <= __STDC_VERSION__ \
+# if (202311 <= __STDC_VERSION__ \
       || (!defined __STRICT_ANSI__ && 9 <= __GNUC__))
 #  define _GL_HAVE__STATIC_ASSERT1 1
 # endif

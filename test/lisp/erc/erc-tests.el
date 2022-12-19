@@ -428,18 +428,21 @@
 
     (ert-info ("ascii")
       (puthash 'CASEMAPPING  '("ascii") erc--isupport-params)
+      (should (equal (erc-downcase "ABC 123 ΔΞΩΣ") "abc 123 ΔΞΩΣ"))
       (should (equal (erc-downcase "Bob[m]`") "bob[m]`"))
       (should (equal (erc-downcase "Tilde~") "tilde~" ))
       (should (equal (erc-downcase "\\O/") "\\o/" )))
 
     (ert-info ("rfc1459")
       (puthash 'CASEMAPPING  '("rfc1459") erc--isupport-params)
+      (should (equal (erc-downcase "ABC 123 ΔΞΩΣ") "abc 123 ΔΞΩΣ"))
       (should (equal (erc-downcase "Bob[m]`") "bob{m}`" ))
       (should (equal (erc-downcase "Tilde~") "tilde^" ))
       (should (equal (erc-downcase "\\O/") "|o/" )))
 
     (ert-info ("rfc1459-strict")
       (puthash 'CASEMAPPING  '("rfc1459-strict") erc--isupport-params)
+      (should (equal (erc-downcase "ABC 123 ΔΞΩΣ") "abc 123 ΔΞΩΣ"))
       (should (equal (erc-downcase "Bob[m]`") "bob{m}`"))
       (should (equal (erc-downcase "Tilde~") "tilde~" ))
       (should (equal (erc-downcase "\\O/") "|o/" )))))
@@ -1328,7 +1331,7 @@ Some docstring"
 
                       (defun erc-mname-enable (&optional ,arg-en)
                         "Enable ERC mname mode.
-With ARG, do so in all buffers for the current connection."
+When called interactively, do so in all buffers for the current connection."
                         (interactive "p")
                         (when (derived-mode-p 'erc-mode)
                           (if ,arg-en
@@ -1340,7 +1343,7 @@ With ARG, do so in all buffers for the current connection."
 
                       (defun erc-mname-disable (&optional ,arg-dis)
                         "Disable ERC mname mode.
-With ARG, do so in all buffers for the current connection."
+When called interactively, do so in all buffers for the current connection."
                         (interactive "p")
                         (when (derived-mode-p 'erc-mode)
                           (if ,arg-dis

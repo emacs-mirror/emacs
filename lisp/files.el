@@ -6193,18 +6193,17 @@ instance of such commands."
       (rename-buffer (generate-new-buffer-name base-name))
       (force-mode-line-update))))
 
-(defun files--ensure-directory (dir)
-  "Make directory DIR if it is not already a directory.  Return nil."
+(defun files--ensure-directory (mkdir dir)
+  "Use function MKDIR to make directory DIR if it is not already a directory.
+Return non-nil if DIR is already a directory."
   (condition-case err
-      (make-directory-internal dir)
+      (funcall mkdir dir)
     (error
-     (unless (file-directory-p dir)
-       (signal (car err) (cdr err))))))
+     (or (file-directory-p dir)
+	 (signal (car err) (cdr err))))))
 
 (defun make-directory (dir &optional parents)
   "Create the directory DIR and optionally any nonexistent parent dirs.
-If DIR already exists as a directory, signal an error, unless
-PARENTS is non-nil.
 
 Interactively, the default choice of directory to create is the
 current buffer's default directory.  That is useful when you have
@@ -6214,8 +6213,9 @@ Noninteractively, the second (optional) argument PARENTS, if
 non-nil, says whether to create parent directories that don't
 exist.  Interactively, this happens by default.
 
-If creating the directory or directories fail, an error will be
-raised."
+Return non-nil if PARENTS is non-nil and DIR already exists as a
+directory, and nil if DIR did not already exist but was created.
+Signal an error if unsuccessful."
   (interactive
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)
@@ -6223,25 +6223,32 @@ raised."
   ;; If default-directory is a remote directory,
   ;; make sure we find its make-directory handler.
   (setq dir (expand-file-name dir))
-  (let ((handler (find-file-name-handler dir 'make-directory)))
-    (if handler
-	(funcall handler 'make-directory dir parents)
-      (if (not parents)
-	  (make-directory-internal dir)
-	(let ((dir (directory-file-name (expand-file-name dir)))
-	      create-list parent)
-	  (while (progn
-		   (setq parent (directory-file-name
-				 (file-name-directory dir)))
-		   (condition-case ()
-		       (files--ensure-directory dir)
-		     (file-missing
-		      ;; Do not loop if root does not exist (Bug#2309).
-		      (not (string= dir parent)))))
-	    (setq create-list (cons dir create-list)
-		  dir parent))
-	  (dolist (dir create-list)
-            (files--ensure-directory dir)))))))
+  (let ((mkdir (if-let ((handler (find-file-name-handler dir 'make-directory)))
+		   #'(lambda (dir)
+		       ;; Use 'ignore' since the handler might be designed for
+		       ;; Emacs 28-, so it might return an (undocumented)
+		       ;; non-nil value, whereas the Emacs 29+ convention is
+		       ;; to return nil here.
+		       (ignore (funcall handler 'make-directory dir)))
+                 #'make-directory-internal)))
+    (if (not parents)
+        (funcall mkdir dir)
+      (let ((dir (directory-file-name (expand-file-name dir)))
+            already-dir create-list parent)
+        (while (progn
+                 (setq parent (directory-file-name
+                               (file-name-directory dir)))
+                 (condition-case ()
+                     (ignore (setq already-dir
+                                   (files--ensure-directory mkdir dir)))
+                   (error
+                    ;; Do not loop if root does not exist (Bug#2309).
+                    (not (string= dir parent)))))
+          (setq create-list (cons dir create-list)
+                dir parent))
+        (dolist (dir create-list)
+          (setq already-dir (files--ensure-directory mkdir dir)))
+        already-dir))))
 
 (defun make-empty-file (filename &optional parents)
   "Create an empty file FILENAME.
@@ -6435,7 +6442,7 @@ into NEWNAME instead."
   ;; copy-directory handler.
   (let ((handler (or (find-file-name-handler directory 'copy-directory)
 		     (find-file-name-handler newname 'copy-directory)))
-	(follow parents))
+	follow)
     (if handler
 	(funcall handler 'copy-directory directory
                  newname keep-time parents copy-contents)
@@ -6455,19 +6462,24 @@ into NEWNAME instead."
 				    t)
 	      (make-symbolic-link target newname t)))
         ;; Else proceed to copy as a regular directory
-        (cond ((not (directory-name-p newname))
+	;; first by creating the destination directory if needed,
+	;; preparing to follow any symlink to a directory we did not create.
+	(setq follow
+	    (if (not (directory-name-p newname))
 	       ;; If NEWNAME is not a directory name, create it;
 	       ;; that is where we will copy the files of DIRECTORY.
-	       (make-directory newname parents))
+	       (make-directory newname parents)
 	      ;; NEWNAME is a directory name.  If COPY-CONTENTS is non-nil,
 	      ;; create NEWNAME if it is not already a directory;
 	      ;; otherwise, create NEWNAME/[DIRECTORY-BASENAME].
-	      ((if copy-contents
-		   (or parents (not (file-directory-p newname)))
+	      (unless copy-contents
 	         (setq newname (concat newname
 				       (file-name-nondirectory directory))))
-	       (make-directory (directory-file-name newname) parents))
-	      (t (setq follow t)))
+	      (condition-case err
+		  (make-directory (directory-file-name newname) parents)
+		(error
+		 (or (file-directory-p newname)
+		     (signal (car err) (cdr err)))))))
 
         ;; Copy recursively.
         (dolist (file
@@ -8497,7 +8509,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 	   (unless (file-directory-p trash-dir)
 	     (make-directory trash-dir t))
 	   ;; Ensure that the trashed file-name is unique.
-	   (if (file-exists-p new-fn)
+	   (if (file-attributes new-fn)
 	       (let ((version-control t)
 		     (backup-directory-alist nil))
 		 (setq new-fn (car (find-backup-file-name new-fn)))))
@@ -8574,7 +8586,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
                  ;; We're checking further down whether the info file
                  ;; exists, but the file name may exist in the trash
                  ;; directory even if there is no info file for it.
-                 (when (file-exists-p
+                 (when (file-attributes
                         (file-name-concat trash-files-dir files-base))
                    (setq overwrite t
                          files-base (file-name-nondirectory
@@ -8612,7 +8624,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		 (let ((delete-by-moving-to-trash nil)
 		       (new-fn (file-name-concat trash-files-dir files-base)))
                    (if (or (not is-directory)
-                           (not (file-exists-p new-fn)))
+                           (not (file-attributes new-fn)))
                        (rename-file fn new-fn overwrite)
                      (copy-directory fn
                                      (file-name-as-directory new-fn)

@@ -851,9 +851,12 @@ to `org-footnote-section'.  Inline definitions are ignored."
 			    (format "[fn:%s] DEFINITION NOT FOUND." label))
 			"\n"))))
 	  ;; Insert un-referenced footnote definitions at the end.
-	  (pcase-dolist (`(,label . ,definition) definitions)
-	    (unless (member label inserted)
-	      (insert "\n" definition "\n")))))))))
+          ;; Combine all insertions into one to create a single cache
+          ;; update call.
+          (combine-change-calls (point) (point)
+	    (pcase-dolist (`(,label . ,definition) definitions)
+	      (unless (member label inserted)
+	        (insert "\n" definition "\n"))))))))))
 
 (defun org-footnote-normalize ()
   "Turn every footnote in buffer into a numbered one."

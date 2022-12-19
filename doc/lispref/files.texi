@@ -895,10 +895,14 @@ permissions of the file itself.)
 If the file does not exist, or if there was trouble determining
 whether the file exists, this function returns @code{nil}.
 
-Directories are files, so @code{file-exists-p} can return @code{t} when
-given a directory.  However, because @code{file-exists-p} follows
-symbolic links, it returns @code{t} for a symbolic link
-name only if the target file exists.
+@cindex dangling symlinks, testing for existence
+Directories are files, so @code{file-exists-p} can return @code{t}
+when given a directory.  However, because @code{file-exists-p} follows
+symbolic links, it returns @code{t} for a symbolic link name only if
+the target of the link exists; if your Lisp program needs to consider
+@dfn{dangling symlinks} whose target doesn't exist as existing files,
+use @code{file-attributes} (@pxref{File Attributes}) instead of
+@code{file-exists-p}.
 @end defun
 
 @defun file-readable-p filename
@@ -3205,6 +3209,9 @@ This command creates a directory named @var{dirname}.  If
 @var{parents} is non-@code{nil}, as is always the case in an
 interactive call, that means to create the parent directories first,
 if they don't already exist.
+As a function, @code{make-directory} returns non-@code{nil} if @var{dirname}
+already exists as a directory and @var{parents} is non-@code{nil},
+and returns @code{nil} if it successfully created @var{dirname}.
 @code{mkdir} is an alias for this.
 @end deffn
 
@@ -3378,7 +3385,6 @@ first, before handlers for jobs such as remote file access.
 @code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-directory},
-@code{make-directory-internal},
 @code{make-lock-file-name},
 @code{make-nearby-temp-file},
 @code{make-process},
@@ -3440,7 +3446,6 @@ first, before handlers for jobs such as remote file access.
 @code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-direc@discretionary{}{}{}tory},
-@code{make-direc@discretionary{}{}{}tory-internal},
 @code{make-lock-file-name},
 @code{make-nearby-temp-file},
 @code{make-process},

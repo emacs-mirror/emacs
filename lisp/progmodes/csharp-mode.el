@@ -11,18 +11,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -505,7 +505,7 @@ compilation and evaluation time conflicts."
 
 (defun csharp--compilation-error-file-resolve ()
   "Resolve an msbuild error to a (filename . dirname) cons cell."
-  ;; http://stackoverflow.com/a/18049590/429091
+  ;; https://stackoverflow.com/a/18049590/429091
   (cons (match-string 1) (file-name-directory (match-string 4))))
 
 (defconst csharp-compilation-re-msbuild-error
@@ -709,8 +709,8 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :override t
    :feature 'literal
-   `((integer_literal) @font-lock-constant-face
-     (real_literal) @font-lock-constant-face
+   `((integer_literal) @font-lock-number-face
+     (real_literal) @font-lock-number-face
      (null_literal) @font-lock-constant-face
      (boolean_literal) @font-lock-constant-face)
    :language 'c-sharp
@@ -748,8 +748,11 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :feature 'definition
    :override t
-   '((qualified_name (identifier) @font-lock-variable-name-face)
+   '((qualified_name (identifier) @font-lock-type-face)
      (using_directive (identifier) @font-lock-type-face)
+     (using_directive (name_equals
+                       (identifier) @font-lock-type-face
+                       ["="] @default-face))
 
      (enum_declaration (identifier) @font-lock-type-face)
      (enum_member_declaration (identifier) @font-lock-variable-name-face)
@@ -788,7 +791,15 @@ compilation and evaluation time conflicts."
      (invocation_expression
       (identifier) @font-lock-function-name-face)
      (invocation_expression
-      (member_access_expression (identifier) @font-lock-function-name-face))
+      (member_access_expression
+       expression: (identifier) @font-lock-variable-name-face))
+     (invocation_expression
+      function: [(generic_name (identifier)) @font-lock-function-name-face
+                 (generic_name (type_argument_list
+                                ["<"] @font-lock-bracket-face
+                                (identifier) @font-lock-type-face
+                                [">"] @font-lock-bracket-face)
+                               )])
 
      (catch_declaration
       ((identifier) @font-lock-type-face))
@@ -815,7 +826,13 @@ compilation and evaluation time conflicts."
 
    :language 'c-sharp
    :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face)))
+   '((["," ":" ";"]) @font-lock-delimiter-face)
+
+   :language 'c-sharp
+   :feature 'escape-sequence
+   :override t
+   '((escape_sequence) @font-lock-escape-face
+     (ERROR) @font-lock-warning-face)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -890,6 +907,7 @@ Key bindings:
 ;;;###autoload
 (define-derived-mode csharp-ts-mode prog-mode "C#"
   "Major mode for editing C# code."
+  :syntax-table (csharp--make-mode-syntax-table)
 
   (unless (treesit-ready-p 'c-sharp)
     (error "Tree-sitter for C# isn't available"))
@@ -908,6 +926,11 @@ Key bindings:
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
 
+  (setq-local treesit-text-type-regexp
+              (regexp-opt '("comment"
+                            "verbatim_string-literal"
+                            "interpolated_verbatim_string-text")))
+
   ;; Indent.
   (setq-local treesit-simple-indent-rules csharp-ts-mode--indent-rules)
 
@@ -922,7 +945,7 @@ Key bindings:
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
-                ( keyword string type)
+                ( keyword string escape-sequence type)
                 ( attribute constant expression literal)
                 ( bracket delimiter)))
 

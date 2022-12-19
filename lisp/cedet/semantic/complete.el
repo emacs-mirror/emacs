@@ -1731,7 +1731,7 @@ Display mechanism using tooltip for a list of possible completions.")
       ;; Add any tail info.
       (setq msg (concat msg msg-tail))
       ;; Display tooltip.
-      (when (not (eq msg ""))
+      (when (not (equal msg ""))
 	(semantic-displayer-tooltip-show msg)))))
 
 ;;; Compatibility

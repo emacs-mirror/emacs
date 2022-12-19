@@ -9,19 +9,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -45,7 +44,6 @@
   (let ((table (make-syntax-table)))
     ;; Taken from the cc-langs version
     (modify-syntax-entry ?_  "_"     table)
-    (modify-syntax-entry ?$ "_"      table)
     (modify-syntax-entry ?\\ "\\"    table)
     (modify-syntax-entry ?+  "."     table)
     (modify-syntax-entry ?-  "."     table)
@@ -55,8 +53,14 @@
     (modify-syntax-entry ?>  "."     table)
     (modify-syntax-entry ?&  "."     table)
     (modify-syntax-entry ?|  "."     table)
-    (modify-syntax-entry ?` "\""     table)
+    (modify-syntax-entry ?\' "\""    table)
     (modify-syntax-entry ?\240 "."   table)
+    (modify-syntax-entry ?/  ". 124b" table)
+    (modify-syntax-entry ?*  ". 23"   table)
+    (modify-syntax-entry ?\n "> b"  table)
+    (modify-syntax-entry ?\^m "> b" table)
+    (modify-syntax-entry ?$ "_" table)
+    (modify-syntax-entry ?` "\"" table)
     table)
   "Syntax table for `typescript-ts-mode'.")
 
@@ -85,15 +89,19 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "object") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "object_type") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "enum_body") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "class_body") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "arrow_function") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "parenthesized_expression") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "binary_expression") parent-bol typescript-ts-mode-indent-offset)
 
      ,@(when (eq language 'tsx)
-         `(((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
+         `(((node-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
+           ((node-is "jsx_element") parent typescript-ts-mode-indent-offset)
+           ((node-is "jsx_expression") parent typescript-ts-mode-indent-offset)
+           ((node-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)
            ((node-is "jsx_closing_element") parent 0)
-           ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
            ((node-is "/") parent 0)
-           ((parent-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)))
+           ((node-is ">") parent 0)))
      (no-node parent-bol 0))))
 
 (defvar typescript-ts-mode--keywords
@@ -213,7 +221,38 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       parameters:
       [(_ (identifier) @font-lock-variable-name-face)
        (_ (_ (identifier) @font-lock-variable-name-face))
-       (_ (_ (_ (identifier) @font-lock-variable-name-face)))]))
+       (_ (_ (_ (identifier) @font-lock-variable-name-face)))])
+
+     (return_statement (identifier) @font-lock-variable-name-face)
+
+     (binary_expression left: (identifier) @font-lock-variable-name-face)
+     (binary_expression right: (identifier) @font-lock-variable-name-face)
+
+     (arguments (identifier) @font-lock-variable-name-face)
+
+     (parenthesized_expression (identifier) @font-lock-variable-name-face)
+     (parenthesized_expression (_ (identifier) @font-lock-variable-name-face)))
+
+   :language language
+   :override t
+   :feature 'property
+   `((property_signature
+      name: (property_identifier) @font-lock-property-face)
+     (public_field_definition
+      name: (property_identifier) @font-lock-property-face)
+     (member_expression
+      object: (identifier) @font-lock-variable-name-face)
+     (member_expression
+      property: (_) @font-lock-property-face)
+
+     (pair key: (property_identifier) @font-lock-variable-name-face)
+
+     (pair value: (identifier) @font-lock-variable-name-face)
+
+     ((shorthand_property_identifier) @font-lock-property-face)
+
+     ((shorthand_property_identifier_pattern)
+      @font-lock-property-face))
 
    :language language
    :override t
@@ -277,17 +316,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :language language
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face)
-
-   :language language
-   :override t
-   :feature 'property
-   `((pair value: (identifier) @font-lock-variable-name-face)
-
-     ((shorthand_property_identifier) @font-lock-property-face)
-
-     ((shorthand_property_identifier_pattern)
-      @font-lock-property-face))))
+   '((escape_sequence) @font-lock-escape-face)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
@@ -309,6 +338,11 @@ Argument LANGUAGE is either `typescript' or `tsx'."
               (rx (* (syntax whitespace))
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
+
+  (setq-local treesit-text-type-regexp
+              (regexp-opt '("comment"
+                            "template_string")))
+  (setq-local treesit-defun-prefer-top-level t)
 
   ;; Electric
   (setq-local electric-indent-chars
@@ -343,8 +377,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'typescript))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (keyword string)
+                '((comment declaration keyword string escape-sequence)
                   (constant expression identifier number pattern property)
                   (bracket delimiter)))
 
@@ -378,8 +411,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'tsx))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration)
-                  (keyword string)
+                '((comment declaration keyword string escape-sequence)
                   (constant expression identifier jsx number pattern property)
                   (bracket delimiter)))
 

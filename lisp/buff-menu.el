@@ -107,6 +107,9 @@ The value should be a function of one argument; it will be
 called with the buffer.  If this function returns non-nil,
 then the buffer will be displayed in the buffer list.")
 
+(defvar-local Buffer-menu-buffer-list nil
+  "The current list of buffers or function to return buffers.")
+
 (defvar-keymap Buffer-menu-mode-map
   :doc "Local keymap for `Buffer-menu-mode' buffers."
   :parent tabulated-list-mode-map
@@ -628,8 +631,10 @@ This behaves like invoking \\[read-only-mode] in that buffer."
 This is called by `buffer-menu' and others as a subroutine.
 
 If FILES-ONLY is non-nil, show only file-visiting buffers.
-If BUFFER-LIST is non-nil, it should be a list of buffers; it
-means list those buffers and no others.
+If BUFFER-LIST is non-nil, it should be either a list of buffers
+or a function that returns a list of buffers; it means
+list those buffers and no others.
+See more at `Buffer-menu-buffer-list'.
 If FILTER-PREDICATE is non-nil, it should be a function
 that filters out buffers from the list of buffers.
 See more at `Buffer-menu-filter-predicate'."
@@ -639,6 +644,7 @@ See more at `Buffer-menu-filter-predicate'."
       (Buffer-menu-mode)
       (setq Buffer-menu-files-only
 	    (and files-only (>= (prefix-numeric-value files-only) 0)))
+      (setq Buffer-menu-buffer-list buffer-list)
       (setq Buffer-menu-filter-predicate filter-predicate)
       (list-buffers--refresh buffer-list old-buffer)
       (tabulated-list-print))
@@ -665,9 +671,16 @@ See more at `Buffer-menu-filter-predicate'."
 			       Buffer-menu-filter-predicate))
 	entries name-width)
     ;; Collect info for each buffer we're interested in.
-    (dolist (buffer (or buffer-list
-			(buffer-list (if Buffer-menu-use-frame-buffer-list
-					 (selected-frame)))))
+    (dolist (buffer (cond
+                     ((functionp buffer-list)
+                      (funcall buffer-list))
+                     (buffer-list)
+                     ((functionp Buffer-menu-buffer-list)
+                      (funcall Buffer-menu-buffer-list))
+                     (Buffer-menu-buffer-list)
+                     (t (buffer-list
+                         (if Buffer-menu-use-frame-buffer-list
+                             (selected-frame))))))
       (with-current-buffer buffer
 	(let* ((name (buffer-name))
 	       (file buffer-file-name))

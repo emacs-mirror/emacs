@@ -100,7 +100,7 @@
                             "aaa	[ bbb, cccc    ]	dddd\n"
                             "aa	[ bb,  ccccccc ]	ddd\n"))))))
 
-(ert-deftest delim-col-tests-delimit-colummns-before-after ()
+(ert-deftest delim-col-tests-delimit-columns-before-after ()
   (let ((delimit-columns-before "<")
         (delimit-columns-after ">"))
     (with-temp-buffer

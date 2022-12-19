@@ -183,7 +183,9 @@ file named by `eshell-aliases-file'.")
   (pcomplete-here (eshell-alias-completions pcomplete-stub)))
 
 (defun eshell-read-aliases-list ()
-  "Read in an aliases list from `eshell-aliases-file'."
+  "Read in an aliases list from `eshell-aliases-file'.
+This is useful after manually editing the contents of the file."
+  (interactive)
   (let ((file eshell-aliases-file))
     (when (file-readable-p file)
       (setq eshell-command-aliases-list

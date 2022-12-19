@@ -1,22 +1,23 @@
 ;;; erc-scenarios-misc.el --- Misc scenarios for ERC -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
-;;
+
 ;; This file is part of GNU Emacs.
-;;
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see
-;; <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Code:
 
 (require 'ert-x)
 (eval-and-compile
@@ -97,11 +98,10 @@
                                 :nick "tester"
                                 :full-name "tester")
         (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
-        (let ((err (should-error (sleep-for 1))))
-          (should (string-match-p "Failed to determine" (cadr err))))
         (funcall expect 1 "Failed to determine")
         (funcall expect 1 "Failed to determine")
-        (should-not erc-network)
+        (funcall expect 1 "Connection failed")
+        (should (string-prefix-p "Unknown" (erc-network-name)))
         (should (string= erc-server-announced-name "irc.foonet.org"))))))
 
 ;; Targets that are host/server masks like $*, $$*, and #* are routed

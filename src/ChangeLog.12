@@ -10836,7 +10836,7 @@
 	* gtkutil.c (xg_maybe_add_timer): Port to higher-res time stamps.
 
 	* image.c (prepare_image_for_display, clear_image_cache)
-	(lookup_image): Port to higer-resolution time stamps.
+	(lookup_image): Port to higher-resolution time stamps.
 
 	* keyboard.c (start_polling, bind_polling_period):
 	Check for time stamp overflow.

@@ -4967,12 +4967,22 @@ first child where parent is @code{argument_list}, use
 (match nil "argument_list" nil nil 0 0)
 @end example
 
+@item n-p-gp
+Short for ``node-parent-grandparent'', this matcher is a function of 3
+arguments: @var{node-type}, @var{parent-type}, and
+@var{grandparent-type}.  It returns a function that is called with 3
+arguments: @var{node}, @var{parent}, and @var{bol}, and returns
+non-@code{nil} if: (1) @var{node-type} matches @var{node}'s type, and
+(2) @var{parent-type} matches @var{parent}'s type, and (3)
+@var{grandparent-type} matches @var{parent}'s parent's type.  If any
+of @var{node-type}, @var{parent-type}, and @var{grandparent-type} is
+@code{nil}, this function doesn't check for it.
+
 @item comment-end
 This matcher is a function that is called with 3 arguments:
 @var{node}, @var{parent}, and @var{bol}, and returns non-@code{nil} if
 point is before a comment ending token.  Comment ending tokens are
-defined by regular expression @code{treesit-comment-end}
-(@pxref{Tree-sitter major modes, treesit-comment-end}).
+defined by regular expression @code{comment-end-skip}
 
 @item first-sibling
 This anchor is a function that is called with 3 arguments: @var{node},
@@ -5009,19 +5019,11 @@ This is useful as the beginning of the buffer is always at column 0.
 
 @item comment-start
 This anchor is a function that is called with 3 arguments: @var{node},
-@var{parent}, and @var{bol}, and returns the position right after the
-comment-start token.  Comment-start tokens are defined by regular
-expression @code{treesit-comment-start} (@pxref{Tree-sitter major
-modes, treesit-comment-start}).  This function assumes @var{parent} is
-the comment node.
-
-@item coment-start-skip
-This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the position after the
-comment-start token and any whitespace characters following that
-token.  Comment-start tokens are defined by regular expression
-@code{treesit-comment-start}.  This function assumes @var{parent} is
-the comment node.
+comment-start token.  Comment-start tokens are defined by regular
+expression @code{comment-start-skip}.  This function assumes
+@var{parent} is the comment node.
+
 @end ftable
 @end defvar
 

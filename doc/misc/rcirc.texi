@@ -691,11 +691,11 @@ window is showing them), the mode line will now show you the abbreviated
 channel or nick name.  Use @kbd{C-c C-@key{SPC}} to switch to these
 buffers.
 
-@cindex rcirc-track-abbrevate-flag
+@cindex rcirc-track-abbreviate-flag
 By default the channel names are abbreviated, set
-@code{rcirc-track-abbrevate-flag} to a non-@code{nil} value. This might be
-interesting if the IRC activities are not tracked in the mode line,
-but somewhere else.
+@code{rcirc-track-abbreviate-flag} to a non-@code{nil} value.  This
+might be interesting if the IRC activities are not tracked in the mode
+line, but somewhere else.
 
 @vindex rcirc-mode-hook
 If you prefer not to load @code{rcirc} immediately, you can delay the

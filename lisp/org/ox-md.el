@@ -87,7 +87,8 @@ included into another document or application that reserves top-level
 headings for its own use."
   :group 'org-export-md
   :package-version '(Org . "9.6")
-  :type 'natnum)
+  ;; Avoid `natnum' because that's not available until Emacs 28.1.
+  :type 'integer)
 
 
 

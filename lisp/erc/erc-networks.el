@@ -60,6 +60,7 @@
 (declare-function erc-buffer-filter "erc" (predicate &optional proc))
 (declare-function erc-current-nick "erc" nil)
 (declare-function erc-display-error-notice "erc" (parsed string))
+(declare-function erc-display-message "erc" (parsed type buffer msg &rest args))
 (declare-function erc-error "erc" (&rest args))
 (declare-function erc-get-buffer "erc" (target &optional proc))
 (declare-function erc-server-buffer "erc" nil)
@@ -1096,7 +1097,8 @@ matching that of the dying buffer."
                                   (erc--target-symbol erc--target))))))))
        ((not (cdr others))))
     (with-current-buffer (car others)
-      (rename-buffer (erc--target-string target)))))
+      (unless (get-buffer (erc--target-string target))
+        (rename-buffer (erc--target-string target))))))
 
 (defun erc-networks-shrink-ids-and-buffer-names ()
   "Recompute network IDs and buffer names, ignoring the current buffer.
@@ -1187,19 +1189,20 @@ rename them with <n> suffixes going from newest to oldest."
                  (erc--target-string target)))
          placeholder)
     ;; If we don't exist, claim name temporarily while renaming others
-    (when-let* (namesakes
-                (ex (get-buffer name))
-                ((not (memq ex existing)))
-                (temp-name (generate-new-buffer-name (format "*%s*" name))))
-      (setq existing (remq ex existing))
-      (with-current-buffer ex
-        (rename-buffer temp-name)
-        (setq placeholder (get-buffer-create name))
-        (rename-buffer name 'unique)))
+    (when-let* ((ex (get-buffer name))
+                ((not (memq ex existing))))
+      (if namesakes ; if namesakes is nonempty, it contains ex
+          (with-current-buffer ex
+            (let ((temp-name (generate-new-buffer-name (format "*%s*" name))))
+              (rename-buffer temp-name)
+              (setq placeholder (get-buffer-create name))
+              (rename-buffer name 'unique)))
+        ;; Here, ex must be a server buffer or a non-ERC buffer
+        (setq name (erc-networks--construct-target-buffer-name target))))
     (unless (with-suppressed-warnings ((obsolete erc-reuse-buffers))
               erc-reuse-buffers)
       (when (string-suffix-p ">" name)
-        (setq name (substring name 0 -3))))
+        (setq name (string-trim-right name (rx "<" (+ digit) ">")))))
     (dolist (ex (erc-networks--id-sort-buffers existing))
       (with-current-buffer ex
         (rename-buffer name 'unique)))
@@ -1260,24 +1263,45 @@ given by the `RPL_ISUPPORT' NETWORK parameter."
                return name)
       (and-let* ((vanity (erc--get-isupport-entry 'NETWORK 'single))
                  ((intern vanity))))
+      (erc-networks--id-given erc-networks--id)
       erc-networks--name-missing-sentinel))
 
-(defun erc-networks--set-name (_proc parsed)
+(defvar erc-networks--allow-unknown-network nil
+  "Whether to ignore a failure in identifying the network.
+If you need this as a user option, please say so via \\[erc-bug].
+Otherwise, expect it to vanish at any time.") ; Bug#59976
+
+(defun erc-networks--set-name (proc parsed)
   "Set `erc-network' to the value returned by `erc-networks--determine'.
-Signal an error when the network cannot be determined."
+Print an error message when the network cannot be determined before
+shutting down the connection."
   ;; Always update (possibly clobber) current value, if any.
-  (let ((name (erc-networks--determine)))
-    (when (eq name erc-networks--name-missing-sentinel)
-      ;; This can happen theoretically, e.g., if you're editing some
-      ;; settings interactively on a proxy service that impersonates IRC
-      ;; but aren't being proxied through to a real network.  The
+  (pcase (setq erc-network (erc-networks--determine))
+    ((and (pred (eq (erc-networks--id-given erc-networks--id)))
+          (let m (format "Couldn't determine network. Using given ID `%s'."
+                         erc-network)))
+     (erc-display-message parsed 'notice nil m)
+     nil)
+    ((and
+      (guard (eq erc-network erc-networks--name-missing-sentinel))
+      ;; This can happen theoretically, e.g., when adjusting settings
+      ;; on a proxy service that partially impersonates IRC but isn't
+      ;; currently conveying anything through to a real network.  The
       ;; service may send a 422 but no NETWORK param (or *any* 005s).
-      (let ((m (concat "Failed to determine network. Please set entry for "
-                       erc-server-announced-name " in `erc-networks-alist'.")))
-        (erc-display-error-notice parsed m)
-        (erc-error "Failed to determine network"))) ; beep
-    (setq erc-network name))
-  nil)
+      (let m (concat "Failed to determine network.  Please set entry for \""
+                     erc-server-announced-name "\" in `erc-networks-alist'"
+                     " or consider calling `erc-tls' with the keyword `:id'."
+                     "  See Info:\"(erc) Network Identifier\" for more.")))
+     (require 'info)
+     (erc-display-error-notice parsed m)
+     (if erc-networks--allow-unknown-network
+         (progn
+           (erc-display-error-notice
+            parsed (format "Continuing anyway with network set to `%s'."
+                           erc-network))
+           nil)
+       (delete-process proc)
+       'error))))
 
 ;; This lives here in this file because all the other "on connect"
 ;; MOTD stuff ended up here (but perhaps that needs to change).
@@ -1287,11 +1311,12 @@ Signal an error when the network cannot be determined."
 Copy source (prefix) from MOTD-ish message as a last resort."
   ;; The 004 handler never ran; see 2004-03-10 Diane Murray in change log
   (unless erc-server-announced-name
-    (erc-display-error-notice parsed "Failed to determine server name.")
+    (setq erc-server-announced-name (erc-response.sender parsed))
     (erc-display-error-notice
-     parsed (concat "If this was unexpected, consider reporting it via "
-                    (substitute-command-keys "\\[erc-bug]") "."))
-    (setq erc-server-announced-name (erc-response.sender parsed)))
+     parsed (concat "Failed to determine server name. Using \""
+                    erc-server-announced-name "\" instead."
+                    "  If this was unexpected, consider reporting it via "
+                    (substitute-command-keys "\\[erc-bug]") ".")))
   nil)
 
 (defun erc-unset-network-name (_nick _ip _reason)

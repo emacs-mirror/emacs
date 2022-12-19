@@ -847,7 +847,7 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
 @findex flymake-proc-legacy-flymake
 The backend @code{flymake-proc-legacy-flymake} was originally designed
 to be extended for supporting new syntax check tools and error message
-patterns.  It is also controlled by its own set of customization variables
+patterns.  It is also controlled by its own set of customization variables.
 
 @node Proc customization variables
 @section Customization variables for the Proc backend

@@ -176,12 +176,12 @@ If START or END is negative, it counts from the end."
 ;; This hard codes `auth-source-pass-port-separator' to ":"
 (defun erc-compat--29-auth-source-pass--retrieve-parsed (seen e port-number-p)
   (when (string-match (rx (or bot "/")
-                          (or (: (? (group-n 20 (+ (not (in " /:")))) "@")
-                                 (group-n 10 (+ (not (in " /:@"))))
+                          (or (: (? (group-n 20 (+ (not (in "/:")))) "@")
+                                 (group-n 10 (+ (not (in "/:@"))))
                                  (? ":" (group-n 30 (+ (not (in " /:"))))))
-                              (: (group-n 11 (+ (not (in " /:@"))))
+                              (: (group-n 11 (+ (not (in "/:@"))))
                                  (? ":" (group-n 31 (+ (not (in " /:")))))
-                                 (? "/" (group-n 21 (+ (not (in " /:")))))))
+                                 (? "/" (group-n 21 (+ (not (in "/:")))))))
                           eot)
                       e)
     (puthash e `( :host ,(or (match-string 10 e) (match-string 11 e))
@@ -391,8 +391,11 @@ If START or END is negative, it counts from the end."
 
 (cond ((fboundp 'browse-url-irc)) ; 29
       ((boundp 'browse-url-default-handlers) ; 28
-       (cl-pushnew '("\\`irc6?s?://" . erc-compat--29-browse-url-irc)
-                   browse-url-default-handlers))
+       (setf (alist-get "\\`irc6?s?://" browse-url-default-handlers
+                        nil nil (lambda (a _)
+                                  (and (stringp a)
+                                       (string-match-p a "irc://localhost"))))
+             #'erc-compat--29-browse-url-irc))
       ((boundp 'browse-url-browser-function) ; 27
        (require 'browse-url)
        (let ((existing browse-url-browser-function))

@@ -60,6 +60,18 @@
   (eshell-command-result-equal "echo $\"user-login-name\"-foo"
                                (concat user-login-name "-foo")))
 
+(ert-deftest esh-var-test/interp-list-var ()
+  "Interpolate list variable"
+  (let ((eshell-test-value '(1 2 3)))
+    (eshell-command-result-equal "echo $eshell-test-value"
+                                 '(1 2 3))))
+
+(ert-deftest esh-var-test/interp-list-var-concat ()
+  "Interpolate and concat list variable"
+  (let ((eshell-test-value '(1 2 3)))
+    (eshell-command-result-equal "echo a$'eshell-test-value'z"
+                                 '("a1" 2 "3z"))))
+
 (ert-deftest esh-var-test/interp-var-indices ()
   "Interpolate list variable with indices"
   (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
@@ -131,6 +143,26 @@
     (eshell-command-result-equal "echo $#eshell-test-value" 1)
     (eshell-command-result-equal "echo $#eshell-test-value[foo]" 3)))
 
+(ert-deftest esh-var-test/interp-var-splice ()
+  "Splice-interpolate list variable"
+  (let ((eshell-test-value '(1 2 3)))
+    (eshell-command-result-equal "echo a $@eshell-test-value z"
+                                 '("a" 1 2 3 "z"))))
+
+(ert-deftest esh-var-test/interp-var-splice-concat ()
+  "Splice-interpolate and concat list variable"
+  (let ((eshell-test-value '(1 2 3)))
+    (eshell-command-result-equal "echo it is a$@'eshell-test-value'z"
+                                 '("it" "is" "a1" 2 "3z"))
+    ;; This is a tricky case.  We're concatenating a spliced list and
+    ;; a non-spliced list.  The general rule is that splicing should
+    ;; work as though the user typed "$X[0] $X[1] ... $X[N]".  That
+    ;; means that the last value of our splice should get concatenated
+    ;; into the first value of the non-spliced list.
+    (eshell-command-result-equal
+     "echo it is $@'eshell-test-value'$eshell-test-value"
+     '("it" "is" 1 2 (31 2 3)))))
+
 (ert-deftest esh-var-test/interp-lisp ()
   "Interpolate Lisp form evaluation"
   (eshell-command-result-equal "+ $(+ 1 2) 3" 6))
@@ -197,6 +229,9 @@
    (eshell-match-command-output "echo ${echo hi}-${*echo there}"
                                 "hi-there\n")))
 
+
+;; Quoted variable interpolation
+
 (ert-deftest esh-var-test/quoted-interp-var ()
   "Interpolate variable inside double-quotes"
   (eshell-command-result-equal "echo \"$user-login-name\""
@@ -208,6 +243,18 @@
                                (concat "hi, " user-login-name))
   (eshell-command-result-equal "echo \"hi, $\\\"user-login-name\\\"\""
                                (concat "hi, " user-login-name)))
+
+(ert-deftest esh-var-test/quoted-interp-list-var ()
+  "Interpolate list variable inside double-quotes"
+  (let ((eshell-test-value '(1 2 3)))
+    (eshell-command-result-equal "echo \"$eshell-test-value\""
+                                 "(1 2 3)")))
+
+(ert-deftest esh-var-test/quoted-interp-list-var-concat ()
+  "Interpolate and concat list variable inside double-quotes"
+  (let ((eshell-test-value '(1 2 3)))
+    (eshell-command-result-equal "echo \"a$'eshell-test-value'z\""
+                                 "a(1 2 3)z")))
 
 (ert-deftest esh-var-test/quoted-interp-var-indices ()
   "Interpolate string variable with indices inside double-quotes"
@@ -291,6 +338,18 @@ inside double-quotes"
     (eshell-command-result-equal "echo \"$#eshell-test-value[foo]\""
                                  "3")))
 
+(ert-deftest esh-var-test/quoted-interp-var-splice ()
+  "Splice-interpolate list variable inside double-quotes"
+  (let ((eshell-test-value '(1 2 3)))
+    (eshell-command-result-equal "echo a \"$@eshell-test-value\" z"
+                                 '("a" "1 2 3" "z"))))
+
+(ert-deftest esh-var-test/quoted-interp-var-splice-concat ()
+  "Splice-interpolate and concat list variable inside double-quotes"
+  (let ((eshell-test-value '(1 2 3)))
+    (eshell-command-result-equal "echo \"a$@'eshell-test-value'z\""
+                                 "a1 2 3z")))
+
 (ert-deftest esh-var-test/quoted-interp-lisp ()
   "Interpolate Lisp form evaluation inside double-quotes"
   (eshell-command-result-equal "echo \"hi $(concat \\\"the\\\" \\\"re\\\")\""
@@ -323,6 +382,21 @@ inside double-quotes"
   "Interpolate and concat command with literal"
   (eshell-command-result-equal "echo \"${echo \\\"foo\nbar\\\"} baz\""
                                "foo\nbar baz"))
+
+
+;; Interpolating commands
+
+(ert-deftest esh-var-test/command-interp ()
+  "Interpolate a variable as a command name"
+  (let ((eshell-test-value "printnl"))
+    (eshell-command-result-equal "$eshell-test-value hello there"
+                                 "hello\nthere\n")))
+
+(ert-deftest esh-var-test/command-interp-splice ()
+  "Interpolate a splice variable as a command name with arguments"
+  (let ((eshell-test-value '("printnl" "hello" "there")))
+    (eshell-command-result-equal "$@eshell-test-value"
+                                 "hello\nthere\n")))
 
 
 ;; Interpolated variable conversion

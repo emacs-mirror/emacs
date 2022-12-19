@@ -86,6 +86,13 @@
 ;; Returns the length of the value of $EXPR.  This could also be
 ;; done using the `length' Lisp function.
 ;;
+;;   $@EXPR
+;;
+;; Splices the value of $EXPR in-place into the current list of
+;; arguments.  This is analogous to the `,@' token in Elisp
+;; backquotes, and works as if the user typed '$EXPR[0] $EXPR[1]
+;; ... $EXPR[N]'.
+;;
 ;; There are also a few special variables defined by Eshell.  '$$' is
 ;; the value of the last command (t or nil, in the case of an external
 ;; command).  This makes it possible to chain results:
@@ -320,10 +327,9 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
   "Parse a variable interpolation.
 This function is explicit for adding to `eshell-parse-argument-hook'."
   (when (and (eq (char-after) ?$)
-	     (/= (1+ (point)) (point-max)))
+             (/= (1+ (point)) (point-max)))
     (forward-char)
-    (list 'eshell-escape-arg
-	  (eshell-parse-variable))))
+    (eshell-parse-variable)))
 
 (defun eshell/define (var-alias definition)
   "Define a VAR-ALIAS using DEFINITION."
@@ -453,6 +459,8 @@ Its purpose is to call `eshell-parse-variable-ref', and then to
 process any indices that come after the variable reference."
   (let* ((get-len (when (eq (char-after) ?#)
 		    (forward-char) t))
+         (splice (when (eq (char-after) ?@)
+                   (forward-char) t))
 	 value indices)
     (setq value (eshell-parse-variable-ref get-len)
 	  indices (and (not (eobp))
@@ -464,7 +472,13 @@ process any indices that come after the variable reference."
     (when get-len
       (setq value `(length ,value)))
     (when eshell-current-quoted
-      (setq value `(eshell-stringify ,value)))
+      (if splice
+          (setq value `(eshell-list-to-string ,value)
+                splice nil)
+        (setq value `(eshell-stringify ,value))))
+    (setq value `(eshell-escape-arg ,value))
+    (when splice
+      (setq value `(eshell-splice-args ,value)))
     value))
 
 (defun eshell-parse-variable-ref (&optional modifier-p)
@@ -751,12 +765,13 @@ For example, to retrieve the second element of a user's record in
 
 (defun eshell-complete-variable-reference ()
   "If there is a variable reference, complete it."
-  (let ((arg (pcomplete-actual-arg)) index)
-    (when (setq index
-		(string-match
-		 (concat "\\$\\(" eshell-variable-name-regexp
-			 "\\)?\\'") arg))
-      (setq pcomplete-stub (substring arg (1+ index)))
+  (let ((arg (pcomplete-actual-arg)))
+    (when (string-match
+           (rx "$" (? (or "#" "@"))
+               (? (group (regexp eshell-variable-name-regexp)))
+               string-end)
+           arg)
+      (setq pcomplete-stub (substring arg (match-beginning 1)))
       (throw 'pcomplete-completions (eshell-variables-list)))))
 
 (defun eshell-variables-list ()

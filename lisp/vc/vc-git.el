@@ -1048,7 +1048,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                         (string-replace file-diff "" vc-git-patch-string))
                 (user-error "Index not empty"))
               (setq pos (point))))))
-      (let ((patch-file (make-temp-file "git-patch")))
+      (let ((patch-file (make-nearby-temp-file "git-patch")))
         (with-temp-file patch-file
           (insert vc-git-patch-string))
         (unwind-protect
@@ -1434,11 +1434,11 @@ log entries."
 	  `((,log-view-message-re (1 'change-log-acknowledgment)))
 	  ;; Handle the case:
 	  ;; user: foo@bar
-	  '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	  '(("^\\(?:Author\\|Commit\\):[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
 	     (1 'change-log-email))
 	    ;; Handle the case:
 	    ;; user: FirstName LastName <foo@bar>
-	    ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	    ("^\\(?:Author\\|Commit\\):[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
 	     (1 'change-log-name)
 	     (2 'change-log-email))
 	    ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
@@ -1449,7 +1449,7 @@ log entries."
 	    ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
 	     (1 'change-log-acknowledgment)
 	     (2 'change-log-acknowledgment))
-	    ("^\\(?:Date:   \\|AuthorDate: \\)\\(.+\\)" (1 'change-log-date))
+	    ("^\\(?:Date:   \\|AuthorDate: \\|CommitDate: \\)\\(.+\\)" (1 'change-log-date))
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
 
@@ -1674,7 +1674,8 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                                  (if branchp "branch" "tag"))))
          (if branchp
              (vc-git-command nil 0 nil "checkout" "-b" name
-                             (when (and start-point (not (eq start-point "")))
+                             (when (and start-point
+                                        (not (equal start-point "")))
                                start-point))
            (vc-git-command nil 0 nil "tag" name)))))
 

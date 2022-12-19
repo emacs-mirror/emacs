@@ -603,7 +603,7 @@ is searched."
     (when file
       (switch-to-buffer (find-file file))
       (goto-char (org-find-entry-with-id (gnus-icalendar-event:uid event)))
-      (org-show-entry))))
+      (org-fold-show-entry))))
 
 
 (defun gnus-icalendar--update-org-event (event reply-status &optional org-file)

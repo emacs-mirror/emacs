@@ -152,9 +152,9 @@ the various headers, as illustrated by the following example:
 
 @example
 @group
-;;; superfrobnicator.el --- Frobnicate and bifurcate flanges
+;;; superfrobnicator.el --- Frobnicate and bifurcate flanges  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2022 Free Software Foundation, Inc.
 @end group
 
 ;; Author: J. R. Hacker <jrh@@example.com>

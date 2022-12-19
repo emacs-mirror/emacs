@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
-;; Version: 0.9.2
+;; Version: 0.9.3
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -174,6 +174,7 @@
 ;;; Code:
 
 (require 'cl-generic)
+(require 'cl-lib)
 (require 'seq)
 (eval-when-compile (require 'subr-x))
 
@@ -515,7 +516,8 @@ project backend implementation of `project-external-roots'.")
              (marker-re
               (mapconcat
                (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
-               (append backend-markers project-vc-extra-root-markers)
+               (append backend-markers
+                       (project--value-in-dir 'project-vc-extra-root-markers dir))
                "\\|"))
              (locate-dominating-stop-dir-regexp
               (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp))
@@ -535,7 +537,7 @@ project backend implementation of `project-external-roots'.")
              project)
         (when (and
                (eq backend 'Git)
-               project-vc-merge-submodules
+               (project--vc-merge-submodules-p root)
                (project--submodule-p root))
           (let* ((parent (file-name-directory (directory-file-name root))))
             (setq root (vc-call-backend 'Git 'root parent))))
@@ -582,7 +584,7 @@ project backend implementation of `project-external-roots'.")
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (mapcan
    (lambda (dir)
-     (let ((ignores project-vc-ignores)
+     (let ((ignores (project--value-in-dir 'project-vc-ignores (nth 2 project)))
            (backend (cadr project)))
        (when backend
          (require (intern (concat "vc-" (downcase (symbol-name backend))))))
@@ -608,13 +610,16 @@ project backend implementation of `project-external-roots'.")
   (defvar vc-git-use-literal-pathspecs)
   (pcase backend
     (`Git
-     (let ((default-directory (expand-file-name (file-name-as-directory dir)))
-           (args '("-z"))
-           (vc-git-use-literal-pathspecs nil)
-           files)
+     (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
+            (args '("-z"))
+            (vc-git-use-literal-pathspecs nil)
+            (include-untracked (project--value-in-dir
+                                'project-vc-include-untracked
+                                dir))
+            files)
        (setq args (append args
                           '("-c" "--exclude-standard")
-                          (and project-vc-include-untracked '("-o"))))
+                          (and include-untracked '("-o"))))
        (when extra-ignores
          (setq args (append args
                             (cons "--"
@@ -647,7 +652,7 @@ project backend implementation of `project-external-roots'.")
               (split-string
                (apply #'vc-git--run-command-string nil "ls-files" args)
                "\0" t)))
-       (when project-vc-merge-submodules
+       (when (project--vc-merge-submodules-p default-directory)
          ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
          (let* ((submodules (project--git-submodules))
                 (sub-files
@@ -665,10 +670,13 @@ project backend implementation of `project-external-roots'.")
        ;; XXX: Better solutions welcome, but this seems cheap enough.
        (delete-consecutive-dups files)))
     (`Hg
-     (let ((default-directory (expand-file-name (file-name-as-directory dir)))
-           (args (list (concat "-mcard" (and project-vc-include-untracked "u"))
-                       "--no-status"
-                       "-0")))
+     (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
+            (include-untracked (project--value-in-dir
+                                'project-vc-include-untracked
+                                dir))
+            (args (list (concat "-mcard" (and include-untracked "u"))
+                        "--no-status"
+                        "-0")))
        (when extra-ignores
          (setq args (nconc args
                            (mapcan
@@ -680,6 +688,11 @@ project backend implementation of `project-external-roots'.")
          (mapcar
           (lambda (s) (concat default-directory s))
           (split-string (buffer-string) "\0" t)))))))
+
+(defun project--vc-merge-submodules-p (dir)
+  (project--value-in-dir
+   'project-vc-merge-submodules
+   dir))
 
 (defun project--git-submodules ()
   ;; 'git submodule foreach' is much slower.
@@ -722,7 +735,7 @@ project backend implementation of `project-external-roots'.")
          (condition-case nil
              (vc-call-backend backend 'ignore-completion-table root)
            (vc-not-supported () nil)))))
-     project-vc-ignores
+     (project--value-in-dir 'project-vc-ignores root)
      (mapcar
       (lambda (dir)
         (concat dir "/"))
@@ -753,9 +766,16 @@ DIRS must contain directory names."
   ;; Sidestep the issue of expanded/abbreviated file names here.
   (cl-set-difference files dirs :test #'file-in-directory-p))
 
+(defun project--value-in-dir (var dir)
+  (with-temp-buffer
+    (setq default-directory dir)
+    (let ((enable-local-variables :all))
+      (hack-dir-local-variables-non-file-buffer))
+    (symbol-value var)))
+
 (cl-defmethod project-buffers ((project (head vc)))
   (let* ((root (expand-file-name (file-name-as-directory (project-root project))))
-         (modules (unless (or project-vc-merge-submodules
+         (modules (unless (or (project--vc-merge-submodules-p root)
                               (project--submodule-p root))
                     (mapcar
                      (lambda (m) (format "%s%s/" root m))
@@ -1019,7 +1039,14 @@ by the user at will."
          (_ (when included-cpd
               (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
-         (relname (let ((history-add-new-input nil))
+         (abbr-cpd (abbreviate-file-name common-parent-directory))
+         (relname (cl-letf ((history-add-new-input nil)
+                            ((symbol-value hist)
+                             (mapcan
+                              (lambda (s)
+                                (and (string-prefix-p abbr-cpd s)
+                                     (list (substring s (length abbr-cpd)))))
+                              (symbol-value hist))))
                     (project--completing-read-strict prompt
                                                      new-collection
                                                      predicate
@@ -1321,18 +1348,33 @@ By default, all project buffers are listed except those whose names
 start with a space (which are for internal use).  With prefix argument
 ARG, show only buffers that are visiting files."
   (interactive "P")
-  (let ((pr (project-current t)))
+  (let* ((pr (project-current t))
+         (buffer-list-function
+          (lambda ()
+            (seq-filter
+             (lambda (buffer)
+               (let ((name (buffer-name buffer))
+                     (file (buffer-file-name buffer)))
+                 (and (or (not (string= (substring name 0 1) " "))
+                          file)
+                      (not (eq buffer (current-buffer)))
+                      (or file (not Buffer-menu-files-only)))))
+             (project-buffers pr)))))
     (display-buffer
      (if (version< emacs-version "29.0.50")
-         (let ((buf (list-buffers-noselect arg (project-buffers pr))))
+         (let ((buf (list-buffers-noselect
+                     arg (with-current-buffer
+                             (get-buffer-create "*Buffer List*")
+                           (let ((Buffer-menu-files-only arg))
+                             (funcall buffer-list-function))))))
            (with-current-buffer buf
              (setq-local revert-buffer-function
                          (lambda (&rest _ignored)
-                           (list-buffers--refresh (project-buffers pr))
+                           (list-buffers--refresh
+                            (funcall buffer-list-function))
                            (tabulated-list-print t))))
            buf)
-       (list-buffers-noselect
-        arg nil (lambda (buf) (memq buf (project-buffers pr))))))))
+       (list-buffers-noselect arg buffer-list-function)))))
 
 (defcustom project-kill-buffer-conditions
   '(buffer-file-name    ; All file-visiting buffers are included.

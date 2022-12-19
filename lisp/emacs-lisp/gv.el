@@ -417,9 +417,9 @@ The return value is the last VAL in the list.
   (lambda (do key alist &optional default remove testfn)
     (macroexp-let2 macroexp-copyable-p k key
       (gv-letplace (getter setter) alist
-        (macroexp-let2 nil p `(if (and ,testfn (not (eq ,testfn 'eq)))
-                                  (assoc ,k ,getter ,testfn)
-                                (assq ,k ,getter))
+        (macroexp-let2 nil p (if (member testfn '(nil 'eq #'eq))
+                                 `(assq ,k ,getter)
+                               `(assoc ,k ,getter ,testfn))
           (funcall do (if (null default) `(cdr ,p)
                         `(if ,p (cdr ,p) ,default))
                    (lambda (v)
