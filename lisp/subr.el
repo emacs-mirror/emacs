@@ -6084,14 +6084,8 @@ command is called from a keyboard macro?"
              ;; Skip special forms (from non-compiled code).
              (and frame (null (car frame)))
              ;; Skip also `interactive-p' (because we don't want to know if
-             ;; interactive-p was called interactively but if it's caller was)
-             ;; and `byte-code' (idem; this appears in subexpressions of things
-             ;; like condition-case, which are wrapped in a separate bytecode
-             ;; chunk).
-             ;; FIXME: For lexical-binding code, this is much worse,
-             ;; because the frames look like "byte-code -> funcall -> #[...]",
-             ;; which is not a reliable signature.
-             (memq (nth 1 frame) '(interactive-p 'byte-code))
+             ;; interactive-p was called interactively but if it's caller was).
+             (eq (nth 1 frame) 'interactive-p)
              ;; Skip package-specific stack-frames.
              (let ((skip (run-hook-with-args-until-success
                           'called-interactively-p-functions
