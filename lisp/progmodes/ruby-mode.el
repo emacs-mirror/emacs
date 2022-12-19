@@ -135,7 +135,8 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
   "Regexp to match symbols.")
 
 (defconst ruby-endless-method-head-re
-  (format " *\\(self\\.\\)?%s+[?!]? *\\(([^()]*)\\)? +=" ruby-symbol-re)
+  (format " *\\(%s+\\.\\)?%s+[?!]? *\\(([^()]*)\\)? +="
+          ruby-symbol-re ruby-symbol-re)
   "Regexp to match the beginning of an endless method definition.
 
 It should match the part after \"def\" and until \"=\".")

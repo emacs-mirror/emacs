@@ -533,6 +533,8 @@ class Bar
         baz,
         bar
       )
-    hello
+    def baz.full_name = "#{bar} 3"
+
+    baz
   end
 end
