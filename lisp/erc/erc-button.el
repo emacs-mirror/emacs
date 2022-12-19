@@ -685,20 +685,20 @@ greater than `point-min' with a text property of `erc-callback'.")
 ;;; Nickname buttons:
 
 (defcustom erc-nick-popup-alist
-  '(("DeOp"  . (erc-cmd-DEOP nick))
-    ("Kick"  . (erc-cmd-KICK (concat nick " "
-                                     (read-from-minibuffer
-                                      (concat "Kick " nick ", reason: ")))))
-    ("Msg"   . (erc-cmd-MSG (concat nick " "
-                                    (read-from-minibuffer
-                                     (concat "Message to " nick ": ")))))
-    ("Op"    . (erc-cmd-OP nick))
-    ("Query" . (erc-cmd-QUERY nick))
-    ("Whois" . (erc-cmd-WHOIS nick))
-    ("Lastlog" . (erc-cmd-LASTLOG nick)))
+  '(("DeOp"  . erc-cmd-DEOP)
+    ("Kick"  . erc-button-cmd-KICK)
+    ("Msg"   . erc-button-cmd-MSG)
+    ("Op"    . erc-cmd-OP)
+    ("Query" . erc-cmd-QUERY)
+    ("Whois" . erc-cmd-WHOIS)
+    ("Lastlog" . erc-cmd-LASTLOG))
   "An alist of possible actions to take on a nickname.
-An entry looks like (\"Action\" . SEXP) where SEXP is evaluated with
-the variable `nick' bound to the nick in question.
+For all entries (ACTION . FUNC), ERC offers ACTION as a possible
+completion item and calls the selected entry's FUNC with the
+buttonized nickname at point as the only argument.  For
+historical reasons, FUNC can also be an arbitrary sexp, in which
+case, ERC binds the nick in question to the variable `nick' and
+evaluates the expression.
 
 Examples:
  (\"DebianDB\" .
@@ -706,18 +706,48 @@ Examples:
    (format
     \"ldapsearch -x -P 2 -h db.debian.org -b dc=debian,dc=org ircnick=%s\"
     nick)))"
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(repeat (cons (string :tag "Op")
-                       sexp)))
+                       (choice function sexp))))
+
+(defun erc-button-cmd-KICK (nick)
+  "Prompt for a reason, then kick NICK via `erc-cmd-KICK'.
+In server buffers, also prompt for a channel."
+  (erc-cmd-KICK
+   (or (and erc--target (erc-default-target))
+       (let ((targets (mapcar (lambda (b)
+                                (cons (erc--target-string
+                                       (buffer-local-value 'erc--target b))
+                                      b))
+                              (erc-channel-list erc-server-process))))
+         (completing-read (format "Channel (%s): " (caar targets))
+                          targets (pcase-lambda (`(,_ . ,buf))
+                                    (with-current-buffer buf
+                                      (erc-get-channel-user nick)))
+                          t nil t (caar targets))))
+   nick
+   (read-from-minibuffer "Reason: ")))
+
+(defun erc-button-cmd-MSG (nick)
+  "Prompt for a message to NICK, and send it via `erc-cmd-MSG'."
+  (let ((msg (read-from-minibuffer (concat "Message to " nick ": "))))
+    (erc-cmd-MSG (concat nick " " msg))))
+
+(defvar-local erc-button--nick-popup-alist nil
+  "Internally controlled items for `erc-nick-popup-alist'.")
 
 (defun erc-nick-popup (nick)
   (let* ((completion-ignore-case t)
+         (alist (append erc-nick-popup-alist erc-button--nick-popup-alist))
          (action (completing-read (format-message
                                    "What action to take on `%s'? " nick)
-                                  erc-nick-popup-alist))
-         (code (cdr (assoc action erc-nick-popup-alist))))
+                                  alist))
+         (code (cdr (assoc action alist))))
     (when code
       (erc-set-active-buffer (current-buffer))
-      (eval code `((nick . ,nick))))))
+      (if (functionp code)
+          (funcall code nick)
+        (eval code `((nick . ,nick)))))))
 
 ;;; Callback functions
 (defun erc-button-describe-symbol (symbol-name)

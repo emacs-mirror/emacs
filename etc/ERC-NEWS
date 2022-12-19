@@ -116,13 +116,19 @@ asking users who've customized this option to switch to
 that some other solution, like automatic migration, is justified,
 please make that known on the bug list.
 
-** The 'nicknames' entry in 'erc-button-alist' is officially exceptional.
+** 'erc-button-alist' and 'erc-nick-popup-alist' have evolved slightly.
 It's no secret that the 'buttons' module treats potential nicknames
-specially.  To simplify ERC's move to next-gen "rich UI" extensions,
-this special treatment is being canonized.  From now on, all values
-other than the symbol 'erc-button-buttonize-nicks' appearing in the
-"FORM" field (third element) of this entry are considered deprecated
-and will incur a warning.
+specially.  This is perhaps most evident in its treatment of the
+'nicknames' entry in 'erc-button-alist'.  Indeed, to simplify ERC's
+move to next-gen "rich UI" extensions, this special treatment is being
+canonized.  From here on out, this entry will no longer appear in the
+option's default value but will instead be applied implicitly so long
+as the option 'erc-button-buttonize-nicks' is non-nil, which it is by
+default.  Relatedly, the option 'erc-nick-popup-alist' now favors
+functions, which ERC calls non-interactively, over arbitrary
+s-expressions, which ERC will continue to honor.  Although the default
+lineup remains functionally equivalent, its members have all been
+updated accordingly.
 
 ** Option 'erc-query-on-unjoined-chan-privmsg' restored and renamed.
 This option was accidentally removed from the default client in ERC
