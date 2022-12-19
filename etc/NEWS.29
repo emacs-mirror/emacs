@@ -1411,6 +1411,11 @@ language.
 This is a variant of the 'slovak' input method, which corresponds to
 the QWERTY Slovak keyboards.
 
+---
+*** New input method 'cyrillic-chuvash'.
+This input method is based on the russian-computer, and is intended
+for the Chuvash language written in the Cyrillic script.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
@@ -3142,6 +3147,11 @@ the Go language.  It is auto-enabled for files with the ".go" extension.
 *** New major mode 'go-mod-ts-mode'.
 A major mode based on the tree-sitter library for editing "go.mod"
 files.  It is auto-enabled for files which are named "go.mod".
+
+*** New major mode 'yaml-ts-mode'.
+A major mode based on the tree-sitter library for editing files
+written in YAML.  It is auto-enabled for files with the ".yaml" or
+".yml" extensions.
 
 *** New major mode 'rust-ts-mode'.
 A major mode based on the tree-sitter library for editing programs in
