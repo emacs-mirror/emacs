@@ -2183,18 +2183,35 @@ emit_lisp_string_constructor_rval (Lisp_Object str)
 {
   eassert (STRINGP (str));
 
-  static ptrdiff_t i;
-  ptrdiff_t str_size = SBYTES (str) + 1;
-  gcc_jit_type *arr_type
-    = gcc_jit_context_new_array_type (comp.ctxt, NULL,
-				      comp.unsigned_char_type,
-				      str_size);
-  gcc_jit_lvalue *str_data
-    = gcc_jit_context_new_global (comp.ctxt, NULL,
-				  GCC_JIT_GLOBAL_INTERNAL, arr_type,
-				  format_string ("str_data_%td",
-						 i++));
-  gcc_jit_global_set_initializer (str_data, SDATA (str), str_size);
+  gcc_jit_rvalue *str_data;
+
+  /* libgccjit has a bug where creating psuedo-code for a string
+     initializer can SIGSEGV if the string contains any format
+     strings, so we avoid using gcc_jit_context_new_string_literal
+     when debugging options are enabled. Additionally, if the string
+     contains a NULL byte, use a regular char array.  */
+  if (memchr (SDATA (str), '\0', SBYTES (str)) == NULL && !comp.debug)
+    str_data
+      = gcc_jit_context_new_string_literal (comp.ctxt, SSDATA (str));
+  else
+    {
+      static ptrdiff_t i;
+      ptrdiff_t str_size = SBYTES (str) + 1;
+
+      gcc_jit_type *arr_type
+	= gcc_jit_context_new_array_type (comp.ctxt, NULL,
+					  comp.unsigned_char_type,
+					  str_size);
+      gcc_jit_lvalue *var
+	= gcc_jit_context_new_global (comp.ctxt, NULL,
+				      GCC_JIT_GLOBAL_INTERNAL,
+				      arr_type,
+				      format_string ("str_data_%td",
+						     i++));
+      gcc_jit_global_set_initializer (var, SDATA (str), str_size);
+      str_data = gcc_jit_lvalue_get_address (var, NULL);
+    }
+
   gcc_jit_rvalue *size_bytes
     = STRING_MULTIBYTE (str)
       ? gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -2219,8 +2236,7 @@ emit_lisp_string_constructor_rval (Lisp_Object str)
     size_bytes,
     gcc_jit_context_null (comp.ctxt, comp.interval_ptr_type),
     gcc_jit_context_new_cast (comp.ctxt, NULL,
-			      gcc_jit_lvalue_get_address (str_data,
-							  NULL),
+			      str_data,
 			      comp.unsigned_char_ptr_type),
   };
   gcc_jit_rvalue *u_s
@@ -3321,8 +3337,6 @@ define_init_objs (void)
 				gcc_jit_lvalue_as_rvalue (
 				  comp.func_relocs));
 
-  ptrdiff_t i = 0;
-
   FOR_EACH_TAIL_SAFE (statics)
     {
       Lisp_Object elt;
@@ -3424,19 +3438,19 @@ define_init_objs (void)
 
 	  if (BARE_SYMBOL_P (value))
 	    {
-	      gcc_jit_lvalue *auto_str
+	      gcc_jit_lvalue *lisp_str
 		= emit_lisp_data_var (comp.lisp_string_type,
 				      GCC_JIT_GLOBAL_INTERNAL);
 	      gcc_jit_rvalue *name_lisp_str
 		= emit_lisp_string_constructor_rval (
 		  Fsymbol_name (value));
-	      gcc_jit_global_set_initializer_rvalue (auto_str,
+	      gcc_jit_global_set_initializer_rvalue (lisp_str,
 						     name_lisp_str);
 	      gcc_jit_rvalue *sym;
 	      if (!SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (value))
 		{
 		  gcc_jit_rvalue *args = emit_make_lisp_ptr (
-		    gcc_jit_lvalue_get_address (auto_str, NULL),
+		    gcc_jit_lvalue_get_address (lisp_str, NULL),
 		    Lisp_String);
 		  sym
 		    = emit_call (intern_c_string ("make-symbol"),
@@ -3446,7 +3460,7 @@ define_init_objs (void)
 		{
 		  gcc_jit_rvalue *args[]
 		    = { emit_make_lisp_ptr (
-			  gcc_jit_lvalue_get_address (auto_str, NULL),
+			  gcc_jit_lvalue_get_address (lisp_str, NULL),
 			  Lisp_String),
 			emit_rvalue_from_lisp_obj (Qnil) };
 		  sym
@@ -3457,12 +3471,9 @@ define_init_objs (void)
 	    }
 	  else
 	    {
-	      gcc_jit_lvalue *auto_str
-		= gcc_jit_function_new_local (comp.func, NULL,
-					      comp.lisp_string_type,
-					      format_string ("str_%"
-							     "td",
-							     i++));
+	      gcc_jit_lvalue *lisp_str
+		= emit_lisp_data_var (comp.lisp_string_type,
+				      GCC_JIT_GLOBAL_INTERNAL);
 	      specpdl_ref count = SPECPDL_INDEX ();
 	      /* See emit_static_object_code.   */
 	      specbind (intern_c_string ("print-escape-newlines"),
@@ -3476,11 +3487,11 @@ define_init_objs (void)
 		= Fprin1_to_string (value, Qnil, Qnil);
 	      unbind_to (count, Qnil);
 
-	      gcc_jit_block_add_assignment (
-		comp.block, NULL, auto_str,
+	      gcc_jit_global_set_initializer_rvalue (
+		lisp_str,
 		emit_lisp_string_constructor_rval (obj_str));
 	      gcc_jit_rvalue *str = emit_make_lisp_ptr (
-		gcc_jit_lvalue_get_address (auto_str, NULL),
+		gcc_jit_lvalue_get_address (lisp_str, NULL),
 		Lisp_String);
 	      gcc_jit_rvalue *obj
 		= emit_call (intern_c_string ("read"),
