@@ -1045,6 +1045,7 @@ by the user at will."
                              (mapcan
                               (lambda (s)
                                 (and (string-prefix-p abbr-cpd s)
+                                     (not (eq (length abbr-cpd) (length s)))
                                      (list (substring s (length abbr-cpd)))))
                               (symbol-value hist))))
                     (project--completing-read-strict prompt
