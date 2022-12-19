@@ -225,7 +225,7 @@ chosen (interactively or automatically)."
                                 ((tex-mode context-mode texinfo-mode bibtex-mode)
                                  . ,(eglot-alternatives '("digestif" "texlab")))
                                 (erlang-mode . ("erlang_ls" "--transport" "stdio"))
-                                (yaml-mode . ("yaml-language-server" "--stdio"))
+                                ((yaml-ts-mode yaml-mode) . ("yaml-language-server" "--stdio"))
                                 (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp")))
                                 (gdscript-mode . ("localhost" 6008))
                                 ((fortran-mode f90-mode) . ("fortls"))

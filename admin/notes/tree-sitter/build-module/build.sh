@@ -40,6 +40,9 @@ case "${lang}" in
         sourcedir="tree-sitter-typescript/tsx/src"
         grammardir="tree-sitter-typescript/tsx"
         ;;
+    "yaml")
+        org="ikatyang"
+        ;;
 esac
 
 git clone "https://github.com/${org}/${repo}.git" \

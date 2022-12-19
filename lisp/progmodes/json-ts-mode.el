@@ -70,7 +70,8 @@
      ((node-is "}") parent-bol 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
-     ((parent-is "object") parent-bol json-ts-mode-indent-offset))))
+     ((parent-is "object") parent-bol json-ts-mode-indent-offset)
+     ((parent-is "array") parent-bol json-ts-mode-indent-offset))))
 
 (defvar json-ts-mode--font-lock-settings
   (treesit-font-lock-rules
