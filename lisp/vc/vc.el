@@ -3433,7 +3433,7 @@ revision, with SUBJECT derived from each revision subject.
 When invoked with a numerical prefix argument, use the last N
 revisions.
 When invoked interactively in a Log View buffer with
-marked revisions, use those these."
+marked revisions, use those."
   (interactive
    (let ((revs (vc-prepare-patch-prompt-revisions)) to)
      (require 'message)
