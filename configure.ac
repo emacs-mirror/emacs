@@ -1841,7 +1841,9 @@ AC_CHECK_HEADERS_ONCE(
   coff.h pty.h
   sys/resource.h
   sys/utsname.h pwd.h utmp.h util.h
-  sanitizer/lsan_interface.h])
+  sanitizer/lsan_interface.h
+  sanitizer/asan_interface.h
+  sanitizer/common_interface_defs.h])
 
 AC_CACHE_CHECK([for ADDR_NO_RANDOMIZE],
   [emacs_cv_personality_addr_no_randomize],
