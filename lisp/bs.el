@@ -1346,11 +1346,11 @@ ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
               'help-echo "mouse-2: select this buffer, mouse-3: select in other frame"
               'mouse-face 'highlight))
 
-(defun bs--get-mode-name (start-buffer _all-buffers)
+(defun bs--get-mode-name (_start-buffer _all-buffers)
   "Return the name of mode of current buffer for Buffer Selection Menu.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
-  (format-mode-line mode-name nil nil start-buffer))
+  (format-mode-line mode-name nil nil nil))
 
 (defun bs--get-file-name (_start-buffer _all-buffers)
   "Return string for column `File' in Buffer Selection Menu.
