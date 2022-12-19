@@ -212,7 +212,7 @@ It should match the part after \"def\" and until \"=\".")
   :safe 'booleanp)
 
 (defcustom ruby-indent-level 2
-  "Indentation of Ruby statements."
+  "Number of spaces for each indentation step in `ruby-mode'."
   :type 'integer
   :safe 'integerp)
 
