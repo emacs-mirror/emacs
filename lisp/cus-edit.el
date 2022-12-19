@@ -903,9 +903,9 @@ This also shows the saved values in the buffer."
 (defun custom-reset-standard-save-and-update ()
   "Save settings and redraw after erasing customizations."
   (when (or (and custom-reset-standard-variables-list
-		 (not (eq custom-reset-standard-variables-list  '(t))))
+		 (not (equal custom-reset-standard-variables-list  '(t))))
 	    (and custom-reset-standard-faces-list
-		 (not (eq custom-reset-standard-faces-list '(t)))))
+		 (not (equal custom-reset-standard-faces-list '(t)))))
     ;; Save settings to file.
     (custom-save-all)
     ;; Set state of and redraw variables.
