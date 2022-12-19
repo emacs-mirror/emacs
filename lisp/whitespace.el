@@ -2268,10 +2268,11 @@ Highlighting those lines can be distracting.)"
                 (save-excursion (goto-char whitespace-point)
                                 (line-beginning-position)))))
     (when (= p 1)
-      ;; See the comment in `whitespace--update-bob-eob' for why this
-      ;; text property is added here.
-      (put-text-property 1 whitespace-bob-marker
-                         'font-lock-multiline t))
+      (with-silent-modifications
+        ;; See the comment in `whitespace--update-bob-eob' for why
+        ;; this text property is added here.
+        (put-text-property 1 whitespace-bob-marker
+                           'font-lock-multiline t)))
     (when (< p e)
       (set-match-data (list p e))
       (goto-char e))))
@@ -2292,10 +2293,11 @@ about to start typing, and if they do, that line and previous
 empty lines will no longer be EoB empty lines.  Highlighting
 those lines can be distracting.)"
   (when (= limit (1+ (buffer-size)))
-    ;; See the comment in `whitespace--update-bob-eob' for why this
-    ;; text property is added here.
-    (put-text-property whitespace-eob-marker limit
-                       'font-lock-multiline t))
+    (with-silent-modifications
+      ;; See the comment in `whitespace--update-bob-eob' for why this
+      ;; text property is added here.
+      (put-text-property whitespace-eob-marker limit
+                         'font-lock-multiline t)))
   (let ((b (max (point) whitespace-eob-marker
                 whitespace-bob-marker ; See comment in the bob func.
                 (save-excursion (goto-char whitespace-point)
@@ -2437,8 +2439,9 @@ purposes)."
             (save-match-data
               (when (looking-at whitespace-empty-at-bob-regexp)
                 (set-marker whitespace-bob-marker (match-end 1))
-                (put-text-property (match-beginning 1) (match-end 1)
-                                   'font-lock-multiline t))))
+                (with-silent-modifications
+                  (put-text-property (match-beginning 1) (match-end 1)
+                                     'font-lock-multiline t)))))
           (when (or (null end)
                     (>= end (save-excursion
                               (goto-char whitespace-eob-marker)
@@ -2451,8 +2454,9 @@ purposes)."
               (when (whitespace--looking-back
                      whitespace-empty-at-eob-regexp)
                 (set-marker whitespace-eob-marker (match-beginning 1))
-                (put-text-property (match-beginning 1) (match-end 1)
-                                   'font-lock-multiline t)))))))))
+                (with-silent-modifications
+                  (put-text-property (match-beginning 1) (match-end 1)
+                                     'font-lock-multiline t))))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
