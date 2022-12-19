@@ -4005,8 +4005,11 @@ display a message."
                              :command (list
                                        (expand-file-name invocation-name
                                                          invocation-directory)
-                                       "-no-comp-spawn" "--batch" "-l"
-                                       temp-file)
+                                       "-no-comp-spawn" "--batch"
+                                       "--eval"
+                                       ;; Suppress Abort dialogs on MS-Windows
+                                       "(setq w32-disable-abort-dialog t)"
+                                       "-l" temp-file)
                              :sentinel
                              (lambda (process _event)
                                (run-hook-with-args

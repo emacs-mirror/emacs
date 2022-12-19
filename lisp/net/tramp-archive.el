@@ -215,10 +215,17 @@ It must be supported by libarchive(3).")
 ;; In older Emacs (prior 27.1), `tramp-archive-autoload-file-name-regexp'
 ;; is not autoloaded.  So we cannot expect it to be known in
 ;; tramp-loaddefs.el.  But it exists, when tramp-archive.el is loaded.
+;; We must wrap it into `eval-when-compile'.  Otherwise, there could
+;; be an "Eager macro-expansion failure" when unloading/reloading Tramp.
 ;;;###tramp-autoload
 (defconst tramp-archive-file-name-regexp
-  (ignore-errors (tramp-archive-autoload-file-name-regexp))
+  (eval-when-compile (ignore-errors (tramp-archive-autoload-file-name-regexp)))
   "Regular expression matching archive file names.")
+
+;; The value above is nil for Emacs 26.  Set it now.
+(if (<= emacs-major-version 26)
+    (setq tramp-archive-file-name-regexp
+	  (ignore-errors (tramp-archive-autoload-file-name-regexp))))
 
 ;;;###tramp-autoload
 (defconst tramp-archive-method "archive"

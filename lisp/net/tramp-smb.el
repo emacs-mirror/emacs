@@ -279,7 +279,7 @@ See `tramp-actions-before-shell' for more info.")
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-smb-handle-make-directory)
-    (make-directory-internal . tramp-smb-handle-make-directory-internal)
+    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
@@ -1186,12 +1186,21 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(make-directory ldir parents))
       ;; Just do it.
       (when (file-directory-p ldir)
-	(make-directory-internal dir))
+	(tramp-smb-send-command
+	 v (if (tramp-smb-get-cifs-capabilities v)
+	       (format "posix_mkdir %s %o"
+		       (tramp-smb-shell-quote-localname v) (default-file-modes))
+	     (format "mkdir %s" (tramp-smb-shell-quote-localname v))))
+	;; We must also flush the cache of the directory, because
+	;; `file-attributes' reads the values from there.
+	(tramp-flush-file-properties v localname))
       (unless (file-directory-p dir)
 	(tramp-error v 'file-error "Couldn't make directory %s" dir)))))
 
+;; This is not used anymore.
 (defun tramp-smb-handle-make-directory-internal (directory)
   "Like `make-directory-internal' for Tramp files."
+  (declare (obsolete nil "29.1"))
   (setq directory (directory-file-name (expand-file-name directory)))
   (unless (file-name-absolute-p directory)
     (setq directory (expand-file-name directory default-directory)))

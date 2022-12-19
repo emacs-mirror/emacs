@@ -31,14 +31,42 @@ in the Emacs tree should be natively compiled ahead of time.  (This is
 slow on most machines.)
 
 +++
-** Emacs can be built with the 'tree-sitter' parsing library.
+** Emacs can be built with the tree-sitter parsing library.
 This library, together with grammar libraries, provides incremental
 parsing capabilities for several popular programming languages and
 other formatted files.  Emacs built with this library offers major
 modes, described elsewhere in this file, that are based on the
-'tree-sitter's parsers.  If you have the 'tree-sitter' library
+tree-sitter's parsers.  If you have the tree-sitter library
 installed, the configure script will automatically include it in the
 build; use '--without-tree-sitter' at configure time to disable that.
+
+Emacs modes based on the tree-sitter library require an additional
+grammar library for each mode.  These grammar libraries provide the
+tree-sitter library with language-specific lexical analysis and
+parsing capabilities, and are developed separately from the
+tree-sitter library itself.  If you don't have a grammar library
+required by some Emacs major mode, and your distro doesn't provide it
+as an installable package, you can compile and install such a library
+yourself.  Many libraries can be downloaded from the tree-sitter site:
+
+    https://github.com/tree-sitter
+
+To compile such a library, compile the files "scanner.c" and "parser.c"
+(sometimes named "scanner.cc" and "parser.cc") in the "src" subdirectory
+of the library's source tree using the C or C++ compiler, then link
+these two files into a shared library named "libtree-sitter-LANG.so",
+where LANG is the name of the language supported by the grammar as it
+is expected by the Emacs major mode (for example, "c" for 'c-ts-mode',
+"cpp" for 'c++-ts-mode', "python" for 'python-ts-mode', etc.).  Then place
+the shared library you've built in the same directory where you keep
+the other shared libraries used by Emacs, or in the "tree-sitter"
+subdirectory of your 'user-emacs-directory', or in a directory
+mentioned in the variable 'treesit-extra-load-path'.
+
+You only need to install language grammar libraries required by the
+Emacs modes you will use, as Emacs loads these libraries only when the
+corresponding mode is turned on in some buffer for the first time in
+an Emacs session.
 
 +++
 ** Emacs can be built with built-in support for accessing SQLite databases.
@@ -2725,6 +2753,9 @@ project-dedicated or global) is specified by the new
 ---
 *** New user option 'ruby-toggle-block-space-before-parameters'.
 
+---
+*** Support for endless methods.
+
 ** Eshell
 
 +++
@@ -3023,6 +3054,29 @@ indentation, and navigation by defuns based on parsing the buffer text
 by a tree-sitter parser.  Some major modes also offer support for
 Imenu and 'which-func'.
 
+Where major modes already exist in Emacs for editing certain kinds of
+files, the new modes based on tree-sitter are for now entirely
+optional, and you must turn them on manually, or customize
+'auto-mode-alist' to turn them on automatically.
+
+Each major mode based on tree-sitter needs a language grammar library,
+usually named "libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on
+MS-Windows), where LANG is the corresponding language name.  Emacs
+looks for these libraries in the following places:
+
+ . in the directories mentioned in the list 'treesit-extra-load-path'
+ . in the "tree-sitter" subdirectory of your 'user-emacs-directory'
+   (by default, "~/.emacs.d/tree-sitter")
+ . in the standard system directories where other shared libraries are
+   usually installed
+
+We recommend to install these libraries in one of the standard system
+locations (the last place in the above list).
+
+If a language grammar library required by a mode is not found in any
+of the above places, the mode will signal an error when you try to
+turn it on.
+
 *** New major mode 'typescript-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
 in the TypeScript language.  This mode is auto-enabled for files with
@@ -3088,6 +3142,10 @@ the Go language.  It is auto-enabled for files with the ".go" extension.
 *** New major mode 'go-mod-ts-mode'.
 A major mode based on the tree-sitter library for editing "go.mod"
 files.  It is auto-enabled for files which are named "go.mod".
+
+*** New major mode 'rust-ts-mode'.
+A major mode based on the tree-sitter library for editing programs in
+the Rust language.  It is auto-enabled for files with the ".rs" extension.
 
 
 * Incompatible Lisp Changes in Emacs 29.1
@@ -4471,6 +4529,15 @@ offering completion services, particularly tools whose full working
 set is too big to transfer to Emacs every time a completion is
 needed.  The table uses new 'external' completion style exclusively
 and cannot work with regular styles such as 'basic' or 'flex'.
+
++++
+** Magic file name handlers for 'make-directory-internal' are no longer needed.
+Instead, Emacs uses the already-existing 'make-directory' handlers.
+
++++
+** '(make-directory DIR t)' returns non-nil if DIR already exists.
+This can let a caller know whether it created DIR.  Formerly,
+'make-directory's return value was unspecified.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

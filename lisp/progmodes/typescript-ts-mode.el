@@ -95,13 +95,13 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "binary_expression") parent-bol typescript-ts-mode-indent-offset)
 
      ,@(when (eq language 'tsx)
-         `(((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
-           ((match "<" "jsx_fragment") parent 0)
-           ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
+         `(((node-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
+           ((node-is "jsx_element") parent typescript-ts-mode-indent-offset)
+           ((node-is "jsx_expression") parent typescript-ts-mode-indent-offset)
+           ((node-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)
            ((node-is "jsx_closing_element") parent 0)
-           ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
            ((node-is "/") parent 0)
-           ((parent-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)))
+           ((node-is ">") parent 0)))
      (no-node parent-bol 0))))
 
 (defvar typescript-ts-mode--keywords
@@ -231,7 +231,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      (arguments (identifier) @font-lock-variable-name-face)
 
      (parenthesized_expression (identifier) @font-lock-variable-name-face)
-     (parenthesized_expression (_ (identifier)) @font-lock-variable-name-face))
+     (parenthesized_expression (_ (identifier) @font-lock-variable-name-face)))
 
    :language language
    :override t
@@ -316,10 +316,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :language language
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face)
-
-
-   ))
+   '((escape_sequence) @font-lock-escape-face)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))

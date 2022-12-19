@@ -91,7 +91,7 @@ end")
 				 (list
 				  "set (0, \"defaultfigurevisible\", \"off\");"
 				  full-body
-				  (format "print -dpng %s" gfx-file))
+				  (format "print -dpng %S\nans=%S" gfx-file gfx-file))
 				 "\n")
 		    full-body)
 		  result-type matlabp)))

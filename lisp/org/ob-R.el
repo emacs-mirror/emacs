@@ -241,11 +241,11 @@ This function is called by `org-babel-execute-src-block'."
 (defun org-babel-R-assign-elisp (name value colnames-p rownames-p)
   "Construct R code assigning the elisp VALUE to a variable named NAME."
   (if (listp value)
-      (let* ((lengths (mapcar 'length (cl-remove-if-not 'sequencep value)))
+      (let* ((lengths (mapcar 'length (cl-remove-if-not 'listp value)))
 	     (max (if lengths (apply 'max lengths) 0))
 	     (min (if lengths (apply 'min lengths) 0)))
         ;; Ensure VALUE has an orgtbl structure (depth of at least 2).
-        (unless (listp (car value)) (setq value (list value)))
+        (unless (listp (car value)) (setq value (mapcar 'list value)))
 	(let ((file (orgtbl-to-tsv value '(:fmt org-babel-R-quote-tsv-field)))
 	      (header (if (or (eq (nth 1 value) 'hline) colnames-p)
 			  "TRUE" "FALSE"))

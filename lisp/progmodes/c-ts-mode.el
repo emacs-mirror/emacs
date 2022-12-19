@@ -103,7 +103,6 @@ MODE is either `c' or `cpp'."
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
            ((and (parent-is "comment") comment-end) comment-start -1)
-           ((parent-is "comment") comment-start-skip 0)
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
            ((match "preproc_ifdef" "compound_statement") point-min 0)

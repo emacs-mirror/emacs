@@ -129,8 +129,12 @@ This is a semi-automated way to find the revision that introduced a bug.
 Browse 'git help bisect' for technical instructions.
 
 It is recommended to start a bisection with the admin/git-bisect-start
-script.  This script prunes the branches that are the result of
-merging external trees into the Emacs repository.
+script.  Using that script ensures that commits in branches that are
+the result of merging external trees into the Emacs repository, as
+well as certain commits on which Emacs fails to build, are skipped
+during the bisection process.  That script can also be executed
+automatically when 'git bisect start' is called, with the help of a
+wrapper script that is included in its commentary section.
 
 * Maintaining ChangeLog history
 

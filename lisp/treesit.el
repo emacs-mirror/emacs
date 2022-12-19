@@ -1047,7 +1047,6 @@ See `treesit-simple-indent-presets'.")
                        (or (null node-index-max)
                            (<= (treesit-node-index node)
                                node-index-max))))))
-        ;; TODO: Document if genuinely useful.
         (cons 'n-p-gp
               (lambda (node-t parent-t grand-parent-t)
                 (lambda (node parent &rest _)
@@ -1107,12 +1106,6 @@ See `treesit-simple-indent-presets'.")
                   (goto-char (treesit-node-start parent))
                   (re-search-forward comment-start-skip)
                   (skip-syntax-backward "-")
-                  (point))))
-        (cons 'comment-start-skip
-              (lambda (_n parent &rest _)
-                (save-excursion
-                  (goto-char (treesit-node-start parent))
-                  (re-search-forward comment-start-skip)
                   (point))))
         ;; TODO: Document.
         (cons 'grand-parent
@@ -1188,6 +1181,10 @@ no-node
 
     Checks that NODE's type matches regexp TYPE.
 
+\(n-p-gp NODE-TYPE PARENT-TYPE GRANDPARENT-TYPE)
+
+    Checks that NODE, its parent, and its grandparent's type.
+
 \(query QUERY)
 
     Queries PARENT with QUERY, and checks if NODE is
@@ -1230,14 +1227,9 @@ point-min
 
 comment-start
 
-    Returns the position after a match for `treesit-comment-start'.
-    Assumes PARENT is a comment node.
-
-comment-start-skip
-
-    Goes to the position that comment-start would return, skips
-    whitespace after that, and returns the resulting position.
-    Assumes PARENT is a comment node.")
+    Goes to the position that `comment-start-skip' would return,
+    skips whitespace backwards, and returns the resulting
+    position.  Assumes PARENT is a comment node.")
 
 (defun treesit--simple-indent-eval (exp)
   "Evaluate EXP.
@@ -2046,8 +2038,8 @@ to the offending pattern and highlight the pattern."
              (goto-char (point-min))
              (insert (format "%s: %d\n" message start))
              (forward-char start)))
-         (pop-to-buffer buf)))))
-  (view-mode))
+         (pop-to-buffer buf)
+         (view-mode))))))
 
 ;;; Explorer
 
