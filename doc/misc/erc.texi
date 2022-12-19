@@ -459,6 +459,10 @@ Display a menu in ERC buffers
 @item netsplit
 Detect netsplits
 
+@cindex modules, nicks
+@item nicks
+Automatically colorize nicks
+
 @cindex modules, noncommands
 @item noncommands
 Don't display non-IRC commands after evaluation

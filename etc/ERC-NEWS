@@ -30,6 +30,14 @@ helper called 'erc-fill-wrap-nudge' allows for dynamic "refilling" of
 buffers on the fly.  Set 'erc-fill-function' to 'erc-fill-wrap' to get
 started.
 
+** A new module for nickname highlighting has joined ERC.
+Automatic nickname coloring has come to ERC core.  Users familiar with
+'erc-hl-nicks', from which this module directly descends, will already
+be familiar with its suite of handy options.  By default, each
+nickname in an ERC session receives a unique face with a unique (or
+evenly dealt) foreground color.  Add 'nicks' to 'erc-modules' to get
+started.
+
 ** A unified interactive entry point.
 New users are often dismayed to discover that M-x ERC doesn't connect
 to its default network, Libera.Chat, over TLS.  Though perhaps a

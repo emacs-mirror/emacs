@@ -1953,7 +1953,7 @@
 (defconst erc-tests--modules
   '( autoaway autojoin button capab-identify completion dcc fill identd
      imenu irccontrols keep-place list log match menu move-to-prompt netsplit
-     networks noncommands notifications notify page readonly
+     networks nicks noncommands notifications notify page readonly
      replace ring sasl scrolltobottom services smiley sound
      spelling stamp track truncate unmorse xdcc))
 
