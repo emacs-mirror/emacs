@@ -2676,8 +2676,9 @@ cons_block_emit_constructor (Lisp_Object block)
   SAFE_NALLOCA (gcmarkbits, 1, cons_block_gcmarkbits_length);
   for (ptrdiff_t i = 0; i < cons_block_gcmarkbits_length; i++)
     gcmarkbits[i]
-      = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					     comp.ptrdiff_type, ~0u);
+      = gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					      comp.ptrdiff_type,
+					      BITS_WORD_MAX);
 
   gcc_jit_field *fields[] = {
     comp.cons_block_conses,
@@ -2728,7 +2729,8 @@ float_block_emit_constructor (Lisp_Object block)
   for (ptrdiff_t i = 0; i < float_block_gcmarkbits_length; i++)
     gcmarkbits[i]
       = gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					      comp.ptrdiff_type, ~0u);
+					      comp.ptrdiff_type,
+					      BITS_WORD_MAX);
 
   gcc_jit_field *fields[] = {
     comp.float_block_floats,
