@@ -190,6 +190,7 @@ chosen (interactively or automatically)."
                                      '("pylsp" "pyls" ("pyright-langserver" "--stdio") "jedi-language-server")))
                                 ((js-json-mode json-mode json-ts-mode)
                                  . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
+                                                          ("vscode-json-languageserver" "--stdio")
                                                           ("json-languageserver" "--stdio"))))
                                 ((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
