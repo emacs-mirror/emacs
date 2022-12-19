@@ -1187,11 +1187,11 @@ element in PARTS is a list, append it to PARTS."
 (defun rcirc-buffer-process (&optional buffer)
   "Return the process associated with channel BUFFER.
 With no argument or nil as argument, use the current buffer."
-  (let ((buffer (or buffer (and (buffer-live-p rcirc-server-buffer)
-                                rcirc-server-buffer))))
-    (if buffer
-        (buffer-local-value 'rcirc-process buffer)
-      rcirc-process)))
+  (let ((buffer (or buffer (current-buffer))))
+    (buffer-local-value
+     'rcirc-process
+     (or (buffer-local-value 'rcirc-server-buffer buffer)
+         (error "Not an rcirc buffer: %S" buffer)))))
 
 (defun rcirc-server-name (process)
   "Return PROCESS server name, given by the 001 response."
