@@ -28329,6 +28329,7 @@ x_make_frame_visible (struct frame *f)
 	&& !FRAME_ICONIFIED_P (f)
 	&& !FRAME_X_EMBEDDED_P (f)
 	&& !FRAME_PARENT_FRAME (f)
+	&& NILP (Vx_lax_frame_positioning)
 	&& f->win_gravity == NorthWestGravity
 	&& previously_visible)
       {
@@ -28357,7 +28358,8 @@ x_make_frame_visible (struct frame *f)
       }
 
     /* Try to wait for a MapNotify event (that is what tells us when a
-       frame becomes visible).  */
+       frame becomes visible).  Unless `x-lax-frame-positioning' is
+       non-nil: there, that is a little slow.  */
 
 #ifdef CYGWIN
     /* On Cygwin, which uses input polling, we need to force input to
@@ -28375,7 +28377,8 @@ x_make_frame_visible (struct frame *f)
     poll_suppress_count = old_poll_suppress_count;
 #endif
 
-    if (!FRAME_VISIBLE_P (f))
+    if (!FRAME_VISIBLE_P (f)
+	&& NILP (Vx_lax_frame_positioning))
       {
 	if (CONSP (frame_size_history))
 	  frame_size_history_plain
