@@ -141,7 +141,7 @@ See `mh-identity-list'."
            (cons '("None")
                  (mapcar #'list (mapcar #'car mh-identity-list)))
            nil t default nil default))
-    (if (equal identity "None")
+    (if (eq identity "None")
         nil
       identity)))
 

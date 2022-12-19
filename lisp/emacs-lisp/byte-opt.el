@@ -1298,8 +1298,11 @@ See Info node `(elisp) Integer Basics'."
       (if else
           `(progn ,condition ,@else)
         condition))
-     ;; (if X t) -> (not (not X))
-     ((and (eq then t) (null else))
+     ;; (if X nil t) -> (not X)
+     ((and (eq then nil) (eq else '(t)))
+      `(not ,condition))
+     ;; (if X t [nil]) -> (not (not X))
+     ((and (eq then t) (or (null else) (eq else '(nil))))
       `(not ,(byte-opt--negate condition)))
      ;; (if VAR VAR X...) -> (or VAR (progn X...))
      ((and (symbolp condition) (eq condition then))

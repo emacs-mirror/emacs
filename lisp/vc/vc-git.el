@@ -1674,8 +1674,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                                  (if branchp "branch" "tag"))))
          (if branchp
              (vc-git-command nil 0 nil "checkout" "-b" name
-                             (when (and start-point
-                                        (not (equal start-point "")))
+                             (when (and start-point (not (eq start-point "")))
                                start-point))
            (vc-git-command nil 0 nil "tag" name)))))
 
