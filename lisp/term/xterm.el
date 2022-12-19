@@ -571,6 +571,8 @@ Return the pasted text as a string."
                     (8 62  [?\C-\M->])
                     (8 63  [(control meta ??)])
 
+                    (3 32 [?\M-\s])
+
                     (2 9   [S-tab])
                     (2 13  [S-return])
 

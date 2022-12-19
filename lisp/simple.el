@@ -2929,11 +2929,12 @@ that was current when the minibuffer was activated."
                       (window-buffer (minibuffer-selected-window))))
 
 (defun goto-history-element (nabs)
-  "Puts element of the minibuffer history in the minibuffer.
-The argument NABS specifies the absolute history position in
-descending order, where 0 means the current element and a
-positive number N means the Nth previous element.  NABS being a
-negative number -N means the Nth entry of \"future history.\""
+  "Insert into the minibuffer the element of minibuffer history specified by NABS.
+Interactively, NABS is the prefix numeric argument, and defaults to 1.
+It specifies the absolute history position in descending order,
+where 0 means the current element and a positive number N means
+the Nth previous element.  NABS that is a negative number -N means
+the Nth entry of \"future history.\""
   (interactive "p")
   (when (and (not minibuffer-default-add-done)
 	     (functionp minibuffer-default-add-function)
@@ -2989,17 +2990,17 @@ negative number -N means the Nth entry of \"future history.\""
     (goto-char (or minibuffer-temporary-goal-position (point-max)))))
 
 (defun next-history-element (n)
-  "Puts next element of the minibuffer history in the minibuffer.
-With argument N, it uses the Nth following element.  The position
-in the history can go beyond the current position and invoke \"future
-history.\""
+  "Insert into the minibuffer the Nth next element of minibuffer history.
+Interactively, N is the prefix numeric argument and defaults to 1.
+The value N can go beyond the current position in the minibuffer
+history,  and invoke \"future history.\""
   (interactive "p")
   (or (zerop n)
       (goto-history-element (- minibuffer-history-position n))))
 
 (defun previous-history-element (n)
-  "Puts previous element of the minibuffer history in the minibuffer.
-With argument N, it uses the Nth previous element."
+  "Insert into the minibuffer the Nth previous element of minibuffer history.
+Interactively, N is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (or (zerop n)
       (goto-history-element (+ minibuffer-history-position n))))
@@ -10683,12 +10684,7 @@ too short to have a dst element.
         ;; we just created it.
         (with-current-buffer scratch
           (when initial-scratch-message
-            ;; We used to run this through substitute-command-keys,
-            ;; but that might be unsafe in some rare cases, and this
-            ;; function must never fail and signal an error, because
-            ;; it is called from other_buffer_safely, which must
-            ;; always produce a valid buffer.
-            (insert initial-scratch-message)
+            (insert (substitute-command-keys initial-scratch-message))
             (set-buffer-modified-p nil))
           (funcall initial-major-mode))
         scratch)))

@@ -78,12 +78,22 @@ then Which Function mode is enabled in any major mode that supports it."
 This means that Which Function mode won't really do anything
 until you use Imenu, in these modes.  Note that files
 larger than `which-func-maxout' behave in this way too;
-Which Function mode doesn't do anything until you use Imenu."
+Which Function mode doesn't do anything until you use Imenu.
+
+If Which Function delays the initial display of buffers too much,
+e.g., when it is used with Eglot, and the language server takes a
+long time to send the information, you can use this option to delay
+activation of Which Function until Imenu is used for the first time."
   :type '(repeat (symbol :tag "Major mode")))
 
 (defcustom which-func-maxout 500000
   "Don't automatically compute the Imenu menu if buffer is this big or bigger.
-Zero means compute the Imenu menu regardless of size."
+Zero means compute the Imenu menu regardless of size.
+
+If Which Function delays the initial display of buffers too much,
+e.g., when it is used with Eglot, and the language server takes a
+long time to send the information, you can use this option to delay
+activation of Which Function until Imenu is used for the first time."
   :type 'integer)
 
 (defvar which-func-keymap

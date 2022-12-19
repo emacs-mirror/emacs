@@ -1747,7 +1747,19 @@ other_buffer_safely (Lisp_Object buffer)
     if (candidate_buffer (buf, buffer))
       return buf;
 
-  return safe_call (1, Qget_scratch_buffer_create);
+  /* This function must return a valid buffer, since it is frequently
+     our last line of defense in the face of the expected buffers
+     becoming dead under our feet.  safe_call below could return nil
+     if recreating *scratch* in Lisp, which does some fancy stuff,
+     signals an error in some weird use case.  */
+  buf = safe_call (1, Qget_scratch_buffer_create);
+  if (NILP (buf))
+    {
+      AUTO_STRING (scratch, "*scratch*");
+      buf = Fget_buffer_create (scratch, Qnil);
+      Fset_buffer_major_mode (buf);
+    }
+  return buf;
 }
 
 DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,

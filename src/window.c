@@ -2639,7 +2639,7 @@ window_list (void)
 	  Lisp_Object arglist = Qnil;
 
 	  /* We are visiting windows in canonical order, and add
-	     new windows at the front of args[1], which means we
+	     new windows at the front of arglist, which means we
 	     have to reverse this list at the end.  */
 	  foreach_window (XFRAME (frame), add_window_to_list, &arglist);
 	  arglist = Fnreverse (arglist);
@@ -7328,6 +7328,14 @@ the return value is nil.  Otherwise the value is t.  */)
       BVAR (XBUFFER (XWINDOW (selected_window)->contents),
 	    last_selected_window)
 	= selected_window;
+
+      /* We may have deleted windows above.  Then again, maybe we
+	 haven't: the functions we call to maybe delete windows can
+	 decide a window cannot be deleted.  Force recalculation of
+	 Vwindow_list next time it is needed, to make sure stale
+	 windows with no buffers don't escape into the wild, which
+	 will cause crashes elsewhere.  */
+      Vwindow_list = Qnil;
 
       if (NILP (data->focus_frame)
 	  || (FRAMEP (data->focus_frame)

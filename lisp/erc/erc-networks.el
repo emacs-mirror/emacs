@@ -1097,7 +1097,8 @@ matching that of the dying buffer."
                                   (erc--target-symbol erc--target))))))))
        ((not (cdr others))))
     (with-current-buffer (car others)
-      (rename-buffer (erc--target-string target)))))
+      (unless (get-buffer (erc--target-string target))
+        (rename-buffer (erc--target-string target))))))
 
 (defun erc-networks-shrink-ids-and-buffer-names ()
   "Recompute network IDs and buffer names, ignoring the current buffer.
@@ -1188,19 +1189,20 @@ rename them with <n> suffixes going from newest to oldest."
                  (erc--target-string target)))
          placeholder)
     ;; If we don't exist, claim name temporarily while renaming others
-    (when-let* (namesakes
-                (ex (get-buffer name))
-                ((not (memq ex existing)))
-                (temp-name (generate-new-buffer-name (format "*%s*" name))))
-      (setq existing (remq ex existing))
-      (with-current-buffer ex
-        (rename-buffer temp-name)
-        (setq placeholder (get-buffer-create name))
-        (rename-buffer name 'unique)))
+    (when-let* ((ex (get-buffer name))
+                ((not (memq ex existing))))
+      (if namesakes ; if namesakes is nonempty, it contains ex
+          (with-current-buffer ex
+            (let ((temp-name (generate-new-buffer-name (format "*%s*" name))))
+              (rename-buffer temp-name)
+              (setq placeholder (get-buffer-create name))
+              (rename-buffer name 'unique)))
+        ;; Here, ex must be a server buffer or a non-ERC buffer
+        (setq name (erc-networks--construct-target-buffer-name target))))
     (unless (with-suppressed-warnings ((obsolete erc-reuse-buffers))
               erc-reuse-buffers)
       (when (string-suffix-p ">" name)
-        (setq name (substring name 0 -3))))
+        (setq name (string-trim-right name (rx "<" (+ digit) ">")))))
     (dolist (ex (erc-networks--id-sort-buffers existing))
       (with-current-buffer ex
         (rename-buffer name 'unique)))
