@@ -788,15 +788,14 @@ this grossness will be made to disappear by using `call/cc'..."
 (defvar eshell-output-handle)           ;Defined in esh-io.el.
 (defvar eshell-error-handle)            ;Defined in esh-io.el.
 
-(defmacro eshell-copy-handles (object)
+(defmacro eshell-with-copied-handles (object)
   "Duplicate current I/O handles, so OBJECT works with its own copy."
   `(let ((eshell-current-handles
-	  (eshell-create-handles
-	   (car (aref eshell-current-handles
-		      eshell-output-handle)) nil
-	   (car (aref eshell-current-handles
-		      eshell-error-handle)) nil)))
+          (eshell-duplicate-handles eshell-current-handles)))
      ,object))
+
+(define-obsolete-function-alias 'eshell-copy-handles
+  #'eshell-with-copied-handles "30.1")
 
 (defmacro eshell-protect (object)
   "Protect I/O handles, so they aren't get closed after eval'ing OBJECT."
@@ -808,7 +807,7 @@ this grossness will be made to disappear by using `call/cc'..."
   "Execute the commands in PIPELINE, connecting each to one another.
 This macro calls itself recursively, with NOTFIRST non-nil."
   (when (setq pipeline (cadr pipeline))
-    `(eshell-copy-handles
+    `(eshell-with-copied-handles
       (progn
 	,(when (cdr pipeline)
 	   `(let ((nextproc
@@ -880,11 +879,8 @@ This is used on systems where async subprocesses are not supported."
      (progn
        ,(if (fboundp 'make-process)
 	    `(eshell-do-pipelines ,pipeline)
-	  `(let ((tail-handles (eshell-create-handles
-				(car (aref eshell-current-handles
-					   ,eshell-output-handle)) nil
-				(car (aref eshell-current-handles
-					   ,eshell-error-handle)) nil)))
+          `(let ((tail-handles (eshell-duplicate-handles
+                                eshell-current-handles)))
 	     (eshell-do-pipelines-synchronously ,pipeline)))
        (eshell-process-identity (cons (symbol-value headproc)
                                       (symbol-value tailproc))))))
