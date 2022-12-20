@@ -1056,12 +1056,13 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                      (vc-git-command nil 0 file-name "reset" "-q" "--"))
                     (t (user-error "Index not empty")))
               (setq pos (point))))))
-      (let ((patch-file (make-nearby-temp-file "git-patch")))
-        (with-temp-file patch-file
-          (insert vc-git-patch-string))
-        (unwind-protect
-            (vc-git-command nil 0 patch-file "apply" "--cached")
-          (delete-file patch-file))))
+      (unless (string-empty-p vc-git-patch-string)
+        (let ((patch-file (make-nearby-temp-file "git-patch")))
+          (with-temp-file patch-file
+            (insert vc-git-patch-string))
+          (unwind-protect
+              (vc-git-command nil 0 patch-file "apply" "--cached")
+            (delete-file patch-file)))))
     (cl-flet ((boolean-arg-fn
                (argument)
                (lambda (value) (when (equal value "yes") (list argument)))))
