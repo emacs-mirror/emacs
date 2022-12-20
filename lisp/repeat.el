@@ -368,6 +368,13 @@ This property can override the value of this variable."
 (defcustom repeat-keep-prefix nil
   "Whether to keep the prefix arg of the previous command when repeating."
   :type 'boolean
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when repeat-mode
+           (if repeat-keep-prefix
+               (add-hook 'pre-command-hook 'repeat-pre-hook)
+             (remove-hook 'pre-command-hook 'repeat-pre-hook))))
   :group 'repeat
   :version "28.1")
 
@@ -419,7 +426,11 @@ When Repeat mode is enabled, and the command symbol has the property named
 See `describe-repeat-maps' for a list of all repeatable commands."
   :global t :group 'repeat
   (if (not repeat-mode)
-      (remove-hook 'post-command-hook 'repeat-post-hook)
+      (progn
+        (remove-hook 'pre-command-hook 'repeat-pre-hook)
+        (remove-hook 'post-command-hook 'repeat-post-hook))
+    (when repeat-keep-prefix
+      (add-hook 'pre-command-hook 'repeat-pre-hook))
     (add-hook 'post-command-hook 'repeat-post-hook)
     (let* ((keymaps nil)
            (commands (all-completions
@@ -431,14 +442,20 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                (length commands)
                (length (delete-dups keymaps))))))
 
-(defvar repeat--prev-mb '(0)
-  "Previous minibuffer state.")
-
 (defun repeat--command-property (property)
   (or (and (symbolp this-command)
            (get this-command property))
       (and (symbolp real-this-command)
            (get real-this-command property))))
+
+(defun repeat-get-map ()
+  "Return a transient map for keys repeatable after the current command."
+  (when repeat-mode
+    (let ((rep-map (or repeat-map (repeat--command-property 'repeat-map))))
+      (when rep-map
+        (when (and (symbolp rep-map) (boundp rep-map))
+          (setq rep-map (symbol-value rep-map)))
+        rep-map))))
 
 (defun repeat-check-key (key map)
   "Check if the last key is suitable to activate the repeating MAP."
@@ -449,50 +466,61 @@ See `describe-repeat-maps' for a list of all repeatable commands."
         ;; Try without modifiers:
         (lookup-key map (vector (event-basic-type key))))))
 
+(defvar repeat--prev-mb '(0)
+  "Previous minibuffer state.")
+
+(defun repeat-check-map (map)
+  "Decides whether MAP can be used for the next command."
+  (and map
+       ;; Detect changes in the minibuffer state to allow repetitions
+       ;; in the same minibuffer, but not when the minibuffer is activated
+       ;; in the middle of repeating sequence (bug#47566).
+       (or (< (minibuffer-depth) (car repeat--prev-mb))
+           (eq current-minibuffer-command (cdr repeat--prev-mb)))
+       (repeat-check-key last-command-event map)
+       t))
+
+(defun repeat-pre-hook ()
+  "Function run before commands to handle repeatable keys."
+  (when (and repeat-mode repeat-keep-prefix repeat-in-progress
+             (not prefix-arg) current-prefix-arg)
+    (let ((map (repeat-get-map)))
+      ;; Only when repeat-post-hook will activate the same map
+      (when (repeat-check-map map)
+        ;; Optimize to use less logic in the function `repeat-get-map'
+        ;; for the next call: when called again from `repeat-post-hook'
+        ;; it will use the variable `repeat-map'.
+        (setq repeat-map map)
+        ;; Preserve universal argument
+        (setq prefix-arg current-prefix-arg)))))
+
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
   (let ((was-in-progress repeat-in-progress))
     (setq repeat-in-progress nil)
-    (when repeat-mode
-      (let ((rep-map (or repeat-map (repeat--command-property 'repeat-map))))
-        (when rep-map
-          (when (and (symbolp rep-map) (boundp rep-map))
-            (setq rep-map (symbol-value rep-map)))
-          (let ((map (copy-keymap rep-map)))
+    (let ((map (repeat-get-map)))
+      (when (repeat-check-map map)
+        ;; Messaging
+        (funcall repeat-echo-function map)
 
-            (when (and
-                   ;; Detect changes in the minibuffer state to allow repetitions
-                   ;; in the same minibuffer, but not when the minibuffer is activated
-                   ;; in the middle of repeating sequence (bug#47566).
-                   (or (< (minibuffer-depth) (car repeat--prev-mb))
-                       (eq current-minibuffer-command (cdr repeat--prev-mb)))
-                   (or (not repeat-keep-prefix) prefix-arg)
-                   (repeat-check-key last-command-event map))
+        ;; Adding an exit key
+        (when repeat-exit-key
+          (setq map (copy-keymap map))
+          (define-key map (if (key-valid-p repeat-exit-key)
+                              (kbd repeat-exit-key)
+                            repeat-exit-key)
+                      'ignore))
 
-              ;; Messaging
-              (unless prefix-arg
-                (funcall repeat-echo-function map))
+        (setq repeat-in-progress t)
+        (repeat--exit)
+        (let ((exitfun (set-transient-map map)))
+          (setq repeat-exit-function exitfun)
 
-              ;; Adding an exit key
-              (when repeat-exit-key
-                (define-key map (if (key-valid-p repeat-exit-key)
-                                    (kbd repeat-exit-key)
-                                  repeat-exit-key)
-                            'ignore))
-
-              (when (and repeat-keep-prefix (not prefix-arg))
-                (setq prefix-arg current-prefix-arg))
-
-              (setq repeat-in-progress t)
-              (let ((exitfun (set-transient-map map)))
-                (repeat--exit)
-                (setq repeat-exit-function exitfun)
-
-                (let* ((prop (repeat--command-property 'repeat-exit-timeout))
-                       (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
-                  (when timeout
-                    (setq repeat-exit-timer
-                          (run-with-idle-timer timeout nil #'repeat-exit))))))))))
+          (let* ((prop (repeat--command-property 'repeat-exit-timeout))
+                 (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
+            (when timeout
+              (setq repeat-exit-timer
+                    (run-with-idle-timer timeout nil #'repeat-exit)))))))
 
     (setq repeat-map nil)
     (setq repeat--prev-mb (cons (minibuffer-depth) current-minibuffer-command))
@@ -582,6 +610,7 @@ Used in `repeat-mode'."
                          (push s (alist-get (get s 'repeat-map) keymaps)))))
       (with-help-window (help-buffer)
         (with-current-buffer standard-output
+          (setq-local outline-regexp "[*]+")
           (insert "A list of keymaps used by commands with the symbol property `repeat-map'.\n")
 
           (dolist (keymap (sort keymaps (lambda (a b)
