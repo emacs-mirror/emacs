@@ -28,7 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   && defined (LIBGCCJIT_HAVE_CTORS)                               \
   && defined (LIBGCCJIT_HAVE_gcc_jit_type_get_aligned)            \
   && defined (LIBGCCJIT_HAVE_ALIGNMENT) && USE_STACK_LISP_OBJECTS \
-  && !defined (GC_CHECK_MARKED_OBJECTS)
+  && !GC_CHECK_MARKED_OBJECTS
 #define HAVE_STATIC_LISP_GLOBALS 1
 #endif
 #endif
