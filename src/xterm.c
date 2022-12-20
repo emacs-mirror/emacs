@@ -29894,13 +29894,17 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  {
 	    char *vendor = ServerVendor (dpy);
 
-	    /* Temporarily hide the partially initialized terminal.  */
+	    /* Temporarily hide the partially initialized terminal.
+	       Use safe_call so that if a signal happens, a partially
+	       initialized display (and display connection) is not
+	       kept around.  */
 	    terminal_list = terminal->next_terminal;
 	    unblock_input ();
-	    kset_system_key_alist
-	      (terminal->kboard,
-	       call1 (Qvendor_specific_keysyms,
-		      vendor ? build_string (vendor) : empty_unibyte_string));
+	    kset_system_key_alist (terminal->kboard,
+				   safe_call1 (Qvendor_specific_keysyms,
+					       (vendor
+						? build_string (vendor)
+						: empty_unibyte_string)));
 	    block_input ();
 	    terminal->next_terminal = terminal_list;
 	    terminal_list = terminal;
