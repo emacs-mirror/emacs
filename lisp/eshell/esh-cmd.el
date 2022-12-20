@@ -418,8 +418,12 @@ hooks should be run before and after the command."
 	   (eshell-separate-commands terms "[&;]" nil 'eshell--sep-terms))))
     (let ((cmd commands))
       (while cmd
-	(if (cdr cmd)
-	    (setcar cmd `(eshell-commands ,(car cmd))))
+        ;; Copy I/O handles so each full statement can manipulate them
+        ;; if they like.  As a small optimization, skip this for the
+        ;; last top-level one; we won't use these handles again
+        ;; anyway.
+        (when (or (not toplevel) (cdr cmd))
+	  (setcar cmd `(eshell-with-copied-handles ,(car cmd))))
 	(setq cmd (cdr cmd))))
     (if toplevel
 	`(eshell-commands (progn

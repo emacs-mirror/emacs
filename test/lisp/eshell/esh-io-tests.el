@@ -146,6 +146,34 @@
      (should (equal (buffer-string) "new"))
      (should (equal eshell-test-value "new")))))
 
+(ert-deftest esh-io-test/redirect-subcommands ()
+  "Check that redirecting subcommands applies to all subcommands."
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-insert-command (format "{echo foo; echo bar} > #<%s>" bufname)))
+    (should (equal (buffer-string) "foobar"))))
+
+(ert-deftest esh-io-test/redirect-subcommands/override ()
+  "Check that redirecting subcommands applies to all subcommands.
+Include a redirect to another location in the subcommand to
+ensure only its statement is redirected."
+  (eshell-with-temp-buffer bufname "old"
+    (eshell-with-temp-buffer bufname-2 "also old"
+      (with-temp-eshell
+       (eshell-insert-command
+        (format "{echo foo; echo bar > #<%s>; echo baz} > #<%s>"
+                bufname-2 bufname)))
+      (should (equal (buffer-string) "bar")))
+    (should (equal (buffer-string) "foobaz"))))
+
+(ert-deftest esh-io-test/redirect-subcommands/interpolated ()
+  "Check that redirecting interpolated subcommands applies to all subcommands."
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-insert-command
+      (format "echo ${echo foo; echo bar} > #<%s>" bufname)))
+    (should (equal (buffer-string) "foobar"))))
+
 
 ;; Redirecting specific handles
 

@@ -27,21 +27,23 @@
   "Test Eshell `su' command with no arguments."
   (should (equal
            (catch 'eshell-replace-command (eshell/su))
-           `(eshell-trap-errors
-             (eshell-named-command
-              "cd"
-              (list ,(format "/su:root@%s:%s"
-                             tramp-default-host default-directory)))))))
+           `(eshell-with-copied-handles
+             (eshell-trap-errors
+              (eshell-named-command
+               "cd"
+               (list ,(format "/su:root@%s:%s"
+                              tramp-default-host default-directory))))))))
 
 (ert-deftest em-tramp-test/su-user ()
   "Test Eshell `su' command with USER argument."
   (should (equal
            (catch 'eshell-replace-command (eshell/su "USER"))
-           `(eshell-trap-errors
-             (eshell-named-command
-              "cd"
-              (list ,(format "/su:USER@%s:%s"
-                             tramp-default-host default-directory)))))))
+           `(eshell-with-copied-handles
+             (eshell-trap-errors
+              (eshell-named-command
+               "cd"
+               (list ,(format "/su:USER@%s:%s"
+                              tramp-default-host default-directory))))))))
 
 (ert-deftest em-tramp-test/su-login ()
   "Test Eshell `su' command with -/-l/--login option."
@@ -50,10 +52,11 @@
                   ("-")))
     (should (equal
              (catch 'eshell-replace-command (apply #'eshell/su args))
-             `(eshell-trap-errors
-               (eshell-named-command
-                "cd"
-                (list ,(format "/su:root@%s:~/" tramp-default-host))))))))
+             `(eshell-with-copied-handles
+               (eshell-trap-errors
+                (eshell-named-command
+                 "cd"
+                 (list ,(format "/su:root@%s:~/" tramp-default-host)))))))))
 
 (defun mock-eshell-named-command (&rest args)
   "Dummy function to test Eshell `sudo' command rewriting."
@@ -91,21 +94,23 @@
                   ("-s")))
     (should (equal
              (catch 'eshell-replace-command (apply #'eshell/sudo args))
-             `(eshell-trap-errors
-               (eshell-named-command
-                "cd"
-                (list ,(format "/sudo:root@%s:%s"
-                               tramp-default-host default-directory))))))))
+             `(eshell-with-copied-handles
+               (eshell-trap-errors
+                (eshell-named-command
+                 "cd"
+                 (list ,(format "/sudo:root@%s:%s"
+                                tramp-default-host default-directory)))))))))
 
 (ert-deftest em-tramp-test/sudo-user-shell ()
   "Test Eshell `sudo' command with -s and -u options."
   (should (equal
            (catch 'eshell-replace-command (eshell/sudo "-u" "USER" "-s"))
-           `(eshell-trap-errors
-             (eshell-named-command
-              "cd"
-              (list ,(format "/sudo:USER@%s:%s"
-                             tramp-default-host default-directory)))))))
+           `(eshell-with-copied-handles
+             (eshell-trap-errors
+              (eshell-named-command
+               "cd"
+               (list ,(format "/sudo:USER@%s:%s"
+                              tramp-default-host default-directory))))))))
 
 (ert-deftest em-tramp-test/doas-basic ()
   "Test Eshell `doas' command with default user."
@@ -144,20 +149,22 @@
                   ("-s")))
     (should (equal
              (catch 'eshell-replace-command (apply #'eshell/doas args))
-             `(eshell-trap-errors
-               (eshell-named-command
-                "cd"
-                (list ,(format "/doas:root@%s:%s"
-                               tramp-default-host default-directory))))))))
+             `(eshell-with-copied-handles
+               (eshell-trap-errors
+                (eshell-named-command
+                 "cd"
+                 (list ,(format "/doas:root@%s:%s"
+                                tramp-default-host default-directory)))))))))
 
 (ert-deftest em-tramp-test/doas-user-shell ()
   "Test Eshell `doas' command with -s and -u options."
   (should (equal
            (catch 'eshell-replace-command (eshell/doas "-u" "USER" "-s"))
-           `(eshell-trap-errors
-             (eshell-named-command
-              "cd"
-              (list ,(format "/doas:USER@%s:%s"
-                             tramp-default-host default-directory)))))))
+           `(eshell-with-copied-handles
+             (eshell-trap-errors
+              (eshell-named-command
+               "cd"
+               (list ,(format "/doas:USER@%s:%s"
+                              tramp-default-host default-directory))))))))
 
 ;;; em-tramp-tests.el ends here
