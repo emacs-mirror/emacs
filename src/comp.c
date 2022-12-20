@@ -1051,10 +1051,13 @@ hash_native_abi (void)
   Lisp_Object builtin_syms = Qnil;
   AUTO_STRING (sep, " ");
 
-  for (ptrdiff_t i = 0; i < ARRAYELTS (lispsym); i++)
+  for (ptrdiff_t i = 0; i < ARRAYELTS (lispsym) - 1; i++)
     builtin_syms
       = concat3 (builtin_syms, SYMBOL_NAME (builtin_lisp_symbol (i)),
-                 sep);
+		 sep);
+  builtin_syms
+    = concat2 (builtin_syms, SYMBOL_NAME (builtin_lisp_symbol (
+			       ARRAYELTS (lispsym) - 1)));
 #endif
 
   Vcomp_abi_hash = comp_hash_string (
