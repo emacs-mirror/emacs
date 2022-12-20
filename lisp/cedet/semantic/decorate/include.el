@@ -790,9 +790,7 @@ any decorated referring includes.")
     ;; This is a hack.  Add in something better?
     (semanticdb-notify-references
      table (lambda (tab _me)
-	     (semantic-decoration-unparsed-include-refrence-reset tab)
-	     ))
-    ))
+	     (semantic-decoration-unparsed-include-reference-reset tab)))))
 
 (cl-defmethod semanticdb-partial-synchronize ((cache semantic-decoration-unparsed-include-cache)
 					   new-tags)
@@ -805,7 +803,7 @@ any decorated referring includes.")
   "Synchronize a CACHE with some NEW-TAGS."
   (semantic-reset cache))
 
-(defun semantic-decoration-unparsed-include-refrence-reset (table)
+(defun semantic-decoration-unparsed-include-reference-reset (table)
   "Refresh any highlighting in buffers referred to by TABLE.
 If TABLE is not in a buffer, do nothing."
   ;; This cache removal may seem odd in that we are "creating one", but
@@ -835,6 +833,8 @@ If TABLE is not in a buffer, do nothing."
 	(semantic-decorate-add-decorations allinc)
 	))))
 
+(define-obsolete-function-alias 'semantic-decoration-unparsed-include-refrence-reset
+  #'semantic-decoration-unparsed-include-reference-reset "30.1")
 
 (provide 'semantic/decorate/include)
 
