@@ -1436,9 +1436,9 @@ Return either a paren token or a semantic list token depending on
 
 (define-lex semantic-comment-lexer
   "A simple lexical analyzer that handles comments.
-This lexer will only return comment tokens.  It is the default lexer
-used by `semantic-find-doc-snarf-comment' to snarf up the comment at
-point."
+This lexer will only return comment tokens.  It is the default
+lexer used by `semantic-doc-snarf-comment-for-tag' to snarf up
+the comment at point."
   semantic-lex-ignore-whitespace
   semantic-lex-ignore-newline
   semantic-lex-comments

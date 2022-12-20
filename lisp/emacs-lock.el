@@ -165,13 +165,14 @@ Return a value appropriate for `kill-buffer-query-functions' (which see)."
     (message "Buffer %S is locked and cannot be killed" (buffer-name))
     nil))
 
-(defun emacs-lock--set-mode (mode arg)
+(defun emacs-lock--set-mode (mode arg prefix)
   "Setter function for `emacs-lock-mode'."
   (setq emacs-lock-mode
         (cond ((memq arg '(all exit kill))
                ;; explicit locking mode arg, use it
                arg)
-              ((and (eq arg current-prefix-arg) (consp current-prefix-arg))
+              ;; kludgy, but commit 2a4b0da28c converts arg to number
+              ((and (eq arg 4) (equal prefix '(4)))
                ;; called with C-u M-x emacs-lock-mode, so ask the user
                (intern (completing-read
                         (format-prompt "Locking mode"
@@ -214,7 +215,7 @@ some major modes from being locked under some circumstances."
   :group 'emacs-lock
   :variable (emacs-lock-mode .
                              (lambda (mode)
-                               (emacs-lock--set-mode mode arg)))
+                               (emacs-lock--set-mode mode arg current-prefix-arg)))
   (when emacs-lock-mode
     (setq emacs-lock--old-mode emacs-lock-mode)
     (setq emacs-lock--try-unlocking

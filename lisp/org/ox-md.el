@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
-;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
+;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: org, wp, markdown
 
 ;; This file is part of GNU Emacs.
@@ -28,6 +28,9 @@
 ;; information.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'ox-html)
@@ -70,6 +73,23 @@ The %s will be replaced by the footnote reference itself."
   :type 'string
   :version "26.1"
   :package-version '(Org . "9.0"))
+
+(defcustom org-md-toplevel-hlevel 1
+  "Heading level to use for level 1 Org headings in markdown export.
+
+If this is 1, headline levels will be preserved on export.  If this is
+2, top level Org headings will be exported to level 2 markdown
+headings, level 2 Org headings will be exported to level 3 markdown
+headings, and so on.
+
+Incrementing this value may be helpful when creating markdown to be
+included into another document or application that reserves top-level
+headings for its own use."
+  :group 'org-export-md
+  :package-version '(Org . "9.6")
+  ;; Avoid `natnum' because that's not available until Emacs 28.1.
+  :type 'integer)
+
 
 
 ;;; Define Back-End
@@ -120,7 +140,8 @@ The %s will be replaced by the footnote reference itself."
   :options-alist
   '((:md-footnote-format nil nil org-md-footnote-format)
     (:md-footnotes-section nil nil org-md-footnotes-section)
-    (:md-headline-style nil nil org-md-headline-style)))
+    (:md-headline-style nil nil org-md-headline-style)
+    (:md-toplevel-hlevel nil nil org-md-toplevel-hlevel)))
 
 
 ;;; Filters
@@ -229,9 +250,10 @@ When optional argument SCOPE is non-nil, build a table of
 contents according to the specified element."
   (concat
    (unless scope
-     (let ((style (plist-get info :md-headline-style))
+     (let ((level (plist-get info :md-toplevel-hlevel))
+           (style (plist-get info :md-headline-style))
 	   (title (org-html--translate "Table of Contents" info)))
-       (org-md--headline-title style 1 title nil)))
+       (org-md--headline-title style level title nil)))
    (mapconcat
     (lambda (headline)
       (let* ((indentation
@@ -350,7 +372,8 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 CONTENTS is the headline contents.  INFO is a plist used as
 a communication channel."
   (unless (org-element-property :footnote-section-p headline)
-    (let* ((level (org-export-get-relative-level headline info))
+    (let* ((level (+ (org-export-get-relative-level headline info)
+                     (1- (plist-get info :md-toplevel-hlevel))))
 	   (title (org-export-data (org-element-property :title headline) info))
 	   (todo (and (plist-get info :with-todo-keywords)
 		      (let ((todo (org-element-property :todo-keyword

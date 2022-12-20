@@ -2748,7 +2748,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_193CAA5E45
+#if CHECK_STRUCTS && !defined HASH_buffer_DB34E5D09F
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -2811,7 +2811,6 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
       DUMP_FIELD_COPY (out, buffer, own_text.end_unchanged);
       DUMP_FIELD_COPY (out, buffer, own_text.unchanged_modified);
       DUMP_FIELD_COPY (out, buffer, own_text.overlay_unchanged_modified);
-      DUMP_FIELD_COPY (out, buffer, own_text.chars_unchanged_modified);
       if (buffer->own_text.intervals)
         dump_field_fixup_later (ctx, out, buffer, &buffer->own_text.intervals);
       dump_field_lv_rawptr (ctx, out, buffer, &buffer->own_text.markers,
@@ -2863,7 +2862,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   DUMP_FIELD_COPY (out, buffer, inhibit_buffer_hooks);
   DUMP_FIELD_COPY (out, buffer, long_line_optimizations_p);
 
-  if (buffer->overlays && buffer->overlays->root != NULL)
+  if (!itree_empty_p (buffer->overlays))
     /* We haven't implemented the code to dump overlays.  */
     emacs_abort ();
   else
@@ -3003,7 +3002,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_AFF6FED5BD
+#if CHECK_STRUCTS && !defined HASH_pvec_type_5F2059C47E
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);

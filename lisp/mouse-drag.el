@@ -275,6 +275,7 @@ To test this function, evaluate:
 	 have-scrolled
 	 window-last-row
 	 col window-last-col
+         switch-frame-p
 	 (scroll-col-delta 0)
 	 ;; be conservative about allowing horizontal scrolling
 	 (col-scrolling-p (mouse-drag-should-do-col-scrolling)))
@@ -286,15 +287,21 @@ To test this function, evaluate:
       (setq track-mouse 'drag-dragging)
       (while (progn
 	       (setq event (read--potential-mouse-event)
-		     end (event-end event)
-		     row (cdr (posn-col-row end))
-		     col (car (posn-col-row end)))
-	       (or (mouse-movement-p event)
-		   (eq (car-safe event) 'switch-frame)))
+                     switch-frame-p (eq (car-safe event) 'switch-frame))
+               ;; We want to skip switch-frame events and treat then
+               ;; as moves over a different window.  These events have
+               ;; no position spec, so all the posn-* accessor
+               ;; functions are likely to barf if passed such an
+               ;; event.
+               (or switch-frame-p
+                   (setq end (event-end event)
+		         row (cdr (posn-col-row end))
+		         col (car (posn-col-row end))))
+	       (or (mouse-movement-p event) switch-frame-p))
 	;; Scroll if see if we're on the edge.
 	;; FIXME: should handle mouse-in-other window.
 	(cond
-	 ((not (eq start-window (posn-window end)))
+	 ((or switch-frame-p (not (eq start-window (posn-window end))))
 	  t) ; wait for return to original window
 	 ((<= row 0) (mouse-drag-repeatedly-safe-scroll -1 0))
 	 ((>= row window-last-row) (mouse-drag-repeatedly-safe-scroll 1 0))

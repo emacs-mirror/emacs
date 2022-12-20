@@ -180,7 +180,7 @@ Called with a subset of keyword parameters known to
 `auth-source-search' and relevant to authenticating to nickname
 services.  In return, ERC expects a string to send as the
 password, or nil, to fall through to the next method, such as
-prompting.  See info node `(erc) Connecting' for details."
+prompting.  See info node `(erc) auth-source' for details."
   :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
   :type '(choice (const erc-auth-source-search)
                  (const nil)
@@ -455,7 +455,7 @@ it returns nil."
                   (read-passwd
                    (format "NickServ password for %s on %s (RET to cancel): "
                            nick nid)))))
-       ((not (string-empty-p ret))))
+       ((not (string-empty-p (erc--unfun ret)))))
     ret))
 
 (defvar erc-auto-discard-away)
@@ -477,7 +477,8 @@ Returns t if the message could be sent, nil otherwise."
          (msgtype (or (erc-nickserv-alist-ident-command nil nickserv-info)
                       "PRIVMSG")))
     (erc-message msgtype
-                 (concat nickserv " " identify-word " " nick password))))
+                 (concat nickserv " " identify-word " " nick
+                         (erc--unfun password)))))
 
 (defun erc-nickserv-call-identify-function (nickname)
   "Call `erc-nickserv-identify' with NICKNAME."

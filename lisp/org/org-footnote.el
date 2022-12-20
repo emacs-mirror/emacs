@@ -4,7 +4,7 @@
 ;;
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -28,6 +28,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 ;;;; Declarations
 
 (require 'cl-lib)
@@ -39,7 +42,7 @@
 (declare-function org-back-over-empty-lines "org" ())
 (declare-function org-end-of-meta-data "org" (&optional full))
 (declare-function org-edit-footnote-reference "org-src" ())
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-class "org-element" (datum &optional parent))
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-lineage "org-element" (blob &optional types with-self))
@@ -52,7 +55,7 @@
 (declare-function org-inside-LaTeX-fragment-p "org" ())
 (declare-function org-inside-latex-macro-p "org" ())
 (declare-function org-mark-ring-push "org" (&optional pos buffer))
-(declare-function org-show-context "org" (&optional key))
+(declare-function org-fold-show-context "org-fold" (&optional key))
 (declare-function outline-next-heading "outline")
 
 (defvar electric-indent-mode)
@@ -91,13 +94,13 @@ Match group 1 contains definition's label.")
 (defcustom org-footnote-section "Footnotes"
   "Outline heading containing footnote definitions.
 
-This can be nil, to place footnotes locally at the end of the
-current outline node.  If can also be the name of a special
-outline heading under which footnotes should be put.
+This can be nil, to place footnotes locally at the end of the current
+outline node.  It can also be a string representing the name of a
+special outline heading under which footnotes should be put.
 
 This variable defines the place where Org puts the definition
 automatically, i.e. when creating the footnote, and when sorting
-the notes.  However, by hand you may place definitions
+the notes.  However, by hand, you may place definitions
 *anywhere*.
 
 If this is a string, during export, all subtrees starting with
@@ -110,7 +113,7 @@ you will need to run the following command after the change:
   :group 'org-footnote
   :initialize 'custom-initialize-default
   :set (lambda (var val)
-	 (set var val)
+	 (set-default-toplevel-value var val)
 	 (when (fboundp 'org-element-cache-reset)
 	   (org-element-cache-reset 'all)))
   :type '(choice
@@ -555,7 +558,7 @@ value if point was successfully moved."
     (goto-char def-start)
     (looking-at (format "\\[fn:%s[]:]" (regexp-quote label)))
     (goto-char (match-end 0))
-    (org-show-context 'link-search)
+    (org-fold-show-context 'link-search)
     (when (derived-mode-p 'org-mode)
       (message "%s" (substitute-command-keys
 		     "Edit definition and go back with \
@@ -581,7 +584,7 @@ value if point was successfully moved."
 	   (user-error "Reference is outside narrowed part of buffer")))
     (org-mark-ring-push)
     (goto-char start)
-    (org-show-context 'link-search)))
+    (org-fold-show-context 'link-search)))
 
 
 ;;;; Getters
@@ -848,9 +851,12 @@ to `org-footnote-section'.  Inline definitions are ignored."
 			    (format "[fn:%s] DEFINITION NOT FOUND." label))
 			"\n"))))
 	  ;; Insert un-referenced footnote definitions at the end.
-	  (pcase-dolist (`(,label . ,definition) definitions)
-	    (unless (member label inserted)
-	      (insert "\n" definition "\n")))))))))
+          ;; Combine all insertions into one to create a single cache
+          ;; update call.
+          (combine-change-calls (point) (point)
+	    (pcase-dolist (`(,label . ,definition) definitions)
+	      (unless (member label inserted)
+	        (insert "\n" definition "\n"))))))))))
 
 (defun org-footnote-normalize ()
   "Turn every footnote in buffer into a numbered one."

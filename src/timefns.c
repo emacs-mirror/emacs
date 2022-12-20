@@ -40,6 +40,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef WINDOWSNT
+extern clock_t sys_clock (void);
+#endif
+
 #ifdef HAVE_TIMEZONE_T
 # include <sys/param.h>
 # if defined __NetBSD_Version__ && __NetBSD_Version__ < 700000000
@@ -1194,7 +1198,7 @@ For example, nil stands for the current time.  */)
      quicker while we're at it.  This means (time-subtract X X) does
      not signal an error if X is not a valid time value, but that's OK.  */
   if (BASE_EQ (a, b))
-    return timespec_to_lisp ((struct timespec) {0});
+    return make_lisp_time ((struct timespec) {0});
 
   return time_arith (a, b, true);
 }

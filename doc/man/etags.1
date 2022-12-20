@@ -209,7 +209,7 @@ otherwise.  This is particularly useful when storing many predefined
 regexps in a file.
 .br
 In its second form, \fIregexfile\fP is the name of a file that contains
-a number of arguments to the \fI\-\-regex\=\fP option,
+a number of arguments to the \fI\-\-regex=\fP option,
 one per line.  Lines beginning with a space or tab are assumed
 to be comments, and ignored.
 
@@ -220,22 +220,22 @@ from shell interpretation.
 
 Tag the DEFVAR macros in the emacs source files:
 .br
-\fI\-\-regex\='/[ \\t]*DEFVAR_[A-Z_ \\t(]+"\\([^"]+\\)"/'\fP
+\fI\-\-regex='/[ \\t]*DEFVAR_[A-Z_ \\t(]+"\\([^"]+\\)"/'\fP
 .\"" This comment is to avoid confusion to Emacs syntax highlighting
 .br
 
 Tag VHDL files (this example is a single long line, broken here for
 formatting reasons):
 .br
-\fI\-\-language\=none\ \-\-regex='/[\ \\t]*\\(ARCHITECTURE\\|\\
-CONFIGURATION\\)\ +[^\ ]*\ +OF/'\ \-\-regex\='/[\ \\t]*\\
+\fI\-\-language=none\ \-\-regex='/[\ \\t]*\\(ARCHITECTURE\\|\\
+CONFIGURATION\\)\ +[^\ ]*\ +OF/'\ \-\-regex='/[\ \\t]*\\
 \\(ATTRIBUTE\\|ENTITY\\|FUNCTION\\|PACKAGE\\(\ BODY\\)?\\
 \\|PROCEDURE\\|PROCESS\\|TYPE\\)[\ \\t]+\\([^\ \\t(]+\\)/\\3/'\fP
 .br
 
-Tag TCL files (this last example shows the usage of a \fItagregexp\fP):
+Tag Tcl files (this last example shows the usage of a \fItagregexp\fP):
 .br
-\fI\-\-lang\=none \-\-regex\='/proc[\ \\t]+\\([^\ \\t]+\\)/\\1/'\fP
+\fI\-\-lang=none \-\-regex='/proc[\ \\t]+\\([^\ \\t]+\\)/\\1/'\fP
 
 .br
 A regexp can be preceded by {\fIlang\fP}, thus restricting it to match

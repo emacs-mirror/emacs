@@ -59,7 +59,7 @@ And NORM is one of the symbols `NFC', `NFD', `NFKC', `NFKD' for brevity."
                       (NFD . ucs-normalize-NFD-region)
                       (NFKC . ucs-normalize-NFKC-region)
                       (NFKD . ucs-normalize-NFKD-region))))
-    `(with-current-buffer ucs-normalize-tests--norm-buf
+    `(progn
        (erase-buffer)
        (insert ,str)
        (,(cdr (assq norm norm-alist)) (point-min) (point-max))
@@ -74,7 +74,7 @@ And NORM is one of the symbols `NFC', `NFD', `NFKC', `NFKD' for brevity."
                       (NFD . ucs-normalize-NFD-region)
                       (NFKC . ucs-normalize-NFKC-region)
                       (NFKD . ucs-normalize-NFKD-region))))
-    `(with-current-buffer ucs-normalize-tests--norm-buf
+    `(progn
        (erase-buffer)
        (insert ,char)
        (,(cdr (assq norm norm-alist)) (point-min) (point-max))
@@ -90,36 +90,37 @@ The following invariants must be true for all conformant implementations..."
     ;; See `ucs-normalize-tests--rule2-holds-p'.
     (aset ucs-normalize-tests--chars-part1
           (aref source 0) 1))
-  (and
-   ;; c2 ==  toNFC(c1) ==  toNFC(c2) ==  toNFC(c3)
-   (ucs-normalize-tests--normalization-equal-p NFC source nfc)
-   (ucs-normalize-tests--normalization-equal-p NFC nfc nfc)
-   (ucs-normalize-tests--normalization-equal-p NFC nfd nfc)
-   ;; c4 ==  toNFC(c4) ==  toNFC(c5)
-   (ucs-normalize-tests--normalization-equal-p NFC nfkc nfkc)
-   (ucs-normalize-tests--normalization-equal-p NFC nfkd nfkc)
+  (with-current-buffer ucs-normalize-tests--norm-buf
+    (and
+     ;; c2 ==  toNFC(c1) ==  toNFC(c2) ==  toNFC(c3)
+     (ucs-normalize-tests--normalization-equal-p NFC source nfc)
+     (ucs-normalize-tests--normalization-equal-p NFC nfc nfc)
+     (ucs-normalize-tests--normalization-equal-p NFC nfd nfc)
+     ;; c4 ==  toNFC(c4) ==  toNFC(c5)
+     (ucs-normalize-tests--normalization-equal-p NFC nfkc nfkc)
+     (ucs-normalize-tests--normalization-equal-p NFC nfkd nfkc)
 
-   ;; c3 ==  toNFD(c1) ==  toNFD(c2) ==  toNFD(c3)
-   (ucs-normalize-tests--normalization-equal-p NFD source nfd)
-   (ucs-normalize-tests--normalization-equal-p NFD nfc nfd)
-   (ucs-normalize-tests--normalization-equal-p NFD nfd nfd)
-   ;; c5 ==  toNFD(c4) ==  toNFD(c5)
-   (ucs-normalize-tests--normalization-equal-p NFD nfkc nfkd)
-   (ucs-normalize-tests--normalization-equal-p NFD nfkd nfkd)
+     ;; c3 ==  toNFD(c1) ==  toNFD(c2) ==  toNFD(c3)
+     (ucs-normalize-tests--normalization-equal-p NFD source nfd)
+     (ucs-normalize-tests--normalization-equal-p NFD nfc nfd)
+     (ucs-normalize-tests--normalization-equal-p NFD nfd nfd)
+     ;; c5 ==  toNFD(c4) ==  toNFD(c5)
+     (ucs-normalize-tests--normalization-equal-p NFD nfkc nfkd)
+     (ucs-normalize-tests--normalization-equal-p NFD nfkd nfkd)
 
-   ;; c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) == toNFKC(c5)
-   (ucs-normalize-tests--normalization-equal-p NFKC source nfkc)
-   (ucs-normalize-tests--normalization-equal-p NFKC nfc nfkc)
-   (ucs-normalize-tests--normalization-equal-p NFKC nfd nfkc)
-   (ucs-normalize-tests--normalization-equal-p NFKC nfkc nfkc)
-   (ucs-normalize-tests--normalization-equal-p NFKC nfkd nfkc)
+     ;; c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) == toNFKC(c5)
+     (ucs-normalize-tests--normalization-equal-p NFKC source nfkc)
+     (ucs-normalize-tests--normalization-equal-p NFKC nfc nfkc)
+     (ucs-normalize-tests--normalization-equal-p NFKC nfd nfkc)
+     (ucs-normalize-tests--normalization-equal-p NFKC nfkc nfkc)
+     (ucs-normalize-tests--normalization-equal-p NFKC nfkd nfkc)
 
-   ;; c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) == toNFKD(c5)
-   (ucs-normalize-tests--normalization-equal-p NFKD source nfkd)
-   (ucs-normalize-tests--normalization-equal-p NFKD nfc nfkd)
-   (ucs-normalize-tests--normalization-equal-p NFKD nfd nfkd)
-   (ucs-normalize-tests--normalization-equal-p NFKD nfkc nfkd)
-   (ucs-normalize-tests--normalization-equal-p NFKD nfkd nfkd)))
+     ;; c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) == toNFKD(c5)
+     (ucs-normalize-tests--normalization-equal-p NFKD source nfkd)
+     (ucs-normalize-tests--normalization-equal-p NFKD nfc nfkd)
+     (ucs-normalize-tests--normalization-equal-p NFKD nfd nfkd)
+     (ucs-normalize-tests--normalization-equal-p NFKD nfkc nfkd)
+     (ucs-normalize-tests--normalization-equal-p NFKD nfkd nfkd))))
 
 (defsubst ucs-normalize-tests--rule2-holds-p (X)
  "Check 2nd conformance rule.
@@ -127,7 +128,9 @@ For every code point X assigned in this version of Unicode that
 is not specifically listed in Part 1, the following invariants
 must be true for all conformant implementations:
 
-  X == toNFC(X) == toNFD(X) == toNFKC(X) == toNFKD(X)"
+  X == toNFC(X) == toNFD(X) == toNFKC(X) == toNFKD(X)
+
+Must be called with `ucs-normalize-tests--norm-buf' as current buffer."
  (and (ucs-normalize-tests--normalization-chareq-p NFC X X)
       (ucs-normalize-tests--normalization-chareq-p NFD X X)
       (ucs-normalize-tests--normalization-chareq-p NFKC X X)
@@ -230,26 +233,30 @@ must be true for all conformant implementations:
 
 (defun ucs-normalize-tests--part1-rule2 (chars-part1)
   (let ((reporter (make-progress-reporter "UCS Normalize Test Part1, rule 2"
-                                          0 (max-char)))
-        (failed-chars nil))
-    (map-char-table
-     (lambda (char-range listed-in-part)
-       (unless (eq listed-in-part 1)
-         (if (characterp char-range)
-             (progn (unless (ucs-normalize-tests--rule2-holds-p char-range)
-                      (push char-range failed-chars))
-                    (progress-reporter-update reporter char-range))
-           (cl-loop for char from (car char-range) to (cdr char-range)
-                    unless (ucs-normalize-tests--rule2-holds-p char)
-                    do (push char failed-chars)
-                    do (progress-reporter-update reporter char)))))
-     chars-part1)
+                                          0 (max-char t)))
+        (failed-chars nil)
+        (unicode-max (max-char t)))
+    (with-current-buffer ucs-normalize-tests--norm-buf
+      (map-char-table
+       (lambda (char-range listed-in-part)
+         (unless (eq listed-in-part 1)
+           (if (characterp char-range)
+               (progn (unless (ucs-normalize-tests--rule2-holds-p char-range)
+                        (push char-range failed-chars))
+                      (progress-reporter-update reporter char-range))
+             (cl-loop for char from (car char-range) to (min (cdr char-range)
+                                                             unicode-max)
+                      unless (ucs-normalize-tests--rule2-holds-p char)
+                      do (push char failed-chars)
+                      do (progress-reporter-update reporter char)))))
+       chars-part1))
     (progress-reporter-done reporter)
     failed-chars))
 
 (ert-deftest ucs-normalize-part1 ()
   :tags '(:expensive-test)
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 1800s
+  (skip-unless (not (or (getenv "EMACS_HYDRA_CI")
+                        (getenv "EMACS_EMBA_CI")))) ; SLOW ~ 1800s
   ;; This takes a long time, so make sure we're compiled.
   (dolist (fun '(ucs-normalize-tests--part1-rule2
                  ucs-normalize-tests--rule1-failing-for-partX

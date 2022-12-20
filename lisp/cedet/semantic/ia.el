@@ -457,7 +457,7 @@ parts of the parent classes are displayed."
   ;; it.  The simple `semanticdb-find-tag-by-...' are simple, and
   ;; you need to pass it the exact name you want.
   ;;
-  ;; The analyzer function `semantic-analyze-tag-name' will take
+  ;; The analyzer function `semantic-analyze-find-tag' will take
   ;; more complex names, such as the cpp symbol foo::bar::baz,
   ;; and break it up, and dive through the namespaces.
   (let ((class (semantic-analyze-find-tag typename)))

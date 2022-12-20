@@ -1254,6 +1254,10 @@ or not."
 					  nil default-directory t))
 		(confirm (equal current-prefix-arg '(4))))
 	   (list regexp files dir confirm))))))
+  ;; If called non-interactively, also compute the defaults if we
+  ;; haven't already.
+  (unless grep-find-template
+    (grep-compute-defaults))
   (when (and (stringp regexp) (> (length regexp) 0))
     (unless (and dir (file-accessible-directory-p dir))
       (setq dir default-directory))

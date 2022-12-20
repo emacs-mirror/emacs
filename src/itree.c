@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <math.h>
@@ -1376,7 +1376,7 @@ itree_iterator_first_node (struct itree_tree *tree,
   return node;
 }
 
-/* Start a iterator enumerating all intervals in [BEGIN,END) in the
+/* Start an iterator enumerating all intervals in [BEGIN,END) in the
    given ORDER.  */
 
 struct itree_iterator *

@@ -36,6 +36,7 @@
 (declare-function sqlite-select "sqlite.c")
 (declare-function sqlite-open "sqlite.c")
 (declare-function sqlite-load-extension "sqlite.c")
+(declare-function sqlite-version "sqlite.c")
 
 (ert-deftest sqlite-select ()
   (skip-unless (sqlite-available-p))
@@ -243,6 +244,7 @@
 
 (ert-deftest sqlite-returning ()
   (skip-unless (sqlite-available-p))
+  (skip-unless (version<= "3.35" (sqlite-version)))
   (let (db)
     (progn
       (setq db (sqlite-open))

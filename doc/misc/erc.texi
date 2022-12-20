@@ -78,6 +78,7 @@ Getting Started
 Advanced Usage
 
 * Connecting::                  Ways of connecting to an IRC server.
+* SASL::                        Authenticating via SASL.
 * Sample Configuration::        An example configuration file.
 * Integrations::                Integrations available for ERC.
 * Options::                     Options that are available for ERC.
@@ -390,8 +391,15 @@ modules are loaded.
 
 There is a spiffy customize interface, which may be reached by typing
 @kbd{M-x customize-option @key{RET} erc-modules @key{RET}}.
-Alternatively, set @code{erc-modules} manually and then call
-@code{erc-update-modules}.
+When removing a module outside of the Custom ecosystem, you may wish
+to ensure it's disabled by invoking its associated minor-mode toggle
+with a nonpositive prefix argument, for example, @kbd{C-u - M-x
+erc-spelling-mode @key{RET}}.  Additionally, if you plan on loading
+third-party modules that perform atypical setup on activation, you may
+need to arrange for calling @code{erc-update-modules} in your init
+file.  Examples of such setup might include registering an
+@code{erc-before-connect} hook, advising @code{erc-open}, and
+modifying @code{erc-modules} itself.
 
 The following is a list of available modules.
 
@@ -479,6 +487,10 @@ Replace text in messages
 @item ring
 Enable an input history
 
+@cindex modules, sasl
+@item sasl
+Enable SASL authentication
+
 @cindex modules, scrolltobottom
 @item scrolltobottom
 Scroll to the bottom of the buffer
@@ -517,6 +529,38 @@ Translate morse code in messages
 
 @end table
 
+@subheading Local Modules
+@cindex local modules
+
+All modules operate as minor modes under the hood, and some newer ones
+may be defined as buffer-local.  These so-called ``local modules'' are
+a work in progress and their behavior and interface are subject to
+change.  As of ERC 5.5, the only practical differences are
+
+@enumerate
+@item
+``Control variables,'' like @code{erc-sasl-mode}, are stateful across
+IRC sessions and override @code{erc-module} membership when influencing
+module activation in new sessions.
+@item
+Removing a local module from @code{erc-modules} via Customize not only
+disables its mode but also kills its control variable in all ERC
+buffers.
+@item
+``Mode toggles,'' like @code{erc-sasl-mode} and
+@code{erc-sasl-enable}, behave differently relative to each other and
+to their global counterparts.  (More on this just below.)
+@end enumerate
+
+By default, all local-mode toggles, like @code{erc-sasl-mode}, only
+affect the current buffer, but their ``non-mode'' variants, such as
+@code{erc-sasl-enable}, operate on all buffers belonging to a
+connection when called interactively.  Keep in mind that whether
+enabled or not, a module may effectively be ``inert'' in certain types
+of buffers, such as queries and channels.  Whatever the case, a local
+toggle never mutates @code{erc-modules}.
+
+
 @c PRE5_4: Document every option of every module in its own subnode
 
 
@@ -526,9 +570,20 @@ Translate morse code in messages
 
 @menu
 * Connecting::                  Ways of connecting to an IRC server.
+* SASL::                        Authenticating via SASL.
 * Sample Configuration::        An example configuration file.
 * Integrations::                Integrations available for ERC.
 * Options::                     Options that are available for ERC.
+
+@detailmenu
+--- Detailed Node Listing ---
+
+Integrations
+
+* URL::                         Opening IRC URLs in ERC.
+* auth-source::                 Retrieving auth-source entries with ERC.
+
+@end detailmenu
 @end menu
 
 @node Connecting
@@ -598,6 +653,7 @@ while helpers, like @code{erc-compute-nick}, will determine other
 parameters, and some, like @code{client-certificate}, will just be
 @code{nil}.
 
+@anchor{client-certificate}
 To use a certificate with @code{erc-tls}, specify the optional
 @var{client-certificate} keyword argument, whose value should be as
 described in the documentation of @code{open-network-stream}: if
@@ -641,6 +697,8 @@ machine irc.libera.chat key /home/bandali/my-cert.key cert /home/bandali/my-cert
 
 @xref{Help for users,,,auth, Emacs auth-source Library}, for more on the
 @file{.authinfo}/@file{.netrc} backend of @code{auth-source}.
+For other uses of auth-source throughout ERC, @pxref{auth-source,
+ERC's auth-source integration}.
 @end defun
 
 @subheading Server
@@ -732,7 +790,10 @@ ERC should automatically attempt to connect with another nickname.
 You can manually set another nickname with the /NICK command.
 @end defopt
 
+@anchor{username parameter}
 @subheading User
+@cindex username parameter
+
 @defun erc-compute-user &optional user
 Determine a suitable value to send as the first argument of the
 opening @samp{USER} IRC command by consulting the following sources:
@@ -754,8 +815,27 @@ A permanent username value to send for all connections.  It should be
 a string abiding by the rules of the network.
 @end defopt
 
+@anchor{password parameter}
+@anchor{server password}
+@cindex password, server
 @subheading Password
-@cindex password
+
+This parameter was traditionally meant to specify a @dfn{server
+password} to be sent along with the IRC @samp{PASS} command.  However,
+such passwords aren't widely used.  Instead, networks typically expect
+them, when present, to convey other authentication information.  In
+the case of account-services (a.k.a., ``NickServ'') credentials, this
+typically involves a special syntax, such as @samp{myuser:mypass}.
+IRC bouncers often do something similar but include a pre-configured
+network-ID component, for example, @samp{bncuser/mynet:bncpass}.
+
+In general, if you have @emph{not} been asked by your network or
+bouncer to specify a repurposed server password, you should instead
+consider setting up @samp{services} or, preferably, @samp{sasl}, both
+ERC modules (@pxref{Modules}).  In addition to performing
+network-account authentication, these obviate the need for this
+parameter completely, although both can optionally borrow it for their
+own purposes.  (@xref{SASL, SASL in ERC}.)
 
 @defopt erc-prompt-for-password
 If non-@code{nil} (the default), @kbd{M-x erc} and @kbd{M-x erc-tls}
@@ -765,107 +845,9 @@ invocations of @code{erc} and @code{erc-tls}.
 
 @noindent
 If you prefer, you can set this option to @code{nil} and use the
-@code{auth-source} mechanism to store your password.  For instance, if
-the option @code{auth-sources} contains @file{~/.authinfo}, put
-something like the following in that file:
-
-@example
-machine irc.example.net login mynick password sEcReT
-@end example
-
-@noindent
-For server passwords, that is, passwords sent for the IRC @samp{PASS}
-command, the @samp{host} field (@w{@code{machine irc.example.net}} in
-the above example)
-corresponds to the @var{server} parameter used by @code{erc} and
-@code{erc-tls}.  Unfortunately, specifying a network, like
-@samp{Libera.Chat}, or a specific network server, like
-@samp{platinum.libera.chat}, won't normally work for looking up a server
-password because such information isn't available during opening
-introductions.  (Actually, ERC @emph{can} find entries with arbitrary
-@samp{host} values for any context, including server passwords, but
-that requires customizing the more advanced options below.)
-
-If ERC can't find a suitable server password, it will just skip the IRC
-@samp{PASS} command altogether, something users may want when using
-CertFP or engaging NickServ via ERC's ``services'' module.  If that is
-what you'd like to do, you can also customize the option
-@code{erc-auth-source-server-function} to @code{nil} to skip
-server-password lookup for all servers.  Note that some networks and
-IRCds may accept account-services authentication via server password
-using the nonstandard @samp{mynick:sEcReT} convention.
-
-As just mentioned, you can also use @code{auth-source} to authenticate
-to account services the traditional way, through a bot called
-@samp{NickServ}.  To tell ERC to do that, set
-@code{erc-use-auth-source-for-nickserv-password} to @code{t}.  For
-these and most other queries, entries featuring custom identifiers and
-networks are matched first, followed by network-specific servers and
-dialed endpoints (typically, the @var{server} argument passed to
-@code{erc}). The following netrc-style entries appear in order of
-precedence:
-
-@example
-machine Libera/cellphone login MyNick password sEcReT
-machine Libera.Chat login MyNick password sEcReT
-machine zirconium.libera.chat login MyNick password sEcReT
-machine irc.libera.chat login MyNick password sEcReT
-@end example
-
-@noindent
-Remember that field labels vary per backend, so @samp{machine} (in
-netrc's case) maps to auth-source's generalized notion of a host,
-hence the @samp{:host} keyword property.  Also, be sure to mind the
-syntax of your chosen backend medium.  For example, always quote
-channel names in a netrc file.
-
-If this all seems overly nuanced or just plain doesn't appeal to you,
-see options @code{erc-auth-source-services-function} and friends, described
-below.  These let you query auth-source your way.  Most users can
-simply ignore the passed-in arguments and get by with something like
-the following:
-
-@lisp
-(defun my-fancy-auth-source-func (&rest _)
-  (let* ((host (read-string "host: " nil nil "default"))
-         (pass (auth-source-pick-first-password :host host)))
-    (if (and pass (string-search "libera" host))
-        (concat "MyNick:" pass)
-      pass)))
-@end lisp
-
-Lastly, ERC also consults @code{auth-source} to find ``keys'' that may
-be required by certain channels you join.  When modifying a
-traditional @code{auth-source} entry for this purpose, put the channel
-name in the @samp{user} field (for example, @samp{login "#fsf"}, in
-netrc's case).  The actual key goes in the @samp{password} (or
-@samp{secret}) field.
-
-@noindent
-For details, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
-
-@defopt erc-auth-source-server-function
-@end defopt
-@defopt erc-auth-source-services-function
-@end defopt
-@defopt erc-auth-source-join-function
-
-ERC calls these functions with keyword arguments recognized by
-@code{auth-source-search}, namely, those deemed most relevant to the
-current context, if any.  For example, with NickServ queries,
-@code{:user} is the ``desired'' nickname rather than the current one.
-Generalized names, like @code{:user} and @code{:host}, are always used
-over back-end specific ones, like @code{:login} or @code{:machine}.
-ERC expects a string to use as the secret or nil, if the search fails.
-
-@findex erc-auth-source-search
-The default value for all three options is the function
-@code{erc-auth-source-search}.  It tries to merge relevant contextual
-parameters with those provided or discovered from the logical connection
-or the underlying transport.  Some auth-source back ends may not be
-compatible; netrc, plstore, json, secrets, and pass are currently
-supported.
-@end defopt
+auth-source facility to retrieve a server password, although hitting
+@kbd{RET} at the prompt may achieve the same effect.
+@xref{auth-source, ERC's auth-source integration}, for more.
 
 @subheading Full name
 
@@ -895,8 +877,8 @@ This can be either a string or a function to call.
 @end defopt
 
 
-@subheading ID
 @anchor{Network Identifier}
+@subheading ID
 
 ERC uses an abstract designation, called @dfn{network context
 identifier}, for referring to a connection internally.  While normally
@@ -918,6 +900,220 @@ When providing an ID as an entry-point argument, strings and symbols
 make the most sense, but any reasonably printable object is
 acceptable.
 
+@node SASL
+@section Authenticating via SASL
+@cindex SASL
+
+Regardless of the mechanism or the network, you'll likely have to be
+registered before first use.  Please refer to the network's own
+instructions for details.  If you're new to IRC and using a bouncer,
+know that you probably won't be needing SASL for the client-to-bouncer
+connection.  To get started, just add @code{sasl} to
+@code{erc-modules} like any other module.  But before that, please
+explore all custom options pertaining to your chosen mechanism.
+
+@defopt erc-sasl-mechanism
+The name of an SASL subprotocol type as a @emph{lowercase} symbol.
+The value can be one of the following:
+
+@table @asis
+@item @code{plain} and @code{scram} (``password-based'')
+Here, ``password'' refers to your account password, which is usually
+your @samp{NickServ} password.  To make this work, customize
+@code{erc-sasl-user} and @code{erc-sasl-password} or specify the
+@code{:user} and @code{:password} keyword arguments when invoking
+@code{erc-tls}.  Note that @code{:user} cannot be given interactively.
+
+@item @code{external} (via Client TLS Certificate)
+This works in conjunction with the @code{:client-certificate} keyword
+offered by @code{erc-tls}.  Just ensure you've registered your
+fingerprint with the network beforehand.  The fingerprint is usually a
+SHA1 or SHA256 digest in either "normalized" or "openssl" forms.  The
+first is lowercase without delims (@samp{deadbeef}) and the second
+uppercase with colon seps (@samp{DE:AD:BE:EF}).  These days, there's
+usually a @samp{CERT ADD} command offered by NickServ that can
+register you automatically if you issue it while connected with a
+client cert.  @xref{client-certificate}.
+
+Additional considerations:
+@enumerate
+@item
+Most IRCds will allow you to authenticate with a client cert but
+without the hassle of SASL (meaning you may not need this module).
+@item
+Technically, @var{EXTERNAL} merely indicates that an out-of-band mode
+of authentication is in effect (being deferred to), so depending on
+the specific application or service, there's a remote chance your
+server has something else in mind.
+@end enumerate
+
+@item @code{ecdsa-nist256p-challenge}
+This mechanism is quite complicated and currently requires the
+external @samp{openssl} executable, so please use something else if at
+all possible.  Ignoring that, specify your key file (e.g.,
+@samp{~/pki/mykey.pem}) as the value of @code{erc-sasl-password}, and
+then configure your network settings.  On servers running Atheme
+services, you can add your public key with @samp{NickServ} like so:
+
+@example
+ERC> /msg NickServ set property \
+     pubkey AgGZmlYTUjJlea/BVz7yrjJ6gysiAPaQxzeUzTH4hd5j
+
+@end example
+(You may be able to omit the @samp{property} subcommand.)
+@end table
+
+@end defopt
+
+@defopt erc-sasl-user
+This should be your network account username, typically the same one
+registered with nickname services.  Specify this when your NickServ
+login differs from the @code{:user} you're connecting with.
+@xref{username parameter}.
+@end defopt
+
+@defopt erc-sasl-password
+As noted elsewhere, the entry-point @code{:password} param was
+originally intended for traditional ``server passwords,'' but these
+aren't really used any more (@pxref{password parameter}).  As such,
+this option defaults to borrowing that parameter for its own uses,
+thus allowing you to call @code{erc-tls} with @code{:password} set to
+your NickServ password.
+
+You can also set this to a nonemtpy string, and ERC will send that
+when needed, no questions asked.  Or, if you'd rather use auth-source,
+set @code{erc-sasl-auth-source-function} to a function, and ERC will
+perform an auth-source query instead.  In all cases, ERC will prompt
+you for input as a last resort.
+
+Lastly, if your mechanism is @code{ecdsa-nist256p-challenge}, this
+option should instead hold the file name of your key.
+@end defopt
+
+@anchor{SASL auth-source function}
+@defopt erc-sasl-auth-source-function
+This is nearly identical to the other ERC @samp{auth-source} function
+options (@pxref{auth-source functions}) except that the default value
+here is @code{nil}, meaning you have to set it to something like
+@code{erc-auth-source-search} for queries to be performed.  For
+convenience, this module provides the following as a possible value:
+
+@defun erc-sasl-auth-source-password-as-host &rest plist
+Setting @code{erc-sasl-auth-source-function} to this function tells
+ERC to use @code{erc-sasl-password} for the @code{:host} field when
+querying auth-source, even if its value is the default
+@code{:password}, in which case ERC knows to ``resolve'' it to
+@code{erc-session-password} and use that as long as it's
+non-@code{nil}.  Otherwise, ERC just defers to
+@code{erc-auth-source-search} to determine the @code{:host}, along
+with everything else.
+@end defun
+
+As long as this option specifies a function, ERC will pass it the
+``resolved'' value of @code{erc-sasl-user} for the auth-source
+@code{:user} param.
+@end defopt
+
+@defopt erc-sasl-authzid
+In the rarest of circumstances, a network may want you to specify a
+specific role or assume an alternate identity.  In most cases, this
+happens because the server is buggy or misconfigured.  If you suspect
+such a thing, please contact your network operator.  Otherwise, just
+leave this set to @code{nil}.
+@end defopt
+
+@subheading Examples
+
+@itemize @bullet
+@item
+Defaults
+
+@lisp
+(erc-tls :server "irc.libera.chat" :port 6697
+         :nick "aph"
+         :user "APHacker"
+         :password "changeme")
+@end lisp
+
+Here, after adding @code{sasl} to @code{erc-modules} via the Customize
+interface, you authenticate to Libera.Chat using the @samp{PLAIN}
+mechanism and your NickServ credentials, @samp{APHacker} and
+@samp{changeme}.
+
+@item
+External
+
+@lisp
+(setopt erc-sasl-mechanism 'external)
+
+(erc-tls :server "irc.libera.chat" :port 6697 :nick "aph"
+         :client-certificate
+         '("/home/aph/my.key" "/home/aph/my.crt"))
+@end lisp
+
+You decide to switch things up and try out the @samp{EXTERNAL}
+mechanism.  You follow your network's instructions for telling
+NickServ about your client-certificate's fingerprint, and you
+authenticate successfully.
+
+@item
+Multiple networks
+
+@example
+# ~/.authinfo.gpg
+
+machine irc.libera.chat key /home/aph/my.key cert /home/aph/my.crt
+machine Example.Net login alyssa password sEcReT
+machine Example.Net login aph-bot password sesame
+@end example
+
+@lisp
+;; init.el
+
+(defun my-erc-up (network)
+  (interactive "Snetwork: ")
+
+  (pcase network
+    ('libera
+     (let ((erc-sasl-mechanism 'external))
+       (erc-tls :server "irc.libera.chat" :port 6697
+                :client-certificate t)))
+    ('example
+     (let ((erc-sasl-auth-source-function
+            #'erc-sasl-auth-source-password-as-host))
+       (erc-tls :server "irc.example.net" :port 6697
+                :user "alyssa"
+                :password "Example.Net")))))
+@end lisp
+
+You've started storing your credentials with auth-source and have
+decided to try SASL on another network as well.  But there's a catch:
+this network doesn't support @samp{EXTERNAL}.  You use
+@code{let}-binding to get around this and successfully authenticate to
+both networks.
+
+@end itemize
+
+@subheading Troubleshooting
+
+First and foremost, please know that ERC's SASL offering is currently
+limited by a lack of support for proper IRCv3 capability negotiation.
+In most cases, this shouldn't affect your ability to authenticate.
+
+If you're struggling, remember that your SASL password is almost
+always your NickServ password.  When in doubt, try restoring all SASL
+options to their defaults and calling @code{erc-tls} with @code{:user}
+set to your NickServ account name and @code{:password} to your
+NickServ password.  If you're still having trouble, please contact us
+(@pxref{Getting Help and Reporting Bugs}).
+
+As you try out different settings, keep in mind that it's best to
+create a fresh session for every change, for example, by calling
+@code{erc-tls} from scratch.  More experienced users may be able to
+get away with cycling @code{erc-sasl-mode} and issuing a
+@samp{/reconnect}, but that's generally not recommended.  Whatever the
+case, you'll probably want to temporarily disable
+@code{erc-server-auto-reconnect} while experimenting.
 
 @node Sample Configuration
 @section Sample Configuration
@@ -997,12 +1193,19 @@ stuff, to the current ERC buffer."
 @section Integrations
 @cindex integrations
 
-@subheading URL
+@menu
+* auth-source::                 Retrieving auth-source entries with ERC.
+@end menu
+
+@anchor{URL}
+@subsection URL
+@cindex URL
+
 For anything to work, you'll want to set @code{url-irc-function} to
 @code{url-irc-erc}.  As a rule of thumb, libraries relying directly on
 @code{url-retrieve} should be fine out the box from Emacs 29.1 onward.
 On older versions of Emacs, you may need to @code{(require 'erc)}
-beforehand. @pxref{Retrieving URLs,,, url, URL}.
+beforehand.  @xref{Retrieving URLs,,, url, URL}.
 
 For other apps and libraries, such as those relying on the
 higher-level @code{browse-url}, you'll oftentimes be asked to specify
@@ -1018,6 +1221,160 @@ need a function as well:
 
 @noindent
 Users on Emacs 28 and below may need to use @code{browse-url} instead.
+
+@node auth-source
+@subsection auth-source
+@cindex auth-source
+
+You can configure ERC to use the built-in auth-source library for
+looking up passwords. @xref{Top,,auth-source, auth, Emacs auth-source
+Library}, for general info on setting up various backends, but keep in
+mind that some of these may not be compatible.  Those currently
+supported are netrc, plstore, json, secrets, and pass.  To get started
+with the default backend, netrc, put a line like the following in your
+@file{~/.authinfo.gpg} (or any file named in the option
+@code{auth-sources}):
+
+@example
+machine irc.example.net login mynick password sEcReT
+@end example
+
+@subsubheading Server Passwords
+When retrieving passwords to accompany the IRC @samp{PASS} command
+(@pxref{password parameter}), ERC asks auth-source to match the
+@var{server} parameter of @code{erc-tls} against each entry's
+@samp{host} field (@w{@code{machine irc.example.net}} in the above
+example).  Unfortunately, specifying a network, like
+@samp{Libera.Chat}, or a specific network server, like
+@samp{platinum.libera.chat}, won't normally work for looking up a
+server password because that information isn't available during
+opening introductions.  (Actually, ERC @emph{can} find entries with
+arbitrary @samp{host} values for any context, including server
+passwords, but that requires customizing the more advanced options
+below.)
+
+If ERC can't find a suitable server password, it will just skip the
+IRC @samp{PASS} command altogether, something users may want when
+using CertFP or engaging NickServ via ERC's @code{services} module.
+If that appeals to you, consider customizing the option
+@code{erc-auth-source-server-function} to @code{nil} to skip
+server-password lookup for all servers.  Note that some networks and
+IRCds may accept account-services authentication via server password.
+Also, some ERC modules may commandeer the @code{erc-tls}
+@var{password} parameter for their own ends, which likely don't
+involve a server password.
+
+@subsubheading The @samp{services} module
+You can use auth-source to authenticate to account services the
+traditional way through a bot called @samp{NickServ}.  To do so, add
+@code{services} to @code{erc-modules} and set the option
+@code{erc-use-auth-source-for-nickserv-password} to @code{t}.  After
+that, expect the @samp{user} parameter in relevant auth-source queries
+to be your current nickname.
+
+Most of the time, a query's precise contextual details (such as
+whether a nick was granted or forcibly assigned) shouldn't affect how
+you define entries in your backend.  However, if something isn't quite
+working, you may want to investigate the interplay between the option
+@code{erc-nickserv-identify-mode} and account services.  In
+particular, if you find yourself facing nicks suffixed with an
+@code{erc-nick-uniquifier} (the infamous @samp{`}), check that the
+network's entry in @code{erc-nickserv-alist} is up to date, and do let
+us know if something's off (@pxref{Getting Help and Reporting Bugs}).
+Of course, if you've had your fill of fiddling with this module,
+consider switching to SASL for what's likely a more consistent
+auth-source experience.  (@xref{SASL}.)
+
+@subsubheading Default query behavior
+When preparing entries for your backend, it may help to get a feel for
+how ERC and its modules conduct searches, especially when exploring a
+new context, such as channel keys.  (Hint: in such situations, try
+temporarily setting the variable @code{auth-source-debug} to @code{t}
+and checking @samp{*Messages*} periodically for insights into how
+auth-source is operating.)  Overall, though, ERC tries to be
+consistent in performing queries across various authentication
+contexts.  Here's what to expect with respect to the @samp{host}
+field, which, by default, most heavily influences the fate of a query:
+
+@enumerate
+@item
+entries featuring custom identifiers and networks are matched first
+(@pxref{Network Identifier})
+@item
+followed by network-specific servers
+@item
+and, finally, dialed endpoints (typically the @var{server} argument
+passed to @code{erc-tls})
+@end enumerate
+
+@noindent
+The following netrc-style entries appear in order of precedence:
+
+@example
+machine Libera/cellphone login MyNick password sEcReT
+machine Libera.Chat login MyNick password sEcReT
+machine zirconium.libera.chat login MyNick password sEcReT
+machine irc.libera.chat login MyNick password sEcReT
+@end example
+
+@noindent
+Remember that field labels vary per backend, so @samp{machine} (in
+netrc's case) maps to auth-source's generalized notion of a host,
+hence the @samp{:host} keyword parameter to @code{auth-source-search}.
+Also, be sure to mind the syntax of your chosen backend medium.  For
+example, always quote channel names in a netrc file.
+
+Lastly, if this all seems overly nuanced or just plain doesn't appeal
+to you, please see options @code{erc-auth-source-services-function}
+and friends, described just below.
+
+@subsubheading Custom query functions
+These let you query auth-source your way.  Most users can
+simply ignore the passed-in arguments and get by with something like
+the following:
+
+@lisp
+(defun my-fancy-auth-source-func (&rest _)
+  (let* ((host (read-string "host: " nil nil "default"))
+         (pass (auth-source-pick-first-password :host host)))
+    (if (and pass (string-search "libera" host))
+        (concat "MyNick:" pass)
+      pass)))
+@end lisp
+
+@anchor{auth-source functions}
+@defopt erc-auth-source-server-function
+@end defopt
+@defopt erc-auth-source-services-function
+@end defopt
+@defopt erc-auth-source-join-function
+
+ERC calls these functions with keyword arguments recognized by
+@code{auth-source-search}, namely, those deemed most relevant to the
+current context, if any.  For example, when identifying to services,
+@code{:user} contains your current nickname.  Generalized parameter
+names, like @code{:user} and @code{:host}, are always preferred over
+backend specific ones, like @code{:login} or @code{:machine}.  In
+return, ERC expects a string if the search succeeds or @code{nil} if
+it fails.
+
+@findex erc-auth-source-search
+The default value for all three options is the function
+@code{erc-auth-source-search}.  It tries to merge relevant contextual
+parameters with those provided or discovered from the logical
+connection or the underlying transport.
+
+For using auth-source along with SASL, @pxref{SASL auth-source
+function}.
+@end defopt
+
+@subsubheading Channel keys
+ERC also consults @code{auth-source} to find ``keys'' that may be
+required by certain channels you join.  When modifying a traditional
+@code{auth-source} entry for this purpose, put the channel name in the
+@samp{user} field (for example, @samp{login "#fsf"}, in netrc's case).
+The actual key goes in the @samp{password} (or @samp{secret}) field.
+
 
 @node Options
 @section Options

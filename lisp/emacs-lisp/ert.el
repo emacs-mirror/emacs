@@ -673,8 +673,11 @@ Bound dynamically.  This is a list of (PREFIX . MESSAGE) pairs.")
 
 To be used within ERT tests.  MESSAGE-FORM should evaluate to a
 string that will be displayed together with the test result if
-the test fails.  PREFIX-FORM should evaluate to a string as well
-and is displayed in front of the value of MESSAGE-FORM."
+the test fails.  MESSAGE-FORM can also evaluate to a function; in
+this case, it will be called when displaying the info.
+
+PREFIX-FORM should evaluate to a string as well and is displayed
+in front of the value of MESSAGE-FORM."
   (declare (debug ((form &rest [sexp form]) body))
 	   (indent 1))
   `(let ((ert--infos (cons (cons ,prefix-form ,message-form) ert--infos)))
@@ -1352,6 +1355,8 @@ RESULT must be an `ert-test-result-with-condition'."
             (end nil))
         (unwind-protect
             (progn
+              (when (functionp message)
+                (setq message (funcall message)))
               (insert message "\n")
               (setq end (point-marker))
               (goto-char begin)

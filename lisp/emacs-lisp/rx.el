@@ -1152,7 +1152,12 @@ For extending the `rx' notation in FORM, use `rx-define' or `rx-let-eval'."
 
 (defun rx--to-expr (form)
   "Translate the rx-expression FORM to a Lisp expression yielding a regexp."
-  (let* ((rx--delayed-evaluation t)
+  (let* ((rx--local-definitions
+          ;; Retrieve local definitions from the macroexpansion environment.
+          ;; (It's unclear whether the previous value of `rx--local-definitions'
+          ;; should be included, and if so, in which order.)
+          (cdr (assq :rx-locals macroexpand-all-environment)))
+         (rx--delayed-evaluation t)
          (elems (car (rx--translate form)))
          (args nil))
     ;; Merge adjacent strings.
@@ -1282,12 +1287,7 @@ Additional constructs can be defined using `rx-define' and `rx-let',
 which see.
 
 \(fn REGEXPS...)"
-  ;; Retrieve local definitions from the macroexpansion environment.
-  ;; (It's unclear whether the previous value of `rx--local-definitions'
-  ;; should be included, and if so, in which order.)
-  (let ((rx--local-definitions
-         (cdr (assq :rx-locals macroexpand-all-environment))))
-    (rx--to-expr (cons 'seq regexps))))
+  (rx--to-expr (cons 'seq regexps)))
 
 (defun rx--make-binding (name tail)
   "Make a definitions entry out of TAIL.

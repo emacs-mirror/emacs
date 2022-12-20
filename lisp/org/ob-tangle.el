@@ -4,7 +4,7 @@
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-src)
 (require 'org-macs)
@@ -37,13 +40,21 @@
 (declare-function org-babel-update-block-body "ob-core" (new-body))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-before-first-heading-p "org" ())
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element--cache-active-p "org-element" ())
+(declare-function org-element-lineage "org-element" (datum &optional types with-self))
+(declare-function org-element-property "org-element" (property element))
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-type "org-element" (element))
 (declare-function org-heading-components "org" ())
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
 (declare-function org-in-archived-heading-p "org" (&optional no-inheritance))
 (declare-function outline-previous-heading "outline" ())
 (defvar org-id-link-to-org-use-id) ; Dynamically scoped
+
+(defgroup org-babel-tangle nil
+  "Options for extracting source code from code blocks."
+  :tag "Org Babel Tangle"
+  :group 'org-babel)
 
 (defcustom org-babel-tangle-lang-exts
   '(("emacs-lisp" . "el")
@@ -67,20 +78,27 @@ then the name of the language is used."
 
 (defcustom org-babel-post-tangle-hook nil
   "Hook run in code files tangled by `org-babel-tangle'."
-  :group 'org-babel
+  :group 'org-babel-tangle
   :version "24.1"
   :type 'hook)
 
 (defcustom org-babel-pre-tangle-hook '(save-buffer)
-  "Hook run at the beginning of `org-babel-tangle'."
-  :group 'org-babel
+  "Hook run at the beginning of `org-babel-tangle' in the original buffer."
+  :group 'org-babel-tangle
   :version "24.1"
   :type 'hook)
 
 (defcustom org-babel-tangle-body-hook nil
   "Hook run over the contents of each code block body."
-  :group 'org-babel
+  :group 'org-babel-tangle
   :version "24.1"
+  :type 'hook)
+
+(defcustom org-babel-tangle-finished-hook nil
+  "Hook run at the very end of `org-babel-tangle' in the original buffer.
+In this way, it is the counterpart to `org-babel-pre-tangle-hook'."
+  :group 'org-babel-tangle
+  :package-version '(Org . "9.6")
   :type 'hook)
 
 (defcustom org-babel-tangle-comment-format-beg "[[%link][%source-name]]"
@@ -99,7 +117,7 @@ non-nil value.
 
 Whether or not comments are inserted during tangling is
 controlled by the :comments header argument."
-  :group 'org-babel
+  :group 'org-babel-tangle
   :version "24.1"
   :type 'string)
 
@@ -119,7 +137,7 @@ non-nil value.
 
 Whether or not comments are inserted during tangling is
 controlled by the :comments header argument."
-  :group 'org-babel
+  :group 'org-babel-tangle
   :version "24.1"
   :type 'string)
 
@@ -128,7 +146,7 @@ controlled by the :comments header argument."
 of tangle comments.  Use `org-babel-tangle-comment-format-beg'
 and `org-babel-tangle-comment-format-end' to customize the format
 of tangled comments."
-  :group 'org-babel
+  :group 'org-babel-tangle
   :type 'boolean)
 
 (defcustom org-babel-process-comment-text 'org-remove-indentation
@@ -136,9 +154,17 @@ of tangled comments."
 inserted as comments in tangled source-code files.  The function
 should take a single string argument and return a string
 result.  The default value is `org-remove-indentation'."
-  :group 'org-babel
+  :group 'org-babel-tangle
   :version "24.1"
   :type 'function)
+
+(defcustom org-babel-tangle-default-file-mode #o544
+  "The default mode used for tangled files, as an integer.
+The default value 356 correspands to the octal #o544, which is
+read-write permissions for the user, read-only for everyone else."
+  :group 'org-babel-tangle
+  :package-version '(Org . "9.6")
+  :type 'integer)
 
 (defun org-babel-find-file-noselect-refresh (file)
   "Find file ensuring that the latest changes on disk are
@@ -177,7 +203,7 @@ export file for all source blocks.
 Optional argument LANG-RE can be used to limit the exported
 source code blocks by languages matching a regular expression.
 
-Return a list whose CAR is the tangled file name."
+Return list of the tangled file names."
   (interactive "fFile to tangle: \nP")
   (let* ((visited (find-buffer-visiting file))
          (buffer (or visited (find-file-noselect file))))
@@ -199,7 +225,7 @@ Return a list whose CAR is the tangled file name."
 (defun org-babel-tangle (&optional arg target-file lang-re)
   "Write code blocks to source-specific files.
 Extract the bodies of all source code blocks from the current
-file into their own source-specific files.
+file into their own source-specific files.  Return the list of files.
 With one universal prefix argument, only tangle the block at point.
 When two universal prefix arguments, only tangle blocks for the
 tangle file of the block at point.
@@ -225,7 +251,7 @@ matching a regular expression."
 	       org-babel-default-header-args))
 	    (tangle-file
 	     (when (equal arg '(16))
-	       (or (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'light))))
+	       (or (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'no-eval))))
 		   (user-error "Point is not in a source code block"))))
 	    path-collector)
 	(mapc ;; map over file-names
@@ -254,7 +280,7 @@ matching a regular expression."
 		        (when she-bang
 			  (unless tangle-mode (setq tangle-mode #o755)))
 		        (when tangle-mode
-			  (add-to-list 'modes tangle-mode))
+			  (add-to-list 'modes (org-babel-interpret-file-mode tangle-mode)))
 		        ;; Possibly create the parent directories for file.
 		        (let ((m (funcall get-spec :mkdirp)))
 			  (and m fnd (not (string= m "no"))
@@ -271,11 +297,24 @@ matching a regular expression."
 		    lspecs)
 		   (when make-dir
 		     (make-directory fnd 'parents))
-                   ;; erase previous file
-                   (when (file-exists-p file-name)
-                     (delete-file file-name))
-		   (write-region nil nil file-name)
-		   (mapc (lambda (mode) (set-file-modes file-name mode)) modes)
+                   (unless
+                       (and (file-exists-p file-name)
+                            (let ((tangle-buf (current-buffer)))
+                              (with-temp-buffer
+                                (insert-file-contents file-name)
+                                (and
+                                 (equal (buffer-size)
+                                        (buffer-size tangle-buf))
+                                 (= 0
+                                    (let (case-fold-search)
+                                      (compare-buffer-substrings
+                                       nil nil nil
+                                       tangle-buf nil nil)))))))
+                     ;; erase previous file
+                     (when (file-exists-p file-name)
+                       (delete-file file-name))
+		     (write-region nil nil file-name)
+		     (mapc (lambda (mode) (set-file-modes file-name mode)) modes))
                    (push file-name path-collector))))))
 	 (if (equal arg '(4))
 	     (org-babel-tangle-single-block 1 t)
@@ -295,7 +334,38 @@ matching a regular expression."
 	     (org-babel-with-temp-filebuffer file
 	       (run-hooks 'org-babel-post-tangle-hook)))
 	   path-collector))
+        (run-hooks 'org-babel-tangle-finished-hook)
 	path-collector))))
+
+(defun org-babel-interpret-file-mode (mode)
+  "Determine the integer representation of a file MODE specification.
+The following forms are currently recognized:
+- an integer (returned without modification)
+- \"o755\" (chmod style octal)
+- \"rwxrw-r--\" (ls style specification)
+- \"a=rw,u+x\" (chmod style) *
+
+* The interpretation of these forms relies on `file-modes-symbolic-to-number',
+  and uses `org-babel-tangle-default-file-mode' as the base mode."
+  (cond
+   ((integerp mode)
+    (if (string-match-p "^[0-7][0-7][0-7]$" (format "%o" mode))
+        mode
+      (user-error "%1$o is not a valid file mode octal. \
+Did you give the decimal value %1$d by mistake?" mode)))
+   ((not (stringp mode))
+    (error "File mode %S not recognized as a valid format." mode))
+   ((string-match-p "^o0?[0-7][0-7][0-7]$" mode)
+    (string-to-number (replace-regexp-in-string "^o" "" mode) 8))
+   ((string-match-p "^[ugoa]*\\(?:[+-=][rwxXstugo]*\\)+\\(,[ugoa]*\\(?:[+-=][rwxXstugo]*\\)+\\)*$" mode)
+    ;; Match regexp taken from `file-modes-symbolic-to-number'.
+    (file-modes-symbolic-to-number mode org-babel-tangle-default-file-mode))
+   ((string-match-p "^[r-][w-][xs-][r-][w-][xs-][r-][w-][x-]$" mode)
+    (file-modes-symbolic-to-number (concat  "u=" (substring mode 0 3)
+                                            ",g=" (substring mode 3 6)
+                                            ",o=" (substring mode 6 9))
+                                   0))
+   (t (error "File mode %S not recognized as a valid format. See `org-babel-interpret-file-mode'." mode))))
 
 (defun org-babel-tangle-clean ()
   "Remove comments inserted by `org-babel-tangle'.
@@ -387,14 +457,16 @@ code blocks by target file."
   (let ((counter 0) last-heading-pos blocks)
     (org-babel-map-src-blocks (buffer-file-name)
       (let ((current-heading-pos
-	     (org-with-wide-buffer
-	      (org-with-limited-levels (outline-previous-heading)))))
+             (if (org-element--cache-active-p)
+                 (or (org-element-property :begin (org-element-lineage (org-element-at-point) '(headline) t)) 1)
+	       (org-with-wide-buffer
+	        (org-with-limited-levels (outline-previous-heading))))))
 	(if (eq last-heading-pos current-heading-pos) (cl-incf counter)
 	  (setq counter 1)
 	  (setq last-heading-pos current-heading-pos)))
       (unless (or (org-in-commented-heading-p)
 		  (org-in-archived-heading-p))
-	(let* ((info (org-babel-get-src-block-info 'light))
+	(let* ((info (org-babel-get-src-block-info 'no-eval))
 	       (src-lang (nth 0 info))
 	       (src-tfile (cdr (assq :tangle (nth 2 info)))))
 	  (unless (or (string= src-tfile "no")
@@ -413,6 +485,33 @@ code blocks by target file."
     (mapcar (lambda (b) (cons (car b) (nreverse (cdr b))))
 	    (nreverse blocks))))
 
+(defun org-babel-tangle--unbracketed-link (params)
+  "Get a raw link to the src block at point, without brackets.
+
+The PARAMS are the 3rd element of the info for the same src block."
+  (unless (string= "no" (cdr (assq :comments params)))
+    (save-match-data
+      (let* (;; The created link is transient.  Using ID is not necessary,
+             ;; but could have side-effects if used.  An ID property may
+             ;; be added to existing entries thus creating unexpected file
+             ;; modifications.
+             (org-id-link-to-org-use-id nil)
+             (l (org-no-properties
+                 (cl-letf (((symbol-function 'org-store-link-functions)
+                            (lambda () nil)))
+                   (org-store-link nil))))
+             (bare (and (string-match org-link-bracket-re l)
+                        (match-string 1 l))))
+        (when bare
+          (if (and org-babel-tangle-use-relative-file-links
+                   (string-match org-link-types-re bare)
+                   (string= (match-string 1 bare) "file"))
+              (concat "file:"
+                      (file-relative-name (substring bare (match-end 0))
+                                          (file-name-directory
+                                           (cdr (assq :tangle params)))))
+            bare))))))
+
 (defun org-babel-tangle-single-block (block-counter &optional only-this-block)
   "Collect the tangled source for current block.
 Return the list of block attributes needed by
@@ -429,16 +528,7 @@ non-nil, return the full association list to be used by
 	 (extra (nth 3 info))
          (coderef (nth 6 info))
 	 (cref-regexp (org-src-coderef-regexp coderef))
-	 (link (let* (
-                      ;; The created link is transient.  Using ID is
-                      ;; not necessary, but could have side-effects if
-                      ;; used.  An ID property may be added to
-                      ;; existing entries thus creating unexpected file
-                      ;; modifications.
-                      (org-id-link-to-org-use-id nil)
-                      (l (org-no-properties (org-store-link nil))))
-                 (and (string-match org-link-bracket-re l)
-                      (match-string 1 l))))
+	 (link (org-babel-tangle--unbracketed-link params))
 	 (source-name
 	  (or (nth 4 info)
 	      (format "%s:%d"
@@ -451,7 +541,9 @@ non-nil, return the full association list to be used by
 	 (body
 	  ;; Run the tangle-body-hook.
           (let ((body (if (org-babel-noweb-p params :tangle)
-			  (org-babel-expand-noweb-references info)
+                          (if (string= "strip-tangle" (cdr (assq :noweb (nth 2 info))))
+                            (replace-regexp-in-string (org-babel-noweb-wrap) "" (nth 1 info))
+			    (org-babel-expand-noweb-references info))
 			(nth 1 info))))
 	    (with-temp-buffer
 	      (insert
@@ -486,19 +578,13 @@ non-nil, return the full association list to be used by
 			 (match-end 0)
 		       (point-min))))
 	      (point)))))
+         (src-tfile (cdr (assq :tangle params)))
 	 (result
 	  (list start-line
 		(if org-babel-tangle-use-relative-file-links
 		    (file-relative-name file)
 		  file)
-		(if (and org-babel-tangle-use-relative-file-links
-			 (string-match org-link-types-re link)
-			 (string= (match-string 1 link) "file"))
-		    (concat "file:"
-			    (file-relative-name (substring link (match-end 0))
-						(file-name-directory
-						 (cdr (assq :tangle params)))))
-		  link)
+		link
 		source-name
 		params
 		(if org-src-preserve-indentation
@@ -506,8 +592,7 @@ non-nil, return the full association list to be used by
 		  (org-trim (org-remove-indentation body)))
 		comment)))
     (if only-this-block
-        (let* ((src-tfile (cdr (assq :tangle (nth 4 result))))
-               (file-name (org-babel-effective-tangled-filename
+        (let* ((file-name (org-babel-effective-tangled-filename
                            (nth 1 result) src-lang src-tfile)))
           (list (cons file-name (list (cons src-lang result)))))
       result)))
@@ -516,19 +601,13 @@ non-nil, return the full association list to be used by
   "Return a list of begin and end link comments for the code block at point.
 INFO, when non nil, is the source block information, as returned
 by `org-babel-get-src-block-info'."
-  (let ((link-data (pcase (or info (org-babel-get-src-block-info 'light))
-		     (`(,_ ,_ ,_ ,_ ,name ,start ,_)
+  (let ((link-data (pcase (or info (org-babel-get-src-block-info 'no-eval))
+		     (`(,_ ,_ ,params ,_ ,name ,start ,_)
 		      `(("start-line" . ,(org-with-point-at start
 					   (number-to-string
 					    (line-number-at-pos))))
 			("file" . ,(buffer-file-name))
-			("link" . ,(let (;; The created link is transient.  Using ID is
-                                         ;; not necessary, but could have side-effects if
-                                         ;; used.  An ID property may be added to
-                                         ;; existing entries thus creating unexpected file
-                                         ;; modifications.
-                                         (org-id-link-to-org-use-id nil))
-                                     (org-no-properties (org-store-link nil))))
+			("link" . ,(org-babel-tangle--unbracketed-link params))
 			("source-name" . ,name))))))
     (list (org-fill-template org-babel-tangle-comment-format-beg link-data)
 	  (org-fill-template org-babel-tangle-comment-format-end link-data))))

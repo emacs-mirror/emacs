@@ -318,6 +318,12 @@ don't modify the buffer."
 (defvar-local outline--use-rtl nil
   "Non-nil when direction of clickable buttons is right-to-left.")
 
+(defvar-local outline--margin-width nil
+  "Current margin width.")
+
+(defvar-local outline-margin-width nil
+  "Default margin width.")
+
 (define-icon outline-open nil
   '((image "outline-open.svg" "outline-open.pbm" :height (0.8 . em))
     (emoji "🔽")
@@ -344,24 +350,24 @@ don't modify the buffer."
   "Right-to-left icon used for buttons in closed outline sections."
   :version "29.1")
 
-(define-icon outline-open-in-margins outline-open
-  '((image "outline-open.svg" "outline-open.pbm" :height 10)
+(define-icon outline-open-in-margins nil
+  '((image "outline-open.svg" "outline-open.pbm" :width font)
     (emoji "🔽")
     (symbol "▼")
     (text "v"))
   "Icon used for buttons for opened sections in margins."
   :version "29.1")
 
-(define-icon outline-close-in-margins outline-close
-  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation -90)
+(define-icon outline-close-in-margins nil
+  '((image "outline-open.svg" "outline-open.pbm" :width font :rotation -90)
     (emoji "▶️")
     (symbol "▶")
     (text ">"))
   "Icon used for buttons for closed sections in margins."
   :version "29.1")
 
-(define-icon outline-close-rtl-in-margins outline-close-rtl
-  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation 90)
+(define-icon outline-close-rtl-in-margins nil
+  '((image "outline-open.svg" "outline-open.pbm" :width font :rotation 90)
     (emoji "◀️")
     (symbol "◀")
     (text "<"))
@@ -528,9 +534,22 @@ See the command `outline-mode' for more information on this mode."
           (when (and (eq outline-minor-mode-use-buttons 'in-margins)
                      (> 1 (if outline--use-rtl right-margin-width
                             left-margin-width)))
+            (setq outline--margin-width
+                  (or outline-margin-width
+                      (ceiling
+                       (/ (seq-max
+                           (seq-map #'string-pixel-width
+                                    (seq-map #'icon-string
+                                             `(outline-open-in-margins
+                                               ,(if outline--use-rtl
+                                                    'outline-close-rtl-in-margins
+                                                  'outline-close-in-margins)))))
+                          (* (default-font-width) 1.0)))))
             (if outline--use-rtl
-                (setq-local right-margin-width (1+ right-margin-width))
-              (setq-local left-margin-width (1+ left-margin-width)))
+                (setq-local right-margin-width (+ right-margin-width
+                                                  outline--margin-width))
+              (setq-local left-margin-width (+ left-margin-width
+                                               outline--margin-width)))
             (setq-local fringes-outside-margins t)
             ;; Force display of margins
             (when (eq (current-buffer) (window-buffer))
@@ -566,8 +585,10 @@ See the command `outline-mode' for more information on this mode."
                  (< 0 (if outline--use-rtl right-margin-width
                         left-margin-width)))
         (if outline--use-rtl
-            (setq-local right-margin-width (1- right-margin-width))
-          (setq-local left-margin-width (1- left-margin-width)))
+            (setq-local right-margin-width (- right-margin-width
+                                              outline--margin-width))
+          (setq-local left-margin-width (- left-margin-width
+                                           outline--margin-width)))
         (setq-local fringes-outside-margins nil)
         ;; Force removal of margins
         (when (eq (current-buffer) (window-buffer))
@@ -1796,7 +1817,7 @@ With a prefix argument, show headings up to that LEVEL."
         (unless o
           (when (eq outline-minor-mode-use-buttons 'insert)
             (let ((inhibit-read-only t))
-              (insert "  ")
+              (insert (apply #'propertize "  " (text-properties-at (point))))
               (beginning-of-line)))
           (setq o (make-overlay (point) (1+ (point))))
           (overlay-put o 'outline-button t)

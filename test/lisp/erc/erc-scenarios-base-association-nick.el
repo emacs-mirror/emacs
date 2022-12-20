@@ -1,22 +1,23 @@
 ;;; erc-scenarios-base-association-nick.el --- base assoc scenarios -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
-;;
+
 ;; This file is part of GNU Emacs.
-;;
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see
-;; <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Code:
 
 (require 'ert-x)
 (eval-and-compile
@@ -25,13 +26,24 @@
 
 (eval-when-compile (require 'erc-join))
 
-;; You register a new nick, disconnect, and log back in, but your nick
-;; is not granted, so ERC obtains a backtick'd version.  You open a
-;; query buffer for NickServ, and ERC names it using the net-ID (which
-;; includes the backtick'd nick) as a suffix.  The original
-;; (disconnected) NickServ buffer gets renamed with *its* net-ID as
-;; well.  You then identify to NickServ, and the dead session is no
-;; longer considered distinct.
+;; You register a new nick in a dedicated query buffer, disconnect,
+;; and log back in, but your nick is not granted (maybe you just
+;; turned off SASL).  In any case, ERC obtains a backtick'd version.
+;; You open a query buffer for NickServ, and ERC gives you the
+;; existing one.  And after you identify, all buffers retain their
+;; names, although your net ID has changed internally.
+;;
+;; If ERC would've instead failed (or intentionally refused) to make
+;; the association, you would've ended up with a new NickServ buffer
+;; named after the new net ID as a suffix (based on the backtick'd
+;; nick), for example, NickServ@foonet/tester`.  And the original
+;; (disconnected) NickServ buffer would've gotten suffixed with *its*
+;; net-ID as well, e.g., NickServ@foonet/tester.  And after
+;; identifying, you would've seen ERC merge the two as well as their
+;; server buffers.  While this alternate behavior may arguably be a
+;; more honest reflection of reality, it's also quite inconvenient.
+;; For a clearer example, see the original version of this file
+;; introduced by "Add user-oriented test scenarios for ERC".
 
 (ert-deftest erc-scenarios-base-association-nick-bumped ()
   :tags '(:expensive-test)
@@ -67,30 +79,29 @@
           (funcall expect 5 "ERC finished"))))
 
     (with-current-buffer "foonet"
-      (erc-cmd-RECONNECT))
+      (erc-cmd-RECONNECT)
+      (funcall expect 10 "User modes for tester`"))
 
-    (erc-d-t-wait-for 10 "Nick request rejection prevents reassociation (good)"
-      (get-buffer "foonet/tester`"))
+    (ert-info ("Server buffer reassociated with new nick")
+      (should-not (get-buffer "foonet/tester`")))
 
     (ert-info ("Ask NickServ to change nick")
-      (with-current-buffer "foonet/tester`"
-        (funcall expect 3 "already in use")
+      (with-current-buffer "foonet"
         (funcall expect 3 "debug mode")
         (erc-cmd-QUERY "NickServ"))
 
-      (erc-d-t-wait-for 1 "Dead NickServ query buffer renamed, now qualified"
-        (get-buffer "NickServ@foonet/tester"))
+      (ert-info ( "NickServ buffer reassociated")
+        (should-not (get-buffer "NickServ@foonet/tester`"))
+        (should-not (get-buffer "NickServ@foonet/tester")))
 
-      (with-current-buffer "NickServ@foonet/tester`" ; new one
+      (with-current-buffer "NickServ" ; new one
         (erc-scenarios-common-say "IDENTIFY tester changeme")
-        (funcall expect 5 "You're now logged in as tester")
-        (ert-info ("Original buffer found, reused")
-          (erc-d-t-wait-for 2 (equal (buffer-name) "NickServ")))))
+        (funcall expect 5 "You're now logged in as tester")))
 
-    (ert-info ("Ours is the only NickServ buffer that remains")
+    (ert-info ("Still just one NickServ buffer")
       (should-not (cdr (erc-scenarios-common-buflist "NickServ"))))
 
-    (ert-info ("Visible network ID truncated to one component")
+    (ert-info ("As well as one server buffer")
       (should (not (get-buffer "foonet/tester`")))
       (should (not (get-buffer "foonet/tester")))
       (should (get-buffer "foonet")))))
@@ -135,29 +146,29 @@
     ;; Since we use reconnect, a new buffer won't be created
     ;; TODO add variant with clean `erc' invocation
     (with-current-buffer "foonet"
-      (erc-cmd-RECONNECT))
+      (erc-cmd-RECONNECT)
+      (funcall expect 10 "User modes for dummy"))
 
-    (ert-info ("Server-initiated renick")
-      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "foonet/dummy"))
-        (should-not (get-buffer "foonet/tester"))
-        (funcall expect 15 "debug mode"))
+    (ert-info ("Server-initiated renick associated correctly")
+      (with-current-buffer "foonet"
+        (funcall expect 15 "debug mode")
+        (should-not (get-buffer "foonet/dummy"))
+        (should-not (get-buffer "foonet/tester")))
 
-      (erc-d-t-wait-for 1 "Old query renamed, now qualified"
-        (get-buffer "bob@foonet/tester"))
+      (ert-info ("Old query reassociated")
+        (should (get-buffer "bob"))
+        (should-not (get-buffer "bob@foonet/tester"))
+        (should-not (get-buffer "bob@foonet/dummy")))
 
-      (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "bob@foonet/dummy"))
+      (with-current-buffer "foonet"
         (erc-cmd-NICK "tester")
-        (ert-info ("Buffers combined")
-          (erc-d-t-wait-for 2 (equal (buffer-name) "bob")))))
+        (funcall expect 5 "You're now logged in as tester")))
 
-    (with-current-buffer "foonet"
-      (funcall expect 5 "You're now logged in as tester"))
-
-    (ert-info ("Ours is the only bob buffer that remains")
+    (ert-info ("Ours is still the only bob buffer that remains")
       (should-not (cdr (erc-scenarios-common-buflist "bob"))))
 
-    (ert-info ("Visible network ID truncated to one component")
-      (should (not (get-buffer "foonet/dummy")))
-      (should (get-buffer "foonet")))))
+    (ert-info ("Visible network ID still truncated to one component")
+      (should (not (get-buffer "foonet/tester")))
+      (should (not (get-buffer "foonet/dummy"))))))
 
 ;;; erc-scenarios-base-association-nick.el ends here

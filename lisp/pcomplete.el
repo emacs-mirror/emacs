@@ -193,7 +193,7 @@ and how is entirely up to the behavior of the
   "If non-nil, allow effects in `pcomplete-parse-arguments-function'.
 For the `pcomplete' command, it was common for functions in
 `pcomplete-parse-arguments-function' to make modifications to the
-buffer, like expanding variables are such.
+buffer, like expanding variables and such.
 For `completion-at-point-functions', this is not an option any more, so
 this variable is used to tell `pcomplete-parse-arguments-function'
 whether it can do the modifications like it used to, or whether
@@ -1456,7 +1456,7 @@ COMMAND and ARGS as arguments."
                            (pcomplete-match-string 1 0)))
           ((string-prefix-p "-" (pcomplete-arg 0))
            (pcomplete-here (apply #'pcomplete-from-help command args)))
-          (t (pcomplete-here (pcomplete-entries))))))
+          (t (pcomplete-here* (pcomplete-entries))))))
 
 (provide 'pcomplete)
 

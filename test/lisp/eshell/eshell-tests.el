@@ -105,37 +105,6 @@
      (format template "format \"%s\" eshell-in-pipeline-p")
      "nil")))
 
-(ert-deftest eshell-test/escape-nonspecial ()
-  "Test that \"\\c\" and \"c\" are equivalent when \"c\" is not a
-special character."
-  (with-temp-eshell
-   (eshell-match-command-output "echo he\\llo"
-                                "hello\n")))
-
-(ert-deftest eshell-test/escape-nonspecial-unicode ()
-  "Test that \"\\c\" and \"c\" are equivalent when \"c\" is a
-unicode character (unicode characters are nonspecial by
-definition)."
-  (with-temp-eshell
-   (eshell-match-command-output "echo Vid\\éos"
-                                "Vidéos\n")))
-
-(ert-deftest eshell-test/escape-nonspecial-quoted ()
-  "Test that the backslash is preserved for escaped nonspecial
-chars"
-  (with-temp-eshell
-   (eshell-match-command-output "echo \"h\\i\""
-                                ;; Backslashes are doubled for regexp.
-                                "h\\\\i\n")))
-
-(ert-deftest eshell-test/escape-special-quoted ()
-  "Test that the backslash is not preserved for escaped special
-chars"
-  (with-temp-eshell
-   (eshell-match-command-output "echo \"\\\"hi\\\\\""
-                                ;; Backslashes are doubled for regexp.
-                                "\\\"hi\\\\\n")))
-
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
   (with-temp-eshell

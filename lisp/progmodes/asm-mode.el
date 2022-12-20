@@ -209,7 +209,7 @@ repeatedly until you are satisfied with the kind of comment."
     (indent-according-to-mode)
     (insert asm-comment-char asm-comment-char ?\ ))
 
-   ;; Nonblank line w/o comment => start a comment at comment-column.
+   ;; Nonblank line without comment => start a comment at comment-column.
    ;; Also: point before the comment => jump inside.
    ((or (null comment) (< (point) comment))
     (indent-for-comment))

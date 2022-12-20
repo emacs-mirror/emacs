@@ -186,6 +186,7 @@ and a string describing how the process finished.")
                      face compilation-info
                      help-echo "Number of informational messages so far")
     "]"))
+(put 'compilation-mode-line-errors 'risky-local-variable t)
 
 ;; If you make any changes to `compilation-error-regexp-alist-alist',
 ;; be sure to run the ERT test in test/lisp/progmodes/compile-tests.el.
@@ -2807,7 +2808,7 @@ This is the value of `next-error-function' in Compilation buffers."
             (goto-char (point-min))
             ;; Treat file's found lines in forward order, 1 by 1.
             (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
-              (when (car line)		; else this is a filename w/o a line#
+              (when (car line)		; else this is a filename without a line#
                 (compilation-beginning-of-line (- (car line) last -1))
                 (setq last (car line)))
               ;; Treat line's found columns and store/update a marker for each.

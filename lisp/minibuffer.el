@@ -1326,9 +1326,9 @@ pair of a group title string and a list of group candidate strings."
   :version "28.1")
 
 (defface completions-group-separator
-  '((t :inherit shadow :underline t))
+  '((t :inherit shadow :strike-through t))
   "Face used for the separator lines between the candidate groups."
-  :version "29.1")
+  :version "28.1")
 
 (defun completion--cycle-threshold (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
@@ -2025,8 +2025,8 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
 	   (window (get-buffer-window (current-buffer) 0))
 	   (wwidth (if window (1- (window-width window)) 79))
 	   (columns (min
-		     ;; At least 2 columns; at least 2 spaces between columns.
-		     (max 2 (/ wwidth (+ 2 length)))
+		     ;; At least 2 spaces between columns.
+		     (max 1 (/ wwidth (+ 2 length)))
 		     ;; Don't allocate more columns than we can fill.
 		     ;; Windows can't show less than 3 lines anyway.
 		     (max 1 (/ (length strings) 2))))

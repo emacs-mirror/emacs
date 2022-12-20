@@ -2482,7 +2482,8 @@ with // and /*, not more generic line and block comments."
       (let* ((lim1 (save-excursion
 		     (and (c-beginning-of-macro)
 			  (progn (c-end-of-macro) (point)))))
-	     (decl-res (c-forward-declarator)))
+	     (lim+ (c-determine-+ve-limit 200))
+	     (decl-res (c-forward-declarator lim+)))
 	(if (or (cadr (cddr (cddr decl-res))) ; We scanned an arglist.
 		(and (eq (char-after) ?\()    ; Move over a non arglist (...).
 		     (prog1 (c-go-list-forward)
@@ -2499,7 +2500,7 @@ with // and /*, not more generic line and block comments."
 		   (c-backward-syntactic-ws lim1)
 		   (eq (char-before) ?\())
 		 (c-fl-decl-end (1- (point))))
-	      (c-forward-over-token)
+	      (c-forward-over-token nil lim+) ; The , or ) after the declarator.
 	      (point))
 	  (if (progn (c-forward-syntactic-ws)
 		     (not (eobp)))

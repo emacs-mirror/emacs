@@ -3,6 +3,7 @@
 ;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
+;; Maintainer: András Simonyi <andras.simonyi@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -56,11 +57,21 @@
 
 ;; The library supports the following citation styles:
 ;;
-;; - author (a), including caps (c), full (f), and caps-full (cf) variants,
+;; - author (a), including bare (b), caps (c), bare-caps (bc), full (f),
+;;   caps-full (cf), and bare-caps-full (bcf) variants,
 ;; - noauthor (na), including bare (b), caps (c) and bare-caps (bc) variants,
+;; - nocite (n),
 ;; - year (y), including a bare (b) variant,
-;; - text (t). including caps (c), full (f), and caps-full (cf) variants,
+;; - text (t), including caps (c), full (f), and caps-full (cf) variants,
+;; - title (ti), including a bare (b) variant,
+;; - locators (l), including a bare (b) variant,
+;; - bibentry (b), including a bare (b) variant,
 ;; - default style, including bare (b), caps (c) and bare-caps (bc) variants.
+;;
+;; Using "*" as a key in a nocite citation includes all available
+;; items in the printed bibliography.  The "bibentry" citation style,
+;; similarly to biblatex's \fullcite, creates a citation which is
+;; similar to the bibliography entry.
 
 ;; CSL styles recognize "locator" in citation references' suffix.  For example,
 ;; in the citation
@@ -85,11 +96,27 @@
 ;; The part of the suffix before the locator is appended to reference's prefix.
 ;; If no locator term is used, but a number is present, then "page" is assumed.
 
+;; Filtered sub-bibliographies can be printed by passing filtering
+;; options to the "print_bibliography" keywords.  E.g.,
+;;
+;;    #+print_bibliography: :type book keyword: emacs
+;;
+;; If you need to use a key multiple times, you can separate its
+;; values with commas, but without any space in-between:
+;;
+;;    #+print_bibliography: :keyword abc,xyz :type article
+
 ;; This library was heavily inspired by and borrows from András Simonyi's
 ;; Citeproc Org (<https://github.com/andras-simonyi/citeproc-org>) library.
 ;; Many thanks to him!
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
+(require 'cl-lib)
+(require 'map)
 (require 'bibtex)
 (require 'json)
 (require 'oc)
@@ -102,9 +129,11 @@
 (declare-function citeproc-create "ext:citeproc")
 (declare-function citeproc-citation-create "ext:citeproc")
 (declare-function citeproc-append-citations "ext:citeproc")
+(declare-function citeproc-add-uncited "ext:citeproc")
 (declare-function citeproc-render-citations "ext:citeproc")
 (declare-function citeproc-render-bib "ext:citeproc")
 (declare-function citeproc-hash-itemgetter-from-any "ext:citeproc")
+(declare-function citeproc-add-subbib-filters "ext:citeproc")
 
 (declare-function org-element-interpret-data "org-element" (data))
 (declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated))
@@ -133,13 +162,15 @@ If nil then only the fallback en-US locale will be available."
 
 (defcustom org-cite-csl-styles-dir nil
   "Directory of CSL style files.
-When non-nil, relative style file names are expanded relatively to this
-directory.  This variable is ignored when style file is absolute."
+
+Relative style file names are expanded according to document's
+default directory.  If it fails and the variable is non-nil, Org
+looks for style files in this directory, too."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice
           (directory :tag "Styles directory")
-          (const :tag "Use absolute file names" nil))
+          (const :tag "No central directory for style files" nil))
   ;; It's not obvious to me that arbitrary locations are safe.
 ;;;  :safe #'string-or-null-p
   )
@@ -293,6 +324,12 @@ INFO is the export state, as a property list."
    (citeproc-proc-style
     (org-cite-csl--processor info))))
 
+(defun org-cite-csl--nocite-p (citation info)
+  "Non-nil when CITATION object's style is nocite.
+INFO is the export state, as a property list."
+  (member (car (org-cite-citation-style citation info))
+          '("nocite" "n")))
+
 (defun org-cite-csl--create-structure-params (citation info)
   "Return citeproc structure creation params for CITATION object.
 STYLE is the citation style, as a string or nil. INFO is the export state, as
@@ -302,9 +339,13 @@ a property list."
       ;; "author" style.
       (`(,(or "author" "a") . ,variant)
        (pcase variant
+	 ((or "bare" "b") '(:mode author-only :suppress-affixes t))
 	 ((or "caps" "c") '(:mode author-only :capitalize-first t))
 	 ((or "full" "f") '(:mode author-only :ignore-et-al t))
+	 ((or "bare-caps" "bc") '(:mode author-only :suppress-affixes t :capitalize-first t))
+	 ((or "bare-full" "bf") '(:mode author-only :suppress-affixes t :ignore-et-al t))
 	 ((or "caps-full" "cf") '(:mode author-only :capitalize-first t :ignore-et-al t))
+	 ((or "bare-caps-full" "bcf") '(:mode author-only :suppress-affixes t :capitalize-first t :ignore-et-al t))
 	 (_ '(:mode author-only))))
       ;; "noauthor" style.
       (`(,(or "noauthor" "na") . ,variant)
@@ -319,6 +360,21 @@ a property list."
        (pcase variant
 	 ((or "bare" "b") '(:mode year-only :suppress-affixes t))
 	 (_ '(:mode year-only))))
+      ;; "bibentry" style.
+      (`(,(or "bibentry" "b") . ,variant)
+       (pcase variant
+	 ((or "bare" "b") '(:mode bib-entry :suppress-affixes t))
+	 (_ '(:mode bib-entry))))
+      ;; "locators" style.
+      (`(,(or "locators" "l") . ,variant)
+       (pcase variant
+	 ((or "bare" "b") '(:mode locator-only :suppress-affixes t))
+	 (_ '(:mode locator-only))))
+      ;; "title" style.
+      (`(,(or "title" "ti") . ,variant)
+       (pcase variant
+	 ((or "bare" "b") '(:mode title-only :suppress-affixes t))
+	 (_ '(:mode title-only))))
       ;; "text" style.
       (`(,(or "text" "t") . ,variant)
        (pcase variant
@@ -365,15 +421,21 @@ corresponding to one of the output formats supported by Citeproc: `html',
 
 INFO is the export state, as a property list.
 
-When file name is relative, expand it according to `org-cite-csl-styles-dir',
-or raise an error if the variable is unset."
+When file name is relative, look for it in buffer's default
+directory, failing that in `org-cite-csl-styles-dir' if non-nil.
+Raise an error if no style file can be found."
   (pcase (org-cite-bibliography-style info)
     ('nil org-cite-csl--fallback-style-file)
     ((and (pred file-name-absolute-p) file) file)
-    ((and (guard org-cite-csl-styles-dir) file)
+    ((and (pred file-exists-p) file) (expand-file-name file))
+    ((and (guard org-cite-csl-styles-dir)
+          (pred (lambda (f)
+                  (file-exists-p
+                   (expand-file-name f org-cite-csl-styles-dir))))
+          file)
      (expand-file-name file org-cite-csl-styles-dir))
     (other
-     (user-error "Cannot handle relative style file name: %S" other))))
+     (user-error "CSL style file not found: %S" other))))
 
 (defun org-cite-csl--locale-getter ()
   "Return a locale getter.
@@ -522,20 +584,91 @@ INFO is the export state, as a property list.
 Return an alist (CITATION . OUTPUT) where CITATION object has been rendered as
 OUTPUT using Citeproc."
   (or (plist-get info :cite-citeproc-rendered-citations)
-      (let* ((citations (org-cite-list-citations info))
-             (processor (org-cite-csl--processor info))
-             (structures
-              (mapcar (lambda (c) (org-cite-csl--create-structure c info))
-                      citations)))
-        (citeproc-append-citations structures processor)
-        (let* ((rendered
-                (citeproc-render-citations
-                 processor
-                 (org-cite-csl--output-format info)
-                 (org-cite-csl--no-citelinks-p info)))
-               (result (seq-mapn #'cons citations rendered)))
-          (plist-put info :cite-citeproc-rendered-citations result)
-          result))))
+      (let ((citations (org-cite-list-citations info))
+	    (processor (org-cite-csl--processor info))
+	    normal-citations nocite-ids)
+	(dolist (citation citations)
+	  (if (org-cite-csl--nocite-p citation info)
+	      (setq nocite-ids (append (org-cite-get-references citation t) nocite-ids))
+	    (push citation normal-citations)))
+	(let ((structures
+	       (mapcar (lambda (c) (org-cite-csl--create-structure c info))
+		       (nreverse normal-citations))))
+	  (citeproc-append-citations structures processor))
+	(when nocite-ids
+	  (citeproc-add-uncited nocite-ids processor))
+        ;; All bibliographies have to be rendered in order to have
+        ;; correct citation numbers even if there are several
+        ;; sub-bibliograhies.
+        (org-cite-csl--rendered-bibliographies info)
+	(let (result
+	      (rendered (citeproc-render-citations
+			 processor
+			 (org-cite-csl--output-format info)
+			 (org-cite-csl--no-citelinks-p info))))
+	  (dolist (citation citations)
+	    (push (cons citation
+			(if (org-cite-csl--nocite-p citation info) "" (pop rendered)))
+		  result))
+	  (setq result (nreverse result))
+	  (plist-put info :cite-citeproc-rendered-citations result)
+	  result))))
+
+(defun org-cite-csl--bibliography-filter (bib-props)
+  "Return the sub-bibliography filter corresponding to bibliography properties.
+
+BIB-PROPS should be a plist representing the properties
+associated with a \"print_bibliography\" keyword, as returned by
+`org-cite-bibliography-properties'."
+  (let (result
+	(remove-keyword-colon (lambda (x) (intern (substring (symbol-name x) 1)))))
+    (map-do
+     (lambda (key value)
+       (pcase key
+         ((or :keyword :notkeyword :nottype :notcsltype :filter)
+          (dolist (v (split-string value ","))
+	    (push (cons  (funcall remove-keyword-colon key) v) result)))
+         ((or :type :csltype)
+          (if (string-match-p "," value)
+              (user-error "The \"%s\" print_bibliography option does not support comma-separated values" key)
+            (push (cons (funcall remove-keyword-colon key) value) result)))))
+     bib-props)
+    result))
+
+(defun org-cite-csl--rendered-bibliographies (info)
+  "Return the rendered bibliographies.
+
+INFO is the export state, as a property list.
+
+Return an (OUTPUTS PARAMETERS) list where OUTPUTS is an alist
+of (BIB-PROPS . OUTPUT) pairs where each key is a property list
+of a \"print_bibliography\" keyword and the corresponding OUTPUT
+value is the bibliography as rendered by Citeproc."
+  (or (plist-get info :cite-citeproc-rendered-bibliographies)
+      (let (bib-plists bib-filters)
+        ;; Collect bibliography property lists and the corresponding
+        ;; Citeproc sub-bib filters.
+	(org-element-map (plist-get info :parse-tree) 'keyword
+          (lambda (keyword)
+            (when (equal "PRINT_BIBLIOGRAPHY" (org-element-property :key keyword))
+              (let ((bib-plist (org-cite-bibliography-properties keyword)))
+                (push bib-plist bib-plists)
+                (push (org-cite-csl--bibliography-filter bib-plist) bib-filters)))))
+        (setq bib-filters (nreverse bib-filters)
+              bib-plists (nreverse bib-plists))
+        ;; Render and return all bibliographies.
+        (let ((processor (org-cite-csl--processor info)))
+          (citeproc-add-subbib-filters bib-filters processor)
+          (pcase-let* ((format (org-cite-csl--output-format info))
+                       (`(,rendered-bibs . ,parameters)
+                        (citeproc-render-bib
+                         (org-cite-csl--processor info)
+                         format
+                         (org-cite-csl--no-citelinks-p info)))
+                       (outputs (cl-mapcar #'cons bib-plists rendered-bibs))
+                       (result (list outputs parameters)))
+            (plist-put info :cite-citeproc-rendered-bibliographies result)
+            result)))))
 
 
 ;;; Export capability
@@ -550,16 +683,13 @@ INFO is the export state, as a property list."
       ;; process.
       (org-cite-parse-objects output))))
 
-(defun org-cite-csl-render-bibliography (_keys _files _style _props _backend info)
+(defun org-cite-csl-render-bibliography (_keys _files _style props _backend info)
   "Export bibliography.
 INFO is the export state, as a property list."
   (org-cite-csl--barf-without-citeproc)
-  (pcase-let* ((format (org-cite-csl--output-format info))
-               (`(,output . ,parameters)
-                (citeproc-render-bib
-                 (org-cite-csl--processor info)
-                 format
-                 (org-cite-csl--no-citelinks-p info))))
+  (pcase-let*  ((format (org-cite-csl--output-format info))
+		(`(,outputs ,parameters) (org-cite-csl--rendered-bibliographies info))
+		(output (cdr (assoc props outputs))))
     (pcase format
       ('html
        (concat
@@ -621,11 +751,15 @@ property list."
   :export-bibliography #'org-cite-csl-render-bibliography
   :export-finalizer #'org-cite-csl-finalizer
   :cite-styles
-  '((("author" "a") ("full" "f") ("caps" "c") ("caps-full" "cf"))
+  '((("author" "a") ("bare" "b") ("caps" "c") ("full" "f") ("bare-caps" "bc") ("caps-full" "cf") ("bare-caps-full" "bcf"))
     (("noauthor" "na") ("bare" "b") ("caps" "c") ("bare-caps" "bc"))
     (("year" "y") ("bare" "b"))
     (("text" "t") ("caps" "c") ("full" "f") ("caps-full" "cf"))
-    (("nil") ("bare" "b") ("caps" "c") ("bare-caps" "bc"))))
+    (("nil") ("bare" "b") ("caps" "c") ("bare-caps" "bc"))
+    (("nocite" "n"))
+    (("title" "ti") ("bare" "b"))
+    (("bibentry" "b") ("bare" "b"))
+    (("locators" "l") ("bare" "b"))))
 
 (provide 'oc-csl)
 ;;; oc-csl.el ends here

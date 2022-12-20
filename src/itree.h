@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef ITREE_H
 #define ITREE_H
@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <inttypes.h>
 
 #include "lisp.h"
+
+INLINE_HEADER_BEGIN
 
 /* The tree and node structs are mainly here, so they can be
    allocated.
@@ -114,6 +116,11 @@ extern void itree_node_set_region (struct itree_tree *, struct itree_node *,
 				   ptrdiff_t, ptrdiff_t);
 extern struct itree_tree *itree_create (void);
 extern void itree_destroy (struct itree_tree *);
+INLINE bool
+itree_empty_p (struct itree_tree *tree)
+{
+  return !tree || !tree->root;
+}
 extern intmax_t itree_size (struct itree_tree *);
 extern void itree_clear (struct itree_tree *);
 extern void itree_insert (struct itree_tree *, struct itree_node *,
@@ -177,5 +184,7 @@ struct itree_iterator
 
 #define ITREE_FOREACH_NARROW(beg, end) \
   itree_iterator_narrow (itree_iter_, beg, end)
+
+INLINE_HEADER_END
 
 #endif

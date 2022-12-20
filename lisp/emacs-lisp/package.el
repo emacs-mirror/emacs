@@ -458,7 +458,7 @@ synchronously."
 (defvar package--default-summary "No description available.")
 
 (define-inline package-vc-p (pkg-desc)
-  "Return non-nil if PKG-DESC is a source package."
+  "Return non-nil if PKG-DESC is a VC package."
   (inline-letevals (pkg-desc)
     (inline-quote (eq (package-desc-kind ,pkg-desc) 'vc))))
 
@@ -483,9 +483,7 @@ synchronously."
                                (if (eq 'quote (car requirements))
                                    (nth 1 requirements)
                                  requirements)))
-                 (kind (if (eq (car-safe version-string) 'vc)
-                           'vc
-                         (plist-get rest-plist :kind)))
+                 (kind (plist-get rest-plist :kind))
                  (archive (plist-get rest-plist :archive))
                  (extras (let (alist)
                            (while rest-plist
@@ -911,7 +909,7 @@ correspond to previously loaded files."
                            (let ((v1 (package-desc-version p1))
                                  (v2 (package-desc-version p2)))
                              (or
-                              ;; Prefer source packages.
+                              ;; Prefer VC packages.
                               (package-vc-p p1)
                               (package-vc-p p2)
                               ;; Prefer builtin packages.
@@ -1951,8 +1949,10 @@ SEEN is used internally to detect infinite recursion."
               (if (eq next-pkg 'emacs)
                   (error "This package requires Emacs version %s"
                          (package-version-join next-version))
-                (error "Package `%s-%s' is unavailable"
-                       next-pkg (package-version-join next-version))))))
+                (error (if (not next-version)
+                           (format "Package `%s' is unavailable" next-pkg)
+                         (format "Package `%s' (version %s) is unavailable"
+                                 next-pkg (package-version-join next-version))))))))
           (setq packages
                 (package-compute-transaction (cons found packages)
                                              (package-desc-reqs found)
@@ -2698,7 +2698,10 @@ Helper function for `describe-package'."
          (signed (if desc (package-desc-signed desc)))
          (maintainer (cdr (assoc :maintainer extras)))
          (authors (cdr (assoc :authors extras)))
-         (news (and-let* ((file (expand-file-name "news" pkg-dir))
+         (news (and-let* (pkg-dir
+                          ((not built-in))
+                          (file (expand-file-name "news" pkg-dir))
+                          ((file-regular-p file))
                           ((file-readable-p file)))
                  file)))
     (when (string= status "avail-obso")
@@ -3109,7 +3112,7 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
   "If non-nil, include packages that don't have a version in `list-packages'.")
 
 (defvar package-list-unsigned nil
-  "If non-nil, mention in the list which packages were installed w/o signature.")
+  "If non-nil, mention in the list which packages were installed without signature.")
 
 (defvar package--emacs-version-list (version-to-list emacs-version)
   "The value of variable `emacs-version' as a list.")
@@ -4551,7 +4554,7 @@ will be signaled in that case."
       (user-error "Package `%s' has no explicit maintainer" name))
      ((and (not (progn
                   (require 'ietf-drums)
-                  (ietf-drums-parse-address maint)))
+                  (ietf-drums-parse-address (cdr maint))))
            (null no-error))
       (user-error "Package `%s' has no maintainer address" name))
      ((not (null maint))
@@ -4559,6 +4562,7 @@ will be signaled in that case."
         (package--print-email-button maint)
         (string-trim (substring-no-properties (buffer-string))))))))
 
+;;;###autoload
 (defun package-report-bug (desc)
   "Prepare a message to send to the maintainers of a package.
 DESC must be a `package-desc' object."

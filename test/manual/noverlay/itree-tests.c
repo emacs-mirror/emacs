@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "emacs-compat.h"
 
 #define EMACS_LISP_H            /* lisp.h inclusion guard */
-#define ITREE_DEBUG 1
 #define ITREE_TESTING
 #include "itree.c"
 
@@ -53,7 +52,7 @@ test_insert1_setup (void)
   enum { N = 6 };
   const int values[N] = {50, 30, 20, 10, 15, 5};
   struct itree_node *nodes[N] = {&N_50, &N_30, &N_20, &N_10, &N_15, &N_05};
-  interval_tree_init (&tree);
+  itree_init (&tree);
   for (int i = 0; i < N; ++i)
     {
       nodes[i]->begin = nodes[i]->end = values[i];
@@ -67,7 +66,7 @@ START_TEST (test_insert_1)
    *                 [50]
    */
 
-  interval_tree_insert (&tree, &N_50);
+  itree_insert_node (&tree, &N_50);
   ck_assert (! N_50.red);
   ck_assert_ptr_eq (&N_50, tree.root);
 }
@@ -81,8 +80,8 @@ START_TEST (test_insert_2)
    *              (30)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_30);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_30);
   ck_assert (! N_50.red);
   ck_assert (N_30.red);
   ck_assert_ptr_eq (&N_50, tree.root);
@@ -102,9 +101,9 @@ START_TEST (test_insert_3)
    *             (20)   (50)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_30);
-  interval_tree_insert (&tree, &N_20);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_30);
+  itree_insert_node (&tree, &N_20);
   ck_assert (N_50.red);
   ck_assert (! N_30.red);
   ck_assert (N_20.red);
@@ -128,10 +127,10 @@ START_TEST (test_insert_4)
    *           (10)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_30);
-  interval_tree_insert (&tree, &N_20);
-  interval_tree_insert (&tree, &N_10);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_30);
+  itree_insert_node (&tree, &N_20);
+  itree_insert_node (&tree, &N_10);
   ck_assert (! N_50.red);
   ck_assert (! N_30.red);
   ck_assert (! N_20.red);
@@ -159,11 +158,11 @@ START_TEST (test_insert_5)
    *           (10) (20)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_30);
-  interval_tree_insert (&tree, &N_20);
-  interval_tree_insert (&tree, &N_10);
-  interval_tree_insert (&tree, &N_15);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_30);
+  itree_insert_node (&tree, &N_20);
+  itree_insert_node (&tree, &N_10);
+  itree_insert_node (&tree, &N_15);
   ck_assert (! N_50.red);
   ck_assert (! N_30.red);
   ck_assert (N_20.red);
@@ -197,12 +196,12 @@ START_TEST (test_insert_6)
    *         (5)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_30);
-  interval_tree_insert (&tree, &N_20);
-  interval_tree_insert (&tree, &N_10);
-  interval_tree_insert (&tree, &N_15);
-  interval_tree_insert (&tree, &N_05);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_30);
+  itree_insert_node (&tree, &N_20);
+  itree_insert_node (&tree, &N_10);
+  itree_insert_node (&tree, &N_15);
+  itree_insert_node (&tree, &N_05);
   ck_assert (! N_50.red);
   ck_assert (! N_30.red);
   ck_assert (! N_20.red);
@@ -238,7 +237,7 @@ test_insert2_setup (void)
   enum { N = 6 };
   const int values[] = {50, 70, 80, 90, 85, 95};
   struct itree_node *nodes[N] = {&N_50, &N_70, &N_80, &N_90, &N_85, &N_95};
-  interval_tree_init (&tree);
+  itree_init (&tree);
   for (int i = 0; i < N; ++i)
     {
       nodes[i]->begin = nodes[i]->end = values[i];
@@ -252,7 +251,7 @@ START_TEST (test_insert_7)
    *                 [50]
    */
 
-  interval_tree_insert (&tree, &N_50);
+  itree_insert_node (&tree, &N_50);
   ck_assert (! N_50.red);
   ck_assert_ptr_eq (&N_50, tree.root);
 }
@@ -266,8 +265,8 @@ START_TEST (test_insert_8)
    *                   (70)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_70);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_70);
   ck_assert (! N_50.red);
   ck_assert (N_70.red);
   ck_assert_ptr_eq (&N_50, tree.root);
@@ -287,9 +286,9 @@ START_TEST (test_insert_9)
    *             (50)   (80)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_70);
-  interval_tree_insert (&tree, &N_80);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_70);
+  itree_insert_node (&tree, &N_80);
   ck_assert (N_50.red);
   ck_assert (! N_70.red);
   ck_assert (N_80.red);
@@ -313,10 +312,10 @@ START_TEST (test_insert_10)
    *                      (90)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_70);
-  interval_tree_insert (&tree, &N_80);
-  interval_tree_insert (&tree, &N_90);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_70);
+  itree_insert_node (&tree, &N_80);
+  itree_insert_node (&tree, &N_90);
   ck_assert (! N_50.red);
   ck_assert (! N_70.red);
   ck_assert (! N_80.red);
@@ -344,11 +343,11 @@ START_TEST (test_insert_11)
    *                  (80) (90)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_70);
-  interval_tree_insert (&tree, &N_80);
-  interval_tree_insert (&tree, &N_90);
-  interval_tree_insert (&tree, &N_85);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_70);
+  itree_insert_node (&tree, &N_80);
+  itree_insert_node (&tree, &N_90);
+  itree_insert_node (&tree, &N_85);
   ck_assert (! N_50.red);
   ck_assert (! N_70.red);
   ck_assert (N_80.red);
@@ -383,12 +382,12 @@ START_TEST (test_insert_12)
    *                        (95)
    */
 
-  interval_tree_insert (&tree, &N_50);
-  interval_tree_insert (&tree, &N_70);
-  interval_tree_insert (&tree, &N_80);
-  interval_tree_insert (&tree, &N_90);
-  interval_tree_insert (&tree, &N_85);
-  interval_tree_insert (&tree, &N_95);
+  itree_insert_node (&tree, &N_50);
+  itree_insert_node (&tree, &N_70);
+  itree_insert_node (&tree, &N_80);
+  itree_insert_node (&tree, &N_90);
+  itree_insert_node (&tree, &N_85);
+  itree_insert_node (&tree, &N_95);
   ck_assert (! N_50.red);
   ck_assert (! N_70.red);
   ck_assert (! N_80.red);
@@ -419,7 +418,7 @@ START_TEST (test_insert_13)
   enum { N = 4 };
   const int values[N] = {10, 20, 30, 40};
   struct itree_node *nodes[N] = {&N_10, &N_20, &N_30, &N_40};
-  interval_tree_init (&tree);
+  itree_init (&tree);
   for (int i = 0; i < N; ++i)
     itree_insert (&tree, nodes[i], values[i], values[i]);
 
@@ -437,13 +436,13 @@ END_TEST
 START_TEST (test_insert_14)
 {
   enum { N = 3 };
-  struct itree_node nodes[N];
-  interval_tree_init (&tree);
+  struct itree_node nodes[N] = {0};
+  itree_init (&tree);
 
   for (int i = 0; i < N; ++i)
     itree_insert (&tree, &nodes[i], 10, 10);
   for (int i = 0; i < N; ++i)
-    ck_assert (interval_tree_contains (&tree, &nodes[i]));
+    ck_assert (itree_contains (&tree, &nodes[i]));
 }
 END_TEST
 
@@ -458,7 +457,7 @@ END_TEST
 static void
 test_remove1_setup (void)
 {
-  interval_tree_init (&tree);
+  itree_init (&tree);
   tree.root = &B;
   A.parent = &B; B.parent = NULL; C.parent = &D; D.parent = &B; E.parent = &D;
   A.left = A.right = C.left = C.right = E.left = E.right = NULL;
@@ -480,7 +479,7 @@ START_TEST (test_remove_1)
 {
   B.red = A.red = C.red = E.red = false;
   D.red = true;
-  interval_tree_remove_fix (&tree, &A, &B);
+  itree_remove_fix (&tree, &A, &B);
 
   ck_assert (! A.red);
   ck_assert (! B.red);
@@ -502,7 +501,7 @@ END_TEST
 START_TEST (test_remove_2)
 {
   B.red = D.red = A.red = C.red = E.red = false;
-  interval_tree_remove_fix (&tree, &A, &B);
+  itree_remove_fix (&tree, &A, &B);
 
   ck_assert (! A.red);
   ck_assert (! B.red);
@@ -523,7 +522,7 @@ START_TEST (test_remove_3)
 {
   D.red = A.red = E.red = false;
   B.red = C.red = true;
-  interval_tree_remove_fix (&tree, &A, &B);
+  itree_remove_fix (&tree, &A, &B);
 
   ck_assert (! A.red);
   ck_assert (! B.red);
@@ -546,7 +545,7 @@ START_TEST (test_remove_4)
 {
   B.red = C.red = E.red = true;
   A.red = D.red = false;
-  interval_tree_remove_fix (&tree, &A, &B);
+  itree_remove_fix (&tree, &A, &B);
 
   ck_assert (! A.red);
   ck_assert (! B.red);
@@ -569,7 +568,7 @@ END_TEST
 static void
 test_remove2_setup (void)
 {
-  interval_tree_init (&tree);
+  itree_init (&tree);
   tree.root = &B;
   A.parent = &B; B.parent = NULL; C.parent = &D; D.parent = &B; E.parent = &D;
   A.right = A.left = C.right = C.left = E.right = E.left = NULL;
@@ -589,7 +588,7 @@ START_TEST (test_remove_5)
 {
   B.red = A.red = C.red = E.red = false;
   D.red = true;
-  interval_tree_remove_fix (&tree, &A, &B);
+  itree_remove_fix (&tree, &A, &B);
 
   ck_assert (! A.red);
   ck_assert (! B.red);
@@ -611,7 +610,7 @@ END_TEST
 START_TEST (test_remove_6)
 {
   B.red = D.red = A.red = C.red = E.red = false;
-  interval_tree_remove_fix (&tree, &A, &B);
+  itree_remove_fix (&tree, &A, &B);
 
   ck_assert (! A.red);
   ck_assert (! B.red);
@@ -632,7 +631,7 @@ START_TEST (test_remove_7)
 {
   D.red = A.red = E.red = false;
   B.red = C.red = true;
-  interval_tree_remove_fix (&tree, &A, &B);
+  itree_remove_fix (&tree, &A, &B);
 
   ck_assert (! A.red);
   ck_assert (! B.red);
@@ -655,7 +654,7 @@ START_TEST (test_remove_8)
 {
   B.red = C.red = E.red = true;
   A.red = D.red = false;
-  interval_tree_remove_fix (&tree, &A, &B);
+  itree_remove_fix (&tree, &A, &B);
 
   ck_assert (! A.red);
   ck_assert (! B.red);
@@ -676,7 +675,7 @@ START_TEST (test_remove_9)
   enum { N = 4 };
   const int values[N] = {10, 20, 30, 40};
   struct itree_node *nodes[N] = {&N_10, &N_20, &N_30, &N_40};
-  interval_tree_init (&tree);
+  itree_init (&tree);
   for (int i = 0; i < N; ++i)
     itree_insert (&tree, nodes[i], values[i], values[i]);
 
@@ -722,8 +721,8 @@ START_TEST (test_remove_10)
   srand (42);
   shuffle (index, N);
 
-  interval_tree_init (&tree);
-  struct itree_node nodes[N];
+  itree_init (&tree);
+  struct itree_node nodes[N] = {0};
   for (int i = 0; i < N; ++i)
     {
       ptrdiff_t pos = (i + 1) * 10;
@@ -733,10 +732,10 @@ START_TEST (test_remove_10)
   shuffle (index, N);
   for (int i = 0; i < N; ++i)
     {
-      ck_assert (interval_tree_contains (&tree, &nodes[index[i]]));
+      ck_assert (itree_contains (&tree, &nodes[index[i]]));
       itree_remove (&tree, &nodes[index[i]]);
     }
-  ck_assert_ptr_null (tree.root);
+  ck_assert (itree_empty_p (&tree));
   ck_assert_int_eq (tree.size, 0);
 }
 END_TEST
@@ -748,12 +747,12 @@ END_TEST
 
 START_TEST (test_generator_1)
 {
-  struct itree_node node, *n;
-  struct itree_iterator *g;
-  interval_tree_init (&tree);
+  struct itree_node node = {0}, *n;
+  struct itree_iterator it, *g;
+  itree_init (&tree);
 
   itree_insert (&tree, &node, 10, 20);
-  g = itree_iterator_start (&tree, 0, 30, ITREE_ASCENDING, NULL, 0);
+  g = itree_iterator_start (&it, &tree, 0, 30, ITREE_ASCENDING);
   n = itree_iterator_next (g);
   ck_assert_ptr_eq (n, &node);
   ck_assert_int_eq (n->begin, 10);
@@ -761,13 +760,11 @@ START_TEST (test_generator_1)
   ck_assert_ptr_null (itree_iterator_next (g));
   ck_assert_ptr_null (itree_iterator_next (g));
   ck_assert_ptr_null (itree_iterator_next (g));
-  itree_iterator_finish (g);
 
-  g = itree_iterator_start (&tree, 30, 50, ITREE_ASCENDING, NULL, 0);
+  g = itree_iterator_start (&it, &tree, 30, 50, ITREE_ASCENDING);
   ck_assert_ptr_null (itree_iterator_next (g));
   ck_assert_ptr_null (itree_iterator_next (g));
   ck_assert_ptr_null (itree_iterator_next (g));
-  itree_iterator_finish (g);
 }
 END_TEST
 
@@ -777,8 +774,8 @@ test_check_generator (struct itree_tree *tree,
                       int n, ...)
 {
   va_list ap;
-  struct itree_iterator *g =
-    itree_iterator_start (tree, begin, end, ITREE_ASCENDING, NULL, 0);
+  struct itree_iterator it, *g =
+    itree_iterator_start (&it, tree, begin, end, ITREE_ASCENDING);
 
   va_start (ap, n);
   for (int i = 0; i < n; ++i)
@@ -790,13 +787,12 @@ test_check_generator (struct itree_tree *tree,
   va_end (ap);
   ck_assert_ptr_null (itree_iterator_next (g));
   ck_assert_ptr_null (itree_iterator_next (g));
-  itree_iterator_finish (g);
 }
 
 START_TEST (test_generator_2)
 {
-  interval_tree_init (&tree);
-  struct itree_node nodes[3];
+  itree_init (&tree);
+  struct itree_node nodes[3] = {0};
   for (int i = 0; i < 3; ++i)
     itree_insert (&tree, &nodes[i], 10 * (i + 1), 10 * (i + 2));
 
@@ -830,7 +826,7 @@ test_create_tree (struct itree_node *nodes, int n, bool doshuffle)
       shuffle (index, n);
     }
 
-  interval_tree_init (&tree);
+  itree_init (&tree);
   for (int i = 0; i < n; ++i)
     {
       struct itree_node *node = &nodes[index[i]];
@@ -862,8 +858,8 @@ START_TEST (test_generator_5)
                                 {.begin = 30, .end = 50},
                                 {.begin = 40, .end = 60}};
   test_create_tree (nodes, N, false);
-  struct itree_iterator *g =
-    itree_iterator_start (&tree, 0, 100, ITREE_PRE_ORDER, NULL, 0);
+  struct itree_iterator it, *g =
+    itree_iterator_start (&it, &tree, 0, 100, ITREE_PRE_ORDER);
   for (int i = 0; i < N; ++i)
     {
       struct itree_node *n = itree_iterator_next (g);
@@ -876,7 +872,6 @@ START_TEST (test_generator_5)
         case 3: ck_assert_int_eq (40, n->begin); break;
         }
     }
-  itree_iterator_finish (g);
 }
 END_TEST
 
@@ -888,8 +883,8 @@ START_TEST (test_generator_6)
                                 {.begin = 30, .end = 50},
                                 {.begin = 40, .end = 60}};
   test_create_tree (nodes, N, true);
-  struct itree_iterator *g =
-    itree_iterator_start (&tree, 0, 100, ITREE_ASCENDING, NULL, 0);
+  struct itree_iterator it, *g =
+    itree_iterator_start (&it, &tree, 0, 100, ITREE_ASCENDING);
   for (int i = 0; i < N; ++i)
     {
       struct itree_node *n = itree_iterator_next (g);
@@ -902,7 +897,6 @@ START_TEST (test_generator_6)
         case 3: ck_assert_int_eq (40, n->begin); break;
         }
     }
-  itree_iterator_finish (g);
 }
 END_TEST
 
@@ -914,8 +908,8 @@ START_TEST (test_generator_7)
                                 {.begin = 30, .end = 50},
                                 {.begin = 40, .end = 60}};
   test_create_tree (nodes, N, true);
-  struct itree_iterator *g =
-    itree_iterator_start (&tree, 0, 100, ITREE_DESCENDING, NULL, 0);
+  struct itree_iterator it, *g =
+    itree_iterator_start (&it, &tree, 0, 100, ITREE_DESCENDING);
   for (int i = 0; i < N; ++i)
     {
       struct itree_node *n = itree_iterator_next (g);
@@ -928,7 +922,6 @@ START_TEST (test_generator_7)
         case 3: ck_assert_int_eq (10, n->begin); break;
         }
     }
-  itree_iterator_finish (g);
 }
 END_TEST
 
@@ -938,14 +931,13 @@ START_TEST (test_generator_8)
   struct itree_node nodes[N] = {{.begin = 20, .end = 30},
                                 {.begin = 40, .end = 50}};
   test_create_tree (nodes, N, false);
-  struct itree_iterator *g =
-    itree_iterator_start (&tree, 1, 60, ITREE_DESCENDING, NULL, 0);
+  struct itree_iterator it, *g =
+    itree_iterator_start (&it, &tree, 1, 60, ITREE_DESCENDING);
   struct itree_node *n = itree_iterator_next (g);
   ck_assert_int_eq (n->begin, 40);
   itree_iterator_narrow (g, 50, 60);
   n = itree_iterator_next (g);
   ck_assert_ptr_null (n);
-  itree_iterator_finish (g);
 }
 END_TEST
 
@@ -955,14 +947,13 @@ START_TEST (test_generator_9)
   struct itree_node nodes[N] = {{.begin = 25, .end = 25},
                                 {.begin = 20, .end = 30}};
   test_create_tree (nodes, N, false);
-  struct itree_iterator *g =
-    itree_iterator_start (&tree, 1, 30, ITREE_DESCENDING, NULL, 0);
+  struct itree_iterator it, *g =
+    itree_iterator_start (&it, &tree, 1, 30, ITREE_DESCENDING);
   struct itree_node *n = itree_iterator_next (g);
   ck_assert_int_eq (n->begin, 25);
   itree_iterator_narrow (g, 25, 30);
   n = itree_iterator_next (g);
   ck_assert_int_eq (n->begin, 20);
-  itree_iterator_finish (g);
 }
 END_TEST
 
@@ -981,7 +972,7 @@ static void
 test_setup_gap_node (ptrdiff_t begin, ptrdiff_t end,
                      bool front_advance, bool rear_advance)
 {
-  interval_tree_init (&gap_tree);
+  itree_init (&gap_tree);
   gap_node.front_advance = front_advance;
   gap_node.rear_advance = rear_advance;
   itree_insert (&gap_tree, &gap_node, begin, end);
@@ -1281,9 +1272,8 @@ main (void)
   Suite *s = basic_suite ();
   SRunner *sr = srunner_create (s);
 
-  init_itree ();
   srunner_run_all (sr, CK_ENV);
-  int nfailed = srunner_ntests_failed (sr);
+  int failed = srunner_ntests_failed (sr);
   srunner_free (sr);
-  return (nfailed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 }

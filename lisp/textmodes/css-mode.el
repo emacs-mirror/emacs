@@ -1353,9 +1353,26 @@ for determining whether point is within a selector."
    :language 'css
    '((string_value) @font-lock-string-face)
 
+   :feature 'keyword
+   :language 'css
+   '(["@media"
+      "@import"
+      "@charset"
+      "@namespace"
+      "@keyframes"] @font-lock-builtin-face
+      ["and"
+       "or"
+       "not"
+       "only"
+       "selector"] @font-lock-keyword-face)
+
    :feature 'variable
    :language 'css
    '((plain_value) @font-lock-variable-name-face)
+
+   :language 'css
+   :feature 'operator
+   `(["=" "~=" "^=" "|=" "*=" "$="] @font-lock-operator-face)
 
    :feature 'selector
    :language 'css
@@ -1377,7 +1394,18 @@ for determining whether point is within a selector."
    :language 'css
    '((integer_value) @font-lock-number-face
      (float_value) @font-lock-number-face
-     (unit) @font-lock-constant-face)
+     (unit) @font-lock-constant-face
+     (important) @font-lock-builtin-face)
+
+   :feature 'query
+   :language 'css
+   '((keyword_query) @font-lock-property-face
+     (feature_name) @font-lock-property-face)
+
+
+   :feature 'bracket
+   :language 'css
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
 
    :feature 'error
    :language 'css
@@ -1794,6 +1822,7 @@ Use `\\[fill-paragraph]' to reformat CSS declaration blocks.  It
 can also be used to fill comments.
 
 \\{css-mode-map}"
+  :syntax-table css-mode-syntax-table
   (when (treesit-ready-p 'css)
     ;; Borrowed from `css-mode'.
     (add-hook 'completion-at-point-functions
@@ -1808,14 +1837,9 @@ can also be used to fill comments.
     (setq-local treesit-defun-type-regexp "rule_set")
     (setq-local treesit-font-lock-settings css--treesit-settings)
     (setq-local treesit-font-lock-feature-list
-                '((selector comment)
+                '((selector comment query keyword)
                   (property constant string)
-                  (error variable function)))
-    ;; Tree-sitter-css, for whatever reason, cannot reliably return
-    ;; the captured nodes in a given range (it instead returns the
-    ;; nodes preceding range).  Before this is fixed in
-    ;; tree-sitter-css, use this heuristic as a temporary fix.
-    (setq-local treesit--font-lock-query-expand-range (cons 80 80))
+                  (error variable function operator bracket)))
     (setq-local imenu-create-index-function #'css--treesit-imenu)
     (setq-local which-func-functions nil)
     (treesit-major-mode-setup)))

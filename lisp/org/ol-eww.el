@@ -4,7 +4,7 @@
 
 ;; Author: Marco Wahl <marcowahlsoft>a<gmailcom>
 ;; Keywords: link, eww
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -44,13 +44,13 @@
 
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ol)
 (require 'cl-lib)
 (require 'eww)
-
-;; For Emacsen < 25.
-(defvar eww-current-title)
-(defvar eww-current-url)
 
 
 ;; Store Org link in Eww mode buffer
@@ -67,14 +67,10 @@
   (when (eq major-mode 'eww-mode)
     (org-link-store-props
      :type "eww"
-     :link (if (< emacs-major-version 25)
-	       eww-current-url
-	     (eww-current-url))
+     :link (eww-current-url)
      :url (url-view-url t)
-     :description (if (< emacs-major-version 25)
-		      (or eww-current-title eww-current-url)
-		    (or (plist-get eww-data :title)
-			(eww-current-url))))))
+     :description (or (plist-get eww-data :title)
+                      (eww-current-url)))))
 
 
 ;; Some auxiliary functions concerning links in Eww buffers

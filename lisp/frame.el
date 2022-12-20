@@ -1188,7 +1188,7 @@ e.g. (mapc \\='frame-set-background-mode (frame-list))."
 
 (defvar inhibit-frame-set-background-mode nil)
 
-(defun frame--current-backround-mode (frame)
+(defun frame--current-background-mode (frame)
   (let* ((frame-default-bg-mode (frame-terminal-default-bg-mode frame))
          (bg-color (frame-parameter frame 'background-color))
          (tty-type (tty-type frame))
@@ -1218,7 +1218,7 @@ If optional arg KEEP-FACE-SPECS is non-nil, don't recalculate
 face specs for the new background mode."
   (unless inhibit-frame-set-background-mode
     (let* ((bg-mode
-	    (frame--current-backround-mode frame))
+	    (frame--current-background-mode frame))
 	   (display-type
 	    (cond ((null (window-system frame))
 		   (if (tty-display-color-p frame) 'color 'mono))
@@ -1297,7 +1297,7 @@ the `background-mode' terminal parameter."
 ;;   :global t
 ;;   :group 'faces
 ;;   (when (eq dark-mode
-;;             (eq 'light (frame--current-backround-mode (selected-frame))))
+;;             (eq 'light (frame--current-background-mode (selected-frame))))
 ;;     ;; FIXME: Change the face's SPEC instead?
 ;;     (set-face-attribute 'default nil
 ;;                         :foreground (face-attribute 'default :background)
@@ -3104,6 +3104,9 @@ If FRAME isn't maximized, show the title bar."
   (set-frame-parameter
    frame 'undecorated
    (eq (alist-get 'fullscreen (frame-parameters frame)) 'maximized)))
+
+(define-obsolete-function-alias 'frame--current-backround-mode
+  #'frame--current-background-mode "30.1")
 
 (provide 'frame)
 

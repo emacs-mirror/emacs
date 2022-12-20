@@ -2605,12 +2605,14 @@ Must be handled by the callers."
 	      file-selinux-context file-symlink-p file-truename
 	      file-writable-p find-backup-file-name get-file-buffer
 	      insert-directory insert-file-contents load
-	      make-directory make-directory-internal set-file-acl
-	      set-file-modes set-file-selinux-context set-file-times
+	      make-directory set-file-acl set-file-modes
+	      set-file-selinux-context set-file-times
 	      substitute-in-file-name unhandled-file-name-directory
 	      vc-registered
 	      ;; Emacs 27+ only.
 	      file-system-info
+	      ;; Emacs 28- only.
+	      make-directory-internal
 	      ;; Emacs 28+ only.
 	      file-locked-p lock-file make-lock-file-name unlock-file
 	      ;; Emacs 29+ only.
@@ -2656,7 +2658,7 @@ Must be handled by the callers."
 	      ;; Emacs 27+ only.
 	      exec-path make-process
 	      ;; Emacs 29+ only.
-              list-system-processes process-attributes))
+              list-system-processes memory-info process-attributes))
     default-directory)
    ;; PROC.
    ((member operation '(file-notify-rm-watch file-notify-valid-p))
@@ -2949,7 +2951,7 @@ They are completed by \"M-x TAB\" only if the current buffer is remote."
   (tramp-tramp-file-p (tramp-get-default-directory buffer)))
 
 (defun tramp-connectable-p (vec-or-filename)
-  "Check, whether it is possible to connect the remote host w/o side-effects.
+  "Check if it is possible to connect the remote host without side-effects.
 This is true, if either the remote host is already connected, or if we are
 not in completion mode."
   (let ((tramp-verbose 0)
@@ -3999,7 +4001,7 @@ Let-bind it when necessary.")
    ((not (file-exists-p file1)) nil)
    ((not (file-exists-p file2)) t)
    ;; Tramp reads and writes timestamps on second level.  So we round
-   ;; the timestamps to seconds w/o fractions.
+   ;; the timestamps to seconds without fractions.
    ;; `time-convert' has been introduced with Emacs 27.1.
    ((fboundp 'time-convert)
     (time-less-p
@@ -4883,6 +4885,84 @@ support symbolic links."
   (tramp-error
    (tramp-dissect-file-name (expand-file-name linkname)) 'file-error
    "make-symbolic-link not supported"))
+
+(defun tramp-handle-memory-info ()
+  "Like `memory-info' for Tramp files."
+  (let ((result '(0 0 0 0))
+        process-file-side-effects)
+    (with-temp-buffer
+      (cond
+       ;; GNU/Linux.
+       ((zerop (process-file "cat" nil '(t) nil "/proc/meminfo"))
+        (goto-char (point-min))
+        (when
+            (re-search-forward
+             (rx bol "MemTotal:" (* space) (group (+ digit)) (* space) "kB" eol)
+             nil 'noerror)
+          (setcar (nthcdr 0 result) (string-to-number (match-string 1))))
+        (goto-char (point-min))
+        (when
+            (re-search-forward
+             (rx bol "MemFree:" (* space) (group (+ digit)) (* space) "kB" eol)
+             nil 'noerror)
+          (setcar (nthcdr 1 result) (string-to-number (match-string 1))))
+        (goto-char (point-min))
+        (when
+            (re-search-forward
+             (rx bol "SwapTotal:" (* space) (group (+ digit)) (* space) "kB" eol)
+             nil 'noerror)
+          (setcar (nthcdr 2 result) (string-to-number (match-string 1))))
+        (goto-char (point-min))
+        (when
+            (re-search-forward
+             (rx bol "SwapFree:" (* space) (group (+ digit)) (* space) "kB" eol)
+             nil 'noerror)
+          (setcar (nthcdr 3 result) (string-to-number (match-string 1)))))
+
+       ;; BSD.
+       ;; https://raw.githubusercontent.com/ocochard/myscripts/master/FreeBSD/freebsd-memory.sh
+       ((zerop (process-file "sysctl" nil '(t) nil "-a"))
+        (goto-char (point-min))
+        (when
+            (re-search-forward
+             (rx bol "hw.pagesize:" (* space) (group (+ digit)) eol)
+             nil 'noerror)
+          (let ((pagesize (string-to-number (match-string 1))))
+            (goto-char (point-min))
+            (when
+                (re-search-forward
+                 (rx bol "vm.stats.vm.v_page_count:" (* space)
+                     (group (+ digit)) eol)
+                 nil 'noerror)
+              (setcar
+               (nthcdr 0 result)
+               (/ (* (string-to-number (match-string 1)) pagesize) 1024)))
+            (goto-char (point-min))
+            (when
+                (re-search-forward
+                 (rx bol "vm.stats.vm.v_free_count:" (* space)
+                     (group (+ digit)) eol)
+                 nil 'noerror)
+              (setcar
+               (nthcdr 1 result)
+               (/ (* (string-to-number (match-string 1)) pagesize) 1024)))))
+        (erase-buffer)
+        (when (zerop (process-file "swapctl" nil '(t) nil "-sk"))
+          (goto-char (point-min))
+          (when
+              (re-search-forward
+               (rx bol "Total:" (* space)
+                   (group (+ digit)) (* space) (group (+ digit)) eol)
+               nil 'noerror)
+            (setcar (nthcdr 2 result) (string-to-number (match-string 1)))
+            (setcar
+             (nthcdr 3 result)
+             (- (string-to-number (match-string 1))
+                (string-to-number (match-string 2)))))))))
+
+    ;; Return result.
+    (unless (equal result '(0 0 0 0))
+      result)))
 
 (defun tramp-handle-process-attributes (pid)
   "Like `process-attributes' for Tramp files."

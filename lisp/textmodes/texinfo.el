@@ -347,6 +347,8 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 (defun texinfo-flymake (report-fn &rest _)
   "Texinfo checking for Flymake.
 
+It uses either \"makeinfo\" or \"texi2any\", in that order.
+
 REPORT-FN is the callback function."
   (let ((executable (or (executable-find "makeinfo")
                         (executable-find "texi2any")))

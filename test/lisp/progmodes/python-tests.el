@@ -280,28 +280,33 @@ aliqua."
    "a, b, c = 1, 2, 3"
    '((1 . font-lock-variable-name-face) (2)
      (4 . font-lock-variable-name-face) (5)
-     (7 . font-lock-variable-name-face) (8))))
+     (7 . font-lock-variable-name-face) (8)
+     (9 . font-lock-operator-face) (10))))
 
 (ert-deftest python-font-lock-assignment-statement-2 ()
   (python-tests-assert-faces
    "a, *b, c = 1, 2, 3, 4, 5"
    '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-operator-face)
      (5 . font-lock-variable-name-face) (6)
-     (8 . font-lock-variable-name-face) (9))))
+     (8 . font-lock-variable-name-face) (9)
+     (10 . font-lock-operator-face) (11))))
 
 (ert-deftest python-font-lock-assignment-statement-3 ()
   (python-tests-assert-faces
    "[a, b] = (1, 2)"
    '((1)
      (2 . font-lock-variable-name-face) (3)
-     (5 . font-lock-variable-name-face) (6))))
+     (5 . font-lock-variable-name-face) (6)
+     (8 . font-lock-operator-face) (9))))
 
 (ert-deftest python-font-lock-assignment-statement-4 ()
   (python-tests-assert-faces
    "(l[1], l[2]) = (10, 11)"
    '((1)
      (2 . font-lock-variable-name-face) (3)
-     (8 . font-lock-variable-name-face) (9))))
+     (8 . font-lock-variable-name-face) (9)
+     (14 . font-lock-operator-face) (15))))
 
 (ert-deftest python-font-lock-assignment-statement-5 ()
   (python-tests-assert-faces
@@ -310,22 +315,29 @@ aliqua."
      (2 . font-lock-variable-name-face) (3)
      (5 . font-lock-variable-name-face) (6)
      (8 . font-lock-variable-name-face) (9)
+     (11 . font-lock-operator-face)
      (12 . font-lock-variable-name-face) (13)
+     (15 . font-lock-operator-face) (16)
+     (17 . font-lock-operator-face)
      (18 . font-lock-variable-name-face) (19)
-     (21 . font-lock-variable-name-face) (22))))
+     (21 . font-lock-variable-name-face) (22)
+     (23 . font-lock-operator-face) (24))))
 
 (ert-deftest python-font-lock-assignment-statement-6 ()
   (python-tests-assert-faces
    "(a,) = 'foo',"
    '((1)
      (2 . font-lock-variable-name-face) (3)
+     (6 . font-lock-operator-face) (7)
      (8 . font-lock-string-face) (13))))
 
 (ert-deftest python-font-lock-assignment-statement-7 ()
   (python-tests-assert-faces
    "(*a,) = ['foo', 'bar', 'baz']"
    '((1)
+     (2 . font-lock-operator-face)
      (3 . font-lock-variable-name-face) (4)
+     (7 . font-lock-operator-face) (8)
      (10 . font-lock-string-face) (15)
      (17 . font-lock-string-face) (22)
      (24 . font-lock-string-face) (29))))
@@ -334,6 +346,7 @@ aliqua."
   (python-tests-assert-faces
    "d = D('a', ['b'], 'c')"
    '((1 . font-lock-variable-name-face) (2)
+     (3 . font-lock-operator-face) (4)
      (7 . font-lock-string-face) (10)
      (13 . font-lock-string-face) (16)
      (19 . font-lock-string-face) (22))))
@@ -344,7 +357,9 @@ aliqua."
    '((1)
      (3 . font-lock-variable-name-face) (4)
      (8 . font-lock-variable-name-face) (9)
+     (14 . font-lock-operator-face) (15)
      (17 . font-lock-variable-name-face) (18)
+     (19 . font-lock-operator-face) (20)
      (21 . font-lock-string-face) (24)
      (26 . font-lock-string-face) (29)
      (31 . font-lock-string-face) (34)
@@ -355,7 +370,8 @@ aliqua."
   (python-tests-assert-faces
    "a: int = 5"
    '((1 . font-lock-variable-name-face) (2)
-     (4 . font-lock-builtin-face) (7))))
+     (4 . font-lock-builtin-face) (7)
+     (8 . font-lock-operator-face) (9))))
 
 (ert-deftest python-font-lock-assignment-statement-11 ()
   (python-tests-assert-faces
@@ -364,13 +380,15 @@ aliqua."
      (19 . font-lock-builtin-face) (22)
      (40 . font-lock-builtin-face) (43)
      (46 . font-lock-builtin-face) (49)
+     (52 . font-lock-operator-face) (53)
      (55 . font-lock-constant-face) (59)
      (61 . font-lock-string-face) (66))))
 
 (ert-deftest python-font-lock-assignment-statement-12 ()
   (python-tests-assert-faces
    "c: Collection = {1, 2, 3}"
-   '((1 . font-lock-variable-name-face) (2))))
+   '((1 . font-lock-variable-name-face) (2)
+     (15 . font-lock-operator-face) (16))))
 
 (ert-deftest python-font-lock-assignment-statement-13 ()
   (python-tests-assert-faces
@@ -378,6 +396,7 @@ aliqua."
    '((1 . font-lock-variable-name-face) (2)
      (12 . font-lock-builtin-face) (15)
      (17 . font-lock-builtin-face) (20)
+     (22 . font-lock-operator-face) (23)
      (28 . font-lock-string-face) (33)
      (38 . font-lock-string-face) (43))))
 
@@ -386,28 +405,38 @@ aliqua."
    "(a) = 5; (b) = 6"
    '((1)
      (2 . font-lock-variable-name-face) (3)
-     (11 . font-lock-variable-name-face) (12))))
+     (5 . font-lock-operator-face) (6)
+     (11 . font-lock-variable-name-face) (12)
+     (14 . font-lock-operator-face) (15))))
 
 (ert-deftest python-font-lock-assignment-statement-15 ()
   (python-tests-assert-faces
    "[a] = 5,; [b] = 6,"
    '((1)
      (2 . font-lock-variable-name-face) (3)
-     (12 . font-lock-variable-name-face) (13))))
+     (5 . font-lock-operator-face) (6)
+     (12 . font-lock-variable-name-face) (13)
+     (15 . font-lock-operator-face) (16))))
 
 (ert-deftest python-font-lock-assignment-statement-16 ()
   (python-tests-assert-faces
    "[*a] = 5, 6; [*b] = 7, 8"
    '((1)
+     (2 . font-lock-operator-face)
      (3 . font-lock-variable-name-face) (4)
-     (16 . font-lock-variable-name-face) (17))))
+     (6 . font-lock-operator-face) (7)
+     (15 . font-lock-operator-face)
+     (16 . font-lock-variable-name-face) (17)
+     (19 . font-lock-operator-face) (20))))
 
 (ert-deftest python-font-lock-assignment-statement-17 ()
   (python-tests-assert-faces
    "(a) = (b) = 1"
-   `((1)
+   '((1)
      (2 . font-lock-variable-name-face) (3)
-     (8 . font-lock-variable-name-face) (9))))
+     (5 . font-lock-operator-face) (6)
+     (8 . font-lock-variable-name-face) (9)
+     (11 . font-lock-operator-face) (12))))
 
 (ert-deftest python-font-lock-assignment-statement-18 ()
   (python-tests-assert-faces
@@ -420,13 +449,21 @@ def f(x: CustomInt) -> CustomInt:
     return res
 "
    '((1 . font-lock-variable-name-face) (10)
+     (11 . font-lock-operator-face) (12)
      (13 . font-lock-builtin-face) (16)
      (18 . font-lock-keyword-face) (21)
      (22 . font-lock-function-name-face) (23)
+     (38 . font-lock-operator-face) (40)
      (56 . font-lock-variable-name-face) (57)
+     (58 . font-lock-operator-face) (59)
+     (62 . font-lock-operator-face) (63)
      (70 . font-lock-variable-name-face) (72)
+     (94 . font-lock-operator-face) (95)
+     (102 . font-lock-operator-face) (103)
      (111 . font-lock-variable-name-face) (114)
+     (126 . font-lock-operator-face) (127)
      (128 . font-lock-builtin-face) (131)
+     (136 . font-lock-operator-face) (137)
      (144 . font-lock-keyword-face) (150))))
 
 (ert-deftest python-font-lock-assignment-statement-multiline-1 ()
@@ -442,7 +479,8 @@ def f(x: CustomInt) -> CustomInt:
 "
    '((1)
      (8 . font-lock-variable-name-face) (9)
-     (15 . font-lock-variable-name-face) (16))
+     (15 . font-lock-variable-name-face) (16)
+     (19 . font-lock-operator-face) (20))
    "#" "="))
 
 (ert-deftest python-font-lock-assignment-statement-multiline-2 ()
@@ -453,7 +491,9 @@ def f(x: CustomInt) -> CustomInt:
 ] # 5, 6
 "
    '((1)
-     (9 . font-lock-variable-name-face) (10))
+     (8 . font-lock-operator-face)
+     (9 . font-lock-variable-name-face) (10)
+     (13 . font-lock-operator-face) (14))
    "#" "="))
 
 (ert-deftest python-font-lock-assignment-statement-multiline-3 ()
@@ -471,7 +511,8 @@ def f(x: CustomInt) -> CustomInt:
     3"
    '((1 . font-lock-variable-name-face) (2)
      (15 . font-lock-variable-name-face) (16)
-     (29 . font-lock-variable-name-face) (30))
+     (29 . font-lock-variable-name-face) (30)
+     (36 . font-lock-operator-face) (37))
    "#" "="))
 
 (ert-deftest python-font-lock-assignment-statement-multiline-4 ()
@@ -482,7 +523,8 @@ def f(x: CustomInt) -> CustomInt:
     #\\
     5"
    '((1 . font-lock-variable-name-face) (2)
-     (15 . font-lock-builtin-face) (18))
+     (15 . font-lock-builtin-face) (18)
+     (24 . font-lock-operator-face) (25))
    "#" "="))
 
 (ert-deftest python-font-lock-assignment-statement-multiline-5 ()
@@ -500,7 +542,9 @@ def f(x: CustomInt) -> CustomInt:
     6"
    '((1)
      (8 . font-lock-variable-name-face) (9)
-     (46 . font-lock-variable-name-face) (47))
+     (18 . font-lock-operator-face) (19)
+     (46 . font-lock-variable-name-face) (47)
+     (60 . font-lock-operator-face) (61))
    "#" "="))
 
 (ert-deftest python-font-lock-assignment-statement-multiline-6 ()
@@ -518,8 +562,32 @@ def f(x: CustomInt) -> CustomInt:
     6"
    '((1)
      (7 . font-lock-variable-name-face) (8)
-     (43 . font-lock-variable-name-face) (44))
+     (16 . font-lock-operator-face) (17)
+     (43 . font-lock-variable-name-face) (44)
+     (56 . font-lock-operator-face) (57))
    "#" "="))
+
+(ert-deftest python-font-lock-operator-1 ()
+  (python-tests-assert-faces
+   "1 << 2 ** 3 == +4%-5|~6&7^8%9"
+   '((1)
+     (3 . font-lock-operator-face) (5)
+     (8 . font-lock-operator-face) (10)
+     (13 . font-lock-operator-face) (15)
+     (16 . font-lock-operator-face) (17)
+     (18 . font-lock-operator-face) (20)
+     (21 . font-lock-operator-face) (23)
+     (24 . font-lock-operator-face) (25)
+     (26 . font-lock-operator-face) (27)
+     (28 . font-lock-operator-face) (29))))
+
+(ert-deftest python-font-lock-operator-2 ()
+  "Keyword operators are font-locked as keywords."
+  (python-tests-assert-faces
+   "is_ is None"
+   '((1)
+     (5 . font-lock-keyword-face) (7)
+     (8 . font-lock-constant-face))))
 
 (ert-deftest python-font-lock-escape-sequence-string-newline ()
   (python-tests-assert-faces
@@ -603,12 +671,16 @@ u\"\\n\""
      (196 . font-lock-constant-face)
      (215 . font-lock-string-face) (218)
      (221 . font-lock-string-face) (254)
+     (259 . font-lock-operator-face) (260)
      (271 . font-lock-string-face) (274)
      (277 . font-lock-string-face) (310)
+     (315 . font-lock-operator-face) (316)
      (327 . font-lock-string-face) (330)
      (333 . font-lock-string-face) (366)
+     (371 . font-lock-operator-face) (372)
      (383 . font-lock-string-face) (386)
      (389 . font-lock-string-face) (422)
+     (427 . font-lock-operator-face) (428)
      (439 . font-lock-string-face) (442)
      (444 . font-lock-string-face) (497)
      (499 . font-lock-string-face) (552)
@@ -4566,6 +4638,11 @@ import abc
 
 (ert-deftest python-ffap-module-path-1 ()
   (skip-unless (executable-find python-tests-shell-interpreter))
+  ;; Skip the test on macOS, since the standard Python installation uses
+  ;; libedit rather than readline which confuses the running of an inferior
+  ;; interpreter in this case (see bug#59477 and bug#25753).
+  (skip-unless (not (eq system-type 'darwin)))
+  (trace-function 'python-shell-output-filter)
   (python-tests-with-temp-buffer-with-shell
    "
 import abc

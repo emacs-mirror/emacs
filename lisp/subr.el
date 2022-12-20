@@ -1792,10 +1792,11 @@ and `event-end' functions."
   (or (posn-image position) (posn-string position)))
 
 (defsubst posn-object-x-y (position)
-  "Return the x and y coordinates relative to the object of POSITION.
+  "Return the x and y coordinates relative to the glyph of object of POSITION.
 The return value has the form (DX . DY), where DX and DY are
-given in pixels.  POSITION should be a list of the form returned
-by `event-start' and `event-end'."
+given in pixels, and they are relative to the top-left corner of
+the clicked glyph of object at POSITION.  POSITION should be a
+list of the form returned by `event-start' and `event-end'."
   (nth 8 position))
 
 (defsubst posn-object-width-height (position)
@@ -3854,7 +3855,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (let ((o1 (if (overlay-buffer o)
                 (make-overlay (overlay-start o) (overlay-end o)
                               ;; FIXME: there's no easy way to find the
-                              ;; insertion-type of the two markers.
+                              ;; insertion-type of overlay's start and end.
                               (overlay-buffer o))
               (let ((o1 (make-overlay (point-min) (point-min))))
                 (delete-overlay o1)
@@ -3934,6 +3935,31 @@ See also `locate-user-emacs-file'.")
 (defsubst buffer-narrowed-p ()
   "Return non-nil if the current buffer is narrowed."
   (/= (- (point-max) (point-min)) (buffer-size)))
+
+(defmacro with-narrowing (start end &rest rest)
+  "Execute BODY with restrictions set to START and END.
+
+The current restrictions, if any, are restored upon return.
+
+With the optional :locked TAG argument, inside BODY,
+`narrow-to-region' and `widen' can be used only within the START
+and END limits, unless the restrictions are unlocked by calling
+`narrowing-unlock' with TAG.  See `narrowing-lock' for a more
+detailed description.
+
+\(fn START END [:locked TAG] BODY)"
+  (if (eq (car rest) :locked)
+      `(internal--with-narrowing ,start ,end (lambda () ,@(cddr rest))
+                                 ,(cadr rest))
+    `(internal--with-narrowing ,start ,end (lambda () ,@rest))))
+
+(defun internal--with-narrowing (start end body &optional tag)
+  "Helper function for `with-narrowing', which see."
+  (save-restriction
+    (progn
+      (narrow-to-region start end)
+      (if tag (narrowing-lock tag))
+      (funcall body))))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.
@@ -5409,9 +5435,11 @@ and replace a sub-expression, e.g.
       (apply #'concat (nreverse matches)))))
 
 (defsubst string-equal-ignore-case (string1 string2)
-  "Like `string-equal', but case-insensitive.
+  "Compare STRING1 and STRING2 case-insensitively.
 Upper-case and lower-case letters are treated as equal.
-Unibyte strings are converted to multibyte for comparison."
+Unibyte strings are converted to multibyte for comparison.
+
+See also `string-equal'."
   (declare (pure t) (side-effect-free t))
   (eq t (compare-strings string1 0 nil string2 0 nil t)))
 
@@ -6056,14 +6084,8 @@ command is called from a keyboard macro?"
              ;; Skip special forms (from non-compiled code).
              (and frame (null (car frame)))
              ;; Skip also `interactive-p' (because we don't want to know if
-             ;; interactive-p was called interactively but if it's caller was)
-             ;; and `byte-code' (idem; this appears in subexpressions of things
-             ;; like condition-case, which are wrapped in a separate bytecode
-             ;; chunk).
-             ;; FIXME: For lexical-binding code, this is much worse,
-             ;; because the frames look like "byte-code -> funcall -> #[...]",
-             ;; which is not a reliable signature.
-             (memq (nth 1 frame) '(interactive-p 'byte-code))
+             ;; interactive-p was called interactively but if it's caller was).
+             (eq (nth 1 frame) 'interactive-p)
              ;; Skip package-specific stack-frames.
              (let ((skip (run-hook-with-args-until-success
                           'called-interactively-p-functions

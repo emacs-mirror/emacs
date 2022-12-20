@@ -4866,12 +4866,13 @@
 2012-10-12  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-mode-map):
-	Replace subtitute-key-definition with proper command remapping.
+	Replace substitute-key-definition with proper command remapping.
 	(python-nav--up-list): Fix behavior for blocks on the same level.
 
 2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* help-fns.el (describe-function-1): Handle autoloads w/o docstrings.
+	* help-fns.el (describe-function-1): Handle autoloads without
+	docstrings.
 
 	* emacs-lisp/bytecomp.el (byte-compile-eval): Adjust to long-ago
 	changes to the format of load-history.
@@ -24324,7 +24325,7 @@
 	Pass nil for `after-find-file-from-revert-buffer'.
 
 	* saveplace.el (save-place-find-file-hook): Use new variable
-	`rever-buffer-in-progress-p', not `after-find-file-from-revert-buffer'.
+	`revert-buffer-in-progress-p', not `after-find-file-from-revert-buffer'.
 
 2011-04-06  Glenn Morris  <rgm@gnu.org>
 

@@ -1002,6 +1002,28 @@ Address sanitization is incompatible with undefined-behavior
 sanitization, unfortunately.  Address sanitization is also
 incompatible with the --with-dumping=unexec option of 'configure'.
 
+*** Address poisoning/unpoisoning
+
+When compiled with address sanitization, Emacs will also try to mark
+dead/free lisp objects as poisoned, forbidding them from being
+accessed without being unpoisoned first.  This adds an extra layer
+of checking with objects in internal free lists, which may otherwise
+evade traditional use-after-free checks. To disable this, add
+'allow_user_poisoning=0' to ASAN_OPTIONS, or build Emacs with
+'-DGC_ASAN_POISON_OBJECTS=0' in CFLAGS.
+
+While using GDB, memory addresses can be inspected by using helper
+functions additionally provided by the ASan library:
+
+  (gdb) call __asan_describe_address(ptr)
+
+To check whether an address range is poisoned or not, use:
+
+  (gdb) call __asan_region_is_poisoned(ptr, 8)
+
+Additional functions can be found in the header
+'sanitizer/asan_interface.h' in your compiler's headers directory.
+
 ** Running Emacs under Valgrind
 
 Valgrind <https://valgrind.org/> is free software that can be useful

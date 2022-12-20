@@ -155,7 +155,7 @@ default:
 .filenotify-gio-template:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    # - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
         - "**.in"
         - lisp/autorevert.el
@@ -246,17 +246,17 @@ test-gnustep:
     target: emacs-gnustep
     make_params: install
 
-build-native-comp-speed0:
-  stage: native-comp-images
-  extends: [.job-template, .build-template, .native-comp-template]
-  variables:
-    target: emacs-native-comp-speed0
+# build-native-comp-speed0:
+#   stage: native-comp-images
+#   extends: [.job-template, .build-template, .native-comp-template]
+#   variables:
+#     target: emacs-native-comp-speed0
 
-build-native-comp-speed1:
-  stage: native-comp-images
-  extends: [.job-template, .build-template, .native-comp-template]
-  variables:
-    target: emacs-native-comp-speed1
+# build-native-comp-speed1:
+#   stage: native-comp-images
+#   extends: [.job-template, .build-template, .native-comp-template]
+#   variables:
+#     target: emacs-native-comp-speed1
 
 build-native-comp-speed2:
   stage: native-comp-images
@@ -264,14 +264,14 @@ build-native-comp-speed2:
   variables:
     target: emacs-native-comp-speed2
 
-test-native-comp-speed0:
+test-native-comp-speed2:
   stage: native-comp
   extends: [.job-template, .test-template, .native-comp-template]
   needs:
-    - job: build-native-comp-speed0
+    - job: build-native-comp-speed2
       optional: true
   variables:
-    target: emacs-native-comp-speed0
+    target: emacs-native-comp-speed2
     make_params: "-k -C test check SELECTOR='(not (tag :unstable))'"
 
 # Local Variables:

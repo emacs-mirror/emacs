@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Maintainer: Bastien Guerry <bzg@gnu.org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -23,6 +23,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'ol)
 
@@ -43,12 +46,22 @@ If PATH contains extra ::STRING which will use `occur' to search
 matched strings in man buffer."
   (string-match "\\(.*?\\)\\(?:::\\(.*\\)\\)?$" path)
   (let* ((command (match-string 1 path))
-	 (search (match-string 2 path)))
-    (funcall org-man-command command)
+         (search (match-string 2 path))
+         (buffer (funcall org-man-command command)))
     (when search
-      (with-current-buffer (concat "*Man " command "*")
-	(goto-char (point-min))
-	(search-forward search)))))
+      (with-current-buffer buffer
+        (goto-char (point-min))
+        (unless (search-forward search nil t)
+          (let ((process (get-buffer-process buffer)))
+            (while (process-live-p process)
+              (accept-process-output process)))
+          (goto-char (point-min))
+          (search-forward search))
+        (forward-line -1)
+        (let ((point (point)))
+          (let ((window (get-buffer-window buffer)))
+            (set-window-point window point)
+            (set-window-start window point)))))))
 
 (defun org-man-store-link ()
   "Store a link to a README file."

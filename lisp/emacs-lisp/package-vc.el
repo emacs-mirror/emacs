@@ -5,18 +5,20 @@
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Keywords: tools
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -48,6 +50,7 @@
 (eval-when-compile (require 'rx))
 (eval-when-compile (require 'inline))
 (eval-when-compile (require 'map))
+(eval-when-compile (require 'cl-lib))
 (require 'package)
 (require 'lisp-mnt)
 (require 'vc)
@@ -284,28 +287,48 @@ asynchronously."
            finally return "unknown"))
 
 (defun package-vc--version (pkg)
-  "Return the version number for the source package PKG."
+  "Return the version number for the VC package PKG."
   (cl-assert (package-vc-p pkg))
   (if-let ((main-file (package-vc--main-file pkg)))
       (with-temp-buffer
         (insert-file-contents main-file)
         (package-strip-rcs-id
          (or (lm-header "package-version")
-             (lm-header "version"))))
+             (lm-header "version")
+             "0")))
     "0"))
 
 (defun package-vc--main-file (pkg-desc)
   "Return the name of the main file for PKG-DESC."
   (cl-assert (package-vc-p pkg-desc))
-  (let ((pkg-spec (package-vc--desc->spec pkg-desc))
-        (name (symbol-name (package-desc-name pkg-desc))))
-    (or (plist-get pkg-spec :main-file)
-        (expand-file-name
-         (concat name ".el")
-         (file-name-concat
-          (or (package-desc-dir pkg-desc)
-              (expand-file-name name package-user-dir))
-          (plist-get pkg-spec :lisp-dir))))))
+  (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
+         (name (symbol-name (package-desc-name pkg-desc)))
+         (directory (file-name-concat
+                     (or (package-desc-dir pkg-desc)
+                         (expand-file-name name package-user-dir))
+                     (plist-get pkg-spec :lisp-dir)))
+         (file (or (plist-get pkg-spec :main-file)
+                   (expand-file-name
+                    (concat name ".el")
+                    directory))))
+    (if (file-exists-p file) file
+      ;; The following heuristic is only necessary when fetching a
+      ;; repository with URL that would break the above assumptions.
+      ;; Concrete example: https://github.com/sachac/waveform-el does
+      ;; not have a file waveform-el.el, but a file waveform.el, so we
+      ;; try and find the closest match.
+      (let ((distance most-positive-fixnum) (best nil))
+        (dolist (alt (directory-files directory t "\\.el\\'" t))
+          (let ((sd (string-distance file alt)))
+            (when (and (not (string-match-p (rx (or (: "-autoloads.el")
+                                                    (: "-pkg.el"))
+                                                eos)
+                                            alt))
+                       (< sd distance))
+              (when (< sd distance)
+                (setq distance (string-distance file alt)
+                      best alt)))))
+        best))))
 
 (defun package-vc--generate-description-file (pkg-desc pkg-file)
   "Generate a package description file for PKG-DESC and write it to PKG-FILE."
@@ -334,7 +357,7 @@ asynchronously."
          (nconc
           (list 'define-package
                 (symbol-name name)
-                (cons 'vc (package-vc--version pkg-desc))
+                (package-vc--version pkg-desc)
                 (package-desc-summary pkg-desc)
                 (let ((requires (package-desc-reqs pkg-desc)))
                   (list 'quote
@@ -344,6 +367,7 @@ asynchronously."
                            (list (car elt)
                                  (package-version-join (cadr elt))))
                          requires))))
+          (list :kind 'vc)
           (package--alist-to-plist-args
            (package-desc-extras pkg-desc))))
         "\n")
@@ -386,7 +410,7 @@ otherwise it's assumed to be an Info file."
   "Prepare PKG-DESC that is already checked-out in PKG-DIR.
 This includes downloading missing dependencies, generating
 autoloads, generating a package description file (used to
-identify a package as a source package later on), building
+identify a package as a VC package later on), building
 documentation and marking the package as installed."
   ;; Remove any previous instance of PKG-DESC from `package-alist'
   (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
@@ -463,10 +487,11 @@ documentation and marking the package as installed."
   (package--save-selected-packages
    (cons (package-desc-name pkg-desc)
          package-selected-packages))
+  (package--quickstart-maybe-refresh)
 
   ;; Confirm that the installation was successful
   (let ((main-file (package-vc--main-file pkg-desc)))
-    (message "Source package `%s' installed (Version %s, Revision %S)."
+    (message "VC package `%s' installed (Version %s, Revision %S)."
              (package-desc-name pkg-desc)
              (lm-with-file main-file
                (package-strip-rcs-id
@@ -522,7 +547,7 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
                (pkg-dir (expand-file-name dirname package-user-dir)))
     (setf (package-desc-dir pkg-desc) pkg-dir)
     (when (file-exists-p pkg-dir)
-      (if (yes-or-no-p "Overwrite previous checkout?")
+      (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))
           (package--delete-directory pkg-dir)
         (error "There already exists a checkout for %s" name)))
     (package-vc--clone pkg-desc pkg-spec pkg-dir rev)
@@ -533,11 +558,11 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
     (package-vc--unpack-1 pkg-desc pkg-dir)))
 
 (defun package-vc--read-package-name (prompt &optional allow-url installed)
-  "Query the user for a source package and return a name with PROMPT.
+  "Query the user for a VC package and return a name with PROMPT.
 If the optional argument ALLOW-URL is non-nil, the user is also
 allowed to specify a non-package name.  If the optional argument
 INSTALLED is non-nil, the selection will be filtered down to
-source packages that have already been installed."
+VC packages that have already been installed."
   (package-vc--archives-initialize)
   (completing-read prompt (if installed package-alist package-archive-contents)
                    (if installed
@@ -553,9 +578,9 @@ source packages that have already been installed."
                    (not allow-url)))
 
 (defun package-vc--read-package-desc (prompt &optional installed)
-  "Query the user for a source package and return a description with PROMPT.
+  "Query the user for a VC package and return a description with PROMPT.
 If the optional argument INSTALLED is non-nil, the selection will
-be filtered down to source packages that have already been
+be filtered down to VC packages that have already been
 installed, and the package description will be that of an
 installed package."
   (cadr (assoc (package-vc--read-package-name prompt nil installed)
@@ -575,7 +600,7 @@ installed package."
 ;;;###autoload
 (defun package-vc-update (pkg-desc)
   "Attempt to update the package PKG-DESC."
-  (interactive (list (package-vc--read-package-desc "Update source package: " t)))
+  (interactive (list (package-vc--read-package-desc "Update VC package: " t)))
   ;; HACK: To run `package-vc--unpack-1' after checking out the new
   ;; revision, we insert a hook into `vc-post-command-functions', and
   ;; remove it right after it ran.  To avoid running the hook multiple
@@ -659,8 +684,8 @@ Optional argument BACKEND specifies the VC backend to use for cloning
 the package's repository; this is only possible if NAME-OR-URL is a URL,
 a string.  If BACKEND is omitted or nil, the function
 uses `package-vc-heuristic-alist' to guess the backend.
-Note that by default, a source package will be prioritized over a
-regular package, but it will not remove a source package."
+Note that by default, a VC package will be prioritized over a
+regular package, but it will not remove a VC package."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -707,11 +732,11 @@ regular package, but it will not remove a source package."
 (defun package-vc-checkout (pkg-desc directory &optional rev)
   "Clone the sources for PKG-DESC into DIRECTORY and visit that directory.
 Unlike `package-vc-install', this does not yet set up the package
-for use with Emacs; use `package-vc-link-directory' for setting
-the package up after this function finishes.
-Optional argument REV means to clone a specific version of the
-package; it defaults to the last version available from the
-package's repository.  If REV has the special value
+for use with Emacs; use `package-vc-install-from-checkout' for
+setting the package up after this function finishes.  Optional
+argument REV means to clone a specific version of the package; it
+defaults to the last version available from the package's
+repository.  If REV has the special value
 `:last-release' (interactively, the prefix argument), that stands
 for the last released version of the package."
   (interactive
@@ -750,10 +775,15 @@ name from the base name of DIR."
   (package-vc--archives-initialize)
   (let* ((name (or name (file-name-base (directory-file-name dir))))
          (pkg-dir (expand-file-name name package-user-dir)))
+    (when (file-exists-p pkg-dir)
+      (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))
+          (package--delete-directory pkg-dir)
+        (error "There already exists a checkout for %s" name)))
     (make-symbolic-link (expand-file-name dir) pkg-dir)
     (package-vc--unpack-1
      (package-desc-create
       :name (intern name)
+      :dir pkg-dir
       :kind 'vc)
      (file-name-as-directory pkg-dir))))
 

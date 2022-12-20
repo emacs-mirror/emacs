@@ -4,7 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>
-;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
+;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: org, wp, tex
 
 ;; This file is part of GNU Emacs.
@@ -29,6 +29,9 @@
 ;; document.  See Org manual for more information.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'ox-latex)
@@ -734,13 +737,23 @@ used as a communication channel."
   (or (org-export-custom-protocol-maybe link contents 'beamer info)
       ;; Fall-back to LaTeX export.  However, prefer "\hyperlink" over
       ;; "\hyperref" since the former handles overlay specifications.
-      (let ((latex-link (org-export-with-backend 'latex link contents info)))
-	(if (string-match "\\`\\\\hyperref\\[\\(.*?\\)\\]" latex-link)
-	    (replace-match
-	     (format "\\\\hyperlink%s{\\1}"
-		     (or (org-beamer--element-has-overlay-p link) ""))
-	     nil nil latex-link)
-	  latex-link))))
+      (let* ((latex-link (org-export-with-backend 'latex link contents info))
+             (parent (org-export-get-parent-element link))
+             (attr (org-export-read-attribute :attr_beamer parent))
+             (overlay (plist-get attr :overlay)))
+        (cond ((string-match "\\`\\\\hyperref\\[\\(.*?\\)\\]" latex-link)
+               (replace-match
+                (format "\\\\hyperlink%s{\\1}"
+                        (or (org-beamer--element-has-overlay-p link) ""))
+                nil nil latex-link))
+              ((string-match "\\\\include\\(graphics\\|svg\\)\\([[{]?\\)" latex-link)
+               ;; Check for overlay specification and insert if
+               ;; present.
+               (replace-match
+                (format "\\\\include\\1%s\\2"
+                        (if overlay overlay ""))
+                nil nil latex-link))
+              (t latex-link)))))
 
 
 ;;;; Plain List
@@ -857,6 +870,12 @@ holding export options."
      (let ((template (plist-get info :latex-hyperref-template)))
        (and (stringp template)
 	    (format-spec template (org-latex--format-spec info))))
+     ;; engrave-faces-latex preamble
+     (when (and (eq org-latex-src-block-backend 'engraved)
+                (org-element-map (plist-get info :parse-tree)
+                    '(src-block inline-src-block) #'identity
+                    info t))
+       (org-latex-generate-engraved-preamble info))
      ;; Document start.
      "\\begin{document}\n\n"
      ;; Title command.

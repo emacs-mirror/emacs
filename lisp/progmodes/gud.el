@@ -250,6 +250,9 @@ Used to gray out relevant toolbar icons.")
      :button (:toggle . gud-tooltip-mode)]
     ["Info (debugger)" gud-goto-info]))
 
+(setf (alist-get 'gud-minor-mode minor-mode-map-alist)
+      gud-minor-mode-map)
+
 (defvar gud-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (dolist (x '((gud-break . "gud/break")

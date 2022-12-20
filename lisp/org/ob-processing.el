@@ -3,8 +3,9 @@
 ;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Jarmo Hurri (adapted from ob-asymptote.el written by Eric Schulte)
+;; Maintainer: Jarmo Hurri <jarmo.hurri@iki.fi>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -50,6 +51,10 @@
 ;; - Processing.js module :: https://processingjs.org/
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'sha1)
 
@@ -88,7 +93,7 @@
 	  ;; make-temp-file is repeated until no hyphen is in the
 	  ;; name; also sketch dir name must be the same as the
 	  ;; basename of the sketch file.
-	  (let* ((temporary-file-directory org-babel-temporary-directory)
+	  (let* ((temporary-file-directory (org-babel-temp-directory))
 		 (sketch-dir
 		  (let (sketch-dir-candidate)
 		    (while

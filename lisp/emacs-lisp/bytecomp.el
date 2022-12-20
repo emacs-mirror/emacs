@@ -5487,6 +5487,83 @@ and corresponding effects."
            (eval form)
          form)))
 
+;; Check for (in)comparable constant values in calls to `eq', `memq' etc.
+
+(defun bytecomp--dodgy-eq-arg-p (x number-ok)
+  "Whether X is a bad argument to `eq' (or `eql' if NUMBER-OK is non-nil)."
+  (pcase x
+    ((or `(quote ,(pred consp)) `(function (lambda . ,_))) t)
+    ((or (pred consp) (pred symbolp)) nil)
+    ((pred integerp)
+     (not (or (<= -536870912 x 536870911) number-ok)))
+    ((pred floatp) (not number-ok))
+    (_ t)))
+
+(defun bytecomp--value-type-description (x)
+  (cond
+    ((proper-list-p x) "list")
+    ((recordp x) "record")
+    (t (symbol-name (type-of x)))))
+
+(defun bytecomp--arg-type-description (x)
+  (pcase x
+    (`(function (lambda . ,_)) "function")
+    (`(quote . ,val) (bytecomp--value-type-description val))
+    (_ (bytecomp--value-type-description x))))
+
+(defun bytecomp--warn-dodgy-eq-arg (form type parenthesis)
+  (macroexp-warn-and-return
+   (format "`%s' called with literal %s that may never match (%s)"
+           (car form) type parenthesis)
+   form '(suspicious eq) t))
+
+(defun bytecomp--check-eq-args (form &optional a b &rest _ignore)
+  (let* ((number-ok (eq (car form) 'eql))
+         (bad-arg (cond ((bytecomp--dodgy-eq-arg-p a number-ok) 1)
+                        ((bytecomp--dodgy-eq-arg-p b number-ok) 2))))
+    (if bad-arg
+        (bytecomp--warn-dodgy-eq-arg
+         form
+         (bytecomp--arg-type-description (nth bad-arg form))
+         (format "arg %d" bad-arg))
+      form)))
+
+(put 'eq  'compiler-macro #'bytecomp--check-eq-args)
+(put 'eql 'compiler-macro #'bytecomp--check-eq-args)
+
+(defun bytecomp--check-memq-args (form &optional elem list &rest _ignore)
+  (let* ((fn (car form))
+         (number-ok (eq fn 'memql)))
+    (cond
+     ((bytecomp--dodgy-eq-arg-p elem number-ok)
+      (bytecomp--warn-dodgy-eq-arg
+       form (bytecomp--arg-type-description elem) "arg 1"))
+     ((and (consp list) (eq (car list) 'quote)
+           (proper-list-p (cadr list)))
+      (named-let loop ((elts (cadr list)) (i 1))
+        (if elts
+            (let* ((elt (car elts))
+                   (x (cond ((eq fn 'assq) (car-safe elt))
+                            ((eq fn 'rassq) (cdr-safe elt))
+                            (t elt))))
+              (if (or (symbolp x)
+                      (and (integerp x)
+                           (or (<= -536870912 x 536870911) number-ok))
+                      (and (floatp x) number-ok))
+                  (loop (cdr elts) (1+ i))
+                (bytecomp--warn-dodgy-eq-arg
+                 form (bytecomp--value-type-description x)
+                 (format "element %d of arg 2" i))))
+          form)))
+     (t form))))
+
+(put 'memq  'compiler-macro #'bytecomp--check-memq-args)
+(put 'memql 'compiler-macro #'bytecomp--check-memq-args)
+(put 'assq  'compiler-macro #'bytecomp--check-memq-args)
+(put 'rassq 'compiler-macro #'bytecomp--check-memq-args)
+(put 'remq  'compiler-macro #'bytecomp--check-memq-args)
+(put 'delq  'compiler-macro #'bytecomp--check-memq-args)
+
 (provide 'byte-compile)
 (provide 'bytecomp)
 

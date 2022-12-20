@@ -193,8 +193,8 @@ static void anim_prune_animation_cache (Lisp_Object);
 #ifdef USE_CAIRO
 
 static Emacs_Pix_Container
-image_create_pix_container (struct frame *f, unsigned int width,
-			    unsigned int height, unsigned int depth)
+image_create_pix_container (unsigned int width, unsigned int height,
+			    unsigned int depth)
 {
   Emacs_Pix_Container pimg;
 
@@ -237,7 +237,7 @@ image_pix_container_create_from_bitmap_data (struct frame *f,
 					     unsigned long fg,
 					     unsigned long bg)
 {
-  Emacs_Pix_Container pimg = image_create_pix_container (f, width, height, 0);
+  Emacs_Pix_Container pimg = image_create_pix_container (width, height, 0);
   int bytes_per_line = (width + (CHAR_BIT - 1)) / CHAR_BIT;
 
   for (int y = 0; y < height; y++)
@@ -3342,7 +3342,7 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   eassert (input_blocked_p ());
 
   /* Allocate a pixmap of the same size.  */
-  *pixmap = image_create_pix_container (f, width, height, depth);
+  *pixmap = image_create_pix_container (width, height, depth);
   if (*pixmap == NO_PIXMAP)
     {
       *pimg = NULL;
@@ -11309,6 +11309,15 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 						    img->face_font_size);
 	  viewbox_height = svg_css_length_to_pixels (iheight, dpi,
 						     img->face_font_size);
+
+	  /* Here one dimension could be zero because in percent unit.
+	     So calculate this dimension with the other.  */
+	  if (! (0 < viewbox_width) && (iwidth.unit == RSVG_UNIT_PERCENT))
+	    viewbox_width = (viewbox_height * viewbox.width / viewbox.height)
+	      * iwidth.length;
+	  else if (! (0 < viewbox_height) && (iheight.unit == RSVG_UNIT_PERCENT))
+	    viewbox_height = (viewbox_width * viewbox.height / viewbox.width)
+	      * iheight.length;
 	}
       else if (has_width && has_viewbox)
 	{

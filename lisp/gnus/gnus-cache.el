@@ -137,7 +137,7 @@ it's not cached."
 	      ;; If possible, remove group's cache subdirectory.
 	      (condition-case nil
 		  ;; FIXME: we can detect the error type and warn the user
-		  ;; of any inconsistencies (articles w/o nov entries?).
+		  ;; of any inconsistencies (articles without nov entries?).
 		  ;; for now, just be conservative...delete only if safe -- sj
 		  (delete-directory (file-name-directory overview-file))
 		(error))))

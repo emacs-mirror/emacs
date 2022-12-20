@@ -24,8 +24,8 @@
 ;;; Commentary:
 
 ;; The Buffer Menu is used to view, edit, delete, or change attributes
-;; of buffers.  The entry points are C-x C-b (`list-buffers') and
-;; M-x buffer-menu.
+;; of buffers.  The entry points are `C-x C-b' (`list-buffers') and
+;; `M-x buffer-menu'.
 
 ;;; Code:
 
@@ -107,6 +107,9 @@ The value should be a function of one argument; it will be
 called with the buffer.  If this function returns non-nil,
 then the buffer will be displayed in the buffer list.")
 
+(defvar-local Buffer-menu-buffer-list nil
+  "The current list of buffers or function to return buffers.")
+
 (defvar-keymap Buffer-menu-mode-map
   :doc "Local keymap for `Buffer-menu-mode' buffers."
   :parent tabulated-list-mode-map
@@ -135,6 +138,7 @@ then the buffer will be displayed in the buffer list.")
   "%"           #'Buffer-menu-toggle-read-only
   "b"           #'Buffer-menu-bury
   "V"           #'Buffer-menu-view
+  "O"           #'Buffer-menu-view-other-window
   "T"           #'Buffer-menu-toggle-files-only
   "M-s a C-s"   #'Buffer-menu-isearch-buffers
   "M-s a C-M-s" #'Buffer-menu-isearch-buffers-regexp
@@ -208,26 +212,25 @@ See `buffer-menu' for a description of its contents.
 In Buffer Menu mode, the following commands are defined:
 \\<Buffer-menu-mode-map>
 \\[quit-window]    Remove the Buffer Menu from the display.
-\\[Buffer-menu-this-window]  Select current line's buffer in place of the buffer menu.
+\\[Buffer-menu-this-window]    Select current line's buffer in place of the buffer menu.
 \\[Buffer-menu-other-window]    Select that buffer in another window,
      so the Buffer Menu remains visible in its window.
-\\[Buffer-menu-view]    Select current line's buffer, in View mode.
-\\[Buffer-menu-view-other-window]  Select that buffer in
-     another window, in `view-mode'.
+\\[Buffer-menu-view]    Select current line's buffer, in `view-mode'.
+\\[Buffer-menu-view-other-window]    Select that buffer in another window, in `view-mode'.
 \\[Buffer-menu-switch-other-window]  Make another window display that buffer.
 \\[Buffer-menu-mark]    Mark current line's buffer to be displayed.
 \\[Buffer-menu-select]    Select current line's buffer.
-     Also show buffers marked with m, in other windows.
+     Also show buffers marked with \"m\", in other windows.
 \\[Buffer-menu-1-window]    Select that buffer in full-frame window.
 \\[Buffer-menu-2-window]    Select that buffer in one window, together with the
      buffer selected before this one in another window.
 \\[Buffer-menu-isearch-buffers]    Incremental search in the marked buffers.
 \\[Buffer-menu-isearch-buffers-regexp]  Isearch for regexp in the marked buffers.
-\\[Buffer-menu-multi-occur] Show lines matching regexp in the marked buffers.
+\\[Buffer-menu-multi-occur]    Show lines matching regexp in the marked buffers.
 \\[Buffer-menu-visit-tags-table]    `visit-tags-table' this buffer.
 \\[Buffer-menu-not-modified]    Clear modified-flag on that buffer.
 \\[Buffer-menu-save]    Mark that buffer to be saved, and move down.
-\\[Buffer-menu-delete]  Mark that buffer to be deleted, and move down.
+\\[Buffer-menu-delete]    Mark that buffer to be deleted, and move down.
 \\[Buffer-menu-delete-backwards]  Mark that buffer to be deleted, and move up.
 \\[Buffer-menu-execute]    Delete or save marked buffers.
 \\[Buffer-menu-unmark]    Remove all marks from current line.
@@ -628,8 +631,10 @@ This behaves like invoking \\[read-only-mode] in that buffer."
 This is called by `buffer-menu' and others as a subroutine.
 
 If FILES-ONLY is non-nil, show only file-visiting buffers.
-If BUFFER-LIST is non-nil, it should be a list of buffers; it
-means list those buffers and no others.
+If BUFFER-LIST is non-nil, it should be either a list of buffers
+or a function that returns a list of buffers; it means
+list those buffers and no others.
+See more at `Buffer-menu-buffer-list'.
 If FILTER-PREDICATE is non-nil, it should be a function
 that filters out buffers from the list of buffers.
 See more at `Buffer-menu-filter-predicate'."
@@ -639,6 +644,7 @@ See more at `Buffer-menu-filter-predicate'."
       (Buffer-menu-mode)
       (setq Buffer-menu-files-only
 	    (and files-only (>= (prefix-numeric-value files-only) 0)))
+      (setq Buffer-menu-buffer-list buffer-list)
       (setq Buffer-menu-filter-predicate filter-predicate)
       (list-buffers--refresh buffer-list old-buffer)
       (tabulated-list-print))
@@ -665,9 +671,16 @@ See more at `Buffer-menu-filter-predicate'."
 			       Buffer-menu-filter-predicate))
 	entries name-width)
     ;; Collect info for each buffer we're interested in.
-    (dolist (buffer (or buffer-list
-			(buffer-list (if Buffer-menu-use-frame-buffer-list
-					 (selected-frame)))))
+    (dolist (buffer (cond
+                     ((functionp buffer-list)
+                      (funcall buffer-list))
+                     (buffer-list)
+                     ((functionp Buffer-menu-buffer-list)
+                      (funcall Buffer-menu-buffer-list))
+                     (Buffer-menu-buffer-list)
+                     (t (buffer-list
+                         (if Buffer-menu-use-frame-buffer-list
+                             (selected-frame))))))
       (with-current-buffer buffer
 	(let* ((name (buffer-name))
 	       (file buffer-file-name))

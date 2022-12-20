@@ -1,0 +1,56 @@
+#!/bin/bash
+### check-man-pages - check man pages for errors
+
+## Copyright (C) 2022 Free Software Foundation, Inc.
+
+## Author: Stefan Kangas <stefankangas@gmail.com>
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## Check Emacs man pages for errors using `man'.
+
+### Code:
+
+source "${0%/*}/emacs-shell-lib"
+
+exit_status=0
+
+cd "$PD"/../doc/man
+for page in *.1; do
+    # ctags.1 just includes the man page etags.1, which AFAICT will
+    # default to the one installed on the system (!), instead of the
+    # one in the repository.  So checking it is pointless, and we will
+    # in any case already check etags.1 separately.
+    if [ "$page" == "ctags.1" ]; then
+        continue
+    fi
+    log=$(emacs_mktemp)
+    LC_ALL=C.UTF-8 MANROFFSEQ='' MANWIDTH=80 \
+        man --warnings=all,mac -E UTF-8 -l -Tutf8 -Z "$page" >/dev/null 2> "$log"
+    log_size=$(stat --format=%s "$log")
+    if [ "$log_size" -ne 0 ]; then
+        echo "doc/man/$page:"
+        # Point to the correct file for *compilation* buffers.
+        cat "$log" \
+            | sed 's/troff: man1\/\([^ ]\+\)\.1/troff: doc\/man\/\1.1/' \
+            | sed "s/<standard input>/doc\/man\/$page/"
+        exit_status=1
+    fi
+done
+
+exit $exit_status

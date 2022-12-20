@@ -1103,6 +1103,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-sh-handle-make-process)
     (make-symbolic-link . tramp-sh-handle-make-symbolic-link)
+    (memory-info . tramp-handle-memory-info)
     (process-attributes . tramp-handle-process-attributes)
     (process-file . tramp-sh-handle-process-file)
     (rename-file . tramp-sh-handle-rename-file)
@@ -3430,6 +3431,7 @@ implementation will be used."
 	     (signal (car err) (cdr err)))))
 
       ;; Impossible to copy.  Trigger `file-missing' error.
+      (delete-file tmpfile)
       (setq tmpfile nil))))
 
 (defun tramp-sh-handle-write-region

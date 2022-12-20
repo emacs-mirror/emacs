@@ -67,14 +67,14 @@ MAKEINFO_OPTS = --force -I$(emacsdir)
 DOCMISC_W32 = @DOCMISC_W32@
 
 ## Info files to build and install on all platforms.
-INFO_COMMON = auth autotype bovine calc ccmode cl \
-	dbus dired-x ebrowse ede ediff edt efaq eglot eieio \
-	emacs-gnutls emacs-mime epa erc ert eshell eudc eww \
-	flymake forms gnus htmlfontify idlwave ido info.info \
-	mairix-el message mh-e modus-themes newsticker nxml-mode \
-	octave-mode org pcl-cvs pgg rcirc reftex remember sasl \
-	sc semantic ses sieve smtpmail speedbar srecode todo-mode \
-	tramp transient url vhdl-mode vip viper vtable widget wisent woman
+INFO_COMMON = auth autotype bovine calc ccmode cl dbus dired-x		\
+	ebrowse ede ediff edt efaq eglot eieio emacs-gnutls		\
+	emacs-mime epa erc ert eshell eudc eww flymake forms gnus	\
+	htmlfontify idlwave ido info.info mairix-el message mh-e	\
+	modus-themes newsticker nxml-mode octave-mode org pcl-cvs pgg	\
+	rcirc reftex remember sasl sc semantic ses sieve smtpmail	\
+	speedbar srecode todo-mode tramp transient url use-package	\
+	vhdl-mode vip viper vtable widget wisent woman
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
@@ -186,7 +186,8 @@ $(foreach ifile,$(filter-out info.info,$(INFO_TARGETS)),$(eval $(call info_templ
 ## Extra dependencies.
 
 ## FIXME Updating this list manually is unreliable.
-need_emacsver = calc cl dired-x efaq efaq-w32 erc forms ido newsticker reftex remember woman
+need_emacsver = calc cl dired-x efaq efaq-w32 erc forms ido	\
+	newsticker reftex remember use-package woman
 need_emacsver_prefix = $(addprefix ${buildinfodir}/,${need_emacsver})
 
 $(need_emacsver_prefix:=.info) $(need_emacsver:=.dvi) $(need_emacsver:=.pdf) $(need_emacsver:=.html) : ${emacsdir}/emacsver.texi

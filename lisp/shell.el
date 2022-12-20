@@ -71,7 +71,7 @@
 ;; c-c c-o comint-delete-output		   Delete last batch of process output
 ;; c-c c-r comint-show-output		   Show last batch of process output
 ;; c-c c-l comint-dynamic-list-input-ring  List input history
-;;         comint-send-invisible           Read line w/o echo & send to proc
+;;         comint-send-invisible           Read line without echo & send to proc
 ;;         comint-continue-subjob	   Useful if you accidentally suspend
 ;;					        top-level job
 ;; comint-mode-hook is the comint mode hook.
@@ -1162,6 +1162,7 @@ line output and parses it to form the new directory stack."
          (dlsl nil)
          (pos 0)
          (ds nil))
+    (setq dls (string-trim-right dls "[ ]+"))
     ;; Split the dirlist into whitespace and non-whitespace chunks.
     ;; dlsl will be a reversed list of tokens.
     (while (string-match "\\(\\S-+\\|\\s-+\\)" dls pos)

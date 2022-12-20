@@ -67,9 +67,15 @@ Indices
 
 @node Overview
 @chapter Overview
-@dfn{EWW}, the Emacs Web Wowser, is a web browser for GNU Emacs.  It
-can load, parse, and display various web pages using @dfn{shr.el}.
-However, a GNU Emacs with @code{libxml2} support is required.
+
+@dfn{EWW}, the Emacs Web Wowser, is a web browser for GNU Emacs that
+provides a simple, no-frills experience that focuses on readability.
+It loads, parses, and displays web pages using @dfn{shr.el}.  It can
+display images inline, if Emacs was built with image support, but
+there is no support for CSS or JavaScript.
+
+To use EWW, you need to use an Emacs built with @code{libxml2}
+support.
 
 @node Basics
 @chapter Basic Usage

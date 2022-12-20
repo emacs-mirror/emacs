@@ -755,7 +755,8 @@ for speeding up processing.")
                  ((eq head 'list) (cdr form))
                  ((memq head
                         ;; FIXME: Replace this list with a function property?
-                        '( length safe-length cons lambda
+                        '( lambda internal-make-closure
+                           length safe-length cons
                            string unibyte-string make-string concat
                            format format-message
                            substring substring-no-properties string-replace
@@ -1297,11 +1298,8 @@ See Info node `(elisp) Integer Basics'."
       (if else
           `(progn ,condition ,@else)
         condition))
-     ;; (if X nil t) -> (not X)
-     ((and (eq then nil) (eq else '(t)))
-      `(not ,condition))
-     ;; (if X t [nil]) -> (not (not X))
-     ((and (eq then t) (or (null else) (eq else '(nil))))
+     ;; (if X t) -> (not (not X))
+     ((and (eq then t) (null else))
       `(not ,(byte-opt--negate condition)))
      ;; (if VAR VAR X...) -> (or VAR (progn X...))
      ((and (symbolp condition) (eq condition then))

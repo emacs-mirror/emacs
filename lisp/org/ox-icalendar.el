@@ -3,10 +3,10 @@
 ;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
-;;      Nicolas Goaziou <n dot goaziou at gmail dot com>
-;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
+;;      Nicolas Goaziou <mail@nicolasgoaziou.fr>
+;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -32,10 +32,16 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-agenda)
 (require 'ox-ascii)
 (declare-function org-bbdb-anniv-export-ical "ol-bbdb" nil)
+(declare-function org-at-heading-p "org" (&optional _))
+(declare-function org-back-to-heading "org" (&optional invisible-ok))
+(declare-function org-next-visible-heading "org" (arg))
 
 
 
@@ -66,6 +72,17 @@ for timed events.  If non-zero, alarms are created.
   :version "24.1"
   :type 'integer)
 
+(defcustom org-icalendar-force-alarm nil
+  "Non-nil means alarm will be created even if is set to zero.
+
+This overrides default behavior where zero means no alarm.  With
+this set to non-nil and alarm set to zero, alarm will be created
+and will fire at the event start."
+  :group 'org-export-icalendar
+  :type 'boolean
+  :package-version '(Org . "9.6")
+  :safe #'booleanp)
+
 (defcustom org-icalendar-combined-name "OrgMode"
   "Calendar name for the combined iCalendar representing all agenda files."
   :group 'org-export-icalendar
@@ -83,6 +100,21 @@ back-ends.  It can also be set with the ICALENDAR_EXCLUDE_TAGS
 keyword."
   :group 'org-export-icalendar
   :type '(repeat (string :tag "Tag")))
+
+(defcustom org-icalendar-scheduled-summary-prefix "S: "
+  "String prepended to exported scheduled headlines."
+  :group 'org-export-icalendar
+  :type 'string
+  :package-version '(Org . "9.6")
+  :safe #'stringp)
+
+
+(defcustom org-icalendar-deadline-summary-prefix "DL: "
+  "String prepended to exported headlines with a deadline."
+  :group 'org-export-icalendar
+  :type 'string
+  :package-version '(Org . "9.6")
+  :safe #'stringp)
 
 (defcustom org-icalendar-use-deadline '(event-if-not-todo todo-due)
   "Contexts where iCalendar export should use a deadline time stamp.
@@ -300,7 +332,9 @@ re-read the iCalendar file.")
     (:icalendar-store-UID nil nil org-icalendar-store-UID)
     (:icalendar-timezone nil nil org-icalendar-timezone)
     (:icalendar-use-deadline nil nil org-icalendar-use-deadline)
-    (:icalendar-use-scheduled nil nil org-icalendar-use-scheduled))
+    (:icalendar-use-scheduled nil nil org-icalendar-use-scheduled)
+    (:icalendar-scheduled-summary-prefix nil nil org-icalendar-scheduled-summary-prefix)
+    (:icalendar-deadline-summary-prefix nil nil org-icalendar-deadline-summary-prefix))
   :filters-alist
   '((:filter-headline . org-icalendar-clear-blank-lines))
   :menu-entry
@@ -430,7 +464,7 @@ format (e.g. \"Europe/London\").  In either case, the value of
 					 t)))
       ;; Convert timestamp into internal time in order to use
       ;; `format-time-string' and fix any mistake (i.e. MI >= 60).
-      (encode-time 0 mi h d m y)
+      (org-encode-time 0 mi h d m y)
       (and (or (string-equal tz "UTC")
 	       (and (null tz)
 		    with-time-p
@@ -598,7 +632,9 @@ inlinetask within the section."
 	  ;; "VEVENT" component from scheduled, deadline, or any
 	  ;; timestamp in the entry.
 	  (let ((deadline (org-element-property :deadline entry))
-		(use-deadline (plist-get info :icalendar-use-deadline)))
+		(use-deadline (plist-get info :icalendar-use-deadline))
+                (deadline-summary-prefix (org-icalendar-cleanup-string
+                                          (plist-get info :icalendar-deadline-summary-prefix))))
 	    (and deadline
 		 (pcase todo-type
 		   (`todo (or (memq 'event-if-todo-not-done use-deadline)
@@ -607,9 +643,12 @@ inlinetask within the section."
 		   (_ (memq 'event-if-not-todo use-deadline)))
 		 (org-icalendar--vevent
 		  entry deadline (concat "DL-" uid)
-		  (concat "DL: " summary) loc desc cat tz class)))
+		  (concat deadline-summary-prefix summary)
+                  loc desc cat tz class)))
 	  (let ((scheduled (org-element-property :scheduled entry))
-		(use-scheduled (plist-get info :icalendar-use-scheduled)))
+		(use-scheduled (plist-get info :icalendar-use-scheduled))
+                (scheduled-summary-prefix (org-icalendar-cleanup-string
+                                           (plist-get info :icalendar-scheduled-summary-prefix))))
 	    (and scheduled
 		 (pcase todo-type
 		   (`todo (or (memq 'event-if-todo-not-done use-scheduled)
@@ -618,7 +657,8 @@ inlinetask within the section."
 		   (_ (memq 'event-if-not-todo use-scheduled)))
 		 (org-icalendar--vevent
 		  entry scheduled (concat "SC-" uid)
-		  (concat "S: " summary) loc desc cat tz class)))
+		  (concat scheduled-summary-prefix summary)
+                  loc desc cat tz class)))
 	  ;; When collecting plain timestamps from a headline and its
 	  ;; title, skip inlinetasks since collection will happen once
 	  ;; ENTRY is one of them.
@@ -792,8 +832,11 @@ Return VALARM component as a string, or nil if it isn't allowed."
   (let ((alarm-time
 	 (let ((warntime
 		(org-element-property :APPT_WARNTIME entry)))
-	   (if warntime (string-to-number warntime) 0))))
-    (and (or (> alarm-time 0) (> org-icalendar-alarm-time 0))
+	   (if warntime (string-to-number warntime) nil))))
+    (and (or (and alarm-time
+		  (> alarm-time 0))
+	     (> org-icalendar-alarm-time 0)
+	     org-icalendar-force-alarm)
 	 (org-element-property :hour-start timestamp)
 	 (format "BEGIN:VALARM
 ACTION:DISPLAY
@@ -801,8 +844,10 @@ DESCRIPTION:%s
 TRIGGER:-P0DT0H%dM0S
 END:VALARM\n"
 		 summary
-		 (if (zerop alarm-time) org-icalendar-alarm-time alarm-time)))))
-
+                 (cond
+                  ((and alarm-time org-icalendar-force-alarm) alarm-time)
+                  ((and alarm-time (not (zerop alarm-time))) alarm-time)
+                  (t org-icalendar-alarm-time))))))
 
 ;;;; Template
 
@@ -994,7 +1039,7 @@ FILES is a list of files to build the calendar from."
 	      user-full-name
 	      ;; Timezone.
 	      (or (org-string-nw-p org-icalendar-timezone)
-		  (format-time-string "Z"))
+		  (format-time-string "%Z"))
 	      ;; Description.
 	      org-icalendar-combined-description
 	      ;; Contents.

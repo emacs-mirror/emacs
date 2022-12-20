@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Maintainer: Tyler Smith <tyler@plantarum.ca>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -32,6 +32,10 @@
 ;;          which will be passed to the awk process through STDIN
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-compat)
 
@@ -51,7 +55,7 @@
 (defun org-babel-execute:awk (body params)
   "Execute a block of Awk code with org-babel.
 This function is called by `org-babel-execute-src-block'."
-  (message "executing Awk source code block")
+  (message "Executing Awk source code block")
   (let* ((result-params (cdr (assq :result-params params)))
          (cmd-line (cdr (assq :cmd-line params)))
          (in-file (cdr (assq :in-file params)))

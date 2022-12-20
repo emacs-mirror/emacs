@@ -1004,10 +1004,13 @@ This enforces rescanning the buffer on next use."
                   reftex-section-levels))
 
     ;; Calculate the regular expressions
-    (let* (
-;          (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
-           (wbol "\\(^\\)%?[ \t]*") ; Need to keep the empty group because
-                                    ; match numbers are hard coded
+    (let* (;; (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
+           ;; Need to keep the empty group because match numbers are
+           ;; hard coded
+           (wbol (concat "\\(^\\)"
+                         (when (string-suffix-p ".dtx" (buffer-file-name) t)
+                           "%")
+                         "[ \t]*"))
            (label-re (concat "\\(?:"
 			     (mapconcat #'identity reftex-label-regexps "\\|")
 			     "\\)"))
@@ -2053,7 +2056,8 @@ IGNORE-WORDS List of words which should be removed from the string."
          (newname (concat "Fontify-me-" oldname)))
     (unwind-protect
         (progn
-          ;; Rename buffer temporarily to start w/o space (because of font-lock)
+          ;; Rename buffer temporarily to start without space (because
+          ;; of font-lock)
           (rename-buffer newname t)
           ;; Good: we have the indirection functions
           (set (make-local-variable 'font-lock-fontify-region-function)

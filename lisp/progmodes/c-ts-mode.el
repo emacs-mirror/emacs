@@ -9,19 +9,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -29,7 +28,7 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'rx)
+(eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -79,8 +78,18 @@ follows the form of `treesit-simple-indent-rules'."
     (modify-syntax-entry ?\240 "."   table)
     (modify-syntax-entry ?/  ". 124b" table)
     (modify-syntax-entry ?*  ". 23"   table)
+    (modify-syntax-entry ?\n "> b"  table)
+    (modify-syntax-entry ?\^m "> b" table)
     table)
   "Syntax table for `c-ts-mode'.")
+
+(defvar c++-ts-mode--syntax-table
+  (let ((table (make-syntax-table c-ts-mode--syntax-table)))
+    ;; Template delimiters.
+    (modify-syntax-entry ?<  "("     table)
+    (modify-syntax-entry ?>  ")"     table)
+    table)
+  "Syntax table for `c++-ts-mode'.")
 
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
@@ -94,7 +103,6 @@ MODE is either `c' or `cpp'."
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
            ((and (parent-is "comment") comment-end) comment-start -1)
-           ((parent-is "comment") comment-start-skip 0)
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
            ((match "preproc_ifdef" "compound_statement") point-min 0)
@@ -119,6 +127,8 @@ MODE is either `c' or `cpp'."
            ((query "(call_expression arguments: (_) @indent)") parent c-ts-mode-indent-offset)
            ((parent-is "call_expression") parent 0)
            ((parent-is "enumerator_list") parent-bol c-ts-mode-indent-offset)
+           ,@(when (eq mode 'cpp)
+               '(((node-is "access_specifier") parent-bol 0)))
            ((parent-is "field_declaration_list") parent-bol c-ts-mode-indent-offset)
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
            ((parent-is "if_statement") parent-bol c-ts-mode-indent-offset)
@@ -168,10 +178,10 @@ MODE is either `c' or `cpp'."
   (let ((c-keywords
          '("break" "case" "const" "continue"
            "default" "do" "else" "enum"
-           "extern" "for" "goto" "if"
-           "long" "register" "return" "short"
-           "signed" "sizeof" "static" "struct"
-           "switch" "typedef" "union" "unsigned"
+           "extern" "for" "goto" "if" "inline"
+           "register" "return"
+           "sizeof" "static" "struct"
+           "switch" "typedef" "union"
            "volatile" "while")))
     (if (eq mode 'cpp)
         (append c-keywords
@@ -179,7 +189,7 @@ MODE is either `c' or `cpp'."
                   "catch" "class" "co_await" "co_return"
                   "co_yield" "compl" "concept" "consteval"
                   "constexpr" "constinit" "decltype" "delete"
-                  "explicit" "final" "friend" "friend"
+                  "explicit" "final" "friend"
                   "mutable" "namespace" "new" "noexcept"
                   "not" "not_eq" "operator" "or"
                   "or_eq" "override" "private" "protected"
@@ -187,6 +197,10 @@ MODE is either `c' or `cpp'."
                   "try" "typename" "using" "virtual"
                   "xor" "xor_eq"))
       (append '("auto") c-keywords))))
+
+(defvar c-ts-mode--type-keywords
+  '("long" "short" "signed" "unsigned")
+  "Keywords that should be considered as part of a type.")
 
 (defvar c-ts-mode--operators
   '("=" "-" "*" "/" "+" "%" "~" "|" "&" "^" "<<" ">>" "->"
@@ -229,13 +243,14 @@ MODE is either `c' or `cpp'."
      (false) @font-lock-constant-face
      (null) @font-lock-constant-face
      ,@(when (eq mode 'cpp)
-         '((this) @font-lock-constant-face)))
+         '((nullptr) @font-lock-constant-face)))
 
    :language mode
    :feature 'keyword
    `([,@(c-ts-mode--keywords mode)] @font-lock-keyword-face
      ,@(when (eq mode 'cpp)
-         '((auto) @font-lock-keyword-face)))
+         '((auto) @font-lock-keyword-face
+           (this) @font-lock-keyword-face)))
 
    :language mode
    :feature 'operator
@@ -245,7 +260,9 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'string
    `((string_literal) @font-lock-string-face
-     (system_lib_string) @font-lock-string-face)
+     (system_lib_string) @font-lock-string-face
+     ,@(when (eq mode 'cpp)
+         '((raw_string_literal) @font-lock-string-face)))
 
    :language mode
    :feature 'literal
@@ -263,7 +280,8 @@ MODE is either `c' or `cpp'."
            (qualified_identifier
             scope: (namespace_identifier) @font-lock-type-face)
 
-           (operator_cast) type: (type_identifier) @font-lock-type-face)))
+           (operator_cast) type: (type_identifier) @font-lock-type-face))
+     [,@c-ts-mode--type-keywords] @font-lock-type-face)
 
    :language mode
    :feature 'definition
@@ -314,7 +332,7 @@ MODE is either `c' or `cpp'."
 
    :language mode
    :feature 'error
-   '((ERROR) @font-lock-warning-face)
+   '((ERROR) @c-ts-mode--fontify-error)
 
    :feature 'escape-sequence
    :language mode
@@ -360,25 +378,22 @@ For NODE, OVERRIDE, START, END, and ARGS, see
             override start end args))
     ((or "identifier" "field_identifier")
      (treesit-fontify-with-override
-      (max (treesit-node-start node) start)
-      (min (treesit-node-end node) end)
+      (treesit-node-start node) (treesit-node-end node)
       (pcase (treesit-node-type (treesit-node-parent node))
         ("function_declarator" 'font-lock-function-name-face)
         (_ 'font-lock-variable-name-face))
-      override))))
+      override start end))))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
-  "Fontify an identifier node.
-Fontify it if NODE is not a function identifier.  For NODE,
+  "Fontify an identifier node if it is a variable.
+Don't fontify if it is a function identifier.  For NODE,
 OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
   (when (not (equal (treesit-node-type
                      (treesit-node-parent node))
                     "call_expression"))
     (treesit-fontify-with-override
-     (max (treesit-node-start node) start)
-     (min (treesit-node-end node) end)
-     'font-lock-variable-name-face
-     override)))
+     (treesit-node-start node) (treesit-node-end node)
+     'font-lock-variable-name-face override start end)))
 
 (defun c-ts-mode--fontify-defun (node override start end &rest _)
   "Correctly fontify the DEFUN macro.
@@ -405,21 +420,38 @@ This function corrects the fontification on the colon in
       (when (equal (treesit-node-text node t) ":")
         (treesit-fontify-with-override
          (treesit-node-start node) (treesit-node-end node)
-         'default override)))
+         'default override start end)))
     ;; Fix the parameter list.
     (while arg-list-2
       (let ((type (and arg-list-2 (pop arg-list-2)))
             (arg (and arg-list-2 (pop arg-list-2))))
         (when type
           (treesit-fontify-with-override
-           (max start (treesit-node-start type))
-           (min end (treesit-node-end type))
-           'font-lock-type-face override))
+           (treesit-node-start type) (treesit-node-end type)
+           'font-lock-type-face override start end))
         (when arg
           (treesit-fontify-with-override
-           (max start (treesit-node-start arg))
-           (min end (treesit-node-end arg))
-           'default override))))))
+           (treesit-node-start arg) (treesit-node-end arg)
+           'default override start end))))))
+
+(defun c-ts-mode--fontify-error (node override start end &rest _)
+  "Fontify the error nodes.
+For NODE, OVERRIDE, START, and END, see
+`treesit-font-lock-rules'."
+  (let ((parent (treesit-node-parent node))
+        (child (treesit-node-child node 0)))
+    (treesit-fontify-with-override
+     (treesit-node-start node) (treesit-node-end node)
+     (cond
+      ;; This matches the case MACRO(struct a, b, c)
+      ;; where struct is seen as error.
+      ((and (equal (treesit-node-type child) "identifier")
+            (equal (treesit-node-type parent) "argument_list")
+            (member (treesit-node-text child)
+                    '("struct" "long" "short" "enum" "union")))
+       'font-lock-keyword-face)
+      (t 'font-lock-warning-face))
+     override start end)))
 
 (defun c-ts-mode--imenu-1 (node)
   "Helper for `c-ts-mode--imenu'.
@@ -485,15 +517,80 @@ the subtrees."
      (when var-index `(("Variable" . ,var-index)))
      (when func-index `(("Function" . ,func-index))))))
 
+(defun c-ts-mode--end-of-defun ()
+  "`end-of-defun-function' of `c-ts-mode'."
+  ;; A struct/enum/union_specifier node doesn't include the ; at the
+  ;; end, so we manually skip it.
+  (treesit-end-of-defun)
+  (when (looking-at (rx (* " ") ";"))
+    (goto-char (match-end 0))
+    ;; This part is copied from `end-of-defun'.
+    (unless (bolp)
+      (skip-chars-forward " \t")
+      (if (looking-at "\\s<\\|\n")
+	  (forward-line 1)))))
+
+(defun c-ts-mode--defun-valid-p (node)
+  (if (string-match-p
+       (rx (or "struct_specifier"
+               "enum_specifier"
+               "union_specifier"))
+       (treesit-node-type node))
+      (null
+       (treesit-node-top-level
+        node (rx (or "function_definition"
+                     "type_definition"))))
+    t))
+
+(defun c-ts-mode--defun-skipper ()
+  "Custom defun skipper for `c-ts-mode' and friends.
+Structs in C ends with a semicolon, but the semicolon is not
+considered part of the struct node, so point would stop before
+the semicolon.  This function skips the semicolon."
+  (when (looking-at (rx (* (or " " "\t")) ";"))
+    (goto-char (match-end 0)))
+  (treesit-default-defun-skipper))
+
+(defun c-ts-mode-indent-defun ()
+  "Indent the current top-level declaration syntactically.
+
+`treesit-defun-type-regexp' defines what constructs to indent."
+  (interactive "*")
+  (let ((orig-point (point-marker)))
+    ;; If `treesit-beginning-of-defun' returns nil, we are not in a
+    ;; defun, so don't indent anything.
+    (when (treesit-beginning-of-defun)
+      (let ((start (point)))
+        (treesit-end-of-defun)
+        (indent-region start (point))))
+    (goto-char orig-point)))
+
+(defvar-keymap c-ts-mode-map
+  :doc "Keymap for the C language with tree-sitter"
+  :parent prog-mode-map
+  "C-c C-q" #'c-ts-mode-indent-defun)
+
 ;;;###autoload
-(define-derived-mode c-ts-mode--base-mode prog-mode "C"
-  "Major mode for editing C, powered by tree-sitter."
+(define-derived-mode c-ts-base-mode prog-mode "C"
+  "Major mode for editing C, powered by tree-sitter.
+
+\\{c-ts-mode-map}"
   :syntax-table c-ts-mode--syntax-table
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
-              (rx (or "specifier"
-                      "definition")))
+              (cons (regexp-opt '("function_definition"
+                                  "type_definition"
+                                  "struct_specifier"
+                                  "enum_specifier"
+                                  "union_specifier"
+                                  "class_specifier"))
+                    #'c-ts-mode--defun-valid-p))
+  (setq-local treesit-defun-skipper #'c-ts-mode--defun-skipper)
+
+  ;; Nodes like struct/enum/union_specifier can appear in
+  ;; function_definitions, so we need to find the top-level node.
+  (setq-local treesit-defun-prefer-top-level t)
 
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
@@ -508,13 +605,13 @@ the subtrees."
   (setq-local which-func-functions nil)
 
   (setq-local treesit-font-lock-feature-list
-              '(( comment constant keyword literal preprocessor string)
-                ( assignment definition label property type)
-                ( delimiter error escape-sequence function
-                  operator variable bracket))))
+              '(( comment definition)
+                ( keyword preprocessor string type)
+                ( assignment constant escape-sequence label literal property )
+                ( bracket delimiter error function operator variable))))
 
 ;;;###autoload
-(define-derived-mode c-ts-mode c-ts-mode--base-mode "C"
+(define-derived-mode c-ts-mode c-ts-base-mode "C"
   "Major mode for editing C, powered by tree-sitter."
   :group 'c
 
@@ -525,10 +622,14 @@ the subtrees."
 
   ;; Comments.
   (setq-local comment-start "/* ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end " */")
-  (setq-local treesit-comment-start (rx "/" (or (+ "/") (+ "*"))))
-  (setq-local treesit-comment-end (rx (+ (or "*")) "/"))
+  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
+                                         (seq "/" (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
 
   (setq-local treesit-simple-indent-rules
               (c-ts-mode--set-indent-style 'c))
@@ -536,20 +637,35 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  ;; Override default value of end-of-defun-function set by
+  ;; `treesit-major-mode-setup'.
+  (setq-local end-of-defun-function #'c-ts-mode--end-of-defun))
 
 ;;;###autoload
-(define-derived-mode c++-ts-mode c-ts-mode--base-mode "C++"
+(define-derived-mode c++-ts-mode c-ts-base-mode "C++"
   "Major mode for editing C++, powered by tree-sitter."
   :group 'c++
+  :syntax-table c++-ts-mode--syntax-table
 
   (unless (treesit-ready-p 'cpp)
     (error "Tree-sitter for C++ isn't available"))
 
   ;; Comments.
   (setq-local comment-start "// ")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
+  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
+                                         (seq "/" (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
+
+  (setq-local treesit-text-type-regexp
+              (regexp-opt '("comment"
+                            "raw_string_literal")))
 
   (treesit-parser-create 'cpp)
 
@@ -559,7 +675,11 @@ the subtrees."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  ;; Override default value of end-of-defun-function set by
+  ;; `treesit-major-mode-setup'.
+  (setq-local end-of-defun-function #'c-ts-mode--end-of-defun))
 
 (provide 'c-ts-mode)
 

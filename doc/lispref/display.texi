@@ -1460,19 +1460,10 @@ You can use @dfn{overlays} to alter the appearance of a buffer's text on
 the screen, for the sake of presentation features.  An overlay is an
 object that belongs to a particular buffer, and has a specified
 beginning and end.  It also has properties that you can examine and set;
-these affect the display of the text within the overlay.
+these affect the display of the text within the overlaid portion of
+the buffer.
 
-@cindex scalability of overlays
-@cindex overlays, scalability
-The visual effect of an overlay is the same as of the corresponding
-text property (@pxref{Text Properties}).  However, due to a different
-implementation, overlays generally don't scale well (many operations
-take a time that is proportional to the number of overlays in the
-buffer).  If you need to affect the visual appearance of many portions
-in the buffer, we recommend using text properties.
-
-An overlay uses markers to record its beginning and end; thus,
-editing the text of the buffer adjusts the beginning and end of each
+Editing the text of the buffer adjusts the beginning and end of each
 overlay so that it stays with the text.  When you create the overlay,
 you can specify whether text inserted at the beginning should be
 inside the overlay or outside, and likewise for the end of the overlay.
@@ -1492,7 +1483,7 @@ inside the overlay or outside, and likewise for the end of the overlay.
   This section describes the functions to create, delete and move
 overlays, and to examine their contents.  Overlay changes are not
 recorded in the buffer's undo list, since the overlays are not
-part of the buffer's contents.
+considered part of the buffer's contents.
 
 @defun overlayp object
 This function returns @code{t} if @var{object} is an overlay.
@@ -1514,15 +1505,14 @@ When that happens, the overlay is by default not deleted, but you can
 cause it to be deleted by giving it the @samp{evaporate} property
 (@pxref{Overlay Properties, evaporate property}).
 
-The arguments @var{front-advance} and @var{rear-advance} specify the
-marker insertion type for the start of the overlay and for the end of
-the overlay, respectively.  @xref{Marker Insertion Types}.  If they
-are both @code{nil}, the default, then the overlay extends to include
-any text inserted at the beginning, but not text inserted at the end.
-If @var{front-advance} is non-@code{nil}, text inserted at the
-beginning of the overlay is excluded from the overlay.  If
-@var{rear-advance} is non-@code{nil}, text inserted at the end of the
-overlay is included in the overlay.
+The arguments @var{front-advance} and @var{rear-advance} specify what
+happens when text is inserted at the beginning (i.e., before
+@var{start}) and at the end.  If they are both @code{nil}, the
+default, then the overlay extends to include any text inserted at the
+beginning, but not text inserted at the end.  If @var{front-advance}
+is non-@code{nil}, text inserted at the beginning of the overlay is
+excluded from the overlay.  If @var{rear-advance} is non-@code{nil},
+text inserted at the end of the overlay is included in the overlay.
 @end defun
 
 @defun overlay-start overlay
@@ -1541,36 +1531,36 @@ returns @code{nil} if @var{overlay} has been deleted.
 @end defun
 
 @defun delete-overlay overlay
-This function deletes @var{overlay}.  The overlay continues to exist as
-a Lisp object, and its property list is unchanged, but it ceases to be
-attached to the buffer it belonged to, and ceases to have any effect on
-display.
+This function deletes the specified @var{overlay}.  The overlay
+continues to exist as a Lisp object, and its property list is
+unchanged, but it ceases to be attached to the buffer it belonged to,
+and ceases to have any effect on display.
 
 A deleted overlay is not permanently disconnected.  You can give it a
 position in a buffer again by calling @code{move-overlay}.
 @end defun
 
 @defun move-overlay overlay start end &optional buffer
-This function moves @var{overlay} to @var{buffer}, and places its bounds
-at @var{start} and @var{end}.  Both arguments @var{start} and @var{end}
-must specify buffer positions; they may be integers or markers.
+This function moves @var{overlay} to @var{buffer}, and places its
+bounds at @var{start} and @var{end} in that buffer.  Both arguments
+@var{start} and @var{end} must specify buffer positions; they may be
+integers or markers.
 
 If @var{buffer} is omitted, @var{overlay} stays in the same buffer it
-was already associated with; if @var{overlay} was deleted, it goes into
-the current buffer.
+was already associated with; if @var{overlay} was previously deleted
+(and thus isn't associated with any buffer), it goes into the current
+buffer.
 
 The return value is @var{overlay}.
 
-This is the only valid way to change the endpoints of an overlay.  Do
-not try modifying the markers in the overlay by hand, as that fails to
-update other vital data structures and can cause some overlays to be
-lost.
+This function is the only valid way to change the endpoints of an
+overlay.
 @end defun
 
 @defun remove-overlays &optional start end name value
 This function removes all the overlays between @var{start} and
-@var{end} whose property @var{name} has the value @var{value}.  It can
-move the endpoints of the overlays in the region, or split them.
+@var{end} whose property @var{name} has the specified @var{value}.  It
+can move the endpoints of the overlays in the region, or split them.
 
 If @var{name} is omitted or @code{nil}, it means to delete all overlays in
 the specified region.  If @var{start} and/or @var{end} are omitted or
@@ -1581,20 +1571,24 @@ current buffer.
 
 @defun copy-overlay overlay
 This function returns a copy of @var{overlay}.  The copy has the same
-endpoints and properties as @var{overlay}.  However, the marker
+endpoints and properties as @var{overlay}.  However, the text
 insertion type for the start of the overlay and for the end of the
-overlay are set to their default values (@pxref{Marker Insertion
-Types}).
+overlay are set to their default values.
 @end defun
 
   Here are some examples:
 
 @example
+@group
 ;; @r{Create an overlay.}
 (setq foo (make-overlay 1 10))
      @result{} #<overlay from 1 to 10 in display.texi>
+@end group
+@group
 (overlay-start foo)
      @result{} 1
+@end group
+@group
 (overlay-end foo)
      @result{} 10
 (overlay-buffer foo)
@@ -1605,6 +1599,8 @@ Types}).
 ;; @r{Verify the property is present.}
 (overlay-get foo 'happy)
      @result{} t
+@end group
+@group
 ;; @r{Move the overlay.}
 (move-overlay foo 5 20)
      @result{} #<overlay from 5 to 20 in display.texi>
@@ -1612,6 +1608,8 @@ Types}).
      @result{} 5
 (overlay-end foo)
      @result{} 20
+@end group
+@group
 ;; @r{Delete the overlay.}
 (delete-overlay foo)
      @result{} nil
@@ -1625,6 +1623,8 @@ foo
      @result{} nil
 (overlay-buffer foo)
      @result{} nil
+@end group
+@group
 ;; @r{Undelete the overlay.}
 (move-overlay foo 1 20)
      @result{} #<overlay from 1 to 20 in display.texi>
@@ -1635,25 +1635,13 @@ foo
      @result{} 20
 (overlay-buffer foo)
      @result{} #<buffer display.texi>
+@end group
+@group
 ;; @r{Moving and deleting the overlay does not change its properties.}
 (overlay-get foo 'happy)
      @result{} t
+@end group
 @end example
-
-  Emacs stores the overlays of each buffer in two lists, divided
-around an arbitrary center position.  One list extends backwards
-through the buffer from that center position, and the other extends
-forwards from that center position.  The center position can be anywhere
-in the buffer.
-
-@defun overlay-recenter pos
-This function recenters the overlays of the current buffer around
-position @var{pos}.  That makes overlay lookup faster for positions
-near @var{pos}, but slower for positions far away from @var{pos}.
-@end defun
-
-  A loop that scans the buffer forwards, creating overlays, can run
-faster if you do @code{(overlay-recenter (point-max))} first.
 
 @node Overlay Properties
 @subsection Overlay Properties
@@ -1711,15 +1699,15 @@ If you want to specify a priority value, use either @code{nil}
 (or zero), or a positive integer.  Any other value has undefined behavior.
 
 The priority matters when two or more overlays cover the same
-character and both specify the same property; the one whose
-@code{priority} value is larger overrides the other.  (For the
-@code{face} property, the higher priority overlay's value does not
-completely override the other value; instead, its face attributes
-override the face attributes of the lower priority @code{face}
-property.)  If two overlays have the same priority value, and one is
-nested in the other, then the inner one will prevail over the outer
-one.  If neither is nested in the other then you should not make
-assumptions about which overlay will prevail.
+character and both specify the same property with different values;
+the one whose @code{priority} value is larger overrides the other.
+(For the @code{face} property, the higher priority overlay's value
+does not completely override the other value; instead, its face
+attributes override the face attributes of the @code{face} property
+whose priority is lower.)  If two overlays have the same priority
+value, and one is nested in the other, then the inner one will prevail
+over the outer one.  If neither is nested in the other then you should
+not make assumptions about which overlay will prevail.
 
 Currently, all overlays take priority over text properties.
 
@@ -1780,7 +1768,7 @@ avoided.
 This property is used instead of @code{face} when the mouse is within
 the range of the overlay.  However, Emacs ignores all face attributes
 from this property that alter the text size (e.g., @code{:height},
-@code{:weight}, and @code{:slant}).  Those attributes are always the
+@code{:weight}, and @code{:slant}); those attributes are always the
 same as in the unhighlighted text.
 
 @item display
@@ -1793,9 +1781,8 @@ or shorter, higher or lower, wider or narrower, or replaced with an image.
 @item help-echo
 @kindex help-echo @r{(overlay property)}
 If an overlay has a @code{help-echo} property, then when you move the
-mouse onto the text in the overlay, Emacs displays a help string in the
-echo area, or in the tooltip window.  For details see @ref{Text
-help-echo}.
+mouse onto the text in the overlay, Emacs displays a help string in
+the echo area, or as a tooltip.  For details see @ref{Text help-echo}.
 
 @item field
 @kindex field @r{(overlay property)}
@@ -1862,7 +1849,8 @@ The @code{intangible} property on an overlay works just like the
 Properties}, for details.
 
 @item isearch-open-invisible
-This property tells incremental search how to make an invisible overlay
+This property tells incremental search (@pxref{Incremental Search,,,
+emacs, The GNU Emacs Manual}) how to make an invisible overlay
 visible, permanently, if the final match overlaps it.  @xref{Invisible
 Text}.
 
@@ -1874,13 +1862,15 @@ visible, temporarily, during the search.  @xref{Invisible Text}.
 @kindex before-string @r{(overlay property)}
 This property's value is a string to add to the display at the beginning
 of the overlay.  The string does not appear in the buffer in any
-sense---only on the screen.
+sense---only on the screen.  Note that if the text at the beginning of
+the overlay is made invisible, the string will not be displayed.
 
 @item after-string
 @kindex after-string @r{(overlay property)}
 This property's value is a string to add to the display at the end of
 the overlay.  The string does not appear in the buffer in any
-sense---only on the screen.
+sense---only on the screen.  Note that if the text at the end of the
+overlay is made invisible, the string will not be displayed.
 
 @item line-prefix
 This property specifies a display spec to prepend to each
@@ -5419,7 +5409,7 @@ before @code{height}.
 
 @c We put all the '@code{(when ...)}' on one line to encourage
 @c makeinfo's end-of-sentence heuristics to DTRT.  Previously, the dot
-@c was at eol; the info file ended up w/ two spaces rendered after it.
+@c was at eol; the info file ended up with two spaces rendered after it.
   You can make any display specification conditional.  To do that,
 package it in another list of the form
 @code{(when @var{condition} . @var{spec})}.
@@ -5467,8 +5457,9 @@ or an image descriptor.
 
   To display something in the margin @emph{in association with}
 certain buffer text, without altering or preventing the display of
-that text, put a @code{before-string} property on the text and put the
-margin display specification on the contents of the before-string.
+that text, put on that text an overlay with a @code{before-string}
+property, and put the margin display specification on the contents of
+the before-string.
 
   Note that if the string to be displayed in the margin doesn't
 specify a face, its face is determined using the same rules and
@@ -7124,6 +7115,12 @@ This is only valid for @code{image} icons, and can be either a number
 (which specifies the height in pixels), or the symbol @code{line},
 which will use the default line height in the currently selected
 window.
+
+@item :width
+This is only valid for @code{image} icons, and can be either a number
+(which specifies the width in pixels), or the symbol @code{font},
+which will use the width in pixels of the current buffer’s default
+face font.
 @end table
 
 @var{doc} should be a doc string.

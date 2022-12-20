@@ -154,7 +154,7 @@ titlebar.
 @vindex ns-confirm-quit
 @item ns-confirm-quit
 This variable specifies whether to display a graphical confirmation
-dialogue on quitting.
+dialog on quitting.
 
 @vindex ns-auto-hide-menu-bar
 @item ns-auto-hide-menu-bar

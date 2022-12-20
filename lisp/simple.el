@@ -2929,11 +2929,12 @@ that was current when the minibuffer was activated."
                       (window-buffer (minibuffer-selected-window))))
 
 (defun goto-history-element (nabs)
-  "Puts element of the minibuffer history in the minibuffer.
-The argument NABS specifies the absolute history position in
-descending order, where 0 means the current element and a
-positive number N means the Nth previous element.  NABS being a
-negative number -N means the Nth entry of \"future history.\""
+  "Insert into the minibuffer the element of minibuffer history specified by NABS.
+Interactively, NABS is the prefix numeric argument, and defaults to 1.
+It specifies the absolute history position in descending order,
+where 0 means the current element and a positive number N means
+the Nth previous element.  NABS that is a negative number -N means
+the Nth entry of \"future history.\""
   (interactive "p")
   (when (and (not minibuffer-default-add-done)
 	     (functionp minibuffer-default-add-function)
@@ -2989,17 +2990,17 @@ negative number -N means the Nth entry of \"future history.\""
     (goto-char (or minibuffer-temporary-goal-position (point-max)))))
 
 (defun next-history-element (n)
-  "Puts next element of the minibuffer history in the minibuffer.
-With argument N, it uses the Nth following element.  The position
-in the history can go beyond the current position and invoke \"future
-history.\""
+  "Insert into the minibuffer the Nth next element of minibuffer history.
+Interactively, N is the prefix numeric argument and defaults to 1.
+The value N can go beyond the current position in the minibuffer
+history,  and invoke \"future history.\""
   (interactive "p")
   (or (zerop n)
       (goto-history-element (- minibuffer-history-position n))))
 
 (defun previous-history-element (n)
-  "Puts previous element of the minibuffer history in the minibuffer.
-With argument N, it uses the Nth previous element."
+  "Insert into the minibuffer the Nth previous element of minibuffer history.
+Interactively, N is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (or (zerop n)
       (goto-history-element (+ minibuffer-history-position n))))
@@ -9184,33 +9185,39 @@ The function should return non-nil if the two tokens do not match.")
   "Return the line string that contains the openparen at POS."
   (save-excursion
     (goto-char pos)
-    ;; Show what precedes the open in its line, if anything.
-    (cond
-     ((save-excursion (skip-chars-backward " \t") (not (bolp)))
-      (buffer-substring (line-beginning-position)
-                        (1+ pos)))
-     ;; Show what follows the open in its line, if anything.
-     ((save-excursion
-        (forward-char 1)
-        (skip-chars-forward " \t")
-        (not (eolp)))
-      (buffer-substring pos
-                        (line-end-position)))
-     ;; Otherwise show the previous nonblank line,
-     ;; if there is one.
-     ((save-excursion (skip-chars-backward "\n \t") (not (bobp)))
-      (concat
-       (buffer-substring (progn
-                           (skip-chars-backward "\n \t")
-                           (line-beginning-position))
-                         (progn (end-of-line)
-                                (skip-chars-backward " \t")
-                                (point)))
-       ;; Replace the newline and other whitespace with `...'.
-       "..."
-       (buffer-substring pos (1+ pos))))
-     ;; There is nothing to show except the char itself.
-     (t (buffer-substring pos (1+ pos))))))
+    ;; Capture the regions in terms of (beg . end) conses whose
+    ;; buffer-substrings we want to show as a context string.  Ensure
+    ;; they are font-locked (bug#59527).
+    (let (regions)
+      ;; Show what precedes the open in its line, if anything.
+      (cond
+       ((save-excursion (skip-chars-backward " \t") (not (bolp)))
+        (setq regions (list (cons (line-beginning-position)
+                                  (1+ pos)))))
+       ;; Show what follows the open in its line, if anything.
+       ((save-excursion
+          (forward-char 1)
+          (skip-chars-forward " \t")
+          (not (eolp)))
+        (setq regions (list (cons pos (line-end-position)))))
+       ;; Otherwise show the previous nonblank line,
+       ;; if there is one.
+       ((save-excursion (skip-chars-backward "\n \t") (not (bobp)))
+        (setq regions (list (cons (progn
+                                    (skip-chars-backward "\n \t")
+                                    (line-beginning-position))
+                                  (progn (end-of-line)
+                                         (skip-chars-backward " \t")
+                                         (point)))
+                            (cons pos (1+ pos)))))
+       ;; There is nothing to show except the char itself.
+       (t (setq regions (list (cons pos (1+ pos))))))
+      ;; Ensure we've font-locked the context region.
+      (font-lock-ensure (caar regions) (cdar (last regions)))
+      (mapconcat (lambda (region)
+                   (buffer-substring (car region) (cdr region)))
+                 regions
+                 "..."))))
 
 (defvar blink-paren-function 'blink-matching-open
   "Function called, if non-nil, whenever a close parenthesis is inserted.
@@ -9632,7 +9639,8 @@ Go to the window from which completion was requested."
 (defcustom completion-auto-wrap t
   "Non-nil means to wrap around when selecting completion options.
 This affects the commands `next-completion' and `previous-completion'.
-When `completion-auto-select' is t, it wraps through the minibuffer."
+When `completion-auto-select' is t, it wraps through the minibuffer
+for the commands bound to the TAB key."
   :type 'boolean
   :version "29.1"
   :group 'completion)

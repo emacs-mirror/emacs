@@ -6,7 +6,7 @@
 ;;	 Dan Davison
 ;; Maintainer: Jack Kamm <jackkamm@gmail.com>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,16 @@
 ;; Org-Babel support for evaluating python source code.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-macs)
 (require 'python)
 
 (declare-function py-shell "ext:python-mode" (&rest args))
-(declare-function py-toggle-shells "ext:python-mode" (arg))
+(declare-function py-choose-shell "ext:python-mode" (&optional shell))
 (declare-function py-shell-send-string "ext:python-mode" (strg &optional process))
 
 (defvar org-babel-tangle-lang-exts)
@@ -178,9 +182,10 @@ Emacs-lisp table, otherwise return the results as a string."
 	(substring name 1 (- (length name) 1))
       name)))
 
-(defvar py-default-interpreter)
 (defvar py-which-bufname)
 (defvar python-shell-buffer-name)
+(defvar-local org-babel-python--initialized nil
+  "Flag used to mark that python session has been initialized.")
 (defun org-babel-python-initiate-session-by-key (&optional session)
   "Initiate a python session.
 If there is not a current inferior-process-buffer in SESSION
@@ -198,14 +203,20 @@ then create.  Return the initialized session."
 	(let ((python-shell-buffer-name
 	       (org-babel-python-without-earmuffs py-buffer)))
 	  (run-python cmd)
-	  (sleep-for 0 10)))
+          (with-current-buffer py-buffer
+            (add-hook
+             'python-shell-first-prompt-hook
+             (lambda ()
+               (setq-local org-babel-python--initialized t)
+               (message "I am running!!!"))
+             nil 'local))))
        ((and (eq 'python-mode org-babel-python-mode)
 	     (fboundp 'py-shell)) ; python-mode.el
 	(require 'python-mode)
 	;; Make sure that py-which-bufname is initialized, as otherwise
 	;; it will be overwritten the first time a Python buffer is
 	;; created.
-	(py-toggle-shells py-default-interpreter)
+	(py-choose-shell)
 	;; `py-shell' creates a buffer whose name is the value of
 	;; `py-which-bufname' with '*'s at the beginning and end
 	(let* ((bufname (if (and py-buffer (buffer-live-p py-buffer))
@@ -217,6 +228,15 @@ then create.  Return the initialized session."
 	  (py-shell nil nil t org-babel-python-command py-buffer nil nil t nil)))
        (t
 	(error "No function available for running an inferior Python")))
+      ;; Wait until Python initializes.
+      (if (eq 'python org-babel-python-mode) ; python.el
+          ;; This is more reliable compared to
+          ;; `org-babel-comint-wait-for-output' as python may emit
+          ;; multiple prompts during initialization.
+          (with-current-buffer py-buffer
+            (while (not org-babel-python--initialized)
+              (org-babel-comint-wait-for-output py-buffer)))
+        (org-babel-comint-wait-for-output py-buffer))
       (setq org-babel-python-buffers
 	    (cons (cons session py-buffer)
 		  (assq-delete-all session org-babel-python-buffers)))

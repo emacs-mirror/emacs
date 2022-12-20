@@ -776,7 +776,8 @@ Default value of MODIFIERS is `shift-super'."
 (defconst windmove--default-keybindings-type
   `(choice (const :tag "Don't bind" nil)
            (cons :tag "Bind using"
-                 (key-sequence :tag "Prefix")
+                 (choice (key-sequence :tag "Prefix")
+                         (const :tag "No Prefix" nil))
                  (set :tag "Modifier"
                       :greedy t
                       ;; See `(elisp) Keyboard Events'

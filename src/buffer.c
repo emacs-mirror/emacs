@@ -604,7 +604,6 @@ even if it is dead.  The return value is never nil.  */)
   set_buffer_intervals (b, NULL);
   BUF_UNCHANGED_MODIFIED (b) = 1;
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
-  BUF_CHARS_UNCHANGED_MODIFIED (b) = 1;
   BUF_END_UNCHANGED (b) = 0;
   BUF_BEG_UNCHANGED (b) = 0;
   *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
@@ -1748,7 +1747,19 @@ other_buffer_safely (Lisp_Object buffer)
     if (candidate_buffer (buf, buffer))
       return buf;
 
-  return safe_call (1, Qget_scratch_buffer_create);
+  /* This function must return a valid buffer, since it is frequently
+     our last line of defense in the face of the expected buffers
+     becoming dead under our feet.  safe_call below could return nil
+     if recreating *scratch* in Lisp, which does some fancy stuff,
+     signals an error in some weird use case.  */
+  buf = safe_call (1, Qget_scratch_buffer_create);
+  if (NILP (buf))
+    {
+      AUTO_STRING (scratch, "*scratch*");
+      buf = Fget_buffer_create (scratch, Qnil);
+      Fset_buffer_major_mode (buf);
+    }
+  return buf;
 }
 
 DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
@@ -3899,11 +3910,11 @@ the value is (point-min).  */)
 /* These functions are for debugging overlays.  */
 
 DEFUN ("overlay-lists", Foverlay_lists, Soverlay_lists, 0, 0, 0,
-       doc: /* Return a pair of lists giving all the overlays of the current buffer.
-The car has all the overlays before the overlay center;
-the cdr has all the overlays after the overlay center.
-Recentering overlays moves overlays between these lists.
-The lists you get are copies, so that changing them has no effect.
+       doc: /* Return a list giving all the overlays of the current buffer.
+
+For backward compatibility, the value is actually a list that
+holds another list; the overlays are in the inner list.
+The list you get is a copy, so that changing it has no effect.
 However, the overlays you get are the real objects that the buffer uses. */)
   (void)
 {
@@ -3919,7 +3930,12 @@ However, the overlays you get are the real objects that the buffer uses. */)
 DEFUN ("overlay-recenter", Foverlay_recenter, Soverlay_recenter, 1, 1, 0,
        doc: /* Recenter the overlays of the current buffer around position POS.
 That makes overlay lookup faster for positions near POS (but perhaps slower
-for positions far away from POS).  */)
+for positions far away from POS).
+
+Since Emacs 29.1, this function is a no-op, because the implementation
+of overlays changed and their lookup is now fast regardless of their
+position in the buffer.  In particular, this function no longer affects
+the value returned by `overlay-lists'.  */)
   (Lisp_Object pos)
 {
   CHECK_FIXNUM_COERCE_MARKER (pos);
@@ -5898,7 +5914,42 @@ this threshold.
 If nil, these display shortcuts will always remain disabled.
 
 There is no reason to change that value except for debugging purposes.  */);
-  XSETFASTINT (Vlong_line_threshold, 10000);
+  XSETFASTINT (Vlong_line_threshold, 50000);
+
+  DEFVAR_INT ("long-line-locked-narrowing-region-size",
+	      long_line_locked_narrowing_region_size,
+	      doc: /* Region size for locked narrowing in buffers with long lines.
+
+This variable has effect only in buffers which contain one or more
+lines whose length is above `long-line-threshold', which see.  For
+performance reasons, in such buffers, low-level hooks such as
+`fontification-functions' or `post-command-hook' are executed on a
+narrowed buffer, with a narrowing locked with `narrowing-lock'.  This
+variable specifies the size of the narrowed region around point.
+
+To disable that narrowing, set this variable to 0.
+
+See also `long-line-locked-narrowing-bol-search-limit'.
+
+There is no reason to change that value except for debugging purposes.  */);
+  long_line_locked_narrowing_region_size = 500000;
+
+  DEFVAR_INT ("long-line-locked-narrowing-bol-search-limit",
+	      long_line_locked_narrowing_bol_search_limit,
+	      doc: /* Limit for beginning of line search in buffers with long lines.
+
+This variable has effect only in buffers which contain one or more
+lines whose length is above `long-line-threshold', which see.  For
+performance reasons, in such buffers, low-level hooks such as
+`fontification-functions' or `post-command-hook' are executed on a
+narrowed buffer, with a narrowing locked with `narrowing-lock'.  The
+variable `long-line-locked-narrowing-region-size' specifies the size
+of the narrowed region around point.  This variable, which should be a
+small integer, specifies the number of characters by which that region
+can be extended backwards to make it start at the beginning of a line.
+
+There is no reason to change that value except for debugging purposes.  */);
+  long_line_locked_narrowing_bol_search_limit = 128;
 
   DEFVAR_INT ("large-hscroll-threshold", large_hscroll_threshold,
     doc: /* Horizontal scroll of truncated lines above which to use redisplay shortcuts.

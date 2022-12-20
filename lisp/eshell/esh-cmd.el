@@ -480,11 +480,16 @@ hooks should be run before and after the command."
   (let ((sym (if eshell-in-pipeline-p
 		 'eshell-named-command*
 	       'eshell-named-command))
-	(cmd (car terms))
-	(args (cdr terms)))
-    (if args
-	(list sym cmd `(list ,@(cdr terms)))
-      (list sym cmd))))
+        (grouped-terms (eshell-prepare-splice terms)))
+    (cond
+     (grouped-terms
+      `(let ((terms (nconc ,@grouped-terms)))
+         (,sym (car terms) (cdr terms))))
+     ;; If no terms are spliced, use a simpler command form.
+     ((cdr terms)
+      (list sym (car terms) `(list ,@(cdr terms))))
+     (t
+      (list sym (car terms))))))
 
 (defvar eshell-command-body)
 (defvar eshell-test-body)

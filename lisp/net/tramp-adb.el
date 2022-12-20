@@ -168,6 +168,7 @@ It is used for TCP/IP devices."
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-adb-handle-make-process)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (memory-info . tramp-handle-memory-info)
     (process-attributes . tramp-handle-process-attributes)
     (process-file . tramp-adb-handle-process-file)
     (rename-file . tramp-adb-handle-rename-file)

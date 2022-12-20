@@ -41,7 +41,7 @@ quoted directory names (Bug#47799)."
   (skip-unless (executable-find "grep"))
   (ert-with-temp-directory directory
     (let ((default-directory directory)
-          (project-current-inhibit-prompt t)
+          (project-current-directory-override t)
           (project-find-functions nil)
           (project-list-file
            (expand-file-name "projects" directory))
@@ -109,5 +109,47 @@ When `project-ignores' includes a name matching project dir."
       (should (equal files
                      (list
                       (expand-file-name "some-file" dir)))))))
+
+(defvar project-tests--this-file (or (bound-and-true-p byte-compile-current-file)
+                                     (and load-in-progress load-file-name)
+                                     buffer-file-name))
+
+(ert-deftest project-vc-recognizes-git ()
+  "Check that Git repository is detected."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (let* ((vc-handled-backends '(Git))
+         (dir (file-name-directory project-tests--this-file))
+         (_ (vc-file-clearprops dir))
+         (project-vc-extra-root-markers nil)
+         (project (project-current nil dir)))
+    (should-not (null project))
+    (should (string-match-p
+             "\\`test/lisp/progmodes/project-tests\\.elc?"
+             (file-relative-name
+              project-tests--this-file
+              (project-root project))))))
+
+(ert-deftest project-vc-extra-root-markers-supports-wildcards ()
+  "Check that one can add wildcard entries."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (let* ((dir (file-name-directory project-tests--this-file))
+         (_ (vc-file-clearprops dir))
+         (project-vc-extra-root-markers '("files-x-tests.*"))
+         (project (project-current nil dir)))
+    (should-not (null project))
+    (should (string-match-p "/test/lisp/\\'" (project-root project)))))
+
+(ert-deftest project-vc-supports-project-in-different-dir ()
+  "Check that it picks up dir-locals settings from somewhere else."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (let* ((dir (ert-resource-directory))
+         (_ (vc-file-clearprops dir))
+         (project-vc-extra-root-markers '(".dir-locals.el"))
+         (project (project-current nil dir)))
+    (should-not (null project))
+    (should (string-match-p "/test/lisp/progmodes/project-resources/\\'" (project-root project)))
+    (should (member "etc" (project-ignores project dir)))
+    (should (equal '(".dir-locals.el" "foo")
+                   (mapcar #'file-name-nondirectory (project-files project))))))
 
 ;;; project-tests.el ends here

@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.65])
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT([GNU Emacs], [29.0.50], [bug-gnu-emacs@gnu.org], [],
+AC_INIT([GNU Emacs], [30.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
@@ -1841,7 +1841,9 @@ AC_CHECK_HEADERS_ONCE(
   coff.h pty.h
   sys/resource.h
   sys/utsname.h pwd.h utmp.h util.h
-  sanitizer/lsan_interface.h])
+  sanitizer/lsan_interface.h
+  sanitizer/asan_interface.h
+  sanitizer/common_interface_defs.h])
 
 AC_CACHE_CHECK([for ADDR_NO_RANDOMIZE],
   [emacs_cv_personality_addr_no_randomize],
@@ -3933,21 +3935,10 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${HAVE_XCB}" = "yes"; then
     AC_CHECK_LIB([X11-xcb], [XGetXCBConnection], [HAVE_X11_XCB=yes])
     if test "${HAVE_X11_XCB}" = "yes"; then
-      AC_CHECK_LIB([xcb-util], [xcb_aux_sync], [HAVE_XCB_UTIL=yes])
-      if test "${HAVE_XCB_UTIL}" = "yes"; then
-	AC_DEFINE([USE_XCB], [1],
+      AC_DEFINE([USE_XCB], [1],
 [Define to 1 if you have the XCB library and X11-XCB library for mixed
-  X11/XCB programming.])
-        XCB_LIBS="-lX11-xcb -lxcb -lxcb-util"
-      else
-	AC_CHECK_LIB([xcb-aux], [xcb_aux_sync], [HAVE_XCB_AUX=yes])
-        if test "${HAVE_XCB_AUX}" = "yes"; then
-	  AC_DEFINE([USE_XCB], [1],
-[Define to 1 if you have the XCB library and X11-XCB library for mixed
- X11/XCB programming.])
-          XCB_LIBS="-lX11-xcb -lxcb -lxcb-aux"
-        fi
-      fi
+X11/XCB programming.])
+      XCB_LIBS="-lX11-xcb -lxcb"
     fi
   fi
 fi
@@ -4216,11 +4207,13 @@ AC_SUBST_FILE([module_env_snippet_26])
 AC_SUBST_FILE([module_env_snippet_27])
 AC_SUBST_FILE([module_env_snippet_28])
 AC_SUBST_FILE([module_env_snippet_29])
+AC_SUBST_FILE([module_env_snippet_30])
 module_env_snippet_25="$srcdir/src/module-env-25.h"
 module_env_snippet_26="$srcdir/src/module-env-26.h"
 module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
+module_env_snippet_30="$srcdir/src/module-env-30.h"
 emacs_major_version="${PACKAGE_VERSION%%.*}"
 AC_SUBST([emacs_major_version])
 
@@ -4702,7 +4695,7 @@ AC_SUBST([XINERAMA_LIBS])
 ### Use Xfixes (-lXfixes) if available
 HAVE_XFIXES=no
 if test "${HAVE_X11}" = "yes"; then
-  XFIXES_REQUIRED=4.0.0
+  XFIXES_REQUIRED=1.0.0
   XFIXES_MODULES="xfixes >= $XFIXES_REQUIRED"
   EMACS_CHECK_MODULES([XFIXES], [$XFIXES_MODULES])
   if test $HAVE_XFIXES = no; then
@@ -5006,6 +4999,7 @@ pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 getpwent endpwent getgrent endgrent \
+renameat2 \
 cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np \
 pthread_set_name_np])
 LIBS=$OLD_LIBS
@@ -5998,7 +5992,7 @@ case $opsys in
   gnu-linux | gnu-kfreebsd )
     AC_DEFINE([USG], [])
     AC_DEFINE([GNU_LINUX], [],
-      [Define if ths system is compatible with GNU/Linux.])
+      [Define if this system is compatible with GNU/Linux.])
     ;;
 
   hpux*)

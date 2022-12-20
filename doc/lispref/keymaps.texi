@@ -841,7 +841,7 @@ keymaps:
           (@var{find-in-any} emulation-mode-map-alists)
           (@var{find-in-any} minor-mode-overriding-map-alist)
           (@var{find-in-any} minor-mode-map-alist)
-          (if (get-text-property (point) 'local-map)
+          (if (get-char-property (point) 'local-map)
               (@var{find-in} (get-char-property (point) 'local-map))
             (@var{find-in} (current-local-map)))))
     (@var{find-in} (current-global-map)))

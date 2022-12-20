@@ -132,20 +132,4 @@ scratch_buffer_set_array_size (struct scratch_buffer *buffer,
 			 (buffer, nelem, size));
 }
 
-/* Return a copy of *BUFFER's first SIZE bytes as a heap-allocated block,
-   deallocating *BUFFER if it was heap-allocated.  SIZE must be at
-   most *BUFFER's size.  Return NULL (setting errno) on memory
-   exhaustion.  */
-void *__libc_scratch_buffer_dupfree (struct scratch_buffer *buffer,
-                                     size_t size);
-libc_hidden_proto (__libc_scratch_buffer_dupfree)
-
-/* Alias for __libc_scratch_dupfree.  */
-static __always_inline void *
-scratch_buffer_dupfree (struct scratch_buffer *buffer, size_t size)
-{
-  void *r = __libc_scratch_buffer_dupfree (buffer, size);
-  return __glibc_likely (r != NULL) ? r : NULL;
-}
-
 #endif /* _SCRATCH_BUFFER_H */

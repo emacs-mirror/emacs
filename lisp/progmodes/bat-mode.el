@@ -44,7 +44,7 @@
 ;; Separate package `dos-indent' (Matthew Fidler) provides rudimentary
 ;; indentation, see https://www.emacswiki.org/emacs/dos-indent.el.
 ;;
-;; Acknowledgements:
+;; Acknowledgments:
 ;;
 ;; Inspired by `batch-mode' (Agnar Renolen) and `cmd-mode' (Tadamegu Furukawa).
 

@@ -23054,8 +23054,8 @@
 
 	Fix tests in file-notify-tests.el
 	* test/automated/file-notify-tests.el: Remove Tramp declarations.
-	(file-notify-test00-availability): Print remote command w/o Tramp
-	internal functions.
+	(file-notify-test00-availability): Print remote command without
+	Tramp internal functions.
 	(file-notify-test02-events, file-notify-test02-events-remote):
 	Adapt docstring.
 	(file-notify-test03-autorevert): Use `format-message' when
@@ -28676,7 +28676,7 @@
 	* lisp/faces.el (set-face-attribute): Don't be fooled too easily
 	by a hyphen in a font's name.
 
-	Fix value of posn-at-pont in R2L lines
+	Fix value of posn-at-point in R2L lines
 	* src/keyboard.c (Fposn_at_x_y, Fposn_at_point): Allow X pixel
 	coordinate of -1, for a newline in a right-to-left line that
 	overflowed into the left fringe.

@@ -134,6 +134,7 @@ static dev_t timestamp_file_system;
    is added here.  */
 static Lisp_Object Vwrite_region_annotation_buffers;
 
+static Lisp_Object emacs_readlinkat (int, char const *);
 static Lisp_Object file_name_directory (Lisp_Object);
 static bool a_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 		     Lisp_Object *, struct coding_system *);
@@ -2219,7 +2220,7 @@ permissions.  */)
       report_file_error ("Copying permissions to", newname);
     }
 #else /* not WINDOWSNT */
-  ifd = emacs_open (SSDATA (encoded_file), O_RDONLY, 0);
+  ifd = emacs_open (SSDATA (encoded_file), O_RDONLY | O_NONBLOCK, 0);
 
   if (ifd < 0)
     report_file_error ("Opening input file", file);
@@ -2427,15 +2428,10 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
   (Lisp_Object directory)
 {
   const char *dir;
-  Lisp_Object handler;
   Lisp_Object encoded_dir;
 
   CHECK_STRING (directory);
   directory = Fexpand_file_name (directory, Qnil);
-
-  handler = Ffind_file_name_handler (directory, Qmake_directory_internal);
-  if (!NILP (handler))
-    return call2 (handler, Qmake_directory_internal, directory);
 
   encoded_dir = ENCODE_FILE (directory);
 
@@ -2710,31 +2706,19 @@ This is what happens in interactive use with M-x.  */)
     }
   if (dirp)
     call4 (Qcopy_directory, file, newname, Qt, Qnil);
-  else
+  else if (S_ISREG (file_st.st_mode))
+    Fcopy_file (file, newname, ok_if_already_exists, Qt, Qt, Qt);
+  else if (S_ISLNK (file_st.st_mode))
     {
-      Lisp_Object symlink_target
-	= (S_ISLNK (file_st.st_mode)
-	   ? check_emacs_readlinkat (AT_FDCWD, file, SSDATA (encoded_file))
-	   : Qnil);
-      if (!NILP (symlink_target))
-	Fmake_symbolic_link (symlink_target, newname, ok_if_already_exists);
-      else if (S_ISFIFO (file_st.st_mode))
-	{
-	  /* If it's a FIFO, calling `copy-file' will hang if it's a
-	     inter-file system move, so do it here.  (It will signal
-	     an error in that case, but it won't hang in any case.)  */
-	  if (!NILP (ok_if_already_exists))
-	    barf_or_query_if_file_exists (newname, false,
-					  "rename to it",
-					  FIXNUMP (ok_if_already_exists),
-					  false);
-	  if (rename (SSDATA (encoded_file), SSDATA (encoded_newname)) != 0)
-	    report_file_errno ("Renaming", list2 (file, newname), errno);
-	  return Qnil;
-	}
+      Lisp_Object target = emacs_readlinkat (AT_FDCWD,
+					     SSDATA (encoded_file));
+      if (!NILP (target))
+	Fmake_symbolic_link (target, newname, ok_if_already_exists);
       else
-	Fcopy_file (file, newname, ok_if_already_exists, Qt, Qt, Qt);
+	report_file_error ("Renaming", list2 (file, newname));
     }
+  else
+    report_file_errno ("Renaming", list2 (file, newname), rename_errno);
 
   specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qdelete_by_moving_to_trash, Qnil);

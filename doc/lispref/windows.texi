@@ -588,8 +588,7 @@ within that frame.  @var{frame} should be a live frame; if omitted or
 @defun set-frame-selected-window frame window &optional norecord
 This function makes @var{window} the window selected within the frame
 @var{frame}.  @var{frame} should be a live frame; if @code{nil}, it
-defaults to the selected frame.  @var{window} should be a live window;
-if @code{nil}, it defaults to the selected window.
+defaults to the selected frame.  @var{window} must denote a live window.
 
 If @var{frame} is the selected frame, this makes @var{window} the
 selected window.

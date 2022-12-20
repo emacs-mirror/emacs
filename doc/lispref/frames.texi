@@ -2854,9 +2854,17 @@ The plural ``frames'' in the previous paragraph is deliberate: while
 Emacs itself has only one selected frame, Emacs can have frames on
 many different terminals (recall that a connection to a window system
 counts as a terminal), and each terminal has its own idea of which
-frame has input focus.  When you set the input focus to a frame, you
-set the focus for that frame's terminal, but frames on other terminals
+frame has input focus.  Under the X Window System, where user input is
+organized into individual ``seats'' of input, each seat in turn can
+have its own specific input focus.  When you set the input focus to a
+frame, you set the focus for that frame's terminal on the last seat
+which interacted with Emacs, but frames on other terminals and seats
 may still remain focused.
+
+If the input focus is set before any user interaction has occurred on
+the specified terminal, then the X server picks a random seat
+(normally the one with the lowest number) and sets the input focus
+there.
 
 Lisp programs can switch frames temporarily by calling the function
 @code{select-frame}.  This does not alter the window system's concept

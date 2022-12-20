@@ -1396,10 +1396,10 @@ inserted."
   (interactive "P")
   (rcirc-format "\^_" replace))
 
-(defun rcirc-format-strike-trough (replace)
-  "Insert strike-trough formatting.
+(defun rcirc-format-strike-through (replace)
+  "Insert strike-through formatting.
 If REPLACE is non-nil or a prefix argument is given, any prior
-formatting will be replaced before the strike-trough formatting
+formatting will be replaced before the strike-through formatting
 is inserted."
   (interactive "P")
   (rcirc-format "\^^" replace))
@@ -1421,7 +1421,7 @@ inserted."
   "C-c C-f C-b" #'rcirc-format-bold
   "C-c C-f C-i" #'rcirc-format-italic
   "C-c C-f C-u" #'rcirc-format-underline
-  "C-c C-f C-s" #'rcirc-format-strike-trough
+  "C-c C-f C-s" #'rcirc-format-strike-through
   "C-c C-f C-f" #'rcirc-format-fixed-width
   "C-c C-f C-t" #'rcirc-format-fixed-width ;as in AucTeX
   "C-c C-f C-d" #'rcirc-unformat
@@ -1807,7 +1807,7 @@ extracted."
   "C-c C-f C-b" #'rcirc-format-bold
   "C-c C-f C-i" #'rcirc-format-italic
   "C-c C-f C-u" #'rcirc-format-underline
-  "C-c C-f C-s" #'rcirc-format-strike-trough
+  "C-c C-f C-s" #'rcirc-format-strike-through
   "C-c C-f C-f" #'rcirc-format-fixed-width
   "C-c C-f C-t" #'rcirc-format-fixed-width ;as in AucTeX
   "C-c C-f C-d" #'rcirc-unformat
@@ -2371,9 +2371,11 @@ This function does not alter the INPUT string."
   "C-c C-@"   #'rcirc-next-active-buffer
   "C-c C-SPC" #'rcirc-next-active-buffer)
 
-(defcustom rcirc-track-abbrevate-flag t
+(define-obsolete-variable-alias 'rcirc-track-abbrevate-flag
+  'rcirc-track-abbreviate-flag "30.1")
+(defcustom rcirc-track-abbreviate-flag t
   "Non-nil means `rcirc-track-minor-mode' should abbreviate names."
-  :version "28.1"
+  :version "30.1"
   :type 'boolean)
 
 ;;;###autoload
@@ -2559,7 +2561,7 @@ activity.  Only run if the buffer is not visible and
     (funcall rcirc-channel-filter
              (replace-regexp-in-string
               "@.*?\\'" ""
-              (or (and rcirc-track-abbrevate-flag
+              (or (and rcirc-track-abbreviate-flag
                        rcirc-short-buffer-name)
                   (buffer-name))))))
 
@@ -4001,6 +4003,9 @@ PROCESS is the process object for the current connection."
            when (and (= (length setting) 2)
                      (string-equal (downcase (car setting)) parameter))
            return (cadr setting)))
+
+(define-obsolete-function-alias 'rcirc-format-strike-trough
+  'rcirc-format-strike-through "30.1")
 
 (provide 'rcirc)
 

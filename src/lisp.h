@@ -4728,7 +4728,8 @@ extern void save_restriction_restore (Lisp_Object);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
-extern Lisp_Object narrow_to_region_internal (Lisp_Object, Lisp_Object, bool);
+extern void narrow_to_region_locked (Lisp_Object, Lisp_Object, Lisp_Object);
+extern void reset_outermost_narrowings (void);
 extern void init_editfns (void);
 extern void syms_of_editfns (void);
 
@@ -5334,6 +5335,26 @@ INLINE void
 __lsan_ignore_object (void const *p)
 {
 }
+#endif
+
+/* If built with USE_SANITIZER_UNALIGNED_LOAD defined, use compiler
+   provided ASan functions to perform unaligned loads, allowing ASan
+   to catch bugs which it might otherwise miss.  */
+#if defined HAVE_SANITIZER_COMMON_INTERFACE_DEFS_H \
+  && defined ADDRESS_SANITIZER                     \
+  && defined USE_SANITIZER_UNALIGNED_LOAD
+# include <sanitizer/common_interface_defs.h>
+# if (SIZE_MAX == UINT64_MAX)
+#  define UNALIGNED_LOAD_SIZE(a, i) \
+   (size_t) __sanitizer_unaligned_load64 ((void *) ((a) + (i)))
+# elif (SIZE_MAX == UINT32_MAX)
+#  define UNALIGNED_LOAD_SIZE(a, i) \
+   (size_t) __sanitizer_unaligned_load32 ((void *) ((a) + (i)))
+# else
+#  define UNALIGNED_LOAD_SIZE(a, i) *((a) + (i))
+# endif
+#else
+# define UNALIGNED_LOAD_SIZE(a, i) *((a) + (i))
 #endif
 
 extern void xputenv (const char *);

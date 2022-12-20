@@ -175,7 +175,8 @@ HOSTNAME, USER and PORT are passed unchanged to
 (ert-deftest auth-source-pass-any-host ()
   (auth-source-pass--with-store '(("foo" ("port" . "foo-port") ("host" . "foo-user"))
                                   ("bar"))
-    (should-not (auth-source-pass-search :host t))))
+    (let ((inhibit-message t)) ; silence "... does not handle host wildcards."
+      (should-not (auth-source-pass-search :host t)))))
 
 (ert-deftest auth-source-pass-undefined-host ()
   (auth-source-pass--with-store '(("foo" ("port" . "foo-port") ("host" . "foo-user"))
@@ -697,29 +698,29 @@ machine Libera.Chat password b
 ;; with slightly more realistic and less legible values.
 
 (ert-deftest auth-source-pass-extra-query-keywords--suffixed-user ()
-  (let ((store (sort (copy-sequence '(("x.com:42/bar" (secret . "a"))
-                                      ("bar@x.com" (secret . "b"))
+  (let ((store (sort (copy-sequence '(("x.com:42/s p@m" (secret . "a"))
+                                      ("s p@m@x.com" (secret . "b"))
                                       ("x.com" (secret . "?"))
-                                      ("bar@y.org" (secret . "c"))
-                                      ("fake.com" (secret . "?"))
-                                      ("fake.com/bar" (secret . "d"))
-                                      ("y.org/bar" (secret . "?"))
-                                      ("bar@fake.com" (secret . "e"))))
+                                      ("s p@m@y.org" (secret . "c"))
+                                      ("fa ke" (secret . "?"))
+                                      ("fa ke/s p@m" (secret . "d"))
+                                      ("y.org/s p@m" (secret . "?"))
+                                      ("s p@m@fa ke" (secret . "e"))))
                      (lambda (&rest _) (zerop (random 2))))))
     (auth-source-pass--with-store store
       (auth-source-pass-enable)
       (let* ((auth-source-pass-extra-query-keywords t)
-             (results (auth-source-search :host '("x.com" "fake.com" "y.org")
-                                          :user "bar"
+             (results (auth-source-search :host '("x.com" "fa ke" "y.org")
+                                          :user "s p@m"
                                           :require '(:user) :max 5)))
         (dolist (result results)
           (setf (plist-get result :secret) (auth-info-password result)))
         (should (equal results
-                       '((:host "x.com" :user "bar" :secret "b")
-                         (:host "x.com" :user "bar" :port "42" :secret "a")
-                         (:host "fake.com" :user "bar" :secret "e")
-                         (:host "fake.com" :user "bar" :secret "d")
-                         (:host "y.org" :user "bar" :secret "c"))))))))
+                       '((:host "x.com" :user "s p@m" :secret "b")
+                         (:host "x.com" :user "s p@m" :port "42" :secret "a")
+                         (:host "fa ke" :user "s p@m" :secret "e")
+                         (:host "fa ke" :user "s p@m" :secret "d")
+                         (:host "y.org" :user "s p@m" :secret "c"))))))))
 
 ;; This is a more distilled version of `suffixed-user', above.  It
 ;; better illustrates that search order takes precedence over "/user"

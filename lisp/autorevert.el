@@ -718,7 +718,7 @@ system.")
                           (string-equal
                            (file-name-nondirectory file)
                            (file-name-nondirectory buffer-file-name)))
-                     ;; A buffer w/o a file, like dired.
+                     ;; A buffer without a file, like dired.
                      (null buffer-file-name))
                 (auto-revert-notify-rm-watch)
                 ;; Restart the timer if it wasn't running.
@@ -739,7 +739,7 @@ system.")
                               (string-equal
                                (file-name-nondirectory file1)
                                (file-name-nondirectory buffer-file-name)))))
-                   ;; A buffer w/o a file, like dired.
+                   ;; A buffer without a file, like dired.
                    (and (null buffer-file-name)
                         (memq action '(created renamed deleted))))
               ;; Mark buffer modified.

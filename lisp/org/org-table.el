@@ -4,7 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -34,10 +34,14 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-macs)
 (require 'org-compat)
 (require 'org-keys)
+(require 'org-fold-core)
 
 (declare-function calc-eval "calc" (str &optional separator &rest args))
 (declare-function face-remap-remove-relative "face-remap" (cookie))
@@ -47,7 +51,7 @@
 (declare-function org-mode "org" ())
 (declare-function org-duration-p "org-duration" (duration &optional canonical))
 (declare-function org-duration-to-minutes "org-duration" (duration &optional canonical))
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-contents "org-element" (element))
 (declare-function org-element-extract-element "org-element" (element))
 (declare-function org-element-interpret-data "org-element" (data))
@@ -56,6 +60,7 @@
 (declare-function org-element-parse-buffer "org-element" (&optional granularity visible-only))
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-element-type "org-element" (element))
+(declare-function org-element-cache-reset "org-element" (&optional all no-persistence))
 (declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-export-create-backend "ox" (&rest rest) t)
 (declare-function org-export-data-with-backend "ox" (data backend info))
@@ -566,11 +571,23 @@ This works for both table types.")
   (concat "\\(" "@[-0-9I$]+" "\\|" "[a-zA-Z]\\{1,2\\}\\([0-9]+\\|&\\)" "\\)")
   "Match a reference that needs translation, for reference display.")
 
-(defconst org-table-separator-space
+(defconst org-table--separator-space-pre
   (propertize " " 'display '(space :relative-width 1))
-  "Space used around fields when aligning the table.
+  "Space used in front of fields when aligning the table.
 This space serves as a segment separator for the purposes of the
-bidirectional reordering.")
+bidirectional reordering.
+Note that `org-table--separator-space-pre' is not `eq' to
+`org-table--separator-space-post'.  This is done to prevent Emacs from
+visually merging spaces in an empty table cell.  See bug#45915.")
+
+(defconst org-table--separator-space-post
+  (propertize " " 'display '(space :relative-width 1.001))
+  "Space used after fields when aligning the table.
+This space serves as a segment separator for the purposes of the
+bidirectional reordering.
+Note that `org-table--separator-space-pre' is not `eq' to
+`org-table--separator-space-post'.  This is done to prevent Emacs from
+visually merging spaces in an empty table cell.  See bug#45915.")
 
 
 ;;; Internal Variables
@@ -843,7 +860,11 @@ SIZE is a string Columns x Rows like for example \"3x2\"."
   "Convert region to a table.
 
 The region goes from BEG0 to END0, but these borders will be moved
-slightly, to make sure a beginning of line in the first line is included.
+slightly, to make sure a beginning of line in the first line is
+included.
+
+Throw an error when the region has more than
+`org-table-convert-region-max-lines' lines.
 
 SEPARATOR specifies the field separator in the lines.  It can have the
 following values:
@@ -1339,6 +1360,9 @@ However, when FORCE is non-nil, create new columns if necessary."
   "Insert a new column into the table."
   (interactive)
   (unless (org-at-table-p) (user-error "Not at a table"))
+  (when (eobp) (save-excursion (insert "\n")))
+  (unless (string-match-p "|[ \t]*$" (org-current-line-string))
+    (org-table-align))
   (org-table-find-dataline)
   (let ((col (max 1 (org-table-current-column)))
 	(beg (org-table-begin))
@@ -1633,6 +1657,9 @@ Swap with anything in target cell."
 With prefix ARG, insert below the current line."
   (interactive "P")
   (unless (org-at-table-p) (user-error "Not at a table"))
+  (when (eobp) (save-excursion (insert "\n")))
+  (unless (string-match-p "|[ \t]*$" (org-current-line-string))
+    (org-table-align))
   (org-table-with-shrunk-columns
    (let* ((line (buffer-substring (line-beginning-position) (line-end-position)))
 	  (new (org-table-clean-line line)))
@@ -2254,13 +2281,14 @@ For all numbers larger than LIMIT, shift them by DELTA."
 		 (format "@%d\\$[0-9]+=.*?\\(::\\|$\\)" remove))))
 	    s n a)
 	(when remove
-          (while (re-search-forward re2 (line-end-position) t)
-	    (unless (save-match-data (org-in-regexp "remote([^)]+?)"))
-	      (if (equal (char-before (match-beginning 0)) ?.)
-		  (user-error
-		   "Change makes TBLFM term %s invalid, use undo to recover"
-		   (match-string 0))
-		(replace-match "")))))
+          (save-excursion
+            (while (re-search-forward re2 (line-end-position) t)
+	      (unless (save-match-data (org-in-regexp "remote([^)]+?)"))
+	        (if (equal (char-before (match-beginning 0)) ?.)
+		    (user-error
+		     "Change makes TBLFM term %s invalid, use undo to recover"
+		     (match-string 0))
+		  (replace-match ""))))))
         (while (re-search-forward re (line-end-position) t)
 	  (unless (save-match-data (org-in-regexp "remote([^)]+?)"))
 	    (setq s (match-string 1) n (string-to-number s))
@@ -2607,8 +2635,7 @@ location of point."
 		     (format-time-string
 		      (org-time-stamp-format
 		       (string-match-p "[0-9]\\{1,2\\}:[0-9]\\{2\\}" ts))
-		      (apply #'encode-time
-			     (save-match-data (org-parse-time-string ts))))))
+		      (save-match-data (org-time-string-to-time ts)))))
 		 form t t))
 
 	  (setq ev (if (and duration (string-match "^[0-9]+:[0-9]+\\(?::[0-9]+\\)?$" form))
@@ -2869,7 +2896,7 @@ ARGS are passed as arguments to the `message' function.  Returns
 current time if a message is printed, otherwise returns T1.  If
 T1 is nil, always messages."
   (let ((curtime (current-time)))
-    (if (or (not t1) (org-time-less-p 1 (org-time-subtract curtime t1)))
+    (if (or (not t1) (time-less-p 1 (time-subtract curtime t1)))
 	(progn (apply 'message args)
 	       curtime)
       t1)))
@@ -3415,7 +3442,9 @@ full TBLFM line."
 (defun org-table-convert-refs-to-an (s)
   "Convert spreadsheet references from to @7$28 to AB7.
 Works for single references, but also for entire formulas and even the
-full TBLFM line."
+full TBLFM line.
+
+Leave the relative references unchanged."
   (while (string-match "@\\([0-9]+\\)\\$\\([0-9]+\\)" s)
     (setq s (replace-match
 	     (format "%s%d"
@@ -3423,7 +3452,7 @@ full TBLFM line."
 		      (string-to-number (match-string 2 s)))
 		     (string-to-number (match-string 1 s)))
 	     t t s)))
-  (while (string-match "\\(^\\|[^0-9a-zA-Z]\\)\\$\\([0-9]+\\)" s)
+  (while (string-match "\\(^\\|[^0-9a-zA-Z]\\)\\$\\([1-9][0-9]*\\)" s)
     (setq s (replace-match (concat "\\1"
 				   (org-number-to-letters
 				    (string-to-number (match-string 2 s))) "&")
@@ -3667,8 +3696,6 @@ With prefix ARG, apply the new formulas to the table."
       (goto-char pos)
       (call-interactively 'lisp-indent-line))
      ((looking-at "[$&@0-9a-zA-Z]+ *= *[^ \t\n']") (goto-char pos))
-     ((not (fboundp 'pp-buffer))
-      (user-error "Cannot pretty-print.  Command `pp-buffer' is not available"))
      ((looking-at "[$&@0-9a-zA-Z]+ *= *'(")
       (goto-char (- (match-end 0) 2))
       (setq beg (point))
@@ -3890,7 +3917,7 @@ mouse onto the overlay.
 
 When optional argument PRE is non-nil, assume the overlay is
 located at the beginning of the field, and prepend
-`org-table-separator-space' to it.  Otherwise, concatenate
+`org-table--separator-space-pre' to it.  Otherwise, concatenate
 `org-table-shrunk-column-indicator' at its end.
 
 Return the overlay."
@@ -3909,7 +3936,7 @@ Return the overlay."
     ;; Make sure overlays stays on top of table coordinates overlays.
     ;; See `org-table-overlay-coordinates'.
     (overlay-put o 'priority 1)
-    (let ((d (if pre (concat org-table-separator-space display)
+    (let ((d (if pre (concat org-table--separator-space-pre display)
 	       (concat display org-table-shrunk-column-indicator))))
       (org-overlay-display o d 'org-table t))
     o))
@@ -4082,7 +4109,7 @@ COLUMNS is a sorted list of column numbers.  BEG and END are,
 respectively, the beginning position and the end position of the
 table."
   (org-with-wide-buffer
-   (org-font-lock-ensure beg end)
+   (font-lock-ensure beg end)
    (dolist (c columns)
      (goto-char beg)
      (let ((align nil)
@@ -4204,7 +4231,7 @@ beginning and end position of the current table."
      (org-table-expand begin end)
      ;; Make sure invisible characters in the table are at the right
      ;; place since column widths take them into account.
-     (org-font-lock-ensure begin end)
+     (font-lock-ensure begin end)
      (org-table--shrink-columns (sort columns #'<) begin end))))
 
 ;;;###autoload
@@ -4322,11 +4349,11 @@ FIELD is a string.  WIDTH is a number.  ALIGN is either \"c\",
 		   ("r" (make-string spaces ?\s))
 		   ("c" (make-string (/ spaces 2) ?\s))))
 	 (suffix (make-string (- spaces (length prefix)) ?\s)))
-    (concat org-table-separator-space
+    (concat org-table--separator-space-pre
 	    prefix
 	    field
 	    suffix
-	    org-table-separator-space)))
+	    org-table--separator-space-post)))
 
 (defun org-table-align ()
   "Align the table at point by aligning all vertical bars."
@@ -4336,7 +4363,7 @@ FIELD is a string.  WIDTH is a number.  ALIGN is either \"c\",
     (org-table-save-field
      ;; Make sure invisible characters in the table are at the right
      ;; place since column widths take them into account.
-     (org-font-lock-ensure beg end)
+     (font-lock-ensure beg end)
      (move-marker org-table-aligned-begin-marker beg)
      (move-marker org-table-aligned-end-marker end)
      (goto-char beg)
@@ -4422,6 +4449,13 @@ FIELD is a string.  WIDTH is a number.  ALIGN is either \"c\",
 (defun org-table-justify-field-maybe (&optional new)
   "Justify the current field, text to left, number to right.
 Optional argument NEW may specify text to replace the current field content."
+  ;; FIXME: Prevent newlines inside field.  They are currently not
+  ;; supported.
+  (when (and (stringp new) (string-match-p "\n" new))
+    (message "Removing newlines from formula result: %S" new)
+    (setq new (replace-regexp-in-string
+               "\n" " "
+               (replace-regexp-in-string "\\(^\n+\\)\\|\\(\n+$\\)" "" new))))
   (cond
    ((and (not new) org-table-may-need-update)) ; Realignment will happen anyway
    ((org-at-table-hline-p))
@@ -4564,8 +4598,8 @@ function is being called interactively."
 	     (predicate
 	      (cl-case sorting-type
 		((?n ?N ?t ?T) #'<)
-		((?a ?A) (if with-case #'org-string-collate-lessp
-			   (lambda (s1 s2) (org-string-collate-lessp s1 s2 nil t))))
+		((?a ?A) (if with-case #'string-collate-lessp
+			   (lambda (s1 s2) (string-collate-lessp s1 s2 nil t))))
 		((?f ?F)
 		 (or compare-func
 		     (and interactive?
@@ -5168,15 +5202,13 @@ When LOCAL is non-nil, show references for the table at point."
 		    (concat orgtbl-line-start-regexp "\\|"
 			    auto-fill-inhibit-regexp)
 		  orgtbl-line-start-regexp))
-    (when (fboundp 'font-lock-add-keywords)
-      (font-lock-add-keywords nil orgtbl-extra-font-lock-keywords)
-      (org-restart-font-lock)))
+    (font-lock-add-keywords nil orgtbl-extra-font-lock-keywords)
+    (org-restart-font-lock))
    (t
     (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
     (remove-hook 'before-change-functions 'org-before-change-function t)
-    (when (fboundp 'font-lock-remove-keywords)
-      (font-lock-remove-keywords nil orgtbl-extra-font-lock-keywords)
-      (org-restart-font-lock))
+    (font-lock-remove-keywords nil orgtbl-extra-font-lock-keywords)
+    (org-restart-font-lock)
     (force-mode-line-update 'all))))
 
 (defun orgtbl-make-binding (fun n &rest keys)
@@ -5291,6 +5323,7 @@ to execute outside of tables."
       (org-remap orgtbl-mode-map
 		 'self-insert-command 'orgtbl-self-insert-command
 		 'delete-char 'org-delete-char
+                 'delete-forward-char 'org-delete-char
 		 'delete-backward-char 'org-delete-backward-char)
       (org-defkey orgtbl-mode-map "|" 'org-force-self-insert))
     t))
@@ -5544,10 +5577,14 @@ First element has index 0, or I0 if given."
 	 beg end)
     (save-excursion
       (beginning-of-line 1)
-      (while (looking-at re) (beginning-of-line 0))
-      (beginning-of-line 2)
+      (while (and (not (eq (point) (point-min)))
+                  (looking-at re))
+        (beginning-of-line 0))
+      (unless (eq (point) (point-min)) (beginning-of-line 2))
       (setq beg (point))
-      (while (looking-at re) (beginning-of-line 2))
+      (while (and (not (eq (point) (point-max)))
+                  (looking-at re))
+        (beginning-of-line 2))
       (setq end (point)))
     (comment-region beg end (if commented '(4) nil))))
 
@@ -5651,6 +5688,9 @@ strings, or the current cell) returning a string:
 
     (:fmt (2 \"$%s$\" 4 (lambda (c) (format \"$%s$\" c))))
 
+  The format is ignored for empty fields.  Use :raw t with non-nil
+  :backend option to force formatting empty fields.
+
 :hlstart :hllstart :hlend :hllend :hsep :hlfmt :hllfmt :hfmt
 
  Same as above, specific for the header lines in the table.
@@ -5689,30 +5729,32 @@ This may be either a string or a function of two arguments:
     ;; Initialize communication channel in INFO.
     (with-temp-buffer
       (let ((org-inhibit-startup t)) (org-mode))
-      (let ((standard-output (current-buffer))
-	    (org-element-use-cache nil))
-	(dolist (e table)
-	  (cond ((eq e 'hline) (princ "|--\n"))
-		((consp e)
-		 (princ "| ") (dolist (c e) (princ c) (princ " |"))
-		 (princ "\n")))))
-      ;; Add back-end specific filters, but not user-defined ones.  In
-      ;; particular, make sure to call parse-tree filters on the
-      ;; table.
-      (setq info
-	    (let ((org-export-filters-alist nil))
-	      (org-export-install-filters
-	       (org-combine-plists
-		(org-export-get-environment backend nil params)
-		`(:back-end ,(org-export-get-backend backend))))))
-      (setq data
-	    (org-export-filter-apply-functions
-	     (plist-get info :filter-parse-tree)
-	     (org-element-map (org-element-parse-buffer) 'table
-	       #'identity nil t)
-	     info)))
-    (when (and backend (symbolp backend) (not (org-export-get-backend backend)))
-      (user-error "Unknown :backend value"))
+      (org-fold-core-ignore-modifications
+        (let ((standard-output (current-buffer))
+	      (org-element-use-cache nil))
+	  (dolist (e table)
+	    (cond ((eq e 'hline) (princ "|--\n"))
+		  ((consp e)
+		   (princ "| ") (dolist (c e) (princ c) (princ " |"))
+		   (princ "\n")))))
+        (org-element-cache-reset)
+        ;; Add back-end specific filters, but not user-defined ones.  In
+        ;; particular, make sure to call parse-tree filters on the
+        ;; table.
+        (setq info
+	      (let ((org-export-filters-alist nil))
+	        (org-export-install-filters
+	         (org-combine-plists
+		  (org-export-get-environment backend nil params)
+		  `(:back-end ,(org-export-get-backend backend))))))
+        (setq data
+	      (org-export-filter-apply-functions
+	       (plist-get info :filter-parse-tree)
+	       (org-element-map (org-element-parse-buffer) 'table
+	         #'identity nil t)
+	       info))
+        (when (and backend (symbolp backend) (not (org-export-get-backend backend)))
+          (user-error "Unknown :backend value"))))
     (when (or (not backend) (plist-get info :raw)) (require 'ox-org))
     ;; Handle :skip parameter.
     (let ((skip (plist-get info :skip)))

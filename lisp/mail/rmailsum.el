@@ -80,9 +80,14 @@ commands consecutively.  Filled by
 
 (defvar rmail-summary-message-parents-vector nil
   "Vector that holds a list of indices of parents for each message.
-Message A is parent to message B if the id of A appear in the
-References or In-reply-to fields of B, or if A is the first
-message with the same subject as B.  First element is ignored.")
+Message A is parent of message B if the id of A appears in the
+\"References\" or \"In-reply-to\" fields of B, or if A is the first
+message with the same \"Subject\" as B.  First element is ignored.")
+
+(defvar rmail-summary-message-descendants-vector nil
+  "Vector that holds the direct descendants of each message.
+This is the antipode of `rmail-summary-message-parents-vector'.
+First element is ignored.")
 
 (defvar rmail-summary-font-lock-keywords
   '(("^ *[0-9]+D.*" . font-lock-string-face)			; Deleted.
@@ -318,11 +323,13 @@ message with the same subject as B.  First element is ignored.")
 (defun rmail-summary-fill-message-ids-hash-table ()
   "Fill `rmail-summary-message-ids-hash-table'."
   (with-current-buffer rmail-buffer
-    (setq rmail-summary-message-ids-hash-table (make-hash-table :test 'equal :size 1024))
+    (setq rmail-summary-message-ids-hash-table
+          (make-hash-table :test 'equal :size 1024))
     (let ((msgnum 1))
       (while (<= msgnum rmail-total-messages)
 	(let ((id (rmail-get-header "Message-ID" msgnum)))
-	  (puthash id (cons (cons id msgnum) (gethash id rmail-summary-message-ids-hash-table))
+	  (puthash id (cons (cons id msgnum)
+                            (gethash id rmail-summary-message-ids-hash-table))
 		   rmail-summary-message-ids-hash-table))
 	(setq msgnum (1+ msgnum))))))
 
@@ -331,13 +338,17 @@ message with the same subject as B.  First element is ignored.")
     (if header
 	(split-string header "[ \f\t\n\r\v,;]+"))))
 
-(defun rmail-summary-fill-message-parents-vector ()
-  "Fill `rmail-summary-message-parents-vector'."
+(defun rmail-summary-fill-message-parents-and-descs-vectors ()
+  "Fill parents and descendats vectors for messages.
+This populates `rmail-summary-message-parents-vector'
+and `rmail-summary-message-descendants-vector'."
   (with-current-buffer rmail-buffer
     (rmail-summary-fill-message-ids-hash-table)
     (setq rmail-summary-subjects-hash-table
           (make-hash-table :test 'equal :size 1024))
     (setq rmail-summary-message-parents-vector
+          (make-vector (1+ rmail-total-messages) nil))
+    (setq rmail-summary-message-descendants-vector
           (make-vector (1+ rmail-total-messages) nil))
     (let ((msgnum 1))
       (while (<= msgnum rmail-total-messages)
@@ -346,18 +357,27 @@ message with the same subject as B.  First element is ignored.")
 	       (subj-cell (gethash subject rmail-summary-subjects-hash-table))
 	       (subj-par (assoc subject subj-cell))
 	       (refs (rmail-summary--split-header-field "References" msgnum))
-	       (reply-to (rmail-summary--split-header-field "In-reply-to"
+	       (reply-tos (rmail-summary--split-header-field "In-reply-to"
                                                             msgnum)))
 	  (if subj-par
-	      (setq parents (cons (cdr subj-par) parents))
+	      (progn
+		(setq parents (cons (cdr subj-par) nil))
+		(aset rmail-summary-message-descendants-vector (cdr subj-par)
+		      (cons msgnum
+                            (aref rmail-summary-message-descendants-vector
+                                  (cdr subj-par)))))
 	    (puthash subject (cons (cons subject msgnum) subj-cell)
 		     rmail-summary-subjects-hash-table))
-	  (dolist (id (append refs reply-to))
+	  (dolist (id (append refs reply-tos))
 	    (let ((ent
                    (assoc id
                           (gethash id rmail-summary-message-ids-hash-table))))
-	      (if ent
-		  (setq parents (cons (cdr ent) parents)))))
+	      (when ent
+		(setq parents (cons (cdr ent) parents))
+		(aset rmail-summary-message-descendants-vector (cdr ent)
+		      (cons msgnum
+                            (aref rmail-summary-message-descendants-vector
+                                  (cdr ent)))))))
 	  (aset rmail-summary-message-parents-vector msgnum parents)
 	  (setq msgnum (1+ msgnum)))))))
 
@@ -387,20 +407,6 @@ the messages that are displayed."
   (interactive)
   (rmail-new-summary "All" '(rmail-summary) nil))
 
-(defun rmail-summary-direct-descendants (msgnum encountered-msgs)
-  "Find all direct descendants of MSGNUM, ignoring ENCOUNTERED-MSGS.
-Assumes `rmail-summary-message-parents-vector' is filled.  Ignores messages
-already ticked in ENCOUNTERED-MSGS."
-  (let (desc
-	(msg 1))
-    (while (<= msg rmail-total-messages)
-      (when (and
-	     (not (aref encountered-msgs msg))
-	     (memq msgnum (aref rmail-summary-message-parents-vector msg)))
-	(setq desc (cons msg desc)))
-      (setq msg (1+ msg)))
-    desc))
-
 (defun rmail-summary--walk-thread-message-recursively (msgnum encountered-msgs)
   "Add parents and descendants of message MSGNUM to ENCOUNTERED-MSGS, recursively."
   (unless (aref encountered-msgs msgnum)
@@ -412,7 +418,7 @@ already ticked in ENCOUNTERED-MSGS."
       (mapc walk-thread-msg
             (aref rmail-summary-message-parents-vector msgnum))
       (mapc walk-thread-msg
-            (rmail-summary-direct-descendants msgnum encountered-msgs)))))
+            (aref rmail-summary-message-descendants-vector msgnum)))))
 
 ;;;###autoload
 (defun rmail-summary-by-thread (&optional msgnum)
@@ -430,7 +436,7 @@ headers of the messages."
     (unless (and rmail-summary-message-parents-vector
 		 (= (length rmail-summary-message-parents-vector)
 		    (1+ rmail-total-messages)))
-      (rmail-summary-fill-message-parents-vector))
+      (rmail-summary-fill-message-parents-and-descs-vectors))
     (let ((enc-msgs (make-bool-vector (1+ rmail-total-messages) nil)))
       (rmail-summary--walk-thread-message-recursively msgnum enc-msgs)
       (rmail-new-summary (format "thread containing message %d" msgnum)

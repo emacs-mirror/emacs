@@ -1,7 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: emacs-devel@gnu.org
@@ -25,7 +24,7 @@
 
 ;;; Commentary:
 
-;; The parts of dired mode not normally used.  This is a space-saving hack
+;; The parts of Dired mode not normally used.  This is a space-saving hack
 ;; to avoid having to load a large mode when all that's wanted are a few
 ;; functions.
 
@@ -37,8 +36,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-;; We need macros in dired.el to compile properly,
-;; and we call subroutines in it too.
 (require 'dired)
 
 (defvar dired-create-files-failures nil
@@ -135,7 +132,7 @@ substituted, and will be passed through normally to the shell.
 
 %s
 
-\(Press ^ to %s markers below these occurrences.)
+(Press ^ to %s markers below these occurrences.)
 "
    "`"
    (string (aref command (car char-positions)))
@@ -298,7 +295,7 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
 
 ;;;###autoload
 (defun dired-compare-directories (dir2 predicate)
-  "Mark files with different file attributes in two dired buffers.
+  "Mark files with different file attributes in two Dired buffers.
 Compare file attributes of files in the current directory
 with file attributes in directory DIR2 using PREDICATE on pairs of files
 with the same name.  Mark files for which PREDICATE returns non-nil.
@@ -312,8 +309,8 @@ PREDICATE is a Lisp expression that can refer to the following variables:
     fa1, fa2       - list of file attributes
                      returned by function `file-attributes'
 
-    where 1 refers to attribute of file in the current dired buffer
-    and 2 to attribute of file in second dired buffer.
+    where 1 refers to attribute of file in the current Dired buffer
+    and 2 to attribute of file in second Dired buffer.
 
 Examples of PREDICATE:
 
@@ -489,7 +486,8 @@ List has a form of (file-name full-file-name (attribute-list))."
 (defun dired-do-chmod (&optional arg)
   "Change the mode of the marked (or next ARG) files.
 Both octal numeric modes like `644' and symbolic modes like `g+w'
-are supported.  Type M-n to pull the file attributes of the file
+are supported.  Type \\<minibuffer-local-completion-map>\
+\\[next-history-element] to pull the file attributes of the file
 at point into the minibuffer.
 
 See Info node `(coreutils)File permissions' for more information.
@@ -538,7 +536,8 @@ has no effect on MS-Windows."
 ;;;###autoload
 (defun dired-do-chgrp (&optional arg)
   "Change the group of the marked (or next ARG) files.
-Type M-n to pull the file attributes of the file at point
+Type \\<minibuffer-local-completion-map>\\[next-history-element] \
+to pull the file attributes of the file at point
 into the minibuffer."
   (interactive "P")
   (if (and (memq system-type '(ms-dos windows-nt))
@@ -549,7 +548,8 @@ into the minibuffer."
 ;;;###autoload
 (defun dired-do-chown (&optional arg)
   "Change the owner of the marked (or next ARG) files.
-Type M-n to pull the file attributes of the file at point
+Type \\<minibuffer-local-completion-map>\\[next-history-element] \
+to pull the file attributes of the file at point
 into the minibuffer."
   (interactive "P")
   (if (and (memq system-type '(ms-dos windows-nt))
@@ -561,7 +561,8 @@ into the minibuffer."
 (defun dired-do-touch (&optional arg)
   "Change the timestamp of the marked (or next ARG) files.
 This calls touch.
-Type M-n to pull the file attributes of the file at point
+Type Type \\<minibuffer-local-completion-map>\\[next-history-element] \
+to pull the file attributes of the file at point
 into the minibuffer."
   (interactive "P")
   (dired-do-chxxx "Timestamp" dired-touch-program 'touch arg))
@@ -761,7 +762,7 @@ with a prefix argument."
 (defvar dired-aux-files)
 
 (defun dired-minibuffer-default-add-shell-commands ()
-  "Return a list of all commands associated with current dired files.
+  "Return a list of all commands associated with current Dired files.
 This function is used to add all related commands retrieved by `mailcap'
 to the end of the list of defaults just after the default value."
   (interactive)
@@ -774,7 +775,7 @@ to the end of the list of defaults just after the default value."
 
 ;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command.
+  "Read a Dired shell command.
 PROMPT should be a format string with one \"%s\" format sequence,
 which is replaced by the value returned by `dired-mark-prompt',
 with ARG and FILES as its arguments.  FILES should be a list of
@@ -921,11 +922,11 @@ Also see the `dired-confirm-shell-command' variable."
 
 ;; Might use {,} for bash or csh:
 (defvar dired-mark-prefix ""
-  "Prepended to marked files in dired shell commands.")
+  "Prepended to marked files in Dired shell commands.")
 (defvar dired-mark-postfix ""
-  "Appended to marked files in dired shell commands.")
+  "Appended to marked files in Dired shell commands.")
 (defvar dired-mark-separator " "
-  "Separates marked files in dired shell commands.")
+  "Separates marked files in Dired shell commands.")
 
 (defun dired-shell-stuff-it (command file-list on-each &optional _raw-arg)
   ;; "Make up a shell command line from COMMAND and FILE-LIST.
@@ -1336,7 +1337,7 @@ See `dired-guess-shell-alist-user'."
 (defun dired-kill-line (&optional arg)
   "Kill the current line (not the files).
 With a prefix argument, kill that many lines starting with the current line.
-\(A negative argument kills backward.)"
+(A negative argument kills backward.)"
   (interactive "P")
   (setq arg (prefix-numeric-value arg))
   (let (buffer-read-only file)
@@ -1844,7 +1845,7 @@ See Info node `(emacs)Subdir switches' for more details."
     (message "Redisplaying...done")))
 
 (defun dired-reset-subdir-switches ()
-  "Set `dired-switches-alist' to nil and revert dired buffer."
+  "Set `dired-switches-alist' to nil and revert Dired buffer."
   (interactive)
   (setq dired-switches-alist nil)
   (revert-buffer))
@@ -1880,7 +1881,7 @@ See Info node `(emacs)Subdir switches' for more details."
 (defvar dired-omit-localp)
 
 (defun dired-add-entry (filename &optional marker-char relative)
-  "Add a new dired entry for FILENAME.
+  "Add a new Dired entry for FILENAME.
 Optionally mark it with MARKER-CHAR (a character, else uses
 `dired-marker-char').  Note that this adds the entry `out of order'
 if files are sorted by time, etc.
@@ -2008,7 +2009,7 @@ files matching `dired-omit-regexp'."
 
 ;;;###autoload
 (defun dired-remove-file (file)
-  "Remove entry FILE on each dired buffer.
+  "Remove entry FILE on each Dired buffer.
 Note this doesn't delete FILE in the file system.
 See `dired-delete-file' in case you wish that."
   (dired-fun-in-all-buffers
@@ -2107,7 +2108,7 @@ option are non-nil, renaming a directory named `old_name' to
 `new_name' does not exists already, it will be created and
 `old_name' be moved into it.  If only `new_name' (without the
 trailing /) is given or this option or
-`dired-create-destination-dirs' is `nil', `old_name' will be
+`dired-create-destination-dirs' is nil, `old_name' will be
 renamed to `new_name'."
   :type '(choice
           (const :tag
@@ -3077,7 +3078,7 @@ Type \\`SPC' or \\`y' to %s one file, \\`DEL' or \\`n' to skip to next,
 ;;;###autoload
 (defun dired-maybe-insert-subdir (dirname &optional
 					  switches no-error-if-not-dir-p)
-  "Insert this subdirectory into the same dired buffer.
+  "Insert this subdirectory into the same Dired buffer.
 If it is already present, just move to it (type \\[dired-do-redisplay] to refresh),
   else inserts it at its natural place (as `ls -lR' would have done).
 With a prefix arg, you may edit the ls switches used for this listing.
@@ -3427,7 +3428,7 @@ Lower levels are unaffected."
 
 ;;;###autoload
 (defun dired-tree-up (arg)
-  "Go up ARG levels in the dired tree."
+  "Go up ARG levels in the Dired tree."
   (interactive "p")
   (let ((dir (dired-current-directory)))
     (while (>= arg 1)
@@ -3439,7 +3440,7 @@ Lower levels are unaffected."
 
 ;;;###autoload
 (defun dired-tree-down ()
-  "Go down in the dired tree."
+  "Go down in the Dired tree."
   (interactive)
   (let ((dir (dired-current-directory)) ; has slash
 	pos case-fold-search)		; filenames are case sensitive

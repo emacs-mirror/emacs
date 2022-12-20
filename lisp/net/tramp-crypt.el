@@ -219,6 +219,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (memory-info . ignore)
     (process-attributes . ignore)
     (process-file . ignore)
     (rename-file . tramp-crypt-handle-rename-file)
@@ -317,7 +318,7 @@ connection if a previous connection has died for some reason."
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)))
 
-  ;; The following operations must be performed w/o
+  ;; The following operations must be performed without
   ;; `tramp-crypt-file-name-handler'.
   (let* (tramp-crypt-enabled
 	 ;; Don't check for a proper method.

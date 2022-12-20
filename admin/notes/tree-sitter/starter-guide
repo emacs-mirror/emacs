@@ -282,7 +282,7 @@ For MATHCER we have
            NODE-INDEX-MIN NODE-INDEX-MAX)
 
     => checks everything. If an argument is nil, don’t match that. Eg,
-    (match nil nil TYPE) is the same as (parent-is TYPE)
+    (match nil TYPE) is the same as (parent-is TYPE)
 
 For ANCHOR we have
 
