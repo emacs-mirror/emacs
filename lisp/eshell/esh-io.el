@@ -116,16 +116,22 @@ from executing while Emacs is redisplaying."
   :group 'eshell-io)
 
 (defcustom eshell-virtual-targets
-  '(("/dev/eshell" eshell-interactive-print nil)
+  '(;; The literal string "/dev/null" is intentional here.  It just
+    ;; provides compatibility so that users can redirect to
+    ;; "/dev/null" no matter the actual value of `null-device'.
+    ("/dev/null" (lambda (_mode) (throw 'eshell-null-device t)) t)
+    ("/dev/eshell" eshell-interactive-print nil)
     ("/dev/kill" (lambda (mode)
-		   (if (eq mode 'overwrite)
-		       (kill-new ""))
-		   'eshell-kill-append) t)
+                   (when (eq mode 'overwrite)
+                     (kill-new ""))
+                   #'eshell-kill-append)
+     t)
     ("/dev/clip" (lambda (mode)
-		   (if (eq mode 'overwrite)
-		       (let ((select-enable-clipboard t))
-			 (kill-new "")))
-		   'eshell-clipboard-append) t))
+                   (when (eq mode 'overwrite)
+                     (let ((select-enable-clipboard t))
+                       (kill-new "")))
+                   #'eshell-clipboard-append)
+     t))
   "Map virtual devices name to Emacs Lisp functions.
 If the user specifies any of the filenames above as a redirection
 target, the function in the second element will be called.
@@ -138,10 +144,8 @@ function.
 
 The output function is then called repeatedly with single strings,
 which represents successive pieces of the output of the command, until nil
-is passed, meaning EOF.
-
-NOTE: /dev/null is handled specially as a virtual target, and should
-not be added to this variable."
+is passed, meaning EOF."
+  :version "30.1"
   :type '(repeat
 	  (list (string :tag "Target")
 		function
@@ -357,21 +361,17 @@ the value already set in `eshell-last-command-result'."
   "Set handle INDEX for the current HANDLES to point to TARGET using MODE.
 If HANDLES is nil, use `eshell-current-handles'."
   (when target
-    (let ((handles (or handles eshell-current-handles)))
-      (if (and (stringp target)
-               (string= target (null-device)))
-          (aset handles index nil)
-        (let* ((where (eshell-get-target target mode))
-               (handle (or (aref handles index)
-                           (aset handles index (list nil nil 1))))
-               (current (car handle))
-               (defaultp (cadr handle)))
-          (if (not defaultp)
-              (unless (member where current)
-                (setq current (append current (list where))))
-            (setq current (list where)))
-          (setcar handle current)
-          (setcar (cdr handle) nil))))))
+    (let* ((handles (or handles eshell-current-handles))
+           (handle (or (aref handles index)
+                       (aset handles index (list nil nil 1))))
+           (defaultp (cadr handle))
+           (current (unless defaultp (car handle))))
+      (catch 'eshell-null-device
+        (let ((where (eshell-get-target target mode)))
+          (unless (member where current)
+            (setq current (append current (list where))))))
+      (setcar handle current)
+      (setcar (cdr handle) nil))))
 
 (defun eshell-copy-output-handle (index index-to-copy &optional handles)
   "Copy the handle INDEX-TO-COPY to INDEX for the current HANDLES.

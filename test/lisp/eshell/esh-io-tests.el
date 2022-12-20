@@ -166,6 +166,17 @@ ensure only its statement is redirected."
       (should (equal (buffer-string) "bar")))
     (should (equal (buffer-string) "foobaz"))))
 
+(ert-deftest esh-io-test/redirect-subcommands/dev-null ()
+  "Check that redirecting subcommands applies to all subcommands.
+Include a redirect to /dev/null to ensure it only applies to its
+statement."
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-insert-command
+      (format "{echo foo; echo bar > /dev/null; echo baz} > #<%s>"
+              bufname)))
+    (should (equal (buffer-string) "foobaz"))))
+
 (ert-deftest esh-io-test/redirect-subcommands/interpolated ()
   "Check that redirecting interpolated subcommands applies to all subcommands."
   (eshell-with-temp-buffer bufname "old"
@@ -302,12 +313,30 @@ stdout originally pointed (the terminal)."
 
 ;; Virtual targets
 
-(ert-deftest esh-io-test/virtual-dev-eshell ()
+(ert-deftest esh-io-test/virtual/dev-null ()
+  "Check that redirecting to /dev/null works."
+  (with-temp-eshell
+   (eshell-match-command-output "echo hi > /dev/null" "\\`\\'")))
+
+(ert-deftest esh-io-test/virtual/dev-null/multiple ()
+  "Check that redirecting to /dev/null works alongside other redirections."
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "echo new > /dev/null > #<%s>" bufname) "\\`\\'"))
+    (should (equal (buffer-string) "new")))
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "echo new > #<%s> > /dev/null" bufname) "\\`\\'"))
+    (should (equal (buffer-string) "new"))))
+
+(ert-deftest esh-io-test/virtual/dev-eshell ()
   "Check that redirecting to /dev/eshell works."
   (with-temp-eshell
    (eshell-match-command-output "echo hi > /dev/eshell" "hi")))
 
-(ert-deftest esh-io-test/virtual-dev-kill ()
+(ert-deftest esh-io-test/virtual/dev-kill ()
   "Check that redirecting to /dev/kill works."
   (with-temp-eshell
    (eshell-insert-command "echo one > /dev/kill")
