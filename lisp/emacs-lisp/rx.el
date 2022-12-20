@@ -254,20 +254,20 @@ Left-fold the list L, starting with X, by the binary function F."
     (setq l (cdr l)))
   x)
 
-(defun rx--normalize-or-arg (form)
+(defun rx--normalise-or-arg (form)
   "Normalize the `or' argument FORM.
 Characters become strings, user-definitions and `eval' forms are expanded,
 and `or' forms are normalized recursively."
   (cond ((characterp form)
          (char-to-string form))
         ((and (consp form) (memq (car form) '(or |)))
-         (cons (car form) (mapcar #'rx--normalize-or-arg (cdr form))))
+         (cons (car form) (mapcar #'rx--normalise-or-arg (cdr form))))
         ((and (consp form) (eq (car form) 'eval))
-         (rx--normalize-or-arg (rx--expand-eval (cdr form))))
+         (rx--normalise-or-arg (rx--expand-eval (cdr form))))
         (t
          (let ((expanded (rx--expand-def form)))
            (if expanded
-               (rx--normalize-or-arg expanded)
+               (rx--normalise-or-arg expanded)
              form)))))
 
 (defun rx--all-string-or-args (body)
@@ -302,7 +302,7 @@ Return (REGEXP . PRECEDENCE)."
    ((null (cdr body))              ; Single item.
     (rx--translate (car body)))
    (t
-    (let* ((args (mapcar #'rx--normalize-or-arg body))
+    (let* ((args (mapcar #'rx--normalise-or-arg body))
            (all-strings (catch 'rx--nonstring (rx--all-string-or-args args))))
       (cond
        (all-strings                       ; Only strings.
@@ -1493,9 +1493,6 @@ following constructs:
 
 ;; Obsolete internal symbol, used in old versions of the `flycheck' package.
 (define-obsolete-function-alias 'rx-submatch-n 'rx-to-string "27.1")
-
-(define-obsolete-function-alias 'rx--normalise-or-arg
-  #'rx--normalize-or-arg "30.1")
 
 (provide 'rx)
 
