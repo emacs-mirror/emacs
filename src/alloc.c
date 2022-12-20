@@ -6575,6 +6575,33 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
     }
 }
 
+static void
+mark_native_comp_unit (struct Lisp_Native_Comp_Unit *comp_u)
+{
+  mark_vectorlike (&comp_u->header);
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  if (comp_u->have_static_lisp_data)
+    {
+      eassert (NILP (comp_u->lambda_gc_guard_h));
+      eassert (NILP (comp_u->lambda_c_name_idx_h));
+      eassert (NILP (comp_u->data_vec));
+      eassert (NILP (comp_u->data_impure_vec));
+      eassert (comp_u->data_imp_relocs == NULL);
+
+      Lisp_Object u_staticvec = comp_u->staticpro;
+      if (!NILP (u_staticvec))
+	mark_objects (XVECTOR (u_staticvec)->contents,
+		      ASIZE (u_staticvec));
+
+      Lisp_Object u_ephemeral = comp_u->ephemeral;
+      if (!NILP (u_ephemeral))
+	mark_objects (XVECTOR (u_ephemeral)->contents,
+		      ASIZE (u_ephemeral));
+    }
+#endif
+}
+
 /* Mark the chain of overlays starting at PTR.  */
 
 static void
@@ -7015,40 +7042,9 @@ process_mark_stack (ptrdiff_t base_sp)
 #endif
 		break;
 
-#ifdef HAVE_STATIC_LISP_GLOBALS
 	      case PVEC_NATIVE_COMP_UNIT:
-		{
-		  ptrdiff_t size = ptr->header.size;
-		  eassert (size & PSEUDOVECTOR_FLAG);
-		  set_vector_marked (ptr);
-		  mark_stack_push_values (ptr->contents,
-					  size
-					    & PSEUDOVECTOR_SIZE_MASK);
-		  struct Lisp_Native_Comp_Unit *comp_u
-		    = XNATIVE_COMP_UNIT (obj);
-		  if (comp_u->have_static_lisp_data)
-		    {
-		      eassert (NILP (comp_u->lambda_gc_guard_h)
-			       && NILP (comp_u->lambda_c_name_idx_h)
-			       && NILP (comp_u->data_vec)
-			       && NILP (comp_u->data_impure_vec)
-			       && comp_u->data_imp_relocs == NULL);
-
-		      Lisp_Object staticpro = comp_u->staticpro;
-		      if (!NILP (staticpro))
-			mark_stack_push_values
-			  (XVECTOR (staticpro)->contents,
-			   ASIZE (staticpro));
-
-		      Lisp_Object ephemeral = comp_u->ephemeral;
-		      if (!NILP (ephemeral))
-			mark_stack_push_values
-			  (XVECTOR (ephemeral)->contents,
-			   ASIZE (ephemeral));
-		    }
-		}
+		mark_native_comp_unit (XNATIVE_COMP_UNIT (obj));
 		break;
-#endif
 
 	      case PVEC_FREE:
 		emacs_abort ();
