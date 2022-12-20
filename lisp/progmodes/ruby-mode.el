@@ -283,7 +283,7 @@ Only has effect when `ruby-use-smie' is t."
                  (number :tag "Indent specified number of columns against def")
                  (const :tag "Indent to def" nil))
   :safe (lambda (val) (or (memq val '(t nil)) (numberp val)))
-  :version 29.1)
+  :version "29.1")
 
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.
