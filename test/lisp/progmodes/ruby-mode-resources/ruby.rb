@@ -538,3 +538,7 @@ class Bar
     baz
   end
 end
+
+# Local Variables:
+# ruby-method-params-indent: t
+# End:

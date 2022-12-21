@@ -327,6 +327,16 @@ buffer's content."
                                         "«:whitespace-empty:\n"
                                         "»")))))
 
+(ert-deftest whitespace-tests--empty-bob-eob-modified ()
+  "Regression test for Bug#60066."
+  (whitespace-tests--with-test-buffer '()
+    (insert "\nx\n\n")
+    (goto-char 2)
+    (set-buffer-modified-p nil)
+    (let ((whitespace-style '(face empty)))
+      (whitespace-mode 1)
+      (should (not (buffer-modified-p))))))
+
 (provide 'whitespace-tests)
 
 ;;; whitespace-tests.el ends here
