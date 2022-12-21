@@ -1317,7 +1317,7 @@ See also `soap-wsdl-resolve-references'."
   "Validate VALUE against the basic type TYPE."
   (let* ((kind (soap-xs-basic-type-kind type)))
     (cl-case kind
-      ((anyType Array byte[])
+      ((anyType Array byte\[\])
        value)
       (t
        (let ((convert (get kind 'rng-xsd-convert)))
