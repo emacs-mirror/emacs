@@ -2498,10 +2498,10 @@ Otherwise, the restored buffer will contain a prompt to do so by using
       (when (plist-get eww-data :url)
 	(cl-case eww-restore-desktop
 	  ((t auto) (eww (plist-get eww-data :url)))
-	  ((zerop (buffer-size))
-	   (let ((inhibit-read-only t))
-	     (insert (substitute-command-keys
-		      eww-restore-reload-prompt)))))))
+	  ((nil) (when (zerop (buffer-size))
+	           (let ((inhibit-read-only t))
+	             (insert (substitute-command-keys
+		              eww-restore-reload-prompt))))))))
     ;; .
     (current-buffer)))
 
