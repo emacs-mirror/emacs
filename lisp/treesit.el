@@ -1657,10 +1657,13 @@ REGEXP and PRED are the same as in `treesit-defun-type-regexp'."
          ;; defun, in that case we want to use a node that's actually
          ;; before/after point.
          (node-before (if (>= (treesit-node-start node) pos)
-                          (treesit-search-forward-goto node "" t t t)
+                          (save-excursion
+                            (treesit-search-forward-goto node "" t t t))
                         node))
          (node-after (if (<= (treesit-node-end node) pos)
-                         (treesit-search-forward-goto node "" nil nil t)
+                         (save-excursion
+                           (treesit-search-forward-goto
+                            node "" nil nil t))
                        node))
          (result (list nil nil nil))
          (pred (or pred (lambda (_) t))))
