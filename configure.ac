@@ -3220,6 +3220,7 @@ AC_SUBST([JSON_OBJ])
 
 HAVE_TREE_SITTER=no
 TREE_SITTER_OBJ=
+NEED_DYNLIB=no
 
 if test "${with_tree_sitter}" != "no"; then
    dnl Tree-sitter 0.20.2 added support to change the malloc it uses
@@ -3245,6 +3246,7 @@ if test "${with_tree_sitter}" != "no"; then
       LIBS=$OLD_LIBS
       if test "$ac_cv_func_ts_set_allocator" = yes; then
         AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
+	NEED_DYNLIB=yes
       else
         AC_MSG_ERROR([Tree-sitter library exists but its version is too old]);
         TREE_SITTER_CFLAGS=
@@ -4154,7 +4156,6 @@ AC_SUBST(DYNAMIC_LIB_SECONDARY_SUFFIX)
 LIBMODULES=
 HAVE_MODULES=no
 MODULES_OBJ=
-NEED_DYNLIB=no
 MODULES_SUFFIX="${DYNAMIC_LIB_SUFFIX}"
 MODULES_SECONDARY_SUFFIX="${DYNAMIC_LIB_SECONDARY_SUFFIX}"
 
