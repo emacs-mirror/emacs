@@ -71,9 +71,6 @@ switches for shortlogs, such as the one produced by 'C-x v L'.
 You can now configure how to display the "*buffer-selection*" buffer
 using this new option.  (Or set 'display-buffer-alist' directly.)
 
----
-*** New user option 'ruby-method-params-indent'.
-
 ** Eshell
 
 +++

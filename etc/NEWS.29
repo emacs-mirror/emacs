@@ -2761,6 +2761,9 @@ project-dedicated or global) is specified by the new
 ---
 *** Support for endless methods.
 
+---
+*** New user option 'ruby-method-params-indent'.
+
 ** Eshell
 
 +++
