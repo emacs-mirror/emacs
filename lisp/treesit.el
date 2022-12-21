@@ -1183,7 +1183,7 @@ no-node
 
 \(n-p-gp NODE-TYPE PARENT-TYPE GRANDPARENT-TYPE)
 
-    Checks that NODE, its parent, and its grandparent's type.
+    Checks for NODE's, its parent's, and its grandparent's type.
 
 \(query QUERY)
 

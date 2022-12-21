@@ -3738,9 +3738,14 @@ definition*\"."
                      node "function_declaration" nil 1000))
          (var-tree (treesit-induce-sparse-tree
                     node "lexical_declaration" nil 1000)))
-    `(("Class" . ,(js--treesit-imenu-1 class-tree))
-      ("Variable" . ,(js--treesit-imenu-1 var-tree))
-      ("Function" . ,(js--treesit-imenu-1 func-tree)))))
+    ;; When a sub-tree is empty, we should not return that pair at all.
+    (append
+     (and func-tree
+          `(("Function" . ,(js--treesit-imenu-1 func-tree))))
+     (and var-tree
+          `(("Variable" . ,(js--treesit-imenu-1 var-tree))))
+     (and class-tree
+          `(("Class" . ,(js--treesit-imenu-1 class-tree)))))))
 
 ;;; Main Function
 
