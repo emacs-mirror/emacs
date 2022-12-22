@@ -10561,26 +10561,23 @@ displaying that processes's buffer."
 (defvar-keymap other-window-repeat-map
   :doc "Keymap to repeat `other-window' key sequences.
 Used in `repeat-mode'."
+  :repeat t
   "o" #'other-window
   "O" (lambda ()
         (interactive)
         (setq repeat-map 'other-window-repeat-map)
         (other-window -1)))
-(put 'other-window 'repeat-map 'other-window-repeat-map)
 
 (defvar-keymap resize-window-repeat-map
   :doc "Keymap to repeat window resizing commands.
 Used in `repeat-mode'."
+  :repeat t
   ;; Standard keys:
   "^" #'enlarge-window
   "}" #'enlarge-window-horizontally
   "{" #'shrink-window-horizontally
   ;; Additional keys:
   "v" #'shrink-window)
-(put 'enlarge-window 'repeat-map 'resize-window-repeat-map)
-(put 'enlarge-window-horizontally 'repeat-map 'resize-window-repeat-map)
-(put 'shrink-window-horizontally 'repeat-map 'resize-window-repeat-map)
-(put 'shrink-window 'repeat-map 'resize-window-repeat-map)
 
 (defvar-keymap window-prefix-map
   :doc "Keymap for subcommands of \\`C-x w'."

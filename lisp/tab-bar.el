@@ -2626,18 +2626,16 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (defvar-keymap tab-bar-switch-repeat-map
   :doc "Keymap to repeat tab switch key sequences \\`C-x t o o O'.
 Used in `repeat-mode'."
+  :repeat t
   "o" #'tab-next
   "O" #'tab-previous)
-(put 'tab-next 'repeat-map 'tab-bar-switch-repeat-map)
-(put 'tab-previous 'repeat-map 'tab-bar-switch-repeat-map)
 
 (defvar-keymap tab-bar-move-repeat-map
   :doc "Keymap to repeat tab move key sequences \\`C-x t m m M'.
 Used in `repeat-mode'."
+  :repeat t
   "m" #'tab-move
   "M" #'tab-bar-move-tab-backward)
-(put 'tab-move 'repeat-map 'tab-bar-move-repeat-map)
-(put 'tab-bar-move-tab-backward 'repeat-map 'tab-bar-move-repeat-map)
 
 
 (provide 'tab-bar)
