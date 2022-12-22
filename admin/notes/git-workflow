@@ -70,7 +70,7 @@ commit 958b768a6534ae6e77a8547a56fc31b46b63710b
 cd ~/emacs/emacs-28
 git cherry-pick -xe 958b768a6534ae6e77a8547a56fc31b46b63710b
 
-and add "Backport:" to the commit string.  Then
+and optionally add "Backport:" to the commit string.  Then
 
 git push
 
