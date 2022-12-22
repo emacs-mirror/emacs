@@ -101,5 +101,22 @@
        (should (string= pid (word-at-point)))
        (forward-line)))))
 
+(ert-deftest proced-update-preserves-pid-at-point-test ()
+  (proced--within-buffer
+   'medium
+   'user
+   (goto-char (point-min))
+   (search-forward (number-to-string (emacs-pid)))
+   (proced--move-to-column "PID")
+   (save-window-excursion
+     (let ((pid (proced-pid-at-point))
+           (new-window (split-window))
+           (old-window (get-buffer-window)))
+       (select-window new-window)
+       (with-current-buffer "*Proced*"
+         (proced-update t t))
+       (select-window old-window)
+       (should (= pid (proced-pid-at-point)))))))
+
 (provide 'proced-tests)
 ;;; proced-tests.el ends here
