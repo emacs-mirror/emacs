@@ -908,8 +908,7 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
            do (with-demoted-errors "[eglot] shutdown all: %s"
                 (cl-loop for s in ss do (eglot-shutdown s nil nil preserve-buffers)))))
 
-(defvar eglot--servers-by-xrefed-file
-  (make-hash-table :test 'equal :weakness 'value))
+(defvar eglot--servers-by-xrefed-file (make-hash-table :test 'equal))
 
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
