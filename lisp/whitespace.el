@@ -2093,6 +2093,17 @@ resultant list will be returned."
        t))
 
 
+(defun whitespace--clone ()
+  "Hook function run after `make-indirect-buffer' and `clone-buffer'."
+  (when (whitespace-style-face-p)
+    (setq-local whitespace-bob-marker
+                (copy-marker (marker-position whitespace-bob-marker)
+                             (marker-insertion-type whitespace-bob-marker)))
+    (setq-local whitespace-eob-marker
+                (copy-marker (marker-position whitespace-eob-marker)
+                             (marker-insertion-type whitespace-eob-marker)))))
+
+
 (defun whitespace-color-on ()
   "Turn on color visualization."
   (when (whitespace-style-face-p)
@@ -2111,6 +2122,8 @@ resultant list will be returned."
               ;; The -1 ensures that it runs before any
               ;; `font-lock-mode' hook functions.
               -1 t)
+    (add-hook 'clone-buffer-hook #'whitespace--clone nil t)
+    (add-hook 'clone-indirect-buffer-hook #'whitespace--clone nil t)
     ;; Add whitespace-mode color into font lock.
     (setq
      whitespace-font-lock-keywords
@@ -2204,6 +2217,8 @@ resultant list will be returned."
     (remove-hook 'before-change-functions #'whitespace-buffer-changed t)
     (remove-hook 'after-change-functions #'whitespace--update-bob-eob
                  t)
+    (remove-hook 'clone-buffer-hook #'whitespace--clone t)
+    (remove-hook 'clone-indirect-buffer-hook #'whitespace--clone t)
     (font-lock-remove-keywords nil whitespace-font-lock-keywords)
     (font-lock-flush)))
 

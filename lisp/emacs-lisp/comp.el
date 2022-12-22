@@ -3716,7 +3716,7 @@ Prepare every function for final compilation and drive the C back-end."
               (if (zerop
                    (call-process (expand-file-name invocation-name
                                                    invocation-directory)
-				 nil t t "-no-comp-spawn" "--batch" "-l"
+				 nil t t "-no-comp-spawn" "-Q" "--batch" "-l"
                                  temp-file))
                   (progn
                     (delete-file temp-file)
@@ -4005,7 +4005,7 @@ display a message."
                              :command (list
                                        (expand-file-name invocation-name
                                                          invocation-directory)
-                                       "-no-comp-spawn" "--batch"
+                                       "-no-comp-spawn" "-Q" "--batch"
                                        "--eval"
                                        ;; Suppress Abort dialogs on MS-Windows
                                        "(setq w32-disable-abort-dialog t)"

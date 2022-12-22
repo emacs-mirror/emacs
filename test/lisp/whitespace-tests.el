@@ -42,6 +42,13 @@ nil, `whitespace-mode' is left disabled."
           '(whitespace-mode 1))
        ,@body)))
 
+(defmacro whitespace--with-buffer-selected (buffer-or-name &rest body)
+  (declare (debug (form body)) (indent 1))
+  `(save-window-excursion
+     (with-current-buffer (or ,buffer-or-name (current-buffer))
+       (with-selected-window (display-buffer (current-buffer))
+         ,@body))))
+
 (defun whitespace-tests--faceup (&rest lines)
   "Convenience wrapper around `faceup-test-font-lock-buffer'.
 Returns non-nil if the concatenated LINES match the current
@@ -336,6 +343,74 @@ buffer's content."
     (let ((whitespace-style '(face empty)))
       (whitespace-mode 1)
       (should (not (buffer-modified-p))))))
+
+(ert-deftest whitespace-tests--indirect-clone-breaks-base-markers ()
+  "Specific regression test for Bug#59618."
+  (whitespace-tests--with-test-buffer '(face empty)
+    (insert "\nx\n\n")
+    (let ((base (current-buffer))
+          ;; `unwind-protect' is not used to clean up `indirect'
+          ;; because the buffer should only be killed on success.
+          (indirect (clone-indirect-buffer (buffer-name) nil)))
+      (should (eq (marker-buffer whitespace-bob-marker) base))
+      (should (eq (marker-buffer whitespace-eob-marker) base))
+      (whitespace--with-buffer-selected indirect
+        ;; Mutate the indirect buffer to update its bob/eob markers.
+        (execute-kbd-macro (kbd "z RET M-< a")))
+      ;; With Bug#59618, the above mutation would cause the base
+      ;; buffer's markers to point inside the indirect buffer because
+      ;; the indirect buffer erroneously shared marker objects with
+      ;; the base buffer.  Killing the indirect buffer would then
+      ;; invalidate those markers (make them point nowhere).
+      (kill-buffer indirect)
+      (should (eq (marker-buffer whitespace-bob-marker) base))
+      (should (eq (marker-buffer whitespace-eob-marker) base)))))
+
+(defun whitespace-tests--check-markers (buf bpos epos)
+  (with-current-buffer buf
+    (should (eq (marker-buffer whitespace-bob-marker) buf))
+    (should (eq (marker-position whitespace-bob-marker) bpos))
+    (should (eq (marker-buffer whitespace-eob-marker) buf))
+    (should (eq (marker-position whitespace-eob-marker) epos))))
+
+(ert-deftest whitespace-tests--indirect-clone-markers ()
+  "Test `whitespace--clone' on indirect clones."
+  (whitespace-tests--with-test-buffer '(face empty)
+    (insert "\nx\n\n")
+    (let ((base (current-buffer))
+          ;; `unwind-protect' is not used to clean up `indirect'
+          ;; because the buffer should only be killed on success.
+          (indirect (clone-indirect-buffer nil nil)))
+      (whitespace-tests--check-markers base 2 4)
+      (whitespace--with-buffer-selected indirect
+        (whitespace-tests--check-markers indirect 2 4)
+        ;; Mutate the buffer to trigger `after-change-functions' and
+        ;; thus `whitespace--update-bob-eob'.
+        (execute-kbd-macro (kbd "z RET M-< a"))
+        (whitespace-tests--check-markers indirect 1 8))
+      (kill-buffer indirect)
+      ;; When the buffer was modified above, the new "a" character at
+      ;; the beginning moved the base buffer's markers by one.  Emacs
+      ;; did not run the base buffer's `after-change-functions' after
+      ;; the indirect buffer was edited (Bug#46982), so the end result
+      ;; is just the shift by one.
+      (whitespace-tests--check-markers base 3 5))))
+
+(ert-deftest whitespace-tests--regular-clone-markers ()
+  "Test `whitespace--clone' on regular clones."
+  (whitespace-tests--with-test-buffer '(face empty)
+    (insert "\nx\n\n")
+    (let ((orig (current-buffer))
+          ;; `unwind-protect' is not used to clean up `clone' because
+          ;; the buffer should only be killed on success.
+          (clone (clone-buffer)))
+      (whitespace-tests--check-markers orig 2 4)
+      (whitespace--with-buffer-selected clone
+        (whitespace-tests--check-markers clone 2 4)
+        (execute-kbd-macro (kbd "z RET M-< a"))
+        (whitespace-tests--check-markers clone 1 8))
+      (kill-buffer clone)
+      (whitespace-tests--check-markers orig 2 4))))
 
 (provide 'whitespace-tests)
 

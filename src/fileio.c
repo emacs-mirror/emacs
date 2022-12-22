@@ -5376,12 +5376,16 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
     {
       /* Transfer data and metadata to disk, retrying if interrupted.
 	 fsync can report a write failure here, e.g., due to disk full
-	 under NFS.  But ignore EINVAL, which means fsync is not
-	 supported on this file.  */
+	 under NFS.  But ignore EINVAL (and EBADF on Windows), which
+	 means fsync is not supported on this file.  */
       while (fsync (desc) != 0)
 	if (errno != EINTR)
 	  {
-	    if (errno != EINVAL)
+	    if (errno != EINVAL
+#ifdef WINDOWSNT
+		&& errno != EBADF
+#endif
+		)
 	      ok = 0, save_errno = errno;
 	    break;
 	  }
