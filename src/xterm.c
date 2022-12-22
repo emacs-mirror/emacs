@@ -7645,6 +7645,46 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 #endif
 }
 
+/* Generate a premultiplied pixel value for COLOR with ALPHA applied
+   on the given display.  COLOR will be modified.  The display must
+   use a visual that supports an alpha channel.
+
+   This is possibly dead code on builds which do not support
+   XRender.  */
+
+#ifndef USE_CAIRO
+
+static unsigned long
+x_premultiply_pixel (struct x_display_info *dpyinfo,
+		     XColor *color, double alpha)
+{
+  unsigned long pixel;
+
+  eassert (dpyinfo->alpha_bits);
+
+  /* Multiply the RGB channels.  */
+  color->red *= alpha;
+  color->green *= alpha;
+  color->blue *= alpha;
+
+  /* First, allocate a fully opaque pixel.  */
+  pixel = x_make_truecolor_pixel (dpyinfo, color->red,
+				  color->green,
+				  color->blue);
+
+  /* Next, erase the alpha component.  */
+  pixel &= ~dpyinfo->alpha_mask;
+
+  /* And add an alpha channel.  */
+  pixel |= (((unsigned long) (alpha * 65535)
+	     >> (16 - dpyinfo->alpha_bits))
+	    << dpyinfo->alpha_offset);
+
+  return pixel;
+}
+
+#endif
+
 static void
 x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 		      struct draw_fringe_bitmap_params *p)
@@ -7734,18 +7774,15 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       if (FRAME_DISPLAY_INFO (f)->alpha_bits
 	  && f->alpha_background < 1.0)
 	{
+	  /* Extend the background color with an alpha channel
+	     according to f->alpha_background.  */
 	  bg.pixel = background;
 	  x_query_colors (f, &bg, 1);
-	  bg.red *= f->alpha_background;
-	  bg.green *= f->alpha_background;
-	  bg.blue *= f->alpha_background;
 
-	  background = x_make_truecolor_pixel (FRAME_DISPLAY_INFO (f),
-					       bg.red, bg.green, bg.blue);
-	  background &= ~FRAME_DISPLAY_INFO (f)->alpha_mask;
-	  background |= (((unsigned long) (f->alpha_background * 0xffff)
-			  >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
-			 << FRAME_DISPLAY_INFO (f)->alpha_offset);
+	  background
+	    = x_premultiply_pixel (FRAME_DISPLAY_INFO (f),
+				   &bg,
+				   f->alpha_background);
 	}
 
       /* Draw the bitmap.  I believe these small pixmaps can be cached
@@ -8894,7 +8931,11 @@ x_color_cells (Display *dpy, int *ncells)
 
 
 /* On frame F, translate pixel colors to RGB values for the NCOLORS
-   colors in COLORS.  Use cached information, if available.  */
+   colors in COLORS.  Use cached information, if available.
+
+   Pixel values are in unsigned normalized format, meaning that
+   extending missing bits is done straightforwardly without any
+   complex colorspace conversions.  */
 
 void
 x_query_colors (struct frame *f, XColor *colors, int ncolors)
@@ -8942,6 +8983,7 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
 	  colors[i].green = (g * gmult) >> 16;
 	  colors[i].blue = (b * bmult) >> 16;
 	}
+
       return;
     }
 
@@ -8984,16 +9026,10 @@ x_query_frame_background_color (struct frame *f, XColor *bgcolor)
 	{
 	  bg.pixel = background;
 	  x_query_colors (f, &bg, 1);
-	  bg.red *= f->alpha_background;
-	  bg.green *= f->alpha_background;
-	  bg.blue *= f->alpha_background;
 
-	  background = x_make_truecolor_pixel (FRAME_DISPLAY_INFO (f),
-					       bg.red, bg.green, bg.blue);
-	  background &= ~FRAME_DISPLAY_INFO (f)->alpha_mask;
-	  background |= (((unsigned long) (f->alpha_background * 0xffff)
-			  >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
-			 << FRAME_DISPLAY_INFO (f)->alpha_offset);
+	  background
+	    = x_premultiply_pixel (FRAME_DISPLAY_INFO (f),
+				   &bg, f->alpha_background);
 	}
 #endif
     }
