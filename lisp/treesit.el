@@ -1941,7 +1941,16 @@ before calling this function."
     (keymap-set (current-local-map) "<remap> <beginning-of-defun>"
                 #'treesit-beginning-of-defun)
     (keymap-set (current-local-map) "<remap> <end-of-defun>"
-                #'treesit-end-of-defun)))
+                #'treesit-end-of-defun)
+    ;; `end-of-defun' will not work completely correctly in nested
+    ;; defuns due to its implementation.  However, many lisp programs
+    ;; use `beginning/end-of-defun', so we should still set
+    ;; `beginning/end-of-defun-function' so they still mostly work.
+    ;; This is also what `cc-mode' does: rebind user commands and set
+    ;; the variables.  In future we should update `end-of-defun' to
+    ;; work with nested defuns.
+    (setq-local beginning-of-defun-function #'treesit-beginning-of-defun)
+    (setq-local end-of-defun-function #'treesit-end-of-defun)))
 
 ;;; Debugging
 
