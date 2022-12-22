@@ -1172,30 +1172,14 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
 (defun tramp-smb-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
-  (setq dir (directory-file-name (expand-file-name dir)))
-  (unless (file-name-absolute-p dir)
-    (setq dir (expand-file-name dir default-directory)))
-  (with-parsed-tramp-file-name dir nil
-    (when (and (null parents) (file-exists-p dir))
-      (tramp-error v 'file-already-exists dir))
-    (let* ((ldir (file-name-directory dir)))
-      ;; Make missing directory parts.
-      (when (and parents
-		 (tramp-smb-get-share v)
-		 (not (file-directory-p ldir)))
-	(make-directory ldir parents))
-      ;; Just do it.
-      (when (file-directory-p ldir)
-	(tramp-smb-send-command
-	 v (if (tramp-smb-get-cifs-capabilities v)
-	       (format "posix_mkdir %s %o"
-		       (tramp-smb-shell-quote-localname v) (default-file-modes))
-	     (format "mkdir %s" (tramp-smb-shell-quote-localname v))))
-	;; We must also flush the cache of the directory, because
-	;; `file-attributes' reads the values from there.
-	(tramp-flush-file-properties v localname))
-      (unless (file-directory-p dir)
-	(tramp-error v 'file-error "Couldn't make directory %s" dir)))))
+  (tramp-skeleton-make-directory dir parents
+    (tramp-smb-send-command
+     v (if (tramp-smb-get-cifs-capabilities v)
+	   (format "posix_mkdir %s %o"
+		   (tramp-smb-shell-quote-localname v) (default-file-modes))
+	 (format "mkdir %s" (tramp-smb-shell-quote-localname v))))
+    (unless (file-directory-p dir)
+      (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
 ;; This is not used anymore.
 (defun tramp-smb-handle-make-directory-internal (directory)

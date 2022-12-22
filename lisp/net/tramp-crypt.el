@@ -800,16 +800,9 @@ WILDCARD is not supported."
 
 (defun tramp-crypt-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name dir) nil
-    (when (and (null parents) (file-exists-p dir))
-      (tramp-error v 'file-already-exists dir))
+  (tramp-skeleton-make-directory dir parents
     (let (tramp-crypt-enabled)
-      (make-directory (tramp-crypt-encrypt-file-name dir) parents))
-    ;; When PARENTS is non-nil, DIR could be a chain of non-existent
-    ;; directories a/b/c/...  Instead of checking, we simply flush the
-    ;; whole cache.
-    (tramp-flush-directory-properties
-     v (if parents "/" (file-name-directory localname)))))
+      (make-directory (tramp-crypt-encrypt-file-name dir) parents))))
 
 (defun tramp-crypt-handle-rename-file
   (filename newname &optional ok-if-already-exists)

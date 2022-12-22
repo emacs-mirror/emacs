@@ -2857,6 +2857,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (tramp--test-enabled))
 
+  ;; Since Emacs 29.1, `make-directory' has defined return values.
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let* ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	   (tmp-name2 (expand-file-name "foo/bar" tmp-name1))
@@ -2865,7 +2866,9 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
       (unwind-protect
 	  (progn
 	    (with-file-modes unusual-file-mode-1
-	      (make-directory tmp-name1))
+	      (if (tramp--test-emacs29-p)
+		  (should-not (make-directory tmp-name1))
+		(make-directory tmp-name1)))
 	    (should-error
 	     (make-directory tmp-name1)
 	     :type 'file-already-exists)
@@ -2878,15 +2881,19 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	     (make-directory tmp-name2)
 	     :type 'file-error)
 	    (with-file-modes unusual-file-mode-2
-	      (make-directory tmp-name2 'parents))
+	      (if (tramp--test-emacs29-p)
+		  (should-not (make-directory tmp-name2 'parents))
+		(make-directory tmp-name2 'parents)))
 	    (should (file-directory-p tmp-name2))
 	    (should (file-accessible-directory-p tmp-name2))
 	    (when (tramp--test-supports-set-file-modes-p)
 	      (should (equal (format "%#o" unusual-file-mode-2)
 			     (format "%#o" (file-modes tmp-name2)))))
 	    ;; If PARENTS is non-nil, `make-directory' shall not
-	    ;; signal an error when DIR exists already.
-	    (make-directory tmp-name2 'parents))
+	    ;; signal an error when DIR exists already.  It returns t.
+	    (if (tramp--test-emacs29-p)
+		(should (make-directory tmp-name2 'parents))
+	      (make-directory tmp-name2 'parents)))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))

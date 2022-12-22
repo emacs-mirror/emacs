@@ -4129,7 +4129,7 @@ directory, so that Emacs will know its current contents."
 	(or (file-exists-p parent)
 	    (ange-ftp-make-directory parent parents))))
   (if (file-exists-p dir)
-      (unless parents
+      (if parents t
 	(signal
          'file-already-exists
          (list "Cannot make directory: file already exists" dir)))
@@ -4158,7 +4158,8 @@ directory, so that Emacs will know its current contents."
 				(format "Could not make directory %s: %s"
 					dir
 					(cdr result))))
-	    (ange-ftp-add-file-entry dir t))
+	    (ange-ftp-add-file-entry dir t)
+            nil)
 	(ange-ftp-real-make-directory dir)))))
 
 (defun ange-ftp-delete-directory (dir &optional recursive trash)
