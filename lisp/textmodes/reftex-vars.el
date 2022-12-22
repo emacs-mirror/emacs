@@ -2096,8 +2096,8 @@ may require a restart of Emacs in order to become effective."
 
 (defcustom reftex-allow-detached-macro-args nil
   "Non-nil means, allow arguments of macros to be detached by whitespace.
-When this is t, `aaa' will be considered as argument of \\bb in the following
-construct:  \\bbb [xxx] {aaa}."
+When this is t, `aaa' will be considered as argument of \\bbb in
+the following construct: \\bbb [xxx] {aaa}."
   :group 'reftex-miscellaneous-configurations
   :type 'boolean)
 
