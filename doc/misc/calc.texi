@@ -11040,7 +11040,8 @@ the year even for older dates.   The customizable variable
 have Calc's date forms switch from the Julian to Gregorian calendar at
 any specified date.
 
-Today's timekeepers introduce an occasional ``leap second''.
+A few platforms support leap seconds, such as the time stamp
+1972-06-30 23:59:60 UTC, an extra second appended to June 1972.
 These do not occur regularly and Calc does not take these minor
 effects into account.  (If it did, it would have to report a
 non-integer number of days between, say,
