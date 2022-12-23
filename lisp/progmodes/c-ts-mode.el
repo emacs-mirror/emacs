@@ -556,13 +556,10 @@ the semicolon.  This function skips the semicolon."
 
 `treesit-defun-type-regexp' defines what constructs to indent."
   (interactive "*")
-  (let ((orig-point (point-marker)))
-    ;; If `treesit-beginning-of-defun' returns nil, we are not in a
-    ;; defun, so don't indent anything.
-    (when (treesit-beginning-of-defun)
-      (let ((start (point)))
-        (treesit-end-of-defun)
-        (indent-region start (point))))
+  (when-let ((orig-point (point-marker))
+             (node (treesit-defun-at-point)))
+    (indent-region (treesit-node-start node)
+                   (treesit-node-end node))
     (goto-char orig-point)))
 
 (defvar-keymap c-ts-mode-map

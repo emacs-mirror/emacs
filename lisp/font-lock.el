@@ -2361,6 +2361,7 @@ in which C preprocessor directives are used, e.g. `asm-mode' and
 
 (define-obsolete-function-alias 'font-lock-after-fontify-buffer #'ignore "29.1")
 (define-obsolete-function-alias 'font-lock-after-unfontify-buffer #'ignore "29.1")
+(define-obsolete-function-alias 'font-lock-fontify-syntactically-region #'font-lock-default-fontify-syntactically "29.1")
 
 
 (provide 'font-lock)

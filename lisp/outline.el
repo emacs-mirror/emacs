@@ -1868,6 +1868,7 @@ With a prefix argument, show headings up to that LEVEL."
 
 
 (defvar-keymap outline-navigation-repeat-map
+  :repeat t
   "C-b" #'outline-backward-same-level
   "b"   #'outline-backward-same-level
   "C-f" #'outline-forward-same-level
@@ -1879,14 +1880,8 @@ With a prefix argument, show headings up to that LEVEL."
   "C-u" #'outline-up-heading
   "u"   #'outline-up-heading)
 
-(dolist (command '(outline-backward-same-level
-                   outline-forward-same-level
-                   outline-next-visible-heading
-                   outline-previous-visible-heading
-                   outline-up-heading))
-  (put command 'repeat-map 'outline-navigation-repeat-map))
-
 (defvar-keymap outline-editing-repeat-map
+  :repeat t
   "C-v" #'outline-move-subtree-down
   "v"   #'outline-move-subtree-down
   "C-^" #'outline-move-subtree-up
@@ -1895,12 +1890,6 @@ With a prefix argument, show headings up to that LEVEL."
   ">"   #'outline-demote
   "C-<" #'outline-promote
   "<"   #'outline-promote)
-
-(dolist (command '(outline-move-subtree-down
-                   outline-move-subtree-up
-                   outline-demote
-                   outline-promote))
-  (put command 'repeat-map 'outline-editing-repeat-map))
 
 
 (provide 'outline)

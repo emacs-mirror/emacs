@@ -7693,7 +7693,7 @@ DEFUN ("memory-info", Fmemory_info, Smemory_info, 0, 0, 0,
 All values are in Kbytes.  If there is no swap space,
 last two values are zero.  If the system is not supported
 or memory information can't be obtained, return nil.
-If `default-directory’ is remote, return memory information of the
+If `default-directory' is remote, return memory information of the
 respective remote host.  */)
   (void)
 {

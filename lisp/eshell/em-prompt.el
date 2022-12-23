@@ -102,11 +102,9 @@ arriving, or after."
 
 (defvar-keymap eshell-prompt-repeat-map
   :doc "Keymap to repeat eshell-prompt key sequences.  Used in `repeat-mode'."
+  :repeat t
   "C-n" #'eshell-next-prompt
   "C-p" #'eshell-previous-prompt)
-
-(put #'eshell-next-prompt 'repeat-map 'eshell-prompt-repeat-map)
-(put #'eshell-previous-prompt 'repeat-map 'eshell-prompt-repeat-map)
 
 ;;; Functions:
 
