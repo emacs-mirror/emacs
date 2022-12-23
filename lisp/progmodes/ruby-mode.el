@@ -1899,7 +1899,7 @@ or `gem' statement around point."
       (setq feature-name (read-string "Feature name: " init))))
   (let ((out
          (substring
-          (shell-command-to-string (concat "gem which " feature-name))
+          (shell-command-to-string (concat "gem which " (shell-quote-argument feature-name)))
           0 -1)))
     (if (string-match-p "\\`ERROR" out)
         (user-error "%s" out)
