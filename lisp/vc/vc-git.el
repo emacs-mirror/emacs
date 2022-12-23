@@ -1020,22 +1020,36 @@ It is based on `log-edit-mode', and has Git-specific extensions."
           ;; message.  Handle also remote files.
           (if (eq system-type 'windows-nt)
               (let ((default-directory (file-name-directory file1)))
-                (make-nearby-temp-file "git-msg")))))
+                (make-nearby-temp-file "git-msg"))))
+         to-stash)
     (when vc-git-patch-string
       (unless (zerop (vc-git-command nil t nil "diff" "--cached" "--quiet"))
-        ;; Check that all staged changes also exist in the patch.
-        ;; This is needed to allow adding/removing files that are
-        ;; currently staged to the index.  So remove the whole file diff
-        ;; from the patch because commit will take it from the index.
+        ;; Check that what's already staged is compatible with what
+        ;; we want to commit (bug#60126).
+        ;;
+        ;; 1. If the changes to a file in the index are identical to
+        ;;    the changes to that file we want to commit, remove the
+        ;;    changes from our patch, and let the commit take them
+        ;;    from the index.  This is necessary for adding and
+        ;;    removing files to work.
+        ;;
+        ;; 2. If the changes to a file in the index are different to
+        ;;    changes to that file we want to commit, then we have to
+        ;;    unstage the changes or abort.
+        ;;
+        ;; 3. If there are changes to a file in the index but we don't
+        ;;    want to commit any changes to that file, we need to
+        ;;    stash those changes before committing.
         (with-temp-buffer
           (vc-git-command (current-buffer) t nil "diff" "--cached")
           (goto-char (point-min))
-          (let ((pos (point)) file-name file-diff file-beg)
+          (let ((pos (point)) file-name file-header file-diff file-beg)
             (while (not (eobp))
               (when (and (looking-at "^diff --git a/\\(.+\\) b/\\(.+\\)")
                          (string= (match-string 1) (match-string 2)))
                 (setq file-name (match-string 1)))
               (forward-line 1) ; skip current "diff --git" line
+              (setq file-header (buffer-substring pos (point)))
               (search-forward "diff --git" nil 'move)
               (move-beginning-of-line 1)
               (setq file-diff (buffer-substring pos (point)))
@@ -1049,12 +1063,15 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                                            (+ file-beg (length file-diff)))))
                      (setq vc-git-patch-string
                            (string-replace file-diff "" vc-git-patch-string)))
-                    ((and file-name
-                          (yes-or-no-p
-                           (format "Unstage already-staged changes to %s?"
-                                   file-name)))
-                     (vc-git-command nil 0 file-name "reset" "-q" "--"))
-                    (t (user-error "Index not empty")))
+                    ((string-match (format "^%s" (regexp-quote file-header))
+                                   vc-git-patch-string)
+                     (if (and file-name
+                              (yes-or-no-p
+                               (format "Unstage already-staged changes to %s?"
+                                       file-name)))
+                         (vc-git-command nil 0 file-name "reset" "-q" "--")
+                       (user-error "Index not empty")))
+                    (t (push file-name to-stash)))
               (setq pos (point))))))
       (unless (string-empty-p vc-git-patch-string)
         (let ((patch-file (make-nearby-temp-file "git-patch")))
@@ -1062,7 +1079,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
             (insert vc-git-patch-string))
           (unwind-protect
               (vc-git-command nil 0 patch-file "apply" "--cached")
-            (delete-file patch-file)))))
+            (delete-file patch-file))))
+      (when to-stash (vc-git--stash-staged-changes files)))
     (cl-flet ((boolean-arg-fn
                (argument)
                (lambda (value) (when (equal value "yes") (list argument)))))
@@ -1088,7 +1106,58 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                       args)
                     (unless vc-git-patch-string
                       (if only (list "--only" "--") '("-a"))))))
-    (if (and msg-file (file-exists-p msg-file)) (delete-file msg-file))))
+    (if (and msg-file (file-exists-p msg-file)) (delete-file msg-file))
+    (when to-stash
+      (let ((cached (make-nearby-temp-file "git-cached")))
+        (unwind-protect
+            (progn (with-temp-file cached
+                     (vc-git-command t 0 nil "stash" "show" "-p"))
+                   (vc-git-command nil 0 cached "apply" "--cached"))
+          (delete-file cached))
+        (vc-git-command nil 0 nil "stash" "drop")))))
+
+(defun vc-git--stash-staged-changes (files)
+  "Stash only the staged changes to FILES."
+  ;; This is necessary because even if you pass a list of file names
+  ;; to 'git stash push', it will stash any and all staged changes.
+  (unless (zerop
+           (vc-git-command nil t files "diff" "--cached" "--quiet"))
+    (cl-flet
+        ((git-string (&rest args)
+           (string-trim-right
+            (with-output-to-string
+              (apply #'vc-git-command standard-output 0 nil args)))))
+      (let ((cached (make-nearby-temp-file "git-cached"))
+            (message "Previously staged changes")
+            tree)
+        ;; Use a temporary index to create a tree object corresponding
+        ;; to the staged changes to FILES.
+        (unwind-protect
+            (progn
+              (with-temp-file cached
+                (vc-git-command t 0 files "diff" "--cached" "--"))
+              (let* ((index (make-nearby-temp-file "git-index"))
+                     (process-environment
+                      (cons (format "GIT_INDEX_FILE=%s" index)
+                            process-environment)))
+                (unwind-protect
+                    (progn
+                      (vc-git-command nil 0 nil "read-tree" "HEAD")
+                      (vc-git-command nil 0 cached "apply" "--cached")
+                      (setq tree (git-string "write-tree")))
+                  (delete-file index))))
+          (delete-file cached))
+        ;; Prepare stash commit object, which has a special structure.
+        (let* ((tree-commit (git-string "commit-tree" "-m" message
+                                        "-p" "HEAD" tree))
+               (stash-commit (git-string "commit-tree" "-m" message
+                                         "-p" "HEAD" "-p" tree-commit
+                                         tree)))
+          ;; Push the new stash entry.
+          (vc-git-command nil 0 nil "update-ref" "--create-reflog"
+                          "-m" message "refs/stash" stash-commit)
+          ;; Unstage the changes we've now stashed.
+          (vc-git-command nil 0 files "reset" "--"))))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
