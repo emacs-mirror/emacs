@@ -2695,39 +2695,6 @@ if test "${HAVE_X11}" = "yes"; then
     export LD_RUN_PATH
   fi
 
-  if test "${opsys}" = "gnu-linux"; then
-    AC_CACHE_CHECK([whether X on GNU/Linux needs -b to link], [emacs_cv_b_link],
-    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
-     [[XOpenDisplay ("foo");]])],
-     [xgnu_linux_first_failure=no],
-     [xgnu_linux_first_failure=yes])
-    if test "${xgnu_linux_first_failure}" = "yes"; then
-      OLD_CPPFLAGS="$CPPFLAGS"
-      OLD_LIBS="$LIBS"
-      CPPFLAGS="$CPPFLAGS -b i486-linuxaout"
-      LIBS="$LIBS -b i486-linuxaout"
-      AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
-       [[XOpenDisplay ("foo");]])],
-       [xgnu_linux_second_failure=no],
-       [xgnu_linux_second_failure=yes])
-      if test "${xgnu_linux_second_failure}" = "yes"; then
-	# If we get the same failure with -b, there is no use adding -b.
-	# So leave it out.  This plays safe.
-        emacs_cv_b_link=no
-      else
-        emacs_cv_b_link=yes
-      fi
-      CPPFLAGS=$OLD_CPPFLAGS
-      LIBS=$OLD_LIBS
-    else
-      emacs_cv_b_link=no
-    fi])
-    if test "x$emacs_cv_b_link" = xyes ; then
-      LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -b i486-linuxaout"
-      C_SWITCH_X_SITE="$C_SWITCH_X_SITE -b i486-linuxaout"
-    fi
-  fi
-
   # Reportedly, some broken Solaris systems have XKBlib.h but are missing
   # header files included from there.
   AC_CACHE_CHECK([for Xkb], [emacs_cv_xkb],
