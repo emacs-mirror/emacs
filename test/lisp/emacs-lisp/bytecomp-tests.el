@@ -704,6 +704,54 @@ inner loops respectively."
     (let ((bytecomp-tests--xx 1))
       (set (make-local-variable 'bytecomp-tests--xx) 2)
       bytecomp-tests--xx)
+
+    ;; Check for-effect optimisation of `condition-case' body form.
+    ;; With `condition-case' in for-effect context:
+    (let ((x (bytecomp-test-identity ?A))
+          (r nil))
+      (condition-case e
+          (characterp x)                ; value (:success, var)
+        (error (setq r 'bad))
+        (:success (setq r (list 'good e))))
+      r)
+    (let ((x (bytecomp-test-identity ?B))
+          (r nil))
+      (condition-case nil
+          (characterp x)               ; for-effect (:success, no var)
+        (error (setq r 'bad))
+        (:success (setq r 'good)))
+      r)
+    (let ((x (bytecomp-test-identity ?C))
+          (r nil))
+      (condition-case e
+          (characterp x)               ; for-effect (no :success, var)
+        (error (setq r (list 'bad e))))
+      r)
+    (let ((x (bytecomp-test-identity ?D))
+          (r nil))
+      (condition-case nil
+          (characterp x)               ; for-effect (no :success, no var)
+        (error (setq r 'bad)))
+      r)
+    ;; With `condition-case' in value context:
+    (let ((x (bytecomp-test-identity ?E)))
+      (condition-case e
+          (characterp x)               ; for-effect (:success, var)
+        (error (list 'bad e))
+        (:success (list 'good e))))
+    (let ((x (bytecomp-test-identity ?F)))
+      (condition-case nil
+          (characterp x)               ; for-effect (:success, no var)
+        (error 'bad)
+        (:success 'good)))
+    (let ((x (bytecomp-test-identity ?G)))
+      (condition-case e
+          (characterp x)               ; value (no :success, var)
+        (error (list 'bad e))))
+    (let ((x (bytecomp-test-identity ?H)))
+      (condition-case nil
+          (characterp x)               ; value (no :success, no var)
+        (error 'bad)))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
