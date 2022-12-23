@@ -10418,7 +10418,7 @@
 	* org.el (org-adaptive-fill-function): Remove occasional spurious
 	space character when auto-filling.
 
-	* org.el (org-mode): Call external initalizers.  Now both filling
+	* org.el (org-mode): Call external initializers.  Now both filling
 	code and comments code have their own independent part in org.el.
 	(org-setup-filling): Rename from `org-set-autofill-regexps'.
 	(org-setup-comments-handling): New function.
@@ -15589,7 +15589,7 @@
 
 	* ob-python.el (org-babel-python-evaluate-session): Introduced a
 	new local function for sending input with a slight delay to allow
-	pythong to re-draw the prompt.  No longer removing newlines inside
+	python to re-draw the prompt.  No longer removing newlines inside
 	code block bodies (was due to a defective regexp).
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
@@ -17320,7 +17320,7 @@
 
 	* ob-lisp.el (org-babel-execute:lisp): Turn vectors into lists
 	before reading by elisp.
-	(org-bable-lisp-vector-to-list): Stub of a vector->list function,
+	(org-babel-lisp-vector-to-list): Stub of a vector->list function,
 	should be replaced with a cl-vector->el-vector function.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
@@ -29935,7 +29935,7 @@
 	inserted at the correct position.
 
 	* org-publish.el (org-publish-project-alist)
-	(org-publish-projects, org-publish-org-index): Change default anme
+	(org-publish-projects, org-publish-org-index): Change default name
 	for the index of file names to "sitemap.org".
 
 	* org-latex.el (org-export-latex-tables):

@@ -7280,7 +7280,7 @@ syms_of_xfaces (void)
   DEFVAR_BOOL ("face-filters-always-match", face_filters_always_match,
     doc: /* Non-nil means that face filters are always deemed to match.
 This variable is intended for use only by code that evaluates
-the "specifity" of a face specification and should be let-bound
+the "specificity" of a face specification and should be let-bound
 only for this purpose.  */);
 
   DEFVAR_LISP ("face--new-frame-defaults", Vface_new_frame_defaults,

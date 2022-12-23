@@ -1692,7 +1692,7 @@ contents of the line; it normally shows the line number.  \(For
 multiline matches, the prefix column shows the line number for the
 first line and whitespace for the rest of the lines.\)
 If this face will display the same as the default face, the prefix
-column will not be highlighted speciall."
+column will not be highlighted specially."
   :type 'face
   :group 'matching
   :version "24.4")
