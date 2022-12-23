@@ -145,7 +145,7 @@
 
 ;; All the folding specs can be specified by symbol representing their
 ;; name.  However, this is not always convenient, especially if the
-;; same spec can be used for fold different syntaxical structures.
+;; same spec can be used for fold different syntactical structures.
 ;; Any folding spec can be additionally referenced by a symbol listed
 ;; in the spec's `:alias' folding spec property.  For example, Org
 ;; mode's `org-fold-outline' folding spec can be referenced as any
@@ -189,9 +189,9 @@
 ;; all the processing related to buffer modifications.
 
 ;; The library also provides a way to unfold the text after some
-;; destructive changes breaking syntaxical structure of the buffer.
+;; destructive changes breaking syntactical structure of the buffer.
 ;; For example, Org mode automatically reveals folded drawers when the
-;; drawer becomes syntaxically incorrect:
+;; drawer becomes syntactically incorrect:
 ;; ------- before modification -------
 ;; :DRAWER:<begin fold>
 ;; Some folded text inside drawer
@@ -321,7 +321,7 @@ following symbols:
   functions relying on this package might not be able to unfold the
   edited text.  For example, removed leading stars from a folded
   headline in Org mode will break visibility cycling since Org mode
-  will not be avare that the following folded text belonged to
+  will not be aware that the following folded text belonged to
   headline.
 
 - `ignore-modification-checks': Do not try to detect insertions in the

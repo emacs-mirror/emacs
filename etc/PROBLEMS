@@ -3173,7 +3173,7 @@ something like the following in your init file:
 
 ** Native Compilation on macOS
 
-Native complitation requires the libgccjit library to be installed and
+Native compilation requires the libgccjit library to be installed and
 its path available to Emacs.  Errors such as:
 
     libgccjit.so: error: error invoking gcc driver

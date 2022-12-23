@@ -6294,7 +6294,7 @@ embedding large images, comparing to @code{svg-embed}, because all the
 work is done directly by librsvg.
 
 @lisp
-;; Embeding /tmp/subdir/rms.jpg and /tmp/another/rms.jpg
+;; Embedding /tmp/subdir/rms.jpg and /tmp/another/rms.jpg
 (svg-embed-base-uri-image svg "subdir/rms.jpg"
            :width "100px" :height "100px"
            :x "50px" :y "75px")

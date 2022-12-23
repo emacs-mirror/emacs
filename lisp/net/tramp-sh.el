@@ -2829,7 +2829,7 @@ the result will be a local, non-Tramp, file name."
   (when (zerop (length name)) (setq name "."))
   ;; On MS Windows, some special file names are not returned properly
   ;; by `file-name-absolute-p'.  If `tramp-syntax' is `simplified',
-  ;; there could be the falso positive "/:".
+  ;; there could be the false positive "/:".
   (if (or (and (eq system-type 'windows-nt)
 	       (string-match-p
 		(tramp-compat-rx bol (| (: alpha ":") (: (literal null-device) eol)))

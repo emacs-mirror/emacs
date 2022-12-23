@@ -339,7 +339,7 @@ First element is ignored.")
 	(split-string header "[ \f\t\n\r\v,;]+"))))
 
 (defun rmail-summary-fill-message-parents-and-descs-vectors ()
-  "Fill parents and descendats vectors for messages.
+  "Fill parents and descendants vectors for messages.
 This populates `rmail-summary-message-parents-vector'
 and `rmail-summary-message-descendants-vector'."
   (with-current-buffer rmail-buffer

@@ -86,7 +86,7 @@ second key.  If PREDICATE is nil, comparison is done with `<' if
 the keys are numbers, with `compare-buffer-substrings' if the
 keys are cons cells (the car and cdr of each cons cell are taken
 as start and end positions), and with `string<' otherwise."
-  ;; Heuristically try to avoid messages if sorting a small amt of text.
+  ;; Heuristically try to avoid messages if sorting a small amount of text.
   (let ((messages (> (- (point-max) (point-min)) 50000)))
     (save-excursion
       (if messages (message "Finding sort keys..."))

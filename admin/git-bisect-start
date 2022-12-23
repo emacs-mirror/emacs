@@ -66,7 +66,7 @@ $REAL_GIT bisect start "$@"
 ## already on master.  In other words, it is the parent of the merge
 ## commit for which 'git rev-list --max-parents=0 <commit>' does not
 ## include ce5584125c44a1a2fbb46e810459c50b227a95e2 (which is the root
-## commit of the Emacs respository).
+## commit of the Emacs repository).
 
 for C in $(cat $0 | grep '^# SKIP-BRANCH ' | sed 's/^# SKIP-BRANCH //')
 do

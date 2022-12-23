@@ -4540,7 +4540,7 @@ Commands that must finish the tracking session are listed in
   (when (and python-pdbtrack-tracked-buffer
              ;; Empty input is sent by C-d or `comint-send-eof'
              (or (string-empty-p input)
-                 ;; "n some text" is "n" command for pdb. Split input and get firs part
+                 ;; "n some text" is "n" command for pdb. Split input and get first part
                  (let* ((command (car (split-string (string-trim input) " "))))
                    (setq python-pdbtrack-prev-command-continue
                          (or (member command python-pdbtrack-continue-command)

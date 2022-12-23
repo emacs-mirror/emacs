@@ -2,7 +2,7 @@
 # well as empty lines are ignored.  Lines have a length limit but this
 # is not a serious limitation as the format of the entries is fixed and
 # checked by gpg-agent.  A non-comment line starts with optional white
-# space, followed by the SHA-1 fingerpint in hex, followed by a flag
+# space, followed by the SHA-1 fingerprint in hex, followed by a flag
 # which may be one of 'P', 'S' or '*' and optionally followed by a list of
 # other flags.  The fingerprint may be prefixed with a '!' to mark the
 # key as not trusted.  You should give the gpg-agent a HUP or run the

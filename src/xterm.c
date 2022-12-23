@@ -4513,7 +4513,7 @@ x_dnd_send_position (struct frame *f, Window target, Window toplevel,
      maintained by the original author of the protocol specifies it
      for all versions.  Since at least one program supports these
      flags, but uses protocol v4 (and not v5), set them for all
-     protocool versions.  */
+     protocol versions.  */
   if (button >= 4 && button <= 7)
     {
       msg.xclient.data.l[1] |= (1 << 10);

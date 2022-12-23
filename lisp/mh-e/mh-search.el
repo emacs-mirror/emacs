@@ -292,7 +292,7 @@ folder containing the index search results."
                                     (cons folder msg)))))
                  folder-results-map)
 
-        ;; Vist the results folder.
+        ;; Visit the results folder.
         (mh-visit-folder index-folder () (list folder-results-map origin-map))
 
         (goto-char (point-min))
