@@ -1219,7 +1219,7 @@ Les conditions de copie d'Emacs lui-même sont plus complexes, mais
 dans le même esprit. Lisez le fichier COPYING et donnez ensuite des
 copies de GNU Emacs à vos amis. Participez à l'éradication de
 l'obstructionnisme du logiciel (sa « propriétarisation ») en
-utilisant, écrivant et partagent des logiciels libres !
+utilisant, écrivant et partageant des logiciels libres !
 
 Cette traduction française a été effectuée par Éric Jacoboni
 <jaco@teaser.fr> et complétée par Bastien Guerry <bzg@gnu.org>.
