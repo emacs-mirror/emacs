@@ -171,13 +171,15 @@ before POS.
 Return nil if no leaf node can be returned.  If NAMED is non-nil,
 only look for named nodes.
 
-If PARSER-OR-LANG is nil, use the first parser in
-`treesit-parser-list'; if PARSER-OR-LANG is a parser, use
-that parser; if PARSER-OR-LANG is a language, find a parser using
-that language in the current buffer, and use that."
+If PARSER-OR-LANG is a parser, use that parser; if PARSER-OR-LANG
+is a language, find the first parser for that language in the
+current buffer, or create one if none exists; If PARSER-OR-LANG
+is nil, try to guess the language at POS by
+`treesit-language-at'."
   (let* ((root (if (treesit-parser-p parser-or-lang)
                    (treesit-parser-root-node parser-or-lang)
-                 (treesit-buffer-root-node parser-or-lang)))
+                 (treesit-buffer-root-node
+                  (or parser-or-lang (treesit-language-at pos)))))
          (node root)
          (node-before root)
          (pos-1 (max (1- pos) (point-min)))
@@ -219,13 +221,15 @@ to use `treesit-node-at' instead.
 Return nil if none was found.  If NAMED is non-nil, only look for
 named node.
 
-If PARSER-OR-LANG is nil, use the first parser in
-`treesit-parser-list'; if PARSER-OR-LANG is a parser, use
-that parser; if PARSER-OR-LANG is a language, find a parser using
-that language in the current buffer, and use that."
+If PARSER-OR-LANG is a parser, use that parser; if PARSER-OR-LANG
+is a language, find the first parser for that language in the
+current buffer, or create one if none exists; If PARSER-OR-LANG
+is nil, try to guess the language at BEG by
+`treesit-language-at'."
   (let ((root (if (treesit-parser-p parser-or-lang)
                   (treesit-parser-root-node parser-or-lang)
-                (treesit-buffer-root-node parser-or-lang))))
+                (treesit-buffer-root-node
+                 (or parser-or-lang (treesit-language-at beg))))))
     (treesit-node-descendant-for-range root beg (or end beg) named)))
 
 (defun treesit-node-top-level (node &optional type)
@@ -246,10 +250,10 @@ regexp, rather than using NODE's type."
 
 (defun treesit-buffer-root-node (&optional language)
   "Return the root node of the current buffer.
-Use the first parser in `treesit-parser-list'.
 
-If optional argument LANGUAGE is non-nil, use the first parser
-for LANGUAGE."
+Use the first parser in the parser list if LANGUAGE is omitted.
+If LANGUAGE is non-nil, use the first parser for LANGUAGE in the
+parser list, or create one if none exists."
   (if-let ((parser
             (if language
                 (treesit-parser-create language)
