@@ -6193,11 +6193,11 @@ instance of such commands."
       (rename-buffer (generate-new-buffer-name base-name))
       (force-mode-line-update))))
 
-(defun files--ensure-directory (mkdir dir)
-  "Use function MKDIR to make directory DIR if it is not already a directory.
+(defun files--ensure-directory (dir)
+  "Make directory DIR if it is not already a directory.
 Return non-nil if DIR is already a directory."
   (condition-case err
-      (funcall mkdir dir)
+      (make-directory-internal dir)
     (error
      (or (file-directory-p dir)
 	 (signal (car err) (cdr err))))))
@@ -6223,32 +6223,27 @@ Signal an error if unsuccessful."
   ;; If default-directory is a remote directory,
   ;; make sure we find its make-directory handler.
   (setq dir (expand-file-name dir))
-  (let ((mkdir (if-let ((handler (find-file-name-handler dir 'make-directory)))
-		   #'(lambda (dir)
-		       ;; Use 'ignore' since the handler might be designed for
-		       ;; Emacs 28-, so it might return an (undocumented)
-		       ;; non-nil value, whereas the Emacs 29+ convention is
-		       ;; to return nil here.
-		       (ignore (funcall handler 'make-directory dir)))
-                 #'make-directory-internal)))
-    (if (not parents)
-        (funcall mkdir dir)
-      (let ((dir (directory-file-name (expand-file-name dir)))
-            already-dir create-list parent)
-        (while (progn
-                 (setq parent (directory-file-name
-                               (file-name-directory dir)))
-                 (condition-case ()
-                     (ignore (setq already-dir
-                                   (files--ensure-directory mkdir dir)))
-                   (error
-                    ;; Do not loop if root does not exist (Bug#2309).
-                    (not (string= dir parent)))))
-          (setq create-list (cons dir create-list)
-                dir parent))
-        (dolist (dir create-list)
-          (setq already-dir (files--ensure-directory mkdir dir)))
-        already-dir))))
+  (let ((handler (find-file-name-handler dir 'make-directory)))
+    (if handler
+	(funcall handler 'make-directory dir parents)
+      (if (not parents)
+	  (make-directory-internal dir)
+	(let ((dir (directory-file-name (expand-file-name dir)))
+	      already-dir create-list parent)
+	  (while (progn
+		   (setq parent (directory-file-name
+				 (file-name-directory dir)))
+		   (condition-case ()
+		       (ignore (setq already-dir
+				     (files--ensure-directory dir)))
+		     (error
+		      ;; Do not loop if root does not exist (Bug#2309).
+		      (not (string= dir parent)))))
+	    (setq create-list (cons dir create-list)
+		  dir parent))
+	  (dolist (dir create-list)
+	    (setq already-dir (files--ensure-directory dir)))
+	  already-dir)))))
 
 (defun make-empty-file (filename &optional parents)
   "Create an empty file FILENAME.
