@@ -636,7 +636,7 @@ ARG is passed to `fill-paragraph'."
           ;; filling region.
           (when (not end-marker)
             (goto-char end)
-            (when (looking-back "*/" 2)
+            (when (looking-back (rx "*/") 2)
               (backward-char 2)
               (skip-syntax-backward "-")
               (setq end (point))))
