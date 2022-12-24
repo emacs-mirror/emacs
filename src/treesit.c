@@ -404,6 +404,10 @@ init_treesit_functions (void)
 
 /*** Initialization */
 
+/* This is the limit on recursion levels for some tree-sitter
+   functions.  Remember to update docstrings when changing this
+   value. */
+const ptrdiff_t treesit_recursion_limit = 1000;
 bool treesit_initialized = false;
 
 static bool
@@ -2706,7 +2710,8 @@ treesit_cursor_helper (TSTreeCursor *cursor, TSNode node, Lisp_Object parser)
   uint32_t end_pos = ts_node_end_byte (node);
   TSNode root = ts_tree_root_node (XTS_PARSER (parser)->tree);
   *cursor = ts_tree_cursor_new (root);
-  bool success = treesit_cursor_helper_1 (cursor, &node, end_pos, 1000);
+  bool success = treesit_cursor_helper_1 (cursor, &node, end_pos,
+					  treesit_recursion_limit);
   if (!success)
     ts_tree_cursor_delete (cursor);
   return success;
@@ -2971,7 +2976,7 @@ Return the first matched node, or nil if none matches.  */)
 
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
-  ptrdiff_t the_limit = 1000;
+  ptrdiff_t the_limit = treesit_recursion_limit;
   if (!NILP (limit))
     {
       CHECK_FIXNUM (limit);
@@ -3150,7 +3155,7 @@ a regexp.  */)
 
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
-  ptrdiff_t the_limit = 1000;
+  ptrdiff_t the_limit = treesit_recursion_limit;
   if (!NILP (limit))
     {
       CHECK_FIXNUM (limit);
