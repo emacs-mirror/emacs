@@ -3055,6 +3055,19 @@ name.
 This key is now bound to 'Buffer-menu-view-other-window', which will
 view this line's buffer in View mode in another window.
 
+** Scheme mode
+
+---
+*** Auto-detection of Scheme library files.
+Emacs now automatically enables the Scheme mode when opening R6RS
+Scheme Library Source ('.sls') files and R7RS Scheme Library
+Definition ('.sld') files.
+
+---
+*** Imenu members for R6RS and R7RS library members.
+Imenu now lists the members directly nested in R6RS Scheme libraries
+('library') and R7RS libraries ('define-library').
+
 
 * New Modes and Packages in Emacs 29.1
 
