@@ -1116,7 +1116,8 @@ tab bar might wrap to the second line when it shouldn't.")
                           (del-pos2 (if close-p -1 nil)))
                       (while continue
                         (setq name (concat (substring name 0 del-pos1)
-                                           (substring name del-pos2)))
+                                           (and del-pos2
+                                                (substring name del-pos2))))
                         (setq curr-width (string-pixel-width name))
                         (if (and (> curr-width width)
                                  (< curr-width prev-width))
