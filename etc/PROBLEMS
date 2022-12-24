@@ -3487,9 +3487,9 @@ The error message might be something like
 
 This happens if you try to build Emacs on versions of MS-Windows older
 than the minimum version supported by MinGW-w64.  As of Dec 2022, the
-minimum supported Windows version is 8.1, and the computer hardware
-(CPU, memory, disk) should also match the minimum Windows 8.1
-requirements.
+minimum Windows version supported by MSYS2/MinGW-w64 is 10, and the
+computer hardware (CPU, memory, disk) should also match the minimum
+Windows 10 requirements.
 
 *** Segfault during 'make'
 
