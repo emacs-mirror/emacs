@@ -1576,16 +1576,18 @@ in the current Emacs session, then this function may return nil."
   ;; Use `window-point' for the case when the current buffer
   ;; is temporarily switched to some other buffer (bug#50256)
   (let* ((pos (window-point))
-         (posn (posn-at-point pos)))
-    (if (null posn) ;; `pos' is "out of sight".
-        (list (selected-window) pos '(0 . 0) 0)
-      ;; If `pos' is inside a chunk of text hidden by an `invisible'
-      ;; or `display' property, `posn-at-point' returns the position
-      ;; that *is* visible, whereas `event--posn-at-point' is used
-      ;; when we have a keyboard event, whose position is `point' even
-      ;; if that position is invisible.
-      (setf (nth 5 posn) pos)
-      posn)))
+         (posn (posn-at-point pos (if (minibufferp (current-buffer))
+                                      (minibuffer-window)))))
+    (cond ((null posn) ;; `pos' is "out of sight".
+           (setq posn (list (selected-window) pos '(0 . 0) 0)))
+          ;; If `pos' is inside a chunk of text hidden by an `invisible'
+          ;; or `display' property, `posn-at-point' returns the position
+          ;; that *is* visible, whereas `event--posn-at-point' is used
+          ;; when we have a keyboard event, whose position is `point' even
+          ;; if that position is invisible.
+          ((> (length posn) 5)
+           (setf (nth 5 posn) pos)))
+    posn))
 
 (defun event-start (event)
   "Return the starting position of EVENT.

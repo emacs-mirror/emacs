@@ -10053,6 +10053,8 @@ PREFIX is the string that represents this modifier in an event type symbol."
 	    event-type
 	  (cons event-type (cdr event)))))))
 
+;; This is what makes "C-x @" followed by [hsmaSc] work even though
+;; you won't find any (define-key ctl-x-map "@" ...) binding.
 (define-key function-key-map [?\C-x ?@ ?h] 'event-apply-hyper-modifier)
 (define-key function-key-map [?\C-x ?@ ?s] 'event-apply-super-modifier)
 (define-key function-key-map [?\C-x ?@ ?m] 'event-apply-meta-modifier)

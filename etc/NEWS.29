@@ -265,6 +265,16 @@ controlled by the internal Emacs machinery led to low-contrast faces
 in common default setups.  Emacs now uses the same 'region' face on
 Gtk and non-Gtk setups.
 
+---
+** 'C-h f' and 'C-h x' may now require confirmation when you press 'RET'.
+If the text in the minibuffer cannot be completed to a single function
+or command, typing 'RET' will not automatically complete to the shortest
+candidate, but will instead ask for confirmation.  Typing 'TAB' will
+complete as much as possible, and another 'TAB' will show all the
+possible completions.  This allows you to insist on the functions name
+even if Help doesn't appear to know about it, by confirming with a
+second 'RET'.
+
 ** Dired
 
 ---
