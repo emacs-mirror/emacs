@@ -16867,6 +16867,10 @@ redisplay_internal (void)
 	      else if (!REDISPLAY_SOME_P ())
 		f->redisplay = true;
 
+	      /* The X error handler may have deleted that frame.  */
+	      if (!FRAME_LIVE_P (f))
+		continue;
+
 	      /* Any scroll bars which redisplay_windows should have
 		 nuked should now go away.  */
 	      if (gcscrollbars && FRAME_TERMINAL (f)->judge_scroll_bars_hook)
