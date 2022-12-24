@@ -26318,8 +26318,8 @@ x_error_quitter (Display *display, XErrorEvent *event)
   sprintf (buf1, "X protocol error: %s on protocol request %d\n"
 	   "Serial no: %lu\n"
 	   "Failing resource ID (if any): 0x%lx\n"
-	   "Minor code: %d\n",
-	   "This is a bug!  Please report this to bug-gnu-emacs@gnu.org!\n"
+	   "Minor code: %d\n"
+	   "This is a bug!  Please report this to bug-gnu-emacs@gnu.org!\n",
 	   buf, event->request_code, event->serial, event->resourceid,
 	   event->minor_code);
   x_connection_closed (display, buf1, false);
