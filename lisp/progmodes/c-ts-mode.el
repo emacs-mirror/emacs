@@ -102,7 +102,8 @@ MODE is either `c' or `cpp'."
            ((node-is "else") parent-bol 0)
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
-           ((and (parent-is "comment") comment-end) comment-start -1)
+           ((and (parent-is "comment") c-ts-mode--looking-at-star)
+            c-ts-mode--comment-start-after-first-star -1)
            ((parent-is "comment") prev-adaptive-prefix 0)
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
@@ -167,6 +168,24 @@ MODE is either `c' or `cpp'."
              ('bsd   (alist-get 'bsd (c-ts-mode--indent-styles mode)))
              ('linux (alist-get 'linux (c-ts-mode--indent-styles mode)))))))
     `((,mode ,@style))))
+
+(defun c-ts-mode--looking-at-star (&rest _)
+  "A tree-sitter simple indent matcher.
+Matches if there is a \"*\" after point (ignoring whitespace in
+between)."
+  (looking-at (rx (* (syntax whitespace)) "*")))
+
+(defun c-ts-mode--comment-start-after-first-star (_n parent &rest _)
+  "A tree-sitter simple indent anchor.
+Finds the \"/*\" and returns the point after the \"*\".
+Assumes PARENT is a comment node."
+  (save-excursion
+    (goto-char (treesit-node-start parent))
+    (if (looking-at (rx "/*"))
+        (match-end 0)
+      (point))))
+
+;;; Font-lock
 
 (defvar c-ts-mode--preproc-keywords
   '("#define" "#if" "#ifdef" "#ifndef"
