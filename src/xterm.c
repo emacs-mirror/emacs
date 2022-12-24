@@ -26300,8 +26300,10 @@ x_error_handler (Display *display, XErrorEvent *event)
 static void NO_INLINE
 x_error_quitter (Display *display, XErrorEvent *event)
 {
-  char buf[256], buf1[400 + INT_STRLEN_BOUND (int)
-		      + INT_STRLEN_BOUND (unsigned long)];
+  char buf[256], buf1[800 + INT_STRLEN_BOUND (int)
+		      + INT_STRLEN_BOUND (unsigned long)
+		      + INT_STRLEN_BOUND (XID)
+		      + INT_STRLEN_BOUND (int)];
 
   /* Ignore BadName errors.  They can happen because of fonts
      or colors that are not defined.  */
@@ -26314,8 +26316,12 @@ x_error_quitter (Display *display, XErrorEvent *event)
 
   XGetErrorText (display, event->error_code, buf, sizeof (buf));
   sprintf (buf1, "X protocol error: %s on protocol request %d\n"
-	   "Serial no: %lu\n", buf, event->request_code,
-	   event->serial);
+	   "Serial no: %lu\n"
+	   "Failing resource ID (if any): 0x%lx\n"
+	   "Minor code: %d\n",
+	   "This is a bug!  Please report this to bug-gnu-emacs@gnu.org!\n"
+	   buf, event->request_code, event->serial, event->resourceid,
+	   event->minor_code);
   x_connection_closed (display, buf1, false);
 }
 
