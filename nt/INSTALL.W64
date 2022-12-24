@@ -18,8 +18,8 @@ Emacs with the full repository, or less if you're using a release tarball.
 
 As of December 2022, the minimum supported system, both for building
 Emacs with the MSYS2/MinGW-w64 toolchain and for running the produced
-binary, is Windows 10.  The computer hardware should also match the
-Microsoft requirements for Windows 10.
+binary, is Windows 8.1.  The computer hardware should also match the
+Microsoft requirements for Windows 8.1.
 
 * Set up the MinGW-w64 / MSYS2 build environment
 
