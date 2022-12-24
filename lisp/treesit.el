@@ -141,6 +141,9 @@ parser in `treesit-parser-list', or nil if there is no parser."
 
 ;;; Node API supplement
 
+(define-error 'treesit-no-parser "No available parser for this buffer"
+              'treesit-error)
+
 (defun treesit-node-buffer (node)
   "Return the buffer in which NODE belongs."
   (treesit-parser-buffer
@@ -248,11 +251,10 @@ Use the first parser in `treesit-parser-list'.
 If optional argument LANGUAGE is non-nil, use the first parser
 for LANGUAGE."
   (if-let ((parser
-            (or (if language
-                    (treesit-parser-create language)
-                  (or (car (treesit-parser-list))
-                      (signal 'treesit-error
-                              '("Buffer has no parser")))))))
+            (if language
+                (treesit-parser-create language)
+              (or (car (treesit-parser-list))
+                  (signal 'treesit-no-parser (list (current-buffer)))))))
       (treesit-parser-root-node parser)))
 
 (defun treesit-filter-child (node pred &optional named)
