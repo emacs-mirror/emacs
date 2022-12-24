@@ -39,6 +39,8 @@
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 
+;;; Custom variables
+
 (defcustom c-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `c-ts-mode'."
   :version "29.1"
@@ -90,6 +92,8 @@ follows the form of `treesit-simple-indent-rules'."
     (modify-syntax-entry ?>  ")"     table)
     table)
   "Syntax table for `c++-ts-mode'.")
+
+;;; Indent
 
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
@@ -381,6 +385,8 @@ MODE is either `c' or `cpp'."
        @c-ts-mode--fontify-defun)
       (:match "^DEFUN$" @fn)))))
 
+;;; Font-lock helpers
+
 (defun c-ts-mode--fontify-declarator (node override start end &rest args)
   "Fontify a declarator (whatever under the \"declarator\" field).
 For NODE, OVERRIDE, START, END, and ARGS, see
@@ -473,6 +479,8 @@ For NODE, OVERRIDE, START, and END, see
       (t 'font-lock-warning-face))
      override start end)))
 
+;;; Imenu
+
 (defun c-ts-mode--imenu-1 (node)
   "Helper for `c-ts-mode--imenu'.
 Find string representation for NODE and set marker, then recurse
@@ -537,6 +545,8 @@ the subtrees."
      (when var-index `(("Variable" . ,var-index)))
      (when func-index `(("Function" . ,func-index))))))
 
+;;; Defun navigation
+
 (defun c-ts-mode--end-of-defun ()
   "`end-of-defun-function' of `c-ts-mode'."
   ;; A struct/enum/union_specifier node doesn't include the ; at the
@@ -581,6 +591,8 @@ the semicolon.  This function skips the semicolon."
     (indent-region (treesit-node-start node)
                    (treesit-node-end node))
     (goto-char orig-point)))
+
+;;; Filling
 
 (defun c-ts-mode--fill-paragraph (&optional arg)
   "Fillling function for `c-ts-mode'.
@@ -645,6 +657,8 @@ ARG is passed to `fill-paragraph'."
       ;; Return t so `fill-paragraph' doesn't attempt to fill by
       ;; itself.
       t)))
+
+;;; Modes
 
 (defvar-keymap c-ts-mode-map
   :doc "Keymap for the C language with tree-sitter"
