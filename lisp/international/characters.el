@@ -184,7 +184,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 
 (dolist (c '(chinese-cns11643-1 chinese-cns11643-2 chinese-cns11643-3
 	     chinese-cns11643-4 chinese-cns11643-5 chinese-cns11643-6
-	     chinese-cns11643-7))
+	     chinese-cns11643-7 chinese-cns11643-15))
   (map-charset-chars #'modify-category-entry c ?c)
   (if (eq c 'chinese-cns11643-1)
       (map-charset-chars #'modify-category-entry c ?C #x4421 #x7E7E)
