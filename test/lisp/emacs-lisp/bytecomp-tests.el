@@ -752,6 +752,11 @@ inner loops respectively."
       (condition-case nil
           (characterp x)               ; value (no :success, no var)
         (error 'bad)))
+
+    (condition-case nil
+        (bytecomp-test-identity 3)
+      (error 'bad)
+      (:success))                       ; empty handler
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
