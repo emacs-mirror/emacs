@@ -2910,6 +2910,7 @@ killed.  */
 
   if (!NILP (restart))
     {
+      turn_on_atimers (false);
 #ifdef WINDOWSNT
       if (w32_reexec_emacs (initial_cmdline, initial_wd) < 0)
 #else
