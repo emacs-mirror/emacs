@@ -1107,6 +1107,22 @@ See `treesit-simple-indent-presets'.")
                   (re-search-forward comment-start-skip)
                   (skip-syntax-backward "-")
                   (point))))
+        (cons 'prev-adaptive-prefix
+              (lambda (_n parent &rest _)
+                (save-excursion
+                  (re-search-backward
+                   (rx (not (or " " "\t" "\n"))) nil t)
+                  (beginning-of-line)
+                  (and (>= (point) (treesit-node-start parent))
+                       ;; `adaptive-fill-regexp' will not match "/*",
+                       ;; so we need to also try `comment-start-skip'.
+                       (or (and adaptive-fill-regexp
+                                (looking-at adaptive-fill-regexp)
+                                (> (- (match-end 0) (match-beginning 0)) 0)
+                                (match-end 0))
+                           (and comment-start-skip
+                                (looking-at comment-start-skip)
+                                (match-end 0)))))))
         ;; TODO: Document.
         (cons 'grand-parent
               (lambda (_n parent &rest _)
@@ -1229,7 +1245,14 @@ comment-start
 
     Goes to the position that `comment-start-skip' would return,
     skips whitespace backwards, and returns the resulting
-    position.  Assumes PARENT is a comment node.")
+    position.  Assumes PARENT is a comment node.
+
+prev-adaptive-prefix
+
+    Goes to the beginning of previous non-empty line, and tries
+    to match `adaptive-fill-regexp'.  If it matches, return the
+    end of the match, otherwise return nil.  This is useful for a
+    `indent-relative'-like indent behavior for block comments.")
 
 (defun treesit--simple-indent-eval (exp)
   "Evaluate EXP.

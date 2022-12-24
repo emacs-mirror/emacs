@@ -103,6 +103,7 @@ MODE is either `c' or `cpp'."
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
            ((and (parent-is "comment") comment-end) comment-start -1)
+           ((parent-is "comment") prev-adaptive-prefix 0)
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
            ((match "preproc_ifdef" "compound_statement") point-min 0)
@@ -562,6 +563,70 @@ the semicolon.  This function skips the semicolon."
                    (treesit-node-end node))
     (goto-char orig-point)))
 
+(defun c-ts-mode--fill-paragraph (&optional arg)
+  "Fillling function for `c-ts-mode'.
+ARG is passed to `fill-paragraph'."
+  (interactive "*P")
+  (save-restriction
+    (widen)
+    (let* ((node (treesit-node-at (point)))
+           (start (treesit-node-start node))
+           (end (treesit-node-end node))
+           ;; Bind to nil to avoid infinite recursion.
+           (fill-paragraph-function nil)
+           (orig-point (point-marker))
+           (start-marker nil)
+           (end-marker nil)
+           (end-len 0))
+      (when (equal (treesit-node-type node) "comment")
+        ;; We mask "/*" and the space before "*/" like
+        ;; `c-fill-paragraph' does.
+        (atomic-change-group
+          ;; Mask "/*".
+          (goto-char start)
+          (when (looking-at (rx (* (syntax whitespace))
+                                (group "/") "*"))
+            (goto-char (match-beginning 1))
+            (setq start-marker (point-marker))
+            (replace-match " " nil nil nil 1))
+          ;; Mask spaces before "*/" if it is attached at the end
+          ;; of a sentence rather than on its own line.
+          (goto-char end)
+          (when (looking-back (rx (not (syntax whitespace))
+                                  (group (+ (syntax whitespace)))
+                                  "*/")
+                              (line-beginning-position))
+            (goto-char (match-beginning 1))
+            (setq end-marker (point-marker))
+            (setq end-len (- (match-end 1) (match-beginning 1)))
+            (replace-match (make-string end-len ?x)
+                           nil nil nil 1))
+          ;; If "*/" is on its own line, don't included it in the
+          ;; filling region.
+          (when (not end-marker)
+            (goto-char end)
+            (when (looking-back "*/" 2)
+              (backward-char 2)
+              (skip-syntax-backward "-")
+              (setq end (point))))
+          ;; Let `fill-paragraph' do its thing.
+          (goto-char orig-point)
+          (narrow-to-region start end)
+          (funcall #'fill-paragraph arg)
+          ;; Unmask.
+          (when start-marker
+            (goto-char start-marker)
+            (delete-char 1)
+            (insert "/"))
+          (when end-marker
+            (goto-char end-marker)
+            (delete-region (point) (+ end-len (point)))
+            (insert (make-string end-len ?\s))))
+        (goto-char orig-point))
+      ;; Return t so `fill-paragraph' doesn't attempt to fill by
+      ;; itself.
+      t)))
+
 (defvar-keymap c-ts-mode-map
   :doc "Keymap for the C language with tree-sitter"
   :parent prog-mode-map
@@ -592,6 +657,37 @@ the semicolon.  This function skips the semicolon."
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
+
+  (setq-local adaptive-fill-mode t)
+  ;; This matches (1) empty spaces (the default), (2) "//", (3) "*",
+  ;; but do not match "/*", because we don't want to use "/*" as
+  ;; prefix when filling.  (Actually, it doesn't matter, because
+  ;; `comment-start-skip' matches "/*" which will cause
+  ;; `fill-context-prefix' to use "/*" as a prefix for filling, that's
+  ;; why we mask the "/*" in `c-ts-mode--fill-paragraph'.)
+  (setq-local adaptive-fill-regexp
+              (concat (rx (* (syntax whitespace))
+                          (group (or (seq "/" (+ "/")) (* "*"))))
+                      adaptive-fill-regexp))
+  ;; Same as `adaptive-fill-regexp'.
+  (setq-local adaptive-fill-first-line-regexp
+              (rx bos
+                  (seq (* (syntax whitespace))
+                       (group (or (seq "/" (+ "/")) (* "*")))
+                       (* (syntax whitespace)))
+                  eos))
+  ;; Same as `adaptive-fill-regexp'.
+  (setq-local paragraph-start
+              (rx (or (seq (* (syntax whitespace))
+                           (group (or (seq "/" (+ "/")) (* "*")))
+                           (* (syntax whitespace))
+                           ;; Add this eol so that in
+                           ;; `fill-context-prefix', `paragraph-start'
+                           ;; doesn't match the prefix.
+                           eol)
+                      "\f")))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local fill-paragraph-function #'c-ts-mode--fill-paragraph)
 
   ;; Electric
   (setq-local electric-indent-chars
