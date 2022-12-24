@@ -419,11 +419,10 @@ hooks should be run before and after the command."
     (let ((cmd commands))
       (while cmd
         ;; Copy I/O handles so each full statement can manipulate them
-        ;; if they like.  As a small optimization, skip this for the
-        ;; last top-level one; we won't use these handles again
-        ;; anyway.
-        (when (or (not toplevel) (cdr cmd))
-	  (setcar cmd `(eshell-with-copied-handles ,(car cmd))))
+        ;; if they like.  Steal the handles for the last command in
+        ;; the list; we won't use the originals again anyway.
+        (setcar cmd `(eshell-with-copied-handles
+                      ,(car cmd) ,(not (cdr cmd))))
 	(setq cmd (cdr cmd))))
     (if toplevel
 	`(eshell-commands (progn
@@ -792,10 +791,12 @@ this grossness will be made to disappear by using `call/cc'..."
 (defvar eshell-output-handle)           ;Defined in esh-io.el.
 (defvar eshell-error-handle)            ;Defined in esh-io.el.
 
-(defmacro eshell-with-copied-handles (object)
-  "Duplicate current I/O handles, so OBJECT works with its own copy."
+(defmacro eshell-with-copied-handles (object &optional steal-p)
+  "Duplicate current I/O handles, so OBJECT works with its own copy.
+If STEAL-P is non-nil, these new handles will be stolen from the
+current ones (see `eshell-duplicate-handles')."
   `(let ((eshell-current-handles
-          (eshell-duplicate-handles eshell-current-handles)))
+          (eshell-duplicate-handles eshell-current-handles ,steal-p)))
      ,object))
 
 (define-obsolete-function-alias 'eshell-copy-handles
@@ -836,7 +837,9 @@ This macro calls itself recursively, with NOTFIRST non-nil."
           (let ((proc ,(car pipeline)))
             (set headproc (or proc (symbol-value headproc)))
             (set tailproc (or (symbol-value tailproc) proc))
-            proc))))))
+            proc)))
+      ;; Steal handles if this is the last item in the pipeline.
+      ,(null (cdr pipeline)))))
 
 (defmacro eshell-do-pipelines-synchronously (pipeline)
   "Execute the commands in PIPELINE in sequence synchronously.
@@ -1024,7 +1027,9 @@ produced by `eshell-parse-command'."
       ;; We can just stick the new command at the end of the current
       ;; one, and everything will happen as it should.
       (setcdr (last (cdr eshell-current-command))
-              (list `(let ((here (and (eobp) (point))))
+              (list `(let ((here (and (eobp) (point)))
+                           (eshell-command-body '(nil))
+                           (eshell-test-body '(nil)))
                        ,(and input
                              `(insert-and-inherit ,(concat input "\n")))
                        (if here

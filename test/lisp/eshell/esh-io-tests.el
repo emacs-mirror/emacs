@@ -301,14 +301,27 @@ stdout originally pointed (the terminal)."
                                   "stderr\n"))
     (should (equal (buffer-string) "stdout\n"))))
 
-(ert-deftest esh-io-test/redirect-pipe ()
-  "Check that \"redirecting\" to a pipe works."
-  ;; `|' should only redirect stdout.
+
+;; Pipelines
+
+(ert-deftest esh-io-test/pipeline/default ()
+  "Check that `|' only pipes stdout."
+  (skip-unless (executable-find "rev"))
   (eshell-command-result-equal "test-output | rev"
-                               "stderr\ntuodts\n")
-  ;; `|&' should redirect stdout and stderr.
+                               "stderr\ntuodts\n"))
+
+
+(ert-deftest esh-io-test/pipeline/all ()
+  "Check that `|&' only pipes stdout and stderr."
+  (skip-unless (executable-find "rev"))
   (eshell-command-result-equal "test-output |& rev"
                                "tuodts\nrredts\n"))
+
+(ert-deftest esh-io-test/pipeline/subcommands ()
+  "Chek that all commands in a subcommand are properly piped."
+  (skip-unless (executable-find "rev"))
+  (eshell-command-result-equal "{echo foo; echo bar} | rev"
+                               "raboof"))
 
 
 ;; Virtual targets
