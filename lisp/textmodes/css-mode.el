@@ -1412,6 +1412,19 @@ for determining whether point is within a selector."
    '((ERROR) @error))
   "Tree-sitter font-lock settings for `css-ts-mode'.")
 
+(defun css--treesit-defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ("rule_set" (treesit-node-text
+                 (treesit-node-child node 0) t))
+    ("media_statement"
+     (let ((block (treesit-node-child node -1)))
+       (string-trim
+        (buffer-substring-no-properties
+         (treesit-node-start node)
+         (treesit-node-start block)))))))
+
 (defun css--treesit-imenu-1 (node)
   "Helper for `css--treesit-imenu'.
 Find string representation for NODE and set marker, then recurse
@@ -1419,15 +1432,8 @@ the subtrees."
   (let* ((ts-node (car node))
          (subtrees (mapcan #'css--treesit-imenu-1 (cdr node)))
          (name (when ts-node
-                 (pcase (treesit-node-type ts-node)
-                   ("rule_set" (treesit-node-text
-                                (treesit-node-child ts-node 0) t))
-                   ("media_statement"
-                    (let ((block (treesit-node-child ts-node -1)))
-                      (string-trim
-                       (buffer-substring-no-properties
-                        (treesit-node-start ts-node)
-                        (treesit-node-start block))))))))
+                 (or (treesit-defun-name ts-node)
+                     "Anonymous")))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
@@ -1835,6 +1841,7 @@ can also be used to fill comments.
     (treesit-parser-create 'css)
     (setq-local treesit-simple-indent-rules css--treesit-indent-rules)
     (setq-local treesit-defun-type-regexp "rule_set")
+    (setq-local treesit-defun-name-function #'css--treesit-defun-name)
     (setq-local treesit-font-lock-settings css--treesit-settings)
     (setq-local treesit-font-lock-feature-list
                 '((selector comment query keyword)

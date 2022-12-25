@@ -404,6 +404,10 @@ init_treesit_functions (void)
 
 /*** Initialization */
 
+/* This is the limit on recursion levels for some tree-sitter
+   functions.  Remember to update docstrings when changing this
+   value. */
+const ptrdiff_t treesit_recursion_limit = 1000;
 bool treesit_initialized = false;
 
 static bool
@@ -1762,7 +1766,7 @@ If NODE is nil, return nil.  */)
   return build_string (string);
 }
 
-static TSTreeCursor treesit_cursor_helper (TSNode, Lisp_Object);
+static bool treesit_cursor_helper (TSTreeCursor *, TSNode, Lisp_Object);
 
 DEFUN ("treesit-node-parent",
        Ftreesit_node_parent, Streesit_node_parent, 1, 1, 0,
@@ -1778,7 +1782,10 @@ Return nil if NODE has no parent.  If NODE is nil, return nil.  */)
 
   TSNode treesit_node = XTS_NODE (node)->node;
   Lisp_Object parser = XTS_NODE (node)->parser;
-  TSTreeCursor cursor = treesit_cursor_helper (treesit_node, parser);
+  TSTreeCursor cursor;
+  if (!treesit_cursor_helper (&cursor, treesit_node, parser))
+    return return_value;
+
   if (ts_tree_cursor_goto_parent (&cursor))
   {
     TSNode parent = ts_tree_cursor_current_node (&cursor);
@@ -2637,8 +2644,59 @@ treesit_assume_true (bool val)
   eassert (val == true);
 }
 
+/* Tries to move CURSOR to point to TARGET.  END_POS is the end of
+   TARGET.  If success, return true, otherwise move CURSOR back to
+   starting position and return false.  LIMIT is the recursion
+   limit.  */
+static bool
+treesit_cursor_helper_1 (TSTreeCursor *cursor, TSNode *target,
+			 uint32_t end_pos, ptrdiff_t limit)
+{
+  if (limit <= 0)
+    return false;
+
+  TSNode cursor_node = ts_tree_cursor_current_node (cursor);
+  if (ts_node_eq (cursor_node, *target))
+    return true;
+
+  if (!ts_tree_cursor_goto_first_child (cursor))
+    return false;
+
+  /* Skip nodes that definitely don't contain TARGET.  */
+  while (ts_node_end_byte (cursor_node) < end_pos)
+    {
+      if (!ts_tree_cursor_goto_next_sibling (cursor))
+	break;
+      cursor_node = ts_tree_cursor_current_node (cursor);
+    }
+
+  /* Go through each sibling that could contain TARGET.  Because of
+     missing nodes (their width is 0), there could be multiple
+     siblings that could contain TARGET.  */
+  while (ts_node_start_byte (cursor_node) <= end_pos)
+    {
+      if (treesit_cursor_helper_1 (cursor, target, end_pos, limit - 1))
+	return true;
+
+      if (!ts_tree_cursor_goto_next_sibling (cursor))
+	break;
+      cursor_node = ts_tree_cursor_current_node (cursor);
+    }
+
+  /* Couldn't find TARGET, must be not in this subtree, move cursor
+     back and pray that other brothers and sisters can succeed.  */
+  treesit_assume_true (ts_tree_cursor_goto_parent (cursor));
+  return false;
+}
+
 /* Create a TSTreeCursor pointing at NODE.  PARSER is the lisp parser
-   that produced NODE.
+   that produced NODE.  If success, return true, otherwise return
+   false.  This function should almost always succeed, but if the parse
+   tree is strangely too deep and exceeds the recursion limit, this
+   function will fail and return false.
+
+   If this function returns true, caller needs to free CURSOR; if
+   returns false, caller don't need to free CURSOR.
 
    The reason we need this instead of simply using ts_tree_cursor_new
    is that we have to create the cursor on the root node and traverse
@@ -2646,56 +2704,17 @@ treesit_assume_true (bool val)
    Otherwise going to sibling or parent of NODE wouldn't work.
 
    (Wow perfect filling.)  */
-static TSTreeCursor
-treesit_cursor_helper (TSNode node, Lisp_Object parser)
+static bool
+treesit_cursor_helper (TSTreeCursor *cursor, TSNode node, Lisp_Object parser)
 {
   uint32_t end_pos = ts_node_end_byte (node);
   TSNode root = ts_tree_root_node (XTS_PARSER (parser)->tree);
-  TSTreeCursor cursor = ts_tree_cursor_new (root);
-  TSNode cursor_node = ts_tree_cursor_current_node (&cursor);
-  /* This is like treesit-node-at.  We go down from the root node,
-     either to first child or next sibling, repeatedly, and finally
-     arrive at NODE.  */
-  while (!ts_node_eq (node, cursor_node))
-    {
-      treesit_assume_true (ts_tree_cursor_goto_first_child (&cursor));
-      cursor_node = ts_tree_cursor_current_node (&cursor);
-      /* ts_tree_cursor_goto_first_child_for_byte is not reliable, so
-	 we just go through each sibling.  */
-      while (ts_node_is_missing (cursor_node)
-	     || ts_node_end_byte (cursor_node) < end_pos)
-	{
-	  /* A "missing" node has zero width, so it's possible that
-	     its end = NODE.end but it's not NODE, so we skip them.
-	     But we need to make sure this missing node is not the
-	     node we are looking for before skipping it.  */
-	  if (ts_node_is_missing (cursor_node)
-	      && ts_node_eq (node, cursor_node))
-	    return cursor;
-	  treesit_assume_true (ts_tree_cursor_goto_next_sibling (&cursor));
-	  cursor_node = ts_tree_cursor_current_node (&cursor);
-	}
-      /* Right now CURSOR.end >= NODE.end.  But what if CURSOR.end =
-	 NODE.end, and there are missing nodes after CURSOR, and the
-	 missing node after CURSOR is the NODE we are looking for??
-	 Well, create a probe and look ahead.  (This is tested by
-	 treesit-cursor-helper-with-missing-node.)  */
-      TSTreeCursor probe = ts_tree_cursor_copy (&cursor);
-      TSNode probe_node;
-      while (ts_tree_cursor_goto_next_sibling (&probe))
-	{
-	  probe_node = ts_tree_cursor_current_node (&probe);
-	  if (!ts_node_is_missing (probe_node))
-	    break;
-	  if (ts_node_eq (probe_node, node))
-	    {
-	      ts_tree_cursor_delete (&cursor);
-	      return probe;
-	    }
-	}
-      ts_tree_cursor_delete (&probe);
-    }
-  return cursor;
+  *cursor = ts_tree_cursor_new (root);
+  bool success = treesit_cursor_helper_1 (cursor, &node, end_pos,
+					  treesit_recursion_limit);
+  if (!success)
+    ts_tree_cursor_delete (cursor);
+  return success;
 }
 
 /* Move CURSOR to the next/previous sibling.  FORWARD controls the
@@ -2957,7 +2976,7 @@ Return the first matched node, or nil if none matches.  */)
 
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
-  ptrdiff_t the_limit = 1000;
+  ptrdiff_t the_limit = treesit_recursion_limit;
   if (!NILP (limit))
     {
       CHECK_FIXNUM (limit);
@@ -2968,7 +2987,10 @@ Return the first matched node, or nil if none matches.  */)
 
   Lisp_Object parser = XTS_NODE (node)->parser;
   Lisp_Object return_value = Qnil;
-  TSTreeCursor cursor = treesit_cursor_helper (XTS_NODE (node)->node, parser);
+  TSTreeCursor cursor;
+  if (!treesit_cursor_helper (&cursor, XTS_NODE (node)->node, parser))
+    return return_value;
+
   if (treesit_search_dfs (&cursor, predicate, parser, NILP (backward),
 			  NILP (all), the_limit, false))
     {
@@ -3022,7 +3044,10 @@ always traverse leaf nodes first, then upwards.  */)
 
   Lisp_Object parser = XTS_NODE (start)->parser;
   Lisp_Object return_value = Qnil;
-  TSTreeCursor cursor = treesit_cursor_helper (XTS_NODE (start)->node, parser);
+  TSTreeCursor cursor;
+  if (!treesit_cursor_helper (&cursor, XTS_NODE (start)->node, parser))
+    return return_value;
+
   if (treesit_search_forward (&cursor, predicate, parser,
 			      NILP (backward), NILP (all)))
     {
@@ -3130,7 +3155,7 @@ a regexp.  */)
 
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
-  ptrdiff_t the_limit = 1000;
+  ptrdiff_t the_limit = treesit_recursion_limit;
   if (!NILP (limit))
     {
       CHECK_FIXNUM (limit);
@@ -3141,7 +3166,10 @@ a regexp.  */)
 
   Lisp_Object parser = XTS_NODE (root)->parser;
   Lisp_Object parent = Fcons (Qnil, Qnil);
-  TSTreeCursor cursor = treesit_cursor_helper (XTS_NODE (root)->node, parser);
+  TSTreeCursor cursor;
+  if (!treesit_cursor_helper (&cursor, XTS_NODE (root)->node, parser))
+    return Qnil;
+
   treesit_build_sparse_tree (&cursor, parent, predicate, process_fn,
 			     the_limit, parser);
   ts_tree_cursor_delete (&cursor);

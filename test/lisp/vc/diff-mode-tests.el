@@ -478,5 +478,84 @@ baz"))))
     (should (equal (diff-hunk-file-names)
                    '("/tmp/ange-ftp1351895K.el" "/tmp/ange-ftp13518wvE.el")))))
 
+(ert-deftest diff-mode-test-fixups-added-lines ()
+  "Check that `diff-fixup-modifs' works well with hunks with added lines."
+  (let ((patch "--- file
++++ file
+@@ -0,0 +1,15 @@
++1
++2
++3
++4
+"))
+    (with-temp-buffer
+      (insert patch)
+      (diff-fixup-modifs (point-min) (point-max))
+      (should (equal (buffer-string) "--- file
++++ file
+@@ -0,0 +1,4 @@
++1
++2
++3
++4
+"))))
+  (let ((patch "--- file
++++ file
+@@ -389,5 +398,6 @@
+        while (1)
+                ;
++       # not needed
+        # at all
+        # stop
+"))
+    (with-temp-buffer
+      (insert patch)
+      (diff-fixup-modifs (point-min) (point-max))
+      (should (equal (buffer-string) "--- file
++++ file
+@@ -389,4 +398,5 @@
+        while (1)
+                ;
++       # not needed
+        # at all
+        # stop
+")))))
+
+(ert-deftest diff-mode-test-fixups-empty-hunks ()
+  "Check that `diff-fixup-modifs' works well with empty hunks."
+  (let ((patch "--- file
++++ file
+@@ -1 +1 @@
+-1
+@@ -10 +10 @@
+-1
++1
+--- otherfile
++++ otherfile
+@@ -1 +1 @@
++2
+@@ -10 +10 @@
+-1
++1
+"))
+    (with-temp-buffer
+      (insert patch)
+      (diff-fixup-modifs (point-min) (point-max))
+      (should (equal (buffer-string) "--- file
++++ file
+@@ -1,1 +1,0 @@
+-1
+@@ -10,1 +10,1 @@
+-1
++1
+--- otherfile
++++ otherfile
+@@ -1,0 +1,1 @@
++2
+@@ -10,1 +10,1 @@
+-1
++1
+")))))
+
 (provide 'diff-mode-tests)
 ;;; diff-mode-tests.el ends here

@@ -107,6 +107,16 @@
    '((ERROR) @font-lock-warning-face))
   "Font-lock settings for JSON.")
 
+(defun json-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "pair" "object")
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       node "key")
+      t))))
+
 (defun json-ts-mode--imenu-1 (node)
   "Helper for `json-ts-mode--imenu'.
 Find string representation for NODE and set marker, then recurse
@@ -114,10 +124,8 @@ the subtrees."
   (let* ((ts-node (car node))
          (subtrees (mapcan #'json-ts-mode--imenu-1 (cdr node)))
          (name (when ts-node
-                 (treesit-node-text
-                  (treesit-node-child-by-field-name
-                   ts-node "key")
-                  t)))
+                 (or (treesit-defun-name ts-node)
+                     "Anonymous")))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
@@ -161,6 +169,7 @@ the subtrees."
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
               (rx (or "pair" "object")))
+  (setq-local treesit-defun-name-function #'json-ts-mode--defun-name)
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings json-ts-mode--font-lock-settings)

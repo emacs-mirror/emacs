@@ -16838,6 +16838,13 @@ redisplay_internal (void)
 		/* Only GC scrollbars when we redisplay the whole frame.  */
 		= f->redisplay || !REDISPLAY_SOME_P ();
 	      bool f_redisplay_flag = f->redisplay;
+
+	      /* The X error handler may have deleted that frame
+		 before we went back to retry_frame.  This must come
+		 before any accesses to f->terminal.  */
+	      if (!FRAME_LIVE_P (f))
+		continue;
+
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
 	      if (gcscrollbars && FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
@@ -16845,7 +16852,6 @@ redisplay_internal (void)
 
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		{
-
 		  /* Don't allow freeing images and faces for this
 		     frame as long as the frame's update wasn't
 		     completed.  This prevents crashes when some Lisp

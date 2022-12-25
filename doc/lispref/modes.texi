@@ -5024,6 +5024,14 @@ comment-start token.  Comment-start tokens are defined by regular
 expression @code{comment-start-skip}.  This function assumes
 @var{parent} is the comment node.
 
+@item prev-adaptive-prefix
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}.  It tries to go to the beginning of the
+previous non-empty line, and matches @code{adaptive-fill-regexp}.  If
+there is a match, this function returns the end of the match,
+otherwise it returns nil.  This anchor is useful for a
+@code{indent-relative}-like indent behavior for block comments.
+
 @end ftable
 @end defvar
 

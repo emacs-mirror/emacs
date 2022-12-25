@@ -6,7 +6,7 @@
 
 This document describes how to compile a 64-bit GNU Emacs using MSYS2
 and MinGW-w64.  For instructions for building a 32-bit Emacs using
-MSYS and MinGW, see the file INSTALL in this directory.
+MSYS and mingw.org's MinGW, see the file INSTALL in this directory.
 
 Do not use this recipe with Cygwin. For building on Cygwin, use the normal
 installation instructions in ../INSTALL.
@@ -16,28 +16,27 @@ installation instructions in ../INSTALL.
 The total space required is 3GB: 1.8GB for MSYS2 / MinGW-w64 and 1.2GB for
 Emacs with the full repository, or less if you're using a release tarball.
 
+As of December 2022, the minimum supported system, both for building
+Emacs with the MSYS2/MinGW-w64 toolchain and for running the produced
+binary, is Windows 8.1.  The computer hardware should also match the
+Microsoft requirements for Windows 8.1.
+
 * Set up the MinGW-w64 / MSYS2 build environment
 
 MinGW-w64 provides a complete runtime for projects built with GCC for 64-bit
 Windows -- it's located at https://mingw-w64.org/.
 
 MSYS2 is a Cygwin-derived software distribution for Windows which provides
-build tools for MinGW-w64 -- see https://msys2.github.io/.
+build tools for MinGW-w64 -- see https://msys2.org/.
 
 ** Download and install MinGW-w64 and MSYS2
 
-You can download the x86_64 version of MSYS2 (i.e. msys2-x86_64-<date>.exe)
-from
-
-  https://sourceforge.net/projects/msys2/files/Base/x86_64
-
-Run this file to install MSYS2 in your preferred directory, e.g. the default
-C:\msys64 -- this will install MinGW-w64 also.  Note that directory names
-containing spaces may cause problems.
+Go to https://msys2.org and follow the instructions. It is not
+necessary to install the packages suggested on those instructions.
 
 ** Download and install the necessary packages
 
-Run c:/msys64/msys2.exe in your MSYS2 directory and you will see a BASH window
+Run mingw64.exe in your MSYS2 directory and you will see a BASH window
 opened.
 
 In the BASH prompt, use the following command to install the necessary
@@ -116,10 +115,6 @@ put the Emacs source into C:\emacs\emacs-26:
 
 Now you're ready to build and install Emacs with autogen, configure, make,
 and make install.
-
-First we need to switch to the MinGW-w64 environment.  Exit the MSYS2 BASH
-console and run mingw64.exe in the C:\msys64 folder, then cd back to
-your Emacs source directory, e.g.:
 
   cd /c/emacs/emacs-26
 
