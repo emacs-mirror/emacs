@@ -643,6 +643,10 @@ it, or query for information about this node.
 
 @defun treesit-node-parent node
 This function returns the immediate parent of @var{node}.
+
+If @var{node} is more than 1000 levels deep in a parse tree, the
+return value is undefined.  Currently it returns @var{nil}, but that
+could change in the future.
 @end defun
 
 @defun treesit-node-child node n &optional named
