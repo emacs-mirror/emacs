@@ -2,6 +2,8 @@
 
 Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
+Maintainer: Yuan Fu <casouri@gmail.com>
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify

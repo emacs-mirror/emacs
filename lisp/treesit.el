@@ -2,6 +2,10 @@
 
 ;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
+;; Maintainer: 付禹安 (Yuan Fu) <casouri@gmail.com>
+;; Keywords: treesit, tree-sitter, languages
+;; Package: emacs
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
