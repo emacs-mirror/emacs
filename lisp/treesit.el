@@ -865,7 +865,7 @@ LIMIT is the recursion limit, which defaults to 100."
         (push child result))
       (setq child (treesit-node-next-sibling child)))
     ;; If NODE has no child, keep NODE.
-    (or result node)))
+    (or result (list node))))
 
 (defsubst treesit--node-length (node)
   "Return the length of the text of NODE."
