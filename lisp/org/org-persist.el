@@ -874,15 +874,21 @@ When IGNORE-RETURN is non-nil, just return t on success without calling
 When ASSOCIATED is non-nil, only save the matching data."
   (unless org-persist--index (org-persist--load-index))
   (setq associated (org-persist--normalize-associated associated))
-  (unless
+  (if
       (and (equal 1 (length org-persist--index))
            ;; The single collection only contains a single container
            ;; in the container list.
            (equal 1 (length (plist-get (car org-persist--index) :container)))
            ;; The container is an `index' container.
            (eq 'index (caar (plist-get (car org-persist--index) :container)))
-           ;; No `org-persist-directory' exists yet.
-           (not (file-exists-p org-persist-directory)))
+           (or (not (file-exists-p org-persist-directory))
+               (org-directory-empty-p org-persist-directory)))
+      ;; Do not write anything, and clear up `org-persist-directory' to reduce
+      ;; clutter.
+      (when (and (file-exists-p org-persist-directory)
+                 (org-directory-empty-p org-persist-directory))
+        (delete-directory org-persist-directory))
+    ;; Write the data.
     (let (all-containers)
       (dolist (collection org-persist--index)
         (if associated
@@ -963,6 +969,30 @@ Also, remove containers associated with non-existing files."
             (push collection new-index)))))
     (setq org-persist--index (nreverse new-index))))
 
+(defun org-persist-clear-storage-maybe ()
+  "Clear `org-persist-directory' according to `org-persist--disable-when-emacs-Q'.
+
+When `org-persist--disable-when-emacs-Q' is non-nil and Emacs is called with -Q
+command line argument, `org-persist-directory' is created in potentially public
+system temporary directory.  Remove everything upon existing Emacs in
+such scenario."
+  (when (and org-persist--disable-when-emacs-Q
+             ;; FIXME: This is relying on undocumented fact that
+             ;; Emacs sets `user-init-file' to nil when loaded with
+             ;; "-Q" argument.
+             (not user-init-file)
+             (file-exists-p org-persist-directory))
+    (delete-directory org-persist-directory 'recursive)))
+
+;; Point to temp directory when `org-persist--disable-when-emacs-Q' is set.
+(when (and org-persist--disable-when-emacs-Q
+           ;; FIXME: This is relying on undocumented fact that
+           ;; Emacs sets `user-init-file' to nil when loaded with
+           ;; "-Q" argument.
+           (not user-init-file))
+  (setq org-persist-directory
+        (make-temp-file "org-persist-" 'dir)))
+
 ;; Automatically write the data, but only when we have write access.
 (let ((dir (directory-file-name
             (file-name-as-directory org-persist-directory))))
@@ -972,19 +1002,11 @@ Also, remove containers associated with non-existing files."
   (if (not (file-writable-p dir))
       (message "Missing write access rights to org-persist-directory: %S"
                org-persist-directory)
+    (add-hook 'kill-emacs-hook #'org-persist-clear-storage-maybe) ; Run last.
     (add-hook 'kill-emacs-hook #'org-persist-write-all)
     ;; `org-persist-gc' should run before `org-persist-write-all'.
     ;; So we are adding the hook after `org-persist-write-all'.
     (add-hook 'kill-emacs-hook #'org-persist-gc)))
-
-;; Point to temp directory when `org-persist--disable-when-emacs-Q' is set.
-(if (and org-persist--disable-when-emacs-Q
-         ;; FIXME: This is relying on undocumented fact that
-         ;; Emacs sets `user-init-file' to nil when loaded with
-         ;; "-Q" argument.
-         (not user-init-file))
-    (setq org-persist-directory
-          (make-temp-file "org-persist-" 'dir)))
 
 (add-hook 'after-init-hook #'org-persist-load-all)
 
