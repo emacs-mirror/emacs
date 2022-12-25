@@ -1751,6 +1751,8 @@ provides some additional functions for working with defuns:
 @code{treesit-defun-at-point} returns the defun node at point, and
 @code{treesit-defun-name} returns the name of a defun node.
 
+@c FIXME: Cross-reference to treesit-defun-tactic once we have it in
+@c the user manual.
 @defun treesit-defun-at-point
 This function returns the defun node at point, or @code{nil} if none
 is found.  It respects @code{treesit-defun-tactic}: if its value is
