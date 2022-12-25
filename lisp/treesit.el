@@ -174,8 +174,7 @@ only look for named nodes.
 If PARSER-OR-LANG is a parser, use that parser; if PARSER-OR-LANG
 is a language, find the first parser for that language in the
 current buffer, or create one if none exists; If PARSER-OR-LANG
-is nil, try to guess the language at POS by
-`treesit-language-at'."
+is nil, try to guess the language at POS using `treesit-language-at'."
   (let* ((root (if (treesit-parser-p parser-or-lang)
                    (treesit-parser-root-node parser-or-lang)
                  (treesit-buffer-root-node
@@ -224,8 +223,7 @@ named node.
 If PARSER-OR-LANG is a parser, use that parser; if PARSER-OR-LANG
 is a language, find the first parser for that language in the
 current buffer, or create one if none exists; If PARSER-OR-LANG
-is nil, try to guess the language at BEG by
-`treesit-language-at'."
+is nil, try to guess the language at BEG using `treesit-language-at'."
   (let ((root (if (treesit-parser-p parser-or-lang)
                   (treesit-parser-root-node parser-or-lang)
                 (treesit-buffer-root-node
@@ -1613,8 +1611,8 @@ newline after a defun, or the beginning of a defun.
 If the value is nil, no skipping is performed.")
 
 (defvar-local treesit-defun-name-function nil
-  "A function called with a node and returns the name of it.
-If the node is a defun node, return the defun name.  E.g., the
+  "A function that is called with a node and returns its defun name or nil.
+If the node is a defun node, return the defun name, e.g., the
 function name of a function.  If the node is not a defun node, or
 the defun node doesn't have a name, or the node is nil, return
 nil.")
