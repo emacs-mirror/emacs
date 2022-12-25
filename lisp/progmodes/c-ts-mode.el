@@ -549,19 +549,6 @@ the subtrees."
 
 ;;; Defun navigation
 
-(defun c-ts-mode--end-of-defun ()
-  "`end-of-defun-function' of `c-ts-mode'."
-  ;; A struct/enum/union_specifier node doesn't include the ; at the
-  ;; end, so we manually skip it.
-  (treesit-end-of-defun)
-  (when (looking-at (rx (* " ") ";"))
-    (goto-char (match-end 0))
-    ;; This part is copied from `end-of-defun'.
-    (unless (bolp)
-      (skip-chars-forward " \t")
-      (if (looking-at "\\s<\\|\n")
-	  (forward-line 1)))))
-
 (defun c-ts-mode--defun-valid-p (node)
   (if (string-match-p
        (rx (or "struct_specifier"
@@ -766,11 +753,7 @@ ARG is passed to `fill-paragraph'."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
 
-  (treesit-major-mode-setup)
-
-  ;; Override default value of end-of-defun-function set by
-  ;; `treesit-major-mode-setup'.
-  (setq-local end-of-defun-function #'c-ts-mode--end-of-defun))
+  (treesit-major-mode-setup))
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
@@ -800,11 +783,7 @@ ARG is passed to `fill-paragraph'."
   ;; Font-lock.
   (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
 
-  (treesit-major-mode-setup)
-
-  ;; Override default value of end-of-defun-function set by
-  ;; `treesit-major-mode-setup'.
-  (setq-local end-of-defun-function #'c-ts-mode--end-of-defun))
+  (treesit-major-mode-setup))
 
 (provide 'c-ts-mode)
 
