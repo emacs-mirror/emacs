@@ -44,6 +44,15 @@ example, as part of preview for iconified frames.
 
 * Editing Changes in Emacs 30.1
 
+** New helper 'transpose-sexps-function'
+Emacs now can set this defvar to customize the behavior of the
+'transpose-sexps' function.
+
+** New function 'treesit-transpose-sexps'
+treesit.el now unconditionally sets 'transpose-sexps-function' for all
+Tree-sitter modes.  This functionality utilizes the new
+'transpose-sexps-function'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 ---

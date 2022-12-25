@@ -1582,6 +1582,32 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
       (goto-char current-pos)))
     node))
 
+(defun treesit-transpose-sexps (&optional arg)
+  "Tree-sitter `transpose-sexps' function.
+Arg is the same as in `transpose-sexps'.
+
+Locate the node closest to POINT, and transpose that node with
+its sibling node ARG nodes away.
+
+Return a pair of positions as described by
+`transpose-sexps-function' for use in `transpose-subr' and
+friends."
+  (let* ((parent (treesit-node-parent (treesit-node-at (point))))
+         (child (treesit-node-child parent 0 t)))
+    (named-let loop ((prev child)
+                     (next (treesit-node-next-sibling child t)))
+      (when (and prev next)
+        (if (< (point) (treesit-node-end next))
+            (if (= arg -1)
+                (cons (treesit-node-start prev)
+                      (treesit-node-end prev))
+              (when-let ((n (treesit-node-child
+                             parent (+ arg (treesit-node-index prev t)) t)))
+                (cons (treesit-node-end n)
+                      (treesit-node-start n))))
+          (loop (treesit-node-next-sibling prev t)
+                (treesit-node-next-sibling next t)))))))
+
 ;;; Navigation, defun, things
 ;;
 ;; Emacs lets you define "things" by a regexp that matches the type of
@@ -2111,7 +2137,8 @@ before calling this function."
   ;; Defun name.
   (when treesit-defun-name-function
     (setq-local add-log-current-defun-function
-                #'treesit-add-log-current-defun)))
+                #'treesit-add-log-current-defun))
+  (setq-local transpose-sexps-function #'treesit-transpose-sexps))
 
 ;;; Debugging
 
