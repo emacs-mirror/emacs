@@ -3656,24 +3656,18 @@ OVERRIDE is the override flag described in
       (setq font-beg (treesit-node-end child)
             child (treesit-node-next-sibling child)))))
 
-(defun js-treesit-current-defun ()
-  "Return name of surrounding function.
-This function can be used as a value in `which-func-functions'"
-  (let ((node (treesit-node-at (point)))
-        (name-list ()))
-    (cl-loop while node
-             if (pcase (treesit-node-type node)
-                  ("function_declaration" t)
-                  ("method_definition" t)
-                  ("class_declaration" t)
-                  ("variable_declarator" t)
-                  (_ nil))
-             do (push (treesit-node-text
-                       (treesit-node-child-by-field-name node "name")
-                       t)
-                      name-list)
-             do (setq node (treesit-node-parent node))
-             finally return  (string-join name-list "."))))
+(defun js--treesit-defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (treesit-node-text
+   (treesit-node-child-by-field-name
+    (pcase (treesit-node-type node)
+      ("lexical_declaration"
+       (treesit-search-subtree node "variable_declarator" nil nil 1))
+      ((or "function_declaration" "method_definition" "class_declaration")
+       node))
+    "name")
+   t))
 
 (defun js--treesit-imenu-1 (node)
   "Given a sparse tree, create an imenu alist.
@@ -3702,15 +3696,8 @@ definition*\"."
                  ("function_declaration" 'function)))
          ;; The root of the tree could have a nil ts-node.
          (name (when ts-node
-                 (let ((ts-node-1
-                        (if (eq type 'variable)
-                            (treesit-search-subtree
-                             ts-node "variable_declarator" nil nil 1)
-                          ts-node)))
-                   (treesit-node-text
-                    (treesit-node-child-by-field-name
-                     ts-node-1 "name")
-                    t))))
+                 (or (treesit-defun-name ts-node)
+                     "Anonymous")))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
@@ -3885,6 +3872,7 @@ Currently there are `js-mode' and `js-ts-mode'."
                         "method_definition"
                         "function_declaration"
                         "lexical_declaration")))
+    (setq-local treesit-defun-name-function #'js--treesit-defun-name)
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list

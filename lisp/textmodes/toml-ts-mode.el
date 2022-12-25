@@ -107,12 +107,12 @@
    '((ERROR) @font-lock-warning-face))
   "Font-lock settings for TOML.")
 
-(defun toml-ts-mode--get-table-name (node)
-  "Obtains the header-name for the associated tree-sitter `NODE'."
-  (if node
-      (treesit-node-text
-       (car (cdr (treesit-node-children node))))
-    "Root table"))
+(defun toml-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "table" "table_array_element")
+     (car (cdr (treesit-node-children node))))))
 
 (defun toml-ts-mode--imenu-1 (node)
   "Helper for `toml-ts-mode--imenu'.
@@ -120,7 +120,8 @@ Find string representation for NODE and set marker, then recurse
 the subtrees."
   (let* ((ts-node (car node))
          (subtrees (mapcan #'toml-ts-mode--imenu-1 (cdr node)))
-         (name (toml-ts-mode--get-table-name ts-node))
+         (name (or (treesit-defun-name ts-node)
+                   "Root table"))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
@@ -167,6 +168,7 @@ the subtrees."
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
                 (rx (or "table" "table_array_element")))
+    (setq-local treesit-defun-name-function #'toml-ts-mode--defun-name)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings toml-ts-mode--font-lock-settings)

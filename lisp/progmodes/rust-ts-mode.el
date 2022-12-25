@@ -273,6 +273,33 @@
      (when struct-index `(("Struct" . ,struct-index)))
      (when func-index `(("Fn" . ,func-index))))))
 
+(defun rust-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ("enum_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))
+    ("function_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))
+    ("impl_item"
+     (let ((trait-node (treesit-node-child-by-field-name node "trait")))
+       (concat
+        (treesit-node-text trait-node t)
+        (when trait-node " for ")
+        (treesit-node-text
+         (treesit-node-child-by-field-name node "type") t))))
+    ("mod_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))
+    ("struct_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))
+    ("type_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))))
+
 (defun rust-ts-mode--imenu-1 (node)
   "Helper for `rust-ts-mode--imenu'.
 Find string representation for NODE and set marker, then recurse
@@ -282,31 +309,8 @@ the subtrees."
          (subtrees (mapcan #'rust-ts-mode--imenu-1
                            children))
          (name (when ts-node
-                 (pcase (treesit-node-type ts-node)
-                   ("enum_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t))
-                   ("function_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t))
-                   ("impl_item"
-                    (let ((trait-node (treesit-node-child-by-field-name ts-node "trait")))
-                      (concat
-                       (treesit-node-text
-                        trait-node t)
-                       (when trait-node
-                         " for ")
-                       (treesit-node-text
-                        (treesit-node-child-by-field-name ts-node "type") t))))
-                   ("mod_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t))
-                   ("struct_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t))
-                   ("type_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t)))))
+                 (or (treesit-defun-name ts-node)
+                     "Anonymous")))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
@@ -363,6 +367,7 @@ the subtrees."
                               "function_item"
                               "impl_item"
                               "struct_item")))
+    (setq-local treesit-defun-name-function #'rust-ts-mode--defun-name)
 
     (treesit-major-mode-setup)))
 

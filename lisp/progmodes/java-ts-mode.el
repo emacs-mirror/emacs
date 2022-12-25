@@ -248,6 +248,22 @@
    '((["," ":" ";"]) @font-lock-delimiter-face))
   "Tree-sitter font-lock settings for `java-ts-mode'.")
 
+(defun java-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "method_declaration"
+         "class_declaration"
+         "record_declaration"
+         "interface_declaration"
+         "enum_declaration"
+         "import_declaration"
+         "package_declaration"
+         "module_declaration")
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name")
+      t))))
+
 (defun java-ts-mode--imenu-1 (node)
   "Helper for `java-ts-mode--imenu'.
 Find string representation for NODE and set marker, then recurse
@@ -255,10 +271,7 @@ the subtrees."
   (let* ((ts-node (car node))
          (subtrees (mapcan #'java-ts-mode--imenu-1 (cdr node)))
          (name (when ts-node
-                 (or (treesit-node-text
-                      (or (treesit-node-child-by-field-name
-                           ts-node "name"))
-                      t)
+                 (or (treesit-defun-name ts-node)
                      "Unnamed node")))
          (marker (when ts-node
                    (set-marker (make-marker)
@@ -334,6 +347,7 @@ the subtrees."
                             "import_declaration"
                             "package_declaration"
                             "module_declaration")))
+  (setq-local treesit-defun-name-function #'java-ts-mode--defun-name)
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)

@@ -837,6 +837,22 @@ compilation and evaluation time conflicts."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 
+(defun csharp-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "method_declaration"
+         "record_declaration"
+         "struct_declaration"
+         "enum_declaration"
+         "interface_declaration"
+         "class_declaration"
+         "class_declaration")
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       node "name")
+      t))))
+
 (defun csharp-ts-mode--imenu-1 (node)
   "Helper for `csharp-ts-mode--imenu'.
 Find string representation for NODE and set marker, then recurse
@@ -844,10 +860,7 @@ the subtrees."
   (let* ((ts-node (car node))
          (subtrees (mapcan #'csharp-ts-mode--imenu-1 (cdr node)))
          (name (when ts-node
-                 (or (treesit-node-text
-                      (or (treesit-node-child-by-field-name
-                           ts-node "name"))
-                      t)
+                 (or (treesit-defun-name ts-node)
                      "Unnamed node")))
          (marker (when ts-node
                    (set-marker (make-marker)
@@ -935,6 +948,7 @@ Key bindings:
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp "declaration")
+  (setq-local treesit-defun-name-function #'csharp-ts-mode--defun-name)
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
