@@ -1690,7 +1690,9 @@ previous and next sibling defuns around POS, and PARENT is the
 parent defun surrounding POS.  All of three could be nil if no
 sound defun exists.
 
-REGEXP and PRED are the same as in `treesit-defun-type-regexp'."
+REGEXP and PRED are the same as in `treesit-defun-type-regexp'.
+
+Assumes `treesit-defun-type-regexp' is set."
   (let* ((node (treesit-node-at pos))
          ;; NODE-BEFORE/AFTER = NODE when POS is completely in NODE,
          ;; but if not, that means point could be in between two
@@ -1876,26 +1878,30 @@ function is called recursively."
 
 ;; TODO: In corporate into thing-at-point.
 (defun treesit-defun-at-point ()
-  "Return the defun at point or nil if none is found.
+  "Return the defun node at point or nil if none is found.
 
 Respects `treesit-defun-tactic': return the top-level defun if it
 is `top-level', return the immediate parent defun if it is
-`nested'."
-  (pcase-let* ((`(,regexp . ,pred)
-                (if (consp treesit-defun-type-regexp)
-                    treesit-defun-type-regexp
-                  (cons treesit-defun-type-regexp nil)))
-               (`(,_ ,next ,parent)
-                (treesit--defuns-around (point) regexp pred))
-               ;; If point is at the beginning of a defun, we
-               ;; prioritize that defun over the parent in nested
-               ;; mode.
-               (node (or (and (eq (treesit-node-start next) (point))
-                              next)
-                         parent)))
-    (if (eq treesit-defun-tactic 'top-level)
-        (treesit--top-level-defun node regexp pred)
-      node)))
+`nested'.
+
+Return nil if `treesit-defun-type-regexp' is not set."
+  (when treesit-defun-type-regexp
+    (pcase-let* ((`(,regexp . ,pred)
+                  (if (consp treesit-defun-type-regexp)
+                      treesit-defun-type-regexp
+                    (cons treesit-defun-type-regexp nil)))
+                 (`(,_ ,next ,parent)
+                  (treesit--defuns-around (point) regexp pred))
+                 ;; If point is at the beginning of a defun, we
+                 ;; prioritize that defun over the parent in nested
+                 ;; mode.
+                 (node (or (and (eq (treesit-node-start next) (point))
+                                next)
+                           parent)))
+      (if (eq treesit-defun-tactic 'top-level)
+          (treesit--top-level-defun node regexp pred)
+        node))))
+
 (defun treesit-defun-name (node)
   "Return the defun name of NODE.
 
