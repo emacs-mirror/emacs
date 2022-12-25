@@ -4023,11 +4023,12 @@ This function takes a series of @var{query-spec}s, where each
 @var{:keyword}/@var{value} pairs.  Each @var{query} is a
 tree-sitter query in either the string, s-expression or compiled form.
 
+@c FIXME: Cross-ref treesit-font-lock-level to user manual.
 For each @var{query}, the @var{:keyword}/@var{value} pairs that
 precede it add meta information to it.  The @code{:lang} keyword
 declares @var{query}'s language.  The @code{:feature} keyword sets the
 feature name of @var{query}.  Users can control which features are
-enabled with @code{font-lock-maximum-decoration} and
+enabled with @code{treesit-font-lock-level} and
 @code{treesit-font-lock-feature-list} (described below).  These two
 keywords are mandatory.
 
@@ -4067,10 +4068,11 @@ priority.  If a capture name is neither a face nor a function, it is
 ignored.
 @end defun
 
+@c FIXME: Cross-ref treesit-font-lock-level to user manual.
 @defvar treesit-font-lock-feature-list
 This is a list of lists of feature symbols.  Each element of the list
 is a list that represents a decoration level.
-@code{font-lock-maximum-decoration} controls which levels are
+@code{treesit-font-lock-level} controls which levels are
 activated.
 
 Each element of the list is a list of the form @w{@code{(@var{feature}
