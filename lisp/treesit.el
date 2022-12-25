@@ -1621,6 +1621,17 @@ nil.")
   "The delimiter used to connect several defun names.
 This is used in `treesit-add-log-current-defun'.")
 
+(defsubst treesit--thing-unpack-pattern (pattern)
+  "Unpack PATTERN in the shape of `treesit-defun-type-regexp'.
+
+Basically,
+
+    (unpack REGEXP) = (REGEXP . nil)
+    (unpack (REGEXP . PRED)) = (REGEXP . PRED)"
+  (if (consp pattern)
+      pattern
+    (cons pattern nil)))
+
 (defun treesit-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
 
@@ -1633,12 +1644,16 @@ This is a tree-sitter equivalent of `beginning-of-defun'.
 Behavior of this function depends on `treesit-defun-type-regexp'
 and `treesit-defun-skipper'."
   (interactive "^p")
-  (when-let* ((arg (or arg 1))
-              (dest (treesit--navigate-defun (point) (- arg) 'beg)))
-    (goto-char dest)
-    (when treesit-defun-skipper
-      (funcall treesit-defun-skipper))
-    t))
+  (pcase-let* ((arg (or arg 1))
+               (`(,regexp . ,pred)
+                (treesit--thing-unpack-pattern treesit-defun-type-regexp))
+               (dest (treesit--navigate-thing
+                      (point) (- arg) 'beg regexp pred)))
+    (when dest
+      (goto-char dest)
+      (when treesit-defun-skipper
+        (funcall treesit-defun-skipper))
+      t)))
 
 (defun treesit-end-of-defun (&optional arg _)
   "Move forward to next end of defun.
@@ -1650,11 +1665,15 @@ This is a tree-sitter equivalent of `end-of-defun'.  Behavior of
 this function depends on `treesit-defun-type-regexp' and
 `treesit-defun-skipper'."
   (interactive "^p\nd")
-  (when-let* ((arg (or arg 1))
-              (dest (treesit--navigate-defun (point) arg 'end)))
-    (goto-char dest)
-    (when treesit-defun-skipper
-      (funcall treesit-defun-skipper))))
+  (pcase-let* ((arg (or arg 1))
+               (`(,regexp . ,pred)
+                (treesit--thing-unpack-pattern treesit-defun-type-regexp))
+               (dest (treesit--navigate-thing
+                      (point) arg 'end regexp pred)))
+    (when dest
+      (goto-char dest)
+      (when treesit-defun-skipper
+        (funcall treesit-defun-skipper)))))
 
 (defun treesit-default-defun-skipper ()
   "Skips spaces after navigating a defun.
@@ -1680,17 +1699,15 @@ the current line if the beginning of the defun is indented."
 ;; parent:
 ;; 1. node covers pos
 ;; 2. smallest such node
-(defun treesit--defuns-around (pos regexp &optional pred)
-  "Return the previous, next, and parent defun around POS.
+(defun treesit--things-around (pos regexp &optional pred)
+  "Return the previous, next, and parent thing around POS.
 
 Return a list of (PREV NEXT PARENT), where PREV and NEXT are
-previous and next sibling defuns around POS, and PARENT is the
-parent defun surrounding POS.  All of three could be nil if no
-sound defun exists.
+previous and next sibling things around POS, and PARENT is the
+parent thing surrounding POS.  All of three could be nil if no
+sound things exists.
 
-REGEXP and PRED are the same as in `treesit-defun-type-regexp'.
-
-Assumes `treesit-defun-type-regexp' is set."
+REGEXP and PRED are the same as in `treesit-thing-at-point'."
   (let* ((node (treesit-node-at pos))
          ;; NODE-BEFORE/AFTER = NODE when POS is completely in NODE,
          ;; but if not, that means point could be in between two
@@ -1750,9 +1767,9 @@ Assumes `treesit-defun-type-regexp' is set."
                    return cursor))
     result))
 
-(defun treesit--top-level-defun (node regexp &optional pred)
-  "Return the top-level parent defun of NODE.
-REGEXP and PRED are the same as in `treesit-defun-type-regexp'."
+(defun treesit--top-level-thing (node regexp &optional pred)
+  "Return the top-level parent thing of NODE.
+REGEXP and PRED are the same as in `treesit-thing-at-point'."
   (let* ((pred (or pred (lambda (_) t))))
     ;; `treesit-search-forward-goto' will make sure the matched node
     ;; is before POS.
@@ -1792,25 +1809,23 @@ REGEXP and PRED are the same as in `treesit-defun-type-regexp'."
 ;;    -> Obviously we don't want to go to parent's end, instead, we
 ;;       want to go to parent's prev-sibling's end.  Again, we recurse
 ;;       in the function to do that.
-(defun treesit--navigate-defun (pos arg side &optional recursing)
-  "Navigate defun ARG steps from POS.
+(defun treesit--navigate-thing (pos arg side regexp &optional pred recursing)
+  "Navigate thing ARG steps from POS.
 
 If ARG is positive, move forward that many steps, if negative,
 move backward.  If SIDE is `beg', stop at the beginning of a
-defun, if SIDE is `end', stop at the end.
+thing, if SIDE is `end', stop at the end.
 
 This function doesn't actually move point, it just returns the
-position it would move to.  If there aren't enough defuns to move
+position it would move to.  If there aren't enough things to move
 across, return nil.
+
+REGEXP and PRED are the same as in `treesit-thing-at-point'.
 
 RECURSING is an internal parameter, if non-nil, it means this
 function is called recursively."
   (pcase-let*
       ((counter (abs arg))
-       (`(,regexp . ,pred)
-        (if (consp treesit-defun-type-regexp)
-            treesit-defun-type-regexp
-          (cons treesit-defun-type-regexp nil)))
        ;; Move POS to the beg/end of NODE.  If NODE is nil, terminate.
        ;; Return the position we moved to.
        (advance (lambda (node)
@@ -1824,13 +1839,13 @@ function is called recursively."
       (while (> counter 0)
         (pcase-let
             ((`(,prev ,next ,parent)
-              (treesit--defuns-around pos regexp pred)))
+              (treesit--things-around pos regexp pred)))
           ;; When PARENT is nil, nested and top-level are the same, if
           ;; there is a PARENT, make PARENT to be the top-level parent
           ;; and pretend there is no nested PREV and NEXT.
           (when (and (eq treesit-defun-tactic 'top-level)
                      parent)
-            (setq parent (treesit--top-level-defun
+            (setq parent (treesit--top-level-thing
                           parent regexp pred)
                   prev nil
                   next nil))
@@ -1851,9 +1866,9 @@ function is called recursively."
                   ;; (recursing) until we got out of the parents until
                   ;; (1) there is a next sibling defun, or (2) no more
                   ;; parents [2].
-                  (setq pos (or (treesit--navigate-defun
+                  (setq pos (or (treesit--navigate-thing
                                  (treesit-node-end (or next parent))
-                                 1 'beg t)
+                                 1 'beg regexp pred t)
                                 (throw 'term nil)))
                 ;; Normal case.
                 (setq pos (funcall advance (or next parent))))
@@ -1863,9 +1878,9 @@ function is called recursively."
                            (parent t)
                            (t nil)))
                 ;; Special case: go to prev end-of-defun.
-                (setq pos (or (treesit--navigate-defun
+                (setq pos (or (treesit--navigate-thing
                                (treesit-node-start (or prev parent))
-                               -1 'end t)
+                               -1 'end regexp pred t)
                               (throw 'term nil)))
               ;; Normal case.
               (setq pos (funcall advance (or prev parent)))))
@@ -1875,6 +1890,28 @@ function is called recursively."
     (if (eq counter 0) pos nil)))
 
 ;; TODO: In corporate into thing-at-point.
+(defun treesit-thing-at-point (regexp tactic &optional pred)
+  "Return the thing node at point or nil if none is found.
+
+\"Thing\" is defined by REGEXP: if a node's type matches REGEXP,
+it is a thing.  The \"thing\" could be further restricted by
+PRED: if non-nil, PRED should be a function that takes a node and
+returns t if the node is a \"thing\", and nil if not.
+
+Return the top-level defun if TACTIC is `top-level', return the
+immediate parent thing if TACTIC is `nested'."
+  (pcase-let* ((`(,_ ,next ,parent)
+                (treesit--things-around (point) regexp pred))
+               ;; If point is at the beginning of a thing, we
+               ;; prioritize that thing over the parent in nested
+               ;; mode.
+               (node (or (and (eq (treesit-node-start next) (point))
+                              next)
+                         parent)))
+    (if (eq tactic 'top-level)
+        (treesit--top-level-thing node regexp pred)
+      node)))
+
 (defun treesit-defun-at-point ()
   "Return the defun node at point or nil if none is found.
 
@@ -1884,21 +1921,10 @@ is `top-level', return the immediate parent defun if it is
 
 Return nil if `treesit-defun-type-regexp' is not set."
   (when treesit-defun-type-regexp
-    (pcase-let* ((`(,regexp . ,pred)
-                  (if (consp treesit-defun-type-regexp)
-                      treesit-defun-type-regexp
-                    (cons treesit-defun-type-regexp nil)))
-                 (`(,_ ,next ,parent)
-                  (treesit--defuns-around (point) regexp pred))
-                 ;; If point is at the beginning of a defun, we
-                 ;; prioritize that defun over the parent in nested
-                 ;; mode.
-                 (node (or (and (eq (treesit-node-start next) (point))
-                                next)
-                           parent)))
-      (if (eq treesit-defun-tactic 'top-level)
-          (treesit--top-level-defun node regexp pred)
-        node))))
+    (pcase-let ((`(,regexp . ,pred)
+                 (treesit--thing-unpack-pattern
+                  treesit-defun-type-regexp)))
+      (treesit-thing-at-point regexp treesit-defun-tactic pred))))
 
 (defun treesit-defun-name (node)
   "Return the defun name of NODE.
