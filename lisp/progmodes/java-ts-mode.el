@@ -29,6 +29,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
+(require 'c-ts-mode) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -71,8 +72,9 @@
      ((node-is "}") (and parent parent-bol) 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
-     ((and (parent-is "comment") comment-end) comment-start -1)
-     ((parent-is "comment") comment-start-skip 0)
+     ((and (parent-is "comment") c-ts-mode--looking-at-star)
+      c-ts-mode--comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "text_block") no-indent)
      ((parent-is "class_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "interface_body") parent-bol java-ts-mode-indent-offset)
@@ -320,15 +322,7 @@ the subtrees."
   (treesit-parser-create 'java)
 
   ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
+  (c-ts-mode-comment-setup)
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)

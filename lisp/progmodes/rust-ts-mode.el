@@ -29,6 +29,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
+(require 'c-ts-mode) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -70,6 +71,9 @@
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is "}") (and parent parent-bol) 0)
+     ((and (parent-is "comment") c-ts-mode--looking-at-star)
+      c-ts-mode--comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "arguments") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "await_expression") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "array_expression") parent-bol rust-ts-mode-indent-offset)
@@ -334,15 +338,7 @@ the subtrees."
     (treesit-parser-create 'rust)
 
     ;; Comments.
-    (setq-local comment-start "// ")
-    (setq-local comment-end "")
-    (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                           (seq "/" (+ "*")))
-                                       (* (syntax whitespace))))
-    (setq-local comment-end-skip
-                (rx (* (syntax whitespace))
-                    (group (or (syntax comment-end)
-                               (seq (+ "*") "/")))))
+    (c-ts-mode-comment-setup)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings rust-ts-mode--font-lock-settings)

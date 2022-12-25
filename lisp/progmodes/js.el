@@ -54,6 +54,7 @@
 (require 'json)
 (require 'prog-mode)
 (require 'treesit)
+(require 'c-ts-mode) ; For comment indent and filling.
 
 (eval-when-compile
   (require 'cl-lib)
@@ -3425,9 +3426,9 @@ This function is intended for use in `after-change-functions'."
        ((node-is ")") parent-bol 0)
        ((node-is "]") parent-bol 0)
        ((node-is ">") parent-bol 0)
-       ((parent-is "comment") comment-start 0)
-       ((and (parent-is "comment") comment-end) comment-start -1)
-       ((parent-is "comment") comment-start-skip 0)
+       ((and (parent-is "comment") c-ts-mode--looking-at-star)
+        c-ts-mode--comment-start-after-first-star -1)
+       ((parent-is "comment") prev-adaptive-prefix 0)
        ((parent-is "ternary_expression") parent-bol js-indent-level)
        ((parent-is "member_expression") parent-bol js-indent-level)
        ((node-is ,switch-case) parent-bol 0)
@@ -3845,15 +3846,7 @@ Currently there are `js-mode' and `js-ts-mode'."
     ;; Which-func.
     (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
     ;; Comment.
-    (setq-local comment-start "// ")
-    (setq-local comment-end "")
-    (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                           (seq "/" (+ "*")))
-                                       (* (syntax whitespace))))
-    (setq-local comment-end-skip
-                (rx (* (syntax whitespace))
-                    (group (or (syntax comment-end)
-                               (seq (+ "*") "/")))))
+    (c-ts-mode-comment-setup)
     (setq-local comment-multi-line t)
     ;; Electric-indent.
     (setq-local electric-indent-chars

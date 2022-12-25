@@ -34,6 +34,7 @@
 (require 'cc-mode)
 (require 'cc-langs)
 (require 'treesit)
+(require 'c-ts-mode) ; For comment indenting and filling.
 
 (eval-when-compile
   (require 'cc-fonts)
@@ -632,6 +633,9 @@ compilation and evaluation time conflicts."
      ((node-is "}") parent-bol 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
+     ((and (parent-is "comment") c-ts-mode--looking-at-star)
+      c-ts-mode--comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "namespace_declaration") parent-bol 0)
      ((parent-is "class_declaration") parent-bol 0)
      ((parent-is "constructor_declaration") parent-bol 0)
@@ -929,15 +933,7 @@ Key bindings:
   (treesit-parser-create 'c-sharp)
 
   ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
+  (c-ts-mode-comment-setup)
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules csharp-ts-mode--indent-rules)

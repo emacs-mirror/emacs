@@ -647,6 +647,59 @@ ARG is passed to `fill-paragraph'."
       ;; itself.
       t)))
 
+(defun c-ts-mode-comment-setup ()
+  "Set up local variables for C-like comment.
+
+Set up:
+ - `comment-start'
+ - `comment-end'
+ - `comment-start-skip'
+ - `comment-end-skip'
+ - `adaptive-fill-mode'
+ - `adaptive-fill-first-line-regexp'
+ - `paragraph-start'
+ - `paragraph-separate'
+ - `fill-paragraph-function'"
+  (setq-local comment-start "// ")
+  (setq-local comment-end "")
+  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
+                                         (seq "/" (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") "/")))))
+  (setq-local adaptive-fill-mode t)
+  ;; This matches (1) empty spaces (the default), (2) "//", (3) "*",
+  ;; but do not match "/*", because we don't want to use "/*" as
+  ;; prefix when filling.  (Actually, it doesn't matter, because
+  ;; `comment-start-skip' matches "/*" which will cause
+  ;; `fill-context-prefix' to use "/*" as a prefix for filling, that's
+  ;; why we mask the "/*" in `c-ts-mode--fill-paragraph'.)
+  (setq-local adaptive-fill-regexp
+              (concat (rx (* (syntax whitespace))
+                          (group (or (seq "/" (+ "/")) (* "*"))))
+                      adaptive-fill-regexp))
+  ;; Same as `adaptive-fill-regexp'.
+  (setq-local adaptive-fill-first-line-regexp
+              (rx bos
+                  (seq (* (syntax whitespace))
+                       (group (or (seq "/" (+ "/")) (* "*")))
+                       (* (syntax whitespace)))
+                  eos))
+  ;; Same as `adaptive-fill-regexp'.
+  (setq-local paragraph-start
+              (rx (or (seq (* (syntax whitespace))
+                           (group (or (seq "/" (+ "/")) (* "*")))
+                           (* (syntax whitespace))
+                           ;; Add this eol so that in
+                           ;; `fill-context-prefix', `paragraph-start'
+                           ;; doesn't match the prefix.
+                           eol)
+                      "\f")))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local fill-paragraph-function #'c-ts-mode--fill-paragraph))
+
 ;;; Modes
 
 (defvar-keymap c-ts-mode-map
@@ -681,36 +734,8 @@ ARG is passed to `fill-paragraph'."
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
 
-  (setq-local adaptive-fill-mode t)
-  ;; This matches (1) empty spaces (the default), (2) "//", (3) "*",
-  ;; but do not match "/*", because we don't want to use "/*" as
-  ;; prefix when filling.  (Actually, it doesn't matter, because
-  ;; `comment-start-skip' matches "/*" which will cause
-  ;; `fill-context-prefix' to use "/*" as a prefix for filling, that's
-  ;; why we mask the "/*" in `c-ts-mode--fill-paragraph'.)
-  (setq-local adaptive-fill-regexp
-              (concat (rx (* (syntax whitespace))
-                          (group (or (seq "/" (+ "/")) (* "*"))))
-                      adaptive-fill-regexp))
-  ;; Same as `adaptive-fill-regexp'.
-  (setq-local adaptive-fill-first-line-regexp
-              (rx bos
-                  (seq (* (syntax whitespace))
-                       (group (or (seq "/" (+ "/")) (* "*")))
-                       (* (syntax whitespace)))
-                  eos))
-  ;; Same as `adaptive-fill-regexp'.
-  (setq-local paragraph-start
-              (rx (or (seq (* (syntax whitespace))
-                           (group (or (seq "/" (+ "/")) (* "*")))
-                           (* (syntax whitespace))
-                           ;; Add this eol so that in
-                           ;; `fill-context-prefix', `paragraph-start'
-                           ;; doesn't match the prefix.
-                           eol)
-                      "\f")))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local fill-paragraph-function #'c-ts-mode--fill-paragraph)
+  ;; Comment
+  (c-ts-mode-comment-setup)
 
   ;; Electric
   (setq-local electric-indent-chars
@@ -739,13 +764,6 @@ ARG is passed to `fill-paragraph'."
   ;; Comments.
   (setq-local comment-start "/* ")
   (setq-local comment-end " */")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
 
   (setq-local treesit-simple-indent-rules
               (c-ts-mode--set-indent-style 'c))
@@ -763,17 +781,6 @@ ARG is passed to `fill-paragraph'."
 
   (unless (treesit-ready-p 'cpp)
     (error "Tree-sitter for C++ isn't available"))
-
-  ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
 
   (treesit-parser-create 'cpp)
 

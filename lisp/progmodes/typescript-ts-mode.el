@@ -30,6 +30,7 @@
 (require 'treesit)
 (require 'js)
 (eval-when-compile (require 'rx))
+(require 'c-ts-mode) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
 
@@ -73,8 +74,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is ">") parent-bol 0)
-     ((and (parent-is "comment") comment-end) comment-start -1)
-     ((parent-is "comment") comment-start-skip 0)
+     ((and (parent-is "comment") c-ts-mode--looking-at-star)
+      c-ts-mode--comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "ternary_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
@@ -331,13 +333,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   :syntax-table typescript-ts-mode--syntax-table
 
   ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
+  (c-ts-mode-comment-setup)
 
   (setq-local treesit-defun-prefer-top-level t)
 
