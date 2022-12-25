@@ -1717,17 +1717,17 @@ This function activates some tree-sitter features for a major mode.
 
 Currently, it sets up the following features:
 @itemize
-@cindex treesit-font-lock-settings
+@vindex treesit-font-lock-settings
 @item
 If @code{treesit-font-lock-settings} is non-@code{nil}, it sets up
 fontification.
 
-@cindex treesit-simple-indent-rules
+@vindex treesit-simple-indent-rules
 @item
 If @code{treesit-simple-indent-rules} is non-@code{nil}, it sets up
 indentation.
 
-@cindex treesit-defun-type-regexp
+@vindex treesit-defun-type-regexp
 @item
 If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up
 navigation functions for @code{beginning-of-defun} and
