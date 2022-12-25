@@ -1612,6 +1612,17 @@ newline after a defun, or the beginning of a defun.
 
 If the value is nil, no skipping is performed.")
 
+(defvar-local treesit-defun-name-function nil
+  "A function called with a node and returns the name of it.
+If the node is a defun node, return the defun name.  E.g., the
+function name of a function.  If the node is not a defun node, or
+the defun node doesn't have a name, or the node is nil, return
+nil.")
+
+(defvar-local treesit-add-log-defun-delimiter "."
+  "The delimiter used to connect several defun names.
+This is used in `treesit-add-log-current-defun'.")
+
 (defun treesit-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
 
@@ -1885,6 +1896,34 @@ is `top-level', return the immediate parent defun if it is
     (if (eq treesit-defun-tactic 'top-level)
         (treesit--top-level-defun node regexp pred)
       node)))
+(defun treesit-defun-name (node)
+  "Return the defun name of NODE.
+
+Return nil if there is no name, or if NODE is not a defun node,
+or if NODE is nil.
+
+If `treesit-defun-name-function' is nil, always return nil."
+  (when treesit-defun-name-function
+    (funcall treesit-defun-name-function node)))
+
+(defun treesit-add-log-current-defun ()
+  "Return the name of the defun at point.
+
+Used for `add-log-current-defun-function'.
+
+The delimiter between nested defun names is controlled by
+`treesit-add-log-defun-delimiter'."
+  (let ((node (treesit-defun-at-point))
+        (name nil))
+    (while node
+      (when-let ((new-name (treesit-defun-name node)))
+        (if name
+            (setq name (concat new-name
+                               treesit-add-log-defun-delimiter
+                               name))
+          (setq name new-name)))
+      (setq node (treesit-node-parent node)))
+    name))
 
 ;;; Activating tree-sitter
 
@@ -1979,7 +2018,11 @@ before calling this function."
     ;; the variables.  In future we should update `end-of-defun' to
     ;; work with nested defuns.
     (setq-local beginning-of-defun-function #'treesit-beginning-of-defun)
-    (setq-local end-of-defun-function #'treesit-end-of-defun)))
+    (setq-local end-of-defun-function #'treesit-end-of-defun))
+  ;; Defun name.
+  (when treesit-defun-name-function
+    (setq-local add-log-current-defun-function
+                #'treesit-add-log-current-defun)))
 
 ;;; Debugging
 

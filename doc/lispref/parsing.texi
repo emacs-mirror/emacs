@@ -1727,6 +1727,9 @@ indentation.
 If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up
 navigation functions for @code{beginning-of-defun} and
 @code{end-of-defun}.
+@item
+If @code{treesit-defun-name-function} is non-@code{nil}, it sets up
+add-log functions used by @code{add-log-current-defun}.
 @end itemize
 @end defun
 
@@ -1736,6 +1739,41 @@ For more information of these built-in tree-sitter features,
 
 For supporting mixing of multiple languages in a major mode,
 @pxref{Multiple Languages}.
+
+Besides @code{beginning-of-defun} and @code{end-of-defun}, Emacs
+provides some additional functions for working with defuns:
+@code{treesit-defun-at-point} returns the defun node at point, and
+@code{treesit-defun-name} returns the name of a defun node.
+
+@defun treesit-defun-at-point
+This function returns the defun node at point, or @code{nil} if none
+is found.  It respects @code{treesit-defun-tactic}: it returns the
+top-level defun if the value is @code{top-level}, and returns the
+immediate enclosing defun if the value is @code{nested}.
+
+This function requires @code{treesit-defun-type-regexp} to work.  If
+it is @code{nil}, this function simply returns @code{nil}.
+@end defun
+
+@defun treesit-defun-name node
+This function returns the defun name of @var{node}.  It returns
+@code{nil} if there is no defun name for @var{node}, or if @var{node}
+is not a defun node, or if @var{node} is @code{nil}.
+
+The defun name is names like function name, class name, struct name,
+etc.
+
+If @code{treesit-defun-name-function} is @code{nil}, this function
+always returns @code{nil}.
+@end defun
+
+@defvar treesit-defun-name-function
+If non-@code{nil}, this variable should store a function that is
+called with a node and returns the defun name of it.  The function
+should have the same semantic as @code{treesit-defun-name}: if the
+node is not a defun node, or the node is a defun node but doesn't have
+a name, or the node is @code{nil}, return @code{nil}.
+@end defvar
 
 @node Tree-sitter C API
 @section Tree-sitter C API Correspondence

@@ -481,6 +481,25 @@ For NODE, OVERRIDE, START, and END, see
 
 ;;; Imenu
 
+(defun c-ts-mode--defun-name (node)
+  "Return the name of the defun NODE.
+Return nil if NODE is not a defun node, return an empty string if
+NODE doesn't have a name."
+  (treesit-node-text
+   (pcase (treesit-node-type node)
+     ("function_definition"
+      (treesit-node-child-by-field-name
+       (treesit-node-child-by-field-name node "declarator")
+       "declarator"))
+     ("declaration"
+      (let ((child (treesit-node-child node -1 t)))
+        (pcase (treesit-node-type child)
+          ("identifier" child)
+          (_ (treesit-node-child-by-field-name child "declarator")))))
+     ("struct_specifier"
+      (treesit-node-child-by-field-name node "name")))
+   t))
+
 (defun c-ts-mode--imenu-1 (node)
   "Helper for `c-ts-mode--imenu'.
 Find string representation for NODE and set marker, then recurse
@@ -488,22 +507,7 @@ the subtrees."
   (let* ((ts-node (car node))
          (subtrees (mapcan #'c-ts-mode--imenu-1 (cdr node)))
          (name (when ts-node
-                 (treesit-node-text
-                  (pcase (treesit-node-type ts-node)
-                    ("function_definition"
-                     (treesit-node-child-by-field-name
-                      (treesit-node-child-by-field-name
-                       ts-node "declarator")
-                      "declarator"))
-                    ("declaration"
-                     (let ((child (treesit-node-child ts-node -1 t)))
-                       (pcase (treesit-node-type child)
-                         ("identifier" child)
-                         (_ (treesit-node-child-by-field-name
-                             child "declarator")))))
-                    ("struct_specifier"
-                     (treesit-node-child-by-field-name
-                      ts-node "name"))))))
+                 (treesit-defun-name ts-node)))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
@@ -682,6 +686,7 @@ ARG is passed to `fill-paragraph'."
                                   "class_specifier"))
                     #'c-ts-mode--defun-valid-p))
   (setq-local treesit-defun-skipper #'c-ts-mode--defun-skipper)
+  (setq-local treesit-defun-name-function #'c-ts-mode--defun-name)
 
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
