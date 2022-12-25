@@ -131,7 +131,7 @@ the `clone' function."
          ((null spec)
           (package-vc-install name))
          ((stringp spec)
-          (package-vc-install name nil spec))
+          (package-vc-install name spec))
          ((listp spec)
           (package-vc--archives-initialize)
           (package-vc--unpack (cadr pkg-descs) spec)))))))
@@ -718,7 +718,7 @@ If no such revision can be found, return nil."
                              (line-number-at-pos nil t))))))))
 
 ;;;###autoload
-(defun package-vc-install (package &optional name rev backend)
+(defun package-vc-install (package &optional rev backend name)
   "Fetch a PACKAGE and set it up for using with Emacs.
 
 If PACKAGE is a string containing an URL, download the package
@@ -742,7 +742,9 @@ the package's repository; this is only possible if NAME-OR-URL is a URL,
 a string.  If BACKEND is omitted or nil, the function
 uses `package-vc-heuristic-alist' to guess the backend.
 Note that by default, a VC package will be prioritized over a
-regular package, but it will not remove a VC package."
+regular package, but it will not remove a VC package.
+
+\(fn PACKAGE &optional REV BACKEND)"
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -751,8 +753,10 @@ regular package, but it will not remove a VC package."
      (let* ((name-or-url (package-vc--read-package-name
                           "Fetch and install package: " t))
             (name (file-name-base name-or-url)))
-       (list name-or-url (intern (string-remove-prefix "emacs-" name))
-             (and current-prefix-arg :last-release)))))
+       (list name-or-url
+             (and current-prefix-arg :last-release)
+             nil
+             (intern (string-remove-prefix "emacs-" name))))))
   (package-vc--archives-initialize)
   (cond
    ((null package)
