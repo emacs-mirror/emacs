@@ -609,6 +609,20 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
         (error "There already exists a checkout for %s" name)))
     (package-vc--clone pkg-desc pkg-spec pkg-dir rev)
 
+    ;; When nothing is specified about a `lisp-dir', then should
+    ;; heuristically check if there is a sub-directory with lisp
+    ;; files.  These are conventionally just called "lisp".  If this
+    ;; directory exists and contains non-zero number of lisp files, we
+    ;; will use that instead of `pkg-dir'.
+    (when-let* (((null lisp-dir))
+                (dir (expand-file-name "lisp" pkg-dir))
+                ((file-directory-p dir))
+                ((directory-files dir nil "\\`[^.].+\\.el\\'" t 1)))
+      ;; We won't use `dir', since dir is an absolute path and we
+      ;; don't want `lisp-dir' to depend on the current location of
+      ;; the package installation, ie. to break if moved around the
+      ;; file system or between installations.
+      (setq lisp-dir "lisp"))
     (when lisp-dir
       (push (cons :lisp-dir lisp-dir)
             (package-desc-extras pkg-desc)))
