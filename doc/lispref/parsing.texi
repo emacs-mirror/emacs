@@ -393,12 +393,6 @@ tree-sitter can be activated.  Major modes should check this value
 when deciding whether to enable tree-sitter features.
 @end defvar
 
-@defun treesit-can-enable-p
-This function checks whether the current buffer is suitable for
-activating tree-sitter features.  It basically checks
-@code{treesit-available-p} and @code{treesit-max-buffer-size}.
-@end defun
-
 @cindex creating tree-sitter parsers
 @cindex tree-sitter parser, creating
 @defun treesit-parser-create language &optional buffer no-reuse
