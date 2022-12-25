@@ -387,28 +387,32 @@ MODE is either `c' or `cpp'."
 
 ;;; Font-lock helpers
 
+(defun c-ts-mode--declarator-identifier (node)
+  "Return the identifier of the declarator node NODE."
+  (pcase (treesit-node-type node)
+    ;; Recurse.
+    ((or "attributed_declarator" "parenthesized_declarator")
+     (c-ts-mode--declarator-identifier (treesit-node-child node 0 t)))
+    ("pointer_declarator"
+     (c-ts-mode--declarator-identifier (treesit-node-child node -1)))
+    ((or "function_declarator" "array_declarator" "init_declarator")
+     (c-ts-mode--declarator-identifier
+      (treesit-node-child-by-field-name node "declarator")))
+    ;; Terminal case.
+    ((or "identifier" "field_identifier")
+     node)))
+
 (defun c-ts-mode--fontify-declarator (node override start end &rest args)
   "Fontify a declarator (whatever under the \"declarator\" field).
 For NODE, OVERRIDE, START, END, and ARGS, see
 `treesit-font-lock-rules'."
-  (pcase (treesit-node-type node)
-    ((or "attributed_declarator" "parenthesized_declarator")
-     (apply #'c-ts-mode--fontify-declarator
-            (treesit-node-child node 0 t) override start end args))
-    ("pointer_declarator"
-     (apply #'c-ts-mode--fontify-declarator
-            (treesit-node-child node -1) override start end args))
-    ((or "function_declarator" "array_declarator" "init_declarator")
-     (apply #'c-ts-mode--fontify-declarator
-            (treesit-node-child-by-field-name node "declarator")
-            override start end args))
-    ((or "identifier" "field_identifier")
-     (treesit-fontify-with-override
-      (treesit-node-start node) (treesit-node-end node)
-      (pcase (treesit-node-type (treesit-node-parent node))
-        ("function_declarator" 'font-lock-function-name-face)
-        (_ 'font-lock-variable-name-face))
-      override start end))))
+  (let* ((identifier (c-ts-mode--declarator-identifier node))
+         (face (pcase (treesit-node-type (treesit-node-parent identifier))
+                 ("function_declarator" 'font-lock-function-name-face)
+                 (_ 'font-lock-variable-name-face))))
+    (treesit-fontify-with-override
+     (treesit-node-start identifier) (treesit-node-end identifier)
+     face override start end)))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
   "Fontify an identifier node if it is a variable.
@@ -487,15 +491,9 @@ Return nil if NODE is not a defun node, return an empty string if
 NODE doesn't have a name."
   (treesit-node-text
    (pcase (treesit-node-type node)
-     ("function_definition"
-      (treesit-node-child-by-field-name
-       (treesit-node-child-by-field-name node "declarator")
-       "declarator"))
-     ("declaration"
-      (let ((child (treesit-node-child node -1 t)))
-        (pcase (treesit-node-type child)
-          ("identifier" child)
-          (_ (treesit-node-child-by-field-name child "declarator")))))
+     ((or "function_definition" "declaration")
+      (c-ts-mode--declarator-identifier
+       (treesit-node-child-by-field-name node "declarator")))
      ("struct_specifier"
       (treesit-node-child-by-field-name node "name")))
    t))
