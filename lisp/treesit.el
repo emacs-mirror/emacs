@@ -1583,6 +1583,34 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
     node))
 
 ;;; Navigation, defun, things
+;;
+;; Emacs lets you define "things" by a regexp that matches the type of
+;; a node, and here are some functions that lets you find the "things"
+;; at/around point, navigate backward/forward a "thing", etc.
+;;
+;; The most obvious "thing" is a defun, and there are thin wrappers
+;; around thing functions for defun for convenience.
+;;
+;; We have more command-like functions like:
+;; - treesit-beginning-of-thing/defun
+;; - treesit-end-of-thing/defun
+;; - treesit-thing/defun-at-point
+;;
+;; And more generic functions like:
+;; - treesit--things-around
+;; - treesit--top-level-thing
+;; - treesit--navigate-thing
+;;
+;; There are also some defun-specific functions, like
+;; treesit-defun-name, treesit-add-log-current-defun.
+;;
+;; TODO: I'm not entirely sure how would this go, so I only documented
+;; the "defun" functions and didn't document any "thing" functions.
+;; We should also document `treesit-block-type-regexp' and support it
+;; in major modes if we can meaningfully intergrate hideshow: I tried
+;; and failed, we need SomeOne that understands hideshow to look at
+;; it.  (BTW, hideshow should use its own
+;; `treesit-hideshow-block-type-regexp'.)
 
 (defvar-local treesit-defun-type-regexp nil
   "A regexp that matches the node type of defun nodes.
