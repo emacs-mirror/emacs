@@ -92,9 +92,9 @@ using, but only when you also use Edebug."
 ;;;###autoload
 (defcustom edebug-all-defs nil
   "If non-nil, evaluating defining forms instruments for Edebug.
-This applies to `eval-defun', `eval-region', `eval-buffer', and
-`eval-current-buffer'.  `eval-region' is also called by
-`eval-last-sexp', and `eval-print-last-sexp'.
+This applies to `eval-defun', `eval-region' and `eval-buffer'.
+`eval-region' is also called by `eval-last-sexp', and
+`eval-print-last-sexp'.
 
 You can use the command `edebug-all-defs' to toggle the value of this
 variable.  You may wish to make it local to each buffer with
