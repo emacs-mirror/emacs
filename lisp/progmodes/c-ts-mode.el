@@ -402,7 +402,7 @@ MODE is either `c' or `cpp'."
     ((or "identifier" "field_identifier")
      node)))
 
-(defun c-ts-mode--fontify-declarator (node override start end &rest args)
+(defun c-ts-mode--fontify-declarator (node override start end &rest _args)
   "Fontify a declarator (whatever under the \"declarator\" field).
 For NODE, OVERRIDE, START, END, and ARGS, see
 `treesit-font-lock-rules'."

@@ -5351,7 +5351,7 @@ called @var{gif}, you have to mark it specially to let
 
 @end defun
 
-@defun sqlite-select db query &optional values result-type
+@defun sqlite-select db query &optional values return-type
 Select some data from @var{db} and return them.  For instance:
 
 @lisp

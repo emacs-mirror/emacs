@@ -131,7 +131,7 @@ the `clone' function."
          ((null spec)
           (package-vc-install name))
          ((stringp spec)
-          (package-vc-install name nil spec))
+          (package-vc-install name spec))
          ((listp spec)
           (package-vc--archives-initialize)
           (package-vc--unpack (cadr pkg-descs) spec)))))))
@@ -306,7 +306,9 @@ asynchronously."
          (directory (file-name-concat
                      (or (package-desc-dir pkg-desc)
                          (expand-file-name name package-user-dir))
-                     (plist-get pkg-spec :lisp-dir)))
+                     (plist-get pkg-spec :lisp-dir)
+                     (and-let* ((extras (package-desc-extras pkg-desc)))
+                       (alist-get :lisp-dir extras))))
          (file (or (plist-get pkg-spec :main-file)
                    (expand-file-name
                     (concat name ".el")
@@ -406,99 +408,156 @@ otherwise it's assumed to be an Info file."
     (when clean-up
       (delete-file file))))
 
+(defun package-vc-install-dependencies (requirements)
+  "Install missing dependencies, and return missing ones.
+The return value will be nil if everything was found, or a list
+of (NAME VERSION) pairs of all packages that couldn't be found.
+
+REQUIREMENTS should be a list of additional requirements; each
+element in this list should have the form (PACKAGE VERSION-LIST),
+where PACKAGE is a package name and VERSION-LIST is the required
+version of that package."
+  (let ((to-install '()) (missing '()))
+    (cl-labels ((search (pkg)
+                  "Attempt to find all dependencies for PKG."
+                  (cond
+                   ((assq (car pkg) to-install)) ;inhibit cycles
+                   ((package-installed-p (car pkg)))
+                   ((let* ((pac package-archive-contents)
+                           (desc (cadr (assoc (car pkg) pac))))
+                      (if desc
+                          (let ((reqs (package-desc-reqs pkg)))
+                            (push pkg to-install)
+                            (mapc #'search reqs))
+                        (push pkg missing))))))
+                (version-order (a b)
+                  "Predicate to sort packages in order."
+                  (version-list-< (cadr b) (cadr a)))
+                (duplicate-p (a b)
+                  "Are A and B the same package?"
+                  (eq (car a) (car b)))
+                (depends-on-p (target package)
+                  "Does PACKAGE depend on TARGET?"
+                  (or (eq target package)
+                      (let* ((pac package-archive-contents)
+                             (desc (cadr (assoc package pac))))
+                        (seq-some
+                         (apply-partially #'depends-on-p target)
+                         (package-desc-reqs desc)))))
+                (dependent-order (a b)
+                  (or (not (depends-on-p (car b) (car a)))
+                      (depends-on-p (car a) (car b)))))
+      (mapc #'search requirements)
+      (cl-callf sort to-install #'version-order)
+      (cl-callf seq-uniq to-install #'duplicate-p)
+      (cl-callf sort to-install #'dependent-order))
+    (mapc #'package-install-from-archive to-install)
+    missing))
+
 (defun package-vc--unpack-1 (pkg-desc pkg-dir)
   "Prepare PKG-DESC that is already checked-out in PKG-DIR.
 This includes downloading missing dependencies, generating
 autoloads, generating a package description file (used to
 identify a package as a VC package later on), building
 documentation and marking the package as installed."
-  ;; Remove any previous instance of PKG-DESC from `package-alist'
-  (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
-    (when pkgs
-      (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
+  (let (missing)
+    ;; Remove any previous instance of PKG-DESC from `package-alist'
+    (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
+      (when pkgs
+        (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
 
-  ;; In case the package was installed directly from source, the
-  ;; dependency list wasn't know beforehand, and they might have
-  ;; to be installed explicitly.
-  (let ((deps '()))
-    (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
-      (with-temp-buffer
-        (insert-file-contents file)
-        (when-let* ((require-lines (lm-header-multiline "package-requires")))
-          (thread-last
-            (mapconcat #'identity require-lines " ")
-            package-read-from-string
-            package--prepare-dependencies
-            (nconc deps)
-            (setq deps)))))
-    (dolist (dep deps)
-      (cl-callf version-to-list (cadr dep)))
-    (package-download-transaction
-     (package-compute-transaction nil (delete-dups deps))))
+    ;; In case the package was installed directly from source, the
+    ;; dependency list wasn't know beforehand, and they might have
+    ;; to be installed explicitly.
+    (let ((deps '()))
+      (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
+        (with-temp-buffer
+          (insert-file-contents file)
+          (when-let* ((require-lines (lm-header-multiline "package-requires")))
+            (thread-last
+              (mapconcat #'identity require-lines " ")
+              package-read-from-string
+              package--prepare-dependencies
+              (nconc deps)
+              (setq deps)))))
+      (dolist (dep deps)
+        (cl-callf version-to-list (cadr dep)))
+      (setf missing (package-vc-install-dependencies (delete-dups deps)))
+      (setf missing (delq (assq (package-desc-name pkg-desc)
+                                missing)
+                          missing)))
 
-  (let ((default-directory (file-name-as-directory pkg-dir))
-        (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
-    ;; Generate autoloads
-    (let* ((name (package-desc-name pkg-desc))
-           (auto-name (format "%s-autoloads.el" name))
-           (extras (package-desc-extras pkg-desc))
-           (lisp-dir (alist-get :lisp-dir extras)))
-      (package-generate-autoloads
-       name (file-name-concat pkg-dir lisp-dir))
-      (when lisp-dir
-        (write-region
-         (with-temp-buffer
-           (insert ";; Autoload indirection for package-vc\n\n")
-           (prin1 `(load (expand-file-name
-                          ,(file-name-concat lisp-dir auto-name)
-                          (or (and load-file-name
-                                   (file-name-directory load-file-name))
-                              (car load-path))))
-                  (current-buffer))
-           (buffer-string))
-         nil (expand-file-name auto-name pkg-dir))))
+    (let ((default-directory (file-name-as-directory pkg-dir))
+          (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
+      ;; Generate autoloads
+      (let* ((name (package-desc-name pkg-desc))
+             (auto-name (format "%s-autoloads.el" name))
+             (extras (package-desc-extras pkg-desc))
+             (lisp-dir (alist-get :lisp-dir extras)))
+        (package-generate-autoloads
+         name (file-name-concat pkg-dir lisp-dir))
+        (when lisp-dir
+          (write-region
+           (with-temp-buffer
+             (insert ";; Autoload indirection for package-vc\n\n")
+             (prin1 `(load (expand-file-name
+                            ,(file-name-concat lisp-dir auto-name)
+                            (or (and load-file-name
+                                     (file-name-directory load-file-name))
+                                (car load-path))))
+                    (current-buffer))
+             (buffer-string))
+           nil (expand-file-name auto-name pkg-dir))))
 
-    ;; Generate package file
-    (package-vc--generate-description-file pkg-desc pkg-file)
+      ;; Generate package file
+      (package-vc--generate-description-file pkg-desc pkg-file)
 
-    ;; Detect a manual
-    (when-let ((pkg-spec (package-vc--desc->spec pkg-desc))
-               ((executable-find "install-info")))
-      (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
-        (package-vc--build-documentation pkg-desc doc-file))))
+      ;; Detect a manual
+      (when-let ((pkg-spec (package-vc--desc->spec pkg-desc))
+                 ((executable-find "install-info")))
+        (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
+          (package-vc--build-documentation pkg-desc doc-file))))
 
-  ;; Update package-alist.
-  (let ((new-desc (package-load-descriptor pkg-dir)))
-    ;; Activation has to be done before compilation, so that if we're
-    ;; upgrading and macros have changed we load the new definitions
-    ;; before compiling.
-    (when (package-activate-1 new-desc :reload :deps)
-      ;; FIXME: Compilation should be done as a separate, optional, step.
-      ;; E.g. for multi-package installs, we should first install all packages
-      ;; and then compile them.
-      (package--compile new-desc)
-      (when package-native-compile
-        (package--native-compile-async new-desc))
-      ;; After compilation, load again any files loaded by
-      ;; `activate-1', so that we use the byte-compiled definitions.
-      (package--reload-previously-loaded new-desc)))
+    ;; Update package-alist.
+    (let ((new-desc (package-load-descriptor pkg-dir)))
+      ;; Activation has to be done before compilation, so that if we're
+      ;; upgrading and macros have changed we load the new definitions
+      ;; before compiling.
+      (when (package-activate-1 new-desc :reload :deps)
+        ;; FIXME: Compilation should be done as a separate, optional, step.
+        ;; E.g. for multi-package installs, we should first install all packages
+        ;; and then compile them.
+        (package--compile new-desc)
+        (when package-native-compile
+          (package--native-compile-async new-desc))
+        ;; After compilation, load again any files loaded by
+        ;; `activate-1', so that we use the byte-compiled definitions.
+        (package--reload-previously-loaded new-desc)))
 
-  ;; Mark package as selected
-  (package--save-selected-packages
-   (cons (package-desc-name pkg-desc)
-         package-selected-packages))
-  (package--quickstart-maybe-refresh)
+    ;; Mark package as selected
+    (package--save-selected-packages
+     (cons (package-desc-name pkg-desc)
+           package-selected-packages))
+    (package--quickstart-maybe-refresh)
 
-  ;; Confirm that the installation was successful
-  (let ((main-file (package-vc--main-file pkg-desc)))
-    (message "VC package `%s' installed (Version %s, Revision %S)."
-             (package-desc-name pkg-desc)
-             (lm-with-file main-file
-               (package-strip-rcs-id
-                (or (lm-header "package-version")
-                    (lm-header "version"))))
-             (vc-working-revision main-file)))
-  t)
+    ;; Confirm that the installation was successful
+    (let ((main-file (package-vc--main-file pkg-desc)))
+      (message "VC package `%s' installed (Version %s, Revision %S).%s"
+               (package-desc-name pkg-desc)
+               (lm-with-file main-file
+                 (package-strip-rcs-id
+                  (or (lm-header "package-version")
+                      (lm-header "version"))))
+               (vc-working-revision main-file)
+               (if missing
+                    (format
+                     " Failed to install the following dependencies: %s"
+                     (mapconcat
+                      (lambda (p)
+                        (format "%s (%s)" (car p) (cadr p)))
+                      missing ", "))
+                 "")))
+    t))
 
 (defun package-vc--guess-backend (url)
   "Guess the VC backend for URL.
@@ -552,6 +611,20 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
         (error "There already exists a checkout for %s" name)))
     (package-vc--clone pkg-desc pkg-spec pkg-dir rev)
 
+    ;; When nothing is specified about a `lisp-dir', then should
+    ;; heuristically check if there is a sub-directory with lisp
+    ;; files.  These are conventionally just called "lisp".  If this
+    ;; directory exists and contains non-zero number of lisp files, we
+    ;; will use that instead of `pkg-dir'.
+    (when-let* (((null lisp-dir))
+                (dir (expand-file-name "lisp" pkg-dir))
+                ((file-directory-p dir))
+                ((directory-files dir nil "\\`[^.].+\\.el\\'" t 1)))
+      ;; We won't use `dir', since dir is an absolute path and we
+      ;; don't want `lisp-dir' to depend on the current location of
+      ;; the package installation, ie. to break if moved around the
+      ;; file system or between installations.
+      (setq lisp-dir "lisp"))
     (when lisp-dir
       (push (cons :lisp-dir lisp-dir)
             (package-desc-extras pkg-desc)))
@@ -661,7 +734,7 @@ If no such revision can be found, return nil."
                              (line-number-at-pos nil t))))))))
 
 ;;;###autoload
-(defun package-vc-install (package &optional name rev backend)
+(defun package-vc-install (package &optional rev backend name)
   "Fetch a PACKAGE and set it up for using with Emacs.
 
 If PACKAGE is a string containing an URL, download the package
@@ -685,7 +758,9 @@ the package's repository; this is only possible if NAME-OR-URL is a URL,
 a string.  If BACKEND is omitted or nil, the function
 uses `package-vc-heuristic-alist' to guess the backend.
 Note that by default, a VC package will be prioritized over a
-regular package, but it will not remove a VC package."
+regular package, but it will not remove a VC package.
+
+\(fn PACKAGE &optional REV BACKEND)"
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -694,8 +769,10 @@ regular package, but it will not remove a VC package."
      (let* ((name-or-url (package-vc--read-package-name
                           "Fetch and install package: " t))
             (name (file-name-base name-or-url)))
-       (list name-or-url (intern (string-remove-prefix "emacs-" name))
-             (and current-prefix-arg :last-release)))))
+       (list name-or-url
+             (and current-prefix-arg :last-release)
+             nil
+             (intern (string-remove-prefix "emacs-" name))))))
   (package-vc--archives-initialize)
   (cond
    ((null package)

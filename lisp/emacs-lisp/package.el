@@ -2094,7 +2094,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
 (defun package-install-from-archive (pkg-desc)
   "Download and install a package defined by PKG-DESC."
   ;; This won't happen, unless the archive is doing something wrong.
-  (when (package-vc-p pkg-desc)
+  (when (eq (package-desc-kind pkg-desc) 'dir)
     (error "Can't install directory package from archive"))
   (let* ((location (package-archive-base pkg-desc))
          (file (concat (package-desc-full-name pkg-desc)
