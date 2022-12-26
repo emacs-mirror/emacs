@@ -1676,15 +1676,6 @@ Sat, 07 Sep 2002 00:00:01 GMT
              nil))))
     nil))
 
-;; FIXME: Can this be replaced by seq-intersection?
-(defun newsticker--lists-intersect-p (list1 list2)
-  "Return t if LIST1 and LIST2 share elements."
-  (let ((result nil))
-    (dolist (elt list1)
-      (if (memq elt list2)
-          (setq result t)))
-    result))
-
 (defun newsticker--update-process-ids ()
   "Update list of ids of active newsticker processes.
 Checks list of active processes against list of newsticker processes."
