@@ -1607,7 +1607,8 @@ same manner."
   (when target ; compat
     (setq tgt-info (erc--target-from-string target)))
   (if tgt-info
-      (let* ((esid (erc-networks--id-symbol erc-networks--id))
+      (let* ((esid (and erc-networks--id
+                        (erc-networks--id-symbol erc-networks--id)))
              (name (if esid
                        (erc-networks--reconcile-buffer-names tgt-info
                                                              erc-networks--id)
@@ -6760,7 +6761,8 @@ This should be a string with substitution variables recognized by
 If the name of the network is not available, then use the
 shortened server name instead."
   (if-let ((erc--target)
-           (name (if-let ((esid (erc-networks--id-symbol erc-networks--id)))
+           (name (if-let ((erc-networks--id)
+                          (esid (erc-networks--id-symbol erc-networks--id)))
                      (symbol-name esid)
                    (erc-shorten-server-name (or erc-server-announced-name
                                                 erc-session-server)))))
