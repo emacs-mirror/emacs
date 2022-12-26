@@ -510,21 +510,10 @@ the subtrees."
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
     (cond
-     ;; A struct_specifier could be inside a parameter list, another
-     ;; struct definition, a variable declaration, a function
-     ;; declaration.  In those cases we don't include it.
-     ((string-match-p
-       (rx (or "parameter_declaration" "field_declaration"
-               "declaration" "function_definition"))
-       (or (treesit-node-type (treesit-node-parent ts-node))
-           ""))
+     ((or (null ts-node) (null name))
+      subtrees)
+     ((null (c-ts-mode--defun-valid-p ts-node))
       nil)
-     ;; Ignore function local variable declarations.
-     ((and (equal (treesit-node-type ts-node) "declaration")
-           (not (equal (treesit-node-type (treesit-node-parent ts-node))
-                       "translation_unit")))
-      nil)
-     ((or (null ts-node) (null name)) subtrees)
      (subtrees
       `((,name ,(cons name marker) ,@subtrees)))
      (t
@@ -550,16 +539,30 @@ the subtrees."
 ;;; Defun navigation
 
 (defun c-ts-mode--defun-valid-p (node)
-  (if (string-match-p
-       (rx (or "struct_specifier"
-               "enum_specifier"
-               "union_specifier"))
-       (treesit-node-type node))
-      (null
-       (treesit-node-top-level
-        node (rx (or "function_definition"
-                     "type_definition"))))
-    t))
+  "Return non-nil if NODE is a valid defun node.
+Ie, NODE is not nested."
+  (not (or (and (member (treesit-node-type node)
+                        '("struct_specifier"
+                          "enum_specifier"
+                          "union_specifier"
+                          "declaration"))
+                ;; If NODE's type is one of the above, make sure it is
+                ;; top-level.
+                (treesit-node-top-level
+                 node (rx (or "function_definition"
+                              "type_definition"
+                              "struct_specifier"
+                              "enum_specifier"
+                              "union_specifier"
+                              "declaration"))))
+
+           (and (equal (treesit-node-type node) "declaration")
+                ;; If NODE is a declaration, make sure it is not a
+                ;; function declaration.
+                (equal (treesit-node-type
+                        (treesit-node-child-by-field-name
+                         node "declarator"))
+                       "function_declarator")))))
 
 (defun c-ts-mode--defun-skipper ()
   "Custom defun skipper for `c-ts-mode' and friends.
