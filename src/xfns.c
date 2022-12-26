@@ -4741,6 +4741,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif /* USE_LUCID && USE_TOOLKIT_SCROLL_BARS */
   f->output_data.x->white_relief.pixel = -1;
   f->output_data.x->black_relief.pixel = -1;
+  f->output_data.x->visibility_state = VisibilityFullyObscured;
 
   fset_icon_name (f, gui_display_get_arg (dpyinfo,
                                           parms,

@@ -12938,7 +12938,7 @@ clear_garbaged_frames (void)
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_VISIBLE_P (f) && FRAME_GARBAGED_P (f))
+	  if (FRAME_REDISPLAY_P (f) && FRAME_GARBAGED_P (f))
 	    {
 	      if (f->resized_p
 		  /* It makes no sense to redraw a non-selected TTY
@@ -12987,7 +12987,7 @@ echo_area_display (bool update_frame_p)
   f = XFRAME (WINDOW_FRAME (w));
 
   /* Don't display if frame is invisible or not yet initialized.  */
-  if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
+  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p)
     return;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -13543,7 +13543,7 @@ prepare_menu_bars (void)
 		     TTY frames to be completely redrawn, when there
 		     are more than one of them, even though nothing
 		     should be changed on display.  */
-		  || (FRAME_VISIBLE_P (f) == 2 && FRAME_WINDOW_P (f))))
+		  || (FRAME_REDISPLAY_P (f) && FRAME_WINDOW_P (f))))
 	    gui_consider_frame_title (frame);
 	}
     }
@@ -16430,7 +16430,7 @@ redisplay_internal (void)
     {
       struct frame *f = XFRAME (frame);
 
-      if (FRAME_VISIBLE_P (f))
+      if (FRAME_REDISPLAY_P (f))
 	{
 	  ++number_of_visible_frames;
 	  /* Adjust matrices for visible frames only.  */
@@ -16572,7 +16572,7 @@ redisplay_internal (void)
       && !w->update_mode_line
       && !current_buffer->clip_changed
       && !current_buffer->prevent_redisplay_optimizations_p
-      && FRAME_VISIBLE_P (XFRAME (w->frame))
+      && FRAME_REDISPLAY_P (XFRAME (w->frame))
       && !FRAME_OBSCURED_P (XFRAME (w->frame))
       && !XFRAME (w->frame)->cursor_type_changed
       && !XFRAME (w->frame)->face_change
@@ -16850,7 +16850,7 @@ redisplay_internal (void)
 	      if (gcscrollbars && FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
 		FRAME_TERMINAL (f)->condemn_scroll_bars_hook (f);
 
-	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
+	      if (FRAME_REDISPLAY_P (f) && !FRAME_OBSCURED_P (f))
 		{
 		  /* Don't allow freeing images and faces for this
 		     frame as long as the frame's update wasn't
@@ -16876,7 +16876,7 @@ redisplay_internal (void)
 	      if (gcscrollbars && FRAME_TERMINAL (f)->judge_scroll_bars_hook)
 		FRAME_TERMINAL (f)->judge_scroll_bars_hook (f);
 
-	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
+	      if (FRAME_REDISPLAY_P (f) && !FRAME_OBSCURED_P (f))
 		{
 		  /* If fonts changed on visible frame, display again.  */
 		  if (f->fonts_changed)
@@ -16982,7 +16982,7 @@ redisplay_internal (void)
 	    }
 	}
     }
-  else if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
+  else if (FRAME_REDISPLAY_P (sf) && !FRAME_OBSCURED_P (sf))
     {
       sf->inhibit_clear_image_cache = true;
       displayed_buffer = XBUFFER (XWINDOW (selected_window)->contents);
@@ -17033,7 +17033,7 @@ redisplay_internal (void)
 	unrequest_sigio ();
       STOP_POLLING;
 
-      if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
+      if (FRAME_REDISPLAY_P (sf) && !FRAME_OBSCURED_P (sf))
 	{
           if (hscroll_retries <= MAX_HSCROLL_RETRIES
               && hscroll_windows (selected_window))
@@ -17132,7 +17132,7 @@ redisplay_internal (void)
 
       FOR_EACH_FRAME (tail, frame)
 	{
-	  if (XFRAME (frame)->visible)
+	  if (FRAME_REDISPLAY_P (XFRAME (frame)))
 	    new_count++;
 	}
 
@@ -33256,7 +33256,7 @@ display_and_set_cursor (struct window *w, bool on,
      windows and frames; in the latter case, the frame or window may
      be in the midst of changing its size, and x and y may be off the
      window.  */
-  if (! FRAME_VISIBLE_P (f)
+  if (! FRAME_REDISPLAY_P (f)
       || vpos >= w->current_matrix->nrows
       || hpos >= w->current_matrix->matrix_w)
     return;
@@ -33417,7 +33417,7 @@ gui_update_cursor (struct frame *f, bool on_p)
 void
 gui_clear_cursor (struct window *w)
 {
-  if (FRAME_VISIBLE_P (XFRAME (w->frame)) && w->phys_cursor_on_p)
+  if (FRAME_REDISPLAY_P (XFRAME (w->frame)) && w->phys_cursor_on_p)
     update_window_cursor (w, false);
 }
 

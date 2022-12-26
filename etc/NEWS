@@ -35,6 +35,12 @@ This means it should be less necessary to disable the likes of
 `select-active-regions' when Emacs is running over a slow network
 connection.
 
+** Emacs will now redisplay frames that are made visible by a compositor.
+This means even if `frame-visible-p' returns nil or `icon', the frame
+will be redisplayed if it is being displayed to the user by the
+compositing manager, which can happenas part of a preview for
+iconified windows.
+
 
 * Editing Changes in Emacs 30.1
 

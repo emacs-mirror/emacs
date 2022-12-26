@@ -3188,7 +3188,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
   Lisp_Object tail, frame;
 
   FOR_EACH_FRAME (tail, frame)
-    if (FRAME_VISIBLE_P (XFRAME (frame)))
+    if (FRAME_REDISPLAY_P (XFRAME (frame)))
       redraw_frame (XFRAME (frame));
 
   return Qnil;
