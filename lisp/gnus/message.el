@@ -2822,7 +2822,7 @@ systematically send encrypted emails when possible."
 
 The value must be a list of three elements, all strings:
 - Key ID, in hexadecimal form;
-- Key URL or ASCII armoured key; and
+- Key URL or ASCII armored key; and
 - Protection preference, one of: \"unprotected\", \"sign\",
   \"encrypt\" or \"signencrypt\".
 

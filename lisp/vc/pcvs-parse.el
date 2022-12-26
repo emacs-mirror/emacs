@@ -435,7 +435,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	;; Conflict
 	(and
 	 (cvs-match (concat "C \\(.*" qfile "\\)$") (path 1) (type 'CONFLICT))
-	 ;; C might be followed by a "spurious" U for non-mergable files
+	 ;; C might be followed by a "spurious" U for non-mergeable files
 	 (cvs-or (cvs-match (concat "U \\(.*" qfile "\\)$")) t))
 	;; Successful merge
 	(cvs-match (concat "M \\(.*" qfile "\\)$") (path 1))

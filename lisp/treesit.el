@@ -1623,7 +1623,7 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
 ;; TODO: I'm not entirely sure how would this go, so I only documented
 ;; the "defun" functions and didn't document any "thing" functions.
 ;; We should also document `treesit-block-type-regexp' and support it
-;; in major modes if we can meaningfully intergrate hideshow: I tried
+;; in major modes if we can meaningfully integrate hideshow: I tried
 ;; and failed, we need SomeOne that understands hideshow to look at
 ;; it.  (BTW, hideshow should use its own
 ;; `treesit-hideshow-block-type-regexp'.)
@@ -2617,7 +2617,7 @@ window."
 (defvar treesit-language-source-alist nil
   "Configuration for downloading and installing tree-sitter language grammars.
 
-The value should be an alist where each elemnt has the form
+The value should be an alist where each element has the form
 
     (LANG . (URL SOURCE-DIR GRAMMAR-DIR CC C++))
 

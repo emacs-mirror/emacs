@@ -209,7 +209,7 @@ nil.  If SIMPLE-FUNCTION is non-nil, call the function with no
 arguments and then pass its return value to `eshell-apply-indices'.
 
 When VALUE is a function, it's read-only by default.  To make it
-writeable, use the (GET . SET) form described above.  If SET is a
+writable, use the (GET . SET) form described above.  If SET is a
 function, it takes two arguments: a list of indices (currently
 always nil, but reserved for future enhancement), and the new
 value to set.

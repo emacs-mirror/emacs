@@ -1192,7 +1192,7 @@ fontified."
   "Check whether NODE is a variable.
 NODE's type should be \"identifier\"."
   ;; An identifier can be a function/class name, a property, or a
-  ;; variables.  This funtion filters out function/class names and
+  ;; variables.  This function filters out function/class names and
   ;; properties.
   (pcase (treesit-node-type (treesit-node-parent node))
     ((or "function_definition" "class_definition") nil)

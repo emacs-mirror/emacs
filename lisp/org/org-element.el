@@ -5299,7 +5299,7 @@ indentation removed from its contents."
 ;; mechanism is robust enough to preserve total order among elements
 ;; even when the tree is only partially synchronized.
 ;;
-;; The cache code debuggin is fairly complex because cache request
+;; The cache code debugging is fairly complex because cache request
 ;; state is often hard to reproduce.  An extensive diagnostics
 ;; functionality is built into the cache code to assist hunting bugs.
 ;; See `org-element--cache-self-verify', `org-element--cache-self-verify-frequency',

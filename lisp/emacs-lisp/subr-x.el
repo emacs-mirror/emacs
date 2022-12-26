@@ -334,7 +334,7 @@ as the new values of the bound variables in the recursive invocation."
 (defun string-glyph-split (string)
   "Split STRING into a list of strings representing separate glyphs.
 This takes into account combining characters and grapheme clusters:
-if compositions are enbaled, each sequence of characters composed
+if compositions are enabled, each sequence of characters composed
 on display into a single grapheme cluster is treated as a single
 indivisible unit."
   (let ((result nil)
