@@ -1715,17 +1715,14 @@ This function activates some tree-sitter features for a major mode.
 
 Currently, it sets up the following features:
 @itemize
-@vindex treesit-font-lock-settings
 @item
-If @code{treesit-font-lock-settings} is non-@code{nil}, it sets up
-fontification.
+If @code{treesit-font-lock-settings} (@pxref{Parser-based Font Lock})
+is non-@code{nil}, it sets up fontification.
 
-@vindex treesit-simple-indent-rules
 @item
-If @code{treesit-simple-indent-rules} is non-@code{nil}, it sets up
-indentation.
+If @code{treesit-simple-indent-rules} (@pxref{Parser-based Font Lock})
+is non-@code{nil}, it sets up indentation.
 
-@vindex treesit-defun-type-regexp
 @item
 If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up
 navigation functions for @code{beginning-of-defun} and
@@ -1780,6 +1777,17 @@ node.  The function should have the same semantic as
 @code{treesit-defun-name}: if the node is not a defun node, or the
 node is a defun node but doesn't have a name, or the node is
 @code{nil}, it should return @code{nil}.
+@end defvar
+
+@defvar treesit-defun-type-regexp
+This variable determines which nodes are considered defuns by Emacs.
+It can be a regexp that matches the type of defun nodes.
+
+Sometimes not all nodes matched by the regexp are valid defuns.
+Therefore, this variable can also be a cons cell of the form
+@w{(@var{regexp} . @var{pred})}, where @var{pred} should be a function
+that takes a node as its argument, and returns @code{t} if the node is
+valid defun, or @code{nil} if it is not valid.
 @end defvar
 
 @node Tree-sitter C API
