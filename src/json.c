@@ -555,37 +555,39 @@ json_parse_args (ptrdiff_t nargs,
   }
 }
 
-#ifdef WINDOWSNT
 static bool
 json_available_p (void)
 {
-  if (json_initialized)
-    return true;
-  json_initialized = init_json_functions ();
-  Lisp_Object status = json_initialized ? Qt : Qnil;
-  Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
+#ifdef WINDOWSNT
+  if (!json_initialized)
+    {
+      Lisp_Object status;
+      json_initialized = init_json_functions ();
+      status = json_initialized ? Qt : Qnil;
+      Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
+    }
   return json_initialized;
-}
+#else  /* !WINDOWSNT */
+  return true;
 #endif
+}
 
+#ifdef WINDOWSNT
 static void
 ensure_json_available (void)
 {
-#ifdef WINDOWSNT
   if (!json_available_p ())
     Fsignal (Qjson_unavailable,
 	     list1 (build_unibyte_string ("jansson library not found")));
-#endif
 }
+#endif
 
-#ifdef WINDOWSNT
 DEFUN ("json--available-p", Fjson__available_p, Sjson__available_p, 0, 0, NULL,
-       doc: /* Whether libjansson is available (internal).  */)
+       doc: /* Return non-nil if libjansson is available (internal use only).  */)
   (void)
 {
   return json_available_p () ? Qt : Qnil;
 }
-#endif
 
 DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, MANY,
        NULL,
@@ -617,7 +619,10 @@ usage: (json-serialize OBJECT &rest ARGS)  */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
   specpdl_ref count = SPECPDL_INDEX ();
+
+#ifdef WINDOWSNT
   ensure_json_available ();
+#endif
 
   struct json_configuration conf =
     {json_object_hashtable, json_array_array, QCnull, QCfalse};
@@ -714,7 +719,10 @@ usage: (json-insert OBJECT &rest ARGS)  */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
   specpdl_ref count = SPECPDL_INDEX ();
+
+#ifdef WINDOWSNT
   ensure_json_available ();
+#endif
 
   struct json_configuration conf =
     {json_object_hashtable, json_array_array, QCnull, QCfalse};
@@ -959,7 +967,10 @@ usage: (json-parse-string STRING &rest ARGS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   specpdl_ref count = SPECPDL_INDEX ();
+
+#ifdef WINDOWSNT
   ensure_json_available ();
+#endif
 
   Lisp_Object string = args[0];
   CHECK_STRING (string);
@@ -1044,7 +1055,10 @@ usage: (json-parse-buffer &rest args) */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
   specpdl_ref count = SPECPDL_INDEX ();
+
+#ifdef WINDOWSNT
   ensure_json_available ();
+#endif
 
   struct json_configuration conf =
     {json_object_hashtable, json_array_array, QCnull, QCfalse};
@@ -1121,9 +1135,7 @@ syms_of_json (void)
   DEFSYM (Qplist, "plist");
   DEFSYM (Qarray, "array");
 
-#ifdef WINDOWSNT
   defsubr (&Sjson__available_p);
-#endif
   defsubr (&Sjson_serialize);
   defsubr (&Sjson_insert);
   defsubr (&Sjson_parse_string);
