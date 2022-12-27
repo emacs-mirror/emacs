@@ -322,8 +322,6 @@ takes one argument, the parent node."
             node (treesit-node-parent node)))
     last))
 
-(defalias 'treesit-traverse-parent #'treesit-parent-until)
-
 (defun treesit-node-children (node &optional named)
   "Return a list of NODE's children.
 If NAMED is non-nil, collect named child only."
