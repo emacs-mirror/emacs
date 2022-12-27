@@ -831,36 +831,40 @@ OPENING and CLOSING are the same as in
 and \"]\"."
   (with-temp-buffer
     (funcall init)
-    (let* ((opening (or opening "["))
-           (closing (or closing "]"))
-           ;; Insert program and parse marker positions.
-           (marker-alist (treesit--ert-insert-and-parse-marker
-                             opening closing program))
-           ;; Translate marker positions into buffer positions.
-           (decoded-master
-            (cl-loop for record in master
-                     collect
-                     (cl-loop for pos in record
-                              collect (alist-get pos marker-alist))))
-           ;; Collect positions each function returns.
-           (positions
-            (treesit--ert-collect-positions
-             ;; The first column of DECODED-MASTER.
-             (mapcar #'car decoded-master)
-             ;; Four functions: next-end, prev-beg, next-beg, prev-end.
-             (mapcar (lambda (conf)
-                       (lambda ()
-                         (if-let ((pos (funcall
-                                        #'treesit--navigate-defun
-                                        (point) (car conf) (cdr conf))))
-                             (save-excursion
-                               (goto-char pos)
-                               (funcall treesit-defun-skipper)
-                               (point)))))
-                     '((-1 . beg)
-                       (1 . end)
-                       (-1 . end)
-                       (1 . beg))))))
+    (pcase-let*
+        ((opening (or opening "["))
+         (closing (or closing "]"))
+         ;; Insert program and parse marker positions.
+         (marker-alist (treesit--ert-insert-and-parse-marker
+                           opening closing program))
+         ;; Translate marker positions into buffer positions.
+         (decoded-master
+          (cl-loop for record in master
+                   collect
+                   (cl-loop for pos in record
+                            collect (alist-get pos marker-alist))))
+         (`(,regexp . ,pred) (treesit--thing-unpack-pattern
+                              treesit-defun-type-regexp))
+         ;; Collect positions each function returns.
+         (positions
+          (treesit--ert-collect-positions
+           ;; The first column of DECODED-MASTER.
+           (mapcar #'car decoded-master)
+           ;; Four functions: next-end, prev-beg, next-beg, prev-end.
+           (mapcar (lambda (conf)
+                     (lambda ()
+                       (if-let ((pos (funcall
+                                      #'treesit--navigate-thing
+                                      (point) (car conf) (cdr conf)
+                                      regexp pred)))
+                           (save-excursion
+                             (goto-char pos)
+                             (funcall treesit-defun-skipper)
+                             (point)))))
+                   '((-1 . beg)
+                     (1 . end)
+                     (-1 . end)
+                     (1 . beg))))))
       ;; Verify each position.
       (cl-loop for record in decoded-master
                for orig-record in master
