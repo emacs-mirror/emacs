@@ -79,8 +79,12 @@
        . "POSSIBILITY OF SUCH DAMAGE\\.")
       ;; X11 and Expat
       ("Permission is hereby granted, free of charge" .
-       ,(rx (or "authorization from the X Consortium." ; X11
-                "THE USE OR OTHER DEALINGS IN THE SOFTWARE."))))) ; Expat
+       ,(rx (or "authorization from the X Consortium."          ; X11
+                "THE USE OR OTHER DEALINGS IN THE SOFTWARE."))) ; Expat
+      ;; Apache
+      ("Licensed under the Apache License, Version 2.0" .
+       "limitations under the License.")
+      ))
   "Alist of regexps defining start and end of text to elide.
 
 The cars of elements of the list are searched for in order.  Text is
@@ -91,7 +95,7 @@ cdr.
 This affects `elide-head-mode'."
   :type '(alist :key-type  (regexp :tag "Start regexp")
                 :value-type (regexp :tag "End regexp"))
-  :version "29.1")
+  :version "30.1")
 
 (defvar-local elide-head-overlay nil)
 
