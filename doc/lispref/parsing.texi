@@ -1266,10 +1266,11 @@ example, with the following pattern:
 @end example
 
 @noindent
-tree-sitter only matches arrays where the first element equals to
-the last element.  To attach a predicate to a pattern, we need to
-group them together.  A predicate always starts with a @samp{#}.
-Currently there are two predicates, @code{#equal} and @code{#match}.
+tree-sitter only matches arrays where the first element equals to the
+last element.  To attach a predicate to a pattern, we need to group
+them together.  A predicate always starts with a @samp{#}.  Currently
+there are three predicates, @code{#equal}, @code{#match}, and
+@code{#pred}.
 
 @deffn Predicate equal arg1 arg2
 Matches if @var{arg1} equals to @var{arg2}.  Arguments can be either
@@ -1280,6 +1281,11 @@ captured node spans in the buffer.
 @deffn Predicate match regexp capture-name
 Matches if the text that @var{capture-name}'s node spans in the buffer
 matches regular expression @var{regexp}.  Matching is case-sensitive.
+@end deffn
+
+@deffn Predicate pred fn &rest nodes
+Matches if function @var{fn} returns non-@code{nil} when passed each
+node in @var{nodes} as arguments.
 @end deffn
 
 Note that a predicate can only refer to capture names that appear in

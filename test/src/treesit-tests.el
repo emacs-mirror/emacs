@@ -335,6 +335,9 @@ BODY is the test body."
 
 ;;; Query
 
+(defun treesit--ert-pred-last-sibling (node)
+  (null (treesit-node-next-sibling node t)))
+
 (ert-deftest treesit-query-api ()
   "Tests for query API."
   (skip-unless (treesit-language-available-p 'json))
@@ -357,13 +360,16 @@ BODY is the test body."
 (pair key: (_) @keyword)
 ((_) @bob (#match \"^B.b$\" @bob))
 (number) @number
-((number) @n3 (#equal \"3\" @n3)) "
+((number) @n3 (#equal \"3\" @n3))
+((number) @n3p (#pred treesit--ert-pred-last-sibling @n3p))"
                  ;; Sexp query.
                  ((string) @string
                   (pair key: (_) @keyword)
                   ((_) @bob (:match "^B.b$" @bob))
                   (number) @number
-                  ((number) @n3 (:equal "3" @n3)))))
+                  ((number) @n3 (:equal "3" @n3))
+                  ((number) @n3p (:pred treesit--ert-pred-last-sibling
+                                        @n3p)))))
         ;; Test `treesit-query-compile'.
         (dolist (query (list query1
                              (treesit-query-compile 'json query1)))
@@ -375,7 +381,8 @@ BODY is the test body."
               (string . "\"Bob\"")
               (bob . "Bob")
               (number . "3")
-              (n3 . "3"))
+              (n3 . "3")
+              (n3p . "3"))
             (mapcar (lambda (entry)
                       (cons (car entry)
                             (treesit-node-text
