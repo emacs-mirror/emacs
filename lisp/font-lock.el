@@ -2110,7 +2110,7 @@ For example, the declaration and use of fields in a struct."
 
 (defface font-lock-punctuation-face
   '((t nil))
-  "Font Lock mode face used to highlight punctuation."
+  "Font Lock mode face used to highlight punctuation characters."
   :group 'font-lock-faces
   :version "29.1")
 
@@ -2122,7 +2122,9 @@ For example, the declaration and use of fields in a struct."
 
 (defface font-lock-delimiter-face
   '((t :inherit font-lock-punctuation-face))
-  "Font Lock mode face used to highlight delimiters."
+  "Font Lock mode face used to highlight delimiters.
+What exactly is a delimiter depends on the major mode, but usually
+these are characters like comma, colon, and semi-colon."
   :group 'font-lock-faces
   :version "29.1")
 
