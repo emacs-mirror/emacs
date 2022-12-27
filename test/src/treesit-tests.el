@@ -252,9 +252,7 @@ BODY is the test body."
          (setq parser (treesit-parser-create 'json))
          (setq root (treesit-parser-root-node
                      parser))
-         (setq array (treesit-node-child root 0))
-         ;; First bracket.
-         (setq cursor (treesit-node-child array 0)))
+         (setq array (treesit-node-child root 0)))
        ,@body)))
 
 (ert-deftest treesit-search-forward ()
