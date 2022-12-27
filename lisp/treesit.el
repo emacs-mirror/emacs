@@ -234,19 +234,27 @@ is nil, try to guess the language at BEG using `treesit-language-at'."
                  (or parser-or-lang (treesit-language-at beg))))))
     (treesit-node-descendant-for-range root beg (or end beg) named)))
 
-(defun treesit-node-top-level (node &optional type)
+(defun treesit-node-top-level (node &optional pred include-node)
   "Return the top-level equivalent of NODE.
+
 Specifically, return the highest parent of NODE that has the same
 type as it.  If no such parent exists, return nil.
 
-If TYPE is non-nil, match each parent's type with TYPE as a
-regexp, rather than using NODE's type."
-  (let ((type (or type (treesit-node-type node)))
+If PRED is non-nil, match each parent's type with PRED as a
+regexp, rather than using NODE's type.  PRED can also be a
+function that takes the node as an argument, and return
+non-nil/nil for match/no match.
+
+If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
+  (let ((pred (or pred (treesit-node-type node)))
         (result nil))
-    (cl-loop for cursor = (treesit-node-parent node)
+    (cl-loop for cursor = (if include-node node
+                            (treesit-node-parent node))
              then (treesit-node-parent cursor)
              while cursor
-             if (string-match-p type (treesit-node-type cursor))
+             if (if (stringp pred)
+                    (string-match-p pred (treesit-node-type cursor))
+                  (funcall pred cursor))
              do (setq result cursor))
     result))
 
@@ -290,11 +298,16 @@ properties."
          (treesit-node-start node)
          (treesit-node-end node))))))
 
-(defun treesit-parent-until (node pred)
+(defun treesit-parent-until (node pred &optional include-node)
   "Return the closest parent of NODE that satisfies PRED.
+
 Return nil if none was found.  PRED should be a function that
-takes one argument, the parent node."
-  (let ((node (treesit-node-parent node)))
+takes one argument, the parent node, and return non-nil/nil for
+match/no match.
+
+If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
+  (let ((node (if include-node node
+                (treesit-node-parent node))))
     (while (and node (not (funcall pred node)))
       (setq node (treesit-node-parent node)))
     node))
