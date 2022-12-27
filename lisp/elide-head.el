@@ -50,24 +50,37 @@
   :group 'tools)
 
 (defcustom elide-head-headers-to-hide
-  `(;; GNU GPL
-    ("is free software[:;] you can redistribute it" .
-     ,(rx (or (seq "If not, see " (? "<")
-                   "http" (? "s") "://www.gnu.org/licenses"
-                   (? "/") (? ">") (? " "))
-              (seq "Boston, MA " (? " ")
-                   "0211" (or "1-1307" "0-1301")
-                   (or "  " ", ") "USA")
-              "675 Mass Ave, Cambridge, MA 02139, USA")
-          (? ".")))
-    ;; FreeBSD license / Modified BSD license (3-clause)
-    (,(rx (or "The Regents of the University of California.  All rights reserved."
-              "Redistribution and use in source and binary"))
-     . "POSSIBILITY OF SUCH DAMAGE\\.")
-    ;; X11 and Expat
-    ("Permission is hereby granted, free of charge" .
-     ,(rx (or "authorization from the X Consortium."           ; X11
-              "THE USE OR OTHER DEALINGS IN THE SOFTWARE.")))) ; Expat
+  (rx-let ((delim
+            ;; A line break could be in a non-standard place, and the
+            ;; license could be in a comment.
+            (or
+             ;; Either just some spaces:
+             (+ " ")
+             ;; Or a newline and some comment starter:
+             (: (* (in " \t"))
+                "\n"
+                (* (in " \t"))
+                (* (or (syntax comment-start) (in ";#*-")))
+                (* (in " \t"))))))
+    `(;; GNU GPL
+      ("is free software[:;] you can redistribute it" .
+       ,(rx (or (seq "If not, see " (? "<")
+                     "http" (? "s") "://www.gnu.org/licenses"
+                     (? "/") (? ">") (? " "))
+                (seq "Boston," delim "MA" delim
+                     (or "02111-1307" "02110-1301" "02111-1301")
+                     (? ",") delim
+                     "USA")
+                "675 Mass Ave, Cambridge, MA 02139, USA")
+            (? ".")))
+      ;; FreeBSD license / Modified BSD license (3-clause)
+      (,(rx (or "The Regents of the University of California.  All rights reserved."
+                "Redistribution and use in source and binary"))
+       . "POSSIBILITY OF SUCH DAMAGE\\.")
+      ;; X11 and Expat
+      ("Permission is hereby granted, free of charge" .
+       ,(rx (or "authorization from the X Consortium." ; X11
+                "THE USE OR OTHER DEALINGS IN THE SOFTWARE."))))) ; Expat
   "Alist of regexps defining start and end of text to elide.
 
 The cars of elements of the list are searched for in order.  Text is
