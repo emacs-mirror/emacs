@@ -1073,7 +1073,10 @@ is_simple_dialog (Lisp_Object contents)
   if (NILP (Fstring_equal (name, other)))
     return false;
 
-  /* Check there are no more options.  */
+  /* Check there are no more options.
+
+     (FIXME: Since we use MB_YESNOCANCEL, we could also consider
+     dialogs with 3 options: Yes/No/Cancel as "simple".  */
   options = XCDR (options);
   return !(CONSP (options));
 }
@@ -1085,7 +1088,10 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
   UINT type;
   Lisp_Object lispy_answer = Qnil, temp = XCAR (contents);
 
-  type = MB_YESNO;
+  /* We use MB_YESNOCANCEL to allow the user the equivalent of C-g
+     when the Yes/No question is asked vya y-or-n-p or
+     yes-or-no-p.  */
+  type = MB_YESNOCANCEL;
 
   /* Since we only handle Yes/No dialogs, and we already checked
      is_simple_dialog, we don't need to worry about checking contents
