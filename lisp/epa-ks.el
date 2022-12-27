@@ -135,9 +135,9 @@ Keys are marked using `epa-ks-mark-key-to-fetch'."
                 keys))
         (forward-line))
       (when (yes-or-no-p (format "Proceed with fetching all %d key(s)? "
-                                 (length keys))))
-      (dolist (id keys)
-        (epa-ks--fetch-key id))))
+                                 (length keys)))
+        (dolist (id keys)
+          (epa-ks--fetch-key id)))))
   (tabulated-list-clear-all-tags))
 
 (defun epa-ks--query-url (query exact)
