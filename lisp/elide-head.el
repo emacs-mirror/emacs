@@ -147,10 +147,11 @@ mode hooks."
 (defun elide-head (&optional arg)
   "Hide header material in buffer according to `elide-head-headers-to-hide'.
 
-The header is made invisible with an overlay.  With a prefix arg, show
-an elided material again.
+The header is made invisible with an overlay.  With a prefix
+argument ARG, show an elided material again.
 
-This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
+This is suitable as an entry on `find-file-hook' or appropriate
+mode hooks."
   (declare (obsolete elide-head-mode "29.1"))
   (interactive "P")
   (if arg
