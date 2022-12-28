@@ -1077,7 +1077,7 @@ the default candidate.
 *** New command 'help-quick' displays an overview of common commands.
 The command pops up a buffer at the bottom of the screen with a few
 helpful commands for various tasks.  You can toggle the display using
-'C-h q'.
+'C-h C-q'.
 
 ** Emacs now comes with Org v9.6.
 See the file ORG-NEWS for user-visible changes in Org.
