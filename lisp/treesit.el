@@ -2039,7 +2039,7 @@ NODE is a node in the tree returned by
 `treesit-induce-sparse-tree' (not a tree-sitter node, its car is
 a tree-sitter node).  Walk that tree and return an Imenu index.
 
-Return a list of ENTRYs where
+Return a list of entries where each ENTRY has the form:
 
 ENTRY := (NAME . MARKER)
        | (NAME . ((\" \" . MARKER)
