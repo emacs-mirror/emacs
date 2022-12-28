@@ -843,8 +843,11 @@ $Date: %s $
       (package-install pkg)
       (require pkg nil t))))
 
+(declare-function org-html-export-as-html "ox-html.el")
 (defvar org-html-postamble)
 (defvar org-html-mathjax-template)
+(defvar htmlize-output-type)
+
 (defun make-news-html-file (root version)
   "Convert the NEWS file into an HTML file."
   (interactive (let ((root
