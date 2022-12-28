@@ -4850,6 +4850,7 @@ but that should be robust in the unexpected case that an error is signaled."
   (declare (debug t) (indent 1))
   (let* ((err (make-symbol "err"))
          (orig-body body)
+         (orig-format format)
          (format (if (and (stringp format) body) format
                    (prog1 "Error: %S"
                      (if format (push format body)))))
@@ -4860,7 +4861,9 @@ but that should be robust in the unexpected case that an error is signaled."
     (if (eq orig-body body) exp
       ;; The use without `format' is obsolete, let's warn when we bump
       ;; into any such remaining uses.
-      (macroexp-warn-and-return "Missing format argument" exp nil nil format))))
+      (macroexp-warn-and-return
+       "Missing format argument in `with-demote-errors'" exp nil nil
+       orig-format))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
