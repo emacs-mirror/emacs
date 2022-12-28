@@ -1877,7 +1877,7 @@ to type 'M-RET' to insert the selected candidate to the buffer.
 +++
 *** Choosing a completion with a prefix argument doesn't exit the minibuffer.
 This means that typing 'C-u RET' on a completion candidate in the
-"*Completions*" buffer inserts the completion to the minibuffer,
+"*Completions*" buffer inserts the completion into the minibuffer,
 but doesn't exit the minibuffer.
 
 +++
