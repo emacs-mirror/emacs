@@ -63,6 +63,8 @@ follows the form of `treesit-simple-indent-rules'."
                  (function :tag "A function for user customized style" ignore))
   :group 'c)
 
+;;; Syntax table
+
 (defvar c-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     ;; Taken from the cc-langs version
@@ -85,13 +87,27 @@ follows the form of `treesit-simple-indent-rules'."
     table)
   "Syntax table for `c-ts-mode'.")
 
-(defvar c++-ts-mode--syntax-table
-  (let ((table (make-syntax-table c-ts-mode--syntax-table)))
-    ;; Template delimiters.
-    (modify-syntax-entry ?<  "("     table)
-    (modify-syntax-entry ?>  ")"     table)
-    table)
-  "Syntax table for `c++-ts-mode'.")
+(defun c-ts-mode--syntax-propertize (beg end)
+  "Apply syntax text property to template delimiters between BEG and END.
+
+< and > are usually punctuation, e.g., in ->.  But when used for
+templates, they should be considered pairs.
+
+This function checks for < and > in the changed RANGES and apply
+appropriate text property to alter the syntax of template
+delimiters < and >'s."
+  (goto-char beg)
+  (while (re-search-forward (rx (or "<" ">")) end t)
+    (pcase (treesit-node-type
+            (treesit-node-parent
+             (treesit-node-at (match-beginning 0))))
+      ("template_argument_list"
+       (put-text-property (match-beginning 0)
+                          (match-end 0)
+                          'syntax-table
+                          (pcase (char-before)
+                            (?< '(4 . ?>))
+                            (?> '(5 . ?<))))))))
 
 ;;; Indent
 
@@ -751,12 +767,13 @@ Set up:
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
   "Major mode for editing C++, powered by tree-sitter."
   :group 'c++
-  :syntax-table c++-ts-mode--syntax-table
 
   (unless (treesit-ready-p 'cpp)
     (error "Tree-sitter for C++ isn't available"))
 
   (treesit-parser-create 'cpp)
+  (setq-local syntax-propertize-function
+              #'c-ts-mode--syntax-propertize)
 
   (setq-local treesit-simple-indent-rules
               (c-ts-mode--set-indent-style 'cpp))
