@@ -1103,7 +1103,7 @@ in addition to the ellipsis.  The default is nil, but in 'help-mode'
 it has the value 'insert' that inserts the buttons directly into the
 buffer, and you can use 'RET' to cycle outline visibility.  When
 the value is 'in-margins', Outline Minor Mode uses the window margins
-to hide/show buttons.
+for buttons that hide/show outlines.
 
 ** Windows
 
@@ -1875,6 +1875,12 @@ completion, but they don't insert candidates automatically, you need
 to type 'M-RET' to insert the selected candidate to the buffer.
 
 +++
+*** Choosing a completion with a prefix argument doesn't exit the minibuffer.
+This means that typing 'C-u RET' on a completion candidate in the
+"*Completions*" buffer inserts the completion to the minibuffer,
+but doesn't exit the minibuffer.
+
++++
 *** The "*Completions*" buffer can now be automatically selected.
 To enable this behavior, customize the user option
 'completion-auto-select' to t, then pressing 'TAB' will switch to the
@@ -1931,12 +1937,6 @@ When this user option names a face, the current
 candidate in the "*Completions*" buffer is highlighted with that face.
 The nil value disables this highlighting.  The default is to highlight
 using the 'completions-highlight' face.
-
-+++
-*** Choosing a completion with a prefix argument doesn't exit the minibuffer.
-This means that typing 'C-u RET' on a completion candidate in the
-"*Completions*" buffer inserts the completion to the minibuffer,
-but doesn't exit the minibuffer.
 
 +++
 *** You can now define abbrevs for the minibuffer modes.
