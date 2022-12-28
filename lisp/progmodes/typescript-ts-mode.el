@@ -335,8 +335,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   ;; Comments.
   (c-ts-mode-comment-setup)
 
-  (setq-local treesit-defun-prefer-top-level t)
-
   ;; Electric
   (setq-local electric-indent-chars
               (append "{}():;," electric-indent-chars))
@@ -347,11 +345,17 @@ Argument LANGUAGE is either `typescript' or `tsx'."
                             "method_definition"
                             "function_declaration"
                             "lexical_declaration")))
-  ;; Imenu.
-  (setq-local imenu-create-index-function #'js--treesit-imenu)
+  (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
-  ;; Which-func (use imenu).
-  (setq-local which-func-functions nil))
+  ;; Imenu (same as in `js-ts-mode').
+  (setq-local treesit-simple-imenu-settings
+              `(("Function" "\\`function_declaration\\'" nil nil)
+                ("Variable" "\\`lexical_declaration\\'"
+                 js--treesit-valid-imenu-entry nil)
+                ("Class" ,(rx bos (or "class_declaration"
+                                      "method_definition")
+                              eos)
+                 nil nil))))
 
 ;;;###autoload
 (define-derived-mode typescript-ts-mode typescript-ts-base-mode "TypeScript"

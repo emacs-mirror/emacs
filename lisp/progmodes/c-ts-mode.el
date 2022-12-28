@@ -487,54 +487,16 @@ For NODE, OVERRIDE, START, and END, see
 
 (defun c-ts-mode--defun-name (node)
   "Return the name of the defun NODE.
-Return nil if NODE is not a defun node, return an empty string if
-NODE doesn't have a name."
+Return nil if NODE is not a defun node or doesn't have a name."
   (treesit-node-text
    (pcase (treesit-node-type node)
      ((or "function_definition" "declaration")
       (c-ts-mode--declarator-identifier
        (treesit-node-child-by-field-name node "declarator")))
-     ("struct_specifier"
+     ((or "struct_specifier" "enum_specifier"
+          "union_specifier" "class_specifier")
       (treesit-node-child-by-field-name node "name")))
    t))
-
-(defun c-ts-mode--imenu-1 (node)
-  "Helper for `c-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'c-ts-mode--imenu-1 (cdr node)))
-         (name (when ts-node
-                 (treesit-defun-name ts-node)))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name))
-      subtrees)
-     ((null (c-ts-mode--defun-valid-p ts-node))
-      nil)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun c-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (func-tree (treesit-induce-sparse-tree
-                     node "^function_definition$" nil 1000))
-         (var-tree (treesit-induce-sparse-tree
-                    node "^declaration$" nil 1000))
-         (struct-tree (treesit-induce-sparse-tree
-                       node "^struct_specifier$" nil 1000))
-         (func-index (c-ts-mode--imenu-1 func-tree))
-         (var-index (c-ts-mode--imenu-1 var-tree))
-         (struct-index (c-ts-mode--imenu-1 struct-tree)))
-    (append
-     (when struct-index `(("Struct" . ,struct-index)))
-     (when var-index `(("Variable" . ,var-index)))
-     (when func-index `(("Function" . ,func-index))))))
 
 ;;; Defun navigation
 
@@ -745,8 +707,17 @@ Set up:
               (append "{}():;," electric-indent-chars))
 
   ;; Imenu.
-  (setq-local imenu-create-index-function #'c-ts-mode--imenu)
-  (setq-local which-func-functions nil)
+  (setq-local treesit-simple-imenu-settings
+              (let ((pred #'c-ts-mode--defun-valid-p))
+                `(("Struct" ,(rx bos (or "struct" "enum" "union")
+                                 "_specifier" eos)
+                   ,pred nil)
+                  ("Variable" ,(rx bos "declaration" eos) ,pred nil)
+                  ("Function" "\\`function_definition\\'" ,pred nil)
+                  ("Class" ,(rx bos (or "class_specifier"
+                                        "function_definition")
+                                eos)
+                   ,pred nil))))
 
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)

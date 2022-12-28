@@ -266,50 +266,6 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name")
       t))))
 
-(defun java-ts-mode--imenu-1 (node)
-  "Helper for `java-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'java-ts-mode--imenu-1 (cdr node)))
-         (name (when ts-node
-                 (or (treesit-defun-name ts-node)
-                     "Unnamed node")))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((null ts-node) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun java-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (class-tree (treesit-induce-sparse-tree
-                      node "^class_declaration$" nil 1000))
-         (interface-tree (treesit-induce-sparse-tree
-                          node "^interface_declaration$" nil 1000))
-         (enum-tree (treesit-induce-sparse-tree
-                     node "^enum_declaration$" nil 1000))
-         (record-tree (treesit-induce-sparse-tree
-                       node "^record_declaration$"  nil 1000))
-         (method-tree (treesit-induce-sparse-tree
-                       node "^method_declaration$" nil 1000))
-         (class-index (java-ts-mode--imenu-1 class-tree))
-         (interface-index (java-ts-mode--imenu-1 interface-tree))
-         (enum-index (java-ts-mode--imenu-1 enum-tree))
-         (record-index (java-ts-mode--imenu-1 record-tree))
-         (method-index (java-ts-mode--imenu-1 method-tree)))
-    (append
-     (when class-index `(("Class" . ,class-index)))
-     (when interface-index `(("Interface" . ,interface-index)))
-     (when enum-index `(("Enum" . ,enum-index)))
-     (when record-index `(("Record" . ,record-index)))
-     (when method-index `(("Method" . ,method-index))))))
-
 ;;;###autoload
 (define-derived-mode java-ts-mode prog-mode "Java"
   "Major mode for editing Java, powered by tree-sitter."
@@ -352,8 +308,11 @@ the subtrees."
                 ( bracket delimiter operator)))
 
   ;; Imenu.
-  (setq-local imenu-create-index-function #'java-ts-mode--imenu)
-  (setq-local which-func-functions nil) ;; Piggyback on imenu
+  (setq-local treesit-simple-imenu-settings
+              '(("Class" "\\`class_declaration\\'" nil nil)
+                ("Interface "\\`interface_declaration\\'" nil nil)
+                ("Enum" "\\`record_declaration\\'" nil nil)
+                ("Method" "\\`method_declaration\\'" nil nil)))
   (treesit-major-mode-setup))
 
 (provide 'java-ts-mode)
