@@ -380,9 +380,18 @@ without silencing all errors."
   "Execute BODY; if the error CONDITION occurs, return nil.
 Otherwise, return result of last form in BODY.
 
-CONDITION can also be a list of error conditions."
+CONDITION can also be a list of error conditions.
+The CONDITION argument is not evaluated.  Do not quote it."
   (declare (debug t) (indent 1))
-  `(condition-case nil (progn ,@body) (,condition nil)))
+  (if (and (eq (car-safe condition) 'quote)
+           (cdr condition) (null (cddr condition)))
+      (macroexp-warn-and-return
+       (format "`ignore-error' condition argument should not be quoted: %S"
+               condition)
+       `(condition-case nil (progn ,@body) (,(cadr condition) nil))
+       nil t condition)
+    `(condition-case nil (progn ,@body) (,condition nil))))
+
 
 ;;;; Basic Lisp functions.
 

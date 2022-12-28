@@ -922,6 +922,11 @@ byte-compiled.  Run with dynamic binding."
   (bytecomp--with-warning-test "defvar.*foo.*wider than.*characters"
     `(defvar foo t ,bytecomp-tests--docstring)))
 
+(ert-deftest bytecomp-warn-quoted-condition ()
+  (bytecomp--with-warning-test
+      "Warning: `ignore-error' condition argument should not be quoted: 'error"
+    '(ignore-error 'error (abc))))
+
 (ert-deftest bytecomp-warn-dodgy-args-eq ()
   (dolist (fn '(eq eql))
     (cl-flet ((msg (type arg)
