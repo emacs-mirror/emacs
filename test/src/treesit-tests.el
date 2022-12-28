@@ -1046,7 +1046,7 @@ the prev-beg, now point should be at marker 103\", etc.")
 (ert-deftest treesit-defun-navigation-nested-4 ()
   "Test defun navigation using Elixir.
 This tests bug#60355."
-  (skip-unless (treesit-language-available-p 'bash))
+  (skip-unless (treesit-language-available-p 'elixir))
   ;; Nested defun navigation
   (let ((treesit-defun-tactic 'nested)
         (pred (lambda (node)

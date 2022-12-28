@@ -310,7 +310,7 @@ Return nil if there is no name or if NODE is not a defun node."
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings
               '(("Class" "\\`class_declaration\\'" nil nil)
-                ("Interface "\\`interface_declaration\\'" nil nil)
+                ("Interface" "\\`interface_declaration\\'" nil nil)
                 ("Enum" "\\`record_declaration\\'" nil nil)
                 ("Method" "\\`method_declaration\\'" nil nil)))
   (treesit-major-mode-setup))

@@ -1737,7 +1737,6 @@ navigation functions for @code{beginning-of-defun} and
 @item
 If @code{treesit-defun-name-function} is non-@code{nil}, it sets up
 add-log functions used by @code{add-log-current-defun}.
-@end itemize
 
 @item
 If @code{treesit-simple-imenu-settings} (@pxref{Imenu}) is
