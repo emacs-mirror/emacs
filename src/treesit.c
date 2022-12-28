@@ -933,11 +933,24 @@ static void
 treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
 				     Lisp_Object parser)
 {
-  uint32_t len;
-  TSRange *ranges = ts_tree_get_changed_ranges (old_tree, new_tree, &len);
+  /* If the old_tree is NULL, meaning this is the first parse, the
+     changed range is the whole buffer.  */
+  Lisp_Object lisp_ranges;
   struct buffer *buf = XBUFFER (XTS_PARSER (parser)->buffer);
-  Lisp_Object lisp_ranges = treesit_make_ranges (ranges, len, buf);
-  xfree (ranges);
+  if (old_tree)
+    {
+      uint32_t len;
+      TSRange *ranges = ts_tree_get_changed_ranges (old_tree, new_tree, &len);
+      lisp_ranges = treesit_make_ranges (ranges, len, buf);
+      xfree (ranges);
+    }
+  else
+    {
+      struct buffer *oldbuf = current_buffer;
+      set_buffer_internal (buf);
+      lisp_ranges = Fcons (Fcons (Fpoint_min (), Fpoint_max ()), Qnil);
+      set_buffer_internal (oldbuf);
+    }
 
   specpdl_ref count = SPECPDL_INDEX ();
 
@@ -996,11 +1009,8 @@ treesit_ensure_parsed (Lisp_Object parser)
      treesit_ensure_parsed again, it returns early and do not
      recursively call the after change functions again.
      (ref:notifier-inside-ensure-parsed)  */
-  if (tree != NULL)
-    {
-      treesit_call_after_change_functions (tree, new_tree, parser);
-      ts_tree_delete (tree);
-    }
+  treesit_call_after_change_functions (tree, new_tree, parser);
+  ts_tree_delete (tree);
 }
 
 /* This is the read function provided to tree-sitter to read from a
