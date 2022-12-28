@@ -6821,9 +6821,16 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
 }
 
 static void
-mark_native_comp_unit (struct Lisp_Native_Comp_Unit *comp_u)
+mark_stack_push_values (Lisp_Object *values, ptrdiff_t n);
+
+static void
+mark_native_comp_unit (struct Lisp_Vector *ptr)
 {
-  mark_vectorlike (&comp_u->header);
+  struct Lisp_Native_Comp_Unit *comp_u
+    = (struct Lisp_Native_Comp_Unit *) ptr;
+  ptrdiff_t size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
+  set_vector_marked (ptr);
+  mark_stack_push_values (ptr->contents, size);
 
 #ifdef HAVE_STATIC_LISP_GLOBALS
   if (comp_u->have_static_lisp_data)
@@ -6836,13 +6843,13 @@ mark_native_comp_unit (struct Lisp_Native_Comp_Unit *comp_u)
 
       Lisp_Object u_staticvec = comp_u->staticpro;
       if (!NILP (u_staticvec))
-	mark_objects (XVECTOR (u_staticvec)->contents,
-		      ASIZE (u_staticvec));
+	mark_stack_push_values (XVECTOR (u_staticvec)->contents,
+				ASIZE (u_staticvec));
 
       Lisp_Object u_ephemeral = comp_u->ephemeral;
       if (!NILP (u_ephemeral))
-	mark_objects (XVECTOR (u_ephemeral)->contents,
-		      ASIZE (u_ephemeral));
+	mark_stack_push_values (XVECTOR (u_ephemeral)->contents,
+				ASIZE (u_ephemeral));
     }
 #endif
 }
@@ -7288,7 +7295,7 @@ process_mark_stack (ptrdiff_t base_sp)
 		break;
 
 	      case PVEC_NATIVE_COMP_UNIT:
-		mark_native_comp_unit (XNATIVE_COMP_UNIT (obj));
+		mark_native_comp_unit (ptr);
 		break;
 
 	      case PVEC_FREE:
