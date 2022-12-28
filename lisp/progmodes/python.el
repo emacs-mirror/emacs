@@ -1096,9 +1096,7 @@ fontified."
 
    :feature 'function
    :language 'python
-   '((function_definition
-      name: (identifier) @font-lock-function-name-face)
-     (call function: (identifier) @font-lock-function-name-face)
+   '((call function: (identifier) @font-lock-function-name-face)
      (call function: (attribute
                       attribute: (identifier) @font-lock-function-name-face)))
 
