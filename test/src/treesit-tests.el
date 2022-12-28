@@ -940,7 +940,28 @@ and \"]\"."
 [999]}
 [110]
 "
-  "Javascript source for navigation test.")
+  "Bash source for navigation test.")
+
+(defvar treesit--ert-defun-navigation-elixir-program
+  "[100]
+[101]def bar() do
+[999]end
+[102]
+[103]defmodule Example do[0]
+[999] @impl true
+[104] [1]def bar() do[2]
+[999] end[3]
+[105] [4]
+[106] [5]def baz() do[6]
+[999] end[7]
+[107] [8]
+[999]end[9]
+[108]
+[109]def bar() do
+[999]end
+[110]
+"
+  "Elixir source for navigation test.")
 
 (defvar treesit--ert-defun-navigation-nested-master
   ;; START PREV-BEG NEXT-END PREV-END NEXT-BEG
@@ -1020,6 +1041,23 @@ the prev-beg, now point should be at marker 103\", etc.")
        (treesit-parser-create 'bash)
        (setq-local treesit-defun-type-regexp "function_definition"))
      treesit--ert-defun-navigation-bash-program
+     treesit--ert-defun-navigation-nested-master)))
+
+(ert-deftest treesit-defun-navigation-nested-4 ()
+  "Test defun navigation using Elixir.
+This tests bug#60355."
+  (skip-unless (treesit-language-available-p 'bash))
+  ;; Nested defun navigation
+  (let ((treesit-defun-tactic 'nested)
+        (pred (lambda (node)
+                (member (treesit-node-text
+                         (treesit-node-child-by-field-name node "target"))
+                        '("def" "defmodule")))))
+    (treesit--ert-test-defun-navigation
+     (lambda ()
+       (treesit-parser-create 'elixir)
+       (setq-local treesit-defun-type-regexp `("call" . ,pred)))
+     treesit--ert-defun-navigation-elixir-program
      treesit--ert-defun-navigation-nested-master)))
 
 (ert-deftest treesit-defun-navigation-top-level ()

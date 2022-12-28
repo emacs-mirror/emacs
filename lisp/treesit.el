@@ -1773,78 +1773,67 @@ sound things exists.
 
 REGEXP and PRED are the same as in `treesit-thing-at-point'."
   (let* ((node (treesit-node-at pos))
-         ;; NODE-BEFORE/AFTER = NODE when POS is completely in NODE,
-         ;; but if not, that means point could be in between two
-         ;; defun, in that case we want to use a node that's actually
-         ;; before/after point.
-         (node-before (if (>= (treesit-node-start node) pos)
-                          (save-excursion
-                            (treesit-search-forward-goto node "" t t t))
-                        node))
-         (node-after (if (<= (treesit-node-end node) pos)
-                         (save-excursion
-                           (treesit-search-forward-goto
-                            node "" nil nil t))
-                       node))
-         (result (list nil nil nil))
-         (pred (or pred (lambda (_) t))))
+         (result (list nil nil nil)))
     ;; 1. Find previous and next sibling defuns.
     (cl-loop
      for idx from 0 to 1
-     for node in (list node-before node-after)
      for backward in '(t nil)
+     ;; Make sure we go in the right direction, and the defun we find
+     ;; doesn't cover POS.
      for pos-pred in (list (lambda (n) (<= (treesit-node-end n) pos))
                            (lambda (n) (>= (treesit-node-start n) pos)))
-     ;; If point is inside a defun, our process below will never
-     ;; return a next/prev sibling outside of that defun, effectively
-     ;; any prev/next sibling is locked inside the smallest defun
-     ;; covering point, which is the correct behavior.  That's because
-     ;; when there exists a defun that covers point,
-     ;; `treesit-search-forward' will first reach that defun, after
-     ;; that we only go upwards in the tree, so other defuns outside
-     ;; of the covering defun is never reached.  (Don't use
-     ;; `treesit-search-forward-goto' as it breaks when NODE-AFTER is
-     ;; the last token of a parent defun: it will skip the parent
-     ;; defun because it wants to ensure progress.)
-     do (cl-loop for cursor = (when node
-                                (save-excursion
-                                  (treesit-search-forward
-                                   node regexp backward backward)))
-                 then (treesit-node-parent cursor)
-                 while cursor
-                 if (and (string-match-p
-                          regexp (treesit-node-type cursor))
-                         (funcall pred cursor)
-                         (funcall pos-pred cursor))
-                 do (setf (nth idx result) cursor)))
+     ;; We repeatedly find next defun candidate with
+     ;; `treesit-search-forward', and check if it is a valid defun,
+     ;; until the node we find covers POS, meaning we've gone through
+     ;; every possible sibling defuns.  But there is a catch:
+     ;; `treesit-search-forward' searches bottom-up, so for each
+     ;; candidate we need to go up the tree and find the top-most
+     ;; valid sibling, this defun will be at the same level as POS.
+     ;; Don't use `treesit-search-forward-goto', it skips nodes in
+     ;; order to enforce progress.
+     when node
+     do (let ((cursor node)
+              (iter-pred (lambda (node)
+                           (and (string-match-p
+                                 regexp (treesit-node-type node))
+                                (or (null pred) (funcall pred node))
+                                (funcall pos-pred node)))))
+          ;; Find the node just before/after POS to start searching.
+          (save-excursion
+            (while (and cursor (not (funcall pos-pred cursor)))
+              (setq cursor (treesit-search-forward-goto
+                            cursor "" backward backward t))))
+          ;; Keep searching until we run out of candidates.
+          (while (and cursor
+                      (funcall pos-pred cursor)
+                      (null (nth idx result)))
+            (setf (nth idx result)
+                  (treesit-node-top-level cursor iter-pred t))
+            (setq cursor (treesit-search-forward
+                          cursor regexp backward backward)))))
     ;; 2. Find the parent defun.
-    (setf (nth 2 result)
-          (cl-loop for cursor = (or (nth 0 result)
-                                    (nth 1 result)
-                                    node)
-                   then (treesit-node-parent cursor)
-                   while cursor
-                   if (and (string-match-p
-                            regexp (treesit-node-type cursor))
-                           (funcall pred cursor)
-                           (not (member cursor result)))
-                   return cursor))
+    (let ((cursor (or (nth 0 result) (nth 1 result) node))
+          (iter-pred (lambda (node)
+                       (and (string-match-p
+                             regexp (treesit-node-type node))
+                            (or (null pred) (funcall pred node))
+                            (not (treesit-node-eq node (nth 0 result)))
+                            (not (treesit-node-eq node (nth 1 result)))
+                            (< (treesit-node-start node)
+                               pos
+                               (treesit-node-end node))))))
+      (setf (nth 2 result)
+            (treesit-parent-until cursor iter-pred)))
     result))
 
 (defun treesit--top-level-thing (node regexp &optional pred)
   "Return the top-level parent thing of NODE.
 REGEXP and PRED are the same as in `treesit-thing-at-point'."
-  (let* ((pred (or pred (lambda (_) t))))
-    ;; `treesit-search-forward-goto' will make sure the matched node
-    ;; is before POS.
-    (cl-loop for cursor = node
-             then (treesit-node-parent cursor)
-             while cursor
-             if (and (string-match-p
-                      regexp (treesit-node-type cursor))
-                     (funcall pred cursor))
-             do (setq node cursor))
-    node))
+  (treesit-node-top-level
+   node (lambda (node)
+          (and (string-match-p regexp (treesit-node-type node))
+               (or (null pred) (funcall pred node))))
+   t))
 
 ;; The basic idea for nested defun navigation is that we first try to
 ;; move across sibling defuns in the same level, if no more siblings
