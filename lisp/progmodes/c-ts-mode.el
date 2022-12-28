@@ -590,6 +590,10 @@ ARG is passed to `fill-paragraph'."
             (goto-char (match-beginning 1))
             (setq start-marker (point-marker))
             (replace-match " " nil nil nil 1))
+          ;; Include whitespaces before /*.
+          (goto-char start)
+          (beginning-of-line)
+          (setq start (point))
           ;; Mask spaces before "*/" if it is attached at the end
           ;; of a sentence rather than on its own line.
           (goto-char end)
@@ -661,11 +665,18 @@ Set up:
               (concat (rx (* (syntax whitespace))
                           (group (or (seq "/" (+ "/")) (* "*"))))
                       adaptive-fill-regexp))
-  ;; Same as `adaptive-fill-regexp'.
+  ;; Note the missing * comparing to `adaptive-fill-regexp'.  The
+  ;; reason for its absence is a bit convoluted to explain.  Suffice
+  ;; to say that without it, filling a single line paragraph that
+  ;; starts with /* doesn't insert * at the beginning of each
+  ;; following line, and filling a multi-line paragraph whose first
+  ;; two lines start with * does insert * at the beginning of each
+  ;; following line.  If you know how does adaptive filling works, you
+  ;; know what I mean.
   (setq-local adaptive-fill-first-line-regexp
               (rx bos
                   (seq (* (syntax whitespace))
-                       (group (or (seq "/" (+ "/")) (* "*")))
+                       (group (seq "/" (+ "/")))
                        (* (syntax whitespace)))
                   eos))
   ;; Same as `adaptive-fill-regexp'.
