@@ -2009,6 +2009,91 @@ The delimiter between nested defun names is controlled by
       (setq node (treesit-node-parent node)))
     name))
 
+;;; Imenu
+
+(defvar treesit-simple-imenu-settings nil
+  "Settings that configure `treesit-simple-imenu'.
+
+It should be a list of (CATEGORY REGEXP PRED NAME-FN).
+
+CATEGORY is the name of a category, like \"Function\", \"Class\",
+etc.  REGEXP should be a regexp matching the type of nodes that
+belong to CATEGORY.  PRED should be either nil or a function
+that takes a node an the argument.  It should return non-nil if
+the node is a valid node for CATEGORY, or nil if not.
+
+CATEGORY could also be nil.  In that case the entries matched by
+REGEXP and PRED are not grouped under CATEGORY.
+
+NAME-FN should be either nil or a function that takes a defun
+node and returns the name of that defun node.  If NAME-FN is nil,
+`treesit-defun-name' is used.
+
+`treesit-major-mode-setup' automatically sets up Imenu if this
+variable is non-nil.")
+
+(defun treesit--simple-imenu-1 (node pred name-fn)
+  "Given a sparse tree, create an Imenu index.
+
+NODE is a node in the tree returned by
+`treesit-induce-sparse-tree' (not a tree-sitter node, its car is
+a tree-sitter node).  Walk that tree and return an Imenu index.
+
+Return a list of ENTRYs where
+
+ENTRY := (NAME . MARKER)
+       | (NAME . ((\" \" . MARKER)
+                  ENTRY
+                  ...)
+
+PRED and NAME-FN are the same as described in
+`treesit-simple-imenu-settings'.  NAME-FN computes NAME in an
+ENTRY.  MARKER marks the start of each tree-sitter node."
+  (let* ((ts-node (car node))
+         (children (cdr node))
+         (subtrees (mapcan (lambda (node)
+                             (treesit--simple-imenu-1 node pred name-fn))
+                           children))
+         ;; The root of the tree could have a nil ts-node.
+         (name (when ts-node
+                 (or (if name-fn
+                         (funcall name-fn ts-node)
+                       (treesit-defun-name ts-node))
+                     "Anonymous")))
+         (marker (when ts-node
+                   (set-marker (make-marker)
+                               (treesit-node-start ts-node)))))
+    (cond
+     ;; The tree-sitter node in the root node of the tree returned by
+     ;; `treesit-induce-sparse-tree' is often nil.
+     ((null ts-node)
+      subtrees)
+     ;; This tree-sitter node is not a valid entry, skip it.
+     ((and pred (not (funcall pred ts-node)))
+      subtrees)
+     ;; Non-leaf node, return a (list of) subgroup.
+     (subtrees
+      `((,name
+         ,(cons " " marker)
+         ,@subtrees)))
+     ;; Leaf node, return a (list of) plain index entry.
+     (t (list (cons name marker))))))
+
+(defun treesit-simple-imenu ()
+  "Return an Imenu index for the current buffer."
+  (let ((root (treesit-buffer-root-node)))
+    (mapcan (lambda (setting)
+              (pcase-let ((`(,category ,regexp ,pred ,name-fn)
+                           setting))
+                (when-let* ((tree (treesit-induce-sparse-tree
+                                   root regexp))
+                            (index (treesit--simple-imenu-1
+                                    tree pred name-fn)))
+                  (if category
+                      (list (cons category index))
+                    index))))
+            treesit-simple-imenu-settings)))
+
 ;;; Activating tree-sitter
 
 (defun treesit-ready-p (language &optional quiet)
@@ -2066,6 +2151,11 @@ If `treesit-simple-indent-rules' is non-nil, setup indentation.
 If `treesit-defun-type-regexp' is non-nil, setup
 `beginning/end-of-defun' functions.
 
+If `treesit-defun-name-function' is non-nil, setup
+`add-log-current-defun'.
+
+If `treesit-simple-imenu-settings' is non-nil, setup Imenu.
+
 Make sure necessary parsers are created for the current buffer
 before calling this function."
   ;; Font-lock.
@@ -2106,7 +2196,11 @@ before calling this function."
   ;; Defun name.
   (when treesit-defun-name-function
     (setq-local add-log-current-defun-function
-                #'treesit-add-log-current-defun)))
+                #'treesit-add-log-current-defun))
+  ;; Imenu.
+  (when treesit-simple-imenu-settings
+    (setq-local imenu-create-index-function
+                #'treesit-simple-imenu)))
 
 ;;; Debugging
 

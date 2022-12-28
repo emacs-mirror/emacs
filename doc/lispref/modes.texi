@@ -2841,6 +2841,35 @@ function uses @code{imenu-generic-expression} instead.
 Setting this variable makes it buffer-local in the current buffer.
 @end defvar
 
+If built with tree-sitter, Emacs can automatically generate an Imenu
+index if the major mode sets relevant variables.
+
+@defvar treesit-simple-imenu-settings
+This variable instructs Emacs how to generate Imenu indexes.  It
+should be a list of @w{(@var{category} @var{regexp} @var{pred}
+@var{name-fn})}.
+
+@var{category} should be the name of a category, like "Function",
+"Class", etc.  @var{regexp} should be a regexp matching the type of
+nodes that belong to @var{category}.  @var{pred} should be either
+@code{nil} or a function that takes a node as the argument.  It should
+return non-@code{nil} if the node is a valid node for @var{category},
+or @code{nil} if not.
+
+@var{category} could also be @code{nil}.  In which case the entries
+matched by @var{regexp} and @var{pred} are not grouped under
+@var{category}.
+
+@var{name-fn} should be either @var{nil} or a function that takes a
+defun node and returns the name of that defun, e.g., the function name
+for a function definition.  If @var{name-fn} is @var{nil},
+@code{treesit-defun-name} (@pxref{Tree-sitter major modes}) is used
+instead.
+
+@code{treesit-major-mode-setup} (@pxref{Tree-sitter major modes})
+automatically sets up Imenu if this variable is non-@code{nil}.
+@end defvar
+
 @node Font Lock Mode
 @section Font Lock Mode
 @cindex Font Lock mode
