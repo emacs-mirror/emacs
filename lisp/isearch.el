@@ -181,7 +181,9 @@ When t (by default), signal an error when no more matches are found.
 Then after repeating the search, wrap with `isearch-wrap-function'.
 When `no', wrap immediately after reaching the last match.
 When `no-ding', wrap immediately without flashing the screen.
-When nil, never wrap, just stop at the last match."
+When nil, never wrap, just stop at the last match.
+With the values `no' and `no-ding' the search will try
+to wrap around also on typing a character."
   :type '(choice (const :tag "Pause before wrapping" t)
                  (const :tag "No pause before wrapping" no)
                  (const :tag "No pause and no flashing" no-ding)
@@ -880,6 +882,7 @@ matches literally, against one space.  You can toggle the value of this
 variable by the command `isearch-toggle-lax-whitespace', usually bound to
 `M-s SPC' during isearch."
   :type 'boolean
+  :group 'isearch
   :version "25.1")
 
 (defvar isearch-regexp-lax-whitespace nil
@@ -1179,6 +1182,7 @@ Each element of the list should be one of the symbols supported by
 `isearch-forward-thing-at-point' to yank the initial \"thing\"
 as text to the search string."
   :type '(repeat (symbol :tag "Thing symbol"))
+  :group 'isearch
   :version "28.1")
 
 (defun isearch-forward-thing-at-point ()
@@ -2525,10 +2529,11 @@ If no input items have been entered yet, just beep."
       (ding)
     (isearch-pop-state))
   ;; When going back to the hidden match, reopen it and close other overlays.
-  (when (and (eq search-invisible 'open) isearch-hide-immediately)
+  (when (and (eq isearch-invisible 'open) isearch-hide-immediately)
     (if isearch-other-end
-        (isearch-range-invisible (min (point) isearch-other-end)
-                                 (max (point) isearch-other-end))
+        (let ((search-invisible isearch-invisible))
+          (isearch-range-invisible (min (point) isearch-other-end)
+                                   (max (point) isearch-other-end)))
       (isearch-close-unnecessary-overlays (point) (point))))
   (isearch-update))
 
