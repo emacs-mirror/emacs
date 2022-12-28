@@ -613,18 +613,21 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
 
     ;; When nothing is specified about a `lisp-dir', then should
     ;; heuristically check if there is a sub-directory with lisp
-    ;; files.  These are conventionally just called "lisp".  If this
-    ;; directory exists and contains non-zero number of lisp files, we
-    ;; will use that instead of `pkg-dir'.
-    (when-let* (((null lisp-dir))
-                (dir (expand-file-name "lisp" pkg-dir))
-                ((file-directory-p dir))
-                ((directory-files dir nil "\\`[^.].+\\.el\\'" t 1)))
-      ;; We won't use `dir', since dir is an absolute path and we
-      ;; don't want `lisp-dir' to depend on the current location of
-      ;; the package installation, ie. to break if moved around the
-      ;; file system or between installations.
-      (setq lisp-dir "lisp"))
+    ;; files.  These are conventionally just called "lisp" or "src".
+    ;; If this directory exists and contains non-zero number of lisp
+    ;; files, we will use that instead of `pkg-dir'.
+    (catch 'done
+      (dolist (name '("lisp" "src"))
+        (when-let* (((null lisp-dir))
+                    (dir (expand-file-name name pkg-dir))
+                    ((file-directory-p dir))
+                    ((directory-files dir nil "\\`[^.].+\\.el\\'" t 1)))
+          ;; We won't use `dir', since dir is an absolute path and we
+          ;; don't want `lisp-dir' to depend on the current location of
+          ;; the package installation, ie. to break if moved around the
+          ;; file system or between installations.
+          (throw 'done (setq lisp-dir name)))))
+
     (when lisp-dir
       (push (cons :lisp-dir lisp-dir)
             (package-desc-extras pkg-desc)))

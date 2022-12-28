@@ -29,10 +29,12 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
+(require 'c-ts-mode) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 
 (defcustom java-ts-mode-indent-offset 4
@@ -71,8 +73,9 @@
      ((node-is "}") (and parent parent-bol) 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
-     ((and (parent-is "comment") comment-end) comment-start -1)
-     ((parent-is "comment") comment-start-skip 0)
+     ((and (parent-is "comment") c-ts-mode--looking-at-star)
+      c-ts-mode--comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "text_block") no-indent)
      ((parent-is "class_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "interface_body") parent-bol java-ts-mode-indent-offset)
@@ -264,50 +267,6 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name")
       t))))
 
-(defun java-ts-mode--imenu-1 (node)
-  "Helper for `java-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'java-ts-mode--imenu-1 (cdr node)))
-         (name (when ts-node
-                 (or (treesit-defun-name ts-node)
-                     "Unnamed node")))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((null ts-node) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun java-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (class-tree (treesit-induce-sparse-tree
-                      node "^class_declaration$" nil 1000))
-         (interface-tree (treesit-induce-sparse-tree
-                          node "^interface_declaration$" nil 1000))
-         (enum-tree (treesit-induce-sparse-tree
-                     node "^enum_declaration$" nil 1000))
-         (record-tree (treesit-induce-sparse-tree
-                       node "^record_declaration$"  nil 1000))
-         (method-tree (treesit-induce-sparse-tree
-                       node "^method_declaration$" nil 1000))
-         (class-index (java-ts-mode--imenu-1 class-tree))
-         (interface-index (java-ts-mode--imenu-1 interface-tree))
-         (enum-index (java-ts-mode--imenu-1 enum-tree))
-         (record-index (java-ts-mode--imenu-1 record-tree))
-         (method-index (java-ts-mode--imenu-1 method-tree)))
-    (append
-     (when class-index `(("Class" . ,class-index)))
-     (when interface-index `(("Interface" . ,interface-index)))
-     (when enum-index `(("Enum" . ,enum-index)))
-     (when record-index `(("Record" . ,record-index)))
-     (when method-index `(("Method" . ,method-index))))))
-
 ;;;###autoload
 (define-derived-mode java-ts-mode prog-mode "Java"
   "Major mode for editing Java, powered by tree-sitter."
@@ -320,15 +279,7 @@ the subtrees."
   (treesit-parser-create 'java)
 
   ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
+  (c-ts-mode-comment-setup)
 
   (setq-local treesit-text-type-regexp
               (regexp-opt '("line_comment"
@@ -363,8 +314,11 @@ the subtrees."
                 ( bracket delimiter operator)))
 
   ;; Imenu.
-  (setq-local imenu-create-index-function #'java-ts-mode--imenu)
-  (setq-local which-func-functions nil) ;; Piggyback on imenu
+  (setq-local treesit-simple-imenu-settings
+              '(("Class" "\\`class_declaration\\'" nil nil)
+                ("Interface" "\\`interface_declaration\\'" nil nil)
+                ("Enum" "\\`record_declaration\\'" nil nil)
+                ("Method" "\\`method_declaration\\'" nil nil)))
   (treesit-major-mode-setup))
 
 (provide 'java-ts-mode)

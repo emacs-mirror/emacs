@@ -14271,12 +14271,14 @@ redisplay_tab_bar (struct frame *f)
 	frame_default_tab_bar_height = new_height;
     }
 
-  /* If new_height or new_nrows indicate that we need to enlarge the
-     tab-bar window, we can return right away.  */
+  /* If new_height or new_nrows indicate that we need to enlarge or
+     shrink the tab-bar window, we can return right away.  */
   if (new_nrows > f->n_tab_bar_rows
       || (EQ (Vauto_resize_tab_bars, Qgrow_only)
 	  && !f->minimize_tab_bar_window_p
-	  && new_height > WINDOW_PIXEL_HEIGHT (w)))
+	  && new_height > WINDOW_PIXEL_HEIGHT (w))
+      || (! EQ (Vauto_resize_tab_bars, Qgrow_only)
+	  && new_height < WINDOW_PIXEL_HEIGHT (w)))
     {
       if (FRAME_TERMINAL (f)->change_tab_bar_height_hook)
 	FRAME_TERMINAL (f)->change_tab_bar_height_hook (f, new_height);

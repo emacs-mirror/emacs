@@ -261,7 +261,7 @@ If START or END is negative, it counts from the end."
             (when-let* ((s (plist-get e :secret))
                         (v (auth-source--obfuscate s)))
               (setf (plist-get e :secret)
-                    (byte-compile (lambda () (auth-source--deobfuscate v)))))
+                    (apply-partially #'auth-source--deobfuscate v)))
             (push e out)))
       rv)))
 

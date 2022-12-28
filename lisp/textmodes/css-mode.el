@@ -1425,33 +1425,6 @@ Return nil if there is no name or if NODE is not a defun node."
          (treesit-node-start node)
          (treesit-node-start block)))))))
 
-(defun css--treesit-imenu-1 (node)
-  "Helper for `css--treesit-imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'css--treesit-imenu-1 (cdr node)))
-         (name (when ts-node
-                 (or (treesit-defun-name ts-node)
-                     "Anonymous")))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun css--treesit-imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (tree (treesit-induce-sparse-tree
-                node (rx (or "rule_set" "media_statement"))
-                nil 1000)))
-    (css--treesit-imenu-1 tree)))
-
 ;;; Completion
 
 (defun css--complete-property ()
@@ -1847,8 +1820,9 @@ can also be used to fill comments.
                 '((selector comment query keyword)
                   (property constant string)
                   (error variable function operator bracket)))
-    (setq-local imenu-create-index-function #'css--treesit-imenu)
-    (setq-local which-func-functions nil)
+    (setq-local treesit-simple-imenu-settings
+                `( nil ,(rx bos (or "rule_set" "media_statement") eos)
+                   nil nil))
     (treesit-major-mode-setup)))
 
 ;;;###autoload

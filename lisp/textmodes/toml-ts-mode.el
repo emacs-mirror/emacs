@@ -32,6 +32,8 @@
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 
 (defcustom toml-ts-mode-indent-offset 2
@@ -112,39 +114,8 @@
 Return nil if there is no name or if NODE is not a defun node."
   (pcase (treesit-node-type node)
     ((or "table" "table_array_element")
-     (car (cdr (treesit-node-children node))))))
-
-(defun toml-ts-mode--imenu-1 (node)
-  "Helper for `toml-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'toml-ts-mode--imenu-1 (cdr node)))
-         (name (or (treesit-defun-name ts-node)
-                   "Root table"))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((null ts-node) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun toml-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (table-tree (treesit-induce-sparse-tree
-                      node "^table$" nil 1000))
-         (table-array-tree (treesit-induce-sparse-tree
-                            node "^table_array_element$" nil 1000))
-         (table-index (toml-ts-mode--imenu-1 table-tree))
-         (table-array-index (toml-ts-mode--imenu-1 table-array-tree)))
-    (append
-     (when table-index `(("Headers" . ,table-index)))
-     (when table-array-index `(("Arrays" . ,table-array-index))))))
-
+     (or (treesit-node-text (treesit-node-child node 1) t)
+         "Root table"))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
@@ -179,8 +150,9 @@ the subtrees."
                   (delimiter error)))
 
     ;; Imenu.
-    (setq-local imenu-create-index-function #'toml-ts-mode--imenu)
-    (setq-local which-func-functions nil) ;; Piggyback on imenu
+    (setq-local treesit-simple-imenu-settings
+                '(("Header" "\\`table\\'" nil nil)
+                  ("Array" "\\`table_array_element\\'" nil nil)))
 
     (treesit-major-mode-setup)))
 

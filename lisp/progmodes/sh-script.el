@@ -150,6 +150,8 @@
 (require 'executable)
 (require 'treesit)
 
+(declare-function treesit-parser-create "treesit.c")
+
 (autoload 'comint-completion-at-point "comint")
 (autoload 'comint-filename-completion "comint")
 (autoload 'comint-send-string "comint")

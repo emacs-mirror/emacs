@@ -272,8 +272,7 @@ and hunk-based syntax highlighting otherwise as a fallback."
 
 (defcustom diff-minor-mode-prefix "\C-c="
   "Prefix key for `diff-minor-mode' commands."
-  :type '(choice (string "ESC")
-                 (string "\C-c=") string))
+  :type '(choice (string "\e") (string "\C-c=") string))
 
 (defvar-keymap diff-minor-mode-map
   :doc "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'."

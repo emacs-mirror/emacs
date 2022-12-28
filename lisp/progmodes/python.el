@@ -1080,7 +1080,6 @@ fontified."
 
    :feature 'string
    :language 'python
-   :override t
    '((string) @python--treesit-fontify-string)
 
    :feature 'string-interpolation
@@ -1097,9 +1096,7 @@ fontified."
 
    :feature 'function
    :language 'python
-   '((function_definition
-      name: (identifier) @font-lock-function-name-face)
-     (call function: (identifier) @font-lock-function-name-face)
+   '((call function: (identifier) @font-lock-function-name-face)
      (call function: (attribute
                       attribute: (identifier) @font-lock-function-name-face)))
 
@@ -1130,7 +1127,7 @@ fontified."
                  @font-lock-variable-name-face)
      (assignment left: (attribute
                         attribute: (identifier)
-                        @font-lock-variable-name-face))
+                        @font-lock-property-face))
      (pattern_list (identifier)
                    @font-lock-variable-name-face)
      (tuple_pattern (identifier)
@@ -1162,12 +1159,10 @@ fontified."
 
    :feature 'number
    :language 'python
-   :override t
    '([(integer) (float)] @font-lock-number-face)
 
    :feature 'property
    :language 'python
-   :override t
    '((attribute
       attribute: (identifier) @font-lock-property-face)
      (class_definition
@@ -1178,19 +1173,43 @@ fontified."
 
    :feature 'operator
    :language 'python
-   :override t
    `([,@python--treesit-operators] @font-lock-operator-face)
 
    :feature 'bracket
    :language 'python
-   :override t
    '(["(" ")" "[" "]" "{" "}"] @font-lock-bracket-face)
 
    :feature 'delimiter
    :language 'python
-   :override t
-   '(["," "." ":" ";" (ellipsis)] @font-lock-delimiter-face))
+   '(["," "." ":" ";" (ellipsis)] @font-lock-delimiter-face)
+
+   :feature 'variable
+   :language 'python
+   '((identifier) @python--treesit-fontify-variable))
   "Tree-sitter font-lock settings.")
+
+(defun python--treesit-variable-p (node)
+  "Check whether NODE is a variable.
+NODE's type should be \"identifier\"."
+  ;; An identifier can be a function/class name, a property, or a
+  ;; variables.  This funtion filters out function/class names and
+  ;; properties.
+  (pcase (treesit-node-type (treesit-node-parent node))
+    ((or "function_definition" "class_definition") nil)
+    ("attribute"
+     (pcase (treesit-node-field-name node)
+       ("object" t)
+       (_ nil)))
+    (_ t)))
+
+(defun python--treesit-fontify-variable (node override start end &rest _)
+  "Fontify an identifier node if it is a variable.
+For NODE, OVERRIDE, START, END, and ARGS, see
+`treesit-font-lock-rules'."
+  (when (python--treesit-variable-p node)
+    (treesit-fontify-with-override
+     (treesit-node-start node) (treesit-node-end node)
+     'font-lock-variable-name-face override start end)))
 
 
 ;;; Indentation
@@ -6646,7 +6665,7 @@ implementations: `python-mode' and `python-ts-mode'."
                   ( keyword string type)
                   ( assignment builtin constant decorator
                     escape-sequence number property string-interpolation )
-                  ( function bracket delimiter operator)))
+                  ( bracket delimiter function operator variable)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)

@@ -6905,11 +6905,8 @@ sentence (see Info node `(elisp) Documentation Tips')."
 
 (defun json-available-p ()
   "Return non-nil if Emacs has libjansson support."
-  (and (fboundp 'json-serialize)
-       (condition-case nil
-           (json-serialize t)
-         (:success t)
-         (json-unavailable nil))))
+  (and (fboundp 'json--available-p)
+       (json--available-p)))
 
 (defun ensure-list (object)
   "Return OBJECT as a list.

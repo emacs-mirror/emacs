@@ -1077,7 +1077,7 @@ the default candidate.
 *** New command 'help-quick' displays an overview of common commands.
 The command pops up a buffer at the bottom of the screen with a few
 helpful commands for various tasks.  You can toggle the display using
-'C-h q'.
+'C-h C-q'.
 
 ** Emacs now comes with Org v9.6.
 See the file ORG-NEWS for user-visible changes in Org.
@@ -1103,7 +1103,7 @@ in addition to the ellipsis.  The default is nil, but in 'help-mode'
 it has the value 'insert' that inserts the buttons directly into the
 buffer, and you can use 'RET' to cycle outline visibility.  When
 the value is 'in-margins', Outline Minor Mode uses the window margins
-to hide/show buttons.
+for buttons that hide/show outlines.
 
 ** Windows
 
@@ -1875,6 +1875,12 @@ completion, but they don't insert candidates automatically, you need
 to type 'M-RET' to insert the selected candidate to the buffer.
 
 +++
+*** Choosing a completion with a prefix argument doesn't exit the minibuffer.
+This means that typing 'C-u RET' on a completion candidate in the
+"*Completions*" buffer inserts the completion into the minibuffer,
+but doesn't exit the minibuffer.
+
++++
 *** The "*Completions*" buffer can now be automatically selected.
 To enable this behavior, customize the user option
 'completion-auto-select' to t, then pressing 'TAB' will switch to the
@@ -1931,12 +1937,6 @@ When this user option names a face, the current
 candidate in the "*Completions*" buffer is highlighted with that face.
 The nil value disables this highlighting.  The default is to highlight
 using the 'completions-highlight' face.
-
-+++
-*** Choosing a completion with a prefix argument doesn't exit the minibuffer.
-This means that typing 'C-u RET' on a completion candidate in the
-"*Completions*" buffer inserts the completion to the minibuffer,
-but doesn't exit the minibuffer.
 
 +++
 *** You can now define abbrevs for the minibuffer modes.
@@ -3054,6 +3054,19 @@ name.
 *** New key binding 'O' in 'M-x list-buffers'.
 This key is now bound to 'Buffer-menu-view-other-window', which will
 view this line's buffer in View mode in another window.
+
+** Scheme mode
+
+---
+*** Auto-detection of Scheme library files.
+Emacs now automatically enables the Scheme mode when opening R6RS
+Scheme Library Source ('.sls') files and R7RS Scheme Library
+Definition ('.sld') files.
+
+---
+*** Imenu members for R6RS and R7RS library members.
+Imenu now lists the members directly nested in R6RS Scheme libraries
+('library') and R7RS libraries ('define-library').
 
 
 * New Modes and Packages in Emacs 29.1
@@ -4687,6 +4700,15 @@ where those APIs are available.
 *** Emacs now supports display of BMP images using native image APIs.
 When 'w32-use-native-image-API' is non-nil, Emacs on MS-Windows now
 has built-in support for displaying BMP images.
+
+---
+*** GUI Yes/No dialogs now include a "Cancel" button.
+The "Cancel" button is in addition to "Yes" and "No", and is intended
+to allow users to quit the dialog, as an equivalent of C-g when Emacs
+asks a yes/no question via the echo area.  This is controlled by the
+new variable 'w32-yes-no-dialog-show-cancel', by default t.  Set it to
+nil to get back the old behavior of showing a modal dialog with only
+two buttons: "Yes" and "No".
 
 ** Cygwin
 

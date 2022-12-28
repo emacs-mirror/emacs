@@ -54,6 +54,7 @@
 (require 'json)
 (require 'prog-mode)
 (require 'treesit)
+(require 'c-ts-mode) ; For comment indent and filling.
 
 (eval-when-compile
   (require 'cl-lib)
@@ -3425,9 +3426,9 @@ This function is intended for use in `after-change-functions'."
        ((node-is ")") parent-bol 0)
        ((node-is "]") parent-bol 0)
        ((node-is ">") parent-bol 0)
-       ((parent-is "comment") comment-start 0)
-       ((and (parent-is "comment") comment-end) comment-start -1)
-       ((parent-is "comment") comment-start-skip 0)
+       ((and (parent-is "comment") c-ts-mode--looking-at-star)
+        c-ts-mode--comment-start-after-first-star -1)
+       ((parent-is "comment") prev-adaptive-prefix 0)
        ((parent-is "ternary_expression") parent-bol js-indent-level)
        ((parent-is "member_expression") parent-bol js-indent-level)
        ((node-is ,switch-case) parent-bol 0)
@@ -3669,70 +3670,11 @@ Return nil if there is no name or if NODE is not a defun node."
     "name")
    t))
 
-(defun js--treesit-imenu-1 (node)
-  "Given a sparse tree, create an imenu alist.
-
-NODE is the root node of the tree returned by
-`treesit-induce-sparse-tree' (not a tree-sitter node, its car is
-a tree-sitter node).  Walk that tree and return an imenu alist.
-
-Return a list of ENTRY where
-
-ENTRY := (NAME . MARKER)
-       | (NAME . ((JUMP-LABEL . MARKER)
-                  ENTRY
-                  ...)
-
-NAME is the function/class's name, JUMP-LABEL is like \"*function
-definition*\"."
-  (let* ((ts-node (car node))
-         (children (cdr node))
-         (subtrees (mapcan #'js--treesit-imenu-1
-                           children))
-         (type (pcase (treesit-node-type ts-node)
-                 ("lexical_declaration" 'variable)
-                 ("class_declaration" 'class)
-                 ("method_definition" 'method)
-                 ("function_declaration" 'function)))
-         ;; The root of the tree could have a nil ts-node.
-         (name (when ts-node
-                 (or (treesit-defun-name ts-node)
-                     "Anonymous")))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((null ts-node)
-      subtrees)
-     ;; Don't included non-top-level variable declarations.
-     ((and (eq type 'variable)
-           (treesit-node-top-level ts-node))
-      nil)
-     (subtrees
-      `((,name
-         ,(cons "" marker)
-         ,@subtrees)))
-     (t (list (cons name marker))))))
-
-(defun js--treesit-imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (class-tree (treesit-induce-sparse-tree
-                      node (rx (or "class_declaration"
-                                   "method_definition"))
-                      nil 1000))
-         (func-tree (treesit-induce-sparse-tree
-                     node "function_declaration" nil 1000))
-         (var-tree (treesit-induce-sparse-tree
-                    node "lexical_declaration" nil 1000)))
-    ;; When a sub-tree is empty, we should not return that pair at all.
-    (append
-     (and func-tree
-          `(("Function" . ,(js--treesit-imenu-1 func-tree))))
-     (and var-tree
-          `(("Variable" . ,(js--treesit-imenu-1 var-tree))))
-     (and class-tree
-          `(("Class" . ,(js--treesit-imenu-1 class-tree)))))))
+(defun js--treesit-valid-imenu-entry (node)
+  "Return nil if NODE is a non-top-level \"lexical_declaration\"."
+  (pcase (treesit-node-type node)
+    ("lexical_declaration" (treesit-node-top-level node))
+    (_ t)))
 
 ;;; Main Function
 
@@ -3845,15 +3787,7 @@ Currently there are `js-mode' and `js-ts-mode'."
     ;; Which-func.
     (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
     ;; Comment.
-    (setq-local comment-start "// ")
-    (setq-local comment-end "")
-    (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                           (seq "/" (+ "*")))
-                                       (* (syntax whitespace))))
-    (setq-local comment-end-skip
-                (rx (* (syntax whitespace))
-                    (group (or (syntax comment-end)
-                               (seq (+ "*") "/")))))
+    (c-ts-mode-comment-setup)
     (setq-local comment-multi-line t)
 
     (setq-local treesit-text-type-regexp
@@ -3887,10 +3821,14 @@ Currently there are `js-mode' and `js-ts-mode'."
                     identifier jsx number pattern property)
                   ( bracket delimiter operator)))
     ;; Imenu
-    (setq-local imenu-create-index-function
-                #'js--treesit-imenu)
-    ;; Which-func (use imenu).
-    (setq-local which-func-functions nil)
+    (setq-local treesit-simple-imenu-settings
+                `(("Function" "\\`function_declaration\\'" nil nil)
+                  ("Variable" "\\`lexical_declaration\\'"
+                   js--treesit-valid-imenu-entry nil)
+                  ("Class" ,(rx bos (or "class_declaration"
+                                        "method_definition")
+                                eos)
+                   nil nil)))
     (treesit-major-mode-setup)))
 
 ;;;###autoload

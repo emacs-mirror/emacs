@@ -31,13 +31,14 @@ build tools for MinGW-w64 -- see https://msys2.org/.
 
 ** Download and install MinGW-w64 and MSYS2
 
-Go to https://msys2.org and follow the instructions.  It is not
-necessary to install the packages suggested on those instructions.
+Go to https://msys2.org and follow the Installation instructions, up
+to where they say to use 'pacman -S' to install packages.  Instead,
+install the necessary packages as instructed in the next section.
 
 ** Download and install the necessary packages
 
 Run mingw64.exe in your MSYS2 directory and you will see a BASH window
-opened.
+open.
 
 In the BASH prompt, use the following command to install the necessary
 packages (you can copy and paste it into the shell with Shift + Insert):
@@ -45,6 +46,8 @@ packages (you can copy and paste it into the shell with Shift + Insert):
   pacman -S --needed base-devel \
   mingw-w64-x86_64-toolchain \
   mingw-w64-x86_64-xpm-nox \
+  mingw-w64-x86_64-gmp \
+  mingw-w64-x86_64-gnutls \
   mingw-w64-x86_64-libtiff \
   mingw-w64-x86_64-giflib \
   mingw-w64-x86_64-libpng \
@@ -54,16 +57,21 @@ packages (you can copy and paste it into the shell with Shift + Insert):
   mingw-w64-x86_64-lcms2 \
   mingw-w64-x86_64-jansson \
   mingw-w64-x86_64-libxml2 \
-  mingw-w64-x86_64-gnutls \
   mingw-w64-x86_64-zlib \
-  mingw-w64-x86_64-harfbuzz
+  mingw-w64-x86_64-harfbuzz \
+  mingw-w64-x86_64-libgccjit \
+  mingw-w64-x86_64-sqlite3 \
+  mingw-w64-x86_64-tree-sitter
 
-The packages include the base developer tools (autoconf, grep, make, etc.),
-the compiler toolchain (gcc, gdb, etc.), several image libraries, an XML
-library, the GnuTLS (transport layer security) library, zlib for
-decompressing text, and HarfBuzz for use as the shaping engine.  Only the
-first three packages are required (base-devel,  toolchain, xpm-nox); the
-rest are optional.  You can select only part of the libraries if you don't
+The packages include the base developer tools (autoconf, grep, make,
+etc.), the compiler toolchain (gcc, gdb, etc.), several image
+libraries, an XML library, the GnuTLS (transport layer security)
+library, zlib for decompressing text, HarfBuzz for use as the shaping
+engine, libgccjit for native-compilation support, SQLite3 for
+accessing SQL databases, and the tree-sitter library used by some
+major modes.  Only the first four packages are required (base-devel,
+toolchain, xpm-nox, GMP), and GnuTLS is highly recommended; the rest
+are optional.  You can select only part of the libraries if you don't
 need them all.
 
 You now have a complete build environment for Emacs.

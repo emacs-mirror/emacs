@@ -393,12 +393,6 @@ tree-sitter can be activated.  Major modes should check this value
 when deciding whether to enable tree-sitter features.
 @end defvar
 
-@defun treesit-can-enable-p
-This function checks whether the current buffer is suitable for
-activating tree-sitter features.  It basically checks
-@code{treesit-available-p} and @code{treesit-max-buffer-size}.
-@end defun
-
 @cindex creating tree-sitter parsers
 @cindex tree-sitter parser, creating
 @defun treesit-parser-create language &optional buffer no-reuse
@@ -649,6 +643,10 @@ it, or query for information about this node.
 
 @defun treesit-node-parent node
 This function returns the immediate parent of @var{node}.
+
+If @var{node} is more than 1000 levels deep in a parse tree, the
+return value is undefined.  Currently it returns @var{nil}, but that
+could change in the future.
 @end defun
 
 @defun treesit-node-child node n &optional named
@@ -1268,10 +1266,11 @@ example, with the following pattern:
 @end example
 
 @noindent
-tree-sitter only matches arrays where the first element equals to
-the last element.  To attach a predicate to a pattern, we need to
-group them together.  A predicate always starts with a @samp{#}.
-Currently there are two predicates, @code{#equal} and @code{#match}.
+tree-sitter only matches arrays where the first element equals to the
+last element.  To attach a predicate to a pattern, we need to group
+them together.  A predicate always starts with a @samp{#}.  Currently
+there are three predicates, @code{#equal}, @code{#match}, and
+@code{#pred}.
 
 @deffn Predicate equal arg1 arg2
 Matches if @var{arg1} equals to @var{arg2}.  Arguments can be either
@@ -1282,6 +1281,11 @@ captured node spans in the buffer.
 @deffn Predicate match regexp capture-name
 Matches if the text that @var{capture-name}'s node spans in the buffer
 matches regular expression @var{regexp}.  Matching is case-sensitive.
+@end deffn
+
+@deffn Predicate pred fn &rest nodes
+Matches if function @var{fn} returns non-@code{nil} when passed each
+node in @var{nodes} as arguments.
 @end deffn
 
 Note that a predicate can only refer to capture names that appear in
@@ -1717,17 +1721,14 @@ This function activates some tree-sitter features for a major mode.
 
 Currently, it sets up the following features:
 @itemize
-@vindex treesit-font-lock-settings
 @item
-If @code{treesit-font-lock-settings} is non-@code{nil}, it sets up
-fontification.
+If @code{treesit-font-lock-settings} (@pxref{Parser-based Font Lock})
+is non-@code{nil}, it sets up fontification.
 
-@vindex treesit-simple-indent-rules
 @item
-If @code{treesit-simple-indent-rules} is non-@code{nil}, it sets up
-indentation.
+If @code{treesit-simple-indent-rules} (@pxref{Parser-based Font Lock})
+is non-@code{nil}, it sets up indentation.
 
-@vindex treesit-defun-type-regexp
 @item
 If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up
 navigation functions for @code{beginning-of-defun} and
@@ -1736,6 +1737,10 @@ navigation functions for @code{beginning-of-defun} and
 @item
 If @code{treesit-defun-name-function} is non-@code{nil}, it sets up
 add-log functions used by @code{add-log-current-defun}.
+
+@item
+If @code{treesit-simple-imenu-settings} (@pxref{Imenu}) is
+non-@code{nil}, it sets up Imenu.
 @end itemize
 @end defun
 
@@ -1782,6 +1787,17 @@ node.  The function should have the same semantic as
 @code{treesit-defun-name}: if the node is not a defun node, or the
 node is a defun node but doesn't have a name, or the node is
 @code{nil}, it should return @code{nil}.
+@end defvar
+
+@defvar treesit-defun-type-regexp
+This variable determines which nodes are considered defuns by Emacs.
+It can be a regexp that matches the type of defun nodes.
+
+Sometimes not all nodes matched by the regexp are valid defuns.
+Therefore, this variable can also be a cons cell of the form
+@w{(@var{regexp} . @var{pred})}, where @var{pred} should be a function
+that takes a node as its argument, and returns @code{t} if the node is
+valid defun, or @code{nil} if it is not valid.
 @end defvar
 
 @node Tree-sitter C API
