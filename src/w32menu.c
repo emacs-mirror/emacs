@@ -1091,7 +1091,10 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
   /* We use MB_YESNOCANCEL to allow the user the equivalent of C-g
      when the Yes/No question is asked vya y-or-n-p or
      yes-or-no-p.  */
-  type = MB_YESNOCANCEL;
+  if (w32_yes_no_dialog_show_cancel)
+    type = MB_YESNOCANCEL;
+  else
+    type = MB_YESNO;
 
   /* Since we only handle Yes/No dialogs, and we already checked
      is_simple_dialog, we don't need to worry about checking contents

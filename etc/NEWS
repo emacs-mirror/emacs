@@ -4701,6 +4701,15 @@ where those APIs are available.
 When 'w32-use-native-image-API' is non-nil, Emacs on MS-Windows now
 has built-in support for displaying BMP images.
 
+---
+*** GUI Yes/No dialogs now include a "Cancel" button.
+The "Cancel" button is in addition to "Yes" and "No", and is intended
+to allow users to quit the dialog, as an equivalent of C-g when Emacs
+asks a yes/no question via the echo area.  This is controlled by the
+new variable 'w32-yes-no-dialog-show-cancel', by default t.  Set it to
+nil to get back the old behavior of showing a modal dialog with only
+two buttons: "Yes" and "No".
+
 ** Cygwin
 
 ---
