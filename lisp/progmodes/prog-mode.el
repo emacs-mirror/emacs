@@ -164,7 +164,7 @@ or follows point."
                  (treesit-node-type (treesit-node-at (point)))))))
       (if (or treesit-text-node
               (nth 8 (syntax-ppss))
-              (re-search-forward "^\\s<" (line-end-position) t))
+              (re-search-forward "\\s-*\\s<" (line-end-position) t))
           (fill-paragraph argument (region-active-p))
         (beginning-of-defun)
         (let ((start (point)))
