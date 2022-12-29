@@ -1744,13 +1744,17 @@ this function depends on `treesit-defun-type-regexp' and
 This function tries to move to the beginning of a line, either by
 moving to the empty newline after a defun, or to the beginning of
 the current line if the beginning of the defun is indented."
-  (cond ((and (looking-at (rx (* (or " " "\\t")) "\n"))
-              (not (looking-at (rx bol))))
-         (goto-char (match-end 0)))
-        ((save-excursion
-           (skip-chars-backward " \t")
-           (eq (point) (line-beginning-position)))
-         (goto-char (line-beginning-position)))))
+  ;; Moving forward, point at the end of a line and not already on an
+  ;; empty line: go to BOL of the next line (which hopefully is an
+  ;; empty line).
+  (cond ((and (looking-at (rx (* (or " " "\t")) "\n"))
+              (not (bolp)))
+         (forward-line 1))
+        ;; Moving backward, but there are some whitespace (and only
+        ;; whitespace) between point and BOL: go back to BOL.
+        ((looking-back (rx (+ (or " " "\t")))
+                       (line-beginning-position))
+         (beginning-of-line))))
 
 ;; prev-sibling:
 ;; 1. end-of-node before pos
