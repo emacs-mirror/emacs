@@ -1440,14 +1440,14 @@ literals (Bug#20852)."
       (let ((_ 1))
         ))
    '((empty-body let))
-   "Warning: Empty let body")
+   "Warning: `let' with empty body")
 
   (test-suppression
    '(defun zot ()
       (let* ((_ 1))
         ))
    '((empty-body let*))
-   "Warning: Empty let\\* body")
+   "Warning: `let\\*' with empty body")
 
   (test-suppression
    '(defun zot (x)
