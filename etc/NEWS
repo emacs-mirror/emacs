@@ -327,6 +327,12 @@ instead of:
         and another_expression):
         do_something()
 
+** use-package
+
++++
+*** New ':vc' keyword.
+This keyword enables the user to install packages using 'package-vc'.
+
 
 * New Modes and Packages in Emacs 30.1
 
