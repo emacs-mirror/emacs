@@ -280,14 +280,20 @@ change the list."
 When COND yields non-nil, eval BODY forms sequentially and return
 value of last one, or nil if there are none."
   (declare (indent 1) (debug t))
-  (list 'if cond (cons 'progn body)))
+  (if body
+      (list 'if cond (cons 'progn body))
+    (macroexp-warn-and-return "`when' with empty body"
+                              cond '(empty-body when) t)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil.
 When COND yields nil, eval BODY forms sequentially and return
 value of last one, or nil if there are none."
   (declare (indent 1) (debug t))
-  (cons 'if (cons cond (cons nil body))))
+  (if body
+      (cons 'if (cons cond (cons nil body)))
+    (macroexp-warn-and-return "`unless' with empty body"
+                              cond '(empty-body unless) t)))
 
 (defsubst subr-primitive-p (object)
   "Return t if OBJECT is a built-in primitive function."
@@ -383,14 +389,19 @@ Otherwise, return result of last form in BODY.
 CONDITION can also be a list of error conditions.
 The CONDITION argument is not evaluated.  Do not quote it."
   (declare (debug t) (indent 1))
-  (if (and (eq (car-safe condition) 'quote)
-           (cdr condition) (null (cddr condition)))
-      (macroexp-warn-and-return
-       (format "`ignore-error' condition argument should not be quoted: %S"
-               condition)
-       `(condition-case nil (progn ,@body) (,(cadr condition) nil))
-       nil t condition)
-    `(condition-case nil (progn ,@body) (,condition nil))))
+  (cond
+   ((and (eq (car-safe condition) 'quote)
+         (cdr condition) (null (cddr condition)))
+    (macroexp-warn-and-return
+     (format "`ignore-error' condition argument should not be quoted: %S"
+             condition)
+     `(condition-case nil (progn ,@body) (,(cadr condition) nil))
+     nil t condition))
+   (body
+    `(condition-case nil (progn ,@body) (,condition nil)))
+   (t
+    (macroexp-warn-and-return "`ignore-error' with empty body"
+                              nil '(empty-body ignore-error) t condition))))
 
 
 ;;;; Basic Lisp functions.

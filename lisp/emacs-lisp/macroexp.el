@@ -368,7 +368,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                      (macroexp-unprogn
                       (macroexp-warn-and-return
                        (format "Empty %s body" fun)
-                       nil nil 'compile-only fun))
+                       nil (list 'empty-body fun) 'compile-only fun))
                    (macroexp--all-forms body))
                  (cdr form))
                 form)))

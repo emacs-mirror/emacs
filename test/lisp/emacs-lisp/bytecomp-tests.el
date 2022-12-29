@@ -1433,7 +1433,50 @@ literals (Bug#20852)."
         (set-buffer (get-buffer-create "foo"))
         nil))
    '((suspicious set-buffer))
-   "Warning: Use .with-current-buffer. rather than"))
+   "Warning: Use .with-current-buffer. rather than")
+
+  (test-suppression
+   '(defun zot ()
+      (let ((_ 1))
+        ))
+   '((empty-body let))
+   "Warning: Empty let body")
+
+  (test-suppression
+   '(defun zot ()
+      (let* ((_ 1))
+        ))
+   '((empty-body let*))
+   "Warning: Empty let\\* body")
+
+  (test-suppression
+   '(defun zot (x)
+      (when x
+        ))
+   '((empty-body when))
+   "Warning: `when' with empty body")
+
+  (test-suppression
+   '(defun zot (x)
+      (unless x
+        ))
+   '((empty-body unless))
+   "Warning: `unless' with empty body")
+
+  (test-suppression
+   '(defun zot (x)
+      (ignore-error arith-error
+        ))
+   '((empty-body ignore-error))
+   "Warning: `ignore-error' with empty body")
+
+  (test-suppression
+   '(defun zot (x)
+      (with-suppressed-warnings ((suspicious eq))
+        ))
+   '((empty-body with-suppressed-warnings))
+   "Warning: `with-suppressed-warnings' with empty body")
+  )
 
 (ert-deftest bytecomp-tests--not-writable-directory ()
   "Test that byte compilation works if the output directory isn't

@@ -295,7 +295,8 @@ The information is logged to `byte-compile-log-buffer'."
   '(redefine callargs free-vars unresolved
              obsolete noruntime interactive-only
              make-local mapcar constants suspicious lexical lexical-dynamic
-             docstrings docstrings-non-ascii-quotes not-unused)
+             docstrings docstrings-non-ascii-quotes not-unused
+             empty-body)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "List of warnings that the byte-compiler should issue (t for almost all).
@@ -326,6 +327,7 @@ Elements of the list may be:
   docstrings-non-ascii-quotes docstrings that have non-ASCII quotes.
                               This depends on the `docstrings' warning type.
   suspicious  constructs that usually don't do what the coder wanted.
+  empty-body  body argument to a special form or macro is empty.
 
 If the list begins with `not', then the remaining elements specify warnings to
 suppress.  For example, (not mapcar) will suppress warnings about mapcar.
@@ -541,15 +543,19 @@ Return the compile-time value of FORM."
              ;; Later `internal--with-suppressed-warnings' binds it again, this
              ;; time in order to affect warnings emitted during the
              ;; compilation itself.
-             (let ((byte-compile--suppressed-warnings
-                    (append warnings byte-compile--suppressed-warnings)))
-               ;; This function doesn't exist, but is just a placeholder
-               ;; symbol to hook up with the
-               ;; `byte-hunk-handler'/`byte-defop-compiler-1' machinery.
-               `(internal--with-suppressed-warnings
-                 ',warnings
-                 ,(macroexpand-all `(progn ,@body)
-                                   macroexpand-all-environment))))))
+             (if body
+                 (let ((byte-compile--suppressed-warnings
+                        (append warnings byte-compile--suppressed-warnings)))
+                   ;; This function doesn't exist, but is just a placeholder
+                   ;; symbol to hook up with the
+                   ;; `byte-hunk-handler'/`byte-defop-compiler-1' machinery.
+                   `(internal--with-suppressed-warnings
+                     ',warnings
+                     ,(macroexpand-all `(progn ,@body)
+                                       macroexpand-all-environment)))
+               (macroexp-warn-and-return
+                "`with-suppressed-warnings' with empty body"
+                nil '(empty-body with-suppressed-warnings) t warnings)))))
   "The default macro-environment passed to macroexpand by the compiler.
 Placing a macro here will cause a macro to have different semantics when
 expanded by the compiler as when expanded by the interpreter.")
