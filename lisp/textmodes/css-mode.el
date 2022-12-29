@@ -1821,8 +1821,8 @@ can also be used to fill comments.
                   (property constant string)
                   (error variable function operator bracket)))
     (setq-local treesit-simple-imenu-settings
-                `( nil ,(rx bos (or "rule_set" "media_statement") eos)
-                   nil nil))
+                `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
+                    nil nil)))
     (treesit-major-mode-setup)))
 
 ;;;###autoload
