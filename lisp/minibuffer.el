@@ -1474,7 +1474,10 @@ when the buffer's text is already an exact match."
               (if (and (eq this-command last-command) completion-auto-help)
                   (minibuffer-completion-help beg end))
               (completion--done completion 'exact
-                                (unless expect-exact
+                                (unless (or expect-exact
+                                            (and completion-auto-select
+                                                 (eq this-command last-command)
+                                                 completion-auto-help))
                                   "Complete, but not unique"))))
 
             (minibuffer--bitset completed t exact))))))))
