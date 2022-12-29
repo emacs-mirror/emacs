@@ -118,7 +118,7 @@ MODE is either `c' or `cpp'."
          `(((parent-is "translation_unit") parent-bol 0)
            ((node-is ")") parent 1)
            ((node-is "]") parent-bol 0)
-           ((node-is "}") (and parent parent-bol) 0)
+           ((node-is "}") c-ts-mode--bracket-children-anchor 0)
            ((node-is "else") parent-bol 0)
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
@@ -133,7 +133,8 @@ MODE is either `c' or `cpp'."
            ((match "#endif" "preproc_if") point-min 0)
            ((match "preproc_function_def" "compound_statement") point-min 0)
            ((match "preproc_call" "compound_statement") point-min 0)
-           ((parent-is "compound_statement") (and parent parent-bol) c-ts-mode-indent-offset)
+           ((parent-is "compound_statement")
+            c-ts-mode--bracket-children-anchor c-ts-mode-indent-offset)
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "conditional_expression") first-sibling 0)
            ((parent-is "assignment_expression") parent-bol c-ts-mode-indent-offset)
@@ -188,6 +189,21 @@ MODE is either `c' or `cpp'."
              ('bsd   (alist-get 'bsd (c-ts-mode--indent-styles mode)))
              ('linux (alist-get 'linux (c-ts-mode--indent-styles mode)))))))
     `((,mode ,@style))))
+
+(defun c-ts-mode--bracket-children-anchor (_n parent &rest _)
+  "This anchor is used for children of a compound_statement.
+So anything inside a {} block.  PARENT should be the
+compound_statement.  This anchor looks at the {, if itson its own
+line, anchor at it, if it has stuff before it, anchor at the
+beginning of grandparent."
+  (save-excursion
+    (goto-char (treesit-node-start parent))
+    (let ((bol (line-beginning-position)))
+      (skip-chars-backward " \t")
+      (treesit-node-start
+       (if (< bol (point))
+           (treesit-node-parent parent)
+         parent)))))
 
 (defun c-ts-mode--looking-at-star (&rest _)
   "A tree-sitter simple indent matcher.
