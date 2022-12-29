@@ -117,6 +117,53 @@ point is not in a comment or a string.  It is by default bound to
 
 * Lisp Changes in Emacs 30.1
 
+** New or changed byte-compilation warnings
+
+---
+*** Warn about empty bodies for more special forms and macros.
+The compiler now warns about an empty body argument to 'when',
+'unless', 'ignore-error' and 'with-suppressed-warnings' in addition to
+the existing warnings for 'let' and 'let*'.  Example:
+
+  (when (> x 2))
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'empty-body'.
+
+---
+*** Warn about quoted error names in 'condition-case' and 'ignore-error'.
+The compiler now warns about quoted condition (error) names
+in 'condition-case' and 'ignore-error'.  Example:
+
+  (condition-case nil
+      (/ x y)
+    ('arith-error "division by zero"))
+
+Quoting them adds the error name 'quote' to those handled or ignored
+respectively, which was probably not intended.
+
+---
+*** Warn about comparison with literal constants without defined identity.
+The compiler now warns about comparisons by identity with a literal
+string, cons, vector, record, function, large integer or float as this
+may not match any value at all.  Example:
+
+  (eq x "hello")
+
+Only literals for symbols and small integers (fixnums), including
+characters, are guaranteed to have a consistent (unique) identity.
+This warning applies to 'eq', 'eql', 'memq', 'memql', 'assq', 'rassq',
+'remq' and 'delq'.
+
+To compare by (structural) value, use 'equal', 'member', 'assoc',
+'rassoc', 'remove' or 'delete' instead.  Floats and bignums can also
+be compared using 'eql', '=' and 'memql'.  Function literals cannot be
+compared reliably at all.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'suspicious'.
+
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 
