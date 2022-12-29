@@ -36,6 +36,7 @@
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
 
 (defcustom go-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `go-ts-mode'."
@@ -173,44 +174,6 @@
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `go-ts-mode'.")
 
-(defun go-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (func-tree (treesit-induce-sparse-tree
-                     node "function_declaration" nil 1000))
-         (type-tree (treesit-induce-sparse-tree
-                     node "type_spec" nil 1000))
-         (func-index (go-ts-mode--imenu-1 func-tree))
-         (type-index (go-ts-mode--imenu-1 type-tree)))
-    (append
-     (when func-index `(("Function" . ,func-index)))
-     (when type-index `(("Type" . ,type-index))))))
-
-(defun go-ts-mode--imenu-1 (node)
-  "Helper for `go-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (children (cdr node))
-         (subtrees (mapcan #'go-ts-mode--imenu-1
-                           children))
-         (name (when ts-node
-                 (treesit-node-text
-                  (pcase (treesit-node-type ts-node)
-                    ("function_declaration"
-                     (treesit-node-child-by-field-name ts-node "name"))
-                    ("type_spec"
-                     (treesit-node-child-by-field-name ts-node "name"))))))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 
@@ -228,13 +191,29 @@ the subtrees."
     (setq-local comment-end "")
     (setq-local comment-start-skip (rx "//" (* (syntax whitespace))))
 
+    ;; Navigation.
+    (setq-local treesit-defun-type-regexp
+                (regexp-opt '("method_declaration"
+                              "function_declaration"
+                              "type_declaration")))
+    (setq-local treesit-defun-name-function #'go-ts-mode--defun-name)
+
     ;; Imenu.
-    (setq-local imenu-create-index-function #'go-ts-mode--imenu)
-    (setq-local which-func-functions nil)
+    (setq-local treesit-simple-imenu-settings
+                `(("Function" "\\`function_declaration\\'" nil nil)
+                  ("Method" "\\`method_declaration\\'" nil nil)
+                  ("Struct" "\\`type_declaration\\'" go-ts-mode--struct-node-p nil)
+                  ("Interface" "\\`type_declaration\\'" go-ts-mode--interface-node-p nil)
+                  ("Type" "\\`type_declaration\\'" go-ts-mode--other-type-node-p nil)
+                  ("Alias" "\\`type_declaration\\'" go-ts-mode--alias-node-p nil)))
 
     ;; Indent.
     (setq-local indent-tabs-mode t
                 treesit-simple-indent-rules go-ts-mode--indent-rules)
+
+    ;; Electric
+    (setq-local electric-indent-chars
+                (append "{}()" electric-indent-chars))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings go-ts-mode--font-lock-settings)
@@ -246,6 +225,54 @@ the subtrees."
                   ( bracket delimiter error operator)))
 
     (treesit-major-mode-setup)))
+
+(defun go-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ("function_declaration"
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       node "name")
+      t))
+    ("method_declaration"
+     (let* ((receiver-node (treesit-node-child-by-field-name node "receiver"))
+            (type-node (treesit-search-subtree receiver-node "type_identifier"))
+            (name-node (treesit-node-child-by-field-name node "name")))
+       (concat
+        "(" (treesit-node-text type-node) ")."
+        (treesit-node-text name-node))))
+    ("type_declaration"
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       (treesit-node-child node 0 t) "name")
+      t))))
+
+(defun go-ts-mode--interface-node-p (node)
+  "Return t if NODE is an interface."
+  (and
+   (string-equal "type_declaration" (treesit-node-type node))
+   (treesit-search-subtree node "interface_type" nil nil 2)))
+
+(defun go-ts-mode--struct-node-p (node)
+  "Return t if NODE is a struct."
+  (and
+   (string-equal "type_declaration" (treesit-node-type node))
+   (treesit-search-subtree node "struct_type" nil nil 2)))
+
+(defun go-ts-mode--alias-node-p (node)
+  "Return t if NODE is a type alias."
+  (and
+   (string-equal "type_declaration" (treesit-node-type node))
+   (treesit-search-subtree node "type_alias" nil nil 1)))
+
+(defun go-ts-mode--other-type-node-p (node)
+  "Return t if NODE is a type, other than interface, struct or alias."
+  (and
+   (string-equal "type_declaration" (treesit-node-type node))
+   (not (go-ts-mode--interface-node-p node))
+   (not (go-ts-mode--struct-node-p node))
+   (not (go-ts-mode--alias-node-p node))))
 
 ;; go.mod support.
 
