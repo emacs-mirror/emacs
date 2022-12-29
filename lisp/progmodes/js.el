@@ -3479,36 +3479,35 @@ This function is intended for use in `after-change-functions'."
   (treesit-font-lock-rules
 
    :language 'javascript
-   :override t
    :feature 'comment
-   `((comment) @font-lock-comment-face)
+   '((comment) @font-lock-comment-face)
 
    :language 'javascript
-   :override t
    :feature 'constant
-   `(((identifier) @font-lock-constant-face
+   '(((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
      [(true) (false) (null)] @font-lock-constant-face)
 
    :language 'javascript
-   :override t
    :feature 'keyword
    `([,@js--treesit-keywords] @font-lock-keyword-face
      [(this) (super)] @font-lock-keyword-face)
 
    :language 'javascript
-   :override t
    :feature 'string
-   `((regex pattern: (regex_pattern)) @font-lock-string-face
-     (string) @font-lock-string-face
-     (template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-builtin-face))
+   '((regex pattern: (regex_pattern)) @font-lock-string-face
+     (string) @font-lock-string-face)
 
    :language 'javascript
+   :feature 'string-interpolation
    :override t
-   :feature 'declaration
-   `((function
+   '((template_string) @js--fontify-template-string
+     (template_substitution ["${" "}"] @font-lock-delimiter-face))
+
+   :language 'javascript
+   :feature 'definition
+   '((function
       name: (identifier) @font-lock-function-name-face)
 
      (class_declaration
@@ -3535,24 +3534,10 @@ This function is intended for use in `after-change-functions'."
       value: (array (number) (function))))
 
    :language 'javascript
-   :override t
-   :feature 'identifier
-   `((new_expression
-      constructor: (identifier) @font-lock-type-face)
-
-     (for_in_statement
-      left: (identifier) @font-lock-variable-name-face)
-
-     (arrow_function
-      parameter: (identifier) @font-lock-variable-name-face))
-
-   :language 'javascript
-   :override t
    :feature 'property
-   ;; This needs to be before function-name feature, because methods
-   ;; can be both property and function-name, and we want them in
-   ;; function-name face.
-   `((property_identifier) @font-lock-property-face
+   '(((property_identifier) @font-lock-property-face
+      (:pred js--treesit-property-not-function-p
+             @font-lock-property-face))
 
      (pair value: (identifier) @font-lock-variable-name-face)
 
@@ -3561,36 +3546,27 @@ This function is intended for use in `after-change-functions'."
      ((shorthand_property_identifier_pattern) @font-lock-property-face))
 
    :language 'javascript
-   :override t
-   :feature 'expression
-   `((assignment_expression
-      left: [(identifier) @font-lock-function-name-face
-             (member_expression property: (property_identifier)
-                                @font-lock-function-name-face)]
-      right: [(function) (arrow_function)])
+   :feature 'assignment
+   '((assignment_expression
+      left: (_) @js--treesit-fontify-assignment-lhs))
 
-     (call_expression
+   :language 'javascript
+   :feature 'function
+   '((call_expression
       function: [(identifier) @font-lock-function-name-face
                  (member_expression
                   property:
                   (property_identifier) @font-lock-function-name-face)])
-
-     (assignment_expression
-      left: [(identifier) @font-lock-variable-name-face
-             (member_expression
-              property: (property_identifier) @font-lock-variable-name-face)]))
-
-   :language 'javascript
-   :override t
-   :feature 'pattern
-   `((pair_pattern key: (property_identifier) @font-lock-variable-name-face)
-     (array_pattern (identifier) @font-lock-variable-name-face))
+     (method_definition
+      name: (property_identifier) @font-lock-function-name-face)
+     (function_declaration
+      name: (identifier) @font-lock-function-name-face)
+     (function
+      name: (identifier) @font-lock-function-name-face))
 
    :language 'javascript
-   :override t
    :feature 'jsx
-   `(
-     (jsx_opening_element
+   '((jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]
       @font-lock-function-name-face)
 
@@ -3608,7 +3584,7 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'number
-   `((number) @font-lock-number-face
+   '((number) @font-lock-number-face
      ((identifier) @font-lock-number-face
       (:match "^\\(:?NaN\\|Infinity\\)$" @font-lock-number-face)))
 
@@ -3656,6 +3632,31 @@ OVERRIDE is the override flag described in
            font-beg font-end 'font-lock-string-face override start end)))
       (setq font-beg (treesit-node-end child)
             child (treesit-node-next-sibling child)))))
+
+(defun js--treesit-property-not-function-p (node)
+  "Check that NODE, a property_identifier, is not used as a function."
+  (not (equal (treesit-node-type
+               (treesit-node-parent ; Maybe call_expression.
+                (treesit-node-parent ; Maybe member_expression.
+                 node)))
+              "call_expression")))
+
+(defvar js--treesit-lhs-identifier-query
+  (treesit-query-compile 'javascript '((identifier) @id
+                                       (property_identifier) @id))
+  "Query that captures identifier and query_identifier.")
+
+(defun js--treesit-fontify-assignment-lhs (node override start end &rest _)
+  "Fontify the lhs NODE of an assignment_expression.
+For OVERRIDE, START, END, see `treesit-font-lock-rules'."
+  (dolist (node (treesit-query-capture
+                 node js--treesit-lhs-identifier-query nil nil t))
+    (treesit-fontify-with-override
+     (treesit-node-start node) (treesit-node-end node)
+     (pcase (treesit-node-type node)
+       ("identifier" 'font-lock-variable-name-face)
+       ("property_identifier" 'font-lock-property-face))
+     override start end)))
 
 (defun js--treesit-defun-name (node)
   "Return the defun name of NODE.
@@ -3815,11 +3816,12 @@ Currently there are `js-mode' and `js-ts-mode'."
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( comment declaration)
+                '(( comment definition)
                   ( keyword string)
-                  ( constant escape-sequence expression
-                    identifier jsx number pattern property)
-                  ( bracket delimiter operator)))
+                  ( assignment constant escape-sequence jsx number
+                    pattern)
+                  ( bracket delimiter function operator property
+                    string-interpolation)))
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
                 `(("Function" "\\`function_declaration\\'" nil nil)

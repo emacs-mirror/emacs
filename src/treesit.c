@@ -933,11 +933,24 @@ static void
 treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
 				     Lisp_Object parser)
 {
-  uint32_t len;
-  TSRange *ranges = ts_tree_get_changed_ranges (old_tree, new_tree, &len);
+  /* If the old_tree is NULL, meaning this is the first parse, the
+     changed range is the whole buffer.  */
+  Lisp_Object lisp_ranges;
   struct buffer *buf = XBUFFER (XTS_PARSER (parser)->buffer);
-  Lisp_Object lisp_ranges = treesit_make_ranges (ranges, len, buf);
-  xfree (ranges);
+  if (old_tree)
+    {
+      uint32_t len;
+      TSRange *ranges = ts_tree_get_changed_ranges (old_tree, new_tree, &len);
+      lisp_ranges = treesit_make_ranges (ranges, len, buf);
+      xfree (ranges);
+    }
+  else
+    {
+      struct buffer *oldbuf = current_buffer;
+      set_buffer_internal (buf);
+      lisp_ranges = Fcons (Fcons (Fpoint_min (), Fpoint_max ()), Qnil);
+      set_buffer_internal (oldbuf);
+    }
 
   specpdl_ref count = SPECPDL_INDEX ();
 
@@ -955,6 +968,11 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
 static void
 treesit_ensure_parsed (Lisp_Object parser)
 {
+  /* Make sure this comes before everything else, see comment
+     (ref:notifier-inside-ensure-parsed) for more detail.  */
+  if (!XTS_PARSER (parser)->need_reparse)
+    return;
+
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
   /* Before we parse, catch up with the narrowing situation.  */
@@ -963,8 +981,6 @@ treesit_ensure_parsed (Lisp_Object parser)
      because it might set the flag to true.  */
   treesit_sync_visible_region (parser);
 
-  if (!XTS_PARSER (parser)->need_reparse)
-    return;
   TSParser *treesit_parser = XTS_PARSER (parser)->parser;
   TSTree *tree = XTS_PARSER (parser)->tree;
   TSInput input = XTS_PARSER (parser)->input;
@@ -984,14 +1000,17 @@ treesit_ensure_parsed (Lisp_Object parser)
       xsignal1 (Qtreesit_parse_error, buf);
     }
 
-  if (tree != NULL)
-    {
-      treesit_call_after_change_functions (tree, new_tree, parser);
-      ts_tree_delete (tree);
-    }
-
   XTS_PARSER (parser)->tree = new_tree;
   XTS_PARSER (parser)->need_reparse = false;
+
+  /* After-change functions should run at the very end, most crucially
+     after need_reparse is set to false, this way if the function
+     calls some tree-sitter function which invokes
+     treesit_ensure_parsed again, it returns early and do not
+     recursively call the after change functions again.
+     (ref:notifier-inside-ensure-parsed)  */
+  treesit_call_after_change_functions (tree, new_tree, parser);
+  ts_tree_delete (tree);
 }
 
 /* This is the read function provided to tree-sitter to read from a

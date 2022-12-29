@@ -505,7 +505,9 @@ notification.
 
 Every time a parser reparses a buffer, it compares the old and new
 parse-tree, computes the ranges in which nodes have changed, and
-passes the ranges to notifier functions.
+passes the ranges to notifier functions.  Note that the initial parse
+is also considered a ``change'', so notifier functions are called on
+the initial parse, with range being the whole buffer.
 
 @defun treesit-parser-add-notifier parser function
 This function adds @var{function} to @var{parser}'s list of
