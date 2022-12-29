@@ -3479,20 +3479,17 @@ This function is intended for use in `after-change-functions'."
   (treesit-font-lock-rules
 
    :language 'javascript
-   :override t
    :feature 'comment
-   `((comment) @font-lock-comment-face)
+   '((comment) @font-lock-comment-face)
 
    :language 'javascript
-   :override t
    :feature 'constant
-   `(((identifier) @font-lock-constant-face
+   '(((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
      [(true) (false) (null)] @font-lock-constant-face)
 
    :language 'javascript
-   :override t
    :feature 'keyword
    `([,@js--treesit-keywords] @font-lock-keyword-face
      [(this) (super)] @font-lock-keyword-face)
@@ -3569,8 +3566,7 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'jsx
-   `(
-     (jsx_opening_element
+   '((jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]
       @font-lock-function-name-face)
 
@@ -3588,7 +3584,7 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'number
-   `((number) @font-lock-number-face
+   '((number) @font-lock-number-face
      ((identifier) @font-lock-number-face
       (:match "^\\(:?NaN\\|Infinity\\)$" @font-lock-number-face)))
 
