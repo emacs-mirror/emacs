@@ -1079,8 +1079,9 @@
                    (list :server "irc.libera.chat"
                          :port 6697
                          :nick (user-login-name)
-                         '&interactive-env '((erc-server-connect-function
-                                              . erc-open-tls-stream))))))
+                         '&interactive-env
+                         '((erc-server-connect-function . erc-open-tls-stream)
+                           (erc-join-buffer . buffer))))))
 
   (ert-info ("Switches to TLS when port matches default TLS port")
     (should (equal (ert-simulate-keys "irc.gnu.org\r6697\r\r\r"
@@ -1088,8 +1089,9 @@
                    (list :server "irc.gnu.org"
                          :port 6697
                          :nick (user-login-name)
-                         '&interactive-env '((erc-server-connect-function
-                                              . erc-open-tls-stream))))))
+                         '&interactive-env
+                         '((erc-server-connect-function . erc-open-tls-stream)
+                           (erc-join-buffer . buffer))))))
 
   (ert-info ("Switches to TLS when URL is ircs://")
     (should (equal (ert-simulate-keys "ircs://irc.gnu.org\r\r\r\r"
@@ -1097,8 +1099,11 @@
                    (list :server "irc.gnu.org"
                          :port 6697
                          :nick (user-login-name)
-                         '&interactive-env '((erc-server-connect-function
-                                              . erc-open-tls-stream))))))
+                         '&interactive-env
+                         '((erc-server-connect-function . erc-open-tls-stream)
+                           (erc-join-buffer . buffer))))))
+
+  (setq-local erc-interactive-display nil) ; cheat to save space
 
   (ert-info ("Opt out of non-TLS warning manually")
     (should (equal (ert-simulate-keys "\r\r\r\rn\r"
@@ -1164,7 +1169,8 @@
                (lambda (&optional _) "tester"))
               ((symbol-function 'erc-open)
                (lambda (&rest r)
-                 (push `((erc-server-connect-function
+                 (push `((erc-join-buffer ,erc-join-buffer)
+                         (erc-server-connect-function
                           ,erc-server-connect-function))
                        env)
                  (push r calls))))
@@ -1175,7 +1181,8 @@
                        '("irc.libera.chat" 6697 "tester" "unknown" t
                          nil nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '((erc-server-connect-function erc-open-tls-stream)))))
+                       '((erc-join-buffer bury)
+                         (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Full")
         (erc-tls :server "irc.gnu.org"
@@ -1190,7 +1197,8 @@
                        '("irc.gnu.org" 7000 "bob" "Bob's Name" t
                          "bob:changeme" nil nil nil t "bobo" GNU.org)))
         (should (equal (pop env)
-                       '((erc-server-connect-function erc-open-tls-stream)))))
+                       '((erc-join-buffer bury)
+                         (erc-server-connect-function erc-open-tls-stream)))))
 
       ;; Values are often nil when called by lisp code, which leads to
       ;; null params.  This is why `erc-open' recomputes almost
@@ -1208,7 +1216,8 @@
                        '(nil 7000 nil "Bob's Name" t
                              "bob:changeme" nil nil nil nil "bobo" nil)))
         (should (equal (pop env)
-                       '((erc-server-connect-function erc-open-tls-stream)))))
+                       '((erc-join-buffer bury)
+                         (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Interactive")
         (ert-simulate-keys "nick:sesame@localhost:6667\r\r"
@@ -1217,8 +1226,8 @@
                        '("localhost" 6667 "nick" "unknown" t "sesame"
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '((erc-server-connect-function
-                          erc-open-tls-stream)))))
+                       '((erc-join-buffer buffer)
+                         (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Custom connect function")
         (let ((erc-server-connect-function 'my-connect-func))
@@ -1227,7 +1236,8 @@
                          '("irc.libera.chat" 6697 "tester" "unknown" t
                            nil nil nil nil nil "user" nil)))
           (should (equal (pop env)
-                         '((erc-server-connect-function my-connect-func))))))
+                         '((erc-join-buffer bury)
+                           (erc-server-connect-function my-connect-func))))))
 
       (ert-info ("Advised default function overlooked") ; intentional
         (advice-add 'erc-server-connect-function :around #'ignore
@@ -1237,7 +1247,8 @@
                        '("irc.libera.chat" 6697 "tester" "unknown" t
                          nil nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '((erc-server-connect-function erc-open-tls-stream))))
+                       '((erc-join-buffer bury)
+                         (erc-server-connect-function erc-open-tls-stream))))
         (advice-remove 'erc-server-connect-function 'erc-tests--erc-tls))
 
       (ert-info ("Advised non-default function honored")
@@ -1249,7 +1260,8 @@
             (should (equal (pop calls)
                            '("irc.libera.chat" 6697 "tester" "unknown" t
                              nil nil nil nil nil "user" nil)))
-            (should (equal (pop env) `((erc-server-connect-function ,f))))
+            (should (equal (pop env) `((erc-join-buffer bury)
+                                       (erc-server-connect-function ,f))))
             (advice-remove 'erc-server-connect-function
                            'erc-tests--erc-tls)))))))
 
@@ -1262,7 +1274,8 @@
                (lambda (&optional _) "tester"))
               ((symbol-function 'erc-open)
                (lambda (&rest r)
-                 (push `((erc-server-connect-function
+                 (push `((erc-join-buffer ,erc-join-buffer)
+                         (erc-server-connect-function
                           ,erc-server-connect-function))
                        env)
                  (push r calls))))
@@ -1274,7 +1287,8 @@
                        '("irc.libera.chat" 6697 "tester" "unknown" t nil
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '((erc-server-connect-function erc-open-tls-stream)))))
+                       '((erc-join-buffer buffer) (erc-server-connect-function
+                                                   erc-open-tls-stream)))))
 
       (ert-info ("Nick supplied, decline TLS upgrade")
         (ert-simulate-keys "\r\rdummy\r\rn\r"
@@ -1283,7 +1297,7 @@
                        '("irc.libera.chat" 6667 "dummy" "unknown" t nil
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '(
+                       '((erc-join-buffer buffer)
                          (erc-server-connect-function
                           erc-open-network-stream))))))))
 

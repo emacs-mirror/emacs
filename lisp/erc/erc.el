@@ -1501,6 +1501,7 @@ Defaults to the server buffer."
   "IRC port to use for encrypted connections if it cannot be \
 detected otherwise.")
 
+(defvaralias 'erc-buffer-display 'erc-join-buffer)
 (defcustom erc-join-buffer 'bury
   "Determines how to display a newly created IRC buffer.
 
@@ -1520,6 +1521,19 @@ The available choices are:
                  (const :tag "Bury in new buffer" bury)
                  (const :tag "Use current buffer" buffer)
                  (const :tag "Use current buffer" t)))
+
+(defcustom erc-interactive-display 'buffer
+  "How and whether to display server buffers for M-x erc.
+See `erc-buffer-display' and friends for a description of
+possible values."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :group 'erc-buffers
+  :type '(choice (const :tag "Use value of `erc-join-buffer'" nil)
+                 (const :tag "Split window and select" window)
+                 (const :tag "Split window, don't select" window-noselect)
+                 (const :tag "New frame" frame)
+                 (const :tag "Bury new and don't display existing" bury)
+                 (const :tag "Use current buffer" buffer)))
 
 (defcustom erc-reconnect-display nil
   "How (and whether) to display a channel buffer upon reconnecting.
@@ -2278,6 +2292,8 @@ parameters SERVER and NICK."
                                (setq port erc-default-port-tls)))
                       #'erc-open-tls-stream))
          env)
+    (when erc-interactive-display
+      (push `(erc-join-buffer . ,erc-interactive-display) env))
     (when opener
       (push `(erc-server-connect-function . ,opener) env))
     (when (and passwd (string= "" passwd))
@@ -4610,6 +4626,7 @@ To change how this query window is displayed, use `let' to bind
   (with-current-buffer server-buffer
     (erc--open-target target)))
 
+(defvaralias 'erc-receive-query-display 'erc-auto-query)
 (defcustom erc-auto-query 'window-noselect
   "If non-nil, create a query buffer each time you receive a private message.
 If the buffer doesn't already exist, it is created.
