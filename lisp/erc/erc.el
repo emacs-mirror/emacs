@@ -2241,29 +2241,12 @@ parameters SERVER and NICK."
     (setq input (concat "irc://" input)))
   input)
 
-;; A temporary means of addressing the problem of ERC's namesake entry
-;; point defaulting to a non-TLS connection with its default server
-;; (bug#60428).
-(defun erc--warn-unencrypted ()
-  ;; Remove unconditionally to avoid wrong context due to races from
-  ;; simultaneous dialing or aborting (e.g., via `keybaord-quit').
-  (remove-hook 'erc--server-post-connect-hook #'erc--warn-unencrypted)
-  (when (and (process-contact erc-server-process :nowait)
-             (equal erc-session-server erc-default-server)
-             (eql erc-session-port erc-default-port))
-    ;; FIXME use the autoloaded `info' instead of `Info-goto-node' in
-    ;; `erc-button-alist'.
-    (require 'info nil t)
-    (erc-display-error-notice
-     nil (concat "This connection is unencrypted.  Please use `erc-tls'"
-                 " from now on.  See Info:\"(erc) connecting\" for more."))))
-
 ;;;###autoload
 (defun erc-select-read-args ()
   "Prompt the user for values of nick, server, port, and password."
   (require 'url-parse)
   (let* ((input (let ((d (erc-compute-server)))
-                  (read-string (format "Server (default is %S): " d)
+                  (read-string (format "Server or URL (default is %S): " d)
                                nil 'erc-server-history-list d)))
          ;; For legacy reasons, also accept a URL without a scheme.
          (url (url-generic-parse-url (erc--ensure-url input)))
@@ -2286,15 +2269,32 @@ parameters SERVER and NICK."
                         (m (if p
                                (format "Server password (default is %S): " p)
                              "Server password (optional): ")))
-                   (if erc-prompt-for-password (read-passwd m nil p) p))))
+                   (if erc-prompt-for-password (read-passwd m nil p) p)))
+         (opener (and (or sp (eql port erc-default-port-tls)
+                          (and (equal server erc-default-server)
+                               (not (string-prefix-p "irc://" input))
+                               (eql port erc-default-port)
+                               (y-or-n-p "Connect using TLS instead? ")
+                               (setq port erc-default-port-tls)))
+                      #'erc-open-tls-stream))
+         env)
+    (when opener
+      (push `(erc-server-connect-function . ,opener) env))
     (when (and passwd (string= "" passwd))
       (setq passwd nil))
-    (when (and (equal server erc-default-server)
-               (eql port erc-default-port)
-               (not (eql port erc-default-port-tls)) ; not `erc-tls'
-               (not (string-prefix-p "irc://" input))) ; not yanked URL
-      (add-hook 'erc--server-post-connect-hook #'erc--warn-unencrypted))
-    (list :server server :port port :nick nick :password passwd)))
+    `( :server ,server :port ,port :nick ,nick
+       ,@(and passwd `(:password ,passwd))
+       ,@(and env `(&interactive-env ,env)))))
+
+(defmacro erc--with-entrypoint-environment (env &rest body)
+  "Run BODY with bindings from ENV alist."
+  (declare (indent 1))
+  (let ((syms (make-symbol "syms"))
+        (vals (make-symbol "vals")))
+    `(let (,syms ,vals)
+       (pcase-dolist (`(,k . ,v) ,env) (push k ,syms) (push v ,vals))
+       (cl-progv ,syms ,vals
+         ,@body))))
 
 ;;;###autoload
 (cl-defun erc (&key (server (erc-compute-server))
@@ -2303,7 +2303,9 @@ parameters SERVER and NICK."
                     (user   (erc-compute-user))
                     password
                     (full-name (erc-compute-full-name))
-                    id)
+                    id
+                    ;; Used by interactive form
+                    ((&interactive-env --interactive-env--)))
   "ERC is a powerful, modular, and extensible IRC client.
 This function is the main entry point for ERC.
 
@@ -2326,9 +2328,12 @@ then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
 for the values of the other parameters.
 
-See `erc-tls' for the meaning of ID."
+See `erc-tls' for the meaning of ID.
+
+\(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME ID)"
   (interactive (erc-select-read-args))
-  (erc-open server port nick full-name t password nil nil nil nil user id))
+  (erc--with-entrypoint-environment --interactive-env--
+    (erc-open server port nick full-name t password nil nil nil nil user id)))
 
 ;;;###autoload
 (defalias 'erc-select #'erc)
@@ -2342,7 +2347,9 @@ See `erc-tls' for the meaning of ID."
                         password
                         (full-name (erc-compute-full-name))
                         client-certificate
-                        id)
+                        id
+                        ;; Used by interactive form
+                        ((&interactive-env --interactive-env--)))
   "ERC is a powerful, modular, and extensible IRC client.
 This function is the main entry point for ERC over TLS.
 
@@ -2386,10 +2393,20 @@ When present, ID should be a symbol or a string to use for naming
 the server buffer and identifying the connection unequivocally.
 See Info node `(erc) Network Identifier' for details.  Like USER
 and CLIENT-CERTIFICATE, this parameter cannot be specified
-interactively."
+interactively.
+
+\(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME CLIENT-CERTIFICATE ID)"
   (interactive (let ((erc-default-port erc-default-port-tls))
 		 (erc-select-read-args)))
-  (let ((erc-server-connect-function 'erc-open-tls-stream))
+  ;; Bind `erc-server-connect-function' to `erc-open-tls-stream'
+  ;; around `erc-open' when a non-default value hasn't been specified
+  ;; by the user or the interactive form.  And don't bother checking
+  ;; for advice, indirect functions, autoloads, etc.
+  (unless (or (assq 'erc-server-connect-function --interactive-env--)
+              (not (eq erc-server-connect-function #'erc-open-network-stream)))
+    (push '(erc-server-connect-function . erc-open-tls-stream)
+          --interactive-env--))
+  (erc--with-entrypoint-environment --interactive-env--
     (erc-open server port nick full-name t password
               nil nil nil client-certificate user id)))
 

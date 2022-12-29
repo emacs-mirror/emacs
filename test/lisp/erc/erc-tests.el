@@ -1064,32 +1064,62 @@
     (should (string-match erc--server-connect-dumb-ipv6-regexp
                           (concat "[" a "]")))))
 
+(ert-deftest erc--with-entrypoint-environment ()
+  (let ((env '((erc-join-buffer . foo)
+               (erc-server-connect-function . bar))))
+    (erc--with-entrypoint-environment env
+      (should (eq erc-join-buffer 'foo))
+      (should (eq erc-server-connect-function 'bar)))))
+
 (ert-deftest erc-select-read-args ()
 
-  (ert-info ("Does not default to TLS")
-    (should (equal (ert-simulate-keys "\r\r\r\r"
+  (ert-info ("Prompts for switch to TLS by default")
+    (should (equal (ert-simulate-keys "\r\r\r\ry\r"
+                     (erc-select-read-args))
+                   (list :server "irc.libera.chat"
+                         :port 6697
+                         :nick (user-login-name)
+                         '&interactive-env '((erc-server-connect-function
+                                              . erc-open-tls-stream))))))
+
+  (ert-info ("Switches to TLS when port matches default TLS port")
+    (should (equal (ert-simulate-keys "irc.gnu.org\r6697\r\r\r"
+                     (erc-select-read-args))
+                   (list :server "irc.gnu.org"
+                         :port 6697
+                         :nick (user-login-name)
+                         '&interactive-env '((erc-server-connect-function
+                                              . erc-open-tls-stream))))))
+
+  (ert-info ("Switches to TLS when URL is ircs://")
+    (should (equal (ert-simulate-keys "ircs://irc.gnu.org\r\r\r\r"
+                     (erc-select-read-args))
+                   (list :server "irc.gnu.org"
+                         :port 6697
+                         :nick (user-login-name)
+                         '&interactive-env '((erc-server-connect-function
+                                              . erc-open-tls-stream))))))
+
+  (ert-info ("Opt out of non-TLS warning manually")
+    (should (equal (ert-simulate-keys "\r\r\r\rn\r"
                      (erc-select-read-args))
                    (list :server "irc.libera.chat"
                          :port 6667
-                         :nick (user-login-name)
-                         :password nil))))
+                         :nick (user-login-name)))))
 
   (ert-info ("Override default TLS")
     (should (equal (ert-simulate-keys "irc://irc.libera.chat\r\r\r\r"
                      (erc-select-read-args))
                    (list :server "irc.libera.chat"
                          :port 6667
-                         :nick (user-login-name)
-                         :password nil))))
+                         :nick (user-login-name)))))
 
   (ert-info ("Address includes port")
-    (should (equal (ert-simulate-keys
-                       "localhost:6667\rnick\r\r"
+    (should (equal (ert-simulate-keys "localhost:6667\rnick\r\r"
                      (erc-select-read-args))
                    (list :server "localhost"
                          :port 6667
-                         :nick "nick"
-                         :password nil))))
+                         :nick "nick"))))
 
   (ert-info ("Address includes nick, password skipped via option")
     (should (equal (ert-simulate-keys "nick@localhost:6667\r"
@@ -1097,8 +1127,7 @@
                        (erc-select-read-args)))
                    (list :server "localhost"
                          :port 6667
-                         :nick "nick"
-                         :password nil))))
+                         :nick "nick"))))
 
   (ert-info ("Address includes nick and password")
     (should (equal (ert-simulate-keys "nick:sesame@localhost:6667\r\r"
@@ -1113,37 +1142,40 @@
                      (erc-select-read-args))
                    (list :server "[::1]"
                          :port 6667
-                         :nick (user-login-name)
-                         :password nil))))
+                         :nick (user-login-name)))))
 
   (ert-info ("IPv6 address with port")
     (should (equal (ert-simulate-keys "[::1]:6667\r\r\r"
                      (erc-select-read-args))
                    (list :server "[::1]"
                          :port 6667
-                         :nick (user-login-name)
-                         :password nil))))
+                         :nick (user-login-name)))))
 
   (ert-info ("IPv6 address includes nick")
     (should (equal (ert-simulate-keys "nick@[::1]:6667\r\r"
                      (erc-select-read-args))
                    (list :server "[::1]"
                          :port 6667
-                         :nick "nick"
-                         :password nil)))))
+                         :nick "nick")))))
 
 (ert-deftest erc-tls ()
-  (let (calls)
+  (let (calls env)
     (cl-letf (((symbol-function 'user-login-name)
                (lambda (&optional _) "tester"))
               ((symbol-function 'erc-open)
-               (lambda (&rest r) (push r calls))))
+               (lambda (&rest r)
+                 (push `((erc-server-connect-function
+                          ,erc-server-connect-function))
+                       env)
+                 (push r calls))))
 
       (ert-info ("Defaults")
         (erc-tls)
         (should (equal (pop calls)
                        '("irc.libera.chat" 6697 "tester" "unknown" t
-                         nil nil nil nil nil "user" nil))))
+                         nil nil nil nil nil "user" nil)))
+        (should (equal (pop env)
+                       '((erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Full")
         (erc-tls :server "irc.gnu.org"
@@ -1156,7 +1188,9 @@
                  :id 'GNU.org)
         (should (equal (pop calls)
                        '("irc.gnu.org" 7000 "bob" "Bob's Name" t
-                         "bob:changeme" nil nil nil t "bobo" GNU.org))))
+                         "bob:changeme" nil nil nil t "bobo" GNU.org)))
+        (should (equal (pop env)
+                       '((erc-server-connect-function erc-open-tls-stream)))))
 
       ;; Values are often nil when called by lisp code, which leads to
       ;; null params.  This is why `erc-open' recomputes almost
@@ -1172,7 +1206,86 @@
                    :password "bob:changeme"))
         (should (equal (pop calls)
                        '(nil 7000 nil "Bob's Name" t
-                             "bob:changeme" nil nil nil nil "bobo" nil)))))))
+                             "bob:changeme" nil nil nil nil "bobo" nil)))
+        (should (equal (pop env)
+                       '((erc-server-connect-function erc-open-tls-stream)))))
+
+      (ert-info ("Interactive")
+        (ert-simulate-keys "nick:sesame@localhost:6667\r\r"
+          (call-interactively #'erc-tls))
+        (should (equal (pop calls)
+                       '("localhost" 6667 "nick" "unknown" t "sesame"
+                         nil nil nil nil "user" nil)))
+        (should (equal (pop env)
+                       '((erc-server-connect-function
+                          erc-open-tls-stream)))))
+
+      (ert-info ("Custom connect function")
+        (let ((erc-server-connect-function 'my-connect-func))
+          (erc-tls)
+          (should (equal (pop calls)
+                         '("irc.libera.chat" 6697 "tester" "unknown" t
+                           nil nil nil nil nil "user" nil)))
+          (should (equal (pop env)
+                         '((erc-server-connect-function my-connect-func))))))
+
+      (ert-info ("Advised default function overlooked") ; intentional
+        (advice-add 'erc-server-connect-function :around #'ignore
+                    '((name . erc-tests--erc-tls)))
+        (erc-tls)
+        (should (equal (pop calls)
+                       '("irc.libera.chat" 6697 "tester" "unknown" t
+                         nil nil nil nil nil "user" nil)))
+        (should (equal (pop env)
+                       '((erc-server-connect-function erc-open-tls-stream))))
+        (advice-remove 'erc-server-connect-function 'erc-tests--erc-tls))
+
+      (ert-info ("Advised non-default function honored")
+        (let ((f (lambda (&rest r) (ignore r))))
+          (cl-letf (((symbol-value 'erc-server-connect-function) f))
+            (advice-add 'erc-server-connect-function :around #'ignore
+                        '((name . erc-tests--erc-tls)))
+            (erc-tls)
+            (should (equal (pop calls)
+                           '("irc.libera.chat" 6697 "tester" "unknown" t
+                             nil nil nil nil nil "user" nil)))
+            (should (equal (pop env) `((erc-server-connect-function ,f))))
+            (advice-remove 'erc-server-connect-function
+                           'erc-tests--erc-tls)))))))
+
+;; See `erc-select-read-args' above for argument parsing.
+;; This only tests the "hidden" arguments.
+
+(ert-deftest erc--interactive ()
+  (let (calls env)
+    (cl-letf (((symbol-function 'user-login-name)
+               (lambda (&optional _) "tester"))
+              ((symbol-function 'erc-open)
+               (lambda (&rest r)
+                 (push `((erc-server-connect-function
+                          ,erc-server-connect-function))
+                       env)
+                 (push r calls))))
+
+      (ert-info ("Default click-through accept TLS upgrade")
+        (ert-simulate-keys "\r\r\r\ry\r"
+          (call-interactively #'erc))
+        (should (equal (pop calls)
+                       '("irc.libera.chat" 6697 "tester" "unknown" t nil
+                         nil nil nil nil "user" nil)))
+        (should (equal (pop env)
+                       '((erc-server-connect-function erc-open-tls-stream)))))
+
+      (ert-info ("Nick supplied, decline TLS upgrade")
+        (ert-simulate-keys "\r\rdummy\r\rn\r"
+          (call-interactively #'erc))
+        (should (equal (pop calls)
+                       '("irc.libera.chat" 6667 "dummy" "unknown" t nil
+                         nil nil nil nil "user" nil)))
+        (should (equal (pop env)
+                       '(
+                         (erc-server-connect-function
+                          erc-open-network-stream))))))))
 
 (defun erc-tests--make-server-buf (name)
   (with-current-buffer (get-buffer-create name)
