@@ -4835,6 +4835,11 @@ binding slots have been popped."
 
     (dolist (clause (reverse clauses))
       (let ((condition (nth 1 clause)))
+        (when (and (eq (car-safe condition) 'quote)
+                   (cdr condition) (null (cddr condition)))
+          (byte-compile-warn-x
+           condition "`condition-case' condition should not be quoted: %S"
+           condition))
         (unless (consp condition) (setq condition (list condition)))
         (dolist (c condition)
           (unless (and c (symbolp c))

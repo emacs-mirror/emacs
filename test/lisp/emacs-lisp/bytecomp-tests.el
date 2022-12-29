@@ -924,6 +924,11 @@ byte-compiled.  Run with dynamic binding."
 
 (ert-deftest bytecomp-warn-quoted-condition ()
   (bytecomp--with-warning-test
+      "Warning: `condition-case' condition should not be quoted: 'arith-error"
+    '(condition-case nil
+         (abc)
+       ('arith-error "ugh")))
+  (bytecomp--with-warning-test
       "Warning: `ignore-error' condition argument should not be quoted: 'error"
     '(ignore-error 'error (abc))))
 
