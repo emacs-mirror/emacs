@@ -65,7 +65,7 @@
 (require 'cl-lib)
 (require 'format-spec)
 (require 'auth-source)
-(eval-when-compile (require 'subr-x) (require 'url-parse))
+(eval-when-compile (require 'subr-x))
 
 (defconst erc-version "5.6-git"
   "This version of ERC.")
@@ -141,6 +141,12 @@
 (declare-function iso8601-parse-duration "iso8601" (string))
 (declare-function word-at-point "thingatpt" (&optional no-properties))
 (autoload 'word-at-point "thingatpt") ; for hl-nicks
+
+(declare-function url-host "url-parse" (cl-x))
+(declare-function url-password "url-parse" (cl-x))
+(declare-function url-portspec "url-parse" (cl-x))
+(declare-function url-type "url-parse" (cl-x))
+(declare-function url-user "url-parse" (cl-x))
 
 ;; tunable connection and authentication parameters
 
@@ -2257,8 +2263,8 @@ parameters SERVER and NICK."
 
 ;;;###autoload
 (defun erc-select-read-args ()
-  "Prompt the user for values of nick, server, port, and password."
-  (require 'url-parse)
+  "Prompt the user for values of nick, server, port, and password.
+With prefix arg, also prompt for user and full name."
   (let* ((input (let ((d (erc-compute-server)))
                   (read-string (format "Server or URL (default is %S): " d)
                                nil 'erc-server-history-list d)))
@@ -2278,6 +2284,14 @@ parameters SERVER and NICK."
                    (let ((d (erc-compute-nick)))
                      (read-string (format "Nickname (default is %S): " d)
                                   nil 'erc-nick-history-list d))))
+         (user (and current-prefix-arg
+                    (let ((d (erc-compute-user (url-user url))))
+                      (read-string (format "User (default is %S): " d)
+                                   nil nil d))))
+         (full (and current-prefix-arg
+                    (let ((d (erc-compute-full-name (url-user url))))
+                      (read-string (format "Full name (default is %S): " d)
+                                   nil nil d))))
          (passwd (let* ((p (with-suppressed-warnings ((obsolete erc-password))
                              (or (url-password url) erc-password)))
                         (m (if p
@@ -2298,8 +2312,8 @@ parameters SERVER and NICK."
       (push `(erc-server-connect-function . ,opener) env))
     (when (and passwd (string= "" passwd))
       (setq passwd nil))
-    `( :server ,server :port ,port :nick ,nick
-       ,@(and passwd `(:password ,passwd))
+    `( :server ,server :port ,port :nick ,nick ,@(and user `(:user ,user))
+       ,@(and passwd `(:password ,passwd)) ,@(and full `(:full-name ,full))
        ,@(and env `(&interactive-env ,env)))))
 
 (defmacro erc--with-entrypoint-environment (env &rest body)
@@ -2407,8 +2421,8 @@ Example usage:
 
 When present, ID should be a symbol or a string to use for naming
 the server buffer and identifying the connection unequivocally.
-See Info node `(erc) Network Identifier' for details.  Like USER
-and CLIENT-CERTIFICATE, this parameter cannot be specified
+See Info node `(erc) Network Identifier' for details.  Like
+CLIENT-CERTIFICATE, this parameter cannot be specified
 interactively.
 
 \(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME CLIENT-CERTIFICATE ID)"

@@ -32,7 +32,7 @@
 ;;; Code:
 
 (require 'compat nil 'noerror)
-(eval-when-compile (require 'cl-lib) (require 'url-parse))
+(eval-when-compile (require 'cl-lib))
 
 ;; Except for the "erc-" namespacing, these two definitions should be
 ;; continuously updated to match the latest upstream ones verbatim.
@@ -412,6 +412,7 @@ If START or END is negative, it counts from the end."
 ;;;; Misc 29.1
 
 (defvar url-irc-function)
+(declare-function url-type "url-parse" (cl-x))
 
 (defun erc-compat--29-browse-url-irc (string &rest _)
   (require 'url-irc)

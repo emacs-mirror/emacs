@@ -1161,7 +1161,18 @@
                      (erc-select-read-args))
                    (list :server "[::1]"
                          :port 6667
-                         :nick "nick")))))
+                         :nick "nick"))))
+
+  (ert-info ("Extra args use URL nick by default")
+    (should (equal (ert-simulate-keys "nick:sesame@localhost:6667\r\r\r\r"
+                     (let ((current-prefix-arg '(4)))
+                       (erc-select-read-args)))
+                   (list :server "localhost"
+                         :port 6667
+                         :nick "nick"
+                         :user "nick"
+                         :password "sesame"
+                         :full-name "nick")))))
 
 (ert-deftest erc-tls ()
   (let (calls env)
