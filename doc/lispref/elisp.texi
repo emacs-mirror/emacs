@@ -1364,7 +1364,7 @@ Syntax Tables
 
 Parsing Program Source
 
-* Language Definitions::     Loading tree-sitter language definitions.
+* Language Grammar::         Loading tree-sitter language grammar.
 * Using Parser::             Introduction to parsers.
 * Retrieving Nodes::         Retrieving nodes from a syntax tree.
 * Accessing Node Information:: Accessing node information.

@@ -2128,7 +2128,7 @@ instead of emitting a warning."
         (pcase-let ((`(,available . ,err)
                      (treesit-language-available-p lang t)))
           (when (not available)
-            (setq msg (format "language definition for %s is unavailable (%s): %s"
+            (setq msg (format "language grammar for %s is unavailable (%s): %s"
                               lang (nth 0 err)
                               (string-join
                                (mapcar (lambda (x) (format "%s" x))
@@ -2272,7 +2272,7 @@ When this mode is enabled, the mode-line displays
 where NODE, CHILD, etc, are nodes which begin at point.  PARENT
 is the parent of NODE.  NODE is displayed in bold typeface.
 FIELD-NAMEs are field names of NODE and CHILD, etc (see Info
-node `(elisp)Language Definitions', heading \"Field names\").
+node `(elisp)Language Grammar', heading \"Field names\").
 
 If no node starts at point, i.e., point is in the middle of a
 node, then the mode line displays the earliest node that spans point,
