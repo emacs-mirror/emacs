@@ -2632,14 +2632,14 @@ CC and C++ are C and C++ compilers, default to \"cc\" and
 \"c++\", respectively.")
 
 (defun treesit-install-language-grammar (lang)
-  "Install language grammar for LANG.
+  "Build and install the tree-sitter language grammar library for LANG.
 
-This command requires git, a C compiler and (sometimes) a C++
-compiler to exist and locatable in the executable paths.  It also
-requires that the recipe for LANG exists in
-`treesit-language-source-alist'.
+This command requires Git, a C compiler and (sometimes) a C++ compiler,
+and the linker to be installed and on PATH.  It also requires that the
+recipe for LANG exists in `treesit-language-source-alist'.
 
-Current executable paths can be checked by calling `exec-path'."
+See `exec-path' for the current path where Emacs looks for
+executable programs, such as the C/C++ compiler and linker."
   (interactive (list (intern
                       (completing-read
                        "Language: "
@@ -2682,10 +2682,10 @@ content as signal data, and erase buffer afterwards."
 
 (defun treesit--install-language-grammar-1
     (out-dir lang url &optional source-dir grammar-dir cc c++)
-  "Install and compile a tree-sitter language grammar.
+  "Install and compile a tree-sitter language grammar library.
 
-OUT-DIR is the direcotory to put the compiled library file,
-default to ~/.emacs.d/tree-sitter.
+OUT-DIR is the directory to put the compiled library file, it
+defaults to ~/.emacs.d/tree-sitter.
 
 For LANG, URL, SOURCE-DIR, GRAMMAR-DIR, CC, C++, see
 `treesit-language-source-alist'.  If anything goes wrong, this
