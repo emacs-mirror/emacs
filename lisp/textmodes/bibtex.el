@@ -1822,8 +1822,9 @@ Initialized by `bibtex-set-dialect'.")
      1 '(11))))
 
 (defvar bibtex-font-lock-keywords
-  ;; entry type and reference key
-  `((,bibtex-any-entry-maybe-empty-head
+  `(("\\$[^$\n]+\\$" . font-lock-string-face) ; bug#50202
+    ;; entry type and reference key
+    (,bibtex-any-entry-maybe-empty-head
      (,bibtex-type-in-head font-lock-function-name-face)
      (,bibtex-key-in-head font-lock-constant-face nil t))
     ;; optional field names (treated as comments)
@@ -3631,8 +3632,11 @@ if that value is non-nil.
   (setq-local fill-paragraph-function #'bibtex-fill-field)
   (setq-local font-lock-defaults
               '(bibtex-font-lock-keywords
-                nil t ((?$ . "\"")
-                       ;; Mathematical expressions should be fontified as strings
+                nil t ((?$ . ".")
+                       ;; Mathematical expressions should be fontified
+                       ;; as strings.  Yet `$' may also appear in certain
+                       ;; fields like `URL' when it does not delimit
+                       ;; a math expression (bug#50202).
                        (?\" . ".")
                        ;; Quotes are field delimiters and quote-delimited
                        ;; entries should be fontified in the same way as
