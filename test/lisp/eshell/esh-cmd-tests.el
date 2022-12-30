@@ -274,24 +274,26 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
 (ert-deftest esh-cmd-test/if-statement-pipe ()
   "Test invocation of an if statement piped to another command."
   (skip-unless (executable-find "rev"))
-  (let ((eshell-test-value t))
-    (eshell-command-result-equal "if $eshell-test-value {echo yes} | rev"
-                                 "sey"))
-  (let ((eshell-test-value nil))
-    (eshell-command-result-equal "if $eshell-test-value {echo yes} | rev"
-                                 nil)))
+  (with-temp-eshell
+   (let ((eshell-test-value t))
+     (eshell-match-command-output "if $eshell-test-value {echo yes} | rev"
+                                  "\\`sey\n?"))
+   (let ((eshell-test-value nil))
+     (eshell-match-command-output "if $eshell-test-value {echo yes} | rev"
+                                  "\\`\n?"))))
 
 (ert-deftest esh-cmd-test/if-else-statement-pipe ()
   "Test invocation of an if/else statement piped to another command."
   (skip-unless (executable-find "rev"))
-  (let ((eshell-test-value t))
-    (eshell-command-result-equal
-     "if $eshell-test-value {echo yes} {echo no} | rev"
-     "sey"))
-  (let ((eshell-test-value nil))
-    (eshell-command-result-equal
-     "if $eshell-test-value {echo yes} {echo no} | rev"
-     "on")))
+  (with-temp-eshell
+   (let ((eshell-test-value t))
+     (eshell-match-command-output
+      "if $eshell-test-value {echo yes} {echo no} | rev"
+      "\\`sey\n?"))
+   (let ((eshell-test-value nil))
+     (eshell-match-command-output
+      "if $eshell-test-value {echo yes} {echo no} | rev"
+      "\\`on\n?"))))
 
 (ert-deftest esh-cmd-test/unless-statement ()
   "Test invocation of an unless statement."

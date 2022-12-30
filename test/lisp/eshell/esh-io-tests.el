@@ -320,8 +320,9 @@ stdout originally pointed (the terminal)."
 (ert-deftest esh-io-test/pipeline/subcommands ()
   "Chek that all commands in a subcommand are properly piped."
   (skip-unless (executable-find "rev"))
-  (eshell-command-result-equal "{echo foo; echo bar} | rev"
-                               "raboof"))
+  (with-temp-eshell
+   (eshell-match-command-output "{echo foo; echo bar} | rev"
+                                "\\`raboof\n?")))
 
 
 ;; Virtual targets
