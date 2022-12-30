@@ -595,7 +595,9 @@ ARG is passed to `fill-paragraph'."
            (start-marker nil)
            (end-marker nil)
            (end-len 0))
-      (when (equal (treesit-node-type node) "comment")
+      ;; These covers C/C++, Java, JavaScript, TypeScript, Rust, C#.
+      (when (member (treesit-node-type node)
+                    '("comment" "line_comment" "block_comment"))
         ;; We mask "/*" and the space before "*/" like
         ;; `c-fill-paragraph' does.
         (atomic-change-group
