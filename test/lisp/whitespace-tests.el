@@ -42,13 +42,6 @@ nil, `whitespace-mode' is left disabled."
           '(whitespace-mode 1))
        ,@body)))
 
-(defmacro whitespace--with-buffer-selected (buffer-or-name &rest body)
-  (declare (debug (form body)) (indent 1))
-  `(save-window-excursion
-     (with-current-buffer (or ,buffer-or-name (current-buffer))
-       (with-selected-window (display-buffer (current-buffer))
-         ,@body))))
-
 (defun whitespace-tests--faceup (&rest lines)
   "Convenience wrapper around `faceup-test-font-lock-buffer'.
 Returns non-nil if the concatenated LINES match the current
@@ -354,7 +347,7 @@ buffer's content."
           (indirect (clone-indirect-buffer (buffer-name) nil)))
       (should (eq (marker-buffer whitespace-bob-marker) base))
       (should (eq (marker-buffer whitespace-eob-marker) base))
-      (whitespace--with-buffer-selected indirect
+      (ert-with-buffer-selected indirect
         ;; Mutate the indirect buffer to update its bob/eob markers.
         (execute-kbd-macro (kbd "z RET M-< a")))
       ;; With Bug#59618, the above mutation would cause the base
@@ -382,7 +375,7 @@ buffer's content."
           ;; because the buffer should only be killed on success.
           (indirect (clone-indirect-buffer nil nil)))
       (whitespace-tests--check-markers base 2 4)
-      (whitespace--with-buffer-selected indirect
+      (ert-with-buffer-selected indirect
         (whitespace-tests--check-markers indirect 2 4)
         ;; Mutate the buffer to trigger `after-change-functions' and
         ;; thus `whitespace--update-bob-eob'.
@@ -405,7 +398,7 @@ buffer's content."
           ;; the buffer should only be killed on success.
           (clone (clone-buffer)))
       (whitespace-tests--check-markers orig 2 4)
-      (whitespace--with-buffer-selected clone
+      (ert-with-buffer-selected clone
         (whitespace-tests--check-markers clone 2 4)
         (execute-kbd-macro (kbd "z RET M-< a"))
         (whitespace-tests--check-markers clone 1 8))

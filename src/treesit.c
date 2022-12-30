@@ -2070,12 +2070,11 @@ Note that this function returns an immediate child, not the smallest
 
   struct buffer *buf = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
-  ptrdiff_t byte_pos = buf_charpos_to_bytepos (buf, XFIXNUM (pos));
 
   treesit_check_position (pos, buf);
-
   treesit_initialize ();
 
+  ptrdiff_t byte_pos = buf_charpos_to_bytepos (buf, XFIXNUM (pos));
   TSNode treesit_node = XTS_NODE (node)->node;
   TSNode child;
   if (NILP (named))
@@ -2106,14 +2105,14 @@ If NODE is nil, return nil.  */)
 
   struct buffer *buf = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
-  ptrdiff_t byte_beg = buf_charpos_to_bytepos (buf, XFIXNUM (beg));
-  ptrdiff_t byte_end = buf_charpos_to_bytepos (buf, XFIXNUM (end));
 
   treesit_check_position (beg, buf);
   treesit_check_position (end, buf);
 
   treesit_initialize ();
 
+  ptrdiff_t byte_beg = buf_charpos_to_bytepos (buf, XFIXNUM (beg));
+  ptrdiff_t byte_end = buf_charpos_to_bytepos (buf, XFIXNUM (end));
   TSNode treesit_node = XTS_NODE (node)->node;
   TSNode child;
   if (NILP (named))

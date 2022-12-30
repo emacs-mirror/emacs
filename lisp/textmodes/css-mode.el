@@ -1804,11 +1804,15 @@ can also be used to fill comments.
   :syntax-table css-mode-syntax-table
   (when (treesit-ready-p 'css)
     ;; Borrowed from `css-mode'.
+    (setq-local syntax-propertize-function
+                css-syntax-propertize-function)
     (add-hook 'completion-at-point-functions
               #'css-completion-at-point nil 'local)
     (setq-local fill-paragraph-function #'css-fill-paragraph)
     (setq-local adaptive-fill-function #'css-adaptive-fill)
-    (setq-local add-log-current-defun-function #'css-current-defun-name)
+    ;; `css--fontify-region' first calls the default function, which
+    ;; will call tree-sitter's function, then it fontifies colors.
+    (setq-local font-lock-fontify-region-function #'css--fontify-region)
 
     ;; Tree-sitter specific setup.
     (treesit-parser-create 'css)
@@ -1821,8 +1825,8 @@ can also be used to fill comments.
                   (property constant string)
                   (error variable function operator bracket)))
     (setq-local treesit-simple-imenu-settings
-                `( nil ,(rx bos (or "rule_set" "media_statement") eos)
-                   nil nil))
+                `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
+                    nil nil)))
     (treesit-major-mode-setup)))
 
 ;;;###autoload

@@ -74,6 +74,8 @@
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
 
 ;;; Constants
 
@@ -3642,8 +3644,9 @@ OVERRIDE is the override flag described in
               "call_expression")))
 
 (defvar js--treesit-lhs-identifier-query
-  (treesit-query-compile 'javascript '((identifier) @id
-                                       (property_identifier) @id))
+  (when (treesit-available-p)
+    (treesit-query-compile 'javascript '((identifier) @id
+                                         (property_identifier) @id)))
   "Query that captures identifier and query_identifier.")
 
 (defun js--treesit-fontify-assignment-lhs (node override start end &rest _)

@@ -3057,17 +3057,23 @@ If @var{frame} is @code{t}, this function sets the default attributes
 for newly created frames; they will effectively override the attribute
 values specified by @code{defface}.  If @var{frame} is @code{nil},
 this function sets the attributes for all existing frames, as well as
-for newly created frames.  However, if you want to @emph{reset} the
-value of an attribute to @code{unspecified} in a way that also affects
-newly created frames, you @emph{must} explicitly call this function
-with @var{frame} set to @code{t} and the value of the attribute set to
-@code{unspecified} (@emph{not} @code{nil}!@:), in addition to the call
-with @var{frame} set to @code{nil}.  This is because the default
-attributes for newly created frames are merged with the face's spec in
-@code{defface} when a new frame is created, and so having
-@code{unspecified} in the default attributes for new frames will be
-unable to override @code{defface}; the special call to this function
-as described above will arrange for @code{defface} to be overridden.
+for newly created frames.
+
+To @emph{unset} the value of an attribute, that is, to indicate that
+the face doesn't by itself specify a value for the attribute, the
+special value @code{unspecified} (@emph{not} @code{nil}!@:) must be
+used.
+
+Note that the attribute-value pairs are evaluated in the order they
+are specified, except the @code{:family} and @code{:foundry}
+attributes, which are evaluated first.  This means both that only the
+last value of a given attribute will be used, and that in some cases a
+different order will give different results.  For example, when
+@code{:weight} is placed before @code{:font}, the weight value is
+applied to the current font of the face, and might be rounded to the
+closest available weight of that font, whereas when @code{:font} is
+placed before @code{:weight} the weight value is applied to the
+specified font.
 @end defun
 
   The following commands and functions mostly provide compatibility
