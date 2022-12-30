@@ -30,8 +30,9 @@
 
 (eval-when-compile
   (require 'esh-mode)
-  (require 'eshell)
-  (require 'tramp))
+  (require 'eshell))
+
+(require 'tramp)
 
 ;; There are no items in this custom group, but eshell modules (ab)use
 ;; custom groups.
