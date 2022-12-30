@@ -226,6 +226,7 @@ desc "foo foo" \
 
 foo.
   bar
+  .baz
 
 # https://github.com/rails/rails/blob/17f5d8e062909f1fcae25351834d8e89967b645e/activesupport/lib/active_support/time_with_zone.rb#L206
 foo # comment intended to confuse the tokenizer
@@ -380,6 +381,18 @@ foo = [1, 2, 3].map do |i|
   i + 1
 end
 
+m1 = foo
+       .asdasd
+       .proc do |**args|
+  p(**args)
+end
+
+m2 = foo
+       .asdasd
+       .proc { |**args|
+  p(**args)
+}
+
 bar.foo do
   bar
 end
@@ -396,6 +409,12 @@ bar 1 do
   foo 2 do
     tee
   end
+end
+
+x.foo do
+  foo
+end.bar do
+  bar
 end
 
 foo |
@@ -540,5 +559,9 @@ class Bar
 end
 
 # Local Variables:
+# ruby-after-operator-indent: t
+# ruby-block-indent: t
+# ruby-method-call-indent: t
 # ruby-method-params-indent: t
+# ruby-parenless-call-arguments-indent: t
 # End:
