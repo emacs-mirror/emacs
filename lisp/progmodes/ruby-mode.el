@@ -306,7 +306,8 @@ containing the block's opener:
 
 Only has effect when `ruby-use-smie' is t."
   :type 'boolean
-  :safe 'booleanp)
+  :safe 'booleanp
+  :version "29.1")
 
 (defcustom ruby-after-operator-indent t
   "Non-nil to use structural indentation after binary operators.
@@ -326,7 +327,8 @@ Set it to nil to align to the beginning of the statement:
 
 Only has effect when `ruby-use-smie' is t."
   :type 'boolean
-  :safe 'booleanp)
+  :safe 'booleanp
+  :version "29.1")
 
 (defcustom ruby-method-call-indent t
   "Non-nil to use the structural indentation algorithm.
@@ -348,7 +350,8 @@ Set it to nil to align to the beginning of the statement:
 
 Only has effect when `ruby-use-smie' is t."
   :type 'boolean
-  :safe 'booleanp)
+  :safe 'booleanp
+  :version "29.1")
 
 (defcustom ruby-parenless-call-arguments-indent t
   "Non-nil to align arguments in a parenless call vertically.
@@ -369,7 +372,8 @@ Set it to nil to align to the beginning of the statement:
 
 Only has effect when `ruby-use-smie' is t."
   :type 'boolean
-  :safe 'booleanp)
+  :safe 'booleanp
+  :version "29.1")
 
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.

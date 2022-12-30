@@ -2832,7 +2832,11 @@ project-dedicated or global) is specified by the new
 *** Support for endless methods.
 
 ---
-*** New user option 'ruby-method-params-indent'.
+*** New user options that determine indentation logic.
+'ruby-method-params-indent', 'ruby-block-indent',
+'ruby-after-operator-indent', 'ruby-method-call-indent',
+'ruby-parenless-call-arguments-indent'.  See the docstrings for
+explanations and examples.
 
 ** Eshell
 
