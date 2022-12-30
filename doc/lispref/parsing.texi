@@ -141,7 +141,7 @@ for a language that considers itself too ``cool'' to abide by
 conventions.
 
 @cindex language grammar version, compatibility
-@defun treesit-language-version &optional min-compatible
+@defun treesit-library-abi-version &optional min-compatible
 This function returns the version of the language grammar
 Application Binary Interface (@acronym{ABI}) supported by the
 tree-sitter library.  By default, it returns the latest ABI version
@@ -151,6 +151,12 @@ still can support.  language grammar libraries must be built for
 ABI versions between the oldest and the latest versions supported by
 the tree-sitter library, otherwise the library will be unable to load
 them.
+@end defun
+
+@defun treesit-language-abi-version language
+This function returns the language grammar @acronym{ABI} version of
+language grammar for @var{language} loaded by Emacs.  If
+@var{language} is unavailable, this function returns @code{nil}.
 @end defun
 
 @heading Concrete syntax tree
