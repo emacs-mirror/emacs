@@ -968,7 +968,7 @@ Named nodes have ``types'' (@pxref{tree-sitter node type, node type}).
 For example, a named node can be a @code{string_literal} node, where
 @code{string_literal} is its type.  The type of an anonymous node is
 just the text that the node represents; e.g., the type of a @samp{,}
-node 480is just @samp{,}.
+node is just @samp{,}.
 
 This function returns @var{node}'s type as a string.
 @end defun
