@@ -4083,11 +4083,19 @@ INIT is surrounded by field delimiters, unless NODELIM is non-nil."
 If inside an entry, move to the beginning of it, otherwise move to the
 beginning of the previous entry.  If point is ahead of all BibTeX entries
 move point to the beginning of buffer.  Return the new location of point."
+  ;; This command is similar to `beginning-of-defun', but with historical
+  ;; differences.
+  ;; - It does not move point to the previous entry if point is already
+  ;;   at the beginning of an entry
+  ;; - It does not take an optional ARG that moves backward to the beginning
+  ;;   of a defun ARG times.
+  ;; - It returns point and the code relies on this.
   (interactive)
-  (skip-chars-forward " \t")
-  (if (looking-at "@")
-      (forward-char))
-  (re-search-backward "^[ \t]*@" nil 'move)
+  (beginning-of-line)
+  ;; `bibtex-any-valid-entry-type' would fail if users "disable"
+  ;; an entry by chosing an invalid entry type.
+  (or (looking-at bibtex-any-entry-maybe-empty-head)
+      (re-search-backward bibtex-any-entry-maybe-empty-head nil 'move))
   (point))
 
 (defun bibtex-end-of-entry ()
