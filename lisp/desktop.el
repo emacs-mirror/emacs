@@ -828,7 +828,7 @@ is nil, ask the user where to save the desktop."
   ;; If we own it, we don't anymore.
   (when (eq (emacs-pid) (desktop-owner))
     ;; Allow exiting Emacs even if we can't delete the desktop file.
-    (ignore-error 'file-error
+    (ignore-error file-error
       (desktop-release-lock))))
 
 ;; ----------------------------------------------------------------------------

@@ -2921,7 +2921,7 @@ nil default-directory" name)
        (when (looking-at "#!")
          (forward-line))
        (let (value form)
-         (while (ignore-error 'end-of-file
+         (while (ignore-error end-of-file
                   (setq form (read (current-buffer))))
            (setq value (eval form t)))
          (kill-emacs (if (numberp value)

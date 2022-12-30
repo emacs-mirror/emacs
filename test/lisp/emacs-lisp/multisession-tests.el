@@ -94,7 +94,7 @@
                                   (dotimes (i 100)
                                     (cl-incf (multisession-value multisession--bar))))))))
             (while (process-live-p proc)
-              (ignore-error 'sqlite-locked-error
+              (ignore-error sqlite-locked-error
                 (message "multisession--bar %s" (multisession-value multisession--bar))
                 ;;(cl-incf (multisession-value multisession--bar))
                 )
