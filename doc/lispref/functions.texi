@@ -700,7 +700,7 @@ redefinition from unintentional redefinition.
 @defun defalias name definition &optional doc
 @anchor{Definition of defalias}
 This function defines the symbol @var{name} as a function, with
-definition @var{definition} (which can be any valid Lisp function).
+definition @var{definition} (which can be any valid Lisp function or macro).
 Its return value is @emph{undefined}.
 
 If @var{doc} is non-@code{nil}, it becomes the function documentation
@@ -713,10 +713,10 @@ If @var{name} has a @code{defalias-fset-function} property, however,
 the associated value is used as a function to call in place of @code{fset}.
 
 The proper place to use @code{defalias} is where a specific function
-name is being defined---especially where that name appears explicitly in
-the source file being loaded.  This is because @code{defalias} records
-which file defined the function, just like @code{defun}
-(@pxref{Unloading}).
+or macro name is being defined---especially where that name appears
+explicitly in the source file being loaded.  This is because
+@code{defalias} records which file defined the function, just like
+@code{defun} (@pxref{Unloading}).
 
 By contrast, in programs that manipulate function definitions for other
 purposes, it is better to use @code{fset}, which does not keep such
