@@ -29,6 +29,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
+(require 'c-ts-mode) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -70,6 +71,9 @@
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is "}") (and parent parent-bol) 0)
+     ((and (parent-is "comment") c-ts-mode--looking-at-star)
+      c-ts-mode--comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "arguments") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "await_expression") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "array_expression") parent-bol rust-ts-mode-indent-offset)
@@ -244,78 +248,32 @@
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `rust-ts-mode'.")
 
-(defun rust-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (enum-tree (treesit-induce-sparse-tree
-                     node "enum_item" nil))
-         (enum-index (rust-ts-mode--imenu-1 enum-tree))
-         (func-tree (treesit-induce-sparse-tree
-                     node "function_item" nil))
-         (func-index (rust-ts-mode--imenu-1 func-tree))
-         (impl-tree (treesit-induce-sparse-tree
-                     node "impl_item" nil))
-         (impl-index (rust-ts-mode--imenu-1 impl-tree))
-         (mod-tree (treesit-induce-sparse-tree
-                    node "mod_item" nil))
-         (mod-index (rust-ts-mode--imenu-1 mod-tree))
-         (struct-tree (treesit-induce-sparse-tree
-                       node "struct_item" nil))
-         (struct-index (rust-ts-mode--imenu-1 struct-tree))
-         (type-tree (treesit-induce-sparse-tree
-                     node "type_item" nil))
-         (type-index (rust-ts-mode--imenu-1 type-tree)))
-    (append
-     (when mod-index `(("Module" . ,mod-index)))
-     (when enum-index `(("Enum" . ,enum-index)))
-     (when impl-index `(("Impl" . ,impl-index)))
-     (when type-index `(("Type" . ,type-index)))
-     (when struct-index `(("Struct" . ,struct-index)))
-     (when func-index `(("Fn" . ,func-index))))))
-
-(defun rust-ts-mode--imenu-1 (node)
-  "Helper for `rust-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (children (cdr node))
-         (subtrees (mapcan #'rust-ts-mode--imenu-1
-                           children))
-         (name (when ts-node
-                 (pcase (treesit-node-type ts-node)
-                   ("enum_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t))
-                   ("function_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t))
-                   ("impl_item"
-                    (let ((trait-node (treesit-node-child-by-field-name ts-node "trait")))
-                      (concat
-                       (treesit-node-text
-                        trait-node t)
-                       (when trait-node
-                         " for ")
-                       (treesit-node-text
-                        (treesit-node-child-by-field-name ts-node "type") t))))
-                   ("mod_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t))
-                   ("struct_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t))
-                   ("type_item"
-                    (treesit-node-text
-                     (treesit-node-child-by-field-name ts-node "name") t)))))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
+(defun rust-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ("enum_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))
+    ("function_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))
+    ("impl_item"
+     (let ((trait-node (treesit-node-child-by-field-name node "trait")))
+       (concat
+        (treesit-node-text trait-node t)
+        (when trait-node " for ")
+        (treesit-node-text
+         (treesit-node-child-by-field-name node "type") t))))
+    ("mod_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))
+    ("struct_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))
+    ("type_item"
+     (treesit-node-text
+      (treesit-node-child-by-field-name node "name") t))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
@@ -330,15 +288,7 @@ the subtrees."
     (treesit-parser-create 'rust)
 
     ;; Comments.
-    (setq-local comment-start "// ")
-    (setq-local comment-end "")
-    (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                           (seq "/" (+ "*")))
-                                       (* (syntax whitespace))))
-    (setq-local comment-end-skip
-                (rx (* (syntax whitespace))
-                    (group (or (syntax comment-end)
-                               (seq (+ "*") "/")))))
+    (c-ts-mode-comment-setup)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings rust-ts-mode--font-lock-settings)
@@ -350,8 +300,13 @@ the subtrees."
                   ( bracket delimiter error operator)))
 
     ;; Imenu.
-    (setq-local imenu-create-index-function #'rust-ts-mode--imenu)
-    (setq-local which-func-functions nil)
+    (setq-local treesit-simple-imenu-settings
+                `(("Module" "\\`mod_item\\'" nil nil)
+                  ("Enum" "\\`enum_item\\'" nil nil)
+                  ("Impl" "\\`impl_item\\'" nil nil)
+                  ("Type" "\\`type_item\\'" nil nil)
+                  ("Struct" "\\`struct_item\\'" nil nil)
+                  ("Fn" "\\`function_item\\'" nil nil)))
 
     ;; Indent.
     (setq-local indent-tabs-mode nil
@@ -363,6 +318,7 @@ the subtrees."
                               "function_item"
                               "impl_item"
                               "struct_item")))
+    (setq-local treesit-defun-name-function #'rust-ts-mode--defun-name)
 
     (treesit-major-mode-setup)))
 

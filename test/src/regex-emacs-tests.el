@@ -273,7 +273,7 @@ on success"
      string
      (condition-case nil
          (if (string-match pattern string) nil 'search-failed)
-       ('invalid-regexp 'compilation-failed))
+       (invalid-regexp 'compilation-failed))
      bounds-ref substring-ref)))
 
 
@@ -518,7 +518,7 @@ known/benign differences in behavior.")
                what-failed
                (condition-case nil
                    (if (string-match pattern string) nil 'search-failed)
-                 ('invalid-regexp 'compilation-failed))
+                 (invalid-regexp 'compilation-failed))
 
                matches-observed
                (cl-loop for x from 0 to 20

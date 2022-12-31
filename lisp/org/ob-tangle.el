@@ -500,7 +500,8 @@ The PARAMS are the 3rd element of the info for the same src block."
                  (cl-letf (((symbol-function 'org-store-link-functions)
                             (lambda () nil)))
                    (org-store-link nil))))
-             (bare (and (string-match org-link-bracket-re l)
+             (bare (and l
+                        (string-match org-link-bracket-re l)
                         (match-string 1 l))))
         (when bare
           (if (and org-babel-tangle-use-relative-file-links

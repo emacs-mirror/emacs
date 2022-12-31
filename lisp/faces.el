@@ -47,7 +47,8 @@ the terminal-initialization file to be loaded."
     ("vt400" . "vt200")
     ("vt420" . "vt200")
     ("alacritty" . "xterm")
-    ("foot" . "xterm"))
+    ("foot" . "xterm")
+    ("contour" . "xterm"))
   "Alist of terminal type aliases.
 Entries are of the form (TYPE . ALIAS), where both elements are strings.
 This means to treat a terminal of type TYPE as if it were of type ALIAS."
@@ -688,6 +689,10 @@ default attributes.  To avoid that, i.e. to cause ATTRIBUTE's value
 be reset to `unspecified' when creating new frames, disregarding
 what the FACE's face spec says, call this function with FRAME set to
 t and the ATTRIBUTE's value set to `unspecified'.
+
+Note that the ATTRIBUTE VALUE pairs are evaluated in the order
+they are specified, except the `:family' and `:foundry'
+attributes which are evaluated first.
 
 The following attributes are recognized:
 

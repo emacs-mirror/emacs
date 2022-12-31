@@ -293,7 +293,7 @@ should not be skipped."
   "Try to resolve conflicts in FILE with smerge.
 Returns non-nil if conflicts remain."
   (unless (file-exists-p file) (error "Gitmerge-resolve: Can't find %s" file))
-  (with-demoted-errors
+  (with-demoted-errors "Error: %S"
     (let ((exists (find-buffer-visiting file)))
       (with-current-buffer (let ((enable-local-variables :safe)
                                  (enable-local-eval nil))

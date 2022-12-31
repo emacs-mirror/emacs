@@ -1990,13 +1990,17 @@ to assign meanings to key bindings that use these modifiers.  The
 modifier bits are labeled as @samp{s-}, @samp{H-} and @samp{A-}
 respectively.
 
+@cindex modifier keys unsupported by keyboard
   Even if your keyboard lacks these additional modifier keys, you can
-enter it using @kbd{C-x @@}: @kbd{C-x @@ h} adds the Hyper flag to
+enter them using @kbd{C-x @@}: @kbd{C-x @@ h} adds the Hyper flag to
 the next character, @kbd{C-x @@ s} adds the Super flag, and
 @kbd{C-x @@ a} adds the Alt flag.  For instance, @kbd{C-x @@ h
 C-a} is a way to enter @kbd{Hyper-Control-a}.  (Unfortunately, there
 is no way to add two modifiers by using @kbd{C-x @@} twice for the
 same character, because the first one goes to work on the @kbd{C-x}.)
+You can similarly enter the Shift, Control, and Meta modifiers by
+using @kbd{C-x @ S}, @kbd{C-x @ c}, and @kbd{C-x @ m}, respectively,
+although this is rarely needed.
 
 @node Function Keys
 @subsection Rebinding Function Keys

@@ -2004,8 +2004,8 @@ variable with value KEYMAP."
                   (mapatoms (lambda (symb)
                               (when (and (boundp symb)
                                          (eq (symbol-value symb) keymap)
-                                         (not (eq symb 'keymap))
-                                         (throw 'found-keymap symb)))))
+                                         (not (eq symb 'keymap)))
+                                (throw 'found-keymap symb))))
                   nil)))
       ;; Follow aliasing.
       (or (ignore-errors (indirect-variable name)) name))))

@@ -212,7 +212,7 @@ It should match the part after \"def\" and until \"=\".")
   :safe 'booleanp)
 
 (defcustom ruby-indent-level 2
-  "Indentation of Ruby statements."
+  "Number of spaces for each indentation step in `ruby-mode'."
   :type 'integer
   :safe 'integerp)
 
@@ -267,6 +267,23 @@ Only has effect when `ruby-use-smie' is t."
   :type 'boolean
   :safe 'booleanp
   :version "24.4")
+
+(defcustom ruby-method-params-indent t
+  "Indentation  of multiline method parameters.
+
+When t, the parameters list is indented to the method name.
+
+When a number, indent the parameters list this many columns
+against the beginning of the method (the \"def\" keyword).
+
+The value nil means the same as 0.
+
+Only has effect when `ruby-use-smie' is t."
+  :type '(choice (const :tag "Indent to the method name" t)
+                 (number :tag "Indent specified number of columns against def")
+                 (const :tag "Indent to def" nil))
+  :safe (lambda (val) (or (memq val '(t nil)) (numberp val)))
+  :version "29.1")
 
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.
@@ -660,9 +677,12 @@ This only affects the output of the command `ruby-toggle-block'."
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
     ('(:before . " @ ")
-     (save-excursion
-       (skip-chars-forward " \t")
-       (cons 'column (current-column))))
+     (if (or (eq ruby-method-params-indent t)
+             (not (smie-rule-parent-p "def" "def=")))
+         (save-excursion
+           (skip-chars-forward " \t")
+           (cons 'column (current-column)))
+       (smie-rule-parent (or ruby-method-params-indent 0))))
     ('(:before . "do") (ruby-smie--indent-to-stmt))
     ('(:before . ".")
      (if (smie-rule-sibling-p)
@@ -1879,7 +1899,7 @@ or `gem' statement around point."
       (setq feature-name (read-string "Feature name: " init))))
   (let ((out
          (substring
-          (shell-command-to-string (concat "gem which " feature-name))
+          (shell-command-to-string (concat "gem which " (shell-quote-argument feature-name)))
           0 -1)))
     (if (string-match-p "\\`ERROR" out)
         (user-error "%s" out)

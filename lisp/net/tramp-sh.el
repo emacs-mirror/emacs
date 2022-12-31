@@ -2559,19 +2559,10 @@ The method used must be an out-of-band method."
 
 (defun tramp-sh-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
-  (setq dir (expand-file-name dir))
-  (with-parsed-tramp-file-name dir nil
-    (when (and (null parents) (file-exists-p dir))
-      (tramp-error v 'file-already-exists dir))
-    ;; When PARENTS is non-nil, DIR could be a chain of non-existent
-    ;; directories a/b/c/...  Instead of checking, we simply flush the
-    ;; whole cache.
-    (tramp-flush-directory-properties
-     v (if parents "/" (file-name-directory localname)))
+  (tramp-skeleton-make-directory dir parents
     (tramp-barf-unless-okay
      v (format "%s -m %#o %s"
-	       (if parents "mkdir -p" "mkdir")
-	       (default-file-modes)
+	       "mkdir" (default-file-modes)
 	       (tramp-shell-quote-argument localname))
      "Couldn't make directory %s" dir)))
 
@@ -2829,7 +2820,7 @@ the result will be a local, non-Tramp, file name."
   (when (zerop (length name)) (setq name "."))
   ;; On MS Windows, some special file names are not returned properly
   ;; by `file-name-absolute-p'.  If `tramp-syntax' is `simplified',
-  ;; there could be the falso positive "/:".
+  ;; there could be the false positive "/:".
   (if (or (and (eq system-type 'windows-nt)
 	       (string-match-p
 		(tramp-compat-rx bol (| (: alpha ":") (: (literal null-device) eol)))

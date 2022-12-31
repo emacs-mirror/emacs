@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <alloca.h>
 #include <setjmp.h>
-#include <stdalign.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>

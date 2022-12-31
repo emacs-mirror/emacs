@@ -1472,14 +1472,16 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
           (t (rename-buffer (generate-new-buffer-name name)))))
   nil)
 
-;; Soju v0.4.0 only sends ISUPPORT on upstream reconnect, so this
-;; doesn't apply.  ZNC 1.8.2, however, still sends the entire burst.
-(defconst erc-networks--bouncer-targets '(*status bouncerserv)
-  "Case-mapped symbols matching known bouncer service-bot targets.")
+;; Soju v0.4.0 sends ISUPPORT and nothing else on upstream reconnect,
+;; so this actually doesn't apply.  ZNC 1.8.2, however, still sends
+;; the entire burst.
+(defvar erc-networks--bouncer-targets '(*status bouncerserv)
+  "Symbols matching proxy-bot targets.")
 
 (defun erc-networks-on-MOTD-end (proc parsed)
-  "Call on-connect functions with server PROC and PARSED message.
-This must run before `erc-server-connected' is set."
+  "Call on-connect functions with server PROC and PARSED message."
+  ;; This should normally run before `erc-server-connected' is set.
+  ;; However, bouncers and other proxies may interfere with that.
   (when erc-server-connected
     (unless (erc-buffer-filter (lambda ()
                                  (and erc--target
@@ -1501,6 +1503,18 @@ This must run before `erc-server-connected' is set."
    (add-hook 'erc-server-422-functions #'erc-networks-on-MOTD-end))
   ((remove-hook 'erc-server-376-functions #'erc-networks-on-MOTD-end)
    (remove-hook 'erc-server-422-functions #'erc-networks-on-MOTD-end)))
+
+(defun erc-networks--warn-on-connect ()
+  "Emit warning when the `networks' module hasn't been loaded.
+Ideally, do so upon opening the network process."
+  (unless (or erc--target erc-networks-mode)
+    (require 'info nil t)
+    (let ((m (concat "Required module `networks' not loaded.  If this "
+                     " was unexpected, please add it to `erc-modules'.")))
+      ;; Assume the server buffer has been marked as active.
+      (erc-display-error-notice
+       nil (concat m "  See Info:\"(erc) Required Modules\" for more."))
+      (lwarn 'erc :warning m))))
 
 (defun erc-ports-list (ports)
   "Return a list of PORTS.

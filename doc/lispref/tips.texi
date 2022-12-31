@@ -804,7 +804,7 @@ Finally, to create a hyperlink to URLs, write the single-quoted URL,
 preceded by @samp{URL}.  For example,
 
 @smallexample
-The GNU project wesite has more information (see URL
+The GNU project website has more information (see URL
 `https://www.gnu.org/').
 @end smallexample
 

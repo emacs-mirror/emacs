@@ -1080,7 +1080,6 @@ fontified."
 
    :feature 'string
    :language 'python
-   :override t
    '((string) @python--treesit-fontify-string)
 
    :feature 'string-interpolation
@@ -1097,9 +1096,7 @@ fontified."
 
    :feature 'function
    :language 'python
-   '((function_definition
-      name: (identifier) @font-lock-function-name-face)
-     (call function: (identifier) @font-lock-function-name-face)
+   '((call function: (identifier) @font-lock-function-name-face)
      (call function: (attribute
                       attribute: (identifier) @font-lock-function-name-face)))
 
@@ -1130,7 +1127,7 @@ fontified."
                  @font-lock-variable-name-face)
      (assignment left: (attribute
                         attribute: (identifier)
-                        @font-lock-variable-name-face))
+                        @font-lock-property-face))
      (pattern_list (identifier)
                    @font-lock-variable-name-face)
      (tuple_pattern (identifier)
@@ -1162,12 +1159,10 @@ fontified."
 
    :feature 'number
    :language 'python
-   :override t
    '([(integer) (float)] @font-lock-number-face)
 
    :feature 'property
    :language 'python
-   :override t
    '((attribute
       attribute: (identifier) @font-lock-property-face)
      (class_definition
@@ -1178,19 +1173,43 @@ fontified."
 
    :feature 'operator
    :language 'python
-   :override t
    `([,@python--treesit-operators] @font-lock-operator-face)
 
    :feature 'bracket
    :language 'python
-   :override t
    '(["(" ")" "[" "]" "{" "}"] @font-lock-bracket-face)
 
    :feature 'delimiter
    :language 'python
-   :override t
-   '(["," "." ":" ";" (ellipsis)] @font-lock-delimiter-face))
+   '(["," "." ":" ";" (ellipsis)] @font-lock-delimiter-face)
+
+   :feature 'variable
+   :language 'python
+   '((identifier) @python--treesit-fontify-variable))
   "Tree-sitter font-lock settings.")
+
+(defun python--treesit-variable-p (node)
+  "Check whether NODE is a variable.
+NODE's type should be \"identifier\"."
+  ;; An identifier can be a function/class name, a property, or a
+  ;; variables.  This funtion filters out function/class names and
+  ;; properties.
+  (pcase (treesit-node-type (treesit-node-parent node))
+    ((or "function_definition" "class_definition") nil)
+    ("attribute"
+     (pcase (treesit-node-field-name node)
+       ("object" t)
+       (_ nil)))
+    (_ t)))
+
+(defun python--treesit-fontify-variable (node override start end &rest _)
+  "Fontify an identifier node if it is a variable.
+For NODE, OVERRIDE, START, END, and ARGS, see
+`treesit-font-lock-rules'."
+  (when (python--treesit-variable-p node)
+    (treesit-fontify-with-override
+     (treesit-node-start node) (treesit-node-end node)
+     'font-lock-variable-name-face override start end)))
 
 
 ;;; Indentation
@@ -4540,7 +4559,7 @@ Commands that must finish the tracking session are listed in
   (when (and python-pdbtrack-tracked-buffer
              ;; Empty input is sent by C-d or `comint-send-eof'
              (or (string-empty-p input)
-                 ;; "n some text" is "n" command for pdb. Split input and get firs part
+                 ;; "n some text" is "n" command for pdb. Split input and get first part
                  (let* ((command (car (split-string (string-trim input) " "))))
                    (setq python-pdbtrack-prev-command-continue
                          (or (member command python-pdbtrack-continue-command)
@@ -5448,6 +5467,16 @@ To this:
 
 ;;; Tree-sitter imenu
 
+(defun python--treesit-defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "function_definition" "class_definition")
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       node "name")
+      t))))
+
 (defun python--imenu-treesit-create-index-1 (node)
   "Given a sparse tree, create an imenu alist.
 
@@ -5473,9 +5502,8 @@ definition*\"."
                  ("class_definition" 'class)))
          ;; The root of the tree could have a nil ts-node.
          (name (when ts-node
-                 (treesit-node-text
-                  (treesit-node-child-by-field-name
-                   ts-node "name") t)))
+                 (or (treesit-defun-name ts-node)
+                     "Anonymous")))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
@@ -6637,12 +6665,14 @@ implementations: `python-mode' and `python-ts-mode'."
                   ( keyword string type)
                   ( assignment builtin constant decorator
                     escape-sequence number property string-interpolation )
-                  ( function bracket delimiter operator)))
+                  ( bracket delimiter function operator variable)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)
     (setq-local treesit-defun-type-regexp (rx (or "function" "class")
                                               "_definition"))
+    (setq-local treesit-defun-name-function
+                #'python--treesit-defun-name)
     (treesit-major-mode-setup)
 
     (when python-indent-guess-indent-offset

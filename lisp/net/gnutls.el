@@ -128,10 +128,7 @@ key exchange is against man-in-the-middle attacks.)
 
 A value of nil says to use the default GnuTLS value.
 
-The default value of this variable is such that virtually any
-connection can be established, whether this connection can be
-considered cryptographically \"safe\" or not.  However, Emacs
-network security is handled at a higher level via
+Emacs network security is handled at a higher level via
 `open-network-stream' and the Network Security Manager.  See Info
 node `(emacs) Network Security'."
   :type '(choice (const :tag "Use default value" nil)

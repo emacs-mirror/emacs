@@ -887,6 +887,8 @@ DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
 Optional second argument MINIMUM says always do at least MINIMUM spaces
 even if that goes past COLUMN; by default, MINIMUM is zero.
 
+Whether this uses tabs or spaces depends on `indent-tabs-mode'.
+
 The return value is the column where the insertion ends.  */)
   (Lisp_Object column, Lisp_Object minimum)
 {

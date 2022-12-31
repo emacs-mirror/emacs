@@ -1365,7 +1365,16 @@ Assume point is at beginning of the inline task."
 	   (priority (and (looking-at "\\[#.\\][ \t]*")
 			  (progn (goto-char (match-end 0))
 				 (aref (match-string 0) 2))))
-	   (title-start (point))
+           (commentedp
+	    (and (let ((case-fold-search nil))
+                   (looking-at org-element-comment-string))
+		 (goto-char (match-end 0))
+                 (when (looking-at-p "\\(?:[ \t]\\|$\\)")
+                   (point))))
+	   (title-start (prog1 (point)
+                          (unless (or todo priority commentedp)
+                            ;; Headline like "* :tag:"
+                            (skip-chars-backward " \t"))))
 	   (tags (when (re-search-forward
 			"[ \t]+\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$"
 			(line-end-position)
@@ -1375,6 +1384,7 @@ Assume point is at beginning of the inline task."
 	   (title-end (point))
 	   (raw-value (org-trim
 		       (buffer-substring-no-properties title-start title-end)))
+           (archivedp (member org-element-archive-tag tags))
 	   (task-end (save-excursion
 		       (end-of-line)
 		       (and (re-search-forward org-element-headline-re limit t)
@@ -1410,7 +1420,9 @@ Assume point is at beginning of the inline task."
 			 :todo-keyword todo
 			 :todo-type todo-type
 			 :post-blank (1- (count-lines (or task-end begin) end))
-			 :post-affiliated begin)
+			 :post-affiliated begin
+                         :archivedp archivedp
+			 :commentedp commentedp)
 		   time-props
 		   standard-props))))
       (org-element-put-property
@@ -7260,18 +7272,18 @@ Each element indicates the latest `org-element--cache-change-tic' when
 change did not contain gaps.")
 
 ;;;###autoload
-(defun org-element-cache-reset (&optional all no-persistance)
+(defun org-element-cache-reset (&optional all no-persistence)
   "Reset cache in current buffer.
 When optional argument ALL is non-nil, reset cache in all Org
 buffers.
-When optional argument NO-PERSISTANCE is non-nil, do not try to update
+When optional argument NO-PERSISTENCE is non-nil, do not try to update
 the cache persistence in the buffer."
   (interactive "P")
   (dolist (buffer (if all (buffer-list) (list (current-buffer))))
     (org-with-base-buffer buffer
       (when (and org-element-use-cache (derived-mode-p 'org-mode))
         ;; Only persist cache in file buffers.
-        (when (and (buffer-file-name) (not no-persistance))
+        (when (and (buffer-file-name) (not no-persistence))
           (when (not org-element-cache-persistent)
             (org-persist-unregister 'org-element--headline-cache (current-buffer))
             (org-persist-unregister 'org-element--cache (current-buffer)))

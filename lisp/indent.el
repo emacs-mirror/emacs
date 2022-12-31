@@ -784,7 +784,8 @@ If PREV is non-nil, return the previous one instead."
 (defun tab-to-tab-stop ()
   "Insert spaces or tabs to next defined tab-stop column.
 The variable `tab-stop-list' is a list of columns at which there are tab stops.
-Use \\[edit-tab-stops] to edit them interactively."
+Use \\[edit-tab-stops] to edit them interactively.
+Whether this inserts tabs or spaces depends on `indent-tabs-mode'."
   (interactive)
   (and abbrev-mode (= (char-syntax (preceding-char)) ?w)
        (expand-abbrev))

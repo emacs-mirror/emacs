@@ -330,11 +330,9 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 (defvar-keymap winner-repeat-map
   :doc "Keymap to repeat winner key sequences.  Used in `repeat-mode'."
+  :repeat t
   "<left>"  #'winner-undo
   "<right>" #'winner-redo)
-
-(put #'winner-undo 'repeat-map 'winner-repeat-map)
-(put #'winner-redo 'repeat-map 'winner-repeat-map)
 
 
 ;;;###autoload

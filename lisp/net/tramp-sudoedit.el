@@ -626,18 +626,9 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
-  (setq dir (expand-file-name dir))
-  (with-parsed-tramp-file-name dir nil
-    (when (and (null parents) (file-exists-p dir))
-      (tramp-error v 'file-already-exists "Directory already exists %s" dir))
-    ;; When PARENTS is non-nil, DIR could be a chain of non-existent
-    ;; directories a/b/c/...  Instead of checking, we simply flush the
-    ;; whole cache.
-    (tramp-flush-directory-properties
-     v (if parents "/" (file-name-directory localname)))
+  (tramp-skeleton-make-directory dir parents
     (unless (tramp-sudoedit-send-command
-	     v (if parents '("mkdir" "-p") "mkdir")
-	     "-m" (format "%#o" (default-file-modes))
+	     v "mkdir" "-m" (format "%#o" (default-file-modes))
 	     (tramp-compat-file-name-unquote localname))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 

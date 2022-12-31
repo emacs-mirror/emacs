@@ -269,7 +269,7 @@ Scrolling:          SPC  DEL  RET
 Text Searches:      Inside Topic: Use Emacs search functions
 Exit:               [q]uit or mouse button 3 will kill the frame
 
-When the hep text is a source file, the following commands are available
+When the help text is a source file, the following commands are available
 
 Fontification:      [F]ontify the buffer like source code
 Jump:               [h] to function doclib header

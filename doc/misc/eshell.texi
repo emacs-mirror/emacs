@@ -2162,11 +2162,6 @@ So that @kbd{M-@key{DEL}} acts in a predictable manner, etc.
 
 @item Allow all Eshell buffers to share the same history and list-dir
 
-@item There is a problem with script commands that output to @file{/dev/null}
-
-If a script file, somewhere in the middle, uses @samp{> /dev/null},
-output from all subsequent commands is swallowed.
-
 @item Split up parsing of text after @samp{$} in @file{esh-var.el}
 
 Make it similar to the way that @file{esh-arg.el} is structured.

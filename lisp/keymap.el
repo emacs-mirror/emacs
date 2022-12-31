@@ -625,7 +625,7 @@ command exists in this specific map, but it doesn't have the
            `(defvar ,variable-name
               (define-keymap ,@(nreverse opts) ,@defs)
               ,@(and doc (list doc)))))
-      (if repeat
+      (if props
           `(progn
              ,defvar-form
              ,@(nreverse props))

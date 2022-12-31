@@ -410,7 +410,10 @@ for speeding up processing.")
 
       (`(condition-case ,var ,exp . ,clauses)
        `(,fn ,var          ;Not evaluated.
-            ,(byte-optimize-form exp for-effect)
+             ,(byte-optimize-form exp
+                                  (if (assq :success clauses)
+                                      (null var)
+                                    for-effect))
           ,@(mapcar (lambda (clause)
                       (let ((byte-optimize--lexvars
                              (and lexical-binding

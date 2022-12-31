@@ -1268,7 +1268,7 @@
   :short-name  "CNS11643-15"
   :long-name "CNS11643-15 (Chinese traditional)"
   :code-space [33 126 33 126]
-  :code-offset #x27A000
+  :code-offset #x28083A                 ; Right after 'big5-hkscs.
   :unify-map "CNS-F")
 
 (unify-charset 'chinese-gb2312)

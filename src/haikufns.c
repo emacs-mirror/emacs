@@ -3245,7 +3245,7 @@ syms_of_haikufns (void)
 
   DEFVAR_LISP ("haiku-allowed-ui-colors", Vhaiku_allowed_ui_colors,
 	       doc: /* Vector of UI colors that Emacs can look up from the system.
-If this is set up incorrectly, Emacs can crash when encoutering an
+If this is set up incorrectly, Emacs can crash when encountering an
 invalid color.  */);
   Vhaiku_allowed_ui_colors = Qnil;
 

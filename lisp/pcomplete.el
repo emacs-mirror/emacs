@@ -645,13 +645,26 @@ parts of the list.
 
 The OFFSET argument is added to/taken away from the index that will be
 used.  This is really only useful with `first' and `last', for
-accessing absolute argument positions."
-  (nth (+ (pcase index
-	   ('first 0)
-	   ('last  pcomplete-last)
-	   (_      (- pcomplete-index (or index 0))))
-	  (or offset 0))
-       pcomplete-args))
+accessing absolute argument positions.
+
+When the argument has been transformed into something that is not
+a string by `pcomplete-parse-arguments-function', the text
+representation of the argument, namely what the user actually
+typed in, is returned, and the value of the argument is stored in
+the pcomplete-arg-value text property of that string."
+  (let ((arg
+         (nth (+ (pcase index
+	           ('first 0)
+	           ('last  pcomplete-last)
+	           (_      (- pcomplete-index (or index 0))))
+	         (or offset 0))
+              pcomplete-args)))
+    (if (stringp arg)
+        arg
+      (propertize
+       (buffer-substring (pcomplete-begin index offset)
+                         (pcomplete-begin (1- (or index 0)) offset))
+       'pcomplete-arg-value arg))))
 
 (defun pcomplete-begin (&optional index offset)
   "Return the beginning position of the INDEXth argument.

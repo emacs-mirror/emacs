@@ -1290,6 +1290,11 @@ struct x_output
      strictly an optimization to avoid extraneous synchronizing in
      some cases.  */
   int root_x, root_y;
+
+  /* The frame visibility state.  This starts out
+     VisibilityFullyObscured, but is set to something else in
+     handle_one_xevent.  */
+  int visibility_state;
 };
 
 enum
@@ -1407,6 +1412,11 @@ extern void x_mark_frame_dirty (struct frame *f);
 
 /* And its corresponding visual info.  */
 #define FRAME_X_VISUAL_INFO(f) (&FRAME_DISPLAY_INFO (f)->visual_info)
+
+/* Whether or not the frame is visible.  Do not test this alone.
+   Instead, use FRAME_REDISPLAY_P.  */
+#define FRAME_X_VISIBLE(f) (FRAME_X_OUTPUT (f)->visibility_state	\
+			    != VisibilityFullyObscured)
 
 #ifdef HAVE_XRENDER
 #define FRAME_X_PICTURE_FORMAT(f) FRAME_DISPLAY_INFO (f)->pict_format

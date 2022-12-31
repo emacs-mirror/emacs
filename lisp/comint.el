@@ -606,11 +606,9 @@ via PTYs.")
 
 (defvar-keymap comint-repeat-map
   :doc "Keymap to repeat comint key sequences.  Used in `repeat-mode'."
+  :repeat t
   "C-n" #'comint-next-prompt
   "C-p" #'comint-previous-prompt)
-
-(put #'comint-next-prompt 'repeat-map 'comint-repeat-map)
-(put #'comint-previous-prompt 'repeat-map 'comint-repeat-map)
 
 ;; Fixme: Is this still relevant?
 (defvar comint-ptyp t

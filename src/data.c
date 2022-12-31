@@ -2630,6 +2630,7 @@ bool-vector.  IDX starts at 0.  */)
     }
   else if (RECORDP (array))
     {
+      CHECK_IMPURE (array, XVECTOR (array));
       if (idxval < 0 || idxval >= PVSIZE (array))
 	args_out_of_range (array, idx);
       ASET (array, idxval, newelt);

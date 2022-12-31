@@ -7757,7 +7757,7 @@ multi-line strings (but not C++, for example)."
 			       (1- (match-end 1)) ; 1- For the inserted ".
 			     eoll))))
 
-	      ;; ...and clear `syntax-table' text propertes from the
+	      ;; ...and clear `syntax-table' text properties from the
 	      ;; following raw strings.
 	      (c-depropertize-ml-strings-in-region (point) (1+ eoll)))
 	  ;; Remove the temporary string delimiter.

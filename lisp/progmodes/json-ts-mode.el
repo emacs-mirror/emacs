@@ -33,6 +33,7 @@
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 
 
@@ -107,33 +108,16 @@
    '((ERROR) @font-lock-warning-face))
   "Font-lock settings for JSON.")
 
-(defun json-ts-mode--imenu-1 (node)
-  "Helper for `json-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'json-ts-mode--imenu-1 (cdr node)))
-         (name (when ts-node
-                 (treesit-node-text
-                  (treesit-node-child-by-field-name
-                   ts-node "key")
-                  t)))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((null ts-node) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun json-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (tree (treesit-induce-sparse-tree
-                node "pair" nil 1000)))
-    (json-ts-mode--imenu-1 tree)))
+(defun json-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "pair" "object")
+     (string-trim (treesit-node-text
+                   (treesit-node-child-by-field-name
+                    node "key")
+                   t)
+                  "\"" "\""))))
 
 ;;;###autoload
 (define-derived-mode json-ts-mode prog-mode "JSON"
@@ -161,6 +145,7 @@ the subtrees."
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
               (rx (or "pair" "object")))
+  (setq-local treesit-defun-name-function #'json-ts-mode--defun-name)
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings json-ts-mode--font-lock-settings)
@@ -170,8 +155,8 @@ the subtrees."
                 (bracket delimiter error)))
 
   ;; Imenu.
-  (setq-local imenu-create-index-function #'json-ts-mode--imenu)
-  (setq-local which-func-functions nil) ;; Piggyback on imenu
+  (setq-local treesit-simple-imenu-settings
+              '((nil "\\`pair\\'" nil nil)))
 
   (treesit-major-mode-setup))
 

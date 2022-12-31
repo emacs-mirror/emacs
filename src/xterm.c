@@ -4597,7 +4597,7 @@ x_dnd_send_position (struct frame *f, Window target, Window toplevel,
      maintained by the original author of the protocol specifies it
      for all versions.  Since at least one program supports these
      flags, but uses protocol v4 (and not v5), set them for all
-     protocool versions.  */
+     protocol versions.  */
   if (button >= 4 && button <= 7)
     {
       msg.xclient.data.l[1] |= (1 << 10);
@@ -7645,6 +7645,46 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 #endif
 }
 
+/* Generate a premultiplied pixel value for COLOR with ALPHA applied
+   on the given display.  COLOR will be modified.  The display must
+   use a visual that supports an alpha channel.
+
+   This is possibly dead code on builds which do not support
+   XRender.  */
+
+#ifndef USE_CAIRO
+
+static unsigned long
+x_premultiply_pixel (struct x_display_info *dpyinfo,
+		     XColor *color, double alpha)
+{
+  unsigned long pixel;
+
+  eassert (dpyinfo->alpha_bits);
+
+  /* Multiply the RGB channels.  */
+  color->red *= alpha;
+  color->green *= alpha;
+  color->blue *= alpha;
+
+  /* First, allocate a fully opaque pixel.  */
+  pixel = x_make_truecolor_pixel (dpyinfo, color->red,
+				  color->green,
+				  color->blue);
+
+  /* Next, erase the alpha component.  */
+  pixel &= ~dpyinfo->alpha_mask;
+
+  /* And add an alpha channel.  */
+  pixel |= (((unsigned long) (alpha * 65535)
+	     >> (16 - dpyinfo->alpha_bits))
+	    << dpyinfo->alpha_offset);
+
+  return pixel;
+}
+
+#endif
+
 static void
 x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 		      struct draw_fringe_bitmap_params *p)
@@ -7734,18 +7774,15 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       if (FRAME_DISPLAY_INFO (f)->alpha_bits
 	  && f->alpha_background < 1.0)
 	{
+	  /* Extend the background color with an alpha channel
+	     according to f->alpha_background.  */
 	  bg.pixel = background;
 	  x_query_colors (f, &bg, 1);
-	  bg.red *= f->alpha_background;
-	  bg.green *= f->alpha_background;
-	  bg.blue *= f->alpha_background;
 
-	  background = x_make_truecolor_pixel (FRAME_DISPLAY_INFO (f),
-					       bg.red, bg.green, bg.blue);
-	  background &= ~FRAME_DISPLAY_INFO (f)->alpha_mask;
-	  background |= (((unsigned long) (f->alpha_background * 0xffff)
-			  >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
-			 << FRAME_DISPLAY_INFO (f)->alpha_offset);
+	  background
+	    = x_premultiply_pixel (FRAME_DISPLAY_INFO (f),
+				   &bg,
+				   f->alpha_background);
 	}
 
       /* Draw the bitmap.  I believe these small pixmaps can be cached
@@ -8894,7 +8931,11 @@ x_color_cells (Display *dpy, int *ncells)
 
 
 /* On frame F, translate pixel colors to RGB values for the NCOLORS
-   colors in COLORS.  Use cached information, if available.  */
+   colors in COLORS.  Use cached information, if available.
+
+   Pixel values are in unsigned normalized format, meaning that
+   extending missing bits is done straightforwardly without any
+   complex colorspace conversions.  */
 
 void
 x_query_colors (struct frame *f, XColor *colors, int ncolors)
@@ -8942,6 +8983,7 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
 	  colors[i].green = (g * gmult) >> 16;
 	  colors[i].blue = (b * bmult) >> 16;
 	}
+
       return;
     }
 
@@ -8984,16 +9026,10 @@ x_query_frame_background_color (struct frame *f, XColor *bgcolor)
 	{
 	  bg.pixel = background;
 	  x_query_colors (f, &bg, 1);
-	  bg.red *= f->alpha_background;
-	  bg.green *= f->alpha_background;
-	  bg.blue *= f->alpha_background;
 
-	  background = x_make_truecolor_pixel (FRAME_DISPLAY_INFO (f),
-					       bg.red, bg.green, bg.blue);
-	  background &= ~FRAME_DISPLAY_INFO (f)->alpha_mask;
-	  background |= (((unsigned long) (f->alpha_background * 0xffff)
-			  >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
-			 << FRAME_DISPLAY_INFO (f)->alpha_offset);
+	  background
+	    = x_premultiply_pixel (FRAME_DISPLAY_INFO (f),
+				   &bg, f->alpha_background);
 	}
 #endif
     }
@@ -21707,9 +21743,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case VisibilityNotify:
       f = x_top_window_to_frame (dpyinfo, event->xvisibility.window);
-      if (f && (event->xvisibility.state == VisibilityUnobscured
-		|| event->xvisibility.state == VisibilityPartiallyObscured))
-	SET_FRAME_VISIBLE (f, 1);
+
+      if (f)
+	FRAME_X_OUTPUT (f)->visibility_state = event->xvisibility.state;
 
       goto OTHER;
 
@@ -26264,8 +26300,10 @@ x_error_handler (Display *display, XErrorEvent *event)
 static void NO_INLINE
 x_error_quitter (Display *display, XErrorEvent *event)
 {
-  char buf[256], buf1[400 + INT_STRLEN_BOUND (int)
-		      + INT_STRLEN_BOUND (unsigned long)];
+  char buf[256], buf1[800 + INT_STRLEN_BOUND (int)
+		      + INT_STRLEN_BOUND (unsigned long)
+		      + INT_STRLEN_BOUND (XID)
+		      + INT_STRLEN_BOUND (int)];
 
   /* Ignore BadName errors.  They can happen because of fonts
      or colors that are not defined.  */
@@ -26278,8 +26316,12 @@ x_error_quitter (Display *display, XErrorEvent *event)
 
   XGetErrorText (display, event->error_code, buf, sizeof (buf));
   sprintf (buf1, "X protocol error: %s on protocol request %d\n"
-	   "Serial no: %lu\n", buf, event->request_code,
-	   event->serial);
+	   "Serial no: %lu\n"
+	   "Failing resource ID (if any): 0x%lx\n"
+	   "Minor code: %d\n"
+	   "This is a bug!  Please report this to bug-gnu-emacs@gnu.org!\n",
+	   buf, event->request_code, event->serial, event->resourceid,
+	   event->minor_code);
   x_connection_closed (display, buf1, false);
 }
 
@@ -28435,7 +28477,10 @@ x_make_frame_invisible (struct frame *f)
 	error ("Can't notify window manager of window withdrawal");
       }
 
-  XSync (FRAME_X_DISPLAY (f), False);
+  /* Don't perform the synchronization if the network connection is
+     slow, and the user says it is unwanted.  */
+  if (NILP (Vx_lax_frame_positioning))
+    XSync (FRAME_X_DISPLAY (f), False);
 
   /* We can't distinguish this from iconification
      just by the event that we get from the server.
@@ -28446,8 +28491,7 @@ x_make_frame_invisible (struct frame *f)
   SET_FRAME_ICONIFIED (f, false);
 
   if (CONSP (frame_size_history))
-    frame_size_history_plain
-      (f, build_string ("x_make_frame_invisible"));
+    frame_size_history_plain (f, build_string ("x_make_frame_invisible"));
 
   unblock_input ();
 }
@@ -29894,13 +29938,17 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  {
 	    char *vendor = ServerVendor (dpy);
 
-	    /* Temporarily hide the partially initialized terminal.  */
+	    /* Temporarily hide the partially initialized terminal.
+	       Use safe_call so that if a signal happens, a partially
+	       initialized display (and display connection) is not
+	       kept around.  */
 	    terminal_list = terminal->next_terminal;
 	    unblock_input ();
-	    kset_system_key_alist
-	      (terminal->kboard,
-	       call1 (Qvendor_specific_keysyms,
-		      vendor ? build_string (vendor) : empty_unibyte_string));
+	    kset_system_key_alist (terminal->kboard,
+				   safe_call1 (Qvendor_specific_keysyms,
+					       (vendor
+						? build_string (vendor)
+						: empty_unibyte_string)));
 	    block_input ();
 	    terminal->next_terminal = terminal_list;
 	    terminal_list = terminal;
@@ -31970,6 +32018,7 @@ too slow, which is usually true when the X server is located over a
 network connection with high latency.  Doing so will make frame
 creation and placement faster at the cost of reducing the accuracy of
 frame placement via frame parameters, `set-frame-position', and
-`set-frame-size'.  */);
+`set-frame-size', along with the actual state of a frame after
+`x_make_frame_invisible'.  */);
   Vx_lax_frame_positioning = Qnil;
 }

@@ -649,8 +649,8 @@ in `byte-compile-warning-types'; see the variable
 `byte-compile-warnings' for a fuller explanation of the warning
 types.  The types that can be suppressed with this macro are
 `free-vars', `callargs', `redefine', `obsolete',
-`interactive-only', `lexical', `mapcar', `constants' and
-`suspicious'.
+`interactive-only', `lexical', `mapcar', `constants',
+`suspicious' and `empty-body'.
 
 For the `mapcar' case, only the `mapcar' function can be used in
 the symbol list.  For `suspicious', only `set-buffer', `lsh' and `eq'

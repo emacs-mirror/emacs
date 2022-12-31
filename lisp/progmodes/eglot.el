@@ -190,6 +190,7 @@ chosen (interactively or automatically)."
                                      '("pylsp" "pyls" ("pyright-langserver" "--stdio") "jedi-language-server")))
                                 ((js-json-mode json-mode json-ts-mode)
                                  . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
+                                                          ("vscode-json-languageserver" "--stdio")
                                                           ("json-languageserver" "--stdio"))))
                                 ((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
@@ -907,6 +908,8 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
            do (with-demoted-errors "[eglot] shutdown all: %s"
                 (cl-loop for s in ss do (eglot-shutdown s nil nil preserve-buffers)))))
 
+(defvar eglot--servers-by-xrefed-file (make-hash-table :test 'equal))
+
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
   ;; Turn off `eglot--managed-mode' where appropriate.
@@ -925,6 +928,9 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
   (setf (gethash (eglot--project server) eglot--servers-by-project)
         (delq server
               (gethash (eglot--project server) eglot--servers-by-project)))
+  (maphash (lambda (f s)
+             (when (eq s server) (remhash f eglot--servers-by-xrefed-file)))
+           eglot--servers-by-xrefed-file)
   (cond ((eglot--shutdown-requested server)
          t)
         ((not (eglot--inhibit-autoreconnect server))
@@ -1055,9 +1061,6 @@ be guessed."
 (defvar eglot-lsp-context)
 (put 'eglot-lsp-context 'variable-documentation
      "Dynamically non-nil when searching for projects in LSP context.")
-
-(defvar eglot--servers-by-xrefed-file
-  (make-hash-table :test 'equal :weakness 'value))
 
 (defun eglot--current-project ()
   "Return a project object for Eglot's LSP purposes.

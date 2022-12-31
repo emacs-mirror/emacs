@@ -1484,10 +1484,12 @@ Ask for type, description or disposition according to
 	  (setq disposition (mml-minibuffer-read-disposition type nil file)))
 	(mml-attach-file file type description disposition)))))
 
-(defun mml-attach-buffer (buffer &optional type description disposition)
+(defun mml-attach-buffer (buffer &optional type description disposition filename)
   "Attach a buffer to the outgoing MIME message.
 BUFFER is the name of the buffer to attach.  See
-`mml-attach-file' for details of operation."
+`mml-attach-file' regarding TYPE, DESCRIPTION and DISPOSITION.
+FILENAME is a suggested file name for the attachment should a
+recipient wish to save a copy separate from the message."
   (interactive
    (let* ((buffer (read-buffer "Attach buffer: "))
 	  (type (mml-minibuffer-read-type buffer "text/plain"))
@@ -1497,9 +1499,10 @@ BUFFER is the name of the buffer to attach.  See
   ;; If in the message header, attach at the end and leave point unchanged.
   (let ((head (unless (message-in-body-p) (point))))
     (if head (goto-char (point-max)))
-    (mml-insert-empty-tag 'part 'type type 'buffer buffer
-			  'disposition disposition
-			  'description description)
+    (apply #'mml-insert-empty-tag
+           'part 'type type 'buffer buffer
+	   'disposition disposition 'description description
+           (and filename `(filename ,filename)))
     ;; When using Mail mode, make sure it does the mime encoding
     ;; when you send the message.
     (or (eq mail-user-agent 'message-user-agent)

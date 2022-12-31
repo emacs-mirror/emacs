@@ -263,6 +263,12 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (stringp "a")
    :eval (stringp 'a)
    :eval "(stringp ?a)")
+  (string-or-null-p
+   :eval (string-or-null-p "a")
+   :eval (string-or-null-p nil))
+  (char-or-string-p
+   :eval "(char-or-string-p ?a)"
+   :eval (char-or-string-p "a"))
   (string-empty-p
    :no-manual t
    :eval (string-empty-p ""))
@@ -300,6 +306,9 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (string-to-number "2.5e+03"))
   (number-to-string
    :eval (number-to-string 42))
+  (char-uppercase-p
+   :eval "(char-uppercase-p ?A)"
+   :eval "(char-uppercase-p ?a)")
   "Data About Strings"
   (length
    :eval (length "foo")

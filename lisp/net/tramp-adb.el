@@ -411,20 +411,11 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
-  (setq dir (expand-file-name dir))
-  (with-parsed-tramp-file-name dir nil
-    (when (and (null parents) (file-exists-p dir))
-      (tramp-error v 'file-already-exists dir))
-    (when parents
-      (let ((par (expand-file-name ".." dir)))
-	(unless (file-directory-p par)
-	  (make-directory par parents))))
-    (tramp-flush-directory-properties v localname)
-    (unless (or (tramp-adb-send-command-and-check
-		 v (format "mkdir -m %#o %s"
-			   (default-file-modes)
-			   (tramp-shell-quote-argument localname)))
-		(and parents (file-directory-p dir)))
+  (tramp-skeleton-make-directory dir parents
+    (unless (tramp-adb-send-command-and-check
+	     v (format "mkdir -m %#o %s"
+		       (default-file-modes)
+		       (tramp-shell-quote-argument localname)))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
 (defun tramp-adb-handle-delete-directory (directory &optional recursive trash)

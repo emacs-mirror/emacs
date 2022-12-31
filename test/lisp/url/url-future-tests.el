@@ -52,7 +52,7 @@
     (should (equal (url-future-cancel tocancel) tocancel))
     (should-error (url-future-call tocancel))
     (should (null url-future-tests--saver))
-    (should (url-future-cancelled-p tocancel))))
+    (should (url-future-canceled-p tocancel))))
 
 (provide 'url-future-tests)
 

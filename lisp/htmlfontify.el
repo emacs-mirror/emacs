@@ -1850,8 +1850,9 @@ Hardly bombproof, but good enough in the context in which it is being used."
 
 (defun hfy-text-p (srcdir file)
   "Is SRCDIR/FILE text?  Use `hfy-istext-command' to determine this."
-  (let* ((cmd (format hfy-istext-command (expand-file-name file srcdir)))
-         (rsp (shell-command-to-string    cmd)))
+  (let* ((cmd (format hfy-istext-command
+                      (shell-quote-argument (expand-file-name file srcdir))))
+         (rsp (shell-command-to-string cmd)))
     (string-match "text" rsp)))
 
 ;; open a file, check fontification, if fontified, write a fontified copy
