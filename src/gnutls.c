@@ -1941,7 +1941,7 @@ one trustfile (usually a CA bundle).  */)
   Lisp_Object prime_bits;
 #ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2
   unsigned int aux_key_file;
-#endiif
+#endif
   struct Lisp_Process *p = XPROCESS (proc);
 
   CHECK_PROCESS (proc);
