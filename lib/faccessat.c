@@ -43,7 +43,11 @@ orig_faccessat (int fd, char const *name, int mode, int flag)
 /* Write "unistd.h" here, not <unistd.h>, otherwise OSF/1 5.1 DTK cc
    eliminates this include because of the preliminary #include <unistd.h>
    above.  */
+#ifdef __ANROID__
+#include <unistd.h>
+#else
 #include "unistd.h"
+#endif
 
 #ifndef HAVE_ACCESS
 /* Mingw lacks access, but it also lacks real vs. effective ids, so

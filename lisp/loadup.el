@@ -306,6 +306,11 @@
       (load "term/common-win")
       (load "term/haiku-win")))
 
+(if (featurep 'android)
+    (progn
+      (load "term/common-win")
+      (load "term/android-win")))
+
 (if (or (eq system-type 'windows-nt)
         (featurep 'w32))
     (progn

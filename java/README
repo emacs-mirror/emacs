@@ -1,0 +1,6 @@
+This directory holds the Java sources of the port of GNU Emacs to
+Android-like systems.
+
+Please keep the Java code indented with tabs and formatted according
+to the rules for C code in the GNU coding standards.  Always use
+C-style comments.

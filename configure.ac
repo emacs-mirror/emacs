@@ -26,6 +26,16 @@ dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
 AC_INIT([GNU Emacs], [30.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
+if test "$XCONFIGURE" = "android"; then
+  # configure is being called recursively to configure Emacs for
+  # Android!
+  AC_MSG_NOTICE([called to recursively configure Emacs \
+for Android.])
+  # Set CC to ANDROID_CC, and CXX to ANDROID_CXX.
+  CC=$ANDROID_CC
+  CXX=$ANDROID_CXX
+fi
+
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
 dnl Add some environment variables, if they were passed via the environment
@@ -126,7 +136,25 @@ MAKE=$ac_cv_path_MAKE
 export MAKE
 
 dnl Canonicalize the configuration name.
+if test "$XCONFIGURE" = "android"; then
+  dnl Set host to whatever Android system Emacs is being configured
+  dnl for.  Determine this by looking at the output of ANDROID_CC.
+
+  AC_MSG_CHECKING([the cross-compiler's target])
+  cc_target=`${CC} -v 2>&1 | sed -n 's/Target: //p'`
+  case "$cc_target" in
+    *android*) host_alias=$cc_target
+    ;;
+    *) AC_MSG_ERROR([The cross compiler does not compile for Android.
+Please verify that you specified the correct compiler in the ANDROID_CC
+and ANDROID_CXX variables when you ran configure.])
+    ;;
+  esac
+  AC_MSG_RESULT([$host_alias])
+fi
+
 AC_CANONICAL_HOST
+AC_CANONICAL_BUILD
 
 case $host in
  *-mingw*)
@@ -206,6 +234,13 @@ AC_ARG_WITH([all],
 		small executable with minimal dependencies])],
   [with_features=$withval],
   [with_features=yes])
+
+dnl ARCH_INDEPENDENT_CONFIG_FILES(FILE...)
+dnl Like AC_CONFIG_FILES(FILE).  However, do not generate this
+dnl   if configure is being called recursively in preparation
+dnl   for cross-compilation.
+AC_DEFUN([ARCH_INDEPENDENT_CONFIG_FILES], [
+  AS_IF([test "$XCONFIGURE" != "android"], [AC_CONFIG_FILES([$1])])])
 
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to being disabled.
@@ -498,6 +533,7 @@ OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
 OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for input])
 OPTION_DEFAULT_OFF([small-ja-dic],[generate a smaller-size Japanese dictionary])
+OPTION_DEFAULT_OFF([android],[cross-compile Android application package])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -682,6 +718,237 @@ AC_ARG_ENABLE([build-details],
   [test "$enableval" = no && BUILD_DETAILS=--no-build-details])
 AC_SUBST([BUILD_DETAILS])
 
+# Start Android configuration.  This is done in three steps:
+
+# First, the SDK tools needed to build the Android package on the host
+# are found.
+
+# Then, configure is called inside itself with the NDK C and C++
+# compilers, and the Makefiles generated, along with config.h, are
+# renamed to end with .android.
+
+# Finally, configure continues to configure the Emacs binary that will
+# run on the host.
+
+ANDROID=
+JAVAC=
+AAPT=
+JARSIGNER=
+ZIPALIGN=
+DX=
+ANDROID_JAR=
+ANDROID_ABI=
+
+# This is a list of Makefiles that have alternative versions for
+# Android.
+android_makefiles="lib/Makefile lib/gnulib.mk lib-src/Makefile src/Makefile"
+
+AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
+AC_ARG_VAR([JARSIGNER], [Java package signer path.  Used for Android.])
+AC_ARG_VAR([SDK_BULD_TOOLS], [Path to the Android SDK build tools.])
+
+if test "$with_android" = "yes"; then
+   AC_MSG_ERROR([Please specify the path to the Android.jar file, like so:
+
+  ./configure --with-android=/path/to/android.jar
+
+along with the path to the SDK build-tools (this is the directory with
+tools such as aapt, dx, and aidl):
+
+              SDK_BUILD_TOOLS=/path/to/sdk-build-tools
+
+The cross-compiler should then be specified:
+
+              ANDROID_CC=/path/to/armv7a-linux-androideabi19-clang
+              ANDROID_CXX=/path/to/armv7a-linux-androideabi19-clang++])
+elif test "$with_android" = "no" || test "$with_android" = ""; then
+  ANDROID=no
+else
+  AC_CHECK_PROGS([JAVAC], [javac])
+  if test "$JAVAC" = ""; then
+    AC_MSG_ERROR([The Java compiler required to build Emacs was not found.
+Please make sure `javac' can be found on your path, or alternatively specify
+the path to your Java compiler before configuring Emacs, like so:
+
+  JAVAC=/opt/jdk/bin/javac ./configure --with-android])
+  fi
+  AC_CHECK_PROGS([JARSIGNER], [jarsigner])
+  if test "$JARSIGNER" = ""; then
+    AC_MSG_ERROR([The Java package signing utility was not found.
+Please make sure `jarsigner' can be found on your path, or alternatively
+specify its location before configuring Emacs, like so:
+
+  JARSIGNER=/opt/jdk/bin/jarsigner ./configure --with-android])
+  fi
+
+  AC_CACHE_CHECK([whether or not the Java compiler works],
+    [emacs_cv_working_javac],
+    AS_IF([rm -f conftest.class
+cat << EOF > conftest.java
+
+import android.app.Activity;
+import android.os.Bundle;
+
+class conftest extends Activity
+{
+  @Override
+  public void
+  onCreate (Bundle savedInstanceState)
+  {
+    super.onCreate (savedInstanceState);
+  }
+}
+
+EOF
+("$JAVAC" -classpath "$with_android" -target 1.7 -source 1.7 conftest.java \
+  -d . >&AS_MESSAGE_LOG_FD 2>&1) && test -s conftest.class && rm -f conftest.class],
+          [emacs_cv_working_javac=yes],
+          [emacs_cv_working_javac=no]))
+
+  if test "$emacs_cv_working_javac" = "no"; then
+    AC_MSG_ERROR([The Java compiler does not work, or you did not specify
+a valid path to android.jar.  See config.log for more details.])
+  fi
+
+  ANDROID_JAR="$with_android"
+
+  AC_PATH_PROGS([AAPT], [aapt], [], "${SDK_BUILD_TOOLS}:$PATH")
+  if test "$AAPT" = ""; then
+    AC_MSG_ERROR([The Android asset packaging tool was not found.
+Please verify that the path to the SDK build tools you specified is correct])
+  fi
+
+  AC_PATH_PROGS([DX], [dx d8], [], "${SDK_BUILD_TOOLS}:$PATH")
+  if test "DX" = ""; then
+    AC_MSG_ERROR([The Android dexer was not found.
+Please verify that the path to the SDK build tools you specified is correct])
+  fi
+
+  AC_PATH_PROGS([ZIPALIGN], [zipalign], [], "${SDK_BUILD_TOOLS}:$PATH")
+  if test "ZIPALIGN" = ""; then
+    AC_MSG_ERROR([The Android ZIP archive alignment utility was not found.
+Please verify that the path to the SDK build tools you specified is correct]);
+  fi
+
+  dnl Now configure Emacs to generate binaries for Android.  After the
+  dnl configuration completes, move the generated Makefiles.
+
+  if test "$ANDROID_CC" = "" || test "$ANDROID_CXX" = ""; then
+    AC_MSG_ERROR([Please specify the path to the Android cross-compiler
+for your machine.  For example:
+
+  ANDROID_CC=/path/to/armv7a-linux-androideabi19-clang    \\
+  ANDROID_CXX=/path/to/armv7a-linux-androideabi19-clang++ \\
+    ./configure --with-android])
+  fi
+
+  dnl Obtain the cross compiler's target to find out where binaries go
+  dnl in the resulting package.
+
+  AC_MSG_CHECKING([for the kind of Android system Emacs is being built for])
+  cc_target=`${ANDROID_CC} -v 2>&1 | sed -n 's/Target: //p'`
+  case "$cc_target" in
+    *i[3-6]86*) android_abi=x86
+      ;;
+    *x86_64*) android_abi=x86_64
+      ;;
+    *aarch64*) android_abi=arm64-v8a
+      ;;
+    *arm*v7a*) android_abi=armeabi-v7a
+      ;;
+    *mips*) android_abi=mips
+      ;;
+    *arm*) android_abi=armeabi
+      ;;
+    *) AC_MSG_ERROR([configure could not determine the type of Android \
+binary Emacs is being configured for.  Please port this configure script \
+to your Android system, or verify that you specified the correct compiler \
+in the ANDROID_CC and ANDROID_CXX variables when you ran configure.])
+      ;;
+  esac
+  AC_MSG_RESULT([$android_abi])
+
+  ANDROID_ABI=$android_abi
+
+  # Save confdefs.h and config.log for now.
+  mv -f confdefs.h _confdefs.h
+  mv -f config.log _config.log
+
+  AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
+  ANDROID_CXX="$ANDROID_CXX" $0], [], [AC_MSG_ERROR([Failed to cross-\
+configure Emacs for android.])])
+
+  # Now set ANDROID to yes.
+  ANDROID=yes
+
+  for makefile in $android_makefiles; do
+    AC_MSG_NOTICE([Generating $makefile.android])
+    mv -f "$makefile" "$makefile.android"
+  done
+
+  AC_MSG_NOTICE([Generating src/config.h.android])
+  mv -f src/config.h src/config.h.android
+
+  # Move confdefs.h back now that the recursive call to configure is
+  # complete.
+  mv -f _confdefs.h confdefs.h
+
+  # Move the Android config.log to config.log.android.  */
+  mv -f config.log config.log.android
+
+  # And _config.log back.
+  mv -f _config.log config.log
+fi
+
+AC_SUBST([ANDROID])
+AC_SUBST([JAVAC])
+AC_SUBST([AAPT])
+AC_SUBST([DX])
+AC_SUBST([ZIPALIGN])
+AC_SUBST([ANDROID_JAR])
+AC_SUBST([ANDROID_ABI])
+
+if test "$XCONFIGURE" = "android"; then
+  ANDROID=yes
+
+  # Enable cross compiling.
+  cross_compiling=yes
+fi
+
+AC_SUBST([XCONFIGURE])
+
+if test "$ANDROID" = "yes"; then
+  # When --with-android is specified, all build options must be
+  # disabled, both within the recursive invocation of configure and
+  # outside.
+  with_xpm=no
+  with_jpeg=no
+  with_tiff=no
+  with_gif=no
+  with_png=no
+  with_rsvg=no
+  with_webp=no
+  with_sqlite3=no
+  with_lcms2=no
+  with_libsystemd=no
+  with_cairo=no
+  with_xml2=no
+  with_imagemagick=no
+  with_json=no
+  with_tree_sitter=no
+  with_xft=no
+  with_harfbuzz=no
+  with_libotf=no
+  with_gpm=no
+  with_dbus=no
+  with_gsettings=no
+  with_selinx=no
+  with_gnutls=no
+  with_zlib=no
+  with_modules=no
+  with_threads=no
+fi
+
 dnl This used to use changequote, but, apart from 'changequote is evil'
 dnl per the autoconf manual, we can speed up autoconf somewhat by quoting
 dnl the great gob of text.  Thus it's not processed for possible expansion.
@@ -704,6 +971,11 @@ dnl quotation begins
 
 opsys='' unported=no
 case "${canonical}" in
+
+  ## Android
+  *linux-android* )
+    opsys=android
+  ;;
 
   ## GNU/Linux and similar ports
   *-*-linux* )
@@ -871,6 +1143,7 @@ AC_DEFUN([_AC_PROG_CC_C89], [$2])
 
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
+
 if test -n "$XCRUN"; then
   AC_CHECK_PROGS([AR], [ar "$XCRUN ar"])
   test -n "$AR" && export AR
@@ -1123,6 +1396,12 @@ AS_IF([test $gl_gcc_warnings = no],
     nw="$nw -Wsuggest-attribute=format"
   fi
 
+  # If Emacs is being built for Android and many functions are
+  # currently stubbed out for operation on the build machine, disable
+  # -Wsuggest-attribute=noreturn.
+
+  nw="$nw -Wsuggest-attribute=noreturn"
+
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
   for w in $ws; do
@@ -1143,6 +1422,8 @@ AS_IF([test $gl_gcc_warnings = no],
     gl_WARN_ADD([-Wno-null-pointer-arithmetic])
     gl_WARN_ADD([-Wno-implicit-const-int-float-conversion])
     gl_WARN_ADD([-Wno-int-in-bool-context])
+    gl_WARN_ADD([-Wno-shift-overflow])
+    gl_WARN_ADD([-Wno-bitwise-instead-of-logical])
   fi
 
   # This causes too much noise in the MinGW build
@@ -1265,7 +1546,7 @@ else
   AM_DEFAULT_VERBOSITY=0
 fi
 AC_SUBST([AM_DEFAULT_VERBOSITY])
-AC_CONFIG_FILES([src/verbose.mk])
+ARCH_INDEPENDENT_CONFIG_FILES([src/verbose.mk])
 
 dnl Some other nice autoconf tests.
 AC_PROG_INSTALL
@@ -1762,7 +2043,10 @@ AC_SUBST([SYSTEM_TYPE])
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
 pre_PKG_CONFIG_LIBS=$LIBS
 
-PKG_PROG_PKG_CONFIG([0.9.0])
+dnl pkg-config does not work when cross-compiling for Android.
+if test "${ANDROID}" != "yes"; then
+  PKG_PROG_PKG_CONFIG([0.9.0])
+fi
 
 dnl EMACS_CHECK_MODULES([GSTUFF], [gtk+-2.0 >= 1.3 glib = 1.3.4])
 dnl acts like PKG_CHECK_MODULES([GSTUFF], [gtk+-2.0 >= 1.3 glib = 1.3.4],
@@ -1945,14 +2229,49 @@ AC_SUBST([AUTO_DEPEND])
 
 window_system=none
 
+ANDROID_OBJ=
+ANDROID_LIBS=
+ANDROID_CFLAGS=
+CM_OBJ="cm.o"
+
+if test "${ANDROID}" = "yes"; then
+  window_system=android
+  no_x=yes
+  ANDROID_OBJ="androidterm.o androidfns.o androidfont.o android.o"
+  ANDROID_LIBS=
+  CM_OBJ=
+
+  AC_DEFINE([HAVE_ANDROID], [1], [Define to 1 if Emacs is being built
+with Android support])
+
+  if test "${XCONFIGURE}" != "android"; then
+    AC_DEFINE([ANDROID_STUBIFY], [1], [Define to 1 if Emacs is being built
+for Android, but all API calls need to be stubbed out])
+  else
+    # Emacs will be built as a shared library, and a wrapper around it
+    # will also be built for the benefit of applications.  This
+    # requires Emacs be built as a position independent executable.
+    ANDROID_CFLAGS="-fPIC -fvisibility=hidden"
+
+    # Link with libraries required for Android support.
+    ANDROID_LIBS="-landroid -llog"
+  fi
+fi
+
+AC_SUBST(ANDROID)
+AC_SUBST(ANDROID_OBJ)
+AC_SUBST(ANDROID_LIBS)
+AC_SUBST(ANDROID_CFLAGS)
+
 if test "${with_pgtk}" = "yes"; then
   window_system=pgtk
 fi
 
-
-AC_PATH_X
-if test "$no_x" != yes && test "${with_pgtk}" != "yes"; then
-  window_system=x11
+if test "${ANDROID}" != "yes"; then
+  AC_PATH_X
+  if test "$no_x" != yes && test "${with_pgtk}" != "yes"; then
+    window_system=x11
+  fi
 fi
 
 LD_SWITCH_X_SITE_RPATH=
@@ -2276,7 +2595,6 @@ NTDIR=
 LIBS_ECLIENT=
 LIB_WSOCK32=
 NTLIB=
-CM_OBJ="cm.o"
 XARGS_LIMIT=
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE([HAVE_NTGUI], [1], [Define to use native MS Windows GUI.])
@@ -2439,7 +2757,11 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
   haiku )
     term_header=haikuterm.h
   ;;
+  android )
+    term_header=androidterm.h
+  ;;
 esac
+
 AC_SUBST([HAVE_PGTK])
 
 if test "$window_system" = none && test "X$with_x" != "Xno"; then
@@ -2772,7 +3094,6 @@ fail;
     AC_MSG_RESULT([before 6])
   fi
 fi
-
 
 ### Use -lrsvg-2 if available, unless '--with-rsvg=no' is specified.
 HAVE_RSVG=no
@@ -4202,7 +4523,7 @@ AC_SUBST([HAVE_MODULES])
 AC_SUBST([MODULES_SUFFIX])
 AC_SUBST([MODULES_SECONDARY_SUFFIX])
 
-AC_CONFIG_FILES([src/emacs-module.h])
+ARCH_INDEPENDENT_CONFIG_FILES([src/emacs-module.h])
 AC_SUBST_FILE([module_env_snippet_25])
 AC_SUBST_FILE([module_env_snippet_26])
 AC_SUBST_FILE([module_env_snippet_27])
@@ -5003,6 +5324,40 @@ getpwent endpwent getgrent endgrent \
 renameat2 \
 cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np \
 pthread_set_name_np])
+
+if test "$ac_cv_func_cfmakeraw" != "yes"; then
+  # On some systems (Android), cfmakeraw is inline, so AC_CHECK_FUNCS
+  # cannot find it.  Check if some code including termios.h and using
+  # cfmakeraw builds.
+  AC_CACHE_CHECK([whether cfmakeraw is inline],
+   [emacs_cv_func_cfmakeraw_inline],
+   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+       [[#include <termios.h>]],
+       [[&cfmakeraw;]])],
+     [emacs_cv_func_cfmakeraw_inline=yes],
+     [emacs_cv_func_cfmakeraw_inline=no])])
+
+  if test "$emacs_cv_func_cfmakeraw_inline" = "yes"; then
+     # Define HAVE_CFMAKERAW again.
+     AC_DEFINE([HAVE_CFMAKERAW], [1])
+  fi
+fi
+
+if test "$ac_cv_func_cfsetspeed" != "yes"; then
+  AC_CACHE_CHECK([whether cfsetspeed is inline],
+   [emacs_cv_func_cfsetspeed_inline],
+   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+       [[#include <termios.h>]],
+       [[&cfsetspeed;]])],
+     [emacs_cv_func_cfsetspeed_inline=yes],
+     [emacs_cv_func_cfsetspeed_inline=no])])
+
+  if test "$emacs_cv_func_cfsetspeed_inline" = "yes"; then
+     # Define HAVE_CFSETSPEED again.
+     AC_DEFINE([HAVE_CFSETSPEED], [1])
+  fi
+fi
+
 LIBS=$OLD_LIBS
 
 if test "$ac_cv_func_pthread_setname_np" = "yes"; then
@@ -5108,7 +5463,7 @@ AC_DEFUN([tputs_link_source], [
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
 AC_CACHE_CHECK([for library containing tputs], [emacs_cv_tputs_lib],
-[if test "${opsys}" = "mingw32"; then
+[if test "${opsys}" = "mingw32" || test "$opsys" = "android"; then
   emacs_cv_tputs_lib='none required'
 else
   # curses precedes termcap because of AIX (Bug#9736#35) and OpenIndiana.
@@ -5175,7 +5530,7 @@ fail;
     fi
     ;;
 
-  mingw32)
+  mingw32 | android)
     TERMINFO=no
     LIBS_TERMCAP=
     ;;
@@ -5729,7 +6084,7 @@ case $opsys in
     AC_DEFINE([FIRST_PTY_LETTER], ['p'])
     ;;
 
-  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | openbsd | netbsd | darwin | nacl )
+  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | openbsd | netbsd | darwin | nacl | android )
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
       AC_DEFINE([UNIX98_PTYS], [1], [Define if the system has Unix98 PTYs.])
@@ -6656,6 +7011,7 @@ AC_DEFINE_UNQUOTED([EMACS_CONFIG_FEATURES], ["${emacs_config_features}"],
   [Summary of some of the main features enabled by configure.])
 
 AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}
+  Does Emacs use Android?                                 ${ANDROID}
   Does Emacs use -lXpm?                                   ${HAVE_XPM}
   Does Emacs use -ljpeg?                                  ${HAVE_JPEG}
   Does Emacs use -ltiff?                                  ${HAVE_TIFF}
@@ -6759,12 +7115,15 @@ fi
 AC_CONFIG_FILES([Makefile lib/gnulib.mk])
 
 dnl config.status treats $srcdir specially, so I think this is ok...
-AC_CONFIG_FILES([$srcdir/doc/man/emacs.1])
+ARCH_INDEPENDENT_CONFIG_FILES([$srcdir/doc/man/emacs.1])
 
-m4_define([subdir_makefiles],
-  [lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile])
-SUBDIR_MAKEFILES="subdir_makefiles"
-AC_CONFIG_FILES(subdir_makefiles)
+AC_CONFIG_FILES([lib/Makefile lib-src/Makefile oldXMenu/Makefile src/Makefile
+                 lwlib/Makefile nextstep/Makefile nt/Makefile])
+ARCH_INDEPENDENT_CONFIG_FILES([doc/emacs/Makefile doc/misc/Makefile
+                               doc/lispintro/Makefile doc/lispref/Makefile
+			       lisp/Makefile leim/Makefile])
+
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile src/Makefile lwlib/Makefile nextstep/Makefile nt/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile lisp/Makefile leim/Makefile"
 
 dnl The test/ directory is missing if './make-dist --no-tests' was used.
 opt_makefile=test/Makefile
@@ -6772,24 +7131,31 @@ if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
   dnl Again, it's best not to use a variable.  Though you can add
   dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
-  AC_CONFIG_FILES([test/Makefile])
-  AC_CONFIG_FILES([test/manual/noverlay/Makefile])
+  ARCH_INDEPENDENT_CONFIG_FILES([test/Makefile])
+  ARCH_INDEPENDENT_CONFIG_FILES([test/manual/noverlay/Makefile])
 fi
 opt_makefile=test/infra/Makefile
 if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
   dnl Again, it's best not to use a variable.  Though you can add
   dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
-  AC_CONFIG_FILES([test/infra/Makefile])
+  ARCH_INDEPENDENT_CONFIG_FILES([test/infra/Makefile])
 fi
 
+if test "$ANDROID" = "yes"; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES java/Makefile"
+fi
+
+if test "$XCOMPILE" = "yes"; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES xcompile/Makefile"
+fi
 
 dnl The admin/ directory used to be excluded from tarfiles.
 if test -d $srcdir/admin; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES admin/charsets/Makefile admin/unidata/Makefile admin/grammars/Makefile"
-  AC_CONFIG_FILES([admin/charsets/Makefile])
-  AC_CONFIG_FILES([admin/unidata/Makefile])
-  AC_CONFIG_FILES([admin/grammars/Makefile])
+  ARCH_INDEPENDENT_CONFIG_FILES([admin/charsets/Makefile])
+  ARCH_INDEPENDENT_CONFIG_FILES([admin/unidata/Makefile])
+  ARCH_INDEPENDENT_CONFIG_FILES([admin/grammars/Makefile])
 fi                              dnl -d admin
 
 
@@ -6800,64 +7166,74 @@ AC_SUBST([SUBDIR_MAKEFILES_IN])
 SMALL_JA_DIC=$with_small_ja_dic
 AC_SUBST([SMALL_JA_DIC])
 
-dnl You might wonder (I did) why epaths.h is generated by running make,
-dnl rather than just letting configure generate it from epaths.in.
-dnl One reason is that the various paths are not fully expanded (see above);
-dnl e.g., gamedir='${localstatedir}/games/emacs'.
-dnl Secondly, the GNU Coding standards require that one should be able
-dnl to run 'make prefix=/some/where/else' and override the values set
-dnl by configure.  This also explains the 'move-if-change' test and
-dnl the use of force in the 'epaths-force' rule in Makefile.in.
-AC_CONFIG_COMMANDS([src/epaths.h], [
-if test "${opsys}" = "mingw32"; then
-  ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
-elif test "$HAVE_NS" = "yes" && test "$EN_NS_SELF_CONTAINED" = "yes"; then
-  ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-ns-self-contained
-else
-  ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
-fi || AC_MSG_ERROR(['src/epaths.h' could not be made.])
-], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys" HAVE_NS="$HAVE_NS"
-    EN_NS_SELF_CONTAINED="$EN_NS_SELF_CONTAINED"])
+dnl The following commands are run on the host system when building
+dnl Emacs.
 
-dnl NB we have to cheat and use the ac_... version because abs_top_srcdir
-dnl is not yet set, sigh.  Or we could use ../$srcdir/src/.gdbinit,
-dnl or a symlink?
-AC_CONFIG_COMMANDS([src/.gdbinit], [
-if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  AS_ECHO(["source $ac_abs_top_srcdir/src/.gdbinit"]) > src/.gdbinit
-fi
-])
+if test "$XCONFIGURE" != "android"; then
+  dnl You might wonder (I did) why epaths.h is generated by running
+  dnl make, rather than just letting configure generate it from
+  dnl epaths.in.  One reason is that the various paths are not fully
+  dnl expanded (see above); e.g.,
+  dnl gamedir='${localstatedir}/games/emacs'.  Secondly, the GNU
+  dnl Coding standards require that one should be able to run 'make
+  dnl prefix=/some/where/else' and override the values set by
+  dnl configure.  This also explains the 'move-if-change' test and the
+  dnl use of force in the 'epaths-force' rule in Makefile.in.
+  AC_CONFIG_COMMANDS([src/epaths.h], [
+  if test "${opsys}" = "mingw32"; then
+    ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
+  elif test "$HAVE_NS" = "yes" && test "$EN_NS_SELF_CONTAINED" = "yes"; then
+    ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-ns-self-contained
+  else
+    ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
+  fi || AC_MSG_ERROR(['src/epaths.h' could not be made.])
+  ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys" HAVE_NS="$HAVE_NS"
+      EN_NS_SELF_CONTAINED="$EN_NS_SELF_CONTAINED"])
 
-dnl Perhaps this would be better named doc-emacs-emacsver.texi?
-dnl See comments for etc-refcards-emacsver.tex.
-dnl Since we get a doc/emacs directory generated anyway, for the Makefile,
-dnl it is not quite the same.  But we are generating in $srcdir.
-AC_CONFIG_COMMANDS([doc/emacs/emacsver.texi], [
-${MAKE-make} -s --no-print-directory -C doc/emacs doc-emacsver || \
-AC_MSG_ERROR(['doc/emacs/emacsver.texi' could not be made.])
-])
+  dnl NB we have to cheat and use the ac_... version because abs_top_srcdir
+  dnl is not yet set, sigh.  Or we could use ../$srcdir/src/.gdbinit,
+  dnl or a symlink?
+  AC_CONFIG_COMMANDS([src/.gdbinit], [
+  if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
+    AS_ECHO(["source $ac_abs_top_srcdir/src/.gdbinit"]) > src/.gdbinit
+  fi
+  ])
 
-dnl If we give this the more natural name, etc/refcards/emacsver.texi,
-dnl then a directory etc/refcards is created in the build directory,
-dnl which is probably harmless, but confusing (in out-of-tree builds).
-dnl (If we were to generate etc/refcards/Makefile, this might change.)
-dnl It is really $srcdir/etc/refcards/emacsver.tex that we generate.
-AC_CONFIG_COMMANDS([etc-refcards-emacsver.tex], [
-${MAKE-make} -s MAKEFILE_NAME=do-not-make-Makefile etc-emacsver || \
-AC_MSG_ERROR(['etc/refcards/emacsver.tex' could not be made.])
-])
+  dnl Perhaps this would be better named doc-emacs-emacsver.texi?
+  dnl See comments for etc-refcards-emacsver.tex.
+  dnl Since we get a doc/emacs directory generated anyway, for the Makefile,
+  dnl it is not quite the same.  But we are generating in $srcdir.
+  AC_CONFIG_COMMANDS([doc/emacs/emacsver.texi], [
+  ${MAKE-make} -s --no-print-directory -C doc/emacs doc-emacsver || \
+  AC_MSG_ERROR(['doc/emacs/emacsver.texi' could not be made.])
+  ])
 
-if test $AUTO_DEPEND = yes; then
-   for dir in $AUTODEPEND_PARENTS; do
-     AS_MKDIR_P([$dir/deps])
-   done
-fi
-if $gl_gnulib_enabled_dynarray || $gl_gnulib_enabled_scratch_buffer; then
-  AS_MKDIR_P([lib/malloc])
+  dnl If we give this the more natural name, etc/refcards/emacsver.texi,
+  dnl then a directory etc/refcards is created in the build directory,
+  dnl which is probably harmless, but confusing (in out-of-tree builds).
+  dnl (If we were to generate etc/refcards/Makefile, this might change.)
+  dnl It is really $srcdir/etc/refcards/emacsver.tex that we generate.
+  AC_CONFIG_COMMANDS([etc-refcards-emacsver.tex], [
+  ${MAKE-make} -s MAKEFILE_NAME=do-not-make-Makefile etc-emacsver || \
+  AC_MSG_ERROR(['etc/refcards/emacsver.tex' could not be made.])
+  ])
+
   if test $AUTO_DEPEND = yes; then
-    AS_MKDIR_P([lib/deps/malloc])
+     for dir in $AUTODEPEND_PARENTS; do
+       AS_MKDIR_P([$dir/deps])
+     done
+  fi
+  if $gl_gnulib_enabled_dynarray || $gl_gnulib_enabled_scratch_buffer; then
+    AS_MKDIR_P([lib/malloc])
+    if test $AUTO_DEPEND = yes; then
+      AS_MKDIR_P([lib/deps/malloc])
+    fi
   fi
 fi
+
+# Make java/Makefile
+ARCH_INDEPENDENT_CONFIG_FILES([java/Makefile])
+ARCH_INDEPENDENT_CONFIG_FILES([xcompile/Makefile])
 
 AC_OUTPUT
 

@@ -96,6 +96,14 @@ localstatedir=@localstatedir@
 srcdir=@srcdir@
 VPATH=@srcdir@
 
+# Cross-compilation setup
+
+XCONFIGURE=@XCONFIGURE@
+
+ifneq ($(XCONFIGURE),)
+vpath $(srcdir)
+endif
+
 # The top-level source directory, also set by configure.
 top_srcdir=@top_srcdir@
 # MinGW CPPFLAGS may use this.

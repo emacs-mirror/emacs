@@ -134,3 +134,5 @@ cp -- "$gnulib_srcdir"/lib/af_alg.h \
    "$src"lib &&
 { test -z "$src" || cd "$src"; } &&
 ./autogen.sh
+
+echo "Please update the block of vpath statements in lib/Makefile.in"

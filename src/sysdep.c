@@ -134,6 +134,10 @@ int _cdecl _spawnlp (int, const char *, const char *, ...);
 # include <sys/socket.h>
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h"
+#endif
+
 /* Declare here, including term.h is problematic on some systems.  */
 extern void tputs (const char *, int, int (*)(int));
 
@@ -790,6 +794,7 @@ init_sigio (int fd)
 #endif
 }
 
+#ifndef HAVE_ANDROID
 #ifndef DOS_NT
 #ifdef F_SETOWN
 static void
@@ -800,6 +805,7 @@ reset_sigio (int fd)
 #endif
 }
 #endif /* F_SETOWN */
+#endif
 #endif
 
 void
@@ -972,6 +978,8 @@ narrow_foreground_group (int fd)
     tcsetpgrp_without_stopping (fd, getpid ());
 }
 
+#ifndef HAVE_ANDROID
+
 /* Set the tty to our original foreground group.  */
 static void
 widen_foreground_group (int fd)
@@ -979,6 +987,9 @@ widen_foreground_group (int fd)
   if (inherited_pgroup && setpgid (0, inherited_pgroup) == 0)
     tcsetpgrp_without_stopping (fd, inherited_pgroup);
 }
+
+#endif
+
 
 /* Getting and setting emacs_tty structures.  */
 
@@ -1496,6 +1507,8 @@ reset_sys_modes (struct tty_display_info *tty_out)
       fflush (stdout);
       return;
     }
+
+#ifndef HAVE_ANDROID
   if (!tty_out->term_initted)
     return;
 
@@ -1552,6 +1565,7 @@ reset_sys_modes (struct tty_display_info *tty_out)
 #endif
 
   widen_foreground_group (fileno (tty_out->input));
+#endif
 }
 
 #ifdef HAVE_PTYS
@@ -1802,7 +1816,11 @@ handle_arith_signal (int sig)
   xsignal0 (Qarith_error);
 }
 
-#if defined HAVE_STACK_OVERFLOW_HANDLING && !defined WINDOWSNT
+/* This does not work on Android and interferes with the system
+   tombstone generation.  */
+
+#if defined HAVE_STACK_OVERFLOW_HANDLING && !defined WINDOWSNT	\
+  && (!defined HAVE_ANDROID || defined ANDROID_STUBIFY)
 
 /* Alternate stack used by SIGSEGV handler below.  */
 
@@ -1914,11 +1932,15 @@ init_sigsegv (void)
 
 #else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */
 
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+
 static bool
 init_sigsegv (void)
 {
   return 0;
 }
+
+#endif
 
 #endif /* HAVE_STACK_OVERFLOW_HANDLING && !WINDOWSNT */
 
@@ -2020,12 +2042,17 @@ init_signals (void)
       sigaction (SIGFPE, &action, 0);
     }
 
+  /* SIGUSR1 and SIGUSR2 are used internally by the android_select
+     function.  */
+#if !defined HAVE_ANDROID
 #ifdef SIGUSR1
   add_user_signal (SIGUSR1, "sigusr1");
 #endif
 #ifdef SIGUSR2
   add_user_signal (SIGUSR2, "sigusr2");
 #endif
+#endif
+
   sigaction (SIGABRT, &thread_fatal_action, 0);
 #ifdef SIGPRE
   sigaction (SIGPRE, &thread_fatal_action, 0);
@@ -2051,8 +2078,10 @@ init_signals (void)
 #ifdef SIGBUS
   sigaction (SIGBUS, &thread_fatal_action, 0);
 #endif
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
   if (!init_sigsegv ())
     sigaction (SIGSEGV, &thread_fatal_action, 0);
+#endif
 #ifdef SIGSYS
   sigaction (SIGSYS, &thread_fatal_action, 0);
 #endif
@@ -2328,10 +2357,19 @@ int
 emacs_fstatat (int dirfd, char const *filename, void *st, int flags)
 {
   int r;
-  while ((r = fstatat (dirfd, filename, st, flags)) != 0 && errno == EINTR)
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  while ((r = fstatat (dirfd, filename, st, flags)) != 0
+	 && errno == EINTR)
     maybe_quit ();
+#else
+  while ((r = android_fstatat (dirfd, filename, st, flags)) != 0
+	 && errno == EINTR)
+    maybe_quit ();
+#endif
   return r;
 }
+
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
 
 static int
 sys_openat (int dirfd, char const *file, int oflags, int mode)
@@ -2347,6 +2385,18 @@ sys_openat (int dirfd, char const *file, int oflags, int mode)
 #endif
 }
 
+#endif
+
+int
+sys_fstat (int fd, struct stat *statb)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return fstat (fd, statb);
+#else
+  return android_fstat (fd, statb);
+#endif
+}
+
 /* Assuming the directory DIRFD, open FILE for Emacs use,
    using open flags OFLAGS and mode MODE.
    Use binary I/O on systems that care about text vs binary I/O.
@@ -2354,6 +2404,8 @@ sys_openat (int dirfd, char const *file, int oflags, int mode)
    Prefer a method that is multithread-safe, if available.
    Do not fail merely because the open was interrupted by a signal.
    Allow the user to quit.  */
+
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
 
 int
 emacs_openat (int dirfd, char const *file, int oflags, int mode)
@@ -2367,10 +2419,23 @@ emacs_openat (int dirfd, char const *file, int oflags, int mode)
   return fd;
 }
 
+#endif
+
 int
 emacs_open (char const *file, int oflags, int mode)
 {
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  int fd;
+#endif
+
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
   return emacs_openat (AT_FDCWD, file, oflags, mode);
+#else
+  while ((fd = android_open (file, oflags, mode)) < 0 && errno == EINTR)
+    maybe_quit ();
+
+  return fd;
+#endif
 }
 
 /* Same as above, but doesn't allow the user to quit.  */
@@ -2382,9 +2447,15 @@ emacs_open_noquit (char const *file, int oflags, int mode)
   if (! (oflags & O_TEXT))
     oflags |= O_BINARY;
   oflags |= O_CLOEXEC;
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
   do
     fd = open (file, oflags, mode);
   while (fd < 0 && errno == EINTR);
+#else
+  do
+    fd = android_open (file, oflags, mode);
+  while (fd < 0 && errno == EINTR);
+#endif
   return fd;
 }
 
@@ -2434,6 +2505,8 @@ emacs_pipe (int fd[2])
    For the background behind this mess, please see Austin Group defect 529
    <https://austingroupbugs.net/view.php?id=529>.  */
 
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+
 #ifndef POSIX_CLOSE_RESTART
 # define POSIX_CLOSE_RESTART 1
 static int
@@ -2460,6 +2533,8 @@ posix_close (int fd, int flag)
 }
 #endif
 
+#endif
+
 /* Close FD, retrying if interrupted.  If successful, return 0;
    otherwise, return -1 and set errno to a non-EINTR value.  Consider
    an EINPROGRESS error to be successful, as that's merely a signal
@@ -2472,9 +2547,17 @@ posix_close (int fd, int flag)
 int
 emacs_close (int fd)
 {
+  int r;
+
   while (1)
     {
-      int r = posix_close (fd, POSIX_CLOSE_RESTART);
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+      r = posix_close (fd, POSIX_CLOSE_RESTART);
+#else
+      r = android_close (fd) == 0 || errno == EINTR ? 0 : -1;
+#define POSIX_CLOSE_RESTART 1
+#endif
+
       if (r == 0)
 	return r;
       if (!POSIX_CLOSE_RESTART || errno != EINTR)
@@ -2729,6 +2812,15 @@ errwrite (void const *buf, ptrdiff_t nbuf)
 void
 close_output_streams (void)
 {
+  /* Android comes with some kind of ``file descriptor sanitizer''
+     that aborts when stdout or stderr is closed.  */
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  fflush (stderr);
+  fflush (stdout);
+  return;
+#endif
+
   if (close_stream (stdout) != 0)
     {
       emacs_perror ("Write error to standard output");

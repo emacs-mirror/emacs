@@ -1,0 +1,150 @@
+### @configure_input@
+
+# Copyright (C) 2023 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+top_builddir = @top_builddir@
+
+-include ${top_builddir}/src/verbose.mk
+
+SHELL = @SHELL@
+JAVAC = @JAVAC@
+AAPT = @AAPT@
+DX = @DX@
+ZIPALIGN = @ZIPALIGN@
+JARSIGNER = @JARSIGNER@
+ANDROID_JAR = @ANDROID_JAR@
+ANDROID_ABI = @ANDROID_ABI@
+
+WARN_JAVAFLAGS = -Xlint:deprecation
+JAVAFLAGS = -classpath "$(ANDROID_JAR):." -target 1.7 -source 1.7 \
+  $(WARN_JAVAFLAGS)
+
+SIGN_EMACS = -keystore emacs.keystore -storepass emacs1
+
+JAVA_FILES = $(shell find . -type f -name *.java)
+CLASS_FILES = $(foreach file,$(JAVA_FILES),$(basename $(file)).class)
+
+# How this stuff works.
+
+# emacs.apk depends on emacs.apk-in, which is simply a ZIP archive
+# containing the following files:
+#  lib/$(ANDROID_ABI)/libemacs.so
+#  lib/$(ANDROID_ABI)/libandroid-emacs.so
+#  lib/$(ANDROID_ABI)/libctags.so
+#  lib/$(ANDROID_ABI)/libhexl.so
+#  lib/$(ANDROID_ABI)/libmovemail.so
+#  lib/$(ANDROID_ABI)/librcs2log.so
+#  lib/$(ANDROID_ABI)/libebrowse.so
+#  assets/info/
+#  assets/etc/
+#  assets/lisp/
+
+.PHONY: emacs.apk-in all
+all: emacs.apk
+
+# Binaries to cross-compile.
+CROSS_BINS = ../xcompile/src/android-emacs ../xcompile/lib-src/ctags	\
+	     ../xcompile/lib-src/hexl ../xcompile/lib-src/movemail	\
+	     ../xcompile/lib-src/ebrowse
+
+# Libraries to cross-compile.
+CROSS_LIBS = ../xcompile/src/libemacs.so
+
+.PHONY: $(CROSS_BINS) $(CROSS_LIBS)
+
+../xcompile/src/android-emacs ../xcompile/src/libemacs.so:
+	make -C ../xcompile src/$(notdir $@)
+
+../xcompile/lib-src/hexl ../xcompile/lib-src/movemail \
+../xcompile/lib-src/ctags ../xcompile/lib-src/ebrowse &:
+	make -C ../xcompile lib-src/$(notdir $@)
+
+emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) AndroidManifest.xml
+# Make the working directory for this stuff
+	rm -rf install_temp
+	mkdir -p install_temp/lib/$(ANDROID_ABI)
+	mkdir -p install_temp/assets/etc
+	mkdir -p install_temp/assets/lisp
+	mkdir -p install_temp/assets/info
+# Install architecture independents to assets/etc and assets/lisp
+	cp -r $(top_builddir)/lisp install_temp/assets
+	cp -r $(top_builddir)/etc install_temp/assets
+# Remove undesirable files from those directories.
+	for subdir in `find install_temp -type d -print`; do	\
+	  chmod a+rx $${subdir} ;				\
+	  rm -rf $${subdir}/.gitignore ;			\
+	  rm -rf $${subdir}/.DS_Store ;				\
+	  rm -rf $${subdir}/#* ;				\
+	  rm -rf $${subdir}/.#* ;				\
+	  rm -rf $${subdir}/*~ ;				\
+	  rm -rf $${subdir}/*.orig ;				\
+	  rm -rf $${subdir}/ChangeLog* ;			\
+	  rm -rf $${subdir}/[mM]akefile*[.-]in ;		\
+	  rm -rf $${subdir}/Makefile;				\
+	done
+# Install architecture dependents to lib/$(ANDROID_ABI).  This
+# perculiar naming scheme is required to make Android preserve these
+# binaries upon installation.
+	for file in $(CROSS_BINS); do						\
+	  if [ -x $$file ]; then      						\
+	    filename=`basename $$file`; 					\
+	    cp -f $$file install_temp/lib/$(ANDROID_ABI)/lib$${filename}.so;	\
+	  fi 									\
+	done
+	for file in $(CROSS_LIBS); do				\
+	  if [ -x $$file ]; then      				\
+	    cp -f $$file install_temp/lib/$(ANDROID_ABI);	\
+	  fi 							\
+	done
+# Package everything.
+	$(AAPT) package -I "$(ANDROID_JAR)" -F $@ -f -M AndroidManifest.xml
+	pushd install_temp; $(AAPT) add ../$@ `find lib -type f`; popd
+	pushd install_temp; $(AAPT) add ../$@ `find assets -type f`; popd
+	rm -rf install_temp
+
+.SUFFIXES: .java .class
+.java.class &:
+	$(AM_V_JAVAC) $(JAVAC) $(JAVAFLAGS) $<
+
+# N.B. that find must be called all over again in case javac generated
+# nested classes.
+
+classes.dex: $(CLASS_FILES)
+	$(AM_V_DX) $(DX) --classpath $(ANDROID_JAR) \
+	  $(subst $$,\$$,$(shell find . -type f -name *.class))
+
+# When emacs.keystore expires, regenerate it with:
+#
+#  keytool -genkey -v -keystore emacs.keystore -alias "Emacs keystore" \
+#   -keyalg RSA -sigalg  SHA1withRSA -keysize 2048 -validity 100000
+
+.PHONY: clean maintainer-clean
+
+emacs.apk: classes.dex emacs.apk-in emacs.keystore
+	cp -f emacs.apk-in $@.unaligned
+	$(AAPT) add $@.unaligned classes.dex
+	$(JARSIGNER) $(SIGN_EMACS) $@.unaligned "Emacs keystore"
+	$(ZIPALIGN) -f 4 $@.unaligned $@
+	rm -f $@.unaligned
+
+clean:
+	rm -f emacs.apk emacs.apk-in *.dex *.unaligned *.class
+	rm -rf install-temp
+	find . -name '*.class' -delete
+
+maintainer-clean: clean

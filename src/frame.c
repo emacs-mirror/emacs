@@ -228,6 +228,7 @@ Value is:
  `pc' for a direct-write MS-DOS frame,
  `pgtk' for an Emacs frame running on pure GTK.
  `haiku' for an Emacs frame running in Haiku.
+ `android' for an Emacs frame running in Android.
 See also `frame-live-p'.  */)
   (Lisp_Object object)
 {
@@ -250,6 +251,8 @@ See also `frame-live-p'.  */)
       return Qpgtk;
     case output_haiku:
       return Qhaiku;
+    case output_android:
+      return Qandroid;
     default:
       emacs_abort ();
     }
@@ -279,6 +282,7 @@ The value is a symbol:
  `pc' for a direct-write MS-DOS frame.
  `pgtk' for an Emacs frame using pure GTK facilities.
  `haiku' for an Emacs frame running in Haiku.
+ `android' for an Emacs frame running in Android/
 
 FRAME defaults to the currently selected frame.
 
@@ -1228,6 +1232,7 @@ make_initial_frame (void)
   return f;
 }
 
+#ifndef HAVE_ANDROID
 
 static struct frame *
 make_terminal_frame (struct terminal *terminal)
@@ -1317,6 +1322,8 @@ get_future_frame_param (Lisp_Object parameter,
   return result;
 }
 
+#endif
+
 DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
        1, 1, 0,
        doc: /* Create an additional terminal frame, possibly on another terminal.
@@ -1336,6 +1343,10 @@ Note that changing the size of one terminal frame automatically
 affects all frames on the same terminal device.  */)
   (Lisp_Object parms)
 {
+#ifdef HAVE_ANDROID
+  error ("Text terminals are not supported on this platform");
+  return Qnil;
+#else
   struct frame *f;
   struct terminal *t = NULL;
   Lisp_Object frame;
@@ -1436,6 +1447,7 @@ affects all frames on the same terminal device.  */)
   f->after_make_frame = true;
 
   return frame;
+#endif
 }
 
 
@@ -5303,16 +5315,23 @@ gui_display_get_resource (Display_Info *dpyinfo, Lisp_Object attribute,
   *nz++ = '.';
   lispstpcpy (nz, attribute);
 
-  const char *value =
-    dpyinfo->terminal->get_string_resource_hook (&dpyinfo->rdb,
-                                                 name_key,
-                                                 class_key);
-  SAFE_FREE();
+#ifndef HAVE_ANDROID
+  const char *value
+    = dpyinfo->terminal->get_string_resource_hook (&dpyinfo->rdb,
+						   name_key,
+						   class_key);
+
+  SAFE_FREE ();
 
   if (value && *value)
     return build_string (value);
   else
     return Qnil;
+#else
+
+  SAFE_FREE ();
+  return Qnil;
+#endif
 }
 
 
@@ -6218,6 +6237,7 @@ syms_of_frame (void)
   DEFSYM (Qns, "ns");
   DEFSYM (Qpgtk, "pgtk");
   DEFSYM (Qhaiku, "haiku");
+  DEFSYM (Qandroid, "android");
   DEFSYM (Qvisible, "visible");
   DEFSYM (Qbuffer_predicate, "buffer-predicate");
   DEFSYM (Qbuffer_list, "buffer-list");

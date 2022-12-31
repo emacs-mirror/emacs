@@ -33,6 +33,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "sysstdio.h"
 
+#ifdef HAVE_ANDROID
+#include "androidterm.h"
+#endif
+
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -135,6 +139,10 @@ extern char etext;
 #ifdef HAVE_SETRLIMIT
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#include "android.h"
 #endif
 
 /* We don't guard this with HAVE_TREE_SITTER because treesit.o is
@@ -1123,7 +1131,7 @@ load_seccomp (const char *file)
       goto out;
     }
   struct stat stat;
-  if (fstat (fd, &stat) != 0)
+  if (sys_fstat (fd, &stat) != 0)
     {
       emacs_perror ("fstat");
       goto out;
@@ -1225,12 +1233,18 @@ maybe_load_seccomp (int argc, char **argv)
 
 #endif  /* SECCOMP_USABLE */
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+int
+android_emacs_init (int argc, char **argv)
+#else
 int
 main (int argc, char **argv)
+#endif
 {
   /* Variable near the bottom of the stack, and aligned appropriately
      for pointers.  */
   void *stack_bottom_variable;
+  int old_argc;
 
   /* First, check whether we should apply a seccomp filter.  This
      should come at the very beginning to allow the filter to protect
@@ -1425,8 +1439,10 @@ main (int argc, char **argv)
 
   bool only_version = false;
   sort_args (argc, argv);
-  argc = 0;
-  while (argv[argc]) argc++;
+  old_argc = argc, argc = 0;
+  while (argv[argc]
+	 /* Don't allow going past argv.  */
+	 && argc < old_argc) argc++;
 
   skip_args = 0;
   if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
@@ -2375,6 +2391,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
       syms_of_fontset ();
 #endif /* HAVE_HAIKU */
+#ifdef HAVE_ANDROID
+      syms_of_androidterm ();
+      syms_of_androidfns ();
+      syms_of_fontset ();
+#if !defined ANDROID_STUBIFY
+      syms_of_androidfont ();
+#endif /* !ANDROID_STUBIFY */
+#endif /* HAVE_ANDROID */
 
       syms_of_gnutls ();
 
@@ -2434,6 +2458,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef HAVE_HAIKU
   init_haiku_select ();
+#endif
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  init_androidfont ();
 #endif
 
   init_charset ();
@@ -2950,7 +2978,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   Vinhibit_redisplay = Qt;
 
   /* If we are controlling the terminal, reset terminal modes.  */
-#ifndef DOS_NT
+#if !defined DOS_NT && !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
   pid_t tpgrp = tcgetpgrp (STDIN_FILENO);
   if (tpgrp != -1 && tpgrp == getpgrp ())
     {
@@ -3469,6 +3497,7 @@ Special values:
   `windows-nt'   compiled as a native W32 application.
   `cygwin'       compiled using the Cygwin library.
   `haiku'        compiled for a Haiku system.
+  `android'	 compiled for Android.
 Anything else (in Emacs 26, the possibilities are: aix, berkeley-unix,
 hpux, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);

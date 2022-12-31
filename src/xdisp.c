@@ -16415,7 +16415,7 @@ redisplay_internal (void)
 	 display area, displaying a different frame means redisplay
 	 the whole thing.  */
       SET_FRAME_GARBAGED (sf);
-#ifndef DOS_NT
+#if !defined DOS_NT && !defined HAVE_ANDROID
       set_tty_color_mode (FRAME_TTY (sf), sf);
 #endif
       FRAME_TTY (sf)->previous_frame = sf;
@@ -26320,7 +26320,7 @@ display_menu_bar (struct window *w)
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows, MENU_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_PIXEL_WIDTH (f);
-#elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
+#elif defined (HAVE_X_WINDOWS) || defined (HAVE_ANDROID)
   struct window *menu_window = NULL;
   struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
 
@@ -26390,7 +26390,11 @@ display_menu_bar (struct window *w)
   it.glyph_row->truncated_on_left_p = false;
   it.glyph_row->truncated_on_right_p = false;
 
-#if defined (HAVE_X_WINDOWS) && !defined (USE_X_TOOLKIT) && !defined (USE_GTK)
+  /* This will break the moment someone tries to add another window
+     system that uses the no toolkit menu bar.  Oh well.  At least
+     there will be an error, meaning he will correct the ifdef inside
+     which `face' is defined.  */
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
   /* Make a 3D menu bar have a shadow at its right end.  */
   extend_face_to_end_of_line (&it);
   if (face->box != FACE_NO_BOX)
@@ -26430,6 +26434,11 @@ display_menu_bar (struct window *w)
     }
 #endif
 }
+
+/* This code is never used on Android where there are only GUI and
+   initial frames.  */
+
+#ifndef HAVE_ANDROID
 
 /* Deep copy of a glyph row, including the glyphs.  */
 static void
@@ -26551,6 +26560,9 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
   row->full_width_p = saved_width;
   row->reversed_p = saved_reversed;
 }
+
+#endif
+
 
 /***********************************************************************
 			      Mode Line
@@ -33432,7 +33444,9 @@ draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
     }
 #endif
 
+#ifndef HAVE_ANDROID
   tty_draw_row_with_mouse_face (w, row, start_hpos, end_hpos, draw);
+#endif
 }
 
 /* Display the active region described by mouse_face_* according to DRAW.  */
@@ -36104,14 +36118,10 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
       |= expose_window (XWINDOW (f->tool_bar_window), &r);
 #endif
 
-#ifdef HAVE_X_WINDOWS
-#ifndef MSDOS
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
   if (WINDOWP (f->menu_bar_window))
     mouse_face_overwritten_p
       |= expose_window (XWINDOW (f->menu_bar_window), &r);
-#endif /* not USE_X_TOOLKIT and not USE_GTK */
-#endif
 #endif
 
   /* Some window managers support a focus-follows-mouse style with

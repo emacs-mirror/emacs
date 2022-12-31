@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
 
 /* Together with PATH_SITELOADSEARCH, this gives the default value of
    load-path, which is the search path for the Lisp function "load".
@@ -79,3 +80,24 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Where Emacs should look for the application default file. */
 #define PATH_X_DEFAULTS "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S"
+
+#else
+
+/* Replace the defines above with links to files in the assets
+   pseudo-directory.  Preserve the extra spaces, or epaths.in will not
+   be generated correctly.  */
+
+ # define  PATH_EXEC			(android_lib_dir)
+ # define  PATH_LOADSEARCH		"/assets/lisp/"
+ # define  PATH_SITELOADSEARCH		(android_site_load_path)
+ # define  PATH_DUMPLOADSEARCH		"/assets/lisp/"
+ # define  PATH_DATA			"/assets/etc/"
+ # define  PATH_DOC			"/assets/etc/"
+ # define  PATH_INFO			"/assets/info/"
+ # define  PATH_GAME			""
+ # define  PATH_BITMAPS			""
+
+extern char *android_site_load_path;
+extern char *android_lib_dir;
+
+#endif

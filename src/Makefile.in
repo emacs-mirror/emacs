@@ -33,6 +33,16 @@ top_builddir = @top_builddir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 VPATH = $(srcdir)
+
+# This is not empty if this is a Makefile that will be copied to
+# xcompile/src.
+XCONFIGURE = @XCONFIGURE@
+
+ifneq ($(XCONFIGURE),)
+vpath %.c := $(srcdir)
+vpath %.h := $(srcdir)
+endif
+
 CC = @CC@
 CXX = @CXX@
 CFLAGS = @CFLAGS@
@@ -48,6 +58,7 @@ LIBOBJS = @LIBOBJS@
 
 lispsource = $(top_srcdir)/lisp
 lib = ../lib
+hostlib = $(top_builddir)/lib
 libsrc = ../lib-src
 etc = ../etc
 oldXMenudir = ../oldXMenu
@@ -326,7 +337,7 @@ W32_RES_LINK=@W32_RES_LINK@
 ## if HAVE_HARFBUZZ, hbfont.o is added regardless of the rest
 FONT_OBJ=@FONT_OBJ@
 
-## Empty for MinGW, cm.o for the rest.
+## Empty for MinGW and Android, cm.o for the rest.
 CM_OBJ=@CM_OBJ@
 
 LIBGPM = @LIBGPM@
@@ -370,6 +381,10 @@ HAIKU_CXX_OBJ = @HAIKU_CXX_OBJ@
 HAIKU_LIBS = @HAIKU_LIBS@
 HAIKU_CFLAGS = @HAIKU_CFLAGS@
 
+ANDROID_OBJ = @ANDROID_OBJ@
+ANDROID_LIBS = @ANDROID_LIBS@
+ANDROID_CFLAGS = @ANDROID_CFLAGS@
+
 DUMPING=@DUMPING@
 CHECK_STRUCTS = @CHECK_STRUCTS@
 HAVE_PDUMPER = @HAVE_PDUMPER@
@@ -411,7 +426,8 @@ EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   $(HARFBUZZ_CFLAGS) $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
   $(LIBSYSTEMD_CFLAGS) $(JSON_CFLAGS) $(XSYNC_CFLAGS) $(TREE_SITTER_CFLAGS) \
   $(LIBGNUTLS_CFLAGS) $(NOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
-  $(WERROR_CFLAGS) $(HAIKU_CFLAGS) $(XCOMPOSITE_CFLAGS) $(XSHAPE_CFLAGS)
+  $(WERROR_CFLAGS) $(HAIKU_CFLAGS) $(XCOMPOSITE_CFLAGS) $(XSHAPE_CFLAGS) \
+  $(ANDROID_CFLAGS)
 ALL_CFLAGS = $(EMACS_CFLAGS) $(WARN_CFLAGS) $(CFLAGS)
 ALL_OBJC_CFLAGS = $(EMACS_CFLAGS) \
   $(filter-out $(NON_OBJC_CFLAGS),$(WARN_CFLAGS)) $(CFLAGS) \
@@ -449,7 +465,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	$(if $(HYBRID_MALLOC),sheap.o) 					       \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)        \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ) 	       \
-	$(HAIKU_OBJ) $(PGTK_OBJ)
+	$(HAIKU_OBJ) $(PGTK_OBJ) $(ANDROID_OBJ)
 doc_obj = $(base_obj) $(NS_OBJC_OBJ)
 obj = $(doc_obj) $(HAIKU_CXX_OBJ)
 
@@ -466,7 +482,8 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o gtkutil.o \
   xsettings.o xgselect.o termcap.o hbfont.o \
-  haikuterm.o haikufns.o haikumenu.o haikufont.o
+  haikuterm.o haikufns.o haikumenu.o haikufont.o androidterm.o androidfns.o \
+  androidfont.o
 
 ## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.
 GMALLOC_OBJ=@GMALLOC_OBJ@
@@ -569,7 +586,8 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LCMS2_LIBS) \
    $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
    $(JSON_LIBS) $(LIBGMP) $(LIBGCCJIT_LIBS) $(XINPUT_LIBS) $(HAIKU_LIBS) \
-   $(TREE_SITTER_LIBS) $(SQLITE3_LIBS) $(XCOMPOSITE_LIBS) $(XSHAPE_LIBS)
+   $(TREE_SITTER_LIBS) $(SQLITE3_LIBS) $(XCOMPOSITE_LIBS) $(XSHAPE_LIBS) \
+   $(ANDROID_LIBS)
 
 ## FORCE it so that admin/unidata can decide whether this file is
 ## up-to-date.  Although since charprop depends on bootstrap-emacs,
@@ -658,7 +676,7 @@ $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(doc_obj)
 	  $(SOME_MACHINE_OBJECTS) $(doc_obj) > $(etc)/DOC
 
 $(libsrc)/make-docfile$(EXEEXT) $(libsrc)/make-fingerprint$(EXEEXT): \
-  $(lib)/libgnu.a
+  $(hostlib)/libgnu.a
 	$(MAKE) -C $(dir $@) $(notdir $@)
 
 buildobj.h: Makefile
@@ -719,6 +737,27 @@ ifeq ($(DUMPING),unexec)
   endif
 endif
 
+ifeq ($(XCONFIGURE),android)
+## The Android package internally links to and communicates with a
+## shared library named `libemacs.so' at startup.  This is built
+## almost the same way temacs is.  But it is position independent.  It
+## is not dumped here.  Instead, it dumps itself the first time it
+## starts on the user's device.
+
+libemacs.so: $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
+	     $(MAKE_PDUMPER_FINGERPRINT)
+	$(AM_V_CCLD)$(CC) -o $@ $(ALL_CFLAGS) $(TEMACS_LDFLAGS) \
+	  $(LDFLAGS) -shared $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(LIBES)
+	$(AM_V_at)$(MAKE_PDUMPER_FINGERPRINT) $@
+
+# There is also a binary named `android-emacs' which simply calls
+# emacs.so.
+
+android-emacs: libemacs.so android-emacs.o
+	$(AM_V_CCLD)$(CC) -o $@ $(ALL_CFLAGS) $(LDFLAGS) 	\
+	  -L. "-l:libemacs.so" android-emacs.o
+endif
+
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.
 $(lwlibdir)/liblw.a: $(config_h) globals.h lisp.h FORCE
@@ -747,6 +786,7 @@ ns-app: emacs$(EXEEXT) $(pdmp)
 .PHONY: versionclean
 
 mostlyclean:
+	rm -f aemacs emacs.so
 	rm -f temacs$(EXEEXT) core ./*.core \#* ./*.o
 	rm -f dmpstruct.h
 	rm -f emacs.pdmp

@@ -175,6 +175,28 @@ typedef struct haiku_bitmap_record Bitmap_Record;
 
 #endif
 
+#ifdef HAVE_ANDROID
+#include "androidterm.h"
+typedef struct android_bitmap_record Bitmap_Record;
+
+/* TODO: implement images on Android.  */
+#define GET_PIXEL(ximg, x, y) 		0
+#define PUT_PIXEL(ximg, x, y, pixel)	((void) (pixel))
+#define NO_PIXMAP			0
+
+#define PIX_MASK_RETAIN	0
+#define PIX_MASK_DRAW	1
+
+#define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
+#define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
+#define GREEN_FROM_ULONG(color)	(((color) >> 8) & 0xff)
+#define BLUE_FROM_ULONG(color)	((color) & 0xff)
+#define RED16_FROM_ULONG(color)		(RED_FROM_ULONG (color) * 0x101)
+#define GREEN16_FROM_ULONG(color)	(GREEN_FROM_ULONG (color) * 0x101)
+#define BLUE16_FROM_ULONG(color)	(BLUE_FROM_ULONG (color) * 0x101)
+
+#endif
+
 static void image_disable_image (struct frame *, struct image *);
 static void image_edge_detection (struct frame *, struct image *, Lisp_Object,
                                   Lisp_Object);
@@ -830,6 +852,18 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   xfree (contents);
   return id;
+#endif
+
+#ifdef HAVE_ANDROID
+#ifdef ANDROID_STUBIFY
+  ((void) dpyinfo);
+
+  /* This function should never be called when building stubs.  */
+  emacs_abort ();
+#else
+  /* you lose, not yet implemented TODO */
+  return 0;
+#endif
 #endif
 }
 
@@ -3338,6 +3372,16 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
                                    Emacs_Pix_Container *pimg,
                                    Emacs_Pixmap *pixmap, Picture *picture)
 {
+#ifdef HAVE_ANDROID
+#ifdef ANDROID_STUBIFY
+  /* This function should never be called when building stubs.  */
+  emacs_abort ();
+#else
+  /* you lose, not yet implemented TODO */
+  return false;
+#endif
+#endif
+
 #ifdef USE_CAIRO
   eassert (input_blocked_p ());
 
@@ -3646,6 +3690,16 @@ image_unget_x_image_or_dc (struct image *img, bool mask_p,
 static Emacs_Pix_Container
 image_get_x_image (struct frame *f, struct image *img, bool mask_p)
 {
+#ifdef HAVE_ANDROID
+#ifdef ANDROID_STUBIFY
+  /* This function should never be called when building stubs.  */
+  emacs_abort ();
+#else
+  /* you lose, not yet implemented TODO */
+  return 0;
+#endif
+#endif
+
 #if defined USE_CAIRO || defined (HAVE_HAIKU)
   return !mask_p ? img->pixmap : img->mask;
 #elif defined HAVE_X_WINDOWS
@@ -3756,7 +3810,7 @@ slurp_file (int fd, ptrdiff_t *size)
       specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_protect_ptr (fclose_unwind, fp);
 
-      if (fstat (fileno (fp), &st) == 0
+      if (sys_fstat (fileno (fp), &st) == 0
 	  && 0 <= st.st_size && st.st_size < min (PTRDIFF_MAX, SIZE_MAX))
 	{
 	  /* Report an error if we read past the purported EOF.
@@ -6074,7 +6128,8 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
 {
 #ifdef HAVE_NTGUI
   return PALETTERGB (r >> 8, g >> 8, b >> 8);
-#elif defined USE_CAIRO || defined HAVE_NS || defined HAVE_HAIKU
+#elif defined USE_CAIRO || defined HAVE_NS || defined HAVE_HAIKU	\
+  || defined HAVE_ANDROID
   return RGB_TO_ULONG (r >> 8, g >> 8, b >> 8);
 #else
   xsignal1 (Qfile_error,
@@ -6147,7 +6202,8 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
   p = colors;
   for (y = 0; y < img->height; ++y)
     {
-#if !defined USE_CAIRO && !defined HAVE_NS && !defined HAVE_HAIKU
+#if !defined USE_CAIRO && !defined HAVE_NS && !defined HAVE_HAIKU	\
+  && !defined HAVE_ANDROID
       Emacs_Color *row = p;
       for (x = 0; x < img->width; ++x, ++p)
 	p->pixel = GET_PIXEL (ximg, x, y);
@@ -6155,7 +6211,7 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
         {
           FRAME_TERMINAL (f)->query_colors (f, row, img->width);
         }
-#else  /* USE_CAIRO || HAVE_NS || HAVE_HAIKU */
+#else  /* USE_CAIRO || HAVE_NS || HAVE_HAIKU || HAVE_ANDROID */
       for (x = 0; x < img->width; ++x, ++p)
 	{
 	  p->pixel = GET_PIXEL (ximg, x, y);
@@ -6166,7 +6222,7 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
 	      p->blue = BLUE16_FROM_ULONG (p->pixel);
 	    }
 	}
-#endif	/* USE_CAIRO || HAVE_NS */
+#endif	/* USE_CAIRO || HAVE_NS || HAVE_ANDROID */
     }
 
   image_unget_x_image_or_dc (img, 0, ximg, prev);
@@ -6231,7 +6287,11 @@ image_from_emacs_colors (struct frame *f, struct image *img, Emacs_Color *colors
   Emacs_Pix_Container ximage;
   Emacs_Color *p;
 
+#ifndef HAVE_ANDROID
   ximage = NULL;
+#else
+  ximage = 0;
+#endif
 
   init_color_table ();
 
@@ -6393,7 +6453,9 @@ image_edge_detection (struct frame *f, struct image *img,
 }
 
 
-#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_HAIKU
+#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_HAIKU	\
+  || defined HAVE_ANDROID
+
 static void
 image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
 			 int x, int y, unsigned int width, unsigned int height,
@@ -6429,8 +6491,16 @@ image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
   XFreeGC (dpy, gc);
 #elif HAVE_HAIKU
   be_draw_cross_on_pixmap (pixmap, x, y, width, height, color);
+#elif HAVE_ANDROID
+#ifdef ANDROID_STUBIFY
+  /* This function should never be called when building stubs.  */
+  emacs_abort ();
+#else
+  /* you lose, not yet implemented TODO */
+#endif
 #endif
 }
+
 #endif	/* HAVE_X_WINDOWS || USE_CAIRO || HAVE_HAIKU */
 
 /* Transform image IMG on frame F so that it looks disabled.  */
@@ -6474,7 +6544,7 @@ image_disable_image (struct frame *f, struct image *img)
 #ifndef HAVE_NTGUI
 #ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
 
-#if !defined USE_CAIRO && !defined HAVE_HAIKU
+#if !defined USE_CAIRO && !defined HAVE_HAIKU && !defined HAVE_ANDROID
 #define CrossForeground(f) BLACK_PIX_DEFAULT (f)
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
 #else  /* USE_CAIRO || HAVE_HAIKU */
@@ -6482,7 +6552,7 @@ image_disable_image (struct frame *f, struct image *img)
 #define MaskForeground(f)  PIX_MASK_DRAW
 #endif	/* USE_CAIRO || HAVE_HAIKU */
 
-#if !defined USE_CAIRO && !defined HAVE_HAIKU
+#if !defined USE_CAIRO && !defined HAVE_HAIKU && !defined HAVE_ANDROID
       image_sync_to_pixmaps (f, img);
 #endif	/* !USE_CAIRO && !HAVE_HAIKU */
       image_pixmap_draw_cross (f, img->pixmap, 0, 0, img->width, img->height,
@@ -9099,7 +9169,7 @@ gif_load (struct frame *f, struct image *img)
 	     `image-cache-size'.  */
 	  struct stat st;
 	  FILE *fp = fopen (SSDATA (encoded_file), "rb");
-	  if (fstat (fileno (fp), &st) == 0)
+	  if (sys_fstat (fileno (fp), &st) == 0)
 	    byte_size = st.st_size;
 	  fclose (fp);
 	}

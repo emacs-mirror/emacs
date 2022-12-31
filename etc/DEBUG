@@ -1094,6 +1094,30 @@ Please refer to the LLDB reference on the web for more information
 about LLDB.  If you already know GDB, you will also find a mapping
 from GDB commands to corresponding LLDB commands there.
 
+** Debugging Emacs on Android.
+
+Attaching GDB to Emacs running inside the Android application setup
+requires a special script found in the java/ directory, and a suitable
+GDB server binary to be present on the Android device, which is
+present on the free versions of Android.  Connecting to the device
+also requires the `adb' (Android Debug Bridge) utility, and telling
+the Android system to resume the Emacs process after startup requires
+the Java debugger (jdb).
+
+If all three of those tools are present, simply run (from the Emacs
+source directory):
+
+  ../java/debug.sh -- [any extra arguments you wish to pass to gdb]
+
+After which, upon waiting a while, the GDB prompt will show up.
+
+If Emacs crashes and "JNI ERROR" shows up in the Android system log,
+then placing a breakpoint on:
+
+  break art::JavaVMExt::JniAbort
+
+will let you find the source of the crash.
+
 
 This file is part of GNU Emacs.
 

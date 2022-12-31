@@ -432,6 +432,8 @@ See also `wallpaper-default-width'.")
 
 ;;; wallpaper-set
 
+(declare-function x-open-connection "xfns.c")
+
 (defun wallpaper--x-monitor-name ()
   "Get the monitor name for `wallpaper-set'.
 On a graphical display, try using the same monitor as the current

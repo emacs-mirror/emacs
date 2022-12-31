@@ -1,0 +1,209 @@
+### @configure_input@
+
+# Copyright (C) 2023 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
+
+# Cross-compiling Emacs for Android.
+
+# The cross compiled binaries are built by having ``variant''
+# Makefiles generated at configure-time.  First,
+# $(top_builddir)/src/Makefile.android,
+# $(top_builddir)/lib/Makefile.android,
+# $(top_builddir)/lib/gnulib.mk.android and
+# $(top_builddir)/lib-src/Makefile.android are copied to their usual
+# locations in this directory.
+
+# Finally, the following commands are executed in order, to produce
+# libgnu.a, various binaries in lib-src, and src/aemacs:
+#   make -C lib libgnu.a
+#   make -C lib-src src/aemacs
+#   make -C src aemacs
+
+# This is possibly the ugliest Makefile ever written!
+
+LIB_SRCDIR = $(realpath $(top_srcdir)/lib)
+LIB_TOP_SRCDIR = $(realpath $(top_srcdir))
+
+SRC_SRCDIR = $(realpath $(top_srcdir)/src)
+SRC_TOP_SRCDIR = $(realpath $(top_srcdir))
+
+LIB_SRC_SRCDIR = $(realpath $(top_srcdir)/lib-src)
+LIB_SRC_TOP_SRCDIR = $(realpath $(top_src))
+
+# This is a list of binaries to build and install in lib-src.
+
+LIBSRC_BINARIES = lib-src/etags lib-src/ctags lib-src/emacsclient \
+		  lib-src/ebrowse lib-src/hexl lib-src/movemail
+
+CLEAN_SUBDIRS=lib src lib-src
+
+.PHONY: all
+all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)
+
+# This Makefile relies on builddir and top_builddir being relative
+# paths in *.android.
+
+# This file is used to trick lib/gnulib.mk, it is not actually useful.
+config.status:
+	touch config.status
+
+src/verbose.mk: verbose.mk.android
+	mkdir -p src
+	cp -f verbose.mk.android src/verbose.mk
+
+UGLY_HOST_HEADERS = dirent.h stdlib.h sys/random.h limits.h		\
+		    string.h signal.h time.h inttypes.h assert.h	\
+		    stdint.h unistd.h stdlib.h sys/types.h sys/time.h	\
+		    sys/stat.h getopt.h fcntl.h sys/select.h alloca.h	\
+		    stdio.h sys/random.h
+
+# Gnulib, make-fingerprint and make-docfile must be built before
+# entering any of the rules below, or they will get the Android
+# versions of many headers.
+
+.PHONY: $(top_builddir)/lib/libgnu.a
+$(top_builddir)/lib/libgnu.a:
+	+ make -C $(top_builddir)/lib libgnu.a
+
+.PHONY: $(top_builddir)/lib-src/make-fingerprint
+$(top_builddir)/lib-src/make-fingerprint:
+	make -C $(top_builddir)/lib-src make-fingerprint
+
+.PHONY: $(top_builddir)/lib-src/make-docfile
+$(top_builddir)/lib-src/make-docfile:
+	make -C $(top_builddir)/lib-src make-docfile
+
+PRE_BUILD_DEPS=$(top_builddir)/lib/libgnu.a		\
+	       $(top_builddir)/lib-src/make-fingerprint	\
+	       $(top_builddir)/lib-src/make-docfile
+
+.PHONY: lib/libgnu.a
+lib/libgnu.a: src/verbose.mk config.status $(PRE_BUILD_DEPS)
+	mkdir -p lib/deps lib/deps/malloc
+# Temporarily move config.h to config.h.bak and config.h.android to
+# config.h
+	cp -f -p $(top_builddir)/src/config.h.android lib/config.h
+# And the Makefiles.
+	cp -f -p $(top_builddir)/lib/gnulib.mk.android lib/gnulib.mk
+	cp -f -p $(top_builddir)/lib/Makefile.android lib/Makefile
+# Next, move srcdir and top_srcdir in the Makefiles copied.
+	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' lib/Makefile
+	sed -i 's/top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
+	  lib/Makefile
+	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' lib/gnulib.mk
+# Ugly hack: hide some troublesome headers in $(top_builddir)/lib
+# while building lib.  Otherwise, they will end up overriding the
+# system headers used on Android through #include_next and cause
+# trouble.
+	mkdir -p sys
+	for ugly_header in $(UGLY_HOST_HEADERS); do			\
+	  if [ -e "$(top_builddir)/lib/$$ugly_header" ]; then    	\
+	    mv -f $(top_builddir)/lib/$$ugly_header $$ugly_header.bak;	\
+	  fi								\
+	done
+# And make libgnu.a.  Restore config.h if it fails.
+	-make -C lib libgnu.a
+# Move the hiden headers back
+	for ugly_header in $(UGLY_HOST_HEADERS); do			\
+	  if [ -e "$$ugly_header.bak" ]; then				\
+	    mv -f $$ugly_header.bak $(top_builddir)/lib/$$ugly_header;	\
+	  fi								\
+	done
+
+src/Makefile src/config.h &: $(top_builddir)/src/config.h.android	\
+  $(top_builddir)/src/Makefile.android $(PRE_BUILD_DEPS)
+	mkdir -p src src/deps
+# Copy config.h to src/
+	cp -f -p $(top_builddir)/src/config.h.android src/config.h
+# And the Makefile.
+	cp -f -p $(top_builddir)/src/Makefile.android src/Makefile
+# Next, edit srcdir and top_srcdir to the right location.
+	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(SRC_SRCDIR))/g' src/Makefile
+	sed -i 's/top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
+	  src/Makefile
+# Edit references to ../admin/unidata to read ../../admin/unidata.
+	sed -i 's/\.\.\/admin\/unidata/..\/..\/admin\/unidata/g' src/Makefile
+	sed -i 's/\.\.\/admin\/charsets/..\/..\/admin\/charsets/g' src/Makefile
+# Next, edit libsrc to the location at top_srcdir! It is important
+# that src/Makefile uses the binaries there, instead of any
+# cross-compiled binaries at ./lib-src.
+	sed -i 's/libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' src/Makefile
+
+.PHONY: src/android-emacs src/libemacs.so
+src/android-emacs src/libemacs.so &: src/Makefile src/config.h \
+  src/verbose.mk lib/libgnu.a $(PRE_BUILD_DEPS)
+# Ugly hack: hide some troublesome headers in $(top_builddir)/lib
+# while building lib.  Otherwise, they will end up overriding the
+# system headers used on Android through #include_next and cause
+# trouble.
+	mkdir -p sys
+	for ugly_header in $(UGLY_HOST_HEADERS); do			\
+	  if [ -e "$(top_builddir)/lib/$$ugly_header" ]; then    	\
+	    mv -f $(top_builddir)/lib/$$ugly_header $$ugly_header.bak;	\
+	  fi								\
+	done
+# Finally, go into src and make
+	+make -C src android-emacs libemacs.so
+# Move the hidden headers back
+	for ugly_header in $(UGLY_HOST_HEADERS); do			\
+	  if [ -e "$$ugly_header.bak" ]; then				\
+	    mv -f $$ugly_header.bak $(top_builddir)/lib/$$ugly_header;	\
+	  fi								\
+	done
+
+lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
+	mkdir -p lib-src
+	cp -f -p $< $@
+
+.PHONY: $(LIBSRC_BINARIES)
+$(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a	\
+  src/config.h lib-src/Makefile $(PRE_BUILD_DEPS)
+	mkdir -p src lib-src
+# Next, edit srcdir and top_srcdir to the right location.
+	sed -i 's/srcdir=.*$$/srcdir = $(subst /,\/,$(LIB_SRC_SRCDIR))/g' \
+	  lib-src/Makefile
+	sed -i 's/top_srcdir=.*$$/top_srcdir = $(subst /,\/,$(LIB_SRC_TOP_SRCDIR))/g' \
+	  lib-src/Makefile
+# Edit out SCRIPTS, it interferes with the build.
+	sed -i 's/^SCRIPTS=.*$$/SCRIPTS=/g' lib-src/Makefile
+# Ugly hack: hide some troublesome headers in $(top_builddir)/lib
+# while building lib.  Otherwise, they will end up overriding the
+# system headers used on Android through #include_next and cause
+# trouble.
+	mkdir -p sys
+	for ugly_header in $(UGLY_HOST_HEADERS); do			\
+	  if [ -e "$(top_builddir)/lib/$$ugly_header" ]; then    	\
+	    mv -f $(top_builddir)/lib/$$ugly_header $$ugly_header.bak;	\
+	  fi								\
+	done
+# Finally, go into lib-src and make everything being built
+	+make -C lib-src $(foreach bin,$(LIBSRC_BINARIES),$(notdir $(bin)))
+# Move the hidden headers back
+	for ugly_header in $(UGLY_HOST_HEADERS); do			\
+	  if [ -e "$$ugly_header.bak" ]; then				\
+	    mv -f $$ugly_header.bak $(top_builddir)/lib/$$ugly_header;	\
+	  fi								\
+	done
+
+.PHONY: clean maintainer-clean
+clean:
+	rm -rf $(CLEAN_SUBDIRS) *.bak sys
+
+maintainer-clean: clean

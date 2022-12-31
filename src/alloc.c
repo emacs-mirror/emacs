@@ -3342,6 +3342,14 @@ cleanup_vector (struct Lisp_Vector *vector)
 	      drv->close_font (font);
 	    }
 	}
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+      /* The Android font driver needs the ability to associate extra
+	 information with font entities.  */
+      if ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
+	  == FONT_ENTITY_MAX)
+	android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
+#endif
     }
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_THREAD))
     finalize_one_thread (PSEUDOVEC_STRUCT (vector, thread_state));
@@ -6465,6 +6473,10 @@ garbage_collect (void)
 #ifdef HAVE_X_WINDOWS
   mark_xterm ();
   mark_xselect ();
+#endif
+
+#ifdef HAVE_ANDROID
+  mark_androidterm ();
 #endif
 
 #ifdef HAVE_NS

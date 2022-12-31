@@ -979,14 +979,15 @@ file_attributes (int fd, char const *name,
 
   int err = EINVAL;
 
-#if defined O_PATH && !defined HAVE_CYGWIN_O_PATH_BUG
+#if defined O_PATH && !defined HAVE_CYGWIN_O_PATH_BUG	\
+  && !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
   int namefd = emacs_openat (fd, name, O_PATH | O_CLOEXEC | O_NOFOLLOW, 0);
   if (namefd < 0)
     err = errno;
   else
     {
       record_unwind_protect_int (close_file_unwind, namefd);
-      if (fstat (namefd, &s) != 0)
+      if (sys_fstat (namefd, &s) != 0)
 	{
 	  err = errno;
 	  /* The Linux kernel before version 3.6 does not support

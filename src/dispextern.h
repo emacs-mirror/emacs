@@ -53,8 +53,15 @@ typedef struct
   unsigned short red, green, blue;
 } Emacs_Color;
 
+#ifndef HAVE_ANDROID
 /* Accommodate X's usage of None as a null resource ID.  */
 #define No_Cursor (NULL)
+#else
+/* Android doesn't support cursors and also uses handles.  */
+#define No_Cursor 0
+#endif
+
+#ifndef HAVE_ANDROID
 
 /* XRectangle-like struct used by non-X GUI code.  */
 typedef struct
@@ -62,6 +69,12 @@ typedef struct
   int x, y;
   unsigned width, height;
 } Emacs_Rectangle;
+
+#else
+
+typedef struct android_rectangle Emacs_Rectangle;
+
+#endif
 
 /* XGCValues-like struct used by non-X GUI code.  */
 typedef struct
@@ -140,6 +153,13 @@ typedef XImagePtr XImagePtr_or_DC;
 #ifdef HAVE_HAIKU
 #include "haikugui.h"
 typedef struct haiku_display_info Display_Info;
+typedef Emacs_Pixmap Emacs_Pix_Container;
+typedef Emacs_Pixmap Emacs_Pix_Context;
+#endif
+
+#ifdef HAVE_ANDROID
+#include "androidgui.h"
+typedef struct android_display_info Display_Info;
 typedef Emacs_Pixmap Emacs_Pix_Container;
 typedef Emacs_Pixmap Emacs_Pix_Context;
 #endif
@@ -1401,6 +1421,8 @@ struct glyph_string
   /* The GC to use for drawing this glyph string.  */
 #if defined (HAVE_X_WINDOWS)
   GC gc;
+#elif defined HAVE_ANDROID
+  struct android_gc *gc;
 #endif
 #if defined (HAVE_NTGUI)
   Emacs_GC *gc;
@@ -1681,6 +1703,8 @@ struct face
      drawing the characters in this face.  */
 # ifdef HAVE_X_WINDOWS
   GC gc;
+# elif defined HAVE_ANDROID
+  struct android_gc *gc;
 # else
   Emacs_GC *gc;
 # endif
@@ -3502,9 +3526,11 @@ extern void gui_clear_window_mouse_face (struct window *);
 extern void cancel_mouse_face (struct frame *);
 extern bool clear_mouse_face (Mouse_HLInfo *);
 extern bool cursor_in_mouse_face_p (struct window *w);
+#ifndef HAVE_ANDROID
 extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 					  int, int, enum draw_glyphs_face);
 extern void display_tty_menu_item (const char *, int, int, int, int, bool);
+#endif
 extern struct glyph *x_y_to_hpos_vpos (struct window *, int, int, int *, int *,
 				       int *, int *, int *);
 /* Flags passed to try_window.  */
@@ -3566,7 +3592,7 @@ void prepare_image_for_display (struct frame *, struct image *);
 ptrdiff_t lookup_image (struct frame *, Lisp_Object, int);
 
 #if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_NS \
-  || defined HAVE_HAIKU
+  || defined HAVE_HAIKU || defined HAVE_ANDROID
 #define RGB_PIXEL_COLOR unsigned long
 #endif
 
@@ -3646,6 +3672,9 @@ void gamma_correct (struct frame *, COLORREF *);
 #endif
 #ifdef HAVE_HAIKU
 void gamma_correct (struct frame *, Emacs_Color *);
+#endif
+#ifdef HAVE_ANDROID
+extern void gamma_correct (struct frame *, Emacs_Color *);
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM

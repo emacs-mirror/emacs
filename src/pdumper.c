@@ -5620,7 +5620,7 @@ pdumper_load (const char *dump_filename, char *argv0)
     }
 
   err = PDUMPER_LOAD_FILE_NOT_FOUND;
-  if (fstat (dump_fd, &stat) < 0)
+  if (sys_fstat (dump_fd, &stat) < 0)
     goto out;
 
   err = PDUMPER_LOAD_BAD_FILE_TYPE;

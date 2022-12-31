@@ -254,6 +254,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_HAIKU
 #define GCGraphicsExposures 0
 #endif /* HAVE_HAIKU */
+
+#ifdef HAVE_ANDROID
+#define GCGraphicsExposures 0
+#endif /* HAVE_ANDROID */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #include "buffer.h"
@@ -606,6 +610,39 @@ x_free_gc (struct frame *f, Emacs_GC *gc)
   xfree (gc);
 }
 #endif  /* HAVE_NS */
+
+#ifdef HAVE_ANDROID
+
+/* Android real GCs.  */
+
+static struct android_gc *
+x_create_gc (struct frame *f, unsigned long value_mask,
+	     Emacs_GC *xgcv)
+{
+  struct android_gc_values gcv;
+  unsigned long mask;
+
+  gcv.foreground = xgcv->foreground;
+  gcv.background = xgcv->background;
+
+  mask = 0;
+
+  if (value_mask & GCForeground)
+    mask |= ANDROID_GC_FOREGROUND;
+
+  if (value_mask & GCBackground)
+    mask |= ANDROID_GC_BACKGROUND;
+
+  return android_create_gc (mask, &gcv);
+}
+
+static void
+x_free_gc (struct frame *f, struct android_gc *gc)
+{
+  android_free_gc (gc);
+}
+
+#endif
 
 /***********************************************************************
 			   Frames and faces
@@ -6951,19 +6988,21 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
       int num;
 
       while (fgets (buf, sizeof (buf), fp) != NULL)
-	if (sscanf (buf, "%d %d %d %n", &red, &green, &blue, &num) == 3)
-	  {
+	{
+	  if (sscanf (buf, "%d %d %d %n", &red, &green, &blue, &num) == 3)
+	    {
 #ifdef HAVE_NTGUI
-	    int color = RGB (red, green, blue);
+	      int color = RGB (red, green, blue);
 #else
-	    int color = (red << 16) | (green << 8) | blue;
+	      int color = (red << 16) | (green << 8) | blue;
 #endif
-	    char *name = buf + num;
-	    ptrdiff_t len = strlen (name);
-	    len -= 0 < len && name[len - 1] == '\n';
-	    cmap = Fcons (Fcons (make_string (name, len), make_fixnum (color)),
-			  cmap);
-	  }
+	      char *name = buf + num;
+	      ptrdiff_t len = strlen (name);
+	      len -= 0 < len && name[len - 1] == '\n';
+	      cmap = Fcons (Fcons (make_string (name, len), make_fixnum (color)),
+			    cmap);
+	    }
+	}
       fclose (fp);
     }
   unblock_input ();

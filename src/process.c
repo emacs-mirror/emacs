@@ -119,6 +119,10 @@ static struct rlimit nofile_limit;
 #include "gnutls.h"
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h"
+#endif
+
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -5679,7 +5683,17 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    timeout = short_timeout;
 #endif
 
-	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
+	  /* Android doesn't support threads and requires using a
+	     replacement for pselect in android.c to poll for
+	     events.  */
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+	  nfds = android_select (max_desc + 1,
+				 &Available, (check_write ? &Writeok : 0),
+				 NULL, &timeout, NULL);
+#else
+
+	  /* Non-macOS HAVE_GLIB builds call thread_select in
+	     xgselect.c.  */
 #if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
 			    &Available, (check_write ? &Writeok : 0),
@@ -5695,6 +5709,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 				(check_write ? &Writeok : 0),
 				NULL, &timeout, NULL);
 #endif	/* !HAVE_GLIB */
+#endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
 
 #ifdef HAVE_GNUTLS
 	  /* Merge tls_available into Available. */

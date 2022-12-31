@@ -1047,7 +1047,7 @@ safe_to_load_version (Lisp_Object file, int fd)
 
   /* If the file is not regular, then we cannot safely seek it.
      Assume that it is not safe to load as a compiled file.  */
-  if (fstat (fd, &st) == 0 && !S_ISREG (st.st_mode))
+  if (sys_fstat (fd, &st) == 0 && !S_ISREG (st.st_mode))
     return 0;
 
   /* Read the first few bytes from the file, and look for a line
@@ -1676,7 +1676,7 @@ maybe_swap_for_eln1 (Lisp_Object src_name, Lisp_Object eln_name,
 
   if (eln_fd > 0)
     {
-      if (fstat (eln_fd, &eln_st) || S_ISDIR (eln_st.st_mode))
+      if (sys_fstat (eln_fd, &eln_st) || S_ISDIR (eln_st.st_mode))
 	emacs_close (eln_fd);
       else
 	{
@@ -1998,7 +1998,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		  }
 		else
 		  {
-		    int err = (fstat (fd, &st) != 0 ? errno
+		    int err = (sys_fstat (fd, &st) != 0 ? errno
 			       : S_ISDIR (st.st_mode) ? EISDIR : 0);
 		    if (err)
 		      {

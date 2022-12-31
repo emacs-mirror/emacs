@@ -56,6 +56,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "region-cache.h"
 #include "frame.h"
 
+#if defined HAVE_ANDROID
+#include "android.h"
+#endif
+
 #ifdef HAVE_LINUX_FS_H
 # include <sys/ioctl.h>
 # include <linux/fs.h>
@@ -135,7 +139,6 @@ static dev_t timestamp_file_system;
 static Lisp_Object Vwrite_region_annotation_buffers;
 
 static Lisp_Object emacs_readlinkat (int, char const *);
-static Lisp_Object file_name_directory (Lisp_Object);
 static bool a_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 		     Lisp_Object *, struct coding_system *);
 static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
@@ -158,6 +161,12 @@ file_access_p (char const *file, int amode)
       errno = EPERM;
       return st.st_mode & S_IWRITE || S_ISDIR (st.st_mode);
     }
+#endif
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* FILE may be some kind of special Android file.  */
+  if (android_file_access_p (file, amode))
+    return true;
 #endif
 
   if (faccessat (AT_FDCWD, file, amode, AT_EACCESS) == 0)
@@ -370,7 +379,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 /* Return the directory component of FILENAME, or nil if FILENAME does
    not contain a directory component.  */
 
-static Lisp_Object
+Lisp_Object
 file_name_directory (Lisp_Object filename)
 {
   char *beg = SSDATA (filename);
@@ -2227,7 +2236,7 @@ permissions.  */)
 
   record_unwind_protect_int (close_file_unwind, ifd);
 
-  if (fstat (ifd, &st) != 0)
+  if (sys_fstat (ifd, &st) != 0)
     report_file_error ("Input file status", file);
 
   if (!NILP (preserve_permissions))
@@ -2273,7 +2282,7 @@ permissions.  */)
   if (already_exists)
     {
       struct stat out_st;
-      if (fstat (ofd, &out_st) != 0)
+      if (sys_fstat (ofd, &out_st) != 0)
 	report_file_error ("Output file status", newname);
       if (st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
 	report_file_errno ("Input and output files are the same",
@@ -3078,7 +3087,7 @@ file_directory_p (Lisp_Object file)
     errno = ENOTDIR;	/* like the non-DOS_NT branch below does */
   return retval;
 #else
-# ifdef O_PATH
+# if defined O_PATH && !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
   /* Use O_PATH if available, as it avoids races and EOVERFLOW issues.  */
   int fd = emacs_openat (AT_FDCWD, SSDATA (file),
 			 O_PATH | O_CLOEXEC | O_DIRECTORY, 0);
@@ -4002,7 +4011,7 @@ by calling `format-decode', which see.  */)
 			     XCAR (XCAR (window_markers)));
     }
 
-  if (fstat (fd, &st) != 0)
+  if (sys_fstat (fd, &st) != 0)
     report_file_error ("Input file status", orig_filename);
   mtime = get_stat_mtime (&st);
 
@@ -5394,7 +5403,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   modtime = invalid_timespec ();
   if (visiting)
     {
-      if (fstat (desc, &st) == 0)
+      if (sys_fstat (desc, &st) == 0)
 	modtime = get_stat_mtime (&st);
       else
 	ok = 0, save_errno = errno;
@@ -5432,7 +5441,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       if (desc1 >= 0)
 	{
 	  struct stat st1;
-	  if (fstat (desc1, &st1) == 0
+	  if (sys_fstat (desc1, &st1) == 0
 	      && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
 	    {
 	      /* Use the heuristic if it appears to be valid.  With neither

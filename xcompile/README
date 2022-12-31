@@ -1,0 +1,7 @@
+This directory holds Makefiles and other required assets to build an
+Emacs binary independently for another toolchain, which is currently
+required when building for Android.
+
+The files here are extremely ugly, and contain rules that cannot be
+interrupted without leaving the build tree in an unsafe state.  At
+some point that should be fixed!

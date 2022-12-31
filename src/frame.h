@@ -181,7 +181,7 @@ struct frame
      most recently buried buffer is first.  For last-buffer.  */
   Lisp_Object buried_buffer_list;
 
-#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
   /* A dummy window used to display menu bars under X when no X
      toolkit support is available.  */
   Lisp_Object menu_bar_window;
@@ -377,7 +377,7 @@ struct frame
   /* The output method says how the contents of this frame are
      displayed.  It could be using termcap, or using an X window.
      This must be the same as the terminal->type. */
-  ENUM_BF (output_method) output_method : 3;
+  ENUM_BF (output_method) output_method : 4;
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* True if this frame is a tooltip frame.  */
@@ -586,12 +586,13 @@ struct frame
      well.  */
   union output_data
   {
-    struct tty_output *tty;     /* From termchar.h.  */
-    struct x_output *x;         /* From xterm.h.  */
-    struct w32_output *w32;     /* From w32term.h.  */
-    struct ns_output *ns;       /* From nsterm.h.  */
-    struct pgtk_output *pgtk; /* From pgtkterm.h. */
-    struct haiku_output *haiku; /* From haikuterm.h. */
+    struct tty_output *tty;		/* From termchar.h.  */
+    struct x_output *x;			/* From xterm.h.  */
+    struct w32_output *w32;		/* From w32term.h.  */
+    struct ns_output *ns;		/* From nsterm.h.  */
+    struct pgtk_output *pgtk;		/* From pgtkterm.h. */
+    struct haiku_output *haiku;		/* From haikuterm.h. */
+    struct android_output *android;	/* From androidterm.h.  */
   }
   output_data;
 
@@ -713,7 +714,7 @@ fset_menu_bar_vector (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_vector = val;
 }
-#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
 INLINE void
 fset_menu_bar_window (struct frame *f, Lisp_Object val)
 {
@@ -872,6 +873,11 @@ default_pixels_per_inch_y (void)
 #else
 #define FRAME_HAIKU_P(f) ((f)->output_method == output_haiku)
 #endif
+#ifndef HAVE_ANDROID
+#define FRAME_ANDROID_P(f) false
+#else
+#define FRAME_ANDROID_P(f) ((f)->output_method == output_android)
+#endif
 
 /* FRAME_WINDOW_P tests whether the frame is a graphical window system
    frame.  */
@@ -889,6 +895,9 @@ default_pixels_per_inch_y (void)
 #endif
 #ifdef HAVE_HAIKU
 #define FRAME_WINDOW_P(f) FRAME_HAIKU_P (f)
+#endif
+#ifdef HAVE_ANDROID
+#define FRAME_WINDOW_P(f) FRAME_ANDROID_P (f)
 #endif
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) ((void) (f), false)
@@ -917,10 +926,16 @@ default_pixels_per_inch_y (void)
    frame F.  We need to define two versions because a TTY-only build
    does not have FRAME_DISPLAY_INFO.  */
 #ifdef HAVE_WINDOW_SYSTEM
+#ifndef HAVE_ANDROID
 # define MOUSE_HL_INFO(F)					\
-  (FRAME_WINDOW_P(F)						\
+  (FRAME_WINDOW_P (F)						\
    ? &FRAME_DISPLAY_INFO(F)->mouse_highlight			\
    : &(F)->output_data.tty->display_info->mouse_highlight)
+#else
+/* There is no "struct tty_output" on Android at all.  */
+# define MOUSE_HL_INFO(F)					\
+  (&FRAME_DISPLAY_INFO(F)->mouse_highlight)
+#endif
 #else
 # define MOUSE_HL_INFO(F)					\
   (&(F)->output_data.tty->display_info->mouse_highlight)
