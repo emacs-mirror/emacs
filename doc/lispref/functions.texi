@@ -700,8 +700,10 @@ redefinition from unintentional redefinition.
 @defun defalias name definition &optional doc
 @anchor{Definition of defalias}
 This function defines the symbol @var{name} as a function, with
-definition @var{definition} (which can be any valid Lisp function or macro).
-Its return value is @emph{undefined}.
+definition @var{definition}.  @var{definition} can be any valid Lisp
+function or macro, or a special form (@pxref{Special Forms}), or a
+keymap (@pxref{Keymaps}), or a vector or string (a keyboard macro).
+The return value of @code{defalias} is @emph{undefined}.
 
 If @var{doc} is non-@code{nil}, it becomes the function documentation
 of @var{name}.  Otherwise, any documentation provided by
