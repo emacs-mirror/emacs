@@ -1194,10 +1194,12 @@ treesit_query_error_to_string (TSQueryError error)
 
 static Lisp_Object
 treesit_compose_query_signal_data (uint32_t error_offset,
-				   TSQueryError error_type)
+				   TSQueryError error_type,
+				   Lisp_Object query_source)
 {
-  return list3 (build_string (treesit_query_error_to_string (error_type)),
+  return list4 (build_string (treesit_query_error_to_string (error_type)),
 		make_fixnum (error_offset + 1),
+		query_source,
 		build_pure_c_string ("Debug the query with `treesit-query-validate'"));
 }
 
@@ -1239,7 +1241,8 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
     {
       *signal_symbol = Qtreesit_query_error;
       *signal_data = treesit_compose_query_signal_data (error_offset,
-							error_type);
+							error_type,
+							source);
     }
   XTS_COMPILED_QUERY (query)->query = treesit_query;
   return treesit_query;
@@ -2627,7 +2630,7 @@ the query.  */)
       if (treesit_query == NULL)
 	xsignal (Qtreesit_query_error,
 		 treesit_compose_query_signal_data (error_offset,
-						    error_type));
+						    error_type, query));
       cursor = ts_query_cursor_new ();
       needs_to_free_query_and_cursor = true;
     }
