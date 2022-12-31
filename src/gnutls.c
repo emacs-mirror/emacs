@@ -1822,18 +1822,30 @@ key_file2_aux (Lisp_Object flags)
 	rv |= GNUTLS_PKCS_NULL_PASSWORD;
       else if (EQ (flag, Qgnutls_pkcs_pbes2_des))
 	rv |= GNUTLS_PKCS_PBES2_DES;
+#ifdef GNUTLS_PKCS_PBES1_DES_MD5
       else if (EQ (flag, Qgnutls_pkcs_pbes1_des_md5))
 	rv |= GNUTLS_PKCS_PBES1_DES_MD5;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_TC26Z
       else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_tc26z))
 	rv |= GNUTLS_PKCS_PBES2_GOST_TC26Z;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_CPA
       else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_cpa))
 	rv |= GNUTLS_PKCS_PBES2_GOST_CPA;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_CPB
       else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_cpb))
 	rv |= GNUTLS_PKCS_PBES2_GOST_CPB;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_CPC
       else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_cpc))
 	rv |= GNUTLS_PKCS_PBES2_GOST_CPC;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_CPD
       else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_cpd))
 	rv |= GNUTLS_PKCS_PBES2_GOST_CPD;
+#endif
     }
   return rv;
 }
@@ -1893,6 +1905,7 @@ GNUTLS_PKCS_PBES2_DES_MD5, GNUTLS_PKCS_PBES2_GOST_TC26Z,
 GNUTLS_PKCS_PBES2_GOST_CPA, GNUTLS_PKCS_PBES2_GOST_CPB,
 GNUTLS_PKCS_PBES2_GOST_CPC, GNUTLS_PKCS_PBES2_GOST_CPD.  If not
 specified, or if nil, the bitflag with value 0 is used.
+Note that some of these are only supported since GnuTLS 3.6.3.
 
 The debug level will be set for this process AND globally for GnuTLS.
 So if you set it higher or lower at any point, it affects global
