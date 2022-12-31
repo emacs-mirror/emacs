@@ -36,6 +36,7 @@
 (eval-when-compile (require 'subr-x)) ; For `string-join'.
 (require 'cl-seq)
 (require 'font-lock)
+(require 'seq)
 
 ;;; Function declarations
 
@@ -2684,27 +2685,30 @@ content as signal data, and erase buffer afterwards."
     (out-dir lang url &optional source-dir grammar-dir cc c++)
   "Install and compile a tree-sitter language grammar library.
 
-OUT-DIR is the directory to put the compiled library file, it
-defaults to ~/.emacs.d/tree-sitter.
+OUT-DIR is the directory to put the compiled library file.  If it
+is nil, the \"tree-sitter\" directory under user's Emacs
+configuration directory is used (and automatically created if not
+exist).
 
 For LANG, URL, SOURCE-DIR, GRAMMAR-DIR, CC, C++, see
 `treesit-language-source-alist'.  If anything goes wrong, this
 function signals an error."
   (let* ((lang (symbol-name lang))
-         (default-directory "/tmp")
-         (workdir (expand-file-name "treesit-workdir-00893133134"))
+         (default-directory (make-temp-file "treesit-workdir" t))
+         (workdir (expand-file-name "repo"))
          (source-dir (expand-file-name (or source-dir "src") workdir))
          (grammar-dir (expand-file-name (or grammar-dir "") workdir))
-         (cc (or cc "cc"))
-         (c++ (or c++ "c++"))
-         (soext (pcase system-type
-                  ('darwin "dylib")
-                  ((or 'ms-dos 'cywin 'windows-nt) "dll")
-                  (_ "so")))
+         (cc (or cc (seq-find #'executable-find '("cc" "gcc" "c99"))
+                 ;; If no C compiler found, just use cc and let
+                 ;; `call-process' signal the error.
+                 "cc"))
+         (c++ (or c++ (seq-find #'executable-find '("c++" "g++"))
+                  "c++"))
+         (soext (or (car dynamic-library-suffixes)
+                    (signal 'treesit-error '("Emacs cannot figure out the file extension for dynamic libraries for this system, because `dynamic-library-suffixes' is nil"))))
          (out-dir (or (and out-dir (expand-file-name out-dir))
-                      (expand-file-name
-                       "tree-sitter" user-emacs-directory)))
-         (lib-name (format "libtree-sitter-%s.%s" lang soext)))
+                      (locate-user-emacs-file "tree-sitter")))
+         (lib-name (concat "libtree-sitter-" lang soext)))
     (unwind-protect
         (with-temp-buffer
           (message "Cloning repository")
@@ -2713,8 +2717,9 @@ function signals an error."
            "git" nil t nil "clone" url "--depth" "1" "--quiet"
            workdir)
           ;; cp "${grammardir}"/grammar.js "${sourcedir}"
-          (copy-file (concat grammar-dir "/grammar.js")
-                     (concat source-dir "/grammar.js"))
+          (copy-file (expand-file-name "grammar.js" grammar-dir)
+                     (expand-file-name "grammar.js" source-dir)
+                     t t)
           ;; cd "${sourcedir}"
           (setq default-directory source-dir)
           (message "Compiling library")
@@ -2739,7 +2744,7 @@ function signals an error."
                       (rx bos (+ anychar) ".o" eos))
                    "-o" ,lib-name))
           ;; Copy out.
-          (copy-file lib-name (concat out-dir "/") t)
+          (copy-file lib-name (file-name-as-directory out-dir) t t)
           (message "Library installed to %s/%s" out-dir lib-name))
       (when (file-exists-p workdir)
         (delete-directory workdir t)))))
