@@ -632,7 +632,7 @@ treesit_load_language (Lisp_Object language_symbol,
   return lang;
 }
 
-DEFUN ("treesit-language-available-p", Ftreesit_langauge_available_p,
+DEFUN ("treesit-language-available-p", Ftreesit_language_available_p,
        Streesit_language_available_p,
        1, 2, 0,
        doc: /* Return non-nil if LANGUAGE exists and is loadable.
@@ -679,14 +679,14 @@ is non-nil, return the oldest compatible ABI version.  */)
     return make_fixnum (TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION);
 }
 
-DEFUN ("treesit-language-version", Ftreesit_language_abi_version,
+DEFUN ("treesit-language-abi-version", Ftreesit_language_abi_version,
        Streesit_language_abi_version,
        0, 1, 0,
-       doc: /* Return the language ABI version of the tree-sitter LANGUAGE.
-Return nil if LANGUAGE is not available.  */)
+       doc: /* Return the ABI version of the tree-sitter grammar for LANGUAGE.
+Return nil if a grammar library for LANGUAGE is not available.  */)
   (Lisp_Object language)
 {
-  if (NILP (Ftreesit_langauge_available_p (language, Qnil)))
+  if (NILP (Ftreesit_language_available_p (language, Qnil)))
     return Qnil;
   else
     {

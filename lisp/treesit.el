@@ -2615,21 +2615,22 @@ window."
 ;;; Install & build language grammar
 
 (defvar treesit-language-source-alist nil
-  "Configures how to download tree-sitter language grammars.
-This should be an alist of
+  "Configuration for downloading and installing tree-sitter language grammars.
+
+The value should be an alist where each elemnt has the form
 
     (LANG . (URL SOURCE-DIR GRAMMAR-DIR CC C++))
 
 Only LANG and URL are mandatory.  LANG is the language symbol.
-URL is the repository's url.
+URL is the Git repository URL for the grammar.
 
-SOURCE-DIR is the relative directory in the repository in which
-the grammar.c file resides, default to \"src\".
+SOURCE-DIR is the relative subdirectory in the repository in which
+the grammar's parser.c file resides, defaulting to \"src\".
 
-GRAMMAR-DIR is the relative grammar directory in the repository
-in which the grammar.js file resides, default to \"\".
+GRAMMAR-DIR is the relative subdirectory in the repository
+in which the grammar.js file resides, defaulting to \".\".
 
-CC and C++ are C and C++ compilers, default to \"cc\" and
+CC and C++ are C and C++ compilers, defaulting to \"cc\" and
 \"c++\", respectively.")
 
 (defun treesit-install-language-grammar (lang)
@@ -2687,8 +2688,8 @@ content as signal data, and erase buffer afterwards."
 
 OUT-DIR is the directory to put the compiled library file.  If it
 is nil, the \"tree-sitter\" directory under user's Emacs
-configuration directory is used (and automatically created if not
-exist).
+configuration directory is used (and automatically created if it
+does not exist).
 
 For LANG, URL, SOURCE-DIR, GRAMMAR-DIR, CC, C++, see
 `treesit-language-source-alist'.  If anything goes wrong, this
