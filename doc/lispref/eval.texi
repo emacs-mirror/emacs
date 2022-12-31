@@ -819,9 +819,6 @@ output of the output functions is printed in the echo area.
 (@pxref{Unloading}), and defaults to @code{buffer-file-name}
 (@pxref{Buffer File Name}).  If @var{unibyte} is non-@code{nil},
 @code{read} converts strings to unibyte whenever possible.
-
-@findex eval-current-buffer
-@code{eval-current-buffer} is an alias for this command.
 @end deffn
 
 @defopt max-lisp-eval-depth

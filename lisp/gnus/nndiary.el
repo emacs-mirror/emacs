@@ -339,8 +339,15 @@ all.  This may very well take some time.")
   ;; for this header) or one list (specifying all the possible values for this
   ;; header). In the latter case, the list does NOT include the unspecified
   ;; spec (*).
+
   ;; For time zone values, we have symbolic time zone names associated with
   ;; the (relative) number of seconds ahead GMT.
+  ;; The list of time zone values is obsolescent, and new code should
+  ;; not rely on it.  Many of the time zone abbreviations are wrong;
+  ;; in particular, all single-letter abbreviations other than "Z" have
+  ;; been wrong since Internet RFC 2822 (2001).  However, the
+  ;; abbreviations have not been changed due to backward compatibility
+  ;; concerns.
   )
 
 (defsubst nndiary-schedule ()

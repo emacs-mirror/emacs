@@ -280,14 +280,20 @@ change the list."
 When COND yields non-nil, eval BODY forms sequentially and return
 value of last one, or nil if there are none."
   (declare (indent 1) (debug t))
-  (list 'if cond (cons 'progn body)))
+  (if body
+      (list 'if cond (cons 'progn body))
+    (macroexp-warn-and-return "`when' with empty body"
+                              cond '(empty-body when) t)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil.
 When COND yields nil, eval BODY forms sequentially and return
 value of last one, or nil if there are none."
   (declare (indent 1) (debug t))
-  (cons 'if (cons cond (cons nil body))))
+  (if body
+      (cons 'if (cons cond (cons nil body)))
+    (macroexp-warn-and-return "`unless' with empty body"
+                              cond '(empty-body unless) t)))
 
 (defsubst subr-primitive-p (object)
   "Return t if OBJECT is a built-in primitive function."
@@ -380,9 +386,23 @@ without silencing all errors."
   "Execute BODY; if the error CONDITION occurs, return nil.
 Otherwise, return result of last form in BODY.
 
-CONDITION can also be a list of error conditions."
+CONDITION can also be a list of error conditions.
+The CONDITION argument is not evaluated.  Do not quote it."
   (declare (debug t) (indent 1))
-  `(condition-case nil (progn ,@body) (,condition nil)))
+  (cond
+   ((and (eq (car-safe condition) 'quote)
+         (cdr condition) (null (cddr condition)))
+    (macroexp-warn-and-return
+     (format "`ignore-error' condition argument should not be quoted: %S"
+             condition)
+     `(condition-case nil (progn ,@body) (,(cadr condition) nil))
+     nil t condition))
+   (body
+    `(condition-case nil (progn ,@body) (,condition nil)))
+   (t
+    (macroexp-warn-and-return "`ignore-error' with empty body"
+                              nil '(empty-body ignore-error) t condition))))
+
 
 ;;;; Basic Lisp functions.
 
@@ -4850,6 +4870,7 @@ but that should be robust in the unexpected case that an error is signaled."
   (declare (debug t) (indent 1))
   (let* ((err (make-symbol "err"))
          (orig-body body)
+         (orig-format format)
          (format (if (and (stringp format) body) format
                    (prog1 "Error: %S"
                      (if format (push format body)))))
@@ -4860,7 +4881,9 @@ but that should be robust in the unexpected case that an error is signaled."
     (if (eq orig-body body) exp
       ;; The use without `format' is obsolete, let's warn when we bump
       ;; into any such remaining uses.
-      (macroexp-warn-and-return "Missing format argument" exp nil nil format))))
+      (macroexp-warn-and-return
+       "Missing format argument in `with-demote-errors'" exp nil nil
+       orig-format))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
@@ -6905,11 +6928,8 @@ sentence (see Info node `(elisp) Documentation Tips')."
 
 (defun json-available-p ()
   "Return non-nil if Emacs has libjansson support."
-  (and (fboundp 'json-serialize)
-       (condition-case nil
-           (json-serialize t)
-         (:success t)
-         (json-unavailable nil))))
+  (and (fboundp 'json--available-p)
+       (json--available-p)))
 
 (defun ensure-list (object)
   "Return OBJECT as a list.

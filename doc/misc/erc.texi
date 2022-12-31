@@ -529,6 +529,16 @@ Translate morse code in messages
 
 @end table
 
+@anchor{Required Modules}
+@subheading Required Modules
+@cindex required modules
+
+Note that some modules are essential to core IRC operations and thus
+not listed above.  You can nevertheless still remove these, but doing
+so demands special precautions to avoid degrading the user experience.
+At present, the only such module is @code{networks}, whose library ERC
+always loads anyway.
+
 @subheading Local Modules
 @cindex local modules
 
@@ -1290,7 +1300,7 @@ When preparing entries for your backend, it may help to get a feel for
 how ERC and its modules conduct searches, especially when exploring a
 new context, such as channel keys.  (Hint: in such situations, try
 temporarily setting the variable @code{auth-source-debug} to @code{t}
-and checking @samp{*Messages*} periodically for insights into how
+and checking @file{*Messages*} periodically for insights into how
 auth-source is operating.)  Overall, though, ERC tries to be
 consistent in performing queries across various authentication
 contexts.  Here's what to expect with respect to the @samp{host}

@@ -920,12 +920,12 @@ decrease the font size of the affected faces, depending on the
 direction of the scrolling.
 
   The final key of these commands may be repeated without the leading
-@kbd{C-x}.  For instance, @kbd{C-x C-= C-= C-=} increases the face
-height by three steps.  Each step scales the text height by a factor
-of 1.2; to change this factor, customize the variable
-@code{text-scale-mode-step}.  A numeric argument of 0
-to the @code{text-scale-adjust} command restores the default height,
-the same as typing @kbd{C-x C-0}.
+@kbd{C-x} and without the modifiers.  For instance, @w{@kbd{C-x C-= C-= C-=}}
+and @w{@kbd{C-x C-= = =}} increase the face height by three steps.  Each
+step scales the text height by a factor of 1.2; to change this factor,
+customize the variable @code{text-scale-mode-step}.  A numeric
+argument of 0 to the @code{text-scale-adjust} command restores the
+default height, the same as typing @kbd{C-x C-0}.
 
 @cindex adjust global font size
 @findex global-text-scale-adjust

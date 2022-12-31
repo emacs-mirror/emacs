@@ -100,7 +100,7 @@ Also store it in `find-gc-unsafe-list'."
 
 
 
-(defun trace-call-tree (&optional ignored)
+(defun trace-call-tree (&optional _ignored)
   (message "Setting up directories...")
   (setq find-gc-subrs-called nil)
   (let ((case-fold-search nil)

@@ -1243,7 +1243,7 @@ Finds the header file belonging to NAME, gets the macros
 from that file, and then merge the macros with our current
 symbol table."
   (when semantic-lex-spp-use-headers-flag
-    ;; @todo - do this someday, ok?
+    nil  ; @todo - do this someday, ok?
     ))
 
 (defmacro define-lex-spp-include-analyzer (name doc regexp tokidx

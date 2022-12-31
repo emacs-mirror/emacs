@@ -1108,7 +1108,7 @@ This can be done by using `semantic-lex-push-token'."
 	     (semantic-lex-analysis-bounds (cons (point) (point-max)))
 	     (semantic-lex-current-depth 0)
 	     (semantic-lex-maximum-depth semantic-lex-depth))
-	 (when ,condition ,@forms)
+	 (when ,condition nil ,@forms)  ; `nil' avoids an empty-body warning.
 	 semantic-lex-token-stream))))
 
 (defmacro define-lex-regex-analyzer (name doc regexp &rest forms)

@@ -3337,7 +3337,7 @@ INFO is a plist holding contextual information.  See
 		      ((org-html-standalone-image-p destination info)
 		       (org-export-get-ordinal
 			(org-element-map destination 'link #'identity info t)
-			info 'link 'org-html-standalone-image-p))
+			info '(link) 'org-html-standalone-image-p))
 		      (t (org-export-get-ordinal
 			  destination info nil counter-predicate))))
                     (desc

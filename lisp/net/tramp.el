@@ -5439,7 +5439,7 @@ Wait, until the connection buffer changes."
 	;; Hide message in buffer.
 	(narrow-to-region (point-max) (point-max))
 	;; Wait for new output.
-	(while (not (tramp-compat-ignore-error 'file-error
+	(while (not (tramp-compat-ignore-error file-error
 		      (tramp-wait-for-regexp
 		       proc 0.1 tramp-security-key-confirmed-regexp)))
 	  (when (tramp-check-for-regexp proc tramp-security-key-timeout-regexp)

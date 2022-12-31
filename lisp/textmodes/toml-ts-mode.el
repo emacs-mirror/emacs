@@ -32,6 +32,8 @@
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 
 (defcustom toml-ts-mode-indent-offset 2
@@ -107,43 +109,13 @@
    '((ERROR) @font-lock-warning-face))
   "Font-lock settings for TOML.")
 
-(defun toml-ts-mode--get-table-name (node)
-  "Obtains the header-name for the associated tree-sitter `NODE'."
-  (if node
-      (treesit-node-text
-       (car (cdr (treesit-node-children node))))
-    "Root table"))
-
-(defun toml-ts-mode--imenu-1 (node)
-  "Helper for `toml-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'toml-ts-mode--imenu-1 (cdr node)))
-         (name (toml-ts-mode--get-table-name ts-node))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((null ts-node) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun toml-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (table-tree (treesit-induce-sparse-tree
-                      node "^table$" nil 1000))
-         (table-array-tree (treesit-induce-sparse-tree
-                            node "^table_array_element$" nil 1000))
-         (table-index (toml-ts-mode--imenu-1 table-tree))
-         (table-array-index (toml-ts-mode--imenu-1 table-array-tree)))
-    (append
-     (when table-index `(("Headers" . ,table-index)))
-     (when table-array-index `(("Arrays" . ,table-array-index))))))
-
+(defun toml-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "table" "table_array_element")
+     (or (treesit-node-text (treesit-node-child node 1) t)
+         "Root table"))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
@@ -167,6 +139,7 @@ the subtrees."
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
                 (rx (or "table" "table_array_element")))
+    (setq-local treesit-defun-name-function #'toml-ts-mode--defun-name)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings toml-ts-mode--font-lock-settings)
@@ -177,8 +150,9 @@ the subtrees."
                   (delimiter error)))
 
     ;; Imenu.
-    (setq-local imenu-create-index-function #'toml-ts-mode--imenu)
-    (setq-local which-func-functions nil) ;; Piggyback on imenu
+    (setq-local treesit-simple-imenu-settings
+                '(("Header" "\\`table\\'" nil nil)
+                  ("Array" "\\`table_array_element\\'" nil nil)))
 
     (treesit-major-mode-setup)))
 

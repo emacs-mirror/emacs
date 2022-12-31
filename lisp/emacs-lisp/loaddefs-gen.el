@@ -608,7 +608,8 @@ instead of just updating them with the new/changed autoloads."
           (write-region (point-min) (point-max) output-file nil 'silent))
       ;; We have some data, so generate the loaddef files.  First
       ;; group per output file.
-      (dolist (fdefs (seq-group-by #'car defs))
+      (dolist (fdefs (seq-group-by (lambda (x) (expand-file-name (car x)))
+                                   defs))
         (let ((loaddefs-file (car fdefs))
               hash)
           (with-temp-buffer

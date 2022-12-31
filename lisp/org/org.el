@@ -20213,7 +20213,10 @@ interactive command with similar behavior."
 (defun org-back-to-heading (&optional invisible-ok)
   "Go back to beginning of heading."
   (beginning-of-line)
-  (or (org-at-heading-p (not invisible-ok))
+  (or (and (org-at-heading-p (not invisible-ok))
+           (not (and (featurep 'org-inlinetask)
+                   (fboundp 'org-inlinetask-end-p)
+                   (org-inlinetask-end-p))))
       (if (org-element--cache-active-p)
           (let ((heading (org-element-lineage (org-element-at-point)
                                            '(headline inlinetask)
