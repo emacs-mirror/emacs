@@ -1434,7 +1434,7 @@ null input, return a symbol whose name is an empty string.  */)
 			   Qnil, Qnil, default_string, Qnil);
   if (NILP (name))
     return name;
-  return Fintern (name, Qnil);
+  return Fintern (name, Qnil, Qnil);
 }
 
 #ifdef NOTDEF
@@ -1471,7 +1471,7 @@ A user option, or customizable variable, is one for which
 			   default_string, Qnil);
   if (NILP (name))
     return name;
-  return Fintern (name, Qnil);
+  return Fintern (name, Qnil, Qnil);
 }
 
 DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 4, 0,
@@ -1685,7 +1685,7 @@ or from one of the possible completions.  */)
       /* Is this element a possible completion?  */
 
       if (SYMBOLP (eltstring))
-	eltstring = Fsymbol_name (eltstring);
+	eltstring = Fsymbol_name (eltstring, Qnil);
 
       if (STRINGP (eltstring)
 	  && SCHARS (string) <= SCHARS (eltstring)
@@ -1924,7 +1924,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
       /* Is this element a possible completion?  */
 
       if (SYMBOLP (eltstring))
-	eltstring = Fsymbol_name (eltstring);
+	eltstring = Fsymbol_name (eltstring, Qnil);
 
       if (STRINGP (eltstring)
 	  && SCHARS (string) <= SCHARS (eltstring)
@@ -2093,7 +2093,7 @@ the values STRING, PREDICATE and `lambda'.  */)
           {
             tem = HASH_KEY (h, i);
             if (BASE_EQ (tem, Qunbound)) continue;
-            Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
+            Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem, Qnil) : tem);
             if (!STRINGP (strkey)) continue;
             if (BASE_EQ (Fcompare_strings (string, Qnil, Qnil,
 					   strkey, Qnil, Qnil,
@@ -2193,7 +2193,7 @@ single string, rather than a cons cell whose car is a string.  */)
   register Lisp_Object tail;
 
   if (SYMBOLP (key))
-    key = Fsymbol_name (key);
+    key = Fsymbol_name (key, Qnil);
 
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
@@ -2201,7 +2201,7 @@ single string, rather than a cons cell whose car is a string.  */)
       elt = XCAR (tail);
       thiscar = CONSP (elt) ? XCAR (elt) : elt;
       if (SYMBOLP (thiscar))
-	thiscar = Fsymbol_name (thiscar);
+	thiscar = Fsymbol_name (thiscar, Qnil);
       else if (!STRINGP (thiscar))
 	continue;
       tem = Fcompare_strings (thiscar, make_fixnum (0), Qnil,

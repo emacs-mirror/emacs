@@ -460,7 +460,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	  visargs[i] = Fcompleting_read (callint_message,
 					 Vobarray, Qfboundp, Qt,
 					 Qnil, Qnil, Qnil, Qnil);
-	  args[i] = Fintern (visargs[i], Qnil);
+	  args[i] = Fintern (visargs[i], Qnil, Qnil);
 	  break;
 
 	case 'b':   		/* Name of existing buffer.  */
@@ -494,7 +494,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	  visargs[i] = Fcompleting_read (callint_message,
 					 Vobarray, Qcommandp,
 					 Qt, Qnil, Qnil, Qnil, Qnil);
-	  args[i] = Fintern (visargs[i], Qnil);
+	  args[i] = Fintern (visargs[i], Qnil, Qnil);
 	  break;
 
 	case 'd':		/* Value of point.  Does not do I/O.  */
@@ -673,7 +673,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	case 'S':		/* Any symbol.  */
 	  visargs[i] = Fread_string (callint_message,
 				     Qnil, Qnil, Qnil, Qnil);
-	  args[i] = Fintern (visargs[i], Qnil);
+	  args[i] = Fintern (visargs[i], Qnil, Qnil);
 	  break;
 
 	case 'v':		/* Variable name: symbol that is

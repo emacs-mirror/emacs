@@ -6832,7 +6832,7 @@ apply_modifiers_uncached (int modifiers, char *base, int base_len, int base_len_
     memcpy (SDATA (new_name), new_mods, mod_len);
     memcpy (SDATA (new_name) + mod_len, base, base_len_byte);
 
-    return Fintern (new_name, Qnil);
+    return Fintern (new_name, Qnil, Qnil);
   }
 }
 
@@ -6895,7 +6895,7 @@ parse_modifiers (Lisp_Object symbol)
 
       unmodified = Fintern (make_string (SSDATA (SYMBOL_NAME (symbol)) + end,
 					 SBYTES (SYMBOL_NAME (symbol)) - end),
-			    Qnil);
+			    Qnil, Qnil);
 
       if (modifiers & ~INTMASK)
 	emacs_abort ();

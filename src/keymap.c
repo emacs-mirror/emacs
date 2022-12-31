@@ -1354,7 +1354,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	    ASET (new_key, i, item);
 	  else
 	    {
-	      Lisp_Object key_item = Fsymbol_name (item);
+	      Lisp_Object key_item = Fsymbol_name (item, Qnil);
 	      Lisp_Object new_item;
 	      if (!STRING_MULTIBYTE (key_item))
 		new_item = Fdowncase (key_item);
@@ -1385,7 +1385,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 						    SBYTES (key_item));
 		  SAFE_FREE ();
 		}
-	      ASET (new_key, i, Fintern (new_item, Qnil));
+	      ASET (new_key, i, Fintern (new_item, Qnil, Qnil));
 	    }
 	}
 
@@ -1402,7 +1402,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	  if (!SYMBOLP (AREF (new_key, i)))
 	    continue;
 
-	  Lisp_Object lc_key = Fsymbol_name (AREF (new_key, i));
+	  Lisp_Object lc_key = Fsymbol_name (AREF (new_key, i), Qnil);
 
 	  /* If there are no spaces in this symbol, just skip it.  */
 	  if (!strstr (SSDATA (lc_key), " "))
@@ -1427,7 +1427,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	  Lisp_Object new_it =
 	    make_multibyte_string ((char *) dst,
 				   SCHARS (lc_key), SBYTES (lc_key));
-	  ASET (new_key, i, Fintern (new_it, Qnil));
+	  ASET (new_key, i, Fintern (new_it, Qnil, Qnil));
 	  SAFE_FREE ();
 	}
 
@@ -1471,7 +1471,7 @@ silly_event_symbol_error (Lisp_Object c)
   Lisp_Object parsed = parse_modifiers (c);
   int modifiers = XFIXNAT (XCAR (XCDR (parsed)));
   Lisp_Object base = XCAR (parsed);
-  Lisp_Object name = Fsymbol_name (base);
+  Lisp_Object name = Fsymbol_name (base, Qnil);
   /* This alist includes elements such as ("RET" . "\\r").  */
   Lisp_Object assoc = Fassoc (name, exclude_keys, Qnil);
 
@@ -2349,7 +2349,7 @@ See `text-char-description' for describing character codes.  */)
 	  return result;
 	}
       else
-	return Fsymbol_name (key);
+	return Fsymbol_name (key, Qnil);
     }
   else if (STRINGP (key))	/* Buffer names in the menubar.  */
     return Fcopy_sequence (key);

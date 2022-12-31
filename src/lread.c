@@ -3863,7 +3863,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 	  case '#':
 	    /* ## -- the empty symbol */
-	    obj = Fintern (empty_unibyte_string, Qnil);
+	    obj = Fintern (empty_unibyte_string, Qnil, Qnil);
 	    break;
 
 	  case 's':
@@ -4011,7 +4011,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	      {
 		/* No symbol character follows: this is the empty symbol.  */
 		UNREAD (c);
-		obj = Fintern (empty_unibyte_string, Qnil);
+		obj = Fintern (empty_unibyte_string, Qnil, Qnil);
 		break;
 	      }
 	    uninterned_symbol = false;
@@ -4788,25 +4788,25 @@ pkg_define_builtin_symbols (void)
     define_symbol (builtin_lisp_symbol (i), defsym_name[i]);
 }
 
-DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
+DEFUN ("intern", Fintern, Sintern, 1, 3, 0,
        doc: /* Return the canonical symbol whose name is STRING.
 If there is none, one is created by this function and returned.
 A second optional argument specifies the obarray to use;
 it defaults to the value of `obarray'.  */)
-  (Lisp_Object string, Lisp_Object package)
+  (Lisp_Object string, Lisp_Object package, Lisp_Object cl)
 {
-  return pkg_emacs_intern (string, package);
+  return pkg_emacs_intern (string, package, cl);
 }
 
-DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
+DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 3, 0,
        doc: /* Return the canonical symbol named NAME, or nil if none exists.
 NAME may be a string or a symbol.  If it is a symbol, that exact
 symbol is searched for.
 A second optional argument specifies the obarray to use;
 it defaults to the value of `obarray'.  */)
-  (Lisp_Object name, Lisp_Object obarray)
+  (Lisp_Object name, Lisp_Object obarray, Lisp_Object cl)
 {
-  return pkg_emacs_intern_soft (name, obarray);
+  return pkg_emacs_intern_soft (name, obarray, cl);
 }
 
 DEFUN ("unintern", Funintern, Sunintern, 1, 2, 0,

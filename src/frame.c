@@ -4776,7 +4776,7 @@ gui_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_va
 	{
 	  while (*p1 && ! c_isspace (*p1) && *p1 != ',') p1++;
 	  if (p0 < p1)
-	    new_value = Fcons (Fintern (make_string (p0, p1 - p0), Qnil),
+	    new_value = Fcons (Fintern (make_string (p0, p1 - p0), Qnil, Qt),
 			       new_value);
 	  if (*p1)
 	    {
@@ -5461,7 +5461,7 @@ gui_display_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param
 		      || !strcmp (SSDATA (lower), "false"))
 		  return Qnil;
 		else
-		  return Fintern (tem, Qnil);
+		  return Fintern (tem, Qnil, Qnil);
 	      }
 
 	    default:

@@ -3407,7 +3407,7 @@ FILENAME are suppressed.  */)
 
       /* Load the file.  */
       tem = load_with_autoload_queue
-	(NILP (filename) ? Fsymbol_name (feature) : filename,
+	(NILP (filename) ? Fsymbol_name (feature, Qnil) : filename,
 	 noerror, Qt, Qnil, (NILP (filename) ? Qt : Qnil));
 
       /* If load failed entirely, return nil.  */
@@ -5814,7 +5814,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
       hash_func	  = sha512_buffer;
     }
   else
-    error ("Invalid algorithm arg: %s", SDATA (Fsymbol_name (algorithm)));
+    error ("Invalid algorithm arg: %s", SDATA (Fsymbol_name (algorithm, Qnil)));
 
   /* allocate 2 x digest_size so that it can be re-used to hold the
      hexified value */

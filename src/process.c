@@ -821,7 +821,7 @@ status_message (struct Lisp_Process *p)
       return CALLN (Fformat, format, code);
     }
   else
-    return Fcopy_sequence (Fsymbol_name (symbol));
+    return Fcopy_sequence (Fsymbol_name (symbol, Qnil));
 }
 
 enum { PTY_NAME_SIZE = 24 };

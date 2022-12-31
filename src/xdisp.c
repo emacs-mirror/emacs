@@ -28201,7 +28201,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       if (NILP (obj))
 	return "no process";
 #ifndef MSDOS
-      obj = Fsymbol_name (Fprocess_status (obj));
+      obj = Fsymbol_name (Fprocess_status (obj), Qnil);
 #endif
       break;
 
