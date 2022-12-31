@@ -2633,6 +2633,29 @@ the grammar's parser.c file resides, defaulting to \"src\".
 CC and C++ are C and C++ compilers, defaulting to \"cc\" and
 \"c++\", respectively.")
 
+(defun treesit--install-language-grammar-build-recipe (lang)
+  "Interactively build a recipe for LANG and return it.
+See `treesit-language-source-alist' for details."
+  (when (y-or-n-p (format "There is no recipe for %s, do you want to build it interactively?" lang))
+    (cl-labels ((empty-string-to-nil (string)
+                  (if (equal string "") nil string)))
+      (list
+       lang
+       (read-string
+        "Enter the URL of the Git repository of the language grammar: ")
+       (empty-string-to-nil
+        (read-string
+         "Enter the tag or branch (default: default branch): "))
+       (empty-string-to-nil
+        (read-string
+         "Enter the subdirectory in which the parser.c file resides (default: \"src\"): "))
+       (empty-string-to-nil
+        (read-string
+         "Enter the C compiler to use (default: auto-detect): "))
+       (empty-string-to-nil
+        (read-string
+         "Enter the C++ compiler to use (default: auto-detect): "))))))
+
 (defun treesit-install-language-grammar (lang)
   "Build and install the tree-sitter language grammar library for LANG.
 
@@ -2645,17 +2668,21 @@ executable programs, such as the C/C++ compiler and linker."
   (interactive (list (intern
                       (completing-read
                        "Language: "
-                       (mapcar #'car treesit-language-source-alist)
-                       nil t))))
-  (condition-case err
-      (apply #'treesit--install-language-grammar-1
-             ;; The nil is OUT-DIR.
-             (cons nil (assoc lang treesit-language-source-alist)))
-    (error
-     (display-warning
-      'treesit
-      (format "Error encountered when installing language grammar: %s"
-              err))))
+                       (mapcar #'car treesit-language-source-alist)))))
+  (when-let ((recipe
+              (or (assoc lang treesit-language-source-alist)
+                  (treesit--install-language-grammar-build-recipe
+                   lang))))
+    (condition-case err
+        (apply #'treesit--install-language-grammar-1
+               ;; The nil is OUT-DIR.
+               (cons nil recipe))
+      (error
+       (display-warning
+        'treesit
+        (format "Error encountered when installing language grammar: %s"
+                err)))))
+
   ;; Check that the installed language grammar is loadable.
   (pcase-let ((`(,available . ,err)
                (treesit-language-available-p lang t)))
