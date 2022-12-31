@@ -691,8 +691,8 @@ what the FACE's face spec says, call this function with FRAME set to
 t and the ATTRIBUTE's value set to `unspecified'.
 
 Note that the ATTRIBUTE VALUE pairs are evaluated in the order
-they are specified, except the `:family' and `:foundry'
-attributes which are evaluated first.
+they are specified, except that the `:family' and `:foundry'
+attributes are evaluated first.
 
 The following attributes are recognized:
 

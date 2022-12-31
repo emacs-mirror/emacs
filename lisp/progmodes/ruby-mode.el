@@ -285,6 +285,96 @@ Only has effect when `ruby-use-smie' is t."
   :safe (lambda (val) (or (memq val '(t nil)) (numberp val)))
   :version "29.1")
 
+(defcustom ruby-block-indent t
+  "Non-nil to align the body of a block to the statement's start.
+
+The body and the closer will be aligned to the column where the
+statement containing the block starts. Example:
+
+  foo.bar
+    .each do
+    baz
+  end
+
+If nil, it will be aligned instead to the beginning of the line
+containing the block's opener:
+
+  foo.bar
+    .each do
+      baz
+    end
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
+(defcustom ruby-after-operator-indent t
+  "Non-nil to use structural indentation after binary operators.
+
+The code will be aligned to the implicit parent expression,
+according to the operator precedence:
+
+  qux = 4 + 5 *
+            6 +
+        7
+
+Set it to nil to align to the beginning of the statement:
+
+  qux = 4 + 5 *
+    6 +
+    7
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
+(defcustom ruby-method-call-indent t
+  "Non-nil to use the structural indentation algorithm.
+
+The method call will be aligned to the implicit parent
+expression, according to the operator precedence:
+
+  foo = subject
+          .update(
+            1
+          )
+
+Set it to nil to align to the beginning of the statement:
+
+  foo = subject
+    .update(
+      1
+    )
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
+(defcustom ruby-parenless-call-arguments-indent t
+  "Non-nil to align arguments in a parenless call vertically.
+
+Example:
+
+  qux :+,
+      bar,
+      :[]=,
+      bar
+
+Set it to nil to align to the beginning of the statement:
+
+  qux :+,
+    bar,
+    :[]=,
+    bar
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.
 Also ignores spaces after parenthesis when `space'.
@@ -416,6 +506,7 @@ This only affects the output of the command `ruby-toggle-block'."
      '((right "=")
        (right "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^="
               "<<=" ">>=" "&&=" "||=")
+       (right "?")
        (nonassoc ".." "...")
        (left "&&" "||")
        (nonassoc "<=>")
@@ -608,10 +699,10 @@ This only affects the output of the command `ruby-toggle-block'."
           "def=")
          (t tok)))))))
 
-(defun ruby-smie--indent-to-stmt ()
+(defun ruby-smie--indent-to-stmt (&optional offset)
   (save-excursion
     (smie-backward-sexp ";")
-    (cons 'column (smie-indent-virtual))))
+    (cons 'column (+ (smie-indent-virtual) (or offset 0)))))
 
 (defun ruby-smie--indent-to-stmt-p (keyword)
   (or (eq t ruby-align-to-stmt-keywords)
@@ -642,7 +733,9 @@ This only affects the output of the command `ruby-toggle-block'."
               (forward-comment -1)
               (not (eq (preceding-char) ?:))))
        ;; Curly block opener.
-       (ruby-smie--indent-to-stmt))
+       (if ruby-block-indent
+           (ruby-smie--indent-to-stmt)
+         (cons 'column (current-indentation))))
       ((smie-rule-hanging-p)
        ;; Treat purely syntactic block-constructs as being part of their parent,
        ;; when the opening token is hanging and the parent is not an
@@ -677,13 +770,20 @@ This only affects the output of the command `ruby-toggle-block'."
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
     ('(:before . " @ ")
-     (if (or (eq ruby-method-params-indent t)
-             (not (smie-rule-parent-p "def" "def=")))
-         (save-excursion
-           (skip-chars-forward " \t")
-           (cons 'column (current-column)))
-       (smie-rule-parent (or ruby-method-params-indent 0))))
-    ('(:before . "do") (ruby-smie--indent-to-stmt))
+     (cond
+      ((and (not ruby-parenless-call-arguments-indent)
+            (not (smie-rule-parent-p "def" "def=")))
+       (ruby-smie--indent-to-stmt ruby-indent-level))
+      ((or (eq ruby-method-params-indent t)
+           (not (smie-rule-parent-p "def" "def=")))
+       (save-excursion
+         (skip-chars-forward " \t")
+         (cons 'column (current-column))))
+      (t (smie-rule-parent (or ruby-method-params-indent 0)))))
+    ('(:before . "do")
+     (if ruby-block-indent
+         (ruby-smie--indent-to-stmt)
+       (cons 'column (current-indentation))))
     ('(:before . ".")
      (if (smie-rule-sibling-p)
          (when ruby-align-chained-calls
@@ -696,8 +796,10 @@ This only affects the output of the command `ruby-toggle-block'."
                    (not (smie-rule-bolp)))))
            (cons 'column (current-column)))
        (smie-backward-sexp ".")
-       (cons 'column (+ (current-column)
-                        ruby-indent-level))))
+       (if ruby-method-call-indent
+           (cons 'column (+ (current-column)
+                            ruby-indent-level))
+         (ruby-smie--indent-to-stmt ruby-indent-level))))
     (`(:before . ,(or "else" "then" "elsif" "rescue" "ensure"))
      (smie-rule-parent))
     (`(:before . ,(or "when" "in"))
@@ -708,16 +810,22 @@ This only affects the output of the command `ruby-toggle-block'."
                      "<=>" ">" "<" ">=" "<=" "==" "===" "!=" "<<" ">>"
                      "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^=" "|"
                      "<<=" ">>=" "&&=" "||=" "and" "or"))
-     (and (smie-rule-parent-p ";" nil)
-          (smie-indent--hanging-p)
-          ruby-indent-level))
+     (cond
+      ((not ruby-after-operator-indent)
+       (ruby-smie--indent-to-stmt ruby-indent-level))
+      ((and (smie-rule-parent-p ";" nil)
+            (smie-indent--hanging-p))
+       ruby-indent-level)))
     (`(:before . "=")
      (save-excursion
       (and (smie-rule-parent-p " @ ")
            (goto-char (nth 1 (smie-indent--parent)))
            (smie-rule-prev-p "def=")
            (cons 'column (+ (current-column) ruby-indent-level -3)))))
-    (`(:after . ,(or "?" ":")) ruby-indent-level)
+    (`(:after . ,(or "?" ":"))
+     (if ruby-after-operator-indent
+         ruby-indent-level
+       (ruby-smie--indent-to-stmt ruby-indent-level)))
     (`(:before . ,(guard (memq (intern-soft token) ruby-alignable-keywords)))
      (when (not (ruby--at-indentation-p))
        (if (ruby-smie--indent-to-stmt-p token)
@@ -725,7 +833,10 @@ This only affects the output of the command `ruby-toggle-block'."
          (cons 'column (current-column)))))
     ('(:before . "iuwu-mod")
      (smie-rule-parent ruby-indent-level))
-    ))
+    (`(:before . ",")
+     (and (not ruby-parenless-call-arguments-indent)
+          (smie-rule-parent-p " @ ")
+          (ruby-smie--indent-to-stmt ruby-indent-level)))))
 
 (defun ruby--at-indentation-p (&optional point)
   (save-excursion

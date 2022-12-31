@@ -36,6 +36,7 @@
 (eval-when-compile (require 'subr-x)) ; For `string-join'.
 (require 'cl-seq)
 (require 'font-lock)
+(require 'seq)
 
 ;;; Function declarations
 
@@ -2163,7 +2164,7 @@ instead of emitting a warning."
         (pcase-let ((`(,available . ,err)
                      (treesit-language-available-p lang t)))
           (when (not available)
-            (setq msg (format "language definition for %s is unavailable (%s): %s"
+            (setq msg (format "language grammar for %s is unavailable (%s): %s"
                               lang (nth 0 err)
                               (string-join
                                (mapcar (lambda (x) (format "%s" x))
@@ -2310,7 +2311,7 @@ When this mode is enabled, the mode-line displays
 where NODE, CHILD, etc, are nodes which begin at point.  PARENT
 is the parent of NODE.  NODE is displayed in bold typeface.
 FIELD-NAMEs are field names of NODE and CHILD, etc (see Info
-node `(elisp)Language Definitions', heading \"Field names\").
+node `(elisp)Language Grammar', heading \"Field names\").
 
 If no node starts at point, i.e., point is in the middle of a
 node, then the mode line displays the earliest node that spans point,
@@ -2648,6 +2649,143 @@ window."
     (remove-hook 'post-command-hook
                  #'treesit--explorer-post-command t)
     (kill-buffer treesit--explorer-buffer)))
+
+;;; Install & build language grammar
+
+(defvar treesit-language-source-alist nil
+  "Configures how to download tree-sitter language grammars.
+This should be an alist of
+
+    (LANG . (URL SOURCE-DIR GRAMMAR-DIR CC C++))
+
+Only LANG and URL are mandatory.  LANG is the language symbol.
+URL is the repository's url.
+
+SOURCE-DIR is the relative directory in the repository in which
+the grammar.c file resides, default to \"src\".
+
+GRAMMAR-DIR is the relative grammar directory in the repository
+in which the grammar.js file resides, default to \"\".
+
+CC and C++ are C and C++ compilers, default to \"cc\" and
+\"c++\", respectively.")
+
+(defun treesit-install-language-grammar (lang)
+  "Build and install the tree-sitter language grammar library for LANG.
+
+This command requires Git, a C compiler and (sometimes) a C++ compiler,
+and the linker to be installed and on PATH.  It also requires that the
+recipe for LANG exists in `treesit-language-source-alist'.
+
+See `exec-path' for the current path where Emacs looks for
+executable programs, such as the C/C++ compiler and linker."
+  (interactive (list (intern
+                      (completing-read
+                       "Language: "
+                       (mapcar #'car treesit-language-source-alist)
+                       nil t))))
+  (condition-case err
+      (apply #'treesit--install-language-grammar-1
+             ;; The nil is OUT-DIR.
+             (cons nil (assoc lang treesit-language-source-alist)))
+    (error
+     (display-warning
+      'treesit
+      (format "Error encountered when installing language grammar: %s"
+              err))))
+  ;; Check that the installed language grammar is loadable.
+  (pcase-let ((`(,available . ,err)
+               (treesit-language-available-p lang t)))
+    (when (not available)
+      (display-warning
+       'treesit
+       (format "The installed language grammar for %s cannot be located or has problems (%s): %s"
+               lang (nth 0 err)
+               (string-join
+                (mapcar (lambda (x) (format "%s" x))
+                        (cdr err))
+                " "))))))
+
+(defun treesit--call-process-signal (&rest args)
+  "Run `call-process' with ARGS.
+If it returns anything but 0, signal an error.  Use the buffer
+content as signal data, and erase buffer afterwards."
+  (unless (eq 0 (apply #'call-process args))
+    (signal 'treesit-error (list "Command:"
+                                 (string-join (cons (car args)
+                                                    (nthcdr 4 args))
+                                              " ")
+                                 "Error output:"
+                                 (buffer-string)))
+    (erase-buffer)))
+
+(defun treesit--install-language-grammar-1
+    (out-dir lang url &optional source-dir grammar-dir cc c++)
+  "Install and compile a tree-sitter language grammar library.
+
+OUT-DIR is the directory to put the compiled library file.  If it
+is nil, the \"tree-sitter\" directory under user's Emacs
+configuration directory is used (and automatically created if not
+exist).
+
+For LANG, URL, SOURCE-DIR, GRAMMAR-DIR, CC, C++, see
+`treesit-language-source-alist'.  If anything goes wrong, this
+function signals an error."
+  (let* ((lang (symbol-name lang))
+         (default-directory (make-temp-file "treesit-workdir" t))
+         (workdir (expand-file-name "repo"))
+         (source-dir (expand-file-name (or source-dir "src") workdir))
+         (grammar-dir (expand-file-name (or grammar-dir "") workdir))
+         (cc (or cc (seq-find #'executable-find '("cc" "gcc" "c99"))
+                 ;; If no C compiler found, just use cc and let
+                 ;; `call-process' signal the error.
+                 "cc"))
+         (c++ (or c++ (seq-find #'executable-find '("c++" "g++"))
+                  "c++"))
+         (soext (or (car dynamic-library-suffixes)
+                    (signal 'treesit-error '("Emacs cannot figure out the file extension for dynamic libraries for this system, because `dynamic-library-suffixes' is nil"))))
+         (out-dir (or (and out-dir (expand-file-name out-dir))
+                      (locate-user-emacs-file "tree-sitter")))
+         (lib-name (concat "libtree-sitter-" lang soext)))
+    (unwind-protect
+        (with-temp-buffer
+          (message "Cloning repository")
+          ;; git clone xxx --depth 1 --quiet workdir
+          (treesit--call-process-signal
+           "git" nil t nil "clone" url "--depth" "1" "--quiet"
+           workdir)
+          ;; cp "${grammardir}"/grammar.js "${sourcedir}"
+          (copy-file (expand-file-name "grammar.js" grammar-dir)
+                     (expand-file-name "grammar.js" source-dir)
+                     t t)
+          ;; cd "${sourcedir}"
+          (setq default-directory source-dir)
+          (message "Compiling library")
+          ;; cc -fPIC -c -I. parser.c
+          (treesit--call-process-signal
+           cc nil t nil "-fPIC" "-c" "-I." "parser.c")
+          ;; cc -fPIC -c -I. scanner.c
+          (when (file-exists-p "scanner.c")
+            (treesit--call-process-signal
+             cc nil t nil "-fPIC" "-c" "-I." "scanner.c"))
+          ;; c++ -fPIC -I. -c scanner.cc
+          (when (file-exists-p "scanner.cc")
+            (treesit--call-process-signal
+             c++ nil t nil "-fPIC" "-c" "-I." "scanner.cc"))
+          ;; cc/c++ -fPIC -shared *.o -o "libtree-sitter-${lang}.${soext}"
+          (apply #'treesit--call-process-signal
+                 (if (file-exists-p "scanner.cc") c++ cc)
+                 nil t nil
+                 `("-fPIC" "-shared"
+                   ,@(directory-files
+                      default-directory nil
+                      (rx bos (+ anychar) ".o" eos))
+                   "-o" ,lib-name))
+          ;; Copy out.
+          (copy-file lib-name (file-name-as-directory out-dir) t t)
+          (message "Library installed to %s/%s" out-dir lib-name))
+      (when (file-exists-p workdir)
+        (delete-directory workdir t)))))
 
 ;;; Etc
 

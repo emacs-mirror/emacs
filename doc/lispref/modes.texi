@@ -5082,7 +5082,7 @@ shown in red color.  @c Are colors customizable? faces?
 @end defun
 
 It is also helpful to use @code{treesit-inspect-mode} (@pxref{Language
-Definitions}) when writing indentation rules.
+Grammar}) when writing indentation rules.
 
 @node Desktop Save Mode
 @section Desktop Save Mode

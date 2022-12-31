@@ -5510,15 +5510,11 @@ INPUT, if non-nil, is a string sent to the process."
 	       ;; String to be sent.
 	       (format "%s\n" (file-name-nondirectory tmp-name)))
 	      (should
-	       (string-equal
-		;; tramp-adb.el echoes, so we must add the string.
-		(if (and (tramp--test-adb-p)
-			 (not (tramp-direct-async-process-p)))
-		    (format
-		     "%s\n%s\n"
-		     (file-name-nondirectory tmp-name)
-		     (file-name-nondirectory tmp-name))
-		  (format "%s\n" (file-name-nondirectory tmp-name)))
+	       (string-match-p
+		;; Some shells echo, for example the "adb" or "docker" methods.
+		(tramp-compat-rx
+		 bos (** 1 2 (literal (file-name-nondirectory tmp-name)) "\n")
+		 eos)
 		(buffer-string))))
 
 	  ;; Cleanup.

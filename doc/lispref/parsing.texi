@@ -30,7 +30,7 @@ available for the current Emacs session.
 
 To be able to parse the program source using the tree-sitter library
 and access the syntax tree of the program, a Lisp program needs to
-load a language definition library, and create a parser for that
+load a language grammar library, and create a parser for that
 language and the current buffer.  After that, the Lisp program can
 query the parser about specific nodes of the syntax tree.  Then, it
 can access various kinds of information about each node, and search
@@ -39,7 +39,7 @@ explains how to do all this, and also how a Lisp program can work with
 source files that mix multiple programming languages.
 
 @menu
-* Language Definitions::     Loading tree-sitter language definitions.
+* Language Grammar::         Loading tree-sitter language grammar.
 * Using Parser::             Introduction to parsers.
 * Retrieving Nodes::         Retrieving nodes from a syntax tree.
 * Accessing Node Information:: Accessing node information.
@@ -49,27 +49,27 @@ source files that mix multiple programming languages.
 * Tree-sitter C API::        Compare the C API and the ELisp API.
 @end menu
 
-@node Language Definitions
-@section Tree-sitter Language Definitions
-@cindex language definitions, for tree-sitter
+@node Language Grammar
+@section Tree-sitter Language Grammar
+@cindex language grammar, for tree-sitter
 
-@heading Loading a language definition
-@cindex loading language definition for tree-sitter
+@heading Loading a language grammar
+@cindex loading language grammar for tree-sitter
 
 @cindex language argument, for tree-sitter
-Tree-sitter relies on language definitions to parse text in that
-language.  In Emacs, a language definition is represented by a symbol.
-For example, the C language definition is represented as the symbol
+Tree-sitter relies on language grammar to parse text in that
+language.  In Emacs, a language grammar is represented by a symbol.
+For example, the C language grammar is represented as the symbol
 @code{c}, and @code{c} can be passed to tree-sitter functions as the
 @var{language} argument.
 
 @vindex treesit-extra-load-path
 @vindex treesit-load-language-error
 @vindex treesit-load-suffixes
-Tree-sitter language definitions are distributed as dynamic libraries.
-In order to use a language definition in Emacs, you need to make sure
+Tree-sitter language grammar are distributed as dynamic libraries.
+In order to use a language grammar in Emacs, you need to make sure
 that the dynamic library is installed on the system.  Emacs looks for
-language definitions in several places, in the following order:
+language grammar in several places, in the following order:
 
 @itemize @bullet
 @item
@@ -91,12 +91,12 @@ that signal could be one of the following:
 
 @table @code
 @item (not-found @var{error-msg} @dots{})
-This means that Emacs could not find the language definition library.
+This means that Emacs could not find the language grammar library.
 @item (symbol-error @var{error-msg})
 This means that Emacs could not find in the library the expected function
-that every language definition library should export.
+that every language grammar library should export.
 @item (version-mismatch @var{error-msg})
-This means that the version of language definition library is incompatible
+This means that the version of language grammar library is incompatible
 with that of the tree-sitter library.
 @end table
 
@@ -105,7 +105,7 @@ In all of these cases, @var{error-msg} might provide additional
 details about the failure.
 
 @defun treesit-language-available-p language &optional detail
-This function returns non-@code{nil} if the language definitions for
+This function returns non-@code{nil} if the language grammar for
 @var{language} exist and can be loaded.
 
 If @var{detail} is non-@code{nil}, return @code{(t . nil)} when
@@ -119,7 +119,7 @@ By convention, the file name of the dynamic library for @var{language} is
 @file{libtree-sitter-@var{language}.@var{ext}}, where @var{ext} is the
 system-specific extension for dynamic libraries.  Also by convention,
 the function provided by that library is named
-@code{tree_sitter_@var{language}}.  If a language definition library
+@code{tree_sitter_@var{language}}.  If a language grammar library
 doesn't follow this convention, you should add an entry
 
 @example
@@ -140,17 +140,23 @@ to the list in the variable @code{treesit-load-name-override-list}, where
 for a language that considers itself too ``cool'' to abide by
 conventions.
 
-@cindex language-definition version, compatibility
-@defun treesit-language-version &optional min-compatible
-This function returns the version of the language-definition
+@cindex language grammar version, compatibility
+@defun treesit-library-abi-version &optional min-compatible
+This function returns the version of the language grammar
 Application Binary Interface (@acronym{ABI}) supported by the
 tree-sitter library.  By default, it returns the latest ABI version
 supported by the library, but if @var{min-compatible} is
 non-@code{nil}, it returns the oldest ABI version which the library
-still can support.  Language definition libraries must be built for
+still can support.  language grammar libraries must be built for
 ABI versions between the oldest and the latest versions supported by
 the tree-sitter library, otherwise the library will be unable to load
 them.
+@end defun
+
+@defun treesit-language-abi-version language
+This function returns the language grammar @acronym{ABI} version of
+language grammar for @var{language} loaded by Emacs.  If
+@var{language} is unavailable, this function returns @code{nil}.
 @end defun
 
 @heading Concrete syntax tree
@@ -210,7 +216,7 @@ punctuation characters like bracket @samp{]}, and keywords like
 @cindex field name, tree-sitter
 @cindex tree-sitter node field name
 @anchor{tree-sitter node field name}
-To make the syntax tree easier to analyze, many language definitions
+To make the syntax tree easier to analyze, many language grammar
 assign @dfn{field names} to child nodes.  For example, a
 @code{function_definition} node could have a @code{declarator} and a
 @code{body}:
@@ -266,13 +272,13 @@ parser in @code{(treesit-parser-list)} (@pxref{Using Parser}).
 @heading Reading the grammar definition
 @cindex reading grammar definition, tree-sitter
 
-Authors of language definitions define the @dfn{grammar} of a
+Authors of language grammar define the @dfn{grammar} of a
 programming language, which determines how a parser constructs a
 concrete syntax tree out of the program text.  In order to use the
 syntax tree effectively, you need to consult the @dfn{grammar file}.
 
 The grammar file is usually @file{grammar.js} in a language
-definition's project repository.  The link to a language definition's
+grammar's project repository.  The link to a language grammar's
 home page can be found on
 @uref{https://tree-sitter.github.io/tree-sitter, tree-sitter's
 homepage}.
@@ -350,7 +356,7 @@ makes any node matched by @code{preprocessor_call_exp} appear as
 @end table
 
 Below are grammar functions of lesser importance for reading a
-language definition.
+language grammar.
 
 @table @code
 @item token(@var{rule})
@@ -397,7 +403,7 @@ when deciding whether to enable tree-sitter features.
 @cindex tree-sitter parser, creating
 @defun treesit-parser-create language &optional buffer no-reuse
 Create a parser for the specified @var{buffer} and @var{language}
-(@pxref{Language Definitions}).  If @var{buffer} is omitted or
+(@pxref{Language Grammar}).  If @var{buffer} is omitted or
 @code{nil}, it stands for the current buffer.
 
 By default, this function reuses a parser if one already exists for
@@ -685,7 +691,7 @@ This function finds the previous sibling of @var{node}.  If
 @cindex nodes, by field name
 @cindex syntax tree nodes, by field name
 
-To make the syntax tree easier to analyze, many language definitions
+To make the syntax tree easier to analyze, many language grammar
 assign @dfn{field names} to child nodes (@pxref{tree-sitter node field
 name, field name}).  For example, a @code{function_definition} node
 could have a @code{declarator} node and a @code{body} node.
@@ -929,7 +935,7 @@ tree.
 
 In general, nodes in a concrete syntax tree fall into two categories:
 @dfn{named nodes} and @dfn{anonymous nodes}.  Whether a node is named
-or anonymous is determined by the language definition
+or anonymous is determined by the language grammar
 (@pxref{tree-sitter named node, named node}).
 
 @cindex tree-sitter missing node
@@ -968,7 +974,7 @@ Named nodes have ``types'' (@pxref{tree-sitter node type, node type}).
 For example, a named node can be a @code{string_literal} node, where
 @code{string_literal} is its type.  The type of an anonymous node is
 just the text that the node represents; e.g., the type of a @samp{,}
-node 480is just @samp{,}.
+node is just @samp{,}.
 
 This function returns @var{node}'s type as a string.
 @end defun
@@ -1704,8 +1710,8 @@ whether tree-sitter can be activated in this mode.
 This function checks for conditions for activating tree-sitter.  It
 checks whether Emacs was built with tree-sitter, whether the buffer's
 size is not too large for tree-sitter to handle it, and whether the
-language definition for @var{language} is available on the system
-(@pxref{Language Definitions}).
+language grammar for @var{language} is available on the system
+(@pxref{Language Grammar}).
 
 This function emits a warning if tree-sitter cannot be activated.  If
 @var{quiet} is @code{message}, the warning is turned into a message;
@@ -1826,7 +1832,7 @@ Using (row, column) coordinates as position.
 Updating a node with changes.  (In Emacs, retrieve a new node instead
 of updating the existing one.)
 @item
-Querying statics of a language definition.
+Querying statics of a language grammar.
 @end itemize
 
 In addition, Emacs makes some changes to the C API to make the API more

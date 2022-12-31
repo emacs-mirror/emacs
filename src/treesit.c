@@ -662,9 +662,8 @@ If DETAIL is non-nil, return (t . nil) when LANGUAGE is available,
     }
 }
 
-DEFUN ("treesit-language-version",
-       Ftreesit_language_version,
-       Streesit_language_version,
+DEFUN ("treesit-library-abi-version", Ftreesit_library_abi_version,
+       Streesit_library_abi_version,
        0, 1, 0,
        doc: /* Return the language ABI version of the tree-sitter library.
 
@@ -678,6 +677,29 @@ is non-nil, return the oldest compatible ABI version.  */)
     return make_fixnum (TREE_SITTER_LANGUAGE_VERSION);
   else
     return make_fixnum (TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION);
+}
+
+DEFUN ("treesit-language-version", Ftreesit_language_abi_version,
+       Streesit_language_abi_version,
+       0, 1, 0,
+       doc: /* Return the language ABI version of the tree-sitter LANGUAGE.
+Return nil if LANGUAGE is not available.  */)
+  (Lisp_Object language)
+{
+  if (NILP (Ftreesit_langauge_available_p (language, Qnil)))
+    return Qnil;
+  else
+    {
+      Lisp_Object signal_symbol = Qnil;
+      Lisp_Object signal_data = Qnil;
+      TSLanguage *ts_language = treesit_load_language (language,
+						       &signal_symbol,
+						       &signal_data);
+      if (ts_language == NULL)
+	return Qnil;
+      uint32_t version =  ts_language_version (ts_language);
+      return make_fixnum((ptrdiff_t) version);
+    }
 }
 
 /*** Parsing functions */
@@ -1172,10 +1194,12 @@ treesit_query_error_to_string (TSQueryError error)
 
 static Lisp_Object
 treesit_compose_query_signal_data (uint32_t error_offset,
-				   TSQueryError error_type)
+				   TSQueryError error_type,
+				   Lisp_Object query_source)
 {
-  return list3 (build_string (treesit_query_error_to_string (error_type)),
+  return list4 (build_string (treesit_query_error_to_string (error_type)),
 		make_fixnum (error_offset + 1),
+		query_source,
 		build_pure_c_string ("Debug the query with `treesit-query-validate'"));
 }
 
@@ -1217,7 +1241,8 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
     {
       *signal_symbol = Qtreesit_query_error;
       *signal_data = treesit_compose_query_signal_data (error_offset,
-							error_type);
+							error_type,
+							source);
     }
   XTS_COMPILED_QUERY (query)->query = treesit_query;
   return treesit_query;
@@ -2605,7 +2630,7 @@ the query.  */)
       if (treesit_query == NULL)
 	xsignal (Qtreesit_query_error,
 		 treesit_compose_query_signal_data (error_offset,
-						    error_type));
+						    error_type, query));
       cursor = ts_query_cursor_new ();
       needs_to_free_query_and_cursor = true;
     }
@@ -3345,7 +3370,8 @@ then in the system default locations for dynamic libraries, in that order.  */);
   Vtreesit_extra_load_path = Qnil;
 
   defsubr (&Streesit_language_available_p);
-  defsubr (&Streesit_language_version);
+  defsubr (&Streesit_library_abi_version);
+  defsubr (&Streesit_language_abi_version);
 
   defsubr (&Streesit_parser_p);
   defsubr (&Streesit_node_p);
