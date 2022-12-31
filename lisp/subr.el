@@ -7073,7 +7073,7 @@ CONDITION is either:
                        (provided-mode-derived-p
                         (buffer-local-value 'major-mode buffer)
                         mode))
-                      (`(not ,cond)
+                      (`(not . ,cond)
                        (not (funcall match cond)))
                       (`(or . ,args)
                        (funcall match args))
