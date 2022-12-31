@@ -2619,16 +2619,13 @@ window."
 
 The value should be an alist where each element has the form
 
-    (LANG . (URL SOURCE-DIR GRAMMAR-DIR CC C++))
+    (LANG . (URL SOURCE-DIR CC C++))
 
 Only LANG and URL are mandatory.  LANG is the language symbol.
 URL is the Git repository URL for the grammar.
 
 SOURCE-DIR is the relative subdirectory in the repository in which
 the grammar's parser.c file resides, defaulting to \"src\".
-
-GRAMMAR-DIR is the relative subdirectory in the repository
-in which the grammar.js file resides, defaulting to \".\".
 
 CC and C++ are C and C++ compilers, defaulting to \"cc\" and
 \"c++\", respectively.")
@@ -2683,7 +2680,7 @@ content as signal data, and erase buffer afterwards."
     (erase-buffer)))
 
 (defun treesit--install-language-grammar-1
-    (out-dir lang url &optional source-dir grammar-dir cc c++)
+    (out-dir lang url &optional source-dir cc c++)
   "Install and compile a tree-sitter language grammar library.
 
 OUT-DIR is the directory to put the compiled library file.  If it
@@ -2698,7 +2695,6 @@ function signals an error."
          (default-directory (make-temp-file "treesit-workdir" t))
          (workdir (expand-file-name "repo"))
          (source-dir (expand-file-name (or source-dir "src") workdir))
-         (grammar-dir (expand-file-name (or grammar-dir "") workdir))
          (cc (or cc (seq-find #'executable-find '("cc" "gcc" "c99"))
                  ;; If no C compiler found, just use cc and let
                  ;; `call-process' signal the error.
@@ -2717,10 +2713,8 @@ function signals an error."
           (treesit--call-process-signal
            "git" nil t nil "clone" url "--depth" "1" "--quiet"
            workdir)
-          ;; cp "${grammardir}"/grammar.js "${sourcedir}"
-          (copy-file (expand-file-name "grammar.js" grammar-dir)
-                     (expand-file-name "grammar.js" source-dir)
-                     t t)
+          ;; We need to go into the source directory because some
+          ;; header files use relative path (#include "../xxx").
           ;; cd "${sourcedir}"
           (setq default-directory source-dir)
           (message "Compiling library")
