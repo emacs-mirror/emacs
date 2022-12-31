@@ -2619,10 +2619,13 @@ window."
 
 The value should be an alist where each element has the form
 
-    (LANG . (URL SOURCE-DIR CC C++))
+    (LANG . (URL REVISION SOURCE-DIR CC C++))
 
 Only LANG and URL are mandatory.  LANG is the language symbol.
 URL is the Git repository URL for the grammar.
+
+REVISION is the Git tag or branch of the desired version,
+defaulting to the latest default branch.
 
 SOURCE-DIR is the relative subdirectory in the repository in which
 the grammar's parser.c file resides, defaulting to \"src\".
@@ -2680,7 +2683,7 @@ content as signal data, and erase buffer afterwards."
     (erase-buffer)))
 
 (defun treesit--install-language-grammar-1
-    (out-dir lang url &optional source-dir cc c++)
+    (out-dir lang url &optional revision source-dir cc c++)
   "Install and compile a tree-sitter language grammar library.
 
 OUT-DIR is the directory to put the compiled library file.  If it
@@ -2688,7 +2691,7 @@ is nil, the \"tree-sitter\" directory under user's Emacs
 configuration directory is used (and automatically created if it
 does not exist).
 
-For LANG, URL, SOURCE-DIR, GRAMMAR-DIR, CC, C++, see
+For LANG, URL, REVISION, SOURCE-DIR, GRAMMAR-DIR, CC, C++, see
 `treesit-language-source-alist'.  If anything goes wrong, this
 function signals an error."
   (let* ((lang (symbol-name lang))
@@ -2709,10 +2712,14 @@ function signals an error."
     (unwind-protect
         (with-temp-buffer
           (message "Cloning repository")
-          ;; git clone xxx --depth 1 --quiet workdir
-          (treesit--call-process-signal
-           "git" nil t nil "clone" url "--depth" "1" "--quiet"
-           workdir)
+          ;; git clone xxx --depth 1 --quiet [-b yyy] workdir
+          (if revision
+              (treesit--call-process-signal
+               "git" nil t nil "clone" url "--depth" "1" "--quiet"
+               "-b" revision workdir)
+            (treesit--call-process-signal
+             "git" nil t nil "clone" url "--depth" "1" "--quiet"
+             workdir))
           ;; We need to go into the source directory because some
           ;; header files use relative path (#include "../xxx").
           ;; cd "${sourcedir}"
