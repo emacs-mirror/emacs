@@ -315,6 +315,23 @@ Good example of file name that needs this: \"test[56].xx\".")
                   (string-trim-right (match-string 1 version-string) "\\.")
                 "0")))))
 
+(defun vc-git--git-path (&optional path)
+  "Resolve .git/PATH for the current working tree.
+In particular, handle the case where this is a linked working
+tree, such that .git is a plain file.
+
+See the --git-dir and --git-path options to git-rev-parse(1)."
+  (if (and path (not (string-empty-p path)))
+      ;; Canonicalize in this branch because --git-dir always returns
+      ;; an absolute file name.
+      (expand-file-name
+       (string-trim-right
+        (vc-git--run-command-string nil "rev-parse"
+                                    "--git-path" path)))
+    (concat (string-trim-right
+             (vc-git--run-command-string nil "rev-parse" "--git-dir"))
+            "/")))
+
 (defun vc-git--git-status-to-vc-state (code-list)
   "Convert CODE-LIST to a VC status.
 
@@ -765,6 +782,7 @@ or an empty string if none."
                  (vc-git--out-ok "symbolic-ref" "HEAD"))))
 	(stash-list (vc-git-stash-list))
         (default-directory dir)
+        (gitdir (vc-git--git-path))
 
 	branch remote remote-url stash-button stash-string)
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
@@ -839,9 +857,9 @@ or an empty string if none."
 	(propertize remote-url
 		    'face 'vc-dir-header-value)))
      ;; For now just a heading, key bindings can be added later for various bisect actions
-     (when (file-exists-p (expand-file-name ".git/BISECT_START" (vc-git-root dir)))
+     (when (file-exists-p (expand-file-name "BISECT_START" gitdir))
        (propertize  "\nBisect     : in progress" 'face 'vc-dir-status-warning))
-     (when (file-exists-p (expand-file-name ".git/rebase-apply" (vc-git-root dir)))
+     (when (file-exists-p (expand-file-name "rebase-apply" gitdir))
        (propertize  "\nRebase     : in progress" 'face 'vc-dir-status-warning))
      (if stash-list
          (concat
@@ -1286,8 +1304,7 @@ This prompts for a branch to merge from."
 	  (completing-read "Merge from branch: "
 			   (if (or (member "FETCH_HEAD" branches)
 				   (not (file-readable-p
-					 (expand-file-name ".git/FETCH_HEAD"
-							   root))))
+                                         (vc-git--git-path "FETCH_HEAD"))))
 			       branches
 			     (cons "FETCH_HEAD" branches))
 			   nil t)))
@@ -1332,8 +1349,7 @@ This prompts for a branch to merge from."
       (unless (or
                (not (eq vc-git-resolve-conflicts 'unstage-maybe))
                ;; Doing a merge, so bug#20292 doesn't apply.
-               (file-exists-p (expand-file-name ".git/MERGE_HEAD"
-                                                (vc-git-root buffer-file-name)))
+               (file-exists-p (vc-git--git-path "MERGE_HEAD"))
                (vc-git-conflicted-files (vc-git-root buffer-file-name)))
         (vc-git-command nil 0 nil "reset"))
       (vc-resynch-buffer buffer-file-name t t)
