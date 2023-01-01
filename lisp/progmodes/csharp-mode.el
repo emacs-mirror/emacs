@@ -773,9 +773,12 @@ compilation and evaluation time conflicts."
      (array_type
       (identifier) @font-lock-type-face)
      (cast_expression (identifier) @font-lock-type-face)
+     (cast_expression (generic_name (identifier) @font-lock-type-face))
      ["operator"] @font-lock-type-face
      (type_parameter_constraints_clause
       target: (identifier) @font-lock-type-face)
+     (type_constraint type: (identifier) @font-lock-type-face)
+     (type_constraint type: (generic_name (identifier) @font-lock-type-face))
      (type_of_expression (identifier) @font-lock-type-face)
      (object_creation_expression
       type: (identifier) @font-lock-type-face)
