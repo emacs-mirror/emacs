@@ -1,6 +1,6 @@
 ;;; version.el --- record version number of Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1992, 1994-1995, 1999-2022 Free Software
+;; Copyright (C) 1985, 1992, 1994-1995, 1999-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

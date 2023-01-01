@@ -1,6 +1,6 @@
 ;;; printing.el --- printing utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2001, 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript

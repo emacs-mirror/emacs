@@ -1,6 +1,6 @@
 ;;; rfc6068.el --- support for rfc6068  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Keywords: mail
 

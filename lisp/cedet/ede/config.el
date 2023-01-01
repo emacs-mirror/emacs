@@ -1,6 +1,6 @@
 ;;; ede/config.el --- Configuration Handler baseclass  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

@@ -1,6 +1,6 @@
 ;;; programmer-dvorak.el --- Quail package for the programmer Dvorak layout  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Joakim Jalap <joakim.jalap@fastmail.com>
 

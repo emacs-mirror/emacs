@@ -1,6 +1,6 @@
 ;;; rmail-spam-filter.el --- spam filter for Rmail, the Emacs mail reader  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 ;; Keywords: email, spam, filter, rmail
 ;; Author: Eli Tziperman <eli AT deas.harvard.edu>
 ;; Package: rmail

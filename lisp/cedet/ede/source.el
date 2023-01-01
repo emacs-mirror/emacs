@@ -1,6 +1,6 @@
 ;; ede/source.el --- EDE source code object  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000, 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make

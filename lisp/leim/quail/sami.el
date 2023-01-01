@@ -1,6 +1,6 @@
 ;;; sami.el --- Quail package for inputting Sámi  -*-coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Wojciech S. Gac <wojciech.s.gac@gmail.com>
 ;; Keywords: i18n, multilingual, input method, Sámi

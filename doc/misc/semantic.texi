@@ -25,7 +25,7 @@
 @copying
 This manual documents the Semantic library and utilities.
 
-Copyright @copyright{} 1999--2022 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

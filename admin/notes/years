@@ -10,9 +10,10 @@ results for plausibility, then commit them.
 A few known problems with the build-aux/update-copyright script:
 
   . it doesn't update config.bat, msdos/depfiles.bat,
-    nt/configure.bat, etc/tutorials/TUTORIAL.cn, and
-    etc/tutorials/TUTORIAL.he because the "Copyright" statement begins
-    in these files after a prefix that is more than 5 characters long
+    nt/configure.bat, etc/tutorials/TUTORIAL.cn,
+    etc/tutorials/TUTORIAL.el_GR, and etc/tutorials/TUTORIAL.he
+    because the "Copyright" statement begins in these files
+    after a prefix that is more than 5 characters long
   . it doesn't update etc/tutorials/TUTORIAL.nl and
     etc/tutorials/TUTORIAL.ro for some reason
   . it doesn't update the second Copyright notice, the one that gets

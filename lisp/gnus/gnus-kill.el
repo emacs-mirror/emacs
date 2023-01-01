@@ -1,6 +1,6 @@
 ;;; gnus-kill.el --- kill commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>

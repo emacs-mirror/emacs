@@ -1,6 +1,6 @@
 ;;; footnote-tests.el --- Tests for footnote-mode    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:

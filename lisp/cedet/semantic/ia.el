@@ -1,6 +1,6 @@
 ;;; semantic/ia.el --- Interactive Analysis functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

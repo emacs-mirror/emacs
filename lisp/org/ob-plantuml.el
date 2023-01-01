@@ -1,6 +1,6 @@
 ;;; ob-plantuml.el --- Babel Functions for Plantuml  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Zhang Weize
 ;; Keywords: literate programming, reproducible research
