@@ -3766,15 +3766,16 @@ the python shell:
                         (line-beginning-position)
                       start))))
          (substring (buffer-substring-no-properties start end))
-         (starts-at-point-min-p (save-restriction
-                                  (widen)
-                                  (= (point-min) start)))
+         (starts-at-first-line-p (save-restriction
+                                   (widen)
+                                   (goto-char start)
+                                   (= (line-number-at-pos) 1)))
          (encoding (python-info-encoding))
          (toplevel-p (zerop (save-excursion
                               (goto-char start)
                               (python-util-forward-comment 1)
                               (current-indentation))))
-         (fillstr (cond (starts-at-point-min-p
+         (fillstr (cond (starts-at-first-line-p
                          nil)
                         ((not no-cookie)
                          (concat
