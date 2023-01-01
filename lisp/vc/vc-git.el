@@ -776,13 +776,32 @@ or an empty string if none."
 		  :help "Show the contents of the current stash"))
     map))
 
+(defun vc-git--cmds-in-progress ()
+  "Return a list of Git commands in progress in this worktree."
+  (let ((gitdir (vc-git--git-path))
+        cmds)
+    ;; See contrib/completion/git-prompt.sh in git.git.
+    (when (or (file-directory-p
+	       (expand-file-name "rebase-merge" gitdir))
+	      (file-exists-p
+	       (expand-file-name "rebase-apply/rebasing" gitdir)))
+      (push 'rebase cmds))
+    (when (file-exists-p
+	   (expand-file-name "rebase-apply/applying" gitdir))
+      (push 'am cmds))
+    (when (file-exists-p (expand-file-name "MERGE_HEAD" gitdir))
+      (push 'merge cmds))
+    (when (file-exists-p (expand-file-name "BISECT_START" gitdir))
+      (push 'bisect cmds))
+    cmds))
+
 (defun vc-git-dir-extra-headers (dir)
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
                  (vc-git--out-ok "symbolic-ref" "HEAD"))))
 	(stash-list (vc-git-stash-list))
         (default-directory dir)
-        (gitdir (vc-git--git-path))
+        (in-progress (vc-git--cmds-in-progress))
 
 	branch remote remote-url stash-button stash-string)
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
@@ -857,9 +876,9 @@ or an empty string if none."
 	(propertize remote-url
 		    'face 'vc-dir-header-value)))
      ;; For now just a heading, key bindings can be added later for various bisect actions
-     (when (file-exists-p (expand-file-name "BISECT_START" gitdir))
+     (when (memq 'bisect in-progress)
        (propertize  "\nBisect     : in progress" 'face 'vc-dir-status-warning))
-     (when (file-exists-p (expand-file-name "rebase-apply" gitdir))
+     (when (memq 'rebase in-progress)
        (propertize  "\nRebase     : in progress" 'face 'vc-dir-status-warning))
      (if stash-list
          (concat
