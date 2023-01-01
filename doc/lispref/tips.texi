@@ -689,6 +689,10 @@ line.  This looks nice in the source code, but looks bizarre when users
 view the documentation.  Remember that the indentation before the
 starting double-quote is not part of the string!
 
+@cindex quoting apostrophe and grave accent in doc strings
+@cindex apostrophe, quoting in documentation strings
+@cindex grave accent, quoting in documentation strings
+@cindex escaping apostrophe and grave accent in doc strings
 @item
 When documentation should display an ASCII apostrophe or grave accent,
 use @samp{\\='} or @samp{\\=`} in the documentation string literal so

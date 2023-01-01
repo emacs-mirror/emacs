@@ -1700,7 +1700,7 @@ Expansion occurs in a temporary Org mode buffer."
 	      (condition-case error
 		  (insert-file-contents filename)
 		(error
-		 (insert (format "%%![couldn not insert %s: %s]"
+		 (insert (format "%%![could not insert %s: %s]"
 				 filename
 				 error))))))))
       ;; Mark %() embedded elisp for later evaluation.

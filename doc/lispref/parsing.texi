@@ -154,9 +154,9 @@ them.
 @end defun
 
 @defun treesit-language-abi-version language
-This function returns the language grammar @acronym{ABI} version of
-language grammar for @var{language} loaded by Emacs.  If
-@var{language} is unavailable, this function returns @code{nil}.
+This function returns the @acronym{ABI} version of the language
+grammar library loaded by Emacs for @var{language}.  If @var{language}
+is unavailable, this function returns @code{nil}.
 @end defun
 
 @heading Concrete syntax tree

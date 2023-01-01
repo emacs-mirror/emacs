@@ -693,24 +693,46 @@ compilation and evaluation time conflicts."
 (defvar csharp-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'c-sharp
+   :feature 'expression
+   '((conditional_expression (identifier) @font-lock-variable-name-face)
+     (postfix_unary_expression (identifier)* @font-lock-variable-name-face)
+     (assignment_expression (identifier) @font-lock-variable-name-face))
+
+   :language 'c-sharp
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+   :language 'c-sharp
+   :feature 'delimiter
+   '((["," ":" ";"]) @font-lock-delimiter-face)
+
+   :language 'c-sharp
+   :feature 'error
+   '((ERROR) @font-lock-warning-face)
+
+   :language 'c-sharp
    :override t
    :feature 'comment
-   '((comment)  @font-lock-comment-face)
+   '((comment) @font-lock-comment-face)
+
    :language 'c-sharp
    :override t
    :feature 'keyword
    `([,@csharp-ts-mode--keywords] @font-lock-keyword-face
      (modifier) @font-lock-keyword-face
      (this_expression) @font-lock-keyword-face)
+
    :language 'c-sharp
    :override t
-   :feature 'attribute
+   :feature 'property
    `((attribute (identifier) @font-lock-property-face (attribute_argument_list))
      (attribute (identifier) @font-lock-property-face))
+
    :language 'c-sharp
    :override t
    :feature 'escape-sequence
    '((escape_sequence) @font-lock-escape-face)
+
    :language 'c-sharp
    :override t
    :feature 'literal
@@ -718,6 +740,7 @@ compilation and evaluation time conflicts."
      (real_literal) @font-lock-number-face
      (null_literal) @font-lock-constant-face
      (boolean_literal) @font-lock-constant-face)
+
    :language 'c-sharp
    :override t
    :feature 'string
@@ -730,6 +753,7 @@ compilation and evaluation time conflicts."
       "$\""
       "@$\""
       "$@\""] @font-lock-string-face)
+
    :language 'c-sharp
    :override t
    :feature 'type
@@ -750,14 +774,14 @@ compilation and evaluation time conflicts."
       target: (identifier) @font-lock-type-face)
      (type_of_expression (identifier) @font-lock-type-face)
      (object_creation_expression (identifier) @font-lock-type-face))
+
    :language 'c-sharp
    :feature 'definition
    :override t
    '((qualified_name (identifier) @font-lock-type-face)
      (using_directive (identifier) @font-lock-type-face)
      (using_directive (name_equals
-                       (identifier) @font-lock-type-face
-                       ["="] @default-face))
+                       (identifier) @font-lock-type-face))
 
      (enum_declaration (identifier) @font-lock-type-face)
      (enum_member_declaration (identifier) @font-lock-variable-name-face)
@@ -820,24 +844,11 @@ compilation and evaluation time conflicts."
 
      (binary_expression (identifier) @font-lock-variable-name-face)
      (argument (identifier) @font-lock-variable-name-face))
-   :language 'c-sharp
-   :feature 'expression
-   '((conditional_expression (identifier) @font-lock-variable-name-face)
-     (postfix_unary_expression (identifier)* @font-lock-variable-name-face)
-     (assignment_expression (identifier) @font-lock-variable-name-face))
-   :language 'c-sharp
-   :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
-
-   :language 'c-sharp
-   :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face)
 
    :language 'c-sharp
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face
-     (ERROR) @font-lock-warning-face)))
+   '((escape_sequence) @font-lock-escape-face)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -908,9 +919,9 @@ Key bindings:
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
-                ( keyword string escape-sequence type)
-                ( attribute constant expression literal)
-                ( bracket delimiter)))
+                ( keyword string type)
+                ( constant escape-sequence expression literal property)
+                ( bracket delimiter error)))
 
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings
