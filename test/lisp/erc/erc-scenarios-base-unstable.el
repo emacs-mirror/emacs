@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-unstable.el --- base unstable scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

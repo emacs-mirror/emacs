@@ -1,6 +1,6 @@
 ;;; gnus-mh.el --- mh-e interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>

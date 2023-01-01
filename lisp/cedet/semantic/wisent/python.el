@@ -1,6 +1,6 @@
 ;;; wisent-python.el --- Semantic support for Python  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Richard Kim <emacs18@gmail.com>
 ;; Created: June 2002

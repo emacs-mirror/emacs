@@ -1,6 +1,6 @@
 ;;; ses-tests.el --- Tests for ses.el              -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Vincent Belaïche <vincentb1@users.sourceforge.net>
 

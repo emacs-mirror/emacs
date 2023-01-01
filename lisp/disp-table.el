@@ -1,6 +1,6 @@
 ;;; disp-table.el --- functions for dealing with char tables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1987, 1994-1995, 1999, 2001-2022 Free Software
+;; Copyright (C) 1987, 1994-1995, 1999, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>

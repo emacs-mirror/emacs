@@ -1,6 +1,6 @@
 ;;; score-mode.el --- mode for editing Gnus score files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail

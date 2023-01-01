@@ -1,6 +1,6 @@
 ;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>

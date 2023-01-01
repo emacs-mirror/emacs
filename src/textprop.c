@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993-2022  Free Software Foundation, Inc.
+   Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

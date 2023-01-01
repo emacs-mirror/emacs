@@ -33335,7 +33335,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2022 Free Software Foundation, Inc.
+    Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

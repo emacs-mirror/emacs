@@ -1,6 +1,6 @@
 ;;; sgml-input.el --- Quail method for Unicode entered as SGML entities -*- coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

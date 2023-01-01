@@ -1,6 +1,6 @@
 ;;; inversion.el --- When you need something in version XX.XX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.3

@@ -1,6 +1,6 @@
 ;;; ob-julia.el --- org-babel functions for julia code evaluation  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 ;; Authors: G. Jay Kerns
 ;; Maintainer: Pedro Bruel <pedro.bruel@gmail.com>
 ;; Keywords: literate programming, reproducible research, scientific computing

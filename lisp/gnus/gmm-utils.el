@@ -1,6 +1,6 @@
 ;;; gmm-utils.el --- Utility functions for Gnus, Message and MML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Reiner Steib <reiner.steib@gmx.de>
 ;; Keywords: news

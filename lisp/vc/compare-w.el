@@ -1,6 +1,6 @@
 ;;; compare-w.el --- compare text between windows for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1986-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience files vc

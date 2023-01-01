@@ -1,6 +1,6 @@
 ;;; shr-tests.el --- tests for shr.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 

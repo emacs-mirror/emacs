@@ -1,6 +1,6 @@
 ;;; tree-widget.el --- Tree widget  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 16 Feb 2001

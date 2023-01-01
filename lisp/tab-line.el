@@ -1,6 +1,6 @@
 ;;; tab-line.el --- window-local tabs with window buffers -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 ;; Keywords: windows tabs
