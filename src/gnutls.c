@@ -1804,24 +1804,40 @@ key_file2_aux (Lisp_Object flags)
       Lisp_Object flag = XCAR (tail);
       if (EQ (flag, Qgnutls_pkcs_plain))
 	rv |= GNUTLS_PKCS_PLAIN;
+#ifdef GNUTLS_PKCS_PKCS12_3DES
       else if (EQ (flag, Qgnutls_pkcs_pkcs12_3des))
 	rv |= GNUTLS_PKCS_PKCS12_3DES;
+#endif
+#ifdef GNUTLS_PKCS_PKCS12_ARCFOUR
       else if (EQ (flag, Qgnutls_pkcs_pkcs12_arcfour))
 	rv |= GNUTLS_PKCS_PKCS12_ARCFOUR;
+#endif
+#ifdef GNUTLS_PKCS_PKCS12_RC2_40
       else if (EQ (flag, Qgnutls_pkcs_pkcs12_rc2_40))
 	rv |= GNUTLS_PKCS_PKCS12_RC2_40;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_3DES
       else if (EQ (flag, Qgnutls_pkcs_pbes2_3des))
 	rv |= GNUTLS_PKCS_PBES2_3DES;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_AES_128
       else if (EQ (flag, Qgnutls_pkcs_pbes2_aes_128))
 	rv |= GNUTLS_PKCS_PBES2_AES_128;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_AES_192
       else if (EQ (flag, Qgnutls_pkcs_pbes2_aes_192))
 	rv |= GNUTLS_PKCS_PBES2_AES_192;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_AES_256
       else if (EQ (flag, Qgnutls_pkcs_pbes2_aes_256))
 	rv |= GNUTLS_PKCS_PBES2_AES_256;
+#endif
       else if (EQ (flag, Qgnutls_pkcs_null_password))
 	rv |= GNUTLS_PKCS_NULL_PASSWORD;
+#ifdef GNUTLS_PKCS_PBES2_DES
       else if (EQ (flag, Qgnutls_pkcs_pbes2_des))
 	rv |= GNUTLS_PKCS_PBES2_DES;
+#endif
 #ifdef GNUTLS_PKCS_PBES1_DES_MD5
       else if (EQ (flag, Qgnutls_pkcs_pbes1_des_md5))
 	rv |= GNUTLS_PKCS_PBES1_DES_MD5;
