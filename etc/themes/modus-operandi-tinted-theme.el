@@ -1,4 +1,4 @@
-;;; modus-operandi-theme.el --- Elegant, highly legible and customizable light theme -*- lexical-binding:t -*-
+;;; modus-operandi-tinted-theme.el --- Elegant, highly legible and customizable light theme -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
 
@@ -6,7 +6,6 @@
 ;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
 ;; URL: https://git.sr.ht/~protesilaos/modus-themes
 ;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
-;; Keywords: faces, theme, accessibility
 
 ;; This file is part of GNU Emacs.
 
@@ -43,25 +42,25 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
-  (deftheme modus-operandi
+  (deftheme modus-operandi-tinted
     "Elegant, highly legible and customizable light theme.
 Conforms with the highest legibility standard for color contrast
 between background and foreground in any given piece of text,
 which corresponds to a minimum contrast in relative luminance of
 7:1 (WCAG AAA standard).")
 
-  (defconst modus-operandi-palette
+  (defconst modus-operandi-tinted-palette
     '(
 ;;; Basic values
 
-      (bg-main          "#ffffff")
-      (bg-dim           "#f0f0f0")
+      (bg-main          "#fbf7f0")
+      (bg-dim           "#ede7db")
       (fg-main          "#000000")
       (fg-dim           "#595959")
       (fg-alt           "#193668")
-      (bg-active        "#c4c4c4")
-      (bg-inactive      "#e0e0e0")
-      (border           "#9f9f9f")
+      (bg-active        "#c9b9b0")
+      (bg-inactive      "#dfd5cf")
+      (border           "#9f9690")
 
 ;;; Common accent foregrounds
 
@@ -152,37 +151,37 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;; Special purpose
 
-      (bg-completion       "#c0deff")
+      (bg-completion       "#f0c1cf")
       (bg-hover            "#94d4ff")
       (bg-hover-secondary  "#f5d0a0")
-      (bg-hl-line          "#d0d6ec")
-      (bg-region           "#bdbdbd")
+      (bg-hl-line          "#f1d5d0")
+      (bg-region           "#c2bcb5")
       (fg-region           "#000000")
 
       (bg-char-0 "#7feaff")
       (bg-char-1 "#ffaaff")
       (bg-char-2 "#dff000")
 
-      (bg-mode-line-active        "#c8c8c8")
+      (bg-mode-line-active        "#cab9b2")
       (fg-mode-line-active        "#000000")
-      (border-mode-line-active    "#5a5a5a")
-      (bg-mode-line-inactive      "#e6e6e6")
+      (border-mode-line-active    "#545454")
+      (bg-mode-line-inactive      "#dfd9cf")
       (fg-mode-line-inactive      "#585858")
-      (border-mode-line-inactive  "#a3a3a3")
+      (border-mode-line-inactive  "#a59a94")
 
       (modeline-err     "#7f0000")
       (modeline-warning "#5f0070")
       (modeline-info    "#002580")
 
-      (bg-tab-bar      "#dfdfdf")
-      (bg-tab-current  "#ffffff")
-      (bg-tab-other    "#c2c2c2")
+      (bg-tab-bar      "#e0d4ce")
+      (bg-tab-current  "#fbf7f0")
+      (bg-tab-other    "#c8b8b2")
 
 ;;; Diffs
 
-      (bg-added           "#c1f2d1")
-      (bg-added-faint     "#d8f8e1")
-      (bg-added-refine    "#aee5be")
+      (bg-added           "#c3ebc1")
+      (bg-added-faint     "#dcf8d1")
+      (bg-added-refine    "#acd6a5")
       (bg-added-intense   "#8cca8c")
       (fg-added           "#005000")
       (fg-added-intense   "#006700")
@@ -194,16 +193,16 @@ which corresponds to a minimum contrast in relative luminance of
       (fg-changed         "#553d00")
       (fg-changed-intense "#655000")
 
-      (bg-removed         "#ffd8d5")
-      (bg-removed-faint   "#ffe9e9")
-      (bg-removed-refine  "#f3b5af")
+      (bg-removed         "#f4d0cf")
+      (bg-removed-faint   "#ffe9e5")
+      (bg-removed-refine  "#f3b5a7")
       (bg-removed-intense "#d84a4f")
       (fg-removed         "#8f1313")
       (fg-removed-intense "#aa2222")
 
 ;;; Paren match
 
-      (bg-paren-match        "#5fcfff")
+      (bg-paren-match        "#7fdfcf")
       (bg-paren-expression   "#efd3f5")
       (underline-paren-match unspecified)
 
@@ -212,7 +211,7 @@ which corresponds to a minimum contrast in relative luminance of
 ;;;; General mappings
 
       (fringe bg-dim)
-      (cursor fg-main)
+      (cursor red)
 
       (keybind blue-cooler)
       (name magenta)
@@ -229,7 +228,7 @@ which corresponds to a minimum contrast in relative luminance of
 ;;;; Code mappings
 
       (builtin magenta-warmer)
-      (comment fg-dim)
+      (comment red-faint)
       (constant blue-cooler)
       (docstring green-faint)
       (docmarkup magenta-faint)
@@ -371,7 +370,7 @@ which corresponds to a minimum contrast in relative luminance of
       (overline-heading-6 unspecified)
       (overline-heading-7 unspecified)
       (overline-heading-8 unspecified))
-    "The entire palette of the `modus-operandi' theme.
+    "The entire palette of the `modus-operandi-tinted' theme.
 
 Named colors have the form (COLOR-NAME HEX-VALUE) with the former
 as a symbol and the latter as a string.
@@ -383,8 +382,8 @@ exists in the palette and is associated with a HEX-VALUE.
 Semantic color mappings cannot be recursive: their value must be
 either COLOR-NAME or HEX-VALUE.")
 
-  (defcustom modus-operandi-palette-overrides nil
-    "Overrides for `modus-operandi-palette'.
+  (defcustom modus-operandi-tinted-palette-overrides nil
+    "Overrides for `modus-operandi-tinted-palette'.
 
 Mirror the elements of the aforementioned palette, overriding
 their value.
@@ -406,13 +405,13 @@ represents."
     :initialize #'custom-initialize-default
     :link '(info-link "(modus-themes) Palette overrides"))
 
-  (modus-themes-theme modus-operandi
-                      modus-operandi-palette
-                      modus-operandi-palette-overrides)
+  (modus-themes-theme modus-operandi-tinted
+                      modus-operandi-tinted-palette
+                      modus-operandi-tinted-palette-overrides)
 
-  (provide-theme 'modus-operandi))
+  (provide-theme 'modus-operandi-tinted))
 
 ;;;###theme-autoload
-(put 'modus-operandi 'theme-properties '(:background-mode light :kind color-scheme :family modus))
+(put 'modus-operandi-tinted 'theme-properties '(:background-mode light :kind color-scheme :family modus))
 
-;;; modus-operandi-theme.el ends here
+;;; modus-operandi-tinted-theme.el ends here
