@@ -3817,9 +3817,8 @@ Currently there are `js-mode' and `js-ts-mode'."
                 '(( comment definition)
                   ( keyword string)
                   ( assignment constant escape-sequence jsx number
-                    pattern)
-                  ( bracket delimiter function operator property
-                    string-interpolation)))
+                    pattern string-interpolation)
+                  ( bracket delimiter function operator property)))
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
                 `(("Function" "\\`function_declaration\\'" nil nil)
