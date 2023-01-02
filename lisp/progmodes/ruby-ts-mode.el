@@ -284,7 +284,11 @@ values of OVERRIDE"
    :language language
    :feature 'method-definition
    '((method
-      name: (identifier) @font-lock-function-name-face))
+      name: (identifier) @font-lock-function-name-face)
+     (singleton_method
+      name: (identifier) @font-lock-function-name-face)
+     (method
+      name: (setter) @font-lock-function-name-face))
 
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
