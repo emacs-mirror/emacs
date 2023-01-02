@@ -253,16 +253,17 @@ values of OVERRIDE"
    :feature 'string
    '((delimited_symbol [ ":\"" "\"" ] @font-lock-string-face)
      (string "\"" @font-lock-string-face)
-     (string_array [ "%w(" ")" ] @font-lock-delimiter-face)
-     (subshell "`" @font-lock-delimiter-face)
-     (symbol_array [ "%i(" ")"] @font-lock-delimiter-face))
+     (string_array ["%w(" ")"] @font-lock-string-face)
+     (subshell "`" @font-lock-string-face)
+     (symbol_array ["%i(" ")"] @font-lock-constant-face))
 
    :language language
    :feature 'string
-   '((string_content) @font-lock-string-face
-     (heredoc_beginning) @font-lock-string-face
-     (heredoc_content) @font-lock-string-face
-     (heredoc_end) @font-lock-string-face)
+   '([(string_content)
+      (heredoc_beginning)
+      (heredoc_content)
+      (heredoc_end)]
+     @font-lock-string-face)
 
    :language language
    :feature 'interpolation
