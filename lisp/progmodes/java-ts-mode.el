@@ -240,7 +240,9 @@
      (method_invocation
       name: (identifier) @font-lock-function-name-face)
 
-     (argument_list (identifier) @font-lock-variable-name-face))
+     (argument_list (identifier) @font-lock-variable-name-face)
+
+     (expression_statement (identifier) @font-lock-variable-name-face))
 
    :language 'java
    :feature 'bracket
