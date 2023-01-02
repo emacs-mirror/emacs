@@ -237,8 +237,10 @@ values of OVERRIDE"
    ;; Also before 'operator because % and / are operators
    :language language
    :feature 'regexp
-   '((regex "/" @font-lock-regexp-grouping-construct)
-     (regex _ (string_content) @font-lock-regexp-grouping-backslash))
+   ;; TODO: We probably need a separate face for regexps everywhere.
+   ;; Maybe another one for regexp delimiters as well.
+   '((regex "/" @font-lock-string-face)
+     (regex _ (string_content) @font-lock-string-face))
 
    :language language
    :feature 'operator
@@ -267,8 +269,8 @@ values of OVERRIDE"
 
    :language language
    :feature 'interpolation
-   '((interpolation "#{" @font-lock-doc-face)
-     (interpolation "}" @font-lock-doc-face))
+   '((interpolation "#{" @font-lock-delimiter-face)
+     (interpolation "}" @font-lock-delimiter-face))
 
    :language language
    :feature 'type
