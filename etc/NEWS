@@ -3261,6 +3261,11 @@ written in YAML.  It is auto-enabled for files with the ".yaml" or
 A major mode based on the tree-sitter library for editing programs in
 the Rust language.  It is auto-enabled for files with the ".rs" extension.
 
+---
+*** New major mode 'ruby-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the Ruby language.
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 
