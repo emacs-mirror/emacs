@@ -45,7 +45,7 @@ source files that mix multiple programming languages.
 * Accessing Node Information:: Accessing node information.
 * Pattern Matching::         Pattern matching with query patterns.
 * Multiple Languages::       Parse text written in multiple languages.
-* Tree-sitter major modes::  Develop major modes using tree-sitter.
+* Tree-sitter Major Modes::  Develop major modes using tree-sitter.
 * Tree-sitter C API::        Compare the C API and the ELisp API.
 @end menu
 
@@ -1675,7 +1675,7 @@ language of the buffer text at @var{pos}.  This variable is used by
 @code{treesit-language-at}.
 @end defvar
 
-@node Tree-sitter major modes
+@node Tree-sitter Major Modes
 @section Developing major modes with tree-sitter
 @cindex major mode, developing with tree-sitter
 
