@@ -374,24 +374,9 @@ Returns bol of the current line if PRED returns nil."
         (back-to-indentation)
         (point)))))
 
-(defun ruby-ts--grand-parent-is (type)
-  "Check grand parent's type matches regexp TYPE."
-  (lambda (_n parent &rest _)
-    (string-match-p type (treesit-node-type (treesit-node-parent parent)))))
-
 (defun ruby-ts--grand-parent-node (_n parent &rest _)
   "Return parent of PARENT node."
   (treesit-node-parent parent))
-
-(defun ruby-ts--ancestor-start (type)
-  "Return start of closest ancestor matching regexp TYPE."
-  (lambda (node &rest _)
-    (treesit-node-start (treesit-parent-until node (ruby-ts--type-pred type)))))
-
-(defun ruby-ts--ancestor-is (type)
-  "Check that ancestor's type matches regexp TYPE."
-  (lambda (node &rest _)
-    (treesit-parent-until node (ruby-ts--type-pred type))))
 
 (defun ruby-ts--align-chain-p (&rest _)
   "Return value of `ruby-align-chained-calls'."
@@ -474,9 +459,6 @@ array or hash."
   (let* ((open-brace (treesit-node-child parent 0 nil))
          (first-child (ruby-ts--first-non-comment-child parent)))
     (= (ruby-ts--lineno open-brace) (ruby-ts--lineno first-child))))
-
-(defalias 'ancestor-node #'ruby-ts--ancestor-is
-  "Return ancestor node whose type matches regexp TYPE.")
 
 (defun ruby-ts--assignment-ancestor (node &rest _)
   "Return the assignment ancestor of NODE if any."
