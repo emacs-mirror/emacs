@@ -205,7 +205,7 @@ chosen (interactively or automatically)."
                                 (((caml-mode :language-id "ocaml")
                                   (tuareg-mode :language-id "ocaml") reason-mode)
                                  . ("ocamllsp"))
-                                (ruby-mode
+                                ((ruby-mode ruby-ts-mode)
                                  . ("solargraph" "socket" "--port" :autoport))
                                 (haskell-mode
                                  . ("haskell-language-server-wrapper" "--lsp"))

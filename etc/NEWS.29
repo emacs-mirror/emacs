@@ -3261,6 +3261,11 @@ written in YAML.  It is auto-enabled for files with the ".yaml" or
 A major mode based on the tree-sitter library for editing programs in
 the Rust language.  It is auto-enabled for files with the ".rs" extension.
 
+---
+*** New major mode 'ruby-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+programs in the Ruby language.
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 
@@ -3812,21 +3817,21 @@ Standard.
 ** seq
 
 +++
-** New function 'seq-split'.
+*** New function 'seq-split'.
 This returns a list of sub-sequences of the specified sequence.
 
 +++
-** New function 'seq-remove-at-position'.
+*** New function 'seq-remove-at-position'.
 This function returns a copy of the specified sequence where the
 element at a given (zero-based) index got removed.
 
 +++
-** New function 'seq-positions'.
+*** New function 'seq-positions'.
 This returns a list of the (zero-based) indices of elements matching a
 given predicate in the specified sequence.
 
 +++
-** New function 'seq-keep'.
+*** New function 'seq-keep'.
 This is like 'seq-map', but removes all nil results from the returned
 list.
 
@@ -4108,7 +4113,7 @@ where 'major-mode' is 'shell-mode' or a combined with a condition like
 
 +++
 ** New function 'match-buffers'.
-Use 'buffer-match-p' to gather a list of buffers that match a
+It uses 'buffer-match-p' to gather a list of buffers that match a
 condition.
 
 ---

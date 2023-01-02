@@ -2810,6 +2810,8 @@ function signals an error."
                       (rx bos (+ anychar) ".o" eos))
                    "-o" ,lib-name))
           ;; Copy out.
+          (unless (file-exists-p out-dir)
+            (make-directory out-dir t))
           (copy-file lib-name (file-name-as-directory out-dir) t t)
           (message "Library installed to %s/%s" out-dir lib-name))
       (when (file-exists-p workdir)
