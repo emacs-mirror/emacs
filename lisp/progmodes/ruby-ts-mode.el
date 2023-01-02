@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This file defines ruby-ts-mode which is a major mode for editting
+;; This file defines ruby-ts-mode which is a major mode for editing
 ;; Ruby files that uses Tree Sitter to parse the language. More
 ;; information about Tree Sitter can be found in the ELisp Info pages
 ;; as well as this website: https://tree-sitter.github.io/tree-sitter/
@@ -150,7 +150,7 @@ These are currently unused")
           "parenthesized_statements"
           "interpolation")
       string-end)
-  "Regular expression of the nodes that can constain statements.")
+  "Regular expression of the nodes that can contain statements.")
 
 (defun ruby-ts--lineno (node)
   "Return line number of NODE's start."
@@ -178,7 +178,7 @@ These are currently unused")
 Applies `font-lock-comment-delimiter-face' and
 `font-lock-comment-face' See `treesit-fontify-with-override' for
 values of OVERRIDE"
-  ;; Emperically it appears as if (treesit-node-start node) will be
+  ;; Empirically it appears as if (treesit-node-start node) will be
   ;; where the # character is at and (treesit-node-end node) will be
   ;; the end of the line
   (let* ((node-start (treesit-node-start node))
@@ -717,7 +717,7 @@ i.e. expr of def foo(args) = expr is returned."
            ((n-p-gp ,ruby-ts--method-regex "body_statement" ,ruby-ts--class-or-module-regex)
             (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
 
-           ;; Match the end of a class / modlue
+           ;; Match the end of a class / module
            ((match "end" ,ruby-ts--class-or-module-regex) parent 0)
 
            ;; A "do_block" has a "body_statement" child which has the
