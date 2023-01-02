@@ -41,6 +41,10 @@ compositing manager, Emacs will now redisplay such a frame even though
 'frame-visible-' returns nil or 'icon' for it.  This can happen, for
 example, as part of preview for iconified frames.
 
++++
+** 'write-region-inhibit-fsync' now defaults to t in interactive mode,
+as it has in batch mode since Emacs 24.
+
 
 * Editing Changes in Emacs 30.1
 
