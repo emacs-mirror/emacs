@@ -47,7 +47,7 @@ public class EmacsPaintQueue
   {
     EmacsDrawable drawable, last;
     Canvas canvas;
-    EmacsGC gc, lastGC;
+    EmacsGC gc;
     int i;
     Paint paint;
     Rect rect, offsetRect, copyRect;
@@ -60,45 +60,34 @@ public class EmacsPaintQueue
     for (EmacsPaintReq req : paintOperations)
       {
 	drawable = req.getDrawable ();
-
-	synchronized (req)
-	  {
-	    /* Ignore graphics requests for drawables that have been
-	       destroyed.  */
-	    if (drawable.isDestroyed ())
-	      continue;
-	  }
-
 	canvas = drawable.lockCanvas ();
 
 	if (canvas == null)
 	  /* No canvas is currently available.  */
 	  continue;
 
-	lastGC = gc;
 	gc = req.getGC ();
 	rect = req.getRect ();
+
+	drawable.damageRect (rect);
 
 	if (gc.clip_rects == null)
 	  {
 	    /* No clipping is applied.  Just draw and continue.  */
-	    canvas.save ();
 	    req.paintTo (canvas, paint, gc);
-	    canvas.restore ();
-	    drawable.damageRect (rect);
 	    continue;
 	  }
 
 	if (gc.clip_rects != null && gc.clip_rects.length > 0)
 	  {
-	    canvas.save ();
-
 	    if (gc.clip_rects.length == 1)
 	      {
 		/* There is only a single clip rect, which is simple
 		   enough.  */
+		canvas.save ();
 		canvas.clipRect (gc.clip_rects[0]);
 		req.paintTo (canvas, paint, gc);
+		canvas.restore ();
 	      }
 	    else
 	      {
@@ -122,9 +111,6 @@ public class EmacsPaintQueue
 		      }
 		  }
 	      }
-
-	    drawable.damageRect (rect);
-	    canvas.restore ();
 	  }
       }
   }

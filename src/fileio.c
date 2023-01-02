@@ -898,6 +898,10 @@ user_homedir (char const *name)
   p[length] = 0;
   struct passwd *pw = getpwnam (p);
   SAFE_FREE ();
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  if (pw && !pw->pw_dir && pw->pw_uid == getuid ())
+    return (char *) android_get_home_directory ();
+#endif
   if (!pw || (pw->pw_dir && !IS_ABSOLUTE_FILE_NAME (pw->pw_dir)))
     return NULL;
   return pw->pw_dir;
@@ -1888,6 +1892,11 @@ get_homedir (void)
 	pw = getpwuid (getuid ());
       if (pw)
 	home = pw->pw_dir;
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+      if (!home && pw && pw->pw_uid == getuid ())
+	return android_get_home_directory ();
+#endif
       if (!home)
 	return "";
     }

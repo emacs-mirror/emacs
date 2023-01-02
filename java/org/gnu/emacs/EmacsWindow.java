@@ -32,6 +32,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.KeyEvent;
 
+import android.content.Intent;
+
 /* This defines a window, which is a handle.  Windows represent a
    rectangular subset of the screen with their own contents.
 
@@ -57,10 +59,10 @@ public class EmacsWindow extends EmacsHandleObject
 
   /* List of all children in stacking order.  This must be kept
      consistent!  */
-  private ArrayList<EmacsWindow> children;
+  public ArrayList<EmacsWindow> children;
 
-  /* The EmacsActivity currently attached, if it exists.  */
-  private EmacsActivity attached;
+  /* The window consumer currently attached, if it exists.  */
+  private EmacsWindowAttachmentManager.WindowConsumer attached;
 
   /* The window background scratch GC.  foreground is always the
      window background.  */
@@ -74,35 +76,44 @@ public class EmacsWindow extends EmacsHandleObject
 
     rect = new Rect (x, y, x + width, y + height);
 
-    /* Create the view from the context's UI thread.  */
-    view = EmacsService.SERVICE.getEmacsView (this);
+    /* Create the view from the context's UI thread.  The window is
+       unmapped, so the view is GONE.  */
+    view = EmacsService.SERVICE.getEmacsView (this, View.GONE,
+					      parent == null);
     this.parent = parent;
+
+    /* Create the list of children.  */
     children = new ArrayList<EmacsWindow> ();
 
-    /* The window is unmapped by default.  */
-    view.setVisibility (View.GONE);
-
-    /* If parent is the root window, notice that there are new
-       children available for interested activites to pick up.  */
-    if (parent == null)
-      EmacsService.SERVICE.noticeAvailableChild (this);
-    else
+    if (parent != null)
       {
-	/* Otherwise, directly add this window as a child of that
-	   window's view.  */
-	synchronized (parent)
-	  {
-	    parent.children.add (this);
-	    parent.view.post (new Runnable () {
-		@Override
-		public void
-		run ()
-		{
-		  parent.view.addView (view);
-		}
-	      });
-	  }
+	parent.children.add (this);
+	parent.view.post (new Runnable () {
+	    @Override
+	    public void
+	    run ()
+	    {
+	      parent.view.addView (view);
+	    }
+	  });
       }
+    else
+      EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	  @Override
+	  public void
+	  run ()
+	  {
+	    EmacsWindowAttachmentManager manager;
+
+	    manager = EmacsWindowAttachmentManager.MANAGER;
+
+	    /* If parent is the root window, notice that there are new
+	       children available for interested activites to pick
+	       up.  */
+
+	    manager.registerWindow (EmacsWindow.this);
+	  }
+	});
 
     scratchGC = new EmacsGC ((short) 0);
   }
@@ -129,28 +140,35 @@ public class EmacsWindow extends EmacsHandleObject
   public void
   destroyHandle () throws IllegalStateException
   {
-    synchronized (this)
-      {
-	if (!children.isEmpty ())
-	  throw new IllegalStateException ("Trying to destroy window with "
-					   + "children!");
-      }
+    if (parent != null)
+      parent.children.remove (this);
 
-    /* Notice that the child has been destroyed.  */
-    EmacsService.SERVICE.noticeChildDestroyed (this);
+    EmacsActivity.invalidateFocus ();
+
+    if (!children.isEmpty ())
+      throw new IllegalStateException ("Trying to destroy window with "
+				       + "children!");
 
     /* Remove the view from its parent and make it invisible.  */
     view.post (new Runnable () {
 	public void
 	run ()
 	{
+	  View parent;
+	  EmacsWindowAttachmentManager manager;
+
+	  if (EmacsActivity.focusedWindow == EmacsWindow.this)
+	    EmacsActivity.focusedWindow = null;
+
+	  manager = EmacsWindowAttachmentManager.MANAGER;
 	  view.setVisibility (View.GONE);
 
-	  if (view.getParent () != null)
-	    ((ViewGroup) view.getParent ()).removeView (view);
+	  parent = (View) view.getParent ();
 
-	  if (attached != null)
-	    attached.makeAvailable ();
+	  if (parent != null && attached == null)
+	    ((ViewGroup) parent).removeView (view);
+
+	  manager.detachWindow (EmacsWindow.this);
 	}
       });
 
@@ -158,12 +176,15 @@ public class EmacsWindow extends EmacsHandleObject
   }
 
   public void
-  setActivity (EmacsActivity activity)
+  setConsumer (EmacsWindowAttachmentManager.WindowConsumer consumer)
   {
-    synchronized (this)
-      {
-	activity = activity;
-      }
+    attached = consumer;
+  }
+
+  public EmacsWindowAttachmentManager.WindowConsumer
+  getAttachedConsumer ()
+  {
+    return attached;
   }
 
   public void
@@ -233,7 +254,10 @@ public class EmacsWindow extends EmacsHandleObject
 	public void
 	run ()
 	{
+
 	  view.setVisibility (View.VISIBLE);
+	  /* Eventually this should check no-focus-on-map.  */
+	  view.requestFocus ();
 	}
       });
   }
@@ -319,18 +343,47 @@ public class EmacsWindow extends EmacsHandleObject
   public void
   onKeyDown (int keyCode, KeyEvent event)
   {
+    int state;
+
+    state = event.getModifiers ();
+    state &= ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
+
     EmacsNative.sendKeyPress (this.handle,
 			      event.getEventTime (),
 			      event.getModifiers (),
-			      keyCode);
+			      keyCode,
+			      /* Ignore meta-state understood by Emacs
+				 for now, or Ctrl+C will not be
+				 recognized as an ASCII key press
+				 event.  */
+			      event.getUnicodeChar (state));
   }
 
   public void
   onKeyUp (int keyCode, KeyEvent event)
   {
+    int state;
+
+    state = event.getModifiers ();
+    state &= ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
+
     EmacsNative.sendKeyRelease (this.handle,
 				event.getEventTime (),
 				event.getModifiers (),
-				keyCode);
+				keyCode,
+				event.getUnicodeChar (state));
+  }
+
+  public void
+  onFocusChanged (boolean gainFocus)
+  {
+    EmacsActivity.invalidateFocus ();
+  }
+
+  public void
+  onActivityDetached ()
+  {
+    /* Destroy the associated frame when the activity is detached.  */
+    EmacsNative.sendWindowAction (this.handle, 0);
   }
 };

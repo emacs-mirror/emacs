@@ -32,12 +32,9 @@ import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 
 public class EmacsActivity extends Activity
+  implements EmacsWindowAttachmentManager.WindowConsumer
 {
   public static final String TAG = "EmacsActivity";
-
-  /* List of all activities that do not have an associated
-     EmacsWindow.  */
-  public static List<EmacsActivity> availableActivities;
 
   /* The currently attached EmacsWindow, or null if none.  */
   private EmacsWindow window;
@@ -45,52 +42,104 @@ public class EmacsActivity extends Activity
   /* The frame layout associated with the activity.  */
   private FrameLayout layout;
 
+  /* List of activities with focus.  */
+  private static List<EmacsActivity> focusedActivities;
+
+  /* The currently focused window.  */
+  public static EmacsWindow focusedWindow;
+
   static
   {
-    /* Set up the list of available activities.  */
-    availableActivities = new ArrayList<EmacsActivity> ();
+    focusedActivities = new ArrayList<EmacsActivity> ();
   };
 
+  public static void
+  invalidateFocus1 (EmacsWindow window)
+  {
+    if (window.view.isFocused ())
+      focusedWindow = window;
+
+    for (EmacsWindow child : window.children)
+      invalidateFocus1 (window);
+  }
+
+  public static void
+  invalidateFocus ()
+  {
+    EmacsWindow oldFocus;
+
+    /* Walk through each focused activity and assign the window focus
+       to the bottom-most focused window within.  Record the old focus
+       as well.  */
+    oldFocus = focusedWindow;
+    focusedWindow = null;
+
+    for (EmacsActivity activity : focusedActivities)
+      {
+	if (activity.window != null)
+	  invalidateFocus1 (activity.window);
+      }
+
+    /* Send focus in- and out- events to the previous and current
+       focus.  */
+
+    if (oldFocus != null)
+      EmacsNative.sendFocusOut (oldFocus.handle,
+				System.currentTimeMillis ());
+
+    if (focusedWindow != null)
+      EmacsNative.sendFocusIn (focusedWindow.handle,
+			       System.currentTimeMillis ());
+  }
+
+  @Override
   public void
-  attachChild (EmacsWindow child)
+  detachWindow ()
+  {
+    if (window == null)
+      Log.w (TAG, "detachWindow called, but there is no window");
+    else
+      {
+	/* Clear the window's pointer to this activity and remove the
+	   window's view.  */
+	window.setConsumer (null);
+	layout.removeView (window.view);
+	window = null;
+
+	invalidateFocus ();
+      }
+  }
+
+  @Override
+  public void
+  attachWindow (EmacsWindow child)
   {
     if (window != null)
       throw new IllegalStateException ("trying to attach window when one"
 				       + " already exists");
 
     /* Record and attach the view.  */
+
     window = child;
     layout.addView (window.view);
+    child.setConsumer (this);
 
-    /* Remove the objects from the lists of what is available.  */
-    EmacsService.availableChildren.remove (child);
-    availableActivities.remove (this);
-
-    /* Now set child->activity.  */
-    child.setActivity (this);
+    /* Invalidate the focus.  */
+    invalidateFocus ();
   }
 
-  /* Make this activity available for future windows to attach
-     again.  */
-
+  @Override
   public void
-  makeAvailable ()
+  destroy ()
   {
-    window = null;
+    finish ();
+  }
 
-    for (EmacsWindow iterWindow
-	   : EmacsService.availableChildren)
-      {
-	synchronized (iterWindow)
-	  {
-	    if (!iterWindow.isDestroyed ())
-	      attachChild (iterWindow);
-
-	    return;
-	  }
-      }
-
-    availableActivities.add (this);
+  @Override
+  public EmacsWindow
+  getAttachedWindow ()
+  {
+    return window;
   }
 
   @Override
@@ -109,38 +158,38 @@ public class EmacsActivity extends Activity
     /* Set it as the content view.  */
     setContentView (layout);
 
-    /* Make the activity available before starting the
-       service.  */
-    makeAvailable ();
-
     if (EmacsService.SERVICE == null)
       /* Start the Emacs service now.  */
       startService (new Intent (this, EmacsService.class));
+
+    /* Add this activity to the list of available activities.  */
+    EmacsWindowAttachmentManager.MANAGER.registerWindowConsumer (this);
 
     super.onCreate (savedInstanceState);
   }
 
   @Override
   public void
-  onStop ()
+  onDestroy ()
   {
-    /* The activity is no longer visible.  If there is a window
-       attached, detach it.  */
+    /* The activity will die shortly hereafter.  If there is a window
+       attached, close it now.  */
+    Log.d (TAG, "onDestroy " + this);
+    EmacsWindowAttachmentManager.MANAGER.removeWindowConsumer (this);
+    focusedActivities.remove (this);
+    invalidateFocus ();
+    super.onDestroy ();
+  }
 
-    if (window != null)
-      {
-	layout.removeView (window.view);
+  @Override
+  public void
+  onWindowFocusChanged (boolean isFocused)
+  {
+    if (isFocused && !focusedActivities.contains (this))
+      focusedActivities.add (this);
+    else
+      focusedActivities.remove (this);
 
-	/* Notice that the window is already available too.  But do
-	   not call noticeAvailableChild; that might assign it to some
-	   other activity, which behaves badly.  */
-	EmacsService.availableChildren.add (window);
-	window = null;
-      }
-
-    /* Finally, remove this activity from the list of available
-       activities.  */
-    availableActivities.remove (this);
-    super.onStop ();
+    invalidateFocus ();
   }
 };

@@ -28,8 +28,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 struct android_bitmap_record
 {
-  /* The image backing the bitmap.  */
-  Emacs_Pixmap img;
+  /* The image backing the bitmap and its mask.  */
+  android_pixmap pixmap, mask;
 
   /* The file from which it comes.  */
   char *file;
@@ -37,8 +37,11 @@ struct android_bitmap_record
   /* The number of references to it.  */
   int refcount;
 
-  /* The height and width.  */
-  int height, width;
+  /* The height and width and the depth.  */
+  int height, width, depth;
+
+  /* Whether or not there is a mask.  */
+  bool have_mask;
 };
 
 struct android_display_info
@@ -94,6 +97,9 @@ struct android_display_info
 
   /* The frame currently with the input focus.  */
   struct frame *focus_frame;
+
+  /* The last frame mentioned in a focus event.  */
+  struct frame *x_focus_event_frame;
 
   /* The frame which currently has the visual highlight, and should
      get keyboard input.  It points to the focus frame's selected
@@ -206,7 +212,23 @@ struct android_output
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* Focus state.  Only present for consistency with X; it is actually
+     a boolean.  */
+  int focus_state;
 };
+
+enum
+  {
+    /* Values for focus_state, used as bit mask.  EXPLICIT means we
+       received a FocusIn for the frame and know it has the focus.
+       IMPLICIT means we received an EnterNotify and the frame may
+       have the focus if no window manager is running.  FocusOut and
+       LeaveNotify clears EXPLICIT/IMPLICIT. */
+    FOCUS_NONE     = 0,
+    FOCUS_IMPLICIT = 1,
+    FOCUS_EXPLICIT = 2
+  };
 
 /* Return the Android output data for frame F.  */
 #define FRAME_ANDROID_OUTPUT(f)	((f)->output_data.android)

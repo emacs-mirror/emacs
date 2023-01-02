@@ -32,19 +32,22 @@ public class EmacsCopyArea implements EmacsPaintReq
   private int src_x, src_y, dest_x, dest_y, width, height;
   private EmacsDrawable destination, source;
   private EmacsGC immutableGC;
-  private static Xfermode xorAlu, srcInAlu;
+  private static Xfermode xorAlu, srcInAlu, overAlu;
 
   static
   {
+    overAlu = new PorterDuffXfermode (Mode.SRC_OVER);
     xorAlu = new PorterDuffXfermode (Mode.XOR);
     srcInAlu = new PorterDuffXfermode (Mode.SRC_IN);
   };
 
   public
-  EmacsCopyArea (EmacsDrawable destination, EmacsDrawable source,
+  EmacsCopyArea (EmacsDrawable source, EmacsDrawable destination,
 		 int src_x, int src_y, int width, int height,
 		 int dest_x, int dest_y, EmacsGC immutableGC)
   {
+    Bitmap bitmap;
+
     this.destination = destination;
     this.source = source;
     this.src_x = src_x;
@@ -71,6 +74,16 @@ public class EmacsCopyArea implements EmacsPaintReq
     return destination;
   }
 
+  private void
+  insetRectBy (Rect rect, int left, int top, int right,
+	       int bottom)
+  {
+    rect.left += left;
+    rect.top += top;
+    rect.right -= right;
+    rect.bottom -= bottom;
+  }
+
   @Override
   public EmacsGC
   getGC ()
@@ -86,16 +99,45 @@ public class EmacsCopyArea implements EmacsPaintReq
     Bitmap bitmap;
     Paint maskPaint;
     Canvas maskCanvas;
-    Bitmap maskBitmap;
-    Rect rect, srcRect;
+    Bitmap srcBitmap, maskBitmap, clipBitmap;
+    Rect rect, maskRect, srcRect, dstRect, maskDestRect;
+    boolean needFill;
 
     /* TODO implement stippling.  */
     if (immutableGC.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
       return;
 
     alu = immutableGC.function;
+
+    /* A copy must be created or drawBitmap could end up overwriting
+       itself.  */
+    srcBitmap = source.getBitmap ();
+
+    /* If srcBitmap is out of bounds, then adjust the source rectangle
+       to be within bounds.  Note that tiling on windows with
+       backgrounds is unimplemented.  */
+
+    if (src_x < 0)
+      {
+	width += src_x;
+	dest_x -= src_x;
+	src_x = 0;
+      }
+
+    if (src_y < 0)
+      {
+	height += src_y;
+	dest_y -= src_y;
+	src_y = 0;
+      }
+
+    if (src_x + width > srcBitmap.getWidth ())
+      width = srcBitmap.getWidth () - src_x;
+
+    if (src_y + height > srcBitmap.getHeight ())
+      height = srcBitmap.getHeight () - src_y;
+
     rect = getRect ();
-    bitmap = source.getBitmap ();
 
     if (alu == EmacsGC.GC_COPY)
       paint.setXfermode (null);
@@ -103,29 +145,76 @@ public class EmacsCopyArea implements EmacsPaintReq
       paint.setXfermode (xorAlu);
 
     if (immutableGC.clip_mask == null)
-      canvas.drawBitmap (bitmap, new Rect (src_x, src_y,
-					   src_x + width,
-					   src_y + height),
-			 rect, paint);
+      {
+	bitmap = Bitmap.createBitmap (srcBitmap,
+				      src_x, src_y, width,
+				      height);
+	canvas.drawBitmap (bitmap, null, rect, paint);
+      }
     else
       {
-	maskPaint = new Paint ();
-	srcRect = new Rect (0, 0, rect.width (),
-			    rect.height ());
-	maskBitmap
-	  = immutableGC.clip_mask.bitmap.copy (Bitmap.Config.ARGB_8888,
-					       true);
+	/* Drawing with a clip mask involves calculating the
+	   intersection of the clip mask with the dst rect, and
+	   extrapolating the corresponding part of the src rect.  */
+	clipBitmap = immutableGC.clip_mask.bitmap;
+	dstRect = new Rect (dest_x, dest_y,
+			    dest_x + width,
+			    dest_y + height);
+	maskRect = new Rect (immutableGC.clip_x_origin,
+			     immutableGC.clip_y_origin,
+			     (immutableGC.clip_x_origin
+			      + clipBitmap.getWidth ()),
+			     (immutableGC.clip_y_origin
+			      + clipBitmap.getHeight ()));
+	clipBitmap = immutableGC.clip_mask.bitmap;
 
-	if (maskBitmap == null)
+	if (!maskRect.setIntersect (dstRect, maskRect))
+	  /* There is no intersection between the clip mask and the
+	     dest rect.  */
 	  return;
 
-	maskPaint.setXfermode (srcInAlu);
+	/* Now figure out which part of the source corresponds to
+	   maskRect and return it relative to srcBitmap.  */
+	srcRect = new Rect (src_x, src_y, src_x + width,
+			    src_y + height);
+	insetRectBy (srcRect, maskRect.left - dstRect.left,
+		     maskRect.top - dstRect.top,
+		     maskRect.right - dstRect.right,
+		     maskRect.bottom - dstRect.bottom);
+
+	/* Finally, create a temporary bitmap that is the size of
+	   maskRect.  */
+
+	maskBitmap
+	  = Bitmap.createBitmap (maskRect.width (), maskRect.height (),
+				 Bitmap.Config.ARGB_8888);
+
+	/* Draw the mask onto the maskBitmap.  */
 	maskCanvas = new Canvas (maskBitmap);
-	maskCanvas.drawBitmap (bitmap, new Rect (src_x, src_y,
-						 src_x + width,
-						 src_y + height),
-			       srcRect, maskPaint);
-	canvas.drawBitmap (maskBitmap, srcRect, rect, paint);
+	maskRect.offset (-immutableGC.clip_x_origin,
+			 -immutableGC.clip_y_origin);
+	maskCanvas.drawBitmap (immutableGC.clip_mask.bitmap,
+			       maskRect, new Rect (0, 0,
+						   maskRect.width (),
+						   maskRect.height ()),
+			       paint);
+	maskRect.offset (immutableGC.clip_x_origin,
+			 immutableGC.clip_y_origin);
+
+	/* Set the transfer mode to SRC_IN to preserve only the parts
+	   of the source that overlap with the mask.  */
+	maskPaint = new Paint ();
+	maskPaint.setXfermode (srcInAlu);
+
+	/* Draw the source.  */
+	maskDestRect = new Rect (0, 0, srcRect.width (),
+				 srcRect.height ());
+	maskCanvas.drawBitmap (srcBitmap, srcRect, maskDestRect,
+			       maskPaint);
+
+	/* Finally, draw the mask bitmap to the destination.  */
+	paint.setXfermode (overAlu);
+	canvas.drawBitmap (maskBitmap, null, maskRect, paint);
       }
   }
 }

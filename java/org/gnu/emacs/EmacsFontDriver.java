@@ -21,6 +21,8 @@ package org.gnu.emacs;
 
 import java.util.List;
 
+import android.os.Build;
+
 public abstract class EmacsFontDriver
 {
   /* Font weights.  */
@@ -75,6 +77,7 @@ public abstract class EmacsFontDriver
     public Integer size;
     public Integer spacing;
     public Integer avgwidth;
+    public Integer dpi;
 
     @Override
     public String
@@ -88,7 +91,8 @@ public abstract class EmacsFontDriver
 	      + " weight: " + weight
 	      + " slant: " + slant
 	      + " spacing: " + spacing
-	      + " avgwidth: " + avgwidth);
+	      + " avgwidth: " + avgwidth
+	      + " dpi: " + dpi);
     }
   };
 
@@ -99,6 +103,17 @@ public abstract class EmacsFontDriver
     public short width;
     public short ascent;
     public short descent;
+
+    @Override
+    public String
+    toString ()
+    {
+      return ("lbearing " + lbearing
+	      + " rbearing " + rbearing
+	      + " width " + width
+	      + " ascent " + ascent
+	      + " descent " + descent);
+    }
   }
 
   public class FontEntity extends FontSpec
@@ -139,12 +154,19 @@ public abstract class EmacsFontDriver
   public abstract FontObject openFont (FontEntity fontEntity, int pixelSize);
   public abstract int hasChar (FontSpec font, char charCode);
   public abstract void textExtents (FontObject font, int code[],
-				    FontMetrics fontMetrics[]);
+				    FontMetrics fontMetrics);
   public abstract int encodeChar (FontObject fontObject, char charCode);
+  public abstract int draw (FontObject fontObject, EmacsGC gc,
+			    EmacsDrawable drawable, int[] chars,
+			    int x, int y, int backgroundWidth,
+			    boolean withBackground);
 
   public static EmacsFontDriver
   createFontDriver ()
   {
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M)
+      return new EmacsSdk23FontDriver ();
+
     return new EmacsSdk7FontDriver ();
   }
 };

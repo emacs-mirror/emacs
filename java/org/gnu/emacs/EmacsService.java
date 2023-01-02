@@ -28,6 +28,8 @@ import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 
+import android.view.View;
+
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.Context;
@@ -37,7 +39,9 @@ import android.os.Build;
 import android.os.Looper;
 import android.os.IBinder;
 import android.os.Handler;
+
 import android.util.Log;
+import android.util.DisplayMetrics;
 
 class Holder<T>
 {
@@ -57,14 +61,8 @@ public class EmacsService extends Service
   private Handler handler;
   private EmacsPaintQueue paintQueue;
 
-  /* List of all EmacsWindows that are available to attach to an
-     activity.  */
-  public static List<EmacsWindow> availableChildren;
-
-  static
-  {
-    availableChildren = new ArrayList<EmacsWindow> ();
-  };
+  /* Display metrics used by font backends.  */
+  public DisplayMetrics metrics;
 
   @Override
   public int
@@ -88,7 +86,7 @@ public class EmacsService extends Service
     Context context;
 
     context = getApplicationContext ();
-    apiLevel = android.os.Build.VERSION.SDK_INT;
+    apiLevel = Build.VERSION.SDK_INT;
 
     if (apiLevel >= Build.VERSION_CODES.GINGERBREAD)
       return context.getApplicationInfo().nativeLibraryDir;
@@ -105,11 +103,16 @@ public class EmacsService extends Service
     AssetManager manager;
     Context app_context;
     String filesDir, libDir;
+    double pixelDensityX;
+    double pixelDensityY;
 
     SERVICE = this;
     handler = new Handler (Looper.getMainLooper ());
     manager = getAssets ();
     app_context = getApplicationContext ();
+    metrics = getResources ().getDisplayMetrics ();
+    pixelDensityX = metrics.xdpi;
+    pixelDensityY = metrics.ydpi;
 
     try
       {
@@ -122,6 +125,8 @@ public class EmacsService extends Service
 	       + " and libDir = " + libDir);
 
 	EmacsNative.setEmacsParams (manager, filesDir, libDir,
+				    (float) pixelDensityX,
+				    (float) pixelDensityY,
 				    this);
 
 	/* Start the thread that runs Emacs.  */
@@ -147,7 +152,8 @@ public class EmacsService extends Service
   }
 
   EmacsView
-  getEmacsView (final EmacsWindow window)
+  getEmacsView (final EmacsWindow window, final int visibility,
+		final boolean isFocusedByDefault)
   {
     Runnable runnable;
     final Holder<EmacsView> view;
@@ -161,6 +167,8 @@ public class EmacsService extends Service
 	  synchronized (this)
 	    {
 	      view.thing = new EmacsView (window);
+	      view.thing.setVisibility (visibility);
+	      view.thing.setFocusedByDefault (isFocusedByDefault);
 	      notify ();
 	    }
 	}
@@ -181,48 +189,6 @@ public class EmacsService extends Service
       }
 
     return view.thing;
-  }
-
-  /* Notice that a child of the root window named WINDOW is now
-     available for attachment to a specific activity.  */
-
-  public void
-  noticeAvailableChild (final EmacsWindow window)
-  {
-    Log.d (TAG, "A new child is available: " + window);
-
-    handler.post (new Runnable () {
-	public void
-	run ()
-	{
-	  for (EmacsActivity activity
-		 : EmacsActivity.availableActivities)
-	    {
-	      /* TODO: check if the activity matches.  */
-	      activity.attachChild (window);
-	      break;
-	    }
-
-	  /* Nope, wait for an activity to become available.  */
-	  availableChildren.add (window);
-	}
-      });
-  }
-
-  /* Notice that a child of the root window named WINDOW has been
-     destroyed.  */
-
-  public void
-  noticeChildDestroyed (final EmacsWindow child)
-  {
-    handler.post (new Runnable () {
-	@Override
-	public void
-	run ()
-	{
-	  availableChildren.remove (child);
-	}
-      });
   }
 
   /* X drawing operations.  These are quite primitive operations.  The
@@ -311,11 +277,6 @@ public class EmacsService extends Service
 
     ensurePaintQueue ();
 
-    if (gc.clip_rects != null && gc.clip_rects.length >= 1)
-      android.util.Log.d ("drawRectangle",
-			  gc.clip_rects[0].toString ()
-			  + " " + gc.toString ());
-
     req = new EmacsDrawRectangle (drawable, x, y,
 				  width, height,
 				  gc.immutableGC ());
@@ -380,5 +341,13 @@ public class EmacsService extends Service
 	     int height)
   {
     window.clearArea (x, y, width, height);
+  }
+
+  public void
+  appendPaintOperation (EmacsPaintReq op)
+  {
+    ensurePaintQueue ();
+    paintQueue.appendPaintOperation (op);
+    checkFlush ();
   }
 };

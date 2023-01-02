@@ -22,6 +22,8 @@ package org.gnu.emacs;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 
+import android.os.Build;
+
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
@@ -40,7 +42,9 @@ public class EmacsSurfaceView extends SurfaceView
 	surfaceChanged (SurfaceHolder holder, int format,
 			int width, int height)
 	{
-
+	  /* Force a buffer swap now to get the contents of the Emacs
+	     view on screen.  */
+	  view.swapBuffers (true);
 	}
 
 	@Override
@@ -51,7 +55,7 @@ public class EmacsSurfaceView extends SurfaceView
 
 	  /* Force a buffer swap now to get the contents of the Emacs
 	     view on screen.  */
-	  view.swapBuffers ();
+	  view.swapBuffers (true);
 	}
 
 	@Override
@@ -72,12 +76,37 @@ public class EmacsSurfaceView extends SurfaceView
   public Canvas
   lockCanvas (Rect damage)
   {
-    return getHolder ().lockCanvas (damage);
+    SurfaceHolder holder;
+
+    holder = getHolder ();
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      {
+	damage.setEmpty ();
+	return holder.lockHardwareCanvas ();
+      }
+
+    return holder.lockCanvas (damage);
+  }
+
+  /* This method is only used during debugging when it seems damage
+     isn't working correctly.  */
+
+  public Canvas
+  lockCanvas ()
+  {
+    SurfaceHolder holder;
+
+    holder = getHolder ();
+    return holder.lockCanvas ();
   }
 
   public void
   unlockCanvasAndPost (Canvas canvas)
   {
-    getHolder ().unlockCanvasAndPost (canvas);
+    SurfaceHolder holder;
+
+    holder = getHolder ();
+    holder.unlockCanvasAndPost (canvas);
   }
 };

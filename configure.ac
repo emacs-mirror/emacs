@@ -31,9 +31,8 @@ if test "$XCONFIGURE" = "android"; then
   # Android!
   AC_MSG_NOTICE([called to recursively configure Emacs \
 for Android.])
-  # Set CC to ANDROID_CC, and CXX to ANDROID_CXX.
+  # Set CC to ANDROID_CC.
   CC=$ANDROID_CC
-  CXX=$ANDROID_CXX
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
@@ -147,7 +146,7 @@ if test "$XCONFIGURE" = "android"; then
     ;;
     *) AC_MSG_ERROR([The cross compiler does not compile for Android.
 Please verify that you specified the correct compiler in the ANDROID_CC
-and ANDROID_CXX variables when you ran configure.])
+variable when you ran configure.])
     ;;
   esac
   AC_MSG_RESULT([$host_alias])
@@ -759,8 +758,7 @@ tools such as aapt, dx, and aidl):
 
 The cross-compiler should then be specified:
 
-              ANDROID_CC=/path/to/armv7a-linux-androideabi19-clang
-              ANDROID_CXX=/path/to/armv7a-linux-androideabi19-clang++])
+              ANDROID_CC=/path/to/armv7a-linux-androideabi19-clang])
 elif test "$with_android" = "no" || test "$with_android" = ""; then
   ANDROID=no
 else
@@ -833,12 +831,11 @@ Please verify that the path to the SDK build tools you specified is correct]);
   dnl Now configure Emacs to generate binaries for Android.  After the
   dnl configuration completes, move the generated Makefiles.
 
-  if test "$ANDROID_CC" = "" || test "$ANDROID_CXX" = ""; then
+  if test "$ANDROID_CC" = ""; then
     AC_MSG_ERROR([Please specify the path to the Android cross-compiler
 for your machine.  For example:
 
   ANDROID_CC=/path/to/armv7a-linux-androideabi19-clang    \\
-  ANDROID_CXX=/path/to/armv7a-linux-androideabi19-clang++ \\
     ./configure --with-android])
   fi
 
@@ -863,7 +860,7 @@ for your machine.  For example:
     *) AC_MSG_ERROR([configure could not determine the type of Android \
 binary Emacs is being configured for.  Please port this configure script \
 to your Android system, or verify that you specified the correct compiler \
-in the ANDROID_CC and ANDROID_CXX variables when you ran configure.])
+in the ANDROID_CC variable when you ran configure.])
       ;;
   esac
   AC_MSG_RESULT([$android_abi])
@@ -874,9 +871,8 @@ in the ANDROID_CC and ANDROID_CXX variables when you ran configure.])
   mv -f confdefs.h _confdefs.h
   mv -f config.log _config.log
 
-  AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
-  ANDROID_CXX="$ANDROID_CXX" $0], [], [AC_MSG_ERROR([Failed to cross-\
-configure Emacs for android.])])
+  AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" $0], [],
+    [AC_MSG_ERROR([Failed to cross-configure Emacs for android.])])
 
   # Now set ANDROID to yes.
   ANDROID=yes
@@ -2254,7 +2250,7 @@ for Android, but all API calls need to be stubbed out])
     ANDROID_CFLAGS="-fPIC -fvisibility=hidden"
 
     # Link with libraries required for Android support.
-    ANDROID_LIBS="-landroid -llog"
+    ANDROID_LIBS="-landroid -llog -ljnigraphics"
   fi
 fi
 

@@ -160,8 +160,8 @@ typedef Emacs_Pixmap Emacs_Pix_Context;
 #ifdef HAVE_ANDROID
 #include "androidgui.h"
 typedef struct android_display_info Display_Info;
-typedef Emacs_Pixmap Emacs_Pix_Container;
-typedef Emacs_Pixmap Emacs_Pix_Context;
+typedef struct android_image *Emacs_Pix_Container;
+typedef struct android_image *Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3119,6 +3119,13 @@ struct image
   int original_width, original_height;
 # endif
 #endif	/* HAVE_X_WINDOWS */
+#ifdef HAVE_ANDROID
+  /* Android images of the image, corresponding to the above Pixmaps.
+     Non-NULL means it and its Pixmap counterpart may be out of sync
+     and the latter is outdated.  NULL means the X image has been
+     synchronized to Pixmap.  */
+  struct android_image *ximg, *mask_img;
+#endif /* HAVE_ANDROID */
 #ifdef HAVE_NTGUI
   XFORM xform;
 #endif

@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <signal.h>
 #include <semaphore.h>
+#include <dlfcn.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -46,6 +47,7 @@ bool android_init_gui;
 
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
+#include <android/bitmap.h>
 #include <android/log.h>
 
 #include <linux/ashmem.h>
@@ -86,12 +88,19 @@ struct android_emacs_pixmap
 {
   jclass class;
   jmethodID constructor;
+  jmethodID constructor_mutable;
 };
 
 struct android_graphics_point
 {
   jclass class;
   jmethodID constructor;
+};
+
+struct android_emacs_drawable
+{
+  jclass class;
+  jmethodID get_bitmap;
 };
 
 /* The asset manager being used.  */
@@ -105,6 +114,12 @@ char *android_site_load_path;
 
 /* The path used to store native libraries.  */
 char *android_lib_dir;
+
+/* The path used to store game files.  */
+char *android_game_path;
+
+/* The display's pixel densities.  */
+double android_pixel_density_x, android_pixel_density_y;
 
 /* The Android application data directory.  */
 static char *android_files_dir;
@@ -148,6 +163,9 @@ static struct android_emacs_pixmap pixmap_class;
 
 /* Various methods associated with the Point class.  */
 static struct android_graphics_point point_class;
+
+/* Various methods associated with the EmacsDrawable class.  */
+static struct android_emacs_drawable drawable_class;
 
 
 
@@ -383,6 +401,10 @@ android_write_event (union android_event *event)
   if (!container)
     return;
 
+  /* If the event queue hasn't been initialized yet, return false.  */
+  if (!event_queue.events.next)
+    return;
+
   pthread_mutex_lock (&event_queue.mutex);
 
   /* The event queue is full, wait for events to be read.  */
@@ -450,6 +472,10 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 
   /* Unlock the event queue mutex.  */
   pthread_mutex_unlock (&event_queue.mutex);
+
+  /* This is to shut up process.c when pselect gets EINTR.  */
+  if (nfds_return < 0)
+    errno = EINTR;
 
   return nfds_return;
 }
@@ -793,14 +819,18 @@ android_close (int fd)
 {
   if (fd < ANDROID_MAX_ASSET_FD
       && (android_table[fd].flags & ANDROID_FD_TABLE_ENTRY_IS_VALID))
-    {
-      __android_log_print (ANDROID_LOG_INFO, __func__,
-			   "closing android file descriptor %d",
-			   fd);
-      android_table[fd].flags = 0;
-    }
+    android_table[fd].flags = 0;
 
   return close (fd);
+}
+
+/* Return the current user's ``home'' directory, which is actually the
+   app data directory on Android.  */
+
+const char *
+android_get_home_directory (void)
+{
+  return android_files_dir;
 }
 
 
@@ -814,6 +844,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 			      jobject local_asset_manager,
 			      jobject files_dir, jobject libs_dir,
+			      jfloat pixel_density_x,
+			      jfloat pixel_density_y,
 			      jobject emacs_service_object)
 {
   int pipefd[2];
@@ -828,6 +860,9 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 		     "Emacs was already initialized!");
       return;
     }
+
+  android_pixel_density_x = pixel_density_x;
+  android_pixel_density_y = pixel_density_y;
 
   __android_log_print (ANDROID_LOG_INFO, __func__,
 		       "Initializing "PACKAGE_STRING"...\nPlease report bugs to "
@@ -891,15 +926,23 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   if (!android_site_load_path)
     emacs_abort ();
 
+  android_game_path = malloc (PATH_MAX + 1);
+
+  if (!android_game_path)
+    emacs_abort ();
+
   snprintf (android_site_load_path, PATH_MAX, "%s/site-lisp",
 	    android_files_dir);
+  snprintf (android_game_path, PATH_MAX, "%s/scores", android_files_dir);
+
   __android_log_print (ANDROID_LOG_INFO, __func__,
 		       "Site-lisp directory: %s\n"
 		       "Files directory: %s\n"
-		       "Native code directory: %s",
+		       "Native code directory: %s\n"
+		       "Game score path: %s\n",
 		       android_site_load_path,
 		       android_files_dir,
-		       android_lib_dir);
+		       android_lib_dir, android_game_path);
 
   /* Make a reference to the Emacs service.  */
   emacs_service = (*env)->NewGlobalRef (env, emacs_service_object);
@@ -997,6 +1040,7 @@ android_init_emacs_pixmap (void)
   assert (pixmap_class.c_name);
 
   FIND_METHOD (constructor, "<init>", "(S[IIII)V");
+  FIND_METHOD (constructor_mutable, "<init>", "(SIII)V");
 
 #undef FIND_METHOD
 }
@@ -1028,6 +1072,36 @@ android_init_graphics_point (void)
   assert (point_class.c_name);
 
   FIND_METHOD (constructor, "<init>", "(II)V");
+#undef FIND_METHOD
+}
+
+static void
+android_init_emacs_drawable (void)
+{
+  jclass old;
+
+  drawable_class.class
+    = (*android_java_env)->FindClass (android_java_env,
+				      "org/gnu/emacs/EmacsDrawable");
+  eassert (drawable_class.class);
+
+  old = drawable_class.class;
+  drawable_class.class
+    = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
+						  (jobject) old);
+  ANDROID_DELETE_LOCAL_REF (old);
+
+  if (!drawable_class.class)
+    emacs_abort ();
+
+#define FIND_METHOD(c_name, name, signature)			\
+  drawable_class.c_name						\
+    = (*android_java_env)->GetMethodID (android_java_env,	\
+					drawable_class.class,	\
+					name, signature);	\
+  assert (drawable_class.c_name);
+
+  FIND_METHOD (get_bitmap, "getBitmap", "()Landroid/graphics/Bitmap;");
 #undef FIND_METHOD
 }
 
@@ -1063,6 +1137,15 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv)
   android_init_emacs_service ();
   android_init_emacs_pixmap ();
   android_init_graphics_point ();
+  android_init_emacs_drawable ();
+
+  /* Set HOME to the app data directory.  */
+  setenv ("HOME", android_files_dir, 1);
+
+  /* Set the cwd to that directory as well.  */
+  if (chdir (android_files_dir))
+    __android_log_print (ANDROID_LOG_WARN, __func__,
+			 "chdir: %s", strerror (errno));
 
   /* Initialize the Android GUI.  */
   android_init_gui = true;
@@ -1099,7 +1182,8 @@ NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
 extern JNIEXPORT void JNICALL
 NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
 			    jshort window, jlong time,
-			    jint state, jint keycode)
+			    jint state, jint keycode,
+			    jint unicode_char)
 {
   union android_event event;
 
@@ -1108,6 +1192,7 @@ NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
   event.xkey.time = time;
   event.xkey.state = state;
   event.xkey.keycode = keycode;
+  event.xkey.unicode_char = unicode_char;
 
   android_write_event (&event);
 }
@@ -1115,7 +1200,8 @@ NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
 extern JNIEXPORT void JNICALL
 NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
 			      jshort window, jlong time,
-			      jint state, jint keycode)
+			      jint state, jint keycode,
+			      jint unicode_char)
 {
   union android_event event;
 
@@ -1124,6 +1210,46 @@ NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
   event.xkey.time = time;
   event.xkey.state = state;
   event.xkey.keycode = keycode;
+  event.xkey.unicode_char = unicode_char;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendFocusIn) (JNIEnv *env, jobject object,
+			   jshort window, jlong time)
+{
+  union android_event event;
+
+  event.xkey.type = ANDROID_FOCUS_IN;
+  event.xkey.window = window;
+  event.xkey.time = time;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendFocusOut) (JNIEnv *env, jobject object,
+			    jshort window, jlong time)
+{
+  union android_event event;
+
+  event.xkey.type = ANDROID_FOCUS_OUT;
+  event.xkey.window = window;
+  event.xkey.time = time;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendWindowAction) (JNIEnv *env, jobject object,
+				jshort window, jint action)
+{
+  union android_event event;
+
+  event.xaction.type = ANDROID_WINDOW_ACTION;
+  event.xaction.window = window;
+  event.xaction.action = action;
 
   android_write_event (&event);
 }
@@ -1141,13 +1267,6 @@ NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
    with DeleteLocalRef.  A helper macro is provided to do this.  */
 
 #define MAX_HANDLE 65535
-
-enum android_handle_type
-  {
-    ANDROID_HANDLE_WINDOW,
-    ANDROID_HANDLE_GCONTEXT,
-    ANDROID_HANDLE_PIXMAP,
-  };
 
 struct android_handle_entry
 {
@@ -1245,7 +1364,7 @@ android_destroy_handle (android_handle handle)
   android_handles[handle].handle = NULL;
 }
 
-static jobject
+jobject
 android_resolve_handle (android_handle handle,
 			enum android_handle_type type)
 {
@@ -1625,14 +1744,15 @@ android_change_gc (struct android_gc *gc,
 				     ANDROID_HANDLE_PIXMAP);
       (*android_java_env)->SetObjectField (android_java_env,
 					   gcontext,
-					   emacs_gc_stipple,
+					   emacs_gc_clip_mask,
 					   what);
 
       /* Clearing GCClipMask also clears the clip rectangles.  */
-      (*android_java_env)->SetObjectField (android_java_env,
-					   gcontext,
-					   emacs_gc_clip_rects,
-					   NULL);
+      if (!what)
+	(*android_java_env)->SetObjectField (android_java_env,
+					     gcontext,
+					     emacs_gc_clip_rects,
+					     NULL);
     }
 
   if (mask & ANDROID_GC_STIPPLE)
@@ -2008,10 +2128,23 @@ android_create_pixmap_from_bitmap_data (char *data, unsigned int width,
     {
       for (x = 0; x < width; ++x)
 	{
-	  if (data[y / 8] & (1 << (x % 8)))
-	    region[x] = foreground;
+	  if (depth == 24)
+	    {
+	      /* The alpha channels must be set, or otherwise, the
+		 pixmap will be created entirely transparent.  */
+
+	      if (data[y * (width + 7) / 8 + x / 8] & (1 << (x % 8)))
+		region[x] = foreground | 0xff000000;
+	      else
+		region[x] = background | 0xff000000;
+	    }
 	  else
-	    region[x] = background;
+	    {
+	      if (data[y * (width + 7) / 8 + x / 8] & (1 << (x % 8)))
+		region[x] = foreground;
+	      else
+		region[x] = background;
+	    }
 	}
 
       (*android_java_env)->SetIntArrayRegion (android_java_env,
@@ -2236,36 +2369,21 @@ android_create_pixmap (unsigned int width, unsigned int height,
 {
   android_handle prev_max_handle;
   jobject object;
-  jintArray colors;
   android_pixmap pixmap;
-
-  /* Create the color array holding the data.  */
-  colors = (*android_java_env)->NewIntArray (android_java_env,
-					     width * height);
-
-  if (!colors)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
 
   /* First, allocate the pixmap handle.  */
   prev_max_handle = max_handle;
   pixmap = android_alloc_id ();
 
   if (!pixmap)
-    {
-      ANDROID_DELETE_LOCAL_REF ((jobject) colors);
-      error ("Out of pixmap handles!");
-    }
+    error ("Out of pixmap handles!");
 
   object = (*android_java_env)->NewObject (android_java_env,
 					   pixmap_class.class,
-					   pixmap_class.constructor,
-					   (jshort) pixmap, colors,
+					   pixmap_class.constructor_mutable,
+					   (jshort) pixmap,
 					   (jint) width, (jint) height,
 					   (jint) depth);
-  ANDROID_DELETE_LOCAL_REF ((jobject) colors);
 
   if (!object)
     {
@@ -2313,6 +2431,387 @@ android_clear_area (android_window handle, int x, int y,
 				       (jint) width, (jint) height);
 }
 
+android_pixmap
+android_create_bitmap_from_data (char *bits, unsigned int width,
+				 unsigned int height)
+{
+  return android_create_pixmap_from_bitmap_data (bits, 1, 0,
+						 width, height, 1);
+}
+
+struct android_image *
+android_create_image (unsigned int depth, enum android_image_format format,
+		      char *data, unsigned int width, unsigned int height)
+{
+  struct android_image *image;
+
+  image = xmalloc (sizeof *image);
+
+  /* Fill in the fields required by image.c.  N.B. that
+     android_destroy_image ostensibly will free data, but image.c
+     mostly sets and frees data itself.  */
+  image->width = width;
+  image->height = height;
+  image->data = data;
+  image->depth = depth;
+  image->format = format;
+
+  /* Now fill in the image dimensions.  There are only two depths
+     supported by this function.  */
+
+  if (depth == 1)
+    {
+      image->bytes_per_line = (width + 7) / 8;
+      image->bits_per_pixel = 1;
+    }
+  else if (depth == 24)
+    {
+      image->bytes_per_line = width * 4;
+      image->bits_per_pixel = 32;
+    }
+  else
+    emacs_abort ();
+
+  return image;
+}
+
+void
+android_destroy_image (struct android_image *ximg)
+{
+  /* If XIMG->data is NULL, then it has already been freed by
+     image.c.  */
+
+  if (ximg->data)
+    xfree (ximg->data);
+  xfree (ximg);
+}
+
+void
+android_put_pixel (struct android_image *ximg, int x, int y,
+		   unsigned long pixel)
+{
+  char *byte, *word;
+  unsigned int r, g, b;
+
+  /* Ignore out-of-bounds accesses.  */
+
+  if (x >= ximg->width || y >= ximg->height || x < 0 || y < 0)
+    return;
+
+  switch (ximg->depth)
+    {
+    case 1:
+      byte = ximg->data + y * ximg->bytes_per_line + x / 8;
+
+      if (pixel)
+	*byte |= (1 << x % 8);
+      else
+	*byte &= ~(1 << x % 8);
+      break;
+
+    case 24:
+      /* Unaligned accesses are problematic on Android devices.  */
+      word = ximg->data + y * ximg->bytes_per_line + x * 4;
+
+      /* Swizzle the pixel into ABGR format.  Android uses Skia's
+	 ``native color type'', which is ABGR.  This is despite the
+	 format being named ``ARGB'', and more confusingly
+	 `ANDROID_BITMAP_FORMAT_RGBA_8888' in bitmap.h.  */
+      r = pixel & 0x00ff0000;
+      g = pixel & 0x0000ff00;
+      b = pixel & 0x000000ff;
+      pixel = (r >> 16) | g | (b << 16) | 0xff000000;
+
+      memcpy (word, &pixel, sizeof pixel);
+      break;
+    }
+}
+
+unsigned long
+android_get_pixel (struct android_image *ximg, int x, int y)
+{
+  char *byte, *word;
+  unsigned int pixel, r, g, b;
+
+  if (x >= ximg->width || y >= ximg->height
+      || x < 0 || y < 0)
+    return 0;
+
+  switch (ximg->depth)
+    {
+    case 1:
+      byte = ximg->data + y * ximg->bytes_per_line + x / 8;
+      return (*byte & (1 << x % 8)) ? 1 : 0;
+
+    case 24:
+      word = ximg->data + y * ximg->bytes_per_line + x * 4;
+      memcpy (&pixel, word, sizeof pixel);
+
+      /* Convert the pixel back to RGB.  */
+      b = pixel & 0x00ff0000;
+      g = pixel & 0x0000ff00;
+      r = pixel & 0x000000ff;
+      pixel = ((r << 16) | g | (b >> 16)) & ~0xff000000;
+
+      return pixel;
+    }
+
+  emacs_abort ();
+}
+
+struct android_image *
+android_get_image (android_drawable handle,
+		   enum android_image_format format)
+{
+  jobject drawable, bitmap;
+  AndroidBitmapInfo bitmap_info;
+  size_t byte_size;
+  void *data;
+  struct android_image *image;
+  unsigned char *data1, *data2;
+  int i, x;
+
+  /* N.B. that supporting windows requires some more work to make
+     EmacsDrawable.getBitmap thread safe.  */
+  drawable = android_resolve_handle2 (handle, ANDROID_HANDLE_WINDOW,
+				      ANDROID_HANDLE_PIXMAP);
+
+  /* Look up the drawable and get the bitmap corresponding to it.
+     Then, lock the bitmap's bits.  */
+  bitmap = (*android_java_env)->CallObjectMethod (android_java_env,
+						  drawable,
+						  drawable_class.get_bitmap);
+  if (!bitmap)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  memset (&bitmap_info, 0, sizeof bitmap_info);
+
+  /* The NDK doc seems to imply this function can fail but doesn't say
+     what value it gives when it does! */
+  AndroidBitmap_getInfo (android_java_env, bitmap, &bitmap_info);
+
+  if (!bitmap_info.stride)
+    {
+      ANDROID_DELETE_LOCAL_REF (bitmap);
+      memory_full (0);
+    }
+
+  /* Compute how big the image data will be.  Fail if it would be too
+     big.  */
+
+  if (bitmap_info.format != ANDROID_BITMAP_FORMAT_A_8)
+    {
+      if (INT_MULTIPLY_WRAPV ((size_t) bitmap_info.stride,
+			      (size_t) bitmap_info.height,
+			      &byte_size))
+	{
+	  ANDROID_DELETE_LOCAL_REF (bitmap);
+	  memory_full (0);
+	}
+    }
+  else
+    /* This A8 image will be packed into A1 later on.  */
+    byte_size = (bitmap_info.width + 7) / 8;
+
+  /* Lock the image data.  Once again, the NDK documentation says the
+     call can fail, but does not say how to determine whether or not
+     it has failed, nor how the address is aligned.  */
+  data = NULL;
+  AndroidBitmap_lockPixels (android_java_env, bitmap, &data);
+
+  if (!data)
+    {
+      /* Take a NULL pointer to mean that AndroidBitmap_lockPixels
+	 failed.  */
+      ANDROID_DELETE_LOCAL_REF (bitmap);
+      memory_full (0);
+    }
+
+  /* Copy the data into a new struct android_image.  */
+  image = xmalloc (sizeof *image);
+  image->width = bitmap_info.width;
+  image->height = bitmap_info.height;
+  image->data = malloc (byte_size);
+
+  if (!image->data)
+    {
+      ANDROID_DELETE_LOCAL_REF (bitmap);
+      xfree (image);
+      memory_full (byte_size);
+    }
+
+  /* Use the format of the bitmap to determine the image depth.  */
+  switch (bitmap_info.format)
+    {
+    case ANDROID_BITMAP_FORMAT_RGBA_8888:
+      image->depth = 24;
+      image->bits_per_pixel = 32;
+      break;
+
+      /* A8 images are used by Emacs to represent bitmaps.  They have
+	 to be packed manually.  */
+    case ANDROID_BITMAP_FORMAT_A_8:
+      image->depth = 1;
+      image->bits_per_pixel = 1;
+      break;
+
+      /* Other formats are currently not supported.  */
+    default:
+      emacs_abort ();
+    }
+
+  image->format = format;
+
+  if (image->depth == 24)
+    {
+      image->bytes_per_line = bitmap_info.stride;
+
+      /* Copy the bitmap data over.  */
+      memcpy (image->data, data, byte_size);
+    }
+  else
+    {
+      /* Pack the A8 image data into bits manually.  */
+      image->bytes_per_line = (image->width + 7) / 8;
+
+      data1 = (unsigned char *) image->data;
+      data2 = data;
+
+      for (i = 0; i < image->height; ++i)
+	{
+	  for (x = 0; x < image->width; ++x)
+	    /* Some bits in data1 might be initialized at this point,
+	       but they will all be set properly later.  */
+	    data1[x / 8] = (data2[x]
+			    ? (data1[x / 8] | (1 << (x % 8)))
+			    : (data1[x / 8] & ~(1 << (x % 8))));
+
+	  data1 += image->bytes_per_line;
+	  data2 += bitmap_info.stride;
+	}
+    }
+
+  /* Unlock the bitmap pixels.  */
+  AndroidBitmap_unlockPixels (android_java_env, bitmap);
+
+  /* Delete the bitmap reference.  */
+  ANDROID_DELETE_LOCAL_REF (bitmap);
+  return image;
+}
+
+void
+android_put_image (android_pixmap handle, struct android_image *image)
+{
+  jobject drawable, bitmap;
+  AndroidBitmapInfo bitmap_info;
+  void *data;
+  unsigned char *data_1, *data_2;
+  int i, x;
+
+  drawable = android_resolve_handle (handle, ANDROID_HANDLE_PIXMAP);
+
+  /* Look up the drawable and get the bitmap corresponding to it.
+     Then, lock the bitmap's bits.  */
+  bitmap = (*android_java_env)->CallObjectMethod (android_java_env,
+						  drawable,
+						  drawable_class.get_bitmap);
+  if (!bitmap)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  memset (&bitmap_info, 0, sizeof bitmap_info);
+
+  /* The NDK doc seems to imply this function can fail but doesn't say
+     what value it gives when it does! */
+  AndroidBitmap_getInfo (android_java_env, bitmap, &bitmap_info);
+
+  if (!bitmap_info.stride)
+    {
+      ANDROID_DELETE_LOCAL_REF (bitmap);
+      memory_full (0);
+    }
+
+  if (bitmap_info.width != image->width
+      || bitmap_info.height != image->height)
+    /* This is not yet supported.  */
+    emacs_abort ();
+
+  /* Make sure the bitmap formats are compatible with each other.  */
+
+  if ((image->depth == 24
+       && bitmap_info.format != ANDROID_BITMAP_FORMAT_RGBA_8888)
+      || (image->depth == 1
+	  && bitmap_info.format != ANDROID_BITMAP_FORMAT_A_8))
+    emacs_abort ();
+
+  /* Lock the image data.  Once again, the NDK documentation says the
+     call can fail, but does not say how to determine whether or not
+     it has failed, nor how the address is aligned.  */
+  data = NULL;
+  AndroidBitmap_lockPixels (android_java_env, bitmap, &data);
+
+  if (!data)
+    {
+      /* Take a NULL pointer to mean that AndroidBitmap_lockPixels
+	 failed.  */
+      ANDROID_DELETE_LOCAL_REF (bitmap);
+      memory_full (0);
+    }
+
+  data_1 = data;
+  data_2 = (unsigned char *) image->data;
+
+  /* Copy the bitmap data over scanline-by-scanline.  */
+  for (i = 0; i < image->height; ++i)
+    {
+      if (image->depth != 1)
+	memcpy (data_1, data_2,
+		image->width * (image->bits_per_pixel / 8));
+      else
+	{
+	  /* Android internally uses a 1 byte-per-pixel format for
+	     ALPHA_8 images.  Expand the image from the 1
+	     bit-per-pixel X format correctly.  */
+
+	  for (x = 0; x < image->width; ++x)
+	    data_1[x] = (data_2[x / 8] & (1 << x % 8)) ? 0xff : 0;
+	}
+
+      data_1 += bitmap_info.stride;
+      data_2 += image->bytes_per_line;
+    }
+
+  /* Unlock the bitmap pixels.  */
+  AndroidBitmap_unlockPixels (android_java_env, bitmap);
+
+  /* Delete the bitmap reference.  */
+  ANDROID_DELETE_LOCAL_REF (bitmap);
+}
+
+
+
+#undef faccessat
+
+/* Replace the system faccessat with one which understands AT_EACCESS.
+   Android's faccessat simply fails upon using AT_EACCESS, so repalce
+   it with zero here.  This isn't caught during configuration.  */
+
+int
+faccessat (int dirfd, const char *pathname, int mode, int flags)
+{
+  static int (*real_faccessat) (int, const char *, int, int);
+
+  if (!real_faccessat)
+    real_faccessat = dlsym (RTLD_NEXT, "faccessat");
+
+  return real_faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
+}
+
 #else /* ANDROID_STUBIFY */
 
 /* X emulation functions for Android.  */
@@ -2329,6 +2828,46 @@ void
 android_free_gc (struct android_gc *gc)
 {
   /* This function should never be called when building stubs.  */
+  emacs_abort ();
+}
+
+struct android_image *
+android_create_image (unsigned int depth, enum android_image_format format,
+		      char *data, unsigned int width, unsigned int height)
+{
+  emacs_abort ();
+}
+
+void
+android_destroy_image (struct android_image *ximg)
+{
+  emacs_abort ();
+}
+
+void
+android_put_pixel (struct android_image *ximg, int x, int y,
+		   unsigned long pixel)
+{
+  emacs_abort ();
+}
+
+unsigned long
+android_get_pixel (struct android_image *ximg, int x, int y)
+{
+  emacs_abort ();
+}
+
+struct android_image *
+android_get_image (android_drawable drawable,
+		   enum android_image_format format)
+{
+  emacs_abort ();
+}
+
+void
+android_put_image (android_pixmap pixmap,
+		   struct android_image *image)
+{
   emacs_abort ();
 }
 

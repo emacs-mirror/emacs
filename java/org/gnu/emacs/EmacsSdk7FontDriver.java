@@ -28,8 +28,11 @@ import java.util.List;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.Canvas;
 
 import android.util.Log;
+
+import android.os.Build;
 
 public class EmacsSdk7FontDriver extends EmacsFontDriver
 {
@@ -37,7 +40,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
   private static final String EM_STRING   = "m";
   private static final String TAG	  = "EmacsSdk7FontDriver";
 
-  private class Sdk7Typeface
+  protected class Sdk7Typeface
   {
     /* The typeface and paint.  */
     public Typeface typeface;
@@ -57,7 +60,10 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
       width = UNSPECIFIED;
       spacing = PROPORTIONAL;
 
+      this.typeface = typeface;
+
       typefacePaint = new Paint ();
+      typefacePaint.setAntiAlias (true);
       typefacePaint.setTypeface (typeface);
 
       /* For the calls to measureText below.  */
@@ -160,7 +166,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     }
   };
 
-  private class Sdk7FontEntity extends FontEntity
+  protected class Sdk7FontEntity extends FontEntity
   {
     /* The typeface.  */
     public Sdk7Typeface typeface;
@@ -177,18 +183,16 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
       slant = typeface.slant;
       spacing = typeface.spacing;
       width = typeface.width;
+      dpi = Math.round (EmacsService.SERVICE.metrics.scaledDensity * 160f);
 
       this.typeface = typeface;
     }
   };
 
-  private class Sdk7FontObject extends FontObject
+  protected class Sdk7FontObject extends FontObject
   {
     /* The typeface.  */
     public Sdk7Typeface typeface;
-
-    /* The text size.  */
-    public int pixelSize;
 
     public
     Sdk7FontObject (Sdk7Typeface typeface, int pixelSize)
@@ -205,6 +209,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
       slant = typeface.slant;
       spacing = typeface.spacing;
       width = typeface.width;
+      dpi = Math.round (EmacsService.SERVICE.metrics.scaledDensity * 160f);
 
       /* Compute the ascent and descent.  */
       typeface.typefacePaint.setTextSize (pixelSize);
@@ -238,6 +243,93 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     }
   };
 
+  private class Sdk7DrawString implements EmacsPaintReq
+  {
+    private boolean drawBackground;
+    private Sdk7FontObject fontObject;
+    private char[] chars;
+    private EmacsGC immutableGC;
+    private EmacsDrawable drawable;
+    private Rect rect;
+    private int originX, originY;
+
+    public
+    Sdk7DrawString (Sdk7FontObject fontObject, char[] chars,
+		    EmacsGC immutableGC, EmacsDrawable drawable,
+		    boolean drawBackground, Rect rect,
+		    int originX, int originY)
+    {
+      this.fontObject = fontObject;
+      this.chars = chars;
+      this.immutableGC = immutableGC;
+      this.drawable = drawable;
+      this.drawBackground = drawBackground;
+      this.rect = rect;
+      this.originX = originX;
+      this.originY = originY;
+    }
+
+    @Override
+    public EmacsDrawable
+    getDrawable ()
+    {
+      return drawable;
+    }
+
+    @Override
+    public EmacsGC
+    getGC ()
+    {
+      return immutableGC;
+    }
+
+    @Override
+    public void
+    paintTo (Canvas canvas, Paint paint, EmacsGC immutableGC)
+    {
+      int scratch;
+
+      paint.setStyle (Paint.Style.FILL);
+
+      if (drawBackground)
+	{
+	  paint.setColor (immutableGC.background | 0xff000000);
+	  canvas.drawRect (rect, paint);
+	}
+
+      paint.setTextSize (fontObject.pixelSize);
+      paint.setColor (immutableGC.foreground | 0xff000000);
+      paint.setTypeface (fontObject.typeface.typeface);
+      paint.setAntiAlias (true);
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	/* Disable hinting as that leads to displayed text not
+	   matching the computed metrics.  */
+	paint.setHinting (Paint.HINTING_OFF);
+
+      canvas.drawText (chars, 0, chars.length, originX, originY, paint);
+      paint.setAntiAlias (false);
+    }
+
+    @Override
+    public Rect
+    getRect ()
+    {
+      Rect rect;
+
+      rect = new Rect ();
+
+      fontObject.typeface.typefacePaint.setTextSize (fontObject.pixelSize);
+      fontObject.typeface.typefacePaint.getTextBounds (chars, 0, chars.length,
+						       rect);
+
+      /* Add the background rect to the damage as well.  */
+      rect.union (this.rect);
+
+      return rect;
+    }
+  };
+
   private String[] fontFamilyList;
   private Sdk7Typeface[] typefaceList;
   private Sdk7Typeface fallbackTypeface;
@@ -252,7 +344,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     systemFontsDirectory = new File ("/system/fonts");
 
     fontFamilyList = systemFontsDirectory.list ();
-    typefaceList = new Sdk7Typeface[fontFamilyList.length];
+    typefaceList = new Sdk7Typeface[fontFamilyList.length + 3];
 
     /* It would be nice to avoid opening each and every font upon
        startup.  But that doesn't seem to be possible on
@@ -267,8 +359,18 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 					    typeface);
       }
 
+    /* Initialize the default monospace and serif typefaces.  */
     fallbackTypeface = new Sdk7Typeface ("monospace",
 					 Typeface.MONOSPACE);
+    typefaceList[fontFamilyList.length] = fallbackTypeface;
+
+    fallbackTypeface = new Sdk7Typeface ("Monospace",
+					 Typeface.MONOSPACE);
+    typefaceList[fontFamilyList.length + 1] = fallbackTypeface;
+
+    fallbackTypeface = new Sdk7Typeface ("Sans Serif",
+					 Typeface.DEFAULT);
+    typefaceList[fontFamilyList.length + 2] = fallbackTypeface;
   }
 
   private boolean
@@ -277,11 +379,6 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     if (fontSpec.family != null
 	&& !fontSpec.family.equals (typeface.familyName))
       return false;
-
-
-    if (fontSpec.adstyle != null
-	&& !fontSpec.adstyle.isEmpty ())
-      /* return false; */;
 
     if (fontSpec.slant != null
 	&& !fontSpec.weight.equals (typeface.weight))
@@ -393,7 +490,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     paint.getTextBounds (TOFU_STRING, 0, TOFU_STRING.length (),
 			 rect1);
     paint.getTextBounds ("" + charCode, 0, 1, rect2);
-    return rect1.equals (rect2) ? 1 : 0;
+    return rect1.equals (rect2) ? 0 : 1;
   }
 
   private void
@@ -434,21 +531,47 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 
   @Override
   public void
-  textExtents (FontObject font, int code[], FontMetrics fontMetrics[])
+  textExtents (FontObject font, int code[], FontMetrics fontMetrics)
   {
     int i;
     Paint paintCache;
     Rect boundsCache;
     Sdk7FontObject fontObject;
+    char[] text;
+    float width;
 
     fontObject = (Sdk7FontObject) font;
     paintCache = fontObject.typeface.typefacePaint;
     paintCache.setTextSize (fontObject.pixelSize);
     boundsCache = new Rect ();
 
-    for (i = 0; i < code.length; ++i)
-      textExtents1 ((Sdk7FontObject) font, code[i], fontMetrics[i],
+    if (code.length == 0)
+      {
+	fontMetrics.lbearing = 0;
+	fontMetrics.rbearing = 0;
+	fontMetrics.ascent = 0;
+	fontMetrics.descent = 0;
+	fontMetrics.width = 0;
+      }
+    else if (code.length == 1)
+      textExtents1 ((Sdk7FontObject) font, code[0], fontMetrics,
 		    paintCache, boundsCache);
+    else
+      {
+	text = new char[code.length];
+
+	for (i = 0; i < code.length; ++i)
+	  text[i] = (char) code[i];
+
+	paintCache.getTextBounds (text, 0, 1, boundsCache);
+	width = paintCache.measureText (text, 0, code.length);
+
+	fontMetrics.lbearing = (short) boundsCache.left;
+	fontMetrics.rbearing = (short) boundsCache.right;
+	fontMetrics.ascent = (short) -boundsCache.top;
+	fontMetrics.descent = (short) boundsCache.bottom;
+	fontMetrics.width = (short) Math.round (width);
+      }
   }
 
   @Override
@@ -456,5 +579,38 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
   encodeChar (FontObject fontObject, char charCode)
   {
     return charCode;
+  }
+
+  @Override
+  public int
+  draw (FontObject fontObject, EmacsGC gc, EmacsDrawable drawable,
+	int[] chars, int x, int y, int backgroundWidth,
+	boolean withBackground)
+  {
+    Rect backgroundRect;
+    Sdk7FontObject sdk7FontObject;
+    Sdk7DrawString op;
+    char[] charsArray;
+    int i;
+
+    sdk7FontObject = (Sdk7FontObject) fontObject;
+    charsArray = new char[chars.length];
+
+    for (i = 0; i < chars.length; ++i)
+      charsArray[i] = (char) chars[i];
+
+    backgroundRect = new Rect ();
+    backgroundRect.top = y - sdk7FontObject.ascent;
+    backgroundRect.left = x;
+    backgroundRect.right = x + backgroundWidth;
+    backgroundRect.bottom = y + sdk7FontObject.descent;
+
+    op = new Sdk7DrawString (sdk7FontObject, charsArray,
+			     gc.immutableGC (), drawable,
+			     withBackground,
+			     backgroundRect, x, y);
+
+    EmacsService.SERVICE.appendPaintOperation (op);
+    return 1;
   }
 };

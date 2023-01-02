@@ -1,0 +1,166 @@
+/* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
+
+Copyright (C) 2023 Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
+
+package org.gnu.emacs;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import android.content.Intent;
+import android.util.Log;
+
+/* Code to paper over the differences in lifecycles between
+   "activities" and windows.  There are four interfaces to an instance
+   of this class:
+
+     registerWindowConsumer (WindowConsumer)
+     registerWindow (EmacsWindow)
+     removeWindowConsumer (WindowConsumer)
+     removeWindow (EmacsWindow)
+
+   A WindowConsumer is expected to allow an EmacsWindow to be attached
+   to it, and be created or destroyed.
+
+   Every time a window is created, registerWindow checks the list of
+   window consumers.  If a consumer exists and does not currently have
+   a window of its own attached, it gets the new window.  Otherwise,
+   the window attachment manager starts a new consumer.
+
+   Every time a consumer is registered, registerWindowConsumer checks
+   the list of available windows.  If a window exists and is not
+   currently attached to a consumer, then the consumer gets it.
+
+   Finally, every time a window is removed, the consumer is
+   destroyed.  */
+
+public class EmacsWindowAttachmentManager
+{
+  public static EmacsWindowAttachmentManager MANAGER;
+  private final static String TAG = "EmacsWindowAttachmentManager";
+
+  static
+  {
+    MANAGER = new EmacsWindowAttachmentManager ();
+  };
+
+  public interface WindowConsumer
+  {
+    public void attachWindow (EmacsWindow window);
+    public EmacsWindow getAttachedWindow ();
+    public void detachWindow ();
+    public void destroy ();
+  };
+
+  private List<WindowConsumer> consumers;
+  private List<EmacsWindow> windows;
+
+  public
+  EmacsWindowAttachmentManager ()
+  {
+    consumers = new LinkedList<WindowConsumer> ();
+    windows = new LinkedList<EmacsWindow> ();
+  }
+
+  public void
+  registerWindowConsumer (WindowConsumer consumer)
+  {
+    Log.d (TAG, "registerWindowConsumer " + consumer);
+
+    consumers.add (consumer);
+
+    for (EmacsWindow window : windows)
+      {
+	if (window.getAttachedConsumer () == null)
+	  {
+	    Log.d (TAG, "registerWindowConsumer: attaching " + window);
+	    consumer.attachWindow (window);
+	    return;
+	  }
+      }
+
+    Log.d (TAG, "registerWindowConsumer: sendWindowAction 0, 0");
+    EmacsNative.sendWindowAction ((short) 0, 0);
+  }
+
+  public void
+  registerWindow (EmacsWindow window)
+  {
+    Intent intent;
+
+    Log.d (TAG, "registerWindow " + window);
+    windows.add (window);
+
+    for (WindowConsumer consumer : consumers)
+      {
+	if (consumer.getAttachedWindow () == null)
+	  {
+	    Log.d (TAG, "registerWindow: attaching " + consumer);
+	    consumer.attachWindow (window);
+	    return;
+	  }
+      }
+
+    intent = new Intent (EmacsService.SERVICE,
+			 EmacsMultitaskActivity.class);
+    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_DOCUMENT
+		     | Intent.FLAG_ACTIVITY_NEW_TASK
+		     | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+    EmacsService.SERVICE.startActivity (intent);
+    Log.d (TAG, "registerWindow: startActivity");
+  }
+
+  public void
+  removeWindowConsumer (WindowConsumer consumer)
+  {
+    EmacsWindow window;
+
+    Log.d (TAG, "removeWindowConsumer " + consumer);
+
+    window = consumer.getAttachedWindow ();
+
+    if (window != null)
+      {
+	Log.d (TAG, "removeWindowConsumer: detaching " + window);
+
+	consumer.detachWindow ();
+	window.onActivityDetached ();
+      }
+
+    Log.d (TAG, "removeWindowConsumer: removing " + consumer);
+    consumers.remove (consumer);
+  }
+
+  public void
+  detachWindow (EmacsWindow window)
+  {
+    WindowConsumer consumer;
+
+    Log.d (TAG, "detachWindow " + window);
+
+    if (window.getAttachedConsumer () != null)
+      {
+	consumer = window.getAttachedConsumer ();
+
+	Log.d (TAG, "detachWindow: removing" + consumer);
+
+	consumers.remove (consumer);
+	consumer.destroy ();
+      }
+  }
+};

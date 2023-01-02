@@ -57,7 +57,10 @@ public class EmacsDrawRectangle implements EmacsPaintReq
   public Rect
   getRect ()
   {
-    return new Rect (x, y, x + width, y + height);
+    /* Canvas.drawRect actually behaves exactly like PolyRectangle wrt
+       to where the lines are placed, so extend the width and height
+       by 1 in the damage rectangle.  */
+    return new Rect (x, y, x + width + 1, y + height + 1);
   }
 
   @Override
@@ -89,9 +92,10 @@ public class EmacsDrawRectangle implements EmacsPaintReq
       return;
 
     alu = immutableGC.function;
-    rect = getRect ();
+    rect = new Rect (x, y, x + width, y + height);
 
     paint.setStyle (Paint.Style.STROKE);
+    paint.setStrokeWidth (1);
 
     if (alu == EmacsGC.GC_COPY)
       paint.setXfermode (null);

@@ -4909,7 +4909,58 @@ static const char *const lispy_accent_keys[] =
   "dead-horn",
 };
 
-#ifdef HAVE_NTGUI
+#ifdef HAVE_ANDROID
+#define FUNCTION_KEY_OFFSET 0
+
+const char *const lispy_function_keys[] =
+  {
+    /* All elements in this array default to 0, except for the few
+       function keys that Emacs recognizes.  */
+    [111] = "escape",
+    [121] = "break",
+    [122] = "home",
+    [123] = "end",
+    [124] = "insert",
+    [131] = "f1",
+    [132] = "f2",
+    [133] = "f3",
+    [134] = "f4",
+    [135] = "f5",
+    [136] = "f6",
+    [137] = "f7",
+    [138] = "f8",
+    [139] = "f9",
+    [140] = "f10",
+    [141] = "f11",
+    [142] = "f12",
+    [160] = "kp-ret",
+    [19]  = "up",
+    [20]  = "down",
+    [213] = "muhenkan",
+    [214] = "henkan",
+    [215] = "hiragana-katakana",
+    [218] = "kana",
+    [21]  = "left",
+    [22]  = "right",
+    [259] = "help",
+    [268] = "kp-up-left",
+    [269] = "kp-down-left",
+    [270] = "kp-up-right",
+    [271] = "kp-down-right",
+    [277] = "cut",
+    [278] = "copy",
+    [279] = "paste",
+    [28]  = "clear",
+    [4]	  = "back",
+    [61]  = "tab",
+    [66]  = "return",
+    [67]  = "backspace",
+    [82]  = "menu",
+    [92]  = "page-up",
+    [93]  = "page-down",
+  };
+
+#elif defined HAVE_NTGUI
 #define FUNCTION_KEY_OFFSET 0x0
 
 const char *const lispy_function_keys[] =

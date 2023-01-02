@@ -49,6 +49,7 @@ struct android_emacs_font_driver
   jmethodID has_char;
   jmethodID text_extents;
   jmethodID encode_char;
+  jmethodID draw;
 
   /* Static methods.  */
   jmethodID create_font_driver;
@@ -67,6 +68,7 @@ struct android_emacs_font_spec
   jfieldID size;
   jfieldID spacing;
   jfieldID avgwidth;
+  jfieldID dpi;
 };
 
 struct android_emacs_font_metrics
@@ -113,6 +115,9 @@ struct androidfont_info
 
   /* The Java-side font.  */
   jobject object;
+
+  /* Cached glyph metrics arranged in a two dimensional array.  */
+  struct font_metrics **metrics;
 };
 
 struct androidfont_entity
@@ -197,9 +202,11 @@ android_init_font_driver (void)
   FIND_METHOD (has_char, "hasChar", "(Lorg/gnu/emacs/EmacsFontDriver$Font"
 	       "Spec;C)I");
   FIND_METHOD (text_extents, "textExtents", "(Lorg/gnu/emacs/EmacsFontDriver"
-	       "$FontObject;[I[Lorg/gnu/emacs/EmacsFontDriver$FontMetrics;)V");
+	       "$FontObject;[ILorg/gnu/emacs/EmacsFontDriver$FontMetrics;)V");
   FIND_METHOD (encode_char, "encodeChar", "(Lorg/gnu/emacs/EmacsFontDriver"
 	       "$FontObject;C)I");
+  FIND_METHOD (draw, "draw", "(Lorg/gnu/emacs/EmacsFontDriver$FontObject;"
+	       "Lorg/gnu/emacs/EmacsGC;Lorg/gnu/emacs/EmacsDrawable;[IIIIZ)I");
 
   font_driver_class.create_font_driver
     = (*android_java_env)->GetStaticMethodID (android_java_env,
@@ -252,6 +259,7 @@ android_init_font_spec (void)
   FIND_FIELD (size, "size", "Ljava/lang/Integer;");
   FIND_FIELD (spacing, "spacing", "Ljava/lang/Integer;");
   FIND_FIELD (avgwidth, "avgwidth", "Ljava/lang/Integer;");
+  FIND_FIELD (dpi, "dpi", "Ljava/lang/Integer;");
 #undef FIND_FIELD
 }
 
@@ -449,6 +457,9 @@ androidfont_from_lisp (Lisp_Object font)
   DO_CARDINAL_FIELD (avgwidth, (FIXNUMP (AREF (font, FONT_AVGWIDTH_INDEX))
 				? XFIXNUM (AREF (font, FONT_AVGWIDTH_INDEX))
 				: -1));
+  DO_CARDINAL_FIELD (dpi, (FIXNUMP (AREF (font, FONT_DPI_INDEX))
+			   ? XFIXNUM (AREF (font, FONT_DPI_INDEX))
+			   : -1));
 
 #undef DO_CARDINAL_FIELD
 
@@ -507,6 +518,8 @@ androidfont_from_java (jobject spec, Lisp_Object entity)
   DO_CARDINAL_FIELD (size, FONT_SIZE_INDEX, false);
   DO_CARDINAL_FIELD (spacing, FONT_SPACING_INDEX, false);
   DO_CARDINAL_FIELD (avgwidth, FONT_AVGWIDTH_INDEX, false);
+  DO_CARDINAL_FIELD (dpi, FONT_DPI_INDEX, false);
+
 #undef DO_CARDINAL_FIELD
 }
 
@@ -613,49 +626,98 @@ static int
 androidfont_draw (struct glyph_string *s, int from, int to,
 		  int x, int y, bool with_background)
 {
-  return 0;
+  struct androidfont_info *info;
+  jarray chars;
+  int rc;
+  jobject gcontext, drawable;
+
+  verify (sizeof (unsigned int) == sizeof (jint));
+  info = (struct androidfont_info *) s->font;
+
+  gcontext = android_resolve_handle (s->gc->gcontext,
+				     ANDROID_HANDLE_GCONTEXT);
+  drawable = android_resolve_handle (FRAME_ANDROID_WINDOW (s->f),
+				     ANDROID_HANDLE_WINDOW);
+  chars = (*android_java_env)->NewIntArray (android_java_env,
+					    to - from);
+
+  if (!chars)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  (*android_java_env)->SetIntArrayRegion (android_java_env, chars,
+					  0, to - from,
+					  (jint *) s->char2b + from);
+
+  info = (struct androidfont_info *) s->font;
+  prepare_face_for_display (s->f, s->face);
+
+  rc = (*android_java_env)->CallIntMethod (android_java_env,
+					   font_driver,
+					   font_driver_class.draw,
+					   info->object,
+					   gcontext, drawable,
+					   chars, (jint) x, (jint) y,
+					   (jint) s->width,
+					   (jboolean) with_background);
+  (*android_java_env)->ExceptionClear (android_java_env);
+  ANDROID_DELETE_LOCAL_REF (chars);
+
+  return rc;
 }
 
 static Lisp_Object
-androidfont_open_font (struct frame *f, Lisp_Object font_entity, int x)
+androidfont_open_font (struct frame *f, Lisp_Object font_entity,
+		       int pixel_size)
 {
   struct androidfont_info *font_info;
   struct androidfont_entity *entity;
   struct font *font;
-  Lisp_Object font_object, tem;
+  Lisp_Object font_object;
   jobject old;
   jint value;
 
-  if (x <= 0)
+  if (XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX)) != 0)
+    pixel_size = XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX));
+  else if (pixel_size == 0)
     {
-      /* Get pixel size from frame instead.  */
-      tem = get_frame_param (f, Qfontsize);
-      x = NILP (tem) ? 0 : XFIXNAT (tem);
+      /* This bit was copied from xfont.c.  The values might need
+	 adjustment.  */
+
+      if (FRAME_FONT (f))
+	pixel_size = FRAME_FONT (f)->pixel_size;
+      else
+	pixel_size = 12;
     }
 
   __android_log_print (ANDROID_LOG_DEBUG, __func__,
 		       "opening font entity %"pI"x:%d",
-		       (EMACS_INT) font_entity, x);
+		       (EMACS_INT) font_entity, pixel_size);
 
   entity = (struct androidfont_entity *) XFONT_ENTITY (font_entity);
 
   block_input ();
   font_object = font_make_object (VECSIZE (struct androidfont_info),
-				  font_entity, x);
+				  font_entity, pixel_size);
   ASET (font_object, FONT_TYPE_INDEX, Qandroid);
   font_info = (struct androidfont_info *) XFONT_OBJECT (font_object);
   font = &font_info->font;
   font->driver = &androidfont_driver;
 
-  /* Clear font_info->object early in case GC happens later on! */
+  /* Clear font_info->object and font_info->metrics early in case GC
+     happens later on! */
   font_info->object = NULL;
+  font_info->metrics = NULL;
   unblock_input ();
 
   font_info->object
     = (*android_java_env)->CallObjectMethod (android_java_env,
 					     font_driver,
 					     font_driver_class.open_font,
-					     entity->object, (jint) x);
+					     entity->object,
+					     (jint) pixel_size);
   if (!font_info->object)
     {
       (*android_java_env)->ExceptionClear (android_java_env);
@@ -710,8 +772,18 @@ static void
 androidfont_close_font (struct font *font)
 {
   struct androidfont_info *info;
+  int i;
 
   info = (struct androidfont_info *) font;
+
+  /* Free the font metrics cache if it exists.  */
+
+  if (info->metrics)
+    {
+      for (i = 0; i < 256; ++i)
+	xfree (info->metrics[i]);
+      xfree (info->metrics);
+    }
 
   /* If info->object is NULL, then FONT was unsuccessfully created,
      and there is no global reference that has to be deleted.  */
@@ -763,16 +835,63 @@ androidfont_encode_char (struct font *font, int c)
 }
 
 static void
+androidfont_cache_text_extents (struct androidfont_info *info,
+				unsigned int glyph,
+				struct font_metrics *metrics)
+{
+  int i;
+
+  /* Glyphs larger than 65535 can't be cached.  */
+  if (glyph >= 256 * 256)
+    return;
+
+  if (!info->metrics)
+    info->metrics = xzalloc (256 * sizeof *info->metrics);
+
+  if (!info->metrics[glyph / 256])
+    {
+      info->metrics[glyph / 256]
+	= xnmalloc (256, sizeof **info->metrics);
+
+      /* Now, all the metrics in that array as invalid by setting
+	 lbearing to SHRT_MAX.  */
+      for (i = 0; i < 256; ++i)
+	info->metrics[glyph / 256][i].lbearing = SHRT_MAX;
+    }
+
+  /* Finally, cache the glyph.  */
+  info->metrics[glyph / 256][glyph % 256] = *metrics;
+}
+
+static bool
+androidfont_check_cached_extents (struct androidfont_info *info,
+				  unsigned int glyph,
+				  struct font_metrics *metrics)
+{
+  if (info->metrics && info->metrics[glyph / 256]
+      && info->metrics[glyph / 256][glyph % 256].lbearing != SHRT_MAX)
+    {
+      *metrics = info->metrics[glyph / 256][glyph % 256];
+      return true;
+    }
+
+  return false;
+}
+
+static void
 androidfont_text_extents (struct font *font, const unsigned int *code,
 			  int nglyphs, struct font_metrics *metrics)
 {
   struct androidfont_info *info;
-  jarray codepoint_array, metrics_array;
+  jarray codepoint_array;
   jobject metrics_object;
-  int i;
   short value;
 
   info = (struct androidfont_info *) font;
+
+  if (nglyphs == 1
+      && androidfont_check_cached_extents (info, *code, metrics))
+    return;
 
   /* Allocate the arrays of code points and font metrics.  */
   codepoint_array
@@ -784,92 +903,103 @@ androidfont_text_extents (struct font *font, const unsigned int *code,
       memory_full (0);
     }
 
-  metrics_array
-    = (*android_java_env)->NewObjectArray (android_java_env,
-					   nglyphs,
-					   font_metrics_class.class,
-					   NULL);
-  if (!metrics_array)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      ANDROID_DELETE_LOCAL_REF (metrics_array);
-      memory_full (0);
-    }
+  verify (sizeof (unsigned int) == sizeof (jint));
 
-  if (sizeof (unsigned int) == sizeof (jint))
-    /* Always true on every Android device.  */
-    (*android_java_env)->SetIntArrayRegion (android_java_env,
-					    codepoint_array,
-					    0, nglyphs,
-					    (jint *) code);
-  else
-    emacs_abort ();
+  /* Always true on every Android device.  */
+  (*android_java_env)->SetIntArrayRegion (android_java_env,
+					  codepoint_array,
+					  0, nglyphs,
+					  (jint *) code);
 
-  for (i = 0; i < nglyphs; ++i)
-    {
-      metrics_object
-	= (*android_java_env)->AllocObject (android_java_env,
-					    font_metrics_class.class);
-
-      if (!metrics_object)
-	{
-	  (*android_java_env)->ExceptionClear (android_java_env);
-	  ANDROID_DELETE_LOCAL_REF (metrics_array);
-	  ANDROID_DELETE_LOCAL_REF (codepoint_array);
-	  memory_full (0);
-	}
-
-      (*android_java_env)->SetObjectArrayElement (android_java_env,
-						  metrics_array, i,
-						  metrics_object);
-      ANDROID_DELETE_LOCAL_REF (metrics_object);
-    }
+  metrics_object
+    = (*android_java_env)->AllocObject (android_java_env,
+					font_metrics_class.class);
 
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       font_driver,
 				       font_driver_class.text_extents,
 				       info->object, codepoint_array,
-				       metrics_array);
+				       metrics_object);
 
   if ((*android_java_env)->ExceptionCheck (android_java_env))
     {
       (*android_java_env)->ExceptionClear (android_java_env);
-      ANDROID_DELETE_LOCAL_REF (metrics_array);
+      ANDROID_DELETE_LOCAL_REF (metrics_object);
       ANDROID_DELETE_LOCAL_REF (codepoint_array);
       memory_full (0);
     }
 
-  for (i = 0; i < nglyphs; ++i)
-    {
-      metrics_object
-	= (*android_java_env)->GetObjectArrayElement (android_java_env,
-						      metrics_array, i);
 #define DO_CARDINAL_FIELD(field)					\
   value									\
     = (*android_java_env)->GetShortField (android_java_env,		\
 					  metrics_object,		\
 					  font_metrics_class.field);	\
-  metrics[i].field = value;
+  metrics->field = value;
 
-      DO_CARDINAL_FIELD (lbearing);
-      DO_CARDINAL_FIELD (rbearing);
-      DO_CARDINAL_FIELD (width);
-      DO_CARDINAL_FIELD (ascent);
-      DO_CARDINAL_FIELD (descent);
+  DO_CARDINAL_FIELD (lbearing);
+  DO_CARDINAL_FIELD (rbearing);
+  DO_CARDINAL_FIELD (width);
+  DO_CARDINAL_FIELD (ascent);
+  DO_CARDINAL_FIELD (descent);
 
 #undef DO_CARDINAL_FIELD
 
-      ANDROID_DELETE_LOCAL_REF (metrics_object);
-    }
-
-  ANDROID_DELETE_LOCAL_REF (metrics_array);
+  ANDROID_DELETE_LOCAL_REF (metrics_object);
   ANDROID_DELETE_LOCAL_REF (codepoint_array);
+
+  /* Emacs spends a lot of time in androidfont_text_extents, which
+     makes calling JNI too slow.  Cache the metrics for this single
+     glyph.  */
+
+  if (nglyphs == 1)
+    androidfont_cache_text_extents (info, *code, metrics);
 }
 
 static Lisp_Object
 androidfont_list_family (struct frame *f)
 {
-  return Qnil;
+  Lisp_Object families;
+  jarray family_array;
+  jobject string;
+  jsize i, length;
+  const char *family;
+
+  family_array
+    = (*android_java_env)->CallObjectMethod (android_java_env,
+					     font_driver,
+					     font_driver_class.list_families);
+  if (!family_array)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  length = (*android_java_env)->GetArrayLength (android_java_env,
+						family_array);
+  families = Qnil;
+
+  for (i = 0; i < length; ++i)
+    {
+      string = (*android_java_env)->GetObjectArrayElement (android_java_env,
+							   family_array, i);
+      family = (*android_java_env)->GetStringUTFChars (android_java_env,
+						       (jstring) string, NULL);
+
+      if (!family)
+	{
+	  ANDROID_DELETE_LOCAL_REF (string);
+	  ANDROID_DELETE_LOCAL_REF (family_array);
+	}
+
+      families = Fcons (build_string_from_utf8 (string), families);
+      (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						  (jstring) string,
+						  family);
+      ANDROID_DELETE_LOCAL_REF (string);
+    }
+
+  ANDROID_DELETE_LOCAL_REF (family_array);
+  return Fnreverse (families);
 }
 
 struct font_driver androidfont_driver =

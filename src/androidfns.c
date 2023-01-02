@@ -531,9 +531,10 @@ android_default_font_parameter (struct frame *f, Lisp_Object parms)
   if (! FONTP (font) && ! STRINGP (font))
     {
       const char *names[] = {
-	/* This will find the normal font.  */
-	"DroidSansMono",
+	/* This will find the normal font.  The default font size on
+	   Android is 8.  */
 	"monospace",
+	"DroidSansMono",
 	NULL
       };
       int i;

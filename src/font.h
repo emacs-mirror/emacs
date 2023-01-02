@@ -547,8 +547,14 @@ CHECK_FONT_GET_OBJECT (Lisp_Object x)
   return XFONT_OBJECT (x);
 }
 
+#ifndef HAVE_ANDROID
 /* Number of pt per inch (from the TeXbook).  */
 #define PT_PER_INCH 72.27
+#else
+/* Android uses this value instead to compensate for different device
+   dimensions.  */
+#define PT_PER_INCH 160.00
+#endif
 
 /* Return a pixel size (integer) corresponding to POINT size (double)
    on resolution DPI.  */

@@ -39,6 +39,8 @@ struct android_display_info *x_display_list;
 
 #ifndef ANDROID_STUBIFY
 
+#include <android/log.h>
+
 enum
   {
     ANDROID_EVENT_NORMAL,
@@ -141,6 +143,124 @@ android_flush_dirty_back_buffer_on (struct frame *f)
   show_back_buffer (f);
 }
 
+/* Convert between the modifier bits Android uses and the modifier
+   bits Emacs uses.  */
+
+static int
+android_android_to_emacs_modifiers (struct android_display_info *dpyinfo,
+				    int state)
+{
+  return ((state & ANDROID_CONTROL_MASK) ? ctrl_modifier : 0
+	  | (state & ANDROID_SHIFT_MASK) ? shift_modifier : 0
+	  | (state & ANDROID_ALT_MASK) ? meta_modifier : 0);
+}
+
+static int
+android_emacs_to_android_modifiers (struct android_display_info *dpyinfo,
+				    intmax_t state)
+{
+  return ((state & ctrl_modifier) ? ANDROID_CONTROL_MASK : 0
+	  | (state & shift_modifier) ? ANDROID_SHIFT_MASK : 0
+	  | (state & meta_modifier) ? ANDROID_ALT_MASK : 0);
+}
+
+static void android_frame_rehighlight (struct android_display_info *);
+
+static void
+android_lower_frame (struct frame *f)
+{
+  /* TODO.  */
+}
+
+static void
+android_raise_frame (struct frame *f)
+{
+  /* TODO.  */
+}
+
+static void
+android_new_focus_frame (struct android_display_info *dpyinfo,
+			 struct frame *frame)
+{
+  struct frame *old_focus;
+
+  old_focus = dpyinfo->focus_frame;
+
+  if (frame != dpyinfo->focus_frame)
+    {
+      /* Set this before calling other routines, so that they see
+	 the correct value of x_focus_frame.  */
+      dpyinfo->focus_frame = frame;
+
+      if (old_focus && old_focus->auto_lower)
+	android_lower_frame (old_focus);
+
+      if (dpyinfo->focus_frame && dpyinfo->focus_frame->auto_raise)
+	dpyinfo->pending_autoraise_frame = dpyinfo->focus_frame;
+      else
+	dpyinfo->pending_autoraise_frame = NULL;
+    }
+
+  android_frame_rehighlight (dpyinfo);
+}
+
+static void
+android_focus_changed (int type, int state,
+		       struct android_display_info *dpyinfo,
+		       struct frame *frame, struct input_event *bufp)
+{
+  if (type == ANDROID_FOCUS_IN)
+    {
+      if (dpyinfo->x_focus_event_frame != frame)
+        {
+          android_new_focus_frame (dpyinfo, frame);
+          dpyinfo->x_focus_event_frame = frame;
+          bufp->kind = FOCUS_IN_EVENT;
+          XSETFRAME (bufp->frame_or_window, frame);
+        }
+
+      frame->output_data.android->focus_state |= state;
+    }
+  else if (type == ANDROID_FOCUS_OUT)
+    {
+      frame->output_data.android->focus_state &= ~state;
+
+      if (dpyinfo->x_focus_event_frame == frame)
+        {
+          dpyinfo->x_focus_event_frame = 0;
+          android_new_focus_frame (dpyinfo, 0);
+
+          bufp->kind = FOCUS_OUT_EVENT;
+          XSETFRAME (bufp->frame_or_window, frame);
+        }
+
+      if (frame->pointer_invisible)
+        android_toggle_invisible_pointer (frame, false);
+    }
+}
+
+static void
+android_detect_focus_change (struct android_display_info *dpyinfo,
+			     struct frame *frame,
+			     union android_event *event,
+			     struct input_event *bufp)
+{
+  if (!frame)
+    return;
+
+  switch (event->type)
+    {
+    case ANDROID_FOCUS_IN:
+    case ANDROID_FOCUS_OUT:
+      android_focus_changed (event->type, FOCUS_EXPLICIT,
+			     dpyinfo, frame, bufp);
+      break;
+
+    default:
+      break;
+    }
+}
+
 static int
 handle_one_android_event (struct android_display_info *dpyinfo,
 			  union android_event *event, int *finish,
@@ -149,10 +269,19 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   union android_event configureEvent;
   struct frame *f, *any, *mouse_frame;
   Mouse_HLInfo *hlinfo;
+  union buffered_input_event inev;
+  int modifiers, count;
 
+  /* It is okay for this to not resemble handle_one_xevent so much.
+     Differences in event handling code are much less nasty than
+     stuble differences in the graphics code.  */
+
+  count = 0;
   hlinfo = &dpyinfo->mouse_highlight;
   *finish = ANDROID_EVENT_NORMAL;
   any = android_window_to_frame (dpyinfo, event->xany.window);
+
+  EVENT_INIT (inev.ie);
 
   switch (event->type)
     {
@@ -192,12 +321,15 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
     case ANDROID_KEY_PRESS:
 
+      /* Set f to any.  There are no ``outer windows'' on Android.  */
+      f = any;
+
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
       if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
 	  && (any == 0
-	      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)
-	      || !EQ (f->tab_bar_window, hlinfo->mouse_face_window)))
+	      || !EQ (any->tool_bar_window, hlinfo->mouse_face_window)
+	      || !EQ (any->tab_bar_window, hlinfo->mouse_face_window)))
         {
 	  mouse_frame = hlinfo->mouse_face_mouse_frame;
 
@@ -208,13 +340,90 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    android_flush_dirty_back_buffer_on (mouse_frame);
 	}
 
+      event->xkey.state
+	|= android_emacs_to_android_modifiers (dpyinfo,
+					       extra_keyboard_modifiers);
+      modifiers = event->xkey.state;
+
+      /* Common for all keysym input events.  */
+      XSETFRAME (inev.ie.frame_or_window, any);
+      inev.ie.modifiers
+	= android_android_to_emacs_modifiers (dpyinfo, modifiers);
+      inev.ie.timestamp = event->xkey.time;
+
+      /* First deal with keysyms which have defined translations to
+	 characters.  */
+
+      if (event->xkey.unicode_char >= 32
+	  && event->xkey.unicode_char < 128)
+	{
+	  inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+	  inev.ie.code = event->xkey.unicode_char;
+	}
+      else if (event->xkey.unicode_char < 32)
+	{
+	  /* If the key is a modifier key, just return.  */
+	  if (ANDROID_IS_MODIFIER_KEY (event->xkey.keycode))
+	    goto done_keysym;
+
+	  /* Next, deal with special ``characters'' by giving the
+	     keycode to keyboard.c.  */
+	  inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+	  inev.ie.code = event->xkey.keycode;
+	}
+      else
+	{
+	  /* Finally, deal with Unicode characters.  */
+	  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	  inev.ie.code = event->xkey.unicode_char;
+	}
+
+      goto done_keysym;
+
+    done_keysym:
+      goto OTHER;
+
+    case ANDROID_FOCUS_IN:
+    case ANDROID_FOCUS_OUT:
+      android_detect_focus_change (dpyinfo, any, event, &inev.ie);
+      goto OTHER;
+
+    case ANDROID_WINDOW_ACTION:
+
+      f = any;
+
+      if (event->xaction.action == 0)
+	{
+	  /* Action 0 either means to destroy a frame or to create a
+	     new frame, depending on whether or not
+	     event->xaction.window exists.  */
+
+	  if (event->xaction.window)
+	    {
+	      if (!f)
+		goto OTHER;
+
+	      inev.ie.kind = DELETE_WINDOW_EVENT;
+	      XSETFRAME (inev.ie.frame_or_window, f);
+	    }
+	  else
+	    /* A new frame must be created.  */;
+	}
+
+      goto OTHER;
+
     default:
       goto OTHER;
     }
 
  OTHER:
+  if (inev.ie.kind != NO_EVENT)
+    {
+      kbd_buffer_store_buffered_event (&inev, hold_quit);
+      count++;
+    }
 
-  return 0;
+  return count;
 }
 
 static int
@@ -378,15 +587,52 @@ android_focus_frame (struct frame *f, bool noactivate)
 }
 
 static void
-android_frame_rehighlight (struct frame *f)
+android_frame_rehighlight (struct android_display_info *dpyinfo)
 {
-  /* TODO */
+  struct frame *old_highlight;
+
+  old_highlight = dpyinfo->highlight_frame;
+
+  if (dpyinfo->focus_frame)
+    {
+      dpyinfo->highlight_frame
+	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->focus_frame)))
+	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->focus_frame))
+	   : dpyinfo->focus_frame);
+      if (!FRAME_LIVE_P (dpyinfo->highlight_frame))
+	{
+	  fset_focus_frame (dpyinfo->focus_frame, Qnil);
+	  dpyinfo->highlight_frame = dpyinfo->focus_frame;
+	}
+    }
+  else
+    dpyinfo->highlight_frame = 0;
+
+  if (dpyinfo->highlight_frame != old_highlight)
+    {
+      /* This is not yet required on Android.  */
+#if 0
+      if (old_highlight)
+	android_frame_unhighlight (old_highlight);
+      if (dpyinfo->highlight_frame)
+	android_frame_highlight (dpyinfo->highlight_frame);
+#endif
+    }
+}
+
+static void
+android_frame_rehighlight_hook (struct frame *f)
+{
+  android_frame_rehighlight (FRAME_DISPLAY_INFO (f));
 }
 
 static void
 android_frame_raise_lower (struct frame *f, bool raise_flag)
 {
-  /* TODO */
+  if (raise_flag)
+    android_raise_frame (f);
+  else
+    android_lower_frame (f);
 }
 
 void
@@ -401,6 +647,10 @@ android_make_frame_visible (struct frame *f)
 void
 android_make_frame_invisible (struct frame *f)
 {
+  /* Don't keep the highlight on an invisible frame.  */
+  if (FRAME_DISPLAY_INFO (f)->highlight_frame == f)
+    FRAME_DISPLAY_INFO (f)->highlight_frame = 0;
+
   android_unmap_window (FRAME_ANDROID_WINDOW (f));
 
   SET_FRAME_VISIBLE (f, false);
@@ -584,6 +834,8 @@ android_free_frame_resources (struct frame *f)
 
   if (f == dpyinfo->focus_frame)
     dpyinfo->focus_frame = 0;
+  if (f == dpyinfo->x_focus_event_frame)
+    dpyinfo->x_focus_event_frame = 0;
   if (f == dpyinfo->highlight_frame)
     dpyinfo->highlight_frame = 0;
   if (f == hlinfo->mouse_face_mouse_frame)
@@ -783,7 +1035,7 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       if (p->overlay_p)
 	{
 	  clipmask = android_create_pixmap_from_bitmap_data (bits, p->wd, p->h,
-							     1, 0, 0);
+							     1, 0, 1);
 
 	  gcv.clip_mask = clipmask;
 	  gcv.clip_x_origin = p->x;
@@ -1606,158 +1858,47 @@ android_draw_image_foreground (struct glyph_string *s)
 
   if (s->img->pixmap)
     {
-      if (s->img->mask)
+      unsigned long mask = (ANDROID_GC_CLIP_MASK
+			    | ANDROID_GC_CLIP_X_ORIGIN
+			    | ANDROID_GC_CLIP_Y_ORIGIN
+			    | ANDROID_GC_FUNCTION);
+      struct android_gc_values xgcv;
+      struct android_rectangle clip_rect, image_rect, r;
+
+      xgcv.clip_mask = s->img->mask;
+      xgcv.clip_x_origin = x - s->slice.x;
+      xgcv.clip_y_origin = y - s->slice.y;
+      xgcv.function = ANDROID_GC_COPY;
+      android_change_gc (s->gc, mask, &xgcv);
+
+      get_glyph_string_clip_rect (s, &clip_rect);
+      image_rect.x = x;
+      image_rect.y = y;
+      image_rect.width = s->slice.width;
+      image_rect.height = s->slice.height;
+
+      if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
+	android_copy_area (s->img->pixmap,
+			   FRAME_ANDROID_WINDOW (s->f),
+			   s->gc, s->slice.x + r.x - x,
+			   s->slice.y + r.y - y,
+			   r.width, r.height, r.x, r.y);
+
+      /* When the image has a mask, we can expect that at least part
+	 of a mouse highlight or a block cursor will be visible.  If
+	 the image doesn't have a mask, make a block cursor visible by
+	 drawing a rectangle around the image.  I believe it's looking
+	 better if we do nothing here for mouse-face.  */
+      if (s->hl == DRAW_CURSOR && !s->img->mask)
 	{
-	  unsigned long mask = (ANDROID_GC_CLIP_MASK
-				| ANDROID_GC_CLIP_X_ORIGIN
-				| ANDROID_GC_CLIP_Y_ORIGIN
-				| ANDROID_GC_FUNCTION);
-	  struct android_gc_values xgcv;
-	  struct android_rectangle clip_rect, image_rect, r;
-
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x - s->slice.x;
-	  xgcv.clip_y_origin = y - s->slice.y;
-	  xgcv.function = ANDROID_GC_COPY;
-	  android_change_gc (s->gc, mask, &xgcv);
-
-	  get_glyph_string_clip_rect (s, &clip_rect);
-	  image_rect.x = x;
-	  image_rect.y = y;
-	  image_rect.width = s->slice.width;
-	  image_rect.height = s->slice.height;
-
-	  if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
-            android_copy_area (s->img->pixmap, FRAME_ANDROID_WINDOW (s->f),
-			       s->gc, s->slice.x + r.x - x,
-			       s->slice.y + r.y - y,
-                               r.x, r.y, r.width, r.height);
+	  int relief = eabs (s->img->relief);
+	  android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc,
+				  x - relief, y - relief,
+				  s->slice.width + relief*2 - 1,
+				  s->slice.height + relief*2 - 1);
 	}
-      else
-	{
-	  unsigned long mask = (ANDROID_GC_CLIP_MASK
-				| ANDROID_GC_CLIP_X_ORIGIN
-				| ANDROID_GC_CLIP_Y_ORIGIN
-				| ANDROID_GC_FUNCTION);
-	  struct android_gc_values xgcv;
-	  struct android_rectangle clip_rect, image_rect, r;
 
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x - s->slice.x;
-	  xgcv.clip_y_origin = y - s->slice.y;
-	  xgcv.function = ANDROID_GC_COPY;
-	  android_change_gc (s->gc, mask, &xgcv);
-
-	  get_glyph_string_clip_rect (s, &clip_rect);
-	  image_rect.x = x;
-	  image_rect.y = y;
-	  image_rect.width = s->slice.width;
-	  image_rect.height = s->slice.height;
-
-	  if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
-            android_copy_area (s->img->pixmap,
-			       FRAME_ANDROID_WINDOW (s->f),
-			       s->gc, s->slice.x + r.x - x,
-			       s->slice.y + r.y - y,
-                               r.x, r.y, r.width, r.height);
-
-	  /* When the image has a mask, we can expect that at
-	     least part of a mouse highlight or a block cursor will
-	     be visible.  If the image doesn't have a mask, make
-	     a block cursor visible by drawing a rectangle around
-	     the image.  I believe it's looking better if we do
-	     nothing here for mouse-face.  */
-	  if (s->hl == DRAW_CURSOR)
-	    {
-	      int relief = eabs (s->img->relief);
-	      android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc,
-				      x - relief, y - relief,
-				      s->slice.width + relief*2 - 1,
-				      s->slice.height + relief*2 - 1);
-	    }
-	}
-    }
-  else
-    /* Draw a rectangle if image could not be loaded.  */
-    android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc, x, y,
-			    s->slice.width - 1, s->slice.height - 1);
-}
-
-/* Draw the foreground of image glyph string S to PIXMAP.  */
-
-static void
-android_draw_image_foreground_1 (struct glyph_string *s,
-				 android_pixmap pixmap)
-{
-  int x = 0;
-  int y = s->ybase - s->y - image_ascent (s->img, s->face, &s->slice);
-
-  /* If first glyph of S has a left box line, start drawing it to the
-     right of that line.  */
-  if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p
-      && s->slice.x == 0)
-    x += max (s->face->box_vertical_line_width, 0);
-
-  /* If there is a margin around the image, adjust x- and y-position
-     by that margin.  */
-  if (s->slice.x == 0)
-    x += s->img->hmargin;
-  if (s->slice.y == 0)
-    y += s->img->vmargin;
-
-  if (s->img->pixmap)
-    {
-      if (s->img->mask)
-	{
-	  unsigned long mask = (ANDROID_GC_CLIP_MASK
-				| ANDROID_GC_CLIP_X_ORIGIN
-				| ANDROID_GC_CLIP_Y_ORIGIN
-				| ANDROID_GC_FUNCTION);
-	  struct android_gc_values xgcv;
-	  struct android_rectangle clip_rect, image_rect, r;
-
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x - s->slice.x;
-	  xgcv.clip_y_origin = y - s->slice.y;
-	  xgcv.function = ANDROID_GC_COPY;
-	  android_change_gc (s->gc, mask, &xgcv);
-
-	  get_glyph_string_clip_rect (s, &clip_rect);
-	  image_rect.x = x;
-	  image_rect.y = y;
-	  image_rect.width = s->slice.width;
-	  image_rect.height = s->slice.height;
-
-	  if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
-	    android_copy_area (s->img->pixmap, pixmap, s->gc,
-			       s->slice.x + r.x - x,
-			       s->slice.y + r.y - y,
-                               r.x, r.y, r.width, r.height);
-
-	  android_set_clip_mask (s->gc, ANDROID_NONE);
-	}
-      else
-	{
-	  android_copy_area (s->img->pixmap, pixmap, s->gc,
-			     s->slice.x, s->slice.y,
-			     s->slice.width, s->slice.height, x, y);
-
-	  /* When the image has a mask, we can expect that at
-	     least part of a mouse highlight or a block cursor will
-	     be visible.  If the image doesn't have a mask, make
-	     a block cursor visible by drawing a rectangle around
-	     the image.  I believe it's looking better if we do
-	     nothing here for mouse-face.  */
-	  if (s->hl == DRAW_CURSOR)
-	    {
-	      int r = eabs (s->img->relief);
-	      android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f),
-				      s->gc, x - r, y - r,
-				      s->slice.width + r*2 - 1,
-				      s->slice.height + r*2 - 1);
-	    }
-	}
+      android_set_clip_mask (s->gc, ANDROID_NONE);
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
@@ -1771,7 +1912,6 @@ android_draw_image_glyph_string (struct glyph_string *s)
   int box_line_hwidth = max (s->face->box_vertical_line_width, 0);
   int box_line_vwidth = max (s->face->box_horizontal_line_width, 0);
   int height;
-  android_pixmap pixmap = ANDROID_NONE;
 
   height = s->height;
   if (s->slice.y == 0)
@@ -1793,79 +1933,27 @@ android_draw_image_glyph_string (struct glyph_string *s)
       if (s->stippled_p)
 	s->row->stipple_p = true;
 
-      if (s->img->mask)
+      int x = s->x;
+      int y = s->y;
+      int width = s->background_width;
+
+      if (s->first_glyph->left_box_line_p
+	  && s->slice.x == 0)
 	{
-	  /* Create a pixmap as large as the glyph string.  Fill it
-	     with the background color.  Copy the image to it, using
-	     its mask.  Copy the temporary pixmap to the display.  */
-	  int depth = FRAME_DISPLAY_INFO (s->f)->n_planes;
-
-	  /* Create a pixmap as large as the glyph string.  */
-          pixmap = android_create_pixmap (s->background_width,
-					  s->height, depth);
-
-	  /* Don't clip in the following because we're working on the
-	     pixmap.  */
-	  android_set_clip_mask (s->gc, ANDROID_NONE);
-
-	  /* Fill the pixmap with the background color/stipple.  */
-	  if (s->stippled_p)
-	    {
-	      /* Fill background with a stipple pattern.  */
-	      android_set_fill_style (s->gc, ANDROID_FILL_OPAQUE_STIPPLED);
-	      android_set_ts_origin (s->gc, - s->x, - s->y);
-	      android_fill_rectangle (pixmap, s->gc,
-				      0, 0, s->background_width, s->height);
-	      android_set_fill_style (s->gc, ANDROID_FILL_OPAQUE_STIPPLED);
-	      android_set_ts_origin (s->gc, 0, 0);
-	    }
-	  else
-	    {
-	      struct android_gc_values xgcv;
-
-	      android_get_gc_values (s->gc, (ANDROID_GC_FOREGROUND
-					     | ANDROID_GC_BACKGROUND),
-				     &xgcv);
-	      android_set_foreground (s->gc, xgcv.background);
-	      android_fill_rectangle (pixmap, s->gc,
-				      0, 0, s->background_width, s->height);
-	      android_set_background (s->gc, xgcv.foreground);
-	    }
+	  x += box_line_hwidth;
+	  width -= box_line_hwidth;
 	}
-      else
-	{
-	  int x = s->x;
-	  int y = s->y;
-	  int width = s->background_width;
 
-	  if (s->first_glyph->left_box_line_p
-	      && s->slice.x == 0)
-	    {
-	      x += box_line_hwidth;
-	      width -= box_line_hwidth;
-	    }
+      if (s->slice.y == 0)
+	y += box_line_vwidth;
 
-	  if (s->slice.y == 0)
-	    y += box_line_vwidth;
-
-	  android_draw_glyph_string_bg_rect (s, x, y, width, height);
-	}
+      android_draw_glyph_string_bg_rect (s, x, y, width, height);
 
       s->background_filled_p = true;
     }
 
   /* Draw the foreground.  */
-  if (pixmap != ANDROID_NONE)
-    {
-      android_draw_image_foreground_1 (s, pixmap);
-      android_set_glyph_string_clipping (s);
-      android_copy_area (pixmap, FRAME_ANDROID_WINDOW (s->f), s->gc,
-			 0, 0, s->background_width, s->height, s->x,
-			 s->y);
-      android_free_pixmap (pixmap);
-    }
-  else
-    android_draw_image_foreground (s);
+  android_draw_image_foreground (s);
 
   /* If we must draw a relief around the image, do it.  */
   if (s->img->relief
@@ -3047,7 +3135,7 @@ android_create_terminal (struct android_display_info *dpyinfo)
   terminal->mouse_position_hook = android_mouse_position;
   terminal->get_focus_frame = android_get_focus_frame;
   terminal->focus_frame_hook = android_focus_frame;
-  terminal->frame_rehighlight_hook = android_frame_rehighlight;
+  terminal->frame_rehighlight_hook = android_frame_rehighlight_hook;
   terminal->frame_raise_lower_hook = android_frame_raise_lower;
   terminal->frame_visible_invisible_hook
     = android_make_frame_visible_invisible;
@@ -3117,9 +3205,12 @@ android_term_init (void)
 
   dpyinfo->color_map = color_map;
 
-  /* TODO! */
-  dpyinfo->resx = 96.0;
-  dpyinfo->resy = 96.0;
+#ifndef ANDROID_STUBIFY
+
+  dpyinfo->resx = android_pixel_density_x;
+  dpyinfo->resy = android_pixel_density_y;
+
+#endif
 
   /* https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html  */
   dpyinfo->smallest_font_height = 1;
@@ -3130,6 +3221,9 @@ android_term_init (void)
   /* The display "connection" is now set up, and it must never go
      away.  */
   terminal->reference_count = 30000;
+
+  /* Set the baud rate to the same value it gets set to on X.  */
+  baud_rate = 19200;
 }
 
 

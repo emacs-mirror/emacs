@@ -177,11 +177,14 @@ typedef struct haiku_bitmap_record Bitmap_Record;
 
 #ifdef HAVE_ANDROID
 #include "androidterm.h"
+
 typedef struct android_bitmap_record Bitmap_Record;
 
-/* TODO: implement images on Android.  */
-#define GET_PIXEL(ximg, x, y) 		0
-#define PUT_PIXEL(ximg, x, y, pixel)	((void) (pixel))
+typedef struct android_image XImage;
+typedef android_pixmap Pixmap;
+
+#define GET_PIXEL(ximg, x, y) 		android_get_pixel (ximg, x, y)
+#define PUT_PIXEL(ximg, x, y, pixel)    android_put_pixel (ximg, x, y, pixel)
 #define NO_PIXMAP			0
 
 #define PIX_MASK_RETAIN	0
@@ -507,6 +510,18 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
     return -1;
 #endif /* HAVE_X_WINDOWS */
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  android_pixmap bitmap;
+
+  bitmap = android_create_bitmap_from_data (bits, width, height);
+
+  if (!bitmap)
+    return -1;
+#else
+  ((void) dpyinfo);
+  emacs_abort ();
+#endif
+
 #ifdef HAVE_NTGUI
   Lisp_Object frame UNINIT;	/* The value is not used.  */
   Emacs_Pixmap bitmap;
@@ -619,14 +634,14 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   dpyinfo->bitmaps[id - 1].width = width;
   dpyinfo->bitmaps[id - 1].refcount = 1;
 
-#ifdef HAVE_X_WINDOWS
+#if defined HAVE_X_WINDOWS && defined HAVE_ANDROID
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
   dpyinfo->bitmaps[id - 1].have_mask = false;
   dpyinfo->bitmaps[id - 1].depth = 1;
 #ifdef USE_CAIRO
   dpyinfo->bitmaps[id - 1].stipple = NULL;
 #endif	/* USE_CAIRO */
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS || HAVE_ANDROID */
 
 #ifdef HAVE_NTGUI
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
@@ -637,7 +652,7 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   return id;
 }
 
-#if defined HAVE_HAIKU || defined HAVE_NS
+#if defined HAVE_HAIKU || defined HAVE_NS || defined HAVE_ANDROID
 static char *slurp_file (int, ptrdiff_t *);
 static Lisp_Object image_find_image_fd (Lisp_Object, int *);
 static bool xbm_read_bitmap_data (struct frame *, char *, char *,
@@ -861,8 +876,62 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   /* This function should never be called when building stubs.  */
   emacs_abort ();
 #else
-  /* you lose, not yet implemented TODO */
-  return 0;
+  ptrdiff_t id, size;
+  int fd, width, height, rc;
+  char *contents, *data;
+  Lisp_Object found;
+  android_pixmap bitmap;
+
+  /* Look for an existing bitmap with the same name.  */
+  for (id = 0; id < dpyinfo->bitmaps_last; ++id)
+    {
+      if (dpyinfo->bitmaps[id].refcount
+	  && dpyinfo->bitmaps[id].file
+	  && !strcmp (dpyinfo->bitmaps[id].file, SSDATA (file)))
+	{
+	  ++dpyinfo->bitmaps[id].refcount;
+	  return id + 1;
+	}
+    }
+
+  /* Search bitmap-file-path for the file, if appropriate.  */
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found,
+	     make_fixnum (R_OK), false, false)
+      < 0)
+    return -1;
+
+  if (!STRINGP (image_find_image_fd (file, &fd))
+      && !STRINGP (image_find_image_fd (found, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
+    {
+      xfree (contents);
+      return -1;
+    }
+
+  xfree (contents);
+  bitmap = android_create_bitmap_from_data (data, width, height);
+  xfree (data);
+
+  id = image_allocate_bitmap_record (f);
+  dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = false;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
+  dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].height = height;
+  dpyinfo->bitmaps[id - 1].width = width;
+
+  return id;
 #endif
 #endif
 }
@@ -881,6 +950,13 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
     cairo_pattern_destroy (bm->stipple);
 #endif	/* USE_CAIRO */
 #endif /* HAVE_X_WINDOWS */
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  android_free_pixmap (bm->pixmap);
+
+  if (bm->have_mask)
+    android_free_pixmap (bm->pixmap);
+#endif
 
 #ifdef HAVE_NTGUI
   DeleteObject (bm->pixmap);
@@ -969,7 +1045,7 @@ static void image_unget_x_image (struct image *, bool, Emacs_Pix_Container);
   image_unget_x_image (img, mask_p, ximg)
 #endif
 
-#ifdef HAVE_X_WINDOWS
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
 
 #ifndef USE_CAIRO
 static void image_sync_to_pixmaps (struct frame *, struct image *);
@@ -982,6 +1058,8 @@ static void image_sync_to_pixmaps (struct frame *, struct image *);
 static bool x_create_x_image_and_pixmap (struct frame *, int, int, int,
 					 XImage **, Pixmap *);
 static void x_destroy_x_image (XImage *);
+
+#if defined HAVE_X_WINDOWS
 
 /* Create a mask of a bitmap. Note is this not a perfect mask.
    It's nicer with some borders in this context */
@@ -1079,7 +1157,9 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
   x_destroy_x_image (mask_img);
 }
 
-#endif /* HAVE_X_WINDOWS */
+#endif
+
+#endif /* HAVE_X_WINDOWS || defined HAVE_ANDROID*/
 
 /***********************************************************************
 			    Image types
@@ -1113,7 +1193,7 @@ struct image_type
 #if defined HAVE_RSVG || defined HAVE_PNG || defined HAVE_GIF || \
   defined HAVE_TIFF || defined HAVE_JPEG || defined HAVE_XPM || \
   defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK || \
-  defined HAVE_WEBP
+  defined HAVE_WEBP || defined HAVE_ANDROID
 # ifdef WINDOWSNT
 #  define IMAGE_TYPE_INIT(f) f
 # else
@@ -1615,7 +1695,7 @@ prepare_image_for_display (struct frame *f, struct image *img)
 	}
       unblock_input ();
     }
-#elif defined HAVE_X_WINDOWS
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   if (!img->load_failed_p)
     {
       block_input ();
@@ -1822,7 +1902,7 @@ image_clear_image_1 (struct frame *f, struct image *img, int flags)
 	  /* NOTE (HAVE_NS): background color is NOT an indexed color! */
 	  img->background_valid = 0;
 	}
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
       if (img->ximg)
 	{
 	  image_destroy_x_image (img->ximg);
@@ -1840,7 +1920,7 @@ image_clear_image_1 (struct frame *f, struct image *img, int flags)
 	  img->mask = NO_PIXMAP;
 	  img->background_transparent_valid = 0;
 	}
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
       if (img->mask_img)
 	{
 	  image_destroy_x_image (img->mask_img);
@@ -2212,11 +2292,11 @@ image_size_in_bytes (struct image *img)
   if (msk)
     size += msk->height * msk->bytes_per_line;
 
-#elif defined HAVE_X_WINDOWS
-  /* Use a nominal depth of 24 bpp for pixmap and 1 bpp for mask,
-     to avoid having to query the server. */
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
+  /* Use a nominal depth of 24 and a bpp of 32 for pixmap and 1 bpp
+     for mask, to avoid having to query the server. */
   if (img->pixmap != NO_PIXMAP)
-    size += img->width * img->height * 3;
+    size += img->width * img->height * 4;
   if (img->mask != NO_PIXMAP)
     size += img->width * img->height / 8;
 
@@ -3195,9 +3275,12 @@ mark_image_cache (struct image_cache *c)
 
 /***********************************************************************
 			  X / NS / W32 support code
+             Most of this code is shared with Android to make
+             it easier to maintain.
  ***********************************************************************/
 
-#ifdef HAVE_X_WINDOWS
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
+
 static bool
 x_check_image_size (XImage *ximg, int width, int height)
 {
@@ -3213,7 +3296,11 @@ x_check_image_size (XImage *ximg, int width, int height)
   int bitmap_pad, depth, bytes_per_line;
   if (ximg)
     {
+#ifndef HAVE_ANDROID
       bitmap_pad = ximg->bitmap_pad;
+#else
+      bitmap_pad = (ximg->depth == 1 ? 8 : 32);
+#endif
       depth = ximg->depth;
       bytes_per_line = ximg->bytes_per_line;
     }
@@ -3231,16 +3318,23 @@ static bool
 x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 			     XImage **ximg, Pixmap *pixmap)
 {
+#ifndef HAVE_ANDROID
   Display *display = FRAME_X_DISPLAY (f);
   Drawable drawable = FRAME_X_DRAWABLE (f);
+#endif
 
   eassert (input_blocked_p ());
 
   if (depth <= 0)
     depth = FRAME_DISPLAY_INFO (f)->n_planes;
+#ifndef HAVE_ANDROID
   *ximg = XCreateImage (display, FRAME_X_VISUAL (f),
 			depth, ZPixmap, 0, NULL, width, height,
 			depth > 16 ? 32 : depth > 8 ? 16 : 8, 0);
+#else
+  *ximg = android_create_image (depth, ANDROID_Z_PIXMAP, NULL, width,
+				height);
+#endif
   if (*ximg == NULL)
     {
       image_error ("Unable to allocate X image");
@@ -3260,7 +3354,15 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
   (*ximg)->data = xmalloc ((*ximg)->bytes_per_line * height);
 
   /* Allocate a pixmap of the same size.  */
+#ifndef HAVE_ANDROID
   *pixmap = XCreatePixmap (display, drawable, width, height, depth);
+#else
+#ifndef ANDROID_STUBIFY
+  *pixmap = android_create_pixmap (width, height, depth);
+#else
+  emacs_abort ();
+#endif
+#endif
   if (*pixmap == NO_PIXMAP)
     {
       x_destroy_x_image (*ximg);
@@ -3281,7 +3383,11 @@ x_destroy_x_image (XImage *ximg)
       ximg->data = NULL;
     }
 
+#ifndef HAVE_ANDROID
   XDestroyImage (ximg);
+#else
+  android_destroy_image (ximg);
+#endif
 }
 
 # if !defined USE_CAIRO && defined HAVE_XRENDER
@@ -3348,7 +3454,7 @@ x_create_xrender_picture (struct frame *f, Emacs_Pixmap pixmap, int depth)
 static bool
 image_check_image_size (Emacs_Pix_Container ximg, int width, int height)
 {
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
   return x_check_image_size (ximg, width, height);
 #else
   /* FIXME: Implement this check for the HAVE_NS and HAVE_NTGUI cases.
@@ -3372,16 +3478,6 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
                                    Emacs_Pix_Container *pimg,
                                    Emacs_Pixmap *pixmap, Picture *picture)
 {
-#ifdef HAVE_ANDROID
-#ifdef ANDROID_STUBIFY
-  /* This function should never be called when building stubs.  */
-  emacs_abort ();
-#else
-  /* you lose, not yet implemented TODO */
-  return false;
-#endif
-#endif
-
 #ifdef USE_CAIRO
   eassert (input_blocked_p ());
 
@@ -3396,7 +3492,7 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
 
   *pimg = *pixmap;
   return 1;
-#elif defined HAVE_X_WINDOWS
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   if (!x_create_x_image_and_pixmap (f, width, height, depth, pimg, pixmap))
     return 0;
 # ifdef HAVE_XRENDER
@@ -3542,7 +3638,7 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
 static void
 image_destroy_x_image (Emacs_Pix_Container pimg)
 {
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
   x_destroy_x_image (pimg);
 #else
   eassert (input_blocked_p ());
@@ -3581,7 +3677,9 @@ gui_put_x_image (struct frame *f, Emacs_Pix_Container pimg,
   XPutImage (FRAME_X_DISPLAY (f), pixmap, gc, pimg, 0, 0, 0, 0,
              pimg->width, pimg->height);
   XFreeGC (FRAME_X_DISPLAY (f), gc);
-#endif /* HAVE_X_WINDOWS */
+#elif defined HAVE_ANDROID
+  android_put_image (pixmap, pimg);
+#endif
 
 #ifdef HAVE_NS
   eassert (pimg == pixmap);
@@ -3618,7 +3716,7 @@ static void
 image_put_x_image (struct frame *f, struct image *img, Emacs_Pix_Container ximg,
 		   bool mask_p)
 {
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
   if (!mask_p)
     {
       eassert (img->ximg == NULL);
@@ -3636,7 +3734,7 @@ image_put_x_image (struct frame *f, struct image *img, Emacs_Pix_Container ximg,
 #endif
 }
 
-#if defined HAVE_X_WINDOWS && !defined USE_CAIRO
+#if (defined HAVE_X_WINDOWS || defined HAVE_ANDROID) && !defined USE_CAIRO
 /* Put the X images recorded in IMG on frame F into pixmaps, then free
    the X images and their buffers.  */
 
@@ -3690,19 +3788,9 @@ image_unget_x_image_or_dc (struct image *img, bool mask_p,
 static Emacs_Pix_Container
 image_get_x_image (struct frame *f, struct image *img, bool mask_p)
 {
-#ifdef HAVE_ANDROID
-#ifdef ANDROID_STUBIFY
-  /* This function should never be called when building stubs.  */
-  emacs_abort ();
-#else
-  /* you lose, not yet implemented TODO */
-  return 0;
-#endif
-#endif
-
 #if defined USE_CAIRO || defined (HAVE_HAIKU)
   return !mask_p ? img->pixmap : img->mask;
-#elif defined HAVE_X_WINDOWS
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   XImage *ximg_in_img = !mask_p ? img->ximg : img->mask_img;
 
   if (ximg_in_img)
@@ -3712,9 +3800,15 @@ image_get_x_image (struct frame *f, struct image *img, bool mask_p)
     return XGetImage (FRAME_X_DISPLAY (f), !mask_p ? img->pixmap : img->mask,
 		      0, 0, img->original_width, img->original_height, ~0, ZPixmap);
 #endif
+#ifndef HAVE_ANDROID
   else
     return XGetImage (FRAME_X_DISPLAY (f), !mask_p ? img->pixmap : img->mask,
 		      0, 0, img->width, img->height, ~0, ZPixmap);
+#else
+  else
+    return android_get_image (!mask_p ? img->pixmap : img->mask,
+			      ANDROID_Z_PIXMAP);
+#endif
 #elif defined (HAVE_NS)
   Emacs_Pix_Container pixmap = !mask_p ? img->pixmap : img->mask;
 
@@ -3727,13 +3821,18 @@ static void
 image_unget_x_image (struct image *img, bool mask_p, Emacs_Pix_Container ximg)
 {
 #ifdef USE_CAIRO
-#elif defined HAVE_X_WINDOWS
+#elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   XImage *ximg_in_img = !mask_p ? img->ximg : img->mask_img;
 
   if (ximg_in_img)
     eassert (ximg == ximg_in_img);
+#ifdef HAVE_ANDROID
+  else
+    android_destroy_image (ximg);
+#else
   else
     XDestroyImage (ximg);
+#endif
 #elif defined (HAVE_NS)
   ns_release_object (ximg);
 #endif
@@ -4256,6 +4355,15 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
     img->picture = x_create_xrender_picture (f, img->pixmap, 0);
 # endif
 
+#elif defined HAVE_ANDROID
+#ifndef ANDROID_STUBIFY
+  img->pixmap
+    = android_create_pixmap_from_bitmap_data (data, img->width, img->height,
+					      fg, bg,
+					      FRAME_DISPLAY_INFO (f)->n_planes);
+#else
+  emacs_abort ();
+#endif
 #elif defined HAVE_NTGUI
   img->pixmap
     = w32_create_pixmap_from_bitmap_data (img->width, img->height, data);
@@ -4686,7 +4794,8 @@ xbm_load (struct frame *f, struct image *img)
 			      XPM images
  ***********************************************************************/
 
-#if defined (HAVE_XPM) || defined (HAVE_NS) || defined (HAVE_PGTK)
+#if defined (HAVE_XPM) || defined (HAVE_NS) || defined (HAVE_PGTK) \
+  || defined (HAVE_ANDROID)
 
 static bool xpm_image_p (Lisp_Object object);
 static bool xpm_load (struct frame *f, struct image *img);
@@ -4716,7 +4825,8 @@ static bool xpm_load (struct frame *f, struct image *img);
 #endif /* not HAVE_NTGUI */
 #endif /* HAVE_XPM */
 
-#if defined HAVE_XPM || defined USE_CAIRO || defined HAVE_NS || defined HAVE_HAIKU
+#if defined HAVE_XPM || defined USE_CAIRO || defined HAVE_NS	\
+  || defined HAVE_HAIKU || defined HAVE_ANDROID
 
 /* Indices of image specification fields in xpm_format, below.  */
 
@@ -4736,7 +4846,8 @@ enum xpm_keyword_index
   XPM_LAST
 };
 
-#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU	\
+  || defined HAVE_PGTK || defined HAVE_ANDROID
 /* Vector of image_keyword structures describing the format
    of valid XPM image specifications.  */
 
@@ -4978,7 +5089,8 @@ init_xpm_functions (void)
 
 #endif /* WINDOWSNT */
 
-#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU	\
+  || defined HAVE_PGTK || defined HAVE_ANDROID
 /* Value is true if COLOR_SYMBOLS is a valid color symbols list
    for XPM images.  Such a list must consist of conses whose car and
    cdr are strings.  */
@@ -5014,9 +5126,9 @@ xpm_image_p (Lisp_Object object)
 	  && (! fmt[XPM_COLOR_SYMBOLS].count
 	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
-#endif	/* HAVE_XPM || HAVE_NS || HAVE_HAIKU || HAVE_PGTK */
+#endif	/* HAVE_XPM || HAVE_NS || HAVE_HAIKU || HAVE_PGTK || HAVE_ANDROID */
 
-#endif /* HAVE_XPM || USE_CAIRO || HAVE_NS || HAVE_HAIKU */
+#endif /* HAVE_XPM || USE_CAIRO || HAVE_NS || HAVE_HAIKU || HAVE_ANDROID */
 
 #if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
 ptrdiff_t
@@ -5389,10 +5501,12 @@ xpm_load (struct frame *f, struct image *img)
 #if (defined USE_CAIRO && defined HAVE_XPM)	\
   || (defined HAVE_NS && !defined HAVE_XPM)	\
   || (defined HAVE_HAIKU && !defined HAVE_XPM)  \
-  || (defined HAVE_PGTK && !defined HAVE_XPM)
+  || (defined HAVE_PGTK && !defined HAVE_XPM)	\
+  || (defined HAVE_ANDROID && !defined HAVE_XPM)
 
-/* XPM support functions for NS and Haiku where libxpm is not available, and for
-   Cairo.  Only XPM version 3 (without any extensions) is supported.  */
+/* XPM support functions for NS, Haiku and Android where libxpm is not
+   available, and for Cairo.  Only XPM version 3 (without any
+   extensions) is supported.  */
 
 static void xpm_put_color_table_v (Lisp_Object, const char *,
                                    int, Lisp_Object);
@@ -6492,11 +6606,16 @@ image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
 #elif HAVE_HAIKU
   be_draw_cross_on_pixmap (pixmap, x, y, width, height, color);
 #elif HAVE_ANDROID
-#ifdef ANDROID_STUBIFY
-  /* This function should never be called when building stubs.  */
-  emacs_abort ();
+#ifndef ANDROID_STUBIFY
+  struct android_gc *gc;
+
+  gc = android_create_gc (0, NULL);
+  android_set_foreground (gc, color);
+  android_draw_line (pixmap, gc, x, y, x + width - 1, y + height - 1);
+  android_draw_line (pixmap, gc, x, y + height - 1, x + width - 1, y);
+  android_free_gc (gc);
 #else
-  /* you lose, not yet implemented TODO */
+  emacs_abort ();
 #endif
 #endif
 }
@@ -6552,7 +6671,7 @@ image_disable_image (struct frame *f, struct image *img)
 #define MaskForeground(f)  PIX_MASK_DRAW
 #endif	/* USE_CAIRO || HAVE_HAIKU */
 
-#if !defined USE_CAIRO && !defined HAVE_HAIKU && !defined HAVE_ANDROID
+#if !defined USE_CAIRO && !defined HAVE_HAIKU
       image_sync_to_pixmaps (f, img);
 #endif	/* !USE_CAIRO && !HAVE_HAIKU */
       image_pixmap_draw_cross (f, img->pixmap, 0, 0, img->width, img->height,
@@ -12079,7 +12198,8 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qjpeg), jpeg_image_p, jpeg_load, image_clear_image,
    IMAGE_TYPE_INIT (init_jpeg_functions) },
 #endif
-#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU	\
+  || defined HAVE_PGTK || defined HAVE_ANDROID
  { SYMBOL_INDEX (Qxpm), xpm_image_p, xpm_load, image_clear_image,
    IMAGE_TYPE_INIT (init_xpm_functions) },
 #endif
@@ -12138,7 +12258,7 @@ syms_of_image (void)
   DEFVAR_LISP ("image-types", Vimage_types,
     doc: /* List of potentially supported image types.
 Each element of the list is a symbol for an image type, like `jpeg' or `png'.
-To check whether it is really supported, use `image-type-available-p'.  */);
+ check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 
   DEFVAR_LISP ("max-image-size", Vmax_image_size,
@@ -12241,7 +12361,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
   add_image_type (Qxbm);
 
 #if defined (HAVE_XPM) || defined (HAVE_NS) \
-  || defined (HAVE_HAIKU) || defined (HAVE_PGTK)
+  || defined (HAVE_HAIKU) || defined (HAVE_PGTK) \
+  || defined (HAVE_ANDROID)
   DEFSYM (Qxpm, "xpm");
   add_image_type (Qxpm);
 #endif

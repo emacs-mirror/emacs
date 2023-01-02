@@ -69,6 +69,35 @@ public class EmacsPixmap extends EmacsHandleObject
     this.depth = depth;
   }
 
+  public
+  EmacsPixmap (short handle, int width, int height, int depth)
+  {
+    super (handle);
+
+    if (depth != 1 && depth != 24)
+      throw new IllegalArgumentException ("Invalid depth specified"
+					  + " for pixmap: " + depth);
+
+    switch (depth)
+      {
+      case 1:
+	bitmap = Bitmap.createBitmap (width, height,
+				      Bitmap.Config.ALPHA_8,
+				      false);
+	break;
+
+      case 24:
+	bitmap = Bitmap.createBitmap (width, height,
+				      Bitmap.Config.ARGB_8888,
+				      false);
+	break;
+      }
+
+    this.width = width;
+    this.height = height;
+    this.depth = depth;
+  }
+
   @Override
   public Canvas
   lockCanvas ()

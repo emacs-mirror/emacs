@@ -201,6 +201,9 @@ enum android_event_type
     ANDROID_KEY_PRESS,
     ANDROID_KEY_RELEASE,
     ANDROID_CONFIGURE_NOTIFY,
+    ANDROID_FOCUS_IN,
+    ANDROID_FOCUS_OUT,
+    ANDROID_WINDOW_ACTION,
   };
 
 struct android_any_event
@@ -209,6 +212,13 @@ struct android_any_event
   android_window window;
 };
 
+enum android_modifier_mask
+  {
+    ANDROID_SHIFT_MASK	 = 193,
+    ANDROID_CONTROL_MASK = 4096,
+    ANDROID_ALT_MASK	 = 2,
+  };
+
 struct android_key_event
 {
   enum android_event_type type;
@@ -216,7 +226,17 @@ struct android_key_event
   android_time time;
   unsigned int state;
   unsigned int keycode;
+  unsigned int unicode_char;
 };
+
+/* These hard coded values are Android modifier keycodes derived
+   through experimentation.  */
+
+#define ANDROID_IS_MODIFIER_KEY(key)					\
+  ((key) == 57 || (key) == 58 || (key) == 113 || (key) == 114		\
+   || (key) == 119 || (key) == 117 || (key) == 118 || (key) == 78	\
+   || (key) == 94 || (key) == 59 || (key) == 60 || (key) == 95		\
+   || (key) == 63)
 
 struct android_configure_event
 {
@@ -227,12 +247,35 @@ struct android_configure_event
   int width, height;
 };
 
+struct android_focus_event
+{
+  enum android_event_type type;
+  android_window window;
+  android_time time;
+};
+
+struct android_window_action_event
+{
+  enum android_event_type type;
+
+  /* The window handle.  This can be ANDROID_NONE.  */
+  android_window window;
+
+  /* Numerical identifier for this action.  If 0 and WINDOW is set,
+     then it means the frame associated with that window has been
+     destroyed.  Otherwise, it means Emacs should create a new
+     frame.  */
+  unsigned int action;
+};
+
 union android_event
 {
   enum android_event_type type;
   struct android_any_event xany;
   struct android_key_event xkey;
   struct android_configure_event xconfigure;
+  struct android_focus_event xfocus;
+  struct android_window_action_event xaction;
 };
 
 extern int android_pending (void);
@@ -303,8 +346,46 @@ extern android_pixmap android_create_pixmap (unsigned int, unsigned int,
 extern void android_set_ts_origin (struct android_gc *, int, int);
 extern void android_clear_area (android_window, int, int, unsigned int,
 				unsigned int);
+extern android_pixmap android_create_bitmap_from_data (char *, unsigned int,
+						       unsigned int);
 
 #endif
+
+
+
+/* Image support.  Keep the API as similar to XImage as possible.  To
+   avoid leaving a huge mess of "#ifndef ANDROID_STUBIFY" in image.c,
+   stubs should be defined for all functions.  */
+
+enum android_image_format
+  {
+    ANDROID_Z_PIXMAP,
+  };
+
+struct android_image
+{
+  int width, height;
+  enum android_image_format format;
+  char *data;
+  int depth;
+  int bytes_per_line;
+  int bits_per_pixel;
+};
+
+extern struct android_image *android_create_image (unsigned int,
+						   enum android_image_format,
+						   char *, unsigned int,
+						   unsigned int);
+extern void android_destroy_image (struct android_image *);
+
+extern void android_put_pixel (struct android_image *, int, int,
+			       unsigned long);
+extern unsigned long android_get_pixel (struct android_image *, int, int);
+extern struct android_image *android_get_image (android_drawable,
+						enum android_image_format);
+extern void android_put_image (android_pixmap, struct android_image *);
+
+
 
 /* X emulation stuff also needed while building stubs.  */
 

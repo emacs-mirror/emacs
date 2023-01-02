@@ -19,17 +19,20 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import android.content.res.ColorStateList;
+
 import android.view.View;
 import android.view.KeyEvent;
 import android.view.ViewGroup;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.Paint;
-import android.util.Log;
 
 import android.os.Build;
+import android.util.Log;
 
 /* This is an Android view which has a back and front buffer.  When
    swapBuffers is called, the back buffer is swapped to the front
@@ -70,10 +73,11 @@ public class EmacsView extends ViewGroup
     this.damageRegion = new Region ();
     this.paint = new Paint ();
 
+    setFocusable (true);
+    setFocusableInTouchMode (true);
+
     /* Create the surface view.  */
     this.surfaceView = new EmacsSurfaceView (this);
-
-    setFocusable (FOCUSABLE);
     addView (this.surfaceView);
   }
 
@@ -162,7 +166,7 @@ public class EmacsView extends ViewGroup
   }
 
   public void
-  swapBuffers ()
+  swapBuffers (boolean force)
   {
     Bitmap back;
     Canvas canvas;
@@ -185,12 +189,23 @@ public class EmacsView extends ViewGroup
     if (canvas == null)
       return;
 
-    /* Copy from the back buffer to the canvas.  */
-    canvas.drawBitmap (bitmap, damageRect, damageRect, paint);
+    /* Copy from the back buffer to the canvas.  If damageRect was
+       made empty, then draw the entire back buffer.  */
+
+    if (damageRect.isEmpty ())
+      canvas.drawBitmap (bitmap, 0f, 0f, paint);
+    else
+      canvas.drawBitmap (bitmap, damageRect, damageRect, paint);
 
     /* Unlock the canvas and clear the damage.  */
     surfaceView.unlockCanvasAndPost (canvas);
     damageRegion.setEmpty ();
+  }
+
+  public void
+  swapBuffers ()
+  {
+    swapBuffers (false);
   }
 
   @Override
@@ -203,9 +218,27 @@ public class EmacsView extends ViewGroup
 
   @Override
   public boolean
+  onKeyMultiple (int keyCode, int repeatCount, KeyEvent event)
+  {
+    window.onKeyDown (keyCode, event);
+    return true;
+  }
+
+  @Override
+  public boolean
   onKeyUp (int keyCode, KeyEvent event)
   {
     window.onKeyUp (keyCode, event);
     return true;
+  }
+
+  @Override
+  public void
+  onFocusChanged (boolean gainFocus, int direction,
+		  Rect previouslyFocusedRect)
+  {
+    window.onFocusChanged (gainFocus);
+    super.onFocusChanged (gainFocus, direction,
+			  previouslyFocusedRect);
   }
 };

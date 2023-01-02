@@ -2073,7 +2073,7 @@ static void
 build_load_history (Lisp_Object filename, bool entire)
 {
   Lisp_Object tail, prev, newelt;
-  Lisp_Object tem, tem2;
+  Lisp_Object tem, tem2, association;
   bool foundit = 0;
 
   tail = Vload_history;
@@ -2088,7 +2088,7 @@ build_load_history (Lisp_Object filename, bool entire)
 	{
 	  foundit = 1;
 
-	  /*  If we're loading the entire file, remove old data.  */
+	  /* If we're loading the entire file, remove old data.  */
 	  if (entire)
 	    {
 	      if (NILP (prev))
@@ -2096,8 +2096,8 @@ build_load_history (Lisp_Object filename, bool entire)
 	      else
 		Fsetcdr (prev, XCDR (tail));
 	    }
-
-	  /*  Otherwise, cons on new symbols that are not already members.  */
+	  /* Otherwise, cons on new symbols that are not already
+	     members.  */
 	  else
 	    {
 	      tem2 = Vcurrent_load_list;
@@ -2122,8 +2122,16 @@ build_load_history (Lisp_Object filename, bool entire)
      front of load-history, the most-recently-loaded position.  Also
      do this if we didn't find an existing member for the file.  */
   if (entire || !foundit)
-    Vload_history = Fcons (Fnreverse (Vcurrent_load_list),
-			   Vload_history);
+    {
+      association = Fnreverse (Vcurrent_load_list);
+
+      if (!NILP (association) && STRINGP (XCAR (association)))
+	/* readevalloop can be called with SOURCENAME set to some
+	   nonsense value, meaning the car of ASSOCIATION will be nil
+	   (or worse something else), leading to an invalid
+	   Vload_history.  Ignore such invalid entries.  */
+	Vload_history = Fcons (association, Vload_history);
+    }
 }
 
 static void

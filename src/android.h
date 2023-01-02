@@ -28,6 +28,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <jni.h>
 #include <pwd.h>
 #include <sys/stat.h>
+
+#include "androidgui.h"
 #endif
 
 /* This must be used in every symbol declaration to export it to the
@@ -49,6 +51,19 @@ extern int android_fstat (int, struct stat *);
 extern int android_fstatat (int, const char *restrict,
 			    struct stat *restrict, int);
 extern int android_close (int);
+extern const char *android_get_home_directory (void);
+
+extern double android_pixel_density_x, android_pixel_density_y;
+
+enum android_handle_type
+  {
+    ANDROID_HANDLE_WINDOW,
+    ANDROID_HANDLE_GCONTEXT,
+    ANDROID_HANDLE_PIXMAP,
+  };
+
+extern jobject android_resolve_handle (android_handle,
+				       enum android_handle_type);
 
 #endif
 

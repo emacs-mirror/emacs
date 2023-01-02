@@ -38,10 +38,15 @@ public class EmacsNative
      libDir must be the package's data storage location for native
      libraries.  It is used as PATH.
 
+     pixelDensityX and pixelDensityY are the DPI values that will be
+     used by Emacs.
+
      emacsService must be the emacsService singleton.  */
   public static native void setEmacsParams (AssetManager assetManager,
 					    String filesDir,
 					    String libDir,
+					    float pixelDensityX,
+					    float pixelDensityY,
 					    EmacsService emacsService);
 
   /* Initialize Emacs with the argument array ARGV.  Each argument
@@ -59,11 +64,20 @@ public class EmacsNative
 
   /* Send an ANDROID_KEY_PRESS event.  */
   public static native void sendKeyPress (short window, long time, int state,
-					  int keyCode);
+					  int keyCode, int unicodeChar);
 
   /* Send an ANDROID_KEY_RELEASE event.  */
   public static native void sendKeyRelease (short window, long time, int state,
-					    int keyRelease);
+					    int keyCode, int unicodeChar);
+
+  /* Send an ANDROID_FOCUS_IN event.  */
+  public static native void sendFocusIn (short window, long time);
+
+  /* Send an ANDROID_FOCUS_OUT event.  */
+  public static native void sendFocusOut (short window, long time);
+
+  /* Send an ANDROID_WINDOW_ACTION event.  */
+  public static native void sendWindowAction (short window, int action);
 
   static
   {

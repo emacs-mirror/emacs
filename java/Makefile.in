@@ -60,7 +60,7 @@ all: emacs.apk
 # Binaries to cross-compile.
 CROSS_BINS = ../xcompile/src/android-emacs ../xcompile/lib-src/ctags	\
 	     ../xcompile/lib-src/hexl ../xcompile/lib-src/movemail	\
-	     ../xcompile/lib-src/ebrowse
+	     ../xcompile/lib-src/ebrowse ../xcompile/lib-src/emacsclient
 
 # Libraries to cross-compile.
 CROSS_LIBS = ../xcompile/src/libemacs.so
@@ -84,6 +84,7 @@ emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) AndroidManifest.xml
 # Install architecture independents to assets/etc and assets/lisp
 	cp -r $(top_builddir)/lisp install_temp/assets
 	cp -r $(top_builddir)/etc install_temp/assets
+	cp -r $(top_builddir)/info install_temp/assets
 # Remove undesirable files from those directories.
 	for subdir in `find install_temp -type d -print`; do	\
 	  chmod a+rx $${subdir} ;				\

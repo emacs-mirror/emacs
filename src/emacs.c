@@ -1440,9 +1440,8 @@ main (int argc, char **argv)
   bool only_version = false;
   sort_args (argc, argv);
   old_argc = argc, argc = 0;
-  while (argv[argc]
-	 /* Don't allow going past argv.  */
-	 && argc < old_argc) argc++;
+  /* Don't allow going past argv.  */
+  while (argc < old_argc && argv[argc]) argc++;
 
   skip_args = 0;
   if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))

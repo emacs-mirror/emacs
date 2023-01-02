@@ -1422,25 +1422,30 @@ If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  
    On X, we bit-swap the built-in bitmaps and reduce bitmap
    from short to char array if width is <= 8 bits.
 
+   The Android port tries to follow X as closely as possible, so do
+   that there too.
+
    On MAC with big-endian CPU, we need to byte-swap each short.
 
    On W32 and MAC (little endian), there's no need to do this.
 */
 
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_PGTK)
-static const unsigned char swap_nibble[16] = {
-  0x0, 0x8, 0x4, 0xc,           /* 0000 1000 0100 1100 */
-  0x2, 0xa, 0x6, 0xe,           /* 0010 1010 0110 1110 */
-  0x1, 0x9, 0x5, 0xd,           /* 0001 1001 0101 1101 */
-  0x3, 0xb, 0x7, 0xf};          /* 0011 1011 0111 1111 */
-#endif                          /* HAVE_X_WINDOWS */
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_PGTK) || defined (HAVE_ANDROID)
+static const unsigned char swap_nibble[16] =
+  {
+    0x0, 0x8, 0x4, 0xc,           /* 0000 1000 0100 1100 */
+    0x2, 0xa, 0x6, 0xe,           /* 0010 1010 0110 1110 */
+    0x1, 0x9, 0x5, 0xd,           /* 0001 1001 0101 1101 */
+    0x3, 0xb, 0x7, 0xf,           /* 0011 1011 0111 1111 */
+  };
+#endif
 
 static void
 init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 {
   if (once_p || fb->dynamic)
     {
-#if defined (HAVE_X_WINDOWS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_ANDROID)
       unsigned short *bits = fb->bits;
       int j;
 
@@ -1488,7 +1493,7 @@ init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 	    }
 	}
 #endif /* not USE_CAIRO */
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS || HAVE_ANDROID */
 
 #if !defined(HAVE_X_WINDOWS) && defined (HAVE_PGTK)
       unsigned short *bits = fb->bits;
