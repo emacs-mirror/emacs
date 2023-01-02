@@ -1,6 +1,6 @@
 ;;; shortdoc-tests.el --- tests for shortdoc.el   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +21,8 @@
 
 (require 'ert)
 (require 'shortdoc)
+(require 'subr-x) ; `string-pad' in shortdoc group needed at run time
+(require 'regexp-opt)    ; `regexp-opt-charset' not autoloaded
 
 (defun shortdoc-tests--tree-contains (tree fun)
   "Whether TREE contains a call to FUN."
@@ -43,6 +45,14 @@
                             ((stringp example) (read example)))))
                 (should (shortdoc-tests--tree-contains expr fun))))
             (setq props (cddr props))))))))
+
+(ert-deftest shortdoc-all-functions-fboundp ()
+  "Check that all functions listed in shortdoc groups are `fboundp'."
+  (dolist (group shortdoc--groups)
+    (dolist (item group)
+      (when (consp item)
+        (let ((fun (car item)))
+          (should (fboundp fun)))))))
 
 (ert-deftest shortdoc-all-groups-work ()
   "Test that all defined shortdoc groups display correctly."

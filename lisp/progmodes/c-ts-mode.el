@@ -1,6 +1,6 @@
 ;;; c-ts-mode.el --- tree-sitter support for C and C++  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -425,7 +425,7 @@ MODE is either `c' or `cpp'."
     ;; Recurse.
     ((or "attributed_declarator" "parenthesized_declarator")
      (c-ts-mode--declarator-identifier (treesit-node-child node 0 t)))
-    ("pointer_declarator"
+    ((or "pointer_declarator" "reference_declarator")
      (c-ts-mode--declarator-identifier (treesit-node-child node -1)))
     ((or "function_declarator" "array_declarator" "init_declarator")
      (c-ts-mode--declarator-identifier

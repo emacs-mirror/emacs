@@ -1,6 +1,6 @@
 ;;; shortdoc.el --- Short function summaries  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Keywords: lisp, help
 ;; Package: emacs
@@ -421,8 +421,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (file-readable-p
    :no-eval (file-readable-p "/tmp/foo")
    :eg-result t)
-  (file-writeable-p
-   :no-eval (file-writeable-p "/tmp/foo")
+  (file-writable-p
+   :no-eval (file-writable-p "/tmp/foo")
    :eg-result t)
   (file-accessible-directory-p
    :no-eval (file-accessible-directory-p "/tmp")
@@ -652,8 +652,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (mapcan #'list '(1 2 3)))
   (mapc
    :eval (mapc #'insert '("1" "2" "3")))
-  (reduce
-   :eval (reduce #'+ '(1 2 3)))
+  (seq-reduce
+   :eval (seq-reduce #'+ '(1 2 3) 0))
   (mapconcat
    :eval (mapconcat #'identity '("foo" "bar") "|"))
   "Predicates"

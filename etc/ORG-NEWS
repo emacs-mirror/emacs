@@ -6,7 +6,7 @@ ORG NEWS -- history of user-visible changes.   -*- mode: org; coding: utf-8 -*-
 #+LINK: msg https://list.orgmode.org/%s/
 #+LINK: git https://git.savannah.gnu.org/cgit/emacs/org-mode.git/commit/?id=%s
 
-Copyright (C) 2012-2022 Free Software Foundation, Inc.
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Org bug reports to mailto:emacs-orgmode@gnu.org.
@@ -24,7 +24,7 @@ the time being.  It will be removed in the next release.
 
 See https://orgmode.org/list/87r0yk7bx8.fsf@localhost for more details.
 
-*** Element cache is enabled by default and work for headings
+*** Element cache is enabled by default and works for headings
 
 The old element cache code has been refactored.  Emacs does not hang
 anymore when the cache is enabled.

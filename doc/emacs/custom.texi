@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -2701,6 +2701,28 @@ function is not defined.
 
 A @code{setq} on a variable which does not exist is generally
 harmless, so those do not need a conditional.
+
+@item
+Using @code{use-package} to automatically load and configure a
+package.
+
+@example
+(use-package hi-lock
+  :defer t
+  :init (add-hook 'some-hook 'hi-lock-mode)
+  :config (use-package my-hi-lock)
+  :bind (("M-o l" . highlight-lines-matching-regexp)
+         ("M-o r" . highlight-regexp)
+         ("M-o w" . highlight-phrase)))
+@end example
+
+@noindent
+This will load @code{hi-lock} when some of its commands or variables
+are first used, bind 3 keys to its commands, and additionally load the
+@code{my-hi-lock} package (presumably further customizing
+@code{hi-lock}) after loading @code{hi-lock}.  The @code{use-package}
+facility is fully documented in its own manual, @pxref{Top,,,
+use-package, use-package User manual}.
 @end itemize
 
 @node Terminal Init

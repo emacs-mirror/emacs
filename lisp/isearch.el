@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1997, 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -3723,8 +3723,14 @@ Optional third argument, if t, means if fail just return nil (no error).
 (defun isearch-open-overlay-temporary (ov)
   (if (not (null (overlay-get ov 'isearch-open-invisible-temporary)))
       ;; Some modes would want to open the overlays temporary during
-      ;; isearch in their own way, they should set the
-      ;; `isearch-open-invisible-temporary' to a function doing this.
+      ;; isearch in their own way, they should set the overlay's
+      ;; `isearch-open-invisible-temporary' property to a function
+      ;; doing this.
+      ;; Warning: if your code uses this technique, it should not
+      ;; delete the overlay passed to that function, since the values
+      ;; of the `invisible' property will be recorded on that overlay,
+      ;; to be restored after isearch is done with the text hidden by
+      ;; the overlay.
       (funcall  (overlay-get ov 'isearch-open-invisible-temporary)  ov nil)
     ;; Store the values for the `invisible' property, and then set it to nil.
     ;; This way the text hidden by this overlay becomes visible.

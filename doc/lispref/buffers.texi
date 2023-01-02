@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Buffers
@@ -977,17 +977,15 @@ first argument is @var{buffer-or-name} and the second is @var{arg}
 A cons-cell @code{(@var{oper} . @var{expr})} where @var{oper} is one
 of
 @table @code
-@item not
-Satisfied if @var{expr} doesn't satisfy @code{buffer-match-p} with
+@item (not @var{cond})
+Satisfied if @var{cond} doesn't satisfy @code{buffer-match-p} with
 the same buffer and @code{arg}.
-@item or
-Satisfied if @var{expr} is a list and @emph{any} condition in
-@var{expr} satisfies @code{buffer-match-p}, with the same buffer and
-@code{arg}.
-@item and
-Satisfied if @var{expr} is a list and @emph{all} conditions in
-@var{expr} satisfy @code{buffer-match-p}, with the same buffer and
-@code{arg}.
+@item (or @var{conds}@dots{})
+Satisfied if @emph{any} condition in @var{conds} satisfies
+@code{buffer-match-p}, with the same buffer and @code{arg}.
+@item (and @var{conds}@dots{})
+Satisfied if @emph{all} the conditions in @var{conds} satisfy
+@code{buffer-match-p}, with the same buffer and @code{arg}.
 @item derived-mode
 Satisfied if the buffer's major mode derives from @var{expr}.
 @item major-mode

@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -2822,7 +2822,7 @@ systematically send encrypted emails when possible."
 
 The value must be a list of three elements, all strings:
 - Key ID, in hexadecimal form;
-- Key URL or ASCII armoured key; and
+- Key URL or ASCII armored key; and
 - Protection preference, one of: \"unprotected\", \"sign\",
   \"encrypt\" or \"signencrypt\".
 

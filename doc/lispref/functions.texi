@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Functions
@@ -700,8 +700,10 @@ redefinition from unintentional redefinition.
 @defun defalias name definition &optional doc
 @anchor{Definition of defalias}
 This function defines the symbol @var{name} as a function, with
-definition @var{definition} (which can be any valid Lisp function).
-Its return value is @emph{undefined}.
+definition @var{definition}.  @var{definition} can be any valid Lisp
+function or macro, or a special form (@pxref{Special Forms}), or a
+keymap (@pxref{Keymaps}), or a vector or string (a keyboard macro).
+The return value of @code{defalias} is @emph{undefined}.
 
 If @var{doc} is non-@code{nil}, it becomes the function documentation
 of @var{name}.  Otherwise, any documentation provided by
@@ -713,10 +715,10 @@ If @var{name} has a @code{defalias-fset-function} property, however,
 the associated value is used as a function to call in place of @code{fset}.
 
 The proper place to use @code{defalias} is where a specific function
-name is being defined---especially where that name appears explicitly in
-the source file being loaded.  This is because @code{defalias} records
-which file defined the function, just like @code{defun}
-(@pxref{Unloading}).
+or macro name is being defined---especially where that name appears
+explicitly in the source file being loaded.  This is because
+@code{defalias} records which file defined the function, just like
+@code{defun} (@pxref{Unloading}).
 
 By contrast, in programs that manipulate function definitions for other
 purposes, it is better to use @code{fset}, which does not keep such

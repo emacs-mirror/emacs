@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1993, 1995, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1990--1993, 1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Tips
@@ -689,6 +689,10 @@ line.  This looks nice in the source code, but looks bizarre when users
 view the documentation.  Remember that the indentation before the
 starting double-quote is not part of the string!
 
+@cindex quoting apostrophe and grave accent in doc strings
+@cindex apostrophe, quoting in documentation strings
+@cindex grave accent, quoting in documentation strings
+@cindex escaping apostrophe and grave accent in doc strings
 @item
 When documentation should display an ASCII apostrophe or grave accent,
 use @samp{\\='} or @samp{\\=`} in the documentation string literal so

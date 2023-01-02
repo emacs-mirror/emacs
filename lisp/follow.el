@@ -1,6 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 1999, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1995-1997, 1999, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Anders Lindgren

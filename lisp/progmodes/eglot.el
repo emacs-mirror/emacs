@@ -1,6 +1,6 @@
 ;;; eglot.el --- The Emacs Client for LSP servers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Version: 1.10
 ;; Author: João Távora <joaotavora@gmail.com>
@@ -205,7 +205,7 @@ chosen (interactively or automatically)."
                                 (((caml-mode :language-id "ocaml")
                                   (tuareg-mode :language-id "ocaml") reason-mode)
                                  . ("ocamllsp"))
-                                (ruby-mode
+                                ((ruby-mode ruby-ts-mode)
                                  . ("solargraph" "socket" "--port" :autoport))
                                 (haskell-mode
                                  . ("haskell-language-server-wrapper" "--lsp"))

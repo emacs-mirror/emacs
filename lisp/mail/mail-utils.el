@@ -1,6 +1,6 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail, news

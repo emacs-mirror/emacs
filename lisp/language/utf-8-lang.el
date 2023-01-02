@@ -1,6 +1,6 @@
 ;;; utf-8-lang.el --- generic UTF-8 language environment  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

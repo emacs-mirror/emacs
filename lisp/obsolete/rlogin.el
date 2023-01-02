@@ -1,6 +1,6 @@
 ;;; rlogin.el --- remote login interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
@@ -95,7 +95,7 @@ This variable becomes local to a buffer when set in any fashion for it.
 It is better to use the function of the same name to change the behavior of
 directory tracking in an rlogin session once it has begun, rather than
 simply setting this variable, since the function does the necessary
-re-synching of directories."
+re-syncing of directories."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "ftp" t)
 		 (other :tag "local" local))

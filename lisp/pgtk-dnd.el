@@ -1,6 +1,6 @@
 ;;; pgtk-dnd.el --- drag and drop support for GDK -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: window, drag, drop

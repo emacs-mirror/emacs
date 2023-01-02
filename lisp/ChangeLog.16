@@ -10968,8 +10968,8 @@
 	* comint.el (comint-history-isearch-end):
 	Use `isearch-search-fun-default'.
 	(comint-history-isearch-search): Use `isearch-search-fun-default'
-	and remove spacial case for `isearch-word'.
-	(comint-history-isearch-wrap): Remove spacial case for
+	and remove special case for `isearch-word'.
+	(comint-history-isearch-wrap): Remove special case for
 	`isearch-word'.
 
 	* hexl.el (hexl-isearch-search-function):
@@ -10982,13 +10982,13 @@
 	Use `isearch-search-fun-default'.
 
 	* simple.el (minibuffer-history-isearch-search):
-	Use `isearch-search-fun-default' and remove spacial case for
+	Use `isearch-search-fun-default' and remove special case for
 	`isearch-word'.
-	(minibuffer-history-isearch-wrap): Remove spacial case for
+	(minibuffer-history-isearch-wrap): Remove special case for
 	`isearch-word'.
 
 	* textmodes/reftex-global.el (reftex-isearch-wrap-function):
-	Remove spacial case for `isearch-word'.
+	Remove special case for `isearch-word'.
 	(reftex-isearch-isearch-search): Use `isearch-search-fun-default'.
 
 2012-05-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
@@ -25223,7 +25223,7 @@ See ChangeLog.15 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2022 Free Software Foundation, Inc.
+  Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

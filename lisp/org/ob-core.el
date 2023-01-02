@@ -1,6 +1,6 @@
 ;;; ob-core.el --- Working with Code Blocks          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
@@ -2461,13 +2461,18 @@ INFO may provide the values of these header arguments (in the
 		    (insert
 		     (org-trim
 		      (org-list-to-org
+                       ;; We arbitrarily choose to format non-strings
+                       ;; as %S.
 		       (cons 'unordered
 			     (mapcar
 			      (lambda (e)
                                 (cond
                                  ((stringp e) (list e))
                                  ((listp e)
-                                  (mapcar (lambda (x) (format "%S" x)) e))
+                                  (mapcar
+                                   (lambda (x)
+                                     (if (stringp x) x (format "%S" x)))
+                                   e))
                                  (t (list (format "%S" e)))))
 			      (if (listp result) result
 				(split-string result "\n" t))))

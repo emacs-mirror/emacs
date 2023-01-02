@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2021-2022 Free Software Foundation, Inc.
+@c Copyright (C) 2021--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Parsing Program Source
 @chapter Parsing Program Source
@@ -154,9 +154,9 @@ them.
 @end defun
 
 @defun treesit-language-abi-version language
-This function returns the language grammar @acronym{ABI} version of
-language grammar for @var{language} loaded by Emacs.  If
-@var{language} is unavailable, this function returns @code{nil}.
+This function returns the @acronym{ABI} version of the language
+grammar library loaded by Emacs for @var{language}.  If @var{language}
+is unavailable, this function returns @code{nil}.
 @end defun
 
 @heading Concrete syntax tree

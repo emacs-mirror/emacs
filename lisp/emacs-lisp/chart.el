@@ -1,6 +1,6 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.2
@@ -517,7 +517,7 @@ cons cells of the form (NAME . NUM).  See `sort' for more details."
     (if (eobp) (newline num))
     (if (< x 0) (setq x 0))
     (if (< y 0) (setq y 0))
-    ;; Now, a quicky column moveto/forceto method.
+    ;; Now, a quickie column moveto/forceto method.
     (or (= (move-to-column x) x)
 	(let ((p (point)))
 	  (indent-to x)

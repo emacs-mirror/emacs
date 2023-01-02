@@ -13,7 +13,7 @@
 @copying
 This manual is for use-package @value{USEP_VER} @value{USEP_DIST}.
 
-Copyright @copyright{} 2022 Free Software Foundation, Inc.
+Copyright @copyright{} 2022--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -132,19 +132,9 @@ do.
 @cindex quick-start instructions
 
 This chapter provides instructions and examples for quickly getting
-started with use-package.  The first thing you need to do is make sure
-that @file{use-package} itself is loaded.  To do that, put this at the
-top of your init file:
-
-@lisp
-(require 'use-package)
-@end lisp
-
-@cindex declaration
-The above makes the @code{use-macro} available for us in the rest of
-your init file.  In this manual, we say that each call to
-@code{use-macro} is a @dfn{declaration}, to highlight the declarative
-nature of its syntax.
+started with use-package.  In this manual, we say that each call to
+the @code{use-package} macro in your init file is a @dfn{declaration},
+to highlight the declarative nature of its syntax.
 
 To unconditionally load a package named @samp{foo}, add the following
 declaration to your init file:

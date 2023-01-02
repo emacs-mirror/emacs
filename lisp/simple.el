@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -3590,7 +3590,7 @@ Return what remains of the list."
                    ;; said it would do.
                    (unless (and (= start start-mark)
                                 (= (+ delta end) end-mark))
-                     (error "Changes to be undone by function different from announced"))
+                     (error "Changes undone by function are different from the announced ones"))
                    (set-marker start-mark nil)
                    (set-marker end-mark nil))
                (apply fun-args))

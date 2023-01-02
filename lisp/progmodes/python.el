@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -1192,7 +1192,7 @@ fontified."
   "Check whether NODE is a variable.
 NODE's type should be \"identifier\"."
   ;; An identifier can be a function/class name, a property, or a
-  ;; variables.  This funtion filters out function/class names and
+  ;; variables.  This function filters out function/class names and
   ;; properties.
   (pcase (treesit-node-type (treesit-node-parent node))
     ((or "function_definition" "class_definition") nil)
@@ -3736,19 +3736,35 @@ the python shell:
      appending extra empty lines so tracebacks are correct.
   3. When the region sent is a substring of the current buffer, a
      coding cookie is added.
-  4. Wraps indented regions under an \"if True:\" block so the
-     interpreter evaluates them correctly."
-  (let* ((start (save-excursion
-                  ;; If we're at the start of the expression, and
-                  ;; there's just blank space ahead of it, then expand
-                  ;; the region to include the start of the line.
-                  ;; This makes things work better with the rest of
-                  ;; the data we're sending over.
+  4. When the region consists of a single statement, leading
+     whitespaces will be removed.  Otherwise, wraps indented
+     regions under an \"if True:\" block so the interpreter
+     evaluates them correctly."
+  (let* ((single-p (save-restriction
+                     (narrow-to-region start end)
+                     (= (progn
+                          (goto-char start)
+                          (python-nav-beginning-of-statement))
+                        (progn
+                          (goto-char end)
+                          (python-nav-beginning-of-statement)))))
+         (start (save-excursion
+                  ;; If we're at the start of the expression, and if
+                  ;; the region consists of a single statement, then
+                  ;; remove leading whitespaces, else if there's just
+                  ;; blank space ahead of it, then expand the region
+                  ;; to include the start of the line.  This makes
+                  ;; things work better with the rest of the data
+                  ;; we're sending over.
                   (goto-char start)
-                  (if (string-blank-p
-                       (buffer-substring (line-beginning-position) start))
-                      (line-beginning-position)
-                    start)))
+                  (if single-p
+                      (progn
+                        (skip-chars-forward "[:space:]" end)
+                        (point))
+                    (if (string-blank-p
+                         (buffer-substring (line-beginning-position) start))
+                        (line-beginning-position)
+                      start))))
          (substring (buffer-substring-no-properties start end))
          (starts-at-point-min-p (save-restriction
                                   (widen)
@@ -3772,7 +3788,7 @@ the python shell:
       (python-mode)
       (when fillstr
         (insert fillstr))
-      (when (not toplevel-p)
+      (when (and (not single-p) (not toplevel-p))
         (forward-line -1)
         (insert "if True:\n")
         (delete-region (point) (line-end-position)))
@@ -3816,7 +3832,8 @@ code inside blocks delimited by \"if __name__== \\='__main__\\=':\".
 When called interactively SEND-MAIN defaults to nil, unless it's
 called with prefix argument.  When optional argument MSG is
 non-nil, forces display of a user-friendly message if there's no
-process running; defaults to t when called interactively."
+process running; defaults to t when called interactively.  The
+substring to be sent is retrieved using `python-shell-buffer-substring'."
   (interactive
    (list (region-beginning) (region-end) current-prefix-arg t))
   (let* ((string (python-shell-buffer-substring start end (not send-main)

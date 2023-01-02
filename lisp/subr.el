@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2022 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -7063,7 +7063,7 @@ CONDITION is either:
   * `major-mode': the buffer matches if the buffer's major mode
     is eq to the cons-cell's cdr.  Prefer using `derived-mode'
     instead when both can work.
-  * `not': the cdr is interpreted as a negation of a condition.
+  * `not': the cadr is interpreted as a negation of a condition.
   * `and': the cdr is a list of recursive conditions, that all have
     to be met.
   * `or': the cdr is a list of recursive condition, of which at

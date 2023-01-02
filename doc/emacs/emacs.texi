@@ -20,7 +20,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifclear
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2022 Free Software Foundation,
+Copyright @copyright{} 1985--1987, 1993--2023 Free Software Foundation,
 Inc.
 
 @quotation
@@ -220,7 +220,7 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 27.
+* Antinews::            Information about Emacs version 28.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
 * Haiku::               Using Emacs on Haiku.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.

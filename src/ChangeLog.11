@@ -3294,7 +3294,7 @@
 2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (syms_of_gnutls): All the bootprops are keywords.
-	(emacs_gnutls_write): Remove the debuggin fsync call.
+	(emacs_gnutls_write): Remove the debugging fsync call.
 	(emacs_gnutls_read): Return -1 if we got an error from
 	gnutls_read.  This allows us to actually read lots of data from
 	the GnuTLS stream.
@@ -31385,7 +31385,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2022 Free Software Foundation, Inc.
+  Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

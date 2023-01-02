@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2021-2022 Free Software Foundation, Inc.
+Copyright (C) 2021-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -110,6 +110,16 @@ point is not in a comment or a string.  It is by default bound to
 'M-q' in 'prog-mode' and all its descendants.
 
 * New Modes and Packages in Emacs 30.1
+---
+** The highly accessible Modus themes collection has six items
+The 'modus-operandi' and 'modus-vivendi' are the main themes that have
+been part of Emacs since version 28.  The former is light, the latter
+dark.  In addition to these, we now have 'modus-operandi-tinted' and
+'modus-vivendi-tinted' for easier legibility, as well as
+'modus-operandi-deuteranopia' and 'modus-vivendi-deuteranopia' to
+cover the needs of users with red-green color deficiency.  The Info
+manual of the themes describes the details and showcases all their
+customization options.
 
 
 * Incompatible Lisp Changes in Emacs 30.1

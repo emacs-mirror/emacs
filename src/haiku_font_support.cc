@@ -1,5 +1,5 @@
 /* Haiku window system support.  Hey, Emacs, this is -*- C++ -*-
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

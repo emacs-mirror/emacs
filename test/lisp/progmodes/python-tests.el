@@ -1,6 +1,6 @@
 ;;; python-tests.el --- Test suite for python.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -4455,6 +4455,70 @@ def foo():
                      (python-tests-look-at "# Whitespace")
                      (point-max))
                     "# -*- coding: utf-8 -*-\n\nif True:\n        # Whitespace\n\n    print ('a')\n\n"))))
+
+(ert-deftest python-shell-buffer-substring-13 ()
+  "Check substring from indented single statement."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    a = 1
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "a = 1")
+                     (pos-eol))
+                    "# -*- coding: utf-8 -*-\n\na = 1"))))
+
+(ert-deftest python-shell-buffer-substring-14 ()
+  "Check substring from indented single statement spanning multiple lines."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    a = \"\"\"Some
+    string\"\"\"
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "a = \"\"\"Some")
+                     (pos-eol 2))
+                    "# -*- coding: utf-8 -*-\n\na = \"\"\"Some\n    string\"\"\""))))
+
+(ert-deftest python-shell-buffer-substring-15 ()
+  "Check substring from partial statement."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    a = 1
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "    a = 1")
+                     (python-tests-look-at " = 1"))
+                    "# -*- coding: utf-8 -*-\n\na"))))
+
+(ert-deftest python-shell-buffer-substring-16 ()
+  "Check substring from partial statement."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    a = 1
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "1")
+                     (1+ (point)))
+                    "# -*- coding: utf-8 -*-\n\n1"))))
+
+(ert-deftest python-shell-buffer-substring-17 ()
+  "Check substring from multiline string."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    s = \"\"\"
+    a = 1
+    b = 2
+\"\"\"
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "a = 1")
+                     (python-tests-look-at "\"\"\""))
+                    "# -*- coding: utf-8 -*-\n\nif True:\n    a = 1\n    b = 2\n\n"))))
 
 
 

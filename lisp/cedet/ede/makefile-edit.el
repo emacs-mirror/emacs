@@ -1,6 +1,6 @@
 ;;; makefile-edit.el --- Makefile editing/scanning commands.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

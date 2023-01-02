@@ -1,6 +1,6 @@
 ;;; csharp-mode.el --- Support for editing C#  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;;              Jostein Kjønigsen <jostein@kjonigsen.net>
@@ -693,24 +693,46 @@ compilation and evaluation time conflicts."
 (defvar csharp-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'c-sharp
+   :feature 'expression
+   '((conditional_expression (identifier) @font-lock-variable-name-face)
+     (postfix_unary_expression (identifier)* @font-lock-variable-name-face)
+     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-name-face)))
+
+   :language 'c-sharp
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+   :language 'c-sharp
+   :feature 'delimiter
+   '((["," ":" ";"]) @font-lock-delimiter-face)
+
+   :language 'c-sharp
+   :feature 'error
+   '((ERROR) @font-lock-warning-face)
+
+   :language 'c-sharp
    :override t
    :feature 'comment
-   '((comment)  @font-lock-comment-face)
+   '((comment) @font-lock-comment-face)
+
    :language 'c-sharp
    :override t
    :feature 'keyword
    `([,@csharp-ts-mode--keywords] @font-lock-keyword-face
      (modifier) @font-lock-keyword-face
      (this_expression) @font-lock-keyword-face)
+
    :language 'c-sharp
    :override t
-   :feature 'attribute
+   :feature 'property
    `((attribute (identifier) @font-lock-property-face (attribute_argument_list))
      (attribute (identifier) @font-lock-property-face))
+
    :language 'c-sharp
    :override t
    :feature 'escape-sequence
    '((escape_sequence) @font-lock-escape-face)
+
    :language 'c-sharp
    :override t
    :feature 'literal
@@ -718,6 +740,7 @@ compilation and evaluation time conflicts."
      (real_literal) @font-lock-number-face
      (null_literal) @font-lock-constant-face
      (boolean_literal) @font-lock-constant-face)
+
    :language 'c-sharp
    :override t
    :feature 'string
@@ -730,6 +753,7 @@ compilation and evaluation time conflicts."
       "$\""
       "@$\""
       "$@\""] @font-lock-string-face)
+
    :language 'c-sharp
    :override t
    :feature 'type
@@ -740,8 +764,12 @@ compilation and evaluation time conflicts."
       (identifier) @font-lock-type-face)
      (type_argument_list
       (identifier) @font-lock-type-face)
-     (generic_name
-      (identifier) @font-lock-type-face)
+     (type_argument_list
+      (generic_name
+       (identifier) @font-lock-type-face))
+     (base_list
+      (generic_name
+       (identifier) @font-lock-type-face))
      (array_type
       (identifier) @font-lock-type-face)
      (cast_expression (identifier) @font-lock-type-face)
@@ -749,15 +777,20 @@ compilation and evaluation time conflicts."
      (type_parameter_constraints_clause
       target: (identifier) @font-lock-type-face)
      (type_of_expression (identifier) @font-lock-type-face)
-     (object_creation_expression (identifier) @font-lock-type-face))
+     (object_creation_expression
+      type: (identifier) @font-lock-type-face)
+     (object_creation_expression
+      type: (generic_name (identifier) @font-lock-type-face))
+     (as_expression right: (identifier) @font-lock-type-face)
+     (as_expression right: (generic_name (identifier) @font-lock-type-face)))
+
    :language 'c-sharp
    :feature 'definition
    :override t
    '((qualified_name (identifier) @font-lock-type-face)
      (using_directive (identifier) @font-lock-type-face)
      (using_directive (name_equals
-                       (identifier) @font-lock-type-face
-                       ["="] @default-face))
+                       (identifier) @font-lock-type-face))
 
      (enum_declaration (identifier) @font-lock-type-face)
      (enum_member_declaration (identifier) @font-lock-variable-name-face)
@@ -769,7 +802,6 @@ compilation and evaluation time conflicts."
      (record_declaration (identifier) @font-lock-type-face)
      (namespace_declaration (identifier) @font-lock-type-face)
      (base_list (identifier) @font-lock-type-face)
-     (property_declaration (generic_name))
      (property_declaration
       type: (nullable_type) @font-lock-type-face
       name: (identifier) @font-lock-variable-name-face)
@@ -783,28 +815,9 @@ compilation and evaluation time conflicts."
 
      (constructor_declaration name: (_) @font-lock-type-face)
 
-     (method_declaration type: (_) @font-lock-type-face)
+     (method_declaration type: [(identifier) (void_keyword)] @font-lock-type-face)
+     (method_declaration type: (generic_name (identifier) @font-lock-type-face))
      (method_declaration name: (_) @font-lock-function-name-face)
-
-     (invocation_expression
-      (member_access_expression
-       (generic_name (identifier) @font-lock-function-name-face)))
-     (invocation_expression
-      (member_access_expression
-       ((identifier) @font-lock-variable-name-face
-        (identifier) @font-lock-function-name-face)))
-     (invocation_expression
-      (identifier) @font-lock-function-name-face)
-     (invocation_expression
-      (member_access_expression
-       expression: (identifier) @font-lock-variable-name-face))
-     (invocation_expression
-      function: [(generic_name (identifier)) @font-lock-function-name-face
-                 (generic_name (type_argument_list
-                                ["<"] @font-lock-bracket-face
-                                (identifier) @font-lock-type-face
-                                [">"] @font-lock-bracket-face)
-                               )])
 
      (catch_declaration
       ((identifier) @font-lock-type-face))
@@ -813,31 +826,35 @@ compilation and evaluation time conflicts."
        (identifier) @font-lock-variable-name-face))
 
      (variable_declaration (identifier) @font-lock-type-face)
+     (variable_declaration (generic_name (identifier) @font-lock-type-face))
      (variable_declarator (identifier) @font-lock-variable-name-face)
 
      (parameter type: (identifier) @font-lock-type-face)
+     (parameter type: (generic_name (identifier) @font-lock-type-face))
      (parameter name: (identifier) @font-lock-variable-name-face)
 
-     (binary_expression (identifier) @font-lock-variable-name-face)
-     (argument (identifier) @font-lock-variable-name-face))
-   :language 'c-sharp
-   :feature 'expression
-   '((conditional_expression (identifier) @font-lock-variable-name-face)
-     (postfix_unary_expression (identifier)* @font-lock-variable-name-face)
-     (assignment_expression (identifier) @font-lock-variable-name-face))
-   :language 'c-sharp
-   :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+     (lambda_expression (identifier) @font-lock-variable-name-face)
+
+     (declaration_expression type: (identifier) @font-lock-type-face)
+     (declaration_expression name: (identifier) @font-lock-variable-name-face))
 
    :language 'c-sharp
-   :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face)
+   :feature 'function
+   '((invocation_expression
+      function: (member_access_expression
+                 name: (identifier) @font-lock-function-name-face))
+     (invocation_expression
+      function: (identifier) @font-lock-function-name-face)
+     (invocation_expression
+      function: (member_access_expression
+                 name: (generic_name (identifier) @font-lock-function-name-face)))
+     (invocation_expression
+      function: (generic_name (identifier) @font-lock-function-name-face)))
 
    :language 'c-sharp
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face
-     (ERROR) @font-lock-warning-face)))
+   '((escape_sequence) @font-lock-escape-face)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -908,9 +925,9 @@ Key bindings:
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
-                ( keyword string escape-sequence type)
-                ( attribute constant expression literal)
-                ( bracket delimiter)))
+                ( keyword string type)
+                ( constant escape-sequence expression literal property)
+                ( function bracket delimiter error)))
 
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings
