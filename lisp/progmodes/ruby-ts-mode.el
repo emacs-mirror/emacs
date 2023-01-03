@@ -898,20 +898,10 @@ leading double colon is not added."
   "C-c C-f" #'ruby-find-library-file)
 
 ;;;###autoload
-(define-derived-mode ruby-ts-mode prog-mode "Ruby"
+(define-derived-mode ruby-ts-mode ruby-base-mode "Ruby"
   "Major mode for editing Ruby, powered by tree-sitter."
   :group 'ruby
   :syntax-table ruby-mode-syntax-table
-
-  (setq indent-tabs-mode ruby-indent-tabs-mode)
-
-  (setq-local paragraph-start (concat "$\\|" page-delimiter))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local paragraph-ignore-fill-prefix t)
-
-  (setq-local comment-start "# ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip "#+ *")
 
   (unless (treesit-ready-p 'ruby)
     (error "Tree-sitter for Ruby isn't available"))

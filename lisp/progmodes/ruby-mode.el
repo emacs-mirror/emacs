@@ -899,24 +899,6 @@ This only affects the output of the command `ruby-toggle-block'."
       (while (and (setq state (apply #'ruby-parse-partial end state))
                     (>= (nth 2 state) 0) (< (point) end))))))
 
-(defun ruby-mode-variables ()
-  "Set up initial buffer-local variables for Ruby mode."
-  (setq indent-tabs-mode ruby-indent-tabs-mode)
-  (smie-setup ruby-smie-grammar #'ruby-smie-rules
-              :forward-token  #'ruby-smie--forward-token
-              :backward-token #'ruby-smie--backward-token)
-  (unless ruby-use-smie
-    (setq-local indent-line-function #'ruby-indent-line))
-  (setq-local comment-start "# ")
-  (setq-local comment-end "")
-  (setq-local comment-column ruby-comment-column)
-  (setq-local comment-start-skip "#+ *")
-  (setq-local parse-sexp-ignore-comments t)
-  (setq-local parse-sexp-lookup-properties t)
-  (setq-local paragraph-start (concat "$\\|" page-delimiter))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local paragraph-ignore-fill-prefix t))
-
 (defun ruby--insert-coding-comment (encoding)
   "Insert a magic coding comment for ENCODING.
 The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
@@ -2629,29 +2611,54 @@ If there is no Rubocop config file, Rubocop will be passed a flag
   "Value for `prettify-symbols-alist' in `ruby-mode'.")
 
 ;;;###autoload
-(define-derived-mode ruby-mode prog-mode "Ruby"
-  "Major mode for editing Ruby code."
-  (ruby-mode-variables)
+(define-derived-mode ruby-base-mode prog-mode "Ruby"
+  "Generic major mode for editing Ruby.
 
-  (setq-local imenu-create-index-function #'ruby-imenu-create-index)
-  (setq-local add-log-current-defun-function #'ruby-add-log-current-method)
-  (setq-local beginning-of-defun-function #'ruby-beginning-of-defun)
-  (setq-local end-of-defun-function #'ruby-end-of-defun)
+This mode is intended to be inherited by concrete major modes.
+Currently there are `ruby-mode' and `ruby-ts-mode'."
+  (setq indent-tabs-mode ruby-indent-tabs-mode)
+
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-column ruby-comment-column)
+  (setq-local comment-start-skip "#+ *")
+
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local parse-sexp-lookup-properties t)
+
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
 
   ;; `outline-regexp' contains the first part of `ruby-indent-beg-re'
   (setq-local outline-regexp (concat "^\\s *"
                                      (regexp-opt '("class" "module" "def"))
                                      "\\_>"))
   (setq-local outline-level (lambda () (1+ (/ (current-indentation)
-                                              ruby-indent-level))))
+                                         ruby-indent-level))))
 
   (add-hook 'after-save-hook #'ruby-mode-set-encoding nil 'local)
   (add-hook 'electric-indent-functions #'ruby--electric-indent-p nil 'local)
   (add-hook 'flymake-diagnostic-functions #'ruby-flymake-auto nil 'local)
 
+  (setq-local prettify-symbols-alist ruby--prettify-symbols-alist))
+
+;;;###autoload
+(define-derived-mode ruby-mode ruby-base-mode "Ruby"
+  "Major mode for editing Ruby code."
+  (smie-setup ruby-smie-grammar #'ruby-smie-rules
+              :forward-token  #'ruby-smie--forward-token
+              :backward-token #'ruby-smie--backward-token)
+  (unless ruby-use-smie
+    (setq-local indent-line-function #'ruby-indent-line))
+
+  (setq-local imenu-create-index-function #'ruby-imenu-create-index)
+  (setq-local add-log-current-defun-function #'ruby-add-log-current-method)
+  (setq-local beginning-of-defun-function #'ruby-beginning-of-defun)
+  (setq-local end-of-defun-function #'ruby-end-of-defun)
+
   (setq-local font-lock-defaults '((ruby-font-lock-keywords) nil nil
                                    ((?_ . "w"))))
-  (setq-local prettify-symbols-alist ruby--prettify-symbols-alist)
 
   (setq-local syntax-propertize-function #'ruby-syntax-propertize))
 
