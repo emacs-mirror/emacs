@@ -3182,13 +3182,14 @@ DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
 Return t if answer is yes, and nil if the answer is no.
 
 PROMPT is the string to display to ask the question; `yes-or-no-p'
-adds \"(yes or no) \" to it.
+appends `yes-or-no-prompt' (default \"(yes or no) \") to it.
 
 The user must confirm the answer with RET, and can edit it until it
 has been confirmed.
 
 If the `use-short-answers' variable is non-nil, instead of asking for
-\"yes\" or \"no\", this function will ask for \"y\" or \"n\".
+\"yes\" or \"no\", this function will ask for \"y\" or \"n\" (and
+ignore the value of `yes-or-no-prompt').
 
 If dialog boxes are supported, a dialog box will be used
 if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
@@ -3213,8 +3214,7 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   if (use_short_answers)
     return call1 (intern ("y-or-n-p"), prompt);
 
-  AUTO_STRING (yes_or_no, "(yes or no) ");
-  prompt = CALLN (Fconcat, prompt, yes_or_no);
+  prompt = CALLN (Fconcat, prompt, Vyes_or_no_prompt);
 
   specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qenable_recursive_minibuffers, Qt);
@@ -6265,8 +6265,14 @@ When non-nil, `yes-or-no-p' will use `y-or-n-p' to read the answer.
 We recommend against setting this variable non-nil, because `yes-or-no-p'
 is intended to be used when users are expected not to respond too
 quickly, but to take their time and perhaps think about the answer.
-The same variable also affects the function `read-answer'.  */);
+The same variable also affects the function `read-answer'.  See also
+`yes-or-no-prompt'.  */);
   use_short_answers = false;
+
+  DEFVAR_LISP ("yes-or-no-prompt", Vyes_or_no_prompt,
+    doc: /* String to append when `yes-or-no-p' asks a question.
+For best results this should end in a space.  */);
+  Vyes_or_no_prompt = make_unibyte_string ("(yes or no) ", strlen ("(yes or no) "));
 
   defsubr (&Sidentity);
   defsubr (&Srandom);

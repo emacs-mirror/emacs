@@ -50,6 +50,12 @@ as it has in batch mode since Emacs 24.
 When non-nil, this option suppresses moving remote files to the local
 trash when deleting.  Default is nil.
 
++++
+** New user option 'yes-or-no-prompt'.
+This allows the user to customize the prompt that is appended by
+'yes-or-no-p' when asking questions.  The default value is
+"(yes or no) ".
+
 
 * Editing Changes in Emacs 30.1
 

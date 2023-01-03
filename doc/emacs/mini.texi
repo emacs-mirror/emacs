@@ -953,12 +953,14 @@ File ‘foo.el’ exists; overwrite? (y or n)
 @end smallexample
 
 @cindex yes or no prompt
+@vindex yes-or-no-prompt
   The second type of yes-or-no query is typically employed if giving
 the wrong answer would have serious consequences; it thus features a
-longer prompt ending with @samp{(yes or no)}.  For example, if you
-invoke @kbd{C-x k} (@code{kill-buffer}) on a file-visiting buffer with
-unsaved changes, Emacs activates the minibuffer with a prompt like
-this:
+longer prompt ending with @samp{(yes or no)} (or the value of
+@code{yes-or-no-prompt} if you've customized that).  For example, if
+you invoke @kbd{C-x k} (@code{kill-buffer}) on a file-visiting buffer
+with unsaved changes, Emacs activates the minibuffer with a prompt
+like this:
 
 @smallexample
 Buffer foo.el modified; kill anyway? (yes or no)

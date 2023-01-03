@@ -2233,10 +2233,12 @@ minibuffer.  It returns @code{t} if the user enters @samp{yes},
 @code{nil} if the user types @samp{no}.  The user must type @key{RET} to
 finalize the response.  Upper and lower case are equivalent.
 
-@code{yes-or-no-p} starts by displaying @var{prompt} in the minibuffer,
-followed by @w{@samp{(yes or no) }}.  The user must type one of the
-expected responses; otherwise, the function responds @samp{Please answer
-yes or no.}, waits about two seconds and repeats the request.
+@vindex yes-or-no-prompt
+@code{yes-or-no-p} starts by displaying @var{prompt} in the
+minibuffer, followed by the value of @code{yes-or-no-prompt} @w{(default
+@samp{(yes or no) })}.  The user must type one of the expected
+responses; otherwise, the function responds @w{@samp{Please answer yes or
+no.}}, waits about two seconds and repeats the request.
 
 @code{yes-or-no-p} requires more work from the user than
 @code{y-or-n-p} and is appropriate for more crucial decisions.
