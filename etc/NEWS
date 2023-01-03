@@ -63,6 +63,13 @@ the other shared libraries used by Emacs, or in the "tree-sitter"
 subdirectory of your 'user-emacs-directory', or in a directory
 mentioned in the variable 'treesit-extra-load-path'.
 
+Emacs provides a user command, 'treesit-install-language-grammar',
+that automates the building process.  A third-party major mode package
+could instruct its users to set 'treesit-language-source-alist'
+accordingly and use that command to download and compile the language
+grammar.  A user could also use that command directly and manually
+guide it through the process.
+
 You only need to install language grammar libraries required by the
 Emacs modes you will use, as Emacs loads these libraries only when the
 corresponding mode is turned on in some buffer for the first time in
