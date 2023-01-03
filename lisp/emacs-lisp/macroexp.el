@@ -291,10 +291,11 @@ It should normally be a symbol with position and it defaults to FORM."
       (setq arglist (cdr arglist)))
     (if values
         (macroexp-warn-and-return
-         (format (if (eq values 'too-few)
-                     "attempt to open-code `%s' with too few arguments"
-                   "attempt to open-code `%s' with too many arguments")
-                 name)
+         (format-message
+          (if (eq values 'too-few)
+              "attempt to open-code `%s' with too few arguments"
+            "attempt to open-code `%s' with too many arguments")
+          name)
          form nil nil arglist)
 
       ;; The following leads to infinite recursion when loading a
@@ -367,14 +368,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
                  (if (null body)
                      (macroexp-unprogn
                       (macroexp-warn-and-return
-                       (format "`%s' with empty body" fun)
+                       (format-message "`%s' with empty body" fun)
                        nil (list 'empty-body fun) 'compile-only fun))
                    (macroexp--all-forms body))
                  (cdr form))
                 form)))
             (`(while)
              (macroexp-warn-and-return
-              "missing `while' condition"
+              (format-message "missing `while' condition")
               `(signal 'wrong-number-of-arguments '(while 0))
               nil 'compile-only form))
             (`(setq ,(and var (pred symbolp)
@@ -392,7 +393,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
              (let ((nargs (length args)))
                (if (/= (logand nargs 1) 0)
                    (macroexp-warn-and-return
-                    "odd number of arguments in `setq' form"
+                    (format-message "odd number of arguments in `setq' form")
                     `(signal 'wrong-number-of-arguments '(setq ,nargs))
                     nil 'compile-only fn)
                  (let ((assignments nil))

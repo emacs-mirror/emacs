@@ -3176,8 +3176,9 @@ To see the documentation for a defined struct type, use
               (when (cl-oddp (length desc))
                 (push
                  (macroexp-warn-and-return
-                  (format "Missing value for option `%S' of slot `%s' in struct %s!"
-                          (car (last desc)) slot name)
+                  (format-message
+                   "Missing value for option `%S' of slot `%s' in struct %s!"
+                   (car (last desc)) slot name)
                   nil nil nil (car (last desc)))
                  forms)
                 (when (and (keywordp (car defaults))
@@ -3185,8 +3186,9 @@ To see the documentation for a defined struct type, use
                   (let ((kw (car defaults)))
                     (push
                      (macroexp-warn-and-return
-                      (format "  I'll take `%s' to be an option rather than a default value."
-                              kw)
+                      (format-message
+                       "  I'll take `%s' to be an option rather than a default value."
+                       kw)
                       nil nil nil kw)
                      forms)
                     (push kw desc)

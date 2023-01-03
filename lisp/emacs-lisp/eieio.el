@@ -184,8 +184,9 @@ and reference them using the function `class-option'."
 	(when (and initarg (eq alloc :class))
 	  (push
            (cons sname
-                 (format "Meaningless :initarg for class allocated slot '%S'"
-	                 sname))
+                 (format-message
+                  "Meaningless :initarg for class allocated slot `%S'"
+	          sname))
 	   warnings))
 
         (let ((init (plist-get soptions :initform)))

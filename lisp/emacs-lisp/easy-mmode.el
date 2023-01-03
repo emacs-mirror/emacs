@@ -250,7 +250,8 @@ INIT-VALUE LIGHTER KEYMAP.
          (warnwrap (if (or (null body) (keywordp (car body))) #'identity
                      (lambda (exp)
                        (macroexp-warn-and-return
-                        "Use keywords rather than deprecated positional arguments to `define-minor-mode'"
+                        (format-message
+                         "Use keywords rather than deprecated positional arguments to `define-minor-mode'")
                         exp))))
 	 keyw keymap-sym tmp)
 
