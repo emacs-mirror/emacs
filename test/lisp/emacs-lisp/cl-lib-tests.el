@@ -431,7 +431,7 @@
     (should (eq nums (cdr (cl-adjoin 3 nums))))
     ;; add only when not already there
     (should (eq nums (cl-adjoin 2 nums)))
-    (with-suppressed-warnings ((suspicious eq))
+    (with-suppressed-warnings ((suspicious memql))
       (should (equal '(2 1 (2)) (cl-adjoin 2 '(1 (2))))))
     ;; default test function is eql
     (should (equal '(1.0 1 2) (cl-adjoin 1.0 nums)))
