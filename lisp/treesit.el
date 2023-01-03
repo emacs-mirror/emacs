@@ -2633,7 +2633,7 @@ CC and C++ are C and C++ compilers, defaulting to \"cc\" and
 \"c++\", respectively.")
 
 (defun treesit--install-language-grammar-build-recipe (lang)
-  "Interactively build a recipe for LANG and return it.
+  "Interactively produce a download/build recipe for LANG and return it.
 See `treesit-language-source-alist' for details."
   (when (y-or-n-p (format "There is no recipe for %s, do you want to build it interactively?" lang))
     (cl-labels ((empty-string-to-nil (string)
@@ -2655,8 +2655,13 @@ See `treesit-language-source-alist' for details."
         (read-string
          "Enter the C++ compiler to use (default: auto-detect): "))))))
 
+;;;###autoload
 (defun treesit-install-language-grammar (lang)
   "Build and install the tree-sitter language grammar library for LANG.
+
+Interactively, if `treesit-language-source-alist' doesn't already
+have data for building the grammar for LANG, prompt for its
+repository URL and the C/C++ compiler to use.
 
 This command requires Git, a C compiler and (sometimes) a C++ compiler,
 and the linker to be installed and on PATH.  It also requires that the
