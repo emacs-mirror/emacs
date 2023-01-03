@@ -358,7 +358,7 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'assignment
    ;; TODO: Recursively highlight identifiers in parenthesized
-   ;; expressions, see `c-ts-mode--fontify-struct-declarator' for
+   ;; expressions, see `c-ts-mode--fontify-declarator' for
    ;; inspiration.
    '((assignment_expression
       left: (identifier) @font-lock-variable-name-face)
