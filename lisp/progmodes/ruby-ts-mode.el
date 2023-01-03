@@ -355,8 +355,11 @@ Otherwise return start of PRED."
   (lambda (node parent bol &rest rest)
     (let* ((pred-node (funcall pred node parent bol rest))
            (temp (treesit-node-start pred-node))
-           (keyword (treesit-node-type pred-node))
-           (bol (ruby-smie--indent-to-stmt-p keyword)))
+           (type (treesit-node-type pred-node))
+           (bol (ruby-smie--indent-to-stmt-p
+                 (if (equal type "method")
+                     "def"
+                   type))))
       (when temp
         (if bol
             (save-excursion
@@ -736,7 +739,7 @@ i.e. expr of def foo(args) = expr is returned."
            ((match "end" "do_block") parent-bol 0)
            ((n-p-gp "block_body" "block" nil) parent-bol ruby-indent-level)
            ((n-p-gp nil "block_body" "block") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((match "}" "block") (ruby-ts--bol ruby-ts--grand-parent-node) 0)
+           ((match "}" "block") parent-bol 0)
 
            ;; Chained strings
            ((match "string" "chained_string") first-sibling 0)
