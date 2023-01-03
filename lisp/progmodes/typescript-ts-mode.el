@@ -167,6 +167,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
+     (method_signature
+      name: (property_identifier) @font-lock-function-name-face)
      (required_parameter (identifier) @font-lock-variable-name-face)
      (optional_parameter (identifier) @font-lock-variable-name-face)
 
@@ -211,10 +213,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
      (enum_assignment name: (property_identifier) @font-lock-type-face)
 
-     (assignment_expression
-      left: [(identifier) @font-lock-variable-name-face
-             (member_expression
-              property: (property_identifier) @font-lock-variable-name-face)])
+     (variable_declarator
+      name: (identifier) @font-lock-variable-name-face)
 
      (for_in_statement
       left: (identifier) @font-lock-variable-name-face)
@@ -242,10 +242,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       name: (property_identifier) @font-lock-property-face)
      (public_field_definition
       name: (property_identifier) @font-lock-property-face)
-     (member_expression
-      object: (identifier) @font-lock-variable-name-face)
-     (member_expression
-      property: (_) @font-lock-property-face)
 
      (pair key: (property_identifier) @font-lock-variable-name-face)
 
@@ -263,9 +259,11 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       left: [(identifier) @font-lock-function-name-face
              (member_expression
               property: (property_identifier) @font-lock-function-name-face)]
-      right: [(function) (arrow_function)])
+      right: [(function) (arrow_function)]))
 
-     (call_expression
+   :language language
+   :feature 'function
+   '((call_expression
       function:
       [(identifier) @font-lock-function-name-face
        (member_expression
@@ -379,9 +377,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'typescript))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration keyword string escape-sequence)
+                '((comment declaration)
+                  (keyword string escape-sequence)
                   (constant expression identifier number pattern property)
-                  (bracket delimiter)))
+                  (function bracket delimiter)))
 
     (treesit-major-mode-setup)))
 
@@ -413,9 +412,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'tsx))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration keyword string escape-sequence)
+                '((comment declaration)
+                  (keyword string escape-sequence)
                   (constant expression identifier jsx number pattern property)
-                  (bracket delimiter)))
+                  (function bracket delimiter)))
 
     (treesit-major-mode-setup)))
 

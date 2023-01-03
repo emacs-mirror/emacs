@@ -44,7 +44,7 @@ The whitespace before and including \"|\" on each line is removed."
   (apply 'format (replace-regexp-in-string "^[ \t]*|" "" s) args))
 
 (ert-deftest ruby-ts-indent-simple ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-should-indent-buffer
    "if foo
    |  bar
@@ -58,7 +58,7 @@ The whitespace before and including \"|\" on each line is removed."
    |"))
 
 (ert-deftest ruby-ts-align-to-stmt-keywords-t ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (let ((ruby-align-to-stmt-keywords t))
     (ruby-ts-should-indent-buffer
      "foo = if bar?
@@ -94,7 +94,7 @@ The whitespace before and including \"|\" on each line is removed."
     ))
 
 (ert-deftest ruby-ts-align-to-stmt-keywords-case ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (let ((ruby-align-to-stmt-keywords '(case)))
     (ruby-ts-should-indent-buffer
      "b = case a
@@ -111,7 +111,7 @@ The whitespace before and including \"|\" on each line is removed."
      |    end")))
 
 (ert-deftest ruby-ts-add-log-current-method-examples ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (let ((pairs '(("foo" . "#foo")
                  ("C.foo" . ".foo")
                  ("self.foo" . ".foo")
@@ -134,7 +134,7 @@ The whitespace before and including \"|\" on each line is removed."
                            (format "M::C%s" value))))))))
 
 (ert-deftest ruby-ts-add-log-current-method-outside-of-method ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-with-temp-buffer (ruby-ts-test-string
                              "module M
                              |  class C
@@ -147,7 +147,7 @@ The whitespace before and including \"|\" on each line is removed."
     (should (string= (ruby-ts-add-log-current-function) "M::C"))))
 
 (ert-deftest ruby-ts-add-log-current-method-in-singleton-class ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-with-temp-buffer (ruby-ts-test-string
                              "class C
                              |  class << self
@@ -160,7 +160,7 @@ The whitespace before and including \"|\" on each line is removed."
     (should (string= (ruby-ts-add-log-current-function) "C.foo"))))
 
 (ert-deftest ruby-ts-add-log-current-method-namespace-shorthand ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-with-temp-buffer (ruby-ts-test-string
                              "class C::D
                              |  def foo
@@ -171,7 +171,7 @@ The whitespace before and including \"|\" on each line is removed."
     (should (string= (ruby-ts-add-log-current-function) "C::D#foo"))))
 
 (ert-deftest ruby-ts-add-log-current-method-after-inner-class ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-with-temp-buffer (ruby-ts-test-string
                              "module M
                              |  class C
@@ -186,7 +186,7 @@ The whitespace before and including \"|\" on each line is removed."
     (should (string= (ruby-ts-add-log-current-function) "M::C#foo"))))
 
 (ert-deftest ruby-ts-add-log-current-method-after-inner-class-outside-methods ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-with-temp-buffer (ruby-ts-test-string
                              "module M
                              |  class C
@@ -201,7 +201,7 @@ The whitespace before and including \"|\" on each line is removed."
     (should (string= (ruby-ts-add-log-current-function) "M::C"))))
 
 (ert-deftest ruby-ts-add-log-current-method-after-inner-class-outside-methods-with-text ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-with-temp-buffer (ruby-ts-test-string
                              "module M
                              |  class C
@@ -215,7 +215,7 @@ The whitespace before and including \"|\" on each line is removed."
     (should (string= (ruby-ts-add-log-current-function) "M::C"))))
 
 (ert-deftest ruby-ts-add-log-current-method-after-endless-method ()
-  (skip-unless (treesit-available-p))
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-with-temp-buffer (ruby-ts-test-string
                              "module M
                              |  class C
@@ -237,7 +237,7 @@ The whitespace before and including \"|\" on each line is removed."
 (defmacro ruby-ts-deftest-indent (file)
   `(ert-deftest ,(intern (format "ruby-ts-indent-test/%s" file)) ()
      ;; :tags '(:expensive-test)
-     (skip-unless (treesit-available-p))
+     (skip-unless (treesit-ready-p 'ruby t))
      (let ((buf (find-file-noselect (ruby-ts-resource-file ,file))))
        (unwind-protect
            (with-current-buffer buf

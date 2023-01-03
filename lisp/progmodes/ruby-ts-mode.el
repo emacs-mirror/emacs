@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This file defines ruby-ts-mode which is a major mode for editting
+;; This file defines ruby-ts-mode which is a major mode for editing
 ;; Ruby files that uses Tree Sitter to parse the language. More
 ;; information about Tree Sitter can be found in the ELisp Info pages
 ;; as well as this website: https://tree-sitter.github.io/tree-sitter/
@@ -150,7 +150,7 @@ These are currently unused")
           "parenthesized_statements"
           "interpolation")
       string-end)
-  "Regular expression of the nodes that can constain statements.")
+  "Regular expression of the nodes that can contain statements.")
 
 (defun ruby-ts--lineno (node)
   "Return line number of NODE's start."
@@ -178,7 +178,7 @@ These are currently unused")
 Applies `font-lock-comment-delimiter-face' and
 `font-lock-comment-face' See `treesit-fontify-with-override' for
 values of OVERRIDE"
-  ;; Emperically it appears as if (treesit-node-start node) will be
+  ;; Empirically it appears as if (treesit-node-start node) will be
   ;; where the # character is at and (treesit-node-end node) will be
   ;; the end of the line
   (let* ((node-start (treesit-node-start node))
@@ -237,8 +237,10 @@ values of OVERRIDE"
    ;; Also before 'operator because % and / are operators
    :language language
    :feature 'regexp
-   '((regex "/" @font-lock-regexp-grouping-construct)
-     (regex _ (string_content) @font-lock-regexp-grouping-backslash))
+   ;; TODO: We probably need a separate face for regexps everywhere.
+   ;; Maybe another one for regexp delimiters as well.
+   '((regex "/" @font-lock-string-face)
+     (regex _ (string_content) @font-lock-string-face))
 
    :language language
    :feature 'operator
@@ -253,21 +255,22 @@ values of OVERRIDE"
    :feature 'string
    '((delimited_symbol [ ":\"" "\"" ] @font-lock-string-face)
      (string "\"" @font-lock-string-face)
-     (string_array [ "%w(" ")" ] @font-lock-delimiter-face)
-     (subshell "`" @font-lock-delimiter-face)
-     (symbol_array [ "%i(" ")"] @font-lock-delimiter-face))
+     (string_array ["%w(" ")"] @font-lock-string-face)
+     (subshell "`" @font-lock-string-face)
+     (symbol_array ["%i(" ")"] @font-lock-constant-face))
 
    :language language
    :feature 'string
-   '((string_content) @font-lock-string-face
-     (heredoc_beginning) @font-lock-string-face
-     (heredoc_content) @font-lock-string-face
-     (heredoc_end) @font-lock-string-face)
+   '([(string_content)
+      (heredoc_beginning)
+      (heredoc_content)
+      (heredoc_end)]
+     @font-lock-string-face)
 
    :language language
    :feature 'interpolation
-   '((interpolation "#{" @font-lock-doc-face)
-     (interpolation "}" @font-lock-doc-face))
+   '((interpolation "#{" @font-lock-delimiter-face)
+     (interpolation "}" @font-lock-delimiter-face))
 
    :language language
    :feature 'type
@@ -352,8 +355,11 @@ Otherwise return start of PRED."
   (lambda (node parent bol &rest rest)
     (let* ((pred-node (funcall pred node parent bol rest))
            (temp (treesit-node-start pred-node))
-           (keyword (treesit-node-type pred-node))
-           (bol (ruby-smie--indent-to-stmt-p keyword)))
+           (type (treesit-node-type pred-node))
+           (bol (ruby-smie--indent-to-stmt-p
+                 (if (equal type "method")
+                     "def"
+                   type))))
       (when temp
         (if bol
             (save-excursion
@@ -717,7 +723,7 @@ i.e. expr of def foo(args) = expr is returned."
            ((n-p-gp ,ruby-ts--method-regex "body_statement" ,ruby-ts--class-or-module-regex)
             (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
 
-           ;; Match the end of a class / modlue
+           ;; Match the end of a class / module
            ((match "end" ,ruby-ts--class-or-module-regex) parent 0)
 
            ;; A "do_block" has a "body_statement" child which has the
@@ -733,7 +739,7 @@ i.e. expr of def foo(args) = expr is returned."
            ((match "end" "do_block") parent-bol 0)
            ((n-p-gp "block_body" "block" nil) parent-bol ruby-indent-level)
            ((n-p-gp nil "block_body" "block") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((match "}" "block") (ruby-ts--bol ruby-ts--grand-parent-node) 0)
+           ((match "}" "block") parent-bol 0)
 
            ;; Chained strings
            ((match "string" "chained_string") first-sibling 0)
@@ -892,20 +898,10 @@ leading double colon is not added."
   "C-c C-f" #'ruby-find-library-file)
 
 ;;;###autoload
-(define-derived-mode ruby-ts-mode prog-mode "Ruby"
+(define-derived-mode ruby-ts-mode ruby-base-mode "Ruby"
   "Major mode for editing Ruby, powered by tree-sitter."
   :group 'ruby
   :syntax-table ruby-mode-syntax-table
-
-  (setq indent-tabs-mode ruby-indent-tabs-mode)
-
-  (setq-local paragraph-start (concat "$\\|" page-delimiter))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local paragraph-ignore-fill-prefix t)
-
-  (setq-local comment-start "# ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip "#+ *")
 
   (unless (treesit-ready-p 'ruby)
     (error "Tree-sitter for Ruby isn't available"))

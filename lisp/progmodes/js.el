@@ -3521,6 +3521,15 @@ This function is intended for use in `after-change-functions'."
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
 
+     (method_definition
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+
+     (arrow_function
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+
+     (function_declaration
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
 
@@ -3822,9 +3831,8 @@ Currently there are `js-mode' and `js-ts-mode'."
                 '(( comment definition)
                   ( keyword string)
                   ( assignment constant escape-sequence jsx number
-                    pattern)
-                  ( bracket delimiter function operator property
-                    string-interpolation)))
+                    pattern string-interpolation)
+                  ( bracket delimiter function operator property)))
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
                 `(("Function" "\\`function_declaration\\'" nil nil)
