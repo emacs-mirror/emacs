@@ -141,9 +141,12 @@ The whitespace before and including \"|\" on each line is removed."
                              |    def foo
                              |    end
                              |    _
+                             |    def bar
+                             |    end
                              |  end
                              |end")
     (search-backward "_")
+    (delete-char 1)
     (should (string= (ruby-ts-add-log-current-function) "M::C"))))
 
 (ert-deftest ruby-ts-add-log-current-method-in-singleton-class ()

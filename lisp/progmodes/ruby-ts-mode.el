@@ -850,7 +850,12 @@ The hash (#) is for instance methods only which are methods
 dot (.) is used.  Double colon (::) is used between classes.  The
 leading double colon is not added."
   (let* ((node (treesit-node-at (point)))
-         (method (treesit-parent-until node (ruby-ts--type-pred ruby-ts--method-regex)))
+         (method-pred
+          (lambda (node)
+            (and (<= (treesit-node-start node) (point))
+                 (>= (treesit-node-end node) (point))
+                 (string-match-p ruby-ts--method-regex (treesit-node-type node)))))
+         (method (treesit-parent-until node method-pred t))
          (class (or method node))
          (result nil)
          (sep "#")
