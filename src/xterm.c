@@ -28841,6 +28841,13 @@ x_free_frame_resources (struct frame *f)
   if (f == hlinfo->mouse_face_mouse_frame)
     reset_mouse_highlight (hlinfo);
 
+  /* These two need to be freed now that they are used to compute the
+     mouse position, I think.  */
+  if (f == dpyinfo->last_mouse_motion_frame)
+    dpyinfo->last_mouse_motion_frame = NULL;
+  if (f == dpyinfo->last_mouse_frame)
+    dpyinfo->last_mouse_frame = NULL;
+
 #ifdef HAVE_XINPUT2
   /* Consider a frame being unfocused with no following FocusIn event
      while an older focus from another seat exists.  The client
