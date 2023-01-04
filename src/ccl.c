@@ -2001,7 +2001,7 @@ setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
       if (! VECTORP (ccl_prog))
 	return false;
       vp = XVECTOR (ccl_prog);
-      ccl->size = vp->header.size;
+      ccl->size = VECTOR_ASIZE (vp);
       ccl->prog = vp->contents;
       ccl->eof_ic = XFIXNUM (vp->contents[CCL_HEADER_EOF]);
       ccl->buf_magnification = XFIXNUM (vp->contents[CCL_HEADER_BUF_MAG]);

@@ -111,7 +111,7 @@ disptab_matches_widthtab (struct Lisp_Char_Table *disptab, struct Lisp_Vector *w
 {
   int i;
 
-  eassert (widthtab->header.size == 256);
+  eassert (VECTOR_ASIZE (widthtab) == 256);
 
   for (i = 0; i < 256; i++)
     if (character_width (i, disptab)
@@ -132,7 +132,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   if (!VECTORP (BVAR (buf, width_table)))
     bset_width_table (buf, make_uninit_vector (256));
   widthtab = XVECTOR (BVAR (buf, width_table));
-  eassert (widthtab->header.size == 256);
+  eassert (VECTOR_ASIZE (widthtab) == 256);
 
   for (i = 0; i < 256; i++)
     XSETFASTINT (widthtab->contents[i], character_width (i, disptab));

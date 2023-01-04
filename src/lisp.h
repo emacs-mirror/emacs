@@ -1811,6 +1811,16 @@ ASIZE (Lisp_Object array)
 }
 
 INLINE ptrdiff_t
+VECTOR_ASIZE (struct Lisp_Vector *v)
+{
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  return v->header.size & ~ARRAY_MARK_FLAG;
+#else
+  return v->header.size;
+#endif
+}
+
+INLINE ptrdiff_t
 PVSIZE (Lisp_Object pv)
 {
   return ASIZE (pv) & PSEUDOVECTOR_SIZE_MASK;

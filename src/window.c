@@ -7114,7 +7114,7 @@ the return value is nil.  Otherwise the value is t.  */)
 
       /* Don't do this within the main loop below: This may call Lisp
 	 code and is thus potentially unsafe while input is blocked.  */
-      for (k = 0; k < saved_windows->header.size; k++)
+      for (k = 0; k < VECTOR_ASIZE (saved_windows); k++)
 	{
 	  p = SAVED_WINDOW_N (saved_windows, k);
 	  window = p->window;
@@ -7169,7 +7169,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 dead.  */
       delete_all_child_windows (FRAME_ROOT_WINDOW (f));
 
-      for (k = 0; k < saved_windows->header.size; k++)
+      for (k = 0; k < VECTOR_ASIZE (saved_windows); k++)
 	{
 	  p = SAVED_WINDOW_N (saved_windows, k);
 	  window = p->window;
@@ -8233,10 +8233,10 @@ compare_window_configurations (Lisp_Object configuration1,
       || !EQ (d1->f_current_buffer, d2->f_current_buffer)
       || !EQ (d1->focus_frame, d2->focus_frame)
       /* Verify that the two configurations have the same number of windows.  */
-      || sws1->header.size != sws2->header.size)
+      || VECTOR_ASIZE (sws1) != VECTOR_ASIZE (sws2))
     return false;
 
-  for (i = 0; i < sws1->header.size; i++)
+  for (i = 0; i < VECTOR_ASIZE (sws1); i++)
     {
       struct saved_window *sw1, *sw2;
 

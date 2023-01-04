@@ -5217,7 +5217,7 @@ setup_for_ellipsis (struct it *it, int len)
     {
       struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
       it->dpvec = v->contents;
-      it->dpend = v->contents + v->header.size;
+      it->dpend = v->contents + VECTOR_ASIZE(v);
     }
   else
     {
@@ -7953,11 +7953,11 @@ get_next_display_element (struct it *it)
 	      /* Return the first character from the display table
 		 entry, if not empty.  If empty, don't display the
 		 current character.  */
-	      if (v->header.size)
+	      if (VECTOR_ASIZE (v))
 		{
 		  it->dpvec_char_len = it->len;
 		  it->dpvec = v->contents;
-		  it->dpend = v->contents + v->header.size;
+		  it->dpend = v->contents + VECTOR_ASIZE (v);
 		  it->current.dpvec_index = 0;
 		  it->dpvec_face_id = -1;
 		  it->saved_face_id = it->face_id;
@@ -34439,7 +34439,7 @@ on_hot_spot_p (Lisp_Object hot_spot, int x, int y)
 	{
 	  struct Lisp_Vector *v = XVECTOR (XCDR (hot_spot));
 	  Lisp_Object *poly = v->contents;
-	  ptrdiff_t n = v->header.size;
+	  ptrdiff_t n = VECTOR_ASIZE (v);
 	  ptrdiff_t i;
 	  bool inside = false;
 	  Lisp_Object lx, ly;

@@ -1666,8 +1666,7 @@ Return nil if format of ADDRESS is invalid.  */)
 
   if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
-      register struct Lisp_Vector *p = XVECTOR (address);
-      ptrdiff_t size = p->header.size;
+      ptrdiff_t size = ASIZE (address);
       Lisp_Object args[10];
       int nargs, i;
       char const *format;
@@ -1700,15 +1699,15 @@ Return nil if format of ADDRESS is invalid.  */)
 
       for (i = 0; i < nargs; i++)
 	{
-	  if (! RANGED_FIXNUMP (0, p->contents[i], 65535))
+	  if (! RANGED_FIXNUMP (0, AREF (address, i), 65535))
 	    return Qnil;
 
 	  if (nargs <= 5         /* IPv4 */
 	      && i < 4           /* host, not port */
-	      && XFIXNUM (p->contents[i]) > 255)
+	      && XFIXNUM (AREF (address, i)) > 255)
 	    return Qnil;
 
-	  args[i + 1] = p->contents[i];
+	  args[i + 1] = AREF (address, i);
 	}
 
       return Fformat (nargs + 1, args);
@@ -2634,18 +2633,16 @@ conv_addrinfo_to_lisp (struct addrinfo *res)
 static ptrdiff_t
 get_lisp_to_sockaddr_size (Lisp_Object address, int *familyp)
 {
-  struct Lisp_Vector *p;
-
   if (VECTORP (address))
     {
-      p = XVECTOR (address);
-      if (p->header.size == 5)
+      ptrdiff_t size = ASIZE (address);
+      if (size == 5)
 	{
 	  *familyp = AF_INET;
 	  return sizeof (struct sockaddr_in);
 	}
 #ifdef AF_INET6
-      else if (p->header.size == 9)
+      else if (size == 9)
 	{
 	  *familyp = AF_INET6;
 	  return sizeof (struct sockaddr_in6);
@@ -2663,11 +2660,11 @@ get_lisp_to_sockaddr_size (Lisp_Object address, int *familyp)
 	   && VECTORP (XCDR (address)))
     {
       struct sockaddr *sa;
-      p = XVECTOR (XCDR (address));
-      if (MAX_ALLOCA - sizeof sa->sa_family < p->header.size)
+      Lisp_Object p = XCDR (address);
+      if (MAX_ALLOCA - sizeof sa->sa_family < ASIZE (p))
 	return 0;
       *familyp = XFIXNUM (XCAR (address));
-      return p->header.size + sizeof (sa->sa_family);
+      return ASIZE (p) + sizeof (sa->sa_family);
     }
   return 0;
 }
