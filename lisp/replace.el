@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2022 Free
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2023 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -1692,7 +1692,7 @@ contents of the line; it normally shows the line number.  \(For
 multiline matches, the prefix column shows the line number for the
 first line and whitespace for the rest of the lines.\)
 If this face will display the same as the default face, the prefix
-column will not be highlighted speciall."
+column will not be highlighted specially."
   :type 'face
   :group 'matching
   :version "24.4")

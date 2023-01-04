@@ -1,6 +1,6 @@
 ;;; erc-sasl.el --- SASL for ERC -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -435,7 +435,7 @@ Otherwise, expect it to disappear in subsequent versions.")
                (if (eq :user (alist-get 'user erc-sasl--options))
                    (erc-current-nick)
                  erc-session-username)))
-          (erc-login))
+          (cl-call-next-method))
         (when erc-sasl--send-cap-ls
           (erc-server-send "CAP REQ :sasl"))
         (erc-server-send (format "AUTHENTICATE %s" m)))

@@ -1,6 +1,6 @@
 Debugging GNU Emacs
 
-Copyright (C) 1985, 2000-2022 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 ** Preliminaries
@@ -277,8 +277,13 @@ GDB:
 If you do this, then typing C-c or C-BREAK into the console window
 through which you interact with GDB will stop Emacs and return control
 to the debugger, no matter if Emacs displays GUI or text-mode frames.
-This is the only reliable alternative on MS-Windows to get control to
-the debugger, besides setting breakpoints in advance.
+With GDB versions before 13.1, this is the only reliable alternative
+on MS-Windows to get control to the debugger, besides setting
+breakpoints in advance.  GDB 13.1 changed the way C-c and C-BREAK are
+handled on Windows, so with those newer versions, you don't need the
+"set new-console 1" setting to be able to interrupt Emacs by typing
+C-c or C-BREAK into the console window from which you started Emacs
+and where you interact with GDB.
 
 ** Examining Lisp object values.
 

@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -282,11 +282,9 @@ This is used by `eshell-watch-for-password-prompt'."
 
 (defvar-keymap eshell-command-repeat-map
   :doc "Keymap to repeat eshell-command key sequences.  Used in `repeat-mode'."
+  :repeat t
   "C-f" #'eshell-forward-argument
   "C-b" #'eshell-backward-argument)
-
-(put #'eshell-forward-argument 'repeat-map 'eshell-command-repeat-map)
-(put #'eshell-backward-argument 'repeat-map 'eshell-command-repeat-map)
 
 ;;; User Functions:
 

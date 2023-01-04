@@ -1,6 +1,6 @@
 /* This file implements an efficient interval data-structure.
 
-Copyright (C) 2017-2022  Free Software Foundation, Inc.
+Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -85,7 +85,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    this narrowing is O(K*log(N)) where K is the size of the result
    set.  If we are interested in finding the node in a range with the
    smallest END, we might have to examine all K nodes in that range.
-   In the case of the *-overlay-channge functions, K may well be equal
+   In the case of the *-overlay-change functions, K may well be equal
    to N.
 
    Ideally, a tree based data structure for overlays would have

@@ -1,6 +1,6 @@
 ;;; gnus-registry.el --- article registry for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news registry
@@ -394,7 +394,7 @@ This is not required after changing `gnus-registry-cache-file'."
 	     (with-no-warnings
 	       (eieio-persistent-read file 'registry-db))
 	   ;; Older EIEIO versions do not check the class name.
-	   ('wrong-number-of-arguments
+	   (wrong-number-of-arguments
 	    (eieio-persistent-read file)))))
   (gnus-message 5 "Reading Gnus registry from %s...done" file))
 

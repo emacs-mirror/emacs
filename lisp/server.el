@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2022 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -1502,7 +1502,7 @@ so don't mark these buffers specially, just visit them normally."
 					  minibuffer-auto-raise))
 	       (filen (car file))
 	       (obuf (get-file-buffer filen)))
-	  (add-to-history 'file-name-history filen)
+          (file-name-history--add filen)
 	  (if (null obuf)
 	      (progn
 		(run-hooks 'pre-command-hook)

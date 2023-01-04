@@ -1,6 +1,6 @@
 ;;; nnml.el --- mail spool access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@didierverna.net> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -776,17 +776,22 @@ article number.  This function is called narrowed to an article."
 	(nnml--encode-headers headers)
 	headers))))
 
+;; RFC2047-encode Subject and From, but leave invalid headers unencoded.
 (defun nnml--encode-headers (headers)
   (let ((subject (mail-header-subject headers))
 	(rfc2047-encoding-type 'mime))
     (unless (string-match "\\`[[:ascii:]]*\\'" subject)
-      (setf (mail-header-subject headers)
-	    (mail-encode-encoded-word-string subject t))))
+      (let ((encoded-subject
+             (ignore-errors (mail-encode-encoded-word-string subject t))))
+        (if encoded-subject
+            (setf (mail-header-subject headers) encoded-subject)))))
   (let ((from (mail-header-from headers))
 	(rfc2047-encoding-type 'address-mime))
     (unless (string-match "\\`[[:ascii:]]*\\'" from)
-      (setf (mail-header-from headers)
-	    (rfc2047-encode-string from t)))))
+      (let ((encoded-from
+             (ignore-errors (rfc2047-encode-string from t))))
+        (if encoded-from
+            (setf (mail-header-from headers) encoded-from))))))
 
 (defun nnml-get-nov-buffer (group &optional incrementalp)
   (let ((buffer (gnus-get-buffer-create

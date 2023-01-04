@@ -1,6 +1,6 @@
 ;;; erc-backend.el --- Backend network communication for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
@@ -319,6 +319,15 @@ members so they can access buffer-local data from the previous
 session when reconnecting.  Once `erc-reuse-buffers' is retired
 and fully removed, modules can switch to leveraging the
 `permanent-local' property instead.")
+
+(defvar erc--server-post-connect-hook '(erc-networks--warn-on-connect)
+  "Functions to run when a network connection is successfully opened.
+Though internal, this complements `erc-connect-pre-hook' in that
+it bookends the process rather than the logical connection, which
+is the domain of `erc-before-connect' and `erc-after-connect'.
+Note that unlike `erc-connect-pre-hook', this only runs in server
+buffers, and it does so immediately before the first protocol
+exchange.")
 
 (defvar-local erc-server-timed-out nil
   "Non-nil if the IRC server failed to respond to a ping.")
@@ -646,6 +655,7 @@ The current buffer is given by BUFFER."
 
 (cl-defmethod erc--register-connection ()
   "Perform opening IRC protocol exchange with server."
+  (run-hooks 'erc--server-post-connect-hook)
   (erc-login))
 
 (defvar erc--server-connect-dumb-ipv6-regexp

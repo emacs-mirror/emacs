@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2022 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -2004,8 +2004,8 @@ variable with value KEYMAP."
                   (mapatoms (lambda (symb)
                               (when (and (boundp symb)
                                          (eq (symbol-value symb) keymap)
-                                         (not (eq symb 'keymap))
-                                         (throw 'found-keymap symb)))))
+                                         (not (eq symb 'keymap)))
+                                (throw 'found-keymap symb))))
                   nil)))
       ;; Follow aliasing.
       (or (ignore-errors (indirect-variable name)) name))))

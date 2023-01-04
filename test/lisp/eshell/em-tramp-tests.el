@@ -1,6 +1,6 @@
 ;;; em-tramp-tests.el --- em-tramp test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,37 +23,41 @@
 (require 'em-tramp)
 (require 'tramp)
 
+(defmacro em-tramp-test/should-replace-command (form replacement)
+  "Check that calling FORM results in it being replaced with REPLACEMENT."
+  (declare (indent 1))
+  `(should (equal
+            (catch 'eshell-replace-command ,form)
+            (list 'eshell-with-copied-handles
+                  (list 'eshell-trap-errors
+                        ,replacement)
+                  t))))
+
 (ert-deftest em-tramp-test/su-default ()
   "Test Eshell `su' command with no arguments."
-  (should (equal
-           (catch 'eshell-replace-command (eshell/su))
-           `(eshell-trap-errors
-             (eshell-named-command
-              "cd"
-              (list ,(format "/su:root@%s:%s"
-                             tramp-default-host default-directory)))))))
+  (em-tramp-test/should-replace-command (eshell/su)
+    `(eshell-named-command
+      "cd"
+      (list ,(format "/su:root@%s:%s"
+                     tramp-default-host default-directory)))))
 
 (ert-deftest em-tramp-test/su-user ()
   "Test Eshell `su' command with USER argument."
-  (should (equal
-           (catch 'eshell-replace-command (eshell/su "USER"))
-           `(eshell-trap-errors
-             (eshell-named-command
-              "cd"
-              (list ,(format "/su:USER@%s:%s"
-                             tramp-default-host default-directory)))))))
+  (em-tramp-test/should-replace-command (eshell/su "USER")
+    `(eshell-named-command
+      "cd"
+      (list ,(format "/su:USER@%s:%s"
+                     tramp-default-host default-directory)))))
 
 (ert-deftest em-tramp-test/su-login ()
   "Test Eshell `su' command with -/-l/--login option."
   (dolist (args '(("--login")
                   ("-l")
                   ("-")))
-    (should (equal
-             (catch 'eshell-replace-command (apply #'eshell/su args))
-             `(eshell-trap-errors
-               (eshell-named-command
-                "cd"
-                (list ,(format "/su:root@%s:~/" tramp-default-host))))))))
+    (em-tramp-test/should-replace-command (apply #'eshell/su args)
+      `(eshell-named-command
+        "cd"
+        (list ,(format "/su:root@%s:~/" tramp-default-host))))))
 
 (defun mock-eshell-named-command (&rest args)
   "Dummy function to test Eshell `sudo' command rewriting."
@@ -89,23 +93,19 @@
   "Test Eshell `sudo' command with -s/--shell option."
   (dolist (args '(("--shell")
                   ("-s")))
-    (should (equal
-             (catch 'eshell-replace-command (apply #'eshell/sudo args))
-             `(eshell-trap-errors
-               (eshell-named-command
-                "cd"
-                (list ,(format "/sudo:root@%s:%s"
-                               tramp-default-host default-directory))))))))
+    (em-tramp-test/should-replace-command (apply #'eshell/sudo args)
+      `(eshell-named-command
+        "cd"
+        (list ,(format "/sudo:root@%s:%s"
+                       tramp-default-host default-directory))))))
 
 (ert-deftest em-tramp-test/sudo-user-shell ()
   "Test Eshell `sudo' command with -s and -u options."
-  (should (equal
-           (catch 'eshell-replace-command (eshell/sudo "-u" "USER" "-s"))
-           `(eshell-trap-errors
-             (eshell-named-command
-              "cd"
-              (list ,(format "/sudo:USER@%s:%s"
-                             tramp-default-host default-directory)))))))
+  (em-tramp-test/should-replace-command (eshell/sudo "-u" "USER" "-s")
+    `(eshell-named-command
+      "cd"
+      (list ,(format "/sudo:USER@%s:%s"
+                     tramp-default-host default-directory)))))
 
 (ert-deftest em-tramp-test/doas-basic ()
   "Test Eshell `doas' command with default user."
@@ -142,22 +142,18 @@
   "Test Eshell `doas' command with -s/--shell option."
   (dolist (args '(("--shell")
                   ("-s")))
-    (should (equal
-             (catch 'eshell-replace-command (apply #'eshell/doas args))
-             `(eshell-trap-errors
-               (eshell-named-command
-                "cd"
-                (list ,(format "/doas:root@%s:%s"
-                               tramp-default-host default-directory))))))))
+    (em-tramp-test/should-replace-command (apply #'eshell/doas args)
+      `(eshell-named-command
+        "cd"
+        (list ,(format "/doas:root@%s:%s"
+                       tramp-default-host default-directory))))))
 
 (ert-deftest em-tramp-test/doas-user-shell ()
   "Test Eshell `doas' command with -s and -u options."
-  (should (equal
-           (catch 'eshell-replace-command (eshell/doas "-u" "USER" "-s"))
-           `(eshell-trap-errors
-             (eshell-named-command
-              "cd"
-              (list ,(format "/doas:USER@%s:%s"
-                             tramp-default-host default-directory)))))))
+  (em-tramp-test/should-replace-command (eshell/doas "-u" "USER" "-s")
+    `(eshell-named-command
+      "cd"
+      (list ,(format "/doas:USER@%s:%s"
+                     tramp-default-host default-directory)))))
 
 ;;; em-tramp-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; em-elecslash.el --- electric forward slashes  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author: Sean Whitton <spwhitton@spwhitton.name>
 
@@ -74,8 +74,9 @@ insertion."
           (command (save-excursion
                      (eshell-bol)
                      (skip-syntax-forward " ")
-                     (thing-at-point 'sexp))))
-      (if (and (file-remote-p default-directory)
+                     (thing-at-point 'sexp)))
+          (prefix (file-remote-p default-directory)))
+      (if (and prefix
                ;; We can't formally parse the input.  But if there is
                ;; one of these operators behind us, then looking at
                ;; the first command would not be sensible.  So be
@@ -93,14 +94,9 @@ insertion."
 			         (or eshell-prefer-lisp-functions
 				     (not (eshell-search-path command))))))))
 	  (let ((map (make-sparse-keymap))
-	        (start (if tilde-before (1- (point)) (point)))
-                (localname
-                 (tramp-file-name-localname
-                  (tramp-dissect-file-name default-directory))))
+	        (start (if tilde-before (1- (point)) (point))))
 	    (when tilde-before (delete-char -1))
-	    (insert
-             (substring default-directory 0
-                        (string-search localname default-directory)))
+	    (insert prefix)
 	    (unless tilde-before (insert "/"))
 	    ;; Typing a second slash undoes the insertion, for when
 	    ;; you really do want to type a local absolute file name.

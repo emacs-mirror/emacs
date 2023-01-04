@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2022 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1999-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1367,7 +1367,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 	error ("Invalid condition handler: %s",
 	       SDATA (Fprin1_to_string (tem, Qt, Qnil)));
       if (CONSP (tem) && EQ (XCAR (tem), QCsuccess))
-	success_handler = XCDR (tem);
+	success_handler = tem;
       else
 	clausenb++;
     }
@@ -1430,7 +1430,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
   if (!NILP (success_handler))
     {
       if (NILP (var))
-	return Fprogn (success_handler);
+	return Fprogn (XCDR (success_handler));
 
       Lisp_Object handler_var = var;
       if (!NILP (Vinternal_interpreter_environment))
@@ -1442,7 +1442,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 
       specpdl_ref count = SPECPDL_INDEX ();
       specbind (handler_var, result);
-      return unbind_to (count, Fprogn (success_handler));
+      return unbind_to (count, Fprogn (XCDR (success_handler)));
     }
   return result;
 }

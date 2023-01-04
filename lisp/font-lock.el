@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -2110,7 +2110,7 @@ For example, the declaration and use of fields in a struct."
 
 (defface font-lock-punctuation-face
   '((t nil))
-  "Font Lock mode face used to highlight punctuation."
+  "Font Lock mode face used to highlight punctuation characters."
   :group 'font-lock-faces
   :version "29.1")
 
@@ -2122,7 +2122,9 @@ For example, the declaration and use of fields in a struct."
 
 (defface font-lock-delimiter-face
   '((t :inherit font-lock-punctuation-face))
-  "Font Lock mode face used to highlight delimiters."
+  "Font Lock mode face used to highlight delimiters.
+What exactly is a delimiter depends on the major mode, but usually
+these are characters like comma, colon, and semi-colon."
   :group 'font-lock-faces
   :version "29.1")
 
@@ -2361,6 +2363,7 @@ in which C preprocessor directives are used, e.g. `asm-mode' and
 
 (define-obsolete-function-alias 'font-lock-after-fontify-buffer #'ignore "29.1")
 (define-obsolete-function-alias 'font-lock-after-unfontify-buffer #'ignore "29.1")
+(define-obsolete-function-alias 'font-lock-fontify-syntactically-region #'font-lock-default-fontify-syntactically "29.1")
 
 
 (provide 'font-lock)

@@ -1,6 +1,6 @@
 ;;; whitespace-tests.el --- Test suite for whitespace -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -56,6 +56,24 @@ buffer's content."
     (insert string)
     (whitespace-cleanup)
     (buffer-string)))
+
+(ert-deftest whitespace-tests--global ()
+  (let ((backup global-whitespace-mode)
+        (noninteractive nil)
+        (whitespace-enable-predicate (lambda () t)))
+    (unwind-protect
+        (progn
+          (global-whitespace-mode 1)
+          (ert-with-test-buffer-selected ()
+            (normal-mode)
+            (should whitespace-mode)
+            (global-whitespace-mode -1)
+            (should (null whitespace-mode))
+            (whitespace-mode 1)
+            (should whitespace-mode)
+            (global-whitespace-mode 1)
+            (should whitespace-mode)))
+      (global-whitespace-mode (if backup 1 -1)))))
 
 (ert-deftest whitespace-cleanup-eob ()
   (let ((whitespace-style '(empty)))
@@ -326,6 +344,84 @@ buffer's content."
                                         "»x\n"
                                         "«:whitespace-empty:\n"
                                         "»")))))
+
+(ert-deftest whitespace-tests--empty-bob-eob-modified ()
+  "Regression test for Bug#60066."
+  (whitespace-tests--with-test-buffer '()
+    (insert "\nx\n\n")
+    (goto-char 2)
+    (set-buffer-modified-p nil)
+    (let ((whitespace-style '(face empty)))
+      (whitespace-mode 1)
+      (should (not (buffer-modified-p))))))
+
+(ert-deftest whitespace-tests--indirect-clone-breaks-base-markers ()
+  "Specific regression test for Bug#59618."
+  (whitespace-tests--with-test-buffer '(face empty)
+    (insert "\nx\n\n")
+    (let ((base (current-buffer))
+          ;; `unwind-protect' is not used to clean up `indirect'
+          ;; because the buffer should only be killed on success.
+          (indirect (clone-indirect-buffer (buffer-name) nil)))
+      (should (eq (marker-buffer whitespace-bob-marker) base))
+      (should (eq (marker-buffer whitespace-eob-marker) base))
+      (ert-with-buffer-selected indirect
+        ;; Mutate the indirect buffer to update its bob/eob markers.
+        (execute-kbd-macro (kbd "z RET M-< a")))
+      ;; With Bug#59618, the above mutation would cause the base
+      ;; buffer's markers to point inside the indirect buffer because
+      ;; the indirect buffer erroneously shared marker objects with
+      ;; the base buffer.  Killing the indirect buffer would then
+      ;; invalidate those markers (make them point nowhere).
+      (kill-buffer indirect)
+      (should (eq (marker-buffer whitespace-bob-marker) base))
+      (should (eq (marker-buffer whitespace-eob-marker) base)))))
+
+(defun whitespace-tests--check-markers (buf bpos epos)
+  (with-current-buffer buf
+    (should (eq (marker-buffer whitespace-bob-marker) buf))
+    (should (eq (marker-position whitespace-bob-marker) bpos))
+    (should (eq (marker-buffer whitespace-eob-marker) buf))
+    (should (eq (marker-position whitespace-eob-marker) epos))))
+
+(ert-deftest whitespace-tests--indirect-clone-markers ()
+  "Test `whitespace--clone' on indirect clones."
+  (whitespace-tests--with-test-buffer '(face empty)
+    (insert "\nx\n\n")
+    (let ((base (current-buffer))
+          ;; `unwind-protect' is not used to clean up `indirect'
+          ;; because the buffer should only be killed on success.
+          (indirect (clone-indirect-buffer nil nil)))
+      (whitespace-tests--check-markers base 2 4)
+      (ert-with-buffer-selected indirect
+        (whitespace-tests--check-markers indirect 2 4)
+        ;; Mutate the buffer to trigger `after-change-functions' and
+        ;; thus `whitespace--update-bob-eob'.
+        (execute-kbd-macro (kbd "z RET M-< a"))
+        (whitespace-tests--check-markers indirect 1 8))
+      (kill-buffer indirect)
+      ;; When the buffer was modified above, the new "a" character at
+      ;; the beginning moved the base buffer's markers by one.  Emacs
+      ;; did not run the base buffer's `after-change-functions' after
+      ;; the indirect buffer was edited (Bug#46982), so the end result
+      ;; is just the shift by one.
+      (whitespace-tests--check-markers base 3 5))))
+
+(ert-deftest whitespace-tests--regular-clone-markers ()
+  "Test `whitespace--clone' on regular clones."
+  (whitespace-tests--with-test-buffer '(face empty)
+    (insert "\nx\n\n")
+    (let ((orig (current-buffer))
+          ;; `unwind-protect' is not used to clean up `clone' because
+          ;; the buffer should only be killed on success.
+          (clone (clone-buffer)))
+      (whitespace-tests--check-markers orig 2 4)
+      (ert-with-buffer-selected clone
+        (whitespace-tests--check-markers clone 2 4)
+        (execute-kbd-macro (kbd "z RET M-< a"))
+        (whitespace-tests--check-markers clone 1 8))
+      (kill-buffer clone)
+      (whitespace-tests--check-markers orig 2 4))))
 
 (provide 'whitespace-tests)
 

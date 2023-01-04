@@ -1,6 +1,6 @@
 ;;; soap-client.el --- Access SOAP web services       -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
@@ -1317,7 +1317,7 @@ See also `soap-wsdl-resolve-references'."
   "Validate VALUE against the basic type TYPE."
   (let* ((kind (soap-xs-basic-type-kind type)))
     (cl-case kind
-      ((anyType Array byte[])
+      ((anyType Array byte\[\])
        value)
       (t
        (let ((convert (get kind 'rng-xsd-convert)))

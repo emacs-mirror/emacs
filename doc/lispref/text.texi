@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Text
 @chapter Text
@@ -5351,7 +5351,7 @@ called @var{gif}, you have to mark it specially to let
 
 @end defun
 
-@defun sqlite-select db query &optional values result-type
+@defun sqlite-select db query &optional values return-type
 Select some data from @var{db} and return them.  For instance:
 
 @lisp

@@ -1,6 +1,6 @@
 ;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 1.0
@@ -201,7 +201,7 @@ should return.
 Note that Emacs Lisp doesn't really support multiple values, so
 all this function does is return LIST."
   (unless (listp list)
-    (signal 'wrong-type-argument list))
+    (signal 'wrong-type-argument (list list)))
   list)
 
 (defsubst cl-multiple-value-list (expression)

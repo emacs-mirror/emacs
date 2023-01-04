@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft Windows API.
 
-Copyright (C) 1989, 1993-2022 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7696,6 +7696,7 @@ static void
 w32_initialize (void)
 {
   HANDLE shell;
+  BOOL caret;
   HRESULT (WINAPI * set_user_model) (const wchar_t * id);
 
   baud_rate = 19200;
@@ -7732,8 +7733,9 @@ w32_initialize (void)
 
   /* Initialize w32_use_visible_system_caret based on whether a screen
      reader is in use.  */
-  if (!SystemParametersInfo (SPI_GETSCREENREADER, 0,
-			     &w32_use_visible_system_caret, 0))
+  if (SystemParametersInfo (SPI_GETSCREENREADER, 0, &caret, 0))
+    w32_use_visible_system_caret = caret == TRUE;
+  else
     w32_use_visible_system_caret = 0;
 
   any_help_event_p = 0;
@@ -7922,6 +7924,11 @@ unconditionally set to nil on older systems.  */);
 #else
   w32_use_native_image_api = 0;
 #endif
+
+  DEFVAR_BOOL ("w32-yes-no-dialog-show-cancel",
+	       w32_yes_no_dialog_show_cancel,
+     doc: /* If non-nil, show Cancel button in MS-Windows GUI Yes/No dialogs. */);
+  w32_yes_no_dialog_show_cancel = 1;
 
   /* FIXME: The following variable will be (hopefully) removed
      before Emacs 25.1 gets released.  */

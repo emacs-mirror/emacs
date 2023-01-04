@@ -1,6 +1,6 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: data, wp
@@ -1014,34 +1014,11 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
 
 
 ;;;###autoload
-(define-minor-mode global-whitespace-mode
-  "Toggle whitespace visualization globally (Global Whitespace mode).
-
-See also `whitespace-style', `whitespace-newline' and
-`whitespace-display-mappings'."
-  :lighter    " WS"
+(define-globalized-minor-mode global-whitespace-mode
+  whitespace-mode
+  whitespace-turn-on-if-enabled
   :init-value nil
-  :global     t
-  :group      'whitespace
-  (cond
-   (noninteractive			; running a batch job
-    (setq global-whitespace-mode nil))
-   (global-whitespace-mode		; global-whitespace-mode on
-    (save-current-buffer
-      (add-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
-      (add-hook 'after-change-major-mode-hook 'whitespace-turn-on-if-enabled)
-      (dolist (buffer (buffer-list))	; adjust all local mode
-	(set-buffer buffer)
-	(unless whitespace-mode
-	  (whitespace-turn-on-if-enabled)))))
-   (t					; global-whitespace-mode off
-    (save-current-buffer
-      (remove-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
-      (remove-hook 'after-change-major-mode-hook 'whitespace-turn-on-if-enabled)
-      (dolist (buffer (buffer-list))	; adjust all local mode
-	(set-buffer buffer)
-	(unless whitespace-mode
-	  (whitespace-turn-off)))))))
+  :group 'whitespace)
 
 (defvar whitespace-enable-predicate
   (lambda ()
@@ -1067,7 +1044,7 @@ This variable is normally modified via `add-function'.")
 
 (defun whitespace-turn-on-if-enabled ()
   (when (funcall whitespace-enable-predicate)
-    (whitespace-turn-on)))
+    (whitespace-mode)))
 
 ;;;###autoload
 (define-minor-mode global-whitespace-newline-mode
@@ -2093,6 +2070,17 @@ resultant list will be returned."
        t))
 
 
+(defun whitespace--clone ()
+  "Hook function run after `make-indirect-buffer' and `clone-buffer'."
+  (when (whitespace-style-face-p)
+    (setq-local whitespace-bob-marker
+                (copy-marker (marker-position whitespace-bob-marker)
+                             (marker-insertion-type whitespace-bob-marker)))
+    (setq-local whitespace-eob-marker
+                (copy-marker (marker-position whitespace-eob-marker)
+                             (marker-insertion-type whitespace-eob-marker)))))
+
+
 (defun whitespace-color-on ()
   "Turn on color visualization."
   (when (whitespace-style-face-p)
@@ -2111,6 +2099,8 @@ resultant list will be returned."
               ;; The -1 ensures that it runs before any
               ;; `font-lock-mode' hook functions.
               -1 t)
+    (add-hook 'clone-buffer-hook #'whitespace--clone nil t)
+    (add-hook 'clone-indirect-buffer-hook #'whitespace--clone nil t)
     ;; Add whitespace-mode color into font lock.
     (setq
      whitespace-font-lock-keywords
@@ -2204,6 +2194,8 @@ resultant list will be returned."
     (remove-hook 'before-change-functions #'whitespace-buffer-changed t)
     (remove-hook 'after-change-functions #'whitespace--update-bob-eob
                  t)
+    (remove-hook 'clone-buffer-hook #'whitespace--clone t)
+    (remove-hook 'clone-indirect-buffer-hook #'whitespace--clone t)
     (font-lock-remove-keywords nil whitespace-font-lock-keywords)
     (font-lock-flush)))
 
@@ -2268,10 +2260,11 @@ Highlighting those lines can be distracting.)"
                 (save-excursion (goto-char whitespace-point)
                                 (line-beginning-position)))))
     (when (= p 1)
-      ;; See the comment in `whitespace--update-bob-eob' for why this
-      ;; text property is added here.
-      (put-text-property 1 whitespace-bob-marker
-                         'font-lock-multiline t))
+      (with-silent-modifications
+        ;; See the comment in `whitespace--update-bob-eob' for why
+        ;; this text property is added here.
+        (put-text-property 1 whitespace-bob-marker
+                           'font-lock-multiline t)))
     (when (< p e)
       (set-match-data (list p e))
       (goto-char e))))
@@ -2292,10 +2285,11 @@ about to start typing, and if they do, that line and previous
 empty lines will no longer be EoB empty lines.  Highlighting
 those lines can be distracting.)"
   (when (= limit (1+ (buffer-size)))
-    ;; See the comment in `whitespace--update-bob-eob' for why this
-    ;; text property is added here.
-    (put-text-property whitespace-eob-marker limit
-                       'font-lock-multiline t))
+    (with-silent-modifications
+      ;; See the comment in `whitespace--update-bob-eob' for why this
+      ;; text property is added here.
+      (put-text-property whitespace-eob-marker limit
+                         'font-lock-multiline t)))
   (let ((b (max (point) whitespace-eob-marker
                 whitespace-bob-marker ; See comment in the bob func.
                 (save-excursion (goto-char whitespace-point)
@@ -2437,8 +2431,9 @@ purposes)."
             (save-match-data
               (when (looking-at whitespace-empty-at-bob-regexp)
                 (set-marker whitespace-bob-marker (match-end 1))
-                (put-text-property (match-beginning 1) (match-end 1)
-                                   'font-lock-multiline t))))
+                (with-silent-modifications
+                  (put-text-property (match-beginning 1) (match-end 1)
+                                     'font-lock-multiline t)))))
           (when (or (null end)
                     (>= end (save-excursion
                               (goto-char whitespace-eob-marker)
@@ -2451,8 +2446,9 @@ purposes)."
               (when (whitespace--looking-back
                      whitespace-empty-at-eob-regexp)
                 (set-marker whitespace-eob-marker (match-beginning 1))
-                (put-text-property (match-beginning 1) (match-end 1)
-                                   'font-lock-multiline t)))))))))
+                (with-silent-modifications
+                  (put-text-property (match-beginning 1) (match-end 1)
+                                     'font-lock-multiline t))))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2492,7 +2488,7 @@ purposes)."
 	(setq whitespace-display-table-was-local t)
         ;; Save the old table so we can restore it when
         ;; `whitespace-mode' is switched off again.
-        (when (or whitespace-mode global-whitespace-mode)
+        (when whitespace-mode
 	  (setq whitespace-display-table
 	        (copy-sequence buffer-display-table)))
 	;; Assure `buffer-display-table' is unique

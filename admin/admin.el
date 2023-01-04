@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -843,8 +843,11 @@ $Date: %s $
       (package-install pkg)
       (require pkg nil t))))
 
+(declare-function org-html-export-as-html "ox-html.el")
 (defvar org-html-postamble)
 (defvar org-html-mathjax-template)
+(defvar htmlize-output-type)
+
 (defun make-news-html-file (root version)
   "Convert the NEWS file into an HTML file."
   (interactive (let ((root

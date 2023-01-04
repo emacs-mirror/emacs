@@ -1,6 +1,6 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode -*- lexical-binding:t; coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Authors:    2001- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -7757,7 +7757,7 @@ multi-line strings (but not C++, for example)."
 			       (1- (match-end 1)) ; 1- For the inserted ".
 			     eoll))))
 
-	      ;; ...and clear `syntax-table' text propertes from the
+	      ;; ...and clear `syntax-table' text properties from the
 	      ;; following raw strings.
 	      (c-depropertize-ml-strings-in-region (point) (1+ eoll)))
 	  ;; Remove the temporary string delimiter.

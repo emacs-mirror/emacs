@@ -1,6 +1,6 @@
 ERC NEWS                                                       -*- outline -*-
 
-Copyright (C) 2006-2022 Free Software Foundation, Inc.
+Copyright (C) 2006-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send ERC bug reports to 'bug-gnu-emacs@gnu.org',
@@ -38,6 +38,14 @@ existing channel buffers transparently reassociated instead of created
 anew.  The pre-5.4 "disabled" behavior has been restored and will
 remain accessible for the foreseeable future, warts and all (e.g.,
 with its often superfluous "/DIALED-HOST" suffixing always present).
+
+** The 'networks' module is now quasi-required.
+The 'networks' module is now all but required for everyday interactive
+use.  A default member of 'erc-modules' since ERC 5.3, 'networks' has
+grown increasingly integral to core client operations over the years.
+From now on, only the most essential operations will be officially
+supported in its absence, and users will see a warning upon
+entry-point invocation when it's not present.
 
 ** Tighter auth-source integration with bigger changes on the horizon.
 The days of hit-and-miss auth-source queries are hopefully behind us.
@@ -111,7 +119,8 @@ and 'erc-backend'.
 
 The function 'erc-network' always returns non-nil in server and target
 buffers belonging to a successfully established IRC connection, even
-after that connection has been closed.
+after that connection has been closed.  (Also see the note in the
+section above about the 'networks' module basically being mandatory.)
 
 In 5.4, support for network symbols as keys was added for
 'erc-autojoin-channels-alist'.  This has been extended to include

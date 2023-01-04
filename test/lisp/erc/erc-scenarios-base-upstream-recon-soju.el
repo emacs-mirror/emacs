@@ -1,6 +1,6 @@
 ;;; erc-scenarios-upstream-recon-soju.el --- Upstream soju -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

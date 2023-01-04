@@ -1,6 +1,6 @@
 ;;; solar.el --- calendar functions for solar events  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2022 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -839,12 +839,10 @@ This function is suitable for execution in an init file."
                             "E" "W"))))))
          (calendar-standard-time-zone-name
           (if (< arg 16) calendar-standard-time-zone-name
-            (cond ((zerop calendar-time-zone)
-                   (if (eq calendar-time-zone-style 'numeric)
-                       "+0000" "UTC"))
-                  ((< calendar-time-zone 0)
-                   (format "UTC%dmin" calendar-time-zone))
-                  (t  (format "UTC+%dmin" calendar-time-zone)))))
+	    (if (and (zerop calendar-time-zone)
+		     (not (eq calendar-time-zone-style 'numeric)))
+		"UTC"
+	      (format-time-string "%z" 0 (* 60 calendar-time-zone)))))
          (calendar-daylight-savings-starts
           (if (< arg 16) calendar-daylight-savings-starts))
          (calendar-daylight-savings-ends

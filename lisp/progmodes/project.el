@@ -1,6 +1,6 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 ;; Version: 0.9.3
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
@@ -1040,12 +1040,14 @@ by the user at will."
               (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
          (abbr-cpd (abbreviate-file-name common-parent-directory))
+         (abbr-cpd-length (length abbr-cpd))
          (relname (cl-letf ((history-add-new-input nil)
                             ((symbol-value hist)
                              (mapcan
                               (lambda (s)
                                 (and (string-prefix-p abbr-cpd s)
-                                     (list (substring s (length abbr-cpd)))))
+                                     (not (eq abbr-cpd-length (length s)))
+                                     (list (substring s abbr-cpd-length))))
                               (symbol-value hist))))
                     (project--completing-read-strict prompt
                                                      new-collection

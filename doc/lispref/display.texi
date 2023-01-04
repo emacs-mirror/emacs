@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -345,6 +345,20 @@ area being cleared.
 The default value is the function that clears the message displayed in
 an active minibuffer.
 @end defvar
+
+@defopt set-message-functions
+The value of this user option is a list of functions to be called for
+handling display of echo-area messages.  Each function is called with
+one argument, the text of the message to display.  If the function
+returns a string, that string replaces the original message, and the
+next function in the list is called with the new message text.  If the
+function returns @code{nil}, the next function in the list is called
+with the same text; if the last function in the list returns
+@code{nil}, the message text is displayed in the echo area.  If the
+function returns a non-@code{nil} value that is not a string, the
+message is considered to be handled, and no further functions in the
+list are called.
+@end defopt
 
 @defvar inhibit-message
 When this variable is non-@code{nil}, @code{message} and related functions
@@ -3043,17 +3057,30 @@ If @var{frame} is @code{t}, this function sets the default attributes
 for newly created frames; they will effectively override the attribute
 values specified by @code{defface}.  If @var{frame} is @code{nil},
 this function sets the attributes for all existing frames, as well as
-for newly created frames.  However, if you want to @emph{reset} the
-value of an attribute to @code{unspecified} in a way that also affects
-newly created frames, you @emph{must} explicitly call this function
-with @var{frame} set to @code{t} and the value of the attribute set to
-@code{unspecified} (@emph{not} @code{nil}!@:), in addition to the call
-with @var{frame} set to @code{nil}.  This is because the default
-attributes for newly created frames are merged with the face's spec in
-@code{defface} when a new frame is created, and so having
+for newly created frames.
+
+To @emph{reset} the value of an attribute, that is, to indicate that
+the face doesn't by itself specify a value for the attribute, use the
+special value @code{unspecified} (@emph{not} @code{nil}!@:) for the
+attribute, and set the @var{frame} argument to @code{t}, in addition
+to the call with @var{frame} set to @code{nil}.  This is because the
+default attributes for newly created frames are merged with the face's
+spec in @code{defface} when a new frame is created, and so having
 @code{unspecified} in the default attributes for new frames will be
 unable to override @code{defface}; the special call to this function
 as described above will arrange for @code{defface} to be overridden.
+
+Note that the attribute-value pairs are evaluated in the order they
+are specified, with the exception of the @code{:family} and
+@code{:foundry} attributes, which are evaluated first.  This means
+that if a certain attribute is specified more than once, only the last
+value will be used.  It also means that in some cases a different
+order of attributes will produce different results.  For example, when
+@code{:weight} is placed before @code{:font}, the weight value is
+applied to the current font of the face, and might be rounded to the
+closest available weight of that font, whereas when @code{:font} is
+placed before @code{:weight} the weight value is applied to the
+specified font.
 @end defun
 
   The following commands and functions mostly provide compatibility
@@ -6280,7 +6307,7 @@ embedding large images, comparing to @code{svg-embed}, because all the
 work is done directly by librsvg.
 
 @lisp
-;; Embeding /tmp/subdir/rms.jpg and /tmp/another/rms.jpg
+;; Embedding /tmp/subdir/rms.jpg and /tmp/another/rms.jpg
 (svg-embed-base-uri-image svg "subdir/rms.jpg"
            :width "100px" :height "100px"
            :x "50px" :y "75px")

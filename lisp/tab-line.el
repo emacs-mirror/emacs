@@ -1,6 +1,6 @@
 ;;; tab-line.el --- window-local tabs with window buffers -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 ;; Keywords: windows tabs
@@ -572,9 +572,14 @@ For use in `tab-line-tab-face-functions'."
 
 (defvar tab-line-auto-hscroll)
 
-(defun tab-line-cache-key-default (_tabs)
+(defun tab-line-cache-key-default (tabs)
   "Return default list of cache keys."
   (list
+   tabs
+   ;; handle buffer renames
+   (buffer-name (window-buffer))
+   ;; handle tab-line scrolling
+   (window-parameter nil 'tab-line-hscroll)
    ;; for setting face 'tab-line-tab-current'
    (mode-line-window-selected-p)
    ;; for `tab-line-tab-face-modified'
@@ -591,12 +596,7 @@ of cache keys.  You can use `add-function' to add more cache keys.")
 (defun tab-line-format ()
   "Format for displaying the tab line of the selected window."
   (let* ((tabs (funcall tab-line-tabs-function))
-         (cache-key (append (list tabs
-                                  ;; handle buffer renames
-                                  (buffer-name (window-buffer))
-                                  ;; handle tab-line scrolling
-                                  (window-parameter nil 'tab-line-hscroll))
-                            (funcall tab-line-cache-key-function tabs)))
+         (cache-key (funcall tab-line-cache-key-function tabs))
          (cache (window-parameter nil 'tab-line-cache)))
     ;; Enable auto-hscroll again after it was disabled on manual scrolling.
     ;; The moment to enable it is when the window-buffer was updated.

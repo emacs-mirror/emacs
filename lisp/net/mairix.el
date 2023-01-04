@@ -1,6 +1,6 @@
 ;;; mairix.el --- Mairix interface for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching

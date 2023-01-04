@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2022 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -3166,7 +3166,7 @@ Most projects with a certain amount of users track bug reports in some
 issue tracking software which assigns each report a unique and short
 number or identifier.  Those are used to reference a given bug, e.g.,
 in a source code comment above the code fixing some bug, in
-documentation files, or in discussions on some mailinglist or IRC
+documentation files, or in discussions on some mailing list or IRC
 channel.
 
 @findex bug-reference-mode

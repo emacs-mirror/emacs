@@ -6299,7 +6299,7 @@
 
 2008-10-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el: Deal with page sizes for label printes.  Suggested by
+	* ps-print.el: Deal with page sizes for label printers.  Suggested by
 	Friedrich Delgado Friedrichs <friedel@nomaden.org>.
 	(ps-print-version): New version 7.3.3.
 	(ps-page-dimensions-database): New page sizes for label printers.
@@ -6371,7 +6371,7 @@
 
 	* replace.el (query-replace, query-replace-regexp)
 	(replace-string, replace-regexp, perform-replace): Add "word"
-	indicatiors to the prompt for word delimited replacements.
+	indicators to the prompt for word delimited replacements.
 
 	* replace.el (read-regexp): Rename arg `default' to `default-value'.
 	Doc fix.
@@ -20547,7 +20547,7 @@ See ChangeLog.13 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2008-2022 Free Software Foundation, Inc.
+    Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

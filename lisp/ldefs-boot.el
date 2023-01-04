@@ -4631,7 +4631,7 @@ For use inside Lisp programs, see also `c-macro-expansion'.
 
 ;;; Generated autoloads from progmodes/cmake-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)$" . cmake-ts-mode))
+(add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode))
 (autoload 'cmake-ts-mode "cmake-ts-mode" "\
 Major mode for editing CMake files, powered by tree-sitter.
 
@@ -8673,9 +8673,9 @@ it is disabled.
 
 (defvar edebug-all-defs nil "\
 If non-nil, evaluating defining forms instruments for Edebug.
-This applies to `eval-defun', `eval-region', `eval-buffer', and
-`eval-current-buffer'.  `eval-region' is also called by
-`eval-last-sexp', and `eval-print-last-sexp'.
+This applies to `eval-defun', `eval-region' and `eval-buffer'.
+`eval-region' is also called by `eval-last-sexp', and
+`eval-print-last-sexp'.
 
 You can use the command `edebug-all-defs' to toggle the value of this
 variable.  You may wish to make it local to each buffer with
@@ -9136,7 +9136,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push (purecopy '(eglot 1 9)) package--builtin-versions)
+(push (purecopy '(eglot 1 10)) package--builtin-versions)
 (autoload 'eglot "eglot" "\
 Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
 
@@ -9394,10 +9394,11 @@ it is disabled.
 (autoload 'elide-head "elide-head" "\
 Hide header material in buffer according to `elide-head-headers-to-hide'.
 
-The header is made invisible with an overlay.  With a prefix arg, show
-an elided material again.
+The header is made invisible with an overlay.  With a prefix
+argument ARG, show an elided material again.
 
-This is suitable as an entry on `find-file-hook' or appropriate mode hooks.
+This is suitable as an entry on `find-file-hook' or appropriate
+mode hooks.
 
 (fn &optional ARG)" t)
 (make-obsolete 'elide-head 'elide-head-mode "29.1")
@@ -10118,9 +10119,7 @@ then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
 for the values of the other parameters.
 
-When present, ID should be an opaque object used to identify the
-connection unequivocally.  This is rarely needed and not available
-interactively.
+See `erc-tls' for the meaning of ID.
 
 (fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" t)
 (defalias 'erc-select #'erc)
@@ -10135,6 +10134,7 @@ Non-interactively, it takes the keyword arguments
    (server (erc-compute-server))
    (port   (erc-compute-port))
    (nick   (erc-compute-nick))
+   (user   (erc-compute-user))
    password
    (full-name (erc-compute-full-name))
    client-certificate
@@ -10163,11 +10163,11 @@ Example usage:
              \\='(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))
 
-When present, ID should be an opaque object for identifying the
-connection unequivocally.  (In most cases, this would be a string or a
-symbol composed of letters from the Latin alphabet.)  This option is
-generally unneeded, however.  See info node `(erc) Connecting' for use
-cases.  Not available interactively.
+When present, ID should be a symbol or a string to use for naming
+the server buffer and identifying the connection unequivocally.
+See info node `(erc) Network Identifier' for details.  Like USER
+and CLIENT-CERTIFICATE, this parameter cannot be specified
+interactively.
 
 (fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port \\='ircs-u)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" t)
 (autoload 'erc-handle-irc-url "erc" "\
@@ -14341,6 +14341,21 @@ Add the window configuration CONF to `gnus-buffer-configuration'.
 ;;; Generated autoloads from net/gnutls.el
 
 (register-definition-prefixes "gnutls" '("gnutls-" "open-gnutls-stream"))
+
+
+;;; Generated autoloads from progmodes/go-ts-mode.el
+
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+(autoload 'go-ts-mode "go-ts-mode" "\
+Major mode for editing Go, powered by tree-sitter.
+
+(fn)" t)
+(add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
+(autoload 'go-mod-ts-mode "go-ts-mode" "\
+Major mode for editing go.mod files, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "go-ts-mode" '("go-"))
 
 
 ;;; Generated autoloads from play/gomoku.el
@@ -18624,7 +18639,7 @@ Major mode for editing JSON, powered by tree-sitter.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push (purecopy '(jsonrpc 1 0 15)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 16)) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -23399,6 +23414,11 @@ the `Version:' header.")
 (defcustom package-quickstart-file (locate-user-emacs-file "package-quickstart.el") "\
 Location of the file used to speed up activation of packages at startup." :type 'file :group 'applications :initialize #'custom-initialize-delay :version "27.1")
 (custom-autoload 'package-quickstart-file "package" t)
+(autoload 'package-report-bug "package" "\
+Prepare a message to send to the maintainers of a package.
+DESC must be a `package-desc' object.
+
+(fn DESC)" '(package-menu-mode))
 (register-definition-prefixes "package" '("bad-signature" "define-package" "describe-package-1" "package-"))
 
 
@@ -23480,7 +23500,7 @@ uses `package-vc-heuristic-alist' to guess the backend.
 Note that by default, a VC package will be prioritized over a
 regular package, but it will not remove a VC package.
 
-(fn PACKAGE &optional NAME REV BACKEND)" t)
+(fn PACKAGE &optional REV BACKEND)" t)
 (autoload 'package-vc-checkout "package-vc" "\
 Clone the sources for PKG-DESC into DIRECTORY and visit that directory.
 Unlike `package-vc-install', this does not yet set up the package
@@ -27335,6 +27355,16 @@ it is disabled.
 (register-definition-prefixes "ruler-mode" '("ruler-"))
 
 
+;;; Generated autoloads from progmodes/rust-ts-mode.el
+
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
+(autoload 'rust-ts-mode "rust-ts-mode" "\
+Major mode for editing Rust, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "rust-ts-mode" '("rust-ts-mode-"))
+
+
 ;;; Generated autoloads from emacs-lisp/rx.el
 
 (autoload 'rx-to-string "rx" "\
@@ -29548,7 +29578,8 @@ is specified in the connection settings.
 Run PRODUCT interpreter as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
-If buffer exists and a process is running, just switch to buffer `*SQL*'.
+If buffer exists and a process is running, just make sure buffer `*SQL*'
+is displayed.
 
 To specify the SQL product, prefix the call with
 \\[universal-argument].  To set the buffer name as well, prefix
@@ -30191,7 +30222,10 @@ Return the width of STRING in pixels.
 (fn STRING)")
 (autoload 'string-glyph-split "subr-x" "\
 Split STRING into a list of strings representing separate glyphs.
-This takes into account combining characters and grapheme clusters.
+This takes into account combining characters and grapheme clusters:
+if compositions are enbaled, each sequence of characters composed
+on display into a single grapheme cluster is treated as a single
+indivisible unit.
 
 (fn STRING)")
 (autoload 'add-display-text-property "subr-x" "\
@@ -32373,6 +32407,16 @@ Mode for displaying and reprioritizing top priority Todo.
 (register-definition-prefixes "todo-mode" '("todo-"))
 
 
+;;; Generated autoloads from textmodes/toml-ts-mode.el
+
+(add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
+(autoload 'toml-ts-mode "toml-ts-mode" "\
+Major mode for editing TOML, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "toml-ts-mode" '("toml-ts-mode-"))
+
+
 ;;; Generated autoloads from tool-bar.el
 
 (autoload 'toggle-tool-bar-mode-from-frame "tool-bar" "\
@@ -34386,7 +34430,7 @@ revision, with SUBJECT derived from each revision subject.
 When invoked with a numerical prefix argument, use the last N
 revisions.
 When invoked interactively in a Log View buffer with
-marked revisions, use those these.
+marked revisions, use those.
 
 (fn ADDRESSEE SUBJECT REVISIONS)" t)
 (register-definition-prefixes "vc" '("vc-" "with-vc-properties"))
@@ -34655,7 +34699,7 @@ Key bindings:
 
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
-(push (purecopy '(verilog-mode 2021 10 14 127365406)) package--builtin-versions)
+(push (purecopy '(verilog-mode 2022 12 18 181110314)) package--builtin-versions)
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.
 \\<verilog-mode-map>
@@ -34689,6 +34733,11 @@ Variables controlling indentation/edit style:
    function keyword.
  `verilog-indent-level-directive'     (default 1)
    Indentation of \\=`ifdef/\\=`endif blocks.
+ `verilog-indent-ignore-multiline-defines' (default t)
+   Non-nil means ignore indentation on lines that are part of a multiline
+   define.
+ `verilog-indent-ignore-regexp'     (default nil
+   Regexp that matches lines that should be ignored for indentation.
  `verilog-cexp-indent'              (default 1)
    Indentation of Verilog statements broken across lines i.e.:
       if (a)
@@ -34712,6 +34761,9 @@ Variables controlling indentation/edit style:
    otherwise you get:
       if (a)
       begin
+ `verilog-indent-class-inside-pkg'  (default t)
+   Non-nil means indent classes inside packages.
+   Otherwise, classes have zero indentation.
  `verilog-auto-endcomments'         (default t)
    Non-nil means a comment /* ... */ is set after the ends which ends
    cases, tasks, functions and modules.
@@ -34721,6 +34773,17 @@ Variables controlling indentation/edit style:
    will be inserted.  Setting this variable to zero results in every
    end acquiring a comment; the default avoids too many redundant
    comments in tight quarters.
+ `verilog-align-decl-expr-comments' (default t)
+   Non-nil means align declaration and expressions comments.
+ `verilog-align-comment-distance'   (default 1)
+   Distance (in spaces) between longest declaration and comments.
+   Only works if `verilog-align-decl-expr-comments' is non-nil.
+ `verilog-align-assign-expr'        (default nil)
+   Non-nil means align expressions of continuous assignments.
+ `verilog-align-typedef-regexp'     (default nil)
+   Regexp that matches user typedefs for declaration alignment.
+ `verilog-align-typedef-words'      (default nil)
+   List of words that match user typedefs for declaration alignment.
  `verilog-auto-lineup'              (default `declarations')
    List of contexts where auto lineup of code should be done.
 
@@ -34744,17 +34807,20 @@ Some other functions are:
     \\[verilog-mark-defun]  Mark function.
     \\[verilog-beg-of-defun]  Move to beginning of current function.
     \\[verilog-end-of-defun]  Move to end of current function.
-    \\[verilog-label-be]  Label matching begin ... end, fork ... join, etc statements.
+    \\[verilog-label-be]  Label matching begin ... end, fork ... join, etc
+                          statements.
 
     \\[verilog-comment-region]  Put marked area in a comment.
-    \\[verilog-uncomment-region]  Uncomment an area commented with \\[verilog-comment-region].
+    \\[verilog-uncomment-region]  Uncomment an area commented with
+                                  \\[verilog-comment-region].
     \\[verilog-insert-block]  Insert begin ... end.
     \\[verilog-star-comment]    Insert /* ... */.
 
     \\[verilog-sk-always]  Insert an always @(AS) begin .. end block.
     \\[verilog-sk-begin]  Insert a begin .. end block.
     \\[verilog-sk-case]  Insert a case block, prompting for details.
-    \\[verilog-sk-for]  Insert a for (...) begin .. end block, prompting for details.
+    \\[verilog-sk-for]  Insert a for (...) begin .. end block, prompting for
+                        details.
     \\[verilog-sk-generate]  Insert a generate .. endgenerate block.
     \\[verilog-sk-header]  Insert a header block at the top of file.
     \\[verilog-sk-initial]  Insert an initial begin .. end block.
@@ -34777,14 +34843,17 @@ Some other functions are:
     \\[verilog-sk-else-if]  Insert an else if (..) begin .. end block.
     \\[verilog-sk-comment]  Insert a comment block.
     \\[verilog-sk-assign]  Insert an assign .. = ..; statement.
-    \\[verilog-sk-function]  Insert a function .. begin .. end endfunction block.
+    \\[verilog-sk-function]  Insert a function .. begin .. end endfunction
+                             block.
     \\[verilog-sk-input]  Insert an input declaration, prompting for details.
     \\[verilog-sk-output]  Insert an output declaration, prompting for details.
-    \\[verilog-sk-state-machine]  Insert a state machine definition, prompting for details.
+    \\[verilog-sk-state-machine]  Insert a state machine definition, prompting
+                                  for details.
     \\[verilog-sk-inout]  Insert an inout declaration, prompting for details.
     \\[verilog-sk-wire]  Insert a wire declaration, prompting for details.
     \\[verilog-sk-reg]  Insert a register declaration, prompting for details.
-    \\[verilog-sk-define-signal]  Define signal under point as a register at the top of the module.
+    \\[verilog-sk-define-signal]  Define signal under point as a register at
+                                  the top of the module.
 
 All key bindings can be seen in a Verilog-buffer with \\[describe-bindings].
 Key bindings specific to `verilog-mode-map' are:
@@ -35903,6 +35972,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t)
+(put 'global-whitespace-mode 'globalized-minor-mode t)
 (defvar global-whitespace-mode nil "\
 Non-nil if Global Whitespace mode is enabled.
 See the `global-whitespace-mode' command
@@ -35912,25 +35982,18 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-whitespace-mode'.")
 (custom-autoload 'global-whitespace-mode "whitespace" nil)
 (autoload 'global-whitespace-mode "whitespace" "\
-Toggle whitespace visualization globally (Global Whitespace mode).
+Toggle Whitespace mode in all buffers.
+With prefix ARG, enable Global Whitespace mode if ARG is positive;
+otherwise, disable it.
 
-See also `whitespace-style', `whitespace-newline' and
-`whitespace-display-mappings'.
-
-This is a global minor mode.  If called interactively, toggle the
-`Global Whitespace mode' mode.  If the prefix argument is
-positive, enable the mode, and if it is zero or negative, disable
-the mode.
-
-If called from Lisp, toggle the mode if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
 
-To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='global-whitespace-mode)'.
+Whitespace mode is enabled in all buffers where
+`whitespace-turn-on-if-enabled' would do it.
 
-The mode's hook is called both when the mode is enabled and when
-it is disabled.
+See `whitespace-mode' for more information on Whitespace mode.
 
 (fn &optional ARG)" t)
 (defvar global-whitespace-newline-mode nil "\
@@ -36892,6 +36955,16 @@ a new xwidget-webkit session, otherwise use an existing session.
 
 (fn BOOKMARK)")
 (register-definition-prefixes "xwidget" '("xwidget-"))
+
+
+;;; Generated autoloads from textmodes/yaml-ts-mode.el
+
+(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
+(autoload 'yaml-ts-mode "yaml-ts-mode" "\
+Major mode for editing YAML, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "yaml-ts-mode" '("yaml-ts-mode--"))
 
 
 ;;; Generated autoloads from yank-media.el

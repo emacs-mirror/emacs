@@ -1,6 +1,6 @@
 ;;; org-agenda.el --- Dynamic task and appointment lists for Org  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -3477,14 +3477,14 @@ This ensures the export commands can easily use it."
       (setq props (plist-put props 'tags (mapconcat #'identity tmp ":"))))
     (when (setq tmp (plist-get props 'date))
       (when (integerp tmp) (setq tmp (calendar-gregorian-from-absolute tmp)))
-      (let ((calendar-date-display-form '(year "-" month "-" day)))
-	'((format "%4d, %9s %2s, %4s" dayname monthname day year))
-
+      (let ((calendar-date-display-form
+             '(year "-" (string-pad month 2 ?0 'left) "-" (string-pad day 2 ?0 'left))))
 	(setq tmp (calendar-date-string tmp)))
       (setq props (plist-put props 'date tmp)))
     (when (setq tmp (plist-get props 'day))
       (when (integerp tmp) (setq tmp (calendar-gregorian-from-absolute tmp)))
-      (let ((calendar-date-display-form '(year "-" month "-" day)))
+      (let ((calendar-date-display-form
+             '(year "-" (string-pad month 2 ?0 'left) "-" (string-pad day 2 ?0 'left))))
 	(setq tmp (calendar-date-string tmp)))
       (setq props (plist-put props 'day tmp))
       (setq props (plist-put props 'agenda-day tmp)))
@@ -4678,7 +4678,7 @@ is active."
 	 (org-agenda-text-search-extra-files org-agenda-text-search-extra-files)
 	 regexp rtn rtnall files file pos inherited-tags
 	 marker category level tags c neg re boolean
-	 ee txt beg end words regexps+ regexps- hdl-only buffer beg1 str)
+	 ee txt beg end last-search-end words regexps+ regexps- hdl-only buffer beg1 str)
     (unless (and (not edit-at)
 		 (stringp string)
 		 (string-match "\\S-" string))
@@ -4817,6 +4817,7 @@ is active."
 		      (throw 'nextfile t))
 		    (goto-char (max (point-min) (1- (point))))
 		    (while (re-search-forward regexp nil t)
+                      (setq last-search-end (point))
 		      (org-back-to-heading t)
 		      (while (and (not (zerop org-agenda-search-view-max-outline-level))
 				  (> (org-reduced-level (org-outline-level))
@@ -4878,7 +4879,7 @@ is active."
 			  'priority 1000
 			  'type "search")
 			(push txt ee)
-			(goto-char (1- end))))))))))
+			(goto-char (max (1- end) last-search-end))))))))))
 	(setq rtn (nreverse ee))
 	(setq rtnall (append rtnall rtn)))
       (org-agenda--insert-overriding-header

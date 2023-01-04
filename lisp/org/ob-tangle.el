@@ -1,6 +1,6 @@
 ;;; ob-tangle.el --- Extract Source Code From Org Files -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -500,7 +500,8 @@ The PARAMS are the 3rd element of the info for the same src block."
                  (cl-letf (((symbol-function 'org-store-link-functions)
                             (lambda () nil)))
                    (org-store-link nil))))
-             (bare (and (string-match org-link-bracket-re l)
+             (bare (and l
+                        (string-match org-link-bracket-re l)
                         (match-string 1 l))))
         (when bare
           (if (and org-babel-tangle-use-relative-file-links

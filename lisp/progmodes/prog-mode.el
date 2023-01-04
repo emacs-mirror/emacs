@@ -1,6 +1,6 @@
 ;;; prog-mode.el --- Generic major mode for programming  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -164,10 +164,8 @@ or follows point."
                  (treesit-node-type (treesit-node-at (point)))))))
       (if (or treesit-text-node
               (nth 8 (syntax-ppss))
-              (re-search-forward comment-start-skip (line-end-position) t))
-          (if (memq fill-paragraph-function '(t nil))
-              (lisp-fill-paragraph argument)
-            (funcall fill-paragraph-function argument))
+              (re-search-forward "\\s-*\\s<" (line-end-position) t))
+          (fill-paragraph argument (region-active-p))
         (beginning-of-defun)
         (let ((start (point)))
           (end-of-defun)

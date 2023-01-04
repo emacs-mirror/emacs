@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 2001--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1994, 2001--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -930,7 +930,7 @@ used by Emacs to natively-compile any Lisp file or byte-compiled Lisp
 file that is loaded into Emacs, when no natively-compiled file for it
 is available.  Note that because of this use of a subprocess, native
 compilation may produce warning and errors which byte-compilation does
-not, and lisp code may thus need to be modified to work correctly.  See
+not, and Lisp code may thus need to be modified to work correctly.  See
 @code{native-comp-async-report-warnings-errors} in @pxref{Native-Compilation
 Variables} for more details.
 

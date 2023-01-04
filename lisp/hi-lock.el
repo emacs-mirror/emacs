@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -569,24 +569,29 @@ the major mode specifies support for Font Lock."
       (when (and face-before face-after (not (eq face-before face-after)))
         (setq face-before nil))
       (when (or face-after face-before)
-        (let* ((hi-text
-                (buffer-substring-no-properties
-                 (if face-before
-                     (or (previous-single-property-change (point) 'face)
-                         (point-min))
-                   (point))
-                 (if face-after
-                     (or (next-single-property-change (point) 'face)
-                         (point-max))
-                   (point)))))
+        (let* ((beg (if face-before
+                        (or (previous-single-property-change (point) 'face)
+                            (point-min))
+                      (point)))
+               (end (if face-after
+                        (or (next-single-property-change (point) 'face)
+                            (point-max))
+                      (point))))
           ;; Compute hi-lock patterns that match the
           ;; highlighted text at point.  Use this later in
           ;; during completing-read.
           (dolist (hi-lock-pattern hi-lock-interactive-patterns)
-            (let ((regexp (or (car (rassq hi-lock-pattern hi-lock-interactive-lighters))
-                              (car hi-lock-pattern))))
-              (if (string-match regexp hi-text)
-                  (push regexp regexps)))))))
+            (let ((pattern (or (rassq hi-lock-pattern hi-lock-interactive-lighters)
+                               (car hi-lock-pattern))))
+              (cond
+               ((stringp pattern)
+                (when (string-match pattern (buffer-substring-no-properties beg end))
+                  (push pattern regexps)))
+               ((functionp (cadr pattern))
+                (save-excursion
+                  (goto-char beg)
+                  (when (funcall (cadr pattern) end)
+                    (push (car pattern) regexps))))))))))
     regexps))
 
 (defvar-local hi-lock--unused-faces nil

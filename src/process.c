@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2022 Free Software
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -6792,10 +6792,13 @@ emacs_get_tty_pgrp (struct Lisp_Process *p)
 
 DEFUN ("process-running-child-p", Fprocess_running_child_p,
        Sprocess_running_child_p, 0, 1, 0,
-       doc: /* Return non-nil if PROCESS has given the terminal to a
-child.  If the operating system does not make it possible to find out,
-return t.  If we can find out, return the numeric ID of the foreground
-process group.  */)
+       doc: /* Return non-nil if PROCESS has given control of its terminal to a child.
+If the operating system does not make it possible to find out, return t.
+If it's possible to find out, return the numeric ID of the foreground
+process group if PROCESS did give control of its terminal to a
+child process, and return nil if it didn't.
+
+PROCESS must be a real subprocess, not a connection.  */)
   (Lisp_Object process)
 {
   /* Initialize in case ioctl doesn't exist or gives an error,

@@ -1,6 +1,6 @@
 ;;; treesit-tests.el --- tests for src/treesit.c         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -252,9 +252,7 @@ BODY is the test body."
          (setq parser (treesit-parser-create 'json))
          (setq root (treesit-parser-root-node
                      parser))
-         (setq array (treesit-node-child root 0))
-         ;; First bracket.
-         (setq cursor (treesit-node-child array 0)))
+         (setq array (treesit-node-child root 0)))
        ,@body)))
 
 (ert-deftest treesit-search-forward ()
@@ -335,6 +333,9 @@ BODY is the test body."
 
 ;;; Query
 
+(defun treesit--ert-pred-last-sibling (node)
+  (null (treesit-node-next-sibling node t)))
+
 (ert-deftest treesit-query-api ()
   "Tests for query API."
   (skip-unless (treesit-language-available-p 'json))
@@ -357,13 +358,16 @@ BODY is the test body."
 (pair key: (_) @keyword)
 ((_) @bob (#match \"^B.b$\" @bob))
 (number) @number
-((number) @n3 (#equal \"3\" @n3)) "
+((number) @n3 (#equal \"3\" @n3))
+((number) @n3p (#pred treesit--ert-pred-last-sibling @n3p))"
                  ;; Sexp query.
                  ((string) @string
                   (pair key: (_) @keyword)
                   ((_) @bob (:match "^B.b$" @bob))
                   (number) @number
-                  ((number) @n3 (:equal "3" @n3)))))
+                  ((number) @n3 (:equal "3" @n3))
+                  ((number) @n3p (:pred treesit--ert-pred-last-sibling
+                                        @n3p)))))
         ;; Test `treesit-query-compile'.
         (dolist (query (list query1
                              (treesit-query-compile 'json query1)))
@@ -375,7 +379,8 @@ BODY is the test body."
               (string . "\"Bob\"")
               (bob . "Bob")
               (number . "3")
-              (n3 . "3"))
+              (n3 . "3")
+              (n3p . "3"))
             (mapcar (lambda (entry)
                       (cons (car entry)
                             (treesit-node-text
@@ -831,36 +836,40 @@ OPENING and CLOSING are the same as in
 and \"]\"."
   (with-temp-buffer
     (funcall init)
-    (let* ((opening (or opening "["))
-           (closing (or closing "]"))
-           ;; Insert program and parse marker positions.
-           (marker-alist (treesit--ert-insert-and-parse-marker
-                             opening closing program))
-           ;; Translate marker positions into buffer positions.
-           (decoded-master
-            (cl-loop for record in master
-                     collect
-                     (cl-loop for pos in record
-                              collect (alist-get pos marker-alist))))
-           ;; Collect positions each function returns.
-           (positions
-            (treesit--ert-collect-positions
-             ;; The first column of DECODED-MASTER.
-             (mapcar #'car decoded-master)
-             ;; Four functions: next-end, prev-beg, next-beg, prev-end.
-             (mapcar (lambda (conf)
-                       (lambda ()
-                         (if-let ((pos (funcall
-                                        #'treesit--navigate-defun
-                                        (point) (car conf) (cdr conf))))
-                             (save-excursion
-                               (goto-char pos)
-                               (funcall treesit-defun-skipper)
-                               (point)))))
-                     '((-1 . beg)
-                       (1 . end)
-                       (-1 . end)
-                       (1 . beg))))))
+    (pcase-let*
+        ((opening (or opening "["))
+         (closing (or closing "]"))
+         ;; Insert program and parse marker positions.
+         (marker-alist (treesit--ert-insert-and-parse-marker
+                           opening closing program))
+         ;; Translate marker positions into buffer positions.
+         (decoded-master
+          (cl-loop for record in master
+                   collect
+                   (cl-loop for pos in record
+                            collect (alist-get pos marker-alist))))
+         (`(,regexp . ,pred) (treesit--thing-unpack-pattern
+                              treesit-defun-type-regexp))
+         ;; Collect positions each function returns.
+         (positions
+          (treesit--ert-collect-positions
+           ;; The first column of DECODED-MASTER.
+           (mapcar #'car decoded-master)
+           ;; Four functions: next-end, prev-beg, next-beg, prev-end.
+           (mapcar (lambda (conf)
+                     (lambda ()
+                       (if-let ((pos (funcall
+                                      #'treesit--navigate-thing
+                                      (point) (car conf) (cdr conf)
+                                      regexp pred)))
+                           (save-excursion
+                             (goto-char pos)
+                             (funcall treesit-defun-skipper)
+                             (point)))))
+                   '((-1 . beg)
+                     (1 . end)
+                     (-1 . end)
+                     (1 . beg))))))
       ;; Verify each position.
       (cl-loop for record in decoded-master
                for orig-record in master
@@ -931,7 +940,28 @@ and \"]\"."
 [999]}
 [110]
 "
-  "Javascript source for navigation test.")
+  "Bash source for navigation test.")
+
+(defvar treesit--ert-defun-navigation-elixir-program
+  "[100]
+[101]def bar() do
+[999]end
+[102]
+[103]defmodule Example do[0]
+[999] @impl true
+[104] [1]def bar() do[2]
+[999] end[3]
+[105] [4]
+[106] [5]def baz() do[6]
+[999] end[7]
+[107] [8]
+[999]end[9]
+[108]
+[109]def bar() do
+[999]end
+[110]
+"
+  "Elixir source for navigation test.")
 
 (defvar treesit--ert-defun-navigation-nested-master
   ;; START PREV-BEG NEXT-END PREV-END NEXT-BEG
@@ -1011,6 +1041,23 @@ the prev-beg, now point should be at marker 103\", etc.")
        (treesit-parser-create 'bash)
        (setq-local treesit-defun-type-regexp "function_definition"))
      treesit--ert-defun-navigation-bash-program
+     treesit--ert-defun-navigation-nested-master)))
+
+(ert-deftest treesit-defun-navigation-nested-4 ()
+  "Test defun navigation using Elixir.
+This tests bug#60355."
+  (skip-unless (treesit-language-available-p 'elixir))
+  ;; Nested defun navigation
+  (let ((treesit-defun-tactic 'nested)
+        (pred (lambda (node)
+                (member (treesit-node-text
+                         (treesit-node-child-by-field-name node "target"))
+                        '("def" "defmodule")))))
+    (treesit--ert-test-defun-navigation
+     (lambda ()
+       (treesit-parser-create 'elixir)
+       (setq-local treesit-defun-type-regexp `("call" . ,pred)))
+     treesit--ert-defun-navigation-elixir-program
      treesit--ert-defun-navigation-nested-master)))
 
 (ert-deftest treesit-defun-navigation-top-level ()

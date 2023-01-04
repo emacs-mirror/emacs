@@ -1,6 +1,6 @@
 ;;; image-circular-tests.el --- test image functions with circular objects  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019, 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2019, 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Pip Cet <pipcet@gmail.com>
 ;; Keywords:       internal

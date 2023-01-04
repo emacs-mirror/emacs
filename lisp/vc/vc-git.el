@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -314,6 +314,23 @@ Good example of file name that needs this: \"test[56].xx\".")
                                      version-string))
                   (string-trim-right (match-string 1 version-string) "\\.")
                 "0")))))
+
+(defun vc-git--git-path (&optional path)
+  "Resolve .git/PATH for the current working tree.
+In particular, handle the case where this is a linked working
+tree, such that .git is a plain file.
+
+See the --git-dir and --git-path options to git-rev-parse(1)."
+  (if (and path (not (string-empty-p path)))
+      ;; Canonicalize in this branch because --git-dir always returns
+      ;; an absolute file name.
+      (expand-file-name
+       (string-trim-right
+        (vc-git--run-command-string nil "rev-parse"
+                                    "--git-path" path)))
+    (concat (string-trim-right
+             (vc-git--run-command-string nil "rev-parse" "--git-dir"))
+            "/")))
 
 (defun vc-git--git-status-to-vc-state (code-list)
   "Convert CODE-LIST to a VC status.
@@ -759,12 +776,32 @@ or an empty string if none."
 		  :help "Show the contents of the current stash"))
     map))
 
+(defun vc-git--cmds-in-progress ()
+  "Return a list of Git commands in progress in this worktree."
+  (let ((gitdir (vc-git--git-path))
+        cmds)
+    ;; See contrib/completion/git-prompt.sh in git.git.
+    (when (or (file-directory-p
+	       (expand-file-name "rebase-merge" gitdir))
+	      (file-exists-p
+	       (expand-file-name "rebase-apply/rebasing" gitdir)))
+      (push 'rebase cmds))
+    (when (file-exists-p
+	   (expand-file-name "rebase-apply/applying" gitdir))
+      (push 'am cmds))
+    (when (file-exists-p (expand-file-name "MERGE_HEAD" gitdir))
+      (push 'merge cmds))
+    (when (file-exists-p (expand-file-name "BISECT_START" gitdir))
+      (push 'bisect cmds))
+    cmds))
+
 (defun vc-git-dir-extra-headers (dir)
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
                  (vc-git--out-ok "symbolic-ref" "HEAD"))))
 	(stash-list (vc-git-stash-list))
         (default-directory dir)
+        (in-progress (vc-git--cmds-in-progress))
 
 	branch remote remote-url stash-button stash-string)
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
@@ -839,9 +876,9 @@ or an empty string if none."
 	(propertize remote-url
 		    'face 'vc-dir-header-value)))
      ;; For now just a heading, key bindings can be added later for various bisect actions
-     (when (file-exists-p (expand-file-name ".git/BISECT_START" (vc-git-root dir)))
+     (when (memq 'bisect in-progress)
        (propertize  "\nBisect     : in progress" 'face 'vc-dir-status-warning))
-     (when (file-exists-p (expand-file-name ".git/rebase-apply" (vc-git-root dir)))
+     (when (memq 'rebase in-progress)
        (propertize  "\nRebase     : in progress" 'face 'vc-dir-status-warning))
      (if stash-list
          (concat
@@ -999,6 +1036,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
   (let ((vc-git-patch-string patch-string))
     (vc-git-checkin nil comment)))
 
+(autoload 'vc-switches "vc")
+
 (defun vc-git-checkin (files comment &optional _rev)
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
@@ -1020,40 +1059,74 @@ It is based on `log-edit-mode', and has Git-specific extensions."
           ;; message.  Handle also remote files.
           (if (eq system-type 'windows-nt)
               (let ((default-directory (file-name-directory file1)))
-                (make-nearby-temp-file "git-msg")))))
+                (make-nearby-temp-file "git-msg"))))
+         to-stash)
     (when vc-git-patch-string
       (unless (zerop (vc-git-command nil t nil "diff" "--cached" "--quiet"))
-        ;; Check that all staged changes also exist in the patch.
-        ;; This is needed to allow adding/removing files that are
-        ;; currently staged to the index.  So remove the whole file diff
-        ;; from the patch because commit will take it from the index.
+        ;; Check that what's already staged is compatible with what
+        ;; we want to commit (bug#60126).
+        ;;
+        ;; 1. If the changes to a file in the index are identical to
+        ;;    the changes to that file we want to commit, remove the
+        ;;    changes from our patch, and let the commit take them
+        ;;    from the index.  This is necessary for adding and
+        ;;    removing files to work.
+        ;;
+        ;; 2. If the changes to a file in the index are different to
+        ;;    changes to that file we want to commit, then we have to
+        ;;    unstage the changes or abort.
+        ;;
+        ;; 3. If there are changes to a file in the index but we don't
+        ;;    want to commit any changes to that file, we need to
+        ;;    stash those changes before committing.
         (with-temp-buffer
-          (vc-git-command (current-buffer) t nil "diff" "--cached")
+          ;; If the user has switches like -D, -M etc. in their
+          ;; `vc-git-diff-switches', we must pass them here too, or
+          ;; our string matches will fail.
+          (if vc-git-diff-switches
+              (apply #'vc-git-command (current-buffer) t nil
+                     "diff" "--cached" (vc-switches 'git 'diff))
+            ;; Following code doesn't understand plain diff(1) output.
+            (user-error "Cannot commit patch with nil `vc-git-diff-switches'"))
           (goto-char (point-min))
-          (let ((pos (point)) file-diff file-beg)
+          (let ((pos (point)) file-name file-header file-diff file-beg)
             (while (not (eobp))
+              (when (and (looking-at "^diff --git a/\\(.+\\) b/\\(.+\\)")
+                         (string= (match-string 1) (match-string 2)))
+                (setq file-name (match-string 1)))
               (forward-line 1) ; skip current "diff --git" line
+              (setq file-header (buffer-substring pos (point)))
               (search-forward "diff --git" nil 'move)
               (move-beginning-of-line 1)
               (setq file-diff (buffer-substring pos (point)))
-              (if (and (setq file-beg (string-search
-                                       file-diff vc-git-patch-string))
-                       ;; Check that file diff ends with an empty string
-                       ;; or the beginning of the next file diff.
-                       (string-match-p "\\`\\'\\|\\`diff --git"
-                                       (substring
-                                        vc-git-patch-string
-                                        (+ file-beg (length file-diff)))))
-                  (setq vc-git-patch-string
-                        (string-replace file-diff "" vc-git-patch-string))
-                (user-error "Index not empty"))
+              (cond ((and (setq file-beg (string-search
+                                          file-diff vc-git-patch-string))
+                          ;; Check that file diff ends with an empty string
+                          ;; or the beginning of the next file diff.
+                          (string-match-p "\\`\\'\\|\\`diff --git"
+                                          (substring
+                                           vc-git-patch-string
+                                           (+ file-beg (length file-diff)))))
+                     (setq vc-git-patch-string
+                           (string-replace file-diff "" vc-git-patch-string)))
+                    ((string-match (format "^%s" (regexp-quote file-header))
+                                   vc-git-patch-string)
+                     (if (and file-name
+                              (yes-or-no-p
+                               (format "Unstage already-staged changes to %s?"
+                                       file-name)))
+                         (vc-git-command nil 0 file-name "reset" "-q" "--")
+                       (user-error "Index not empty")))
+                    (t (push file-name to-stash)))
               (setq pos (point))))))
-      (let ((patch-file (make-nearby-temp-file "git-patch")))
-        (with-temp-file patch-file
-          (insert vc-git-patch-string))
-        (unwind-protect
-            (vc-git-command nil 0 patch-file "apply" "--cached")
-          (delete-file patch-file))))
+      (unless (string-empty-p vc-git-patch-string)
+        (let ((patch-file (make-nearby-temp-file "git-patch")))
+          (with-temp-file patch-file
+            (insert vc-git-patch-string))
+          (unwind-protect
+              (vc-git-command nil 0 patch-file "apply" "--cached")
+            (delete-file patch-file))))
+      (when to-stash (vc-git--stash-staged-changes files)))
     (cl-flet ((boolean-arg-fn
                (argument)
                (lambda (value) (when (equal value "yes") (list argument)))))
@@ -1079,7 +1152,58 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                       args)
                     (unless vc-git-patch-string
                       (if only (list "--only" "--") '("-a"))))))
-    (if (and msg-file (file-exists-p msg-file)) (delete-file msg-file))))
+    (if (and msg-file (file-exists-p msg-file)) (delete-file msg-file))
+    (when to-stash
+      (let ((cached (make-nearby-temp-file "git-cached")))
+        (unwind-protect
+            (progn (with-temp-file cached
+                     (vc-git-command t 0 nil "stash" "show" "-p"))
+                   (vc-git-command nil 0 cached "apply" "--cached"))
+          (delete-file cached))
+        (vc-git-command nil 0 nil "stash" "drop")))))
+
+(defun vc-git--stash-staged-changes (files)
+  "Stash only the staged changes to FILES."
+  ;; This is necessary because even if you pass a list of file names
+  ;; to 'git stash push', it will stash any and all staged changes.
+  (unless (zerop
+           (vc-git-command nil t files "diff" "--cached" "--quiet"))
+    (cl-flet
+        ((git-string (&rest args)
+           (string-trim-right
+            (with-output-to-string
+              (apply #'vc-git-command standard-output 0 nil args)))))
+      (let ((cached (make-nearby-temp-file "git-cached"))
+            (message "Previously staged changes")
+            tree)
+        ;; Use a temporary index to create a tree object corresponding
+        ;; to the staged changes to FILES.
+        (unwind-protect
+            (progn
+              (with-temp-file cached
+                (vc-git-command t 0 files "diff" "--cached" "--"))
+              (let* ((index (make-nearby-temp-file "git-index"))
+                     (process-environment
+                      (cons (format "GIT_INDEX_FILE=%s" index)
+                            process-environment)))
+                (unwind-protect
+                    (progn
+                      (vc-git-command nil 0 nil "read-tree" "HEAD")
+                      (vc-git-command nil 0 cached "apply" "--cached")
+                      (setq tree (git-string "write-tree")))
+                  (delete-file index))))
+          (delete-file cached))
+        ;; Prepare stash commit object, which has a special structure.
+        (let* ((tree-commit (git-string "commit-tree" "-m" message
+                                        "-p" "HEAD" tree))
+               (stash-commit (git-string "commit-tree" "-m" message
+                                         "-p" "HEAD" "-p" tree-commit
+                                         tree)))
+          ;; Push the new stash entry.
+          (vc-git-command nil 0 nil "update-ref" "--create-reflog"
+                          "-m" message "refs/stash" stash-commit)
+          ;; Unstage the changes we've now stashed.
+          (vc-git-command nil 0 files "reset" "--"))))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -1208,8 +1332,7 @@ This prompts for a branch to merge from."
 	  (completing-read "Merge from branch: "
 			   (if (or (member "FETCH_HEAD" branches)
 				   (not (file-readable-p
-					 (expand-file-name ".git/FETCH_HEAD"
-							   root))))
+                                         (vc-git--git-path "FETCH_HEAD"))))
 			       branches
 			     (cons "FETCH_HEAD" branches))
 			   nil t)))
@@ -1254,8 +1377,7 @@ This prompts for a branch to merge from."
       (unless (or
                (not (eq vc-git-resolve-conflicts 'unstage-maybe))
                ;; Doing a merge, so bug#20292 doesn't apply.
-               (file-exists-p (expand-file-name ".git/MERGE_HEAD"
-                                                (vc-git-root buffer-file-name)))
+               (file-exists-p (vc-git--git-path "MERGE_HEAD"))
                (vc-git-conflicted-files (vc-git-root buffer-file-name)))
         (vc-git-command nil 0 nil "reset"))
       (vc-resynch-buffer buffer-file-name t t)
@@ -1296,8 +1418,6 @@ This prompts for a branch to merge from."
   "If true, follow renames in Git logs for a single file."
   :type 'boolean
   :version "26.1")
-
-(autoload 'vc-switches "vc")
 
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.

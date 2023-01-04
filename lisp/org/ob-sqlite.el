@@ -1,6 +1,6 @@
 ;;; ob-sqlite.el --- Babel Functions for SQLite Databases -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Maintainer: Nick Savage <nick@nicksavage.ca>

@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
 
-Copyright (C) 1985, 1993-1994, 1997-2022 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -107,7 +107,7 @@ typedef struct
 {
   int width, height;		/* size of image */
   char *data;			/* pointer to image data */
-  int bytes_per_line;		/* accelarator to next line */
+  int bytes_per_line;		/* accelerator to next line */
   int bits_per_pixel;		/* bits per pixel (ZPixmap) */
 } *Emacs_Pix_Container;
 typedef Emacs_Pix_Container Emacs_Pixmap;
@@ -1712,7 +1712,7 @@ struct face
 
   /* Non-zero means characters in this face have a box of that
      thickness around them. Vertical (left and right) and horizontal
-     (top and bottom) borders size can be set separatedly using an
+     (top and bottom) borders size can be set separately using an
      associated list of two ints in the form
      (vertical_size . horizontal_size). In case one of the value is
      negative, its absolute value indicates the thickness, and the

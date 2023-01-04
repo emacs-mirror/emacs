@@ -1,6 +1,6 @@
 ;;; epa-ks.el --- EasyPG Key Server Client -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Philip K. <philipk@posteo.net>
 ;; Keywords: PGP, GnuPG
@@ -135,9 +135,9 @@ Keys are marked using `epa-ks-mark-key-to-fetch'."
                 keys))
         (forward-line))
       (when (yes-or-no-p (format "Proceed with fetching all %d key(s)? "
-                                 (length keys))))
-      (dolist (id keys)
-        (epa-ks--fetch-key id))))
+                                 (length keys)))
+        (dolist (id keys)
+          (epa-ks--fetch-key id)))))
   (tabulated-list-clear-all-tags))
 
 (defun epa-ks--query-url (query exact)

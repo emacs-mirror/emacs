@@ -1,6 +1,6 @@
 ;;; repeat-tests.el --- Tests for repeat.el          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 
@@ -76,27 +76,27 @@
         "C-x w a b a c"
         '((1 a) (1 b) (1 a)) "c")
        (repeat-tests--check
-        "M-C-a b a c"
+        "C-M-a b a c"
         '((1 a) (1 b) (1 a)) "c")
        (repeat-tests--check
-        "M-C-z b a c"
+        "C-M-z b a c"
         '((1 a)) "bac")
        (unwind-protect
            (progn
              (put 'repeat-tests-call-a 'repeat-check-key 'no)
              (repeat-tests--check
-              "M-C-z b a c"
+              "C-M-z b a c"
               '((1 a) (1 b) (1 a)) "c"))
          (put 'repeat-tests-call-a 'repeat-check-key nil)))
      (let ((repeat-check-key nil))
        (repeat-tests--check
-        "M-C-z b a c"
+        "C-M-z b a c"
         '((1 a) (1 b) (1 a)) "c")
        (unwind-protect
            (progn
              (put 'repeat-tests-call-a 'repeat-check-key t)
              (repeat-tests--check
-              "M-C-z b a c"
+              "C-M-z b a c"
               '((1 a)) "bac"))
          (put 'repeat-tests-call-a 'repeat-check-key nil))))))
 
@@ -125,15 +125,17 @@
        (repeat-tests--check
         "C-2 C-x w a C-3 c"
         '((2 a)) "ccc"))
-     ;; TODO: fix and uncomment
-     ;; (let ((repeat-keep-prefix t))
-     ;;   (repeat-tests--check
-     ;;    "C-2 C-x w a b a b c"
-     ;;    '((2 a) (2 b) (2 a) (2 b)) "c")
-     ;;   (repeat-tests--check
-     ;;    "C-2 C-x w a C-1 C-2 b a C-3 C-4 b c"
-     ;;    '((2 a) (12 b) (12 a) (34 b)) "c"))
-     )))
+     ;; Fixed in bug#51281 and bug#55986
+     (let ((repeat-keep-prefix t))
+       ;; Re-enable to take effect.
+       (repeat-mode -1) (repeat-mode +1)
+       (repeat-tests--check
+        "C-2 C-x w a b a b c"
+        '((2 a) (2 b) (2 a) (2 b)) "c")
+       ;; (repeat-tests--check
+       ;;  "C-2 C-x w a C-1 C-2 b a C-3 C-4 b c"
+       ;;  '((2 a) (12 b) (12 a) (34 b)) "c")
+       ))))
 
 ;; TODO: :tags '(:expensive-test)  for repeat-exit-timeout
 

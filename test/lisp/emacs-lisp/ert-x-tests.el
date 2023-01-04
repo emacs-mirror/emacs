@@ -1,6 +1,6 @@
 ;;; ert-x-tests.el --- Tests for ert-x.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008, 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Phil Hagelberg
 ;; 	   Christian Ohler <ohler@gnu.org>
@@ -82,6 +82,40 @@
         (should-not (buffer-live-p buffer-1))
         (should (buffer-live-p buffer-2))))))
 
+(ert-deftest ert-test-with-buffer-selected/current ()
+  (let ((origbuf (current-buffer)))
+    (ert-with-test-buffer ()
+      (let ((buf (current-buffer)))
+        (should (not (eq buf origbuf)))
+        (with-current-buffer origbuf
+          (ert-with-buffer-selected buf
+            (should (eq (current-buffer) buf))))))))
+
+(ert-deftest ert-test-with-buffer-selected/selected ()
+  (ert-with-test-buffer ()
+    (ert-with-buffer-selected (current-buffer)
+      (should (eq (window-buffer) (current-buffer))))))
+
+(ert-deftest ert-test-with-buffer-selected/nil-buffer ()
+  (ert-with-test-buffer ()
+    (let ((buf (current-buffer)))
+      (ert-with-buffer-selected nil
+        (should (eq (window-buffer) buf))))))
+
+(ert-deftest ert-test-with-buffer-selected/modification-hooks ()
+  (ert-with-test-buffer ()
+    (ert-with-buffer-selected (current-buffer)
+      (should (null inhibit-modification-hooks)))))
+
+(ert-deftest ert-test-with-buffer-selected/read-only ()
+  (ert-with-test-buffer ()
+    (ert-with-buffer-selected (current-buffer)
+      (should (null inhibit-read-only))
+      (should (null buffer-read-only)))))
+
+(ert-deftest ert-test-with-buffer-selected/return-value ()
+  (should (equal (ert-with-buffer-selected nil "foo") "foo")))
+
 (ert-deftest ert-test-with-test-buffer-selected/selected ()
   (ert-with-test-buffer-selected ()
     (should (eq (window-buffer) (current-buffer)))))
@@ -89,6 +123,11 @@
 (ert-deftest ert-test-with-test-buffer-selected/modification-hooks ()
   (ert-with-test-buffer-selected ()
     (should (null inhibit-modification-hooks))))
+
+(ert-deftest ert-test-with-test-buffer-selected/read-only ()
+  (ert-with-test-buffer-selected ()
+    (should (null inhibit-read-only))
+    (should (null buffer-read-only))))
 
 (ert-deftest ert-test-with-test-buffer-selected/return-value ()
   (should (equal (ert-with-test-buffer-selected () "foo") "foo")))

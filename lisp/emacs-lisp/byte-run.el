@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -262,7 +262,8 @@ This is used by `declare'.")
              (interactive-form nil)
              (warnings nil)
              (warn #'(lambda (msg form)
-                       (push (macroexp-warn-and-return msg nil nil t form)
+                       (push (macroexp-warn-and-return
+                              (format-message msg) nil nil t form)
                              warnings))))
         (while
             (and body
@@ -649,12 +650,11 @@ in `byte-compile-warning-types'; see the variable
 `byte-compile-warnings' for a fuller explanation of the warning
 types.  The types that can be suppressed with this macro are
 `free-vars', `callargs', `redefine', `obsolete',
-`interactive-only', `lexical', `mapcar', `constants' and
-`suspicious'.
+`interactive-only', `lexical', `mapcar', `constants',
+`suspicious' and `empty-body'.
 
 For the `mapcar' case, only the `mapcar' function can be used in
-the symbol list.  For `suspicious', only `set-buffer', `lsh' and `eq'
-can be used."
+the symbol list."
   ;; Note: during compilation, this definition is overridden by the one in
   ;; byte-compile-initial-macro-environment.
   (declare (debug (sexp body)) (indent 1))
@@ -680,11 +680,11 @@ Otherwise, return nil.  For internal use only."
   ;; This is called from lread.c and therefore needs to be preloaded.
   (if lread--unescaped-character-literals
       (let ((sorted (sort lread--unescaped-character-literals #'<)))
-        (format-message "unescaped character literals %s detected, %s expected!"
-                        (mapconcat (lambda (char) (format "`?%c'" char))
-                                   sorted ", ")
-                        (mapconcat (lambda (char) (format "`?\\%c'" char))
-                                   sorted ", ")))))
+        (format "unescaped character literals %s detected, %s expected!"
+                (mapconcat (lambda (char) (format-message "`?%c'" char))
+                           sorted ", ")
+                (mapconcat (lambda (char) (format-message "`?\\%c'" char))
+                           sorted ", ")))))
 
 (defun byte-compile-info (string &optional message type)
   "Format STRING in a way that looks pleasing in the compilation output.

@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985-1987, 1993-1998, 2000-2022 Free Software
+   Copyright (C) 1985-1987, 1993-1998, 2000-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1649,7 +1649,8 @@ check_window_containing (struct window *w, void *user_data)
    set *PART to the id of that element.
 
    If there is no window under X, Y return nil and leave *PART
-   unmodified.  TOOL_BAR_P means detect tool-bar windows.
+   unmodified.  TOOL_BAR_P means detect tool-bar windows, and
+   TAB_BAR_P means detect tab-bar windows.
 
    This function was previously implemented with a loop cycling over
    windows with Fnext_window, and starting with the frame's selected

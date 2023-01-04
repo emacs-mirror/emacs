@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2022 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -2921,7 +2921,7 @@ nil default-directory" name)
        (when (looking-at "#!")
          (forward-line))
        (let (value form)
-         (while (ignore-error 'end-of-file
+         (while (ignore-error end-of-file
                   (setq form (read (current-buffer))))
            (setq value (eval form t)))
          (kill-emacs (if (numberp value)

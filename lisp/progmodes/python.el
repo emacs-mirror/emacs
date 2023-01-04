@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -1080,7 +1080,6 @@ fontified."
 
    :feature 'string
    :language 'python
-   :override t
    '((string) @python--treesit-fontify-string)
 
    :feature 'string-interpolation
@@ -1097,9 +1096,7 @@ fontified."
 
    :feature 'function
    :language 'python
-   '((function_definition
-      name: (identifier) @font-lock-function-name-face)
-     (call function: (identifier) @font-lock-function-name-face)
+   '((call function: (identifier) @font-lock-function-name-face)
      (call function: (attribute
                       attribute: (identifier) @font-lock-function-name-face)))
 
@@ -1130,7 +1127,7 @@ fontified."
                  @font-lock-variable-name-face)
      (assignment left: (attribute
                         attribute: (identifier)
-                        @font-lock-variable-name-face))
+                        @font-lock-property-face))
      (pattern_list (identifier)
                    @font-lock-variable-name-face)
      (tuple_pattern (identifier)
@@ -1162,12 +1159,10 @@ fontified."
 
    :feature 'number
    :language 'python
-   :override t
    '([(integer) (float)] @font-lock-number-face)
 
    :feature 'property
    :language 'python
-   :override t
    '((attribute
       attribute: (identifier) @font-lock-property-face)
      (class_definition
@@ -1178,19 +1173,43 @@ fontified."
 
    :feature 'operator
    :language 'python
-   :override t
    `([,@python--treesit-operators] @font-lock-operator-face)
 
    :feature 'bracket
    :language 'python
-   :override t
    '(["(" ")" "[" "]" "{" "}"] @font-lock-bracket-face)
 
    :feature 'delimiter
    :language 'python
-   :override t
-   '(["," "." ":" ";" (ellipsis)] @font-lock-delimiter-face))
+   '(["," "." ":" ";" (ellipsis)] @font-lock-delimiter-face)
+
+   :feature 'variable
+   :language 'python
+   '((identifier) @python--treesit-fontify-variable))
   "Tree-sitter font-lock settings.")
+
+(defun python--treesit-variable-p (node)
+  "Check whether NODE is a variable.
+NODE's type should be \"identifier\"."
+  ;; An identifier can be a function/class name, a property, or a
+  ;; variables.  This function filters out function/class names and
+  ;; properties.
+  (pcase (treesit-node-type (treesit-node-parent node))
+    ((or "function_definition" "class_definition") nil)
+    ("attribute"
+     (pcase (treesit-node-field-name node)
+       ("object" t)
+       (_ nil)))
+    (_ t)))
+
+(defun python--treesit-fontify-variable (node override start end &rest _)
+  "Fontify an identifier node if it is a variable.
+For NODE, OVERRIDE, START, END, and ARGS, see
+`treesit-font-lock-rules'."
+  (when (python--treesit-variable-p node)
+    (treesit-fontify-with-override
+     (treesit-node-start node) (treesit-node-end node)
+     'font-lock-variable-name-face override start end)))
 
 
 ;;; Indentation
@@ -3717,19 +3736,35 @@ the python shell:
      appending extra empty lines so tracebacks are correct.
   3. When the region sent is a substring of the current buffer, a
      coding cookie is added.
-  4. Wraps indented regions under an \"if True:\" block so the
-     interpreter evaluates them correctly."
-  (let* ((start (save-excursion
-                  ;; If we're at the start of the expression, and
-                  ;; there's just blank space ahead of it, then expand
-                  ;; the region to include the start of the line.
-                  ;; This makes things work better with the rest of
-                  ;; the data we're sending over.
+  4. When the region consists of a single statement, leading
+     whitespaces will be removed.  Otherwise, wraps indented
+     regions under an \"if True:\" block so the interpreter
+     evaluates them correctly."
+  (let* ((single-p (save-restriction
+                     (narrow-to-region start end)
+                     (= (progn
+                          (goto-char start)
+                          (python-nav-beginning-of-statement))
+                        (progn
+                          (goto-char end)
+                          (python-nav-beginning-of-statement)))))
+         (start (save-excursion
+                  ;; If we're at the start of the expression, and if
+                  ;; the region consists of a single statement, then
+                  ;; remove leading whitespaces, else if there's just
+                  ;; blank space ahead of it, then expand the region
+                  ;; to include the start of the line.  This makes
+                  ;; things work better with the rest of the data
+                  ;; we're sending over.
                   (goto-char start)
-                  (if (string-blank-p
-                       (buffer-substring (line-beginning-position) start))
-                      (line-beginning-position)
-                    start)))
+                  (if single-p
+                      (progn
+                        (skip-chars-forward "[:space:]" end)
+                        (point))
+                    (if (string-blank-p
+                         (buffer-substring (line-beginning-position) start))
+                        (line-beginning-position)
+                      start))))
          (substring (buffer-substring-no-properties start end))
          (starts-at-point-min-p (save-restriction
                                   (widen)
@@ -3753,7 +3788,7 @@ the python shell:
       (python-mode)
       (when fillstr
         (insert fillstr))
-      (when (not toplevel-p)
+      (when (and (not single-p) (not toplevel-p))
         (forward-line -1)
         (insert "if True:\n")
         (delete-region (point) (line-end-position)))
@@ -3797,7 +3832,8 @@ code inside blocks delimited by \"if __name__== \\='__main__\\=':\".
 When called interactively SEND-MAIN defaults to nil, unless it's
 called with prefix argument.  When optional argument MSG is
 non-nil, forces display of a user-friendly message if there's no
-process running; defaults to t when called interactively."
+process running; defaults to t when called interactively.  The
+substring to be sent is retrieved using `python-shell-buffer-substring'."
   (interactive
    (list (region-beginning) (region-end) current-prefix-arg t))
   (let* ((string (python-shell-buffer-substring start end (not send-main)
@@ -4540,7 +4576,7 @@ Commands that must finish the tracking session are listed in
   (when (and python-pdbtrack-tracked-buffer
              ;; Empty input is sent by C-d or `comint-send-eof'
              (or (string-empty-p input)
-                 ;; "n some text" is "n" command for pdb. Split input and get firs part
+                 ;; "n some text" is "n" command for pdb. Split input and get first part
                  (let* ((command (car (split-string (string-trim input) " "))))
                    (setq python-pdbtrack-prev-command-continue
                          (or (member command python-pdbtrack-continue-command)
@@ -5448,6 +5484,16 @@ To this:
 
 ;;; Tree-sitter imenu
 
+(defun python--treesit-defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "function_definition" "class_definition")
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       node "name")
+      t))))
+
 (defun python--imenu-treesit-create-index-1 (node)
   "Given a sparse tree, create an imenu alist.
 
@@ -5473,9 +5519,8 @@ definition*\"."
                  ("class_definition" 'class)))
          ;; The root of the tree could have a nil ts-node.
          (name (when ts-node
-                 (treesit-node-text
-                  (treesit-node-child-by-field-name
-                   ts-node "name") t)))
+                 (or (treesit-defun-name ts-node)
+                     "Anonymous")))
          (marker (when ts-node
                    (set-marker (make-marker)
                                (treesit-node-start ts-node)))))
@@ -6637,12 +6682,14 @@ implementations: `python-mode' and `python-ts-mode'."
                   ( keyword string type)
                   ( assignment builtin constant decorator
                     escape-sequence number property string-interpolation )
-                  ( function bracket delimiter operator)))
+                  ( bracket delimiter function operator variable)))
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)
     (setq-local treesit-defun-type-regexp (rx (or "function" "class")
                                               "_definition"))
+    (setq-local treesit-defun-name-function
+                #'python--treesit-defun-name)
     (treesit-major-mode-setup)
 
     (when python-indent-guess-indent-offset

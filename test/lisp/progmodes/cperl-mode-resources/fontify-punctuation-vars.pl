@@ -1,4 +1,4 @@
-# The following Perl punctiation variables contain characters which
+# The following Perl punctuation variables contain characters which
 # are classified as string delimiters in the syntax table.  The mode
 # should not be confused by these.
 # The corresponding tests check that two consecutive '#' characters

@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1009,6 +1009,20 @@ default_pixels_per_inch_y (void)
 
 /* True if frame F is currently visible.  */
 #define FRAME_VISIBLE_P(f) (f)->visible
+
+/* True if frame F should be redisplayed.  This is normally the same
+   as FRAME_VISIBLE_P (f).  Under X, frames can continue to be
+   displayed to the user by the compositing manager even if they are
+   invisible, so this also checks whether or not the frame is reported
+   visible by the X server.  */
+
+#ifndef HAVE_X_WINDOWS
+#define FRAME_REDISPLAY_P(f) (FRAME_VISIBLE_P (f))
+#else
+#define FRAME_REDISPLAY_P(f) (FRAME_VISIBLE_P (f)		\
+			      || (FRAME_X_P (f)			\
+				  && FRAME_X_VISIBLE (f)))
+#endif
 
 /* True if frame F is currently visible but hidden.  */
 #define FRAME_OBSCURED_P(f) ((f)->visible > 1)

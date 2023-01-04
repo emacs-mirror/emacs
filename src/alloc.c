@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-2022  Free Software Foundation, Inc.
+Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7803,7 +7803,7 @@ DEFUN ("memory-info", Fmemory_info, Smemory_info, 0, 0, 0,
 All values are in Kbytes.  If there is no swap space,
 last two values are zero.  If the system is not supported
 or memory information can't be obtained, return nil.
-If `default-directory’ is remote, return memory information of the
+If `default-directory' is remote, return memory information of the
 respective remote host.  */)
   (void)
 {

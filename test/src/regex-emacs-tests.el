@@ -1,6 +1,6 @@
 ;;; regex-emacs-tests.el --- tests for regex-emacs.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -273,7 +273,7 @@ on success"
      string
      (condition-case nil
          (if (string-match pattern string) nil 'search-failed)
-       ('invalid-regexp 'compilation-failed))
+       (invalid-regexp 'compilation-failed))
      bounds-ref substring-ref)))
 
 
@@ -518,7 +518,7 @@ known/benign differences in behavior.")
                what-failed
                (condition-case nil
                    (if (string-match pattern string) nil 'search-failed)
-                 ('invalid-regexp 'compilation-failed))
+                 (invalid-regexp 'compilation-failed))
 
                matches-observed
                (cl-loop for x from 0 to 20

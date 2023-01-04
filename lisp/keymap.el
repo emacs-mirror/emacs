@@ -1,6 +1,6 @@
 ;;; keymap.el --- Keymap functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -625,7 +625,7 @@ command exists in this specific map, but it doesn't have the
            `(defvar ,variable-name
               (define-keymap ,@(nreverse opts) ,@defs)
               ,@(and doc (list doc)))))
-      (if repeat
+      (if props
           `(progn
              ,defvar-form
              ,@(nreverse props))

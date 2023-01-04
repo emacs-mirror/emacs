@@ -1,6 +1,6 @@
 ;;; bytecomp-tests.el --- Tests for bytecomp.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -704,6 +704,59 @@ inner loops respectively."
     (let ((bytecomp-tests--xx 1))
       (set (make-local-variable 'bytecomp-tests--xx) 2)
       bytecomp-tests--xx)
+
+    ;; Check for-effect optimisation of `condition-case' body form.
+    ;; With `condition-case' in for-effect context:
+    (let ((x (bytecomp-test-identity ?A))
+          (r nil))
+      (condition-case e
+          (characterp x)                ; value (:success, var)
+        (error (setq r 'bad))
+        (:success (setq r (list 'good e))))
+      r)
+    (let ((x (bytecomp-test-identity ?B))
+          (r nil))
+      (condition-case nil
+          (characterp x)               ; for-effect (:success, no var)
+        (error (setq r 'bad))
+        (:success (setq r 'good)))
+      r)
+    (let ((x (bytecomp-test-identity ?C))
+          (r nil))
+      (condition-case e
+          (characterp x)               ; for-effect (no :success, var)
+        (error (setq r (list 'bad e))))
+      r)
+    (let ((x (bytecomp-test-identity ?D))
+          (r nil))
+      (condition-case nil
+          (characterp x)               ; for-effect (no :success, no var)
+        (error (setq r 'bad)))
+      r)
+    ;; With `condition-case' in value context:
+    (let ((x (bytecomp-test-identity ?E)))
+      (condition-case e
+          (characterp x)               ; for-effect (:success, var)
+        (error (list 'bad e))
+        (:success (list 'good e))))
+    (let ((x (bytecomp-test-identity ?F)))
+      (condition-case nil
+          (characterp x)               ; for-effect (:success, no var)
+        (error 'bad)
+        (:success 'good)))
+    (let ((x (bytecomp-test-identity ?G)))
+      (condition-case e
+          (characterp x)               ; value (no :success, var)
+        (error (list 'bad e))))
+    (let ((x (bytecomp-test-identity ?H)))
+      (condition-case nil
+          (characterp x)               ; value (no :success, no var)
+        (error 'bad)))
+
+    (condition-case nil
+        (bytecomp-test-identity 3)
+      (error 'bad)
+      (:success))                       ; empty handler
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
@@ -868,6 +921,16 @@ byte-compiled.  Run with dynamic binding."
 (ert-deftest bytecomp-warn-wide-docstring/defvar ()
   (bytecomp--with-warning-test "defvar.*foo.*wider than.*characters"
     `(defvar foo t ,bytecomp-tests--docstring)))
+
+(ert-deftest bytecomp-warn-quoted-condition ()
+  (bytecomp--with-warning-test
+      "Warning: `condition-case' condition should not be quoted: 'arith-error"
+    '(condition-case nil
+         (abc)
+       ('arith-error "ugh")))
+  (bytecomp--with-warning-test
+      "Warning: `ignore-error' condition argument should not be quoted: 'error"
+    '(ignore-error 'error (abc))))
 
 (ert-deftest bytecomp-warn-dodgy-args-eq ()
   (dolist (fn '(eq eql))
@@ -1370,7 +1433,50 @@ literals (Bug#20852)."
         (set-buffer (get-buffer-create "foo"))
         nil))
    '((suspicious set-buffer))
-   "Warning: Use .with-current-buffer. rather than"))
+   "Warning: Use .with-current-buffer. rather than")
+
+  (test-suppression
+   '(defun zot ()
+      (let ((_ 1))
+        ))
+   '((empty-body let))
+   "Warning: `let' with empty body")
+
+  (test-suppression
+   '(defun zot ()
+      (let* ((_ 1))
+        ))
+   '((empty-body let*))
+   "Warning: `let\\*' with empty body")
+
+  (test-suppression
+   '(defun zot (x)
+      (when x
+        ))
+   '((empty-body when))
+   "Warning: `when' with empty body")
+
+  (test-suppression
+   '(defun zot (x)
+      (unless x
+        ))
+   '((empty-body unless))
+   "Warning: `unless' with empty body")
+
+  (test-suppression
+   '(defun zot (x)
+      (ignore-error arith-error
+        ))
+   '((empty-body ignore-error))
+   "Warning: `ignore-error' with empty body")
+
+  (test-suppression
+   '(defun zot (x)
+      (with-suppressed-warnings ((suspicious eq))
+        ))
+   '((empty-body with-suppressed-warnings))
+   "Warning: `with-suppressed-warnings' with empty body")
+  )
 
 (ert-deftest bytecomp-tests--not-writable-directory ()
   "Test that byte compilation works if the output directory isn't

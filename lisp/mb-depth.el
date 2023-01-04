@@ -1,6 +1,6 @@
 ;;; mb-depth.el --- Indicate minibuffer-depth in prompt -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience

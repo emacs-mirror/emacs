@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998, 2001--2022 Free Software Foundation,
+@c Copyright (C) 1990--1994, 1998, 2001--2023 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -819,9 +819,6 @@ output of the output functions is printed in the echo area.
 (@pxref{Unloading}), and defaults to @code{buffer-file-name}
 (@pxref{Buffer File Name}).  If @var{unibyte} is non-@code{nil},
 @code{read} converts strings to unibyte whenever possible.
-
-@findex eval-current-buffer
-@code{eval-current-buffer} is an alias for this command.
 @end deffn
 
 @defopt max-lisp-eval-depth

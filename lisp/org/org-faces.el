@@ -1,6 +1,6 @@
 ;;; org-faces.el --- Face definitions -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -517,7 +517,7 @@ content of these blocks will still be treated as Org syntax."
 (defface org-agenda-structure-filter '((t (:inherit (org-warning org-agenda-structure))))
   "Face used for the current type of task filter in the agenda.
 It inherits from `org-agenda-structure' so it can adapt to
-it (e.g. if that is assigned a diffent font height or family)."
+it (e.g. if that is assigned a different font height or family)."
   :group 'org-faces)
 
 (defface org-agenda-date '((t (:inherit org-agenda-structure)))

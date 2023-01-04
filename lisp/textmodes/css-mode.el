@@ -1,6 +1,6 @@
 ;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
@@ -1412,39 +1412,18 @@ for determining whether point is within a selector."
    '((ERROR) @error))
   "Tree-sitter font-lock settings for `css-ts-mode'.")
 
-(defun css--treesit-imenu-1 (node)
-  "Helper for `css--treesit-imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'css--treesit-imenu-1 (cdr node)))
-         (name (when ts-node
-                 (pcase (treesit-node-type ts-node)
-                   ("rule_set" (treesit-node-text
-                                (treesit-node-child ts-node 0) t))
-                   ("media_statement"
-                    (let ((block (treesit-node-child ts-node -1)))
-                      (string-trim
-                       (buffer-substring-no-properties
-                        (treesit-node-start ts-node)
-                        (treesit-node-start block))))))))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun css--treesit-imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (tree (treesit-induce-sparse-tree
-                node (rx (or "rule_set" "media_statement"))
-                nil 1000)))
-    (css--treesit-imenu-1 tree)))
+(defun css--treesit-defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ("rule_set" (treesit-node-text
+                 (treesit-node-child node 0) t))
+    ("media_statement"
+     (let ((block (treesit-node-child node -1)))
+       (string-trim
+        (buffer-substring-no-properties
+         (treesit-node-start node)
+         (treesit-node-start block)))))))
 
 ;;; Completion
 
@@ -1825,23 +1804,29 @@ can also be used to fill comments.
   :syntax-table css-mode-syntax-table
   (when (treesit-ready-p 'css)
     ;; Borrowed from `css-mode'.
+    (setq-local syntax-propertize-function
+                css-syntax-propertize-function)
     (add-hook 'completion-at-point-functions
               #'css-completion-at-point nil 'local)
     (setq-local fill-paragraph-function #'css-fill-paragraph)
     (setq-local adaptive-fill-function #'css-adaptive-fill)
-    (setq-local add-log-current-defun-function #'css-current-defun-name)
+    ;; `css--fontify-region' first calls the default function, which
+    ;; will call tree-sitter's function, then it fontifies colors.
+    (setq-local font-lock-fontify-region-function #'css--fontify-region)
 
     ;; Tree-sitter specific setup.
     (treesit-parser-create 'css)
     (setq-local treesit-simple-indent-rules css--treesit-indent-rules)
     (setq-local treesit-defun-type-regexp "rule_set")
+    (setq-local treesit-defun-name-function #'css--treesit-defun-name)
     (setq-local treesit-font-lock-settings css--treesit-settings)
     (setq-local treesit-font-lock-feature-list
                 '((selector comment query keyword)
                   (property constant string)
                   (error variable function operator bracket)))
-    (setq-local imenu-create-index-function #'css--treesit-imenu)
-    (setq-local which-func-functions nil)
+    (setq-local treesit-simple-imenu-settings
+                `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
+                    nil nil)))
     (treesit-major-mode-setup)))
 
 ;;;###autoload

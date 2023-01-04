@@ -1,6 +1,6 @@
 ;;; internal.el --- support for PC internal terminal  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 1998-1999, 2001-2022 Free Software
+;; Copyright (C) 1993-1994, 1998-1999, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>

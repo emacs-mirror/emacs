@@ -1,6 +1,6 @@
 ;;; cus-edit-tests.el --- Tests for cus-edit.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -83,7 +83,14 @@
 (ert-deftest test-setopt ()
   (should (= (setopt cus-edit-test-foo1 1) 1))
   (should (= cus-edit-test-foo1 1))
-  (should-error (setopt cus-edit-test-foo1 :foo)))
-
+  (let* ((text-quoting-style 'grave)
+         (warn-txt
+          (with-current-buffer (get-buffer-create "*Warnings*")
+            (let ((inhibit-read-only t))
+              (erase-buffer))
+            (setopt cus-edit-test-foo1 :foo)
+            (buffer-substring-no-properties (point-min) (point-max)))))
+    (should (string-search "Value `:foo' does not match type number"
+                           warn-txt))))
 (provide 'cus-edit-tests)
 ;;; cus-edit-tests.el ends here

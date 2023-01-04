@@ -1,6 +1,6 @@
 ;;; cperl-mode-tests.el --- Test for cperl-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Harald Jörg <haj@posteo.de>
 ;; Maintainer: Harald Jörg
@@ -114,7 +114,7 @@ end of the statement."
 ;;; Fontification tests
 
 (ert-deftest cperl-test-fontify-punct-vars ()
-  "Test fontification of Perl's punctiation variables.
+  "Test fontification of Perl's punctuation variables.
 Perl has variable names containing unbalanced quotes for the list
 separator $\" and pre- and postmatch $` and $'.  A reference to
 these variables, for example \\$\", should not cause the dollar

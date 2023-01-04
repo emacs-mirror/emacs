@@ -1,6 +1,6 @@
 ;;; typescript-ts-mode.el --- tree sitter support for TypeScript  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -30,6 +30,7 @@
 (require 'treesit)
 (require 'js)
 (eval-when-compile (require 'rx))
+(require 'c-ts-mode) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
 
@@ -73,8 +74,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is ">") parent-bol 0)
-     ((and (parent-is "comment") comment-end) comment-start -1)
-     ((parent-is "comment") comment-start-skip 0)
+     ((and (parent-is "comment") c-ts-mode--looking-at-star)
+      c-ts-mode--comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "ternary_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
@@ -165,6 +167,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
+     (method_signature
+      name: (property_identifier) @font-lock-function-name-face)
      (required_parameter (identifier) @font-lock-variable-name-face)
      (optional_parameter (identifier) @font-lock-variable-name-face)
 
@@ -209,10 +213,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
      (enum_assignment name: (property_identifier) @font-lock-type-face)
 
-     (assignment_expression
-      left: [(identifier) @font-lock-variable-name-face
-             (member_expression
-              property: (property_identifier) @font-lock-variable-name-face)])
+     (variable_declarator
+      name: (identifier) @font-lock-variable-name-face)
 
      (for_in_statement
       left: (identifier) @font-lock-variable-name-face)
@@ -240,10 +242,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       name: (property_identifier) @font-lock-property-face)
      (public_field_definition
       name: (property_identifier) @font-lock-property-face)
-     (member_expression
-      object: (identifier) @font-lock-variable-name-face)
-     (member_expression
-      property: (_) @font-lock-property-face)
 
      (pair key: (property_identifier) @font-lock-variable-name-face)
 
@@ -261,9 +259,11 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       left: [(identifier) @font-lock-function-name-face
              (member_expression
               property: (property_identifier) @font-lock-function-name-face)]
-      right: [(function) (arrow_function)])
+      right: [(function) (arrow_function)]))
 
-     (call_expression
+   :language language
+   :feature 'function
+   '((call_expression
       function:
       [(identifier) @font-lock-function-name-face
        (member_expression
@@ -331,18 +331,12 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   :syntax-table typescript-ts-mode--syntax-table
 
   ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
+  (c-ts-mode-comment-setup)
+  (setq-local treesit-defun-prefer-top-level t)
 
   (setq-local treesit-text-type-regexp
               (regexp-opt '("comment"
                             "template_string")))
-  (setq-local treesit-defun-prefer-top-level t)
 
   ;; Electric
   (setq-local electric-indent-chars
@@ -354,11 +348,17 @@ Argument LANGUAGE is either `typescript' or `tsx'."
                             "method_definition"
                             "function_declaration"
                             "lexical_declaration")))
-  ;; Imenu.
-  (setq-local imenu-create-index-function #'js--treesit-imenu)
+  (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
-  ;; Which-func (use imenu).
-  (setq-local which-func-functions nil))
+  ;; Imenu (same as in `js-ts-mode').
+  (setq-local treesit-simple-imenu-settings
+              `(("Function" "\\`function_declaration\\'" nil nil)
+                ("Variable" "\\`lexical_declaration\\'"
+                 js--treesit-valid-imenu-entry nil)
+                ("Class" ,(rx bos (or "class_declaration"
+                                      "method_definition")
+                              eos)
+                 nil nil))))
 
 ;;;###autoload
 (define-derived-mode typescript-ts-mode typescript-ts-base-mode "TypeScript"
@@ -377,9 +377,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'typescript))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration keyword string escape-sequence)
+                '((comment declaration)
+                  (keyword string escape-sequence)
                   (constant expression identifier number pattern property)
-                  (bracket delimiter)))
+                  (function bracket delimiter)))
 
     (treesit-major-mode-setup)))
 
@@ -411,9 +412,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     (setq-local treesit-font-lock-settings
                 (typescript-ts-mode--font-lock-settings 'tsx))
     (setq-local treesit-font-lock-feature-list
-                '((comment declaration keyword string escape-sequence)
+                '((comment declaration)
+                  (keyword string escape-sequence)
                   (constant expression identifier jsx number pattern property)
-                  (bracket delimiter)))
+                  (function bracket delimiter)))
 
     (treesit-major-mode-setup)))
 

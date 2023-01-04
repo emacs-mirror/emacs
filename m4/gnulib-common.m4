@@ -1,5 +1,5 @@
 # gnulib-common.m4 serial 74
-dnl Copyright (C) 2007-2022 Free Software Foundation, Inc.
+dnl Copyright (C) 2007-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -105,14 +105,10 @@ AC_DEFUN([gl_COMMON_BODY], [
 # define _GL_ATTR_warn_unused_result _GL_GNUC_PREREQ (3, 4)
 #endif
 
-#ifdef __has_c_attribute
-# if ((defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) <= 201710 \
-      && _GL_GNUC_PREREQ (4, 6))
-#  pragma GCC diagnostic ignored "-Wpedantic"
-# endif
-# define _GL_HAS_C_ATTRIBUTE(attr) __has_c_attribute (__##attr##__)
-#else
-# define _GL_HAS_C_ATTRIBUTE(attr) 0
+/* Disable GCC -Wpedantic if using __has_c_attribute and this is not C23+.  */
+#if (defined __has_c_attribute && _GL_GNUC_PREREQ (4, 6) \
+     && (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) <= 201710)
+# pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
 ]dnl There is no _GL_ATTRIBUTE_ALIGNED; use stdalign's alignas instead.
@@ -202,11 +198,15 @@ AC_DEFUN([gl_COMMON_BODY], [
      - enumeration, enumeration item,
      - typedef,
    in C++ also: namespace, class, template specialization.  */
-#if _GL_HAS_C_ATTRIBUTE (deprecated)
-# define _GL_ATTRIBUTE_DEPRECATED [[__deprecated__]]
-#elif _GL_HAS_ATTRIBUTE (deprecated)
+#ifdef __has_c_attribute
+# if __has_c_attribute (__deprecated__)
+#  define _GL_ATTRIBUTE_DEPRECATED [[__deprecated__]]
+# endif
+#endif
+#if !defined _GL_ATTRIBUTE_DEPRECATED && _GL_HAS_ATTRIBUTE (deprecated)
 # define _GL_ATTRIBUTE_DEPRECATED __attribute__ ((__deprecated__))
-#else
+#endif
+#ifndef _GL_ATTRIBUTE_DEPRECATED
 # define _GL_ATTRIBUTE_DEPRECATED
 #endif
 
@@ -240,11 +240,15 @@ AC_DEFUN([gl_COMMON_BODY], [
    'default' label.  The compiler should not warn in this case.  */
 /* Applies to: Empty statement (;), inside a 'switch' statement.  */
 /* Always expands to something.  */
-#if _GL_HAS_C_ATTRIBUTE (fallthrough)
-# define _GL_ATTRIBUTE_FALLTHROUGH [[__fallthrough__]]
-#elif _GL_HAS_ATTRIBUTE (fallthrough)
+#ifdef __has_c_attribute
+# if __has_c_attribute (__fallthrough__)
+#  define _GL_ATTRIBUTE_FALLTHROUGH [[__fallthrough__]]
+# endif
+#endif
+#if !defined _GL_ATTRIBUTE_FALLTHROUGH && _GL_HAS_ATTRIBUTE (fallthrough)
 # define _GL_ATTRIBUTE_FALLTHROUGH __attribute__ ((__fallthrough__))
-#else
+#endif
+#ifndef _GL_ATTRIBUTE_FALLTHROUGH
 # define _GL_ATTRIBUTE_FALLTHROUGH ((void) 0)
 #endif
 
@@ -308,9 +312,12 @@ AC_DEFUN([gl_COMMON_BODY], [
 /* In C++ and C2x, this is spelled [[__maybe_unused__]].
    GCC's syntax is __attribute__ ((__unused__)).
    clang supports both syntaxes.  */
-#if _GL_HAS_C_ATTRIBUTE (maybe_unused)
-# define _GL_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
-#else
+#ifdef __has_c_attribute
+# if __has_c_attribute (__maybe_unused__)
+#  define _GL_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
+# endif
+#endif
+#ifndef _GL_ATTRIBUTE_MAYBE_UNUSED
 # define _GL_ATTRIBUTE_MAYBE_UNUSED _GL_ATTRIBUTE_UNUSED
 #endif
 /* Alternative spelling of this macro, for convenience and for
@@ -323,11 +330,15 @@ AC_DEFUN([gl_COMMON_BODY], [
    discard the return value.  The compiler may warn if the caller does not use
    the return value, unless the caller uses something like ignore_value.  */
 /* Applies to: function, enumeration, class.  */
-#if _GL_HAS_C_ATTRIBUTE (nodiscard)
-# define _GL_ATTRIBUTE_NODISCARD [[__nodiscard__]]
-#elif _GL_HAS_ATTRIBUTE (warn_unused_result)
+#ifdef __has_c_attribute
+# if __has_c_attribute (__nodiscard__)
+#  define _GL_ATTRIBUTE_NODISCARD [[__nodiscard__]]
+# endif
+#endif
+#if !defined _GL_ATTRIBUTE_NODISCARD && _GL_HAS_ATTRIBUTE (warn_unused_result)
 # define _GL_ATTRIBUTE_NODISCARD __attribute__ ((__warn_unused_result__))
-#else
+#endif
+#ifndef _GL_ATTRIBUTE_NODISCARD
 # define _GL_ATTRIBUTE_NODISCARD
 #endif
 

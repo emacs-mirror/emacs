@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2022 Free Software
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -4882,9 +4882,9 @@ Interactively with prefix argument, read FILE-NAME."
 
 (defvar-keymap dired-jump-map
   :doc "Keymap to repeat `dired-jump'.  Used in `repeat-mode'."
+  :repeat t
   "j"   #'dired-jump
   "C-j" #'dired-jump)
-(put 'dired-jump 'repeat-map 'dired-jump-map)
 
 
 ;;; Miscellaneous commands

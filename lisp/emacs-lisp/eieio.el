@@ -1,7 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects  -*- lexical-binding:t -*-
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-1996, 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -184,8 +184,9 @@ and reference them using the function `class-option'."
 	(when (and initarg (eq alloc :class))
 	  (push
            (cons sname
-                 (format "Meaningless :initarg for class allocated slot '%S'"
-	                 sname))
+                 (format-message
+                  "Meaningless :initarg for class allocated slot `%S'"
+	          sname))
 	   warnings))
 
         (let ((init (plist-get soptions :initform)))

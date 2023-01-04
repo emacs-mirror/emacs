@@ -1,6 +1,6 @@
 ;;; process-tests.el --- Testing the process facilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -830,7 +830,7 @@ Return nil if that can't be determined."
   (when (eq process-tests--EMFILE-message :unknown)
     (setq process-tests--EMFILE-message
           (with-temp-buffer
-            (when (eql (ignore-error 'file-error
+            (when (eql (ignore-error file-error
                          (call-process "errno" nil t nil "EMFILE"))
                        0)
               (goto-char (point-min))

@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992--1994, 1998--1999, 2001--2022 Free Software
+@c Copyright (C) 1992--1994, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
@@ -171,14 +171,13 @@ of the variable @code{edebug-all-defs}.
 
 @findex eval-region @r{(Edebug)}
 @findex eval-buffer @r{(Edebug)}
-@findex eval-current-buffer @r{(Edebug)}
   If @code{edebug-all-defs} is non-@code{nil}, then the commands
-@code{eval-region}, @code{eval-current-buffer}, and @code{eval-buffer}
-also instrument any definitions they evaluate.  Similarly,
-@code{edebug-all-forms} controls whether @code{eval-region} should
-instrument @emph{any} form, even non-defining forms.  This doesn't apply
-to loading or evaluations in the minibuffer.  The command @kbd{M-x
-edebug-all-forms} toggles this option.
+@code{eval-region}, and @code{eval-buffer} also instrument any
+definitions they evaluate.  Similarly, @code{edebug-all-forms}
+controls whether @code{eval-region} should instrument @emph{any} form,
+even non-defining forms.  This doesn't apply to loading or evaluations
+in the minibuffer.  The command @kbd{M-x edebug-all-forms} toggles
+this option.
 
 @findex edebug-eval-top-level-form
 @findex edebug-defun
@@ -1635,8 +1634,8 @@ but only when you also use Edebug.
 @defopt edebug-all-defs
 If this is non-@code{nil}, normal evaluation of defining forms such as
 @code{defun} and @code{defmacro} instruments them for Edebug.  This
-applies to @code{eval-defun}, @code{eval-region}, @code{eval-buffer},
-and @code{eval-current-buffer}.
+applies to @code{eval-defun}, @code{eval-region} and
+@code{eval-buffer}.
 
 Use the command @kbd{M-x edebug-all-defs} to toggle the value of this
 option.  @xref{Instrumenting}.
@@ -1644,9 +1643,9 @@ option.  @xref{Instrumenting}.
 
 @defopt edebug-all-forms
 If this is non-@code{nil}, the commands @code{eval-defun},
-@code{eval-region}, @code{eval-buffer}, and @code{eval-current-buffer}
-instrument all forms, even those that don't define anything.
-This doesn't apply to loading or evaluations in the minibuffer.
+@code{eval-region} and @code{eval-buffer} instrument all forms, even
+those that don't define anything.  This doesn't apply to loading or
+evaluations in the minibuffer.
 
 Use the command @kbd{M-x edebug-all-forms} to toggle the value of this
 option.  @xref{Instrumenting}.

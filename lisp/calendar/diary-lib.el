@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1989-2023 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -339,7 +339,7 @@ Returns a string using match elements 1-5, where:
                     (t "\\1 \\2 \\3"))) ; MDY
             "\n \\4 %s, \\5")))
 ;; TODO Sometimes the time is in a different time-zone to the one you
-;; are in.  Eg in PST, you might still get an email referring to:
+;; are in.  E.g., in Los Angeles, you might still get an email referring to:
 ;; "7:00 PM-8:00 PM. Greenwich Standard Time".
 ;; Note that it doesn't use a standard abbreviation for the timezone,
 ;; or anything helpful like that.

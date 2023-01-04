@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2022 Free
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2023 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1073,7 +1073,10 @@ is_simple_dialog (Lisp_Object contents)
   if (NILP (Fstring_equal (name, other)))
     return false;
 
-  /* Check there are no more options.  */
+  /* Check there are no more options.
+
+     (FIXME: Since we use MB_YESNOCANCEL, we could also consider
+     dialogs with 3 options: Yes/No/Cancel as "simple".  */
   options = XCDR (options);
   return !(CONSP (options));
 }
@@ -1085,7 +1088,13 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
   UINT type;
   Lisp_Object lispy_answer = Qnil, temp = XCAR (contents);
 
-  type = MB_YESNO;
+  /* We use MB_YESNOCANCEL to allow the user the equivalent of C-g
+     when the Yes/No question is asked vya y-or-n-p or
+     yes-or-no-p.  */
+  if (w32_yes_no_dialog_show_cancel)
+    type = MB_YESNOCANCEL;
+  else
+    type = MB_YESNO;
 
   /* Since we only handle Yes/No dialogs, and we already checked
      is_simple_dialog, we don't need to worry about checking contents

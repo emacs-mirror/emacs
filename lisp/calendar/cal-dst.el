@@ -1,6 +1,6 @@
 ;;; cal-dst.el --- calendar functions for daylight saving rules  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1996, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@cs.ucla.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -354,10 +354,10 @@ If the locale never uses daylight saving time, set this to 0."
       (if calendar-current-time-zone-cache
           (format-time-string
            "%z" 0 (* 60 (car calendar-current-time-zone-cache)))
-        "+0000")
-    (or (nth 2 calendar-current-time-zone-cache) "EST"))
+        "-0000")
+    (or (nth 2 calendar-current-time-zone-cache) "UTC"))
   "Abbreviated name of standard time zone at `calendar-location-name'.
-For example, \"EST\" in New York City, \"PST\" for Los Angeles."
+For example, \"-0500\" or \"EST\" in New York City."
   :type 'string
   :version "28.1"
   :set-after '(calendar-time-zone-style)
@@ -368,10 +368,10 @@ For example, \"EST\" in New York City, \"PST\" for Los Angeles."
       (if calendar-current-time-zone-cache
           (format-time-string
            "%z" 0 (* 60 (cadr calendar-current-time-zone-cache)))
-        "+0000")
-    (or (nth 3 calendar-current-time-zone-cache) "EDT"))
+        "-0000")
+    (or (nth 3 calendar-current-time-zone-cache) "UTC"))
   "Abbreviated name of daylight saving time zone at `calendar-location-name'.
-For example, \"EDT\" in New York City, \"PDT\" for Los Angeles."
+For example, \"-0400\" or \"EDT\" in New York City."
   :type 'string
   :version "28.1"
   :set-after '(calendar-time-zone-style)

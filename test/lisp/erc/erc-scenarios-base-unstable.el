@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-unstable.el --- base unstable scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,7 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
-(eval-when-compile (require 'erc-join))
+(eval-when-compile (require 'erc-join) (require 'warnings))
 
 ;; Not unstable, but stashed here for now
 
@@ -131,5 +131,57 @@
               (sleep-for (cl-incf timeout))
               (not (setq failed (zerop (cl-decf tries)))))))
     (should-not failed)))
+
+;; The `erc-networks' library has slowly become a hard dependency of
+;; the interactive client since its incorporation in 2006.  But its
+;; module, which was added in ERC 5.3 (2008) and thereafter loaded by
+;; default, only became quasi-required in ERC 5.5 (2022).  Despite
+;; this, a basic connection should still always succeed, at least long
+;; enough to warn users that their setup is abnormal.  Of course,
+;; third-party code intentionally omitting the module will have to
+;; override various erc-server-*-functions to avoid operating in a
+;; degraded state, which has likely been the case for a while.
+
+(ert-deftest erc-scenarios-networks-no-module ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "networks/no-module")
+       (erc-server-flood-penalty 0.1)
+       (erc-networks-mode-orig erc-networks-mode)
+       (dumb-server (erc-d-run "localhost" t 'basic))
+       (port (process-contact dumb-server :service))
+       (erc-modules (remq 'networks erc-modules))
+       (warning-suppress-log-types '((erc)))
+       (expect (erc-d-t-make-expecter)))
+
+    (erc-networks-mode -1)
+    (ert-info ("Connect and retain dialed name")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :user "tester"
+                                :full-name "tester")
+        (funcall expect 10 "Required module `networks' not loaded")
+        (funcall expect 10 "This server is in debug mode")
+        ;; Buffer not named after network
+        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
+        (erc-cmd-JOIN "#chan")))
+
+    (ert-info ("Join #chan, change nick, query op")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
+        (funcall expect 20 "Even at thy teat thou")
+        (erc-cmd-NICK "dummy")
+        (funcall expect 10 "Your new nickname is dummy")
+        (erc-scenarios-common-say "/msg alice hi")))
+
+    (ert-info ("Switch to query and quit")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "alice"))
+        (funcall expect 20 "bye"))
+
+      (with-current-buffer (format "127.0.0.1:%d" port)
+        (erc-cmd-QUIT "")
+        (funcall expect 10 "finished")))
+    (when erc-networks-mode-orig
+      (erc-networks-mode +1))))
 
 ;;; erc-scenarios-base-unstable.el ends here

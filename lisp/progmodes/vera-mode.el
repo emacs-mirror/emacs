@@ -1,6 +1,6 @@
 ;;; vera-mode.el --- major mode for editing Vera files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Version:     2.28

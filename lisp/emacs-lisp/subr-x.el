@@ -1,6 +1,6 @@
 ;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -333,7 +333,10 @@ as the new values of the bound variables in the recursive invocation."
 ;;;###autoload
 (defun string-glyph-split (string)
   "Split STRING into a list of strings representing separate glyphs.
-This takes into account combining characters and grapheme clusters."
+This takes into account combining characters and grapheme clusters:
+if compositions are enabled, each sequence of characters composed
+on display into a single grapheme cluster is treated as a single
+indivisible unit."
   (let ((result nil)
         (start 0)
         comp)

@@ -1,6 +1,6 @@
 ;;; oc-basic.el --- basic back-end for citations  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 
@@ -162,17 +162,17 @@ Return a hash table with citation references as keys and fields alist as values.
         (puthash (cdr (assq 'id item))
                  (mapcar (pcase-lambda (`(,field . ,value))
                            (pcase field
-                             ('author
-                              ;; Author is an array of objects, each
-                              ;; of them designing a person.  These
-                              ;; objects may contain multiple
-                              ;; properties, but for this basic
-                              ;; processor, we'll focus on `given' and
-                              ;; `family'.
+                             ((or 'author 'editors)
+                              ;; Author and editors are arrays of
+                              ;; objects, each of them designing a
+                              ;; person.  These objects may contain
+                              ;; multiple properties, but for this
+                              ;; basic processor, we'll focus on
+                              ;; `given' and `family'.
                               ;;
                               ;; For compatibility with BibTeX, add
-                              ;; "and" between authors.
-                              (cons 'author
+                              ;; "and" between authors and editors.
+                              (cons field
                                     (mapconcat
                                      (lambda (alist)
                                        (concat (alist-get 'family alist)

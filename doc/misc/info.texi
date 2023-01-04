@@ -15,7 +15,7 @@
 This file describes how to use Info, the menu-driven GNU
 documentation system.
 
-Copyright @copyright{} 1989, 1992, 1996--2022 Free Software Foundation,
+Copyright @copyright{} 1989, 1992, 1996--2023 Free Software Foundation,
 Inc.
 
 @quotation
@@ -1098,9 +1098,8 @@ name, and @key{RET}.  Thus, @kbd{gTop@key{RET}} would go to the node
 called @samp{Top} in this file.  (This is equivalent to @kbd{t}, see
 @ref{Help-Int}.)  @kbd{gGo to node@key{RET}} would come back here.
 
-  Unlike @kbd{m}, @kbd{g} does not allow the use of abbreviations.
-But it does allow completion, so you can type @key{TAB} to complete a
-partial node name.
+  Like @kbd{m}, @kbd{g} allows the use of abbreviations.  It also allows
+completion, so you can type @key{TAB} to complete a partial node name.
 
 @cindex go to another Info file
   To go to a node in another file, you can include the file name in the

@@ -1,6 +1,6 @@
 ;;; esh-cmd-tests.el --- esh-cmd test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -148,14 +148,21 @@ e.g. \"{(+ 1 2)} 3\" => 3"
       "echo $name; for name in 3 { echo $name }; echo $name"
       "env-value\n3\nenv-value\n"))))
 
+(ert-deftest esh-cmd-test/for-loop-pipe ()
+  "Test invocation of a for loop piped to another command."
+  (skip-unless (executable-find "rev"))
+  (with-temp-eshell
+   (eshell-match-command-output "for i in foo bar baz { echo $i } | rev"
+                                "zabraboof")))
+
 (ert-deftest esh-cmd-test/while-loop ()
   "Test invocation of a while loop."
   (with-temp-eshell
    (let ((eshell-test-value '(0 1 2)))
      (eshell-match-command-output
       (concat "while $eshell-test-value "
-              "{ setq eshell-test-value (cdr eshell-test-value) }")
-      "(1 2)\n(2)\n"))))
+              "{ (pop eshell-test-value) }")
+      "0\n1\n2\n"))))
 
 (ert-deftest esh-cmd-test/while-loop-lisp-form ()
   "Test invocation of a while loop using a Lisp form."
@@ -175,6 +182,17 @@ e.g. \"{(+ 1 2)} 3\" => 3"
       (concat "while {[ $eshell-test-value -ne 3 ]} "
               "{ setq eshell-test-value (1+ eshell-test-value) }")
       "1\n2\n3\n"))))
+
+(ert-deftest esh-cmd-test/while-loop-pipe ()
+  "Test invocation of a while loop piped to another command."
+  (skip-unless (executable-find "rev"))
+  (with-temp-eshell
+   (let ((eshell-test-value '("foo" "bar" "baz")))
+     (eshell-match-command-output
+      (concat "while $eshell-test-value "
+              "{ (pop eshell-test-value) }"
+              " | rev")
+      "zabraboof"))))
 
 (ert-deftest esh-cmd-test/until-loop ()
   "Test invocation of an until loop."
@@ -252,6 +270,30 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                "yes")
   (eshell-command-result-equal "if {[ foo = bar ]} {echo yes} {echo no}"
                                "no"))
+
+(ert-deftest esh-cmd-test/if-statement-pipe ()
+  "Test invocation of an if statement piped to another command."
+  (skip-unless (executable-find "rev"))
+  (with-temp-eshell
+   (let ((eshell-test-value t))
+     (eshell-match-command-output "if $eshell-test-value {echo yes} | rev"
+                                  "\\`sey\n?"))
+   (let ((eshell-test-value nil))
+     (eshell-match-command-output "if $eshell-test-value {echo yes} | rev"
+                                  "\\`\n?"))))
+
+(ert-deftest esh-cmd-test/if-else-statement-pipe ()
+  "Test invocation of an if/else statement piped to another command."
+  (skip-unless (executable-find "rev"))
+  (with-temp-eshell
+   (let ((eshell-test-value t))
+     (eshell-match-command-output
+      "if $eshell-test-value {echo yes} {echo no} | rev"
+      "\\`sey\n?"))
+   (let ((eshell-test-value nil))
+     (eshell-match-command-output
+      "if $eshell-test-value {echo yes} {echo no} | rev"
+      "\\`on\n?"))))
 
 (ert-deftest esh-cmd-test/unless-statement ()
   "Test invocation of an unless statement."

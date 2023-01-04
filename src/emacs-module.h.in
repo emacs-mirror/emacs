@@ -1,6 +1,6 @@
 /* emacs-module.h - GNU Emacs module API.
 
-Copyright (C) 2015-2022 Free Software Foundation, Inc.
+Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -116,7 +116,7 @@ enum emacs_funcall_exit
   /* Function has signaled an error using `signal'.  */
   emacs_funcall_exit_signal = 1,
 
-  /* Function has exit using `throw'.  */
+  /* Function has exited using `throw'.  */
   emacs_funcall_exit_throw = 2
 };
 

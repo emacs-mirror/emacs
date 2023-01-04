@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -410,7 +410,10 @@ for speeding up processing.")
 
       (`(condition-case ,var ,exp . ,clauses)
        `(,fn ,var          ;Not evaluated.
-            ,(byte-optimize-form exp for-effect)
+             ,(byte-optimize-form exp
+                                  (if (assq :success clauses)
+                                      (null var)
+                                    for-effect))
           ,@(mapcar (lambda (clause)
                       (let ((byte-optimize--lexvars
                              (and lexical-binding

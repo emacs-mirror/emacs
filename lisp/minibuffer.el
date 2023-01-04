@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer and completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -1474,7 +1474,10 @@ when the buffer's text is already an exact match."
               (if (and (eq this-command last-command) completion-auto-help)
                   (minibuffer-completion-help beg end))
               (completion--done completion 'exact
-                                (unless expect-exact
+                                (unless (or expect-exact
+                                            (and completion-auto-select
+                                                 (eq this-command last-command)
+                                                 completion-auto-help))
                                   "Complete, but not unique"))))
 
             (minibuffer--bitset completed t exact))))))))

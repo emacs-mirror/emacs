@@ -1,6 +1,6 @@
 ;;; em-script-tests.el --- em-script test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -35,21 +35,43 @@
 ;;; Tests:
 
 (ert-deftest em-script-test/source-script ()
-  "Test sourcing script with no argumentss"
+  "Test sourcing a simple script."
   (ert-with-temp-file temp-file :text "echo hi"
     (with-temp-eshell
      (eshell-match-command-output (format "source %s" temp-file)
                                   "hi\n"))))
 
-(ert-deftest em-script-test/source-script-arg-vars ()
-  "Test sourcing script with $0, $1, ... variables"
+(ert-deftest em-script-test/source-script/redirect ()
+  "Test sourcing a script and redirecting its output."
+  (ert-with-temp-file temp-file
+    :text "echo hi\necho bye"
+    (eshell-with-temp-buffer bufname "old"
+      (with-temp-eshell
+       (eshell-match-command-output
+        (format "source %s > #<%s>" temp-file bufname)
+        "\\`\\'"))
+      (should (equal (buffer-string) "hibye")))))
+
+(ert-deftest em-script-test/source-script/redirect/dev-null ()
+  "Test sourcing a script and redirecting its output, including to /dev/null."
+  (ert-with-temp-file temp-file
+    :text "echo hi\necho bad > /dev/null\necho bye"
+    (eshell-with-temp-buffer bufname "old"
+      (with-temp-eshell
+       (eshell-match-command-output
+        (format "source %s > #<%s>" temp-file bufname)
+        "\\`\\'"))
+      (should (equal (buffer-string) "hibye")))))
+
+(ert-deftest em-script-test/source-script/arg-vars ()
+  "Test sourcing script with $0, $1, ... variables."
   (ert-with-temp-file temp-file :text "printnl $0 \"$1 $2\""
     (with-temp-eshell
      (eshell-match-command-output (format "source %s one two" temp-file)
                                   (format "%s\none two\n" temp-file)))))
 
-(ert-deftest em-script-test/source-script-all-args-var ()
-  "Test sourcing script with the $* variable"
+(ert-deftest em-script-test/source-script/all-args-var ()
+  "Test sourcing script with the $* variable."
   (ert-with-temp-file temp-file :text "printnl $*"
     (with-temp-eshell
      (eshell-match-command-output (format "source %s" temp-file)

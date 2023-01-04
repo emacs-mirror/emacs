@@ -1,6 +1,6 @@
 ;;; em-extpipe-tests.el --- em-extpipe test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author: Sean Whitton <spwhitton@spwhitton.name>
 
@@ -42,7 +42,7 @@
                    (shell-command-switch "-c"))
                ;; Strip `eshell-trap-errors'.
                (should (equal ,expected
-                              (cadr (eshell-parse-command input))))))
+                              (cadadr (eshell-parse-command input))))))
           (with-substitute-for-temp (&rest body)
             ;; Substitute name of an actual temporary file and/or
             ;; buffer into `input'.  The substitution logic is

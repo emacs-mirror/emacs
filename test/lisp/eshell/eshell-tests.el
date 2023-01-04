@@ -1,6 +1,6 @@
 ;;; eshell-tests.el --- Eshell test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -128,16 +128,17 @@
        (delete-region (point) (point-max))))))
 
 (ert-deftest eshell-test/queue-input ()
-  "Test queuing command input"
+  "Test queuing command input.
+This should let the current command finish, then automatically
+insert the queued one at the next prompt, and finally run it."
   (with-temp-eshell
-   (eshell-insert-command "sleep 2")
-   (eshell-insert-command "echo alpha" 'eshell-queue-input)
-   (let ((count 10))
-     (while (and eshell-current-command
-                 (> count 0))
-       (sit-for 1)
-       (setq count (1- count))))
-   (should (eshell-match-output "alpha\n"))))
+   (eshell-insert-command "sleep 1; echo slept")
+   (eshell-insert-command "echo alpha" #'eshell-queue-input)
+   (let ((start (marker-position (eshell-beginning-of-output))))
+     (eshell-wait-for (lambda () (not eshell-current-command)))
+     (should (string-match "^slept\n.*echo alpha\nalpha\n$"
+                           (buffer-substring-no-properties
+                            start (eshell-end-of-output)))))))
 
 (ert-deftest eshell-test/flush-output ()
   "Test flushing of previous output"

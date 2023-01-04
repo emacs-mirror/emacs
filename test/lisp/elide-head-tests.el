@@ -1,6 +1,6 @@
 ;;; elide-head-tests.el --- Tests for elide-head.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 
@@ -180,6 +180,90 @@
 ;; along with Mentor.  If not, see <https://www.gnu.org/licenses>.
 " "Mentor is distributed in the hope that")
 
+;; from GnuTLS       [has a line break in snail mail address]
+(elide-head--add-test gpl3-6 "\
+# This file is part of GnuTLS.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+# USA
+" "This program is distributed in the hope that")
+
+;; from GnuTLS       [has a different line break in snail mail address]
+(elide-head--add-test gpl3-7 "\
+# This file is part of GnuTLS.
+#
+# The GnuTLS is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# The GnuTLS is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with GnuTLS; if not, write to the Free
+# Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA
+" "The GnuTLS is distributed in the hope that")
+
+;; from GnuTLS       [has a typo in the 02111-1301 part]
+(elide-head--add-test gpl3-8 "\
+/* nettle, low-level cryptographics library
+ *
+ * Copyright (C) 2002 Niels Möller
+ * Copyright (C) 2014 Red Hat
+ *\s\s
+ * The nettle library is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at your
+ * option) any later version.
+ *\s
+ * The nettle library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+ * License for more details.
+ *\s
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with the nettle library; see the file COPYING.LIB.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02111-1301, USA.
+ */
+" "The nettle library is distributed in the hope that")
+
+;; from GnuTLS-EXTRA  [has a different line break in snail mail address]
+(elide-head--add-test gpl3-9 "\
+# This file is part of GnuTLS-EXTRA.
+#
+# GnuTLS-extra is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# GnuTLS-extra is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GnuTLS-EXTRA; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+" "GnuTLS-extra is distributed in the hope that")
+
 
 ;;; GPLv2
 
@@ -199,6 +283,28 @@
         along with this program; if not, write to the Free Software
         Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 " "This program is distributed in the hope that")
+
+
+;;; Apache License
+
+(elide-head--add-test apache1-1 "\
+/*
+ *  Copyright 2011-2016 The Pkcs11Interop Project
+ *
+ *  Licensed under the Apache License, Version 2.0 (the \"License\");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an \"AS IS\" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+" "Unless required by applicable law")
+
 
 
 ;;; Obsolete

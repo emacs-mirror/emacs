@@ -1,6 +1,6 @@
 ;;; tramp-fuse.el --- Tramp access functions for FUSE mounts  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -127,14 +127,8 @@
 
 (defun tramp-fuse-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name dir) nil
-    (make-directory (tramp-fuse-local-file-name dir) parents)
-    ;; When PARENTS is non-nil, DIR could be a chain of non-existent
-    ;; directories a/b/c/...  Instead of checking, we simply flush the
-    ;; whole file cache.
-    (tramp-flush-file-properties v localname)
-    (tramp-flush-directory-properties
-     v (if parents "/" (file-name-directory localname)))))
+  (tramp-skeleton-make-directory dir parents
+    (make-directory (tramp-fuse-local-file-name dir) parents)))
 
 
 ;; File name helper functions.

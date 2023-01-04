@@ -1,6 +1,6 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 ;;
 ;; Authors: JD Smith <jd.smith@utoledo.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -269,7 +269,7 @@ Scrolling:          SPC  DEL  RET
 Text Searches:      Inside Topic: Use Emacs search functions
 Exit:               [q]uit or mouse button 3 will kill the frame
 
-When the hep text is a source file, the following commands are available
+When the help text is a source file, the following commands are available
 
 Fontification:      [F]ontify the buffer like source code
 Jump:               [h] to function doclib header

@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -250,7 +250,8 @@ INIT-VALUE LIGHTER KEYMAP.
          (warnwrap (if (or (null body) (keywordp (car body))) #'identity
                      (lambda (exp)
                        (macroexp-warn-and-return
-                        "Use keywords rather than deprecated positional arguments to `define-minor-mode'"
+                        (format-message
+                         "Use keywords rather than deprecated positional arguments to `define-minor-mode'")
                         exp))))
 	 keyw keymap-sym tmp)
 

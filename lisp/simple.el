@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -3590,7 +3590,7 @@ Return what remains of the list."
                    ;; said it would do.
                    (unless (and (= start start-mark)
                                 (= (+ delta end) end-mark))
-                     (error "Changes to be undone by function different from announced"))
+                     (error "Changes undone by function are different from the announced ones"))
                    (set-marker start-mark nil)
                    (set-marker end-mark nil))
                (apply fun-args))
@@ -8438,6 +8438,43 @@ are interchanged."
   (interactive "*p")
   (transpose-subr 'forward-word arg))
 
+(defvar transpose-sexps-function
+  (lambda (arg)
+    ;; Here we should try to simulate the behavior of
+    ;; (cons (progn (forward-sexp x) (point))
+    ;;       (progn (forward-sexp (- x)) (point)))
+    ;; Except that we don't want to rely on the second forward-sexp
+    ;; putting us back to where we want to be, since forward-sexp-function
+    ;; might do funny things like infix-precedence.
+    (if (if (> arg 0)
+	    (looking-at "\\sw\\|\\s_")
+	  (and (not (bobp))
+	       (save-excursion
+                 (forward-char -1)
+                 (looking-at "\\sw\\|\\s_"))))
+        ;; Jumping over a symbol.  We might be inside it, mind you.
+	(progn (funcall (if (> arg 0)
+			    #'skip-syntax-backward #'skip-syntax-forward)
+			"w_")
+	       (cons (save-excursion (forward-sexp arg) (point)) (point)))
+      ;; Otherwise, we're between sexps.  Take a step back before jumping
+      ;; to make sure we'll obey the same precedence no matter which
+      ;; direction we're going.
+      (funcall (if (> arg 0) #'skip-syntax-backward #'skip-syntax-forward)
+               " .")
+      (cons (save-excursion (forward-sexp arg) (point))
+	    (progn (while (or (forward-comment (if (> arg 0) 1 -1))
+			      (not (zerop (funcall (if (> arg 0)
+						       #'skip-syntax-forward
+						     #'skip-syntax-backward)
+						   ".")))))
+		   (point)))))
+  "If non-nil, `transpose-sexps' delegates to this function.
+
+This function takes one argument ARG, a number.  Its expected
+return value is a position pair, which is a cons (BEG . END),
+where BEG and END are buffer positions.")
+
 (defun transpose-sexps (arg &optional interactive)
   "Like \\[transpose-chars] (`transpose-chars'), but applies to sexps.
 Unlike `transpose-words', point must be between the two sexps and not
@@ -8453,38 +8490,7 @@ report errors as appropriate for this kind of usage."
       (condition-case nil
           (transpose-sexps arg nil)
         (scan-error (user-error "Not between two complete sexps")))
-    (transpose-subr
-     (lambda (arg)
-       ;; Here we should try to simulate the behavior of
-       ;; (cons (progn (forward-sexp x) (point))
-       ;;       (progn (forward-sexp (- x)) (point)))
-       ;; Except that we don't want to rely on the second forward-sexp
-       ;; putting us back to where we want to be, since forward-sexp-function
-       ;; might do funny things like infix-precedence.
-       (if (if (> arg 0)
-	       (looking-at "\\sw\\|\\s_")
-	     (and (not (bobp))
-		  (save-excursion
-                    (forward-char -1)
-                    (looking-at "\\sw\\|\\s_"))))
-	   ;; Jumping over a symbol.  We might be inside it, mind you.
-	   (progn (funcall (if (> arg 0)
-			       'skip-syntax-backward 'skip-syntax-forward)
-			   "w_")
-		  (cons (save-excursion (forward-sexp arg) (point)) (point)))
-         ;; Otherwise, we're between sexps.  Take a step back before jumping
-         ;; to make sure we'll obey the same precedence no matter which
-         ;; direction we're going.
-         (funcall (if (> arg 0) 'skip-syntax-backward 'skip-syntax-forward)
-                  " .")
-         (cons (save-excursion (forward-sexp arg) (point))
-	       (progn (while (or (forward-comment (if (> arg 0) 1 -1))
-			         (not (zerop (funcall (if (> arg 0)
-							  'skip-syntax-forward
-						        'skip-syntax-backward)
-						      ".")))))
-		      (point)))))
-     arg 'special)))
+    (transpose-subr transpose-sexps-function arg 'special)))
 
 (defun transpose-lines (arg)
   "Exchange current line and previous line, leaving point after both.
@@ -8509,13 +8515,15 @@ With argument 0, interchanges line point is in with line mark is in."
 ;; FIXME document SPECIAL.
 (defun transpose-subr (mover arg &optional special)
   "Subroutine to do the work of transposing objects.
-Works for lines, sentences, paragraphs, etc.  MOVER is a function that
-moves forward by units of the given object (e.g. `forward-sentence',
-`forward-paragraph').  If ARG is zero, exchanges the current object
-with the one containing mark.  If ARG is an integer, moves the
-current object past ARG following (if ARG is positive) or
-preceding (if ARG is negative) objects, leaving point after the
-current object."
+Works for lines, sentences, paragraphs, etc.  MOVER is a function
+that moves forward by units of the given
+object (e.g. `forward-sentence', `forward-paragraph'), or a
+function calculating a cons of buffer positions.
+
+  If ARG is zero, exchanges the current object with the one
+containing mark.  If ARG is an integer, moves the current object
+past ARG following (if ARG is positive) or preceding (if ARG is
+negative) objects, leaving point after the current object."
   (let ((aux (if special mover
 	       (lambda (x)
 		 (cons (progn (funcall mover x) (point))
@@ -8542,6 +8550,8 @@ current object."
       (goto-char (+ (car pos2) (- (cdr pos1) (car pos1))))))))
 
 (defun transpose-subr-1 (pos1 pos2)
+  (unless (and pos1 pos2)
+    (error "Don't have two things to transpose"))
   (when (> (car pos1) (cdr pos1)) (setq pos1 (cons (cdr pos1) (car pos1))))
   (when (> (car pos2) (cdr pos2)) (setq pos2 (cons (cdr pos2) (car pos2))))
   (when (> (car pos1) (car pos2))
@@ -10053,6 +10063,8 @@ PREFIX is the string that represents this modifier in an event type symbol."
 	    event-type
 	  (cons event-type (cdr event)))))))
 
+;; This is what makes "C-x @" followed by [hsmaSc] work even though
+;; you won't find any (define-key ctl-x-map "@" ...) binding.
 (define-key function-key-map [?\C-x ?@ ?h] 'event-apply-hyper-modifier)
 (define-key function-key-map [?\C-x ?@ ?s] 'event-apply-super-modifier)
 (define-key function-key-map [?\C-x ?@ ?m] 'event-apply-meta-modifier)

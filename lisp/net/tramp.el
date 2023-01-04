@@ -1,6 +1,6 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -3537,6 +3537,27 @@ BODY is the backend specific code."
 	;; Trigger the `file-missing' error.
 	(signal 'error nil)))))
 
+(defmacro tramp-skeleton-make-directory (dir &optional parents &rest body)
+  "Skeleton for `tramp-*-handle-make-directory'.
+BODY is the backend specific code."
+  ;; Since Emacs 29.1, PARENTS isn't propagated to the handlers
+  ;; anymore.  And the return values are specified since then as well.
+  (declare (indent 2) (debug t))
+  `(let* ((dir (directory-file-name (expand-file-name ,dir)))
+	  (par (file-name-directory dir)))
+     (with-parsed-tramp-file-name dir nil
+       (when (and (null ,parents) (file-exists-p dir))
+	 (tramp-error v 'file-already-exists dir))
+       ;; Make missing directory parts.
+       (when ,parents
+	 (unless (file-directory-p par)
+	   (make-directory par ,parents)))
+       ;; Just do it.
+       (if (file-exists-p dir) t
+	 (tramp-flush-file-properties v localname)
+	 ,@body
+	 nil))))
+
 (defmacro tramp-skeleton-set-file-modes-times-uid-gid
     (filename &rest body)
   "Skeleton for `tramp-*-set-file-{modes,times,uid-gid}'.
@@ -5418,7 +5439,7 @@ Wait, until the connection buffer changes."
 	;; Hide message in buffer.
 	(narrow-to-region (point-max) (point-max))
 	;; Wait for new output.
-	(while (not (tramp-compat-ignore-error 'file-error
+	(while (not (tramp-compat-ignore-error file-error
 		      (tramp-wait-for-regexp
 		       proc 0.1 tramp-security-key-confirmed-regexp)))
 	  (when (tramp-check-for-regexp proc tramp-security-key-timeout-regexp)

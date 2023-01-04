@@ -1,6 +1,6 @@
 ;;; semantic/lex.el --- Lexical Analyzer builder  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -1108,7 +1108,7 @@ This can be done by using `semantic-lex-push-token'."
 	     (semantic-lex-analysis-bounds (cons (point) (point-max)))
 	     (semantic-lex-current-depth 0)
 	     (semantic-lex-maximum-depth semantic-lex-depth))
-	 (when ,condition ,@forms)
+	 (when ,condition nil ,@forms)  ; `nil' avoids an empty-body warning.
 	 semantic-lex-token-stream))))
 
 (defmacro define-lex-regex-analyzer (name doc regexp &rest forms)

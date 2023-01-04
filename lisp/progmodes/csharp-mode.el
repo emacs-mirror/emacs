@@ -1,6 +1,6 @@
 ;;; csharp-mode.el --- Support for editing C#  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;;              Jostein Kjønigsen <jostein@kjonigsen.net>
@@ -34,6 +34,7 @@
 (require 'cc-mode)
 (require 'cc-langs)
 (require 'treesit)
+(require 'c-ts-mode) ; For comment indenting and filling.
 
 (eval-when-compile
   (require 'cc-fonts)
@@ -42,6 +43,7 @@
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 
 (defgroup csharp nil
@@ -632,6 +634,9 @@ compilation and evaluation time conflicts."
      ((node-is "}") parent-bol 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
+     ((and (parent-is "comment") c-ts-mode--looking-at-star)
+      c-ts-mode--comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "namespace_declaration") parent-bol 0)
      ((parent-is "class_declaration") parent-bol 0)
      ((parent-is "constructor_declaration") parent-bol 0)
@@ -688,24 +693,46 @@ compilation and evaluation time conflicts."
 (defvar csharp-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'c-sharp
+   :feature 'expression
+   '((conditional_expression (identifier) @font-lock-variable-name-face)
+     (postfix_unary_expression (identifier)* @font-lock-variable-name-face)
+     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-name-face)))
+
+   :language 'c-sharp
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+   :language 'c-sharp
+   :feature 'delimiter
+   '((["," ":" ";"]) @font-lock-delimiter-face)
+
+   :language 'c-sharp
+   :feature 'error
+   '((ERROR) @font-lock-warning-face)
+
+   :language 'c-sharp
    :override t
    :feature 'comment
-   '((comment)  @font-lock-comment-face)
+   '((comment) @font-lock-comment-face)
+
    :language 'c-sharp
    :override t
    :feature 'keyword
    `([,@csharp-ts-mode--keywords] @font-lock-keyword-face
      (modifier) @font-lock-keyword-face
      (this_expression) @font-lock-keyword-face)
+
    :language 'c-sharp
    :override t
-   :feature 'attribute
+   :feature 'property
    `((attribute (identifier) @font-lock-property-face (attribute_argument_list))
      (attribute (identifier) @font-lock-property-face))
+
    :language 'c-sharp
    :override t
    :feature 'escape-sequence
    '((escape_sequence) @font-lock-escape-face)
+
    :language 'c-sharp
    :override t
    :feature 'literal
@@ -713,6 +740,7 @@ compilation and evaluation time conflicts."
      (real_literal) @font-lock-number-face
      (null_literal) @font-lock-constant-face
      (boolean_literal) @font-lock-constant-face)
+
    :language 'c-sharp
    :override t
    :feature 'string
@@ -725,6 +753,7 @@ compilation and evaluation time conflicts."
       "$\""
       "@$\""
       "$@\""] @font-lock-string-face)
+
    :language 'c-sharp
    :override t
    :feature 'type
@@ -735,8 +764,12 @@ compilation and evaluation time conflicts."
       (identifier) @font-lock-type-face)
      (type_argument_list
       (identifier) @font-lock-type-face)
-     (generic_name
-      (identifier) @font-lock-type-face)
+     (type_argument_list
+      (generic_name
+       (identifier) @font-lock-type-face))
+     (base_list
+      (generic_name
+       (identifier) @font-lock-type-face))
      (array_type
       (identifier) @font-lock-type-face)
      (cast_expression (identifier) @font-lock-type-face)
@@ -744,15 +777,20 @@ compilation and evaluation time conflicts."
      (type_parameter_constraints_clause
       target: (identifier) @font-lock-type-face)
      (type_of_expression (identifier) @font-lock-type-face)
-     (object_creation_expression (identifier) @font-lock-type-face))
+     (object_creation_expression
+      type: (identifier) @font-lock-type-face)
+     (object_creation_expression
+      type: (generic_name (identifier) @font-lock-type-face))
+     (as_expression right: (identifier) @font-lock-type-face)
+     (as_expression right: (generic_name (identifier) @font-lock-type-face)))
+
    :language 'c-sharp
    :feature 'definition
    :override t
    '((qualified_name (identifier) @font-lock-type-face)
      (using_directive (identifier) @font-lock-type-face)
      (using_directive (name_equals
-                       (identifier) @font-lock-type-face
-                       ["="] @default-face))
+                       (identifier) @font-lock-type-face))
 
      (enum_declaration (identifier) @font-lock-type-face)
      (enum_member_declaration (identifier) @font-lock-variable-name-face)
@@ -764,7 +802,6 @@ compilation and evaluation time conflicts."
      (record_declaration (identifier) @font-lock-type-face)
      (namespace_declaration (identifier) @font-lock-type-face)
      (base_list (identifier) @font-lock-type-face)
-     (property_declaration (generic_name))
      (property_declaration
       type: (nullable_type) @font-lock-type-face
       name: (identifier) @font-lock-variable-name-face)
@@ -778,28 +815,9 @@ compilation and evaluation time conflicts."
 
      (constructor_declaration name: (_) @font-lock-type-face)
 
-     (method_declaration type: (_) @font-lock-type-face)
+     (method_declaration type: [(identifier) (void_keyword)] @font-lock-type-face)
+     (method_declaration type: (generic_name (identifier) @font-lock-type-face))
      (method_declaration name: (_) @font-lock-function-name-face)
-
-     (invocation_expression
-      (member_access_expression
-       (generic_name (identifier) @font-lock-function-name-face)))
-     (invocation_expression
-      (member_access_expression
-       ((identifier) @font-lock-variable-name-face
-        (identifier) @font-lock-function-name-face)))
-     (invocation_expression
-      (identifier) @font-lock-function-name-face)
-     (invocation_expression
-      (member_access_expression
-       expression: (identifier) @font-lock-variable-name-face))
-     (invocation_expression
-      function: [(generic_name (identifier)) @font-lock-function-name-face
-                 (generic_name (type_argument_list
-                                ["<"] @font-lock-bracket-face
-                                (identifier) @font-lock-type-face
-                                [">"] @font-lock-bracket-face)
-                               )])
 
      (catch_declaration
       ((identifier) @font-lock-type-face))
@@ -808,85 +826,54 @@ compilation and evaluation time conflicts."
        (identifier) @font-lock-variable-name-face))
 
      (variable_declaration (identifier) @font-lock-type-face)
+     (variable_declaration (generic_name (identifier) @font-lock-type-face))
      (variable_declarator (identifier) @font-lock-variable-name-face)
 
      (parameter type: (identifier) @font-lock-type-face)
+     (parameter type: (generic_name (identifier) @font-lock-type-face))
      (parameter name: (identifier) @font-lock-variable-name-face)
 
-     (binary_expression (identifier) @font-lock-variable-name-face)
-     (argument (identifier) @font-lock-variable-name-face))
-   :language 'c-sharp
-   :feature 'expression
-   '((conditional_expression (identifier) @font-lock-variable-name-face)
-     (postfix_unary_expression (identifier)* @font-lock-variable-name-face)
-     (assignment_expression (identifier) @font-lock-variable-name-face))
-   :language 'c-sharp
-   :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+     (lambda_expression (identifier) @font-lock-variable-name-face)
+
+     (declaration_expression type: (identifier) @font-lock-type-face)
+     (declaration_expression name: (identifier) @font-lock-variable-name-face))
 
    :language 'c-sharp
-   :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face)
+   :feature 'function
+   '((invocation_expression
+      function: (member_access_expression
+                 name: (identifier) @font-lock-function-name-face))
+     (invocation_expression
+      function: (identifier) @font-lock-function-name-face)
+     (invocation_expression
+      function: (member_access_expression
+                 name: (generic_name (identifier) @font-lock-function-name-face)))
+     (invocation_expression
+      function: (generic_name (identifier) @font-lock-function-name-face)))
 
    :language 'c-sharp
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face
-     (ERROR) @font-lock-warning-face)))
+   '((escape_sequence) @font-lock-escape-face)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 
-(defun csharp-ts-mode--imenu-1 (node)
-  "Helper for `csharp-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'csharp-ts-mode--imenu-1 (cdr node)))
-         (name (when ts-node
-                 (or (treesit-node-text
-                      (or (treesit-node-child-by-field-name
-                           ts-node "name"))
-                      t)
-                     "Unnamed node")))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((null ts-node) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
-
-(defun csharp-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (class-tree (treesit-induce-sparse-tree
-                      node "^class_declaration$" nil 1000))
-         (interface-tree (treesit-induce-sparse-tree
-                          node "^interface_declaration$" nil 1000))
-         (enum-tree (treesit-induce-sparse-tree
-                     node "^enum_declaration$" nil 1000))
-         (struct-tree (treesit-induce-sparse-tree
-                       node "^struct_declaration$"  nil 1000))
-         (record-tree (treesit-induce-sparse-tree
-                       node "^record_declaration$"  nil 1000))
-         (method-tree (treesit-induce-sparse-tree
-                       node "^method_declaration$" nil 1000))
-         (class-index (csharp-ts-mode--imenu-1 class-tree))
-         (interface-index (csharp-ts-mode--imenu-1 interface-tree))
-         (enum-index (csharp-ts-mode--imenu-1 enum-tree))
-         (record-index (csharp-ts-mode--imenu-1 record-tree))
-         (struct-index (csharp-ts-mode--imenu-1 struct-tree))
-         (method-index (csharp-ts-mode--imenu-1 method-tree)))
-    (append
-     (when class-index `(("Class" . ,class-index)))
-     (when interface-index `(("Interface" . ,interface-index)))
-     (when enum-index `(("Enum" . ,enum-index)))
-     (when record-index `(("Record" . ,record-index)))
-     (when struct-index `(("Struct" . ,struct-index)))
-     (when method-index `(("Method" . ,method-index))))))
+(defun csharp-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "method_declaration"
+         "record_declaration"
+         "struct_declaration"
+         "enum_declaration"
+         "interface_declaration"
+         "class_declaration"
+         "class_declaration")
+     (treesit-node-text
+      (treesit-node-child-by-field-name
+       node "name")
+      t))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -916,15 +903,7 @@ Key bindings:
   (treesit-parser-create 'c-sharp)
 
   ;; Comments.
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
+  (c-ts-mode-comment-setup)
 
   (setq-local treesit-text-type-regexp
               (regexp-opt '("comment"
@@ -940,18 +919,25 @@ Key bindings:
 
   ;; Navigation.
   (setq-local treesit-defun-type-regexp "declaration")
+  (setq-local treesit-defun-name-function #'csharp-ts-mode--defun-name)
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
-                ( keyword string escape-sequence type)
-                ( attribute constant expression literal)
-                ( bracket delimiter)))
+                ( keyword string type)
+                ( constant escape-sequence expression literal property)
+                ( function bracket delimiter error)))
 
   ;; Imenu.
-  (setq-local imenu-create-index-function #'csharp-ts-mode--imenu)
-  (setq-local which-func-functions nil) ;; Piggyback on imenu
+  (setq-local treesit-simple-imenu-settings
+              '(("Class" "\\`class_declaration\\'" nil nil)
+                ("Interface" "\\`interface_declaration\\'" nil nil)
+                ("Enum" "\\`enum_declaration\\'" nil nil)
+                ("Record" "\\`record_declaration\\'" nil nil)
+                ("Struct" "\\`struct_declaration\\'" nil nil)
+                ("Method" "\\`method_declaration\\'" nil nil)))
+
   (treesit-major-mode-setup))
 
 (provide 'csharp-mode)

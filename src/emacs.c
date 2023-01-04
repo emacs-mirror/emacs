@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2022 Free Software
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2910,6 +2910,7 @@ killed.  */
 
   if (!NILP (restart))
     {
+      turn_on_atimers (false);
 #ifdef WINDOWSNT
       if (w32_reexec_emacs (initial_cmdline, initial_wd) < 0)
 #else

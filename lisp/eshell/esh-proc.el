@@ -1,6 +1,6 @@
 ;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -467,7 +467,7 @@ PROC is the process that's exiting.  STRING is the exit message."
                           (if (process-get proc :eshell-busy)
                               (run-at-time 0 nil finish-io)
                             (when data
-                              (ignore-error 'eshell-pipe-broken
+                              (ignore-error eshell-pipe-broken
                                 (eshell-output-object
                                  data index handles)))
                             (eshell-close-handles

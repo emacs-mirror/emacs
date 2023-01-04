@@ -1,7 +1,7 @@
 ;;; org.el --- Outline-based notes management and organizer -*- lexical-binding: t; -*-
 
 ;; Carstens outline-mode for keeping track of everything.
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Maintainer: Bastien Guerry <bzg@gnu.org>
@@ -20213,7 +20213,10 @@ interactive command with similar behavior."
 (defun org-back-to-heading (&optional invisible-ok)
   "Go back to beginning of heading."
   (beginning-of-line)
-  (or (org-at-heading-p (not invisible-ok))
+  (or (and (org-at-heading-p (not invisible-ok))
+           (not (and (featurep 'org-inlinetask)
+                   (fboundp 'org-inlinetask-end-p)
+                   (org-inlinetask-end-p))))
       (if (org-element--cache-active-p)
           (let ((heading (org-element-lineage (org-element-at-point)
                                            '(headline inlinetask)

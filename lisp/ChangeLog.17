@@ -15465,7 +15465,7 @@
 2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-indent-context)
-	(python-indent-calculate-indentation): Fix auto-identation
+	(python-indent-calculate-indentation): Fix auto-indentation
 	behavior for comment blocks.  (Bug#15916)
 
 2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
@@ -26294,7 +26294,7 @@ See ChangeLog.16 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2022 Free Software Foundation, Inc.
+  Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

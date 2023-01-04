@@ -1,6 +1,6 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-backend.el
@@ -1623,7 +1623,7 @@ Sat, 07 Sep 2002 00:00:01 GMT
               ":\\([0-9]\\{2\\}\\)"
               ;; second
               "\\(:\\([0-9]\\{2\\}\\)\\)?"
-              ;; zone -- fixme
+              ;; zone
               "\\(\\s-+\\("
               "UT\\|GMT\\|EST\\|EDT\\|CST\\|CDT\\|MST\\|MDT\\|PST\\|PDT"
               "\\|\\([-+]\\)\\([0-9]\\{2\\}\\)\\([0-9]\\{2\\}\\)"
@@ -1642,16 +1642,26 @@ Sat, 07 Sep 2002 00:00:01 GMT
               (offset-hour (read (or (match-string 14 rfc822-string)
                                      "0")))
               (offset-minute (read (or (match-string 15 rfc822-string)
-                                       "0")))
-              ;;FIXME
-              )
+                                       "0"))))
           (when zone
             (cond ((string= sign "+")
                    (setq hour (- hour offset-hour))
                    (setq minute (- minute offset-minute)))
                   ((string= sign "-")
                    (setq hour (+ hour offset-hour))
-                   (setq minute (+ minute offset-minute)))))
+                   (setq minute (+ minute offset-minute)))
+                  ((or (string= zone "UT") (string= zone "GMT"))
+                   nil)
+                  ((string= zone "EDT")
+                   (setq hour (+ hour 4)))
+                  ((or (string= zone "EST") (string= zone "CDT"))
+                   (setq hour (+ hour 5)))
+                  ((or (string= zone "CST") (string= zone "MDT"))
+                   (setq hour (+ hour 6)))
+                  ((or (string= zone "MST") (string= zone "PDT"))
+                   (setq hour (+ hour 7)))
+                  ((string= zone "PST")
+                   (setq hour (+ hour 8)))))
           (condition-case error-data
               (let ((i 1))
                 (dolist (m '("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug"

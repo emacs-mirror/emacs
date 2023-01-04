@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1993-1997, 1999, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -149,6 +149,8 @@
   (require 'subr-x))
 (require 'executable)
 (require 'treesit)
+
+(declare-function treesit-parser-create "treesit.c")
 
 (autoload 'comint-completion-at-point "comint")
 (autoload 'comint-filename-completion "comint")

@@ -1,6 +1,6 @@
 ;;; esh-cmd.el --- command invocation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -418,8 +418,11 @@ hooks should be run before and after the command."
 	   (eshell-separate-commands terms "[&;]" nil 'eshell--sep-terms))))
     (let ((cmd commands))
       (while cmd
-	(if (cdr cmd)
-	    (setcar cmd `(eshell-commands ,(car cmd))))
+        ;; Copy I/O handles so each full statement can manipulate them
+        ;; if they like.  Steal the handles for the last command in
+        ;; the list; we won't use the originals again anyway.
+        (setcar cmd `(eshell-with-copied-handles
+                      ,(car cmd) ,(not (cdr cmd))))
 	(setq cmd (cdr cmd))))
     (if toplevel
 	`(eshell-commands (progn
@@ -788,15 +791,16 @@ this grossness will be made to disappear by using `call/cc'..."
 (defvar eshell-output-handle)           ;Defined in esh-io.el.
 (defvar eshell-error-handle)            ;Defined in esh-io.el.
 
-(defmacro eshell-copy-handles (object)
-  "Duplicate current I/O handles, so OBJECT works with its own copy."
+(defmacro eshell-with-copied-handles (object &optional steal-p)
+  "Duplicate current I/O handles, so OBJECT works with its own copy.
+If STEAL-P is non-nil, these new handles will be stolen from the
+current ones (see `eshell-duplicate-handles')."
   `(let ((eshell-current-handles
-	  (eshell-create-handles
-	   (car (aref eshell-current-handles
-		      eshell-output-handle)) nil
-	   (car (aref eshell-current-handles
-		      eshell-error-handle)) nil)))
+          (eshell-duplicate-handles eshell-current-handles ,steal-p)))
      ,object))
+
+(define-obsolete-function-alias 'eshell-copy-handles
+  #'eshell-with-copied-handles "30.1")
 
 (defmacro eshell-protect (object)
   "Protect I/O handles, so they aren't get closed after eval'ing OBJECT."
@@ -808,7 +812,7 @@ this grossness will be made to disappear by using `call/cc'..."
   "Execute the commands in PIPELINE, connecting each to one another.
 This macro calls itself recursively, with NOTFIRST non-nil."
   (when (setq pipeline (cadr pipeline))
-    `(eshell-copy-handles
+    `(eshell-with-copied-handles
       (progn
 	,(when (cdr pipeline)
 	   `(let ((nextproc
@@ -833,7 +837,9 @@ This macro calls itself recursively, with NOTFIRST non-nil."
           (let ((proc ,(car pipeline)))
             (set headproc (or proc (symbol-value headproc)))
             (set tailproc (or (symbol-value tailproc) proc))
-            proc))))))
+            proc)))
+      ;; Steal handles if this is the last item in the pipeline.
+      ,(null (cdr pipeline)))))
 
 (defmacro eshell-do-pipelines-synchronously (pipeline)
   "Execute the commands in PIPELINE in sequence synchronously.
@@ -880,11 +886,8 @@ This is used on systems where async subprocesses are not supported."
      (progn
        ,(if (fboundp 'make-process)
 	    `(eshell-do-pipelines ,pipeline)
-	  `(let ((tail-handles (eshell-create-handles
-				(car (aref eshell-current-handles
-					   ,eshell-output-handle)) nil
-				(car (aref eshell-current-handles
-					   ,eshell-error-handle)) nil)))
+          `(let ((tail-handles (eshell-duplicate-handles
+                                eshell-current-handles)))
 	     (eshell-do-pipelines-synchronously ,pipeline)))
        (eshell-process-identity (cons (symbol-value headproc)
                                       (symbol-value tailproc))))))
@@ -1024,7 +1027,9 @@ produced by `eshell-parse-command'."
       ;; We can just stick the new command at the end of the current
       ;; one, and everything will happen as it should.
       (setcdr (last (cdr eshell-current-command))
-              (list `(let ((here (and (eobp) (point))))
+              (list `(let ((here (and (eobp) (point)))
+                           (eshell-command-body '(nil))
+                           (eshell-test-body '(nil)))
                        ,(and input
                              `(insert-and-inherit ,(concat input "\n")))
                        (if here

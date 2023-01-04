@@ -1,6 +1,6 @@
 ;;; semantic/db-global.el --- Semantic database extensions for GLOBAL  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2006, 2008-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2006, 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags

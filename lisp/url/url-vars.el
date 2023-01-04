@@ -1,6 +1,6 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

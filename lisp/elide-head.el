@@ -1,6 +1,6 @@
 ;;; elide-head.el --- hide headers in files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: outlines tools
@@ -50,24 +50,41 @@
   :group 'tools)
 
 (defcustom elide-head-headers-to-hide
-  `(;; GNU GPL
-    ("is free software[:;] you can redistribute it" .
-     ,(rx (or (seq "If not, see " (? "<")
-                   "http" (? "s") "://www.gnu.org/licenses"
-                   (? "/") (? ">") (? " "))
-              (seq "Boston, MA " (? " ")
-                   "0211" (or "1-1307" "0-1301")
-                   (or "  " ", ") "USA")
-              "675 Mass Ave, Cambridge, MA 02139, USA")
-          (? ".")))
-    ;; FreeBSD license / Modified BSD license (3-clause)
-    (,(rx (or "The Regents of the University of California.  All rights reserved."
-              "Redistribution and use in source and binary"))
-     . "POSSIBILITY OF SUCH DAMAGE\\.")
-    ;; X11 and Expat
-    ("Permission is hereby granted, free of charge" .
-     ,(rx (or "authorization from the X Consortium."           ; X11
-              "THE USE OR OTHER DEALINGS IN THE SOFTWARE.")))) ; Expat
+  (rx-let ((delim
+            ;; A line break could be in a non-standard place, and the
+            ;; license could be in a comment.
+            (or
+             ;; Either just some spaces:
+             (+ " ")
+             ;; Or a newline and some comment starter:
+             (: (* (in " \t"))
+                "\n"
+                (* (in " \t"))
+                (* (or (syntax comment-start) (in ";#*-")))
+                (* (in " \t"))))))
+    `(;; GNU GPL
+      ("is free software[:;] you can redistribute it" .
+       ,(rx (or (seq "If not, see " (? "<")
+                     "http" (? "s") "://www.gnu.org/licenses"
+                     (? "/") (? ">") (? " "))
+                (seq "Boston," delim "MA" delim
+                     (or "02111-1307" "02110-1301" "02111-1301")
+                     (? ",") delim
+                     "USA")
+                "675 Mass Ave, Cambridge, MA 02139, USA")
+            (? ".")))
+      ;; FreeBSD license / Modified BSD license (3-clause)
+      (,(rx (or "The Regents of the University of California.  All rights reserved."
+                "Redistribution and use in source and binary"))
+       . "POSSIBILITY OF SUCH DAMAGE\\.")
+      ;; X11 and Expat
+      ("Permission is hereby granted, free of charge" .
+       ,(rx (or "authorization from the X Consortium."          ; X11
+                "THE USE OR OTHER DEALINGS IN THE SOFTWARE."))) ; Expat
+      ;; Apache
+      ("Licensed under the Apache License, Version 2.0" .
+       "limitations under the License.")
+      ))
   "Alist of regexps defining start and end of text to elide.
 
 The cars of elements of the list are searched for in order.  Text is
@@ -78,7 +95,7 @@ cdr.
 This affects `elide-head-mode'."
   :type '(alist :key-type  (regexp :tag "Start regexp")
                 :value-type (regexp :tag "End regexp"))
-  :version "29.1")
+  :version "30.1")
 
 (defvar-local elide-head-overlay nil)
 
@@ -147,10 +164,11 @@ mode hooks."
 (defun elide-head (&optional arg)
   "Hide header material in buffer according to `elide-head-headers-to-hide'.
 
-The header is made invisible with an overlay.  With a prefix arg, show
-an elided material again.
+The header is made invisible with an overlay.  With a prefix
+argument ARG, show an elided material again.
 
-This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
+This is suitable as an entry on `find-file-hook' or appropriate
+mode hooks."
   (declare (obsolete elide-head-mode "29.1"))
   (interactive "P")
   (if arg

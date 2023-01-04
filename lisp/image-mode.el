@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -1086,7 +1086,7 @@ Otherwise, display the image by calling `image-mode'."
                   (unwind-protect
                       (progn
                         (setq-local image-fit-to-window-lock t)
-                        (ignore-error 'remote-file-error
+                        (ignore-error remote-file-error
                           (image-toggle-display-image)))
                     (setq image-fit-to-window-lock nil)))))))))))
 

@@ -6,7 +6,7 @@ ORG NEWS -- history of user-visible changes.   -*- mode: org; coding: utf-8 -*-
 #+LINK: msg https://list.orgmode.org/%s/
 #+LINK: git https://git.savannah.gnu.org/cgit/emacs/org-mode.git/commit/?id=%s
 
-Copyright (C) 2012-2022 Free Software Foundation, Inc.
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Org bug reports to mailto:emacs-orgmode@gnu.org.
@@ -24,7 +24,7 @@ the time being.  It will be removed in the next release.
 
 See https://orgmode.org/list/87r0yk7bx8.fsf@localhost for more details.
 
-*** Element cache is enabled by default and work for headings
+*** Element cache is enabled by default and works for headings
 
 The old element cache code has been refactored.  Emacs does not hang
 anymore when the cache is enabled.
@@ -733,7 +733,7 @@ following snippet to allow multiple different ID formats in Org files.
           (and (or (org-uuidgen-p id)
 	           (string-match-p "[0-9a-z]\\{12\\}" id))
 	       (org-attach-id-uuid-folder-format id)))
-        ;; When ID looks like a timestap-based ID. Group by year-month
+        ;; When ID looks like a timestamp-based ID. Group by year-month
         ;; folders.
         (lambda (id)
           (and (string-match-p "[0-9]\\{8\\}T[0-9]\\{6\\}\.[0-9]\\{6\\}" id)
@@ -5431,9 +5431,9 @@ doing computation.
 
 There are now three lookup functions:
 
-- [[doc:org-loopup-first][org-loopup-first]]
-- [[doc:org-loopup-last][org-loopup-last]]
-- [[doc:org-loopup-all][org-loopup-all]]
+- [[doc:org-lookup-first][org-lookup-first]]
+- [[doc:org-lookup-last][org-lookup-last]]
+- [[doc:org-lookup-all][org-lookup-all]]
 
 See [[https://orgmode.org/org.html#Lookup-functions][the manual]] for details.
 *** Startup keywords

@@ -1202,7 +1202,7 @@ Cette version du didacticiel, comme GNU Emacs, est placée sous
 droit d'auteur, et vous pouvez en distribuer des copies sous certaines
 conditions :
 
-Copyright (C) 1985, 1996, 2001-2022 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 2001-2023 Free Software Foundation, Inc.
 
    Chacun peut créer ou distribuer des copies de ce document tel qu'il
    l'a reçu, sur n'importe quel support, pourvu que la note de
@@ -1219,7 +1219,7 @@ Les conditions de copie d'Emacs lui-même sont plus complexes, mais
 dans le même esprit. Lisez le fichier COPYING et donnez ensuite des
 copies de GNU Emacs à vos amis. Participez à l'éradication de
 l'obstructionnisme du logiciel (sa « propriétarisation ») en
-utilisant, écrivant et partagent des logiciels libres !
+utilisant, écrivant et partageant des logiciels libres !
 
 Cette traduction française a été effectuée par Éric Jacoboni
 <jaco@teaser.fr> et complétée par Bastien Guerry <bzg@gnu.org>.

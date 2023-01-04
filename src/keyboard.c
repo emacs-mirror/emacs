@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2022 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -503,11 +503,10 @@ echo_add_key (Lisp_Object c)
   if ((NILP (echo_string) || SCHARS (echo_string) == 0)
       && help_char_p (c))
     {
-      AUTO_STRING (str, " (Type ? for further options, q for quick help)");
+      AUTO_STRING (str, " (Type ? for further options, C-q for quick help)");
       AUTO_LIST2 (props, Qface, Qhelp_key_binding);
       Fadd_text_properties (make_fixnum (7), make_fixnum (8), props, str);
-      Fadd_text_properties (make_fixnum (30), make_fixnum (31), props,
-str);
+      Fadd_text_properties (make_fixnum (30), make_fixnum (33), props, str);
       new_string = concat2 (new_string, str);
     }
 

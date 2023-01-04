@@ -1,184 +1,187 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2002--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2002--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This node must have no pointers.
 
 @node Antinews
-@appendix Emacs 27 Antinews
+@appendix Emacs 28 Antinews
 @c Update the elisp.texi Antinews menu entry with the above version number.
 
 For those users who live backwards in time, here is information about
-downgrading to Emacs version 27.2.  We hope you will enjoy the greater
+downgrading to Emacs version 28.2.  We hope you will enjoy the greater
 simplicity that results from the absence of many @w{Emacs
 @value{EMACSVER}} features.
 
 @itemize @bullet
 @item
-The annoying @code{lexical-binding} local variable now heeds the
-value of @code{enable-local-variables}: if it's @code{nil}, the
-@code{lexical-binding} cookie is ignored.  We are working hard on
-removing the lexical-binding support in some past Emacs version, and
-this small step advances us back to that change.
+The implementation of overlays is back to its simple, time-proven
+storage in a pair of linear linked lists centered around some buffer
+position.  No more fancy interval trees and suchlikes.  Lisp programs
+that use overlays once again need to recenter overlays around the
+buffer position of interest, and display-related features should again
+make sure they don't use too many overlays in a buffer, lest redisplay
+will be too slow.
 
 @item
-The @code{load-dangerous-libraries} variable is not obsolete, as it
-must be used to allow loading Lisp compiled by XEmacs, which will
-become more and more important as you move back in time.
+Several functions stopped the annoying conversion of quotes and key
+sequences by no longer calling @code{substitute-command-keys}.  One
+prominent example is @code{format-prompt} and all its many callers.
+This makes the strings they produce much more predictable, returning
+to you, the Lisp programmer, control on which punctuation characters
+will appear in the text presented to the users.  For similar reasons,
+the @code{substitute-quotes} function was deleted.
 
 @item
-The optional @var{modes} argument of @code{interactive} is not
-supported, and every command is deemed applicable to any major mode.
-We believe this makes the life of Lisp programmers much simpler, as
-there's now no need to tag commands with the modes where they make
-sense.
+The venerable @code{buffer-modified-p} function again reliably returns
+either @code{nil} or @code{t}, not any other confusing values.
 
 @item
-Shorthands for Lisp symbols have been removed, which makes loading
-Lisp files and handling Lisp symbols much simpler and more efficient.
-This is important for decent performance on slower CPUs as you move
-back in time.
+The support for @samp{medium} weight of fonts was dropped.  Emacs now
+considers @samp{medium} and @samp{regular} weights to be the same.  We
+believe this will simplify your font setup, since there's no longer a
+need to worry about fonts that support @samp{regular} weight, but not
+the @samp{medium} one, or vice versa: either one will do!
 
 @item
 To reduce the amount of code in Emacs related to unimportant features,
-we've removed the variables @code{global-minor-modes} and
-@code{local-minor-modes}.  If your Lisp program needs to determine
-whether some minor mode is in effect, it will have to test explicitly
-for every mode.  We don't expect anyone to miss those fancy variables.
+we've removed the function @code{compiled-function-p}.  Lisp programs
+are expected to test explicitly for the relevant types of function
+objects: built-in, byte-compiled, and natively-compiled.  For the same
+reasons we deleted the functions @code{pos-bol}, @code{pos-eol},
+@code{file-attribute-file-identifier}, and quite a few others.  We
+don't expect anyone to miss those fancy functions.
 
 @item
-The default preference for servicing sub-processes that produce output
-at a high rate, and the associated variable
-@code{process-prioritize-lower-fds}, have been removed.  Moving back
-in time means fewer and fewer programs can produce such high-rate
-output, so this features becomes just useless crud.
+The timeout used by @code{x-show-tip} can no longer be specified by
+Lisp programs; it is hard-coded in the function.  This will lead to a
+simpler, easier maintained code, and no one should want to control the
+timeout after which the tip pops down.
 
 @item
-The encodings that are variants of EBCDIC were removed.  This includes
-@code{ibm256}, @code{ibm273}, and others---variants of the EBCDIC
-encoding tailored for some Japanese and European locales.  You won't
-need those where you are going.
+The macro @code{setopt} was deleted; use @code{customize-variable}
+instead, or invoke the @code{:set} function from Lisp.
 
 @item
-The ``Bindat type expression'' description language has been removed,
-as the existing data layout specifications are perfectly suited for
-this job.
+We removed the @code{lisp-directory} variable, as the value can be
+easily deduced from other similar variables, like
+@code{installation-directory} and @code{source-directory}, each one
+when it's relevant.
 
 @item
-To simplify code and reduce complexity, we removed the capability of
-specifying the success handler in @code{condition-case} via the
-@code{:success} keyword.  If you really need this feature (why would
-you?), you can always write some simple Lisp that has the same effect.
+To simplify code and reduce complexity, we deleted the functions
+@code{get-display-property} and @code{add-display-text-property}; use
+the generic @code{get-text-property} and @code{put-text-property}
+instead.
 
 @item
-Emacs modules can no longer provide interactive functions, or install
-finalizers, nor open channels to existing pipe sub-processes.  All
-this is extra ballast, especially since we plan on removing modules in
-some past Emacs version.  The @code{make_unibyte_string} module API
-was removed for the same reason.
+Support for pinch input events and for modern drag-and-drop
+functionality on X was dropped.  As you move back in time, these
+facilities will become less and less important, and will soon enough
+disappear, so there's no reason to keep them in Emacs.
 
 @item
-To keep Emacs clean and elegant, we've removed the
-@code{print-integers-as-characters} option.  Recognizing characters by
-their decimal codes is a basic requirement for Emacs Lisp programmers,
-and with the expected decrease in use of Unicode characters, this will
-be soon limited to ASCII only: surely something you all can master!
+To keep Emacs clean and elegant, we've removed the @file{textsec.el}
+library, with its facilities for checking whether some text is
+``suspicious''.  We consider our users smart enough to detect
+maliciously modified text by just looking at it or by moving the
+cursor across it, and the whole idea that someone would wish to
+deliberately deceive Emacs users ridiculous and unworthy of
+complicating our elegant text-processing and display capabilities.
 
 @item
-The optional @var{count} argument of the @code{directory-files}
-function has been removed.  Extracting the first @var{n} members from
-the full list is trivial, so this is a significant simplification for
-an insignificant cost.
+The functions @code{keymap-set}, @code{keymap-global-set},
+@code{keymap-local-set}, @code{keymap-substitute},
+@code{keymap-lookup}, and some others were deleted.  We have found the
+traditional @code{define-key}, @code{global-set-key},
+@code{local-set-key}, @code{substitute-key-definition}, and
+@code{key-binding} more than enough, and their minor inconsistencies
+in the syntax of keys they accept a source of endless fun in Emacs
+Lisp programming.  Why make Emacs programming a dull place?  For the
+same reasons we deleted @code{key-valid-p}, since we consider the
+permissive nature of @code{kbd} more in the spirit of Emacs Lisp.
 
 @item
-Functions that create sub-processes and network connections no longer
-accept the @code{:coding} argument; use
-@code{set-process-coding-system} or bind
-@code{coding-system-for-read/write} instead: again, a significant
-reduction in Emacs complexity for little or no cost.
+Yanking of anything but plain text from other applications becomes
+more and more an unnecessary feature as you move back in time, so we
+dropped support for pasting media like HTML and images via the
+clipboard.  If you @i{really} need to yank those into an Emacs buffer,
+you can go via a disk file.
 
 @item
-We deleted from the macros @code{define-derived-mode} and
-@code{define-minor-mode} the code which allowed using the
-@code{:interactive} argument.  The possibility of marking a mode
-non-interactive makes very little sense,
+We removed unnecessary functions @code{string-pixel-width} and
+@code{string-glyph-split}, as we consider it inappropriate for Lisp
+programs to do display layout calculations, where these functions come
+in handy.  Display is for the display engine, written in C, and should
+stay there!
 
 @item
-The possibility of having links to man pages in doc strings has been
-removed.  Use plain text instead, if you need such references.
+Various new Xwidget functions, such as
+@code{xwidget-perform-lispy-event}, @code{xwidget-webkit-load-html},
+and @code{xwidget-webkit-back-forward-list}, were deleted as part of
+our continuing effort to gradually delete the entire Xwidget
+functionality in some previous release of Emacs.
 
 @item
-Temporary buffers are no longer exempt from running any buffer-related
-hooks.  Programs that don't want such hooks in some buffer can always
-disable it locally, whereas making that simpler complicates Emacs for
-no good reason.
+Setting the @code{:stderr} property of a process in a
+@code{make-process} call once again forces the process's connection to
+use pipes, not ptys, for all the standard streams --- a considerable
+simplification of this complex interface.
 
 @item
+To keep the amount of Lisp functions from growing out of control, we
+deleted @code{string-equal-ignore-case}.  Use @code{compare-strings}
+instead.
+
 Several features that complicated the byte compiler have been removed:
 
 @itemize @minus
 @item
-The checks for missing declarations of dynamic variables.  This will
-continue making less and less sense as we move away of lexical-binding
-support.
+The warnings about quoting mistakes in documentation strings.  You are
+expected to find such mistakes yourself, by eyeballing the resulting
+@file{*Help*} buffer display.
 
 @item
-The ability of compiling symlinked @file{*.el} files, which is really
-gross: copy the files instead.
-
-@item
-The warnings about too-wide doc strings---that is just a nuisance, as
-the programmers should be trusted to know what they are doing.
-@end itemize
-
-
-@item
-We deleted several features of the @code{pcase} macro, in accordance
-with our general plan to remove @code{pcase} from Emacs:
-
-@itemize @minus
-@item
-The @code{cl-type} pattern.
-
-@item
-the @code{pcase-setq} macro.
-
-@item
-The @code{pcase-compile-patterns} function.
+The warnings about malformed @code{defcustom} types, like
+double-quoting symbols in @code{choice} lists.
 @end itemize
 
 @item
-Some of the keywords used in Edebug specification lists were deemed to
-be of little use, and were therefore removed: @code{&interpose},
-@code{&error}, and @code{&name}.  The long-term plane is for Emacs to
-drop Edebug entirely, leaving only the trusted Lisp debugger, and we
-continue working according to that plan.
+The macro @code{with-buffer-unmodified-if-unchanged} was deleted.
+Lisp programs that need to leave the buffer unmodified in these cases
+can always compare the text before and after the modifications.
 
 @item
-The function @code{object-intervals} was dropped, as a Lisp program
-can easily collect the intervals of a buffer or a string by iterating
-through them one by one.
+The functions @code{string-edit} and @code{read-string-from-buffer}
+were removed, as we consider the fun of programming them anew every
+time an important part of the education of each Emacs Lisp developer.
 
 @item
-We decided that the @code{require-theme} function is an unnecessary
-complication, so we deleted it.  Lisp programs can easily search along
-@code{custom-theme-load-path} instead.
+We deleted the function @code{readablep} and the related variable
+@code{print-unreadable-function}, since no one is supposed to want to
+print unreadable Lisp objects.
 
 @item
-The convenience functions @code{length<}, @code{length>}, and
-@code{length=} were removed, as using @code{length} followed by a
-comparison should be good enough for everyone, especially considering
-that the typical length of a list keeps going down as you move back
-through time.
+The facility for storing multisession variables was deleted as an
+unnecessary complication.  With it are gone @code{multisession-value},
+@code{define-multisession-variable}, and
+@code{list-multisession-values}.
 
 @item
-The variable @code{current-minibuffer-command} is no longer available,
-as we found little justification for keeping it.
+The support for the @code{cursor-face} text property was dropped.  We
+consider the rest of the faces adequate for supporting this
+functionality.
+
+@item
+The function @code{tooltip-show} dropped support for optional face
+arguments @code{text-face} and @code{default-face} that allow fancy
+control of the face of the tip text and top frame colors.  We decided
+that tooltips should all look the same, to prevent user confusion.
 
 @item
 As part of the ongoing quest for simplicity, many other functions and
 variables have been eliminated.  Other functions and variables, that
-were declared obsolete since Emacs 23, have been added back, in
-preparation for releasing Emacs 23 in some distant past.
+were declared obsolete since Emacs 24, have been added back, in
+preparation for releasing Emacs 24 in some distant past.
 @end itemize

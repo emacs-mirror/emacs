@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1998, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: FSF (see below for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -3630,7 +3630,7 @@ it indicates a specific revision to check out."
   "Default `last-change' implementation.
 It returns the last revision that changed LINE number in FILE."
   (unless (file-exists-p file)
-    (signal 'file-error "File doesn't exist"))
+    (signal 'file-error '("File doesn't exist")))
   (with-temp-buffer
     (vc-call-backend (vc-backend file) 'annotate-command
                      file (current-buffer))

@@ -1,6 +1,6 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1987, 1993-1994, 2001-2022 Free Software
+;; Copyright (C) 1985, 1987, 1993-1994, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -327,15 +327,14 @@ Replaces the From line with a \"Mail-from\" header.  Adds \"Date\" and
 		     "Date: \\2, \\4 \\3 \\9 \\5 "
 
 		     ;; The timezone could be matched by group 7 or group 10.
-		     ;; If neither of them matched, assume EST, since only
-		     ;; Easterners would be so sloppy.
+		     ;; If neither matched, use "-0000" for an unknown zone.
 		     ;; It's a shame the substitution can't use "\\10".
 		     (cond
 		      ((/= (match-beginning 7) (match-end 7)) "\\7")
 		      ((/= (match-beginning 10) (match-end 10))
 		       (buffer-substring (match-beginning 10)
 					 (match-end 10)))
-		      (t "EST"))
+		      (t "-0000"))
 		     "\n"))
 		  ;; Keep and reformat the sender if we don't
 		  ;; have a From: field.

@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Positions
 @chapter Positions
@@ -848,25 +848,14 @@ The value of this variable is a regexp matching the node type of defun
 nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program Source}.)
 
 For example, @code{python-mode} sets this variable to a regexp that
-matches either @code{function_definition} or @code{class_definition}.
+matches either @code{"function_definition"} or @code{"class_definition"}.
 @end defvar
 
-@defvar treesit-defun-prefer-top-level
-If this variable is non-@code{nil}, Emacs skips nested defuns, when it
-looks for beginning and end of a defun, and prefers to go to the
-top-level defun instead.
-
-In some languages, a defun could be nested in another one.  By default,
-Emacs stops at the first defun it encounters.  But if this variable's
-value is @code{t}, whenever Emacs finds a defun node, it tries to go
-up the parse tree until it finds the top-level defun.
-
-This variable can also be a list of cons cells of the form
-@w{@code{(@var{from} . @var{to}))}}, where @var{from} and @var{to} are
-regexps matching tree-sitter node types.  When Emacs finds a defun
-node whose type matches any of the @var{from} regexps in the list, it
-then tries to go up the parse tree until it finds a higher-level node
-matching the corresponding @var{to} regexp.
+@defvar treesit-defun-tactic
+This variable determines how Emacs treats nested defuns.  If the
+value is @code{top-level}, navigation functions only move across
+top-level defuns, if the value is @code{nested}, navigation functions
+recognize nested defuns.
 @end defvar
 
 @node Skipping Characters

@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2022 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1997, 2000-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -395,11 +395,9 @@ Useful for shells like zsh that has this feature."
 
 (defvar-keymap shell-repeat-map
   :doc "Keymap to repeat shell key sequences.  Used in `repeat-mode'."
+  :repeat t
   "C-f" #'shell-forward-command
   "C-b" #'shell-backward-command)
-
-(put #'shell-forward-command 'repeat-map 'shell-repeat-map)
-(put #'shell-backward-command 'repeat-map 'shell-repeat-map)
 
 (defcustom shell-mode-hook '()
   "Hook for customizing Shell mode."

@@ -1,6 +1,6 @@
 ;;; esh-io.el --- I/O management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -116,16 +116,22 @@ from executing while Emacs is redisplaying."
   :group 'eshell-io)
 
 (defcustom eshell-virtual-targets
-  '(("/dev/eshell" eshell-interactive-print nil)
+  '(;; The literal string "/dev/null" is intentional here.  It just
+    ;; provides compatibility so that users can redirect to
+    ;; "/dev/null" no matter the actual value of `null-device'.
+    ("/dev/null" (lambda (_mode) (throw 'eshell-null-device t)) t)
+    ("/dev/eshell" eshell-interactive-print nil)
     ("/dev/kill" (lambda (mode)
-		   (if (eq mode 'overwrite)
-		       (kill-new ""))
-		   'eshell-kill-append) t)
+                   (when (eq mode 'overwrite)
+                     (kill-new ""))
+                   #'eshell-kill-append)
+     t)
     ("/dev/clip" (lambda (mode)
-		   (if (eq mode 'overwrite)
-		       (let ((select-enable-clipboard t))
-			 (kill-new "")))
-		   'eshell-clipboard-append) t))
+                   (when (eq mode 'overwrite)
+                     (let ((select-enable-clipboard t))
+                       (kill-new "")))
+                   #'eshell-clipboard-append)
+     t))
   "Map virtual devices name to Emacs Lisp functions.
 If the user specifies any of the filenames above as a redirection
 target, the function in the second element will be called.
@@ -138,10 +144,8 @@ function.
 
 The output function is then called repeatedly with single strings,
 which represents successive pieces of the output of the command, until nil
-is passed, meaning EOF.
-
-NOTE: /dev/null is handled specially as a virtual target, and should
-not be added to this variable."
+is passed, meaning EOF."
+  :version "30.1"
   :type '(repeat
 	  (list (string :tag "Target")
 		function
@@ -291,25 +295,58 @@ describing the mode, e.g. for using with `eshell-get-target'.")
 (defun eshell-create-handles
   (stdout output-mode &optional stderr error-mode)
   "Create a new set of file handles for a command.
-The default location for standard output and standard error will go to
-STDOUT and STDERR, respectively.
-OUTPUT-MODE and ERROR-MODE are either `overwrite', `append' or `insert';
-a nil value of mode defaults to `insert'."
+The default target for standard output and standard error will
+go to STDOUT and STDERR, respectively.  OUTPUT-MODE and
+ERROR-MODE are either `overwrite', `append' or `insert'; a nil
+value of mode defaults to `insert'.
+
+The result is a vector of file handles.  Each handle is of the form:
+
+  ((TARGETS . REF-COUNT) DEFAULT)
+
+TARGETS is a list of destinations for output.  REF-COUNT is the
+number of references to this handle (initially 1); see
+`eshell-protect-handles' and `eshell-close-handles'.  DEFAULT is
+non-nil if handle has its initial default value (always t after
+calling this function)."
   (let* ((handles (make-vector eshell-number-of-handles nil))
-         (output-target (eshell-get-target stdout output-mode))
-         (error-target (if stderr
-                           (eshell-get-target stderr error-mode)
-                         output-target)))
-    (aset handles eshell-output-handle (cons output-target 1))
-    (aset handles eshell-error-handle (cons error-target 1))
+         (output-target
+          (let ((target (eshell-get-target stdout output-mode)))
+            (cons (when target (list target)) 1)))
+         (error-target
+          (if stderr
+              (let ((target (eshell-get-target stderr error-mode)))
+                (cons (when target (list target)) 1))
+            (cl-incf (cdr output-target))
+            output-target)))
+    (aset handles eshell-output-handle (list output-target t))
+    (aset handles eshell-error-handle (list error-target t))
     handles))
+
+(defun eshell-duplicate-handles (handles &optional steal-p)
+  "Create a duplicate of the file handles in HANDLES.
+This uses the targets of each handle in HANDLES, incrementing its
+reference count by one (unless STEAL-P is non-nil).  These
+targets are shared between the original set of handles and the
+new one, so the targets are only closed when the reference count
+drops to 0 (see `eshell-close-handles').
+
+This function also sets the DEFAULT field for each handle to
+t (see `eshell-create-handles').  Unlike the targets, this value
+is not shared with the original handles."
+  (let ((dup-handles (make-vector eshell-number-of-handles nil)))
+    (dotimes (idx eshell-number-of-handles)
+      (when-let ((handle (aref handles idx)))
+        (unless steal-p
+          (cl-incf (cdar handle)))
+        (aset dup-handles idx (list (car handle) t))))
+    dup-handles))
 
 (defun eshell-protect-handles (handles)
   "Protect the handles in HANDLES from a being closed."
   (dotimes (idx eshell-number-of-handles)
-    (when (aref handles idx)
-      (setcdr (aref handles idx)
-              (1+ (cdr (aref handles idx))))))
+    (when-let ((handle (aref handles idx)))
+      (cl-incf (cdar handle))))
   handles)
 
 (defun eshell-close-handles (&optional exit-code result handles)
@@ -327,42 +364,56 @@ the value already set in `eshell-last-command-result'."
   (when result
     (cl-assert (eq (car result) 'quote))
     (setq eshell-last-command-result (cadr result)))
-  (let ((handles (or handles eshell-current-handles)))
+  (let ((handles (or handles eshell-current-handles))
+        (succeeded (= eshell-last-command-status 0)))
     (dotimes (idx eshell-number-of-handles)
-      (when-let ((handle (aref handles idx)))
-        (setcdr handle (1- (cdr handle)))
-	(when (= (cdr handle) 0)
-          (dolist (target (ensure-list (car (aref handles idx))))
-            (eshell-close-target target (= eshell-last-command-status 0)))
-          (setcar handle nil))))))
+      (eshell-close-handle (aref handles idx) succeeded))))
+
+(defun eshell-close-handle (handle status)
+  "Close a single HANDLE, taking refcounts into account.
+This will pass STATUS to each target for the handle, which should
+be a non-nil value on successful termination."
+  (when handle
+    (cl-assert (> (cdar handle) 0)
+               "Attempted to close a handle with 0 references")
+    (when (and (> (cdar handle) 0)
+               (= (cl-decf (cdar handle)) 0))
+      (dolist (target (caar handle))
+        (eshell-close-target target status))
+      (setcar (car handle) nil))))
 
 (defun eshell-set-output-handle (index mode &optional target handles)
   "Set handle INDEX for the current HANDLES to point to TARGET using MODE.
-If HANDLES is nil, use `eshell-current-handles'."
+If HANDLES is nil, use `eshell-current-handles'.
+
+If the handle is currently set to its default value (see
+`eshell-create-handles'), this will overwrite the targets with
+the new target.  Otherwise, it will append the new target to the
+current list of targets."
   (when target
-    (let ((handles (or handles eshell-current-handles)))
-      (if (and (stringp target)
-               (string= target (null-device)))
-          (aset handles index nil)
-        (let ((where (eshell-get-target target mode))
-              (current (car (aref handles index))))
-          (if (listp current)
-              (unless (member where current)
-                (setq current (append current (list where))))
-            (setq current (list where)))
-          (if (not (aref handles index))
-              (aset handles index (cons nil 1)))
-          (setcar (aref handles index) current))))))
+    (let* ((handles (or handles eshell-current-handles))
+           (handle (or (aref handles index)
+                       (aset handles index (list (cons nil 1) nil))))
+           (defaultp (cadr handle)))
+      (when defaultp
+        (cl-decf (cdar handle))
+        (setcar handle (cons nil 1)))
+      (catch 'eshell-null-device
+        (let ((current (caar handle))
+              (where (eshell-get-target target mode)))
+          (unless (member where current)
+            (setcar (car handle) (append current (list where))))))
+      (setcar (cdr handle) nil))))
 
 (defun eshell-copy-output-handle (index index-to-copy &optional handles)
   "Copy the handle INDEX-TO-COPY to INDEX for the current HANDLES.
 If HANDLES is nil, use `eshell-current-handles'."
   (let* ((handles (or handles eshell-current-handles))
          (handle-to-copy (car (aref handles index-to-copy))))
-    (setcar (aref handles index)
-            (if (listp handle-to-copy)
-                (copy-sequence handle-to-copy)
-              handle-to-copy))))
+    (when handle-to-copy
+      (cl-incf (cdr handle-to-copy)))
+    (eshell-close-handle (aref handles index) nil)
+    (setcar (aref handles index) handle-to-copy)))
 
 (defun eshell-set-all-output-handles (mode &optional target handles)
   "Set output and error HANDLES to point to TARGET using MODE.
@@ -493,9 +544,9 @@ INDEX is the handle index to check.  If nil, check
   (let ((handles (or handles eshell-current-handles))
         (index (or index eshell-output-handle)))
     (if (eq index 'all)
-        (and (eq (car (aref handles eshell-output-handle)) t)
-             (eq (car (aref handles eshell-error-handle)) t))
-      (eq (car (aref handles index)) t))))
+        (and (equal (caar (aref handles eshell-output-handle)) '(t))
+             (equal (caar (aref handles eshell-error-handle)) '(t)))
+      (equal (caar (aref handles index)) '(t)))))
 
 (defvar eshell-print-queue nil)
 (defvar eshell-print-queue-count -1)
@@ -602,15 +653,10 @@ Returns what was actually sent, or nil if nothing was sent."
 If HANDLE-INDEX is nil, output to `eshell-output-handle'.
 HANDLES is the set of file handles to use; if nil, use
 `eshell-current-handles'."
-  (let ((target (car (aref (or handles eshell-current-handles)
-			   (or handle-index eshell-output-handle)))))
-    (if (listp target)
-        (while target
-	  (eshell-output-object-to-target object (car target))
-	  (setq target (cdr target)))
-      (eshell-output-object-to-target object target)
-      ;; Explicitly return nil to match the list case above.
-      nil)))
+  (let ((targets (caar (aref (or handles eshell-current-handles)
+                             (or handle-index eshell-output-handle)))))
+    (dolist (target targets)
+      (eshell-output-object-to-target object target))))
 
 (provide 'esh-io)
 ;;; esh-io.el ends here

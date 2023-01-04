@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -947,7 +947,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         (let ((code (pcase--u1 matches code vars rest)))
           (if (eq upat '_) code
             (macroexp-warn-and-return
-             "Pattern t is deprecated.  Use `_' instead"
+             (format-message "Pattern t is deprecated.  Use `_' instead")
              code nil nil upat))))
        ((eq upat 'pcase--dontcare) :pcase--dontcare)
        ((memq (car-safe upat) '(guard pred))

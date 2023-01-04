@@ -299,7 +299,7 @@ Emacs 可以有多个“窗格”，每个窗格显示不同的文字。后面�
 
 >>  试试 C-u 8 *，这将会插入 ********。
 
-好，现在你应该已经掌握了最基本的的文本插入和修改功能，其实删除还可以
+好，现在你应该已经掌握了最基本的文本插入和修改功能，其实删除还可以
 “以词为单位”进行，下面是一个关于“删除”操作的小结：
 
         <DEL>        删除光标前的一个字符
@@ -316,7 +316,7 @@ Emacs 可以有多个“窗格”，每个窗格显示不同的文字。后面�
 
 注意“<DEL> 和 C-d”还有“M-<DEL> 和 M-d”是根据前述惯例从 C-f和 M-f 衍生
 出来的（其实<DEL>不是控制字符，我们先忽略这一点）。C-k和 M-k 的关系在
-某种程度上与 C-e 和 M-e 一样――如果把“一行”和“一句”作一个类比的话。
+某种程度上与 C-e 和 M-e 一样――如果把“一行”和“一句”做一个类比的话。
 
 你也可以用一种通用的办法来移除缓冲区里的任何一部分：首先把光标移动到你
 想要移除的区域的一端，然后按 C-<SPC>（<SPC>指空格）【注意，C-<SPC> 往
@@ -1006,7 +1006,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2022 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2023 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.
@@ -1035,7 +1035,7 @@ using, writing, and sharing free software!
 
 本篇指南是 GNU Emacs 的一部分，并允许在下列条件的约束下发行其拷贝：
 
-   Copyright (C) 1985, 1996, 1998, 2001-2022 Free Software Foundation,
+   Copyright (C) 1985, 1996, 1998, 2001-2023 Free Software Foundation,
    Inc.
 
    本文件为 GNU Emacs 的一部分。

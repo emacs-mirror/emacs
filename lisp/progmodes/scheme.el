@@ -1,6 +1,6 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1986-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -115,7 +115,8 @@
 
 (defvar scheme-imenu-generic-expression
   `((nil
-     ,(rx bol "(define"
+     ,(rx bol (zero-or-more space)
+          "(define"
           (zero-or-one "*")
           (zero-or-one "-public")
           (one-or-more space)
@@ -123,36 +124,41 @@
           (group (one-or-more (or word (syntax symbol)))))
      1)
     ("Methods"
-     ,(rx bol "(define-"
+     ,(rx bol (zero-or-more space)
+          "(define-"
           (or "generic" "method" "accessor")
           (one-or-more space)
           (zero-or-one "(")
           (group (one-or-more (or word (syntax symbol)))))
      1)
     ("Classes"
-     ,(rx bol "(define-class"
+     ,(rx bol (zero-or-more space)
+          "(define-class"
           (one-or-more space)
           (zero-or-one "(")
           (group (one-or-more (or word (syntax symbol)))))
      1)
     ("Records"
-     ,(rx bol "(define-record-type"
+     ,(rx bol (zero-or-more space)
+          "(define-record-type"
           (zero-or-one "*")
           (one-or-more space)
           (group (one-or-more (or word (syntax symbol)))))
      1)
     ("Conditions"
-     ,(rx bol "(define-condition-type"
+     ,(rx bol (zero-or-more space)
+          "(define-condition-type"
           (one-or-more space)
           (group (one-or-more (or word (syntax symbol)))))
      1)
     ("Modules"
-     ,(rx bol "(define-module"
+     ,(rx bol (zero-or-more space)
+          "(define-module"
           (one-or-more space)
           (group "(" (one-or-more any) ")"))
      1)
     ("Macros"
-     ,(rx bol "("
+     ,(rx bol (zero-or-more space) "("
           (or (and "defmacro"
                    (zero-or-one "*")
                    (zero-or-one "-public"))

@@ -1,6 +1,6 @@
 ;;; srecode/insert.el --- Insert srecode templates to an output stream  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005, 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

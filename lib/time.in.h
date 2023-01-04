@@ -1,6 +1,6 @@
 /* A more-standard <time.h>.
 
-   Copyright (C) 2007-2022 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -315,6 +315,7 @@ _GL_CXXALIASWARN (strptime);
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    define ctime rpl_ctime
 #   endif
+_GL_ATTRIBUTE_DEPRECATED
 _GL_FUNCDECL_RPL (ctime, char *, (time_t const *__tp)
                                  _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (ctime, char *, (time_t const *__tp));
