@@ -3159,12 +3159,12 @@ optional, and you must turn them on manually, or customize
 
 Where no major modes previously existed in Emacs for editing the kinds
 of files for which Emacs now provides a tree-sitter based mode, Emacs
-will now try to enable the tree-sitter mode automatically when you
-visit such files, and will display a warning if the tree-sitter
-library or the parser grammar library is not available.  To prevent
-the warnings, either build Emacs with tree-sitter and install the
-grammar libraries, or customize 'auto-mode-alist' to specify some
-other major mode (or even Fundamental mode) for those kinds of files.
+will now try to enable these new modes automatically when you visit
+such files, and will display a warning if the tree-sitter library or
+the parser grammar library is not available.  To prevent the warnings,
+either build Emacs with tree-sitter and install the grammar libraries,
+or customize 'auto-mode-alist' to specify some other major mode (or
+even Fundamental mode) for those kinds of files.
 
 Each major mode based on tree-sitter needs a language grammar library,
 usually named "libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on
