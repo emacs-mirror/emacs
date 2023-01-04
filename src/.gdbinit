@@ -829,6 +829,20 @@ Print $ as a compiled function pointer.
 This command assumes that $ is an Emacs Lisp compiled value.
 end
 
+define xnativecompunit
+  xgetptr $
+  print (struct Lisp_Native_Comp_Unit *) $ptr
+  set $nativecompunit = (struct Lisp_Native_Comp_Unit *) $ptr
+  xgettype $nativecompunit->file
+  xgetptr $nativecompunit->file
+  output ($type == Lisp_String ? ((char *) (struct Lisp_String *) $ptr)->u.s.data : (struct Lisp_Cons *)$ptr)
+  echo \n
+end
+document xnativecompunit
+Print $ as a native compiled unit.
+This command assumes that $ is an Emacs Lisp native compiled unit value.
+end
+
 define xwindow
   xgetptr $
   print (struct window *) $ptr
@@ -1036,6 +1050,9 @@ define xpr
       end
       if $vec == PVEC_COMPILED
 	xcompiled
+      end
+      if $vec == PVEC_NATIVE_COMP_UNIT
+        xnativecompunit
       end
       if $vec == PVEC_WINDOW
 	xwindow
