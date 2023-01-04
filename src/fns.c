@@ -3168,8 +3168,7 @@ DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
 Return t if answer is yes, and nil if the answer is no.
 
 PROMPT is the string to display to ask the question; `yes-or-no-p'
-adds \"(yes or no) \" to it.  It does not need to end in space, but if
-it does up to one space will be removed.
+adds \"(yes or no) \" to it.
 
 The user must confirm the answer with RET, and can edit it until it
 has been confirmed.

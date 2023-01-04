@@ -3535,8 +3535,7 @@ character.  This is not possible when using `read-key', but using
 Return t if answer is \"y\" and nil if it is \"n\".
 
 PROMPT is the string to display to ask the question; `y-or-n-p'
-adds \" (y or n) \" to it.  It does not need to end in space, but
-if it does up to one space will be removed.
+adds \"(y or n) \" to it.
 
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
