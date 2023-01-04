@@ -7419,9 +7419,9 @@ files, you could say something like:
 
   (\"src/emacs/[^/]+/\\\\(.*\\\\)\\\\\\='\" \"src/emacs/.*/\\\\1\\\\\\='\")
 
-In this example, if you're in src/emacs/emacs-27/lisp/abbrev.el,
-and you an src/emacs/emacs-28/lisp/abbrev.el file exists, it's
-now defined as a sibling."
+In this example, if you're in \"src/emacs/emacs-27/lisp/abbrev.el\",
+and a \"src/emacs/emacs-28/lisp/abbrev.el\" file exists, it's now
+defined as a sibling."
   :type 'sexp
   :version "29.1")
 
