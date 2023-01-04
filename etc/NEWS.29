@@ -68,6 +68,12 @@ Emacs modes you will use, as Emacs loads these libraries only when the
 corresponding mode is turned on in some buffer for the first time in
 an Emacs session.
 
+Emacs provides a user command, 'treesit-install-language-grammar',
+that automates the download and build process of a grammar library.
+It prompts for the language, the URL of the language grammar's VCS
+repository, and then uses the installed C/C++ compiler to build the
+library and install it.
+
 +++
 ** Emacs can be built with built-in support for accessing SQLite databases.
 This uses the popular sqlite3 library, and can be disabled by using

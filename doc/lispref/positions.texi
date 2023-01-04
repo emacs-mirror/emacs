@@ -852,7 +852,7 @@ matches either @code{"function_definition"} or @code{"class_definition"}.
 @end defvar
 
 @defvar treesit-defun-tactic
-This variable determines how does Emacs treat nested defuns.  If the
+This variable determines how Emacs treats nested defuns.  If the
 value is @code{top-level}, navigation functions only move across
 top-level defuns, if the value is @code{nested}, navigation functions
 recognize nested defuns.
