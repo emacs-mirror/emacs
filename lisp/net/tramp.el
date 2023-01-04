@@ -4694,7 +4694,8 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	      (or
 	       ;; The host name is used for the remote shell command.
 	       (member
-		'("%h") (tramp-get-method-parameter item 'tramp-login-args))
+		"%h" (tramp-compat-flatten-tree
+		      (tramp-get-method-parameter item 'tramp-login-args)))
 	       ;; The host name must match previous hop.
 	       (string-match-p previous-host host))
 	    (setq tramp-default-proxies-alist saved-tdpa)
