@@ -1288,8 +1288,7 @@ the function."
                         (cdr exp))))
         ;; Presets override functions, so this condition comes before
         ;; `functionp'.
-        ((alist-get exp treesit-simple-indent-presets)
-         (alist-get exp treesit-simple-indent-presets))
+        ((alist-get exp treesit-simple-indent-presets))
         ((functionp exp) exp)
         ((symbolp exp)
          (if (null exp)
@@ -2914,8 +2913,8 @@ function signals an error."
    :eg-result-string "#<treesit-node (init_declarator) in 5-10>")
 
 
-  (treesit-first-child-for-pos
-   :no-eval (treesit-first-child-for-pos node 1)
+  (treesit-node-first-child-for-pos
+   :no-eval (treesit-node-first-child-for-pos node 1)
    :eg-result-string "#<treesit-node (primitive_type) in 1-4>")
   (treesit-node-descendant-for-range
    :no-eval (treesit-node-descendant-for-range node 2 3)
@@ -2989,11 +2988,11 @@ function signals an error."
    :eg-result t)
 
 
-  (treesit-field-name-for-child
-   :no-eval (treesit-field-name-for-child node)
+  (treesit-node-field-name-for-child
+   :no-eval (treesit-node-field-name-for-child node)
    :eg-result "body")
-  (treesit-child-count
-   :no-eval (treesit-child-count node)
+  (treesit-node-child-count
+   :no-eval (treesit-node-child-count node)
    :eg-result 3)
 
 
