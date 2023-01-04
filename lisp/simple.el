@@ -3795,16 +3795,14 @@ whether (MARKER . ADJUSTMENT) undo elements are in the region,
 because markers can be arbitrarily relocated.  Instead, pass the
 marker adjustment's corresponding (TEXT . POS) element."
   (cond ((integerp undo-elt)
-	 (and (>= undo-elt start)
-	      (<= undo-elt end)))
+         (<= start undo-elt end))
 	((eq undo-elt nil)
 	 t)
 	((atom undo-elt)
 	 nil)
 	((stringp (car undo-elt))
 	 ;; (TEXT . POSITION)
-	 (and (>= (abs (cdr undo-elt)) start)
-	      (<= (abs (cdr undo-elt)) end)))
+	 (<= start (abs (cdr undo-elt)) end))
 	((and (consp undo-elt) (markerp (car undo-elt)))
 	 ;; (MARKER . ADJUSTMENT)
          (<= start (car undo-elt) end))
@@ -6419,7 +6417,7 @@ If the Unicode tables are not yet available, e.g. during bootstrap,
 then gives correct answers only for ASCII characters."
   (cond ((unicode-property-table-internal 'lowercase)
          (characterp (get-char-code-property char 'lowercase)))
-        ((and (>= char ?A) (<= char ?Z)))))
+        ((<= ?A char ?Z))))
 
 (defun zap-to-char (arg char &optional interactive)
   "Kill up to and including ARGth occurrence of CHAR.
@@ -10049,8 +10047,7 @@ PREFIX is the string that represents this modifier in an event type symbol."
 	    ((eq symbol 'shift)
              ;; FIXME: Should we also apply this "upcase" behavior of shift
              ;; to non-ascii letters?
-	     (if (and (<= (downcase event) ?z)
-		      (>= (downcase event) ?a))
+	     (if (<= ?a (downcase event) ?z)
 		 (upcase event)
 	       (logior (ash 1 lshiftby) event)))
 	    (t
