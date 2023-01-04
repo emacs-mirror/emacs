@@ -1741,6 +1741,17 @@ STRING_BYTES (struct Lisp_String *s)
 }
 
 INLINE ptrdiff_t
+STRING_CHARS (struct Lisp_String *s)
+{
+  ptrdiff_t nchars = s->u.s.size;
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  nchars &= ~ARRAY_MARK_FLAG;
+#endif
+  eassume (0 <= nchars);
+  return nchars;
+}
+
+INLINE ptrdiff_t
 SBYTES (Lisp_Object string)
 {
   return STRING_BYTES (XSTRING (string));
