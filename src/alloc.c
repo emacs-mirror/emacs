@@ -2643,11 +2643,6 @@ make_formatted_string (char *buf, const char *format, ...)
 void
 pin_string (Lisp_Object string)
 {
-#ifdef HAVE_STATIC_LISP_GLOBALS
-  if (static_comp_object_p (string))
-    return;
-#endif
-
   eassert (STRINGP (string) && !STRING_MULTIBYTE (string));
   struct Lisp_String *s = XSTRING (string);
   ptrdiff_t size = STRING_BYTES (s);
@@ -7113,10 +7108,6 @@ process_mark_stack (ptrdiff_t base_sp)
   while (mark_stk.sp > base_sp)
     {
       Lisp_Object obj = mark_stack_pop ();
-#ifdef HAVE_STATIC_LISP_GLOBALS
-      if (static_comp_object_p (obj))
-	continue;
-#endif
 
     mark_obj: ;
       void *po = XPNTR (obj);
@@ -7411,10 +7402,6 @@ process_mark_stack (ptrdiff_t base_sp)
 void
 mark_object (Lisp_Object obj)
 {
-#ifdef HAVE_STATIC_LISP_GLOBALS
-  if (static_comp_object_p (obj))
-    return;
-#endif
   ptrdiff_t sp = mark_stk.sp;
   mark_stack_push_value (obj);
   process_mark_stack (sp);
@@ -7455,11 +7442,6 @@ mark_terminals (void)
 bool
 survives_gc_p (Lisp_Object obj)
 {
-#ifdef HAVE_STATIC_LISP_GLOBALS
-  if (static_comp_object_p (obj))
-    return true;
-#endif
-
   bool survives_p;
 
   switch (XTYPE (obj))
