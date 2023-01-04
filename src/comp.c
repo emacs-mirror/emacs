@@ -7879,7 +7879,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       *freloc_link_table = freloc.link_table;
 
 #ifdef HAVE_STATIC_LISP_GLOBALS
-      if (comp_u->have_static_lisp_data)
+      if (comp_u->have_static_lisp_data && !recursive_load)
 	{
 	  comp_u->staticpro = *data_staticpro;
 	  comp_u->ephemeral
@@ -7946,10 +7946,12 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	 modifications.  */
       res = top_level_run (comp_u_lisp_obj);
 
+
       if (!comp_u->have_static_lisp_data)
 	{
-	  /* Make sure data_ephemeral_vec still exists after top_level_run has run.
-	     Guard against sibling call optimization (or any other).  */
+	  /* Make sure data_ephemeral_vec still exists after
+	     top_level_run has run. Guard against sibling call
+	     optimization (or any other).  */
 	  data_ephemeral_vec = data_ephemeral_vec;
 	  eassert (check_comp_unit_relocs (comp_u));
 	}
