@@ -3791,6 +3791,11 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
   ptrdiff_t protosize = PVSIZE (protofun);
   struct Lisp_Vector *v = allocate_vectorlike (protosize, false);
   v->header = XVECTOR (protofun)->header;
+#if HAVE_STATIC_LISP_GLOBALS
+  /* We might be copying from a vector statically allocated during
+     native compilation, be sure to unset the mark flag.  */
+  v->header.size &= ~ARRAY_MARK_FLAG;
+#endif
   memcpy (v->contents, XVECTOR (protofun)->contents, protosize * word_size);
   v->contents[COMPILED_CONSTANTS] = constvec;
   return make_lisp_ptr (v, Lisp_Vectorlike);
@@ -6249,6 +6254,9 @@ visit_vectorlike_root (struct gc_root_visitor visitor,
 
   if (size & PSEUDOVECTOR_FLAG)
     size &= PSEUDOVECTOR_SIZE_MASK;
+#if HAVE_STATIC_LISP_GLOBALS
+  size &= ~ARRAY_MARK_FLAG;
+#endif
   for (i = 0; i < size; i++)
     visitor.visit (&ptr->contents[i], type, visitor.data);
 }
