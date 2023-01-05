@@ -65,7 +65,6 @@ For example, the C language grammar is represented as the symbol
 
 @vindex treesit-extra-load-path
 @vindex treesit-load-language-error
-@vindex treesit-load-suffixes
 Tree-sitter language grammar are distributed as dynamic libraries.
 In order to use a language grammar in Emacs, you need to make sure
 that the dynamic library is installed on the system.  Emacs looks for
@@ -83,7 +82,7 @@ and finally, in the system's default locations for dynamic libraries.
 @end itemize
 
 In each of these directories, Emacs looks for a file with file-name
-extensions specified by the variable @code{treesit-load-suffixes}.
+extensions specified by the variable @code{dynamic-library-suffixes}.
 
 If Emacs cannot find the library or has problems loading it, Emacs
 signals the @code{treesit-load-language-error} error.  The data of
@@ -677,12 +676,12 @@ This function returns all of @var{node}'s children as a list.  If
 @var{named} is non-@code{nil}, it retrieves only named nodes.
 @end defun
 
-@defun treesit-next-sibling node &optional named
+@defun treesit-node-next-sibling node &optional named
 This function finds the next sibling of @var{node}.  If @var{named} is
 non-@code{nil}, it finds the next named sibling.
 @end defun
 
-@defun treesit-prev-sibling node &optional named
+@defun treesit-node-prev-sibling node &optional named
 This function finds the previous sibling of @var{node}.  If
 @var{named} is non-@code{nil}, it finds the previous named sibling.
 @end defun
@@ -696,14 +695,14 @@ assign @dfn{field names} to child nodes (@pxref{tree-sitter node field
 name, field name}).  For example, a @code{function_definition} node
 could have a @code{declarator} node and a @code{body} node.
 
-@defun treesit-child-by-field-name node field-name
+@defun treesit-node-child-by-field-name node field-name
 This function finds the child of @var{node} whose field name is
 @var{field-name}, a string.
 
 @example
 @group
 ;; Get the child that has "body" as its field name.
-(treesit-child-by-field-name node "body")
+(treesit-node-child-by-field-name node "body")
   @result{} #<treesit-node (compound_statement) in 45-89>
 @end group
 @end example
@@ -713,7 +712,7 @@ This function finds the child of @var{node} whose field name is
 @cindex nodes, by position
 @cindex syntax tree nodes, by position
 
-@defun treesit-first-child-for-pos node pos &optional named
+@defun treesit-node-first-child-for-pos node pos &optional named
 This function finds the first child of @var{node} that extends beyond
 buffer position @var{pos}.  ``Extends beyond'' means the end of the
 child node is greater or equal to @var{pos}.  This function only looks
@@ -1002,7 +1001,7 @@ Note that @var{n} counts both named and anonymous child.  And @var{n}
 could be negative, e.g., @code{-1} represents the last child.
 @end defun
 
-@defun treesit-child-count node &optional named
+@defun treesit-node-child-count node &optional named
 This function finds the number of children of @var{node}.  If
 @var{named} is non-@code{nil}, it only counts named children
 (@pxref{tree-sitter named node, named node}).
@@ -1694,7 +1693,7 @@ this pattern:
   ...
   (cond
    ;; Tree-sitter setup.
-   ((treesit-ready-p 'woomy-mode 'woomy)
+   ((treesit-ready-p 'woomy)
     (setq-local treesit-variables ...)
     (treesit-major-mode-setup))
    ;; Non-tree-sitter setup.
@@ -1706,7 +1705,7 @@ this pattern:
 First, the major mode should use @code{treesit-ready-p} to determine
 whether tree-sitter can be activated in this mode.
 
-@defun treesit-ready-p mode language &optional quiet
+@defun treesit-ready-p language &optional quiet
 This function checks for conditions for activating tree-sitter.  It
 checks whether Emacs was built with tree-sitter, whether the buffer's
 size is not too large for tree-sitter to handle it, and whether the
@@ -1734,7 +1733,7 @@ If @code{treesit-font-lock-settings} (@pxref{Parser-based Font Lock})
 is non-@code{nil}, it sets up fontification.
 
 @item
-If @code{treesit-simple-indent-rules} (@pxref{Parser-based Font Lock})
+If @code{treesit-simple-indent-rules} (@pxref{Parser-based Indentation})
 is non-@code{nil}, it sets up indentation.
 
 @item
@@ -1897,12 +1896,12 @@ ts_node_named_child                     treesit-node-child
 ts_node_named_child_count               treesit-node-child-count
 ts_node_child_by_field_name             treesit-node-by-field-name
 ts_node_child_by_field_id
-ts_node_next_sibling                    treesit-next-sibling
-ts_node_prev_sibling                    treesit-prev-sibling
-ts_node_next_named_sibling              treesit-next-sibling
-ts_node_prev_named_sibling              treesit-prev-sibling
-ts_node_first_child_for_byte            treesit-first-child-for-pos
-ts_node_first_named_child_for_byte      treesit-first-child-for-pos
+ts_node_next_sibling                    treesit-node-next-sibling
+ts_node_prev_sibling                    treesit-node-prev-sibling
+ts_node_next_named_sibling              treesit-node-next-sibling
+ts_node_prev_named_sibling              treesit-node-prev-sibling
+ts_node_first_child_for_byte            treesit-node-first-child-for-pos
+ts_node_first_named_child_for_byte      treesit-node-first-child-for-pos
 ts_node_descendant_for_byte_range       treesit-descendant-for-range
 ts_node_descendant_for_point_range
 ts_node_named_descendant_for_byte_range treesit-descendant-for-range
