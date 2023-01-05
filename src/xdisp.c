@@ -23322,8 +23322,9 @@ extend_face_to_end_of_line (struct it *it)
 	  it->avoid_cursor_p = true;
 	  it->object = Qnil;
 
-	  const int stretch_ascent = (((it->ascent + it->descent)
-	                               * FONT_BASE (font)) / FONT_HEIGHT (font));
+	  const int stretch_height = it->ascent + it->descent;
+	  const int stretch_ascent =
+	    (stretch_height * FONT_BASE (font)) / FONT_HEIGHT (font);
 
 	  if (indicator_column >= 0
 	      && indicator_column > it->current_x
@@ -23343,8 +23344,7 @@ extend_face_to_end_of_line (struct it *it)
 	      if (stretch_width > 0)
 		{
 		  append_stretch_glyph (it, Qnil, stretch_width,
-		                        it->ascent + it->descent,
-		                        stretch_ascent);
+		                        stretch_height, stretch_ascent);
 		}
 
 	      /* Generate the glyph indicator only if
@@ -23352,6 +23352,8 @@ extend_face_to_end_of_line (struct it *it)
 	      if (it->current_x < indicator_column)
 		{
 		  const int save_face_id = it->face_id;
+		  const int save_ascent = it->ascent;
+		  const int save_descent = it->descent;
 		  it->char_to_display
 		    = XFIXNAT (Vdisplay_fill_column_indicator_character);
 		  it->face_id
@@ -23359,6 +23361,8 @@ extend_face_to_end_of_line (struct it *it)
 		                   0, extend_face_id);
 		  PRODUCE_GLYPHS (it);
 		  it->face_id = save_face_id;
+		  it->ascent = save_ascent;
+		  it->descent = save_descent;
 		}
 	    }
 
@@ -23372,8 +23376,7 @@ extend_face_to_end_of_line (struct it *it)
 		{
 		  clear_position (it);
 		  append_stretch_glyph (it, Qnil, stretch_width,
-					it->ascent + it->descent,
-					stretch_ascent);
+					stretch_height, stretch_ascent);
 		}
 	    }
 
