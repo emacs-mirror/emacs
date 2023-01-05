@@ -3251,9 +3251,8 @@ extension is ".cmake".
 
 +++
 *** New major mode 'toml-ts-mode'.
-A major mode based on the tree-sitter library for editing files
-written in TOML, a format for writing configuration files.  It is
-auto-enabled for files with the ".toml" extension.
+An optional major mode based on the tree-sitter library for editing
+files written in TOML, a format for writing configuration files.
 
 +++
 *** New major mode 'go-ts-mode'.
