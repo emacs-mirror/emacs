@@ -1060,7 +1060,7 @@ usage: (gnutls-error-string ERROR)  */)
 
 DEFUN ("gnutls-deinit", Fgnutls_deinit, Sgnutls_deinit, 1, 1, 0,
        doc: /* Deallocate GnuTLS resources associated with process PROC.
-See also `gnutls-init'.  */)
+See also `gnutls-boot'.  */)
   (Lisp_Object proc)
 {
   return emacs_gnutls_deinit (proc);
