@@ -5825,14 +5825,6 @@ Nonexistent directories are removed from spec."
 		  vec (format "%s --canonicalize-missing /" result)))
 	result))))
 
-(defun tramp-get-remote-trash (vec)
-  "Determine remote `trash' command.
-This command is returned only if `delete-by-moving-to-trash' is non-nil."
-  (and delete-by-moving-to-trash
-       (with-tramp-connection-property vec "trash"
-	 (tramp-message vec 5 "Finding a suitable `trash' command")
-	 (tramp-find-executable vec "trash" (tramp-get-remote-path vec)))))
-
 (defun tramp-get-remote-touch (vec)
   "Determine remote `touch' command."
   (with-tramp-connection-property vec "touch"

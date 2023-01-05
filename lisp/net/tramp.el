@@ -443,9 +443,7 @@ See `tramp-methods' for a list of possibilities for METHOD."
 (defcustom tramp-default-user nil
   "Default user to use for transferring files.
 It is nil by default; otherwise settings in configuration files like
-\"~/.ssh/config\" would be overwritten.  Also see `tramp-default-user-alist'.
-
-This variable is regarded as obsolete, and will be removed soon."
+\"~/.ssh/config\" would be overwritten.  Also see `tramp-default-user-alist'."
   :type '(choice (const nil) string))
 
 ;;;###tramp-autoload
@@ -1401,20 +1399,6 @@ based on the Tramp and Emacs versions, and should not be set here."
   :group 'tramp
   :version "26.1"
   :type '(repeat string))
-
-(defcustom tramp-completion-reread-directory-timeout 10
-  "Defines seconds since last remote command before rereading a directory.
-A remote directory might have changed its contents.  In order to
-make it visible during file name completion in the minibuffer,
-Tramp flushes its cache and rereads the directory contents when
-more than `tramp-completion-reread-directory-timeout' seconds
-have been gone since last remote command execution.  A value of t
-would require an immediate reread during filename completion, nil
-means to use always cached values for the directory contents."
-  :type '(choice (const nil) (const t) integer))
-(make-obsolete-variable
- 'tramp-completion-reread-directory-timeout
- 'remote-file-name-inhibit-cache "27.2")
 
 ;;; Internal Variables:
 

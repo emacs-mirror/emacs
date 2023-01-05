@@ -1181,26 +1181,6 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (unless (file-directory-p dir)
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
-;; This is not used anymore.
-(defun tramp-smb-handle-make-directory-internal (directory)
-  "Like `make-directory-internal' for Tramp files."
-  (declare (obsolete nil "29.1"))
-  (setq directory (directory-file-name (expand-file-name directory)))
-  (unless (file-name-absolute-p directory)
-    (setq directory (expand-file-name directory default-directory)))
-  (with-parsed-tramp-file-name directory nil
-    (when (file-directory-p (file-name-directory directory))
-      (tramp-smb-send-command
-       v (if (tramp-smb-get-cifs-capabilities v)
-	     (format "posix_mkdir %s %o"
-		     (tramp-smb-shell-quote-localname v) (default-file-modes))
-	   (format "mkdir %s" (tramp-smb-shell-quote-localname v))))
-      ;; We must also flush the cache of the directory, because
-      ;; `file-attributes' reads the values from there.
-      (tramp-flush-file-properties v localname))
-    (unless (file-directory-p directory)
-      (tramp-error v 'file-error "Couldn't make directory %s" directory))))
-
 (defun tramp-smb-handle-make-symbolic-link
   (target linkname &optional ok-if-already-exists)
   "Like `make-symbolic-link' for Tramp files.
