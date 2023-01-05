@@ -303,8 +303,8 @@ properties."
   "Return the closest parent of NODE that satisfies PRED.
 
 Return nil if none was found.  PRED should be a function that
-takes one argument, the parent node, and return non-nil/nil for
-match/no match.
+takes one argument, the node to examine, and returns a boolean
+value indicating whether that node is a match.
 
 If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
   (let ((node (if include-node node
@@ -316,7 +316,8 @@ If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
 (defun treesit-parent-while (node pred)
   "Return the furthest parent of NODE that satisfies PRED.
 Return nil if none was found.  PRED should be a function that
-takes one argument, the parent node."
+takes one argument, the node to examine, and returns a boolean
+value indicating whether that node is a match."
   (let ((last nil))
     (while (and node (funcall pred node))
       (setq last node
