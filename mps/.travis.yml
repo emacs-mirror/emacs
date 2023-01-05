@@ -5,6 +5,7 @@ language: c
 os:
   - linux
   - osx
+  - windows
 arch:
   - amd64
   - arm64
