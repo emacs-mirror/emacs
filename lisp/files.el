@@ -7645,7 +7645,7 @@ If DIR's free space cannot be obtained, this function returns nil."
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
 
-	 ;; The "[BkKMGTPEZY]?" below supports "ls -alh" output.
+	 ;; The "[BkKMGTPEZYRQ]?" below supports "ls -alh" output.
 
 	 ;; For non-iso date formats, we add the ".*" in order to find
 	 ;; the last possible match.  This avoids recognizing
@@ -7657,8 +7657,8 @@ If DIR's free space cannot be obtained, this function returns nil."
          ;; parentheses:
          ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
          ;; This is not supported yet.
-    (purecopy (concat "\\([0-9][BkKMGTPEZY]? " iso
-		      "\\|.*[0-9][BkKMGTPEZY]? "
+    (purecopy (concat "\\([0-9][BkKMGTPEZYRQ]? " iso
+		      "\\|.*[0-9][BkKMGTPEZYRQ]? "
 	              "\\(" western "\\|" western-comma
                       "\\|" DD-MMM-YYYY "\\|" east-asian "\\)"
 		      "\\) +")))

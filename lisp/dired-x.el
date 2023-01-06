@@ -816,7 +816,7 @@ otherwise."
 (defun dired-x--string-to-number (str)
   "Like `string-to-number' but recognize a trailing unit prefix.
 For example, 2K is expanded to 2048.0.  The caller should make
-sure that a trailing letter in STR is one of BKkMGTPEZY."
+sure that a trailing letter in STR is one of BKkMGTPEZYRQ."
   (let* ((val (string-to-number str))
          (u (unless (zerop val)
               (aref str (1- (length str))))))
@@ -831,7 +831,7 @@ sure that a trailing letter in STR is one of BKkMGTPEZY."
       (when (and u (> u ?9))
         (when (= u ?k)
           (setq u ?K))
-        (let ((units '(?B ?K ?M ?G ?T ?P ?E ?Z ?Y)))
+        (let ((units '(?B ?K ?M ?G ?T ?P ?E ?Z ?Y ?R ?Q)))
           (while (and units (/= (pop units) u))
             (setq val (* 1024.0 val)))))
       val)))
@@ -904,7 +904,7 @@ only in the active region if `dired-mark-region' is non-nil."
 	      ;; GNU ls -hs suffixes the block count with a unit and
 	      ;; prints it as a float, FreeBSD does neither.
 	      (dired-re-inode-size "\\=\\s *\\([0-9]+\\s +\\)?\
-\\(?:\\([0-9]+\\(?:\\.[0-9]*\\)?[BkKMGTPEZY]?\\)? ?\\)"))
+\\(?:\\([0-9]+\\(?:\\.[0-9]*\\)?[BkKMGTPEZYRQ]?\\)? ?\\)"))
 	  (beginning-of-line)
 	  (forward-char 2)
 	  (search-forward-regexp dired-re-inode-size nil t)
