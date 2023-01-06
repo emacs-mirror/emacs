@@ -364,7 +364,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 /* MVFFVarargs -- decode obsolete varargs */
 
-static void MVFFVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+static void MVFFVarargs(ArgStruct args[MPS_ARGS_MAX - 1], va_list varargs)
 {
   args[0].key = MPS_KEY_EXTEND_BY;
   args[0].val.size = va_arg(varargs, Size);
@@ -379,6 +379,7 @@ static void MVFFVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[5].key = MPS_KEY_MVFF_FIRST_FIT;
   args[5].val.b = va_arg(varargs, Bool);
   args[6].key = MPS_KEY_ARGS_END;
+  AVER(MPS_ARGS_MAX - 1 > 6);
   AVERT(ArgList, args);
 }
 
