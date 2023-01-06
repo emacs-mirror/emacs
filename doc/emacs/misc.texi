@@ -2707,18 +2707,70 @@ when point is on the first byte of a multibyte sequence in the file.
 @cindex reload files
 @cindex desktop
 
-@vindex desktop-restore-frames
    Use the desktop library to save the state of Emacs from one session
-to another.  Once you save the Emacs @dfn{desktop}---the buffers,
-their file names, major modes, buffer positions, and so on---then
-subsequent Emacs sessions reload the saved desktop.  By default,
-the desktop also tries to save the frame and window configuration.
-To disable this, set @code{desktop-restore-frames} to @code{nil}.
-(See that variable's documentation for some related options
-that you can customize to fine-tune this behavior.)
+to another.  The Emacs @dfn{desktop} consists of the buffers, their
+file names, major modes, buffer positions, and so on.
+
+@vindex desktop-save-mode
+@findex desktop-save-mode
+To enable this feature, use the Customization buffer (@pxref{Easy
+Customization}) to set @code{desktop-save-mode} to @code{t} for future
+sessions, or add this line in your init file (@pxref{Init File}):
+
+@example
+(desktop-save-mode 1)
+@end example
+
+@vindex desktop-path
+@vindex desktop-auto-save-timeout
+  If you turn on @code{desktop-save-mode} in your init file, then when
+Emacs starts, it looks for a saved desktop in @code{desktop-path}
+(which defaults to @code{user-emacs-directory} and then your home
+directory) and uses the first desktop it finds.  While Emacs runs with
+@code{desktop-save-mode} turned on, it by default auto-saves the
+desktop whenever any of it changes.  The variable
+@code{desktop-auto-save-timeout} determines how frequently Emacs
+checks for modifications to your desktop.  The desktop is also saved
+when you exit Emacs.
+
+@findex desktop-change-dir
+@findex desktop-revert
+  You can have separate saved desktops in different directories.  You
+can save the current desktop and reload one saved in another directory
+by typing @kbd{M-x desktop-change-dir}.  Typing @kbd{M-x
+desktop-revert} reverts to the desktop previously reloaded.
+
+@vindex desktop-load-locked-desktop
+  The file in which Emacs saves the desktop is locked while the
+session runs, to avoid inadvertently overwriting it from another Emacs
+session.  That lock is normally removed when Emacs exits, but if Emacs
+or your system crashes, the lock stays, and when you restart Emacs, it
+will by default ask you whether to use the locked desktop file.  You
+can avoid the question by customizing the variable
+@code{desktop-load-locked-desktop} to either @code{nil}, which means
+never load the desktop in this case, or @code{t}, which means load the
+desktop without asking.  Finally, the @code{check-pid} value means to
+load the file if the Emacs process that has locked the desktop is not
+running on the local machine.  This should not be used in
+circumstances where the locking Emacs might still be running on
+another machine.  This could be the case in multi-user environments
+where your home directory is mounted remotely using NFS or similar.
+
+@findex desktop-save
+@findex desktop-read
+  Whenever you want, you can use the command @kbd{M-x desktop-save} to
+force saving the current desktop.  If you do not want to use the
+automatic @code{desktop-save-mode}, you can use @kbd{M-x desktop-save}
+and then @kbd{M-x desktop-read} to restore a previous desktop.
+
+@vindex desktop-restore-frames
+  By default, the desktop also tries to save the frame and window
+configuration.  To disable this, set @code{desktop-restore-frames} to
+@code{nil}.  (See that variable's documentation for some related
+options that you can customize to fine-tune this behavior.)
 
 @vindex desktop-files-not-to-save
-Information about buffers visiting remote files is not saved by
+  Information about buffers visiting remote files is not saved by
 default.  Customize the variable @code{desktop-files-not-to-save} to
 change this.
 
@@ -2732,39 +2784,6 @@ saved when you exited your previous Emacs session; any settings for
 those parameters in your init file will be ignored.  To disable this,
 customize the value of @code{frameset-filter-alist} to filter out the
 frame parameters you don't want to be restored.
-
-@findex desktop-save
-@vindex desktop-save-mode
-  You can save the desktop manually with the command @kbd{M-x
-desktop-save}.  You can also enable automatic saving of the desktop
-when you exit Emacs, and automatic restoration of the last saved
-desktop when Emacs starts: use the Customization buffer (@pxref{Easy
-Customization}) to set @code{desktop-save-mode} to @code{t} for future
-sessions, or add this line in your init file (@pxref{Init File}):
-
-@example
-(desktop-save-mode 1)
-@end example
-
-@findex desktop-change-dir
-@findex desktop-revert
-@vindex desktop-path
-  If you turn on @code{desktop-save-mode} in your init file, then when
-Emacs starts, it looks for a saved desktop in the current directory.
-(More precisely, it looks in the directories specified by
-@code{desktop-path}, and uses the first desktop it finds.)
-Thus, you can have separate saved desktops in different directories,
-and the starting directory determines which one Emacs reloads.  You
-can save the current desktop and reload one saved in another directory
-by typing @kbd{M-x desktop-change-dir}.  Typing @kbd{M-x
-desktop-revert} reverts to the desktop previously reloaded.
-
-  Specify the option @samp{--no-desktop} on the command line when you
-don't want it to reload any saved desktop.  This turns off
-@code{desktop-save-mode} for the current session.  Starting Emacs with
-the @samp{--no-init-file} option also disables desktop reloading,
-since it bypasses the init file, where @code{desktop-save-mode} is
-usually turned on.
 
 @vindex desktop-restore-eager
   By default, all the buffers in the desktop are restored in one go.
@@ -2783,30 +2802,12 @@ preserve certain buffers, customize the variable
 @code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
 expression matching the names of buffers not to kill.
 
-  If you want to save minibuffer history from one session to
-another, use the @code{savehist} library.
-
-@vindex desktop-auto-save-timeout
-  While Emacs runs with @code{desktop-save-mode} turned on, it by
-default auto-saves the desktop whenever any of it changes.  The
-variable @code{desktop-auto-save-timeout} determines how frequently
-Emacs checks for modifications to your desktop.
-
-@vindex desktop-load-locked-desktop
-  The file in which Emacs saves the desktop is locked while the
-session runs, to avoid inadvertently overwriting it from another Emacs
-session.  That lock is normally removed when Emacs exits, but if Emacs
-or your system crashes, the lock stays, and when you restart Emacs, it
-will by default ask you whether to use the locked desktop file.  You
-can avoid the question by customizing the variable
-@code{desktop-load-locked-desktop} to either @code{nil}, which means
-never load the desktop in this case, or @code{t}, which means load the
-desktop without asking.  Finally, the @code{check-pid} value means to
-load the file if the Emacs process that has locked the desktop is not
-running on the local machine.  This should not be used in
-circumstances where the locking Emacs might still be running on
-another machine.  This could be the case in multi-user environments
-where your home directory is mounted remotely using NFS or similar.
+  Specify the option @samp{--no-desktop} on the command line when you
+don't want it to reload any saved desktop.  This turns off
+@code{desktop-save-mode} for the current session.  Starting Emacs with
+the @samp{--no-init-file} option also disables desktop reloading,
+since it bypasses the init file, where @code{desktop-save-mode} is
+usually turned on.
 
 @cindex desktop restore in daemon mode
   When Emacs starts in daemon mode, it cannot ask you any questions,
@@ -2819,6 +2820,9 @@ you may wish to delay restoring the desktop in daemon mode until the
 first client connects, by calling @code{desktop-read} in a hook
 function that you add to @code{server-after-make-frame-hook}
 (@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
+
+  If you want to save minibuffer history from one session to
+another, use the @code{savehist} library.
 
 @node Recursive Edit
 @section Recursive Editing Levels
