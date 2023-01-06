@@ -290,6 +290,21 @@ values of OVERRIDE"
      (method
       name: (setter) @font-lock-function-name-face))
 
+   :language language
+   :feature 'parameter-definition
+   '((method_parameters
+      (identifier) @font-lock-variable-name-face)
+     (block_parameters
+      (identifier) @font-lock-variable-name-face)
+     (optional_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (splat_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (hash_splat_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (block_parameter
+      name: (identifier) @font-lock-variable-name-face))
+
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
    ;; just use separate categories for them -- dgutov.
@@ -936,7 +951,7 @@ leading double colon is not added."
   (setq-local treesit-font-lock-settings (ruby-ts--font-lock-settings 'ruby))
   ;; Level 3 is the default.
   (setq-local treesit-font-lock-feature-list
-              '(( comment method-definition )
+              '(( comment method-definition parameter-definition)
                 ( keyword regexp string type)
                 ( builtin-variable builtin-constant constant
                   delimiter escape-sequence
