@@ -55,7 +55,7 @@
 ;;   3: builtin-variable builtin-constant constant
 ;;      delimiter escape-sequence
 ;;      global instance
-;;      interpolation literal symbol variable
+;;      interpolation literal symbol assignment
 ;;   4: bracket error function operator punctuation
 
 ;; Thus if treesit-font-lock-level is set to level 3 which is its
@@ -297,6 +297,15 @@ values of OVERRIDE"
    :feature 'function
    '((call
       method: (identifier) @font-lock-function-name-face))
+
+   :language language
+   :feature 'assignment
+   '((assignment
+      left: (identifier) @font-lock-variable-name-face)
+     (assignment
+      left: (left_assignment_list (identifier) @font-lock-variable-name-face))
+     (operator_assignment
+      left: (identifier) @font-lock-variable-name-face))
 
    :language language
    :feature 'error
@@ -932,7 +941,7 @@ leading double colon is not added."
                 ( builtin-variable builtin-constant constant
                   delimiter escape-sequence
                   global instance
-                  interpolation literal symbol variable)
+                  interpolation literal symbol assignment)
                 ( bracket error function operator punctuation)))
 
   (treesit-major-mode-setup))
