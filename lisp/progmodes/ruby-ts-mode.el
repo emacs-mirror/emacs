@@ -259,8 +259,8 @@ values of OVERRIDE"
 
    :language language
    :feature 'interpolation
-   '((interpolation "#{" @font-lock-delimiter-face)
-     (interpolation "}" @font-lock-delimiter-face))
+   '((interpolation "#{" @font-lock-misc-punctuation-face)
+     (interpolation "}" @font-lock-misc-punctuation-face))
 
    :language language
    :feature 'type

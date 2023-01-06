@@ -3505,7 +3505,7 @@ This function is intended for use in `after-change-functions'."
    :feature 'string-interpolation
    :override t
    '((template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-delimiter-face))
+     (template_substitution ["${" "}"] @font-lock-misc-punctuation-face))
 
    :language 'javascript
    :feature 'definition

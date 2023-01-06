@@ -154,7 +154,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    `((regex pattern: (regex_pattern)) @font-lock-string-face
      (string) @font-lock-string-face
      (template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-builtin-face))
+     (template_substitution ["${" "}"] @font-lock-misc-punctuation-face))
 
    :language language
    :override t
