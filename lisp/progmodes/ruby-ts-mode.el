@@ -52,7 +52,8 @@
 ;; following levels:
 ;;   1: comment method-definition
 ;;   2: keyword regexp string type
-;;   3: builtin constant delimiter escape-sequence
+;;   3: builtin-variable builtin-constant constant
+;;      delimiter escape-sequence
 ;;      global instance
 ;;      interpolation literal symbol variable
 ;;   4: bracket error function operator punctuation
@@ -87,11 +88,6 @@
   :prefix "ruby-ts-"
   :group 'languages)
 
-(defcustom ruby-ts-highlight-predefined-constants t
-  "When non-nil, the pre-defined constants are highlighted.
-They will be highlighted the same way as the pre-defined variables."
-  :type 'boolean)
-
 (defvar ruby-ts--operators
   '("+" "-" "*" "/" "%" "**"
     "==" "!=" ">" "<" ">=" "<=" "<=>" "==="
@@ -113,8 +109,7 @@ They will be highlighted the same way as the pre-defined variables."
           "RUBY_PATCHLEVEL" "RUBY_PLATFORM" "RUBY_RELEASE_DATE"
           "RUBY_REVISION" "RUBY_VERSION" "STDERR" "STDIN" "STDOUT"
           "TOPLEVEL_BINDING"))
-  "Ruby predefined global constants.
-These are currently unused")
+  "Ruby predefined global constants.")
 
 (defvar ruby-ts--predefined-variables
   (rx (or "$!" "$@" "$~" "$&" "$‘" "$‘" "$+" "$=" "$/" "$\\" "$," "$;"
@@ -122,7 +117,7 @@ These are currently unused")
           "$LOADED_FEATURES" "$DEBUG" "$FILENAME" "$stderr" "$stdin"
           "$stdout" "$VERBOSE" "$-a" "$-i" "$-l" "$-p"
           (seq "$" (+ digit))))
-  "Ruby global variables (but not global constants.")
+  "Ruby predefined global variables.")
 
 (defconst ruby-ts--class-or-module-regex
   (rx string-start
@@ -201,10 +196,12 @@ values of OVERRIDE"
    '((comment) @ruby-ts--comment-font-lock)
 
    :language language
-   :feature 'builtin
-   `(((global_variable) @var (:match ,ruby-ts--predefined-variables @var)) @font-lock-builtin-face
-     ,@(when ruby-ts-highlight-predefined-constants
-         `(((constant) @var (:match ,ruby-ts--predefined-constants @var)) @font-lock-builtin-face)))
+   :feature 'builtin-variable
+   `(((global_variable) @var (:match ,ruby-ts--predefined-variables @var)) @font-lock-builtin-face)
+
+   :language language
+   :feature 'builtin-constant
+   `(((constant) @var (:match ,ruby-ts--predefined-constants @var)) @font-lock-builtin-face)
 
    :language language
    :feature 'keyword
@@ -932,9 +929,9 @@ leading double colon is not added."
   (setq-local treesit-font-lock-feature-list
               '(( comment method-definition )
                 ( keyword regexp string type)
-                ( builtin constant
-                  delimiter escape-sequence global
-                  instance
+                ( builtin-variable builtin-constant constant
+                  delimiter escape-sequence
+                  global instance
                   interpolation literal symbol variable)
                 ( bracket error function operator punctuation)))
 
