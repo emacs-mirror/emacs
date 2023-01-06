@@ -133,8 +133,7 @@ been set up by `rfn-eshadow-setup-minibuffer'."
   ;; Use `path-separator' as it does eshell.
   (setq eshell-path-env
         (if (file-remote-p default-directory)
-            (mapconcat
-	     #'identity (butlast (tramp-compat-exec-path)) path-separator)
+            (mapconcat #'identity (butlast (exec-path)) path-separator)
           (getenv "PATH"))))
 
 (with-eval-after-load 'esh-util

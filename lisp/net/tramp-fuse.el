@@ -69,15 +69,15 @@
 	       (tramp-fuse-local-file-name directory))))))))
     (if full
 	;; Massage the result.
-	(let ((local (tramp-compat-rx
+	(let ((local (rx
 		      bol
 		      (literal
 		       (tramp-fuse-mount-point
 			(tramp-dissect-file-name directory)))))
 	      (remote (directory-file-name
 		       (funcall
-			(if (tramp-compat-file-name-quoted-p directory)
-			    #'tramp-compat-file-name-quote #'identity)
+			(if (file-name-quoted-p directory)
+			    #'file-name-quote #'identity)
 			(file-remote-p directory)))))
 	  (mapcar
 	   (lambda (x) (replace-regexp-in-string local remote x))
@@ -174,8 +174,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
-	          (tramp-compat-rx
-		   bol (group (literal (tramp-fuse-mount-spec vec))) blank)
+	          (rx bol (group (literal (tramp-fuse-mount-spec vec))) blank)
 	          mount)
              (match-string 1 mount)))))))
 
@@ -205,7 +204,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 
 (defun tramp-fuse-local-file-name (filename)
   "Return local mount name of FILENAME."
-  (setq filename (tramp-compat-file-name-unquote (expand-file-name filename)))
+  (setq filename (file-name-unquote (expand-file-name filename)))
   (with-parsed-tramp-file-name filename nil
     ;; As long as we call `tramp-*-maybe-open-connection' here,
     ;; we cache the result.
@@ -214,10 +213,10 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
        (intern
 	(format "tramp-%s-maybe-open-connection" (tramp-file-name-method v)))
        v)
-      (let ((quoted (tramp-compat-file-name-quoted-p localname))
-	    (localname (tramp-compat-file-name-unquote localname)))
+      (let ((quoted (file-name-quoted-p localname))
+	    (localname (file-name-unquote localname)))
 	(funcall
-	 (if quoted #'tramp-compat-file-name-quote #'identity)
+	 (if quoted #'file-name-quote #'identity)
 	 (expand-file-name
 	  (if (file-name-absolute-p localname)
 	      (substring localname 1) localname)
