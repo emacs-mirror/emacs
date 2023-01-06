@@ -3498,7 +3498,7 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'string
-   '((regex pattern: (regex_pattern)) @font-lock-string-face
+   '((regex pattern: (regex_pattern)) @font-lock-regexp-face
      (string) @font-lock-string-face)
 
    :language 'javascript

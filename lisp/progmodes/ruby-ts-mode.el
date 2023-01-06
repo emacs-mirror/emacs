@@ -227,10 +227,8 @@ values of OVERRIDE"
    ;; Also before 'operator because % and / are operators
    :language language
    :feature 'regexp
-   ;; TODO: We probably need a separate face for regexps everywhere.
-   ;; Maybe another one for regexp delimiters as well.
-   '((regex "/" @font-lock-string-face)
-     (regex _ (string_content) @font-lock-string-face))
+   '((regex "/" @font-lock-regexp-face)
+     (regex _ (string_content) @font-lock-regexp-face))
 
    :language language
    :feature 'operator
