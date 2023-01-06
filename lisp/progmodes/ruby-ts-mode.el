@@ -205,15 +205,15 @@ values of OVERRIDE"
 
    :language language
    :feature 'keyword
-   `([,@ruby-ts--keywords] @font-lock-keyword-face)
+   `([,@ruby-ts--keywords] @font-lock-keyword-face
+     (self) @font-lock-keyword-face
+     (super) @font-lock-keyword-face)
 
    :language language
    :feature 'constant
    '((true) @font-lock-doc-markup-face
      (false) @font-lock-doc-markup-face
-     (nil) @font-lock-doc-markup-face
-     (self) @font-lock-doc-markup-face
-     (super) @font-lock-doc-markup-face)
+     (nil) @font-lock-doc-markup-face)
 
    :language language
    :feature 'symbol
