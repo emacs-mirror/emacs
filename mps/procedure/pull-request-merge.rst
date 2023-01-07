@@ -75,20 +75,19 @@ omitted for now.  RB 2023-01-07]
    in Perforce and matches your Perforce user record, submitting it if
    necessary.
 
-#. Clone the mps-public repo and name the remote “ravenbrook”::
+#. Clone the Ravenbrook MPS GitHub repository and name the remote
+   "github", giving (inter alia) access to Travis CI to build and test
+   the merge. ::
 
-     git clone -o ravenbrook ssh://git@perforce.ravenbrook.com:1622/mps-public
+     git clone -o github git@github.com:Ravenbrook/mps.git
 
-   [We can migrate to cloning the repo from GitHub or wherever it is
-   hosted, as long as it's equivalent.  RB 2023-01-07]
+#. Add the Git Fusion mps-public repo, which is the interface to
+   Ravenbrook's Perforce. ::
 
-#. Add the Ravenbrook MPS GitHub repository as a remote in order to
-   make use of Travis CI to build and test the merge.
-
-     git remote add github git@github.com:Ravenbrook/mps.git
+     git remote add ravenbrook ssh://git@perforce.ravenbrook.com:1622/mps-public
 
 #. If the branch to be merged is in a third-party repo (such as a
-   GitHub fork), then add that, e.g.::
+   fork), then add that, e.g.::
 
      git remote add captain-contrib https://gitlab.com/captcontrib/mps.git
 
