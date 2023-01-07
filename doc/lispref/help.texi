@@ -303,7 +303,7 @@ for in the directory @code{doc-directory}.  Usually @var{filename} is
 @defvar doc-directory
 This variable holds the name of the directory which should contain the
 file @code{"DOC"} that contains documentation strings for
-built-in and preloaded functions and variables.
+built-in functions and variables.
 
 In most cases, this is the same as @code{data-directory}.  They may be
 different when you run Emacs from the directory where you built it,
