@@ -6361,7 +6361,7 @@ fi
 # it temporarily reverts them to their pre-pkg-config values,
 # because gnulib needs to work with both src (which uses the
 # pkg-config stuff) and lib-src (which does not).  For example, gnulib
-# may need to determine whether LIB_CLOCK_GETTIME should contain -lrt,
+# may need to determine whether CLOCK_TIME_LIB should contain -lrt,
 # and it therefore needs to run in an environment where LIBS does not
 # already contain -lrt merely because 'pkg-config --libs' printed '-lrt'
 # for some package unrelated to lib-src.
