@@ -114,6 +114,12 @@ docstring, or a comment, or (re)indents the surrounding defun if
 point is not in a comment or a string.  It is by default bound to
 'M-q' in 'prog-mode' and all its descendants.
 
+** Tramp
+
++++
+*** New connection method "toolbox".
+This allow accessing system containers provided by Toolbox.
+
 
 * New Modes and Packages in Emacs 30.1
 

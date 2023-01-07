@@ -927,6 +927,17 @@ pod is used.
 
 This method does not support user names.
 
+@item @option{toolbox}
+@cindex method @option{toolbox}
+@cindex @option{toolbox} method
+
+Integration of Toolbox system containers.  The host name may be either
+a container's name or ID, as returned by @samp{toolbox list -c}.
+Without a host name, the default Toolbox container for the host will
+be used.
+
+This method does not support user names.
+
 @end table
 
 
