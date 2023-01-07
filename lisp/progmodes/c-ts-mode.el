@@ -151,7 +151,9 @@ MODE is either `c' or `cpp'."
            ((parent-is "call_expression") parent 0)
            ((parent-is "enumerator_list") parent-bol c-ts-mode-indent-offset)
            ,@(when (eq mode 'cpp)
-               '(((node-is "access_specifier") parent-bol 0)))
+               '(((node-is "access_specifier") parent-bol 0)
+                 ;; Indent the body of namespace definitions.
+                 ((parent-is "declaration_list") parent-bol c-ts-mode-indent-offset)))
            ((parent-is "field_declaration_list") parent-bol c-ts-mode-indent-offset)
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
            ((parent-is "if_statement") parent-bol c-ts-mode-indent-offset)
@@ -538,7 +540,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
       (c-ts-mode--declarator-identifier
        (treesit-node-child-by-field-name node "declarator")))
      ((or "struct_specifier" "enum_specifier"
-          "union_specifier" "class_specifier")
+          "union_specifier" "class_specifier"
+          "namespace_definition")
       (treesit-node-child-by-field-name node "name")))
    t))
 
@@ -743,7 +746,8 @@ Set up:
                                   "struct_specifier"
                                   "enum_specifier"
                                   "union_specifier"
-                                  "class_specifier"))
+                                  "class_specifier"
+                                  "namespace_definition"))
                     #'c-ts-mode--defun-valid-p))
   (setq-local treesit-defun-skipper #'c-ts-mode--defun-skipper)
   (setq-local treesit-defun-name-function #'c-ts-mode--defun-name)
