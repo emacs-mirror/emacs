@@ -124,8 +124,8 @@ omitted for now.  RB 2023-01-07]
 
    [What would be the default outcome from the GitHub interface, using
    the "merge" button?  [Chaser324_2017]_ claims it only works for
-   fast-forwards, which we don't want, because they discard all
-   records of the merge happening.  RB 2023-01-07]
+   fast-forwards, which we don't want, because they discard records of
+   the merge happening, including who did it.  RB 2023-01-07]
 
 4. Build and test the results locally.  For example::
 
