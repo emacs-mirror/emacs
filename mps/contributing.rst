@@ -26,24 +26,12 @@ The style guide in guide.impl.c.format_ contains basic rules for style.
 Licensing
 ---------
 
-Prior to the 2020-05 re-licensing of the MPS under the BSD 2-clause
-license, we required contributors to agree to the following
-contribution agreement, so that we could continue to commercially
-license the MPS and thereby fund future development. We have not yet
-decided what may replace this requirement.
-
-    I grant Ravenbrook Ltd an irrevocable, perpetual, worldwide,
-    non-exclusive licence to do anything with [your contribution] that I
-    would have the right to do. This includes (but is not limited to):
-
-    1. reproducing it and doing any other act that is restricted by
-       copyright;
-
-    2. the right to sublicence to others the code and any derivative
-       work.
-
-A member of Ravenbrook staff may ask you to expressly (in writing) agree.
-You just need to reply with “I agree.”  We apologise for the inconvenience.
+All contributions are deemed to have been made under the same license
+as the material to which the contribution is made, unless you
+expressly state otherwise in your contribution request.  In nearly all
+cases this is the `BSD 2-clause license
+<https://opensource.org/licenses/BSD-2-Clause>`_.  You retain the
+copyright to such contributions.
 
 
 Thank you
