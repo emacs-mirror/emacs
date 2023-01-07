@@ -1,11 +1,14 @@
+=======================
 Contributing to the MPS
 =======================
+
 We are very happy to receive contributions to the Memory Pool System so
 that we can improve it for everyone.
 
 
 Review
 ------
+
 The MPS is highly engineered and rigorously controlled in order to
 prevent defects.  This approach has lead to an extremely small number of
 bugs in production since its first commercial use in 1997.  There are a
@@ -22,6 +25,7 @@ The style guide in guide.impl.c.format_ contains basic rules for style.
 
 Licensing
 ---------
+
 Prior to the 2020-05 re-licensing of the MPS under the BSD 2-clause
 license, we required contributors to agree to the following
 contribution agreement, so that we could continue to commercially
@@ -44,4 +48,8 @@ You just need to reply with “I agree.”  We apologise for the inconvenience.
 
 Thank you
 ---------
+
 Finally, thank you for making the MPS more useful to everyone.
+
+.. validated with rst2html -v contributing.rst > /dev/null
+.. end
