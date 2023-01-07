@@ -1179,10 +1179,12 @@ See `treesit-simple-indent-presets'.")
         ;; TODO: Document.
         (cons 'and (lambda (&rest fns)
                      (lambda (node parent bol &rest _)
-                       (not
-                        (seq-find
-                         (lambda (fn) (not (funcall fn node parent bol)))
-                         fns)))))
+                       (let (res)
+                         (catch 'break
+                           (dolist (fn fns)
+                             (setq res (funcall fn node parent bol))
+                             (unless res (throw 'break t))))
+                         res))))
         (cons 'or (lambda (&rest fns)
                     (lambda (node parent bol &rest _)
                       (seq-find
