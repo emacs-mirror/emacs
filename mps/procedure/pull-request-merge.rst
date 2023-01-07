@@ -114,6 +114,7 @@ omitted for now.  RB 2023-01-07]
 
 3. Merge master with the branch::
 
+     git checkout branch/2023-01-06/speed-hax
      git merge ravenbrook/master
 
    You may need to resolve conflicts.  If you can't resolve conflicts
@@ -121,8 +122,10 @@ omitted for now.  RB 2023-01-07]
    branch.  If you still can't resolve conflicts, this procedure
    fails.
 
-   [What would be the default outcome from the GitHub interface,
-   using the "merge" button?  Can we allow that?  RB 2023-01-07]
+   [What would be the default outcome from the GitHub interface, using
+   the "merge" button?  [Chaser324_2017]_ claims it only works for
+   fast-forwards, which we don't want, because they discard all
+   records of the merge happening.  RB 2023-01-07]
 
 4. Build and test the results locally.  For example::
 
