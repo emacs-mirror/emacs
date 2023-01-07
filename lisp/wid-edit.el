@@ -2220,7 +2220,9 @@ But if NO-TRUNCATE is non-nil, include them."
             (if (widget-get current :inline)
                 (setq val value
                       fun :match-inline)
-              (setq val (car value)
+              (setq val (if (consp value)
+                            (car value)
+                          value)
                     fun :match))
           (setq val value
                 fun :match))

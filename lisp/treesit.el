@@ -302,9 +302,15 @@ properties."
 (defun treesit-parent-until (node pred &optional include-node)
   "Return the closest parent of NODE that satisfies PRED.
 
-Return nil if none was found.  PRED should be a function that
-takes one argument, the parent node, and return non-nil/nil for
-match/no match.
+This function successively examines the parent of NODE, then
+the parent of the parent, etc., until it finds the first
+ancestor node which satisfies the predicate PRED; then it
+returns that ancestor node.  It returns nil if no ancestor
+node was found that satisfies PRED.
+
+PRED should be a function that takes one argument, the node to
+examine, and returns a boolean value indicating whether that
+node is a match.
 
 If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
   (let ((node (if include-node node
@@ -315,8 +321,16 @@ If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
 
 (defun treesit-parent-while (node pred)
   "Return the furthest parent of NODE that satisfies PRED.
-Return nil if none was found.  PRED should be a function that
-takes one argument, the parent node."
+
+This function successively examines the parent of NODE, then
+the parent of the parent, etc., until it finds an ancestor node
+which no longer satisfies the predicate PRED; it returns the last
+examined ancestor that satisfies PRED.  It returns nil if no
+ancestor node was found that satisfies PRED.
+
+PRED should be a function that takes one argument, the node to
+examine, and returns a boolean value indicating whether that
+node is a match."
   (let ((last nil))
     (while (and node (funcall pred node))
       (setq last node
@@ -1165,16 +1179,17 @@ See `treesit-simple-indent-presets'.")
         ;; TODO: Document.
         (cons 'and (lambda (&rest fns)
                      (lambda (node parent bol &rest _)
-                       (cl-reduce (lambda (a b) (and a b))
-                                  (mapcar (lambda (fn)
-                                            (funcall fn node parent bol))
-                                          fns)))))
+                       (let (res)
+                         (catch 'break
+                           (dolist (fn fns)
+                             (setq res (funcall fn node parent bol))
+                             (unless res (throw 'break t))))
+                         res))))
         (cons 'or (lambda (&rest fns)
                     (lambda (node parent bol &rest _)
-                      (cl-reduce (lambda (a b) (or a b))
-                                 (mapcar (lambda (fn)
-                                           (funcall fn node parent bol))
-                                         fns)))))
+                      (seq-find
+                       (lambda (fn) (funcall fn node parent bol))
+                       fns))))
         (cons 'not (lambda (fn)
                      (lambda (node parent bol &rest _)
                        (not (funcall fn node parent bol)))))
@@ -1288,8 +1303,7 @@ the function."
                         (cdr exp))))
         ;; Presets override functions, so this condition comes before
         ;; `functionp'.
-        ((alist-get exp treesit-simple-indent-presets)
-         (alist-get exp treesit-simple-indent-presets))
+        ((alist-get exp treesit-simple-indent-presets))
         ((functionp exp) exp)
         ((symbolp exp)
          (if (null exp)
@@ -1534,6 +1548,10 @@ RULES."
                   (pcase func
                     (`(query ,qry)
                      (list 'query (treesit-query-compile lang qry)))
+                    (`(and . ,fns)
+                     (cons 'and (mapcar #'optimize-func fns)))
+                    (`(or . ,fns)
+                     (cons 'or (mapcar #'optimize-func fns)))
                     (_ func)))
                 ;; Optimize a rule (MATCHER ANCHOR OFFSET).
                 (optimize-rule (rule)
@@ -2952,8 +2970,8 @@ function signals an error."
    :eg-result-string "#<treesit-node (init_declarator) in 5-10>")
 
 
-  (treesit-first-child-for-pos
-   :no-eval (treesit-first-child-for-pos node 1)
+  (treesit-node-first-child-for-pos
+   :no-eval (treesit-node-first-child-for-pos node 1)
    :eg-result-string "#<treesit-node (primitive_type) in 1-4>")
   (treesit-node-descendant-for-range
    :no-eval (treesit-node-descendant-for-range node 2 3)
@@ -3027,11 +3045,11 @@ function signals an error."
    :eg-result t)
 
 
-  (treesit-field-name-for-child
-   :no-eval (treesit-field-name-for-child node)
+  (treesit-node-field-name-for-child
+   :no-eval (treesit-node-field-name-for-child node)
    :eg-result "body")
-  (treesit-child-count
-   :no-eval (treesit-child-count node)
+  (treesit-node-child-count
+   :no-eval (treesit-node-child-count node)
    :eg-result 3)
 
 

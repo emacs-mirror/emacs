@@ -267,6 +267,22 @@ return nil, even with a non-nil bubblep argument."
       (should child)
       (should (equal (widget-value widget) '(1 "One"))))))
 
+;; Bug#60501
+(ert-deftest widget-test-handle-spurious-inline ()
+  "Test the we can create a menu widget with an unnecessary :inline"
+  (with-temp-buffer
+    (widget-insert "Testing.\n\n")
+    (let* ((widget (widget-create 'menu-choice
+                                  :inline t
+                                  :value "*scratch*"
+                                  '(choice-item "*scratch*")))
+           (child (car (widget-get widget :children))))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (should child)
+      (should (string-equal (widget-value widget) "*scratch*")))))
+
 (ert-deftest widget-test-option-can-handle-choice ()
   "Test that we can create a option widget with a choice correctly."
   (with-temp-buffer

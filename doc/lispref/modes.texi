@@ -4054,7 +4054,7 @@ tree-sitter query in either the string, s-expression or compiled form.
 
 @c FIXME: Cross-ref treesit-font-lock-level to user manual.
 For each @var{query}, the @var{:keyword}/@var{value} pairs that
-precede it add meta information to it.  The @code{:lang} keyword
+precede it add meta information to it.  The @code{:language} keyword
 declares @var{query}'s language.  The @code{:feature} keyword sets the
 feature name of @var{query}.  Users can control which features are
 enabled with @code{treesit-font-lock-level} and

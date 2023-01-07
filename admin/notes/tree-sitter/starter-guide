@@ -238,7 +238,7 @@ Concretely, something like this:
   ...
   (cond
    ;; Tree-sitter.
-   ((treesit-ready-p 'python-mode 'python)
+   ((treesit-ready-p 'python)
     (treesit-parser-create 'python)
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local treesit-font-lock-feature-list

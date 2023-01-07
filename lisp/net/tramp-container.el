@@ -41,6 +41,7 @@
 ;;     CONTAINER     is the container to connect to
 ;;
 ;;
+;;
 ;; Open file in a Kubernetes container:
 ;;
 ;;     C-x C-f /kubernetes:POD:/path/to/file
@@ -54,6 +55,18 @@
 ;; namespace, use this command to change it:
 ;;
 ;; "kubectl config set-context --current --namespace=<name>"
+;;
+;;
+;;
+;; Open a file on an existing toolbox container via Toolbox:
+;;
+;;     C-x C-f /toolbox:CONTAINER:/path/to/file
+;;
+;; Where:
+;;     CONTAINER     is the container to connect to (optional)
+;;
+;; If the container is not running, it is started.  If no container is
+;; specified, the default Toolbox container is used.
 
 ;;; Code:
 
@@ -84,6 +97,14 @@
                  (string)))
 
 ;;;###tramp-autoload
+(defcustom tramp-toolbox-program "toolbox"
+  "Name of the Toolbox client program."
+  :group 'tramp
+  :version "30.1"
+  :type '(choice (const "toolbox")
+                 (string)))
+
+;;;###tramp-autoload
 (defconst tramp-docker-method "docker"
   "Tramp method name to use to connect to Docker containers.")
 
@@ -94,6 +115,10 @@
 ;;;###tramp-autoload
 (defconst tramp-kubernetes-method "kubernetes"
   "Tramp method name to use to connect to Kubernetes containers.")
+
+;;;###tramp-autoload
+(defconst tramp-toolbox-method "toolbox"
+  "Tramp method name to use to connect to Toolbox containers.")
 
 ;;;###tramp-autoload
 (defun tramp-docker--completion-function (&rest _args)
@@ -151,6 +176,27 @@ see its function help for a description of the format."
 	  (buffer-string))))))
 
 ;;;###tramp-autoload
+(defun tramp-toolbox--completion-function (&rest _args)
+  "List Toolbox containers available for connection.
+
+This function is used by `tramp-set-completion-function', please
+see its function help for a description of the format."
+  (when-let ((default-directory tramp-compat-temporary-file-directory)
+	     (raw-list (shell-command-to-string
+			(concat tramp-toolbox-program " list -c")))
+	     ;; Ignore header line.
+             (lines (cdr (split-string raw-list "\n" 'omit)))
+             (names (mapcar
+		     (lambda (line)
+                       (when (string-match
+			      (rx bol (1+ (not space))
+				  (1+ space) (group (1+ (not space))) space)
+			      line)
+			 (match-string 1 line)))
+                     lines)))
+    (mapcar (lambda (m) (list nil m)) (delq nil names))))
+
+;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.
 
 ;;;###tramp-autoload
@@ -167,6 +213,7 @@ see its function help for a description of the format."
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
+
  (add-to-list 'tramp-methods
               `(,tramp-podman-method
                 (tramp-login-program ,tramp-podman-program)
@@ -179,6 +226,7 @@ see its function help for a description of the format."
                 (tramp-remote-shell ,tramp-default-remote-shell)
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
+
  (add-to-list 'tramp-methods
               `(,tramp-kubernetes-method
                 (tramp-login-program ,tramp-kubernetes-program)
@@ -193,6 +241,19 @@ see its function help for a description of the format."
                 (tramp-remote-shell-login ("-l"))
                 (tramp-remote-shell-args ("-i" "-c"))))
 
+ (add-to-list 'tramp-methods
+	      `(,tramp-toolbox-method
+		(tramp-login-program ,tramp-toolbox-program)
+		(tramp-login-args (("run")
+				   ("-c" "%h")
+				   ("%l")))
+		(tramp-direct-async (,tramp-default-remote-shell "-c"))
+		(tramp-remote-shell ,tramp-default-remote-shell)
+		(tramp-remote-shell-login ("-l"))
+		(tramp-remote-shell-args ("-c"))))
+
+ (add-to-list 'tramp-default-host-alist `(,tramp-toolbox-method nil ""))
+
  (tramp-set-completion-function
   tramp-docker-method
   '((tramp-docker--completion-function "")))
@@ -203,7 +264,11 @@ see its function help for a description of the format."
 
  (tramp-set-completion-function
   tramp-kubernetes-method
-  '((tramp-kubernetes--completion-function ""))))
+  '((tramp-kubernetes--completion-function "")))
+
+ (tramp-set-completion-function
+  tramp-toolbox-method
+  '((tramp-toolbox--completion-function ""))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

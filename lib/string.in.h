@@ -59,10 +59,11 @@
 # include <unistd.h>
 #endif
 
-/* AIX 7.2 declares ffsl and ffsll in <strings.h>, not in <string.h>.  */
+/* AIX 7.2 and Android 13 declare ffsl and ffsll in <strings.h>, not in
+   <string.h>.  */
 /* But in any case avoid namespace pollution on glibc systems.  */
 #if ((@GNULIB_FFSL@ || @GNULIB_FFSLL@ || defined GNULIB_POSIXCHECK) \
-     && defined _AIX) \
+     && (defined _AIX || defined __ANDROID__)) \
     && ! defined __GLIBC__
 # include <strings.h>
 #endif
@@ -82,7 +83,14 @@
    can be freed via 'free'; it can be used only after declaring 'free'.  */
 /* Applies to: functions.  Cannot be used on inline functions.  */
 #ifndef _GL_ATTRIBUTE_DEALLOC_FREE
-# define _GL_ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC (free, 1)
+# if defined __cplusplus && defined __GNUC__ && !defined __clang__
+/* Work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108231> */
+#  define _GL_ATTRIBUTE_DEALLOC_FREE \
+     _GL_ATTRIBUTE_DEALLOC ((void (*) (void *)) free, 1)
+# else
+#  define _GL_ATTRIBUTE_DEALLOC_FREE \
+     _GL_ATTRIBUTE_DEALLOC (free, 1)
+# endif
 #endif
 
 /* _GL_ATTRIBUTE_MALLOC declares that the function returns a pointer to freshly
@@ -336,7 +344,7 @@ _GL_CXXALIAS_SYS_CAST2 (memrchr,
          || defined __clang__)
 _GL_CXXALIASWARN1 (memrchr, void *, (void *, int, size_t) throw ());
 _GL_CXXALIASWARN1 (memrchr, void const *, (void const *, int, size_t) throw ());
-# else
+# elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (memrchr);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -491,7 +499,7 @@ _GL_CXXALIAS_SYS_CAST2 (strchrnul,
 _GL_CXXALIASWARN1 (strchrnul, char *, (char *__s, int __c_in) throw ());
 _GL_CXXALIASWARN1 (strchrnul, char const *,
                    (char const *__s, int __c_in) throw ());
-# else
+# elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (strchrnul);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -856,7 +864,7 @@ _GL_CXXALIASWARN1 (strcasestr, char *,
                    (char *haystack, const char *needle) throw ());
 _GL_CXXALIASWARN1 (strcasestr, const char *,
                    (const char *haystack, const char *needle) throw ());
-# else
+# elif __GLIBC__ >= 2
 _GL_CXXALIASWARN (strcasestr);
 # endif
 #elif defined GNULIB_POSIXCHECK

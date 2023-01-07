@@ -52,9 +52,10 @@
 ;; following levels:
 ;;   1: comment method-definition
 ;;   2: keyword regexp string type
-;;   3: builtin constant delimiter escape-sequence
+;;   3: builtin-variable builtin-constant constant
+;;      delimiter escape-sequence
 ;;      global instance
-;;      interpolation literal symbol variable
+;;      interpolation literal symbol assignment
 ;;   4: bracket error function operator punctuation
 
 ;; Thus if treesit-font-lock-level is set to level 3 which is its
@@ -87,11 +88,6 @@
   :prefix "ruby-ts-"
   :group 'languages)
 
-(defcustom ruby-ts-highlight-predefined-constants t
-  "When non-nil, the pre-defined constants are highlighted.
-They will be highlighted the same way as the pre-defined variables."
-  :type 'boolean)
-
 (defvar ruby-ts--operators
   '("+" "-" "*" "/" "%" "**"
     "==" "!=" ">" "<" ">=" "<=" "<=>" "==="
@@ -113,8 +109,7 @@ They will be highlighted the same way as the pre-defined variables."
           "RUBY_PATCHLEVEL" "RUBY_PLATFORM" "RUBY_RELEASE_DATE"
           "RUBY_REVISION" "RUBY_VERSION" "STDERR" "STDIN" "STDOUT"
           "TOPLEVEL_BINDING"))
-  "Ruby predefined global constants.
-These are currently unused")
+  "Ruby predefined global constants.")
 
 (defvar ruby-ts--predefined-variables
   (rx (or "$!" "$@" "$~" "$&" "$‘" "$‘" "$+" "$=" "$/" "$\\" "$," "$;"
@@ -122,7 +117,7 @@ These are currently unused")
           "$LOADED_FEATURES" "$DEBUG" "$FILENAME" "$stderr" "$stdin"
           "$stdout" "$VERBOSE" "$-a" "$-i" "$-l" "$-p"
           (seq "$" (+ digit))))
-  "Ruby global variables (but not global constants.")
+  "Ruby predefined global variables.")
 
 (defconst ruby-ts--class-or-module-regex
   (rx string-start
@@ -201,29 +196,24 @@ values of OVERRIDE"
    '((comment) @ruby-ts--comment-font-lock)
 
    :language language
-   :feature 'builtin
-   `(((global_variable) @var (:match ,ruby-ts--predefined-variables @var)) @font-lock-builtin-face
-     ,@(when ruby-ts-highlight-predefined-constants
-         `(((constant) @var (:match ,ruby-ts--predefined-constants @var)) @font-lock-builtin-face)))
+   :feature 'builtin-variable
+   `(((global_variable) @var (:match ,ruby-ts--predefined-variables @var)) @font-lock-builtin-face)
+
+   :language language
+   :feature 'builtin-constant
+   `(((constant) @var (:match ,ruby-ts--predefined-constants @var)) @font-lock-builtin-face)
 
    :language language
    :feature 'keyword
-   `([,@ruby-ts--keywords] @font-lock-keyword-face)
+   `([,@ruby-ts--keywords] @font-lock-keyword-face
+     (self) @font-lock-keyword-face
+     (super) @font-lock-keyword-face)
 
    :language language
    :feature 'constant
    '((true) @font-lock-doc-markup-face
      (false) @font-lock-doc-markup-face
-     (nil) @font-lock-doc-markup-face
-     (self) @font-lock-doc-markup-face
-     (super) @font-lock-doc-markup-face)
-
-   :language language
-   :feature 'symbol
-   '((bare_symbol) @font-lock-constant-face
-     (delimited_symbol (string_content) @font-lock-constant-face)
-     (hash_key_symbol) @font-lock-constant-face
-     (simple_symbol) @font-lock-constant-face)
+     (nil) @font-lock-doc-markup-face)
 
    ;; Before 'operator so (unary) works.
    :language language
@@ -237,10 +227,8 @@ values of OVERRIDE"
    ;; Also before 'operator because % and / are operators
    :language language
    :feature 'regexp
-   ;; TODO: We probably need a separate face for regexps everywhere.
-   ;; Maybe another one for regexp delimiters as well.
-   '((regex "/" @font-lock-string-face)
-     (regex _ (string_content) @font-lock-string-face))
+   '((regex "/" @font-lock-regexp-face)
+     (regex _ (string_content) @font-lock-regexp-face))
 
    :language language
    :feature 'operator
@@ -269,8 +257,8 @@ values of OVERRIDE"
 
    :language language
    :feature 'interpolation
-   '((interpolation "#{" @font-lock-delimiter-face)
-     (interpolation "}" @font-lock-delimiter-face))
+   '((interpolation "#{" @font-lock-misc-punctuation-face)
+     (interpolation "}" @font-lock-misc-punctuation-face))
 
    :language language
    :feature 'type
@@ -293,6 +281,33 @@ values of OVERRIDE"
      (method
       name: (setter) @font-lock-function-name-face))
 
+   :language language
+   :feature 'parameter-definition
+   '((method_parameters
+      (identifier) @font-lock-variable-name-face)
+     (block_parameters
+      (identifier) @font-lock-variable-name-face)
+     (optional_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (splat_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (hash_splat_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (block_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (destructured_parameter
+      (identifier) @font-lock-variable-name-face)
+     (lambda_parameters
+      (identifier) @font-lock-variable-name-face)
+     (exception_variable
+      (identifier) @font-lock-variable-name-face)
+     (array_pattern
+      (identifier) @font-lock-variable-name-face)
+     (keyword_pattern
+      key: (hash_key_symbol) @font-lock-variable-name-face)
+     (in_clause
+      pattern: (identifier) @font-lock-variable-name-face))
+
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
    ;; just use separate categories for them -- dgutov.
@@ -300,6 +315,22 @@ values of OVERRIDE"
    :feature 'function
    '((call
       method: (identifier) @font-lock-function-name-face))
+
+   :language language
+   :feature 'assignment
+   '((assignment
+      left: (identifier) @font-lock-variable-name-face)
+     (assignment
+      left: (left_assignment_list (identifier) @font-lock-variable-name-face))
+     (operator_assignment
+      left: (identifier) @font-lock-variable-name-face))
+
+   :language language
+   :feature 'symbol
+   '((bare_symbol) @font-lock-constant-face
+     (delimited_symbol (string_content) @font-lock-constant-face)
+     (hash_key_symbol) @font-lock-constant-face
+     (simple_symbol) @font-lock-constant-face)
 
    :language language
    :feature 'error
@@ -930,12 +961,12 @@ leading double colon is not added."
   (setq-local treesit-font-lock-settings (ruby-ts--font-lock-settings 'ruby))
   ;; Level 3 is the default.
   (setq-local treesit-font-lock-feature-list
-              '(( comment method-definition )
+              '(( comment method-definition parameter-definition)
                 ( keyword regexp string type)
-                ( builtin constant
-                  delimiter escape-sequence global
-                  instance
-                  interpolation literal symbol variable)
+                ( builtin-variable builtin-constant constant
+                  delimiter escape-sequence
+                  global instance
+                  interpolation literal symbol assignment)
                 ( bracket error function operator punctuation)))
 
   (treesit-major-mode-setup))

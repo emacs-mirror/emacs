@@ -117,7 +117,6 @@ Return nil if there is no name or if NODE is not a defun node."
      (or (treesit-node-text (treesit-node-child node 1) t)
          "Root table"))))
 
-;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
 
 ;;;###autoload

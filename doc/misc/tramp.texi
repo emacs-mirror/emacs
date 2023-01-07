@@ -1,5 +1,5 @@
 \input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
-@setfilename ../info/tramp
+@setfilename ../../info/tramp.info
 @c %**start of header
 @include docstyle.texi
 @c In the Tramp GIT, the version number and the bug report address
@@ -924,6 +924,17 @@ if desired.
 Integration for containers in Kubernetes pods.  The host name is a pod
 name returned by @samp{kubectl get pods}.  The first container in a
 pod is used.
+
+This method does not support user names.
+
+@item @option{toolbox}
+@cindex method @option{toolbox}
+@cindex @option{toolbox} method
+
+Integration of Toolbox system containers.  The host name may be either
+a container's name or ID, as returned by @samp{toolbox list -c}.
+Without a host name, the default Toolbox container for the host will
+be used.
 
 This method does not support user names.
 
@@ -3928,12 +3939,12 @@ connection-local variables.
 
 @vindex async-shell-command-width
 @vindex COLUMNS@r{, environment variable}
-If Emacs supports the user option @code{async-shell-command-width}
-(since @w{Emacs 27}), @value{tramp} cares about its value for
-asynchronous shell commands.  It specifies the number of display
-columns for command output.  For synchronous shell commands, a similar
-effect can be achieved by adding the environment variable
-@env{COLUMNS} to @code{tramp-remote-process-environment}.
+@value{tramp} cares about the user option
+@code{async-shell-command-width} for asynchronous shell commands.  It
+specifies the number of display columns for command output.  For
+synchronous shell commands, a similar effect can be achieved by adding
+the environment variable @env{COLUMNS} to
+@code{tramp-remote-process-environment}.
 
 
 @subsection Running @code{eshell} on a remote host
@@ -4824,8 +4835,8 @@ Where is the latest @value{tramp}?
 @item
 Which systems does it work on?
 
-The package works successfully on @w{Emacs 26}, @w{Emacs 27}, @w{Emacs
-28}, and @w{Emacs 29}.
+The package works successfully on @w{Emacs 27}, @w{Emacs 28}, @w{Emacs
+29}, and @w{Emacs 30}.
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as

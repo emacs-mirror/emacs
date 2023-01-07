@@ -530,7 +530,7 @@ The directory name must be absolute, but need not be fully expanded.")
 
 (put 'dired-actual-switches 'safe-local-variable 'dired-safe-switches-p)
 
-(defvar dired-re-inode-size "[0-9 \t]*[.,0-9]*[BkKMGTPEZY]?[ \t]*"
+(defvar dired-re-inode-size "[0-9 \t]*[.,0-9]*[BkKMGTPEZYRQ]?[ \t]*"
   "Regexp for optional initial inode and file size as made by `ls -i -s'.")
 
 ;; These regexps must be tested at beginning-of-line, but are also

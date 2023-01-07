@@ -3,9 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2022-12-19.22}
+\def\texinfoversion{2023-01-02.21}
 %
-% Copyright 1985--1986, 1988, 1990--2023 Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2023 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -57,12 +57,6 @@
 
 
 \message{Loading texinfo [version \texinfoversion]:}
-
-% If in a .fmt file, print the version number
-% and turn on active characters that we couldn't do earlier because
-% they might have appeared in the input file name.
-\everyjob{\message{[Texinfo version \texinfoversion]}%
-  \catcode`+=\active \catcode`\_=\active}
 
 % LaTeX's \typeout.  This ensures that the messages it is used for
 % are identical in format to the corresponding ones from latex/pdflatex.
@@ -530,7 +524,7 @@
 
 % ... but they get defined via ``\envdef\foo{...}'':
 \long\def\envdef#1#2{\def#1{\startenvironment#1#2}}
-\def\envparseargdef#1#2{\parseargdef#1{\startenvironment#1#2}}
+\long\def\envparseargdef#1#2{\parseargdef#1{\startenvironment#1#2}}
 
 % Check whether we're in the right environment:
 \def\checkenv#1{%
@@ -1200,13 +1194,17 @@ output) for that.)}
   %
   % Set color, and create a mark which defines \thiscolor accordingly,
   % so that \makeheadline knows which color to restore.
+  \def\curcolor{0 0 0}%
   \def\setcolor#1{%
-    \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
-    \domark
-    \pdfsetcolor{#1}%
+    \ifx#1\curcolor\else
+      \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
+      \domark
+      \pdfsetcolor{#1}%
+      \xdef\curcolor{#1}%
+    \fi
   }
   %
-  \def\maincolor{\rgbBlack}
+  \let\maincolor\rgbBlack
   \pdfsetcolor{\maincolor}
   \edef\thiscolor{\maincolor}
   \def\currentcolordefs{}
@@ -1362,7 +1360,7 @@ output) for that.)}
   %
   % by default, use black for everything.
   \def\urlcolor{\rgbBlack}
-  \def\linkcolor{\rgbBlack}
+  \let\linkcolor\rgbBlack
   \def\endlink{\setcolor{\maincolor}\pdfendlink}
   %
   % Adding outlines to PDF; macros for calculating structure of outlines
@@ -2683,6 +2681,7 @@ end
 \gdef\setcodequotes{\let`\codequoteleft \let'\codequoteright}
 \gdef\setregularquotes{\let`\lq \let'\rq}
 }
+\setregularquotes
 
 % Allow an option to not use regular directed right quote/apostrophe
 % (char 0x27), but instead the undirected quote from cmtt (char 0x0d).
@@ -3744,8 +3743,8 @@ $$%
               want the contents after the title page.}}%
 
 \parseargdef\shorttitlepage{%
-  \begingroup \hbox{}\vskip 1.5in \chaprm \centerline{#1}%
-  \endgroup\page\hbox{}\page}
+  {\headingsoff \begingroup \hbox{}\vskip 1.5in \chaprm \centerline{#1}%
+  \endgroup\page\hbox{}\page}\pageone}
 
 \envdef\titlepage{%
   % Open one extra group, as we want to close it in the middle of \Etitlepage.
@@ -4795,21 +4794,6 @@ $$%
 \def\docodeindexxxx #1{\docind{\indexname}{#1}}
 
 
-% Used for the aux, toc and index files to prevent expansion of Texinfo
-% commands.
-%
-\def\atdummies{%
-  \definedummyletter\@%
-  \definedummyletter\ %
-  \definedummyletter\{%
-  \definedummyletter\}%
-  \definedummyletter\&%
-  %
-  % Do the redefinitions.
-  \definedummies
-  \otherbackslash
-}
-
 % \definedummyword defines \#1 as \string\#1\space, thus effectively
 % preventing its expansion.  This is used only for control words,
 % not control letters, because the \space would be incorrect for
@@ -4825,110 +4809,91 @@ $$%
 %
 \def\definedummyword  #1{\def#1{\string#1\space}}%
 \def\definedummyletter#1{\def#1{\string#1}}%
-\let\definedummyaccent\definedummyletter
 
-% Called from \atdummies to prevent the expansion of commands.
+% Used for the aux, toc and index files to prevent expansion of Texinfo
+% commands.  Most of the commands are controlled through the
+% \ifdummies conditional.
 %
-\def\definedummies{%
+\def\atdummies{%
+  \dummiestrue
   %
-  \let\commondummyword\definedummyword
-  \let\commondummyletter\definedummyletter
-  \let\commondummyaccent\definedummyaccent
-  \commondummiesnofonts
+  \definedummyletter\@%
+  \definedummyletter\ %
+  \definedummyletter\{%
+  \definedummyletter\}%
+  \definedummyletter\&%
   %
   \definedummyletter\_%
   \definedummyletter\-%
   %
-  % Non-English letters.
-  \definedummyword\AA
-  \definedummyword\AE
-  \definedummyword\DH
-  \definedummyword\L
-  \definedummyword\O
-  \definedummyword\OE
-  \definedummyword\TH
-  \definedummyword\aa
-  \definedummyword\ae
-  \definedummyword\dh
-  \definedummyword\exclamdown
-  \definedummyword\l
-  \definedummyword\o
-  \definedummyword\oe
-  \definedummyword\ordf
-  \definedummyword\ordm
-  \definedummyword\questiondown
-  \definedummyword\ss
-  \definedummyword\th
-  %
-  % Although these internal commands shouldn't show up, sometimes they do.
-  \definedummyword\bf
-  \definedummyword\gtr
-  \definedummyword\hat
-  \definedummyword\less
-  \definedummyword\sf
-  \definedummyword\sl
-  \definedummyword\tclose
-  \definedummyword\tt
-  %
-  \definedummyword\LaTeX
-  \definedummyword\TeX
-  %
-  % Assorted special characters.
-  \definedummyword\ampchar
-  \definedummyword\atchar
-  \definedummyword\arrow
-  \definedummyword\backslashchar
-  \definedummyword\bullet
-  \definedummyword\comma
-  \definedummyword\copyright
-  \definedummyword\registeredsymbol
-  \definedummyword\dots
-  \definedummyword\enddots
-  \definedummyword\entrybreak
-  \definedummyword\equiv
-  \definedummyword\error
-  \definedummyword\euro
-  \definedummyword\expansion
-  \definedummyword\geq
-  \definedummyword\guillemetleft
-  \definedummyword\guillemetright
-  \definedummyword\guilsinglleft
-  \definedummyword\guilsinglright
-  \definedummyword\lbracechar
-  \definedummyword\leq
-  \definedummyword\mathopsup
-  \definedummyword\minus
-  \definedummyword\ogonek
-  \definedummyword\pounds
-  \definedummyword\point
-  \definedummyword\print
-  \definedummyword\quotedblbase
-  \definedummyword\quotedblleft
-  \definedummyword\quotedblright
-  \definedummyword\quoteleft
-  \definedummyword\quoteright
-  \definedummyword\quotesinglbase
-  \definedummyword\rbracechar
-  \definedummyword\result
-  \definedummyword\sub
-  \definedummyword\sup
-  \definedummyword\textdegree
-  %
   \definedummyword\subentry
   %
   % We want to disable all macros so that they are not expanded by \write.
+  \let\commondummyword\definedummyword
   \macrolist
   \let\value\dummyvalue
   %
-  \normalturnoffactive
+  \turnoffactive
 }
 
-% \commondummiesnofonts: common to \definedummies and \indexnofonts.
-% Define \commondummyletter, \commondummyaccent and \commondummyword before
-% using.  Used for accents, font commands, and various control letters.
-%
-\def\commondummiesnofonts{%
-  % Control letters and accents.
+\newif\ifdummies
+\newif\ifindexnofonts
+
+\def\commondummyletter#1{%
+  \expandafter\let\csname\string#1:impl\endcsname#1%
+  \edef#1{%
+    \noexpand\ifindexnofonts
+      % empty expansion
+    \noexpand\else
+      \noexpand\ifdummies\string#1%
+      \noexpand\else
+        \noexpand\jumptwofi % dispose of the \fi
+        \expandafter\noexpand\csname\string#1:impl\endcsname
+      \noexpand\fi
+    \noexpand\fi}%
+}
+
+\def\commondummyaccent#1{%
+  \expandafter\let\csname\string#1:impl\endcsname#1%
+  \edef#1{%
+    \noexpand\ifindexnofonts
+      \noexpand\expandafter % dispose of \else ... \fi
+      \noexpand\asis
+    \noexpand\else
+      \noexpand\ifdummies\string#1%
+      \noexpand\else
+        \noexpand\jumptwofi % dispose of the \fi
+        \expandafter\noexpand\csname\string#1:impl\endcsname
+      \noexpand\fi
+    \noexpand\fi}%
+}
+
+% Like \commondummyaccent but add a \space at the end of the dummy expansion
+% #2 is the expansion used for \indexnofonts.  #2 is always followed by
+% \asis to remove a pair of following braces.
+\def\commondummyword#1#2{%
+  \expandafter\let\csname\string#1:impl\endcsname#1%
+  \expandafter\def\csname\string#1:ixnf\endcsname{#2\asis}%
+  \edef#1{%
+    \noexpand\ifindexnofonts
+      \noexpand\expandafter % dispose of \else ... \fi
+      \expandafter\noexpand\csname\string#1:ixnf\endcsname
+    \noexpand\else
+      \noexpand\ifdummies\string#1\space
+      \noexpand\else
+        \noexpand\jumptwofi % dispose of the \fi \fi
+        \expandafter\noexpand\csname\string#1:impl\endcsname
+      \noexpand\fi
+    \noexpand\fi}%
+}
+\def\jumptwofi#1\fi\fi{\fi\fi#1}
+
+% For \atdummies and \indexnofonts.  \atdummies sets
+% \dummiestrue and \indexnofonts sets \indexnofontstrue.
+\def\definedummies{
+  % @-sign is always an escape character when reading auxiliary files
+  \escapechar = `\@
+  %
   \commondummyletter\!%
   \commondummyaccent\"%
   \commondummyaccent\'%
@@ -4942,58 +4907,123 @@ $$%
   \commondummyaccent\^%
   \commondummyaccent\`%
   \commondummyaccent\~%
-  \commondummyword\u
-  \commondummyword\v
-  \commondummyword\H
-  \commondummyword\dotaccent
-  \commondummyword\ogonek
-  \commondummyword\ringaccent
-  \commondummyword\tieaccent
-  \commondummyword\ubaraccent
-  \commondummyword\udotaccent
-  \commondummyword\dotless
+  %
+  % Control letters and accents.
+  \commondummyword\u          {}%
+  \commondummyword\v          {}%
+  \commondummyword\H          {}%
+  \commondummyword\dotaccent  {}%
+  \commondummyword\ogonek     {}%
+  \commondummyword\ringaccent {}%
+  \commondummyword\tieaccent  {}%
+  \commondummyword\ubaraccent {}%
+  \commondummyword\udotaccent {}%
+  \commondummyword\dotless    {}%
   %
   % Texinfo font commands.
-  \commondummyword\b
-  \commondummyword\i
-  \commondummyword\r
-  \commondummyword\sansserif
-  \commondummyword\sc
-  \commondummyword\slanted
-  \commondummyword\t
+  \commondummyword\b          {}%
+  \commondummyword\i          {}%
+  \commondummyword\r          {}%
+  \commondummyword\sansserif  {}%
+  \commondummyword\sc         {}%
+  \commondummyword\slanted    {}%
+  \commondummyword\t          {}%
   %
   % Commands that take arguments.
-  \commondummyword\abbr
-  \commondummyword\acronym
-  \commondummyword\anchor
-  \commondummyword\cite
-  \commondummyword\code
-  \commondummyword\command
-  \commondummyword\dfn
-  \commondummyword\dmn
-  \commondummyword\email
-  \commondummyword\emph
-  \commondummyword\env
-  \commondummyword\file
-  \commondummyword\image
-  \commondummyword\indicateurl
-  \commondummyword\inforef
-  \commondummyword\kbd
-  \commondummyword\key
-  \commondummyword\math
-  \commondummyword\option
-  \commondummyword\pxref
-  \commondummyword\ref
-  \commondummyword\samp
-  \commondummyword\strong
-  \commondummyword\tie
-  \commondummyword\U
-  \commondummyword\uref
-  \commondummyword\url
-  \commondummyword\var
-  \commondummyword\verb
-  \commondummyword\w
-  \commondummyword\xref
+  \commondummyword\abbr       {}%
+  \commondummyword\acronym    {}%
+  \commondummyword\anchor     {}%
+  \commondummyword\cite       {}%
+  \commondummyword\code       {}%
+  \commondummyword\command    {}%
+  \commondummyword\dfn        {}%
+  \commondummyword\dmn        {}%
+  \commondummyword\email      {}%
+  \commondummyword\emph       {}%
+  \commondummyword\env        {}%
+  \commondummyword\file       {}%
+  \commondummyword\image      {}%
+  \commondummyword\indicateurl{}%
+  \commondummyword\inforef    {}%
+  \commondummyword\kbd        {}%
+  \commondummyword\key        {}%
+  \commondummyword\math       {}%
+  \commondummyword\option     {}%
+  \commondummyword\pxref      {}%
+  \commondummyword\ref        {}%
+  \commondummyword\samp       {}%
+  \commondummyword\strong     {}%
+  \commondummyword\tie        {}%
+  \commondummyword\U          {}%
+  \commondummyword\uref       {}%
+  \commondummyword\url        {}%
+  \commondummyword\var        {}%
+  \commondummyword\verb       {}%
+  \commondummyword\w          {}%
+  \commondummyword\xref       {}%
+  %
+  \commondummyword\AA               {AA}%
+  \commondummyword\AE               {AE}%
+  \commondummyword\DH               {DZZ}%
+  \commondummyword\L                {L}%
+  \commondummyword\O                {O}%
+  \commondummyword\OE               {OE}%
+  \commondummyword\TH               {TH}%
+  \commondummyword\aa               {aa}%
+  \commondummyword\ae               {ae}%
+  \commondummyword\dh               {dzz}%
+  \commondummyword\exclamdown       {!}%
+  \commondummyword\l                {l}%
+  \commondummyword\o                {o}%
+  \commondummyword\oe               {oe}%
+  \commondummyword\ordf             {a}%
+  \commondummyword\ordm             {o}%
+  \commondummyword\questiondown     {?}%
+  \commondummyword\ss               {ss}%
+  \commondummyword\th               {th}%
+  %
+  \commondummyword\LaTeX            {LaTeX}%
+  \commondummyword\TeX              {TeX}%
+  %
+  % Assorted special characters.
+  \commondummyword\ampchar          {\normalamp}%
+  \commondummyword\atchar           {\@}%
+  \commondummyword\arrow            {->}%
+  \commondummyword\backslashchar    {}%
+  \commondummyword\bullet           {bullet}%
+  \commondummyword\comma            {,}%
+  \commondummyword\copyright        {copyright}%
+  \commondummyword\dots             {...}%
+  \commondummyword\enddots          {...}%
+  \commondummyword\entrybreak       {}%
+  \commondummyword\equiv            {===}%
+  \commondummyword\error            {error}%
+  \commondummyword\euro             {euro}%
+  \commondummyword\expansion        {==>}%
+  \commondummyword\geq              {>=}%
+  \commondummyword\guillemetleft    {<<}%
+  \commondummyword\guillemetright   {>>}%
+  \commondummyword\guilsinglleft    {<}%
+  \commondummyword\guilsinglright   {>}%
+  \commondummyword\lbracechar       {\{}%
+  \commondummyword\leq              {<=}%
+  \commondummyword\mathopsup        {sup}%
+  \commondummyword\minus            {-}%
+  \commondummyword\pounds           {pounds}%
+  \commondummyword\point            {.}%
+  \commondummyword\print            {-|}%
+  \commondummyword\quotedblbase     {"}%
+  \commondummyword\quotedblleft     {"}%
+  \commondummyword\quotedblright    {"}%
+  \commondummyword\quoteleft        {`}%
+  \commondummyword\quoteright       {'}%
+  \commondummyword\quotesinglbase   {,}%
+  \commondummyword\rbracechar       {\}}%
+  \commondummyword\registeredsymbol {R}%
+  \commondummyword\result           {=>}%
+  \commondummyword\sub              {}%
+  \commondummyword\sup              {}%
+  \commondummyword\textdegree       {o}%
 }
 
 \let\indexlbrace\relax
@@ -5044,18 +5074,7 @@ $$%
 % would be for a given command (usually its argument).
 %
 \def\indexnofonts{%
-  % Accent commands should become @asis.
-  \def\commondummyaccent##1{\let##1\asis}%
-  % We can just ignore other control letters.
-  \def\commondummyletter##1{\let##1\empty}%
-  % All control words become @asis by default; overrides below.
-  \let\commondummyword\commondummyaccent
-  \commondummiesnofonts
-  %
-  % Don't no-op \tt, since it isn't a user-level command
-  % and is used in the definitions of the active chars like <, >, |, etc.
-  % Likewise with the other plain tex font commands.
-  %\let\tt=\asis
+  \indexnofontstrue
   %
   \def\ { }%
   \def\@{@}%
@@ -5067,65 +5086,6 @@ $$%
   \let\lbracechar\{%
   \let\rbracechar\}%
   %
-  % Non-English letters.
-  \def\AA{AA}%
-  \def\AE{AE}%
-  \def\DH{DZZ}%
-  \def\L{L}%
-  \def\OE{OE}%
-  \def\O{O}%
-  \def\TH{TH}%
-  \def\aa{aa}%
-  \def\ae{ae}%
-  \def\dh{dzz}%
-  \def\exclamdown{!}%
-  \def\l{l}%
-  \def\oe{oe}%
-  \def\ordf{a}%
-  \def\ordm{o}%
-  \def\o{o}%
-  \def\questiondown{?}%
-  \def\ss{ss}%
-  \def\th{th}%
-  %
-  \let\do\indexnofontsdef
-  %
-  \do\LaTeX{LaTeX}%
-  \do\TeX{TeX}%
-  %
-  % Assorted special characters.
-  \do\atchar{@}%
-  \do\arrow{->}%
-  \do\bullet{bullet}%
-  \do\comma{,}%
-  \do\copyright{copyright}%
-  \do\dots{...}%
-  \do\enddots{...}%
-  \do\equiv{==}%
-  \do\error{error}%
-  \do\euro{euro}%
-  \do\expansion{==>}%
-  \do\geq{>=}%
-  \do\guillemetleft{<<}%
-  \do\guillemetright{>>}%
-  \do\guilsinglleft{<}%
-  \do\guilsinglright{>}%
-  \do\leq{<=}%
-  \do\lbracechar{\{}%
-  \do\minus{-}%
-  \do\point{.}%
-  \do\pounds{pounds}%
-  \do\print{-|}%
-  \do\quotedblbase{"}%
-  \do\quotedblleft{"}%
-  \do\quotedblright{"}%
-  \do\quoteleft{`}%
-  \do\quoteright{'}%
-  \do\quotesinglbase{,}%
-  \do\rbracechar{\}}%
-  \do\registeredsymbol{R}%
-  \do\result{=>}%
-  \do\textdegree{o}%
   %
   % We need to get rid of all macros, leaving only the arguments (if present).
   % Of course this is not nearly correct, but it is the best we can do for now.
@@ -5137,13 +5097,10 @@ $$%
   % to take a single TeX argument.  The case of a macro invocation that
   % goes to end-of-line is not handled.
   %
+  \def\commondummyword##1{\let##1\asis}%
   \macrolist
   \let\value\indexnofontsvalue
 }
-
-% Give the control sequence a definition that removes the {} that follows
-% its use, e.g. @AA{} -> AA
-\def\indexnofontsdef#1#2{\def#1##1{#2}}%
 
 
 
@@ -7135,8 +7092,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \newdimen\cartouter\newdimen\cartinner
 \newskip\normbskip\newskip\normpskip\newskip\normlskip
 
-
-\envdef\cartouche{%
+\envparseargdef\cartouche{%
   \cartouchefontdefs
   \ifhmode\par\fi  % can't be in the midst of a paragraph.
   \startsavinginserts
@@ -7166,16 +7122,19 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \baselineskip=0pt\parskip=0pt\lineskip=0pt
       \carttop
       \hbox\bgroup
-	  \hskip\lskip
-	  \vrule\kern3pt
-	  \vbox\bgroup
-	      \kern3pt
-	      \hsize=\cartinner
-	      \baselineskip=\normbskip
-	      \lineskip=\normlskip
-	      \parskip=\normpskip
-	      \vskip -\parskip
-	      \comment % For explanation, see the end of def\group.
+          \hskip\lskip
+          \vrule\kern3pt
+          \vbox\bgroup
+              \hsize=\cartinner
+              \baselineskip=\normbskip
+              \lineskip=\normlskip
+              \parskip=\normpskip
+              \def\arg{#1}%
+              \ifx\arg\empty\else
+                \centerV{\hfil \bf #1 \hfil}%
+              \fi
+              \kern3pt
+              \vskip -\parskip
 }
 \def\Ecartouche{%
               \ifhmode\par\fi
@@ -7858,10 +7817,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % Print arguments.  Use slanted for @def*, typewriter for @deftype*.
 \def\defunargs#1{%
-  \df \ifdoingtypefn \tt \else \sl \fi
-  \ifflagclear{txicodevaristt}{}%
-    {\def\var##1{{\setregularquotes \ttsl ##1}}}%
-  #1%
+  \bgroup
+    \df \ifdoingtypefn \tt \else \sl \fi
+    \ifflagclear{txicodevaristt}{}%
+       {\def\var##1{{\setregularquotes \ttsl ##1}}}%
+    #1%
+  \egroup
 }
 
 % We want ()&[] to print specially on the defun line.
@@ -9900,12 +9861,10 @@ directory should work if nowhere else does.}
        % For native Unicode handling (XeTeX and LuaTeX)
        \nativeunicodechardefs
      \else
-       % For treating UTF-8 as byte sequences (TeX, eTeX and pdfTeX)
+       % For treating UTF-8 as byte sequences (TeX, eTeX and pdfTeX).
+       % Since we already invoke \utfeightchardefs at the top level,
+       % making non-ascii chars active is sufficient.
        \setnonasciicharscatcode\active
-       % since we already invoked \utfeightchardefs at the top level
-       % (below), do not re-invoke it, otherwise our check for duplicated
-       % definitions gets triggered.  Making non-ascii chars active is
-       % sufficient.
      \fi
   %
   \else
@@ -9930,7 +9889,6 @@ directory should work if nowhere else does.}
   \fi
 }
 
-% emacs-page
 % A message to be logged when using a character that isn't available
 % the default font encoding (OT1).
 %
@@ -9938,12 +9896,6 @@ directory should work if nowhere else does.}
 
 % Take account of \c (plain) vs. \, (Texinfo) difference.
 \def\cedilla#1{\ifx\c\ptexc\c{#1}\else\,{#1}\fi}
-
-% First, make active non-ASCII characters in order for them to be
-% correctly categorized when TeX reads the replacement text of
-% macros containing the character definitions.
-\setnonasciicharscatcode\active
-%
 
 \def\gdefchar#1#2{%
 \gdef#1{%
@@ -9954,8 +9906,14 @@ directory should work if nowhere else does.}
    \fi
 }}
 
+\begingroup
+
+% Make non-ASCII characters active for defining the character definition
+% macros.
+\setnonasciicharscatcode\active
+
 % Latin1 (ISO-8859-1) character definitions.
-\def\latonechardefs{%
+\gdef\latonechardefs{%
   \gdefchar^^a0{\tie}
   \gdefchar^^a1{\exclamdown}
   \gdefchar^^a2{{\tcfont \char162}} % cent
@@ -10060,7 +10018,7 @@ directory should work if nowhere else does.}
 }
 
 % Latin9 (ISO-8859-15) encoding character definitions.
-\def\latninechardefs{%
+\gdef\latninechardefs{%
   % Encoding is almost identical to Latin1.
   \latonechardefs
   %
@@ -10075,7 +10033,7 @@ directory should work if nowhere else does.}
 }
 
 % Latin2 (ISO-8859-2) character definitions.
-\def\lattwochardefs{%
+\gdef\lattwochardefs{%
   \gdefchar^^a0{\tie}
   \gdefchar^^a1{\ogonek{A}}
   \gdefchar^^a2{\u{}}
@@ -10178,6 +10136,8 @@ directory should work if nowhere else does.}
   \gdefchar^^fe{\cedilla t}
   \gdefchar^^ff{\dotaccent{}}
 }
+
+\endgroup % active chars
 
 % UTF-8 character definitions.
 %
@@ -11231,13 +11191,13 @@ directory should work if nowhere else does.}
    \relax
 }
 
-% Define all Unicode characters we know about.  This makes UTF-8 the default
-% input encoding and allows @U to work.
+% Define all Unicode characters we know about
 \iftxinativeunicodecapable
   \nativeunicodechardefsatu
 \else
   \utfeightchardefs
 \fi
+
 
 \message{formatting,}
 
@@ -11566,7 +11526,7 @@ directory should work if nowhere else does.}
   \fi
 }
 
-\microtypeON
+\microtypeOFF
 
 \parseargdef\microtype{%
   \def\txiarg{#1}%
@@ -11582,6 +11542,9 @@ directory should work if nowhere else does.}
 
 
 \message{and turning on texinfo input format.}
+
+% Make UTF-8 the default encoding.
+\documentencodingzzz{UTF-8}
 
 \def^^L{\par} % remove \outer, so ^L can appear in an @comment
 \catcode`\^^K = 10 % treat vertical tab as whitespace
@@ -11645,22 +11608,31 @@ directory should work if nowhere else does.}
 % Used sometimes to turn off (effectively) the active characters even after
 % parsing them.
 \def\turnoffactive{%
-  \normalturnoffactive
+  \passthroughcharstrue
+  \let-=\normaldash
+  \let"=\normaldoublequote
+  \let$=\normaldollar %$ font-lock fix
+  \let+=\normalplus
+  \let<=\normalless
+  \let>=\normalgreater
+  \let^=\normalcaret
+  \let_=\normalunderscore
+  \let|=\normalverticalbar
+  \let~=\normaltilde
   \otherbackslash
+  \setregularquotes
+  \unsepspaces
 }
 
-\catcode`\@=0
+% If a .fmt file is being used, characters that might appear in a file
+% name cannot be active until we have parsed the command line.
+% So turn them off again, and have \loadconf turn them back on.
+\catcode`+=\other \catcode`\_=\other
+
 
 % \backslashcurfont outputs one backslash character in current font,
 % as in \char`\\.
 \global\chardef\backslashcurfont=`\\
-
-% \realbackslash is an actual character `\' with catcode other.
-{\catcode`\\=\other @gdef@realbackslash{\}}
-
-% In Texinfo, backslash is an active character; it prints the backslash
-% in fixed width font.
-\catcode`\\=\active  % @ for escape char from now on.
 
 % Print a typewriter backslash.  For math mode, we can't simply use
 % \backslashcurfont: the story here is that in math mode, the \char
@@ -11671,8 +11643,102 @@ directory should work if nowhere else does.}
 % ignored family value; char position "5C).  We can't use " for the
 % usual hex value because it has already been made active.
 
-@def@ttbackslash{{@tt @ifmmode @mathchar29020 @else @backslashcurfont @fi}}
-@let@backslashchar = @ttbackslash % @backslashchar{} is for user documents.
+\def\ttbackslash{{\tt \ifmmode \mathchar29020 \else \backslashcurfont \fi}}
+\let\backslashchar = \ttbackslash % \backslashchar{} is for user documents.
+
+% These are made active for url-breaking, so need
+% active definitions as the normal characters.
+\def\normaldot{.}
+\def\normalquest{?}
+\def\normalslash{/}
+
+% \newlinesloadsconf - call \loadconf as soon as possible in the
+% file, e.g. at the first newline.
+%
+{\catcode`\^=7
+\catcode`\^^M=13
+\gdef\newlineloadsconf{%
+  \catcode`\^^M=13 %
+  \newlineloadsconfzz%
+}
+\gdef\newlineloadsconfzz#1^^M{%
+  \def\c{\loadconf\c}%
+  % Definition for the first newline read in the file
+  \def ^^M{\loadconf}%
+  % In case the first line has a whole-line command on it
+  \let\originalparsearg\parsearg%
+  \def\parsearg{\loadconf\originalparsearg}%
+}}
+
+
+% Emergency active definition of newline, in case an active newline token
+% appears by mistake.
+{\catcode`\^=7 \catcode13=13%
+\gdef\enableemergencynewline{%
+  \gdef^^M{%
+    \par%
+    %<warning: active newline>\par%
+}}}
+
+
+% \loadconf gets called at the beginning of every Texinfo file.
+% If texinfo.cnf is present on the system, read it.  Useful for site-wide
+% @afourpaper, etc.  Not opening texinfo.cnf directly in texinfo.tex
+% makes it possible to make a format file for Texinfo.
+%
+\gdef\loadconf{%
+  \relax  % Terminate the filename if running as "tex '&texinfo' FILE.texi".
+  %
+  % Turn off the definitions that trigger \loadconf
+  \everyjobreset
+  \catcode13=5 % regular end of line
+  \enableemergencynewline
+  \let\c=\comment
+  \let\parsearg\originalparsearg
+  %
+  % Also turn back on active characters that might appear in the input
+  % file name, in case not using a pre-dumped format.
+  \catcode`+=\active
+  \catcode`\_=\active
+  %
+  \openin 1 texinfo.cnf
+  \ifeof 1 \else \input texinfo.cnf \fi
+  \closein 1
+}
+
+% Redefine some control sequences to be controlled by the \ifdummies
+% and \ifindexnofonts switches.  Do this at the end so that the control
+% sequences are all defined.
+\definedummies
+
+
+
+
+\catcode`\@=0
+
+% \realbackslash is an actual character `\' with catcode other.
+{\catcode`\\=\other @gdef@realbackslash{\}}
+
+% In Texinfo, backslash is an active character; it prints the backslash
+% in fixed width font.
+\catcode`\\=\active  % @ for escape char from now on.
+
+@let\ = @ttbackslash
+
+% If in a .fmt file, print the version number.
+% \eatinput stops the `\input texinfo' from showing up.
+% After that, `\' should revert to printing a backslash.
+% Turn on active characters that we couldn't do earlier because
+% they might have appeared in the input file name.
+%
+@everyjob{@message{[Texinfo version @texinfoversion]}%
+  @global@let\ = @eatinput
+  @catcode`+=@active @catcode`@_=@active}
+
+{@catcode`@^=7 @catcode`@^^M=13%
+@gdef@eatinput input texinfo#1^^M{@loadconf}}
+
+@def@everyjobreset{@ifx\@eatinput @let\ = @ttbackslash @fi}
 
 % \otherbackslash defines an active \ to be a literal `\' character with
 % catcode other.
@@ -11683,96 +11749,13 @@ directory should work if nowhere else does.}
 %
 {@catcode`- = @active
  @gdef@normalturnoffactive{%
-   @passthroughcharstrue
-   @let-=@normaldash
-   @let"=@normaldoublequote
-   @let$=@normaldollar %$ font-lock fix
-   @let+=@normalplus
-   @let<=@normalless
-   @let>=@normalgreater
-   @let^=@normalcaret
-   @let_=@normalunderscore
-   @let|=@normalverticalbar
-   @let~=@normaltilde
+   @turnoffactive
    @let\=@ttbackslash
-   @setregularquotes
-   @unsepspaces
  }
 }
 
-% If a .fmt file is being used, characters that might appear in a file
-% name cannot be active until we have parsed the command line.
-% So turn them off again, and have @fixbackslash turn them back on.
-@catcode`+=@other @catcode`@_=@other
-
-% \enablebackslashhack - allow file to begin `\input texinfo'
-%
-% If a .fmt file is being used, we don't want the `\input texinfo' to show up.
-% That is what \eatinput is for; after that, the `\' should revert to printing
-% a backslash.
-% If the file did not have a `\input texinfo', then it is turned off after
-% the first line; otherwise the first `\' in the file would cause an error.
-% This is used on the very last line of this file, texinfo.tex.
-% We also use @c to call @fixbackslash, in case ends of lines are hidden.
-{
-@catcode`@^=7
-@catcode`@^^M=13@gdef@enablebackslashhack{%
-  @global@let\ = @eatinput%
-  @catcode`@^^M=13%
-  @def@c{@fixbackslash@c}%
-  % Definition for the newline at the end of this file.
-  @def ^^M{@let^^M@secondlinenl}%
-  % Definition for a newline in the main Texinfo file.
-  @gdef @secondlinenl{@fixbackslash}%
-  % In case the first line has a whole-line command on it
-  @let@originalparsearg@parsearg
-  @def@parsearg{@fixbackslash@originalparsearg}
-}}
-
-{@catcode`@^=7 @catcode`@^^M=13%
-@gdef@eatinput input texinfo#1^^M{@fixbackslash}}
-
-% Emergency active definition of newline, in case an active newline token
-% appears by mistake.
-{@catcode`@^=7 @catcode13=13%
-@gdef@enableemergencynewline{%
-  @gdef^^M{%
-    @par%
-    %<warning: active newline>@par%
-}}}
-
-
-@gdef@fixbackslash{%
-  @ifx\@eatinput @let\ = @ttbackslash @fi
-  @catcode13=5 % regular end of line
-  @enableemergencynewline
-  @let@c=@comment
-  @let@parsearg@originalparsearg
-  % Also turn back on active characters that might appear in the input
-  % file name, in case not using a pre-dumped format.
-  @catcode`+=@active
-  @catcode`@_=@active
-  %
-  % If texinfo.cnf is present on the system, read it.
-  % Useful for site-wide @afourpaper, etc.  This macro, @fixbackslash, gets
-  % called at the beginning of every Texinfo file.  Not opening texinfo.cnf
-  % directly in this file, texinfo.tex, makes it possible to make a format
-  % file for Texinfo.
-  %
-  @openin 1 texinfo.cnf
-  @ifeof 1 @else @input texinfo.cnf @fi
-  @closein 1
-}
-
-
 % Say @foo, not \foo, in error messages.
 @escapechar = `@@
-
-% These (along with & and #) are made active for url-breaking, so need
-% active definitions as the normal characters.
-@def@normaldot{.}
-@def@normalquest{?}
-@def@normalslash{/}
 
 % These look ok in all fonts, so just make them not special.
 % @hashchar{} gets its own user-level command, because of #line.
@@ -11788,15 +11771,11 @@ directory should work if nowhere else does.}
 @c Do this last of all since we use ` in the previous @catcode assignments.
 @catcode`@'=@active
 @catcode`@`=@active
-@setregularquotes
 
 @c Local variables:
 @c eval: (add-hook 'before-save-hook 'time-stamp nil t)
 @c time-stamp-pattern: "texinfoversion{%Y-%02m-%02d.%02H}"
-@c page-delimiter: "^\\\\message\\|emacs-page"
+@c page-delimiter: "^\\\\message"
 @c End:
 
-@c vim:sw=2:
-
-@enablebackslashhack
-
+@newlineloadsconf
