@@ -71,6 +71,8 @@ omitted for now.  RB 2023-01-07]
 3. Prerequisite steps
 ---------------------
 
+These steps will only rarely need repeating.
+
 #. Ensure your public key is in Perforce at
    //.git-fusion/users/USER/keys/ in Perforce, submitting it if
    necessary.
@@ -90,24 +92,24 @@ omitted for now.  RB 2023-01-07]
 
      git remote add ravenbrook ssh://git@perforce.ravenbrook.com:1622/mps-public
 
-#. If the branch to be merged is in a third-party repo (such as a
-   fork), then add that, e.g.::
-
-     git remote add captain-contrib https://gitlab.com/captcontrib/mps.git
-
 
 4. Merging a development branch
 -------------------------------
 
-1. Ensure that the contributor has not expressed any kind of variation
+1. Check that the contributor has not expressed any kind of variation
    on the licensing of their work from the material to which they are
    contributing.  (See `"Licensing" in "Contributing to the MPS"
    <../contributing.rst#licensing>`.)
 
    If they have, this procedure fails.  Talk to them or get someone to
-   talk to them about the issue.
+   talk to them about the matter.
 
-2. Fetch the branch that you are going to merge to a local branch
+2. If the branch to be merged is in a third-party repo (such as a
+   fork), then add that, e.g.::
+
+     git remote add captain-contrib https://gitlab.com/captcontrib/mps.git
+
+3. Fetch the branch that you are going to merge to a local branch
    using the MPS durable branch naming convention,
    "branch/DATE/TOPIC", e.g. ::
 
@@ -117,10 +119,11 @@ omitted for now.  RB 2023-01-07]
    `causes permanent pollution in the Ravenbrook Perforce repository
    <https://info.ravenbrook.com/mail/2023/01/07/15-06-41/0/>`_.
 
-3. Merge master with the branch::
+4. Merge master with the branch::
 
      git checkout branch/2023-01-06/speed-hax
-     git merge ravenbrook/master
+     git pull ravenbrook master:master
+     git merge master
 
    You may need to resolve conflicts.  If you can't resolve conflicts
    yourself, you may need to involve the original author of the
@@ -132,7 +135,7 @@ omitted for now.  RB 2023-01-07]
    fast-forwards, which we don't want, because they discard records of
    the merge happening, including who did it.  RB 2023-01-07]
 
-4. Build and test the results locally.  For example::
+5. Build and test the results locally.  For example::
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
@@ -144,16 +147,13 @@ omitted for now.  RB 2023-01-07]
    need to go back to the source of the branch, e.g. the pull request
    and its original author.  Something's wrong!
 
-5. Push the branch to the Ravenbrook MPS GitHub repository to trigger
+6. Push the branch to the Ravenbrook MPS GitHub repository to trigger
    building and testing on all target platforms using Travis CI. ::
 
      git push github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
 
    You will need to wait for results from Travis CI.  [Add details of
-   how to see them.  RB 2023-07-01] [Some sort of
-   ``--force-with-lease`` option may be required if we're pushing back
-   to the same branch we started with, such as when it's a Ravenbrook
-   development branch.  RB 2023-07-01]
+   how to see them.  RB 2023-07-01]
 
    See step 5 about what to do if tests do not pass.
 
@@ -162,26 +162,27 @@ omitted for now.  RB 2023-01-07]
    Git Fusion mapping, and so the result is the same as if it had come
    in via Perforce.
 
-6. Replace the master with your branch, effecting the merge::
+7. Replace the master with your branch, effecting the merge::
 
      git checkout master
      git merge --ff-only branch/2023-01-06/speed-hax
 
-   [There should not have been any further changes on master, and
-   ``--ff-only`` checks for that.  The merge commit we want on master
-   is made in step 4.  RB 2023-01-07]
+   The ``--ff-only`` flag ensures there have been no changes on master
+   since step 4, so that the testing is valid for master, and we do
+   not create a second merge commit.  If this fails, go back to
+   step 4.
 
-7. Push master and the branch to Perforce via Git Fusion::
+8. Push master and the branch to Perforce via Git Fusion::
 
      git push ravenbrook master branch/2023-01-06/speed-hax
 
-   If this fails because someone else has submitted changes to the
-   master codeline since you started, pull those changes and go back
-   to step 3 ::
+   If this fails because someone has submitted changes to the master
+   codeline since you started, pull those changes and go back to step
+   4. ::
 
      git pull ravenbrook master
 
-8. After a bit [how long? RB 2023-01-07] check that gitpushbot has
+9. After a bit [how long? RB 2023-01-07] check that gitpushbot has
    pushed the result to the Ravenbrook MPS repo on GitHub.  [And do
    what if it doesn't?  RB 2023-01-07]
 
