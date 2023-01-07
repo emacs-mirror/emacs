@@ -119,7 +119,11 @@ These steps will only rarely need repeating.
    `causes permanent pollution in the Ravenbrook Perforce repository
    <https://info.ravenbrook.com/mail/2023/01/07/15-06-41/0/>`_.
 
-4. Merge master with the branch::
+4. Optionally, let other people know that you're about to merge into
+   master, and negotiate to avoid racing them to step 9 and making
+   extra work for everyone.
+
+5. Merge master with the branch::
 
      git checkout branch/2023-01-06/speed-hax
      git pull ravenbrook master:master
@@ -135,19 +139,19 @@ These steps will only rarely need repeating.
    fast-forwards, which we don't want, because they discard records of
    the merge happening, including who did it.  RB 2023-01-07]
 
-5. Build and test the results locally.  For example::
+6. Build and test the results locally.  For example::
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
    See `design.mps.tests <../design/tests.txt>`_ for details and other
    platforms.
 
-   If tests do not pass, review your conflict resolution from step 4,
+   If tests do not pass, review your conflict resolution from step 5,
    and if that doesn't resolve things, the procedure fails, and you
    need to go back to the source of the branch, e.g. the pull request
    and its original author.  Something's wrong!
 
-6. Push the branch to the Ravenbrook MPS GitHub repository to trigger
+7. Push the branch to the Ravenbrook MPS GitHub repository to trigger
    building and testing on all target platforms using Travis CI. ::
 
      git push github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
@@ -155,36 +159,36 @@ These steps will only rarely need repeating.
    You will need to wait for results from Travis CI.  [Add details of
    how to see them.  RB 2023-07-01]
 
-   See step 5 about what to do if tests do not pass.
+   See step 6 about what to do if tests do not pass.
 
    Note: This potentially creates a branch in the GitHub repo ahead
    of Git Fusion doing so, but it will the same name, because of the
    Git Fusion mapping, and so the result is the same as if it had come
    in via Perforce.
 
-7. Replace the master with your branch, effecting the merge::
+8. Replace the master with your branch, effecting the merge::
 
      git checkout master
      git merge --ff-only branch/2023-01-06/speed-hax
 
    The ``--ff-only`` flag ensures there have been no changes on master
-   since step 4, so that the testing is valid for master, and we do
+   since step 5, so that the testing is valid for master, and we do
    not create a second merge commit.  If this fails, go back to
-   step 4.
+   step 5.
 
-8. Push master and the branch to Perforce via Git Fusion::
+9. Push master and the branch to Perforce via Git Fusion::
 
      git push ravenbrook master branch/2023-01-06/speed-hax
 
    If this fails because someone has submitted changes to the master
    codeline since you started, pull those changes and go back to step
-   4. ::
+   5. ::
 
      git pull ravenbrook master
 
-9. After a bit [how long? RB 2023-01-07] check that gitpushbot has
-   pushed the result to the Ravenbrook MPS repo on GitHub.  [And do
-   what if it doesn't?  RB 2023-01-07]
+10. After a bit [how long? RB 2023-01-07] check that gitpushbot has
+    pushed the result to the Ravenbrook MPS repo on GitHub.  [And do
+    what if it doesn't?  RB 2023-01-07]
 
 
 A. References
