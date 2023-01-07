@@ -166,7 +166,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2014–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+Copyright © 2014–2023 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -191,4 +191,5 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+.. checked with rst2html -v index.rst > /dev/null
 .. end
