@@ -1546,6 +1546,10 @@ RULES."
                   (pcase func
                     (`(query ,qry)
                      (list 'query (treesit-query-compile lang qry)))
+                    (`(and . ,fns)
+                     (cons 'and (mapcar #'optimize-func fns)))
+                    (`(or . ,fns)
+                     (cons 'or (mapcar #'optimize-func fns)))
                     (_ func)))
                 ;; Optimize a rule (MATCHER ANCHOR OFFSET).
                 (optimize-rule (rule)
