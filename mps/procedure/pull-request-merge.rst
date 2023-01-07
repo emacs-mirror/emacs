@@ -96,11 +96,28 @@ omitted for now.  RB 2023-01-07]
 4. Merging a development branch
 -------------------------------
 
-1. Ensure that the contributor has executed the appropriate assignment
-   of copyright.  If they haven't, this procedure fails.  Talk to them
-   or get someone to talk to them.  [This needs updating now that the
-   MPS is using the BSD licence.  e.g. We mustn't accept GPL code.  RB
+1. Ensure that the contributor has either:
+
+   - licensed their work under an open source licence that is at least
+     as permissive as `the MPS licence <../license.txt>`_ (the `BSD
+     2-clause license
+     <https://opensource.org/licenses/BSD-2-Clause>`_), preferably the
+     same licence
+
+   - granted Ravenbrook the licence described in `Contributing to the
+     MPS <../contributing.rst>`_
+
+   If they haven't, this procedure fails.  Talk to them or get someone
+   to talk to them.
+
+   [We can probably reduce the overhead of this step with a clause
+   similar to `Syncthing's Licensing clause
+   <https://github.com/syncthing/syncthing/blob/458d6cff2a42dc476e904b088f4dbbaa825d981f/CONTRIBUTING.md#licensing>`_
+   in `our own contributing document <../contributing.rst>`_. RB
    2023-01-07]
+
+   Note: the `GPL <https://opensource.org/licenses/gpl-license>`_ is
+   *not* compatible with the MPS.
 
 2. Fetch the branch that you are going to merge to a local branch
    using the MPS durable branch naming convention,
