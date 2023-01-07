@@ -1,4 +1,4 @@
-# stdio_h.m4 serial 59
+# stdio_h.m4 serial 61
 dnl Copyright (C) 2007-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -81,6 +81,16 @@ AC_DEFUN_ONCE([gl_STDIO_H],
   AC_CHECK_DECLS_ONCE([fcloseall])
   if test $ac_cv_have_decl_fcloseall = no; then
     HAVE_DECL_FCLOSEALL=0
+  fi
+
+  AC_CHECK_DECLS_ONCE([getw])
+  if test $ac_cv_have_decl_getw = no; then
+    HAVE_DECL_GETW=0
+  fi
+
+  AC_CHECK_DECLS_ONCE([putw])
+  if test $ac_cv_have_decl_putw = no; then
+    HAVE_DECL_PUTW=0
   fi
 ])
 
@@ -178,7 +188,9 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   HAVE_DECL_FTELLO=1;            AC_SUBST([HAVE_DECL_FTELLO])
   HAVE_DECL_GETDELIM=1;          AC_SUBST([HAVE_DECL_GETDELIM])
   HAVE_DECL_GETLINE=1;           AC_SUBST([HAVE_DECL_GETLINE])
+  HAVE_DECL_GETW=1;              AC_SUBST([HAVE_DECL_GETW])
   HAVE_DECL_OBSTACK_PRINTF=1;    AC_SUBST([HAVE_DECL_OBSTACK_PRINTF])
+  HAVE_DECL_PUTW=1;              AC_SUBST([HAVE_DECL_PUTW])
   HAVE_DECL_SNPRINTF=1;          AC_SUBST([HAVE_DECL_SNPRINTF])
   HAVE_DECL_VSNPRINTF=1;         AC_SUBST([HAVE_DECL_VSNPRINTF])
   HAVE_DPRINTF=1;                AC_SUBST([HAVE_DPRINTF])

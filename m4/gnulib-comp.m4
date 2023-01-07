@@ -123,7 +123,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module intprops:
   # Code from module inttypes-incomplete:
   # Code from module largefile:
-  AC_REQUIRE([gl_YEAR2038_EARLY])
   AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lchmod:
   # Code from module libc-config:
@@ -1544,6 +1543,5 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/warnings.m4
   m4/wchar_t.m4
   m4/wint_t.m4
-  m4/year2038.m4
   m4/zzgnulib.m4
 ])
