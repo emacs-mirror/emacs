@@ -205,11 +205,13 @@ beginning of grandparent."
            (treesit-node-parent parent)
          parent)))))
 
-(defun c-ts-mode--looking-at-star (&rest _)
+(defun c-ts-mode--looking-at-star (_n _p bol &rest _)
   "A tree-sitter simple indent matcher.
 Matches if there is a \"*\" after point (ignoring whitespace in
 between)."
-  (looking-at (rx (* (syntax whitespace)) "*")))
+  (save-excursion
+    (goto-char bol)
+    (looking-at (rx (* (syntax whitespace)) "*"))))
 
 (defun c-ts-mode--comment-start-after-first-star (_n parent &rest _)
   "A tree-sitter simple indent anchor.
