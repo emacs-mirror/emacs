@@ -131,9 +131,8 @@ omitted for now.  RB 2023-01-07]
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
-   See `design.mps.tests`_ for details and other platforms.
-
-.. _`design.mps.tests`: ../design/tests.txt
+   See `design.mps.tests <../design/tests.txt>`_ for details and other
+   platforms.
 
    If tests do not pass, review your conflict resolution from step 4,
    and if that doesn't resolve things, the procedure fails, and you
@@ -236,5 +235,5 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-.. checked with rst2html -v index.rst > /dev/null
+.. checked with rst2html -v pull-request-merge.rst > /dev/null
 .. end
