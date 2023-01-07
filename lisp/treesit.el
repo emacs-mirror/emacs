@@ -1179,16 +1179,15 @@ See `treesit-simple-indent-presets'.")
         ;; TODO: Document.
         (cons 'and (lambda (&rest fns)
                      (lambda (node parent bol &rest _)
-                       (cl-reduce (lambda (a b) (and a b))
-                                  (mapcar (lambda (fn)
-                                            (funcall fn node parent bol))
-                                          fns)))))
+                       (not
+                        (seq-find
+                         (lambda (fn) (not (funcall fn node parent bol)))
+                         fns)))))
         (cons 'or (lambda (&rest fns)
                     (lambda (node parent bol &rest _)
-                      (cl-reduce (lambda (a b) (or a b))
-                                 (mapcar (lambda (fn)
-                                           (funcall fn node parent bol))
-                                         fns)))))
+                      (seq-find
+                       (lambda (fn) (funcall fn node parent bol))
+                       fns))))
         (cons 'not (lambda (fn)
                      (lambda (node parent bol &rest _)
                        (not (funcall fn node parent bol)))))
