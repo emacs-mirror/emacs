@@ -134,11 +134,6 @@ These steps will only rarely need repeating.
    branch.  If you still can't resolve conflicts, this procedure
    fails.
 
-   [What would be the default outcome from the GitHub interface, using
-   the "merge" button?  [Chaser324_2017]_ claims it only works for
-   fast-forwards, which we don't want, because they discard records of
-   the merge happening, including who did it.  RB 2023-01-07]
-
 6. Build and test the results locally.  For example::
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
@@ -191,8 +186,77 @@ These steps will only rarely need repeating.
     what if it doesn't?  RB 2023-01-07]
 
 
+5. Rationale
+------------
+
+This section explains why the procedure is like it is.  It's intended
+for people who want to vary the procedure on the fly, or make
+permanent changes to it.  In the latter case, update this section!
+
+5.1. Why not press the GitHub merge button?
+-------------------------------------------
+
+GitHub provides a merge button on pull requests.  According to
+[Chaser324_2017]_ it only works for branches that can fast-forward
+master, and also only creates fast-forwards.
+
+There are two reasons this is undesirable.
+
+Firstly, it's quite likely that a pull request has a branch that isn't
+at the tip of master and can't be fast-forwarded.  It's possible to
+rebase such branches only if Perforce has never seen them, because
+Perforce does not permit branch history to be rewritten.  We could
+have a more complicated procedure involving making a new rebased
+branch, but the result would be less good.
+
+Secondly, we would like to avoid rewriting history and the destruction
+of information on the grounds that it is bad software engineering, and
+so want to discourage rebasing.
+
+And it's for this reason we also want to avoid fast-forwards of
+master.  A fast-forward means there is no commit that records the fact
+that there has been a merge, by whom, from where, etc.  It discards
+that information.  Therefore we want to discourage fast-forwards of
+master in favour of merges.
+
+Given this, step 8 may seem odd, since it fast-forwards master.  But
+in fact it's pointing master at the merge commit created in step 5, so
+that master has a history including a proper merge.
+
+5.2. Why the "durable" branch names?
+------------------------------------
+
+It's common in Git culture to delete branches once they've been
+merged [Ardalis_2017]_ but this destroys information that has been
+invaluable to MPS quality in the past.
+
+It destroys the connection between the branch name and a series of
+changes made together, intentionally, for a purpose.  That makes it
+hard to identify those changes together.  It makes it hard to *refer*
+to those changes from documents and code (referring to the hash of the
+last commit is not as good).  It makes it hard to investigate the
+intention of changes discovered by tools such as ``git blame`` or ``p4
+annotate``.
+
+Essentially, it throws away history and dissolves the branch into the
+big global graph of git commits.  That's not good configuration
+management.
+
+The MPS has an ongoing policy of retaining all of its intentional
+history, and that includes branch names.  Branch names in the MPS
+repository are intended to last forever.  That is why they have
+"durable" names.
+
+This policy has persisted over decades through more than one SCM
+system, and will persist when Git has been replaced by the next one.
+
+
 A. References
 -------------
+
+.. [Ardalis_2017] "Why Delete Old Git Branches?"; Steve Ardalis;
+		  2017-07-20;
+		  <https://ardalis.com/why-delete-old-git-branches/>.
 
 .. [Chaser324_2017] "GitHub Standard Fork & Pull Request Workflow";
                     Chase Pettit; 2017;
