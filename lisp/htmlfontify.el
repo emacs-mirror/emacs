@@ -372,11 +372,14 @@ otherwise."
   :tag   "istext-command"
   :type  '(string))
 
-(defcustom hfy-find-cmd
-  "find . -type f \\! -name \\*~ \\! -name \\*.flc \\! -path \\*/CVS/\\*"
-  "Find command used to harvest a list of files to attempt to fontify."
-  :tag   "find-command"
-  :type  '(string))
+(defcustom hfy-exclude-file-rules
+  '("\\.flc$"
+    "/CVS/.*"
+    ".*~$"
+    "/\\.git\\(?:/.*\\)?$")
+  "Define some regular expressions to exclude files"
+  :tag "exclude-rules"
+  :type '(list string))
 
 (defcustom hfy-display-class nil
   "Display class to use to determine which display class to use when
@@ -1826,8 +1829,12 @@ Strips any leading \"./\" from each filename."
   ;;(message "hfy-list-files");;DBUG
   ;; FIXME: this changes the dir of the current buffer.  Is that right??
   (cd directory)
-  (mapcar (lambda (F) (if (string-match "^./\\(.*\\)" F) (match-string 1 F) F))
-          (split-string (shell-command-to-string hfy-find-cmd))) )
+  (cl-remove-if (lambda (f)
+                  (or (null (file-regular-p f))
+                      (seq-some (lambda (r)
+                                  (string-match r f))
+                                hfy-exclude-file-rules)))
+                (directory-files-recursively "." ".*" nil t)))
 
 ;; strip the filename off, return a directory name
 ;; not a particularly thorough implementation, but it will be
