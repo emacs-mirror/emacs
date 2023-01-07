@@ -1,4 +1,4 @@
-# euidaccess.m4 serial 15
+# euidaccess.m4 serial 16
 dnl Copyright (C) 2002-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -41,12 +41,15 @@ AC_DEFUN([gl_PREREQ_EUIDACCESS], [
   # Save and restore LIBS so -lgen isn't added to it.  Otherwise, *all*
   # programs in the package would end up linked with that potentially-shared
   # library, inducing unnecessary run-time overhead.
-  LIB_EACCESS=
-  AC_SUBST([LIB_EACCESS])
+  EUIDACCESS_LIBGEN=
+  AC_SUBST([EUIDACCESS_LIBGEN])
   gl_saved_libs=$LIBS
     AC_SEARCH_LIBS([eaccess], [gen],
                    [test "$ac_cv_search_eaccess" = "none required" ||
-                    LIB_EACCESS=$ac_cv_search_eaccess])
+                    EUIDACCESS_LIBGEN=$ac_cv_search_eaccess])
     AC_CHECK_FUNCS([eaccess])
   LIBS=$gl_saved_libs
+  # For backward compatibility.
+  LIB_EACCESS="$EUIDACCESS_LIBGEN"
+  AC_SUBST([LIB_EACCESS])
 ])

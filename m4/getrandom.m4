@@ -1,4 +1,4 @@
-# getrandom.m4 serial 9
+# getrandom.m4 serial 10
 dnl Copyright 2020-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -62,13 +62,16 @@ AC_DEFUN([gl_FUNC_GETRANDOM],
       if test $gl_cv_lib_assume_bcrypt = yes; then
         AC_DEFINE([HAVE_LIB_BCRYPT], [1],
           [Define to 1 if the bcrypt library is guaranteed to be present.])
-        LIB_GETRANDOM='-lbcrypt'
+        GETRANDOM_LIB='-lbcrypt'
       else
-        LIB_GETRANDOM='-ladvapi32'
+        GETRANDOM_LIB='-ladvapi32'
       fi
       ;;
     *)
-      LIB_GETRANDOM= ;;
+      GETRANDOM_LIB= ;;
   esac
+  AC_SUBST([GETRANDOM_LIB])
+  dnl For backward compatibility.
+  LIB_GETRANDOM="$GETRANDOM_LIB"
   AC_SUBST([LIB_GETRANDOM])
 ])
