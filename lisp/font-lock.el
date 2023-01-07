@@ -2073,6 +2073,12 @@ as the constructs of Haddock, Javadoc and similar systems."
   "Font Lock mode face used to highlight preprocessor directives."
   :group 'font-lock-faces)
 
+(defface font-lock-regexp-face
+  '((t :inherit font-lock-string-face))
+  "Font Lock mode face used to highlight regexp literals."
+  :group 'font-lock-faces
+  :version "29.1")
+
 (defface font-lock-regexp-grouping-backslash
   '((t :inherit bold))
   "Font Lock mode face for backslashes in Lisp regexp grouping constructs."

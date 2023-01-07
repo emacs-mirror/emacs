@@ -215,13 +215,6 @@ values of OVERRIDE"
      (false) @font-lock-doc-markup-face
      (nil) @font-lock-doc-markup-face)
 
-   :language language
-   :feature 'symbol
-   '((bare_symbol) @font-lock-constant-face
-     (delimited_symbol (string_content) @font-lock-constant-face)
-     (hash_key_symbol) @font-lock-constant-face
-     (simple_symbol) @font-lock-constant-face)
-
    ;; Before 'operator so (unary) works.
    :language language
    :feature 'literal
@@ -234,10 +227,8 @@ values of OVERRIDE"
    ;; Also before 'operator because % and / are operators
    :language language
    :feature 'regexp
-   ;; TODO: We probably need a separate face for regexps everywhere.
-   ;; Maybe another one for regexp delimiters as well.
-   '((regex "/" @font-lock-string-face)
-     (regex _ (string_content) @font-lock-string-face))
+   '((regex "/" @font-lock-regexp-face)
+     (regex _ (string_content) @font-lock-regexp-face))
 
    :language language
    :feature 'operator
@@ -266,8 +257,8 @@ values of OVERRIDE"
 
    :language language
    :feature 'interpolation
-   '((interpolation "#{" @font-lock-delimiter-face)
-     (interpolation "}" @font-lock-delimiter-face))
+   '((interpolation "#{" @font-lock-misc-punctuation-face)
+     (interpolation "}" @font-lock-misc-punctuation-face))
 
    :language language
    :feature 'type
@@ -303,7 +294,19 @@ values of OVERRIDE"
      (hash_splat_parameter
       name: (identifier) @font-lock-variable-name-face)
      (block_parameter
-      name: (identifier) @font-lock-variable-name-face))
+      name: (identifier) @font-lock-variable-name-face)
+     (destructured_parameter
+      (identifier) @font-lock-variable-name-face)
+     (lambda_parameters
+      (identifier) @font-lock-variable-name-face)
+     (exception_variable
+      (identifier) @font-lock-variable-name-face)
+     (array_pattern
+      (identifier) @font-lock-variable-name-face)
+     (keyword_pattern
+      key: (hash_key_symbol) @font-lock-variable-name-face)
+     (in_clause
+      pattern: (identifier) @font-lock-variable-name-face))
 
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
@@ -321,6 +324,13 @@ values of OVERRIDE"
       left: (left_assignment_list (identifier) @font-lock-variable-name-face))
      (operator_assignment
       left: (identifier) @font-lock-variable-name-face))
+
+   :language language
+   :feature 'symbol
+   '((bare_symbol) @font-lock-constant-face
+     (delimited_symbol (string_content) @font-lock-constant-face)
+     (hash_key_symbol) @font-lock-constant-face
+     (simple_symbol) @font-lock-constant-face)
 
    :language language
    :feature 'error

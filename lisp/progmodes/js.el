@@ -3498,14 +3498,14 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'string
-   '((regex pattern: (regex_pattern)) @font-lock-string-face
+   '((regex pattern: (regex_pattern)) @font-lock-regexp-face
      (string) @font-lock-string-face)
 
    :language 'javascript
    :feature 'string-interpolation
    :override t
    '((template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-delimiter-face))
+     (template_substitution ["${" "}"] @font-lock-misc-punctuation-face))
 
    :language 'javascript
    :feature 'definition
