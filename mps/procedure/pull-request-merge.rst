@@ -7,7 +7,7 @@ Memory Pool System pull request merge procedure
 :date: 2023-01-07
 :confidentiality: public
 :copyright: See `C. Copyright and License`_
-:readership: MPS developers
+:readership: MPS developers, trainee integrators
 :status: draft
 
 
