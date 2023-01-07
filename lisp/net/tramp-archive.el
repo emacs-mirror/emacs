@@ -200,7 +200,7 @@ It must be supported by libarchive(3).")
 ;; be an "Eager macro-expansion failure" when unloading/reloading Tramp.
 ;;;###tramp-autoload
 (defconst tramp-archive-file-name-regexp
-  (eval-when-compile (tramp-archive-autoload-file-name-regexp))
+  (eval-when-compile (ignore-errors (tramp-archive-autoload-file-name-regexp)))
   "Regular expression matching archive file names.")
 
 ;;;###tramp-autoload
