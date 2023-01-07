@@ -102,20 +102,17 @@ omitted for now.  RB 2023-01-07]
    MPS is using the BSD licence.  e.g. We mustn't accept GPL code.  RB
    2023-01-07]
 
-2. Fetch the branch that you are going to merge, e.g.::
+2. Fetch the branch that you are going to merge to a local branch
+   using the MPS durable branch naming convention,
+   "branch/DATE/TOPIC", e.g. ::
 
-     git fetch captain-contrib mps-speed-hax
-
-3. Make an equivalent local branch using the MPS durable branch naming
-   convention, "branch/DATE/TOPIC", e.g.::
-
-     git checkout -b branch/2023-01-06/speed-hax captain-contrib/mps-speed-hax
+     git fetch captain-contrib mps-speed-hax:branch/2023-01-06/speed-hax
 
    Double check you've got this right.  Using the wrong branch naming
    `causes permanent pollution in the Ravenbrook Perforce repository
    <https://info.ravenbrook.com/mail/2023/01/07/15-06-41/0/>`_.
 
-4. Merge master with the branch::
+3. Merge master with the branch::
 
      git merge ravenbrook/master
 
@@ -127,7 +124,7 @@ omitted for now.  RB 2023-01-07]
    [What would be the default outcome from the GitHub interface,
    using the "merge" button?  Can we allow that?  RB 2023-01-07]
 
-5. Build and test the results locally.  For example::
+4. Build and test the results locally.  For example::
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
@@ -140,7 +137,7 @@ omitted for now.  RB 2023-01-07]
    need to go back to the source of the branch, e.g. the pull request
    and its original author.  Something's wrong!
 
-6. Push the branch to the Ravenbrook MPS GitHub repository to trigger
+5. Push the branch to the Ravenbrook MPS GitHub repository to trigger
    building and testing on all target platforms using Travis CI. ::
 
      git push github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
@@ -158,7 +155,7 @@ omitted for now.  RB 2023-01-07]
    Git Fusion mapping, and so the result is the same as if it had come
    in via Perforce.
 
-7. Replace the master with your branch, effecting the merge::
+6. Replace the master with your branch, effecting the merge::
 
      git checkout master
      git merge --ff-only branch/2023-01-06/speed-hax
@@ -167,17 +164,17 @@ omitted for now.  RB 2023-01-07]
    ``--ff-only`` checks for that.  The merge commit we want on master
    is made in step 4.  RB 2023-01-07]
 
-8. Push master and the branch to Perforce via Git Fusion::
+7. Push master and the branch to Perforce via Git Fusion::
 
      git push ravenbrook master branch/2023-01-06/speed-hax
 
    If this fails because someone else has submitted changes to the
    master codeline since you started, pull those changes and go back
-   to step 4 ::
+   to step 3 ::
 
      git pull ravenbrook master
 
-9. After a bit [how long? RB 2023-01-07] check that gitpushbot has
+8. After a bit [how long? RB 2023-01-07] check that gitpushbot has
    pushed the result to the Ravenbrook MPS repo on GitHub.  [And do
    what if it doesn't?  RB 2023-01-07]
 
