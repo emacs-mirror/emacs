@@ -185,6 +185,10 @@ omitted for now.  RB 2023-01-07]
 A. References
 -------------
 
+.. [Chaser324_2017] "GitHub Standard Fork & Pull Request Workflow";
+                    Chase Pettit; 2017;
+                    <https://gist.github.com/Chaser324/ce0505fbed06b947d962#automatically-merging-a-pull-request>.
+
 .. [GDR_2020-09-03] "Re: Possible MPS help"; Gareth Rees; 2020-09-03;
 		    <https://info.ravenbrook.com/mail/2020/09/03/13-02-35/0/>.
 
