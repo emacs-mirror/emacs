@@ -3211,6 +3211,11 @@ An optional major mode based on the tree-sitter library for editing
 programs in the C++ language.
 
 +++
+*** New major mode 'c-or-c++-ts-mode'.
+A function that automatically guesses the language of a header file,
+and enables either 'c-ts-mode' or 'c++-ts-mode' accordingly.
+
++++
 *** New major mode 'java-ts-mode'.
 An optional major mode based on the tree-sitter library for editing
 programs in the Java language.
