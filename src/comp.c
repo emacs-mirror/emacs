@@ -3009,25 +3009,31 @@ emit_comp_lisp_obj (Lisp_Object obj,
 			      .expr_type = COMP_LISP_CONST_SELF_REPR };
   else
     {
-      Lisp_Object func =
-	Fgethash (obj,
-		  CALL1I (comp-ctxt-byte-func-to-func-h, Vcomp_ctxt),
-		  Qnil);
-      if (!NILP (func))
-	{
-	  gcc_jit_lvalue *subr_var = emit_lisp_data_var (
-	    comp.aligned_lisp_subr_pvec_type,
-	    GCC_JIT_GLOBAL_INTERNAL);
-	  comp.lambda_init_lvals
-	    = Fcons (CALLN (Fvector, make_mint_ptr (subr_var), func),
-		     comp.lambda_init_lvals);
-	  expr.const_expr_p = false;
-	  expr.expr_type = COMP_LISP_CONST_VAR;
-	  expr.expr.lisp_obj = emit_make_lisp_ptr (
-	    gcc_jit_lvalue_get_address (subr_var, NULL),
-	    Lisp_Vectorlike);
-	}
-      else if (STRINGP (obj) && XSTRING (obj)->u.s.intervals == NULL)
+      /* Compiling bytecode forms as Lisp_Subrs currently results in
+       errors compiling files that might references a bytecode form
+       that was returned by a function residing in another file, so
+       it's disabled for now.  */
+      /* Lisp_Object func = */
+      /* 	Fgethash (obj, */
+      /* 		  CALL1I (comp-ctxt-byte-func-to-func-h,
+       * Vcomp_ctxt), */
+      /* 		  Qnil); */
+      /* if (!NILP (func)) */
+      /* 	{ */
+      /* 	  gcc_jit_lvalue *subr_var = emit_lisp_data_var ( */
+      /* 	    comp.aligned_lisp_subr_pvec_type, */
+      /* 	    GCC_JIT_GLOBAL_INTERNAL); */
+      /* 	  comp.lambda_init_lvals */
+      /* 	    = Fcons (CALLN (Fvector, make_mint_ptr (subr_var),
+       * func), */
+      /* 		     comp.lambda_init_lvals); */
+      /* 	  expr.const_expr_p = false; */
+      /* 	  expr.expr_type = COMP_LISP_CONST_VAR; */
+      /* 	  expr.expr.lisp_obj = emit_make_lisp_ptr ( */
+      /* 	    gcc_jit_lvalue_get_address (subr_var, NULL), */
+      /* 	    Lisp_Vectorlike); */
+      /* 	} */
+      if (STRINGP (obj) && XSTRING (obj)->u.s.intervals == NULL)
 	{
 	  gcc_jit_rvalue *lisp_string
 	    = emit_lisp_string_constructor_rval (obj);
