@@ -34,18 +34,20 @@ reference to that project.  RB 2023-01-07]
 2. Pre-merge checklist
 ----------------------
 
-#. Is there a document (issue, job) recording the problem that is
-   solved by the changes in the branch?
+#. Is there a permanent visible document (issue, job), referenced by
+   the branch, recording the problem that is solved by the changes in
+   the branch?
 
 #. Does the branch solve the problem?
 
-#. Is there an automated test case that demonstrates that the problem
-   is solved?
+#. Is there an automated test case that demonstrates the problem
+   (without the branch) and that that the problem is solved (with the
+   branch)?
 
-#. If there are interface changes, is there documentation?
+#. If there are interface changes, are they documented?
 
-#. If the changes are significant and user-visible, have you updated
-   the release notes (``manual/source/release.rst``)?
+#. If the changes are significant and user-visible, is there an update
+   to the release notes (``manual/source/release.rst``)?
 
 #. Has there been a code review?
 
@@ -55,7 +57,8 @@ reference to that project.  RB 2023-01-07]
 
 #. Does the branch merge cleanly into the masters?  If not, consider a
    catch-up merge from the masters.  [This may be validated by GitHub
-   and/or Travis CI.  Insert details here.  RB 2023-01-07]
+   and/or Travis CI.  Insert details here.  RB 2023-01-07] [This is
+   duplicated by step 3 of the procedure.  RB 2023-01-07]
 
 #. Does a merge of the branch with master build and pass tests on all
    target platforms?  [This may be validated by Travis CI.  Insert
