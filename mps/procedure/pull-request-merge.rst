@@ -19,9 +19,9 @@ GitHub "pull request".
 
 This document was created as a combination of the process improvement
 steps from our Perforce-based "Memory Pool System branching and
-merging procedures" [GDR_2020-09-03]_ with Gareth Rees' email
+merging procedures" [GDR_2014-01-09]_ with Gareth Rees' email
 containing the working steps for git / GitHub merges, "Re: Possible
-MPS Help" [GDR_2014-01-09]_.
+MPS Help" [GDR_2020-09-03]_ .
 
 The document is still draft.  Some of the questions that need
 resolving are noted in square brackets.
@@ -82,28 +82,24 @@ omitted for now.  RB 2023-01-07]
    [We can migrate to cloning the repo from GitHub or wherever it is
    hosted, as long as it's equivalent.  RB 2023-01-07]
 
-#. Add the repo that contains the branch to be merged as a remote.
-   For example, if it in the Ravenbrook MPS git repo::
-
-     git remote add github git@github.com:Ravenbrook/mps.git
-
-   but if it's from a third-party repo (such as a GitHub fork) then
-   add that instead, with an appropriate name, e.g.::
-
-     git remote add captain-contrib https://gitlab.com/captcontrib/mps.git
-
 #. Add the Ravenbrook MPS GitHub repository as a remote in order to
    make use of Travis CI to build and test the merge.
 
      git remote add github git@github.com:Ravenbrook/mps.git
+
+#. If the branch to be merged is in a third-party repo (such as a
+   GitHub fork), then add that, e.g.::
+
+     git remote add captain-contrib https://gitlab.com/captcontrib/mps.git
 
 
 4. Merging a development branch
 -------------------------------
 
 1. Ensure that the contributor has executed the appropriate assignment
-   of copyright.  [And do what if they haven't?  RB 2023-01-07] [This
-   needs updating now that the MPS is using the BSD licence.  RB
+   of copyright.  If they haven't, this procedure fails.  Talk to them
+   or get someone to talk to them.  [This needs updating now that the
+   MPS is using the BSD licence.  e.g. We mustn't accept GPL code.  RB
    2023-01-07]
 
 2. Fetch the branch that you are going to merge, e.g.::
@@ -135,7 +131,11 @@ omitted for now.  RB 2023-01-07]
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
-   If tests to not pass, review your conflict resolution from step 4,
+   See `design.mps.tests`_ for details and other platforms.
+
+.. _`design.mps.tests`: ../design/tests.txt
+
+   If tests do not pass, review your conflict resolution from step 4,
    and if that doesn't resolve things, the procedure fails, and you
    need to go back to the source of the branch, e.g. the pull request
    and its original author.  Something's wrong!
@@ -146,10 +146,10 @@ omitted for now.  RB 2023-01-07]
      git push github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
 
    You will need to wait for results from Travis CI.  [Add details of
-   how to see them.  RB 2023-07-01] [Some sort of ``--force`` option
-   may be required if we're pushing back to the same branch we started
-   with, such as when it's a Ravenbrook development branch.  RB
-   2023-07-01]
+   how to see them.  RB 2023-07-01] [Some sort of
+   ``--force-with-lease`` option may be required if we're pushing back
+   to the same branch we started with, such as when it's a Ravenbrook
+   development branch.  RB 2023-07-01]
 
    See step 5 about what to do if tests do not pass.
 
@@ -167,15 +167,17 @@ omitted for now.  RB 2023-01-07]
    ``--ff-only`` checks for that.  The merge commit we want on master
    is made in step 4.  RB 2023-01-07]
 
-8. Push master to Perforce via Git Fusion::
+8. Push master and the branch to Perforce via Git Fusion::
 
      git push ravenbrook master branch/2023-01-06/speed-hax
 
-   [This could fail if someone else has done something on the master
-   codeline in Perforce.  What do you do in that case?  RB
-   2023-01-07.]
+   If this fails because someone else has submitted changes to the
+   master codeline since you started, pull those changes and go back
+   to step 4 ::
 
-8. After a bit [how long? RB 2023-01-07] check that gitpushbot has
+     git pull ravenbrook master
+
+9. After a bit [how long? RB 2023-01-07] check that gitpushbot has
    pushed the result to the Ravenbrook MPS repo on GitHub.  [And do
    what if it doesn't?  RB 2023-01-07]
 
