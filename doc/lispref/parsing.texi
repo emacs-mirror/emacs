@@ -540,11 +540,15 @@ This function returns the list of @var{parser}'s notifier functions.
 Here's some terminology and conventions we use when documenting
 tree-sitter functions.
 
-We talk about a node being ``smaller'' or ``larger'', and ``lower'' or
-``higher''.  A smaller and lower node is lower in the syntax tree and
-therefore spans a smaller portion of buffer text; a larger and higher
-node is higher up in the syntax tree, it contains many smaller nodes
-as its children, and therefore spans a larger portion of text.
+A node in a syntax tree spans some portion of the program text in the
+buffer.  We say that a node is ``smaller'' or ``larger'' than another
+if it spans, respectively, a smaller or larger portion of buffer text
+than the other node.  Since nodes that are deeper (``lower'') in the
+tree are children of the nodes that are ``higher'' in the tree, it
+follows that a lower node will always be smaller than a node that is
+higher in the node hierarchy.  A node that is higher up in the syntax
+tree contains one or more smaller nodes as its children, and therefore
+spans a larger portion of buffer text.
 
 When a function cannot find a node, it returns @code{nil}.  For
 convenience, all functions that take a node as argument and return
