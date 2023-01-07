@@ -99,7 +99,7 @@ These steps will only rarely need repeating.
 1. Check that the contributor has not expressed any kind of variation
    on the licensing of their work from the material to which they are
    contributing.  (See `"Licensing" in "Contributing to the MPS"
-   <../contributing.rst#licensing>`.)
+   <../contributing.rst#licensing>`_.)
 
    If they have, this procedure fails.  Talk to them or get someone to
    talk to them about the matter.
