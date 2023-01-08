@@ -58,7 +58,7 @@ reference to that project.  RB 2023-01-07]
    the material to which they are contributing.  (See `"Licensing" in
    "Contributing to the MPS" <../contributing.rst#licensing>`_.)
 
-   If they have, yalk to them or get someone to talk to them about the
+   If they have, talk to them or get someone to talk to them about the
    matter.  Do not proceed.
 
 #. Does the branch build and pass tests on all `target platforms
