@@ -104,9 +104,9 @@ reference to that project.  RB 2023-01-07]
 
    If you have no build and test results for the merge, then you can
    still execute this procedure if:
-   # you believe there are only merge conflicts,
-   # you're willing to try to resolve those conflicts, and
-   # you're prepared to test on all target platforms.
+   #. you believe there are only merge conflicts,
+   #. you're willing to try to resolve those conflicts, and
+   #. you're prepared to test on all target platforms.
 
 [Checklist items for Customer-specific branches from branch-merge.rst
 omitted for now.  RB 2023-01-07]
