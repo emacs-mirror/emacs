@@ -167,8 +167,8 @@ These steps will only rarely need repeating.
 
 4. Merge master with the branch::
 
-     git checkout branch/2023-01-06/speed-hax
      git pull ravenbrook master:master
+     git checkout branch/2023-01-06/speed-hax
      git merge master
 
    You may need to resolve conflicts.  If you can't resolve conflicts
