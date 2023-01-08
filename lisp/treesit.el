@@ -1795,6 +1795,31 @@ comments and multiline string literals.  For example,
 \"text_block\" in the case of a string.  This is used by
 `prog-fill-reindent-defun' and friends.")
 
+(defvar-local treesit-sentence-type-regexp nil
+  "A regexp that matches the node type of sentence nodes.
+
+A sentence node is a node that is bigger than a sexp, and
+delimits larger statements in the source code.  It is, however,
+smaller in scope than defuns.  This is used by
+`treesit-forward-sentence' and friends.")
+
+(defun treesit-forward-sentence (&optional arg)
+  "Tree-sitter `forward-sentence-function' function.
+
+ARG is the same as in `forward-sentence'.
+
+If inside comment or other nodes described in
+`treesit-sentence-type-regexp', use
+`forward-sentence-default-function', else move across nodes as
+described by `treesit-sentence-type-regexp'."
+  (if (string-match-p
+       treesit-text-type-regexp
+       (treesit-node-type (treesit-node-at (point))))
+      (funcall #'forward-sentence-default-function arg)
+    (funcall
+     (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
+     treesit-sentence-type-regexp (abs arg))))
+
 (defun treesit-default-defun-skipper ()
   "Skips spaces after navigating a defun.
 This function tries to move to the beginning of a line, either by
@@ -2259,6 +2284,8 @@ before calling this function."
                 #'treesit-add-log-current-defun))
 
   (setq-local transpose-sexps-function #'treesit-transpose-sexps)
+  (when treesit-sentence-type-regexp
+    (setq-local forward-sentence-function #'treesit-forward-sentence))
 
   ;; Imenu.
   (when treesit-simple-imenu-settings
