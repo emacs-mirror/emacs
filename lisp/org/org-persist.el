@@ -753,12 +753,12 @@ with `org-persist-write'."
 When ASSOCIATED is `all', unregister CONTAINER everywhere."
   (unless org-persist--index (org-persist--load-index))
   (setq container (org-persist--normalize-container container))
-  (setq associated (org-persist--normalize-associated associated))
   (if (eq associated 'all)
       (mapc (lambda (collection)
               (when (member container (plist-get collection :container))
                 (org-persist-unregister container (plist-get collection :associated))))
             org-persist--index)
+    (setq associated (org-persist--normalize-associated associated))
     (let ((collection (org-persist--find-index `(:container ,container :associated ,associated))))
       (when collection
         (if (= (length (plist-get collection :container)) 1)

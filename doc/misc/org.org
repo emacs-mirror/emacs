@@ -1249,11 +1249,12 @@ After the drawer.
 #+findex: org-insert-drawer
 You can interactively insert a drawer at point by calling
 ~org-insert-drawer~, which is bound to {{{kbd(C-c C-x d)}}}.  With an
-active region, this command puts the region inside the drawer.  With
-a prefix argument, this command calls ~org-insert-property-drawer~,
-which creates a =PROPERTIES= drawer right below the current headline.
-Org mode uses this special drawer for storing properties (see
-[[*Properties and Columns]]).  You cannot use it for anything else.
+active region, this command puts the region inside the drawer.  With a
+prefix argument, this command calls non-interactive function
+~org-insert-property-drawer~, which creates a =PROPERTIES= drawer
+right below the current headline.  Org mode uses this special drawer
+for storing properties (see [[*Properties and Columns]]).  You cannot use
+it for anything else.
 
 Completion over drawer keywords is also possible using
 {{{kbd(M-TAB)}}}[fn:6].
