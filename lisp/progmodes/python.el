@@ -1072,6 +1072,20 @@ fontified."
     (treesit-fontify-with-override
      string-beg string-end face override start end)))
 
+(defun python--treesit-fontify-string-interpolation
+    (node _ start end &rest _)
+  "Fontify string interpolation.
+NODE is the string node.  Do not fontify the initial f for
+f-strings.  START and END mark the region to be
+fontified."
+  ;; This is kind of a hack, it basically removes the face applied by
+  ;; the string feature, so that following features can apply their
+  ;; face.
+  (let ((n-start (treesit-node-start node))
+        (n-end (treesit-node-end node)))
+    (remove-text-properties
+     (max start n-start) (min end n-end) '(face))))
+
 (defvar python--treesit-settings
   (treesit-font-lock-rules
    :feature 'comment
@@ -1082,10 +1096,12 @@ fontified."
    :language 'python
    '((string) @python--treesit-fontify-string)
 
+   ;; HACK: This feature must come after the string feature and before
+   ;; other features.  Maybe we should make string-interpolation an
+   ;; option rather than a feature.
    :feature 'string-interpolation
    :language 'python
-   :override t
-   '((interpolation (identifier) @font-lock-variable-name-face))
+   '((interpolation) @python--treesit-fontify-string-interpolation)
 
    :feature 'definition
    :language 'python
