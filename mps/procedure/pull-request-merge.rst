@@ -26,9 +26,9 @@ MPS Help" [GDR_2020-09-03]_ .
 The document is still draft.  Some of the questions that need
 resolving are noted in square brackets.
 
-Ravenbrook is currently (2023-01) migrating the MPS project to git
-(and GitHub) and this is likely to modify this procedure.  [Insert
-reference to that project.  RB 2023-01-07]
+Ravenbrook is currently (2023-01) `migrating the MPS project to git
+(and GitHub) <https://github.com/Ravenbrook/mps/issues/98>`_ and this
+is likely to modify and simplify this procedure.
 
 
 2. Pre-merge checklist
