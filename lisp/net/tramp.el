@@ -3399,15 +3399,35 @@ BODY is the backend specific code."
 BODY is the backend specific code."
   (declare (indent 3) (debug t))
   `(with-parsed-tramp-file-name (expand-file-name ,directory) nil
-    (if (and delete-by-moving-to-trash ,trash)
-	;; Move non-empty dir to trash only if recursive deletion was
-	;; requested.
-	(if (not (or ,recursive (tramp-compat-directory-empty-p ,directory)))
-	    (tramp-error
-	     v 'file-error "Directory is not empty, not moving to trash")
-	  (move-file-to-trash ,directory))
-      ,@body)
-    (tramp-flush-directory-properties v localname)))
+     (let ((delete-by-moving-to-trash
+	    (and delete-by-moving-to-trash
+		 ;; This variable exists since Emacs 30.1.
+		 (not (bound-and-true-p
+		       remote-file-name-inhibit-delete-by-moving-to-trash)))))
+       (if (and delete-by-moving-to-trash ,trash)
+	   ;; Move non-empty dir to trash only if recursive deletion was
+	   ;; requested.
+	   (if (not (or ,recursive (tramp-compat-directory-empty-p ,directory)))
+	       (tramp-error
+		v 'file-error "Directory is not empty, not moving to trash")
+	     (move-file-to-trash ,directory))
+	 ,@body)
+       (tramp-flush-directory-properties v localname))))
+
+(defmacro tramp-skeleton-delete-file (filename &optional trash &rest body)
+  "Skeleton for `tramp-*-handle-delete-file'.
+BODY is the backend specific code."
+  (declare (indent 2) (debug t))
+  `(with-parsed-tramp-file-name (expand-file-name ,filename) nil
+     (let ((delete-by-moving-to-trash
+	    (and delete-by-moving-to-trash
+		 ;; This variable exists since Emacs 30.1.
+		 (not (bound-and-true-p
+		       remote-file-name-inhibit-delete-by-moving-to-trash)))))
+       (if (and delete-by-moving-to-trash ,trash)
+	   (move-file-to-trash ,filename)
+	 ,@body)
+       (tramp-flush-file-properties v localname))))
 
 (defmacro tramp-skeleton-directory-files
     (directory &optional full match nosort count &rest body)

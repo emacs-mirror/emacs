@@ -347,17 +347,14 @@ absolute file names."
 
 (defun tramp-sudoedit-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-flush-file-properties v localname)
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (unless (tramp-sudoedit-send-command
-	       v "rm" "-f" (file-name-unquote localname))
-	;; Propagate the error.
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (goto-char (point-min))
-	  (tramp-error-with-buffer
-	   nil v 'file-error "Couldn't delete %s" filename))))))
+  (tramp-skeleton-delete-file filename trash
+    (unless (tramp-sudoedit-send-command
+	     v "rm" "-f" (file-name-unquote localname))
+      ;; Propagate the error.
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(goto-char (point-min))
+	(tramp-error-with-buffer
+	 nil v 'file-error "Couldn't delete %s" filename)))))
 
 (defun tramp-sudoedit-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files.

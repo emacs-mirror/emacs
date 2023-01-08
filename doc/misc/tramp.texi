@@ -5215,9 +5215,10 @@ them, @ref{Misc File Ops, Trashing , , emacs}.
 @ifnotinfo
 them.
 @end ifnotinfo
-Remote files are always trashed to the local trash, except remote
-encrypted files (@pxref{Keeping files encrypted}), which are deleted
-anyway.
+Remote files are always trashed to the local trash, except the user
+option @code{remote-file-name-inhibit-delete-by-moving-to-trash} is
+non-@code{nil}, or it is a remote encrypted file (@pxref{Keeping files
+encrypted}), which are deleted anyway.
 
 If Emacs is configured to use the XDG conventions for the trash
 directory, remote files cannot be restored with the respective tools,

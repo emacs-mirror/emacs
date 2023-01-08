@@ -80,6 +80,9 @@
 (defvar remote-file-name-inhibit-locks)
 (defvar dired-copy-dereference)
 
+;; Declared in Emacs 30.
+(defvar remote-file-name-inhibit-delete-by-moving-to-trash)
+
 ;; `ert-resource-file' was introduced in Emacs 28.1.
 (unless (macrop 'ert-resource-file)
   (eval-and-compile
@@ -2345,7 +2348,24 @@ This checks also `file-name-as-directory', `file-name-directory',
 		(expand-file-name
 		 (file-name-nondirectory tmp-name) trash-directory))))
 	  (delete-directory trash-directory 'recursive)
-	  (should-not (file-exists-p trash-directory)))))))
+	  (should-not (file-exists-p trash-directory))))
+
+      ;; Setting `remote-file-name-inhibit-delete-by-moving-to-trash'
+      ;; prevents trashing remote files.
+      (let ((trash-directory (tramp--test-make-temp-name 'local quoted))
+	    (delete-by-moving-to-trash t)
+	    (remote-file-name-inhibit-delete-by-moving-to-trash t))
+	(make-directory trash-directory)
+	(should-not (file-exists-p tmp-name))
+	(write-region "foo" nil tmp-name)
+	(should (file-exists-p tmp-name))
+	(delete-file tmp-name 'trash)
+	(should-not (file-exists-p tmp-name))
+	(should-not
+	 (file-exists-p
+	  (expand-file-name (file-name-nondirectory tmp-name) trash-directory)))
+	(delete-directory trash-directory 'recursive)
+	(should-not (file-exists-p trash-directory))))))
 
 (ert-deftest tramp-test08-file-local-copy ()
   "Check `file-local-copy'."
@@ -2953,7 +2973,23 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	     "%s/%s/%s/bla" trash-directory (file-name-nondirectory tmp-name1)
 	     (file-name-nondirectory tmp-name2))))
 	  (delete-directory trash-directory 'recursive)
-	  (should-not (file-exists-p trash-directory)))))))
+	  (should-not (file-exists-p trash-directory))))
+
+      ;; Setting `remote-file-name-inhibit-delete-by-moving-to-trash'
+      ;; prevents trashing remote files.
+      (let ((trash-directory (tramp--test-make-temp-name 'local quoted))
+	    (delete-by-moving-to-trash t)
+	    (remote-file-name-inhibit-delete-by-moving-to-trash t))
+	(make-directory trash-directory)
+	(make-directory tmp-name1)
+	(should (file-directory-p tmp-name1))
+	(delete-directory tmp-name1 nil 'trash)
+	(should-not (file-exists-p tmp-name1))
+	(should-not
+	 (file-exists-p
+	  (expand-file-name (file-name-nondirectory tmp-name1) trash-directory)))
+	(delete-directory trash-directory 'recursive)
+	(should-not (file-exists-p trash-directory))))))
 
 (ert-deftest tramp-test15-copy-directory ()
   "Check `copy-directory'."
@@ -7518,6 +7554,8 @@ Since it unloads Tramp, it shall be the last test to run."
 	  ;; `tramp-register-archive-file-name-handler' is autoloaded
 	  ;; in Emacs < 29.1.
 	  (not (eq 'tramp-register-archive-file-name-handler x))
+	  ;; `tramp-compat-rx' is autoloaded in Emacs 29.1.
+	  (not (eq 'tramp-compat-rx x))
 	  (not (string-match-p
 		(rx bol "tramp" (? "-archive") (** 1 2 "-") "test")
 		(symbol-name x)))
@@ -7577,6 +7615,8 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * file-equal-p (partly done in `tramp-test21-file-links')
 ;; * file-in-directory-p
 ;; * file-name-case-insensitive-p
+;; * memory-info
+;; * tramp-get-home-directory
 ;; * tramp-get-remote-gid
 ;; * tramp-get-remote-groups
 ;; * tramp-get-remote-uid

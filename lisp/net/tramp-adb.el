@@ -424,14 +424,10 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (setq filename (expand-file-name filename))
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (tramp-adb-barf-unless-okay
-       v (format "rm %s" (tramp-shell-quote-argument localname))
-       "Couldn't delete %s" filename))))
+  (tramp-skeleton-delete-file filename trash
+    (tramp-adb-barf-unless-okay
+     v (format "rm %s" (tramp-shell-quote-argument localname))
+     "Couldn't delete %s" filename)))
 
 (defun tramp-adb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."

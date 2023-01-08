@@ -3534,7 +3534,8 @@ system TYPE.")
   (setq file (expand-file-name file))
   (let ((parsed (ange-ftp-ftp-name file)))
     (if parsed
-        (if (and delete-by-moving-to-trash trash)
+        (if (and delete-by-moving-to-trash trash
+	         (not remote-file-name-inhibit-delete-by-moving-to-trash))
 	    (move-file-to-trash file)
 	  (let* ((host (nth 0 parsed))
 	         (user (nth 1 parsed))

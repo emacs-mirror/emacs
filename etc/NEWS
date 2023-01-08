@@ -45,6 +45,11 @@ example, as part of preview for iconified frames.
 ** 'write-region-inhibit-fsync' now defaults to t in interactive mode,
 as it has in batch mode since Emacs 24.
 
++++
+** New user option 'remote-file-name-inhibit-delete-by-moving-to-trash'.
+When non-nil, this option suppresses moving remote files to the local
+trash when deleting.  Default is nil.
+
 
 * Editing Changes in Emacs 30.1
 

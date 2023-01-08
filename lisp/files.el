@@ -6336,6 +6336,12 @@ RECURSIVE if DIRECTORY is nonempty."
 		  directory-exists))
 	(files--force recursive #'delete-directory-internal directory))))))
 
+(defcustom remote-file-name-inhibit-delete-by-moving-to-trash nil
+  "Whether remote files shall be moved to the Trash.
+This overrules any setting of `delete-by-moving-to-trash'."
+  :version "30.1"
+  :type 'boolean)
+
 (defun file-equal-p (file1 file2)
   "Return non-nil if files FILE1 and FILE2 name the same file.
 If FILE1 or FILE2 does not exist, the return value is unspecified."

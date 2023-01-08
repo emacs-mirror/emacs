@@ -695,24 +695,17 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
 (defun tramp-smb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (setq filename (expand-file-name filename))
-  (when (file-exists-p filename)
-    (with-parsed-tramp-file-name filename nil
-      ;; We must also flush the cache of the directory, because
-      ;; `file-attributes' reads the values from there.
-      (tramp-flush-file-properties v localname)
-      (if (and delete-by-moving-to-trash trash)
-	  (move-file-to-trash filename)
-	(unless (tramp-smb-send-command
-		 v (format
-		    "%s %s"
-		    (if (tramp-smb-get-cifs-capabilities v) "posix_unlink" "rm")
-		    (tramp-smb-shell-quote-localname v)))
-	  ;; Error.
-	  (with-current-buffer (tramp-get-connection-buffer v)
-	    (goto-char (point-min))
-	    (search-forward-regexp tramp-smb-errors nil t)
-	    (tramp-error v 'file-error "%s `%s'" (match-string 0) filename)))))))
+  (tramp-skeleton-delete-file filename trash
+    (unless (tramp-smb-send-command
+	     v (format
+		"%s %s"
+		(if (tramp-smb-get-cifs-capabilities v) "posix_unlink" "rm")
+		(tramp-smb-shell-quote-localname v)))
+      ;; Error.
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(goto-char (point-min))
+	(search-forward-regexp tramp-smb-errors nil t)
+	(tramp-error v 'file-error "%s `%s'" (match-string 0) filename)))))
 
 (defun tramp-smb-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
