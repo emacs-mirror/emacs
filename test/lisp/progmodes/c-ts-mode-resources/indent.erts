@@ -1,0 +1,44 @@
+Code:
+  (lambda ()
+    (c-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: Basic
+
+=-=
+int
+main (void)
+{
+  return 0;
+}
+=-=-=
+
+Name: Hanging Braces (GNU Style)
+
+=-=
+int
+main (void)
+{
+  if (true)
+    {
+    }
+}
+=-=-=
+
+Name: Multiline Parameter List (bug#60398)
+
+=-=
+int f2(int x,
+       int y) {
+  return x + y;
+};
+=-=-=
+
+Name: Multiline Block Comments (bug#60270)
+
+=-=
+/**
+ * @some_func:
+ * @arg1:
+ */
+=-=-=
