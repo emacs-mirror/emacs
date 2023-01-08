@@ -107,9 +107,12 @@ You may use `@', `*', and `^' together.  They are processed in the
 
 If MODES is present, it should be a list of mode names (symbols) that
 this command is applicable for.  The main effect of this is that
-`M-x TAB' (by default) won't list this command if the current buffer's
-mode doesn't match the list.  That is, if either the major mode isn't
-derived from them, or (when it's a minor mode) the mode isn't in effect.
+`M-x TAB' will be able to exclude this command from the list of
+completion candidates if the current buffer's mode doesn't match the list.
+That is, if either the major mode isn't derived from them, or (when it's
+a minor mode) the mode isn't in effect.  Which commands are excluded
+from the list of completion candidates is controlled by the value
+of `read-extended-command-predicate', which see.
 
 usage: (interactive &optional ARG-DESCRIPTOR &rest MODES)  */
        attributes: const)
