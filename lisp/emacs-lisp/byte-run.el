@@ -262,7 +262,8 @@ This is used by `declare'.")
              (interactive-form nil)
              (warnings nil)
              (warn #'(lambda (msg form)
-                       (push (macroexp-warn-and-return msg nil nil t form)
+                       (push (macroexp-warn-and-return
+                              (format-message msg) nil nil t form)
                              warnings))))
         (while
             (and body
@@ -679,11 +680,11 @@ Otherwise, return nil.  For internal use only."
   ;; This is called from lread.c and therefore needs to be preloaded.
   (if lread--unescaped-character-literals
       (let ((sorted (sort lread--unescaped-character-literals #'<)))
-        (format-message "unescaped character literals %s detected, %s expected!"
-                        (mapconcat (lambda (char) (format "`?%c'" char))
-                                   sorted ", ")
-                        (mapconcat (lambda (char) (format "`?\\%c'" char))
-                                   sorted ", ")))))
+        (format "unescaped character literals %s detected, %s expected!"
+                (mapconcat (lambda (char) (format-message "`?%c'" char))
+                           sorted ", ")
+                (mapconcat (lambda (char) (format-message "`?\\%c'" char))
+                           sorted ", ")))))
 
 (defun byte-compile-info (string &optional message type)
   "Format STRING in a way that looks pleasing in the compilation output.

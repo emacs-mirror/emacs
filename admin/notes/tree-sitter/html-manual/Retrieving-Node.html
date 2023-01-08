@@ -201,13 +201,13 @@ is the string text.
 </p></dd></dl>
 
 <dl class="def">
-<dt id="index-treesit_002dnext_002dsibling"><span class="category">Function: </span><span><strong>treesit-next-sibling</strong> <em>node &amp;optional named</em><a href='#index-treesit_002dnext_002dsibling' class='copiable-anchor'> &para;</a></span></dt>
+<dt id="index-treesit_002dnext_002dsibling"><span class="category">Function: </span><span><strong>treesit-node-next-sibling</strong> <em>node &amp;optional named</em><a href='#index-treesit_002dnext_002dsibling' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function finds the next sibling of <var>node</var>.  If <var>named</var> is
 non-<code>nil</code>, it finds the next named sibling.
 </p></dd></dl>
 
 <dl class="def">
-<dt id="index-treesit_002dprev_002dsibling"><span class="category">Function: </span><span><strong>treesit-prev-sibling</strong> <em>node &amp;optional named</em><a href='#index-treesit_002dprev_002dsibling' class='copiable-anchor'> &para;</a></span></dt>
+<dt id="index-treesit_002dprev_002dsibling"><span class="category">Function: </span><span><strong>treesit-node-prev-sibling</strong> <em>node &amp;optional named</em><a href='#index-treesit_002dprev_002dsibling' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function finds the previous sibling of <var>node</var>.  If
 <var>named</var> is non-<code>nil</code>, it finds the previous named sibling.
 </p></dd></dl>
@@ -221,13 +221,13 @@ assign <em>field names</em> to child nodes (see <a href="Language-Definitions.ht
 could have a <code>declarator</code> node and a <code>body</code> node.
 </p>
 <dl class="def">
-<dt id="index-treesit_002dchild_002dby_002dfield_002dname"><span class="category">Function: </span><span><strong>treesit-child-by-field-name</strong> <em>node field-name</em><a href='#index-treesit_002dchild_002dby_002dfield_002dname' class='copiable-anchor'> &para;</a></span></dt>
+<dt id="index-treesit_002dchild_002dby_002dfield_002dname"><span class="category">Function: </span><span><strong>treesit-node-child-by-field-name</strong> <em>node field-name</em><a href='#index-treesit_002dchild_002dby_002dfield_002dname' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function finds the child of <var>node</var> whose field name is
 <var>field-name</var>, a string.
 </p>
 <div class="example">
 <pre class="example">;; Get the child that has &quot;body&quot; as its field name.
-(treesit-child-by-field-name node &quot;body&quot;)
+(treesit-node-child-by-field-name node &quot;body&quot;)
   &rArr; #&lt;treesit-node (compound_statement) in 45-89&gt;
 </pre></div>
 </dd></dl>
@@ -237,7 +237,7 @@ could have a <code>declarator</code> node and a <code>body</code> node.
 <span id="index-syntax-tree-nodes_002c-by-position"></span>
 
 <dl class="def">
-<dt id="index-treesit_002dfirst_002dchild_002dfor_002dpos"><span class="category">Function: </span><span><strong>treesit-first-child-for-pos</strong> <em>node pos &amp;optional named</em><a href='#index-treesit_002dfirst_002dchild_002dfor_002dpos' class='copiable-anchor'> &para;</a></span></dt>
+<dt id="index-treesit_002dfirst_002dchild_002dfor_002dpos"><span class="category">Function: </span><span><strong>treesit-node-first-child-for-pos</strong> <em>node pos &amp;optional named</em><a href='#index-treesit_002dfirst_002dchild_002dfor_002dpos' class='copiable-anchor'> &para;</a></span></dt>
 <dd><p>This function finds the first child of <var>node</var> that extends beyond
 buffer position <var>pos</var>.  &ldquo;Extends beyond&rdquo; means the end of the
 child node is greater or equal to <var>pos</var>.  This function only looks

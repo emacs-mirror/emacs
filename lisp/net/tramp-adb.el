@@ -71,14 +71,14 @@ It is used for TCP/IP devices."
   "Regexp for date time format in ls output."))
 
 (defconst tramp-adb-ls-date-regexp
-  (tramp-compat-rx
+  (rx
    blank (regexp tramp-adb-ls-date-year-regexp)
    blank (regexp tramp-adb-ls-date-time-regexp)
    blank)
   "Regexp for date format in ls output.")
 
 (defconst tramp-adb-ls-toolbox-regexp
-  (tramp-compat-rx
+  (rx
    bol (* blank) (group (+ (any ".-" alpha)))			; \1 permissions
    (? (+ blank) (+ digit))			      ; links (Android 7/toybox)
    (* blank) (group (+ (not blank)))				; \2 username
@@ -327,8 +327,7 @@ arguments to pass to the OPERATION."
 		     (tramp-shell-quote-argument
 		      (tramp-compat-file-name-concat localname ".."))))
 	  (tramp-compat-replace-regexp-in-region
-	   (tramp-compat-rx (literal (tramp-compat-file-name-unquote
-				      (file-name-as-directory localname))))
+	   (rx (literal (file-name-unquote (file-name-as-directory localname))))
 	   "" (point-min))
 	  (widen)))
       (tramp-adb-sh-fix-ls-output)
@@ -366,14 +365,12 @@ Emacs dired can't find files."
     (goto-char (point-min))
     (while
 	(search-forward-regexp
-	 (tramp-compat-rx
-	  blank (group blank (regexp tramp-adb-ls-date-year-regexp) blank))
+	 (rx blank (group blank (regexp tramp-adb-ls-date-year-regexp) blank))
 	 nil t)
       (replace-match "0\\1" "\\1" nil)
       ;; Insert missing "/".
       (when (looking-at-p
-	     (tramp-compat-rx
-	      (regexp tramp-adb-ls-date-time-regexp) (+ blank) eol))
+	     (rx (regexp tramp-adb-ls-date-time-regexp) (+ blank) eol))
 	(end-of-line)
 	(insert "/")))
     ;; Sort entries.
@@ -393,12 +390,10 @@ Emacs dired can't find files."
 (defun tramp-adb-ls-output-time-less-p (a b)
   "Sort \"ls\" output by time, descending."
   (let (time-a time-b)
-    ;; Once we can assume Emacs 27 or later, the two calls
-    ;; (apply #'encode-time X) can be replaced by (encode-time X).
     (string-match tramp-adb-ls-date-regexp a)
-    (setq time-a (apply #'encode-time (parse-time-string (match-string 0 a))))
+    (setq time-a (encode-time (parse-time-string (match-string 0 a))))
     (string-match tramp-adb-ls-date-regexp b)
-    (setq time-b (apply #'encode-time (parse-time-string (match-string 0 b))))
+    (setq time-b (encode-time (parse-time-string (match-string 0 b))))
     (time-less-p time-b time-a)))
 
 (defun tramp-adb-ls-output-name-less-p (a b)
@@ -474,7 +469,7 @@ Emacs dired can't find files."
       ;; "adb pull ..." does not always return an error code.
       (unless
 	  (and (tramp-adb-execute-adb-command
-		v "pull" (tramp-compat-file-name-unquote localname) tmpfile)
+		v "pull" (file-name-unquote localname) tmpfile)
 	       (file-exists-p tmpfile))
 	(ignore-errors (delete-file tmpfile))
 	(tramp-error
@@ -554,8 +549,7 @@ Emacs dired can't find files."
 		 "Moving tmp file `%s' to `%s'" tmpfile filename)
 	  (unwind-protect
 	      (unless (tramp-adb-execute-adb-command
-		       v "push" tmpfile
-		       (tramp-compat-file-name-unquote localname))
+		       v "push" tmpfile (file-name-unquote localname))
 		(tramp-error v 'file-error "Cannot write: `%s'" filename))
 	    (delete-file tmpfile)))))))
 
@@ -570,11 +564,7 @@ Emacs dired can't find files."
 (defun tramp-adb-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
   (tramp-skeleton-set-file-modes-times-uid-gid filename
-    (let ((time (if (or (null time)
-			(tramp-compat-time-equal-p time tramp-time-doesnt-exist)
-			(tramp-compat-time-equal-p time tramp-time-dont-know))
-		    (current-time)
-		  time))
+    (let ((time (tramp-defined-time time))
 	  (nofollow (if (eq flag 'nofollow) "-h" ""))
 	  (quoted-name (tramp-shell-quote-argument localname)))
       ;; Older versions of toybox 'touch' mishandle nanoseconds and/or
@@ -660,8 +650,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		  (tramp-flush-file-properties v localname)
 		  (unless (tramp-adb-execute-adb-command
 			   v "push"
-			   (tramp-compat-file-name-unquote filename)
-			   (tramp-compat-file-name-unquote localname))
+			   (file-name-unquote filename)
+			   (file-name-unquote localname))
 		    (tramp-error
 		     v 'file-error
 		     "Cannot copy `%s' `%s'" filename newname)))))))))
@@ -727,11 +717,6 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Strings to return by `process-file' in case of signals."
   (with-tramp-connection-property vec "signal-strings"
     (let ((default-directory (tramp-make-tramp-file-name vec 'noloc))
-	  ;; `shell-file-name' and `shell-command-switch' are needed
-	  ;; for Emacs < 27.1, which doesn't support connection-local
-	  ;; variables in `shell-command'.
-	  (shell-file-name "/system/bin/sh")
-	  (shell-command-switch "-c")
 	  process-file-return-signal-string signals result)
       (dotimes (i 128) (push (format "Signal %d" i) result))
       (setq result (reverse result)
@@ -764,7 +749,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; Determine input.
       (if (null infile)
 	  (setq input (tramp-get-remote-null-device v))
-	(setq infile (tramp-compat-file-name-unquote (expand-file-name infile)))
+	(setq infile (file-name-unquote (expand-file-name infile)))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
 	    (setq input (tramp-unquote-file-local-name infile))
@@ -940,7 +925,7 @@ implementation will be used."
 		 (i 0)
 		 p)
 
-	    (when (string-match-p (tramp-compat-rx multibyte) command)
+	    (when (string-match-p (rx multibyte) command)
 	      (tramp-error
 	       v 'file-error "Cannot apply multi-byte command `%s'" command))
 
@@ -1132,7 +1117,7 @@ error and non-nil on success."
 
 (defun tramp-adb-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC."
-  (if (string-match-p (tramp-compat-rx multibyte) command)
+  (if (string-match-p (rx multibyte) command)
       ;; Multibyte codepoints with four bytes are not supported at
       ;; least by toybox.
 
@@ -1156,7 +1141,7 @@ error and non-nil on success."
 	  ;; We can't use stty to disable echo of command.  stty is said
 	  ;; to be added to toybox 0.7.6.  busybox shall have it, but this
 	  ;; isn't used any longer for Android.
-	  (delete-matching-lines (tramp-compat-rx bol (literal command) eol))
+	  (delete-matching-lines (rx bol (literal command) eol))
 	  ;; When the local machine is W32, there are still trailing ^M.
 	  ;; There must be a better solution by setting the correct coding
 	  ;; system, but this requires changes in core Tramp.
@@ -1279,7 +1264,7 @@ connection if a previous connection has died for some reason."
 
 	    ;; Change prompt.
 	    (tramp-set-connection-property
-	     p "prompt" (tramp-compat-rx "///" (literal prompt) "#$"))
+	     p "prompt" (rx "///" (literal prompt) "#$"))
 	    (tramp-adb-send-command
 	     vec (format "PS1=\"///\"\"%s\"\"#$\"" prompt))
 

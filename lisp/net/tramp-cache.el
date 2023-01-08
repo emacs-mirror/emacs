@@ -267,8 +267,7 @@ Return VALUE."
 (defun tramp-flush-directory-properties (key directory)
   "Remove all properties of DIRECTORY in the cache context of KEY.
 Remove also properties of all files in subdirectories."
-  (let* ((directory
-	  (directory-file-name (tramp-compat-file-name-unquote directory)))
+  (let* ((directory (directory-file-name (file-name-unquote directory)))
 	 (truename (tramp-get-file-property key directory "file-truename")))
     (tramp-message key 8 "%s" directory)
     (dolist (key (hash-table-keys tramp-cache-data))
@@ -676,5 +675,9 @@ for all methods.  Resulting data are derived from connection history."
 	    (unload-feature 'tramp-cache 'force)))
 
 (provide 'tramp-cache)
+
+;;; TODO:
+;;
+;; * Use multisession.el, starting with Emacs 29.1.
 
 ;;; tramp-cache.el ends here

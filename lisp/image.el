@@ -444,7 +444,7 @@ type if we can't otherwise guess it."
                             (require 'image-converter)
                             (image-convert-p source))))))
     (unless type
-      (signal 'unknown-image-type "Cannot determine image type")))
+      (signal 'unknown-image-type '("Cannot determine image type"))))
   (when (and (not (eq type 'image-convert))
              (not (memq type (and (boundp 'image-types) image-types))))
     (error "Invalid image type `%s'" type))

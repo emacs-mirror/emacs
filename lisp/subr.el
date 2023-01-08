@@ -282,7 +282,7 @@ value of last one, or nil if there are none."
   (declare (indent 1) (debug t))
   (if body
       (list 'if cond (cons 'progn body))
-    (macroexp-warn-and-return "`when' with empty body"
+    (macroexp-warn-and-return (format-message "`when' with empty body")
                               cond '(empty-body when) t)))
 
 (defmacro unless (cond &rest body)
@@ -292,7 +292,7 @@ value of last one, or nil if there are none."
   (declare (indent 1) (debug t))
   (if body
       (cons 'if (cons cond (cons nil body)))
-    (macroexp-warn-and-return "`unless' with empty body"
+    (macroexp-warn-and-return (format-message "`unless' with empty body")
                               cond '(empty-body unless) t)))
 
 (defsubst subr-primitive-p (object)
@@ -393,14 +393,15 @@ The CONDITION argument is not evaluated.  Do not quote it."
    ((and (eq (car-safe condition) 'quote)
          (cdr condition) (null (cddr condition)))
     (macroexp-warn-and-return
-     (format "`ignore-error' condition argument should not be quoted: %S"
-             condition)
+     (format-message
+      "`ignore-error' condition argument should not be quoted: %S"
+      condition)
      `(condition-case nil (progn ,@body) (,(cadr condition) nil))
      nil t condition))
    (body
     `(condition-case nil (progn ,@body) (,condition nil)))
    (t
-    (macroexp-warn-and-return "`ignore-error' with empty body"
+    (macroexp-warn-and-return (format-message "`ignore-error' with empty body")
                               nil '(empty-body ignore-error) t condition))))
 
 
@@ -530,8 +531,9 @@ This function is provided for compatibility.  In new code, use `ash'
 instead."
   (declare (compiler-macro
             (lambda (form)
-              (macroexp-warn-and-return "avoid `lsh'; use `ash' instead"
-                                        form '(suspicious lsh) t form))))
+              (macroexp-warn-and-return
+               (format-message "avoid `lsh'; use `ash' instead")
+               form '(suspicious lsh) t form))))
   (when (and (< value 0) (< count 0))
     (when (< value most-negative-fixnum)
       (signal 'args-out-of-range (list value count)))
@@ -3300,7 +3302,7 @@ floating point support."
             (lambda (form)
               (if (not (or (numberp nodisp) obsolete)) form
                 (macroexp-warn-and-return
-                 "Obsolete calling convention for 'sit-for'"
+                 (format-message "Obsolete calling convention for `sit-for'")
                  `(,(car form) (+ ,seconds (/ (or ,nodisp 0) 1000.0)) ,obsolete)
                  '(obsolete sit-for))))))
   ;; This used to be implemented in C until the following discussion:
@@ -3555,8 +3557,7 @@ character.  This is not possible when using `read-key', but using
 Return t if answer is \"y\" and nil if it is \"n\".
 
 PROMPT is the string to display to ask the question; `y-or-n-p'
-adds \" (y or n) \" to it.  It does not need to end in space, but
-if it does up to one space will be removed.
+adds \"(y or n) \" to it.
 
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
@@ -4882,7 +4883,8 @@ but that should be robust in the unexpected case that an error is signaled."
       ;; The use without `format' is obsolete, let's warn when we bump
       ;; into any such remaining uses.
       (macroexp-warn-and-return
-       "Missing format argument in `with-demote-errors'" exp nil nil
+       (format-message "Missing format argument in `with-demote-errors'")
+       exp nil nil
        orig-format))))
 
 (defmacro combine-after-change-calls (&rest body)

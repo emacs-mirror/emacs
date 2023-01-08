@@ -554,7 +554,7 @@ Return the compile-time value of FORM."
                      ,(macroexpand-all `(progn ,@body)
                                        macroexpand-all-environment)))
                (macroexp-warn-and-return
-                "`with-suppressed-warnings' with empty body"
+                (format-message "`with-suppressed-warnings' with empty body")
                 nil '(empty-body with-suppressed-warnings) t warnings)))))
   "The default macro-environment passed to macroexpand by the compiler.
 Placing a macro here will cause a macro to have different semantics when
@@ -3445,7 +3445,7 @@ lambda-expression."
 				     (t "."))))
         (if (eq (car-safe (symbol-function (car form))) 'macro)
             (byte-compile-report-error
-             (format "`%s' defined after use in %S (missing `require' of a library file?)"
+             (format-message "`%s' defined after use in %S (missing `require' of a library file?)"
                      (car form) form)))
         (if (and handler
                  ;; Make sure that function exists.
@@ -5524,8 +5524,8 @@ and corresponding effects."
 
 (defun bytecomp--warn-dodgy-eq-arg (form type parenthesis)
   (macroexp-warn-and-return
-   (format "`%s' called with literal %s that may never match (%s)"
-           (car form) type parenthesis)
+   (format-message "`%s' called with literal %s that may never match (%s)"
+                   (car form) type parenthesis)
    form (list 'suspicious (car form)) t))
 
 (defun bytecomp--check-eq-args (form &optional a b &rest _ignore)

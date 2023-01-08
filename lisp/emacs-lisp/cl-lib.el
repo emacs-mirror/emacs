@@ -201,7 +201,7 @@ should return.
 Note that Emacs Lisp doesn't really support multiple values, so
 all this function does is return LIST."
   (unless (listp list)
-    (signal 'wrong-type-argument list))
+    (signal 'wrong-type-argument (list list)))
   list)
 
 (defsubst cl-multiple-value-list (expression)

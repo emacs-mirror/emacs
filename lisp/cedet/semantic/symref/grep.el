@@ -44,7 +44,9 @@ those hits returned.")
 
 (defvar semantic-symref-filepattern-alist
   '((c-mode "*.[ch]")
+    (c-ts-mode "*.[ch]")
     (c++-mode "*.[chCH]" "*.[ch]pp" "*.cc" "*.hh")
+    (c++-ts-mode "*.[chCH]" "*.[ch]pp" "*.cc" "*.hh")
     (html-mode "*.html" "*.shtml" "*.php")
     (mhtml-mode "*.html" "*.shtml" "*.php") ; FIXME: remove
                                             ; duplication of
@@ -53,7 +55,10 @@ those hits returned.")
                                             ; major mode definition?
     (ruby-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
                "Rakefile" "Thorfile" "Capfile" "Guardfile" "Vagrantfile")
+    (ruby-ts-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
+                  "Rakefile" "Thorfile" "Capfile" "Guardfile" "Vagrantfile")
     (python-mode "*.py" "*.pyi" "*.pyw")
+    (python-ts-mode "*.py" "*.pyi" "*.pyw")
     (perl-mode "*.pl" "*.PL")
     (cperl-mode "*.pl" "*.PL")
     (lisp-interaction-mode "*.el" "*.ede" ".emacs" "_emacs")

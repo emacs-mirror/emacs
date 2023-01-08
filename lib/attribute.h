@@ -32,7 +32,7 @@
 
 
 /* This file defines two types of attributes:
-   * C2x standard attributes.  These have macro names that do not begin with
+   * C23 standard attributes.  These have macro names that do not begin with
      'ATTRIBUTE_'.
    * Selected GCC attributes; see:
      https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html

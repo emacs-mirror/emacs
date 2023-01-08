@@ -2161,6 +2161,23 @@ parameters SERVER and NICK."
     (setq input (concat "irc://" input)))
   input)
 
+;; A temporary means of addressing the problem of ERC's namesake entry
+;; point defaulting to a non-TLS connection with its default server
+;; (bug#60428).
+(defun erc--warn-unencrypted ()
+  ;; Remove unconditionally to avoid wrong context due to races from
+  ;; simultaneous dialing or aborting (e.g., via `keybaord-quit').
+  (remove-hook 'erc--server-post-connect-hook #'erc--warn-unencrypted)
+  (when (and (process-contact erc-server-process :nowait)
+             (equal erc-session-server erc-default-server)
+             (eql erc-session-port erc-default-port))
+    ;; FIXME use the autoloaded `info' instead of `Info-goto-node' in
+    ;; `erc-button-alist'.
+    (require 'info nil t)
+    (erc-display-error-notice
+     nil (concat "This connection is unencrypted.  Please use `erc-tls'"
+                 " from now on.  See Info:\"(erc) connecting\" for more."))))
+
 ;;;###autoload
 (defun erc-select-read-args ()
   "Prompt the user for values of nick, server, port, and password."
@@ -2171,10 +2188,7 @@ parameters SERVER and NICK."
          ;; For legacy reasons, also accept a URL without a scheme.
          (url (url-generic-parse-url (erc--ensure-url input)))
          (server (url-host url))
-         (sp (and (or (string-suffix-p "s" (url-type url))
-                      (and (equal server erc-default-server)
-                           (not (string-prefix-p "irc://" input))))
-                  'ircs-u))
+         (sp (and (string-suffix-p "s" (url-type url)) erc-default-port-tls))
          (port (or (url-portspec url)
                    (erc-compute-port
                     (let ((d (erc-compute-port sp))) ; may be a string
@@ -2187,13 +2201,19 @@ parameters SERVER and NICK."
                    (let ((d (erc-compute-nick)))
                      (read-string (format "Nickname (default is %S): " d)
                                   nil 'erc-nick-history-list d))))
-         (passwd (or (url-password url)
-                     (if erc-prompt-for-password
-                         (read-passwd "Server password (optional): ")
-                       (with-suppressed-warnings ((obsolete erc-password))
-                         erc-password)))))
+         (passwd (let* ((p (with-suppressed-warnings ((obsolete erc-password))
+                             (or (url-password url) erc-password)))
+                        (m (if p
+                               (format "Server password (default is %S): " p)
+                             "Server password (optional): ")))
+                   (if erc-prompt-for-password (read-passwd m nil p) p))))
     (when (and passwd (string= "" passwd))
       (setq passwd nil))
+    (when (and (equal server erc-default-server)
+               (eql port erc-default-port)
+               (not (eql port erc-default-port-tls)) ; not `erc-tls'
+               (not (string-prefix-p "irc://" input))) ; not yanked URL
+      (add-hook 'erc--server-post-connect-hook #'erc--warn-unencrypted))
     (list :server server :port port :nick nick :password passwd)))
 
 ;;;###autoload

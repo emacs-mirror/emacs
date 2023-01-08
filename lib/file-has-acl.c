@@ -81,9 +81,10 @@ acl_nfs4_nontrivial (uint32_t *xattr, ssize_t nbytes)
       uint32_t flag = ntohl (xattr[1]);
       uint32_t wholen = ntohl (xattr[3]);
       xattr += 4;
-      int64_t wholen4 = wholen;
-      wholen4 = ((wholen4 + (BYTES_PER_NETWORK_UINT))
-                 & ~ (BYTES_PER_NETWORK_UINT - 1));
+      int whowords = (wholen / BYTES_PER_NETWORK_UINT
+                      + (wholen % BYTES_PER_NETWORK_UINT != 0));
+      int64_t wholen4 = whowords;
+      wholen4 *= BYTES_PER_NETWORK_UINT;
 
       /* Trivial ACLs have only ACE4_ACCESS_ALLOWED_ACE_TYPE or
          ACE4_ACCESS_DENIED_ACE_TYPE.  */
@@ -115,7 +116,7 @@ acl_nfs4_nontrivial (uint32_t *xattr, ssize_t nbytes)
         return 1;
       ace_found |= ace_found_bit;
 
-      xattr = (uint32_t *) ((char *) xattr + wholen4);
+      xattr += whowords;
     }
 
   return 0;

@@ -414,7 +414,7 @@ It has been changed in GVFS 1.14.")
 ;; </interface>
 
 (defconst tramp-goa-identity-regexp
-  (tramp-compat-rx
+  (rx
    bol (? (group (regexp tramp-user-regexp)))
    "@" (? (group (regexp tramp-host-regexp)))
    (? ":" (group (regexp tramp-port-regexp))))
@@ -716,13 +716,13 @@ It has been changed in GVFS 1.14.")
     "GVFS file attributes."))
 
 (defconst tramp-gvfs-file-attributes-with-gvfs-ls-regexp
-  (tramp-compat-rx
+  (rx
    blank (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
    "=" (group (+? nonl)))
   "Regexp to parse GVFS file attributes with `gvfs-ls'.")
 
 (defconst tramp-gvfs-file-attributes-with-gvfs-info-regexp
-  (tramp-compat-rx
+  (rx
    bol (* blank) (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
    ":" (+ blank) (group (* nonl)) eol)
   "Regexp to parse GVFS file attributes with `gvfs-info'.")
@@ -734,7 +734,7 @@ It has been changed in GVFS 1.14.")
   "GVFS file system attributes.")
 
 (defconst tramp-gvfs-file-system-attributes-regexp
-  (tramp-compat-rx
+  (rx
    bol (* blank)
    (group (regexp (regexp-opt tramp-gvfs-file-system-attributes)))
    ":" (+ blank) (group (* nonl)) eol)
@@ -744,7 +744,7 @@ It has been changed in GVFS 1.14.")
   "Default prefix for owncloud / nextcloud methods.")
 
 (defconst tramp-gvfs-nextcloud-default-prefix-regexp
-  (tramp-compat-rx (literal tramp-gvfs-nextcloud-default-prefix) eol)
+  (rx (literal tramp-gvfs-nextcloud-default-prefix) eol)
   "Regexp of default prefix for owncloud / nextcloud methods.")
 
 
@@ -1168,8 +1168,7 @@ file names."
     (with-parsed-tramp-file-name name nil
       ;; If there is a default location, expand tilde.
       (when (string-match
-	     (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
-	      localname)
+	     (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
@@ -1186,8 +1185,7 @@ file names."
       ;; We do not pass "/..".
       (if (string-match-p (rx bos (| "afp" (: "dav" (? "s")) "smb") eos) method)
 	  (when (string-match
-		 (tramp-compat-rx bos "/" (+ (not "/")) (group "/.." (? "/")))
-		 localname)
+		 (rx bos "/" (+ (not "/")) (group "/.." (? "/"))) localname)
 	    (setq localname (replace-match "/" t t localname 1)))
 	(when (string-match (rx bol "/.." (? "/")) localname)
 	  (setq localname (replace-match "/" t t localname))))
@@ -1222,7 +1220,7 @@ file names."
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
 	  (while (looking-at
-		  (tramp-compat-rx
+		  (rx
 		   bol (group (+ nonl)) blank
 		   (group (+ digit)) blank
 		   "(" (group (+? nonl)) ")"
@@ -1232,7 +1230,7 @@ file names."
 			      (cons "name" (match-string 1)))))
 	      (goto-char (1+ (match-end 3)))
 	      (while (looking-at
-		      (tramp-compat-rx
+		      (rx
 		       (regexp tramp-gvfs-file-attributes-with-gvfs-ls-regexp)
 		       (group
 			(| (regexp
@@ -1281,11 +1279,10 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   "Return GVFS attributes association list of FILENAME."
   (setq filename (directory-file-name (expand-file-name filename)))
   (with-parsed-tramp-file-name filename nil
-    (setq localname (tramp-compat-file-name-unquote localname))
+    (setq localname (file-name-unquote localname))
     (if (or (and (string-match-p
 		  (rx bol (| "afp" (: "dav" (? "s")) "smb") eol) method)
-		 (string-match-p
-		  (tramp-compat-rx bol (? "/") (+ (not "/")) eol) localname))
+		 (string-match-p (rx bol (? "/") (+ (not "/")) eol) localname))
 	    (string-equal localname "/"))
 	(tramp-gvfs-get-root-attributes filename)
       (assoc
@@ -1485,7 +1482,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   (let* ((events (process-get proc 'events))
 	 (rest-string (process-get proc 'rest-string))
 	 (dd (tramp-get-default-directory (process-buffer proc)))
-	 (ddu (tramp-compat-rx (literal (tramp-gvfs-url-file-name dd)))))
+	 (ddu (rx (literal (tramp-gvfs-url-file-name dd)))))
     (when rest-string
       (tramp-message proc 10 "Previous string:\n%s" rest-string))
     (tramp-message proc 6 "%S\n%s" proc string)
@@ -1504,7 +1501,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
       (delete-process proc))
 
     (while (string-match
-	    (tramp-compat-rx
+	    (rx
 	     bol (+ nonl) ":"
 	     blank (group (+ nonl)) ":"
 	     blank (group (regexp (regexp-opt tramp-gio-events)))
@@ -1607,12 +1604,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (tramp-gvfs-set-attribute
      v (if (eq flag 'nofollow) "-nt" "-t") "uint64"
      (tramp-gvfs-url-file-name filename) "time::modified"
-     (format-time-string
-      "%s" (if (or (null time)
-		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
-		   (tramp-compat-time-equal-p time tramp-time-dont-know))
-	       nil
-	     time)))))
+     (format-time-string "%s" (tramp-defined-time time)))))
 
 (defun tramp-gvfs-handle-get-home-directory (vec &optional _user)
   "The remote home directory for connection VEC as local file name.
@@ -1705,7 +1697,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-gvfs-url-file-name (filename)
   "Return FILENAME in URL syntax."
-  (setq filename (tramp-compat-file-name-unquote filename))
+  (setq filename (file-name-unquote filename))
   (let* (;; "/" must NOT be hexified.
 	 (url-unreserved-chars (cons ?/ url-unreserved-chars))
 	 (result
@@ -1725,8 +1717,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Retrieve file name from D-Bus OBJECT-PATH."
   (dbus-unescape-from-identifier
    (replace-regexp-in-string
-    (tramp-compat-rx bol (* nonl) "/" (group (+ (not "/"))) eol) "\\1"
-    object-path)))
+    (rx bol (* nonl) "/" (group (+ (not "/"))) eol) "\\1" object-path)))
 
 (defun tramp-gvfs-url-host (url)
   "Return the host name part of URL, a string.
@@ -2002,7 +1993,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 		(string-equal host (tramp-file-name-host vec))
 		(string-equal port (tramp-file-name-port vec))
 		(string-match-p
-		 (tramp-compat-rx bol "/" (literal (or share "")))
+		 (rx bol "/" (literal (or share "")))
 		 (tramp-file-name-unquote-localname vec)))
 	   ;; Set mountpoint and location.
 	   (tramp-set-file-property vec "/" "fuse-mountpoint" fuse-mountpoint)
@@ -2047,8 +2038,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
 		   (tramp-media-device-port media) (tramp-file-name-port vec)))
 	 (localname (tramp-file-name-unquote-localname vec))
 	 (share (when (string-match
-		       (tramp-compat-rx bol (? "/") (group (+ (not "/"))))
-		       localname)
+		       (rx bol (? "/") (group (+ (not "/")))) localname)
 		  (match-string 1 localname)))
 	 (ssl (if (string-match-p (rx bol (| "davs" "nextcloud")) method)
 		  "true" "false"))
@@ -2091,8 +2081,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
                 (list (tramp-gvfs-mount-spec-entry "port" port)))))
 	 (mount-pref
           (if (and (string-match-p (rx bol "dav") method)
-                   (string-match
-		    (tramp-compat-rx bol (? "/") (+ (not "/"))) localname))
+                   (string-match (rx bol (? "/") (+ (not "/"))) localname))
               (match-string 0 localname)
 	    (tramp-gvfs-get-remote-prefix vec))))
 
@@ -2492,12 +2481,8 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
       result))))
 
 (when tramp-gvfs-enabled
-  (with-no-warnings ;; max-specpdl-size
   ;; Suppress D-Bus error messages and Tramp traces.
-  (let (;; Sometimes, it fails with "Variable binding depth exceeds
-	;; max-specpdl-size".  Shall be fixed in Emacs 27.
-	(max-specpdl-size (* 2 max-specpdl-size))
-	(tramp-verbose 0)
+  (let ((tramp-verbose 0)
 	tramp-gvfs-dbus-event-vector fun)
     ;; Add completion functions for services announced by DNS-SD.
     ;; See <http://www.dns-sd.org/ServiceTypes.html> for valid service types.
@@ -2550,7 +2535,7 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
      "mtp"
      (mapcar
       (lambda (method) `(tramp-parse-media-names ,(format "_%s._tcp" method)))
-      tramp-media-methods)))))
+      tramp-media-methods))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

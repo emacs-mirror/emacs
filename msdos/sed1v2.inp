@@ -48,9 +48,8 @@ s/\.h\.in/.h-in/
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
 /^LIB_PTHREAD *=/s/@LIB_PTHREAD@//
 /^LIB_ACL *=/s/@LIB_ACL@//
-/^LIB_EACCESS *=/s/@LIB_EACCESS@//
-/^LIB_FDATASYNC *=/s/@LIB_FDATASYNC@//
-/^LIB_NANOSLEEP *=/s/@LIB_NANOSLEEP@//
+/^EUIDACCESS_LIBGEN *=/s/@EUIDACCESS_LIBGEN@//
+/^NANOSLEEP_LIB *=/s/@NANOSLEEP_LIB@//
 s/ *@LIBTIFF@//
 s/ *@LIBJPEG@//
 s/ *@LIBPNG@//
@@ -140,7 +139,7 @@ s/ *@WEBP_LIBS@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
 /^LIBSYSTEMD_LIBS *=/s/@LIBSYSTEMD_LIBS@//
 /^LIBSYSTEMD_CFLAGS *=/s/@LIBSYSTEMD_CFLAGS@//
-/^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
+/^CLOCK_TIME_LIB *=/s/@[^@\n]*@//g
 /^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
 /^LIB_EXECINFO *=/s/@[^@\n]*@//g
 /^LIBGNUTLS_LIBS *=/s/@[^@\n]*@//

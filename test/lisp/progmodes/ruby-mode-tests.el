@@ -537,9 +537,12 @@ VALUES-PLIST is a list with alternating index and value elements."
                           |    def foo
                           |    end
                           |    _
+                          |    def bar
+                          |    end
                           |  end
                           |end")
     (search-backward "_")
+    (delete-char 1)
     (should (string= (ruby-add-log-current-method)"M::C"))))
 
 (ert-deftest ruby-add-log-current-method-in-singleton-class ()

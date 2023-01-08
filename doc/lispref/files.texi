@@ -692,11 +692,9 @@ files that the user does not need to know about.
 
 @defvar write-region-inhibit-fsync
 If this variable's value is @code{nil}, @code{write-region} uses the
-@code{fsync} system call after writing a file.  Although this slows
-Emacs down, it lessens the risk of data loss after power failure.  If
-the value is @code{t}, Emacs does not use @code{fsync}.  The default
-value is @code{nil} when Emacs is interactive, and @code{t} when Emacs
-runs in batch mode.  @xref{Files and Storage}.
+@code{fsync} system call after writing a file.  If the value is
+@code{t}, Emacs does not use @code{fsync}.  The default value is
+@code{t}.  @xref{Files and Storage}.
 @end defvar
 
 @defmac with-temp-file file body@dots{}
@@ -2038,16 +2036,27 @@ data already stored elsewhere on secondary storage until one file or
 the other is later modified; this will lose both files if the only
 copy on secondary storage is lost due to media failure.  Second, the
 operating system might not write data to secondary storage
-immediately, which will lose the data if power is lost.
+immediately, which will lose the data if power is lost
+or if there is a media failure.
 
 @findex write-region
 Although both sorts of failures can largely be avoided by a suitably
-configured file system, such systems are typically more expensive or
-less efficient.  In more-typical systems, to survive media failure you
+configured system, such systems are typically more expensive or
+less efficient.  In lower-end systems, to survive media failure you
 can copy the file to a different device, and to survive a power
-failure you can use the @code{write-region} function with the
+failure (or be immediately notified of a media failure) you can use
+the @code{write-region} function with the
 @code{write-region-inhibit-fsync} variable set to @code{nil}.
+Although this variable is ordinarily @code{t} because that can
+significantly improve performance, it may make sense to temporarily
+bind it to @code{nil} if using Emacs to implement database-like
+transactions that survive power failure on lower-end systems.
 @xref{Writing to Files}.
+
+On some platforms when Emacs changes a file other processes might not
+be notified of the change immediately.  Setting
+@code{write-region-inhibit-fsync} to @code{nil} may improve
+notification speed in this case, though there are no guarantees.
 
 @node File Names
 @section File Names

@@ -3630,7 +3630,7 @@ it indicates a specific revision to check out."
   "Default `last-change' implementation.
 It returns the last revision that changed LINE number in FILE."
   (unless (file-exists-p file)
-    (signal 'file-error "File doesn't exist"))
+    (signal 'file-error '("File doesn't exist")))
   (with-temp-buffer
     (vc-call-backend (vc-backend file) 'annotate-command
                      file (current-buffer))

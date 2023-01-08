@@ -337,7 +337,7 @@ file names."
 
 (defun tramp-rclone-remote-file-name (filename)
   "Return FILENAME as used in the `rclone' command."
-  (setq filename (tramp-compat-file-name-unquote (expand-file-name filename)))
+  (setq filename (file-name-unquote (expand-file-name filename)))
   (if (tramp-rclone-file-name-p filename)
       (with-parsed-tramp-file-name filename nil
 	;; As long as we call `tramp-rclone-maybe-open-connection' here,

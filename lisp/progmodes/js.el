@@ -3498,14 +3498,14 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'string
-   '((regex pattern: (regex_pattern)) @font-lock-string-face
+   '((regex pattern: (regex_pattern)) @font-lock-regexp-face
      (string) @font-lock-string-face)
 
    :language 'javascript
    :feature 'string-interpolation
    :override t
    '((template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-delimiter-face))
+     (template_substitution ["${" "}"] @font-lock-misc-punctuation-face))
 
    :language 'javascript
    :feature 'definition
@@ -3520,6 +3520,15 @@ This function is intended for use in `after-change-functions'."
 
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
+
+     (method_definition
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+
+     (arrow_function
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+
+     (function_declaration
+      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
 
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
@@ -3822,9 +3831,8 @@ Currently there are `js-mode' and `js-ts-mode'."
                 '(( comment definition)
                   ( keyword string)
                   ( assignment constant escape-sequence jsx number
-                    pattern)
-                  ( bracket delimiter function operator property
-                    string-interpolation)))
+                    pattern string-interpolation)
+                  ( bracket delimiter function operator property)))
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
                 `(("Function" "\\`function_declaration\\'" nil nil)

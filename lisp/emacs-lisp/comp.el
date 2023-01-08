@@ -1220,7 +1220,7 @@ clashes."
 (defun comp-decrypt-arg-list (x function-name)
   "Decrypt argument list X for FUNCTION-NAME."
   (unless (fixnump x)
-    (signal 'native-compiler-error-dyn-func function-name))
+    (signal 'native-compiler-error-dyn-func (list function-name)))
   (let ((rest (not (= (logand x 128) 0)))
         (mandatory (logand x 127))
         (nonrest (ash x -8)))
@@ -1264,7 +1264,7 @@ clashes."
                                                              'pure))))
       (when (byte-code-function-p f)
         (signal 'native-compiler-error
-                "can't native compile an already byte-compiled function"))
+                '("can't native compile an already byte-compiled function")))
       (setf (comp-func-byte-func func)
             (byte-compile (comp-func-name func)))
       (let ((lap (byte-to-native-lambda-lap
@@ -1288,7 +1288,7 @@ clashes."
   "Byte-compile FORM, spilling data from the byte compiler."
   (unless (eq (car-safe form) 'lambda)
     (signal 'native-compiler-error
-            "Cannot native-compile, form is not a lambda"))
+            '("Cannot native-compile, form is not a lambda")))
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt)
           (make-temp-file "comp-lambda-" nil ".eln")))
@@ -1369,7 +1369,7 @@ clashes."
             (alist-get 'no-native-compile byte-native-qualities))
     (throw 'no-native-compile nil))
   (unless byte-to-native-top-level-forms
-    (signal 'native-compiler-error-empty-byte filename))
+    (signal 'native-compiler-error-empty-byte (list filename)))
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
                                         filename
@@ -1740,7 +1740,7 @@ Return value is the fall-through block name."
           do (puthash ff-bb-name ff-bb (comp-func-blocks comp-func))
              (setf (comp-limplify-curr-block comp-pass) ff-bb))))
     (_ (signal 'native-ice
-               "missing previous setimm while creating a switch"))))
+               '("missing previous setimm while creating a switch")))))
 
 (defun comp-emit-set-call-subr (subr-name sp-delta)
     "Emit a call for SUBR-NAME.
@@ -2823,7 +2823,7 @@ blocks."
             (first-processed (l)
               (if-let ((p (cl-find-if (lambda (p) (comp-block-idom p)) l)))
                   p
-                (signal 'native-ice "can't find first preprocessed"))))
+                (signal 'native-ice '("can't find first preprocessed")))))
 
     (when-let ((blocks (comp-func-blocks comp-func))
                (entry (gethash 'entry blocks))
@@ -3721,7 +3721,7 @@ Prepare every function for final compilation and drive the C back-end."
                   (progn
                     (delete-file temp-file)
                     output)
-		(signal 'native-compiler-error (buffer-string)))
+		(signal 'native-compiler-error (list (buffer-string))))
             (comp-log-to-buffer (buffer-string))))))))
 
 

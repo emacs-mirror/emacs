@@ -1036,6 +1036,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
   (let ((vc-git-patch-string patch-string))
     (vc-git-checkin nil comment)))
 
+(autoload 'vc-switches "vc")
+
 (defun vc-git-checkin (files comment &optional _rev)
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
@@ -1078,7 +1080,14 @@ It is based on `log-edit-mode', and has Git-specific extensions."
         ;;    want to commit any changes to that file, we need to
         ;;    stash those changes before committing.
         (with-temp-buffer
-          (vc-git-command (current-buffer) t nil "diff" "--cached")
+          ;; If the user has switches like -D, -M etc. in their
+          ;; `vc-git-diff-switches', we must pass them here too, or
+          ;; our string matches will fail.
+          (if vc-git-diff-switches
+              (apply #'vc-git-command (current-buffer) t nil
+                     "diff" "--cached" (vc-switches 'git 'diff))
+            ;; Following code doesn't understand plain diff(1) output.
+            (user-error "Cannot commit patch with nil `vc-git-diff-switches'"))
           (goto-char (point-min))
           (let ((pos (point)) file-name file-header file-diff file-beg)
             (while (not (eobp))
@@ -1409,8 +1418,6 @@ This prompts for a branch to merge from."
   "If true, follow renames in Git logs for a single file."
   :type 'boolean
   :version "26.1")
-
-(autoload 'vc-switches "vc")
 
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.

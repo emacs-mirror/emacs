@@ -2863,10 +2863,10 @@ matched by @var{regexp} and @var{pred} are not grouped under
 @var{name-fn} should be either @var{nil} or a function that takes a
 defun node and returns the name of that defun, e.g., the function name
 for a function definition.  If @var{name-fn} is @var{nil},
-@code{treesit-defun-name} (@pxref{Tree-sitter major modes}) is used
+@code{treesit-defun-name} (@pxref{Tree-sitter Major Modes}) is used
 instead.
 
-@code{treesit-major-mode-setup} (@pxref{Tree-sitter major modes})
+@code{treesit-major-mode-setup} (@pxref{Tree-sitter Major Modes})
 automatically sets up Imenu if this variable is non-@code{nil}.
 @end defvar
 
@@ -4054,7 +4054,7 @@ tree-sitter query in either the string, s-expression or compiled form.
 
 @c FIXME: Cross-ref treesit-font-lock-level to user manual.
 For each @var{query}, the @var{:keyword}/@var{value} pairs that
-precede it add meta information to it.  The @code{:lang} keyword
+precede it add meta information to it.  The @code{:language} keyword
 declares @var{query}'s language.  The @code{:feature} keyword sets the
 feature name of @var{query}.  Users can control which features are
 enabled with @code{treesit-font-lock-level} and

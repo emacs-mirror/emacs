@@ -223,8 +223,15 @@ template <int w>
 /* _GL_STATIC_ASSERT_H is defined if this code is copied into assert.h.  */
 #ifdef _GL_STATIC_ASSERT_H
 # if !defined _GL_HAVE__STATIC_ASSERT1 && !defined _Static_assert
-#  define _Static_assert(R, ...) \
-     _GL_VERIFY ((R), "static assertion failed", -)
+#  if !defined _MSC_VER || defined __clang__
+#   define _Static_assert(...) \
+      _GL_VERIFY (__VA_ARGS__, "static assertion failed", -)
+#  else
+    /* Work around MSVC preprocessor incompatibility with ISO C; see
+       <https://stackoverflow.com/questions/5134523/>.  */
+#   define _Static_assert(R, ...) \
+      _GL_VERIFY ((R), "static assertion failed", -)
+#  endif
 # endif
 # if (!defined static_assert \
       && __STDC_VERSION__ < 202311 \
@@ -235,9 +242,8 @@ template <int w>
 /* MSVC 14 in C++ mode supports the two-arguments static_assert but not
    the one-argument static_assert, and it does not support _Static_assert.
    We have to play preprocessor tricks to distinguish the two cases.
-   Since the MSVC preprocessor is not ISO C compliant (cf.
-   <https://stackoverflow.com/questions/5134523/>), the solution is specific
-   to MSVC.  */
+   Since the MSVC preprocessor is not ISO C compliant (see above),.
+   the solution is specific to MSVC.  */
 #   define _GL_EXPAND(x) x
 #   define _GL_SA1(a1) static_assert ((a1), "static assertion failed")
 #   define _GL_SA2 static_assert

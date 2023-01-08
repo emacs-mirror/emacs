@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This file defines ruby-ts-mode which is a major mode for editting
+;; This file defines ruby-ts-mode which is a major mode for editing
 ;; Ruby files that uses Tree Sitter to parse the language. More
 ;; information about Tree Sitter can be found in the ELisp Info pages
 ;; as well as this website: https://tree-sitter.github.io/tree-sitter/
@@ -52,9 +52,10 @@
 ;; following levels:
 ;;   1: comment method-definition
 ;;   2: keyword regexp string type
-;;   3: builtin constant delimiter escape-sequence
+;;   3: builtin-variable builtin-constant constant
+;;      delimiter escape-sequence
 ;;      global instance
-;;      interpolation literal symbol variable
+;;      interpolation literal symbol assignment
 ;;   4: bracket error function operator punctuation
 
 ;; Thus if treesit-font-lock-level is set to level 3 which is its
@@ -87,11 +88,6 @@
   :prefix "ruby-ts-"
   :group 'languages)
 
-(defcustom ruby-ts-highlight-predefined-constants t
-  "When non-nil, the pre-defined constants are highlighted.
-They will be highlighted the same way as the pre-defined variables."
-  :type 'boolean)
-
 (defvar ruby-ts--operators
   '("+" "-" "*" "/" "%" "**"
     "==" "!=" ">" "<" ">=" "<=" "<=>" "==="
@@ -113,8 +109,7 @@ They will be highlighted the same way as the pre-defined variables."
           "RUBY_PATCHLEVEL" "RUBY_PLATFORM" "RUBY_RELEASE_DATE"
           "RUBY_REVISION" "RUBY_VERSION" "STDERR" "STDIN" "STDOUT"
           "TOPLEVEL_BINDING"))
-  "Ruby predefined global constants.
-These are currently unused")
+  "Ruby predefined global constants.")
 
 (defvar ruby-ts--predefined-variables
   (rx (or "$!" "$@" "$~" "$&" "$‘" "$‘" "$+" "$=" "$/" "$\\" "$," "$;"
@@ -122,7 +117,7 @@ These are currently unused")
           "$LOADED_FEATURES" "$DEBUG" "$FILENAME" "$stderr" "$stdin"
           "$stdout" "$VERBOSE" "$-a" "$-i" "$-l" "$-p"
           (seq "$" (+ digit))))
-  "Ruby global variables (but not global constants.")
+  "Ruby predefined global variables.")
 
 (defconst ruby-ts--class-or-module-regex
   (rx string-start
@@ -150,7 +145,7 @@ These are currently unused")
           "parenthesized_statements"
           "interpolation")
       string-end)
-  "Regular expression of the nodes that can constain statements.")
+  "Regular expression of the nodes that can contain statements.")
 
 (defun ruby-ts--lineno (node)
   "Return line number of NODE's start."
@@ -178,7 +173,7 @@ These are currently unused")
 Applies `font-lock-comment-delimiter-face' and
 `font-lock-comment-face' See `treesit-fontify-with-override' for
 values of OVERRIDE"
-  ;; Emperically it appears as if (treesit-node-start node) will be
+  ;; Empirically it appears as if (treesit-node-start node) will be
   ;; where the # character is at and (treesit-node-end node) will be
   ;; the end of the line
   (let* ((node-start (treesit-node-start node))
@@ -201,29 +196,24 @@ values of OVERRIDE"
    '((comment) @ruby-ts--comment-font-lock)
 
    :language language
-   :feature 'builtin
-   `(((global_variable) @var (:match ,ruby-ts--predefined-variables @var)) @font-lock-builtin-face
-     ,@(when ruby-ts-highlight-predefined-constants
-         `(((constant) @var (:match ,ruby-ts--predefined-constants @var)) @font-lock-builtin-face)))
+   :feature 'builtin-variable
+   `(((global_variable) @var (:match ,ruby-ts--predefined-variables @var)) @font-lock-builtin-face)
+
+   :language language
+   :feature 'builtin-constant
+   `(((constant) @var (:match ,ruby-ts--predefined-constants @var)) @font-lock-builtin-face)
 
    :language language
    :feature 'keyword
-   `([,@ruby-ts--keywords] @font-lock-keyword-face)
+   `([,@ruby-ts--keywords] @font-lock-keyword-face
+     (self) @font-lock-keyword-face
+     (super) @font-lock-keyword-face)
 
    :language language
    :feature 'constant
    '((true) @font-lock-doc-markup-face
      (false) @font-lock-doc-markup-face
-     (nil) @font-lock-doc-markup-face
-     (self) @font-lock-doc-markup-face
-     (super) @font-lock-doc-markup-face)
-
-   :language language
-   :feature 'symbol
-   '((bare_symbol) @font-lock-constant-face
-     (delimited_symbol (string_content) @font-lock-constant-face)
-     (hash_key_symbol) @font-lock-constant-face
-     (simple_symbol) @font-lock-constant-face)
+     (nil) @font-lock-doc-markup-face)
 
    ;; Before 'operator so (unary) works.
    :language language
@@ -237,8 +227,8 @@ values of OVERRIDE"
    ;; Also before 'operator because % and / are operators
    :language language
    :feature 'regexp
-   '((regex "/" @font-lock-regexp-grouping-construct)
-     (regex _ (string_content) @font-lock-regexp-grouping-backslash))
+   '((regex "/" @font-lock-regexp-face)
+     (regex _ (string_content) @font-lock-regexp-face))
 
    :language language
    :feature 'operator
@@ -253,21 +243,22 @@ values of OVERRIDE"
    :feature 'string
    '((delimited_symbol [ ":\"" "\"" ] @font-lock-string-face)
      (string "\"" @font-lock-string-face)
-     (string_array [ "%w(" ")" ] @font-lock-delimiter-face)
-     (subshell "`" @font-lock-delimiter-face)
-     (symbol_array [ "%i(" ")"] @font-lock-delimiter-face))
+     (string_array ["%w(" ")"] @font-lock-string-face)
+     (subshell "`" @font-lock-string-face)
+     (symbol_array ["%i(" ")"] @font-lock-constant-face))
 
    :language language
    :feature 'string
-   '((string_content) @font-lock-string-face
-     (heredoc_beginning) @font-lock-string-face
-     (heredoc_content) @font-lock-string-face
-     (heredoc_end) @font-lock-string-face)
+   '([(string_content)
+      (heredoc_beginning)
+      (heredoc_content)
+      (heredoc_end)]
+     @font-lock-string-face)
 
    :language language
    :feature 'interpolation
-   '((interpolation "#{" @font-lock-doc-face)
-     (interpolation "}" @font-lock-doc-face))
+   '((interpolation "#{" @font-lock-misc-punctuation-face)
+     (interpolation "}" @font-lock-misc-punctuation-face))
 
    :language language
    :feature 'type
@@ -290,6 +281,33 @@ values of OVERRIDE"
      (method
       name: (setter) @font-lock-function-name-face))
 
+   :language language
+   :feature 'parameter-definition
+   '((method_parameters
+      (identifier) @font-lock-variable-name-face)
+     (block_parameters
+      (identifier) @font-lock-variable-name-face)
+     (optional_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (splat_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (hash_splat_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (block_parameter
+      name: (identifier) @font-lock-variable-name-face)
+     (destructured_parameter
+      (identifier) @font-lock-variable-name-face)
+     (lambda_parameters
+      (identifier) @font-lock-variable-name-face)
+     (exception_variable
+      (identifier) @font-lock-variable-name-face)
+     (array_pattern
+      (identifier) @font-lock-variable-name-face)
+     (keyword_pattern
+      key: (hash_key_symbol) @font-lock-variable-name-face)
+     (in_clause
+      pattern: (identifier) @font-lock-variable-name-face))
+
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
    ;; just use separate categories for them -- dgutov.
@@ -297,6 +315,22 @@ values of OVERRIDE"
    :feature 'function
    '((call
       method: (identifier) @font-lock-function-name-face))
+
+   :language language
+   :feature 'assignment
+   '((assignment
+      left: (identifier) @font-lock-variable-name-face)
+     (assignment
+      left: (left_assignment_list (identifier) @font-lock-variable-name-face))
+     (operator_assignment
+      left: (identifier) @font-lock-variable-name-face))
+
+   :language language
+   :feature 'symbol
+   '((bare_symbol) @font-lock-constant-face
+     (delimited_symbol (string_content) @font-lock-constant-face)
+     (hash_key_symbol) @font-lock-constant-face
+     (simple_symbol) @font-lock-constant-face)
 
    :language language
    :feature 'error
@@ -352,8 +386,11 @@ Otherwise return start of PRED."
   (lambda (node parent bol &rest rest)
     (let* ((pred-node (funcall pred node parent bol rest))
            (temp (treesit-node-start pred-node))
-           (keyword (treesit-node-type pred-node))
-           (bol (ruby-smie--indent-to-stmt-p keyword)))
+           (type (treesit-node-type pred-node))
+           (bol (ruby-smie--indent-to-stmt-p
+                 (if (equal type "method")
+                     "def"
+                   type))))
       (when temp
         (if bol
             (save-excursion
@@ -717,7 +754,7 @@ i.e. expr of def foo(args) = expr is returned."
            ((n-p-gp ,ruby-ts--method-regex "body_statement" ,ruby-ts--class-or-module-regex)
             (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
 
-           ;; Match the end of a class / modlue
+           ;; Match the end of a class / module
            ((match "end" ,ruby-ts--class-or-module-regex) parent 0)
 
            ;; A "do_block" has a "body_statement" child which has the
@@ -733,7 +770,7 @@ i.e. expr of def foo(args) = expr is returned."
            ((match "end" "do_block") parent-bol 0)
            ((n-p-gp "block_body" "block" nil) parent-bol ruby-indent-level)
            ((n-p-gp nil "block_body" "block") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((match "}" "block") (ruby-ts--bol ruby-ts--grand-parent-node) 0)
+           ((match "}" "block") parent-bol 0)
 
            ;; Chained strings
            ((match "string" "chained_string") first-sibling 0)
@@ -844,7 +881,12 @@ The hash (#) is for instance methods only which are methods
 dot (.) is used.  Double colon (::) is used between classes.  The
 leading double colon is not added."
   (let* ((node (treesit-node-at (point)))
-         (method (treesit-parent-until node (ruby-ts--type-pred ruby-ts--method-regex)))
+         (method-pred
+          (lambda (node)
+            (and (<= (treesit-node-start node) (point))
+                 (>= (treesit-node-end node) (point))
+                 (string-match-p ruby-ts--method-regex (treesit-node-type node)))))
+         (method (treesit-parent-until node method-pred t))
          (class (or method node))
          (result nil)
          (sep "#")
@@ -892,20 +934,10 @@ leading double colon is not added."
   "C-c C-f" #'ruby-find-library-file)
 
 ;;;###autoload
-(define-derived-mode ruby-ts-mode prog-mode "Ruby"
+(define-derived-mode ruby-ts-mode ruby-base-mode "Ruby"
   "Major mode for editing Ruby, powered by tree-sitter."
   :group 'ruby
   :syntax-table ruby-mode-syntax-table
-
-  (setq indent-tabs-mode ruby-indent-tabs-mode)
-
-  (setq-local paragraph-start (concat "$\\|" page-delimiter))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local paragraph-ignore-fill-prefix t)
-
-  (setq-local comment-start "# ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip "#+ *")
 
   (unless (treesit-ready-p 'ruby)
     (error "Tree-sitter for Ruby isn't available"))
@@ -929,12 +961,12 @@ leading double colon is not added."
   (setq-local treesit-font-lock-settings (ruby-ts--font-lock-settings 'ruby))
   ;; Level 3 is the default.
   (setq-local treesit-font-lock-feature-list
-              '(( comment method-definition )
+              '(( comment method-definition parameter-definition)
                 ( keyword regexp string type)
-                ( builtin constant
-                  delimiter escape-sequence global
-                  instance
-                  interpolation literal symbol variable)
+                ( builtin-variable builtin-constant constant
+                  delimiter escape-sequence
+                  global instance
+                  interpolation literal symbol assignment)
                 ( bracket error function operator punctuation)))
 
   (treesit-major-mode-setup))
