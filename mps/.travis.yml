@@ -1,7 +1,13 @@
 # .travis.yml -- Travis CI configuration for the MPS
 # $Id$
-# See <https://docs.travis-ci.com/user/languages/c/>.
-language: c
+
+# Some branches don't need builds.  Add them here to avoid using build
+# resources and unnecessary build messages.  See
+# <https://docs.travis-ci.com/user/conditions-v1>.
+if: NOT branch IN (branch/2023-01-07/pull-request-merge-procedure)
+
+# The main build matrix for POSIX-like systems.
+language: c # see <https://docs.travis-ci.com/user/languages/c/>.
 os:
   - linux
   - osx
@@ -12,21 +18,26 @@ arch:
 compiler:
   - clang
   - gcc
+script:
+- ./configure --prefix=$PWD/prefix && make install && make test
+
 matrix:
+  # Extra build jobs to add to the matrix
   include:
     - os: windows
       arch: amd64
       compiler: clang # This is a lie since we invoke MV (Microsoft C)
       script: MSYS2_ARG_CONV_EXCL='*' cmd /c 'code\w3i6mv.bat'
+  # Specific combinations to exclude from the matrix
   exclude:
     - os: osx
       compiler: gcc
+
 notifications:
   email:
     - mps-travis@ravenbrook.com
+
 # This shows how you can ask Travis to install or update packages.
 #before_install:
 #  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get -qq update; fi
 #  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get install -y gcc-4.7; fi
-script:
-- ./configure --prefix=$PWD/prefix && make install && make test
