@@ -73,16 +73,15 @@ omitted for now.  RB 2023-01-07]
 
 These steps will only rarely need repeating.
 
-#. Ensure your public key is in Perforce at
-   //.git-fusion/users/USER/keys/ in Perforce, submitting it if
-   necessary.
+#. Ensure your public key is submitted in Perforce at
+   //.git-fusion/users/USER/keys/
 
-#. Ensure your e-mail address is in Perforce at
-   //.git-fusion/users/p4gf_usermap in Perforce and matches your
-   Perforce user record, submitting it if necessary.
+#. Ensure your e-mail address is submitted in Perforce at
+   //.git-fusion/users/p4gf_usermap and matches your Perforce user
+   record.
 
 #. Clone the Ravenbrook MPS GitHub repository and name the remote
-   "github", giving (inter alia) access to Travis CI to build and test
+   "github".  This will give you access to Travis CI to build and test
    the merge. ::
 
      git clone -o github git@github.com:Ravenbrook/mps.git
