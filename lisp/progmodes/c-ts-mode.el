@@ -423,20 +423,29 @@ MODE is either `c' or `cpp'."
 
 ;;; Font-lock helpers
 
-(defun c-ts-mode--declarator-identifier (node)
-  "Return the identifier of the declarator node NODE."
+(defun c-ts-mode--declarator-identifier (node &optional qualified)
+  "Return the identifier of the declarator node NODE.
+
+If QUALIFIED is non-nil, include the names space part of the
+identifier and return a qualified_identifier."
   (pcase (treesit-node-type node)
     ;; Recurse.
     ((or "attributed_declarator" "parenthesized_declarator")
-     (c-ts-mode--declarator-identifier (treesit-node-child node 0 t)))
+     (c-ts-mode--declarator-identifier (treesit-node-child node 0 t)
+                                       qualified))
     ((or "pointer_declarator" "reference_declarator")
-     (c-ts-mode--declarator-identifier (treesit-node-child node -1)))
+     (c-ts-mode--declarator-identifier (treesit-node-child node -1)
+                                       qualified))
     ((or "function_declarator" "array_declarator" "init_declarator")
      (c-ts-mode--declarator-identifier
-      (treesit-node-child-by-field-name node "declarator")))
+      (treesit-node-child-by-field-name node "declarator")
+      qualified))
     ("qualified_identifier"
-     (c-ts-mode--declarator-identifier
-      (treesit-node-child-by-field-name node "name")))
+     (if qualified
+         node
+       (c-ts-mode--declarator-identifier
+        (treesit-node-child-by-field-name node "name")
+        qualified)))
     ;; Terminal case.
     ((or "identifier" "field_identifier")
      node)))
@@ -538,7 +547,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
    (pcase (treesit-node-type node)
      ((or "function_definition" "declaration")
       (c-ts-mode--declarator-identifier
-       (treesit-node-child-by-field-name node "declarator")))
+       (treesit-node-child-by-field-name node "declarator")
+       t))
      ((or "struct_specifier" "enum_specifier"
           "union_specifier" "class_specifier"
           "namespace_definition")
