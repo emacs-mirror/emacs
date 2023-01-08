@@ -513,7 +513,7 @@ foo bar, {
 case translation
 in ['th', orig_text, 'en', trans_text]
   puts "English translation: #{orig_text} => #{trans_text}"
-in {'th' => orig_text, 'ja' => trans_text}
+in {th: orig_text, ja: trans_text} => whole
   puts "Japanese translation: #{orig_text} => #{trans_text}"
 end
 
