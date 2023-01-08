@@ -183,10 +183,10 @@ These steps will only rarely need repeating.
    See `design.mps.tests <../design/tests.txt>`_ for details and other
    platforms.
 
-   If tests do not pass, review your conflict resolution from step 5,
-   and if that doesn't resolve things, the procedure fails, and you
-   need to go back to the source of the branch, e.g. the pull request
-   and its original author.  Something's wrong!
+   If tests do not pass, review your conflict resolution from the
+   merge (step 4), and if that doesn't resolve things, the procedure
+   fails, and you need to go back to the source of the branch,
+   e.g. the pull request and its original author.  Something's wrong!
 
 6. Push the branch to the Ravenbrook MPS GitHub repository to trigger
    building and testing on all target platforms using Travis CI. ::
@@ -196,7 +196,7 @@ These steps will only rarely need repeating.
    You will need to wait for results from Travis CI.  [Add details of
    how to see them.  RB 2023-07-01]
 
-   See step 6 about what to do if tests do not pass.
+   See build (step 5) about what to do if tests do not pass.
 
    Note: This potentially creates a branch in the GitHub repo ahead
    of Git Fusion doing so, but it will the same name, because of the
@@ -209,9 +209,9 @@ These steps will only rarely need repeating.
      git merge --ff-only branch/2023-01-06/speed-hax
 
    The ``--ff-only`` flag ensures there have been no changes on master
-   since step 5, so that the testing is valid for master, and we do
-   not create a second merge commit.  If this fails, go back to
-   step 5.
+   since merging (step 4), so that the testing is valid for master,
+   and we do not create a second merge commit.  If this fails, go back
+   to merging (step 4).
 
 8. Push master and the branch to Perforce via Git Fusion::
 
@@ -224,7 +224,7 @@ These steps will only rarely need repeating.
      git pull ravenbrook master
 
 9. If and *only if* the Perforce push (step 8) succeeds, you can
-   optionally push to GitHub::
+   also push to GitHub::
 
      git push github master branch/2023-01-06/speed-hax
 
