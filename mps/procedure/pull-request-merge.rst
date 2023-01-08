@@ -51,6 +51,16 @@ reference to that project.  RB 2023-01-07]
 
 #. Has there been a code review?
 
+#. Has the contributor licensed their work?
+
+   By default, the work is licensed if the contributor has not
+   expressed any kind of variation on the licensing of their work from
+   the material to which they are contributing.  (See `"Licensing" in
+   "Contributing to the MPS" <../contributing.rst#licensing>`_.)
+
+   If they have, yalk to them or get someone to talk to them about the
+   matter.  Do not proceed.
+
 #. Does the branch build and pass tests on all `target platforms
    <../readme.txt>`_?
 
@@ -132,20 +142,12 @@ These steps will only rarely need repeating.
 4. Merging a development branch
 -------------------------------
 
-1. Check that the contributor has not expressed any kind of variation
-   on the licensing of their work from the material to which they are
-   contributing.  (See `"Licensing" in "Contributing to the MPS"
-   <../contributing.rst#licensing>`_.)
-
-   If they have, this procedure fails.  Talk to them or get someone to
-   talk to them about the matter.
-
-2. If the branch to be merged is in a third-party repo (such as a
+1. If the branch to be merged is in a third-party repo (such as a
    fork), then add that, e.g.::
 
      git remote add captain-contrib https://gitlab.com/captcontrib/mps.git
 
-3. Fetch the branch that you are going to merge to a local branch
+2. Fetch the branch that you are going to merge to a local branch
    using the MPS durable branch naming convention,
    "branch/DATE/TOPIC", e.g. ::
 
@@ -159,11 +161,11 @@ These steps will only rarely need repeating.
    pull request and issues?  We want to retain that connection
    forever.  RB 2023-01-08]
 
-4. Optionally, let other people know that you're about to merge into
-   master, and negotiate to avoid racing them to step 9 and making
-   extra work for everyone.
+3. Optionally, let other people know that you're about to merge into
+   master, and negotiate to avoid racing them to the push (step 8) and
+   making extra work for everyone.
 
-5. Merge master with the branch::
+4. Merge master with the branch::
 
      git checkout branch/2023-01-06/speed-hax
      git pull ravenbrook master:master
@@ -174,7 +176,7 @@ These steps will only rarely need repeating.
    branch.  If you still can't resolve conflicts, this procedure
    fails.
 
-6. Build and test the results locally.  For example::
+5. Build and test the results locally.  For example::
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
@@ -186,7 +188,7 @@ These steps will only rarely need repeating.
    need to go back to the source of the branch, e.g. the pull request
    and its original author.  Something's wrong!
 
-7. Push the branch to the Ravenbrook MPS GitHub repository to trigger
+6. Push the branch to the Ravenbrook MPS GitHub repository to trigger
    building and testing on all target platforms using Travis CI. ::
 
      git push github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
@@ -201,7 +203,7 @@ These steps will only rarely need repeating.
    Git Fusion mapping, and so the result is the same as if it had come
    in via Perforce.
 
-8. Replace the master with your branch, effecting the merge::
+7. Replace the master with your branch, effecting the merge::
 
      git checkout master
      git merge --ff-only branch/2023-01-06/speed-hax
@@ -211,33 +213,33 @@ These steps will only rarely need repeating.
    not create a second merge commit.  If this fails, go back to
    step 5.
 
-9. Push master and the branch to Perforce via Git Fusion::
+8. Push master and the branch to Perforce via Git Fusion::
 
      git push ravenbrook master branch/2023-01-06/speed-hax
 
    If this fails because someone has submitted changes to the master
-   codeline since you started, pull those changes and go back to step
-   5. ::
+   codeline since you started, pull those changes and go back to
+   merging (step 4). ::
 
      git pull ravenbrook master
 
-10. If and *only if* step 9 succeeds, you can optionally push to
-    GitHub::
+9. If and *only if* the Perforce push (step 8) succeeds, you can
+   optionally push to GitHub::
 
-      git push github master branch/2023-01-06/speed-hax
+     git push github master branch/2023-01-06/speed-hax
 
-    If you don't do this, then within `30 minutes
-    <https://info.ravenbrook.com/infosys/robots/gitpushbot/etc/crontab>`_
-    check that the merge appears in `the commits in the Ravenbrook MPS
-    repo on GitHub <https://github.com/Ravenbrook/mps/commits/master>`_.
+   If you don't do this, then within `30 minutes
+   <https://info.ravenbrook.com/infosys/robots/gitpushbot/etc/crontab>`_
+   check that the merge appears in `the commits in the Ravenbrook MPS
+   repo on GitHub <https://github.com/Ravenbrook/mps/commits/master>`_.
 
-    If they do not appear:
+   If they do not appear:
 
-    1. Check email for error messages from gitpushbot and resolve them.
+   1. Check email for error messages from gitpushbot and resolve them.
 
-    2. Check (or ask a sysadmin to check) that gitpushbot is running
-       on Berunda and restart it if necessary, or ask a sysadmin to do
-       this.
+   2. Check (or ask a sysadmin to check) that gitpushbot is running
+      on Berunda and restart it if necessary, or ask a sysadmin to do
+      this.
 
 
 5. Rationale
@@ -273,9 +275,11 @@ that there has been a merge, by whom, from where, etc.  It discards
 that information.  Therefore we want to discourage fast-forwards of
 master in favour of merges.
 
-Given this, step 8 may seem odd, since it fast-forwards master.  But
-in fact it's pointing master at the merge commit created in step 5, so
-that master has a history including a proper merge.
+Given this, the replace (step 7) may seem odd, since it fast-forwards
+master.  But in fact it's pointing master at the merge commit created
+earlier (step 5), so that master has a history including a proper
+merge.
+
 
 5.2. Why the "durable" branch names?
 ------------------------------------
