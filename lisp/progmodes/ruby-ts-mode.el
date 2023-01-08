@@ -304,7 +304,12 @@ values of OVERRIDE"
      (array_pattern
       (identifier) @font-lock-variable-name-face)
      (keyword_pattern
-      key: (hash_key_symbol) @font-lock-variable-name-face)
+      value: (identifier) @font-lock-variable-name-face)
+     (keyword_pattern
+      key: (hash_key_symbol) @font-lock-variable-name-face
+      !value)
+     (as_pattern
+      name: (identifier) @font-lock-variable-name-face)
      (in_clause
       pattern: (identifier) @font-lock-variable-name-face))
 
