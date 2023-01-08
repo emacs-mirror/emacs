@@ -169,7 +169,9 @@ MODE is either `c' or `cpp'."
        ((match "while" "do_statement") parent 0)
        ,@common)
       (k&r ,@common)
-      (linux ,@common)
+      (linux
+       ((node-is "labeled_statement") point-min 1)
+       ,@common)
       (bsd
        ((parent-is "if_statement") parent-bol 0)
        ((parent-is "for_statement") parent-bol 0)
