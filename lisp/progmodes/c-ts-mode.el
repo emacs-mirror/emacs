@@ -583,6 +583,23 @@ Ie, NODE is not nested."
                          node "declarator"))
                        "function_declarator")))))
 
+(defun c-ts-mode--defun-for-class-in-imenu-p (node)
+  "Check if NODE is a valid entry for the Class subindex.
+
+Basically, if NODE is a class, return non-nil; if NODE is a
+function but is under a class, return non-nil; if NODE is a
+top-level function, return nil.
+
+This is for the Class subindex in
+`treesit-simple-imenu-settings'."
+  (pcase (treesit-node-type node)
+    ;; The Class subindex only has class_specifier and
+    ;; function_definition.
+    ("class_specifier" t)
+    ("function_definition"
+     ;; Return t if this function is nested in a class.
+     (treesit-node-top-level node "class_specifier"))))
+
 (defun c-ts-mode--defun-skipper ()
   "Custom defun skipper for `c-ts-mode' and friends.
 Structs in C ends with a semicolon, but the semicolon is not
@@ -788,7 +805,7 @@ Set up:
                   ("Class" ,(rx bos (or "class_specifier"
                                         "function_definition")
                                 eos)
-                   ,pred nil))))
+                   c-ts-mode--defun-for-class-in-imenu-p nil))))
 
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
