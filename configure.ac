@@ -2233,7 +2233,8 @@ CM_OBJ="cm.o"
 if test "${ANDROID}" = "yes"; then
   window_system=android
   no_x=yes
-  ANDROID_OBJ="androidterm.o androidfns.o androidfont.o android.o"
+  ANDROID_OBJ="androidterm.o androidfns.o androidfont.o androidmenu.o"
+  ANDROID_OBJ="$ANDROID_OBJ android.o"
   ANDROID_LIBS=
   CM_OBJ=
 
@@ -2251,6 +2252,10 @@ for Android, but all API calls need to be stubbed out])
 
     # Link with libraries required for Android support.
     ANDROID_LIBS="-landroid -llog -ljnigraphics"
+
+    # Link with the sfnt font library and sfntfont.o, along with
+    # sfntfont-android.o.
+    ANDROID_OBJ="sfnt.o sfntfont.o sfntfont-android.o"
   fi
 fi
 
