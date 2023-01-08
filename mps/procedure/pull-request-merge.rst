@@ -118,6 +118,10 @@ These steps will only rarely need repeating.
    `causes permanent pollution in the Ravenbrook Perforce repository
    <https://info.ravenbrook.com/mail/2023/01/07/15-06-41/0/>`_.
 
+   [How does this affect the connection between the branch and the
+   pull request and issues?  We want to retain that connection
+   forever.  RB 2023-01-08]
+
 4. Optionally, let other people know that you're about to merge into
    master, and negotiate to avoid racing them to step 9 and making
    extra work for everyone.
@@ -180,9 +184,23 @@ These steps will only rarely need repeating.
 
      git pull ravenbrook master
 
-10. After a bit [how long? RB 2023-01-07] check that gitpushbot has
-    pushed the result to the Ravenbrook MPS repo on GitHub.  [And do
-    what if it doesn't?  RB 2023-01-07]
+10. If and *only if* step 9 succeeds, you can optionally push to
+    GitHub::
+
+      git push github master branch/2023-01-06/speed-hax
+
+    If you don't do this, then within `30 minutes
+    <https://info.ravenbrook.com/infosys/robots/gitpushbot/etc/crontab>`_
+    check that the merge appears in `the commits in the Ravenbrook MPS
+    repo on GitHub`_.
+
+    If they do not appear:
+
+    1. Check email for error messages from gitpushbot and resolve them.
+
+    2. Check (or ask a sysadmin to check) that gitpushbot is running
+       on Berunda and restart it if necessary, or ask a sysadmin to do
+       this.
 
 
 5. Rationale
