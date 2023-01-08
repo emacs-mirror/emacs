@@ -78,4 +78,41 @@ This tests the case when `eshell-highlight-prompt' is nil."
                 (propertize "hello\n" 'rear-nonsticky '(field)
                             'field 'command-output)))))))
 
+(ert-deftest em-prompt-test/next-previous-prompt ()
+  "Check that navigating forward/backward through old prompts works correctly."
+  (with-temp-eshell
+   (eshell-insert-command "echo one")
+   (eshell-insert-command "echo two")
+   (eshell-insert-command "echo three")
+   (insert "echo fou")                  ; A partially-entered command.
+   ;; Go back one prompt.
+   (eshell-previous-prompt 1)
+   (should (equal (eshell-get-old-input) "echo three"))
+   ;; Go back two prompts, starting from the end of this line.
+   (end-of-line)
+   (eshell-previous-prompt 2)
+   (should (equal (eshell-get-old-input) "echo one"))
+   ;; Go forward three prompts.
+   (eshell-next-prompt 3)
+   (should (equal (eshell-get-old-input) "echo fou"))))
+
+(ert-deftest em-prompt-test/forward-backward-matching-input ()
+  "Check that navigating forward/backward via regexps works correctly."
+  (with-temp-eshell
+   (eshell-insert-command "echo one")
+   (eshell-insert-command "printnl something else")
+   (eshell-insert-command "echo two")
+   (eshell-insert-command "echo three")
+   (insert "echo fou")                  ; A partially-entered command.
+   ;; Go back one prompt.
+   (eshell-backward-matching-input "echo" 1)
+   (should (equal (eshell-get-old-input) "echo three"))
+   ;; Go back two prompts, starting from the end of this line.
+   (end-of-line)
+   (eshell-backward-matching-input "echo" 2)
+   (should (equal (eshell-get-old-input) "echo one"))
+   ;; Go forward three prompts.
+   (eshell-forward-matching-input "echo" 3)
+   (should (equal (eshell-get-old-input) "echo fou"))))
+
 ;;; em-prompt-tests.el ends here
