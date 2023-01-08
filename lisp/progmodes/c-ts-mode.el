@@ -805,22 +805,17 @@ This mode is independent from the classic cc-mode.el based
 `c-basic-offset', don't affect this mode."
   :group 'c
 
-  (unless (treesit-ready-p 'c)
-    (error "Tree-sitter for C isn't available"))
-
-  (treesit-parser-create 'c)
-
-  ;; Comments.
-  (setq-local comment-start "/* ")
-  (setq-local comment-end " */")
-
-  (setq-local treesit-simple-indent-rules
-              (c-ts-mode--set-indent-style 'c))
-
-  ;; Font-lock.
-  (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
-
-  (treesit-major-mode-setup))
+  (when (treesit-ready-p 'c)
+    (treesit-parser-create 'c)
+    ;; Comments.
+    (setq-local comment-start "/* ")
+    (setq-local comment-end " */")
+    ;; Indent.
+    (setq-local treesit-simple-indent-rules
+                (c-ts-mode--set-indent-style 'c))
+    ;; Font-lock.
+    (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
+    (treesit-major-mode-setup)))
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
@@ -831,20 +826,17 @@ This mode is independent from the classic cc-mode.el based
 `c-basic-offset', don't affect this mode."
   :group 'c++
 
-  (unless (treesit-ready-p 'cpp)
-    (error "Tree-sitter for C++ isn't available"))
-
-  (treesit-parser-create 'cpp)
-  (setq-local syntax-propertize-function
-              #'c-ts-mode--syntax-propertize)
-
-  (setq-local treesit-simple-indent-rules
-              (c-ts-mode--set-indent-style 'cpp))
-
-  ;; Font-lock.
-  (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
-
-  (treesit-major-mode-setup))
+  (when (treesit-ready-p 'cpp)
+    (treesit-parser-create 'cpp)
+    ;; Syntax.
+    (setq-local syntax-propertize-function
+                #'c-ts-mode--syntax-propertize)
+    ;; Indent.
+    (setq-local treesit-simple-indent-rules
+                (c-ts-mode--set-indent-style 'cpp))
+    ;; Font-lock.
+    (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
+    (treesit-major-mode-setup)))
 
 ;; We could alternatively use parsers, but if this works well, I don't
 ;; see the need to change.  This is copied verbatim from cc-guess.el.
