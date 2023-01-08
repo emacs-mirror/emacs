@@ -29,6 +29,7 @@ import android.graphics.Rect;
 
 public class EmacsSurfaceView extends SurfaceView
 {
+  public Object surfaceChangeLock;
   private boolean created;
 
   public
@@ -36,33 +37,36 @@ public class EmacsSurfaceView extends SurfaceView
   {
     super (view.getContext ());
 
+    surfaceChangeLock = new Object ();
+
     getHolder ().addCallback (new SurfaceHolder.Callback () {
 	@Override
 	public void
 	surfaceChanged (SurfaceHolder holder, int format,
 			int width, int height)
 	{
-	  /* Force a buffer swap now to get the contents of the Emacs
-	     view on screen.  */
-	  view.swapBuffers (true);
+	  view.swapBuffers ();
 	}
 
 	@Override
 	public void
 	surfaceCreated (SurfaceHolder holder)
 	{
-	  created = true;
-
-	  /* Force a buffer swap now to get the contents of the Emacs
-	     view on screen.  */
-	  view.swapBuffers (true);
+	  synchronized (surfaceChangeLock)
+	    {
+	      created = true;
+	      view.swapBuffers ();
+	    }
 	}
 
 	@Override
 	public void
 	surfaceDestroyed (SurfaceHolder holder)
 	{
-	  created = false;
+	  synchronized (surfaceChangeLock)
+	    {
+	      created = false;
+	    }
 	}
       });
   }

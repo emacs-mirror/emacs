@@ -164,7 +164,7 @@ public abstract class EmacsFontDriver
   public static EmacsFontDriver
   createFontDriver ()
   {
-    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
       return new EmacsSdk23FontDriver ();
 
     return new EmacsSdk7FontDriver ();

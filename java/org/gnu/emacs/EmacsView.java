@@ -23,6 +23,7 @@ import android.content.res.ColorStateList;
 
 import android.view.View;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 
 import android.graphics.Bitmap;
@@ -64,6 +65,14 @@ public class EmacsView extends ViewGroup
   /* The associated surface view.  */
   private EmacsSurfaceView surfaceView;
 
+  /* Whether or not a configure event must be sent for the next layout
+     event regardless of what changed.  */
+  public boolean mustReportLayout;
+
+  /* If non-null, whether or not bitmaps must be recreated upon the
+     next call to getBitmap.  */
+  private Rect bitmapDirty;
+
   public
   EmacsView (EmacsWindow window)
   {
@@ -79,6 +88,43 @@ public class EmacsView extends ViewGroup
     /* Create the surface view.  */
     this.surfaceView = new EmacsSurfaceView (this);
     addView (this.surfaceView);
+  }
+
+  private void
+  handleDirtyBitmap ()
+  {
+    /* Recreate the front and back buffer bitmaps.  */
+    bitmap
+      = Bitmap.createBitmap (bitmapDirty.width (),
+			     bitmapDirty.height (),
+			     Bitmap.Config.ARGB_8888);
+    bitmap.eraseColor (0xffffffff);
+
+    /* And canvases.  */
+    canvas = new Canvas (bitmap);
+
+    /* If Emacs is drawing to the bitmap right now from the
+       main thread, the image contents are lost until the next
+       ConfigureNotify and complete garbage.  Sorry! */
+    bitmapDirty = null;
+  }
+
+  public synchronized Bitmap
+  getBitmap ()
+  {
+    if (bitmapDirty != null)
+      handleDirtyBitmap ();
+
+    return bitmap;
+  }
+
+  public synchronized Canvas
+  getCanvas ()
+  {
+    if (bitmapDirty != null)
+      handleDirtyBitmap ();
+
+    return canvas;
   }
 
   @Override
@@ -114,7 +160,7 @@ public class EmacsView extends ViewGroup
   }
 
   @Override
-  protected void
+  protected synchronized void
   onLayout (boolean changed, int left, int top, int right,
 	    int bottom)
   {
@@ -122,18 +168,14 @@ public class EmacsView extends ViewGroup
     View child;
     Rect windowRect;
 
-    if (changed)
+    if (changed || mustReportLayout)
       {
+	mustReportLayout = false;
 	window.viewLayout (left, top, right, bottom);
-
-	/* Recreate the front and back buffer bitmaps.  */
-	bitmap
-	  = Bitmap.createBitmap (right - left, bottom - top,
-				 Bitmap.Config.ARGB_8888);
-
-	/* And canvases.  */
-	canvas = new Canvas (bitmap);
       }
+
+    if (changed)
+      bitmapDirty = new Rect (left, top, right, bottom);
 
     count = getChildCount ();
 
@@ -159,47 +201,60 @@ public class EmacsView extends ViewGroup
       }
   }
 
-  public void
+  public synchronized void
   damageRect (Rect damageRect)
   {
     damageRegion.union (damageRect);
   }
 
-  public void
+  /* This method is called from both the UI thread and the Emacs
+     thread.  */
+
+  public synchronized void
   swapBuffers (boolean force)
   {
-    Bitmap back;
     Canvas canvas;
     Rect damageRect;
+    Bitmap bitmap;
 
     if (damageRegion.isEmpty ())
       return;
 
-    if (!surfaceView.isCreated ())
-      return;
+    bitmap = getBitmap ();
 
-    if (bitmap == null)
-      return;
+    /* Emacs must take the following lock to ensure the access to the
+       canvas occurs with the surface created.  Otherwise, Android
+       will throttle calls to lockCanvas.  */
 
-    /* Lock the canvas with the specified damage.  */
-    damageRect = damageRegion.getBounds ();
-    canvas = surfaceView.lockCanvas (damageRect);
+    synchronized (surfaceView.surfaceChangeLock)
+      {
+	damageRect = damageRegion.getBounds ();
 
-    /* Return if locking the canvas failed.  */
-    if (canvas == null)
-      return;
+	if (!surfaceView.isCreated ())
+	  return;
 
-    /* Copy from the back buffer to the canvas.  If damageRect was
-       made empty, then draw the entire back buffer.  */
+	if (bitmap == null)
+	  return;
 
-    if (damageRect.isEmpty ())
-      canvas.drawBitmap (bitmap, 0f, 0f, paint);
-    else
-      canvas.drawBitmap (bitmap, damageRect, damageRect, paint);
+	/* Lock the canvas with the specified damage.  */
+	canvas = surfaceView.lockCanvas (damageRect);
 
-    /* Unlock the canvas and clear the damage.  */
-    surfaceView.unlockCanvasAndPost (canvas);
-    damageRegion.setEmpty ();
+	/* Return if locking the canvas failed.  */
+	if (canvas == null)
+	  return;
+
+	/* Copy from the back buffer to the canvas.  If damageRect was
+	   made empty, then draw the entire back buffer.  */
+
+	if (damageRect.isEmpty ())
+	  canvas.drawBitmap (bitmap, 0f, 0f, paint);
+	else
+	  canvas.drawBitmap (bitmap, damageRect, damageRect, paint);
+
+	/* Unlock the canvas and clear the damage.  */
+	surfaceView.unlockCanvasAndPost (canvas);
+	damageRegion.setEmpty ();
+      }
   }
 
   public void
@@ -240,5 +295,19 @@ public class EmacsView extends ViewGroup
     window.onFocusChanged (gainFocus);
     super.onFocusChanged (gainFocus, direction,
 			  previouslyFocusedRect);
+  }
+
+  @Override
+  public boolean
+  onGenericMotionEvent (MotionEvent motion)
+  {
+    return window.onSomeKindOfMotionEvent (motion);
+  }
+
+  @Override
+  public boolean
+  onTouchEvent (MotionEvent motion)
+  {
+    return window.onSomeKindOfMotionEvent (motion);
   }
 };

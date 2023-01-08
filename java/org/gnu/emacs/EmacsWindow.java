@@ -31,8 +31,13 @@ import android.graphics.Point;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.InputDevice;
 
 import android.content.Intent;
+import android.util.Log;
+
+import android.os.Build;
 
 /* This defines a window, which is a handle.  Windows represent a
    rectangular subset of the screen with their own contents.
@@ -67,6 +72,10 @@ public class EmacsWindow extends EmacsHandleObject
   /* The window background scratch GC.  foreground is always the
      window background.  */
   private EmacsGC scratchGC;
+
+  /* The button state and keyboard modifier mask at the time of the
+     last button press or release event.  */
+  private int lastButtonState, lastModifiers;
 
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
@@ -212,6 +221,7 @@ public class EmacsWindow extends EmacsHandleObject
 	public void
 	run ()
 	{
+	  view.mustReportLayout = true;
 	  view.requestLayout ();
 	}
       });
@@ -224,6 +234,8 @@ public class EmacsWindow extends EmacsHandleObject
       {
 	rect.right = rect.left + width;
 	rect.bottom = rect.top + height;
+
+	requestViewLayout ();
       }
   }
 
@@ -279,17 +291,7 @@ public class EmacsWindow extends EmacsHandleObject
   public Canvas
   lockCanvas ()
   {
-    if (view.canvas != null)
-      return view.canvas;
-
-    return null;
-  }
-
-  @Override
-  public void
-  unlockCanvas ()
-  {
-
+    return view.getCanvas ();
   }
 
   @Override
@@ -302,17 +304,7 @@ public class EmacsWindow extends EmacsHandleObject
   public void
   swapBuffers ()
   {
-    /* Before calling swapBuffers, make sure to flush the paint
-       queue.  */
-    EmacsService.SERVICE.flushPaintQueue ();
-    view.post (new Runnable () {
-	@Override
-	public void
-	run ()
-	{
-	  view.swapBuffers ();
-	}
-      });
+    view.swapBuffers ();
   }
 
   public void
@@ -337,7 +329,7 @@ public class EmacsWindow extends EmacsHandleObject
   public Bitmap
   getBitmap ()
   {
-    return view.bitmap;
+    return view.getBitmap ();
   }
 
   public void
@@ -357,6 +349,7 @@ public class EmacsWindow extends EmacsHandleObject
 				 recognized as an ASCII key press
 				 event.  */
 			      event.getUnicodeChar (state));
+    lastModifiers = event.getModifiers ();
   }
 
   public void
@@ -372,6 +365,7 @@ public class EmacsWindow extends EmacsHandleObject
 				event.getModifiers (),
 				keyCode,
 				event.getUnicodeChar (state));
+    lastModifiers = event.getModifiers ();
   }
 
   public void
@@ -385,5 +379,106 @@ public class EmacsWindow extends EmacsHandleObject
   {
     /* Destroy the associated frame when the activity is detached.  */
     EmacsNative.sendWindowAction (this.handle, 0);
+  }
+
+  /* Look through the button state to determine what button EVENT was
+     generated from.  DOWN is true if EVENT is a button press event,
+     false otherwise.  Value is the X number of the button.  */
+
+  private int
+  whatButtonWasIt (MotionEvent event, boolean down)
+  {
+    int eventState, notIn;
+
+    if (Build.VERSION.SDK_INT
+	< Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+      /* Earlier versions of Android only support one mouse
+	 button.  */
+      return 1;
+
+    eventState = event.getButtonState ();
+    notIn = (down ? eventState & ~lastButtonState
+	     : lastButtonState & ~eventState);
+
+    if ((notIn & MotionEvent.BUTTON_PRIMARY) != 0)
+      return 1;
+
+    if ((notIn & MotionEvent.BUTTON_SECONDARY) != 0)
+      return 3;
+
+    if ((notIn & MotionEvent.BUTTON_TERTIARY) != 0)
+      return 2;
+
+    /* Not a real value.  */
+    return 4;
+  }
+
+  public boolean
+  onSomeKindOfMotionEvent (MotionEvent event)
+  {
+    if (!event.isFromSource (InputDevice.SOURCE_CLASS_POINTER))
+      return false;
+
+    switch (event.getAction ())
+      {
+      case MotionEvent.ACTION_HOVER_ENTER:
+	EmacsNative.sendEnterNotify (this.handle, (int) event.getX (),
+				     (int) event.getY (),
+				     event.getEventTime ());
+	return true;
+
+      case MotionEvent.ACTION_MOVE:
+      case MotionEvent.ACTION_HOVER_MOVE:
+	EmacsNative.sendMotionNotify (this.handle, (int) event.getX (),
+				      (int) event.getY (),
+				      event.getEventTime ());
+	return true;
+
+      case MotionEvent.ACTION_HOVER_EXIT:
+	EmacsNative.sendLeaveNotify (this.handle, (int) event.getX (),
+				     (int) event.getY (),
+				     event.getEventTime ());
+	return true;
+
+      case MotionEvent.ACTION_BUTTON_PRESS:
+	/* Find the button which was pressed.  */
+	EmacsNative.sendButtonPress (this.handle, (int) event.getX (),
+				     (int) event.getY (),
+				     event.getEventTime (),
+				     lastModifiers,
+				     whatButtonWasIt (event, true));
+
+	if (Build.VERSION.SDK_INT
+	    < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	  return true;
+
+	lastButtonState = event.getButtonState ();
+	return true;
+
+      case MotionEvent.ACTION_BUTTON_RELEASE:
+	/* Find the button which was released.  */
+	EmacsNative.sendButtonRelease (this.handle, (int) event.getX (),
+				       (int) event.getY (),
+				       event.getEventTime (),
+				       lastModifiers,
+				       whatButtonWasIt (event, false));
+
+	if (Build.VERSION.SDK_INT
+	    < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	  return true;
+
+	lastButtonState = event.getButtonState ();
+	return true;
+
+      case MotionEvent.ACTION_DOWN:
+      case MotionEvent.ACTION_UP:
+	/* Emacs must return true even though touch events are not yet
+	   handled, because the value of this function is used by the
+	   system to decide whether or not Emacs gets ACTION_MOVE
+	   events.  */
+	return true;
+      }
+
+    return false;
   }
 };

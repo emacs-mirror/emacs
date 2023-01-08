@@ -26,7 +26,6 @@ import android.graphics.Canvas;
 public interface EmacsDrawable
 {
   public Canvas lockCanvas ();
-  public void unlockCanvas ();
   public void damageRect (Rect damageRect);
   public Bitmap getBitmap ();
   public boolean isDestroyed ();

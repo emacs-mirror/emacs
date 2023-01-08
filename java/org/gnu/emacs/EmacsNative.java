@@ -79,6 +79,28 @@ public class EmacsNative
   /* Send an ANDROID_WINDOW_ACTION event.  */
   public static native void sendWindowAction (short window, int action);
 
+  /* Send an ANDROID_ENTER_NOTIFY event.  */
+  public static native void sendEnterNotify (short window, int x, int y,
+					     long time);
+
+  /* Send an ANDROID_LEAVE_NOTIFY event.  */
+  public static native void sendLeaveNotify (short window, int x, int y,
+					     long time);
+
+  /* Send an ANDROID_MOTION_NOTIFY event.  */
+  public static native void sendMotionNotify (short window, int x, int y,
+					      long time);
+
+  /* Send an ANDROID_BUTTON_PRESS event.  */
+  public static native void sendButtonPress (short window, int x, int y,
+					     long time, int state,
+					     int button);
+
+    /* Send an ANDROID_BUTTON_RELEASE event.  */
+  public static native void sendButtonRelease (short window, int x, int y,
+					       long time, int state,
+					       int button);
+
   static
   {
     System.loadLibrary ("emacs");

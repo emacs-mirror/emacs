@@ -27,54 +27,16 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Xfermode;
 
-public class EmacsCopyArea implements EmacsPaintReq
+public class EmacsCopyArea
 {
-  private int src_x, src_y, dest_x, dest_y, width, height;
-  private EmacsDrawable destination, source;
-  private EmacsGC immutableGC;
-  private static Xfermode xorAlu, srcInAlu, overAlu;
+  private static Xfermode overAlu;
 
   static
   {
     overAlu = new PorterDuffXfermode (Mode.SRC_OVER);
-    xorAlu = new PorterDuffXfermode (Mode.XOR);
-    srcInAlu = new PorterDuffXfermode (Mode.SRC_IN);
   };
 
-  public
-  EmacsCopyArea (EmacsDrawable source, EmacsDrawable destination,
-		 int src_x, int src_y, int width, int height,
-		 int dest_x, int dest_y, EmacsGC immutableGC)
-  {
-    Bitmap bitmap;
-
-    this.destination = destination;
-    this.source = source;
-    this.src_x = src_x;
-    this.src_y = src_y;
-    this.width = width;
-    this.height = height;
-    this.dest_x = dest_x;
-    this.dest_y = dest_y;
-    this.immutableGC = immutableGC;
-  }
-
-  @Override
-  public Rect
-  getRect ()
-  {
-    return new Rect (dest_x, dest_y, dest_x + width,
-		     dest_y + height);
-  }
-
-  @Override
-  public EmacsDrawable
-  getDrawable ()
-  {
-    return destination;
-  }
-
-  private void
+  private static void
   insetRectBy (Rect rect, int left, int top, int right,
 	       int bottom)
   {
@@ -84,30 +46,38 @@ public class EmacsCopyArea implements EmacsPaintReq
     rect.bottom -= bottom;
   }
 
-  @Override
-  public EmacsGC
-  getGC ()
+  public static void
+  perform (EmacsDrawable source, EmacsGC gc,
+	   EmacsDrawable destination,
+	   int src_x, int src_y, int width, int height,
+	   int dest_x, int dest_y)
   {
-    return immutableGC;
-  }
-
-  @Override
-  public void
-  paintTo (Canvas canvas, Paint paint, EmacsGC immutableGC)
-  {
-    int alu;
+    int i;
     Bitmap bitmap;
-    Paint maskPaint;
-    Canvas maskCanvas;
+    Paint maskPaint, paint;
+    Canvas maskCanvas, canvas;
     Bitmap srcBitmap, maskBitmap, clipBitmap;
     Rect rect, maskRect, srcRect, dstRect, maskDestRect;
     boolean needFill;
 
     /* TODO implement stippling.  */
-    if (immutableGC.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
+    if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
       return;
 
-    alu = immutableGC.function;
+    paint = gc.gcPaint;
+
+    canvas = destination.lockCanvas ();
+
+    if (canvas == null)
+      return;
+
+    canvas.save ();
+
+    if (gc.real_clip_rects != null)
+      {
+	for (i = 0; i < gc.real_clip_rects.length; ++i)
+	  canvas.clipRect (gc.real_clip_rects[i]);
+      }
 
     /* A copy must be created or drawBitmap could end up overwriting
        itself.  */
@@ -137,14 +107,10 @@ public class EmacsCopyArea implements EmacsPaintReq
     if (src_y + height > srcBitmap.getHeight ())
       height = srcBitmap.getHeight () - src_y;
 
-    rect = getRect ();
+    rect = new Rect (dest_x, dest_y, dest_x + width,
+		     dest_y + height);
 
-    if (alu == EmacsGC.GC_COPY)
-      paint.setXfermode (null);
-    else
-      paint.setXfermode (xorAlu);
-
-    if (immutableGC.clip_mask == null)
+    if (gc.clip_mask == null)
       {
 	bitmap = Bitmap.createBitmap (srcBitmap,
 				      src_x, src_y, width,
@@ -156,17 +122,17 @@ public class EmacsCopyArea implements EmacsPaintReq
 	/* Drawing with a clip mask involves calculating the
 	   intersection of the clip mask with the dst rect, and
 	   extrapolating the corresponding part of the src rect.  */
-	clipBitmap = immutableGC.clip_mask.bitmap;
+	clipBitmap = gc.clip_mask.bitmap;
 	dstRect = new Rect (dest_x, dest_y,
 			    dest_x + width,
 			    dest_y + height);
-	maskRect = new Rect (immutableGC.clip_x_origin,
-			     immutableGC.clip_y_origin,
-			     (immutableGC.clip_x_origin
+	maskRect = new Rect (gc.clip_x_origin,
+			     gc.clip_y_origin,
+			     (gc.clip_x_origin
 			      + clipBitmap.getWidth ()),
-			     (immutableGC.clip_y_origin
+			     (gc.clip_y_origin
 			      + clipBitmap.getHeight ()));
-	clipBitmap = immutableGC.clip_mask.bitmap;
+	clipBitmap = gc.clip_mask.bitmap;
 
 	if (!maskRect.setIntersect (dstRect, maskRect))
 	  /* There is no intersection between the clip mask and the
@@ -191,20 +157,21 @@ public class EmacsCopyArea implements EmacsPaintReq
 
 	/* Draw the mask onto the maskBitmap.  */
 	maskCanvas = new Canvas (maskBitmap);
-	maskRect.offset (-immutableGC.clip_x_origin,
-			 -immutableGC.clip_y_origin);
-	maskCanvas.drawBitmap (immutableGC.clip_mask.bitmap,
-			       maskRect, new Rect (0, 0,
-						   maskRect.width (),
-						   maskRect.height ()),
-			       paint);
-	maskRect.offset (immutableGC.clip_x_origin,
-			 immutableGC.clip_y_origin);
+	maskPaint = new Paint ();
+	maskRect.offset (-gc.clip_x_origin,
+			 -gc.clip_y_origin);
+	maskCanvas.drawBitmap (gc.clip_mask.bitmap,
+			       maskRect,
+			       new Rect (0, 0,
+					 maskRect.width (),
+					 maskRect.height ()),
+			       maskPaint);
+	maskRect.offset (gc.clip_x_origin,
+			 gc.clip_y_origin);
 
 	/* Set the transfer mode to SRC_IN to preserve only the parts
 	   of the source that overlap with the mask.  */
-	maskPaint = new Paint ();
-	maskPaint.setXfermode (srcInAlu);
+	maskPaint.setXfermode (EmacsGC.srcInAlu);
 
 	/* Draw the source.  */
 	maskDestRect = new Rect (0, 0, srcRect.width (),
@@ -215,6 +182,10 @@ public class EmacsCopyArea implements EmacsPaintReq
 	/* Finally, draw the mask bitmap to the destination.  */
 	paint.setXfermode (overAlu);
 	canvas.drawBitmap (maskBitmap, null, maskRect, paint);
+	gc.resetXfermode ();
       }
+
+    canvas.restore ();
+    destination.damageRect (rect);
   }
 }

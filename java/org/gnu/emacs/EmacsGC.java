@@ -20,6 +20,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 package org.gnu.emacs;
 
 import android.graphics.Rect;
+import android.graphics.Paint;
+
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Xfermode;
 
 /* X like graphics context structures.  Keep the enums in synch with
    androidgui.h! */
@@ -32,14 +37,21 @@ public class EmacsGC extends EmacsHandleObject
   public static final int GC_FILL_SOLID			= 0;
   public static final int GC_FILL_OPAQUE_STIPPLED	= 1;
 
+  public static final Xfermode xorAlu, srcInAlu;
+
   public int function, fill_style;
   public int foreground, background;
   public int clip_x_origin, clip_y_origin;
   public int ts_origin_x, ts_origin_y;
-  public Rect clip_rects[];
+  public Rect clip_rects[], real_clip_rects[];
   public EmacsPixmap clip_mask, stipple;
-  private boolean dirty;
-  private EmacsGC immutableGC;
+  public Paint gcPaint;
+
+  static
+  {
+    xorAlu = new PorterDuffXfermode (Mode.XOR);
+    srcInAlu = new PorterDuffXfermode (Mode.SRC_IN);
+  }
 
   /* The following fields are only set on immutable GCs.  */
 
@@ -55,62 +67,41 @@ public class EmacsGC extends EmacsHandleObject
     fill_style = GC_FILL_SOLID;
     function = GC_COPY;
     foreground = 0;
-    background = 0xffffffff;
+    background = 0xffffff;
+    gcPaint = new Paint ();
   }
 
-  public
-  EmacsGC (EmacsGC source)
-  {
-    super ((short) 0);
-
-    int i;
-
-    function = source.function;
-    fill_style = source.fill_style;
-    foreground = source.foreground;
-    background = source.background;
-    clip_x_origin = source.clip_x_origin;
-    clip_y_origin = source.clip_y_origin;
-    clip_rects = source.clip_rects;
-    clip_mask = source.clip_mask;
-    stipple = source.stipple;
-    ts_origin_x = source.ts_origin_x;
-    ts_origin_y = source.ts_origin_y;
-
-    /* Offset all the clip rects by ts_origin_x and ts_origin_y.  */
-
-    if ((ts_origin_x != 0 || ts_origin_y != 0)
-	&& clip_rects != null)
-      {
-	clip_rects = new Rect[clip_rects.length];
-
-	for (i = 0; i < clip_rects.length; ++i)
-	  {
-	    clip_rects[i] = new Rect (source.clip_rects[i]);
-	    clip_rects[i].offset (ts_origin_x,
-				  ts_origin_y);
-	  }
-      }
-  }
-
-  /* Mark this GC as dirty.  This means immutableGC will return a new
-     copy of this GC the next time it is called.  */
+  /* Mark this GC as dirty.  Apply parameters to the paint and
+     recompute real_clip_rects.  */
 
   public void
   markDirty ()
   {
-    dirty = true;
+    int i;
+
+    if ((ts_origin_x != 0 || ts_origin_y != 0)
+	&& clip_rects != null)
+      {
+	real_clip_rects = new Rect[clip_rects.length];
+
+	for (i = 0; i < clip_rects.length; ++i)
+	  {
+	    real_clip_rects[i] = new Rect (clip_rects[i]);
+	    real_clip_rects[i].offset (ts_origin_x, ts_origin_y);
+	  }
+      }
+    else
+      real_clip_rects = clip_rects;
+
+    gcPaint.setColor (foreground | 0xff000000);
+    gcPaint.setXfermode (function == GC_XOR
+			 ? xorAlu : srcInAlu);
   }
 
-  public EmacsGC
-  immutableGC ()
+  public void
+  resetXfermode ()
   {
-    if (immutableGC == null || dirty)
-      {
-	immutableGC = new EmacsGC (this);
-	dirty = false;
-      }
-
-    return immutableGC;
-  };
+    gcPaint.setXfermode (function == GC_XOR
+			 ? xorAlu : srcInAlu);
+  }
 };

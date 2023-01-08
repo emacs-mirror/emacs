@@ -19,12 +19,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-public class EmacsDrawPoint extends EmacsDrawRectangle
+public class EmacsDrawPoint
 {
-  public
-  EmacsDrawPoint (EmacsDrawable drawable, int x, int y,
-		  EmacsGC immutableGC)
+  public static void
+  perform (EmacsDrawable drawable,
+	   EmacsGC immutableGC, int x, int y)
   {
-    super (drawable, x, y, 1, 1, immutableGC);
+    EmacsDrawRectangle.perform (drawable, immutableGC,
+				x, y, 1, 1);
   }
 }

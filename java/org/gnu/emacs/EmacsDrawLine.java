@@ -29,109 +29,49 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Xfermode;
 
-public class EmacsDrawLine implements EmacsPaintReq
+public class EmacsDrawLine
 {
-  private int x, y, x2, y2;
-  private EmacsDrawable drawable;
-  private EmacsGC immutableGC;
-  private static Xfermode xorAlu, srcInAlu;
-
-  static
+  public static void
+  perform (EmacsDrawable drawable, EmacsGC gc,
+	   int x, int y, int x2, int y2)
   {
-    xorAlu = new PorterDuffXfermode (Mode.XOR);
-    srcInAlu = new PorterDuffXfermode (Mode.SRC_IN);
-  };
+    Rect rect;
+    Canvas canvas;
+    Paint paint;
+    int i;
 
-  public
-  EmacsDrawLine (EmacsDrawable drawable, int x, int y,
-		 int x2, int y2, EmacsGC immutableGC)
-  {
-    this.drawable = drawable;
-    this.x = x;
-    this.y = y;
-    this.x2 = x2;
-    this.y2 = y2;
-    this.immutableGC = immutableGC;
-  }
+    /* TODO implement stippling.  */
+    if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
+      return;
 
-  @Override
-  public Rect
-  getRect ()
-  {
-    return new Rect (Math.min (x, x2 + 1),
+    paint = gc.gcPaint;
+    rect = new Rect (Math.min (x, x2 + 1),
 		     Math.min (y, y2 + 1),
 		     Math.max (x2 + 1, x),
 		     Math.max (y2 + 1, y));
-  }
+    canvas = drawable.lockCanvas ();
 
-  @Override
-  public EmacsDrawable
-  getDrawable ()
-  {
-    return drawable;
-  }
-
-  @Override
-  public EmacsGC
-  getGC ()
-  {
-    return immutableGC;
-  }
-
-  @Override
-  public void
-  paintTo (Canvas canvas, Paint paint, EmacsGC immutableGC)
-  {
-    int alu;
-    Paint maskPaint;
-    Canvas maskCanvas;
-    Bitmap maskBitmap;
-    Rect rect, srcRect;
-    int width, height;
-
-    /* TODO implement stippling.  */
-    if (immutableGC.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
+    if (canvas == null)
       return;
 
-    alu = immutableGC.function;
-    rect = getRect ();
-    width = rect.width ();
-    height = rect.height ();
+    canvas.save ();
+
+    if (gc.real_clip_rects != null)
+      {
+	for (i = 0; i < gc.real_clip_rects.length; ++i)
+	  canvas.clipRect (gc.real_clip_rects[i]);
+      }
 
     paint.setStyle (Paint.Style.STROKE);
 
-    if (alu == EmacsGC.GC_COPY)
-      paint.setXfermode (null);
-    else
-      paint.setXfermode (xorAlu);
+    if (gc.clip_mask == null)
+      canvas.drawLine ((float) x, (float) y,
+		       (float) x2, (float) y2,
+		       paint);
 
-    if (immutableGC.clip_mask == null)
-      {
-        paint.setColor (immutableGC.foreground | 0xff000000);
-	canvas.drawLine ((float) x, (float) y,
-			 (float) x2, (float) y2,
-			 paint);
-      }
-    else
-      {
-	maskPaint = new Paint ();
-	maskBitmap
-	  = immutableGC.clip_mask.bitmap.copy (Bitmap.Config.ARGB_8888,
-					       true);
-
-	if (maskBitmap == null)
-	  return;
-
-	maskPaint.setXfermode (srcInAlu);
-	maskPaint.setColor (immutableGC.foreground | 0xff000000);
-	maskCanvas = new Canvas (maskBitmap);
-	srcRect = new Rect (0, 0, maskBitmap.getWidth (),
-			    maskBitmap.getHeight ());
-	maskCanvas.drawLine (0.0f, 0.0f, (float) Math.abs (x - x2),
-			     (float) Math.abs (y - y2), maskPaint);
-	canvas.drawBitmap (maskBitmap, srcRect, rect, paint);
-      }
-
-    paint.setXfermode (null);
+    /* DrawLine with clip mask not implemented; it is not used by
+       Emacs.  */
+    canvas.restore ();
+    drawable.damageRect (rect);
   }
 }

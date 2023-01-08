@@ -93,6 +93,8 @@ public class EmacsPixmap extends EmacsHandleObject
 	break;
       }
 
+    bitmap.eraseColor (0xff000000);
+
     this.width = width;
     this.height = height;
     this.depth = depth;
@@ -106,13 +108,6 @@ public class EmacsPixmap extends EmacsHandleObject
       canvas = new Canvas (bitmap);
 
     return canvas;
-  }
-
-  @Override
-  public void
-  unlockCanvas ()
-  {
-
   }
 
   @Override

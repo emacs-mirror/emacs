@@ -26,34 +26,35 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Xfermode;
 
-public class EmacsFillPolygon implements EmacsPaintReq
+public class EmacsFillPolygon
 {
-  private EmacsDrawable drawable;
-  private EmacsGC immutableGC;
-  private Path path;
-
-  private static Xfermode xorAlu, srcInAlu;
-
-  static
+  public static void
+  perform (EmacsDrawable drawable, EmacsGC gc, Point points[])
   {
-    xorAlu = new PorterDuffXfermode (Mode.XOR);
-    srcInAlu = new PorterDuffXfermode (Mode.SRC_IN);
-  };
-
-  public
-  EmacsFillPolygon (EmacsDrawable drawable, Point points[],
-		    EmacsGC immutableGC)
-  {
+    Canvas canvas;
+    Path path;
+    Paint paint;
+    Rect rect;
+    RectF rectF;
     int i;
 
-    this.drawable = drawable;
-    this.immutableGC = immutableGC;
+    canvas = drawable.lockCanvas ();
+
+    if (canvas == null)
+      return;
+
+    paint = gc.gcPaint;
+
+    canvas.save ();
+
+    if (gc.real_clip_rects != null)
+      {
+	for (i = 0; i < gc.real_clip_rects.length; ++i)
+	  canvas.clipRect (gc.real_clip_rects[i]);
+      }
 
     /* Build the path from the given array of points.  */
     path = new Path ();
@@ -67,84 +68,25 @@ public class EmacsFillPolygon implements EmacsPaintReq
 
 	path.close ();
       }
-  }
 
-  @Override
-  public Rect
-  getRect ()
-  {
-    RectF rect;
+    /* Compute the damage rectangle.  */
+    rectF = new RectF (0, 0, 0, 0);
+    path.computeBounds (rectF, true);
 
-    rect = new RectF (0, 0, 0, 0);
-    path.computeBounds (rect, true);
-
-    return new Rect ((int) Math.floor (rect.left),
-		     (int) Math.floor (rect.top),
-		     (int) Math.ceil (rect.right),
-		     (int) Math.ceil (rect.bottom));
-  }
-
-  @Override
-  public EmacsDrawable
-  getDrawable ()
-  {
-    return drawable;
-  }
-
-  @Override
-  public EmacsGC
-  getGC ()
-  {
-    return immutableGC;
-  }
-
-  @Override
-  public void
-  paintTo (Canvas canvas, Paint paint, EmacsGC immutableGC)
-  {
-    int alu;
-    Paint maskPaint;
-    Canvas maskCanvas;
-    Bitmap maskBitmap;
-    Rect rect;
-
-    /* TODO implement stippling.  */
-    if (immutableGC.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
-      return;
-
-    alu = immutableGC.function;
-    rect = getRect ();
-
-    if (alu == EmacsGC.GC_COPY)
-      paint.setXfermode (null);
-    else
-      paint.setXfermode (xorAlu);
+    rect = new Rect ((int) Math.floor (rectF.left),
+		     (int) Math.floor (rectF.top),
+		     (int) Math.ceil (rectF.right),
+		     (int) Math.ceil (rectF.bottom));
 
     paint.setStyle (Paint.Style.FILL);
 
-    if (immutableGC.clip_mask == null)
-      {
-	paint.setColor (immutableGC.foreground | 0xff000000);
-	canvas.drawPath (path, paint);
-      }
-    else
-      {
-	maskPaint = new Paint ();
-	maskBitmap = immutableGC.clip_mask.bitmap;
-	maskBitmap = maskBitmap.copy (Bitmap.Config.ARGB_8888,
-				      true);
+    if (gc.clip_mask == null)
+      canvas.drawPath (path, paint);
 
-	if (maskBitmap == null)
-	  return;
+    canvas.restore ();
+    drawable.damageRect (rect);
 
-	maskPaint.setXfermode (srcInAlu);
-	maskPaint.setColor (immutableGC.foreground | 0xff000000);
-	maskCanvas = new Canvas (maskBitmap);
-	path.offset (-rect.left, -rect.top, null);
-	maskCanvas.drawPath (path, maskPaint);
-	canvas.drawBitmap (maskBitmap, new Rect (0, 0, rect.width (),
-						 rect.height ()),
-			   rect, paint);
-      }
+    /* FillPolygon with clip mask not implemented; it is not used by
+       Emacs.  */
   }
 }

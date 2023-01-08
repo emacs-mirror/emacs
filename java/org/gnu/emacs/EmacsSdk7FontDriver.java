@@ -243,93 +243,6 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     }
   };
 
-  private class Sdk7DrawString implements EmacsPaintReq
-  {
-    private boolean drawBackground;
-    private Sdk7FontObject fontObject;
-    private char[] chars;
-    private EmacsGC immutableGC;
-    private EmacsDrawable drawable;
-    private Rect rect;
-    private int originX, originY;
-
-    public
-    Sdk7DrawString (Sdk7FontObject fontObject, char[] chars,
-		    EmacsGC immutableGC, EmacsDrawable drawable,
-		    boolean drawBackground, Rect rect,
-		    int originX, int originY)
-    {
-      this.fontObject = fontObject;
-      this.chars = chars;
-      this.immutableGC = immutableGC;
-      this.drawable = drawable;
-      this.drawBackground = drawBackground;
-      this.rect = rect;
-      this.originX = originX;
-      this.originY = originY;
-    }
-
-    @Override
-    public EmacsDrawable
-    getDrawable ()
-    {
-      return drawable;
-    }
-
-    @Override
-    public EmacsGC
-    getGC ()
-    {
-      return immutableGC;
-    }
-
-    @Override
-    public void
-    paintTo (Canvas canvas, Paint paint, EmacsGC immutableGC)
-    {
-      int scratch;
-
-      paint.setStyle (Paint.Style.FILL);
-
-      if (drawBackground)
-	{
-	  paint.setColor (immutableGC.background | 0xff000000);
-	  canvas.drawRect (rect, paint);
-	}
-
-      paint.setTextSize (fontObject.pixelSize);
-      paint.setColor (immutableGC.foreground | 0xff000000);
-      paint.setTypeface (fontObject.typeface.typeface);
-      paint.setAntiAlias (true);
-
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	/* Disable hinting as that leads to displayed text not
-	   matching the computed metrics.  */
-	paint.setHinting (Paint.HINTING_OFF);
-
-      canvas.drawText (chars, 0, chars.length, originX, originY, paint);
-      paint.setAntiAlias (false);
-    }
-
-    @Override
-    public Rect
-    getRect ()
-    {
-      Rect rect;
-
-      rect = new Rect ();
-
-      fontObject.typeface.typefacePaint.setTextSize (fontObject.pixelSize);
-      fontObject.typeface.typefacePaint.getTextBounds (chars, 0, chars.length,
-						       rect);
-
-      /* Add the background rect to the damage as well.  */
-      rect.union (this.rect);
-
-      return rect;
-    }
-  };
-
   private String[] fontFamilyList;
   private Sdk7Typeface[] typefaceList;
   private Sdk7Typeface fallbackTypeface;
@@ -498,14 +411,11 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 		Paint paint, Rect bounds)
   {
     char[] text;
-    float[] width;
 
     text = new char[1];
     text[0] = (char) code;
 
     paint.getTextBounds (text, 0, 1, bounds);
-    width = new float[1];
-    paint.getTextWidths (text, 0, 1, width);
 
     /* bounds is the bounding box of the glyph corresponding to CODE.
        Translate these into XCharStruct values.
@@ -526,7 +436,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     metrics.rbearing = (short) bounds.right;
     metrics.ascent = (short) -bounds.top;
     metrics.descent = (short) bounds.bottom;
-    metrics.width = (short) Math.round (width[0]);
+    metrics.width = (short) paint.measureText ("" + text[0]);
   }
 
   @Override
@@ -563,7 +473,8 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 	for (i = 0; i < code.length; ++i)
 	  text[i] = (char) code[i];
 
-	paintCache.getTextBounds (text, 0, 1, boundsCache);
+	paintCache.getTextBounds (text, 0, code.length,
+				  boundsCache);
 	width = paintCache.measureText (text, 0, code.length);
 
 	fontMetrics.lbearing = (short) boundsCache.left;
@@ -587,11 +498,12 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 	int[] chars, int x, int y, int backgroundWidth,
 	boolean withBackground)
   {
-    Rect backgroundRect;
+    Rect backgroundRect, bounds;
     Sdk7FontObject sdk7FontObject;
-    Sdk7DrawString op;
     char[] charsArray;
     int i;
+    Canvas canvas;
+    Paint paint;
 
     sdk7FontObject = (Sdk7FontObject) fontObject;
     charsArray = new char[chars.length];
@@ -605,12 +517,41 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     backgroundRect.right = x + backgroundWidth;
     backgroundRect.bottom = y + sdk7FontObject.descent;
 
-    op = new Sdk7DrawString (sdk7FontObject, charsArray,
-			     gc.immutableGC (), drawable,
-			     withBackground,
-			     backgroundRect, x, y);
+    canvas = drawable.lockCanvas ();
 
-    EmacsService.SERVICE.appendPaintOperation (op);
+    if (canvas == null)
+      return 0;
+
+    canvas.save ();
+    paint = gc.gcPaint;
+
+    if (gc.real_clip_rects != null)
+      {
+	for (i = 0; i < gc.real_clip_rects.length; ++i)
+	  canvas.clipRect (gc.real_clip_rects[i]);
+      }
+
+    paint.setStyle (Paint.Style.FILL);
+
+    if (withBackground)
+      {
+	paint.setColor (gc.background | 0xff000000);
+	canvas.drawRect (backgroundRect, paint);
+	paint.setColor (gc.foreground | 0xff000000);
+      }
+
+    paint.setTextSize (sdk7FontObject.pixelSize);
+    paint.setTypeface (sdk7FontObject.typeface.typeface);
+    paint.setAntiAlias (true);
+    canvas.drawText (charsArray, 0, chars.length, x, y, paint);
+
+    canvas.restore ();
+    bounds = new Rect ();
+    paint.getTextBounds (charsArray, 0, chars.length, bounds);
+    bounds.offset (x, y);
+    bounds.union (backgroundRect);
+    drawable.damageRect (bounds);
+    paint.setAntiAlias (false);
     return 1;
   }
 };

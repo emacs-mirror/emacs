@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-import java.lang.Runnable;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
@@ -59,7 +58,6 @@ public class EmacsService extends Service
 
   private EmacsThread thread;
   private Handler handler;
-  private EmacsPaintQueue paintQueue;
 
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;
@@ -191,126 +189,42 @@ public class EmacsService extends Service
     return view.thing;
   }
 
-  /* X drawing operations.  These are quite primitive operations.  The
-     drawing queue is kept on the Emacs thread, but is periodically
-     flushed to the application thread, upon buffers swaps and once it
-     gets too big.  */
-
-
-
-  private void
-  ensurePaintQueue ()
-  {
-    if (paintQueue == null)
-      paintQueue = new EmacsPaintQueue ();
-  }
-
-  public void
-  flushPaintQueue ()
-  {
-    final EmacsPaintQueue queue;
-
-    if (paintQueue == null)
-      return;
-
-    if (paintQueue.numRequests < 1)
-      /* No requests to flush.  */
-      return;
-
-    queue = paintQueue;
-
-    handler.post (new Runnable () {
-	@Override
-	public void
-	run ()
-	{
-	  queue.run ();
-	}
-      });
-
-    /* Clear the paint queue.  */
-    paintQueue = null;
-  }
-
-  private void
-  checkFlush ()
-  {
-    if (paintQueue != null
-	&& paintQueue.numRequests > MAX_PENDING_REQUESTS)
-      flushPaintQueue ();
-  }
-
   public void
   fillRectangle (EmacsDrawable drawable, EmacsGC gc,
 		 int x, int y, int width, int height)
   {
-    EmacsPaintReq req;
-
-    ensurePaintQueue ();
-
-    req = new EmacsFillRectangle (drawable, x, y,
-				  width, height,
-				  gc.immutableGC ());
-    paintQueue.appendPaintOperation (req);
-    checkFlush ();
+    EmacsFillRectangle.perform (drawable, gc, x, y,
+				width, height);
   }
 
   public void
   fillPolygon (EmacsDrawable drawable, EmacsGC gc,
 	       Point points[])
   {
-    EmacsPaintReq req;
-
-    ensurePaintQueue ();
-
-    req = new EmacsFillPolygon (drawable, points,
-				gc.immutableGC ());
-    paintQueue.appendPaintOperation (req);
-    checkFlush ();
+    EmacsFillPolygon.perform (drawable, gc, points);
   }
 
   public void
   drawRectangle (EmacsDrawable drawable, EmacsGC gc,
 		 int x, int y, int width, int height)
   {
-    EmacsPaintReq req;
-
-    ensurePaintQueue ();
-
-    req = new EmacsDrawRectangle (drawable, x, y,
-				  width, height,
-				  gc.immutableGC ());
-    paintQueue.appendPaintOperation (req);
-    checkFlush ();
+    EmacsDrawRectangle.perform (drawable, gc, x, y,
+				width, height);
   }
 
   public void
   drawLine (EmacsDrawable drawable, EmacsGC gc,
 	    int x, int y, int x2, int y2)
   {
-    EmacsPaintReq req;
-
-    ensurePaintQueue ();
-
-    req = new EmacsDrawLine (drawable, x, y,
-			     x2, y2,
-			     gc.immutableGC ());
-    paintQueue.appendPaintOperation (req);
-    checkFlush ();
+    EmacsDrawLine.perform (drawable, gc, x, y,
+			   x2, y2);
   }
 
   public void
   drawPoint (EmacsDrawable drawable, EmacsGC gc,
 	     int x, int y)
   {
-    EmacsPaintReq req;
-
-    ensurePaintQueue ();
-
-    req = new EmacsDrawPoint (drawable, x, y,
-			      gc.immutableGC ());
-    paintQueue.appendPaintOperation (req);
-    checkFlush ();
+    EmacsDrawPoint.perform (drawable, gc, x, y);
   }
 
   public void
@@ -319,15 +233,9 @@ public class EmacsService extends Service
 	    int srcX, int srcY, int width, int height, int destX,
 	    int destY)
   {
-    EmacsPaintReq req;
-
-    ensurePaintQueue ();
-
-    req = new EmacsCopyArea (srcDrawable, dstDrawable,
-			     srcX, srcY, width, height, destX,
-			     destY, gc.immutableGC ());
-    paintQueue.appendPaintOperation (req);
-    checkFlush ();
+    EmacsCopyArea.perform (srcDrawable, gc, dstDrawable,
+			   srcX, srcY, width, height, destX,
+			   destY);
   }
 
   public void
@@ -341,13 +249,5 @@ public class EmacsService extends Service
 	     int height)
   {
     window.clearArea (x, y, width, height);
-  }
-
-  public void
-  appendPaintOperation (EmacsPaintReq op)
-  {
-    ensurePaintQueue ();
-    paintQueue.appendPaintOperation (op);
-    checkFlush ();
   }
 };
