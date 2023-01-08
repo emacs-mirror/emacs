@@ -304,7 +304,7 @@ Used only on systems which do not support async subprocesses.")
                :name (concat (file-name-nondirectory command) "-stderr")
                :buffer (current-buffer)
                :filter (if (eshell-interactive-output-p eshell-error-handle)
-                           #'eshell-output-filter
+                           #'eshell-interactive-process-filter
                          #'eshell-insertion-filter)
                :sentinel #'eshell-sentinel))
         (eshell-record-process-properties stderr-proc eshell-error-handle))
@@ -320,7 +320,7 @@ Used only on systems which do not support async subprocesses.")
                :buffer (current-buffer)
                :command (cons command args)
                :filter (if (eshell-interactive-output-p)
-                           #'eshell-output-filter
+                           #'eshell-interactive-process-filter
                          #'eshell-insertion-filter)
                :sentinel #'eshell-sentinel
                :connection-type conn-type
@@ -381,7 +381,7 @@ Used only on systems which do not support async subprocesses.")
 		  line (buffer-substring-no-properties lbeg lend))
 	    (set-buffer oldbuf)
 	    (if interact-p
-		(eshell-output-filter nil line)
+		(eshell-interactive-process-filter nil line)
 	      (eshell-output-object line))
 	    (setq lbeg lend)
 	    (set-buffer proc-buf))
@@ -401,6 +401,22 @@ Used only on systems which do not support async subprocesses.")
 	  (error "%s: external command failed: %s" command exit-status))
 	(setq proc t))))
     proc))
+
+(defun eshell-interactive-process-filter (process string)
+  "Send the output from PROCESS (STRING) to the interactive display.
+This is done after all necessary filtering has been done."
+  (when string
+    (add-text-properties 0 (length string)
+                         '(field command-output rear-nonsticky (field))
+                         string)
+    (require 'esh-mode)
+    (declare-function eshell-interactive-filter "esh-mode" (buffer string))
+    (eshell-interactive-filter (if process (process-buffer process)
+                                 (current-buffer))
+                               string)))
+
+(define-obsolete-function-alias 'eshell-output-filter
+  #'eshell-interactive-process-filter "30.1")
 
 (defun eshell-insertion-filter (proc string)
   "Insert a string into the eshell buffer, or a process/file/buffer.

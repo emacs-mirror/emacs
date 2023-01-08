@@ -155,7 +155,8 @@ number, if the function `eshell-truncate-buffer' is on
     eshell-watch-for-password-prompt)
   "Functions to call before output is displayed.
 These functions are only called for output that is displayed
-interactively, and not for output which is redirected."
+interactively (see `eshell-interactive-filter'), and not for
+output which is redirected."
   :type 'hook)
 
 (defcustom eshell-preoutput-filter-functions nil
@@ -525,9 +526,13 @@ Putting this function on `eshell-pre-command-hook' will mimic Plan 9's
 
 (custom-add-option 'eshell-pre-command-hook #'eshell-goto-input-start)
 
-(defsubst eshell-interactive-print (string)
+(defun eshell-interactive-print (string)
   "Print STRING to the eshell display buffer."
-  (eshell-output-filter nil string))
+  (when string
+    (add-text-properties 0 (length string)
+                         '(field command-output rear-nonsticky (field))
+                         string)
+    (eshell-interactive-filter nil string)))
 
 (defsubst eshell-begin-on-new-line ()
   "This function outputs a newline if not at beginning of line."
@@ -687,14 +692,14 @@ newline."
 
 (custom-add-option 'eshell-input-filter-functions 'eshell-kill-new)
 
-(defun eshell-output-filter (process string)
-  "Send the output from PROCESS (STRING) to the interactive display.
+(defun eshell-interactive-filter (buffer string)
+  "Send output (STRING) to the interactive display, using BUFFER.
 This is done after all necessary filtering has been done."
-  (let ((oprocbuf (if process (process-buffer process)
-                    (current-buffer)))
-        (inhibit-modification-hooks t))
-    (when (and string oprocbuf (buffer-name oprocbuf))
-      (with-current-buffer oprocbuf
+  (unless buffer
+    (setq buffer (current-buffer)))
+  (when (and string (buffer-live-p buffer))
+    (let ((inhibit-modification-hooks t))
+      (with-current-buffer buffer
         (let ((functions eshell-preoutput-filter-functions))
           (while (and functions string)
             (setq string (funcall (car functions) string))

@@ -127,6 +127,15 @@ of arguments into a command, such as when defining aliases.  For more
 information, see the "(eshell) Dollars Expansion" node in the Eshell
 manual.
 
+---
+*** Eshell now uses 'field' properties in its output.
+In particular, this means that pressing the <home> key moves the point
+to the beginning of your input, not the beginning of the whole line.
+If you want to go back to the old behavior, add something like this to
+your configuration:
+
+    (keymap-set eshell-mode-map "<home>" #'eshell-bol-ignoring-prompt)
+
 +++
 *** 'eshell-read-aliases-list' is now an interactive command.
 After manually editing 'eshell-aliases-file', you can use this command
