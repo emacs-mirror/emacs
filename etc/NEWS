@@ -797,10 +797,10 @@ filter/sentinel error has been handled.
 ** New faces for font-lock.
 These faces are primarily meant for use with tree-sitter.  They are:
 'font-lock-bracket-face', 'font-lock-delimiter-face',
-'font-lock-escape-face', 'font-lock-number-face',
-'font-lock-regexp-face',
-'font-lock-misc-punctuation-face', 'font-lock-operator-face',
-'font-lock-property-face', and 'font-lock-punctuation-face'.
+'font-lock-escape-face', 'font-lock-misc-punctuation-face',
+'font-lock-number-face', 'font-lock-operator-face',
+'font-lock-property-face', and 'font-lock-punctuation-face',
+'font-lock-regexp-face'.
 
 +++
 ** New face 'variable-pitch-text'.
@@ -3211,8 +3211,8 @@ An optional major mode based on the tree-sitter library for editing
 programs in the C++ language.
 
 +++
-*** New major mode 'c-or-c++-ts-mode'.
-A function that automatically guesses the language of a header file,
+*** New command 'c-or-c++-ts-mode'.
+A command that automatically guesses the language of a header file,
 and enables either 'c-ts-mode' or 'c++-ts-mode' accordingly.
 
 +++
