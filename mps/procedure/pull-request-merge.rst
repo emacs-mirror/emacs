@@ -52,17 +52,32 @@ reference to that project.  RB 2023-01-07]
 #. Has there been a code review?
 
 #. Does the branch build and pass tests on all target platforms?
-   [This may be validated by Travis CI.  Insert details here.  RB
-   2023-01-07]
+   [This may have been validated by Travis CI if the branch is in the
+   Ravenbrook MPS repo on GitHub.  If not, we could add a step to push
+   it there for this purpose.  RB 2023-01-08]
 
 #. Does the branch merge cleanly into the masters?  If not, consider a
    catch-up merge from the masters.  [This may be validated by GitHub
    and/or Travis CI.  Insert details here.  RB 2023-01-07] [This is
    duplicated by step 3 of the procedure.  RB 2023-01-07]
 
-#. Does a merge of the branch with master build and pass tests on all
-   target platforms?  [This may be validated by Travis CI.  Insert
-   details here.  RB 2023-01-07]
+#. Does the branch merge cleanly in to master and pass tests on all
+   target platforms?
+
+   Travis CI should have run builds.  To check, either:
+
+   - Look for "All checks have passed" in the pull request on GitHub,
+     expand "Show all checks", and look for build success messages
+     from Travis CI.
+
+   - Look for a successful build in the `Travis CI build history for
+     the repo
+     <https://app.travis-ci.com/github/Ravenbrook/mps/builds>`_.
+
+  [Failure here is not necessarily a failure of this procedure, since
+  this procedure includes conflict resolution and testing the result.
+  Insisiting on this step would move that work upstream, which might
+  be efficient.  RB 2023-01-08]
 
 [Checklist items for Customer-specific branches from branch-merge.rst
 omitted for now.  RB 2023-01-07]
