@@ -56,10 +56,9 @@ reference to that project.  RB 2023-01-07]
 
    If the branch is in the Ravenbrook MPS repo on GitHub then Travis
    CI should have run builds.  Look for a successful build in the
-   `Travis CI build history for the repo
-   <https://app.travis-ci.com/github/Ravenbrook/mps/builds>`_.  If
-   there is a failed build you should not execute this procedure, but
-   talk to the contributor about fixing the branch.
+   `Travis CI build history for the repo`_.  If there is a failed
+   build you should not execute this procedure, but talk to the
+   contributor about fixing the branch.
 
    If the branch is in the Ravenbrook MPS repo on GitHub and Travis
    builds are missing, inform sysadmins that Travis CI isn't
@@ -81,8 +80,7 @@ reference to that project.  RB 2023-01-07]
      from Travis CI.
 
    - Look for a successful build in the `Travis CI build history for
-     the repo
-     <https://app.travis-ci.com/github/Ravenbrook/mps/builds>`_.
+     the repo`_.
 
    Success by Travis CI is a strong indication that this procecure
    will be quick and successful.
@@ -102,6 +100,8 @@ reference to that project.  RB 2023-01-07]
 
 [Checklist items for Customer-specific branches from branch-merge.rst
 omitted for now.  RB 2023-01-07]
+
+.. _Travis CI build history for the repo: https://app.travis-ci.com/github/Ravenbrook/mps/builds
 
 
 3. Prerequisite steps
@@ -228,7 +228,7 @@ These steps will only rarely need repeating.
     If you don't do this, then within `30 minutes
     <https://info.ravenbrook.com/infosys/robots/gitpushbot/etc/crontab>`_
     check that the merge appears in `the commits in the Ravenbrook MPS
-    repo on GitHub`_.
+    repo on GitHub <https://github.com/Ravenbrook/mps/commits/master>`_.
 
     If they do not appear:
 
