@@ -798,7 +798,11 @@ Set up:
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-base-mode "C"
-  "Major mode for editing C, powered by tree-sitter."
+  "Major mode for editing C, powered by tree-sitter.
+
+This mode is independent from the classic cc-mode.el based
+`c-mode', so configuration variables of that mode, like
+`c-basic-offset', don't affect this mode."
   :group 'c
 
   (unless (treesit-ready-p 'c)
@@ -820,7 +824,11 @@ Set up:
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
-  "Major mode for editing C++, powered by tree-sitter."
+  "Major mode for editing C++, powered by tree-sitter.
+
+This mode is independent from the classic cc-mode.el based
+`c++-mode', so configuration variables of that mode, like
+`c-basic-offset', don't affect this mode."
   :group 'c++
 
   (unless (treesit-ready-p 'cpp)
