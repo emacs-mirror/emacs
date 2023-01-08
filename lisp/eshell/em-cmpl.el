@@ -312,7 +312,7 @@ to writing a completion function."
 	     (eshell-interactive-process-p))
     (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
-	(begin (save-excursion (eshell-bol) (point)))
+	(begin (save-excursion (beginning-of-line) (point)))
 	(posns (list t))
 	args delim)
     (when (and pcomplete-allow-modifications

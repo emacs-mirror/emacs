@@ -72,7 +72,7 @@ insertion."
     (delete-char -1)
     (let ((tilde-before (eq ?~ (char-before)))
           (command (save-excursion
-                     (eshell-bol)
+                     (beginning-of-line)
                      (skip-syntax-forward " ")
                      (thing-at-point 'sexp)))
           (prefix (file-remote-p default-directory)))

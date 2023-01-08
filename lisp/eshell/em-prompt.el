@@ -163,7 +163,7 @@ If N is negative, find the next or Nth next match."
 	(progn (message "Not found")
 	       (ding))
       (goto-char pos)
-      (eshell-bol))))
+      (beginning-of-line))))
 
 (defun eshell-forward-matching-input (regexp arg)
   "Search forward through buffer for match for REGEXP.

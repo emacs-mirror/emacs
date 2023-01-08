@@ -262,14 +262,13 @@ This is used by `eshell-watch-for-password-prompt'."
   "C-c"   'eshell-command-map
   "RET"   #'eshell-send-input
   "M-RET" #'eshell-queue-input
-  "C-M-l" #'eshell-show-output
-  "C-a"   #'eshell-bol)
+  "C-M-l" #'eshell-show-output)
 
 (defvar-keymap eshell-command-map
   :prefix 'eshell-command-map
   "M-o" #'eshell-mark-output
   "M-d" #'eshell-toggle-direct-send
-  "C-a" #'eshell-bol
+  "C-a" #'move-beginning-of-line
   "C-b" #'eshell-backward-argument
   "C-e" #'eshell-show-maximum-output
   "C-f" #'eshell-forward-argument
@@ -472,7 +471,7 @@ and the hook `eshell-exit-hook'."
 (defun eshell-move-argument (limit func property arg)
   "Move forward ARG arguments."
   (catch 'eshell-incomplete
-    (eshell-parse-arguments (save-excursion (eshell-bol) (point))
+    (eshell-parse-arguments (save-excursion (beginning-of-line) (point))
 			    (line-end-position)))
   (let ((pos (save-excursion
 	       (funcall func 1)
@@ -505,12 +504,7 @@ and the hook `eshell-exit-hook'."
     (kill-ring-save begin (point))
     (yank)))
 
-(defun eshell-bol ()
-  "Go to the beginning of line, then skip past the prompt, if any."
-  (interactive)
-  (beginning-of-line)
-  (and eshell-skip-prompt-function
-       (funcall eshell-skip-prompt-function)))
+(define-obsolete-function-alias 'eshell-bol #'beginning-of-line "30.1")
 
 (defsubst eshell-push-command-mark ()
   "Push a mark at the end of the last input text."
@@ -856,7 +850,7 @@ With a prefix argument, narrows region to last command output."
   (if (> (point) eshell-last-output-end)
       (kill-region eshell-last-output-end (point))
     (let ((here (point)))
-      (eshell-bol)
+      (beginning-of-line)
       (kill-region (point) here))))
 
 (defun eshell-show-maximum-output (&optional interactive)
@@ -884,17 +878,18 @@ If SCROLLBACK is non-nil, clear the scrollback contents."
     (erase-buffer)))
 
 (defun eshell-get-old-input (&optional use-current-region)
-  "Return the command input on the current line."
+  "Return the command input on the current line.
+If USE-CURRENT-REGION is non-nil, return the current region."
   (if use-current-region
       (buffer-substring (min (point) (mark))
 			(max (point) (mark)))
     (save-excursion
-      (beginning-of-line)
-      (and eshell-skip-prompt-function
-	   (funcall eshell-skip-prompt-function))
-      (let ((beg (point)))
-	(end-of-line)
-	(buffer-substring beg (point))))))
+      (let ((inhibit-field-text-motion t))
+        (end-of-line))
+      (let ((inhibit-field-text-motion)
+            (end (point)))
+        (beginning-of-line)
+        (buffer-substring (point) end)))))
 
 (defun eshell-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited."
