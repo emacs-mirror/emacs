@@ -3608,8 +3608,9 @@ Treats actions as defuns."
 	(kill-local-variable 'gdb-define-alist)
 	(remove-hook 'after-save-hook #'gdb-create-define-alist t))))
 
-(defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode
-					python-mode)
+(defcustom gud-tooltip-modes '( gud-mode c-mode c++-mode fortran-mode
+				python-mode c-ts-mode c++-ts-mode
+                                python-ts-mode)
   "List of modes for which to enable GUD tooltips."
   :type '(repeat (symbol :tag "Major mode"))
   :group 'tooltip)
