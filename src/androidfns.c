@@ -1347,7 +1347,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
+  /* TODO tooltips */
   return Qnil;
 #endif
 }
@@ -1360,7 +1360,6 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
   return Qnil;
 #endif
 }

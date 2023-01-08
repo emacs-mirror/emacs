@@ -15230,6 +15230,15 @@ redisplay_tool_bar (struct frame *f)
 	  /* Always do that now.  */
 	  clear_glyph_matrix (w->desired_matrix);
 	  f->fonts_changed = true;
+
+	  /* Kludge (this applies to the X Windows version as well as
+	     Android): when the tool bar size changes,
+	     adjust_window_size (presumably called by
+	     change_tool_bar_height_hook) does not call through to
+	     resize_frame_windows.  Pending further investigation,
+	     just call it here as well.  */
+	  resize_frame_windows (f, FRAME_INNER_HEIGHT (f), false);
+
 	  return true;
 	}
     }

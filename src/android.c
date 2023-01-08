@@ -1254,6 +1254,92 @@ NATIVE_NAME (sendWindowAction) (JNIEnv *env, jobject object,
   android_write_event (&event);
 }
 
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendEnterNotify) (JNIEnv *env, jobject object,
+			       jshort window, jint x, jint y,
+			       jlong time)
+{
+  union android_event event;
+
+  event.xcrossing.type = ANDROID_ENTER_NOTIFY;
+  event.xcrossing.window = window;
+  event.xcrossing.x = x;
+  event.xcrossing.y = y;
+  event.xcrossing.time = time;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendLeaveNotify) (JNIEnv *env, jobject object,
+			       jshort window, jint x, jint y,
+			       jlong time)
+{
+  union android_event event;
+
+  event.xcrossing.type = ANDROID_LEAVE_NOTIFY;
+  event.xcrossing.window = window;
+  event.xcrossing.x = x;
+  event.xcrossing.y = y;
+  event.xcrossing.time = time;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendMotionNotify) (JNIEnv *env, jobject object,
+				jshort window, jint x, jint y,
+				jlong time)
+{
+  union android_event event;
+
+  event.xmotion.type = ANDROID_MOTION_NOTIFY;
+  event.xmotion.window = window;
+  event.xmotion.x = x;
+  event.xmotion.y = y;
+  event.xmotion.time = time;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendButtonPress) (JNIEnv *env, jobject object,
+			       jshort window, jint x, jint y,
+			       jlong time, jint state,
+			       jint button)
+{
+  union android_event event;
+
+  event.xbutton.type = ANDROID_BUTTON_PRESS;
+  event.xbutton.window = window;
+  event.xbutton.x = x;
+  event.xbutton.y = y;
+  event.xbutton.time = time;
+  event.xbutton.state = state;
+  event.xbutton.button = button;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
+				 jshort window, jint x, jint y,
+				 jlong time, jint state,
+				 jint button)
+{
+  union android_event event;
+
+  event.xbutton.type = ANDROID_BUTTON_RELEASE;
+  event.xbutton.window = window;
+  event.xbutton.x = x;
+  event.xbutton.y = y;
+  event.xbutton.time = time;
+  event.xbutton.state = state;
+  event.xbutton.button = button;
+
+  android_write_event (&event);
+}
+
 #pragma clang diagnostic pop
 
 
@@ -1747,12 +1833,11 @@ android_change_gc (struct android_gc *gc,
 					   emacs_gc_clip_mask,
 					   what);
 
-      /* Clearing GCClipMask also clears the clip rectangles.  */
-      if (!what)
-	(*android_java_env)->SetObjectField (android_java_env,
-					     gcontext,
-					     emacs_gc_clip_rects,
-					     NULL);
+      /* Changing GCClipMask also clears the clip rectangles.  */
+      (*android_java_env)->SetObjectField (android_java_env,
+					   gcontext,
+					   emacs_gc_clip_rects,
+					   NULL);
     }
 
   if (mask & ANDROID_GC_STIPPLE)
@@ -2133,14 +2218,14 @@ android_create_pixmap_from_bitmap_data (char *data, unsigned int width,
 	      /* The alpha channels must be set, or otherwise, the
 		 pixmap will be created entirely transparent.  */
 
-	      if (data[y * (width + 7) / 8 + x / 8] & (1 << (x % 8)))
+	      if (data[x / 8] & (1 << (x % 8)))
 		region[x] = foreground | 0xff000000;
 	      else
 		region[x] = background | 0xff000000;
 	    }
 	  else
 	    {
-	      if (data[y * (width + 7) / 8 + x / 8] & (1 << (x % 8)))
+	      if (data[x / 8] & (1 << (x % 8)))
 		region[x] = foreground;
 	      else
 		region[x] = background;
@@ -2151,6 +2236,7 @@ android_create_pixmap_from_bitmap_data (char *data, unsigned int width,
 					      colors,
 					      width * y, width,
 					      region);
+      data += width / 8;
     }
 
   /* First, allocate the pixmap handle.  */

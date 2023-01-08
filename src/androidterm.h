@@ -129,6 +129,9 @@ struct android_display_info
 
   /* Where the mouse was the last time the mouse moved.  */
   Emacs_Rectangle last_mouse_glyph;
+
+  /* The time of the last mouse movement.  */
+  Time last_mouse_movement_time;
 };
 
 struct android_output
@@ -192,11 +195,6 @@ struct android_output
   /* True if this frame's alpha value is the same for both the active
      and inactive states.  */
   bool_bf alpha_identical_p : 1;
-
-  /* Flag that indicates whether we've modified the back buffer and
-     need to publish our modifications to the front buffer at a
-     convenient time.  */
-  bool_bf need_buffer_flip : 1;
 
   /* Flag that indicates whether or not the frame contents are
      complete and can be safely flushed while handling async
@@ -375,6 +373,11 @@ extern void init_androidfont (void);
 extern void syms_of_androidfont (void);
 
 extern void android_finalize_font_entity (struct font_entity *);
+
+/* Defined in sfntfont-android.c.  */
+
+extern void init_sfntfont_android (void);
+extern void syms_of_sfntfont_android (void);
 
 
 

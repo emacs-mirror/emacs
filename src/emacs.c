@@ -37,6 +37,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "androidterm.h"
 #endif
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#include "sfntfont.h"
+#endif
+
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -2396,6 +2400,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fontset ();
 #if !defined ANDROID_STUBIFY
       syms_of_androidfont ();
+      syms_of_sfntfont ();
+      syms_of_sfntfont_android ();
 #endif /* !ANDROID_STUBIFY */
 #endif /* HAVE_ANDROID */
 
@@ -2461,6 +2467,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
   init_androidfont ();
+  init_sfntfont ();
+  init_sfntfont_android ();
 #endif
 
   init_charset ();

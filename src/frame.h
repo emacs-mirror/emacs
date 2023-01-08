@@ -599,8 +599,9 @@ struct frame
   /* List of font-drivers available on the frame.  */
   struct font_driver_list *font_driver_list;
 
-#if defined (HAVE_X_WINDOWS)
-  /* Used by x_wait_for_event when watching for an X event on this frame.  */
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
+  /* Used by x_wait_for_event when watching for an X event on this
+     frame.  */
   int wait_event_type;
 #endif
 

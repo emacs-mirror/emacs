@@ -204,6 +204,11 @@ enum android_event_type
     ANDROID_FOCUS_IN,
     ANDROID_FOCUS_OUT,
     ANDROID_WINDOW_ACTION,
+    ANDROID_ENTER_NOTIFY,
+    ANDROID_LEAVE_NOTIFY,
+    ANDROID_MOTION_NOTIFY,
+    ANDROID_BUTTON_PRESS,
+    ANDROID_BUTTON_RELEASE,
   };
 
 struct android_any_event
@@ -268,6 +273,32 @@ struct android_window_action_event
   unsigned int action;
 };
 
+struct android_crossing_event
+{
+  enum android_event_type type;
+  android_window window;
+  int x, y;
+  unsigned long time;
+};
+
+struct android_motion_event
+{
+  enum android_event_type type;
+  android_window window;
+  int x, y;
+  unsigned long time;
+};
+
+struct android_button_event
+{
+  enum android_event_type type;
+  android_window window;
+  int x, y;
+  unsigned long time;
+  unsigned int state;
+  unsigned int button;
+};
+
 union android_event
 {
   enum android_event_type type;
@@ -276,6 +307,9 @@ union android_event
   struct android_configure_event xconfigure;
   struct android_focus_event xfocus;
   struct android_window_action_event xaction;
+  struct android_crossing_event xcrossing;
+  struct android_motion_event xmotion;
+  struct android_button_event xbutton;
 };
 
 extern int android_pending (void);

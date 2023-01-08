@@ -6644,7 +6644,7 @@ implicitly when there's no window system support.
 Note that when a frame is not large enough to accommodate a change of
 any of the parameters listed above, Emacs may try to enlarge the frame
 even if this option is non-nil.  */);
-#if defined (HAVE_WINDOW_SYSTEM)
+#if defined (HAVE_WINDOW_SYSTEM) && !defined (HAVE_ANDROID)
 #if defined (USE_GTK) || defined (HAVE_NS)
   frame_inhibit_implied_resize = list1 (Qtab_bar_lines);
 #else

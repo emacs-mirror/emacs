@@ -41,6 +41,11 @@ struct android_display_info *x_display_list;
 
 #include <android/log.h>
 
+/* Non-zero means that a HELP_EVENT has been generated since Emacs
+   start.  */
+
+static bool any_help_event_p;
+
 enum
   {
     ANDROID_EVENT_NORMAL,
@@ -261,6 +266,94 @@ android_detect_focus_change (struct android_display_info *dpyinfo,
     }
 }
 
+static bool
+android_note_mouse_movement (struct frame *frame,
+			     struct android_motion_event *event)
+{
+  struct android_display_info *dpyinfo;
+  Emacs_Rectangle *r;
+
+  if (!FRAME_ANDROID_OUTPUT (frame))
+    return false;
+
+  dpyinfo = FRAME_DISPLAY_INFO (frame);
+  dpyinfo->last_mouse_motion_frame = frame;
+  dpyinfo->last_mouse_motion_x = event->x;
+  dpyinfo->last_mouse_motion_y = event->y;
+  dpyinfo->last_mouse_movement_time = event->time;
+
+  /* Has the mouse moved off the glyph it was on at the last sighting?  */
+  r = &dpyinfo->last_mouse_glyph;
+  if (frame != dpyinfo->last_mouse_glyph_frame
+      || event->x < r->x || event->x >= r->x + r->width
+      || event->y < r->y || event->y >= r->y + r->height)
+    {
+      frame->mouse_moved = true;
+      /* TODO
+	 dpyinfo->last_mouse_scroll_bar = NULL; */
+      note_mouse_highlight (frame, event->x, event->y);
+      /* Remember which glyph we're now on.  */
+      remember_mouse_glyph (frame, event->x, event->y, r);
+      dpyinfo->last_mouse_glyph_frame = frame;
+      return true;
+    }
+
+  return false;
+}
+
+static struct frame *
+mouse_or_wdesc_frame (struct android_display_info *dpyinfo, int wdesc)
+{
+  struct frame *lm_f = (gui_mouse_grabbed (dpyinfo)
+			? dpyinfo->last_mouse_frame
+			: NULL);
+
+  if (lm_f && !EQ (track_mouse, Qdropping)
+      && !EQ (track_mouse, Qdrag_source))
+    return lm_f;
+  else
+    {
+      struct frame *w_f = android_window_to_frame (dpyinfo, wdesc);
+
+      /* Do not return a tooltip frame.  */
+      if (!w_f || FRAME_TOOLTIP_P (w_f))
+	return EQ (track_mouse, Qdropping) ? lm_f : NULL;
+      else
+	/* When dropping it would be probably nice to raise w_f
+	   here.  */
+	return w_f;
+    }
+}
+
+static Lisp_Object
+android_construct_mouse_click (struct input_event *result,
+			       struct android_button_event *event,
+			       struct frame *f)
+{
+  struct android_display_info *dpyinfo;
+  int x, y;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+  x = event->x;
+  y = event->y;
+
+  /* Make the event type NO_EVENT; we'll change that when we decide
+     otherwise.  */
+  result->kind = MOUSE_CLICK_EVENT;
+  result->code = event->button - 1;
+  result->timestamp = event->time;
+  result->modifiers = (android_android_to_emacs_modifiers (dpyinfo,
+							   event->state)
+		       | (event->type == ANDROID_BUTTON_RELEASE
+			  ? up_modifier : down_modifier));
+
+  XSETINT (result->x, x);
+  XSETINT (result->y, y);
+  XSETFRAME (result->frame_or_window, f);
+  result->arg = Qnil;
+  return Qnil;
+}
+
 static int
 handle_one_android_event (struct android_display_info *dpyinfo,
 			  union android_event *event, int *finish,
@@ -270,16 +363,19 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   struct frame *f, *any, *mouse_frame;
   Mouse_HLInfo *hlinfo;
   union buffered_input_event inev;
-  int modifiers, count;
+  int modifiers, count, do_help;
 
   /* It is okay for this to not resemble handle_one_xevent so much.
      Differences in event handling code are much less nasty than
      stuble differences in the graphics code.  */
 
-  count = 0;
+  do_help = count = 0;
   hlinfo = &dpyinfo->mouse_highlight;
   *finish = ANDROID_EVENT_NORMAL;
   any = android_window_to_frame (dpyinfo, event->xany.window);
+
+  if (any && any->wait_event_type == event->type)
+    any->wait_event_type = 0; /* Indicates we got it.  */
 
   EVENT_INIT (inev.ie);
 
@@ -410,6 +506,213 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    /* A new frame must be created.  */;
 	}
 
+    case ANDROID_ENTER_NOTIFY:
+      f = any;
+
+      if (f)
+	android_note_mouse_movement (f, &event->xmotion);
+      goto OTHER;
+
+    case ANDROID_MOTION_NOTIFY:
+      f = any;
+
+      if (f)
+	{
+	  /* Maybe generate a SELECT_WINDOW_EVENT for
+	     `mouse-autoselect-window' but don't let popup menus
+	     interfere with this (Bug#1261).  */
+	  if (!NILP (Vmouse_autoselect_window)
+	      && !popup_activated ()
+	      /* Don't switch if we're currently in the minibuffer.
+		 This tries to work around problems where the
+		 minibuffer gets unselected unexpectedly, and where
+		 you then have to move your mouse all the way down to
+		 the minibuffer to select it.  */
+	      && !MINI_WINDOW_P (XWINDOW (selected_window))
+	      /* With `focus-follows-mouse' non-nil create an event
+		 also when the target window is on another frame.  */
+	      && (f == XFRAME (selected_frame)
+		  || !NILP (focus_follows_mouse)))
+	    {
+	      static Lisp_Object last_mouse_window;
+	      Lisp_Object window
+		= window_from_coordinates (f, event->xmotion.x,
+					   event->xmotion.y, 0,
+					   false, false);
+
+	      /* A window will be autoselected only when it is not
+		 selected now and the last mouse movement event was
+		 not in it.  The remainder of the code is a bit vague
+		 wrt what a "window" is.  For immediate autoselection,
+		 the window is usually the entire window but for GTK
+		 where the scroll bars don't count.  For delayed
+		 autoselection the window is usually the window's text
+		 area including the margins.  */
+	      if (WINDOWP (window)
+		  && !EQ (window, last_mouse_window)
+		  && !EQ (window, selected_window))
+		{
+		  inev.ie.kind = SELECT_WINDOW_EVENT;
+		  inev.ie.frame_or_window = window;
+		}
+
+	      /* Remember the last window where we saw the mouse.  */
+	      last_mouse_window = window;
+	    }
+
+	  if (!android_note_mouse_movement (f, &event->xmotion))
+	    help_echo_string = previous_help_echo_string;
+	}
+
+      /* If the contents of the global variable help_echo_string
+	 has changed, generate a HELP_EVENT.  */
+      if (!NILP (help_echo_string)
+	  || !NILP (previous_help_echo_string))
+	do_help = 1;
+
+      if (f)
+	android_flush_dirty_back_buffer_on (f);
+
+      goto OTHER;
+
+    case ANDROID_LEAVE_NOTIFY:
+      f = any;
+
+      if (f)
+        {
+	  /* Now clear dpyinfo->last_mouse_motion_frame, or
+	     gui_redo_mouse_highlight will end up highlighting the
+	     last known position of the mouse if a tooltip frame is
+	     later unmapped.  */
+
+	  if (f == dpyinfo->last_mouse_motion_frame)
+	    dpyinfo->last_mouse_motion_frame = NULL;
+
+	  /* Something similar applies to
+	     dpyinfo->last_mouse_glyph_frame.  */
+	  if (f == dpyinfo->last_mouse_glyph_frame)
+	    dpyinfo->last_mouse_glyph_frame = NULL;
+
+          if (f == hlinfo->mouse_face_mouse_frame)
+            {
+              /* If we move outside the frame, then we're
+                 certainly no longer on any text in the frame.  */
+              clear_mouse_face (hlinfo);
+              hlinfo->mouse_face_mouse_frame = 0;
+	      android_flush_dirty_back_buffer_on (f);
+            }
+
+          /* Generate a nil HELP_EVENT to cancel a help-echo.
+             Do it only if there's something to cancel.
+             Otherwise, the startup message is cleared when
+             the mouse leaves the frame.  */
+          if (any_help_event_p
+	      /* But never if `mouse-drag-and-drop-region' is in
+		 progress, since that results in the tooltip being
+		 dismissed when the mouse moves on top.  */
+	      && !((EQ (track_mouse, Qdrag_source)
+		    || EQ (track_mouse, Qdropping))
+		   && gui_mouse_grabbed (dpyinfo)))
+	    do_help = -1;
+        }
+
+      goto OTHER;
+
+    case ANDROID_BUTTON_PRESS:
+    case ANDROID_BUTTON_RELEASE:
+      /* If we decide we want to generate an event to be seen
+	 by the rest of Emacs, we put it here.  */
+
+      f = any;
+
+      Lisp_Object tab_bar_arg = Qnil;
+      bool tab_bar_p = false;
+      bool tool_bar_p = false;
+
+      dpyinfo->last_mouse_glyph_frame = NULL;
+
+      f = mouse_or_wdesc_frame (dpyinfo, event->xbutton.window);
+
+      if (f)
+	{
+	  /* Is this in the tab-bar?  */
+	  if (WINDOWP (f->tab_bar_window)
+	      && WINDOW_TOTAL_LINES (XWINDOW (f->tab_bar_window)))
+	    {
+	      Lisp_Object window;
+	      int x = event->xbutton.x;
+	      int y = event->xbutton.y;
+
+	      window = window_from_coordinates (f, x, y, 0, true, true);
+	      tab_bar_p = EQ (window, f->tab_bar_window);
+
+	      if (tab_bar_p)
+		{
+		  tab_bar_arg = handle_tab_bar_click
+		    (f, x, y, (event->xbutton.type
+			       == ANDROID_BUTTON_PRESS),
+		     android_android_to_emacs_modifiers (dpyinfo,
+							 event->xbutton.state));
+		  android_flush_dirty_back_buffer_on (f);
+		}
+	    }
+
+	  /* Is this in the tool-bar?  */
+	  if (WINDOWP (f->tool_bar_window)
+	      && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)))
+	    {
+	      Lisp_Object window;
+	      int x = event->xbutton.x;
+	      int y = event->xbutton.y;
+
+	      window = window_from_coordinates (f, x, y, 0, true, true);
+	      tool_bar_p = (EQ (window, f->tool_bar_window)
+			    && ((event->xbutton.type
+				 != ANDROID_BUTTON_RELEASE)
+				|| f->last_tool_bar_item != -1));
+
+	      if (tool_bar_p && event->xbutton.button < 4)
+		{
+		  handle_tool_bar_click
+		    (f, x, y, (event->xbutton.type
+			       == ANDROID_BUTTON_PRESS),
+		     android_android_to_emacs_modifiers (dpyinfo,
+							 event->xbutton.state));
+		  android_flush_dirty_back_buffer_on (f);
+		}
+	    }
+
+	  if (!(tab_bar_p && NILP (tab_bar_arg)) && !tool_bar_p)
+	    {
+	      android_construct_mouse_click (&inev.ie, &event->xbutton, f);
+
+	      if (!NILP (tab_bar_arg))
+		inev.ie.arg = tab_bar_arg;
+	    }
+	}
+      else
+	{
+	  /* TODO: scroll bars */
+	}
+
+      if (event->type == ANDROID_BUTTON_PRESS)
+	{
+	  dpyinfo->grabbed |= (1 << event->xbutton.button);
+	  dpyinfo->last_mouse_frame = f;
+	  if (f && !tab_bar_p)
+	    f->last_tab_bar_item = -1;
+	  if (f && !tool_bar_p)
+	    f->last_tool_bar_item = -1;
+	}
+      else
+	dpyinfo->grabbed &= ~(1 << event->xbutton.button);
+
+      /* Ignore any mouse motion that happened before this event;
+	 any subsequent mouse-movement Emacs events should reflect
+	 only motion after the ButtonPress/Release.  */
+      if (f != 0)
+	f->mouse_moved = false;
+
       goto OTHER;
 
     default:
@@ -420,6 +723,30 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   if (inev.ie.kind != NO_EVENT)
     {
       kbd_buffer_store_buffered_event (&inev, hold_quit);
+      count++;
+    }
+
+  if (do_help
+      && !(hold_quit && hold_quit->kind != NO_EVENT))
+    {
+      Lisp_Object frame;
+
+      if (f)
+	XSETFRAME (frame, f);
+      else
+	frame = Qnil;
+
+      if (do_help > 0)
+	{
+	  any_help_event_p = true;
+	  gen_help_event (help_echo_string, frame, help_echo_window,
+			  help_echo_object, help_echo_pos);
+	}
+      else
+	{
+	  help_echo_string = Qnil;
+	  gen_help_event (Qnil, frame, Qnil, Qnil, 0);
+	}
       count++;
     }
 
@@ -562,7 +889,32 @@ android_mouse_position (struct frame **fp, int insist,
 			enum scroll_bar_part *part, Lisp_Object *x,
 			Lisp_Object *y, Time *timestamp)
 {
-  /* TODO */
+  Lisp_Object tail, frame;
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (*fp);
+
+  /* This is the best implementation possible on Android, where the
+     system doesn't let Emacs obtain any information about the mouse
+     pointer at all.  */
+
+  if (dpyinfo->last_mouse_motion_frame)
+    {
+      *fp = dpyinfo->last_mouse_motion_frame;
+      *timestamp = dpyinfo->last_mouse_movement_time;
+      *x = make_fixnum (dpyinfo->last_mouse_motion_x);
+      *y = make_fixnum (dpyinfo->last_mouse_motion_y);
+      *bar_window = Qnil;
+      *part = scroll_bar_nowhere;
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  if (FRAME_ANDROID_P (XFRAME (frame)))
+	    XFRAME (frame)->mouse_moved = false;
+	}
+
+      dpyinfo->last_mouse_motion_frame->mouse_moved = false;
+    }
 }
 
 static Lisp_Object
@@ -679,6 +1031,45 @@ android_iconify_frame (struct frame *f)
 }
 
 static void
+android_wait_for_event (struct frame *f, int eventtype)
+{
+  if (!FLOATP (Vandroid_wait_for_event_timeout))
+    return;
+
+  int level = interrupt_input_blocked;
+  struct timespec tmo, tmo_at, time_now;
+
+  f->wait_event_type = eventtype;
+
+  /* Default timeout is 0.1 second.  Hopefully not noticeable.  */
+  double timeout = XFLOAT_DATA (Vandroid_wait_for_event_timeout);
+  time_t timeout_seconds = (time_t) timeout;
+  tmo = make_timespec (timeout_seconds,
+		       (long int) ((timeout - timeout_seconds)
+				   * 1000 * 1000 * 1000));
+  tmo_at = timespec_add (current_timespec (), tmo);
+
+  while (f->wait_event_type)
+    {
+      pending_signals = true;
+      totally_unblock_input ();
+      /* XTread_socket is called after unblock.  */
+      block_input ();
+      interrupt_input_blocked = level;
+
+      time_now = current_timespec ();
+      if (timespec_cmp (tmo_at, time_now) < 0)
+	break;
+
+      tmo = timespec_sub (tmo_at, time_now);
+      if (android_select (0, NULL, NULL, NULL, &tmo, NULL) == 0)
+        break; /* Timeout */
+    }
+
+  f->wait_event_type = 0;
+}
+
+static void
 android_set_window_size_1 (struct frame *f, bool change_gravity,
 			   int width, int height)
 {
@@ -688,11 +1079,29 @@ android_set_window_size_1 (struct frame *f, bool change_gravity,
   android_resize_window (FRAME_ANDROID_WINDOW (f), width,
 			 height);
 
-  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
-     receive in the ConfigureNotify event; if we get what we asked
-     for, then the event won't cause the screen to become garbaged, so
-     we have to make sure to do it here.  */
   SET_FRAME_GARBAGED (f);
+
+  if (FRAME_VISIBLE_P (f))
+    {
+      android_wait_for_event (f, ANDROID_CONFIGURE_NOTIFY);
+
+      if (CONSP (frame_size_history))
+	frame_size_history_extra (f, build_string ("set_window_size_1 visible"),
+				  FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+				  width, height, f->new_width, f->new_height);
+    }
+  else
+    {
+      if (CONSP (frame_size_history))
+	frame_size_history_extra (f, build_string ("set_window_size_1 "
+						   "invisible"),
+				  FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+				  width, height, f->new_width, f->new_height);
+
+      adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
+			 FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
+			 5, 0, Qx_set_window_size_1);
+    }
 }
 
 void
@@ -792,7 +1201,6 @@ android_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 static bool
 android_bitmap_icon (struct frame *f, Lisp_Object file)
 {
-  /* TODO */
   return false;
 }
 
@@ -840,6 +1248,13 @@ android_free_frame_resources (struct frame *f)
     dpyinfo->highlight_frame = 0;
   if (f == hlinfo->mouse_face_mouse_frame)
     reset_mouse_highlight (hlinfo);
+
+  /* These two need to be freed now that they are used to compute the
+     mouse position, I think.  */
+  if (f == dpyinfo->last_mouse_motion_frame)
+    dpyinfo->last_mouse_motion_frame = NULL;
+  if (f == dpyinfo->last_mouse_frame)
+    dpyinfo->last_mouse_frame = NULL;
 
   unblock_input ();
 }
@@ -3232,6 +3647,18 @@ void
 syms_of_androidterm (void)
 {
   Fprovide (Qandroid, Qnil);
+
+  DEFVAR_LISP ("android-wait-for-event-timeout",
+	       Vandroid_wait_for_event_timeout,
+    doc: /* How long to wait for Android events.
+
+Emacs will wait up to this many seconds to receive events after
+making changes which affect the state of the graphical interface.
+Under some situations this can take an indefinite amount of time,
+so it is important to limit the wait.
+
+If set to a non-float value, there will be no wait at all.  */);
+  Vandroid_wait_for_event_timeout = make_float (0.1);
 
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       x_use_underline_position_properties,

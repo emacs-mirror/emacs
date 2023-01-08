@@ -20,7 +20,10 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 
+#include "sfnt.h"
+
 #include <assert.h>
+#include <attribute.h>
 #include <byteswap.h>
 #include <fcntl.h>
 #include <intprops.h>
@@ -54,14 +57,12 @@ xfree (void *ptr)
   return free (ptr);
 }
 
-static void
-eassert (bool condition)
-{
-  if (!condition)
-    abort ();
-}
+/* Use this for functions that are static while building in test mode,
+   but are used outside as well.  */
+#define TEST_STATIC static
 
 #else
+#define TEST_STATIC
 #include "lisp.h"
 #endif
 
@@ -75,33 +76,21 @@ eassert (bool condition)
    libraries such as FreeType are not easily available, and the native
    font library is too limited for Emacs to support properly.
 
-   Unlike most popular libraries for handling fonts, no "font" or
-   "face" type is provided.  Instead, routines and structure
+   Unlike most popular libraries for handling fonts, no ``font'' or
+   ``face'' type is provided.  Instead, routines and structure
    definitions for accessing and making use of individual tables in a
    font file are exported, which allows for flexibility in the rest of
-   Emacs.  */
+   Emacs.
+
+   Try not to keep this file too dependent on Emacs.  Everything Lisp
+   related goes in sfntfont.c.  The author wants to keep using it for
+   some other (free) software.  */
 
 
 
-/* The sfnt container format is organized into different tables, such
-   as ``cmap'' or ``glyf''.  Each of these tables has a specific
-   format and use.  These are all the tables known to Emacs.  */
-
-enum sfnt_table
-  {
-    SFNT_TABLE_CMAP,
-    SFNT_TABLE_GLYF,
-    SFNT_TABLE_HEAD,
-    SFNT_TABLE_HHEA,
-    SFNT_TABLE_HMTX,
-    SFNT_TABLE_LOCA,
-    SFNT_TABLE_MAXP,
-    SFNT_TABLE_NAME,
-  };
-
 /* Mapping between sfnt table names and their identifiers.  */
 
-uint32_t sfnt_table_names[] =
+static uint32_t sfnt_table_names[] =
   {
     [SFNT_TABLE_CMAP] = 0x636d6170,
     [SFNT_TABLE_GLYF] = 0x676c7966,
@@ -111,579 +100,8 @@ uint32_t sfnt_table_names[] =
     [SFNT_TABLE_LOCA] = 0x6c6f6361,
     [SFNT_TABLE_MAXP] = 0x6d617870,
     [SFNT_TABLE_NAME] = 0x6e616d65,
+    [SFNT_TABLE_META] = 0x6d657461,
   };
-
-#define SFNT_ENDOF(type, field, type1)			\
-  ((size_t) offsetof (type, field) + sizeof (type1))
-
-/* Each of these structures must be aligned so that no compiler will
-   ever generate padding bytes on platforms where the alignment
-   requirements for uint32_t and uint16_t are no larger than 4 and 2
-   bytes respectively.  */
-
-struct sfnt_offset_subtable
-{
-  /* The scaler type.  */
-  uint32_t scaler_type;
-
-  /* The number of tables.  */
-  uint16_t num_tables;
-
-  /* (Maximum power of 2 <= numTables) * 16.  */
-  uint16_t search_range;
-
-  /* log2 (maximum power of 2 <= numTables) */
-  uint16_t entry_selector;
-
-  /* numTables * 16 - searchRange.  */
-  uint16_t range_shift;
-
-  /* Variable length data.  */
-  struct sfnt_table_directory *subtables;
-};
-
-/* The table directory.  Follows the offset subtable, with one for
-   each table.  */
-
-struct sfnt_table_directory
-{
-  /* 4-byte identifier for each table.  See sfnt_table_names.  */
-  uint32_t tag;
-
-  /* Table checksum.  */
-  uint32_t checksum;
-
-  /* Offset from the start of the file.  */
-  uint32_t offset;
-
-  /* Length of the table in bytes, not subject to padding.  */
-  uint32_t length;
-};
-
-enum sfnt_scaler_type
-  {
-    SFNT_SCALER_TRUE = 0x74727565,
-    SFNT_SCALER_VER1 = 0x00010000,
-    SFNT_SCALER_TYP1 = 0x74797031,
-    SFNT_SCALER_OTTO = 0x4F54544F,
-  };
-
-typedef int32_t sfnt_fixed;
-typedef int16_t sfnt_fword;
-typedef uint16_t sfnt_ufword;
-
-#define sfnt_coerce_fixed(fixed) ((sfnt_fixed) (fixed) / 65535.0)
-
-typedef unsigned int sfnt_glyph;
-typedef unsigned int sfnt_char;
-
-struct sfnt_head_table
-{
-  /* The version.  This is a 16.16 fixed point number.  */
-  sfnt_fixed version;
-
-  /* The revision.  */
-  sfnt_fixed revision;
-
-  /* Checksum adjustment.  */
-  uint32_t checksum_adjustment;
-
-  /* Magic number, should be 0x5F0F3CF5.  */
-  uint32_t magic;
-
-  /* Flags for the font.  */
-  uint16_t flags;
-
-  /* Units per em.  */
-  uint16_t units_per_em;
-
-  /* Time of creation.  */
-  uint32_t created_high, created_low;
-
-  /* Time of modification.  */
-  uint32_t modified_high, modified_low;
-
-  /* Minimum bounds.  */
-  sfnt_fword xmin, ymin, xmax, ymax;
-
-  /* Mac specific stuff.  */
-  uint16_t mac_style;
-
-  /* Smallest readable size in pixels.  */
-  uint16_t lowest_rec_ppem;
-
-  /* Font direction hint.  */
-  int16_t font_direction_hint;
-
-  /* Index to loc format.  0 for short offsets, 1 for long.  */
-  int16_t index_to_loc_format;
-
-  /* Unused.  */
-  int16_t glyph_data_format;
-};
-
-struct sfnt_hhea_table
-{
-  /* The version.  This is a 16.16 fixed point number.  */
-  sfnt_fixed version;
-
-  /* The maximum ascent and descent values for this font.  */
-  sfnt_fword ascent, descent;
-
-  /* The typographic line gap.  */
-  sfnt_fword line_gap;
-
-  /* The maximum advance width.  */
-  sfnt_ufword advance_width_max;
-
-  /* The minimum bearings on either side.  */
-  sfnt_fword min_left_side_bearing, min_right_side_bearing;
-
-  /* The maximum extent.  */
-  sfnt_fword x_max_extent;
-
-  /* Caret slope.  */
-  int16_t caret_slope_rise, caret_slope_run;
-
-  /* Caret offset for non slanted fonts.  */
-  sfnt_fword caret_offset;
-
-  /* Reserved values.  */
-  int16_t reserved1, reserved2, reserved3, reserved4;
-
-  /* Should always be zero.  */
-  int16_t metric_data_format;
-
-  /* Number of advanced widths in metrics table.  */
-  uint16_t num_of_long_hor_metrics;
-};
-
-struct sfnt_cmap_table
-{
-  /* Should be zero.  */
-  uint16_t version;
-
-  /* Number of subtables.  */
-  uint16_t num_subtables;
-};
-
-enum sfnt_platform_id
-  {
-    SFNT_PLATFORM_UNICODE   = 0,
-    SFNT_PLATFORM_MACINTOSH = 1,
-    SFNT_PLATFORM_RESERVED  = 2,
-    SFNT_PLATFORM_MICROSOFT = 3,
-  };
-
-enum sfnt_unicode_platform_specific_id
-  {
-    SFNT_UNICODE_1_0		     = 0,
-    SFNT_UNICODE_1_1		     = 1,
-    SFNT_UNICODE_ISO_10646_1993	     = 2,
-    SFNT_UNICODE_2_0_BMP	     = 3,
-    SFNT_UNICODE_2_0		     = 4,
-    SFNT_UNICODE_VARIATION_SEQUENCES = 5,
-    SFNT_UNICODE_LAST_RESORT	     = 6,
-  };
-
-enum sfnt_macintosh_platform_specific_id
-  {
-    SFNT_MACINTOSH_ROMAN	       = 0,
-    SFNT_MACINTOSH_JAPANESE	       = 1,
-    SFNT_MACINTOSH_TRADITIONAL_CHINESE = 2,
-    SFNT_MACINTOSH_KOREAN	       = 3,
-    SFNT_MACINTOSH_ARABIC	       = 4,
-    SFNT_MACINTOSH_HEBREW	       = 5,
-    SFNT_MACINTOSH_GREEK	       = 6,
-    SFNT_MACINTOSH_RUSSIAN	       = 7,
-    SFNT_MACINTOSH_RSYMBOL	       = 8,
-    SFNT_MACINTOSH_DEVANGARI	       = 9,
-    SFNT_MACINTOSH_GURMUKHI	       = 10,
-    SFNT_MACINTOSH_GUJARATI	       = 11,
-    SFNT_MACINTOSH_ORIYA	       = 12,
-    SFNT_MACINTOSH_BENGALI	       = 13,
-    SFNT_MACINTOSH_TAMIL	       = 14,
-    SFNT_MACINTOSH_TELUGU	       = 15,
-    SFNT_MACINTOSH_KANNADA	       = 16,
-    SFNT_MACINTOSH_MALAYALAM	       = 17,
-    SFNT_MACINTOSH_SINHALESE	       = 18,
-    SFNT_MACINTOSH_BURMESE	       = 19,
-    SFNT_MACINTOSH_KHMER	       = 20,
-    SFNT_MACINTOSH_THAI		       = 21,
-    SFNT_MACINTOSH_LAOTIAN	       = 22,
-    SFNT_MACINTOSH_GEORGIAN	       = 23,
-    SFNT_MACINTOSH_ARMENIAN	       = 24,
-    SFNT_MACINTOSH_SIMPLIFIED_CHINESE  = 25,
-    SFNT_MACINTOSH_TIBETIAN	       = 26,
-    SFNT_MACINTOSH_MONGOLIAN	       = 27,
-    SFNT_MACINTOSH_GEEZ		       = 28,
-    SFNT_MACINTOSH_SLAVIC	       = 29,
-    SFNT_MACINTOSH_VIETNAMESE	       = 30,
-    SFNT_MACINTOSH_SINDHI	       = 31,
-    SFNT_MACINTOSH_UNINTERPRETED       = 32,
-  };
-
-enum sfnt_microsoft_platform_specific_id
-  {
-    SFNT_MICROSOFT_SYMBOL	 = 0,
-    SFNT_MICROSOFT_UNICODE_BMP	 = 1,
-    SFNT_MICROSOFT_SHIFT_JIS	 = 2,
-    SFNT_MICROSOFT_PRC		 = 3,
-    SFNT_MICROSOFT_BIG_FIVE	 = 4,
-    SFNT_MICROSOFT_JOHAB	 = 5,
-    SFNT_MICROSOFT_UNICODE_UCS_4 = 6,
-  };
-
-struct sfnt_cmap_encoding_subtable
-{
-  /* The platform ID.  */
-  uint16_t platform_id;
-
-  /* Platform specific ID.  */
-  uint16_t platform_specific_id;
-
-  /* Mapping table offset.  */
-  uint32_t offset;
-};
-
-struct sfnt_cmap_encoding_subtable_data
-{
-  /* Format and possibly the length in bytes.  */
-  uint16_t format, length;
-};
-
-struct sfnt_cmap_format_0
-{
-  /* Format, set to 0.  */
-  uint16_t format;
-
-  /* Length in bytes.  Should be 262.  */
-  uint16_t length;
-
-  /* Language code.  */
-  uint16_t language;
-
-  /* Character code to glyph index map.  */
-  uint8_t glyph_index_array[256];
-};
-
-struct sfnt_cmap_format_2_subheader
-{
-  uint16_t first_code;
-  uint16_t entry_count;
-  int16_t id_delta;
-  uint16_t id_range_offset;
-};
-
-struct sfnt_cmap_format_2
-{
-  /* Format, set to 2.  */
-  uint16_t format;
-
-  /* Length in bytes.  */
-  uint16_t length;
-
-  /* Language code.  */
-  uint16_t language;
-
-  /* Array mapping high bytes to subheaders.  */
-  uint16_t sub_header_keys[256];
-
-  /* Variable length data.  */
-  struct sfnt_cmap_format_2_subheader *subheaders;
-  uint16_t *glyph_index_array;
-  uint16_t num_glyphs;
-};
-
-struct sfnt_cmap_format_4
-{
-  /* Format, set to 4.  */
-  uint16_t format;
-
-  /* Length in bytes.  */
-  uint16_t length;
-
-  /* Language code.  */
-  uint16_t language;
-
-  /* 2 * seg_count.  */
-  uint16_t seg_count_x2;
-
-  /* 2 * (2**FLOOR(log2(segCount))) */
-  uint16_t search_range;
-
-  /* log2(searchRange/2) */
-  uint16_t entry_selector;
-
-  /* Variable-length data.  */
-  uint16_t *end_code;
-  uint16_t *reserved_pad;
-  uint16_t *start_code;
-  int16_t *id_delta;
-  int16_t *id_range_offset;
-  uint16_t *glyph_index_array;
-
-  /* The number of elements in glyph_index_array.  */
-  size_t glyph_index_size;
-};
-
-struct sfnt_cmap_format_6
-{
-  /* Format, set to 6.  */
-  uint16_t format;
-
-  /* Length in bytes.  */
-  uint16_t length;
-
-  /* Language code.  */
-  uint16_t language;
-
-  /* First character code in subrange.  */
-  uint16_t first_code;
-
-  /* Number of character codes.  */
-  uint16_t entry_count;
-
-  /* Variable-length data.  */
-  uint16_t *glyph_index_array;
-};
-
-struct sfnt_cmap_format_8_or_12_group
-{
-  uint32_t start_char_code;
-  uint32_t end_char_code;
-  uint32_t start_glyph_code;
-};
-
-struct sfnt_cmap_format_8
-{
-  /* Format, set to 8.  */
-  uint16_t format;
-
-  /* Reserved.  */
-  uint16_t reserved;
-
-  /* Length in bytes.  */
-  uint32_t length;
-
-  /* Language code.  */
-  uint32_t language;
-
-  /* Tightly packed array of bits (8K bytes total) indicating whether
-     the particular 16-bit (index) value is the start of a 32-bit
-     character code.  */
-  uint8_t is32[65536];
-
-  /* Number of groups.  */
-  uint32_t num_groups;
-
-  /* Variable length data.  */
-  struct sfnt_cmap_format_8_or_12_group *groups;
-};
-
-/* cmap formats 10, 13 and 14 unsupported.  */
-
-struct sfnt_cmap_format_12
-{
-  /* Format, set to 12.  */
-  uint16_t format;
-
-  /* Reserved.  */
-  uint16_t reserved;
-
-  /* Length in bytes.  */
-  uint32_t length;
-
-  /* Language code.  */
-  uint32_t language;
-
-  /* Number of groups.  */
-  uint32_t num_groups;
-
-  /* Variable length data.  */
-  struct sfnt_cmap_format_8_or_12_group *groups;
-};
-
-struct sfnt_maxp_table
-{
-  /* Table version.  */
-  sfnt_fixed version;
-
-  /* The number of glyphs in this font - 1.  Set at version 0.5 or
-     later.  */
-  uint16_t num_glyphs;
-
-  /* These fields are only set in version 1.0 or later.  Maximum
-     points in a non-composite glyph.  */
-  uint16_t max_points;
-
-  /* Maximum contours in a non-composite glyph.  */
-  uint16_t max_contours;
-
-  /* Maximum points in a composite glyph.  */
-  uint16_t max_composite_points;
-
-  /* Maximum contours in a composite glyph.  */
-  uint16_t max_composite_contours;
-
-  /* 1 if instructions do not use the twilight zone (Z0), or 2 if
-     instructions do use Z0; should be set to 2 in most cases.  */
-  uint16_t max_zones;
-
-  /* Maximum points used in Z0.  */
-  uint16_t max_twilight_points;
-
-  /* Number of Storage Area locations.  */
-  uint16_t max_storage;
-
-  /* Number of FDEFs, equal to the highest function number + 1.  */
-  uint16_t max_function_defs;
-
-  /* Number of IDEFs.  */
-  uint16_t max_instruction_defs;
-
-  /* Maximum stack depth across Font Program ('fpgm' table), CVT
-     Program ('prep' table) and all glyph instructions (in the 'glyf'
-     table).  */
-  uint16_t max_stack_elements;
-
-  /* Maximum byte count for glyph instructions.  */
-  uint16_t max_size_of_instructions;
-
-  /* Maximum number of components referenced at ``top level'' for any
-     composite glyph.  */
-  uint16_t max_component_elements;
-
-  /* Maximum levels of recursion; 1 for simple components.  */
-  uint16_t max_component_depth;
-};
-
-struct sfnt_loca_table_short
-{
-  /* Offsets to glyph data divided by two.  */
-  uint16_t *offsets;
-
-  /* Size of the offsets list.  */
-  size_t num_offsets;
-};
-
-struct sfnt_loca_table_long
-{
-  /* Offsets to glyph data.  */
-  uint32_t *offsets;
-
-  /* Size of the offsets list.  */
-  size_t num_offsets;
-};
-
-struct sfnt_glyf_table
-{
-  /* Size of the glyph data.  */
-  size_t size;
-
-  /* Pointer to possibly unaligned glyph data.  */
-  unsigned char *glyphs;
-};
-
-struct sfnt_simple_glyph
-{
-  /* The total number of points in this glyph.  */
-  size_t number_of_points;
-
-  /* Array containing the last points of each contour.  */
-  uint16_t *end_pts_of_contours;
-
-  /* Total number of bytes needed for instructions.  */
-  uint16_t instruction_length;
-
-  /* Instruction data.  */
-  uint8_t *instructions;
-
-  /* Array of flags.  */
-  uint8_t *flags;
-
-  /* Array of X coordinates.  */
-  int16_t *x_coordinates;
-
-  /* Array of Y coordinates.  */
-  int16_t *y_coordinates;
-
-  /* Pointer to the end of that array.  */
-  int16_t *y_coordinates_end;
-};
-
-struct sfnt_compound_glyph_component
-{
-  /* Compound glyph flags.  */
-  uint16_t flags;
-
-  /* Component glyph index.  */
-  uint16_t glyph_index;
-
-  /* X-offset for component or point number; type depends on bits 0
-     and 1 in component flags.  */
-  union {
-    uint8_t a;
-    int8_t b;
-    uint16_t c;
-    int16_t d;
-  } argument1;
-
-  /* Y-offset for component or point number; type depends on bits 0
-     and 1 in component flags.  */
-  union {
-    uint8_t a;
-    int8_t b;
-    uint16_t c;
-    int16_t d;
-  } argument2;
-
-  /* Various scale formats.  */
-  union {
-    uint16_t scale;
-    struct {
-      uint16_t xscale;
-      uint16_t yscale;
-    } a;
-    struct {
-      uint16_t xscale;
-      uint16_t scale01;
-      uint16_t scale10;
-      uint16_t yscale;
-    } b;
-  } u;
-};
-
-struct sfnt_compound_glyph
-{
-  /* Pointer to array of components.  */
-  struct sfnt_compound_glyph_component *components;
-
-  /* Number of elements in that array.  */
-  size_t num_components;
-
-  /* Instruction data.  */
-  uint8_t *instructions;
-
-  /* Length of instructions.  */
-  uint16_t instruction_length;
-};
-
-struct sfnt_glyph
-{
-  /* Number of contours in this glyph.  */
-  int16_t number_of_contours;
-
-  /* Coordinate bounds.  */
-  sfnt_fword xmin, ymin, xmax, ymax;
-
-  /* Either a simple glyph or a compound glyph, depending on which is
-     set.  */
-  struct sfnt_simple_glyph *simple;
-  struct sfnt_compound_glyph *compound;
-};
-
-
 
 /* Swap values from TrueType to system byte order.  */
 
@@ -710,7 +128,7 @@ _sfnt_swap32 (uint32_t *value)
    the start of the file, and must be seekable.  Return the table
    directory upon success, else NULL.  */
 
-static struct sfnt_offset_subtable *
+TEST_STATIC struct sfnt_offset_subtable *
 sfnt_read_table_directory (int fd)
 {
   struct sfnt_offset_subtable *subtable;
@@ -1375,7 +793,7 @@ sfnt_read_cmap_table_1 (int fd, uint32_t directory_offset,
    Return the CMAP table and a list of encoding subtables in
    *SUBTABLES and *DATA upon success, else NULL.  */
 
-static struct sfnt_cmap_table *
+TEST_STATIC struct sfnt_cmap_table *
 sfnt_read_cmap_table (int fd, struct sfnt_offset_subtable *subtable,
 		      struct sfnt_cmap_encoding_subtable **subtables,
 		      struct sfnt_cmap_encoding_subtable_data ***data)
@@ -1732,7 +1150,7 @@ sfnt_lookup_glyph (sfnt_char character,
 
    Return the head table upon success, else NULL.  */
 
-static struct sfnt_head_table *
+TEST_STATIC struct sfnt_head_table *
 sfnt_read_head_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -1804,7 +1222,7 @@ sfnt_read_head_table (int fd, struct sfnt_offset_subtable *subtable)
 
    Return the head table upon success, else NULL.  */
 
-static struct sfnt_hhea_table *
+TEST_STATIC struct sfnt_hhea_table *
 sfnt_read_hhea_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -1870,7 +1288,7 @@ sfnt_read_hhea_table (int fd, struct sfnt_offset_subtable *subtable)
 
    Return the short table upon success, else NULL.  */
 
-static struct sfnt_loca_table_short *
+TEST_STATIC struct sfnt_loca_table_short *
 sfnt_read_loca_table_short (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -1915,7 +1333,7 @@ sfnt_read_loca_table_short (int fd, struct sfnt_offset_subtable *subtable)
 
    Return the long table upon success, else NULL.  */
 
-static struct sfnt_loca_table_long *
+TEST_STATIC struct sfnt_loca_table_long *
 sfnt_read_loca_table_long (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -1961,7 +1379,7 @@ sfnt_read_loca_table_long (int fd, struct sfnt_offset_subtable *subtable)
    Return the maxp table upon success, else NULL.  If the version is
    0.5, fields past num_glyphs will not be populated.  */
 
-static struct sfnt_maxp_table *
+TEST_STATIC struct sfnt_maxp_table *
 sfnt_read_maxp_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -2048,7 +1466,7 @@ sfnt_read_maxp_table (int fd, struct sfnt_offset_subtable *subtable)
 
    Return the glyf table upon success, else NULL.  */
 
-static struct sfnt_glyf_table *
+TEST_STATIC struct sfnt_glyf_table *
 sfnt_read_glyf_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -2545,6 +1963,9 @@ sfnt_read_compound_glyph (struct sfnt_glyph *glyph,
 	  data += sizeof words4;
 	}
 
+      /* Record the component flags.  */
+      glyph->compound->components[i].flags = flags;
+
       i++;
     }
   while (flags & 040); /* MORE_COMPONENTS */
@@ -2595,7 +2016,7 @@ sfnt_read_compound_glyph (struct sfnt_glyph *glyph,
    glyf table, using the offsets of LOCA_SHORT or LOCA_LONG, depending
    on which is non-NULL.  */
 
-static struct sfnt_glyph *
+TEST_STATIC struct sfnt_glyph *
 sfnt_read_glyph (sfnt_glyph glyph_code,
 		 struct sfnt_glyf_table *glyf,
 		 struct sfnt_loca_table_short *loca_short,
@@ -2695,22 +2116,6 @@ sfnt_free_glyph (struct sfnt_glyph *glyph)
 
 
 /* Glyph outline decomposition.  */
-
-struct sfnt_point
-{
-  /* X and Y in em space.  */
-  sfnt_fixed x, y;
-};
-
-typedef void (*sfnt_move_to_proc) (struct sfnt_point, void *);
-typedef void (*sfnt_line_to_proc) (struct sfnt_point, void *);
-typedef void (*sfnt_curve_to_proc) (struct sfnt_point,
-				    struct sfnt_point,
-				    void *);
-
-typedef struct sfnt_glyph *(*sfnt_get_glyph_proc) (sfnt_glyph, void *,
-						   bool *);
-typedef void (*sfnt_free_glyph_proc) (struct sfnt_glyph *, void *);
 
 /* Apply the transform in the compound glyph component COMPONENT to
    the array of points of length NUM_COORDINATES given as X and Y.  */
@@ -2834,7 +2239,8 @@ sfnt_expand_compound_glyph_context (struct sfnt_compound_glyph_context *context,
 					 size_bytes);
       context->y_coordinates = xrealloc (context->y_coordinates,
 					 size_bytes);
-      context->flags = xrealloc (context->flags, context->num_points);
+      context->flags = xrealloc (context->flags,
+				 context->points_size);
     }
 
   /* Set x_base and y_base.  */
@@ -2900,7 +2306,7 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 			       void *dcontext)
 {
   struct sfnt_glyph *subglyph;
-  int i, rc;
+  int i, j, rc;
   bool need_free;
   struct sfnt_compound_glyph_component *component;
   sfnt_fixed x, y, xtemp, ytemp;
@@ -2918,10 +2324,10 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
   /* Set up the base index.  */
   base_index = context->num_points;
 
-  for (i = 0; i < glyph->compound->num_components; ++i)
+  for (j = 0; j < glyph->compound->num_components; ++j)
     {
       /* Look up the associated subglyph.  */
-      component = &glyph->compound->components[i];
+      component = &glyph->compound->components[j];
       subglyph = get_glyph (component->glyph_index,
 			    dcontext, &need_free);
 
@@ -3345,49 +2751,6 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
   return 1;
 }
 
-/* Structure describing a single recorded outline in fixed pixel
-   space.  */
-
-struct sfnt_glyph_outline
-{
-  /* Packed outline data.  This is made of aligned, signed, 4 byte
-     words.  The first word is a number containing flags.  The second
-     and third words are a point in 16.16 fixed format.  */
-  int *outline;
-
-  /* Size of the outline data in word increments, and how much is
-     full.  */
-  size_t outline_size, outline_used;
-
-  /* Rectangle defining bounds of the outline.  Namely, the minimum
-     and maximum X and Y positions.  */
-  sfnt_fixed xmin, ymin, xmax, ymax;
-};
-
-enum sfnt_glyph_outline_flags
-  {
-    SFNT_GLYPH_OUTLINE_LINETO	  = (1 << 1),
-  };
-
-struct sfnt_build_glyph_outline_context
-{
-  /* The outline being built.  */
-  struct sfnt_glyph_outline *outline;
-
-  /* The head table.  */
-  struct sfnt_head_table *head;
-
-  /* The pixel size being used, and any extra flags to apply to the
-     outline at this point.  */
-  int pixel_size;
-
-  /* Factor to multiply positions by to get the pixel width.  */
-  double factor;
-
-  /* The position of the pen in 16.16 fixed point format.  */
-  sfnt_fixed x, y;
-};
-
 /* Global state for sfnt_build_glyph_outline and related
    functions.  */
 static struct sfnt_build_glyph_outline_context build_outline_context;
@@ -3397,7 +2760,7 @@ static struct sfnt_build_glyph_outline_context build_outline_context;
    memory.  */
 
 static struct sfnt_glyph_outline *
-sfnt_build_append (unsigned int flags, unsigned int x, unsigned int y)
+sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
 {
   struct sfnt_glyph_outline *outline;
 
@@ -3407,7 +2770,7 @@ sfnt_build_append (unsigned int flags, unsigned int x, unsigned int y)
     return build_outline_context.outline;
 
   outline = build_outline_context.outline;
-  outline->outline_used += 3;
+  outline->outline_used++;
 
   /* See if the outline has to be extended.  Checking for overflow
      should not be necessary.  */
@@ -3420,13 +2783,14 @@ sfnt_build_append (unsigned int flags, unsigned int x, unsigned int y)
       outline = xrealloc (outline, (sizeof *outline
 				    + (outline->outline_size
 				       * sizeof *outline->outline)));
-      outline->outline = (int *) (outline + 1);
+      outline->outline
+	= (struct sfnt_glyph_outline_command *) (outline + 1);
     }
 
   /* Write the outline data.  */
-  outline->outline[outline->outline_used - 3] = flags;
-  outline->outline[outline->outline_used - 2] = x;
-  outline->outline[outline->outline_used - 1] = y;
+  outline->outline[outline->outline_used - 1].flags = flags;
+  outline->outline[outline->outline_used - 1].x = x;
+  outline->outline[outline->outline_used - 1].y = y;
 
   /* Extend outline bounding box.  */
 
@@ -3650,7 +3014,7 @@ sfnt_curve_to_and_build (struct sfnt_point control,
 
    HEAD should be the `head' table of the font.  */
 
-static struct sfnt_glyph_outline *
+TEST_STATIC struct sfnt_glyph_outline *
 sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
 			  struct sfnt_head_table *head,
 			  int pixel_size,
@@ -3662,10 +3026,11 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
   int rc;
 
   /* Allocate the outline now with enough for 44 words at the end.  */
-  outline = xmalloc (sizeof *outline + 44 * sizeof (unsigned int));
-  outline->outline_size = 44;
+  outline = xmalloc (sizeof *outline + 40 * sizeof (*outline->outline));
+  outline->outline_size = 40;
   outline->outline_used = 0;
-  outline->outline = (int *) (outline + 1);
+  outline->outline
+    = (struct sfnt_glyph_outline_command *) (outline + 1);
 
   /* DCONTEXT will be passed to GET_GLYPH and FREE_GLYPH, so global
      variables must be used to communicate with the decomposition
@@ -3722,50 +3087,6 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
    Then, a bog standard edge filler is used to turn them into
    spans.  */
 
-struct sfnt_raster
-{
-  /* Basic dimensions of the raster.  */
-  unsigned short width, height;
-
-  /* Integer offset to apply to positions in the raster.  */
-  unsigned short offx, offy;
-
-  /* Pointer to coverage data.  */
-  unsigned char *cells;
-};
-
-struct sfnt_edge
-{
-  /* Next edge in this chain.  */
-  struct sfnt_edge *next;
-
-  /* Winding direction.  1 if clockwise, -1 if counterclockwise.  */
-  int winding;
-
-  /* inc_x is which direction (left or right) a vector from this edge
-     to the edge on top goes.  */
-  int inc_x;
-
-  /* X position, top and bottom of edges.  */
-  sfnt_fixed x, top, bottom;
-
-  /* DX and DY are the total delta between this edge and the next edge
-     on top.  */
-  sfnt_fixed dx, dy;
-
-  /* step_x is how many pixels to move for each increase in Y.  */
-  sfnt_fixed step_x;
-};
-
-enum
-  {
-    SFNT_POLY_SHIFT  = 2,
-    SFNT_POLY_SAMPLE = (1 << SFNT_POLY_SHIFT),
-    SFNT_POLY_MASK   = (SFNT_POLY_SAMPLE - 1),
-    SFNT_POLY_STEP   = (0x10000 >> SFNT_POLY_SHIFT),
-    SFNT_POLY_START  = (SFNT_POLY_STEP >> 1),
-  };
-
 /* Coverage table.  This is a four dimensional array indiced by the Y,
    then X axis fractional, shifted down to 2 bits.  */
 
@@ -3802,7 +3123,7 @@ sfnt_prepare_raster (struct sfnt_raster *raster,
   raster->offx
     = sfnt_floor_fixed (outline->xmin);
   raster->offy
-    = sfnt_floor_fixed (outline->xmax);
+    = sfnt_floor_fixed (raster->height - outline->ymax);
 }
 
 typedef void (*sfnt_edge_proc) (struct sfnt_edge *, size_t,
@@ -3831,39 +3152,37 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 {
   struct sfnt_edge *edges;
   size_t i, edge, start, next_vertex, y;
+  sfnt_fixed dx, dy, bot;
+  int inc_x;
+  size_t top, bottom;
 
-  eassert (!(outline->outline_used % 3));
-
-  /* outline->outline uses 3 words for each point.  */
-  edges = alloca (outline->outline_used / 3 * sizeof *edges);
+  edges = alloca (outline->outline_used * sizeof *edges);
   edge = 0;
 
   /* First outline currently being processed.  */
   start = 0;
 
-  for (i = 0; i < outline->outline_used; i += 3)
+  for (i = 0; i < outline->outline_used; i++)
     {
-      if (!(outline->outline[i] & SFNT_GLYPH_OUTLINE_LINETO))
+      if (!(outline->outline[i].flags & SFNT_GLYPH_OUTLINE_LINETO))
 	/* Flush the edge.  */
 	start = i;
 
       /* Set NEXT_VERTEX to the next point (vertex) in this contour.
 	 If i + 3 is the end of the contour, then the next point is
 	 its start, so wrap it around to there.  */
-      next_vertex = i + 3;
+      next_vertex = i + 1;
       if (next_vertex == outline->outline_used
-	  || !(outline->outline[next_vertex]
+	  || !(outline->outline[next_vertex].flags
 	       & SFNT_GLYPH_OUTLINE_LINETO))
 	next_vertex = start;
 
       /* Skip past horizontal vertices.  */
-      if (outline->outline[next_vertex + 2] /* next_vertex->y */
-	  == outline->outline[i + 2])
+      if (outline->outline[next_vertex].y == outline->outline[i].y)
 	continue;
 
       /* Figure out the winding direction.  */
-      if (outline->outline[next_vertex + 2] /* next_vertex->y */
-	  < outline->outline[i + 2])
+      if (outline->outline[next_vertex].y < outline->outline[i].y)
 	/* Vector will cross imaginary ray from its bottom from the
 	   left of the ray.  Winding is thus 1.  */
 	edges[edge].winding = 1;
@@ -3876,68 +3195,49 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 	 If the next edge is above, then top is there and this is the
 	 bottom.  */
 
-      if (outline->outline[next_vertex + 2] < outline->outline[i + 2])
+      if (outline->outline[next_vertex].y < outline->outline[i].y)
 	{
-	  /* Next edge is below this one (keep in mind this is a
+	  /* End of edge is below this one (keep in mind this is a
 	     cartesian coordinate system, so smaller values are below
 	     larger ones.) */
-	  edges[edge].top = (outline->outline[i + 2]
-			     - outline->ymin);
-	  edges[edge].bottom = (outline->outline[next_vertex + 2]
-				- outline->ymin);
-
-	  /* Record the edge.  Rasterization happens from bottom to
-	     up, so record the X at the bottom.  */
-	  edges[edge].x = (outline->outline[next_vertex + 1]
-			   - outline->xmin);
-
-	  eassert (edges[edge].top >= edges[edge].bottom);
-
-	  edges[edge].dx = (outline->outline[i + 1]
-			    - outline->outline[next_vertex + 1]);
+	  top = i;
+	  bottom = next_vertex;
 	}
       else
 	{
-	  /* Next edge is below this one.  */
-	  edges[edge].bottom = (outline->outline[i + 2]
-				- outline->ymin);
-	  edges[edge].top = (outline->outline[next_vertex + 2]
-			     - outline->ymin);
-
-	  /* Record the edge.  Rasterization happens from bottom to
-	     up, so record the X at the bottom.  */
-	  edges[edge].x = (outline->outline[i + 1]
-			   - outline->xmin);
-
-	  eassert (edges[edge].top >= edges[edge].bottom);
-
-	  edges[edge].dx = (outline->outline[next_vertex + 1]
-			    - outline->outline[i + 1]);
+	  /* End of edge is above this one.  */
+	  bottom = i;
+	  top = next_vertex;
 	}
 
-      edges[edge].dy = abs (outline->outline[i + 2]
-			    - outline->outline[next_vertex + 2]);
+      bot = (outline->outline[bottom].y - outline->ymin);
+      edges[edge].top = (outline->outline[top].y - outline->ymin);
+
+      /* Record the edge.  Rasterization happens from bottom to
+	 up, so record the X at the bottom.  */
+      edges[edge].x = (outline->outline[bottom].x - outline->xmin);
+      dx = (outline->outline[top].x - outline->outline[bottom].x);
+      dy = abs (outline->outline[top].y
+		- outline->outline[bottom].y);
 
       /* Compute the increment.  This is which direction X moves in
 	 for each increase in Y.  */
 
-      if (edges[edge].dx >= 0)
-	edges[edge].inc_x = 1;
+      if (dx >= 0)
+	inc_x = 1;
       else
 	{
-	  edges[edge].inc_x = -1;
-	  edges[edge].dx = -edges[edge].dx;
+	  inc_x = -1;
+	  dx = -dx;
 	}
 
       /* Compute the step X.  This is how much X changes for each
 	 increase in Y.  */
-      edges[edge].step_x = (edges[edge].inc_x
-			    * sfnt_div_fixed (edges[edge].dx,
-					      edges[edge].dy));
+      edges[edge].step_x = inc_x * sfnt_div_fixed (dx, dy);
 
       /* Step to first grid point.  */
-      y = sfnt_poly_grid_ceil (edges[edge].bottom);
-      sfnt_step_edge_by (&edges[edge], edges[edge].bottom - y);
+      y = sfnt_poly_grid_ceil (bot);
+      sfnt_step_edge_by (&edges[edge], bot - y);
       edges[edge].bottom = y;
       edges[edge].next = NULL;
 
@@ -4219,7 +3519,7 @@ sfnt_raster_edge (struct sfnt_edge *edges, size_t num_edges,
 /* Generate an alpha mask for the glyph outline OUTLINE.  Value is the
    alpha mask upon success, NULL upon failure.  */
 
-static struct sfnt_raster *
+TEST_STATIC struct sfnt_raster *
 sfnt_raster_glyph_outline (struct sfnt_glyph_outline *outline)
 {
   struct sfnt_raster raster, *data;
@@ -4245,35 +3545,6 @@ sfnt_raster_glyph_outline (struct sfnt_glyph_outline *outline)
 
 /* Glyph metrics computation.  */
 
-struct sfnt_long_hor_metric
-{
-  uint16_t advance_width;
-  int16_t left_side_bearing;
-};
-
-struct sfnt_hmtx_table
-{
-  /* Array of horizontal metrics for each glyph.  */
-  struct sfnt_long_hor_metric *h_metrics;
-
-  /* Lbearing for remaining glyphs.  */
-  int16_t *left_side_bearing;
-};
-
-/* Structure describing the metrics of a single glyph.  The fields
-   mean the same as in XCharStruct, except they are 16.16 fixed point
-   values, and are missing significant information.  */
-
-struct sfnt_glyph_metrics
-{
-  /* Distance between origin and left edge of raster.  Positive
-     changes move rightwards.  */
-  sfnt_fixed lbearing;
-
-  /* Advance to next glyph's origin.  */
-  sfnt_fixed advance;
-};
-
 /* Read an hmtx table from the font FD, using the table directory
    specified as SUBTABLE, the maxp table MAXP, and the hhea table
    HHEA.
@@ -4284,7 +3555,7 @@ struct sfnt_glyph_metrics
    HHEA->num_of_long_hor_metrics determines the number of left-side
    bearings present.  */
 
-static struct sfnt_hmtx_table *
+TEST_STATIC struct sfnt_hmtx_table *
 sfnt_read_hmtx_table (int fd, struct sfnt_offset_subtable *subtable,
 		      struct sfnt_hhea_table *hhea,
 		      struct sfnt_maxp_table *maxp)
@@ -4344,8 +3615,8 @@ sfnt_read_hmtx_table (int fd, struct sfnt_offset_subtable *subtable,
       sfnt_swap16 (&hmtx->h_metrics[i].left_side_bearing);
     }
 
-  for (; i <= maxp->num_glyphs; ++i)
-    sfnt_swap16 (&hmtx->left_side_bearing[i]);
+  for (; i < maxp->num_glyphs; ++i)
+    sfnt_swap16 (&hmtx->left_side_bearing[i - hhea->num_of_long_hor_metrics]);
 
   /* All done.  */
   return hmtx;
@@ -4358,7 +3629,7 @@ sfnt_read_hmtx_table (int fd, struct sfnt_offset_subtable *subtable,
    HMTX, HHEA, HEAD and MAXP should be the hmtx, hhea, head, and maxp
    tables of the font respectively.  */
 
-static int
+TEST_STATIC int
 sfnt_lookup_glyph_metrics (sfnt_glyph glyph, int pixel_size,
 			   struct sfnt_glyph_metrics *metrics,
 			   struct sfnt_hmtx_table *hmtx,
@@ -4377,7 +3648,7 @@ sfnt_lookup_glyph_metrics (sfnt_glyph glyph, int pixel_size,
       advance = hmtx->h_metrics[glyph].advance_width;
     }
   else if (hhea->num_of_long_hor_metrics
-	   && glyph <= maxp->num_glyphs)
+	   && glyph < maxp->num_glyphs)
     {
       /* There is a short entry in the hmtx table.  */
       lbearing
@@ -4400,6 +3671,342 @@ sfnt_lookup_glyph_metrics (sfnt_glyph glyph, int pixel_size,
 
   /* All done.  */
   return 0;
+}
+
+
+
+/* Font style parsing.  */
+
+/* Read the name table from the given font FD, using the table
+   directory specified as SUBTABLE.  Perform validation on the offsets
+   in the name records.  Return NULL upon failure, else the name
+   table.  */
+
+TEST_STATIC struct sfnt_name_table *
+sfnt_read_name_table (int fd, struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_table_directory *directory;
+  struct sfnt_name_table *name;
+  size_t required;
+  ssize_t rc;
+  int i;
+
+  /* Find the table in the directory.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_NAME);
+
+  if (!directory)
+    return NULL;
+
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
+
+  /* Figure out the minimum that has to be read.  */
+  required = SFNT_ENDOF (struct sfnt_name_table,
+			 string_offset, uint16_t);
+
+  if (directory->length < required)
+    return NULL;
+
+  /* Allocate enough to hold the name table and variable length
+     data.  */
+  name = xmalloc (sizeof *name + directory->length);
+
+  /* Read the fixed length data.  */
+  rc = read (fd, name, required);
+  if (rc < required)
+    {
+      xfree (name);
+      return NULL;
+    }
+
+  /* Swap what was read.  */
+  sfnt_swap16 (&name->format);
+  sfnt_swap16 (&name->count);
+  sfnt_swap16 (&name->string_offset);
+
+  /* Reject unsupported formats.  */
+  if (name->format)
+    {
+      xfree (name);
+      return NULL;
+    }
+
+  /* Set the pointer to the start of the variable length data.  */
+  name->name_records
+    = (struct sfnt_name_record *) (name + 1);
+
+  /* Check there is enough for the name records.  */
+  required = directory->length - required;
+  if (required < name->count * sizeof *name->name_records)
+    {
+      xfree (name);
+      return NULL;
+    }
+
+  /* Read the variable length data.  First, read the name records.  */
+  rc = read (fd, name->name_records,
+	     (name->count
+	      * sizeof *name->name_records));
+  if (rc < (name->count
+	    * sizeof *name->name_records))
+    {
+      xfree (name);
+      return NULL;
+    }
+
+  /* Swap each of the name records.  */
+  for (i = 0; i < name->count; ++i)
+    {
+      sfnt_swap16 (&name->name_records[i].platform_id);
+      sfnt_swap16 (&name->name_records[i].platform_specific_id);
+      sfnt_swap16 (&name->name_records[i].language_id);
+      sfnt_swap16 (&name->name_records[i].name_id);
+      sfnt_swap16 (&name->name_records[i].length);
+      sfnt_swap16 (&name->name_records[i].offset);
+    }
+
+  /* Now, read the name data.  */
+
+  if (name->string_offset > directory->length)
+    {
+      xfree (name);
+      return NULL;
+    }
+
+  required = directory->length - name->string_offset;
+
+  /* It can happen that the string offset comes before the name
+     records, and as a result exceeds the number of bytes
+     previously allocated.  Extend name if that is the case.  */
+
+  if (required > (directory->length
+		  - (name->count
+		     * sizeof *name->name_records)))
+    {
+      name = xrealloc (name, (sizeof *name
+			      + (name->count
+				 * sizeof *name->name_records)
+			      + required));
+      name->name_records = (struct sfnt_name_record *) (name + 1);
+    }
+
+  /* There is enough space past name->name_records to hold REQUIRED
+     bytes.  Seek to the right offset.  */
+
+  if (lseek (fd, directory->offset + name->string_offset,
+	     SEEK_SET) == (off_t) -1)
+    {
+      xfree (name);
+      return NULL;
+    }
+
+  /* Read REQURIED bytes into the string data.  */
+  name->data = (unsigned char *) (name->name_records
+				  + name->count);
+  rc = read (fd, name->data, required);
+  if (rc < required)
+    {
+      xfree (name);
+      return NULL;
+    }
+
+  /* Now validate each of the name records.  */
+  for (i = 0; i < name->count; ++i)
+    {
+      if (((int) name->name_records[i].offset
+	   + name->name_records[i].length) > required)
+	{
+	  /* The name is out of bounds! */
+	  xfree (name);
+	  return NULL;
+	}
+    }
+
+  /* Return the name table.  */
+  return name;
+}
+
+/* Return a pointer to the name data corresponding with CODE under the
+   name table NAME.  Return the start of the data and the name record
+   under *RECORD upon success, and NULL otherwise.  */
+
+TEST_STATIC unsigned char *
+sfnt_find_name (struct sfnt_name_table *name,
+		enum sfnt_name_identifier_code code,
+		struct sfnt_name_record *record)
+{
+  int i;
+
+  for (i = 0; i < name->count; ++i)
+    {
+      if (name->name_records[i].name_id == code)
+	{
+	  /* The offsets within have already been validated.  */
+	  *record = name->name_records[i];
+	  return name->data + record->offset;
+	}
+    }
+
+  return NULL;
+}
+
+/* Read the meta table from the give font FD, using the table
+   directory specified as SUBTABLE.  Perform validation on the offsets
+   in each metadata record.  Return NULL upon failure, else the meta
+   table.  */
+
+TEST_STATIC struct sfnt_meta_table *
+sfnt_read_meta_table (int fd, struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_table_directory *directory;
+  struct sfnt_meta_table *meta;
+  size_t required, i, data_size, map_size, offset;
+  ssize_t rc;
+
+  /* Find the table in the directory.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_META);
+
+  if (!directory)
+    return NULL;
+
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
+
+  /* Figure out the minimum that has to be read.  */
+  required = SFNT_ENDOF (struct sfnt_meta_table,
+			 num_data_maps, uint32_t);
+
+  if (directory->length < required)
+    return NULL;
+
+  /* Allocate enough to hold it.  */
+  meta = xmalloc (sizeof *meta);
+
+  /* Read the header.  */
+  rc = read (fd, meta, required);
+  if (rc < required)
+    {
+      xfree (meta);
+      return NULL;
+    }
+
+  /* Swap what has been read so far.  */
+  sfnt_swap32 (&meta->version);
+  sfnt_swap32 (&meta->flags);
+  sfnt_swap32 (&meta->data_offset);
+  sfnt_swap32 (&meta->num_data_maps);
+
+  /* Make sure the meta is supported.  */
+  if (meta->version != 1)
+    {
+      xfree (meta);
+      return NULL;
+    }
+
+  /* Reallocate the table to hold sizeof *meta + meta->num_data_maps
+     times sizeof meta->data_maps + directory->length bytes.  This is
+     because it is ok for metadata to point into the data map itself,
+     so an unswapped copy of the whole meta contents must be
+     retained.  */
+
+  if (INT_MULTIPLY_WRAPV (sizeof *meta->data_maps, meta->num_data_maps,
+			  &map_size)
+      /* Do so while checking for overflow from bad sfnt files.  */
+      || INT_ADD_WRAPV (map_size, sizeof *meta, &data_size)
+      || INT_ADD_WRAPV (data_size, directory->length, &data_size))
+    {
+      xfree (meta);
+      return NULL;
+    }
+
+  /* Do the reallocation.  */
+  meta = xrealloc (meta, data_size);
+
+  /* Check that the remaining data is big enough to hold the data
+     maps.  */
+  if (directory->length - required < map_size)
+    {
+      xfree (meta);
+      return NULL;
+    }
+
+  /* Set pointers to data_maps and data.  */
+  meta->data_maps = (struct sfnt_meta_data_map *) (meta + 1);
+  meta->data = (unsigned char *) (meta->data_maps
+				  + meta->num_data_maps);
+
+  /* Now, seek back.  Read the entire table into meta->data.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    {
+      xfree (meta);
+      return NULL;
+    }
+
+  rc = read (fd, meta->data, directory->length);
+  if (rc < directory->length)
+    {
+      xfree (meta);
+      return NULL;
+    }
+
+  /* Copy the data maps into meta->data_maps and swap them one by
+     one.  */
+  memcpy (meta->data_maps, meta->data + required,
+	  map_size);
+
+  for (i = 0; i < meta->num_data_maps; ++i)
+    {
+      sfnt_swap32 (&meta->data_maps[i].tag);
+      sfnt_swap32 (&meta->data_maps[i].data_offset);
+      sfnt_swap32 (&meta->data_maps[i].data_length);
+
+      /* Verify the data offsets.  Overflow checking is particularly
+	 important here.  */
+
+      if (INT_ADD_WRAPV (meta->data_maps[i].data_offset,
+			 meta->data_maps[i].data_length,
+			 &offset))
+	{
+	  xfree (meta);
+	  return NULL;
+	}
+
+      if (offset > directory->length)
+	{
+	  xfree (meta);
+	  return NULL;
+	}
+    }
+
+  /* All done.  */
+  return meta;
+}
+
+/* Return a pointer to the metadata corresponding to TAG under the
+   meta table META.  Return the start of the data and the metadata map
+   under *MAP upon success, and NULL otherwise.  */
+
+MAYBE_UNUSED TEST_STATIC char *
+sfnt_find_metadata (struct sfnt_meta_table *meta,
+		    enum sfnt_meta_data_tag tag,
+		    struct sfnt_meta_data_map *map)
+{
+  int i;
+
+  for (i = 0; i < meta->num_data_maps; ++i)
+    {
+      if (meta->data_maps[i].tag == tag)
+	{
+	  *map = meta->data_maps[i];
+	  return (char *) meta->data + map->data_offset;
+	}
+    }
+
+  return NULL;
 }
 
 
@@ -4508,6 +4115,13 @@ sfnt_test_span (struct sfnt_edge *edge, sfnt_fixed y,
 }
 
 static void
+sfnt_test_edge_ignore (struct sfnt_edge *edges, size_t num_edges,
+		       void *dcontext)
+{
+
+}
+
+static void
 sfnt_test_edge (struct sfnt_edge *edges, size_t num_edges,
 		void *dcontext)
 {
@@ -4593,11 +4207,15 @@ main (int argc, char **argv)
   sfnt_glyph code;
   struct sfnt_test_dcontext dcontext;
   struct sfnt_glyph_outline *outline;
-  struct timespec start, end, sub, sub1;
+  struct timespec start, end, sub, sub1, sub2;
   static struct sfnt_maxp_table *maxp;
   struct sfnt_raster *raster;
   struct sfnt_hmtx_table *hmtx;
   struct sfnt_glyph_metrics metrics;
+  struct sfnt_name_table *name;
+  unsigned char *string;
+  struct sfnt_name_record record;
+  struct sfnt_meta_table *meta;
 
   if (argc != 2)
     return 1;
@@ -4644,6 +4262,8 @@ main (int argc, char **argv)
   hhea = sfnt_read_hhea_table (fd, font);
   glyf = sfnt_read_glyf_table (fd, font);
   maxp = sfnt_read_maxp_table (fd, font);
+  name = sfnt_read_name_table (fd, font);
+  meta = sfnt_read_meta_table (fd, font);
   hmtx = NULL;
 
   if (hhea && maxp)
@@ -4652,6 +4272,23 @@ main (int argc, char **argv)
   if (maxp)
     fprintf (stderr, "maxp says num glyphs is %"PRIu16"\n",
 	     maxp->num_glyphs);
+
+  if (name)
+    {
+      fprintf (stderr, "name table of format: %"PRIu16" count: %"
+	       PRIu16"\n", name->format, name->count);
+
+      string = sfnt_find_name (name, SFNT_NAME_FONT_FAMILY,
+			       &record);
+
+      if (string)
+	fprintf (stderr, "FONT_FAMILY: %"PRIu16", %"PRIu16"\n",
+		 record.platform_id, record.length);
+    }
+
+  if (meta)
+    fprintf (stderr, "meta table with count: %"PRIu32"\n",
+	     meta->num_data_maps);
 
   loca_long = NULL;
   loca_short = NULL;
@@ -4787,21 +4424,27 @@ main (int argc, char **argv)
 		{
 		  sfnt_test_max = outline->ymax - outline->ymin;
 
-		  for (i = 0; i < outline->outline_used; i += 3)
+		  for (i = 0; i < outline->outline_used; i++)
 		    {
 		      printf ("ctx.%s (%g, %g) /* %g, %g */\n",
-			      (outline->outline[i] & SFNT_GLYPH_OUTLINE_LINETO
+			      (outline->outline[i].flags & SFNT_GLYPH_OUTLINE_LINETO
 			       ? "lineTo" : "moveTo"),
-			      sfnt_coerce_fixed (outline->outline[i + 1]
+			      sfnt_coerce_fixed (outline->outline[i].x
 						 - outline->xmin),
 			      sfnt_coerce_fixed (sfnt_test_max
-						 - (outline->outline[i + 2]
+						 - (outline->outline[i].y
 						    - outline->ymin)),
-			      sfnt_coerce_fixed (outline->outline[i + 1]
+			      sfnt_coerce_fixed (outline->outline[i].x
 						 - outline->xmin),
-			      sfnt_coerce_fixed (outline->outline[i + 2]
+			      sfnt_coerce_fixed (outline->outline[i].y
 						 - outline->ymin));
 		    }
+
+		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
+		  sfnt_build_outline_edges (outline, sfnt_test_edge_ignore,
+					    NULL);
+		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &end);
+		  sub1 = timespec_sub (end, start);
 
 		  sfnt_build_outline_edges (outline, sfnt_test_edge,
 					    NULL);
@@ -4809,7 +4452,7 @@ main (int argc, char **argv)
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 		  raster = sfnt_raster_glyph_outline (outline);
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &end);
-		  sub1 = timespec_sub (end, start);
+		  sub2 = timespec_sub (end, start);
 
 		  /* Print out the raster.  */
 		  sfnt_test_raster (raster);
@@ -4836,8 +4479,10 @@ main (int argc, char **argv)
 
 	      printf ("time spent outlining: %lld sec %ld nsec\n",
 		      (long long) sub.tv_sec, sub.tv_nsec);
-	      printf ("time spent rasterizing: %lld sec %ld nsec\n",
+	      printf ("time spent building edges: %lld sec %ld nsec\n",
 		      (long long) sub1.tv_sec, sub1.tv_nsec);
+	      printf ("time spent rasterizing: %lld sec %ld nsec\n",
+		      (long long) sub2.tv_sec, sub2.tv_nsec);
 
 	      xfree (outline);
 	    }
@@ -4861,6 +4506,8 @@ main (int argc, char **argv)
   xfree (glyf);
   xfree (maxp);
   xfree (hmtx);
+  xfree (name);
+  xfree (meta);
 
   return 0;
 }
