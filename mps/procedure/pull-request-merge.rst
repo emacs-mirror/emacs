@@ -118,7 +118,8 @@ These steps will only rarely need repeating.
 
 #. Clone the Ravenbrook MPS GitHub repository and name the remote
    "github".  This will give you access to Travis CI to build and test
-   the merge. ::
+   the merge.  (If you're an MPS developer you can use your existing
+   repo.)  ::
 
      git clone -o github git@github.com:Ravenbrook/mps.git
 
