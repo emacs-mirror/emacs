@@ -197,7 +197,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       value: (array (number) (function)))
 
      (catch_clause
-      parameter: (identifier) @font-lock-variable-name-face))
+      parameter: (identifier) @font-lock-variable-name-face)
+
+     (import_clause (identifier) @font-lock-variable-name-face)
+     (import_clause (named_imports (import_specifier (identifier)) @font-lock-variable-name-face)))
 
    :language language
    :override t
