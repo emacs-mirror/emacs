@@ -219,10 +219,10 @@ These steps will only rarely need repeating.
      git push ravenbrook master branch/2023-01-06/speed-hax
 
    If this fails because someone has submitted changes to the master
-   codeline since you started, pull those changes and go back to
-   merging (step 4). ::
+   codeline since you started.  Replace your master with those changes
+   and go back to merging (step 4). ::
 
-     git pull ravenbrook master
+     git pull --force ravenbrook master:master
 
 9. If and *only if* the Perforce push (step 8) succeeds, you can
    also push to GitHub::
