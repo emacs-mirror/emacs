@@ -192,7 +192,7 @@ These steps will only rarely need repeating.
 6. Push the branch to the Ravenbrook MPS GitHub repository to trigger
    building and testing on all target platforms using Travis CI. ::
 
-     git push github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
+     git push github branch/2023-01-06/speed-hax
 
    You will need to wait for results from Travis CI.  [Add details of
    how to see them.  RB 2023-07-01]
