@@ -140,8 +140,8 @@ These steps will only rarely need repeating.
      git remote add perforce ssh://git@perforce.ravenbrook.com:1622/mps-public
 
 
-4. Merging a development branch
--------------------------------
+4. Merging procedure
+--------------------
 
 1. `Fetch the pull request branch`_ to a local branch using the MPS
    durable branch naming convention, "branch/DATE/TOPIC", e.g. ::
