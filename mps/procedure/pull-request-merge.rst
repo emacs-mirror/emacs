@@ -160,8 +160,8 @@ These steps will only rarely need repeating.
    <https://info.ravenbrook.com/mail/2023/01/07/15-06-41/0/>`_.
 
 2. Optionally, let other people know that you're working on a merge
-   into master.  Negotiate to avoid racing them to the push (step 7)
-   because that will create extra merging work.
+   into master.  Negotiate to avoid racing them to push to the master
+   codeline (step 7) because that will create extra merging work.
 
 3. Merge master with the branch::
 
@@ -182,7 +182,7 @@ These steps will only rarely need repeating.
    platforms.
 
    If tests do not pass, review your conflict resolution from the
-   merge (step 3), and if that doesn't resolve things, the procedure
+   merge (step 3), and if that doesn't fix things, the procedure
    fails, and you need to go back to the source of the branch,
    e.g. the pull request and its original author.  Something's wrong!
 
@@ -201,30 +201,23 @@ These steps will only rarely need repeating.
    Git Fusion mapping, and so the result is the same as if it had come
    in via Perforce.
 
-6. Replace the master with your merged branch::
+6. Submit your merged branch to Perforce::
 
-     git checkout master
-     git merge --ff-only branch/2023-01-06/speed-hax
+     git push Perforce branch/2023-01-06/speed-hax
 
-   The ``--ff-only`` flag ensures there have been no changes on master
-   since merging (step 3), so that the testing is valid for master,
-   and we do not create a second merge commit.  If this fails, go back
-   to merging (step 3).
+7. Submit your merged branch to the Perforce master codeline::
 
-7. Push master and the branch to Perforce via Git Fusion::
+     git push perforce branch/2023-01-06/speed-hax:master
 
-     git push perforce master branch/2023-01-06/speed-hax
+   **Important**: Do *not* force this push.
 
-   If this fails because someone has submitted changes to the master
-   codeline since you started.  Replace your master with those changes
-   and go back to merging (step 3). ::
+   If this fails, someone has submitted changes to the master codeline
+   since you started.  Go back to merging (step 3).
 
-     git pull --force perforce master:master
+8. Optionally, if and *only if* the Perforce push (step 7) succeeded,
+   you can also push to GitHub::
 
-8. If and *only if* the Perforce push (step 7) succeeds, you can
-   also push to GitHub::
-
-     git push github master branch/2023-01-06/speed-hax
+     git push github branch/2023-01-06/speed-hax:master
 
    If you don't do this, then within `30 minutes
    <https://info.ravenbrook.com/infosys/robots/gitpushbot/etc/crontab>`_
@@ -274,11 +267,6 @@ master.  A fast-forward means there is no commit that records the fact
 that there has been a merge, by whom, from where, etc.  It discards
 that information.  Therefore we want to discourage fast-forwards of
 master in favour of merges.
-
-Given this, the replace (step 6) may seem odd, since it fast-forwards
-master.  But in fact it's pointing master at the merge commit created
-earlier (step 4), so that master has a history including a proper
-merge.
 
 
 5.2. Why the "durable" branch names?
