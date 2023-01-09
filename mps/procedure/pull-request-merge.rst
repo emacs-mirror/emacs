@@ -148,12 +148,12 @@ These steps will only rarely need repeating.
 
      git fetch github pull/93/head:branch/2023-01-06/speed-hax
 
-   If the pull request is from the Ravenbrook MPS repo on GitHub then
-   its branch may already have a conventional name.  Use the existing
+   If the pull request is from the Ravenbrook MPS repo on GitHub, and
+   its branch already has a conventional name, then use the existing
    name.
 
    If the branch to be merged is in a third-party repo, such as a fork
-   not on GitHub, you can fetch it usina a remote, e.g.::
+   not on GitHub, you can fetch it using a remote, e.g.::
 
      git remote add captain-contrib https://gitlab.com/captcontrib/mps.git
      git fetch captain-contrib mps-speed-hax:branch/2023-01-06/speed-hax
