@@ -1143,20 +1143,17 @@ See `treesit-simple-indent-presets'.")
                   (point))))
         (cons 'prev-adaptive-prefix
               (lambda (_n parent &rest _)
-                (save-excursion
-                  (re-search-backward
-                   (rx (not (or " " "\t" "\n"))) nil t)
-                  (beginning-of-line)
-                  (and (>= (point) (treesit-node-start parent))
-                       ;; `adaptive-fill-regexp' will not match "/*",
-                       ;; so we need to also try `comment-start-skip'.
-                       (or (and adaptive-fill-regexp
-                                (looking-at adaptive-fill-regexp)
-                                (> (- (match-end 0) (match-beginning 0)) 0)
-                                (match-end 0))
-                           (and comment-start-skip
-                                (looking-at comment-start-skip)
-                                (match-end 0)))))))
+                (let ((comment-start-bol
+                       (save-excursion
+                         (goto-char (treesit-node-start parent))
+                         (line-beginning-position))))
+                  (save-excursion
+                    (forward-line -1)
+                    (and (>= (point) comment-start-bol)
+                         adaptive-fill-regexp
+                         (looking-at adaptive-fill-regexp)
+                         (> (match-end 0) (match-beginning 0))
+                         (match-end 0))))))
         ;; TODO: Document.
         (cons 'grand-parent
               (lambda (_n parent &rest _)

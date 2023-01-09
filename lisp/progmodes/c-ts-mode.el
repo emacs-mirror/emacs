@@ -122,6 +122,9 @@ MODE is either `c' or `cpp'."
            ((node-is "else") parent-bol 0)
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
+           (c-ts-mode--comment-2nd-line-matcher
+            c-ts-mode--comment-2nd-line-anchor
+            1)
            ((and (parent-is "comment") c-ts-mode--looking-at-star)
             c-ts-mode--comment-start-after-first-star -1)
            ((parent-is "comment") prev-adaptive-prefix 0)
@@ -227,11 +230,8 @@ beginning of grandparent."
 
 (defun c-ts-mode--looking-at-star (_n _p bol &rest _)
   "A tree-sitter simple indent matcher.
-Matches if there is a \"*\" after point (ignoring whitespace in
-between)."
-  (save-excursion
-    (goto-char bol)
-    (looking-at (rx (* (syntax whitespace)) "*"))))
+Matches if there is a \"*\" after BOL."
+  (eq (char-after bol) ?*))
 
 (defun c-ts-mode--comment-start-after-first-star (_n parent &rest _)
   "A tree-sitter simple indent anchor.
@@ -242,6 +242,34 @@ Assumes PARENT is a comment node."
     (if (looking-at (rx "/*"))
         (match-end 0)
       (point))))
+
+(defun c-ts-mode--comment-2nd-line-matcher (_n parent &rest _)
+  "Matches if point is at the second line of a block comment.
+PARENT should be a comment node."
+  (save-excursion
+    (forward-line -1)
+    (back-to-indentation)
+    (eq (point) (treesit-node-start parent))))
+
+(defun c-ts-mode--comment-2nd-line-anchor (&rest _)
+  "Return appropriate anchor for the second line of a comment.
+
+If the first line is /* alone, return the position right after
+the star; if the first line is /* followed by some text, return
+the position right before the text minus 1.
+
+Use an offset of 1 with this anchor."
+  (save-excursion
+    (forward-line -1)
+    (back-to-indentation)
+    (when (looking-at comment-start-skip)
+      (goto-char (match-end 0))
+      (if (looking-at (rx (* (or " " "\t")) eol))
+          ;; Only /* at the first line.
+          (progn (skip-chars-backward " \t")
+                 (point))
+        ;; There is something after /* at the first line.
+        (1- (point))))))
 
 ;;; Font-lock
 
