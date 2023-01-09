@@ -137,7 +137,7 @@ These steps will only rarely need repeating.
 #. Add the Git Fusion mps-public repo, which is the interface to
    Ravenbrook's Perforce. ::
 
-     git remote add ravenbrook ssh://git@perforce.ravenbrook.com:1622/mps-public
+     git remote add perforce ssh://git@perforce.ravenbrook.com:1622/mps-public
 
 
 4. Merging a development branch
@@ -168,7 +168,7 @@ These steps will only rarely need repeating.
 
 4. Merge master with the branch::
 
-     git pull ravenbrook master:master
+     git pull perforce master:master
      git checkout branch/2023-01-06/speed-hax
      git merge master
 
@@ -216,13 +216,13 @@ These steps will only rarely need repeating.
 
 8. Push master and the branch to Perforce via Git Fusion::
 
-     git push ravenbrook master branch/2023-01-06/speed-hax
+     git push perforce master branch/2023-01-06/speed-hax
 
    If this fails because someone has submitted changes to the master
    codeline since you started.  Replace your master with those changes
    and go back to merging (step 4). ::
 
-     git pull --force ravenbrook master:master
+     git pull --force perforce master:master
 
 9. If and *only if* the Perforce push (step 8) succeeds, you can
    also push to GitHub::
