@@ -125,6 +125,7 @@ MODE is either `c' or `cpp'."
            ((and (parent-is "comment") c-ts-mode--looking-at-star)
             c-ts-mode--comment-start-after-first-star -1)
            ((parent-is "comment") prev-adaptive-prefix 0)
+           (c-ts-mode--top-level-label-matcher point-min 1)
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
            ((match "preproc_ifdef" "compound_statement") point-min 0)
@@ -171,7 +172,10 @@ MODE is either `c' or `cpp'."
        ,@common)
       (k&r ,@common)
       (linux
-       ((node-is "labeled_statement") point-min 1)
+       ;; Reference:
+       ;; https://www.kernel.org/doc/html/latest/process/coding-style.html,
+       ;; and script/Lindent in Linux kernel repository.
+       ((node-is "labeled_statement") point-min 0)
        ,@common)
       (bsd
        ((parent-is "if_statement") parent-bol 0)
@@ -194,6 +198,17 @@ MODE is either `c' or `cpp'."
              ('bsd   (alist-get 'bsd (c-ts-mode--indent-styles mode)))
              ('linux (alist-get 'linux (c-ts-mode--indent-styles mode)))))))
     `((,mode ,@style))))
+
+(defun c-ts-mode--top-level-label-matcher (node &rest _)
+  "A matcher that matches a top-level label.
+NODE should be a labeled_statement."
+  (let ((func (treesit-parent-until
+               node (lambda (n)
+                      (equal (treesit-node-type n)
+                             "function_definition")))))
+    (and (equal (treesit-node-type node)
+                "labeled_statement")
+         (not (treesit-node-top-level func "function_definition")))))
 
 (defun c-ts-mode--bracket-children-anchor (_n parent &rest _)
   "This anchor is used for children of a compound_statement.
