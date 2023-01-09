@@ -2405,6 +2405,9 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
       aead_auth_size = aend_byte - astart_byte;
     }
 
+  /* Only block ciphers require that ISIZE be a multiple of the block
+     size, and AEAD ciphers are not block ciphers.  */
+#if 0
   ptrdiff_t expected_remainder = encrypting ? 0 : cipher_tag_size;
   ptrdiff_t cipher_block_size = gnutls_cipher_get_block_size (gca);
 
@@ -2414,6 +2417,7 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
 	    "is not %"pD"d greater than a multiple of the required %"pD"d"),
            gnutls_cipher_get_name (gca), desc,
 	   isize, expected_remainder, cipher_block_size);
+#endif
 
   ret = ((encrypting ? gnutls_aead_cipher_encrypt : gnutls_aead_cipher_decrypt)
 	 (acipher, vdata, vsize, aead_auth_data, aead_auth_size,
