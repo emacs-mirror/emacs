@@ -2415,11 +2415,15 @@ in the region."
                   (window-start) (window-end) treesit--explorer-language))
            ;; Only highlight the current top-level construct.
            ;; Highlighting the whole buffer is slow and unnecessary.
-           (top-level (treesit-node-first-child-for-pos
-                       root (if (eolp)
-                                (max (point-min) (1- (point)))
-                              (point))
-                       t))
+           ;; But if the buffer is small (ie, used in playground
+           ;; style), just highlight the whole buffer.
+           (top-level (if (< (buffer-size) 4000)
+                          root
+                        (treesit-node-first-child-for-pos
+                         root (if (eolp)
+                                  (max (point-min) (1- (point)))
+                                (point))
+                         t)))
            ;; Only highlight node when region is active, if we
            ;; highlight node at point the syntax tree is too jumpy.
            (nodes-hl
