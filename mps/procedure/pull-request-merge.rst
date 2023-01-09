@@ -204,7 +204,7 @@ These steps will only rarely need repeating.
    Git Fusion mapping, and so the result is the same as if it had come
    in via Perforce.
 
-7. Replace the master with your branch, effecting the merge::
+7. Replace the master with your merged branch::
 
      git checkout master
      git merge --ff-only branch/2023-01-06/speed-hax
