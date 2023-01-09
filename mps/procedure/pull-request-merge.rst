@@ -143,30 +143,27 @@ These steps will only rarely need repeating.
 4. Merging a development branch
 -------------------------------
 
-1. If the branch to be merged is in a third-party repo (such as a
-   fork), then add that, e.g.::
+1. `Fetch the pull request branch`_ to a local branch using the MPS
+   durable branch naming convention, "branch/DATE/TOPIC", e.g. ::
+
+     git fetch github pull/93/head:branch/2022-12-23/hardened-runtime
+
+   If the branch to be merged is in a third-party repo, such as a fork
+   not on GitHub, you can fetch it usina a remote, e.g.::
 
      git remote add captain-contrib https://gitlab.com/captcontrib/mps.git
-
-2. Fetch the branch that you are going to merge to a local branch
-   using the MPS durable branch naming convention,
-   "branch/DATE/TOPIC", e.g. ::
-
      git fetch captain-contrib mps-speed-hax:branch/2023-01-06/speed-hax
 
-   Double check you've got this right.  Using the wrong branch naming
-   `causes permanent pollution in the Ravenbrook Perforce repository
+   Double check you've got the branch name right.  Using the wrong
+   branch naming `causes permanent pollution in the Ravenbrook
+   Perforce repository
    <https://info.ravenbrook.com/mail/2023/01/07/15-06-41/0/>`_.
 
-   [How does this affect the connection between the branch and the
-   pull request and issues?  We want to retain that connection
-   forever.  RB 2023-01-08]
+2. Optionally, let other people know that you're working on a merge
+   into master.  Negotiate to avoid racing them to the push (step 7)
+   because that will create extra merging work.
 
-3. Optionally, let other people know that you're about to merge into
-   master, and negotiate to avoid racing them to the push (step 8) and
-   making extra work for everyone.
-
-4. Merge master with the branch::
+3. Merge master with the branch::
 
      git pull perforce master:master
      git checkout branch/2023-01-06/speed-hax
@@ -177,7 +174,7 @@ These steps will only rarely need repeating.
    branch.  If you still can't resolve conflicts, this procedure
    fails.
 
-5. Build and test the results locally.  For example::
+4. Build and test the results locally.  For example::
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
@@ -185,11 +182,11 @@ These steps will only rarely need repeating.
    platforms.
 
    If tests do not pass, review your conflict resolution from the
-   merge (step 4), and if that doesn't resolve things, the procedure
+   merge (step 3), and if that doesn't resolve things, the procedure
    fails, and you need to go back to the source of the branch,
    e.g. the pull request and its original author.  Something's wrong!
 
-6. Push the branch to the Ravenbrook MPS GitHub repository to trigger
+5. Push the branch to the Ravenbrook MPS GitHub repository to trigger
    building and testing on all target platforms using Travis CI. ::
 
      git push github branch/2023-01-06/speed-hax
@@ -197,34 +194,34 @@ These steps will only rarely need repeating.
    You will need to wait for results from Travis CI.  [Add details of
    how to see them.  RB 2023-07-01]
 
-   See build (step 5) about what to do if tests do not pass.
+   See build (step 4) about what to do if tests do not pass.
 
    Note: This potentially creates a branch in the GitHub repo ahead
    of Git Fusion doing so, but it will the same name, because of the
    Git Fusion mapping, and so the result is the same as if it had come
    in via Perforce.
 
-7. Replace the master with your merged branch::
+6. Replace the master with your merged branch::
 
      git checkout master
      git merge --ff-only branch/2023-01-06/speed-hax
 
    The ``--ff-only`` flag ensures there have been no changes on master
-   since merging (step 4), so that the testing is valid for master,
+   since merging (step 3), so that the testing is valid for master,
    and we do not create a second merge commit.  If this fails, go back
-   to merging (step 4).
+   to merging (step 3).
 
-8. Push master and the branch to Perforce via Git Fusion::
+7. Push master and the branch to Perforce via Git Fusion::
 
      git push perforce master branch/2023-01-06/speed-hax
 
    If this fails because someone has submitted changes to the master
    codeline since you started.  Replace your master with those changes
-   and go back to merging (step 4). ::
+   and go back to merging (step 3). ::
 
      git pull --force perforce master:master
 
-9. If and *only if* the Perforce push (step 8) succeeds, you can
+8. If and *only if* the Perforce push (step 7) succeeds, you can
    also push to GitHub::
 
      git push github master branch/2023-01-06/speed-hax
@@ -241,6 +238,8 @@ These steps will only rarely need repeating.
    2. Check (or ask a sysadmin to check) that gitpushbot is running
       on Berunda and restart it if necessary, or ask a sysadmin to do
       this.
+
+.. _Fetch the pull request branch: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally#modifying-an-inactive-pull-request-locally
 
 
 5. Rationale
@@ -276,9 +275,9 @@ that there has been a merge, by whom, from where, etc.  It discards
 that information.  Therefore we want to discourage fast-forwards of
 master in favour of merges.
 
-Given this, the replace (step 7) may seem odd, since it fast-forwards
+Given this, the replace (step 6) may seem odd, since it fast-forwards
 master.  But in fact it's pointing master at the merge commit created
-earlier (step 5), so that master has a history including a proper
+earlier (step 4), so that master has a history including a proper
 merge.
 
 
