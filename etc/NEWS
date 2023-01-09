@@ -57,6 +57,10 @@ trash when deleting.  Default is nil.
 Emacs now can set this variable to customize the behavior of the
 'transpose-sexps' function.
 
+** New function 'transpose-sexps-default-function'.
+The previous implementation is moved into its own function, to be
+bound by transpose-sexps-function'.
+
 ** New function 'treesit-transpose-sexps'.
 treesit.el now unconditionally sets 'transpose-sexps-function' for all
 Tree-sitter modes.  This functionality utilizes the new

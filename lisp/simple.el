@@ -8436,37 +8436,39 @@ are interchanged."
   (interactive "*p")
   (transpose-subr 'forward-word arg))
 
-(defvar transpose-sexps-function
-  (lambda (arg)
-    ;; Here we should try to simulate the behavior of
-    ;; (cons (progn (forward-sexp x) (point))
-    ;;       (progn (forward-sexp (- x)) (point)))
-    ;; Except that we don't want to rely on the second forward-sexp
-    ;; putting us back to where we want to be, since forward-sexp-function
-    ;; might do funny things like infix-precedence.
-    (if (if (> arg 0)
-	    (looking-at "\\sw\\|\\s_")
-	  (and (not (bobp))
-	       (save-excursion
-                 (forward-char -1)
-                 (looking-at "\\sw\\|\\s_"))))
-        ;; Jumping over a symbol.  We might be inside it, mind you.
-	(progn (funcall (if (> arg 0)
-			    #'skip-syntax-backward #'skip-syntax-forward)
-			"w_")
-	       (cons (save-excursion (forward-sexp arg) (point)) (point)))
-      ;; Otherwise, we're between sexps.  Take a step back before jumping
-      ;; to make sure we'll obey the same precedence no matter which
-      ;; direction we're going.
-      (funcall (if (> arg 0) #'skip-syntax-backward #'skip-syntax-forward)
-               " .")
-      (cons (save-excursion (forward-sexp arg) (point))
-	    (progn (while (or (forward-comment (if (> arg 0) 1 -1))
-			      (not (zerop (funcall (if (> arg 0)
-						       #'skip-syntax-forward
-						     #'skip-syntax-backward)
-						   ".")))))
-		   (point)))))
+(defun transpose-sexps-default-function (arg)
+  "Default method to locate a pair of points for transpose-sexps."
+  ;; Here we should try to simulate the behavior of
+  ;; (cons (progn (forward-sexp x) (point))
+  ;;       (progn (forward-sexp (- x)) (point)))
+  ;; Except that we don't want to rely on the second forward-sexp
+  ;; putting us back to where we want to be, since forward-sexp-function
+  ;; might do funny things like infix-precedence.
+  (if (if (> arg 0)
+	  (looking-at "\\sw\\|\\s_")
+	(and (not (bobp))
+	     (save-excursion
+               (forward-char -1)
+               (looking-at "\\sw\\|\\s_"))))
+      ;; Jumping over a symbol.  We might be inside it, mind you.
+      (progn (funcall (if (> arg 0)
+			  #'skip-syntax-backward #'skip-syntax-forward)
+		      "w_")
+	     (cons (save-excursion (forward-sexp arg) (point)) (point)))
+    ;; Otherwise, we're between sexps.  Take a step back before jumping
+    ;; to make sure we'll obey the same precedence no matter which
+    ;; direction we're going.
+    (funcall (if (> arg 0) #'skip-syntax-backward #'skip-syntax-forward)
+             " .")
+    (cons (save-excursion (forward-sexp arg) (point))
+	  (progn (while (or (forward-comment (if (> arg 0) 1 -1))
+			    (not (zerop (funcall (if (> arg 0)
+						     #'skip-syntax-forward
+						   #'skip-syntax-backward)
+						 ".")))))
+		 (point)))))
+
+(defvar transpose-sexps-function #'transpose-sexps-default-function
   "If non-nil, `transpose-sexps' delegates to this function.
 
 This function takes one argument ARG, a number.  Its expected
