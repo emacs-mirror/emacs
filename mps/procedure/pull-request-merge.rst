@@ -104,6 +104,7 @@ is likely to modify and simplify this procedure.
 
    If you have no build and test results for the merge, then you can
    still execute this procedure if:
+
    #. you believe there are only merge conflicts,
    #. you're willing to try to resolve those conflicts, and
    #. you're prepared to test on all target platforms.
