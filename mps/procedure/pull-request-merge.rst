@@ -146,7 +146,11 @@ These steps will only rarely need repeating.
 1. `Fetch the pull request branch`_ to a local branch using the MPS
    durable branch naming convention, "branch/DATE/TOPIC", e.g. ::
 
-     git fetch github pull/93/head:branch/2022-12-23/hardened-runtime
+     git fetch github pull/93/head:branch/2023-01-06/speed-hax
+
+   If the pull request is from the Ravenbrook MPS repo on GitHub then
+   its branch may already have a conventional name.  Use the existing
+   name.
 
    If the branch to be merged is in a third-party repo, such as a fork
    not on GitHub, you can fetch it usina a remote, e.g.::
