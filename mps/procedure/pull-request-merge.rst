@@ -337,6 +337,14 @@ repository are intended to last forever.  That is why they have
 This policy has persisted over decades through more than one SCM
 system, and will persist when Git has been replaced by the next one.
 
+Note: `GitHub branch protection rules`_ are `enabled
+<https://github.com/Ravenbrook/mps/settings/branches>`_ on the
+`Ravenbrook MPS repo on GitHub`_ and should prevent deletion.
+
+.. _Ravenbrook MPS repo on GitHub: https://github.com/Ravenbrook/mps
+
+.. _GitHub branch protection rules: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches#require-linear-history
+
 
 A. References
 -------------
