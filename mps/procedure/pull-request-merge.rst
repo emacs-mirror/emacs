@@ -109,9 +109,6 @@ resolving are noted in square brackets.
    #. you're willing to try to resolve those conflicts, and
    #. you're prepared to test on all target platforms.
 
-[Checklist items for Customer-specific branches from branch-merge.rst
-omitted for now.  RB 2023-01-07]
-
 .. _Travis CI build history for the repo: https://app.travis-ci.com/github/Ravenbrook/mps/builds
 
 
