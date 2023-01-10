@@ -98,6 +98,14 @@ This is a string or a list of strings that specifies the Git log
 switches for shortlogs, such as the one produced by 'C-x v L'.
 'vc-git-log-switches' is no longer used for shortlogs.
 
+** Diff Mode
+
++++
+*** 'diff-ignore-whitespace-hunk' can now be applied to all hunks.
+When called with a non-nil prefix argument
+'diff-ignore-whitespace-hunk' now iterates over all the hunks in the
+current diff, regenerating them without whitespace changes.
+
 ** Buffer Selection
 
 ---

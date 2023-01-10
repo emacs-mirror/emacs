@@ -2103,10 +2103,13 @@ For use in `add-log-current-defun-function'."
               (goto-char (+ (car pos) (cdr src)))
               (add-log-current-defun)))))))
 
-(defun diff-ignore-whitespace-hunk ()
-  "Re-diff the current hunk, ignoring whitespace differences."
-  (interactive)
-  (diff-refresh-hunk t))
+(defun diff-ignore-whitespace-hunk (&optional whole-buffer)
+  "Re-diff the current hunk, ignoring whitespace differences.
+With non-nil prefix arg, re-diff all the hunks."
+  (interactive "P")
+  (if whole-buffer
+      (diff--ignore-whitespace-all-hunks)
+    (diff-refresh-hunk t)))
 
 (defun diff-refresh-hunk (&optional ignore-whitespace)
   "Re-diff the current hunk."
@@ -2298,6 +2301,16 @@ Call FUN with two args (BEG and END) for each hunk."
                           end
                         (or (ignore-errors (diff-hunk-next) (point))
                             max)))))))))
+
+;; This doesn't use `diff--iterate-hunks', since that assumes that
+;; hunks don't change size.
+(defun diff--ignore-whitespace-all-hunks ()
+  "Re-diff all the hunks, ignoring whitespace-differences."
+  (save-excursion
+    (goto-char (point-min))
+    (diff-hunk-next)
+    (while (looking-at diff-hunk-header-re)
+      (diff-refresh-hunk t))))
 
 (defun diff--font-lock-refined (max)
   "Apply hunk refinement from font-lock."

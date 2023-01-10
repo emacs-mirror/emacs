@@ -1738,7 +1738,8 @@ Re-generate the current hunk (@code{diff-refresh-hunk}).
 
 @item C-c C-w
 @findex diff-ignore-whitespace-hunk
-Re-generate the current hunk, disregarding changes in whitespace
+Re-generate the current hunk, disregarding changes in whitespace.
+With a non-@code{nil} prefix arg, re-generate all the hunks
 (@code{diff-ignore-whitespace-hunk}).
 
 @item C-x 4 A
