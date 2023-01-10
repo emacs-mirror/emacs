@@ -17,6 +17,10 @@ Memory Pool System pull request merge procedure
 This document contains a procedure for merging a branch received via a
 GitHub "pull request".
 
+Ravenbrook is currently (2023-01) `migrating the MPS project to git
+(and GitHub) <https://github.com/Ravenbrook/mps/issues/98>`_ and that
+will greatly simplify this procedure.
+
 This document was created as a combination of the process improvement
 steps from our Perforce-based "Memory Pool System branching and
 merging procedures" [GDR_2014-01-09]_ with Gareth Rees' email
@@ -25,10 +29,6 @@ MPS Help" [GDR_2020-09-03]_ .
 
 The document is still draft.  Some of the questions that need
 resolving are noted in square brackets.
-
-Ravenbrook is currently (2023-01) `migrating the MPS project to git
-(and GitHub) <https://github.com/Ravenbrook/mps/issues/98>`_ and this
-is likely to modify and simplify this procedure.
 
 
 2. Pre-merge checklist
@@ -120,7 +120,7 @@ omitted for now.  RB 2023-01-07]
 
 These steps will only rarely need repeating.
 
-#. Ensure your public key is submitted in Perforce at
+#. Ensure your public SSH key is submitted in Perforce at
    //.git-fusion/users/USER/keys/
 
 #. Ensure your e-mail address is submitted in Perforce at
