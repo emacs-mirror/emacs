@@ -20,6 +20,11 @@ Ravenbrook is currently (2023-01) `migrating the MPS project to git
 (and GitHub) <https://github.com/Ravenbrook/mps/issues/98>`_ and that
 will greatly simplify this procedure.
 
+This procedure assumes a pull request has been received via GitHub,
+but that dependency is light.  The procedure can be varied for other
+sources, even where the "pull request" is received by email or some
+other traceable document.
+
 This document was created as a combination of the process improvement
 steps from our Perforce-based "Memory Pool System branching and
 merging procedures" [GDR_2014-01-09]_ with Gareth Rees' email
