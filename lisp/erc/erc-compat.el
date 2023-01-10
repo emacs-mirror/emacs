@@ -260,8 +260,8 @@ If START or END is negative, it counts from the end."
           (dolist (e rv out)
             (when-let* ((s (plist-get e :secret))
                         (v (auth-source--obfuscate s)))
-              (setf (plist-get e :secret)
-                    (apply-partially #'auth-source--deobfuscate v)))
+              (setq e (plist-put e :secret (apply-partially
+                                            #'auth-source--deobfuscate v))))
             (push e out)))
       rv)))
 
