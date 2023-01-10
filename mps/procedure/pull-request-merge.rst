@@ -64,13 +64,13 @@ resolving are noted in square brackets.
 #. Does the branch build and pass tests on all `target platforms
    <../readme.txt>`_?
 
-   If the branch is in the Ravenbrook MPS repo on GitHub then Travis
-   CI should have run builds.  Look for a successful build in the
-   `Travis CI build history for the repo`_.  If there is a failed
+   If the branch is in the `Ravenbrook MPS repo on GitHub`_ then
+   Travis CI should have run builds.  Look for a successful build in
+   the `Travis CI build history for the repo`_.  If there is a failed
    build you should not execute this procedure, but talk to the
    contributor about fixing the branch.
 
-   If the branch is in the Ravenbrook MPS repo on GitHub and Travis
+   If the branch is in the `Ravenbrook MPS repo on GitHub`_ and Travis
    builds are missing, inform sysadmins that Travis CI isn't
    functioning.
 
@@ -145,9 +145,9 @@ These steps will only rarely need repeating.
 
      git fetch github pull/93/head:branch/2023-01-06/speed-hax
 
-   If the pull request is from the Ravenbrook MPS repo on GitHub, and
-   its branch already has a conventional name, then use the existing
-   name.
+   If the pull request is from the `Ravenbrook MPS repo on GitHub`_,
+   and its branch already has a conventional name, then use the
+   existing name.
 
    If the branch to be merged is in a third-party repo, such as a fork
    not on GitHub, you can fetch it using a remote, e.g.::
