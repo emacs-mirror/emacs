@@ -303,7 +303,8 @@ So, `once Git becomes the home
 <https://github.com/Ravenbrook/mps/issues/98>`_ we will be able to use
 the button to to replace sections 3 and 4, the procedure, but not
 section 2, the pre-merge checklist.  We may be able to incorporate the
-checklist into GitHub's interface.
+checklist into GitHub's interface using a `pull request template
+<https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository>`_.
 
 
 5.3. Why the "durable" branch names?
