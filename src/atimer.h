@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMACS_ATIMER_H
 
 #include <time.h>
+#include "syssignal.h"
 
 /* Forward declaration.  */
 
@@ -69,6 +70,8 @@ struct atimer
 
 /* Function prototypes.  */
 
+void block_atimers (sigset_t *);
+void unblock_atimers (sigset_t const *);
 struct atimer *start_atimer (enum atimer_type, struct timespec,
                              atimer_callback, void *);
 void cancel_atimer (struct atimer *);

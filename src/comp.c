@@ -40,6 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "md5.h"
 #include "sysstdio.h"
 #include "zlib.h"
+#include "atimer.h"
 
 
 /********************************/
@@ -5296,10 +5297,29 @@ unset_cu_load_ongoing (Lisp_Object comp_u)
   XNATIVE_COMP_UNIT (comp_u)->load_ongoing = false;
 }
 
+/* Number of native loads going on.  */
+unsigned loads;
+
+sigset_t oldset;
+
+static void
+maybe_unblock_atimers (Lisp_Object obj)
+{
+  --loads;
+  if (!loads)
+    unblock_atimers (&oldset);
+}
+
 Lisp_Object
 load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 		bool late_load)
 {
+  specpdl_ref count = SPECPDL_INDEX ();
+  if (!loads)
+    block_atimers (&oldset);
+  ++loads;
+  record_unwind_protect (maybe_unblock_atimers, Qnil);
+
   Lisp_Object res = Qnil;
   dynlib_handle_ptr handle = comp_u->handle;
   Lisp_Object comp_u_lisp_obj;
@@ -5336,7 +5356,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
      identify is we have at least another load active on it.  */
   bool recursive_load = comp_u->load_ongoing;
   comp_u->load_ongoing = true;
-  specpdl_ref count = SPECPDL_INDEX ();
   if (!recursive_load)
     record_unwind_protect (unset_cu_load_ongoing, comp_u_lisp_obj);
 
@@ -5437,9 +5456,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       eassert (check_comp_unit_relocs (comp_u));
     }
 
-  if (!recursive_load)
-    /* Clean-up the load ongoing flag in case.  */
-    unbind_to (count, Qnil);
+  unbind_to (count, Qnil);
 
   register_native_comp_unit (comp_u_lisp_obj);
 

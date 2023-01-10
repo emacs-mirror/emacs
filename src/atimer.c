@@ -24,7 +24,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "keyboard.h"
-#include "syssignal.h"
 #include "systime.h"
 #include "atimer.h"
 #include <unistd.h>
@@ -71,7 +70,7 @@ enum { timerfd = -1 };
 
 /* Block/unblock SIGALRM.  */
 
-static void
+void
 block_atimers (sigset_t *oldset)
 {
   sigset_t blocked;
@@ -80,7 +79,7 @@ block_atimers (sigset_t *oldset)
   sigaddset (&blocked, SIGINT);
   pthread_sigmask (SIG_BLOCK, &blocked, oldset);
 }
-static void
+void
 unblock_atimers (sigset_t const *oldset)
 {
   pthread_sigmask (SIG_SETMASK, oldset, 0);
