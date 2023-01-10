@@ -246,38 +246,74 @@ This section explains why the procedure is like it is.  It's intended
 for people who want to vary the procedure on the fly, or make
 permanent changes to it.  In the latter case, update this section!
 
-5.1. Why not press the GitHub merge button?
+
+5.1. Why not rebase or squash merge?
+------------------------------------
+
+We would like to avoid rewriting history and the destruction of
+information on the grounds that it destroys information that could be
+important to the engineering of the MPS, such as tracking down
+defects, comprehending the intention of changes.  So want to
+discourage rebasing or squashing.
+
+We want to avoid fast-forwards of master.  A fast-forward means there
+is no commit that records the fact that there has been a merge, by
+whom, from where, for what purpose, etc.  It discards that
+information.  Therefore we want to discourage fast-forwards of master
+in favour of merges.  (Annoyingly, GitHub only provides `branch
+protection that enforces the opposite
+<https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches#require-linear-history>`_!)
+See also `5.3. Why the "durable" branch names?`_.
+
+We also want to avoid `squash merges
+<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-commits>`_.
+A squash merge compresses development history into a single commit,
+destroying the record of what happened during development and the
+connection to the branch.
+
+The main motivation for fast-forwards and squashes appears to be to
+simplify the branching history so that it's easier to understand.
+Better tools and interfaces are no doubt required for analysing Git
+history.  These will emerge.  And they will be able to analyse the
+history that we are creating today.
+
+There is also a strong tendency among developers to "correct" mistakes
+and edit history to reflect "what should have happened" or "what I
+meant to do", treating history like code.  But it's the function of
+version control to protect software against well-intentioned mistakes.
+Git is bad at remembering changes to history (it has no meta-history)
+and so we should not edit it.
+
+
+5.2. Why not press the GitHub merge button?
 -------------------------------------------
 
-GitHub provides a merge button on pull requests.  According to
-[Chaser324_2017]_ it only works for branches that can fast-forward
-master, and also only creates fast-forwards.
+We cannot use the GitHub pull request merge button because it would
+put the GitHub master branch out of sync with (ahead of) Perforce.
+Currently, Perforce is the authoritative home of the MPS, and the Git
+repository is a mirror.
 
-[This might not be true.  See `About merge methods on GitHub
-<https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github>`_.
-RB 2023-01-09]
+According to `GitHub's "About pull request merges"
+<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges>`_:
 
-There are two reasons this is undesirable.
+  When you click the default Merge pull request option on a pull
+  request on GitHub.com, all commits from the feature branch are added
+  to the base branch in a merge commit.
 
-Firstly, it's quite likely that a pull request has a branch that isn't
-at the tip of master and can't be fast-forwarded.  It's possible to
-rebase such branches only if Perforce has never seen them, because
-Perforce does not permit branch history to be rewritten.  We could
-have a more complicated procedure involving making a new rebased
-branch, but the result would be less good.
+`Travis CI builds and tests this merge in advance <https://docs.travis-ci.com/user/pull-requests/#how-pull-requests-are-built>`_:
 
-Secondly, we would like to avoid rewriting history and the destruction
-of information on the grounds that it is bad software engineering, and
-so want to discourage rebasing.
+  Rather than build the commits that have been pushed to the branch
+  the pull request is from, we build the merge between the source
+  branch and the upstream branch.
 
-And it's for this reason we also want to avoid fast-forwards of
-master.  A fast-forward means there is no commit that records the fact
-that there has been a merge, by whom, from where, etc.  It discards
-that information.  Therefore we want to discourage fast-forwards of
-master in favour of merges.
+So, `once Git becomes the home
+<https://github.com/Ravenbrook/mps/issues/98>`_ we will be able to use
+the button to to replace sections 3 and 4, the procedure, but not
+section 2, the pre-merge checklist.  We may be able to incorporate the
+checklist into GitHub's interface.
 
 
-5.2. Why the "durable" branch names?
+5.3. Why the "durable" branch names?
 ------------------------------------
 
 It's common in Git culture to delete branches once they've been
@@ -311,10 +347,6 @@ A. References
 .. [Ardalis_2017] "Why Delete Old Git Branches?"; Steve Ardalis;
 		  2017-07-20;
 		  <https://ardalis.com/why-delete-old-git-branches/>.
-
-.. [Chaser324_2017] "GitHub Standard Fork & Pull Request Workflow";
-                    Chase Pettit; 2017;
-                    <https://gist.github.com/Chaser324/ce0505fbed06b947d962#automatically-merging-a-pull-request>.
 
 .. [GDR_2020-09-03] "Re: Possible MPS help"; Gareth Rees; 2020-09-03;
 		    <https://info.ravenbrook.com/mail/2020/09/03/13-02-35/0/>.
