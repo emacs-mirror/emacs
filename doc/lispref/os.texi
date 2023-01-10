@@ -1277,6 +1277,16 @@ This function returns the real @acronym{UID} of the user.
 This function returns the effective @acronym{UID} of the user.
 @end defun
 
+@defun file-user-uid
+This function returns the connection-local value for the user's
+effective @acronym{UID}.  If @code{default-directory} is local, this
+is equivalent to @code{user-uid}, but for remote files (@pxref{Remote
+Files, , , emacs, The GNU Emacs Manual}), it will return the
+@acronym{UID} for the user associated with that remote connection; if
+the remote connection has no associated user, it will instead return
+-1.
+@end defun
+
 @cindex GID
 @defun group-gid
 This function returns the effective @acronym{GID} of the Emacs process.

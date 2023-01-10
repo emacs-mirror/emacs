@@ -2632,7 +2632,9 @@ Must be handled by the callers."
 	    '(exec-path make-nearby-temp-file make-process process-file
 	      shell-command start-file-process temporary-file-directory
 	      ;; Emacs 29+ only.
-              list-system-processes memory-info process-attributes))
+              list-system-processes memory-info process-attributes
+              ;; Emacs 30+ only.
+	      file-user-uid))
     default-directory)
    ;; PROC.
    ((member operation '(file-notify-rm-watch file-notify-valid-p))
@@ -3713,6 +3715,15 @@ Let-bind it when necessary.")
         (tramp-make-tramp-file-name
 	 vec (concat "~" (substring filename (match-beginning 1))))
       (tramp-make-tramp-file-name (tramp-dissect-file-name filename)))))
+
+(defun tramp-handle-file-user-uid ()
+  "Like `user-uid' for Tramp files."
+  (let ((v (tramp-dissect-file-name default-directory)))
+    (or (tramp-get-remote-uid v 'integer)
+        ;; Some handlers for `tramp-get-remote-uid' return nil if they
+        ;; can't get the UID; always return -1 in this case for
+        ;; consistency.
+        -1)))
 
 (defun tramp-handle-access-file (filename string)
   "Like `access-file' for Tramp files."

@@ -746,6 +746,10 @@ it, since the setter is nil."
       (format "cd %s" ert-remote-temporary-file-directory))
      (eshell-match-command-output "echo $PATH" (regexp-quote remote-path)))))
 
+(ert-deftest esh-var-test/uid-var ()
+  "Test that $UID is equivalent to (user-uid) for local directories."
+  (eshell-command-result-equal "echo $UID" (user-uid)))
+
 (ert-deftest esh-var-test/last-status-var-lisp-command ()
   "Test using the \"last exit status\" ($?) variable with a Lisp command"
   (with-temp-eshell
