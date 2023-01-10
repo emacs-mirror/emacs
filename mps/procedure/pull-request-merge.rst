@@ -253,6 +253,10 @@ GitHub provides a merge button on pull requests.  According to
 [Chaser324_2017]_ it only works for branches that can fast-forward
 master, and also only creates fast-forwards.
 
+[This might not be true.  See `About merge methods on GitHub
+<https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github>`_.
+RB 2023-01-09]
+
 There are two reasons this is undesirable.
 
 Firstly, it's quite likely that a pull request has a branch that isn't
