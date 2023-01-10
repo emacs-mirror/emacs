@@ -8,7 +8,6 @@ Memory Pool System pull request merge procedure
 :confidentiality: public
 :copyright: See `C. Copyright and License`_
 :readership: MPS developers, trainee integrators
-:status: draft
 
 
 1. Introduction
@@ -26,9 +25,6 @@ steps from our Perforce-based "Memory Pool System branching and
 merging procedures" [GDR_2014-01-09]_ with Gareth Rees' email
 containing the working steps for git / GitHub merges, "Re: Possible
 MPS Help" [GDR_2020-09-03]_ .
-
-The document is still draft.  Some of the questions that need
-resolving are noted in square brackets.
 
 
 2. Pre-merge checklist
