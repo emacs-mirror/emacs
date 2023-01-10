@@ -246,10 +246,11 @@ Assumes PARENT is a comment node."
 (defun c-ts-mode--comment-2nd-line-matcher (_n parent &rest _)
   "Matches if point is at the second line of a block comment.
 PARENT should be a comment node."
-  (save-excursion
-    (forward-line -1)
-    (back-to-indentation)
-    (eq (point) (treesit-node-start parent))))
+  (and (equal (treesit-node-type parent) "comment")
+       (save-excursion
+         (forward-line -1)
+         (back-to-indentation)
+         (eq (point) (treesit-node-start parent)))))
 
 (defun c-ts-mode--comment-2nd-line-anchor (&rest _)
   "Return appropriate anchor for the second line of a comment.
