@@ -3,8 +3,10 @@
 
 # Some branches don't need builds.  Add them here to avoid using build
 # resources and unnecessary build messages.  See
-# <https://docs.travis-ci.com/user/conditions-v1>.
-if: NOT branch IN (branch/2023-01-07/pull-request-merge-procedure)
+# <https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches>.
+branches:
+  except:
+    - branch/2023-01-07/pull-request-merge-procedure
 
 # See <https://docs.travis-ci.com/user/languages/c/>.
 language: c
