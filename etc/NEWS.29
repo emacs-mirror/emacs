@@ -797,10 +797,10 @@ filter/sentinel error has been handled.
 ** New faces for font-lock.
 These faces are primarily meant for use with tree-sitter.  They are:
 'font-lock-bracket-face', 'font-lock-delimiter-face',
-'font-lock-escape-face', 'font-lock-number-face',
-'font-lock-regexp-face',
-'font-lock-misc-punctuation-face', 'font-lock-operator-face',
-'font-lock-property-face', and 'font-lock-punctuation-face'.
+'font-lock-escape-face', 'font-lock-misc-punctuation-face',
+'font-lock-number-face', 'font-lock-operator-face',
+'font-lock-property-face', and 'font-lock-punctuation-face',
+'font-lock-regexp-face'.
 
 +++
 ** New face 'variable-pitch-text'.

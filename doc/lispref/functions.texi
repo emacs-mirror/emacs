@@ -685,6 +685,20 @@ Here are some examples:
 @end group
 @end example
 
+@cindex defining functions dynamically
+Most Emacs functions are part of the source code of Lisp programs, and
+are defined when the Emacs Lisp reader reads the program source before
+executing it.  However, you can also define functions dynamically at
+run time, e.g., by generating @code{defun} calls when your program's
+code is executed.  If you do this, be aware that Emacs's Help
+commands, such as @kbd{C-h f}, which present in the @file{*Help*}
+buffer a button to jump to the function's definition, might be unable
+to find the source code because generating a function dynamically
+usually looks very different from the usual static calls to
+@code{defun}.  You can make the job of finding the code which
+generates such functions easier by using the @code{definition-name}
+property, @pxref{Standard Properties}.
+
 @cindex override existing functions
 @cindex redefine existing functions
 Be careful not to redefine existing functions unintentionally.

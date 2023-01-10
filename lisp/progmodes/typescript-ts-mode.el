@@ -194,7 +194,13 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       name: (array_pattern
              (identifier)
              (identifier) @font-lock-function-name-face)
-      value: (array (number) (function))))
+      value: (array (number) (function)))
+
+     (catch_clause
+      parameter: (identifier) @font-lock-variable-name-face)
+
+     (import_clause (identifier) @font-lock-variable-name-face)
+     (import_clause (named_imports (import_specifier (identifier)) @font-lock-variable-name-face)))
 
    :language language
    :override t
@@ -223,17 +229,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       parameters:
       [(_ (identifier) @font-lock-variable-name-face)
        (_ (_ (identifier) @font-lock-variable-name-face))
-       (_ (_ (_ (identifier) @font-lock-variable-name-face)))])
-
-     (return_statement (identifier) @font-lock-variable-name-face)
-
-     (binary_expression left: (identifier) @font-lock-variable-name-face)
-     (binary_expression right: (identifier) @font-lock-variable-name-face)
-
-     (arguments (identifier) @font-lock-variable-name-face)
-
-     (parenthesized_expression (identifier) @font-lock-variable-name-face)
-     (parenthesized_expression (_ (identifier) @font-lock-variable-name-face)))
+       (_ (_ (_ (identifier) @font-lock-variable-name-face)))]))
 
    :language language
    :override t
@@ -244,8 +240,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       name: (property_identifier) @font-lock-property-face)
 
      (pair key: (property_identifier) @font-lock-variable-name-face)
-
-     (pair value: (identifier) @font-lock-variable-name-face)
 
      ((shorthand_property_identifier) @font-lock-property-face)
 

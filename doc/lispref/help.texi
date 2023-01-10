@@ -69,14 +69,14 @@ Variables}.  The string is stored in the variable's
 @cindex @file{DOC} (documentation) file
   Sometimes, Emacs does not keep documentation strings in memory.
 There are two such circumstances.  Firstly, to save memory, the
-documentation for preloaded functions and variables (including
-primitives) is kept in a file named @file{DOC}, in the directory
-specified by @code{doc-directory} (@pxref{Accessing Documentation}).
-Secondly, when a function or variable is loaded from a byte-compiled
-file, Emacs avoids loading its documentation string (@pxref{Docs and
-Compilation}).  In both cases, Emacs looks up the documentation string
-from the file only when needed, such as when the user calls @kbd{C-h
-f} (@code{describe-function}) for a function.
+documentation for primitive functions (@pxref{What Is a Function}) and
+built-in variables is kept in a file named @file{DOC}, in the
+directory specified by @code{doc-directory} (@pxref{Accessing
+Documentation}).  Secondly, when a function or variable is loaded from
+a byte-compiled file, Emacs avoids loading its documentation string
+(@pxref{Docs and Compilation}).  In both cases, Emacs looks up the
+documentation string from the file only when needed, such as when the
+user calls @kbd{C-h f} (@code{describe-function}) for a function.
 
   Documentation strings can contain special @dfn{key substitution
 sequences}, referring to key bindings which are looked up only when
@@ -303,7 +303,7 @@ for in the directory @code{doc-directory}.  Usually @var{filename} is
 @defvar doc-directory
 This variable holds the name of the directory which should contain the
 file @code{"DOC"} that contains documentation strings for
-built-in and preloaded functions and variables.
+built-in functions and variables.
 
 In most cases, this is the same as @code{data-directory}.  They may be
 different when you run Emacs from the directory where you built it,

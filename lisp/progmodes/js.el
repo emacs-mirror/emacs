@@ -3542,7 +3542,10 @@ This function is intended for use in `after-change-functions'."
              (identifier)
              (identifier)
              @font-lock-function-name-face)
-      value: (array (number) (function))))
+      value: (array (number) (function)))
+     (import_clause (identifier) @font-lock-variable-name-face)
+     (import_clause (named_imports (import_specifier (identifier))
+                                   @font-lock-variable-name-face)))
 
    :language 'javascript
    :feature 'property

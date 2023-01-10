@@ -555,6 +555,23 @@ value, saved value, customized-but-unsaved value, and themed values.
 Do not set them directly; they are managed by @code{defcustom} and
 related functions.  @xref{Variable Definitions}.
 
+@item definition-name
+This property is used to find the definition of a symbol in the source
+code, when it might be hard to find the definition by textual search
+of the source file.  For example, a @code{define-derived-mode}
+(@pxref{Derived Modes}) might define a mode-specific function or a
+variable implicitly; or your Lisp program might generate a run-time
+call to @code{defun} to define a function (@pxref{Defining
+Functions}).  In these and similar cases, the @code{definition-name}
+property of the symbol should be another symbol whose definition can
+be found by textual search and whose code defines the original symbol.
+In the example with @code{define-derived-mode}, the value of this
+property of the functions and variables it defines should be the mode
+symbol.  The Emacs Help commands such as @kbd{C-h f} (@pxref{Help,,,
+emacs, The GNU Emacs Manual}) use this property to show the definition
+of a symbol via a button in the @file{*Help*} buffer where the
+symbol's documentation is shown.
+
 @item disabled
 If the value is non-@code{nil}, the named function is disabled as a
 command.  @xref{Disabling Commands}.

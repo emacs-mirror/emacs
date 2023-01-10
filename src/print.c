@@ -2034,8 +2034,13 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       /* Now the node must be up-to-date, and calling functions like
 	 Ftreesit_node_start will not signal.  */
       bool named = treesit_named_node_p (XTS_NODE (obj)->node);
-      const char *delim1 = named ? "(" : "\"";
-      const char *delim2 = named ? ")" : "\"";
+      /* We used to use () as delimiters for named nodes, but that
+	 confuses pretty-printing a tad bit.  There might be more
+	 little breakages here and there if we print parenthesizes
+	 inside an object, so I guess better not do it.
+	 (bug#60696)  */
+      const char *delim1 = named ? "" : "\"";
+      const char *delim2 = named ? "" : "\"";
       print_c_string (delim1, printcharfun);
       print_string (Ftreesit_node_type (obj), printcharfun);
       print_c_string (delim2, printcharfun);

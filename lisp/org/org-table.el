@@ -2614,6 +2614,7 @@ location of point."
 
 	(if lispp
 	    (setq ev (condition-case nil
+                         ;; FIXME: Arbitrary code evaluation.
 			 (eval (eval (read form)))
 		       (error "#ERROR"))
 		  ev (if (numberp ev) (number-to-string ev) ev)

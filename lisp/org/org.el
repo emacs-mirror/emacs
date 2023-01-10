@@ -4898,16 +4898,20 @@ The following commands are available:
 	     (= (point-min) (point-max)))
     (insert "#    -*- mode: org -*-\n\n"))
   (unless org-inhibit-startup
+    (when (or org-startup-align-all-tables org-startup-shrink-all-tables)
+      (org-table-map-tables
+       (cond ((and org-startup-align-all-tables
+		   org-startup-shrink-all-tables)
+	      (lambda () (org-table-align) (org-table-shrink)))
+	     (org-startup-align-all-tables #'org-table-align)
+	     (t #'org-table-shrink))
+       t))
+    ;; Suppress modification hooks to speed up the startup.
+    ;; However, do it only when text properties/overlays, but not
+    ;; buffer text are actually modified.  We still need to track text
+    ;; modifications to make cache updates work reliably.
     (org-unmodified
      (when org-startup-with-beamer-mode (org-beamer-mode))
-     (when (or org-startup-align-all-tables org-startup-shrink-all-tables)
-       (org-table-map-tables
-	(cond ((and org-startup-align-all-tables
-		    org-startup-shrink-all-tables)
-	       (lambda () (org-table-align) (org-table-shrink)))
-	      (org-startup-align-all-tables #'org-table-align)
-	      (t #'org-table-shrink))
-	t))
      (when org-startup-with-inline-images (org-display-inline-images))
      (when org-startup-with-latex-preview (org-latex-preview '(16)))
      (unless org-inhibit-startup-visibility-stuff (org-cycle-set-startup-visibility))
@@ -8855,7 +8859,7 @@ keywords relative to each registered export back-end."
     "EXCLUDE_TAGS:" "FILETAGS:" "INCLUDE:" "INDEX:" "KEYWORDS:" "LANGUAGE:"
     "MACRO:" "OPTIONS:" "PROPERTY:" "PRINT_BIBLIOGRAPHY" "PRIORITIES:"
     "SELECT_TAGS:" "SEQ_TODO:" "SETUPFILE:" "STARTUP:" "TAGS:" "TITLE:" "TODO:"
-    "TYP_TODO:" "SELECT_TAGS:" "EXCLUDE_TAGS:"))
+    "TYP_TODO:" "SELECT_TAGS:" "EXCLUDE_TAGS:" "EXPORT_FILE_NAME:"))
 
 (defcustom org-structure-template-alist
   '(("a" . "export ascii")

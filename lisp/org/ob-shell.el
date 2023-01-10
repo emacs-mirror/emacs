@@ -79,7 +79,7 @@ is modified outside the Customize interface."
 	     ,(format "Execute a block of %s commands with Babel." name)
 	     (let ((shell-file-name ,name)
                    (org-babel-prompt-command
-                    (or (alist-get ,name org-babel-shell-set-prompt-commands)
+                    (or (cdr (assoc ,name org-babel-shell-set-prompt-commands))
                         (alist-get t org-babel-shell-set-prompt-commands))))
 	       (org-babel-execute:shell body params))))
     (eval `(defalias ',(intern (concat "org-babel-variable-assignments:" name))
