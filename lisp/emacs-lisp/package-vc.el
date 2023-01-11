@@ -606,6 +606,8 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))
                (pkg-dir (expand-file-name dirname package-user-dir)))
+    (when (string-empty-p name)
+      (user-error "Empty package name"))
     (setf (package-desc-dir pkg-desc) pkg-dir)
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))
@@ -773,7 +775,9 @@ regular package, but it will not remove a VC package.
      (package-vc--archives-initialize)
      (let* ((name-or-url (package-vc--read-package-name
                           "Fetch and install package: " t))
-            (name (file-name-base name-or-url)))
+            (name (file-name-base (directory-file-name name-or-url))))
+       (when (string-empty-p name)
+         (user-error "Empty package name"))
        (list name-or-url
              (and current-prefix-arg :last-release)
              nil
