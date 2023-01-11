@@ -82,6 +82,16 @@
 (require 'ruby-mode)
 
 (declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-next-sibling "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-string "treesit.c")
 
 (defgroup ruby-ts nil
   "Major mode for editing Ruby code."
@@ -304,7 +314,12 @@ values of OVERRIDE"
      (array_pattern
       (identifier) @font-lock-variable-name-face)
      (keyword_pattern
-      key: (hash_key_symbol) @font-lock-variable-name-face)
+      value: (identifier) @font-lock-variable-name-face)
+     (keyword_pattern
+      key: (hash_key_symbol) @font-lock-variable-name-face
+      !value)
+     (as_pattern
+      name: (identifier) @font-lock-variable-name-face)
      (in_clause
       pattern: (identifier) @font-lock-variable-name-face))
 

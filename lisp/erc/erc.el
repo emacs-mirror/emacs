@@ -323,7 +323,8 @@ A typical value would be \((\"Libera.Chat\" \"MODE\")
   \(\"OFTC\" \"JOIN\" \"QUIT\"))."
   :version "25.1"
   :group 'erc-ignore
-  :type 'erc-message-type)
+  :type '(alist :key-type string :value-type erc-message-type
+                :options ("Libera.Chat")))
 
 (defcustom erc-channel-hide-list nil
   "A list of IRC channels to hide message types from.
@@ -331,7 +332,8 @@ A typical value would be \((\"#emacs\" \"QUIT\" \"JOIN\")
   \(\"#erc\" \"NICK\")."
   :version "25.1"
   :group 'erc-ignore
-  :type 'erc-message-type)
+  :type '(alist :key-type string :value-type erc-message-type
+                :options ("#emacs")))
 
 (defcustom erc-disconnected-hook nil
   "Run this hook with arguments (NICK IP REASON) when disconnected.

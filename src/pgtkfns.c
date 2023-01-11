@@ -1902,7 +1902,7 @@ parse_resource_key (const char *res_key, char *setting_key)
 
   /* check existence of setting_key */
   GSettingsSchemaSource *ssrc = g_settings_schema_source_get_default ();
-  GSettingsSchema *scm = g_settings_schema_source_lookup (ssrc, SCHEMA_ID, FALSE);
+  GSettingsSchema *scm = g_settings_schema_source_lookup (ssrc, SCHEMA_ID, TRUE);
   if (!scm)
     return NULL;	/* *.schema.xml is not installed. */
   if (!g_settings_schema_has_key (scm, setting_key))

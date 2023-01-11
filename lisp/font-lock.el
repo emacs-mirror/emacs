@@ -1183,7 +1183,7 @@ This function is the default `font-lock-fontify-region-function'."
            (setq font-lock-syntactically-fontified end))
          (font-lock-fontify-syntactic-keywords-region start end)))
      (unless font-lock-keywords-only
-       (funcall font-lock-fontify-syntactically-function beg end loudly))
+       (font-lock-fontify-syntactically-region beg end loudly))
      (font-lock-fontify-keywords-region beg end loudly)
      `(jit-lock-bounds ,beg . ,end))))
 
@@ -1530,6 +1530,12 @@ START should be at the beginning of a line."
 
 (defvar font-lock-comment-end-skip nil
   "If non-nil, Font Lock mode uses this instead of `comment-end-skip'.")
+
+(defun font-lock-fontify-syntactically-region (beg end &optional loudly)
+  "Syntactically fontify the text between BEG and END.
+If LOUDLY is non-nil, print status messages while fontifying.
+This works by calling `font-lock-fontify-syntactically-function'."
+  (funcall font-lock-fontify-syntactically-function beg end loudly))
 
 (defun font-lock-default-fontify-syntactically (start end &optional loudly)
   "Put proper face on each string and comment between START and END.
@@ -2369,7 +2375,6 @@ in which C preprocessor directives are used, e.g. `asm-mode' and
 
 (define-obsolete-function-alias 'font-lock-after-fontify-buffer #'ignore "29.1")
 (define-obsolete-function-alias 'font-lock-after-unfontify-buffer #'ignore "29.1")
-(define-obsolete-function-alias 'font-lock-fontify-syntactically-region #'font-lock-default-fontify-syntactically "29.1")
 
 
 (provide 'font-lock)

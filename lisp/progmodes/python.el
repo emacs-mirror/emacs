@@ -1067,10 +1067,27 @@ fontified."
                                "expression_statement"))
                    'font-lock-doc-face
                  'font-lock-string-face)))
-    (when (eq (char-after string-beg) ?f)
-      (cl-incf string-beg))
+    ;; Don't highlight string prefixes like f/r/b.
+    (save-excursion
+      (goto-char string-beg)
+      (when (search-forward "\"" string-end t)
+        (setq string-beg (match-beginning 0))))
     (treesit-fontify-with-override
      string-beg string-end face override start end)))
+
+(defun python--treesit-fontify-string-interpolation
+    (node _ start end &rest _)
+  "Fontify string interpolation.
+NODE is the string node.  Do not fontify the initial f for
+f-strings.  START and END mark the region to be
+fontified."
+  ;; This is kind of a hack, it basically removes the face applied by
+  ;; the string feature, so that following features can apply their
+  ;; face.
+  (let ((n-start (treesit-node-start node))
+        (n-end (treesit-node-end node)))
+    (remove-text-properties
+     (max start n-start) (min end n-end) '(face))))
 
 (defvar python--treesit-settings
   (treesit-font-lock-rules
@@ -1082,10 +1099,12 @@ fontified."
    :language 'python
    '((string) @python--treesit-fontify-string)
 
+   ;; HACK: This feature must come after the string feature and before
+   ;; other features.  Maybe we should make string-interpolation an
+   ;; option rather than a feature.
    :feature 'string-interpolation
    :language 'python
-   :override t
-   '((interpolation (identifier) @font-lock-variable-name-face))
+   '((interpolation) @python--treesit-fontify-string-interpolation)
 
    :feature 'definition
    :language 'python
@@ -3766,15 +3785,16 @@ the python shell:
                         (line-beginning-position)
                       start))))
          (substring (buffer-substring-no-properties start end))
-         (starts-at-point-min-p (save-restriction
-                                  (widen)
-                                  (= (point-min) start)))
+         (starts-at-first-line-p (save-restriction
+                                   (widen)
+                                   (goto-char start)
+                                   (= (line-number-at-pos) 1)))
          (encoding (python-info-encoding))
          (toplevel-p (zerop (save-excursion
                               (goto-char start)
                               (python-util-forward-comment 1)
                               (current-indentation))))
-         (fillstr (cond (starts-at-point-min-p
+         (fillstr (cond (starts-at-first-line-p
                          nil)
                         ((not no-cookie)
                          (concat

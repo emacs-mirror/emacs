@@ -1139,18 +1139,15 @@ file names."
 
 (defun tramp-gvfs-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-flush-file-properties v localname)
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (unless (and (tramp-gvfs-send-command
-		    v "gvfs-rm" (tramp-gvfs-url-file-name filename))
-		   (not (tramp-gvfs-info filename)))
-	;; Propagate the error.
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (goto-char (point-min))
-	  (tramp-error-with-buffer
-	   nil v 'file-error "Couldn't delete %s" filename))))))
+  (tramp-skeleton-delete-file filename trash
+    (unless (and (tramp-gvfs-send-command
+		  v "gvfs-rm" (tramp-gvfs-url-file-name filename))
+		 (not (tramp-gvfs-info filename)))
+      ;; Propagate the error.
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(goto-char (point-min))
+	(tramp-error-with-buffer
+	 nil v 'file-error "Couldn't delete %s" filename)))))
 
 (defun tramp-gvfs-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."

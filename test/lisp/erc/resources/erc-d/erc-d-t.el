@@ -32,7 +32,7 @@
     (dolist (buf (buffer-list))
       (with-current-buffer buf
         (when (or erc-d-u--process-buffer
-                  (derived-mode-p 'erc-mode))
+                  (derived-mode-p 'erc-mode 'erc-dcc-chat-mode))
           (push buf buflist))))
     (dolist (buf buflist)
       (when (and (boundp 'erc-server-flood-timer)

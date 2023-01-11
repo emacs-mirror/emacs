@@ -2567,14 +2567,10 @@ The method used must be an out-of-band method."
 
 (defun tramp-sh-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (setq filename (expand-file-name (expand-file-name filename)))
-  (with-parsed-tramp-file-name filename nil
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (tramp-barf-unless-okay
-       v (format "rm -f %s" (tramp-shell-quote-argument localname))
-       "Couldn't delete %s" filename))
-    (tramp-flush-file-properties v localname)))
+  (tramp-skeleton-delete-file filename trash
+    (tramp-barf-unless-okay
+     v (format "rm -f %s" (tramp-shell-quote-argument localname))
+       "Couldn't delete %s" filename)))
 
 ;; Dired.
 

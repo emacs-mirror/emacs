@@ -1888,6 +1888,11 @@ following in the Trash directory:
 liable to also delete this @code{.dir-locals.el} file, so this should
 only be done if you delete files from the Trash directory manually.
 
+@vindex remote-file-name-inhibit-delete-by-moving-to-trash
+  If the variable @code{remote-file-name-inhibit-delete-by-moving-to-trash}
+is non-@code{nil}, remote files are never moved to the Trash.  They
+are deleted instead.
+
 @ifnottex
   If a file is under version control (@pxref{Version Control}), you
 should delete it using @kbd{M-x vc-delete-file} instead of @kbd{M-x

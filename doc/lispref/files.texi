@@ -1871,6 +1871,11 @@ no prefix argument is given, and @code{nil} otherwise.
 See also @code{delete-directory} in @ref{Create/Delete Dirs}.
 @end deffn
 
+@defopt remote-file-name-inhibit-delete-by-moving-to-trash
+If this variable is non-@code{nil}, remote files are never moved to
+the Trash.  They are deleted instead.
+@end defopt
+
 @cindex file permissions, setting
 @cindex permissions, file
 @cindex file modes, setting

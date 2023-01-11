@@ -4936,10 +4936,10 @@ Each @var{matcher} or @var{anchor} is a function that takes three
 arguments: @var{node}, @var{parent}, and @var{bol}.  The argument
 @var{bol} is the buffer position whose indentation is required: the
 position of the first non-whitespace character after the beginning of
-the line.  The argument @var{node} is the largest (highest-in-tree)
-node that starts at that position; and @var{parent} is the parent of
-@var{node}.  However, when that position is in a whitespace or inside
-a multi-line string, no node can start at that position, so
+the line.  The argument @var{node} is the largest node that starts at
+that position (and is not a root node); and @var{parent} is the parent
+of @var{node}.  However, when that position is in a whitespace or
+inside a multi-line string, no node can start at that position, so
 @var{node} is @code{nil}.  In that case, @var{parent} would be the
 smallest node that spans that position.
 

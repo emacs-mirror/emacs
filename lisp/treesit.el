@@ -1143,20 +1143,17 @@ See `treesit-simple-indent-presets'.")
                   (point))))
         (cons 'prev-adaptive-prefix
               (lambda (_n parent &rest _)
-                (save-excursion
-                  (re-search-backward
-                   (rx (not (or " " "\t" "\n"))) nil t)
-                  (beginning-of-line)
-                  (and (>= (point) (treesit-node-start parent))
-                       ;; `adaptive-fill-regexp' will not match "/*",
-                       ;; so we need to also try `comment-start-skip'.
-                       (or (and adaptive-fill-regexp
-                                (looking-at adaptive-fill-regexp)
-                                (> (- (match-end 0) (match-beginning 0)) 0)
-                                (match-end 0))
-                           (and comment-start-skip
-                                (looking-at comment-start-skip)
-                                (match-end 0)))))))
+                (let ((comment-start-bol
+                       (save-excursion
+                         (goto-char (treesit-node-start parent))
+                         (line-beginning-position))))
+                  (save-excursion
+                    (forward-line -1)
+                    (and (>= (point) comment-start-bol)
+                         adaptive-fill-regexp
+                         (looking-at adaptive-fill-regexp)
+                         (> (match-end 0) (match-beginning 0))
+                         (match-end 0))))))
         ;; TODO: Document.
         (cons 'grand-parent
               (lambda (_n parent &rest _)
@@ -1187,9 +1184,12 @@ See `treesit-simple-indent-presets'.")
                          res))))
         (cons 'or (lambda (&rest fns)
                     (lambda (node parent bol &rest _)
-                      (seq-find
-                       (lambda (fn) (funcall fn node parent bol))
-                       fns))))
+                      (let (res)
+                        (catch 'break
+                          (dolist (fn fns)
+                            (setq res (funcall fn node parent bol))
+                            (and res (throw 'break t))))
+                        res))))
         (cons 'not (lambda (fn)
                      (lambda (node parent bol &rest _)
                        (not (funcall fn node parent bol)))))
@@ -1338,10 +1338,10 @@ and returns
     (ANCHOR . OFFSET).
 
 BOL is the position of the beginning of the line; NODE is the
-\"largest\" node that starts at BOL; PARENT is its parent; ANCHOR
-is a point (not a node), and OFFSET is a number.  Emacs finds the
-column of ANCHOR and adds OFFSET to it as the final indentation
-of the current line.")
+\"largest\" node that starts at BOL (and isn't a root node);
+PARENT is its parent; ANCHOR is a point (not a node), and OFFSET
+is a number.  Emacs finds the column of ANCHOR and adds OFFSET to
+it as the final indentation of the current line.")
 
 (defun treesit--indent-1 ()
   "Indent the current line.
@@ -1359,10 +1359,13 @@ Return (ANCHOR . OFFSET).  This function is used by
                 ((treesit-language-at (point))
                  (treesit-node-at bol (treesit-language-at (point))))
                 (t (treesit-node-at bol))))
+         (root (treesit-parser-root-node
+                (treesit-node-parser smallest-node)))
          (node (treesit-parent-while
                 smallest-node
                 (lambda (node)
-                  (eq bol (treesit-node-start node))))))
+                  (and (eq bol (treesit-node-start node))
+                       (not (treesit-node-eq node root)))))))
     (let*
         ((parser (if smallest-node
                      (treesit-node-parser smallest-node)
@@ -2447,11 +2450,15 @@ in the region."
                   (window-start) (window-end) treesit--explorer-language))
            ;; Only highlight the current top-level construct.
            ;; Highlighting the whole buffer is slow and unnecessary.
-           (top-level (treesit-node-first-child-for-pos
-                       root (if (eolp)
-                                (max (point-min) (1- (point)))
-                              (point))
-                       t))
+           ;; But if the buffer is small (ie, used in playground
+           ;; style), just highlight the whole buffer.
+           (top-level (if (< (buffer-size) 4000)
+                          root
+                        (treesit-node-first-child-for-pos
+                         root (if (eolp)
+                                  (max (point-min) (1- (point)))
+                                (point))
+                         t)))
            ;; Only highlight node when region is active, if we
            ;; highlight node at point the syntax tree is too jumpy.
            (nodes-hl

@@ -689,17 +689,17 @@ absolute file names."
     (directory &optional recursive _trash)
   "Like `delete-directory' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name directory) nil
-    (tramp-flush-directory-properties v localname)
     (let (tramp-crypt-enabled)
-      (delete-directory (tramp-crypt-encrypt-file-name directory) recursive))))
+      (delete-directory (tramp-crypt-encrypt-file-name directory) recursive))
+    (tramp-flush-directory-properties v localname)))
 
 ;; Encrypted files won't be trashed.
 (defun tramp-crypt-handle-delete-file (filename &optional _trash)
   "Like `delete-file' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-flush-file-properties v localname)
     (let (tramp-crypt-enabled)
-      (delete-file (tramp-crypt-encrypt-file-name filename)))))
+      (delete-file (tramp-crypt-encrypt-file-name filename)))
+    (tramp-flush-file-properties v localname)))
 
 (defun tramp-crypt-handle-directory-files
     (directory &optional full match nosort count)

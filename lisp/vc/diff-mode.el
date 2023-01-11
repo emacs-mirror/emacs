@@ -485,17 +485,19 @@ use the face `diff-removed' for removed lines, and the face
 	  ;; if below, use `diff-added'.
 	  (save-match-data
 	    (let ((limit (save-excursion (diff-beginning-of-hunk))))
-	      (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
-		  diff-indicator-added-face
-		diff-indicator-removed-face)))))
+              (when (< limit (point))
+                (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
+		    diff-indicator-added-face
+		  diff-indicator-removed-face))))))
      (2 (if diff-use-changed-face
 	    'diff-changed-unspecified
 	  ;; Otherwise, use the same method as above.
 	  (save-match-data
 	    (let ((limit (save-excursion (diff-beginning-of-hunk))))
-	      (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
-		  'diff-added
-		'diff-removed))))))
+	      (when (< limit (point))
+                (if (save-excursion (re-search-backward diff-context-mid-hunk-header-re limit t))
+		    'diff-added
+		  'diff-removed)))))))
     ("^\\(?:Index\\|revno\\): \\(.+\\).*\n"
      (0 'diff-header) (1 'diff-index prepend))
     ("^\\(?:index .*\\.\\.\\|diff \\).*\n" . 'diff-header)
