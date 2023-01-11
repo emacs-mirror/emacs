@@ -5,6 +5,7 @@ language: c
 os:
   - linux
   - osx
+  # See "include" section for Windows
 arch:
   - amd64
   - arm64
@@ -12,6 +13,11 @@ compiler:
   - clang
   - gcc
 matrix:
+  include:
+    - os: windows
+      arch: amd64
+      compiler: clang # This is a lie since we invoke MV (Microsoft C)
+      script: MSYS2_ARG_CONV_EXCL='*' cmd /c 'code\w3i6mv.bat'
   exclude:
     - os: osx
       compiler: gcc
@@ -23,4 +29,4 @@ notifications:
 #  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get -qq update; fi
 #  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get install -y gcc-4.7; fi
 script:
-  - ./configure --prefix=$PWD/prefix && make install && make test
+- ./configure --prefix=$PWD/prefix && make install && make test
