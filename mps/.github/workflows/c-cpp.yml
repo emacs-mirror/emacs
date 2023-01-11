@@ -1,0 +1,27 @@
+# .github/workflows/c-cpp.yml
+#
+# GitHub CI <https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration>
+#
+# Adapted from <https://github.com/actions/starter-workflows/blob/9f245d9aba830ad16a097a45c78331a05114d815/ci/c-cpp.yml>
+
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make
+    - name: make test
+      run: make test
