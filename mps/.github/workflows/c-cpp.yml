@@ -35,7 +35,5 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: make
-      run: |
-        cd code
-        nmake /f w3i6mv.nmk
+      run: code\w3i6mv.bat
       shell: cmd
