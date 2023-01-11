@@ -171,6 +171,16 @@ These steps will only rarely need repeating.
      git checkout branch/2023-01-06/speed-hax
      git merge master
 
+   Edit the commit message to say something like:
+
+     Merging branch/2023-01-06/speed-hax for pull request 93
+     <https://github.com/Ravenbrook/mps/pull/93>.
+
+   Do *not* just say "pull request 93" without a link, because that
+   number is local to, and only valid on GitHub.  Bear this in mind
+   for other references.  Do add any other links that would increase
+   traceability.
+
    You may need to resolve conflicts.  If you can't resolve conflicts
    yourself, you may need to involve the original author of the
    branch.  If you still can't resolve conflicts, this procedure
