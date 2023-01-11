@@ -209,8 +209,14 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   :version "28.1")
 
 (defvar outline-minor-mode-cycle)
+(defvar outline-minor-mode-cycle-map)
 (defun outline-minor-mode-cycle--bind (map key binding &optional filter)
-  (define-key map key
+  "Define KEY as BINDING in MAP using FILTER.
+The key takes effect only on the following conditions:
+`outline-minor-mode-cycle' is non-nil, point is located on the heading line,
+FILTER or `outline-minor-mode-cycle-filter' is nil or returns non-nil.
+The argument MAP is optional and defaults to `outline-minor-mode-cycle-map'."
+  (define-key (or map outline-minor-mode-cycle-map) key
     `(menu-item
       "" ,binding
       ;; Filter out specific positions on the heading.
@@ -227,8 +233,16 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   (let ((map (make-sparse-keymap)))
     (outline-minor-mode-cycle--bind map (kbd "TAB") #'outline-cycle)
     (outline-minor-mode-cycle--bind map (kbd "<backtab>") #'outline-cycle-buffer)
+    (keymap-set map "<left-margin> <mouse-1>" 'outline-cycle)
+    (keymap-set map "<right-margin> <mouse-1>" 'outline-cycle)
+    (keymap-set map "<left-margin> S-<mouse-1>" 'outline-cycle-buffer)
+    (keymap-set map "<right-margin> S-<mouse-1>" 'outline-cycle-buffer)
     map)
-  "Keymap used by `outline-minor-mode-cycle'.")
+  "Keymap used as a parent of the `outline-minor-mode' keymap.
+It contains key bindings that can be used to cycle visibility.
+The recommended way to bind keys is with `outline-minor-mode-cycle--bind'
+when the key should be enabled only when `outline-minor-mode-cycle' is
+non-nil and point is located on the heading line.")
 
 (defvar outline-mode-map
   (let ((map (make-sparse-keymap)))
@@ -518,10 +532,6 @@ See the command `outline-mode' for more information on this mode."
   :keymap (define-keymap
             :parent outline-minor-mode-cycle-map
             "<menu-bar>" outline-minor-mode-menu-bar-map
-            "<left-margin> <mouse-1>" 'outline-cycle
-            "<right-margin> <mouse-1>" 'outline-cycle
-            "<left-margin> S-<mouse-1>" 'outline-cycle-buffer
-            "<right-margin> S-<mouse-1>" 'outline-cycle-buffer
             (key-description outline-minor-mode-prefix) outline-mode-prefix-map)
   (if outline-minor-mode
       (progn
