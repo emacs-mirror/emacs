@@ -10,8 +10,9 @@ if: NOT branch IN (branch/2023-01-11/github-ci)
 language: c # see <https://docs.travis-ci.com/user/languages/c/>.
 os:
   - freebsd
-  - linux
-  - osx
+  # Linux and macOS moved to GitHub CI.  See .github/workflows/c-cpp.yml.
+  # - linux
+  # - osx
   # See "include" section for Windows
 arch:
   - amd64
@@ -24,11 +25,12 @@ script:
 
 matrix:
   # Extra build jobs to add to the matrix
-  include:
-    - os: windows
-      arch: amd64
-      compiler: clang # This is a lie since we invoke MV (Microsoft C)
-      script: MSYS2_ARG_CONV_EXCL='*' cmd /c 'code\w3i6mv.bat'
+  # Windows moved to GitHub CI.  See .github/workflows/c-cpp.yml.
+  # include:
+  #  - os: windows
+  #    arch: amd64
+  #    compiler: clang # This is a lie since we invoke MV (Microsoft C)
+  #    script: MSYS2_ARG_CONV_EXCL='*' cmd /c 'code\w3i6mv.bat'
   # Specific combinations to exclude from the matrix
   exclude:
     - os: osx
