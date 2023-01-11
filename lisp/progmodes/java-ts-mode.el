@@ -122,7 +122,8 @@
     "provides" "public" "requires" "return" "sealed"
     "static" "strictfp" "switch" "synchronized"
     "throw" "throws" "to" "transient" "transitive"
-    "try" "uses" "volatile" "while" "with" "record")
+    "try" "uses" "volatile" "while" "with" "record"
+    "@interface")
   "Java keywords for tree-sitter font-locking.")
 
 (defvar java-ts-mode--operators
@@ -183,7 +184,10 @@
    :language 'java
    :override t
    :feature 'type
-   '((interface_declaration
+   '((annotation_type_declaration
+      name: (identifier) @font-lock-type-face)
+
+     (interface_declaration
       name: (identifier) @font-lock-type-face)
 
      (class_declaration
