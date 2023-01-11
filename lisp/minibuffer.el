@@ -986,7 +986,7 @@ already visible.
 If the value is `visible', the *Completions* buffer is displayed
 whenever completion is requested but cannot be done for the first time,
 but remains visible thereafter, and the list of completions in it is
-updated for subsequent attempts to complete.."
+updated for subsequent attempts to complete."
   :type '(choice (const :tag "Don't show" nil)
                  (const :tag "Show only when cannot complete" t)
                  (const :tag "Show after second failed completion attempt" lazy)

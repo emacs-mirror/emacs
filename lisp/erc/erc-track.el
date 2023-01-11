@@ -521,7 +521,9 @@ keybindings will not do anything useful."
        (add-hook 'erc-disconnected-hook #'erc-modified-channels-update))
      ;; enable the tracking keybindings
      (add-hook 'erc-connect-pre-hook #'erc-track-minor-mode-maybe)
-     (erc-track-minor-mode-maybe)))
+     (erc-track-minor-mode-maybe))
+   (add-hook 'erc-networks--copy-server-buffer-functions
+             #'erc-track--replace-killed-buffer))
   ;; Disable:
   ((when (boundp 'erc-track-when-inactive)
      (erc-track-remove-from-mode-line)
@@ -539,7 +541,9 @@ keybindings will not do anything useful."
      ;; disable the tracking keybindings
      (remove-hook 'erc-connect-pre-hook #'erc-track-minor-mode-maybe)
      (when erc-track-minor-mode
-       (erc-track-minor-mode -1)))))
+       (erc-track-minor-mode -1)))
+   (remove-hook 'erc-networks--copy-server-buffer-functions
+                #'erc-track--replace-killed-buffer)))
 
 (defcustom erc-track-when-inactive nil
   "Enable channel tracking even for visible buffers, if you are inactive."
@@ -941,6 +945,10 @@ non-ERC buffer visited.  The order of buffers is defined by
 reverse it."
   (interactive "p")
   (erc-track--switch-buffer 'switch-to-buffer-other-window arg))
+
+(defun erc-track--replace-killed-buffer (existing)
+  (when-let ((found (assq existing erc-modified-channels-alist)))
+    (setcar found (current-buffer))))
 
 (provide 'erc-track)
 
