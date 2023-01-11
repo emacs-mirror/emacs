@@ -182,7 +182,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   size = AddrOffset(base, limit);
 
-  result = mmap((void *)base, (size_t)size, vm_prot,
+  result = mmap((void *)base, (size_t)size, (int)vm_prot,
                 MAP_ANON | MAP_PRIVATE | MAP_FIXED,
                 -1, 0);
   if (MAYBE_HARDENED_RUNTIME && result == MAP_FAILED && errno == EACCES
