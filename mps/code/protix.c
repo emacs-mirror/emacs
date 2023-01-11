@@ -94,7 +94,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
     flags = PROT_READ | PROT_EXEC;
     break;
   case AccessSetEMPTY:
-    flags = prot_all;
+    flags = (int)prot_all; /* potential narrowing cast, but safe */
     break;
   default:
     NOTREACHED;
