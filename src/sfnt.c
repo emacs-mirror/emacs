@@ -34,6 +34,10 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include <string.h>
 #include <unistd.h>
 
+#if defined __GNUC__ && !defined __clang__
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+
 #ifdef TEST
 
 #include <time.h>
@@ -221,16 +225,11 @@ sfnt_read_cmap_format_0 (int fd,
   format0->format = header->format;
   format0->length = header->length;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
-
   /* Read the rest.  */
   wanted_size = (sizeof *format0
 		 - offsetof (struct sfnt_cmap_format_0,
 			     language));
   rc = read (fd, &format0->language, wanted_size);
-
-#pragma GCC diagnostic pop
 
   if (rc < wanted_size)
     {
@@ -266,9 +265,6 @@ sfnt_read_cmap_format_2 (int fd,
   format2 = xmalloc (header->length + sizeof *format2);
   format2->format = header->format;
   format2->length = header->length;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
 
   /* Read the part before the variable length data.  */
   min_bytes -= offsetof (struct sfnt_cmap_format_2, language);
@@ -312,8 +308,6 @@ sfnt_read_cmap_format_2 (int fd,
       xfree (format2);
       return (struct sfnt_cmap_format_2 *) -1;
     }
-
-#pragma GCC diagnostic pop
 
   /* Check whether or not the data is of the correct size.  */
   if (min_bytes < nsub * sizeof *format2->subheaders)
@@ -376,9 +370,6 @@ sfnt_read_cmap_format_4 (int fd,
   /* Copy over fields that have already been read.  */
   format4->format = header->format;
   format4->length = header->length;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
 
   /* Read the initial data.  */
   min_bytes -= offsetof (struct sfnt_cmap_format_4, language);
@@ -453,8 +444,6 @@ sfnt_read_cmap_format_4 (int fd,
   for (i = 0; i < format4->glyph_index_size; ++i)
     sfnt_swap16 (&format4->glyph_index_array[i]);
 
-#pragma GCC diagnostic pop
-
   /* Done.  Return the format 4 character map.  */
   return format4;
 }
@@ -485,9 +474,6 @@ sfnt_read_cmap_format_6 (int fd,
   /* Fill in data that has already been read.  */
   format6->format = header->format;
   format6->length = header->length;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
 
   /* Read the fixed size data.  */
   min_size -= offsetof (struct sfnt_cmap_format_6, language);
@@ -521,8 +507,6 @@ sfnt_read_cmap_format_6 (int fd,
       xfree (format6);
       return (struct sfnt_cmap_format_6 *) -1;
     }
-
-#pragma GCC diagnostic pop
 
   /* Set the data pointer and swap everything.  */
   format6->glyph_index_array = (uint16_t *) (format6 + 1);
@@ -564,9 +548,6 @@ sfnt_read_cmap_format_8 (int fd,
   format8->format = header->format;
   format8->reserved = header->length;
   format8->length = length;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
 
   /* Read the fixed length data.  */
   min_size -= offsetof (struct sfnt_cmap_format_8, language);
@@ -612,8 +593,6 @@ sfnt_read_cmap_format_8 (int fd,
       xfree (format8);
       return (struct sfnt_cmap_format_8 *) -1;
     }
-
-#pragma GCC diagnostic pop
 
   /* Set the pointer to the variable length data.  */
   format8->groups
@@ -662,9 +641,6 @@ sfnt_read_cmap_format_12 (int fd,
   format12->reserved = header->length;
   format12->length = length;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
-
   /* Read the fixed length data.  */
   min_size -= offsetof (struct sfnt_cmap_format_12, language);
   rc = read (fd, &format12->language, min_size);
@@ -673,8 +649,6 @@ sfnt_read_cmap_format_12 (int fd,
       xfree (format12);
       return (struct sfnt_cmap_format_12 *) -1;
     }
-
-#pragma GCC diagnostic pop
 
   /* Swap what was read.  */
   sfnt_swap32 (&format12->language);
@@ -991,31 +965,15 @@ sfnt_compare_uint16 (const void *a, const void *b)
   return ((int) *((uint16_t *) a)) - ((int) *((uint16_t *) b));
 }
 
-/* Look up the glyph corresponding to CHARACTER in the format 4 cmap
-   FORMAT4.  Return 0 if no glyph was found.  */
+/* Look up the glyph corresponding to CODE in the format 4 cmap
+   FORMAT4, using the table segment SEGMENT.  Value is 0 if no glyph
+   was found.  */
 
 static sfnt_glyph
-sfnt_lookup_glyph_4 (sfnt_char character,
-		     struct sfnt_cmap_format_4 *format4)
+sfnt_lookup_glyph_4_1 (uint16_t code, uint16_t segment,
+		       struct sfnt_cmap_format_4 *format4)
 {
-  uint16_t *segment_address, *index;
-  uint16_t code, segment;
-
-  if (character > 65535)
-    return 0;
-
-  code = character;
-
-  /* Find the segment above CHARACTER.  */
-  segment_address = sfnt_bsearch_above (&code, format4->end_code,
-					format4->seg_count_x2 / 2,
-					sizeof code,
-					sfnt_compare_uint16);
-  segment = segment_address - format4->end_code;
-
-  /* If the segment starts too late, return 0.  */
-  if (!segment_address || format4->start_code[segment] > character)
-    return 0;
+  uint16_t *index;
 
   if (format4->id_range_offset[segment])
     {
@@ -1038,6 +996,63 @@ sfnt_lookup_glyph_4 (sfnt_char character,
 
   /* Otherwise, just add id_delta.  */
   return (format4->id_delta[segment] + code) % 65536;
+}
+
+/* Look up the glyph corresponding to CHARACTER in the format 4 cmap
+   FORMAT4.  Return 0 if no glyph was found.  */
+
+static sfnt_glyph
+sfnt_lookup_glyph_4 (sfnt_char character,
+		     struct sfnt_cmap_format_4 *format4)
+{
+  uint16_t *segment_address;
+  uint16_t code, segment;
+  sfnt_glyph glyph;
+
+  if (character > 65535)
+    return 0;
+
+  code = character;
+
+  /* Find the segment ending above or at CHARACTER.  */
+  segment_address = sfnt_bsearch_above (&code, format4->end_code,
+					format4->seg_count_x2 / 2,
+					sizeof code,
+					sfnt_compare_uint16);
+  segment = segment_address - format4->end_code;
+
+  /* If the segment starts too late, return 0.  */
+  if (!segment_address || format4->start_code[segment] > character)
+    return 0;
+
+  glyph = sfnt_lookup_glyph_4_1 (character, segment, format4);
+
+  if (glyph)
+    return glyph;
+
+  /* Droid Sans Mono has overlapping segments in its format 4 cmap
+     subtable where the first segment's end code is 32, while the
+     second segment's start code is also 32.  The TrueType Reference
+     Manual says that mapping should begin by searching for the first
+     segment whose end code is greater than or equal to the character
+     being indexed, but that results in the first subtable being
+     found, which doesn't work, while the second table does.  Try to
+     detect this situation and use the second table if possible.  */
+
+  if (!glyph
+      /* The character being looked up is the current segment's end
+	 code.  */
+      && code == format4->end_code[segment]
+      /* There is an additional segment.  */
+      && segment + 1 < format4->seg_count_x2 / 2
+      /* That segment's start code is the same as this segment's end
+	 code.  */
+      && format4->start_code[segment + 1] == format4->end_code[segment])
+    /* Try the second segment.  */
+    return sfnt_lookup_glyph_4_1 (character, segment + 1, format4);
+
+  /* Fail.  */
+  return 0;
 }
 
 /* Look up the glyph corresponding to CHARACTER in the format 6 cmap
@@ -1107,7 +1122,7 @@ sfnt_lookup_glyph_12 (sfnt_char character,
    which must be in the correct encoding for the cmap table pointed to
    by DATA.  */
 
-static sfnt_glyph
+TEST_STATIC sfnt_glyph
 sfnt_lookup_glyph (sfnt_char character,
 		   struct sfnt_cmap_encoding_subtable_data *data)
 {
@@ -1520,7 +1535,7 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
   /* Calculate the minimum size of the glyph data.  This is the size
      of the instruction length field followed by
-     glyf->number_of_contours * sizeof (uint16_t).  */
+     glyph->number_of_contours * sizeof (uint16_t).  */
 
   min_size = (glyph->number_of_contours * sizeof (uint16_t)
 	      + sizeof (uint16_t));
@@ -2023,25 +2038,50 @@ sfnt_read_glyph (sfnt_glyph glyph_code,
 		 struct sfnt_loca_table_long *loca_long)
 {
   struct sfnt_glyph glyph, *memory;
-  ptrdiff_t offset;
+  ptrdiff_t offset, next_offset;
+
+  /* Check the glyph code is within bounds.  */
+  if (glyph_code > 65535)
+    return NULL;
 
   if (loca_short)
     {
-      /* Check that the glyph is within bounds.  */
-      if (glyph_code > loca_short->num_offsets)
+      /* Check that the glyph is within bounds.  glyph_code + 1 is the
+	 entry in the table which defines the length of the glyph.  */
+      if (glyph_code + 1 >= loca_short->num_offsets)
 	return NULL;
 
       offset = loca_short->offsets[glyph_code] * 2;
+      next_offset = loca_short->offsets[glyph_code + 1] * 2;
     }
   else if (loca_long)
     {
-      if (glyph_code > loca_long->num_offsets)
+      if (glyph_code + 1 >= loca_long->num_offsets)
 	return NULL;
 
       offset = loca_long->offsets[glyph_code];
+      next_offset = loca_long->offsets[glyph_code + 1];
     }
   else
     abort ();
+
+  /* If offset - next_offset is 0, then the glyph is empty.  Its
+     horizontal advance may still be provided by the hmtx table.  */
+
+  if (offset == next_offset)
+    {
+      glyph.number_of_contours = 0;
+      glyph.xmin = 0;
+      glyph.ymin = 0;
+      glyph.xmax = 0;
+      glyph.ymax = 0;
+      glyph.simple = xmalloc (sizeof *glyph.simple);
+      glyph.compound = NULL;
+      memset (glyph.simple, 0, sizeof *glyph.simple);
+      memory = xmalloc (sizeof *memory);
+      *memory = glyph;
+      return memory;
+    }
 
   /* Verify that GLYF is big enough to hold a glyph at OFFSET.  */
   if (glyf->size < offset + SFNT_ENDOF (struct sfnt_glyph,
@@ -2102,7 +2142,7 @@ sfnt_read_glyph (sfnt_glyph glyph_code,
 
 /* Free a glyph returned from sfnt_read_glyph.  GLYPH may be NULL.  */
 
-static void
+TEST_STATIC void
 sfnt_free_glyph (struct sfnt_glyph *glyph)
 {
   if (!glyph)
@@ -2122,7 +2162,7 @@ sfnt_free_glyph (struct sfnt_glyph *glyph)
 
 static void
 sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
-			    sfnt_fixed *x, sfnt_fixed *y,
+			    sfnt_fixed *restrict x, sfnt_fixed *restrict y,
 			    size_t num_coordinates)
 {
   double m1, m2, m3;
@@ -2516,8 +2556,8 @@ static void
 sfnt_lerp_half (struct sfnt_point *control1, struct sfnt_point *control2,
 		struct sfnt_point *result)
 {
-  result->x = (control1->x + control2->x) / 2;
-  result->y = (control1->y + control2->y) / 2;
+  result->x = control1->x + ((control2->x - control1->x) >> 1);
+  result->y = control1->y + ((control2->y - control1->y) >> 1);
 }
 
 /* Decompose GLYPH into its individual components.  Call MOVE_TO to
@@ -2548,7 +2588,7 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 		      sfnt_free_glyph_proc free_glyph,
 		      void *dcontext)
 {
-  size_t here, last;
+  size_t here, start, last;
   struct sfnt_point pen, control1, control2;
   struct sfnt_compound_glyph_context context;
   size_t n;
@@ -2556,8 +2596,8 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
   if (glyph->simple)
     {
       if (!glyph->number_of_contours)
-	/* No contours.  */
-	return 1;
+	/* No contours.  Nothing needs to be decomposed.  */
+	return 0;
 
       here = 0;
 
@@ -2572,6 +2612,9 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 	  pen.x = glyph->simple->x_coordinates[here] << 16U;
 	  pen.y = glyph->simple->y_coordinates[here] << 16U;
 	  move_to (pen, dcontext);
+
+	  /* Record start so the contour can be closed.  */
+	  start = here;
 
 	  /* If there is only one point in a contour, draw a one pixel
 	     wide line.  */
@@ -2635,6 +2678,39 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 		  curve_to (control1, pen, dcontext);
 		}
 	    }
+
+	  /* Now close the contour if there is more than one point
+	     inside it.  */
+	  if (start != here - 1)
+	    {
+	      /* Restore here after the for loop increased it.  */
+	      here --;
+
+	      if (glyph->simple->flags[start] & 01) /* On Curve */
+		{
+		  pen.x = glyph->simple->x_coordinates[start] << 16U;
+		  pen.y = glyph->simple->y_coordinates[start] << 16U;
+
+		  /* See if the last point (in this case, `here') was
+		     on the curve.  If it wasn't, then curve from
+		     there to here.  */
+		  if (!(glyph->simple->flags[here] & 01))
+		    {
+		      control1.x
+			= glyph->simple->x_coordinates[here] << 16U;
+		      control1.y
+			= glyph->simple->y_coordinates[here] << 16U;
+		      curve_to (control1, pen, dcontext);
+		    }
+		  else
+		    /* Otherwise, this is an ordinary line from there
+		       to here.  */
+		    line_to (pen, dcontext);
+		}
+
+	      /* Restore here to where it was earlier.  */
+	      here++;
+	    }
 	}
 
       return 0;
@@ -2659,7 +2735,7 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 
   if (!context.num_end_points)
     /* No contours.  */
-    goto fail;
+    goto early;
 
   here = 0;
 
@@ -2674,6 +2750,9 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
       pen.x = context.x_coordinates[here];
       pen.y = context.y_coordinates[here];
       move_to (pen, dcontext);
+
+      /* Record start so the contour can be closed.  */
+      start = here;
 
       /* If there is only one point in a contour, draw a one pixel
 	 wide line.  */
@@ -2735,8 +2814,40 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 	      curve_to (control1, pen, dcontext);
 	    }
 	}
+
+      /* Now close the contour if there is more than one point
+	 inside it.  */
+      if (start != here - 1)
+	{
+	  /* Restore here after the for loop increased it.  */
+	  here --;
+
+	  if (context.flags[start] & 01) /* On Curve */
+	    {
+	      pen.x = context.x_coordinates[start];
+	      pen.y = context.y_coordinates[start];
+
+	      /* See if the last point (in this case, `here') was
+		 on the curve.  If it wasn't, then curve from
+		 there to here.  */
+	      if (!(context.flags[here] & 01))
+		{
+		  control1.x = context.x_coordinates[here];
+		  control1.y = context.y_coordinates[here];
+		  curve_to (control1, pen, dcontext);
+		}
+	      else
+		/* Otherwise, this is an ordinary line from there
+		   to here.  */
+		line_to (pen, dcontext);
+	    }
+
+	  /* Restore here to where it was earlier.  */
+	  here++;
+	}
     }
 
+ early:
   xfree (context.x_coordinates);
   xfree (context.y_coordinates);
   xfree (context.flags);
@@ -2750,6 +2861,25 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
   xfree (context.contour_end_points);
   return 1;
 }
+
+struct sfnt_build_glyph_outline_context
+{
+  /* The outline being built.  */
+  struct sfnt_glyph_outline *outline;
+
+  /* The head table.  */
+  struct sfnt_head_table *head;
+
+  /* The pixel size being used, and any extra flags to apply to the
+     outline at this point.  */
+  int pixel_size;
+
+  /* Factor to multiply positions by to get the pixel width.  */
+  sfnt_fixed factor;
+
+  /* The position of the pen in 16.16 fixed point format.  */
+  sfnt_fixed x, y;
+};
 
 /* Global state for sfnt_build_glyph_outline and related
    functions.  */
@@ -2794,7 +2924,7 @@ sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
 
   /* Extend outline bounding box.  */
 
-  if (outline->outline_used == 3)
+  if (outline->outline_used == 1)
     {
       /* These are the first points in the outline.  */
       outline->xmin = outline->xmax = x;
@@ -2809,40 +2939,6 @@ sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
     }
 
   return outline;
-}
-
-/* Set the pen size to the specified point and return.  POINT will be
-   scaled up to the pixel size.  */
-
-static void
-sfnt_move_to_and_build (struct sfnt_point point, void *dcontext)
-{
-  sfnt_fixed x, y;
-
-  x = build_outline_context.factor * point.x;
-  y = build_outline_context.factor * point.y;
-
-  build_outline_context.outline = sfnt_build_append (0, x, y);
-  build_outline_context.x = x;
-  build_outline_context.y = y;
-}
-
-/* Record a line to the specified point and return.  POINT will be
-   scaled up to the pixel size.  */
-
-static void
-sfnt_line_to_and_build (struct sfnt_point point, void *dcontext)
-{
-  sfnt_fixed x, y;
-
-  x = build_outline_context.factor * point.x;
-  y = build_outline_context.factor * point.y;
-
-  build_outline_context.outline
-    = sfnt_build_append (SFNT_GLYPH_OUTLINE_LINETO,
-			 x, y);
-  build_outline_context.x = x;
-  build_outline_context.y = y;
 }
 
 /* Multiply the two 16.16 fixed point numbers X and Y.  Return the
@@ -2876,6 +2972,40 @@ sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
 
   return (product_high << 16) | (product_low >> 16);
 #endif
+}
+
+/* Set the pen size to the specified point and return.  POINT will be
+   scaled up to the pixel size.  */
+
+static void
+sfnt_move_to_and_build (struct sfnt_point point, void *dcontext)
+{
+  sfnt_fixed x, y;
+
+  x = sfnt_mul_fixed (build_outline_context.factor, point.x);
+  y = sfnt_mul_fixed (build_outline_context.factor, point.y);
+
+  build_outline_context.outline = sfnt_build_append (0, x, y);
+  build_outline_context.x = x;
+  build_outline_context.y = y;
+}
+
+/* Record a line to the specified point and return.  POINT will be
+   scaled up to the pixel size.  */
+
+static void
+sfnt_line_to_and_build (struct sfnt_point point, void *dcontext)
+{
+  sfnt_fixed x, y;
+
+  x = sfnt_mul_fixed (build_outline_context.factor, point.x);
+  y = sfnt_mul_fixed (build_outline_context.factor, point.y);
+
+  build_outline_context.outline
+    = sfnt_build_append (SFNT_GLYPH_OUTLINE_LINETO,
+			 x, y);
+  build_outline_context.x = x;
+  build_outline_context.y = y;
 }
 
 /* Divide the two 16.16 fixed point numbers X and Y.  Return the
@@ -2957,7 +3087,7 @@ sfnt_curve_to_and_build_1 (struct sfnt_point control0,
 			   struct sfnt_point control1,
 			   struct sfnt_point endpoint)
 {
-  struct sfnt_point ab;
+  struct sfnt_point ab, bc, abbc;
 
   /* control0, control and endpoint make up the spline.  Figure out
      its distance from a line.  */
@@ -2972,15 +3102,17 @@ sfnt_curve_to_and_build_1 (struct sfnt_point control0,
     }
   else
     {
-      /* Split the spline between control0 and control1.
+      /* Calculate new control points.
          Maybe apply a recursion limit here? */
       sfnt_lerp_half (&control0, &control1, &ab);
+      sfnt_lerp_half (&control1, &endpoint, &bc);
+      sfnt_lerp_half (&ab, &bc, &abbc);
 
       /* Keep splitting until a flat enough spline results.  */
-      sfnt_curve_to_and_build_1 (control0, ab, control1);
+      sfnt_curve_to_and_build_1 (control0, ab, abbc);
 
       /* Then go on with the spline between control1 and endpoint.  */
-      sfnt_curve_to_and_build_1 (ab, control1, endpoint);
+      sfnt_curve_to_and_build_1 (abbc, bc, endpoint);
     }
 }
 
@@ -2997,17 +3129,21 @@ sfnt_curve_to_and_build (struct sfnt_point control,
 
   control0.x = build_outline_context.x;
   control0.y = build_outline_context.y;
-  control.x *= build_outline_context.factor;
-  control.y *= build_outline_context.factor;
-  endpoint.x *= build_outline_context.factor;
-  endpoint.y *= build_outline_context.factor;
+  control.x = sfnt_mul_fixed (control.x,
+			      build_outline_context.factor);
+  control.y = sfnt_mul_fixed (control.y,
+			      build_outline_context.factor);
+  endpoint.x = sfnt_mul_fixed (endpoint.x,
+			       build_outline_context.factor);
+  endpoint.y = sfnt_mul_fixed (endpoint.y,
+			       build_outline_context.factor);
 
   sfnt_curve_to_and_build_1 (control0, control, endpoint);
 }
 
 /* Non-reentrantly build the outline for the specified GLYPH at the
-   given pixel size.  Return the outline data upon success, or NULL
-   upon failure.
+   given pixel size.  Return the outline data with a refcount of 0
+   upon success, or NULL upon failure.
 
    Call GET_GLYPH and FREE_GLYPH with the specified DCONTEXT to obtain
    glyphs for compound glyph subcomponents.
@@ -3029,6 +3165,7 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
   outline = xmalloc (sizeof *outline + 40 * sizeof (*outline->outline));
   outline->outline_size = 40;
   outline->outline_used = 0;
+  outline->refcount = 0;
   outline->outline
     = (struct sfnt_glyph_outline_command *) (outline + 1);
 
@@ -3059,7 +3196,8 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
      It would be nice to get rid of this floating point arithmetic at
      some point.  */
   build_outline_context.factor
-    = (double) pixel_size / head->units_per_em;
+    = sfnt_div_fixed (pixel_size << 16,
+		      head->units_per_em << 16);
 
   /* Decompose the outline.  */
   rc = sfnt_decompose_glyph (glyph, sfnt_move_to_and_build,
@@ -3108,11 +3246,17 @@ sfnt_poly_grid_ceil (sfnt_fixed f)
 	   & ~(SFNT_POLY_STEP - 1)) + SFNT_POLY_START);
 }
 
-/* Initialize the specified RASTER in preparation for displaying spans
-   for OUTLINE.  The caller must then set RASTER->cells to a zeroed
-   array of size RASTER->width * RASTER->height.  */
+enum
+  {
+    SFNT_POLY_ALIGNMENT = 4,
+  };
 
-static void
+/* Initialize the specified RASTER in preparation for displaying spans
+   for OUTLINE, and set RASTER->refcount to 0.  The caller must then
+   set RASTER->cells to a zeroed array of size RASTER->stride *
+   RASTER->height, aligned to RASTER.  */
+
+TEST_STATIC void
 sfnt_prepare_raster (struct sfnt_raster *raster,
 		     struct sfnt_glyph_outline *outline)
 {
@@ -3120,10 +3264,17 @@ sfnt_prepare_raster (struct sfnt_raster *raster,
     = sfnt_ceil_fixed (outline->xmax - outline->xmin) >> 16;
   raster->height
     = sfnt_ceil_fixed (outline->ymax - outline->ymin) >> 16;
+  raster->refcount = 0;
+
+  /* Align the raster to a SFNT_POLY_ALIGNMENT byte boundary.  */
+  raster->stride = ((raster->width
+		     + (SFNT_POLY_ALIGNMENT - 1))
+		    & ~(SFNT_POLY_ALIGNMENT - 1));
+
   raster->offx
-    = sfnt_floor_fixed (outline->xmin);
+    = sfnt_floor_fixed (outline->xmin) >> 16;
   raster->offy
-    = sfnt_floor_fixed (raster->height - outline->ymax);
+    = sfnt_floor_fixed (outline->ymin) >> 16;
 }
 
 typedef void (*sfnt_edge_proc) (struct sfnt_edge *, size_t,
@@ -3131,13 +3282,13 @@ typedef void (*sfnt_edge_proc) (struct sfnt_edge *, size_t,
 typedef void (*sfnt_span_proc) (struct sfnt_edge *, sfnt_fixed, void *);
 
 /* Move EDGE->x forward, assuming that the scanline has moved upwards
-   by DY.  */
+   by SFNT_POLY_STEP.  */
 
 static void
-sfnt_step_edge_by (struct sfnt_edge *edge, sfnt_fixed dy)
+sfnt_step_edge (struct sfnt_edge *edge)
 {
   /* Step edge.  */
-  edge->x += sfnt_mul_fixed (edge->step_x, dy);
+  edge->x += edge->step_x;
 }
 
 /* Build a list of edges for each contour in OUTLINE, applying
@@ -3151,31 +3302,26 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 			  sfnt_edge_proc edge_proc, void *dcontext)
 {
   struct sfnt_edge *edges;
-  size_t i, edge, start, next_vertex, y;
-  sfnt_fixed dx, dy, bot;
+  size_t i, edge, next_vertex;
+  sfnt_fixed dx, dy, bot, step_x;
   int inc_x;
-  size_t top, bottom;
+  size_t top, bottom, y;
 
   edges = alloca (outline->outline_used * sizeof *edges);
   edge = 0;
 
-  /* First outline currently being processed.  */
-  start = 0;
-
-  for (i = 0; i < outline->outline_used; i++)
+  for (i = 0; i < outline->outline_used; ++i)
     {
-      if (!(outline->outline[i].flags & SFNT_GLYPH_OUTLINE_LINETO))
-	/* Flush the edge.  */
-	start = i;
-
       /* Set NEXT_VERTEX to the next point (vertex) in this contour.
-	 If i + 3 is the end of the contour, then the next point is
-	 its start, so wrap it around to there.  */
+
+	 If i is past the end of the contour, then don't build edges
+	 for this point.  */
       next_vertex = i + 1;
+
       if (next_vertex == outline->outline_used
 	  || !(outline->outline[next_vertex].flags
 	       & SFNT_GLYPH_OUTLINE_LINETO))
-	next_vertex = start;
+	continue;
 
       /* Skip past horizontal vertices.  */
       if (outline->outline[next_vertex].y == outline->outline[i].y)
@@ -3220,6 +3366,10 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
       dy = abs (outline->outline[top].y
 		- outline->outline[bottom].y);
 
+#ifdef TEST
+      edges[edge].source_x = edges[edge].x;
+#endif
+
       /* Compute the increment.  This is which direction X moves in
 	 for each increase in Y.  */
 
@@ -3233,13 +3383,23 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 
       /* Compute the step X.  This is how much X changes for each
 	 increase in Y.  */
-      edges[edge].step_x = inc_x * sfnt_div_fixed (dx, dy);
+      step_x = inc_x * sfnt_div_fixed (dx, dy);
 
       /* Step to first grid point.  */
       y = sfnt_poly_grid_ceil (bot);
-      sfnt_step_edge_by (&edges[edge], bot - y);
+
+      /* If rounding would make the edge not cover any area, skip this
+	 edge.  */
+      if (y > edges[edge].top)
+	continue;
+
+      edges[edge].x += sfnt_mul_fixed (step_x, bot - y);
       edges[edge].bottom = y;
       edges[edge].next = NULL;
+
+      /* Compute the step X scaled to the poly step.  */
+      edges[edge].step_x
+	= sfnt_mul_fixed (step_x, SFNT_POLY_STEP);
 
       edge++;
     }
@@ -3344,7 +3504,7 @@ sfnt_poly_edges (struct sfnt_edge *edges, size_t size,
 
       /* Step all edges.  */
       for (a = active; a; a = a->next)
-	sfnt_step_edge_by (a, SFNT_POLY_STEP);
+	sfnt_step_edge (a);
 
       /* Resort on X axis.  */
       for (prev = &active; (a = *prev) && (n = a->next);)
@@ -3380,7 +3540,7 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 {
   unsigned char *start;
   unsigned char *coverage;
-  sfnt_fixed left, right;
+  sfnt_fixed left, right, end;
   unsigned short w, a;
   int row, col;
 
@@ -3408,7 +3568,13 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
      right are now 16.2.  */
   left = sfnt_poly_grid_ceil (x0) >> (16 - SFNT_POLY_SHIFT);
   right = sfnt_poly_grid_ceil (x1) >> (16 - SFNT_POLY_SHIFT);
-  start = raster->cells + row * raster->width;
+#if 7 > __GNUC__
+  start = raster->cells + row * raster->stride;
+#else
+  start = __builtin_assume_aligned ((raster->cells
+				     + row * raster->stride),
+				    SFNT_POLY_ALIGNMENT);
+#endif
   start += left >> SFNT_POLY_SHIFT;
 
   /* Compute coverage for first pixel, then poly.  */
@@ -3420,7 +3586,10 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 	 map, unlike row which indexes the raster.  */
       col = 0;
 
-      while (left < right && (left & SFNT_POLY_MASK))
+      /* Precompute this to allow for better optimizations.  */
+      end = ((left + SFNT_POLY_SAMPLE - 1) & ~SFNT_POLY_MASK);
+
+      while (left < right && left < end)
 	left++, w += coverage[col++];
 
       a = *start + w;
@@ -3477,10 +3646,6 @@ sfnt_poly_span (struct sfnt_edge *start, sfnt_fixed y,
 
   for (edge = start; edge; edge = edge->next)
     {
-      /* Skip out of bounds spans.  This ought to go away.  */
-      if (!(y >= edge->bottom && y < edge->top))
-	continue;
-
       if (!winding)
 	x0 = edge->x;
       else
@@ -3528,10 +3693,10 @@ sfnt_raster_glyph_outline (struct sfnt_glyph_outline *outline)
   sfnt_prepare_raster (&raster, outline);
 
   /* Allocate the raster data.  */
-  data = xmalloc (sizeof *data + raster.width * raster.height);
+  data = xmalloc (sizeof *data + raster.stride * raster.height);
   *data = raster;
   data->cells = (unsigned char *) (data + 1);
-  memset (data->cells, 0, raster.width * raster.height);
+  memset (data->cells, 0, raster.stride * raster.height);
 
   /* Generate edges for the outline, polying each array of edges to
      the raster.  */
@@ -4131,16 +4296,25 @@ sfnt_test_edge (struct sfnt_edge *edges, size_t num_edges,
 
   for (i = 0; i < num_edges; ++i)
     {
-      printf ("/* edge x, top, bot: %g, %g - %g.  winding: %d */\n",
+      printf ("/* edge x, top, bot: %g, %g - %g.  winding: %d */\n"
+	      "/* edge step_x: %g, source_x: %g (%d) */\n",
 	      sfnt_coerce_fixed (edges[i].x),
 	      sfnt_coerce_fixed (edges[i].top),
 	      sfnt_coerce_fixed (edges[i].bottom),
-	      edges[i].winding);
+	      edges[i].winding,
+	      sfnt_coerce_fixed (edges[i].step_x),
+	      sfnt_coerce_fixed (edges[i].source_x),
+	      edges[i].source_x);
 #ifdef TEST_VERTEX
       printf ("ctx.fillRect (%g, %g, 1, 1);\n",
 	      sfnt_coerce_fixed (edges[i].x),
 	      sfnt_coerce_fixed (sfnt_test_max
 				 - edges[i].y));
+#else
+      printf ("ctx.fillRect (%g, %g, 1, 1);\n",
+	      sfnt_coerce_fixed (edges[i].x),
+	      sfnt_coerce_fixed (sfnt_test_max
+				 - edges[i].bottom));
 #endif
     }
 
@@ -4157,7 +4331,7 @@ sfnt_test_raster (struct sfnt_raster *raster)
   for (y = 0; y < raster->height; ++y)
     {
       for (x = 0; x < raster->width; ++x)
-	printf ("%3d ", (int) raster->cells[y * raster->width + x]);
+	printf ("%3d ", (int) raster->cells[y * raster->stride + x]);
       puts ("");
     }
 }
@@ -4411,7 +4585,7 @@ main (int argc, char **argv)
 	      /* Time this important bit.  */
 	      clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 	      outline = sfnt_build_glyph_outline (glyph, head,
-						  40,
+						  45,
 						  sfnt_test_get_glyph,
 						  sfnt_test_free_glyph,
 						  &dcontext);
@@ -4449,13 +4623,23 @@ main (int argc, char **argv)
 		  sfnt_build_outline_edges (outline, sfnt_test_edge,
 					    NULL);
 
+		  raster = NULL;
+
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
-		  raster = sfnt_raster_glyph_outline (outline);
+
+		  for (i = 0; i < 400; ++i)
+		    {
+		      xfree (raster);
+		      raster = sfnt_raster_glyph_outline (outline);
+		    }
+
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &end);
 		  sub2 = timespec_sub (end, start);
 
 		  /* Print out the raster.  */
 		  sfnt_test_raster (raster);
+		  printf ("raster offsets: %d, %d\n",
+			  raster->offx, raster->offy);
 
 		  xfree (raster);
 
@@ -4468,7 +4652,7 @@ main (int argc, char **argv)
 
 	      if (hmtx && head)
 		{
-		  if (!sfnt_lookup_glyph_metrics (code, 40,
+		  if (!sfnt_lookup_glyph_metrics (code, 36,
 						  &metrics,
 						  hmtx, hhea,
 						  head, maxp))
@@ -4482,7 +4666,7 @@ main (int argc, char **argv)
 	      printf ("time spent building edges: %lld sec %ld nsec\n",
 		      (long long) sub1.tv_sec, sub1.tv_nsec);
 	      printf ("time spent rasterizing: %lld sec %ld nsec\n",
-		      (long long) sub2.tv_sec, sub2.tv_nsec);
+		      (long long) sub2.tv_sec / 400, sub2.tv_nsec / 400);
 
 	      xfree (outline);
 	    }

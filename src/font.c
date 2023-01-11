@@ -177,6 +177,11 @@ font_make_entity (void)
        allocate_pseudovector (VECSIZE (struct font_entity),
 			      FONT_ENTITY_MAX, FONT_ENTITY_MAX, PVEC_FONT));
   XSETFONT (font_entity, entity);
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  entity->is_android = false;
+#endif
+
   return font_entity;
 }
 
@@ -190,6 +195,11 @@ font_make_entity_android (int size)
     = ((struct font_entity *)
        allocate_pseudovector (size, FONT_ENTITY_MAX, FONT_ENTITY_MAX,
 			      PVEC_FONT));
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  entity->is_android = true;
+#endif
+
   XSETFONT (font_entity, entity);
   return font_entity;
 }

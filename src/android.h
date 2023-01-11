@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <pwd.h>
 #include <sys/stat.h>
 
+#include <android/bitmap.h>
+
 #include "androidgui.h"
 #endif
 
@@ -64,6 +66,11 @@ enum android_handle_type
 
 extern jobject android_resolve_handle (android_handle,
 				       enum android_handle_type);
+extern unsigned char *android_lock_bitmap (android_window,
+					   AndroidBitmapInfo *,
+					   jobject *);
+extern void android_damage_window (android_window,
+				   struct android_rectangle *);
 
 #endif
 

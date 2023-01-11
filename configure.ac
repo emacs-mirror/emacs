@@ -1360,6 +1360,9 @@ AS_IF([test $gl_gcc_warnings = no],
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
   nw="$nw -Wbad-function-cast"      # These casts are no worse than others.
+  nw="$nw -Wunknown-warning-option" # Let #pragma GCC ignore work properly
+				    # even when the compiler in use doesn't
+				    # support the option.
 
   # Emacs doesn't care about shadowing; see
   # <https://lists.gnu.org/r/emacs-diffs/2011-11/msg00265.html>.
@@ -2250,12 +2253,16 @@ for Android, but all API calls need to be stubbed out])
     # requires Emacs be built as a position independent executable.
     ANDROID_CFLAGS="-fPIC -fvisibility=hidden"
 
+    # Graphics code in sfntfont-android.c benefits heavily from
+    # vectorization.
+    ANDROID_CFLAGS="$ANDROID_CFLAGS -ftree-vectorize"
+
     # Link with libraries required for Android support.
     ANDROID_LIBS="-landroid -llog -ljnigraphics"
 
     # Link with the sfnt font library and sfntfont.o, along with
     # sfntfont-android.o.
-    ANDROID_OBJ="sfnt.o sfntfont.o sfntfont-android.o"
+    ANDROID_OBJ="$ANDROID_OBJ sfnt.o sfntfont.o sfntfont-android.o"
   fi
 fi
 

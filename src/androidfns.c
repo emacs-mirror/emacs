@@ -531,8 +531,7 @@ android_default_font_parameter (struct frame *f, Lisp_Object parms)
   if (! FONTP (font) && ! STRINGP (font))
     {
       const char *names[] = {
-	/* This will find the normal font.  The default font size on
-	   Android is 8.  */
+	"Droid Sans Mono",
 	"monospace",
 	"DroidSansMono",
 	NULL
@@ -772,6 +771,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
     }
 
   register_font_driver (&androidfont_driver, f);
+  register_font_driver (&android_sfntfont_driver, f);
 
   image_cache_refcount = (FRAME_IMAGE_CACHE (f)
 			  ? FRAME_IMAGE_CACHE (f)->refcount

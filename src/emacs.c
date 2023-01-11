@@ -2465,12 +2465,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_haiku_select ();
 #endif
 
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  init_androidfont ();
-  init_sfntfont ();
-  init_sfntfont_android ();
-#endif
-
   init_charset ();
 
   /* This calls putenv and so must precede init_process_emacs.  */
@@ -2504,6 +2498,12 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_macros ();
   init_window ();
   init_font ();
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  init_androidfont ();
+  init_sfntfont ();
+  init_sfntfont_android ();
+#endif
 
   if (!initialized)
     {
@@ -2557,6 +2557,16 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_PDUMPER
   /* Allow code to be run (mostly useful after redumping). */
   safe_run_hooks (Qafter_pdump_load_hook);
+#endif
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY && 0
+  /* This comes very late in the startup process because it requires
+     most of lisp/international to be loaded.  This approach doesn't
+     work because normal-top-level runs and creates the initial frame
+     before fonts are initialized.  So this is done in
+     normal-top-level instead.  */
+  Vtop_level = list3 (Qprogn, Vtop_level,
+		      list1 (Qandroid_enumerate_fonts));
 #endif
 
   /* Enter editor command loop.  This never returns.  */

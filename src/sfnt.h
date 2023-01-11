@@ -663,6 +663,9 @@ struct sfnt_glyph_outline
   /* Rectangle defining bounds of the outline.  Namely, the minimum
      and maximum X and Y positions.  */
   sfnt_fixed xmin, ymin, xmax, ymax;
+
+  /* Reference count.  Initially zero.  */
+  short refcount;
 };
 
 enum sfnt_glyph_outline_flags
@@ -670,39 +673,26 @@ enum sfnt_glyph_outline_flags
     SFNT_GLYPH_OUTLINE_LINETO	  = (1 << 1),
   };
 
-struct sfnt_build_glyph_outline_context
-{
-  /* The outline being built.  */
-  struct sfnt_glyph_outline *outline;
-
-  /* The head table.  */
-  struct sfnt_head_table *head;
-
-  /* The pixel size being used, and any extra flags to apply to the
-     outline at this point.  */
-  int pixel_size;
-
-  /* Factor to multiply positions by to get the pixel width.  */
-  double factor;
-
-  /* The position of the pen in 16.16 fixed point format.  */
-  sfnt_fixed x, y;
-};
-
 
 
 /* Glyph rasterization.  */
 
 struct sfnt_raster
 {
+  /* Pointer to coverage data.  */
+  unsigned char *cells;
+
   /* Basic dimensions of the raster.  */
   unsigned short width, height;
 
   /* Integer offset to apply to positions in the raster.  */
-  unsigned short offx, offy;
+  short offx, offy;
 
-  /* Pointer to coverage data.  */
-  unsigned char *cells;
+  /* The raster stride.  */
+  unsigned short stride;
+
+  /* Reference count.  Initially zero.  */
+  unsigned short refcount;
 };
 
 struct sfnt_edge
@@ -716,8 +706,15 @@ struct sfnt_edge
   /* X position, top and bottom of edges.  */
   sfnt_fixed x, top, bottom;
 
-  /* step_x is how many pixels to move for each increase in Y.  */
+  /* step_x is how many pixels to move for each increase in Y by
+     SFNT_POLY_STEP.  */
   sfnt_fixed step_x;
+
+#ifdef TEST
+  /* Value of x before initial adjustment of bottom to match the
+     grid.  */
+  sfnt_fixed source_x;
+#endif
 };
 
 
@@ -878,6 +875,12 @@ enum sfnt_meta_data_tag
 
 
 
+#define SFNT_CEIL_FIXED(fixed)			\
+  (!((fixed) & 0177777) ? (fixed)		\
+   : ((fixed) + 0200000) & 037777600000)
+
+
+
 /* Function declarations.  Keep these sorted by the order in which
    they appear in sfnt.c.  Keep each line no longer than 80
    columns.  */
@@ -890,8 +893,11 @@ extern struct sfnt_offset_subtable *sfnt_read_table_directory (int);
   int, struct sfnt_offset_subtable *,		\
   struct sfnt_cmap_encoding_subtable **,	\
   struct sfnt_cmap_encoding_subtable_data ***
-static struct sfnt_cmap_table *sfnt_read_cmap_table (PROTOTYPE);
+extern struct sfnt_cmap_table *sfnt_read_cmap_table (PROTOTYPE);
 #undef PROTOTYPE
+
+extern sfnt_glyph sfnt_lookup_glyph (sfnt_char,
+				     struct sfnt_cmap_encoding_subtable_data *);
 
 #define PROTOTYPE int, struct sfnt_offset_subtable *
 extern struct sfnt_head_table *sfnt_read_head_table (PROTOTYPE);
@@ -905,6 +911,7 @@ extern struct sfnt_glyf_table *sfnt_read_glyf_table (PROTOTYPE);
 extern struct sfnt_glyph *sfnt_read_glyph (sfnt_glyph, struct sfnt_glyf_table *,
 					   struct sfnt_loca_table_short *,
 					   struct sfnt_loca_table_long *);
+extern void sfnt_free_glyph (struct sfnt_glyph *);
 
 #define PROTOTYPE		\
   struct sfnt_glyph *,		\

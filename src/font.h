@@ -260,6 +260,11 @@ struct font_entity
 {
   union vectorlike_header header;
   Lisp_Object props[FONT_ENTITY_MAX];
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Whether or not this is an Android font entity.  */
+  bool is_android;
+#endif
 };
 
 /* A value which may appear in the member `encoding' of struct font

@@ -50,6 +50,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#include "sfntfont.h"
+#endif
+
 #ifdef HAVE_TREE_SITTER
 #include "treesit.h"
 #endif
@@ -3346,8 +3350,9 @@ cleanup_vector (struct Lisp_Vector *vector)
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
       /* The Android font driver needs the ability to associate extra
 	 information with font entities.  */
-      if ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
-	  == FONT_ENTITY_MAX)
+      if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
+	   == FONT_ENTITY_MAX)
+	  && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
 	android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
 #endif
     }
@@ -6477,6 +6482,9 @@ garbage_collect (void)
 
 #ifdef HAVE_ANDROID
   mark_androidterm ();
+#ifndef ANDROID_STUBIFY
+  mark_sfntfont ();
+#endif
 #endif
 
 #ifdef HAVE_NS

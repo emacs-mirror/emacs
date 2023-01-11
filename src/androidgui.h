@@ -116,8 +116,21 @@ struct android_gc_values
 
 struct android_gc
 {
+  /* Array of clip rectangles.  */
+  struct android_rectangle *clip_rects;
+
+  /* Number of clip rectangles.  When -1, it means clipping should not
+     be applied.  */
+  int num_clip_rects;
+
   /* The Java-side handle.  */
   android_gcontext gcontext;
+
+  /* Current foreground color.  */
+  unsigned long foreground;
+
+  /* Current background color.  */
+  unsigned long background;
 };
 
 enum android_swap_action

@@ -376,6 +376,8 @@ extern void android_finalize_font_entity (struct font_entity *);
 
 /* Defined in sfntfont-android.c.  */
 
+extern const struct font_driver android_sfntfont_driver;
+
 extern void init_sfntfont_android (void);
 extern void syms_of_sfntfont_android (void);
 

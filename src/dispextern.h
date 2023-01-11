@@ -177,6 +177,22 @@ typedef void *Emacs_Cursor;
 #define NativeRectangle int
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* ``box'' structure similar to that found in the X sample server,
+   meaning that X2 and Y2 are not actually the end of the box, but one
+   pixel past the end of the box, which makes checking for overlaps
+   less necessary.  This is convenient to use in every GUI port.  */
+
+struct gui_box
+{
+  /* Bounds of the box.  */
+  int x1, y1;
+  int x2, y2;
+};
+
+#endif
+
 /* Text cursor types.  */
 
 enum text_cursor_kinds
@@ -3525,6 +3541,9 @@ extern void expose_frame (struct frame *, int, int, int, int);
 extern bool gui_intersect_rectangles (const Emacs_Rectangle *,
                                       const Emacs_Rectangle *,
                                       Emacs_Rectangle *);
+extern void gui_union_rectangles (const Emacs_Rectangle *,
+				  const Emacs_Rectangle *,
+				  Emacs_Rectangle *);
 extern void gui_consider_frame_title (Lisp_Object);
 #endif	/* HAVE_WINDOW_SYSTEM */
 

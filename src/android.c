@@ -101,6 +101,7 @@ struct android_emacs_drawable
 {
   jclass class;
   jmethodID get_bitmap;
+  jmethodID damage_rect;
 };
 
 /* The asset manager being used.  */
@@ -1102,6 +1103,7 @@ android_init_emacs_drawable (void)
   assert (drawable_class.c_name);
 
   FIND_METHOD (get_bitmap, "getBitmap", "()Landroid/graphics/Bitmap;");
+  FIND_METHOD (damage_rect, "damageRect", "(Landroid/graphics/Rect;)V");
 #undef FIND_METHOD
 }
 
@@ -1743,6 +1745,12 @@ android_create_gc (enum android_gc_value_mask mask,
   gc = xmalloc (sizeof *gc);
   prev_max_handle = max_handle;
   gc->gcontext = android_alloc_id ();
+  gc->foreground = 0;
+  gc->background = 0xffffff;
+  gc->clip_rects = NULL;
+
+  /* This means to not apply any clipping.  */
+  gc->num_clip_rects = -1;
 
   if (!gc->gcontext)
     {
@@ -1780,6 +1788,8 @@ void
 android_free_gc (struct android_gc *gc)
 {
   android_destroy_handle (gc->gcontext);
+
+  xfree (gc->clip_rects);
   xfree (gc);
 }
 
@@ -1795,16 +1805,22 @@ android_change_gc (struct android_gc *gc,
 				     ANDROID_HANDLE_GCONTEXT);
 
   if (mask & ANDROID_GC_FOREGROUND)
-    (*android_java_env)->SetIntField (android_java_env,
-				      gcontext,
-				      emacs_gc_foreground,
-				      values->foreground);
+    {
+      (*android_java_env)->SetIntField (android_java_env,
+					gcontext,
+					emacs_gc_foreground,
+					values->foreground);
+      gc->foreground = values->foreground;
+    }
 
   if (mask & ANDROID_GC_BACKGROUND)
-    (*android_java_env)->SetIntField (android_java_env,
-				      gcontext,
-				      emacs_gc_background,
-				      values->background);
+    {
+      (*android_java_env)->SetIntField (android_java_env,
+					gcontext,
+					emacs_gc_background,
+					values->background);
+      gc->background = values->background;
+    }
 
   if (mask & ANDROID_GC_FUNCTION)
     (*android_java_env)->SetIntField (android_java_env,
@@ -1838,6 +1854,10 @@ android_change_gc (struct android_gc *gc,
 					   gcontext,
 					   emacs_gc_clip_rects,
 					   NULL);
+
+      xfree (gc->clip_rects);
+      gc->clip_rects = NULL;
+      gc->num_clip_rects = -1;
     }
 
   if (mask & ANDROID_GC_STIPPLE)
@@ -1943,6 +1963,19 @@ android_set_clip_rectangles (struct android_gc *gc, int clip_x_origin,
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       gcontext,
 				       emacs_gc_mark_dirty);
+
+  /* Cache the clip rectangles on the C side for
+     sfntfont-android.c.  */
+  if (gc->clip_rects)
+    xfree (gc->clip_rects);
+
+  /* If gc->num_clip_rects is 0, then no drawing will be performed at
+     all.  */
+  gc->clip_rects = xmalloc (sizeof *gc->clip_rects
+			    * n_clip_rects);
+  gc->num_clip_rects = n_clip_rects;
+  memcpy (gc->clip_rects, clip_rects,
+	  n_clip_rects * sizeof *gc->clip_rects);
 }
 
 void
@@ -2098,16 +2131,10 @@ android_get_gc_values (struct android_gc *gc,
   if (mask & ANDROID_GC_FOREGROUND)
     /* GCs never have 32 bit colors, so we don't have to worry about
        sign extension here.  */
-    values->foreground
-      = (*android_java_env)->GetIntField (android_java_env,
-					  gcontext,
-					  emacs_gc_foreground);
+    values->foreground = gc->foreground;
 
   if (mask & ANDROID_GC_BACKGROUND)
-    values->background
-      = (*android_java_env)->GetIntField (android_java_env,
-					  gcontext,
-					  emacs_gc_background);
+    values->background = gc->background;
 
   if (mask & ANDROID_GC_FUNCTION)
     values->function
@@ -2657,8 +2684,6 @@ android_get_image (android_drawable handle,
   unsigned char *data1, *data2;
   int i, x;
 
-  /* N.B. that supporting windows requires some more work to make
-     EmacsDrawable.getBitmap thread safe.  */
   drawable = android_resolve_handle2 (handle, ANDROID_HANDLE_WINDOW,
 				      ANDROID_HANDLE_PIXMAP);
 
@@ -2877,6 +2902,98 @@ android_put_image (android_pixmap handle, struct android_image *image)
 
   /* Delete the bitmap reference.  */
   ANDROID_DELETE_LOCAL_REF (bitmap);
+}
+
+
+
+/* Low level drawing primitives.  */
+
+/* Lock the bitmap corresponding to the window WINDOW.  Return the
+   bitmap data upon success, and store the bitmap object in
+   BITMAP_RETURN.  Value is NULL upon failure.
+
+   The caller must take care to unlock the bitmap data afterwards.  */
+
+unsigned char *
+android_lock_bitmap (android_window window,
+		     AndroidBitmapInfo *bitmap_info,
+		     jobject *bitmap_return)
+{
+  jobject drawable, bitmap;
+  void *data;
+
+  drawable = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+
+  /* Look up the drawable and get the bitmap corresponding to it.
+     Then, lock the bitmap's bits.  */
+  bitmap = (*android_java_env)->CallObjectMethod (android_java_env,
+						  drawable,
+						  drawable_class.get_bitmap);
+  if (!bitmap)
+    /* NULL is returned when the bitmap does not currently exist due
+       to ongoing reconfiguration on the main thread.  */
+    return NULL;
+
+  memset (bitmap_info, 0, sizeof *bitmap_info);
+
+  /* Get the bitmap info.  */
+  AndroidBitmap_getInfo (android_java_env, bitmap, bitmap_info);
+
+  if (!bitmap_info->stride)
+    {
+      ANDROID_DELETE_LOCAL_REF (bitmap);
+      return NULL;
+    }
+
+  /* Now lock the image data.  */
+  data = NULL;
+  AndroidBitmap_lockPixels (android_java_env, bitmap, &data);
+
+  if (!data)
+    {
+      ANDROID_DELETE_LOCAL_REF (bitmap);
+      return NULL;
+    }
+
+  /* Give the bitmap to the caller.  */
+  *bitmap_return = bitmap;
+
+  /* The bitmap data is now locked.  */
+  return data;
+}
+
+/* Damage the window HANDLE by the given damage rectangle.  */
+
+void
+android_damage_window (android_drawable handle,
+		       struct android_rectangle *damage)
+{
+  jobject drawable, rect;
+
+  drawable = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+
+  /* Now turn DAMAGE into a Java rectangle.  */
+  rect = (*android_java_env)->NewObject (android_java_env,
+					 android_rect_class,
+					 android_rect_constructor,
+					 (jint) damage->x,
+					 (jint) damage->y,
+					 (jint) (damage->x
+						 + damage->width),
+					 (jint) (damage->y
+						 + damage->height));
+  if (!rect)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  /* Post the damage to the drawable.  */
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       drawable,
+				       drawable_class.damage_rect,
+				       rect);
+  ANDROID_DELETE_LOCAL_REF (rect);
 }
 
 

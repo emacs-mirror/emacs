@@ -36227,6 +36227,55 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
   return intersection_p;
 }
 
+/* EXPORT:
+   Determine the union of the rectangles A and B.  Return the smallest
+   rectangle encompassing both the bounds of A and B in *RESULT.  It
+   is safe for all three arguments to point to each other.  */
+
+void
+gui_union_rectangles (const Emacs_Rectangle *a, const Emacs_Rectangle *b,
+		      Emacs_Rectangle *result)
+{
+  struct gui_box a_box, b_box, result_box;
+
+  /* Handle special cases where one of the rectangles is empty.  */
+
+  if (!a->width || !a->height)
+    {
+      *result = *b;
+      return;
+    }
+  else if (!b->width || !b->height)
+    {
+      *result = *a;
+      return;
+    }
+
+  /* Convert A and B to boxes.  */
+  a_box.x1 = a->x;
+  a_box.y1 = a->y;
+  a_box.x2 = a->x + a->width;
+  a_box.y2 = a->y + a->height;
+
+  b_box.x1 = b->x;
+  b_box.y1 = b->y;
+  b_box.x2 = b->x + b->width;
+  b_box.y2 = b->y + b->height;
+
+  /* Compute the union of the boxes.  */
+  result_box.x1 = min (a_box.x1, b_box.x1);
+  result_box.y1 = min (a_box.y1, b_box.y1);
+  result_box.x2 = max (a_box.x2, b_box.x2);
+  result_box.y2 = max (a_box.y2, b_box.y2);
+
+  /* Convert result_box to an XRectangle and put the result in
+     RESULT.  */
+  result->x = result_box.x1;
+  result->y = result_box.y1;
+  result->width = result_box.x2 - result_box.x1;
+  result->height = result_box.y2 - result_box.y1;
+}
+
 #endif /* HAVE_WINDOW_SYSTEM */
 
 
