@@ -7,10 +7,8 @@
 name: C/C++ CI
 
 on:
-  push:
-    branches: [ $default-branch ]
-  pull_request:
-    branches: [ $default-branch ]
+  push
+  pull_request
 
 jobs:
   build:
