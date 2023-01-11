@@ -35,5 +35,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: make
-      run: code\w3i6mv.bat
+      # Using path to Visual Studio documented at <https://github.com/actions/runner-images/blob/e6fcf60b8e6c0f80a065327eaefe836881c28b68/images/win/Windows2022-Readme.md?plain=1#L215>.
+      run: |
+         C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat x64
+         cd code
+         nmake /f w3i6mv.nmk
       shell: cmd
