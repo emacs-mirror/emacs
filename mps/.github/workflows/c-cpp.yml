@@ -11,7 +11,7 @@ on:
   - pull_request
 
 jobs:
-  build:
+  build-posix:
     # See <https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#using-a-matrix-strategy>.
     strategy:
       matrix:
@@ -27,3 +27,15 @@ jobs:
       run: make
     - name: make test
       run: make test
+
+  build-windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: make
+      run: |
+        cd code
+        nmake /f w3i6mv.nmk
+      shell: cmd
