@@ -9,6 +9,7 @@ if: NOT branch IN (branch/2023-01-11/github-ci)
 # The main build matrix for POSIX-like systems.
 language: c # see <https://docs.travis-ci.com/user/languages/c/>.
 os:
+  - freebsd
   - linux
   - osx
   # See "include" section for Windows
