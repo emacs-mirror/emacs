@@ -208,10 +208,11 @@ These steps will only rarely need repeating.
 
 6. [This step is only necessary if the merge was non-trivial, there
    has been rebasing, or CI results are not available.  RB 2023-01-12]
-   Push the branch to the Ravenbrook MPS GitHub repository to trigger
-   building and testing on all target platforms using Travis CI. ::
+   Push the merge to a fresh branch in the Ravenbrook MPS GitHub
+   repository to trigger building and testing on all target platforms
+   using Travis CI. ::
 
-     git push github branch/2023-01-06/speed-hax
+     git push github merge/2023-01-06/speed-hax
 
    You will need to wait for results from Travis CI.  [Add details of
    how to see them.  RB 2023-07-01]
