@@ -1575,7 +1575,7 @@ extra args."
 	 "`%s' called with %d args to fill %d format field(s)" (car form)
 	 nargs nfields)))))
 
-(dolist (elt '(format message error))
+(dolist (elt '(format message format-message error))
   (put elt 'byte-compile-format-like t))
 
 (defun byte-compile--suspicious-defcustom-choice (type)
