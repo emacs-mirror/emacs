@@ -165,15 +165,21 @@ These steps will only rarely need repeating.
    into master.  Negotiate to avoid racing them to push to the master
    codeline (step 7) because that will create extra merging work.
 
-3. Merge master with the branch::
+3. Ensure your local master is up to date with Perforce::
 
-     git pull perforce master:master
-     git checkout branch/2023-01-06/speed-hax
-     git merge master
+     git pull --ff-only perforce master
+
+   If this doesn't succeed, then GitHub's master and Perforce's master
+   are in out of sync, and this procedure fails.  [It may be possible
+   to quickly fix that here and now and continue.  RB 2023-01-12]
+
+4. Merge the branch in to your local master::
+
+     git merge --no-ff branch/2023-01-06/speed-hax
 
    Edit the commit message to say something like::
 
-     Merging branch/2023-01-06/speed-hax for pull request 93
+     Merging branch/2023-01-06/speed-hax for GitHub pull request 93
      <https://github.com/Ravenbrook/mps/pull/93>.
 
    Do *not* just say "pull request 93" without a link, because that
@@ -186,7 +192,9 @@ These steps will only rarely need repeating.
    branch.  If you still can't resolve conflicts, this procedure
    fails.
 
-4. Build and test the results locally.  For example::
+5. [This step is only necessary if the merge was non-trivial, there
+   has been rebasing, or CI results are not available.  RB 2023-01-12]
+   Build and test the results locally.  For example::
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
@@ -194,11 +202,13 @@ These steps will only rarely need repeating.
    platforms.
 
    If tests do not pass, review your conflict resolution from the
-   merge (step 3), and if that doesn't fix things, the procedure
+   merge (step 4), and if that doesn't fix things, the procedure
    fails, and you need to go back to the source of the branch,
    e.g. the pull request and its original author.  Something's wrong!
 
-5. Push the branch to the Ravenbrook MPS GitHub repository to trigger
+6. [This step is only necessary if the merge was non-trivial, there
+   has been rebasing, or CI results are not available.  RB 2023-01-12]
+   Push the branch to the Ravenbrook MPS GitHub repository to trigger
    building and testing on all target platforms using Travis CI. ::
 
      git push github branch/2023-01-06/speed-hax
@@ -206,30 +216,38 @@ These steps will only rarely need repeating.
    You will need to wait for results from Travis CI.  [Add details of
    how to see them.  RB 2023-07-01]
 
-   See build (step 4) about what to do if tests do not pass.
+   See build (step 5) about what to do if tests do not pass.
 
    Note: This potentially creates a branch in the GitHub repo ahead
    of Git Fusion doing so, but it will the same name, because of the
    Git Fusion mapping, and so the result is the same as if it had come
    in via Perforce.
 
-6. Submit your merged branch to Perforce::
+7. Submit your merged master and the branch to Perforce::
 
-     git push Perforce branch/2023-01-06/speed-hax
-
-7. Submit your merged branch to the Perforce master codeline::
-
-     git push perforce branch/2023-01-06/speed-hax:master
+     git push perforce master branch/2023-01-06/speed-hax
 
    **Important**: Do *not* force this push.
 
    If this fails, someone has submitted changes to the master codeline
-   since you started.  Go back to merging (step 3).
+   since you started.
+
+   You can attempt to rebase your work on those changes::
+
+     git pull --rebase perforce
+
+   then go back to testing (step 5).
+
+   Alternatively, you could undo your merging work::
+
+     git reset --hard perforce/master
+
+   then go back to merging (step 4).
 
 8. Optionally, if and *only if* the Perforce push (step 7) succeeded,
    you can also push to GitHub::
 
-     git push github branch/2023-01-06/speed-hax:master
+     git push github master branch/2023-01-06/speed-hax
 
    If you don't do this, then within `30 minutes
    <https://info.ravenbrook.com/infosys/robots/gitpushbot/etc/crontab>`_
