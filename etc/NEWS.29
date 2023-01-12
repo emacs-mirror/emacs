@@ -351,6 +351,15 @@ also means that 'TAB' on a button in an 'outline-minor-mode' heading
 will move point instead of collapsing the outline.
 
 ---
+** 'outline-minor-mode-cycle-map' is now parent of 'outline-minor-mode'.
+Instead of adding text property 'keymap' with 'outline-minor-mode-cycle'
+on outline headings in 'outline-minor-mode', the keymap
+'outline-minor-mode-cycle' is now active in the whole buffer.
+But keybindings in 'outline-minor-mode-cycle' still take effect
+only on outline headings because they are bound with the help of
+'outline-minor-mode-cycle--bind' that checks if point is on a heading.
+
+---
 ** 'Info-default-directory-list' is no longer populated at Emacs startup.
 If you have code in your init file that removes directories from
 'Info-default-directory-list', this will no longer work.
