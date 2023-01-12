@@ -9755,6 +9755,14 @@ Also see the `completion-auto-wrap' variable."
   (let ((tabcommand (member (this-command-keys) '("\t" [backtab])))
         pos)
     (catch 'bound
+      (when (and (bobp)
+                 (> n 0)
+                 (get-text-property (point) 'mouse-face)
+                 (not (get-text-property (point) 'first-completion)))
+        (let ((inhibit-read-only t))
+          (add-text-properties (point) (1+ (point)) '(first-completion t)))
+        (setq n (1- n)))
+
       (while (> n 0)
         (setq pos (point))
         ;; If in a completion, move to the end of it.
