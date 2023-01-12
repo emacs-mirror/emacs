@@ -863,7 +863,8 @@ This attribute is meaningful only when `:coding-type' is `utf-16' or
 VALUE must be `big' or `little' specifying big-endian and
 little-endian respectively.  The default value is `big'.
 
-This attribute is meaningful only when `:coding-type' is `utf-16'.
+Changing this attribute is only meaningful when `:coding-type'
+is `utf-16'.
 
 `:ccl-decoder' (required if :coding-type is `ccl')
 
