@@ -171,7 +171,7 @@ These steps will only rarely need repeating.
      git checkout branch/2023-01-06/speed-hax
      git merge master
 
-   Edit the commit message to say something like:
+   Edit the commit message to say something like::
 
      Merging branch/2023-01-06/speed-hax for pull request 93
      <https://github.com/Ravenbrook/mps/pull/93>.
