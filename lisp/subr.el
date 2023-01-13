@@ -4946,13 +4946,13 @@ the function `undo--wrap-and-run-primitive-undo'."
 		(progn
 		  (while (and (not (eq (cdr ptr) old-bul))
 			      ;; In case garbage collection has removed OLD-BUL.
-			      (cdr ptr)
-			      ;; Don't include a timestamp entry.
-			      (not (and (consp (cdr ptr))
-					(consp (cadr ptr))
-					(eq (caadr ptr) t)
-					(setq old-bul (cdr ptr)))))
-		    (setq ptr (cdr ptr)))
+			      (cdr ptr))
+		    (if (and (consp (cdr ptr))
+			     (consp (cadr ptr))
+			     (eq (caadr ptr) t))
+			;; Don't include a timestamp entry.
+			(setcdr ptr (cddr ptr))
+		      (setq ptr (cdr ptr))))
 		  (unless (cdr ptr)
 		    (message "combine-change-calls: buffer-undo-list broken"))
 		  (setcdr ptr nil)
