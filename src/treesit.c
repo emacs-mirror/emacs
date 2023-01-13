@@ -2167,9 +2167,11 @@ bool treesit_node_eq (Lisp_Object node1, Lisp_Object node2)
 DEFUN ("treesit-node-eq",
        Ftreesit_node_eq,
        Streesit_node_eq, 2, 2, 0,
-       doc: /* Return non-nil if NODE1 and NODE2 are the same node.
+       doc: /* Return non-nil if NODE1 and NODE2 refer to the same node.
 If any one of NODE1 and NODE2 is nil, return nil.
-This function uses the same equivalence metric as `equal'.  */)
+This function uses the same equivalence metric as `equal', and returns
+non-nil if NODE1 and NODE2 refer to the same node in a syntax tree
+produced by tree-sitter.  */)
   (Lisp_Object node1, Lisp_Object node2)
 {
   if (NILP (node1) || NILP (node2))

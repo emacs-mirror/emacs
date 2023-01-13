@@ -929,9 +929,13 @@ Here are some predicates on tree-sitter nodes:
 Checks if @var{object} is a tree-sitter syntax node.
 @end defun
 
+@cindex compare tree-sitter syntax nodes
+@cindex tree-sitter nodes, comparing
 @defun treesit-node-eq node1 node2
-Checks if @var{node1} and @var{node2} are the same node in a syntax
-tree.  This function uses the same equivalence metric as @code{equal}.
+Checks if @var{node1} and @var{node2} refer to the same node in a
+tree-sitter syntax tree.  This function uses the same equivalence
+metric as @code{equal}.  You can also compare nodes using @code{equal}
+(@pxref{Equality Predicates}).
 @end defun
 
 @heading Property information
