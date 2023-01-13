@@ -207,9 +207,14 @@ These steps will only rarely need repeating.
    branch.  If you still can't resolve conflicts, this procedure
    fails.
 
-5. [This step is only necessary if the merge was non-trivial, there
-   has been rebasing, or CI results are not available.  RB 2023-01-12]
-   Build and test the results locally.  For example::
+5. If either
+
+   - the merge was non-trivial
+   - there has been any rebasing (see step 7)
+   - you don't have pull request build results from CI
+
+   then build and test the merge result locally if possible.  For
+   example::
 
      make -C code -f lii6gc.gmk testci testansi testpollnone testmmqa
 
@@ -221,23 +226,22 @@ These steps will only rarely need repeating.
    fails, and you need to go back to the source of the branch,
    e.g. the pull request and its original author.  Something's wrong!
 
-6. [This step is only necessary if the merge was non-trivial, there
-   has been rebasing, or CI results are not available.  RB 2023-01-12]
-   Push the merge to a fresh branch in the Ravenbrook MPS GitHub
-   repository to trigger building and testing on all target platforms
-   using Travis CI. ::
+6. If either
+
+   - the merge was non-trivial
+   - there has been any rebasing (see step 7)
+   - you don't have pull request build results from CI
+
+   then push the merge to a fresh branch in the `Ravenbrook MPS repo
+   on GitHub`_ to trigger CI to build and testing on all target
+   platforms. ::
 
      git push github merge/2023-01-06/speed-hax
 
-   You will need to wait for results from Travis CI.  [Add details of
-   how to see them.  RB 2023-07-01]
+   You will need to wait for results from CI.  [Add details of how to
+   see them.  RB 2023-07-01]
 
    See build (step 5) about what to do if tests do not pass.
-
-   Note: This potentially creates a branch in the GitHub repo ahead
-   of Git Fusion doing so, but it will the same name, because of the
-   Git Fusion mapping, and so the result is the same as if it had come
-   in via Perforce.
 
 7. Submit your merged master and the branch to Perforce::
 
