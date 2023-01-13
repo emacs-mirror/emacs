@@ -931,7 +931,7 @@ Checks if @var{object} is a tree-sitter syntax node.
 
 @defun treesit-node-eq node1 node2
 Checks if @var{node1} and @var{node2} are the same node in a syntax
-tree.
+tree.  This function uses the same equivalence metric as @code{equal}.
 @end defun
 
 @heading Property information

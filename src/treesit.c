@@ -2154,11 +2154,22 @@ If NODE is nil, return nil.  */)
   return make_treesit_node (XTS_NODE (node)->parser, child);
 }
 
+/* Return true if NODE1 and NODE2 are the same node.  Assumes they are
+   TS_NODE type.  */
+bool treesit_node_eq (Lisp_Object node1, Lisp_Object node2)
+{
+  treesit_initialize ();
+  TSNode treesit_node_1 = XTS_NODE (node1)->node;
+  TSNode treesit_node_2 = XTS_NODE (node2)->node;
+  return ts_node_eq (treesit_node_1, treesit_node_2);
+}
+
 DEFUN ("treesit-node-eq",
        Ftreesit_node_eq,
        Streesit_node_eq, 2, 2, 0,
        doc: /* Return non-nil if NODE1 and NODE2 are the same node.
-If any one of NODE1 and NODE2 is nil, return nil.  */)
+If any one of NODE1 and NODE2 is nil, return nil.
+This function uses the same equivalence metric as `equal'.  */)
   (Lisp_Object node1, Lisp_Object node2)
 {
   if (NILP (node1) || NILP (node2))
@@ -2166,12 +2177,7 @@ If any one of NODE1 and NODE2 is nil, return nil.  */)
   CHECK_TS_NODE (node1);
   CHECK_TS_NODE (node2);
 
-  treesit_initialize ();
-
-  TSNode treesit_node_1 = XTS_NODE (node1)->node;
-  TSNode treesit_node_2 = XTS_NODE (node2)->node;
-
-  bool same_node = ts_node_eq (treesit_node_1, treesit_node_2);
+  bool same_node = treesit_node_eq (node1, node2);
   return same_node ? Qt : Qnil;
 }
 
