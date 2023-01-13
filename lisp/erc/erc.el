@@ -1958,7 +1958,8 @@ nil."
       (let ((out (list (reverse new-modes))))
         (pcase-dolist (`(,k . ,v) old-vars)
           (when (and (string-prefix-p "erc-" (symbol-name k))
-                     (string-suffix-p "-mode" (symbol-name k)))
+                     (string-suffix-p "-mode" (symbol-name k))
+                     (get k 'erc-module))
             (if v
                 (cl-pushnew k (car out))
               (setf (car out) (delq k (car out)))
@@ -2082,9 +2083,7 @@ Returns the buffer for the given server or channel."
 
     (erc-determine-parameters server port nick full-name user passwd)
 
-    (save-excursion (run-mode-hooks))
-    (dolist (mod (car delayed-modules)) (funcall mod +1))
-    (dolist (var (cdr delayed-modules)) (set var nil))
+    ;; FIXME consolidate this prompt-setup logic with the pass above.
 
     ;; set up prompt
     (unless continued-session
@@ -2096,6 +2095,10 @@ Returns the buffer for the given server or channel."
       (set-marker erc-insert-marker (point))
       (erc-display-prompt)
       (goto-char (point-max)))
+
+    (save-excursion (run-mode-hooks)
+                    (dolist (mod (car delayed-modules)) (funcall mod +1))
+                    (dolist (var (cdr delayed-modules)) (set var nil)))
 
     ;; Saving log file on exit
     (run-hook-with-args 'erc-connect-pre-hook buffer)

@@ -1251,18 +1251,28 @@
         (setq calls nil)))))
 
 (ert-deftest erc--merge-local-modes ()
+  (cl-letf (((get 'erc-b-mode 'erc-module) 'b)
+            ((get 'erc-c-mode 'erc-module) 'c)
+            ((get 'erc-d-mode 'erc-module) 'd)
+            ((get 'erc-e-mode 'erc-module) 'e))
 
-  (ert-info ("No existing modes")
-    (let ((old '((a) (b . t)))
-          (new '(erc-c-mode erc-d-mode)))
-      (should (equal (erc--merge-local-modes new old)
-                     '((erc-c-mode erc-d-mode))))))
+    (ert-info ("No existing modes")
+      (let ((old '((a) (b . t)))
+            (new '(erc-c-mode erc-d-mode)))
+        (should (equal (erc--merge-local-modes new old)
+                       '((erc-c-mode erc-d-mode))))))
 
-  (ert-info ("Active existing added, inactive existing removed, deduped")
-    (let ((old '((a) (erc-b-mode) (c . t) (erc-d-mode . t) (erc-e-mode . t)))
-          (new '(erc-b-mode erc-d-mode)))
-      (should (equal (erc--merge-local-modes new old)
-                     '((erc-d-mode erc-e-mode) . (erc-b-mode)))))))
+    (ert-info ("Active existing added, inactive existing removed, deduped")
+      (let ((old '((a) (erc-b-mode) (c . t) (erc-d-mode . t) (erc-e-mode . t)))
+            (new '(erc-b-mode erc-d-mode)))
+        (should (equal (erc--merge-local-modes new old)
+                       '((erc-d-mode erc-e-mode) . (erc-b-mode))))))
+
+    (ert-info ("Non-module erc-prefixed mode ignored")
+      (let ((old '((erc-b-mode) (erc-f-mode . t) (erc-d-mode . t)))
+            (new '(erc-b-mode)))
+        (should (equal (erc--merge-local-modes new old)
+                       '((erc-d-mode) . (erc-b-mode))))))))
 
 (ert-deftest define-erc-module--global ()
   (let ((global-module '(define-erc-module mname malias
@@ -1300,13 +1310,15 @@ Some docstring"
                         (ignore c) (ignore d))
 
                       (defalias 'erc-malias-mode #'erc-mname-mode)
+                      (put 'erc-malias-mode 'erc-module 'mname)
 
+                      (put 'erc-mname-mode 'erc-module 'mname)
                       (put 'erc-mname-mode 'definition-name 'mname)
                       (put 'erc-mname-enable 'definition-name 'mname)
                       (put 'erc-mname-disable 'definition-name 'mname))))))
 
 (ert-deftest define-erc-module--local ()
-  (let* ((global-module '(define-erc-module mname malias
+  (let* ((global-module '(define-erc-module mname nil ; no alias
                            "Some docstring"
                            ((ignore a) (ignore b))
                            ((ignore c) (ignore d))
@@ -1353,8 +1365,7 @@ When called interactively, do so in all buffers for the current connection."
                             (setq erc-mname-mode nil)
                             (ignore c) (ignore d))))
 
-                      (defalias 'erc-malias-mode #'erc-mname-mode)
-
+                      (put 'erc-mname-mode 'erc-module 'mname)
                       (put 'erc-mname-mode 'definition-name 'mname)
                       (put 'erc-mname-enable 'definition-name 'mname)
                       (put 'erc-mname-disable 'definition-name 'mname))))))
