@@ -47,7 +47,9 @@ Otherwise this should be a number."
 
 (defcustom pp-use-max-width nil
   "If non-nil, `pp'-related functions will try to fold lines.
-The target width is given by the `pp-max-width' variable."
+The target width is given by the `pp-max-width' variable.
+Note that this could slow down `pp' considerably when formatting
+large lists."
   :type 'boolean
   :version "29.1")
 
@@ -162,14 +164,15 @@ Also add the value to the front of the list in the variable `values'."
   (message "Evaluating...")
   (let ((result (eval expression lexical-binding)))
     (values--store-value result)
-    (pp-display-expression result "*Pp Eval Output*")))
+    (pp-display-expression result "*Pp Eval Output*" pp-use-max-width)))
 
 ;;;###autoload
 (defun pp-macroexpand-expression (expression)
   "Macroexpand EXPRESSION and pretty-print its value."
   (interactive
    (list (read--expression "Macroexpand: ")))
-  (pp-display-expression (macroexpand-1 expression) "*Pp Macroexpand Output*"))
+  (pp-display-expression (macroexpand-1 expression) "*Pp Macroexpand Output*"
+                         pp-use-max-width))
 
 (defun pp-last-sexp ()
   "Read sexp before point.  Ignore leading comment characters."
@@ -219,7 +222,8 @@ Ignores leading comment characters."
 ;;;###autoload
 (defun pp-emacs-lisp-code (sexp)
   "Insert SEXP into the current buffer, formatted as Emacs Lisp code.
-Use the `pp-max-width' variable to control the desired line length."
+Use the `pp-max-width' variable to control the desired line length.
+Note that this could be slow for large SEXPs."
   (require 'edebug)
   (let ((obuf (current-buffer)))
     (with-temp-buffer
