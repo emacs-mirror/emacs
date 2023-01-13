@@ -726,7 +726,10 @@ ARG is passed to `fill-paragraph'."
           ;; Let `fill-paragraph' do its thing.
           (goto-char orig-point)
           (narrow-to-region start end)
-          (funcall #'fill-paragraph arg)
+          ;; We don't want to fill the region between START and
+          ;; START-MARKER, otherwise the filling function might delete
+          ;; some spaces there.
+          (fill-region start-marker end arg)
           ;; Unmask.
           (when start-marker
             (goto-char start-marker)
