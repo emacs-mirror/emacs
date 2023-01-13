@@ -11,7 +11,11 @@ language: c # see <https://docs.travis-ci.com/user/languages/c/>.
 os:
   - freebsd
   - linux
-  - osx
+  # If you include macOS here, Travis launches a redundant build on
+  # amd64, even though we specify arm64.  Perhaps it's because they
+  # don't support macOS on arm64.  When they do, try uncommenting
+  # this.
+  # - osx
   # See "include" section for Windows
 arch:
   # Most amd64 builds moved to GitHub CI.  See .github/workflows/c-cpp.yml.
@@ -42,10 +46,6 @@ matrix:
   exclude:
     - os: osx
       compiler: gcc
-    # Travis includes this even though we don't ask for it in the
-    # matrix, perhaps because it's the only macOS arch they support.
-    - os: osx
-      arch: amd64
 
 notifications:
   email:
