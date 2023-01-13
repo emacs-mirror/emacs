@@ -710,6 +710,19 @@
 #define WB_DEFER_HIT   1  /* boring scans after barrier hit */
 
 
+/* Apple Hardened Runtime
+ *
+ * The MAYBE_HARDENED_RUNTIME macro is true if Apple's "Hardened
+ * Runtime" feature may be enabled, and so calls to mmap() and
+ * mprotect() with PROT_WRITE | PROT_EXEC may fail with EACCES.
+ * See <design/prot#impl.xc.prot.exec> for details.
+ */
+#if defined(MPS_OS_XC) && defined(MPS_ARCH_A6)
+#define MAYBE_HARDENED_RUNTIME 1
+#else
+#define MAYBE_HARDENED_RUNTIME 0
+#endif
+
 #endif /* config_h */
 
 
