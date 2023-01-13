@@ -139,7 +139,7 @@ These steps will only rarely need repeating.
      cd mps
 
 #. Set your e-mail address for commits to the repo to match the one in
-   your Perforce user record. ::
+   your Perforce user record, e.g. ::
 
      git config user.email spqr@ravenbrook.com
 
@@ -155,15 +155,20 @@ These steps will only rarely need repeating.
 1. `Fetch the pull request branch`_ to a local branch using the MPS
    durable branch naming convention, "branch/DATE/TOPIC".
 
-   If branch is in the `Ravenbrook MPS repo on GitHub`_ and already
-   has a conventional name, then use the existing name, e.g. ::
+   If the branch already has a conventional name, and it's in the
+   `Ravenbrook MPS repo on GitHub`_ then fetch it with the existing
+   name, e.g. ::
 
      git fetch github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
 
-   Otherwise, if the pull request is from the `Ravenbrook MPS repo on
-   GitHub`_, fetch it from the pull request, e.g. ::
+   Otherwise, if the pull request is in the `Ravenbrook MPS repo on
+   GitHub`_, fetch it from the pull request and give it a conventional
+   name, e.g. ::
 
      git fetch github pull/93/head:branch/2023-01-06/speed-hax
+
+   (This could happen if either the pull request is from a fork or the
+   branch has an unconventional name.)
 
    If the branch to be merged is in a third-party repo, such as a fork
    not on GitHub, you can fetch it using a remote, e.g.::
