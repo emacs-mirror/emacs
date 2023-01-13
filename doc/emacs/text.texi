@@ -253,6 +253,10 @@ value of @code{sentence-end-double-space}.
 of a sentence.  Set the variable @code{sentence-end-without-period} to
 @code{t} in such cases.
 
+  Even though the above mentioned sentence movement commands are based
+on human languages, other Emacs modes can set these command to get
+similar functionality (@pxref{Moving by Sentences}).
+
 @node Paragraphs
 @section Paragraphs
 @cindex paragraphs

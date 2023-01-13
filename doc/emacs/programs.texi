@@ -163,6 +163,7 @@ Emacs we use it for all languages.
 * Left Margin Paren::   An open-paren or similar opening delimiter
                           starts a defun if it is at the left margin.
 * Moving by Defuns::    Commands to move over or mark a major definition.
+* Moving by Sentences:: Commands to move over certain code units.
 * Imenu::               Making buffer indexes as menus.
 * Which Function::      Which Function mode shows which function you are in.
 @end menu
@@ -253,6 +254,66 @@ an example of how major modes adjust the standard key bindings so that
 they do their standard jobs in a way better fitting a particular
 language.  Other major modes may replace any or all of these key
 bindings for that purpose.
+
+@node Moving by Sentences
+@subsection Moving by Sentences
+@cindex sentences, in programming languages
+
+  These commands move point or set up the region based on units of
+code, also called @dfn{sentences}.  Even though sentences are usually
+considered when writing human languages, Emacs can use the same
+commands to move over certain constructs in programming languages
+(@pxref{Sentences}, @pxref{Moving by Defuns}).  In a programming
+language a sentence is usually a complete language construct smaller
+than defuns, but larger than sexps (@pxref{List Motion,,, elisp, The
+Emacs Lisp Reference Manual}).  What exactly is a sentence in this
+case depends on the programming language, but usually it is a complete
+statement, such as a variable definition and initialization, or a
+conditional statement.  An example of a sentence in the C language
+could be
+
+@example
+int x = 5;
+@end example
+
+@noindent
+or in the JavaScript language it could look like
+
+@example
+@group
+const thing = () => console.log("Hi");
+@end group
+@group
+const foo = [1] == '1'
+  ? "No way"
+  : "...";
+@end group
+
+@end example
+
+@table @kbd
+@item M-a
+Move to beginning of current or preceding sentence
+(@code{backward-sentence}).
+@item M-e
+Move to end of current or following sentence (@code{forward-sentence}).
+@end table
+
+@cindex move to beginning or end of sentence
+@cindex sentence, move to beginning or end
+@kindex M-a @r{(programming modes)}
+@kindex M-e @r{(programming modes)}
+@findex backward-sentence @r{(programming modes)}
+@findex forward-sentence @r{(programming modes)}
+  The commands to move to the beginning and end of the current
+sentence are @kbd{M-a} (@code{backward-sentence}) and @kbd{M-e}
+(@code{forward-sentence}).  If you repeat one of these commands, or
+use a positive numeric argument, each repetition moves to the next
+sentence in the direction of motion.
+
+  @kbd{M-a} with a negative argument @minus{}@var{n} moves forward
+@var{n} times to the next end of a sentence.  Likewise, @kbd{M-e} with
+a negative argument moves back to the start of a sentence.
 
 @node Imenu
 @subsection Imenu

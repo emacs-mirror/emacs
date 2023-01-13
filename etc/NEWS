@@ -66,6 +66,24 @@ treesit.el now unconditionally sets 'transpose-sexps-function' for all
 Tree-sitter modes.  This functionality utilizes the new
 'transpose-sexps-function'.
 
+** Commands and variables to move by program statements
+
+*** New variable 'forward-sentence-function'.
+Major modes can now set this variable to customize the behavior of the
+'forward-sentence' command.
+
+*** New function 'forward-sentence-default-function'.
+The previous implementation of 'forward-sentence' is moved into its
+own function, to be bound by 'forward-sentence-function'.
+
+*** New defvar-local 'treesit-sentence-type-regexp.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sentences" in Tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sentence'.
+All tree-sitter modes that define 'treesit-sentence-type-regexp' now
+set 'forward-sentence-function' to call 'treesit-forward-sentence'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 ---

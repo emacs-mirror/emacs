@@ -182,7 +182,7 @@ chosen (interactively or automatically)."
                       when probe return (cons probe args)
                       finally (funcall err)))))))
 
-(defvar eglot-server-programs `(((rust-ts-mode rust-mode) . ,(eglot-alternatives '("rust-analyzer" "rls")))
+(defvar eglot-server-programs `(((rust-ts-mode rust-mode) . ("rust-analyzer"))
                                 ((cmake-mode cmake-ts-mode) . ("cmake-language-server"))
                                 (vimrc-mode . ("vim-language-server" "--stdio"))
                                 ((python-mode python-ts-mode)
