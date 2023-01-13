@@ -153,15 +153,17 @@ These steps will only rarely need repeating.
 --------------------
 
 1. `Fetch the pull request branch`_ to a local branch using the MPS
-   durable branch naming convention, "branch/DATE/TOPIC", e.g. ::
+   durable branch naming convention, "branch/DATE/TOPIC".
 
-     git fetch github pull/93/head:branch/2023-01-06/speed-hax
-
-   If the pull request is from the `Ravenbrook MPS repo on GitHub`_,
-   and its branch already has a conventional name, then use the
-   existing name, e.g. ::
+   If branch is in the `Ravenbrook MPS repo on GitHub`_ and already
+   has a conventional name, then use the existing name, e.g. ::
 
      git fetch github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
+
+   Otherwise, if the pull request is from the `Ravenbrook MPS repo on
+   GitHub`_, fetch it from the pull request, e.g. ::
+
+     git fetch github pull/93/head:branch/2023-01-06/speed-hax
 
    If the branch to be merged is in a third-party repo, such as a fork
    not on GitHub, you can fetch it using a remote, e.g.::
