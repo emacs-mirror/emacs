@@ -136,6 +136,12 @@ These steps will only rarely need repeating.
    repo.)  ::
 
      git clone -o github git@github.com:Ravenbrook/mps.git
+     cd mps
+
+#. Set your e-mail address for commits to the repo to match the one in
+   your Perforce user record. ::
+
+     git config user.email spqr@ravenbrook.com
 
 #. Add the Git Fusion mps-public repo, which is the interface to
    Ravenbrook's Perforce. ::
