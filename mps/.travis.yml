@@ -42,6 +42,10 @@ matrix:
   exclude:
     - os: osx
       compiler: gcc
+    # Travis includes this even though we don't ask for it in the
+    # matrix, perhaps because it's the only macOS arch they support.
+    - os: osx
+      arch: amd64
 
 notifications:
   email:
