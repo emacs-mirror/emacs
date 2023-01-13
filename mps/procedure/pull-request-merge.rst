@@ -182,7 +182,11 @@ These steps will only rarely need repeating.
 
    Otherwise, if the pull request is in the `Ravenbrook MPS repo on
    GitHub`_, fetch it from the pull request and give it a conventional
-   name, e.g. ::
+   name, like this ::
+
+     git fetch github pull/$PR/head:$BRANCH
+
+   For example ::
 
      git fetch github pull/93/head:branch/2023-01-06/speed-hax
 
