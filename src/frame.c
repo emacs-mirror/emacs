@@ -6138,8 +6138,11 @@ make_monitor_attribute_list (struct MonitorInfo *monitors,
 			 mi->work.width, mi->work.height);
       geometry = list4i (mi->geom.x, mi->geom.y,
 			 mi->geom.width, mi->geom.height);
-      attributes = Fcons (Fcons (Qsource, build_string (source)),
-                          attributes);
+
+      if (source)
+	attributes = Fcons (Fcons (Qsource, build_string (source)),
+			    attributes);
+
       attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
 			  attributes);
 #ifdef HAVE_PGTK
