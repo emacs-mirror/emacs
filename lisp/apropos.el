@@ -1117,23 +1117,13 @@ non-nil."
 (defun apropos-safe-documentation (function)
   "Like `documentation', except it avoids calling `get_doc_string'.
 Will return nil instead."
-  (while (and function (symbolp function))
-    (setq function (symbol-function function)))
-  (if (eq (car-safe function) 'macro)
-      (setq function (cdr function)))
-  (setq function (if (byte-code-function-p function)
-		     (if (> (length function) 4)
-			 (aref function 4))
-		   (if (autoloadp function)
-		       (nth 2 function)
-		     (if (eq (car-safe function) 'lambda)
-			 (if (stringp (nth 2 function))
-			     (nth 2 function)
-			   (if (stringp (nth 3 function))
-			       (nth 3 function)))))))
-  (if (integerp function)
-      nil
-    function))
+  (when (setq function (indirect-function function))
+    ;; FIXME: `function-documentation' says not to call it, but `documentation'
+    ;; would turn (FILE . POS) references into strings too eagerly, so
+    ;; we do want to use the lower-level function.
+    (let ((doc (function-documentation function)))
+      ;; Docstrings from the DOC file are handled elsewhere.
+      (if (integerp doc) nil doc))))
 
 (defcustom apropos-compact-layout nil
   "If non-nil, use a single line per binding."
