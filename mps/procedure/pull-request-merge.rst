@@ -71,15 +71,26 @@ checklist, decide whether to continue with the procedure.
 #. Does the branch build and pass tests on all `target platforms
    <../readme.txt>`_?
 
-   If the branch is in the `Ravenbrook MPS repo on GitHub`_ then
-   Travis CI should have run builds.  Look for a successful build in
-   the `Travis CI build history for the repo`_.  If there is a failed
-   build you should not execute this procedure, but talk to the
-   contributor about fixing the branch.
+   If the branch is in the `Ravenbrook MPS repo on GitHub`_ then CI
+   should have run builds of the branch.  To check, either:
 
-   If the branch is in the `Ravenbrook MPS repo on GitHub`_ and Travis
-   builds are missing, inform sysadmins that Travis CI isn't
-   functioning.
+   - Look for build results for the branch (not the pull request) in
+     the "checks" section of the pull request on GitHub.  Expand "Show
+     all checks", and look for build success messages *for the
+     branch*.
+
+   - Look for a the most recent build of the branch in the `Travis CI
+     build history for the repo`_.
+
+   - Look for the most recent build of the branch in the `GitHub
+     workflows for the repo`_.
+
+   If there is a failed build you should not execute this procedure,
+   but talk to the contributor about fixing the branch.
+
+   If the branch is in the `Ravenbrook MPS repo on GitHub`_ and builds
+   are missing from the "checks" section of pull request, inform
+   sysadmins that CI isn't functioning.
 
    If you have no build and test results, you can still execute this
    procedure, with caution.
@@ -87,26 +98,29 @@ checklist, decide whether to continue with the procedure.
 #. Does the branch merge cleanly in to master and pass tests on all
    target platforms?
 
-   Travis CI should have run builds of the pull request (i.e. `of a
-   merge with master
+   CI should have run builds of the pull request (i.e. `of a merge
+   with master
    <https://docs.travis-ci.com/user/pull-requests/#how-pull-requests-are-built>`_).
    To check, either:
 
-   - Look for "All checks have passed" in the pull request on GitHub.
-     Expand "Show all checks", and look for build success messages
-     from Travis CI.
+   - Look for build results for the pull request (not the branch) in
+     the pull request on GitHub.  Expand "Show all checks", and look
+     for build success messages *for the pull request*.
 
-   - Look for a successful build in the `Travis CI build history for
-     the repo`_.
+   - Look for a successful build of the pull request in the `Travis CI
+     build history for the repo`_.
 
-   Success by Travis CI is a strong indication that this procecure
-   will be quick and successful.
+   - Look for the most recent build of the pull request in the `GitHub
+     workflows for the repo`_.
 
-   If Travis builds failed, you can still execute this procedure if
-   you believe that the failure is due to merge conflicts that you are
+   Success by CI is a strong indication that this procecure will be
+   quick and successful.
+
+   If CI builds failed, you can still execute this procedure if you
+   believe that the failure is due to merge conflicts that you are
    willing to resolve.
 
-   If Travis builds are missing, inform sysadmins that Travis CI isn't
+   If CI builds are missing, inform sysadmins that CI isn't
    functioning.
 
    If you have no build and test results for the merge, then you can
@@ -117,6 +131,8 @@ checklist, decide whether to continue with the procedure.
    #. you're prepared to test on all target platforms.
 
 .. _Travis CI build history for the repo: https://app.travis-ci.com/github/Ravenbrook/mps/builds
+
+.. _GitHub workflows for the repo: https://github.com/Ravenbrook/mps/actions
 
 
 3. Prerequisite steps
