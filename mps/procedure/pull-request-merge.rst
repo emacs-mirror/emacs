@@ -38,7 +38,7 @@ MPS Help" [GDR_2020-09-03]_ .
 The answers to these questions should be "yes".  If the answer to a
 question isn't "yes", record that, and why, in response to the pull
 request (and maybe suggest what to do about it).  When you finish the
-checklist, decide whether to continue with the procedure.
+checklist, decide whether to start `the merging procedure`_.
 
 #. Is there a permanent visible document (issue, job), referenced by
    the branch, recording the problem that is solved by the changes in
@@ -148,8 +148,8 @@ These steps will only rarely need repeating.
    record.
 
 #. Clone the Ravenbrook MPS GitHub repository and name the remote
-   "github".  This will give you access to Travis CI to build and test
-   the merge.  (If you're an MPS developer you can use your existing
+   "github".  This will give you access to CI to build and test the
+   merge.  (If you're an MPS developer you can use your existing
    repo.)  ::
 
      git clone -o github git@github.com:Ravenbrook/mps.git
@@ -380,6 +380,14 @@ According to `GitHub's "About pull request merges"
   Rather than build the commits that have been pushed to the branch
   the pull request is from, we build the merge between the source
   branch and the upstream branch.
+
+When we use a GitHub CI on pull requests, that's also run on the merge
+results.  As `GitHub's pull request event documentation
+<https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request>`_
+says:
+
+  GITHUB_SHA for this event is the last merge commit of the pull
+  request merge branch.
 
 So, `once Git becomes the home
 <https://github.com/Ravenbrook/mps/issues/98>`_ we will be able to use
