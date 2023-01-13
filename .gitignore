@@ -61,6 +61,9 @@ java/*.apk*
 java/*.dex
 java/org/gnu/emacs/*.class
 
+# Built by `config.status'.
+java/AndroidManifest.xml
+
 # C-level sources built by 'make'.
 lib/alloca.h
 lib/assert.h
