@@ -197,7 +197,8 @@ These steps will only rarely need repeating.
 
      git merge --no-ff branch/2023-01-06/speed-hax
 
-   Edit the commit message to say something like::
+   Edit the commit message to link it to *why* you are merging.  Say
+   something like::
 
      Merging branch/2023-01-06/speed-hax for GitHub pull request 93
      <https://github.com/Ravenbrook/mps/pull/93>.
