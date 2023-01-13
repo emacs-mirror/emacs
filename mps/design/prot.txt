@@ -51,6 +51,14 @@ the MPS cannot take the correct action: that is, fixing references in
 a read-protected segment, and discarding the remembered set from a
 write-protected segment. See ``TraceSegAccess()``.)
 
+_`.req.prot.exec`: The protection module should allow mutators to
+write machine code into memory managed by the MPS and then execute
+that code, for example, to implement just-in-time translation, or
+other forms of dynamic compilation. Compare
+design.mps.vm.req.prot.exec_.
+
+.. _design.mps.vm.req.prot.exec: vm#.req.prot.exec
+
 
 Design
 ------
@@ -68,6 +76,10 @@ and calling ``ArenaAccess()``.
 
 .. _design.mps.prmc.req.fault.addr: prmc#.req.fault.addr
 .. _design.mps.prmc.req.fault.access: prmc#.req.fault.access
+
+_`.sol.prot.exec`: The protection module makes memory executable
+whenever it is readable by the mutator, if this is supported by the
+platform.
 
 
 Interface
@@ -140,6 +152,40 @@ _`.impl.ix`: POSIX implementation. See design.mps.protix_.
 _`.impl.w3`: Windows implementation.
 
 _`.impl.xc`: macOS implementation.
+
+_`.impl.xc.prot.exec`: The approach in `.sol.prot.exec`_ of always
+making memory executable causes a difficulty on macOS on Apple
+Silicon. On this platform, programs may enable `Hardened Runtime`_.
+This feature rejects attempts to map or protect memory so that it is
+simultaneously writable and executable. Moreover, the feature is
+enabled by default (as of macOS 13 Ventura), so that if you install
+Xcode and then use it to compile the following program, the executable
+fails when run with "mmap: Permission denied". ::
+
+    #include <stdio.h>
+    #include <sys/mman.h>
+
+    int main(void)
+    {
+      void *p = mmap(0, 1, PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+      if (p == MAP_FAILED) perror("mmap");
+      return 0;
+    }
+
+.. _Hardened Runtime: https://developer.apple.com/documentation/security/hardened_runtime
+
+_`.impl.xc.prot.exec.detect`: The protection module detects Hardened
+Runtime if the operating system is macOS, the CPU architecture is
+ARM64, a call to ``mprotect()`` fails, the call requested writable and
+executable access, and the error code is ``EACCES``.
+
+_`.impl.xc.prot.exec.retry`: To avoid requiring developers who don't
+need to allocate executable memory to figure out how to disable
+Hardened Runtime, or enable the appropriate entitlement, the
+protection module handles the ``EACCES`` error from ``mprotect()`` in
+the Hardened Runtime case by retrying without the request for the
+memory to be executable, and setting a global variable to prevent the
+writable and executable combination being attempted again.
 
 
 Document History
