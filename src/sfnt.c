@@ -3072,8 +3072,8 @@ sfnt_curve_is_flat (struct sfnt_point control0,
 
   /* 2.0 is a constant describing the area covered at which point the
      curve is considered "flat".  */
-  return (abs (sfnt_mul_fixed (g.x, h.x)
-	       - sfnt_mul_fixed (g.y, h.y))
+  return (abs (sfnt_mul_fixed (g.x, h.y)
+	       - sfnt_mul_fixed (g.y, h.x))
 	  <= 0400000);
 }
 
@@ -3261,9 +3261,11 @@ sfnt_prepare_raster (struct sfnt_raster *raster,
 		     struct sfnt_glyph_outline *outline)
 {
   raster->width
-    = sfnt_ceil_fixed (outline->xmax - outline->xmin) >> 16;
+    = (sfnt_ceil_fixed (outline->xmax)
+       - sfnt_floor_fixed (outline->xmin)) >> 16;
   raster->height
-    = sfnt_ceil_fixed (outline->ymax - outline->ymin) >> 16;
+    = (sfnt_ceil_fixed (outline->ymax)
+       - sfnt_floor_fixed (outline->ymin)) >> 16;
   raster->refcount = 0;
 
   /* Align the raster to a SFNT_POLY_ALIGNMENT byte boundary.  */
@@ -3292,10 +3294,10 @@ sfnt_step_edge (struct sfnt_edge *edge)
 }
 
 /* Build a list of edges for each contour in OUTLINE, applying
-   OUTLINE->xmin and OUTLINE->ymin as the offset to each edge.  Call
-   EDGE_PROC with DCONTEXT and the resulting edges as arguments.  It
-   is OK to modify the edges given to EDGE_PROC.  Align all edges to
-   the sub-pixel grid.  */
+   OUTLINE->xmin and floor (OUTLINE->ymin) as the offset to each edge.
+   Call EDGE_PROC with DCONTEXT and the resulting edges as arguments.
+   It is OK to modify the edges given to EDGE_PROC.  Align all edges
+   to the sub-pixel grid.  */
 
 static void
 sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
@@ -3303,12 +3305,17 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 {
   struct sfnt_edge *edges;
   size_t i, edge, next_vertex;
-  sfnt_fixed dx, dy, bot, step_x;
+  sfnt_fixed dx, dy, bot, step_x, ymin, xmin;
   int inc_x;
   size_t top, bottom, y;
 
   edges = alloca (outline->outline_used * sizeof *edges);
   edge = 0;
+
+  /* ymin and xmin must be the same as the offset used to set offy and
+     offx in rasters.  */
+  ymin = sfnt_floor_fixed (outline->ymin);
+  xmin = sfnt_floor_fixed (outline->xmin);
 
   for (i = 0; i < outline->outline_used; ++i)
     {
@@ -3356,12 +3363,12 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 	  top = next_vertex;
 	}
 
-      bot = (outline->outline[bottom].y - outline->ymin);
-      edges[edge].top = (outline->outline[top].y - outline->ymin);
+      bot = (outline->outline[bottom].y - ymin);
+      edges[edge].top = (outline->outline[top].y - ymin);
 
       /* Record the edge.  Rasterization happens from bottom to
 	 up, so record the X at the bottom.  */
-      edges[edge].x = (outline->outline[bottom].x - outline->xmin);
+      edges[edge].x = (outline->outline[bottom].x - xmin);
       dx = (outline->outline[top].x - outline->outline[bottom].x);
       dy = abs (outline->outline[top].y
 		- outline->outline[bottom].y);
@@ -4585,7 +4592,7 @@ main (int argc, char **argv)
 	      /* Time this important bit.  */
 	      clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 	      outline = sfnt_build_glyph_outline (glyph, head,
-						  45,
+						  12,
 						  sfnt_test_get_glyph,
 						  sfnt_test_free_glyph,
 						  &dcontext);
@@ -4652,7 +4659,7 @@ main (int argc, char **argv)
 
 	      if (hmtx && head)
 		{
-		  if (!sfnt_lookup_glyph_metrics (code, 36,
+		  if (!sfnt_lookup_glyph_metrics (code, 12,
 						  &metrics,
 						  hmtx, hhea,
 						  head, maxp))

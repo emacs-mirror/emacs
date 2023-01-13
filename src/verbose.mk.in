@@ -83,5 +83,5 @@ AM_V_RC      = @$(info $   RC       $@)
 
 # These are used for the Android port.
 AM_V_JAVAC	= @$(info $   JAVAC    $@)
-AM_V_DX		= @$(info $   DX       $@)
+AM_V_D8		= @$(info $   D8       $@)
 endif

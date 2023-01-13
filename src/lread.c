@@ -1141,7 +1141,7 @@ close_infile_unwind (void *arg)
 {
   struct infile *prev_infile = arg;
   eassert (infile && infile != prev_infile);
-  fclose (infile->stream);
+  emacs_fclose (infile->stream);
   infile = prev_infile;
 }
 

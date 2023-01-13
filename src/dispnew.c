@@ -3175,6 +3175,7 @@ redraw_frame (struct frame *f)
      its redisplay done.  */
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
   set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), true);
+
   f->garbaged = false;
 }
 
@@ -6053,7 +6054,7 @@ FILE = nil means just close any termscript file currently open.  */)
   if (tty->termscript != 0)
     {
       block_input ();
-      fclose (tty->termscript);
+      emacs_fclose (tty->termscript);
       tty->termscript = 0;
       unblock_input ();
     }

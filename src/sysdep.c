@@ -2335,7 +2335,8 @@ emacs_backtrace (int backtrace_limit)
     }
 }
 
-#ifndef HAVE_NTGUI
+#if !defined HAVE_NTGUI && !(defined HAVE_ANDROID		\
+			     && !defined ANDROID_STUBIFY)
 void
 emacs_abort (void)
 {
@@ -2566,6 +2567,20 @@ emacs_close (int fd)
 	  return errno == EINPROGRESS ? 0 : r;
 	}
     }
+}
+
+/* Wrapper around fclose.  On Android, this calls `android_fclose' to
+   clear information associated with the FILE's file descriptor if
+   necessary.  */
+
+int
+emacs_fclose (FILE *stream)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return fclose (stream);
+#else
+  return android_fclose (stream);
+#endif
 }
 
 /* Maximum number of bytes to read or write in a single system call.

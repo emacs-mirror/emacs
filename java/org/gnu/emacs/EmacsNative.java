@@ -96,10 +96,33 @@ public class EmacsNative
 					     long time, int state,
 					     int button);
 
-    /* Send an ANDROID_BUTTON_RELEASE event.  */
+  /* Send an ANDROID_BUTTON_RELEASE event.  */
   public static native void sendButtonRelease (short window, int x, int y,
 					       long time, int state,
 					       int button);
+
+  /* Send an ANDROID_TOUCH_DOWN event.  */
+  public static native void sendTouchDown (short window, int x, int y,
+					   long time, int pointerID);
+
+  /* Send an ANDROID_TOUCH_UP event.  */
+  public static native void sendTouchUp (short window, int x, int y,
+					 long time, int pointerID);
+
+  /* Send an ANDROID_TOUCH_MOVE event.  */
+  public static native void sendTouchMove (short window, int x, int y,
+					   long time, int pointerID);
+
+  /* Send an ANDROID_WHEEL event.  */
+  public static native void sendWheel (short window, int x, int y,
+				       long time, int state,
+				       float xDelta, float yDelta);
+
+  /* Send an ANDROID_ICONIFIED event.  */
+  public static native void sendIconified (short window);
+
+  /* Send an ANDROID_DEICONIFIED event.  */
+  public static native void sendDeiconified (short window);
 
   static
   {

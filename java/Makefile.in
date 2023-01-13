@@ -18,13 +18,15 @@
 # along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 top_builddir = @top_builddir@
+top_srcdir = @top_srcdir@
+version = @version@
 
 -include ${top_builddir}/src/verbose.mk
 
 SHELL = @SHELL@
 JAVAC = @JAVAC@
 AAPT = @AAPT@
-DX = @DX@
+D8 = @D8@
 ZIPALIGN = @ZIPALIGN@
 JARSIGNER = @JARSIGNER@
 ANDROID_JAR = @ANDROID_JAR@
@@ -38,6 +40,12 @@ SIGN_EMACS = -keystore emacs.keystore -storepass emacs1
 
 JAVA_FILES = $(shell find . -type f -name *.java)
 CLASS_FILES = $(foreach file,$(JAVA_FILES),$(basename $(file)).class)
+
+# Compute the name for the Emacs application package.  This should be:
+# emacs-<version>-<min-sdk>-<abi>.apk
+
+ANDROID_MIN_SDK = @ANDROID_MIN_SDK@
+APK_NAME = emacs-$(version)-$(ANDROID_MIN_SDK)-$(ANDROID_ABI).apk
 
 # How this stuff works.
 
@@ -55,7 +63,7 @@ CLASS_FILES = $(foreach file,$(JAVA_FILES),$(basename $(file)).class)
 #  assets/lisp/
 
 .PHONY: emacs.apk-in all
-all: emacs.apk
+all: $(APK_NAME)
 
 # Binaries to cross-compile.
 CROSS_BINS = ../xcompile/src/android-emacs ../xcompile/lib-src/ctags	\
@@ -118,6 +126,18 @@ emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) AndroidManifest.xml
 	pushd install_temp; $(AAPT) add ../$@ `find assets -type f`; popd
 	rm -rf install_temp
 
+# Makefile itself.
+.PRECIOUS: ../config.status Makefile
+../config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
+	$(MAKE) -C $(dir $@) $(notdir $@)
+Makefile: ../config.status $(top_builddir)/java/Makefile.in
+	$(MAKE) -C .. java/$@
+
+# AndroidManifest.xml:
+AndroidManifest.xml: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4 \
+  AndroidManifest.xml.in
+	pushd ..; ./config.status java/AndroidManifest.xml; popd
+
 .SUFFIXES: .java .class
 .java.class &:
 	$(AM_V_JAVAC) $(JAVAC) $(JAVAFLAGS) $<
@@ -126,7 +146,7 @@ emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) AndroidManifest.xml
 # nested classes.
 
 classes.dex: $(CLASS_FILES)
-	$(AM_V_DX) $(DX) --classpath $(ANDROID_JAR) \
+	$(AM_V_D8) $(D8) --classpath $(ANDROID_JAR) \
 	  $(subst $$,\$$,$(shell find . -type f -name *.class))
 
 # When emacs.keystore expires, regenerate it with:
@@ -136,7 +156,7 @@ classes.dex: $(CLASS_FILES)
 
 .PHONY: clean maintainer-clean
 
-emacs.apk: classes.dex emacs.apk-in emacs.keystore
+$(APK_NAME): classes.dex emacs.apk-in emacs.keystore
 	cp -f emacs.apk-in $@.unaligned
 	$(AAPT) add $@.unaligned classes.dex
 	$(JARSIGNER) $(SIGN_EMACS) $@.unaligned "Emacs keystore"
@@ -144,7 +164,7 @@ emacs.apk: classes.dex emacs.apk-in emacs.keystore
 	rm -f $@.unaligned
 
 clean:
-	rm -f emacs.apk emacs.apk-in *.dex *.unaligned *.class
+	rm -f *.apk emacs.apk-in *.dex *.unaligned *.class
 	rm -rf install-temp
 	find . -name '*.class' -delete
 

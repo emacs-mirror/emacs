@@ -277,7 +277,7 @@ void
 fclose_unwind (void *arg)
 {
   FILE *stream = arg;
-  fclose (stream);
+  emacs_fclose (stream);
 }
 
 /* Restore point, having saved it as a marker.  */
@@ -2989,6 +2989,12 @@ If there is no error, returns nil.  */)
 
   encoded_filename = ENCODE_FILE (absname);
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* FILE may be some kind of special Android file.  */
+  if (android_file_access_p (SSDATA (encoded_filename), R_OK))
+    return Qnil;
+#endif
+
   if (faccessat (AT_FDCWD, SSDATA (encoded_filename), R_OK, AT_EACCESS) != 0)
     report_file_error (SSDATA (string), filename);
 
@@ -3205,7 +3211,11 @@ file_accessible_directory_p (Lisp_Object file)
      There are three exceptions: "", "/", and "//".  Leave "" alone,
      as it's invalid.  Append only "." to the other two exceptions as
      "/" and "//" are distinct on some platforms, whereas "/", "///",
-     "////", etc. are all equivalent.  */
+     "////", etc. are all equivalent.
+
+     Android has a special directory named "/assets".  There is no "."
+     directory there, but appending a "/" is sufficient to check
+     whether or not it is a directory.  */
   if (! len)
     dir = data;
   else
@@ -3215,11 +3225,27 @@ file_accessible_directory_p (Lisp_Object file)
 	 special cases "/" and "//", and it's a safe optimization
 	 here.  After appending '.', append another '/' to work around
 	 a macOS bug (Bug#30350).  */
-      static char const appended[] = "/./";
-      char *buf = SAFE_ALLOCA (len + sizeof appended);
-      memcpy (buf, data, len);
-      strcpy (buf + len, &appended[data[len - 1] == '/']);
-      dir = buf;
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+      if (!strncmp ("/assets/", data,
+		    sizeof "/assets" - 1))
+	{
+	  static char const appended[] = "/";
+	  char *buf = SAFE_ALLOCA (len + sizeof appended);
+	  memcpy (buf, data, len);
+	  strcpy (buf + len, &appended[data[len - 1] == '/']);
+	  dir = buf;
+	}
+      else
+	{
+#endif
+	  static char const appended[] = "/./";
+	  char *buf = SAFE_ALLOCA (len + sizeof appended);
+	  memcpy (buf, data, len);
+	  strcpy (buf + len, &appended[data[len - 1] == '/']);
+	  dir = buf;
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+	}
+#endif
     }
 
   ok = file_access_p (dir, F_OK);
@@ -5973,7 +5999,7 @@ do_auto_save_unwind (void *arg)
   if (stream != NULL)
     {
       block_input ();
-      fclose (stream);
+      emacs_fclose (stream);
       unblock_input ();
     }
 }

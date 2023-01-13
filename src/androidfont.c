@@ -1,4 +1,4 @@
-/* Communication module for Android terminals.
+/* Android fallback font driver.
 
 Copyright (C) 2023 Free Software Foundation, Inc.
 
@@ -16,6 +16,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
+
+/* Due to the terrible nature of the Android Typeface subsystems, this
+   font driver is only used as a fallback when sfntfont-android.c
+   fails to enumerate any fonts at all.  */
 
 #include <config.h>
 
@@ -636,7 +640,7 @@ androidfont_draw (struct glyph_string *s, int from, int to,
 
   gcontext = android_resolve_handle (s->gc->gcontext,
 				     ANDROID_HANDLE_GCONTEXT);
-  drawable = android_resolve_handle (FRAME_ANDROID_WINDOW (s->f),
+  drawable = android_resolve_handle (FRAME_ANDROID_DRAWABLE (s->f),
 				     ANDROID_HANDLE_WINDOW);
   chars = (*android_java_env)->NewIntArray (android_java_env,
 					    to - from);

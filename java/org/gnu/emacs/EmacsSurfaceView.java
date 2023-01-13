@@ -27,8 +27,12 @@ import android.os.Build;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
+import android.util.Log;
+
 public class EmacsSurfaceView extends SurfaceView
 {
+  private static final String TAG = "EmacsSurfaceView";
+
   public Object surfaceChangeLock;
   private boolean created;
 
@@ -45,6 +49,7 @@ public class EmacsSurfaceView extends SurfaceView
 	surfaceChanged (SurfaceHolder holder, int format,
 			int width, int height)
 	{
+	  Log.d (TAG, "surfaceChanged: " + view);
 	  view.swapBuffers ();
 	}
 
@@ -54,9 +59,13 @@ public class EmacsSurfaceView extends SurfaceView
 	{
 	  synchronized (surfaceChangeLock)
 	    {
+	      Log.d (TAG, "surfaceCreated: " + view);
 	      created = true;
-	      view.swapBuffers ();
 	    }
+
+	  /* Drop the lock when doing this, or a deadlock can
+	     result.  */
+	  view.swapBuffers ();
 	}
 
 	@Override
@@ -65,6 +74,7 @@ public class EmacsSurfaceView extends SurfaceView
 	{
 	  synchronized (surfaceChangeLock)
 	    {
+	      Log.d (TAG, "surfaceDestroyed: " + view);
 	      created = false;
 	    }
 	}
@@ -91,6 +101,16 @@ public class EmacsSurfaceView extends SurfaceView
       }
 
     return holder.lockCanvas (damage);
+  }
+
+  @Override
+  protected void
+  onLayout (boolean changed, int left, int top, int right,
+	    int bottom)
+  {
+    Log.d (TAG, ("onLayout: " + left + " " + top + " " + right
+		 + " " + bottom + " -- " + changed + " visibility "
+		 + getVisibility ()));
   }
 
   /* This method is only used during debugging when it seems damage

@@ -816,8 +816,8 @@ a valid path to android.jar.  See config.log for more details.])
 Please verify that the path to the SDK build tools you specified is correct])
   fi
 
-  AC_PATH_PROGS([DX], [dx d8], [], "${SDK_BUILD_TOOLS}:$PATH")
-  if test "DX" = ""; then
+  AC_PATH_PROGS([D8], [d8], [], "${SDK_BUILD_TOOLS}:$PATH")
+  if test "D8" = ""; then
     AC_MSG_ERROR([The Android dexer was not found.
 Please verify that the path to the SDK build tools you specified is correct])
   fi
@@ -867,6 +867,25 @@ in the ANDROID_CC variable when you ran configure.])
 
   ANDROID_ABI=$android_abi
 
+  dnl Obtain the minimum SDK version of the resulting Emacs binary
+  dnl built with this NDK.
+
+  ANDROID_MIN_SDK=8
+  AC_MSG_CHECKING([for the lowest Android version Emacs can run on])
+  [android_sdk=`echo "$cc_target" | grep -oE 'android([0-9][0-9]?)'`]
+
+  if test -n "$android_sdk"; then
+    android_sdk=`echo "$android_sdk" | sed -n 's/android//p'`
+    AC_MSG_RESULT([$android_sdk])
+    ANDROID_MIN_SDK=$android_sdk
+  else
+    AC_MSG_RESULT([unknown ($cc_target); assuming 8])
+    AC_MSG_WARN([configure could not determine the versions of Android \
+a binary built with this compiler will run on.  The generated application \
+package will likely install on older systems but crash on startup.])
+  fi
+  AC_SUBST([ANDROID_MIN_SDK])
+
   # Save confdefs.h and config.log for now.
   mv -f confdefs.h _confdefs.h
   mv -f config.log _config.log
@@ -899,7 +918,7 @@ fi
 AC_SUBST([ANDROID])
 AC_SUBST([JAVAC])
 AC_SUBST([AAPT])
-AC_SUBST([DX])
+AC_SUBST([D8])
 AC_SUBST([ZIPALIGN])
 AC_SUBST([ANDROID_JAR])
 AC_SUBST([ANDROID_ABI])
@@ -914,7 +933,7 @@ fi
 AC_SUBST([XCONFIGURE])
 
 if test "$ANDROID" = "yes"; then
-  # When --with-android is specified, all build options must be
+  # When --with-android is specified, almost all build options must be
   # disabled, both within the recursive invocation of configure and
   # outside.
   with_xpm=no
@@ -938,11 +957,12 @@ if test "$ANDROID" = "yes"; then
   with_gpm=no
   with_dbus=no
   with_gsettings=no
-  with_selinx=no
+  with_selinux=no
   with_gnutls=no
-  with_zlib=no
   with_modules=no
   with_threads=no
+
+  # zlib is available in android.
 fi
 
 dnl This used to use changequote, but, apart from 'changequote is evil'
@@ -7210,6 +7230,9 @@ fi
 # Make java/Makefile
 ARCH_INDEPENDENT_CONFIG_FILES([java/Makefile])
 ARCH_INDEPENDENT_CONFIG_FILES([xcompile/Makefile])
+
+# Make java/AndroidManifest.xml
+ARCH_INDEPENDENT_CONFIG_FILES([java/AndroidManifest.xml])
 
 AC_OUTPUT
 

@@ -42,19 +42,6 @@ static Lisp_Object font_cache;
 
 
 
-static unsigned int
-sfntfont_android_saturate32 (unsigned int a, unsigned int b)
-{
-  unsigned int c;
-
-  c = a + b;
-
-  if (c < a)
-    c = -1;
-
-  return c;
-}
-
 /* Scale each of the four packed bytes in P in the low 16 bits of P by
    SCALE.  Return the result.
 
@@ -107,8 +94,9 @@ sfntfont_android_blend (unsigned int src, unsigned int dst)
   src = src & ~0x00ff00ff;
   src |= (src_rb >> 16 | src_rb << 16);
 
-  /* Saturating is unnecessary but helps find bugs.  */
-  return sfntfont_android_saturate32 (both, src);
+  /* This addition need not be saturating because both has already
+     been multiplied by 255 - a.  */
+  return both + src;
 }
 
 #define U255TO256(x) ((unsigned short) (x) + ((x) >> 7))
@@ -128,8 +116,9 @@ sfntfont_android_blendrgb (unsigned int src, unsigned int dst)
 
   both = ag_part | rb_part;
 
-  /* Saturating is unnecessary but helps find bugs.  */
-  return sfntfont_android_saturate32 (both, src);
+  /* This addition need not be saturating because both has already
+     been multiplied by 255 - a.  */
+  return both + src;
 }
 
 /* Composite the bitmap described by BUFFER, STRIDE and TEXT_RECTANGLE
@@ -161,6 +150,10 @@ sfntfont_android_composite_bitmap (unsigned char *restrict buffer,
 	    return;
 
 	  src_y = i + (rect->y - text_rectangle->y);
+
+	  if (src_y > text_rectangle->height)
+	    /* Huh? */
+	    return;
 
 	  src_row = (unsigned int *) ((buffer + src_y * stride));
 	  dst_row = (unsigned int *) (dest + ((i + rect->y)
@@ -343,7 +336,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
     }
 
   /* Lock the bitmap.  It must be unlocked later.  */
-  bitmap_data = android_lock_bitmap (FRAME_ANDROID_WINDOW (s->f),
+  bitmap_data = android_lock_bitmap (FRAME_ANDROID_DRAWABLE (s->f),
 				     &bitmap_info, &bitmap);
 
   /* If locking the bitmap fails, just discard the data that was
@@ -385,7 +378,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
   ANDROID_DELETE_LOCAL_REF (bitmap);
 
   /* Damage the window by the text rectangle.  */
-  android_damage_window (FRAME_ANDROID_WINDOW (s->f),
+  android_damage_window (FRAME_ANDROID_DRAWABLE (s->f),
 			 &text_rectangle);
 
   /* Release the temporary scanline buffer.  */
@@ -495,13 +488,19 @@ init_sfntfont_android (void)
      version of Android the device is running.  */
   if (android_get_device_api_level () >= 15)
     Vsfnt_default_family_alist
-      = list2 (Fcons (build_string ("Monospace"),
+      = list3 (Fcons (build_string ("Monospace"),
+		      build_string ("Droid Sans Mono")),
+	       /* Android doesn't come with a Monospace Serif font, so
+		  this will have to do.  */
+	       Fcons (build_string ("Monospace Serif"),
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Sans Serif"),
 		      build_string ("Roboto")));
   else
     Vsfnt_default_family_alist
-      = list2 (Fcons (build_string ("Monospace"),
+      = list3 (Fcons (build_string ("Monospace"),
+		      build_string ("Droid Sans Mono")),
+	       Fcons (build_string ("Monospace Serif"),
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Sans Serif"),
 		      build_string ("Droid Sans")));

@@ -48,6 +48,9 @@ public class EmacsActivity extends Activity
   /* The currently focused window.  */
   public static EmacsWindow focusedWindow;
 
+  /* Whether or not this activity is paused.  */
+  private boolean isPaused;
+
   static
   {
     focusedActivities = new ArrayList<EmacsActivity> ();
@@ -60,7 +63,7 @@ public class EmacsActivity extends Activity
       focusedWindow = window;
 
     for (EmacsWindow child : window.children)
-      invalidateFocus1 (window);
+      invalidateFocus1 (child);
   }
 
   public static void
@@ -103,6 +106,9 @@ public class EmacsActivity extends Activity
 	/* Clear the window's pointer to this activity and remove the
 	   window's view.  */
 	window.setConsumer (null);
+
+	/* The window can't be iconified any longer.  */
+	window.noticeDeiconified ();
 	layout.removeView (window.view);
 	window = null;
 
@@ -114,6 +120,8 @@ public class EmacsActivity extends Activity
   public void
   attachWindow (EmacsWindow child)
   {
+    Log.d (TAG, "attachWindow: " + child);
+
     if (window != null)
       throw new IllegalStateException ("trying to attach window when one"
 				       + " already exists");
@@ -123,6 +131,10 @@ public class EmacsActivity extends Activity
     window = child;
     layout.addView (window.view);
     child.setConsumer (this);
+
+    /* If the activity is iconified, send that to the window.  */
+    if (isPaused)
+      window.noticeIconified ();
 
     /* Invalidate the focus.  */
     invalidateFocus ();
@@ -147,6 +159,9 @@ public class EmacsActivity extends Activity
   onCreate (Bundle savedInstanceState)
   {
     FrameLayout.LayoutParams params;
+
+    /* Set the theme to one without a title bar.  */
+    setTheme (android.R.style.Theme_NoTitleBar);
 
     params = new FrameLayout.LayoutParams (LayoutParams.MATCH_PARENT,
 					   LayoutParams.MATCH_PARENT);
@@ -191,5 +206,25 @@ public class EmacsActivity extends Activity
       focusedActivities.remove (this);
 
     invalidateFocus ();
+  }
+
+  @Override
+  public void
+  onPause ()
+  {
+    isPaused = true;
+
+    EmacsWindowAttachmentManager.MANAGER.noticeIconified (this);
+    super.onResume ();
+  }
+
+  @Override
+  public void
+  onResume ()
+  {
+    isPaused = false;
+
+    EmacsWindowAttachmentManager.MANAGER.noticeDeiconified (this);
+    super.onResume ();
   }
 };

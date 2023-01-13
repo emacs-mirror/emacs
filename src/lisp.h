@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <float.h>
 #include <inttypes.h>
 #include <limits.h>
+#include <stdio.h>
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -5077,6 +5078,7 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_open_noquit (const char *, int, int);
 extern int emacs_pipe (int[2]);
 extern int emacs_close (int);
+extern int emacs_fclose (FILE *);
 extern ptrdiff_t emacs_read (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_read_quit (int, void *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, void const *, ptrdiff_t);

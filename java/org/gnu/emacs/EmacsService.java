@@ -28,19 +28,26 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 
 import android.view.View;
+import android.view.InputDevice;
 
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+
 import android.os.Build;
 import android.os.Looper;
 import android.os.IBinder;
 import android.os.Handler;
+import android.os.Vibrator;
+import android.os.VibratorManager;
+import android.os.VibrationEffect;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
+
+import android.hardware.input.InputManager;
 
 class Holder<T>
 {
@@ -249,5 +256,114 @@ public class EmacsService extends Service
 	     int height)
   {
     window.clearArea (x, y, width, height);
+  }
+
+  @SuppressWarnings ("deprecation")
+  public void
+  ringBell ()
+  {
+    Vibrator vibrator;
+    VibrationEffect effect;
+    VibratorManager vibratorManager;
+    Object tem;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+      {
+	tem = getSystemService (Context.VIBRATOR_MANAGER_SERVICE);
+	vibratorManager = (VibratorManager) tem;
+        vibrator = vibratorManager.getDefaultVibrator ();
+      }
+    else
+      vibrator
+	= (Vibrator) getSystemService (Context.VIBRATOR_SERVICE);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      {
+	effect
+	  = VibrationEffect.createOneShot (50,
+					   VibrationEffect.DEFAULT_AMPLITUDE);
+	vibrator.vibrate (effect);
+      }
+    else
+      vibrator.vibrate (50);
+  }
+
+  public short[]
+  queryTree (EmacsWindow window)
+  {
+    short[] array;
+    List<EmacsWindow> windowList;
+    int i;
+
+    if (window == null)
+      /* Just return all the windows without a parent.  */
+      windowList = EmacsWindowAttachmentManager.MANAGER.copyWindows ();
+    else
+      windowList = window.children;
+
+    array = new short[windowList.size () + 1];
+    i = 1;
+
+    array[0] = window.parent != null ? 0 : window.parent.handle;
+
+    for (EmacsWindow treeWindow : windowList)
+      array[i++] = treeWindow.handle;
+
+    return array;
+  }
+
+  public int
+  getScreenWidth (boolean mmWise)
+  {
+    DisplayMetrics metrics;
+
+    metrics = getResources ().getDisplayMetrics ();
+
+    if (!mmWise)
+      return metrics.widthPixels;
+    else
+      return (int) ((metrics.widthPixels / metrics.xdpi) * 2540.0);
+  }
+
+  public int
+  getScreenHeight (boolean mmWise)
+  {
+    DisplayMetrics metrics;
+
+    metrics = getResources ().getDisplayMetrics ();
+
+    if (!mmWise)
+      return metrics.heightPixels;
+    else
+      return (int) ((metrics.heightPixels / metrics.ydpi) * 2540.0);
+  }
+
+  public boolean
+  detectMouse ()
+  {
+    InputManager manager;
+    InputDevice device;
+    int[] ids;
+    int i;
+
+    if (Build.VERSION.SDK_INT
+	< Build.VERSION_CODES.JELLY_BEAN)
+      return false;
+
+    manager = (InputManager) getSystemService (Context.INPUT_SERVICE);
+    ids = manager.getInputDeviceIds ();
+
+    for (i = 0; i < ids.length; ++i)
+      {
+	device = manager.getInputDevice (ids[i]);
+
+	if (device == null)
+	  continue;
+
+	if (device.supportsSource (InputDevice.SOURCE_MOUSE))
+	  return true;
+      }
+
+    return false;
   }
 };

@@ -27,7 +27,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef ANDROID_STUBIFY
 #include <jni.h>
 #include <pwd.h>
+
 #include <sys/stat.h>
+#include <dirent.h>
 
 #include <android/bitmap.h>
 
@@ -53,6 +55,7 @@ extern int android_fstat (int, struct stat *);
 extern int android_fstatat (int, const char *restrict,
 			    struct stat *restrict, int);
 extern int android_close (int);
+extern int android_fclose (FILE *);
 extern const char *android_get_home_directory (void);
 
 extern double android_pixel_density_x, android_pixel_density_y;
@@ -71,6 +74,26 @@ extern unsigned char *android_lock_bitmap (android_window,
 					   jobject *);
 extern void android_damage_window (android_window,
 				   struct android_rectangle *);
+extern int android_get_screen_width (void);
+extern int android_get_screen_height (void);
+extern int android_get_mm_width (void);
+extern int android_get_mm_height (void);
+extern bool android_detect_mouse (void);
+
+extern void android_set_dont_focus_on_map (android_window, bool);
+extern void android_set_dont_accept_focus (android_window, bool);
+
+
+
+/* Directory listing emulation.  */
+
+struct android_dir;
+
+extern struct android_dir *android_opendir (const char *);
+extern struct dirent *android_readdir (struct android_dir *);
+extern void android_closedir (struct android_dir *);
+
+
 
 #endif
 

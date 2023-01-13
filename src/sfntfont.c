@@ -1982,6 +1982,9 @@ sfntfont_text_extents (struct font *font, const unsigned int *code,
 
   total_width = 0;
 
+  /* First clear the metrics array.  */
+  memset (metrics, 0, sizeof *metrics);
+
   /* Get the metrcs one by one, then sum them up.  */
   for (i = 0; i < nglyphs; ++i)
     {
@@ -2059,7 +2062,7 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
   struct sfnt_glyph_metrics metrics;
 
   length = to - from;
-  font = s->face->font;
+  font = s->font;
   info = (struct sfnt_font_info *) font;
 
   rasters = alloca (length * sizeof *rasters);

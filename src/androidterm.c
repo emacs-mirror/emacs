@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "lisp.h"
 #include "androidterm.h"
@@ -45,6 +46,11 @@ struct android_display_info *x_display_list;
    start.  */
 
 static bool any_help_event_p;
+
+/* Counters for tallying up scroll wheel events if
+   mwheel_coalesce_scroll_events is true.  */
+
+static double wheel_event_x, wheel_event_y;
 
 enum
   {
@@ -83,19 +89,133 @@ android_clear_frame (struct frame *f)
   /* Clearing the frame will erase any cursor, so mark them all as no
      longer visible.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
-  android_clear_window (FRAME_ANDROID_WINDOW (f));
+  android_clear_window (FRAME_ANDROID_DRAWABLE (f));
+}
+
+static void
+android_flash (struct frame *f)
+{
+  struct android_gc *gc;
+  struct android_gc_values values;
+  int rc;
+  fd_set fds;
+
+  block_input ();
+
+  values.function = ANDROID_GC_XOR;
+  values.foreground = (FRAME_FOREGROUND_PIXEL (f)
+		       ^ FRAME_BACKGROUND_PIXEL (f));
+
+  gc = android_create_gc ((ANDROID_GC_FUNCTION
+			   | ANDROID_GC_FOREGROUND),
+			  &values);
+
+  /* Get the height not including a menu bar widget.  */
+  int height = FRAME_PIXEL_HEIGHT (f);
+  /* Height of each line to flash.  */
+  int flash_height = FRAME_LINE_HEIGHT (f);
+  /* These will be the left and right margins of the rectangles.  */
+  int flash_left = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
+  int width = flash_right - flash_left;
+
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
+			      flash_left,
+			      (FRAME_INTERNAL_BORDER_WIDTH (f)
+			       + FRAME_TOP_MARGIN_HEIGHT (f)),
+			      width, flash_height);
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
+			      flash_left,
+			      (height - flash_height
+			       - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			      width, flash_height);
+
+    }
+  else
+    /* If it is short, flash it all.  */
+    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
+			    flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			    width, (height - 2
+				    * FRAME_INTERNAL_BORDER_WIDTH (f)));
+
+  flush_frame (f);
+
+  struct timespec delay = make_timespec (0, 150 * 1000 * 1000);
+  struct timespec wakeup = timespec_add (current_timespec (), delay);
+
+  /* Keep waiting until past the time wakeup or any input gets
+     available.  */
+  while (! detect_input_pending ())
+    {
+      struct timespec current = current_timespec ();
+      struct timespec timeout;
+
+      /* Break if result would not be positive.  */
+      if (timespec_cmp (wakeup, current) <= 0)
+	break;
+
+      /* How long `select' should wait.  */
+      timeout = make_timespec (0, 10 * 1000 * 1000);
+
+      /* Wait for some input to become available on the X
+	 connection.  */
+      FD_ZERO (&fds);
+
+      /* Try to wait that long--but we might wake up sooner.  */
+      rc = pselect (0, &fds, NULL, NULL, &timeout, NULL);
+
+      /* Some input is available, exit the visible bell.  */
+      if (rc >= 0)
+	break;
+    }
+
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
+			      flash_left,
+			      (FRAME_INTERNAL_BORDER_WIDTH (f)
+			       + FRAME_TOP_MARGIN_HEIGHT (f)),
+			      width, flash_height);
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
+			      flash_left,
+			      (height - flash_height
+			       - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			      width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
+			    flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			    width, (height - 2
+				    * FRAME_INTERNAL_BORDER_WIDTH (f)));
+
+  android_free_gc (gc);
+  flush_frame (f);
+
+  unblock_input ();
 }
 
 static void
 android_ring_bell (struct frame *f)
 {
-  /* TODO */
+  if (visible_bell)
+    android_flash (f);
+  else
+    {
+      block_input ();
+      android_bell ();
+      unblock_input ();
+    }
 }
 
 static void
 android_toggle_invisible_pointer (struct frame *f, bool invisible)
 {
-  /* TODO */
+
 }
 
 /* Start an update of frame F.  This function is installed as a hook
@@ -127,10 +247,17 @@ show_back_buffer (struct frame *f)
 {
   struct android_swap_info swap_info;
 
+  /* Somehow Android frames can be swapped while garbaged.  */
+  if (FRAME_GARBAGED_P (f))
+    return;
+
   memset (&swap_info, 0, sizeof (swap_info));
   swap_info.swap_window = FRAME_ANDROID_WINDOW (f);
   swap_info.swap_action = ANDROID_COPIED;
   android_swap_buffers (&swap_info, 1);
+
+  /* Now the back buffer no longer needs to be flipped.  */
+  FRAME_ANDROID_NEED_BUFFER_FLIP (f) = false;
 }
 
 /* Flip back buffers on F if it has undrawn content.  */
@@ -142,7 +269,8 @@ android_flush_dirty_back_buffer_on (struct frame *f)
       || buffer_flipping_blocked_p ()
       /* If the frame is not already up to date, do not flush buffers
 	 on input, as that will result in flicker.  */
-      || !FRAME_ANDROID_COMPLETE_P (f))
+      || !FRAME_ANDROID_COMPLETE_P (f)
+      && FRAME_ANDROID_NEED_BUFFER_FLIP (f))
     return;
 
   show_back_buffer (f);
@@ -174,13 +302,13 @@ static void android_frame_rehighlight (struct android_display_info *);
 static void
 android_lower_frame (struct frame *f)
 {
-  /* TODO.  */
+  android_lower_window (FRAME_ANDROID_WINDOW (f));
 }
 
 static void
 android_raise_frame (struct frame *f)
 {
-  /* TODO.  */
+  android_raise_window (FRAME_ANDROID_WINDOW (f));
 }
 
 static void
@@ -354,6 +482,46 @@ android_construct_mouse_click (struct input_event *result,
   return Qnil;
 }
 
+/* Generate a TOUCHSCREEN_UPDATE_EVENT for all pressed tools in FRAME.
+   Return the event in IE.  Do not set IE->timestamp, as that is left
+   to the caller.  */
+
+static void
+android_update_tools (struct frame *f, struct input_event *ie)
+{
+  struct android_touch_point *touchpoint;
+
+  ie->kind = TOUCHSCREEN_UPDATE_EVENT;
+  XSETFRAME (ie->frame_or_window, f);
+  ie->arg = Qnil;
+
+  /* Build the list of active touches.  */
+  for (touchpoint = FRAME_OUTPUT_DATA (f)->touch_points;
+       touchpoint; touchpoint = touchpoint->next)
+    ie->arg = Fcons (list3i (touchpoint->x,
+			     touchpoint->y,
+			     touchpoint->tool_id),
+		     ie->arg);
+}
+
+/* Find and return an existing tool pressed against FRAME, identified
+   by POINTER_ID.  Return NULL if no tool by that ID was found.  */
+
+static struct android_touch_point *
+android_find_tool (struct frame *f, int pointer_id)
+{
+  struct android_touch_point *touchpoint;
+
+  for (touchpoint = FRAME_OUTPUT_DATA (f)->touch_points;
+       touchpoint; touchpoint = touchpoint->next)
+    {
+      if (touchpoint->tool_id == pointer_id)
+	return touchpoint;
+    }
+
+  return NULL;
+}
+
 static int
 handle_one_android_event (struct android_display_info *dpyinfo,
 			  union android_event *event, int *finish,
@@ -364,6 +532,10 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   Mouse_HLInfo *hlinfo;
   union buffered_input_event inev;
   int modifiers, count, do_help;
+  struct android_touch_point *touchpoint, **last;
+  Lisp_Object window;
+  int scroll_height;
+  double scroll_unit;
 
   /* It is okay for this to not resemble handle_one_xevent so much.
      Differences in event handling code are much less nasty than
@@ -633,6 +805,28 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       f = mouse_or_wdesc_frame (dpyinfo, event->xbutton.window);
 
+      if (f && event->xbutton.type == ANDROID_BUTTON_PRESS
+	  && !popup_activated ()
+	  /* && !x_window_to_scroll_bar (event->xbutton.display, */
+	  /* 			      event->xbutton.window, 2) */
+	  && !FRAME_NO_ACCEPT_FOCUS (f))
+	{
+	  /* When clicking into a child frame or when clicking
+	     into a parent frame with the child frame selected and
+	     `no-accept-focus' is not set, select the clicked
+	     frame.  */
+	  struct frame *hf = dpyinfo->highlight_frame;
+
+	  if (FRAME_PARENT_FRAME (f) || (hf && frame_ancestor_p (f, hf)))
+	    {
+	      android_set_input_focus (FRAME_ANDROID_WINDOW (f),
+				       event->xbutton.time);
+
+	      if (FRAME_PARENT_FRAME (f))
+		android_raise_window (FRAME_ANDROID_WINDOW (f));
+	    }
+	}
+
       if (f)
 	{
 	  /* Is this in the tab-bar?  */
@@ -715,6 +909,223 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       goto OTHER;
 
+      /* Touch events.  The events here don't parallel X so much.  */
+    case ANDROID_TOUCH_DOWN:
+
+      if (!any)
+	goto OTHER;
+
+      /* This event is sent when a tool is put on the screen.  X and Y
+	 are the location of the finger, and pointer_id identifies the
+	 tool for as long as it is still held down.  First, see if the
+	 touch point already exists and can be reused (this shouldn't
+	 happen, but be safe.)  */
+
+      touchpoint = android_find_tool (any, event->touch.pointer_id);
+
+      if (touchpoint)
+	{
+	  /* Simply update the tool position and send an update.  */
+	  touchpoint->x = event->touch.x;
+	  touchpoint->y = event->touch.x;
+	  android_update_tools (any, &inev.ie);
+	  inev.ie.timestamp = event->touch.time;
+
+	  goto OTHER;
+	}
+
+      /* Otherwise, link a new touchpoint onto the output's list of
+	 pressed tools.  */
+
+      touchpoint = xmalloc (sizeof *touchpoint);
+      touchpoint->tool_id = event->touch.pointer_id;
+      touchpoint->x = event->touch.x;
+      touchpoint->y = event->touch.x;
+      touchpoint->next = FRAME_OUTPUT_DATA (any)->touch_points;
+      FRAME_OUTPUT_DATA (any)->touch_points = touchpoint;
+
+      /* Now generate the Emacs event.  */
+      inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
+      inev.ie.timestamp = event->touch.time;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      XSETINT (inev.ie.x, event->touch.x);
+      XSETINT (inev.ie.y, event->touch.y);
+      XSETINT (inev.ie.arg, event->touch.pointer_id);
+
+      goto OTHER;
+
+    case ANDROID_TOUCH_MOVE:
+
+      if (!any)
+	goto OTHER;
+
+      /* Look for the tool that moved.  */
+
+      touchpoint = android_find_tool (any, event->touch.pointer_id);
+
+      /* If it doesn't exist, skip processing this event.  */
+
+      if (!touchpoint)
+	goto OTHER;
+
+      /* Otherwise, update the position and send the update event.  */
+
+      touchpoint->x = event->touch.x;
+      touchpoint->y = event->touch.y;
+      android_update_tools (any, &inev.ie);
+      inev.ie.timestamp = event->touch.time;
+
+      goto OTHER;
+
+    case ANDROID_TOUCH_UP:
+
+      if (!any)
+	goto OTHER;
+
+      /* Now find and unlink the tool in question.  */
+
+      last = &FRAME_OUTPUT_DATA (any)->touch_points;
+      while ((touchpoint = *last))
+	{
+	  if (touchpoint->tool_id == event->touch.pointer_id)
+	    {
+	      *last = touchpoint->next;
+
+	      /* The tool was unlinked.  Free it and generate the
+		 appropriate Emacs event.  */
+	      xfree (touchpoint);
+	      inev.ie.kind = TOUCHSCREEN_END_EVENT;
+	      inev.ie.timestamp = event->touch.time;
+
+	      XSETFRAME (inev.ie.frame_or_window, any);
+	      XSETINT (inev.ie.x, event->touch.x);
+	      XSETINT (inev.ie.y, event->touch.y);
+	      XSETINT (inev.ie.arg, event->touch.pointer_id);
+
+	      /* Break out of the loop.  */
+	      goto OTHER;
+	    }
+	  else
+	    last = &touchpoint->next;
+	}
+
+      /* No touch point was found.  This shouldn't happen.  */
+      goto OTHER;
+
+      /* Wheel motion.  The events here don't parallel X because
+	 Android doesn't have scroll valuators.  */
+
+    case ANDROID_WHEEL:
+
+      if (!any)
+	goto OTHER;
+
+      if (fabs (event->wheel.x_delta) > 0
+	  || fabs (event->wheel.y_delta) > 0)
+	{
+	  if (mwheel_coalesce_scroll_events)
+	    {
+	      if (signbit (event->wheel.x_delta)
+		  != signbit (wheel_event_x))
+		wheel_event_x = 0.0;
+
+	      if (signbit (event->wheel.y_delta)
+		  != signbit (wheel_event_y))
+		wheel_event_y = 0.0;
+
+	      /* Tally up deltas until one of them exceeds 1.0.  */
+	      wheel_event_x += event->wheel.x_delta;
+	      wheel_event_y += event->wheel.y_delta;
+
+	      if (fabs (wheel_event_x) < 1.0
+		  && fabs (wheel_event_y) < 1.0)
+		goto OTHER;
+	    }
+	  else
+	    {
+	      /* Use the deltas in the event.  */
+	      wheel_event_x = event->wheel.x_delta;
+	      wheel_event_y = event->wheel.y_delta;
+	    }
+
+	  /* Determine what kind of event to send.  */
+	  inev.ie.kind = ((fabs (wheel_event_y)
+			   >= fabs (wheel_event_x))
+			  ? WHEEL_EVENT : HORIZ_WHEEL_EVENT);
+	  inev.ie.timestamp = event->wheel.time;
+
+	  /* Set the event coordinates.  */
+	  XSETINT (inev.ie.x, event->wheel.x);
+	  XSETINT (inev.ie.y, event->wheel.y);
+
+	  /* Set the frame.  */
+	  XSETFRAME (inev.ie.frame_or_window, any);
+
+	  /* Figure out the scroll direction.  */
+	  inev.ie.modifiers = (signbit ((fabs (wheel_event_x)
+					 >= fabs (wheel_event_y))
+					? wheel_event_x
+					: wheel_event_y)
+			       ? down_modifier : up_modifier);
+
+	  /* Figure out how much to scale the deltas by.  */
+	  window = window_from_coordinates (any, event->wheel.x,
+					    event->wheel.y, NULL,
+					    false, false);
+
+	  if (WINDOWP (window))
+	    scroll_height = XWINDOW (window)->pixel_height;
+	  else
+	    /* EVENT_X and EVENT_Y can be outside the
+	       frame if F holds the input grab, so fall
+	       back to the height of the frame instead.  */
+	    scroll_height = FRAME_PIXEL_HEIGHT (any);
+
+	  scroll_unit = pow (scroll_height, 2.0 / 3.0);
+
+	  /* Add the keyboard modifiers.  */
+	  inev.ie.modifiers
+	    |= android_android_to_emacs_modifiers (dpyinfo,
+						   event->wheel.state);
+
+	  /* Finally include the scroll deltas.  */
+	  inev.ie.arg = list3 (Qnil,
+			       make_float (wheel_event_x
+					   * scroll_unit),
+			       make_float (wheel_event_y
+					   * scroll_unit));
+
+	  wheel_event_x = 0.0;
+	  wheel_event_y = 0.0;
+	}
+
+      goto OTHER;
+
+      /* Iconification.  This is vastly simpler than on X.  */
+    case ANDROID_ICONIFIED:
+
+      if (FRAME_ICONIFIED_P (any))
+	goto OTHER;
+
+      SET_FRAME_VISIBLE (any, false);
+      SET_FRAME_ICONIFIED (any, true);
+
+      inev.ie.kind = ICONIFY_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      goto OTHER;
+
+    case ANDROID_DEICONIFIED:
+
+      if (!FRAME_ICONIFIED_P (any))
+	goto OTHER;
+
+      SET_FRAME_VISIBLE (any, true);
+      SET_FRAME_ICONIFIED (any, false);
+
+      inev.ie.kind = DEICONIFY_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      goto OTHER;
+
     default:
       goto OTHER;
     }
@@ -781,8 +1192,7 @@ android_read_socket (struct terminal *terminal,
      now.  */
   if (dpyinfo->pending_autoraise_frame)
     {
-      /* android_raise_frame (dpyinfo->pending_autoraise_frame);
-	 TODO */
+      android_raise_frame (dpyinfo->pending_autoraise_frame);
       dpyinfo->pending_autoraise_frame = NULL;
     }
 
@@ -796,7 +1206,8 @@ android_frame_up_to_date (struct frame *f)
   block_input ();
   FRAME_MOUSE_UPDATE (f);
 
-  if (!buffer_flipping_blocked_p ())
+  if (!buffer_flipping_blocked_p ()
+      && FRAME_ANDROID_NEED_BUFFER_FLIP (f))
     show_back_buffer (f);
 
   /* The frame is now complete, as its contents have been drawn.  */
@@ -808,7 +1219,10 @@ static void
 android_buffer_flipping_unblocked_hook (struct frame *f)
 {
   block_input ();
-  show_back_buffer (f);
+
+  if (FRAME_ANDROID_NEED_BUFFER_FLIP (f))
+    show_back_buffer (f);
+
   unblock_input ();
 }
 
@@ -935,7 +1349,25 @@ android_get_focus_frame (struct frame *f)
 static void
 android_focus_frame (struct frame *f, bool noactivate)
 {
-  /* TODO */
+  /* Set the input focus to the frame's window.  The system only lets
+     this work on child frames.  */
+  android_set_input_focus (FRAME_ANDROID_WINDOW (f),
+			   ANDROID_CURRENT_TIME);
+}
+
+/* The two procedures below only have to update the cursor on Android,
+   as there are no window borders there.  */
+
+static void
+android_frame_highlight (struct frame *f)
+{
+  gui_update_cursor (f, true);
+}
+
+static void
+android_frame_unhighlight (struct frame *f)
+{
+  gui_update_cursor (f, true);
 }
 
 static void
@@ -963,12 +1395,10 @@ android_frame_rehighlight (struct android_display_info *dpyinfo)
   if (dpyinfo->highlight_frame != old_highlight)
     {
       /* This is not yet required on Android.  */
-#if 0
       if (old_highlight)
 	android_frame_unhighlight (old_highlight);
       if (dpyinfo->highlight_frame)
 	android_frame_highlight (dpyinfo->highlight_frame);
-#endif
     }
 }
 
@@ -1027,7 +1457,8 @@ android_fullscreen_hook (struct frame *f)
 void
 android_iconify_frame (struct frame *f)
 {
-  /* TODO */
+  /* This really doesn't work on Android.  */
+  error ("Can't notify window manager of iconification");
 }
 
 static void
@@ -1149,7 +1580,7 @@ android_set_offset (struct frame *f, int xoff, int yoff,
 static void
 android_set_alpha (struct frame *f)
 {
-  /* TODO */
+  /* Not supported on Android.  */
 }
 
 static Lisp_Object
@@ -1215,6 +1646,7 @@ android_free_frame_resources (struct frame *f)
 {
   struct android_display_info *dpyinfo;
   Mouse_HLInfo *hlinfo;
+  struct android_touch_point *last, *next;
 
   dpyinfo = FRAME_DISPLAY_INFO (f);
   hlinfo = &dpyinfo->mouse_highlight;
@@ -1255,6 +1687,18 @@ android_free_frame_resources (struct frame *f)
     dpyinfo->last_mouse_motion_frame = NULL;
   if (f == dpyinfo->last_mouse_frame)
     dpyinfo->last_mouse_frame = NULL;
+
+  /* Free all tool presses currently active on this frame.  */
+  next = FRAME_OUTPUT_DATA (f)->touch_points;
+  while (next)
+    {
+      last = next;
+      next = next->next;
+      xfree (last);
+    }
+
+  /* Clear this in case unblock_input reads events.  */
+  FRAME_OUTPUT_DATA (f)->touch_points = NULL;
 
   unblock_input ();
 }
@@ -1316,8 +1760,8 @@ android_scroll_run (struct window *w, struct run *run)
   /* Cursor off.  Will be switched on again in gui_update_window_end.  */
   gui_clear_cursor (w);
 
-  android_copy_area (FRAME_ANDROID_WINDOW (f),
-		     FRAME_ANDROID_WINDOW (f),
+  android_copy_area (FRAME_ANDROID_DRAWABLE (f),
+		     FRAME_ANDROID_DRAWABLE (f),
 		     f->output_data.android->normal_gc,
 		     x, from_y, width, height, x, to_y);
 
@@ -1337,7 +1781,9 @@ static void
 android_flip_and_flush (struct frame *f)
 {
   block_input ();
-  show_back_buffer (f);
+
+  if (FRAME_ANDROID_NEED_BUFFER_FLIP (f))
+    show_back_buffer (f);
 
   /* The frame is complete again as its contents were just
      flushed.  */
@@ -1355,7 +1801,7 @@ android_clear_rectangle (struct frame *f, struct android_gc *gc, int x,
 			      | ANDROID_GC_FOREGROUND),
 			 &xgcv);
   android_set_foreground (gc, xgcv.background);
-  android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc,
+  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
 			  x, y, width, height);
   android_set_foreground (gc, xgcv.foreground);
 }
@@ -1405,7 +1851,7 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       if (face->stipple)
 	{
 	  android_set_fill_style (face->gc, ANDROID_FILL_OPAQUE_STIPPLED);
-	  android_fill_rectangle (FRAME_ANDROID_WINDOW (f), face->gc,
+	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), face->gc,
 				  p->bx, p->by, p->nx, p->ny);
 	  android_set_fill_style (face->gc, ANDROID_FILL_SOLID);
 
@@ -1428,7 +1874,7 @@ android_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       unsigned long background, cursor_pixel;
       int depth;
 
-      drawable = FRAME_ANDROID_WINDOW (f);
+      drawable = FRAME_ANDROID_DRAWABLE (f);
       clipmask = ANDROID_NONE;
       background = face->background;
       cursor_pixel = f->output_data.android->cursor_pixel;
@@ -1697,7 +2143,7 @@ android_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 	{
 	  /* Fill background with a stipple pattern.  */
 	  android_set_fill_style (s->gc, ANDROID_FILL_OPAQUE_STIPPLED);
-	  android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc,
+	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
 				  s->x, s->y + box_line_width,
 				  s->background_width,
 				  s->height - 2 * box_line_width);
@@ -1734,7 +2180,7 @@ android_fill_triangle (struct frame *f, struct android_gc *gc,
   abc[1] = point2;
   abc[2] = point3;
 
-  android_fill_polygon (FRAME_ANDROID_WINDOW (f),
+  android_fill_polygon (FRAME_ANDROID_DRAWABLE (f),
 			gc, abc, 3, ANDROID_CONVEX,
 			ANDROID_COORD_MODE_ORIGIN);
 }
@@ -1776,7 +2222,7 @@ android_clear_point (struct frame *f, struct android_gc *gc,
   android_get_gc_values (gc, ANDROID_GC_BACKGROUND | ANDROID_GC_FOREGROUND,
 			 &xgcv);
   android_set_foreground (gc, xgcv.background);
-  android_draw_point (FRAME_ANDROID_WINDOW (f), gc, x, y);
+  android_draw_point (FRAME_ANDROID_DRAWABLE (f), gc, x, y);
   android_set_foreground (gc, xgcv.foreground);
 }
 
@@ -1798,7 +2244,7 @@ android_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
   black_gc = f->output_data.android->black_relief.gc;
   normal_gc = f->output_data.android->normal_gc;
 
-  drawable = FRAME_ANDROID_WINDOW (f);
+  drawable = FRAME_ANDROID_DRAWABLE (f);
 
   android_set_clip_rectangles (white_gc, 0, 0, clip_rect, 1);
   android_set_clip_rectangles (black_gc, 0, 0, clip_rect, 1);
@@ -1811,11 +2257,11 @@ android_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
   /* Draw lines.  */
 
   if (top_p)
-    android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, left_x, top_y,
+    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, left_x, top_y,
 			    right_x - left_x + 1, hwidth);
 
   if (left_p)
-    android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, left_x, top_y,
+    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, left_x, top_y,
 			    vwidth, bottom_y - top_y + 1);
 
   if (raised_p)
@@ -1824,12 +2270,12 @@ android_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
     gc = white_gc;
 
   if (bot_p)
-    android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, left_x,
+    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, left_x,
 			    bottom_y - hwidth + 1,
 			    right_x - left_x + 1, hwidth);
 
   if (right_p)
-    android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc,
+    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc,
 			    right_x - vwidth + 1,
 			    top_y, vwidth, bottom_y - top_y + 1);
 
@@ -1853,7 +2299,7 @@ android_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
 
   if (top_p && left_p && bot_p && right_p
       && hwidth > 1 && vwidth > 1)
-    android_draw_rectangle (FRAME_ANDROID_WINDOW (f),
+    android_draw_rectangle (FRAME_ANDROID_DRAWABLE (f),
 			    black_gc, left_x, top_y,
 			    right_x - left_x, bottom_y - top_y);
   else
@@ -1913,22 +2359,22 @@ android_draw_box_rect (struct glyph_string *s,
   android_set_clip_rectangles (s->gc, 0, 0, clip_rect, 1);
 
   /* Top.  */
-  android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc, left_x,
+  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc, left_x,
 			  left_x, right_x - left_x + 1, hwidth);
 
   /* Left.  */
   if (left_p)
-    android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc, left_x,
+    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc, left_x,
 			    top_y, vwidth, bottom_y - top_y + 1);
 
   /* Bottom.  */
-  android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc, left_x,
+  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc, left_x,
 			  bottom_y - hwidth + 1, right_x - left_x + 1,
 			  hwidth);
 
   /* Right.  */
   if (right_p)
-    android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc,
+    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
 			    right_x - vwidth + 1, top_y, vwidth,
 			    bottom_y - top_y + 1);
 
@@ -2153,7 +2599,7 @@ android_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y,
     {
       /* Fill background with a stipple pattern.  */
       android_set_fill_style (s->gc, ANDROID_FILL_OPAQUE_STIPPLED);
-      android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc, x,
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc, x,
 			      y, w, h);
       android_set_fill_style (s->gc, ANDROID_FILL_SOLID);
     }
@@ -2294,7 +2740,7 @@ android_draw_image_foreground (struct glyph_string *s)
 
       if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
 	android_copy_area (s->img->pixmap,
-			   FRAME_ANDROID_WINDOW (s->f),
+			   FRAME_ANDROID_DRAWABLE (s->f),
 			   s->gc, s->slice.x + r.x - x,
 			   s->slice.y + r.y - y,
 			   r.width, r.height, r.x, r.y);
@@ -2307,7 +2753,7 @@ android_draw_image_foreground (struct glyph_string *s)
       if (s->hl == DRAW_CURSOR && !s->img->mask)
 	{
 	  int relief = eabs (s->img->relief);
-	  android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc,
+	  android_draw_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
 				  x - relief, y - relief,
 				  s->slice.width + relief*2 - 1,
 				  s->slice.height + relief*2 - 1);
@@ -2317,7 +2763,7 @@ android_draw_image_foreground (struct glyph_string *s)
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
-    android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc, x, y,
+    android_draw_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc, x, y,
 			    s->slice.width - 1, s->slice.height - 1);
 }
 
@@ -2444,7 +2890,7 @@ android_draw_stretch_glyph_string (struct glyph_string *s)
 	    {
 	      /* Fill background with a stipple pattern.  */
 	      android_set_fill_style (gc, ANDROID_FILL_OPAQUE_STIPPLED);
-	      android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f),
+	      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f),
 				      gc, x, y, w, h);
 	      android_set_fill_style (gc, ANDROID_FILL_SOLID);
 
@@ -2457,7 +2903,7 @@ android_draw_stretch_glyph_string (struct glyph_string *s)
 					  | ANDROID_GC_BACKGROUND),
 				     &xgcv);
 	      android_set_foreground (gc, xgcv.background);
-	      android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f),
+	      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f),
 				      gc, x, y, w, h);
 	      android_set_foreground (gc, xgcv.foreground);
 	    }
@@ -2536,7 +2982,7 @@ android_draw_underwave (struct glyph_string *s, int decoration_width)
 
   while (x1 <= xmax)
     {
-      android_draw_line (FRAME_ANDROID_WINDOW (s->f), s->gc,
+      android_draw_line (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
 			 x1, y1, x2, y2);
       x1  = x2, y1 = y2;
       x2 += dx, y2 = y0 + odd*dy;
@@ -2567,7 +3013,7 @@ android_draw_glyph_string_foreground (struct glyph_string *s)
       for (i = 0; i < s->nchars; ++i)
 	{
 	  struct glyph *g = s->first_glyph + i;
-	  android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f),
+	  android_draw_rectangle (FRAME_ANDROID_DRAWABLE (s->f),
 				  s->gc, x, s->y,
 				  g->pixel_width - 1,
 				  s->height - 1);
@@ -2618,7 +3064,7 @@ android_draw_composite_glyph_string_foreground (struct glyph_string *s)
   if (s->font_not_found_p)
     {
       if (s->cmp_from == 0)
-	android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f),
+	android_draw_rectangle (FRAME_ANDROID_DRAWABLE (s->f),
 				s->gc, x, s->y,
 				s->width - 1, s->height - 1);
     }
@@ -2754,7 +3200,7 @@ android_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 				 false);
 	}
       if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
-	android_draw_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc,
+	android_draw_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
 				x, s->ybase - glyph->ascent,
 				glyph->pixel_width - 1,
 				glyph->ascent + glyph->descent - 1);
@@ -2987,14 +3433,14 @@ android_draw_glyph_string (struct glyph_string *s)
               s->underline_position = position;
               y = s->ybase + position;
               if (s->face->underline_defaulted_p)
-                android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc,
+                android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
 					s->x, y, decoration_width, thickness);
               else
                 {
                   struct android_gc_values xgcv;
                   android_get_gc_values (s->gc, ANDROID_GC_FOREGROUND, &xgcv);
                   android_set_foreground (s->gc, s->face->underline_color);
-                  android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc,
+                  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
 					  s->x, y, decoration_width, thickness);
                   android_set_foreground (s->gc, xgcv.foreground);
                 }
@@ -3006,7 +3452,7 @@ android_draw_glyph_string (struct glyph_string *s)
 	  unsigned long dy = 0, h = 1;
 
 	  if (s->face->overline_color_defaulted_p)
-	    android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f),
+	    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f),
 				    s->gc, s->x, s->y + dy,
 				    decoration_width, h);
 	  else
@@ -3014,8 +3460,8 @@ android_draw_glyph_string (struct glyph_string *s)
 	      struct android_gc_values xgcv;
 	      android_get_gc_values (s->gc, ANDROID_GC_FOREGROUND, &xgcv);
 	      android_set_foreground (s->gc, s->face->overline_color);
-	      android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc, s->x,
-				      s->y + dy, decoration_width, h);
+	      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
+				      s->x, s->y + dy, decoration_width, h);
 	      android_set_foreground (s->gc, xgcv.foreground);
 	    }
 	}
@@ -3044,8 +3490,9 @@ android_draw_glyph_string (struct glyph_string *s)
 	      struct android_gc_values xgcv;
 	      android_get_gc_values (s->gc, ANDROID_GC_FOREGROUND, &xgcv);
 	      android_set_foreground (s->gc, s->face->strike_through_color);
-	      android_fill_rectangle (FRAME_ANDROID_WINDOW (s->f), s->gc, s->x,
-				      glyph_y + dy, decoration_width, h);
+	      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
+				      s->x, glyph_y + dy, decoration_width,
+				      h);
 	      android_set_foreground (s->gc, xgcv.foreground);
 	    }
 	}
@@ -3125,7 +3572,7 @@ static void
 android_clear_frame_area (struct frame *f, int x, int y,
 			  int width, int height)
 {
-  android_clear_area (FRAME_ANDROID_WINDOW (f),
+  android_clear_area (FRAME_ANDROID_DRAWABLE (f),
 		      x, y, width, height);
 }
 
@@ -3154,25 +3601,25 @@ android_clear_under_internal_border (struct frame *f)
 	  struct android_gc *gc = f->output_data.android->normal_gc;
 
 	  android_set_foreground (gc, color);
-	  android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, 0, margin,
+	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, 0, margin,
 				  width, border);
-	  android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, 0, 0,
+	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, 0, 0,
 				  border, height);
-	  android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, width - border,
+	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, width - border,
 				  0, border, height);
-	  android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, 0,
+	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, 0,
 				  height - border, width, border);
 	  android_set_foreground (gc, FRAME_FOREGROUND_PIXEL (f));
 	}
       else
 	{
-	  android_clear_area (FRAME_ANDROID_WINDOW (f), 0, 0,
+	  android_clear_area (FRAME_ANDROID_DRAWABLE (f), 0, 0,
 			      border, height);
-	  android_clear_area (FRAME_ANDROID_WINDOW (f), 0,
+	  android_clear_area (FRAME_ANDROID_DRAWABLE (f), 0,
 			      margin, width, border);
-	  android_clear_area (FRAME_ANDROID_WINDOW (f), width - border,
+	  android_clear_area (FRAME_ANDROID_DRAWABLE (f), width - border,
 			      0, border, height);
-	  android_clear_area (FRAME_ANDROID_WINDOW (f), 0,
+	  android_clear_area (FRAME_ANDROID_DRAWABLE (f), 0,
 			      height - border, width, border);
 	}
     }
@@ -3221,7 +3668,7 @@ android_draw_hollow_cursor (struct window *w, struct glyph_row *row)
     }
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   android_clip_to_row (w, row, TEXT_AREA, gc);
-  android_draw_rectangle (FRAME_ANDROID_WINDOW (f), gc, x, y, wd, h - 1);
+  android_draw_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, x, y, wd, h - 1);
   android_reset_clip_rectangles (f, gc);
 }
 
@@ -3295,7 +3742,7 @@ android_draw_bar_cursor (struct window *w, struct glyph_row *row, int width,
 	  if ((cursor_glyph->resolved_level & 1) != 0)
 	    x += cursor_glyph->pixel_width - width;
 
-	  android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, x,
+	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, x,
 				  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
 				  width, row->height);
 	}
@@ -3318,7 +3765,7 @@ android_draw_bar_cursor (struct window *w, struct glyph_row *row, int width,
 	  if ((cursor_glyph->resolved_level & 1) != 0
 	      && cursor_glyph->pixel_width > w->phys_cursor_width - 1)
 	    x += cursor_glyph->pixel_width - w->phys_cursor_width + 1;
-	  android_fill_rectangle (FRAME_ANDROID_WINDOW (f), gc, x,
+	  android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f), gc, x,
 				  cursor_start_y,
 				  w->phys_cursor_width - 1, width);
 	}
@@ -3387,7 +3834,7 @@ android_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
     android_set_foreground (f->output_data.android->normal_gc,
 			    face->foreground);
 
-  android_draw_line (FRAME_ANDROID_WINDOW (f),
+  android_draw_line (FRAME_ANDROID_DRAWABLE (f),
 		     f->output_data.android->normal_gc,
 		     x, y0, x, y1);
 }
@@ -3415,17 +3862,17 @@ android_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     {
       android_set_foreground (f->output_data.android->normal_gc,
 			      color_first);
-      android_fill_rectangle (FRAME_ANDROID_WINDOW (f),
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
 			      f->output_data.android->normal_gc,
 			      x0, y0, 1, y1 - y0);
       android_set_foreground (f->output_data.android->normal_gc,
 			      color);
-      android_fill_rectangle (FRAME_ANDROID_WINDOW (f),
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
 			      f->output_data.android->normal_gc,
 			      x0 + 1, y0, x1 - x0 - 2, y1 - y0);
       android_set_foreground (f->output_data.android->normal_gc,
 			      color_last);
-      android_fill_rectangle (FRAME_ANDROID_WINDOW (f),
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
 			      f->output_data.android->normal_gc,
 			      x1 - 1, y0, 1, y1 - y0);
     }
@@ -3435,16 +3882,16 @@ android_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     {
       android_set_foreground (f->output_data.android->normal_gc,
 			      color_first);
-      android_fill_rectangle (FRAME_ANDROID_WINDOW (f),
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
 			      f->output_data.android->normal_gc,
 			      x0, y0, x1 - x0, 1);
       android_set_foreground (f->output_data.android->normal_gc, color);
-      android_fill_rectangle (FRAME_ANDROID_WINDOW (f),
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
 			      f->output_data.android->normal_gc,
 			      x0, y0 + 1, x1 - x0, y1 - y0 - 2);
       android_set_foreground (f->output_data.android->normal_gc,
 			      color_last);
-      android_fill_rectangle (FRAME_ANDROID_WINDOW (f),
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
 			      f->output_data.android->normal_gc,
 			      x0, y1 - 1, x1 - x0, 1);
     }
@@ -3453,7 +3900,7 @@ android_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
       /* In any other case do not draw the first and last pixels
 	 differently.  */
       android_set_foreground (f->output_data.android->normal_gc, color);
-      android_fill_rectangle (FRAME_ANDROID_WINDOW (f),
+      android_fill_rectangle (FRAME_ANDROID_DRAWABLE (f),
 			      f->output_data.android->normal_gc,
 			      x0, y0, x1 - x0, y1 - y0);
     }

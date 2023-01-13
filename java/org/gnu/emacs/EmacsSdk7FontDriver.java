@@ -149,8 +149,6 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 	}
       else
 	familyName = fileName;
-
-      Log.d (TAG, "Initialized new typeface " + familyName);
     }
 
     @Override
@@ -321,16 +319,11 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 
     list = new LinkedList<FontEntity> ();
 
-    Log.d (TAG, ("Looking for fonts matching font spec: "
-		 + fontSpec.toString ()));
-
     for (i = 0; i < typefaceList.length; ++i)
       {
 	if (checkMatch (typefaceList[i], fontSpec))
 	  list.add (new Sdk7FontEntity (typefaceList[i]));
       }
-
-    Log.d (TAG, "Found font entities: " + list.toString ());
 
     return (FontEntity[]) list.toArray (new FontEntity[0]);
   }

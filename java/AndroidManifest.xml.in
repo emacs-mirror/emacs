@@ -1,0 +1,84 @@
+<!-- @configure_input@
+
+Copyright (C) 2023 Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
+
+<!-- targetSandboxVersion must be 1.  Otherwise, fascist security
+     restrictions prevent Emacs from making HTTP connections.  -->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	  package="org.gnu.emacs"
+	  android:targetSandboxVersion="1"
+	  android:installLocation="auto"
+	  android:versionName="@version@">
+
+  <!-- Paste in every permission in existence so Emacs can do
+       anything.  -->
+
+  <uses-permission android:name="android.permission.READ_CONTACTS" />
+  <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+  <uses-permission android:name="android.permission.VIBRATE" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.SET_WALLPAPER" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.SEND_SMS" />
+  <uses-permission android:name="android.permission.RECEIVE_SMS" />
+  <uses-permission android:name="android.permission.RECEIVE_MMS"/>
+  <uses-permission android:name="android.permission.WRITE_SMS"/>
+  <uses-permission android:name="android.permission.READ_SMS"/>
+  <uses-permission android:name="android.permission.NFC" />
+  <uses-permission android:name="android.permission.TRANSMIT_IR" />
+  <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+  <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+  <uses-permission android:name="android.permission.CAMERA" />
+
+  <uses-sdk android:minSdkVersion="@ANDROID_MIN_SDK@"
+	    android:targetSdkVersion="28"/>
+
+  <application android:name="org.gnu.emacs.EmacsApplication"
+	       android:label="Emacs"
+	       android:hardwareAccelerated="true"
+	       android:supportsRtl="true"
+	       android:theme="@android:style/Theme"
+	       android:debuggable="true"
+	       android:extractNativeLibs="true">
+    <activity android:name="org.gnu.emacs.EmacsActivity"
+	      android:launchMode="singleTop"
+	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+
+    <activity android:name="org.gnu.emacs.EmacsMultitaskActivity"
+	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"/>
+
+    <service android:name="org.gnu.emacs.EmacsService"
+	     android:directBootAware="false"
+	     android:enabled="true"
+	     android:exported="false"
+	     android:label="GNU Emacs service"/>
+  </application>
+</manifest>

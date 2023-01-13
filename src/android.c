@@ -82,6 +82,11 @@ struct android_emacs_service
   jmethodID copy_area;
   jmethodID clear_window;
   jmethodID clear_area;
+  jmethodID ring_bell;
+  jmethodID query_tree;
+  jmethodID get_screen_width;
+  jmethodID get_screen_height;
+  jmethodID detect_mouse;
 };
 
 struct android_emacs_pixmap
@@ -195,9 +200,6 @@ struct android_event_queue
 
   /* The thread used to run select.  */
   pthread_t select_thread;
-
-  /* Condition variable for the writing side.  */
-  pthread_cond_t write_var;
 
   /* Condition variables for the reading side.  */
   pthread_cond_t read_var;
@@ -314,11 +316,6 @@ android_init_events (void)
 			 "pthread_mutex_init: %s",
 			 strerror (errno));
 
-  if (pthread_cond_init (&event_queue.write_var, NULL))
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "pthread_cond_init: %s",
-			 strerror (errno));
-
   if (pthread_cond_init (&event_queue.read_var, NULL))
     __android_log_print (ANDROID_LOG_FATAL, __func__,
 			 "pthread_cond_init: %s",
@@ -387,8 +384,7 @@ android_next_event (union android_event *event_return)
   /* Free the container.  */
   free (container);
 
-  /* Signal that events can now be written.  */
-  pthread_cond_signal (&event_queue.write_var);
+  /* Unlock the queue.  */
   pthread_mutex_unlock (&event_queue.mutex);
 }
 
@@ -407,12 +403,6 @@ android_write_event (union android_event *event)
     return;
 
   pthread_mutex_lock (&event_queue.mutex);
-
-  /* The event queue is full, wait for events to be read.  */
-  if (event_queue.num_events >= 1024)
-    pthread_cond_wait (&event_queue.write_var,
-		       &event_queue.mutex);
-
   container->next = event_queue.events.next;
   container->last = &event_queue.events;
   container->next->last = container;
@@ -421,6 +411,10 @@ android_write_event (union android_event *event)
   event_queue.num_events++;
   pthread_cond_signal (&event_queue.read_var);
   pthread_mutex_unlock (&event_queue.mutex);
+
+  /* Now set pending_signals to true.  This allows C-g to be handled
+     immediately even without SIGIO.  */
+  pending_signals = true;
 }
 
 int
@@ -604,31 +598,60 @@ android_file_access_p (const char *name, int amode)
 {
   AAsset *asset;
   AAssetDir *directory;
+  int length;
 
   if (!asset_manager)
     return false;
 
   if (!(amode & W_OK) && (name = android_get_asset_name (name)))
     {
+      if (!strcmp (name, "") || !strcmp (name, "/"))
+	/* /assets always exists.  */
+	return true;
+
       /* Check if the asset exists by opening it.  Suboptimal! */
       asset = AAssetManager_open (asset_manager, name,
 				  AASSET_MODE_UNKNOWN);
 
       if (!asset)
 	{
-	  /* See if it's a directory also.  */
+	  /* See if it's a directory as well.  To open a directory
+	     with the asset manager, the trailing slash (if specified)
+	     must be removed.  */
 	  directory = AAssetManager_openDir (asset_manager, name);
 
 	  if (directory)
 	    {
+	      /* Make sure the directory actually has files in it.  */
+
+	      if (!AAssetDir_getNextFileName (directory))
+		{
+		  AAssetDir_close (directory);
+		  errno = ENOENT;
+		  return false;
+		}
+
 	      AAssetDir_close (directory);
 	      return true;
 	    }
 
+	  errno = ENOENT;
 	  return false;
 	}
 
       AAsset_close (asset);
+
+      /* If NAME is a directory name, but it was a regular file, set
+	 errno to ENOTDIR and return false.  This is to behave like
+	 faccessat.  */
+
+      length = strlen (name);
+      if (name[length - 1] == '/')
+	{
+	  errno = ENOTDIR;
+	  return false;
+	}
+
       return true;
     }
 
@@ -819,10 +842,29 @@ int
 android_close (int fd)
 {
   if (fd < ANDROID_MAX_ASSET_FD
-      && (android_table[fd].flags & ANDROID_FD_TABLE_ENTRY_IS_VALID))
+      && (android_table[fd].flags
+	  & ANDROID_FD_TABLE_ENTRY_IS_VALID))
     android_table[fd].flags = 0;
 
   return close (fd);
+}
+
+/* Like fclose.  However, remove any information associated with
+   FILE's file descriptor from the asset table as well.  */
+
+int
+android_fclose (FILE *stream)
+{
+  int fd;
+
+  fd = fileno (stream);
+
+  if (fd != -1 && fd < ANDROID_MAX_ASSET_FD
+      && (android_table[fd].flags
+	  & ANDROID_FD_TABLE_ENTRY_IS_VALID))
+    android_table[fd].flags = 0;
+
+  return fclose (stream);
 }
 
 /* Return the current user's ``home'' directory, which is actually the
@@ -1010,7 +1052,12 @@ android_init_emacs_service (void)
 	       "(Lorg/gnu/emacs/EmacsWindow;)V");
   FIND_METHOD (clear_area, "clearArea",
 	       "(Lorg/gnu/emacs/EmacsWindow;IIII)V");
-
+  FIND_METHOD (ring_bell, "ringBell", "()V");
+  FIND_METHOD (query_tree, "queryTree",
+	       "(Lorg/gnu/emacs/EmacsWindow;)[S");
+  FIND_METHOD (get_screen_width, "getScreenWidth", "(Z)I");
+  FIND_METHOD (get_screen_height, "getScreenHeight", "(Z)I");
+  FIND_METHOD (detect_mouse, "detectMouse", "()Z");
 #undef FIND_METHOD
 }
 
@@ -1340,6 +1387,97 @@ NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
   event.xbutton.button = button;
 
   android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
+			     jshort window, jint x, jint y,
+			     jlong time, jint pointer_id)
+{
+  union android_event event;
+
+  event.touch.type = ANDROID_TOUCH_DOWN;
+  event.touch.window = window;
+  event.touch.x = x;
+  event.touch.y = y;
+  event.touch.time = time;
+  event.touch.pointer_id = pointer_id;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
+			   jshort window, jint x, jint y,
+			   jlong time, jint pointer_id)
+{
+  union android_event event;
+
+  event.touch.type = ANDROID_TOUCH_UP;
+  event.touch.window = window;
+  event.touch.x = x;
+  event.touch.y = y;
+  event.touch.time = time;
+  event.touch.pointer_id = pointer_id;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
+			     jshort window, jint x, jint y,
+			     jlong time, jint pointer_id)
+{
+  union android_event event;
+
+  event.touch.type = ANDROID_TOUCH_MOVE;
+  event.touch.window = window;
+  event.touch.x = x;
+  event.touch.y = y;
+  event.touch.time = time;
+  event.touch.pointer_id = pointer_id;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendWheel) (JNIEnv *env, jobject object,
+			 jshort window, jint x, jint y,
+			 jlong time, jint state,
+			 jfloat x_delta, jfloat y_delta)
+{
+  union android_event event;
+
+  event.wheel.type = ANDROID_WHEEL;
+  event.wheel.window = window;
+  event.wheel.x = x;
+  event.wheel.y = y;
+  event.wheel.time = time;
+  event.wheel.state = state;
+  event.wheel.x_delta = x_delta;
+  event.wheel.y_delta = y_delta;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendIconified) (JNIEnv *env, jobject object,
+			     jshort window)
+{
+  union android_event event;
+
+  event.iconified.type = ANDROID_ICONIFIED;
+  event.iconified.window = window;
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendDeiconified) (JNIEnv *env, jobject object,
+			       jshort window)
+{
+  union android_event event;
+
+  event.iconified.type = ANDROID_DEICONIFIED;
+  event.iconified.window = window;
 }
 
 #pragma clang diagnostic pop
@@ -1979,10 +2117,22 @@ android_set_clip_rectangles (struct android_gc *gc, int clip_x_origin,
 }
 
 void
-android_reparent_window (android_window w, android_window parent,
+android_reparent_window (android_window w, android_window parent_handle,
 			 int x, int y)
 {
-  /* TODO */
+  jobject window, parent;
+  jmethodID method;
+
+  window = android_resolve_handle (w, ANDROID_HANDLE_WINDOW);
+  parent = android_resolve_handle (parent_handle,
+				   ANDROID_HANDLE_WINDOW);
+
+  method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
+				  "reparentTo",
+				  "(Lorg/gnu/emacs/EmacsWindow;II)V");
+  (*android_java_env)->CallVoidMethod (android_java_env, window,
+				       method,
+				       parent, (jint) x, (jint) y);
 }
 
 /* Look up the method with SIGNATURE by NAME in CLASS.  Abort if it
@@ -2904,6 +3054,163 @@ android_put_image (android_pixmap handle, struct android_image *image)
   ANDROID_DELETE_LOCAL_REF (bitmap);
 }
 
+void
+android_bell (void)
+{
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       emacs_service,
+				       service_class.ring_bell);
+}
+
+void
+android_set_input_focus (android_window handle, unsigned long time)
+{
+  jobject window;
+  jmethodID make_input_focus;
+
+  window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+  make_input_focus = android_lookup_method ("org/gnu/emacs/EmacsWindow",
+					    "makeInputFocus", "(J)V");
+
+  (*android_java_env)->CallVoidMethod (android_java_env, window,
+				       make_input_focus, (jlong) time);
+}
+
+void
+android_raise_window (android_window handle)
+{
+  jobject window;
+  jmethodID raise;
+
+  window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+  raise = android_lookup_method ("org/gnu/emacs/EmacsWindow",
+				 "raise", "()V");
+
+  (*android_java_env)->CallVoidMethod (android_java_env, window,
+				       raise);
+}
+
+void
+android_lower_window (android_window handle)
+{
+  jobject window;
+  jmethodID lower;
+
+  window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+  lower = android_lookup_method ("org/gnu/emacs/EmacsWindow",
+				 "lower", "()V");
+
+  (*android_java_env)->CallVoidMethod (android_java_env, window,
+				       lower);
+}
+
+int
+android_query_tree (android_window handle, android_window *root_return,
+		    android_window *parent_return,
+		    android_window **children_return,
+		    unsigned int *nchildren_return)
+{
+  jobject window, array;
+  jsize nelements, i;
+  android_window *children;
+  jshort *shorts;
+
+  window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+
+  /* window can be NULL, so this is a service method.  */
+  array
+    = (*android_java_env)->CallObjectMethod (android_java_env,
+					     emacs_service,
+					     service_class.query_tree,
+					     window);
+  if (!array)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  /* The first element of the array is the parent window.  The rest
+     are the children.  */
+  nelements = (*android_java_env)->GetArrayLength (android_java_env,
+						   array);
+  eassert (nelements);
+
+  /* Now fill in the children.  */
+  children = xnmalloc (nelements - 1, sizeof *children);
+
+  shorts
+    = (*android_java_env)->GetShortArrayElements (android_java_env, array,
+						  NULL);
+  for (i = 1; i < nelements; ++i)
+    children[i] = shorts[i];
+
+  /* Finally, return the parent and other values.  */
+  *root_return = 0;
+  *parent_return = shorts[0];
+  *children_return = children;
+
+  /* Release the array contents.  */
+  (*android_java_env)->ReleaseShortArrayElements (android_java_env, array,
+						  shorts, JNI_ABORT);
+
+  ANDROID_DELETE_LOCAL_REF (array);
+  return 1;
+}
+
+void
+android_get_geometry (android_window handle,
+		      android_window *root_return,
+		      int *x_return, int *y_return,
+		      unsigned int *width_return,
+		      unsigned int *height_return,
+		      unsigned int *border_width_return)
+{
+  jobject window;
+  jarray window_geometry;
+  jmethodID get_geometry;
+  jint *ints;
+
+  window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+  get_geometry = android_lookup_method ("org/gnu/emacs/EmacsWindow",
+					"getWindowGeometry", "()[I");
+
+  window_geometry
+    = (*android_java_env)->CallObjectMethod (android_java_env,
+					     window,
+					     get_geometry);
+  if (!window_geometry)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  /* window_geometry is an array containing x, y, width and
+     height.  border_width is always 0 on Android.  */
+  eassert ((*android_java_env)->GetArrayLength (android_java_env,
+						window_geometry)
+	   == 4);
+
+  *root_return = 0;
+  *border_width_return = 0;
+
+  ints
+    = (*android_java_env)->GetIntArrayElements (android_java_env,
+						window_geometry,
+						NULL);
+
+  *x_return = ints[0];
+  *y_return = ints[1];
+  *width_return = ints[2];
+  *height_return = ints[3];
+
+  (*android_java_env)->ReleaseIntArrayElements (android_java_env,
+						window_geometry,
+						ints, JNI_ABORT);
+
+  /* Now free the local reference.  */
+  ANDROID_DELETE_LOCAL_REF (window_geometry);
+}
+
 
 
 /* Low level drawing primitives.  */
@@ -2998,6 +3305,86 @@ android_damage_window (android_drawable handle,
 
 
 
+/* Other misc system routines.  */
+
+int
+android_get_screen_width (void)
+{
+  return (*android_java_env)->CallIntMethod (android_java_env,
+					     emacs_service,
+					     service_class.get_screen_width,
+					     (jboolean) false);
+}
+
+int
+android_get_screen_height (void)
+{
+  return (*android_java_env)->CallIntMethod (android_java_env,
+					     emacs_service,
+					     service_class.get_screen_height,
+					     (jboolean) false);
+}
+
+int
+android_get_mm_width (void)
+{
+  return (*android_java_env)->CallIntMethod (android_java_env,
+					     emacs_service,
+					     service_class.get_screen_width,
+					     (jboolean) true);
+}
+
+int
+android_get_mm_height (void)
+{
+  return (*android_java_env)->CallIntMethod (android_java_env,
+					     emacs_service,
+					     service_class.get_screen_height,
+					     (jboolean) true);
+}
+
+bool
+android_detect_mouse (void)
+{
+  return (*android_java_env)->CallBooleanMethod (android_java_env,
+						 emacs_service,
+						 service_class.detect_mouse);
+}
+
+void
+android_set_dont_focus_on_map (android_window handle,
+			       bool no_focus_on_map)
+{
+  jmethodID method;
+  jobject window;
+
+  window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+  method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
+				  "setDontFocusOnMap", "(Z)V");
+
+  (*android_java_env)->CallVoidMethod (android_java_env, window,
+				       method,
+				       (jboolean) no_focus_on_map);
+}
+
+void
+android_set_dont_accept_focus (android_window handle,
+			       bool no_accept_focus)
+{
+  jmethodID method;
+  jobject window;
+
+  window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
+  method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
+				  "setDontAcceptFocus", "(Z)V");
+
+  (*android_java_env)->CallVoidMethod (android_java_env, window,
+				       method,
+				       (jboolean) no_accept_focus);
+}
+
+
+
 #undef faccessat
 
 /* Replace the system faccessat with one which understands AT_EACCESS.
@@ -3013,6 +3400,128 @@ faccessat (int dirfd, const char *pathname, int mode, int flags)
     real_faccessat = dlsym (RTLD_NEXT, "faccessat");
 
   return real_faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
+}
+
+
+
+/* Directory listing emulation.  */
+
+struct android_dir
+{
+  /* The real DIR *, if it exists.  */
+  DIR *dir;
+
+  /* Otherwise, the AAssetDir.  */
+  void *asset_dir;
+};
+
+/* Like opendir.  However, return an asset directory if NAME points to
+   an asset.  */
+
+struct android_dir *
+android_opendir (const char *name)
+{
+  struct android_dir *dir;
+  AAssetDir *asset_dir;
+  const char *asset_name;
+
+  asset_name = android_get_asset_name (name);
+
+  /* If the asset manager exists and NAME is an asset, return an asset
+     directory.  */
+  if (asset_manager && asset_name)
+    {
+      asset_dir = AAssetManager_openDir (asset_manager,
+					 asset_name);
+
+      if (!asset_dir)
+	{
+	  errno = ENOENT;
+	  return NULL;
+	}
+
+      dir = xmalloc (sizeof *dir);
+      dir->dir = NULL;
+      dir->asset_dir = asset_dir;
+      return dir;
+    }
+
+  /* Otherwise, open the directory normally.  */
+  dir = xmalloc (sizeof *dir);
+  dir->asset_dir = NULL;
+  dir->dir = opendir (name);
+
+  if (!dir->dir)
+    {
+      xfree (dir);
+      return NULL;
+    }
+
+  return dir;
+}
+
+/* Like readdir, except it understands asset directories.  */
+
+struct dirent *
+android_readdir (struct android_dir *dir)
+{
+  static struct dirent dirent;
+  const char *filename;
+
+  if (dir->asset_dir)
+    {
+      filename = AAssetDir_getNextFileName (dir->asset_dir);
+      errno = 0;
+
+      if (!filename)
+	return NULL;
+
+      memset (&dirent, 0, sizeof dirent);
+      dirent.d_ino = 0;
+      dirent.d_off = 0;
+      dirent.d_reclen = sizeof dirent;
+      dirent.d_type = DT_UNKNOWN;
+      strncpy (dirent.d_name, filename,
+	       sizeof dirent.d_name - 1);
+      return &dirent;
+    }
+
+  return readdir (dir->dir);
+}
+
+/* Like closedir, but it also closes asset manager directories.  */
+
+void
+android_closedir (struct android_dir *dir)
+{
+  if (dir->dir)
+    closedir (dir->dir);
+  else
+    AAssetDir_close (dir->asset_dir);
+
+  xfree (dir);
+}
+
+
+
+/* emacs_abort implementation for Android.  This logs a stack
+   trace.  */
+
+void
+emacs_abort (void)
+{
+  volatile char *foo;
+
+  __android_log_print (ANDROID_LOG_FATAL, __func__,
+		       "emacs_abort called, please review the ensuing"
+		       " stack trace");
+
+  /* Cause a NULL pointer dereference to make debuggerd generate a
+     tombstone.  */
+  foo = NULL;
+  *foo = '\0';
+
+  abort ();
 }
 
 #else /* ANDROID_STUBIFY */

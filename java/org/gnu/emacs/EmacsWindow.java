@@ -22,6 +22,7 @@ package org.gnu.emacs;
 import java.lang.IllegalStateException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
 import android.graphics.Rect;
 import android.graphics.Canvas;
@@ -50,9 +51,29 @@ import android.os.Build;
    Views are also drawables, meaning they can accept drawing
    requests.  */
 
+/* Help wanted.  What does not work includes `EmacsView.raise',
+   `EmacsView.lower', reparenting a window onto another window.
+
+   All three are likely undocumented restrictions within
+   EmacsSurface.  */
+
 public class EmacsWindow extends EmacsHandleObject
   implements EmacsDrawable
 {
+  private static final String TAG = "EmacsWindow";
+
+  private class Coordinate
+  {
+    /* Integral coordinate.  */
+    int x, y;
+
+    Coordinate (int x, int y)
+    {
+      this.x = x;
+      this.y = y;
+    }
+  };
+
   /* The view associated with the window.  */
   public EmacsView view;
 
@@ -60,11 +81,15 @@ public class EmacsWindow extends EmacsHandleObject
   private Rect rect;
 
   /* The parent window, or null if it is the root window.  */
-  private EmacsWindow parent;
+  public EmacsWindow parent;
 
   /* List of all children in stacking order.  This must be kept
      consistent!  */
   public ArrayList<EmacsWindow> children;
+
+  /* Map between pointer identifiers and last known position.  Used to
+     compute which pointer changed upon a touch event.  */
+  private HashMap<Integer, Coordinate> pointerMap;
 
   /* The window consumer currently attached, if it exists.  */
   private EmacsWindowAttachmentManager.WindowConsumer attached;
@@ -77,6 +102,14 @@ public class EmacsWindow extends EmacsHandleObject
      last button press or release event.  */
   private int lastButtonState, lastModifiers;
 
+  /* Whether or not the window is mapped, and whether or not it is
+     deiconified.  */
+  private boolean isMapped, isIconified;
+
+  /* Whether or not to ask for focus upon being mapped, and whether or
+     not the window should be focusable.  */
+  private boolean dontFocusOnMap, dontAcceptFocus;
+
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
 	       int width, int height)
@@ -84,6 +117,7 @@ public class EmacsWindow extends EmacsHandleObject
     super (handle);
 
     rect = new Rect (x, y, x + width, y + height);
+    pointerMap = new HashMap<Integer, Coordinate> ();
 
     /* Create the view from the context's UI thread.  The window is
        unmapped, so the view is GONE.  */
@@ -97,7 +131,7 @@ public class EmacsWindow extends EmacsHandleObject
     if (parent != null)
       {
 	parent.children.add (this);
-	parent.view.post (new Runnable () {
+        EmacsService.SERVICE.runOnUiThread (new Runnable () {
 	    @Override
 	    public void
 	    run ()
@@ -106,23 +140,6 @@ public class EmacsWindow extends EmacsHandleObject
 	    }
 	  });
       }
-    else
-      EmacsService.SERVICE.runOnUiThread (new Runnable () {
-	  @Override
-	  public void
-	  run ()
-	  {
-	    EmacsWindowAttachmentManager manager;
-
-	    manager = EmacsWindowAttachmentManager.MANAGER;
-
-	    /* If parent is the root window, notice that there are new
-	       children available for interested activites to pick
-	       up.  */
-
-	    manager.registerWindow (EmacsWindow.this);
-	  }
-	});
 
     scratchGC = new EmacsGC ((short) 0);
   }
@@ -159,7 +176,7 @@ public class EmacsWindow extends EmacsHandleObject
 				       + "children!");
 
     /* Remove the view from its parent and make it invisible.  */
-    view.post (new Runnable () {
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
 	public void
 	run ()
 	{
@@ -174,7 +191,7 @@ public class EmacsWindow extends EmacsHandleObject
 
 	  parent = (View) view.getParent ();
 
-	  if (parent != null && attached == null)
+	  if (parent != null)
 	    ((ViewGroup) parent).removeView (view);
 
 	  manager.detachWindow (EmacsWindow.this);
@@ -199,24 +216,33 @@ public class EmacsWindow extends EmacsHandleObject
   public void
   viewLayout (int left, int top, int right, int bottom)
   {
+    int rectWidth, rectHeight;
+
     synchronized (this)
       {
 	rect.left = left;
 	rect.top = top;
 	rect.right = right;
 	rect.bottom = bottom;
-
-	EmacsNative.sendConfigureNotify (this.handle,
-					 System.currentTimeMillis (),
-					 left, top, rect.width (),
-					 rect.height ());
       }
+
+    rectWidth = right - left;
+    rectHeight = bottom - top;
+
+    EmacsNative.sendConfigureNotify (this.handle,
+				     System.currentTimeMillis (),
+				     left, top, rectWidth,
+				     rectHeight);
   }
 
   public void
   requestViewLayout ()
   {
-    view.post (new Runnable () {
+    /* This is necessary because otherwise subsequent drawing on the
+       Emacs thread may be lost.  */
+    view.explicitlyDirtyBitmap (rect);
+
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
 	@Override
 	public void
 	run ()
@@ -261,28 +287,77 @@ public class EmacsWindow extends EmacsHandleObject
   public void
   mapWindow ()
   {
-    view.post (new Runnable () {
-	@Override
-	public void
-	run ()
-	{
+    if (isMapped)
+      return;
 
-	  view.setVisibility (View.VISIBLE);
-	  /* Eventually this should check no-focus-on-map.  */
-	  view.requestFocus ();
-	}
-      });
+    isMapped = true;
+
+    if (parent == null)
+      {
+        EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	    @Override
+	    public void
+	    run ()
+	    {
+	      EmacsWindowAttachmentManager manager;
+
+	      /* Make the view visible, first of all.  */
+	      view.setVisibility (View.VISIBLE);
+
+	      manager = EmacsWindowAttachmentManager.MANAGER;
+
+	      /* If parent is the root window, notice that there are new
+		 children available for interested activites to pick
+		 up.  */
+	      manager.registerWindow (EmacsWindow.this);
+
+	      if (!getDontFocusOnMap ())
+		/* Eventually this should check no-focus-on-map.  */
+		view.requestFocus ();
+	    }
+	  });
+      }
+    else
+      {
+	/* Do the same thing as above, but don't register this
+	   window.  */
+        EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	    @Override
+	    public void
+	    run ()
+	    {
+	      view.setVisibility (View.VISIBLE);
+
+	      if (!getDontFocusOnMap ())
+	      /* Eventually this should check no-focus-on-map.  */
+		view.requestFocus ();
+	    }
+	  });
+      }
   }
 
   public void
   unmapWindow ()
   {
+    if (!isMapped)
+      return;
+
+    isMapped = false;
+
     view.post (new Runnable () {
 	@Override
 	public void
 	run ()
 	{
+	  EmacsWindowAttachmentManager manager;
+
+	  manager = EmacsWindowAttachmentManager.MANAGER;
+
 	  view.setVisibility (View.GONE);
+
+	  /* Now that the window is unmapped, unregister it as
+	     well.  */
+	  manager.detachWindow (EmacsWindow.this);
 	}
       });
   }
@@ -413,6 +488,161 @@ public class EmacsWindow extends EmacsHandleObject
     return 4;
   }
 
+  /* Return the ID of the pointer which changed in EVENT.  Value is -1
+     if it could not be determined, else the pointer that changed, or
+     -2 if -1 would have been returned, but there is also a pointer
+     that is a mouse.  */
+
+  private int
+  figureChange (MotionEvent event)
+  {
+    int pointerID, i, truncatedX, truncatedY, pointerIndex;
+    Coordinate coordinate;
+    boolean mouseFlag;
+
+    /* pointerID is always initialized but the Java compiler is too
+       dumb to know that.  */
+    pointerID = -1;
+    mouseFlag = false;
+
+    switch (event.getActionMasked ())
+      {
+      case MotionEvent.ACTION_DOWN:
+	/* Primary pointer pressed with index 0.  */
+
+	/* Detect mice.  If this is a mouse event, give it to
+	   onSomeKindOfMotionEvent.  */
+	if ((Build.VERSION.SDK_INT
+	     >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	    && event.getToolType (0) == MotionEvent.TOOL_TYPE_MOUSE)
+	  return -2;
+
+	pointerID = event.getPointerId (0);
+	pointerMap.put (pointerID,
+			new Coordinate ((int) event.getX (0),
+					(int) event.getY (0)));
+	break;
+
+      case MotionEvent.ACTION_UP:
+	/* Primary pointer released with index 0.  */
+	pointerID = event.getPointerId (0);
+	pointerMap.remove (pointerID);
+	break;
+
+      case MotionEvent.ACTION_POINTER_DOWN:
+	/* New pointer.  Find the pointer ID from the index and place
+	   it in the map.  */
+	pointerIndex = event.getActionIndex ();
+	pointerID = event.getPointerId (pointerIndex);
+	pointerMap.put (pointerID,
+			new Coordinate ((int) event.getX (pointerID),
+					(int) event.getY (pointerID)));
+	break;
+
+      case MotionEvent.ACTION_POINTER_UP:
+	/* Pointer removed.  Remove it from the map.  */
+	pointerIndex = event.getActionIndex ();
+	pointerID = event.getPointerId (pointerIndex);
+	pointerMap.remove (pointerID);
+	break;
+
+      default:
+
+	/* Loop through each pointer in the event.  */
+	for (i = 0; i < event.getPointerCount (); ++i)
+	  {
+	    pointerID = event.getPointerId (i);
+
+	    /* Look up that pointer in the map.  */
+	    coordinate = pointerMap.get (pointerID);
+
+	    if (coordinate != null)
+	      {
+		/* See if coordinates have changed.  */
+		truncatedX = (int) event.getX (i);
+		truncatedY = (int) event.getY (i);
+
+		if (truncatedX != coordinate.x
+		    || truncatedY != coordinate.y)
+		  {
+		    /* The pointer changed.  Update the coordinate and
+		       break out of the loop.  */
+		    coordinate.x = truncatedX;
+		    coordinate.y = truncatedY;
+
+		    break;
+		  }
+	      }
+
+	    /* See if this is a mouse.  If so, set the mouseFlag.  */
+	    if ((Build.VERSION.SDK_INT
+		 >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+		&& event.getToolType (i) == MotionEvent.TOOL_TYPE_MOUSE)
+	      mouseFlag = true;
+	  }
+
+	/* Set the pointer ID to -1 if the loop failed to find any
+	   changed pointer.  If a mouse pointer was found, set it to
+	   -2.  */
+	if (i == event.getPointerCount ())
+	  pointerID = (mouseFlag ? -2 : -1);
+      }
+
+    /* Return the pointer ID.  */
+    return pointerID;
+  }
+
+  public boolean
+  onTouchEvent (MotionEvent event)
+  {
+    int pointerID, index;
+
+    /* Extract the ``touch ID'' (or in Android, the ``pointer
+       ID''.) */
+    pointerID = figureChange (event);
+
+    if (pointerID < 0)
+      {
+	/* If this is a mouse event, give it to
+	   onSomeKindOfMotionEvent.  */
+	if (pointerID == -2)
+	  return onSomeKindOfMotionEvent (event);
+
+	return false;
+      }
+
+    /* Find the pointer index corresponding to the event.  */
+    index = event.findPointerIndex (pointerID);
+
+    switch (event.getActionMasked ())
+      {
+      case MotionEvent.ACTION_DOWN:
+      case MotionEvent.ACTION_POINTER_DOWN:
+	/* Touch down event.  */
+	EmacsNative.sendTouchDown (this.handle, (int) event.getX (index),
+				   (int) event.getY (index),
+				   event.getEventTime (), pointerID);
+	return true;
+
+      case MotionEvent.ACTION_UP:
+      case MotionEvent.ACTION_POINTER_UP:
+	/* Touch up event.  */
+	EmacsNative.sendTouchUp (this.handle, (int) event.getX (index),
+				 (int) event.getY (index),
+				 event.getEventTime (), pointerID);
+	return true;
+
+      case MotionEvent.ACTION_MOVE:
+	/* Pointer motion event.  */
+	EmacsNative.sendTouchMove (this.handle, (int) event.getX (index),
+				   (int) event.getY (index),
+				   event.getEventTime (), pointerID);
+	return true;
+      }
+
+    return false;
+  }
+
   public boolean
   onSomeKindOfMotionEvent (MotionEvent event)
   {
@@ -472,13 +702,201 @@ public class EmacsWindow extends EmacsHandleObject
 
       case MotionEvent.ACTION_DOWN:
       case MotionEvent.ACTION_UP:
-	/* Emacs must return true even though touch events are not yet
-	   handled, because the value of this function is used by the
-	   system to decide whether or not Emacs gets ACTION_MOVE
+	/* Emacs must return true even though touch events are not
+	   handled here, because the value of this function is used by
+	   the system to decide whether or not Emacs gets ACTION_MOVE
 	   events.  */
+	return true;
+
+      case MotionEvent.ACTION_SCROLL:
+	/* Send a scroll event with the specified deltas.  */
+	EmacsNative.sendWheel (this.handle, (int) event.getX (),
+			       (int) event.getY (),
+			       event.getEventTime (),
+			       lastModifiers,
+			       event.getAxisValue (MotionEvent.AXIS_HSCROLL),
+			       event.getAxisValue (MotionEvent.AXIS_VSCROLL));
 	return true;
       }
 
     return false;
+  }
+
+  public void
+  reparentTo (final EmacsWindow otherWindow, int x, int y)
+  {
+    int width, height;
+
+    /* Reparent this window to the other window.  */
+
+    if (parent != null)
+      parent.children.remove (this);
+
+    if (otherWindow != null)
+      otherWindow.children.add (this);
+
+    parent = otherWindow;
+
+    /* Move this window to the new location.  */
+    synchronized (this)
+      {
+	width = rect.width ();
+	height = rect.height ();
+	rect.left = x;
+	rect.top = y;
+	rect.right = x + width;
+	rect.bottom = y + height;
+      }
+
+    /* Now do the work necessary on the UI thread to reparent the
+       window.  */
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  EmacsWindowAttachmentManager manager;
+	  View parent;
+
+	  /* First, detach this window if necessary.  */
+	  manager = EmacsWindowAttachmentManager.MANAGER;
+	  manager.detachWindow (EmacsWindow.this);
+
+	  /* Also unparent this view.  */
+	  parent = (View) view.getParent ();
+
+	  if (parent != null)
+	    ((ViewGroup) parent).removeView (view);
+
+	  /* Next, either add this window as a child of the new
+	     parent's view, or make it available again.  */
+	  if (otherWindow != null)
+	    otherWindow.view.addView (view);
+	  else if (EmacsWindow.this.isMapped)
+	    manager.registerWindow (EmacsWindow.this);
+
+	  /* Request relayout.  */
+	  view.requestLayout ();
+	}
+      });
+  }
+
+  public void
+  makeInputFocus (long time)
+  {
+    /* TIME is currently ignored.  Request the input focus now.  */
+
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  view.requestFocus ();
+	}
+      });
+  }
+
+  public void
+  raise ()
+  {
+    /* This does nothing here.  */
+    if (parent == null)
+      return;
+
+    /* Remove and add this view again.  */
+    parent.children.remove (this);
+    parent.children.add (this);
+
+    /* Request a relayout.  */
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  view.raise ();
+	}
+      });
+  }
+
+  public void
+  lower ()
+  {
+    /* This does nothing here.  */
+    if (parent == null)
+      return;
+
+    /* Remove and add this view again.  */
+    parent.children.remove (this);
+    parent.children.add (this);
+
+    /* Request a relayout.  */
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  view.lower ();
+	}
+      });
+  }
+
+  public int[]
+  getWindowGeometry ()
+  {
+    int[] array;
+    Rect rect;
+
+    array = new int[4];
+    rect = getGeometry ();
+
+    array[0] = rect.left;
+    array[1] = rect.top;
+    array[2] = rect.width ();
+    array[3] = rect.height ();
+
+    return array;
+  }
+
+  public void
+  noticeIconified ()
+  {
+    isIconified = true;
+    EmacsNative.sendIconified (this.handle);
+  }
+
+  public void
+  noticeDeiconified ()
+  {
+    isIconified = false;
+    EmacsNative.sendDeiconified (this.handle);
+  }
+
+  public synchronized void
+  setDontAcceptFocus (final boolean dontAcceptFocus)
+  {
+    this.dontAcceptFocus = dontAcceptFocus;
+
+    /* Update the view's focus state.  */
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  view.setFocusable (!dontAcceptFocus);
+	  view.setFocusableInTouchMode (!dontAcceptFocus);
+	}
+      });
+  }
+
+  public synchronized void
+  setDontFocusOnMap (final boolean dontFocusOnMap)
+  {
+    this.dontFocusOnMap = dontFocusOnMap;
+  }
+
+  public synchronized boolean
+  getDontFocusOnMap ()
+  {
+    return dontFocusOnMap;
   }
 };

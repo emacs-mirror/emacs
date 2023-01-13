@@ -1647,6 +1647,7 @@ live frame and defaults to the selected one."
 (declare-function ns-frame-geometry "nsfns.m" (&optional frame))
 (declare-function pgtk-frame-geometry "pgtkfns.c" (&optional frame))
 (declare-function haiku-frame-geometry "haikufns.c" (&optional frame))
+(declare-function android-frame-geometry "androidfns.c" (&optional frame))
 
 (defun frame-geometry (&optional frame)
   "Return geometric attributes of FRAME.
@@ -1700,6 +1701,8 @@ and width values are in pixels.
       (pgtk-frame-geometry frame))
      ((eq frame-type 'haiku)
       (haiku-frame-geometry frame))
+     ((eq frame-type 'android)
+      (android-frame-geometry frame))
      (t
       (list
        '(outer-position 0 . 0)
@@ -1826,6 +1829,7 @@ of frames like calls to map a frame or change its visibility."
 (declare-function ns-frame-edges "nsfns.m" (&optional frame type))
 (declare-function pgtk-frame-edges "pgtkfns.c" (&optional frame type))
 (declare-function haiku-frame-edges "haikufns.c" (&optional frame type))
+(declare-function android-frame-edges "androidfns.c" (&optional frame type))
 
 (defun frame-edges (&optional frame type)
   "Return coordinates of FRAME's edges.
@@ -1853,6 +1857,8 @@ FRAME."
       (pgtk-frame-edges frame type))
      ((eq frame-type 'haiku)
       (haiku-frame-edges frame type))
+     ((eq frame-type 'android)
+      (android-frame-edges frame type))
      (t
       (list 0 0 (frame-width frame) (frame-height frame))))))
 
@@ -1861,6 +1867,7 @@ FRAME."
 (declare-function ns-mouse-absolute-pixel-position "nsfns.m")
 (declare-function pgtk-mouse-absolute-pixel-position "pgtkfns.c")
 (declare-function haiku-mouse-absolute-pixel-position "haikufns.c")
+(declare-function android-mouse-absolute-pixel-position "androidfns.c")
 
 (defun mouse-absolute-pixel-position ()
   "Return absolute position of mouse cursor in pixels.
@@ -1879,6 +1886,8 @@ position (0, 0) of the selected frame's terminal."
       (pgtk-mouse-absolute-pixel-position))
      ((eq frame-type 'haiku)
       (haiku-mouse-absolute-pixel-position))
+     ((eq frame-type 'android)
+      (android-mouse-absolute-pixel-position))
      (t
       (cons 0 0)))))
 
@@ -1887,6 +1896,8 @@ position (0, 0) of the selected frame's terminal."
 (declare-function w32-set-mouse-absolute-pixel-position "w32fns.c" (x y))
 (declare-function x-set-mouse-absolute-pixel-position "xfns.c" (x y))
 (declare-function haiku-set-mouse-absolute-pixel-position "haikufns.c" (x y))
+(declare-function android-set-mouse-absolute-pixel-position
+                  "androidfns.c" (x y))
 
 (defun set-mouse-absolute-pixel-position (x y)
   "Move mouse pointer to absolute pixel position (X, Y).
@@ -1903,7 +1914,9 @@ position (0, 0) of the selected frame's terminal."
      ((eq frame-type 'w32)
       (w32-set-mouse-absolute-pixel-position x y))
      ((eq frame-type 'haiku)
-      (haiku-set-mouse-absolute-pixel-position x y)))))
+      (haiku-set-mouse-absolute-pixel-position x y))
+     ((eq frame-type 'android)
+      (android-set-mouse-absolute-pixel-position x y)))))
 
 (defun frame-monitor-attributes (&optional frame)
   "Return the attributes of the physical monitor dominating FRAME.
@@ -1999,6 +2012,7 @@ workarea attribute."
 ;; TODO: implement this on PGTK.
 ;; (declare-function pgtk-frame-list-z-order "pgtkfns.c" (&optional display))
 (declare-function haiku-frame-list-z-order "haikufns.c" (&optional display))
+(declare-function android-frame-list-z-order "androidfns.c" (&optional display))
 
 (defun frame-list-z-order (&optional display)
   "Return list of Emacs' frames, in Z (stacking) order.
@@ -2024,13 +2038,17 @@ Return nil if DISPLAY contains no Emacs frame."
       ;; (pgtk-frame-list-z-order display)
       nil)
      ((eq frame-type 'haiku)
-      (haiku-frame-list-z-order display)))))
+      (haiku-frame-list-z-order display))
+     ((eq frame-type 'android)
+      (android-frame-list-z-order display)))))
 
 (declare-function x-frame-restack "xfns.c" (frame1 frame2 &optional above))
 (declare-function w32-frame-restack "w32fns.c" (frame1 frame2 &optional above))
 (declare-function ns-frame-restack "nsfns.m" (frame1 frame2 &optional above))
 (declare-function pgtk-frame-restack "pgtkfns.c" (frame1 frame2 &optional above))
 (declare-function haiku-frame-restack "haikufns.c" (frame1 frame2 &optional above))
+(declare-function android-frame-restack "androidfns.c" (frame1 frame2
+                                                               &optional above))
 
 (defun frame-restack (frame1 frame2 &optional above)
   "Restack FRAME1 below FRAME2.
@@ -2064,7 +2082,9 @@ Some window managers may refuse to restack windows."
          ((eq frame-type 'haiku)
           (haiku-frame-restack frame1 frame2 above))
          ((eq frame-type 'pgtk)
-          (pgtk-frame-restack frame1 frame2 above))))
+          (pgtk-frame-restack frame1 frame2 above))
+         ((eq frame-type 'android)
+          (android-frame-restack frame1 frame2 above))))
     (error "Cannot restack frames")))
 
 (defun frame-size-changed-p (&optional frame)
@@ -2113,6 +2133,8 @@ frame's display)."
        (> w32-num-mouse-buttons 0)))
      ((memq frame-type '(x ns haiku pgtk))
       t)    ;; We assume X, NeXTstep, GTK, and Haiku *always* have a pointing device
+     ((eq frame-type 'android)
+      (android-detect-mouse))
      (t
       (or (and (featurep 'xt-mouse)
 	       xterm-mouse-mode)
@@ -2396,6 +2418,8 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 		  (&optional terminal))
 (declare-function haiku-display-monitor-attributes-list "haikufns.c"
 		  (&optional terminal))
+(declare-function android-display-monitor-attributes-list "androidfns.c"
+                  (&optional terminal))
 
 (defun display-monitor-attributes-list (&optional display)
   "Return a list of physical monitor attributes on DISPLAY.
@@ -2449,6 +2473,8 @@ monitors."
       (pgtk-display-monitor-attributes-list display))
      ((eq frame-type 'haiku)
       (haiku-display-monitor-attributes-list display))
+     ((eq frame-type 'android)
+      (android-display-monitor-attributes-list display))
      (t
       (let ((geometry (list 0 0 (display-pixel-width display)
 			    (display-pixel-height display))))

@@ -2354,8 +2354,8 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
 
 #ifndef MSDOS
       if (f != t->display_info.tty->output)
-        fclose (t->display_info.tty->output);
-      fclose (f);
+        emacs_fclose (t->display_info.tty->output);
+      emacs_fclose (f);
 #endif
 
       t->display_info.tty->input = 0;
@@ -4632,12 +4632,12 @@ delete_tty (struct terminal *terminal)
     {
       delete_keyboard_wait_descriptor (fileno (tty->input));
       if (tty->input != stdin)
-        fclose (tty->input);
+        emacs_fclose (tty->input);
     }
   if (tty->output && tty->output != stdout && tty->output != tty->input)
-    fclose (tty->output);
+    emacs_fclose (tty->output);
   if (tty->termscript)
-    fclose (tty->termscript);
+    emacs_fclose (tty->termscript);
 
   xfree (tty->old_tty);
   xfree (tty->Wcm);

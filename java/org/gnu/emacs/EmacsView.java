@@ -87,12 +87,27 @@ public class EmacsView extends ViewGroup
 
     /* Create the surface view.  */
     this.surfaceView = new EmacsSurfaceView (this);
+    this.surfaceView.setZOrderMediaOverlay (true);
     addView (this.surfaceView);
+
+    /* Not sure exactly what this does but it makes things magically
+       work.  Why is something as simple as XRaiseWindow so involved
+       on Android? */
+    setChildrenDrawingOrderEnabled (true);
+
+    /* Get rid of the foreground and background tint.  */
+    setBackgroundTintList (null);
+    setForegroundTintList (null);
   }
 
   private void
   handleDirtyBitmap ()
   {
+    Bitmap oldBitmap;
+
+    /* Save the old bitmap.  */
+    oldBitmap = bitmap;
+
     /* Recreate the front and back buffer bitmaps.  */
     bitmap
       = Bitmap.createBitmap (bitmapDirty.width (),
@@ -103,10 +118,21 @@ public class EmacsView extends ViewGroup
     /* And canvases.  */
     canvas = new Canvas (bitmap);
 
-    /* If Emacs is drawing to the bitmap right now from the
-       main thread, the image contents are lost until the next
-       ConfigureNotify and complete garbage.  Sorry! */
+    /* Copy over the contents of the old bitmap.  */
+    if (oldBitmap != null)
+      canvas.drawBitmap (oldBitmap, 0f, 0f, new Paint ());
+
     bitmapDirty = null;
+  }
+
+  public synchronized void
+  explicitlyDirtyBitmap (Rect rect)
+  {
+    if (bitmapDirty == null
+	&& (bitmap == null
+	    || rect.width () != bitmap.getWidth ()
+	    || rect.height () != bitmap.getHeight ()))
+      bitmapDirty = rect;
   }
 
   public synchronized Bitmap
@@ -168,25 +194,31 @@ public class EmacsView extends ViewGroup
     View child;
     Rect windowRect;
 
+    count = getChildCount ();
+
     if (changed || mustReportLayout)
       {
 	mustReportLayout = false;
 	window.viewLayout (left, top, right, bottom);
       }
 
-    if (changed)
+    if (changed
+	/* Check that a change has really happened.  */
+	&& (bitmapDirty == null
+	    || bitmapDirty.width () != right - left
+	    || bitmapDirty.height () != bottom - top))
       bitmapDirty = new Rect (left, top, right, bottom);
-
-    count = getChildCount ();
 
     for (i = 0; i < count; ++i)
       {
 	child = getChildAt (i);
 
+	Log.d (TAG, "onLayout: " + child);
+
 	if (child == surfaceView)
 	  /* The child is the surface view, so give it the entire
 	     view.  */
-	  child.layout (left, top, right, bottom);
+	  child.layout (0, 0, right - left, bottom - top);
 	else if (child.getVisibility () != GONE)
 	  {
 	    if (!(child instanceof EmacsView))
@@ -201,59 +233,68 @@ public class EmacsView extends ViewGroup
       }
   }
 
-  public synchronized void
+  public void
   damageRect (Rect damageRect)
   {
-    damageRegion.union (damageRect);
+    synchronized (damageRegion)
+      {
+	damageRegion.union (damageRect);
+      }
   }
 
   /* This method is called from both the UI thread and the Emacs
      thread.  */
 
-  public synchronized void
+  public void
   swapBuffers (boolean force)
   {
     Canvas canvas;
     Rect damageRect;
     Bitmap bitmap;
 
-    if (damageRegion.isEmpty ())
-      return;
+    /* Code must always take damageRegion, and then surfaceChangeLock,
+       never the other way around! */
 
-    bitmap = getBitmap ();
-
-    /* Emacs must take the following lock to ensure the access to the
-       canvas occurs with the surface created.  Otherwise, Android
-       will throttle calls to lockCanvas.  */
-
-    synchronized (surfaceView.surfaceChangeLock)
+    synchronized (damageRegion)
       {
-	damageRect = damageRegion.getBounds ();
-
-	if (!surfaceView.isCreated ())
+	if (damageRegion.isEmpty ())
 	  return;
 
-	if (bitmap == null)
-	  return;
+	bitmap = getBitmap ();
 
-	/* Lock the canvas with the specified damage.  */
-	canvas = surfaceView.lockCanvas (damageRect);
+	/* Emacs must take the following lock to ensure the access to the
+	   canvas occurs with the surface created.  Otherwise, Android
+	   will throttle calls to lockCanvas.  */
 
-	/* Return if locking the canvas failed.  */
-	if (canvas == null)
-	  return;
+	synchronized (surfaceView.surfaceChangeLock)
+	  {
+	    damageRect = damageRegion.getBounds ();
 
-	/* Copy from the back buffer to the canvas.  If damageRect was
-	   made empty, then draw the entire back buffer.  */
+	    if (!surfaceView.isCreated ())
+	      return;
 
-	if (damageRect.isEmpty ())
-	  canvas.drawBitmap (bitmap, 0f, 0f, paint);
-	else
-	  canvas.drawBitmap (bitmap, damageRect, damageRect, paint);
+	    if (bitmap == null)
+	      return;
 
-	/* Unlock the canvas and clear the damage.  */
-	surfaceView.unlockCanvasAndPost (canvas);
-	damageRegion.setEmpty ();
+	    /* Lock the canvas with the specified damage.  */
+	    canvas = surfaceView.lockCanvas (damageRect);
+
+	    /* Return if locking the canvas failed.  */
+	    if (canvas == null)
+	      return;
+
+	    /* Copy from the back buffer to the canvas.  If damageRect was
+	       made empty, then draw the entire back buffer.  */
+
+	    if (damageRect.isEmpty ())
+	      canvas.drawBitmap (bitmap, 0f, 0f, paint);
+	    else
+	      canvas.drawBitmap (bitmap, damageRect, damageRect, paint);
+
+	    /* Unlock the canvas and clear the damage.  */
+	    surfaceView.unlockCanvasAndPost (canvas);
+	    damageRegion.setEmpty ();
+	  }
       }
   }
 
@@ -308,6 +349,78 @@ public class EmacsView extends ViewGroup
   public boolean
   onTouchEvent (MotionEvent motion)
   {
-    return window.onSomeKindOfMotionEvent (motion);
+    return window.onTouchEvent (motion);
+  }
+
+  private void
+  moveChildToBack (View child)
+  {
+    int index;
+
+    index = indexOfChild (child);
+
+    if (index > 0)
+      {
+	detachViewFromParent (index);
+
+	/* The view at 0 is the surface view.  */
+	attachViewToParent (child, 1,
+			    child.getLayoutParams());
+      }
+  }
+
+
+  /* The following two functions must not be called if the view has no
+     parent, or is parented to an activity.  */
+
+  public void
+  raise ()
+  {
+    EmacsView parent;
+
+    parent = (EmacsView) getParent ();
+
+    Log.d (TAG, "raise: parent " + parent);
+
+    if (parent.indexOfChild (this)
+	== parent.getChildCount () - 1)
+      return;
+
+    parent.bringChildToFront (this);
+
+    /* Yes, all of this is really necessary! */
+    parent.requestLayout ();
+    parent.invalidate ();
+    requestLayout ();
+    invalidate ();
+
+    /* The surface view must be destroyed and recreated.  */
+    removeView (surfaceView);
+    addView (surfaceView, 0);
+  }
+
+  public void
+  lower ()
+  {
+    EmacsView parent;
+
+    parent = (EmacsView) getParent ();
+
+    Log.d (TAG, "lower: parent " + parent);
+
+    if (parent.indexOfChild (this) == 1)
+      return;
+
+    parent.moveChildToBack (this);
+
+    /* Yes, all of this is really necessary! */
+    parent.requestLayout ();
+    parent.invalidate ();
+    requestLayout ();
+    invalidate ();
+
+    /* The surface view must be removed and attached again.  */
+    removeView (surfaceView);
+    addView (surfaceView, 0);
   }
 };

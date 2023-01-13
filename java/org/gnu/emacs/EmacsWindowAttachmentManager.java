@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class EmacsWindowAttachmentManager
   };
 
   private List<WindowConsumer> consumers;
-  private List<EmacsWindow> windows;
+  public List<EmacsWindow> windows;
 
   public
   EmacsWindowAttachmentManager ()
@@ -98,12 +99,19 @@ public class EmacsWindowAttachmentManager
     EmacsNative.sendWindowAction ((short) 0, 0);
   }
 
-  public void
+  public synchronized void
   registerWindow (EmacsWindow window)
   {
     Intent intent;
 
-    Log.d (TAG, "registerWindow " + window);
+    Log.d (TAG, "registerWindow (maybe): " + window);
+
+    if (windows.contains (window))
+      /* The window is already registered.  */
+      return;
+
+    Log.d (TAG, "registerWindow: " + window);
+
     windows.add (window);
 
     for (WindowConsumer consumer : consumers)
@@ -146,7 +154,7 @@ public class EmacsWindowAttachmentManager
     consumers.remove (consumer);
   }
 
-  public void
+  public synchronized void
   detachWindow (EmacsWindow window)
   {
     WindowConsumer consumer;
@@ -162,5 +170,43 @@ public class EmacsWindowAttachmentManager
 	consumers.remove (consumer);
 	consumer.destroy ();
       }
+
+    windows.remove (window);
+  }
+
+  public void
+  noticeIconified (WindowConsumer consumer)
+  {
+    EmacsWindow window;
+
+    Log.d (TAG, "noticeIconified " + consumer);
+
+    /* If a window is attached, send the appropriate iconification
+       events.  */
+    window = consumer.getAttachedWindow ();
+
+    if (window != null)
+      window.noticeIconified ();
+  }
+
+  public void
+  noticeDeiconified (WindowConsumer consumer)
+  {
+    EmacsWindow window;
+
+    Log.d (TAG, "noticeDeiconified " + consumer);
+
+    /* If a window is attached, send the appropriate iconification
+       events.  */
+    window = consumer.getAttachedWindow ();
+
+    if (window != null)
+      window.noticeDeiconified ();
+  }
+
+  public synchronized List<EmacsWindow>
+  copyWindows ()
+  {
+    return new ArrayList<EmacsWindow> (windows);
   }
 };

@@ -222,6 +222,12 @@ enum android_event_type
     ANDROID_MOTION_NOTIFY,
     ANDROID_BUTTON_PRESS,
     ANDROID_BUTTON_RELEASE,
+    ANDROID_TOUCH_DOWN,
+    ANDROID_TOUCH_UP,
+    ANDROID_TOUCH_MOVE,
+    ANDROID_WHEEL,
+    ANDROID_ICONIFIED,
+    ANDROID_DEICONIFIED,
   };
 
 struct android_any_event
@@ -312,6 +318,54 @@ struct android_button_event
   unsigned int button;
 };
 
+struct android_touch_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* Window associated with the event.  */
+  android_window window;
+
+  /* X and Y coordinates of the event.  */
+  int x, y;
+
+  /* Time of the event, and the pointer identifier.  */
+  unsigned long time;
+
+  /* Index of the pointer being tracked.  */
+  unsigned int pointer_id;
+};
+
+struct android_wheel_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* Window associated with the event.  */
+  android_window window;
+
+  /* X and Y coordinates of the event.  */
+  int x, y;
+
+  /* Time of the event, and the pointer identifier.  */
+  unsigned long time;
+
+  /* Modifier state at the time of the event.  */
+  int state;
+
+  /* Motion alongside the X and Y axes.  */
+  double x_delta, y_delta;
+};
+
+struct android_iconify_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* Window associated with the event.  */
+  android_window window;
+};
+
 union android_event
 {
   enum android_event_type type;
@@ -323,7 +377,25 @@ union android_event
   struct android_crossing_event xcrossing;
   struct android_motion_event xmotion;
   struct android_button_event xbutton;
+
+  /* This has no parallel in X, since the X model of having
+     monotonically increasing touch IDs can't work on Android.  */
+  struct android_touch_event touch;
+
+  /* This has no parallel in X outside the X Input Extension, and
+     emulating the input extension interface would be awfully
+     complicated.  */
+  struct android_wheel_event wheel;
+
+  /* This has no parallel in X because Android doesn't have window
+     properties.  */
+  struct android_iconify_event iconified;
 };
+
+enum
+  {
+    ANDROID_CURRENT_TIME = 0L,
+  };
 
 extern int android_pending (void);
 extern void android_next_event (union android_event *);
@@ -395,6 +467,17 @@ extern void android_clear_area (android_window, int, int, unsigned int,
 				unsigned int);
 extern android_pixmap android_create_bitmap_from_data (char *, unsigned int,
 						       unsigned int);
+
+extern void android_bell (void);
+extern void android_set_input_focus (android_window, unsigned long);
+extern void android_raise_window (android_window);
+extern void android_lower_window (android_window);
+extern int android_query_tree (android_window, android_window *,
+			       android_window *, android_window **,
+			       unsigned int *);
+extern void android_get_geometry (android_window, android_window *,
+				  int *, int *, unsigned int *,
+				  unsigned int *, unsigned int *);
 
 #endif
 

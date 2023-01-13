@@ -30,6 +30,7 @@ activity=org.gnu.emacs.EmacsActivity
 gdb_port=5039
 jdb_port=64013
 jdb=no
+attach_existing=no
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -48,6 +49,7 @@ while [ $# -gt 0 ]; do
 	    echo "  --port PORT		run the GDB server on a specific port"
 	    echo "  --jdb-port PORT	run the JDB server on a specific port"
 	    echo "  --jdb		run JDB instead of GDB"
+	    echo "  --attach-existing	attach to an existing process"
 	    echo "  --help		print this message"
 	    echo ""
 	    echo "Available devices:"
@@ -62,6 +64,9 @@ while [ $# -gt 0 ]; do
 	    ;;
 	"--port" )
 	    gdb_port=$1
+	    ;;
+	"--attach-existing" )
+	    attach_existing=yes
 	    ;;
 	"--" )
 	    shift
@@ -120,30 +125,32 @@ package_pids=`awk -- '{
     print $1
 }' <<< $package_pids`
 
-# Finally, kill each existing process.
-for pid in $package_pids; do
-    echo "Killing existing process $pid..."
-    adb -s $device shell run-as $package kill -9 $pid &> /dev/null
-done
+if [ "$attach_existing" != "yes" ]; then
+    # Finally, kill each existing process.
+    for pid in $package_pids; do
+	echo "Killing existing process $pid..."
+	adb -s $device shell run-as $package kill -9 $pid &> /dev/null
+    done
 
-# Now run the main activity.  This must be done as the adb user and
-# not as the package user.
-echo "Starting activity $activity and attaching debugger"
+    # Now run the main activity.  This must be done as the adb user and
+    # not as the package user.
+    echo "Starting activity $activity and attaching debugger"
 
-# Exit if the activity could not be started.
-adb -s $device shell am start -D "$package/$activity"
-if [ ! $? ]; then
-    exit 1;
-fi
+    # Exit if the activity could not be started.
+    adb -s $device shell am start -D "$package/$activity"
+    if [ ! $? ]; then
+	exit 1;
+    fi
 
-# Now look for processes matching the package again.
-package_pids=`adb -s $device shell run-as $package ps -u $package_uid -o PID,CMD`
+    # Now look for processes matching the package again.
+    package_pids=`adb -s $device shell run-as $package ps -u $package_uid -o PID,CMD`
 
-# Next, remove lines matching "ps" itself.
-package_pids=`awk -- '{
+    # Next, remove lines matching "ps" itself.
+    package_pids=`awk -- '{
   if (!match ($0, /(PID|ps)/))
     print $1
 }' <<< $package_pids`
+fi
 
 pid=$package_pids
 num_pids=`wc -w <<< "$package_pids"`

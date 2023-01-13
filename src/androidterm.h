@@ -134,6 +134,18 @@ struct android_display_info
   Time last_mouse_movement_time;
 };
 
+/* Structure representing a single tool (finger or stylus) pressed
+   onto a frame.  */
+
+struct android_touch_point
+{
+  /* The next tool on this list.  */
+  struct android_touch_point *next;
+
+  /* The tool ID and the last known X and Y positions.  */
+  int tool_id, x, y;
+};
+
 struct android_output
 {
   /* Graphics contexts for the default font.  */
@@ -201,6 +213,10 @@ struct android_output
      input.  */
   bool_bf complete : 1;
 
+  /* True that indicates whether or not a buffer flip is required
+     because the frame contents have been dirtied.  */
+  bool_bf need_buffer_flip : 1;
+
   /* Relief GCs, colors etc.  */
   struct relief {
     struct android_gc *gc;
@@ -214,6 +230,10 @@ struct android_output
   /* Focus state.  Only present for consistency with X; it is actually
      a boolean.  */
   int focus_state;
+
+  /* List of all tools (either styluses or fingers) pressed onto the
+     frame.  */
+  struct android_touch_point *touch_points;
 };
 
 enum
@@ -239,6 +259,14 @@ enum
 /* Return the need-buffer-flip flag for frame F.  */
 #define FRAME_ANDROID_NEED_BUFFER_FLIP(f)	\
   ((f)->output_data.android->need_buffer_flip)
+
+/* Return the drawable used for rendering to frame F and mark the
+   frame as needing a buffer flip later.  There's no easy way to run
+   code after any drawing command, but code can be run whenever
+   someone asks for the handle necessary to draw.  */
+#define FRAME_ANDROID_DRAWABLE(f)			\
+  (((f))->output_data.android->need_buffer_flip = true, \
+   FRAME_ANDROID_WINDOW ((f)))
 
 /* Return whether or not the frame F has been completely drawn.  Used
    while handling async input.  */

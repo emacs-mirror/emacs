@@ -44,6 +44,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "msdos.h"	/* for fstatat */
 #endif
 
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+typedef DIR emacs_dir;
+#define emacs_readdir readdir
+#define emacs_closedir closedir
+#else
+
+#include "android.h"
+
+/* The Android emulation of dirent stuff is required to be able to
+   list the /assets special directory.  */
+typedef struct android_dir emacs_dir;
+#define emacs_readdir android_readdir
+#define emacs_closedir android_closedir
+#endif
+
 #ifdef WINDOWSNT
 extern int is_slow_fs (const char *);
 #endif
@@ -78,19 +93,30 @@ dirent_type (struct dirent *dp)
 #endif
 }
 
-static DIR *
+static emacs_dir *
 open_directory (Lisp_Object dirname, Lisp_Object encoded_dirname, int *fdp)
 {
   char *name = SSDATA (encoded_dirname);
-  DIR *d;
+  emacs_dir *d;
   int fd, opendir_errno;
 
-#ifdef DOS_NT
-  /* Directories cannot be opened.  The emulation assumes that any
-     file descriptor other than AT_FDCWD corresponds to the most
-     recently opened directory.  This hack is good enough for Emacs.  */
+#if defined DOS_NT || (defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  /* On DOS_NT, directories cannot be opened.  The emulation assumes
+     that any file descriptor other than AT_FDCWD corresponds to the
+     most recently opened directory.  This hack is good enough for
+     Emacs.
+
+     This code is also used on Android for a different reason: a
+     special `assets' directory outside the normal file system is used
+     to open assets inside the Android application package, and must
+     be listed using the opendir-like interface provided in
+     android.h.  */
   fd = 0;
+#ifndef HAVE_ANDROID
   d = opendir (name);
+#else
+  d = android_opendir (name);
+#endif
   opendir_errno = errno;
 #else
   fd = emacs_open (name, O_RDONLY | O_DIRECTORY, 0);
@@ -125,7 +151,7 @@ directory_files_internal_w32_unwind (Lisp_Object arg)
 static void
 directory_files_internal_unwind (void *d)
 {
-  closedir (d);
+  emacs_closedir (d);
 }
 
 /* Return the next directory entry from DIR; DIR's name is DIRNAME.
@@ -133,12 +159,12 @@ directory_files_internal_unwind (void *d)
    Signal any unrecoverable errors.  */
 
 static struct dirent *
-read_dirent (DIR *dir, Lisp_Object dirname)
+read_dirent (emacs_dir *dir, Lisp_Object dirname)
 {
   while (true)
     {
       errno = 0;
-      struct dirent *dp = readdir (dir);
+      struct dirent *dp = emacs_readdir (dir);
       if (dp || errno == 0)
 	return dp;
       if (! (errno == EAGAIN || errno == EINTR))
@@ -190,7 +216,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   Lisp_Object encoded_dirfilename = ENCODE_FILE (dirfilename);
 
   int fd;
-  DIR *d = open_directory (dirfilename, encoded_dirfilename, &fd);
+  emacs_dir *d = open_directory (dirfilename, encoded_dirfilename, &fd);
 
   /* Unfortunately, we can now invoke expand-file-name and
      file-attributes on filenames, both of which can throw, so we must
@@ -300,7 +326,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
       list = Fcons (attrs ? Fcons (finalname, fileattrs) : finalname, list);
     }
 
-  closedir (d);
+  emacs_closedir (d);
 #ifdef WINDOWSNT
   if (attrs)
     Vw32_get_true_file_attributes = w32_save;
@@ -514,7 +540,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	}
     }
   int fd;
-  DIR *d = open_directory (dirname, encoded_dir, &fd);
+  emacs_dir *d = open_directory (dirname, encoded_dir, &fd);
   record_unwind_protect_ptr (directory_files_internal_unwind, d);
 
   /* Loop reading directory entries.  */

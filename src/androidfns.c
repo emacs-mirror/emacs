@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 
 #include "lisp.h"
+#include "android.h"
 #include "androidterm.h"
 #include "blockinput.h"
 #include "keyboard.h"
@@ -149,6 +150,36 @@ android_decode_color (struct frame *f, Lisp_Object color_name, int mono_color)
     return cdef.pixel;
 
   signal_error ("Undefined color", color_name);
+}
+
+static void
+android_set_parent_frame (struct frame *f, Lisp_Object new_value,
+			  Lisp_Object old_value)
+{
+  struct frame *p;
+
+  p = NULL;
+
+  if (!NILP (new_value)
+      && (!FRAMEP (new_value)
+	  || !FRAME_LIVE_P (p = XFRAME (new_value))
+	  || !FRAME_ANDROID_P (p)))
+    {
+      store_frame_param (f, Qparent_frame, old_value);
+      error ("Invalid specification of `parent-frame'");
+    }
+
+  if (p != FRAME_PARENT_FRAME (f))
+    {
+      block_input ();
+      android_reparent_window (FRAME_ANDROID_WINDOW (f),
+			       (p ? FRAME_ANDROID_WINDOW (p)
+				: FRAME_DISPLAY_INFO (f)->root_window),
+			       f->left_pos, f->top_pos);
+      unblock_input ();
+
+      fset_parent_frame (f, new_value);
+    }
 }
 
 void
@@ -531,9 +562,9 @@ android_default_font_parameter (struct frame *f, Lisp_Object parms)
   if (! FONTP (font) && ! STRINGP (font))
     {
       const char *names[] = {
-	"Droid Sans Mono",
-	"monospace",
-	"DroidSansMono",
+	"Droid Sans Mono-12",
+	"Monospace-12",
+	"DroidSansMono-12",
 	NULL
       };
       int i;
@@ -1119,8 +1150,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
-  return Qnil;
+  return make_fixnum (android_get_screen_width ());
 #endif
 }
 
@@ -1133,8 +1163,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
-  return Qnil;
+  return make_fixnum (android_get_screen_height ());
 #endif
 }
 
@@ -1185,8 +1214,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
-  return Qnil;
+  return make_fixnum (android_get_mm_width ());
 #endif
 }
 
@@ -1198,8 +1226,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
-  return Qnil;
+  return make_fixnum (android_get_mm_height ());
 #endif
 }
 
@@ -1225,77 +1252,373 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
   return Qtrue_color;
 }
 
-DEFUN ("x-display-monitor-attributes-list", Fx_display_monitor_attributes_list,
-       Sx_display_monitor_attributes_list,
+DEFUN ("android-display-monitor-attributes-list",
+       Fandroid_display_monitor_attributes_list,
+       Sandroid_display_monitor_attributes_list,
        0, 1, 0,
-       doc: /* SKIP: real doc in xfns.c.  */)
+       doc: /* Return a list of physical monitor attributes on the X display TERMINAL.
+
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+Internal use only, use `display-monitor-attributes-list' instead.  */)
   (Lisp_Object terminal)
 {
 #ifdef ANDROID_STUBIFY
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
+  struct MonitorInfo monitor;
+
+  memset (&monitor, 0, sizeof monitor);
+  monitor.geom.width = android_get_screen_width ();
+  monitor.geom.height = android_get_screen_height ();
+  monitor.mm_width = android_get_mm_width ();
+  monitor.mm_height = android_get_mm_height ();
+  monitor.work = monitor.geom;
+  monitor.name = (char *) "Android device monitor";
+
+  /* What to do about monitor_frames? */
+  return make_monitor_attribute_list (&monitor, 1,
+				      0, Qnil, NULL);
+#endif
+}
+
+#ifndef ANDROID_STUBIFY
+
+static Lisp_Object
+frame_geometry (Lisp_Object frame, Lisp_Object attribute)
+{
+  struct frame *f = decode_live_frame (frame);
+  android_window rootw;
+  unsigned int native_width, native_height, x_border_width = 0;
+  int x_native = 0, y_native = 0, xptr = 0, yptr = 0;
+  int left_off = 0, right_off = 0, top_off = 0, bottom_off = 0;
+  int outer_left, outer_top, outer_right, outer_bottom;
+  int native_left, native_top, native_right, native_bottom;
+  int inner_left, inner_top, inner_right, inner_bottom;
+  int internal_border_width;
+  bool menu_bar_external = false, tool_bar_external = false;
+  int menu_bar_height = 0, menu_bar_width = 0;
+  int tab_bar_height = 0, tab_bar_width = 0;
+  int tool_bar_height = 0, tool_bar_width = 0;
+
+  if (FRAME_INITIAL_P (f) || !FRAME_ANDROID_P (f)
+      || !FRAME_ANDROID_WINDOW (f))
+    return Qnil;
+
+  block_input ();
+  android_get_geometry (FRAME_ANDROID_WINDOW (f),
+			&rootw, &x_native, &y_native,
+			&native_width, &native_height, &x_border_width);
+  unblock_input ();
+
+  if (FRAME_PARENT_FRAME (f))
+    {
+      Lisp_Object parent, edges;
+
+      XSETFRAME (parent, FRAME_PARENT_FRAME (f));
+      edges = Fandroid_frame_edges (parent, Qnative_edges);
+      if (!NILP (edges))
+	{
+	  x_native += XFIXNUM (Fnth (make_fixnum (0), edges));
+	  y_native += XFIXNUM (Fnth (make_fixnum (1), edges));
+	}
+
+      outer_left = x_native;
+      outer_top = y_native;
+      outer_right = outer_left + native_width + 2 * x_border_width;
+      outer_bottom = outer_top + native_height + 2 * x_border_width;
+
+      native_left = x_native + x_border_width;
+      native_top = y_native + x_border_width;
+      native_right = native_left + native_width;
+      native_bottom = native_top + native_height;
+    }
+  else
+    {
+      outer_left = xptr;
+      outer_top = yptr;
+      outer_right = outer_left + left_off + native_width + right_off;
+      outer_bottom = outer_top + top_off + native_height + bottom_off;
+
+      native_left = outer_left + left_off;
+      native_top = outer_top + top_off;
+      native_right = native_left + native_width;
+      native_bottom = native_top + native_height;
+    }
+
+  internal_border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+  inner_left = native_left + internal_border_width;
+  inner_top = native_top + internal_border_width;
+  inner_right = native_right - internal_border_width;
+  inner_bottom = native_bottom - internal_border_width;
+
+  menu_bar_height = FRAME_MENU_BAR_HEIGHT (f);
+  inner_top += menu_bar_height;
+  menu_bar_width = menu_bar_height ? native_width : 0;
+
+  tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
+  tab_bar_width = (tab_bar_height
+		    ? native_width - 2 * internal_border_width
+		    : 0);
+  inner_top += tab_bar_height;
+
+  tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
+  tool_bar_width = (tool_bar_height
+		    ? native_width - 2 * internal_border_width
+		    : 0);
+  inner_top += tool_bar_height;
+
+  /* Construct list.  */
+  if (EQ (attribute, Qouter_edges))
+    return list4i (outer_left, outer_top, outer_right, outer_bottom);
+  else if (EQ (attribute, Qnative_edges))
+    return list4i (native_left, native_top, native_right, native_bottom);
+  else if (EQ (attribute, Qinner_edges))
+    return list4i (inner_left, inner_top, inner_right, inner_bottom);
+  else
+    return
+       list (Fcons (Qouter_position,
+		    Fcons (make_fixnum (outer_left),
+			   make_fixnum (outer_top))),
+	     Fcons (Qouter_size,
+		    Fcons (make_fixnum (outer_right - outer_left),
+			   make_fixnum (outer_bottom - outer_top))),
+	     /* Approximate.  */
+	     Fcons (Qexternal_border_size,
+		    Fcons (make_fixnum (right_off),
+			   make_fixnum (bottom_off))),
+	     Fcons (Qouter_border_width, make_fixnum (x_border_width)),
+	     /* Approximate.  */
+	     Fcons (Qtitle_bar_size,
+		    Fcons (make_fixnum (0),
+			   make_fixnum (top_off - bottom_off))),
+	     Fcons (Qmenu_bar_external, menu_bar_external ? Qt : Qnil),
+	     Fcons (Qmenu_bar_size,
+		    Fcons (make_fixnum (menu_bar_width),
+			   make_fixnum (menu_bar_height))),
+	     Fcons (Qtab_bar_size,
+		    Fcons (make_fixnum (tab_bar_width),
+			   make_fixnum (tab_bar_height))),
+	     Fcons (Qtool_bar_external, tool_bar_external ? Qt : Qnil),
+	     Fcons (Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f)),
+	     Fcons (Qtool_bar_size,
+		    Fcons (make_fixnum (tool_bar_width),
+			   make_fixnum (tool_bar_height))),
+	     Fcons (Qinternal_border_width,
+		    make_fixnum (internal_border_width)));
+}
+
+#endif
+
+DEFUN ("android-frame-geometry", Fandroid_frame_geometry,
+       Sandroid_frame_geometry,
+       0, 1, 0,
+       doc: /* Return geometric attributes of FRAME.
+FRAME must be a live frame and defaults to the selected one.  The return
+value is an association list of the attributes listed below.  All height
+and width values are in pixels.
+
+`outer-position' is a cons of the outer left and top edges of FRAME
+  relative to the origin - the position (0, 0) - of FRAME's display.
+
+`outer-size' is a cons of the outer width and height of FRAME.  The
+  outer size includes the title bar and the external borders as well as
+  any menu and/or tool bar of frame.
+
+`external-border-size' is a cons of the horizontal and vertical width of
+  FRAME's external borders as supplied by the window manager.
+
+`title-bar-size' is a cons of the width and height of the title bar of
+  FRAME as supplied by the window manager.  If both of them are zero,
+  FRAME has no title bar.  If only the width is zero, Emacs was not
+  able to retrieve the width information.
+
+`menu-bar-external', if non-nil, means the menu bar is external (never
+  included in the inner edges of FRAME).
+
+`menu-bar-size' is a cons of the width and height of the menu bar of
+  FRAME.
+
+`tool-bar-external', if non-nil, means the tool bar is external (never
+  included in the inner edges of FRAME).
+
+`tool-bar-position' tells on which side the tool bar on FRAME is and can
+  be one of `left', `top', `right' or `bottom'.  If this is nil, FRAME
+  has no tool bar.
+
+`tool-bar-size' is a cons of the width and height of the tool bar of
+  FRAME.
+
+`internal-border-width' is the width of the internal border of
+  FRAME.  */)
+  (Lisp_Object frame)
+{
+#ifdef ANDROID_STUBIFY
+  error ("Android cross-compilation stub called!");
+  return Qnil;
+#else
+  return frame_geometry (frame, Qnil);
+#endif
+}
+
+DEFUN ("android-frame-edges", Fandroid_frame_edges, Sandroid_frame_edges, 0, 2, 0,
+       doc: /* Return edge coordinates of FRAME.
+FRAME must be a live frame and defaults to the selected one.  The return
+value is a list of the form (LEFT, TOP, RIGHT, BOTTOM).  All values are
+in pixels relative to the origin - the position (0, 0) - of FRAME's
+display.
+
+If optional argument TYPE is the symbol `outer-edges', return the outer
+edges of FRAME.  The outer edges comprise the decorations of the window
+manager (like the title bar or external borders) as well as any external
+menu or tool bar of FRAME.  If optional argument TYPE is the symbol
+`native-edges' or nil, return the native edges of FRAME.  The native
+edges exclude the decorations of the window manager and any external
+menu or tool bar of FRAME.  If TYPE is the symbol `inner-edges', return
+the inner edges of FRAME.  These edges exclude title bar, any borders,
+menu bar or tool bar of FRAME.  */)
+  (Lisp_Object frame, Lisp_Object type)
+{
+#ifndef ANDROID_STUBIFY
+  return frame_geometry (frame, ((EQ (type, Qouter_edges)
+				  || EQ (type, Qinner_edges))
+				 ? type
+				 : Qnative_edges));
+#else
   return Qnil;
 #endif
 }
 
-DEFUN ("x-frame-geometry", Fx_frame_geometry, Sx_frame_geometry,
-       0, 1, 0, doc: /* SKIP: real doc in xfns.c.  */)
+#ifndef ANDROID_STUBIFY
+
+static Lisp_Object
+android_frame_list_z_order (struct android_display_info *dpyinfo,
+			    android_window window)
+{
+  android_window root, parent, *children;
+  unsigned int nchildren;
+  unsigned long i;
+  Lisp_Object frames;
+
+  frames = Qnil;
+
+  if (android_query_tree (window, &root, &parent,
+			  &children, &nchildren))
+    {
+      for (i = 0; i < nchildren; i++)
+	{
+	  Lisp_Object frame, tail;
+
+	  FOR_EACH_FRAME (tail, frame)
+            {
+              struct frame *cf = XFRAME (frame);
+
+              if (FRAME_ANDROID_P (cf)
+                  && (FRAME_ANDROID_WINDOW (cf) == children[i]))
+                frames = Fcons (frame, frames);
+            }
+	}
+
+      if (children)
+	xfree (children);
+    }
+
+  return frames;
+}
+
+#endif
+
+DEFUN ("android-frame-list-z-order", Fandroid_frame_list_z_order,
+       Sandroid_frame_list_z_order, 0, 1, 0,
+       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be either a frame or a display name (a string).  If
+omitted or nil, that stands for the selected frame's display.  Return
+nil if TERMINAL contains no Emacs frame.
+
+As a special case, if TERMINAL is non-nil and specifies a live frame,
+return the child frames of that frame in Z (stacking) order.
+
+Frames are listed from topmost (first) to bottommost (last).
+
+On Android, the order of the frames returned is undefined unless
+TERMINAL is a frame.  */)
   (Lisp_Object terminal)
 {
 #ifdef ANDROID_STUBIFY
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
-  return Qnil;
+  struct android_display_info *dpyinfo;
+  android_window window;
+
+  dpyinfo = check_android_display_info (terminal);
+
+  if (FRAMEP (terminal) && FRAME_LIVE_P (XFRAME (terminal)))
+    window = FRAME_ANDROID_WINDOW (XFRAME (terminal));
+  else
+    window = dpyinfo->root_window;
+
+  return android_frame_list_z_order (dpyinfo, window);
 #endif
 }
 
-DEFUN ("x-frame-list-z-order", Fx_frame_list_z_order,
-       Sx_frame_list_z_order, 0, 1, 0,
-       doc: /* SKIP: real doc in xfns.c.  */)
-  (Lisp_Object terminal)
-{
-#ifdef ANDROID_STUBIFY
-  error ("Android cross-compilation stub called!");
-  return Qnil;
-#else
-  error ("Not implemented");
-  return Qnil;
-#endif
-}
+DEFUN ("android-frame-restack", Fandroid_frame_restack,
+       Sandroid_frame_restack, 2, 3, 0,
+       doc: /* Restack FRAME1 below FRAME2.
+This means that if both frames are visible and the display areas of
+these frames overlap, FRAME2 (partially) obscures FRAME1.  If optional
+third argument ABOVE is non-nil, restack FRAME1 above FRAME2.  This
+means that if both frames are visible and the display areas of these
+frames overlap, FRAME1 (partially) obscures FRAME2.
 
-DEFUN ("x-frame-restack", Fx_frame_restack, Sx_frame_restack, 2, 3, 0,
-       doc: /* SKIP: real doc in xfns.c.  */)
+This may be thought of as an atomic action performed in two steps: The
+first step removes FRAME1's window-step window from the display.  The
+second step reinserts FRAME1's window below (above if ABOVE is true)
+that of FRAME2.  Hence the position of FRAME2 in its display's Z
+\(stacking) order relative to all other frames excluding FRAME1 remains
+unaltered.
+
+The Android system refuses to restack windows, so this does not
+work.  */)
   (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object frame3)
 {
 #ifdef ANDROID_STUBIFY
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  error ("Not implemented");
+  /* This is not supported on Android because of limitations in the
+     platform that prevent ViewGroups from restacking
+     SurfaceViews.  */
   return Qnil;
 #endif
 }
 
-DEFUN ("x-mouse-absolute-pixel-position", Fx_mouse_absolute_pixel_position,
-       Sx_mouse_absolute_pixel_position, 0, 0, 0,
-       doc: /* SKIP: real doc in xfns.c.  */)
+DEFUN ("android-mouse-absolute-pixel-position",
+       Fandroid_mouse_absolute_pixel_position,
+       Sandroid_mouse_absolute_pixel_position, 0, 0, 0,
+       doc: /* Return absolute position of mouse cursor in pixels.
+The position is returned as a cons cell (X . Y) of the coordinates of
+the mouse cursor position in pixels relative to a position (0, 0) of the
+selected frame's display.  This does not work on Android.  */)
   (void)
 {
-  /* TODO: figure out how to implement this.  */
+  /* This cannot be implemented on Android.  */
   return Qnil;
 }
 
-DEFUN ("x-set-mouse-absolute-pixel-position",
-       Fx_set_mouse_absolute_pixel_position,
-       Sx_set_mouse_absolute_pixel_position, 2, 2, 0,
-       doc: /* SKIP: real doc in xfns.c.  */)
+DEFUN ("android-set-mouse-absolute-pixel-position",
+       Fandroid_set_mouse_absolute_pixel_position,
+       Sandroid_set_mouse_absolute_pixel_position, 2, 2, 0,
+       doc: /* Move mouse pointer to a pixel position at (X, Y).  The
+coordinates X and Y are interpreted to start from the top-left corner
+of the screen.  This does not work on Android.  */)
   (Lisp_Object x, Lisp_Object y)
 {
-  /* TODO: figure out how to implement this.  */
+  /* This cannot be implemented on Android.  */
   return Qnil;
 }
 
@@ -1359,6 +1682,20 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 #ifdef ANDROID_STUBIFY
   error ("Android cross-compilation stub called!");
   return Qnil;
+#else
+  return Qnil;
+#endif
+}
+
+DEFUN ("android-detect-mouse", Fandroid_detect_mouse,
+       Sandroid_detect_mouse, 0, 0, 0,
+       doc: /* Figure out whether or not there is a mouse.
+Return non-nil if a mouse is connected to this computer, and nil if
+there is no mouse.  */)
+  (void)
+{
+#ifndef ANDROID_STUBIFY
+  return android_detect_mouse () ? Qt : Qnil;
 #else
   return Qnil;
 #endif
@@ -1579,7 +1916,7 @@ android_set_menu_bar_lines (struct frame *f, Lisp_Object value,
 	  y = FRAME_TOP_MARGIN_HEIGHT (f);
 
 	  block_input ();
-	  android_clear_area (FRAME_ANDROID_WINDOW (f),
+	  android_clear_area (FRAME_ANDROID_DRAWABLE (f),
 			      0, y, width, height);
 	  unblock_input ();
 	}
@@ -1590,7 +1927,7 @@ android_set_menu_bar_lines (struct frame *f, Lisp_Object value,
 	  height = nlines * FRAME_LINE_HEIGHT (f) - y;
 
 	  block_input ();
-	  android_clear_area (FRAME_ANDROID_WINDOW (f), 0, y,
+	  android_clear_area (FRAME_ANDROID_DRAWABLE (f), 0, y,
 			      width, height);
 	  unblock_input ();
 	}
@@ -1682,6 +2019,30 @@ android_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
 }
 
+static void
+android_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
+			     Lisp_Object old_value)
+{
+  if (!EQ (new_value, old_value))
+    {
+      android_set_dont_focus_on_map (FRAME_ANDROID_WINDOW (f),
+				     new_value);
+      FRAME_NO_FOCUS_ON_MAP (f) = !NILP (new_value);
+    }
+}
+
+static void
+android_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
+			     Lisp_Object old_value)
+{
+  if (!EQ (new_value, old_value))
+    {
+      android_set_dont_accept_focus (FRAME_ANDROID_WINDOW (f),
+				     new_value);
+      FRAME_NO_ACCEPT_FOCUS (f) = !NILP (new_value);
+    }
+}
+
 frame_parm_handler android_frame_parm_handlers[] =
 {
   gui_set_autoraise,
@@ -1724,16 +2085,16 @@ frame_parm_handler android_frame_parm_handlers[] =
   NULL,
   NULL,
   NULL,
-  NULL, /* x_set_undecorated, */
-  NULL, /* x_set_parent_frame, */
-  NULL, /* x_set_skip_taskbar, */
-  NULL, /* x_set_no_focus_on_map, */
-  NULL, /* x_set_no_accept_focus, */
-  NULL, /* x_set_z_group, */
-  NULL, /* x_set_override_redirect, */
+  NULL,
+  android_set_parent_frame,
+  NULL,
+  android_set_no_focus_on_map,
+  android_set_no_accept_focus,
+  NULL,
+  NULL,
   gui_set_no_special_glyphs,
-  NULL, /* x_set_alpha_background, */
-  NULL, /* x_set_use_frame_synchronization, */
+  NULL,
+  NULL,
 };
 
 #endif
@@ -1766,14 +2127,16 @@ syms_of_androidfns (void)
   defsubr (&Sx_display_mm_height);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_visual_class);
-  defsubr (&Sx_display_monitor_attributes_list);
-  defsubr (&Sx_frame_geometry);
-  defsubr (&Sx_frame_list_z_order);
-  defsubr (&Sx_frame_restack);
-  defsubr (&Sx_mouse_absolute_pixel_position);
-  defsubr (&Sx_set_mouse_absolute_pixel_position);
+  defsubr (&Sandroid_display_monitor_attributes_list);
+  defsubr (&Sandroid_frame_geometry);
+  defsubr (&Sandroid_frame_edges);
+  defsubr (&Sandroid_frame_list_z_order);
+  defsubr (&Sandroid_frame_restack);
+  defsubr (&Sandroid_mouse_absolute_pixel_position);
+  defsubr (&Sandroid_set_mouse_absolute_pixel_position);
   defsubr (&Sandroid_get_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
+  defsubr (&Sandroid_detect_mouse);
 }

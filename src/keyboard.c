@@ -4956,8 +4956,8 @@ const char *const lispy_function_keys[] =
     [66]  = "return",
     [67]  = "backspace",
     [82]  = "menu",
-    [92]  = "page-up",
-    [93]  = "page-down",
+    [92]  = "prior",
+    [93]  = "next",
   };
 
 #elif defined HAVE_NTGUI
@@ -11219,7 +11219,7 @@ This may include sensitive information such as passwords.  */)
   if (dribble)
     {
       block_input ();
-      fclose (dribble);
+      emacs_fclose (dribble);
       unblock_input ();
       dribble = 0;
     }
