@@ -65,7 +65,8 @@ checklist, decide whether to continue with the procedure.
    "Contributing to the MPS" <../contributing.rst#licensing>`_.)
 
    If they have expressed a variation, talk to them or get someone to
-   talk to them about the matter.  *Do not proceed with merging*.
+   talk to them about the matter.  *Do not start the merging
+   procedure*.
 
 #. Does the branch build and pass tests on all `target platforms
    <../readme.txt>`_?
