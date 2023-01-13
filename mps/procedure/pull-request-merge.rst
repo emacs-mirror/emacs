@@ -85,15 +85,15 @@ checklist, decide whether to continue with the procedure.
    - Look for the most recent build of the branch in the `GitHub
      workflows for the repo`_.
 
-   If there is a failed build you should not execute this procedure,
-   but talk to the contributor about fixing the branch.
+   If there is a failed build you should not execute `the merging
+   procedure`_, but talk to the contributor about fixing the branch.
 
    If the branch is in the `Ravenbrook MPS repo on GitHub`_ and builds
    are missing from the "checks" section of pull request, inform
    sysadmins that CI isn't functioning.
 
-   If you have no build and test results, you can still execute this
-   procedure, with caution.
+   If you have no build and test results, you can still execute `the
+   merging procedure`_, with caution.
 
 #. Does the branch merge cleanly in to master and pass tests on all
    target platforms?
@@ -116,15 +116,15 @@ checklist, decide whether to continue with the procedure.
    Success by CI is a strong indication that this procecure will be
    quick and successful.
 
-   If CI builds failed, you can still execute this procedure if you
-   believe that the failure is due to merge conflicts that you are
-   willing to resolve.
+   If CI builds failed, you can still execute `the merging procedure`_
+   if you believe that the failure is due to merge conflicts that you
+   are willing to resolve.
 
    If CI builds are missing, inform sysadmins that CI isn't
    functioning.
 
    If you have no build and test results for the merge, then you can
-   still execute this procedure if:
+   still execute `the merging procedure`_ if:
 
    #. you believe there are only merge conflicts,
    #. you're willing to try to resolve those conflicts, and
@@ -165,6 +165,8 @@ These steps will only rarely need repeating.
 
      git remote add perforce ssh://git@perforce.ravenbrook.com:1622/mps-public
 
+
+.. _the merging procedure:
 
 4. Merging procedure
 --------------------
