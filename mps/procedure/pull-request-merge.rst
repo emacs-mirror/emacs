@@ -35,6 +35,11 @@ MPS Help" [GDR_2020-09-03]_ .
 2. Pre-merge checklist
 ----------------------
 
+The answers to these questions should be "yes".  If the answer to a
+question isn't "yes", record that, and why, in response to the pull
+request (and maybe suggest what to do about it).  When you finish the
+checklist, decide whether to continue with the procedure.
+
 #. Is there a permanent visible document (issue, job), referenced by
    the branch, recording the problem that is solved by the changes in
    the branch?
