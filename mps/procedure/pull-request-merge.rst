@@ -159,7 +159,9 @@ These steps will only rarely need repeating.
 
    If the pull request is from the `Ravenbrook MPS repo on GitHub`_,
    and its branch already has a conventional name, then use the
-   existing name.
+   existing name, e.g. ::
+
+     git fetch github branch/2023-01-06/speed-hax:branch/2023-01-06/speed-hax
 
    If the branch to be merged is in a third-party repo, such as a fork
    not on GitHub, you can fetch it using a remote, e.g.::
