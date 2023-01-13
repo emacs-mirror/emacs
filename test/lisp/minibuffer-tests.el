@@ -421,7 +421,7 @@
       (switch-to-completions)
       ;; Fixed in bug#55430
       (should (equal "aa" (get-text-property (point) 'completion--string)))
-      (next-completion 2)
+      (next-completion 3)
       (should (equal "ac" (get-text-property (point) 'completion--string)))
       (previous-completion 2)
       (should (equal "aa" (get-text-property (point) 'completion--string)))
