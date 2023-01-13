@@ -3148,6 +3148,7 @@ android_query_tree (android_window handle, android_window *root_return,
   *root_return = 0;
   *parent_return = shorts[0];
   *children_return = children;
+  *nchildren_return = nelements - 1;
 
   /* Release the array contents.  */
   (*android_java_env)->ReleaseShortArrayElements (android_java_env, array,

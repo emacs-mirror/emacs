@@ -304,7 +304,9 @@ public class EmacsService extends Service
     array = new short[windowList.size () + 1];
     i = 1;
 
-    array[0] = window.parent != null ? 0 : window.parent.handle;
+    array[0] = (window == null
+		? 0 : (window.parent != null
+		       ? window.parent.handle : 0));
 
     for (EmacsWindow treeWindow : windowList)
       array[i++] = treeWindow.handle;
