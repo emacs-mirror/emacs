@@ -2545,7 +2545,7 @@ The variable list SPEC is the same as in `if-let'."
   (let ((done (gensym "done")))
     `(catch ',done
        (while t
-         (if-let* ,spec
+         (if-let ,spec
              (progn
                ,@body)
            (throw ',done nil))))))
