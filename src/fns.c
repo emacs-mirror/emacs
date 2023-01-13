@@ -2826,10 +2826,11 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 		    && !memcmp (bool_vector_data (o1), bool_vector_data (o2),
 			        bool_vector_bytes (size)));
 	  }
+
+#ifdef HAVE_TREE_SITTER
 	if (TS_NODEP (o1))
-	  {
-	    return treesit_node_eq (o1, o2);
-	  }
+	  return treesit_node_eq (o1, o2);
+#endif
 
 	/* Aside from them, only true vectors, char-tables, compiled
 	   functions, and fonts (font-spec, font-entity, font-object)
