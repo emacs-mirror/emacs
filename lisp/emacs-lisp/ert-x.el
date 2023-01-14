@@ -496,7 +496,7 @@ See also `ert-with-temp-directory'."
              (progn ,@body)
            (ignore-errors
              ,@(when buffer
-                 (list `(with-current-buffer buf
+                 (list `(with-current-buffer ,buffer
                           (set-buffer-modified-p nil))
                        `(kill-buffer ,buffer))))
            (ignore-errors

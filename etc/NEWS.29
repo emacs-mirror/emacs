@@ -4321,15 +4321,21 @@ whose matches are to be replaced.  If these variables are nil (which
 is the default), 'query-replace' and 'query-replace-regexp' take the
 default value from the previous FROM-TO pair.
 
----
-** New user option 'pp-use-max-width'.
-If non-nil, 'pp' will attempt to limit the line length when formatting
-long lists and vectors.
+** Lisp pretty-printer ('pp')
 
 ---
-** New function 'pp-emacs-lisp-code'.
+*** New function 'pp-emacs-lisp-code'.
 'pp' formats general Lisp sexps.  This function does much the same,
-but applies formatting rules appropriate for Emacs Lisp code.
+but applies formatting rules appropriate for Emacs Lisp code.  Note
+that this could currently be quite slow, and is thus appropriate only
+for relatively small code fragments.
+
+---
+*** New user option 'pp-use-max-width'.
+If non-nil, 'pp' and all 'pp-*' commands that format the results, will
+attempt to limit the line length when formatting long lists and
+vectors.  This uses 'pp-emacs-lisp-code', and thus could be slow for
+large lists.
 
 +++
 ** New function 'file-has-changed-p'.

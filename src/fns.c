@@ -38,6 +38,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "puresize.h"
 #include "gnutls.h"
 
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 enum equal_kind { EQUAL_NO_QUIT, EQUAL_PLAIN, EQUAL_INCLUDING_PROPERTIES };
 static bool internal_equal (Lisp_Object, Lisp_Object,
 			    enum equal_kind, int, Lisp_Object);
@@ -2827,6 +2831,11 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 		    && !memcmp (bool_vector_data (o1), bool_vector_data (o2),
 			        bool_vector_bytes (size)));
 	  }
+
+#ifdef HAVE_TREE_SITTER
+	if (TS_NODEP (o1))
+	  return treesit_node_eq (o1, o2);
+#endif
 
 	/* Aside from them, only true vectors, char-tables, compiled
 	   functions, and fonts (font-spec, font-entity, font-object)
