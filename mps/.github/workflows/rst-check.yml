@@ -23,6 +23,8 @@ jobs:
       - name: Install docutils
         run: sudo apt-get install -y docutils
       - name: Check reStructuredText syntax in .rst files
+        if: always()
         run: find . -path ./manual/source -prune -o -type f -name '*.rst' -print | ( code=0; while read f; do if ! rst2html --report=2 --exit-status=2 "$f" > /dev/null; then code=1; fi done; exit "$code" )
       - name: Check reStructedText syntax in .txt files
+        if: always()
         run: find . -path ./manual/source -prune -o -type f -name '*.txt' -print | ( code=0; while read f; do if head -1 -- "$f" | fgrep -q -e '-*- rst -*-'; then if ! rst2html --report=2 --exit-status=2 "$f" > /dev/null; then code=1; fi; fi; done; exit "$code" )
