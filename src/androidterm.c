@@ -559,6 +559,9 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       f = android_window_to_frame (dpyinfo,
 				   configureEvent.xconfigure.window);
 
+      if (!f)
+	goto OTHER;
+
       int width = configureEvent.xconfigure.width;
       int height = configureEvent.xconfigure.height;
 
@@ -883,10 +886,6 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	      if (!NILP (tab_bar_arg))
 		inev.ie.arg = tab_bar_arg;
 	    }
-	}
-      else
-	{
-	  /* TODO: scroll bars */
 	}
 
       if (event->type == ANDROID_BUTTON_PRESS)
@@ -1451,7 +1450,12 @@ android_make_frame_visible_invisible (struct frame *f, bool visible)
 static void
 android_fullscreen_hook (struct frame *f)
 {
-  /* TODO */
+  /* Explicitly setting fullscreen is not supported on Android.  */
+
+  if (!FRAME_PARENT_FRAME (f))
+    store_frame_param (f, Qfullscreen, Qmaximized);
+  else
+    store_frame_param (f, Qfullscreen, Qnil);
 }
 
 void
@@ -2360,7 +2364,7 @@ android_draw_box_rect (struct glyph_string *s,
 
   /* Top.  */
   android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f), s->gc, left_x,
-			  left_x, right_x - left_x + 1, hwidth);
+			  top_y, right_x - left_x + 1, hwidth);
 
   /* Left.  */
   if (left_p)
@@ -3958,7 +3962,14 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 char *
 get_keysym_name (int keysym)
 {
-  return (char *) "UNKNOWN KEYSYM";
+  static char buffer[64];
+
+#ifndef ANDROID_STUBIFY
+  android_get_keysym_name (keysym, buffer, 64);
+#else
+  emacs_abort ();
+#endif
+  return buffer;
 }
 
 
@@ -4009,20 +4020,13 @@ android_create_terminal (struct android_display_info *dpyinfo)
   terminal->set_new_font_hook = android_new_font;
   terminal->set_bitmap_icon_hook = android_bitmap_icon;
   terminal->implicit_set_name_hook = android_implicitly_set_name;
-  /* terminal->menu_show_hook = android_menu_show; XXX */
+  terminal->menu_show_hook = android_menu_show;
   terminal->change_tab_bar_height_hook = android_change_tab_bar_height;
   terminal->change_tool_bar_height_hook = android_change_tool_bar_height;
-  /* terminal->set_vertical_scroll_bar_hook */
-  /*   = android_set_vertical_scroll_bar; */
-  /* terminal->set_horizontal_scroll_bar_hook */
-  /*   = android_set_horizontal_scroll_bar; */
   terminal->set_scroll_bar_default_width_hook
     = android_set_scroll_bar_default_width;
   terminal->set_scroll_bar_default_height_hook
     = android_set_scroll_bar_default_height;
-  /* terminal->condemn_scroll_bars_hook = android_condemn_scroll_bars; */
-  /* terminal->redeem_scroll_bars_hook = android_redeem_scroll_bars; */
-  /* terminal->judge_scroll_bars_hook = android_judge_scroll_bars; */
   terminal->free_pixmap = android_free_pixmap_hook;
   terminal->delete_frame_hook = android_delete_frame;
   terminal->delete_terminal_hook = android_delete_terminal;

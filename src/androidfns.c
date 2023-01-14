@@ -25,11 +25,35 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "androidterm.h"
 #include "blockinput.h"
 #include "keyboard.h"
+#include "buffer.h"
 
 #ifndef ANDROID_STUBIFY
 
 /* Some kind of reference count for the image cache.  */
 static ptrdiff_t image_cache_refcount;
+
+/* The frame of the currently visible tooltip, or nil if none.  */
+static Lisp_Object tip_frame;
+
+/* The window-system window corresponding to the frame of the
+   currently visible tooltip.  */
+static android_window tip_window;
+
+/* The X and Y deltas of the last call to `x-show-tip'.  */
+static Lisp_Object tip_dx, tip_dy;
+
+/* A timer that hides or deletes the currently visible tooltip when it
+   fires.  */
+static Lisp_Object tip_timer;
+
+/* STRING argument of last `x-show-tip' call.  */
+static Lisp_Object tip_last_string;
+
+/* Normalized FRAME argument of last `x-show-tip' call.  */
+static Lisp_Object tip_last_frame;
+
+/* PARMS argument of last `x-show-tip' call.  */
+static Lisp_Object tip_last_parms;
 
 #endif
 
@@ -180,6 +204,9 @@ android_set_parent_frame (struct frame *f, Lisp_Object new_value,
 
       fset_parent_frame (f, new_value);
     }
+
+  /* Update the fullscreen frame parameter as well.  */
+  FRAME_TERMINAL (f)->fullscreen_hook (f);
 }
 
 void
@@ -858,13 +885,13 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   gui_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
                          NULL, NULL, RES_TYPE_NUMBER);
 
-  /* gui_default_parameter (f, parms, Qvertical_scroll_bars, */
-  /*                        Qleft, */
-  /*                        "verticalScrollBars", "ScrollBars", */
-  /*                        RES_TYPE_SYMBOL); */
-  /* gui_default_parameter (f, parms, Qhorizontal_scroll_bars, Qnil, */
-  /*                        "horizontalScrollBars", "ScrollBars", */
-  /*                        RES_TYPE_SYMBOL);  TODO */
+  gui_default_parameter (f, parms, Qvertical_scroll_bars,
+                         Qleft,
+                         "verticalScrollBars", "ScrollBars",
+                         RES_TYPE_SYMBOL);
+  gui_default_parameter (f, parms, Qhorizontal_scroll_bars, Qnil,
+                         "horizontalScrollBars", "ScrollBars",
+                         RES_TYPE_SYMBOL);
 
   /* Also do the stuff which must be set before the window exists.  */
   gui_default_parameter (f, parms, Qforeground_color, build_string ("black"),
@@ -893,7 +920,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   android_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_background,
 					      "scrollBarBackground",
 					      "ScrollBarBackground", false);
-#endif /* TODO */
+#endif
 
   /* Init faces before gui_default_parameter is called for the
      scroll-bar-width parameter because otherwise we end up in
@@ -974,12 +1001,16 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          "autoLower", "AutoRaiseLower", RES_TYPE_BOOLEAN);
   gui_default_parameter (f, parms, Qcursor_type, Qbox,
                          "cursorType", "CursorType", RES_TYPE_SYMBOL);
+  /* Scroll bars are not supported on Android, as they are near
+     useless.  */
+#if 0
   gui_default_parameter (f, parms, Qscroll_bar_width, Qnil,
                          "scrollBarWidth", "ScrollBarWidth",
                          RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qscroll_bar_height, Qnil,
                          "scrollBarHeight", "ScrollBarHeight",
                          RES_TYPE_NUMBER);
+#endif
   gui_default_parameter (f, parms, Qalpha, Qnil,
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
@@ -1009,8 +1040,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   /* Process fullscreen parameter here in the hope that normalizing a
      fullheight/fullwidth frame will produce the size set by the last
-     adjust_frame_size call.  */
-  gui_default_parameter (f, parms, Qfullscreen, Qnil,
+     adjust_frame_size call.  Note that Android only supports the
+     `maximized' state.  */
+  gui_default_parameter (f, parms, Qfullscreen, Qmaximized,
                          "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   /* When called from `x-create-frame-with-faces' visibility is
@@ -1661,6 +1693,391 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
   return result;
 }
 
+#ifndef ANDROID_STUBIFY
+
+static void
+unwind_create_tip_frame (Lisp_Object frame)
+{
+  Lisp_Object deleted;
+
+  deleted = unwind_create_frame (frame);
+  if (EQ (deleted, Qt))
+    {
+      tip_window = ANDROID_NONE;
+      tip_frame = Qnil;
+    }
+}
+
+static Lisp_Object
+android_create_tip_frame (struct android_display_info *dpyinfo,
+			  Lisp_Object parms)
+{
+  struct frame *f;
+  Lisp_Object frame;
+  Lisp_Object name;
+  specpdl_ref count = SPECPDL_INDEX ();
+  bool face_change_before = face_change;
+
+  if (!dpyinfo->terminal->name)
+    error ("Terminal is not live, can't create new frames on it");
+
+  parms = Fcopy_alist (parms);
+
+  /* Get the name of the frame to use for resource lookup.  */
+  name = gui_display_get_arg (dpyinfo, parms, Qname, "name", "Name",
+                              RES_TYPE_STRING);
+  if (!STRINGP (name)
+      && !BASE_EQ (name, Qunbound)
+      && !NILP (name))
+    error ("Invalid frame name--not a string or nil");
+
+  frame = Qnil;
+  f = make_frame (false);
+  f->wants_modeline = false;
+  XSETFRAME (frame, f);
+  record_unwind_protect (unwind_create_tip_frame, frame);
+
+  f->terminal = dpyinfo->terminal;
+
+  /* By setting the output method, we're essentially saying that
+     the frame is live, as per FRAME_LIVE_P.  If we get a signal
+     from this point on, x_destroy_window might screw up reference
+     counts etc.  */
+  f->output_method = output_android;
+  f->output_data.android = xzalloc (sizeof *f->output_data.android);
+  FRAME_FONTSET (f) = -1;
+  f->output_data.android->white_relief.pixel = -1;
+  f->output_data.android->black_relief.pixel = -1;
+
+  f->tooltip = true;
+  fset_icon_name (f, Qnil);
+  FRAME_DISPLAY_INFO (f) = dpyinfo;
+  f->output_data.android->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
+
+  /* These colors will be set anyway later, but it's important
+     to get the color reference counts right, so initialize them!  */
+  {
+    Lisp_Object black;
+
+    /* Function android_decode_color can signal an error.  Make sure
+       to initialize color slots so that we won't try to free colors
+       we haven't allocated.  */
+    FRAME_FOREGROUND_PIXEL (f) = -1;
+    FRAME_BACKGROUND_PIXEL (f) = -1;
+    f->output_data.android->cursor_pixel = -1;
+    f->output_data.android->cursor_foreground_pixel = -1;
+
+    black = build_string ("black");
+    FRAME_FOREGROUND_PIXEL (f)
+      = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    FRAME_BACKGROUND_PIXEL (f)
+      = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.android->cursor_pixel
+      = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.android->cursor_foreground_pixel
+      = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+  }
+
+  /* Set the name; the functions to which we pass f expect the name to
+     be set.  */
+  if (BASE_EQ (name, Qunbound) || NILP (name))
+    f->explicit_name = false;
+  else
+    {
+      fset_name (f, name);
+      f->explicit_name = true;
+      /* use the frame's title when getting resources for this frame.  */
+      specbind (Qx_resource_name, name);
+    }
+
+  register_font_driver (&androidfont_driver, f);
+  register_font_driver (&android_sfntfont_driver, f);
+
+  image_cache_refcount
+    = FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+#ifdef GLYPH_DEBUG
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
+
+  gui_default_parameter (f, parms, Qfont_backend, Qnil,
+                         "fontBackend", "FontBackend", RES_TYPE_STRING);
+
+  /* Extract the window parameters from the supplied values that are
+     needed to determine window geometry.  */
+  android_default_font_parameter (f, parms);
+
+  gui_default_parameter (f, parms, Qborder_width, make_fixnum (0),
+                         "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
+
+  /* This defaults to 1 in order to match xterm.  We recognize either
+     internalBorderWidth or internalBorder (which is what xterm calls
+     it).  */
+  if (NILP (Fassq (Qinternal_border_width, parms)))
+    {
+      Lisp_Object value;
+
+      value = gui_display_get_arg (dpyinfo, parms, Qinternal_border_width,
+                                   "internalBorder", "internalBorder",
+                                   RES_TYPE_NUMBER);
+      if (! BASE_EQ (value, Qunbound))
+	parms = Fcons (Fcons (Qinternal_border_width, value),
+		       parms);
+    }
+
+  gui_default_parameter (f, parms, Qinternal_border_width, make_fixnum (1),
+                         "internalBorderWidth", "internalBorderWidth",
+                         RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
+                         NULL, NULL, RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
+                         NULL, NULL, RES_TYPE_NUMBER);
+
+  /* Also do the stuff which must be set before the window exists.  */
+  gui_default_parameter (f, parms, Qforeground_color, build_string ("black"),
+                         "foreground", "Foreground", RES_TYPE_STRING);
+  gui_default_parameter (f, parms, Qbackground_color, build_string ("white"),
+                         "background", "Background", RES_TYPE_STRING);
+  gui_default_parameter (f, parms, Qmouse_color, build_string ("black"),
+                         "pointerColor", "Foreground", RES_TYPE_STRING);
+  gui_default_parameter (f, parms, Qcursor_color, build_string ("black"),
+                         "cursorColor", "Foreground", RES_TYPE_STRING);
+  gui_default_parameter (f, parms, Qborder_color, build_string ("black"),
+                         "borderColor", "BorderColor", RES_TYPE_STRING);
+  gui_default_parameter (f, parms, Qno_special_glyphs, Qnil,
+                         NULL, NULL, RES_TYPE_BOOLEAN);
+
+  {
+    struct android_set_window_attributes attrs;
+    unsigned long mask;
+
+    block_input ();
+    mask = ANDROID_CW_OVERRIDE_REDIRECT;
+
+    attrs.override_redirect = true;
+    tip_window
+      = FRAME_ANDROID_WINDOW (f)
+      = android_create_window (FRAME_DISPLAY_INFO (f)->root_window,
+			       /* x, y, width, height, value-mask,
+				  attrs.  */
+			       0, 0, 1, 1, mask, &attrs);
+    unblock_input ();
+  }
+
+  /* Init faces before gui_default_parameter is called for the
+     scroll-bar-width parameter because otherwise we end up in
+     init_iterator with a null face cache, which should not happen.  */
+  init_frame_faces (f);
+
+  gui_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
+                         "inhibitDoubleBuffering", "InhibitDoubleBuffering",
+                         RES_TYPE_BOOLEAN);
+
+  gui_figure_window_size (f, parms, false, false);
+
+  f->output_data.android->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
+
+  android_make_gc (f);
+
+  gui_default_parameter (f, parms, Qauto_raise, Qnil,
+                         "autoRaise", "AutoRaiseLower", RES_TYPE_BOOLEAN);
+  gui_default_parameter (f, parms, Qauto_lower, Qnil,
+                         "autoLower", "AutoRaiseLower", RES_TYPE_BOOLEAN);
+  gui_default_parameter (f, parms, Qcursor_type, Qbox,
+                         "cursorType", "CursorType", RES_TYPE_SYMBOL);
+  gui_default_parameter (f, parms, Qalpha, Qnil,
+                         "alpha", "Alpha", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                         "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+
+  /* Add `tooltip' frame parameter's default value. */
+  if (NILP (Fframe_parameter (frame, Qtooltip)))
+    {
+      AUTO_FRAME_ARG (arg, Qtooltip, Qt);
+      Fmodify_frame_parameters (frame, arg);
+    }
+
+  /* FIXME - can this be done in a similar way to normal frames?
+     https://lists.gnu.org/r/emacs-devel/2007-10/msg00641.html */
+
+  /* Set the `display-type' frame parameter before setting up faces. */
+  {
+    Lisp_Object disptype;
+
+    disptype = Qcolor;
+
+    if (NILP (Fframe_parameter (frame, Qdisplay_type)))
+      {
+	AUTO_FRAME_ARG (arg, Qdisplay_type, disptype);
+	Fmodify_frame_parameters (frame, arg);
+      }
+  }
+
+  /* Set up faces after all frame parameters are known.  This call
+     also merges in face attributes specified for new frames.  */
+  {
+    Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);
+
+    call2 (Qface_set_after_frame_default, frame, Qnil);
+
+    if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
+      {
+	AUTO_FRAME_ARG (arg, Qbackground_color, bg);
+	Fmodify_frame_parameters (frame, arg);
+      }
+  }
+
+  f->no_split = true;
+
+  /* Now that the frame will be official, it counts as a reference to
+     its display and terminal.  */
+  f->terminal->reference_count++;
+
+  /* It is now ok to make the frame official even if we get an error
+     below.  And the frame needs to be on Vframe_list or making it
+     visible won't work.  */
+  Vframe_list = Fcons (frame, Vframe_list);
+  f->can_set_window_size = true;
+  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
+		     0, true, Qtip_frame);
+
+  /* Setting attributes of faces of the tooltip frame from resources
+     and similar will set face_change, which leads to the clearing of
+     all current matrices.  Since this isn't necessary here, avoid it
+     by resetting face_change to the value it had before we created
+     the tip frame.  */
+  face_change = face_change_before;
+
+  /* Discard the unwind_protect.  */
+  return unbind_to (count, frame);
+}
+
+static Lisp_Object
+android_hide_tip (bool delete)
+{
+  if (!NILP (tip_timer))
+    {
+      call1 (Qcancel_timer, tip_timer);
+      tip_timer = Qnil;
+    }
+
+  if (NILP (tip_frame)
+      || (!delete
+	  && !NILP (tip_frame)
+	  && FRAME_LIVE_P (XFRAME (tip_frame))
+	  && !FRAME_VISIBLE_P (XFRAME (tip_frame))))
+    return Qnil;
+  else
+    {
+      Lisp_Object was_open = Qnil;
+
+      specpdl_ref count = SPECPDL_INDEX ();
+      specbind (Qinhibit_redisplay, Qt);
+      specbind (Qinhibit_quit, Qt);
+
+      if (!NILP (tip_frame))
+	{
+	  struct frame *f = XFRAME (tip_frame);
+
+	  if (FRAME_LIVE_P (f))
+	    {
+	      if (delete)
+		{
+		  delete_frame (tip_frame, Qnil);
+		  tip_frame = Qnil;
+		}
+	      else
+		android_make_frame_invisible (XFRAME (tip_frame));
+
+	      was_open = Qt;
+	    }
+	  else
+	    tip_frame = Qnil;
+	}
+      else
+	tip_frame = Qnil;
+
+      return unbind_to (count, was_open);
+    }
+}
+
+static void
+compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
+		Lisp_Object dy, int width, int height, int *root_x,
+		int *root_y)
+{
+  Lisp_Object left, top, right, bottom;
+  int min_x, min_y, max_x, max_y = -1;
+  android_window window;
+  struct frame *mouse_frame;
+
+  /* Initialize these values in case there is no mouse frame.  */
+  *root_x = 0;
+  *root_y = 0;
+
+  /* User-specified position?  */
+  left = CDR (Fassq (Qleft, parms));
+  top  = CDR (Fassq (Qtop, parms));
+  right = CDR (Fassq (Qright, parms));
+  bottom = CDR (Fassq (Qbottom, parms));
+
+  /* Move the tooltip window where the mouse pointer was last seen.
+     Resize and show it.  */
+  if ((!FIXNUMP (left) && !FIXNUMP (right))
+      || (!FIXNUMP (top) && !FIXNUMP (bottom)))
+    {
+      if (x_display_list->last_mouse_motion_frame)
+	{
+	  *root_x = x_display_list->last_mouse_motion_x;
+	  *root_y = x_display_list->last_mouse_motion_y;
+	  mouse_frame = x_display_list->last_mouse_motion_frame;
+	  window = FRAME_ANDROID_WINDOW (mouse_frame);
+
+	  /* Translate the coordinates to the screen.  */
+	  android_translate_coordinates (window, *root_x, *root_y,
+					 root_x, root_y);
+	}
+    }
+
+  min_x = 0;
+  min_y = 0;
+  max_x = android_get_screen_width ();
+  max_y = android_get_screen_height ();
+
+  if (FIXNUMP (top))
+    *root_y = XFIXNUM (top);
+  else if (FIXNUMP (bottom))
+    *root_y = XFIXNUM (bottom) - height;
+  else if (*root_y + XFIXNUM (dy) <= min_y)
+    *root_y = min_y; /* Can happen for negative dy */
+  else if (*root_y + XFIXNUM (dy) + height <= max_y)
+    /* It fits below the pointer */
+    *root_y += XFIXNUM (dy);
+  else if (height + XFIXNUM (dy) + min_y <= *root_y)
+    /* It fits above the pointer.  */
+    *root_y -= height + XFIXNUM (dy);
+  else
+    /* Put it on the top.  */
+    *root_y = min_y;
+
+  if (FIXNUMP (left))
+    *root_x = XFIXNUM (left);
+  else if (FIXNUMP (right))
+    *root_x = XFIXNUM (right) - width;
+  else if (*root_x + XFIXNUM (dx) <= min_x)
+    *root_x = 0; /* Can happen for negative dx */
+  else if (*root_x + XFIXNUM (dx) + width <= max_x)
+    /* It fits to the right of the pointer.  */
+    *root_x += XFIXNUM (dx);
+  else if (width + XFIXNUM (dx) + min_x <= *root_x)
+    /* It fits to the left of the pointer.  */
+    *root_x -= width + XFIXNUM (dx);
+  else
+    /* Put it left justified on the screen -- it ought to fit that way.  */
+    *root_x = min_x;
+}
+
+#endif
+
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object string, Lisp_Object frame, Lisp_Object parms,
@@ -1670,8 +2087,214 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  /* TODO tooltips */
-  return Qnil;
+  struct frame *f, *tip_f;
+  struct window *w;
+  int root_x, root_y;
+  struct buffer *old_buffer;
+  struct text_pos pos;
+  int width, height;
+  int old_windows_or_buffers_changed = windows_or_buffers_changed;
+  specpdl_ref count = SPECPDL_INDEX ();
+  Lisp_Object window, size, tip_buf;
+  bool displayed;
+#ifdef ENABLE_CHECKING
+  struct glyph_row *row, *end;
+#endif
+  AUTO_STRING (tip, " *tip*");
+
+  specbind (Qinhibit_redisplay, Qt);
+
+  CHECK_STRING (string);
+  if (SCHARS (string) == 0)
+    string = make_unibyte_string (" ", 1);
+
+  if (NILP (frame))
+    frame = selected_frame;
+  f = decode_window_system_frame (frame);
+
+  if (NILP (timeout))
+    timeout = Vx_show_tooltip_timeout;
+  CHECK_FIXNAT (timeout);
+
+  if (NILP (dx))
+    dx = make_fixnum (5);
+  else
+    CHECK_FIXNUM (dx);
+
+  if (NILP (dy))
+    dy = make_fixnum (-10);
+  else
+    CHECK_FIXNUM (dy);
+
+  tip_dx = dx;
+  tip_dy = dy;
+
+  if (!NILP (tip_frame) && FRAME_LIVE_P (XFRAME (tip_frame)))
+    {
+      if (FRAME_VISIBLE_P (XFRAME (tip_frame))
+	  && !NILP (Fequal_including_properties (tip_last_string,
+						 string))
+	  && !NILP (Fequal (tip_last_parms, parms)))
+	{
+	  /* Only DX and DY have changed.  */
+	  tip_f = XFRAME (tip_frame);
+	  if (!NILP (tip_timer))
+	    {
+	      call1 (Qcancel_timer, tip_timer);
+	      tip_timer = Qnil;
+	    }
+
+	  block_input ();
+	  compute_tip_xy (tip_f, parms, dx, dy, FRAME_PIXEL_WIDTH (tip_f),
+			  FRAME_PIXEL_HEIGHT (tip_f), &root_x, &root_y);
+	  android_move_window (FRAME_ANDROID_WINDOW (tip_f),
+			       root_x, root_y);
+	  unblock_input ();
+
+	  goto start_timer;
+	}
+      else
+	android_hide_tip (true);
+    }
+  else
+    android_hide_tip (true);
+
+  tip_last_frame = frame;
+  tip_last_string = string;
+  tip_last_parms = parms;
+
+  if (NILP (tip_frame) || !FRAME_LIVE_P (XFRAME (tip_frame)))
+    {
+      /* Add default values to frame parameters.  */
+      if (NILP (Fassq (Qname, parms)))
+	parms = Fcons (Fcons (Qname, build_string ("tooltip")), parms);
+      if (NILP (Fassq (Qinternal_border_width, parms)))
+	parms = Fcons (Fcons (Qinternal_border_width, make_fixnum (3)),
+		       parms);
+      if (NILP (Fassq (Qborder_width, parms)))
+	parms = Fcons (Fcons (Qborder_width, make_fixnum (1)), parms);
+      if (NILP (Fassq (Qborder_color, parms)))
+	parms = Fcons (Fcons (Qborder_color, build_string ("lightyellow")),
+		       parms);
+      if (NILP (Fassq (Qbackground_color, parms)))
+	parms = Fcons (Fcons (Qbackground_color,
+			      build_string ("lightyellow")),
+		       parms);
+
+      /* Create a frame for the tooltip, and record it in the global
+	 variable tip_frame.  */
+      if (NILP (tip_frame = android_create_tip_frame (FRAME_DISPLAY_INFO (f),
+						      parms)))
+	/* Creating the tip frame failed.  */
+	return unbind_to (count, Qnil);
+    }
+
+  tip_f = XFRAME (tip_frame);
+  window = FRAME_ROOT_WINDOW (tip_f);
+  tip_buf = Fget_buffer_create (tip, Qnil);
+  /* We will mark the tip window a "pseudo-window" below, and such
+     windows cannot have display margins.  */
+  bset_left_margin_cols (XBUFFER (tip_buf), make_fixnum (0));
+  bset_right_margin_cols (XBUFFER (tip_buf), make_fixnum (0));
+  set_window_buffer (window, tip_buf, false, false);
+  w = XWINDOW (window);
+  w->pseudo_window_p = true;
+  /* Try to avoid that `other-window' select us (Bug#47207).  */
+  Fset_window_parameter (window, Qno_other_window, Qt);
+
+  /* Set up the frame's root window.  Note: The following code does not
+     try to size the window or its frame correctly.  Its only purpose is
+     to make the subsequent text size calculations work.  The right
+     sizes should get installed when the toolkit gets back to us.  */
+  w->left_col = 0;
+  w->top_line = 0;
+  w->pixel_left = 0;
+  w->pixel_top = 0;
+
+  if (CONSP (Vx_max_tooltip_size)
+      && RANGED_FIXNUMP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
+      && RANGED_FIXNUMP (1, XCDR (Vx_max_tooltip_size), INT_MAX))
+    {
+      w->total_cols = XFIXNAT (XCAR (Vx_max_tooltip_size));
+      w->total_lines = XFIXNAT (XCDR (Vx_max_tooltip_size));
+    }
+  else
+    {
+      w->total_cols = 80;
+      w->total_lines = 40;
+    }
+
+  w->pixel_width = w->total_cols * FRAME_COLUMN_WIDTH (tip_f);
+  w->pixel_height = w->total_lines * FRAME_LINE_HEIGHT (tip_f);
+  FRAME_TOTAL_COLS (tip_f) = w->total_cols;
+  adjust_frame_glyphs (tip_f);
+
+  /* Insert STRING into root window's buffer and fit the frame to the
+     buffer.  */
+  specpdl_ref count_1 = SPECPDL_INDEX ();
+  old_buffer = current_buffer;
+  set_buffer_internal_1 (XBUFFER (w->contents));
+  bset_truncate_lines (current_buffer, Qnil);
+  specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
+  specbind (Qinhibit_point_motion_hooks, Qt);
+  Ferase_buffer ();
+  Finsert (1, &string);
+  clear_glyph_matrix (w->desired_matrix);
+  clear_glyph_matrix (w->current_matrix);
+  SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
+  displayed = try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+
+  if (!displayed && NILP (Vx_max_tooltip_size))
+    {
+#ifdef ENABLE_CHECKING
+      row = w->desired_matrix->rows;
+      end = w->desired_matrix->rows + w->desired_matrix->nrows;
+
+      while (row < end)
+	{
+	  if (!row->displays_text_p
+	      || row->ends_at_zv_p)
+	    break;
+	  ++row;
+	}
+
+      eassert (row < end && row->ends_at_zv_p);
+#endif
+    }
+
+  /* Calculate size of tooltip window.  */
+  size = Fwindow_text_pixel_size (window, Qnil, Qnil, Qnil,
+				  make_fixnum (w->pixel_height), Qnil,
+				  Qnil);
+  /* Add the frame's internal border to calculated size.  */
+  width = XFIXNUM (CAR (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
+  height = XFIXNUM (CDR (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
+
+  /* Calculate position of tooltip frame.  */
+  compute_tip_xy (tip_f, parms, dx, dy, width, height, &root_x, &root_y);
+
+  /* Show tooltip frame.  */
+  block_input ();
+  android_move_resize_window (FRAME_ANDROID_WINDOW (tip_f),
+			      root_x, root_y, width,
+			      height);
+  android_map_raised (FRAME_ANDROID_WINDOW (tip_f));
+  unblock_input ();
+
+  w->must_be_updated_p = true;
+  update_single_window (w);
+  flush_frame (tip_f);
+  set_buffer_internal_1 (old_buffer);
+  unbind_to (count_1, Qnil);
+  windows_or_buffers_changed = old_windows_or_buffers_changed;
+
+ start_timer:
+  /* Let the tip disappear after timeout seconds.  */
+  tip_timer = call3 (Qrun_at_time, timeout, Qnil,
+		     Qx_hide_tip);
+
+  return unbind_to (count, Qnil);
 #endif
 }
 
@@ -1683,7 +2306,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
-  return Qnil;
+  return android_hide_tip (true);
 #endif
 }
 
@@ -2112,6 +2735,17 @@ syms_of_androidfns (void)
     doc: /* SKIP: real doc in xfns.c.  */);
   Vx_cursor_fore_pixel = Qnil;
 
+  /* Used by Fx_show_tip.  */
+  DEFSYM (Qrun_at_time, "run-at-time");
+  DEFSYM (Qx_hide_tip, "x-hide-tip");
+  DEFSYM (Qcancel_timer, "cancel-timer");
+  DEFSYM (Qassq_delete_all, "assq-delete-all");
+  DEFSYM (Qcolor, "color");
+
+  DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
+    doc: /* SKIP: real doc in xfns.c.  */);
+  Vx_max_tooltip_size = Qnil;
+
   /* Functions defined.  */
   defsubr (&Sx_create_frame);
   defsubr (&Sxw_color_defined_p);
@@ -2139,4 +2773,21 @@ syms_of_androidfns (void)
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   defsubr (&Sandroid_detect_mouse);
+
+#ifndef ANDROID_STUBIFY
+  tip_timer = Qnil;
+  staticpro (&tip_timer);
+  tip_frame = Qnil;
+  staticpro (&tip_frame);
+  tip_last_frame = Qnil;
+  staticpro (&tip_last_frame);
+  tip_last_string = Qnil;
+  staticpro (&tip_last_string);
+  tip_last_parms = Qnil;
+  staticpro (&tip_last_parms);
+  tip_dx = Qnil;
+  staticpro (&tip_dx);
+  tip_dy = Qnil;
+  staticpro (&tip_dy);
+#endif
 }

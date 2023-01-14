@@ -31,6 +31,7 @@ gdb_port=5039
 jdb_port=64013
 jdb=no
 attach_existing=no
+gdbserver=
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -41,6 +42,7 @@ while [ $# -gt 0 ]; do
 		echo "You must specify an argument to --device"
 		exit 1
 	    fi
+	    shift
 	    ;;
 	"--help" )
 	    echo "Usage: $progname [options] -- [gdb options]"
@@ -50,6 +52,7 @@ while [ $# -gt 0 ]; do
 	    echo "  --jdb-port PORT	run the JDB server on a specific port"
 	    echo "  --jdb		run JDB instead of GDB"
 	    echo "  --attach-existing	attach to an existing process"
+	    echo "  --gdbserver BINARY	upload and use the specified gdbserver binary"
 	    echo "  --help		print this message"
 	    echo ""
 	    echo "Available devices:"
@@ -62,8 +65,17 @@ while [ $# -gt 0 ]; do
 	"--jdb" )
 	    jdb=yes
 	    ;;
+	"--gdbserver" )
+	    shift
+	    gdbserver=$1
+	    ;;
 	"--port" )
+	    shift
 	    gdb_port=$1
+	    ;;
+	"--jdb-port" )
+	    shift
+	    jdb_port=$1
 	    ;;
 	"--attach-existing" )
 	    attach_existing=yes
@@ -170,46 +182,71 @@ elif [ -z $package_pids ]; then
     exit 1
 fi
 
-# Start JDB to make the wait dialog disappear.
-echo "Attaching JDB to unblock the application."
-adb -s $device forward --remove-all
-adb -s $device forward "tcp:$jdb_port" "jdwp:$pid"
+# This isn't necessary when attaching gdb to an existing process.
+if [ "$jdb" = "yes" ] || [ "$attach_existing" != yes ]; then
+    # Start JDB to make the wait dialog disappear.
+    echo "Attaching JDB to unblock the application."
+    adb -s $device forward --remove-all
+    adb -s $device forward "tcp:$jdb_port" "jdwp:$pid"
 
-if [ ! $? ]; then
-    echo "Failed to forward jdwp:$pid to $jdb_port!"
-    echo "Perhaps you need to specify a different port with --port?"
-    exit 1;
-fi
+    if [ ! $? ]; then
+	echo "Failed to forward jdwp:$pid to $jdb_port!"
+	echo "Perhaps you need to specify a different port with --port?"
+	exit 1;
+    fi
 
-jdb_command="jdb -connect \
+    jdb_command="jdb -connect \
 		 com.sun.jdi.SocketAttach:hostname=localhost,port=$jdb_port"
 
-if [ $jdb = "yes" ]; then
-    # Just start JDB and then exit
-    $jdb_command
-    exit 1
+    if [ $jdb = "yes" ]; then
+	# Just start JDB and then exit
+	$jdb_command
+	exit 1
+    fi
+
+    exec 4<> /tmp/file-descriptor-stamp
+
+    # Now run JDB with IO redirected to file descriptor 4 in a subprocess.
+    $jdb_command <&4 >&4 &
+
+    character=
+    # Next, wait until the prompt is found.
+    while read -n1 -u 4 character; do
+	if [ "$character" = ">" ]; then
+	    echo "JDB attached successfully"
+	    break;
+	fi
+    done
 fi
 
-exec 4<> /tmp/file-descriptor-stamp
+# See if gdbserver has to be uploaded
+if [ -z "$gdbserver" ]; then
+    gdbserver_bin=/system/bin/gdbserver
+else
+    gdbserver_bin=/data/local/tmp/gdbserver
 
-# Now run JDB with IO redirected to file descriptor 4 in a subprocess.
-$jdb_command <&4 >&4 &
-
-character=
-# Next, wait until the prompt is found.
-while read -n1 -u 4 character; do
-    if [ "$character" = ">" ]; then
-	echo "JDB attached successfully"
-	break;
-    fi
-done
+    # Upload the specified gdbserver binary to the device.
+    adb -s $device push "$gdbserver" "$gdbserver_bin"
+    adb -s $device shell chmod +x "$gdbserver_bin"
+fi
 
 # Now start gdbserver on the device asynchronously.
 
 echo "Attaching gdbserver to $pid on $device..."
 exec 5<> /tmp/file-descriptor-stamp
-adb -s $device shell run-as $package /system/bin/gdbserver --once \
-    "+debug.$package_uid.socket" --attach $pid >&5 &
+
+if [ -z "$gdbserver" ]; then
+    adb -s $device shell run-as $package $gdbserver_bin --once \
+	"+debug.$package_uid.socket" --attach $pid >&5 &
+    gdb_socket="localfilesystem:$app_data_dir/debug.$package_uid.socket"
+else
+    # Normally the program cannot access $gdbserver_bin when it is
+    # placed in /data/local/tmp.
+    adb -s $device shell $gdbserver_bin --once \
+	"+/data/local/tmp/debug.$package_uid.socket" \
+	--attach $pid >&5 &
+    gdb_socket="localfilesystem:/data/local/tmp/debug.$package_uid.socket"
+fi
 
 # Wait until gdbserver successfully runs.
 line=
@@ -227,16 +264,17 @@ while read -u 5 line; do
     esac
 done
 
-# Send EOF to JDB to make it go away.  This will also cause Android to
-# allow Emacs to continue executing.
-echo "Making JDB go away..."
-echo "exit" >&4
-read -u 4 line
-echo "JDB has gone away with $line"
+if [ "$attach_existing" != "yes" ]; then
+    # Send EOF to JDB to make it go away.  This will also cause
+    # Android to allow Emacs to continue executing.
+    echo "Making JDB go away..."
+    echo "exit" >&4
+    read -u 4 line
+    echo "JDB has gone away with $line"
+fi
 
 # Forward the gdb server port here.
-adb -s $device forward "tcp:$gdb_port" \
-    "localfilesystem:$app_data_dir/debug.$package_uid.socket"
+adb -s $device forward "tcp:$gdb_port" $gdb_socket
 if [ ! $? ]; then
     echo "Failed to forward $app_data_dir/debug.$package_uid.socket"
     echo "to $gdb_port!  Perhaps you need to specify a different port"

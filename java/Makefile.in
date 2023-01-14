@@ -168,4 +168,4 @@ clean:
 	rm -rf install-temp
 	find . -name '*.class' -delete
 
-maintainer-clean: clean
+maintainer-clean distclean bootstrap-clean: clean

@@ -87,6 +87,7 @@ struct android_emacs_service
   jmethodID get_screen_width;
   jmethodID get_screen_height;
   jmethodID detect_mouse;
+  jmethodID name_keysym;
 };
 
 struct android_emacs_pixmap
@@ -229,14 +230,14 @@ static volatile bool android_pselect_completed;
 /* The global event queue.  */
 static struct android_event_queue event_queue;
 
-/* Semaphore used to signal select completion.  */
-static sem_t android_pselect_sem;
+/* Semaphores used to signal select completion and start.  */
+static sem_t android_pselect_sem, android_pselect_start_sem;
 
 static void *
 android_run_select_thread (void *data)
 {
   sigset_t signals;
-  int sig, rc;
+  int rc;
 
   sigfillset (&signals);
 
@@ -245,23 +246,10 @@ android_run_select_thread (void *data)
 			 "pthread_sigmask: %s",
 			 strerror (errno));
 
-  sigemptyset (&signals);
-  sigaddset (&signals, SIGUSR1);
-
-  if (pthread_sigmask (SIG_UNBLOCK, &signals, NULL))
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "pthread_sigmask: %s",
-			 strerror (errno));
-
-  sigemptyset (&signals);
-  sigaddset (&signals, SIGUSR2);
-
   while (true)
     {
-      /* Keep waiting for SIGUSR2, ignoring EINTR in the meantime.  */
-
-      while (sigwait (&signals, &sig))
-	/* Spin.  */;
+      /* Wait for the thread to be released.  */
+      sem_wait (&android_pselect_start_sem);
 
       /* Get the select lock and call pselect.  */
       pthread_mutex_lock (&event_queue.select_mutex);
@@ -322,6 +310,7 @@ android_init_events (void)
 			 strerror (errno));
 
   sem_init (&android_pselect_sem, 0, 0);
+  sem_init (&android_pselect_start_sem, 0, 0);
 
   event_queue.events.next = &event_queue.events;
   event_queue.events.last = &event_queue.events;
@@ -444,7 +433,9 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   android_pselect_sigset = sigset;
   pthread_mutex_unlock (&event_queue.select_mutex);
 
-  pthread_kill (event_queue.select_thread, SIGUSR2);
+  /* Release the select thread.  */
+  sem_post (&android_pselect_start_sem);
+
   pthread_cond_wait (&event_queue.read_var, &event_queue.mutex);
 
   /* Interrupt the select thread now, in case it's still in
@@ -1058,6 +1049,7 @@ android_init_emacs_service (void)
   FIND_METHOD (get_screen_width, "getScreenWidth", "(Z)I");
   FIND_METHOD (get_screen_height, "getScreenHeight", "(Z)I");
   FIND_METHOD (detect_mouse, "detectMouse", "()Z");
+  FIND_METHOD (name_keysym, "nameKeysym", "(I)Ljava/lang/String;");
 #undef FIND_METHOD
 }
 
@@ -1678,6 +1670,7 @@ android_create_window (android_window parent, int x, int y,
   jobject object, parent_object, old;
   android_window window;
   android_handle prev_max_handle;
+  bool override_redirect;
 
   parent_object = android_resolve_handle (parent, ANDROID_HANDLE_WINDOW);
 
@@ -1695,7 +1688,8 @@ android_create_window (android_window parent, int x, int y,
 
       constructor
 	= (*android_java_env)->GetMethodID (android_java_env, class, "<init>",
-					    "(SLorg/gnu/emacs/EmacsWindow;IIII)V");
+					    "(SLorg/gnu/emacs/EmacsWindow;"
+					    "IIIIZ)V");
       assert (constructor != NULL);
 
       old = class;
@@ -1707,10 +1701,17 @@ android_create_window (android_window parent, int x, int y,
 	memory_full (0);
     }
 
+  /* N.B. that ANDROID_CW_OVERRIDE_REDIRECT can only be set at window
+     creation time.  */
+  override_redirect = ((value_mask
+			& ANDROID_CW_OVERRIDE_REDIRECT)
+		       && attrs->override_redirect);
+
   object = (*android_java_env)->NewObject (android_java_env, class,
 					   constructor, (jshort) window,
 					   parent_object, (jint) x, (jint) y,
-					   (jint) width, (jint) height);
+					   (jint) width, (jint) height,
+					   (jboolean) override_redirect);
   if (!object)
     {
       (*android_java_env)->ExceptionClear (android_java_env);
@@ -3212,6 +3213,66 @@ android_get_geometry (android_window handle,
   ANDROID_DELETE_LOCAL_REF (window_geometry);
 }
 
+void
+android_move_resize_window (android_window window, int x, int y,
+			    unsigned int width, unsigned int height)
+{
+  android_move_window (window, x, y);
+  android_resize_window (window, width, height);
+}
+
+void
+android_map_raised (android_window window)
+{
+  android_raise_window (window);
+  android_map_window (window);
+}
+
+void
+android_translate_coordinates (android_window src, int x,
+			       int y, int *root_x, int *root_y)
+{
+  jobject window;
+  jarray coordinates;
+  jmethodID method;
+  jint *ints;
+
+  window = android_resolve_handle (src, ANDROID_HANDLE_WINDOW);
+  method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
+				  "translateCoordinates",
+				  "(II)[I");
+  coordinates
+    = (*android_java_env)->CallObjectMethod (android_java_env,
+					     window, method,
+					     (jint) x, (jint) y);
+
+  if (!coordinates)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  /* The array must contain two elements: X, Y translated to the root
+     window.  */
+  eassert ((*android_java_env)->GetArrayLength (android_java_env,
+						coordinates)
+	   == 2);
+
+  /* Obtain the coordinates from the array.  */
+  ints = (*android_java_env)->GetIntArrayElements (android_java_env,
+						   coordinates, NULL);
+  *root_x = ints[0];
+  *root_y = ints[1];
+
+  /* Release the coordinates.  */
+  (*android_java_env)->ReleaseIntArrayElements (android_java_env,
+						coordinates, ints,
+						JNI_ABORT);
+
+  /* And free the local reference.  */
+  ANDROID_DELETE_LOCAL_REF (coordinates);
+}
+
 
 
 /* Low level drawing primitives.  */
@@ -3384,6 +3445,30 @@ android_set_dont_accept_focus (android_window handle,
 				       (jboolean) no_accept_focus);
 }
 
+void
+android_get_keysym_name (int keysym, char *name_return, size_t size)
+{
+  jobject string;
+  const char *buffer;
+
+  string = (*android_java_env)->CallObjectMethod (android_java_env,
+						  emacs_service,
+						  service_class.name_keysym,
+						  (jint) keysym);
+  android_exception_check ();
+
+  buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
+						   (jstring) string,
+						   NULL);
+  android_exception_check ();
+  strncpy (name_return, buffer, size - 1);
+
+  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+					      (jstring) string,
+					      buffer);
+  ANDROID_DELETE_LOCAL_REF (string);
+}
+
 
 
 #undef faccessat
@@ -3523,6 +3608,48 @@ emacs_abort (void)
   *foo = '\0';
 
   abort ();
+}
+
+
+
+/* Given a Lisp string TEXT, return a local reference to an equivalent
+   Java string.  */
+
+jstring
+android_build_string (Lisp_Object text)
+{
+  Lisp_Object encoded;
+  jstring string;
+
+  encoded = ENCODE_UTF_8 (text);
+
+  /* Note that Java expects this string to be in ``modified UTF
+     encoding'', which is actually UTF-8, except with NUL encoded as a
+     two-byte sequence.  The only consequence of passing an actual
+     UTF-8 string is that NUL bytes cannot be represented, which is
+     not really of consequence.  */
+  string = (*android_java_env)->NewStringUTF (android_java_env,
+					      SSDATA (encoded));
+  if (!string)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  return string;
+}
+
+/* Check for JNI exceptions and call memory_full in that
+   situation.  */
+
+void
+android_exception_check (void)
+{
+  if ((*android_java_env)->ExceptionCheck (android_java_env))
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
 }
 
 #else /* ANDROID_STUBIFY */

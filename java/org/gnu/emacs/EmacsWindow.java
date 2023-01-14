@@ -24,16 +24,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
+import android.content.Context;
+
 import android.graphics.Rect;
 import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.graphics.PixelFormat;
 
 import android.view.View;
+import android.view.ViewManager;
 import android.view.ViewGroup;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.InputDevice;
+import android.view.WindowManager;
 
 import android.content.Intent;
 import android.util.Log;
@@ -110,9 +116,17 @@ public class EmacsWindow extends EmacsHandleObject
      not the window should be focusable.  */
   private boolean dontFocusOnMap, dontAcceptFocus;
 
+  /* Whether or not the window is override-redirect.  An
+     override-redirect window always has its own system window.  */
+  private boolean overrideRedirect;
+
+  /* The window manager that is the parent of this window.  NULL if
+     there is no such window manager.  */
+  private WindowManager windowManager;
+
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
-	       int width, int height)
+	       int width, int height, boolean overrideRedirect)
   {
     super (handle);
 
@@ -124,6 +138,7 @@ public class EmacsWindow extends EmacsHandleObject
     view = EmacsService.SERVICE.getEmacsView (this, View.GONE,
 					      parent == null);
     this.parent = parent;
+    this.overrideRedirect = overrideRedirect;
 
     /* Create the list of children.  */
     children = new ArrayList<EmacsWindow> ();
@@ -180,7 +195,7 @@ public class EmacsWindow extends EmacsHandleObject
 	public void
 	run ()
 	{
-	  View parent;
+	  ViewManager parent;
 	  EmacsWindowAttachmentManager manager;
 
 	  if (EmacsActivity.focusedWindow == EmacsWindow.this)
@@ -189,10 +204,15 @@ public class EmacsWindow extends EmacsHandleObject
 	  manager = EmacsWindowAttachmentManager.MANAGER;
 	  view.setVisibility (View.GONE);
 
-	  parent = (View) view.getParent ();
+	  /* If the window manager is set, use that instead.  */
+	  if (windowManager != null)
+	    parent = windowManager;
+	  else
+	    parent = (ViewManager) view.getParent ();
+	  windowManager = null;
 
 	  if (parent != null)
-	    ((ViewGroup) parent).removeView (view);
+	    parent.removeView (view);
 
 	  manager.detachWindow (EmacsWindow.this);
 	}
@@ -247,6 +267,10 @@ public class EmacsWindow extends EmacsHandleObject
 	public void
 	run ()
 	{
+	  if (overrideRedirect)
+	    /* Set the layout parameters again.  */
+	    view.setLayoutParams (getWindowLayoutParams ());
+
 	  view.mustReportLayout = true;
 	  view.requestLayout ();
 	}
@@ -284,6 +308,39 @@ public class EmacsWindow extends EmacsHandleObject
       }
   }
 
+  private WindowManager.LayoutParams
+  getWindowLayoutParams ()
+  {
+    WindowManager.LayoutParams params;
+    int flags, type;
+    Rect rect;
+
+    flags = 0;
+    rect = getGeometry ();
+    flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+    flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+    type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
+
+    params
+      = new WindowManager.LayoutParams (rect.width (), rect.height (),
+					rect.left, rect.top,
+					type, flags,
+					PixelFormat.RGBA_8888);
+    params.gravity = Gravity.TOP | Gravity.LEFT;
+    return params;
+  }
+
+  private Context
+  findSuitableActivityContext ()
+  {
+    /* Find a recently focused activity.  */
+    if (!EmacsActivity.focusedActivities.isEmpty ())
+      return EmacsActivity.focusedActivities.get (0);
+
+    /* Return the service context, which probably won't work.  */
+    return EmacsService.SERVICE;
+  }
+
   public void
   mapWindow ()
   {
@@ -300,20 +357,60 @@ public class EmacsWindow extends EmacsHandleObject
 	    run ()
 	    {
 	      EmacsWindowAttachmentManager manager;
+	      WindowManager windowManager;
+	      Context ctx;
+	      Object tem;
+	      WindowManager.LayoutParams params;
 
 	      /* Make the view visible, first of all.  */
 	      view.setVisibility (View.VISIBLE);
 
-	      manager = EmacsWindowAttachmentManager.MANAGER;
+	      if (!overrideRedirect)
+		{
+		  manager = EmacsWindowAttachmentManager.MANAGER;
 
-	      /* If parent is the root window, notice that there are new
-		 children available for interested activites to pick
-		 up.  */
-	      manager.registerWindow (EmacsWindow.this);
+		  /* If parent is the root window, notice that there are new
+		     children available for interested activites to pick
+		     up.  */
+		  manager.registerWindow (EmacsWindow.this);
 
-	      if (!getDontFocusOnMap ())
-		/* Eventually this should check no-focus-on-map.  */
-		view.requestFocus ();
+		  if (!getDontFocusOnMap ())
+		    /* Eventually this should check no-focus-on-map.  */
+		    view.requestFocus ();
+		}
+	      else
+		{
+		  /* But if the window is an override-redirect window,
+		     then:
+
+		     - Find an activity that is currently active.
+
+		     - Map the window as a panel on top of that
+                       activity using the system window manager.  */
+
+		  ctx = findSuitableActivityContext ();
+		  tem = ctx.getSystemService (Context.WINDOW_SERVICE);
+		  windowManager = (WindowManager) tem;
+
+		  /* Calculate layout parameters.  */
+		  params = getWindowLayoutParams ();
+		  view.setLayoutParams (params);
+
+		  /* Attach the view.  */
+		  try
+		    {
+		      windowManager.addView (view, params);
+
+		      /* Record the window manager being used in the
+			 EmacsWindow object.  */
+		      EmacsWindow.this.windowManager = windowManager;
+		    }
+		  catch (Exception e)
+		    {
+		      Log.w (TAG,
+			     "failed to attach override-redirect window, " + e);
+		    }
+		}
 	    }
 	  });
       }
@@ -354,6 +451,11 @@ public class EmacsWindow extends EmacsHandleObject
 	  manager = EmacsWindowAttachmentManager.MANAGER;
 
 	  view.setVisibility (View.GONE);
+
+	  /* Detach the view from the window manager if possible.  */
+	  if (windowManager != null)
+	    windowManager.removeView (view);
+	  windowManager = null;
 
 	  /* Now that the window is unmapped, unregister it as
 	     well.  */
@@ -756,17 +858,23 @@ public class EmacsWindow extends EmacsHandleObject
 	run ()
 	{
 	  EmacsWindowAttachmentManager manager;
-	  View parent;
+	  ViewManager parent;
 
 	  /* First, detach this window if necessary.  */
 	  manager = EmacsWindowAttachmentManager.MANAGER;
 	  manager.detachWindow (EmacsWindow.this);
 
 	  /* Also unparent this view.  */
-	  parent = (View) view.getParent ();
+
+	  /* If the window manager is set, use that instead.  */
+	  if (windowManager != null)
+	    parent = windowManager;
+	  else
+	    parent = (ViewManager) view.getParent ();
+	  windowManager = null;
 
 	  if (parent != null)
-	    ((ViewGroup) parent).removeView (view);
+	    parent.removeView (view);
 
 	  /* Next, either add this window as a child of the new
 	     parent's view, or make it available again.  */
@@ -898,5 +1006,24 @@ public class EmacsWindow extends EmacsHandleObject
   getDontFocusOnMap ()
   {
     return dontFocusOnMap;
+  }
+
+  public int[]
+  translateCoordinates (int x, int y)
+  {
+    int[] array;
+
+    /* This is supposed to translate coordinates to the root
+       window.  */
+    array = new int[2];
+    EmacsService.SERVICE.getLocationOnScreen (view, array);
+
+    /* Now, the coordinates of the view should be in array.  Offset X
+       and Y by them.  */
+    array[0] += x;
+    array[1] += y;
+
+    /* Return the resulting coordinates.  */
+    return array;
   }
 };

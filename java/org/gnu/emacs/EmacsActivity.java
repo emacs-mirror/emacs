@@ -43,7 +43,7 @@ public class EmacsActivity extends Activity
   private FrameLayout layout;
 
   /* List of activities with focus.  */
-  private static List<EmacsActivity> focusedActivities;
+  public static List<EmacsActivity> focusedActivities;
 
   /* The currently focused window.  */
   public static EmacsWindow focusedWindow;

@@ -80,13 +80,18 @@ enum android_fill_style
 
 enum android_window_value_mask
   {
-    ANDROID_CW_BACK_PIXEL = (1 << 1),
+    ANDROID_CW_BACK_PIXEL	 = (1 << 1),
+    ANDROID_CW_OVERRIDE_REDIRECT = (1 << 2),
   };
 
 struct android_set_window_attributes
 {
   /* The background pixel.  */
   unsigned long background_pixel;
+
+  /* Whether or not the window is override redirect.  This cannot be
+     set after creation on Android.  */
+  bool override_redirect;
 };
 
 struct android_gc_values
@@ -260,7 +265,7 @@ struct android_key_event
   ((key) == 57 || (key) == 58 || (key) == 113 || (key) == 114		\
    || (key) == 119 || (key) == 117 || (key) == 118 || (key) == 78	\
    || (key) == 94 || (key) == 59 || (key) == 60 || (key) == 95		\
-   || (key) == 63)
+   || (key) == 63 || (key) == 115)
 
 struct android_configure_event
 {
@@ -478,6 +483,11 @@ extern int android_query_tree (android_window, android_window *,
 extern void android_get_geometry (android_window, android_window *,
 				  int *, int *, unsigned int *,
 				  unsigned int *, unsigned int *);
+extern void android_move_resize_window (android_window, int, int,
+					unsigned int, unsigned int);
+extern void android_map_raised (android_window);
+extern void android_translate_coordinates (android_window, int,
+					   int, int *, int *);
 
 #endif
 

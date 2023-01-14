@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <android/bitmap.h>
 
 #include "androidgui.h"
+#include "lisp.h"
 #endif
 
 /* This must be used in every symbol declaration to export it to the
@@ -83,6 +84,11 @@ extern bool android_detect_mouse (void);
 
 extern void android_set_dont_focus_on_map (android_window, bool);
 extern void android_set_dont_accept_focus (android_window, bool);
+
+extern jstring android_build_string (Lisp_Object);
+extern void android_exception_check (void);
+
+extern void android_get_keysym_name (int, char *, size_t);
 
 
 

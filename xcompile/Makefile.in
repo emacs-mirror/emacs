@@ -110,7 +110,7 @@ lib/libgnu.a: src/verbose.mk config.status $(LIB_DEPS) $(PRE_BUILD_DEPS)
 	+make -C lib libgnu.a
 
 src/Makefile src/config.h &: $(top_builddir)/src/config.h.android	\
-  $(top_builddir)/src/Makefile.android $(PRE_BUILD_DEPS)
+  $(top_builddir)/src/Makefile.android
 	mkdir -p src src/deps
 # Copy config.h to src/
 	cp -f -p $(top_builddir)/src/config.h.android src/config.h
@@ -155,13 +155,20 @@ $(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a	\
 # Finally, go into lib-src and make everything being built
 	+make -C lib-src $(foreach bin,$(LIBSRC_BINARIES),$(notdir $(bin)))
 
-.PHONY: clean maintainer-clean
+.PHONY: clean maintainer-clean distclean
 clean:
 	rm -rf $(CLEAN_SUBDIRS) *.bak sys
 	if [ -e lib/Makefile ]; then	\
 	  make -C lib clean;		\
 	fi
-	rm -rf lib/gnulib.mk lib/Makefile lib/config.h
+	rm -rf lib/config.h
+
+distclean bootstrap-clean: clean
+	if [ -e lib/Makefile ]; then		\
+	  make -C lib distclean;		\
+	fi
+# Just in case.
+	rm -rf lib/Makefile lib/gnulib.mk
 
 maintainer-clean: clean
 	if [ -e lib/Makefile ]; then		\

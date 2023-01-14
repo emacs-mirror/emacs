@@ -29,6 +29,7 @@ import android.graphics.Point;
 
 import android.view.View;
 import android.view.InputDevice;
+import android.view.KeyEvent;
 
 import android.annotation.TargetApi;
 import android.app.Service;
@@ -150,13 +151,13 @@ public class EmacsService extends Service
   /* Functions from here on must only be called from the Emacs
      thread.  */
 
-  void
+  public void
   runOnUiThread (Runnable runnable)
   {
     handler.post (runnable);
   }
 
-  EmacsView
+  public EmacsView
   getEmacsView (final EmacsWindow window, final int visibility,
 		final boolean isFocusedByDefault)
   {
@@ -194,6 +195,38 @@ public class EmacsService extends Service
       }
 
     return view.thing;
+  }
+
+  public void
+  getLocationOnScreen (final EmacsView view, final int[] coordinates)
+  {
+    Runnable runnable;
+
+    runnable = new Runnable () {
+	public void
+	run ()
+	{
+	  synchronized (this)
+	    {
+	      view.getLocationOnScreen (coordinates);
+	      notify ();
+	    }
+	}
+      };
+
+    synchronized (runnable)
+      {
+	runOnUiThread (runnable);
+
+	try
+	  {
+	    runnable.wait ();
+	  }
+	catch (InterruptedException e)
+	  {
+	    EmacsNative.emacsAbort ();
+	  }
+      }
   }
 
   public void
@@ -367,5 +400,11 @@ public class EmacsService extends Service
       }
 
     return false;
+  }
+
+  public String
+  nameKeysym (int keysym)
+  {
+    return KeyEvent.keyCodeToString (keysym);
   }
 };

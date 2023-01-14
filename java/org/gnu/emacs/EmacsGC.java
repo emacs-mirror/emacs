@@ -93,6 +93,7 @@ public class EmacsGC extends EmacsHandleObject
     else
       real_clip_rects = clip_rects;
 
+    gcPaint.setStrokeWidth (1f);
     gcPaint.setColor (foreground | 0xff000000);
     gcPaint.setXfermode (function == GC_XOR
 			 ? xorAlu : srcInAlu);

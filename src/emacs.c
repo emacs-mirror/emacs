@@ -2499,6 +2499,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_window ();
   init_font ();
 
+#ifdef HAVE_ANDROID
+  init_androidmenu ();
+#endif
+
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
   init_androidfont ();
   init_sfntfont ();

@@ -21,6 +21,7 @@ package org.gnu.emacs;
 
 import android.content.res.ColorStateList;
 
+import android.view.ContextMenu;
 import android.view.View;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -73,6 +74,12 @@ public class EmacsView extends ViewGroup
      next call to getBitmap.  */
   private Rect bitmapDirty;
 
+  /* Whether or not a popup is active.  */
+  private boolean popupActive;
+
+  /* The current context menu.  */
+  private EmacsContextMenu contextMenu;
+
   public
   EmacsView (EmacsWindow window)
   {
@@ -98,6 +105,10 @@ public class EmacsView extends ViewGroup
     /* Get rid of the foreground and background tint.  */
     setBackgroundTintList (null);
     setForegroundTintList (null);
+
+    /* Get rid of the default focus highlight.  */
+    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+      setDefaultFocusHighlightEnabled (false);
   }
 
   private void
@@ -422,5 +433,41 @@ public class EmacsView extends ViewGroup
     /* The surface view must be removed and attached again.  */
     removeView (surfaceView);
     addView (surfaceView, 0);
+  }
+
+  @Override
+  protected void
+  onCreateContextMenu (ContextMenu menu)
+  {
+    if (contextMenu == null)
+      return;
+
+    contextMenu.expandTo (menu);
+  }
+
+  public boolean
+  popupMenu (EmacsContextMenu menu, int xPosition,
+	     int yPosition)
+  {
+    if (popupActive)
+      return false;
+
+    contextMenu = menu;
+
+    /* On API 21 or later, use showContextMenu (float, float).  */
+    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP)
+      return showContextMenu ((float) xPosition, (float) yPosition);
+    else
+      return showContextMenu ();
+  }
+
+  public void
+  cancelPopupMenu ()
+  {
+    if (!popupActive)
+      throw new IllegalStateException ("cancelPopupMenu called without"
+				       + " popupActive set");
+
+    contextMenu = null;
   }
 };

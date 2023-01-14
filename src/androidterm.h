@@ -402,6 +402,12 @@ extern void syms_of_androidfont (void);
 
 extern void android_finalize_font_entity (struct font_entity *);
 
+/* Defined in androidmenu.c.  */
+
+extern Lisp_Object android_menu_show (struct frame *, int, int, int,
+				      Lisp_Object, const char **);
+extern void init_androidmenu (void);
+
 /* Defined in sfntfont-android.c.  */
 
 extern const struct font_driver android_sfntfont_driver;
