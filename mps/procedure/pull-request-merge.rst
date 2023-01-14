@@ -92,6 +92,8 @@ checklist, decide whether to start `the merging procedure`_.
    talk to them about the matter.  *Do not start the merging
    procedure*.
 
+.. _checked pull request build results from CI:
+
 #. Does the branch, and its merge, build and pass tests?
 
    CI should have run builds of both the branch, and a *trial merge*
@@ -240,11 +242,11 @@ These steps will only rarely need repeating.
    branch.  If you still can't resolve conflicts, this procedure
    fails.
 
-5. If either
+5. Maybe build and test locally.  If either
 
    - the merge was non-trivial
    - there has been any rebasing (see step 7)
-   - you haven't checked pull request build results from CI
+   - you haven't `checked pull request build results from CI`_
 
    then build and test the merge result locally if possible.  For
    example::
@@ -259,11 +261,11 @@ These steps will only rarely need repeating.
    fails, and you need to go back to the source of the branch,
    e.g. the pull request and its original author.  Something's wrong!
 
-6. If either
+6. Maybe build and test using CI.  As with step 5, if either
 
    - the merge was non-trivial
    - there has been any rebasing (see step 7)
-   - you haven't checked pull request build results from CI
+   - you haven't `checked pull request build results from CI`_
 
    then push the merge to a fresh branch in the `Ravenbrook MPS repo
    on GitHub`_ to trigger CI to build and testing on all target
