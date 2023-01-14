@@ -32,7 +32,23 @@ containing the working steps for git / GitHub merges, "Re: Possible
 MPS Help" [GDR_2020-09-03]_ .
 
 
-2. Pre-merge checklist
+2. Purpose
+----------
+
+The purpose of this procedure is:
+
+1. get required changes in to the MPS
+
+2. protect the MPS from introduction of defects
+
+3. maintain and protect the permanent record of the MPS in Perforce
+   and Git, so that defects can be discovered, fixed, and prevented
+
+As with any procedure, you can vary this one to meet this purpose, but
+you should probably read section "`6. Rationale`_".
+
+
+3. Pre-merge checklist
 ----------------------
 
 The answers to these questions should be "yes".  If the answer to a
@@ -143,7 +159,7 @@ checklist, decide whether to start `the merging procedure`_.
 .. _GitHub workflows for the repo: https://github.com/Ravenbrook/mps/actions
 
 
-3. Prerequisite steps
+4. Prerequisite steps
 ---------------------
 
 These steps will only rarely need repeating.
@@ -176,7 +192,7 @@ These steps will only rarely need repeating.
 
 .. _the merging procedure:
 
-4. Merging procedure
+5. Merging procedure
 --------------------
 
 1. `Fetch the pull request branch`_ to a local branch using the MPS
@@ -322,15 +338,18 @@ These steps will only rarely need repeating.
 .. _Fetch the pull request branch: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally#modifying-an-inactive-pull-request-locally
 
 
-5. Rationale
+6. Rationale
 ------------
 
 This section explains why the procedure is like it is.  It's intended
 for people who want to vary the procedure on the fly, or make
 permanent changes to it.  In the latter case, update this section!
 
+[This section should argue the case in terms of section "`2. Purpose`_".
+RB 2023-01-14]
 
-5.1. Why not rebase or squash merge?
+
+6.1. Why not rebase or squash merge?
 ------------------------------------
 
 We would like to avoid rewriting history and the destruction of
@@ -346,7 +365,7 @@ information.  Therefore we want to discourage fast-forwards of master
 in favour of merges.  (Annoyingly, GitHub only provides `branch
 protection that enforces the opposite
 <https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches#require-linear-history>`_!)
-See also `5.3. Why the "durable" branch names?`_.
+See also `6.3. Why the "durable" branch names?`_.
 
 We also want to avoid `squash merges
 <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-commits>`_.
@@ -368,7 +387,7 @@ Git is bad at remembering changes to history (it has no meta-history)
 and so we should not edit it.
 
 
-5.2. Why not press the GitHub merge button?
+6.2. Why not press the GitHub merge button?
 -------------------------------------------
 
 We cannot use the GitHub pull request merge button because it would
@@ -399,13 +418,13 @@ says:
 
 So, `once Git becomes the home
 <https://github.com/Ravenbrook/mps/issues/98>`_ we will be able to use
-the button to to replace sections 3 and 4, the procedure, but not
-section 2, the pre-merge checklist.  We may be able to incorporate the
+the button to to replace sections 4 and 5, the procedure, but not
+section 3, the pre-merge checklist.  We may be able to incorporate the
 checklist into GitHub's interface using a `pull request template
 <https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository>`_.
 
 
-5.3. Why the "durable" branch names?
+6.3. Why the "durable" branch names?
 ------------------------------------
 
 It's common in Git culture to delete branches once they've been
