@@ -63,7 +63,7 @@ AUTO_DEPEND = @AUTO_DEPEND@
 DEPDIR = deps
 ifeq ($(AUTO_DEPEND),yes)
   DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
-  -include $(ALLOBJS:%.o=$(DEPDIR)/%.d)
+  -include $(OBJS:%.o=$(DEPDIR)/%.d)
 else
   DEPFLAGS =
   include $(srcdir)/deps.mk
