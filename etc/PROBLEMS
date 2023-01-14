@@ -628,6 +628,18 @@ To work around the problem, customize the option
 'window-adjust-process-window-size-function' to "Do not adjust process
 window sizes" (Lisp value 'ignore').
 
+*** Displaying PDF files in DocView produces an empty buffer.
+
+This can happen if your Emacs is configured to convert PDF to SVG for
+display, and the version of the MuPDF package you have installed has a
+a known bug, whereby it sometimes produces invalid SVG images.
+Version 1.21 of MuPDF is known to be affected.
+
+The solution is either to upgrade or downgrade to a version of MuPDF
+that doesn't have this bug, or to disable conversion of PDF files to
+SVG images by customizing the user option 'doc-view-mupdf-use-svg'.
+Emacs will then convert PDF to PNG images instead.
+
 *** In Inferior Python mode, input is echoed and native completion doesn't work.
 <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=25753>
 
