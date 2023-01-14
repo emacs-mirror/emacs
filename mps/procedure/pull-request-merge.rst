@@ -93,8 +93,6 @@ considering `2. Purpose`_.
    talk to them about the matter.  *Do not start the merging
    procedure*.
 
-.. _checked pull request build results from CI:
-
 #. Does the branch, and its merge, build and pass tests?
 
    CI should have run builds of both the branch, and a *trial merge*
@@ -247,7 +245,7 @@ These steps will only rarely need repeating.
 
    - the merge was non-trivial
    - there has been any rebasing (see step 7)
-   - you haven't `checked pull request build results from CI`_
+   - there were failed or missing build results from CI
 
    then build and test the merge result locally if possible.  For
    example::
@@ -266,7 +264,7 @@ These steps will only rarely need repeating.
 
    - the merge was non-trivial
    - there has been any rebasing (see step 7)
-   - you haven't `checked pull request build results from CI`_
+   - there were failed or missing build results from CI
 
    then push the merge to a fresh branch in the `Ravenbrook MPS repo
    on GitHub`_ to trigger CI to build and testing on all target
