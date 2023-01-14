@@ -1,0 +1,22 @@
+# .github/workflows/shell-script-check.yml -- check shell scripts
+#
+# This is a GitHub CI workflow
+# <https://docs.github.com/en/actions/using-workflows/about-workflows>
+# to check shell scripts.
+
+name: shell script check
+
+on:
+  # Run as part of CI checks on branch push and on merged pull request.
+  - push
+  - pull_request
+
+jobs:
+  checkrst:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      - name: Check shell scripts
+        run: tool/checkshellscripts
