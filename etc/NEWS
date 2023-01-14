@@ -1636,6 +1636,20 @@ randomness as before, or to use a bag).
 *** New user option 'battery-update-functions'.
 This can be used to trigger actions based on the battery status.
 
+** DocView
+
+*** doc-view can now generate SVG images when viewing PDF files.
+If Emacs is built with SVG support, doc-view can generate SVG files
+when using MuPDF as the converter for PDF files, which generally leads
+to sharper images (especially when zooming), and allows customization
+of background and foreground color of the page via the new user
+options 'doc-view-svg-background' and 'doc-view-svg-foreground'.  To
+activate this behaviour, set 'doc-view-mupdf-use-svg' to non-nil if
+your Emacs has SVG support.  Note that, with some versions of MuPDF,
+SVG generation is known to sometimes produce SVG files that are buggy
+or can take a long time to render.
+
+
 ** Enriched Mode
 
 +++

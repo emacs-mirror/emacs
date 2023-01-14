@@ -209,8 +209,8 @@ are available (see Info node `(emacs)Document View')."
           function)
   :version "24.4")
 
-(defcustom doc-view-mupdf-use-svg (image-type-available-p 'svg)
-  "Whether to use svg images for PDF files."
+(defcustom doc-view-mupdf-use-svg nil
+  "Whether to use SVG images for PDF files."
   :type 'boolean
   :version "29.1")
 
