@@ -267,13 +267,14 @@ These steps will only rarely need repeating.
    - there were failed or missing build results from CI
 
    then push the merge to a fresh branch in the `Ravenbrook MPS repo
-   on GitHub`_ to trigger CI to build and testing on all target
-   platforms. ::
+   on GitHub`_.  This should trigger CI to build and testing on all
+   target platforms. ::
 
      git push github merge/2023-01-06/speed-hax
 
-   You will need to wait for results from CI.  [Add details of how to
-   see them.  RB 2023-07-01]
+   You will need to wait for results from CI.  Look for a build
+   results in the `Travis CI build history for the repo`_ and in the
+   `GitHub workflows for the repo`_.
 
    See build (step 5) about what to do if tests do not pass.
 
