@@ -237,8 +237,19 @@ These steps will only rarely need repeating.
      git pull --ff-only perforce master
 
    If you get an error, then GitHub's master and Perforce's master are
-   in out of sync, and this procedure fails.  [It may be possible to
-   quickly fix that here and now and continue.  RB 2023-01-12]
+   in out of sync, and this procedure fails.
+
+   Ensure your local master is not ahead of Perforce::
+
+     git push --dry-run perforce
+
+   If this shows anything other than "Everything up-to-date." then
+   GitHub's master and Perforce's master are in out of sync, and this
+   procedure fails.
+
+   [It may be possible to fix that here and now and continue.  That's
+   a subject for a whole nother procedure that we don't currently
+   have.  RB 2023-01-12]
 
 4. Merge the branch in to your local master::
 
