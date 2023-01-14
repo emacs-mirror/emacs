@@ -166,7 +166,7 @@ These steps will only rarely need repeating.
 --------------------
 
 1. `Fetch the pull request branch`_ to a local branch using the MPS
-   durable branch naming convention, "branch/DATE/TOPIC".
+   `durable branch naming convention`_, "branch/DATE/TOPIC".
 
    If the branch already has a conventional name, and it's in the
    `Ravenbrook MPS repo on GitHub`_ then fetch it with the existing
@@ -319,6 +319,11 @@ These steps will only rarely need repeating.
 
 .. _Fetch the pull request branch: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally#modifying-an-inactive-pull-request-locally
 
+9. Eyeball the pull request and related issues on GitHub to make sure
+   the merge was recorded correctly.  Check that any issues *not
+   completely resolved* by the merge were not closed.  Re-open them if
+   necessary.
+
 
 6. Rationale
 ------------
@@ -405,6 +410,8 @@ section 3, the pre-merge checklist.  We may be able to incorporate the
 checklist into GitHub's interface using a `pull request template
 <https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository>`_.
 
+
+.. _durable branch naming convention:
 
 6.3. Why the "durable" branch names?
 ------------------------------------
