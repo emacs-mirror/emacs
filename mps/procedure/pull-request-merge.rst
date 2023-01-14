@@ -113,7 +113,7 @@ checklist, decide whether to start `the merging procedure`_.
    - Look for the most recent build of the pull request in the `GitHub
      workflows for the repo`_.
 
-   Success by CI is a strong indication that this procecure will be
+   Success by CI is a strong indication that this procedure will be
    quick and successful.
 
    If CI builds failed, you can still execute `the merging procedure`_
