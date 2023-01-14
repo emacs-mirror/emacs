@@ -40,11 +40,7 @@ orig_open (const char *filename, int flags, mode_t mode)
 /* Specification.  */
 /* Write "fcntl.h" here, not <fcntl.h>, otherwise OSF/1 5.1 DTK cc eliminates
    this include because of the preliminary #include <fcntl.h> above.  */
-#ifdef __ANDROID__
-#include <fnctl.h>
-#else
 #include "fcntl.h"
-#endif
 
 #include "cloexec.h"
 
