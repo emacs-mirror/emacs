@@ -14,14 +14,20 @@ AMC pool class
    single: pool class; AMC design
 
 
-Introduction
-~~~~~~~~~~~~
+Guide Introduction
+~~~~~~~~~~~~~~~~~~
 
-_`.intro`: This document contains a guide (`.guide`_) to the MPS AMC
+.. The intro and readership tags were found to be duplicated by
+   changelist 182116 / commit e9841d23a but not referenced.  But that
+   was just a consequence of two documents being smushed together by
+   RHSK in changelist 168424 / commit b0433b3e9: a guide and a design.
+   It would be good to sort that out.  RB 2023-01-14
+
+_`.guide.intro`: This document contains a guide (`.guide`_) to the MPS AMC
 pool class, followed by the historical initial design
 (`.initial-design`_).
 
-_`.readership`: Any MPS developer.
+_`.guide.readership`: Any MPS developer.
 
 
 Guide
