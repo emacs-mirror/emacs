@@ -1,4 +1,4 @@
-# gettime.m4 serial 12
+# gettime.m4 serial 13
 dnl Copyright (C) 2002, 2004-2006, 2009-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -26,17 +26,24 @@ AC_DEFUN([gl_CHECK_FUNC_TIMESPEC_GET],
 
   dnl We can't use AC_CHECK_FUNC here, because timespec_get() is defined as a
   dnl static inline function in <time.h> on MSVC 14.
-  AC_CACHE_CHECK([for timespec_get], [gl_cv_func_timespec_get],
-    [AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-          [[#include <time.h>
-            struct timespec ts;
-          ]],
-          [[return timespec_get (&ts, 0);]])
-       ],
-       [gl_cv_func_timespec_get=yes],
-       [gl_cv_func_timespec_get=no])
-    ])
+  dnl But at the same time, we need to notice a missing declaration, like
+  dnl gl_CHECK_FUNCS_ANDROID does.
+  AC_CHECK_DECL([timespec_get], , , [[#include <time.h>]])
+  if test $ac_cv_have_decl_timespec_get = yes; then
+    AC_CACHE_CHECK([for timespec_get], [gl_cv_func_timespec_get],
+      [AC_LINK_IFELSE(
+         [AC_LANG_PROGRAM(
+            [[#include <time.h>
+              struct timespec ts;
+            ]],
+            [[return timespec_get (&ts, 0);]])
+         ],
+         [gl_cv_func_timespec_get=yes],
+         [gl_cv_func_timespec_get=no])
+      ])
+  else
+    gl_cv_func_timespec_get=no
+  fi
 ])
 
 AC_DEFUN([gl_GETTIME_RES],

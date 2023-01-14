@@ -6553,7 +6553,9 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 
 if test $USE_ACL -ne 0; then
-  ACL_SUMMARY="yes $LIB_ACL"
+  ACL_SUMMARY="yes"
+  test "$LIB_ACL" && ACL_SUMMARY="$ACL_SUMMARY $LIB_ACL"
+  test "$LIB_XATTR" && ACL_SUMMARY="$ACL_SUMMARY $LIB_XATTR"
 else
   ACL_SUMMARY=no
 fi

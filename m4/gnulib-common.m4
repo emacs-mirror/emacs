@@ -71,7 +71,7 @@ AC_DEFUN([gl_COMMON_BODY], [
      && (!defined __clang_minor__ \
          || (defined __apple_build_version__ \
              ? 6000000 <= __apple_build_version__ \
-             : 3 < __clang_major__ + (5 <= __clang_minor__))))
+             : 5 <= __clang_major__)))
 # define _GL_HAS_ATTRIBUTE(attr) __has_attribute (__##attr##__)
 #else
 # define _GL_HAS_ATTRIBUTE(attr) _GL_ATTR_##attr
