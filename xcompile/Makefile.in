@@ -38,7 +38,7 @@ top_builddir = @top_builddir@
 
 # This is possibly the ugliest Makefile ever written!
 
-LIB_SRCDIR = $(realpath $(top_srcdir)/lib)
+LIB_SRCDIR = $(realpath ./lib)
 LIB_TOP_SRCDIR = $(realpath $(top_srcdir))
 
 SRC_SRCDIR = $(realpath $(top_srcdir)/src)
@@ -52,7 +52,7 @@ LIB_SRC_TOP_SRCDIR = $(realpath $(top_src))
 LIBSRC_BINARIES = lib-src/etags lib-src/ctags lib-src/emacsclient \
 		  lib-src/ebrowse lib-src/hexl lib-src/movemail
 
-CLEAN_SUBDIRS=lib src lib-src
+CLEAN_SUBDIRS=src lib-src
 
 .PHONY: all
 all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)
@@ -67,12 +67,6 @@ config.status:
 src/verbose.mk: verbose.mk.android
 	mkdir -p src
 	cp -f verbose.mk.android src/verbose.mk
-
-UGLY_HOST_HEADERS = dirent.h stdlib.h sys/random.h limits.h		\
-		    string.h signal.h time.h inttypes.h assert.h	\
-		    stdint.h unistd.h stdlib.h sys/types.h sys/time.h	\
-		    sys/stat.h getopt.h fcntl.h sys/select.h alloca.h	\
-		    stdio.h sys/random.h
 
 # Gnulib, make-fingerprint and make-docfile must be built before
 # entering any of the rules below, or they will get the Android
@@ -94,38 +88,26 @@ PRE_BUILD_DEPS=$(top_builddir)/lib/libgnu.a		\
 	       $(top_builddir)/lib-src/make-fingerprint	\
 	       $(top_builddir)/lib-src/make-docfile
 
-.PHONY: lib/libgnu.a
-lib/libgnu.a: src/verbose.mk config.status $(PRE_BUILD_DEPS)
-	mkdir -p lib/deps lib/deps/malloc
-# Temporarily move config.h to config.h.bak and config.h.android to
-# config.h
+lib/config.h: $(top_builddir)/src/config.h.android
 	cp -f -p $(top_builddir)/src/config.h.android lib/config.h
-# And the Makefiles.
+
+lib/gnulib.mk: $(top_builddir)/lib/gnulib.mk.android
 	cp -f -p $(top_builddir)/lib/gnulib.mk.android lib/gnulib.mk
+	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
+	  lib/gnulib.mk
+
+lib/Makefile: $(top_builddir)/lib/Makefile.android
 	cp -f -p $(top_builddir)/lib/Makefile.android lib/Makefile
-# Next, move srcdir and top_srcdir in the Makefiles copied.
-	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' lib/Makefile
 	sed -i 's/top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
 	  lib/Makefile
-	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' lib/gnulib.mk
-# Ugly hack: hide some troublesome headers in $(top_builddir)/lib
-# while building lib.  Otherwise, they will end up overriding the
-# system headers used on Android through #include_next and cause
-# trouble.
-	mkdir -p sys
-	for ugly_header in $(UGLY_HOST_HEADERS); do			\
-	  if [ -e "$(top_builddir)/lib/$$ugly_header" ]; then    	\
-	    mv -f $(top_builddir)/lib/$$ugly_header $$ugly_header.bak;	\
-	  fi								\
-	done
-# And make libgnu.a.  Restore config.h if it fails.
-	-make -C lib libgnu.a
-# Move the hiden headers back
-	for ugly_header in $(UGLY_HOST_HEADERS); do			\
-	  if [ -e "$$ugly_header.bak" ]; then				\
-	    mv -f $$ugly_header.bak $(top_builddir)/lib/$$ugly_header;	\
-	  fi								\
-	done
+
+# What is needed to build gnulib.
+LIB_DEPS = lib/config.h lib/gnulib.mk lib/Makefile
+
+.PHONY: lib/libgnu.a
+lib/libgnu.a: src/verbose.mk config.status $(LIB_DEPS) $(PRE_BUILD_DEPS)
+	mkdir -p lib/deps lib/deps/malloc
+	+make -C lib libgnu.a
 
 src/Makefile src/config.h &: $(top_builddir)/src/config.h.android	\
   $(top_builddir)/src/Makefile.android $(PRE_BUILD_DEPS)
@@ -145,32 +127,19 @@ src/Makefile src/config.h &: $(top_builddir)/src/config.h.android	\
 # that src/Makefile uses the binaries there, instead of any
 # cross-compiled binaries at ./lib-src.
 	sed -i 's/libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' src/Makefile
+# Edit out anything saying -I($(top_srcdir)/lib); that should be
+# covered by -I$(lib)
+	sed -i 's/-I\$$(top_srcdir)\/lib//g' src/Makefile
 
 .PHONY: src/android-emacs src/libemacs.so
 src/android-emacs src/libemacs.so &: src/Makefile src/config.h \
   src/verbose.mk lib/libgnu.a $(PRE_BUILD_DEPS)
-# Ugly hack: hide some troublesome headers in $(top_builddir)/lib
-# while building lib.  Otherwise, they will end up overriding the
-# system headers used on Android through #include_next and cause
-# trouble.
-	mkdir -p sys
-	for ugly_header in $(UGLY_HOST_HEADERS); do			\
-	  if [ -e "$(top_builddir)/lib/$$ugly_header" ]; then    	\
-	    mv -f $(top_builddir)/lib/$$ugly_header $$ugly_header.bak;	\
-	  fi								\
-	done
-# Finally, go into src and make
 	+make -C src android-emacs libemacs.so
-# Move the hidden headers back
-	for ugly_header in $(UGLY_HOST_HEADERS); do			\
-	  if [ -e "$$ugly_header.bak" ]; then				\
-	    mv -f $$ugly_header.bak $(top_builddir)/lib/$$ugly_header;	\
-	  fi								\
-	done
 
 lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
 	mkdir -p lib-src
 	cp -f -p $< $@
+	sed -i 's/-I\$${srcdir}\/\.\.\/lib//g' lib-src/Makefile
 
 .PHONY: $(LIBSRC_BINARIES)
 $(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a	\
@@ -183,27 +152,18 @@ $(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a	\
 	  lib-src/Makefile
 # Edit out SCRIPTS, it interferes with the build.
 	sed -i 's/^SCRIPTS=.*$$/SCRIPTS=/g' lib-src/Makefile
-# Ugly hack: hide some troublesome headers in $(top_builddir)/lib
-# while building lib.  Otherwise, they will end up overriding the
-# system headers used on Android through #include_next and cause
-# trouble.
-	mkdir -p sys
-	for ugly_header in $(UGLY_HOST_HEADERS); do			\
-	  if [ -e "$(top_builddir)/lib/$$ugly_header" ]; then    	\
-	    mv -f $(top_builddir)/lib/$$ugly_header $$ugly_header.bak;	\
-	  fi								\
-	done
 # Finally, go into lib-src and make everything being built
 	+make -C lib-src $(foreach bin,$(LIBSRC_BINARIES),$(notdir $(bin)))
-# Move the hidden headers back
-	for ugly_header in $(UGLY_HOST_HEADERS); do			\
-	  if [ -e "$$ugly_header.bak" ]; then				\
-	    mv -f $$ugly_header.bak $(top_builddir)/lib/$$ugly_header;	\
-	  fi								\
-	done
 
 .PHONY: clean maintainer-clean
 clean:
 	rm -rf $(CLEAN_SUBDIRS) *.bak sys
+	if [ -e lib/Makefile ]; then	\
+	  make -C lib clean;		\
+	fi
+	rm -rf lib/gnulib.mk lib/Makefile lib/config.h
 
 maintainer-clean: clean
+	if [ -e lib/Makefile ]; then		\
+	  make -C lib maintainer-clean;		\
+	fi

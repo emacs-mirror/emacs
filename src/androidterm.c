@@ -270,7 +270,7 @@ android_flush_dirty_back_buffer_on (struct frame *f)
       /* If the frame is not already up to date, do not flush buffers
 	 on input, as that will result in flicker.  */
       || !FRAME_ANDROID_COMPLETE_P (f)
-      && FRAME_ANDROID_NEED_BUFFER_FLIP (f))
+      || !FRAME_ANDROID_NEED_BUFFER_FLIP (f))
     return;
 
   show_back_buffer (f);

@@ -1256,6 +1256,13 @@ Emacs and Haiku
 * Haiku Basics::        Basic Emacs usage and installation under Haiku.
 * Haiku Fonts::         The various options for displaying fonts on Haiku.
 
+Emacs and Android
+
+* What is Android?::	Preamble.
+* Android Startup::     Starting up Emacs on Android.
+* Android File System:: The Android file system.
+* Android Environment:: Running Emacs under Android.
+
 Emacs and Microsoft Windows/MS-DOS
 
 * Windows Startup::     How to start Emacs on Windows.
@@ -1626,6 +1633,7 @@ Lisp programming.
 @include anti.texi
 @include macos.texi
 @include haiku.texi
+@include android.texi
 @c Includes msdos-xtra.
 @include msdos.texi
 @include gnu.texi

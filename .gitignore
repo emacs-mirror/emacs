@@ -54,6 +54,7 @@ src/emacs-module.h
 
 # Built by recursive call to `configure'.
 *.android
+!INSTALL.android
 
 # Built by `java'.
 java/install_temp/*
@@ -94,7 +95,31 @@ src/lisp.mk
 src/verbose.mk
 
 # Stuff built during cross compilation
-xcompile/lib/*
+xcompile/lib/alloca.h
+xcompile/lib/assert.h
+xcompile/lib/byteswap.h
+xcompile/lib/dirent.h
+xcompile/lib/errno.h
+xcompile/lib/execinfo.h
+xcompile/lib/fcntl.h
+xcompile/lib/getopt.h
+xcompile/lib/getopt-cdefs.h
+xcompile/lib/gmp.h
+xcompile/lib/ieee754.h
+xcompile/lib/inttypes.h
+xcompile/lib/libgnu.a
+xcompile/lib/limits.h
+xcompile/lib/malloc/*.gl.h
+xcompile/lib/signal.h
+xcompile/lib/std*.h
+xcompile/!lib/std*.in.h
+xcompile/!lib/stdio-impl.h
+xcompile/lib/string.h
+xcompile/lib/sys/
+xcompile/lib/time.h
+xcompile/lib/unistd.h
+xcompile/lib/config.h
+xcompile/lib/gnulib.mk
 xcompile/src/*
 xcompile/lib-src/*
 xcompile/sys/*

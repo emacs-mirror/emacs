@@ -36,7 +36,7 @@ public class EmacsThread extends Thread
   {
     String args[];
 
-    args = new String[] { "android-emacs", };
+    args = new String[] { "libandroid-emacs.so", };
 
     /* Run the native code now.  */
     EmacsNative.initEmacs (args);

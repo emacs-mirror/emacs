@@ -1012,7 +1012,8 @@ mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
 ###      with them.
 ###
 ###      Delete '.dvi' files here if they are not part of the distribution.
-clean_dirs = $(mostlyclean_dirs) java nextstep admin/charsets admin/unidata
+clean_dirs = $(mostlyclean_dirs) java xcompile nextstep admin/charsets \
+  admin/unidata
 
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 

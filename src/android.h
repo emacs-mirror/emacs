@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <sys/stat.h>
 #include <dirent.h>
+#include <stdio.h>
 
 #include <android/bitmap.h>
 

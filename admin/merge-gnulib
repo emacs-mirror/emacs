@@ -114,6 +114,11 @@ for module in $AVOIDED_MODULES; do
   avoided_flags="$avoided_flags --avoid=$module"
 done
 
+# Clean the lib directory as well.
+if [ -e "$src"/lib/Makefile ]; then
+   make -C "$src"/lib maintainer-clean
+fi
+
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS \
 	$avoided_flags $GNULIB_MODULES &&
 rm -- "$src"lib/gl_openssl.h \
@@ -135,4 +140,8 @@ cp -- "$gnulib_srcdir"/lib/af_alg.h \
 { test -z "$src" || cd "$src"; } &&
 ./autogen.sh
 
-echo "Please update the block of vpath statements in lib/Makefile.in"
+# Finally, update the files in lib/ to xcompile/lib.
+rsync "$src"/lib "$src"/xcompile
+
+# Remove unnecessary files.
+rm -f "$src"/xcompile/lib/*.mk.in "$src"/xcompile/lib/Makefile.in

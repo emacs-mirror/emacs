@@ -1,0 +1,76 @@
+Installation instructions for Android
+Copyright (C) 2023 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+Please read the entirety of this file before attempting to build Emacs
+as an application package which can run on Android devices.
+
+When building from the source repository, make sure to read
+INSTALL.REPO as well.
+
+
+
+Android is an unusual operating system in that program binaries cannot
+be produced on computers running Android themselves.  Instead, they
+must be built on some other computer using a set of tools known as the
+``Android SDK'' (Software Development Kit) and the ``Android NDK''
+(Native Development Kit).  Appropriate versions of both must be
+obtained to build GNU Emacs; after being built, the generated binaries
+will work on almost all Android devices.  This document does not
+elaborate on how both sets of tools can be obtained.  However, for
+your freedom's sake, you should use the Android SDK provided by the
+Debian project.
+
+In addition to the Android SDK and Android NDK, Emacs also requires
+the Java compiler from OpenJDK 1.7.0 to be installed on your system.
+
+Once all of those tools are obtained, you may invoke the `configure'
+script like so:
+
+  ./configure --with-android=/path/to/android.jar \
+	      ANDROID_CC=/path/to/android/ndk/cc  \
+	      SDK_BUILD_TOOLS=/path/to/sdk/build/tools
+
+Replacing the paths in the command line above with:
+
+  - the path to the `android.jar' headers which come with the Android
+    SDK.  They must correspond to Android version 13 or later.
+
+  - the path to the C compiler in the Android NDK, for the machine you
+    are building Emacs to run on.
+
+  - the path to the directory in the Android SDK containing binaries
+    such as `aapt' and `d8'.  These are used to build the application
+    package.
+
+After the configuration process completes, you may run:
+
+  make all
+
+Once `make' finishes, there should be a file in the `java' directory
+named along the lines of:
+
+  emacs-<version>-<api-version>-<abi>.apk
+
+where <api-version> is the oldest version of Android that the package
+will run on, and <abi> is the type of Android machine the package was
+built for.
+
+The generated package can be uploaded onto an SD card (or similar
+medium) and installed on-device.
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
