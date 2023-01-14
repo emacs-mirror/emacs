@@ -246,13 +246,23 @@ android_run_select_thread (void *data)
 			 "pthread_sigmask: %s",
 			 strerror (errno));
 
+  sigdelset (&signals, SIGUSR1);
+
   while (true)
     {
       /* Wait for the thread to be released.  */
-      sem_wait (&android_pselect_start_sem);
+      while (sem_wait (&android_pselect_start_sem) < 0)
+	;;
 
       /* Get the select lock and call pselect.  */
       pthread_mutex_lock (&event_queue.select_mutex);
+
+      /* Make sure SIGUSR1 can always wake pselect up.  */
+      if (android_pselect_sigset)
+	sigdelset (android_pselect_sigset, SIGUSR1);
+      else
+	android_pselect_sigset = &signals;
+
       rc = pselect (android_pselect_nfds,
 		    android_pselect_readfds,
 		    android_pselect_writefds,
@@ -436,6 +446,7 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   /* Release the select thread.  */
   sem_post (&android_pselect_start_sem);
 
+  /* Start waiting for the event queue condition to be set.  */
   pthread_cond_wait (&event_queue.read_var, &event_queue.mutex);
 
   /* Interrupt the select thread now, in case it's still in
@@ -443,7 +454,8 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   pthread_kill (event_queue.select_thread, SIGUSR1);
 
   /* Wait for pselect to return in any case.  */
-  sem_wait (&android_pselect_sem);
+  while (sem_wait (&android_pselect_sem) < 0)
+    ;;
 
   /* If there are now events in the queue, return 1.  */
   if (event_queue.num_events)
