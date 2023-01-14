@@ -43,8 +43,9 @@ REMOTE=https://github.com/dylan-lang/opendylan.git
 
 # Directory to put everything in
 TESTDIR="$PWD/.test/$GC"
-mkdir -p -- "$TESTDIR"
-cd -- "$TESTDIR"
+mkdir -p -- "$TESTDIR" &&
+    cd -- "$TESTDIR" ||
+	exit 1
 
 
 # 3. PROCEDURE
@@ -116,7 +117,7 @@ if [ -f "$REPO/Makefile" ]; then
 else (
     cd -- "$REPO" &&
     ./autogen.sh &&
-    ./configure --with-gc="$GC" --prefix="$PREFIX" $CONFIGURE
+    ./configure --with-gc="$GC" --prefix="$PREFIX" "$CONFIGURE"
 ) fi
 (
     cd -- "$REPO" &&
