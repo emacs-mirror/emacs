@@ -39,5 +39,5 @@ jobs:
       run: |
          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
          cd code
-         nmake /f w3i6mv.nmk
+         nmake /f w3i6mv.nmk all testci testansi testpollnone
       shell: cmd
