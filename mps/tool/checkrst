@@ -15,8 +15,10 @@
 # manual/Makefile.
 
 {
-    find . -path ./manual/source -prune -o -type f -name '*.rst' -print
-    find . -path ./manual/source -prune -o -type f -name '*.txt' -print |
+    find . -path ./manual/source -prune -o \
+	 -path ./manual/tool -prune -o \
+	 -type f -name '*.rst' -print
+    find . -type f -name '*.txt' -print |
 	while read f; do
 	    if head -1 -- "$f" | fgrep -q -e '-*- rst -*-'; then
 		echo "$f"
