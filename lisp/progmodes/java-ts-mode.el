@@ -311,7 +311,8 @@ Return nil if there is no name or if NODE is not a defun node."
                             "enum_declaration"
                             "import_declaration"
                             "package_declaration"
-                            "module_declaration")))
+                            "module_declaration"
+                            "constructor_declaration")))
   (setq-local treesit-defun-name-function #'java-ts-mode--defun-name)
 
   ;; Font-lock.
