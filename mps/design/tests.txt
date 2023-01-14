@@ -40,7 +40,7 @@ design.mps.config.var.codes_) and ``<target>`` is the collection of tests
 If ``<variety>`` is omitted, tests are run in both the cool and hot
 varieties.
 
-.. _design.mps.config.var: config#.var
+.. _design.mps.config.var.codes: config#.var.codes
 .. _manual/build.txt: https://www.ravenbrook.com/project/mps/master/manual/build.txt
 
 
