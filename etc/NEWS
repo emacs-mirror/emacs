@@ -181,6 +181,14 @@ the new argument NEW-BUFFER non-nil, it will use a new buffer instead.
 Interactively, invoke 'eww-open-file' with a prefix argument to
 activate this behavior.
 
+** go-ts-mode
+
++++
+*** New command 'go-ts-mode-docstring'.
+This command adds a docstring comment to the current defun.  If a
+comment already exists, point is only moved to the comment.  It is
+bound to 'C-c C-d' in 'go-ts-mode'.
+
 
 * New Modes and Packages in Emacs 30.1
 
