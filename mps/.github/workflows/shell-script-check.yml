@@ -12,7 +12,7 @@ on:
   - pull_request
 
 jobs:
-  checkrst:
+  checkshellscripts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
