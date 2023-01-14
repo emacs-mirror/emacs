@@ -9722,7 +9722,11 @@ the completions is popped up and down."
   "Move to the first item in the completion list."
   (interactive)
   (goto-char (point-min))
-  (unless (get-text-property (point) 'mouse-face)
+  (if (get-text-property (point) 'mouse-face)
+      (unless (get-text-property (point) 'first-completion)
+        (let ((inhibit-read-only t))
+          (add-text-properties (point) (min (1+ (point)) (point-max))
+                               '(first-completion t))))
     (when-let ((pos (next-single-property-change (point) 'mouse-face)))
       (goto-char pos))))
 
