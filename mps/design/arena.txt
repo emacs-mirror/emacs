@@ -293,7 +293,7 @@ that the private representation can share a common prefix with
 private representation whether such an object is allocated or not,
 without requiring an extra field.
 
-_`.tract.field.base`: The seg field is a pointer to the segment
+_`.tract.field.seg`: The seg field is a pointer to the segment
 containing the tract, or ``NULL`` if the tract is not contained in any
 segment.
 
