@@ -32,7 +32,7 @@ _`.run`: Run these commands::
 
 where ``<makefile>`` is the appropriate makefile for the platform (see
 `manual/build.txt`_), ``<variety>`` is the variety (see
-design.mps.config.var_) and ``<target>`` is the collection of tests
+design.mps.config.var.codes_) and ``<target>`` is the collection of tests
 (see `.target`_ below). For example::
 
     make -f lii6ll VARIETY=cool testrun
