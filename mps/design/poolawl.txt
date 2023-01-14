@@ -246,7 +246,7 @@ segment sizes are rounded up to the arena grain size.
 
 _`.fun.awlsegcreate.where`: The segment is allocated using a
 generation preference, using the generation number stored in the
-``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
+``AWLStruct`` (the ``gen`` field), see `.poolstruct`_ above.
 
 ``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)``
 

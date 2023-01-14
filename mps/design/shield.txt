@@ -257,7 +257,7 @@ _`.proof.sync`: As the depth of a segment cannot be negative
   |   ⇒ all segments are synced (by `.inv.unsynced.depth`_)
 
 _`.proof.access`: If the mutator is running then all segments must be
-synced (`.inv.unsynced.suspend`_). Which means that the hardware
+synced (`.inv.unsynced.suspended`_). Which means that the hardware
 protection (protection mode) must reflect the software protection
 (shield mode). Hence all shielded memory will be hardware protected
 while the mutator is running. This ensures `.prop.mutator.access`_.

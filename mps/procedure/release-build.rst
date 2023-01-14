@@ -280,7 +280,7 @@ B. Document History
 .. _NB: mailto:nb@ravenbrook.com
 .. _RHSK: mailto:rhsk@ravenbrook.com
 .. _GDR: mailto:gdr@ravenbrook.com
-.. _PNJ  mailto:pnj@ravenbrook.com
+.. _PNJ: mailto:pnj@ravenbrook.com
 
 C. Copyright and License
 ------------------------

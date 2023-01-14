@@ -569,7 +569,7 @@ following:
   A function called by ``SomeClassGet()``. All the class
   initialization code is actually in this function.
 
-_`.impl.subclass`: The subclass test `.if.subclass`_ is implemented
+_`.impl.subclass`: The subclass test `.if.is-subclass`_ is implemented
 using an array of superclasses [Cohen_1991]_ giving a fast
 constant-time test.  (RB_ tried an approach using prime factors
 [Gibbs_2004]_ but found that they overflowed in 32-bits too easily to
