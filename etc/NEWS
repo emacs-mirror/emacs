@@ -147,6 +147,15 @@ point is not in a comment or a string.  It is by default bound to
 *** New connection method "toolbox".
 This allow accessing system containers provided by Toolbox.
 
+** EWW
+
++++
+*** 'eww-open-file' can now display the file in a new buffer.
+By default, the command reuses the '*eww*' buffer, but if called with
+the new argument non-nil, it will use a new buffer instead.
+Interactively, invoke 'eww-open-file' with a prefix argument to
+activate this behavior.
+
 
 * New Modes and Packages in Emacs 30.1
 
