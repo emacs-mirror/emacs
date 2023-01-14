@@ -346,11 +346,11 @@ A squash merge compresses development history into a single commit,
 destroying the record of what happened during development and the
 connection to the branch.
 
-The main motivation for fast-forwards and squashes appears to be to
-simplify the branching history so that it's easier to understand.
-Better tools and interfaces are no doubt required for analysing Git
-history.  These will emerge.  And they will be able to analyse the
-history that we are creating today.
+Many developers use fast-forwards and squashes to simplify the
+branching history so that it's easier to understand.  Better tools and
+interfaces are no doubt required for analysing Git history.  These
+will emerge.  And they will be able to analyse the history that we are
+creating today.
 
 There is also a strong tendency among developers to "correct" mistakes
 and edit history to reflect "what should have happened" or "what I
