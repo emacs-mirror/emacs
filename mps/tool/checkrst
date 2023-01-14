@@ -1,0 +1,74 @@
+#!/bin/sh
+# tool/checkrst -- check syntax of reStructuredText in the MPS
+#
+# Copyright (c) 2023 Ravenbrook Limited. See end of file for license.
+#
+# This script finds reStructuredText files in the MPS tree and runs
+# them through docutils to check for syntax errors.
+#
+# It can be invoked from the command line of from Continuous
+# Integration scripts.  See .github/workflows/rst-check.yml
+#
+# This script excludes manual/source because the reStructuredText
+# there is in an extended Sphinx format that can't be checked by the
+# basic docutils.  It can be checked by building the manual.  See
+# manual/Makefile.
+
+{
+    find . -path ./manual/source -prune -o -type f -name '*.rst' -print
+    find . -path ./manual/source -prune -o -type f -name '*.txt' -print |
+	while read f; do
+	    if head -1 -- "$f" | fgrep -q -e '-*- rst -*-'; then
+		echo "$f"
+	    fi
+	done
+} | {
+    code=0
+    while read f; do
+	if ! rst2html --report=2 --exit-status=2 "$f" > /dev/null; then
+	    code=1
+	fi
+    done
+    exit "$code"
+}
+
+# A. REFERENCES
+#
+# [None]
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2023-01-13 RB Created.
+#
+#
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$
