@@ -886,6 +886,26 @@ Optional arg BUFFER (default: current buffer) is the buffer to check."
              (if (consp pattern) "keywords " "")
              pattern))))
 
+(defun apropos--map-preloaded-atoms (f)
+  "Like `mapatoms' but only enumerates functions&vars that are predefined."
+  (let ((preloaded-regexp
+         (concat "\\`"
+                 (regexp-quote lisp-directory)
+                 (regexp-opt preloaded-file-list)
+                 "\\.elc?\\'")))
+    ;; FIXME: I find this regexp approach brittle.  Maybe a better
+    ;; option would be find/record the nthcdr of `load-history' which
+    ;; corresponds to the `load-history' state when we dumped.
+    ;; (Then again, maybe an even better approach would be to record the
+    ;; state of the `obarray' when we dumped, which we may also be able to
+    ;; use in `bytecomp' to provide a clean initial environment?)
+    (dolist (x load-history)
+      (when (string-match preloaded-regexp (car x))
+        (dolist (def (cdr x))
+          (cond
+           ((symbolp def) (funcall f def))
+           ((eq 'defun (car-safe def)) (funcall f (cdr def)))))))))
+
 ;;;###autoload
 (defun apropos-documentation (pattern &optional do-all)
   "Show symbols whose documentation contains matches for PATTERN.
@@ -894,10 +914,11 @@ or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
 search for matches for any two (or more) of those words.
 
-Note that by default this command only searches in the file specified by
-`internal-doc-file-name'; i.e., the etc/DOC file.  With \\[universal-argument] prefix,
-or if `apropos-do-all' is non-nil, it searches all currently defined
-documentation strings.
+Note that by default this command only searches in the functions predefined
+at Emacs startup, i.e., the primitives implemented in C or preloaded in the
+Emacs dump image.
+With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, it searches
+all currently defined documentation strings.
 
 Returns list of symbols and documentation found."
   ;; The doc used to say that DO-ALL includes key-bindings info in the
@@ -913,33 +934,33 @@ Returns list of symbols and documentation found."
           (apropos-sort-by-scores apropos-documentation-sort-by-scores)
           f v sf sv)
       (apropos-documentation-check-doc-file)
-      (if do-all
-          (mapatoms
-           (lambda (symbol)
-             (setq f (apropos-safe-documentation symbol)
-                   v (get symbol 'variable-documentation))
-             (if (integerp v) (setq v nil))
-             (setq f (apropos-documentation-internal f)
-                   v (apropos-documentation-internal v))
-             (setq sf (apropos-score-doc f)
-                   sv (apropos-score-doc v))
-             (if (or f v)
-                 (if (setq apropos-item
-                           (cdr (assq symbol apropos-accumulator)))
-                     (progn
-                       (if f
-                           (progn
-                             (setcar (nthcdr 1 apropos-item) f)
-                             (setcar apropos-item (+ (car apropos-item) sf))))
-                       (if v
-                           (progn
-                             (setcar (nthcdr 2 apropos-item) v)
-                             (setcar apropos-item (+ (car apropos-item) sv)))))
-                   (setq apropos-accumulator
-                         (cons (list symbol
-                                     (+ (apropos-score-symbol symbol 2) sf sv)
-                                     f v)
-                               apropos-accumulator)))))))
+      (funcall
+       (if do-all #'mapatoms #'apropos--map-preloaded-atoms)
+       (lambda (symbol)
+         (setq f (apropos-safe-documentation symbol)
+               v (get symbol 'variable-documentation))
+         (if (integerp v) (setq v nil))
+         (setq f (apropos-documentation-internal f)
+               v (apropos-documentation-internal v))
+         (setq sf (apropos-score-doc f)
+               sv (apropos-score-doc v))
+         (if (or f v)
+             (if (setq apropos-item
+                       (cdr (assq symbol apropos-accumulator)))
+                 (progn
+                   (if f
+                       (progn
+                         (setcar (nthcdr 1 apropos-item) f)
+                         (setcar apropos-item (+ (car apropos-item) sf))))
+                   (if v
+                       (progn
+                         (setcar (nthcdr 2 apropos-item) v)
+                         (setcar apropos-item (+ (car apropos-item) sv)))))
+               (setq apropos-accumulator
+                     (cons (list symbol
+                                 (+ (apropos-score-symbol symbol 2) sf sv)
+                                 f v)
+                           apropos-accumulator))))))
       (apropos-print nil "\n----------------\n" nil t))))
 
 
@@ -1064,53 +1085,55 @@ non-nil."
       (setq apropos-files-scanned (cons file apropos-files-scanned))
       (erase-buffer)
       (insert-file-contents file)
-      (while (search-forward "\n#@" nil t)
+      (while (search-forward "#@" nil t)
 	;; Read the comment length, and advance over it.
-	(setq end (read)
-	      beg (1+ (point))
-	      end (+ (point) end -1))
-	(forward-char)
-	(if (save-restriction
-	      ;; match ^ and $ relative to doc string
-	      (narrow-to-region beg end)
-	      (re-search-forward apropos-all-words-regexp nil t))
-	    (progn
-	      (goto-char (+ end 2))
-	      (setq doc (buffer-substring beg end)
-		    end (- (match-end 0) beg)
-		    beg (- (match-beginning 0) beg))
-	      (when (apropos-true-hit-doc doc)
-		(setq this-is-a-variable (looking-at "(def\\(var\\|const\\) ")
-		      symbol (progn
-			       (skip-chars-forward "(a-z")
-			       (forward-char)
-			       (read))
-		      symbol (if (consp symbol)
-				 (nth 1 symbol)
-			       symbol))
-		(if (if this-is-a-variable
-			(get symbol 'variable-documentation)
-		      (and (fboundp symbol) (apropos-safe-documentation symbol)))
-		    (progn
-		      (or (and (setq apropos-item (assq symbol apropos-accumulator))
-			       (setcar (cdr apropos-item)
-				       (+ (cadr apropos-item) (apropos-score-doc doc))))
-			  (setq apropos-item (list symbol
-						   (+ (apropos-score-symbol symbol 2)
-						      (apropos-score-doc doc))
-						   nil nil)
-				apropos-accumulator (cons apropos-item
-							  apropos-accumulator)))
-		      (when apropos-match-face
-			(setq doc (substitute-command-keys doc))
-			(if (or (string-match apropos-pattern-quoted doc)
-				(string-match apropos-all-words-regexp doc))
-			    (put-text-property (match-beginning 0)
-					       (match-end 0)
-					       'face apropos-match-face doc)))
-		      (setcar (nthcdr (if this-is-a-variable 3 2)
-				      apropos-item)
-			      doc))))))))))
+	;; This #@ may be a false positive, so don't get upset if
+	;; it's not followed by the expected number of bytes to skip.
+	(when (and (setq end (ignore-errors (read))) (natnump end))
+	  (setq beg (1+ (point))
+	        end (+ (point) end -1))
+	  (forward-char)
+	  (if (save-restriction
+	        ;; match ^ and $ relative to doc string
+	        (narrow-to-region beg end)
+	        (re-search-forward apropos-all-words-regexp nil t))
+	      (progn
+	        (goto-char (+ end 2))
+	        (setq doc (buffer-substring beg end)
+		      end (- (match-end 0) beg)
+		      beg (- (match-beginning 0) beg))
+		(when (apropos-true-hit-doc doc)
+		  (setq this-is-a-variable (looking-at "(def\\(var\\|const\\) ")
+			symbol (progn
+			         (skip-chars-forward "(a-z")
+			         (forward-char)
+			         (read))
+			symbol (if (consp symbol)
+				   (nth 1 symbol)
+				 symbol))
+		  (if (if this-is-a-variable
+			  (get symbol 'variable-documentation)
+			(and (fboundp symbol) (apropos-safe-documentation symbol)))
+		      (progn
+			(or (and (setq apropos-item (assq symbol apropos-accumulator))
+				 (setcar (cdr apropos-item)
+				         (+ (cadr apropos-item) (apropos-score-doc doc))))
+			    (setq apropos-item (list symbol
+						     (+ (apropos-score-symbol symbol 2)
+						        (apropos-score-doc doc))
+						     nil nil)
+				  apropos-accumulator (cons apropos-item
+							    apropos-accumulator)))
+			(when apropos-match-face
+			  (setq doc (substitute-command-keys doc))
+			  (if (or (string-match apropos-pattern-quoted doc)
+				  (string-match apropos-all-words-regexp doc))
+			      (put-text-property (match-beginning 0)
+					         (match-end 0)
+					         'face apropos-match-face doc)))
+			(setcar (nthcdr (if this-is-a-variable 3 2)
+				        apropos-item)
+				doc)))))))))))
 
 
 
