@@ -462,10 +462,15 @@ B. Document History
 
 ==========  =====  ==================================================
 2023-01-07  RB_    Created.
-2023-01-13  RB_    Updates after first attempt at execution.
+2023-01-13  RB_    Updates after `first attempt at execution`_.
+2023-01-14  RB_    Updates after `second (successful) execution`_.
 ==========  =====  ==================================================
 
 .. _RB: mailto:rb@ravenbrook.com
+
+.. _first attempt at execution: https://github.com/Ravenbrook/mps/pull/97#issuecomment-1380206348
+
+.. _second (successful) execution: https://github.com/Ravenbrook/mps/pull/97#issuecomment-1381771818
 
 
 C. Copyright and License
