@@ -319,6 +319,14 @@ Return nil if there is no name or if NODE is not a defun node."
                             "module_declaration")))
   (setq-local treesit-defun-name-function #'java-ts-mode--defun-name)
 
+  (setq-local treesit-sentence-type-regexp
+              (regexp-opt '("statement"
+                            "local_variable_declaration"
+                            "field_declaration"
+                            "module_declaration"
+                            "package_declaration"
+                            "import_declaration")))
+
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
