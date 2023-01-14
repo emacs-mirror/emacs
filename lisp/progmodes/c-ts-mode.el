@@ -682,72 +682,82 @@ ARG is passed to `fill-paragraph'."
   (interactive "*P")
   (save-restriction
     (widen)
-    (let* ((node (treesit-node-at (point)))
-           (start (treesit-node-start node))
-           (end (treesit-node-end node))
-           ;; Bind to nil to avoid infinite recursion.
-           (fill-paragraph-function nil)
-           (orig-point (point-marker))
-           (start-marker (point-marker))
-           (end-marker nil)
-           (end-len 0))
-      (move-marker start-marker start)
+    (let ((node (treesit-node-at (point))))
       (when (string-match-p c-ts-mode--comment-regexp
                             (treesit-node-type node))
-        ;; We mask "/*" and the space before "*/" like
-        ;; `c-fill-paragraph' does.
-        (atomic-change-group
-          ;; Mask "/*".
-          (goto-char start)
-          (when (looking-at (rx (* (syntax whitespace))
-                                (group "/") "*"))
-            (goto-char (match-beginning 1))
-            (move-marker start-marker (point))
-            (replace-match " " nil nil nil 1))
-          ;; Include whitespaces before /*.
-          (goto-char start)
-          (beginning-of-line)
-          (setq start (point))
-          ;; Mask spaces before "*/" if it is attached at the end
-          ;; of a sentence rather than on its own line.
-          (goto-char end)
-          (when (looking-back (rx (not (syntax whitespace))
-                                  (group (+ (syntax whitespace)))
-                                  "*/")
-                              (line-beginning-position))
-            (goto-char (match-beginning 1))
-            (setq end-marker (point-marker))
-            (setq end-len (- (match-end 1) (match-beginning 1)))
-            (replace-match (make-string end-len ?x)
-                           nil nil nil 1))
-          ;; If "*/" is on its own line, don't included it in the
-          ;; filling region.
-          (when (not end-marker)
-            (goto-char end)
-            (when (looking-back (rx "*/") 2)
-              (backward-char 2)
-              (skip-syntax-backward "-")
-              (setq end (point))))
-          ;; Let `fill-paragraph' do its thing.
-          (goto-char orig-point)
-          (narrow-to-region start end)
-          ;; We don't want to fill the region between START and
-          ;; START-MARKER, otherwise the filling function might delete
-          ;; some spaces there.
-          (fill-region start-marker end arg)
-          ;; Unmask.
-          (when start-marker
-            (goto-char start-marker)
-            (delete-char 1)
-            (insert "/"))
-          (when end-marker
-            (goto-char end-marker)
-            (delete-region (point) (+ end-len (point)))
-            (insert (make-string end-len ?\s))))
-        (goto-char orig-point))
+        (if (save-excursion
+              (goto-char (treesit-node-start node))
+              (looking-at "//"))
+            (fill-comment-paragraph arg)
+          (c-ts-mode--fill-block-comment arg)))
       ;; Return t so `fill-paragraph' doesn't attempt to fill by
       ;; itself.
       t)))
+
+(defun c-ts-mode--fill-block-comment (&optional arg)
+  "Fillling function for block comments.
+ARG is passed to `fill-paragraph'.  Assume point is in a block
+comment."
+  (let* ((node (treesit-node-at (point)))
+         (start (treesit-node-start node))
+         (end (treesit-node-end node))
+         ;; Bind to nil to avoid infinite recursion.
+         (fill-paragraph-function nil)
+         (orig-point (point-marker))
+         (start-marker (point-marker))
+         (end-marker nil)
+         (end-len 0))
+    (move-marker start-marker start)
+    ;; We mask "/*" and the space before "*/" like
+    ;; `c-fill-paragraph' does.
+    (atomic-change-group
+      ;; Mask "/*".
+      (goto-char start)
+      (when (looking-at (rx (* (syntax whitespace))
+                            (group "/") "*"))
+        (goto-char (match-beginning 1))
+        (move-marker start-marker (point))
+        (replace-match " " nil nil nil 1))
+      ;; Include whitespaces before /*.
+      (goto-char start)
+      (beginning-of-line)
+      (setq start (point))
+      ;; Mask spaces before "*/" if it is attached at the end
+      ;; of a sentence rather than on its own line.
+      (goto-char end)
+      (when (looking-back (rx (not (syntax whitespace))
+                              (group (+ (syntax whitespace)))
+                              "*/")
+                          (line-beginning-position))
+        (goto-char (match-beginning 1))
+        (setq end-marker (point-marker))
+        (setq end-len (- (match-end 1) (match-beginning 1)))
+        (replace-match (make-string end-len ?x)
+                       nil nil nil 1))
+      ;; If "*/" is on its own line, don't included it in the
+      ;; filling region.
+      (when (not end-marker)
+        (goto-char end)
+        (when (looking-back (rx "*/") 2)
+          (backward-char 2)
+          (skip-syntax-backward "-")
+          (setq end (point))))
+      ;; Let `fill-paragraph' do its thing.
+      (goto-char orig-point)
+      (narrow-to-region start end)
+      ;; We don't want to fill the region between START and
+      ;; START-MARKER, otherwise the filling function might delete
+      ;; some spaces there.
+      (fill-region start-marker end arg)
+      ;; Unmask.
+      (when start-marker
+        (goto-char start-marker)
+        (delete-char 1)
+        (insert "/"))
+      (when end-marker
+        (goto-char end-marker)
+        (delete-region (point) (+ end-len (point)))
+        (insert (make-string end-len ?\s))))))
 
 (defun c-ts-mode-comment-setup ()
   "Set up local variables for C-like comment.
