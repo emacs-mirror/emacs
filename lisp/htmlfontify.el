@@ -78,7 +78,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'cus-edit)
 
 (defconst hfy-meta-tags
@@ -379,7 +379,8 @@ otherwise."
     "/\\.git\\(?:/.*\\)?$")
   "Define some regular expressions to exclude files"
   :tag "exclude-rules"
-  :type '(list string))
+  :type '(list string)
+  :version 29.1)
 
 (defcustom hfy-display-class nil
   "Display class to use to determine which display class to use when
