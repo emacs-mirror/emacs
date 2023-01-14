@@ -4,7 +4,7 @@
 # <https://docs.github.com/en/actions/using-workflows/about-workflows>
 # to check the syntax of reStructuredText files.
 
-name: rst-check
+name: reStructuredText syntax check
 
 on:
   # Run as part of CI checks on branch push and on merged pull request.
@@ -12,7 +12,7 @@ on:
   - pull_request
 
 jobs:
-  rst-check:
+  checkrst:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
