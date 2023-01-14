@@ -671,6 +671,11 @@ the semicolon.  This function skips the semicolon."
 
 ;;; Filling
 
+(defvar c-ts-mode--comment-regexp
+  ;; These covers C/C++, Java, JavaScript, TypeScript, Rust, C#.
+  (rx (or "comment" "line_comment" "block_comment"))
+  "Regexp pattern that matches a comment in C-like languages.")
+
 (defun c-ts-mode--fill-paragraph (&optional arg)
   "Fillling function for `c-ts-mode'.
 ARG is passed to `fill-paragraph'."
@@ -683,12 +688,12 @@ ARG is passed to `fill-paragraph'."
            ;; Bind to nil to avoid infinite recursion.
            (fill-paragraph-function nil)
            (orig-point (point-marker))
-           (start-marker nil)
+           (start-marker (point-marker))
            (end-marker nil)
            (end-len 0))
-      ;; These covers C/C++, Java, JavaScript, TypeScript, Rust, C#.
-      (when (member (treesit-node-type node)
-                    '("comment" "line_comment" "block_comment"))
+      (move-marker start-marker start)
+      (when (string-match-p c-ts-mode--comment-regexp
+                            (treesit-node-type node))
         ;; We mask "/*" and the space before "*/" like
         ;; `c-fill-paragraph' does.
         (atomic-change-group
@@ -697,7 +702,7 @@ ARG is passed to `fill-paragraph'."
           (when (looking-at (rx (* (syntax whitespace))
                                 (group "/") "*"))
             (goto-char (match-beginning 1))
-            (setq start-marker (point-marker))
+            (move-marker start-marker (point))
             (replace-match " " nil nil nil 1))
           ;; Include whitespaces before /*.
           (goto-char start)
