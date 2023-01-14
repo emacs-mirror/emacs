@@ -4,7 +4,7 @@
 # Some branches don't need builds.  Add them here to avoid using build
 # resources and unnecessary build messages.  See
 # <https://docs.travis-ci.com/user/conditions-v1>.
-if: NOT branch IN (branch/2023-01-07/pull-request-merge-procedure)
+if: NOT branch IN (branch/2023-01-13/rst-check)
 
 # The main build matrix for POSIX-like systems.
 language: c # see <https://docs.travis-ci.com/user/languages/c/>.
