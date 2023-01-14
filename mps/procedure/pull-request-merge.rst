@@ -92,63 +92,32 @@ checklist, decide whether to start `the merging procedure`_.
    talk to them about the matter.  *Do not start the merging
    procedure*.
 
-#. Does the branch build and pass tests on all `target platforms
-   <../readme.txt>`_?
+#. Does the branch, and its merge, build and pass tests?
 
-   If the branch is in the `Ravenbrook MPS repo on GitHub`_ then CI
-   should have run builds of the branch.  To check, either:
+   CI should have run builds of both the branch, and a *trial merge*
+   of the pull request with master.  Success by CI is a strong
+   indication that `the merging procedure`_ will be quick and
+   successful.
 
-   - Look for build results for the branch (not the pull request) in
-     the "checks" section of the pull request on GitHub.  Expand "Show
-     all checks", and look for build success messages *for the
-     branch*.
+   Look for build results in the pull request on GitHub.  Expand "Show
+   all checks", and look for build success messages for both the
+   branch and for the pull request (the trial merge).  If these
+   results are missing, inform sysadmins that CI isn't functioning.
 
-   - Look for a the most recent build of the branch in the `Travis CI
-     build history for the repo`_.
+   You can also look for a build results in the `Travis CI build
+   history for the repo`_ and in the `GitHub workflows for the repo`_.
 
-   - Look for the most recent build of the branch in the `GitHub
-     workflows for the repo`_.
+   If there is a failed build *of the branch* you should not execute
+   `the merging procedure`_, but talk to the contributor about fixing
+   the branch.
 
-   If there is a failed build you should not execute `the merging
-   procedure`_, but talk to the contributor about fixing the branch.
-
-   If the branch is in the `Ravenbrook MPS repo on GitHub`_ and builds
-   are missing from the "checks" section of pull request, inform
-   sysadmins that CI isn't functioning.
-
-   If you have no build and test results, you can still execute `the
-   merging procedure`_, with caution.
-
-#. Does the branch merge cleanly in to master and pass tests on all
-   target platforms?
-
-   CI should have run builds of the pull request (i.e. `of a merge
-   with master
-   <https://docs.travis-ci.com/user/pull-requests/#how-pull-requests-are-built>`_).
-   To check, either:
-
-   - Look for build results for the pull request (not the branch) in
-     the pull request on GitHub.  Expand "Show all checks", and look
-     for build success messages *for the pull request*.
-
-   - Look for a successful build of the pull request in the `Travis CI
-     build history for the repo`_.
-
-   - Look for the most recent build of the pull request in the `GitHub
-     workflows for the repo`_.
-
-   Success by CI is a strong indication that this procedure will be
-   quick and successful.
-
-   If CI builds failed, you can still execute `the merging procedure`_
-   if you believe that the failure is due to merge conflicts that you
-   are willing to resolve.
-
-   If CI builds are missing, inform sysadmins that CI isn't
-   functioning.
+   If the branch built OK but there is a failed build *of the trial
+   merge*, you can still execute `the merging procedure`_ if you
+   believe that the failure is due to merge conflicts that you are
+   willing to resolve.
 
    If you have no build and test results for the merge, then you can
-   still execute `the merging procedure`_ if:
+   still try to execute `the merging procedure`_ if:
 
    #. you believe there are only merge conflicts,
    #. you're willing to try to resolve those conflicts, and
