@@ -1638,6 +1638,7 @@ This can be used to trigger actions based on the battery status.
 
 ** DocView
 
+---
 *** doc-view can now generate SVG images when viewing PDF files.
 If Emacs is built with SVG support, doc-view can generate SVG files
 when using MuPDF as the converter for PDF files, which generally leads
