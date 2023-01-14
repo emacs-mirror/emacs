@@ -814,11 +814,11 @@ current value of the proced-key text property starts, or 0 if KEY is nil."
               (current-column))))))
 
 (defun proced--determine-pos (key column)
-  "Return the point in the current line using KEY and COLUMN.
+  "Return position of point in the current line using KEY and COLUMN.
 
 Attempt to find the first position on the current line where the
 text property proced-key is equal to KEY.  If this is not possible, return
-the point of column COLUMN on the current line."
+the position of point of column COLUMN on the current line."
   (save-excursion
     (let (new-pos)
       (if key
