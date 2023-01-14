@@ -57,6 +57,14 @@ checklist, decide whether to start `the merging procedure`_.
 
 #. Has there been a code review?
 
+#. Is the merge approved by an approving review?
+
+   The `Ravenbrook MPS repo on GitHub`_ is set to require an approving
+   review and GitHub will block a push (step 8) without one.  If you
+   push an unapproved merge to Perforce, this will cause gitpushbot to
+   fail, and leave Perforce and GitHub out of sync.  *Do not push to
+   Perforce without GitHub approval.*
+
 #. Has the contributor licensed their work?
 
    By default, the work is licensed if the contributor has not
