@@ -19,14 +19,14 @@
 	 -path ./manual/tool -prune -o \
 	 -type f -name '*.rst' -print
     find . -type f -name '*.txt' -print |
-	while read f; do
-	    if head -1 -- "$f" | fgrep -q -e '-*- rst -*-'; then
+	while read -r f; do
+	    if head -1 -- "$f" | grep -F -q -e '-*- rst -*-'; then
 		echo "$f"
 	    fi
 	done
 } | {
     code=0
-    while read f; do
+    while read -r f; do
 	if ! rst2html --report=2 --exit-status=2 "$f" > /dev/null; then
 	    code=1
 	fi
