@@ -2010,7 +2010,7 @@ May return nil if the line should not be treated as continued."
       (forward-line -1)
       (if (sh-smie--looking-back-at-continuation-p)
           (current-indentation)
-        (+ (current-indentation) sh-basic-offset))))
+        (+ (current-indentation) (sh-var-value 'sh-indent-for-continuation)))))
    (t
     ;; Just make sure a line-continuation is indented deeper.
     (save-excursion
@@ -2031,7 +2031,10 @@ May return nil if the line should not be treated as continued."
                        ;; check the line before that one.
                        (> ci indent))
                       (t ;Previous line is the beginning of the continued line.
-                       (setq indent (min (+ ci sh-basic-offset) max))
+                       (setq
+                        indent
+                        (min
+                         (+ ci (sh-var-value 'sh-indent-for-continuation)) max))
                        nil)))))
           indent))))))
 
