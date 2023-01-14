@@ -78,6 +78,7 @@
      ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "text_block") no-indent)
      ((parent-is "class_body") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "annotation_type_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "interface_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "constructor_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "enum_body") parent-bol java-ts-mode-indent-offset)
@@ -225,7 +226,10 @@
    :language 'java
    :override t
    :feature 'definition
-   `((method_declaration
+   `((annotation_type_element_declaration
+      name: (identifier) @font-lock-function-name-face)
+
+     (method_declaration
       name: (identifier) @font-lock-function-name-face)
 
      (variable_declarator

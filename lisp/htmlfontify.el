@@ -380,7 +380,7 @@ otherwise."
   "Define some regular expressions to exclude files"
   :tag "exclude-rules"
   :type '(list string)
-  :version 29.1)
+  :version "29.1")
 
 (defcustom hfy-display-class nil
   "Display class to use to determine which display class to use when
