@@ -5469,7 +5469,7 @@ INPUT, if non-nil, is a string sent to the process."
 	       (format "%s\n" (file-name-nondirectory tmp-name)))
 	      (should
 	       (string-match-p
-		;; Some shells echo, for example the "adb" or "docker" methods.
+		;; Some shells echo, for example the "adb" or container methods.
 		(rx
 		 bos (** 1 2 (literal (file-name-nondirectory tmp-name)) "\n")
 		 eos)
@@ -6567,11 +6567,12 @@ This is used in tests which we don't want to tag
   "Check, whether the remote directory is encrypted."
   (tramp-crypt-file-name-p ert-remote-temporary-file-directory))
 
-(defun tramp--test-docker-p ()
-  "Check, whether the docker method is used.
+(defun tramp--test-container-p ()
+  "Check, whether a container method is used.
 This does not support some special file names."
-  (string-equal
-   "docker" (file-remote-p ert-remote-temporary-file-directory 'method)))
+  (string-match-p
+   (rx bol (| "docker" "podman") eol)
+   (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-expensive-test-p ()
   "Whether expensive tests are run.
@@ -6945,7 +6946,7 @@ This requires restrictions of file name syntax."
   (let ((files
 	 (list
 	  (cond ((or (tramp--test-ange-ftp-p)
-		     (tramp--test-docker-p)
+		     (tramp--test-container-p)
 		     (tramp--test-gvfs-p)
 		     (tramp--test-rclone-p)
 		     (tramp--test-sudoedit-p)
@@ -7003,7 +7004,7 @@ This requires restrictions of file name syntax."
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 620s
-  (skip-unless (not (tramp--test-docker-p)))
+  (skip-unless (not (tramp--test-container-p)))
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
   (skip-unless (not (tramp--test-ksh-p)))
@@ -7123,7 +7124,7 @@ process sentinels.  They shall not disturb each other."
                      '(:unstable)))
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
-  (skip-unless (not (tramp--test-docker-p)))
+  (skip-unless (not (tramp--test-container-p)))
   (skip-unless (not (tramp--test-telnet-p)))
   (skip-unless (not (tramp--test-sshfs-p)))
   (skip-unless (not (tramp--test-windows-nt-p)))

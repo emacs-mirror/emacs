@@ -2709,7 +2709,16 @@ function as needed."
        (let ((doc (car body)))
 	 (when (funcall docstring-p doc)
            doc)))
-      (_ (signal 'invalid-function (list function))))))
+      ((pred symbolp)
+       (let ((f (indirect-function function)))
+         (if f (function-documentation f)
+           (signal 'void-function (list function)))))
+      (`(macro . ,f) (function-documentation f))
+      (_
+       (let ((doc (internal-subr-documentation function)))
+         (if (eq t doc)
+             (signal 'invalid-function (list function))
+           doc))))))
 
 (cl-defmethod function-documentation ((function accessor))
   (oclosure--accessor-docstring function)) ;; FIXME: η-reduce!
