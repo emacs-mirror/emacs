@@ -453,6 +453,7 @@ public class EmacsView extends ViewGroup
       return false;
 
     contextMenu = menu;
+    popupActive = true;
 
     /* On API 21 or later, use showContextMenu (float, float).  */
     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP)
@@ -469,5 +470,6 @@ public class EmacsView extends ViewGroup
 				       + " popupActive set");
 
     contextMenu = null;
+    popupActive = false;
   }
 };

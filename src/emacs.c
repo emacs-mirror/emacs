@@ -2397,6 +2397,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_ANDROID
       syms_of_androidterm ();
       syms_of_androidfns ();
+      syms_of_androidmenu ();
       syms_of_fontset ();
 #if !defined ANDROID_STUBIFY
       syms_of_androidfont ();

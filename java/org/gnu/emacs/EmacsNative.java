@@ -124,6 +124,9 @@ public class EmacsNative
   /* Send an ANDROID_DEICONIFIED event.  */
   public static native void sendDeiconified (short window);
 
+  /* Send an ANDROID_CONTEXT_MENU event.  */
+  public static native void sendContextMenu (short window, int menuEventID);
+
   static
   {
     System.loadLibrary ("emacs");

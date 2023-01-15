@@ -31,6 +31,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.util.Log;
+
 import android.widget.PopupMenu;
 
 /* Context menu implementation.  This object is built from JNI and
@@ -40,12 +42,31 @@ import android.widget.PopupMenu;
 
 public class EmacsContextMenu
 {
-  private class Item
+  private static final String TAG = "EmacsContextMenu";
+
+  /* Whether or not an item was selected.  */
+  public static boolean itemAlreadySelected;
+
+  private class Item implements MenuItem.OnMenuItemClickListener
   {
     public int itemID;
     public String itemName;
     public EmacsContextMenu subMenu;
     public boolean isEnabled;
+
+    @Override
+    public boolean
+    onMenuItemClick (MenuItem item)
+    {
+      Log.d (TAG, "onMenuItemClick: " + itemName + " (" + itemID + ")");
+
+      /* Send a context menu event.  */
+      EmacsNative.sendContextMenu ((short) 0, itemID);
+
+      /* Say that an item has already been selected.  */
+      itemAlreadySelected = true;
+      return true;
+    }
   };
 
   public List<Item> menuItems;
@@ -137,6 +158,7 @@ public class EmacsContextMenu
 	else
 	  {
 	    menuItem = menu.add (item.itemName);
+	    menuItem.setOnMenuItemClickListener (item);
 
 	    /* If the item ID is zero, then disable the item.  */
 	    if (item.itemID == 0 || !item.isEnabled)
@@ -171,6 +193,10 @@ public class EmacsContextMenu
   private boolean
   display1 (EmacsWindow window, int xPosition, int yPosition)
   {
+    /* Set this flag to false.  It is used to decide whether or not to
+       send 0 in response to the context menu being closed.  */
+    itemAlreadySelected = false;
+
     return window.view.popupMenu (this, xPosition, yPosition);
   }
 
@@ -199,15 +225,39 @@ public class EmacsContextMenu
 	}
       };
 
-    try
+    synchronized (runnable)
       {
-	runnable.wait ();
-      }
-    catch (InterruptedException e)
-      {
-	EmacsNative.emacsAbort ();
+	EmacsService.SERVICE.runOnUiThread (runnable);
+
+	try
+	  {
+	    runnable.wait ();
+	  }
+	catch (InterruptedException e)
+	  {
+	    EmacsNative.emacsAbort ();
+	  }
       }
 
     return rc.thing;
+  }
+
+  /* Dismiss this context menu.  WINDOW is the window where the
+     context menu is being displayed.  */
+
+  public void
+  dismiss (final EmacsWindow window)
+  {
+    Runnable runnable;
+
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  window.view.cancelPopupMenu ();
+	  itemAlreadySelected = false;
+	}
+      });
   }
 };

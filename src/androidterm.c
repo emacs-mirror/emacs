@@ -1125,6 +1125,14 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       XSETFRAME (inev.ie.frame_or_window, any);
       goto OTHER;
 
+      /* Context menu handling.  */
+    case ANDROID_CONTEXT_MENU:
+
+      if (dpyinfo->menu_event_id == -1)
+	dpyinfo->menu_event_id = event->menu.menu_event_id;
+
+      goto OTHER;
+
     default:
       goto OTHER;
     }

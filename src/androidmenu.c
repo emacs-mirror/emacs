@@ -54,6 +54,7 @@ struct android_emacs_context_menu
   jmethodID add_pane;
   jmethodID parent;
   jmethodID display;
+  jmethodID dismiss;
 };
 
 /* Identifiers associated with the EmacsContextMenu class.  */
@@ -101,6 +102,7 @@ android_init_emacs_context_menu (void)
   FIND_METHOD (add_pane, "addPane", "(Ljava/lang/String;)V");
   FIND_METHOD (parent, "parent", "()Lorg/gnu/emacs/EmacsContextMenu;");
   FIND_METHOD (display, "display", "(Lorg/gnu/emacs/EmacsWindow;II)Z");
+  FIND_METHOD (dismiss, "dismiss", "(Lorg/gnu/emacs/EmacsWindow;)V");
 
 #undef FIND_METHOD
 #undef FIND_METHOD_STATIC
@@ -130,6 +132,62 @@ android_push_local_frame (void)
   record_unwind_protect_void (android_unwind_local_frame);
 }
 
+/* Data for android_dismiss_menu.  */
+
+struct android_dismiss_menu_data
+{
+  /* The menu object.  */
+  jobject menu;
+
+  /* The window object.  */
+  jobject window;
+};
+
+/* Cancel the context menu passed in POINTER.  Also, clear
+   popup_activated_flag.  */
+
+static void
+android_dismiss_menu (void *pointer)
+{
+  struct android_dismiss_menu_data *data;
+
+  data = pointer;
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       data->menu,
+				       menu_class.dismiss,
+				       data->window);
+  popup_activated_flag = 0;
+}
+
+/* Recursively process events until a ANDROID_CONTEXT_MENU event
+   arrives.  Then, return the item ID specified in the event in
+   *ID.  */
+
+static void
+android_process_events_for_menu (int *id)
+{
+  /* Set menu_event_id to -1; handle_one_android_event will set it to
+     the event ID upon receiving a context menu event.  This can cause
+     a non-local exit.  */
+  x_display_list->menu_event_id = -1;
+
+  /* Now wait for the menu event ID to change.  */
+  while (x_display_list->menu_event_id == -1)
+    {
+      /* Wait for events to become available.  */
+      android_wait_event ();
+
+      /* Process pending signals.  */
+      process_pending_signals ();
+
+      /* Maybe quit.  */
+      maybe_quit ();
+    }
+
+  /* Return the ID.  */
+  *id = x_display_list->menu_event_id;
+}
+
 Lisp_Object
 android_menu_show (struct frame *f, int x, int y, int menuflags,
 		   Lisp_Object title, const char **error_name)
@@ -140,11 +198,13 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   Lisp_Object pane_name, prefix;
   const char *pane_string;
   specpdl_ref count, count1;
-  Lisp_Object item_name, enable, def;
+  Lisp_Object item_name, enable, def, tem;
   jmethodID method;
   jobject store;
   bool rc;
   jobject window;
+  int id, item_id;
+  struct android_dismiss_menu_data data;
 
   count = SPECPDL_INDEX ();
 
@@ -266,6 +326,12 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	    ;
 	  else
 	    {
+	      /* Compute the item ID.  This is the index of value.
+		 Make sure it doesn't overflow.  */
+
+	      if (!INT_ADD_OK (0, i + MENU_ITEMS_ITEM_VALUE, &item_id))
+		memory_full (i + MENU_ITEMS_ITEM_VALUE * sizeof (Lisp_Object));
+
 	      /* Add this menu item with the appropriate state.  */
 
 	      title_string = (!NILP (item_name)
@@ -274,7 +340,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	      (*android_java_env)->CallVoidMethod (android_java_env,
 						   current_context_menu,
 						   menu_class.add_item,
-						   (jint) 1,
+						   (jint) item_id,
 						   title_string,
 						   (jboolean) !NILP (enable));
 	      android_exception_check ();
@@ -295,6 +361,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 				   ANDROID_HANDLE_WINDOW);
   rc = (*android_java_env)->CallBooleanMethod (android_java_env,
 					       context_menu,
+					       menu_class.display,
 					       window, (jint) x,
 					       (jint) y);
   android_exception_check ();
@@ -303,24 +370,53 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
     /* This means displaying the menu failed.  */
     goto finish;
 
-#if 0
-  record_unwind_protect_ptr (android_dismiss_menu, &context_menu);
+  /* Make sure the context menu is always dismissed.  */
+  data.menu = context_menu;
+  data.window = window;
+  record_unwind_protect_ptr (android_dismiss_menu, &data);
 
-  /* Otherwise, loop waiting for the menu event to arrive.  */
+  /* Next, process events waiting for something to be selected.  */
+  popup_activated_flag = 1;
+  unblock_input ();
   android_process_events_for_menu (&id);
+  block_input ();
 
   if (!id)
     /* This means no menu item was selected.  */
     goto finish;
 
-#endif
+  /* id is an index into menu_items.  Check that it remains
+     valid.  */
+  if (id >= ASIZE (menu_items))
+    goto finish;
+
+  /* Now return the menu item at that location.  */
+  tem = AREF (menu_items, id);
+  unblock_input ();
+  return unbind_to (count, tem);
 
  finish:
   unblock_input ();
   return unbind_to (count, Qnil);
 }
 
+#else
+
+int
+popup_activated (void)
+{
+  return 0;
+}
+
 #endif
+
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p,
+       Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* SKIP: real doc in xfns.c.  */)
+  (void)
+{
+  return (popup_activated ()) ? Qt : Qnil;
+}
 
 void
 init_androidmenu (void)
@@ -328,4 +424,10 @@ init_androidmenu (void)
 #ifndef ANDROID_STUBIFY
   android_init_emacs_context_menu ();
 #endif
+}
+
+void
+syms_of_androidmenu (void)
+{
+  defsubr (&Smenu_or_popup_active_p);
 }

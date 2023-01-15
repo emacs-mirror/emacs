@@ -233,6 +233,7 @@ enum android_event_type
     ANDROID_WHEEL,
     ANDROID_ICONIFIED,
     ANDROID_DEICONIFIED,
+    ANDROID_CONTEXT_MENU,
   };
 
 struct android_any_event
@@ -371,6 +372,18 @@ struct android_iconify_event
   android_window window;
 };
 
+struct android_menu_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* Window associated with the event.  Always None.  */
+  android_window window;
+
+  /* Menu event ID.  */
+  int menu_event_id;
+};
+
 union android_event
 {
   enum android_event_type type;
@@ -395,6 +408,9 @@ union android_event
   /* This has no parallel in X because Android doesn't have window
      properties.  */
   struct android_iconify_event iconified;
+
+  /* This is only used to transmit selected menu items.  */
+  struct android_menu_event menu;
 };
 
 enum

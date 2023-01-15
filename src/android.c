@@ -236,7 +236,7 @@ static sem_t android_pselect_sem, android_pselect_start_sem;
 static void *
 android_run_select_thread (void *data)
 {
-  sigset_t signals;
+  sigset_t signals, sigset;
   int rc;
 
   sigfillset (&signals);
@@ -259,7 +259,11 @@ android_run_select_thread (void *data)
 
       /* Make sure SIGUSR1 can always wake pselect up.  */
       if (android_pselect_sigset)
-	sigdelset (android_pselect_sigset, SIGUSR1);
+	{
+	  sigset = *android_pselect_sigset;
+	  sigdelset (&sigset, SIGUSR1);
+	  android_pselect_sigset = &sigset;
+	}
       else
 	android_pselect_sigset = &signals;
 
@@ -354,6 +358,23 @@ android_pending (void)
   pthread_mutex_unlock (&event_queue.mutex);
 
   return i;
+}
+
+/* Wait for events to become available synchronously.  Return once an
+   event arrives.  */
+
+void
+android_wait_event (void)
+{
+  pthread_mutex_lock (&event_queue.mutex);
+
+  /* Wait for events to appear if there are none available to
+     read.  */
+  if (!event_queue.num_events)
+    pthread_cond_wait (&event_queue.read_var,
+		       &event_queue.mutex);
+
+  pthread_mutex_unlock (&event_queue.mutex);
 }
 
 void
@@ -1472,6 +1493,8 @@ NATIVE_NAME (sendIconified) (JNIEnv *env, jobject object,
 
   event.iconified.type = ANDROID_ICONIFIED;
   event.iconified.window = window;
+
+  android_write_event (&event);
 }
 
 extern JNIEXPORT void JNICALL
@@ -1482,6 +1505,21 @@ NATIVE_NAME (sendDeiconified) (JNIEnv *env, jobject object,
 
   event.iconified.type = ANDROID_DEICONIFIED;
   event.iconified.window = window;
+
+  android_write_event (&event);
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
+			       jshort window, jint menu_event_id)
+{
+  union android_event event;
+
+  event.menu.type = ANDROID_CONTEXT_MENU;
+  event.menu.window = window;
+  event.menu.menu_event_id = menu_event_id;
+
+  android_write_event (&event);
 }
 
 #pragma clang diagnostic pop

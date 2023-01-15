@@ -89,6 +89,7 @@ extern jstring android_build_string (Lisp_Object);
 extern void android_exception_check (void);
 
 extern void android_get_keysym_name (int, char *, size_t);
+extern void android_wait_event (void);
 
 
 

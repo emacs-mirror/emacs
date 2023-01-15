@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
+import android.view.Menu;
 
 public class EmacsActivity extends Activity
   implements EmacsWindowAttachmentManager.WindowConsumer
@@ -226,5 +227,19 @@ public class EmacsActivity extends Activity
 
     EmacsWindowAttachmentManager.MANAGER.noticeDeiconified (this);
     super.onResume ();
+  }
+
+  @Override
+  public void
+  onContextMenuClosed (Menu menu)
+  {
+    Log.d (TAG, "onContextMenuClosed: " + menu);
+
+    /* Send a context menu event given that no menu item has already
+       been selected.  */
+    if (!EmacsContextMenu.itemAlreadySelected)
+      EmacsNative.sendContextMenu ((short) 0, 0);
+
+    super.onContextMenuClosed (menu);
   }
 };
