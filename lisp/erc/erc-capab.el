@@ -89,6 +89,7 @@ character not found in IRC nicknames to avoid confusion."
 ;;; Define module:
 
 ;;;###autoload(autoload 'erc-capab-identify-mode "erc-capab" nil t)
+(put 'capab-identify 'erc-group 'erc-capab)
 (define-erc-module capab-identify nil
   "Handle dancer-ircd's CAPAB IDENTIFY-MSG and IDENTIFY-CTCP."
   ;; append so that `erc-server-parameters' is already set by `erc-server-005'

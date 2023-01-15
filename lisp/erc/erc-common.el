@@ -118,6 +118,37 @@
              (setq ,mode ,val)
              ,@body)))))
 
+;; This is a migration helper that determines a module's `:group'
+;; keyword argument from its name or alias.  A (global) module's minor
+;; mode variable appears under the group's Custom menu.  Like
+;; `erc--normalize-module-symbol', it must run when the module's
+;; definition (rather than that of `define-erc-module') is expanded.
+;; For corner cases in which this fails or the catch-all of `erc' is
+;; more inappropriate, (global) modules can declare a top-level
+;;
+;;   (put 'foo 'erc-group 'erc-bar)
+;;
+;; where `erc-bar' is the group and `foo' is the normalized module.
+;; Do this *before* the module's definition.  If `define-erc-module'
+;; ever accepts arbitrary keywords, passing an explicit `:group' will
+;; obviously be preferable.
+
+(defun erc--find-group (&rest symbols)
+  (catch 'found
+    (dolist (s symbols)
+      (let* ((downed (downcase (symbol-name s)))
+             (known (intern-soft (concat "erc-" downed))))
+        (when (and known
+                   (or (get known 'group-documentation)
+                       (rassq known custom-current-group-alist)))
+          (throw 'found known))
+        (when (setq known (intern-soft (concat "erc-" downed "-mode")))
+          (when-let ((found (custom-group-of-mode known)))
+            (throw 'found found))))
+      (when-let ((found (get (erc--normalize-module-symbol s) 'erc-group)))
+        (throw 'found found)))
+    'erc))
+
 (defmacro define-erc-module (name alias doc enable-body disable-body
                                   &optional local-p)
   "Define a new minor mode using ERC conventions.
@@ -152,7 +183,6 @@ Example:
   (declare (doc-string 3) (indent defun))
   (let* ((sn (symbol-name name))
          (mode (intern (format "erc-%s-mode" (downcase sn))))
-         (group (intern (format "erc-%s" (downcase sn))))
          (enable (intern (format "erc-%s-enable" (downcase sn))))
          (disable (intern (format "erc-%s-disable" (downcase sn)))))
     `(progn
@@ -163,10 +193,8 @@ With a prefix argument ARG, enable %s if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 %s" name name doc)
-         ;; FIXME: We don't know if this group exists, so this `:group' may
-         ;; actually just silence a valid warning about the fact that the var
-         ;; is not associated with any group.
-         :global ,(not local-p) :group (quote ,group)
+         :global ,(not local-p)
+         :group (erc--find-group ',name ,(and alias (list 'quote alias)))
          (if ,mode
              (,enable)
            (,disable)))

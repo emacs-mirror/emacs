@@ -1353,6 +1353,39 @@
   ;; Default unchanged
   (should (equal (erc-migrate-modules erc-modules) erc-modules)))
 
+(ert-deftest erc--find-group ()
+  ;; These two are loaded by default
+  (should (eq (erc--find-group 'keep-place nil) 'erc))
+  (should (eq (erc--find-group 'networks nil) 'erc-networks))
+  ;; These are fake
+  (cl-letf (((get 'erc-bar 'group-documentation) "")
+            ((get 'baz 'erc-group) 'erc-foo))
+    (should (eq (erc--find-group 'foo 'bar) 'erc-bar))
+    (should (eq (erc--find-group 'bar 'foo) 'erc-bar))
+    (should (eq (erc--find-group 'bar nil) 'erc-bar))
+    (should (eq (erc--find-group 'foo nil) 'erc))
+    (should (eq (erc--find-group 'fake 'baz) 'erc-foo))))
+
+(ert-deftest erc--find-group--real ()
+  :tags '(:unstable)
+  (require 'erc-services)
+  (require 'erc-stamp)
+  (require 'erc-sound)
+  (require 'erc-page)
+  (require 'erc-join)
+  (require 'erc-capab)
+  (require 'erc-pcomplete)
+  (should (eq (erc--find-group 'services 'nickserv) 'erc-services))
+  (should (eq (erc--find-group 'stamp 'timestamp) 'erc-stamp))
+  (should (eq (erc--find-group 'sound 'ctcp-sound) 'erc-sound))
+  (should (eq (erc--find-group 'page 'ctcp-page) 'erc-page))
+  (should (eq (erc--find-group 'autojoin) 'erc-autojoin))
+  (should (eq (erc--find-group 'pcomplete 'Completion) 'erc-pcomplete))
+  (should (eq (erc--find-group 'capab-identify) 'erc-capab))
+  ;; No group specified.
+  (should (eq (erc--find-group 'smiley nil) 'erc))
+  (should (eq (erc--find-group 'unmorse nil) 'erc)))
+
 (ert-deftest erc--update-modules ()
   (let (calls
         erc-modules
@@ -1453,7 +1486,7 @@ and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 Some docstring"
                         :global t
-                        :group 'erc-mname
+                        :group (erc--find-group 'mname 'malias)
                         (if erc-mname-mode
                             (erc-mname-enable)
                           (erc-mname-disable)))
@@ -1499,7 +1532,7 @@ and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 Some docstring"
                         :global nil
-                        :group 'erc-mname
+                        :group (erc--find-group 'mname nil)
                         (if erc-mname-mode
                             (erc-mname-enable)
                           (erc-mname-disable)))
