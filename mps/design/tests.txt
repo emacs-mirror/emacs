@@ -278,6 +278,9 @@ Continuous integration
 
 _`.ci`: The MPS uses the following systems for continuous integration:
 
+.. FIXME: Update to be consistent with .travis.tml and
+   .github/workflows/build-and-test.yml.
+
 _`.ci.travis`: The commercial Travis_ continuous integration service
 runs ``./configure && make install && make test`` (which exercises the
 ``testci`` target for platforms lii6gc, lii6ll, xci6ll, and

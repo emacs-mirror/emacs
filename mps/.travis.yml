@@ -1,4 +1,7 @@
 # .travis.yml -- Travis CI configuration for the MPS
+#
+# See design.mps.test.ci.travis.  [FIXME: Currently out of date! RB 2023-01-15]
+#
 # $Id$
 
 # Some branches don't need builds.  Add them here to avoid using build
