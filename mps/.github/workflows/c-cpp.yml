@@ -9,6 +9,9 @@ name: C/C++ CI
 on:
   - push
   - pull_request
+  # Also run when triggered manually
+  # <https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow>
+  - workflow_dispatch
 
 jobs:
   build-posix:
