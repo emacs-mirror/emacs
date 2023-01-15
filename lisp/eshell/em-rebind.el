@@ -50,9 +50,7 @@ the behavior of normal shells while the user editing new input text."
   :group 'eshell-rebind)
 
 (defcustom eshell-rebind-keys-alist
-  '(([(control ?a)] . eshell-bol)
-    ([home]         . eshell-bol)
-    ([(control ?d)] . eshell-delchar-or-maybe-eof)
+  '(([(control ?d)] . eshell-delchar-or-maybe-eof)
     ([backspace]    . eshell-delete-backward-char)
     ([delete]       . eshell-delete-backward-char)
     ([(control ?w)] . backward-kill-word)
@@ -190,7 +188,7 @@ lock it at that."
 	(and eshell-remap-previous-input
 	     (setq begin
 		   (save-excursion
-		     (eshell-bol)
+		     (beginning-of-line)
 		     (and (not (bolp)) (point))))
 	     (>= pos begin)
 	     (<= pos (line-end-position))

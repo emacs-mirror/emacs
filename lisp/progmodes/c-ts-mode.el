@@ -122,11 +122,13 @@ MODE is either `c' or `cpp'."
            ((node-is "else") parent-bol 0)
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
+           ;; `c-ts-mode--looking-at-star' has to come before
+           ;; `c-ts-mode--comment-2nd-line-matcher'.
+           ((and (parent-is "comment") c-ts-mode--looking-at-star)
+            c-ts-mode--comment-start-after-first-star -1)
            (c-ts-mode--comment-2nd-line-matcher
             c-ts-mode--comment-2nd-line-anchor
             1)
-           ((and (parent-is "comment") c-ts-mode--looking-at-star)
-            c-ts-mode--comment-start-after-first-star -1)
            ((parent-is "comment") prev-adaptive-prefix 0)
            (c-ts-mode--top-level-label-matcher point-min 1)
            ((node-is "labeled_statement") parent-bol 0)
@@ -724,7 +726,10 @@ ARG is passed to `fill-paragraph'."
           ;; Let `fill-paragraph' do its thing.
           (goto-char orig-point)
           (narrow-to-region start end)
-          (funcall #'fill-paragraph arg)
+          ;; We don't want to fill the region between START and
+          ;; START-MARKER, otherwise the filling function might delete
+          ;; some spaces there.
+          (fill-region start-marker end arg)
           ;; Unmask.
           (when start-marker
             (goto-char start-marker)

@@ -1431,7 +1431,7 @@ encode_coding_utf_8 (struct coding_system *coding)
   ptrdiff_t produced_chars = 0;
   int c;
 
-  if (CODING_UTF_8_BOM (coding) == utf_with_bom)
+  if (CODING_UTF_8_BOM (coding) != utf_without_bom)
     {
       ASSURE_DESTINATION (3);
       EMIT_THREE_BYTES (UTF_8_BOM_1, UTF_8_BOM_2, UTF_8_BOM_3);

@@ -2959,7 +2959,8 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
       if (w == XWINDOW (f->selected_window))
 	{
 	  int frame_x = (WINDOW_TO_FRAME_PIXEL_X (w, x)
-			 + WINDOW_LEFT_FRINGE_WIDTH (w));
+			 + WINDOW_LEFT_FRINGE_WIDTH (w)
+			 + WINDOW_LEFT_MARGIN_WIDTH (w));
 	  int frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, y);
 	  pgtk_im_set_cursor_location (f, frame_x, frame_y,
 				       w->phys_cursor_width,

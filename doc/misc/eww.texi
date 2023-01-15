@@ -92,9 +92,10 @@ searched via @code{eww-search-prefix}.  The default search engine is
 either prefix the file name with @code{file://} or use the command
 @kbd{M-x eww-open-file}.
 
-  If you invoke @code{eww} with a prefix argument, as in @w{@kbd{C-u
-M-x eww}}, it will create a new EWW buffer instead of reusing the
-default one, which is normally called @file{*eww*}.
+  If you invoke @code{eww} or @code{eww-open-file} with a prefix
+argument, as in @w{@kbd{C-u M-x eww}}, they will create a new EWW
+buffer instead of reusing the default one, which is normally called
+@file{*eww*}.
 
 @findex eww-quit
 @findex eww-reload

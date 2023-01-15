@@ -117,14 +117,14 @@
   (with-temp-eshell
    (eshell-insert-command "echo $(+ 1 (- 4 3)) \"alpha beta\" file" 'ignore)
    (let ((here (point)) begin valid)
-     (eshell-bol)
+     (beginning-of-line)
      (setq begin (point))
      (eshell-forward-argument 4)
      (setq valid (= here (point)))
      (eshell-backward-argument 4)
      (prog1
          (and valid (= begin (point)))
-       (eshell-bol)
+       (beginning-of-line)
        (delete-region (point) (point-max))))))
 
 (ert-deftest eshell-test/queue-input ()
@@ -148,12 +148,17 @@ insert the queued one at the next prompt, and finally run it."
    (should (eshell-match-output
             (concat "^" (regexp-quote "*** output flushed ***\n") "$")))))
 
-(ert-deftest eshell-test/run-old-command ()
-  "Re-run an old command"
+(ert-deftest eshell-test/get-old-input ()
+  "Test that we can get the input of a previous command."
   (with-temp-eshell
    (eshell-insert-command "echo alpha")
    (goto-char eshell-last-input-start)
-   (string= (eshell-get-old-input) "echo alpha")))
+   (should (string= (eshell-get-old-input) "echo alpha"))
+   ;; Make sure that `eshell-get-old-input' works even if the point is
+   ;; inside the prompt.
+   (let ((inhibit-field-text-motion t))
+     (beginning-of-line))
+   (should (string= (eshell-get-old-input) "echo alpha"))))
 
 (provide 'eshell-tests)
 

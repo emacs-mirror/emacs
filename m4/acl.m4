@@ -1,5 +1,5 @@
 # acl.m4 - check for access control list (ACL) primitives
-# serial 26
+# serial 27
 
 # Copyright (C) 2002, 2004-2023 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
@@ -17,7 +17,7 @@ AC_DEFUN([gl_FUNC_ACL_ARG],
 ])
 
 
-AC_DEFUN([gl_FUNC_ACL],
+AC_DEFUN_ONCE([gl_FUNC_ACL],
 [
   AC_REQUIRE([gl_FUNC_ACL_ARG])
   AC_CHECK_FUNCS_ONCE([fchmod])

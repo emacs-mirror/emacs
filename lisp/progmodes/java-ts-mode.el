@@ -78,6 +78,7 @@
      ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "text_block") no-indent)
      ((parent-is "class_body") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "annotation_type_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "interface_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "constructor_body") parent-bol java-ts-mode-indent-offset)
      ((parent-is "enum_body") parent-bol java-ts-mode-indent-offset)
@@ -85,6 +86,10 @@
      ((parent-is "record_declaration_body") parent-bol java-ts-mode-indent-offset)
      ((query "(method_declaration (block _ @indent))") parent-bol java-ts-mode-indent-offset)
      ((query "(method_declaration (block (_) @indent))") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "local_variable_declaration") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "expression_statement") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "field_declaration") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "return_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "variable_declarator") parent-bol java-ts-mode-indent-offset)
      ((parent-is "method_invocation") parent-bol java-ts-mode-indent-offset)
      ((parent-is "switch_rule") parent-bol java-ts-mode-indent-offset)
@@ -221,7 +226,10 @@
    :language 'java
    :override t
    :feature 'definition
-   `((method_declaration
+   `((annotation_type_element_declaration
+      name: (identifier) @font-lock-function-name-face)
+
+     (method_declaration
       name: (identifier) @font-lock-function-name-face)
 
      (variable_declarator
@@ -310,6 +318,14 @@ Return nil if there is no name or if NODE is not a defun node."
                             "package_declaration"
                             "module_declaration")))
   (setq-local treesit-defun-name-function #'java-ts-mode--defun-name)
+
+  (setq-local treesit-sentence-type-regexp
+              (regexp-opt '("statement"
+                            "local_variable_declaration"
+                            "field_declaration"
+                            "module_declaration"
+                            "package_declaration"
+                            "import_declaration")))
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)

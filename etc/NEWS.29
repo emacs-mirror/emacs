@@ -1636,6 +1636,20 @@ randomness as before, or to use a bag).
 *** New user option 'battery-update-functions'.
 This can be used to trigger actions based on the battery status.
 
+** DocView
+
+---
+*** doc-view can now generate SVG images when viewing PDF files.
+If Emacs is built with SVG support, doc-view can generate SVG files
+when using MuPDF as the converter for PDF files, which generally leads
+to sharper images (especially when zooming), and allows customization
+of background and foreground color of the page via the new user
+options 'doc-view-svg-background' and 'doc-view-svg-foreground'.  To
+activate this behavior, set 'doc-view-mupdf-use-svg' to non-nil if
+your Emacs has SVG support.  Note that, with some versions of MuPDF,
+SVG generation is known to sometimes produce SVG files that are buggy
+or can take a long time to render.
+
 ** Enriched Mode
 
 +++
@@ -4321,15 +4335,21 @@ whose matches are to be replaced.  If these variables are nil (which
 is the default), 'query-replace' and 'query-replace-regexp' take the
 default value from the previous FROM-TO pair.
 
----
-** New user option 'pp-use-max-width'.
-If non-nil, 'pp' will attempt to limit the line length when formatting
-long lists and vectors.
+** Lisp pretty-printer ('pp')
 
 ---
-** New function 'pp-emacs-lisp-code'.
+*** New function 'pp-emacs-lisp-code'.
 'pp' formats general Lisp sexps.  This function does much the same,
-but applies formatting rules appropriate for Emacs Lisp code.
+but applies formatting rules appropriate for Emacs Lisp code.  Note
+that this could currently be quite slow, and is thus appropriate only
+for relatively small code fragments.
+
+---
+*** New user option 'pp-use-max-width'.
+If non-nil, 'pp' and all 'pp-*' commands that format the results, will
+attempt to limit the line length when formatting long lists and
+vectors.  This uses 'pp-emacs-lisp-code', and thus could be slow for
+large lists.
 
 +++
 ** New function 'file-has-changed-p'.

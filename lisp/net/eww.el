@@ -488,14 +488,17 @@ For more information, see Info node `(eww) Top'."
 ;;;###autoload (defalias 'browse-web 'eww)
 
 ;;;###autoload
-(defun eww-open-file (file)
-  "Render FILE using EWW."
-  (interactive "fFile: ")
+(defun eww-open-file (file &optional new-buffer)
+  "Render FILE using EWW.
+If NEW-BUFFER is non-nil (interactively, the prefix arg), use a
+new buffer instead of reusing the default EWW buffer."
+  (interactive "fFile: \nP")
   (let ((url-allow-non-local-files t))
     (eww (concat "file://"
 	         (and (memq system-type '(windows-nt ms-dos))
 		      "/")
-	         (expand-file-name file)))))
+	         (expand-file-name file))
+         new-buffer)))
 
 (defun eww--file-buffer (file)
   (with-current-buffer (generate-new-buffer " *eww file*")
