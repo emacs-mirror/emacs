@@ -2228,8 +2228,8 @@ are available:
          This includes commands marked as specific to the current
          buffer's modes and commands that have keybindings in the
          current buffer's active local keymaps.  It also includes
-         several commands, like Cuztomize commands, which should
-         always be avaliable."
+         several commands, like Customize commands, which should
+         always be available."
   :version "28.1"
   :group 'completion
   :type '(choice (const :tag "Don't exclude any commands" nil)
