@@ -1,0 +1,117 @@
+#!/bin/sh
+# tool/github-ci-kick -- kick off a build at GitHub CI
+# Richard Brooksby, Ravenbrook Limited, 2023-01-15
+#
+# Copyright (c) 2023 Ravenbrook Limited. See end of file for license.
+#
+# This shell script uses the GitHub REST API to kick off a build on
+# the GitHub CI servers [GITHUB].  The build will be run using the
+# GitHub CI configuration at the commit (in
+# .github/workflows/c-cpp.yml).
+#
+# See also tool/travis-ci-kick.
+#
+# You can achieve the same thing using the GitHub CLI, if you have
+# that installed
+# <https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow#running-a-workflow-using-github-cli>.
+# This script is intended to help with automation and so avoids
+# depending on that.  [There's a hidden policy implied here.  RB
+# 2023-01-15]
+#
+# To get a token for this script for the Ravenbrook MPS repo at
+# GitHub, first see
+# <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-fine-grained-personal-access-token>
+# but overlay these details:
+#
+# 1. In "Resource owner" choose "Ravenbrook".  You must be a member of
+#    the GitHub Ravenbrook organisation.
+#
+# 2. In "Repository access" choose "Only select repositories" and the
+#    "Ravenbrook/mps" repository.
+#
+# 3. In "Permissions" expand "Repository permissions" and under
+#    "Actions" choose "Read-only".
+#
+# NOTE: This script could use the GitHub CLI, but that would require
+# it to be installed by the user.
+#
+# TODO: Convert to Python for use from Windows?
+#
+# TODO: Make -t optional by getting AUTH-TOKEN from somewhere (secure).
+
+set -e # exit on error
+
+# defaults
+branch="master"
+org="Ravenbrook"
+repo="mps"
+
+usage() {
+    echo 1>&2 "Usage: ${0} [-o ORG] [-r REPO] [-b BRANCH] -t AUTH-TOKEN"
+    exit 1
+}    
+
+while getopts c:b:r:t: flag; do
+    case "${flag}" in
+	b) branch="${OPTARG}";;
+	o) org="${OPTARG}";;
+	r) repo="${OPTARG}";;
+	t) auth="${OPTARG}";;
+	*) usage;;
+    esac
+done
+
+test -z "${auth}" && usage
+
+curl --silent --show-error \
+  --request POST --data @- \
+  --header "Accept: application/vnd.github+json" \
+  --header "Authorization: Bearer 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"\
+  --header "X-GitHub-Api-Version: 2022-11-28" \
+  "https://api.github.com/repos/${org}/${repo}/actions/workflows/c-cpp.yml/dispatches" \
+  <<-EOF
+{
+  "ref": "${branch}"
+}
+EOF
+
+
+# A. REFERENCES
+#
+# [GitHub] "Create a workflow dispatch event"; <https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event>.
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2023-01-15 RB Created.
+#
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$
