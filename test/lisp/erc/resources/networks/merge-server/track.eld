@@ -21,7 +21,7 @@
  (0.00 ":irc.example.net 376 tester :End of message of the day."))
 
 ((mode 10 "MODE tester +i")
- (0.00 ":irc.example.net 501 tester x :is not a recognised user mode.")
+ (0.00 ":irc.example.net 501 tester x :is not a recognized user mode.")
  (0.00 ":NickServ!NickServ@services.int NOTICE tester :Welcome to FooNet, tester! Here on FooNet, we provide services to enable the registration of nicknames and channels! For details, type \2/msg NickServ help\2 and \2/msg ChanServ help\2.")
  (0.02 ":tester!user@10.0.2.100 MODE tester :+i"))
 

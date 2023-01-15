@@ -10010,7 +10010,7 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 
       if (/* first_unbound < indec.start && first_unbound < fkey.start && */
 	  first_unbound < keytran.start)
-	{ /* The prefix upto first_unbound has no binding and has
+	{ /* The prefix up to first_unbound has no binding and has
 	     no translation left to do either, so we know it's unbound.
 	     If we don't stop now, we risk staying here indefinitely
 	     (if the user keeps entering fkey or keytran prefixes

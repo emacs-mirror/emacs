@@ -2228,8 +2228,8 @@ are available:
          This includes commands marked as specific to the current
          buffer's modes and commands that have keybindings in the
          current buffer's active local keymaps.  It also includes
-         several commands, like Cuztomize commands, which should
-         always be avaliable."
+         several commands, like Customize commands, which should
+         always be available."
   :version "28.1"
   :group 'completion
   :type '(choice (const :tag "Don't exclude any commands" nil)
@@ -9741,7 +9741,11 @@ the completions is popped up and down."
   "Move to the first item in the completion list."
   (interactive)
   (goto-char (point-min))
-  (unless (get-text-property (point) 'mouse-face)
+  (if (get-text-property (point) 'mouse-face)
+      (unless (get-text-property (point) 'first-completion)
+        (let ((inhibit-read-only t))
+          (add-text-properties (point) (min (1+ (point)) (point-max))
+                               '(first-completion t))))
     (when-let ((pos (next-single-property-change (point) 'mouse-face)))
       (goto-char pos))))
 
