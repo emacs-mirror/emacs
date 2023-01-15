@@ -130,7 +130,6 @@ MODE is either `c' or `cpp'."
             c-ts-mode--comment-2nd-line-anchor
             1)
            ((parent-is "comment") prev-adaptive-prefix 0)
-           (c-ts-mode--top-level-label-matcher point-min 1)
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
            ((match "preproc_ifdef" "compound_statement") point-min 0)
@@ -174,6 +173,7 @@ MODE is either `c' or `cpp'."
     `((gnu
        ;; Prepend rules to set highest priority
        ((match "while" "do_statement") parent 0)
+       (c-ts-mode--top-level-label-matcher point-min 1)
        ,@common)
       (k&r ,@common)
       (linux
