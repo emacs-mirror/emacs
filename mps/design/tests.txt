@@ -315,13 +315,17 @@ _`.ci.run.other.targets`: On some platforms we arrange to run the testansi,
 testpollnone, testratio, and testscheme targets.  [Need to explain
 why, where, etc.  RB 2023-01-15]
 
-_`.ci.run.other.checks`: We also run various non-build checks using CI
-to check:
+_`.ci.run.other.checks`: We could also run various non-build checks
+using CI to check:
 
 - document formatting
 - shell script syntax
 
-[Links needed, at least.  RB 2023-01-15]
+[In the branch of writing, these do not yet exist.  They are the
+subject of `GitHub pull request #113
+<https://github.com/Ravenbrook/mps/pull/112>`_ of
+branch/2023-01-13/rst-check.  When merged, they can be linked.  RB
+2023-01-15]
 
 _`.ci.when:`: CI is triggered on the `mps GitHub repo`_ by:
 
