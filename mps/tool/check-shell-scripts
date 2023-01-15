@@ -1,5 +1,5 @@
 #!/bin/sh
-# tool/checkshellscripts -- check shell scripts in the MPS
+# tool/check-shell-scripts -- check shell scripts in the MPS
 #
 # Copyright (c) 2023 Ravenbrook Limited. See end of file for license.
 #
