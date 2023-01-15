@@ -31,7 +31,23 @@ jobs:
     - name: make test
       run: make test
 
-  build-windows:
+  # Both GCC and Clang are available on GitHub's runner
+  # <https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md>
+  # and the autoconf configure script prefers GCC, so we must build
+  # LI*LL explicitly.
+  # TODO: Might be better using <https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations>.
+
+  LII6LL:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: make
+      run: make -C code -f lii6ll.gmk
+    - name: make test
+      # TODO: List of tests copied from Makefile.in.  Deduplicate!
+      run: make -C code -f lii6ll.gmk testci testratio testscheme
+
+  W3I6MV:
 
     runs-on: windows-latest
 
