@@ -118,7 +118,6 @@ MODE is either `c' or `cpp'."
          `(((parent-is "translation_unit") parent-bol 0)
            ((node-is ")") parent 1)
            ((node-is "]") parent-bol 0)
-           ((node-is "}") c-ts-mode--bracket-children-anchor 0)
            ((node-is "else") parent-bol 0)
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
@@ -138,8 +137,16 @@ MODE is either `c' or `cpp'."
            ((match "#endif" "preproc_if") point-min 0)
            ((match "preproc_function_def" "compound_statement") point-min 0)
            ((match "preproc_call" "compound_statement") point-min 0)
+
+           ;; {} blocks.
+           ((node-is "}") point-min c-ts-mode--close-bracket-offset)
            ((parent-is "compound_statement")
-            c-ts-mode--bracket-children-anchor c-ts-mode-indent-offset)
+            point-min c-ts-mode--statement-offset)
+           ((parent-is "enumerator_list")
+            point-min c-ts-mode--statement-offset)
+           ((parent-is "field_declaration_list")
+            point-min c-ts-mode--statement-offset)
+
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "conditional_expression") first-sibling 0)
            ((parent-is "assignment_expression") parent-bol c-ts-mode-indent-offset)
@@ -155,12 +162,11 @@ MODE is either `c' or `cpp'."
            ((query "(for_statement update: (_) @indent)") parent-bol 5)
            ((query "(call_expression arguments: (_) @indent)") parent c-ts-mode-indent-offset)
            ((parent-is "call_expression") parent 0)
-           ((parent-is "enumerator_list") parent-bol c-ts-mode-indent-offset)
            ,@(when (eq mode 'cpp)
                '(((node-is "access_specifier") parent-bol 0)
                  ;; Indent the body of namespace definitions.
                  ((parent-is "declaration_list") parent-bol c-ts-mode-indent-offset)))
-           ((parent-is "field_declaration_list") parent-bol c-ts-mode-indent-offset)
+
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
            ((parent-is "if_statement") parent-bol c-ts-mode-indent-offset)
            ((parent-is "for_statement") parent-bol c-ts-mode-indent-offset)
@@ -215,20 +221,50 @@ NODE should be a labeled_statement."
                 "labeled_statement")
          (not (treesit-node-top-level func "function_definition")))))
 
-(defun c-ts-mode--bracket-children-anchor (_n parent &rest _)
-  "This anchor is used for children of a compound_statement.
-So anything inside a {} block.  PARENT should be the
-compound_statement.  This anchor looks at the {, if itson its own
-line, anchor at it, if it has stuff before it, anchor at the
-beginning of grandparent."
-  (save-excursion
-    (goto-char (treesit-node-start parent))
-    (let ((bol (line-beginning-position)))
-      (skip-chars-backward " \t")
-      (treesit-node-start
-       (if (< bol (point))
-           (treesit-node-parent parent)
-         parent)))))
+(defvar c-ts-mode-indent-block-type-regexp
+  (rx (or "compound_statement"
+          "field_declaration_list"
+          "enumeratior_list"))
+  "Regexp matching types of block nodes (i.e., {} blocks).")
+
+(defun c-ts-mode--statement-offset (node parent &rest _)
+  "This anchor is used for children of a statement inside a block.
+
+This function basically counts the number of block nodes (defined
+by `c-ts-mode--indent-block-type-regexp') between NODE and the
+root node (not counting NODE itself), and multiply that by
+`c-ts-mode-indent-offset'.
+
+To support GNU style, on each block level, this function also
+checks whether the opening bracket { is on its own line, if so,
+it adds an extra level, except for the top-level.
+
+PARENT is NODE's parent."
+  (let ((level 0))
+    ;; If point is on an empty line, NODE would be nil, but we pretend
+    ;; there is a statement node.
+    (when (null node)
+      (setq node t))
+    (while (if (eq node t)
+               (setq node parent)
+             (setq node (treesit-node-parent node)))
+      (when (string-match-p c-ts-mode-indent-block-type-regexp
+                            (treesit-node-type node))
+        (cl-incf level)
+        (save-excursion
+          (goto-char (treesit-node-start node))
+          (cond ((bolp) nil)
+                ((looking-back (rx bol (* whitespace))
+                               (line-beginning-position))
+                 (cl-incf level))))))
+    (* level c-ts-mode-indent-offset)))
+
+(defun c-ts-mode--close-bracket-offset (node parent &rest _)
+  "Offset for the closing bracket, NODE.
+It's basically one level less that the statements in the block.
+PARENT is NODE's parent."
+  (- (c-ts-mode--statement-offset node parent)
+     c-ts-mode-indent-offset))
 
 (defun c-ts-mode--looking-at-star (_n _p bol &rest _)
   "A tree-sitter simple indent matcher.
