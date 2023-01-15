@@ -3,6 +3,10 @@
 # GitHub CI <https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration>
 #
 # Adapted from <https://github.com/actions/starter-workflows/blob/9f245d9aba830ad16a097a45c78331a05114d815/ci/c-cpp.yml>
+#
+# TODO: Exclude certain branches.
+#
+# TODO: Regular builds of version branches.  See <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onschedule>.
 
 name: build and test
 
@@ -19,6 +23,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+        include:
+          - env:
+              CC: gcc
+          - env:
+              CC: clang
+        exclude:
+          - os: macos-latest
+            env:
+              CC: gcc
 
     runs-on: ${{ matrix.os }}
 
