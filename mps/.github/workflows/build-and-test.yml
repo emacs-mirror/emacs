@@ -19,12 +19,15 @@ on:
 
 jobs:
 
-  build-posix:
+  posix:
 
     # See <https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#using-a-matrix-strategy>.
     strategy:
       matrix:
+        # FreeBSD is built using Travis CI.  See .travis.yml.
         os: [ubuntu-latest, macos-latest]
+        # GitHub runners are only available on x86_64.
+        # arm64 is built using Travis CI.  See .travis.yml.
         compiler: [clang, gcc]
         exclude:
           - os: macos-latest
@@ -34,22 +37,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: configure
-      run: CC=${{ matrix.compiler }} ./configure
-    - name: make
-      run: make
-    - name: make test
-      run: make test
+    - run: CC=${{ matrix.compiler }} ./configure
+    - run: make
+    - run: make test
 
-  build-windows:
+  windows:
 
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: make
-      # Using path to Visual Studio documented at <https://github.com/actions/runner-images/blob/e6fcf60b8e6c0f80a065327eaefe836881c28b68/images/win/Windows2022-Readme.md?plain=1#L215>.
-      run: |
+    # Using path to Visual Studio documented at <https://github.com/actions/runner-images/blob/e6fcf60b8e6c0f80a065327eaefe836881c28b68/images/win/Windows2022-Readme.md?plain=1#L215>.
+    - run: |
          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
          cd code
          nmake /f w3i6mv.nmk all testci testansi testpollnone
