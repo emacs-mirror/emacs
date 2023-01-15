@@ -294,7 +294,7 @@ services run commands equivalent to::
   make install
   make test
 
-which execises the testci target.  This is defined by `Makefile.in
+which execises the testci target, as defined by `Makefile.in
 <../Makefile.in>`_ in the root of the MPS tree.
 
 _`.ci.run.windows`: On Windows the CI services run commands that do at
@@ -302,7 +302,7 @@ least::
 
   make /f w3i6mv.nmk all testci
 
-This is defined by `.ci.github.config`_.
+as defined by the `.ci.github.config`_.
 
 _`.ci.run.other.targets`: On some platforms we arrange to run the testansi,
 testpollnone, testratio, and testscheme targets.  [Need to explain
@@ -335,7 +335,7 @@ as well as in logs specific to the type of CI.
 
 _`.ci.results.travis`: Results from Travis CI can be found at the
 `Travis CI build history for the MPS GitHub repo
-<https://travis-ci.com/Ravenbrook/mps>`_.
+<https://app.travis-ci.com/github/Ravenbrook/mps/builds>`_.
 
 _`.ci.results.github`: Results from GitHub CI can be found at `build
 and test actions on the Actions tab at the Ravenbrook GitHub repo
@@ -357,8 +357,8 @@ _`.ci.travis`: [Insert overview of Travis CI here.  RB 2023-01-15]
 
 _`.ci.travis.platforms`: Where possible, we use `GitHub CI`_ for
 platforms, because `Travis CI is slow and expensive`_.  However
-`GitHub CI`_ is an x86_64 monoculture, and does not provide FreeBSD,
-so we use `Travis CI`_ for those.
+`GitHub CI`_ does not provide ARM64 or FreeBSD, so we use `Travis CI`_
+for those.
 
 .. _Travis CI is slow and expensive: https://github.com/Ravenbrook/mps/issues/109
 
@@ -369,11 +369,11 @@ _`.ci.tools`: The MPS tree contains some simple tools for managing CI
 without the need to install whole packages such as the GitHub CLI or
 Travis CI's Ruby gem.
 
-_`.ci.tools.kick`: tool/github-ci-kick and tool/travis-ci-kick both
-trigger CI builds without the need to push a change or make a pull
-request in the `mps GitHub repo`_.  In particular, they are useful for
-applying CI to work that was pushed while CI was disabled, for
-whatever reason.
+_`.ci.tools.kick`: `tool/github-ci-kick <../tool/github-ci-kick>`_ and
+`tool/travis-ci-kick <../tool/travis-ci-kick>`_ both trigger CI builds
+without the need to push a change or make a pull request in the `mps
+GitHub repo`_.  In particular, they are useful for applying CI to work
+that was pushed while CI was disabled, for whatever reason.
 
 
 MMQA tests
