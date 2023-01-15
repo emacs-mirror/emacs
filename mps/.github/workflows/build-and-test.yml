@@ -1,6 +1,6 @@
 # .github/workflows/build-and-test.yml -- GitHub CI build and test configuration for the MPS
 #
-# See design.mps.test.ci.github.  [FIXME: Not yet written! RB 2023-01-15]
+# See design.mps.test.ci.github.
 #
 # [GitHub CI] "About continuous integration"; <https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration>.
 #
