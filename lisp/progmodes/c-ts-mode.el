@@ -294,14 +294,15 @@ PARENT should be a comment node."
          (back-to-indentation)
          (eq (point) (treesit-node-start parent)))))
 
-(defun c-ts-mode--comment-2nd-line-anchor (&rest _)
+(defun c-ts-mode--comment-2nd-line-anchor (_n _p bol &rest _)
   "Return appropriate anchor for the second line of a comment.
 
 If the first line is /* alone, return the position right after
 the star; if the first line is /* followed by some text, return
 the position right before the text minus 1.
 
-Use an offset of 1 with this anchor."
+Use an offset of 1 with this anchor.  BOL is the beginning of
+non-whitespace characters of the current line."
   (save-excursion
     (forward-line -1)
     (back-to-indentation)
@@ -310,8 +311,17 @@ Use an offset of 1 with this anchor."
       (if (looking-at (rx (* (or " " "\t")) eol))
           ;; Only /* at the first line.
           (progn (skip-chars-backward " \t")
-                 (point))
-        ;; There is something after /* at the first line.
+                 (if (save-excursion
+                       (goto-char bol)
+                       (looking-at (rx "*")))
+                     ;; The common case.  Checked by "Multiline Block
+                     ;; Comments 4".
+                     (point)
+                   ;; The "Multiline Block Comments 2" test in
+                   ;; c-ts-mode-resources/indent.erts checks this.
+                   (1- (point))))
+        ;; There is something after /* at the first line.  The
+        ;; "Multiline Block Comments 3" test checks this.
         (1- (point))))))
 
 ;;; Font-lock
