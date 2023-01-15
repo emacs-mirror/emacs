@@ -1476,7 +1476,10 @@
                           ((ignore a) (ignore b))
                           ((ignore c) (ignore d)))))
 
-    (should (equal (macroexpand global-module)
+    (should (equal (cl-letf (((symbol-function
+                               'erc--prepare-custom-module-type)
+                              #'symbol-name))
+                     (macroexpand global-module))
                    `(progn
 
                       (define-minor-mode erc-mname-mode
@@ -1487,6 +1490,8 @@ if ARG is omitted or nil.
 Some docstring"
                         :global t
                         :group (erc--find-group 'mname 'malias)
+                        :get #'erc--neuter-custom-variable-state
+                        :type "mname"
                         (if erc-mname-mode
                             (erc-mname-enable)
                           (erc-mname-disable)))
@@ -1494,14 +1499,22 @@ Some docstring"
                       (defun erc-mname-enable ()
                         "Enable ERC mname mode."
                         (interactive)
-                        (cl-pushnew 'mname erc-modules)
+                        (unless (or erc--inside-mode-toggle-p
+                                    (memq 'mname erc-modules))
+                          (let ((erc--inside-mode-toggle-p t))
+                            (erc--favor-changed-reverted-modules-state
+                             'mname #'cons)))
                         (setq erc-mname-mode t)
                         (ignore a) (ignore b))
 
                       (defun erc-mname-disable ()
                         "Disable ERC mname mode."
                         (interactive)
-                        (setq erc-modules (delq 'mname erc-modules))
+                        (unless (or erc--inside-mode-toggle-p
+                                    (not (memq 'mname erc-modules)))
+                          (let ((erc--inside-mode-toggle-p t))
+                            (erc--favor-changed-reverted-modules-state
+                             'mname #'delq)))
                         (setq erc-mname-mode nil)
                         (ignore c) (ignore d))
 
