@@ -12,11 +12,11 @@ on:
   - pull_request
 
 jobs:
-  checkshellscripts:
+  check-shell-scripts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Install shellcheck
         run: sudo apt-get install -y shellcheck
       - name: Check shell scripts
-        run: tool/checkshellscripts
+        run: tool/check-shell-scripts
