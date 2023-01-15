@@ -1079,10 +1079,11 @@ or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
 search for matches for any two (or more) of those words.
 
-Note that by default this command only searches in the file specified by
-`internal-doc-file-name'; i.e., the etc/DOC file.  With \\[universal-argument] prefix,
-or if `apropos-do-all' is non-nil, it searches all currently defined
-documentation strings.
+Note that by default this command only searches in the functions predefined
+at Emacs startup, i.e., the primitives implemented in C or preloaded in the
+Emacs dump image.
+With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, it searches
+all currently defined documentation strings.
 
 Returns list of symbols and documentation found.
 
@@ -2929,9 +2930,17 @@ Major mode for editing C, powered by tree-sitter.
 (autoload 'c-ts-mode "c-ts-mode" "\
 Major mode for editing C, powered by tree-sitter.
 
+This mode is independent from the classic cc-mode.el based
+`c-mode', so configuration variables of that mode, like
+`c-basic-offset', don't affect this mode.
+
 (fn)" t)
 (autoload 'c++-ts-mode "c-ts-mode" "\
 Major mode for editing C++, powered by tree-sitter.
+
+This mode is independent from the classic cc-mode.el based
+`c++-mode', so configuration variables of that mode, like
+`c-basic-offset', don't affect this mode.
 
 (fn)" t)
 (register-definition-prefixes "c-ts-mode" '("c-ts-mode-"))
@@ -4113,6 +4122,22 @@ describe all available character equivalences of `char-fold-to-regexp'.
 Optional argument LAX (interactively, the prefix argument), if
 non-nil, means also include partially matching ligatures and
 non-canonical equivalences.
+
+Each line of the display shows the equivalences in two different
+ways separated by a colon:
+
+    - as the literal character or sequence
+    - using an ASCII-only escape syntax
+
+For example, for the letter \\='r\\=', the first line is
+
+    r: ?\\N{LATIN SMALL LETTER R}
+
+which is for the requested character itself, and a later line has
+
+    ṟ: ?\\N{LATIN SMALL LETTER R}?\\N{COMBINING MACRON BELOW}
+
+which clearly shows what the constituent characters are.
 
 (fn CHAR &optional LAX)" t)
 (register-definition-prefixes "char-fold" '("char-fold-"))
@@ -22325,7 +22350,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 6)) package--builtin-versions)
+(push (purecopy '(org 9 6 1)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -24504,6 +24529,7 @@ Ignores leading comment characters.
 (autoload 'pp-emacs-lisp-code "pp" "\
 Insert SEXP into the current buffer, formatted as Emacs Lisp code.
 Use the `pp-max-width' variable to control the desired line length.
+Note that this could be slow for large SEXPs.
 
 (fn SEXP)")
 (register-definition-prefixes "pp" '("pp-"))
@@ -25090,7 +25116,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 9 3)) package--builtin-versions)
+(push (purecopy '(project 0 9 4)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -27313,6 +27339,13 @@ it is disabled.
 ;;; Generated autoloads from progmodes/ruby-mode.el
 
 (push (purecopy '(ruby-mode 1 2)) package--builtin-versions)
+(autoload 'ruby-base-mode "ruby-mode" "\
+Generic major mode for editing Ruby.
+
+This mode is intended to be inherited by concrete major modes.
+Currently there are `ruby-mode' and `ruby-ts-mode'.
+
+(fn)" t)
 (autoload 'ruby-mode "ruby-mode" "\
 Major mode for editing Ruby code.
 
@@ -27320,6 +27353,15 @@ Major mode for editing Ruby code.
 (add-to-list 'auto-mode-alist (cons (purecopy (concat "\\(?:\\.\\(?:" "rbw?\\|ru\\|rake\\|thor" "\\|jbuilder\\|rabl\\|gemspec\\|podspec" "\\)" "\\|/" "\\(?:Gem\\|Rake\\|Cap\\|Thor" "\\|Puppet\\|Berks\\|Brew" "\\|Vagrant\\|Guard\\|Pod\\)file" "\\)\\'")) 'ruby-mode))
 (dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8")) (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'ruby-mode)))
 (register-definition-prefixes "ruby-mode" '("ruby-"))
+
+
+;;; Generated autoloads from progmodes/ruby-ts-mode.el
+
+(autoload 'ruby-ts-mode "ruby-ts-mode" "\
+Major mode for editing Ruby, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "ruby-ts-mode" '("ruby-ts-"))
 
 
 ;;; Generated autoloads from ruler-mode.el
@@ -32414,7 +32456,6 @@ Mode for displaying and reprioritizing top priority Todo.
 
 ;;; Generated autoloads from textmodes/toml-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
 (autoload 'toml-ts-mode "toml-ts-mode" "\
 Major mode for editing TOML, powered by tree-sitter.
 
@@ -32802,6 +32843,21 @@ See info node `(transient)Modifying Existing Transients'.
 
 ;;; Generated autoloads from treesit.el
 
+(autoload 'treesit-install-language-grammar "treesit" "\
+Build and install the tree-sitter language grammar library for LANG.
+
+Interactively, if `treesit-language-source-alist' doesn't already
+have data for building the grammar for LANG, prompt for its
+repository URL and the C/C++ compiler to use.
+
+This command requires Git, a C compiler and (sometimes) a C++ compiler,
+and the linker to be installed and on PATH.  It also requires that the
+recipe for LANG exists in `treesit-language-source-alist'.
+
+See `exec-path' for the current path where Emacs looks for
+executable programs, such as the C/C++ compiler and linker.
+
+(fn LANG)" t)
 (register-definition-prefixes "treesit" '("treesit-"))
 
 
@@ -36777,7 +36833,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;; Generated autoloads from progmodes/xref.el
 
-(push (purecopy '(xref 1 6 0)) package--builtin-versions)
+(push (purecopy '(xref 1 6 1)) package--builtin-versions)
 (autoload 'xref-find-backend "xref")
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 (autoload 'xref-go-back "xref" "\
