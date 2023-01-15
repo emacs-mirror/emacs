@@ -55,10 +55,14 @@
   (interactive "fSQLite file name: ")
   (unless (sqlite-available-p)
     (error "This Emacs doesn't have SQLite support, so it can't view SQLite files"))
+  (if (file-remote-p file)
+      (error "Remote SQLite files are not yet supported"))
   (pop-to-buffer (get-buffer-create
                   (format "*SQLite %s*" (file-name-nondirectory file))))
   (sqlite-mode)
   (setq-local sqlite--db (sqlite-open file))
+  (unless (sqlitep sqlite--db)
+    (error "`sqlite-open' failed to open SQLite file"))
   (sqlite-mode-list-tables))
 
 (defun sqlite-mode-list-tables ()
