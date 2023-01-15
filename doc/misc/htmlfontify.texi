@@ -1353,7 +1353,6 @@ be large and take a long time to render or be difficult to navigate.
 
 @item hfy-exclude-file-rules
 @vindex hfy-exclude-file-rules
-@anchor{hfy-exclude-file-rules}
 
 Regular expressions to exclude files which shouldn't be fontified.
 
