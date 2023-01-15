@@ -292,6 +292,8 @@ requirements.  'taint really a design without this.  Mention how CI
 supports the pull request merge procedure (except that exists on a
 separate branch at the moment).  RB 2023-01-15]
 
+[Need to discuss compilers and toolchains.  RB 2023-01-15]
+
 _`.ci.run.posix`: On Posix systems where we have autoconf, the CI
 services run commands equivalent to::
 
