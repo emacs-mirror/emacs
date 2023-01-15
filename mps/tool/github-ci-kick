@@ -9,6 +9,9 @@
 # GitHub CI configuration at the commit (in
 # .github/workflows/build-and-test.yml).
 #
+# TODO: What about other workflows such as rst-check.yml?  Perhaps
+# this script should kick them all.
+#
 # See also tool/travis-ci-kick.
 #
 # You can achieve the same thing using the GitHub CLI, if you have
