@@ -598,7 +598,7 @@ offered."
 (defun tramp-archive-handle-directory-file-name (directory)
   "Like `directory-file-name' for file archives."
   (with-parsed-tramp-archive-file-name directory nil
-    (if (and (not (zerop (length localname)))
+    (if (and (tramp-compat-length> localname 0)
 	     (eq (aref localname (1- (length localname))) ?/)
 	     (not (string= localname "/")))
 	(substring directory 0 -1)
