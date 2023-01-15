@@ -1,5 +1,5 @@
 #!/bin/sh
-# tool/checkrst -- check syntax of reStructuredText in the MPS
+# tool/check-rst -- check syntax of reStructuredText in the MPS
 #
 # Copyright (c) 2023 Ravenbrook Limited. See end of file for license.
 #
