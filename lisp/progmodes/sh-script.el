@@ -1042,7 +1042,9 @@ subshells can nest."
                        ;; Maybe we've bumped into an escaped newline.
                        (sh-is-quoted-p (point)))
                 (backward-char 1))
-              (when (eq (char-before) ?|)
+              (when (and
+                     (eq (char-before) ?|)
+                     (not (eq (char-before (1- (point))) ?\;)))
                 (backward-char 1) t)))
         (and (> (point) (1+ (point-min)))
              (progn (backward-char 2)
@@ -1053,7 +1055,7 @@ subshells can nest."
                     ;; a normal command rather than the real `in' keyword.
                     ;; I.e. we should look back to try and find the
                     ;; corresponding `case'.
-                    (and (looking-at ";[;&]\\|\\_<in")
+                    (and (looking-at ";\\(?:;&?\\|[&|]\\)\\|\\_<in")
                          ;; ";; esac )" is a case that looks
                          ;; like a case-pattern but it's really just a close
                          ;; paren after a case statement.  I.e. if we skipped
@@ -1784,8 +1786,9 @@ before the newline and in that case point should be just before the token."
       (pattern (rpattern) ("case-(" rpattern))
       (branches (branches ";;" branches)
                 (branches ";&" branches) (branches ";;&" branches) ;bash.
+                (branches ";|" branches) ;zsh.
                 (pattern "case-)" cmd)))
-    '((assoc ";;" ";&" ";;&"))
+    '((assoc ";;" ";&" ";;&" ";|"))
     '((assoc ";" "&") (assoc "&&" "||") (assoc "|" "|&")))))
 
 (defconst sh-smie--sh-operators
@@ -2058,11 +2061,11 @@ May return nil if the line should not be treated as continued."
 	 `(column . ,(smie-indent-virtual))))))
     ;; FIXME: Maybe this handling of ;; should be made into
     ;; a smie-rule-terminator function that takes the substitute ";" as arg.
-    (`(:before . ,(or ";;" ";&" ";;&"))
-     (if (and (smie-rule-bolp) (looking-at ";;?&?[ \t]*\\(#\\|$\\)"))
+    (`(:before . ,(or ";;" ";&" ";;&" ";|"))
+     (if (and (smie-rule-bolp) (looking-at ";\\(?:;&?\\|[&|]\\)?[ \t]*\\(#\\|$\\)"))
          (cons 'column (smie-indent-keyword ";"))
        (smie-rule-separator kind)))
-    (`(:after . ,(or ";;" ";&" ";;&"))
+    (`(:after . ,(or ";;" ";&" ";;&" ";|"))
      (with-demoted-errors "SMIE rule error: %S"
        (smie-backward-sexp token)
        (cons 'column
@@ -2151,8 +2154,9 @@ May return nil if the line should not be treated as continued."
       (pattern (pattern "|" pattern))
       (branches (branches ";;" branches)
                 (branches ";&" branches) (branches ";;&" branches) ;bash.
+                (branches ";|" branches) ;zsh.
                 (pattern "case-)" cmd)))
-    '((assoc ";;" ";&" ";;&"))
+    '((assoc ";;" ";&" ";;&" ";|"))
     '((assoc "case") (assoc ";" "&") (assoc "&&" "||") (assoc "|" "|&")))))
 
 (defun sh-smie--rc-after-special-arg-p ()
