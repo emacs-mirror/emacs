@@ -108,7 +108,7 @@ public class EmacsService extends Service
   {
     AssetManager manager;
     Context app_context;
-    String filesDir, libDir;
+    String filesDir, libDir, cacheDir;
     double pixelDensityX;
     double pixelDensityY;
 
@@ -126,12 +126,13 @@ public class EmacsService extends Service
 	   parameters.  */
 	filesDir = app_context.getFilesDir ().getCanonicalPath ();
 	libDir = getLibraryDirectory ();
+	cacheDir = app_context.getCacheDir ().getCanonicalPath ();
 
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
 	       + " and libDir = " + libDir);
 
 	EmacsNative.setEmacsParams (manager, filesDir, libDir,
-				    (float) pixelDensityX,
+				    cacheDir, (float) pixelDensityX,
 				    (float) pixelDensityY,
 				    this);
 
@@ -406,5 +407,36 @@ public class EmacsService extends Service
   nameKeysym (int keysym)
   {
     return KeyEvent.keyCodeToString (keysym);
+  }
+
+  public void
+  sync ()
+  {
+    Runnable runnable;
+
+    runnable = new Runnable () {
+	public void
+	run ()
+	{
+	  synchronized (this)
+	    {
+	      notify ();
+	    }
+	}
+      };
+
+    synchronized (runnable)
+      {
+	runOnUiThread (runnable);
+
+	try
+	  {
+	    runnable.wait ();
+	  }
+	catch (InterruptedException e)
+	  {
+	    EmacsNative.emacsAbort ();
+	  }
+      }
   }
 };

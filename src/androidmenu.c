@@ -28,6 +28,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef ANDROID_STUBIFY
 
+#include <android/log.h>
+
 /* Flag indicating whether or not a popup menu has been posted and not
    yet popped down.  */
 
@@ -188,6 +190,35 @@ android_process_events_for_menu (int *id)
   *id = x_display_list->menu_event_id;
 }
 
+/* Structure describing a ``subprefix'' in the menu.  */
+
+struct android_menu_subprefix
+{
+  /* The subprefix above.  */
+  struct android_menu_subprefix *last;
+
+  /* The subprefix itself.  */
+  Lisp_Object subprefix;
+};
+
+/* Free the subprefixes starting from *DATA.  */
+
+static void
+android_free_subprefixes (void *data)
+{
+  struct android_menu_subprefix **head, *subprefix;
+
+  head = data;
+
+  while (*head)
+    {
+      subprefix = *head;
+      *head = subprefix->last;
+
+      xfree (subprefix);
+    }
+}
+
 Lisp_Object
 android_menu_show (struct frame *f, int x, int y, int menuflags,
 		   Lisp_Object title, const char **error_name)
@@ -198,13 +229,15 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   Lisp_Object pane_name, prefix;
   const char *pane_string;
   specpdl_ref count, count1;
-  Lisp_Object item_name, enable, def, tem;
+  Lisp_Object item_name, enable, def, tem, entry;
   jmethodID method;
   jobject store;
   bool rc;
   jobject window;
-  int id, item_id;
+  int id, item_id, submenu_depth;
   struct android_dismiss_menu_data data;
+  struct android_menu_subprefix *subprefix, *temp_subprefix;
+  struct android_menu_subprefix *subprefix_1;
 
   count = SPECPDL_INDEX ();
 
@@ -232,7 +265,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   android_push_local_frame ();
 
   /* Iterate over the menu.  */
-  i = 0;
+  i = 0, submenu_depth = 0;
 
   while (i < menu_items_used)
     {
@@ -241,6 +274,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	  /* This is the start of a new submenu.  However, it can be
 	     ignored here.  */
 	  i += 1;
+	  submenu_depth += 1;
 	}
       else if (EQ (AREF (menu_items, i), Qlambda))
 	{
@@ -256,9 +290,18 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	  if (store != context_menu)
 	    ANDROID_DELETE_LOCAL_REF (store);
 	  i += 1;
+	  submenu_depth -= 1;
 
-	  eassert (current_context_menu);
+	  if (!current_context_menu || submenu_depth < 0)
+	    {
+	      __android_log_print (ANDROID_LOG_FATAL, __func__,
+				   "unbalanced submenu pop in menu_items");
+	      emacs_abort ();
+	    }
 	}
+      else if (EQ (AREF (menu_items, i), Qt)
+	       && submenu_depth != 0)
+	i += MENU_ITEMS_PANE_LENGTH;
       else if (EQ (AREF (menu_items, i), Qquote))
 	i += 1;
       else if (EQ (AREF (menu_items, i), Qt))
@@ -300,8 +343,8 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	  /* This is an actual menu item (or submenu).  Add it to the
 	     menu.  */
 
-	  if (i + MENU_ITEMS_ITEM_LENGTH < menu_items_used &&
-	      NILP (AREF (menu_items, i + MENU_ITEMS_ITEM_LENGTH)))
+	  if (i + MENU_ITEMS_ITEM_LENGTH < menu_items_used
+	      && NILP (AREF (menu_items, i + MENU_ITEMS_ITEM_LENGTH)))
 	    {
 	      /* This is a submenu.  Add it.  */
 	      title_string = (!NILP (item_name)
@@ -312,7 +355,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 		= (*android_java_env)->CallObjectMethod (android_java_env,
 							 current_context_menu,
 							 menu_class.add_submenu,
-							 title_string);
+							 title_string, NULL);
 	      android_exception_check ();
 
 	      if (store != context_menu)
@@ -385,13 +428,78 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
     /* This means no menu item was selected.  */
     goto finish;
 
-  /* id is an index into menu_items.  Check that it remains
-     valid.  */
+  /* This means the id is invalid.  */
   if (id >= ASIZE (menu_items))
     goto finish;
 
   /* Now return the menu item at that location.  */
-  tem = AREF (menu_items, id);
+  tem = Qnil;
+  subprefix = NULL;
+  record_unwind_protect_ptr (android_free_subprefixes, &subprefix);
+
+  /* Find the selected item, and its pane, to return
+     the proper value.  */
+
+  prefix = entry = Qnil;
+  i = 0;
+  while (i < menu_items_used)
+    {
+      if (NILP (AREF (menu_items, i)))
+	{
+	  temp_subprefix = xmalloc (sizeof *temp_subprefix);
+	  temp_subprefix->last = subprefix;
+	  subprefix = temp_subprefix;
+	  subprefix->subprefix = prefix;
+
+	  prefix = entry;
+	  i++;
+	}
+      else if (EQ (AREF (menu_items, i), Qlambda))
+	{
+	  prefix = subprefix->subprefix;
+	  temp_subprefix = subprefix->last;
+	  xfree (subprefix);
+	  subprefix = temp_subprefix;
+
+	  i++;
+	}
+      else if (EQ (AREF (menu_items, i), Qt))
+	{
+	  prefix
+	    = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
+	  i += MENU_ITEMS_PANE_LENGTH;
+	}
+      /* Ignore a nil in the item list.
+	 It's meaningful only for dialog boxes.  */
+      else if (EQ (AREF (menu_items, i), Qquote))
+	i += 1;
+      else
+	{
+	  entry = AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
+
+	  if (i + MENU_ITEMS_ITEM_VALUE == id)
+	    {
+	      if (menuflags & MENU_KEYMAPS)
+		{
+		  entry = list1 (entry);
+
+		  if (!NILP (prefix))
+		    entry = Fcons (prefix, entry);
+
+		  for (subprefix_1 = subprefix; subprefix_1;
+		       subprefix_1 = subprefix_1->last)
+		    if (!NILP (subprefix_1->subprefix))
+		      entry = Fcons (subprefix_1->subprefix, entry);
+		}
+
+	      tem = entry;
+	    }
+	  i += MENU_ITEMS_ITEM_LENGTH;
+	}
+    }
+
+  Fprint (tem, Qexternal_debugging_output);
+
   unblock_input ();
   return unbind_to (count, tem);
 

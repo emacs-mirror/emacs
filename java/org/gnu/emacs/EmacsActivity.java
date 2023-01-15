@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Build;
 import android.util.Log;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
@@ -162,7 +163,11 @@ public class EmacsActivity extends Activity
     FrameLayout.LayoutParams params;
 
     /* Set the theme to one without a title bar.  */
-    setTheme (android.R.style.Theme_NoTitleBar);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+      setTheme (android.R.style.Theme_DeviceDefault_NoActionBar);
+    else
+      setTheme (android.R.style.Theme_NoTitleBar);
 
     params = new FrameLayout.LayoutParams (LayoutParams.MATCH_PARENT,
 					   LayoutParams.MATCH_PARENT);
@@ -234,6 +239,11 @@ public class EmacsActivity extends Activity
   onContextMenuClosed (Menu menu)
   {
     Log.d (TAG, "onContextMenuClosed: " + menu);
+
+    /* See the comment inside onMenuItemClick.  */
+    if (EmacsContextMenu.wasSubmenuSelected
+	&& menu.toString ().contains ("ContextMenuBuilder"))
+      return;
 
     /* Send a context menu event given that no menu item has already
        been selected.  */

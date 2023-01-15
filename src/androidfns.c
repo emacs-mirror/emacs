@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "keyboard.h"
 #include "buffer.h"
+#include "androidgui.h"
 
 #ifndef ANDROID_STUBIFY
 
@@ -2281,6 +2282,13 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 			      height);
   android_map_raised (FRAME_ANDROID_WINDOW (tip_f));
   unblock_input ();
+
+  /* Synchronize with the UI thread.  This is required to prevent ugly
+     black splotches.  */
+  android_sync ();
+
+  /* Garbage the tip frame too.  */
+  SET_FRAME_GARBAGED (tip_f);
 
   w->must_be_updated_p = true;
   update_single_window (w);

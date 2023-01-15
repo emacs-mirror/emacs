@@ -167,7 +167,7 @@ ensure_menu_items (int items)
     }
 }
 
-#ifdef HAVE_EXT_MENU_BAR
+#if defined HAVE_EXT_MENU_BAR || defined HAVE_ANDROID
 
 /* Begin a submenu.  */
 
@@ -191,7 +191,7 @@ push_submenu_end (void)
   menu_items_submenu_depth--;
 }
 
-#endif /* HAVE_EXT_MENU_BAR */
+#endif /* HAVE_EXT_MENU_BAR || HAVE_ANDROID */
 
 /* Indicate boundary between left and right.  */
 
@@ -420,8 +420,9 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		  AREF (item_properties, ITEM_PROPERTY_SELECTED),
 		  AREF (item_properties, ITEM_PROPERTY_HELP));
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) \
-  || defined (HAVE_NTGUI) || defined (HAVE_HAIKU) || defined (HAVE_PGTK)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS)	\
+  || defined (HAVE_NTGUI) || defined (HAVE_HAIKU) || defined (HAVE_PGTK) \
+  || defined (HAVE_ANDROID)
   /* Display a submenu using the toolkit.  */
   if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame))
       && ! (NILP (map) || NILP (enabled)))

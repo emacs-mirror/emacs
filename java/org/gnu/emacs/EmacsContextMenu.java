@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.SubMenu;
 
 import android.util.Log;
 
@@ -47,6 +48,9 @@ public class EmacsContextMenu
   /* Whether or not an item was selected.  */
   public static boolean itemAlreadySelected;
 
+  /* Whether or not a submenu was selected.  */
+  public static boolean wasSubmenuSelected;
+
   private class Item implements MenuItem.OnMenuItemClickListener
   {
     public int itemID;
@@ -59,6 +63,20 @@ public class EmacsContextMenu
     onMenuItemClick (MenuItem item)
     {
       Log.d (TAG, "onMenuItemClick: " + itemName + " (" + itemID + ")");
+
+      if (subMenu != null)
+	{
+	  /* After opening a submenu within a submenu, Android will
+	     send onContextMenuClosed for a ContextMenuBuilder.  This
+	     will normally confuse Emacs into thinking that the
+	     context menu has been dismissed.  Wrong!
+
+	     Setting this flag makes EmacsActivity to only handle
+	     SubMenuBuilder being closed, which always means the menu
+	     has actually been dismissed.  */
+	  wasSubmenuSelected = true;
+	  return false;
+	}
 
       /* Send a context menu event.  */
       EmacsNative.sendContextMenu ((short) 0, itemID);
@@ -144,7 +162,7 @@ public class EmacsContextMenu
   {
     Intent intent;
     MenuItem menuItem;
-    Menu submenu;
+    SubMenu submenu;
 
     for (Item item : menuItems)
       {
@@ -153,7 +171,11 @@ public class EmacsContextMenu
 	    /* This is a submenu.  Create the submenu and add the
 	       contents of the menu to it.  */
 	    submenu = menu.addSubMenu (item.itemName);
-	    inflateMenuItems (submenu);
+	    item.subMenu.inflateMenuItems (submenu);
+
+	    /* This is still needed to set wasSubmenuSelected.  */
+	    menuItem = submenu.getItem ();
+	    menuItem.setOnMenuItemClickListener (item);
 	  }
 	else
 	  {
@@ -184,7 +206,7 @@ public class EmacsContextMenu
   public EmacsContextMenu
   parent ()
   {
-    return parent;
+    return this.parent;
   }
 
   /* Like display, but does the actual work and runs in the main
@@ -196,6 +218,9 @@ public class EmacsContextMenu
     /* Set this flag to false.  It is used to decide whether or not to
        send 0 in response to the context menu being closed.  */
     itemAlreadySelected = false;
+
+    /* No submenu has been selected yet.  */
+    wasSubmenuSelected = false;
 
     return window.view.popupMenu (this, xPosition, yPosition);
   }

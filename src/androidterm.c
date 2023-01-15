@@ -689,6 +689,16 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       goto OTHER;
 
     case ANDROID_MOTION_NOTIFY:
+
+      previous_help_echo_string = help_echo_string;
+      help_echo_string = Qnil;
+
+      if (hlinfo->mouse_face_hidden)
+	{
+	  hlinfo->mouse_face_hidden = false;
+	  clear_mouse_face (hlinfo);
+	}
+
       f = any;
 
       if (f)

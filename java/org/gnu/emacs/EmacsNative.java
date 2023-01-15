@@ -38,6 +38,9 @@ public class EmacsNative
      libDir must be the package's data storage location for native
      libraries.  It is used as PATH.
 
+     cacheDir must be the package's cache directory.  It is used as
+     the `temporary-file-directory'.
+
      pixelDensityX and pixelDensityY are the DPI values that will be
      used by Emacs.
 
@@ -45,6 +48,7 @@ public class EmacsNative
   public static native void setEmacsParams (AssetManager assetManager,
 					    String filesDir,
 					    String libDir,
+					    String cacheDir,
 					    float pixelDensityX,
 					    float pixelDensityY,
 					    EmacsService emacsService);

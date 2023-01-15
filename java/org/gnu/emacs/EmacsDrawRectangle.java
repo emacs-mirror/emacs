@@ -59,7 +59,7 @@ public class EmacsDrawRectangle
       }
 
     paint = gc.gcPaint;
-    rect = new Rect (x + 1, y + 1, x + width, y + height);
+    rect = new Rect (x, y, x + width, y + height);
 
     paint.setStyle (Paint.Style.STROKE);
 

@@ -88,6 +88,7 @@ struct android_emacs_service
   jmethodID get_screen_height;
   jmethodID detect_mouse;
   jmethodID name_keysym;
+  jmethodID sync;
 };
 
 struct android_emacs_pixmap
@@ -116,14 +117,17 @@ static AAssetManager *asset_manager;
 /* Whether or not Emacs has been initialized.  */
 static int emacs_initialized;
 
-/* The path used to store site-lisp.  */
+/* The directory used to store site-lisp.  */
 char *android_site_load_path;
 
-/* The path used to store native libraries.  */
+/* The directory used to store native libraries.  */
 char *android_lib_dir;
 
-/* The path used to store game files.  */
+/* The directory used to store game files.  */
 char *android_game_path;
+
+/* The directory used to store temporary files.  */
+char *android_cache_dir;
 
 /* The display's pixel densities.  */
 double android_pixel_density_x, android_pixel_density_y;
@@ -911,6 +915,7 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 			      jobject local_asset_manager,
 			      jobject files_dir, jobject libs_dir,
+			      jobject cache_dir,
 			      jfloat pixel_density_x,
 			      jfloat pixel_density_y,
 			      jobject emacs_service_object)
@@ -984,6 +989,20 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
     emacs_abort ();
 
   (*env)->ReleaseStringUTFChars (env, (jstring) libs_dir,
+				 java_string);
+
+  java_string = (*env)->GetStringUTFChars (env, (jstring) cache_dir,
+					   NULL);
+
+  if (!java_string)
+    emacs_abort ();
+
+  android_cache_dir = strdup ((const char *) java_string);
+
+  if (!android_files_dir)
+    emacs_abort ();
+
+  (*env)->ReleaseStringUTFChars (env, (jstring) cache_dir,
 				 java_string);
 
   /* Calculate the site-lisp path.  */
@@ -1083,6 +1102,7 @@ android_init_emacs_service (void)
   FIND_METHOD (get_screen_height, "getScreenHeight", "(Z)I");
   FIND_METHOD (detect_mouse, "detectMouse", "()Z");
   FIND_METHOD (name_keysym, "nameKeysym", "(I)Ljava/lang/String;");
+  FIND_METHOD (sync, "sync", "()V");
 #undef FIND_METHOD
 }
 
@@ -1215,6 +1235,9 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv)
 
   /* Set HOME to the app data directory.  */
   setenv ("HOME", android_files_dir, 1);
+
+  /* Set TMPDIR to the temporary files directory.  */
+  setenv ("TMPDIR", android_cache_dir, 1);
 
   /* Set the cwd to that directory as well.  */
   if (chdir (android_files_dir))
@@ -3517,6 +3540,15 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
 					      (jstring) string,
 					      buffer);
   ANDROID_DELETE_LOCAL_REF (string);
+}
+
+void
+android_sync (void)
+{
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       emacs_service,
+				       service_class.sync);
+  android_exception_check ();
 }
 
 
