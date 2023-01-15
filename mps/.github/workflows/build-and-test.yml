@@ -26,10 +26,10 @@ jobs:
         env:
           - CC: gcc
           - CC: clang
-      exclude:
-        - os: macos-latest
-          env:
-            - CC: gcc
+        exclude:
+          - os: macos-latest
+            env:
+              - CC: gcc
 
     runs-on: ${{ matrix.os }}
 
