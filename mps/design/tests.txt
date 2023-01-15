@@ -276,6 +276,9 @@ case to the "Automated test cases" section.
 Continuous integration
 ----------------------
 
+[This section might need to become a document in its own right.  CI
+has grown in importance and complexity.  RB 2023-01-15]
+
 _`.ci`: Ravenbrook uses both `GitHub CI`_ and `Travis CI`_ for
 continuous integration of the MPS via GitHub.
 
@@ -284,8 +287,10 @@ continuous integration of the MPS via GitHub.
 .. _GitHub CI: https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration
 
 [This section needs: definition of CI goals and requirements, what we
-need CI to do and why.  How the testci target meets those
-requirements.  'taint really a design without this.  RB 2023-01-15]
+need CI to do and why, how the testci target meets those
+requirements.  'taint really a design without this.  Mention how CI
+supports the pull request merge procedure (except that exists on a
+separate branch at the moment).  RB 2023-01-15]
 
 _`.ci.run.posix`: On Posix systems where we have autoconf, the CI
 services run commands equivalent to::
