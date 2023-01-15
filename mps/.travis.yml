@@ -18,7 +18,7 @@ os:
   # - osx
   # See "include" section for Windows
 arch:
-  # Most amd64 builds moved to GitHub CI.  See .github/workflows/c-cpp.yml.
+  # Most amd64 builds moved to GitHub CI.  See .github/workflows/build-and-test.yml.
   # - amd64
   - arm64
 compiler:

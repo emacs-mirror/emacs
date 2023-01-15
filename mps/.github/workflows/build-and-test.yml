@@ -1,15 +1,15 @@
-# .github/workflows/c-cpp.yml
+# .github/workflows/build-and-test.yml
 #
 # GitHub CI <https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration>
 #
 # Adapted from <https://github.com/actions/starter-workflows/blob/9f245d9aba830ad16a097a45c78331a05114d815/ci/c-cpp.yml>
 
-name: C/C++ CI
+name: build and test
 
 on:
   - push
   - pull_request
-  # Also run when triggered manually
+  # Also run when triggered manually, e.g. by tool/github-ci-kick
   # <https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow>
   - workflow_dispatch
 
