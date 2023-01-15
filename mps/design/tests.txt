@@ -276,35 +276,38 @@ case to the "Automated test cases" section.
 Continuous integration
 ----------------------
 
-_`.ci`: The MPS uses the following systems for continuous integration:
-
-.. FIXME: Update to be consistent with .travis.tml and
-   .github/workflows/build-and-test.yml.
+_`.ci`: Ravenbrook uses GitHub workflows and Travis CI for continuous
+integration of the MPS.
 
 _`.ci.travis`: The commercial Travis_ continuous integration service
-runs ``./configure && make install && make test`` (which exercises the
-``testci`` target for platforms lii6gc, lii6ll, xci6ll, and
-``testansi`` and ``testpollnone`` for platforms anangc and ananll)
-whenever there is a commit to the `mps GitHub repository`_. See the
-`Ravenbrook/mps`_ project on Travis for a build history.
+runs ``./configure && make install && make test``.  This exercises the
+``testci`` target for both FreeBSD and Linux on ARM64 (platforms
+FRA6LL, FRA6GC, LLA6LL, LLA6GC), and ``testansi`` and ``testpollnone``
+for platforms ANANGC and ANANLL.  Travis CI runs whenever there is a
+commit (push) to the `mps GitHub repository`_ or a new pull request.
+See the `Ravenbrook/mps`_ project on Travis for a build history.
 
 .. _mps GitHub repository: https://github.com/ravenbrook/mps
 .. _Travis: https://travis-ci.com/
 .. _Ravenbrook/mps: https://travis-ci.com/Ravenbrook/mps
 
 _`.ci.travis.config`: Travis is configured using the .travis.yml file
-at top level of the project.
+at top level of the MPS tree.
 
-_`.ci.jenkins`: An instance of Jenkins_ running on "gannet" (a Windows
-PC at the Ravenbrook office) runs the ``testci`` target on platforms
-w3i3mv and w3i6mv whenever there is a commit to the `mps GitHub
-repository`_.
+_`.ci.github`: `GitHub CI`_ runs ``./configure && make && make test``
+which exercises the ``testci`` target for Linux, macOS, and Windows on
+`x86_64 runners`_ (platforms LLI6LL, LLI6GC, XCI6LL, W3I6MV).  [What
+about testnansi etc.?  RB 2023-01-15] GitHub CI runs whenever there is
+a commit (push) to the `mps GitHub repository`_ or a new pull request.
+See the `build and test actions on the Ravenbrook GitHub repo
+<https://github.com/Ravenbrook/mps/actions/workflows/build-and-test.yml>`_
+for a build history.
 
-.. _Jenkins: https://jenkins.io
+_`.ci.github.config`: GitHub CI is configured using the build-and-test.yml file in the .github/workflows directory of the MPS tree.
 
-_`.ci.jenkins.config`: There are instructions for installing and
-configuring Jenkins in [GDR_2016-04-14]_, [GDR_2016-04-15]_ and
-[GDR_2016-04-20]_.
+.. _GitHub CI: https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration
+
+.. _x86_64 runners: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
 
 
 MMQA tests
@@ -344,21 +347,6 @@ References
    Melvin E. Conway; *Datamation* 14:5, pp. 28–31; April 1968;
    <http://www.melconway.com/Home/Committees_Paper.html>
 
-.. [GDR_2016-04-14]
-   "Jenkins setup and configuration procedure";
-   Gareth Rees; Ravenbrook Limited; 2016-04-14;
-   <https://info.ravenbrook.com/mail/2016/04/14/17-19-08/0/>.
-
-.. [GDR_2016-04-15]
-   "Re: Jenkins setup and configuration procedure";
-   Gareth Rees; Ravenbrook Limited; 2016-04-15;
-   <https://info.ravenbrook.com/mail/2016/04/15/09-03-53/0/>.
-
-.. [GDR_2016-04-20]
-   "Re: Jenkins setup and configuration procedure";
-   Gareth Rees; Ravenbrook Limited; 2016-04-20;
-   <https://info.ravenbrook.com/mail/2016/04/20/13-26-33/0/>.
-
 
 Document History
 ----------------
@@ -374,6 +362,9 @@ Document History
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
 - 2018-06-15 GDR_ Procedure for adding a new smoke test.
+
+- 2023-01-15 RB_ Bringing CI section up to date with Travis
+  configuration.  Removing obsolete Jenkins info.  Adding GitHub CI.
 
 .. _RB: https://www.ravenbrook.com/consultants/rb/
 .. _GDR: https://www.ravenbrook.com/consultants/gdr/
@@ -406,3 +397,5 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+.. end
