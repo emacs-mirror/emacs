@@ -10,6 +10,7 @@ on:
   # Run as part of CI checks on branch push and on merged pull request.
   - push
   - pull_request
+  - workflow_dispatch # allow manual triggering
 
 jobs:
   check-shell-scripts:
