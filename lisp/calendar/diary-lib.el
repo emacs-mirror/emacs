@@ -880,7 +880,10 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                                    (original-date original-date))
                     (run-hooks 'diary-hook))))))
         (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
-      (or d-incp (message "Preparing diary...done"))
+      (or d-incp
+          ;; Don't clobber messages displayed while preparing the diary.
+          (not (equal (current-message) "Preparing diary..."))
+          (message "Preparing diary...done"))
       diary-entries-list)))
 
 (defun diary-unhide-everything ()
