@@ -12,11 +12,11 @@ on:
   - pull_request
 
 jobs:
-  checkrst:
+  check-rst:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Install docutils
         run: sudo apt-get install -y docutils
       - name: Check reStructuredText syntax
-        run: tool/checkrst
+        run: tool/check-rst
