@@ -129,8 +129,12 @@ MODE is either `c' or `cpp'."
             c-ts-mode--comment-2nd-line-anchor
             1)
            ((parent-is "comment") prev-adaptive-prefix 0)
+
+           ;; Labels.
            ((node-is "labeled_statement") parent-bol 0)
-           ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
+           ((parent-is "labeled_statement")
+            point-min c-ts-mode--statement-offset)
+
            ((match "preproc_ifdef" "compound_statement") point-min 0)
            ((match "#endif" "preproc_ifdef") point-min 0)
            ((match "preproc_if" "compound_statement") point-min 0)
@@ -216,10 +220,10 @@ NODE should be a labeled_statement."
   (let ((func (treesit-parent-until
                node (lambda (n)
                       (equal (treesit-node-type n)
-                             "function_definition")))))
+                             "compound_statement")))))
     (and (equal (treesit-node-type node)
                 "labeled_statement")
-         (not (treesit-node-top-level func "function_definition")))))
+         (not (treesit-node-top-level func "compound_statement")))))
 
 (defvar c-ts-mode-indent-block-type-regexp
   (rx (or "compound_statement"
