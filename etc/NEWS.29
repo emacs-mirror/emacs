@@ -25,10 +25,12 @@ applies, and please also update docstrings as needed.
 * Installation Changes in Emacs 29.1
 
 ---
-** Ahead-of-time native compilation can now be specified via configure.
-Use '--with-native-compilation=aot' to specify that all the Lisp files
+** Ahead-of-time native compilation can now be requested via configure.
+Use '--with-native-compilation=aot' to request that all the Lisp files
 in the Emacs tree should be natively compiled ahead of time.  (This is
 slow on most machines.)
+
+This feature existed in Emacs 28.1, but was less easy to request.
 
 +++
 ** Emacs can be built with the tree-sitter parsing library.

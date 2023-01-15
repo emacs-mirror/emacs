@@ -1,0 +1,198 @@
+Code:
+  (lambda ()
+    (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (fill-paragraph))
+
+Point-Char: |
+
+Name: Type 1
+
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=-=
+
+Name: Type 2
+
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=-=
+
+Name: Type 3
+
+=-=
+/*================================================================
+  woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+  woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+  woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+  ================================================================*/
+=-=
+/*================================================================
+  woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+  woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+  woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+  ================================================================*/
+=-=-=
+
+Name: Type 4
+
+=-=
+/*================================================================
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ woooomy woooomy woooomy woooomy woooomy
+ * ================================================================*/
+=-=
+/*================================================================
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy
+ * ================================================================*/
+=-=-=
+
+Name: Type 5
+
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=-=
+
+Name: Type 6
+
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=-=
+
+Name: Type 6
+
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=-=
+
+Name: Type 7
+
+=-=
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+=-=
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+=-=-=
+
+Name: Type 8
+
+=-=
+// ================================================================
+//  woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+//  woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+//  woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+//  ================================================================
+=-=
+// ================================================================
+//  woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+//  woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+//  woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+//  ================================================================
+=-=-=
+
+Name: Type 9
+
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomyyy  */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomyyy  */
+=-=-=
+
+Name: Not Over Fill 1
+
+=-=
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+
+// |woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+=-=-=
+
+Name: Not Over Fill 2
+
+=-=
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+return; // woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+//| woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+return; // woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+=-=
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+return; // woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+return; // woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+=-=-=
+
+Name: Not Over Fill 3
+
+=-=
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+return; //| woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+return; // woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+=-=
+// woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+return; // woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+        // woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+        // woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+        // woooomy woooomy
+return; // woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+=-=-=
