@@ -747,7 +747,7 @@ static void AMSSegsDestroy(AMS ams)
 
 /* AMSVarargs -- decode obsolete varargs */
 
-static void AMSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+static void AMSVarargs(ArgStruct args[MPS_ARGS_MAX - 1], va_list varargs)
 {
   args[0].key = MPS_KEY_FORMAT;
   args[0].val.format = va_arg(varargs, Format);
@@ -756,6 +756,7 @@ static void AMSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[2].key = MPS_KEY_AMS_SUPPORT_AMBIGUOUS;
   args[2].val.b = va_arg(varargs, Bool);
   args[3].key = MPS_KEY_ARGS_END;
+  AVER(MPS_ARGS_MAX - 1 > 3);
   AVERT(ArgList, args);
 }
 
