@@ -10863,7 +10863,13 @@ This function might do hidden buffer changes."
 		      ;; types; other identifiers could just as well be
 		      ;; constants in C++.
 		      (memq at-type '(known found)))))
-		   (throw 'at-decl-or-cast t)
+		   (progn
+		     ;; The user may be part way through typing a statement
+		     ;; beginning with an identifier.  This makes a 'maybe
+		     ;; type in the following "declarator"'s arglist suspect.
+		     (when (eq at-type 'maybe)
+		       (setq unsafe-maybe t))
+		     (throw 'at-decl-or-cast t))
 		 ;; CASE 7
 		 ;; Can't be a valid declaration or cast, but if we've found a
 		 ;; specifier it can't be anything else either, so treat it as
