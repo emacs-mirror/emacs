@@ -10664,7 +10664,7 @@ pops up the Windows Run dialog, <lwindow>-<Pause> pops up the "System
 Properties" dialog, etc.  On Windows 10, no \"Windows\" key
 combinations are normally handed to applications.  To enable Emacs to
 process \"Windows\" key combinations, use the function
-`w32-register-hot-key`.
+`w32-register-hot-key'.
 
 For Windows 98/ME, see the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_lwindow_to_system = Qt;
@@ -10683,7 +10683,7 @@ pops up the Windows Run dialog, <rwindow>-<Pause> pops up the "System
 Properties" dialog, etc.  On Windows 10, no \"Windows\" key
 combinations are normally handed to applications.  To enable Emacs to
 process \"Windows\" key combinations, use the function
-`w32-register-hot-key`.
+`w32-register-hot-key'.
 
 For Windows 98/ME, see the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_rwindow_to_system = Qt;
