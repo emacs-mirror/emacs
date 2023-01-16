@@ -312,7 +312,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :override t
    '((escape_sequence) @font-lock-escape-face)))
 
-(defvar typescript-ts-mode--sentence-type-regexp
+(defvar typescript-ts-mode--sentence-nodes
   '("import_statement"
     "debugger_statement"
     "expression_statement"
@@ -369,7 +369,7 @@ See `treesit-sentence-type-regexp' for more information.")
   (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
   (setq-local treesit-sentence-type-regexp
-              (regexp-opt typescript-ts-mode--sentence-type-regexp))
+              (regexp-opt typescript-ts-mode--sentence-nodes))
 
   ;; Imenu (same as in `js-ts-mode').
   (setq-local treesit-simple-imenu-settings
@@ -432,7 +432,7 @@ See `treesit-sentence-type-regexp' for more information.")
     ;; Navigation
     (setq-local treesit-sentence-type-regexp
                 (regexp-opt (append
-                             typescript-ts-mode--sentence-type-regexp
+                             typescript-ts-mode--sentence-nodes
                              '("jsx_element"
                                "jsx_self_closing_element"))))
 

@@ -3789,7 +3789,7 @@ Currently there are `js-mode' and `js-ts-mode'."
   ;;(syntax-propertize (point-max))
   )
 
-(defvar js--treesit-sentence-type-regexp
+(defvar js--treesit-sentence-nodes
   '("import_statement"
     "debugger_statement"
     "expression_statement"
@@ -3855,7 +3855,7 @@ See `treesit-sentence-type-regexp' for more information.")
     (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
     (setq-local treesit-sentence-type-regexp
-                (regexp-opt js--treesit-sentence-type-regexp))
+                (regexp-opt js--treesit-sentence-nodes))
 
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
