@@ -113,6 +113,14 @@ the client program to modify the behaviour of the virtual mapping
 implementation. (This is needed to implement the
 ``MPS_KEY_VMW3_MEM_TOP_DOWN`` keyword argument.)
 
+_`.req.prot.exec`: The virtual mapping module should allow mutators to
+write machine code into memory allocated by the MPS and then execute
+that code, for example, to implement just-in-time translation, or
+other forms of dynamic compilation. Compare
+design.mps.prot.req.prot.exec_.
+
+.. _design.mps.prot.req.prot.exec: prot#.req.prot.exec
+
 
 Design
 ------
@@ -143,6 +151,9 @@ is then passed to ``VMInit()``. The size of the buffer must be
 statically determinable so that the caller can allocate it on the
 stack: it is given by the constant ``VMParamSize``. Since this is
 potentially platform-dependent it is defined in ``config.h``.
+
+_`.sol.prot.exec`: The virtual mapping module maps memory as
+executable, if this is supported by the platform.
 
 
 Interface
@@ -286,6 +297,15 @@ _`.impl.ix.map`: Address space is mapped to main memory by calling
 _`.impl.ix.unmap`: Address space is unmapped from main memory by
 calling |mmap|_, passing ``PROT_NONE`` and ``MAP_ANON | MAP_PRIVATE |
 MAP_FIXED``.
+
+_`.impl.xc.prot.exec`: The approach in `.sol.prot.exec`_ of always
+making memory executable causes a difficulty on macOS on Apple
+Silicon. The virtual mapping module uses the same solution as the
+protection module, that is, detecting Apple Hardened Runtime, and
+retrying without the request for the memory to be executable. See
+design.mps.prot.impl.xc.prot.exec_ for details.
+
+.. _design.mps.prot.impl.xc.prot.exec: prot#.impl.xc.prot.exec
 
 
 Windows implementation

@@ -416,3 +416,39 @@ Platform    Status
 ``xci6ll``  Supported
 ``xcppgc``  *Not supported*
 ==========  =======================
+
+
+.. index::
+   pair: platform; limitations
+   single: Hardened Runtime
+
+.. _topic-platform-limitations:
+
+Platform limitations
+--------------------
+
+This section documents limitations that affect individual platforms.
+
+``xca6ll``
+
+   On macOS on Apple Silicon, programs may enable `Hardened Runtime`_.
+   This feature rejects attempts to map or protect memory so that it
+   is simultaneously writable and executable. Therefore, when Hardened
+   Runtime is enabled, memory managed by the MPS is not executable.
+
+   .. _Hardened Runtime: https://developer.apple.com/documentation/security/hardened_runtime
+
+   If your program needs to write executable code into memory managed
+   by the MPS (for example, it uses just-in-time translation or
+   dynamic compilation), then you must either disable Hardened
+   Runtime, or configure the `Allow Unsigned Executable Memory
+   Entitlement`_.
+
+   .. _Allow Unsigned Executable Memory Entitlement: https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory
+
+   Note that the MPS has no support for Apple's :c:macro:`MAP_JIT`
+   flag. If your application is using the `Allow Execution of
+   JIT-compiled Code Entitlement`_ and needs support for this flag,
+   please :ref:`contact us <contact>`.
+
+   .. _Allow Execution of JIT-compiled Code Entitlement: https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit
