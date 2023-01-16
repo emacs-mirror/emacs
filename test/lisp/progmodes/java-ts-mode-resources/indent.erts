@@ -1,0 +1,44 @@
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq java-ts-mode-indent-offset 2)
+    (java-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Basic
+
+=-=
+public class Basic {
+  public void basic() {
+    return;
+  }
+}
+=-=-=
+
+Name: Empty Line
+
+=-=
+public class EmptyLine {
+  public void emptyLine() {
+    |
+  }
+}
+=-=-=
+
+Name: Statements
+
+=-=
+if (x) {
+  for (var foo : foos) {
+    |
+  }
+} else if (y) {
+  for (int i = 0; x < foos.size(); i++) {
+    return;
+  }
+} else {
+  return;
+}
+=-=-=
