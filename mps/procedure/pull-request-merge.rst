@@ -72,7 +72,7 @@ considering `2. Purpose`_.
 #. If the changes are significant and user-visible, is there an update
    to the release notes (``manual/source/release.rst``)?
 
-#. Has there been a code review?
+#. Has there been a code review, and only review edits since?
 
 #. Is the merge approved by an approving review?
 
