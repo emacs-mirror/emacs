@@ -85,6 +85,14 @@
      (should (equal (car (eshell-complete-parse-arguments))
                     '("echo" ("foo" "bar")))))))
 
+(ert-deftest em-cmpl-test/parse-arguments/variable/splice ()
+  "Test parsing arguments with a spliced variable interpolation."
+  (with-temp-eshell
+   (let ((eshell-test-value '("foo" "bar")))
+     (insert "echo $@eshell-test-value")
+     (should (equal (car (eshell-complete-parse-arguments))
+                    '("echo" "foo" "bar"))))))
+
 (ert-deftest em-cmpl-test/file-completion/unique ()
   "Test completion of file names when there's a unique result."
   (with-temp-eshell
