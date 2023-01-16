@@ -1121,7 +1121,7 @@ INTERACTIVE is t if called interactively."
        (user-error "[eglot] Connection attempt aborted by user."))
      (prog1 (append (eglot--guess-contact t) '(t))
        (when current-server (ignore-errors (eglot-shutdown current-server))))))
-  (eglot--connect (eglot--ensure-list managed-major-mode) 
+  (eglot--connect (eglot--ensure-list managed-major-mode)
                   project class contact language-id))
 
 (defun eglot-reconnect (server &optional interactive)
