@@ -361,7 +361,7 @@ connection if a previous connection has died for some reason."
 
   (let ((host (tramp-file-name-host vec)))
     (when (rassoc `(,host) (tramp-rclone-parse-device-names nil))
-      (if (zerop (length host))
+      (if (tramp-string-empty-or-nil-p host)
 	  (tramp-error vec 'file-error "Storage %s not connected" host))
       ;; We need a process bound to the connection buffer.  Therefore,
       ;; we create a dummy process.  Maybe there is a better solution?

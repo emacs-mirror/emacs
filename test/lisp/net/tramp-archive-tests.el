@@ -872,7 +872,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (let ((fsi (file-system-info tramp-archive-test-archive)))
     (skip-unless fsi)
     (should (and (consp fsi)
-		 (= (length fsi) 3)
+		 (tramp-compat-length= fsi 3)
 		 (numberp (nth 0 fsi))
 		 ;; FREE and AVAIL are always 0.
 		 (zerop (nth 1 fsi))

@@ -363,7 +363,8 @@ the result will be a local, non-Tramp, file name."
   ;; If DIR is not given, use `default-directory' or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
@@ -374,7 +375,7 @@ the result will be a local, non-Tramp, file name."
       ;; Tilde expansion if necessary.  We cannot accept "~/", because
       ;; under sudo "~/" is expanded to the local user home directory
       ;; but to the root home directory.
-      (when (zerop (length localname))
+      (when (tramp-string-empty-or-nil-p localname)
 	(setq localname "~"))
       (unless (file-name-absolute-p localname)
 	(setq localname (format "~%s/%s" user localname)))
@@ -383,7 +384,7 @@ the result will be a local, non-Tramp, file name."
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
-	  (when (zerop (length uname))
+	  (when (tramp-string-empty-or-nil-p uname)
 	    (setq uname user))
 	  (when (setq hname (tramp-get-home-directory v uname))
 	    (setq localname (concat hname fname)))))
@@ -471,7 +472,7 @@ the result will be a local, non-Tramp, file name."
      (with-tramp-file-property v localname "file-name-all-completions"
        (tramp-sudoedit-send-command
 	v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
-	(if (zerop (length localname))
+	(if (tramp-string-empty-or-nil-p localname)
 	    "" (file-name-unquote localname)))
        (mapcar
 	(lambda (f)

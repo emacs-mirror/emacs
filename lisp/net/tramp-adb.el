@@ -1078,11 +1078,12 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 	      (format "%s:%s" host port))
 	     ;; An empty host name shall be mapped as well, when there
 	     ;; is exactly one entry in `devices'.
-	     ((and (zerop (length host)) (= (length devices) 1))
+	     ((and (tramp-string-empty-or-nil-p host)
+		   (tramp-compat-length= devices 1))
 	      (car devices))
 	     ;; Try to connect device.
 	     ((and tramp-adb-connect-if-not-connected
-		   (not (zerop (length host)))
+		   (tramp-compat-length> host 0)
 		   (tramp-adb-execute-adb-command
                     vec "connect"
                     (tramp-compat-string-replace
@@ -1099,7 +1100,7 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
   "Execute an adb command.
 Insert the result into the connection buffer.  Return nil on
 error and non-nil on success."
-  (when (and (> (length (tramp-file-name-host vec)) 0)
+  (when (and (tramp-compat-length> (tramp-file-name-host vec) 0)
 	     ;; The -s switch is only available for ADB device commands.
 	     (not (member (car args) '("connect" "disconnect"))))
     (setq args (append (list "-s" (tramp-adb-get-device vec)) args)))
@@ -1226,7 +1227,7 @@ connection if a previous connection has died for some reason."
     (unless (process-live-p p)
       (save-match-data
 	(when (and p (processp p)) (delete-process p))
-	(if (zerop (length device))
+	(if (tramp-string-empty-or-nil-p device)
 	    (tramp-error vec 'file-error "Device %s not connected" host))
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	  (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?

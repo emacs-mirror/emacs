@@ -1987,7 +1987,7 @@ ccl_get_compiled_code (Lisp_Object ccl_prog, ptrdiff_t *idx)
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of CCL program CCL_PROG.  CCL_PROG is the name (symbol)
    of the CCL program or the already compiled code (vector).
-   Return true iff successful.
+   Return true if successful.
 
    If CCL_PROG is nil, just reset the structure pointed by CCL.  */
 bool

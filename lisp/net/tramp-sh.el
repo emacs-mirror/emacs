@@ -1736,7 +1736,7 @@ ID-FORMAT valid values are `string' and `integer'."
     ;; Sometimes, when a connection is not established yet, it is
     ;; desirable to return t immediately for "/method:foo:".  It can
     ;; be expected that this is always a directory.
-    (or (zerop (length localname))
+    (or (tramp-string-empty-or-nil-p localname)
 	(with-tramp-file-property v localname "file-directory-p"
 	  (if-let
 	      ((truename (tramp-get-file-property v localname "file-truename"))
@@ -2349,7 +2349,7 @@ The method used must be an out-of-band method."
 	 copy-program copy-args copy-env copy-keep-date listener spec
 	 options source target remote-copy-program remote-copy-args p)
 
-    (if (and v1 v2 (zerop (length (tramp-scp-direct-remote-copying v1 v2))))
+    (if (and v1 v2 (string-empty-p (tramp-scp-direct-remote-copying v1 v2)))
 
 	;; Both are Tramp files.  We cannot use direct remote copying.
 	(let* ((dir-flag (file-directory-p filename))
@@ -2684,9 +2684,9 @@ The method used must be an out-of-band method."
 		   (tramp-get-ls-command v)
 		   switches
 		   (if (or wildcard
-			   (zerop (length
-				   (tramp-run-real-handler
-				    #'file-name-nondirectory (list localname)))))
+			   (tramp-string-empty-or-nil-p
+			    (tramp-run-real-handler
+			     #'file-name-nondirectory (list localname))))
 		       ""
 		     (tramp-shell-quote-argument
 		      (tramp-run-real-handler
@@ -2803,7 +2803,8 @@ the result will be a local, non-Tramp, file name."
   ;; If DIR is not given, use `default-directory' or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; On MS Windows, some special file names are not returned properly
   ;; by `file-name-absolute-p'.  If `tramp-syntax' is `simplified',
   ;; there could be the false positive "/:".
@@ -2838,7 +2839,7 @@ the result will be a local, non-Tramp, file name."
 	    ;; the default user name for tilde expansion is not
 	    ;; appropriate either, because ssh and companions might
 	    ;; use a user name from the config file.
-	    (when (and (zerop (length uname))
+	    (when (and (tramp-string-empty-or-nil-p uname)
 		       (string-match-p (rx bos "su" (? "do") eos) method))
 	      (setq uname user))
 	    (when (setq hname (tramp-get-home-directory v uname))
@@ -2939,7 +2940,7 @@ implementation will be used."
 		 (heredoc (and (not (bufferp stderr))
 			       (stringp program)
 			       (string-match-p (rx "sh" eol) program)
-			       (= (length args) 2)
+			       (tramp-compat-length= args 2)
 			       (string-equal "-c" (car args))
 			       ;; Don't if there is a quoted string.
 			       (not
@@ -2949,7 +2950,7 @@ implementation will be used."
 		 ;; When PROGRAM is nil, we just provide a tty.
 		 (args (if (not heredoc) args
 			 (let ((i 250))
-			   (while (and (< i (length (cadr args)))
+			   (while (and (not (tramp-compat-length< (cadr args) i))
 				       (string-match " " (cadr args) i))
 			     (setcdr
 			      args
@@ -3931,7 +3932,7 @@ Fall back to normal file name handler if no Tramp handler exists."
     ;; Save rest of the string.
     (while (string-match (rx bol "\n") string)
       (setq string (replace-match "" nil nil string)))
-    (when (zerop (length string)) (setq string nil))
+    (when (string-empty-p string) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
     (process-put proc 'rest-string string)))
 
@@ -4176,7 +4177,7 @@ variable PATH."
             'noerror)))
 	tmpfile chunk chunksize)
     (tramp-message vec 5 "Setting $PATH environment variable")
-    (if (< (length command) pipe-buf)
+    (if (tramp-compat-length< command pipe-buf)
 	(tramp-send-command vec command)
       ;; Use a temporary file.  We cannot use `write-region' because
       ;; setting the remote path happens in the early connection
@@ -4565,7 +4566,7 @@ process to set up.  VEC specifies the connection."
 
     ;; Set `remote-tty' process property.
     (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"" 'noerror)))
-      (unless (zerop (length tty))
+      (unless (string-empty-p tty)
 	(process-put proc 'remote-tty tty)
 	(tramp-set-connection-property proc "remote-tty" tty)))
 
@@ -5138,7 +5139,7 @@ connection if a previous connection has died for some reason."
 	(unless (process-live-p p)
 	  (with-tramp-progress-reporter
 	      vec 3
-	      (if (zerop (length (tramp-file-name-user vec)))
+	      (if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
 		  (format "Opening connection %s for %s using %s"
 			  process-name
 			  (tramp-file-name-host vec)
@@ -5511,7 +5512,7 @@ raises an error."
     (cond
      ((tramp-get-method-parameter vec 'tramp-remote-copy-program)
       localname)
-     ((zerop (length user)) (format "%s:%s" host localname))
+     ((tramp-string-empty-or-nil-p user) (format "%s:%s" host localname))
      (t (format "%s@%s:%s" user host localname)))))
 
 (defun tramp-method-out-of-band-p (vec size)

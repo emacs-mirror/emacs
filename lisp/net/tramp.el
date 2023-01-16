@@ -1630,7 +1630,7 @@ This is USER, if non-nil.  Otherwise, do a lookup in
 This is HOST, if non-nil.  Otherwise, do a lookup in
 `tramp-default-host-alist' and `tramp-default-host'."
   (let ((result
-	 (or (and (> (length host) 0) host)
+	 (or (and (tramp-compat-length> host 0) host)
 	     (let ((choices tramp-default-host-alist)
 		   lhost item)
 	       (while choices
@@ -1642,7 +1642,7 @@ This is HOST, if non-nil.  Otherwise, do a lookup in
 	       lhost)
 	     tramp-default-host)))
     ;; We must mark, whether a default value has been used.
-    (if (or (> (length host) 0) (null result))
+    (if (or (tramp-compat-length> host 0) (null result))
 	result
       (propertize result 'tramp-default t))))
 
@@ -1748,14 +1748,18 @@ See `tramp-dissect-file-name' for details."
 
 (put #'tramp-dissect-hop-name 'tramp-suppress-trace t)
 
+(defsubst tramp-string-empty-or-nil-p (string)
+  "Check whether STRING is empty or nil."
+  (or (null string) (string= string "")))
+
 (defun tramp-buffer-name (vec)
   "A name for the connection buffer VEC."
   (let ((method (tramp-file-name-method vec))
 	(user-domain (tramp-file-name-user-domain vec))
 	(host-port (tramp-file-name-host-port vec)))
-    (if (not (zerop (length user-domain)))
-	(format "*tramp/%s %s@%s*" method user-domain host-port)
-      (format "*tramp/%s %s*" method host-port))))
+    (if (tramp-string-empty-or-nil-p user-domain)
+	(format "*tramp/%s %s*" method host-port)
+      (format "*tramp/%s %s@%s*" method user-domain host-port))))
 
 (put #'tramp-buffer-name 'tramp-suppress-trace t)
 
@@ -1800,23 +1804,23 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
 	      hop (nth 6 args))))
 
     ;; Unless `tramp-syntax' is `simplified', we need a method.
-    (when (and (not (zerop (length tramp-postfix-method-format)))
-	       (zerop (length method)))
+    (when (and (not (string-empty-p tramp-postfix-method-format))
+	       (tramp-string-empty-or-nil-p method))
       (signal 'wrong-type-argument (list #'stringp method)))
     (concat tramp-prefix-format hop
-	    (unless (zerop (length tramp-postfix-method-format))
+	    (unless (string-empty-p tramp-postfix-method-format)
 	      (concat method tramp-postfix-method-format))
 	    user
-	    (unless (zerop (length domain))
+	    (unless (tramp-string-empty-or-nil-p domain)
 	      (concat tramp-prefix-domain-format domain))
-	    (unless (zerop (length user))
+	    (unless (tramp-string-empty-or-nil-p user)
 	      tramp-postfix-user-format)
 	    (when host
 	      (if (string-match-p tramp-ipv6-regexp host)
 		  (concat
 		   tramp-prefix-ipv6-format host tramp-postfix-ipv6-format)
 		host))
-	    (unless (zerop (length port))
+	    (unless (tramp-string-empty-or-nil-p port)
 	      (concat tramp-prefix-port-format port))
 	    tramp-postfix-host-format
 	    localname)))
@@ -1840,12 +1844,12 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
 It must not be a complete Tramp file name, but as long as there are
 necessary only.  This function will be used in file name completion."
   (concat tramp-prefix-format
-	  (unless (or (zerop (length method))
-                      (zerop (length tramp-postfix-method-format)))
+	  (unless (or (tramp-string-empty-or-nil-p method)
+                      (string-empty-p tramp-postfix-method-format))
             (concat method tramp-postfix-method-format))
-          (unless (zerop (length user))
+          (unless (tramp-string-empty-or-nil-p user)
 	    (concat user tramp-postfix-user-format))
-	  (unless (zerop (length host))
+	  (unless (tramp-string-empty-or-nil-p host)
 	    (concat
 	     (if (string-match-p tramp-ipv6-regexp host)
 		 (concat
@@ -1940,9 +1944,9 @@ of `current-buffer'."
   (let ((method (tramp-file-name-method vec))
 	(user-domain (tramp-file-name-user-domain vec))
 	(host-port (tramp-file-name-host-port vec)))
-    (if (not (zerop (length user-domain)))
-	(format "*debug tramp/%s %s@%s*" method user-domain host-port)
-      (format "*debug tramp/%s %s*" method host-port))))
+    (if (tramp-string-empty-or-nil-p user-domain)
+	(format "*debug tramp/%s %s*" method host-port)
+      (format "*debug tramp/%s %s@%s*" method user-domain host-port))))
 
 (put #'tramp-debug-buffer-name 'tramp-suppress-trace t)
 
@@ -2942,10 +2946,10 @@ not in completion mode."
 	 (tramp-drop-volume-letter (expand-file-name filename directory)))
 	;; When `tramp-syntax' is `simplified', we need a default method.
 	(tramp-default-method
-	 (and (zerop (length tramp-postfix-method-format))
+	 (and (string-empty-p tramp-postfix-method-format)
 	      tramp-default-method))
 	(tramp-default-method-alist
-	 (and (zerop (length tramp-postfix-method-format))
+	 (and (string-empty-p tramp-postfix-method-format)
 	      tramp-default-method-alist))
 	tramp-default-user tramp-default-user-alist
 	tramp-default-host tramp-default-host-alist
@@ -3768,7 +3772,7 @@ Let-bind it when necessary.")
   ;; Otherwise, remove any trailing slash from localname component.
   ;; Method, host, etc, are unchanged.
   (while (with-parsed-tramp-file-name directory nil
-	   (and (not (zerop (length localname)))
+	   (and (tramp-compat-length> localname 0)
 		(eq (aref localname (1- (length localname))) ?/)
 		(not (string= localname "/"))))
     (setq directory (substring directory 0 -1)))
@@ -3799,7 +3803,8 @@ Let-bind it when necessary.")
   ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
@@ -3818,7 +3823,7 @@ Let-bind it when necessary.")
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
-	  (when (zerop (length uname))
+	  (when (tramp-string-empty-or-nil-p uname)
 	    (setq uname user))
 	  (when (setq hname (tramp-get-home-directory v uname))
 	    (setq localname (concat hname fname)))))
@@ -3901,7 +3906,7 @@ Let-bind it when necessary.")
     ;; Run the command on the localname portion only unless we are in
     ;; completion mode.
     (tramp-make-tramp-file-name
-     v (or (and (zerop (length (tramp-file-name-localname v)))
+     v (or (and (tramp-string-empty-or-nil-p (tramp-file-name-localname v))
 		(not (tramp-connectable-p file)))
 	   (tramp-run-real-handler
 	    #'file-name-as-directory
@@ -3964,7 +3969,8 @@ Let-bind it when necessary.")
     ;; "." and ".." are never interesting as completions, and are
     ;; actually in the way in a directory with only one file.  See
     ;; file_name_completion() in dired.c.
-    (when (and (consp fnac) (= (length (delete "./" (delete "../" fnac))) 1))
+    (when (and (consp fnac)
+	       (tramp-compat-length= (delete "./" (delete "../" fnac)) 1))
       (setq fnac (delete "./" (delete "../" fnac))))
     (or
      (try-completion
@@ -4725,7 +4731,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
          (tramp-get-connection-property v "direct-async-process")
 	 ;; There's no multi-hop.
 	 (or (not (tramp-multi-hop-p v))
-	     (= (length (tramp-compute-multi-hops v)) 1))
+	     (null (cdr (tramp-compute-multi-hops v))))
 	 ;; There's no remote stdout or stderr file.
 	 (or (not (stringp buffer)) (not (tramp-tramp-file-p buffer)))
 	 (or (not (stringp stderr)) (not (tramp-tramp-file-p stderr))))))
@@ -6343,7 +6349,7 @@ are written with verbosity of 6."
       (error
        (setq error (error-message-string err)
 	     result 1)))
-    (if (zerop (length error))
+    (if (tramp-string-empty-or-nil-p error)
 	(tramp-message vec 6 "%s\n%s" result output)
       (tramp-message vec 6 "%s\n%s\n%s" result output error))
     result))
@@ -6479,7 +6485,7 @@ Consults the auth-source package."
 
       ;; Workaround.  Prior Emacs 28.1, auth-source has saved empty
       ;; passwords.  See discussion in Bug#50399.
-      (when (zerop (length auth-passwd))
+      (when (tramp-string-empty-or-nil-p auth-passwd)
 	(setq tramp-password-save-function nil))
       (tramp-set-connection-property vec "first-password-request" nil)
 

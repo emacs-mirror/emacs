@@ -1,7 +1,12 @@
 Code:
   (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq c-ts-mode-indent-offset 2)
+    (setq c-ts-mode-indent-style 'gnu)
     (c-ts-mode)
     (indent-region (point-min) (point-max)))
+
+Point-Char: |
 
 Name: Basic
 
@@ -25,6 +30,68 @@ main (void)
 }
 =-=-=
 
+Name: Labels (GNU Style)
+
+=-=
+int
+main (void)
+{
+ label:
+  return 0;
+  if (true)
+    {
+    label:
+      return 0;
+    }
+  else
+    {
+      if (true)
+        {
+        label:
+          return 0;
+        }
+    }
+}
+=-=-=
+
+Name: For Loop with Multi-line Condition (GNU Style)
+
+=-=
+int main()
+{
+  for (int i = 0;
+       i < b;
+       i++)
+    {
+      return 0;
+    }
+}
+=-=-=
+
+Name: If-Else (GNU Style)
+
+=-=
+int main()
+{
+  if (true)
+    {
+      return 0;
+    }
+  else
+    {
+      return 1;
+    }
+}
+=-=-=
+
+Name: Empty Line
+=-=
+int main()
+{
+  |
+}
+=-=-=
+
 Name: Multiline Parameter List (bug#60398)
 
 =-=
@@ -34,11 +101,63 @@ int f2(int x,
 };
 =-=-=
 
-Name: Multiline Block Comments (bug#60270)
+Name: Multiline Block Comments 1 (bug#60270)
 
 =-=
 /**
  * @some_func:
  * @arg1:
  */
+=-=-=
+
+Name: Multiline Block Comments 2 (bug#60270)
+
+=-=
+/*
+  some comment
+ */
+=-=-=
+
+Name: Multiline Block Comments 3 (bug#60270)
+
+=-=
+/* some comment
+ */
+=-=-=
+
+Name: Multiline Block Comments 4 (bug#60270)
+
+=-=
+/*
+ * Some comment
+ */
+=-=-=
+
+
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq c-ts-mode-indent-offset 8)
+    (setq c-ts-mode-indent-style 'linux)
+    (c-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: Labels (Linux Style)
+
+=-=-=
+int main (void)
+{
+label:
+        return 0;
+        if (true) {
+label:
+                return 0;
+        }
+        else {
+                if (true) {
+label:
+                        return 0;
+                }
+        }
+}
 =-=-=

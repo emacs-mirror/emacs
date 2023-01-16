@@ -27,5 +27,9 @@
   (skip-unless (treesit-ready-p 'c))
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
+(ert-deftest c-ts-mode-test-filling ()
+  (skip-unless (treesit-ready-p 'c))
+  (ert-test-erts-file (ert-resource-file "filling.erts")))
+
 (provide 'c-ts-mode-tests)
 ;;; c-ts-mode-tests.el ends here
