@@ -1075,7 +1075,7 @@ suitable root directory for a given LSP server's purposes."
 
 ;;;###autoload
 (defun eglot (managed-major-mode project class contact language-id
-                                 &optional interactive)
+                                 &optional _interactive)
   "Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
 
 This starts a Language Server Protocol (LSP) server suitable for the
@@ -1112,7 +1112,7 @@ described in `eglot-server-programs', which see.
 LANGUAGE-ID is the language ID string to send to the server for
 MANAGED-MAJOR-MODE, which matters to a minority of servers.
 
-INTERACTIVE is t if called interactively."
+INTERACTIVE is ignored and provided for backward compatibility."
   (interactive
    (let ((current-server (eglot-current-server)))
      (unless (or (null current-server)
