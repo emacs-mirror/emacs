@@ -18,6 +18,9 @@ New features
    * ``lia6ll`` (Linux, ARM64, Clang/LLVM).
    * ``xca6ll`` (macOS, ARM64, Clang/LLVM).
 
+   See :ref:`topic-platform-limitations` for limitations in the
+   support for Apple Hardened Runtime on ``xca6ll``.
+
 #. Support removed for platform:
 
    * ``xci3ll`` (macOS, IA-32, Clang/LLVM).
