@@ -1113,16 +1113,16 @@ LANGUAGE-ID is the language ID string to send to the server for
 MANAGED-MAJOR-MODE, which matters to a minority of servers.
 
 INTERACTIVE is t if called interactively."
-  (interactive (append (eglot--guess-contact t) '(t)))
-  (setq managed-major-mode (eglot--ensure-list managed-major-mode))
-  (let* ((current-server (eglot-current-server))
-         (live-p (and current-server (jsonrpc-running-p current-server))))
-    (if (and live-p
-             interactive
-             (y-or-n-p "[eglot] Live process found, reconnect instead? "))
-        (eglot-reconnect current-server interactive)
-      (when live-p (ignore-errors (eglot-shutdown current-server)))
-      (eglot--connect managed-major-mode project class contact language-id))))
+  (interactive
+   (let ((current-server (eglot-current-server)))
+     (unless (or (null current-server)
+                 (y-or-n-p "\
+[eglot] Shut down current connection before attempting new one?"))
+       (user-error "[eglot] Connection attempt aborted by user."))
+     (prog1 (append (eglot--guess-contact t) '(t))
+       (when current-server (ignore-errors (eglot-shutdown current-server))))))
+  (eglot--connect (eglot--ensure-list managed-major-mode) 
+                  project class contact language-id))
 
 (defun eglot-reconnect (server &optional interactive)
   "Reconnect to SERVER.
