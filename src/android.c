@@ -25,9 +25,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <semaphore.h>
 #include <dlfcn.h>
+#include <errno.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sys/param.h>
 
 #include <assert.h>
 
@@ -513,7 +515,7 @@ android_run_debug_thread (void *data)
   char *line;
   size_t n;
 
-  fd = (int) data;
+  fd = (int) (intptr_t) data;
   file = fdopen (fd, "r");
 
   if (!file)
@@ -958,7 +960,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   close (pipefd[1]);
 
   if (pthread_create (&thread, NULL, android_run_debug_thread,
-		      (void *) pipefd[0]))
+		      (void *) (intptr_t) pipefd[0]))
     emacs_abort ();
 
   /* Now set the path to the site load directory.  */
@@ -2829,6 +2831,7 @@ android_put_pixel (struct android_image *ximg, int x, int y,
 {
   char *byte, *word;
   unsigned int r, g, b;
+  unsigned int pixel_int;
 
   /* Ignore out-of-bounds accesses.  */
 
@@ -2859,7 +2862,8 @@ android_put_pixel (struct android_image *ximg, int x, int y,
       b = pixel & 0x000000ff;
       pixel = (r >> 16) | g | (b << 16) | 0xff000000;
 
-      memcpy (word, &pixel, sizeof pixel);
+      pixel_int = pixel;
+      memcpy (word, &pixel_int, sizeof pixel_int);
       break;
     }
 }
@@ -3734,6 +3738,262 @@ android_exception_check (void)
     }
 }
 
+
+
+/* Native image transforms.  */
+
+/* Transform the coordinates X and Y by the specified affine
+   transformation MATRIX.  Place the result in *XOUT and *YOUT.  */
+
+static void
+android_transform_coordinates (int x, int y,
+			       struct android_transform *transform,
+			       float *xout, float *yout)
+{
+  /* Apply the specified affine transformation.
+     A transform looks like:
+
+       M1 M2 M3     X
+       M4 M5 M6   * Y
+
+       =
+
+       M1*X + M2*Y + M3*1 = X1
+       M4*X + M5*Y + M6*1 = Y1
+
+     (In most transforms, there is another row at the bottom for
+     mathematical reasons.  Since Z1 is always 1.0, the row is simply
+     implied to be 0 0 1, because 0 * x + 0 * y + 1 * 1 = 1.0.  See
+     the definition of matrix3x3 in image.c for some more explanations
+     about this.) */
+
+  *xout = transform->m1 * x + transform->m2 * y + transform->m3;
+  *yout = transform->m4 * x + transform->m5 * y + transform->m6;
+}
+
+/* Return the interpolation of the four pixels TL, TR, BL, and BR,
+   according to the weights DISTX and DISTY.  */
+
+static unsigned int
+android_four_corners_bilinear (unsigned int tl, unsigned int tr,
+			       unsigned int bl, unsigned int br,
+			       int distx, int disty)
+{
+    int distxy, distxiy, distixy, distixiy;
+    uint32_t f, r;
+
+    distxy = distx * disty;
+    distxiy = (distx << 8) - distxy;
+    distixy = (disty << 8) - distxy;
+    distixiy = (256 * 256 - (disty << 8)
+		- (distx << 8) + distxy);
+
+    /* Red */
+    r = ((tl & 0x000000ff) * distixiy + (tr & 0x000000ff) * distxiy
+	 + (bl & 0x000000ff) * distixy  + (br & 0x000000ff) * distxy);
+
+    /* Green */
+    f = ((tl & 0x0000ff00) * distixiy + (tr & 0x0000ff00) * distxiy
+	 + (bl & 0x0000ff00) * distixy  + (br & 0x0000ff00) * distxy);
+    r |= f & 0xff000000;
+
+    /* Now do the upper two components.  */
+    tl >>= 16;
+    tr >>= 16;
+    bl >>= 16;
+    br >>= 16;
+    r >>= 16;
+
+    /* Blue */
+    f = ((tl & 0x000000ff) * distixiy + (tr & 0x000000ff) * distxiy
+	 + (bl & 0x000000ff) * distixy  + (br & 0x000000ff) * distxy);
+    r |= f & 0x00ff0000;
+
+    /* Alpha */
+    f = ((tl & 0x0000ff00) * distixiy + (tr & 0x0000ff00) * distxiy
+	 + (bl & 0x0000ff00) * distixy  + (br & 0x0000ff00) * distxy);
+    r |= f & 0xff000000;
+
+  return r;
+}
+
+/* Return the interpolation of the four pixels closest to at X, Y in
+   IMAGE, according to weights in both axes computed from X and Y.
+   IMAGE must be depth 24, or the behavior is undefined.  */
+
+static unsigned int
+android_fetch_pixel_bilinear (struct android_image *image,
+			      float x, float y)
+{
+  int x1, y1, x2, y2;
+  float distx, disty;
+  unsigned int top_left, top_right;
+  unsigned int bottom_left, bottom_right;
+  char *word;
+
+  /* Compute the four closest corners to X and Y.  */
+  x1 = (int) x;
+  x2 = x1 + 1;
+  y1 = (int) y;
+  y2 = y1 + 1;
+
+  /* Make sure all four corners are within range.  */
+  x1 = MAX (0, MIN (image->width - 1, x1));
+  y1 = MAX (0, MIN (image->height - 1, y1));
+  x2 = MAX (0, MIN (image->width - 1, x2));
+  y2 = MAX (0, MIN (image->height - 1, y2));
+
+  /* Compute the X and Y biases.  These are numbers between 0f and
+     1f.  */
+  distx = x - x1;
+  disty = y - y1;
+
+  /* Fetch the four closest pixels.  */
+  word = image->data + y1 * image->bytes_per_line + x1 * 4;
+  memcpy (&top_left, word, sizeof top_left);
+  word = image->data + y1 * image->bytes_per_line + x2 * 4;
+  memcpy (&top_right, word, sizeof top_right);
+  word = image->data + y2 * image->bytes_per_line + x1 * 4;
+  memcpy (&bottom_left, word, sizeof bottom_left);
+  word = image->data + y2 * image->bytes_per_line + x2 * 4;
+  memcpy (&bottom_right, word, sizeof bottom_right);
+
+  /* Do the interpolation.  */
+  return android_four_corners_bilinear (top_left, top_right, bottom_left,
+					bottom_right, distx * 256,
+					disty * 256);
+}
+
+/* Transform the depth 24 image IMAGE by the 3x2 affine transformation
+   matrix MATRIX utilizing a bilinear filter.  Place the result in
+   OUT.  The matrix maps from the coordinate space of OUT to
+   IMAGE.  */
+
+void
+android_project_image_bilinear (struct android_image *image,
+				struct android_image *out,
+				struct android_transform *transform)
+{
+  int x, y;
+  unsigned int pixel;
+  float xout, yout;
+  char *word;
+
+  /* Loop through each pixel in OUT.  Transform it by TRANSFORM, then
+     interpolate it to IMAGE, and place the result back in OUT.  */
+
+  for (y = 0; y < out->height; ++y)
+    {
+      for (x = 0; x < out->width; ++x)
+	{
+	  /* Transform the coordinates by TRANSFORM.  */
+	  android_transform_coordinates (x, y, transform,
+					 &xout, &yout);
+
+	  /* Interpolate back to IMAGE.  */
+	  pixel = android_fetch_pixel_bilinear (image, xout, yout);
+
+	  /* Put the pixel back in OUT.  */
+	  word = out->data + y * out->bytes_per_line + x * 4;
+	  memcpy (word, &pixel, sizeof pixel);
+	}
+    }
+}
+
+/* Return the interpolation of X, Y to IMAGE, a depth 24 image.  */
+
+static unsigned int
+android_fetch_pixel_nearest_24 (struct android_image *image, float x,
+				float y)
+{
+  int x1, y1;
+  char *word;
+  unsigned int pixel;
+
+  x1 = MAX (0, MIN (image->width - 1, (int) roundf (x)));
+  y1 = MAX (0, MIN (image->height - 1, (int) roundf (y)));
+
+  word = image->data + y1 * image->bytes_per_line + x1 * 4;
+  memcpy (&pixel, word, sizeof pixel);
+
+  return pixel;
+}
+
+/* Return the interpolation of X, Y to IMAGE, a depth 1 image.  */
+
+static unsigned int
+android_fetch_pixel_nearest_1 (struct android_image *image, float x,
+			       float y)
+{
+  int x1, y1;
+  char *byte;
+
+  x1 = MAX (0, MIN (image->width - 1, (int) roundf (x)));
+  y1 = MAX (0, MIN (image->height - 1, (int) roundf (y)));
+
+  byte = image->data + y1 * image->bytes_per_line;
+  return (byte[x1 / 8] & (1 << x1 % 8)) ? 1 : 0;
+}
+
+/* Transform the depth 24 or 1 image IMAGE by the 3x2 affine
+   transformation matrix MATRIX.  Place the result in OUT.  The matrix
+   maps from the coordinate space of OUT to IMAGE.  Use a
+   nearest-neighbor filter.  */
+
+void
+android_project_image_nearest (struct android_image *image,
+			       struct android_image *out,
+			       struct android_transform *transform)
+{
+  int x, y;
+  unsigned int pixel;
+  float xout, yout;
+  char *word, *byte;
+
+  if (image->depth == 1)
+    {
+      for (y = 0; y < out->height; ++y)
+	{
+	  for (x = 0; x < out->width; ++x)
+	    {
+	      /* Transform the coordinates by TRANSFORM.  */
+	      android_transform_coordinates (x, y, transform,
+					     &xout, &yout);
+
+	      /* Interpolate back to IMAGE.  */
+	      pixel = android_fetch_pixel_nearest_1 (image, xout, yout);
+
+	      /* Put the pixel back in OUT.  */
+	      byte = out->data + y * out->bytes_per_line + x / 8;
+
+	      if (pixel)
+		*byte |= (1 << x % 8);
+	      else
+		*byte &= ~(1 << x % 8);
+	    }
+	}
+
+      return;
+    }
+
+  for (y = 0; y < out->height; ++y)
+    {
+      for (x = 0; x < out->width; ++x)
+	{
+	  /* Transform the coordinates by TRANSFORM.  */
+	  android_transform_coordinates (x, y, transform,
+					 &xout, &yout);
+
+	  /* Interpolate back to IMAGE.  */
+	  pixel = android_fetch_pixel_nearest_24 (image, xout, yout);
+
+	  /* Put the pixel back in OUT.  */
+	  word = out->data + y * out->bytes_per_line + x * 4;
+	  memcpy (word, &pixel, sizeof pixel);
+	}
+    }
+}
+
 #else /* ANDROID_STUBIFY */
 
 /* X emulation functions for Android.  */
@@ -3789,6 +4049,22 @@ android_get_image (android_drawable drawable,
 void
 android_put_image (android_pixmap pixmap,
 		   struct android_image *image)
+{
+  emacs_abort ();
+}
+
+void
+android_project_image_bilinear (struct android_image *image,
+				struct android_image *out,
+				struct android_transform *transform)
+{
+  emacs_abort ();
+}
+
+void
+android_project_image_nearest (struct android_image *image,
+			       struct android_image *out,
+			       struct android_transform *transform)
 {
   emacs_abort ();
 }

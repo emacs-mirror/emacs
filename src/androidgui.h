@@ -542,6 +542,25 @@ extern struct android_image *android_get_image (android_drawable,
 						enum android_image_format);
 extern void android_put_image (android_pixmap, struct android_image *);
 
+
+/* Native image transforms.  */
+
+/* 3x2 matrix describing a projective transform.  See
+   android_transform_coordinates for details.  */
+
+struct android_transform
+{
+  float m1, m2, m3;
+  float m4, m5, m6;
+};
+
+extern void android_project_image_bilinear (struct android_image *,
+					    struct android_image *,
+					    struct android_transform *);
+extern void android_project_image_nearest (struct android_image *,
+					   struct android_image *,
+					   struct android_transform *);
+
 
 
 /* X emulation stuff also needed while building stubs.  */

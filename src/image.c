@@ -2631,11 +2631,11 @@ compute_image_size (double width, double height,
    finally move the origin back to the top left of the image, which
    may now be a different corner.
 
-   Note that different GUI backends (X, Cairo, w32, NS, Haiku) want
-   the transform matrix defined as transform from the original image
-   to the transformed image, while others want the matrix to describe
-   the transform of the space, which boils down to inverting the
-   matrix.
+   Note that different GUI backends (X, Cairo, w32, NS, Haiku,
+   Android) want the transform matrix defined as transform from the
+   original image to the transformed image, while others want the
+   matrix to describe the transform of the space, which boils down to
+   inverting the matrix.
 
    It's possible to pre-calculate the matrix multiplications and just
    generate one transform matrix that will do everything we need in a
@@ -2677,6 +2677,96 @@ compute_image_rotation (struct image *img, double *rotation)
     *rotation = XFIXNUM (reduced_angle);
 }
 
+#ifdef HAVE_ANDROID
+
+static void
+matrix_identity (matrix3x3 matrix)
+{
+  memset (matrix, 0, sizeof (matrix3x3));
+
+  matrix[0][0] = 1.0;
+  matrix[1][1] = 1.0;
+  matrix[2][2] = 1.0;
+}
+
+/* Translate the matrix TRANSFORM to X, Y, and then perform clockwise
+   rotation by the given angle THETA in radians and translate back.
+   As the transform is being performed in a coordinate system where Y
+   grows downwards, the given angle describes a clockwise
+   rotation.  */
+
+static void
+matrix_rotate (matrix3x3 transform, double theta, double x, double y)
+{
+  matrix3x3 temp, copy;
+
+  /* 1. Translate the matrix so X and Y are in the center.  */
+
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  temp[0][2] = x;
+  temp[1][2] = y;
+
+  matrix3x3_mult (copy, temp, transform);
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  /* 2. Rotate the matrix counter-clockwise, assuming a coordinate
+     system where Y grows downwards.  */
+
+  temp[0][0] = cos (theta);
+  temp[0][1] = -sin (theta);
+  temp[1][0] = sinf (theta);
+  temp[1][1] = cosf (theta);
+
+  matrix3x3_mult (copy, temp, transform);
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  /* 3. Translate back.  */
+
+  temp[0][2] = -x;
+  temp[1][2] = -y;
+
+  matrix3x3_mult (copy, temp, transform);
+}
+
+/* Scale the matrix TRANSFORM by -1, and then apply a TX of width, in
+   effect flipping the image horizontally.  */
+
+static void
+matrix_mirror_horizontal (matrix3x3 transform, double width)
+{
+  matrix3x3 temp, copy;
+
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  temp[0][0] = -1.0f;
+  temp[0][2] = width;
+
+  matrix3x3_mult (copy, temp, transform);
+}
+
+static void
+matrix_translate (matrix3x3 transform, float tx, float ty)
+{
+  matrix3x3 temp, copy;
+
+  matrix_identity (temp);
+  memcpy (copy, transform, sizeof copy);
+
+  /* Set the tx and ty.  */
+  temp[0][2] = tx;
+  temp[1][2] = ty;
+
+  /* Multiply it with the transform.  */
+  matrix3x3_mult (copy, temp, transform);
+}
+
+#endif
+
 static void
 image_set_transform (struct frame *f, struct image *img)
 {
@@ -2694,6 +2784,14 @@ image_set_transform (struct frame *f, struct image *img)
   img->use_bilinear_filtering = false;
 
   memcpy (&img->transform, identity, sizeof identity);
+#endif
+
+#if defined HAVE_ANDROID
+  matrix3x3 identity = {
+    { 1, 0, 0 },
+    { 0, 1, 0 },
+    { 0, 0, 1 },
+  };
 #endif
 
 # if (defined HAVE_IMAGEMAGICK \
@@ -2733,7 +2831,8 @@ image_set_transform (struct frame *f, struct image *img)
   /* Determine flipping.  */
   flip = !NILP (image_spec_value (img->spec, QCflip, NULL));
 
-# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_HAIKU
+# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_HAIKU \
+  || defined HAVE_ANDROID
   /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
      operations to use a blended filter, to avoid aliasing and the like.
@@ -2755,7 +2854,7 @@ image_set_transform (struct frame *f, struct image *img)
 
   matrix3x3 matrix
     = {
-# if defined USE_CAIRO || defined HAVE_XRENDER
+# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_ANDROID
 	[0][0] = (!IEEE_FLOATING_POINT && width == 0 ? DBL_MAX
 		  : img->width / (double) width),
 	[1][1] = (!IEEE_FLOATING_POINT && height == 0 ? DBL_MAX
@@ -2778,7 +2877,7 @@ image_set_transform (struct frame *f, struct image *img)
 
   /* Haiku needs this, since the transformation is done on the basis
      of the view, and not the image.  */
-#ifdef HAVE_HAIKU
+#if defined HAVE_HAIKU
   int extra_tx, extra_ty;
 
   extra_tx = 0;
@@ -2789,8 +2888,9 @@ image_set_transform (struct frame *f, struct image *img)
     rotate_flag = 0;
   else
     {
-# if (defined USE_CAIRO || defined HAVE_XRENDER \
-      || defined HAVE_NTGUI || defined HAVE_NS \
+#ifndef HAVE_ANDROID
+# if (defined USE_CAIRO || defined HAVE_XRENDER		\
+      || defined HAVE_NTGUI || defined HAVE_NS		\
       || defined HAVE_HAIKU)
       int cos_r, sin_r;
       if (rotation == 0)
@@ -2817,7 +2917,7 @@ image_set_transform (struct frame *f, struct image *img)
 	  sin_r = 1;
 	  rotate_flag = 1;
 
-#ifdef HAVE_HAIKU
+#if defined HAVE_HAIKU
 	  if (!flip)
 	    extra_ty = height;
 	  extra_tx = 0;
@@ -2853,7 +2953,7 @@ image_set_transform (struct frame *f, struct image *img)
 
       if (0 < rotate_flag)
 	{
-#  if defined USE_CAIRO || defined HAVE_XRENDER
+#  if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_ANDROID
 	  /* 1. Translate so (0, 0) is in the center of the image.  */
 	  matrix3x3 t
 	    = { [0][0] = 1,
@@ -2904,6 +3004,93 @@ image_set_transform (struct frame *f, struct image *img)
 	  img->height = height;
 	}
 # endif
+#else
+      /* Calculate the inverse transform from the destination to the
+	 source.  The matrix is currently identity with scale
+	 applied.
+
+         This code makes more sense to me than what lies above.  But
+         I'm not touching what works.  */
+
+      if (rotation != 0 && rotation != 90
+	  && rotation != 180 && rotation != 270)
+	{
+	  rotate_flag = 0;
+	  goto bail;
+	}
+
+      rotate_flag = 1;
+
+      switch ((int) rotation + (flip ? 1 : 0))
+	{
+	case 0:
+	  break;
+
+	case 90:
+	  /* Rotate the image 90 degrees clockwise.  IOW, rotate the
+	     destination by 90 degrees counterclockwise, which is 270
+	     degrees clockwise.  */
+	  matrix_rotate (matrix, M_PI * 1.5, 0, 0);
+	  matrix_translate (matrix, -height, 0);
+	  break;
+
+	case 180:
+	  /* Apply clockwise 180 degree rotation around the
+	     center.  */
+	  matrix_rotate (matrix, M_PI, width / 2.0, height / 2.0);
+	  break;
+
+	case 270:
+	  /* Apply 270 degree counterclockwise rotation to the
+	     destination, which is 90 degrees clockwise.  */
+	  matrix_rotate (matrix, M_PI * 0.5, 0, 0);
+	  matrix_translate (matrix, 0, -width);
+	  break;
+
+	case 1:
+	  /* Flipped.  Apply horizontal flip.  */
+	  matrix_mirror_horizontal (matrix, width);
+	  break;
+
+	case 91:
+	  /* Apply a flip but otherwise treat this the same as 90.  */
+	  matrix_rotate (matrix, M_PI * 1.5, 0, 0);
+	  matrix_translate (matrix, -height, 0);
+	  matrix_mirror_horizontal (matrix, height);
+	  break;
+
+	case 181:
+	  /* Flipped 180 degrees.  Apply a flip and treat this the
+	     same as 180.  */
+	  matrix_rotate (matrix, M_PI, width / 2.0, height / 2.0);
+	  matrix_mirror_horizontal (matrix, width);
+	  break;
+
+	case 271:
+	  /* Flipped 270 degrees.  Apply a flip and treat this the
+	     same as 270.  */
+	  matrix_rotate (matrix, M_PI * 0.5, 0, 0);
+	  matrix_translate (matrix, 0, -width);
+	  matrix_mirror_horizontal (matrix, height);
+	  break;
+	}
+
+      /* Now set img->width and img->height.  Flip them if the
+	 rotation being applied requires so.  */
+
+      if (rotation != 270 && rotation != 90)
+	{
+	  img->width = width;
+	  img->height = height;
+	}
+      else
+	{
+	  img->height = width;
+	  img->width = height;
+	}
+    bail:
+      ;
+#endif
     }
 
   if (rotate_flag < 0)
@@ -2968,6 +3155,103 @@ image_set_transform (struct frame *f, struct image *img)
       img->transform[0][2] = extra_tx;
       img->transform[1][2] = extra_ty;
     }
+# elif defined HAVE_ANDROID
+  /* Create a new image of the right size, then turn it into a pixmap
+     and set that as img->pixmap.  Destroy img->mask for now (this is
+     not right.)  */
+
+  struct android_image *transformed_image, *image;
+  struct android_transform transform;
+
+  /* If there is no transform, simply return.  */
+  if (!memcmp (&matrix, &identity, sizeof matrix))
+    return;
+
+  /* First, get the source image.  */
+  image = image_get_x_image (f, img, false);
+
+  /* Make the transformed image.  */
+  transformed_image = android_create_image (image->depth,
+					    ANDROID_Z_PIXMAP,
+					    NULL, img->width,
+					    img->height);
+
+  /* Allocate memory for that image.  */
+  transformed_image->data
+    = xmalloc (transformed_image->bytes_per_line
+	       * transformed_image->height);
+
+  /* Do the transform.  */
+  transform.m1 = matrix[0][0];
+  transform.m2 = matrix[0][1];
+  transform.m3 = matrix[0][2];
+  transform.m4 = matrix[1][0];
+  transform.m5 = matrix[1][1];
+  transform.m6 = matrix[1][2];
+
+  if (image->depth == 24 && smoothing)
+    android_project_image_bilinear (image, transformed_image,
+				    &transform);
+  else
+    android_project_image_nearest (image, transformed_image,
+				   &transform);
+
+  image_unget_x_image (img, false, image);
+
+  /* Now replace the image.  */
+
+  if (img->ximg)
+    image_destroy_x_image (img->ximg);
+
+  img->ximg = transformed_image;
+
+#ifndef ANDROID_STUBIFY
+  /* Then replace the pixmap.  */
+  android_free_pixmap (img->pixmap);
+
+  /* In case android_create_pixmap signals.  */
+  img->pixmap = ANDROID_NONE;
+  img->pixmap = android_create_pixmap (img->width, img->height,
+				       transformed_image->depth);
+  android_put_image (img->pixmap, transformed_image);
+#else
+  emacs_abort ();
+#endif
+
+  /* Now, transform the mask.  The mask should be depth 1, and is
+     always transformed using a nearest neighbor filter.  */
+
+  if (img->mask_img || img->mask)
+    {
+      image = image_get_x_image (f, img, true);
+      transformed_image = android_create_image (1, ANDROID_Z_PIXMAP,
+						NULL, img->width,
+						img->height);
+      transformed_image->data
+	= xmalloc (transformed_image->bytes_per_line
+		   * transformed_image->height);
+      android_project_image_nearest (image, transformed_image,
+				     &transform);
+      image_unget_x_image (img, false, image);
+
+      /* Now replace the image.  */
+
+      if (img->mask_img)
+	image_destroy_x_image (img->mask_img);
+
+      img->mask_img = transformed_image;
+
+#ifndef ANDROID_STUBIFY
+      if (img->mask)
+	android_free_pixmap (img->mask);
+
+      img->mask = ANDROID_NONE;
+      img->mask = android_create_pixmap (img->width, img->height, 1);
+      android_put_image (img->mask, transformed_image);
+#endif
+    }
+
+  /* Done! */
 #endif
 }
 
@@ -12087,7 +12371,7 @@ The list of capabilities can include one or more of the following:
     {
 #ifdef HAVE_NATIVE_TRANSFORMS
 # if defined HAVE_IMAGEMAGICK || defined (USE_CAIRO) || defined (HAVE_NS) \
-  || defined (HAVE_HAIKU)
+  || defined (HAVE_HAIKU) | defined HAVE_ANDROID
       return list2 (Qscale, Qrotate90);
 # elif defined (HAVE_X_WINDOWS) && defined (HAVE_XRENDER)
       if (FRAME_DISPLAY_INFO (f)->xrender_supported_p)

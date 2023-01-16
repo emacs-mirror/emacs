@@ -3436,7 +3436,7 @@ sfnt_compare_edges (const void *a, const void *b)
    that now overlap with Y, keeping them sorted by X.  Poly those
    edges through SPAN_FUNC.  Then, move upwards by SFNT_POLY_STEP,
    remove edges that no longer apply, and interpolate the remaining
-   edge's X coordinates.  Repeat until all the edges have been polyed.
+   edges' X coordinates.  Repeat until all the edges have been polyed.
 
    Or alternatively, think of this as such: each edge is actually a
    vector from its bottom position towards its top most position.

@@ -637,8 +637,8 @@ public class EmacsWindow extends EmacsHandleObject
 	pointerIndex = event.getActionIndex ();
 	pointerID = event.getPointerId (pointerIndex);
 	pointerMap.put (pointerID,
-			new Coordinate ((int) event.getX (pointerID),
-					(int) event.getY (pointerID)));
+			new Coordinate ((int) event.getX (pointerIndex),
+					(int) event.getY (pointerIndex)));
 	break;
 
       case MotionEvent.ACTION_POINTER_UP:

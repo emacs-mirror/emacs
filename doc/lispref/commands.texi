@@ -2018,6 +2018,11 @@ display, because another program took the grab, or because the user
 raised the finger from the touchscreen.
 @end table
 
+If a touchpoint is pressed against the menu bar, then Emacs will not
+generate any corresponding @code{touchscreen-begin} or
+@code{touchscreen-end} events; instead, the menu bar may be displayed
+when @code{touchscreen-end} should have been delivered.
+
 @node Focus Events
 @subsection Focus Events
 @cindex focus event

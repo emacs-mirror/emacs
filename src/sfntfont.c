@@ -860,7 +860,7 @@ sfntfont_lookup_char (struct sfnt_font_desc *desc, Lisp_Object character,
     /* Emacs missing charsets? */
     return false;
 
-  font_character = ENCODE_CHAR (charset, XFIXNUM (character));
+  font_character = ENCODE_CHAR (charset, (int) XFIXNUM (character));
 
   if (font_character == CHARSET_INVALID_CODE (charset))
     return false;

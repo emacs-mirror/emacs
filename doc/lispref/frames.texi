@@ -695,7 +695,7 @@ The position of the top left corner of the native frame specifies the
 indicate that position for the various builds:
 
 @itemize @w{}
-@item (1) non-toolkit, Haiku, and terminal frames
+@item (1) non-toolkit, Android, Haiku, and terminal frames
 
 @item (2) Lucid, Motif, and MS-Windows frames
 
@@ -2389,6 +2389,7 @@ engine), and @code{harfbuzz} (font driver for OTF and TTF fonts with
 HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs, The GNU Emacs
 Manual}).  The @code{harfbuzz} driver is similarly recommended.  On
 Haiku, there can be several font drivers (@pxref{Haiku Fonts,,, emacs,
+The GNU Emacs Manual}), as on Android (@pxref{Android Fonts,,, emacs,
 The GNU Emacs Manual}).
 
 On other systems, there is only one available font backend, so it does

@@ -339,6 +339,10 @@ static struct timespec timer_last_idleness_start_time;
 static Lisp_Object virtual_core_pointer_name;
 static Lisp_Object virtual_core_keyboard_name;
 
+/* If not nil, ID of the last TOUCHSCREEN_END_EVENT to land on the
+   menu bar.  */
+static Lisp_Object menu_bar_touch_id;
+
 
 /* Global variable declarations.  */
 
@@ -6445,10 +6449,73 @@ make_lispy_event (struct input_event *event)
       {
 	Lisp_Object x, y, id, position;
 	struct frame *f = XFRAME (event->frame_or_window);
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+	int column, row, dummy;
+#endif
 
 	id = event->arg;
 	x = event->x;
 	y = event->y;
+
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+	if (event->kind == TOUCHSCREEN_BEGIN_EVENT
+	    && coords_in_menu_bar_window (f, XFIXNUM (x), XFIXNUM (y)))
+	  {
+	    /* If the tap began in the menu bar window, then save the
+	       id.  */
+	    menu_bar_touch_id = id;
+	    return Qnil;
+	  }
+	else if (event->kind == TOUCHSCREEN_END_EVENT
+		 && EQ (menu_bar_touch_id, id))
+	  {
+	    /* This touch should activate the menu bar.  Generate the
+	       menu bar event.  */
+	    menu_bar_touch_id = Qnil;
+
+	    if (f->menu_bar_window)
+	      {
+		x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), XFIXNUM (x),
+				  XFIXNUM (y), &column, &row, NULL, NULL,
+				  &dummy);
+
+		if (row >= 0 && row < FRAME_MENU_BAR_LINES (f))
+		  {
+		    Lisp_Object items, item;
+
+		    /* Find the menu bar item under `column'.  */
+		    item = Qnil;
+		    items = FRAME_MENU_BAR_ITEMS (f);
+		    for (i = 0; i < ASIZE (items); i += 4)
+		      {
+			Lisp_Object pos, string;
+			string = AREF (items, i + 1);
+			pos = AREF (items, i + 3);
+			if (NILP (string))
+			  break;
+			if (column >= XFIXNUM (pos)
+			    && column < XFIXNUM (pos) + SCHARS (string))
+			  {
+			    item = AREF (items, i);
+			    break;
+			  }
+		      }
+
+		    /* ELisp manual 2.4b says (x y) are window
+		       relative but code says they are
+		       frame-relative.  */
+		    position = list4 (event->frame_or_window,
+				      Qmenu_bar,
+				      Fcons (event->x, event->y),
+				      INT_TO_INTEGER (event->timestamp));
+
+		    return list2 (item, position);
+		  }
+	      }
+
+	    return Qnil;
+	  }
+#endif
 
 	position = make_lispy_position (f, x, y, event->timestamp);
 
@@ -12461,6 +12528,9 @@ syms_of_keyboard (void)
 
   virtual_core_keyboard_name = Qnil;
   staticpro (&virtual_core_keyboard_name);
+
+  menu_bar_touch_id = Qnil;
+  staticpro (&menu_bar_touch_id);
 
   defsubr (&Scurrent_idle_time);
   defsubr (&Sevent_symbol_parse_modifiers);

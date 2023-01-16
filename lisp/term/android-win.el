@@ -37,6 +37,7 @@
 (require 'mouse)
 (require 'fontset)
 (require 'dnd)
+(require 'touch-screen)
 
 (add-to-list 'display-format-alist '(".*" . android))
 

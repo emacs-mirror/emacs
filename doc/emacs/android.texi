@@ -14,6 +14,7 @@ an Android device running Android 2.2 or later.
 * Android Startup::     Starting up Emacs on Android.
 * Android File System:: The Android file system.
 * Android Environment:: Running Emacs under Android.
+* Android Fonts::	Font selection under Android.
 @end menu
 
 @node What is Android?
@@ -293,5 +294,56 @@ This strategy works as long as one window is in the foreground.
 Otherwise, Emacs can only run in the background for a limited amount
 of time before the process is killed completely.
 
-@c TODO: write more documentation here about what is supported and
-@c what is not, and fonts.
+@cindex windowing limitations, android
+@cindex frame parameters, android
+Due to the unusual nature of the Android windowing environment, Emacs
+only supports a limited subset of GUI features.  Here is a list of
+known limitations, and features which are not implemented:
+
+@itemize @bullet
+@item
+The functions @code{raise-frame} and @code{lower-frame} are
+non-functional, because of bugs in the window system.
+
+@item
+Scroll bars are not supported, as they are close to useless on Android
+devices.
+
+@item
+The @code{alpha}, @code{alpha-background}, @code{z-group},
+@code{override-redirect}, @code{mouse-color}, @code{cursor-color},
+@code{cursor-type}, @code{title}, @code{wait-for-wm}, @code{sticky},
+@code{undecorated} and @code{tool-bar-position} frame parameters
+(@pxref{Frame Parameters,,, elisp, the Emacs Lisp Reference Manual})
+are unsupported.
+
+@item
+The @code{fullscreen} frame parameter is always @code{maximized} for
+top-level frames.
+@end itemize
+
+@node Android Fonts
+@section Font backends and selection under Android
+@cindex fonts, android
+
+  Emacs supports two font backends under Android: they are respectively
+named @code{sfnt-android} and @code{android}.
+
+Upon startup, Emacs enumerates all the TrueType format fonts in the
+directory @file{/system/fonts}; this is where the Android system
+places fonts.  Emacs assumes there will always be a font named ``Droid
+Sans Mono'', and then defaults to using this font.  These fonts are
+then rendered by the @code{sfnt-android} font driver.
+
+When running on Android, Emacs currently lacks support for TrueType
+Container and OpenType fonts.  This means that only a subset of the
+fonts installed on the system are currently available to Emacs.  If
+you are interested in raising this limitation, please contact
+@email{emacs-devel@@gnu.org}.
+
+If the @code{sfnt-android} font driver fails to find any fonts at all,
+Emacs falls back to the @code{android} font driver.  This is a very
+lousy font driver, because of limitations and inaccuracies in the font
+metrics provided by the Android platform.  In that case, Emacs uses
+the ``Monospace'' typeface configured on your system; this should
+always be Droid Sans Mono.

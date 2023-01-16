@@ -1,0 +1,322 @@
+;;; touch-screen.el --- touch screen support for X and Android  -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2023 Free Software Foundation, Inc.
+
+;; Maintainer: emacs-devel@gnu.org
+;; Package: emacs
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This file provides code to recognize simple touch screen gestures.
+;; It is used on X and Android, where the platform cannot recognize
+;; them for us.
+
+;;; Code:
+
+(defvar touch-screen-current-tool nil
+  "The touch point currently being tracked, or nil.
+If non-nil, this is a list of five elements: the ID of the touch
+point being tracked, the window where the touch began, a cons
+containing the last known position of the touch point, relative
+to that window, a field used to store data while tracking the
+touch point, and the initial position of the touchpoint.  See
+`touch-screen-handle-point-update' for the meanings of the fourth
+element.")
+
+(defvar touch-screen-current-timer nil
+  "Timer used to track long-presses.
+This is always cleared upon any significant state change.")
+
+(defcustom touch-screen-delay 0.7
+  "Delay in seconds before Emacs considers a touch to be a long-press."
+  :type 'number
+  :group 'mouse
+  :version "30.1")
+
+(defun touch-screen-relative-xy (posn window)
+  "Return the coordinates of POSN, a mouse position list.
+However, return the coordinates relative to WINDOW.
+
+If (posn-window posn) is the same as window, simply return the
+coordinates in POSN.  Otherwise, convert them to the frame, and
+then back again."
+  (if (eq (posn-window posn) window)
+      (posn-x-y posn)
+    (let ((xy (posn-x-y posn))
+          (edges (window-inside-pixel-edges window)))
+      ;; Make the X and Y positions frame relative.
+      (when (windowp (posn-window posn))
+        (let ((edges (window-inside-pixel-edges
+                      (posn-window posn))))
+          (setq xy (cons (+ (car xy) (car edges))
+                         (+ (cdr xy) (cadr edges))))))
+      ;; Make the X and Y positions window relative again.
+      (cons (- (car xy) (car edges))
+            (- (cdr xy) (cadr edges))))))
+
+(defun touch-screen-handle-scroll (dx dy)
+  "Scroll the display assuming that a touch point has moved by DX and DY."
+  (ignore dx)
+  ;; This only looks good with precision pixel scrolling.
+  (if (> dy 0)
+      (pixel-scroll-precision-scroll-down-page dy)
+    (pixel-scroll-precision-scroll-up-page (- dy))))
+
+(defun touch-screen-handle-timeout (arg)
+  "Start the touch screen timeout or handle it depending on ARG.
+When ARG is nil, start the `touch-screen-current-timer' to go off
+in `touch-screen-delay' seconds, and call this function with ARG
+t.
+
+When ARG is t, beep.  Then, set the fourth element of
+touch-screen-current-tool to `held', and the mark to the last
+known position of the tool."
+  (if (not arg)
+      ;; Cancel the touch screen long-press timer, if it is still
+      ;; there by any chance.
+      (progn
+        (when touch-screen-current-timer
+          (cancel-timer touch-screen-current-timer))
+        (setq touch-screen-current-timer
+              (run-at-time touch-screen-delay nil
+                           #'touch-screen-handle-timeout
+                           t)))
+    ;; Beep.
+    (beep)
+    ;; Set touch-screen-current-timer to nil.
+    (setq touch-screen-current-timer nil)
+    (when touch-screen-current-tool
+      ;; Set the state to `held'.
+      (setcar (nthcdr 3 touch-screen-current-tool) 'held)
+      ;; Go to the initial position of the touchpoint and activate the
+      ;; mark.
+      (with-selected-window (cadr touch-screen-current-tool)
+        (set-mark (posn-point (nth 4 touch-screen-current-tool)))
+        (goto-char (mark))
+        (activate-mark)))))
+
+(defun touch-screen-handle-point-update (point)
+  "Notice that the touch point POINT has changed position.
+POINT must be the touch point currently being tracked as
+`touch-screen-current-tool'.
+
+If the fourth element of `touch-screen-current-tool' is nil, then
+the touch has just begun.  Determine how much POINT has moved.
+If POINT has moved upwards or downwards by a significant amount,
+then set the fourth element to `scroll'.  Then, call
+`touch-screen-handle-scroll' to scroll the display by that
+amount.
+
+If the fourth element of `touch-screen-current-tool' is `scroll',
+then scroll the display by how much POINT has moved in the Y
+axis.
+
+If the fourth element of `touch-screen-current-tool' is `held',
+then the touch has been held down for some time.  If motion
+happens, cancel `touch-screen-current-timer', and set the field
+to `drag'.  Then, activate the mark and start dragging.
+
+If the fourth element of `touch-screen-current-tool' is `drag',
+then move point to the position of POINT.
+
+Set `touch-screen-current-tool' to nil should any error occur."
+  (let ((window (nth 1 touch-screen-current-tool))
+        (what (nth 3 touch-screen-current-tool)))
+    (cond ((null what)
+           (let* ((posn (cdr point))
+                  (last-posn (nth 2 touch-screen-current-tool))
+                  ;; Now get the position of X and Y relative to
+                  ;; WINDOW.
+                  (relative-xy
+                   (touch-screen-relative-xy posn window))
+                  (diff-x (- (car last-posn) (car relative-xy)))
+                  (diff-y (- (cdr last-posn) (cdr relative-xy))))
+             ;; Decide whether or not to start scrolling.
+             (when (or (> diff-y 10) (> diff-x 10)
+                       (< diff-y -10) (< diff-x -10))
+               (setcar (nthcdr 3 touch-screen-current-tool)
+                       'scroll)
+               (setcar (nthcdr 2 touch-screen-current-tool)
+                       relative-xy)
+               (with-selected-window window
+                 (touch-screen-handle-scroll diff-x diff-y))
+               ;; Cancel the touch screen long-press timer, if it is
+               ;; still there by any chance.
+               (when touch-screen-current-timer
+                 (cancel-timer touch-screen-current-timer)
+                 (setq touch-screen-current-timer nil)))))
+          ((eq what 'scroll)
+           ;; Cancel the touch screen long-press timer, if it is still
+           ;; there by any chance.
+           (when touch-screen-current-timer
+             (cancel-timer touch-screen-current-timer)
+             (setq touch-screen-current-timer nil))
+           (let* ((posn (cdr point))
+                  (last-posn (nth 2 touch-screen-current-tool))
+                  ;; Now get the position of X and Y relative to
+                  ;; WINDOW.
+                  (relative-xy
+                   (touch-screen-relative-xy posn window))
+                  (diff-x (- (car last-posn) (car relative-xy)))
+                  (diff-y (- (cdr last-posn) (cdr relative-xy))))
+             (setcar (nthcdr 3 touch-screen-current-tool)
+                     'scroll)
+             (setcar (nthcdr 2 touch-screen-current-tool)
+                     relative-xy)
+             (unless (and (zerop diff-x) (zerop diff-y))
+               (with-selected-window window
+                 (touch-screen-handle-scroll diff-x diff-y)))))
+          ((eq what 'held)
+           (let* ((posn (cdr point))
+                  (relative-xy
+                   (touch-screen-relative-xy posn window)))
+             (when touch-screen-current-timer
+               (cancel-timer touch-screen-current-timer)
+               (setq touch-screen-current-timer nil))
+             ;; Now start dragging.
+             (setcar (nthcdr 3 touch-screen-current-tool)
+                     'drag)
+             (setcar (nthcdr 2 touch-screen-current-tool)
+                     relative-xy)
+             (with-selected-window window
+               ;; Activate the mark.  It should have been set by the
+               ;; time `touch-screen-timeout' was called.
+               (activate-mark)
+
+               ;; Figure out what character to go to.  If this posn is
+               ;; in the window, go to (posn-point posn).  If not,
+               ;; then go to the line before either window start or
+               ;; window end.
+               (if (and (eq (posn-window posn) window)
+                        (posn-point posn))
+                   (goto-char (posn-point posn))
+                 (let ((relative-xy
+                        (touch-screen-relative-xy posn window)))
+                   (let ((scroll-conservatively 101))
+                     (cond
+                      ((< (cdr relative-xy) 0)
+                       (ignore-errors
+                         (goto-char (1- (window-start))))
+                       (redisplay))
+                      ((> (cdr relative-xy)
+                          (let ((edges (window-inside-pixel-edges)))
+                            (- (nth 3 edges) (cadr edges))))
+                       (ignore-errors
+                         (goto-char (1+ (window-end nil t))))
+                       (redisplay)))))))))
+          ((eq what 'drag)
+           (let* ((posn (cdr point)))
+             ;; Keep dragging.
+             (with-selected-window window
+               ;; Figure out what character to go to.  If this posn is
+               ;; in the window, go to (posn-point posn).  If not,
+               ;; then go to the line before either window start or
+               ;; window end.
+               (if (and (eq (posn-window posn) window)
+                        (posn-point posn))
+                   (goto-char (posn-point posn))
+                 (let ((relative-xy
+                        (touch-screen-relative-xy posn window)))
+                   (let ((scroll-conservatively 101))
+                     (cond
+                      ((< (cdr relative-xy) 0)
+                       (ignore-errors
+                         (goto-char (1- (window-start))))
+                       (redisplay))
+                      ((> (cdr relative-xy)
+                          (let ((edges (window-inside-pixel-edges)))
+                            (- (nth 3 edges) (cadr edges))))
+                       (ignore-errors
+                         (goto-char (1+ (window-end nil t))))
+                       (redisplay))))))))))))
+
+(defun touch-screen-handle-point-up (point)
+  "Notice that POINT has been removed from the screen.
+POINT should be the point currently tracked as
+`touch-screen-current-tool'.
+
+If the fourth argument of `touch-screen-current-tool' is nil,
+move point to the position of POINT, selecting the window under
+POINT as well; if there is a button at POINT, then activate the
+button there.  Otherwise, deactivate the mark.  Then, display the
+on-screen keyboard."
+  (let ((what (nth 3 touch-screen-current-tool)))
+    (cond ((null what)
+           (when (windowp (posn-window (cdr point)))
+             ;; Select the window that was tapped.
+             (select-window (posn-window (cdr point)))
+             (let ((button (button-at (posn-point (cdr point)))))
+               (when button
+                 (button-activate button t))
+               (goto-char (posn-point (cdr point)))
+               (deactivate-mark)))))))
+
+(defun touch-screen-handle-touch (event)
+  "Handle a single touch EVENT, and perform associated actions.
+EVENT can either be a touchscreen-begin, touchscreen-update or
+touchscreen-end event."
+  (interactive "e")
+  (cond
+   ((eq (car event) 'touchscreen-begin)
+    ;; A tool was just pressed against the screen.  Figure out the
+    ;; window where it is and make it the tool being tracked on the
+    ;; window.
+    (let ((touchpoint (caadr event))
+          (position (cdadr event)))
+      ;; Cancel the touch screen timer, if it is still there by any
+      ;; chance.
+      (when touch-screen-current-timer
+        (cancel-timer touch-screen-current-timer)
+        (setq touch-screen-current-timer nil))
+      ;; Replace any previously ongoing gesture.  If POSITION has no
+      ;; window or position, make it nil instead.
+      (setq touch-screen-current-tool (and (windowp (posn-window position))
+                                           (posn-point position)
+                                           (list touchpoint
+                                                 (posn-window position)
+                                                 (posn-x-y position)
+                                                 nil position)))
+      ;; Start the long-press timer.
+      (touch-screen-handle-timeout nil)))
+   ((eq (car event) 'touchscreen-update)
+    ;; The positions of tools currently pressed against the screen
+    ;; have changed.  If there is a tool being tracked as part of a
+    ;; gesture, look it up in the list of tools.
+    (let ((new-point (assq (car touch-screen-current-tool)
+                           (cadr event))))
+      (when new-point
+        (touch-screen-handle-point-update new-point))))
+   ((eq (car event) 'touchscreen-end)
+    ;; A tool has been removed from the screen.  If it is the tool
+    ;; currently being tracked, clear `touch-screen-current-tool'.
+    (when (eq (caadr event) (car touch-screen-current-tool))
+      ;; Cancel the touch screen long-press timer, if it is still there
+      ;; by any chance.
+      (when touch-screen-current-timer
+        (cancel-timer touch-screen-current-timer)
+        (setq touch-screen-current-timer nil))
+      (touch-screen-handle-point-up (cadr event))
+      (setq touch-screen-current-tool nil)))))
+
+(define-key global-map [touchscreen-begin] #'touch-screen-handle-touch)
+(define-key global-map [touchscreen-update] #'touch-screen-handle-touch)
+(define-key global-map [touchscreen-end] #'touch-screen-handle-touch)
+
+(provide 'touch-screen)
+
+;;; touch-screen ends here

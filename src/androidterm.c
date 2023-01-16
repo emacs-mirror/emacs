@@ -417,8 +417,6 @@ android_note_mouse_movement (struct frame *frame,
       || event->y < r->y || event->y >= r->y + r->height)
     {
       frame->mouse_moved = true;
-      /* TODO
-	 dpyinfo->last_mouse_scroll_bar = NULL; */
       note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
       remember_mouse_glyph (frame, event->x, event->y, r);
@@ -2960,9 +2958,33 @@ android_draw_stretch_glyph_string (struct glyph_string *s)
 }
 
 static void
+android_get_scale_factor (int *scale_x, int *scale_y)
+{
+  /* This is 96 everywhere else, but 160 on Android.  */
+  const int base_res = 160;
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = x_display_list;
+  *scale_x = *scale_y = 1;
+
+  if (dpyinfo)
+    {
+      if (dpyinfo->resx > base_res)
+	*scale_x = floor (dpyinfo->resx / base_res);
+      if (dpyinfo->resy > base_res)
+	*scale_y = floor (dpyinfo->resy / base_res);
+    }
+}
+
+static void
 android_draw_underwave (struct glyph_string *s, int decoration_width)
 {
-  int wave_height = 3, wave_length = 2;
+  int scale_x, scale_y;
+
+  android_get_scale_factor (&scale_x, &scale_y);
+
+  int wave_height = 3 * scale_y, wave_length = 2 * scale_x;
+
   int dx, dy, x0, y0, width, x1, y1, x2, y2, xmax;
   bool odd;
   struct android_rectangle wave_clip, string_clip, final_clip;

@@ -3098,8 +3098,9 @@ struct redisplay_interface
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-# if (defined USE_CAIRO || defined HAVE_XRENDER \
-      || defined HAVE_NS || defined HAVE_NTGUI || defined HAVE_HAIKU)
+# if (defined USE_CAIRO || defined HAVE_XRENDER				\
+      || defined HAVE_NS || defined HAVE_NTGUI || defined HAVE_HAIKU	\
+      || defined HAVE_ANDROID)
 #  define HAVE_NATIVE_TRANSFORMS
 # endif
 

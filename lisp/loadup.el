@@ -295,6 +295,10 @@
 (if (featurep 'dynamic-setting)
     (load "dynamic-setting"))
 
+;; touch-screen.el is tiny and is used liberally throughout the button
+;; code etc, so it may as well be preloaded everywhere.
+(load "touch-screen")
+
 (if (featurep 'x)
     (progn
       (load "x-dnd")

@@ -73,48 +73,22 @@ sfntfont_android_mul8x2 (unsigned int a8, unsigned int b32)
   return (i + ((i >> 8) & 0xff00ff)) >> 8 & 0xff00ff;
 }
 
+#define U255TO256(x) ((unsigned short) (x) + ((x) >> 7))
+
 /* Blend two pixels SRC and DST without utilizing any control flow.
-   SRC must be in premultiplied ARGB8888 format, and DST must be in
-   premultiplied ABGR8888 format.  Value is in premultiplied ABGR8888
-   format.  */
+   Both SRC and DST are expected to be in premultiplied ABGB8888
+   format.  Value is returned in premultiplied ARGB8888 format.  */
 
 static unsigned int
 sfntfont_android_blend (unsigned int src, unsigned int dst)
 {
-  unsigned int a, br_part, ag_part, src_rb, both;
+  unsigned int a, br_part, ag_part, both;
 
   a = (src >> 24);
   br_part = sfntfont_android_mul8x2 (255 - a, dst);
   ag_part = sfntfont_android_mul8x2 (255 - a, dst >> 8) << 8;
 
   both = ag_part | br_part;
-
-  /* Swizzle src.  */
-  src_rb = src & 0x00ff00ff;
-  src = src & ~0x00ff00ff;
-  src |= (src_rb >> 16 | src_rb << 16);
-
-  /* This addition need not be saturating because both has already
-     been multiplied by 255 - a.  */
-  return both + src;
-}
-
-#define U255TO256(x) ((unsigned short) (x) + ((x) >> 7))
-
-/* Blend two pixels SRC and DST without utilizing any control flow.
-   Both SRC and DST are expected to be in premultiplied ARGB8888
-   format.  Value is returned in premultiplied ARGB8888 format.  */
-
-static unsigned int
-sfntfont_android_blendrgb (unsigned int src, unsigned int dst)
-{
-  unsigned int a, rb_part, ag_part, both;
-
-  a = (src >> 24);
-  rb_part = sfntfont_android_mul8x2 (255 - a, dst);
-  ag_part = sfntfont_android_mul8x2 (255 - a, dst >> 8) << 8;
-
-  both = ag_part | rb_part;
 
   /* This addition need not be saturating because both has already
      been multiplied by 255 - a.  */
@@ -210,6 +184,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
   jobject bitmap;
   int left, top, temp_y;
   unsigned int prod, raster_y;
+  unsigned long foreground, back_pixel, rb;
 
   if (!s->gc->num_clip_rects)
     /* Clip region is empty.  */
@@ -218,6 +193,17 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
   if (from == to)
     /* Nothing to draw.  */
     return;
+
+  /* Swizzle the foreground and background in s->gc into BGR, then add
+     an alpha channel.  */
+  foreground = s->gc->foreground;
+  back_pixel = s->gc->background;
+  rb = foreground & 0x00ff00ff;
+  foreground &= ~0x00ff00ff;
+  foreground |= rb >> 16 | rb << 16 | 0xff000000;
+  rb = back_pixel & 0x00ff00ff;
+  back_pixel &= ~0x00ff00ff;
+  back_pixel |= rb >> 16 | rb << 16 | 0xff000000;
 
   USE_SAFE_ALLOCA;
 
@@ -294,7 +280,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
 				  + stride * temp_y);
 
 	  for (x = background.x; x < background.x + background.width; ++x)
-	    row[x] = s->gc->background | 0xff000000;
+	    row[x] = back_pixel;
 	}
     }
 
@@ -327,10 +313,9 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
 	    {
 	      prod
 		= sfntfont_android_scale32 (U255TO256 (raster_row[x]),
-					    (s->gc->foreground
-					     | 0xff000000));
+					    foreground);
 	      row[left + x]
-		= sfntfont_android_blendrgb (prod, row[left + x]);
+		= sfntfont_android_blend (prod, row[left + x]);
 	    }
 	}
     }
