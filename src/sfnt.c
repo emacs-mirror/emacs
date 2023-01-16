@@ -2390,7 +2390,7 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	    {
 	      /* X and Y are signed words.  */
 	      x = component->argument1.d << 16;
-	      y = component->argument1.d << 16;
+	      y = component->argument2.d << 16;
 	    }
 
 	  /* If there is some kind of scale and component offsets are
@@ -4592,7 +4592,7 @@ main (int argc, char **argv)
 	      /* Time this important bit.  */
 	      clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 	      outline = sfnt_build_glyph_outline (glyph, head,
-						  12,
+						  50,
 						  sfnt_test_get_glyph,
 						  sfnt_test_free_glyph,
 						  &dcontext);
@@ -4659,7 +4659,7 @@ main (int argc, char **argv)
 
 	      if (hmtx && head)
 		{
-		  if (!sfnt_lookup_glyph_metrics (code, 12,
+		  if (!sfnt_lookup_glyph_metrics (code, 50,
 						  &metrics,
 						  hmtx, hhea,
 						  head, maxp))
