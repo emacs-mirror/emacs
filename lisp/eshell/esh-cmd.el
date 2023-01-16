@@ -343,7 +343,7 @@ This only returns external (non-Lisp) processes."
 	      #'eshell-complete-lisp-symbols nil t)))
 
 (defun eshell-complete-lisp-symbols ()
-  "If there is a user reference, complete it."
+  "If there is a Lisp symbol, complete it."
   (let ((arg (pcomplete-actual-arg)))
     (when (string-match (concat "\\`" eshell-lisp-regexp) arg)
       (setq pcomplete-stub (substring arg (match-end 0))
