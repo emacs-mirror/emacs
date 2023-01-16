@@ -1,0 +1,73 @@
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq typescript-ts-mode-indent-offset 2)
+    (typescript-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Basic indentation
+
+=-=
+const foo = () => {
+  console.log("bar");
+  if (x) {
+    return y;
+  } else if (y) {
+    return u;
+  }
+  return baz.x()
+    ? true
+    : false;
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq tsx-ts-mode-indent-offset 2)
+    (tsx-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: JSX indentation
+
+=-=
+const foo = (props) => {
+  return (
+    <div>
+      <div>
+        <div>
+          <div>
+            {
+              props.foo
+                ? Hello, foo!
+                : Hello, World!;
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+=-=-=
+
+Name: JSX indentation with attributes
+
+=-=
+const foo = (props) => {
+  return (
+    <div
+      className={foo}
+      onClick={() => {
+        alert('???');
+        return () => {
+          return 5+5;
+        };
+      }}
+    >
+      <p>Some text</p>
+    </div>
+  );
+}
+=-=-=
