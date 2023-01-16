@@ -64,10 +64,11 @@ modify this GNU manual.''
 
 Eshell is a shell-like command interpreter implemented in Emacs Lisp.
 It invokes no external processes except for those requested by the
-user.  It is intended to be an alternative to the IELM (@pxref{Lisp Interaction, Emacs Lisp Interaction, , emacs, The Emacs Editor})
-REPL for Emacs @emph{and} with an interface similar to command shells
-such as @command{bash}, @command{zsh}, @command{rc}, or
-@command{4dos}.
+user.  It is intended to be an alternative to the IELM (@pxref{Lisp
+Interaction, Emacs Lisp Interaction, , emacs, The Emacs Editor})
+REPL@footnote{Short for ``Read-Eval-Print Loop''.} for Emacs
+@emph{and} with an interface similar to command shells such as
+@command{bash}, @command{zsh}, @command{rc}, or @command{4dos}.
 @c This manual is updated to release 2.4 of Eshell.
 
 @insertcopying
@@ -193,6 +194,13 @@ In a command shell, everything is done by invoking commands.  This
 chapter covers command invocations in Eshell, including the command
 history and invoking commands in a script file.
 
+Unlike regular system shells, Eshell never invokes kernel functions
+directly, such as @code{exec(3)}.  Instead, it uses the Lisp functions
+available in the Emacs Lisp library.  It does this by transforming the
+input line into a callable Lisp form.@footnote{To see the Lisp form
+that will be invoked, type this as the Eshell prompt:
+@kbd{eshell-parse-command 'echo hello'}}
+
 @menu
 * Invocation::
 * Arguments::
@@ -207,23 +215,16 @@ history and invoking commands in a script file.
 
 @node Invocation
 @section Invocation
-Unlike regular system shells, Eshell never invokes kernel functions
-directly, such as @code{exec(3)}.  Instead, it uses the Lisp functions
-available in the Emacs Lisp library.  It does this by transforming the
-input line into a callable Lisp form.@footnote{To see the Lisp form that will be invoked, type: @samp{eshell-parse-command "echo hello"}}
+Eshell is both a command shell and an Emacs Lisp @acronym{REPL}.  As a
+result, you can invoke commands in two different ways: in @dfn{command
+form} or in @dfn{lisp form}.
 
-The command can be either an Elisp function or an external command.
-Eshell looks first for an alias (@pxref{Aliases}) with the same name as the
-command, then a built-in (@pxref{Built-ins}) or a function with the
-same name; if there is no match, it then tries to execute it as an
-external command.
-
-The semicolon (@code{;}) can be used to separate multiple command
-invocations on a single line.  You can also separate commands with
-@code{&&} or @code{||}. When using @code{&&}, Eshell will execute the
-second command only if the first succeeds (i.e.@: has an exit
-status of 0); with @code{||}, Eshell will execute the second command
-only if the first fails.
+You can use the semicolon (@code{;}) to separate multiple command
+invocations on a single line, executing each in turn.  You can also
+separate commands with @code{&&} or @code{||}. When using @code{&&},
+Eshell will execute the second command only if the first succeeds
+(i.e.@: has an exit status of 0); with @code{||}, Eshell will execute
+the second command only if the first fails.
 
 A command invocation followed by an ampersand (@code{&}) will be run
 in the background.  Eshell has no job control, so you can not suspend
@@ -232,12 +233,80 @@ the foreground.  That said, background processes invoked from Eshell
 can be controlled the same way as any other background process in
 Emacs.
 
+@subsection Command form
+Command form looks much the same as in other shells.  A command
+consists of arguments separated by spaces; the first argument is the
+command to run, with any subsequent arguments being passed to that
+command.
+
+@example
+~ $ echo hello
+hello
+@end example
+
+@cindex order of looking for commands
+@cindex command lookup order
+The command can be either an Elisp function or an external command.
+Eshell looks for the command in the following order:
+
+@enumerate
+@item
+As a command alias (@pxref{Aliases})
+
+@item
+As a built-in command (@pxref{Built-ins})
+
+@item
+As an external program
+
+@item
+As an ordinary Lisp function
+@end enumerate
+
+@vindex eshell-prefer-lisp-functions
+If you would prefer to use ordinary Lisp functions over external
+programs, set the option @code{eshell-prefer-lisp-functions} to
+@code{t}.  This will swap the lookup order of the last two items.
+
+You can also group command forms together into a subcommand with curly
+braces (@code{@{@}}).  This lets you use the output of a subcommand as
+an argument to another command, or within control flow statements
+(@pxref{Control Flow}).
+
+@example
+~ $ echo @{echo hello; echo there@}
+hellothere
+@end example
+
+@subsection Lisp form
+Lisp form looks like ordinary Emacs Lisp code, because that's what it
+is.  As a result, you can use any syntax normally available to an
+Emacs Lisp program (@pxref{Top, , , elisp, The Emacs Lisp Reference
+Manual}).
+
+@example
+~ $ (format "hello, %s" user-login-name)
+hello, user
+@end example
+
+In addition, you can @emph{combine} command forms and Lisp forms
+together into single statements, letting you use whatever form is the
+most convenient for expressing your intentions.
+
+@example
+~ $ ls *.patch > (format-time-string "%F.log")
+@end example
+
+This command writes a list of all files matching the glob pattern
+@code{*.patch} (@pxref{Globbing}) to a file named
+@code{@var{current-date}.log} (@pxref{Redirection}).
+
 @node Arguments
 @section Arguments
-Ordinarily, command arguments are parsed by Eshell as either strings
+Ordinarily, Eshell parses arguments in command form as either strings
 or numbers, depending on what the parser thinks they look like.  To
-specify an argument of some other data type, you can use an
-@ref{Dollars Expansion, Elisp expression}:
+specify an argument of some other data type, you can use a Lisp form
+(@pxref{Invocation}):
 
 @example
 ~ $ echo (list 1 2 3)
@@ -353,10 +422,6 @@ eshell/sudo is a compiled Lisp function in `em-tramp.el'.
 ~ $ which sudo
 sudo is an alias, defined as "*sudo $*"
 @end example
-
-@vindex eshell-prefer-lisp-functions
-If you would prefer to use the built-in commands instead of the external
-commands, set @code{eshell-prefer-lisp-functions} to @code{t}.
 
 Some of the built-in commands have different behavior from their
 external counterparts, and some have no external counterpart.  Most of
@@ -923,15 +988,14 @@ For example, you could handle a subset of the options for the
 @node Variables
 @section Variables
 @vindex eshell-prefer-lisp-variables
-Since Eshell is a combination of an Emacs @acronym{REPL}@footnote{
-Short for ``Read-Eval-Print Loop''.
-} and a command shell, it can refer to variables from two different
-sources: ordinary Emacs Lisp variables, as well as environment
-variables.  By default, when using a variable in Eshell, it will first
-look in the list of built-in variables, then in the list of
-environment variables, and finally in the list of Lisp variables.  If
-you would prefer to use Lisp variables over environment variables, you
-can set @code{eshell-prefer-lisp-variables} to @code{t}.
+Since Eshell is a combination of an Emacs @acronym{REPL} and a command
+shell, it can refer to variables from two different sources: ordinary
+Emacs Lisp variables, as well as environment variables.  By default,
+when using a variable in Eshell, it will first look in the list of
+built-in variables, then in the list of environment variables, and
+finally in the list of Lisp variables.  If you would prefer to use
+Lisp variables over environment variables, you can set
+@code{eshell-prefer-lisp-variables} to @code{t}.
 
 You can set variables in a few different ways.  To set a Lisp
 variable, you can use the command @samp{setq @var{name} @var{value}},
