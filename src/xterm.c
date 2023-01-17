@@ -24300,7 +24300,32 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  if (tool_bar_p)
 		    {
-		      handle_tool_bar_click (f, x, y, true, 0);
+		      /* Call note_mouse_highlight on the tool bar
+			 item.  Otherwise, get_tool_bar_item will
+			 return 1.
+
+		         This is not necessary when mouse-highlight is
+		         nil.  */
+
+		      if (!NILP (Vmouse_highlight))
+			{
+			  note_mouse_highlight (f, x, y);
+
+			  /* Always allow future mouse motion to
+			     update the mouse highlight, no matter
+			     where it is.  */
+			  memset (&dpyinfo->last_mouse_glyph, 0,
+				  sizeof dpyinfo->last_mouse_glyph);
+			  dpyinfo->last_mouse_glyph_frame = f;
+			}
+
+		      handle_tool_bar_click_with_device (f, x, y, true, 0,
+							 (source
+							  ? source->name : Qt));
+
+		      /* Flush any changes made by that to the front
+			 buffer.  */
+		      x_flush_dirty_back_buffer_on (f);
 
 		      /* Record the device and the touch ID on the
 			 frame.  That way, Emacs knows when to dismiss
@@ -24468,8 +24493,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			== xev->detail))
 		{
 		  if (f->last_tool_bar_item != -1)
-		    handle_tool_bar_click (f, xev->event_x, xev->event_y,
-					   false, 0);
+		    handle_tool_bar_click_with_device (f, xev->event_x,
+						       xev->event_y,
+						       false, 0,
+						       (source
+							? source->name
+							: Qnil));
+
+		  /* Cancel any outstanding mouse highlight.  */
+		  note_mouse_highlight (f, -1, -1);
+		  x_flush_dirty_back_buffer_on (f);
 
 		  /* Now clear the tool bar device.  */
 		  FRAME_OUTPUT_DATA (f)->tool_bar_touch_device = 0;
