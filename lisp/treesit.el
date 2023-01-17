@@ -1636,6 +1636,21 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
       (goto-char current-pos)))
     node))
 
+(defvar-local treesit-sexp-type-regexp nil
+  "A regexp that matches the node type of sexp nodes.
+
+A sexp node is a node that is bigger than punctuation, and
+delimits medium sized statements in the source code.  It is,
+however, smaller in scope than sentences.  This is used by
+`treesit-forward-sexp' and friends.")
+
+(defun treesit-forward-sexp (&optional arg)
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (funcall
+   (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
+   treesit-sexp-type-regexp (abs arg)))
+
 (defun treesit-transpose-sexps (&optional arg)
   "Tree-sitter `transpose-sexps' function.
 Arg is the same as in `transpose-sexps'.
@@ -2301,6 +2316,8 @@ before calling this function."
     (setq-local add-log-current-defun-function
                 #'treesit-add-log-current-defun))
 
+  (when treesit-sexp-type-regexp
+    (setq-local forward-sexp-function #'treesit-forward-sexp))
   (setq-local transpose-sexps-function #'treesit-transpose-sexps)
   (when treesit-sentence-type-regexp
     (setq-local forward-sentence-function #'treesit-forward-sentence))

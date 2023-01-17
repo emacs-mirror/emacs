@@ -1008,6 +1008,20 @@ leading double colon is not added."
   ;; Navigation.
   (setq-local treesit-defun-type-regexp ruby-ts--method-regex)
 
+  (setq-local treesit-sexp-type-regexp
+              (regexp-opt '("class"
+                            "module"
+                            "method"
+                            "argument_list"
+                            "array"
+                            "hash"
+                            "parenthesized_statements"
+                            "if"
+                            "case"
+                            "block"
+                            "do_block"
+                            "begin")))
+
   ;; AFAIK, Ruby can not nest methods
   (setq-local treesit-defun-prefer-top-level nil)
 

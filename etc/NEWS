@@ -84,6 +84,15 @@ define "sentences" in Tree-sitter enabled modes.
 All tree-sitter modes that define 'treesit-sentence-type-regexp' now
 set 'forward-sentence-function' to call 'treesit-forward-sentence'.
 
+*** New defvar-local 'treesit-sexp-type-regexp'.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sexps" in Tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sexp'.
+treesit.el conditionally sets 'forward-sexp-function` for major modes
+that have defined 'treesit-sexp-type-regexp' to enable sexp-related
+motion commands.
+
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
 ---

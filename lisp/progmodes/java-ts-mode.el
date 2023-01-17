@@ -328,6 +328,21 @@ Return nil if there is no name or if NODE is not a defun node."
                             "package_declaration"
                             "import_declaration")))
 
+  (setq-local treesit-sexp-type-regexp
+              (regexp-opt '("annotation"
+                            "parenthesized_expression"
+                            "argument_list"
+                            "identifier"
+                            "modifiers"
+                            "block"
+                            "body"
+                            "literal"
+                            "access"
+                            "reference"
+                            "_type"
+                            "true"
+                            "false")))
+
   ;; Font-lock.
   (setq-local treesit-font-lock-settings java-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
