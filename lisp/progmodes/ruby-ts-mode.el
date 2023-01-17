@@ -587,11 +587,11 @@ i.e. expr of def foo(args) = expr is returned."
            ;;
            ;; I'm using very restrictive patterns hoping to reduce rules
            ;; triggering unintentionally.
-           ((match "else" "if")
+           ((match "else" "if\\|unless")
             (ruby-ts--align-keywords ruby-ts--parent-node) 0)
            ((match "elsif" "if")
             (ruby-ts--align-keywords ruby-ts--parent-node) 0)
-           ((match "end" "if")
+           ((match "end" "if\\|unless")
             (ruby-ts--align-keywords ruby-ts--parent-node) 0)
            ((n-p-gp nil "then\\|else\\|elsif" "if\\|unless")
             (ruby-ts--align-keywords ruby-ts--grand-parent-node) ruby-indent-level)
@@ -753,6 +753,9 @@ i.e. expr of def foo(args) = expr is returned."
            ((parent-is "hash")  parent-bol ruby-indent-level)
            ((match "]" "array") parent-bol 0)
            ((parent-is "array") parent-bol ruby-indent-level)
+
+           ((match ")" "parenthesized_statements") parent-bol 0)
+           ((parent-is "parenthesized_statements") parent-bol ruby-indent-level)
 
            ;; If the previous method isn't finished yet, this will get
            ;; the next method indented properly.
