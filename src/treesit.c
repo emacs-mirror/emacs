@@ -42,8 +42,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_node_end_byte
 #undef ts_node_eq
 #undef ts_node_field_name_for_child
-#undef ts_node_first_child_for_byte
-#undef ts_node_first_named_child_for_byte
 #undef ts_node_has_error
 #undef ts_node_is_extra
 #undef ts_node_is_missing
@@ -99,8 +97,6 @@ DEF_DLL_FN (TSNode, ts_node_descendant_for_byte_range,
 DEF_DLL_FN (uint32_t, ts_node_end_byte, (TSNode));
 DEF_DLL_FN (bool, ts_node_eq, (TSNode, TSNode));
 DEF_DLL_FN (const char *, ts_node_field_name_for_child, (TSNode, uint32_t));
-DEF_DLL_FN (TSNode, ts_node_first_child_for_byte, (TSNode, uint32_t));
-DEF_DLL_FN (TSNode, ts_node_first_named_child_for_byte, (TSNode, uint32_t));
 DEF_DLL_FN (bool, ts_node_has_error, (TSNode));
 DEF_DLL_FN (bool, ts_node_is_extra, (TSNode));
 DEF_DLL_FN (bool, ts_node_is_missing, (TSNode));
@@ -174,8 +170,6 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_node_end_byte);
   LOAD_DLL_FN (library, ts_node_eq);
   LOAD_DLL_FN (library, ts_node_field_name_for_child);
-  LOAD_DLL_FN (library, ts_node_first_child_for_byte);
-  LOAD_DLL_FN (library, ts_node_first_named_child_for_byte);
   LOAD_DLL_FN (library, ts_node_has_error);
   LOAD_DLL_FN (library, ts_node_is_extra);
   LOAD_DLL_FN (library, ts_node_is_missing);
@@ -232,8 +226,6 @@ init_treesit_functions (void)
 #define ts_node_end_byte fn_ts_node_end_byte
 #define ts_node_eq fn_ts_node_eq
 #define ts_node_field_name_for_child fn_ts_node_field_name_for_child
-#define ts_node_first_child_for_byte fn_ts_node_first_child_for_byte
-#define ts_node_first_named_child_for_byte fn_ts_node_first_named_child_for_byte
 #define ts_node_has_error fn_ts_node_has_error
 #define ts_node_is_extra fn_ts_node_is_extra
 #define ts_node_is_missing fn_ts_node_is_missing
