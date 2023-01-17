@@ -1,7 +1,7 @@
 ;; -*- mode: lisp-data; -*-
 ((pass 10 "PASS :barnet:changeme"))
-((nick 3 "NICK tester"))
-((user 3 "USER user 0 * :tester")
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :tester")
  (0 ":irc.barnet.org 001 tester :Welcome to the barnet IRC Network tester")
  (0 ":irc.barnet.org 002 tester :Your host is irc.barnet.org, running version oragono-2.6.0-7481bf0385b95b16")
  (0 ":irc.barnet.org 003 tester :This server was created Wed, 12 May 2021 07:41:08 UTC")
@@ -17,7 +17,7 @@
  (0 ":irc.barnet.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.barnet.org 422 tester :MOTD File is missing"))
 
-((mode-user 10.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  ;; No mode answer ^
 
  (0 ":tester!~u@xrir8fpe4d7ak.irc JOIN #chan")
@@ -36,9 +36,9 @@
  (0 ":irc.znc.in 306 tester :You have been marked as being away")
  (0 ":irc.barnet.org 305 tester :You are no longer marked as being away"))
 
-((~join 3 "JOIN #chan"))
+((~join 10 "JOIN #chan"))
 
-((mode 5 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.barnet.org 324 tester #chan +nt")
  (0 ":irc.barnet.org 329 tester #chan 1620805269")
  (0.1 ":joe!~u@svpn88yjcdj42.irc PRIVMSG #chan :mike: But, in defense, by mercy, 'tis most just.")
