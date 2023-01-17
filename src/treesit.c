@@ -2095,6 +2095,41 @@ return nil.  */)
   return make_treesit_node (XTS_NODE (node)->parser, sibling);
 }
 
+/* Our reimplementation of ts_node_first_child_for_byte.  The current
+   implementation of that function has problems (see bug#60127), so
+   before it's fixed upstream, we use our own reimplementation of it.
+   Return true if there is a valid sibling, return false otherwise.
+   If the return value is false, the position of the cursor is
+   undefined.  (We use cursor because technically we can't make a null
+   node for ourselves, also, using cursor is more convenient.)
+
+   TODO: Remove this function once tree-sitter fixed the bug.  */
+static bool treesit_cursor_first_child_for_byte
+(TSTreeCursor *cursor, ptrdiff_t pos, bool named)
+{
+  if (!ts_tree_cursor_goto_first_child (cursor))
+    return false;
+
+  TSNode node = ts_tree_cursor_current_node (cursor);
+  while (ts_node_end_byte (node) <= pos)
+    {
+      if (ts_tree_cursor_goto_next_sibling (cursor))
+	node = ts_tree_cursor_current_node (cursor);
+      else
+	/* Reached the end and still can't find a valid sibling.  */
+	return false;
+    }
+  while (named && (!ts_node_is_named (node)))
+    {
+      if (ts_tree_cursor_goto_next_sibling (cursor))
+	node = ts_tree_cursor_current_node (cursor);
+      else
+	/* Reached the end and still can't find a named sibling.  */
+	return false;
+    }
+  return true;
+}
+
 DEFUN ("treesit-node-first-child-for-pos",
        Ftreesit_node_first_child_for_pos,
        Streesit_node_first_child_for_pos, 2, 3, 0,
@@ -2119,16 +2154,17 @@ Note that this function returns an immediate child, not the smallest
 
   ptrdiff_t byte_pos = buf_charpos_to_bytepos (buf, XFIXNUM (pos));
   TSNode treesit_node = XTS_NODE (node)->node;
-  TSNode child;
-  if (NILP (named))
-    child = ts_node_first_child_for_byte (treesit_node, byte_pos - visible_beg);
-  else
-    child = ts_node_first_named_child_for_byte (treesit_node,
-						byte_pos - visible_beg);
 
-  if (ts_node_is_null (child))
+  TSTreeCursor cursor = ts_tree_cursor_new (treesit_node);
+  ptrdiff_t treesit_pos = byte_pos - visible_beg;
+  bool success;
+  success = treesit_cursor_first_child_for_byte (&cursor, treesit_pos,
+						 !NILP (named));
+  TSNode child = ts_tree_cursor_current_node (&cursor);
+  ts_tree_cursor_delete (&cursor);
+
+  if (!success)
     return Qnil;
-
   return make_treesit_node (XTS_NODE (node)->parser, child);
 }
 
