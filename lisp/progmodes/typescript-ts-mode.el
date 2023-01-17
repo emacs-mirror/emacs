@@ -97,13 +97,15 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "binary_expression") parent-bol typescript-ts-mode-indent-offset)
 
      ,@(when (eq language 'tsx)
-         `(((node-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
-           ((node-is "jsx_element") parent typescript-ts-mode-indent-offset)
-           ((node-is "jsx_expression") parent typescript-ts-mode-indent-offset)
-           ((node-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)
+         `(((match "<" "jsx_fragment") parent 0)
+           ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
            ((node-is "jsx_closing_element") parent 0)
-           ((node-is "/") parent 0)
-           ((node-is ">") parent 0)))
+           ((node-is "jsx_element") parent typescript-ts-mode-indent-offset)
+           ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
+           ((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
+           ((parent-is "jsx_expression") parent-bol typescript-ts-mode-indent-offset)
+           ((match "/" "jsx_self_closing_element") parent 0)
+           ((parent-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)))
      (no-node parent-bol 0))))
 
 (defvar typescript-ts-mode--keywords

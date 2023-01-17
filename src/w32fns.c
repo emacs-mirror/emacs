@@ -10396,8 +10396,8 @@ to be converted to forward slashes by the caller.  */)
 #endif	/* WINDOWSNT */
 
 /* Query a value from the Windows Registry (under HKCU and HKLM),
-   where `key` is the registry key, `name` is the name, and `lpdwtype`
-   is a pointer to the return value's type. `lpwdtype` can be NULL if
+   where `key' is the registry key, `name' is the name, and `lpdwtype'
+   is a pointer to the return value's type. `lpwdtype' can be NULL if
    you do not care about the type.
 
    Returns: pointer to the value, or null pointer if the key/name does
@@ -10664,7 +10664,7 @@ pops up the Windows Run dialog, <lwindow>-<Pause> pops up the "System
 Properties" dialog, etc.  On Windows 10, no \"Windows\" key
 combinations are normally handed to applications.  To enable Emacs to
 process \"Windows\" key combinations, use the function
-`w32-register-hot-key`.
+`w32-register-hot-key'.
 
 For Windows 98/ME, see the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_lwindow_to_system = Qt;
@@ -10683,7 +10683,7 @@ pops up the Windows Run dialog, <rwindow>-<Pause> pops up the "System
 Properties" dialog, etc.  On Windows 10, no \"Windows\" key
 combinations are normally handed to applications.  To enable Emacs to
 process \"Windows\" key combinations, use the function
-`w32-register-hot-key`.
+`w32-register-hot-key'.
 
 For Windows 98/ME, see the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_rwindow_to_system = Qt;
@@ -10698,7 +10698,7 @@ acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or
 `w32-pass-rwindow-to-system' is nil.
 
 This variable is only used on Windows 98 and ME.  For other Windows
-versions, see the documentation of the `w32-register-hot-key`
+versions, see the documentation of the `w32-register-hot-key'
 function.  */);
   /* Although 255 is technically not a valid key code, it works and
      means that this hack won't interfere with any real key code.  */
@@ -10732,7 +10732,7 @@ The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to appear as the `lwindow' key.
 Any other value will cause the key to be ignored.
 
-Also see the documentation of the `w32-register-hot-key` function.  */);
+Also see the documentation of the `w32-register-hot-key' function.  */);
   Vw32_lwindow_modifier = Qnil;
 
   DEFVAR_LISP ("w32-rwindow-modifier",
@@ -10742,7 +10742,7 @@ The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to appear as the `rwindow' key.
 Any other value will cause the key to be ignored.
 
-Also see the documentation of the `w32-register-hot-key` function.  */);
+Also see the documentation of the `w32-register-hot-key' function.  */);
   Vw32_rwindow_modifier = Qnil;
 
   DEFVAR_LISP ("w32-apps-modifier",
@@ -11271,7 +11271,7 @@ globals_of_w32fns (void)
     get_proc_addr (hm_kernel32, "SetThreadDescription");
 
   /* Support OS dark mode on Windows 10 version 1809 and higher.
-     See `w32_applytheme` which uses appropriate APIs per version of Windows.
+     See `w32_applytheme' which uses appropriate APIs per version of Windows.
      For future wretches who may need to understand Windows build numbers:
      https://docs.microsoft.com/en-us/windows/release-health/release-information
   */

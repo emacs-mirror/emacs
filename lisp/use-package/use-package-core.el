@@ -65,7 +65,7 @@
   :link '(custom-manual "(use-package) Top")
   :version "29.1")
 
-(defconst use-package-version "2.4.4"
+(defconst use-package-version "2.4.5"
   "This version of `use-package'.")
 
 (defcustom use-package-keywords

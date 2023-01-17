@@ -780,12 +780,20 @@ i.e. expr of def foo(args) = expr is returned."
            ;; but with node set to the statement and parent set to
            ;; body_statement for all others. ... Fine.  Be that way.
            ;; Ditto for "block" and "block_body"
-           ((node-is "body_statement") parent-bol ruby-indent-level)
-           ((parent-is "body_statement") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((match "end" "do_block") parent-bol 0)
-           ((n-p-gp "block_body" "block" nil) parent-bol ruby-indent-level)
-           ((n-p-gp nil "block_body" "block") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((match "}" "block") parent-bol 0)
+           ((node-is "body_statement")
+            (ruby-ts--block-indent-anchor ruby-ts--parent-node)
+            ruby-indent-level)
+           ((parent-is "body_statement")
+            (ruby-ts--block-indent-anchor ruby-ts--grand-parent-node)
+            ruby-indent-level)
+           ((match "end" "do_block") (ruby-ts--block-indent-anchor ruby-ts--parent-node) 0)
+           ((n-p-gp "block_body" "block" nil)
+            (ruby-ts--block-indent-anchor ruby-ts--parent-node)
+            ruby-indent-level)
+           ((n-p-gp nil "block_body" "block")
+            (ruby-ts--block-indent-anchor ruby-ts--grand-parent-node)
+            ruby-indent-level)
+           ((match "}" "block") (ruby-ts--block-indent-anchor ruby-ts--parent-node) 0)
 
            ;; Chained strings
            ((match "string" "chained_string") first-sibling 0)
@@ -793,6 +801,18 @@ i.e. expr of def foo(args) = expr is returned."
            ;; Try and indent two spaces when all else fails.
            (catch-all parent-bol ruby-indent-level))))
     `((ruby . ,common))))
+
+(defun ruby-ts--block-indent-anchor (block-node-getter)
+  (lambda (node parent _bol &rest _rest)
+    (let ((block-node (funcall block-node-getter node parent)))
+      (save-excursion
+        (goto-char
+         (treesit-node-start
+          (if ruby-block-indent
+              (ruby-ts--statement-ancestor block-node)
+            block-node)))
+        (back-to-indentation)
+        (point)))))
 
 (defun ruby-ts--class-or-module-p (node)
   "Predicate if NODE is a class or module."
