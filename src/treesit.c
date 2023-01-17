@@ -3270,9 +3270,9 @@ a regexp.  */)
 
   Lisp_Object parser = XTS_NODE (root)->parser;
   Lisp_Object parent = Fcons (Qnil, Qnil);
-  TSTreeCursor cursor;
-  if (!treesit_cursor_helper (&cursor, XTS_NODE (root)->node, parser))
-    return Qnil;
+  /* In this function we never traverse above NODE, so we don't need
+     to use treesit_cursor_helper.  */
+  TSTreeCursor cursor = ts_tree_cursor_new (XTS_NODE (root)->node);
 
   treesit_build_sparse_tree (&cursor, parent, predicate, process_fn,
 			     the_limit, parser);
