@@ -25,6 +25,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
+import android.os.Build;
+
 /* Drawable backed by bitmap.  */
 
 public class EmacsPixmap extends EmacsHandleObject
@@ -122,5 +124,26 @@ public class EmacsPixmap extends EmacsHandleObject
   getBitmap ()
   {
     return bitmap;
+  }
+
+  @Override
+  public void
+  destroyHandle ()
+  {
+    boolean needCollect;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+      needCollect = (bitmap.getByteCount ()
+		     >= 1024 * 512);
+    else
+      needCollect = (bitmap.getAllocationByteCount ()
+		     >= 1024 * 512);
+
+    bitmap.recycle ();
+    bitmap = null;
+
+    /* Collect the bitmap storage if the bitmap is big.  */
+    if (needCollect)
+      Runtime.getRuntime ().gc ();
   }
 };

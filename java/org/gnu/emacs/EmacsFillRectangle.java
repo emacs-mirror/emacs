@@ -115,6 +115,9 @@ public class EmacsFillRectangle
 	/* Finally, draw the mask bitmap to the destination.  */
 	paint.setXfermode (null);
 	canvas.drawBitmap (maskBitmap, null, maskRect, paint);
+
+	/* Recycle this unused bitmap.  */
+	maskBitmap.recycle ();
       }
 
     canvas.restore ();

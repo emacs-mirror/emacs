@@ -260,7 +260,7 @@ public class EmacsWindow extends EmacsHandleObject
   {
     /* This is necessary because otherwise subsequent drawing on the
        Emacs thread may be lost.  */
-    view.explicitlyDirtyBitmap (rect);
+    view.explicitlyDirtyBitmap ();
 
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
 	@Override

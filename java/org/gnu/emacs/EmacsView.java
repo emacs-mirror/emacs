@@ -70,15 +70,18 @@ public class EmacsView extends ViewGroup
      event regardless of what changed.  */
   public boolean mustReportLayout;
 
-  /* If non-null, whether or not bitmaps must be recreated upon the
-     next call to getBitmap.  */
-  private Rect bitmapDirty;
+  /* Whether or not bitmaps must be recreated upon the next call to
+     getBitmap.  */
+  private boolean bitmapDirty;
 
   /* Whether or not a popup is active.  */
   private boolean popupActive;
 
   /* The current context menu.  */
   private EmacsContextMenu contextMenu;
+
+  /* The last measured width and height.  */
+  private int measuredWidth, measuredHeight;
 
   public
   EmacsView (EmacsWindow window)
@@ -116,13 +119,27 @@ public class EmacsView extends ViewGroup
   {
     Bitmap oldBitmap;
 
+    if (measuredWidth == 0 || measuredHeight == 0)
+      return;
+
+    /* If bitmap is the same width and height as the measured width
+       and height, there is no need to do anything.  Avoid allocating
+       the extra bitmap.  */
+    if (bitmap != null
+	&& (bitmap.getWidth () == measuredWidth
+	    && bitmap.getHeight () == measuredHeight))
+      {
+	bitmapDirty = false;
+	return;
+      }
+
     /* Save the old bitmap.  */
     oldBitmap = bitmap;
 
     /* Recreate the front and back buffer bitmaps.  */
     bitmap
-      = Bitmap.createBitmap (bitmapDirty.width (),
-			     bitmapDirty.height (),
+      = Bitmap.createBitmap (measuredWidth,
+			     measuredHeight,
 			     Bitmap.Config.ARGB_8888);
     bitmap.eraseColor (0xffffffff);
 
@@ -133,23 +150,27 @@ public class EmacsView extends ViewGroup
     if (oldBitmap != null)
       canvas.drawBitmap (oldBitmap, 0f, 0f, new Paint ());
 
-    bitmapDirty = null;
+    bitmapDirty = false;
+
+    /* Explicitly free the old bitmap's memory.  */
+    if (oldBitmap != null)
+      oldBitmap.recycle ();
+
+    /* Some Android versions still don't free the bitmap until the
+       next GC.  */
+    Runtime.getRuntime ().gc ();
   }
 
   public synchronized void
-  explicitlyDirtyBitmap (Rect rect)
+  explicitlyDirtyBitmap ()
   {
-    if (bitmapDirty == null
-	&& (bitmap == null
-	    || rect.width () != bitmap.getWidth ()
-	    || rect.height () != bitmap.getHeight ()))
-      bitmapDirty = rect;
+    bitmapDirty = true;
   }
 
   public synchronized Bitmap
   getBitmap ()
   {
-    if (bitmapDirty != null)
+    if (bitmapDirty || bitmap == null)
       handleDirtyBitmap ();
 
     return bitmap;
@@ -158,7 +179,7 @@ public class EmacsView extends ViewGroup
   public synchronized Canvas
   getCanvas ()
   {
-    if (bitmapDirty != null)
+    if (bitmapDirty || bitmap == null)
       handleDirtyBitmap ();
 
     return canvas;
@@ -196,8 +217,12 @@ public class EmacsView extends ViewGroup
     super.setMeasuredDimension (width, height);
   }
 
+  /* Note that the monitor lock for the window must never be held from
+     within the lock for the view, because the window also locks the
+     other way around.  */
+
   @Override
-  protected synchronized void
+  protected void
   onLayout (boolean changed, int left, int top, int right,
 	    int bottom)
   {
@@ -213,12 +238,13 @@ public class EmacsView extends ViewGroup
 	window.viewLayout (left, top, right, bottom);
       }
 
-    if (changed
-	/* Check that a change has really happened.  */
-	&& (bitmapDirty == null
-	    || bitmapDirty.width () != right - left
-	    || bitmapDirty.height () != bottom - top))
-      bitmapDirty = new Rect (left, top, right, bottom);
+    measuredWidth = right - left;
+    measuredHeight = bottom - top;
+
+    /* Dirty the back buffer.  */
+
+    if (changed)
+      explicitlyDirtyBitmap ();
 
     for (i = 0; i < count; ++i)
       {
@@ -471,5 +497,21 @@ public class EmacsView extends ViewGroup
 
     contextMenu = null;
     popupActive = false;
+  }
+
+  @Override
+  public synchronized void
+  onDetachedFromWindow ()
+  {
+    synchronized (this)
+      {
+	/* Recycle the bitmap and call GC.  */
+	bitmap.recycle ();
+	bitmap = null;
+	canvas = null;
+
+	/* Collect the bitmap storage; it could be large.  */
+	Runtime.getRuntime ().gc ();
+      }
   }
 };

@@ -496,10 +496,17 @@ android_update_tools (struct frame *f, struct input_event *ie)
   /* Build the list of active touches.  */
   for (touchpoint = FRAME_OUTPUT_DATA (f)->touch_points;
        touchpoint; touchpoint = touchpoint->next)
-    ie->arg = Fcons (list3i (touchpoint->x,
-			     touchpoint->y,
-			     touchpoint->tool_id),
-		     ie->arg);
+    {
+      /* Skip touch points which originated on the tool bar.  */
+
+      if (touchpoint->tool_bar_p)
+	continue;
+
+      ie->arg = Fcons (list3i (touchpoint->x,
+			       touchpoint->y,
+			       touchpoint->tool_id),
+		       ie->arg);
+    }
 }
 
 /* Find and return an existing tool pressed against FRAME, identified
@@ -951,6 +958,59 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       touchpoint->next = FRAME_OUTPUT_DATA (any)->touch_points;
       FRAME_OUTPUT_DATA (any)->touch_points = touchpoint;
 
+      /* Figure out whether or not the tool was pressed on the tool
+	 bar.  Note that the code which runs when it was is more or
+	 less an abuse of the mouse highlight machinery, but it works
+	 well enough in practice.  */
+
+      if (WINDOWP (any->tool_bar_window)
+	  && WINDOW_TOTAL_LINES (XWINDOW (any->tool_bar_window)))
+	{
+	  Lisp_Object window;
+	  int x = event->touch.x;
+	  int y = event->touch.y;
+
+	  window = window_from_coordinates (any, x, y, 0, true,
+					    true);
+
+	  /* If this touch has started in the tool bar, do not
+	     send it to Lisp.  Instead, simulate a tool bar
+	     click, releasing it once it goes away.  */
+
+	  if (EQ (window, any->tool_bar_window))
+	    {
+	      /* Call note_mouse_highlight on the tool bar
+		 item.  Otherwise, get_tool_bar_item will
+		 return 1.
+
+		 This is not necessary when mouse-highlight is
+		 nil.  */
+
+	      if (!NILP (Vmouse_highlight))
+		{
+		  note_mouse_highlight (any, x, y);
+
+		  /* Always allow future mouse motion to
+		     update the mouse highlight, no matter
+		     where it is.  */
+		  memset (&dpyinfo->last_mouse_glyph, 0,
+			  sizeof dpyinfo->last_mouse_glyph);
+		  dpyinfo->last_mouse_glyph_frame = any;
+		}
+
+	      handle_tool_bar_click (any, x, y, true, 0);
+
+	      /* Flush any changes made by that to the front
+		 buffer.  */
+	      android_flush_dirty_back_buffer_on (any);
+
+	      /* Mark the touch point as being grabbed by the tool
+		 bar.  */
+	      touchpoint->tool_bar_p = true;
+	      goto OTHER;
+	    }
+	}
+
       /* Now generate the Emacs event.  */
       inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
       inev.ie.timestamp = event->touch.time;
@@ -970,9 +1030,10 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       touchpoint = android_find_tool (any, event->touch.pointer_id);
 
-      /* If it doesn't exist, skip processing this event.  */
+      /* If it doesn't exist or has been grabbed by the tool bar, skip
+	 processing this event.  */
 
-      if (!touchpoint)
+      if (!touchpoint || touchpoint->tool_bar_p)
 	goto OTHER;
 
       /* Otherwise, update the position and send the update event.  */
@@ -999,8 +1060,27 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	      *last = touchpoint->next;
 
 	      /* The tool was unlinked.  Free it and generate the
-		 appropriate Emacs event.  */
+		 appropriate Emacs event (assuming that it was not
+		 grabbed by the tool bar).  */
 	      xfree (touchpoint);
+
+	      if (touchpoint->tool_bar_p)
+		{
+		  /* Do what is necessary to release the tool bar and
+		     possibly trigger a click.  */
+
+		  if (any->last_tool_bar_item != -1)
+		    handle_tool_bar_click (any, event->touch.x,
+					   event->touch.y, false,
+					   0);
+
+		  /* Cancel any outstanding mouse highlight.  */
+		  note_mouse_highlight (any, -1, -1);
+		  android_flush_dirty_back_buffer_on (any);
+
+		  goto OTHER;
+		}
+
 	      inev.ie.kind = TOUCHSCREEN_END_EVENT;
 	      inev.ie.timestamp = event->touch.time;
 
@@ -1227,6 +1307,9 @@ android_frame_up_to_date (struct frame *f)
 
   /* The frame is now complete, as its contents have been drawn.  */
   FRAME_ANDROID_COMPLETE_P (f) = true;
+
+  /* Shrink the scanline buffer used by the font backend.  */
+  sfntfont_android_shrink_scanline_buffer ();
   unblock_input ();
 }
 
@@ -1513,7 +1596,7 @@ android_wait_for_event (struct frame *f, int eventtype)
 	break;
 
       tmo = timespec_sub (tmo_at, time_now);
-      if (android_select (0, NULL, NULL, NULL, &tmo, NULL) == 0)
+      if (android_select (0, NULL, NULL, NULL, &tmo) == 0)
         break; /* Timeout */
     }
 
@@ -4061,6 +4144,7 @@ android_create_terminal (struct android_display_info *dpyinfo)
   terminal->set_bitmap_icon_hook = android_bitmap_icon;
   terminal->implicit_set_name_hook = android_implicitly_set_name;
   terminal->menu_show_hook = android_menu_show;
+  terminal->popup_dialog_hook = android_popup_dialog;
   terminal->change_tab_bar_height_hook = android_change_tab_bar_height;
   terminal->change_tool_bar_height_hook = android_change_tool_bar_height;
   terminal->set_scroll_bar_default_width_hook

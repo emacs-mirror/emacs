@@ -5689,7 +5689,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
 	  nfds = android_select (max_desc + 1,
 				 &Available, (check_write ? &Writeok : 0),
-				 NULL, &timeout, NULL);
+				 NULL, &timeout);
 #else
 
 	  /* Non-macOS HAVE_GLIB builds call thread_select in

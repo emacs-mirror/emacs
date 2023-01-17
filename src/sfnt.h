@@ -875,6 +875,44 @@ enum sfnt_meta_data_tag
 
 
 
+/* TrueType collection format support.  */
+
+struct sfnt_ttc_header
+{
+  /* TrueType collection ID tag.  */
+  uint32_t ttctag;
+
+  /* Version of the TTC header.  */
+  uint32_t version;
+
+  /* Number of fonts in the TTC header.  */
+  uint32_t num_fonts;
+
+  /* Array of offsets to the offset table for each font in the
+     file.  */
+  uint32_t *offset_table;
+
+  /* Tag indicating that a DSIG table exists, or 0.  Fields from here
+     on are only set on version 2.0 headers or later.  */
+  uint32_t ul_dsig_tag;
+
+  /* Length in bytes of the signature table, or 0 if there is no
+     signature.  */
+  uint32_t ul_dsig_length;
+
+  /* Offset in bytes of the dsig table from the beginning of the TTC
+     file.  */
+  uint32_t ul_dsig_offset;
+};
+
+enum sfnt_ttc_tag
+  {
+    SFNT_TTC_TTCF = 0x74746366,
+    SFNT_TTC_DSIG = 0x44534947,
+  };
+
+
+
 #define SFNT_CEIL_FIXED(fixed)			\
   (!((fixed) & 0177777) ? (fixed)		\
    : ((fixed) + 0200000) & 037777600000)
@@ -959,6 +997,8 @@ extern struct sfnt_meta_table *sfnt_read_meta_table (PROTOTYPE);
 extern char *sfnt_find_metadata (struct sfnt_meta_table *,
 				 enum sfnt_meta_data_tag,
 				 struct sfnt_meta_data_map *);
+
+extern struct sfnt_ttc_header *sfnt_read_ttc_header (int);
 
 #endif /* TEST */
 #endif /* _SFNT_H_ */

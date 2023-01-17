@@ -31,6 +31,17 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include "android.h"
 
+/* Structure describing a temporary buffer.  */
+
+struct sfntfont_android_scanline_buffer
+{
+  /* Size of this buffer.  */
+  size_t buffer_size;
+
+  /* Pointer to the buffer data.  */
+  void *buffer_data;
+};
+
 /* Array of directories to search for system fonts.  */
 const char *system_font_directories[] =
   {
@@ -39,6 +50,49 @@ const char *system_font_directories[] =
 
 /* The font cache.  */
 static Lisp_Object font_cache;
+
+/* The scanline buffer.  */
+static struct sfntfont_android_scanline_buffer scanline_buffer;
+
+/* The largest size of the scanline buffer since the last window
+   update.  */
+static size_t max_scanline_buffer_size;
+
+
+
+/* Return a temporary buffer for storing scan lines.
+   Set BUFFER to the buffer upon success.  */
+
+#define GET_SCANLINE_BUFFER(buffer, height, stride)		\
+  do								\
+    {								\
+      size_t _size;						\
+								\
+      if (INT_MULTIPLY_WRAPV (height, stride, &_size))		\
+	memory_full (SIZE_MAX);					\
+								\
+      if (_size < MAX_ALLOCA)					\
+	(buffer) = alloca (_size);				\
+      else							\
+	{							\
+	  if (_size > scanline_buffer.buffer_size)		\
+	    {							\
+	      (buffer)						\
+		= scanline_buffer.buffer_data			\
+		= xrealloc (scanline_buffer.buffer_data, 	\
+			    _size);				\
+	      scanline_buffer.buffer_size = _size;		\
+	    }							\
+	  else if (_size <= scanline_buffer.buffer_size)	\
+	    (buffer) = scanline_buffer.buffer_data;		\
+	  /* This is unreachable but clang says it is.  */	\
+	  else							\
+	    emacs_abort ();					\
+								\
+	  max_scanline_buffer_size				\
+	    = max (_size, max_scanline_buffer_size);		\
+	}							\
+    } while (false);
 
 
 
@@ -205,8 +259,6 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
   back_pixel &= ~0x00ff00ff;
   back_pixel |= rb >> 16 | rb << 16 | 0xff000000;
 
-  USE_SAFE_ALLOCA;
-
   prepare_face_for_display (s->f, s->face);
 
   /* Build the scanline buffer.  Figure out the bounds of the
@@ -259,7 +311,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
   /* Allocate enough to hold text_rectangle.height, aligned to 8
      bytes.  Then fill it with the background.  */
   stride = (text_rectangle.width * sizeof *buffer) + 7 & ~7;
-  SAFE_NALLOCA (buffer, text_rectangle.height, stride);
+  GET_SCANLINE_BUFFER (buffer, text_rectangle.height, stride);
   memset (buffer, 0, text_rectangle.height * stride);
 
   if (with_background)
@@ -327,10 +379,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
   /* If locking the bitmap fails, just discard the data that was
      allocated.  */
   if (!bitmap_data)
-    {
-      SAFE_FREE ();
-      return;
-    }
+    return;
 
   /* Loop over each clip rect in the GC.  */
   eassert (bitmap_info.format == ANDROID_BITMAP_FORMAT_RGBA_8888);
@@ -366,8 +415,33 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
   android_damage_window (FRAME_ANDROID_DRAWABLE (s->f),
 			 &text_rectangle);
 
-  /* Release the temporary scanline buffer.  */
-  SAFE_FREE ();
+#undef MAX_ALLOCA
+}
+
+
+
+/* Shrink the scanline buffer after a window update.  If
+   max_scanline_buffer_size is not zero, and is less than
+   scanline_buffer.buffer_size / 2, then resize the scanline buffer to
+   max_scanline_buffer_size.  */
+
+void
+sfntfont_android_shrink_scanline_buffer (void)
+{
+  if (!max_scanline_buffer_size)
+    return;
+
+  if (max_scanline_buffer_size
+      < scanline_buffer.buffer_size / 2)
+    {
+      scanline_buffer.buffer_size
+	= max_scanline_buffer_size;
+      scanline_buffer.buffer_data
+	= xrealloc (scanline_buffer.buffer_data,
+		    max_scanline_buffer_size);
+    }
+
+  max_scanline_buffer_size = 0;
 }
 
 
@@ -437,10 +511,11 @@ loaded before character sets are made available.  */)
 
       while ((dirent = readdir (dir)))
 	{
-	  /* If it contains (not ends with!) with .ttf, then enumerate
-	     it.  */
+	  /* If it contains (not ends with!) with .ttf or .ttc, then
+	     enumerate it.  */
 
-	  if (strstr (dirent->d_name, ".ttf"))
+	  if (strstr (dirent->d_name, ".ttf")
+	      || strstr (dirent->d_name, ".ttc"))
 	    {
 	      sprintf (name, "%s/%s", system_font_directories[i],
 		       dirent->d_name);

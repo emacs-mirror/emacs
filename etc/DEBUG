@@ -1123,6 +1123,15 @@ then placing a breakpoint on:
 
 will let you find the source of the crash.
 
+If there is no `gdbserver' binary present on the device, then you can
+specify one to upload, like so:
+
+  ../java/debug.sh --gdbserver /path/to/gdbserver
+
+In addition, when Emacs runs as a 64-bit process on a system
+supporting both 64 and 32-bit binaries, you must specify the path to a
+64-bit gdbserver binary.
+
 
 This file is part of GNU Emacs.
 

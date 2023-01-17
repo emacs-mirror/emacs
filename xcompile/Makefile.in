@@ -170,7 +170,7 @@ distclean bootstrap-clean: clean
 # Just in case.
 	rm -rf lib/Makefile lib/gnulib.mk
 
-maintainer-clean: clean
+maintainer-clean: distclean bootstrap-clean
 	if [ -e lib/Makefile ]; then		\
 	  make -C lib maintainer-clean;		\
 	fi

@@ -10380,7 +10380,7 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
       if (EVENT_HAS_PARAMETERS (key))
 	{
 	  Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
-	  if (EQ (kind, Qmouse_click))
+	  if (EQ (kind, Qmouse_click) || EQ (kind, Qtouchscreen))
 	    {
 	      Lisp_Object window = POSN_WINDOW (EVENT_START (key));
 	      Lisp_Object posn = POSN_POSN (EVENT_START (key));
@@ -12185,7 +12185,9 @@ static const struct event_head head_table[] = {
   {SYMBOL_INDEX (Qmake_frame_visible),  SYMBOL_INDEX (Qmake_frame_visible)},
   /* `select-window' should be handled just like `switch-frame'
      in read_key_sequence.  */
-  {SYMBOL_INDEX (Qselect_window),       SYMBOL_INDEX (Qswitch_frame)}
+  {SYMBOL_INDEX (Qselect_window),       SYMBOL_INDEX (Qswitch_frame)},
+  /* Touchscreen events should be prefixed by the posn.  */
+  {SYMBOL_INDEX (Qtouchscreen_begin),	SYMBOL_INDEX (Qtouchscreen)},
 };
 
 static Lisp_Object
@@ -12895,6 +12897,7 @@ See also `pre-command-hook'.  */);
 	  "display-monitors-changed-functions");
 
   DEFSYM (Qcoding, "coding");
+  DEFSYM (Qtouchscreen, "touchscreen");
 
   Fset (Qecho_area_clear_hook, Qnil);
 

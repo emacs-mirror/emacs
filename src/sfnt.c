@@ -129,8 +129,12 @@ _sfnt_swap32 (uint32_t *value)
 #define sfnt_swap32(what) (_sfnt_swap32 ((uint32_t *) (what)))
 
 /* Read the table directory from the file FD.  FD must currently be at
-   the start of the file, and must be seekable.  Return the table
-   directory upon success, else NULL.  */
+   the start of the file (or an offset defined in the TTC header, if
+   applicable), and must be seekable.  Return the table directory upon
+   success, else NULL.
+
+   Value is NULL upon failure, and the offset subtable upon success.
+   If FD is actually a TrueType collection file, value is -1.  */
 
 TEST_STATIC struct sfnt_offset_subtable *
 sfnt_read_table_directory (int fd)
@@ -147,11 +151,34 @@ sfnt_read_table_directory (int fd)
 
   if (rc < offset)
     {
+      if (rc >= sizeof (uint32_t))
+	{
+	  /* Detect a TTC file.  In that case, the first long will be
+	     ``ttcf''.  */
+	  sfnt_swap32 (&subtable->scaler_type);
+
+	  if (subtable->scaler_type == SFNT_TTC_TTCF)
+	    {
+	      xfree (subtable);
+	      return (struct sfnt_offset_subtable *) -1;
+	    }
+	}
+
       xfree (subtable);
       return NULL;
     }
 
   sfnt_swap32 (&subtable->scaler_type);
+
+  /* Bail out early if this font is actually a TrueType collection
+     file.  */
+
+  if (subtable->scaler_type == SFNT_TTC_TTCF)
+    {
+      xfree (subtable);
+      return (struct sfnt_offset_subtable *) -1;
+    }
+
   sfnt_swap16 (&subtable->num_tables);
   sfnt_swap16 (&subtable->search_range);
   sfnt_swap16 (&subtable->entry_selector);
@@ -4183,6 +4210,101 @@ sfnt_find_metadata (struct sfnt_meta_table *meta,
 
 
 
+/* TrueType collection format support.  */
+
+/* Read a TrueType collection header from the font file FD.
+   FD must currently at the start of the file.
+
+   Value is the header upon success, else NULL.  */
+
+TEST_STATIC struct sfnt_ttc_header *
+sfnt_read_ttc_header (int fd)
+{
+  struct sfnt_ttc_header *ttc;
+  size_t size, i;
+  ssize_t rc;
+
+  /* First, allocate only as much as required.  */
+
+  ttc = xmalloc (sizeof *ttc);
+
+  /* Read the version 1.0 data.  */
+
+  size = SFNT_ENDOF (struct sfnt_ttc_header, num_fonts,
+		     uint32_t);
+  rc = read (fd, ttc, size);
+  if (rc < size)
+    {
+      xfree (ttc);
+      return NULL;
+    }
+
+  /* Now swap what was read.  */
+  sfnt_swap32 (&ttc->ttctag);
+  sfnt_swap32 (&ttc->version);
+  sfnt_swap32 (&ttc->num_fonts);
+
+  /* Verify that the tag is as expected.  */
+  if (ttc->ttctag != SFNT_TTC_TTCF)
+    {
+      xfree (ttc);
+      return NULL;
+    }
+
+  /* Now, read the variable length data.  Make sure to check for
+     overflow.  */
+
+  if (INT_MULTIPLY_WRAPV (ttc->num_fonts,
+			  sizeof *ttc->offset_table,
+			  &size))
+    {
+      xfree (ttc);
+      return NULL;
+    }
+
+  ttc = xrealloc (ttc, sizeof *ttc + size);
+  ttc->offset_table = (uint32_t *) (ttc + 1);
+  rc = read (fd, ttc->offset_table, size);
+  if (rc < size)
+    {
+      xfree (ttc);
+      return NULL;
+    }
+
+  /* Swap each of the offsets read.  */
+  for (i = 0; i < ttc->num_fonts; ++i)
+    sfnt_swap32 (&ttc->offset_table[i]);
+
+  /* Now, look at the version.  If it is earlier than 2.0, then
+     reading is finished.  */
+
+  if (ttc->version < 0x00020000)
+    return ttc;
+
+  /* If it is 2.0 or later, then continue to read ul_dsig_tag to
+     ul_dsig_offset.  */
+
+  size = (SFNT_ENDOF (struct sfnt_ttc_header, ul_dsig_offset,
+		      uint32_t)
+	  - offsetof (struct sfnt_ttc_header, ul_dsig_tag));
+  rc = read (fd, &ttc->ul_dsig_offset, size);
+  if (rc < size)
+    {
+      xfree (ttc);
+      return NULL;
+    }
+
+  /* Swap what was read.  */
+  sfnt_swap32 (&ttc->ul_dsig_tag);
+  sfnt_swap32 (&ttc->ul_dsig_length);
+  sfnt_swap32 (&ttc->ul_dsig_offset);
+
+  /* All done.  */
+  return ttc;
+}
+
+
+
 #ifdef TEST
 
 struct sfnt_test_dcontext
@@ -4397,6 +4519,7 @@ main (int argc, char **argv)
   unsigned char *string;
   struct sfnt_name_record record;
   struct sfnt_meta_table *meta;
+  struct sfnt_ttc_header *ttc;
 
   if (argc != 2)
     return 1;
@@ -4406,7 +4529,40 @@ main (int argc, char **argv)
   if (fd < 1)
     return 1;
 
+  ttc = NULL;
+
   font = sfnt_read_table_directory (fd);
+
+  if (font == (struct sfnt_offset_subtable *) -1)
+    {
+      if (lseek (fd, 0, SEEK_SET) != 0)
+	return 1;
+
+      ttc = sfnt_read_ttc_header (fd);
+
+      if (!ttc)
+	return 1;
+
+      fprintf (stderr, "TrueType collection: %"PRIu32" fonts installed\n",
+	       ttc->num_fonts);
+      fflush (stderr);
+
+      printf ("Which font? ");
+      if (scanf ("%d", &i) == EOF)
+	return 1;
+
+      if (i >= ttc->num_fonts || i < 0)
+	{
+	  printf ("out of range\n");
+	  return 1;
+	}
+
+      if (lseek (fd, ttc->offset_table[i], SEEK_SET)
+	  != ttc->offset_table[i])
+	return 1;
+
+      font = sfnt_read_table_directory (fd);
+    }
 
   if (!font)
     {
@@ -4432,9 +4588,9 @@ main (int argc, char **argv)
   for (i = 0; i < table->num_subtables; ++i)
     {
       fprintf (stderr, "Found cmap table %"PRIu32": %p\n",
-	       subtables[i].offset, data);
+	       subtables[i].offset, data[i]);
 
-      if (data)
+      if (data[i])
 	fprintf (stderr, "  format: %"PRIu16"\n",
 		 data[i]->format);
     }
@@ -4552,7 +4708,7 @@ main (int argc, char **argv)
       if (scanf ("%d %"SCNu32"", &i, &character) == EOF)
 	break;
 
-      if (i >= table->num_subtables)
+      if (i < 0 || i >= table->num_subtables)
 	{
 	  printf ("table out of range\n");
 	  continue;
@@ -4699,6 +4855,7 @@ main (int argc, char **argv)
   xfree (hmtx);
   xfree (name);
   xfree (meta);
+  xfree (ttc);
 
   return 0;
 }

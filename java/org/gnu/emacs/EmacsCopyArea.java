@@ -116,6 +116,7 @@ public class EmacsCopyArea
 				      src_x, src_y, width,
 				      height);
 	canvas.drawBitmap (bitmap, null, rect, paint);
+	bitmap.recycle ();
       }
     else
       {
@@ -183,6 +184,9 @@ public class EmacsCopyArea
 	paint.setXfermode (overAlu);
 	canvas.drawBitmap (maskBitmap, null, maskRect, paint);
 	gc.resetXfermode ();
+
+	/* Recycle this unused bitmap.  */
+	maskBitmap.recycle ();
       }
 
     canvas.restore ();

@@ -168,10 +168,16 @@ android_dismiss_menu (void *pointer)
 static void
 android_process_events_for_menu (int *id)
 {
+  int blocked;
+
   /* Set menu_event_id to -1; handle_one_android_event will set it to
      the event ID upon receiving a context menu event.  This can cause
      a non-local exit.  */
   x_display_list->menu_event_id = -1;
+
+  /* Unblock input completely.  */
+  blocked = interrupt_input_blocked;
+  totally_unblock_input ();
 
   /* Now wait for the menu event ID to change.  */
   while (x_display_list->menu_event_id == -1)
@@ -181,10 +187,10 @@ android_process_events_for_menu (int *id)
 
       /* Process pending signals.  */
       process_pending_signals ();
-
-      /* Maybe quit.  */
-      maybe_quit ();
     }
+
+  /* Restore the input block.  */
+  interrupt_input_blocked = blocked;
 
   /* Return the ID.  */
   *id = x_display_list->menu_event_id;
@@ -420,9 +426,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 
   /* Next, process events waiting for something to be selected.  */
   popup_activated_flag = 1;
-  unblock_input ();
   android_process_events_for_menu (&id);
-  block_input ();
 
   if (!id)
     /* This means no menu item was selected.  */
@@ -498,14 +502,235 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	}
     }
 
-  Fprint (tem, Qexternal_debugging_output);
-
   unblock_input ();
   return unbind_to (count, tem);
 
  finish:
   unblock_input ();
   return unbind_to (count, Qnil);
+}
+
+
+
+/* Toolkit dialog implementation.  */
+
+/* Structure describing the EmacsDialog class.  */
+
+struct android_emacs_dialog
+{
+  jclass class;
+  jmethodID create_dialog;
+  jmethodID add_button;
+  jmethodID display;
+};
+
+/* Identifiers associated with the EmacsDialog class.  */
+static struct android_emacs_dialog dialog_class;
+
+static void
+android_init_emacs_dialog (void)
+{
+  jclass old;
+
+  dialog_class.class
+    = (*android_java_env)->FindClass (android_java_env,
+				      "org/gnu/emacs/EmacsDialog");
+  eassert (dialog_class.class);
+
+  old = dialog_class.class;
+  dialog_class.class
+    = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
+						  (jobject) old);
+  ANDROID_DELETE_LOCAL_REF (old);
+
+  if (!dialog_class.class)
+    emacs_abort ();
+
+#define FIND_METHOD(c_name, name, signature)			\
+  dialog_class.c_name						\
+    = (*android_java_env)->GetMethodID (android_java_env,	\
+					dialog_class.class,	\
+					name, signature);	\
+  eassert (dialog_class.c_name);
+
+#define FIND_METHOD_STATIC(c_name, name, signature)			\
+  dialog_class.c_name							\
+    = (*android_java_env)->GetStaticMethodID (android_java_env,		\
+					      dialog_class.class,	\
+					      name, signature);		\
+
+  FIND_METHOD_STATIC (create_dialog, "createDialog", "(Ljava/lang/String;"
+		      "Ljava/lang/String;)Lorg/gnu/emacs/EmacsDialog;");
+  FIND_METHOD (add_button, "addButton", "(Ljava/lang/String;IZ)V");
+  FIND_METHOD (display, "display", "()Z");
+
+#undef FIND_METHOD
+#undef FIND_METHOD_STATIC
+}
+
+static Lisp_Object
+android_dialog_show (struct frame *f, Lisp_Object title,
+		     Lisp_Object header, const char **error_name)
+{
+  specpdl_ref count;
+  jobject dialog, java_header, java_title, temp;
+  size_t i;
+  Lisp_Object item_name, enable, entry;
+  bool rc;
+  int id;
+  jmethodID method;
+
+  if (menu_items_n_panes > 1)
+    {
+      *error_name = "Multiple panes in dialog box";
+      return Qnil;
+    }
+
+  /* Do the initial setup.  */
+  count = SPECPDL_INDEX ();
+  *error_name = NULL;
+
+  android_push_local_frame ();
+
+  /* Figure out what header to use.  */
+  java_header = (!NILP (header)
+		 ? android_build_jstring ("Information")
+		 : android_build_jstring ("Question"));
+
+  /* And the title.  */
+  java_title = android_build_string (title);
+
+  /* Now create the dialog.  */
+  method = dialog_class.create_dialog;
+  dialog = (*android_java_env)->CallStaticObjectMethod (android_java_env,
+							dialog_class.class,
+							method, java_header,
+						        java_title);
+  android_exception_check ();
+
+  /* Delete now unused local references.  */
+  if (java_header)
+    ANDROID_DELETE_LOCAL_REF (java_header);
+  ANDROID_DELETE_LOCAL_REF (java_title);
+
+  /* Create the buttons.  */
+  i = MENU_ITEMS_PANE_LENGTH;
+  while (i < menu_items_used)
+    {
+      item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
+      enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
+
+      /* Verify that there is no submenu here.  */
+
+      if (NILP (item_name))
+	{
+	  *error_name = "Submenu in dialog items";
+	  return unbind_to (count, Qnil);
+	}
+
+      /* Skip past boundaries between buttons on different sides.  The
+	 Android toolkit is too silly to understand this
+	 distinction.  */
+
+      if (EQ (item_name, Qquote))
+	++i;
+      else
+	{
+	  /* Make sure i is within bounds.  */
+	  if (i > TYPE_MAXIMUM (jint))
+	    {
+	      *error_name = "Dialog box too big";
+	      return unbind_to (count, Qnil);
+	    }
+
+	  /* Add the button.  */
+	  temp = android_build_string (item_name);
+	  (*android_java_env)->CallVoidMethod (android_java_env,
+					       dialog,
+					       dialog_class.add_button,
+					       temp, (jint) i,
+					       (jboolean) NILP (enable));
+	  android_exception_check ();
+	  ANDROID_DELETE_LOCAL_REF (temp);
+	  i += MENU_ITEMS_ITEM_LENGTH;
+	}
+    }
+
+  /* The dialog is now built.  Run it.  */
+  rc = (*android_java_env)->CallBooleanMethod (android_java_env,
+					       dialog,
+					       dialog_class.display);
+  android_exception_check ();
+
+  if (!rc)
+    quit ();
+
+  /* Wait for the menu ID to arrive.  */
+  android_process_events_for_menu (&id);
+
+  if (!id)
+    quit ();
+
+  /* Find the selected item, and its pane, to return
+     the proper value.  */
+  i = 0;
+  while (i < menu_items_used)
+    {
+      if (EQ (AREF (menu_items, i), Qt))
+	i += MENU_ITEMS_PANE_LENGTH;
+      else if (EQ (AREF (menu_items, i), Qquote))
+	/* This is the boundary between left-side elts and right-side
+	   elts.  */
+	++i;
+      else
+	{
+	  entry = AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
+
+	  if (id == i)
+	    return entry;
+
+	  i += MENU_ITEMS_ITEM_LENGTH;
+	}
+    }
+
+  return Qnil;
+}
+
+Lisp_Object
+android_popup_dialog (struct frame *f, Lisp_Object header,
+		      Lisp_Object contents)
+{
+  Lisp_Object title;
+  const char *error_name;
+  Lisp_Object selection;
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
+
+  check_window_system (f);
+
+  /* Decode the dialog items from what was specified.  */
+  title = Fcar (contents);
+  CHECK_STRING (title);
+  record_unwind_protect_void (unuse_menu_items);
+
+  if (NILP (Fcar (Fcdr (contents))))
+    /* No buttons specified, add an "Ok" button so users can pop down
+       the dialog.  */
+    contents = list2 (title, Fcons (build_string ("Ok"), Qt));
+
+  list_of_panes (list1 (contents));
+
+  /* Display them in a dialog box.  */
+  block_input ();
+  selection = android_dialog_show (f, title, header, &error_name);
+  unblock_input ();
+
+  unbind_to (specpdl_count, Qnil);
+  discard_menu_items ();
+
+  if (error_name)
+    error ("%s", error_name);
+
+  return selection;
 }
 
 #else
@@ -531,6 +756,7 @@ init_androidmenu (void)
 {
 #ifndef ANDROID_STUBIFY
   android_init_emacs_context_menu ();
+  android_init_emacs_dialog ();
 #endif
 }
 

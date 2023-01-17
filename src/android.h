@@ -48,7 +48,7 @@ extern int ANDROID_EXPORT android_emacs_init (int, char **);
 #ifndef ANDROID_STUBIFY
 
 extern int android_select (int, fd_set *, fd_set *, fd_set *,
-			   struct timespec *, const sigset_t *);
+			   struct timespec *);
 
 extern bool android_file_access_p (const char *, int);
 extern int android_open (const char *, int, int);
@@ -86,6 +86,7 @@ extern void android_set_dont_focus_on_map (android_window, bool);
 extern void android_set_dont_accept_focus (android_window, bool);
 
 extern jstring android_build_string (Lisp_Object);
+extern jstring android_build_jstring (const char *);
 extern void android_exception_check (void);
 
 extern void android_get_keysym_name (int, char *, size_t);

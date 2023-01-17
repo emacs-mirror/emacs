@@ -148,6 +148,9 @@ struct android_touch_point
 
   /* The tool ID and the last known X and Y positions.  */
   int tool_id, x, y;
+
+  /* Whether or not the tool is pressed on the tool bar.  */
+  bool tool_bar_p;
 };
 
 struct android_output
@@ -410,6 +413,9 @@ extern void android_finalize_font_entity (struct font_entity *);
 
 extern Lisp_Object android_menu_show (struct frame *, int, int, int,
 				      Lisp_Object, const char **);
+extern Lisp_Object android_popup_dialog (struct frame *, Lisp_Object,
+					 Lisp_Object);
+
 extern void init_androidmenu (void);
 extern void syms_of_androidmenu (void);
 
@@ -417,6 +423,7 @@ extern void syms_of_androidmenu (void);
 
 extern const struct font_driver android_sfntfont_driver;
 
+extern void sfntfont_android_shrink_scanline_buffer (void);
 extern void init_sfntfont_android (void);
 extern void syms_of_sfntfont_android (void);
 

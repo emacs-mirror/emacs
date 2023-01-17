@@ -77,6 +77,9 @@ struct sfnt_font_desc
   /* The header of the cmap being used.  May be invalid, in which case
      platform_id will be 500.  */
   struct sfnt_cmap_encoding_subtable subtable;
+
+  /* The offset of the table directory within PATH.  */
+  off_t offset;
 };
 
 /* List of fonts.  */
@@ -426,15 +429,17 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
     }
 }
 
-/* Enumerate the font FILE into the list of system fonts.  Return 1 if
-   it could not be enumerated, 0 otherwise.  */
+/* Enumerate the offset subtable SUBTABLES in the file FD, whose file
+   name is FILE.  OFFSET should be the offset of the subtable within
+   the font file, and is recorded for future use.  Value is 1 upon
+   failure, else 0.  */
 
-int
-sfnt_enum_font (const char *file)
+static int
+sfnt_enum_font_1 (int fd, const char *file,
+		  struct sfnt_offset_subtable *subtables,
+		  off_t offset)
 {
   struct sfnt_font_desc *desc;
-  int fd;
-  struct sfnt_offset_subtable *subtables;
   struct sfnt_head_table *head;
   struct sfnt_name_table *name;
   struct sfnt_meta_table *meta;
@@ -444,18 +449,7 @@ sfnt_enum_font (const char *file)
   desc = xzalloc (sizeof *desc + strlen (file) + 1);
   desc->path = (char *) (desc + 1);
   memcpy (desc->path, file, strlen (file) + 1);
-
-  /* Now open the font for reading.  */
-  fd = emacs_open (file, O_RDONLY, 0);
-
-  if (fd == -1)
-    goto bail;
-
-  /* Read the table directory.  */
-  subtables = sfnt_read_table_directory (fd);
-
-  if (!subtables)
-    goto bail0;
+  desc->offset = offset;
 
   /* Check that this is a TrueType font.  */
   if (subtables->scaler_type != SFNT_SCALER_TRUE
@@ -511,8 +505,6 @@ sfnt_enum_font (const char *file)
   xfree (meta);
   xfree (name);
   xfree (head);
-  xfree (subtables);
-  emacs_close (fd);
   return 0;
 
  bail3:
@@ -521,11 +513,84 @@ sfnt_enum_font (const char *file)
  bail2:
   xfree (head);
  bail1:
+  xfree (desc);
+  return 1;
+}
+
+/* Enumerate the font FILE into the list of system fonts.  Return 1 if
+   it could not be enumerated, 0 otherwise.
+
+   FILE can either be a TrueType collection file containing TrueType
+   fonts, or a TrueType font itself.  */
+
+int
+sfnt_enum_font (const char *file)
+{
+  int fd, rc;
+  struct sfnt_offset_subtable *subtables;
+  struct sfnt_ttc_header *ttc;
+  size_t i;
+
+  /* Now open the font for reading.  */
+  fd = emacs_open (file, O_RDONLY, 0);
+
+  if (fd == -1)
+    goto bail;
+
+  /* Read the table directory.  */
+  subtables = sfnt_read_table_directory (fd);
+
+  if (subtables == (struct sfnt_offset_subtable *) -1)
+    {
+      /* This is actually a TrueType container file.  Go back to the
+	 beginning and read the TTC header.  */
+
+      if (lseek (fd, 0, SEEK_SET))
+	goto bail0;
+
+      ttc = sfnt_read_ttc_header (fd);
+
+      if (!ttc)
+	goto bail0;
+
+      /* Enumerate each of the fonts in the collection.  */
+
+      for (i = 0; i < ttc->num_fonts; ++i)
+	{
+	  if (lseek (fd, ttc->offset_table[i], SEEK_SET)
+	      != ttc->offset_table[i])
+	    continue;
+
+	  subtables = sfnt_read_table_directory (fd);
+
+	  if (!subtables)
+	    continue;
+
+	  sfnt_enum_font_1 (fd, file, subtables,
+			    ttc->offset_table[i]);
+	  xfree (subtables);
+	}
+
+      /* Always treat reading containers as having been
+	 successful.  */
+
+      emacs_close (fd);
+      xfree (ttc);
+      return 0;
+    }
+
+  if (!subtables)
+    goto bail0;
+
+  /* Now actually enumerate this font.  */
+  rc = sfnt_enum_font_1 (fd, file, subtables, 0);
   xfree (subtables);
+  emacs_close (fd);
+  return rc;
+
  bail0:
   emacs_close (fd);
  bail:
-  xfree (desc);
   return 1;
 }
 
@@ -1728,6 +1793,12 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   fd = emacs_open (desc->path, O_RDONLY, 0);
 
   if (fd == -1)
+    goto bail;
+
+  /* Seek to the offset specified.  */
+
+  if (desc->offset
+      && lseek (fd, desc->offset, SEEK_SET) != desc->offset)
     goto bail;
 
   /* Read the offset subtable.  */

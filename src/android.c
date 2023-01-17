@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <semaphore.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <math.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -225,7 +226,6 @@ static fd_set *volatile android_pselect_readfds;
 static fd_set *volatile android_pselect_writefds;
 static fd_set *volatile android_pselect_exceptfds;
 static struct timespec *volatile android_pselect_timeout;
-static const sigset_t *volatile android_pselect_sigset;
 
 /* Value of pselect.  */
 static int android_pselect_rc;
@@ -242,8 +242,8 @@ static sem_t android_pselect_sem, android_pselect_start_sem;
 static void *
 android_run_select_thread (void *data)
 {
-  sigset_t signals, sigset;
-  int rc;
+  sigset_t signals, waitset;
+  int rc, sig;
 
   sigfillset (&signals);
 
@@ -253,6 +253,8 @@ android_run_select_thread (void *data)
 			 strerror (errno));
 
   sigdelset (&signals, SIGUSR1);
+  sigemptyset (&waitset);
+  sigaddset (&waitset, SIGUSR1);
 
   while (true)
     {
@@ -262,35 +264,33 @@ android_run_select_thread (void *data)
 
       /* Get the select lock and call pselect.  */
       pthread_mutex_lock (&event_queue.select_mutex);
-
-      /* Make sure SIGUSR1 can always wake pselect up.  */
-      if (android_pselect_sigset)
-	{
-	  sigset = *android_pselect_sigset;
-	  sigdelset (&sigset, SIGUSR1);
-	  android_pselect_sigset = &sigset;
-	}
-      else
-	android_pselect_sigset = &signals;
-
       rc = pselect (android_pselect_nfds,
 		    android_pselect_readfds,
 		    android_pselect_writefds,
 		    android_pselect_exceptfds,
 		    android_pselect_timeout,
-		    android_pselect_sigset);
+		    &signals);
       android_pselect_rc = rc;
       pthread_mutex_unlock (&event_queue.select_mutex);
+
+      /* Signal the main thread that there is now data to read.
+         It is ok to signal this condition variable without holding
+         the event queue lock, because android_select will always
+         wait for this to complete before returning.  */
+      android_pselect_completed = true;
+      pthread_cond_signal (&event_queue.read_var);
+
+      if (rc != -1 || errno != EINTR)
+	/* Now, wait for SIGUSR1, unless pselect was interrupted and
+	   the signal was already delivered.  The Emacs thread will
+	   always send this signal after read_var is triggered or the
+	   UI thread has sent an event.  */
+	sigwait (&waitset, &sig);
 
       /* Signal the Emacs thread that pselect is done.  If read_var
 	 was signaled by android_write_event, event_queue.mutex could
 	 still be locked, so this must come before.  */
       sem_post (&android_pselect_sem);
-
-      pthread_mutex_lock (&event_queue.mutex);
-      android_pselect_completed = true;
-      pthread_cond_signal (&event_queue.read_var);
-      pthread_mutex_unlock (&event_queue.mutex);
     }
 }
 
@@ -445,8 +445,7 @@ android_write_event (union android_event *event)
 
 int
 android_select (int nfds, fd_set *readfds, fd_set *writefds,
-		fd_set *exceptfds, struct timespec *timeout,
-		const sigset_t *sigset)
+		fd_set *exceptfds, struct timespec *timeout)
 {
   int nfds_return;
 
@@ -467,7 +466,6 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   android_pselect_writefds = writefds;
   android_pselect_exceptfds = exceptfds;
   android_pselect_timeout = timeout;
-  android_pselect_sigset = sigset;
   pthread_mutex_unlock (&event_queue.select_mutex);
 
   /* Release the select thread.  */
@@ -3716,6 +3714,24 @@ android_build_string (Lisp_Object text)
      not really of consequence.  */
   string = (*android_java_env)->NewStringUTF (android_java_env,
 					      SSDATA (encoded));
+  if (!string)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      memory_full (0);
+    }
+
+  return string;
+}
+
+/* Do the same, except TEXT is constant string data.  */
+
+jstring
+android_build_jstring (const char *text)
+{
+  jstring string;
+
+  string = (*android_java_env)->NewStringUTF (android_java_env,
+					      text);
   if (!string)
     {
       (*android_java_env)->ExceptionClear (android_java_env);

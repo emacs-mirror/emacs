@@ -223,6 +223,7 @@ Appendices
 * Antinews::            Information about Emacs version 28.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
 * Haiku::               Using Emacs on Haiku.
+* Android::             Using Emacs on Android.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
 
@@ -1262,6 +1263,7 @@ Emacs and Android
 * Android Startup::     Starting up Emacs on Android.
 * Android File System:: The Android file system.
 * Android Environment:: Running Emacs under Android.
+* Android Fonts::	Font selection under Android.
 
 Emacs and Microsoft Windows/MS-DOS
 

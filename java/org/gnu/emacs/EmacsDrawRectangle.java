@@ -36,10 +36,10 @@ public class EmacsDrawRectangle
     Paint maskPaint, paint;
     Canvas maskCanvas;
     Bitmap maskBitmap;
-    Rect rect;
     Rect maskRect, dstRect;
     Canvas canvas;
     Bitmap clipBitmap;
+    Rect clipRect;
 
     /* TODO implement stippling.  */
     if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
@@ -58,13 +58,29 @@ public class EmacsDrawRectangle
 	  canvas.clipRect (gc.real_clip_rects[i]);
       }
 
-    paint = gc.gcPaint;
-    rect = new Rect (x, y, x + width, y + height);
+    /* Clip to the clipRect because some versions of Android draw an
+       overly wide line.  */
+    clipRect = new Rect (x, y, x + width + 1,
+			 y + height + 1);
+    canvas.clipRect (clipRect);
 
-    paint.setStyle (Paint.Style.STROKE);
+    paint = gc.gcPaint;
 
     if (gc.clip_mask == null)
-      canvas.drawRect (rect, paint);
+      {
+	/* canvas.drawRect just doesn't work on Android, producing
+	   different results on various devices.  Do a 5 point
+	   PolyLine instead.  */
+	canvas.drawLine ((float) x, (float) y, (float) x + width,
+			 (float) y, paint);
+	canvas.drawLine ((float) x + width, (float) y,
+			 (float) x + width, (float) y + height,
+			 paint);
+	canvas.drawLine ((float) x + width, (float) y + height,
+			 (float) x, (float) y + height, paint);
+	canvas.drawLine ((float) x, (float) y + height,
+			 (float) x, (float) y, paint);
+      }
     else
       {
 	/* Drawing with a clip mask involves calculating the
@@ -116,10 +132,12 @@ public class EmacsDrawRectangle
 	/* Finally, draw the mask bitmap to the destination.  */
 	paint.setXfermode (null);
 	canvas.drawBitmap (maskBitmap, null, maskRect, paint);
+
+	/* Recycle this unused bitmap.  */
+	maskBitmap.recycle ();
       }
 
     canvas.restore ();
-    drawable.damageRect (new Rect (x, y, x + width + 1,
-				   y + height + 1));
+    drawable.damageRect (clipRect);
   }
 }
