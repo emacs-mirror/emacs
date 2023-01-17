@@ -749,20 +749,10 @@ i.e. expr of def foo(args) = expr is returned."
                  (not ruby-ts--same-line-hash-array-p))
             grand-parent ruby-indent-level)
 
-           ((n-p-gp "}" "hash" "assignment")  (ruby-ts--bol ruby-ts--grand-parent-node) 0)
-           ((n-p-gp nil "hash" "assignment")  (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((n-p-gp "]" "array" "assignment") (ruby-ts--bol ruby-ts--grand-parent-node) 0)
-           ((n-p-gp nil "array" "assignment") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-
-           ((n-p-gp "}" "hash" "argument_list")  first-sibling 0)
-           ((n-p-gp nil "hash" "argument_list")  first-sibling ruby-indent-level)
-           ((n-p-gp "]" "array" "argument_list") first-sibling 0)
-           ((n-p-gp nil "array" "argument_list") first-sibling ruby-indent-level)
-
-           ((match "}" "hash")  first-sibling 0)
-           ((parent-is "hash")  first-sibling ruby-indent-level)
-           ((match "]" "array") first-sibling 0)
-           ((parent-is "array") first-sibling ruby-indent-level)
+           ((match "}" "hash")  parent-bol 0)
+           ((parent-is "hash")  parent-bol ruby-indent-level)
+           ((match "]" "array") parent-bol 0)
+           ((parent-is "array") parent-bol ruby-indent-level)
 
            ;; If the previous method isn't finished yet, this will get
            ;; the next method indented properly.
