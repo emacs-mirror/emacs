@@ -24483,6 +24483,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 		}
 
+#ifndef HAVE_EXT_TOOL_BAR
 	      /* Now see if the touchpoint was previously on the tool bar.
 	         If it was, release the tool bar.  */
 
@@ -24507,6 +24508,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  /* Now clear the tool bar device.  */
 		  FRAME_OUTPUT_DATA (f)->tool_bar_touch_device = 0;
 		}
+#endif
 
 	      goto XI_OTHER;
 	    }
