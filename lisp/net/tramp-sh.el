@@ -1086,6 +1086,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-sh-handle-file-system-info)
     (file-truename . tramp-sh-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-sh-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.

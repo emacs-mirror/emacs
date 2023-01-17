@@ -161,6 +161,10 @@ the subtrees."
     (setq-local treesit-simple-indent-rules
                 dockerfile-ts-mode--indent-rules)
 
+    ;; Navigation
+    (setq-local treesit-sentence-type-regexp
+                "instruction")
+
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
                 dockerfile-ts-mode--font-lock-settings)

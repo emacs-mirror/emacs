@@ -269,6 +269,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-smb-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-smb-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.

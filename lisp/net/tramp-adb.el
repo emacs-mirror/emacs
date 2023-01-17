@@ -153,6 +153,7 @@ It is used for TCP/IP devices."
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-adb-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-adb-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.

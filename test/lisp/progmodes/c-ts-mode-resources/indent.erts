@@ -133,6 +133,20 @@ Name: Multiline Block Comments 4 (bug#60270)
  */
 =-=-=
 
+Name: Multiline Block Comments 5 (bug#60270)
+
+=-=
+/*
+line one
+line 2
+ */
+=-=
+/*
+  line one
+  line 2
+ */
+=-=-=
+
 
 Code:
   (lambda ()

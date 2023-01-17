@@ -983,6 +983,13 @@ whenever you change the current directory to a different host
 the value will automatically update to reflect the search path on that
 host.
 
+@vindex $UID
+@item $UID
+This returns the effective @acronym{UID} for the current user.  This
+variable is connection-aware, so when the current directory is remote,
+its value will be @acronym{UID} for the user associated with that
+remote connection.
+
 @vindex $_
 @item $_
 This refers to the last argument of the last command.  With a
@@ -1014,6 +1021,7 @@ that are currently visible in the Eshell window.  They are both
 copied to the environment, so external commands invoked from
 Eshell can consult them to do the right thing.
 
+@vindex $INSIDE_EMACS
 @item $INSIDE_EMACS
 This variable indicates to external commands that they are being
 invoked from within Emacs so they can adjust their behavior if

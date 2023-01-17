@@ -3454,13 +3454,16 @@ This function is intended for use in `after-change-functions'."
        ((parent-is "statement_block") parent-bol js-indent-level)
 
        ;; JSX
-       ((node-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
-       ((node-is "jsx_element") parent typescript-ts-mode-indent-offset)
-       ((node-is "jsx_expression") parent typescript-ts-mode-indent-offset)
-       ((node-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)
+       ((match "<" "jsx_fragment") parent 0)
+       ((parent-is "jsx_fragment") parent js-indent-level)
        ((node-is "jsx_closing_element") parent 0)
-       ((node-is "/") parent 0)
-       ((node-is ">") parent 0)))))
+       ((node-is "jsx_element") parent js-indent-level)
+       ((parent-is "jsx_element") parent js-indent-level)
+       ((parent-is "jsx_opening_element") parent js-indent-level)
+       ((parent-is "jsx_expression") parent-bol js-indent-level)
+       ((match "/" "jsx_self_closing_element") parent 0)
+       ((parent-is "jsx_self_closing_element") parent js-indent-level)
+       (no-node parent-bol 0)))))
 
 (defvar js--treesit-keywords
   '("as" "async" "await" "break" "case" "catch" "class" "const" "continue"

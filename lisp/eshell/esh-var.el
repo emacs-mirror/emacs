@@ -162,6 +162,7 @@ if they are quoted with a backslash."
     ("COLUMNS" ,(lambda () (window-body-width nil 'remap)) t t)
     ("LINES" ,(lambda () (window-body-height nil 'remap)) t t)
     ("INSIDE_EMACS" eshell-inside-emacs t)
+    ("UID" ,(lambda () (file-user-uid)) nil t)
 
     ;; for esh-ext.el
     ("PATH" (,(lambda () (string-join (eshell-get-path t) (path-separator)))

@@ -265,6 +265,7 @@ It must be supported by libarchive(3).")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-archive-handle-file-system-info)
     (file-truename . tramp-archive-handle-file-truename)
+    (file-user-uid . tramp-archive-handle-file-user-uid)
     (file-writable-p . ignore)
     (find-backup-file-name . ignore)
     ;; `get-file-buffer' performed by default handler.
@@ -700,6 +701,12 @@ offered."
   (with-parsed-tramp-archive-file-name default-directory nil
     (let ((default-directory (file-name-directory archive)))
       (temporary-file-directory))))
+
+(defun tramp-archive-handle-file-user-uid ()
+  "Like `user-uid' for file archives."
+  (with-parsed-tramp-archive-file-name default-directory nil
+    (let ((default-directory (file-name-directory archive)))
+      (file-user-uid))))
 
 (defun tramp-archive-handle-not-implemented (operation &rest args)
   "Generic handler for operations not implemented for file archives."

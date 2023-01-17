@@ -373,13 +373,13 @@ otherwise."
   :type  '(string))
 
 (defcustom hfy-exclude-file-rules
-  '("\\.flc$"
-    "/CVS/.*"
-    ".*~$"
-    "/\\.git\\(?:/.*\\)?$")
-  "Define some regular expressions to exclude files"
+  '("\\.flc\\'"
+    "/CVS/"
+    "~\\'"
+    "/\\.git\\(?:/\\|\\'\\)")
+  "Regular expressions matching files to exclude."
   :tag "exclude-rules"
-  :type '(list string)
+  :type '(repeat regexp)
   :version "29.1")
 
 (defcustom hfy-display-class nil
@@ -1835,7 +1835,7 @@ Strips any leading \"./\" from each filename."
                       (seq-some (lambda (r)
                                   (string-match r f))
                                 hfy-exclude-file-rules)))
-                (directory-files-recursively "." ".*" nil t)))
+                (directory-files-recursively "." "" nil t)))
 
 ;; strip the filename off, return a directory name
 ;; not a particularly thorough implementation, but it will be

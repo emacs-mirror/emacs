@@ -257,10 +257,17 @@ struct xi_scroll_valuator_t
 
 struct xi_touch_point_t
 {
+  /* The next touch point in this list.  */
   struct xi_touch_point_t *next;
 
+  /* The touchpoint detail.  */
   int number;
+
+  /* The last known X and Y position of the touchpoint.  */
   double x, y;
+
+  /* The frame associated with this touch point.  */
+  struct frame *frame;
 };
 
 #endif
@@ -1295,6 +1302,16 @@ struct x_output
      VisibilityFullyObscured, but is set to something else in
      handle_one_xevent.  */
   int visibility_state;
+
+#ifdef HAVE_XINPUT2_2
+  /* The touch ID of the last touch point to have touched the tool
+     bar.  */
+  int tool_bar_touch_id;
+
+  /* The device that last touched the tool bar.  0 if no device
+     touched the tool bar.  */
+  int tool_bar_touch_device;
+#endif
 };
 
 enum

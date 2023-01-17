@@ -798,6 +798,7 @@ It has been changed in GVFS 1.14.")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-gvfs-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
