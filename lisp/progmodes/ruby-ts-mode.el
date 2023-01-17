@@ -697,9 +697,9 @@ i.e. expr of def foo(args) = expr is returned."
            ;; 2) With paren, 1st arg on next line
            ((and (query "(argument_list \"(\" _ @indent)")
                  (node-is ")"))
-            (ruby-ts--bol ruby-ts--grand-parent-node) 0)
+            parent-bol 0)
            ((query "(argument_list \"(\" _ @indent)")
-            (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
+            parent-bol ruby-indent-level)
            ;; 3) No paren, ruby-parenless-call-arguments-indent is t
            ((and ruby-ts--parenless-call-arguments-indent-p (parent-is "argument_list"))
             first-sibling 0)

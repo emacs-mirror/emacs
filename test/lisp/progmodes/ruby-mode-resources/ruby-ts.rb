@@ -28,6 +28,19 @@ else
   dog = 99
 end
 
+foo1 =
+  subject.update(
+    1
+  )
+
+foo2 =
+  subject.
+    update(
+      # Might make sense to indent this to 'subject' instead; but this
+      # style seems more popular.
+      2
+    )
+
 # Local Variables:
 # mode: ruby-ts
 # End:
