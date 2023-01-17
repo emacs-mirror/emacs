@@ -25,6 +25,7 @@
 # - things that legit talk about FIXMEs (like this script)
 find . \
      -path './tool/check-fixme' -prune -o \
+     -path './.github/workflows/fixme-check.yml' -prune -o \
      -path './.git' -prune -o \
      -path './manual/tool' -prune -o \
      -path './manual/html' -prune -o \
