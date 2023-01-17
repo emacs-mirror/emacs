@@ -1,0 +1,24 @@
+#!/bin/sh
+# tool/check-fixme -- look for FIXME task labels
+#
+# Draft script to find FIXMEs in code so that we can:
+# 1. fix 'em
+# 2. cause them to fail CI
+# 3. prevent them leaking into master and versions
+# 4. thereby making them useful for communication with self or other devs
+
+find . \
+     -path './tool/check-fixme' -prune -o \
+     -path './.git' -prune -o \
+     -path './manual/tool' -prune -o \
+     -path './manual/html' -prune -o \
+     -path './configure' -prune -o \
+     -path './autom4te.cache' -prune -o \
+     -path './tool/autoconf' -prune -o \
+     -name 'config.status' -prune -o \
+     -name '*~' -prune -o \
+     -type f -print0 |
+xargs -0 sh -c '! grep -F -I -n -H -e FIXME "$@"'
+# The inverted grep above ensures xargs exits with zero iff no FIXMEs
+# are found.  Note this is very different from ``grep -v`` which would
+# find *lines* that didn't match FIXME.
