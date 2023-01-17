@@ -1109,10 +1109,12 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; additionally, mark the commas with c-type property 'c-decl-id-start or
   ;; 'c-decl-type-start (according to TYPES).  Stop at LIMIT.
   ;;
-  ;; If TYPES is t, fontify all identifiers as types, if it is nil fontify as
-  ;; either variables or functions, otherwise TYPES is a face to use.  If
-  ;; NOT-TOP is non-nil, we are not at the top-level ("top-level" includes
-  ;; being directly inside a class or namespace, etc.).
+  ;; If TYPES is t, fontify all identifiers as types; if it is a number, a
+  ;; buffer position, additionally set the `c-deftype' text property on the
+  ;; keyword at that position; if it is nil fontify as either variables or
+  ;; functions, otherwise TYPES is a face to use.  If NOT-TOP is non-nil, we
+  ;; are not at the top-level ("top-level" includes being directly inside a
+  ;; class or namespace, etc.).
   ;;
   ;; TEMPLATE-CLASS is non-nil when the declaration is in template delimiters
   ;; and was introduced by, e.g. "typename" or "class", such that if there is
@@ -1129,17 +1131,28 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;;(message "c-font-lock-declarators from %s to %s" (point) limit)
   (c-fontify-types-and-refs
       ()
+    ;; If we're altering the declarators in a typedef, we need to scan ALL of
+    ;; them because of the way we check for changes.
+    (let ((c-do-decl-limit (if (numberp types) (point-max) limit))
+	  decl-ids)
     (c-do-declarators
-     limit list not-top
-     (cond ((eq types t) 'c-decl-type-start)
+     c-do-decl-limit
+     list not-top
+     (cond ((or (numberp types)
+		(eq types t))
+	    'c-decl-type-start)
 	   ((null types) 'c-decl-id-start))
      (lambda (id-start id-end end-pos _not-top is-function init-char)
-       (if (eq types t)
+       (if (or (numberp types)
+	       (eq types t))
 	   (when id-start
 	     ;; Register and fontify the identifier as a type.
 	     (let ((c-promote-possible-types t))
 	       (goto-char id-start)
-	       (c-forward-type)))
+	       (c-forward-type))
+	     (when (numberp types)
+	       (push (buffer-substring-no-properties id-start id-end)
+		     decl-ids)))
 	 (when id-start
 	   (goto-char id-start)
 	   (when c-opt-identifier-prefix-key
@@ -1147,7 +1160,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			  (eq (match-end 1) id-end))
 	       (while (and (< (point) id-end)
 			   (re-search-forward c-opt-identifier-prefix-key id-end t))
-		 (c-forward-syntactic-ws limit))))
+		 (c-forward-syntactic-ws c-do-decl-limit))))
 	   ;; Only apply the face when the text doesn't have one yet.
 	   ;; Exception: The "" in C++'s operator"" will already wrongly have
 	   ;; string face.
@@ -1164,7 +1177,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		  (equal (buffer-substring-no-properties id-start id-end)
 			 "\"\""))
 	     (goto-char id-end)
-	     (c-forward-syntactic-ws limit)
+	     (c-forward-syntactic-ws c-do-decl-limit)
 	     (when (c-on-identifier)
 	       (c-put-font-lock-face
 		(point)
@@ -1174,10 +1187,21 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    (eq init-char ?=)		; C++ "<class X = Y>"?
 	    (progn
 	      (goto-char end-pos)
-	      (c-forward-token-2 1 nil limit) ; Over "="
+	      (c-forward-token-2 1 nil c-do-decl-limit) ; Over "="
 	      (let ((c-promote-possible-types t))
 		(c-forward-type t)))))
      accept-anon)			; Last argument to c-do-declarators.
+    ;; If we've changed types declared by a "typedef", update the `c-typedef'
+    ;; text property.
+    (when (numberp types)
+      (let* ((old-decl-ids (c-get-char-property types 'c-typedef))
+	     (old-types (c--set-difference old-decl-ids decl-ids :test #'equal))
+	     (new-types (c--set-difference decl-ids old-decl-ids :test #'equal)))
+	(dolist (type old-types)
+	  (c-unfind-type type))
+	;; The new types have already been added to `c-found-types', as needed.
+	(when (or old-types new-types)
+	  (c-put-char-property types 'c-typedef decl-ids)))))
     nil))
 
 (defun c-get-fontification-context (match-pos not-front-decl &optional toplev)
@@ -1433,7 +1457,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (c-font-lock-declarators
        (min limit (point-max))
        decl-list
-       (not (null (cadr decl-or-cast)))
+       (cond ((null (cadr decl-or-cast))
+	      nil)
+	     ((cadr (cadr decl-or-cast)))
+	     (t t))
        (not toplev)
        template-class
        (memq context '(decl <>))))
@@ -1749,12 +1776,21 @@ casts and declarations are fontified.  Used on level 2 and higher."
 					; speeds up lisp.h tremendously.
       (save-excursion
 	(when (not (c-back-over-member-initializers decl-search-lim))
+	  (setq paren-state (c-parse-state))
 	  (unless (or (eobp)
 		      (looking-at "\\s(\\|\\s)"))
 	    (forward-char))
 	  (c-syntactic-skip-backward "^;{}" decl-search-lim t)
-	  (when (eq (char-before) ?})
-	    (c-go-list-backward)	; brace block of struct, etc.?
+	  ;; Do we have the brace block of a struct, etc.?
+	  (when (cond
+		 ((and (consp (car paren-state))
+		       (eq (char-before) ?}))
+		  (goto-char (caar paren-state))
+		  t)
+		 ((and (numberp (car paren-state))
+		       (eq (char-after (car paren-state)) ?{))
+		  (goto-char (car paren-state))
+		  t))
 	    (c-syntactic-skip-backward "^;{}" decl-search-lim t))
 	  (when (or (bobp)
 		    (memq (char-before) '(?\; ?{ ?})))
