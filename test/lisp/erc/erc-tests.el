@@ -1472,7 +1472,7 @@
 
 (ert-deftest define-erc-module--global ()
   (let ((global-module '(define-erc-module mname malias
-                          "Some docstring"
+                          "Some docstring."
                           ((ignore a) (ignore b))
                           ((ignore c) (ignore d)))))
 
@@ -1484,10 +1484,11 @@
 
                       (define-minor-mode erc-mname-mode
                         "Toggle ERC mname mode.
-With a prefix argument ARG, enable mname if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
-Some docstring"
+With a prefix argument ARG, enable mname if ARG is positive, and
+disable it otherwise.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
+Some docstring."
                         :global t
                         :group (erc--find-group 'mname 'malias)
                         :get #'erc--neuter-custom-variable-state
@@ -1528,7 +1529,7 @@ Some docstring"
 
 (ert-deftest define-erc-module--local ()
   (let* ((global-module '(define-erc-module mname nil ; no alias
-                           "Some docstring"
+                           "Some docstring."
                            ((ignore a) (ignore b))
                            ((ignore c) (ignore d))
                            'local))
@@ -1540,10 +1541,11 @@ Some docstring"
                    `(progn
                       (define-minor-mode erc-mname-mode
                         "Toggle ERC mname mode.
-With a prefix argument ARG, enable mname if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
-Some docstring"
+With a prefix argument ARG, enable mname if ARG is positive, and
+disable it otherwise.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
+Some docstring."
                         :global nil
                         :group (erc--find-group 'mname nil)
                         (if erc-mname-mode
@@ -1552,7 +1554,8 @@ Some docstring"
 
                       (defun erc-mname-enable (&optional ,arg-en)
                         "Enable ERC mname mode.
-When called interactively, do so in all buffers for the current connection."
+When called interactively, do so in all buffers for the current
+connection."
                         (interactive "p")
                         (when (derived-mode-p 'erc-mode)
                           (if ,arg-en
@@ -1564,7 +1567,8 @@ When called interactively, do so in all buffers for the current connection."
 
                       (defun erc-mname-disable (&optional ,arg-dis)
                         "Disable ERC mname mode.
-When called interactively, do so in all buffers for the current connection."
+When called interactively, do so in all buffers for the current
+connection."
                         (interactive "p")
                         (when (derived-mode-p 'erc-mode)
                           (if ,arg-dis

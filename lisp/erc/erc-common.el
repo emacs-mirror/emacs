@@ -136,7 +136,7 @@ instead of a `set' state, which precludes any actual saving."
 (defun erc--assemble-toggle (localp name ablsym mode val body)
   (let ((arg (make-symbol "arg")))
     `(defun ,ablsym ,(if localp `(&optional ,arg) '())
-       ,(concat
+       ,(erc--fill-module-docstring
          (if val "Enable" "Disable")
          " ERC " (symbol-name name) " mode."
          (when localp
@@ -250,6 +250,20 @@ Do so by always returning its standard value, namely nil."
                                (if hasp "from" "to") " `erc-modules'.")))
        :action ,(apply-partially #'erc--tick-module-checkbox name))))
 
+(defun erc--fill-module-docstring (&rest strings)
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(defun foo ()\n"
+            (format "%S" (apply #'concat strings))
+            "\n(ignore))")
+    (goto-char (point-min))
+    (forward-line 2)
+    (let ((emacs-lisp-docstring-fill-column 65)
+          (sentence-end-double-space t))
+      (fill-paragraph))
+    (goto-char (point-min))
+    (nth 3 (read (current-buffer)))))
+
 (defmacro define-erc-module (name alias doc enable-body disable-body
                                   &optional local-p)
   "Define a new minor mode using ERC conventions.
@@ -289,11 +303,11 @@ Example:
     `(progn
        (define-minor-mode
          ,mode
-         ,(format "Toggle ERC %S mode.
+         ,(erc--fill-module-docstring (format "Toggle ERC %s mode.
 With a prefix argument ARG, enable %s if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
-%s" name name doc)
+\n%s" name name doc))
          :global ,(not local-p)
          :group (erc--find-group ',name ,(and alias (list 'quote alias)))
          ,@(unless local-p '(:get #'erc--neuter-custom-variable-state))
