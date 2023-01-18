@@ -41,12 +41,24 @@
 
 #include "vm.h"
 
+#include <errno.h>
 #include <limits.h>
+#include <signal.h> /* sig_atomic_t */
 #include <stddef.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 
 SRCID(protix, "$Id$");
+
+
+/* Value for memory protection corresponding to AccessSetEMPTY.
+ * See .convert.access for an explanation of the conversion.
+ * We use a global variable and not a constant so that we can clear
+ * the executable flag from future requests if Apple Hardened Runtime
+ * is detected. See <design/prot#impl.xc.prot.exec> for details. */
+
+static sig_atomic_t prot_all = PROT_READ | PROT_WRITE | PROT_EXEC;
+
 
 /* ProtSet -- set protection
  *
@@ -55,7 +67,7 @@ SRCID(protix, "$Id$");
 
 void ProtSet(Addr base, Addr limit, AccessSet mode)
 {
-  int flags;
+  int flags, result;
 
   AVER(sizeof(size_t) == sizeof(Addr));
   AVER(base < limit);
@@ -63,7 +75,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   AVER(AddrOffset(base, limit) <= INT_MAX);     /* should be redundant */
   AVERT(AccessSet, mode);
 
-  /* Convert between MPS AccessSet and UNIX PROT thingies.
+  /* .convert.access: Convert between MPS AccessSet and UNIX PROT thingies.
      In this function, AccessREAD means protect against read accesses
      (disallow them).  PROT_READ means allow read accesses.  Notice that
      this follows a difference in contract as well as style.  AccessREAD
@@ -82,7 +94,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
     flags = PROT_READ | PROT_EXEC;
     break;
   case AccessSetEMPTY:
-    flags = PROT_READ | PROT_WRITE | PROT_EXEC;
+    flags = (int)prot_all; /* potential narrowing cast, but safe */
     break;
   default:
     NOTREACHED;
@@ -90,7 +102,18 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   }
 
   /* .assume.mprotect.base */
-  if(mprotect((void *)base, (size_t)AddrOffset(base, limit), flags) != 0)
+  result = mprotect((void *)base, (size_t)AddrOffset(base, limit), flags);
+  if (MAYBE_HARDENED_RUNTIME && result != 0 && errno == EACCES
+      && (flags & PROT_WRITE) && (flags & PROT_EXEC))
+  {
+    /* Apple Hardened Runtime is enabled, so that we cannot have
+     * memory that is simultaneously writable and executable. Handle
+     * this by dropping the executable part of the request. See
+     * <design/prot#impl.xc.prot.exec> for details. */
+    prot_all = PROT_READ | PROT_WRITE;
+    result = mprotect((void *)base, (size_t)AddrOffset(base, limit), flags & prot_all);
+  }
+  if (result != 0)
     NOTREACHED;
 }
 

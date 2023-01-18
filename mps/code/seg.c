@@ -771,9 +771,6 @@ Res SegScan(Bool *totalReturn, Seg seg, ScanState ss)
    * See <code/trace.c#scan.conservative> */
   AVER(ss->rank == RankEXACT || RankSetIsMember(SegRankSet(seg), ss->rank));
 
-  /* Should only scan segments which contain grey objects. */
-  AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
-
   EVENT5(SegScan, seg, SegPool(seg), ss->arena, ss->traces, ss->rank);
   return Method(Seg, seg, scan)(totalReturn, seg, ss);
 }

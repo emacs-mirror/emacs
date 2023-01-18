@@ -852,7 +852,7 @@ static void awlSegBlacken(Seg seg, TraceSet traceSet)
 /* base and limit are both offset by the header size */
 
 static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
-                         Format format, Addr base, Addr limit)
+                         Addr base, Addr limit)
 {
   Res res;
   Bool dependent;       /* is there a dependent object? */
@@ -862,7 +862,6 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
   AVERT(Arena, arena);
   AVERT(AWL, awl);
   AVERT(ScanState, ss);
-  AVERT(Format, format);
   AVER(base != 0);
   AVER(base < limit);
 
@@ -875,7 +874,7 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
-  res = FormatScan(format, ss, base, limit);
+  res = TraceScanFormat(ss, base, limit);
 
   if (dependent)
     ShieldCover(arena, dependentSeg);
@@ -931,7 +930,7 @@ static Res awlSegScanSinglePass(Bool *anyScannedReturn, ScanState ss,
     /* <design/poolawl#.fun.scan.pass.object> */
     if (scanAllObjects
         || (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
-      Res res = awlScanObject(arena, awl, ss, pool->format,
+      Res res = awlScanObject(arena, awl, ss,
                               hp, objectLimit);
       if (res != ResOK)
         return res;

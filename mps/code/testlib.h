@@ -104,7 +104,7 @@
  * tests to root out any incompatible assumptions by breaking.
  */
 
-#if defined(MPS_ARCH_I6)
+#if defined(MPS_ARCH_A6) || defined(MPS_ARCH_I6)
 #define PRIwWORD "16"
 #elif defined(MPS_ARCH_I3)
 #define PRIwWORD "8"

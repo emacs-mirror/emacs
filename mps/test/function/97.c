@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = test of mps_arena_formatted_objects_walk
+ summary = test of mps_pool_walk and mps_arena_formatted_objects_walk
  language = c
  link = testlib.o rankfmt.o
  parameters = VERBOSE=0
@@ -106,6 +106,62 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
  }
 }
 
+
+static mps_res_t area_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit, void *closure)
+{
+ int i;
+ asserts(closure == MAGICPOINT, "VII. Void * didn't get passed!");
+
+ MPS_SCAN_BEGIN(ss)
+ {
+  while (base < limit)
+  {
+   mycell *obj = base;
+   mps_res_t res;
+   mps_addr_t p, q;
+
+   switch (obj->tag & 0x3)
+   {
+    case MCpad:
+     apppadcount += 1;
+     base = (mps_addr_t) (obj->pad.tag &~ (mps_word_t) 3);
+     break;
+    case MCdata:
+     appcount += 1;
+     asserts(obj->data.checkedflag != newstamp,
+             "III/IV. step on object again at %p", obj);
+     commentif(VERBOSE && obj->data.checkedflag != oldstamp,
+             "*. step on unreachable object at %p", obj);
+     obj->data.checkedflag = newstamp;
+     p = obj->data.assoc;
+     if (p != NULL) {
+      res = MPS_FIX12(ss, &p);
+      if (res != MPS_RES_OK) return res;
+      obj->data.assoc = p;
+     }
+
+     for (i=0; i<(obj->data.numrefs); i++)
+     {
+      p = obj->data.ref[i].addr;
+      if (p != NULL)
+      {
+       res = MPS_FIX12(ss, (mps_addr_t *) &p);
+       if (res != MPS_RES_OK) return res;
+       obj->data.ref[i].addr = p;
+      }
+     }
+     base = (mps_addr_t) ((char *) obj + (obj->data.size));
+     break;
+    default:
+     asserts(0, "area_scan: bizarre obj tag at %p.", obj);
+   }
+  }
+ }
+ MPS_SCAN_END(ss);
+ return MPS_RES_OK;
+}
+
+
 static void test(void *stack_pointer)
 {
 /* a is a table of exact roots
@@ -201,8 +257,17 @@ static void test(void *stack_pointer)
 
   oldstamp = newstamp;
   newstamp += 1;
+
   mps_arena_formatted_objects_walk(arena, stepper,
-                                   (void *) MAGICPOINT, MAGICSIZE);
+                                   MAGICPOINT, MAGICSIZE);
+
+  oldstamp = newstamp;
+  newstamp += 1;
+
+  mps_pool_walk(poolamc, area_scan, MAGICPOINT);
+  mps_pool_walk(poollo, area_scan, MAGICPOINT);
+  mps_pool_walk(poolawl, area_scan, MAGICPOINT);
+
   mps_arena_release(arena);
 
   comment("tracing...");

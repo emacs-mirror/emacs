@@ -1,0 +1,117 @@
+#!/bin/sh
+# tool/travis-ci-kick -- kick off a build at Travis CI
+# Richard Brooksby, Ravenbrook Limited, 2023-01-15
+#
+# Copyright (c) 2023 Ravenbrook Limited. See end of file for license.
+#
+# This shell script uses the Travis CI REST API V3 to kick off a build
+# on the Travis CI servers.  The build will be run using the Travis CI
+# configuration at the commit (in .travis.yml).
+#
+# See also tool/github-ci-kick.
+#
+# To get a token for this script, visit
+# <https://app.travis-ci.com/account/preferences> and copy your token
+# from "API authentication".
+#
+# TODO: Extend this script to take MPS platform codes and kick off the
+# appropriate build, overriding the (possibly nonexistent) Travis Ci
+# config.  See [TRAVIS].
+#
+# TODO: Convert to Python for use from Windows?
+#
+# TODO: Make -t optional by getting AUTH-TOKEN from somewhere (secure).
+
+set -e # exit on error
+
+# defaults
+branch="master"
+org="Ravenbrook"
+repo="mps"
+
+usage() {
+    echo 1>&2 "Usage: ${0} [-o ORG] [-r REPO] [-b BRANCH] [-c COMMIT-SHA] -t AUTH-TOKEN"
+    exit 1
+}    
+
+while getopts c:b:r:t: flag; do
+    case "${flag}" in
+	c) commit="${OPTARG}";;
+	b) branch="${OPTARG}";;
+	o) org="${OPTARG}";;
+	r) repo="${OPTARG}";;
+	t) auth="${OPTARG}";;
+	*) usage;;
+    esac
+done
+
+test -z "${auth}" && usage
+
+# If the field "sha" is omitted, Travis CI builds the tip of the
+# branch [TRAVIS].
+if test -z "${commit}"; then
+    cat <<-EOF
+{
+  "request": {
+    "branch":"${branch}"
+  }
+}
+EOF
+else
+    cat <<EOF
+{
+  "request": {
+    "branch": "${branch}",
+    "sha": "${commit}"
+  }
+}
+EOF
+fi |
+curl --silent --show-error \
+     --request POST --data @- \
+     --header "Content-Type: application/json" \
+     --header "Accept: application/json" \
+     --header "Travis-API-Version: 3" \
+     --header "Authorization: token ${auth}" \
+     "https://api.travis-ci.com/repo/${org}%2F${repo}/requests"
+
+
+# A. REFERENCES
+#
+# [Travis] "Triggering builds with API V3"; <https://github.com/travis-ci/docs-travis-ci-com/blob/859062b7cdcab69fc9691924ad6a031cf0819cf8/user/triggering-builds.md>.
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2023-01-15 RB Created.
+#
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$

@@ -87,10 +87,10 @@ Naming conventions
 
 _`.naming`: The external interface names should adhere to the
 documented interface conventions; these are found in the “`Interface
-conventions`_” chapter of the Reference Manual. They are
+conventions <interface.html_>`_” chapter of the Reference Manual. They are
 paraphrased/recreated here.
 
-.. _Interface conventions: ../topic/interface.html
+.. _interface.html: ../topic/interface.html
 
 _`.naming.file`: All files in the external interface have names
 starting with ``mps``.

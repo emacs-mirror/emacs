@@ -48,5 +48,6 @@ Design
     type
     version-library
     vm
+    walk
     write-barrier
     writef

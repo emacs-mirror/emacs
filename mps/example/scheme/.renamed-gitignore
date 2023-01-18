@@ -1,1 +1,12 @@
-.p4ignore
+Makefile
+scheme
+scheme.dSYM
+scheme-advanced
+scheme-advanced.dSYM
+scheme-boehm
+scheme-boehm.dSYM
+scheme-malloc
+scheme-malloc.dSYM
+a.out
+*.o
+core
