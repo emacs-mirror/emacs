@@ -1407,7 +1407,7 @@ clashes."
                (make-byte-to-native-top-level
                 :form `(defalias
                          ',(byte-to-native-func-def-name form)
-                         (make-byte-code ,@(seq-into byte-code 'list))
+                         ,byte-code
                          nil)
                 :lexical (comp-lex-byte-func-p byte-code)))
            form)))
