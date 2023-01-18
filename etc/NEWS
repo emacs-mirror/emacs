@@ -3807,7 +3807,7 @@ These function now take an optional comparison PREDICATE argument.
 ** 'read-multiple-choice' can now use long-form answers.
 
 +++
-** 'M-c' in 'read-regexp' now toggles case folding.
+** 'M-s c' in 'read-regexp' now toggles case folding.
 
 +++
 ** 'completing-read' now allows a function as its REQUIRE-MATCH argument.
