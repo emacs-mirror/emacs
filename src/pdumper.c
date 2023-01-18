@@ -3123,6 +3123,7 @@ dump_object (struct dump_context *ctx, Lisp_Object object)
 # error "Lisp_Type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   eassert (!EQ (object, dead_object ()));
+  eassert (!static_comp_object_p (object));
 
   dump_off offset = dump_recall_object (ctx, object);
   if (offset > 0)
