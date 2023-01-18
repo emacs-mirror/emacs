@@ -640,6 +640,13 @@ a statement container is a node that matches
            ;; else the second query aligns
            ;; `ruby-indent-level' spaces in from the parent.
            ((and ruby-ts--align-chain-p (match "\\." "call")) ruby-ts--align-chain 0)
+           ;; Obery ruby-method-call-indent, whether the dot is on
+           ;; this line or the previous line.
+           ((and (not ruby-ts--method-call-indent-p)
+                 (or
+                  (match "\\." "call")
+                  (query "(call \".\" (identifier) @indent)")))
+            parent 0)
            ((match "\\." "call") parent ruby-indent-level)
 
            ;; ruby-indent-after-block-in-continued-expression
@@ -796,6 +803,9 @@ a statement container is a node that matches
 
 (defun ruby-ts--after-op-indent-p (&rest _)
   ruby-after-operator-indent)
+
+(defun ruby-ts--method-call-indent-p (&rest _)
+  ruby-method-call-indent)
 
 (defun ruby-ts--class-or-module-p (node)
   "Predicate if NODE is a class or module."

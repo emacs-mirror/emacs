@@ -58,5 +58,6 @@ qux = foo.fee ?
 # mode: ruby-ts
 # ruby-after-operator-indent: t
 # ruby-block-indent: t
+# ruby-method-call-indent: t
 # ruby-method-params-indent: t
 # End:

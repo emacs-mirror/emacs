@@ -253,6 +253,7 @@ The whitespace before and including \"|\" on each line is removed."
 (ruby-ts-deftest-indent "ruby-ts.rb")
 (ruby-ts-deftest-indent "ruby-after-operator-indent.rb")
 (ruby-ts-deftest-indent "ruby-block-indent.rb")
+(ruby-ts-deftest-indent "ruby-method-call-indent.rb")
 (ruby-ts-deftest-indent "ruby-method-params-indent.rb")
 
 (provide 'ruby-ts-mode-tests)
