@@ -1,5 +1,7 @@
+=====================================
 Memory Pool System Product Procedures
 =====================================
+
 :author: Richard Brooksby
 :organization: Ravenbrook Limited
 :date: 2002-06-18
@@ -26,15 +28,22 @@ This document is not confidential.
 2. Procedures
 -------------
 
-==================      ==================================================
+=====================   ==================================================
 `branch-merge`_         Branching and merging for development.
+`pull-request-merge`_   Pull request merge procedure for GitHub.
 `release-build`_        Build product releases from the sources.
 `version-create`_       Create a new MPS version branch.
-==================      ==================================================
+=====================   ==================================================
 
 .. _branch-merge: branch-merge
 .. _release-build: release-build
 .. _version-create: version-create
+.. _pull-request-merge: pull-request-merge
+
+[These links work in the Ravenbrook infosys because Charlotte doesn't
+expose extensions, as recommended by Tim Berners-Lee.  But they don't
+work on GitHub.  We should probably make them work there.  RB
+2023-01-07]
 
 
 A. References
@@ -52,6 +61,7 @@ B. Document History
 2012-09-13    RB_       Removed release-configura, now maintained on a custom mainline.
 2014-01-13    GDR_      Added branch-merge.
 2020-07-28    PNJ_      Updated licence text.
+2023-01-07    RB_       Added pull-request-merge.
 ==========    =======   ==================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com
@@ -62,7 +72,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2002–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+Copyright © 2002–2023 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -87,3 +97,5 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+.. checked with rst2html -v index.rst > /dev/null
+.. end

@@ -70,7 +70,6 @@
 #include <mach/thread_act.h>
 #include <mach/thread_status.h>
 #include <mach/mach_error.h>
-#include <mach/i386/thread_status.h>
 #include <mach/exc.h>
 #include <pthread.h>
 #include <stdlib.h> /* see .trans.stdlib */

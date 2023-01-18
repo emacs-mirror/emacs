@@ -17,13 +17,21 @@ Scanning
 Memory Pool System, and the most critical of the memory management
 functions that have to be implemented by the :term:`client program`.
 
-Scanning is performed for two tasks: during :term:`tracing <trace>`,
-blocks are scanned in order to follow references, and so determine
-which blocks are :term:`reachable` and which are not. After objects
-have been moved in memory, blocks are scanned in order to identify
-references that need to be updated to point to the new locations of
-these objects. Both tasks use the same scanning protocol, described
-here.
+Scanning is used to carry out three tasks:
+
+#. During :term:`tracing <trace>`, blocks are scanned in order to
+   follow references, and so determine which blocks are
+   :term:`reachable` and which are not.
+
+#. After objects have been moved in memory, blocks are scanned in
+   order to identify references that need to be updated to point to
+   the new locations of these objects.
+
+#. When iterating over allocated blocks in a pool using
+   :c:func:`mps_pool_walk`, blocks are scanned in order to keep data
+   structures consistent when references are updated.
+
+All these tasks use the same protocol, described here.
 
 
 .. index::
@@ -545,6 +553,20 @@ the scanners, found in ``scan.c`` in the MPS source code.
     context.  For example, if the scanner was originally registered with
     :c:func:`mps_root_create_thread_tagged` then it is the value of
     the ``closure`` argument originally passed to that function.
+
+    .. note::
+
+        The reason that :c:data:`base` and :c:data:`limit` have type
+        :c:type:`void *` and not :c:type:`mps_addr_t` is that the
+        latter is used only for :term:`addresses` managed by the MPS,
+        but :c:type:`mps_area_scan_t` may also be used to scan
+        :term:`roots` that are not managed by the MPS.
+
+    .. warning::
+
+        Area scanning functions are subject to the same set of
+        restrictions as format scanning functions, described under
+        :ref:`topic-format-cautions`.
 
 .. c:function:: mps_res_t mps_scan_area(mps_ss_t ss, void *base, void *limit, void *closure)
 

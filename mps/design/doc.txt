@@ -295,6 +295,20 @@ into manual style::
 
     [Citation] Author. Date. "`Title <URL>`__".
 
+_`.fmt.link.relative`: Project-relative links must be specified using
+`named hyperlink targets`_ whose targets start with ``../``, for
+example::
+
+    ``#ifdefs``, such as in mps.c_.
+
+    .. _mps.c: ../code/mps.c
+
+The target is adjusted to reflect the different location of the manual
+sources relative to the design sources.
+
+.. _named hyperlink targets: https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#hyperlink-targets
+
+
 
 References
 ----------

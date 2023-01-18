@@ -14,11 +14,11 @@ CFLAGSDEBUG = -O0 -g3
 CFLAGSOPT = -O2 -g3
 
 # Warnings that might be enabled by clients <design/config/#.warning.impl>.
+# TODO: add -Wcomma when all our continuous integration platforms support it.
 CFLAGSCOMPILER := \
 	-Waggregate-return \
 	-Wall \
 	-Wcast-qual \
-	-Wcomma \
 	-Wconversion \
 	-Wduplicate-enum \
 	-Werror \

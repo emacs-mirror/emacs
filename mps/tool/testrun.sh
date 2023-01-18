@@ -27,17 +27,24 @@ echo "MPS test suite"
 TEST_RUNNER=
 TEST_CASES=
 
+# Architecture exclusions.
+case $(uname -m) in
+    aarch64*|arm64*|armv8*) EXCLUDE_ARCH=A ;;
+    *) EXCLUDE_ARCH= ;;
+esac
+
 # Parse command-line arguments.
 while [ $# -gt 0 ]; do
-    case "$1" in
+    case $1 in
         -s)
             TEST_SUITE=$2
-            case "$TEST_SUITE" in
-                testrun)      EXCLUDE="LNW"   ;;
-                testci)       EXCLUDE="BNW"   ;;
-                testall)      EXCLUDE="NW"    ;;
-                testansi)     EXCLUDE="LNTW"  ;;
-                testpollnone) EXCLUDE="LNPTW" ;;
+            # Test-suite exclusions.
+            case $TEST_SUITE in
+                testrun)      EXCLUDE_SUITE=LNW   ;;
+                testci)       EXCLUDE_SUITE=BNW   ;;
+                testall)      EXCLUDE_SUITE=NW    ;;
+                testansi)     EXCLUDE_SUITE=LNTW  ;;
+                testpollnone) EXCLUDE_SUITE=LNPTW ;;
                 *)
                     echo "Test suite $TEST_SUITE not recognized."
                     exit 1 ;;
@@ -45,8 +52,8 @@ while [ $# -gt 0 ]; do
             echo "Test suite: $TEST_SUITE"
             TEST_CASE_DB=$(dirname -- "$0")/testcases.txt
             TEST_CASES=$(<"$TEST_CASE_DB" grep -e '^[a-z]' |
-                                grep -v -e "=[$EXCLUDE]" |
-                                cut -d' ' -f1)
+                             grep -v -e "=[${EXCLUDE_ARCH}${EXCLUDE_SUITE}]" |
+                             cut -d' ' -f1)
             shift 2
             ;;
         -r)

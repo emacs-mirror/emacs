@@ -576,7 +576,13 @@
    things like thread states.  These definitions fix that. */
 
 #if defined(MPS_OS_XC)
-#if defined(MPS_ARCH_I6)
+#if defined(MPS_ARCH_A6)
+
+#define THREAD_STATE_COUNT ARM_THREAD_STATE64_COUNT
+#define THREAD_STATE_FLAVOR ARM_THREAD_STATE64
+#define THREAD_STATE_S arm_thread_state64_t
+
+#elif defined(MPS_ARCH_I6)
 
 #define THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
 #define THREAD_STATE_FLAVOR x86_THREAD_STATE64
@@ -703,6 +709,19 @@
 #define WB_DEFER_DELAY 3  /* boring scans after interesting scan */
 #define WB_DEFER_HIT   1  /* boring scans after barrier hit */
 
+
+/* Apple Hardened Runtime
+ *
+ * The MAYBE_HARDENED_RUNTIME macro is true if Apple's "Hardened
+ * Runtime" feature may be enabled, and so calls to mmap() and
+ * mprotect() with PROT_WRITE | PROT_EXEC may fail with EACCES.
+ * See <design/prot#impl.xc.prot.exec> for details.
+ */
+#if defined(MPS_OS_XC) && defined(MPS_ARCH_A6)
+#define MAYBE_HARDENED_RUNTIME 1
+#else
+#define MAYBE_HARDENED_RUNTIME 0
+#endif
 
 #endif /* config_h */
 

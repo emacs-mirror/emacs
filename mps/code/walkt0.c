@@ -138,6 +138,30 @@ static void object_stepper(mps_addr_t object, mps_fmt_t format,
 }
 
 
+/* area_scan -- area scanning function for mps_pool_walk */
+
+static mps_res_t area_scan(mps_ss_t ss, void *base, void *limit, void *closure)
+{
+  object_stepper_data_t sd = closure;
+  mps_res_t res;
+  while (base < limit) {
+    size_t size = AddrOffset(base, dylan_skip(base));
+    mps_addr_t prev = base;
+    if (dylan_ispad(base)) {
+      sd->padSize += size;
+    } else {
+      ++ sd->count;
+      sd->objSize += size;
+    }
+    res = dylan_scan1(ss, &base);
+    if (res != MPS_RES_OK) return res;
+    Insist(prev < base);
+  }
+  Insist(base == limit);
+  return MPS_RES_OK;
+}
+
+
 /* A roots stepper function. Passed to mps_arena_roots_walk. */
 
 typedef struct roots_stepper_data {
@@ -169,6 +193,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
     unsigned long objs;
     object_stepper_data_s objectStepperData, *sd;
     roots_stepper_data_s rootsStepperData, *rsd;
+    int walk;
 
     die(dylan_fmt(&format, arena), "fmt_create");
     die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -217,29 +242,39 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
     printf("%lu %lu\n", (unsigned long)rsd->count, (unsigned long)exactRootsCOUNT);
     Insist(rsd->count == exactRootsCOUNT);
 
-    sd = &objectStepperData;
-    sd->arena = arena;
-    sd->expect_pool = pool;
-    sd->expect_fmt = format;
-    sd->count = 0;
-    sd->objSize = 0;
-    sd->padSize = 0;
-    mps_arena_formatted_objects_walk(arena, object_stepper, sd, sizeof *sd);
-    Insist(sd->count == objs);
+    for (walk = 0; walk < 2; ++walk)
+    {
+        sd = &objectStepperData;
+        sd->arena = arena;
+        sd->expect_pool = pool;
+        sd->expect_fmt = format;
+        sd->count = 0;
+        sd->objSize = 0;
+        sd->padSize = 0;
+        if (walk) {
+            mps_arena_formatted_objects_walk(arena, object_stepper,
+                                             sd, sizeof *sd);
+        } else {
+            die(mps_pool_walk(pool, area_scan, sd), "mps_pool_walk");
+        }
+        Insist(sd->count == objs);
 
-    totalSize = mps_pool_total_size(pool);
-    freeSize = mps_pool_free_size(pool);
-    allocSize = totalSize - freeSize;
-    bufferSize = AddrOffset(ap->init, ap->limit);
-    printf("%s: obj=%lu pad=%lu total=%lu free=%lu alloc=%lu buffer=%lu\n",
-           ClassName(pool_class),
-           (unsigned long)sd->objSize,
-           (unsigned long)sd->padSize,
-           (unsigned long)totalSize,
-           (unsigned long)freeSize,
-           (unsigned long)allocSize,
-           (unsigned long)bufferSize);
-    Insist(sd->objSize + sd->padSize + bufferSize == allocSize);
+        totalSize = mps_pool_total_size(pool);
+        freeSize = mps_pool_free_size(pool);
+        allocSize = totalSize - freeSize;
+        bufferSize = AddrOffset(ap->init, ap->limit);
+        printf("%s: obj=%lu pad=%lu total=%lu free=%lu alloc=%lu buffer=%lu\n",
+               ClassName(pool_class),
+               (unsigned long)sd->objSize,
+               (unsigned long)sd->padSize,
+               (unsigned long)totalSize,
+               (unsigned long)freeSize,
+               (unsigned long)allocSize,
+               (unsigned long)bufferSize);
+        Insist(sd->objSize + sd->padSize + bufferSize == allocSize);
+    }
+
+    mps_arena_collect(arena);
 
     mps_ap_destroy(ap);
     mps_root_destroy(exactRoot);

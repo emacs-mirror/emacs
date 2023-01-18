@@ -111,6 +111,7 @@ trace_                  Tracer
 type_                   General MPS types
 version-library_        Library version mechanism
 vm_                     Virtual mapping
+walk_                   Walking formatted objects
 write-barrier_          Write Barrier
 writef_                 The WriteF function
 ======================  ================================================
@@ -187,6 +188,7 @@ writef_                 The WriteF function
 .. _type: type
 .. _version-library: version-library
 .. _vm: vm
+.. _walk: walk
 .. _write-barrier: write-barrier
 .. _writef: writef
 
@@ -223,6 +225,7 @@ Document History
 - 2014-01-17    GDR_    Add abq, nailboard, range.
 - 2016-03-22    RB_     Add write-barier.
 - 2016-03-27    RB_     Goodbye pool MV *sniff*.
+- 2020-08-31    GDR_    Add walk.
 
 .. _RB: https://www.ravenbrook.com/consultants/rb
 .. _NB: https://www.ravenbrook.com/consultants/nb
