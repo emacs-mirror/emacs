@@ -2810,7 +2810,7 @@ values.  Note that this macro is *not* available in Common Lisp.
 As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
 the PLACE is not modified before executing BODY.
 
-See info node `(cl) Function Bindings' for details.
+See info node `(cl) Modify Macros' for details.
 
 \(fn ((PLACE VALUE) ...) BODY...)"
   (declare (indent 1) (debug ((&rest [&or (symbolp form)
