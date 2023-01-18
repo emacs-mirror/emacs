@@ -56,4 +56,7 @@ qux = foo.fee ?
 
 # Local Variables:
 # mode: ruby-ts
+# ruby-after-operator-indent: t
+# ruby-block-indent: t
+# ruby-method-params-indent: t
 # End:

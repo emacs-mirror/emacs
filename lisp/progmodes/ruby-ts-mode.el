@@ -685,6 +685,10 @@ a statement container is a node that matches
            ;; Old... probably too simple
            ((parent-is "block_parameters") first-sibling 1)
 
+           ((and (not ruby-ts--after-op-indent-p)
+                 (parent-is "binary\\|conditional"))
+            (ruby-ts--bol ruby-ts--statement-ancestor) ruby-indent-level)
+
            ((parent-is "binary")
             ruby-ts--binary-indent-anchor 0)
 
@@ -789,6 +793,9 @@ a statement container is a node that matches
                           (treesit-node-type (treesit-node-parent parent)))
       (forward-char ruby-indent-level))
     (point)))
+
+(defun ruby-ts--after-op-indent-p (&rest _)
+  ruby-after-operator-indent)
 
 (defun ruby-ts--class-or-module-p (node)
   "Predicate if NODE is a class or module."
