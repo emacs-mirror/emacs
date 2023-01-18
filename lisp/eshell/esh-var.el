@@ -613,9 +613,10 @@ If QUOTED is non-nil, this was invoked inside double-quotes."
               (if (or (eq max-arity 'many) (>= max-arity 2))
                   (funcall target indices quoted)
                 (display-warning
-                 :warning (concat "Function for `eshell-variable-aliases-list' "
-                                  "entry should accept two arguments: INDICES "
-                                  "and QUOTED.'"))
+                 '(eshell variable-alias)
+                 (concat "Function for `eshell-variable-aliases-list' "
+                         "entry should accept two arguments: INDICES "
+                         "and QUOTED.'"))
                 (funcall target indices)))))
          ((symbolp target)
           (eshell-apply-indices (symbol-value target) indices quoted))
