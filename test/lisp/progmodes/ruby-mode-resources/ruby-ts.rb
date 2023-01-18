@@ -41,6 +41,19 @@ foo2 =
       2
     )
 
+foo > bar &&
+  tee < qux
+
+1 .. 2 &&
+     3
+
+a = foo(j, k) -
+    bar_tee
+
+qux = foo.fee ?
+        bar :
+        tee
+
 # Local Variables:
 # mode: ruby-ts
 # End:

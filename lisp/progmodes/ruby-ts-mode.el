@@ -512,10 +512,6 @@ array or hash."
          (first-child (ruby-ts--first-non-comment-child parent)))
     (= (ruby-ts--lineno open-brace) (ruby-ts--lineno first-child))))
 
-(defun ruby-ts--assignment-ancestor (node &rest _)
-  "Return the assignment ancestor of NODE if any."
-  (treesit-parent-until node (ruby-ts--type-pred "\\`assignment\\'")))
-
 (defun ruby-ts--statement-ancestor (node &rest _)
   "Return the statement ancestor of NODE if any.
 A statement is defined as a child of a statement container where
@@ -530,26 +526,6 @@ a statement container is a node that matches
       (setq statement parent
             parent (treesit-node-parent parent)))
     statement))
-
-(defun ruby-ts--is-in-condition (node &rest _)
-  "Return the condition node if NODE is within a condition."
-  (while (and node
-              (not (equal "condition" (treesit-node-field-name node)))
-              (not (string-match-p ruby-ts--statement-container-regexp
-                                   (treesit-node-type node))))
-    (setq node (treesit-node-parent node)))
-  (and (equal "condition" (treesit-node-field-name node)) node))
-
-(defun ruby-ts--endless-method (node &rest _)
-  "Return the expression node if NODE is in an endless method.
-i.e. expr of def foo(args) = expr is returned."
-  (let* ((method node))
-    (while (and method
-                (not (string-match-p ruby-ts--method-regex (treesit-node-type method))))
-      (setq method (treesit-node-parent method)))
-    (when method
-      (if (equal "=" (treesit-node-type (treesit-node-child method 3 nil)))
-          (treesit-node-child method 4 nil)))))
 
 ;;
 ;; end of functions that can be used for queries
@@ -709,11 +685,10 @@ i.e. expr of def foo(args) = expr is returned."
            ;; Old... probably too simple
            ((parent-is "block_parameters") first-sibling 1)
 
-           ((and (parent-is "binary")
-                 (or ruby-ts--assignment-ancestor
-                     ruby-ts--is-in-condition
-                     ruby-ts--endless-method))
-            first-sibling 0)
+           ((parent-is "binary")
+            ruby-ts--binary-indent-anchor 0)
+
+           ((parent-is "conditional") parent ruby-indent-level)
 
            ;; ruby-mode does not touch these...
            ((match "bare_string" "string_array") no-indent 0)
@@ -806,6 +781,14 @@ i.e. expr of def foo(args) = expr is returned."
             block-node)))
         (back-to-indentation)
         (point)))))
+
+(defun ruby-ts--binary-indent-anchor (_node parent _bol &rest _)
+  (save-excursion
+    (goto-char (treesit-node-start parent))
+    (when (string-match-p ruby-ts--statement-container-regexp
+                          (treesit-node-type (treesit-node-parent parent)))
+      (forward-char ruby-indent-level))
+    (point)))
 
 (defun ruby-ts--class-or-module-p (node)
   "Predicate if NODE is a class or module."
