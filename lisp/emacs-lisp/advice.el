@@ -1850,7 +1850,7 @@ function at point for which PREDICATE returns non-nil)."
 	   ad-advised-functions
 	   (if predicate
                (lambda (function)
-                 (funcall predicate (intern (car function)))))
+                 (funcall predicate (intern function))))
 	   t)))
     (if (equal function "")
 	(if (ad-is-advised default)
