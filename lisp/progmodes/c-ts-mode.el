@@ -972,6 +972,50 @@ This mode is independent from the classic cc-mode.el based
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
     (treesit-major-mode-setup)))
 
+;; We could alternatively use parsers, but if this works well, I don't
+;; see the need to change.  This is copied verbatim from cc-guess.el.
+(defconst c-ts-mode--c-or-c++-regexp
+  (eval-when-compile
+    (let ((id "[a-zA-Z_][a-zA-Z0-9_]*") (ws "[ \t]+") (ws-maybe "[ \t]*")
+          (headers '("string" "string_view" "iostream" "map" "unordered_map"
+                     "set" "unordered_set" "vector" "tuple")))
+      (concat "^" ws-maybe "\\(?:"
+              "using"     ws "\\(?:namespace" ws
+              "\\|" id "::"
+              "\\|" id ws-maybe "=\\)"
+              "\\|" "\\(?:inline" ws "\\)?namespace"
+              "\\(:?" ws "\\(?:" id "::\\)*" id "\\)?" ws-maybe "{"
+              "\\|" "class"     ws id
+              "\\(?:" ws "final" "\\)?" ws-maybe "[:{;\n]"
+              "\\|" "struct"     ws id "\\(?:" ws "final" ws-maybe "[:{\n]"
+              "\\|" ws-maybe ":\\)"
+              "\\|" "template"  ws-maybe "<.*?>"
+              "\\|" "#include"  ws-maybe "<" (regexp-opt headers) ">"
+              "\\)")))
+  "A regexp applied to C header files to check if they are really C++.")
+
+;;;###autoload
+(defun c-or-c++-ts-mode ()
+  "Analyze buffer and enable either C or C++ mode.
+
+Some people and projects use .h extension for C++ header files
+which is also the one used for C header files.  This makes
+matching on file name insufficient for detecting major mode that
+should be used.
+
+This function attempts to use file contents to determine whether
+the code is C or C++ and based on that chooses whether to enable
+`c-ts-mode' or `c++-ts-mode'."
+  (interactive)
+  (if (save-excursion
+        (save-restriction
+          (save-match-data ; Why `save-match-data'?
+            (widen)
+            (goto-char (point-min))
+            (re-search-forward c-ts-mode--c-or-c++-regexp nil t))))
+      (c++-ts-mode)
+    (c-ts-mode)))
+
 (provide 'c-ts-mode)
 
 ;;; c-ts-mode.el ends here
