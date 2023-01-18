@@ -2079,7 +2079,7 @@ The VC Directory buffer now uses the prefix 'b' for these branch-related
 commands.
 
 +++
-*** New command '%' ('vc-dir-mark-by-regexp').
+*** New command 'vc-dir-mark-by-regexp' bound to '% m' and '* %'.
 This command marks files based on a regexp.  If given a prefix
 argument, unmark instead.
 
