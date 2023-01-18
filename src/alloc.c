@@ -4298,33 +4298,57 @@ set_interval_marked (INTERVAL i)
 
 #ifdef HAVE_STATIC_LISP_GLOBALS
 /* Certain self-evaluating Lisp objects in natively compiled code are
- * emitted as permanently marked. Note that this function does not
- * *truly* determine if an object was statically compiled, but instead
- * serves as a (hopefully) fool-proof heuristic to know if it
- * cannot be treated as an otherwise ordinary heap-allocated object
- * (whether it is mutable or not, can be freed, etc).  */
+   emitted as permanently marked. When called **outside of GC**,
+   static_comp_object_p returns whether the passed argument is one
+   such object.  Note that this function does not *truly* determine if
+   an object was statically compiled (i.e, it lies inside the address
+   space of a dlopen'ed eln object), but instead checks for certain
+   properties that these objects are compiled with.  The purpose of
+   this function is to decide if an object cannot be treated as an
+   otherwise ordinary heap-allocated object (whether it is mutable or
+   not, can be freed, etc).  */
 bool
 static_comp_object_p (Lisp_Object obj)
 {
-  if (pdumper_object_p (XPNTR (obj)))
+  void *ptr = XPNTR (obj);
+  if (pdumper_object_p (ptr))
     return false;
+
+  /* If the object points to Lisp data allocated outside the heap,
+     it likely exists in a native compiled eln file. Either way, we
+     should not be mutating it, so it's good enough for this function.  */
+  if (ptr < min_heap_address || ptr > max_heap_address)
+    return true;
 
   switch (XTYPE (obj))
     {
     case Lisp_String:
-      /* see `emit_lisp_string_constructor_rval' in comp.c */
-      return XSTRING (obj)->u.s.intervals == NULL
-	     && string_marked_p (XSTRING (obj))
-	     && (STRING_MULTIBYTE (obj)
-		 || XSTRING (obj)->u.s.size_byte == -3);
+      /* See `emit_lisp_string_constructor_rval' in comp.c. Statically
+       compiled strings also have no intervals, and have u.s.size_byte
+       == -3 if they're unibyte.  */
+      return string_marked_p (XSTRING (obj));
     case Lisp_Vectorlike:
       /* see `emit_comp_lisp_obj' in comp.c */
-      return (VECTORP (obj) || RECORDP (obj) || COMPILEDP (obj))
-	     && vector_marked_p (XVECTOR (obj));
+      return vector_marked_p (XVECTOR (obj));
     case Lisp_Cons:
-      return cons_marked_p (XCONS (obj));
+      {
+	/* The cons_block for static comp cons objects have all bits for
+	   its conses marked.  */
+	struct cons_block *blk = CONS_BLOCK (XCONS (obj));
+	for (ptrdiff_t i = 0; i < cons_block_gcmarkbits_length; i++)
+	  if (blk->gcmarkbits[i] != BITS_WORD_MAX)
+	    return false;
+	return true;
+      }
     case Lisp_Float:
-      return XFLOAT_MARKED_P (XFLOAT (obj));
+      {
+	/* Ditto, for floats as well.  */
+	struct float_block *blk = FLOAT_BLOCK (XFLOAT (obj));
+	for (ptrdiff_t i = 0; i < float_block_gcmarkbits_length; i++)
+	  if (blk->gcmarkbits[i] != BITS_WORD_MAX)
+	    return false;
+	return true;
+      }
     case Lisp_Symbol:
     case_Lisp_Int:
       return false;
