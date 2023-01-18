@@ -1692,26 +1692,48 @@ integration for a major mode.
 A major mode supporting tree-sitter features should roughly follow
 this pattern:
 
-@c FIXME: Update this part once we settle on the exact format.
 @example
 @group
 (define-derived-mode woomy-mode prog-mode "Woomy"
   "A mode for Woomy programming language."
-  ;; Shared setup.
-  ...
-  (cond
-   ;; Tree-sitter setup.
-   ((treesit-ready-p 'woomy)
+  (when (treesit-ready-p 'woomy)
     (setq-local treesit-variables ...)
-    (treesit-major-mode-setup))
-   ;; Non-tree-sitter setup.
-   (t
-    ...)))
+    ...
+    (treesit-major-mode-setup)))
 @end group
 @end example
 
-First, the major mode should use @code{treesit-ready-p} to determine
-whether tree-sitter can be activated in this mode.
+@code{treesit-ready-p} automatically emits a warning if conditions for
+enabling tree-sitter aren't met.
+
+If a tree-sitter major mode shares setup with their ``native''
+counterpart, they can create a ``base mode'' that contains the common
+setup, like this:
+
+@example
+@group
+(define-derived-mode woomy--base-mode prog-mode "Woomy"
+  "An internal mode for Woomy programming language."
+  (common-setup)
+  ...)
+@end group
+
+@group
+(define-derived-mode woomy-mode woomy--base-mode "Woomy"
+  "A mode for Woomy programming language."
+  (native-setup)
+  ...)
+@end group
+
+@group
+(define-derived-mode woomy-ts-mode woomy--base-mode "Woomy"
+  "A mode for Woomy programming language."
+  (when (treesit-ready-p 'woomy)
+    (setq-local treesit-variables ...)
+    ...
+    (treesit-major-mode-setup)))
+@end group
+@end example
 
 @defun treesit-ready-p language &optional quiet
 This function checks for conditions for activating tree-sitter.  It
@@ -1722,14 +1744,11 @@ language grammar for @var{language} is available on the system
 
 This function emits a warning if tree-sitter cannot be activated.  If
 @var{quiet} is @code{message}, the warning is turned into a message;
-if @var{quiet} is @code{nil}, no warning or message is displayed.
+if @var{quiet} is @code{t}, no warning or message is displayed.
 
 If all the necessary conditions are met, this function returns
 non-@code{nil}; otherwise it returns @code{nil}.
 @end defun
-
-Next, the major mode should set up tree-sitter variables and call
-@code{treesit-major-mode-setup}.
 
 @defun treesit-major-mode-setup
 This function activates some tree-sitter features for a major mode.
