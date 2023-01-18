@@ -987,8 +987,7 @@ If LOUDLY is non-nil, display some debugging information."
                  (end-time (current-time)))
             ;; If for any query the query time is strangely long,
             ;; switch to fast mode (see comments above).
-            (when (and (eq 'undecided treesit--font-lock-fast-mode)
-                       (> (time-to-seconds
+            (when (and (> (time-to-seconds
                            (time-subtract end-time start-time))
                           0.01))
               (if (> treesit--font-lock-fast-mode-grace-count 0)
