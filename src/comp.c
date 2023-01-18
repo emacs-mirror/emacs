@@ -2350,7 +2350,7 @@ emit_aligned_lisp_subr_constructor_rval (
   else if (comp_func_d_p (func))
     {
       Lisp_Object args
-	= Ffunc_arity (CALL1I (com-func-byte-func, func));
+	= Ffunc_arity (CALL1I (comp-func-byte-func, func));
       minargs = XFIXNUM (XCAR (args));
 
       if (FIXNUMP (XCDR (args)))
