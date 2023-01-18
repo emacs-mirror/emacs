@@ -85,6 +85,8 @@
 
 (cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs only.
 
+(declare-function cl-set-difference "cl-seq" (cl-list1 cl-list2 &rest cl-keys))
+
 ;; Need to declare these local symbols during compilation since
 ;; they're referenced from lambdas in `byte-compile' calls that are
 ;; executed at compile time.  They don't need to have the proper
