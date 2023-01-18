@@ -944,25 +944,32 @@ static Lisp_Object helper_unbind_n (Lisp_Object);
 static void helper_save_restriction (void);
 static bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object, enum pvec_type);
 static struct Lisp_Symbol_With_Pos *
-helper_GET_SYMBOL_WITH_POSITION (Lisp_Object);
+  helper_GET_SYMBOL_WITH_POSITION (Lisp_Object);
+#ifdef HAVE_STATIC_LISP_GLOBALS
+static bool helper_static_comp_object_p (Lisp_Object);
+#endif
 
 /* Note: helper_link_table must match the list created by
    `declare_runtime_imported_funcs'.  */
-static void *helper_link_table[] =
-  { wrong_type_argument,
-    helper_PSEUDOVECTOR_TYPEP_XUNTAG,
-    pure_write_error,
-    push_handler,
-    record_unwind_protect_excursion,
-    helper_unbind_n,
-    helper_save_restriction,
-    helper_GET_SYMBOL_WITH_POSITION,
-    record_unwind_current_buffer,
-    set_internal,
-    helper_unwind_protect,
-    specbind,
-    maybe_gc,
-    maybe_quit};
+static void *helper_link_table[] = {
+  wrong_type_argument,
+  helper_PSEUDOVECTOR_TYPEP_XUNTAG,
+  pure_write_error,
+  push_handler,
+  record_unwind_protect_excursion,
+  helper_unbind_n,
+  helper_save_restriction,
+  helper_GET_SYMBOL_WITH_POSITION,
+  record_unwind_current_buffer,
+  set_internal,
+  helper_unwind_protect,
+  specbind,
+  maybe_gc,
+  maybe_quit,
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  helper_static_comp_object_p,
+#endif
+};
 
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
@@ -2984,8 +2991,41 @@ lisp_const_init_alloc_class (Lisp_Object l)
 }
 
 static comp_lisp_const_t
-emit_comp_lisp_obj (Lisp_Object obj,
-		    Lisp_Object alloc_class)
+emit_lambda_subr (Lisp_Object obj, Lisp_Object func)
+{
+  comp_lisp_const_t expr;
+
+  gcc_jit_lvalue *subr_var
+    = emit_lisp_data_var (comp.aligned_lisp_subr_pvec_type,
+			  GCC_JIT_GLOBAL_INTERNAL);
+  comp.lambda_init_lvals
+    = Fcons (CALLN (Fvector, make_mint_ptr (subr_var), func),
+	     comp.lambda_init_lvals);
+  expr.const_expr_p = false;
+  expr.expr_type = COMP_LISP_CONST_VAR;
+  expr.expr.lisp_obj
+    = emit_make_lisp_ptr (gcc_jit_lvalue_get_address (subr_var, NULL),
+			  Lisp_Vectorlike);
+
+  return expr;
+}
+
+
+/* Returns whether the provided Lisp_Object can be statically
+   constructed during compilation.  */
+static bool
+lisp_object_constructed_p (Lisp_Object obj)
+{
+  return FIXNUMP (obj)
+	 || (BARE_SYMBOL_P (obj) && c_symbol_p (XBARE_SYMBOL (obj)))
+	 || (STRINGP (obj) && XSTRING (obj)->u.s.intervals == NULL)
+	 || FLOATP (obj)
+	 || (VECTORP (obj) || RECORDP (obj) || COMPILEDP (obj))
+	 || CONSP (obj);
+}
+
+static comp_lisp_const_t
+emit_comp_lisp_obj (Lisp_Object obj, Lisp_Object alloc_class)
 {
   alloc_class_check (alloc_class);
   Lisp_Object entry = Fgethash (obj, comp.static_hash_cons_h, Qnil);
@@ -3009,30 +3049,6 @@ emit_comp_lisp_obj (Lisp_Object obj,
 			      .expr_type = COMP_LISP_CONST_SELF_REPR };
   else
     {
-      /* Compiling bytecode forms as Lisp_Subrs currently results in
-       errors compiling files that might references a bytecode form
-       that was returned by a function residing in another file, so
-       it's disabled for now.  */
-      /* Lisp_Object func = */
-      /* 	Fgethash (obj, */
-      /* 		  CALL1I (comp-ctxt-byte-func-to-func-h,
-       * Vcomp_ctxt), */
-      /* 		  Qnil); */
-      /* if (!NILP (func)) */
-      /* 	{ */
-      /* 	  gcc_jit_lvalue *subr_var = emit_lisp_data_var ( */
-      /* 	    comp.aligned_lisp_subr_pvec_type, */
-      /* 	    GCC_JIT_GLOBAL_INTERNAL); */
-      /* 	  comp.lambda_init_lvals */
-      /* 	    = Fcons (CALLN (Fvector, make_mint_ptr (subr_var),
-       * func), */
-      /* 		     comp.lambda_init_lvals); */
-      /* 	  expr.const_expr_p = false; */
-      /* 	  expr.expr_type = COMP_LISP_CONST_VAR; */
-      /* 	  expr.expr.lisp_obj = emit_make_lisp_ptr ( */
-      /* 	    gcc_jit_lvalue_get_address (subr_var, NULL), */
-      /* 	    Lisp_Vectorlike); */
-      /* 	} */
       if (STRINGP (obj) && XSTRING (obj)->u.s.intervals == NULL)
 	{
 	  gcc_jit_rvalue *lisp_string
@@ -3221,12 +3237,10 @@ emit_comp_lisp_obj (Lisp_Object obj,
 	    {
 	      expr.expr_type = COMP_LISP_CONST_VAR;
 	      cons_block_entry_set_init_rval (cons_entry, init);
-	      expr.expr.lisp_obj
-		= emit_make_lisp_ptr (
-		  gcc_jit_lvalue_get_address (
-		    cons_block_entry_emit_cons_lval (cons_entry),
-		    NULL),
-		  Lisp_Cons);
+	      expr.expr.lisp_obj = emit_make_lisp_ptr (
+		gcc_jit_lvalue_get_address (
+		  cons_block_entry_emit_cons_lval (cons_entry), NULL),
+		Lisp_Cons);
 	    }
 	}
       else
@@ -3259,9 +3273,10 @@ emit_data_container_vector (const char *name, jit_vector_type_t type)
 			Lisp_Vectorlike));
 
   gcc_jit_rvalue *size_rval
-    = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.ptrdiff_type,
-					   type.size);
+    = gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					    comp.ptrdiff_type,
+					    type.size
+					      | ARRAY_MARK_FLAG);
   gcc_jit_global_set_initializer_rvalue (
     vec_var,
     gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
@@ -3952,6 +3967,17 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 					   comp.uintptr_type,
 					   PURESIZE));
 }
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+static gcc_jit_rvalue *
+emit_static_comp_object_p (gcc_jit_rvalue *obj)
+{
+  emit_comment ("static_comp_object_p");
+
+  return emit_call (intern_c_string ("helper_static_comp_object_p"),
+		    comp.bool_type, 1, &obj, false);
+}
+#endif
 
 
 /*************************************/
@@ -4892,12 +4918,36 @@ emit_static_data_container (Lisp_Object container,
       Lisp_Object obj = HASH_KEY (h, i);
       if (!BASE_EQ (obj, Qunbound))
 	{
-	  comp_lisp_const_t expr
-	    = emit_comp_lisp_obj (obj, alloc_class);
-	  Fputhash (obj,
-		    make_mint_ptr (
-		      comp_lisp_const_get_lisp_obj_rval (obj, expr)),
-		    rval_h);
+	  Lisp_Object idx = HASH_VALUE (h, i);
+	  Lisp_Object container_val
+	    = Fnth (idx, CALL1I (comp-data-container-l, container));
+	  comp_lisp_const_t expr;
+	  if (COMPILEDP (obj) && EQ (container_val, Qlambda_fixup))
+	    {
+	      Lisp_Object func
+		= Fgethash (obj,
+			    CALL1I (comp-ctxt-byte-func-to-func-h,
+				    Vcomp_ctxt),
+			    Qnil);
+	      if (NILP (CALL1I (comp-func-p, func)))
+		xsignal3 (Qnative_ice,
+			  build_string (
+			    "invalid comp-func entry in container "
+			    "for byte-code function"),
+			  obj, func);
+
+	      expr = emit_lambda_subr (obj, func);
+	    }
+	  else
+	    {
+	      EMACS_INT pre_emit_length
+		= XFIXNUM (Flength (comp.lisp_consts_init_lvals));
+	      expr = emit_comp_lisp_obj (obj, alloc_class);
+	    }
+
+	  Lisp_Object ptr = make_mint_ptr (
+	    comp_lisp_const_get_lisp_obj_rval (obj, expr));
+	  Fputhash (obj, ptr, rval_h);
 	}
     }
 
@@ -5032,6 +5082,10 @@ declare_runtime_imported_funcs (void)
 
   ADD_IMPORTED (maybe_quit, comp.void_type, 0, NULL);
 
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  args[0] = comp.lisp_obj_type;
+  ADD_IMPORTED (helper_static_comp_object_p, comp.bool_type, 1, args);
+#endif
 #undef ADD_IMPORTED
 
   return Freverse (field_list);
@@ -6440,29 +6494,42 @@ define_CHECK_IMPURE (void)
 				  param,
 				  0);
 
-    DECL_BLOCK (entry_block, comp.check_impure);
-    DECL_BLOCK (err_block, comp.check_impure);
-    DECL_BLOCK (ok_block, comp.check_impure);
+  DECL_BLOCK (entry_block, comp.check_impure);
+  DECL_BLOCK (err_block, comp.check_impure);
+  DECL_BLOCK (ok_block, comp.check_impure);
 
-    comp.block = entry_block;
-    comp.func = comp.check_impure;
+  comp.block = entry_block;
+  comp.func = comp.check_impure;
 
-    emit_cond_jump (emit_PURE_P (gcc_jit_param_as_rvalue (param[0])), /* FIXME */
-		    err_block,
-		    ok_block);
-    gcc_jit_block_end_with_void_return (ok_block, NULL);
+  gcc_jit_rvalue *pure_write_p;
+  gcc_jit_rvalue *pure_p
+    = emit_PURE_P (gcc_jit_param_as_rvalue (param[0]));
 
-    gcc_jit_rvalue *pure_write_error_arg =
-      gcc_jit_param_as_rvalue (param[0]);
+#ifdef HAVE_STATIC_LISP_GLOBALS
+  gcc_jit_rvalue *static_const_p
+    = emit_static_comp_object_p (gcc_jit_param_as_rvalue (param[0]));
+  pure_write_p
+    = emit_binary_op (GCC_JIT_BINARY_OP_LOGICAL_OR, comp.bool_type,
+		      pure_p, static_const_p);
+#else
+  pure_write_p = pure_p;
+#endif
 
-    comp.block = err_block;
-    gcc_jit_block_add_eval (comp.block,
-			    NULL,
-			    emit_call (intern_c_string ("pure_write_error"),
-				       comp.void_type, 1,&pure_write_error_arg,
-				       false));
+  emit_cond_jump (pure_write_p, /* FIXME */
+		  err_block, ok_block);
+  gcc_jit_block_end_with_void_return (ok_block, NULL);
 
-    gcc_jit_block_end_with_void_return (err_block, NULL);
+  gcc_jit_rvalue *pure_write_error_arg
+    = gcc_jit_param_as_rvalue (param[0]);
+
+  comp.block = err_block;
+  gcc_jit_block_add_eval (comp.block, NULL,
+			  emit_call (intern_c_string (
+				       "pure_write_error"),
+				     comp.void_type, 1,
+				     &pure_write_error_arg, false));
+
+  gcc_jit_block_end_with_void_return (err_block, NULL);
 }
 
 static void
@@ -7386,6 +7453,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 		 intern_c_string ("comp-imm-equal-test"));
       comp.lisp_consts_init_lvals = Qnil;
       comp.lambda_init_lvals = Qnil;
+      comp.cons_block_list = Qnil;
+      comp.float_block_list = Qnil;
     }
   else
     {
@@ -7404,6 +7473,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
     }
 #endif
 
+  comp.block = NULL;
   emit_ctxt_code ();
 
   /* Define inline functions.  */
@@ -7547,6 +7617,14 @@ helper_GET_SYMBOL_WITH_POSITION (Lisp_Object a)
     wrong_type_argument (Qwrong_type_argument, a);
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
 }
+
+#ifdef HAVE_STATIC_LISP_GLOBALS
+static bool
+helper_static_comp_object_p (Lisp_Object o)
+{
+  return static_comp_object_p (o);
+}
+#endif
 
 
 /* `native-comp-eln-load-path' clean-up support code.  */
@@ -7885,12 +7963,13 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       *freloc_link_table = freloc.link_table;
 
 #ifdef HAVE_STATIC_LISP_GLOBALS
-      if (comp_u->have_static_lisp_data && !recursive_load)
+      if (comp_u->have_static_lisp_data)
 	{
 	  comp_u->staticpro = *data_staticpro;
 	  comp_u->ephemeral
 	    = load_static_obj (comp_u, DATA_EPHEMERAL_SYM);
-	  comp_init_objs (comp_u_lisp_obj);
+	  if (!recursive_load)
+	    comp_init_objs (comp_u_lisp_obj);
 	}
 #endif
 
