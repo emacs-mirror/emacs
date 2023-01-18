@@ -7112,6 +7112,15 @@ each buffer, unless NO-ASK is non-nil."
                  (string-match regexp name))
         (funcall (if no-ask 'kill-buffer 'kill-buffer-ask) buffer)))))
 
+(defun kill-matching-buffers-no-ask (regexp &optional internal-too)
+  "Kill buffers whose name matches the specified REGEXP.
+Ignores buffers whose name starts with a space, unless optional
+prefix argument INTERNAL-TOO is non-nil.  Equivalent to
+`kill-matching-buffers' but never ask before killing each
+buffer."
+  (interactive "sKill buffers matching this regular expression: \nP")
+  (kill-matching-buffers regexp internal-too t))
+
 
 (defun rename-auto-save-file ()
   "Adjust current buffer's auto save file name for current conditions.
