@@ -5059,7 +5059,8 @@ This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
 we do not remove backup version numbers, only true file version numbers.
-See also `file-name-version-regexp'."
+See `file-name-version-regexp' for what constitutes backup versions
+and version strings."
   (let ((handler (find-file-name-handler name 'file-name-sans-versions)))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
@@ -5111,9 +5112,12 @@ the group would be preserved too."
 			       (file-attribute-group-id attributes)))))))))))
 
 (defun file-name-sans-extension (filename)
-  "Return FILENAME sans final \"extension\".
+  "Return FILENAME sans final \"extension\" and any backup version strings.
 The extension, in a file name, is the part that begins with the last `.',
-except that a leading `.' of the file name, if there is one, doesn't count."
+except that a leading `.' of the file name, if there is one, doesn't count.
+Any extensions that indicate backup versions and version strings are
+removed by calling `file-name-sans-versions', which see, before looking
+for the \"real\" file extension."
   (save-match-data
     (let ((file (file-name-sans-versions (file-name-nondirectory filename)))
 	  directory)
@@ -5127,12 +5131,14 @@ except that a leading `.' of the file name, if there is one, doesn't count."
 	filename))))
 
 (defun file-name-extension (filename &optional period)
-  "Return FILENAME's final \"extension\".
+  "Return FILENAME's final \"extension\" sans any backup version strings.
 The extension, in a file name, is the part that begins with the last `.',
-excluding version numbers and backup suffixes, except that a leading `.'
-of the file name, if there is one, doesn't count.
+except that a leading `.' of the file name, if there is one, doesn't count.
+This function calls `file-name-sans-versions', which see, to remove from
+the extension it returns any parts that indicate backup versions and
+version strings.
 Return nil for extensionless file names such as `foo'.
-Return the empty string for file names such as `foo.'.
+Return the empty string for file names such as `foo.' that end in a period.
 
 By default, the returned value excludes the period that starts the
 extension, but if the optional argument PERIOD is non-nil, the period
