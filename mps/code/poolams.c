@@ -747,7 +747,7 @@ static void AMSSegsDestroy(AMS ams)
 
 /* AMSVarargs -- decode obsolete varargs */
 
-static void AMSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+static void AMSVarargs(ArgStruct args[MPS_ARGS_MAX - 1], va_list varargs)
 {
   args[0].key = MPS_KEY_FORMAT;
   args[0].val.format = va_arg(varargs, Format);
@@ -756,6 +756,7 @@ static void AMSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[2].key = MPS_KEY_AMS_SUPPORT_AMBIGUOUS;
   args[2].val.b = va_arg(varargs, Bool);
   args[3].key = MPS_KEY_ARGS_END;
+  AVER(MPS_ARGS_MAX - 1 > 3);
   AVERT(ArgList, args);
 }
 
@@ -1305,10 +1306,9 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 
   /* @@@@ This isn't quite right for multiple traces. */
   if (closure->scanAllObjects || AMS_IS_GREY(seg, i)) {
-    res = FormatScan(format,
-                     closure->ss,
-                     AddrAdd(p, format->headerSize),
-                     AddrAdd(next, format->headerSize));
+    res = TraceScanFormat(closure->ss,
+                          AddrAdd(p, format->headerSize),
+                          AddrAdd(next, format->headerSize));
     if (res != ResOK)
       return res;
     if (!closure->scanAllObjects) {
@@ -1393,7 +1393,7 @@ static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss)
             next = AddrAdd(p, alignment);
           }
           j = PoolIndexOfAddr(SegBase(seg), pool, next);
-          res = FormatScan(format, ss, clientP, clientNext);
+          res = TraceScanFormat(ss, clientP, clientNext);
           if (res != ResOK) {
             /* <design/poolams#.marked.scan.fail> */
             amsseg->marksChanged = TRUE;

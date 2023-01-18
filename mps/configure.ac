@@ -45,6 +45,20 @@ CLEAN_TARGET=clean-make-build
 INSTALL_TARGET=install-make-build
 TEST_TARGET=test-make-build
 case $host/$CLANG in
+  aarch64-*-linux*/no)
+      AC_MSG_RESULT([Linux ARM64])
+      MPS_OS_NAME=li
+      MPS_ARCH_NAME=a6
+      MPS_BUILD_NAME=gc
+      PFMCFLAGS="$CFLAGS_GC"
+    ;;
+  aarch64-*-linux*/yes)
+      AC_MSG_RESULT([Linux ARM64])
+      MPS_OS_NAME=li
+      MPS_ARCH_NAME=a6
+      MPS_BUILD_NAME=ll
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
   i*86-*-linux*/no)
       AC_MSG_RESULT([Linux x86])
       MPS_OS_NAME=li
@@ -64,6 +78,17 @@ case $host/$CLANG in
       MPS_OS_NAME=li
       MPS_ARCH_NAME=i6
       MPS_BUILD_NAME=ll
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
+  aarch64-*-darwin*/*)
+      AC_MSG_RESULT([Mac OS X ARM64])
+      MPS_OS_NAME=xc
+      MPS_ARCH_NAME=a6
+      MPS_BUILD_NAME=ll
+      BUILD_TARGET=build-via-xcode
+      CLEAN_TARGET=clean-xcode-build
+      INSTALL_TARGET=install-xcode-build
+      TEST_TARGET=test-xcode-build
       PFMCFLAGS="$CFLAGS_LL"
     ;;
   i*86-*-darwin*/*)

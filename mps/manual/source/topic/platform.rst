@@ -28,6 +28,7 @@ The second pair of characters names the processor architecture:
 ======  ======================  ======================
 ``AR``  Processor architecture  Constant
 ======  ======================  ======================
+``a6``  ARM64                   :c:macro:`MPS_ARCH_A6`
 ``i3``  Intel/AMD IA-32         :c:macro:`MPS_ARCH_I3`
 ``i6``  Intel/AMD x86-64        :c:macro:`MPS_ARCH_I6`
 ======  ======================  ======================
@@ -64,6 +65,13 @@ Platform interface
 ::
 
     #include "mpstd.h"
+
+
+.. c:macro:: MPS_ARCH_A6
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the target processor architecture of the compilation is a member
+    of the ARM64 family of 64-bit processors.
 
 
 .. c:macro:: MPS_ARCH_I3
@@ -163,6 +171,20 @@ Platform interface
     x86-64 processor architecture, and the Clang/LLVM compiler.
 
 
+.. c:macro:: MPS_PF_LIA6GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the Linux operating system, the
+    ARM64 processor architecture, and the GCC compiler.
+
+
+.. c:macro:: MPS_PF_LIA6LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the Linux operating system, the
+    ARM64 processor architecture, and the Clang/LLVM compiler.
+
+
 .. c:macro:: MPS_PF_LII3GC
 
     A :term:`C` preprocessor macro that indicates, if defined, that
@@ -204,6 +226,13 @@ Platform interface
     the :term:`platform` consists of the Windows operating system, the
     x86-64 processor architecture, and the Microsoft Visual C/C++
     compiler.
+
+
+.. c:macro:: MPS_PF_XCA6LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the macOS operating system, the
+    ARM64 processor architecture, and the Clang/LLVM compiler.
 
 
 .. c:macro:: MPS_PF_XCI3GC
@@ -322,6 +351,7 @@ Formerly supported compiler toolchains:
 ``eg``  Experimental GNU Compiler System (EGCS)  ``MPS_BUILD_EG``
 ``gp``  GCC with profiling                       ``MPS_BUILD_GP``
 ``lc``  LCC                                      ``MPS_BUILD_LC``
+``m9``  Microsoft Visual C/C++ 9.0 [3]_          ``MPS_BUILD_M9``
 ``mw``  Metrowerks CodeWarrior                   ``MPS_BUILD_MW``
 ``pc``  Pelles C                                 ``MPS_BUILD_PC``
 ``sc``  SunPro C                                 ``MPS_BUILD_SC``
@@ -334,6 +364,9 @@ Formerly supported compiler toolchains:
 
     .. [2] This was the MIPSpro C compiler on IRIX; and the Digital C
            Compiler on OSF/1.
+
+    .. [3] Obsolete: the MPS used to make a distinction between
+           version 9.0 of Microsoft Visual C/C++ and older versions.
 
 
 .. index::
@@ -355,6 +388,8 @@ Platform    Status
 ``fri6ll``  Supported
 ``i5m2cc``  *Not supported*
 ``iam4cc``  *Not supported*
+``lia6gc``  Supported
+``lia6ll``  Supported
 ``lii3eg``  *Not supported*
 ``lii3gc``  Supported
 ``lii4gc``  Corrected to ``lii3gc``
@@ -372,15 +407,52 @@ Platform    Status
 ``sos9sc``  *Not supported*
 ``sus8gc``  *Not supported*
 ``w3almv``  *Not supported*
-``w3i3m9``  *Not supported*
+``w3i3m9``  Corrected to ``w3i3mv``
 ``w3i3mv``  Supported
 ``w3i3pc``  *Not supported*
 ``w3i6mv``  Supported
 ``w3i6pc``  *Not supported*
 ``w3ppmv``  *Not supported*
+``xca6ll``  Supported
 ``xci3gc``  *Not supported*
-``xci3ll``  Supported
+``xci3ll``  *Not supported*
 ``xci6gc``  *Not supported*
 ``xci6ll``  Supported
 ``xcppgc``  *Not supported*
 ==========  =======================
+
+
+.. index::
+   pair: platform; limitations
+   single: Hardened Runtime
+
+.. _topic-platform-limitations:
+
+Platform limitations
+--------------------
+
+This section documents limitations that affect individual platforms.
+
+``xca6ll``
+
+   On macOS on Apple Silicon, programs may enable `Hardened Runtime`_.
+   This feature rejects attempts to map or protect memory so that it
+   is simultaneously writable and executable. Therefore, when Hardened
+   Runtime is enabled, memory managed by the MPS is not executable.
+
+   .. _Hardened Runtime: https://developer.apple.com/documentation/security/hardened_runtime
+
+   If your program needs to write executable code into memory managed
+   by the MPS (for example, it uses just-in-time translation or
+   dynamic compilation), then you must either disable Hardened
+   Runtime, or configure the `Allow Unsigned Executable Memory
+   Entitlement`_.
+
+   .. _Allow Unsigned Executable Memory Entitlement: https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory
+
+   Note that the MPS has no support for Apple's :c:macro:`MAP_JIT`
+   flag. If your application is using the `Allow Execution of
+   JIT-compiled Code Entitlement`_ and needs support for this flag,
+   please :ref:`contact us <contact>`.
+
+   .. _Allow Execution of JIT-compiled Code Entitlement: https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit

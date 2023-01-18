@@ -15,7 +15,7 @@
 #include "event.h"
 
 /* See <https://docs.python.org/3/library/struct.html#byte-order-size-and-alignment> */
-#if defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)
+#if defined(MPS_ARCH_A6) || defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)
 #define BYTE_ORDER "<"
 #else
 #error "Can't determine byte order for platform architecture."

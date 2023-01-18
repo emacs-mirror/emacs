@@ -76,8 +76,9 @@ usable.
    stack` can be scanned.
 
    See :ref:`design-prmc` for the design, and ``prmc.h`` for the
-   interface. There are implementations on Unix, Windows, and macOS for
-   IA-32 and x86-64.
+   interface. There are implementations on FreeBSD and Windows for
+   IA-32 and x86-64, and on Linux and macOS for IA-32, x86-64, and
+   ARM64.
 
    There is a generic implementation in ``prmcan.c``, which can't
    provide these features, and so only supports a single thread.

@@ -170,3 +170,39 @@ Pool introspection
         at the address, use :c:func:`mps_addr_fmt`. If you only care
         whether the address belongs to a particular :term:`arena`, use
         :c:func:`mps_arena_has_addr`.
+
+
+.. c:function:: mps_res_t mps_pool_walk(mps_pool_t pool, mps_area_scan_t scan_area, void *closure)
+
+    Visit all :term:`formatted objects` in a :term:`pool`. The pool
+    must be :term:`automatically managed <automatic memory
+    management>`. The pool's :term:`arena` must be in the
+    :term:`parked state`.
+
+    :c:data:`pool` is the pool whose formatted objects are visited.
+
+    :c:data:`scan_area` is an area scanning function. See
+    :ref:`topic-scanning-area`.
+
+    :c:data:`closure` is an arbitrary pointer that will be passed to
+    :c:data:`scan_area`.
+
+    The scanning function is called multiple times with disjoint areas
+    of memory that cover all formatted objects in the pool. The areas
+    may also include :term:`padding objects` if the pool's format has
+    a :term:`padding method`, but never includes :term:`forwarding
+    objects` since the arena is in the parked state.
+
+    The scanning function must follow the
+    :ref:`topic-scanning-protocol`. In particular, it must :term:`fix`
+    every :term:`reference` in the area. The scanning function may
+    return :c:macro:`MPS_RES_OK` to continue visiting areas of
+    formatted objects, or return other :ref:`topic-result-codes` to
+    stop visiting and return to the caller.
+
+    .. note::
+
+        If the scanning function modifies a reference, it must scan
+        the modified reference. It is safe to scan the original
+        reference as well, but this may lead to unwanted
+        :term:`retention`.

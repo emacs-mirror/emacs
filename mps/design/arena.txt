@@ -275,13 +275,12 @@ implementation detail, not a requirement.
 _`.tract.structure`: The tract structure definition looks like this::
 
     typedef struct TractStruct { /* Tract structure */
-      PagePoolUnion pool; /* MUST BE FIRST (design.mps.arena.tract.field.pool) */
-      void *p;                    /* pointer for use of owning pool */
-      Addr base;                  /* Base address of the tract */
-      BOOLFIELD(hasSeg);          /* does tract have a seg in p? */
+      Pool pool;      /* MUST BE FIRST <design/arena#.tract.field.pool> */
+      Seg seg;                     /* NULL or segment containing tract */
+      Addr base;                   /* Base address of the tract */
     } TractStruct;
 
-_`.tract.field.pool`: The pool.pool field indicates to which pool the tract
+_`.tract.field.pool`: The pool field indicates to which pool the tract
 has been allocated (`.req.fun.trans.pool`_). Tracts are only valid
 when they are allocated to pools. When tracts are not allocated to
 pools, arena classes are free to reuse tract objects in undefined
@@ -294,20 +293,9 @@ that the private representation can share a common prefix with
 private representation whether such an object is allocated or not,
 without requiring an extra field.
 
-_`.tract.field.p`: The ``p`` field is used by pools to associate tracts
-with other data (`.req.fun.trans.arbitrary`_). It's used by the
-segment module to indicate which segment a tract belongs to. If a pool
-doesn't use segments it may use the ``p`` field for its own purposes.
-This field has the non-specific type ``(void *)`` so that pools can
-use it for any purpose.
-
-_`.tract.field.hasSeg`: The ``hasSeg`` bit-field is a Boolean which
-indicates whether the ``p`` field is being used by the segment module.
-If this field is ``TRUE``, then the value of ``p`` is a ``Seg``. See
-design.mps.type.bool.bitfield_ for why this is declared using the
-``BOOLFIELD`` macro.
-
-.. _design.mps.type.bool.bitfield: type#.bool.bitfield
+_`.tract.field.base`: The seg field is a pointer to the segment
+containing the tract, or ``NULL`` if the tract is not contained in any
+segment.
 
 _`.tract.field.base`: The base field contains the base address of the
 memory represented by the tract.

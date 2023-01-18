@@ -110,6 +110,20 @@
 #include "prmcanan.c"   /* generic architecture mutator context */
 #include "span.c"       /* generic stack probe */
 
+/* macOS on ARM64 built with Clang */
+
+#elif defined(MPS_PF_XCA6LL)
+
+#include "lockix.c"     /* Posix locks */
+#include "thxc.c"       /* macOS Mach threading */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protxc.c"     /* macOS Mach exception handling */
+#include "prmcanan.c"   /* generic architecture mutator context */
+#include "prmcxc.c"     /* macOS mutator context */
+#include "prmcxca6.c"   /* ARM64 for macOS mutator context */
+#include "span.c"       /* generic stack probe */
+
 /* macOS on IA-32 built with Clang or GCC */
 
 #elif defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
@@ -166,6 +180,21 @@
 #include "prmcanan.c"   /* generic architecture mutator context */
 #include "prmcix.c"     /* Posix mutator context */
 #include "prmcfri6.c"   /* x86-64 for FreeBSD mutator context */
+#include "span.c"       /* generic stack probe */
+
+/* Linux on ARM64 with GCC or Clang */
+
+#elif defined(MPS_PF_LIA6GC) || defined(MPS_PF_LIA6LL)
+
+#include "lockix.c"     /* Posix locks */
+#include "thix.c"       /* Posix threading */
+#include "pthrdext.c"   /* Posix thread extensions */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmcanan.c"   /* generic architecture mutator context */
+#include "prmcix.c"     /* Posix mutator context */
+#include "prmclia6.c"   /* x86-64 for Linux mutator context */
 #include "span.c"       /* generic stack probe */
 
 /* Linux on IA-32 with GCC */

@@ -7,9 +7,6 @@ Contact us
   improvement, please write to `mps-questions@ravenbrook.com
   <mailto:mps-questions@ravenbrook.com>`_.
 
-* We can often be found on the ``#memorypoolsystem`` channel on
-  `irc.freenode.net <http://freenode.net/>`_.
-
 * You can also join the `mps-discussion mailing list
   <http://mailman.ravenbrook.com/mailman/listinfo/mps-discussion>`_ if
   you are interested in project progress, or if you're adapting or

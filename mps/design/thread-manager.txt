@@ -78,6 +78,13 @@ blocked in a system call, and the MPS signal handlers updating
 
 .. _GitHub issue #10: https://github.com/ravenbrook/mps/issues/10
 
+_`.req.thread.lasterror`: It would be nice if on Windows systems the
+MPS does not cause system calls in the mutator to update the value
+returned from ``GetLastError()`` when the exception handler is called
+due to a fault. This may cause the MPS to destroy the previous value
+there. (See `GitHub issue #61`_.)
+
+.. _GitHub issue #61: https://github.com/Ravenbrook/mps/issues/61
 
 Design
 ------
@@ -136,6 +143,12 @@ independent thread, should save and restore its value." All MPS
 signals handlers therefore save and restore ``errno`` using the macros
 ``ERRNO_SAVE`` and ``ERRNO_RESTORE``.
 
+_`.sol.thread.lasterror`: The documentation for ``AddVectoredExceptionHandler``
+does not mention ``GetLastError()`` at all, but testing_ the behaviour
+reveals that any value in ``GetLastError()`` is not preserved. Therefore,
+this value is saved using ``LAST_ERROR_SAVE`` and ``LAST_ERROR_RESTORE``.
+
+.. _testing: https://github.com/Ravenbrook/mps/issues/61
 
 Interface
 ---------

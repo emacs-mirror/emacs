@@ -12,7 +12,13 @@
 #include "mpm.h"
 
 #include <mach/mach_types.h>
+#if defined(MPS_ARCH_A6)
+#include <mach/arm/thread_status.h>
+#elif defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)
 #include <mach/i386/thread_status.h>
+#else
+#error "Unknown macOS architecture"
+#endif
 
 typedef struct MutatorContextStruct {
   Sig sig;                      /* <design/sig> */

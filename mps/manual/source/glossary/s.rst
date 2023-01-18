@@ -703,10 +703,9 @@ Memory Management Glossary: S
 
             A function that will be called on each element in a
             collection. For example, a stepper function of type
-            :c:type:`mps_formatted_objects_stepper_t` can be passed to
-            :c:func:`mps_arena_formatted_objects_walk` and it will be
-            called on all :term:`formatted objects`
-            in an :term:`arena`.
+            :c:type:`mps_roots_stepper_t` can be passed to
+            :c:func:`mps_arena_roots_walk` and it will be called on
+            all :term:`roots` in an :term:`arena`.
 
     sticky reference count
 

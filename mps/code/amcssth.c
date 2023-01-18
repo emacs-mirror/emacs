@@ -5,9 +5,9 @@
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * The main thread parks the arena half way through the test case and
- * runs mps_arena_formatted_objects_walk(). This checks that walking
- * works while the other threads continue to allocate in the
- * background.
+ * runs mps_pool_walk() and mps_arena_formatted_objects_walk(). This
+ * checks that walking works while the other threads continue to
+ * allocate in the background.
  */
 
 #include "fmtdy.h"
@@ -83,6 +83,24 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
   testlib_unused(object); testlib_unused(fmt); testlib_unused(pool);
   testlib_unused(s);
   (*(unsigned long *)p)++;
+}
+
+
+/* area_scan -- area scanning function for mps_pool_walk */
+
+static mps_res_t area_scan(mps_ss_t ss, void *base, void *limit, void *closure)
+{
+  unsigned long *count = closure;
+  mps_res_t res;
+  while (base < limit) {
+    mps_addr_t prev = base;
+    ++ *count;
+    res = dylan_scan1(ss, &base);
+    if (res != MPS_RES_OK) return res;
+    Insist(prev < base);
+  }
+  Insist(base == limit);
+  return MPS_RES_OK;
 }
 
 
@@ -209,11 +227,13 @@ static void test_pool(const char *name, mps_pool_t pool, size_t roots_count)
 
         if (collections >= collectionsCOUNT / 2 && !walked)
         {
-          unsigned long count = 0;
+          unsigned long count1 = 0, count2 = 0;
           mps_arena_park(arena);
-          mps_arena_formatted_objects_walk(arena, test_stepper, &count, 0);
+          mps_arena_formatted_objects_walk(arena, test_stepper, &count1, 0);
+          die(mps_pool_walk(pool, area_scan, &count2), "mps_pool_walk");
           mps_arena_release(arena);
-          printf("stepped on %lu objects.\n", count);
+          printf("stepped on %lu objects.\n", count1);
+          printf("walked %lu objects.\n", count2);
           walked = TRUE;
         }
         if (collections >= rampSwitch && !ramped) {
