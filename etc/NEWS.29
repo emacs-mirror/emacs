@@ -2079,7 +2079,7 @@ The VC Directory buffer now uses the prefix 'b' for these branch-related
 commands.
 
 +++
-*** New command '%' ('vc-dir-mark-by-regexp').
+*** New command 'vc-dir-mark-by-regexp' bound to '% m' and '* %'.
 This command marks files based on a regexp.  If given a prefix
 argument, unmark instead.
 
@@ -3236,6 +3236,11 @@ An optional major mode based on the tree-sitter library for editing
 programs in the C++ language.
 
 +++
+*** New command 'c-or-c++-ts-mode'.
+A command that automatically guesses the language of a header file,
+and enables either 'c-ts-mode' or 'c++-ts-mode' accordingly.
+
++++
 *** New major mode 'java-ts-mode'.
 An optional major mode based on the tree-sitter library for editing
 programs in the Java language.
@@ -3802,7 +3807,7 @@ These function now take an optional comparison PREDICATE argument.
 ** 'read-multiple-choice' can now use long-form answers.
 
 +++
-** 'M-c' in 'read-regexp' now toggles case folding.
+** 'M-s c' in 'read-regexp' now toggles case folding.
 
 +++
 ** 'completing-read' now allows a function as its REQUIRE-MATCH argument.

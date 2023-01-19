@@ -132,7 +132,8 @@ or `eshell-printn' for display."
      ;; bug#27361.
      (when (equal output-newline '(nil))
        (display-warning
-        :warning "To terminate with a newline, you should use -N instead."))
+        '(eshell echo)
+        "To terminate with a newline, you should use -N instead."))
      (eshell-echo args output-newline))))
 
 (defun eshell/printnl (&rest args)

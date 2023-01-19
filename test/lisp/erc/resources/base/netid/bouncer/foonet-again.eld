@@ -1,7 +1,7 @@
 ;; -*- mode: lisp-data; -*-
 ((pass 10 "PASS :foonet:changeme"))
-((nick 3 "NICK tester"))
-((user 3 "USER user 0 * :tester")
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :tester")
  (0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
  (0 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version oragono-2.6.0-7481bf0385b95b16")
  (0 ":irc.foonet.org 003 tester :This server was created Wed, 12 May 2021 07:41:09 UTC")
@@ -17,7 +17,7 @@
  (0 ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.foonet.org 422 tester :MOTD File is missing"))
 
-((mode-user 10.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  ;; No mode answer ^
  (0 ":tester!~u@nvfhxvqm92rm6.irc JOIN #chan")
  (0 ":irc.foonet.org 353 tester = #chan :alice @bob tester")
@@ -36,9 +36,9 @@
  (0 ":irc.foonet.org NOTICE tester :[07:00:32] This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect.")
  (0 ":irc.foonet.org 305 tester :You are no longer marked as being away"))
 
-((~join 3 "JOIN #chan"))
+((~join 10 "JOIN #chan"))
 
-((mode 8 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.foonet.org 324 tester #chan +nt")
  (0 ":irc.foonet.org 329 tester #chan 1620805271")
  (0.1 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #chan :bob: Grows, lives, and dies, in single blessedness.")

@@ -312,7 +312,7 @@ to @code{regexp-history}.
 
 @cindex @code{case-fold}, text property
 @findex read-regexp-case-fold-search
-The user can use the @kbd{M-c} command to indicate whether case
+The user can use the @kbd{M-s c} command to indicate whether case
 folding should be on or off.  If the user has used this command, the
 returned string will have the text property @code{case-fold} set to
 either @code{fold} or @code{inhibit-fold}.  It is up to the caller of

@@ -430,10 +430,15 @@ For example, one element normally found in the list has the form
 mode for files whose names end in @file{.c}.  (Note that @samp{\\} is
 needed in Lisp syntax to include a @samp{\} in the string, which must
 be used to suppress the special meaning of @samp{.} in regexps.)  If
-the element has the form @code{(@var{regexp} @var{mode-function}
-@var{flag})} and @var{flag} is non-@code{nil}, then after calling
-@var{mode-function}, Emacs discards the suffix that matched
-@var{regexp} and searches the list again for another match.
+the element has the form @w{@code{(@var{regexp} @var{mode-function}
+@var{flag})}} and @var{flag} is non-@code{nil}, then after calling
+@var{mode-function} (if it is non-@code{nil}), Emacs discards the
+suffix that matched @var{regexp} and searches the list again for
+another match.  This ``recursive extension stripping'' is used for
+files which have multiple extensions, and the ``outer'' extension
+hides the ``inner'' one that actually specifies the right mode.  For
+example, backup files and GPG-encrypted files with @file{.gpg}
+extension use this feature.
 
 @vindex auto-mode-case-fold
   On GNU/Linux and other systems with case-sensitive file names, Emacs

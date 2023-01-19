@@ -1331,10 +1331,17 @@ point is on a directory entry, mark all files in that directory tree
 listed files and directories.
 
 @findex vc-dir-mark-by-regexp
-@item %
+@item % m
+@itemx * %
 You can use this command to mark files by regexp
 (@code{vc-dir-mark-by-regexp}).  If given a prefix, unmark files
 instead.
+
+@findex vc-dir-mark-registered-files
+@item * r
+You can use this command to mark files that are in one of registered
+states, including edited, added or removed.
+(@code{vc-dir-mark-registered-files}).
 
 @item G
 Add the file under point to the list of files that the VC should
