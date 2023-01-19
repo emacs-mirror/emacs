@@ -53,28 +53,30 @@ yourself.  Many libraries can be downloaded from the tree-sitter site:
 
     https://github.com/tree-sitter
 
-To compile such a library, compile the files "scanner.c" and "parser.c"
-(sometimes named "scanner.cc" and "parser.cc") in the "src" subdirectory
-of the library's source tree using the C or C++ compiler, then link
-these two files into a shared library named "libtree-sitter-LANG.so",
-where LANG is the name of the language supported by the grammar as it
-is expected by the Emacs major mode (for example, "c" for 'c-ts-mode',
-"cpp" for 'c++-ts-mode', "python" for 'python-ts-mode', etc.).  Then place
-the shared library you've built in the same directory where you keep
-the other shared libraries used by Emacs, or in the "tree-sitter"
-subdirectory of your 'user-emacs-directory', or in a directory
-mentioned in the variable 'treesit-extra-load-path'.
-
-You only need to install language grammar libraries required by the
-Emacs modes you will use, as Emacs loads these libraries only when the
-corresponding mode is turned on in some buffer for the first time in
-an Emacs session.
-
 Emacs provides a user command, 'treesit-install-language-grammar',
 that automates the download and build process of a grammar library.
 It prompts for the language, the URL of the language grammar's VCS
 repository, and then uses the installed C/C++ compiler to build the
 library and install it.
+
+You can also do this manually.  To compile such a library after
+cloning its Git repository, compile the files "scanner.c" and
+"parser.c" (sometimes named "scanner.cc" and "parser.cc") in the "src"
+subdirectory of the library's source tree using the C or C++ compiler,
+then link these two files into a shared library named
+"libtree-sitter-LANG.so", where LANG is the name of the language
+supported by the grammar as it is expected by the Emacs major mode
+(for example, "c" for 'c-ts-mode', "cpp" for 'c++-ts-mode', "python"
+for 'python-ts-mode', etc.).  Then place the shared library you've
+built in the same directory where you keep the other shared libraries
+used by Emacs, or in the "tree-sitter" subdirectory of your
+'user-emacs-directory', or in a directory mentioned in the variable
+'treesit-extra-load-path'.
+
+You only need to install language grammar libraries required by the
+Emacs modes you will use, as Emacs loads these libraries only when the
+corresponding mode is turned on in some buffer for the first time in
+an Emacs session.
 
 +++
 ** Emacs can be built with built-in support for accessing SQLite databases.
