@@ -405,7 +405,7 @@ specified buffer position instead of point are used."
                    (symbolp value))
             (or (command-remapping value) value)
           value))
-    (key-binding (kbd key) accept-default no-remap position)))
+    (key-binding (key-parse key) accept-default no-remap position)))
 
 (defun keymap-local-lookup (keys &optional accept-default)
   "Return the binding for command KEYS in current local keymap only.

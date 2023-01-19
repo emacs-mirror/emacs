@@ -430,6 +430,22 @@ g .. h		foo
   (make-non-key-event 'keymap-tests-event)
   (should (equal (where-is-internal 'keymap-tests-command) '([3 103]))))
 
+(ert-deftest keymap-set-consistency ()
+  (let ((k (make-sparse-keymap)))
+    ;; `keymap-set' returns the binding, `keymap-set-after' doesn't,
+    ;; so we need to check for nil. <sigh>
+    (should (keymap-set k "a" "a"))
+    (should (equal (keymap-lookup k "a") (key-parse "a")))
+    (should-not (keymap-set-after k "b" "b"))
+    (should (equal (keymap-lookup k "b") (key-parse "b")))
+    (should-not (keymap-set-after k "d" "d" t))
+    (should (equal (keymap-lookup k "d") (key-parse "d")))
+    (should-not (keymap-set-after k "e" "e" nil))
+    (should (equal (keymap-lookup k "e") (key-parse "e")))
+    ;; This doesn't fail, but it does not add the 'f' binding after 'a'
+    (should-not (keymap-set-after k "f" "f" "a"))
+    (should (equal (keymap-lookup k "f") (key-parse "f")))))
+
 (ert-deftest keymap-test-duplicate-definitions ()
   "Check that defvar-keymap rejects duplicate key definitions."
   (should-error
