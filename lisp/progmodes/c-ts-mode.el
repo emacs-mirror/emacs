@@ -285,7 +285,18 @@ PARENT is NODE's parent."
         (cl-incf level)
         (save-excursion
           (goto-char (treesit-node-start node))
-          (cond ((bolp) nil)
+          ;; Add an extra level if the opening bracket is on its own
+          ;; line, except (1) it's at top-level, or (2) it's immedate
+          ;; parent is another block.
+          (cond ((bolp) nil) ; Case (1).
+                ((let ((parent-type (treesit-node-type
+                                     (treesit-node-parent node))))
+                   ;; Case (2).
+                   (and parent-type
+                        (string-match-p c-ts-mode-indent-block-type-regexp
+                                        parent-type)))
+                 nil)
+                ;; Add a level.
                 ((looking-back (rx bol (* whitespace))
                                (line-beginning-position))
                  (cl-incf level))))))
