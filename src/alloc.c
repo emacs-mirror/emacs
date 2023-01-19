@@ -6243,6 +6243,15 @@ compact_undo_list (Lisp_Object list)
   return list;
 }
 
+void
+pin_object (Lisp_Object obj)
+{
+  struct pinned_object *o = xmalloc (sizeof *o);
+  o->object = obj;
+  o->next = pinned_objects;
+  pinned_objects = o;
+}
+
 static void
 mark_pinned_objects (void)
 {
@@ -6847,8 +6856,7 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
     }
 }
 
-static void
-mark_stack_push_values (Lisp_Object *values, ptrdiff_t n);
+static void mark_stack_push_values (Lisp_Object *values, ptrdiff_t n);
 
 static void
 mark_native_comp_unit (struct Lisp_Vector *ptr)

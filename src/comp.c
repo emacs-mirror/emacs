@@ -7676,6 +7676,11 @@ register_native_comp_unit (Lisp_Object comp_u)
 {
   Fputhash (
     XNATIVE_COMP_UNIT (comp_u)->file, comp_u, Vcomp_loaded_comp_units_h);
+  /* TODO: This is a hack to avoid use-after-free issues with
+     heap-allocated objects being in static objects not getting marked
+     after a native comp unit is freed.  */
+  if (XNATIVE_COMP_UNIT (comp_u)->have_static_lisp_data)
+    pin_object (comp_u);
 }
 
 
