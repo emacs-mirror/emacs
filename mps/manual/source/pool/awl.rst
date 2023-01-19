@@ -333,7 +333,7 @@ AWL interface
       the :term:`generation chain` for the pool. If not specified, the
       pool will use the arena's default chain.
 
-    * :c:macro:`MPS_KEY_GEN` (type :c:type:`unsigned`) specifies the
+    * :c:macro:`MPS_KEY_GEN` (type ``unsigned``) specifies the
       :term:`generation` in the chain into which new objects will be
       allocated. If you pass your own chain, then this defaults to
       ``0``, but if you didn't (and so use the arena's default chain),

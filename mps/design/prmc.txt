@@ -124,7 +124,7 @@ protection module can single-step the instruction which is causing the
 fault. Return ``TRUE`` if ``MutatorContextStepInstruction()`` is
 capable of single-stepping the instruction, or ``FALSE`` if not.
 
-``Bool Res MutatorContextStepInstruction(MutatorContext context)``
+``Res MutatorContextStepInstruction(MutatorContext context)``
 
 _`.if.step`: Single-step the instruction which is causing the fault.
 Update the mutator context according to the emulation or execution of

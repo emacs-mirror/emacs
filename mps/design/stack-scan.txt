@@ -256,7 +256,7 @@ entry to the MPS (see `.sol.setjmp`_ and `.sol.stack.nest`_). Return
 _`.if.scan.begin-end`: This function must be called between
 ``STACK_CONTEXT_BEGIN()`` and ``STACK_CONTEXT_END()``.
 
-``STACK_CONTEXT_SAVE(StackContext sc)``
+``STACK_CONTEXT_SAVE(sc)``
 
 _`.if.save`: Store the mutator context in the structure ``sc``.
 
@@ -269,7 +269,7 @@ violation of design.mps.config.no-spaghetti_ in ss.h.
 
 .. _design.mps.config.no-spaghetti: config#.no-spaghetti
 
-``STACK_CONTEXT_BEGIN(Arena arena)``
+``STACK_CONTEXT_BEGIN(arena)``
 
 _`.if.begin`: Start an MPS operation that may need to know the mutator
 context (see `.sol.entry-points`_). This macro must be used like this::
@@ -289,7 +289,7 @@ This macro stores the mutator context in a ``StackContext`` structure
 allocated on the stack, and sets ``arena->stackWarm`` to the hot end
 of the current frame (using `.sol.stack.hot`_).
 
-``STACK_CONTEXT_END(Arena arena)``
+``STACK_CONTEXT_END(arena)``
 
 _`.if.end`: Finish the MPS operation that was started by
 ``STACK_CONTEXT_BEGIN()``.
