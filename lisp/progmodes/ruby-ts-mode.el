@@ -796,18 +796,21 @@ a statement container is a node that matches
           (treesit-parent-until
            parent
            (lambda (node)
-             (or (<= (treesit-node-start node) parent-bol)
-                 (and
-                  ;; Parenless call.
-                  (equal (treesit-node-type node) "argument_list")
-                  (not (equal (treesit-node-type
-                               (treesit-node-child node 0))
-                              "(")))))
-           t)))
+             (or (< (treesit-node-start node) parent-bol)
+                 (string-match-p "\\`array\\|hash\\'" (treesit-node-type node))
+                 ;; Method call on same line.
+                 (equal (treesit-node-type node) "argument_list"))))))
     (cond
-     ;; No parenless call found on the current line.
-     ((<= (treesit-node-start found) parent-bol)
+     ((null found)
       parent-bol)
+     ;; No paren/curly/brace found on the same line.
+     ((< (treesit-node-start found) parent-bol)
+      parent-bol)
+     ;; Hash or array opener on the same line.
+     ((string-match-p "\\`array\\|hash\\'" (treesit-node-type found))
+      (save-excursion
+        (goto-char (treesit-node-start (treesit-node-child found 1)))
+        (point)))
      ;; Parenless call found: indent to stmt with offset.
      ((not ruby-parenless-call-arguments-indent)
       (save-excursion
@@ -815,6 +818,12 @@ a statement container is a node that matches
                     (ruby-ts--statement-ancestor found)))
         ;; (**) Same.
         (+ (point) ruby-indent-level)))
+     ;; Call with parens -- ident to first arg.
+     ((equal (treesit-node-type (treesit-node-child found 0))
+             "(")
+      (save-excursion
+        (goto-char (treesit-node-start (treesit-node-child found 1)))
+        (point)))
      ;; Indent to the parenless call args beginning.
      (t
       (save-excursion

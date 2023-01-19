@@ -62,6 +62,23 @@ without_paren = a + b *
                     c * d +
                 12
 
+{'a' => {
+   'b' => 'c',
+   'd' => %w(e f)
+ }
+}
+
+[1, 2, {
+   'b' => 'c',
+   'd' => %w(e f)
+ }
+]
+
+foo(a, {
+      a: b,
+      c: d
+    })
+
 # Local Variables:
 # mode: ruby-ts
 # ruby-after-operator-indent: t
