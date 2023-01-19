@@ -220,9 +220,9 @@ values of OVERRIDE"
 
    :language language
    :feature 'constant
-   '((true) @font-lock-doc-markup-face
-     (false) @font-lock-doc-markup-face
-     (nil) @font-lock-doc-markup-face)
+   '((true) @font-lock-constant-face
+     (false) @font-lock-constant-face
+     (nil) @font-lock-constant-face)
 
    ;; Before 'operator so (unary) works.
    :language language
