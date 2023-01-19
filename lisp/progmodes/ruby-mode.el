@@ -1927,7 +1927,7 @@ If the result is do-end block, it will always be multiline."
     (end-of-line)
     (unless
         (if (and (re-search-backward "\\(?:[^#]\\)\\({\\)\\|\\(\\_<do\\_>\\)")
-                 (progn
+                 (let ((ruby-use-smie (and ruby-use-smie (consp smie-grammar))))
                    (goto-char (or (match-beginning 1) (match-beginning 2)))
                    (setq beg (point))
                    (with-suppressed-warnings ((obsolete ruby-forward-sexp))
