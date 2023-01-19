@@ -680,14 +680,15 @@ a statement container is a node that matches
            ;; 2) With paren, 1st arg on next line
            ((and (query "(argument_list \"(\" _ @indent)")
                  (node-is ")"))
-            parent-bol 0)
+            ruby-ts--parent-call-or-bol 0)
            ((query "(argument_list \"(\" _ @indent)")
-            parent-bol ruby-indent-level)
+            ruby-ts--parent-call-or-bol ruby-indent-level)
            ;; 3) No paren, ruby-parenless-call-arguments-indent is t
            ((and ruby-ts--parenless-call-arguments-indent-p (parent-is "argument_list"))
             first-sibling 0)
            ;; 4) No paren, ruby-parenless-call-arguments-indent is nil
-           ((parent-is "argument_list") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
+           ((parent-is "argument_list")
+            (ruby-ts--bol ruby-ts--statement-ancestor) ruby-indent-level)
 
            ;; Old... probably too simple
            ((parent-is "block_parameters") first-sibling 1)
@@ -718,27 +719,10 @@ a statement container is a node that matches
            ((and ruby-ts--same-line-hash-array-p (parent-is "array"))
             (nth-sibling 0 ruby-ts--true) 0)
 
-           ;; NOTE to folks trying to understand my insanity...
-           ;; I having trouble understanding the "logic" of why things
-           ;; are indented like they are so I am adding special cases
-           ;; hoping at some point I will be struck by lightning.
-           ((and (n-p-gp "}" "hash" "pair")
-                 (not ruby-ts--same-line-hash-array-p))
-            grand-parent 0)
-           ((and (n-p-gp "pair" "hash" "pair")
-                 (not ruby-ts--same-line-hash-array-p))
-            grand-parent ruby-indent-level)
-           ((and (n-p-gp "}" "hash" "method")
-                 (not ruby-ts--same-line-hash-array-p))
-            grand-parent 0)
-           ((and (n-p-gp "pair" "hash" "method")
-                 (not ruby-ts--same-line-hash-array-p))
-            grand-parent ruby-indent-level)
-
-           ((match "}" "hash")  parent-bol 0)
-           ((parent-is "hash")  parent-bol ruby-indent-level)
-           ((match "]" "array") parent-bol 0)
-           ((parent-is "array") parent-bol ruby-indent-level)
+           ((match "}" "hash")  ruby-ts--parent-call-or-bol 0)
+           ((parent-is "hash")  ruby-ts--parent-call-or-bol ruby-indent-level)
+           ((match "]" "array") ruby-ts--parent-call-or-bol 0)
+           ((parent-is "array") ruby-ts--parent-call-or-bol ruby-indent-level)
 
            ((match ")" "parenthesized_statements") parent-bol 0)
            ((parent-is "parenthesized_statements") parent-bol ruby-indent-level)
@@ -798,8 +782,45 @@ a statement container is a node that matches
     (goto-char (treesit-node-start parent))
     (when (string-match-p ruby-ts--statement-container-regexp
                           (treesit-node-type (treesit-node-parent parent)))
+      ;; Hack alert: it's not the proper place to alter the offset.
+      ;; Redoing the analysis in the OFFSET form seems annoying,
+      ;; though. (**)
       (forward-char ruby-indent-level))
     (point)))
+
+(defun ruby-ts--parent-call-or-bol (_not parent _bol &rest _)
+  (let* ((parent-bol (save-excursion
+                       (goto-char (treesit-node-start parent))
+                       (back-to-indentation)
+                       (point)))
+         (found
+          (treesit-parent-until
+           parent
+           (lambda (node)
+             (or (<= (treesit-node-start node) parent-bol)
+                 (and
+                  ;; Parenless call.
+                  (equal (treesit-node-type node) "argument_list")
+                  (not (equal (treesit-node-type
+                               (treesit-node-child node 0))
+                              "(")))))
+           t)))
+    (cond
+     ;; No parenless call found on the current line.
+     ((<= (treesit-node-start found) parent-bol)
+      parent-bol)
+     ;; Parenless call found: indent to stmt with offset.
+     ((not ruby-parenless-call-arguments-indent)
+      (save-excursion
+        (goto-char (treesit-node-start
+                    (ruby-ts--statement-ancestor found)))
+        ;; (**) Same.
+        (+ (point) ruby-indent-level)))
+     ;; Indent to the parenless call args beginning.
+     (t
+      (save-excursion
+        (goto-char (treesit-node-start found))
+        (point))))))
 
 (defun ruby-ts--after-op-indent-p (&rest _)
   ruby-after-operator-indent)
