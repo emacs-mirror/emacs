@@ -651,6 +651,12 @@ growable_destination (struct coding_system *coding)
     consumed_chars++;					\
   } while (0)
 
+/* Suppress clang warnings about consumed_chars never being used.
+   Although correct, the warnings are too much trouble to code around.  */
+#if 13 <= __clang_major__
+# pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#endif
+
 /* Safely get two bytes from the source text pointed by SRC which ends
    at SRC_END, and set C1 and C2 to those bytes while skipping the
    heading multibyte characters.  If there are not enough bytes in the

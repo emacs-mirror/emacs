@@ -1139,6 +1139,7 @@ AS_IF([test $gl_gcc_warnings = no],
 
   # clang is unduly picky about some things.
   if test "$emacs_cv_clang" = yes; then
+    gl_WARN_ADD([-Wno-bitwise-instead-of-logical])
     gl_WARN_ADD([-Wno-missing-braces])
     gl_WARN_ADD([-Wno-null-pointer-arithmetic])
     gl_WARN_ADD([-Wno-implicit-const-int-float-conversion])
