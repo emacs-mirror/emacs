@@ -152,7 +152,6 @@
           "then"
           "ensure"
           "body_statement"
-          "parenthesized_statements"
           "interpolation")
       string-end)
   "Regular expression of the nodes that can contain statements.")

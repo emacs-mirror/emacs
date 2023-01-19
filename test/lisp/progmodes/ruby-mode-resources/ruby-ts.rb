@@ -54,6 +54,14 @@ qux = foo.fee ?
         bar :
         tee
 
+with_paren = (a + b *
+                  c * d +
+              12)
+
+without_paren = a + b *
+                    c * d +
+                12
+
 # Local Variables:
 # mode: ruby-ts
 # ruby-after-operator-indent: t
