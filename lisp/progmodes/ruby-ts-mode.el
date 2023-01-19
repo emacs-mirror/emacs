@@ -648,9 +648,6 @@ a statement container is a node that matches
             parent 0)
            ((match "\\." "call") parent ruby-indent-level)
 
-           ;; ruby-indent-after-block-in-continued-expression
-           ((match "begin" "assignment") parent ruby-indent-level)
-
            ;; method parameters -- four styles:
            ;; 1) With paren, first arg on same line:
            ((and (query "(method_parameters \"(\" _ @indent)")
@@ -706,10 +703,9 @@ a statement container is a node that matches
            ;; ruby-mode does not touch these...
            ((match "bare_string" "string_array") no-indent 0)
 
-           ;; hash and array other than assignments.  Note that the
-           ;; first sibling is the "{" or "[".  There is a special
-           ;; case where the hash is an argument to a method.  These
-           ;; need to be processed first.
+           ;; hash and array.  Note that the first sibling is the "{"
+           ;; or "[".  There is a special case where the hash is an
+           ;; argument to a method.  These need to be processed first.
 
            ((and ruby-ts--same-line-hash-array-p (match "}" "hash"))
             first-sibling 0)
