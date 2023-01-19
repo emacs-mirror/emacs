@@ -680,7 +680,9 @@ a statement container is a node that matches
            ((and (query "(argument_list \"(\" _ @indent)")
                  (node-is ")"))
             ruby-ts--parent-call-or-bol 0)
-           ((query "(argument_list \"(\" _ @indent)")
+           ((or (query "(argument_list \"(\" _ @indent)")
+                ;; No arguments yet; NODE is nil in that case.
+                (match "\\`\\'" "argument_list"))
             ruby-ts--parent-call-or-bol ruby-indent-level)
            ;; 3) No paren, ruby-parenless-call-arguments-indent is t
            ((and ruby-ts--parenless-call-arguments-indent-p (parent-is "argument_list"))

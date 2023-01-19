@@ -110,6 +110,18 @@ The whitespace before and including \"|\" on each line is removed."
      |      42
      |    end")))
 
+
+(ert-deftest ruby-ts-indent-call-no-args ()
+  (skip-unless (treesit-ready-p 'ruby t))
+  (ruby-ts-with-temp-buffer
+      "variable = foo(
+
+)"
+    (goto-char (point-min))
+    (forward-line 1)
+    (funcall indent-line-function)
+    (should (= (current-indentation) ruby-indent-level))))
+
 (ert-deftest ruby-ts-add-log-current-method-examples ()
   (skip-unless (treesit-ready-p 'ruby t))
   (let ((pairs '(("foo" . "#foo")
