@@ -186,6 +186,7 @@ a menu, so this function is not useful for non-menu keymaps."
   (declare (indent defun)
            (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
+  (when (eq after t) (setq after nil)) ; nil and t are treated the same
   (when after
     (keymap--check after))
   (define-key-after keymap (key-parse key) definition
