@@ -187,10 +187,16 @@ a menu, so this function is not useful for non-menu keymaps."
            (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (when (eq after t) (setq after nil)) ; nil and t are treated the same
-  (when after
-    (keymap--check after))
+  (when (stringp after)
+    (keymap--check after)
+    (setq after (key-parse after)))
+  ;; If we're binding this key to another key, then parse that other
+  ;; key, too.
+  (when (stringp definition)
+    (keymap--check definition)
+    (setq definition (key-parse definition)))
   (define-key-after keymap (key-parse key) definition
-    (and after (key-parse after))))
+    after))
 
 (defun key-parse (keys)
   "Convert KEYS to the internal Emacs key representation.

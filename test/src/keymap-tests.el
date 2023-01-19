@@ -226,6 +226,7 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
 
 (defun keymap-tests--command-1 () (interactive) nil)
 (defun keymap-tests--command-2 () (interactive) nil)
+(defun keymap-tests--command-3 () (interactive) nil)
 (put 'keymap-tests--command-1 :advertised-binding [?y])
 
 (ert-deftest keymap-where-is-internal ()
@@ -445,6 +446,22 @@ g .. h		foo
     ;; This doesn't fail, but it does not add the 'f' binding after 'a'
     (should-not (keymap-set-after k "f" "f" "a"))
     (should (equal (keymap-lookup k "f") (key-parse "f")))))
+
+(ert-deftest keymap-set-after-menus ()
+  (let ((map (make-sparse-keymap)))
+    (keymap-set map "<cmd1>"
+      '(menu-item "Run Command 1" keymap-tests--command-1
+                  :help "Command 1 Help"))
+    (keymap-set-after map "<cmd2>"
+      '(menu-item "Run Command 2" keymap-tests--command-2
+                  :help "Command 2 Help"))
+    (keymap-set-after map "<cmd3>"
+      '(menu-item "Run Command 3" keymap-tests--command-3
+                  :help "Command 3 Help")
+      'cmd1)
+    (should (equal (caadr map) 'cmd1))
+    (should (equal (caaddr map) 'cmd3))
+    (should (equal (caar (last map)) 'cmd2))))
 
 (ert-deftest keymap-test-duplicate-definitions ()
   "Check that defvar-keymap rejects duplicate key definitions."
