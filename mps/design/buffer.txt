@@ -544,7 +544,7 @@ itself.
 The pool class's ``bufferDestroy()`` method is called and then the
 buffer structure is uninitialized and freed.
 
-``BufferCheck(Buffer buffer)``
+``Bool BufferCheck(Buffer buffer)``
 
 _`.method.check`: The check method is straightforward, the non-trivial dependencies checked are:
 
@@ -582,7 +582,7 @@ between a reserve and commit. The result is only reliable if the
 client is not currently using the buffer, since it may update the
 alloc and init pointers asynchronously.
 
-``mps_ap_t (BufferAP)(Buffer buffer)``
+``mps_ap_t BufferAP(Buffer buffer)``
 
 Returns the ``APStruct`` substructure of a buffer.
 
@@ -653,7 +653,7 @@ again for any purpose.
 Some classes of pool may cause commit to fail under rare
 circumstances.
 
-``BufferTrip(Buffer buffer, Addr p, Size size)``
+``void BufferTrip(Buffer buffer, Addr p, Size size)``
 
 _`.method.trip`: Act on a tripped buffer. The pool which owns a buffer
 may asynchronously set the buffer limit to zero in order to get
