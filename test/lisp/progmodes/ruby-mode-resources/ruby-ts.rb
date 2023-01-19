@@ -79,6 +79,12 @@ foo(a, {
       c: d
     })
 
+foo(foo, bar:
+    tee)
+
+foo(foo, :bar =>
+    tee)
+
 # Local Variables:
 # mode: ruby-ts
 # ruby-after-operator-indent: t

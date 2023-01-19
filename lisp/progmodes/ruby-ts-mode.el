@@ -723,6 +723,8 @@ a statement container is a node that matches
            ((match "]" "array") ruby-ts--parent-call-or-bol 0)
            ((parent-is "array") ruby-ts--parent-call-or-bol ruby-indent-level)
 
+           ((parent-is "pair") ruby-ts--parent-call-or-bol 0)
+
            ((match ")" "parenthesized_statements") parent-bol 0)
            ((parent-is "parenthesized_statements") parent-bol ruby-indent-level)
 
