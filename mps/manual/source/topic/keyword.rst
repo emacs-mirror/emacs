@@ -65,7 +65,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
 
     .. note::
 
-        If you use the convenience macro :c:func:`MPS_ARGS_ADD` then
+        If you use the convenience macro :c:macro:`MPS_ARGS_ADD` then
         you don't need to know the name of the field.
 
 
@@ -104,7 +104,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     :c:macro:`MPS_KEY_FMT_SCAN`              :c:type:`mps_fmt_scan_t`          ``fmt_scan``            :c:func:`mps_fmt_create_k`
     :c:macro:`MPS_KEY_FMT_SKIP`              :c:type:`mps_fmt_skip_t`          ``fmt_skip``            :c:func:`mps_fmt_create_k`
     :c:macro:`MPS_KEY_FORMAT`                :c:type:`mps_fmt_t`               ``format``              :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo` , :c:func:`mps_class_snc`
-    :c:macro:`MPS_KEY_GEN`                   :c:type:`unsigned`                ``u``                   :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo`
+    :c:macro:`MPS_KEY_GEN`                   ``unsigned``                      ``u``                   :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo`
     :c:macro:`MPS_KEY_INTERIOR`              :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`
     :c:macro:`MPS_KEY_MEAN_SIZE`             :c:type:`size_t`                  ``size``                :c:func:`mps_class_mvt`, :c:func:`mps_class_mvff`
     :c:macro:`MPS_KEY_MFS_UNIT_SIZE`         :c:type:`size_t`                  ``size``                :c:func:`mps_class_mfs`
@@ -114,16 +114,16 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     :c:macro:`MPS_KEY_MVFF_SLOT_HIGH`        :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_class_mvff`
     :c:macro:`MPS_KEY_MVT_FRAG_LIMIT`        :c:type:`mps_word_t`              ``count``               :c:func:`mps_class_mvt`
     :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH`     :c:type:`mps_word_t`              ``count``               :c:func:`mps_class_mvt`
-    :c:macro:`MPS_KEY_PAUSE_TIME`            :c:type:`double`                  ``d``                   :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_PAUSE_TIME`            ``double``                        ``d``                   :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`    :c:type:`mps_pool_debug_option_s` ``*pool_debug_options`` :c:func:`mps_class_ams_debug`, :c:func:`mps_class_mvff_debug`
     :c:macro:`MPS_KEY_RANK`                  :c:type:`mps_rank_t`              ``rank``                :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_snc`
-    :c:macro:`MPS_KEY_SPARE`                 :c:type:`double`                  ``d``                   :c:func:`mps_arena_class_vm`, :c:func:`mps_class_mvff`
+    :c:macro:`MPS_KEY_SPARE`                 ``double``                        ``d``                   :c:func:`mps_arena_class_vm`, :c:func:`mps_class_mvff`
     :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT`    :c:type:`size_t`                  ``size``                :c:func:`mps_arena_class_vm`
     :c:macro:`MPS_KEY_VMW3_TOP_DOWN`         :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_arena_class_vm`
     ======================================== ========================================================= ==========================================================
 
 
-.. c:function:: MPS_ARGS_BEGIN(args)
+.. c:macro:: MPS_ARGS_BEGIN(args)
 
     Start construction of a list of keyword arguments. This macro must
     be used like this::
@@ -134,8 +134,8 @@ now :c:macro:`MPS_KEY_ARGS_END`.
             res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
         } MPS_ARGS_END(args);
 
-    That is, you must call :c:func:`MPS_ARGS_ADD` (or
-    :c:func:`MPS_ARGS_ADD_FIELD`) zero or more times, and then pass
+    That is, you must call :c:macro:`MPS_ARGS_ADD` (or
+    :c:macro:`MPS_ARGS_ADD_FIELD`) zero or more times, and then pass
     the arguments to a function.
 
     ``args`` is the name of the array that contains the keyword
@@ -146,7 +146,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     :c:macro:`MPS_ARGS_END`.
 
 
-.. c:function:: MPS_ARGS_ADD(mps_arg_s args[], mps_key_t key, value)
+.. c:macro:: MPS_ARGS_ADD(args, key, value)
 
     Add an argument to a list of keyword arguments. This macro must be
     used only between :c:macro:`MPS_ARGS_BEGIN` and
@@ -154,7 +154,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
 
     ``args`` is the name of array that contains the keyword arguments.
     It must match the argument to the preceding call to
-    :c:func:`MPS_ARGS_BEGIN`.
+    :c:macro:`MPS_ARGS_BEGIN`.
 
     ``key`` is the keyword identifying this argument. It must be one
     of the key names starting with ``MPS_KEY_`` that are listed in the
@@ -163,7 +163,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     ``value`` is the value for this argument.
 
 
-.. c:function:: MPS_ARGS_ADD_FIELD(mps_arg_s args[], mps_key_t key, field, value)
+.. c:macro:: MPS_ARGS_ADD_FIELD(args, key, field, value)
 
     Add an argument to a list of keyword arguments. This macro must be
     used only between :c:macro:`MPS_ARGS_BEGIN` and
@@ -171,7 +171,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
 
     ``args`` is the name of array that contains the keyword arguments.
     It must match the argument to the preceding call to
-    :c:func:`MPS_ARGS_BEGIN`.
+    :c:macro:`MPS_ARGS_BEGIN`.
 
     ``key`` is the keyword identifying this argument.
 
@@ -182,15 +182,15 @@ now :c:macro:`MPS_KEY_ARGS_END`.
 
     .. note::
 
-        You should prefer to use :c:func:`MPS_ARGS_ADD`, because then
+        You should prefer to use :c:macro:`MPS_ARGS_ADD`, because then
         you don't need to look up the name of the field.
 
 
-.. c:function:: MPS_ARGS_END(args)
+.. c:macro:: MPS_ARGS_END(args)
 
     Finish using a list of keyword arguments whose construction was
-    started by :c:func:`MPS_ARGS_BEGIN`.
+    started by :c:macro:`MPS_ARGS_BEGIN`.
 
     ``args`` is the name of array that contains the keyword arguments.
     It must match the argument to the preceding call to
-    :c:func:`MPS_ARGS_BEGIN`.
+    :c:macro:`MPS_ARGS_BEGIN`.

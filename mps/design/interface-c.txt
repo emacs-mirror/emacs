@@ -213,7 +213,7 @@ from `mail.richard.1996-08-07.09-49`_.
 ``COMPATLVALUE(lvalue1, lvalue2)``
 
 _`.check.types.compat.lvalue`: This macro checks the assignment
-compatibility of two lvalues. It uses ``sizeof()`` to ensure that the
+compatibility of two lvalues. It uses ``sizeof`` to ensure that the
 assignments have no effect. ::
 
     #define COMPATLVALUE(lv1, lv2) \
@@ -224,7 +224,7 @@ assignments have no effect. ::
 _`.check.types.compat.type`: This macro checks that two types are
 assignment-compatible and equal in size. The hack here is that it
 generates an lvalue for each type by casting zero to a pointer to the
-type. The use of ``sizeof()`` avoids the undefined behaviour that
+type. The use of ``sizeof`` avoids the undefined behaviour that
 would otherwise result from dereferencing a null pointer. ::
 
     #define COMPATTYPE(t1, t2) \
