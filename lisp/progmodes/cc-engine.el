@@ -142,6 +142,10 @@
 ;;       Put on the brace which introduces a brace list and on the commas
 ;;       which separate the elements within it.
 ;;
+;; 'c-typedef This property is applied to the first character of a
+;;   "typedef" keyword.  It's value is a list of the identifiers that
+;;   the "typedef" declares as types.
+;;
 ;; 'c-<>-c-types-set
 ;;   This property is set on an opening angle bracket, and indicates that
 ;;   any "," separators within the template/generic expression have been
@@ -10024,10 +10028,10 @@ This function might do hidden buffer changes."
   ;; an identifier instead.
   (declare (debug nil))
   `(progn
+     (setq identifier-start type-start)
      ,(unless short
 	;; These identifiers are bound only in the inner let.
 	'(setq identifier-type at-type
-	       identifier-start type-start
 	       got-parens nil
 	       got-identifier t
 	       got-suffix t
@@ -10102,10 +10106,11 @@ This function might do hidden buffer changes."
   ;;   The second element of the return value is non-nil when something
   ;;   indicating the identifier is a type occurs in the declaration.
   ;;   Specifically it is nil, or a three element list (A B C) where C is t
-  ;;   when context is '<> and the "identifier" is a found type, B is t when a
-  ;;   `c-typedef-kwds' ("typedef") is present, and A is t when some other
-  ;;   `c-typedef-decl-kwds' (e.g. class, struct, enum) specifier is present.
-  ;;   I.e., (some of) the declared identifier(s) are types.
+  ;;   when context is '<> and the "identifier" is a found type, B is the
+  ;;   position of the `c-typedef-kwds' keyword ("typedef") when such is
+  ;;   present, and A is t when some other `c-typedef-decl-kwds' (e.g. class,
+  ;;   struct, enum) specifier is present.  I.e., (some of) the declared
+  ;;   identifier(s) are types.
   ;;
   ;;   The third element of the return value is non-nil when the declaration
   ;;   parsed might be an expression.  The fourth element is the position of
@@ -10173,6 +10178,9 @@ This function might do hidden buffer changes."
 	;; `c-decl-hangon-kwds' and their associated clauses that
 	;; occurs after the type.
 	id-start
+	;; The earlier value of `type-start' if we've shifted the type
+	;; backwards.
+	identifier-start
 	;; These store `at-type', `type-start' and `id-start' of the
 	;; identifier before the one in those variables.  The previous
 	;; identifier might turn out to be the real type in a
@@ -10183,7 +10191,8 @@ This function might do hidden buffer changes."
 	;; Set if we've found a specifier (apart from "typedef") that makes
 	;; the defined identifier(s) types.
 	at-type-decl
-	;; Set if we've a "typedef" keyword.
+	;; If we've a "typedef" keyword (?or similar), the buffer position of
+	;; its first character.
 	at-typedef
 	;; Set if `context' is '<> and the identifier is definitely a type, or
 	;; has already been recorded as a found type.
@@ -10266,7 +10275,7 @@ This function might do hidden buffer changes."
 		 (looking-at "@[A-Za-z0-9]+")))
 	    (save-match-data
 	      (if (looking-at c-typedef-key)
-		  (setq at-typedef t)))
+		  (setq at-typedef (point))))
 	    (setq kwd-sym (c-keyword-sym (match-string 1)))
 	    (save-excursion
 	      (c-forward-keyword-clause 1)
@@ -10486,9 +10495,9 @@ This function might do hidden buffer changes."
 	  ;; True if we've parsed the type decl to a token that is
 	  ;; known to end declarations in this context.
 	  at-decl-end
-	  ;; The earlier values of `at-type' and `type-start' if we've
-	  ;; shifted the type backwards.
-	  identifier-type identifier-start
+	  ;; The earlier value of `at-type' if we've shifted the type
+	  ;; backwards.
+	  identifier-type
 	  ;; If `c-parse-and-markup-<>-arglists' is set we need to
 	  ;; turn it off during the name skipping below to avoid
 	  ;; getting `c-type' properties that might be bogus.  That
@@ -10530,6 +10539,10 @@ This function might do hidden buffer changes."
 			      (progn (setq got-identifier nil) t)
 			    ;; It turned out to be the real identifier,
 			    ;; so stop.
+			    (save-excursion
+			      (c-backward-syntactic-ws)
+			      (c-simple-skip-symbol-backward)
+			      (setq identifier-start (point)))
 			    nil))
 		      t))
 
@@ -10555,6 +10568,10 @@ This function might do hidden buffer changes."
 	  (and (looking-at c-identifier-start)
 	       (setq pos (point))
 	       (setq got-identifier (c-forward-name))
+	       (save-excursion
+		 (c-backward-syntactic-ws)
+		 (c-simple-skip-symbol-backward)
+		 (setq identifier-start (point)))
 	       (setq name-start pos))
 	  (when (looking-at "[0-9]")
 	    (setq got-number t)) ; We probably have an arithmetic expression.
@@ -10573,7 +10590,8 @@ This function might do hidden buffer changes."
 	       (setq at-type nil
 		     name-start type-start
 		     id-start type-start
-		     got-identifier t)))
+		     got-identifier t)
+	       (setq identifier-start type-start)))
 
       ;; Skip over type decl suffix operators and trailing noise macros.
       (while

@@ -44,7 +44,8 @@
      (should (equal-including-properties
               last-prompt
               (propertize
-               (format "%s $ " (directory-file-name default-directory))
+               (format "%s %s " (directory-file-name default-directory)
+                       (if (= (file-user-uid) 0) "#" "$"))
                'read-only t
                'field 'prompt
                'font-lock-face 'eshell-prompt
@@ -68,7 +69,8 @@ This tests the case when `eshell-highlight-prompt' is nil."
        (should (equal-including-properties
                 last-prompt
                 (propertize
-                 (format "%s $ " (directory-file-name default-directory))
+                 (format "%s %s " (directory-file-name default-directory)
+                         (if (= (file-user-uid) 0) "#" "$"))
                  'field 'prompt
                  'front-sticky '(field)
                  'rear-nonsticky '(field))))

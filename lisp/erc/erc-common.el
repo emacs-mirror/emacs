@@ -202,12 +202,13 @@ if ARG is omitted or nil.
            (,disable)))
        ,(erc--assemble-toggle local-p name enable mode t enable-body)
        ,(erc--assemble-toggle local-p name disable mode nil disable-body)
-       ,(when (and alias (not (eq name alias)))
-          `(defalias
-             ',(intern
-                (format "erc-%s-mode"
-                        (downcase (symbol-name alias))))
-             #',mode))
+       ,@(and-let* ((alias)
+                    ((not (eq name alias)))
+                    (aname (intern (format "erc-%s-mode"
+                                           (downcase (symbol-name alias))))))
+           `((defalias ',aname #',mode)
+             (put ',aname 'erc-module ',(erc--normalize-module-symbol name))))
+       (put ',mode 'erc-module ',(erc--normalize-module-symbol name))
        ;; For find-function and find-variable.
        (put ',mode    'definition-name ',name)
        (put ',enable  'definition-name ',name)

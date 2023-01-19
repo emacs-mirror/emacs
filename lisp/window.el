@@ -5670,7 +5670,8 @@ the original point in both windows."
 
 (defun split-window-below (&optional size window-to-split)
   "Split WINDOW-TO-SPLIT into two windows, one above the other.
-WINDOW-TO-SPLIT is above.  The newly split-off window is
+WINDOW-TO-SPLIT defaults to the selected window and and will be above
+the other window after splitting.  The newly split-off window is
 below and displays the same buffer.  Return the new window.
 
 If optional argument SIZE is omitted or nil, both windows get the
@@ -5691,7 +5692,9 @@ amount of redisplay; this is convenient on slow terminals."
       ;; `split-window' would not signal an error here.
       (error "Size of new window too small"))
     (setq new-window (split-window window-to-split size))
-    (unless split-window-keep-point
+    (when (and (null split-window-keep-point)
+               (or (null window-to-split)
+                   (eq window-to-split (selected-window))))
       (with-current-buffer (window-buffer window-to-split)
 	;; Use `save-excursion' around vertical movements below
 	;; (Bug#10971).  Note: When WINDOW-TO-SPLIT's buffer has a
@@ -5732,8 +5735,9 @@ handled as in `split-window-below'."
 
 (defun split-window-right (&optional size window-to-split)
   "Split WINDOW-TO-SPLIT into two side-by-side windows.
-WINDOW-TO-SPLIT is on the left.  The newly split-off window is on
-the right and displays the same buffer.  Return the new window.
+WINDOW-TO-SPLIT defaults to the selected window and and will be on the
+left after splitting.  The newly split-off window is on the right and
+displays the same buffer.  Return the new window.
 
 If optional argument SIZE is omitted or nil, both windows get the
 same width, or close to it.  If SIZE is positive, the left-hand

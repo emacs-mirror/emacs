@@ -670,6 +670,13 @@ offered."
 	(setq local (expand-file-name local (file-name-directory localname))))
       (concat (file-truename archive) local))))
 
+(defun tramp-archive-handle-file-user-uid ()
+  "Like `user-uid' for file archives."
+  (with-parsed-tramp-archive-file-name default-directory nil
+    (let ((default-directory (file-name-directory archive)))
+      ;; `file-user-uid' exists since Emacs 30.1.
+      (tramp-compat-funcall 'file-user-uid))))
+
 (defun tramp-archive-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for file archives."
@@ -701,12 +708,6 @@ offered."
   (with-parsed-tramp-archive-file-name default-directory nil
     (let ((default-directory (file-name-directory archive)))
       (temporary-file-directory))))
-
-(defun tramp-archive-handle-file-user-uid ()
-  "Like `user-uid' for file archives."
-  (with-parsed-tramp-archive-file-name default-directory nil
-    (let ((default-directory (file-name-directory archive)))
-      (file-user-uid))))
 
 (defun tramp-archive-handle-not-implemented (operation &rest args)
   "Generic handler for operations not implemented for file archives."

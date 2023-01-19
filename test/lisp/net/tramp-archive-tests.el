@@ -878,7 +878,18 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 		 (zerop (nth 1 fsi))
 		 (zerop (nth 2 fsi))))))
 
-(ert-deftest tramp-archive-test47-auto-load ()
+;; `file-user-uid' was introduced in Emacs 30.1.
+(ert-deftest tramp-archive-test44-file-user-uid ()
+  "Check that `file-user-uid' returns proper values."
+  (skip-unless tramp-archive-enabled)
+  (skip-unless (fboundp 'file-user-uid))
+
+  (let ((default-directory tramp-archive-test-archive))
+    ;; `file-user-uid' exists since Emacs 30.1.  We don't want to see
+    ;; compiler warnings for older Emacsen.
+    (should (integerp (with-no-warnings (file-user-uid))))))
+
+(ert-deftest tramp-archive-test48-auto-load ()
   "Check that `tramp-archive' autoloads properly."
   :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
@@ -923,7 +934,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	       (format "(setq tramp-archive-enabled %s)" enabled))
 	      (shell-quote-argument (format code file)))))))))))
 
-(ert-deftest tramp-archive-test47-delay-load ()
+(ert-deftest tramp-archive-test48-delay-load ()
   "Check that `tramp-archive' is loaded lazily, only when needed."
   :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)

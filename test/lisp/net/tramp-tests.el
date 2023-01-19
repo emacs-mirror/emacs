@@ -33,7 +33,7 @@
 ;; remote host, set this environment variable to "/dev/null" or
 ;; whatever is appropriate on your system.
 
-;; For slow remote connections, `tramp-test44-asynchronous-requests'
+;; For slow remote connections, `tramp-test45-asynchronous-requests'
 ;; might be too heavy.  Setting $REMOTE_PARALLEL_PROCESSES to a proper
 ;; value less than 10 could help.
 
@@ -6297,7 +6297,7 @@ INPUT, if non-nil, is a string sent to the process."
   (skip-unless (and (fboundp 'file-locked-p) (fboundp 'make-lock-file-name)))
 
   ;; `lock-file', `unlock-file', `file-locked-p' and
-  ;; `make-lock-file-name' exists since Emacs 28.1.  We don't want to
+  ;; `make-lock-file-name' exist since Emacs 28.1.  We don't want to
   ;; see compiler warnings for older Emacsen.
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
@@ -7076,11 +7076,40 @@ This requires restrictions of file name syntax."
     (dotimes (i (length fsi))
       (should (natnump (or (nth i fsi) 0))))))
 
-;; `tramp-test44-asynchronous-requests' could be blocked.  So we set a
+;; `file-user-uid' was introduced in Emacs 30.1.
+(ert-deftest tramp-test44-file-user-uid ()
+  "Check that `file-user-uid' and `tramp-get-remote-*' return proper values."
+  (skip-unless (tramp--test-enabled))
+
+  (let ((default-directory ert-remote-temporary-file-directory))
+    ;; `file-user-uid' exists since Emacs 30.1.  We don't want to see
+    ;; compiler warnings for older Emacsen.
+    (when (fboundp 'file-user-uid)
+      (should (integerp (with-no-warnings (file-user-uid)))))
+
+    (with-parsed-tramp-file-name default-directory nil
+      (should (or (integerp (tramp-get-remote-uid v 'integer))
+		  (null (tramp-get-remote-uid v 'integer))))
+      (should (or (stringp (tramp-get-remote-uid v 'string))
+		  (null (tramp-get-remote-uid v 'string))))
+
+      (should (or (integerp (tramp-get-remote-gid v 'integer))
+		  (null (tramp-get-remote-gid v 'integer))))
+      (should (or (stringp (tramp-get-remote-gid v 'string))
+		  (null (tramp-get-remote-gid v 'string))))
+
+      (when-let ((groups (tramp-get-remote-groups v 'integer)))
+	(should (consp groups))
+	(dolist (group groups) (should (integerp group))))
+      (when-let ((groups (tramp-get-remote-groups v 'string)))
+	(should (consp groups))
+	(dolist (group groups) (should (stringp group)))))))
+
+;; `tramp-test45-asynchronous-requests' could be blocked.  So we set a
 ;; timeout of 300 seconds, and we send a SIGUSR1 signal after 300
 ;; seconds.  Similar check is performed in the timer function.
 (defconst tramp--test-asynchronous-requests-timeout 300
-  "Timeout for `tramp-test44-asynchronous-requests'.")
+  "Timeout for `tramp-test45-asynchronous-requests'.")
 
 (defmacro tramp--test-with-proper-process-name-and-buffer (proc &rest body)
   "Set \"process-name\" and \"process-buffer\" connection properties.
@@ -7116,7 +7145,7 @@ This is needed in timer functions as well as process filters and sentinels."
 	 (tramp-flush-connection-property v "process-buffer")))))
 
 ;; This test is inspired by Bug#16928.
-(ert-deftest tramp-test44-asynchronous-requests ()
+(ert-deftest tramp-test45-asynchronous-requests ()
   "Check parallel asynchronous requests.
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
@@ -7283,7 +7312,7 @@ process sentinels.  They shall not disturb each other."
                   (unless (process-live-p proc)
                     (setq buffers (delq buf buffers))))))
 
-            ;; Checks.  All process output shall exists in the
+            ;; Checks.  All process output shall exist in the
             ;; respective buffers.  All created files shall be
             ;; deleted.
             (tramp--test-message "Check %s" (current-time-string))
@@ -7309,10 +7338,10 @@ process sentinels.  They shall not disturb each other."
         (ignore-errors (cancel-timer timer))
         (ignore-errors (delete-directory tmp-name 'recursive))))))
 
-;; (tramp--test-deftest-direct-async-process tramp-test44-asynchronous-requests
+;; (tramp--test-deftest-direct-async-process tramp-test45-asynchronous-requests
 ;;   'unstable)
 
-(ert-deftest tramp-test45-dired-compress-file ()
+(ert-deftest tramp-test46-dired-compress-file ()
   "Check that Tramp (un)compresses normal files."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
@@ -7333,7 +7362,7 @@ process sentinels.  They shall not disturb each other."
     (should (string= tmp-name (dired-get-filename)))
     (delete-file tmp-name)))
 
-(ert-deftest tramp-test45-dired-compress-dir ()
+(ert-deftest tramp-test46-dired-compress-dir ()
   "Check that Tramp (un)compresses directories."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
@@ -7355,7 +7384,7 @@ process sentinels.  They shall not disturb each other."
     (delete-directory tmp-name)
     (delete-file (concat tmp-name ".tar.gz"))))
 
-(ert-deftest tramp-test46-read-password ()
+(ert-deftest tramp-test47-read-password ()
   "Check Tramp password handling."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
@@ -7415,7 +7444,7 @@ process sentinels.  They shall not disturb each other."
 	    (should (file-exists-p ert-remote-temporary-file-directory)))))))))
 
 ;; This test is inspired by Bug#29163.
-(ert-deftest tramp-test47-auto-load ()
+(ert-deftest tramp-test48-auto-load ()
   "Check that Tramp autoloads properly."
   ;; If we use another syntax but `default', Tramp is already loaded
   ;; due to the `tramp-change-syntax' call.
@@ -7440,7 +7469,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test47-delay-load ()
+(ert-deftest tramp-test48-delay-load ()
   "Check that Tramp is loaded lazily, only when needed."
   ;; Tramp is neither loaded at Emacs startup, nor when completing a
   ;; non-Tramp file name like "/foo".  Completing a Tramp-alike file
@@ -7470,7 +7499,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code tm)))))))))
 
-(ert-deftest tramp-test47-recursive-load ()
+(ert-deftest tramp-test48-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
   (skip-unless (tramp--test-enabled))
 
@@ -7494,7 +7523,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument code))))))))
 
-(ert-deftest tramp-test47-remote-load-path ()
+(ert-deftest tramp-test48-remote-load-path ()
   "Check that Tramp autoloads its packages with remote `load-path'."
   ;; `tramp-cleanup-all-connections' is autoloaded from tramp-cmds.el.
   ;; It shall still work, when a remote file name is in the
@@ -7519,7 +7548,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test48-unload ()
+(ert-deftest tramp-test49-unload ()
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)
@@ -7620,19 +7649,19 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * file-name-case-insensitive-p
 ;; * memory-info
 ;; * tramp-get-home-directory
-;; * tramp-get-remote-gid
-;; * tramp-get-remote-groups
-;; * tramp-get-remote-uid
 ;; * tramp-set-file-uid-gid
 
 ;; * Work on skipped tests.  Make a comment, when it is impossible.
 ;; * Revisit expensive tests, once problems in `tramp-error' are solved.
 ;; * Fix `tramp-test06-directory-file-name' for "ftp".
+;; * Check, why a process filter t doesn't work in
+;;   `tramp-test29-start-file-process' and
+;;   `tramp-test30-make-process'.
 ;; * Implement `tramp-test31-interrupt-process' and
 ;;   `tramp-test31-signal-process' for "adb", "sshfs" and for direct
 ;;   async processes.  Check, why they don't run stable.
 ;; * Check, why direct async processes do not work for
-;;   `tramp-test44-asynchronous-requests'.
+;;   `tramp-test45-asynchronous-requests'.
 
 (provide 'tramp-tests)
 

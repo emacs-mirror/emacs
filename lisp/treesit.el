@@ -905,6 +905,14 @@ This is not a general optimization and should be RARELY needed!
 See comments in `treesit-font-lock-fontify-region' for more
 detail.")
 
+(defvar-local treesit--font-lock-fast-mode-grace-count 5
+  "Grace counts before we turn on the fast mode.
+
+When query takes abnormally long time to execute, we turn on the
+\"fast mode\", but just to be on the safe side, we only turn on
+the fast mode after this number of offenses.  See bug#60691,
+bug#60223.")
+
 ;; Some details worth explaining:
 ;;
 ;; 1. When we apply face to a node, we clip the face into the
@@ -927,13 +935,13 @@ detail.")
 ;; parse it into a enormously tall tree (10k levels tall).  In that
 ;; case querying the root node is very slow.  So we try to get
 ;; top-level nodes and query them.  This ensures that querying is fast
-;; everywhere else, except for the problematic region.
+;; everywhere else, except for the problematic region.  (Bug#59415).
 ;;
 ;; Some other time the source file has a top-level node that contains
-;; a huge number of children (say, 10k children), querying that node
-;; is also very slow, so instead of getting the top-level node, we
-;; recursively go down the tree to find nodes that cover the region
-;; but are reasonably small.
+;; a huge number of immediate children (say, 10k children), querying
+;; that node is also very slow, so instead of getting the top-level
+;; node, we recursively go down the tree to find nodes that cover the
+;; region but are reasonably small.  (Bug#59738).
 ;;
 ;; 3. It is possible to capture a node that's completely outside the
 ;; region between START and END: as long as the whole pattern
@@ -941,8 +949,8 @@ detail.")
 ;; returned.  If the node is outside of that region, (max node-start
 ;; start) and friends return bad values, so we filter them out.
 ;; However, we don't filter these nodes out if a function will process
-;; the node, because could (and often do) fontify the relatives of the
-;; captured node, not just the node itself.  If we took out those
+;; the node, because it could (and often do) fontify the relatives of
+;; the captured node, not just the node itself.  If we took out those
 ;; nodes author of those functions would be very confused.
 (defun treesit-font-lock-fontify-region (start end &optional loudly)
   "Fontify the region between START and END.
@@ -979,9 +987,12 @@ If LOUDLY is non-nil, display some debugging information."
                  (end-time (current-time)))
             ;; If for any query the query time is strangely long,
             ;; switch to fast mode (see comments above).
-            (when (> (time-to-seconds (time-subtract end-time start-time))
-                     0.01)
-              (setq-local treesit--font-lock-fast-mode t))
+            (when (and (> (time-to-seconds
+                           (time-subtract end-time start-time))
+                          0.01))
+              (if (> treesit--font-lock-fast-mode-grace-count 0)
+                  (cl-decf treesit--font-lock-fast-mode-grace-count)
+                (setq-local treesit--font-lock-fast-mode t)))
 
             ;; For each captured node, fontify that node.
             (with-silent-modifications
@@ -1152,6 +1163,9 @@ See `treesit-simple-indent-presets'.")
                     (and (>= (point) comment-start-bol)
                          adaptive-fill-regexp
                          (looking-at adaptive-fill-regexp)
+                         ;; If previous line is an empty line, don't
+                         ;; indent.
+                         (not (looking-at (rx (* whitespace) eol)))
                          (match-end 0))))))
         ;; TODO: Document.
         (cons 'grand-parent
