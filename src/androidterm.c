@@ -683,7 +683,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	      XSETFRAME (inev.ie.frame_or_window, f);
 	    }
 	  else
-	    /* A new frame must be created.  */;
+	    ((void) 0) /* A new frame must be created.  */;
 	}
 
     case ANDROID_ENTER_NOTIFY:
@@ -988,6 +988,9 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
 	      if (!NILP (Vmouse_highlight))
 		{
+		  /* Clear the pointer invisible flag to always make
+		     note_mouse_highlight do its thing.  */
+		  any->pointer_invisible = false;
 		  note_mouse_highlight (any, x, y);
 
 		  /* Always allow future mouse motion to

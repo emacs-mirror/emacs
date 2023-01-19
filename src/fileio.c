@@ -6325,6 +6325,11 @@ effect except for flushing STREAM's data.  */)
 
 #ifndef DOS_NT
 
+#if defined STAT_STATFS2_BSIZE || defined STAT_STATFS2_FRSIZE	\
+  || defined STAT_STATFS2_FSIZE || defined STAT_STATFS3_OSF1	\
+  || defined STAT_STATFS4 || defined STAT_STATVFS		\
+  || defined STAT_STATVFS64
+
 /* Yield a Lisp number equal to BLOCKSIZE * BLOCKS, with the result
    negated if NEGATE.  */
 static Lisp_Object
@@ -6338,6 +6343,8 @@ blocks_to_bytes (uintmax_t blocksize, uintmax_t blocks, bool negate)
     bs = CALLN (Fminus, bs);
   return CALLN (Ftimes, bs, make_uint (blocks));
 }
+
+#endif
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
        doc: /* Return storage information about the file system FILENAME is on.
@@ -6360,6 +6367,11 @@ If the underlying system call fails, value is nil.  */)
       error ("Invalid handler in `file-name-handler-alist'");
     }
 
+  /* Try to detect whether or not fsusage.o is actually built.  */
+#if defined STAT_STATFS2_BSIZE || defined STAT_STATFS2_FRSIZE	\
+  || defined STAT_STATFS2_FSIZE || defined STAT_STATFS3_OSF1	\
+  || defined STAT_STATFS4 || defined STAT_STATVFS		\
+  || defined STAT_STATVFS64
   struct fs_usage u;
   if (get_fs_usage (SSDATA (ENCODE_FILE (filename)), NULL, &u) != 0)
     return errno == ENOSYS ? Qnil : file_attribute_errno (filename, errno);
@@ -6367,6 +6379,9 @@ If the underlying system call fails, value is nil.  */)
 		blocks_to_bytes (u.fsu_blocksize, u.fsu_bfree, false),
 		blocks_to_bytes (u.fsu_blocksize, u.fsu_bavail,
 				 u.fsu_bavail_top_bit_set));
+#else
+  return Qnil;
+#endif
 }
 
 #endif /* !DOS_NT */

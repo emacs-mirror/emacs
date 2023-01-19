@@ -148,6 +148,9 @@ HAVE_BE_APP=@HAVE_BE_APP@
 HAIKU_LIBS=@HAIKU_LIBS@
 HAIKU_CFLAGS=@HAIKU_CFLAGS@
 
+## Android build-time support
+ANDROID=@ANDROID@
+
 # emacsclientw.exe for MinGW, empty otherwise
 CLIENTW = @CLIENTW@
 
@@ -164,7 +167,12 @@ UTILITIES = hexl${EXEEXT} 			 	 \
 ifeq ($(HAVE_BE_APP),yes)
 DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT} be-resources
 else
+ifeq ($(HAVE_ANDROID),yes)
+DONT_INSTALL = make-docfile${EXEEXT} make-fingerprint${EXEEXT} \
+	asset-directory-tool
+else
 DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT}
+endif
 endif
 
 # Like UTILITIES, but they're not system-dependent, and should not be
@@ -413,6 +421,9 @@ etags${EXEEXT}: ${etags_deps}
 ## Can't we use a wrapper that calls 'etags --ctags'?
 ctags${EXEEXT}: ${srcdir}/ctags.c ${etags_deps}
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(etags_libs)
+
+asset-directory-tool${EXEEXT}: ${srcdir}/asset-directory-tool.c $(config_h)
+	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< $(LOADLIBES) -o $@
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(NTLIB) \
                    $(config_h)

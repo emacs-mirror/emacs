@@ -66,18 +66,10 @@ public class EmacsCopyArea
 
     paint = gc.gcPaint;
 
-    canvas = destination.lockCanvas ();
+    canvas = destination.lockCanvas (gc);
 
     if (canvas == null)
       return;
-
-    canvas.save ();
-
-    if (gc.real_clip_rects != null)
-      {
-	for (i = 0; i < gc.real_clip_rects.length; ++i)
-	  canvas.clipRect (gc.real_clip_rects[i]);
-      }
 
     /* A copy must be created or drawBitmap could end up overwriting
        itself.  */
@@ -189,7 +181,6 @@ public class EmacsCopyArea
 	maskBitmap.recycle ();
       }
 
-    canvas.restore ();
     destination.damageRect (rect);
   }
 }

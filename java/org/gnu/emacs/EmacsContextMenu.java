@@ -168,10 +168,22 @@ public class EmacsContextMenu
       {
 	if (item.subMenu != null)
 	  {
-	    /* This is a submenu.  Create the submenu and add the
-	       contents of the menu to it.  */
-	    submenu = menu.addSubMenu (item.itemName);
-	    item.subMenu.inflateMenuItems (submenu);
+	    try
+	      {
+		/* This is a submenu.  On versions of Android which
+		   support doing so, create the submenu and add the
+		   contents of the menu to it.  */
+		submenu = menu.addSubMenu (item.itemName);
+	      }
+	    catch (UnsupportedOperationException exception)
+	      {
+		/* This version of Android has a restriction
+		   preventing submenus from being added to submenus.
+		   Inflate everything into the parent menu
+		   instead.  */
+		item.subMenu.inflateMenuItems (menu);
+		continue;
+	      }
 
 	    /* This is still needed to set wasSubmenuSelected.  */
 	    menuItem = submenu.getItem ();

@@ -231,6 +231,7 @@ ID
 # Executables.
 *.exe
 a.out
+lib-src/asset-directory-tool
 lib-src/be-resources
 lib-src/blessmail
 lib-src/ctags
@@ -253,6 +254,7 @@ nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist
 src/bootstrap-emacs
 src/emacs
 src/emacs-[0-9]*
+src/sfnt
 src/Emacs
 src/temacs
 src/dmpstruct.h

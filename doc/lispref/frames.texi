@@ -3725,9 +3725,9 @@ This function displays a pop-up menu and returns an indication of
 what selection the user makes.
 
 The argument @var{position} specifies where on the screen to put the
-top left corner of the menu.  It can be either a mouse button event
-(which says to put the menu where the user actuated the button) or a
-list of this form:
+top left corner of the menu.  It can be either a mouse button or
+@code{touchscreen-begin} event (which says to put the menu where the
+user actuated the button) or a list of this form:
 
 @example
 ((@var{xoffset} @var{yoffset}) @var{window})

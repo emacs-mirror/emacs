@@ -54,6 +54,9 @@ bool android_init_gui;
 #include <android/log.h>
 
 #include <linux/ashmem.h>
+#include <linux/unistd.h>
+
+#include <sys/syscall.h>
 
 #define ANDROID_THROW(env, class, msg)					\
   ((*(env))->ThrowNew ((env), (*(env))->FindClass ((env), class), msg))
@@ -112,6 +115,12 @@ struct android_emacs_drawable
   jclass class;
   jmethodID get_bitmap;
   jmethodID damage_rect;
+};
+
+struct android_emacs_window
+{
+  jclass class;
+  jmethodID swap_buffers;
 };
 
 /* The asset manager being used.  */
@@ -181,6 +190,9 @@ static struct android_graphics_point point_class;
 /* Various methods associated with the EmacsDrawable class.  */
 static struct android_emacs_drawable drawable_class;
 
+/* Various methods associated with the EmacsWindow class.  */
+static struct android_emacs_window window_class;
+
 
 
 /* Event handling functions.  Events are stored on a (circular) queue
@@ -247,10 +259,21 @@ android_run_select_thread (void *data)
 
   sigfillset (&signals);
 
+#if __ANDROID_API__ < 16
+  /* sigprocmask must be used instead of pthread_sigmask due to a bug
+     in Android versions earlier than 16.  It only affects the calling
+     thread on Android anyhow.  */
+
+  if (sigprocmask (SIG_BLOCK, &signals, NULL))
+    __android_log_print (ANDROID_LOG_FATAL, __func__,
+			 "sigprocmask: %s",
+			 strerror (errno));
+#else
   if (pthread_sigmask (SIG_BLOCK, &signals, NULL))
     __android_log_print (ANDROID_LOG_FATAL, __func__,
 			 "pthread_sigmask: %s",
 			 strerror (errno));
+#endif
 
   sigdelset (&signals, SIGUSR1);
   sigemptyset (&waitset);
@@ -292,6 +315,8 @@ android_run_select_thread (void *data)
 	 still be locked, so this must come before.  */
       sem_post (&android_pselect_sem);
     }
+
+  return NULL;
 }
 
 static void
@@ -538,6 +563,200 @@ android_run_debug_thread (void *data)
 
 
 
+/* Asset directory handling functions.  ``directory-tree'' is a file in
+   the root of the assets directory describing its contents.
+
+   See lib-src/asset-directory-tool for more details.  */
+
+/* The Android directory tree.  */
+static const char *directory_tree;
+
+/* The size of the directory tree.  */
+static size_t directory_tree_size;
+
+/* Read an unaligned (32-bit) long from the address POINTER.  */
+
+static unsigned int
+android_extract_long (char *pointer)
+{
+  unsigned int number;
+
+  memcpy (&number, pointer, sizeof number);
+  return number;
+}
+
+/* Scan to the file FILE in the asset directory tree.  Return a
+   pointer to the end of that file (immediately before any children)
+   in the directory tree, or NULL if that file does not exist.
+
+   If returning non-NULL, also return the offset to the end of the
+   last subdirectory or file in *LIMIT_RETURN.  LIMIT_RETURN may be
+   NULL.
+
+   FILE must have less than 11 levels of nesting.  If it ends with a
+   trailing slash, then NULL will be returned if it is not actually a
+   directory.  */
+
+static const char *
+android_scan_directory_tree (char *file, size_t *limit_return)
+{
+  char *token, *saveptr, *copy, *copy1, *start, *max, *limit;
+  size_t token_length, ntokens, i;
+  char *tokens[10];
+
+  USE_SAFE_ALLOCA;
+
+  /* Skip past the 5 byte header.  */
+  start = (char *) directory_tree + 5;
+
+  /* Figure out the current limit.  */
+  limit = (char *) directory_tree + directory_tree_size;
+
+  /* Now, split `file' into tokens, with the delimiter being the file
+     name separator.  Look for the file and seek past it.  */
+
+  ntokens = 0;
+  saveptr = NULL;
+  copy = copy1 = xstrdup (file);
+  memset (tokens, 0, sizeof tokens);
+
+  while ((token = strtok_r (copy, "/", &saveptr)))
+    {
+      copy = NULL;
+
+      /* Make sure ntokens is within bounds.  */
+      if (ntokens == ARRAYELTS (tokens))
+	{
+	  xfree (copy1);
+	  goto fail;
+	}
+
+      tokens[ntokens] = SAFE_ALLOCA (strlen (token) + 1);
+      memcpy (tokens[ntokens], token, strlen (token) + 1);
+      ntokens++;
+    }
+
+  /* Free the copy created for strtok_r.  */
+  xfree (copy1);
+
+  /* If there are no tokens, just return the start of the directory
+     tree.  */
+  if (!ntokens)
+    {
+      SAFE_FREE ();
+
+      /* Subtract the initial header bytes.  */
+      if (limit_return)
+	*limit_return = directory_tree_size - 5;
+
+      return start;
+    }
+
+  /* Loop through tokens, indexing the directory tree each time.  */
+
+  for (i = 0; i < ntokens; ++i)
+    {
+      token = tokens[i];
+
+      /* Figure out how many bytes to compare.  */
+      token_length = strlen (token);
+
+    again:
+
+      /* If this would be past the directory, return NULL.  */
+      if (start + token_length > limit)
+	goto fail;
+
+      /* Now compare the file name.  */
+      if (!memcmp (start, token, token_length))
+	{
+	  /* They probably match.  Find the NULL byte.  It must be
+	     either one byte past start + token_length, with the last
+	     byte a trailing slash (indicating that it is a
+	     directory), or just start + token_length.  Return 4 bytes
+	     past the next NULL byte.  */
+
+	  max = memchr (start, 0, limit - start);
+
+	  if (max != start + token_length
+	      && !(max == start + token_length + 1
+		   && *(max - 1) == '/'))
+	    goto false_positive;
+
+	  /* Return it if it exists and is in range, and this is the
+	     last token.  Otherwise, set it as start and the limit as
+	     start + the offset and continue the loop.  */
+
+	  if (max && max + 5 <= limit)
+	    {
+	      if (i < ntokens - 1)
+		{
+		  start = max + 5;
+		  limit = ((char *) directory_tree
+			   + android_extract_long (max + 1));
+
+		  /* Make sure limit is still in range.  */
+		  if (limit > directory_tree + directory_tree_size
+		      || start > directory_tree + directory_tree_size)
+		    goto fail;
+
+		  continue;
+		}
+
+	      /* Now see if max is not a directory and file is.  If
+	         file is a directory, then return NULL.  */
+	      if (*(max - 1) != '/' && file[strlen (file) - 1] == '/')
+		max = NULL;
+	      else
+		{
+		  /* Figure out the limit.  */
+		  if (limit_return)
+		    *limit_return = android_extract_long (max + 1);
+
+		  /* Go to the end of this file.  */
+		  max += 5;
+		}
+
+	      SAFE_FREE ();
+	      return max;
+	    }
+
+	  /* Return NULL otherwise.  */
+	  __android_log_print (ANDROID_LOG_WARN, __func__,
+			       "could not scan to end of directory tree"
+			       ": %s", file);
+	  goto fail;
+	}
+
+    false_positive:
+
+      /* No match was found.  Set start to the next sibling and try
+	 again.  */
+
+      start = memchr (start, 0, limit - start);
+
+      if (!start || start + 5 > limit)
+	goto fail;
+
+      start = ((char *) directory_tree
+	       + android_extract_long (start + 1));
+
+      /* Make sure start is still in bounds.  */
+
+      if (start > limit)
+	goto fail;
+
+      /* Continue the loop.  */
+      goto again;
+    }
+
+ fail:
+  SAFE_FREE ();
+  return NULL;
+}
+
+
+
 /* Intercept USER_FULL_NAME and return something that makes sense if
    pw->pw_gecos is NULL.  */
 
@@ -624,10 +843,6 @@ android_fstatat (int dirfd, const char *restrict pathname,
 bool
 android_file_access_p (const char *name, int amode)
 {
-  AAsset *asset;
-  AAssetDir *directory;
-  int length;
-
   if (!asset_manager)
     return false;
 
@@ -637,50 +852,11 @@ android_file_access_p (const char *name, int amode)
 	/* /assets always exists.  */
 	return true;
 
-      /* Check if the asset exists by opening it.  Suboptimal! */
-      asset = AAssetManager_open (asset_manager, name,
-				  AASSET_MODE_UNKNOWN);
-
-      if (!asset)
-	{
-	  /* See if it's a directory as well.  To open a directory
-	     with the asset manager, the trailing slash (if specified)
-	     must be removed.  */
-	  directory = AAssetManager_openDir (asset_manager, name);
-
-	  if (directory)
-	    {
-	      /* Make sure the directory actually has files in it.  */
-
-	      if (!AAssetDir_getNextFileName (directory))
-		{
-		  AAssetDir_close (directory);
-		  errno = ENOENT;
-		  return false;
-		}
-
-	      AAssetDir_close (directory);
-	      return true;
-	    }
-
-	  errno = ENOENT;
-	  return false;
-	}
-
-      AAsset_close (asset);
-
-      /* If NAME is a directory name, but it was a regular file, set
-	 errno to ENOTDIR and return false.  This is to behave like
-	 faccessat.  */
-
-      length = strlen (name);
-      if (name[length - 1] == '/')
-	{
-	  errno = ENOTDIR;
-	  return false;
-	}
-
-      return true;
+      /* Check if the file exists by looking in the ``directory tree''
+	 asset generated during the build process.  This is used
+	 instead of the AAsset functions, because the latter are
+	 buggy and treat directories inconsistently.  */
+      return android_scan_directory_tree ((char *) name, NULL) != NULL;
     }
 
   return false;
@@ -908,8 +1084,13 @@ android_get_home_directory (void)
 
 /* JNI functions called by Java.  */
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+#endif
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
@@ -923,6 +1104,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   int pipefd[2];
   pthread_t thread;
   const char *java_string;
+  AAsset *asset;
 
   /* This may be called from multiple threads.  setEmacsParams should
      only ever be called once.  */
@@ -942,6 +1124,33 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 
   /* Set the asset manager.  */
   asset_manager = AAssetManager_fromJava (env, local_asset_manager);
+
+  /* Initialize the directory tree.  */
+  asset = AAssetManager_open (asset_manager, "directory-tree",
+			      AASSET_MODE_BUFFER);
+
+  if (!asset)
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "Failed to open directory tree");
+      emacs_abort ();
+    }
+
+  directory_tree = AAsset_getBuffer (asset);
+
+  if (!directory_tree)
+    emacs_abort ();
+
+  /* Now figure out how big the directory tree is, and compare the
+     first few bytes.  */
+  directory_tree_size = AAsset_getLength (asset);
+  if (directory_tree_size < 5
+      || memcmp (directory_tree, "EMACS", 5))
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "Directory tree has bad magic");
+      emacs_abort ();
+    }
 
   /* Hold a VM reference to the asset manager to prevent the native
      object from being deleted.  */
@@ -1199,6 +1408,36 @@ android_init_emacs_drawable (void)
 #undef FIND_METHOD
 }
 
+static void
+android_init_emacs_window (void)
+{
+  jclass old;
+
+  window_class.class
+    = (*android_java_env)->FindClass (android_java_env,
+				      "org/gnu/emacs/EmacsWindow");
+  eassert (window_class.class);
+
+  old = window_class.class;
+  window_class.class
+    = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
+						  (jobject) old);
+  ANDROID_DELETE_LOCAL_REF (old);
+
+  if (!window_class.class)
+    emacs_abort ();
+
+#define FIND_METHOD(c_name, name, signature)			\
+  window_class.c_name						\
+    = (*android_java_env)->GetMethodID (android_java_env,	\
+					window_class.class,	\
+					name, signature);	\
+  assert (window_class.c_name);
+
+  FIND_METHOD (swap_buffers, "swapBuffers", "()V");
+#undef FIND_METHOD
+}
+
 extern JNIEXPORT void JNICALL
 NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv)
 {
@@ -1232,6 +1471,7 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv)
   android_init_emacs_pixmap ();
   android_init_graphics_point ();
   android_init_emacs_drawable ();
+  android_init_emacs_window ();
 
   /* Set HOME to the app data directory.  */
   setenv ("HOME", android_files_dir, 1);
@@ -1545,7 +1785,11 @@ NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
   android_write_event (&event);
 }
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#else
+#pragma GCC diagnostic pop
+#endif
 
 
 
@@ -1556,8 +1800,6 @@ NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
 
    This means that every local reference must be explicitly destroyed
    with DeleteLocalRef.  A helper macro is provided to do this.  */
-
-#define MAX_HANDLE 65535
 
 struct android_handle_entry
 {
@@ -1883,7 +2125,7 @@ android_init_emacs_gc_class (void)
   emacs_gc_mark_dirty
     = (*android_java_env)->GetMethodID (android_java_env,
 					emacs_gc_class,
-					"markDirty", "()V");
+					"markDirty", "(Z)V");
   assert (emacs_gc_mark_dirty);
 
   old = emacs_gc_class;
@@ -2011,6 +2253,9 @@ android_change_gc (struct android_gc *gc,
 		   struct android_gc_values *values)
 {
   jobject what, gcontext;
+  jboolean clip_changed;
+
+  clip_changed = false;
 
   android_init_emacs_gc_class ();
   gcontext = android_resolve_handle (gc->gcontext,
@@ -2041,16 +2286,22 @@ android_change_gc (struct android_gc *gc,
 				      values->function);
 
   if (mask & ANDROID_GC_CLIP_X_ORIGIN)
-    (*android_java_env)->SetIntField (android_java_env,
-				      gcontext,
-				      emacs_gc_clip_x_origin,
-				      values->clip_x_origin);
+    {
+      (*android_java_env)->SetIntField (android_java_env,
+					gcontext,
+					emacs_gc_clip_x_origin,
+					values->clip_x_origin);
+      clip_changed = true;
+    }
 
   if (mask & ANDROID_GC_CLIP_Y_ORIGIN)
-    (*android_java_env)->SetIntField (android_java_env,
-				      gcontext,
-				      emacs_gc_clip_y_origin,
-				      values->clip_y_origin);
+    {
+      (*android_java_env)->SetIntField (android_java_env,
+					gcontext,
+					emacs_gc_clip_y_origin,
+					values->clip_y_origin);
+      clip_changed = true;
+    }
 
   if (mask & ANDROID_GC_CLIP_MASK)
     {
@@ -2070,6 +2321,7 @@ android_change_gc (struct android_gc *gc,
       xfree (gc->clip_rects);
       gc->clip_rects = NULL;
       gc->num_clip_rects = -1;
+      clip_changed = true;
     }
 
   if (mask & ANDROID_GC_STIPPLE)
@@ -2103,7 +2355,8 @@ android_change_gc (struct android_gc *gc,
   if (mask)
     (*android_java_env)->CallVoidMethod (android_java_env,
 					 gcontext,
-					 emacs_gc_mark_dirty);
+					 emacs_gc_mark_dirty,
+					 (jboolean) clip_changed);
 }
 
 void
@@ -2174,7 +2427,8 @@ android_set_clip_rectangles (struct android_gc *gc, int clip_x_origin,
 
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       gcontext,
-				       emacs_gc_mark_dirty);
+				       emacs_gc_mark_dirty,
+				       (jboolean) true);
 
   /* Cache the clip rectangles on the C side for
      sfntfont-android.c.  */
@@ -2327,18 +2581,15 @@ android_swap_buffers (struct android_swap_info *swap_info,
 		      int num_windows)
 {
   jobject window;
-  jmethodID swap_buffers;
   int i;
-
-  swap_buffers = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-					"swapBuffers", "()V");
 
   for (i = 0; i < num_windows; ++i)
     {
       window = android_resolve_handle (swap_info[i].swap_window,
 				       ANDROID_HANDLE_WINDOW);
       (*android_java_env)->CallVoidMethod (android_java_env,
-					   window, swap_buffers);
+					   window,
+					   window_class.swap_buffers);
     }
 }
 
@@ -3555,11 +3806,17 @@ android_sync (void)
 
 
 
+#if __ANDROID_API__ >= 17
+
 #undef faccessat
 
 /* Replace the system faccessat with one which understands AT_EACCESS.
    Android's faccessat simply fails upon using AT_EACCESS, so repalce
-   it with zero here.  This isn't caught during configuration.  */
+   it with zero here.  This isn't caught during configuration.
+
+   This replacement is only done when building for Android 17 or
+   later, because earlier versions use the gnulib replacement that
+   lacks these issues.  */
 
 int
 faccessat (int dirfd, const char *pathname, int mode, int flags)
@@ -3572,6 +3829,8 @@ faccessat (int dirfd, const char *pathname, int mode, int flags)
   return real_faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
 }
 
+#endif /* __ANDROID_API__ < 16 */
+
 
 
 /* Directory listing emulation.  */
@@ -3581,8 +3840,11 @@ struct android_dir
   /* The real DIR *, if it exists.  */
   DIR *dir;
 
-  /* Otherwise, the AAssetDir.  */
-  void *asset_dir;
+  /* Otherwise, the pointer to the directory in directory_tree.  */
+  char *asset_dir;
+
+  /* And the end of the files in asset_dir.  */
+  char *asset_limit;
 };
 
 /* Like opendir.  However, return an asset directory if NAME points to
@@ -3592,8 +3854,9 @@ struct android_dir *
 android_opendir (const char *name)
 {
   struct android_dir *dir;
-  AAssetDir *asset_dir;
+  char *asset_dir;
   const char *asset_name;
+  size_t limit;
 
   asset_name = android_get_asset_name (name);
 
@@ -3601,8 +3864,9 @@ android_opendir (const char *name)
      directory.  */
   if (asset_manager && asset_name)
     {
-      asset_dir = AAssetManager_openDir (asset_manager,
-					 asset_name);
+      asset_dir
+	= (char *) android_scan_directory_tree ((char *) asset_name,
+						&limit);
 
       if (!asset_dir)
 	{
@@ -3613,6 +3877,20 @@ android_opendir (const char *name)
       dir = xmalloc (sizeof *dir);
       dir->dir = NULL;
       dir->asset_dir = asset_dir;
+      dir->asset_limit = (char *) directory_tree + limit;
+
+      /* Make sure dir->asset_limit is within bounds.  It is a limit,
+	 and as such can be exactly one byte past directory_tree.  */
+      if (dir->asset_limit > directory_tree + directory_tree_size)
+	{
+	  xfree (dir);
+	  __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+			       "Invalid dir tree, limit %zu, size %zu\n",
+			       limit, directory_tree_size);
+	  dir = NULL;
+	  errno = EACCES;
+	}
+
       return dir;
     }
 
@@ -3636,23 +3914,55 @@ struct dirent *
 android_readdir (struct android_dir *dir)
 {
   static struct dirent dirent;
-  const char *filename;
+  const char *last;
 
   if (dir->asset_dir)
     {
-      filename = AAssetDir_getNextFileName (dir->asset_dir);
-      errno = 0;
-
-      if (!filename)
+      /* There are no more files to read.  */
+      if (dir->asset_dir >= dir->asset_limit)
 	return NULL;
 
+      /* Otherwise, scan forward looking for the next NULL byte.  */
+      last = memchr (dir->asset_dir, 0,
+		     dir->asset_limit - dir->asset_dir);
+
+      /* No more NULL bytes remain.  */
+      if (!last)
+	return NULL;
+
+      /* Forward last past the NULL byte.  */
+      last++;
+
+      /* Make sure it is still within the directory tree.  */
+      if (last >= directory_tree + directory_tree_size)
+	return NULL;
+
+      /* Now, fill in the dirent with the name.  */
       memset (&dirent, 0, sizeof dirent);
       dirent.d_ino = 0;
       dirent.d_off = 0;
       dirent.d_reclen = sizeof dirent;
       dirent.d_type = DT_UNKNOWN;
-      strncpy (dirent.d_name, filename,
-	       sizeof dirent.d_name - 1);
+
+      /* Note that dir->asset_dir is actually a NULL terminated
+	 string.  */
+      memcpy (dirent.d_name, dir->asset_dir,
+	      MIN (sizeof dirent.d_name,
+		   last - dir->asset_dir));
+      dirent.d_name[sizeof dirent.d_name - 1] = '\0';
+
+      /* Strip off the trailing slash, if any.  */
+      if (dirent.d_name[MIN (sizeof dirent.d_name,
+			     last - dir->asset_dir)
+			- 2] == '/')
+	dirent.d_name[MIN (sizeof dirent.d_name,
+			   last - dir->asset_dir)
+		      - 2] = '\0';
+
+      /* Finally, forward dir->asset_dir to the file past last.  */
+      dir->asset_dir = ((char *) directory_tree
+			+ android_extract_long ((char *) last));
+
       return &dirent;
     }
 
@@ -3666,8 +3976,9 @@ android_closedir (struct android_dir *dir)
 {
   if (dir->dir)
     closedir (dir->dir);
-  else
-    AAssetDir_close (dir->asset_dir);
+
+  /* There is no need to close anything else, as the directory tree
+     lies in statically allocated memory.  */
 
   xfree (dir);
 }
@@ -3795,40 +4106,40 @@ android_four_corners_bilinear (unsigned int tl, unsigned int tr,
 			       unsigned int bl, unsigned int br,
 			       int distx, int disty)
 {
-    int distxy, distxiy, distixy, distixiy;
-    uint32_t f, r;
+  int distxy, distxiy, distixy, distixiy;
+  uint32_t f, r;
 
-    distxy = distx * disty;
-    distxiy = (distx << 8) - distxy;
-    distixy = (disty << 8) - distxy;
-    distixiy = (256 * 256 - (disty << 8)
-		- (distx << 8) + distxy);
+  distxy = distx * disty;
+  distxiy = (distx << 8) - distxy;
+  distixy = (disty << 8) - distxy;
+  distixiy = (256 * 256 - (disty << 8)
+	      - (distx << 8) + distxy);
 
-    /* Red */
-    r = ((tl & 0x000000ff) * distixiy + (tr & 0x000000ff) * distxiy
-	 + (bl & 0x000000ff) * distixy  + (br & 0x000000ff) * distxy);
+  /* Red */
+  r = ((tl & 0x000000ff) * distixiy + (tr & 0x000000ff) * distxiy
+       + (bl & 0x000000ff) * distixy  + (br & 0x000000ff) * distxy);
 
-    /* Green */
-    f = ((tl & 0x0000ff00) * distixiy + (tr & 0x0000ff00) * distxiy
-	 + (bl & 0x0000ff00) * distixy  + (br & 0x0000ff00) * distxy);
-    r |= f & 0xff000000;
+  /* Green */
+  f = ((tl & 0x0000ff00) * distixiy + (tr & 0x0000ff00) * distxiy
+       + (bl & 0x0000ff00) * distixy  + (br & 0x0000ff00) * distxy);
+  r |= f & 0xff000000;
 
-    /* Now do the upper two components.  */
-    tl >>= 16;
-    tr >>= 16;
-    bl >>= 16;
-    br >>= 16;
-    r >>= 16;
+  /* Now do the upper two components.  */
+  tl >>= 16;
+  tr >>= 16;
+  bl >>= 16;
+  br >>= 16;
+  r >>= 16;
 
-    /* Blue */
-    f = ((tl & 0x000000ff) * distixiy + (tr & 0x000000ff) * distxiy
-	 + (bl & 0x000000ff) * distixy  + (br & 0x000000ff) * distxy);
-    r |= f & 0x00ff0000;
+  /* Blue */
+  f = ((tl & 0x000000ff) * distixiy + (tr & 0x000000ff) * distxiy
+       + (bl & 0x000000ff) * distixy  + (br & 0x000000ff) * distxy);
+  r |= f & 0x00ff0000;
 
-    /* Alpha */
-    f = ((tl & 0x0000ff00) * distixiy + (tr & 0x0000ff00) * distxiy
-	 + (bl & 0x0000ff00) * distixy  + (br & 0x0000ff00) * distxy);
-    r |= f & 0xff000000;
+  /* Alpha */
+  f = ((tl & 0x0000ff00) * distixiy + (tr & 0x0000ff00) * distxiy
+       + (bl & 0x0000ff00) * distixy  + (br & 0x0000ff00) * distxy);
+  r |= f & 0xff000000;
 
   return r;
 }
@@ -4009,6 +4320,36 @@ android_project_image_nearest (struct android_image *image,
 	}
     }
 }
+
+
+
+/* System call wrappers for stuff missing in bionic.  */
+
+#ifndef HAVE_FTRUNCATE
+
+/* ftruncate wrapper for Android, for systems without ftruncate in the
+   C library.
+
+   Such systems are always 32 bit systems, since Android 21 and later
+   all support ftruncate.  In addition, ARM and MIPS require registers
+   used to store long long parameters to be aligned to an even
+   register pair.  */
+
+int
+android_ftruncate (int fd, off_t length)
+{
+  int rc;
+
+#if defined __arm__ || defined __mips__
+  return syscall (SYS_ftruncate64, fd, 0,
+		  (unsigned int) (length & 0xffffffff),
+		  (unsigned int) (length >> 32));
+#else
+  return syscall (SYS_ftruncate64, fd, length);
+#endif
+}
+
+#endif
 
 #else /* ANDROID_STUBIFY */
 

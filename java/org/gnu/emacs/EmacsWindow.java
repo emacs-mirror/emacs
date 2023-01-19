@@ -164,7 +164,7 @@ public class EmacsWindow extends EmacsHandleObject
   {
     /* scratchGC is used as the argument to a FillRectangles req.  */
     scratchGC.foreground = pixel;
-    scratchGC.markDirty ();
+    scratchGC.markDirty (false);
   }
 
   public Rect
@@ -466,9 +466,9 @@ public class EmacsWindow extends EmacsHandleObject
 
   @Override
   public Canvas
-  lockCanvas ()
+  lockCanvas (EmacsGC gc)
   {
-    return view.getCanvas ();
+    return view.getCanvas (gc);
   }
 
   @Override
@@ -512,37 +512,75 @@ public class EmacsWindow extends EmacsHandleObject
   public void
   onKeyDown (int keyCode, KeyEvent event)
   {
-    int state;
+    int state, state_1;
 
-    state = event.getModifiers ();
-    state &= ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
+      state = event.getModifiers ();
+    else
+      {
+	/* Replace this with getMetaState and manual
+	   normalization.  */
+	state = event.getMetaState ();
+
+	/* Normalize the state by setting the generic modifier bit if
+	   either a left or right modifier is pressed.  */
+
+	if ((state & KeyEvent.META_ALT_LEFT_ON) != 0
+	    || (state & KeyEvent.META_ALT_RIGHT_ON) != 0)
+	  state |= KeyEvent.META_ALT_MASK;
+
+	if ((state & KeyEvent.META_CTRL_LEFT_ON) != 0
+	    || (state & KeyEvent.META_CTRL_RIGHT_ON) != 0)
+	  state |= KeyEvent.META_CTRL_MASK;
+      }
+
+    /* Ignore meta-state understood by Emacs for now, or Ctrl+C will
+       not be recognized as an ASCII key press event.  */
+    state_1
+      = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
 
     EmacsNative.sendKeyPress (this.handle,
 			      event.getEventTime (),
-			      event.getModifiers (),
-			      keyCode,
-			      /* Ignore meta-state understood by Emacs
-				 for now, or Ctrl+C will not be
-				 recognized as an ASCII key press
-				 event.  */
-			      event.getUnicodeChar (state));
-    lastModifiers = event.getModifiers ();
+			      state, keyCode,
+			      event.getUnicodeChar (state_1));
+    lastModifiers = state;
   }
 
   public void
   onKeyUp (int keyCode, KeyEvent event)
   {
-    int state;
+    int state, state_1;
 
-    state = event.getModifiers ();
-    state &= ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
+      state = event.getModifiers ();
+    else
+      {
+	/* Replace this with getMetaState and manual
+	   normalization.  */
+	state = event.getMetaState ();
+
+	/* Normalize the state by setting the generic modifier bit if
+	   either a left or right modifier is pressed.  */
+
+	if ((state & KeyEvent.META_ALT_LEFT_ON) != 0
+	    || (state & KeyEvent.META_ALT_RIGHT_ON) != 0)
+	  state |= KeyEvent.META_ALT_MASK;
+
+	if ((state & KeyEvent.META_CTRL_LEFT_ON) != 0
+	    || (state & KeyEvent.META_CTRL_RIGHT_ON) != 0)
+	  state |= KeyEvent.META_CTRL_MASK;
+      }
+
+    /* Ignore meta-state understood by Emacs for now, or Ctrl+C will
+       not be recognized as an ASCII key press event.  */
+    state_1
+      = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
 
     EmacsNative.sendKeyRelease (this.handle,
 				event.getEventTime (),
-				event.getModifiers (),
-				keyCode,
-				event.getUnicodeChar (state));
-    lastModifiers = event.getModifiers ();
+				state, keyCode,
+				event.getUnicodeChar (state_1));
+    lastModifiers = state;
   }
 
   public void

@@ -59,6 +59,41 @@ built for.
 The generated package can be uploaded onto an SD card (or similar
 medium) and installed on-device.
 
+BUILDING WITH OLD NDK VERSIONS
+
+Building Emacs with an old version of the Android NDK requires special
+setup.  This is because there is no separate C compiler binary for
+each version of Android in those versions of the NDK.
+
+Before running `configure', you must identify three variables:
+
+  - What kind of Android system you are building Emacs for.
+
+  - The minimum API version of Android you want to build Emacs for.
+
+  - The locations of the system root and include files for that
+    version of Android in the NDK.
+
+That information must then be specified as arguments to the NDK C
+compiler.  For example:
+
+  ./configure [...] \
+     ANDROID_CC="i686-linux-android-gcc \
+		 --sysroot=/path/to/ndk/platforms/android-14/arch-x86/"
+     ANDROID_CFLAGS="-isystem /path/to/ndk/sysroot/usr/include \
+		     -isystem /path/to/ndk/sysroot/usr/include/i686-linux-android \
+		     -D__ANDROID_API__=14"
+
+Where __ANDROID_API__ and the version identifier in
+"platforms/android-14" defines the version of Android you are building
+for, and the include directories specify the paths to the relevant
+Android headers.  In addition, it may be necessary to specify
+"-gdwarf-2", due to a bug in the Android NDK.
+
+Emacs is known to build for Android 2.2 (API version 8) or later, and
+run on Android 2.3 or later.  It is supposed to run on Android 2.2 as
+well.
+
 
 This file is part of GNU Emacs.
 

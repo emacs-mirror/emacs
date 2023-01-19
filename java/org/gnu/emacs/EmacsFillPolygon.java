@@ -41,20 +41,12 @@ public class EmacsFillPolygon
     RectF rectF;
     int i;
 
-    canvas = drawable.lockCanvas ();
+    canvas = drawable.lockCanvas (gc);
 
     if (canvas == null)
       return;
 
     paint = gc.gcPaint;
-
-    canvas.save ();
-
-    if (gc.real_clip_rects != null)
-      {
-	for (i = 0; i < gc.real_clip_rects.length; ++i)
-	  canvas.clipRect (gc.real_clip_rects[i]);
-      }
 
     /* Build the path from the given array of points.  */
     path = new Path ();
@@ -83,7 +75,6 @@ public class EmacsFillPolygon
     if (gc.clip_mask == null)
       canvas.drawPath (path, paint);
 
-    canvas.restore ();
     drawable.damageRect (rect);
 
     /* FillPolygon with clip mask not implemented; it is not used by

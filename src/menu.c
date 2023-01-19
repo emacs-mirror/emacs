@@ -1152,7 +1152,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	else
 	  {
 	    menuflags |= MENU_FOR_CLICK;
-	    tem = Fcar (XCDR (position));    /* EVENT_START (position) */
+	    tem = EVENT_START (position);    /* EVENT_START (position) */
 	    window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	    tem2 = Fcar (Fcdr (tem));	     /* POSN_POSN (tem) */
 	    /* The MENU_KBD_NAVIGATION field is set when the menu
@@ -1466,9 +1466,10 @@ cached information about equivalent key sequences.
 If the user gets rid of the menu without making a valid choice, for
 instance by clicking the mouse away from a valid choice or by typing
 keyboard input, then this normally results in a quit and
-`x-popup-menu' does not return.  But if POSITION is a mouse button
-event (indicating that the user invoked the menu with the mouse) then
-no quit occurs and `x-popup-menu' returns nil.  */)
+`x-popup-menu' does not return.  But if POSITION is a mouse button or
+touch screen event (indicating that the user invoked the menu with the
+a pointing device) then no quit occurs and `x-popup-menu' returns
+nil.  */)
   (Lisp_Object position, Lisp_Object menu)
 {
   init_raw_keybuf_count ();

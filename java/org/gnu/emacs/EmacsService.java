@@ -175,7 +175,12 @@ public class EmacsService extends Service
 	    {
 	      view.thing = new EmacsView (window);
 	      view.thing.setVisibility (visibility);
-	      view.thing.setFocusedByDefault (isFocusedByDefault);
+
+	      /* The following function is only present on Android 26
+		 or later.  */
+	      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+		view.thing.setFocusedByDefault (isFocusedByDefault);
+
 	      notify ();
 	    }
 	}

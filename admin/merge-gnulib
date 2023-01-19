@@ -37,7 +37,7 @@ GNULIB_MODULES='
   fchmodat fcntl fcntl-h fdopendir file-has-acl
   filemode filename filevercmp flexmember fpieee
   free-posix fstatat fsusage fsync futimens
-  getloadavg getopt-gnu getrandom gettime gettimeofday gitlog-to-changelog
+  getline getloadavg getopt-gnu getrandom gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile libgmp lstat
   manywarnings memmem-simple mempcpy memrchr memset_explicit
   minmax mkostemp mktime
@@ -141,7 +141,7 @@ cp -- "$gnulib_srcdir"/lib/af_alg.h \
 ./autogen.sh
 
 # Finally, update the files in lib/ to xcompile/lib.
-rsync "$src"/lib "$src"/xcompile
+rsync -r "$src"/lib "$src"/xcompile
 
 # Remove unnecessary files.
 rm -f "$src"/xcompile/lib/*.mk.in "$src"/xcompile/lib/Makefile.in

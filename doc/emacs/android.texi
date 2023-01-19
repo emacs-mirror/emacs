@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2021--2023 Free Software Foundation, Inc.
+@c Copyright (C) 2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Android
 @appendix Emacs and Android
@@ -8,6 +8,10 @@
   Android is a mobile operating system developed by the Open Handset
 Alliance.  This section describes the peculiarities of using Emacs on
 an Android device running Android 2.2 or later.
+
+  Android devices commonly rely on user input through a touch screen
+or digitizer device.  For more information about using them with
+Emacs, @pxref{other Input Devices}.
 
 @menu
 * What is Android?::	Preamble.
@@ -108,11 +112,6 @@ There are no @file{.} and @file{..} directories inside the
 @item
 Files in the @file{/assets} directory are always read only, and have
 to be completely read in to memory each time they are opened.
-
-@item
-@code{directory-files} does not return a useful value on the
-@file{/assets} directory itself, and does not return subdirectories
-inside subdirectories of the @file{/assets} directory.
 @end itemize
 
   Aside from the @file{/assets} directory, Android programs normally

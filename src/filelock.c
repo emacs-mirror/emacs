@@ -65,6 +65,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define BOOT_TIME_FILE "/var/run/random-seed"
 #endif
 
+/* Boot time is not available on Android.  */
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#undef BOOT_TIME
+#endif
+
 #if !defined WTMP_FILE && !defined WINDOWSNT && defined BOOT_TIME
 #define WTMP_FILE "/var/log/wtmp"
 #endif
@@ -119,12 +125,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    * Non-forced locks on non-MS-Windows systems that support neither
      hard nor symbolic links.  */
-
-/* Boot time is not available on Android.  */
-
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-#undef BOOT_TIME
-#endif
 
 
 /* Return the time of the last system boot.  */

@@ -21,6 +21,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 version = @version@
 
+# This is the host lib-src and lib, not the cross compiler's lib-src.
+libsrc = ../lib-src
+EXEEXT = @EXEEXT@
+
 -include ${top_builddir}/src/verbose.mk
 
 SHELL = @SHELL@
@@ -29,14 +33,25 @@ AAPT = @AAPT@
 D8 = @D8@
 ZIPALIGN = @ZIPALIGN@
 JARSIGNER = @JARSIGNER@
+JARSIGNER_FLAGS =
 ANDROID_JAR = @ANDROID_JAR@
 ANDROID_ABI = @ANDROID_ABI@
+ANDROID_SDK_18_OR_EARLIER = @ANDROID_SDK_18_OR_EARLIER@
 
 WARN_JAVAFLAGS = -Xlint:deprecation
 JAVAFLAGS = -classpath "$(ANDROID_JAR):." -target 1.7 -source 1.7 \
   $(WARN_JAVAFLAGS)
 
-SIGN_EMACS = -keystore emacs.keystore -storepass emacs1
+# Android 4.3 and earlier require Emacs to be signed with a different
+# digital signature algorithm.
+
+ifneq (,$(ANDROID_SDK_18_OR_EARLIER))
+JARSIGNER_FLAGS = -sigalg MD5withRSA -digestalg SHA1
+else
+JARSIGNER_FLAGS =
+endif
+
+SIGN_EMACS = -keystore emacs.keystore -storepass emacs1 $(JARSIGNER_FLAGS)
 
 JAVA_FILES = $(shell find . -type f -name *.java)
 CLASS_FILES = $(foreach file,$(JAVA_FILES),$(basename $(file)).class)
@@ -82,7 +97,14 @@ CROSS_LIBS = ../xcompile/src/libemacs.so
 ../xcompile/lib-src/ctags ../xcompile/lib-src/ebrowse &:
 	make -C ../xcompile lib-src/$(notdir $@)
 
-emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) AndroidManifest.xml
+# This is needed to generate the ``.directory-tree'' file used by the
+# Android emulations of readdir and faccessat.
+
+$(libsrc)/asset-directory-tool:
+	$(MAKE) -C $(libsrc) $(notdir $@)
+
+emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) $(libsrc)/asset-directory-tool \
+  AndroidManifest.xml
 # Make the working directory for this stuff
 	rm -rf install_temp
 	mkdir -p install_temp/lib/$(ANDROID_ABI)
@@ -106,6 +128,9 @@ emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) AndroidManifest.xml
 	  rm -rf $${subdir}/[mM]akefile*[.-]in ;		\
 	  rm -rf $${subdir}/Makefile;				\
 	done
+# Generate the directory tree for those directories.
+	$(libsrc)/asset-directory-tool install_temp/assets	\
+	  install_temp/assets/directory-tree
 # Install architecture dependents to lib/$(ANDROID_ABI).  This
 # perculiar naming scheme is required to make Android preserve these
 # binaries upon installation.
@@ -120,10 +145,12 @@ emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) AndroidManifest.xml
 	    cp -f $$file install_temp/lib/$(ANDROID_ABI);	\
 	  fi 							\
 	done
-# Package everything.
-	$(AAPT) package -I "$(ANDROID_JAR)" -F $@ -f -M AndroidManifest.xml
+# Package everything.  Specifying the assets on this command line is
+# necessary for AAssetManager_getNextFileName to work on old versions
+# of Android.
+	$(AAPT) package -I "$(ANDROID_JAR)" -F $@ -f -M AndroidManifest.xml \
+	  -A install_temp/assets
 	pushd install_temp; $(AAPT) add ../$@ `find lib -type f`; popd
-	pushd install_temp; $(AAPT) add ../$@ `find assets -type f`; popd
 	rm -rf install_temp
 
 # Makefile itself.

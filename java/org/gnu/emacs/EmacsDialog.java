@@ -168,9 +168,6 @@ public class EmacsDialog implements DialogInterface.OnDismissListener
 	    button = buttons.get (1);
 	    dialog.setButton (DialogInterface.BUTTON_NEUTRAL,
 			      button.name, button);
-	    buttonView
-	      = dialog.getButton (DialogInterface.BUTTON_NEUTRAL);
-	    buttonView.setEnabled (button.enabled);
 	  }
 
 	if (size >= 3)

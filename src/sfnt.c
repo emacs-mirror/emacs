@@ -4624,8 +4624,14 @@ main (int argc, char **argv)
     }
 
   if (meta)
-    fprintf (stderr, "meta table with count: %"PRIu32"\n",
-	     meta->num_data_maps);
+    {
+      fprintf (stderr, "meta table with count: %"PRIu32"\n",
+	       meta->num_data_maps);
+
+      for (i = 0; i < meta->num_data_maps; ++i)
+	fprintf (stderr, "  meta tag: %"PRIx32"\n",
+		 meta->data_maps[i].tag);
+    }
 
   loca_long = NULL;
   loca_short = NULL;

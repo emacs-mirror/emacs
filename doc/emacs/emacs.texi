@@ -225,6 +225,7 @@ Appendices
 * Haiku::               Using Emacs on Haiku.
 * Android::             Using Emacs on Android.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
+* Other Input Devices::	Using Emacs with other input devices.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
 
 * Glossary::            Terms used in this manual.
@@ -1265,6 +1266,10 @@ Emacs and Android
 * Android Environment:: Running Emacs under Android.
 * Android Fonts::	Font selection under Android.
 
+Emacs and unconventional input devices
+
+* Touchscreens::	Using Emacs on touchscreens.
+
 Emacs and Microsoft Windows/MS-DOS
 
 * Windows Startup::     How to start Emacs on Windows.
@@ -1636,6 +1641,7 @@ Lisp programming.
 @include macos.texi
 @include haiku.texi
 @include android.texi
+@include input.texi
 @c Includes msdos-xtra.
 @include msdos.texi
 @include gnu.texi

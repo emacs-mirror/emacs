@@ -11,7 +11,8 @@ AC_DEFUN([gl_UTIMENS],
   AC_REQUIRE([gl_FUNC_UTIMES])
   AC_REQUIRE([gl_CHECK_TYPE_STRUCT_TIMESPEC])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
-  AC_CHECK_FUNCS_ONCE([futimens utimensat lutimes])
+  AC_CHECK_FUNCS_ONCE([futimens lutimes])
+  gl_CHECK_FUNCS_ANDROID([utimensat], [[#include <sys/stat.h>]])
   gl_CHECK_FUNCS_ANDROID([futimes], [[#include <sys/time.h>]])
   gl_CHECK_FUNCS_ANDROID([futimesat], [[#include <sys/time.h>]])
 

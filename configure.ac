@@ -31,8 +31,19 @@ if test "$XCONFIGURE" = "android"; then
   # Android!
   AC_MSG_NOTICE([called to recursively configure Emacs \
 for Android.])
-  # Set CC to ANDROID_CC.
+  # Set CC to ANDROID_CC and CFLAGS to ANDROID_CFLAGS.
   CC=$ANDROID_CC
+  # Set -Wno-implicit-function-declaration.  Building Emacs for older
+  # versions of Android requires configure tests to fail if the
+  # functions are not defined, as the Android library in the NDK
+  # defines subroutines that are not available in the headers being
+  # used.
+  CFLAGS="$ANDROID_CFLAGS -Werror=implicit-function-declaration"
+  # Don't explicitly enable support for large files unless Emacs is
+  # being built for API 21 or later.  Otherwise, mmap does not work.
+  if test "$ANDROID_SDK" -lt "21"; then
+    enable_largefile=no
+  fi
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
@@ -758,7 +769,10 @@ tools such as aapt, dx, and aidl):
 
 The cross-compiler should then be specified:
 
-              ANDROID_CC=/path/to/armv7a-linux-androideabi19-clang])
+              ANDROID_CC=/path/to/armv7a-linux-androideabi19-clang
+
+In addition, you may pass any special arguments to the cross-compiler
+via the ANDROID_CFLAGS environment variable.])
 elif test "$with_android" = "no" || test "$with_android" = ""; then
   ANDROID=no
 else
@@ -808,6 +822,29 @@ EOF
 a valid path to android.jar.  See config.log for more details.])
   fi
 
+  AC_CACHE_CHECK([whether or not android.jar is new enough],
+    [emacs_cv_android_s_or_later],
+    AS_IF([rm -f conftest.class
+cat << EOF > conftest.java
+
+import android.os.Build;
+
+class conftest
+{
+  private static int test = Build.VERSION_CODES.S;
+}
+
+EOF
+("$JAVAC" -classpath "$with_android" -target 1.7 -source 1.7 conftest.java \
+  -d . >&AS_MESSAGE_LOG_FD 2>&1) && test -s conftest.class && rm -f conftest.class],
+          [emacs_cv_android_s_or_later=yes],
+          [emacs_cv_android_s_or_later=no]))
+
+  if test "$emacs_cv_android_s_or_later" = "no"; then
+    AC_MSG_ERROR([Emacs must be built with an android.jar file produced for \
+Android 13 (S) or later.])
+  fi
+
   ANDROID_JAR="$with_android"
 
   AC_PATH_PROGS([AAPT], [aapt], [], "${SDK_BUILD_TOOLS}:$PATH")
@@ -845,6 +882,7 @@ for your machine.  For example:
   AC_MSG_CHECKING([for the kind of Android system Emacs is being built for])
   cc_target=`${ANDROID_CC} -v 2>&1 | sed -n 's/Target: //p'`
   case "$cc_target" in
+[
     *i[3-6]86*) android_abi=x86
       ;;
     *x86_64*) android_abi=x86_64
@@ -857,10 +895,13 @@ for your machine.  For example:
       ;;
     *arm*) android_abi=armeabi
       ;;
+]
     *) AC_MSG_ERROR([configure could not determine the type of Android \
 binary Emacs is being configured for.  Please port this configure script \
 to your Android system, or verify that you specified the correct compiler \
-in the ANDROID_CC variable when you ran configure.])
+in the ANDROID_CC variable when you ran configure.
+
+The compiler target is: $cc_target])
       ;;
   esac
   AC_MSG_RESULT([$android_abi])
@@ -879,18 +920,121 @@ in the ANDROID_CC variable when you ran configure.])
     AC_MSG_RESULT([$android_sdk])
     ANDROID_MIN_SDK=$android_sdk
   else
-    AC_MSG_RESULT([unknown ($cc_target); assuming 8])
-    AC_MSG_WARN([configure could not determine the versions of Android \
+    # This is probably GCC.
+    [ cat << EOF > conftest.c
+#include <android/api-level.h>
+extern const char *foo;
+
+int
+main (void)
+{
+#if __ANDROID_API__ < 7
+   foo = "emacs_api_6";
+#elif __ANDROID_API__ < 8
+   foo = "emacs_api_7";
+#elif __ANDROID_API__ < 9
+   foo = "emacs_api_8";
+#elif __ANDROID_API__ < 10
+  foo = "emacs_api_9";
+#elif __ANDROID_API__ < 11
+  foo = "emacs_api_10";
+#elif __ANDROID_API__ < 12
+  foo = "emacs_api_11";
+#elif __ANDROID_API__ < 13
+  foo = "emacs_api_12";
+#elif __ANDROID_API__ < 14
+   foo = "emacs_api_13";
+#elif __ANDROID_API__ < 15
+   foo = "emacs_api_14";
+#elif __ANDROID_API__ < 16
+   foo = "emacs_api_15";
+#elif __ANDROID_API__ < 17
+   foo = "emacs_api_16";
+#elif __ANDROID_API__ < 18
+   foo = "emacs_api_17";
+#elif __ANDROID_API__ < 19
+   foo = "emacs_api_18";
+#elif __ANDROID_API__ < 20
+   foo = "emacs_api_19";
+#elif __ANDROID_API__ < 21
+   foo = "emacs_api_20";
+#elif __ANDROID_API__ < 22
+   foo = "emacs_api_21";
+#elif __ANDROID_API__ < 23
+   foo = "emacs_api_22";
+#elif __ANDROID_API__ < 24
+   foo = "emacs_api_23";
+#elif __ANDROID_API__ < 25
+   foo = "emacs_api_24";
+#elif __ANDROID_API__ < 26
+   foo = "emacs_api_25";
+#elif __ANDROID_API__ < 27
+   foo = "emacs_api_26";
+#elif __ANDROID_API__ < 28
+   foo = "emacs_api_27";
+#elif __ANDROID_API__ < 29
+   foo = "emacs_api_28";
+#elif __ANDROID_API__ < 30
+   foo = "emacs_api_29";
+#elif __ANDROID_API__ < 31
+   foo = "emacs_api_30";
+#elif __ANDROID_API__ < 32
+   foo = "emacs_api_31";
+#elif __ANDROID_API__ < 33
+   foo = "emacs_api_32";
+#elif __ANDROID_API__ < 34
+   foo = "emacs_api_33";
+#else
+   foo = "emacs_api_future";
+#endif
+}
+EOF]
+
+    AC_CACHE_VAL([emacs_cv_android_api],
+		 [$ANDROID_CC $ANDROID_CFLAGS -c conftest.c -o conftest.o \
+		  && emacs_cv_android_api=`grep -ao -E	       		  \
+		     "emacs_api_([[0-9][0-9]]?|future)" conftest.o`])
+    android_sdk="$emacs_cv_android_api"
+    rm -rf conftest.c conftest.o
+
+    # If this version of the NDK requires __ANDROID_API__ to be
+    # specified, then complain to the user.
+    if test "$android_sdk" = "emacs_api_future"; then
+       AC_MSG_ERROR([The version of Android to build for was not specified.
+You must tell the Android compiler what version of Android to build for,
+by defining the __ANDROID_API__ preprocessor macro in ANDROID_CC, like so:
+
+    ANDROID_CC="/path/to/ndk/arm-linux-android-gcc -D__ANDROID_API__=8"])
+    fi
+
+    if test -n "$android_sdk"; then
+       android_sdk=`echo $android_sdk | sed -n 's/emacs_api_//p'`
+       AC_MSG_RESULT([$android_sdk])
+       ANDROID_MIN_SDK=$android_sdk
+    else
+      AC_MSG_RESULT([unknown ($cc_target); assuming 8])
+      AC_MSG_ERROR([configure could not determine the versions of Android \
 a binary built with this compiler will run on.  The generated application \
 package will likely install on older systems but crash on startup.])
+      android_sdk=8
+    fi
   fi
   AC_SUBST([ANDROID_MIN_SDK])
+
+  # Now tell java/Makefile if Emacs is being built for Android 4.3 or
+  # earlier.
+  ANDROID_SDK_18_OR_EARLIER=
+  if test "$android_sdk" -lt "18"; then
+     ANDROID_SDK_18_OR_EARLIER=yes
+  fi
+  AC_SUBST([ANDROID_SDK_18_OR_EARLIER])
 
   # Save confdefs.h and config.log for now.
   mv -f confdefs.h _confdefs.h
   mv -f config.log _config.log
 
-  AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" $0], [],
+  AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
+         ANDROID_SDK="$android_sdk" $0], [],
     [AC_MSG_ERROR([Failed to cross-configure Emacs for android.])])
 
   # Now set ANDROID to yes.
@@ -1989,7 +2133,6 @@ AC_CACHE_CHECK([for math library],
 	  d = frexp (d, &i);
 	  d = ldexp (d, i);
 	  d = log (d);
-	  d = log2 (d);
 	  d = log10 (d);
 	  d = pow (d, d);
 	  d = rint (d);
@@ -2283,6 +2426,9 @@ for Android, but all API calls need to be stubbed out])
     # Link with the sfnt font library and sfntfont.o, along with
     # sfntfont-android.o.
     ANDROID_OBJ="$ANDROID_OBJ sfnt.o sfntfont.o sfntfont-android.o"
+
+    # Check for some functions not always present in the NDK.
+    AC_CHECK_DECLS([android_get_device_api_level])
   fi
 fi
 

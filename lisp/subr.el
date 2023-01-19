@@ -1636,7 +1636,13 @@ nil or (STRING . POSITION)'.
 `posn-timestamp': The time the event occurred, in milliseconds.
 
 For more information, see Info node `(elisp)Click Events'."
-  (or (and (consp event) (nth 1 event))
+  (or (and (consp event)
+           ;; Ignore touchscreen events.  They store the posn in a
+           ;; different format, and can have multiple posns.
+           (not (memq (car event) '(touchscreen-begin
+                                    touchscreen-update
+                                    touchscreen-end)))
+           (nth 1 event))
       (event--posn-at-point)))
 
 (defun event-end (event)
@@ -1644,7 +1650,11 @@ For more information, see Info node `(elisp)Click Events'."
 EVENT should be a click, drag, or key press event.
 
 See `event-start' for a description of the value returned."
-  (or (and (consp event) (nth (if (consp (nth 2 event)) 2 1) event))
+  (or (and (consp event)
+           (not (memq (car event) '(touchscreen-begin
+                                    touchscreen-update
+                                    touchscreen-end)))
+           (nth (if (consp (nth 2 event)) 2 1) event))
       (event--posn-at-point)))
 
 (defsubst event-click-count (event)

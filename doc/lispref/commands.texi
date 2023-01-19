@@ -1999,24 +1999,24 @@ each point is represented by a cons of an arbitrary number identifying
 the point and a mouse position list (@pxref{Click Events}) specifying
 the position of the finger when the event occurred.
 
-In addition, @code{touchscreen-begin} events also have imaginary
-prefixes keys added by @code{read-key-sequence} when they originate on
-top of a special part of a frame or window.  @xref{Key Sequence
-Input}.  The reason the other touch screen events do not undergo this
-treatment is that they are rarely useful without being used in tandem
-from their corresponding @code{touchscreen-begin} events.
-
 @table @code
 @cindex @code{touchscreen-begin} event
 @item (touchscreen-begin @var{point})
 This event is sent when @var{point} is created by the user pressing a
 finger against the touchscreen.
 
+These events also have imaginary prefixes keys added by
+@code{read-key-sequence} when they originate on top of a special part
+of a frame or window.  @xref{Key Sequence Input}.  The reason the
+other touch screen events do not undergo this treatment is that they
+are rarely useful without being used in tandem from their
+corresponding @code{touchscreen-begin} events.
+
 @cindex @code{touchscreen-update} event
 @item (touchscreen-update @var{points})
 This event is sent when a point on the touchscreen has changed
 position.  @var{points} is a list of touch points containing the
-up-to-date positions of each touch point currently on the touchscreen.
+up-to-date positions of each touch point currently on the touchscxcompile/reen.
 
 @cindex @code{touchscreen-end} event
 @item (touchscreen-end @var{point})
@@ -2029,6 +2029,36 @@ If a touchpoint is pressed against the menu bar, then Emacs will not
 generate any corresponding @code{touchscreen-begin} or
 @code{touchscreen-end} events; instead, the menu bar may be displayed
 when @code{touchscreen-end} should have been delivered.
+
+@cindex handling touch screen events
+@cindex tap and drag, touch screen gestures
+Emacs provides two functions to handle touch screen events.  They are
+intended to be used by a command bound to @code{touchscreen-begin} to
+handle common gestures.
+
+@defun touch-screen-track-tap event &optional update data
+This function is used to track a single ``tap'' gesture originating
+from the @code{touchscreen-begin} event @var{event}, often used to
+set the point or to activate a button.  It waits for a
+@code{touchscreen-end} event with the same touch identifier to arrive,
+at which point it returns @code{t}, signifying the end of the gesture.
+
+If a @code{touchscreen-update} event arrives in the mean time and
+contains at least one touchpoint with the same identifier as in
+@var{event}, the function @var{update} is called with two arguments,
+the list of touchpoints in that @code{touchscreen-update} event, and
+@var{data}.
+
+If any other event arrives in the mean time, @code{nil} is returned.
+The caller should not perform any action in that case.
+@end defun
+
+@defun touch-screen-track-drag event update &optional data
+This function is used to track a single ``drag'' gesture originating
+from the @code{touchscreen-begin} event @code{event}.  Currently, it
+behaves identically to @code{touch-screen-track-tap}, but differences
+are anticipated in the future.
+@end defun
 
 @node Focus Events
 @subsection Focus Events

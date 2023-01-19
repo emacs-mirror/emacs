@@ -21,6 +21,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include <config.h>
 
 #include <fcntl.h>
+#include <ctype.h>
 
 #include "lisp.h"
 
@@ -60,6 +61,12 @@ struct sfnt_font_desc
 
   /* Designer (foundry) of the font.  */
   Lisp_Object designer;
+
+  /* Style tokens that could not be parsed.  */
+  Lisp_Object adstyle;
+
+  /* List of design languages.  */
+  Lisp_Object languages;
 
   /* Numeric width, weight, slant and spacing.  */
   int width, weight, slant, spacing;
@@ -344,7 +351,9 @@ static struct sfnt_style_desc sfnt_width_descriptions[] =
   };
 
 /* Figure out DESC->width, DESC->weight, DESC->slant and DESC->spacing
-   based on the style name passed as STYLE_NAME.  */
+   based on the style name passed as STYLE_NAME.
+
+   Also append any unknown tokens to DESC->adstyle.  */
 
 static void
 sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
@@ -419,14 +428,83 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 	    }
 	}
 
+      /* This token is extraneous or was not recognized.  Capitalize
+	 the first letter and set it as the adstyle.  */
+
+      if (strlen (single))
+	{
+	  if (islower (single[0]))
+	    single[0] = toupper (single[0]);
+
+	  if (NILP (desc->adstyle))
+	    desc->adstyle = build_string (single);
+	  else
+	    desc->adstyle = CALLN (Fconcat, desc->adstyle,
+				   build_string (" "),
+				   build_string (single));
+	}
+
     next:
-
-      /* Break early if everything has been found.  */
-      if (desc->slant != 100 && desc->width != 100 && desc->weight != 80)
-	break;
-
       continue;
     }
+}
+
+/* Parse the list of design languages in META, a font metadata table,
+   and place the results in DESC->languages.  Do nothing if there is
+   no such metadata.  */
+
+static void
+sfnt_parse_languages (struct sfnt_meta_table *meta,
+		      struct sfnt_font_desc *desc)
+{
+  char *data, *metadata, *tag;
+  struct sfnt_meta_data_map map;
+  char *saveptr;
+
+  /* Look up the ``design languages'' metadata.  This is a comma (and
+     possibly space) separated list of scripts that the font was
+     designed for.  Here is an example of one such tag:
+
+       zh-Hans,Jpan,Kore
+
+     for a font that covers Simplified Chinese, along with Japanese
+     and Korean text.  */
+
+  saveptr = NULL;
+  data = sfnt_find_metadata (meta, SFNT_META_DATA_TAG_DLNG,
+			     &map);
+
+  if (!data)
+    return;
+
+  USE_SAFE_ALLOCA;
+
+  /* Now copy metadata and add a trailing NULL byte.  */
+
+  if (map.data_length >= SIZE_MAX)
+    memory_full (SIZE_MAX);
+
+  metadata = SAFE_ALLOCA ((size_t) map.data_length + 1);
+  memcpy (metadata, data, map.data_length);
+  metadata[map.data_length] = '\0';
+
+  /* Loop through each script-language tag.  Note that there may be
+     extra leading spaces.  */
+  while ((tag = strtok_r (metadata, ",", &saveptr)))
+    {
+      metadata = NULL;
+
+      if (strstr (tag, "Hans") || strstr (tag, "Hant"))
+	desc->languages = Fcons (Qzh, desc->languages);
+
+      if (strstr (tag, "Japn"))
+	desc->languages = Fcons (Qja, desc->languages);
+
+      if (strstr (tag, "Kore"))
+	desc->languages = Fcons (Qko, desc->languages);
+    }
+
+  SAFE_FREE ();
 }
 
 /* Enumerate the offset subtable SUBTABLES in the file FD, whose file
@@ -480,6 +558,10 @@ sfnt_enum_font_1 (int fd, const char *file,
 
   /* Parse the style.  */
   sfnt_parse_style (style, desc);
+
+  /* If the meta table exists, parse the list of design languages.  */
+  if (meta)
+    sfnt_parse_languages (meta, desc);
 
   /* Figure out the spacing.  Some fancy test like what Fontconfig
      does is probably in order but not really necessary.  */
@@ -990,11 +1072,10 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec)
 					  desc->family)))
     return false;
 
-  /* Check that no adstyle has been specified.  That's a relic from
-     the Postscript era.  */
+  /* Check that the adstyle specified matches.  */
 
   tem = AREF (spec, FONT_ADSTYLE_INDEX);
-  if (!NILP (tem))
+  if (!NILP (tem) && NILP (Fequal (tem, desc->adstyle)))
     return false;
 
   /* Check the style.  */
@@ -1068,6 +1149,11 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec)
 	    }
 	}
     }
+
+  /* Now check that the language is supported.  */
+  tem = assq_no_quit (QClang, extra);
+  if (!NILP (tem) && NILP (Fmemq (tem, desc->languages)))
+    goto fail;
 
   /* Set desc->subtable if cmap was specified.  */
   if (cmap)
@@ -2076,9 +2162,9 @@ sfntfont_text_extents (struct font *font, const unsigned int *code,
 
 	  if (pcm.descent > metrics->descent)
 	    metrics->descent = pcm.descent;
-	}
 
-      total_width += pcm.width;
+	  total_width += pcm.width;
+	}
     }
 
   metrics->width = total_width;
@@ -2239,6 +2325,9 @@ syms_of_sfntfont (void)
   DEFSYM (Qapple_roman, "apple-roman");
   DEFSYM (Qjisx0208_1983_0, "jisx0208.1983-0");
   DEFSYM (Qksc5601_1987_0, "ksc5601.1987-0");
+  DEFSYM (Qzh, "zh");
+  DEFSYM (Qja, "ja");
+  DEFSYM (Qko, "ko");
 
   /* Char-table purpose.  */
   DEFSYM (Qfont_lookup_cache, "font-lookup-cache");
@@ -2269,6 +2358,8 @@ mark_sfntfont (void)
     {
       mark_object (desc->family);
       mark_object (desc->style);
+      mark_object (desc->adstyle);
+      mark_object (desc->languages);
       mark_object (desc->char_cache);
       mark_object (desc->designer);
     }

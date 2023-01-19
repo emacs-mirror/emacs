@@ -423,7 +423,15 @@ using_utf8 (void)
      the result is known in advance anyway...  */
 #if defined HAVE_WCHAR_H && !defined WINDOWSNT
   wchar_t wc;
+#ifndef HAVE_ANDROID
   mbstate_t mbs = { 0 };
+#else
+  mbstate_t mbs;
+
+  /* Not sure how mbstate works on Android, but this seems to be
+     required.  */
+  memset (&mbs, 0, sizeof mbs);
+#endif
   return mbrtowc (&wc, "\xc4\x80", 2, &mbs) == 2 && wc == 0x100;
 #else
   return false;

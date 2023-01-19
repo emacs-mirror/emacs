@@ -62,6 +62,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "syssignal.h"
 
+#if defined HAVE_STACK_OVERFLOW_HANDLING && !defined WINDOWSNT
+#include <setjmp.h>
+#endif
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -4955,7 +4959,7 @@ const char *const lispy_function_keys[] =
     [278] = "copy",
     [279] = "paste",
     [28]  = "clear",
-    [4]	  = "back",
+    [4]	  = "XF86Back",
     [61]  = "tab",
     [66]  = "return",
     [67]  = "backspace",

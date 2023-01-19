@@ -50,6 +50,7 @@ AC_DEFUN_ONCE([gl_UNISTD_H],
     group_member isatty lchown link linkat lseek pipe pipe2 pread pwrite
     readlink readlinkat rmdir sethostname sleep symlink symlinkat
     truncate ttyname_r unlink unlinkat usleep])
+  gl_CHECK_FUNCS_ANDROID([ftruncate], [[#include <unistd.h>]])
 
   AC_REQUIRE([AC_C_RESTRICT])
 

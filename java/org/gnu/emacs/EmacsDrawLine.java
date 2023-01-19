@@ -49,18 +49,10 @@ public class EmacsDrawLine
 		     Math.min (y, y2 + 1),
 		     Math.max (x2 + 1, x),
 		     Math.max (y2 + 1, y));
-    canvas = drawable.lockCanvas ();
+    canvas = drawable.lockCanvas (gc);
 
     if (canvas == null)
       return;
-
-    canvas.save ();
-
-    if (gc.real_clip_rects != null)
-      {
-	for (i = 0; i < gc.real_clip_rects.length; ++i)
-	  canvas.clipRect (gc.real_clip_rects[i]);
-      }
 
     paint.setStyle (Paint.Style.STROKE);
 
@@ -71,7 +63,6 @@ public class EmacsDrawLine
 
     /* DrawLine with clip mask not implemented; it is not used by
        Emacs.  */
-    canvas.restore ();
     drawable.damageRect (rect);
   }
 }

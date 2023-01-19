@@ -510,20 +510,12 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     backgroundRect.right = x + backgroundWidth;
     backgroundRect.bottom = y + sdk7FontObject.descent;
 
-    canvas = drawable.lockCanvas ();
+    canvas = drawable.lockCanvas (gc);
 
     if (canvas == null)
       return 0;
 
-    canvas.save ();
     paint = gc.gcPaint;
-
-    if (gc.real_clip_rects != null)
-      {
-	for (i = 0; i < gc.real_clip_rects.length; ++i)
-	  canvas.clipRect (gc.real_clip_rects[i]);
-      }
-
     paint.setStyle (Paint.Style.FILL);
 
     if (withBackground)
@@ -538,7 +530,6 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     paint.setAntiAlias (true);
     canvas.drawText (charsArray, 0, chars.length, x, y, paint);
 
-    canvas.restore ();
     bounds = new Rect ();
     paint.getTextBounds (charsArray, 0, chars.length, bounds);
     bounds.offset (x, y);

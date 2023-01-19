@@ -6172,16 +6172,44 @@ mark_pinned_objects (void)
     mark_object (pobj->object);
 }
 
+#if defined HAVE_ANDROID && !defined (__clang__)
+
+/* The Android gcc is broken and needs the following version of
+   make_lisp_symbol.  Otherwise a mysterious ICE pops up.  */
+
+#define make_lisp_symbol android_make_lisp_symbol
+
+static Lisp_Object
+android_make_lisp_symbol (struct Lisp_Symbol *sym)
+{
+  intptr_t symoffset;
+  Lisp_Object a;
+
+  symoffset = (intptr_t) sym;
+  INT_SUBTRACT_WRAPV (symoffset, (intptr_t) &lispsym,
+		      &symoffset);
+
+  a = TAG_PTR (Lisp_Symbol, symoffset);
+  return a;
+}
+
+#endif
+
 static void
 mark_pinned_symbols (void)
 {
   struct symbol_block *sblk;
-  int lim = (symbol_block_pinned == symbol_block
-	     ? symbol_block_index : SYMBOL_BLOCK_SIZE);
+  int lim;
+  struct Lisp_Symbol *sym, *end;
+
+  if (symbol_block_pinned == symbol_block)
+    lim = symbol_block_index;
+  else
+    lim = SYMBOL_BLOCK_SIZE;
 
   for (sblk = symbol_block_pinned; sblk; sblk = sblk->next)
     {
-      struct Lisp_Symbol *sym = sblk->symbols, *end = sym + lim;
+      sym = sblk->symbols, end = sym + lim;
       for (; sym < end; ++sym)
 	if (sym->u.s.pinned)
 	  mark_object (make_lisp_symbol (sym));

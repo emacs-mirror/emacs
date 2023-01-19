@@ -83,6 +83,9 @@ public class EmacsView extends ViewGroup
   /* The last measured width and height.  */
   private int measuredWidth, measuredHeight;
 
+  /* The serial of the last clip rectangle change.  */
+  private long lastClipSerial;
+
   public
   EmacsView (EmacsWindow window)
   {
@@ -104,10 +107,6 @@ public class EmacsView extends ViewGroup
        work.  Why is something as simple as XRaiseWindow so involved
        on Android? */
     setChildrenDrawingOrderEnabled (true);
-
-    /* Get rid of the foreground and background tint.  */
-    setBackgroundTintList (null);
-    setForegroundTintList (null);
 
     /* Get rid of the default focus highlight.  */
     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
@@ -145,6 +144,11 @@ public class EmacsView extends ViewGroup
 
     /* And canvases.  */
     canvas = new Canvas (bitmap);
+    canvas.save ();
+
+    /* Since the clip rectangles have been cleared, clear the clip
+       rectangle ID.  */
+    lastClipSerial = 0;
 
     /* Copy over the contents of the old bitmap.  */
     if (oldBitmap != null)
@@ -177,10 +181,30 @@ public class EmacsView extends ViewGroup
   }
 
   public synchronized Canvas
-  getCanvas ()
+  getCanvas (EmacsGC gc)
   {
+    int i;
+
     if (bitmapDirty || bitmap == null)
       handleDirtyBitmap ();
+
+    if (canvas == null)
+      return null;
+
+    /* Update clip rectangles if necessary.  */
+    if (gc.clipRectID != lastClipSerial)
+      {
+	canvas.restore ();
+	canvas.save ();
+
+	if (gc.real_clip_rects != null)
+	  {
+	    for (i = 0; i < gc.real_clip_rects.length; ++i)
+	      canvas.clipRect (gc.real_clip_rects[i]);
+	  }
+
+	lastClipSerial = gc.clipRectID;
+      }
 
     return canvas;
   }

@@ -42,6 +42,14 @@ public class EmacsPixmap extends EmacsHandleObject
   /* The canvas used to draw to BITMAP.  */
   public Canvas canvas;
 
+  /* Whether or not GC should be explicitly triggered upon
+     release.  */
+  private boolean needCollect;
+
+  /* ID used to determine whether or not the GC clip rects
+     changed.  */
+  private long gcClipRectID;
+
   public
   EmacsPixmap (short handle, int colors[], int width,
 	       int height, int depth)
@@ -83,17 +91,40 @@ public class EmacsPixmap extends EmacsHandleObject
     switch (depth)
       {
       case 1:
-	bitmap = Bitmap.createBitmap (width, height,
-				      Bitmap.Config.ALPHA_8,
-				      false);
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+	  bitmap = Bitmap.createBitmap (width, height,
+					Bitmap.Config.ALPHA_8,
+					false);
+	else
+	  bitmap = Bitmap.createBitmap (width, height,
+					Bitmap.Config.ALPHA_8);
 	break;
 
       case 24:
-	bitmap = Bitmap.createBitmap (width, height,
-				      Bitmap.Config.ARGB_8888,
-				      false);
+
+	/* Emacs doesn't just use the first kind of `createBitmap'
+	   because the latter allows specifying that the pixmap is
+	   always opaque, which really increases efficiency.  */
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+	  bitmap = Bitmap.createBitmap (width, height,
+					Bitmap.Config.ARGB_8888);
+	else
+	  bitmap = Bitmap.createBitmap (width, height,
+					Bitmap.Config.ARGB_8888,
+					false);
 	break;
       }
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1)
+      /* On these old versions of Android, Bitmap.recycle frees bitmap
+	 contents immediately.  */
+      needCollect = false;
+    else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+      needCollect = (bitmap.getByteCount ()
+		     >= 1024 * 512);
+    else
+      needCollect = (bitmap.getAllocationByteCount ()
+		     >= 1024 * 512);
 
     bitmap.eraseColor (0xff000000);
 
@@ -104,11 +135,32 @@ public class EmacsPixmap extends EmacsHandleObject
 
   @Override
   public Canvas
-  lockCanvas ()
+  lockCanvas (EmacsGC gc)
   {
-    if (canvas == null)
-      canvas = new Canvas (bitmap);
+    int i;
 
+    if (canvas == null)
+      {
+	canvas = new Canvas (bitmap);
+	canvas.save ();
+      }
+
+    /* Now see if clipping has to be redone.  */
+    if (gc.clipRectID == gcClipRectID)
+      return canvas;
+
+    /* It does have to be redone.  Reapply gc.real_clip_rects.  */
+    canvas.restore ();
+    canvas.save ();
+
+    if (gc.real_clip_rects != null)
+      {
+	for (i = 0; i < gc.real_clip_rects.length; ++i)
+	  canvas.clipRect (gc.real_clip_rects[i]);
+      }
+
+    /* Save the clip rect ID again.  */
+    gcClipRectID = gc.clipRectID;
     return canvas;
   }
 
@@ -130,15 +182,6 @@ public class EmacsPixmap extends EmacsHandleObject
   public void
   destroyHandle ()
   {
-    boolean needCollect;
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
-      needCollect = (bitmap.getByteCount ()
-		     >= 1024 * 512);
-    else
-      needCollect = (bitmap.getAllocationByteCount ()
-		     >= 1024 * 512);
-
     bitmap.recycle ();
     bitmap = null;
 

@@ -102,6 +102,14 @@ extern struct android_dir *android_opendir (const char *);
 extern struct dirent *android_readdir (struct android_dir *);
 extern void android_closedir (struct android_dir *);
 
+#ifndef HAVE_FTRUNCATE
+extern int android_ftruncate (int, off_t);
+
+/* Replace calls to ftruncate with android_ftruncate when ftruncate is
+   not defined.  */
+#define ftruncate android_ftruncate
+#endif
+
 
 
 #endif

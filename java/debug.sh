@@ -93,7 +93,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ -z $devices ]; then
+if [ -z "$devices" ]; then
     echo "No devices are available."
     exit 1
 fi
@@ -117,25 +117,43 @@ if [ -z $app_data_dir ]; then
    echo "Is it installed?"
 fi
 
-echo "Found application data directory at $app_data_dir..."
+echo "Found application data directory at" "$app_data_dir"
 
-# Find which PIDs are associated with org.gnu.emacs
-package_uid=`adb -s $device shell run-as $package id -u`
+# Generate an awk script to extract PIDs from Android ps output.  It
+# is enough to run `ps' as the package user on newer versions of
+# Android, but that doesn't work on Android 2.3.
+cat << EOF > tmp.awk
+BEGIN {
+  pid = 0;
+  pid_column = 2;
+}
 
-if [ -z $package_uid ]; then
-    echo "Failed to obtain UID of packages named $package"
-    exit 1
-fi
+{
+  # Remove any trailing carriage return from the input line.
+  gsub ("\r", "", \$NF)
 
-# First, run ps -u $package_uid -o PID,CMD to fetch the list of
-# process IDs.
-package_pids=`adb -s $device shell run-as $package ps -u $package_uid -o PID,CMD`
+  # If this is line 1, figure out which column contains the PID.
+  if (NR == 1)
+    {
+      for (n = 1; n <= NF; ++n)
+	{
+	  if (\$n == "PID")
+	    pid_column=n;
+	}
+    }
+  else if (\$NF == "$package")
+   print \$pid_column
+}
+EOF
 
-# Next, remove lines matching "ps" itself.
-package_pids=`awk -- '{
-  if (!match ($0, /(PID|ps)/))
-    print $1
-}' <<< $package_pids`
+# Make sure that file disappears once this script exits.
+trap "rm -f $(pwd)/tmp.awk" 0
+
+# First, run ps to fetch the list of process IDs.
+package_pids=`adb -s $device shell ps`
+
+# Next, extract the list of PIDs currently running.
+package_pids=`awk -f tmp.awk <<< $package_pids`
 
 if [ "$attach_existing" != "yes" ]; then
     # Finally, kill each existing process.
@@ -149,19 +167,20 @@ if [ "$attach_existing" != "yes" ]; then
     echo "Starting activity $activity and attaching debugger"
 
     # Exit if the activity could not be started.
-    adb -s $device shell am start -D "$package/$activity"
+    adb -s $device shell am start -D -n "$package/$activity"
     if [ ! $? ]; then
 	exit 1;
     fi
 
+    # Sleep for a bit.  Otherwise, the process may not have started
+    # yet.
+    sleep 1
+
     # Now look for processes matching the package again.
-    package_pids=`adb -s $device shell run-as $package ps -u $package_uid -o PID,CMD`
+    package_pids=`adb -s $device shell ps`
 
     # Next, remove lines matching "ps" itself.
-    package_pids=`awk -- '{
-  if (!match ($0, /(PID|ps)/))
-    print $1
-}' <<< $package_pids`
+    package_pids=`awk -f tmp.awk <<< $package_pids`
 fi
 
 pid=$package_pids
@@ -170,10 +189,10 @@ num_pids=`wc -w <<< "$package_pids"`
 if [ $num_pids -gt 1 ]; then
     echo "More than one process was started:"
     echo ""
-    adb -s $device shell run-as $package ps -u $package_uid | awk -- '{
-      if (!match ($0, /ps/))
-        print $0
-    }'
+    adb -s $device shell run-as $package ps | awk -- "{
+      if (!match (\$0, /ps/) && match (\$0, /$package/))
+        print \$0
+    }"
     echo ""
     printf "Which one do you want to attach to? "
     read pid
@@ -182,10 +201,12 @@ elif [ -z $package_pids ]; then
     exit 1
 fi
 
-# This isn't necessary when attaching gdb to an existing process.
+# If either --jdb was specified or debug.sh is not connecting to an
+# existing process, then store a suitable JDB invocation in
+# jdb_command.  GDB will then run JDB to unblock the application from
+# the wait dialog after startup.
+
 if [ "$jdb" = "yes" ] || [ "$attach_existing" != yes ]; then
-    # Start JDB to make the wait dialog disappear.
-    echo "Attaching JDB to unblock the application."
     adb -s $device forward --remove-all
     adb -s $device forward "tcp:$jdb_port" "jdwp:$pid"
 
@@ -203,20 +224,42 @@ if [ "$jdb" = "yes" ] || [ "$attach_existing" != yes ]; then
 	$jdb_command
 	exit 1
     fi
+fi
 
-    exec 4<> /tmp/file-descriptor-stamp
+if [ -n "$jdb_command" ]; then
+    echo "Starting JDB to unblock application."
 
-    # Now run JDB with IO redirected to file descriptor 4 in a subprocess.
-    $jdb_command <&4 >&4 &
+    # Start JDB to unblock the application.
+    coproc JDB { $jdb_command; }
 
-    character=
-    # Next, wait until the prompt is found.
-    while read -n1 -u 4 character; do
-	if [ "$character" = ">" ]; then
-	    echo "JDB attached successfully"
-	    break;
+    # Tell JDB to first suspend all threads.
+    echo "suspend" >&${JDB[1]}
+
+    # Tell JDB to print a magic string once the program is
+    # initialized.
+    echo "print \"__verify_jdb_has_started__\"" >&${JDB[1]}
+
+    # Now wait for JDB to give the string back.
+    line=
+    while :; do
+	read -u ${JDB[0]} line
+	if [ ! $? ]; then
+	    echo "Failed to read JDB output"
+	    exit 1
 	fi
+
+	case "$line" in
+	    *__verify_jdb_has_started__*)
+		# Android only polls for a Java debugger every 200ms, so
+		# the debugger must be connected for at least that long.
+		echo "Pausing 1 second for the program to continue."
+		sleep 1
+		break
+		;;
+	esac
     done
+
+    # Note that JDB does not exit until GDB is fully attached!
 fi
 
 # See if gdbserver has to be uploaded
@@ -234,18 +277,19 @@ fi
 
 echo "Attaching gdbserver to $pid on $device..."
 exec 5<> /tmp/file-descriptor-stamp
+rm -f /tmp/file-descriptor-stamp
 
 if [ -z "$gdbserver" ]; then
     adb -s $device shell run-as $package $gdbserver_bin --once \
-	"+debug.$package_uid.socket" --attach $pid >&5 &
-    gdb_socket="localfilesystem:$app_data_dir/debug.$package_uid.socket"
+	"+debug.$package.socket" --attach $pid >&5 &
+    gdb_socket="localfilesystem:$app_data_dir/debug.$package.socket"
 else
     # Normally the program cannot access $gdbserver_bin when it is
     # placed in /data/local/tmp.
     adb -s $device shell $gdbserver_bin --once \
-	"+/data/local/tmp/debug.$package_uid.socket" \
+	"+/data/local/tmp/debug.$package.socket" \
 	--attach $pid >&5 &
-    gdb_socket="localfilesystem:/data/local/tmp/debug.$package_uid.socket"
+    gdb_socket="localfilesystem:/data/local/tmp/debug.$package.socket"
 fi
 
 # Wait until gdbserver successfully runs.
@@ -256,7 +300,7 @@ while read -u 5 line; do
 	    break;
 	    ;;
 	*error* | *Error* | failed )
-	    echo $line
+	    echo "GDB error:" $line
 	    exit 1
 	    ;;
 	* )
@@ -264,19 +308,18 @@ while read -u 5 line; do
     esac
 done
 
-if [ "$attach_existing" != "yes" ]; then
-    # Send EOF to JDB to make it go away.  This will also cause
-    # Android to allow Emacs to continue executing.
-    echo "Making JDB go away..."
-    echo "exit" >&4
-    read -u 4 line
-    echo "JDB has gone away with $line"
+# Now that GDB is attached, tell the Java debugger to resume execution
+# and then exit.
+
+if [ -n "$jdb_command" ]; then
+    echo "resume" >&${JDB[1]}
+    echo "exit" >&${JDB[1]}
 fi
 
 # Forward the gdb server port here.
 adb -s $device forward "tcp:$gdb_port" $gdb_socket
 if [ ! $? ]; then
-    echo "Failed to forward $app_data_dir/debug.$package_uid.socket"
+    echo "Failed to forward $app_data_dir/debug.$package.socket"
     echo "to $gdb_port!  Perhaps you need to specify a different port"
     echo "with --port?"
     exit 1;
@@ -284,4 +327,4 @@ fi
 
 # Finally, start gdb with any extra arguments needed.
 cd "$oldpwd"
-gdb --eval-command "" --eval-command "target remote localhost:$gdb_port" $gdbargs
+gdb --eval-command "target remote localhost:$gdb_port" $gdbargs

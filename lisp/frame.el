@@ -2149,8 +2149,12 @@ frame's display)."
   "Return non-nil if popup menus are supported on DISPLAY.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display).
-Support for popup menus requires that the mouse be available."
-  (display-mouse-p display))
+Support for popup menus requires that a suitable pointing device
+be available."
+  ;; Android menus work fine with touch screens as well, and one must
+  ;; be present.
+  (or (eq (framep-on-display display) 'android)
+      (display-mouse-p display)))
 
 (defun display-graphic-p (&optional display)
   "Return non-nil if DISPLAY is a graphic display.

@@ -105,10 +105,10 @@ known position of the tool."
       (setcar (nthcdr 3 touch-screen-current-tool) 'held)
       ;; Go to the initial position of the touchpoint and activate the
       ;; mark.
-      (with-selected-window (cadr touch-screen-current-tool)
-        (set-mark (posn-point (nth 4 touch-screen-current-tool)))
-        (goto-char (mark))
-        (activate-mark)))))
+      (select-window (cadr touch-screen-current-tool))
+      (set-mark (posn-point (nth 4 touch-screen-current-tool)))
+      (goto-char (mark))
+      (activate-mark))))
 
 (defun touch-screen-handle-point-update (point)
   "Notice that the touch point POINT has changed position.
@@ -132,9 +132,7 @@ happens, cancel `touch-screen-current-timer', and set the field
 to `drag'.  Then, activate the mark and start dragging.
 
 If the fourth element of `touch-screen-current-tool' is `drag',
-then move point to the position of POINT.
-
-Set `touch-screen-current-tool' to nil should any error occur."
+then move point to the position of POINT."
   (let ((window (nth 1 touch-screen-current-tool))
         (what (nth 3 touch-screen-current-tool)))
     (cond ((null what)
@@ -252,19 +250,42 @@ POINT should be the point currently tracked as
 
 If the fourth argument of `touch-screen-current-tool' is nil,
 move point to the position of POINT, selecting the window under
-POINT as well; if there is a button at POINT, then activate the
-button there.  Otherwise, deactivate the mark.  Then, display the
-on-screen keyboard."
+POINT as well, and deactivate the mark; if there is a button or
+link at POINT, call the command bound to `mouse-2' there.
+Otherwise, call the command bound to `mouse-1'."
   (let ((what (nth 3 touch-screen-current-tool)))
     (cond ((null what)
            (when (windowp (posn-window (cdr point)))
              ;; Select the window that was tapped.
              (select-window (posn-window (cdr point)))
-             (let ((button (button-at (posn-point (cdr point)))))
-               (when button
-                 (button-activate button t))
+             ;; Now simulate a mouse click there.  If there is a link
+             ;; or a button, use mouse-2 to push it.
+             (let ((event (list (if (or (mouse-on-link-p (cdr point))
+                                        (button-at (posn-point (cdr point))))
+                                    'mouse-2
+                                  'mouse-1)
+                                (cdr point)))
+                   ;; Look for an extra keymap to look in.
+                   (keymap (and (posn-object (cdr point))
+                                (stringp
+                                 (posn-object (cdr point)))
+                                (get-text-property
+                                 0 'keymap
+                                 (posn-object (cdr point)))))
+                   command)
+               (save-excursion
+                 (when (posn-point (cdr point))
+                   (goto-char (posn-point (cdr point))))
+                 (if keymap
+                     (setq keymap (cons keymap (current-active-maps t)))
+                   (setq keymap (current-active-maps t)))
+                 (setq command (lookup-key keymap (vector (car event)))))
+               (deactivate-mark)
+               ;; This is necessary for following links.
                (goto-char (posn-point (cdr point)))
-               (deactivate-mark)))))))
+               (when command
+                 (call-interactively command nil
+                                     (vector event)))))))))
 
 (defun touch-screen-handle-touch (event)
   "Handle a single touch EVENT, and perform associated actions.
@@ -316,6 +337,146 @@ touchscreen-end event."
 (define-key global-map [touchscreen-begin] #'touch-screen-handle-touch)
 (define-key global-map [touchscreen-update] #'touch-screen-handle-touch)
 (define-key global-map [touchscreen-end] #'touch-screen-handle-touch)
+
+
+;; Exports.  These functions are intended for use externally.
+
+(defun touch-screen-track-tap (event &optional update data)
+  "Track a single tap starting from EVENT.
+EVENT should be a `touchscreen-begin' event.
+
+Read touch screen events until a `touchscreen-end' event is
+received with the same ID as in EVENT.  If UPDATE is non-nil and
+a `touchscreen-update' event is received in the mean time and
+contains a touch point with the same ID as in EVENT, call UPDATE
+with that event and DATA.
+
+Return nil immediately if any other kind of event is received;
+otherwise, return t once the `touchscreen-end' event arrives."
+  (catch 'finish
+    (while t
+      (let ((new-event (read-event)))
+        (cond
+         ((eq (car-safe new-event) 'touchscreen-update)
+          (when (and update (assq (caadr event) (cadr new-event)))
+            (funcall update new-event data)))
+         ((eq (car-safe new-event) 'touchscreen-end)
+          (throw 'finish
+                 ;; Now determine whether or not the `touchscreen-end'
+                 ;; event has the same ID as EVENT.  If it doesn't,
+                 ;; then this is another touch, so return nil.
+                 (eq (caadr event) (caadr new-event))))
+         (t (throw 'finish nil)))))))
+
+(defun touch-screen-track-drag (event update &optional data)
+  "Track a single drag starting from EVENT.
+EVENT should be a `touchscreen-end' event.
+
+Read touch screen events until a `touchscreen-end' event is
+received with the same ID as in EVENT.  For each
+`touchscreen-update' event received in the mean time containing a
+touch point with the same ID as in EVENT, call UPDATE with the
+touch point in event and DATA.
+
+Return nil immediately if any other kind of event is received;
+otherwise, return t once the `touchscreen-end' event arrives."
+  (catch 'finish
+    (while t
+      (let ((new-event (read-event)))
+        (cond
+         ((eq (car-safe new-event) 'touchscreen-update)
+          (let ((tool (assq (caadr event) (nth 1 new-event))))
+            (when (and update tool)
+              (funcall update new-event data))))
+         ((eq (car-safe new-event) 'touchscreen-end)
+          (throw 'finish
+                 ;; Now determine whether or not the `touchscreen-end'
+                 ;; event has the same ID as EVENT.  If it doesn't,
+                 ;; then this is another touch, so return nil.
+                 (eq (caadr event) (caadr new-event))))
+         (t (throw 'finish nil)))))))
+
+
+
+;; Modeline dragging.
+
+(defun touch-screen-drag-mode-line-1 (event)
+  "Internal helper for `touch-screen-drag-mode-line'.
+This is called when that function determines it need not execute
+any keymaps on the mode line at that particular spot."
+  ;; Find the window that should be dragged and the starting position.
+  (let* ((window (posn-window (cdadr event)))
+         (relative-xy (touch-screen-relative-xy
+                       (cdadr event) window))
+         (last-position (cdr relative-xy)))
+    (when (window-resizable window 0)
+      (touch-screen-track-drag
+       event (lambda (new-event &optional _data)
+               ;; Find the position of the touchpoint in NEW-EVENT.
+               (let* ((touchpoint (assq (caadr event) (cadr new-event)))
+                      (new-relative-xy
+                       (touch-screen-relative-xy (cdr touchpoint)
+                                                 window))
+                      (position (cdr new-relative-xy))
+                      growth)
+                 ;; Now set the new height of the window.
+                 ;; If new-relative-y is above relative-xy, then
+                 ;; make the window that much shorter.  Otherwise,
+                 ;; make it bigger.
+                 (unless (or (zerop (setq growth (- position last-position)))
+                             (and (> growth 0)
+                                  (< position (+ (window-pixel-top window)
+                                                 (window-pixel-height window))))
+                             (and (< growth 0)
+                                  (> position (+ (window-pixel-top window)
+                                                 (window-pixel-height window)))))
+                   (adjust-window-trailing-edge window growth nil t))
+                 (setq last-position position)))))))
+
+(defun touch-screen-drag-mode-line (event)
+  "Begin dragging the mode line in response to a touch EVENT.
+If EVENT lies on top of text with a mouse command bound, run
+that command instead.
+
+Change the height of the window based on where the touch point
+in EVENT moves."
+  (interactive "e")
+  ;; If there is an object at EVENT, then look either a keymap bound
+  ;; to [down-mouse-1] or a command bound to [mouse-1].  Then, if a
+  ;; keymap was found, pop it up as a menu.  Otherwise, wait for a tap
+  ;; to complete and run the command found.
+  (let* ((object (posn-object (cdadr event)))
+         (object-keymap (and (consp object)
+                             (stringp (car object))
+                             (or (get-text-property (cdr object)
+                                                    'keymap
+                                                    (car object))
+                                 (get-text-property (cdr object)
+                                                    'local-map
+                                                    (car object)))))
+         (keymap (lookup-key object-keymap [mode-line down-mouse-1]))
+         (command (or (lookup-key object-keymap [mode-line mouse-1])
+                      keymap)))
+    (if (or (keymapp keymap) command)
+        (if (keymapp keymap)
+            (when (touch-screen-track-tap event)
+              (when-let* ((command (x-popup-menu event keymap))
+                          (tem (lookup-key keymap
+                                           (if (consp command)
+                                               (apply #'vector command)
+                                             (vector command))
+                                           t)))
+                (call-interactively tem)))
+          (when (and (commandp command)
+                     (touch-screen-track-tap event))
+            (call-interactively command nil
+                                (vector (list 'mouse-1 (cdadr event))))))
+      (touch-screen-drag-mode-line-1 event))))
+
+(global-set-key [mode-line touchscreen-begin]
+                #'touch-screen-drag-mode-line)
+(global-set-key [bottom-divider touchscreen-begin]
+                #'touch-screen-drag-mode-line)
 
 (provide 'touch-screen)
 

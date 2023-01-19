@@ -47,6 +47,14 @@ public class EmacsGC extends EmacsHandleObject
   public EmacsPixmap clip_mask, stipple;
   public Paint gcPaint;
 
+  /* ID incremented every time the clipping rectangles of any GC
+     changes.  */
+  private static long clip_serial;
+
+  /* The value of clipRectID after the last time this GCs clip
+     rectangles changed.  0 if there are no clip rectangles.  */
+  public long clipRectID;
+
   static
   {
     xorAlu = new PorterDuffXfermode (Mode.XOR);
@@ -75,23 +83,28 @@ public class EmacsGC extends EmacsHandleObject
      recompute real_clip_rects.  */
 
   public void
-  markDirty ()
+  markDirty (boolean clipRectsChanged)
   {
     int i;
 
-    if ((ts_origin_x != 0 || ts_origin_y != 0)
-	&& clip_rects != null)
+    if (clipRectsChanged)
       {
-	real_clip_rects = new Rect[clip_rects.length];
-
-	for (i = 0; i < clip_rects.length; ++i)
+	if ((ts_origin_x != 0 || ts_origin_y != 0)
+	    && clip_rects != null)
 	  {
-	    real_clip_rects[i] = new Rect (clip_rects[i]);
-	    real_clip_rects[i].offset (ts_origin_x, ts_origin_y);
+	    real_clip_rects = new Rect[clip_rects.length];
+
+	    for (i = 0; i < clip_rects.length; ++i)
+	      {
+		real_clip_rects[i] = new Rect (clip_rects[i]);
+		real_clip_rects[i].offset (ts_origin_x, ts_origin_y);
+	      }
 	  }
+	else
+	  real_clip_rects = clip_rects;
+
+	clipRectID = ++clip_serial;
       }
-    else
-      real_clip_rects = clip_rects;
 
     gcPaint.setStrokeWidth (1f);
     gcPaint.setColor (foreground | 0xff000000);

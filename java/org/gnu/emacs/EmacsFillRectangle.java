@@ -32,7 +32,6 @@ public class EmacsFillRectangle
   perform (EmacsDrawable drawable, EmacsGC gc,
 	   int x, int y, int width, int height)
   {
-    int i;
     Paint maskPaint, paint;
     Canvas maskCanvas;
     Bitmap maskBitmap;
@@ -45,18 +44,10 @@ public class EmacsFillRectangle
     if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)
       return;
 
-    canvas = drawable.lockCanvas ();
+    canvas = drawable.lockCanvas (gc);
 
     if (canvas == null)
       return;
-
-    canvas.save ();
-
-    if (gc.real_clip_rects != null)
-      {
-	for (i = 0; i < gc.real_clip_rects.length; ++i)
-	  canvas.clipRect (gc.real_clip_rects[i]);
-      }
 
     paint = gc.gcPaint;
     rect = new Rect (x, y, x + width, y + height);
@@ -120,7 +111,6 @@ public class EmacsFillRectangle
 	maskBitmap.recycle ();
       }
 
-    canvas.restore ();
     drawable.damageRect (rect);
   }
 }

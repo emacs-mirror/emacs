@@ -5666,6 +5666,8 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
   int x UNINIT, y UNINIT;
   unsigned int width, height;
 
+  width = height = 0;
+
   CHECK_STRING (string);
 
 #ifdef HAVE_NS

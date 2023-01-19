@@ -310,7 +310,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
 
   /* Allocate enough to hold text_rectangle.height, aligned to 8
      bytes.  Then fill it with the background.  */
-  stride = (text_rectangle.width * sizeof *buffer) + 7 & ~7;
+  stride = ((text_rectangle.width * sizeof *buffer) + 7) & ~7;
   GET_SCANLINE_BUFFER (buffer, text_rectangle.height, stride);
   memset (buffer, 0, text_rectangle.height * stride);
 
@@ -546,6 +546,7 @@ init_sfntfont_android (void)
 {
   /* Make sure to pick the right Sans Serif font depending on what
      version of Android the device is running.  */
+#if HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL
   if (android_get_device_api_level () >= 15)
     Vsfnt_default_family_alist
       = list3 (Fcons (build_string ("Monospace"),
@@ -557,6 +558,7 @@ init_sfntfont_android (void)
 	       Fcons (build_string ("Sans Serif"),
 		      build_string ("Roboto")));
   else
+#endif
     Vsfnt_default_family_alist
       = list3 (Fcons (build_string ("Monospace"),
 		      build_string ("Droid Sans Mono")),
