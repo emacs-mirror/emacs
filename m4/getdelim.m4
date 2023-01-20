@@ -1,4 +1,4 @@
-# getdelim.m4 serial 16
+# getdelim.m4 serial 17
 
 dnl Copyright (C) 2005-2007, 2009-2023 Free Software Foundation, Inc.
 dnl
@@ -18,7 +18,7 @@ AC_DEFUN([gl_FUNC_GETDELIM],
 
   AC_CHECK_DECLS_ONCE([getdelim])
 
-  AC_CHECK_FUNCS_ONCE([getdelim])
+  gl_CHECK_FUNCS_ANDROID([getdelim], [[#include <stdio.h>]])
   if test $ac_cv_func_getdelim = yes; then
     HAVE_GETDELIM=1
     dnl Found it in some library.  Verify that it works.

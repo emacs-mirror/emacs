@@ -1,4 +1,4 @@
-# mempcpy.m4 serial 12
+# mempcpy.m4 serial 13
 dnl Copyright (C) 2003-2004, 2006-2007, 2009-2023 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -14,7 +14,7 @@ AC_DEFUN([gl_FUNC_MEMPCPY],
   AC_REQUIRE([AC_C_RESTRICT])
 
   AC_REQUIRE([gl_STRING_H_DEFAULTS])
-  AC_CHECK_FUNCS([mempcpy])
+  gl_CHECK_FUNCS_ANDROID([mempcpy], [[#include <string.h>]])
   if test $ac_cv_func_mempcpy = no; then
     HAVE_MEMPCPY=0
   fi

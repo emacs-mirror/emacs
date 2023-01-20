@@ -1,4 +1,4 @@
-# serial 9
+# serial 10
 # See if we need to provide futimens replacement.
 
 dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
@@ -13,7 +13,7 @@ AC_DEFUN([gl_FUNC_FUTIMENS],
   AC_REQUIRE([gl_SYS_STAT_H_DEFAULTS])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  AC_CHECK_FUNCS_ONCE([futimens])
+  gl_CHECK_FUNCS_ANDROID([futimens], [[#include <sys/stat.h>]])
   if test $ac_cv_func_futimens = no; then
     HAVE_FUTIMENS=0
   else

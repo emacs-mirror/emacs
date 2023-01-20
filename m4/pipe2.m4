@@ -1,4 +1,4 @@
-# pipe2.m4 serial 2
+# pipe2.m4 serial 3
 dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -11,7 +11,7 @@ AC_DEFUN([gl_FUNC_PIPE2],
   dnl Persuade glibc <unistd.h> to declare pipe2().
   AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
 
-  AC_CHECK_FUNCS_ONCE([pipe2])
+  gl_CHECK_FUNCS_ANDROID([pipe2], [[#include <unistd.h>]])
   if test $ac_cv_func_pipe2 != yes; then
     HAVE_PIPE2=0
   fi

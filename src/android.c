@@ -257,30 +257,88 @@ static struct android_event_queue event_queue;
 /* Semaphores used to signal select completion and start.  */
 static sem_t android_pselect_sem, android_pselect_start_sem;
 
+#if __ANDROID_API__ < 16
+
+/* Select self-pipe.  */
+static int select_pipe[2];
+
+#endif
+
 static void *
 android_run_select_thread (void *data)
 {
+  int rc;
+#if __ANDROID_API__ < 16
+  int nfds;
+  fd_set readfds;
+  char byte;
+#else
   sigset_t signals, waitset;
-  int rc, sig;
-
-  sigfillset (&signals);
+#endif
 
 #if __ANDROID_API__ < 16
-  /* sigprocmask must be used instead of pthread_sigmask due to a bug
-     in Android versions earlier than 16.  It only affects the calling
-     thread on Android anyhow.  */
+  /* A completely different implementation is used when building for
+     Android versions earlier than 16, because pselect with a signal
+     mask does not work there.  Instead of blocking SIGUSR1 and
+     unblocking it inside pselect, a file descriptor is used instead.
+     Something is written to the file descriptor every time select is
+     supposed to return.  */
 
-  if (sigprocmask (SIG_BLOCK, &signals, NULL))
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "sigprocmask: %s",
-			 strerror (errno));
+  while (true)
+    {
+      /* Wait for the thread to be released.  */
+      while (sem_wait (&android_pselect_start_sem) < 0)
+	;;
+
+      /* Get the select lock and call pselect.  API 8 does not have
+	 working pselect in any sense.  Instead, pselect wakes up on
+	 select_pipe[0].  */
+
+      pthread_mutex_lock (&event_queue.select_mutex);
+      nfds = android_pselect_nfds;
+      readfds = *android_pselect_readfds;
+
+      if (nfds < select_pipe[0] + 1)
+	nfds = select_pipe[0] + 1;
+      FD_SET (select_pipe[0], &readfds);
+
+      rc = pselect (nfds, &readfds,
+		    android_pselect_writefds,
+		    android_pselect_exceptfds,
+		    android_pselect_timeout,
+		    NULL);
+
+      /* Subtract 1 from rc if writefds contains the select pipe.  */
+      if (FD_ISSET (select_pipe[0],
+		    android_pselect_writefds))
+	rc -= 1;
+
+      android_pselect_rc = rc;
+      pthread_mutex_unlock (&event_queue.select_mutex);
+
+      /* Signal the main thread that there is now data to read.
+         It is ok to signal this condition variable without holding
+         the event queue lock, because android_select will always
+         wait for this to complete before returning.  */
+      android_pselect_completed = true;
+      pthread_cond_signal (&event_queue.read_var);
+
+      /* Read a single byte from the select pipe.  */
+      read (select_pipe[0], &byte, 1);
+
+
+      /* Signal the Emacs thread that pselect is done.  If read_var
+	 was signaled by android_write_event, event_queue.mutex could
+	 still be locked, so this must come before.  */
+      sem_post (&android_pselect_sem);
+    }
 #else
   if (pthread_sigmask (SIG_BLOCK, &signals, NULL))
     __android_log_print (ANDROID_LOG_FATAL, __func__,
 			 "pthread_sigmask: %s",
 			 strerror (errno));
-#endif
 
+  sigfillset (&signals);
   sigdelset (&signals, SIGUSR1);
   sigemptyset (&waitset);
   sigaddset (&waitset, SIGUSR1);
@@ -321,9 +379,12 @@ android_run_select_thread (void *data)
 	 still be locked, so this must come before.  */
       sem_post (&android_pselect_sem);
     }
+#endif
 
   return NULL;
 }
+
+#if __ANDROID_API__ >= 16
 
 static void
 android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
@@ -331,6 +392,8 @@ android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
   /* Nothing to do here, this signal handler is only installed to make
      sure the disposition of SIGUSR1 is enough.  */
 }
+
+#endif
 
 /* Set up the global event queue by initializing the mutex and two
    condition variables, and the linked list of events.  This must be
@@ -366,11 +429,28 @@ android_init_events (void)
   event_queue.events.next = &event_queue.events;
   event_queue.events.last = &event_queue.events;
 
+#if __ANDROID_API__ >= 16
+
   /* Before starting the select thread, make sure the disposition for
      SIGUSR1 is correct.  */
   sigfillset (&sa.sa_mask);
   sa.sa_sigaction = android_handle_sigusr1;
   sa.sa_flags = SA_SIGINFO;
+
+#else
+
+  /* Set up the file descriptor used to wake up pselect.  */
+  if (pipe2 (select_pipe, O_CLOEXEC) < 0)
+    __android_log_print (ANDROID_LOG_FATAL, __func__,
+			 "pipe2: %s", strerror (errno));
+
+  /* Make sure the read end will fit in fd_set.  */
+  if (select_pipe[0] >= FD_SETSIZE)
+    __android_log_print (ANDROID_LOG_FATAL, __func__,
+			 "read end of select pipe"
+			 " lies outside FD_SETSIZE!");
+
+#endif
 
   if (sigaction (SIGUSR1, &sa, NULL))
     __android_log_print (ANDROID_LOG_FATAL, __func__,
@@ -479,6 +559,7 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 		fd_set *exceptfds, struct timespec *timeout)
 {
   int nfds_return;
+  static char byte;
 
   pthread_mutex_lock (&event_queue.mutex);
 
@@ -505,9 +586,16 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   /* Start waiting for the event queue condition to be set.  */
   pthread_cond_wait (&event_queue.read_var, &event_queue.mutex);
 
+#if __ANDROID_API__ >= 16
   /* Interrupt the select thread now, in case it's still in
      pselect.  */
   pthread_kill (event_queue.select_thread, SIGUSR1);
+#else
+  /* Interrupt the select thread by writing to the select pipe.  */
+  if (write (select_pipe[1], &byte, 1) != 1)
+    __android_log_print (ANDROID_LOG_FATAL, __func__,
+			 "write: %s", strerror (errno));
+#endif
 
   /* Wait for pselect to return in any case.  */
   while (sem_wait (&android_pselect_sem) < 0)
@@ -4425,8 +4513,6 @@ android_project_image_nearest (struct android_image *image,
 int
 android_ftruncate (int fd, off_t length)
 {
-  int rc;
-
 #if defined __arm__ || defined __mips__
   return syscall (SYS_ftruncate64, fd, 0,
 		  (unsigned int) (length & 0xffffffff),

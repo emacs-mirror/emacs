@@ -966,6 +966,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       touchpoint->x = event->touch.x;
       touchpoint->y = event->touch.x;
       touchpoint->next = FRAME_OUTPUT_DATA (any)->touch_points;
+      touchpoint->tool_bar_p = false;
       FRAME_OUTPUT_DATA (any)->touch_points = touchpoint;
 
       /* Figure out whether or not the tool was pressed on the tool
@@ -1072,13 +1073,10 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    {
 	      *last = touchpoint->next;
 
-	      /* The tool was unlinked.  Free it and generate the
-		 appropriate Emacs event (assuming that it was not
-		 grabbed by the tool bar).  */
-	      xfree (touchpoint);
-
 	      if (touchpoint->tool_bar_p)
 		{
+		  xfree (touchpoint);
+
 		  /* Do what is necessary to release the tool bar and
 		     possibly trigger a click.  */
 
@@ -1093,6 +1091,11 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
 		  goto OTHER;
 		}
+
+	      /* The tool was unlinked.  Free it and generate the
+		 appropriate Emacs event (assuming that it was not
+		 grabbed by the tool bar).  */
+	      xfree (touchpoint);
 
 	      inev.ie.kind = TOUCHSCREEN_END_EVENT;
 	      inev.ie.timestamp = event->touch.time;

@@ -28,7 +28,7 @@
 # other built files.
 
 
-# This macro should be invoked from ./configure.ac, in the section
+# This macro should be invoked from .//configure.ac, in the section
 # "Checks for programs", right after AC_PROG_CC, and certainly before
 # any checks for libraries, header files, types and library functions.
 AC_DEFUN([gl_EARLY],
@@ -214,7 +214,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module xalloc-oversized:
 ])
 
-# This macro should be invoked from ./configure.ac, in the section
+# This macro should be invoked from .//configure.ac, in the section
 # "Check for header files, types and library functions".
 AC_DEFUN([gl_INIT],
 [
@@ -252,7 +252,7 @@ AC_DEFUN([gl_INIT],
   gl_STDLIB_MODULE_INDICATOR([canonicalize_file_name])
   gl_STDLIB_MODULE_INDICATOR([realpath])
   AC_REQUIRE([AC_C_RESTRICT])
-  AC_CHECK_FUNCS_ONCE([readlinkat])
+  gl_CHECK_FUNCS_ANDROID([readlinkat], [[#include <unistd.h>]])
   gl_CLOCK_TIME
   gl_MODULE_INDICATOR([close-stream])
   gl_FUNC_COPY_FILE_RANGE

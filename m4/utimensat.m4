@@ -1,4 +1,4 @@
-# serial 9
+# serial 10
 # See if we need to provide utimensat replacement.
 
 dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
@@ -13,8 +13,6 @@ AC_DEFUN([gl_FUNC_UTIMENSAT],
   AC_REQUIRE([gl_SYS_STAT_H_DEFAULTS])
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
-  # This is necessary for cross-compiles, because otherwise utimensat
-  # will appear to work.
   gl_CHECK_FUNCS_ANDROID([utimensat], [[#include <sys/stat.h>]])
   if test $ac_cv_func_utimensat = no; then
     HAVE_UTIMENSAT=0

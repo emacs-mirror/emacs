@@ -1,4 +1,4 @@
-# serial 10
+# serial 11
 # See if we need to provide faccessat replacement.
 
 dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
@@ -16,7 +16,7 @@ AC_DEFUN([gl_FUNC_FACCESSAT],
   dnl Persuade glibc <unistd.h> to declare faccessat().
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
 
-  AC_CHECK_FUNCS_ONCE([faccessat])
+  gl_CHECK_FUNCS_ANDROID([faccessat], [[#include <unistd.h>]])
   if test $ac_cv_func_faccessat = no; then
     HAVE_FACCESSAT=0
   else
