@@ -1102,10 +1102,12 @@ See `treesit-simple-indent-presets'.")
                            (string-match-p
                             parent-t (treesit-node-type parent)))
                        (or (null grand-parent-t)
-                           (string-match-p
-                            grand-parent-t
-                            (treesit-node-type
-                             (treesit-node-parent parent))))))))
+                           (and
+                            (treesit-node-parent parent)
+                            (string-match-p
+                             grand-parent-t
+                             (treesit-node-type
+                              (treesit-node-parent parent)))))))))
         (cons 'no-node (lambda (node &rest _) (null node)))
         (cons 'parent-is (lambda (type)
                            (lambda (_n parent &rest _)
