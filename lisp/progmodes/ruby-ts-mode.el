@@ -131,7 +131,7 @@
           "$." "$<" "$>" "$_" "$*" "$$" "$?" "$:" "$LOAD_PATH"
           "$LOADED_FEATURES" "$DEBUG" "$FILENAME" "$stderr" "$stdin"
           "$stdout" "$VERBOSE" "$-a" "$-i" "$-l" "$-p"
-          (seq "$" (+ digit)))
+          "$0" "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9")
       string-end)
   "Ruby predefined global variables.")
 
