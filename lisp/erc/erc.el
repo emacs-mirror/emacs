@@ -58,17 +58,13 @@
 
 ;;; Code:
 
-(load "erc-loaddefs" 'noerror 'nomessage)
+(eval-and-compile (load "erc-loaddefs" 'noerror 'nomessage))
 
 (require 'erc-networks)
 (require 'erc-backend)
 (require 'cl-lib)
 (require 'format-spec)
-(require 'pp)
-(require 'thingatpt)
 (require 'auth-source)
-(require 'time-date)
-(require 'iso8601)
 (eval-when-compile (require 'subr-x) (require 'url-parse))
 
 (defconst erc-version "5.6-git"
@@ -140,6 +136,11 @@
 (defvar tabbar--local-hlf)
 (defvar motif-version-string)
 (defvar gtk-version-string)
+
+(declare-function decoded-time-period "time-date" (time))
+(declare-function iso8601-parse-duration "iso8601" (string))
+(declare-function word-at-point "thingatpt" (&optional no-properties))
+(autoload 'word-at-point "thingatpt") ; for hl-nicks
 
 ;; tunable connection and authentication parameters
 
@@ -3102,6 +3103,8 @@ returns the time spec converted to a number of seconds."
       (string-to-number period))
      ;; Parse as a time spec.
      (t
+      (require 'time-date)
+      (require 'iso8601)
       (let ((time (condition-case nil
                       (iso8601-parse-duration
                        (concat (cond
@@ -6933,8 +6936,6 @@ shortened server name instead."
     (cond (lag (format "lag:%.0f" lag))
           (t ""))))
 
-;; erc-goodies is required at end of this file.
-
 ;; TODO when ERC drops Emacs 28, replace the expressions in the format
 ;; spec below with functions.
 (defun erc-update-mode-line-buffer (buffer)
@@ -7484,6 +7485,4 @@ Customize `erc-url-connect-function' to override this."
 
 (provide 'erc)
 
-;; FIXME this is a temporary stopgap for Emacs 29.
-(require 'erc-goodies)
 ;;; erc.el ends here

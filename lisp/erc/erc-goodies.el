@@ -29,23 +29,10 @@
 
 ;;; Code:
 
-;;; Imenu support
-
 (eval-when-compile (require 'cl-lib))
-(require 'erc-common)
-
 (defvar erc-controls-highlight-regexp)
 (defvar erc-controls-remove-regexp)
-(defvar erc-input-marker)
-(defvar erc-insert-marker)
-(defvar erc-server-process)
-(defvar erc-modules)
-(defvar erc-log-p)
-
-(declare-function erc-buffer-list "erc" (&optional predicate proc))
-(declare-function erc-error "erc" (&rest args))
-(declare-function erc-extract-command-from-line "erc" (line))
-(declare-function erc-beg-of-input-line "erc" nil)
+(require 'erc)
 
 (defun erc-imenu-setup ()
   "Setup Imenu support in an ERC buffer."
@@ -65,6 +52,7 @@ argument to `recenter'."
   :group 'erc-display
   :type '(choice integer (const nil)))
 
+;;;###autoload(autoload 'erc-scrolltobottom-mode "erc-goodies" nil t)
 (define-erc-module scrolltobottom nil
   "This mode causes the prompt to stay at the end of the window."
   ((add-hook 'erc-mode-hook #'erc-add-scroll-to-bottom)
@@ -116,6 +104,7 @@ variable `erc-input-line-position'."
 	  (recenter (or erc-input-line-position -1)))))))
 
 ;;; Make read only
+;;;###autoload(autoload 'erc-readonly-mode "erc-goodies" nil t)
 (define-erc-module readonly nil
   "This mode causes all inserted text to be read-only."
   ((add-hook 'erc-insert-post-hook #'erc-make-read-only)
@@ -131,6 +120,7 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
   (put-text-property (point-min) (point-max) 'rear-nonsticky t))
 
 ;;; Move to prompt when typing text
+;;;###autoload(autoload 'erc-move-to-prompt-mode "erc-goodies" nil t)
 (define-erc-module move-to-prompt nil
   "This mode causes the point to be moved to the prompt when typing text."
   ((add-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
@@ -155,6 +145,7 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
   (add-hook 'pre-command-hook #'erc-move-to-prompt nil t))
 
 ;;; Keep place in unvisited channels
+;;;###autoload(autoload 'erc-keep-place-mode "erc-goodies" nil t)
 (define-erc-module keep-place nil
   "Leave point above un-viewed text in other channels."
   ((add-hook 'erc-insert-pre-hook  #'erc-keep-place))
@@ -193,6 +184,7 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
 If a command's function symbol is in this list, the typed command
 does not appear in the ERC buffer after the user presses ENTER.")
 
+;;;###autoload(autoload 'erc-noncommands-mode "erc-goodies" nil t)
 (define-erc-module noncommands nil
   "This mode distinguishes non-commands.
 Commands listed in `erc-insert-this' know how to display
@@ -381,6 +373,7 @@ The value `erc-interpret-controls-p' must also be t for this to work."
       (intern (concat "fg:erc-color-face" (number-to-string n))))
      (t (erc-log (format "   Wrong color: %s" n)) 'default))))
 
+;;;###autoload(autoload 'erc-irccontrols-mode "erc-goodies" nil t)
 (define-erc-module irccontrols nil
   "This mode enables the interpretation of IRC control chars."
   ((add-hook 'erc-insert-modify-hook #'erc-controls-highlight)
@@ -440,6 +433,7 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
                 s))
              (t s)))))
 
+;;;###autoload
 (defun erc-controls-strip (str)
   "Return a copy of STR with all IRC control characters removed."
   (when str
@@ -553,6 +547,7 @@ Else interpretation is turned off."
            (if erc-interpret-controls-p "ON" "OFF")))
 
 ;; Smiley
+;;;###autoload(autoload 'erc-smiley-mode "erc-goodies" nil t)
 (define-erc-module smiley nil
   "This mode translates text-smileys such as :-) into pictures.
 This requires the function `smiley-region', which is defined in
@@ -569,6 +564,7 @@ This function should be used with `erc-insert-modify-hook'."
     (smiley-region (point-min) (point-max))))
 
 ;; Unmorse
+;;;###autoload(autoload 'erc-unmorse-mode "erc-goodies" nil t)
 (define-erc-module unmorse nil
   "This mode causes morse code in the current channel to be unmorsed."
   ((add-hook 'erc-insert-modify-hook #'erc-unmorse))
@@ -611,3 +607,7 @@ servers.  If called from a program, PROC specifies the server process."
 (provide 'erc-goodies)
 
 ;;; erc-goodies.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
+;; End:

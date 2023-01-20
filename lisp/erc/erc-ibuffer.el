@@ -32,6 +32,7 @@
 (require 'ibuffer)
 (require 'ibuf-ext)
 (require 'erc)
+(require 'erc-goodies) ; `erc-controls-interpret'
 
 (defgroup erc-ibuffer nil
   "The Ibuffer group for ERC."
