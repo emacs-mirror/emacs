@@ -42,7 +42,7 @@
 
 (defvar html-ts-mode--indent-rules
   `((html
-     ((parent-is "fragment") parent-bol 0)
+     ((parent-is "fragment") point-min 0)
      ((node-is "/>") parent-bol 0)
      ((node-is ">") parent-bol 0)
      ((node-is "end_tag") parent-bol 0)
