@@ -71,6 +71,8 @@
 ;; ruby-ts-mode tries to adhere to the indentation related user
 ;; options from ruby-mode, such as ruby-indent-level,
 ;; ruby-indent-tabs-mode, and so on.
+;;
+;; Type 'M-x customize-group RET ruby RET' to see the options.
 
 ;; * IMenu
 ;; * Navigation
