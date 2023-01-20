@@ -2,6 +2,7 @@
 Memory Pool System pull request merge procedure
 ===============================================
 
+:tag: proc.merge.pull-request
 :author: Richard Brooksby
 :organization: Ravenbrook Limited
 :date: 2023-01-07
