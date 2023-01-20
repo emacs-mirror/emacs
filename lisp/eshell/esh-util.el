@@ -111,6 +111,9 @@ function `string-to-number'."
 
 ;;; Internal Variables:
 
+(defvar eshell-integer-regexp (rx (? "-") (+ digit))
+  "Regular expression used to match integer arguments.")
+
 (defvar eshell-group-names nil
   "A cache to hold the names of groups.")
 
