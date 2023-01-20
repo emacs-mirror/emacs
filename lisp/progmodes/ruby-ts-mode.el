@@ -555,7 +555,7 @@ a statement container is a node that matches
   (let ((common
          `(
            ;; Slam all top level nodes to the left margin
-           ((parent-is "program") parent 0)
+           ((parent-is "program") point-min 0)
 
            ;; Do not indent here docs or the end.  Not sure why it
            ;; takes the grand-parent but ok fine.

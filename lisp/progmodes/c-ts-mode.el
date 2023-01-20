@@ -167,7 +167,7 @@ delimiters < and >'s."
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
   (let ((common
-         `(((parent-is "translation_unit") parent-bol 0)
+         `(((parent-is "translation_unit") point-min 0)
            ((node-is ")") parent 1)
            ((node-is "]") parent-bol 0)
            ((node-is "else") parent-bol 0)

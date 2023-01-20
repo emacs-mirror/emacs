@@ -69,7 +69,7 @@
 
 (defvar java-ts-mode--indent-rules
   `((java
-     ((parent-is "program") parent-bol 0)
+     ((parent-is "program") point-min 0)
      ((node-is "}") (and parent parent-bol) 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
