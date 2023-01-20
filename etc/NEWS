@@ -3191,7 +3191,7 @@ files.  You can also customize 'major-mode-remap-alist' to
 automatically turn on some tree-sitter based modes for the same files
 for which a "built-in" mode would be turned on.  For example:
 
-  (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
 
 If you try these modes and don't like them, you can go back to the
 "built-in" modes by restarting Emacs.  But please tell us why you
@@ -3279,7 +3279,6 @@ Dockerfiles.
 +++
 *** New major mode 'cmake-ts-mode'.
 A major mode based on the tree-sitter library for editing CMake files.
-
 
 +++
 *** New major mode 'toml-ts-mode'.
