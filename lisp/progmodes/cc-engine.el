@@ -10475,6 +10475,8 @@ This function might do hidden buffer changes."
 	  got-prefix
 	  ;; True if the declarator is surrounded by a parenthesis pair.
 	  got-parens
+	  ;; True if there is a terminated argument list.
+	  got-arglist
 	  ;; True if there is an identifier in the declarator.
 	  got-identifier
 	  ;; True if we find a number where an identifier was expected.
@@ -10622,13 +10624,17 @@ This function might do hidden buffer changes."
 		(when (> paren-depth 0)
 		  (setq paren-depth (1- paren-depth))
 		  (forward-char)
+		  (when (and (not got-parens)
+			     (eq paren-depth 0))
+		    (setq got-arglist t))
 		  t)
-	      (when (if (save-match-data (looking-at "\\s("))
-			(c-safe (c-forward-sexp 1) t)
-		      (if (save-match-data
-			    (looking-at c-fun-name-substitute-key)) ; requires
-			  (c-forward-c++-requires-clause)
-			(goto-char (match-end 1))
+	      (when (cond
+		     ((save-match-data (looking-at "\\s("))
+		      (c-safe (c-forward-sexp 1) t))
+		     ((save-match-data
+			(looking-at c-fun-name-substitute-key)) ; C++ requires
+		      (c-forward-c++-requires-clause))
+		     (t (goto-char (match-end 1))
 			t))
 		(when (and (not got-suffix-after-parens)
 			   (= paren-depth 0))
@@ -10690,8 +10696,11 @@ This function might do hidden buffer changes."
 			     (goto-char pos)
 			     (setq pd (1- pd)))
 			   t)))
-		 (c-fdoc-shift-type-backward)
-		 t)))
+	      (c-fdoc-shift-type-backward)
+	      (when (and (not got-parens)
+			 (eq paren-depth 0))
+		(setq got-arglist t))
+	      t)))
 
 	(c-forward-syntactic-ws))
 
@@ -10759,6 +10768,9 @@ This function might do hidden buffer changes."
 			  (not (or got-prefix got-parens)))
 		 ;; Got another identifier directly after the type, so it's a
 		 ;; declaration.
+		 (when (and got-arglist
+			    (eq at-type 'maybe))
+		   (setq unsafe-maybe t))
 		 (throw 'at-decl-or-cast t))
 
 	       (when (and got-parens
@@ -11147,9 +11159,17 @@ This function might do hidden buffer changes."
 	 ;; inside an arglist that contains declarations.  Update (2017-09): We
 	 ;; now recognize a top-level "foo(bar);" as a declaration in C.
 	 ;; CASE 19
-	 (or (eq context 'decl)
-	     (and (c-major-mode-is 'c-mode)
-		  (or (eq context 'top) make-top))))))
+	 (when
+	     (or (eq context 'decl)
+		 (and (c-major-mode-is 'c-mode)
+		      (or (eq context 'top) make-top)))
+	   (when (and (eq at-type 'maybe)
+		      got-parens)
+	     ;; If we've got "foo d(bar () ...)", the d could be a typing
+	     ;; mistake, so we don't promote the 'maybe type "bar" to a 'found
+	     ;; type.
+	     (setq unsafe-maybe t))
+	   t))))
 
     ;; The point is now after the type decl expression.
 
