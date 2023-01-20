@@ -50,11 +50,11 @@
 
 ;; Currently tree treesit-font-lock-feature-list is set with the
 ;; following levels:
-;;   1: comment method-definition
+;;   1: comment method-definition parameter-definition
 ;;   2: keyword regexp string type
-;;   3: builtin-variable builtin-constant constant
+;;   3: builtin-variable builtin-constant builtin-function
 ;;      delimiter escape-sequence
-;;      global instance
+;;      constant global instance
 ;;      interpolation literal symbol assignment
 ;;   4: bracket error function operator punctuation
 
