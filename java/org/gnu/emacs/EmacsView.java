@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
 
 import android.view.ContextMenu;
@@ -26,6 +27,8 @@ import android.view.View;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+
+import android.view.inputmethod.InputMethodManager;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -86,10 +89,22 @@ public class EmacsView extends ViewGroup
   /* The serial of the last clip rectangle change.  */
   private long lastClipSerial;
 
+  /* The InputMethodManager for this view's context.  */
+  private InputMethodManager imManager;
+
+  /* Runnable that will run once drawing completes.  */
+  public Runnable drawingFinished;
+
+  /* Serial of the last ConfigureNotify event sent that Emacs has not
+     yet responded to.  0 if there is no such outstanding event.  */
+  public long pendingConfigure;
+
   public
   EmacsView (EmacsWindow window)
   {
     super (EmacsService.SERVICE);
+
+    Object tem;
 
     this.window = window;
     this.damageRegion = new Region ();
@@ -111,6 +126,10 @@ public class EmacsView extends ViewGroup
     /* Get rid of the default focus highlight.  */
     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
       setDefaultFocusHighlightEnabled (false);
+
+    /* Obtain the input method manager.  */
+    tem = getContext ().getSystemService (Context.INPUT_METHOD_SERVICE);
+    imManager = (InputMethodManager) tem;
   }
 
   private void
@@ -259,7 +278,8 @@ public class EmacsView extends ViewGroup
     if (changed || mustReportLayout)
       {
 	mustReportLayout = false;
-	window.viewLayout (left, top, right, bottom);
+	pendingConfigure
+	  = window.viewLayout (left, top, right, bottom);
       }
 
     measuredWidth = right - left;
@@ -536,6 +556,39 @@ public class EmacsView extends ViewGroup
 
 	/* Collect the bitmap storage; it could be large.  */
 	Runtime.getRuntime ().gc ();
+      }
+  }
+
+  public void
+  showOnScreenKeyboard ()
+  {
+    /* Specifying no flags at all tells the system the user asked for
+       the input method to be displayed.  */
+    imManager.showSoftInput (this, 0);
+  }
+
+  public void
+  hideOnScreenKeyboard ()
+  {
+    imManager.hideSoftInputFromWindow (this.getWindowToken (),
+				       0);
+  }
+
+  public void
+  windowUpdated (long serial)
+  {
+    Log.d (TAG, "windowUpdated: serial is " + serial);
+
+    if (pendingConfigure <= serial
+	/* Detect wraparound.  */
+	|| pendingConfigure - serial >= 0x7fffffff)
+      {
+	pendingConfigure = 0;
+
+	if (drawingFinished != null)
+	  drawingFinished.run ();
+
+	drawingFinished = null;
       }
   }
 };

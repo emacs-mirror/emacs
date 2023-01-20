@@ -2554,6 +2554,23 @@ symbols."
                'core-keyboard))))))
 
 
+;;;; On-screen keyboard management.
+
+(declare-function android-toggle-on-screen-keyboard "androidfns.c")
+
+(defun frame-toggle-on-screen-keyboard (frame hide)
+  "Display or hide the on-screen keyboard.
+On systems with an on-screen keyboard, display the on screen
+keyboard on behalf of the frame FRAME if HIDE is nil.  Else, hide
+the on screen keyboard.
+
+FRAME must already have the input focus for this to work
+ reliably."
+  (let ((frame-type (framep-on-display frame)))
+    (cond ((eq frame-type 'android)
+           (android-toggle-on-screen-keyboard frame hide)))))
+
+
 ;;;; Frame geometry values
 
 (defun frame-geom-value-cons (type value &optional frame)

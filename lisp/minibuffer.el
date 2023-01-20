@@ -4576,6 +4576,29 @@ is included in the return value."
                   default)))
    ": "))
 
+
+;;; On screen keyboard support.
+;; Try to display the on screen keyboard whenever entering the
+;; mini-buffer, and hide it whenever leaving.
+
+(defun minibuffer-setup-on-screen-keyboard ()
+  "Maybe display the on-screen keyboard in the current frame.
+Display the on-screen keyboard in the current frame if the
+last device to have sent an input event is not a keyboard.
+This is run upon minibuffer setup."
+  (when (not (memq (device-class last-event-frame
+                               last-event-device)
+                   '(keyboard core-keyboard)))
+    (frame-toggle-on-screen-keyboard (selected-frame) nil)))
+
+(defun minibuffer-exit-on-screen-keyboard ()
+  "Hide the on-screen keyboard if it was displayed.
+This is run upon minibuffer exit."
+  (frame-toggle-on-screen-keyboard (selected-frame) t))
+
+(add-hook 'minibuffer-setup-hook #'minibuffer-setup-on-screen-keyboard)
+(add-hook 'minibuffer-exit-hook #'minibuffer-exit-on-screen-keyboard)
+
 (provide 'minibuffer)
 
 ;;; minibuffer.el ends here

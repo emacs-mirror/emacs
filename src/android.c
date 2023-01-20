@@ -121,6 +121,8 @@ struct android_emacs_window
 {
   jclass class;
   jmethodID swap_buffers;
+  jmethodID toggle_on_screen_keyboard;
+  jmethodID window_updated;
 };
 
 /* The asset manager being used.  */
@@ -192,6 +194,10 @@ static struct android_emacs_drawable drawable_class;
 
 /* Various methods associated with the EmacsWindow class.  */
 static struct android_emacs_window window_class;
+
+/* The last event serial used.  This is a 32 bit value, but it is
+   stored in unsigned long to be consistent with X.  */
+static unsigned int event_serial;
 
 
 
@@ -1435,6 +1441,9 @@ android_init_emacs_window (void)
   assert (window_class.c_name);
 
   FIND_METHOD (swap_buffers, "swapBuffers", "()V");
+  FIND_METHOD (toggle_on_screen_keyboard,
+	       "toggleOnScreenKeyboard", "(Z)V");
+  FIND_METHOD (window_updated, "windowUpdated", "(J)V");
 #undef FIND_METHOD
 }
 
@@ -1497,7 +1506,7 @@ NATIVE_NAME (emacsAbort) (JNIEnv *env, jobject object)
   emacs_abort ();
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
 				   jshort window, jlong time,
 				   jint x, jint y, jint width,
@@ -1506,6 +1515,7 @@ NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.xconfigure.type = ANDROID_CONFIGURE_NOTIFY;
+  event.xconfigure.serial = ++event_serial;
   event.xconfigure.window = window;
   event.xconfigure.time = time;
   event.xconfigure.x = x;
@@ -1514,9 +1524,10 @@ NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
   event.xconfigure.height = height;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
 			    jshort window, jlong time,
 			    jint state, jint keycode,
@@ -1525,6 +1536,7 @@ NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.xkey.type = ANDROID_KEY_PRESS;
+  event.xkey.serial = ++event_serial;
   event.xkey.window = window;
   event.xkey.time = time;
   event.xkey.state = state;
@@ -1532,9 +1544,10 @@ NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
   event.xkey.unicode_char = unicode_char;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
 			      jshort window, jlong time,
 			      jint state, jint keycode,
@@ -1543,6 +1556,7 @@ NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.xkey.type = ANDROID_KEY_RELEASE;
+  event.xkey.serial = ++event_serial;
   event.xkey.window = window;
   event.xkey.time = time;
   event.xkey.state = state;
@@ -1550,48 +1564,55 @@ NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
   event.xkey.unicode_char = unicode_char;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendFocusIn) (JNIEnv *env, jobject object,
 			   jshort window, jlong time)
 {
   union android_event event;
 
-  event.xkey.type = ANDROID_FOCUS_IN;
-  event.xkey.window = window;
-  event.xkey.time = time;
+  event.xfocus.type = ANDROID_FOCUS_IN;
+  event.xfocus.serial = ++event_serial;
+  event.xfocus.window = window;
+  event.xfocus.time = time;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendFocusOut) (JNIEnv *env, jobject object,
 			    jshort window, jlong time)
 {
   union android_event event;
 
-  event.xkey.type = ANDROID_FOCUS_OUT;
-  event.xkey.window = window;
-  event.xkey.time = time;
+  event.xfocus.type = ANDROID_FOCUS_OUT;
+  event.xfocus.serial = ++event_serial;
+  event.xfocus.window = window;
+  event.xfocus.time = time;
 
   android_write_event (&event);
+  return ++event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendWindowAction) (JNIEnv *env, jobject object,
 				jshort window, jint action)
 {
   union android_event event;
 
   event.xaction.type = ANDROID_WINDOW_ACTION;
+  event.xaction.serial = ++event_serial;
   event.xaction.window = window;
   event.xaction.action = action;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendEnterNotify) (JNIEnv *env, jobject object,
 			       jshort window, jint x, jint y,
 			       jlong time)
@@ -1599,15 +1620,17 @@ NATIVE_NAME (sendEnterNotify) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.xcrossing.type = ANDROID_ENTER_NOTIFY;
+  event.xcrossing.serial = ++event_serial;
   event.xcrossing.window = window;
   event.xcrossing.x = x;
   event.xcrossing.y = y;
   event.xcrossing.time = time;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendLeaveNotify) (JNIEnv *env, jobject object,
 			       jshort window, jint x, jint y,
 			       jlong time)
@@ -1615,15 +1638,17 @@ NATIVE_NAME (sendLeaveNotify) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.xcrossing.type = ANDROID_LEAVE_NOTIFY;
+  event.xcrossing.serial = ++event_serial;
   event.xcrossing.window = window;
   event.xcrossing.x = x;
   event.xcrossing.y = y;
   event.xcrossing.time = time;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendMotionNotify) (JNIEnv *env, jobject object,
 				jshort window, jint x, jint y,
 				jlong time)
@@ -1631,15 +1656,17 @@ NATIVE_NAME (sendMotionNotify) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.xmotion.type = ANDROID_MOTION_NOTIFY;
+  event.xmotion.serial = ++event_serial;
   event.xmotion.window = window;
   event.xmotion.x = x;
   event.xmotion.y = y;
   event.xmotion.time = time;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendButtonPress) (JNIEnv *env, jobject object,
 			       jshort window, jint x, jint y,
 			       jlong time, jint state,
@@ -1648,6 +1675,7 @@ NATIVE_NAME (sendButtonPress) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.xbutton.type = ANDROID_BUTTON_PRESS;
+  event.xbutton.serial = ++event_serial;
   event.xbutton.window = window;
   event.xbutton.x = x;
   event.xbutton.y = y;
@@ -1656,9 +1684,10 @@ NATIVE_NAME (sendButtonPress) (JNIEnv *env, jobject object,
   event.xbutton.button = button;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
 				 jshort window, jint x, jint y,
 				 jlong time, jint state,
@@ -1667,6 +1696,7 @@ NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.xbutton.type = ANDROID_BUTTON_RELEASE;
+  event.xbutton.serial = ++event_serial;
   event.xbutton.window = window;
   event.xbutton.x = x;
   event.xbutton.y = y;
@@ -1675,9 +1705,10 @@ NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
   event.xbutton.button = button;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
 			     jshort window, jint x, jint y,
 			     jlong time, jint pointer_id)
@@ -1685,6 +1716,7 @@ NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.touch.type = ANDROID_TOUCH_DOWN;
+  event.touch.serial = ++event_serial;
   event.touch.window = window;
   event.touch.x = x;
   event.touch.y = y;
@@ -1692,9 +1724,10 @@ NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
   event.touch.pointer_id = pointer_id;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
 			   jshort window, jint x, jint y,
 			   jlong time, jint pointer_id)
@@ -1702,6 +1735,7 @@ NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.touch.type = ANDROID_TOUCH_UP;
+  event.touch.serial = ++event_serial;
   event.touch.window = window;
   event.touch.x = x;
   event.touch.y = y;
@@ -1709,9 +1743,10 @@ NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
   event.touch.pointer_id = pointer_id;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
 			     jshort window, jint x, jint y,
 			     jlong time, jint pointer_id)
@@ -1719,6 +1754,7 @@ NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.touch.type = ANDROID_TOUCH_MOVE;
+  event.touch.serial = ++event_serial;
   event.touch.window = window;
   event.touch.x = x;
   event.touch.y = y;
@@ -1726,9 +1762,10 @@ NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
   event.touch.pointer_id = pointer_id;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendWheel) (JNIEnv *env, jobject object,
 			 jshort window, jint x, jint y,
 			 jlong time, jint state,
@@ -1737,6 +1774,7 @@ NATIVE_NAME (sendWheel) (JNIEnv *env, jobject object,
   union android_event event;
 
   event.wheel.type = ANDROID_WHEEL;
+  event.wheel.serial = ++event_serial;
   event.wheel.window = window;
   event.wheel.x = x;
   event.wheel.y = y;
@@ -1746,43 +1784,50 @@ NATIVE_NAME (sendWheel) (JNIEnv *env, jobject object,
   event.wheel.y_delta = y_delta;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendIconified) (JNIEnv *env, jobject object,
 			     jshort window)
 {
   union android_event event;
 
   event.iconified.type = ANDROID_ICONIFIED;
+  event.iconified.serial = ++event_serial;
   event.iconified.window = window;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendDeiconified) (JNIEnv *env, jobject object,
 			       jshort window)
 {
   union android_event event;
 
   event.iconified.type = ANDROID_DEICONIFIED;
+  event.iconified.serial = ++event_serial;
   event.iconified.window = window;
 
   android_write_event (&event);
+  return event_serial;
 }
 
-extern JNIEXPORT void JNICALL
+extern JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
 			       jshort window, jint menu_event_id)
 {
   union android_event event;
 
   event.menu.type = ANDROID_CONTEXT_MENU;
+  event.menu.serial = ++event_serial;
   event.menu.window = window;
   event.menu.menu_event_id = menu_event_id;
 
   android_write_event (&event);
+  return event_serial;
 }
 
 #ifdef __clang__
@@ -3599,6 +3644,15 @@ android_translate_coordinates (android_window src, int x,
   ANDROID_DELETE_LOCAL_REF (coordinates);
 }
 
+void
+android_sync (void)
+{
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       emacs_service,
+				       service_class.sync);
+  android_exception_check ();
+}
+
 
 
 /* Low level drawing primitives.  */
@@ -3795,12 +3849,45 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
   ANDROID_DELETE_LOCAL_REF (string);
 }
 
+/* Display the on screen keyboard on window WINDOW, or hide it if SHOW
+   is false.  Ask the system to bring up or hide the on-screen
+   keyboard on behalf of WINDOW.  The request may be rejected by the
+   system, especially when the window does not have the input
+   focus.  */
+
 void
-android_sync (void)
+android_toggle_on_screen_keyboard (android_window window, bool show)
 {
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.sync);
+  jobject object;
+  jmethodID method;
+
+  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+  method = window_class.toggle_on_screen_keyboard;
+
+  /* Now display the on screen keyboard.  */
+  (*android_java_env)->CallVoidMethod (android_java_env, object,
+				       method, (jboolean) show);
+
+  /* Check for out of memory errors.  */
+  android_exception_check ();
+}
+
+/* Tell the window system that all configure events sent to WINDOW
+   have been fully processed, and that it is now okay to display its
+   new contents.  SERIAL is the serial of the last configure event
+   processed.  */
+
+void
+android_window_updated (android_window window, unsigned long serial)
+{
+  jobject object;
+  jmethodID method;
+
+  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+  method = window_class.window_updated;
+
+  (*android_java_env)->CallVoidMethod (android_java_env, object,
+				       method, (jlong) serial);
   android_exception_check ();
 }
 
@@ -3811,7 +3898,7 @@ android_sync (void)
 #undef faccessat
 
 /* Replace the system faccessat with one which understands AT_EACCESS.
-   Android's faccessat simply fails upon using AT_EACCESS, so repalce
+   Android's faccessat simply fails upon using AT_EACCESS, so replace
    it with zero here.  This isn't caught during configuration.
 
    This replacement is only done when building for Android 17 or
@@ -3829,7 +3916,7 @@ faccessat (int dirfd, const char *pathname, int mode, int flags)
   return real_faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
 }
 
-#endif /* __ANDROID_API__ < 16 */
+#endif /* __ANDROID_API__ >= 17 */
 
 
 

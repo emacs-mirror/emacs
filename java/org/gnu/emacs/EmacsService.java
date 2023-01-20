@@ -32,7 +32,13 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 
 import android.annotation.TargetApi;
+
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.NotificationChannel;
+import android.app.PendingIntent;
 import android.app.Service;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
@@ -63,6 +69,7 @@ public class EmacsService extends Service
   public static final String TAG = "EmacsService";
   public static final int MAX_PENDING_REQUESTS = 256;
   public static volatile EmacsService SERVICE;
+  public static boolean needDashQ;
 
   private EmacsThread thread;
   private Handler handler;
@@ -74,6 +81,31 @@ public class EmacsService extends Service
   public int
   onStartCommand (Intent intent, int flags, int startId)
   {
+    Notification notification;
+    NotificationManager manager;
+    NotificationChannel channel;
+    String infoBlurb;
+    Object tem;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      {
+	tem = getSystemService (Context.NOTIFICATION_SERVICE);
+	manager = (NotificationManager) tem;
+	infoBlurb = ("See (emacs)Android Environment for more"
+		     + " details about this notification.");
+	channel
+	  = new NotificationChannel ("emacs", "Emacs persistent notification",
+				     NotificationManager.IMPORTANCE_DEFAULT);
+	manager.createNotificationChannel (channel);
+	notification = (new Notification.Builder (this, "emacs")
+			.setContentTitle ("Emacs")
+			.setContentText (infoBlurb)
+			.setSmallIcon (android.R.drawable.sym_def_app_icon)
+			.build ());
+	manager.notify (1, notification);
+	startForeground (1, notification);
+      }
+
     return START_NOT_STICKY;
   }
 
@@ -137,7 +169,7 @@ public class EmacsService extends Service
 				    this);
 
 	/* Start the thread that runs Emacs.  */
-	thread = new EmacsThread (this);
+	thread = new EmacsThread (this, needDashQ);
 	thread.start ();
       }
     catch (IOException exception)
@@ -442,6 +474,34 @@ public class EmacsService extends Service
 	  {
 	    EmacsNative.emacsAbort ();
 	  }
+      }
+  }
+
+  
+
+  /* Start the Emacs service if necessary.  On Android 26 and up,
+     start Emacs as a foreground service with a notification, to avoid
+     it being killed by the system.
+
+     On older systems, simply start it as a normal background
+     service.  */
+
+  public static void
+  startEmacsService (Context context)
+  {
+    PendingIntent intent;
+
+    if (EmacsService.SERVICE == null)
+      {
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+	  /* Start the Emacs service now.  */
+	  context.startService (new Intent (context,
+					    EmacsService.class));
+	else
+	  /* Display the permanant notification and start Emacs as a
+	     foreground service.  */
+	  context.startForegroundService (new Intent (context,
+						      EmacsService.class));
       }
   }
 };

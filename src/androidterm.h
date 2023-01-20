@@ -241,6 +241,11 @@ struct android_output
   /* List of all tools (either styluses or fingers) pressed onto the
      frame.  */
   struct android_touch_point *touch_points;
+
+  /* Event serial of the last ConfigureNotify event received that has
+     not yet been drawn.  This is used to synchronize resize with the
+     window system.  0 if no such outstanding event exists.  */
+  unsigned long last_configure_serial;
 };
 
 enum

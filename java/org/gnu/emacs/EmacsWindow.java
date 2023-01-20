@@ -233,7 +233,7 @@ public class EmacsWindow extends EmacsHandleObject
     return attached;
   }
 
-  public void
+  public long
   viewLayout (int left, int top, int right, int bottom)
   {
     int rectWidth, rectHeight;
@@ -249,10 +249,10 @@ public class EmacsWindow extends EmacsHandleObject
     rectWidth = right - left;
     rectHeight = bottom - top;
 
-    EmacsNative.sendConfigureNotify (this.handle,
-				     System.currentTimeMillis (),
-				     left, top, rectWidth,
-				     rectHeight);
+    return EmacsNative.sendConfigureNotify (this.handle,
+					    System.currentTimeMillis (),
+					    left, top, rectWidth,
+					    rectHeight);
   }
 
   public void
@@ -589,11 +589,20 @@ public class EmacsWindow extends EmacsHandleObject
     EmacsActivity.invalidateFocus ();
   }
 
+  /* Notice that the activity has been detached or destroyed.
+
+     ISFINISHING is set if the activity is not the main activity, or
+     if the activity was not destroyed in response to explicit user
+     action.  */
+
   public void
-  onActivityDetached ()
+  onActivityDetached (boolean isFinishing)
   {
-    /* Destroy the associated frame when the activity is detached.  */
-    EmacsNative.sendWindowAction (this.handle, 0);
+    /* Destroy the associated frame when the activity is detached in
+       response to explicit user action.  */
+
+    if (isFinishing)
+      EmacsNative.sendWindowAction (this.handle, 0);
   }
 
   /* Look through the button state to determine what button EVENT was
@@ -1063,5 +1072,38 @@ public class EmacsWindow extends EmacsHandleObject
 
     /* Return the resulting coordinates.  */
     return array;
+  }
+
+  public void
+  toggleOnScreenKeyboard (final boolean on)
+  {
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  if (on)
+	    view.showOnScreenKeyboard ();
+	  else
+	    view.hideOnScreenKeyboard ();
+	}
+      });
+  }
+
+  /* Notice that outstanding configure events have been processed.
+     SERIAL is checked in the UI thread to verify that no new
+     configure events have been generated in the mean time.  */
+
+  public void
+  windowUpdated (final long serial)
+  {
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  view.windowUpdated (serial);
+	}
+      });
   }
 };

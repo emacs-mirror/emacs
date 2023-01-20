@@ -161,6 +161,13 @@ public class EmacsActivity extends Activity
   onCreate (Bundle savedInstanceState)
   {
     FrameLayout.LayoutParams params;
+    Intent intent;
+
+    /* See if Emacs should be started with -Q.  */
+    intent = getIntent ();
+    EmacsService.needDashQ
+      = intent.getBooleanExtra ("org.gnu.emacs.START_DASH_Q",
+				false);
 
     /* Set the theme to one without a title bar.  */
 
@@ -179,9 +186,8 @@ public class EmacsActivity extends Activity
     /* Set it as the content view.  */
     setContentView (layout);
 
-    if (EmacsService.SERVICE == null)
-      /* Start the Emacs service now.  */
-      startService (new Intent (this, EmacsService.class));
+    /* Maybe start the Emacs service if necessary.  */
+    EmacsService.startEmacsService (this);
 
     /* Add this activity to the list of available activities.  */
     EmacsWindowAttachmentManager.MANAGER.registerWindowConsumer (this);
@@ -193,10 +199,16 @@ public class EmacsActivity extends Activity
   public void
   onDestroy ()
   {
+    EmacsWindowAttachmentManager manager;
+    boolean isMultitask;
+
+    manager = EmacsWindowAttachmentManager.MANAGER;
+
     /* The activity will die shortly hereafter.  If there is a window
        attached, close it now.  */
     Log.d (TAG, "onDestroy " + this);
-    EmacsWindowAttachmentManager.MANAGER.removeWindowConsumer (this);
+    isMultitask = this instanceof EmacsMultitaskActivity;
+    manager.removeWindowConsumer (this, isMultitask || isFinishing ());
     focusedActivities.remove (this);
     invalidateFocus ();
     super.onDestroy ();

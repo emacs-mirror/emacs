@@ -104,6 +104,7 @@ window of another Emacs frame.  @xref{Child Frames}.
 * Mouse Tracking::              Getting events that say when the mouse moves.
 * Mouse Position::              Asking where the mouse is, or moving it.
 * Pop-Up Menus::                Displaying a menu for the user to select from.
+* On-Screen Keyboards::		Displaying the virtual keyboard.
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shape::               Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
@@ -3811,6 +3812,26 @@ either directly by calling @code{x-popup-menu}, or through a menu
 keymap.  It won't be called if @code{x-popup-menu} returns for some
 other reason without displaying a pop-up menu.
 @end defvar
+
+@node On-Screen Keyboards
+@section On-Screen Keyboards
+
+  An on-screen keyboard is a special kind of pop up provided by the
+system, with rows of clickable buttons that act as a real keyboard.
+
+  On certain systems (@pxref{On-Screen Keyboards,,,emacs, The Emacs
+Manual}), Emacs is supposed to display and hide the on screen keyboard
+depending on whether or not the user is about to type something.
+
+@defun frame-toggle-on-screen-keyboard frame hide
+This function displays or hides the on-screen keyboard on behalf of
+the frame @var{frame}.  If @var{hide} is non-@code{nil}, then the
+on-screen keyboard is hidden; otherwise, it is displayed.
+
+This has no effect if the system automatically detects when to display
+the on-screen keyboard, or when it does not provide any on-screen
+keyboard.
+@end defun
 
 @node Dialog Boxes
 @section Dialog Boxes

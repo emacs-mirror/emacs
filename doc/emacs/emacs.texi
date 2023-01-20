@@ -1269,6 +1269,7 @@ Emacs and Android
 Emacs and unconventional input devices
 
 * Touchscreens::	Using Emacs on touchscreens.
+* On-Screen Keyboards::	Using Emacs with virtual keyboards.
 
 Emacs and Microsoft Windows/MS-DOS
 

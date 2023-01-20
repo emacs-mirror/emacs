@@ -61,75 +61,76 @@ public class EmacsNative
   /* Abort and generate a native core dump.  */
   public static native void emacsAbort ();
 
-  /* Send an ANDROID_CONFIGURE_NOTIFY event.  */
-  public static native void sendConfigureNotify (short window, long time,
+  /* Send an ANDROID_CONFIGURE_NOTIFY event.  The values of all the
+     functions below are the serials of the events sent.  */
+  public static native long sendConfigureNotify (short window, long time,
 						 int x, int y, int width,
 						 int height);
 
   /* Send an ANDROID_KEY_PRESS event.  */
-  public static native void sendKeyPress (short window, long time, int state,
+  public static native long sendKeyPress (short window, long time, int state,
 					  int keyCode, int unicodeChar);
 
   /* Send an ANDROID_KEY_RELEASE event.  */
-  public static native void sendKeyRelease (short window, long time, int state,
+  public static native long sendKeyRelease (short window, long time, int state,
 					    int keyCode, int unicodeChar);
 
   /* Send an ANDROID_FOCUS_IN event.  */
-  public static native void sendFocusIn (short window, long time);
+  public static native long sendFocusIn (short window, long time);
 
   /* Send an ANDROID_FOCUS_OUT event.  */
-  public static native void sendFocusOut (short window, long time);
+  public static native long sendFocusOut (short window, long time);
 
   /* Send an ANDROID_WINDOW_ACTION event.  */
-  public static native void sendWindowAction (short window, int action);
+  public static native long sendWindowAction (short window, int action);
 
   /* Send an ANDROID_ENTER_NOTIFY event.  */
-  public static native void sendEnterNotify (short window, int x, int y,
+  public static native long sendEnterNotify (short window, int x, int y,
 					     long time);
 
   /* Send an ANDROID_LEAVE_NOTIFY event.  */
-  public static native void sendLeaveNotify (short window, int x, int y,
+  public static native long sendLeaveNotify (short window, int x, int y,
 					     long time);
 
   /* Send an ANDROID_MOTION_NOTIFY event.  */
-  public static native void sendMotionNotify (short window, int x, int y,
+  public static native long sendMotionNotify (short window, int x, int y,
 					      long time);
 
   /* Send an ANDROID_BUTTON_PRESS event.  */
-  public static native void sendButtonPress (short window, int x, int y,
+  public static native long sendButtonPress (short window, int x, int y,
 					     long time, int state,
 					     int button);
 
   /* Send an ANDROID_BUTTON_RELEASE event.  */
-  public static native void sendButtonRelease (short window, int x, int y,
+  public static native long sendButtonRelease (short window, int x, int y,
 					       long time, int state,
 					       int button);
 
   /* Send an ANDROID_TOUCH_DOWN event.  */
-  public static native void sendTouchDown (short window, int x, int y,
+  public static native long sendTouchDown (short window, int x, int y,
 					   long time, int pointerID);
 
   /* Send an ANDROID_TOUCH_UP event.  */
-  public static native void sendTouchUp (short window, int x, int y,
+  public static native long sendTouchUp (short window, int x, int y,
 					 long time, int pointerID);
 
   /* Send an ANDROID_TOUCH_MOVE event.  */
-  public static native void sendTouchMove (short window, int x, int y,
+  public static native long sendTouchMove (short window, int x, int y,
 					   long time, int pointerID);
 
   /* Send an ANDROID_WHEEL event.  */
-  public static native void sendWheel (short window, int x, int y,
+  public static native long sendWheel (short window, int x, int y,
 				       long time, int state,
 				       float xDelta, float yDelta);
 
   /* Send an ANDROID_ICONIFIED event.  */
-  public static native void sendIconified (short window);
+  public static native long sendIconified (short window);
 
   /* Send an ANDROID_DEICONIFIED event.  */
-  public static native void sendDeiconified (short window);
+  public static native long sendDeiconified (short window);
 
   /* Send an ANDROID_CONTEXT_MENU event.  */
-  public static native void sendContextMenu (short window, int menuEventID);
+  public static native long sendContextMenu (short window, int menuEventID);
 
   static
   {

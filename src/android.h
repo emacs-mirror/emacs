@@ -91,6 +91,8 @@ extern void android_exception_check (void);
 
 extern void android_get_keysym_name (int, char *, size_t);
 extern void android_wait_event (void);
+extern void android_toggle_on_screen_keyboard (android_window, bool);
+extern void android_window_updated (android_window, unsigned long);
 
 
 

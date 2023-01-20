@@ -55,6 +55,7 @@ src/emacs-module.h
 # Built by recursive call to `configure'.
 *.android
 !INSTALL.android
+!verbose.mk.android
 
 # Built by `java'.
 java/install_temp/*

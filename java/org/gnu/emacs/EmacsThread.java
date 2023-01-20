@@ -23,12 +23,13 @@ import java.lang.Thread;
 
 public class EmacsThread extends Thread
 {
-  EmacsService context;
+  /* Whether or not Emacs should be started -Q.  */
+  private boolean startDashQ;
 
   public
-  EmacsThread (EmacsService service)
+  EmacsThread (EmacsService service, boolean startDashQ)
   {
-    context = service;
+    this.startDashQ = startDashQ;
   }
 
   public void
@@ -36,7 +37,10 @@ public class EmacsThread extends Thread
   {
     String args[];
 
-    args = new String[] { "libandroid-emacs.so", };
+    if (!startDashQ)
+      args = new String[] { "libandroid-emacs.so", };
+    else
+      args = new String[] { "libandroid-emacs.so", "-Q", };
 
     /* Run the native code now.  */
     EmacsNative.initEmacs (args);

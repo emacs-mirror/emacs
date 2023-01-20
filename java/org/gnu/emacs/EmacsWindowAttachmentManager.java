@@ -134,7 +134,7 @@ public class EmacsWindowAttachmentManager
   }
 
   public void
-  removeWindowConsumer (WindowConsumer consumer)
+  removeWindowConsumer (WindowConsumer consumer, boolean isFinishing)
   {
     EmacsWindow window;
 
@@ -147,7 +147,7 @@ public class EmacsWindowAttachmentManager
 	Log.d (TAG, "removeWindowConsumer: detaching " + window);
 
 	consumer.detachWindow ();
-	window.onActivityDetached ();
+	window.onActivityDetached (isFinishing);
       }
 
     Log.d (TAG, "removeWindowConsumer: removing " + consumer);

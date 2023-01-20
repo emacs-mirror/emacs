@@ -146,6 +146,8 @@ EMACSSOURCES= \
 	${srcdir}/glossary.texi \
 	${srcdir}/ack.texi \
 	${srcdir}/kmacro.texi \
+	${srcdir}/android.texi \
+	${srcdir}/input.texi \
 	$(EMACS_XTRA)
 
 ## Disable implicit rules.

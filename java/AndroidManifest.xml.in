@@ -62,8 +62,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	       android:theme="@android:style/Theme"
 	       android:debuggable="true"
 	       android:extractNativeLibs="true">
+
     <activity android:name="org.gnu.emacs.EmacsActivity"
 	      android:launchMode="singleTop"
+	      android:windowSoftInputMode="adjustResize"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -73,7 +75,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
     </activity>
 
     <activity android:name="org.gnu.emacs.EmacsMultitaskActivity"
+	      android:windowSoftInputMode="adjustResize"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"/>
+
+    <activity android:autoRemoveFromRecents="true"
+              android:label="Emacs options"
+              android:name=".EmacsPreferencesActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
 
     <service android:name="org.gnu.emacs.EmacsService"
 	     android:directBootAware="false"

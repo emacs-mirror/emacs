@@ -2332,6 +2332,30 @@ there is no mouse.  */)
 #endif
 }
 
+DEFUN ("android-toggle-on-screen-keyboard",
+       Fandroid_toggle_on_screen_keyboard,
+       Sandroid_toggle_on_screen_keyboard, 2, 2, 0,
+       doc: /* Display or hide the on-screen keyboard.
+If HIDE is non-nil, hide the on screen keyboard if it is currently
+being displayed.  Else, request that the system display it on behalf
+of FRAME.  This request may be rejected if FRAME does not have the
+input focus.  */)
+  (Lisp_Object frame, Lisp_Object hide)
+{
+#ifndef ANDROID_STUBIFY
+  struct frame *f;
+
+  f = decode_window_system_frame (frame);
+
+  block_input ();
+  android_toggle_on_screen_keyboard (FRAME_ANDROID_WINDOW (f),
+				     NILP (hide));
+  unblock_input ();
+#endif
+
+  return Qnil;
+}
+
 
 
 #ifndef ANDROID_STUBIFY
@@ -2781,6 +2805,7 @@ syms_of_androidfns (void)
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   defsubr (&Sandroid_detect_mouse);
+  defsubr (&Sandroid_toggle_on_screen_keyboard);
 
 #ifndef ANDROID_STUBIFY
   tip_timer = Qnil;

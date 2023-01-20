@@ -239,6 +239,7 @@ enum android_event_type
 struct android_any_event
 {
   enum android_event_type type;
+  unsigned long serial;
   android_window window;
 };
 
@@ -252,6 +253,7 @@ enum android_modifier_mask
 struct android_key_event
 {
   enum android_event_type type;
+  unsigned long serial;
   android_window window;
   android_time time;
   unsigned int state;
@@ -271,6 +273,7 @@ struct android_key_event
 struct android_configure_event
 {
   enum android_event_type type;
+  unsigned long serial;
   android_window window;
   android_time time;
   int x, y;
@@ -280,6 +283,7 @@ struct android_configure_event
 struct android_focus_event
 {
   enum android_event_type type;
+  unsigned long serial;
   android_window window;
   android_time time;
 };
@@ -287,6 +291,7 @@ struct android_focus_event
 struct android_window_action_event
 {
   enum android_event_type type;
+  unsigned long serial;
 
   /* The window handle.  This can be ANDROID_NONE.  */
   android_window window;
@@ -301,6 +306,7 @@ struct android_window_action_event
 struct android_crossing_event
 {
   enum android_event_type type;
+  unsigned long serial;
   android_window window;
   int x, y;
   unsigned long time;
@@ -309,6 +315,7 @@ struct android_crossing_event
 struct android_motion_event
 {
   enum android_event_type type;
+  unsigned long serial;
   android_window window;
   int x, y;
   unsigned long time;
@@ -317,6 +324,7 @@ struct android_motion_event
 struct android_button_event
 {
   enum android_event_type type;
+  unsigned long serial;
   android_window window;
   int x, y;
   unsigned long time;
@@ -328,6 +336,9 @@ struct android_touch_event
 {
   /* Type of the event.  */
   enum android_event_type type;
+
+  /* Serial identifying the event.  */
+  unsigned long serial;
 
   /* Window associated with the event.  */
   android_window window;
@@ -346,6 +357,9 @@ struct android_wheel_event
 {
   /* Type of the event.  */
   enum android_event_type type;
+
+  /* Serial identifying the event.  */
+  unsigned long serial;
 
   /* Window associated with the event.  */
   android_window window;
@@ -368,6 +382,9 @@ struct android_iconify_event
   /* Type of the event.  */
   enum android_event_type type;
 
+  /* Serial identifying the event.  */
+  unsigned long serial;
+
   /* Window associated with the event.  */
   android_window window;
 };
@@ -376,6 +393,9 @@ struct android_menu_event
 {
   /* Type of the event.  */
   enum android_event_type type;
+
+  /* Serial identifying the event.  */
+  unsigned long serial;
 
   /* Window associated with the event.  Always None.  */
   android_window window;

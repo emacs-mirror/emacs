@@ -591,7 +591,17 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	  android_clear_under_internal_border (f);
 	  SET_FRAME_GARBAGED (f);
 	  cancel_mouse_face (f);
+
+	  /* Now stash the serial of this configure event somewhere,
+	     and call android_window_updated with it once the redraw
+	     completes.  */
+	  FRAME_OUTPUT_DATA (f)->last_configure_serial
+	    = configureEvent.xconfigure.serial;
 	}
+      else
+	/* Reply to this ConfigureNotify event immediately.  */
+	android_window_updated (FRAME_ANDROID_WINDOW (f),
+				configureEvent.xconfigure.serial);
 
       goto OTHER;
 
@@ -1194,6 +1204,9 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       /* Iconification.  This is vastly simpler than on X.  */
     case ANDROID_ICONIFIED:
 
+      if (!any)
+	goto OTHER;
+
       if (FRAME_ICONIFIED_P (any))
 	goto OTHER;
 
@@ -1205,6 +1218,9 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       goto OTHER;
 
     case ANDROID_DEICONIFIED:
+
+      if (!any)
+	goto OTHER;
 
       if (!FRAME_ICONIFIED_P (any))
 	goto OTHER;
@@ -1310,6 +1326,14 @@ android_frame_up_to_date (struct frame *f)
 
   /* The frame is now complete, as its contents have been drawn.  */
   FRAME_ANDROID_COMPLETE_P (f) = true;
+
+  /* If there was an outstanding configure event, then tell system
+     that the update has finished and the new contents can now be
+     displayed.  */
+  if (FRAME_OUTPUT_DATA (f)->last_configure_serial)
+    android_window_updated (FRAME_ANDROID_WINDOW (f),
+			    FRAME_OUTPUT_DATA (f)->last_configure_serial);
+  FRAME_OUTPUT_DATA (f)->last_configure_serial = 0;
 
   /* Shrink the scanline buffer used by the font backend.  */
   sfntfont_android_shrink_scanline_buffer ();

@@ -174,6 +174,7 @@ public class EmacsContextMenu
 		   support doing so, create the submenu and add the
 		   contents of the menu to it.  */
 		submenu = menu.addSubMenu (item.itemName);
+		item.subMenu.inflateMenuItems (submenu);
 	      }
 	    catch (UnsupportedOperationException exception)
 	      {

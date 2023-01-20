@@ -10,8 +10,8 @@ Alliance.  This section describes the peculiarities of using Emacs on
 an Android device running Android 2.2 or later.
 
   Android devices commonly rely on user input through a touch screen
-or digitizer device.  For more information about using them with
-Emacs, @pxref{other Input Devices}.
+or digitizer device and on-screen keyboard.  For more information
+about using such devices with Emacs, @pxref{Other Input Devices}.
 
 @menu
 * What is Android?::	Preamble.
@@ -82,6 +82,16 @@ command on that other system:
 $ adb logcat | grep -E "(android_run_debug_thread|[Ee]macs)"
 @end example
 
+@cindex emacs -Q, android
+Since Android has no command line, there is normally no way to specify
+command-line arguments.  However, Emacs can be started with the
+equivalent of the @code{--quick} option (@pxref{Initial Options})
+through a special preferences screen, which can be accessed through
+the Emacs ``app info'' page in the system settings application.
+
+Consult the manufacturer of your device for more details, as how to do
+this varies by device.
+
 @node Android File System
 @section What files Emacs can access under Android
 @cindex /assets directory, android
@@ -149,7 +159,7 @@ which is the app data directory (@pxref{Android File System}.)
 directories, and the app data directories of other applications.  In
 recent versions of Android, the system also prohibits, for security
 reasons, even Emacs itself from running executables inside the app
-data directory!
+data directory.
 
   Emacs comes with several binaries.  While being executable files,
 they are packaged as libraries in the library directory, because
@@ -173,9 +183,28 @@ within itself.
   Application processes are treated as disposable entities by the
 system.  When all Emacs frames move to the background, Emacs is liable
 to be killed by the system at any time, for the purpose of saving
-resources.  There is currently no easy way to bypass these
-restrictions, aside from keeping Emacs constantly running in the
-foreground.
+system resources.
+
+  On Android 7.1 and earlier, Emacs tells the system to treat it as a
+``background service''.  The system will try to avoid killing Emacs
+unless the device is under memory stress.
+
+  Android 8.0 removed the ability for background services to receive
+such special treatment.  However, Emacs applies a workaround: the
+system considers applications that create a permanent notification to
+be performing active work, and will avoid killing such applications.
+Thus, on those systems, Emacs displays a permanant notification for as
+long as it is running.  Once the notification is displayed, it can be
+safely hidden through the system settings without resulting in Emacs
+being killed.
+
+  However, it is not guaranteed that the system will not kill Emacs,
+even if the notification is being displayed.  While the Open Handset
+Alliance's sample implementation of Android behaves correctly, many
+manufacturers place additional restrictions on program execution in
+the background in their proprietary versions of Android.  There is a
+list of such troublesome manufacturers and sometimes workarounds, at
+@url{https://dontkillmyapp.com/}.
 
 @section Android permissions
 @cindex external storage, android
@@ -272,14 +301,14 @@ maximized or full-screen, and only one window can be displayed at a
 time.  On larger devices, the system allows up to four windows to be
 tiled on the screen at any time.
 
-Windows on Android do not continue to exist indefinitely after they
+  Windows on Android do not continue to exist indefinitely after they
 are created.  Instead, the system may choose to terminate windows that
 are not on screen in order to save memory, with the assumption that
 the program will save its contents to disk and restore them later,
 when the user asks to open it again.  As this is obvious not possible
 with Emacs, Emacs separates a frame from a system window.
 
-Each system window created (including the initial window created
+  Each system window created (including the initial window created
 during Emacs startup) is appended to a list of windows that do not
 have associated frames.  When a frame is created, Emacs looks up any
 window within that list, and displays the contents of the frame
@@ -287,11 +316,28 @@ within; if there is no window at all, then one is created.  Likewise,
 when a new window is created by the system, Emacs places the contents
 of any frame that is not already displayed within a window inside.
 When a frame is closed, the corresponding system window is also
-closed.
+closed.  Upon startup, the system creates a window itself (within
+which Emacs displays the first window system frame shortly
+thereafter.)  Emacs differentiates between that window and windows
+created on behalf of other frames to determine what to do when the
+system window associated with a frame is closed:
 
-This strategy works as long as one window is in the foreground.
-Otherwise, Emacs can only run in the background for a limited amount
-of time before the process is killed completely.
+@itemize @bullet
+@item
+When the system closes the window created during application startup
+in order to save memory, Emacs retains the frame for when that window
+is created later.
+
+@item
+When the user closes the window created during application startup,
+and the window was not previously closed by the system in order to
+save resources, Emacs deletes any frame displayed within that window.
+
+@item
+When the user or the system closes any window created by Emacs on
+behalf of a specific frame, Emacs deletes the frame displayed within
+that window.
+@end itemize
 
 @cindex windowing limitations, android
 @cindex frame parameters, android
