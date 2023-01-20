@@ -29,11 +29,10 @@
 
 ;; - ruby and irb executables :: https://www.ruby-lang.org/
 ;;
-;; - ruby-mode :: Can be installed through ELPA, or from
-;;   https://github.com/eschulte/rinari/raw/master/util/ruby-mode.el
+;; - ruby-mode :: Comes with Emacs.
 ;;
 ;; - inf-ruby mode :: Can be installed through ELPA, or from
-;;   https://github.com/eschulte/rinari/raw/master/util/inf-ruby.el
+;;   https://raw.githubusercontent.com/nonsequitur/inf-ruby/master/inf-ruby.el
 
 ;;; Code:
 
