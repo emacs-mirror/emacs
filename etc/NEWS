@@ -181,6 +181,13 @@ activate this behavior.
 
 * New Modes and Packages in Emacs 30.1
 
+** New major modes based on the tree-sitter library.
+
++++
+*** New major mode 'html-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+files written in HTML.
+
 ---
 ** The highly accessible Modus themes collection has six items.
 The 'modus-operandi' and 'modus-vivendi' are the main themes that have
