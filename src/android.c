@@ -274,6 +274,7 @@ android_run_select_thread (void *data)
   char byte;
 #else
   sigset_t signals, waitset;
+  int sig;
 #endif
 
 #if __ANDROID_API__ < 16
@@ -559,7 +560,9 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 		fd_set *exceptfds, struct timespec *timeout)
 {
   int nfds_return;
+#if __ANDROID_API__ < 16
   static char byte;
+#endif
 
   pthread_mutex_lock (&event_queue.mutex);
 
@@ -4497,32 +4500,6 @@ android_project_image_nearest (struct android_image *image,
 }
 
 
-
-/* System call wrappers for stuff missing in bionic.  */
-
-#ifndef HAVE_FTRUNCATE
-
-/* ftruncate wrapper for Android, for systems without ftruncate in the
-   C library.
-
-   Such systems are always 32 bit systems, since Android 21 and later
-   all support ftruncate.  In addition, ARM and MIPS require registers
-   used to store long long parameters to be aligned to an even
-   register pair.  */
-
-int
-android_ftruncate (int fd, off_t length)
-{
-#if defined __arm__ || defined __mips__
-  return syscall (SYS_ftruncate64, fd, 0,
-		  (unsigned int) (length & 0xffffffff),
-		  (unsigned int) (length >> 32));
-#else
-  return syscall (SYS_ftruncate64, fd, length);
-#endif
-}
-
-#endif
 
 #else /* ANDROID_STUBIFY */
 
