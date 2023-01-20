@@ -32,12 +32,6 @@
 (eval-when-compile (require 'cl-lib))
 (require 'erc)
 
-(defun erc-imenu-setup ()
-  "Setup Imenu support in an ERC buffer."
-  (setq-local imenu-create-index-function #'erc-create-imenu-index))
-
-(add-hook 'erc-mode-hook #'erc-imenu-setup)
-(autoload 'erc-create-imenu-index "erc-imenu" "Imenu index creation function")
 
 ;;; Automatically scroll to bottom
 (defcustom erc-input-line-position nil
