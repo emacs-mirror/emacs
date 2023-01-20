@@ -208,6 +208,9 @@ values of OVERRIDE"
     (treesit-fontify-with-override (max plus-1 start) (min node-end end)
                                    font-lock-comment-face override)))
 
+(defun ruby-ts--builtin-method-p (node)
+  (string-match-p ruby-ts--builtin-methods (treesit-node-text node t)))
+
 (defun ruby-ts--font-lock-settings (language)
   "Tree-sitter font-lock settings for Ruby."
   (treesit-font-lock-rules
@@ -336,8 +339,7 @@ values of OVERRIDE"
    :language language
    :feature 'builtin-function
    `((((identifier) @font-lock-builtin-face)
-      (:match ,ruby-ts--builtin-methods
-       @font-lock-builtin-face)))
+      (:pred ruby-ts--builtin-method-p @font-lock-builtin-face)))
 
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
