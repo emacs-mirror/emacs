@@ -116,20 +116,29 @@
   "Ruby's punctuation characters.")
 
 (defvar ruby-ts--predefined-constants
-  (rx (or "ARGF" "ARGV" "DATA" "ENV" "RUBY_COPYRIGHT"
+  (rx string-start
+      (or "ARGF" "ARGV" "DATA" "ENV" "RUBY_COPYRIGHT"
           "RUBY_DESCRIPTION" "RUBY_ENGINE" "RUBY_ENGINE_VERSION"
           "RUBY_PATCHLEVEL" "RUBY_PLATFORM" "RUBY_RELEASE_DATE"
           "RUBY_REVISION" "RUBY_VERSION" "STDERR" "STDIN" "STDOUT"
-          "TOPLEVEL_BINDING"))
+          "TOPLEVEL_BINDING")
+      string-end)
   "Ruby predefined global constants.")
 
 (defvar ruby-ts--predefined-variables
-  (rx (or "$!" "$@" "$~" "$&" "$‘" "$‘" "$+" "$=" "$/" "$\\" "$," "$;"
+  (rx string-start
+      (or "$!" "$@" "$~" "$&" "$‘" "$‘" "$+" "$=" "$/" "$\\" "$," "$;"
           "$." "$<" "$>" "$_" "$*" "$$" "$?" "$:" "$LOAD_PATH"
           "$LOADED_FEATURES" "$DEBUG" "$FILENAME" "$stderr" "$stdin"
           "$stdout" "$VERBOSE" "$-a" "$-i" "$-l" "$-p"
-          (seq "$" (+ digit))))
+          (seq "$" (+ digit)))
+      string-end)
   "Ruby predefined global variables.")
+
+(defvar ruby-ts--builtin-methods
+  (format "\\`%s\\'" (regexp-opt (append ruby-builtin-methods-no-reqs
+                                         ruby-builtin-methods-with-reqs)))
+  "Ruby built-in methods.")
 
 (defconst ruby-ts--class-or-module-regex
   (rx string-start
@@ -323,6 +332,12 @@ values of OVERRIDE"
       name: (identifier) @font-lock-variable-name-face)
      (in_clause
       pattern: (identifier) @font-lock-variable-name-face))
+
+   :language language
+   :feature 'builtin-functions
+   `((((identifier) @font-lock-builtin-face)
+      (:match ,ruby-ts--builtin-methods
+       @font-lock-builtin-face)))
 
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
@@ -1022,9 +1037,9 @@ leading double colon is not added."
   (setq-local treesit-font-lock-feature-list
               '(( comment method-definition parameter-definition)
                 ( keyword regexp string type)
-                ( builtin-variable builtin-constant constant
+                ( builtin-variable builtin-constant builtin-functions
                   delimiter escape-sequence
-                  global instance
+                  constant global instance
                   interpolation literal symbol assignment)
                 ( bracket error function operator punctuation)))
 
