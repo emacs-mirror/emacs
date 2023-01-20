@@ -280,7 +280,7 @@ NODE should be a labeled_statement."
 (defvar c-ts-mode-indent-block-type-regexp
   (rx (or "compound_statement"
           "field_declaration_list"
-          "enumeratior_list"))
+          "enumerator_list"))
   "Regexp matching types of block nodes (i.e., {} blocks).")
 
 (defun c-ts-mode--statement-offset (node parent &rest _)
