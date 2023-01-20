@@ -334,7 +334,7 @@ values of OVERRIDE"
       pattern: (identifier) @font-lock-variable-name-face))
 
    :language language
-   :feature 'builtin-functions
+   :feature 'builtin-function
    `((((identifier) @font-lock-builtin-face)
       (:match ,ruby-ts--builtin-methods
        @font-lock-builtin-face)))
@@ -1037,7 +1037,7 @@ leading double colon is not added."
   (setq-local treesit-font-lock-feature-list
               '(( comment method-definition parameter-definition)
                 ( keyword regexp string type)
-                ( builtin-variable builtin-constant builtin-functions
+                ( builtin-variable builtin-constant builtin-function
                   delimiter escape-sequence
                   constant global instance
                   interpolation literal symbol assignment)
