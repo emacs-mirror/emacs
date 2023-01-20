@@ -377,9 +377,11 @@ The value `erc-interpret-controls-p' must also be t for this to work."
 (define-erc-module irccontrols nil
   "This mode enables the interpretation of IRC control chars."
   ((add-hook 'erc-insert-modify-hook #'erc-controls-highlight)
-   (add-hook 'erc-send-modify-hook #'erc-controls-highlight))
+   (add-hook 'erc-send-modify-hook #'erc-controls-highlight)
+   (erc--modify-local-map t "C-c C-c" #'erc-toggle-interpret-controls))
   ((remove-hook 'erc-insert-modify-hook #'erc-controls-highlight)
-   (remove-hook 'erc-send-modify-hook #'erc-controls-highlight)))
+   (remove-hook 'erc-send-modify-hook #'erc-controls-highlight)
+   (erc--modify-local-map nil "C-c C-c" #'erc-toggle-interpret-controls)))
 
 (defun erc-controls-interpret (str)
    "Return a copy of STR after dealing with IRC control characters.

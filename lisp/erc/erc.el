@@ -1209,7 +1209,6 @@ which the local user typed."
     (define-key map [home] #'erc-bol)
     (define-key map "\C-c\C-a" #'erc-bol)
     (define-key map "\C-c\C-b" #'erc-switch-to-buffer)
-    (define-key map "\C-c\C-c" #'erc-toggle-interpret-controls)
     (define-key map "\C-c\C-d" #'erc-input-action)
     (define-key map "\C-c\C-e" #'erc-toggle-ctcp-autoresponse)
     (define-key map "\C-c\C-f" #'erc-toggle-flood-control)
@@ -1232,6 +1231,19 @@ which the local user typed."
 
     map)
   "ERC keymap.")
+
+(defun erc--modify-local-map (mode &rest bindings)
+  "Modify `erc-mode-map' on behalf of a global module.
+Add or remove `key-valid-p' BINDINGS when toggling MODE."
+  (declare (indent 1))
+  (while (pcase-let* ((`(,key ,def . ,rest) bindings)
+                      (existing (keymap-lookup erc-mode-map key)))
+           (if mode
+               (when (or (not existing) (eq existing #'undefined))
+                 (keymap-set erc-mode-map key def))
+             (when (eq existing def)
+               (keymap-unset erc-mode-map key t)))
+           (setq bindings rest))))
 
 ;; Faces
 

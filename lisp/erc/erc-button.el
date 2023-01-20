@@ -55,11 +55,11 @@
   ((add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 'append)
    (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 'append)
    (add-hook 'erc-complete-functions #'erc-button-next-function)
-   (add-hook 'erc-mode-hook #'erc-button-setup))
+   (erc--modify-local-map t "<backtab>" #'erc-button-previous))
   ((remove-hook 'erc-insert-modify-hook #'erc-button-add-buttons)
    (remove-hook 'erc-send-modify-hook #'erc-button-add-buttons)
    (remove-hook 'erc-complete-functions #'erc-button-next-function)
-   (remove-hook 'erc-mode-hook #'erc-button-setup)))
+   (erc--modify-local-map nil "<backtab>" #'erc-button-previous)))
 
 ;;; Variables
 
@@ -233,6 +233,8 @@ constituents.")
   "Internal variable used to keep track of whether we've added the
 global-level ERC button keys yet.")
 
+;; Maybe deprecate this function and `erc-button-keys-added' if they
+;; continue to go unused for a another version (currently 5.6).
 (defun erc-button-setup ()
   "Add ERC mode-level button movement keys.  This is only done once."
   ;; Add keys.

@@ -492,6 +492,50 @@
     (should (equal (erc--target-from-string "&Bitlbee")
                    #s(erc--target-channel-local "&Bitlbee" &bitlbee)))))
 
+(ert-deftest erc--modify-local-map ()
+  (when (and (bound-and-true-p erc-irccontrols-mode)
+             (fboundp 'erc-irccontrols-mode))
+    (erc-irccontrols-mode -1))
+  (when (and (bound-and-true-p erc-match-mode)
+             (fboundp 'erc-match-mode))
+    (erc-match-mode -1))
+  (let* (calls
+         (inhibit-message noninteractive)
+         (cmd-foo (lambda () (interactive) (push 'foo calls)))
+         (cmd-bar (lambda () (interactive) (push 'bar calls))))
+
+    (ert-info ("Add non-existing")
+      (erc--modify-local-map t "C-c C-c" cmd-foo "C-c C-k" cmd-bar)
+      (with-temp-buffer
+        (set-window-buffer (selected-window) (current-buffer))
+        (use-local-map erc-mode-map)
+        (execute-kbd-macro "\C-c\C-c")
+        (execute-kbd-macro "\C-c\C-k"))
+      (should (equal calls '(bar foo))))
+    (setq calls nil)
+
+    (ert-info ("Add existing") ; Attempt to swap definitions fails
+      (erc--modify-local-map t "C-c C-c" cmd-bar "C-c C-k" cmd-foo)
+      (with-temp-buffer
+        (set-window-buffer (selected-window) (current-buffer))
+        (use-local-map erc-mode-map)
+        (execute-kbd-macro "\C-c\C-c")
+        (execute-kbd-macro "\C-c\C-k"))
+      (should (equal calls '(bar foo))))
+    (setq calls nil)
+
+    (ert-info ("Remove existing")
+      (ert-with-message-capture messages
+        (erc--modify-local-map nil "C-c C-c" cmd-foo "C-c C-k" cmd-bar)
+        (with-temp-buffer
+          (set-window-buffer (selected-window) (current-buffer))
+          (use-local-map erc-mode-map)
+          (execute-kbd-macro "\C-c\C-c")
+          (execute-kbd-macro "\C-c\C-k"))
+        (should (string-search "C-c C-c is undefined" messages))
+        (should (string-search "C-c C-k is undefined" messages))
+        (should-not calls)))))
+
 (ert-deftest erc-ring-previous-command-base-case ()
   (ert-info ("Create ring when nonexistent and do nothing")
     (let (erc-input-ring

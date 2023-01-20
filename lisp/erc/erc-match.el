@@ -52,8 +52,10 @@ they are hidden or highlighted.  This is controlled via the variables
 `erc-current-nick-highlight-type'.  For all these highlighting types,
 you can decide whether the entire message or only the sending nick is
 highlighted."
-  ((add-hook 'erc-insert-modify-hook #'erc-match-message 'append))
-  ((remove-hook 'erc-insert-modify-hook #'erc-match-message)))
+  ((add-hook 'erc-insert-modify-hook #'erc-match-message 'append)
+   (erc--modify-local-map t "C-c C-k" #'erc-go-to-log-matches-buffer))
+  ((remove-hook 'erc-insert-modify-hook #'erc-match-message)
+   (erc--modify-local-map nil "C-c C-k" #'erc-go-to-log-matches-buffer)))
 
 ;; Remaining customizations
 
@@ -646,8 +648,6 @@ See `erc-log-match-format'."
 				      (lambda (buffer-cons)
 					(get-buffer (car buffer-cons))))))
     (switch-to-buffer buffer-name)))
-
-(define-key erc-mode-map "\C-c\C-k" #'erc-go-to-log-matches-buffer)
 
 (defun erc-hide-fools (match-type _nickuserhost _message)
  "Hide foolish comments.
