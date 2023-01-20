@@ -5,6 +5,7 @@
 ;; Author: Perry Smith <pedz@easesoftware.com>
 ;; Created: December 2022
 ;; Keywords: ruby languages tree-sitter
+;; Version: 0.2
 
 ;; This file is part of GNU Emacs.
 
