@@ -160,6 +160,10 @@ Return nil if there is no name or if NODE is not a defun node."
 
   (treesit-major-mode-setup))
 
+(if (treesit-ready-p 'json)
+    (add-to-list 'auto-mode-alist
+                 '("\\.json\\'" . json-ts-mode)))
+
 (provide 'json-ts-mode)
 
 ;;; json-ts-mode.el ends here

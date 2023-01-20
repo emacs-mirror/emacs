@@ -331,6 +331,9 @@ Return nil if there is no name or if NODE is not a defun node."
                 ("Method" "\\`method_declaration\\'" nil nil)))
   (treesit-major-mode-setup))
 
+(if (treesit-ready-p 'java)
+    (add-to-list 'auto-mode-alist '("\\.java\\'" . java-ts-mode)))
+
 (provide 'java-ts-mode)
 
 ;;; java-ts-mode.el ends here

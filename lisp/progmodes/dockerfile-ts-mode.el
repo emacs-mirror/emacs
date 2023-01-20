@@ -133,12 +133,6 @@ the subtrees."
       `((,name . ,marker))))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist
-             ;; NOTE: We can't use `rx' here, as it breaks bootstrap.
-             '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
-               . dockerfile-ts-mode))
-
-;;;###autoload
 (define-derived-mode dockerfile-ts-mode prog-mode "Dockerfile"
   "Major mode for editing Dockerfiles, powered by tree-sitter."
   :group 'dockerfile
@@ -171,6 +165,12 @@ the subtrees."
                   (bracket delimiter error operator)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'dockerfile)
+    (add-to-list 'auto-mode-alist
+                 ;; NOTE: We can't use `rx' here, as it breaks bootstrap.
+                 '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
+                   . dockerfile-ts-mode)))
 
 (provide 'dockerfile-ts-mode)
 

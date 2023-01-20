@@ -32,13 +32,37 @@
 ;; `c-or-c++-ts-mode' which automatically chooses the right mode for
 ;; C/C++ header files.
 ;;
-;; To use these more by default, evaluate
+;; To use these modes by default, assuming you have the respective
+;; tree-sitter grammars available, do one of the following:
 ;;
-;; (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
-;; (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
-;; (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
+;; - If you have both C and C++ grammars installed, add
 ;;
-;; in your configuration.
+;;    (require 'c-ts-mode)
+;;
+;;   to your init file.
+;;
+;; - Add one or mode of the following to your init file:
+;;
+;;    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+;;    (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+;;    (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
+;;
+;;   If you have only C grammar available, use only the first one; if
+;;   you have only the C++ grammar, use only the second one.
+;;
+;; - Customize 'auto-mode-alist' to turn one or more of the modes
+;;   automatically.  For example:
+;;
+;;     (add-to-list 'auto-mode-alist
+;;                  '("\\(\\.ii\\|\\.\\(CC?\\|HH?\\)\\|\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\|\\.\\(cc\\|hh\\)\\)\\'"
+;;                    . c++-ts-mode))
+;;
+;;   will turn on the c++-ts-mode for C++ source files.
+;;
+;; You can also turn on these modes manually in a buffer.  Doing so
+;; will set up Emacs to use the C/C++ modes defined here for other
+;; files, provided that you have the corresponding parser grammar
+;; libraries installed.
 ;;
 ;; For C-like language major modes:
 ;;
@@ -1072,6 +1096,22 @@ the code is C or C++ and based on that chooses whether to enable
             (re-search-forward c-ts-mode--c-or-c++-regexp nil t))))
       (c++-ts-mode)
     (c-ts-mode)))
+;; The entries for C++ must come first to prevent *.c files be taken
+;; as C++ on case-insensitive filesystems, since *.C files are C++,
+;; not C.
+(if (treesit-ready-p 'cpp)
+    (add-to-list 'auto-mode-alist
+                 '("\\(\\.ii\\|\\.\\(CC?\\|HH?\\)\\|\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\|\\.\\(cc\\|hh\\)\\)\\'"
+                   . c++-ts-mode)))
+
+(if (treesit-ready-p 'c)
+    (add-to-list 'auto-mode-alist
+                 '("\\(\\.[chi]\\|\\.lex\\|\\.y\\(acc\\)?\\|\\.x[bp]m\\)\\'"
+                   . c-ts-mode)))
+
+(if (and (treesit-ready-p 'cpp)
+         (treesit-ready-p 'c))
+    (add-to-list 'auto-mode-alist '("\\.h\\'" . c-or-c++-ts-mode)))
 
 (provide 'c-ts-mode)
 

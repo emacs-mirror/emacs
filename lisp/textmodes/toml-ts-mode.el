@@ -117,8 +117,6 @@ Return nil if there is no name or if NODE is not a defun node."
      (or (treesit-node-text (treesit-node-child node 1) t)
          "Root table"))))
 
-(add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode))
-
 ;;;###autoload
 (define-derived-mode toml-ts-mode text-mode "TOML"
   "Major mode for editing TOML, powered by tree-sitter."
@@ -154,6 +152,9 @@ Return nil if there is no name or if NODE is not a defun node."
                   ("Array" "\\`table_array_element\\'" nil nil)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'toml)
+    (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode)))
 
 (provide 'toml-ts-mode)
 

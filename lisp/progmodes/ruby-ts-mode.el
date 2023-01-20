@@ -1047,6 +1047,20 @@ leading double colon is not added."
 
   (treesit-major-mode-setup))
 
+(if (treesit-ready-p 'ruby)
+    ;; Copied from ruby-mode.el.
+    (add-to-list 'auto-mode-alist
+                 (cons (concat "\\(?:\\.\\(?:"
+                               "rbw?\\|ru\\|rake\\|thor"
+                               "\\|jbuilder\\|rabl\\|gemspec\\|podspec"
+                               "\\)"
+                               "\\|/"
+                               "\\(?:Gem\\|Rake\\|Cap\\|Thor"
+                               "\\|Puppet\\|Berks\\|Brew"
+                               "\\|Vagrant\\|Guard\\|Pod\\)file"
+                               "\\)\\'")
+                       'ruby-ts-mode)))
+
 (provide 'ruby-ts-mode)
 
 ;;; ruby-ts-mode.el ends here

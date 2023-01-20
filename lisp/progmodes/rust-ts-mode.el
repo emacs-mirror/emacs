@@ -276,9 +276,6 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name") t))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
-
-;;;###autoload
 (define-derived-mode rust-ts-mode prog-mode "Rust"
   "Major mode for editing Rust, powered by tree-sitter."
   :group 'rust
@@ -321,6 +318,9 @@ Return nil if there is no name or if NODE is not a defun node."
     (setq-local treesit-defun-name-function #'rust-ts-mode--defun-name)
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'rust)
+    (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode)))
 
 (provide 'rust-ts-mode)
 

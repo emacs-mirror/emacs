@@ -315,12 +315,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    '((escape_sequence) @font-lock-escape-face)))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
-
-;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
   "Major mode for editing TypeScript."
   :group 'typescript
@@ -375,6 +369,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
     (treesit-major-mode-setup)))
 
+(if (treesit-ready-p 'typescript)
+    (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)))
+
 ;;;###autoload
 (define-derived-mode tsx-ts-mode typescript-ts-base-mode "TypeScript[TSX]"
   "Major mode for editing TypeScript."
@@ -409,6 +406,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
                   (function bracket delimiter)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'tsx)
+    (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))
 
 (provide 'typescript-ts-mode)
 

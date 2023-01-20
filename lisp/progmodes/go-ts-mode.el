@@ -175,9 +175,6 @@
   "Tree-sitter font-lock settings for `go-ts-mode'.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-
-;;;###autoload
 (define-derived-mode go-ts-mode prog-mode "Go"
   "Major mode for editing Go, powered by tree-sitter."
   :group 'go
@@ -225,6 +222,9 @@
                   ( bracket delimiter error operator)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'go)
+    (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode)))
 
 (defun go-ts-mode--defun-name (node)
   "Return the defun name of NODE.
@@ -346,9 +346,6 @@ what the parent of the node would be if it were a node."
   "Tree-sitter font-lock settings for `go-mod-ts-mode'.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
-
-;;;###autoload
 (define-derived-mode go-mod-ts-mode prog-mode "Go Mod"
   "Major mode for editing go.mod files, powered by tree-sitter."
   :group 'go
@@ -375,6 +372,9 @@ what the parent of the node would be if it were a node."
                   (bracket error operator)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'gomod)
+    (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode)))
 
 (provide 'go-ts-mode)
 

@@ -884,9 +884,6 @@ Return nil if there is no name or if NODE is not a defun node."
       t))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
-
-;;;###autoload
 (define-derived-mode csharp-mode prog-mode "C#"
   "Major mode for editing Csharp code.
 
@@ -941,7 +938,9 @@ Key bindings:
                 ("Struct" "\\`struct_declaration\\'" nil nil)
                 ("Method" "\\`method_declaration\\'" nil nil)))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-ts-mode)))
 
 (provide 'csharp-mode)
 

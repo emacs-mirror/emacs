@@ -3843,7 +3843,10 @@ Currently there are `js-mode' and `js-ts-mode'."
                                         "method_definition")
                                 eos)
                    nil nil)))
-    (treesit-major-mode-setup)))
+    (treesit-major-mode-setup)
+
+    (add-to-list 'auto-mode-alist
+                 '("\\(\\.js[mx]\\|\\.har\\)\\'" . js-ts-mode))))
 
 ;;;###autoload
 (define-derived-mode js-json-mode js-mode "JSON"
