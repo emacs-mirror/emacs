@@ -429,8 +429,11 @@ For example, one element normally found in the list has the form
 @code{(@t{"\\.c\\'"} . c-mode)}, and it is responsible for selecting C
 mode for files whose names end in @file{.c}.  (Note that @samp{\\} is
 needed in Lisp syntax to include a @samp{\} in the string, which must
-be used to suppress the special meaning of @samp{.} in regexps.)  If
-the element has the form @w{@code{(@var{regexp} @var{mode-function}
+be used to suppress the special meaning of @samp{.} in regexps.)
+
+@cindex backup files, choosing a major mode
+@cindex encrypted files, choosing a major mode
+If the element has the form @w{@code{(@var{regexp} @var{mode-function}
 @var{flag})}} and @var{flag} is non-@code{nil}, then after calling
 @var{mode-function} (if it is non-@code{nil}), Emacs discards the
 suffix that matched @var{regexp} and searches the list again for

@@ -63,17 +63,21 @@ trash when deleting.  Default is nil.
 Many touch screen gestures are now implemented, as is support for
 tapping buttons and opening menus.
 
+** New command 'kill-matching-buffers-no-ask'.
+Kills buffers whose name matches a regexp without asking for
+confirmation.
+
 ** New helper variable 'transpose-sexps-function'.
 Emacs now can set this variable to customize the behavior of the
 'transpose-sexps' function.
 
 ** New function 'transpose-sexps-default-function'.
 The previous implementation is moved into its own function, to be
-bound by transpose-sexps-function'.
+bound by 'transpose-sexps-function'.
 
 ** New function 'treesit-transpose-sexps'.
-treesit.el now unconditionally sets 'transpose-sexps-function' for all
-Tree-sitter modes.  This functionality utilizes the new
+Tree-sitter now unconditionally sets 'transpose-sexps-function' for all
+tree-sitter enabled modes.  This functionality utilizes the new
 'transpose-sexps-function'.
 
 ** Commands and variables to move by program statements
@@ -86,13 +90,22 @@ Major modes can now set this variable to customize the behavior of the
 The previous implementation of 'forward-sentence' is moved into its
 own function, to be bound by 'forward-sentence-function'.
 
-*** New defvar-local 'treesit-sentence-type-regexp.
+*** New buffer-local variable 'treesit-sentence-type-regexp'.
 Similarly to 'treesit-defun-type-regexp', this variable is used to
-define "sentences" in Tree-sitter enabled modes.
+define "sentences" in tree-sitter enabled modes.
 
 *** New function 'treesit-forward-sentence'.
-All tree-sitter modes that define 'treesit-sentence-type-regexp' now
-set 'forward-sentence-function' to call 'treesit-forward-sentence'.
+All tree-sitter enabled modes that define 'treesit-sentence-type-regexp'
+now set 'forward-sentence-function' to call 'treesit-forward-sentence'.
+
+*** New buffer-local variable 'treesit-sexp-type-regexp'.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sexps" in tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sexp'.
+Tree-sitter conditionally sets 'forward-sexp-function' for major modes
+that have defined 'treesit-sexp-type-regexp' to enable sexp-related
+motion commands.
 
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
@@ -139,10 +152,10 @@ manual.
 
 ---
 *** Eshell now uses 'field' properties in its output.
-In particular, this means that pressing the <home> key moves the point
-to the beginning of your input, not the beginning of the whole line.
-If you want to go back to the old behavior, add something like this to
-your configuration:
+In particular, this means that pressing the '<home>' key moves the
+point to the beginning of your input, not the beginning of the whole
+line.  If you want to go back to the old behavior, add something like
+this to your configuration:
 
     (keymap-set eshell-mode-map "<home>" #'eshell-bol-ignoring-prompt)
 
@@ -164,14 +177,14 @@ point is not in a comment or a string.  It is by default bound to
 
 +++
 *** New connection method "toolbox".
-This allow accessing system containers provided by Toolbox.
+This allows accessing system containers provided by Toolbox.
 
 ** EWW
 
 +++
 *** 'eww-open-file' can now display the file in a new buffer.
-By default, the command reuses the '*eww*' buffer, but if called with
-the new argument non-nil, it will use a new buffer instead.
+By default, the command reuses the "*eww*" buffer, but if called with
+the new argument NEW-BUFFER non-nil, it will use a new buffer instead.
 Interactively, invoke 'eww-open-file' with a prefix argument to
 activate this behavior.
 

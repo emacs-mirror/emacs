@@ -82,6 +82,17 @@
     (eshell-command-result-equal "echo $eshell-test-value[0 2 4]"
                                  '("zero" "two" "four"))))
 
+(ert-deftest esh-var-test/interp-var-indices-subcommand ()
+  "Interpolate list variable with subcommand expansion for indices"
+  (skip-unless (executable-find "echo"))
+  (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[${*echo 0}]"
+     "zero")
+    (eshell-command-result-equal
+     "echo $eshell-test-value[${*echo 0} ${*echo 2}]"
+     '("zero" "two"))))
+
 (ert-deftest esh-var-test/interp-var-split-indices ()
   "Interpolate string variable with indices"
   (let ((eshell-test-value "zero one two three four"))
@@ -270,6 +281,20 @@
                                  "(\"one\" \"two\")")
     (eshell-command-result-equal "echo \"$eshell-test-value[1 2 4]\""
                                  "(\"one\" \"two\" \"four\")")))
+
+(ert-deftest esh-var-test/quote-interp-var-indices-subcommand ()
+  "Interpolate list variable with subcommand expansion for indices
+inside double-quotes"
+  (skip-unless (executable-find "echo"))
+  (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
+    (eshell-command-result-equal
+     "echo \"$eshell-test-value[${*echo 0}]\""
+     "zero")
+    ;; FIXME: These tests would use the 0th index like the other tests
+    ;; here, but see above.
+    (eshell-command-result-equal
+     "echo \"$eshell-test-value[${*echo 1} ${*echo 2}]\""
+     "(\"one\" \"two\")")))
 
 (ert-deftest esh-var-test/quoted-interp-var-split-indices ()
   "Interpolate string variable with indices inside double-quotes"
