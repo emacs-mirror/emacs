@@ -3495,6 +3495,9 @@ This tests also `access-file', `file-readable-p',
 	     (access-file tmp-name1 "error")
 	     :type 'file-missing)
 
+	    (should-not (file-exists-p tmp-name1))
+	    (should-not (file-readable-p tmp-name1))
+	    (should-not (file-regular-p tmp-name1))
 	    ;; `file-ownership-preserved-p' should return t for
 	    ;; non-existing files.
 	    (when test-file-ownership-preserved-p
@@ -3579,7 +3582,7 @@ This tests also `access-file', `file-readable-p',
 	    (should (file-exists-p tmp-name1))
 	    (should (file-readable-p tmp-name1))
 	    (should-not (file-regular-p tmp-name1))
-	    (should-not (access-file tmp-name1 ""))
+	    (should-not (access-file tmp-name1 "error"))
 	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (setq attr (file-attributes tmp-name1))
@@ -3927,7 +3930,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (tramp--test-ignore-make-symbolic-link-error
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
+	    (should (file-regular-p tmp-name1))
 	    (make-symbolic-link tmp-name1 tmp-name2)
+	    (should (file-exists-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should
 	     (string-equal
 	      (funcall
@@ -3978,6 +3984,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (string-equal tmp-name1 (file-symlink-p tmp-name3))))
 	    ;; Check directory as newname.
 	    (make-directory tmp-name4)
+	    (should (file-directory-p tmp-name4))
+	    (should-not (file-regular-p tmp-name4))
 	    (when (tramp--test-expensive-test-p)
 	      (should-error
 	       (make-symbolic-link tmp-name1 tmp-name4)
@@ -3991,6 +3999,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (file-symlink-p tmp-name5)))
 	    ;; Check, that files in symlinked directories still work.
 	    (make-symbolic-link tmp-name4 tmp-name6)
+	    (should (file-symlink-p tmp-name6))
+	    (should-not (file-regular-p tmp-name6))
 	    (write-region "foo" nil (expand-file-name "foo" tmp-name6))
 	    (delete-file (expand-file-name "foo" tmp-name6))
 	    (should-not (file-exists-p (expand-file-name "foo" tmp-name4)))
@@ -4052,9 +4062,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (tramp--test-ignore-make-symbolic-link-error
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
+	    (should (file-regular-p tmp-name1))
 	    (should (string-equal tmp-name1 (file-truename tmp-name1)))
 	    (make-symbolic-link tmp-name1 tmp-name2)
 	    (should (file-symlink-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should-not (string-equal tmp-name2 (file-truename tmp-name2)))
 	    (should
 	     (string-equal (file-truename tmp-name1) (file-truename tmp-name2)))
@@ -4064,6 +4076,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (let ((default-directory ert-remote-temporary-file-directory))
 	      (make-symbolic-link (file-name-nondirectory tmp-name1) tmp-name2))
 	    (should (file-symlink-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should-not (string-equal tmp-name2 (file-truename tmp-name2)))
 	    (should
 	     (string-equal (file-truename tmp-name1) (file-truename tmp-name2)))
@@ -4079,6 +4092,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(if quoted #'tramp-compat-file-name-unquote #'identity) penguin)
 	       tmp-name2)
 	      (should (file-symlink-p tmp-name2))
+	      (should-not (file-regular-p tmp-name2))
 	      (should
 	       (string-equal
 		(file-truename tmp-name2)
@@ -4089,6 +4103,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (unless (tramp--test-windows-nt-p)
 	      (make-symbolic-link tmp-name1 tmp-name3)
 	      (should (file-symlink-p tmp-name3))
+	      (should-not (file-regular-p tmp-name3))
               (should-not (string-equal tmp-name3 (file-truename tmp-name3)))
 	      ;; `file-truename' returns a quoted file name for `tmp-name3'.
 	      ;; We must unquote it.
@@ -4117,6 +4132,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(make-symbolic-link
 		 tmp-name3
 		 (setq tmp-name3 (tramp--test-make-temp-name nil quoted))))
+	      (should-not (file-regular-p tmp-name2))
+	      (should-not (file-regular-p tmp-name3))
 	      (should
 	       (string-equal
 		(file-truename tmp-name2)
@@ -4147,6 +4164,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (tramp--test-ignore-make-symbolic-link-error
 	     (make-symbolic-link tmp-name2 tmp-name1)
 	     (should (file-symlink-p tmp-name1))
+	     (should-not (file-regular-p tmp-name1))
+	     (should-not (file-regular-p tmp-name2))
 	     (if (tramp--test-smb-p)
 		 ;; The symlink command of "smbclient" detects the
 		 ;; cycle already.
@@ -4155,6 +4174,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  :type 'file-error)
 	       (make-symbolic-link tmp-name1 tmp-name2)
 	       (should (file-symlink-p tmp-name2))
+	       (should-not (file-regular-p tmp-name2))
 	       (should-error
 		(file-truename tmp-name1)
 		:type 'file-error))))
