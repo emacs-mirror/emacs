@@ -1888,10 +1888,10 @@ you can specify them in your initialization file by writing Lisp code.
 @xref{Init File}, for a description of the initialization file.
 
 @findex keymap-global-set
-  The recommended way to write a key binding using Lisp is to use one
-of the @code{keymap-global-set}, or @code{keymap-set} functions.  For
-example, here's how to bind @kbd{C-z} to the @code{shell} command in
-the global keymap (@pxref{Interactive Shell}):
+  The recommended way to write a key binding using Lisp is to use
+either the @code{keymap-global-set} or the @code{keymap-set}
+functions.  For example, here's how to bind @kbd{C-z} to the
+@code{shell} command in the global keymap (@pxref{Interactive Shell}):
 
 @example
 (keymap-global-set "C-z" 'shell)
@@ -1899,18 +1899,19 @@ the global keymap (@pxref{Interactive Shell}):
 
 @cindex key sequence syntax
 @noindent
-The second argument that describes the key sequence, is a string
-containing a series of characters separated by spaces with each
-character corresponding to a key.  Keys with modifiers can be
-specified by prepending the modifier, such as @samp{C-} for Control,
-or @samp{M-} for Meta. Special keys, such as @kbd{TAB} and @kbd{RET},
-can be specified within angle brackets as in @kbd{@key{TAB}} and
-@kbd{@key{RET}}.
+The first argument to @code{keymap-global-set} describes the key
+sequence.  It is a string made of a series of characters separated
+by spaces, with each character corresponding to a key.  Keys with
+modifiers can be specified by prepending the modifier, such as
+@samp{C-} for Control, or @samp{M-} for Meta.  Special keys, such as
+@key{TAB} and @key{RET}, can be specified within angle brackets as in
+@kbd{@key{TAB}} and @kbd{@key{RET}}.
 
-  The single-quote before the command name, @code{shell}, marks it as
-a constant symbol rather than a variable.  If you omit the quote,
-Emacs would try to evaluate @code{shell} as a variable.  This probably
-causes an error; it certainly isn't what you want.
+  The single-quote before the command name that is being bound to the
+key sequence, @code{shell} in the above example, marks it as a
+constant symbol rather than a variable.  If you omit the quote, Emacs
+would try to evaluate @code{shell} as a variable.  This will probably
+cause an error; it certainly isn't what you want.
 
   Here are some additional examples, including binding function keys
 and mouse events:
@@ -1929,9 +1930,10 @@ non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
 
 @findex global-set-key
 @findex define-key
-  Alternatively you can use the low level functions @code{define-key}
-and @code{global-set-key}.  For example to bind @kbd{C-z} to the
-@code{shell} command as in the above example, use:
+  Alternatively, you can use the low level functions @code{define-key}
+and @code{global-set-key}.  For example, to bind @kbd{C-z} to the
+@code{shell} command, as in the above example, using these low-level
+functions, use:
 
 @example
 (global-set-key (kbd "C-z") 'shell)
@@ -1941,10 +1943,11 @@ and @code{global-set-key}.  For example to bind @kbd{C-z} to the
 @noindent
 There are various ways to specify the key sequence but the simplest is
 to use the function @code{kbd} as shown in the example above.
-@code{kbd} takes a single string argument specifying a key sequence in
-the syntax described earlier for @code{keymap-global-set}.  For more
-details about binding keys using Lisp @ref{Keymaps,,, elisp, The Emacs
-Lisp Reference Manual}.
+@code{kbd} takes a single string argument that is a textual
+representation of a key sequence, and converts it into a form suitable
+for low-level functions such as @code{global-set-key}.  For more
+details about binding keys using Lisp, @pxref{Keymaps,,, elisp, The
+Emacs Lisp Reference Manual}.
 
 @findex keymap-set
 @findex keymap-unset
