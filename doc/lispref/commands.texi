@@ -2058,8 +2058,10 @@ This function is used to track a single ``drag'' gesture originating
 from the @code{touchscreen-begin} event @code{event}.
 
 It behaves like @code{touch-screen-track-tap}, except that it returns
-@code{no-drag} if the touchpoint in @code{event} did not move far
-enough to qualify as an actual drag.
+@code{no-drag} and refrains from calling @var{update} if the
+touchpoint in @code{event} did not move far enough (by default, 5
+pixels from its position in @code{event}) to qualify as an actual
+drag.
 @end defun
 
 @node Focus Events

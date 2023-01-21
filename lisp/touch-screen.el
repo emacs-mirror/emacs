@@ -30,11 +30,12 @@
 
 (defvar touch-screen-current-tool nil
   "The touch point currently being tracked, or nil.
-If non-nil, this is a list of five elements: the ID of the touch
+If non-nil, this is a list of six elements: the ID of the touch
 point being tracked, the window where the touch began, a cons
 containing the last known position of the touch point, relative
 to that window, a field used to store data while tracking the
-touch point, and the initial position of the touchpoint.  See
+touch point, the initial position of the touchpoint, and another
+field to used store data while tracking the touch point.  See
 `touch-screen-handle-point-update' for the meanings of the fourth
 element.")
 
@@ -51,6 +52,13 @@ This is always cleared upon any significant state change.")
 (defcustom touch-screen-delay 0.7
   "Delay in seconds before Emacs considers a touch to be a long-press."
   :type 'number
+  :group 'mouse
+  :version "30.1")
+
+(defcustom touch-screen-precision-scroll nil
+  "Whether or not to use precision scrolling for touch screens.
+See `pixel-scroll-precision-mode' for more details."
+  :type 'boolean
   :group 'mouse
   :version "30.1")
 
@@ -86,10 +94,41 @@ to the frame that they belong in."
 (defun touch-screen-handle-scroll (dx dy)
   "Scroll the display assuming that a touch point has moved by DX and DY."
   (ignore dx)
-  ;; This only looks good with precision pixel scrolling.
-  (if (> dy 0)
-      (pixel-scroll-precision-scroll-down-page dy)
-    (pixel-scroll-precision-scroll-up-page (- dy))))
+  (if touch-screen-precision-scroll
+      (if (> dy 0)
+          (pixel-scroll-precision-scroll-down-page dy)
+        (pixel-scroll-precision-scroll-up-page (- dy)))
+    ;; Start conventional scrolling.  First, determine the direction
+    ;; in which the scrolling is taking place.  Load the accumulator
+    ;; value.
+    (let ((accumulator (or (nth 5 touch-screen-current-tool) 0))
+          (window (cadr touch-screen-current-tool)))
+      (setq accumulator (+ accumulator dy)) ; Add dy.
+      ;; Figure out how much it has scrolled and how much remains on
+      ;; the top or bottom of the window.
+      (while (catch 'again
+               (let* ((line-height (window-default-line-height window)))
+                 (if (and (< accumulator 0)
+                          (>= (- accumulator) line-height))
+                     (progn
+                       (setq accumulator (+ accumulator line-height))
+                       (scroll-down 1)
+                       (when (not (zerop accumulator))
+                         ;; If there is still an outstanding amount to
+                         ;; scroll, do this again.
+                         (throw 'again t)))
+                   (when (and (> accumulator 0)
+                              (>= accumulator line-height))
+                     (setq accumulator (- accumulator line-height))
+                       (scroll-up 1)
+                       (when (not (zerop accumulator))
+                         ;; If there is still an outstanding amount to
+                         ;; scroll, do this again.
+                         (throw 'again t)))))
+               ;; Scrolling is done.  Move the accumulator back to
+               ;; touch-screen-current-tool and break out of the loop.
+               (setcar (nthcdr 5 touch-screen-current-tool) accumulator)
+               nil)))))
 
 (defun touch-screen-handle-timeout (arg)
   "Start the touch screen timeout or handle it depending on ARG.
@@ -338,7 +377,7 @@ touchscreen-end event."
                                            (list touchpoint
                                                  (posn-window position)
                                                  (posn-x-y position)
-                                                 nil position)))
+                                                 nil position nil)))
       ;; Start the long-press timer.
       (touch-screen-handle-timeout nil)))
    ((eq (car event) 'touchscreen-update)
@@ -382,7 +421,7 @@ Return nil immediately if any other kind of event is received;
 otherwise, return t once the `touchscreen-end' event arrives."
   (catch 'finish
     (while t
-      (let ((new-event (read-event)))
+      (let ((new-event (read-event nil)))
         (cond
          ((eq (car-safe new-event) 'touchscreen-update)
           (when (and update (assq (caadr event) (cadr new-event)))
@@ -403,7 +442,8 @@ Read touch screen events until a `touchscreen-end' event is
 received with the same ID as in EVENT.  For each
 `touchscreen-update' event received in the mean time containing a
 touch point with the same ID as in EVENT, call UPDATE with the
-touch point in event and DATA.
+touch point in event and DATA, once the touch point has moved
+significantly by at least 5 pixels from where it was in EVENT.
 
 Return nil immediately if any other kind of event is received;
 otherwise, return either t or `no-drag' once the
@@ -414,7 +454,7 @@ touch point in EVENT did not move significantly, and t otherwise."
                                             'frame)))
     (catch 'finish
       (while t
-        (let ((new-event (read-event)))
+        (let ((new-event (read-event nil)))
           (cond
            ((eq (car-safe new-event) 'touchscreen-update)
             (when-let* ((tool (assq (caadr event) (nth 1 new-event)))
@@ -424,7 +464,7 @@ touch point in EVENT did not move significantly, and t otherwise."
                         (> (- (cdr xy) (cdr start-xy)) 5)
                         (< (- (cdr xy) (cdr start-xy)) -5))
                 (setq return-value t))
-              (when (and update tool)
+              (when (and update tool (eq return-value t))
                 (funcall update new-event data))))
            ((eq (car-safe new-event) 'touchscreen-end)
             (throw 'finish
@@ -447,6 +487,8 @@ happened.  EVENT is the same as in `touch-screen-drag-mode-line'."
   ;; to [down-mouse-1] or a command bound to [mouse-1].  Then, if a
   ;; keymap was found, pop it up as a menu.  Otherwise, wait for a tap
   ;; to complete and run the command found.
+  ;; Also, select the window in EVENT.
+  (select-window (posn-window (cdadr event)))
   (let* ((object (posn-object (cdadr event)))
          (object-keymap (and (consp object)
                              (stringp (car object))
@@ -483,8 +525,8 @@ bound, run that command instead."
   (interactive "e")
   ;; Find the window that should be dragged and the starting position.
   (let* ((window (posn-window (cdadr event)))
-         (relative-xy (touch-screen-relative-xy
-                       (cdadr event) window))
+         (relative-xy (touch-screen-relative-xy (cdadr event)
+                                                'frame))
          (last-position (cdr relative-xy)))
     (when (window-resizable window 0)
       (when (eq
@@ -495,9 +537,9 @@ bound, run that command instead."
                       (let* ((touchpoint (assq (caadr event)
                                                (cadr new-event)))
                              (new-relative-xy
-                              (touch-screen-relative-xy (cdr touchpoint)
-                                                        window))
+                              (touch-screen-relative-xy (cdr touchpoint) 'frame))
                              (position (cdr new-relative-xy))
+                             (window-resize-pixelwise t)
                              growth)
                         ;; Now set the new height of the window.  If
                         ;; new-relative-y is above relative-xy, then
@@ -513,8 +555,9 @@ bound, run that command instead."
                                          (> position
                                             (+ (window-pixel-top window)
                                                (window-pixel-height window)))))
-                          (adjust-window-trailing-edge window growth nil t))
-                        (setq last-position position))))
+                          (when (ignore-errors
+                                  (adjust-window-trailing-edge window growth nil t) t)
+                            (setq last-position position))))))
              'no-drag)
         ;; Dragging did not actually happen, so try to run any command
         ;; necessary.
