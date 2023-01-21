@@ -106,10 +106,7 @@ Return nil if there is no name or if NODE is not a defun node."
 
   (setq-local treesit-defun-name-function #'html-ts-mode--defun-name)
 
-  (setq-local treesit-sentence-type-regexp
-              (regexp-opt '("start_tag"
-                            "self_closing_tag"
-                            "end_tag")))
+  (setq-local treesit-sentence-type-regexp "element")
 
   (setq-local treesit-sexp-type-regexp
               (regexp-opt '("tag"
