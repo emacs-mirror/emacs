@@ -896,6 +896,37 @@ Set up:
   (setq-local treesit-defun-skipper #'c-ts-mode--defun-skipper)
   (setq-local treesit-defun-name-function #'c-ts-mode--defun-name)
 
+  (setq-local treesit-sentence-type-regexp
+              ;; compound_statement makes us jump over too big units
+              ;; of code, so skip that one, and include the other
+              ;; statements.
+              (regexp-opt '("preproc"
+                            "declaration"
+                            "specifier"
+                            "attributed_statement"
+                            "labeled_statement"
+                            "expression_statement"
+                            "if_statement"
+                            "switch_statement"
+                            "do_statement"
+                            "while_statement"
+                            "for_statement"
+                            "return_statement"
+                            "break_statement"
+                            "continue_statement"
+                            "goto_statement"
+                            "case_statement")))
+
+  (setq-local treesit-sexp-type-regexp
+              (regexp-opt '("preproc"
+                            "declarator"
+                            "qualifier"
+                            "type"
+                            "parameter"
+                            "expression"
+                            "literal"
+                            "string")))
+
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
   (setq-local treesit-defun-prefer-top-level t)
