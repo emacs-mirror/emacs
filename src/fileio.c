@@ -5891,8 +5891,6 @@ See Info node `(elisp)Modification Time' for more details.  */)
     return call2 (handler, Qverify_visited_file_modtime, buf);
 
   filename = ENCODE_FILE (BVAR (b, filename));
-  check_mutable_filename (filename);
-
   mtime = (emacs_fstatat (AT_FDCWD, SSDATA (filename), &st, 0) == 0
 	   ? get_stat_mtime (&st)
 	   : time_error_value (errno));
