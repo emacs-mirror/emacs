@@ -186,7 +186,7 @@ activate this behavior.
 +++
 *** New major mode 'html-ts-mode'.
 An optional major mode based on the tree-sitter library for editing
-files written in HTML.
+HTML files.
 
 ---
 ** The highly accessible Modus themes collection has six items.
