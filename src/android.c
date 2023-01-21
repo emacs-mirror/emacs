@@ -852,6 +852,26 @@ android_scan_directory_tree (char *file, size_t *limit_return)
   return NULL;
 }
 
+/* Return whether or not the directory tree entry DIR is a
+   directory.
+
+   DIR should be a value returned by
+   `android_scan_directory_tree'.  */
+
+static bool
+android_is_directory (const char *dir)
+{
+  /* If the directory is the directory tree, then it is a
+     directory.  */
+  if (dir == directory_tree + 5)
+    return true;
+
+  /* Otherwise, look 5 bytes behind.  If it is `/', then it is a
+     directory.  */
+  return (dir - 6 >= directory_tree
+	  && *(dir - 6) == '/');
+}
+
 
 
 /* Intercept USER_FULL_NAME and return something that makes sense if
@@ -899,8 +919,15 @@ android_fstat (int fd, struct stat *statb)
   return fstat (fd, statb);
 }
 
+static int android_lookup_asset_directory_fd (int,
+					      const char *restrict *,
+					      const char *restrict);
+
 /* Like fstatat.  However, if dirfd is AT_FDCWD and PATHNAME is an
-   asset, find the information for the corresponding asset.  */
+   asset, find the information for the corresponding asset, and if
+   dirfd is an offset into directory_tree as returned by
+   `android_dirfd', find the information within the corresponding
+   directory tree entry.  */
 
 int
 android_fstatat (int dirfd, const char *restrict pathname,
@@ -908,11 +935,40 @@ android_fstatat (int dirfd, const char *restrict pathname,
 {
   AAsset *asset_desc;
   const char *asset;
+  const char *asset_dir;
+
+  /* Look up whether or not DIRFD belongs to an open struct
+     android_dir.  */
+
+  if (dirfd != AT_FDCWD)
+    dirfd
+      = android_lookup_asset_directory_fd (dirfd, &pathname,
+					   pathname);
 
   if (dirfd == AT_FDCWD
       && asset_manager
       && (asset = android_get_asset_name (pathname)))
     {
+      /* Look up whether or not PATHNAME happens to be a
+	 directory.  */
+      asset_dir = android_scan_directory_tree ((char *) asset,
+					       NULL);
+
+      if (!asset_dir)
+	{
+	  errno = ENOENT;
+	  return -1;
+	}
+
+      if (android_is_directory (asset_dir))
+	{
+	  memset (statbuf, 0, sizeof *statbuf);
+
+	  /* Fill in the stat buffer.  */
+	  statbuf->st_mode = S_IFDIR | S_IRUSR | S_IRGRP | S_IROTH;
+	  return 0;
+	}
+
       /* AASSET_MODE_STREAMING is fastest here.  */
       asset_desc = AAssetManager_open (asset_manager, asset,
 				       AASSET_MODE_STREAMING);
@@ -923,7 +979,7 @@ android_fstatat (int dirfd, const char *restrict pathname,
       memset (statbuf, 0, sizeof *statbuf);
 
       /* Fill in the stat buffer.  */
-      statbuf->st_mode = S_IFREG;
+      statbuf->st_mode = S_IFREG | S_IRUSR | S_IRGRP | S_IROTH;
       statbuf->st_size = AAsset_getLength (asset_desc);
 
       /* Close the asset.  */
@@ -1118,7 +1174,8 @@ android_open (const char *filename, int oflag, int mode)
 
 	  /* Fill in some information that will be reported to
 	     callers of android_fstat, among others.  */
-	  android_table[fd].statb.st_mode = S_IFREG;
+	  android_table[fd].statb.st_mode
+	    = S_IFREG | S_IRUSR | S_IRGRP | S_IROTH;;
 
 	  /* Owned by root.  */
 	  android_table[fd].statb.st_uid = 0;
@@ -4023,7 +4080,20 @@ struct android_dir
 
   /* And the end of the files in asset_dir.  */
   char *asset_limit;
+
+  /* The next struct android_dir.  */
+  struct android_dir *next;
+
+  /* Path to the directory relative to /.  */
+  char *asset_file;
+
+  /* File descriptor used when asset_dir is set.  */
+  int fd;
 };
+
+/* List of all struct android_dir's corresponding to an asset
+   directory that are currently open.  */
+static struct android_dir *android_dirs;
 
 /* Like opendir.  However, return an asset directory if NAME points to
    an asset.  */
@@ -4034,7 +4104,7 @@ android_opendir (const char *name)
   struct android_dir *dir;
   char *asset_dir;
   const char *asset_name;
-  size_t limit;
+  size_t limit, length;
 
   asset_name = android_get_asset_name (name);
 
@@ -4052,10 +4122,19 @@ android_opendir (const char *name)
 	  return NULL;
 	}
 
+      length = strlen (name);
+
       dir = xmalloc (sizeof *dir);
       dir->dir = NULL;
       dir->asset_dir = asset_dir;
       dir->asset_limit = (char *) directory_tree + limit;
+      dir->fd = -1;
+      dir->asset_file = xzalloc (length + 2);
+
+      /* Make sure dir->asset_file is terminated with /.  */
+      strcpy (dir->asset_file, name);
+      if (dir->asset_file[length - 1] != '/')
+	dir->asset_file[length] = '/';
 
       /* Make sure dir->asset_limit is within bounds.  It is a limit,
 	 and as such can be exactly one byte past directory_tree.  */
@@ -4068,6 +4147,9 @@ android_opendir (const char *name)
 	  dir = NULL;
 	  errno = EACCES;
 	}
+
+      dir->next = android_dirs;
+      android_dirs = dir;
 
       return dir;
     }
@@ -4084,6 +4166,26 @@ android_opendir (const char *name)
     }
 
   return dir;
+}
+
+/* Like dirfd.  However, value is not a real directory file descriptor
+   if DIR is an asset directory.  */
+
+int
+android_dirfd (struct android_dir *dirp)
+{
+  int fd;
+
+  if (dirp->dir)
+    return dirfd (dirp->dir);
+  else if (dirp->fd != -1)
+    return dirp->fd;
+
+  fd = open ("/dev/null", O_RDONLY | O_CLOEXEC);
+
+  /* Record this file descriptor in dirp.  */
+  dirp->fd = fd;
+  return fd;
 }
 
 /* Like readdir, except it understands asset directories.  */
@@ -4152,13 +4254,71 @@ android_readdir (struct android_dir *dir)
 void
 android_closedir (struct android_dir *dir)
 {
+  struct android_dir **next, *tem;
+
   if (dir->dir)
     closedir (dir->dir);
+  else
+    {
+      if (dir->fd != -1)
+	close (dir->fd);
+
+      /* Unlink this directory from the list of all asset manager
+	 directories.  */
+
+      for (next = &android_dirs; (tem = *next);)
+	{
+	  if (tem == dir)
+	    *next = dir->next;
+	  else
+	    next = &(*next)->next;
+	}
+
+      /* Free the asset file name.  */
+      xfree (dir->asset_file);
+    }
 
   /* There is no need to close anything else, as the directory tree
      lies in statically allocated memory.  */
 
   xfree (dir);
+}
+
+/* Subroutine used by android_fstatat.  If DIRFD belongs to an open
+   asset directory and FILE is a relative file name, then return
+   AT_FDCWD and the absolute file name of the directory prepended to
+   FILE in *PATHNAME.  Else, return DIRFD.  */
+
+int
+android_lookup_asset_directory_fd (int dirfd,
+				   const char *restrict *pathname,
+				   const char *restrict file)
+{
+  struct android_dir *dir;
+  static char *name;
+
+  if (file[0] == '/')
+    return dirfd;
+
+  for (dir = android_dirs; dir; dir = dir->next)
+    {
+      if (dir->fd == dirfd && dirfd != -1)
+	{
+	  if (name)
+	    xfree (name);
+
+	  /* dir->asset_file is always separator terminated.  */
+	  name = xzalloc (strlen (dir->asset_file)
+			  + strlen (file) + 1);
+	  strcpy (name, dir->asset_file);
+	  strcpy (name + strlen (dir->asset_file),
+		  file);
+	  *pathname = name;
+	  return AT_FDCWD;
+	}
+    }
+
+  return dirfd;
 }
 
 

@@ -384,6 +384,41 @@ androidfont_get_cache (struct frame *frame)
   return font_cache;
 }
 
+/* Initialize the Java side of the font driver if it has not already
+   been initialized.  This is only done whenever necessary because the
+   font driver otherwise uses a lot of memory, as it has to keep every
+   typeface open.  */
+
+static void
+androidfont_check_init (void)
+{
+  jmethodID method;
+  jobject old;
+
+  if (font_driver)
+    return;
+
+  /* Log a loud message.  This font driver really should not be
+     used.  */
+  __android_log_print (ANDROID_LOG_WARN, __func__,
+		       "The Android font driver is being used."
+		       "  Please investigate why this is so.");
+
+  method = font_driver_class.create_font_driver;
+
+  /* Initialize the font driver on the Java side.  */
+  font_driver
+    = (*android_java_env)->CallStaticObjectMethod (android_java_env,
+						   font_driver_class.class,
+						   method);
+  android_exception_check ();
+
+  old = font_driver;
+  font_driver
+    = (*android_java_env)->NewGlobalRef (android_java_env, font_driver);
+  ANDROID_DELETE_LOCAL_REF (old);
+}
+
 /* Return a local reference to an instance of EmacsFontDriver$FontSpec
    with the same values as FONT.  */
 
@@ -539,6 +574,9 @@ androidfont_list (struct frame *f, Lisp_Object font_spec)
   Lisp_Object value, entity;
   struct androidfont_entity *info;
 
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
+
   spec = androidfont_from_lisp (font_spec);
   array = (*android_java_env)->CallObjectMethod (android_java_env,
 						 font_driver,
@@ -595,6 +633,9 @@ androidfont_match (struct frame *f, Lisp_Object font_spec)
   Lisp_Object entity;
   struct androidfont_entity *info;
 
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
+
   spec = androidfont_from_lisp (font_spec);
   result = (*android_java_env)->CallObjectMethod (android_java_env,
 						  font_driver,
@@ -634,6 +675,9 @@ androidfont_draw (struct glyph_string *s, int from, int to,
   jarray chars;
   int rc;
   jobject gcontext, drawable;
+
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
 
   verify (sizeof (unsigned int) == sizeof (jint));
   info = (struct androidfont_info *) s->font;
@@ -682,6 +726,9 @@ androidfont_open_font (struct frame *f, Lisp_Object font_entity,
   Lisp_Object font_object;
   jobject old;
   jint value;
+
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
 
   if (XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX)) != 0)
     pixel_size = XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX));
@@ -778,6 +825,9 @@ androidfont_close_font (struct font *font)
   struct androidfont_info *info;
   int i;
 
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
+
   info = (struct androidfont_info *) font;
 
   /* Free the font metrics cache if it exists.  */
@@ -805,6 +855,9 @@ androidfont_has_char (Lisp_Object font, int c)
   struct androidfont_info *info;
   struct androidfont_entity *entity;
 
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
+
   if (FONT_ENTITY_P (font))
     {
       entity = (struct androidfont_entity *) XFONT_ENTITY (font);
@@ -829,6 +882,9 @@ static unsigned
 androidfont_encode_char (struct font *font, int c)
 {
   struct androidfont_info *info;
+
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
 
   info = (struct androidfont_info *) font;
 
@@ -890,6 +946,9 @@ androidfont_text_extents (struct font *font, const unsigned int *code,
   jarray codepoint_array;
   jobject metrics_object;
   short value;
+
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
 
   info = (struct androidfont_info *) font;
 
@@ -968,6 +1027,9 @@ androidfont_list_family (struct frame *f)
   jsize i, length;
   const char *family;
 
+  /* Maybe initialize the font driver.  */
+  androidfont_check_init ();
+
   family_array
     = (*android_java_env)->CallObjectMethod (android_java_env,
 					     font_driver,
@@ -1042,33 +1104,14 @@ syms_of_androidfont (void)
 void
 init_androidfont (void)
 {
-  jmethodID method;
-  jobject old;
-
   android_init_font_driver ();
   android_init_font_spec ();
   android_init_font_metrics ();
   android_init_font_object ();
   android_init_integer ();
 
-  method = font_driver_class.create_font_driver;
-
-  /* Initialize the font driver on the Java side.  */
-  font_driver
-    = (*android_java_env)->CallStaticObjectMethod (android_java_env,
-						   font_driver_class.class,
-						   method);
-
-  if (!font_driver)
-    memory_full (0);
-
-  old = font_driver;
-  font_driver
-    = (*android_java_env)->NewGlobalRef (android_java_env, font_driver);
-  ANDROID_DELETE_LOCAL_REF (old);
-
-  if (!font_driver)
-    memory_full (0);
+  /* The Java font driver is not initialized here because it uses a lot
+     of memory.  */
 }
 
 void

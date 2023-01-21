@@ -145,6 +145,25 @@ static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 		     struct coding_system *);
 
 
+
+/* Check that ENCODED does not lie on any special directory whose
+   contents are read only.  Signal a `file-error' if it does.  */
+
+static void
+check_mutable_filename (Lisp_Object encoded)
+{
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  if (!strcmp (SSDATA (encoded), "/assets")
+      || !strncmp (SSDATA (encoded), "/assets/",
+		   sizeof "/assets/" - 1))
+    xsignal2 (Qfile_error,
+	      build_string ("File lies on read-"
+			    "only directory"),
+	      encoded);
+#endif
+}
+
+
 /* Test whether FILE is accessible for AMODE.
    Return true if successful, false (setting errno) otherwise.  */
 
@@ -2215,6 +2234,7 @@ permissions.  */)
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
+  check_mutable_filename (encoded_newname);
 
 #ifdef WINDOWSNT
   if (NILP (ok_if_already_exists)
@@ -2474,6 +2494,8 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
   encoded_dir = ENCODE_FILE (directory);
   dir = SSDATA (encoded_dir);
 
+  check_mutable_filename (encoded_dir);
+
   if (rmdir (dir) != 0)
     report_file_error ("Removing directory", directory);
 
@@ -2513,6 +2535,7 @@ With a prefix argument, TRASH is nil.  */)
     return call1 (Qmove_file_to_trash, filename);
 
   encoded_file = ENCODE_FILE (filename);
+  check_mutable_filename (encoded_file);
 
   if (unlink (SSDATA (encoded_file)) != 0 && errno != ENOENT)
     report_file_error ("Removing old name", filename);
@@ -2670,6 +2693,8 @@ This is what happens in interactive use with M-x.  */)
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
+  check_mutable_filename (encoded_file);
+  check_mutable_filename (encoded_newname);
 
   bool plain_rename = (case_only_rename
 		       || (!NILP (ok_if_already_exists)
@@ -2781,6 +2806,8 @@ This is what happens in interactive use with M-x.  */)
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
+  check_mutable_filename (encoded_file);
+  check_mutable_filename (encoded_newname);
 
   if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) == 0)
     return Qnil;
@@ -2834,6 +2861,8 @@ This happens for interactive use with M-x.  */)
 
   encoded_target = ENCODE_FILE (target);
   encoded_linkname = ENCODE_FILE (linkname);
+  check_mutable_filename (encoded_target);
+  check_mutable_filename (encoded_linkname);
 
   if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) == 0)
     return Qnil;
@@ -3565,6 +3594,8 @@ Interactively, prompt for FILENAME, and read MODE with
 command from GNU Coreutils.  */)
   (Lisp_Object filename, Lisp_Object mode, Lisp_Object flag)
 {
+  Lisp_Object encoded;
+
   CHECK_FIXNUM (mode);
   int nofollow = symlink_nofollow_flag (flag);
   Lisp_Object absname = Fexpand_file_name (filename,
@@ -3576,7 +3607,9 @@ command from GNU Coreutils.  */)
   if (!NILP (handler))
     return call4 (handler, Qset_file_modes, absname, mode, flag);
 
-  char *fname = SSDATA (ENCODE_FILE (absname));
+  encoded = ENCODE_FILE (absname);
+  check_mutable_filename (encoded);
+  char *fname = SSDATA (encoded);
   mode_t imode = XFIXNUM (mode) & 07777;
   if (fchmodat (AT_FDCWD, fname, imode, nofollow) != 0)
     report_file_error ("Doing chmod", absname);
@@ -3648,6 +3681,7 @@ TIMESTAMP is in the format of `current-time'. */)
     return call4 (handler, Qset_file_times, absname, timestamp, flag);
 
   Lisp_Object encoded_absname = ENCODE_FILE (absname);
+  check_mutable_filename (encoded_absname);
 
   if (utimensat (AT_FDCWD, SSDATA (encoded_absname), ts, nofollow) != 0)
     {
@@ -3680,6 +3714,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   (Lisp_Object file1, Lisp_Object file2)
 {
   struct stat st1, st2;
+  Lisp_Object encoded;
 
   CHECK_STRING (file1);
   CHECK_STRING (file2);
@@ -3696,8 +3731,11 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   if (!NILP (handler))
     return call3 (handler, Qfile_newer_than_file_p, absname1, absname2);
 
+  encoded = ENCODE_FILE (absname1);
+  check_mutable_filename (encoded);
+
   int err1;
-  if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (absname1)), &st1, 0) == 0)
+  if (emacs_fstatat (AT_FDCWD, SSDATA (encoded), &st1, 0) == 0)
     err1 = 0;
   else
     {
@@ -5853,6 +5891,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
     return call2 (handler, Qverify_visited_file_modtime, buf);
 
   filename = ENCODE_FILE (BVAR (b, filename));
+  check_mutable_filename (filename);
 
   mtime = (emacs_fstatat (AT_FDCWD, SSDATA (filename), &st, 0) == 0
 	   ? get_stat_mtime (&st)
@@ -5913,7 +5952,7 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
     error ("An indirect buffer does not have a visited file");
   else
     {
-      register Lisp_Object filename;
+      register Lisp_Object filename, encoded;
       struct stat st;
       Lisp_Object handler;
 
@@ -5926,7 +5965,10 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
 	/* The handler can find the file name the same way we did.  */
 	return call2 (handler, Qset_visited_file_modtime, Qnil);
 
-      if (emacs_fstatat (AT_FDCWD, SSDATA (ENCODE_FILE (filename)), &st, 0)
+      encoded = ENCODE_FILE (filename);
+      check_mutable_filename (encoded);
+
+      if (emacs_fstatat (AT_FDCWD, SSDATA (encoded), &st, 0)
 	  == 0)
         {
 	  current_buffer->modtime = get_stat_mtime (&st);

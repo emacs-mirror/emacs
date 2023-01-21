@@ -101,6 +101,7 @@ extern void android_window_updated (android_window, unsigned long);
 struct android_dir;
 
 extern struct android_dir *android_opendir (const char *);
+extern int android_dirfd (struct android_dir *);
 extern struct dirent *android_readdir (struct android_dir *);
 extern void android_closedir (struct android_dir *);
 

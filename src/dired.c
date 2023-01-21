@@ -116,6 +116,9 @@ open_directory (Lisp_Object dirname, Lisp_Object encoded_dirname, int *fdp)
   d = opendir (name);
 #else
   d = android_opendir (name);
+
+  if (d)
+    fd = android_dirfd (d);
 #endif
   opendir_errno = errno;
 #else
@@ -216,6 +219,9 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   Lisp_Object encoded_dirfilename = ENCODE_FILE (dirfilename);
 
   int fd;
+
+  /* Keep in mind that FD is not always a real file descriptor on
+     Android.  */
   emacs_dir *d = open_directory (dirfilename, encoded_dirfilename, &fd);
 
   /* Unfortunately, we can now invoke expand-file-name and
@@ -881,6 +887,13 @@ file_name_completion_dirp (int fd, struct dirent *dp, ptrdiff_t len)
   char *subdir_name = SAFE_ALLOCA (len + 2);
   memcpy (subdir_name, dp->d_name, len);
   strcpy (subdir_name + len, "/");
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Check if subdir_name lies in the assets directory.  */
+  if (android_file_access_p (subdir_name, F_OK))
+    return true;
+#endif
+
   bool dirp = faccessat (fd, subdir_name, F_OK, AT_EACCESS) == 0;
   SAFE_FREE ();
   return dirp;

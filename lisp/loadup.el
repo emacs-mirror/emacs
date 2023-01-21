@@ -312,6 +312,7 @@
 
 (if (featurep 'android)
     (progn
+      (load "ls-lisp")
       (load "term/common-win")
       (load "term/android-win")))
 

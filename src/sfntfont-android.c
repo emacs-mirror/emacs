@@ -22,8 +22,14 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include <dirent.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#ifdef __aarch64__
+#include <arm_neon.h>
+#endif
 
 #include <android/api-level.h>
+#include <android/log.h>
 
 #include "androidterm.h"
 #include "sfntfont.h"
@@ -63,6 +69,8 @@ static size_t max_scanline_buffer_size;
 /* Return a temporary buffer for storing scan lines.
    Set BUFFER to the buffer upon success.  */
 
+#ifndef __aarch64__
+
 #define GET_SCANLINE_BUFFER(buffer, height, stride)		\
   do								\
     {								\
@@ -93,6 +101,39 @@ static size_t max_scanline_buffer_size;
 	    = max (_size, max_scanline_buffer_size);		\
 	}							\
     } while (false);
+
+#else
+
+#define GET_SCANLINE_BUFFER(buffer, height, stride)		\
+  do								\
+    {								\
+      size_t _size;						\
+      void *_temp;						\
+								\
+      if (INT_MULTIPLY_WRAPV (height, stride, &_size))		\
+	memory_full (SIZE_MAX);					\
+								\
+      if (_size > scanline_buffer.buffer_size)			\
+	{							\
+	  if (posix_memalign (&_temp, 16, _size))		\
+	    memory_full (_size);				\
+	  free (scanline_buffer.buffer_data);			\
+	  (buffer)						\
+	    = scanline_buffer.buffer_data			\
+	    = _temp;						\
+	  scanline_buffer.buffer_size = _size;			\
+	}							\
+      else if (_size <= scanline_buffer.buffer_size)		\
+	(buffer) = scanline_buffer.buffer_data;			\
+      /* This is unreachable but clang says it is.  */		\
+      else							\
+	emacs_abort ();						\
+								\
+      max_scanline_buffer_size					\
+      = max (_size, max_scanline_buffer_size);			\
+    } while (false);
+
+#endif
 
 
 
@@ -149,6 +190,122 @@ sfntfont_android_blend (unsigned int src, unsigned int dst)
   return both + src;
 }
 
+#ifdef __aarch64__
+
+/* Like U255TO256, but operates on vectors.  */
+
+static uint16x8_t
+sfntfont_android_u255to256 (uint8x8_t in)
+{
+  return vaddl_u8 (vshr_n_u8 (in, 7), in);
+}
+
+/* Use processor features to efficiently composite four pixels at SRC
+   to DST.  */
+
+static void
+sfntfont_android_over_8888_1 (unsigned int *src, unsigned int *dst)
+{
+  uint8x8_t alpha;
+  uint16x8_t alpha_c16, v1, v3, v4;
+  uint8x8_t b, g, r, a, v2, v5;
+  uint8x8x4_t _src, _dst;
+
+  /* Pull in src and dst.
+
+     This loads bytes, not words, so little endian ABGR becomes
+     RGBA.  */
+  _src = vld4_u8 ((const uint8_t *) src);
+  _dst = vld4_u8 ((const uint8_t *) dst);
+
+  /* Load constants.  */
+  v4 = vdupq_n_u16 (256);
+  v5 = vdup_n_u8 (0);
+
+  /* Load src alpha.  */
+  alpha = _src.val[3];
+
+  /* alpha_c16 = 256 - 255TO256 (alpha).  */
+  alpha_c16 = sfntfont_android_u255to256 (alpha);
+  alpha_c16 = vsubq_u16 (v4, alpha_c16);
+
+  /* Cout = Csrc + Cdst * alpha_c.  */
+  v1 = vaddl_u8 (_dst.val[2], v5);
+  v2 = _src.val[2];
+  v3 = vmulq_u16 (v1, alpha_c16);
+  b = vqadd_u8 (v2, vshrn_n_u16 (v3, 8));
+
+  v1 = vaddl_u8 (_dst.val[1], v5);
+  v2 = _src.val[1];
+  v3 = vmulq_u16 (v1, alpha_c16);
+  g = vqadd_u8 (v2, vshrn_n_u16 (v3, 8));
+
+  v1 = vaddl_u8 (_dst.val[0], v5);
+  v2 = _src.val[0];
+  v3 = vmulq_u16 (v1, alpha_c16);
+  r = vqadd_u8 (v2, vshrn_n_u16 (v3, 8));
+
+#if 0
+  /* Aout = Asrc + Adst * alpha_c.  */
+  v1 = vaddl_u8 (_dst.val[3], v5);
+  v2 = _src.val[3];
+  v3 = vmulq_u16 (v1, alpha_c16);
+  a = vqadd_u8 (v2, vshrn_n_u16 (v3, 8));
+#else
+  /* We know that Adst is always 1, so Asrc + Adst * (1 - Asrc) is
+     always 1.  */
+  a = vdup_n_u8 (255);
+#endif
+
+  /* Store back in dst.  */
+  _dst.val[0] = r;
+  _dst.val[1] = g;
+  _dst.val[2] = b;
+  _dst.val[3] = a;
+  vst4_u8 ((uint8_t *) dst, _dst);
+}
+
+/* Use processor features to efficiently composite the buffer at SRC
+   to DST.  Composite at most MAX - SRC words.
+
+   If either SRC or DST are not yet properly aligned, value is 1.
+   Otherwise, value is 0, and *X is incremented to the start of any
+   trailing data which could not be composited due to data alignment
+   constraints.  */
+
+static int
+sfntfont_android_over_8888 (unsigned int *src, unsigned int *dst,
+			    unsigned int *max, unsigned int *x)
+{
+  size_t i;
+  ptrdiff_t how_much;
+  void *s, *d;
+
+  /* Figure out how much can be composited by this loop.  */
+  how_much = (max - src) & ~7;
+
+  /* Return if there is not enough to vectorize.  */
+  if (!how_much)
+    return 1;
+
+  /* Now increment *X by that much so the containing loop can process
+     the remaining pixels one-by-one.  */
+
+  *x += how_much;
+
+  for (i = 0; i < how_much; i += 8)
+    {
+      s = (src + i);
+      d = (dst + i);
+
+      sfntfont_android_over_8888_1 (s, d);
+    }
+
+  return 0;
+}
+
+#endif
+
 /* Composite the bitmap described by BUFFER, STRIDE and TEXT_RECTANGLE
    onto the native-endian ABGR8888 bitmap described by DEST and
    BITMAP_INFO.  RECT is the subset of the bitmap to composite.  */
@@ -163,7 +320,7 @@ sfntfont_android_composite_bitmap (unsigned char *restrict buffer,
 {
   unsigned int *src_row;
   unsigned int *dst_row;
-  unsigned int i, src_y, x, src_x, max_x, dst_x;
+  unsigned int i, src_y, x, src_x, max_x, dst_x, lim_x;
 
   if ((intptr_t) dest & 3 || bitmap_info->stride & 3)
     /* This shouldn't be possible as Android is supposed to align the
@@ -196,9 +353,24 @@ sfntfont_android_composite_bitmap (unsigned char *restrict buffer,
 	      src_x = x + (rect->x - text_rectangle->x);
 	      dst_x = x + rect->x;
 
-	      dst_row[dst_x]
-		= sfntfont_android_blend (src_row[src_x],
-					  dst_row[dst_x]);
+	      /* This is the largest value of src_x.  */
+	      lim_x = max_x + (rect->x - text_rectangle->x);
+
+#ifdef __aarch64__
+	      if (!sfntfont_android_over_8888 (src_row + src_x,
+					       dst_row + dst_x,
+					       src_row + lim_x,
+					       &x))
+		{
+		  /* Decrement X by one so the for loop can increment
+		     it again.  */
+		  x--;
+		  continue;
+		}
+#endif
+		dst_row[dst_x]
+		  = sfntfont_android_blend (src_row[src_x],
+					    dst_row[dst_x]);
 	    }
 	}
     }
@@ -308,11 +480,21 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
   gui_union_rectangles (&background, &text_rectangle,
 			&text_rectangle);
 
-  /* Allocate enough to hold text_rectangle.height, aligned to 8
-     bytes.  Then fill it with the background.  */
+  /* Allocate enough to hold text_rectangle.height, aligned to 8 (or
+     16) bytes.  Then fill it with the background.  */
+#ifndef __aarch64__
   stride = ((text_rectangle.width * sizeof *buffer) + 7) & ~7;
+#else
+  stride = ((text_rectangle.width * sizeof *buffer) + 15) & ~15;
+#endif
   GET_SCANLINE_BUFFER (buffer, text_rectangle.height, stride);
-  memset (buffer, 0, text_rectangle.height * stride);
+
+  /* Try to optimize out this memset if the background rectangle
+     contains the whole text rectangle.  */
+
+  if (!with_background || memcmp (&background, &text_rectangle,
+				  sizeof text_rectangle))
+    memset (buffer, 0, text_rectangle.height * stride);
 
   if (with_background)
     {

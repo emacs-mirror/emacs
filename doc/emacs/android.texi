@@ -99,21 +99,26 @@ this varies by device.
   Emacs exposes a special directory on Android systems: the name of
 the directory is @file{/assets}, and it contains the @file{etc},
 @file{lisp} and @file{info} directories which are normally installed
-in @file{/usr/share/emacs} directory on GNU and Unix systems.
+in @file{/usr/share/emacs} directory on GNU and Unix systems.  On
+Android systems, the Lisp emulation of @command{ls} (@pxref{ls in
+Lisp}) is also enabled by default, as the @command{ls} binary which
+comes with the system varies by manufacturer and usually does not
+support all of the features required by Emacs.  One copy of
+@command{ls} shipped with some Android devices is even known to lack
+support for the @code{-l} flag.
 
 @cindex limitations of the /assets directory
 
-This directory exists because Android does not extract the contents of
-application packages on to the file system while unpacking them, but
-instead requires programs like Emacs to access its contents using a
-special ``asset manager'' interface.  Here are the peculiarities that
-result from such an implementation:
+  This directory exists because Android does not extract the contents
+of application packages on to the file system while unpacking them,
+but instead requires programs like Emacs to access its contents using
+a special ``asset manager'' interface.  Here are the peculiarities
+that result from such an implementation:
 
 @itemize @bullet
 @item
 Subprocesses (such as @command{ls}) can not run from the
-@file{/assets} directory, so Dired, and functions such as
-@code{list-directory} do not work.
+@file{/assets} directory.
 
 @item
 There are no @file{.} and @file{..} directories inside the

@@ -29,6 +29,7 @@ public class EmacsThread extends Thread
   public
   EmacsThread (EmacsService service, boolean startDashQ)
   {
+    super ("Emacs main thread");
     this.startDashQ = startDashQ;
   }
 
