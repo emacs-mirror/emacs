@@ -3817,6 +3817,29 @@ Currently there are `js-mode' and `js-ts-mode'."
   "Nodes that designate sentences in JavaScript.
 See `treesit-sentence-type-regexp' for more information.")
 
+(defvar js--treesit-sexp-nodes
+  '("expression"
+    "pattern"
+    "array"
+    "function"
+    "string"
+    "escape"
+    "template"
+    "regex"
+    "number"
+    "identifier"
+    "this"
+    "super"
+    "true"
+    "false"
+    "null"
+    "undefined"
+    "arguments"
+    "pair"
+    "jsx")
+  "Nodes that designate sexps in JavaScript.
+See `treesit-sexp-type-regexp' for more information.")
+
 ;;;###autoload
 (define-derived-mode js-ts-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript.
@@ -3859,6 +3882,9 @@ See `treesit-sentence-type-regexp' for more information.")
 
     (setq-local treesit-sentence-type-regexp
                 (regexp-opt js--treesit-sentence-nodes))
+
+    (setq-local treesit-sexp-type-regexp
+                (regexp-opt js--treesit-sexp-nodes))
 
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)

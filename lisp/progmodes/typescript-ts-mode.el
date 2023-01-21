@@ -338,6 +338,28 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   "Nodes that designate sentences in TypeScript.
 See `treesit-sentence-type-regexp' for more information.")
 
+(defvar typescript-ts-mode--sexp-nodes
+  '("expression"
+    "pattern"
+    "array"
+    "function"
+    "string"
+    "escape"
+    "template"
+    "regex"
+    "number"
+    "identifier"
+    "this"
+    "super"
+    "true"
+    "false"
+    "null"
+    "undefined"
+    "arguments"
+    "pair")
+  "Nodes that designate sexps in TypeScript.
+See `treesit-sexp-type-regexp' for more information.")
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 
@@ -372,6 +394,9 @@ See `treesit-sentence-type-regexp' for more information.")
 
   (setq-local treesit-sentence-type-regexp
               (regexp-opt typescript-ts-mode--sentence-nodes))
+
+  (setq-local treesit-sexp-type-regexp
+              (regexp-opt typescript-ts-mode--sexp-nodes))
 
   ;; Imenu (same as in `js-ts-mode').
   (setq-local treesit-simple-imenu-settings
@@ -437,6 +462,11 @@ See `treesit-sentence-type-regexp' for more information.")
                              typescript-ts-mode--sentence-nodes
                              '("jsx_element"
                                "jsx_self_closing_element"))))
+
+  (setq-local treesit-sexp-type-regexp
+              (regexp-opt (append
+                           typescript-ts-mode--sexp-nodes
+                           '("jsx"))))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
