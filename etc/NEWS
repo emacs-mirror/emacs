@@ -59,18 +59,23 @@ trash when deleting.  Default is nil.
 
 * Editing Changes in Emacs 30.1
 
++++
 ** Emacs now has better support for touchscreen events.
 Many touch screen gestures are now implemented, as is support for
 tapping buttons and opening menus.
 
+
+---
 ** New command 'kill-matching-buffers-no-ask'.
-Kills buffers whose name matches a regexp without asking for
+This works like 'kill-matching-buffers', but without asking for
 confirmation.
 
++++
 ** New helper variable 'transpose-sexps-function'.
 Emacs now can set this variable to customize the behavior of the
 'transpose-sexps' function.
 
++++
 ** New function 'transpose-sexps-default-function'.
 The previous implementation is moved into its own function, to be
 bound by 'transpose-sexps-function'.
@@ -190,6 +195,13 @@ activate this behavior.
 
 
 * New Modes and Packages in Emacs 30.1
+
+** New major modes based on the tree-sitter library.
+
++++
+*** New major mode 'html-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+HTML files.
 
 ---
 ** The highly accessible Modus themes collection has six items.
