@@ -58,10 +58,12 @@ trash when deleting.  Default is nil.
 This works like 'kill-matching-buffers', but without asking for
 confirmation.
 
++++
 ** New helper variable 'transpose-sexps-function'.
 Emacs now can set this variable to customize the behavior of the
 'transpose-sexps' function.
 
++++
 ** New function 'transpose-sexps-default-function'.
 The previous implementation is moved into its own function, to be
 bound by 'transpose-sexps-function'.
