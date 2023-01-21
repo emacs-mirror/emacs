@@ -7100,10 +7100,11 @@ specifies the list of buffers to kill, asking for approval for each one."
     (setq list (cdr list))))
 
 (defun kill-matching-buffers (regexp &optional internal-too no-ask)
-  "Kill buffers whose name matches the specified REGEXP.
-Ignores buffers whose name starts with a space, unless optional
-prefix argument INTERNAL-TOO is non-nil.  Asks before killing
-each buffer, unless NO-ASK is non-nil."
+  "Kill buffers whose names match the regular expression REGEXP.
+Interactively, prompt for REGEXP.
+Ignores buffers whose names start with a space, unless optional
+prefix argument INTERNAL-TOO(interactively, the prefix argument)
+is non-nil.  Asks before killing each buffer, unless NO-ASK is non-nil."
   (interactive "sKill buffers matching this regular expression: \nP")
   (dolist (buffer (buffer-list))
     (let ((name (buffer-name buffer)))
@@ -7113,11 +7114,13 @@ each buffer, unless NO-ASK is non-nil."
         (funcall (if no-ask 'kill-buffer 'kill-buffer-ask) buffer)))))
 
 (defun kill-matching-buffers-no-ask (regexp &optional internal-too)
-  "Kill buffers whose name matches the specified REGEXP.
-Ignores buffers whose name starts with a space, unless optional
-prefix argument INTERNAL-TOO is non-nil.  Equivalent to
-`kill-matching-buffers' but never ask before killing each
-buffer."
+  "Kill buffers whose names match the regular expression REGEXP.
+Interactively, prompt for REGEXP.
+Like `kill-matching-buffers', but doesn't ask for confirmation
+before killing each buffer.
+Ignores buffers whose names start with a space, unless the
+optional argument INTERNAL-TOO (interactively, the prefix argument)
+is non-nil."
   (interactive "sKill buffers matching this regular expression: \nP")
   (kill-matching-buffers regexp internal-too t))
 

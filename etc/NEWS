@@ -53,8 +53,9 @@ trash when deleting.  Default is nil.
 
 * Editing Changes in Emacs 30.1
 
+---
 ** New command 'kill-matching-buffers-no-ask'.
-Kills buffers whose name matches a regexp without asking for
+This works like 'kill-matching-buffers', but without asking for
 confirmation.
 
 ** New helper variable 'transpose-sexps-function'.
