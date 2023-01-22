@@ -3071,9 +3071,20 @@ It also signals an error in a Bazaar bound branch."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset t))
 	 (backend (car vc-fileset)))
-    (if (vc-find-backend-function backend 'pull-and-push)
-        (vc-call-backend backend 'pull-and-push arg)
-      (user-error "VC pull-and-push is unsupported for `%s'" backend))))
+    (if (vc-find-backend-function backend 'pull)
+        (let ((proc (vc-call-backend backend 'pull arg)))
+          (when (and (processp proc) (process-buffer proc))
+            (with-current-buffer (process-buffer proc)
+              (if (and (eq (process-status proc) 'exit)
+                       (zerop (process-exit-status proc)))
+                  (let ((vc--inhibit-async-window t))
+                    (vc-push arg))
+                (vc-exec-after
+                 (lambda ()
+                   (let ((vc--inhibit-async-window t))
+                     (vc-push arg)))
+                 proc)))))
+      (user-error "VC pull is unsupported for `%s'" backend))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
