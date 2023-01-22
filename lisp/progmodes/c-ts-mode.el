@@ -237,6 +237,10 @@ MODE is either `c' or `cpp'."
        ((node-is "labeled_statement") point-min 0)
        ,@common)
       (bsd
+       ((node-is "}") parent-bol 0)
+       ((node-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
+       ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
+       ((parent-is "compound_statement") parent-bol c-ts-mode-indent-offset)
        ((parent-is "if_statement") parent-bol 0)
        ((parent-is "for_statement") parent-bol 0)
        ((parent-is "while_statement") parent-bol 0)
