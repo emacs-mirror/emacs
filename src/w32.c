@@ -10536,18 +10536,19 @@ shutdown_handler (DWORD type)
 	  /* Shut down cleanly, making sure autosave files are up to date.  */
 	  shut_down_emacs (0, Qnil);
 	}
-      {
-	/* This handler is run in a thread different from the main
-	   thread.  (This is the normal situation when we are killed
-	   by Emacs, for example, which sends us the WM_CLOSE
-	   message).  We cannot possibly call functions like
-	   shut_down_emacs or clear_message_stack in that case, since
-	   the main (a.k.a. "Lisp") thread could be in the middle of
-	   some Lisp program.  So instead we arrange for maybe_quit to
-	   kill Emacs.  */
-	Vquit_flag = Qkill_emacs;
-	Vinhibit_quit = Qnil;
-      }
+      else
+	{
+	  /* This handler is run in a thread different from the main
+	     thread.  (This is the normal situation when we are killed
+	     by Emacs, for example, which sends us the WM_CLOSE
+	     message).  We cannot possibly call functions like
+	     shut_down_emacs or clear_message_stack in that case,
+	     since the main (a.k.a. "Lisp") thread could be in the
+	     middle of some Lisp program.  So instead we arrange for
+	     maybe_quit to kill Emacs.  */
+	  Vquit_flag = Qkill_emacs;
+	  Vinhibit_quit = Qnil;
+	}
     }
 
   /* Allow other handlers to handle this signal.  */
