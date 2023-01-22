@@ -44,6 +44,26 @@
   (completion-at-point)
   (eshell-get-old-input))
 
+(defun eshell-arguments-equal (actual expected)
+  "Return t if ACTUAL and EXPECTED are equal, including properties of strings.
+ACTUAL and EXPECTED should both be lists of strings."
+  (when (length= actual (length expected))
+    (catch 'not-equal
+      (cl-mapc (lambda (i j)
+                 (unless (equal-including-properties i j)
+                   (throw 'not-equal nil)))
+               actual expected)
+      t)))
+
+(defun eshell-arguments-equal--equal-explainer (actual expected)
+  "Explain the result of `eshell-arguments-equal'."
+  `(nonequal-result
+    (actual ,actual)
+    (expected ,expected)))
+
+(put 'eshell-arguments-equal 'ert-explainer
+     #'eshell-arguments-equal--equal-explainer)
+
 ;;; Tests:
 
 (ert-deftest em-cmpl-test/parse-arguments/pipeline ()
@@ -51,47 +71,57 @@
   (with-temp-eshell
    (let ((eshell-test-value '("foo" "bar")))
      (insert "echo hi | cat")
-     (should (equal (car (eshell-complete-parse-arguments))
-                    '("cat"))))))
+     (should (eshell-arguments-equal
+              (car (eshell-complete-parse-arguments))
+              '("cat"))))))
 
 (ert-deftest em-cmpl-test/parse-arguments/multiple-dots ()
   "Test parsing arguments with multiple dots like \".../\"."
   (with-temp-eshell
    (insert "echo .../file.txt")
-   (should (equal (car (eshell-complete-parse-arguments))
-                  '("echo" "../../file.txt")))))
+   (should (eshell-arguments-equal
+            (car (eshell-complete-parse-arguments))
+            `("echo" ,(propertize "../../file.txt"
+                                  'pcomplete-arg-value
+                                  ".../file.txt"))))))
 
 (ert-deftest em-cmpl-test/parse-arguments/variable/numeric ()
   "Test parsing arguments with a numeric variable interpolation."
   (with-temp-eshell
    (let ((eshell-test-value 42))
      (insert "echo $eshell-test-value")
-     (should (equal (car (eshell-complete-parse-arguments))
-                    '("echo" "42"))))))
+     (should (eshell-arguments-equal
+              (car (eshell-complete-parse-arguments))
+              `("echo" ,(propertize "42" 'pcomplete-arg-value 42)))))))
 
 (ert-deftest em-cmpl-test/parse-arguments/variable/nil ()
   "Test parsing arguments with a nil variable interpolation."
   (with-temp-eshell
    (let ((eshell-test-value nil))
      (insert "echo $eshell-test-value")
-     (should (equal (car (eshell-complete-parse-arguments))
-                    '("echo" ""))))))
+     (should (eshell-arguments-equal
+              (car (eshell-complete-parse-arguments))
+              `("echo" ,(propertize "" 'pcomplete-arg-value nil)))))))
 
 (ert-deftest em-cmpl-test/parse-arguments/variable/list ()
   "Test parsing arguments with a list variable interpolation."
   (with-temp-eshell
    (let ((eshell-test-value '("foo" "bar")))
      (insert "echo $eshell-test-value")
-     (should (equal (car (eshell-complete-parse-arguments))
-                    '("echo" ("foo" "bar")))))))
+     (should (eshell-arguments-equal
+              (car (eshell-complete-parse-arguments))
+              `("echo" ,(propertize "(\"foo\" \"bar\")"
+                                    'pcomplete-arg-value
+                                    eshell-test-value)))))))
 
 (ert-deftest em-cmpl-test/parse-arguments/variable/splice ()
   "Test parsing arguments with a spliced variable interpolation."
   (with-temp-eshell
    (let ((eshell-test-value '("foo" "bar")))
      (insert "echo $@eshell-test-value")
-     (should (equal (car (eshell-complete-parse-arguments))
-                    '("echo" "foo" "bar"))))))
+     (should (eshell-arguments-equal
+              (car (eshell-complete-parse-arguments))
+              '("echo" "foo" "bar"))))))
 
 (ert-deftest em-cmpl-test/file-completion/unique ()
   "Test completion of file names when there's a unique result."

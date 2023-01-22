@@ -386,17 +386,19 @@ to writing a completion function."
     ;; Convert arguments to forms that Pcomplete can understand.
     (cons (mapcar
            (lambda (arg)
-             (cond
-              ((numberp arg)
-               (number-to-string arg))
-              ;; Expand ".../" etc that only Eshell understands to the
-              ;; standard "../../".
-              ((and (stringp arg) (string-match "\\.\\.\\.+/" arg))
-               (eshell-expand-multiple-dots arg))
-              ((null arg)
-               "")
-              (t
-               arg)))
+             (pcase arg
+               ;; Expand ".../" etc that only Eshell understands to
+               ;; the standard "../../".
+               ((rx ".." (+ ".") "/")
+                (propertize (eshell-expand-multiple-dots arg)
+                            'pcomplete-arg-value arg))
+               ((pred stringp)
+                arg)
+               ('nil
+                (propertize "" 'pcomplete-arg-value arg))
+               (_
+                (propertize (eshell-stringify arg)
+                            'pcomplete-arg-value arg))))
 	   args)
 	  posns)))
 
