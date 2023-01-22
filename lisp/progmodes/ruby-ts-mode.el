@@ -665,7 +665,7 @@ a statement container is a node that matches
                  (or
                   (match "\\." "call")
                   (query "(call \".\" (identifier) @indent)")))
-            parent 0)
+            (ruby-ts--bol ruby-ts--statement-ancestor) ruby-indent-level)
            ((match "\\." "call") parent ruby-indent-level)
 
            ;; method parameters -- four styles:
