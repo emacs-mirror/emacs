@@ -128,7 +128,7 @@
 
 (defvar ruby-ts--predefined-variables
   (rx string-start
-      (or "$!" "$@" "$~" "$&" "$‘" "$‘" "$+" "$=" "$/" "$\\" "$," "$;"
+      (or "$!" "$@" "$~" "$&" "$`" "$'" "$+" "$=" "$/" "$\\" "$," "$;"
           "$." "$<" "$>" "$_" "$*" "$$" "$?" "$:" "$LOAD_PATH"
           "$LOADED_FEATURES" "$DEBUG" "$FILENAME" "$stderr" "$stdin"
           "$stdout" "$VERBOSE" "$-a" "$-i" "$-l" "$-p"
