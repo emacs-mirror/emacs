@@ -167,7 +167,7 @@ MODE is either `c' or `cpp'."
            ((node-is "preproc_arg") no-indent)
            ;; `c-ts-common-looking-at-star' has to come before
            ;; `c-ts-common-comment-2nd-line-matcher'.
-           ((and (parent-is "comment") c-ts-common--looking-at-star)
+           ((and (parent-is "comment") c-ts-common-looking-at-star)
             c-ts-common-comment-start-after-first-star -1)
            (c-ts-common-comment-2nd-line-matcher
             c-ts-common-comment-2nd-line-anchor
