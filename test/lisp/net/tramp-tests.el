@@ -165,6 +165,9 @@ A resource file is in the resource directory as per
   ;; Suppress nasty messages.
   (fset #'shell-command-sentinel #'ignore)
   ;; We do not want to be interrupted.
+  (fset #'tramp-action-yesno
+	(lambda (_proc vec)
+	  (tramp-send-string vec (concat "yes" tramp-local-end-of-line)) t))
   (eval-after-load 'tramp-gvfs
     '(fset 'tramp-gvfs-handler-askquestion
 	   (lambda (_message _choices) '(t nil 0)))))
@@ -4173,6 +4176,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	     (should (file-symlink-p tmp-name1))
 	     (should-not (file-regular-p tmp-name1))
 	     (should-not (file-regular-p tmp-name2))
+	     (should
+	      (string-equal
+	       (file-truename tmp-name1)
+	       (file-truename tmp-name2)))
 	     (if (tramp--test-smb-p)
 		 ;; The symlink command of "smbclient" detects the
 		 ;; cycle already.
@@ -4180,10 +4187,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (make-symbolic-link tmp-name1 tmp-name2)
 		  :type 'file-error)
 	       (make-symbolic-link tmp-name1 tmp-name2)
+	       (should (file-symlink-p tmp-name1))
 	       (should (file-symlink-p tmp-name2))
+	       (should-not (file-regular-p tmp-name1))
 	       (should-not (file-regular-p tmp-name2))
 	       (should-error
 		(file-truename tmp-name1)
+		:type 'file-error)
+	       (should-error
+		(file-truename tmp-name2)
 		:type 'file-error))))
 
 	;; Cleanup.
@@ -4920,13 +4932,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (while (accept-process-output proc 0 nil t))))
 		(should
 		 (string-match-p
-		  (if (and (memq process-connection-type '(nil pipe))
-                           (not (tramp--test-macos-p)))
-                      ;; On macOS, there is always newline conversion.
-		      ;; "telnet" converts \r to <CR><NUL> if `crlf'
-		      ;; flag is FALSE.  See telnet(1) man page.
-		      (rx "66\n6F\n6F\n0D" (? "\n00") "\n0A\n")
-		    (rx "66\n6F\n6F\n0A" (? "\n00") "\n0A\n"))
+                  ;; On macOS, there is always newline conversion.
+		  ;; "telnet" converts \r to <CR><NUL> if `crlf'
+		  ;; flag is FALSE.  See telnet(1) man page.
+		  (rx "66\n" "6F\n" "6F\n" (| "0D\n" "0A\n") (? "00\n") "0A\n")
 		  (buffer-string))))
 
 	    ;; Cleanup.
@@ -5210,14 +5219,10 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		      (while (accept-process-output proc 0 nil t))))
 		  (should
 		   (string-match-p
-		    (if (and (memq (or connection-type process-connection-type)
-			           '(nil pipe))
-                             (not (tramp--test-macos-p)))
-                        ;; On macOS, there is always newline conversion.
-			;; "telnet" converts \r to <CR><NUL> if `crlf'
-			;; flag is FALSE.  See telnet(1) man page.
-			(rx "66\n6F\n6F\n0D" (? "\n00") "\n0A\n")
-		      (rx "66\n6F\n6F\n0A" (? "\n00") "\n0A\n"))
+                    ;; On macOS, there is always newline conversion.
+		    ;; "telnet" converts \r to <CR><NUL> if `crlf'
+		    ;; flag is FALSE.  See telnet(1) man page.
+		    (rx "66\n" "6F\n" "6F\n" (| "0D\n" "0A\n") (? "00\n") "0A\n")
 		    (buffer-string))))
 
 	      ;; Cleanup.
@@ -7063,6 +7068,9 @@ This requires restrictions of file name syntax."
 	  ;; Use all available language specific snippets.
 	  (lambda (x)
 	    (and
+	     ;; The "Oriya" and "Odia" languages use some problematic
+	     ;; composition characters.
+	     (not (member (car x) '("Oriya" "Odia")))
              (stringp (setq x (eval (get-language-info (car x) 'sample-text) t)))
 	     ;; Filter out strings which use unencodable characters.
 	     (not (and (or (tramp--test-gvfs-p) (tramp--test-smb-p))

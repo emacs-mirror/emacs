@@ -3529,6 +3529,35 @@ BODY is the backend specific code."
 	;; Trigger the `file-missing' error.
 	(signal 'error nil)))))
 
+(defmacro tramp-skeleton-file-truename (filename &rest body)
+  "Skeleton for `tramp-*-handle-file-truename'.
+BODY is the backend specific code."
+  (declare (indent 1) (debug (form body)))
+  ;; Preserve trailing "/".
+  `(funcall
+    (if (directory-name-p ,filename) #'file-name-as-directory #'identity)
+    ;; Quote properly.
+    (funcall
+     (if (file-name-quoted-p ,filename) #'file-name-quote #'identity)
+     (with-parsed-tramp-file-name
+	 (file-name-unquote (expand-file-name ,filename)) nil
+       (tramp-make-tramp-file-name
+	v
+	(with-tramp-file-property v localname "file-truename"
+	  (let (result)
+	    (setq result (progn ,@body))
+	    ;; Detect cycle.
+	    (when (and (file-symlink-p ,filename)
+		       (string-equal result localname))
+	      (tramp-error
+	       v 'file-error
+	       "Apparent cycle of symbolic links for %s" ,filename))
+	    ;; If the resulting localname looks remote, we must quote
+	    ;; it for security reasons.
+	    (when (file-remote-p result)
+	      (setq result (file-name-quote result 'top)))
+	    result)))))))
+
 (defmacro tramp-skeleton-make-directory (dir &optional parents &rest body)
   "Skeleton for `tramp-*-handle-make-directory'.
 BODY is the backend specific code."
@@ -3549,6 +3578,49 @@ BODY is the backend specific code."
 	 (tramp-flush-file-properties v localname)
 	 ,@body
 	 nil))))
+
+(defmacro tramp-skeleton-handle-make-symbolic-link
+  (target linkname &optional ok-if-already-exists &rest body)
+  "Skeleton for `tramp-*-handle-make-symbolic-link'.
+BODY is the backend specific code.
+If TARGET is a non-Tramp file, it is used verbatim as the target
+of the symlink.  If TARGET is a Tramp file, only the localname
+component is used as the target of the symlink if it is located
+on the same host.  Otherwise, TARGET is quoted."
+  (declare (indent 3) (debug t))
+  `(with-parsed-tramp-file-name  (expand-file-name ,linkname) nil
+     ;; If TARGET is a Tramp name, use just the localname component.
+     ;; Don't check for a proper method.
+     (let ((non-essential t))
+       (when (and (tramp-tramp-file-p ,target)
+		  (tramp-file-name-equal-p v (tramp-dissect-file-name ,target)))
+	 (setq ,target (tramp-file-local-name (expand-file-name ,target))))
+       ;; There could be a cyclic link.
+       (tramp-flush-file-properties
+	v (expand-file-name ,target (tramp-file-local-name default-directory))))
+
+     ;; If TARGET is still remote, quote it.
+     (if (tramp-tramp-file-p ,target)
+	 (make-symbolic-link
+	  (file-name-quote ,target 'top) ,linkname ,ok-if-already-exists)
+
+       ;; Do the 'confirm if exists' thing.
+       (when (file-exists-p ,linkname)
+	 ;; What to do?
+	 (if (or (null ,ok-if-already-exists) ; not allowed to exist
+		 (and (numberp ,ok-if-already-exists)
+		      (not (yes-or-no-p
+			    (format
+			     "File %s already exists; make it a link anyway?"
+			     localname)))))
+	     (tramp-error v 'file-already-exists localname)
+	   (delete-file ,linkname)))
+
+       ;; We must also flush the cache of the directory, because
+       ;; `file-attributes' reads the values from there.
+       (tramp-flush-file-properties v localname)
+
+       ,@body)))
 
 (defmacro tramp-skeleton-set-file-modes-times-uid-gid
     (filename &rest body)
@@ -4091,13 +4163,8 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  ;; Preserve trailing "/".
-  (funcall
-   (if (directory-name-p filename) #'file-name-as-directory #'identity)
-   ;; Quote properly.
-   (funcall
-    (if (file-name-quoted-p filename) #'file-name-quote #'identity)
-    (let ((result (file-name-unquote (expand-file-name filename)))
+  (tramp-skeleton-file-truename filename
+    (let ((result (directory-file-name localname))
 	  (numchase 0)
 	  ;; Don't make the following value larger than necessary.
 	  ;; People expect an error message in a timely fashion when
@@ -4107,31 +4174,21 @@ Let-bind it when necessary.")
 	  ;; Unquoting could enable encryption.
 	  tramp-crypt-enabled
 	  symlink-target)
-      (with-parsed-tramp-file-name result v1
-	;; We cache only the localname.
-	(tramp-make-tramp-file-name
-	 v1
-	 (with-tramp-file-property v1 v1-localname "file-truename"
-	   (while (and (setq symlink-target (file-symlink-p result))
-		       (< numchase numchase-limit))
-	     (setq numchase (1+ numchase)
-		   result
-		   (with-parsed-tramp-file-name (expand-file-name result) v2
-		     (tramp-make-tramp-file-name
-		      v2
-		      (if (stringp symlink-target)
-			  (if (file-remote-p symlink-target)
-			      (file-name-quote symlink-target 'top)
-			    (tramp-drop-volume-letter
-			     (expand-file-name
-			      symlink-target
-			      (file-name-directory v2-localname))))
-			v2-localname))))
-	     (when (>= numchase numchase-limit)
-	       (tramp-error
-		v1 'file-error
-		"Maximum number (%d) of symlinks exceeded" numchase-limit)))
-	   (tramp-file-local-name (directory-file-name result)))))))))
+      (while (and (setq symlink-target
+			(file-symlink-p (tramp-make-tramp-file-name v result)))
+		  (< numchase numchase-limit))
+	(setq numchase (1+ numchase)
+	      result
+	      (if (file-remote-p symlink-target)
+		  (file-name-quote symlink-target 'top)
+		(tramp-drop-volume-letter
+		 (expand-file-name
+		  symlink-target (file-name-directory result)))))
+	(when (>= numchase numchase-limit)
+	  (tramp-error
+	   v 'file-error
+	   "Maximum number (%d) of symlinks exceeded" numchase-limit)))
+      (directory-file-name result))))
 
 (defun tramp-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -6346,6 +6403,7 @@ It always returns a return code.  The Lisp error raised when
 PROGRAM is nil is trapped also, returning 1.  Furthermore, traces
 are written with verbosity of 6."
   (let ((default-directory tramp-compat-temporary-file-directory)
+	(temporary-file-directory tramp-compat-temporary-file-directory)
 	(process-environment (default-toplevel-value 'process-environment))
 	(destination (if (eq destination t) (current-buffer) destination))
 	(vec (or vec (car tramp-current-connection)))
@@ -6378,6 +6436,7 @@ It always returns a return code.  The Lisp error raised when
 PROGRAM is nil is trapped also, returning 1.  Furthermore, traces
 are written with verbosity of 6."
   (let ((default-directory tramp-compat-temporary-file-directory)
+	(temporary-file-directory tramp-compat-temporary-file-directory)
 	(process-environment (default-toplevel-value 'process-environment))
 	(buffer (if (eq buffer t) (current-buffer) buffer))
 	result)
