@@ -1604,7 +1604,7 @@ please check its value")
 	   (display-warning 'initialization
 			    (format-message "\
 Your `load-path' seems to contain\n\
-your `.emacs.d' directory: %s\n\
+your `user-emacs-directory': %s\n\
 This is likely to cause problems...\n\
 Consider using a subdirectory instead, e.g.: %s"
                                     dir (expand-file-name
