@@ -319,7 +319,7 @@ PARENT is NODE's parent."
         (save-excursion
           (goto-char (treesit-node-start node))
           ;; Add an extra level if the opening bracket is on its own
-          ;; line, except (1) it's at top-level, or (2) it's immedate
+          ;; line, except (1) it's at top-level, or (2) it's immediate
           ;; parent is another block.
           (cond ((bolp) nil) ; Case (1).
                 ((let ((parent-type (treesit-node-type
