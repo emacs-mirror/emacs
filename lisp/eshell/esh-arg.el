@@ -554,8 +554,9 @@ and if found, returns a grouped list like:
   ((list arg-1) (list arg-2) spliced-arg-3 ...)
 
 This allows callers of this function to build the final spliced
-list by concatenating each element together, e.g. with (apply
-#'append grouped-list).
+list by concatenating each element together, e.g. with
+
+   (apply #\\='append grouped-list)
 
 If no argument requested a splice, return nil."
   (let* ((splicep nil)
