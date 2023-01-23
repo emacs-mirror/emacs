@@ -1679,6 +1679,12 @@ command is installed.
 
 ---
 *** C++ Mode now supports most of the new features in the C++20 Standard.
+---
+*** In objective-C Mode, the default value of
+objc-font-lock-extra-types has been changed to nil, since too many
+identifiers were getting misfontified as types.  This may cause some
+actual types not to get fontified.  To get the old behavior back,
+customize the variable to the value suggested in its doc string.
 
 ** Cperl Mode
 
