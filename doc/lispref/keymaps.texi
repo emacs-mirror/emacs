@@ -1378,7 +1378,8 @@ Binding Conventions}).
 or if @var{key} is not a valid key.
 
 @var{key} is a string representing a single key or a series of key
-strokes.  Key strokes are separated by a single space character.
+strokes, and must satisfy @code{key-valid-p}.  Key strokes are
+separated by a single space character.
 
 Each key stroke is either a single character, or the name of an
 event, surrounded by angle brackets.  In addition, any key stroke
@@ -1413,6 +1414,7 @@ The only keys that have a special shorthand syntax are @kbd{NUL},
 The modifiers have to be specified in alphabetical order:
 @samp{A-C-H-M-S-s}, which is @samp{Alt-Control-Hyper-Meta-Shift-super}.
 
+@findex keymap-set
 @defun keymap-set keymap key binding
 This function sets the binding for @var{key} in @var{keymap}.  (If
 @var{key} is more than one event long, the change is actually made
@@ -3079,13 +3081,13 @@ the menu.  To put it elsewhere in the menu, use @code{keymap-set-after}:
 @defun keymap-set-after map key binding &optional after
 Define a binding in @var{map} for @var{key}, with value @var{binding},
 just like @code{define-key}, but position the binding in @var{map} after
-the binding for the event @var{after}.  The argument @var{key} should be
-of length one---a vector or string with just one element.  But
-@var{after} should be a single event type---a symbol or a character, not
-a sequence.  The new binding goes after the binding for @var{after}.  If
-@var{after} is @code{t} or is omitted, then the new binding goes last, at
-the end of the keymap.  However, new bindings are added before any
-inherited keymap.
+the binding for the event @var{after}.  The argument @var{key} should
+represent a single menu item or key, and @var{after} should be a
+single event type---a symbol or a character, not a sequence.  The new
+binding goes after the binding for @var{after}.  If @var{after} is
+@code{t} or is omitted, then the new binding goes last, at the end of
+the keymap.  However, new bindings are added before any inherited
+keymap.
 
 Here is an example:
 

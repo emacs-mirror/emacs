@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
-;; Version: 0.9.4
+;; Version: 0.9.5
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -514,11 +514,14 @@ project backend implementation of `project-external-roots'.")
                 (lambda (b) (assoc-default b backend-markers-alist))
                 vc-handled-backends)))
              (marker-re
-              (mapconcat
-               (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
-               (append backend-markers
-                       (project--value-in-dir 'project-vc-extra-root-markers dir))
-               "\\|"))
+              (concat
+               "\\`"
+               (mapconcat
+                (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
+                (append backend-markers
+                        (project--value-in-dir 'project-vc-extra-root-markers dir))
+                "\\|")
+               "\\'"))
              (locate-dominating-stop-dir-regexp
               (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp))
              last-matches

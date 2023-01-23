@@ -24,6 +24,58 @@
 
 ;;; Commentary:
 ;;
+;; This package provides major modes for C and C++, plus some handy
+;; functions that are useful generally to major modes for C-like
+;; languages.
+;;
+;; This package provides `c-ts-mode' for C, `c++-ts-mode' for C++, and
+;; `c-or-c++-ts-mode' which automatically chooses the right mode for
+;; C/C++ header files.
+;;
+;; To use these modes by default, assuming you have the respective
+;; tree-sitter grammars available, do one of the following:
+;;
+;; - If you have both C and C++ grammars installed, add
+;;
+;;    (require 'c-ts-mode)
+;;
+;;   to your init file.
+;;
+;; - Add one or mode of the following to your init file:
+;;
+;;    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+;;    (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+;;    (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
+;;
+;;   If you have only C grammar available, use only the first one; if
+;;   you have only the C++ grammar, use only the second one.
+;;
+;; - Customize 'auto-mode-alist' to turn one or more of the modes
+;;   automatically.  For example:
+;;
+;;     (add-to-list 'auto-mode-alist
+;;                  '("\\(\\.ii\\|\\.\\(CC?\\|HH?\\)\\|\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\|\\.\\(cc\\|hh\\)\\)\\'"
+;;                    . c++-ts-mode))
+;;
+;;   will turn on the c++-ts-mode for C++ source files.
+;;
+;; You can also turn on these modes manually in a buffer.  Doing so
+;; will set up Emacs to use the C/C++ modes defined here for other
+;; files, provided that you have the corresponding parser grammar
+;; libraries installed.
+;;
+;; For C-like language major modes:
+;;
+;; - Use `c-ts-mode-comment-setup' to setup comment variables and
+;;   filling.
+;;
+;; - Use simple-indent matcher `c-ts-mode--looking-at-star' and anchor
+;;   `c-ts-mode--comment-start-after-first-star' for indenting block
+;;   comments.  See `c-ts-mode--indent-styles' for example.
+;;
+;; - Use variable `c-ts-mode-indent-block-type-regexp' with indent
+;;   offset c-ts-mode--statement-offset for indenting statements.
+;;   Again, see `c-ts-mode--indent-styles' for example.
 
 ;;; Code:
 
@@ -115,7 +167,7 @@ delimiters < and >'s."
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
   (let ((common
-         `(((parent-is "translation_unit") parent-bol 0)
+         `(((parent-is "translation_unit") point-min 0)
            ((node-is ")") parent 1)
            ((node-is "]") parent-bol 0)
            ((node-is "else") parent-bol 0)
@@ -257,7 +309,18 @@ PARENT is NODE's parent."
         (cl-incf level)
         (save-excursion
           (goto-char (treesit-node-start node))
-          (cond ((bolp) nil)
+          ;; Add an extra level if the opening bracket is on its own
+          ;; line, except (1) it's at top-level, or (2) it's immedate
+          ;; parent is another block.
+          (cond ((bolp) nil) ; Case (1).
+                ((let ((parent-type (treesit-node-type
+                                     (treesit-node-parent node))))
+                   ;; Case (2).
+                   (and parent-type
+                        (string-match-p c-ts-mode-indent-block-type-regexp
+                                        parent-type)))
+                 nil)
+                ;; Add a level.
                 ((looking-back (rx bol (* whitespace))
                                (line-beginning-position))
                  (cl-incf level))))))
@@ -967,7 +1030,16 @@ Set up:
 
 This mode is independent from the classic cc-mode.el based
 `c-mode', so configuration variables of that mode, like
-`c-basic-offset', don't affect this mode."
+`c-basic-offset', doesn't affect this mode.
+
+To use tree-sitter C/C++ modes by default, evaluate
+
+    (add-to-list \\='major-mode-remap-alist \\='(c-mode . c-ts-mode))
+    (add-to-list \\='major-mode-remap-alist \\='(c++-mode . c++-ts-mode))
+    (add-to-list \\='major-mode-remap-alist
+                 \\='(c-or-c++-mode . c-or-c++-ts-mode))
+
+in your configuration."
   :group 'c
 
   (when (treesit-ready-p 'c)
@@ -984,7 +1056,20 @@ This mode is independent from the classic cc-mode.el based
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
-  "Major mode for editing C++, powered by tree-sitter."
+  "Major mode for editing C++, powered by tree-sitter.
+
+This mode is independent from the classic cc-mode.el based
+`c++-mode', so configuration variables of that mode, like
+`c-basic-offset', don't affect this mode.
+
+To use tree-sitter C/C++ modes by default, evaluate
+
+    (add-to-list \\='major-mode-remap-alist \\='(c-mode . c-ts-mode))
+    (add-to-list \\='major-mode-remap-alist \\='(c++-mode . c++-ts-mode))
+    (add-to-list \\='major-mode-remap-alist
+                 \\='(c-or-c++-mode . c-or-c++-ts-mode))
+
+in your configuration."
   :group 'c++
 
   (when (treesit-ready-p 'cpp)
@@ -1050,6 +1135,22 @@ the code is C or C++ and based on that chooses whether to enable
             (re-search-forward c-ts-mode--c-or-c++-regexp nil t))))
       (c++-ts-mode)
     (c-ts-mode)))
+;; The entries for C++ must come first to prevent *.c files be taken
+;; as C++ on case-insensitive filesystems, since *.C files are C++,
+;; not C.
+(if (treesit-ready-p 'cpp)
+    (add-to-list 'auto-mode-alist
+                 '("\\(\\.ii\\|\\.\\(CC?\\|HH?\\)\\|\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\|\\.\\(cc\\|hh\\)\\)\\'"
+                   . c++-ts-mode)))
+
+(if (treesit-ready-p 'c)
+    (add-to-list 'auto-mode-alist
+                 '("\\(\\.[chi]\\|\\.lex\\|\\.y\\(acc\\)?\\|\\.x[bp]m\\)\\'"
+                   . c-ts-mode)))
+
+(if (and (treesit-ready-p 'cpp)
+         (treesit-ready-p 'c))
+    (add-to-list 'auto-mode-alist '("\\.h\\'" . c-or-c++-ts-mode)))
 
 (provide 'c-ts-mode)
 

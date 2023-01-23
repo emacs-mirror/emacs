@@ -118,9 +118,6 @@
   "Tree-sitter font-lock settings for `yaml-ts-mode'.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
-
-;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
   "Major mode for editing YAML, powered by tree-sitter."
   :group 'yaml
@@ -145,6 +142,9 @@
                   (bracket delimiter error misc-punctuation)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'yaml)
+    (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode)))
 
 (provide 'yaml-ts-mode)
 

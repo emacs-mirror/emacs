@@ -186,10 +186,17 @@ a menu, so this function is not useful for non-menu keymaps."
   (declare (indent defun)
            (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
-  (when after
-    (keymap--check after))
+  (when (eq after t) (setq after nil)) ; nil and t are treated the same
+  (when (stringp after)
+    (keymap--check after)
+    (setq after (key-parse after)))
+  ;; If we're binding this key to another key, then parse that other
+  ;; key, too.
+  (when (stringp definition)
+    (keymap--check definition)
+    (setq definition (key-parse definition)))
   (define-key-after keymap (key-parse key) definition
-    (and after (key-parse after))))
+    after))
 
 (defun key-parse (keys)
   "Convert KEYS to the internal Emacs key representation.
@@ -404,7 +411,7 @@ specified buffer position instead of point are used."
                    (symbolp value))
             (or (command-remapping value) value)
           value))
-    (key-binding (kbd key) accept-default no-remap position)))
+    (key-binding (key-parse key) accept-default no-remap position)))
 
 (defun keymap-local-lookup (keys &optional accept-default)
   "Return the binding for command KEYS in current local keymap only.

@@ -987,7 +987,8 @@ If LOUDLY is non-nil, display some debugging information."
                  (end-time (current-time)))
             ;; If for any query the query time is strangely long,
             ;; switch to fast mode (see comments above).
-            (when (and (> (time-to-seconds
+            (when (and (null treesit--font-lock-fast-mode)
+                       (> (time-to-seconds
                            (time-subtract end-time start-time))
                           0.01))
               (if (> treesit--font-lock-fast-mode-grace-count 0)
@@ -2702,6 +2703,11 @@ leaves point at the end of the last line of NODE."
       (when (not named)
         (overlay-put ov 'face 'treesit-explorer-anonymous-node)))))
 
+(defun treesit--explorer-kill-explorer-buffer ()
+  "Kill the explorer buffer of this buffer."
+  (when (buffer-live-p treesit--explorer-buffer)
+    (kill-buffer treesit--explorer-buffer)))
+
 (define-derived-mode treesit--explorer-tree-mode special-mode
   "TS Explorer"
   "Mode for displaying syntax trees for `treesit-explore-mode'."
@@ -2713,30 +2719,46 @@ Pops up a window showing the syntax tree of the source in the
 current buffer in real time.  The corresponding node enclosing
 the text in the active region is highlighted in the explorer
 window."
-  :lighter " TSplay"
+  :lighter " TSexplore"
   (if treesit-explore-mode
-      (progn
-        (unless (buffer-live-p treesit--explorer-buffer)
-          (setq-local treesit--explorer-buffer
-                      (get-buffer-create
-                       (format "*tree-sitter explorer for %s*"
-                               (buffer-name))))
-          (setq-local treesit--explorer-language
-                      (intern (completing-read
+      (let ((language (intern (completing-read
                                "Language: "
                                (mapcar #'treesit-parser-language
-                                       (treesit-parser-list)))))
-          (with-current-buffer treesit--explorer-buffer
-            (treesit--explorer-tree-mode)))
-        (display-buffer treesit--explorer-buffer
-                        (cons nil '((inhibit-same-window . t))))
-        (treesit--explorer-refresh)
-        (add-hook 'post-command-hook
-                  #'treesit--explorer-post-command 0 t)
-        (setq-local treesit--explorer-last-node nil))
+                                       (treesit-parser-list))))))
+        (if (not (treesit-language-available-p language))
+            (user-error "Cannot find tree-sitter grammar for %s: %s"
+                        language (cdr (treesit-language-available-p
+                                       language t)))
+          ;; Create explorer buffer.
+          (unless (buffer-live-p treesit--explorer-buffer)
+            (setq-local treesit--explorer-buffer
+                        (get-buffer-create
+                         (format "*tree-sitter explorer for %s*"
+                                 (buffer-name))))
+            (setq-local treesit--explorer-language language)
+            (with-current-buffer treesit--explorer-buffer
+              (treesit--explorer-tree-mode)))
+          (display-buffer treesit--explorer-buffer
+                          (cons nil '((inhibit-same-window . t))))
+          (treesit--explorer-refresh)
+          ;; Setup variables and hooks.
+          (add-hook 'post-command-hook
+                    #'treesit--explorer-post-command 0 t)
+          (add-hook 'kill-buffer-hook
+                    #'treesit--explorer-kill-explorer-buffer 0 t)
+          (setq-local treesit--explorer-last-node nil)
+          ;; Tell `desktop-save' to not save explorer buffers.
+          (when (boundp 'desktop-modes-not-to-save)
+            (unless (memq 'treesit--explorer-tree-mode
+                          desktop-modes-not-to-save)
+              (push 'treesit--explorer-tree-mode
+                    desktop-modes-not-to-save)))))
+    ;; Turn off explore mode.
     (remove-hook 'post-command-hook
                  #'treesit--explorer-post-command t)
-    (kill-buffer treesit--explorer-buffer)))
+    (remove-hook 'post-command-hook
+                 #'treesit--explorer-kill-explorer-buffer t)
+    (treesit--explorer-kill-explorer-buffer)))
 
 ;;; Install & build language grammar
 
