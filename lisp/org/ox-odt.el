@@ -2935,7 +2935,7 @@ contextual information."
                       (trailing (and (string-match (rx (1+ blank) eos) output)
                                      (match-string 0 output))))
                   ;; Unfill, retaining leading/trailing space.
-                  (let ((fill-column (point-max)))
+                  (let ((fill-column most-positive-fixnum))
                     (fill-region (point-min) (point-max)))
                   (concat leading (buffer-string) trailing))))))
     ;; Return value.
