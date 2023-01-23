@@ -17,6 +17,16 @@ Memory Pool System pull request merge procedure
 This document contains a procedure for merging a branch received via a
 GitHub "pull request".
 
+Time to execute:
+
+- first time: 2 hours
+- second time: 30 minutes
+- with practice: < 10 minutes
+
+these are measurements_ taken during simple merges that passed automated tests.
+
+.. _measurements: https://github.com/Ravenbrook/mps/pull/97#issuecomment-1381771818
+
 Ravenbrook is currently (2023-01) `migrating the MPS project to git
 (and GitHub) <https://github.com/Ravenbrook/mps/issues/98>`_ and that
 will greatly simplify this procedure.
@@ -474,6 +484,7 @@ B. Document History
 2023-01-07  RB_    Created.
 2023-01-13  RB_    Updates after `first attempt at execution`_.
 2023-01-14  RB_    Updates after `second (successful) execution`_.
+2023-01-23  RB_    Adding measurements.
 ==========  =====  ==================================================
 
 .. _RB: mailto:rb@ravenbrook.com
