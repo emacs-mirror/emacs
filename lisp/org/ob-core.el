@@ -3277,7 +3277,7 @@ Emacs shutdown.")
       (while (or (not dir) (file-exists-p dir))
         (setq dir (expand-file-name
                    (format "babel-stable-%d" (random 1000))
-                   (temporary-file-directory))))
+                   temporary-file-directory)))
       (make-directory dir)
       dir))
   "Directory to hold temporary files created to execute code blocks.
