@@ -409,7 +409,7 @@ displayed in a window:
                          'face 'mode-line-emphasis)
                         " ")))
         ;; Reset count to 0 in case we display another appt on the next cycle.
-        (setq appt-display-count (if (eq '(0) min-list) 0
+        (setq appt-display-count (if (equal '(0) min-list) 0
                                    (1+ prev-appt-display-count))))
       ;; If we have changed the mode line string, redisplay all mode lines.
       (and appt-display-mode-line
