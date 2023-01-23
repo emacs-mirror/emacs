@@ -209,7 +209,7 @@ it finishes, type \\[kill-find]."
                                     " . \\(  \\) "
                                     (find-dired--escaped-ls-option))
                             (+ 1 (length find-program) (length " . \\( ")))
-		      find-command-history)))
+		      'find-command-history)))
   (let ((dired-buffers dired-buffers))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
