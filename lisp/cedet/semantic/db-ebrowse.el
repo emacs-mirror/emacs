@@ -158,7 +158,8 @@ is specified by `semanticdb-default-save-directory'."
       ;; Call the EBROWSE command.
       (message "Creating ebrowse file: %s ..." savein)
       (call-process-region (point-min) (point-max)
-			   "ebrowse" nil "*EBROWSE OUTPUT*" nil
+			   ebrowse-program-name
+                           nil "*EBROWSE OUTPUT*" nil
 			   (concat "--output-file=" savein)
 			   "--very-verbose")
       )

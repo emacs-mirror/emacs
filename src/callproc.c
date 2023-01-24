@@ -2110,6 +2110,69 @@ use.
 See `setenv' and `getenv'.  */);
   Vprocess_environment = Qnil;
 
+  DEFVAR_LISP ("ctags-program-name", Vctags_program_name,
+    doc: /* Name of the `ctags' program distributed with Emacs.
+Use this instead of calling `ctags' directly, as `ctags' may have been
+renamed to comply with executable naming restrictions on the system.  */);
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  Vctags_program_name = build_pure_c_string ("ctags");
+#else
+  Vctags_program_name = build_pure_c_string ("libctags.so");
+#endif
+
+  DEFVAR_LISP ("etags-program-name", Vetags_program_name,
+    doc: /* Name of the `etags' program distributed with Emacs.
+Use this instead of calling `etags' directly, as `etags' may have been
+renamed to comply with executable naming restrictions on the system.  */);
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  Vetags_program_name = build_pure_c_string ("etags");
+#else
+  Vetags_program_name = build_pure_c_string ("libetags.so");
+#endif
+
+  DEFVAR_LISP ("hexl-program-name", Vhexl_program_name,
+    doc: /* Name of the `hexl' program distributed with Emacs.
+Use this instead of calling `hexl' directly, as `hexl' may have been
+renamed to comply with executable naming restrictions on the system.  */);
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  Vhexl_program_name = build_pure_c_string ("hexl");
+#else
+  Vhexl_program_name = build_pure_c_string ("libhexl.so");
+#endif
+
+  DEFVAR_LISP ("emacsclient-program-name", Vemacsclient_program_name,
+    doc: /* Name of the `emacsclient' program distributed with Emacs.
+Use this instead of calling `emacsclient' directly, as `emacsclient'
+may have been renamed to comply with executable naming restrictions on
+the system.  */);
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  Vemacsclient_program_name = build_pure_c_string ("emacsclient");
+#else
+  Vemacsclient_program_name = build_pure_c_string ("libemacsclient.so");
+#endif
+
+  DEFVAR_LISP ("movemail-program-name", Vmovemail_program_name,
+    doc: /* Name of the `movemail' program distributed with Emacs.
+Use this instead of calling `movemail' directly, as `movemail'
+may have been renamed to comply with executable naming restrictions on
+the system.  */);
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  Vmovemail_program_name = build_pure_c_string ("movemail");
+#else
+  Vmovemail_program_name = build_pure_c_string ("libmovemail.so");
+#endif
+
+  DEFVAR_LISP ("ebrowse-program-name", Vebrowse_program_name,
+    doc: /* Name of the `ebrowse' program distributed with Emacs.
+Use this instead of calling `ebrowse' directly, as `ebrowse'
+may have been renamed to comply with executable naming restrictions on
+the system.  */);
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  Vebrowse_program_name = build_pure_c_string ("ebrowse");
+#else
+  Vebrowse_program_name = build_pure_c_string ("libebrowse.so");
+#endif
+
   defsubr (&Scall_process);
   defsubr (&Sgetenv_internal);
   defsubr (&Scall_process_region);

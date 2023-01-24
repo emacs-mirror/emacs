@@ -285,7 +285,7 @@ number."
   "Number of idle seconds to wait before checking for new mail."
   :type 'number)
 
-(defcustom mail-source-movemail-program "movemail"
+(defcustom mail-source-movemail-program movemail-program-name
   "If non-nil, name of program for fetching new mail."
   :version "26.2"
   :type '(choice (const nil) string))

@@ -69,6 +69,7 @@ APK_NAME = emacs-$(version)-$(ANDROID_MIN_SDK)-$(ANDROID_ABI).apk
 #  lib/$(ANDROID_ABI)/libemacs.so
 #  lib/$(ANDROID_ABI)/libandroid-emacs.so
 #  lib/$(ANDROID_ABI)/libctags.so
+#  lib/$(ANDROID_ABI)/libetags.so
 #  lib/$(ANDROID_ABI)/libhexl.so
 #  lib/$(ANDROID_ABI)/libmovemail.so
 #  lib/$(ANDROID_ABI)/librcs2log.so
@@ -83,7 +84,8 @@ all: $(APK_NAME)
 # Binaries to cross-compile.
 CROSS_BINS = ../cross/src/android-emacs ../cross/lib-src/ctags	\
 	     ../cross/lib-src/hexl ../cross/lib-src/movemail	\
-	     ../cross/lib-src/ebrowse ../cross/lib-src/emacsclient
+	     ../cross/lib-src/ebrowse ../cross/lib-src/emacsclient \
+	     ../cross/lib-src/etags
 
 # Libraries to cross-compile.
 CROSS_LIBS = ../cross/src/libemacs.so
