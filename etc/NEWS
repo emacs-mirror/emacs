@@ -2080,7 +2080,7 @@ This is in addition to the old keybindings 'C-c C-n' and 'C-c C-p'.
 ---
 *** New command 'vc-pull-and-push'.
 This commands first does a "pull" command, and if that is successful,
-does a "push" command afterwards.
+does a "push" command afterwards.  Currently supported in Git and Bzr.
 
 +++
 *** 'C-x v b' prefix key is used now for branch commands.

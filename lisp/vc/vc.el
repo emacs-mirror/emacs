@@ -3064,7 +3064,8 @@ On a distributed version control system, this runs a \"pull\"
 operation on the current branch, prompting for the precise
 command if required.  Optional prefix ARG non-nil forces a prompt
 for the VCS command to run.  If this is successful, a \"push\"
-operation will then be done.
+operation will then be done.  This is supported only in backends
+where the pull operation returns a process.
 
 On a non-distributed version control system, this signals an error.
 It also signals an error in a Bazaar bound branch."
