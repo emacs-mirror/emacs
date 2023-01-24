@@ -200,12 +200,6 @@ describing the mode, e.g. for using with `eshell-get-target'.")
 
 (defvar eshell-current-handles nil)
 
-(defvar-local eshell-last-command-status 0
-  "The exit code from the last command.  0 if successful.")
-
-(defvar eshell-last-command-result nil
-  "The result of the last command.  Not related to success.")
-
 (defvar eshell-output-file-buffer nil
   "If non-nil, the current buffer is a file output buffer.")
 
@@ -382,23 +376,27 @@ is not shared with the original handles."
       (cl-incf (cdar handle))))
   handles)
 
-(defun eshell-close-handles (&optional exit-code result handles)
+(declare-function eshell-exit-success-p "esh-cmd")
+
+(defun eshell-close-handles (&optional handles obsolete-1 obsolete-2)
   "Close all of the current HANDLES, taking refcounts into account.
-If HANDLES is nil, use `eshell-current-handles'.
+If HANDLES is nil, use `eshell-current-handles'."
+  (declare (advertised-calling-convention (&optional handles) "30.1"))
+  (when (or obsolete-1 obsolete-2 (numberp handles))
+    (declare-function eshell-set-exit-info "esh-cmd"
+                      (&optional exit-code result))
+    ;; In addition to setting the advertised calling convention, warn
+    ;; if we get here.  A caller may have called with the right number
+    ;; of arguments but the wrong type.
+    (display-warning '(eshell close-handles)
+                     "Called `eshell-close-handles' with obsolete arguments")
+    ;; Here, HANDLES is really the exit code.
+    (when (or handles obsolete-1)
+      (eshell-set-exit-info (or handles 0) (cadr obsolete-1)))
+    (setq handles obsolete-2))
 
-EXIT-CODE is the process exit code (zero, if the command
-completed successfully).  If nil, then use the exit code already
-set in `eshell-last-command-status'.
-
-RESULT is the quoted value of the last command.  If nil, then use
-the value already set in `eshell-last-command-result'."
-  (when exit-code
-    (setq eshell-last-command-status exit-code))
-  (when result
-    (cl-assert (eq (car result) 'quote))
-    (setq eshell-last-command-result (cadr result)))
   (let ((handles (or handles eshell-current-handles))
-        (succeeded (= eshell-last-command-status 0)))
+        (succeeded (eshell-exit-success-p)))
     (dotimes (idx eshell-number-of-handles)
       (eshell-close-handle (aref handles idx) succeeded))))
 

@@ -104,7 +104,6 @@
 (require 'esh-arg)
 (require 'esh-proc)
 (require 'esh-module)
-(require 'esh-io)
 (require 'esh-ext)
 
 (require 'eldoc)
@@ -276,8 +275,13 @@ Each element is of the form (FORM PROCESSES), as with
 Has the value `first', `last' for the first/last commands in the pipeline,
 otherwise t.")
 (defvar eshell-in-subcommand-p nil)
+
 (defvar eshell-last-arguments nil)
 (defvar eshell-last-command-name nil)
+(defvar-local eshell-last-command-status 0
+  "The exit code from the last command.  0 if successful.")
+(defvar-local eshell-last-command-result nil
+  "The result of the last command.  Not related to success.")
 
 (defvar eshell-deferrable-commands '(eshell-deferrable)
   "A list of functions which might return a deferrable process.
@@ -518,7 +522,6 @@ the second is ignored."
 	`(eshell-commands ,(cadr (cadr arg)) ,silent))
     arg))
 
-(defvar eshell-last-command-status)     ;Define in esh-io.el.
 (defvar eshell--local-vars nil
   "List of locally bound vars that should take precedence over env-vars.")
 
@@ -610,7 +613,13 @@ must be implemented via rewriting, rather than as a function."
 	   `(eshell-protect
              ,(eshell-invokify-arg (car (last terms)) t))))))
 
-(defvar eshell-last-command-result)     ;Defined in esh-io.el.
+(defun eshell-set-exit-info (status &optional result)
+  "Set the exit status and result for the last command.
+STATUS is the process exit code (zero, if the command completed
+successfully).  RESULT is the value of the last command."
+  (when status
+    (setq eshell-last-command-status status))
+  (setq eshell-last-command-result result))
 
 (defun eshell-exit-success-p ()
   "Return non-nil if the last command was successful.
@@ -787,7 +796,8 @@ this grossness will be made to disappear by using `call/cc'..."
            (mapc #'funcall eshell-this-command-hook)))
      (error
       (eshell-errorn (error-message-string err))
-      (eshell-close-handles 1))))
+      (eshell-set-exit-info 1)
+      (eshell-close-handles))))
 
 (define-obsolete-function-alias 'eshell-trap-errors #'eshell-do-command "31.1")
 
@@ -1415,10 +1425,10 @@ case."
      ;; command status to some non-zero value to indicate an error; to
      ;; match GNU/Linux, we use 141, which the numeric value of
      ;; SIGPIPE on GNU/Linux (13) with the high bit (2^7) set.
-     (setq eshell-last-command-status 141)
+     (eshell-set-exit-info 141)
      nil)
     (error
-     (setq eshell-last-command-status 1)
+     (eshell-set-exit-info 1)
      (let ((msg (error-message-string err)))
        (if (and (not form-p)
                 (string-match "^Wrong number of arguments" msg)
@@ -1497,8 +1507,8 @@ a string naming a Lisp function."
   (unless eshell-allow-commands
     (signal 'eshell-commands-forbidden '(lisp)))
   (catch 'eshell-external               ; deferred to an external command
-    (setq eshell-last-command-status 0
-          eshell-last-arguments args)
+    (eshell-set-exit-info 0)
+    (setq eshell-last-arguments args)
     (let* ((eshell-ensure-newline-p t)
            (command-form-p (functionp object))
            (result
@@ -1533,7 +1543,7 @@ a string naming a Lisp function."
               (eshell-eval* #'eshell-print-maybe-n
                             #'eshell-error-maybe-n
                             object))))
-      (eshell-close-handles
+      (eshell-set-exit-info
        ;; If `eshell-lisp-form-nil-is-failure' is non-nil, Lisp forms
        ;; that succeeded but have a nil result should have an exit
        ;; status of 2.
@@ -1542,7 +1552,8 @@ a string naming a Lisp function."
                   (= eshell-last-command-status 0)
                   (not result))
          2)
-       (list 'quote result)))))
+       result)
+      (eshell-close-handles))))
 
 (define-obsolete-function-alias 'eshell-lisp-command* #'eshell-lisp-command
   "31.1")
