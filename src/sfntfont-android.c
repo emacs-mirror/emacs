@@ -320,7 +320,10 @@ sfntfont_android_composite_bitmap (unsigned char *restrict buffer,
 {
   unsigned int *src_row;
   unsigned int *dst_row;
-  unsigned int i, src_y, x, src_x, max_x, dst_x, lim_x;
+  unsigned int i, src_y, x, src_x, max_x, dst_x;
+#ifdef __aarch64__
+  unsigned int lim_x;
+#endif
 
   if ((intptr_t) dest & 3 || bitmap_info->stride & 3)
     /* This shouldn't be possible as Android is supposed to align the
@@ -353,10 +356,10 @@ sfntfont_android_composite_bitmap (unsigned char *restrict buffer,
 	      src_x = x + (rect->x - text_rectangle->x);
 	      dst_x = x + rect->x;
 
+#ifdef __aarch64__
 	      /* This is the largest value of src_x.  */
 	      lim_x = max_x + (rect->x - text_rectangle->x);
 
-#ifdef __aarch64__
 	      if (!sfntfont_android_over_8888 (src_row + src_x,
 					       dst_row + dst_x,
 					       src_row + lim_x,

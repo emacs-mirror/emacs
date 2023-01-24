@@ -148,8 +148,7 @@ emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) $(libsrc)/asset-directory-tool \
 	    cp -f $$file install_temp/lib/$(ANDROID_ABI);	\
 	  fi 							\
 	done
-	$(foreach module,$(NDK_BUILD_SHARED), \
-	  cp -f $(module) install_temp/lib/$(ANDROID_ABI))
+	cp -f $(NDK_BUILD_SHARED) install_temp/lib/$(ANDROID_ABI)
 # Package everything.  Specifying the assets on this command line is
 # necessary for AAssetManager_getNextFileName to work on old versions
 # of Android.

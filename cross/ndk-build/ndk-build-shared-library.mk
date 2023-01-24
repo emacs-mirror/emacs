@@ -44,11 +44,13 @@ ALL_OBJECT_FILES$(LOCAL_MODULE) += $(call objname,$(LOCAL_MODULE),$(basename $(1
 
 endef
 
-NDK_CFLAGS_$(LOCAL_MODULE)	 := $(addprefix -I,$(addprefix $(LOCAL_PATH),$(LOCAL_C_INCLUDES)))
-NDK_CFLAGS_$(LOCAL_MODULE)	 ::= -fPIC -iquote $(LOCAL_EXPORT_CFLAGS) $(LOCAL_PATH) $(LOCAL_CFLAGS)
-NDK_LDFLAGS_$(LOCAL_MODULE)	 := $(LOCAL_LDLIBS)
-NDK_LDFLAGS_$(LOCAL_MODULE)	 := $(LOCAL_LDFLAGS)
-ALL_OBJECT_FILES_$(LOCAL_MODULE) :=
+# Make sure to not add a prefix to local includes that already specify
+# $(LOCAL_PATH).
+NDK_CFLAGS_$(LOCAL_MODULE)	 := $(addprefix -I,$(LOCAL_C_INCLUDES))
+NDK_CFLAGS_$(LOCAL_MODULE)	 += -fPIC -iquote $(LOCAL_PATH) $(LOCAL_EXPORT_CFLAGS) $(LOCAL_CFLAGS) $(LOCAL_CFLAGS$(NDK_BUILD_ARCH))
+NDK_ASFLAGS_$(LOCAL_MODULE) := $(LOCAL_ASFLAGS) $(LOCAL_ASFLAGS_$(NDK_BUILD_ARCH))
+NDK_LDFLAGS_$(LOCAL_MODULE) := $(LOCAL_LDLIBS) $(LOCAL_LDFLAGS)
+ALL_OBJECT_FILES$(LOCAL_MODULE) :=
 
 ifeq ($(NDK_BUILD_ARCH)$(NDK_ARM_MODE),armarm)
 NDK_CFLAGS ::= -marm
@@ -74,8 +76,17 @@ endif
 
 LOCAL_MODULE_FILENAME := $(LOCAL_MODULE_FILENAME).so
 
+# Record this module's dependencies and exported includes and CFLAGS,
+# and then add that of its dependencies.
+
+include ndk-resolve.mk
+
 # Then define rules to build all objects.
-ALL_SOURCE_FILES = $(LOCAL_SRC_FILES)
+ALL_SOURCE_FILES = $(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES_$(NDK_BUILD_ARCH))
+
+# This defines all dependencies.
+ALL_OBJECT_FILES$(LOCAL_MODULE) =
+
 $(foreach source,$(ALL_SOURCE_FILES),$(eval $(call single-object-target,$(source))))
 
 # Now define the rule to build the shared library.

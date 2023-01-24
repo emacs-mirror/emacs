@@ -19,9 +19,59 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-import android.app.Application;
+import java.io.File;
+import java.io.FileFilter;
 
-public class EmacsApplication extends Application
+import android.app.Application;
+import android.util.Log;
+
+public class EmacsApplication extends Application implements FileFilter
 {
-  /* This class currently does nothing.  */
+  private static final String TAG = "EmacsApplication";
+
+  /* The name of the dump file to use.  */
+  public static String dumpFileName;
+
+  @Override
+  public boolean
+  accept (File file)
+  {
+    return (!file.isDirectory ()
+	    && file.getName ().endsWith (".pdmp"));
+  }
+
+  @Override
+  public void
+  onCreate ()
+  {
+    File filesDirectory;
+    File[] allFiles;
+    String wantedDumpFile;
+    int i;
+
+    wantedDumpFile = ("emacs-" + EmacsNative.getFingerprint ()
+		      + ".pdmp");
+
+    Log.d (TAG, "onCreate: looking for " + wantedDumpFile);
+
+    /* Obtain a list of all files ending with ``.pdmp''.  Then, look
+       for a file named ``emacs-<fingerprint>.pdmp'' and delete the
+       rest.  */
+    filesDirectory = getFilesDir ();
+    allFiles = filesDirectory.listFiles (this);
+
+    /* Now try to find the right dump file.  */
+    for (i = 0; i < allFiles.length; ++i)
+      {
+	if (allFiles[i].getName ().equals (wantedDumpFile))
+	  dumpFileName = allFiles[i].getAbsolutePath ();
+	else
+	  /* Delete this outdated dump file.  */
+	  allFiles[i].delete ();
+      }
+
+    Log.d (TAG, "onCreate: found " + dumpFileName);
+
+    super.onCreate ();
+  }
 };

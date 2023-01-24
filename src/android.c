@@ -33,6 +33,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/param.h>
 
 #include <assert.h>
+#include <fingerprint.h>
 
 #include "android.h"
 #include "androidgui.h"
@@ -95,6 +96,7 @@ struct android_emacs_service
   jmethodID detect_mouse;
   jmethodID name_keysym;
   jmethodID sync;
+  jmethodID browse_url;
 };
 
 struct android_emacs_pixmap
@@ -1294,6 +1296,18 @@ android_get_home_directory (void)
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 #endif
 
+JNIEXPORT jstring JNICALL
+NATIVE_NAME (getFingerprint) (JNIEnv *env, jobject object)
+{
+  char buffer[sizeof fingerprint * 2 + 1];
+
+  memset (buffer, 0, sizeof buffer);
+  hexbuf_digest (buffer, (char *) fingerprint,
+		 sizeof fingerprint);
+
+  return (*env)->NewStringUTF (env, buffer);
+}
+
 JNIEXPORT void JNICALL
 NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 			      jobject local_asset_manager,
@@ -1514,6 +1528,8 @@ android_init_emacs_service (void)
   FIND_METHOD (detect_mouse, "detectMouse", "()Z");
   FIND_METHOD (name_keysym, "nameKeysym", "(I)Ljava/lang/String;");
   FIND_METHOD (sync, "sync", "()V");
+  FIND_METHOD (browse_url, "browseUrl", "(Ljava/lang/String;)"
+	       "Ljava/lang/String;");
 #undef FIND_METHOD
 }
 
@@ -4731,6 +4747,51 @@ android_project_image_nearest (struct android_image *image,
 	  memcpy (word, &pixel, sizeof pixel);
 	}
     }
+}
+
+
+
+/* Other miscellaneous functions.  */
+
+/* Ask the system to start browsing the specified encoded URL.  Upon
+   failure, return a string describing the error.  Else, value is
+   nil.  */
+
+Lisp_Object
+android_browse_url (Lisp_Object url)
+{
+  jobject value, string;
+  Lisp_Object tem;
+  const char *buffer;
+
+  string = android_build_string (url);
+  value = (*android_java_env)->CallObjectMethod (android_java_env,
+						 emacs_service,
+						 service_class.browse_url,
+						 string);
+  android_exception_check ();
+
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  /* If no string was returned, return Qnil.  */
+  if (!value)
+    return Qnil;
+
+  buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
+						   (jstring) value,
+						   NULL);
+  android_exception_check ();
+
+  /* Otherwise, build the string describing the error.  */
+  tem = build_string_from_utf8 (buffer);
+
+  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+					      (jstring) value,
+					      buffer);
+
+  /* And return it.  */
+  ANDROID_DELETE_LOCAL_REF (value);
+  return tem;
 }
 
 

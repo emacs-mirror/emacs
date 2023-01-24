@@ -63,18 +63,18 @@ package manager.  Instead, Emacs is compiled for Android on a
 different operating system, with the resulting binaries packaged into
 an archive, that is then transferred to the device and unpacked.
 
-After being unpacked, Emacs instructs the system to display an
+  After being unpacked, Emacs instructs the system to display an
 application icon on the desktop.  Emacs then starts up once the
 application icon is clicked.
 
 @cindex ``adb logcat''
 
-During startup, Emacs will display messages in the system log buffer;
-reading that buffer requires the Android Debug Bridge (@code{adb})
-utility to be installed on another computer; it cannot be read on the
-computer running Android itself.
+  During startup, Emacs will display messages in the system log
+buffer; reading that buffer requires the Android Debug Bridge
+(@code{adb}) utility to be installed on another computer; it cannot be
+read on the computer running Android itself.
 
-After enabling the ``USB Debugging'' feature on the Android system,
+  After enabling the ``USB Debugging'' feature on the Android system,
 and connecting it via USB to another system with the @code{adb}
 utility installed, the log can be viewed by running the following
 command on that other system:
@@ -84,14 +84,31 @@ $ adb logcat | grep -E "(android_run_debug_thread|[Ee]macs)"
 @end example
 
 @cindex emacs -Q, android
-Since Android has no command line, there is normally no way to specify
-command-line arguments.  However, Emacs can be started with the
-equivalent of the @code{--quick} option (@pxref{Initial Options})
-through a special preferences screen, which can be accessed through
-the Emacs ``app info'' page in the system settings application.
+  Since Android has no command line, there is normally no way to
+specify command-line arguments when starting Emacs.  However, Emacs
+can be started with the equivalent of the @code{--quick} option
+(@pxref{Initial Options}) through a special preferences screen, which
+can be accessed through the Emacs ``app info'' page in the system
+settings application.
 
-Consult the manufacturer of your device for more details, as how to do
-this varies by device.
+  Consult the manufacturer of your device for more details, as how to
+do this varies by device.
+
+@cindex dumping, android
+  The first time any given copy of Emacs starts on a device, it spends
+a while loading the preloaded Lisp files which normally come with
+Emacs.  This produces a ``dump file'' (@pxref{Initial Options}) in the
+files directory, containing an identifier unique to this copy of
+Emacs.
+
+  The next time that same copy of Emacs starts up, it simply loads the
+preloaded Lisp files contained in that dump file, greatly improving
+start up time.
+
+  However, if by some unforseen circumstance the dump file is
+corrupted, Emacs can crash.  If that happens, the dump file stored in
+the Emacs files directory can be erased through the same preferences
+screen.
 
 @node Android File System
 @section What files Emacs can access under Android

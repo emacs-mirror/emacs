@@ -1045,6 +1045,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-png=$with_png"
   passthrough="$passthrough --with-webp=$with_webp"
   passthrough="$passthrough --with-gif=$with_gif"
+  passthrough="$passthrough --with-json=$with_json"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1112,6 +1113,7 @@ if test "$ANDROID" = "yes"; then
     with_png=no
     with_webp=no
     with_gif=no
+    with_json=no
   fi
 
   with_xml2=no
@@ -1121,7 +1123,6 @@ if test "$ANDROID" = "yes"; then
   with_libsystemd=no
   with_cairo=no
   with_imagemagick=no
-  with_json=no
   with_tree_sitter=no
   with_xft=no
   with_harfbuzz=no

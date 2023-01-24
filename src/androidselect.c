@@ -213,6 +213,25 @@ DEFUN ("android-clipboard-exists-p", Fandroid_clipboard_exists_p,
   return rc ? Qt : Qnil;
 }
 
+DEFUN ("android-browse-url", Fandroid_browse_url,
+       Sandroid_browse_url, 1, 1, 0,
+       doc: /* Start the system web browser.
+Then, point the web browser to URL, which should be a URL-encoded
+URL with a scheme specified.  Signal an error upon failure.  */)
+  (Lisp_Object url)
+{
+  Lisp_Object value;
+
+  CHECK_STRING (url);
+  value = android_browse_url (url);
+
+  /* Signal an error upon failure.  */
+  if (!NILP (value))
+    signal_error ("Error browsing URL", value);
+
+  return Qnil;
+}
+
 
 
 void
@@ -246,4 +265,5 @@ syms_of_androidselect (void)
   defsubr (&Sandroid_set_clipboard);
   defsubr (&Sandroid_get_clipboard);
   defsubr (&Sandroid_clipboard_exists_p);
+  defsubr (&Sandroid_browse_url);
 }

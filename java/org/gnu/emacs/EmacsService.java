@@ -43,6 +43,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 
+import android.net.Uri;
+
 import android.os.Build;
 import android.os.Looper;
 import android.os.IBinder;
@@ -503,5 +505,28 @@ public class EmacsService extends Service
 	  context.startForegroundService (new Intent (context,
 						      EmacsService.class));
       }
+  }
+
+  /* Ask the system to open the specified URL.
+     Value is NULL upon success, or a string describing the error
+     upon failure.  */
+
+  public String
+  browseUrl (String url)
+  {
+    Intent intent;
+
+    try
+      {
+	intent = new Intent (Intent.ACTION_VIEW, Uri.parse (url));
+	intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
+	startActivity (intent);
+      }
+    catch (Exception e)
+      {
+	return e.toString ();
+      }
+
+    return null;
   }
 };

@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -89,6 +91,31 @@ public class EmacsPreferencesActivity extends Activity
 	onClick (View view)
 	{
 	  startEmacsQ ();
+	}
+      });
+    layout.addView (textView);
+
+    textView = new TextView (this);
+    textView.setPadding (8, 20, 20, 8);
+
+    params = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT,
+					    LayoutParams.WRAP_CONTENT);
+    textView.setLayoutParams (params);
+    textView.setText ("Erase dump file");
+    textView.setOnClickListener (new View.OnClickListener () {
+	@Override
+	public void
+	onClick (View view)
+	{
+	  String wantedDumpFile;
+	  File file;
+
+	  wantedDumpFile = ("emacs-" + EmacsNative.getFingerprint ()
+			    + ".pdmp");
+	  file = new File (getFilesDir (), wantedDumpFile);
+
+	  if (file.exists ())
+	    file.delete ();
 	}
       });
     layout.addView (textView);

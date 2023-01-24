@@ -107,6 +107,10 @@ extern void android_closedir (struct android_dir *);
 
 
 
+/* Very miscellaneous functions.  */
+
+extern Lisp_Object android_browse_url (Lisp_Object);
+
 #endif
 
 /* JNI functions should not be built when Emacs is stubbed out for the

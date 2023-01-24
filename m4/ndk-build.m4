@@ -67,7 +67,7 @@ esac
 # This is a map between pkg-config style package names and Android
 # ones.
 
-ndk_package_map="libwebpdemux:webpdemux libxml-2.0:libxml2"
+ndk_package_map="libwebpdemux:webpdemux libxml-2.0:libxml2 jansson:libjansson"
 
 # Replace ndk_module with the appropriate Android module name if it is
 # found in ndk_package_map.

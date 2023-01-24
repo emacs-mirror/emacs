@@ -4072,10 +4072,12 @@ types.  */)
 {
   eassert (initialized);
 
+#ifndef HAVE_ANDROID
   if (! noninteractive)
     error ("Dumping Emacs currently works only in batch mode.  "
            "If you'd like it to work interactively, please consider "
            "contributing a patch to Emacs.");
+#endif
 
   if (will_dump_with_unexec_p ())
     error ("This Emacs instance was started under the assumption "
@@ -5842,6 +5844,10 @@ void
 syms_of_pdumper (void)
 {
 #ifdef HAVE_PDUMPER
+  unsigned char desired[sizeof fingerprint];
+  int i;
+  char hexbuf[2 * sizeof fingerprint];
+
   defsubr (&Sdump_emacs_portable);
   defsubr (&Sdump_emacs_portable__sort_predicate);
   defsubr (&Sdump_emacs_portable__sort_predicate_copied);
@@ -5854,5 +5860,17 @@ syms_of_pdumper (void)
   DEFSYM (Qdump_file_name, "dump-file-name");
   DEFSYM (Qafter_pdump_load_hook, "after-pdump-load-hook");
   defsubr (&Spdumper_stats);
+
+  for (i = 0; i < sizeof fingerprint; i++)
+    desired[i] = fingerprint[i];
+
+  hexbuf_digest (hexbuf, desired, sizeof desired);
+
+  DEFVAR_LISP ("pdumper-fingerprint", Vpdumper_fingerprint,
+	       doc: /* The fingerprint of this Emacs binary.
+It is a string that is supposed to be unique to each build of
+Emacs.  */);
+  Vpdumper_fingerprint = make_unibyte_string ((char *) hexbuf,
+					      sizeof hexbuf);
 #endif /* HAVE_PDUMPER */
 }

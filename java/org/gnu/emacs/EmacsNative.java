@@ -25,6 +25,10 @@ import android.content.res.AssetManager;
 
 public class EmacsNative
 {
+  /* Obtain the fingerprint of this build of Emacs.  The fingerprint
+     can be used to determine the dump file name.  */
+  public static native String getFingerprint ();
+
   /* Set certain parameters before initializing Emacs.  This proves
      that libemacs.so is being loaded from Java code.
 

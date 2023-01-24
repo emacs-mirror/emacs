@@ -744,6 +744,8 @@ argmatch (char **argv, int argc, const char *sstr, const char *lstr,
     }
 }
 
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+
 /* Find a name (absolute or relative) of the Emacs executable whose
    name (as passed into this program) is ARGV0.  Called early in
    initialization by portable dumper loading code, so avoid Lisp and
@@ -843,6 +845,8 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
 #endif	/* !WINDOWSNT */
 }
 
+#endif
+
 #ifdef HAVE_PDUMPER
 
 static const char *
@@ -875,6 +879,30 @@ dump_error_to_string (int result)
 static char *
 load_pdump (int argc, char **argv)
 {
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  char *dump_file = NULL;
+  int skip_args = 0, result;
+
+  while (skip_args < argc - 1)
+    {
+      if (argmatch (argv, argc, "-dump-file", "--dump-file", 6,
+		    &dump_file, &skip_args)
+	  || argmatch (argv, argc, "--", NULL, 2, NULL, &skip_args))
+	break;
+      skip_args++;
+    }
+
+  if (!dump_file)
+    return argv[0];
+
+  result = pdumper_load (dump_file, argv[0]);
+
+  if (result != PDUMPER_LOAD_SUCCESS)
+    fatal ("could not load dump file \"%s\": %s",
+	   dump_file, dump_error_to_string (result));
+  return argv[0];
+#else
+
   const char *const suffix = ".pdmp";
   int result;
   char *emacs_executable = argv[0];
@@ -1067,6 +1095,7 @@ load_pdump (int argc, char **argv)
   xfree (dump_file);
 
   return emacs_executable;
+#endif
 }
 #endif /* HAVE_PDUMPER */
 

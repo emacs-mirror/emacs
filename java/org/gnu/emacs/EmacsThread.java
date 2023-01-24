@@ -38,10 +38,23 @@ public class EmacsThread extends Thread
   {
     String args[];
 
-    if (!startDashQ)
-      args = new String[] { "libandroid-emacs.so", };
+    if (EmacsApplication.dumpFileName == null)
+      {
+	if (!startDashQ)
+	  args = new String[] { "libandroid-emacs.so", };
+	else
+	  args = new String[] { "libandroid-emacs.so", "-Q", };
+      }
     else
-      args = new String[] { "libandroid-emacs.so", "-Q", };
+      {
+	if (!startDashQ)
+	  args = new String[] { "libandroid-emacs.so", "--dump-file",
+	                        EmacsApplication.dumpFileName, };
+	else
+	  args = new String[] { "libandroid-emacs.so", "-Q",
+				"--dump-file",
+				EmacsApplication.dumpFileName, };
+      }
 
     /* Run the native code now.  */
     EmacsNative.initEmacs (args);
