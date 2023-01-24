@@ -1681,7 +1681,7 @@ command is installed.
 *** C++ Mode now supports most of the new features in the C++20 Standard.
 
 ---
-*** In Objective C Mode, no extra types are recognized by default.
+*** In Objective-C Mode, no extra types are recognized by default.
 The default value of 'objc-font-lock-extra-types' has been changed to
 nil, since too many identifiers were getting misfontified as types.
 This may cause some actual types not to get fontified.  To get the old
