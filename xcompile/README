@@ -1,3 +1,0 @@
-This directory holds Makefiles and other required assets to build an
-Emacs binary independently for another toolchain.  It also holds
-another copy of gnulib that may be modified to work on Android.
