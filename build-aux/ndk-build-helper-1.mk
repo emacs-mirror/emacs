@@ -47,22 +47,6 @@ else
 NDK_SO_NAMES = $(LOCAL_MODULE_FILENAME).so
 endif
 
-define add-a-name
-ifeq ($(findstring lib,$(1)),lib)
-NDK_A_NAME = $(1).a
-else
-NDK_A_NAME = lib$(1).a
-endif
-
-ifeq ($$(NDK_A_NAMES:$$(NDK_A_NAME)=),$$(NDK_A_NAMES))
-NDK_A_NAMES := $$(NDK_A_NAMES) $$(NDK_A_NAME)
-
-# Now recurse over this module's dependencies.
-$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_STATIC_LIBRARIES)),$$(eval $$(call add-a-name,$$(module))))
-$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARIES)),$$(eval $$(call add-so-name,$$(module))))
-endif
-endef
-
 define add-so-name
 ifeq ($(findstring lib,$(1)),lib)
 NDK_SO_NAME = $(1)_emacs.so
@@ -74,17 +58,17 @@ ifeq ($$(NDK_SO_NAMES:$$(NDK_SO_NAME)=),$$(NDK_SO_NAMES))
 NDK_SO_NAMES := $$(NDK_SO_NAMES) $$(NDK_SO_NAME)
 
 # Now recurse over this module's dependencies.
-$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_STATIC_LIBRARIES)),$$(eval $$(call add-a-name,$$(module))))
 $$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARIES)),$$(eval $$(call add-so-name,$$(module))))
 endif
 endef
 
 # Resolve additional dependencies based on LOCAL_STATIC_LIBRARIES and
-# LOCAL_SHARED_LIBRARIES.
+# LOCAL_SHARED_LIBRARIES.  Static library dependencies can be ignored
+# while building a shared library, as they will be linked in to the
+# resulting shared object file later.
 
 SYSTEM_LIBRARIES = z libz libc c
 
-$(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_STATIC_LIBRARIES)),$(eval $(call add-a-name,$(module))))
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES)),$(eval $(call add-so-name,$(module))))
 
 $(info $(LOCAL_EXPORT_LDFLAGS) $(abspath $(addprefix $(NDK_BUILD_DIR)/,$(NDK_A_NAMES))) -L$(abspath $(NDK_BUILD_DIR)) $(foreach soname,$(NDK_SO_NAMES),-l:$(soname)))

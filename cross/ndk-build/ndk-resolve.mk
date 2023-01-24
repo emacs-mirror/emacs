@@ -22,9 +22,12 @@
 # Save information.
 NDK_LOCAL_PATH_$(LOCAL_MODULE) := $(LOCAL_PATH)
 NDK_LOCAL_STATIC_LIBRARIES_$(LOCAL_MODULE) := $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES)
+NDK_LOCAL_WHOLE_LIBRARIES_$(LOCAL_MODULE) := $(LOCAL_WHOLE_STATIC_LIBRARIES)
 NDK_LOCAL_SHARED_LIBRARIES_$(LOCAL_MODULE) := $(LOCAL_SHARED_LIBRARIES)
 NDK_LOCAL_EXPORT_CFLAGS_$(LOCAL_MODULE) := $(LOCAL_EXPORT_CFLAGS)
 NDK_LOCAL_EXPORT_C_INCLUDES_$(LOCAL_MODULE) := $(LOCAL_EXPORT_C_INCLUDES)
+NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) :=
+NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) :=
 
 # List of all dependencies resolved for this module thus far.
 # Used to avoid infinite recursion.
@@ -33,15 +36,33 @@ NDK_RESOLVED_$(LOCAL_MODULE) :=
 define ndk-resolve
 
 ifeq ($(patsubst $(1),,$(NDK_RESOLVED$(LOCAL_MODULE))),$(NDK_RESOLVED$(LOCAL_MODULE)))
-NDK_RESOLVED$(LOCAL_MODULE) += $(1)
+NDK_RESOLVED_$(LOCAL_MODULE) += $(1)
 NDK_CFLAGS_$(LOCAL_MODULE) += $(NDK_LOCAL_EXPORT_CFLAGS_$(1))
 NDK_CFLAGS_$(LOCAL_MODULE) += $(addprefix -I,$(NDK_LOCAL_EXPORT_C_INCLUDES_$(1)))
 
-$$(foreach module,$$(NDK_LOCAL_STATIC_LIBRARIES_$(1)),$$(eval $$(call ndk-resolve,$$(module))))
-$$(foreach module,$$(NDK_LOCAL_SHARED_LIBRARIES_$(1)),$$(eval $$(call ndk-resolve,$$(module))))
+ifneq ($(2),)
+ifneq ($(findstring lib,$(1)),)
+NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) += $(1).a
+else
+NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) += lib$(1).a
+endif
+endif
+
+ifneq ($(3),)
+ifneq ($(findstring lib,$(1)),)
+NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) += $(1).a
+else
+NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) += lib$(1).a
+endif
+endif
+
+$$(foreach module,$$(NDK_LOCAL_STATIC_LIBRARIES_$(1)),$$(eval $$(call ndk-resolve,$$(module),1,)))
+$$(foreach module,$$(NDK_LOCAL_SHARED_LIBRARIES_$(1)),$$(eval $$(call ndk-resolve,$$(module),,)))
+$$(foreach module,$$(NDK_LOCAL_WHOLE_LIBRARIES_$(1)),$$(eval $$(call ndk-resolve,$$(module),,1)))
 endif
 
 endef
 
-$(foreach module,$(LOCAL_SHARED_LIBRARIES),$(eval $(call ndk-resolve,$(module))))
-$(foreach module,$(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES),$(eval $(call ndk-resolve,$(module))))
+$(foreach module,$(LOCAL_SHARED_LIBRARIES),$(eval $(call ndk-resolve,$(module),,)))
+$(foreach module,$(LOCAL_STATIC_LIBRARIES),$(eval $(call ndk-resolve,$(module),1,)))
+$(foreach module,$(LOCAL_WHOLE_STATIC_LIBRARIES), $(eval $(call ndk-resolve,$(module),,1)))

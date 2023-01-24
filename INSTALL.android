@@ -140,13 +140,16 @@ automatically build and use those modules.
 
 Google, Inc. has adapted many common Emacs dependencies to use the
 `ndk-build' system.  Here is a non-exhaustive list of what is known to
-work:
+work, along with what has to be patched to make them work:
 
   libpng	- https://android.googlesource.com/platform/external/libpng
   libwebp	- https://android.googlesource.com/platform/external/webp
   giflib	- https://android.googlesource.com/platform/external/giflib
      (You must add LOCAL_EXPORT_CFLAGS := -I$(LOCAL_PATH) before
       its Android.mk includes $(BUILD_STATIC_LIBRARY))
+  libjpeg-turbo - https://android.googlesource.com/platform/external/libjpeg-turbo
+     (You must add LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH) before
+      its Android.mk includes $(BUILD_SHARED_LIBRARY))
 
 In addition, some Emacs dependencies provide `ndk-build' support
 themselves:
@@ -382,12 +385,16 @@ them.  The name under which the module is linked is the same as the
 Make target found on the sixth line of output from
 build-aux/ndk-build-helper.mk.
 
-While the rules defined by the Makefiles in cross/ndk-build do not
-have their dependencies as prerequisites (with the assumption that the
-ndk-build.m4 and the Makefiles in build-aux have already added all of
-the necessary targets to ndk-build.mk), dependency resolution is still
-performed, as the CFLAGS and includes from dependencies must be
-appended to the module's CFLAGS.
+In doing so, they both include the file ndk-resolve.mk.
+ndk-resolve.mk is expected to recursively add all of the exported
+CFLAGS and includes of any dependencies to the compiler and linker
+command lines for the module being built.
+
+When building a shared library module, ndk-resolve.mk is also expected
+to define the variables NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) and
+NDK_WHOLE_A_NAMES_$(LOCAL_MODULE), containing all static library
+dependencies' archive files.  They are to be linked in to the
+resulting shared object file.
 
 This is done by including cross/ndk-build/ndk-resolve.mk each time a
 shared or static library module is going to be built.  How is this

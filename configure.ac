@@ -1046,6 +1046,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-webp=$with_webp"
   passthrough="$passthrough --with-gif=$with_gif"
   passthrough="$passthrough --with-json=$with_json"
+  passthrough="$passthrough --with-jpeg=$with_jpeg"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1104,7 +1105,6 @@ if test "$ANDROID" = "yes"; then
   # disabled, both within the recursive invocation of configure and
   # outside.
   with_xpm=no
-  with_jpeg=no
   with_tiff=no
 
   # Some of these dependencies are now supported within Android, so
@@ -1114,6 +1114,7 @@ if test "$ANDROID" = "yes"; then
     with_webp=no
     with_gif=no
     with_json=no
+    with_jpeg=no
   fi
 
   with_xml2=no
@@ -4551,52 +4552,66 @@ AC_SUBST([LIBXPM])
 ### Use -ljpeg if available, unless '--with-jpeg=no'.
 HAVE_JPEG=no
 LIBJPEG=
+JPEG_CFLAGS=
 if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
    || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes" \
    || test "$window_system" = "pgtk" \
    || test "${REALLY_ANDROID}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
-    AC_CACHE_CHECK([for jpeglib 6b or later],
-      [emacs_cv_jpeglib],
-      [OLD_LIBS=$LIBS
-       for emacs_cv_jpeglib in yes -ljpeg no; do
-	 case $emacs_cv_jpeglib in
-	   yes) ;;
-	   no) break;;
-	   *) LIBS="$LIBS $emacs_cv_jpeglib";;
-	 esac
-	 AC_LINK_IFELSE(
-	   [AC_LANG_PROGRAM(
-	      [[#undef HAVE_STDLIB_H /* Avoid config.h/jpeglib.h collision.  */
-		#include <stdio.h> /* jpeglib.h needs FILE and size_t.  */
-		#include <jpeglib.h>
-		#include <jerror.h>
-		char verify[JPEG_LIB_VERSION < 62 ? -1 : 1];
-		struct jpeg_decompress_struct cinfo;
-	      ]],
-	      [[
-		jpeg_create_decompress (&cinfo);
-		WARNMS (&cinfo, JWRN_JPEG_EOF);
-		jpeg_destroy_decompress (&cinfo);
-	      ]])],
-	   [emacs_link_ok=yes],
-	   [emacs_link_ok=no])
-	 LIBS=$OLD_LIBS
-	 test $emacs_link_ok = yes && break
-       done])
-    if test "$emacs_cv_jpeglib" != no; then
-      HAVE_JPEG=yes
-      AC_DEFINE([HAVE_JPEG], [1],
-	[Define to 1 if you have the jpeg library (typically -ljpeg).])
-      ### mingw32 doesn't use -ljpeg, since it loads the library
-      ### dynamically when needed, and doesn't want a run-time
-      ### dependency on the jpeglib DLL.
-      test "$emacs_cv_jpeglib" != yes && test "${opsys}" != "mingw32" \
-      && LIBJPEG=$emacs_cv_jpeglib
+    if test "${REALLY_ANDROID}" = "yes"; then
+      # Look for libjpeg using the NDK.
+      ndk_SEARCH_MODULE([libjpeg], [JPEG], [HAVE_JPEG=yes])
+
+      if test "$HAVE_JPEG" = "yes"; then
+        LIBJPEG="$JPEG_LIBS"
+
+	AC_DEFINE([HAVE_JPEG], [1],
+	  [Define to 1 if you have the jpeg library (typically -ljpeg).])
+      fi
+    else
+      AC_CACHE_CHECK([for jpeglib 6b or later],
+	[emacs_cv_jpeglib],
+	[OLD_LIBS=$LIBS
+	 for emacs_cv_jpeglib in yes -ljpeg no; do
+	   case $emacs_cv_jpeglib in
+	     yes) ;;
+	     no) break;;
+	     *) LIBS="$LIBS $emacs_cv_jpeglib";;
+	   esac
+	   AC_LINK_IFELSE(
+	     [AC_LANG_PROGRAM(
+		[[#undef HAVE_STDLIB_H /* Avoid config.h/jpeglib.h collision.  */
+		  #include <stdio.h> /* jpeglib.h needs FILE and size_t.  */
+		  #include <jpeglib.h>
+		  #include <jerror.h>
+		  char verify[JPEG_LIB_VERSION < 62 ? -1 : 1];
+		  struct jpeg_decompress_struct cinfo;
+		]],
+		[[
+		  jpeg_create_decompress (&cinfo);
+		  WARNMS (&cinfo, JWRN_JPEG_EOF);
+		  jpeg_destroy_decompress (&cinfo);
+		]])],
+	     [emacs_link_ok=yes],
+	     [emacs_link_ok=no])
+	   LIBS=$OLD_LIBS
+	   test $emacs_link_ok = yes && break
+	 done])
+      if test "$emacs_cv_jpeglib" != no; then
+	HAVE_JPEG=yes
+	AC_DEFINE([HAVE_JPEG], [1],
+	  [Define to 1 if you have the jpeg library (typically -ljpeg).])
+	### mingw32 doesn't use -ljpeg, since it loads the library
+	### dynamically when needed, and doesn't want a run-time
+	### dependency on the jpeglib DLL.
+	test "$emacs_cv_jpeglib" != yes && test "${opsys}" != "mingw32" \
+	&& LIBJPEG=$emacs_cv_jpeglib
+      fi
     fi
   fi
 fi
 AC_SUBST([LIBJPEG])
+AC_SUBST([JPEG_CFLAGS])
 
 HAVE_LCMS2=no
 LCMS2_CFLAGS=

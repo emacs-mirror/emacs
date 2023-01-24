@@ -60,14 +60,10 @@ NDK_CFLAGS ::= -mthumb
 endif
 endif
 
-LOCAL_MODULE_FILENAME := $(strip $(LOCAL_MODULE_FILENAME))
-
-ifndef LOCAL_MODULE_FILENAME
 ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
 LOCAL_MODULE_FILENAME := $(LOCAL_MODULE)_emacs
 else
 LOCAL_MODULE_FILENAME := lib$(LOCAL_MODULE)_emacs
-endif
 endif
 
 # Since a shared library is being built, suffix the library with
@@ -89,6 +85,16 @@ ALL_OBJECT_FILES$(LOCAL_MODULE) =
 
 $(foreach source,$(ALL_SOURCE_FILES),$(eval $(call single-object-target,$(source))))
 
-# Now define the rule to build the shared library.
-$(LOCAL_MODULE_FILENAME): $(ALL_OBJECT_FILES$(LOCAL_MODULE))
-	$(NDK_BUILD_CC) $^ -o $@ -shared $(NDK_LDFLAGS$(LOCAL_MODULE))
+# Now define the rule to build the shared library.  Shared libraries
+# link with all of the archive files from the static libraries on
+# which they depend.
+
+define define-module-rule
+$(LOCAL_MODULE_FILENAME): $(ALL_OBJECT_FILES$(LOCAL_MODULE)) $(NDK_LOCAL_A_NAMES_$(LOCAL_MODULE)) $(NDK_WHOLE_A_NAMES_$(LOCAL_MODULE))
+	$(NDK_BUILD_CC) $(1) $(2) -o $$@ -shared $(NDK_LDFLAGS$(LOCAL_MODULE))
+endef
+
+NDK_WHOLE_ARCHIVE_PREFIX = -Wl,--whole-archive
+NDK_WHOLE_ARCHIVE_SUFFIX = -Wl,--no-whole-archive
+
+$(eval $(call define-module-rule,$(ALL_OBJECT_FILES$(LOCAL_MODULE)) $(NDK_LOCAL_A_NAMES_$(LOCAL_MODULE)),$(and $(strip $(NDK_WHOLE_A_NAMES_$(LOCAL_MODULE))),$(NDK_WHOLE_ARCHIVE_PREFIX) $(NDK_WHOLE_A_NAMES_$(LOCAL_MODULE)) $(NDK_WHOLE_ARCHIVE_SUFFIX))))
