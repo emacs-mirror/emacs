@@ -167,9 +167,9 @@ UTILITIES = hexl${EXEEXT} 			 	 \
 ifeq ($(HAVE_BE_APP),yes)
 DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT} be-resources
 else
-ifeq ($(HAVE_ANDROID),yes)
+ifeq ($(XCONFIGURE)$(HAVE_ANDROID),yes)
 DONT_INSTALL = make-docfile${EXEEXT} make-fingerprint${EXEEXT} \
-	asset-directory-tool
+	asset-directory-tool${EXEEXT}
 else
 DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT}
 endif
@@ -390,7 +390,7 @@ clean: mostlyclean
 	rm -f ${EXE_FILES}
 
 distclean: clean
-	rm -f TAGS Makefile blessmail
+	rm -f TAGS Makefile blessmail Makefile.android
 
 bootstrap-clean maintainer-clean: distclean
 
