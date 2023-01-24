@@ -653,7 +653,7 @@ growable_destination (struct coding_system *coding)
 
 /* Suppress clang warnings about consumed_chars never being used.
    Although correct, the warnings are too much trouble to code around.  */
-#if 13 <= __clang_major__
+#if 13 <= __clang_major__ - defined __apple_build_version__
 # pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 
