@@ -1776,6 +1776,20 @@ With a prefix argument, show headings up to that LEVEL."
 
 ;;; Button/margin indicators
 
+(defvar-keymap outline-button-icon-map
+  "<mouse-2>" #'outline-cycle
+  ;; Need to override the global binding
+  ;; `mouse-appearance-menu' with <down->:
+  "S-<down-mouse-1>" #'ignore
+  "S-<mouse-1>" #'outline-cycle-buffer)
+
+(defvar-keymap outline-overlay-button-map
+  "RET" #'outline-cycle)
+
+(defvar-keymap outline-inserted-button-map
+  :parent (make-composed-keymap outline-button-icon-map
+                                outline-overlay-button-map))
+
 (defun outline--create-button-icons ()
   (pcase outline-minor-mode-use-buttons
     ('in-margins
@@ -1808,12 +1822,7 @@ With a prefix argument, show headings up to that LEVEL."
         (propertize (icon-string icon-name)
                     'mouse-face 'default
                     'follow-link 'mouse-face
-                    'keymap (define-keymap
-                              "<mouse-2>" #'outline-cycle
-                              ;; Need to override the global binding
-                              ;; `mouse-appearance-menu' with <down->:
-                              "S-<down-mouse-1>" #'ignore
-                              "S-<mouse-1>" #'outline-cycle-buffer)))
+                    'keymap outline-button-icon-map))
       (list 'outline-open
             (if outline--use-rtl 'outline-close-rtl 'outline-close))))))
 
@@ -1839,19 +1848,13 @@ With a prefix argument, show headings up to that LEVEL."
            (overlay-put o 'face (plist-get icon 'face))
            (overlay-put o 'follow-link 'mouse-face)
            (overlay-put o 'mouse-face 'highlight)
-           (overlay-put o 'keymap (define-keymap
-                                    "RET" #'outline-cycle
-                                    "<mouse-2>" #'outline-cycle
-                                    ;; Need to override the global binding
-                                    ;; `mouse-appearance-menu' with <down->:
-                                    "S-<down-mouse-1>" #'ignore
-                                    "S-<mouse-1>" #'outline-cycle-buffer)))
+           (overlay-put o 'keymap outline-inserted-button-map))
           ('in-margins
            (overlay-put o 'before-string icon)
-           (overlay-put o 'keymap (define-keymap "RET" #'outline-cycle)))
+           (overlay-put o 'keymap outline-overlay-button-map))
           (_
            (overlay-put o 'before-string icon)
-           (overlay-put o 'keymap (define-keymap "RET" #'outline-cycle))))))))
+           (overlay-put o 'keymap outline-overlay-button-map)))))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
   (when outline-minor-mode-use-buttons
