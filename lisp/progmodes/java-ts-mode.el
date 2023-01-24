@@ -29,7 +29,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
-(require 'c-ts-mode) ; For comment indent and filling.
+(require 'c-ts-common) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -69,12 +69,12 @@
 
 (defvar java-ts-mode--indent-rules
   `((java
-     ((parent-is "program") parent-bol 0)
+     ((parent-is "program") point-min 0)
      ((node-is "}") (and parent parent-bol) 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
-     ((and (parent-is "comment") c-ts-mode--looking-at-star)
-      c-ts-mode--comment-start-after-first-star -1)
+     ((and (parent-is "comment") c-ts-common-looking-at-star)
+      c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "text_block") no-indent)
      ((parent-is "class_body") parent-bol java-ts-mode-indent-offset)
@@ -293,7 +293,7 @@ Return nil if there is no name or if NODE is not a defun node."
   (treesit-parser-create 'java)
 
   ;; Comments.
-  (c-ts-mode-comment-setup)
+  (c-ts-common-comment-setup)
 
   (setq-local treesit-text-type-regexp
               (regexp-opt '("line_comment"
@@ -358,6 +358,9 @@ Return nil if there is no name or if NODE is not a defun node."
                 ("Enum" "\\`record_declaration\\'" nil nil)
                 ("Method" "\\`method_declaration\\'" nil nil)))
   (treesit-major-mode-setup))
+
+(if (treesit-ready-p 'java)
+    (add-to-list 'auto-mode-alist '("\\.java\\'" . java-ts-mode)))
 
 (provide 'java-ts-mode)
 

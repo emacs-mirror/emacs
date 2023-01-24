@@ -1800,17 +1800,25 @@ Optional argument N tells to change by that many units."
 		(time-subtract
 		 (org-time-string-to-time org-last-changed-timestamp)
 		 (org-time-string-to-time ts)))
-	  (save-excursion
-	    (goto-char begts)
-	    (org-timestamp-change
-	     (round (/ (float-time tdiff)
-		       (pcase timestamp?
-			 (`minute 60)
-			 (`hour 3600)
-			 (`day (* 24 3600))
-			 (`month (* 24 3600 31))
-			 (`year (* 24 3600 365.2)))))
-	     timestamp? 'updown)))))))
+          ;; `save-excursion' won't work because
+          ;; `org-timestamp-change' deletes and re-inserts the
+          ;; timestamp.
+	  (let ((origin (point)))
+            (save-excursion
+	      (goto-char begts)
+	      (org-timestamp-change
+	       (round (/ (float-time tdiff)
+		         (pcase timestamp?
+			   (`minute 60)
+			   (`hour 3600)
+			   (`day (* 24 3600))
+			   (`month (* 24 3600 31))
+			   (`year (* 24 3600 365.2)))))
+	       timestamp? 'updown))
+            ;; Move back to initial position, but never beyond updated
+            ;; clock.
+            (unless (< (point) origin)
+              (goto-char origin))))))))
 
 ;;;###autoload
 (defun org-clock-cancel ()

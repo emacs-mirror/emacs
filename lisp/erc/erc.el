@@ -61,7 +61,6 @@
 (load "erc-loaddefs" 'noerror 'nomessage)
 
 (require 'erc-networks)
-(require 'erc-goodies)
 (require 'erc-backend)
 (require 'cl-lib)
 (require 'format-spec)
@@ -7386,4 +7385,6 @@ Customize `erc-url-connect-function' to override this."
 
 (provide 'erc)
 
+;; FIXME this is a temporary stopgap for Emacs 29.
+(require 'erc-goodies)
 ;;; erc.el ends here

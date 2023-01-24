@@ -29,7 +29,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
-(require 'c-ts-mode) ; For comment indent and filling.
+(require 'c-ts-common) ; For comment indent and filling.
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -71,8 +71,8 @@
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is "}") (and parent parent-bol) 0)
-     ((and (parent-is "comment") c-ts-mode--looking-at-star)
-      c-ts-mode--comment-start-after-first-star -1)
+     ((and (parent-is "comment") c-ts-common-looking-at-star)
+      c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "arguments") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "await_expression") parent-bol rust-ts-mode-indent-offset)
@@ -276,9 +276,6 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name") t))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
-
-;;;###autoload
 (define-derived-mode rust-ts-mode prog-mode "Rust"
   "Major mode for editing Rust, powered by tree-sitter."
   :group 'rust
@@ -288,7 +285,7 @@ Return nil if there is no name or if NODE is not a defun node."
     (treesit-parser-create 'rust)
 
     ;; Comments.
-    (c-ts-mode-comment-setup)
+    (c-ts-common-comment-setup)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings rust-ts-mode--font-lock-settings)
@@ -321,6 +318,9 @@ Return nil if there is no name or if NODE is not a defun node."
     (setq-local treesit-defun-name-function #'rust-ts-mode--defun-name)
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'rust)
+    (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode)))
 
 (provide 'rust-ts-mode)
 

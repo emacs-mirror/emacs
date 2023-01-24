@@ -601,7 +601,7 @@ how to fetch and build the package.  See `package-vc--archive-spec-alist'
 for details.  The optional argument REV specifies a specific revision to
 checkout.  This overrides the `:branch' attribute in PKG-SPEC."
   (unless pkg-desc
-    (package-desc-create :name (car pkg-spec) :kind 'vc))
+    (setq pkg-desc (package-desc-create :name (car pkg-spec) :kind 'vc)))
   (pcase-let* (((map :lisp-dir) pkg-spec)
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))

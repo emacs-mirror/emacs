@@ -34,7 +34,7 @@
 (require 'cc-mode)
 (require 'cc-langs)
 (require 'treesit)
-(require 'c-ts-mode) ; For comment indenting and filling.
+(require 'c-ts-common) ; For comment indenting and filling.
 
 (eval-when-compile
   (require 'cc-fonts)
@@ -634,8 +634,8 @@ compilation and evaluation time conflicts."
      ((node-is "}") parent-bol 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
-     ((and (parent-is "comment") c-ts-mode--looking-at-star)
-      c-ts-mode--comment-start-after-first-star -1)
+     ((and (parent-is "comment") c-ts-common-looking-at-star)
+      c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "namespace_declaration") parent-bol 0)
      ((parent-is "class_declaration") parent-bol 0)
@@ -884,9 +884,6 @@ Return nil if there is no name or if NODE is not a defun node."
       t))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
-
-;;;###autoload
 (define-derived-mode csharp-mode prog-mode "C#"
   "Major mode for editing Csharp code.
 
@@ -911,7 +908,7 @@ Key bindings:
   (treesit-parser-create 'c-sharp)
 
   ;; Comments.
-  (c-ts-mode-comment-setup)
+  (c-ts-common-comment-setup)
 
   (setq-local treesit-text-type-regexp
               (regexp-opt '("comment"
@@ -946,7 +943,9 @@ Key bindings:
                 ("Struct" "\\`struct_declaration\\'" nil nil)
                 ("Method" "\\`method_declaration\\'" nil nil)))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-ts-mode)))
 
 (provide 'csharp-mode)
 

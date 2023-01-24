@@ -24,14 +24,58 @@
 
 ;;; Commentary:
 ;;
+;; This package provides major modes for C and C++, plus some handy
+;; functions that are useful generally to major modes for C-like
+;; languages.
+;;
+;; This package provides `c-ts-mode' for C, `c++-ts-mode' for C++, and
+;; `c-or-c++-ts-mode' which automatically chooses the right mode for
+;; C/C++ header files.
+;;
+;; To use these modes by default, assuming you have the respective
+;; tree-sitter grammars available, do one of the following:
+;;
+;; - If you have both C and C++ grammars installed, add
+;;
+;;    (require 'c-ts-mode)
+;;
+;;   to your init file.
+;;
+;; - Add one or mode of the following to your init file:
+;;
+;;    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+;;    (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+;;    (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
+;;
+;;   If you have only C grammar available, use only the first one; if
+;;   you have only the C++ grammar, use only the second one.
+;;
+;; - Customize 'auto-mode-alist' to turn one or more of the modes
+;;   automatically.  For example:
+;;
+;;     (add-to-list 'auto-mode-alist
+;;                  '("\\(\\.ii\\|\\.\\(CC?\\|HH?\\)\\|\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\|\\.\\(cc\\|hh\\)\\)\\'"
+;;                    . c++-ts-mode))
+;;
+;;   will turn on the c++-ts-mode for C++ source files.
+;;
+;; You can also turn on these modes manually in a buffer.  Doing so
+;; will set up Emacs to use the C/C++ modes defined here for other
+;; files, provided that you have the corresponding parser grammar
+;; libraries installed.
+;;
+;; - Use variable `c-ts-mode-indent-block-type-regexp' with indent
+;;   offset c-ts-mode--statement-offset for indenting statements.
+;;   Again, see `c-ts-mode--indent-styles' for example.
+;;
 
 ;;; Code:
 
 (require 'treesit)
+(require 'c-ts-common)
 (eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
@@ -115,18 +159,18 @@ delimiters < and >'s."
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
   (let ((common
-         `(((parent-is "translation_unit") parent-bol 0)
+         `(((parent-is "translation_unit") point-min 0)
            ((node-is ")") parent 1)
            ((node-is "]") parent-bol 0)
            ((node-is "else") parent-bol 0)
            ((node-is "case") parent-bol 0)
            ((node-is "preproc_arg") no-indent)
-           ;; `c-ts-mode--looking-at-star' has to come before
-           ;; `c-ts-mode--comment-2nd-line-matcher'.
-           ((and (parent-is "comment") c-ts-mode--looking-at-star)
-            c-ts-mode--comment-start-after-first-star -1)
-           (c-ts-mode--comment-2nd-line-matcher
-            c-ts-mode--comment-2nd-line-anchor
+           ;; `c-ts-common-looking-at-star' has to come before
+           ;; `c-ts-common-comment-2nd-line-matcher'.
+           ((and (parent-is "comment") c-ts-common-looking-at-star)
+            c-ts-common-comment-start-after-first-star -1)
+           (c-ts-common-comment-2nd-line-matcher
+            c-ts-common-comment-2nd-line-anchor
             1)
            ((parent-is "comment") prev-adaptive-prefix 0)
 
@@ -193,6 +237,10 @@ MODE is either `c' or `cpp'."
        ((node-is "labeled_statement") point-min 0)
        ,@common)
       (bsd
+       ((node-is "}") parent-bol 0)
+       ((node-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
+       ((parent-is "labeled_statement") parent-bol c-ts-mode-indent-offset)
+       ((parent-is "compound_statement") parent-bol c-ts-mode-indent-offset)
        ((parent-is "if_statement") parent-bol 0)
        ((parent-is "for_statement") parent-bol 0)
        ((parent-is "while_statement") parent-bol 0)
@@ -257,7 +305,18 @@ PARENT is NODE's parent."
         (cl-incf level)
         (save-excursion
           (goto-char (treesit-node-start node))
-          (cond ((bolp) nil)
+          ;; Add an extra level if the opening bracket is on its own
+          ;; line, except (1) it's at top-level, or (2) it's immedate
+          ;; parent is another block.
+          (cond ((bolp) nil) ; Case (1).
+                ((let ((parent-type (treesit-node-type
+                                     (treesit-node-parent node))))
+                   ;; Case (2).
+                   (and parent-type
+                        (string-match-p c-ts-mode-indent-block-type-regexp
+                                        parent-type)))
+                 nil)
+                ;; Add a level.
                 ((looking-back (rx bol (* whitespace))
                                (line-beginning-position))
                  (cl-incf level))))))
@@ -269,60 +328,6 @@ It's basically one level less that the statements in the block.
 PARENT is NODE's parent."
   (- (c-ts-mode--statement-offset node parent)
      c-ts-mode-indent-offset))
-
-(defun c-ts-mode--looking-at-star (_n _p bol &rest _)
-  "A tree-sitter simple indent matcher.
-Matches if there is a \"*\" after BOL."
-  (eq (char-after bol) ?*))
-
-(defun c-ts-mode--comment-start-after-first-star (_n parent &rest _)
-  "A tree-sitter simple indent anchor.
-Finds the \"/*\" and returns the point after the \"*\".
-Assumes PARENT is a comment node."
-  (save-excursion
-    (goto-char (treesit-node-start parent))
-    (if (looking-at (rx "/*"))
-        (match-end 0)
-      (point))))
-
-(defun c-ts-mode--comment-2nd-line-matcher (_n parent &rest _)
-  "Matches if point is at the second line of a block comment.
-PARENT should be a comment node."
-  (and (equal (treesit-node-type parent) "comment")
-       (save-excursion
-         (forward-line -1)
-         (back-to-indentation)
-         (eq (point) (treesit-node-start parent)))))
-
-(defun c-ts-mode--comment-2nd-line-anchor (_n _p bol &rest _)
-  "Return appropriate anchor for the second line of a comment.
-
-If the first line is /* alone, return the position right after
-the star; if the first line is /* followed by some text, return
-the position right before the text minus 1.
-
-Use an offset of 1 with this anchor.  BOL is the beginning of
-non-whitespace characters of the current line."
-  (save-excursion
-    (forward-line -1)
-    (back-to-indentation)
-    (when (looking-at comment-start-skip)
-      (goto-char (match-end 0))
-      (if (looking-at (rx (* (or " " "\t")) eol))
-          ;; Only /* at the first line.
-          (progn (skip-chars-backward " \t")
-                 (if (save-excursion
-                       (goto-char bol)
-                       (looking-at (rx "*")))
-                     ;; The common case.  Checked by "Multiline Block
-                     ;; Comments 4".
-                     (point)
-                   ;; The "Multiline Block Comments 2" test in
-                   ;; c-ts-mode-resources/indent.erts checks this.
-                   (1- (point))))
-        ;; There is something after /* at the first line.  The
-        ;; "Multiline Block Comments 3" test checks this.
-        (1- (point))))))
 
 ;;; Font-lock
 
@@ -719,156 +724,6 @@ the semicolon.  This function skips the semicolon."
                    (treesit-node-end node))
     (goto-char orig-point)))
 
-;;; Filling
-
-(defvar c-ts-mode--comment-regexp
-  ;; These covers C/C++, Java, JavaScript, TypeScript, Rust, C#.
-  (rx (or "comment" "line_comment" "block_comment"))
-  "Regexp pattern that matches a comment in C-like languages.")
-
-(defun c-ts-mode--fill-paragraph (&optional arg)
-  "Fillling function for `c-ts-mode'.
-ARG is passed to `fill-paragraph'."
-  (interactive "*P")
-  (save-restriction
-    (widen)
-    (let ((node (treesit-node-at (point))))
-      (when (string-match-p c-ts-mode--comment-regexp
-                            (treesit-node-type node))
-        (if (save-excursion
-              (goto-char (treesit-node-start node))
-              (looking-at "//"))
-            (fill-comment-paragraph arg)
-          (c-ts-mode--fill-block-comment arg)))
-      ;; Return t so `fill-paragraph' doesn't attempt to fill by
-      ;; itself.
-      t)))
-
-(defun c-ts-mode--fill-block-comment (&optional arg)
-  "Fillling function for block comments.
-ARG is passed to `fill-paragraph'.  Assume point is in a block
-comment."
-  (let* ((node (treesit-node-at (point)))
-         (start (treesit-node-start node))
-         (end (treesit-node-end node))
-         ;; Bind to nil to avoid infinite recursion.
-         (fill-paragraph-function nil)
-         (orig-point (point-marker))
-         (start-marker (point-marker))
-         (end-marker nil)
-         (end-len 0))
-    (move-marker start-marker start)
-    ;; We mask "/*" and the space before "*/" like
-    ;; `c-fill-paragraph' does.
-    (atomic-change-group
-      ;; Mask "/*".
-      (goto-char start)
-      (when (looking-at (rx (* (syntax whitespace))
-                            (group "/") "*"))
-        (goto-char (match-beginning 1))
-        (move-marker start-marker (point))
-        (replace-match " " nil nil nil 1))
-      ;; Include whitespaces before /*.
-      (goto-char start)
-      (beginning-of-line)
-      (setq start (point))
-      ;; Mask spaces before "*/" if it is attached at the end
-      ;; of a sentence rather than on its own line.
-      (goto-char end)
-      (when (looking-back (rx (not (syntax whitespace))
-                              (group (+ (syntax whitespace)))
-                              "*/")
-                          (line-beginning-position))
-        (goto-char (match-beginning 1))
-        (setq end-marker (point-marker))
-        (setq end-len (- (match-end 1) (match-beginning 1)))
-        (replace-match (make-string end-len ?x)
-                       nil nil nil 1))
-      ;; If "*/" is on its own line, don't included it in the
-      ;; filling region.
-      (when (not end-marker)
-        (goto-char end)
-        (when (looking-back (rx "*/") 2)
-          (backward-char 2)
-          (skip-syntax-backward "-")
-          (setq end (point))))
-      ;; Let `fill-paragraph' do its thing.
-      (goto-char orig-point)
-      (narrow-to-region start end)
-      ;; We don't want to fill the region between START and
-      ;; START-MARKER, otherwise the filling function might delete
-      ;; some spaces there.
-      (fill-region start-marker end arg)
-      ;; Unmask.
-      (when start-marker
-        (goto-char start-marker)
-        (delete-char 1)
-        (insert "/"))
-      (when end-marker
-        (goto-char end-marker)
-        (delete-region (point) (+ end-len (point)))
-        (insert (make-string end-len ?\s))))))
-
-(defun c-ts-mode-comment-setup ()
-  "Set up local variables for C-like comment.
-
-Set up:
- - `comment-start'
- - `comment-end'
- - `comment-start-skip'
- - `comment-end-skip'
- - `adaptive-fill-mode'
- - `adaptive-fill-first-line-regexp'
- - `paragraph-start'
- - `paragraph-separate'
- - `fill-paragraph-function'"
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
-  (setq-local comment-end-skip
-              (rx (* (syntax whitespace))
-                  (group (or (syntax comment-end)
-                             (seq (+ "*") "/")))))
-  (setq-local adaptive-fill-mode t)
-  ;; This matches (1) empty spaces (the default), (2) "//", (3) "*",
-  ;; but do not match "/*", because we don't want to use "/*" as
-  ;; prefix when filling.  (Actually, it doesn't matter, because
-  ;; `comment-start-skip' matches "/*" which will cause
-  ;; `fill-context-prefix' to use "/*" as a prefix for filling, that's
-  ;; why we mask the "/*" in `c-ts-mode--fill-paragraph'.)
-  (setq-local adaptive-fill-regexp
-              (concat (rx (* (syntax whitespace))
-                          (group (or (seq "/" (+ "/")) (* "*"))))
-                      adaptive-fill-regexp))
-  ;; Note the missing * comparing to `adaptive-fill-regexp'.  The
-  ;; reason for its absence is a bit convoluted to explain.  Suffice
-  ;; to say that without it, filling a single line paragraph that
-  ;; starts with /* doesn't insert * at the beginning of each
-  ;; following line, and filling a multi-line paragraph whose first
-  ;; two lines start with * does insert * at the beginning of each
-  ;; following line.  If you know how does adaptive filling works, you
-  ;; know what I mean.
-  (setq-local adaptive-fill-first-line-regexp
-              (rx bos
-                  (seq (* (syntax whitespace))
-                       (group (seq "/" (+ "/")))
-                       (* (syntax whitespace)))
-                  eos))
-  ;; Same as `adaptive-fill-regexp'.
-  (setq-local paragraph-start
-              (rx (or (seq (* (syntax whitespace))
-                           (group (or (seq "/" (+ "/")) (* "*")))
-                           (* (syntax whitespace))
-                           ;; Add this eol so that in
-                           ;; `fill-context-prefix', `paragraph-start'
-                           ;; doesn't match the prefix.
-                           eol)
-                      "\f")))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local fill-paragraph-function #'c-ts-mode--fill-paragraph))
-
 ;;; Modes
 
 (defvar-keymap c-ts-mode-map
@@ -896,6 +751,37 @@ Set up:
   (setq-local treesit-defun-skipper #'c-ts-mode--defun-skipper)
   (setq-local treesit-defun-name-function #'c-ts-mode--defun-name)
 
+  (setq-local treesit-sentence-type-regexp
+              ;; compound_statement makes us jump over too big units
+              ;; of code, so skip that one, and include the other
+              ;; statements.
+              (regexp-opt '("preproc"
+                            "declaration"
+                            "specifier"
+                            "attributed_statement"
+                            "labeled_statement"
+                            "expression_statement"
+                            "if_statement"
+                            "switch_statement"
+                            "do_statement"
+                            "while_statement"
+                            "for_statement"
+                            "return_statement"
+                            "break_statement"
+                            "continue_statement"
+                            "goto_statement"
+                            "case_statement")))
+
+  (setq-local treesit-sexp-type-regexp
+              (regexp-opt '("preproc"
+                            "declarator"
+                            "qualifier"
+                            "type"
+                            "parameter"
+                            "expression"
+                            "literal"
+                            "string")))
+
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
   (setq-local treesit-defun-prefer-top-level t)
@@ -905,7 +791,7 @@ Set up:
     (setq-local indent-tabs-mode t))
 
   ;; Comment
-  (c-ts-mode-comment-setup)
+  (c-ts-common-comment-setup)
 
   ;; Electric
   (setq-local electric-indent-chars
@@ -936,7 +822,16 @@ Set up:
 
 This mode is independent from the classic cc-mode.el based
 `c-mode', so configuration variables of that mode, like
-`c-basic-offset', don't affect this mode."
+`c-basic-offset', doesn't affect this mode.
+
+To use tree-sitter C/C++ modes by default, evaluate
+
+    (add-to-list \\='major-mode-remap-alist \\='(c-mode . c-ts-mode))
+    (add-to-list \\='major-mode-remap-alist \\='(c++-mode . c++-ts-mode))
+    (add-to-list \\='major-mode-remap-alist
+                 \\='(c-or-c++-mode . c-or-c++-ts-mode))
+
+in your configuration."
   :group 'c
 
   (when (treesit-ready-p 'c)
@@ -953,7 +848,20 @@ This mode is independent from the classic cc-mode.el based
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
-  "Major mode for editing C++, powered by tree-sitter."
+  "Major mode for editing C++, powered by tree-sitter.
+
+This mode is independent from the classic cc-mode.el based
+`c++-mode', so configuration variables of that mode, like
+`c-basic-offset', don't affect this mode.
+
+To use tree-sitter C/C++ modes by default, evaluate
+
+    (add-to-list \\='major-mode-remap-alist \\='(c-mode . c-ts-mode))
+    (add-to-list \\='major-mode-remap-alist \\='(c++-mode . c++-ts-mode))
+    (add-to-list \\='major-mode-remap-alist
+                 \\='(c-or-c++-mode . c-or-c++-ts-mode))
+
+in your configuration."
   :group 'c++
 
   (when (treesit-ready-p 'cpp)
@@ -1019,6 +927,22 @@ the code is C or C++ and based on that chooses whether to enable
             (re-search-forward c-ts-mode--c-or-c++-regexp nil t))))
       (c++-ts-mode)
     (c-ts-mode)))
+;; The entries for C++ must come first to prevent *.c files be taken
+;; as C++ on case-insensitive filesystems, since *.C files are C++,
+;; not C.
+(if (treesit-ready-p 'cpp)
+    (add-to-list 'auto-mode-alist
+                 '("\\(\\.ii\\|\\.\\(CC?\\|HH?\\)\\|\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\|\\.\\(cc\\|hh\\)\\)\\'"
+                   . c++-ts-mode)))
+
+(if (treesit-ready-p 'c)
+    (add-to-list 'auto-mode-alist
+                 '("\\(\\.[chi]\\|\\.lex\\|\\.y\\(acc\\)?\\|\\.x[bp]m\\)\\'"
+                   . c-ts-mode)))
+
+(if (and (treesit-ready-p 'cpp)
+         (treesit-ready-p 'c))
+    (add-to-list 'auto-mode-alist '("\\.h\\'" . c-or-c++-ts-mode)))
 
 (provide 'c-ts-mode)
 

@@ -8788,7 +8788,9 @@ a ~day~, ~week~, ~month~ or ~year~.  For weekly agendas, the default
 is to start on the previous Monday (see
 ~org-agenda-start-on-weekday~).  You can also set the start date using
 a date shift: =(setq org-agenda-start-day "+10d")= starts the agenda
-ten days from today in the future.
+ten days from today in the future.  ~org-agenda-start-on-weekday~
+takes precedence over ~org-agenda-start-day~ in weekly and bi-weekly
+agendas.
 
 Remote editing from the agenda buffer means, for example, that you can
 change the dates of deadlines and appointments from the agenda buffer.

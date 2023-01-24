@@ -174,12 +174,16 @@
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `go-ts-mode'.")
 
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+(defvar-keymap go-ts-mode-map
+  :doc "Keymap used in Go mode, powered by tree-sitter"
+  :parent prog-mode-map
+  "C-c C-d" #'go-ts-mode-docstring)
 
 ;;;###autoload
 (define-derived-mode go-ts-mode prog-mode "Go"
-  "Major mode for editing Go, powered by tree-sitter."
+  "Major mode for editing Go, powered by tree-sitter.
+
+\\{go-ts-mode-map}"
   :group 'go
   :syntax-table go-ts-mode--syntax-table
 
@@ -225,6 +229,9 @@
                   ( bracket delimiter error operator)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'go)
+    (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode)))
 
 (defun go-ts-mode--defun-name (node)
   "Return the defun name of NODE.
@@ -273,6 +280,32 @@ Return nil if there is no name or if NODE is not a defun node."
    (not (go-ts-mode--interface-node-p node))
    (not (go-ts-mode--struct-node-p node))
    (not (go-ts-mode--alias-node-p node))))
+
+(defun go-ts-mode-docstring ()
+  "Add a docstring comment for the current defun.
+The added docstring is prefilled with the defun's name.  If the
+comment already exists, jump to it."
+  (interactive)
+  (when-let ((defun-node (treesit-defun-at-point)))
+    (goto-char (treesit-node-start defun-node))
+    (if (go-ts-mode--comment-on-previous-line-p)
+        ;; go to top comment line
+        (while (go-ts-mode--comment-on-previous-line-p)
+          (forward-line -1))
+      (insert "// " (treesit-defun-name defun-node))
+      (newline)
+      (backward-char))))
+
+(defun go-ts-mode--comment-on-previous-line-p ()
+  "Return t if the previous line is a comment."
+  (when-let ((point (- (pos-bol) 1))
+             ((> point 0))
+             (node (treesit-node-at point)))
+    (and
+     ;; check point is actually inside the found node
+     ;; treesit-node-at can return nodes after point
+     (<= (treesit-node-start node) point (treesit-node-end node))
+     (string-equal "comment" (treesit-node-type node)))))
 
 ;; go.mod support.
 
@@ -346,9 +379,6 @@ what the parent of the node would be if it were a node."
   "Tree-sitter font-lock settings for `go-mod-ts-mode'.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
-
-;;;###autoload
 (define-derived-mode go-mod-ts-mode prog-mode "Go Mod"
   "Major mode for editing go.mod files, powered by tree-sitter."
   :group 'go
@@ -375,6 +405,9 @@ what the parent of the node would be if it were a node."
                   (bracket error operator)))
 
     (treesit-major-mode-setup)))
+
+(if (treesit-ready-p 'gomod)
+    (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode)))
 
 (provide 'go-ts-mode)
 

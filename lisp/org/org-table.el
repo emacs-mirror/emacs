@@ -1229,7 +1229,7 @@ Return t when the line exists, nil if it does not exist."
     (if (looking-at "|[^|\n]+")
 	(let* ((pos (match-beginning 0))
 	       (match (match-string 0))
-	       (len (org-string-width match)))
+	       (len (save-match-data (org-string-width match))))
 	  (replace-match (concat "|" (make-string (1- len) ?\ )))
 	  (goto-char (+ 2 pos))
 	  (substring match 1)))))
@@ -1725,8 +1725,12 @@ In particular, this does handle wide and invisible characters."
       (setq s (mapconcat (lambda (x) (if (member x '(?| ?+)) "|" " ")) s ""))
     (while (string-match "|\\([ \t]*?[^ \t\r\n|][^\r\n|]*\\)|" s)
       (setq s (replace-match
-	       (concat "|" (make-string (org-string-width (match-string 1 s))
-					?\ ) "|")
+	       (concat "|"
+                       (make-string
+                        (save-match-data
+                          (org-string-width (match-string 1 s)))
+			?\ )
+                       "|")
 	       t t s)))
     s))
 

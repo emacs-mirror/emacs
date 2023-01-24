@@ -5,6 +5,7 @@
 ;; Author: Perry Smith <pedz@easesoftware.com>
 ;; Created: December 2022
 ;; Keywords: ruby languages tree-sitter
+;; Version: 0.2
 
 ;; This file is part of GNU Emacs.
 
@@ -50,11 +51,11 @@
 
 ;; Currently tree treesit-font-lock-feature-list is set with the
 ;; following levels:
-;;   1: comment method-definition
+;;   1: comment method-definition parameter-definition
 ;;   2: keyword regexp string type
-;;   3: builtin-variable builtin-constant constant
+;;   3: builtin-variable builtin-constant builtin-function
 ;;      delimiter escape-sequence
-;;      global instance
+;;      constant global instance
 ;;      interpolation literal symbol assignment
 ;;   4: bracket error function operator punctuation
 
@@ -71,6 +72,8 @@
 ;; ruby-ts-mode tries to adhere to the indentation related user
 ;; options from ruby-mode, such as ruby-indent-level,
 ;; ruby-indent-tabs-mode, and so on.
+;;
+;; Type 'M-x customize-group RET ruby RET' to see the options.
 
 ;; * IMenu
 ;; * Navigation
@@ -114,20 +117,29 @@
   "Ruby's punctuation characters.")
 
 (defvar ruby-ts--predefined-constants
-  (rx (or "ARGF" "ARGV" "DATA" "ENV" "RUBY_COPYRIGHT"
+  (rx string-start
+      (or "ARGF" "ARGV" "DATA" "ENV" "RUBY_COPYRIGHT"
           "RUBY_DESCRIPTION" "RUBY_ENGINE" "RUBY_ENGINE_VERSION"
           "RUBY_PATCHLEVEL" "RUBY_PLATFORM" "RUBY_RELEASE_DATE"
           "RUBY_REVISION" "RUBY_VERSION" "STDERR" "STDIN" "STDOUT"
-          "TOPLEVEL_BINDING"))
+          "TOPLEVEL_BINDING")
+      string-end)
   "Ruby predefined global constants.")
 
 (defvar ruby-ts--predefined-variables
-  (rx (or "$!" "$@" "$~" "$&" "$‘" "$‘" "$+" "$=" "$/" "$\\" "$," "$;"
+  (rx string-start
+      (or "$!" "$@" "$~" "$&" "$`" "$'" "$+" "$=" "$/" "$\\" "$," "$;"
           "$." "$<" "$>" "$_" "$*" "$$" "$?" "$:" "$LOAD_PATH"
           "$LOADED_FEATURES" "$DEBUG" "$FILENAME" "$stderr" "$stdin"
           "$stdout" "$VERBOSE" "$-a" "$-i" "$-l" "$-p"
-          (seq "$" (+ digit))))
+          "$0" "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9")
+      string-end)
   "Ruby predefined global variables.")
+
+(defvar ruby-ts--builtin-methods
+  (format "\\`%s\\'" (regexp-opt (append ruby-builtin-methods-no-reqs
+                                         ruby-builtin-methods-with-reqs)))
+  "Ruby built-in methods.")
 
 (defconst ruby-ts--class-or-module-regex
   (rx string-start
@@ -196,6 +208,9 @@ values of OVERRIDE"
                                        font-lock-comment-delimiter-face override))
     (treesit-fontify-with-override (max plus-1 start) (min node-end end)
                                    font-lock-comment-face override)))
+
+(defun ruby-ts--builtin-method-p (node)
+  (string-match-p ruby-ts--builtin-methods (treesit-node-text node t)))
 
 (defun ruby-ts--font-lock-settings (language)
   "Tree-sitter font-lock settings for Ruby."
@@ -321,6 +336,11 @@ values of OVERRIDE"
       name: (identifier) @font-lock-variable-name-face)
      (in_clause
       pattern: (identifier) @font-lock-variable-name-face))
+
+   :language language
+   :feature 'builtin-function
+   `((((identifier) @font-lock-builtin-face)
+      (:pred ruby-ts--builtin-method-p @font-lock-builtin-face)))
 
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
@@ -535,7 +555,7 @@ a statement container is a node that matches
   (let ((common
          `(
            ;; Slam all top level nodes to the left margin
-           ((parent-is "program") parent 0)
+           ((parent-is "program") point-min 0)
 
            ;; Do not indent here docs or the end.  Not sure why it
            ;; takes the grand-parent but ok fine.
@@ -645,7 +665,7 @@ a statement container is a node that matches
                  (or
                   (match "\\." "call")
                   (query "(call \".\" (identifier) @indent)")))
-            parent 0)
+            (ruby-ts--bol ruby-ts--statement-ancestor) ruby-indent-level)
            ((match "\\." "call") parent ruby-indent-level)
 
            ;; method parameters -- four styles:
@@ -1034,13 +1054,27 @@ leading double colon is not added."
   (setq-local treesit-font-lock-feature-list
               '(( comment method-definition parameter-definition)
                 ( keyword regexp string type)
-                ( builtin-variable builtin-constant constant
+                ( builtin-variable builtin-constant builtin-function
                   delimiter escape-sequence
-                  global instance
+                  constant global instance
                   interpolation literal symbol assignment)
                 ( bracket error function operator punctuation)))
 
   (treesit-major-mode-setup))
+
+(if (treesit-ready-p 'ruby)
+    ;; Copied from ruby-mode.el.
+    (add-to-list 'auto-mode-alist
+                 (cons (concat "\\(?:\\.\\(?:"
+                               "rbw?\\|ru\\|rake\\|thor"
+                               "\\|jbuilder\\|rabl\\|gemspec\\|podspec"
+                               "\\)"
+                               "\\|/"
+                               "\\(?:Gem\\|Rake\\|Cap\\|Thor"
+                               "\\|Puppet\\|Berks\\|Brew"
+                               "\\|Vagrant\\|Guard\\|Pod\\)file"
+                               "\\)\\'")
+                       'ruby-ts-mode)))
 
 (provide 'ruby-ts-mode)
 

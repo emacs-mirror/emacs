@@ -165,6 +165,9 @@ A resource file is in the resource directory as per
   ;; Suppress nasty messages.
   (fset #'shell-command-sentinel #'ignore)
   ;; We do not want to be interrupted.
+  (fset #'tramp-action-yesno
+	(lambda (_proc vec)
+	  (tramp-send-string vec (concat "yes" tramp-local-end-of-line)) t))
   (eval-after-load 'tramp-gvfs
     '(fset 'tramp-gvfs-handler-askquestion
 	   (lambda (_message _choices) '(t nil 0)))))
@@ -3513,6 +3516,9 @@ This tests also `access-file', `file-readable-p',
 	     (access-file tmp-name1 "error")
 	     :type 'file-missing)
 
+	    (should-not (file-exists-p tmp-name1))
+	    (should-not (file-readable-p tmp-name1))
+	    (should-not (file-regular-p tmp-name1))
 	    ;; `file-ownership-preserved-p' should return t for
 	    ;; non-existing files.
 	    (when test-file-ownership-preserved-p
@@ -3597,7 +3603,7 @@ This tests also `access-file', `file-readable-p',
 	    (should (file-exists-p tmp-name1))
 	    (should (file-readable-p tmp-name1))
 	    (should-not (file-regular-p tmp-name1))
-	    (should-not (access-file tmp-name1 ""))
+	    (should-not (access-file tmp-name1 "error"))
 	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (setq attr (file-attributes tmp-name1))
@@ -3936,7 +3942,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (tramp--test-ignore-make-symbolic-link-error
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
+	    (should (file-regular-p tmp-name1))
 	    (make-symbolic-link tmp-name1 tmp-name2)
+	    (should (file-exists-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should
 	     (string-equal
 	      (funcall
@@ -3987,6 +3996,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (string-equal tmp-name1 (file-symlink-p tmp-name3))))
 	    ;; Check directory as newname.
 	    (make-directory tmp-name4)
+	    (should (file-directory-p tmp-name4))
+	    (should-not (file-regular-p tmp-name4))
 	    (when (tramp--test-expensive-test-p)
 	      (should-error
 	       (make-symbolic-link tmp-name1 tmp-name4)
@@ -4000,6 +4011,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (file-symlink-p tmp-name5)))
 	    ;; Check, that files in symlinked directories still work.
 	    (make-symbolic-link tmp-name4 tmp-name6)
+	    (should (file-symlink-p tmp-name6))
+	    (should-not (file-regular-p tmp-name6))
 	    (write-region "foo" nil (expand-file-name "foo" tmp-name6))
 	    (delete-file (expand-file-name "foo" tmp-name6))
 	    (should-not (file-exists-p (expand-file-name "foo" tmp-name4)))
@@ -4061,9 +4074,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (tramp--test-ignore-make-symbolic-link-error
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
+	    (should (file-regular-p tmp-name1))
 	    (should (string-equal tmp-name1 (file-truename tmp-name1)))
 	    (make-symbolic-link tmp-name1 tmp-name2)
 	    (should (file-symlink-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should-not (string-equal tmp-name2 (file-truename tmp-name2)))
 	    (should
 	     (string-equal (file-truename tmp-name1) (file-truename tmp-name2)))
@@ -4073,6 +4088,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (let ((default-directory ert-remote-temporary-file-directory))
 	      (make-symbolic-link (file-name-nondirectory tmp-name1) tmp-name2))
 	    (should (file-symlink-p tmp-name2))
+	    (should (file-regular-p tmp-name2))
 	    (should-not (string-equal tmp-name2 (file-truename tmp-name2)))
 	    (should
 	     (string-equal (file-truename tmp-name1) (file-truename tmp-name2)))
@@ -4087,6 +4103,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (funcall (if quoted #'file-name-unquote #'identity) penguin)
 	       tmp-name2)
 	      (should (file-symlink-p tmp-name2))
+	      (should-not (file-regular-p tmp-name2))
 	      (should
 	       (string-equal
 		(file-truename tmp-name2)
@@ -4096,6 +4113,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (unless (tramp--test-windows-nt-p)
 	      (make-symbolic-link tmp-name1 tmp-name3)
 	      (should (file-symlink-p tmp-name3))
+	      (should-not (file-regular-p tmp-name3))
               (should-not (string-equal tmp-name3 (file-truename tmp-name3)))
 	      ;; `file-truename' returns a quoted file name for `tmp-name3'.
 	      ;; We must unquote it.
@@ -4124,6 +4142,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(make-symbolic-link
 		 tmp-name3
 		 (setq tmp-name3 (tramp--test-make-temp-name nil quoted))))
+	      (should-not (file-regular-p tmp-name2))
+	      (should-not (file-regular-p tmp-name3))
 	      (should
 	       (string-equal
 		(file-truename tmp-name2)
@@ -4154,6 +4174,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (tramp--test-ignore-make-symbolic-link-error
 	     (make-symbolic-link tmp-name2 tmp-name1)
 	     (should (file-symlink-p tmp-name1))
+	     (should-not (file-regular-p tmp-name1))
+	     (should-not (file-regular-p tmp-name2))
+	     (should
+	      (string-equal
+	       (file-truename tmp-name1)
+	       (file-truename tmp-name2)))
 	     (if (tramp--test-smb-p)
 		 ;; The symlink command of "smbclient" detects the
 		 ;; cycle already.
@@ -4161,9 +4187,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (make-symbolic-link tmp-name1 tmp-name2)
 		  :type 'file-error)
 	       (make-symbolic-link tmp-name1 tmp-name2)
+	       (should (file-symlink-p tmp-name1))
 	       (should (file-symlink-p tmp-name2))
+	       (should-not (file-regular-p tmp-name1))
+	       (should-not (file-regular-p tmp-name2))
 	       (should-error
 		(file-truename tmp-name1)
+		:type 'file-error)
+	       (should-error
+		(file-truename tmp-name2)
 		:type 'file-error))))
 
 	;; Cleanup.
@@ -4900,13 +4932,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (while (accept-process-output proc 0 nil t))))
 		(should
 		 (string-match-p
-		  (if (and (memq process-connection-type '(nil pipe))
-                           (not (tramp--test-macos-p)))
-                      ;; On macOS, there is always newline conversion.
-		      ;; "telnet" converts \r to <CR><NUL> if `crlf'
-		      ;; flag is FALSE.  See telnet(1) man page.
-		      (rx "66\n6F\n6F\n0D" (? "\n00") "\n0A\n")
-		    (rx "66\n6F\n6F\n0A" (? "\n00") "\n0A\n"))
+                  ;; On macOS, there is always newline conversion.
+		  ;; "telnet" converts \r to <CR><NUL> if `crlf'
+		  ;; flag is FALSE.  See telnet(1) man page.
+		  (rx "66\n" "6F\n" "6F\n" (| "0D\n" "0A\n") (? "00\n") "0A\n")
 		  (buffer-string))))
 
 	    ;; Cleanup.
@@ -5190,14 +5219,10 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		      (while (accept-process-output proc 0 nil t))))
 		  (should
 		   (string-match-p
-		    (if (and (memq (or connection-type process-connection-type)
-			           '(nil pipe))
-                             (not (tramp--test-macos-p)))
-                        ;; On macOS, there is always newline conversion.
-			;; "telnet" converts \r to <CR><NUL> if `crlf'
-			;; flag is FALSE.  See telnet(1) man page.
-			(rx "66\n6F\n6F\n0D" (? "\n00") "\n0A\n")
-		      (rx "66\n6F\n6F\n0A" (? "\n00") "\n0A\n"))
+                    ;; On macOS, there is always newline conversion.
+		    ;; "telnet" converts \r to <CR><NUL> if `crlf'
+		    ;; flag is FALSE.  See telnet(1) man page.
+		    (rx "66\n" "6F\n" "6F\n" (| "0D\n" "0A\n") (? "00\n") "0A\n")
 		    (buffer-string))))
 
 	      ;; Cleanup.
@@ -7043,6 +7068,9 @@ This requires restrictions of file name syntax."
 	  ;; Use all available language specific snippets.
 	  (lambda (x)
 	    (and
+	     ;; The "Oriya" and "Odia" languages use some problematic
+	     ;; composition characters.
+	     (not (member (car x) '("Oriya" "Odia")))
              (stringp (setq x (eval (get-language-info (car x) 'sample-text) t)))
 	     ;; Filter out strings which use unencodable characters.
 	     (not (and (or (tramp--test-gvfs-p) (tramp--test-smb-p))

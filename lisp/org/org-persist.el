@@ -160,6 +160,8 @@
 (declare-function org-next-visible-heading "org" (arg))
 (declare-function org-at-heading-p "org" (&optional invisible-not-ok))
 
+;; Silence byte-compiler (used in `org-persist--write-elisp-file').
+(defvar pp-use-max-width)
 
 (defconst org-persist--storage-version "3.1"
   "Persistent storage layout version.")
@@ -335,7 +337,8 @@ FORMAT and ARGS are passed to `message'."
       (make-directory (file-name-directory file) t))
     (with-temp-file file
       (if pp
-          (pp data (current-buffer))
+          (let ((pp-use-max-width nil)) ; Emacs bug#58687
+            (pp data (current-buffer)))
         (prin1 data (current-buffer))))
     (org-persist--display-time
      (- (float-time) start-time)

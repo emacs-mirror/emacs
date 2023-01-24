@@ -34,13 +34,14 @@ This feature existed in Emacs 28.1, but was less easy to request.
 
 +++
 ** Emacs can be built with the tree-sitter parsing library.
-This library, together with grammar libraries, provides incremental
-parsing capabilities for several popular programming languages and
-other formatted files.  Emacs built with this library offers major
-modes, described elsewhere in this file, that are based on the
-tree-sitter's parsers.  If you have the tree-sitter library
-installed, the configure script will automatically include it in the
-build; use '--without-tree-sitter' at configure time to disable that.
+This library, together with separate grammar libraries for each
+language, provides incremental parsing capabilities for several
+popular programming languages and other formatted files.  Emacs built
+with this library offers major modes, described elsewhere in this
+file, that are based on the tree-sitter's parsers.  If you have the
+tree-sitter library installed, the configure script will automatically
+include it in the build; use '--without-tree-sitter' at configure time
+to disable that.
 
 Emacs modes based on the tree-sitter library require an additional
 grammar library for each mode.  These grammar libraries provide the
@@ -3183,19 +3184,19 @@ indentation, and navigation by defuns based on parsing the buffer text
 by a tree-sitter parser.  Some major modes also offer support for
 Imenu and 'which-func'.
 
-Where major modes already exist in Emacs for editing certain kinds of
-files, the new modes based on tree-sitter are for now entirely
-optional, and you must turn them on manually, or customize
-'auto-mode-alist' to turn them on automatically.
+The new modes based on tree-sitter are for now entirely optional, and
+you must turn them on manually, or load them in your init file, or
+customize 'auto-mode-alist' to turn them on automatically for certain
+files.  You can also customize 'major-mode-remap-alist' to
+automatically turn on some tree-sitter based modes for the same files
+for which a "built-in" mode would be turned on.  For example:
 
-Where no major modes previously existed in Emacs for editing the kinds
-of files for which Emacs now provides a tree-sitter based mode, Emacs
-will now try to enable these new modes automatically when you visit
-such files, and will display a warning if the tree-sitter library or
-the parser grammar library is not available.  To prevent the warnings,
-either build Emacs with tree-sitter and install the grammar libraries,
-or customize 'auto-mode-alist' to specify some other major mode (or
-even 'fundamental-mode') for those kinds of files.
+    (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
+
+If you try these modes and don't like them, you can go back to the
+"built-in" modes by restarting Emacs.  But please tell us why you
+didn't like the tree-sitter based modes, so that we could try
+improving them.
 
 Each major mode based on tree-sitter needs a language grammar library,
 usually named "libtree-sitter-LANG.so" ("libtree-sitter-LANG.dll" on
@@ -3212,20 +3213,18 @@ We recommend to install these libraries in one of the standard system
 locations (the last place in the above list).
 
 If a language grammar library required by a mode is not found in any
-of the above places, the mode will signal an error when you try to
+of the above places, the mode will display a warning when you try to
 turn it on.
 
 +++
 *** New major mode 'typescript-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
-in the TypeScript language.  This mode is auto-enabled for files with
-the ".ts" extension.
+in the TypeScript language.
 
 +++
 *** New major mode 'tsx-ts-mode'.
 A major mode based on the tree-sitter library for editing programs
-in the TypeScript language, with support for TSX.  This mode is
-auto-enabled for files with the ".tsx" extension.
+in the TypeScript language, with support for TSX.
 
 +++
 *** New major mode 'c-ts-mode'.
@@ -3275,15 +3274,11 @@ Bash shell scripts.
 +++
 *** New major mode 'dockerfile-ts-mode'.
 A major mode based on the tree-sitter library for editing
-Dockerfiles.  This mode is auto-enabled for files which are named
-"Dockerfile", have the "Dockerfile." prefix, or have the ".dockerfile"
-extension.
+Dockerfiles.
 
 +++
 *** New major mode 'cmake-ts-mode'.
 A major mode based on the tree-sitter library for editing CMake files.
-It is auto-enabled for files whose name is "CMakeLists.txt" or whose
-extension is ".cmake".
 
 +++
 *** New major mode 'toml-ts-mode'.
@@ -3293,23 +3288,22 @@ files written in TOML, a format for writing configuration files.
 +++
 *** New major mode 'go-ts-mode'.
 A major mode based on the tree-sitter library for editing programs in
-the Go language.  It is auto-enabled for files with the ".go" extension.
+the Go language.
 
 +++
 *** New major mode 'go-mod-ts-mode'.
 A major mode based on the tree-sitter library for editing "go.mod"
-files.  It is auto-enabled for files which are named "go.mod".
+files.
 
 +++
 *** New major mode 'yaml-ts-mode'.
 A major mode based on the tree-sitter library for editing files
-written in YAML.  It is auto-enabled for files with the ".yaml" or
-".yml" extensions.
+written in YAML.
 
 +++
 *** New major mode 'rust-ts-mode'.
 A major mode based on the tree-sitter library for editing programs in
-the Rust language.  It is auto-enabled for files with the ".rs" extension.
+the Rust language.
 
 ---
 *** New major mode 'ruby-ts-mode'.

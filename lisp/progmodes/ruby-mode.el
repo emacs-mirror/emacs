@@ -141,6 +141,81 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 
 It should match the part after \"def\" and until \"=\".")
 
+(defconst ruby-builtin-methods-with-reqs
+  '( ;; built-in methods on Kernel
+    "at_exit"
+    "autoload"
+    "autoload?"
+    "callcc"
+    "catch"
+    "eval"
+    "exec"
+    "format"
+    "lambda"
+    "load"
+    "loop"
+    "open"
+    "p"
+    "printf"
+    "proc"
+    "putc"
+    "require"
+    "require_relative"
+    "spawn"
+    "sprintf"
+    "syscall"
+    "system"
+    "throw"
+    "trace_var"
+    "trap"
+    "untrace_var"
+    "warn"
+    ;; keyword-like private methods on Module
+    "alias_method"
+    "attr"
+    "attr_accessor"
+    "attr_reader"
+    "attr_writer"
+    "define_method"
+    "extend"
+    "include"
+    "module_function"
+    "prepend"
+    "private_class_method"
+    "private_constant"
+    "public_class_method"
+    "public_constant"
+    "refine"
+    "using")
+  "List of built-in methods that require at least one argument.")
+
+(defconst ruby-builtin-methods-no-reqs
+  '("__callee__"
+    "__dir__"
+    "__method__"
+    "abort"
+    "binding"
+    "block_given?"
+    "caller"
+    "exit"
+    "exit!"
+    "fail"
+    "fork"
+    "global_variables"
+    "local_variables"
+    "print"
+    "private"
+    "protected"
+    "public"
+    "puts"
+    "raise"
+    "rand"
+    "readline"
+    "readlines"
+    "sleep"
+    "srand")
+  "List of built-in methods that only have optional arguments.")
+
 (defvar ruby-use-smie t)
 (make-obsolete-variable 'ruby-use-smie nil "28.1")
 
@@ -261,7 +336,15 @@ Only has effect when `ruby-use-smie' is t."
   "If non-nil, align chained method calls.
 
 Each method call on a separate line will be aligned to the column
-of its parent.
+of its parent. Example:
+
+  my_array.select { |str| str.size > 5 }
+          .map    { |str| str.downcase }
+
+When nil, each method call is indented with the usual offset:
+
+  my_array.select { |str| str.size > 5 }
+    .map    { |str| str.downcase }
 
 Only has effect when `ruby-use-smie' is t."
   :type 'boolean
@@ -271,12 +354,26 @@ Only has effect when `ruby-use-smie' is t."
 (defcustom ruby-method-params-indent t
   "Indentation  of multiline method parameters.
 
-When t, the parameters list is indented to the method name.
+When t, the parameters list is indented to the method name:
+
+  def foo(
+        baz,
+        bar
+      )
+    hello
+  end
 
 When a number, indent the parameters list this many columns
 against the beginning of the method (the \"def\" keyword).
 
-The value nil means the same as 0.
+The value nil means the same as 0:
+
+  def foo(
+    baz,
+    bar
+  )
+    hello
+  end
 
 Only has effect when `ruby-use-smie' is t."
   :type '(choice (const :tag "Indent to the method name" t)
@@ -2292,84 +2389,13 @@ It will be properly highlighted even when the call omits parens.")
     ;; Core methods that have required arguments.
     (,(concat
        ruby-font-lock-keyword-beg-re
-       (regexp-opt
-        '( ;; built-in methods on Kernel
-          "at_exit"
-          "autoload"
-          "autoload?"
-          "callcc"
-          "catch"
-          "eval"
-          "exec"
-          "format"
-          "lambda"
-          "load"
-          "loop"
-          "open"
-          "p"
-          "printf"
-          "proc"
-          "putc"
-          "require"
-          "require_relative"
-          "spawn"
-          "sprintf"
-          "syscall"
-          "system"
-          "throw"
-          "trace_var"
-          "trap"
-          "untrace_var"
-          "warn"
-          ;; keyword-like private methods on Module
-          "alias_method"
-          "attr"
-          "attr_accessor"
-          "attr_reader"
-          "attr_writer"
-          "define_method"
-          "extend"
-          "include"
-          "module_function"
-          "prepend"
-          "private_class_method"
-          "private_constant"
-          "public_class_method"
-          "public_constant"
-          "refine"
-          "using")
-        'symbols))
+       (regexp-opt ruby-builtin-methods-with-reqs 'symbols))
      (1 (unless (looking-at " *\\(?:[]|,.)}=]\\|$\\)")
           font-lock-builtin-face)))
     ;; Kernel methods that have no required arguments.
     (,(concat
        ruby-font-lock-keyword-beg-re
-       (regexp-opt
-        '("__callee__"
-          "__dir__"
-          "__method__"
-          "abort"
-          "binding"
-          "block_given?"
-          "caller"
-          "exit"
-          "exit!"
-          "fail"
-          "fork"
-          "global_variables"
-          "local_variables"
-          "print"
-          "private"
-          "protected"
-          "public"
-          "puts"
-          "raise"
-          "rand"
-          "readline"
-          "readlines"
-          "sleep"
-          "srand")
-        'symbols))
+       (regexp-opt ruby-builtin-methods-no-reqs 'symbols))
      (1 font-lock-builtin-face))
     ;; Here-doc beginnings.
     (,ruby-here-doc-beg-re

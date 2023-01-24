@@ -1175,51 +1175,21 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
 (defun tramp-smb-handle-make-symbolic-link
-  (target linkname &optional ok-if-already-exists)
-  "Like `make-symbolic-link' for Tramp files.
-If TARGET is a non-Tramp file, it is used verbatim as the target
-of the symlink.  If TARGET is a Tramp file, only the localname
-component is used as the target of the symlink."
-  (with-parsed-tramp-file-name linkname nil
-    ;; If TARGET is a Tramp name, use just the localname component.
-    ;; Don't check for a proper method.
-    (let ((non-essential t))
-      (when (and (tramp-tramp-file-p target)
-		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	(setq target (tramp-file-local-name (expand-file-name target)))))
+    (target linkname &optional ok-if-already-exists)
+  "Like `make-symbolic-link' for Tramp files."
+  (let ((v (tramp-dissect-file-name (expand-file-name linkname))))
+    (unless (tramp-smb-get-cifs-capabilities v)
+      (tramp-error v 'file-error "make-symbolic-link not supported")))
 
-    ;; If TARGET is still remote, quote it.
-    (if (tramp-tramp-file-p target)
-	(make-symbolic-link
-	 (file-name-quote target 'top) linkname ok-if-already-exists)
-
-      ;; Do the 'confirm if exists' thing.
-      (when (file-exists-p linkname)
-	;; What to do?
-	(if (or (null ok-if-already-exists) ; not allowed to exist
-		(and (numberp ok-if-already-exists)
-		     (not (yes-or-no-p
-			   (format
-			    "File %s already exists; make it a link anyway?"
-			    localname)))))
-	    (tramp-error v 'file-already-exists localname)
-	  (delete-file linkname)))
-
-      (unless (tramp-smb-get-cifs-capabilities v)
-	(tramp-error v 'file-error "make-symbolic-link not supported"))
-
-      ;; We must also flush the cache of the directory, because
-      ;; `file-attributes' reads the values from there.
-      (tramp-flush-file-properties v localname)
-
-      (unless (tramp-smb-send-command
-	       v (format "symlink %s %s"
-			 (tramp-smb-shell-quote-argument target)
-			 (tramp-smb-shell-quote-localname v)))
-	(tramp-error
-	 v 'file-error
-	 "error with make-symbolic-link, see buffer `%s' for details"
-	 (tramp-get-connection-buffer v))))))
+  (tramp-skeleton-handle-make-symbolic-link target linkname ok-if-already-exists
+    (unless (tramp-smb-send-command
+	     v (format "symlink %s %s"
+		       (tramp-smb-shell-quote-argument target)
+		       (tramp-smb-shell-quote-localname v)))
+      (tramp-error
+       v 'file-error
+       "error with make-symbolic-link, see buffer `%s' for details"
+       (tramp-get-connection-buffer v)))))
 
 (defun tramp-smb-handle-process-file
   (program &optional infile destination display &rest args)

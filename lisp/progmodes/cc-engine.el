@@ -8288,10 +8288,17 @@ multi-line strings (but not C++, for example)."
 	   (setq c-record-ref-identifiers
 		 (cons range c-record-ref-identifiers))))))
 
-(defmacro c-forward-keyword-prefixed-id (type)
+(defmacro c-forward-keyword-prefixed-id (type &optional stop-at-end)
   ;; Used internally in `c-forward-keyword-clause' to move forward
   ;; over a type (if TYPE is 'type) or a name (otherwise) which
   ;; possibly is prefixed by keywords and their associated clauses.
+  ;; Point should be at the type/name or a preceding keyword at the start of
+  ;; the macro, and it is left at the first token following the type/name,
+  ;; or (when STOP-AT-END is non-nil) immediately after that type/name.
+  ;;
+  ;; Note that both parameters are evaluated at compile time, not run time,
+  ;; so they must be constants.
+  ;;
   ;; Try with a type/name first to not trip up on those that begin
   ;; with a keyword.  Return t if a known or found type is moved
   ;; over.  The point is clobbered if nil is returned.  If range
@@ -8300,51 +8307,84 @@ multi-line strings (but not C++, for example)."
   ;;
   ;; This macro might do hidden buffer changes.
   (declare (debug t))
-  `(let (res)
+  `(let (res pos)
      (setq c-last-identifier-range nil)
      (while (if (setq res ,(if (eq type 'type)
-			       '(c-forward-type)
-			     '(c-forward-name)))
-		nil
-	      (cond ((looking-at c-keywords-regexp)
-		     (c-forward-keyword-clause 1))
-		    ((and c-opt-cpp-prefix
-			  (looking-at c-noise-macro-with-parens-name-re))
-		     (c-forward-noise-clause)))))
+			       `(c-forward-type nil ,stop-at-end)
+			     `(c-forward-name ,stop-at-end)))
+		(progn
+		  (setq pos (point))
+		  nil)
+	      (and
+	       (cond ((looking-at c-keywords-regexp)
+		      (c-forward-keyword-clause 1 t))
+		     ((and c-opt-cpp-prefix
+			   (looking-at c-noise-macro-with-parens-name-re))
+		      (c-forward-noise-clause t)))
+	       (progn
+		 (setq pos (point))
+		 (c-forward-syntactic-ws)
+		 t))))
      (when (memq res '(t known found prefix maybe))
        (when c-record-type-identifiers
-        ,(if (eq type 'type)
-             '(c-record-type-id c-last-identifier-range)
-           '(c-record-ref-id c-last-identifier-range)))
+	 ,(if (eq type 'type)
+	      '(c-record-type-id c-last-identifier-range)
+	    '(c-record-ref-id c-last-identifier-range)))
+       (when pos
+	 (goto-char pos)
+	 ,(unless stop-at-end
+	    `(c-forward-syntactic-ws)))
        t)))
 
-(defmacro c-forward-id-comma-list (type update-safe-pos)
+(defmacro c-forward-id-comma-list (type update-safe-pos &optional stop-at-end)
   ;; Used internally in `c-forward-keyword-clause' to move forward
   ;; over a comma separated list of types or names using
-  ;; `c-forward-keyword-prefixed-id'.
+  ;; `c-forward-keyword-prefixed-id'.  Point should start at the first token
+  ;; after the already scanned type/name, or (if STOP-AT-END is non-nil)
+  ;; immediately after that type/name.  Point is left either before or
+  ;; after the whitespace following the last type/name in the list, depending
+  ;; on whether STOP-AT-END is non-nil or nil.  The return value is without
+  ;; significance.
+  ;;
+  ;; Note that all three parameters are evaluated at compile time, not run
+  ;; time, so they must be constants.
   ;;
   ;; This macro might do hidden buffer changes.
   (declare (debug t))
-  `(while (and (progn
-		 ,(when update-safe-pos
-		    '(setq safe-pos (point)))
-		 (eq (char-after) ?,))
-	       (progn
-		 (forward-char)
-		 (c-forward-syntactic-ws)
-		 (c-forward-keyword-prefixed-id ,type)))))
+  `(let ((pos (point)))
+     (while (and (progn
+		   ,(when update-safe-pos
+		      `(setq safe-pos (point)))
+		   (setq pos (point))
+		   (c-forward-syntactic-ws)
+		   (eq (char-after) ?,))
+		 (progn
+		   (forward-char)
+		   (setq pos (point))
+		   (c-forward-syntactic-ws)
+		   (c-forward-keyword-prefixed-id ,type t))))
+     (goto-char pos)
+     ,(unless stop-at-end
+       `(c-forward-syntactic-ws))))
 
-(defun c-forward-noise-clause ()
+(defun c-forward-noise-clause (&optional stop-at-end)
   ;; Point is at a c-noise-macro-with-parens-names macro identifier.  Go
   ;; forward over this name, any parenthesis expression which follows it, and
-  ;; any syntactic WS, ending up at the next token or EOB.  If there is an
+  ;; any syntactic WS, ending up either at the next token or EOB or (when
+  ;; STOP-AT-END is non-nil) directly after the clause.  If there is an
   ;; unbalanced paren expression, leave point at it.  Always Return t.
-  (or (zerop (c-forward-token-2))
-      (goto-char (point-max)))
-  (if (and (eq (char-after) ?\()
-	   (c-go-list-forward))
+  (let (pos)
+    (or (c-forward-over-token)
+	(goto-char (point-max)))
+    (setq pos (point))
+    (c-forward-syntactic-ws)
+    (when (and (eq (char-after) ?\()
+	       (c-go-list-forward))
+      (setq pos (point)))
+    (goto-char pos)
+    (unless stop-at-end
       (c-forward-syntactic-ws))
-  t)
+    t))
 
 (defun c-forward-noise-clause-not-macro-decl (maybe-parens)
   ;; Point is at a noise macro identifier, which, when MAYBE-PARENS is
@@ -8378,11 +8418,12 @@ multi-line strings (but not C++, for example)."
       (goto-char here)
       nil)))
 
-(defun c-forward-keyword-clause (match)
+(defun c-forward-keyword-clause (match &optional stop-at-end)
   ;; Submatch MATCH in the current match data is assumed to surround a
   ;; token.  If it's a keyword, move over it and any immediately
-  ;; following clauses associated with it, stopping at the start of
-  ;; the next token.  t is returned in that case, otherwise the point
+  ;; following clauses associated with it, stopping either at the start
+  ;; of the next token, or (when STOP-AT-END is non-nil) at the end
+  ;; of the clause.  t is returned in that case, otherwise the point
   ;; stays and nil is returned.  The kind of clauses that are
   ;; recognized are those specified by `c-type-list-kwds',
   ;; `c-ref-list-kwds', `c-colon-type-list-kwds',
@@ -8412,19 +8453,23 @@ multi-line strings (but not C++, for example)."
 
     (when kwd-sym
       (goto-char (match-end match))
-      (c-forward-syntactic-ws)
       (setq safe-pos (point))
+      (c-forward-syntactic-ws)
 
       (cond
        ((and (c-keyword-member kwd-sym 'c-type-list-kwds)
-	     (c-forward-keyword-prefixed-id type))
+	     (c-forward-keyword-prefixed-id type t))
 	;; There's a type directly after a keyword in `c-type-list-kwds'.
-	(c-forward-id-comma-list type t))
+	(setq safe-pos (point))
+	(c-forward-syntactic-ws)
+	(c-forward-id-comma-list type t t))
 
        ((and (c-keyword-member kwd-sym 'c-ref-list-kwds)
-	     (c-forward-keyword-prefixed-id ref))
+	     (c-forward-keyword-prefixed-id ref t))
 	;; There's a name directly after a keyword in `c-ref-list-kwds'.
-	(c-forward-id-comma-list ref t))
+	(setq safe-pos (point))
+	(c-forward-syntactic-ws)
+	(c-forward-id-comma-list ref t t))
 
        ((and (c-keyword-member kwd-sym 'c-paren-any-kwds)
 	     (eq (char-after) ?\())
@@ -8444,20 +8489,20 @@ multi-line strings (but not C++, for example)."
 		(goto-char (match-end 0)))))
 
 	  (goto-char pos)
-	  (c-forward-syntactic-ws)
-	  (setq safe-pos (point))))
+	  (setq safe-pos (point)))
+	  (c-forward-syntactic-ws))
 
        ((and (c-keyword-member kwd-sym 'c-<>-sexp-kwds)
 	     (eq (char-after) ?<)
 	     (c-forward-<>-arglist (c-keyword-member kwd-sym 'c-<>-type-kwds)))
-	(c-forward-syntactic-ws)
-	(setq safe-pos (point)))
+	(setq safe-pos (point))
+	(c-forward-syntactic-ws))
 
        ((and (c-keyword-member kwd-sym 'c-nonsymbol-sexp-kwds)
 	     (not (looking-at c-symbol-start))
 	     (c-safe (c-forward-sexp) t))
-	(c-forward-syntactic-ws)
-	(setq safe-pos (point)))
+	(setq safe-pos (point))
+	(c-forward-syntactic-ws))
 
        ((and (c-keyword-member kwd-sym 'c-protection-kwds)
 	     (or (null c-post-protection-token)
@@ -8467,8 +8512,8 @@ multi-line strings (but not C++, for example)."
 			(not (c-end-of-current-token))))))
 	(if c-post-protection-token
 	    (goto-char (match-end 0)))
-	(c-forward-syntactic-ws)
-	(setq safe-pos (point))))
+	(setq safe-pos (point))
+	(c-forward-syntactic-ws)))
 
       (when (c-keyword-member kwd-sym 'c-colon-type-list-kwds)
 	(if (eq (char-after) ?:)
@@ -8477,8 +8522,10 @@ multi-line strings (but not C++, for example)."
 	    (progn
 	      (forward-char)
 	      (c-forward-syntactic-ws)
-	      (when (c-forward-keyword-prefixed-id type)
-		(c-forward-id-comma-list type t)))
+	      (when (c-forward-keyword-prefixed-id type t)
+		(setq safe-pos (point))
+		(c-forward-syntactic-ws)
+		(c-forward-id-comma-list type t t)))
 	  ;; Not at the colon, so stop here.  But the identifier
 	  ;; ranges in the type list later on should still be
 	  ;; recorded.
@@ -8488,15 +8535,18 @@ multi-line strings (but not C++, for example)."
 		 ;; this one, we move forward to the colon following the
 		 ;; clause matched above.
 		 (goto-char safe-pos)
+		 (c-forward-syntactic-ws)
 		 (c-forward-over-colon-type-list))
 	       (progn
 		 (c-forward-syntactic-ws)
-		 (c-forward-keyword-prefixed-id type))
+		 (c-forward-keyword-prefixed-id type t))
 	       ;; There's a type after the `c-colon-type-list-re' match
 	       ;; after a keyword in `c-colon-type-list-kwds'.
 	       (c-forward-id-comma-list type nil))))
 
       (goto-char safe-pos)
+      (unless stop-at-end
+	(c-forward-syntactic-ws))
       t)))
 
 ;; cc-mode requires cc-fonts.
@@ -8827,11 +8877,12 @@ multi-line strings (but not C++, for example)."
 
       (/= (point) start))))
 
-(defun c-forward-name ()
-  ;; Move forward over a complete name if at the beginning of one,
-  ;; stopping at the next following token.  A keyword, as such,
-  ;; doesn't count as a name.  If the point is not at something that
-  ;; is recognized as a name then it stays put.
+(defun c-forward-name (&optional stop-at-end)
+  ;; Move forward over a complete name if at the beginning of one, stopping
+  ;; either at the next following token or (when STOP-AT-END is non-nil) at
+  ;; the end of the name.  A keyword, as such, doesn't count as a name.  If
+  ;; the point is not at something that is recognized as a name then it stays
+  ;; put.
   ;;
   ;; A name could be something as simple as "foo" in C or something as
   ;; complex as "X<Y<class A<int>::B, BIT_MAX >> b>, ::operator<> ::
@@ -8853,7 +8904,7 @@ multi-line strings (but not C++, for example)."
   ;;
   ;; This function might do hidden buffer changes.
 
-  (let ((pos (point)) (start (point)) res id-start id-end
+  (let ((pos (point)) pos2 pos3 (start (point)) res id-start id-end
 	;; Turn off `c-promote-possible-types' here since we might
 	;; call `c-forward-<>-arglist' and we don't want it to promote
 	;; every suspect thing in the arglist to a type.  We're
@@ -8895,7 +8946,7 @@ multi-line strings (but not C++, for example)."
 		 (c-forward-syntactic-ws lim+)
 		 (cond ((eq (char-before id-end) ?e)
 			;; Got "... ::template".
-			(let ((subres (c-forward-name)))
+			(let ((subres (c-forward-name t)))
 			  (when subres
 			    (setq pos (point)
 				  res subres))))
@@ -8907,7 +8958,7 @@ multi-line strings (but not C++, for example)."
 				   (and (eq (c-forward-token-2) 0)
 					(not (eq (char-after) ?\())))))
 			;; Got a cast operator.
-			(when (c-forward-type)
+			(when (c-forward-type nil t)
 			  (setq pos (point)
 				res 'operator)
 			  ;; Now we should match a sequence of either
@@ -8931,8 +8982,8 @@ multi-line strings (but not C++, for example)."
 					     (forward-char)
 					     t)))))
 			    (while (progn
-				     (c-forward-syntactic-ws lim+)
 				     (setq pos (point))
+				     (c-forward-syntactic-ws lim+)
 				     (and
 				      (<= (point) lim+)
 				      (looking-at c-opt-type-modifier-key)))
@@ -8947,30 +8998,34 @@ multi-line strings (but not C++, for example)."
 			    ;; operator"" has an (?)optional tag after it.
 			    (progn
 			      (goto-char (match-end 0))
+			      (setq pos2 (point))
 			      (c-forward-syntactic-ws lim+)
 			      (when (c-on-identifier)
-				(c-forward-token-2 1 nil lim+)))
-			(goto-char (match-end 0))
-			(c-forward-syntactic-ws lim+))
-			(setq pos (point)
+				(c-forward-over-token nil lim+)))
+			  (goto-char (match-end 0))
+			  (setq pos2 (point))
+			  (c-forward-syntactic-ws lim+))
+			(setq pos pos2
 			      res 'operator)))
 
 		 nil)
 
 	     ;; `id-start' is equal to `id-end' if we've jumped over
 	     ;; an identifier that doesn't end with a symbol token.
-	     ;; That can occur e.g. for Java import directives on the
+	     ;; That can occur e.g. for Java import directives of the
 	     ;; form "foo.bar.*".
 	     (when (and id-start (/= id-start id-end))
 	       (setq c-last-identifier-range
 		     (cons id-start id-end)))
 	     (goto-char id-end)
+	     (setq pos (point))
 	     (c-forward-syntactic-ws lim+)
-	     (setq pos (point)
-		   res t)))
+	     (setq res t)))
 
 	 (progn
 	   (goto-char pos)
+	   (c-forward-syntactic-ws lim+)
+	   (setq pos3 (point))
 	   (when (or c-opt-identifier-concat-key
 		     c-recognize-<>-arglists)
 
@@ -8981,7 +9036,6 @@ multi-line strings (but not C++, for example)."
 	       ;; cases with tricky syntactic whitespace that aren't
 	       ;; covered in `c-identifier-key'.
 	       (goto-char (match-end 0))
-	       (c-forward-syntactic-ws lim+)
 	       t)
 
 	      ((and c-recognize-<>-arglists
@@ -8993,11 +9047,12 @@ multi-line strings (but not C++, for example)."
 		 ;; `lim+'.
 		 (setq lim+ (c-determine-+ve-limit 500))
 
+		 (setq pos2 (point))
 		 (c-forward-syntactic-ws lim+)
 		 (unless (eq (char-after) ?\()
 		   (setq c-last-identifier-range nil)
-		   (c-add-type start (1+ pos)))
-		 (setq pos (point))
+		   (c-add-type start (1+ pos3)))
+		 (setq pos pos2)
 
 		 (if (and c-opt-identifier-concat-key
 			  (looking-at c-opt-identifier-concat-key))
@@ -9007,7 +9062,7 @@ multi-line strings (but not C++, for example)."
 		     (progn
 		       (when (and c-record-type-identifiers id-start)
 			 (c-record-ref-id (cons id-start id-end)))
-		       (forward-char 2)
+		       (goto-char (match-end 0))
 		       (c-forward-syntactic-ws lim+)
 		       t)
 
@@ -9019,11 +9074,14 @@ multi-line strings (but not C++, for example)."
 	      )))))
 
     (goto-char pos)
+    (unless stop-at-end
+      (c-forward-syntactic-ws lim+))
     res))
 
-(defun c-forward-type (&optional brace-block-too)
+(defun c-forward-type (&optional brace-block-too stop-at-end)
   ;; Move forward over a type spec if at the beginning of one,
-  ;; stopping at the next following token.  The keyword "typedef"
+  ;; stopping at the next following token (if STOP-AT-END is nil) or
+  ;; at the end of the type spec (otherwise).  The keyword "typedef"
   ;; isn't part of a type spec here.
   ;;
   ;; BRACE-BLOCK-TOO, when non-nil, means move over the brace block in
@@ -9072,6 +9130,7 @@ multi-line strings (but not C++, for example)."
 	  (when (looking-at c-no-type-key)
 	    (setq res 'no-id)))
 	(goto-char (match-end 1))
+	(setq pos (point))
 	(c-forward-syntactic-ws)
 	(or (eq res 'no-id)
 	    (setq res 'prefix))))
@@ -9080,32 +9139,41 @@ multi-line strings (but not C++, for example)."
     (cond
      ((looking-at c-typeof-key) ; e.g. C++'s "decltype".
       (goto-char (match-end 1))
+      (setq pos (point))
       (c-forward-syntactic-ws)
       (setq res (and (eq (char-after) ?\()
 		     (c-safe (c-forward-sexp))
 		     'decltype))
       (if res
-	  (c-forward-syntactic-ws)
+	  (progn
+	    (setq pos (point))
+	    (c-forward-syntactic-ws))
 	(goto-char start)))
 
      ((looking-at c-type-prefix-key) ; e.g. "struct", "class", but NOT
 				     ; "typedef".
       (goto-char (match-end 1))
+      (setq pos (point))
       (c-forward-syntactic-ws)
 
       (while (cond
 	      ((looking-at c-decl-hangon-key)
-	       (c-forward-keyword-clause 1))
+	       (c-forward-keyword-clause 1 t)
+	       (setq pos (point))
+	       (c-forward-syntactic-ws))
 	      ((looking-at c-pack-key)
 	       (goto-char (match-end 1))
+	       (setq pos (point))
 	       (c-forward-syntactic-ws))
 	      ((and c-opt-cpp-prefix
 		    (looking-at c-noise-macro-with-parens-name-re))
-	       (c-forward-noise-clause))))
+	       (c-forward-noise-clause t)
+	       (setq pos (point))
+	       (c-forward-syntactic-ws))))
 
+      (setq id-start (point))
+      (setq name-res (c-forward-name t))
       (setq pos (point))
-
-      (setq name-res (c-forward-name))
       (setq res (not (null name-res)))
       (when (eq name-res t)
 	;; With some keywords the name can be used without the prefix, so we
@@ -9113,21 +9181,21 @@ multi-line strings (but not C++, for example)."
 	(when (save-excursion
 		(goto-char post-prefix-pos)
 		(looking-at c-self-contained-typename-key))
-	  (c-add-type pos (save-excursion
-			    (c-backward-syntactic-ws)
-			    (point))))
+	  (c-add-type id-start
+		      (point)))
 	(when (and c-record-type-identifiers
 		   c-last-identifier-range)
 	  (c-record-type-id c-last-identifier-range)))
+      (c-forward-syntactic-ws)
       (when (and brace-block-too
 		 (memq res '(t nil))
 		 (eq (char-after) ?\{)
 		 (save-excursion
 		   (c-safe
 		     (progn (c-forward-sexp)
-			    (c-forward-syntactic-ws)
 			    (setq pos (point))))))
 	(goto-char pos)
+	(c-forward-syntactic-ws)
 	(setq res t))
       (unless res (goto-char start)))	; invalid syntax
 
@@ -9141,7 +9209,7 @@ multi-line strings (but not C++, for example)."
 	 (if (looking-at c-identifier-start)
 	     (save-excursion
 	       (setq id-start (point)
-		     name-res (c-forward-name))
+		     name-res (c-forward-name t))
 	       (when name-res
 		 (setq id-end (point)
 		       id-range c-last-identifier-range))))
@@ -9154,8 +9222,9 @@ multi-line strings (but not C++, for example)."
 		  (>= (save-excursion
 			(save-match-data
 			  (goto-char (match-end 1))
+			  (setq pos (point))
 			  (c-forward-syntactic-ws)
-			  (setq pos (point))))
+			  pos))
 		      id-end)
 		  (setq res nil)))))
       ;; Looking at a primitive or known type identifier.  We've
@@ -9163,7 +9232,7 @@ multi-line strings (but not C++, for example)."
       ;; known type match only is a prefix of another name.
 
       (setq id-end (match-end 1))
-
+      
       (when (and c-record-type-identifiers
 		 (or c-promote-possible-types (eq res t)))
 	(c-record-type-id (cons (match-beginning 1) (match-end 1))))
@@ -9173,35 +9242,41 @@ multi-line strings (but not C++, for example)."
 		 (looking-at c-opt-type-component-key)))
 	  ;; There might be more keywords for the type.
 	  (let (safe-pos)
-	    (c-forward-keyword-clause 1)
+	    (c-forward-keyword-clause 1 t)
 	    (while (progn
 		     (setq safe-pos (point))
+		     (c-forward-syntactic-ws)
 		     (looking-at c-opt-type-component-key))
 	      (when (and c-record-type-identifiers
 			 (looking-at c-primitive-type-key))
 		(c-record-type-id (cons (match-beginning 1)
 					(match-end 1))))
-	      (c-forward-keyword-clause 1))
+	      (c-forward-keyword-clause 1 t))
 	    (if (looking-at c-primitive-type-key)
 		(progn
 		  (when c-record-type-identifiers
 		    (c-record-type-id (cons (match-beginning 1)
 					    (match-end 1))))
-		  (c-forward-keyword-clause 1)
+		  (c-forward-keyword-clause 1 t)
 		  (setq res t))
 	      (goto-char safe-pos)
-	      (setq res 'prefix)))
-	(unless (save-match-data (c-forward-keyword-clause 1))
+	      (setq res 'prefix))
+	    (setq pos (point)))
+	(if (save-match-data (c-forward-keyword-clause 1 t))
+	    (setq pos (point))
 	  (if pos
 	      (goto-char pos)
 	    (goto-char (match-end 1))
-	    (c-forward-syntactic-ws)))))
+	    (setq pos (point)))))
+      (c-forward-syntactic-ws))
 
      ((and (eq name-res t)
 	   (eq res 'prefix)
 	   (c-major-mode-is 'c-mode)
 	   (save-excursion
 	     (goto-char id-end)
+	     (setq pos (point))
+	     (c-forward-syntactic-ws)
 	     (and (not (looking-at c-symbol-start))
 		  (not (looking-at c-type-decl-prefix-key)))))
       ;; A C specifier followed by an implicit int, e.g.
@@ -9213,13 +9288,11 @@ multi-line strings (but not C++, for example)."
       (cond ((eq name-res t)
 	     ;; A normal identifier.
 	     (goto-char id-end)
+	     (setq pos (point))
 	     (if (or res c-promote-possible-types)
 		 (progn
 		   (when (not (eq c-promote-possible-types 'just-one))
-		     (c-add-type id-start (save-excursion
-					    (goto-char id-end)
-					    (c-backward-syntactic-ws)
-					    (point))))
+		     (c-add-type id-start id-end))
 		   (when (and c-record-type-identifiers id-range)
 		     (c-record-type-id id-range))
 		   (unless res
@@ -9233,6 +9306,7 @@ multi-line strings (but not C++, for example)."
 	    ((eq name-res 'template)
 	     ;; A template is sometimes a type.
 	     (goto-char id-end)
+	     (setq pos (point))
 	     (c-forward-syntactic-ws)
 	     (setq res
 		   (if (eq (char-after) ?\()
@@ -9258,6 +9332,7 @@ multi-line strings (but not C++, for example)."
       (when c-opt-type-modifier-key
 	(while (looking-at c-opt-type-modifier-key) ; e.g. "const", "volatile"
 	  (goto-char (match-end 1))
+	  (setq pos (point))
 	  (c-forward-syntactic-ws)
 	  (setq res t)))
 
@@ -9268,11 +9343,13 @@ multi-line strings (but not C++, for example)."
       (when c-opt-type-suffix-key	; e.g. "..."
 	(while (looking-at c-opt-type-suffix-key)
 	  (goto-char (match-end 1))
+	  (setq pos (point))
 	  (c-forward-syntactic-ws)))
 
       ;; Skip any "WS" identifiers (e.g. "final" or "override" in C++)
       (while (looking-at c-type-decl-suffix-ws-ids-key)
 	(goto-char (match-end 1))
+	(setq pos (point))
 	(c-forward-syntactic-ws)
 	(setq res t))
 
@@ -9296,8 +9373,9 @@ multi-line strings (but not C++, for example)."
 		   (progn
 		     (goto-char (match-end 1))
 		     (c-forward-syntactic-ws)
-		     (setq subres (c-forward-type))))
-
+		     (setq subres (c-forward-type nil t))
+		     (setq pos (point))))
+	      
 	      (progn
 		;; If either operand certainly is a type then both are, but we
 		;; don't let the existence of the operator itself promote two
@@ -9332,9 +9410,11 @@ multi-line strings (but not C++, for example)."
 			;; `nconc' doesn't mind that the tail of
 			;; `c-record-found-types' is t.
 			(nconc c-record-found-types
-			       c-record-type-identifiers))))
+			       c-record-type-identifiers)))))))
 
-	    (goto-char pos))))
+      (goto-char pos)
+      (unless stop-at-end
+	(c-forward-syntactic-ws))
 
       (when (and c-record-found-types (memq res '(known found)) id-range)
 	(setq c-record-found-types
@@ -9737,7 +9817,7 @@ point unchanged and return nil."
   ;; (e.g. "," or ";" or "}").
   (let ((here (point))
 	id-start id-end brackets-after-id paren-depth decorated
-	got-init arglist double-double-quote)
+	got-init arglist double-double-quote pos)
     (or limit (setq limit (point-max)))
     (if	(and
 	 (< (point) limit)
@@ -9771,6 +9851,7 @@ point unchanged and return nil."
 				  (eq (char-after (1+ (point))) ?\"))
 			 (setq double-double-quote t))
 		       (goto-char (match-end 0))
+		       (setq pos (point))
 		       (c-forward-syntactic-ws limit)
 		       (setq got-identifier t)
 		       nil)
@@ -9783,7 +9864,10 @@ point unchanged and return nil."
 			  ;; prefix only if it specifies a member pointer.
 			  (progn
 			    (setq id-start (point))
-			    (when (c-forward-name)
+			    (when (c-forward-name t)
+			      (setq pos (point))
+			      (c-forward-syntactic-ws limit)
+
 			      (if (save-match-data
 				    (looking-at "\\(::\\)"))
 				  ;; We only check for a trailing "::" and
@@ -9812,10 +9896,12 @@ point unchanged and return nil."
 	     (setq id-start (point)))
 	   (cond
 	    ((or got-identifier
-		 (c-forward-name))
-	     (save-excursion
-	       (c-backward-syntactic-ws)
-	       (setq id-end (point))))
+		 (c-forward-name t))
+	     (setq id-end
+		   (or pos
+		       (point)))
+	     (c-forward-syntactic-ws limit)
+	     t)
 	    (accept-anon
 	     (setq id-start nil id-end nil)
 	     t)
@@ -10569,11 +10655,11 @@ This function might do hidden buffer changes."
       (or got-identifier
 	  (and (looking-at c-identifier-start)
 	       (setq pos (point))
-	       (setq got-identifier (c-forward-name))
+	       (setq got-identifier (c-forward-name t))
 	       (save-excursion
-		 (c-backward-syntactic-ws)
 		 (c-simple-skip-symbol-backward)
 		 (setq identifier-start (point)))
+	       (progn (c-forward-syntactic-ws) t)
 	       (setq name-start pos))
 	  (when (looking-at "[0-9]")
 	    (setq got-number t)) ; We probably have an arithmetic expression.
@@ -10796,8 +10882,7 @@ This function might do hidden buffer changes."
 				    type-start
 				    (progn
 				      (goto-char type-start)
-				      (c-forward-type)
-				      (c-backward-syntactic-ws)
+				      (c-forward-type nil t)
 				      (point)))))))))
 		 ;; Got a declaration of the form "foo bar (gnu);" or "bar
 		 ;; (gnu);" where we've recognized "bar" as the type and "gnu"
@@ -11121,8 +11206,7 @@ This function might do hidden buffer changes."
 		       (space-after-type
 			(save-excursion
 			  (goto-char type-start)
-			  (and (c-forward-type)
-			       (progn (c-backward-syntactic-ws) t)
+			  (and (c-forward-type nil t)
 			       (or (eolp)
 				   (memq (char-after) '(?\  ?\t)))))))
 		   (when (not (eq (not space-before-id)

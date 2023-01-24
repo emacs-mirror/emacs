@@ -11112,20 +11112,24 @@ emacs_abort (void)
     abort ();
 
   int button;
-  button = MessageBox (NULL,
-		       "A fatal error has occurred!\n\n"
-		       "Would you like to attach a debugger?\n\n"
-		       "Select:\n"
-		       "YES -- to debug Emacs, or\n"
-		       "NO  -- to abort Emacs and produce a backtrace\n"
-		       "       (emacs_backtrace.txt in current directory)."
+
+  if (noninteractive)
+    button = IDNO;
+  else
+    button = MessageBox (NULL,
+			 "A fatal error has occurred!\n\n"
+			 "Would you like to attach a debugger?\n\n"
+			 "Select:\n"
+			 "YES -- to debug Emacs, or\n"
+			 "NO  -- to abort Emacs and produce a backtrace\n"
+			 "       (emacs_backtrace.txt in current directory)."
 #if __GNUC__
-		       "\n\n(type \"gdb -p <emacs-PID>\" and\n"
-		       "\"continue\" inside GDB before clicking YES.)"
+			 "\n\n(Before clicking YES, type\n"
+			 "\"gdb -p <emacs-PID>\", then \"continue\" inside GDB.)"
 #endif
-		       , "Emacs Abort Dialog",
-		       MB_ICONEXCLAMATION | MB_TASKMODAL
-		       | MB_SETFOREGROUND | MB_YESNO);
+			 , "Emacs Abort Dialog",
+			 MB_ICONEXCLAMATION | MB_TASKMODAL
+			 | MB_SETFOREGROUND | MB_YESNO);
   switch (button)
     {
     case IDYES:
