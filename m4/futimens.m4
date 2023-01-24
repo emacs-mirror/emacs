@@ -1,4 +1,4 @@
-# serial 10
+# serial 11
 # See if we need to provide futimens replacement.
 
 dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
@@ -16,6 +16,9 @@ AC_DEFUN([gl_FUNC_FUTIMENS],
   gl_CHECK_FUNCS_ANDROID([futimens], [[#include <sys/stat.h>]])
   if test $ac_cv_func_futimens = no; then
     HAVE_FUTIMENS=0
+    case "$gl_cv_onwards_func_futimens" in
+      future*) REPLACE_FUTIMENS=1 ;;
+    esac
   else
     AC_CACHE_CHECK([whether futimens works],
       [gl_cv_func_futimens_works],

@@ -1,4 +1,4 @@
-# getrandom.m4 serial 10
+# getrandom.m4 serial 11
 dnl Copyright 2020-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -18,6 +18,9 @@ AC_DEFUN([gl_FUNC_GETRANDOM],
     ]])
   if test "$ac_cv_func_getrandom" != yes; then
     HAVE_GETRANDOM=0
+    case "$gl_cv_onwards_func_getrandom" in
+      future*) REPLACE_GETRANDOM=1 ;;
+    esac
   else
     dnl On Solaris 11.4 the return type is 'int', not 'ssize_t'.
     AC_CACHE_CHECK([whether getrandom is compatible with its GNU+BSD signature],

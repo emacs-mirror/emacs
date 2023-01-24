@@ -1,4 +1,4 @@
-# getdelim.m4 serial 17
+# getdelim.m4 serial 18
 
 dnl Copyright (C) 2005-2007, 2009-2023 Free Software Foundation, Inc.
 dnl
@@ -96,6 +96,9 @@ AC_DEFUN([gl_FUNC_GETDELIM],
     esac
   else
     HAVE_GETDELIM=0
+    case "$gl_cv_onwards_func_getdelim" in
+      future*) REPLACE_GETDELIM=1 ;;
+    esac
   fi
 
   if test $ac_cv_have_decl_getdelim = no; then

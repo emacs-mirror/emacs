@@ -7,7 +7,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 11
+#serial 12
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
@@ -27,6 +27,10 @@ gl_save_LIBS=$LIBS
 HAVE_GETLOADAVG=1
 gl_CHECK_FUNCS_ANDROID([getloadavg], [[#include <stdlib.h>]])
 if test $ac_cv_func_getloadavg != yes; then
+   case "$gl_cv_onwards_func_getloadavg" in
+     future*) REPLACE_GETLOADAVG=1 ;;
+   esac
+
    gl_func_getloadavg_done=no
 
    # Some systems with -lutil have (and need) -lkvm as well, some do not.

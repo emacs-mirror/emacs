@@ -1,4 +1,4 @@
-# serial 10
+# serial 11
 # See if we need to provide utimensat replacement.
 
 dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
@@ -16,6 +16,9 @@ AC_DEFUN([gl_FUNC_UTIMENSAT],
   gl_CHECK_FUNCS_ANDROID([utimensat], [[#include <sys/stat.h>]])
   if test $ac_cv_func_utimensat = no; then
     HAVE_UTIMENSAT=0
+    case "$gl_cv_onwards_func_utimensat" in
+      future*) REPLACE_UTIMENSAT=1 ;;
+    esac
   else
     AC_CACHE_CHECK([whether utimensat works],
       [gl_cv_func_utimensat_works],

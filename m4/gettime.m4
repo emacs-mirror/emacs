@@ -1,4 +1,4 @@
-# gettime.m4 serial 13
+# gettime.m4 serial 14
 dnl Copyright (C) 2002, 2004-2006, 2009-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -18,9 +18,11 @@ AC_DEFUN([gl_GETTIME],
 ])
 
 dnl Tests whether the function timespec_get exists.
-dnl Sets gl_cv_func_timespec_get.
+dnl Sets gl_cv_func_timespec_get and gl_cv_onwards_func_timespec_get.
 AC_DEFUN([gl_CHECK_FUNC_TIMESPEC_GET],
 [
+  AC_REQUIRE([AC_CANONICAL_HOST])
+
   dnl Persuade OpenBSD <time.h> to declare timespec_get().
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
 
@@ -29,21 +31,32 @@ AC_DEFUN([gl_CHECK_FUNC_TIMESPEC_GET],
   dnl But at the same time, we need to notice a missing declaration, like
   dnl gl_CHECK_FUNCS_ANDROID does.
   AC_CHECK_DECL([timespec_get], , , [[#include <time.h>]])
-  if test $ac_cv_have_decl_timespec_get = yes; then
-    AC_CACHE_CHECK([for timespec_get], [gl_cv_func_timespec_get],
-      [AC_LINK_IFELSE(
+  AC_CACHE_CHECK([for timespec_get], [gl_cv_onwards_func_timespec_get],
+    [if test $ac_cv_have_decl_timespec_get = yes; then
+       AC_LINK_IFELSE(
          [AC_LANG_PROGRAM(
             [[#include <time.h>
               struct timespec ts;
             ]],
             [[return timespec_get (&ts, 0);]])
          ],
-         [gl_cv_func_timespec_get=yes],
-         [gl_cv_func_timespec_get=no])
-      ])
-  else
-    gl_cv_func_timespec_get=no
-  fi
+         [gl_cv_onwards_func_timespec_get=yes],
+         [gl_cv_onwards_func_timespec_get=no])
+     else
+       gl_cv_onwards_func_timespec_get=no
+     fi
+     case "$host_os" in
+       linux*-android*)
+         if test $gl_cv_onwards_func_timespec_get = no; then
+           gl_cv_onwards_func_timespec_get='future OS version'
+         fi
+         ;;
+     esac
+    ])
+  case "$gl_cv_onwards_func_timespec_get" in
+    future*) gl_cv_func_timespec_get=no ;;
+    *)       gl_cv_func_timespec_get=$gl_cv_onwards_func_timespec_get ;;
+  esac
 ])
 
 AC_DEFUN([gl_GETTIME_RES],

@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 76
+# gnulib-common.m4 serial 77
 dnl Copyright (C) 2007-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -1031,8 +1031,21 @@ AC_DEFUN([gl_CONDITIONAL_HEADER],
 dnl gl_CHECK_FUNCS_ANDROID([func], [[#include <foo.h>]])
 dnl is like AC_CHECK_FUNCS([func]), taking into account a portability problem
 dnl on Android.
-dnl Namely, if func was added to Android API level, say, 28, then the libc.so
-dnl has the symbol func always, whereas the header file <foo.h> declares func
+dnl
+dnl When code is compiled on Android, it is in the context of a certain
+dnl "Android API level", which indicates the minimum version of Android on
+dnl which the app can be installed. In other words, you don't compile for a
+dnl specific version of Android. You compile for all versions of Android,
+dnl onwards from the given API level.
+dnl Thus, the question "does the OS have the function func" has three possible
+dnl answers:
+dnl   - yes, in all versions starting from the given API level,
+dnl   - no, in no version,
+dnl   - not in the given API level, but in a later version of Android.
+dnl
+dnl In detail, this works as follows:
+dnl If func was added to Android API level, say, 28, then the libc.so has the
+dnl symbol func always, whereas the header file <foo.h> declares func
 dnl conditionally:
 dnl   #if __ANDROID_API__ >= 28
 dnl   ... func (...) __INTRODUCED_IN(28);
@@ -1040,15 +1053,55 @@ dnl   #endif
 dnl Thus, when compiling with "clang -target armv7a-unknown-linux-android28",
 dnl the function func is declared and exists in libc.
 dnl Whereas when compiling with "clang -target armv7a-unknown-linux-android27",
-dnl the function func is not declared but exists in libc. We need to treat this
-dnl case like the case where func does not exist.
+dnl the function func is not declared but exists in libc.
+dnl
+dnl This macro sets two variables:
+dnl   - gl_cv_onwards_func_<func>   to yes / no / "future OS version"
+dnl   - ac_cv_func_<func>           to yes / no / no
+dnl The first variable allows to distinguish all three cases.
+dnl The second variable is set, so that an invocation
+dnl   gl_CHECK_FUNCS_ANDROID([func], [[#include <foo.h>]])
+dnl can be used as a drop-in replacement for
+dnl   AC_CHECK_FUNCS([func]).
 AC_DEFUN([gl_CHECK_FUNCS_ANDROID],
 [
-  AC_CHECK_DECL([$1], , , [$2])
-  if test $ac_cv_have_decl_[$1] = yes; then
-    AC_CHECK_FUNCS([$1])
-  else
-    ac_cv_func_[$1]=no
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_CACHE_CHECK([for [$1]],
+    [[gl_cv_onwards_func_][$1]],
+    [gl_SILENT([
+       case "$host_os" in
+         linux*-android*)
+           AC_CHECK_DECL([$1], , , [$2])
+           if test $[ac_cv_have_decl_][$1] = yes; then
+             AC_CHECK_FUNC([[$1]])
+             if test $[ac_cv_func_][$1] = yes; then
+               [gl_cv_onwards_func_][$1]=yes
+             else
+               dnl The function is declared but does not exist. This should not
+               dnl happen normally. But anyway, we know that a future version
+               dnl of Android will have the function.
+               [gl_cv_onwards_func_][$1]='future OS version'
+             fi
+           else
+             [gl_cv_onwards_func_][$1]='future OS version'
+           fi
+           ;;
+         *)
+           AC_CHECK_FUNC([$1])
+           [gl_cv_onwards_func_][$1]=$[ac_cv_func_][$1]
+           ;;
+       esac
+      ])
+    ])
+  case "$[gl_cv_onwards_func_][$1]" in
+    future*) [ac_cv_func_][$1]=no ;;
+    *)       [ac_cv_func_][$1]=$[gl_cv_onwards_func_][$1] ;;
+  esac
+  if test $[ac_cv_func_][$1] = yes; then
+    AC_DEFINE([HAVE_]m4_translit([[$1]],
+                                 [abcdefghijklmnopqrstuvwxyz],
+                                 [ABCDEFGHIJKLMNOPQRSTUVWXYZ]),
+              [1], [Define to 1 if you have the `$1' function.])
   fi
 ])
 

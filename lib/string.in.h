@@ -308,16 +308,32 @@ _GL_WARN_ON_USE (memmem, "memmem is unportable and often quadratic - "
 /* Copy N bytes of SRC to DEST, return pointer to bytes after the
    last written byte.  */
 #if @GNULIB_MEMPCPY@
-# if ! @HAVE_MEMPCPY@
+# if @REPLACE_MEMPCPY@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mempcpy
+#   define mempcpy rpl_mempcpy
+#  endif
+_GL_FUNCDECL_RPL (mempcpy, void *,
+                  (void *restrict __dest, void const *restrict __src,
+                   size_t __n)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (mempcpy, void *,
+                  (void *restrict __dest, void const *restrict __src,
+                   size_t __n));
+# else
+#  if !@HAVE_MEMPCPY@
 _GL_FUNCDECL_SYS (mempcpy, void *,
                   (void *restrict __dest, void const *restrict __src,
                    size_t __n)
                   _GL_ARG_NONNULL ((1, 2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (mempcpy, void *,
                   (void *restrict __dest, void const *restrict __src,
                    size_t __n));
+# endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (mempcpy);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef mempcpy
 # if HAVE_RAW_DECL_MEMPCPY
@@ -406,14 +422,28 @@ _GL_WARN_ON_USE (rawmemchr, "rawmemchr is unportable - "
 
 /* Copy SRC to DST, returning the address of the terminating '\0' in DST.  */
 #if @GNULIB_STPCPY@
-# if ! @HAVE_STPCPY@
+# if @REPLACE_STPCPY@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef stpcpy
+#   define stpcpy rpl_stpcpy
+#  endif
+_GL_FUNCDECL_RPL (stpcpy, char *,
+                  (char *restrict __dst, char const *restrict __src)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (stpcpy, char *,
+                  (char *restrict __dst, char const *restrict __src));
+# else
+#  if !@HAVE_STPCPY@
 _GL_FUNCDECL_SYS (stpcpy, char *,
                   (char *restrict __dst, char const *restrict __src)
                   _GL_ARG_NONNULL ((1, 2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (stpcpy, char *,
                   (char *restrict __dst, char const *restrict __src));
+# endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (stpcpy);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef stpcpy
 # if HAVE_RAW_DECL_STPCPY
@@ -448,7 +478,9 @@ _GL_CXXALIAS_SYS (stpncpy, char *,
                   (char *restrict __dst, char const *restrict __src,
                    size_t __n));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (stpncpy);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef stpncpy
 # if HAVE_RAW_DECL_STPNCPY
@@ -1212,7 +1244,7 @@ _GL_FUNCDECL_SYS (strerror_r, int, (int errnum, char *buf, size_t buflen)
 #  endif
 _GL_CXXALIAS_SYS (strerror_r, int, (int errnum, char *buf, size_t buflen));
 # endif
-# if @HAVE_DECL_STRERROR_R@
+# if __GLIBC__ >= 2 && @HAVE_DECL_STRERROR_R@
 _GL_CXXALIASWARN (strerror_r);
 # endif
 #elif defined GNULIB_POSIXCHECK

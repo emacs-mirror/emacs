@@ -141,8 +141,8 @@ cp -- "$gnulib_srcdir"/lib/af_alg.h \
 ./autogen.sh
 
 # Finally, copy gnulib stuff in lib/ to xcompile/lib.
-rm -rf "$src"xcompile/lib
-cp -r "$src"lib "$src"xcompile
+rm -rf "$src"cross/lib
+cp -r "$src"lib "$src"cross
 
 # Remove unnecessary files.
-rm -f "$src"xcompile/lib/*.mk.in "$src"xcompile/lib/Makefile.in
+rm -f "$src"cross/lib/*.mk.in "$src"cross/lib/Makefile.in

@@ -1,4 +1,4 @@
-# getline.m4 serial 31
+# getline.m4 serial 32
 
 dnl Copyright (C) 1998-2003, 2005-2007, 2009-2023 Free Software Foundation,
 dnl Inc.
@@ -84,6 +84,9 @@ AC_DEFUN([gl_FUNC_GETLINE],
       ])
   else
     am_cv_func_working_getline=no
+    case "$gl_cv_onwards_func_getline" in
+      future*) REPLACE_GETLINE=1 ;;
+    esac
   fi
 
   if test $ac_cv_have_decl_getline = no; then
