@@ -2409,6 +2409,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fontset ();
 #if !defined ANDROID_STUBIFY
       syms_of_androidfont ();
+      syms_of_androidselect ();
       syms_of_sfntfont ();
       syms_of_sfntfont_android ();
 #endif /* !ANDROID_STUBIFY */
@@ -2514,6 +2515,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
   init_androidfont ();
+  init_androidselect ();
   init_sfntfont ();
   init_sfntfont_android ();
 #endif

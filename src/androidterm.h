@@ -432,6 +432,15 @@ extern void sfntfont_android_shrink_scanline_buffer (void);
 extern void init_sfntfont_android (void);
 extern void syms_of_sfntfont_android (void);
 
+/* Defined in androidselect.c  */
+
+#ifndef ANDROID_STUBIFY
+
+extern void init_androidselect (void);
+extern void syms_of_androidselect (void);
+
+#endif
+
 
 
 #define RGB_TO_ULONG(r, g, b)   (((r) << 16) | ((g) << 8) | (b))

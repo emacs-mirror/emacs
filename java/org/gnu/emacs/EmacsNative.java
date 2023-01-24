@@ -132,6 +132,10 @@ public class EmacsNative
   /* Send an ANDROID_CONTEXT_MENU event.  */
   public static native long sendContextMenu (short window, int menuEventID);
 
+  /* Send an ANDROID_EXPOSE event.  */
+  public static native long sendExpose (short window, int x, int y,
+					int width, int height);
+
   static
   {
     System.loadLibrary ("emacs");

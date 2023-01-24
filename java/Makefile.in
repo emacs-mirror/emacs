@@ -81,21 +81,24 @@ APK_NAME = emacs-$(version)-$(ANDROID_MIN_SDK)-$(ANDROID_ABI).apk
 all: $(APK_NAME)
 
 # Binaries to cross-compile.
-CROSS_BINS = ../xcompile/src/android-emacs ../xcompile/lib-src/ctags	\
-	     ../xcompile/lib-src/hexl ../xcompile/lib-src/movemail	\
-	     ../xcompile/lib-src/ebrowse ../xcompile/lib-src/emacsclient
+CROSS_BINS = ../cross/src/android-emacs ../cross/lib-src/ctags	\
+	     ../cross/lib-src/hexl ../cross/lib-src/movemail	\
+	     ../cross/lib-src/ebrowse ../cross/lib-src/emacsclient
 
 # Libraries to cross-compile.
-CROSS_LIBS = ../xcompile/src/libemacs.so
+CROSS_LIBS = ../cross/src/libemacs.so
+
+# Third party libraries to compile.
+include $(top_builddir)/cross/ndk-build/ndk-build.mk
 
 .PHONY: $(CROSS_BINS) $(CROSS_LIBS)
 
-../xcompile/src/android-emacs ../xcompile/src/libemacs.so:
-	make -C ../xcompile src/$(notdir $@)
+../cross/src/android-emacs ../cross/src/libemacs.so:
+	make -C ../cross src/$(notdir $@)
 
-../xcompile/lib-src/hexl ../xcompile/lib-src/movemail \
-../xcompile/lib-src/ctags ../xcompile/lib-src/ebrowse &:
-	make -C ../xcompile lib-src/$(notdir $@)
+../cross/lib-src/hexl ../cross/lib-src/movemail \
+../cross/lib-src/ctags ../cross/lib-src/ebrowse &:
+	make -C ../cross lib-src/$(notdir $@)
 
 # This is needed to generate the ``.directory-tree'' file used by the
 # Android emulations of readdir and faccessat.
@@ -104,7 +107,7 @@ $(libsrc)/asset-directory-tool:
 	$(MAKE) -C $(libsrc) $(notdir $@)
 
 emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) $(libsrc)/asset-directory-tool \
-  AndroidManifest.xml
+  AndroidManifest.xml $(NDK_BUILD_SHARED)
 # Make the working directory for this stuff
 	rm -rf install_temp
 	mkdir -p install_temp/lib/$(ANDROID_ABI)
@@ -145,11 +148,13 @@ emacs.apk-in: $(CROSS_BINS) $(CROSS_LIBS) $(libsrc)/asset-directory-tool \
 	    cp -f $$file install_temp/lib/$(ANDROID_ABI);	\
 	  fi 							\
 	done
+	$(foreach module,$(NDK_BUILD_SHARED), \
+	  cp -f $(module) install_temp/lib/$(ANDROID_ABI))
 # Package everything.  Specifying the assets on this command line is
 # necessary for AAssetManager_getNextFileName to work on old versions
 # of Android.
-	$(AAPT) package -I "$(ANDROID_JAR)" -F $@ -f -M AndroidManifest.xml \
-	  -A install_temp/assets
+	$(AAPT) package -I "$(ANDROID_JAR)" -F $@ -f \
+	  -M AndroidManifest.xml -A install_temp/assets
 	pushd install_temp; $(AAPT) add ../$@ `find lib -type f`; popd
 	rm -rf install_temp
 
@@ -196,3 +201,4 @@ clean:
 	find . -name '*.class' -delete
 
 maintainer-clean distclean bootstrap-clean: clean
+	rm -f Makefile ndk-build.mk

@@ -1086,6 +1086,39 @@ android_hack_asset_fd (AAsset *asset)
   return fd;
 }
 
+/* Read two bytes from FD and see if they are ``PK'', denoting ZIP
+   archive compressed data.
+
+   If they are not, rewind the file descriptor to offset 0.
+
+   If either operation fails, return -1 and close FD.  Else, value is
+   FD.  */
+
+static int
+android_check_compressed_file (int fd)
+{
+  char bytes[2];
+
+  if (read (fd, bytes, 2) != 2)
+    goto lseek_back;
+
+  if (bytes[0] != 'P' || bytes[1] != 'K')
+    goto lseek_back;
+
+  /* This could be compressed data! */
+  return -1;
+
+ lseek_back:
+  /* Seek back to offset 0.  If this fails, return -1.  */
+  if (lseek (fd, 0, SEEK_SET) != 0)
+    {
+      close (fd);
+      return -1;
+    }
+
+  return fd;
+}
+
 /* `open' and such are modified even though they exist on Android,
    because Emacs treats "/assets/" as a special directory that must
    contain all assets in the application package.  */
@@ -1095,7 +1128,7 @@ android_open (const char *filename, int oflag, int mode)
 {
   const char *name;
   AAsset *asset;
-  int fd;
+  int fd, oldfd;
   off_t out_start, out_length;
   bool fd_hacked;
 
@@ -1118,8 +1151,12 @@ android_open (const char *filename, int oflag, int mode)
 	  return -1;
 	}
 
+      /* If given AASSET_MODE_BUFFER (which is what Emacs probably
+	 does, given that a file descriptor is not always available),
+	 the framework fails to uncompress the data before it returns
+	 a file descriptor.  */
       asset = AAssetManager_open (asset_manager, name,
-				  AASSET_MODE_BUFFER);
+				  AASSET_MODE_STREAMING);
 
       if (!asset)
 	{
@@ -1131,6 +1168,11 @@ android_open (const char *filename, int oflag, int mode)
 	 asset.  */
       fd = AAsset_openFileDescriptor (asset, &out_start,
 				      &out_length);
+
+      /* The platform sometimes returns a file descriptor to ZIP
+	 compressed data.  Detect that and fall back to creating a
+	 shared memory file descriptor.  */
+      fd = android_check_compressed_file (fd);
 
       if (fd == -1)
 	{
@@ -1152,7 +1194,13 @@ android_open (const char *filename, int oflag, int mode)
 	 which will close the original file descriptor.  */
 
       if (!fd_hacked)
-	fd = fcntl (fd, F_DUPFD_CLOEXEC);
+	{
+	  oldfd = fd;
+	  fd = fcntl (oldfd, F_DUPFD_CLOEXEC);
+
+	  /* Close the original file descriptor.  */
+	  close (oldfd);
+	}
 
       if (fd >= ANDROID_MAX_ASSET_FD || fd < 0)
 	{
@@ -1973,6 +2021,25 @@ NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
   event.menu.serial = ++event_serial;
   event.menu.window = window;
   event.menu.menu_event_id = menu_event_id;
+
+  android_write_event (&event);
+  return event_serial;
+}
+
+extern JNIEXPORT jlong JNICALL
+NATIVE_NAME (sendExpose) (JNIEnv *env, jobject object,
+			  jshort window, jint x, jint y,
+			  jint width, jint height)
+{
+  union android_event event;
+
+  event.xexpose.type = ANDROID_EXPOSE;
+  event.xexpose.serial = ++event_serial;
+  event.xexpose.window = window;
+  event.xexpose.x = x;
+  event.xexpose.y = y;
+  event.xexpose.width = width;
+  event.xexpose.height = height;
 
   android_write_event (&event);
   return event_serial;
@@ -4222,7 +4289,14 @@ android_readdir (struct android_dir *dir)
       dirent.d_ino = 0;
       dirent.d_off = 0;
       dirent.d_reclen = sizeof dirent;
-      dirent.d_type = DT_UNKNOWN;
+
+      /* If this is not a directory, return DT_UNKNOWN.  Otherwise,
+	 return DT_DIR.  */
+
+      if (android_is_directory (dir->asset_dir))
+	dirent.d_type = DT_DIR;
+      else
+	dirent.d_type = DT_UNKNOWN;
 
       /* Note that dir->asset_dir is actually a NULL terminated
 	 string.  */

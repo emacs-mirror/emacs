@@ -234,6 +234,7 @@ enum android_event_type
     ANDROID_ICONIFIED,
     ANDROID_DEICONIFIED,
     ANDROID_CONTEXT_MENU,
+    ANDROID_EXPOSE,
   };
 
 struct android_any_event
@@ -332,6 +333,15 @@ struct android_button_event
   unsigned int button;
 };
 
+struct android_expose_event
+{
+  enum android_event_type type;
+  unsigned long serial;
+  android_window window;
+  int x, y;
+  int width, height;
+};
+
 struct android_touch_event
 {
   /* Type of the event.  */
@@ -415,6 +425,7 @@ union android_event
   struct android_crossing_event xcrossing;
   struct android_motion_event xmotion;
   struct android_button_event xbutton;
+  struct android_expose_event xexpose;
 
   /* This has no parallel in X, since the X model of having
      monotonically increasing touch IDs can't work on Android.  */

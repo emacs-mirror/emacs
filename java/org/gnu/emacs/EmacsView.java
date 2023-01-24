@@ -99,6 +99,9 @@ public class EmacsView extends ViewGroup
      yet responded to.  0 if there is no such outstanding event.  */
   public long pendingConfigure;
 
+  /* Whether or not this view is attached to a window.  */
+  public boolean isAttachedToWindow;
+
   public
   EmacsView (EmacsWindow window)
   {
@@ -138,6 +141,9 @@ public class EmacsView extends ViewGroup
     Bitmap oldBitmap;
 
     if (measuredWidth == 0 || measuredHeight == 0)
+      return;
+
+    if (!isAttachedToWindow)
       return;
 
     /* If bitmap is the same width and height as the measured width
@@ -547,6 +553,8 @@ public class EmacsView extends ViewGroup
   public synchronized void
   onDetachedFromWindow ()
   {
+    isAttachedToWindow = false;
+
     synchronized (this)
       {
 	/* Recycle the bitmap and call GC.  */
@@ -557,6 +565,21 @@ public class EmacsView extends ViewGroup
 	/* Collect the bitmap storage; it could be large.  */
 	Runtime.getRuntime ().gc ();
       }
+  }
+
+  @Override
+  public synchronized void
+  onAttachedToWindow ()
+  {
+    isAttachedToWindow = true;
+
+    /* Dirty the bitmap, as it was destroyed when onDetachedFromWindow
+       was called.  */
+    bitmapDirty = true;
+
+    /* Now expose the view contents again.  */
+    EmacsNative.sendExpose (this.window.handle, 0, 0,
+			    measuredWidth, measuredHeight);
   }
 
   public void

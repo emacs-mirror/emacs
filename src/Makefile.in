@@ -35,7 +35,7 @@ abs_top_srcdir=@abs_top_srcdir@
 VPATH = $(srcdir)
 
 # This is not empty if this is a Makefile that will be copied to
-# xcompile/src.
+# cross/src.
 XCONFIGURE = @XCONFIGURE@
 
 ifneq ($(XCONFIGURE),)
@@ -137,6 +137,8 @@ LIB_MATH=@LIB_MATH@
 LIB_PTHREAD=@LIB_PTHREAD@
 
 LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@ @WEBP_LIBS@
+
+GIF_CFLAGS=@GIF_CFLAGS@
 
 XCB_LIBS=@XCB_LIBS@
 XFT_LIBS=@XFT_LIBS@
@@ -384,6 +386,7 @@ HAIKU_CFLAGS = @HAIKU_CFLAGS@
 
 ANDROID_OBJ = @ANDROID_OBJ@
 ANDROID_LIBS = @ANDROID_LIBS@
+ANDROID_LDFLAGS = @ANDROID_LDFLAGS@
 ANDROID_CFLAGS = @ANDROID_CFLAGS@
 
 DUMPING=@DUMPING@
@@ -428,7 +431,7 @@ EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   $(LIBSYSTEMD_CFLAGS) $(JSON_CFLAGS) $(XSYNC_CFLAGS) $(TREE_SITTER_CFLAGS) \
   $(LIBGNUTLS_CFLAGS) $(NOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
   $(WERROR_CFLAGS) $(HAIKU_CFLAGS) $(XCOMPOSITE_CFLAGS) $(XSHAPE_CFLAGS) \
-  $(ANDROID_CFLAGS)
+  $(ANDROID_CFLAGS) $(GIF_CFLAGS)
 ALL_CFLAGS = $(EMACS_CFLAGS) $(WARN_CFLAGS) $(CFLAGS)
 ALL_OBJC_CFLAGS = $(EMACS_CFLAGS) \
   $(filter-out $(NON_OBJC_CFLAGS),$(WARN_CFLAGS)) $(CFLAGS) \
@@ -745,10 +748,18 @@ ifeq ($(XCONFIGURE),android)
 ## is not dumped here.  Instead, it dumps itself the first time it
 ## starts on the user's device.
 
+# Include ndk-build.mk in order to build Emacs dependencies.
+old_top_builddir := $(top_builddir)
+top_builddir := $(old_top_builddir)/..
+include $(old_top_builddir)/ndk-build/ndk-build.mk
+top_builddir := $(old_top_builddir)
+
 libemacs.so: $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
-	     $(MAKE_PDUMPER_FINGERPRINT)
+	     $(MAKE_PDUMPER_FINGERPRINT) $(NDK_BUILD_SHARED) \
+	     $(NDK_BUILD_STATIC)
 	$(AM_V_CCLD)$(CC) -o $@ $(ALL_CFLAGS) $(TEMACS_LDFLAGS) \
-	  $(LDFLAGS) -shared $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(LIBES)
+	  $(ANDROID_LDFLAGS) $(LDFLAGS) -shared $(ALLOBJS) \
+	  $(LIBEGNU_ARCHIVE) $(LIBES)
 	$(AM_V_at)$(MAKE_PDUMPER_FINGERPRINT) $@
 
 # There is also a binary named `android-emacs' which simply calls

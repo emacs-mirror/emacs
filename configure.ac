@@ -166,6 +166,13 @@ fi
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
+if test "$XCONFIGURE" = "android"; then
+  # Initialize the Android NDK build system.  Make sure to use the
+  # passed through NDK path.
+  with_ndk_path="$android_ndk_path"
+  ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build])
+fi
+
 case $host in
  *-mingw*)
 
@@ -544,6 +551,7 @@ OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-b
 OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for input])
 OPTION_DEFAULT_OFF([small-ja-dic],[generate a smaller-size Japanese dictionary])
 OPTION_DEFAULT_OFF([android],[cross-compile Android application package])
+OPTION_DEFAULT_ON([android-debug],[don't build Emacs as a debug package on Android])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -1033,8 +1041,14 @@ package will likely install on older systems but crash on startup.])
   mv -f confdefs.h _confdefs.h
   mv -f config.log _config.log
 
+  # Figure out what --with-FOO options to pass through.
+  passthrough="$passthrough --with-png=$with_png"
+  passthrough="$passthrough --with-webp=$with_webp"
+  passthrough="$passthrough --with-gif=$with_gif"
+
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
-         ANDROID_SDK="$android_sdk" $0], [],
+         ANDROID_SDK="$android_sdk" android_abi=$android_abi \
+	 android_ndk_path="$with_ndk_path" $0 $passthrough], [],
     [AC_MSG_ERROR([Failed to cross-configure Emacs for android.])])
 
   # Now set ANDROID to yes.
@@ -1047,6 +1061,14 @@ package will likely install on older systems but crash on startup.])
 
   AC_MSG_NOTICE([Generating src/config.h.android])
   mv -f src/config.h src/config.h.android
+
+  # Tell AndroidManifest.xml whether or not Emacs should be built
+  # debug.
+  ANDROID_DEBUGGABLE=false
+  if test "$with_android_debug" = "yes"; then
+    ANDROID_DEBUGGABLE=true
+  fi
+  AC_SUBST([ANDROID_DEBUGGABLE])
 
   # Move confdefs.h back now that the recursive call to configure is
   # complete.
@@ -1083,15 +1105,21 @@ if test "$ANDROID" = "yes"; then
   with_xpm=no
   with_jpeg=no
   with_tiff=no
-  with_gif=no
-  with_png=no
+
+  # Some of these dependencies are now supported within Android, so
+  # they can be enabled.
+  if test "$XCONFIGURE" != "android"; then
+    with_png=no
+    with_webp=no
+    with_gif=no
+  fi
+
+  with_xml2=no
   with_rsvg=no
-  with_webp=no
   with_sqlite3=no
   with_lcms2=no
   with_libsystemd=no
   with_cairo=no
-  with_xml2=no
   with_imagemagick=no
   with_json=no
   with_tree_sitter=no
@@ -2218,10 +2246,13 @@ dnl EMACS_CHECK_MODULES accepts optional 3rd and 4th arguments that
 dnl can take the place of the default HAVE_GSTUFF=yes and HAVE_GSTUFF=no
 dnl actions.
 AC_DEFUN([EMACS_CHECK_MODULES],
-  [PKG_CHECK_MODULES([$1], [$2],
-     [$1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
-      m4_default([$3], [HAVE_$1=yes])],
-     [m4_default([$4], [HAVE_$1=no])])])
+  [AS_IF([test -n "$ndk_INITIALIZED"],
+    [ndk_CHECK_MODULES([$1], [$2], m4_default([$3], [HAVE_$1=yes]),
+      m4_default([$4],[HAVE_$1=no]))],
+    [PKG_CHECK_MODULES([$1], [$2],
+       [$1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
+        m4_default([$3], [HAVE_$1=yes])],
+       [m4_default([$4], [HAVE_$1=no])])])])
 
 HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
@@ -2394,6 +2425,7 @@ window_system=none
 ANDROID_OBJ=
 ANDROID_LIBS=
 ANDROID_CFLAGS=
+REALLY_ANDROID=
 CM_OBJ="cm.o"
 
 if test "${ANDROID}" = "yes"; then
@@ -2423,18 +2455,31 @@ for Android, but all API calls need to be stubbed out])
     # Link with libraries required for Android support.
     ANDROID_LIBS="-landroid -llog -ljnigraphics"
 
+    # This is required to make the system load emacs.apk's libpng
+    # (among others) instead of the system's own.  But it doesn't work
+    # on all Android versions yet, so for now just suffix shared
+    # libraries with _emacs.
+    # ANDROID_LDFLAGS="-Wl,-rpath,'\$\$ORIGIN'"
+
     # Link with the sfnt font library and sfntfont.o, along with
     # sfntfont-android.o.
     ANDROID_OBJ="$ANDROID_OBJ sfnt.o sfntfont.o sfntfont-android.o"
 
+    # Build androidselect.o.
+    ANDROID_OBJ="$ANDROID_OBJ androidselect.o"
+
     # Check for some functions not always present in the NDK.
     AC_CHECK_DECLS([android_get_device_api_level])
+
+    # Say this build is really for Android.
+    REALLY_ANDROID=yes
   fi
 fi
 
 AC_SUBST(ANDROID)
 AC_SUBST(ANDROID_OBJ)
 AC_SUBST(ANDROID_LIBS)
+AC_SUBST(ANDROID_LDFLAGS)
 AC_SUBST(ANDROID_CFLAGS)
 
 if test "${with_pgtk}" = "yes"; then
@@ -3265,7 +3310,8 @@ HAVE_WEBP=no
 if test "${with_webp}" != "no"; then
    if test "${HAVE_X11}" = "yes" || test "${opsys}" = "mingw32" \
    || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes" \
-   || test "${HAVE_BE_APP}" = "yes" || test "${HAVE_PGTK}" = "yes"; then
+   || test "${HAVE_BE_APP}" = "yes" || test "${HAVE_PGTK}" = "yes" \
+   || test "${REALLY_ANDROID}" = "yes"; then
       WEBP_REQUIRED=0.6.0
       WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
 
@@ -4506,7 +4552,8 @@ HAVE_JPEG=no
 LIBJPEG=
 if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
    || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes" \
-   || test "$window_system" = "pgtk"; then
+   || test "$window_system" = "pgtk" \
+   || test "${REALLY_ANDROID}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
     AC_CACHE_CHECK([for jpeglib 6b or later],
       [emacs_cv_jpeglib],
@@ -4852,7 +4899,8 @@ if test "${with_png}" != no; then
     AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
   elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
        || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes" \
-       || test "$window_system" = "pgtk"; then
+       || test "$window_system" = "pgtk" \
+       || test "${REALLY_ANDROID}" = "yes"; then
     EMACS_CHECK_MODULES([PNG], [libpng >= 1.0.0])
     if test $HAVE_PNG = yes; then
       LIBPNG=$PNG_LIBS
@@ -4951,6 +4999,7 @@ AC_SUBST([LIBTIFF])
 ### Use -lgif or -lungif if available, unless '--with-gif=no'.
 ### mingw32 doesn't use -lgif/-lungif, since it loads the library dynamically.
 HAVE_GIF=no
+GIF_CFLAGS=
 LIBGIF=
 if test "${opsys}" = "mingw32"; then
   if test "${with_gif}" != "no"; then
@@ -4963,6 +5012,7 @@ if test "${opsys}" = "mingw32"; then
 elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
         || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes" \
 	|| test "${HAVE_BE_APP}" = "yes" || test "$window_system" = "pgtk" \
+	|| test "${REALLY_ANDROID}" = "yes" \
 	&& test "${with_gif}" != "no"; then
   AC_CHECK_HEADER([gif_lib.h],
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
@@ -4982,12 +5032,20 @@ elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
     test "$HAVE_GIF" = yes && LIBGIF=-lungif
   fi
 
+# Finally, try ndk-build on Android.
+  if test "$REALLY_ANDROID" = "yes"; then
+    ndk_SEARCH_MODULE([libgif], [GIF], [HAVE_GIF=yes],
+      [HAVE_GIF=no])
+    test "$HAVE_GIF" = yes && LIBGIF="$GIF_LIBS"
+  fi
+
   if test "${HAVE_GIF}" = "yes"; then
     AC_DEFINE([HAVE_GIF], [1],
       [Define to 1 if you have a gif (or ungif) library.])
   fi
 fi
 AC_SUBST([LIBGIF])
+AC_SUBST([GIF_CFLAGS])
 
 dnl Check for required libraries.
 MISSING=
@@ -7291,7 +7349,7 @@ if test "$ANDROID" = "yes"; then
 fi
 
 if test "$XCOMPILE" = "yes"; then
-  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES xcompile/Makefile"
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES cross/Makefile"
 fi
 
 dnl The admin/ directory used to be excluded from tarfiles.
@@ -7377,10 +7435,14 @@ fi
 
 # Make java/Makefile
 ARCH_INDEPENDENT_CONFIG_FILES([java/Makefile])
-ARCH_INDEPENDENT_CONFIG_FILES([xcompile/Makefile])
+ARCH_INDEPENDENT_CONFIG_FILES([cross/Makefile])
 
 # Make java/AndroidManifest.xml
 ARCH_INDEPENDENT_CONFIG_FILES([java/AndroidManifest.xml])
+
+# Make ndk-build Makefiles.  This is only done inside the recursive
+# configure.
+ndk_CONFIG_FILES
 
 AC_OUTPUT
 

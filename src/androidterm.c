@@ -818,6 +818,28 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       goto OTHER;
 
+    case ANDROID_EXPOSE:
+
+      f = any;
+
+      if (f)
+        {
+          if (!FRAME_VISIBLE_P (f))
+            {
+              f->output_data.android->has_been_visible = true;
+              SET_FRAME_GARBAGED (f);
+            }
+
+          if (!FRAME_GARBAGED_P (f))
+            {
+              expose_frame (f, event->xexpose.x, event->xexpose.y,
+			    event->xexpose.width, event->xexpose.height);
+	      show_back_buffer (f);
+	    }
+        }
+
+      goto OTHER;
+
     case ANDROID_BUTTON_PRESS:
     case ANDROID_BUTTON_RELEASE:
       /* If we decide we want to generate an event to be seen

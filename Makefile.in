@@ -539,7 +539,7 @@ lib lib-src lisp nt: Makefile
 java: lisp info
 	$(MAKE) -C $@ all
 
-xcompile: src
+cross: src
 	$(MAKE) -C $@ all
 
 trampolines: src lisp
@@ -1012,7 +1012,7 @@ mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
 ###      with them.
 ###
 ###      Delete '.dvi' files here if they are not part of the distribution.
-clean_dirs = $(mostlyclean_dirs) java xcompile nextstep admin/charsets \
+clean_dirs = $(mostlyclean_dirs) java cross nextstep admin/charsets \
   admin/unidata
 
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))

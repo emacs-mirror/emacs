@@ -1264,6 +1264,7 @@ Emacs and Android
 * Android Startup::     Starting up Emacs on Android.
 * Android File System:: The Android file system.
 * Android Environment:: Running Emacs under Android.
+* Android Windowing::   The Android window system.
 * Android Fonts::	Font selection under Android.
 
 Emacs and unconventional input devices

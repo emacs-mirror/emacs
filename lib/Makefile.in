@@ -21,7 +21,7 @@ srcdir = @srcdir@
 VPATH = @srcdir@
 
 # This is not empty if this is a Makefile that will be copied to
-# xcompile/lib.
+# cross/lib.
 XCONFIGURE = @XCONFIGURE@
 
 # This is required to make sure symbol visibility is correct and
@@ -64,7 +64,7 @@ endif
 ifeq ($(XCONFIGURE),android)
 # The next line is necessary to override -I$(srcdir), which will end
 # up pulling in lots of headers from the host.
-ALL_CFLAGS += -I$(top_srcdir)/xcompile -I.
+ALL_CFLAGS += -I$(top_srcdir)/cross -I.
 endif
 
 DEPDIR = deps

@@ -18,6 +18,7 @@ about using such devices with Emacs, @pxref{Other Input Devices}.
 * Android Startup::     Starting up Emacs on Android.
 * Android File System:: The Android file system.
 * Android Environment:: Running Emacs under Android.
+* Android Windowing::   The Android window system.
 * Android Fonts::	Font selection under Android.
 @end menu
 
@@ -299,7 +300,8 @@ settings application.  Consult the manufacturer of your device for
 more details, as how to do this varies by device.
 @end itemize
 
-@section Android windowing
+@node Android Windowing
+@section The Android window system
 
   Android has an unusual window system; there, all windows are
 maximized or full-screen, and only one window can be displayed at a
@@ -371,6 +373,31 @@ are unsupported.
 The @code{fullscreen} frame parameter is always @code{maximized} for
 top-level frames.
 @end itemize
+
+@cindex selections, android
+@cindex android clipboard
+  Emacs does not implement all selection related features supported
+under the X Window System on Android.  For example, only the
+@code{CLIPBOARD} and @code{PRIMARY} selections (@pxref{Cut and Paste})
+are supported, and plain text is the only supported data type.
+
+  In addition, the Android system itself places certain restrictions
+on what selection data Emacs can access:
+
+@itemize @bullet
+@item
+On Android 2.3 and earlier, the function @code{gui-selection-owner-p}
+always returns @code{nil} for the clipboard selection.
+
+@item
+On Android 3.0 and later, Emacs can only access clipboard data when
+one of its frames has the input focus.
+@end itemize
+
+  Since the Android system itself has no concept of a primary
+selection, Emacs provides an emulation instead.  This means there is
+no way to transfer the contents of the primary selection to another
+application via cut-and-paste.
 
 @node Android Fonts
 @section Font backends and selection under Android

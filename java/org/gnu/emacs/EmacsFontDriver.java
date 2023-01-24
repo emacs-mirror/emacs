@@ -23,6 +23,9 @@ import java.util.List;
 
 import android.os.Build;
 
+/* This code is mostly unused.  See sfntfont-android.c for the code
+   that is actually used.  */
+
 public abstract class EmacsFontDriver
 {
   /* Font weights.  */
