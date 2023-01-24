@@ -170,7 +170,7 @@ distclean bootstrap-clean: clean
 	fi
 # Just in case.
 	rm -rf lib/Makefile lib/gnulib.mk ndk-build/Makefile
-	rm -rf ndk-build/ndk-build.mk
+	rm -rf ndk-build/ndk-build.mk Makefile
 
 maintainer-clean: distclean bootstrap-clean
 	if [ -e lib/Makefile ]; then		\
