@@ -2051,6 +2051,35 @@ nil."
         (cons (nreverse (car out)) (nreverse (cdr out))))
     (list new-modes)))
 
+;; This function doubles as a convenient helper for use in unit tests.
+;; Prior to 5.6, its contents lived in `erc-open'.
+
+(defun erc--initialize-markers (old-point continued-session)
+  "Ensure prompt and its bounding markers have been initialized."
+  ;; FIXME erase assertions after code review and additional testing.
+  (setq erc-insert-marker (make-marker)
+        erc-input-marker (make-marker))
+  (if continued-session
+      (progn
+        ;; Trust existing markers.
+        (set-marker erc-insert-marker
+                    (alist-get 'erc-insert-marker continued-session))
+        (set-marker erc-input-marker
+                    (alist-get 'erc-input-marker continued-session))
+        (goto-char erc-insert-marker)
+        (cl-assert (= (field-end) erc-input-marker))
+        (goto-char old-point)
+        (erc--unhide-prompt))
+    (cl-assert (not (get-text-property (point) 'erc-prompt)))
+    ;; In the original version from `erc-open', the snippet that
+    ;; handled these newline insertions appeared twice close in
+    ;; proximity, which was probably unintended.  Nevertheless, we
+    ;; preserve the double newlines here for historical reasons.
+    (insert "\n\n")
+    (set-marker erc-insert-marker (point))
+    (erc-display-prompt)
+    (cl-assert (= (point) (point-max)))))
+
 (defun erc-open (&optional server port nick full-name
                            connect passwd tgt-list channel process
                            client-certificate user id)
@@ -2084,10 +2113,13 @@ Returns the buffer for the given server or channel."
          (old-recon-count erc-server-reconnect-count)
          (old-point nil)
          (delayed-modules nil)
-         (continued-session (and erc--server-reconnecting
-                                 (with-suppressed-warnings
-                                     ((obsolete erc-reuse-buffers))
-                                   erc-reuse-buffers))))
+         (continued-session (or erc--server-reconnecting
+                                erc--target-priors
+                                (and-let* (((not target))
+                                           (m (buffer-local-value
+                                               'erc-input-marker buffer))
+                                           ((marker-position m)))
+                                  (buffer-local-variables buffer)))))
     (when connect (run-hook-with-args 'erc-before-connect server port nick))
     (set-buffer buffer)
     (setq old-point (point))
@@ -2105,21 +2137,6 @@ Returns the buffer for the given server or channel."
             (buffer-local-value 'erc-server-announced-name old-buffer)))
     ;; connection parameters
     (setq erc-server-process process)
-    (setq erc-insert-marker (make-marker))
-    (setq erc-input-marker (make-marker))
-    ;; go to the end of the buffer and open a new line
-    ;; (the buffer may have existed)
-    (goto-char (point-max))
-    (forward-line 0)
-    (when (or continued-session (get-text-property (point) 'erc-prompt))
-      (setq continued-session t)
-      (set-marker erc-input-marker
-                  (or (next-single-property-change (point) 'erc-prompt)
-                      (point-max))))
-    (unless continued-session
-      (goto-char (point-max))
-      (insert "\n"))
-    (set-marker erc-insert-marker (point))
     ;; stack of default recipients
     (setq erc-default-recipients tgt-list)
     (when target
@@ -2166,20 +2183,7 @@ Returns the buffer for the given server or channel."
             (get-buffer-create (concat "*ERC-DEBUG: " server "*"))))
 
     (erc-determine-parameters server port nick full-name user passwd)
-
-    ;; FIXME consolidate this prompt-setup logic with the pass above.
-
-    ;; set up prompt
-    (unless continued-session
-      (goto-char (point-max))
-      (insert "\n"))
-    (if continued-session
-        (progn (goto-char old-point)
-               (erc--unhide-prompt))
-      (set-marker erc-insert-marker (point))
-      (erc-display-prompt)
-      (goto-char (point-max)))
-
+    (erc--initialize-markers old-point continued-session)
     (save-excursion (run-mode-hooks)
                     (dolist (mod (car delayed-modules)) (funcall mod +1))
                     (dolist (var (cdr delayed-modules)) (set var nil)))

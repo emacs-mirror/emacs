@@ -117,11 +117,7 @@
   ;; Caller should probably shadow `erc-insert-modify-hook' or
   ;; populate user tables for erc-button.
   (erc-mode)
-  (insert "\n\n")
-  (setq erc-input-marker (make-marker)
-        erc-insert-marker (make-marker))
-  (set-marker erc-insert-marker (point-max))
-  (erc-display-prompt)
+  (erc--initialize-markers (point) nil)
   (should (= (point) erc-input-marker)))
 
 (defun erc-tests--set-fake-server-process (&rest args)
@@ -256,6 +252,79 @@
       (kill-buffer "#chan")
       (kill-buffer "bob")
       (kill-buffer "ServNet"))))
+
+(ert-deftest erc--initialize-markers ()
+  (let ((proc (start-process "true" (current-buffer) "true"))
+        erc-modules
+        erc-connect-pre-hook
+        erc-insert-modify-hook
+        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+    (set-process-query-on-exit-flag proc nil)
+    (erc-mode)
+    (setq erc-server-process proc
+          erc-networks--id (erc-networks--id-create 'foonet))
+    (erc-open "localhost" 6667 "tester" "Tester" nil
+              "fake" nil "#chan" proc nil "user" nil)
+    (with-current-buffer (should (get-buffer "#chan"))
+      (should (= ?\n (char-after 1)))
+      (should (= ?E (char-after erc-insert-marker)))
+      (should (= 3 (marker-position erc-insert-marker)))
+      (should (= 8 (marker-position erc-input-marker)))
+      (should (= 8 (point-max)))
+      (should (= 8 (point)))
+      ;; These prompt properties are a continual source of confusion.
+      ;; Including the literal defaults here can hopefully serve as a
+      ;; quick reference for anyone operating in that area.
+      (should (equal (buffer-string)
+                     #("\n\nERC> "
+                       2 6 ( font-lock-face erc-prompt-face
+                             rear-nonsticky t
+                             erc-prompt t
+                             field erc-prompt
+                             front-sticky t
+                             read-only t)
+                       6 7 ( rear-nonsticky t
+                             erc-prompt t
+                             field erc-prompt
+                             front-sticky t
+                             read-only t))))
+
+      ;; Simulate some activity by inserting some text before and
+      ;; after the prompt (multiline).
+      (erc-display-error-notice nil "Welcome")
+      (goto-char (point-max))
+      (insert "Hello\nWorld")
+      (goto-char 3)
+      (should (looking-at-p (regexp-quote "*** Welcome"))))
+
+    (ert-info ("Reconnect")
+      (erc-open "localhost" 6667 "tester" "Tester" nil
+                "fake" nil "#chan" proc nil "user" nil)
+      (should-not (get-buffer "#chan<2>")))
+
+    (ert-info ("Existing prompt respected")
+      (with-current-buffer (should (get-buffer "#chan"))
+        (should (= ?\n (char-after 1)))
+        (should (= ?E (char-after erc-insert-marker)))
+        (should (= 15 (marker-position erc-insert-marker)))
+        (should (= 20 (marker-position erc-input-marker)))
+        (should (= 3 (point))) ; point restored
+        (should (equal (buffer-string)
+                       #("\n\n*** Welcome\nERC> Hello\nWorld"
+                         2 13 (font-lock-face erc-error-face)
+                         14 18 ( font-lock-face erc-prompt-face
+                                 rear-nonsticky t
+                                 erc-prompt t
+                                 field erc-prompt
+                                 front-sticky t
+                                 read-only t)
+                         18 19 ( rear-nonsticky t
+                                 erc-prompt t
+                                 field erc-prompt
+                                 front-sticky t
+                                 read-only t))))
+        (when noninteractive
+          (kill-buffer))))))
 
 (ert-deftest erc--switch-to-buffer ()
   (defvar erc-modified-channels-alist) ; lisp/erc/erc-track.el
