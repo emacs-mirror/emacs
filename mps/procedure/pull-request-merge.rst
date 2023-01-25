@@ -365,7 +365,7 @@ RB 2023-01-14]
 
 
 6.1. Why not rebase or squash merge?
-------------------------------------
+....................................
 
 We would like to avoid rewriting history and the destruction of
 information on the grounds that it destroys information that could be
@@ -403,7 +403,7 @@ and so we should not edit it.
 
 
 6.2. Why not press the GitHub merge button?
--------------------------------------------
+...........................................
 
 We cannot use the GitHub pull request merge button because it would
 put the GitHub master branch out of sync with (ahead of) Perforce.
@@ -442,7 +442,7 @@ checklist into GitHub's interface using a `pull request template
 .. _durable branch naming convention:
 
 6.3. Why the "durable" branch names?
-------------------------------------
+....................................
 
 It's common in Git culture to delete branches once they've been
 merged [Ardalis_2017]_ but this destroys information that has been
