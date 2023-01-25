@@ -92,6 +92,34 @@
   :safe 'integerp
   :group 'c)
 
+(defun c-ts-mode--indent-style-setter (sym val)
+  "Custom setter for `c-ts-mode-set-style'."
+  (set-default sym val)
+  (named-let loop ((res nil)
+                   (buffers (buffer-list)))
+    (if (null buffers)
+        (mapc (lambda (b)
+                (with-current-buffer b
+                  (setq-local treesit-simple-indent-rules
+                              (treesit--indent-rules-optimize
+                               (c-ts-mode--get-indent-style
+                                (if (eq major-mode 'c-ts-mode) 'c 'cpp))))))
+              res)
+      (let ((buffer (car buffers)))
+        (with-current-buffer buffer
+          (if (or (eq major-mode 'c-ts-mode) (eq major-mode 'c++-ts-mode))
+              (loop (append res (list buffer)) (cdr buffers))
+            (loop res (cdr buffers))))))))
+
+(defun c-ts-mode--get-indent-style (mode)
+  "Helper function to set indentation style.
+MODE is either `c' or `cpp'."
+  (let ((style
+         (if (functionp c-ts-mode-indent-style)
+             (funcall c-ts-mode-indent-style)
+           (alist-get c-ts-mode-indent-style (c-ts-mode--indent-styles mode)))))
+    `((,mode ,@style))))
+
 (defcustom c-ts-mode-indent-style 'gnu
   "Style used for indentation.
 
@@ -100,12 +128,26 @@ one of the supplied styles doesn't suffice a function could be
 set instead.  This function is expected return a list that
 follows the form of `treesit-simple-indent-rules'."
   :version "29.1"
-  :type '(choice (symbol :tag "Gnu" 'gnu)
-                 (symbol :tag "K&R" 'k&r)
-                 (symbol :tag "Linux" 'linux)
-                 (symbol :tag "BSD" 'bsd)
+  :type '(choice (symbol :tag "Gnu" gnu)
+                 (symbol :tag "K&R" k&r)
+                 (symbol :tag "Linux" linux)
+                 (symbol :tag "BSD" bsd)
                  (function :tag "A function for user customized style" ignore))
+  :set #'c-ts-mode--indent-style-setter
   :group 'c)
+
+(defun c-ts-mode-set-style ()
+  (interactive)
+  (or (eq major-mode 'c-ts-mode) (eq major-mode 'c++-ts-mode)
+      (error "Buffer %s is not a c-ts-mode (c-ts-mode-set-style)"
+             (buffer-name)))
+  (c-ts-mode--indent-style-setter
+   'c-ts-mode-indent-style
+   (intern
+    (completing-read
+     "Select style: "
+     (mapcar #'car (c-ts-mode--indent-styles (if (eq major-mode 'c-ts-mode) 'c 'cpp)))
+     nil t nil nil "gnu"))))
 
 ;;; Syntax table
 
@@ -248,19 +290,6 @@ MODE is either `c' or `cpp'."
        ((parent-is "case_statement") parent-bol 0)
        ((parent-is "do_statement") parent-bol 0)
        ,@common))))
-
-(defun c-ts-mode--set-indent-style (mode)
-  "Helper function to set indentation style.
-MODE is either `c' or `cpp'."
-  (let ((style
-         (if (functionp c-ts-mode-indent-style)
-             (funcall c-ts-mode-indent-style)
-           (pcase c-ts-mode-indent-style
-             ('gnu   (alist-get 'gnu (c-ts-mode--indent-styles mode)))
-             ('k&r   (alist-get 'k&r (c-ts-mode--indent-styles mode)))
-             ('bsd   (alist-get 'bsd (c-ts-mode--indent-styles mode)))
-             ('linux (alist-get 'linux (c-ts-mode--indent-styles mode)))))))
-    `((,mode ,@style))))
 
 (defun c-ts-mode--top-level-label-matcher (node &rest _)
   "A matcher that matches a top-level label.
@@ -840,7 +869,7 @@ in your configuration."
     (setq-local comment-end " */")
     ;; Indent.
     (setq-local treesit-simple-indent-rules
-                (c-ts-mode--set-indent-style 'c))
+                (c-ts-mode--get-indent-style 'c))
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
     (treesit-major-mode-setup)))
@@ -870,7 +899,7 @@ in your configuration."
                 #'c-ts-mode--syntax-propertize)
     ;; Indent.
     (setq-local treesit-simple-indent-rules
-                (c-ts-mode--set-indent-style 'cpp))
+                (c-ts-mode--get-indent-style 'cpp))
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
     (treesit-major-mode-setup)))
