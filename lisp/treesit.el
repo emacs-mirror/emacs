@@ -2707,8 +2707,10 @@ See `treesit-language-source-alist' for details."
                   (if (equal string "") nil string)))
       (list
        lang
-       (read-string
-        "Enter the URL of the Git repository of the language grammar: ")
+       (let ((repo-default (format "https://github.com/tree-sitter/tree-sitter-%s" lang)))
+         (read-string
+          "Enter the URL of the Git repository of the language grammar: "
+          (and (treesit--check-repo-url repo-default) repo-default)))
        (empty-string-to-nil
         (read-string
          "Enter the tag or branch (default: default branch): "))
@@ -2721,6 +2723,16 @@ See `treesit-language-source-alist' for details."
        (empty-string-to-nil
         (read-string
          "Enter the C++ compiler to use (default: auto-detect): "))))))
+
+(defun treesit--check-repo-url (url)
+  (defvar url-request-method)
+  (let ((url-request-method "HEAD"))
+    (let ((buffer (condition-case nil (url-retrieve-synchronously url t t)
+                    (file-error nil))))
+      (and buffer
+           (eql
+            (buffer-local-value 'url-http-response-status buffer)
+            200)))))
 
 ;;;###autoload
 (defun treesit-install-language-grammar (lang)
