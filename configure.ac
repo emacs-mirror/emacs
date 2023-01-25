@@ -839,7 +839,7 @@ import android.os.Build;
 
 class conftest
 {
-  private static int test = Build.VERSION_CODES.S;
+  private static int test = Build.VERSION_CODES.TIRAMISU;
 }
 
 EOF
@@ -850,7 +850,7 @@ EOF
 
   if test "$emacs_cv_android_s_or_later" = "no"; then
     AC_MSG_ERROR([Emacs must be built with an android.jar file produced for \
-Android 13 (S) or later.])
+Android 13 (Tiramisu) or later.])
   fi
 
   ANDROID_JAR="$with_android"
@@ -6706,6 +6706,9 @@ copyright="Copyright (C) 2023 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
+
+# This is needed for gnulib's printf modules.
+CFLAGS="$CFLAGS -DHAVE_CONFIG_H"
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
