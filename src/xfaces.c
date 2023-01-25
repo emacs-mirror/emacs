@@ -6012,7 +6012,6 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
 
   return face;
 }
-#endif	/* HAVE_WINDOW_SYSTEM */
 
 /* Remove the attribute at INDEX from the font object if SYMBOL
    appears in `font-fallback-ignored-attributes'.  */
@@ -6031,6 +6030,7 @@ font_maybe_unset_attribute (Lisp_Object font_object,
 	ASET (font_object, index, Qnil);
     }
 }
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Realize the fully-specified face with attributes ATTRS in face
    cache CACHE for ASCII characters.  Do it for GUI frame CACHE->f.
