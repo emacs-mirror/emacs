@@ -659,7 +659,7 @@ The `sudo' program appears to insert a `^@' character into the prompt."
 (defcustom tramp-wrong-passwd-regexp
   (rx bol (* nonl)
       (| "Permission denied"
-	 "Login [Ii]ncorrect"
+	 (: "Login " (| "Incorrect" "incorrect"))
 	 "Connection refused"
 	 "Connection closed"
 	 "Timeout, server not responding."
