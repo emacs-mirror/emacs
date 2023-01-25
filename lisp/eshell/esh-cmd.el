@@ -741,18 +741,24 @@ if none)."
 ;; The structure of the following macros is very important to
 ;; `eshell-do-eval' [Iterative evaluation]:
 ;;
-;; @ Don't use forms that conditionally evaluate their arguments, such
-;;   as `setq', `if', `while', `let*', etc.  The only special forms
-;;   that can be used are `let', `condition-case' and
-;;   `unwind-protect'.
+;; @ Don't use special forms that conditionally evaluate their
+;;   arguments, such as `let*', unless Eshell explicitly supports
+;;   them.  Eshell supports the following special forms: `catch',
+;;   `condition-case', `if', `let', `prog1', `progn', `quote', `setq',
+;;   `unwind-protect', and `while'.
 ;;
-;; @ The main body of a `let' can contain only one form.  Use `progn'
-;;   if necessary.
+;; @ When using `if' or `while', first let-bind `eshell-test-body' and
+;;   `eshell-command-body' to '(nil).  Eshell uses these variables to
+;;   handle conditional evaluation.
 ;;
 ;; @ The two `special' variables are `eshell-current-handles' and
 ;;   `eshell-current-subjob-p'.  Bind them locally with a `let' if you
 ;;   need to change them.  Change them directly only if your intention
 ;;   is to change the calling environment.
+;;
+;; These rules likewise apply to any other code that generates forms
+;; that `eshell-do-eval' will evaluated, such as command rewriting
+;; hooks (see `eshell-rewrite-command-hook' and friends).
 
 (defmacro eshell-do-subjob (object)
   "Evaluate a command OBJECT as a subjob.
@@ -1095,9 +1101,17 @@ produced by `eshell-parse-command'."
        (eshell-debug-command ,(concat "done " (eval tag)) form))))
 
 (defun eshell-do-eval (form &optional synchronous-p)
-  "Evaluate form, simplifying it as we go.
+  "Evaluate FORM, simplifying it as we go.
 Unless SYNCHRONOUS-P is non-nil, throws `eshell-defer' if it needs to
-be finished later after the completion of an asynchronous subprocess."
+be finished later after the completion of an asynchronous subprocess.
+
+As this function evaluates FORM, it will gradually replace
+subforms with the (quoted) result of evaluating them.  For
+example, a function call is replaced with the result of the call.
+This allows us to resume evaluation of FORM after something
+inside throws `eshell-defer' simply by calling this function
+again.  Any forms preceding one that throw `eshell-defer' will
+have been replaced by constants."
   (cond
    ((not (listp form))
     (list 'quote (eval form)))
@@ -1161,21 +1175,48 @@ be finished later after the completion of an asynchronous subprocess."
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eval form))
        ((eq (car form) 'let)
-	(if (not (eq (car (cadr args)) 'eshell-do-eval))
-	    (eshell-manipulate "evaluating let args"
-	      (dolist (letarg (car args))
-		(if (and (listp letarg)
-			 (not (eq (cadr letarg) 'quote)))
-		    (setcdr letarg
-			    (list (eshell-do-eval
-				   (cadr letarg) synchronous-p)))))))
+        (when (not (eq (car (cadr args)) 'eshell-do-eval))
+          (eshell-manipulate "evaluating let args"
+            (dolist (letarg (car args))
+              (when (and (listp letarg)
+                         (not (eq (cadr letarg) 'quote)))
+                (setcdr letarg
+                        (list (eshell-do-eval
+                               (cadr letarg) synchronous-p)))))))
         (cl-progv
-            (mapcar (lambda (binding) (if (consp binding) (car binding) binding))
+            (mapcar (lambda (binding)
+                      (if (consp binding) (car binding) binding))
                     (car args))
             ;; These expressions should all be constants now.
-            (mapcar (lambda (binding) (if (consp binding) (eval (cadr binding))))
+            (mapcar (lambda (binding)
+                      (when (consp binding) (eval (cadr binding))))
                     (car args))
-	  (eshell-do-eval (macroexp-progn (cdr args)) synchronous-p)))
+          (let (deferred result)
+            ;; Evaluate the `let' body, catching `eshell-defer' so we
+            ;; can handle it below.
+            (setq deferred
+                  (catch 'eshell-defer
+                    (ignore (setq result (eshell-do-eval
+                                          (macroexp-progn (cdr args))
+                                          synchronous-p)))))
+            ;; If something threw `eshell-defer', we need to update
+            ;; the let-bindings' values so that those values are
+            ;; correct when we resume evaluation of this form.
+            (when deferred
+              (eshell-manipulate "rebinding let args after `eshell-defer'"
+                (let ((bindings (car args)))
+                  (while bindings
+                    (let ((binding (if (consp (car bindings))
+                                       (caar bindings)
+                                     (car bindings))))
+                      (setcar bindings
+                              (list binding
+                                    (list 'quote (symbol-value binding)))))
+                    (pop bindings))))
+              (throw 'eshell-defer deferred))
+            ;; If we get here, there was no `eshell-defer' thrown, so
+            ;; just return the `let' body's result.
+            result)))
        ((memq (car form) '(catch condition-case unwind-protect))
 	;; `condition-case' and `unwind-protect' have to be
 	;; handled specially, because we only want to call
