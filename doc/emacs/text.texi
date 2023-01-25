@@ -958,8 +958,6 @@ hooks.
 @cindex invisible lines
 
 @findex outline-mode
-@findex outline-minor-mode
-@vindex outline-minor-mode-prefix
 @vindex outline-mode-hook
   Outline mode is a major mode derived from Text mode, which is
 specialized for editing outlines.  It provides commands to navigate
@@ -982,6 +980,19 @@ previous visible line.  Killing the ellipsis at the end of a visible
 line really kills all the following invisible text associated with the
 ellipsis.
 
+@menu
+* Outline Minor Mode::  Outline mode to use with other major modes.
+* Outline Format::      What the text of an outline looks like.
+* Outline Motion::      Special commands for moving through outlines.
+* Outline Visibility::  Commands to control what is visible.
+* Outline Views::       Outlines and multiple views.
+* Foldout::             Folding means zooming in on outlines.
+@end menu
+
+@node Outline Minor Mode
+@subsection Outline Minor Mode
+
+@findex outline-minor-mode
   Outline minor mode is a buffer-local minor mode which provides the
 same commands as the major mode, Outline mode, but can be used in
 conjunction with other major modes.  You can type @kbd{M-x
@@ -990,6 +1001,7 @@ buffer, or use a file-local variable setting to enable it in a
 specific file (@pxref{File Variables}).
 
 @kindex C-c @@ @r{(Outline minor mode)}
+@vindex outline-minor-mode-prefix
   The major mode, Outline mode, provides special key bindings on the
 @kbd{C-c} prefix.  Outline minor mode provides similar bindings with
 @kbd{C-c @@} as the prefix; this is to reduce the conflicts with the
@@ -1013,14 +1025,6 @@ non-@code{nil}, the @kbd{TAB} and @kbd{S-@key{TAB}} keys are enabled on the
 outline heading lines.  @kbd{TAB} cycles hiding, showing the
 sub-heading, and showing all for the current section.  @kbd{S-@key{TAB}}
 does the same for the entire buffer.
-
-@menu
-* Outline Format::      What the text of an outline looks like.
-* Outline Motion::      Special commands for moving through outlines.
-* Outline Visibility::  Commands to control what is visible.
-* Outline Views::       Outlines and multiple views.
-* Foldout::             Folding means zooming in on outlines.
-@end menu
 
 @node Outline Format
 @subsection Format of Outlines
