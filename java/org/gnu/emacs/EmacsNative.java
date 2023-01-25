@@ -29,8 +29,7 @@ public class EmacsNative
      can be used to determine the dump file name.  */
   public static native String getFingerprint ();
 
-  /* Set certain parameters before initializing Emacs.  This proves
-     that libemacs.so is being loaded from Java code.
+  /* Set certain parameters before initializing Emacs.
 
      assetManager must be the asset manager associated with the
      context that is loading Emacs.  It is saved and remains for the
@@ -48,19 +47,26 @@ public class EmacsNative
      pixelDensityX and pixelDensityY are the DPI values that will be
      used by Emacs.
 
-     emacsService must be the emacsService singleton.  */
+     classPath must be the classpath of this app_process process, or
+     NULL.
+
+     emacsService must be the EmacsService singleton, or NULL.  */
   public static native void setEmacsParams (AssetManager assetManager,
 					    String filesDir,
 					    String libDir,
 					    String cacheDir,
 					    float pixelDensityX,
 					    float pixelDensityY,
+					    String classPath,
 					    EmacsService emacsService);
 
   /* Initialize Emacs with the argument array ARGV.  Each argument
      must contain a NULL terminated string, or else the behavior is
-     undefined.  */
-  public static native void initEmacs (String argv[]);
+     undefined.
+
+     DUMPFILE is the dump file to use, or NULL if Emacs is to load
+     loadup.el itself.  */
+  public static native void initEmacs (String argv[], String dumpFile);
 
   /* Abort and generate a native core dump.  */
   public static native void emacsAbort ();

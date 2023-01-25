@@ -22,27 +22,20 @@ package org.gnu.emacs;
 import java.io.File;
 import java.io.FileFilter;
 
+import android.content.Context;
+
 import android.app.Application;
 import android.util.Log;
 
-public class EmacsApplication extends Application implements FileFilter
+public class EmacsApplication extends Application
 {
   private static final String TAG = "EmacsApplication";
 
   /* The name of the dump file to use.  */
   public static String dumpFileName;
 
-  @Override
-  public boolean
-  accept (File file)
-  {
-    return (!file.isDirectory ()
-	    && file.getName ().endsWith (".pdmp"));
-  }
-
-  @Override
-  public void
-  onCreate ()
+  public static void
+  findDumpFile (Context context)
   {
     File filesDirectory;
     File[] allFiles;
@@ -52,13 +45,19 @@ public class EmacsApplication extends Application implements FileFilter
     wantedDumpFile = ("emacs-" + EmacsNative.getFingerprint ()
 		      + ".pdmp");
 
-    Log.d (TAG, "onCreate: looking for " + wantedDumpFile);
-
     /* Obtain a list of all files ending with ``.pdmp''.  Then, look
        for a file named ``emacs-<fingerprint>.pdmp'' and delete the
        rest.  */
-    filesDirectory = getFilesDir ();
-    allFiles = filesDirectory.listFiles (this);
+    filesDirectory = context.getFilesDir ();
+    allFiles = filesDirectory.listFiles (new FileFilter () {
+	@Override
+	public boolean
+	accept (File file)
+	{
+	  return (!file.isDirectory ()
+		  && file.getName ().endsWith (".pdmp"));
+	}
+      });
 
     /* Now try to find the right dump file.  */
     for (i = 0; i < allFiles.length; ++i)
@@ -69,9 +68,13 @@ public class EmacsApplication extends Application implements FileFilter
 	  /* Delete this outdated dump file.  */
 	  allFiles[i].delete ();
       }
+  }
 
-    Log.d (TAG, "onCreate: found " + dumpFileName);
-
+  @Override
+  public void
+  onCreate ()
+  {
+    findDumpFile (this);
     super.onCreate ();
   }
 };

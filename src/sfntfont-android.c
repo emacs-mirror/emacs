@@ -729,6 +729,9 @@ syms_of_sfntfont_android_for_pdumper (void)
 void
 init_sfntfont_android (void)
 {
+  if (!android_init_gui)
+    return;
+
   /* Make sure to pick the right Sans Serif font depending on what
      version of Android the device is running.  */
 #if HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL

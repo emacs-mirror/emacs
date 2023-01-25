@@ -240,6 +240,9 @@ init_androidselect (void)
   jobject tem;
   jmethodID make_clipboard;
 
+  if (!android_init_gui)
+    return;
+
   android_init_emacs_clipboard ();
 
   make_clipboard = clipboard_class.make_clipboard;

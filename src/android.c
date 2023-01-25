@@ -145,6 +145,10 @@ char *android_game_path;
 /* The directory used to store temporary files.  */
 char *android_cache_dir;
 
+/* The list of archive files within which the Java virtual macine
+   looks for class files.  */
+char *android_class_path;
+
 /* The display's pixel densities.  */
 double android_pixel_density_x, android_pixel_density_y;
 
@@ -1315,6 +1319,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 			      jobject cache_dir,
 			      jfloat pixel_density_x,
 			      jfloat pixel_density_y,
+			      jobject class_path,
 			      jobject emacs_service_object)
 {
   int pipefd[2];
@@ -1372,19 +1377,30 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
      object from being deleted.  */
   (*env)->NewGlobalRef (env, local_asset_manager);
 
-  /* Create a pipe and duplicate it to stdout and stderr.  Next, make
-     a thread that prints stderr to the system log.  */
+  if (emacs_service_object)
+    {
+      /* Create a pipe and duplicate it to stdout and stderr.  Next,
+	 make a thread that prints stderr to the system log.
 
-  if (pipe2 (pipefd, O_CLOEXEC) < 0)
-    emacs_abort ();
+         Notice that this function is called in one of two ways.  The
+         first is when Emacs is being started as a GUI application by
+         the system, and the second is when Emacs is being started by
+         libandroid-emacs.so as an ordinary noninteractive Emacs.
 
-  if (dup2 (pipefd[1], 2) < 0)
-    emacs_abort ();
-  close (pipefd[1]);
+         In the second case, stderr is usually connected to a PTY, so
+         this is unnecessary.  */
 
-  if (pthread_create (&thread, NULL, android_run_debug_thread,
-		      (void *) (intptr_t) pipefd[0]))
-    emacs_abort ();
+      if (pipe2 (pipefd, O_CLOEXEC) < 0)
+	emacs_abort ();
+
+      if (dup2 (pipefd[1], 2) < 0)
+	emacs_abort ();
+      close (pipefd[1]);
+
+      if (pthread_create (&thread, NULL, android_run_debug_thread,
+			  (void *) (intptr_t) pipefd[0]))
+	emacs_abort ();
+    }
 
   /* Now set the path to the site load directory.  */
 
@@ -1430,6 +1446,23 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   (*env)->ReleaseStringUTFChars (env, (jstring) cache_dir,
 				 java_string);
 
+  if (class_path)
+    {
+      java_string = (*env)->GetStringUTFChars (env, (jstring) class_path,
+					       NULL);
+
+      if (!java_string)
+	emacs_abort ();
+
+      android_class_path = strdup ((const char *) java_string);
+
+      if (!android_files_dir)
+	emacs_abort ();
+
+      (*env)->ReleaseStringUTFChars (env, (jstring) class_path,
+				     java_string);
+    }
+
   /* Calculate the site-lisp path.  */
 
   android_site_load_path = malloc (PATH_MAX + 1);
@@ -1450,16 +1483,32 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 		       "Site-lisp directory: %s\n"
 		       "Files directory: %s\n"
 		       "Native code directory: %s\n"
-		       "Game score path: %s\n",
+		       "Game score path: %s\n"
+		       "Class path: %s\n",
 		       android_site_load_path,
 		       android_files_dir,
-		       android_lib_dir, android_game_path);
+		       android_lib_dir, android_game_path,
+		       (android_class_path
+			? android_class_path
+			: "None"));
+
+  if (android_class_path)
+    /* Set EMACS_CLASS_PATH to the class path where
+       EmacsNoninteractive can be found.  */
+    setenv ("EMACS_CLASS_PATH", android_class_path, 1);
+
+  /* Set LD_LIBRARY_PATH to an appropriate value.  */
+  setenv ("LD_LIBRARY_PATH", android_lib_dir, 1);
 
   /* Make a reference to the Emacs service.  */
-  emacs_service = (*env)->NewGlobalRef (env, emacs_service_object);
 
-  if (!emacs_service)
-    emacs_abort ();
+  if (emacs_service_object)
+    {
+      emacs_service = (*env)->NewGlobalRef (env, emacs_service_object);
+
+      if (!emacs_service)
+	emacs_abort ();
+    }
 
   /* Set up events.  */
   android_init_events ();
@@ -1660,12 +1709,14 @@ android_init_emacs_window (void)
 }
 
 extern JNIEXPORT void JNICALL
-NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv)
+NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
+			 jobject dump_file_object)
 {
   char **c_argv;
   jsize nelements, i;
   jobject argument;
   const char *c_argument;
+  char *dump_file;
 
   android_java_env = env;
 
@@ -1705,9 +1756,34 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv)
     __android_log_print (ANDROID_LOG_WARN, __func__,
 			 "chdir: %s", strerror (errno));
 
-  /* Initialize the Android GUI.  */
-  android_init_gui = true;
-  android_emacs_init (nelements, c_argv);
+  /* Initialize the Android GUI as long as the service object was
+     set.  */
+
+  if (emacs_service)
+    android_init_gui = true;
+
+  /* Now see if a dump file has been specified and should be used.  */
+  dump_file = NULL;
+
+  if (dump_file_object)
+    {
+      c_argument
+	= (*env)->GetStringUTFChars (env, (jstring) dump_file_object,
+				     NULL);
+
+      /* Copy the Java string data once.  */
+      dump_file = strdup (c_argument);
+
+      /* Release the Java string data.  */
+      (*env)->ReleaseStringUTFChars (env, (jstring) dump_file_object,
+				     c_argument);
+    }
+
+  /* Delete local references to objects that are no longer needed.  */
+  ANDROID_DELETE_LOCAL_REF (argv);
+  ANDROID_DELETE_LOCAL_REF (dump_file_object);
+
+  android_emacs_init (nelements, c_argv, dump_file);
   /* android_emacs_init should never return.  */
   emacs_abort ();
 }

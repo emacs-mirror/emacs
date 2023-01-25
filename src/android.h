@@ -38,15 +38,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #endif
 
-/* This must be used in every symbol declaration to export it to the
-   JNI Emacs wrapper.  */
-#define ANDROID_EXPORT __attribute__ ((visibility ("default")))
-
-extern bool ANDROID_EXPORT android_init_gui;
-extern int ANDROID_EXPORT android_emacs_init (int, char **);
+extern bool android_init_gui;
 
 #ifndef ANDROID_STUBIFY
 
+extern int android_emacs_init (int, char **, char *);
 extern int android_select (int, fd_set *, fd_set *, fd_set *,
 			   struct timespec *);
 

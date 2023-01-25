@@ -41,6 +41,9 @@ import android.app.Service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager.ApplicationInfoFlags;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 
 import android.net.Uri;
@@ -118,8 +121,38 @@ public class EmacsService extends Service
     return null;
   }
 
+  @SuppressWarnings ("deprecation")
+  private String
+  getApkFile ()
+  {
+    PackageManager manager;
+    ApplicationInfo info;
+
+    manager = getPackageManager ();
+
+    try
+      {
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+	  info = manager.getApplicationInfo ("org.gnu.emacs", 0);
+	else
+	  info = manager.getApplicationInfo ("org.gnu.emacs",
+					     ApplicationInfoFlags.of (0));
+
+	/* Return an empty string upon failure.  */
+
+	if (info.sourceDir != null)
+	  return info.sourceDir;
+
+	return "";
+      }
+    catch (Exception e)
+      {
+	return "";
+      }
+  }
+
   @TargetApi (Build.VERSION_CODES.GINGERBREAD)
-  String
+  private String
   getLibraryDirectory ()
   {
     int apiLevel;
@@ -142,7 +175,7 @@ public class EmacsService extends Service
   {
     AssetManager manager;
     Context app_context;
-    String filesDir, libDir, cacheDir;
+    String filesDir, libDir, cacheDir, classPath;
     double pixelDensityX;
     double pixelDensityY;
 
@@ -162,13 +195,18 @@ public class EmacsService extends Service
 	libDir = getLibraryDirectory ();
 	cacheDir = app_context.getCacheDir ().getCanonicalPath ();
 
+	/* Now provide this application's apk file, so a recursive
+	   invocation of app_process (through android-emacs) can
+	   find EmacsNoninteractive.  */
+	classPath = getApkFile ();
+
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
-	       + " and libDir = " + libDir);
+	       + ", libDir = " + libDir + ", and classPath = " + classPath);
 
 	EmacsNative.setEmacsParams (manager, filesDir, libDir,
 				    cacheDir, (float) pixelDensityX,
 				    (float) pixelDensityY,
-				    this);
+				    classPath, this);
 
 	/* Start the thread that runs Emacs.  */
 	thread = new EmacsThread (this, needDashQ);
@@ -491,8 +529,6 @@ public class EmacsService extends Service
   public static void
   startEmacsService (Context context)
   {
-    PendingIntent intent;
-
     if (EmacsService.SERVICE == null)
       {
 	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)

@@ -875,19 +875,23 @@ dump_error_to_string (int result)
     }
 }
 
-/* This function returns the Emacs executable.  */
+/* This function returns the Emacs executable.  DUMP_FILE is ignored
+   outside of Android.  Otherwise, it is the name of the dump file to
+   use, or NULL if Emacs should look for a ``--dump-file'' argument
+   instead.  */
+
 static char *
-load_pdump (int argc, char **argv)
+load_pdump (int argc, char **argv, char *dump_file)
 {
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  char *dump_file = NULL;
   int skip_args = 0, result;
 
   while (skip_args < argc - 1)
     {
-      if (argmatch (argv, argc, "-dump-file", "--dump-file", 6,
-		    &dump_file, &skip_args)
-	  || argmatch (argv, argc, "--", NULL, 2, NULL, &skip_args))
+      if (argmatch (argv, argc, "-dump-file", "--dump-file",
+		    6, &dump_file, &skip_args)
+	  || argmatch (argv, argc, "--", NULL, 2, NULL,
+		       &skip_args))
 	break;
       skip_args++;
     }
@@ -933,7 +937,7 @@ load_pdump (int argc, char **argv)
 
   /* Look for an explicitly-specified dump file.  */
   const char *path_exec = PATH_EXEC;
-  char *dump_file = NULL;
+  dump_file = NULL;
   int skip_args = 0;
   while (skip_args < argc - 1)
     {
@@ -1276,7 +1280,7 @@ maybe_load_seccomp (int argc, char **argv)
 
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
 int
-android_emacs_init (int argc, char **argv)
+android_emacs_init (int argc, char **argv, char *dump_file)
 #else
 int
 main (int argc, char **argv)
@@ -1286,6 +1290,12 @@ main (int argc, char **argv)
      for pointers.  */
   void *stack_bottom_variable;
   int old_argc;
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  char *dump_file;
+
+  /* This is just a dummy argument used to avoid extra defines.  */
+  dump_file = NULL;
+#endif
 
   /* First, check whether we should apply a seccomp filter.  This
      should come at the very beginning to allow the filter to protect
@@ -1415,7 +1425,7 @@ main (int argc, char **argv)
 
 #ifdef HAVE_PDUMPER
   if (attempt_load_pdump)
-    initial_emacs_executable = load_pdump (argc, argv);
+    initial_emacs_executable = load_pdump (argc, argv, dump_file);
 #else
   ptrdiff_t bufsize;
   initial_emacs_executable = find_emacs_executable (argv[0], &bufsize);

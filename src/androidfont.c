@@ -1104,6 +1104,9 @@ syms_of_androidfont (void)
 void
 init_androidfont (void)
 {
+  if (!android_init_gui)
+    return;
+
   android_init_font_driver ();
   android_init_font_spec ();
   android_init_font_metrics ();

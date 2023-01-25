@@ -560,22 +560,23 @@ lost after dumping")))
       ;; different build fingerprint upon being created, which happens
       ;; the moment the Android system starts Emacs.  Then, it passes
       ;; the appropriate "--dump-file" to libemacs.so as it starts.
-      (let ((temp-dir (getenv "TEMP"))
-            (dump-file-name (format "%semacs-%s.pdmp"
-                                    (file-name-as-directory "~")
-                                    pdumper-fingerprint))
-            (dump-temp-file-name (format "%s~emacs-%s.pdmp"
-                                         (file-name-as-directory "~")
-                                         pdumper-fingerprint)))
-        (unless (pdumper-stats)
-          (condition-case ()
-              (progn
-                (dump-emacs-portable dump-temp-file-name)
-                ;; Move the dumped file to the actual dump file name.
-                (rename-file dump-temp-file-name dump-file-name)
-                ;; Continue with loadup.
-                nil)
-            (error nil)))))
+      (when (not noninteractive)
+        (let ((temp-dir (getenv "TEMP"))
+              (dump-file-name (format "%semacs-%s.pdmp"
+                                      (file-name-as-directory "~")
+                                      pdumper-fingerprint))
+              (dump-temp-file-name (format "%s~emacs-%s.pdmp"
+                                           (file-name-as-directory "~")
+                                           pdumper-fingerprint)))
+          (unless (pdumper-stats)
+            (condition-case ()
+                (progn
+                  (dump-emacs-portable dump-temp-file-name)
+                  ;; Move the dumped file to the actual dump file name.
+                  (rename-file dump-temp-file-name dump-file-name)
+                  ;; Continue with loadup.
+                  nil)
+              (error nil))))))
   (if dump-mode
       (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")
                           ((equal dump-mode "dump") "emacs")

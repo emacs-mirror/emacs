@@ -768,7 +768,7 @@ libemacs.so: $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
 
 android-emacs: libemacs.so android-emacs.o
 	$(AM_V_CCLD)$(CC) -o $@ $(ALL_CFLAGS) $(LDFLAGS) 	\
-	  -L. "-l:libemacs.so" android-emacs.o
+	  $(LIBEGNU_ARCHIVE) -L. "-l:libemacs.so" android-emacs.o
 endif
 
 ## The following oldxmenu-related rules are only (possibly) used if
