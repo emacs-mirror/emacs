@@ -148,6 +148,16 @@ by considering `2. Purpose`_.
 
 These steps will only rarely need repeating.
 
+#. You need basic competence with Git: enough to understand the
+   commands in `the merging procedure`_.
+
+#. If the merge has conflicts, you will need competence in using Git
+   to resolve merge conflicts.
+
+#. If you want to vary the procedure, you will need to understand how
+   Perforce Git Fusion [Perforce_2017]_ connects Ravenbrook's Perforce
+   repository to the `Ravenbrook MPS repo on GitHub`_.
+
 #. Ensure your public SSH key is submitted in Perforce at
    //.git-fusion/users/USER/keys/
 
@@ -178,6 +188,10 @@ These steps will only rarely need repeating.
 
 5. Merging procedure
 --------------------
+
+Note: At any point before a successful "push" in step 7, this
+procedure can be abandoned without harm.  All work is local to your
+working repo before that point.
 
 1. `Fetch the pull request branch`_ to a local branch using the MPS
    `durable branch naming convention`_, "branch/DATE/TOPIC".
@@ -478,6 +492,10 @@ A. References
 		    <https://info.ravenbrook.com/project/mps/master/procedure/branch-merge>,
 		    <https://github.com/Ravenbrook/mps/blob/e78c6e16735d7f16ef86a7f2f8356791a18c8a6e/procedure/branch-merge.rst>.
 
+.. [Perforce_2017] "HelixCode Git Fusion Guide (2017.2)"; Perforce
+                   Software; 2017;
+                   <https://www.perforce.com/manuals/git-fusion/>.
+
 
 B. Document History
 -------------------
@@ -487,6 +505,7 @@ B. Document History
 2023-01-13  RB_    Updates after `first attempt at execution`_.
 2023-01-14  RB_    Updates after `second (successful) execution`_.
 2023-01-23  RB_    Adding measurements.
+2023-01-25  RB_    Responding to mini-review_.
 ==========  =====  ==================================================
 
 .. _RB: mailto:rb@ravenbrook.com
@@ -494,6 +513,8 @@ B. Document History
 .. _first attempt at execution: https://github.com/Ravenbrook/mps/pull/97#issuecomment-1380206348
 
 .. _second (successful) execution: https://github.com/Ravenbrook/mps/pull/97#issuecomment-1381771818
+
+.. _mini-review: https://github.com/Ravenbrook/mps/pull/97#discussion_r1085584810
 
 
 C. Copyright and License
