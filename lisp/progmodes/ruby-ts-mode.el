@@ -566,6 +566,12 @@ a statement container is a node that matches
            ((n-p-gp nil nil "regex") no-indent 0)
            ((parent-is "regex") no-indent 0)
 
+           ;; Incomplete buffer state, better not reindent (bug#61017).
+           ((and (parent-is "ERROR")
+                 (or (node-is ,ruby-ts--class-or-module-regex)
+                     (node-is "\\`def\\'")))
+            no-indent 0)
+
            ;; if then else elseif notes:
            ;;
            ;;   1. The "then" starts at the end of the line that ends
