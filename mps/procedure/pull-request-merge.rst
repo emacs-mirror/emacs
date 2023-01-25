@@ -79,7 +79,7 @@ by considering `2. Purpose`_.
    (without the branch) and that that the problem is solved (with the
    branch)?
 
-#. If there are interface changes, are they documented?
+#. If there changes to the `MPS interface`_, are they documented?
 
 #. If the changes are significant and user-visible, is there an update
    to the release notes (``manual/source/release.rst``)?
@@ -139,6 +139,8 @@ by considering `2. Purpose`_.
 .. _Travis CI build history for the repo: https://app.travis-ci.com/github/Ravenbrook/mps/builds
 
 .. _GitHub workflows for the repo: https://github.com/Ravenbrook/mps/actions
+
+.. _MPS interface: https://www.ravenbrook.com/project/mps/master/manual/html/topic/interface.html
 
 
 4. Prerequisite steps
@@ -329,12 +331,12 @@ These steps will only rarely need repeating.
       on Berunda and restart it if necessary, or ask a sysadmin to do
       this.
 
-.. _Fetch the pull request branch: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally#modifying-an-inactive-pull-request-locally
-
 9. Eyeball the pull request and related issues on GitHub to make sure
    the merge was recorded correctly.  Check that any issues *not
    completely resolved* by the merge were not closed.  Re-open them if
    necessary.
+
+.. _Fetch the pull request branch: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally#modifying-an-inactive-pull-request-locally
 
 
 6. Rationale
