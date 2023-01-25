@@ -21,7 +21,8 @@ Guide Introduction
    changelist 182116 / commit e9841d23a but not referenced.  But that
    was just a consequence of two documents being smushed together by
    RHSK in changelist 168424 / commit b0433b3e9: a guide and a design.
-   It would be good to sort that out.  RB 2023-01-14
+   It would be good to sort that out.  See also
+   <https://github.com/Ravenbrook/mps/issues/128>.  RB 2023-01-14
 
 _`.guide.intro`: This document contains a guide (`.guide`_) to the MPS AMC
 pool class, followed by the historical initial design
