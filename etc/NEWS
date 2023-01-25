@@ -1127,7 +1127,7 @@ the value is 'in-margins', Outline Minor Mode uses the window margins
 for buttons that hide/show outlines.
 
 +++
-*** buttons and headings now have their own keymap.
+*** Buttons and headings now have their own keymaps.
 'outline-button-icon-map', 'outline-overlay-button-map', and
 'outline-inserted-button-map' are now available as defined keymaps
 instead of being anonymous keymaps.
