@@ -4580,6 +4580,9 @@ Argument MIME is non-nil if this is a mime message."
 	     (current-buffer))))
       (error nil))
 
+    ;; Decode any base64-encoded material in what we just decrypted.
+    (rmail-epa-decode armor-start after-end)
+
     (list armor-start (- (point-max) after-end) mime
           armor-end-regexp
           (buffer-substring armor-start (- (point-max) after-end)))))
@@ -4621,9 +4624,6 @@ Argument MIME is non-nil if this is a mime message."
 				       armor-start)
 		     "> ")
 	      (push (rmail-epa-decrypt-1 mime) decrypts))))
-
-      ;; Decode any base64-encoded mime sections.
-      (rmail-epa-decode)
 
       (when (and decrypts (rmail-buffers-swapped-p))
 	(when (y-or-n-p "Replace the original message? ")
@@ -4689,12 +4689,14 @@ Argument MIME is non-nil if this is a mime message."
       (unless decrypts
 	(error "Nothing to decrypt")))))
 
-;; Decode all base64-encoded mime sections, so that this change
-;; is made in the Rmail file, not just in the viewing buffer.
-(defun rmail-epa-decode ()
+;; Decode all base64-encoded mime sections from BEG to (Z - BACK-FROM-END),
+;; so that we save the decoding permanently in the Rmail buffer
+;; if we permanently save the decryption.
+(defun rmail-epa-decode (beg back-from-end)
   (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward "--------------[0-9a-zA-Z]+\n" nil t)
+    (goto-char beg)
+    (while (re-search-forward "--------------[0-9a-zA-Z]+\n"
+                              (- (point-max) back-from-end) t)
       ;; The ending delimiter is a start delimiter if another section follows.
       ;; Otherwise it is an end delimiter, with -- affixed.
       (let ((delim (concat (substring (match-string 0) 0 -1) "\\(\\|--\\)\n")))
