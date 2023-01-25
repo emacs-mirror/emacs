@@ -56,9 +56,12 @@ public class EmacsDrawLine
 
     paint.setStyle (Paint.Style.STROKE);
 
+    /* Since drawLine has PostScript style behavior, adjust the
+       coordinates appropriately.  */
+
     if (gc.clip_mask == null)
-      canvas.drawLine ((float) x, (float) y,
-		       (float) x2, (float) y2,
+      canvas.drawLine ((float) x + 0.5f, (float) y + 0.5f,
+		       (float) x2 + 0.5f, (float) y2 + 0.5f,
 		       paint);
 
     /* DrawLine with clip mask not implemented; it is not used by
