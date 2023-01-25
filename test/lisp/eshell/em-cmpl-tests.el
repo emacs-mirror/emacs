@@ -176,6 +176,46 @@ See <lisp/eshell/esh-cmd.el>."
    (should (equal (eshell-insert-and-complete "echo (eshell/ech")
                   "echo (eshell/echo"))))
 
+(ert-deftest em-cmpl-test/special-ref-completion/type ()
+  "Test completion of the start of special references like \"#<buffer\".
+See <lisp/eshell/esh-arg.el>."
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo hi > #<buf")
+                  "echo hi > #<buffer ")))
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo hi > #<proc")
+                  "echo hi > #<process "))))
+
+(ert-deftest em-cmpl-test/special-ref-completion/implicit-buffer ()
+  "Test completion of special references like \"#<buf>\".
+See <lisp/eshell/esh-arg.el>."
+  (let (bufname)
+    (with-temp-buffer
+      (setq bufname (rename-buffer "my-buffer" t))
+      (with-temp-eshell
+       (should (equal (eshell-insert-and-complete "echo hi > #<my-buf")
+                      (format "echo hi > #<%s> " bufname))))
+      (setq bufname (rename-buffer "another buffer" t))
+      (with-temp-eshell
+       (should (equal (eshell-insert-and-complete "echo hi > #<anoth")
+                      (format "echo hi > #<%s> "
+                              (string-replace " " "\\ " bufname))))))))
+
+(ert-deftest em-cmpl-test/special-ref-completion/buffer ()
+  "Test completion of special references like \"#<buffer buf>\".
+See <lisp/eshell/esh-arg.el>."
+  (let (bufname)
+    (with-temp-buffer
+      (setq bufname (rename-buffer "my-buffer" t))
+      (with-temp-eshell
+       (should (equal (eshell-insert-and-complete "echo hi > #<buffer my-buf")
+                      (format "echo hi > #<buffer %s> " bufname))))
+      (setq bufname (rename-buffer "another buffer" t))
+      (with-temp-eshell
+       (should (equal (eshell-insert-and-complete "echo hi > #<buffer anoth")
+                      (format "echo hi > #<buffer %s> "
+                              (string-replace " " "\\ " bufname))))))))
+
 (ert-deftest em-cmpl-test/variable-ref-completion ()
   "Test completion of variable references like \"$var\".
 See <lisp/eshell/esh-var.el>."

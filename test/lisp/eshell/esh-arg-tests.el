@@ -102,4 +102,34 @@ treated literally, as a backslash and a newline."
    (eshell-match-command-output "echo \"hi\\\nthere\""
                                 "hithere\n")))
 
+(ert-deftest esh-arg-test/special-reference/default ()
+  "Test that \"#<buf>\" refers to the buffer \"buf\"."
+  (with-temp-buffer
+    (rename-buffer "my-buffer" t)
+    (eshell-command-result-equal
+     (format "echo #<%s>" (buffer-name))
+     (current-buffer))))
+
+(ert-deftest esh-arg-test/special-reference/buffer ()
+  "Test that \"#<buffer buf>\" refers to the buffer \"buf\"."
+  (with-temp-buffer
+    (rename-buffer "my-buffer" t)
+    (eshell-command-result-equal
+     (format "echo #<buffer %s>" (buffer-name))
+     (current-buffer))))
+
+(ert-deftest esh-arg-test/special-reference/special ()
+  "Test that \"#<...>\" works correctly when escaping special characters."
+  (with-temp-buffer
+    (rename-buffer "<my buffer>" t)
+    (let ((escaped-bufname (replace-regexp-in-string
+                            (rx (group (or "\\" "<" ">" space))) "\\\\\\1"
+                            (buffer-name))))
+      (eshell-command-result-equal
+       (format "echo #<%s>" escaped-bufname)
+       (current-buffer))
+      (eshell-command-result-equal
+       (format "echo #<buffer %s>" escaped-bufname)
+       (current-buffer)))))
+
 ;; esh-arg-tests.el ends here
