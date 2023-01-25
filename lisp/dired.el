@@ -789,7 +789,7 @@ Subexpression 2 must end right before the \\n.")
                '(dired-move-to-filename)
                nil
                '(1 dired-symlink-face)
-               '(2 '(face dired-directory-face dired-symlink-filename t))))
+               '(2 `(face ,dired-directory-face dired-symlink-filename t))))
    ;;
    ;; Symbolic link to a non-directory.
    (list dired-re-sym
