@@ -95,7 +95,7 @@ public class EmacsNoninteractive
 	   On Android 2.3.3 and earlier, there is no
 	   ``compatibilityInfo'' argument to getPackageInfo.  */
 
-	if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD)
+	if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1)
 	  {
 	    method
 	      = activityThreadClass.getMethod ("getPackageInfo",
@@ -123,11 +123,29 @@ public class EmacsNoninteractive
 
 	/* Now, get a context.  */
 	contextImplClass = Class.forName ("android.app.ContextImpl");
-	method = contextImplClass.getDeclaredMethod ("createAppContext",
-						     activityThreadClass,
-						     loadedApkClass);
-	method.setAccessible (true);
-	context = (Context) method.invoke (null, activityThread, loadedApk);
+
+	try
+	  {
+	    method = contextImplClass.getDeclaredMethod ("createAppContext",
+							 activityThreadClass,
+							 loadedApkClass);
+	    method.setAccessible (true);
+	    context = (Context) method.invoke (null, activityThread, loadedApk);
+	  }
+	catch (NoSuchMethodException exception)
+	  {
+	    /* Older Android versions don't have createAppContext, but
+	       instead require creating a ContextImpl, and then
+	       calling createPackageContext.  */
+	    method = activityThreadClass.getDeclaredMethod ("getSystemContext");
+	    context = (Context) method.invoke (activityThread);
+	    method = contextImplClass.getDeclaredMethod ("createPackageContext",
+							 String.class,
+							 int.class);
+	    method.setAccessible (true);
+	    context = (Context) method.invoke (context, "org.gnu.emacs",
+					       0);
+	  }
 
 	/* Don't actually start the looper or anything.  Instead, obtain
 	   an AssetManager.  */

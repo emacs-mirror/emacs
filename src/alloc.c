@@ -5662,6 +5662,22 @@ find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
   if (pure_bytes_used_non_lisp <= nbytes)
     return NULL;
 
+  /* The Android GCC generates code like:
+
+   0xa539e755 <+52>:	lea    0x430(%esp),%esi
+=> 0xa539e75c <+59>:	movdqa %xmm0,0x0(%ebp)
+   0xa539e761 <+64>:	add    $0x10,%ebp
+
+   but data is not aligned appropriately, so a GP fault results.  */
+
+#if defined __i386__				\
+  && defined HAVE_ANDROID			\
+  && !defined ANDROID_STUBIFY			\
+  && !defined (__clang__)
+  if ((intptr_t) data & 15)
+    return NULL;
+#endif
+
   /* Set up the Boyer-Moore table.  */
   skip = nbytes + 1;
   for (i = 0; i < 256; i++)

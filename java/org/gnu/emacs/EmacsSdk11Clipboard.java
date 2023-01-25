@@ -42,13 +42,7 @@ public class EmacsSdk11Clipboard extends EmacsClipboard
   public
   EmacsSdk11Clipboard ()
   {
-    String what;
-    Context context;
-
-    what = Context.CLIPBOARD_SERVICE;
-    context = EmacsService.SERVICE;
-    manager
-      = (ClipboardManager) context.getSystemService (what);
+    manager = EmacsService.SERVICE.getClipboardManager ();
     manager.addPrimaryClipChangedListener (this);
   }
 

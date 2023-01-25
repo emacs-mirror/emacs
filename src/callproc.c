@@ -1987,7 +1987,12 @@ init_callproc (void)
     dir_warning ("arch-independent data dir", Vdata_directory);
 
   sh = getenv ("SHELL");
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* The Android shell is found under /system/bin, not /bin.  */
+  Vshell_file_name = build_string (sh ? sh : "/system/bin/sh");
+#else
   Vshell_file_name = build_string (sh ? sh : "/bin/sh");
+#endif
 
   Lisp_Object gamedir = Qnil;
   if (PATH_GAME)

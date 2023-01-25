@@ -60,7 +60,7 @@ public class EmacsDrawLine
        coordinates appropriately.  */
 
     if (gc.clip_mask == null)
-      canvas.drawLine ((float) x + 0.5f, (float) y + 0.5f,
+      canvas.drawLine ((float) x, (float) y + 0.5f,
 		       (float) x2 + 0.5f, (float) y2 + 0.5f,
 		       paint);
 

@@ -205,6 +205,9 @@ static struct android_emacs_window window_class;
    stored in unsigned long to be consistent with X.  */
 static unsigned int event_serial;
 
+/* Unused pointer used to control compiler optimizations.  */
+void *unused_pointer;
+
 
 
 /* Event handling functions.  Events are stored on a (circular) queue
@@ -1717,6 +1720,17 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   jobject argument;
   const char *c_argument;
   char *dump_file;
+
+  /* android_emacs_init is not main, so GCC is not nice enough to add
+     the stack alignment prologue.
+
+     Unfortunately for us, dalvik on Android 4.0.x calls native code
+     with a 4 byte aligned stack.  */
+
+  __attribute__ ((aligned (32))) char buffer[32];
+
+  /* Trick GCC into not optimizing this variable away.  */
+  unused_pointer = buffer;
 
   android_java_env = env;
 

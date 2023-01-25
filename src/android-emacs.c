@@ -52,11 +52,36 @@ main (int argc, char **argv)
   args[0] = (char *) "/system/bin/app_process";
 #endif
 
+  /* Machines with ART require the boot classpath to be manually
+     specified.  Machines with Dalvik however refuse to do so, as they
+     open the jars inside the BOOTCLASSPATH environment variable at
+     startup, resulting in the following crash:
+
+     W/dalvikvm( 1608): Refusing to reopen boot DEX
+     '/system/framework/core.jar'
+     W/dalvikvm( 1608): Refusing to reopen boot DEX
+     '/system/framework/bouncycastle.jar'
+     E/dalvikvm( 1608): Too many exceptions during init (failed on
+     'Ljava/io/IOException;' 'Re-opening BOOTCLASSPATH DEX files is
+     not allowed')
+     E/dalvikvm( 1608): VM aborting  */
+
+#if HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL
+  if (android_get_device_api_level () < 21)
+    {
+      bootclasspath = NULL;
+      goto skip_setup;
+    }
+#else
+  if (__ANDROID_API__ < 21)
+    {
+      bootclasspath = NULL;
+      goto skip_setup;
+    }
+#endif
+
   /* Next, obtain the boot class path.  */
   bootclasspath = getenv ("BOOTCLASSPATH");
-
-  /* And the Emacs class path.  */
-  emacs_class_path = getenv ("EMACS_CLASS_PATH");
 
   if (!bootclasspath)
     {
@@ -68,6 +93,11 @@ main (int argc, char **argv)
       return 1;
     }
 
+ skip_setup:
+
+  /* And the Emacs class path.  */
+  emacs_class_path = getenv ("EMACS_CLASS_PATH");
+
   if (!emacs_class_path)
     {
       fprintf (stderr, "EMACS_CLASS_PATH not set."
@@ -76,25 +106,59 @@ main (int argc, char **argv)
       return 1;
     }
 
-  if (asprintf (&bootclasspath, "-Djava.class.path=%s:%s",
-		bootclasspath, emacs_class_path) < 0)
+  if (bootclasspath)
     {
-      perror ("asprintf");
-      return 1;
+      if (asprintf (&bootclasspath, "-Djava.class.path=%s:%s",
+		    bootclasspath, emacs_class_path) < 0)
+	{
+	  perror ("asprintf");
+	  return 1;
+	}
+    }
+  else
+    {
+      if (asprintf (&bootclasspath, "-Djava.class.path=%s",
+		    emacs_class_path) < 0)
+	{
+	  perror ("asprintf");
+	  return 1;
+	}
     }
 
   args[1] = bootclasspath;
   args[2] = (char *) "/system/bin";
-  args[3] = (char *) "--nice-name=emacs";
-  args[4] = (char *) "org.gnu.emacs.EmacsNoninteractive";
 
-  /* Arguments from here on are passed to main in
-     EmacsNoninteractive.java.  */
-  args[5] = argv[0];
+#if HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL
+  /* I don't know exactly when --nice-name was introduced; this is
+     just a guess.  */
+  if (android_get_device_api_level () >= 26)
+    {
+      args[3] = (char *) "--nice-name=emacs";
+      args[4] = (char *) "org.gnu.emacs.EmacsNoninteractive";
 
-  /* Now copy the rest of the arguments over.  */
-  for (i = 1; i < argc; ++i)
-    args[5 + i] = argv[i];
+      /* Arguments from here on are passed to main in
+	 EmacsNoninteractive.java.  */
+      args[5] = argv[0];
+
+      /* Now copy the rest of the arguments over.  */
+      for (i = 1; i < argc; ++i)
+	args[5 + i] = argv[i];
+    }
+  else
+    {
+#endif
+      args[3] = (char *) "org.gnu.emacs.EmacsNoninteractive";
+
+      /* Arguments from here on are passed to main in
+	 EmacsNoninteractive.java.  */
+      args[4] = argv[0];
+
+      /* Now copy the rest of the arguments over.  */
+      for (i = 1; i < argc; ++i)
+	args[4 + i] = argv[i];
+#if HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL
+    }
+#endif
 
   /* Finally, try to start the app_process.  */
   execvp (args[0], args);

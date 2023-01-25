@@ -39,6 +39,7 @@ import android.app.NotificationChannel;
 import android.app.PendingIntent;
 import android.app.Service;
 
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -564,5 +565,50 @@ public class EmacsService extends Service
       }
 
     return null;
+  }
+
+  /* Get a SDK 11 ClipboardManager.
+
+     Android 4.0.x requires that this be called from the main
+     thread.  */
+
+  public ClipboardManager
+  getClipboardManager ()
+  {
+    final Holder<ClipboardManager> manager;
+    Runnable runnable;
+
+    manager = new Holder<ClipboardManager> ();
+
+    runnable = new Runnable () {
+	public void
+	run ()
+	{
+	  Object tem;
+
+	  synchronized (this)
+	    {
+	      tem = getSystemService (Context.CLIPBOARD_SERVICE);
+	      manager.thing = (ClipboardManager) tem;
+	      notify ();
+	    }
+	}
+      };
+
+    synchronized (runnable)
+      {
+	runOnUiThread (runnable);
+
+	try
+	  {
+	    runnable.wait ();
+	  }
+	catch (InterruptedException e)
+	  {
+	    EmacsNative.emacsAbort ();
+	  }
+      }
+
+    return manager.thing;
   }
 };
