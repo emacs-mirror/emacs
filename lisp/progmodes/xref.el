@@ -568,7 +568,8 @@ This can be used from `xref-after-jump-hook', for instance.")
     (dolist (l (list (car history) (cdr history)))
       (dolist (m l)
         (set-marker m nil nil)))
-    (setq history (cons nil nil)))
+    (setcar history nil)
+    (setcdr history nil))
   nil)
 
 ;;;###autoload
