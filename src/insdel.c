@@ -1184,7 +1184,8 @@ insert_from_buffer (struct buffer *buf,
   update_compositions (opoint, PT, CHECK_BORDER);
 
 #ifdef HAVE_TREE_SITTER
-  eassert (PT_BYTE >= 0);
+  eassert (PT_BYTE >= BEG_BYTE);
+  eassert (obyte >= BEG_BYTE);
   eassert (PT_BYTE >= obyte);
   treesit_record_change (obyte, obyte, PT_BYTE);
 #endif
