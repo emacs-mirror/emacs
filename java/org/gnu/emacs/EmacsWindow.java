@@ -124,6 +124,10 @@ public class EmacsWindow extends EmacsHandleObject
      there is no such window manager.  */
   private WindowManager windowManager;
 
+  /* The time of the last KEYCODE_VOLUME_DOWN press.  This is used to
+     quit Emacs.  */
+  private long lastVolumeButtonPress;
+
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
 	       int width, int height, boolean overrideRedirect)
@@ -513,6 +517,7 @@ public class EmacsWindow extends EmacsHandleObject
   onKeyDown (int keyCode, KeyEvent event)
   {
     int state, state_1;
+    long time;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
       state = event.getModifiers ();
@@ -544,6 +549,20 @@ public class EmacsWindow extends EmacsHandleObject
 			      state, keyCode,
 			      event.getUnicodeChar (state_1));
     lastModifiers = state;
+
+    if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+      {
+	/* Check if this volume down press should quit Emacs.
+	   Most Android devices have no physical keyboard, so it
+	   is unreasonably hard to press C-g.  */
+
+	time = event.getEventTime ();
+
+	if (lastVolumeButtonPress - time < 350)
+	  EmacsNative.quit ();
+
+	lastVolumeButtonPress = time;
+      }
   }
 
   public void

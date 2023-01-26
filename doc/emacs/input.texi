@@ -94,3 +94,15 @@ that the user is about to enter text in to the current buffer.
   Emacs also provides a set of functions to show or hide the on-screen
 keyboard.  For more details, @pxref{On-Screen Keyboards,,, elisp, The
 Emacs Lisp Reference Manual}.
+
+@cindex quitting, without a keyboard
+  Since it may not be possible for Emacs to display the on screen
+keyboard when it is executing a command, Emacs implements a feature on
+devices with only an on-screen keyboard, by which two rapid clicks of
+a hardware button that is always present on the device results in
+Emacs quitting.  @xref{Quitting}.
+
+@defvar x-quit-keysym
+  The exact button is used to do this varies by system: on X, it is
+defined in the variable @code{x-quit-keysym}, and on Android, it is
+always the volume down button.

@@ -60,8 +60,9 @@ all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)
 # This Makefile relies on builddir and top_builddir being relative
 # paths in *.android.
 
-# This file is used to trick lib/gnulib.mk, it is not actually useful.
-config.status:
+# This file is used to tell lib/gnulib.mk when
+# $(top_srcdir)/config.status changes.
+config.status: $(top_srcdir)/config.status
 	touch config.status
 
 src/verbose.mk: verbose.mk.android

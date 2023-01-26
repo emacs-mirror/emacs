@@ -187,6 +187,12 @@ android_process_events_for_menu (int *id)
 
       /* Process pending signals.  */
       process_pending_signals ();
+
+      /* Maybe quit.  This is important because the framework (on
+	 Android 4.0.3) can sometimes fail to deliver context menu
+	 closed events if a submenu was opened, and the user still
+	 needs to be able to quit.  */
+      maybe_quit ();
     }
 
   /* Restore the input block.  */

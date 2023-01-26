@@ -1228,7 +1228,7 @@ android_open (const char *filename, int oflag, int mode)
 {
   const char *name;
   AAsset *asset;
-  int fd, oldfd;
+  int fd;
   off_t out_start, out_length;
 
   if (asset_manager && (name = android_get_asset_name (filename)))
@@ -1887,6 +1887,12 @@ extern JNIEXPORT void JNICALL
 NATIVE_NAME (emacsAbort) (JNIEnv *env, jobject object)
 {
   emacs_abort ();
+}
+
+extern JNIEXPORT void JNICALL
+NATIVE_NAME (quit) (JNIEnv *env, jobject object)
+{
+  Vquit_flag = Qt;
 }
 
 extern JNIEXPORT jlong JNICALL

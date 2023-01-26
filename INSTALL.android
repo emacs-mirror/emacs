@@ -40,8 +40,8 @@ Replacing the paths in the command line above with:
     are building Emacs to run on.
 
   - the path to the directory in the Android SDK containing binaries
-    such as `aapt' and `d8'.  These are used to build the application
-    package.
+    such as `aapt', `apksigner', and `d8'.  These are used to build
+    the application package.
 
 After the configuration process completes, you may run:
 

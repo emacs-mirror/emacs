@@ -7411,11 +7411,7 @@ if test -f "$srcdir/$opt_makefile.in"; then
 fi
 
 if test "$ANDROID" = "yes"; then
-  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES java/Makefile"
-fi
-
-if test "$XCOMPILE" = "yes"; then
-  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES cross/Makefile"
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES java/Makefile cross/Makefile"
 fi
 
 dnl The admin/ directory used to be excluded from tarfiles.

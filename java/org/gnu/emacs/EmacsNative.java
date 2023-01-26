@@ -74,6 +74,10 @@ public class EmacsNative
   /* Abort and generate a native core dump.  */
   public static native void emacsAbort ();
 
+  /* Set Vquit_flag to t, resulting in Emacs quitting as soon as
+     possible.  */
+  public static native void quit ();
+
   /* Send an ANDROID_CONFIGURE_NOTIFY event.  The values of all the
      functions below are the serials of the events sent.  */
   public static native long sendConfigureNotify (short window, long time,

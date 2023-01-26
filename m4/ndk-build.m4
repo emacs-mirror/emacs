@@ -166,7 +166,7 @@ that could not be found in the list of directories specified in \
 }
 
 # Look for a suitable ar in the same directory as the C compiler.
-ndk_where_cc=$(which $CC)
+ndk_where_cc=$(which $(echo "$CC" | awk -- "{ print \[$]1 }"))
 ndk_ar_search_path=$PATH
 
 # First, try to find $host_alias-ar in PATH.
