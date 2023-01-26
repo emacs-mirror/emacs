@@ -188,7 +188,7 @@ file_access_p (char const *file, int amode)
     return true;
 #endif
 
-  if (faccessat (AT_FDCWD, file, amode, AT_EACCESS) == 0)
+  if (sys_faccessat (AT_FDCWD, file, amode, AT_EACCESS) == 0)
     return true;
 
 #ifdef CYGWIN
@@ -3024,7 +3024,8 @@ If there is no error, returns nil.  */)
     return Qnil;
 #endif
 
-  if (faccessat (AT_FDCWD, SSDATA (encoded_filename), R_OK, AT_EACCESS) != 0)
+  if (sys_faccessat (AT_FDCWD, SSDATA (encoded_filename), R_OK,
+		     AT_EACCESS) != 0)
     report_file_error (SSDATA (string), filename);
 
   return Qnil;
@@ -3126,7 +3127,8 @@ file_directory_p (Lisp_Object file)
 {
 #ifdef DOS_NT
   /* This is cheaper than 'stat'.  */
-  bool retval = faccessat (AT_FDCWD, SSDATA (file), D_OK, AT_EACCESS) == 0;
+  bool retval = sys_faccessat (AT_FDCWD, SSDATA (file),
+			       D_OK, AT_EACCESS) == 0;
   if (!retval && errno == EACCES)
     errno = ENOTDIR;	/* like the non-DOS_NT branch below does */
   return retval;

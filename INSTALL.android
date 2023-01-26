@@ -135,8 +135,18 @@ files, like so:
 
   ./configure "--with-ndk-path=directory1 directory2"
 
+If `configure' complains about not being able to find
+``libc++_shared.so'', then you must locate that file in your copy of
+the NDK, and specify it like so:
+
+  ./configure --with-ndk-cxx-shared=/path/to/sysroot/libc++_shared.so
+
 Emacs will then read the ``Android.mk'' file in each directory, and
 automatically build and use those modules.
+
+When building for Intel systems, some ``ndk-build'' modules require
+the Netwide Assembler, usually installed under ``nasm'', to be present
+on the system that is building Emacs.
 
 Google, Inc. has adapted many common Emacs dependencies to use the
 `ndk-build' system.  Here is a non-exhaustive list of what is known to
@@ -150,6 +160,16 @@ work, along with what has to be patched to make them work:
   libjpeg-turbo - https://android.googlesource.com/platform/external/libjpeg-turbo
      (You must add LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH) before
       its Android.mk includes $(BUILD_SHARED_LIBRARY))
+  libxml2	- https://android.googlesource.com/platform/external/libxml2/
+     (You must also place the dependency icu4c in ``--with-ndk-path'',
+      and apply the patch at the end of this file.)
+  icu4c		- https://android.googlesource.com/platform/external/icu/
+     (You must apply the patch at the end of this file.)
+
+Many of these dependencies have been migrated over to the
+``Android.bp'' build system now used to build Android itself.
+However, the old ``Android.mk'' Makefiles are still present in older
+branches, and can be easily adapte to newer versions.
 
 In addition, some Emacs dependencies provide `ndk-build' support
 themselves:
@@ -259,10 +279,11 @@ most important of these are:
   BUILD_EXECUTABLE # build-aux/ndk-build-helper-3.mk
   CLEAR_VARS # build-aux/ndk-build-helper-4.mk
 
-Then, ``Android.mk'' will include $(CLEAN_VARS) (to clear variables
-previously set), set several variables describing each module to the
-ndk-build system, and include one of $(BUILD_SHARED_LIBRARY),
-$(BUILD_STATIC_LIBRARY) and $(BUILD_EXECUTABLE).
+Then, ``Android.mk'' will include $(CLEAN_VARS), possibly other
+``Android.mk'' files, (to clear variables previously set), set several
+variables describing each module to the ndk-build system, and include
+one of $(BUILD_SHARED_LIBRARY), $(BUILD_STATIC_LIBRARY) and
+$(BUILD_EXECUTABLE).
 
 Each one of those three scripts will then read from the variables set
 by ``Android.mk'', resolve dependencies, and print out some text
@@ -300,6 +321,11 @@ The output is arranged as follows:
     that will build the final shared object or library archive of this
     module, along with all of its dependencies.
 
+  - The seventh line is either empty, or the name of a dependency on
+    the C++ standard library.  This is used to determine whether or
+    not Emacs will include the C++ standard library in the application
+    package.
+
 The output from Make is given to an awk script,
 build-aux/ndk-module-extract.awk.  This is responsible for parsing the
 that output and filtering out modules other than what is being built:
@@ -315,12 +341,45 @@ module_includes="-I/opt/android/libpng"
 module_cflags=""
 module_ldflags="  -L/opt/emacs/cross/ndk-build -l:libpng_emacs.so"
 module_target="libpng_emacs.so"
+module_cxx_deps=""
+module_imports=""
 
 which is then evaluated by `configure'.	 Once the variable
 `module_name' is set, configure apends the remaining
 $(module_includes), $(module_cflags) and $(module_ldflags) to the
 module's CFLAGS and LIBS variables, and appends the list of Makefile
 targets specified to the variable NDK_BUILD_MODULES.
+
+In some cases, an ``Android.mk'' file may chose to import a module
+defined in ``--with-ndk-path'', but not defined inside its own
+``Android.mk'' file.  build-aux/ndk-build-helper.mk defines the
+`import-module' function to add the modules being imported to a
+variable, which is then printed out after ``ndk-build-helper.mk''
+completes.  For example, libxml2 imports the ``libicucc'' module,
+which results in the following text being printed:
+
+Building shared
+libxml2
+/home/oldosfan/libxml2/SAX.c /home/oldosfan/libxml2/entities.c /home/oldosfan/libxml2/encoding.c /home/oldosfan/libxml2/error.c /home/oldosfan/libxml2/parserInternals.c /home/oldosfan/libxml2/parser.c /home/oldosfan/libxml2/tree.c /home/oldosfan/libxml2/hash.c /home/oldosfan/libxml2/list.c /home/oldosfan/libxml2/xmlIO.c /home/oldosfan/libxml2/xmlmemory.c /home/oldosfan/libxml2/uri.c /home/oldosfan/libxml2/valid.c /home/oldosfan/libxml2/xlink.c /home/oldosfan/libxml2/debugXML.c /home/oldosfan/libxml2/xpath.c /home/oldosfan/libxml2/xpointer.c /home/oldosfan/libxml2/xinclude.c /home/oldosfan/libxml2/DOCBparser.c /home/oldosfan/libxml2/catalog.c /home/oldosfan/libxml2/globals.c /home/oldosfan/libxml2/threads.c /home/oldosfan/libxml2/c14n.c /home/oldosfan/libxml2/xmlstring.c /home/oldosfan/libxml2/buf.c /home/oldosfan/libxml2/xmlregexp.c /home/oldosfan/libxml2/xmlschemas.c /home/oldosfan/libxml2/xmlschemastypes.c /home/oldosfan/libxml2/xmlunicode.c /home/oldosfan/libxml2/xmlreader.c /home/oldosfan/libxml2/relaxng.c /home/oldosfan/libxml2/dict.c /home/oldosfan/libxml2/SAX2.c /home/oldosfan/libxml2/xmlwriter.c /home/oldosfan/libxml2/legacy.c /home/oldosfan/libxml2/chvalid.c /home/oldosfan/libxml2/pattern.c /home/oldosfan/libxml2/xmlsave.c /home/oldosfan/libxml2/xmlmodule.c /home/oldosfan/libxml2/schematron.c /home/oldosfan/libxml2/SAX.c /home/oldosfan/libxml2/entities.c /home/oldosfan/libxml2/encoding.c /home/oldosfan/libxml2/error.c /home/oldosfan/libxml2/parserInternals.c /home/oldosfan/libxml2/parser.c /home/oldosfan/libxml2/tree.c /home/oldosfan/libxml2/hash.c /home/oldosfan/libxml2/list.c /home/oldosfan/libxml2/xmlIO.c /home/oldosfan/libxml2/xmlmemory.c /home/oldosfan/libxml2/uri.c /home/oldosfan/libxml2/valid.c /home/oldosfan/libxml2/xlink.c /home/oldosfan/libxml2/debugXML.c /home/oldosfan/libxml2/xpath.c /home/oldosfan/libxml2/xpointer.c /home/oldosfan/libxml2/xinclude.c /home/oldosfan/libxml2/DOCBparser.c /home/oldosfan/libxml2/catalog.c /home/oldosfan/libxml2/globals.c /home/oldosfan/libxml2/threads.c /home/oldosfan/libxml2/c14n.c /home/oldosfan/libxml2/xmlstring.c /home/oldosfan/libxml2/buf.c /home/oldosfan/libxml2/xmlregexp.c /home/oldosfan/libxml2/xmlschemas.c /home/oldosfan/libxml2/xmlschemastypes.c /home/oldosfan/libxml2/xmlunicode.c /home/oldosfan/libxml2/xmlreader.c /home/oldosfan/libxml2/relaxng.c /home/oldosfan/libxml2/dict.c /home/oldosfan/libxml2/SAX2.c /home/oldosfan/libxml2/xmlwriter.c /home/oldosfan/libxml2/legacy.c /home/oldosfan/libxml2/chvalid.c /home/oldosfan/libxml2/pattern.c /home/oldosfan/libxml2/xmlsave.c /home/oldosfan/libxml2/xmlmodule.c /home/oldosfan/libxml2/schematron.c
+
+
+  -L/home/oldosfan/emacs-dev/emacs-android/cross/ndk-build -l:libxml2_emacs.so -l:libicuuc_emacs.so
+libxml2_emacs.so libicuuc_emacs.so
+End
+Start Imports
+libicuuc
+End Imports
+
+Upon encountering the ``Start Imports'' section,
+build-aux/ndk-module-extract.awk collects all imports until it
+encounters the line ``End Imports'', at which point it prints:
+
+module_imports="libicuuc"
+
+Then, if the list of imports is not empty, ndk_CHECK_MODULES
+additionally calls itself for each import before appending the
+module's own ``Android.mk'', ensuring that the module's imported
+dependencies are included by $ndk_DIR/Makefile before itself.
 
 Finally, immediately before generating src/Makefile.android, configure
 expands:
@@ -473,3 +532,63 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+
+
+PATCH FOR LIBXML2
+
+This patch must be applied to the Android.mk in Google's version of
+libxml2 before it can be built for Emacs.  In addition, you must also
+revert the commit `edb5870767fed8712a9b77ef34097209b61ab2db'.
+
+diff --git a/Android.mk b/Android.mk
+index 07c7b372..24f67e49 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -80,6 +80,7 @@ LOCAL_SHARED_LIBRARIES := libicuuc
+ LOCAL_MODULE:= libxml2
+ LOCAL_CLANG := true
+ LOCAL_ADDITIONAL_DEPENDENCIES += $(LOCAL_PATH)/Android.mk
++LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)
+ include $(BUILD_SHARED_LIBRARY)
+ 
+ # For the host
+@@ -94,3 +95,5 @@ LOCAL_MODULE := libxml2
+ LOCAL_CLANG := true
+ LOCAL_ADDITIONAL_DEPENDENCIES += $(LOCAL_PATH)/Android.mk
+ include $(BUILD_HOST_STATIC_LIBRARY)
++
++$(call import-module,libicuuc)
+
+PATCH FOR ICU
+
+This patch must be applied to icu4j/Android.mk in Google's version of
+icu before it can be built for Emacs.
+
+diff --git a/icu4j/Android.mk b/icu4j/Android.mk
+index d1ab3d5..69eff81 100644
+--- a/icu4j/Android.mk
++++ b/icu4j/Android.mk
+@@ -69,7 +69,7 @@ include $(BUILD_STATIC_JAVA_LIBRARY)
+ # Path to the ICU4C data files in the Android device file system:
+ icu4c_data := /system/usr/icu
+ icu4j_config_root := $(LOCAL_PATH)/main/classes/core/src
+-include external/icu/icu4j/adjust_icudt_path.mk
++include $(LOCAL_PATH)/adjust_icudt_path.mk
+ 
+ include $(CLEAR_VARS)
+ LOCAL_SRC_FILES := $(icu4j_src_files)
+
+diff --git a/icu4c/source/common/Android.mk b/icu4c/source/common/Android.mk
+index 8e5f757..44bb130 100644
+--- a/icu4c/source/common/Android.mk
++++ b/icu4c/source/common/Android.mk
+@@ -231,7 +231,7 @@ include $(CLEAR_VARS)
+ LOCAL_SRC_FILES += $(src_files)
+ LOCAL_C_INCLUDES += $(c_includes) $(optional_android_logging_includes)
+ LOCAL_CFLAGS += $(local_cflags) -DPIC -fPIC
+-LOCAL_SHARED_LIBRARIES += libdl $(optional_android_logging_libraries)
++LOCAL_SHARED_LIBRARIES += libdl libstdc++ $(optional_android_logging_libraries)
+ LOCAL_MODULE_TAGS := optional
+ LOCAL_MODULE := libicuuc
+ LOCAL_RTTI_FLAG := -frtti

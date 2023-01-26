@@ -5071,6 +5071,7 @@ extern int emacs_fstatat (int, char const *, void *, int);
 #ifdef HAVE_SYS_STAT_H
 extern int sys_fstat (int, struct stat *);
 #endif
+extern int sys_faccessat (int, const char *, int, int);
 #if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
 extern int emacs_openat (int, char const *, int, int);
 #endif

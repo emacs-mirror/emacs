@@ -22,6 +22,9 @@
 eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
 objname = $(1)-$(subst /,_,$(2).o)
 
+# Here are the default flags to link shared libraries with.
+NDK_SO_DEFAULT_LDFLAGS := -lc -lm
+
 define single-object-target
 
 ifeq (x$(suffix $(1)),x.c)
@@ -30,13 +33,31 @@ $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE))
 
 else
+ifeq (x$(suffix $(1)),x.$(or $(LOCAL_CPP_EXTENSION),cpp))
+
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
+
+else
 ifneq ($(or $(call eq,x$(suffix $(1)),x.s),$(call eq,x$(suffix $(1)),x.S)),)
 
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_ASFLAGS_$(LOCAL_MODULE))
 
 else
+ifneq (x$(suffix $(1)),x.asm)
 $$(error Unsupported suffix: $(suffix $(1)))
+else
+ifeq ($(findstring x86,$(NDK_BUILD_ARCH)),)
+$$(error Trying to build nasm file on non-Intel platform!)
+else
+
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+	$(NDK_BUILD_NASM) -o $$@ -i $(LOCAL_PATH) -i $$(dir $$<) $(NDK_ASFLAGS_$(LOCAL_MODULE)) $$<
+
+endif
+endif
+endif
 endif
 endif
 
@@ -47,9 +68,21 @@ endef
 # Make sure to not add a prefix to local includes that already specify
 # $(LOCAL_PATH).
 NDK_CFLAGS_$(LOCAL_MODULE)	 := $(addprefix -I,$(LOCAL_C_INCLUDES))
-NDK_CFLAGS_$(LOCAL_MODULE)	 += -fPIC -iquote $(LOCAL_PATH) $(LOCAL_EXPORT_CFLAGS) $(LOCAL_CFLAGS) $(LOCAL_CFLAGS$(NDK_BUILD_ARCH))
+NDK_CFLAGS_$(LOCAL_MODULE)	 += -fPIC -iquote $(LOCAL_PATH) $(LOCAL_EXPORT_CFLAGS) $(LOCAL_CFLAGS) $(LOCAL_CFLAGS_$(NDK_BUILD_ARCH))
 NDK_ASFLAGS_$(LOCAL_MODULE) := $(LOCAL_ASFLAGS) $(LOCAL_ASFLAGS_$(NDK_BUILD_ARCH))
 NDK_LDFLAGS_$(LOCAL_MODULE) := $(LOCAL_LDLIBS) $(LOCAL_LDFLAGS)
+NDK_CXXFLAGS_$(LOCAL_MODULE) := $(LOCAL_CPPFLAGS) $(LOCAL_RTTI_FLAG)
+
+# Now look for features in LOCAL_CPP_FEATURES and enable them.
+
+ifneq ($(findstring exceptions,$(LOCAL_CPPFLAGS)),)
+NDK_CXXFLAGS_$(LOCAL_MODULE) += -fexceptions
+endif
+
+ifneq ($(findstring rtti,$(LOCAL_CPPFLAGS)),)
+NDK_CXXFLAGS_$(LOCAL_MODULE) += -frtti
+endif
+
 ALL_OBJECT_FILES$(LOCAL_MODULE) :=
 
 ifeq ($(NDK_BUILD_ARCH)$(NDK_ARM_MODE),armarm)
@@ -91,7 +124,7 @@ $(foreach source,$(ALL_SOURCE_FILES),$(eval $(call single-object-target,$(source
 
 define define-module-rule
 $(LOCAL_MODULE_FILENAME): $(ALL_OBJECT_FILES$(LOCAL_MODULE)) $(NDK_LOCAL_A_NAMES_$(LOCAL_MODULE)) $(NDK_WHOLE_A_NAMES_$(LOCAL_MODULE))
-	$(NDK_BUILD_CC) $(1) $(2) -o $$@ -shared $(NDK_LDFLAGS$(LOCAL_MODULE))
+	$(NDK_BUILD_CC) $(1) $(2) -o $$@ -shared $(NDK_LDFLAGS$(LOCAL_MODULE)) $(NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE)) $(NDK_SO_DEFAULT_LDFLAGS)
 endef
 
 NDK_WHOLE_ARCHIVE_PREFIX = -Wl,--whole-archive

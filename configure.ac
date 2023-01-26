@@ -1041,12 +1041,16 @@ package will likely install on older systems but crash on startup.])
   mv -f confdefs.h _confdefs.h
   mv -f config.log _config.log
 
+  # Make sure these files are removed upon exit.
+  trap "rm -rf _confdefs.h _config.log" 0
+
   # Figure out what --with-FOO options to pass through.
   passthrough="$passthrough --with-png=$with_png"
   passthrough="$passthrough --with-webp=$with_webp"
   passthrough="$passthrough --with-gif=$with_gif"
   passthrough="$passthrough --with-json=$with_json"
   passthrough="$passthrough --with-jpeg=$with_jpeg"
+  passthrough="$passthrough --with-xml2=$with_xml2"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1115,9 +1119,9 @@ if test "$ANDROID" = "yes"; then
     with_gif=no
     with_json=no
     with_jpeg=no
+    with_xml2=no
   fi
 
-  with_xml2=no
   with_rsvg=no
   with_sqlite3=no
   with_lcms2=no
@@ -2256,6 +2260,18 @@ AC_DEFUN([EMACS_CHECK_MODULES],
         m4_default([$3], [HAVE_$1=yes])],
        [m4_default([$4], [HAVE_$1=no])])])])
 
+dnl EMACS_CHECK_LIB(NAME, FUNCTION, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND,
+dnl OTHER-LIBRARIES, INCLUDES)
+dnl ---------------------------------------------------------------------
+dnl This is like AC_CHECK_LIB; however, there is no default action, and
+dnl when cross-configuring for Android, AC_CHECK_DECLS is called with NAME
+dnl and INCLUDES instead, as the library being checked against will likely
+dnl be built together with Emacs.
+AC_DEFUN([EMACS_CHECK_LIB],
+  [AS_IF([test -n "$ndk_INITIALIZED"],
+    [AC_CHECK_DECL([$2], [$3], [$4], [$6])],
+    [AC_CHECK_LIB([$1], [$2], [$3], [$4], [$5])])])
+
 HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, MinGW, and Cygwin.
@@ -3323,7 +3339,6 @@ if test "${with_webp}" != "no"; then
    fi
    if test $HAVE_WEBP = yes; then
       AC_DEFINE([HAVE_WEBP], [1], [Define to 1 if using libwebp.])
-      CFLAGS="$CFLAGS $WEBP_CFLAGS"
       # Windows loads libwebp dynamically
       if test "${opsys}" = "mingw32"; then
 	WEBP_LIBS=
@@ -5400,10 +5415,13 @@ if test "${with_xml2}" != "no"; then
   fi
   if test "${HAVE_LIBXML2}" = "yes"; then
     if test "${opsys}" != "mingw32"; then
-      AC_CHECK_LIB([xml2], [htmlReadMemory],
+      SAVE_CFLAGS=$CFLAGS
+      CFLAGS="$CFLAGS $LIBXML2_CFLAGS"
+      EMACS_CHECK_LIB([xml2], [htmlReadMemory],
 	[HAVE_LIBXML2=yes],
 	[HAVE_LIBXML2=no],
-        [$LIBXML2_LIBS])
+        [$LIBXML2_LIBS], [#include <libxml/HTMLparser.h>])
+      CFLAGS="$SAVE_CFLAGS"
     else
       LIBXML2_LIBS=""
     fi

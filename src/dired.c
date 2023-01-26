@@ -894,7 +894,8 @@ file_name_completion_dirp (int fd, struct dirent *dp, ptrdiff_t len)
     return true;
 #endif
 
-  bool dirp = faccessat (fd, subdir_name, F_OK, AT_EACCESS) == 0;
+  bool dirp = sys_faccessat (fd, subdir_name,
+			     F_OK, AT_EACCESS) == 0;
   SAFE_FREE ();
   return dirp;
 }

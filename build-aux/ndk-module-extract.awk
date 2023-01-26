@@ -2,13 +2,27 @@
   kind = $2
 }
 
+/^Start Imports$/ {
+  imports = 1
+}
+
 // {
-  if (!match ($0, /^End$/) && !match ($0, /^Building.+$/))
+  if (imports && ++imports > 2)
+    {
+      if (!match ($0, /^End Imports$/))
+	makefile_imports = makefile_imports " " $1
+    }
+  else if (!match ($0, /^End$/) && !match ($0, /^Building.+$/))
     {
       if (kind)
 	{
-	  if (ldflags_found)
-	    target = $0
+	  if (target_found)
+	    cxx_deps = $0
+	  else if (ldflags_found)
+	    {
+	      target = $0
+	      target_found = 1
+	    }
 	  else if (cflags_found)
 	    {
 	      ldflags = $0
@@ -48,6 +62,7 @@
       printf "module_cflags=\"%s\"\n", cflags
       printf "module_ldflags=\"%s\"\n", ldflags
       printf "module_target=\"%s\"\n", target
+      printf "module_cxx_deps=\"%s\"\n", cxx_deps
     }
 
   src = ""
@@ -61,4 +76,13 @@
   includes_found = ""
   cflags_found = ""
   ldflags_found = ""
+  target_found = ""
+}
+
+/^End Imports$/ {
+  imports = ""
+  # Strip off leading whitespace.
+  gsub (/^[ \t]+/, "", makefile_imports)
+  printf "module_imports=\"%s\"\n", makefile_imports
+  makefile_imports = ""
 }

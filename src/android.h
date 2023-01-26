@@ -52,6 +52,7 @@ extern char *android_user_full_name (struct passwd *);
 extern int android_fstat (int, struct stat *);
 extern int android_fstatat (int, const char *restrict,
 			    struct stat *restrict, int);
+extern int android_faccessat (int, const char *, int, int);
 extern int android_close (int);
 extern int android_fclose (FILE *);
 extern const char *android_get_home_directory (void);

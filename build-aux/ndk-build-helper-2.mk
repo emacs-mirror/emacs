@@ -24,13 +24,12 @@ NDK_A_NAMES =
 # on to recurse over libraries.
 NDK_$(LOCAL_MODULE)_STATIC_LIBRARIES := $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES)
 NDK_$(LOCAL_MODULE)_SHARED_LIBRARIES := $(LOCAL_SHARED_LIBRARIES)
+NDK_$(LOCAL_MODULE)_EXPORT_INCLUDES := $(LOCAL_EXPORT_C_INCLUDE_DIRS) $(LOCAL_EXPORT_C_INCLUDES)
 
 $(info Building $(build_kind))
 $(info $(LOCAL_MODULE))
-$(info $(addprefix $(ANDROID_MODULE_DIRECTORY)/,$(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES$(EMACS_ABI))))
+$(info $(addprefix $(LOCAL_PATH)/,$(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES$(EMACS_ABI))))
 
-$(info $(foreach dir,$(LOCAL_EXPORT_C_INCLUDE_DIRS) $(LOCAL_EXPORT_C_INCLUDES),-I$(dir)))
-$(info $(LOCAL_EXPORT_CFLAGS))
 ifeq ($(LOCAL_MODULE_FILENAME),)
 
 ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
@@ -74,14 +73,29 @@ $$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARI
 endif
 endef
 
+# Figure out includes from dependencies as well.
+NDK_INCLUDES := $(LOCAL_EXPORT_C_INCLUDE_DIRS) $(LOCAL_EXPORT_C_INCLUDES)
+
+define add-includes
+ifeq ($$(findstring $$(NDK_$(1)_EXPORT_INCLUDES),$$(NDK_INCLUDES)),)
+NDK_INCLUDES += $$(NDK_$(1)_EXPORT_INCLUDES)
+
+$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARIES)) $$(NDK_$(1)_STATIC_LIBRARIES),$$(eval $$(call add-includes,$$(module))))
+endif
+endef
+
 # Resolve additional dependencies based on LOCAL_STATIC_LIBRARIES and
 # LOCAL_SHARED_LIBRARIES.
 
-SYSTEM_LIBRARIES = z libz
+SYSTEM_LIBRARIES = z libz libc c libdl dl libstdc++ stdc++
 
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES)),$(eval $(call add-a-name,$(module))))
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES)),$(eval $(call add-so-name,$(module))))
+$(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES) $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_LIBRARIES)),$(eval $(call add-includes,$(module))))
 
+$(info $(foreach dir,$(NDK_INCLUDES),-I$(dir)))
+$(info $(LOCAL_EXPORT_CFLAGS))
 $(info $(LOCAL_EXPORT_LDFLAGS) $(abspath $(addprefix $(NDK_BUILD_DIR)/,$(NDK_A_NAMES))) $(and $(NDK_SO_NAMES), -L$(abspath $(NDK_BUILD_DIR)) $(foreach soname,$(NDK_SO_NAMES),-l:$(soname))))
 $(info $(NDK_A_NAMES))
+$(info $(filter %stdc++,$(LOCAL_SHARED_LIBRARIES)))
 $(info End)

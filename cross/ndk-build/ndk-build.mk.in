@@ -20,8 +20,26 @@
 # This file is included all over the place to build prerequisites.
 
 NDK_BUILD_MODULES = @NDK_BUILD_MODULES@
+NDK_BUILD_CXX_SHARED = @NDK_BUILD_CXX_SHARED@
+NDK_BUILD_ANY_CXX_MODULE = @NDK_BUILD_ANY_CXX_MODULE@
 NDK_BUILD_SHARED =
 NDK_BUILD_STATIC =
+
+define uniqify
+$(if $1,$(firstword $1) $(call uniqify,$(filter-out $(firstword $1),$1)))
+endef
+
+# Remove duplicate modules.  These can occur when a single module
+# imports a module and also declares it in LOCAL_SHARED_LIBRARIES.
+NDK_BUILD_MODULES := $(call uniqify,$(NDK_BUILD_MODULES))
+
+# The C++ standard library must be extracted from the Android NDK
+# directories and included in the application package, if any module
+# requires the C++ standard library.
+
+ifneq ($(NDK_BUILD_ANY_CXX_MODULE),)
+NDK_BUILD_SHARED += $(NDK_BUILD_ANY_CXX_SHARED)
+endif
 
 define subr-1
 

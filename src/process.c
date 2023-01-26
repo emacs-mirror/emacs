@@ -880,7 +880,8 @@ allocate_pty (char pty_name[PTY_NAME_SIZE])
 
 	    /* Check to make certain that both sides are available.
 	       This avoids a nasty yet stupid bug in rlogins.  */
-	    if (faccessat (AT_FDCWD, pty_name, R_OK | W_OK, AT_EACCESS) != 0)
+	    if (sys_faccessat (AT_FDCWD, pty_name,
+			       R_OK | W_OK, AT_EACCESS) != 0)
 	      {
 		emacs_close (fd);
 		continue;

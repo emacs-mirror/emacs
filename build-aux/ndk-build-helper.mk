@@ -21,20 +21,38 @@
 # See the text under ``NDK BUILD SYSTEM IMPLEMENTATION'' in
 # INSTALL.android for more details.
 
+# NDK_LAST_MAKEFILE is the last Makefile that was included.
+NDK_LAST_MAKEFILE = $(lastword $(filter %Android.mk,$(MAKEFILE_LIST)))
+
+# local-makefile is the current Makefile being loaded.
+local-makefile = $(NDK_LAST_MAKEFILE)
+
 # Make NDK_BUILD_DIR absolute.
 NDK_BUILD_DIR := $(absname $(NDK_BUILD_DIR))
 
-# my-dir is a function that returns the Android module directory.
-my-dir = $(ANDROID_MODULE_DIRECTORY)
+# Make EMACS_SRCDIR absolute.  This must be absolute, or nested
+# Android.mk files will not be able to find CLEAR_VARS.
+EMACS_SRCDIR := $(absname $(EMACS_SRCDIR))
 
-# all-subdir-makefiles is a function which returns all Android.mk
-# files within this directory.
-all-subdir-makefiles = $(shell find . -name "Android.mk")
+# my-dir is a function that returns the Android module directory.  If
+# no Android.mk has been loaded, use ANDROID_MODULE_DIRECTORY.
+my-dir = $(or $(and $(local-makefile),$(dir $(local-makefile))),$(ANDROID_MODULE_DIRECTORY))
+
+# Return all Android.mk files under the first arg.
+all-makefiles-under = $(wildcard $(1)/*/Android.mk)
+
+# Return all Android.mk files in subdirectories of this Makefile's
+# location.
+all-subdir-makefiles = $(call all-makefiles-under,$(call my-dir))
 
 # These functions are not implemented.
 parent-makefile =
 grand-parent-makefile =
-import-module =
+
+NDK_IMPORTS :=
+
+# Add the specified module (arg 1) to NDK_IMPORTS.
+import-module = $(eval NDK_IMPORTS += $(1))
 
 # Print out module information every time BUILD_SHARED_LIBRARY is
 # called.
@@ -47,6 +65,11 @@ CLEAR_VARS=$(EMACS_SRCDIR)/build-aux/ndk-build-helper-4.mk
 # Now include Android.mk.
 
 include $(ANDROID_MAKEFILE)
+
+# Finally, print out the imports.
+$(info Start Imports)
+$(info $(NDK_IMPORTS))
+$(info End Imports)
 
 # Dummy target.
 all:

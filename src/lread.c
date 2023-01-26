@@ -1964,8 +1964,8 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		fd = -1;
 		if (INT_MAX < XFIXNAT (predicate))
 		  last_errno = EINVAL;
-		else if (faccessat (AT_FDCWD, pfn, XFIXNAT (predicate),
-				    AT_EACCESS)
+		else if (sys_faccessat (AT_FDCWD, pfn, XFIXNAT (predicate),
+					AT_EACCESS)
 			 == 0)
 		  {
 		    if (file_directory_p (encoded_fn))
@@ -1985,7 +1985,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                     it.  Only open the file when we are sure that it
                     exists.  */
 #ifdef WINDOWSNT
-                if (faccessat (AT_FDCWD, pfn, R_OK, AT_EACCESS))
+                if (sys_faccessat (AT_FDCWD, pfn, R_OK, AT_EACCESS))
                   fd = -1;
                 else
 #endif

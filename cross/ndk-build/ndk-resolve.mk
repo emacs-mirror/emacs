@@ -25,9 +25,10 @@ NDK_LOCAL_STATIC_LIBRARIES_$(LOCAL_MODULE) := $(LOCAL_STATIC_LIBRARIES) $(LOCAL_
 NDK_LOCAL_WHOLE_LIBRARIES_$(LOCAL_MODULE) := $(LOCAL_WHOLE_STATIC_LIBRARIES)
 NDK_LOCAL_SHARED_LIBRARIES_$(LOCAL_MODULE) := $(LOCAL_SHARED_LIBRARIES)
 NDK_LOCAL_EXPORT_CFLAGS_$(LOCAL_MODULE) := $(LOCAL_EXPORT_CFLAGS)
-NDK_LOCAL_EXPORT_C_INCLUDES_$(LOCAL_MODULE) := $(LOCAL_EXPORT_C_INCLUDES)
+NDK_LOCAL_EXPORT_C_INCLUDES_$(LOCAL_MODULE) := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_EXPORT_C_INCLUDE_DIRS)
 NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) :=
 NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) :=
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) :=
 
 # List of all dependencies resolved for this module thus far.
 # Used to avoid infinite recursion.
@@ -39,6 +40,34 @@ ifeq ($(patsubst $(1),,$(NDK_RESOLVED$(LOCAL_MODULE))),$(NDK_RESOLVED$(LOCAL_MOD
 NDK_RESOLVED_$(LOCAL_MODULE) += $(1)
 NDK_CFLAGS_$(LOCAL_MODULE) += $(NDK_LOCAL_EXPORT_CFLAGS_$(1))
 NDK_CFLAGS_$(LOCAL_MODULE) += $(addprefix -I,$(NDK_LOCAL_EXPORT_C_INCLUDES_$(1)))
+
+# If the module happens to be zlib, then add -lz to the shared library
+# flags.
+ifneq ($(strip $(1)),libz)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lz
+endif
+
+ifneq ($(strip $(1)),z)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lz
+endif
+
+# Likewise for libdl.
+ifneq ($(strip $(1)),libdl)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -ldl
+endif
+
+ifneq ($(strip $(1)),dl)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -ldl
+endif
+
+# Likewise for libstdc++.
+ifneq ($(strip $(1)),libstdc++)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lstdc++
+endif
+
+ifneq ($(strip $(1)),dl)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lstdc++
+endif
 
 ifneq ($(2),)
 ifneq ($(findstring lib,$(1)),)

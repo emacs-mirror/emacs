@@ -4214,30 +4214,34 @@ android_window_updated (android_window window, unsigned long serial)
 
 
 
-#if __ANDROID_API__ >= 17
-
-#undef faccessat
+#if __ANDROID_API__ >= 16
 
 /* Replace the system faccessat with one which understands AT_EACCESS.
    Android's faccessat simply fails upon using AT_EACCESS, so replace
    it with zero here.  This isn't caught during configuration.
 
-   This replacement is only done when building for Android 17 or
+   This replacement is only done when building for Android 16 or
    later, because earlier versions use the gnulib replacement that
    lacks these issues.  */
 
 int
-faccessat (int dirfd, const char *pathname, int mode, int flags)
+android_faccessat (int dirfd, const char *pathname, int mode, int flags)
 {
-  static int (*real_faccessat) (int, const char *, int, int);
-
-  if (!real_faccessat)
-    real_faccessat = dlsym (RTLD_NEXT, "faccessat");
-
-  return real_faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
+  return faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
 }
 
-#endif /* __ANDROID_API__ >= 17 */
+#else /* __ANDROID_API__ < 16 */
+
+/* This is unnecessary on earlier API versions, as gnulib's
+   rpl_faccessat will be used instead.  */
+
+int
+android_faccessat (int dirfd, const char *pathname, int mode, int flags)
+{
+  return faccessat (dirfd, pathname, mode, flags);
+}
+
+#endif
 
 
 

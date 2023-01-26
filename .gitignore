@@ -84,6 +84,7 @@ lib/limits.h
 lib/malloc/*.gl.h
 lib/signal.h
 lib/std*.h
+lib/math.h
 !lib/std*.in.h
 !lib/stdio-impl.h
 lib/string.h
@@ -115,6 +116,7 @@ cross/lib/signal.h
 cross/lib/std*.h
 !cross/lib/std*.in.h
 !cross/lib/stdio-impl.h
+cross/lib/math.h
 cross/lib/string.h
 cross/lib/sys/
 cross/lib/time.h

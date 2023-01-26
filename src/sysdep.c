@@ -2398,6 +2398,16 @@ sys_fstat (int fd, struct stat *statb)
 #endif
 }
 
+int
+sys_faccessat (int fd, const char *pathname, int mode, int flags)
+{
+#if !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
+  return faccessat (fd, pathname, mode, flags);
+#else
+  return android_faccessat (fd, pathname, mode, flags);
+#endif
+}
+
 /* Assuming the directory DIRFD, open FILE for Emacs use,
    using open flags OFLAGS and mode MODE.
    Use binary I/O on systems that care about text vs binary I/O.

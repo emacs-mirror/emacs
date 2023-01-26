@@ -531,8 +531,9 @@ public class EmacsView extends ViewGroup
     contextMenu = menu;
     popupActive = true;
 
-    /* On API 21 or later, use showContextMenu (float, float).  */
-    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP)
+    /* Use showContextMenu (float, float) on N to get actual popup
+       behavior.  */
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
       return showContextMenu ((float) xPosition, (float) yPosition);
     else
       return showContextMenu ();
