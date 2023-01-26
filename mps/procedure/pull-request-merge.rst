@@ -148,8 +148,8 @@ by considering `2. Purpose`_.
 
 These steps will only rarely need repeating.
 
-#. You need basic competence with Git: enough to understand the
-   commands in `the merging procedure`_.
+#. You need basic competence with Git: enough to understand what the
+   commands in `the merging procedure`_ do.
 
 #. If the merge has conflicts, you will need competence in using Git
    to resolve merge conflicts.
