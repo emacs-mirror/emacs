@@ -127,6 +127,9 @@ struct android_emacs_window
   jmethodID window_updated;
 };
 
+/* The API level of the current device.  */
+static int android_api_level;
+
 /* The asset manager being used.  */
 static AAssetManager *asset_manager;
 
@@ -999,16 +1002,16 @@ android_fstatat (int dirfd, const char *restrict pathname,
   return fstatat (dirfd, pathname, statbuf, flags);
 }
 
-/* Return if NAME is a file that is actually an asset and is
+/* Return if NAME, a file name relative to the /assets directory, is
    accessible, as long as !(amode & W_OK).  */
 
-bool
+static bool
 android_file_access_p (const char *name, int amode)
 {
   if (!asset_manager)
     return false;
 
-  if (!(amode & W_OK) && (name = android_get_asset_name (name)))
+  if (!(amode & W_OK))
     {
       if (!strcmp (name, "") || !strcmp (name, "/"))
 	/* /assets always exists.  */
@@ -1033,42 +1036,103 @@ android_hack_asset_fd (AAsset *asset)
   int fd, rc;
   unsigned char *mem;
   size_t size;
-
-  fd = open ("/dev/ashmem", O_RDWR);
-
-  if (fd < 0)
-    return -1;
+  static int (*asharedmemory_create) (const char *, size_t);
 
   /* Assets must be small enough to fit in size_t, if off_t is
      larger.  */
   size = AAsset_getLength (asset);
 
-  /* An empty name means the memory area will exist until the file
-     descriptor is closed, because no other process can attach.  */
-  rc = ioctl (fd, ASHMEM_SET_NAME, "");
+  /* Android 28 and earlier let Emacs access /dev/ashmem directly, so
+     prefer that over using ASharedMemory.  */
 
-  if (rc < 0)
+  if (android_api_level <= 28)
     {
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "ioctl ASHMEM_SET_NAME: %s",
-			   strerror (errno));
-      close (fd);
-      return -1;
+      fd = open ("/dev/ashmem", O_RDWR);
+
+      if (fd < 0)
+	return -1;
+
+      /* An empty name means the memory area will exist until the file
+	 descriptor is closed, because no other process can
+	 attach.  */
+      rc = ioctl (fd, ASHMEM_SET_NAME, "");
+
+      if (rc < 0)
+	{
+	  __android_log_print (ANDROID_LOG_ERROR, __func__,
+			       "ioctl ASHMEM_SET_NAME: %s",
+			       strerror (errno));
+	  close (fd);
+	  return -1;
+	}
+
+      rc = ioctl (fd, ASHMEM_SET_SIZE, size);
+
+      if (rc < 0)
+	{
+	  __android_log_print (ANDROID_LOG_ERROR, __func__,
+			       "ioctl ASHMEM_SET_SIZE: %s",
+			       strerror (errno));
+	  close (fd);
+	  return -1;
+	}
+
+      if (!size)
+	return fd;
+
+      /* Now map the resource.  */
+      mem = mmap (NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
+      if (mem == MAP_FAILED)
+	{
+	  __android_log_print (ANDROID_LOG_ERROR, __func__,
+			       "mmap: %s", strerror (errno));
+	  close (fd);
+	  return -1;
+	}
+
+      if (AAsset_read (asset, mem, size) != size)
+	{
+	  /* Too little was read.  Close the file descriptor and
+	     report an error.  */
+	  __android_log_print (ANDROID_LOG_ERROR, __func__,
+			       "AAsset_read: %s", strerror (errno));
+	  close (fd);
+	  return -1;
+	}
+
+      /* Return anyway even if munmap fails.  */
+      munmap (mem, size);
+      return fd;
     }
 
-  rc = ioctl (fd, ASHMEM_SET_SIZE, size);
+  /* On the other hand, SELinux restrictions on Android 29 and later
+     require that Emacs use a system service to obtain shared memory.
+     Load this dynamically, as this service is not available on all
+     versions of the NDK.  */
 
-  if (rc < 0)
+  if (!asharedmemory_create)
     {
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "ioctl ASHMEM_SET_SIZE: %s",
-			   strerror (errno));
-      close (fd);
-      return -1;
+      *(void **) (&asharedmemory_create)
+	= dlsym (RTLD_DEFAULT, "ASharedMemory_create");
+
+      if (!asharedmemory_create)
+	{
+	  __android_log_print (ANDROID_LOG_FATAL, __func__,
+			       "dlsym: %s\n",
+			       strerror (errno));
+	  emacs_abort ();
+	}
     }
 
-  if (!size)
-    return fd;
+  fd = asharedmemory_create ("", size);
+
+  if (fd < 0)
+    {
+      __android_log_print (ANDROID_LOG_ERROR, __func__,
+			   "ASharedMemory_create: %s",
+			   strerror (errno));
+      return -1;
+    }
 
   /* Now map the resource.  */
   mem = mmap (NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
@@ -1082,8 +1146,8 @@ android_hack_asset_fd (AAsset *asset)
 
   if (AAsset_read (asset, mem, size) != size)
     {
-      /* Too little was read.  Close the file descriptor and report an
-	 error.  */
+      /* Too little was read.  Close the file descriptor and
+	 report an error.  */
       __android_log_print (ANDROID_LOG_ERROR, __func__,
 			   "AAsset_read: %s", strerror (errno));
       close (fd);
@@ -1128,6 +1192,33 @@ android_check_compressed_file (int fd)
   return fd;
 }
 
+/* Make FD close-on-exec.  If any system call fails, do not abort, but
+   log a warning to the system log.  */
+
+static void
+android_close_on_exec (int fd)
+{
+  int flags, rc;
+
+  flags = fcntl (fd, F_GETFD);
+
+  if (flags < 0)
+    {
+      __android_log_print (ANDROID_LOG_WARN, __func__,
+			   "fcntl: %s", strerror (errno));
+      return;
+    }
+
+  rc = fcntl (fd, F_SETFD, flags | O_CLOEXEC);
+
+  if (rc < 0)
+    {
+      __android_log_print (ANDROID_LOG_WARN, __func__,
+			   "fcntl: %s", strerror (errno));
+      return;
+    }
+}
+
 /* `open' and such are modified even though they exist on Android,
    because Emacs treats "/assets/" as a special directory that must
    contain all assets in the application package.  */
@@ -1139,10 +1230,6 @@ android_open (const char *filename, int oflag, int mode)
   AAsset *asset;
   int fd, oldfd;
   off_t out_start, out_length;
-  bool fd_hacked;
-
-  /* This flag means whether or not fd should not be duplicated.  */
-  fd_hacked = false;
 
   if (asset_manager && (name = android_get_asset_name (filename)))
     {
@@ -1195,25 +1282,16 @@ android_open (const char *filename, int oflag, int mode)
 	      errno = ENXIO;
 	      return -1;
 	    }
-
-	  fd_hacked = true;
 	}
 
-      /* Duplicate the file descriptor and then close the asset,
-	 which will close the original file descriptor.  */
-
-      if (!fd_hacked)
-	{
-	  oldfd = fd;
-	  fd = fcntl (oldfd, F_DUPFD_CLOEXEC);
-
-	  /* Close the original file descriptor.  */
-	  close (oldfd);
-	}
+      /* If O_CLOEXEC is specified, make the file descriptor close on
+	 exec too.  */
+      if (oflag & O_CLOEXEC)
+	android_close_on_exec (fd);
 
       if (fd >= ANDROID_MAX_ASSET_FD || fd < 0)
 	{
-	  /* Too bad.  You lose.  */
+	  /* Too bad.  Pretend this is an out of memory error.  */
 	  errno = ENOMEM;
 
 	  if (fd >= 0)
@@ -1713,7 +1791,7 @@ android_init_emacs_window (void)
 
 extern JNIEXPORT void JNICALL
 NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
-			 jobject dump_file_object)
+			 jobject dump_file_object, jint api_level)
 {
   char **c_argv;
   jsize nelements, i;
@@ -1731,6 +1809,9 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
 
   /* Trick GCC into not optimizing this variable away.  */
   unused_pointer = buffer;
+
+  /* Set the Android API level.  */
+  android_api_level = api_level;
 
   android_java_env = env;
 
@@ -4214,34 +4295,47 @@ android_window_updated (android_window window, unsigned long serial)
 
 
 
-#if __ANDROID_API__ >= 16
+/* When calling the system's faccessat, make sure to clear the flag
+   AT_EACCESS.
 
-/* Replace the system faccessat with one which understands AT_EACCESS.
    Android's faccessat simply fails upon using AT_EACCESS, so replace
-   it with zero here.  This isn't caught during configuration.
+   it with zero here.  This isn't caught during configuration as Emacs
+   is being cross compiled.
 
    This replacement is only done when building for Android 16 or
    later, because earlier versions use the gnulib replacement that
-   lacks these issues.  */
+   lacks these issues.
+
+   This is unnecessary on earlier API versions, as gnulib's
+   rpl_faccessat will be used instead, which lacks these problems.  */
+
+/* Like faccessat, except it also understands DIRFD opened using
+   android_dirfd.  */
 
 int
 android_faccessat (int dirfd, const char *pathname, int mode, int flags)
 {
+  const char *asset;
+
+  if (dirfd != AT_FDCWD)
+    dirfd
+      = android_lookup_asset_directory_fd (dirfd, &pathname,
+					   pathname);
+
+  /* Check if pathname is actually an asset.  If that is the case,
+     simply fall back to android_file_access_p.  */
+
+  if (dirfd == AT_FDCWD
+      && asset_manager
+      && (asset = android_get_asset_name (pathname)))
+    return !android_file_access_p (asset, mode);
+
+#if __ANDROID_API__ >= 16
   return faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);
-}
-
-#else /* __ANDROID_API__ < 16 */
-
-/* This is unnecessary on earlier API versions, as gnulib's
-   rpl_faccessat will be used instead.  */
-
-int
-android_faccessat (int dirfd, const char *pathname, int mode, int flags)
-{
+#else
   return faccessat (dirfd, pathname, mode, flags);
-}
-
 #endif
+}
 
 
 
@@ -4468,10 +4562,10 @@ android_closedir (struct android_dir *dir)
   xfree (dir);
 }
 
-/* Subroutine used by android_fstatat.  If DIRFD belongs to an open
-   asset directory and FILE is a relative file name, then return
-   AT_FDCWD and the absolute file name of the directory prepended to
-   FILE in *PATHNAME.  Else, return DIRFD.  */
+/* Subroutine used by android_fstatat and android_faccessat.  If DIRFD
+   belongs to an open asset directory and FILE is a relative file
+   name, then return AT_FDCWD and the absolute file name of the
+   directory prepended to FILE in *PATHNAME.  Else, return DIRFD.  */
 
 int
 android_lookup_asset_directory_fd (int dirfd,

@@ -43,30 +43,48 @@ NDK_CFLAGS_$(LOCAL_MODULE) += $(addprefix -I,$(NDK_LOCAL_EXPORT_C_INCLUDES_$(1))
 
 # If the module happens to be zlib, then add -lz to the shared library
 # flags.
-ifneq ($(strip $(1)),libz)
+ifeq ($(strip $(1)),libz)
 NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lz
 endif
 
-ifneq ($(strip $(1)),z)
+ifeq ($(strip $(1)),z)
 NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lz
 endif
 
 # Likewise for libdl.
-ifneq ($(strip $(1)),libdl)
+ifeq ($(strip $(1)),libdl)
 NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -ldl
 endif
 
-ifneq ($(strip $(1)),dl)
+ifeq ($(strip $(1)),dl)
 NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -ldl
 endif
 
 # Likewise for libstdc++.
-ifneq ($(strip $(1)),libstdc++)
+ifeq ($(strip $(1)),libstdc++)
 NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lstdc++
 endif
 
-ifneq ($(strip $(1)),dl)
+ifeq ($(strip $(1)),dl)
 NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lstdc++
+endif
+
+# Likewise for liblog.
+ifeq ($(strip $(1)),liblog)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -llog
+endif
+
+ifeq ($(strip $(1)),log)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -llog
+endif
+
+# Likewise for libandroid.
+ifeq ($(strip $(1)),libandroid)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -landroid
+endif
+
+ifeq ($(strip $(1)),android)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -landroid
 endif
 
 ifneq ($(2),)

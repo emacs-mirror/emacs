@@ -65,8 +65,11 @@ public class EmacsNative
      undefined.
 
      DUMPFILE is the dump file to use, or NULL if Emacs is to load
-     loadup.el itself.  */
-  public static native void initEmacs (String argv[], String dumpFile);
+     loadup.el itself.
+
+     APILEVEL is the version of Android being used.  */
+  public static native void initEmacs (String argv[], String dumpFile,
+				       int apiLevel);
 
   /* Abort and generate a native core dump.  */
   public static native void emacsAbort ();

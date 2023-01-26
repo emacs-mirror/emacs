@@ -20,7 +20,12 @@
 # which actually builds targets.
 
 eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
-objname = $(1)-$(subst /,_,$(2).o)
+
+# Objects for shared libraries are prefixed with `-shared-' in
+# addition to the name of the module, because a common practice in
+# Android.mk files written by Google is to define two modules with the
+# same name but of different types.
+objname = $(1)-shared-$(subst /,_,$(2).o)
 
 # Here are the default flags to link shared libraries with.
 NDK_SO_DEFAULT_LDFLAGS := -lc -lm

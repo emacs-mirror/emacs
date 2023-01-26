@@ -73,6 +73,7 @@ esac
 # ones.
 
 ndk_package_map="libwebpdemux:webpdemux libxml-2.0:libxml2 jansson:libjansson"
+ndk_package_map="$ndk_package_map sqlite3:libsqlite_static_minimal"
 
 # Replace ndk_module with the appropriate Android module name if it is
 # found in ndk_package_map.

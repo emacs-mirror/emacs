@@ -21,6 +21,8 @@ package org.gnu.emacs;
 
 import java.lang.Thread;
 
+import android.os.Build;
+
 public class EmacsThread extends Thread
 {
   /* Whether or not Emacs should be started -Q.  */
@@ -45,6 +47,7 @@ public class EmacsThread extends Thread
       args = new String[] { "libandroid-emacs.so", "-Q", };
 
     /* Run the native code now.  */
-    EmacsNative.initEmacs (args, EmacsApplication.dumpFileName);
+    EmacsNative.initEmacs (args, EmacsApplication.dumpFileName,
+			   Build.VERSION.SDK_INT);
   }
 };

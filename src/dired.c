@@ -888,12 +888,6 @@ file_name_completion_dirp (int fd, struct dirent *dp, ptrdiff_t len)
   memcpy (subdir_name, dp->d_name, len);
   strcpy (subdir_name + len, "/");
 
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  /* Check if subdir_name lies in the assets directory.  */
-  if (android_file_access_p (subdir_name, F_OK))
-    return true;
-#endif
-
   bool dirp = sys_faccessat (fd, subdir_name,
 			     F_OK, AT_EACCESS) == 0;
   SAFE_FREE ();

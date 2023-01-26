@@ -752,6 +752,7 @@ ANDROID=
 JAVAC=
 AAPT=
 JARSIGNER=
+APKSIGNER=
 ZIPALIGN=
 DX=
 ANDROID_JAR=
@@ -763,6 +764,7 @@ android_makefiles="lib/Makefile lib/gnulib.mk lib-src/Makefile src/Makefile"
 
 AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
 AC_ARG_VAR([JARSIGNER], [Java package signer path.  Used for Android.])
+AC_ARG_VAR([APKSIGNER], [Android package signer path.  Used for Android.])
 AC_ARG_VAR([SDK_BULD_TOOLS], [Path to the Android SDK build tools.])
 
 if test "$with_android" = "yes"; then
@@ -792,6 +794,7 @@ the path to your Java compiler before configuring Emacs, like so:
 
   JAVAC=/opt/jdk/bin/javac ./configure --with-android])
   fi
+
   AC_CHECK_PROGS([JARSIGNER], [jarsigner])
   if test "$JARSIGNER" = ""; then
     AC_MSG_ERROR([The Java package signing utility was not found.
@@ -858,6 +861,12 @@ Android 13 (Tiramisu) or later.])
   AC_PATH_PROGS([AAPT], [aapt], [], "${SDK_BUILD_TOOLS}:$PATH")
   if test "$AAPT" = ""; then
     AC_MSG_ERROR([The Android asset packaging tool was not found.
+Please verify that the path to the SDK build tools you specified is correct])
+  fi
+
+  AC_PATH_PROGS([APKSIGNER], [apksigner], [], "${SDK_BUILD_TOOLS}:$PATH")
+  if test "$APKSIGNER" = ""; then
+    AC_MSG_ERROR([The Android package signing tool was not found.
 Please verify that the path to the SDK build tools you specified is correct])
   fi
 
@@ -1051,6 +1060,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-json=$with_json"
   passthrough="$passthrough --with-jpeg=$with_jpeg"
   passthrough="$passthrough --with-xml2=$with_xml2"
+  passthrough="$passthrough --with-sqlite3=$with_sqlite3"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1120,10 +1130,10 @@ if test "$ANDROID" = "yes"; then
     with_json=no
     with_jpeg=no
     with_xml2=no
+    with_sqlite3=no
   fi
 
   with_rsvg=no
-  with_sqlite3=no
   with_lcms2=no
   with_libsystemd=no
   with_cairo=no
@@ -3348,29 +3358,48 @@ fi
 
 ### Use -lsqlite3 if available, unless '--with-sqlite3=no'
 HAVE_SQLITE3=no
+SQLITE3_LIBS=
+SQLITE3_CFLAGS=
 if test "${with_sqlite3}" != "no"; then
-   AC_CHECK_LIB([sqlite3], [sqlite3_open_v2],
-     [HAVE_SQLITE3=yes],
-     [HAVE_SQLITE3=no])
-   if test "$HAVE_SQLITE3" = "yes"; then
-     SQLITE3_LIBS=-lsqlite3
-     AC_SUBST([SQLITE3_LIBS])
-     LIBS="$SQLITE3_LIBS $LIBS"
-     AC_DEFINE([HAVE_SQLITE3], [1],
-       [Define to 1 if you have the libsqlite3 library (-lsqlite).])
-     # Windows loads libsqlite dynamically
-     if test "${opsys}" = "mingw32"; then
-        SQLITE3_LIBS=
+   if test "${REALLY_ANDROID}" = "yes"; then
+     ndk_SEARCH_MODULE([sqlite3], [SQLITE3], [HAVE_SQLITE3=yes])
+
+     if test "$HAVE_SQLITE3" = "yes"; then
+       SAVE_CFLAGS="$CFLAGS"
+       CFLAGS="$CFLAGS $SQLITE3_CFLAGS"
+       AC_CHECK_DECL([sqlite3_open_v2], [HAVE_SQLITE=yes],
+         [HAVE_SQLITE3=no], [#include <sqlite3.h>])
+       CFLAGS="$SAVE_CFLAGS"
      fi
-     AC_CHECK_LIB([sqlite3], [sqlite3_load_extension],
-       [HAVE_SQLITE3_LOAD_EXTENSION=yes],
-       [HAVE_SQLITE3_LOAD_EXTENSION=no])
-     if test "$HAVE_SQLITE3_LOAD_EXTENSION" = "yes"; then
-       AC_DEFINE([HAVE_SQLITE3_LOAD_EXTENSION], [1],
-	 [Define to 1 if sqlite3 supports loading extensions.])
+   else
+     AC_CHECK_LIB([sqlite3], [sqlite3_open_v2],
+       [HAVE_SQLITE3=yes],
+       [HAVE_SQLITE3=no])
+     if test "$HAVE_SQLITE3" = "yes"; then
+       SQLITE3_LIBS=-lsqlite3
+       LIBS="$SQLITE3_LIBS $LIBS"
+       # Windows loads libsqlite dynamically
+       if test "${opsys}" = "mingw32"; then
+	  SQLITE3_LIBS=
+       fi
+       AC_CHECK_LIB([sqlite3], [sqlite3_load_extension],
+	 [HAVE_SQLITE3_LOAD_EXTENSION=yes],
+	 [HAVE_SQLITE3_LOAD_EXTENSION=no])
+       if test "$HAVE_SQLITE3_LOAD_EXTENSION" = "yes"; then
+	 AC_DEFINE([HAVE_SQLITE3_LOAD_EXTENSION], [1],
+	   [Define to 1 if sqlite3 supports loading extensions.])
+       fi
      fi
-   fi
+  fi
+
+  if test "$HAVE_SQLITE3" = "yes"; then
+    AC_DEFINE([HAVE_SQLITE3], [1],
+      [Define to 1 if you have the libsqlite3 library (-lsqlite).])
+  fi
 fi
+
+AC_SUBST([SQLITE3_LIBS])
+AC_SUBST([SQLITE3_CFLAGS])
 
 HAVE_IMAGEMAGICK=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}" = "yes" || \

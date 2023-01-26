@@ -20,7 +20,7 @@
 # which actually builds targets.
 
 eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
-objname = $(1)-$(subst /,_,$(2).o)
+objname = $(1)-static-$(subst /,_,$(2).o)
 
 define single-object-target
 

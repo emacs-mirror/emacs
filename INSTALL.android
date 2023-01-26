@@ -165,6 +165,9 @@ work, along with what has to be patched to make them work:
       and apply the patch at the end of this file.)
   icu4c		- https://android.googlesource.com/platform/external/icu/
      (You must apply the patch at the end of this file.)
+  sqlite3	- https://android.googlesource.com/platform/external/sqlite/
+     (You must apply the patch at the end of this file, and add the `dist'
+      directory to ``--with-ndk-path''.)
 
 Many of these dependencies have been migrated over to the
 ``Android.bp'' build system now used to build Android itself.
@@ -592,3 +595,18 @@ index 8e5f757..44bb130 100644
  LOCAL_MODULE_TAGS := optional
  LOCAL_MODULE := libicuuc
  LOCAL_RTTI_FLAG := -frtti
+
+PATCH FOR SQLITE3
+
+diff --git a/dist/Android.mk b/dist/Android.mk
+index bf277d2..36734d9 100644
+--- a/dist/Android.mk
++++ b/dist/Android.mk
+@@ -141,6 +141,7 @@ include $(BUILD_HOST_EXECUTABLE)
+ include $(CLEAR_VARS)
+ LOCAL_SRC_FILES := $(common_src_files)
+ LOCAL_CFLAGS += $(minimal_sqlite_flags)
++LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)
+ LOCAL_MODULE:= libsqlite_static_minimal
+ LOCAL_SDK_VERSION := 23
+ include $(BUILD_STATIC_LIBRARY)

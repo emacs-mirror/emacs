@@ -177,6 +177,7 @@ public class EmacsNoninteractive
     EmacsApplication.findDumpFile (context);
 
     /* Start Emacs.  */
-    EmacsNative.initEmacs (args, EmacsApplication.dumpFileName);
+    EmacsNative.initEmacs (args, EmacsApplication.dumpFileName,
+			   Build.VERSION.SDK_INT);
   }
 };

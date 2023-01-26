@@ -46,7 +46,6 @@ extern int android_emacs_init (int, char **, char *);
 extern int android_select (int, fd_set *, fd_set *, fd_set *,
 			   struct timespec *);
 
-extern bool android_file_access_p (const char *, int);
 extern int android_open (const char *, int, int);
 extern char *android_user_full_name (struct passwd *);
 extern int android_fstat (int, struct stat *);

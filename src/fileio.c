@@ -182,12 +182,6 @@ file_access_p (char const *file, int amode)
     }
 #endif
 
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  /* FILE may be some kind of special Android file.  */
-  if (android_file_access_p (file, amode))
-    return true;
-#endif
-
   if (sys_faccessat (AT_FDCWD, file, amode, AT_EACCESS) == 0)
     return true;
 
@@ -3017,12 +3011,6 @@ If there is no error, returns nil.  */)
     return call3 (handler, Qaccess_file, absname, string);
 
   encoded_filename = ENCODE_FILE (absname);
-
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  /* FILE may be some kind of special Android file.  */
-  if (android_file_access_p (SSDATA (encoded_filename), R_OK))
-    return Qnil;
-#endif
 
   if (sys_faccessat (AT_FDCWD, SSDATA (encoded_filename), R_OK,
 		     AT_EACCESS) != 0)

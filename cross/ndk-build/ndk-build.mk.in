@@ -38,7 +38,7 @@ NDK_BUILD_MODULES := $(call uniqify,$(NDK_BUILD_MODULES))
 # requires the C++ standard library.
 
 ifneq ($(NDK_BUILD_ANY_CXX_MODULE),)
-NDK_BUILD_SHARED += $(NDK_BUILD_ANY_CXX_SHARED)
+NDK_BUILD_SHARED += $(NDK_BUILD_CXX_SHARED)
 endif
 
 define subr-1

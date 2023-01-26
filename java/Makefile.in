@@ -33,6 +33,7 @@ AAPT = @AAPT@
 D8 = @D8@
 ZIPALIGN = @ZIPALIGN@
 JARSIGNER = @JARSIGNER@
+APKSIGNER = @APKSIGNER@
 JARSIGNER_FLAGS =
 ANDROID_JAR = @ANDROID_JAR@
 ANDROID_ABI = @ANDROID_ABI@
@@ -52,6 +53,8 @@ JARSIGNER_FLAGS =
 endif
 
 SIGN_EMACS = -keystore emacs.keystore -storepass emacs1 $(JARSIGNER_FLAGS)
+SIGN_EMACS_V2 = sign --v2-signing-enabled --ks emacs.keystore \
+	--debuggable-apk-permitted --ks-pass pass:emacs1
 
 JAVA_FILES = $(shell find . -type f -name *.java)
 CLASS_FILES = $(foreach file,$(JAVA_FILES),$(basename $(file)).class)
@@ -196,10 +199,12 @@ $(APK_NAME): classes.dex emacs.apk-in emacs.keystore
 	$(AAPT) add $@.unaligned classes.dex
 	$(JARSIGNER) $(SIGN_EMACS) $@.unaligned "Emacs keystore"
 	$(ZIPALIGN) -f 4 $@.unaligned $@
-	rm -f $@.unaligned
+# Signing must happen after alignment!
+	$(APKSIGNER) $(SIGN_EMACS_V2) $@
+	rm -f $@.unaligned *.idsig
 
 clean:
-	rm -f *.apk emacs.apk-in *.dex *.unaligned *.class
+	rm -f *.apk emacs.apk-in *.dex *.unaligned *.class *.idsig
 	rm -rf install-temp
 	find . -name '*.class' -delete
 

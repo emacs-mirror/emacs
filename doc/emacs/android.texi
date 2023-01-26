@@ -160,12 +160,34 @@ The @dfn{app library} directory.  This is automatically appended to
 
 @item
 The @dfn{external storage} directory.  This is accessible to Emacs
-when the user grants the @code{Files and media} permission to Emacs
-via system settings.
+when the user grants the ``Files and Media'' permission to Emacs via
+system settings.
 @end itemize
 
-The external storage directory is found at @file{/sdcard}; the other
+  The external storage directory is found at @file{/sdcard}; the other
 directories are not found at any fixed location.
+
+@cindex file system limitations, Android 10
+  On Android 10 and later, the Android system restricts applications
+from accessing files in the @file{/sdcard} directory using
+file-related system calls such as @code{open} and @code{readdir}.
+
+  This restriction is known as ``Scoped Storage'', and supposedly
+makes the system more secure.  Unfortunately, it also means that Emacs
+cannot access files in those directories, despite holding the
+necessary permissions.  Thankfully, the Open Handset Alliance's
+version of Android allows this restriction to be disabled on a
+per-program basis; the corresponding option in the system settings
+panel is:
+
+@indentedblock
+System -> Developer Options -> App Compatibility Changes -> Emacs ->
+DEFAULT_SCOPED_STORAGE
+@end indentedblock
+
+  After you disable this setting and grant Emacs the ``Files and
+Media'' permission, it will be able to access files under
+@file{/sdcard} as usual.
 
 @node Android Environment
 @section Running Emacs under Android
