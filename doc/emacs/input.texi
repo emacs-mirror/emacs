@@ -102,7 +102,7 @@ devices with only an on-screen keyboard, by which two rapid clicks of
 a hardware button that is always present on the device results in
 Emacs quitting.  @xref{Quitting}.
 
-@defvar x-quit-keysym
+@vindex x-quit-keysym
   The exact button is used to do this varies by system: on X, it is
 defined in the variable @code{x-quit-keysym}, and on Android, it is
 always the volume down button.
