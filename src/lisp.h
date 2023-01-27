@@ -4268,6 +4268,17 @@ static_comp_object_p (Lisp_Object obj)
 }
 #endif
 
+#ifdef HAVE_NATIVE_COMP
+extern const size_t block_align;
+
+extern const size_t float_block_floats_length;
+extern const size_t float_block_gcmarkbits_length;
+
+extern const size_t cons_block_conses_length;
+extern const size_t cons_block_gcmarkbits_length;
+#endif /* #ifndef HAVE_NATIVE_COMP */
+
+
 /* Force callee-saved registers and register windows onto the stack,
    so that conservative garbage collection can see their values.  */
 #ifndef HAVE___BUILTIN_UNWIND_INIT

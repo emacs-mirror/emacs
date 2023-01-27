@@ -40,7 +40,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "md5.h"
 #include "sysstdio.h"
 #include "zlib.h"
-#include "alloc.h"
 
 
 /********************************/

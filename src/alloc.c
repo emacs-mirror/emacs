@@ -30,7 +30,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <pthread.h>
 #endif
 
-#include "alloc.h"
 #include "lisp.h"
 #include "bignum.h"
 #include "dispextern.h"
