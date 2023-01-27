@@ -533,25 +533,23 @@ implemented via rewriting, rather than as a function."
 	   (equal (nth 2 terms) "in"))
       (let ((body (car (last terms))))
 	(setcdr (last terms 2) nil)
-	`(let ((for-items
-		(copy-tree
-		 (append
-		  ,@(mapcar
-		     (lambda (elem)
-		       (if (listp elem)
-			   elem
-			 `(list ,elem)))
-		     (cdr (cddr terms))))))
-	       (eshell-command-body '(nil))
+        `(let ((for-items
+                (append
+                 ,@(mapcar
+                    (lambda (elem)
+                      (if (listp elem)
+                          elem
+                        `(list ,elem)))
+                    (nthcdr 3 terms))))
+               (eshell-command-body '(nil))
                (eshell-test-body '(nil)))
-	   (while (car for-items)
-	     (let ((,(intern (cadr terms)) (car for-items))
+           (while for-items
+             (let ((,(intern (cadr terms)) (car for-items))
 		   (eshell--local-vars (cons ',(intern (cadr terms))
-					    eshell--local-vars)))
+                                             eshell--local-vars)))
 	       (eshell-protect
 	   	,(eshell-invokify-arg body t)))
-	     (setcar for-items (cadr for-items))
-	     (setcdr for-items (cddr for-items)))
+             (setq for-items (cdr for-items)))
            (eshell-close-handles)))))
 
 (defun eshell-structure-basic-command (func names keyword test body
