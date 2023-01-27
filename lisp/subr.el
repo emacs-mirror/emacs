@@ -2562,11 +2562,13 @@ The variable list SPEC is the same as in `if-let'."
 Evaluate each binding in turn, stopping if a binding value is nil.
 If all bindings are non-nil, eval BODY and repeat.
 
-The variable list SPEC is the same as in `if-let'."
+The variable list SPEC is the same as in `if-let*'."
   (declare (indent 1) (debug if-let))
   (let ((done (gensym "done")))
     `(catch ',done
        (while t
+         ;; This is `if-let*', not `if-let', deliberately, despite the
+         ;; name of this macro.  See bug#60758.
          (if-let* ,spec
              (progn
                ,@body)
@@ -4966,21 +4968,20 @@ the function `undo--wrap-and-run-primitive-undo'."
 		       beg
 		       (marker-position end-marker)
 		       #'undo--wrap-and-run-primitive-undo
-		       beg (marker-position end-marker) buffer-undo-list))
+		       beg (marker-position end-marker)
+		       ;; We will truncate this list by side-effect below.
+		       buffer-undo-list))
 		(ptr buffer-undo-list))
 	    (if (not (eq buffer-undo-list old-bul))
 		(progn
 		  (while (and (not (eq (cdr ptr) old-bul))
 			      ;; In case garbage collection has removed OLD-BUL.
-			      (cdr ptr)
-			      ;; Don't include a timestamp entry.
-			      (not (and (consp (cdr ptr))
-					(consp (cadr ptr))
-					(eq (caadr ptr) t)
-					(setq old-bul (cdr ptr)))))
+			      (or (cdr ptr)
+			          (progn
+			            (message "combine-change-calls: buffer-undo-list broken")
+			            nil)))
 		    (setq ptr (cdr ptr)))
-		  (unless (cdr ptr)
-		    (message "combine-change-calls: buffer-undo-list broken"))
+		  ;; Truncate the list that's in the `apply' entry.
 		  (setcdr ptr nil)
 		  (push ap-elt buffer-undo-list)
 		  (setcdr buffer-undo-list old-bul)))))

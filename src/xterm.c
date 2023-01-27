@@ -5750,7 +5750,8 @@ xi_device_from_id (struct x_display_info *dpyinfo, int deviceid)
 
 static void
 xi_link_touch_point (struct xi_device_t *device,
-		     int detail, double x, double y)
+		     int detail, double x, double y,
+		     struct frame *frame)
 {
   struct xi_touch_point_t *touchpoint;
 
@@ -5759,6 +5760,7 @@ xi_link_touch_point (struct xi_device_t *device,
   touchpoint->x = x;
   touchpoint->y = y;
   touchpoint->number = detail;
+  touchpoint->frame = frame;
 
   device->touchpoints = touchpoint;
 }
@@ -5785,6 +5787,36 @@ xi_unlink_touch_point (int detail,
     }
 
   return false;
+}
+
+/* Unlink all touch points associated with the frame F.
+   This is done upon unmapping or destroying F's window, because
+   touch point delivery after that point is undefined.  */
+
+static void
+xi_unlink_touch_points (struct frame *f)
+{
+  struct xi_device_t *device;
+  struct xi_touch_point_t **next, *last;
+  int i;
+
+  for (i = 0; i < FRAME_DISPLAY_INFO (f)->num_devices; ++i)
+    {
+      device = &FRAME_DISPLAY_INFO (f)->devices[i];
+
+      /* Now unlink all touch points on DEVICE matching F.  */
+
+      for (next = &device->touchpoints; (last = *next);)
+	{
+	  if (last->frame == f)
+	    {
+	      *next = last->next;
+	      xfree (last);
+	    }
+	  else
+	    next = &last->next;
+	}
+    }
 }
 
 static struct xi_touch_point_t *
@@ -13535,6 +13567,10 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 #ifdef HAVE_XINPUT2_2
   struct xi_touch_point_t *tem, *last;
 #endif
+#if defined HAVE_XINPUT2_2 && !defined HAVE_EXT_TOOL_BAR
+  struct x_output *output;
+  Lisp_Object tail, frame;
+#endif
 
   /* Don't pointlessly copy dpyinfo->devices if there are no devices
      to disable.  */
@@ -13577,6 +13613,34 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 		  tem = tem->next;
 		  xfree (last);
 		}
+
+#ifndef HAVE_EXT_TOOL_BAR
+
+	      /* Now look through each frame on DPYINFO.  If it has an
+		 outstanding tool bar press for this device, release
+		 the tool bar.  */
+
+	      FOR_EACH_FRAME (tail, frame)
+		{
+		  if (!FRAME_X_P (XFRAME (frame))
+		      || (FRAME_DISPLAY_INFO (XFRAME (frame))
+			  != dpyinfo))
+		    continue;
+
+		  output = FRAME_OUTPUT_DATA (XFRAME (frame));
+
+		  if (output->tool_bar_touch_device
+		      == dpyinfo->devices[i].device_id)
+		    {
+		      if (XFRAME (frame)->last_tool_bar_item != -1
+			  && WINDOWP (XFRAME (frame)->tool_bar_window))
+			handle_tool_bar_click (XFRAME (frame), 0, 0,
+					       false, 0);
+
+		      output->tool_bar_touch_device = 0;
+		    }
+		}
+#endif
 #endif
 
 	      goto out;
@@ -24209,6 +24273,73 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 
+#ifndef HAVE_EXT_TOOL_BAR
+	      /* Is this a touch from a direct touch device that is in
+		 the tool-bar?  */
+	      if (device->direct_p
+		  && WINDOWP (f->tool_bar_window)
+		  && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)))
+		{
+		  Lisp_Object window;
+		  int x = xev->event_x;
+		  int y = xev->event_y;
+
+		  window = window_from_coordinates (f, x, y, 0, true, true);
+		  /* Ignore button release events if the mouse
+		     wasn't previously pressed on the tool bar.
+		     We do this because otherwise selecting some
+		     text with the mouse and then releasing it on
+		     the tool bar doesn't stop selecting text,
+		     since the tool bar eats the button up
+		     event.  */
+		  tool_bar_p = EQ (window, f->tool_bar_window);
+
+		  /* If this touch has started in the tool bar, do not
+		     send it to Lisp.  Instead, simulate a tool bar
+		     click, releasing it once it goes away.  */
+
+		  if (tool_bar_p)
+		    {
+		      /* Call note_mouse_highlight on the tool bar
+			 item.  Otherwise, get_tool_bar_item will
+			 return 1.
+
+		         This is not necessary when mouse-highlight is
+		         nil.  */
+
+		      if (!NILP (Vmouse_highlight))
+			{
+			  note_mouse_highlight (f, x, y);
+
+			  /* Always allow future mouse motion to
+			     update the mouse highlight, no matter
+			     where it is.  */
+			  memset (&dpyinfo->last_mouse_glyph, 0,
+				  sizeof dpyinfo->last_mouse_glyph);
+			  dpyinfo->last_mouse_glyph_frame = f;
+			}
+
+		      handle_tool_bar_click_with_device (f, x, y, true, 0,
+							 (source
+							  ? source->name : Qt));
+
+		      /* Flush any changes made by that to the front
+			 buffer.  */
+		      x_flush_dirty_back_buffer_on (f);
+
+		      /* Record the device and the touch ID on the
+			 frame.  That way, Emacs knows when to dismiss
+			 the tool bar click later.  */
+
+		      FRAME_OUTPUT_DATA (f)->tool_bar_touch_device
+			= device->device_id;
+		      FRAME_OUTPUT_DATA (f)->tool_bar_touch_id = xev->detail;
+
+		      goto XI_OTHER;
+		    }
+		}
+#endif
+
 	      if (!menu_bar_p && !tool_bar_p)
 		{
 		  if (f && device->direct_p)
@@ -24218,13 +24349,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      x_catch_errors (dpyinfo->display);
 
 		      if (x_input_grab_touch_events)
-			XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
-					    xev->detail, xev->event, XIAcceptTouch);
+			XIAllowTouchEvents (dpyinfo->display,
+					    xev->deviceid,
+					    xev->detail, xev->event,
+					    XIAcceptTouch);
 
 		      if (!x_had_errors_p (dpyinfo->display))
 			{
-			  xi_link_touch_point (device, xev->detail, xev->event_x,
-					       xev->event_y);
+			  xi_link_touch_point (device, xev->detail,
+					       xev->event_x,
+					       xev->event_y, f);
 
 			  inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
 			  inev.ie.timestamp = xev->time;
@@ -24299,10 +24433,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  for (touchpoint = device->touchpoints;
 		       touchpoint; touchpoint = touchpoint->next)
 		    {
-		      arg = Fcons (list3i (lrint (touchpoint->x),
-					   lrint (touchpoint->y),
-					   lrint (touchpoint->number)),
-				   arg);
+		      if (touchpoint->frame == f)
+			arg = Fcons (list3i (lrint (touchpoint->x),
+					     lrint (touchpoint->y),
+					     lrint (touchpoint->number)),
+				     arg);
 		    }
 
 		  if (source)
@@ -24347,6 +24482,33 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			inev.ie.device = source->name;
 		    }
 		}
+
+#ifndef HAVE_EXT_TOOL_BAR
+	      /* Now see if the touchpoint was previously on the tool bar.
+	         If it was, release the tool bar.  */
+
+	      if (!f)
+		f = x_window_to_frame (dpyinfo, xev->event);
+
+	      if (f && (FRAME_OUTPUT_DATA (f)->tool_bar_touch_id
+			== xev->detail))
+		{
+		  if (f->last_tool_bar_item != -1)
+		    handle_tool_bar_click_with_device (f, xev->event_x,
+						       xev->event_y,
+						       false, 0,
+						       (source
+							? source->name
+							: Qnil));
+
+		  /* Cancel any outstanding mouse highlight.  */
+		  note_mouse_highlight (f, -1, -1);
+		  x_flush_dirty_back_buffer_on (f);
+
+		  /* Now clear the tool bar device.  */
+		  FRAME_OUTPUT_DATA (f)->tool_bar_touch_device = 0;
+		}
+#endif
 
 	      goto XI_OTHER;
 	    }
@@ -28453,6 +28615,11 @@ x_make_frame_invisible (struct frame *f)
 
   block_input ();
 
+#ifdef HAVE_XINPUT2_2
+  /* Remove any touch points associated with F.  */
+  xi_unlink_touch_points (f);
+#endif
+
   /* Before unmapping the window, update the WM_SIZE_HINTS property to claim
      that the current position of the window is user-specified, rather than
      program-specified, so that when the window is mapped again, it will be
@@ -28656,6 +28823,11 @@ x_free_frame_resources (struct frame *f)
 #ifdef HAVE_XINPUT2
   /* Remove any record of this frame being focused.  */
   xi_handle_delete_frame (dpyinfo, f);
+#endif
+
+#ifdef HAVE_XINPUT2_2
+  /* Remove any touch points associated with F.  */
+  xi_unlink_touch_points (f);
 #endif
 
   /* If a display connection is dead, don't try sending more

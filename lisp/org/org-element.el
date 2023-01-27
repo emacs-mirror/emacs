@@ -2382,7 +2382,9 @@ Assume point is at the beginning of the fixed-width area."
 (defun org-element-fixed-width-interpreter (fixed-width _)
   "Interpret FIXED-WIDTH element as Org syntax."
   (let ((value (org-element-property :value fixed-width)))
-    (and value (replace-regexp-in-string "^" ": " value))))
+    (and value
+         (if (string-empty-p value) ":\n"
+           (replace-regexp-in-string "^" ": " value)))))
 
 
 ;;;; Horizontal Rule

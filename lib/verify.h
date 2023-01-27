@@ -258,7 +258,9 @@ template <int w>
 
 /* @assert.h omit start@  */
 
-#if 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))
+#if defined __clang_major__ && __clang_major__ < 5
+# define _GL_HAS_BUILTIN_TRAP 0
+#elif 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))
 # define _GL_HAS_BUILTIN_TRAP 1
 #elif defined __has_builtin
 # define _GL_HAS_BUILTIN_TRAP __has_builtin (__builtin_trap)
@@ -266,7 +268,9 @@ template <int w>
 # define _GL_HAS_BUILTIN_TRAP 0
 #endif
 
-#if 4 < __GNUC__ + (5 <= __GNUC_MINOR__)
+#if defined __clang_major__ && __clang_major__ < 5
+# define _GL_HAS_BUILTIN_UNREACHABLE 0
+#elif 4 < __GNUC__ + (5 <= __GNUC_MINOR__)
 # define _GL_HAS_BUILTIN_UNREACHABLE 1
 #elif defined __has_builtin
 # define _GL_HAS_BUILTIN_UNREACHABLE __has_builtin (__builtin_unreachable)

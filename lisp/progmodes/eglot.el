@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
-;; Version: 1.10
+;; Version: 1.11
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.16") (flymake "1.2.1") (project "0.9.3") (xref "1.0.1") (eldoc "1.11.0") (seq "2.23") (external-completion "0.1"))
+;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.16") (flymake "1.2.1") (project "0.9.3") (xref "1.4.0") (eldoc "1.11.0") (seq "2.23") (external-completion "0.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -182,7 +182,7 @@ chosen (interactively or automatically)."
                       when probe return (cons probe args)
                       finally (funcall err)))))))
 
-(defvar eglot-server-programs `(((rust-ts-mode rust-mode) . ,(eglot-alternatives '("rust-analyzer" "rls")))
+(defvar eglot-server-programs `(((rust-ts-mode rust-mode) . ("rust-analyzer"))
                                 ((cmake-mode cmake-ts-mode) . ("cmake-language-server"))
                                 (vimrc-mode . ("vim-language-server" "--stdio"))
                                 ((python-mode python-ts-mode)
@@ -991,6 +991,7 @@ Return (MANAGED-MODE PROJECT CLASS CONTACT LANG-ID).  If INTERACTIVE is
 non-nil, maybe prompt user, else error as soon as something can't
 be guessed."
   (let* ((guessed-mode (if buffer-file-name major-mode))
+         (guessed-mode-name (and guessed-mode (symbol-name guessed-mode)))
          (main-mode
           (cond
            ((and interactive
@@ -1000,7 +1001,7 @@ be guessed."
              (completing-read
               "[eglot] Start a server to manage buffers of what major mode? "
               (mapcar #'symbol-name (eglot--all-major-modes)) nil t
-              (symbol-name guessed-mode) nil (symbol-name guessed-mode) nil)))
+              guessed-mode-name nil guessed-mode-name nil)))
            ((not guessed-mode)
             (eglot--error "Can't guess mode to manage for `%s'" (current-buffer)))
            (t guessed-mode)))
@@ -1074,7 +1075,7 @@ suitable root directory for a given LSP server's purposes."
 
 ;;;###autoload
 (defun eglot (managed-major-mode project class contact language-id
-                                 &optional interactive)
+                                 &optional _interactive)
   "Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
 
 This starts a Language Server Protocol (LSP) server suitable for the
@@ -1111,17 +1112,17 @@ described in `eglot-server-programs', which see.
 LANGUAGE-ID is the language ID string to send to the server for
 MANAGED-MAJOR-MODE, which matters to a minority of servers.
 
-INTERACTIVE is t if called interactively."
-  (interactive (append (eglot--guess-contact t) '(t)))
-  (setq managed-major-mode (eglot--ensure-list managed-major-mode))
-  (let* ((current-server (eglot-current-server))
-         (live-p (and current-server (jsonrpc-running-p current-server))))
-    (if (and live-p
-             interactive
-             (y-or-n-p "[eglot] Live process found, reconnect instead? "))
-        (eglot-reconnect current-server interactive)
-      (when live-p (ignore-errors (eglot-shutdown current-server)))
-      (eglot--connect managed-major-mode project class contact language-id))))
+INTERACTIVE is ignored and provided for backward compatibility."
+  (interactive
+   (let ((current-server (eglot-current-server)))
+     (unless (or (null current-server)
+                 (y-or-n-p "\
+[eglot] Shut down current connection before attempting new one?"))
+       (user-error "[eglot] Connection attempt aborted by user."))
+     (prog1 (append (eglot--guess-contact t) '(t))
+       (when current-server (ignore-errors (eglot-shutdown current-server))))))
+  (eglot--connect (eglot--ensure-list managed-major-mode)
+                  project class contact language-id))
 
 (defun eglot-reconnect (server &optional interactive)
   "Reconnect to SERVER.

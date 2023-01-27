@@ -1827,7 +1827,9 @@ can also be used to fill comments.
     (setq-local treesit-simple-imenu-settings
                 `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
                     nil nil)))
-    (treesit-major-mode-setup)))
+    (treesit-major-mode-setup)
+
+    (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))))
 
 ;;;###autoload
 (define-derived-mode css-mode css-base-mode "CSS"

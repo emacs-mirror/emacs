@@ -45,17 +45,66 @@ example, as part of preview for iconified frames.
 ** 'write-region-inhibit-fsync' now defaults to t in interactive mode,
 as it has in batch mode since Emacs 24.
 
++++
+** New user option 'remote-file-name-inhibit-delete-by-moving-to-trash'.
+When non-nil, this option suppresses moving remote files to the local
+trash when deleting.  Default is nil.
+
++++
+** New user option 'yes-or-no-prompt'.
+This allows the user to customize the prompt that is appended by
+'yes-or-no-p' when asking questions.  The default value is
+"(yes or no) ".
+
 
 * Editing Changes in Emacs 30.1
 
+---
+** New command 'kill-matching-buffers-no-ask'.
+This works like 'kill-matching-buffers', but without asking for
+confirmation.
+
++++
 ** New helper variable 'transpose-sexps-function'.
 Emacs now can set this variable to customize the behavior of the
 'transpose-sexps' function.
 
++++
+** New function 'transpose-sexps-default-function'.
+The previous implementation is moved into its own function, to be
+bound by 'transpose-sexps-function'.
+
 ** New function 'treesit-transpose-sexps'.
-treesit.el now unconditionally sets 'transpose-sexps-function' for all
-Tree-sitter modes.  This functionality utilizes the new
+Tree-sitter now unconditionally sets 'transpose-sexps-function' for all
+tree-sitter enabled modes.  This functionality utilizes the new
 'transpose-sexps-function'.
+
+** Commands and variables to move by program statements
+
+*** New variable 'forward-sentence-function'.
+Major modes can now set this variable to customize the behavior of the
+'forward-sentence' command.
+
+*** New function 'forward-sentence-default-function'.
+The previous implementation of 'forward-sentence' is moved into its
+own function, to be bound by 'forward-sentence-function'.
+
+*** New buffer-local variable 'treesit-sentence-type-regexp'.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sentences" in tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sentence'.
+All tree-sitter enabled modes that define 'treesit-sentence-type-regexp'
+now set 'forward-sentence-function' to call 'treesit-forward-sentence'.
+
+*** New buffer-local variable 'treesit-sexp-type-regexp'.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sexps" in tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sexp'.
+Tree-sitter conditionally sets 'forward-sexp-function' for major modes
+that have defined 'treesit-sexp-type-regexp' to enable sexp-related
+motion commands.
 
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
@@ -100,6 +149,15 @@ of arguments into a command, such as when defining aliases.  For more
 information, see the "(eshell) Dollars Expansion" node in the Eshell
 manual.
 
+---
+*** Eshell now uses 'field' properties in its output.
+In particular, this means that pressing the '<home>' key moves the
+point to the beginning of your input, not the beginning of the whole
+line.  If you want to go back to the old behavior, add something like
+this to your configuration:
+
+    (keymap-set eshell-mode-map "<home>" #'eshell-bol-ignoring-prompt)
+
 +++
 *** 'eshell-read-aliases-list' is now an interactive command.
 After manually editing 'eshell-aliases-file', you can use this command
@@ -118,10 +176,34 @@ point is not in a comment or a string.  It is by default bound to
 
 +++
 *** New connection method "toolbox".
-This allow accessing system containers provided by Toolbox.
+This allows accessing system containers provided by Toolbox.
+
+** EWW
+
++++
+*** 'eww-open-file' can now display the file in a new buffer.
+By default, the command reuses the "*eww*" buffer, but if called with
+the new argument NEW-BUFFER non-nil, it will use a new buffer instead.
+Interactively, invoke 'eww-open-file' with a prefix argument to
+activate this behavior.
+
+** go-ts-mode
+
++++
+*** New command 'go-ts-mode-docstring'.
+This command adds a docstring comment to the current defun.  If a
+comment already exists, point is only moved to the comment.  It is
+bound to 'C-c C-d' in 'go-ts-mode'.
 
 
 * New Modes and Packages in Emacs 30.1
+
+** New major modes based on the tree-sitter library.
+
++++
+*** New major mode 'html-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+HTML files.
 
 ---
 ** The highly accessible Modus themes collection has six items.
@@ -189,6 +271,12 @@ compared reliably at all.
 
 This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.
+
++++
+** New function 'file-user-uid'.
+This function is like 'user-uid', but is aware of file name handlers,
+so it will return the remote UID for remote files (or -1 if the
+connection has no associated user).
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

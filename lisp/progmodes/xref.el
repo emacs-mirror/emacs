@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
-;; Version: 1.6.0
+;; Version: 1.6.1
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -568,7 +568,8 @@ This can be used from `xref-after-jump-hook', for instance.")
     (dolist (l (list (car history) (cdr history)))
       (dolist (m l)
         (set-marker m nil nil)))
-    (setq history (cons nil nil)))
+    (setcar history nil)
+    (setcdr history nil))
   nil)
 
 ;;;###autoload

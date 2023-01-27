@@ -265,6 +265,7 @@ It must be supported by libarchive(3).")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-archive-handle-file-system-info)
     (file-truename . tramp-archive-handle-file-truename)
+    (file-user-uid . tramp-archive-handle-file-user-uid)
     (file-writable-p . ignore)
     (find-backup-file-name . ignore)
     ;; `get-file-buffer' performed by default handler.
@@ -598,7 +599,7 @@ offered."
 (defun tramp-archive-handle-directory-file-name (directory)
   "Like `directory-file-name' for file archives."
   (with-parsed-tramp-archive-file-name directory nil
-    (if (and (not (zerop (length localname)))
+    (if (and (tramp-compat-length> localname 0)
 	     (eq (aref localname (1- (length localname))) ?/)
 	     (not (string= localname "/")))
 	(substring directory 0 -1)
@@ -668,6 +669,13 @@ offered."
       (unless (file-name-absolute-p local)
 	(setq local (expand-file-name local (file-name-directory localname))))
       (concat (file-truename archive) local))))
+
+(defun tramp-archive-handle-file-user-uid ()
+  "Like `user-uid' for file archives."
+  (with-parsed-tramp-archive-file-name default-directory nil
+    (let ((default-directory (file-name-directory archive)))
+      ;; `file-user-uid' exists since Emacs 30.1.
+      (tramp-compat-funcall 'file-user-uid))))
 
 (defun tramp-archive-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)

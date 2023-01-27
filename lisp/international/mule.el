@@ -863,7 +863,8 @@ This attribute is meaningful only when `:coding-type' is `utf-16' or
 VALUE must be `big' or `little' specifying big-endian and
 little-endian respectively.  The default value is `big'.
 
-This attribute is meaningful only when `:coding-type' is `utf-16'.
+Changing this attribute is only meaningful when `:coding-type'
+is `utf-16'.
 
 `:ccl-decoder' (required if :coding-type is `ccl')
 
@@ -2539,6 +2540,10 @@ This function is intended to be added to `auto-coding-functions'."
                   (bfcs-type
                    (coding-system-type buffer-file-coding-system)))
               (if (and enable-multibyte-characters
+                       ;; 'charset' will signal an error in
+                       ;; coding-system-equal, since it isn't a
+                       ;; coding-system.  So test that up front.
+                       (not (equal sym-type 'charset))
                        (coding-system-equal 'utf-8 sym-type)
                        (coding-system-equal 'utf-8 bfcs-type))
                   buffer-file-coding-system

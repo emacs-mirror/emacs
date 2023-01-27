@@ -118,17 +118,13 @@ Each element has the form (WINDOW . OVERLAY).")
           ;; overlay.  Always reveal invisible text, but only reveal
           ;; display properties if `reveal-toggle-invisible' is
           ;; present.
-          (let ((inv (overlay-get ol 'invisible))
-                (disp (and (overlay-get ol 'display)
-                           (overlay-get ol 'reveal-toggle-invisible)))
-                open)
-            (when (and (or (and inv
-                                ;; There's an `invisible' property.
-                                ;; Make sure it's actually invisible,
-                                ;; and ellipsized.
-                                (and (consp buffer-invisibility-spec)
-                                     (cdr (assq inv buffer-invisibility-spec))))
-                           disp)
+          (let* ((inv (overlay-get ol 'invisible))
+                 (disp (and (overlay-get ol 'display)
+                            (overlay-get ol 'reveal-toggle-invisible)))
+                 (hidden (invisible-p inv))
+                 (ellipsis (and hidden (not (eq t hidden))))
+                 open)
+            (when (and (or ellipsis disp)
                        (or (setq open
                                  (or (overlay-get ol 'reveal-toggle-invisible)
                                      (and (symbolp inv)

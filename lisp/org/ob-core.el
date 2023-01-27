@@ -1690,6 +1690,7 @@ shown below.
 			 (append
 			  (split-string (if (stringp raw-result)
 					    raw-result
+                                          ;; FIXME: Arbitrary code evaluation.
 					  (eval raw-result t)))
 			  (cdr (assq :result-params params))))))
     (append
@@ -2860,6 +2861,7 @@ parameters when merging lists."
 				  (split-string
 				   (cond ((stringp value) value)
                                          ((functionp value) (funcall value))
+                                         ;; FIXME: Arbitrary code evaluation.
                                          (t (eval value t)))))))
 	  (`(:exports . ,value)
 	   (setq exports (funcall merge
@@ -3188,16 +3190,8 @@ situations in which is it not appropriate."
 	((and (not inhibit-lisp-eval)
 	      (or (memq (string-to-char cell) '(?\( ?' ?` ?\[))
 		  (string= cell "*this*")))
-         ;; Prevent arbitrary function calls.
-         (if (and (memq (string-to-char cell) '(?\( ?`))
-                  (not (org-babel-confirm-evaluate
-                      ;; See `org-babel-get-src-block-info'.
-                      (list "emacs-lisp" cell
-                            '((:eval . yes)) nil (format "%s" cell)
-                            nil nil))))
-             ;; Not allowed.
-             (user-error "Evaluation of elisp code %S aborted." cell)
-	   (eval (read cell) t)))
+         ;; FIXME: Arbitrary code evaluation.
+	 (eval (read cell) t))
 	((save-match-data
            (and (string-match "^[[:space:]]*\"\\(.*\\)\"[[:space:]]*$" cell)
                 (not (string-match "[^\\]\"" (match-string 1 cell)))))
@@ -3283,7 +3277,7 @@ Emacs shutdown.")
       (while (or (not dir) (file-exists-p dir))
         (setq dir (expand-file-name
                    (format "babel-stable-%d" (random 1000))
-                   (temporary-file-directory))))
+                   temporary-file-directory)))
       (make-directory dir)
       dir))
   "Directory to hold temporary files created to execute code blocks.

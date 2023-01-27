@@ -137,7 +137,7 @@
 eval 'exec perl -wSx -0777 -pi "$0" "$@"'
      if 0;
 
-my $VERSION = '2020-04-04.15:07'; # UTC
+my $VERSION = '2023-01-11.04:24'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -280,7 +280,7 @@ if (defined $stmt_re)
           }
 
         # Replace the old copyright statement.
-        s/$stmt_re/$stmt_wrapped/;
+        s/$stmt_re/$stmt_wrapped/g;
       }
   }
 else

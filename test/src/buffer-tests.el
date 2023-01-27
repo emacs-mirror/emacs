@@ -8315,29 +8315,35 @@ dicta sunt, explicabo.  "))
       (remove-hook 'buffer-list-update-hook bluh))))
 
 (ert-deftest buffer-tests-inhibit-buffer-hooks-indirect ()
-  "Indirect buffers do not call `get-buffer-create'."
-  (dolist (inhibit '(nil t))
-    (let ((base (get-buffer-create "foo" inhibit)))
+  "Test `make-indirect-buffer' argument INHIBIT-BUFFER-HOOKS."
+  (let* ( base run-bluh run-kbh run-kbqf
+          (bluh (lambda () (setq run-bluh t)))
+          (kbh  (lambda () (setq run-kbh  t)))
+          (kbqf (lambda () (setq run-kbqf t))))
+    (dolist (inhibit-base '(nil t))
       (unwind-protect
-          (dotimes (_i 11)
-            (let* (flag*
-                   (flag (lambda () (prog1 t (setq flag* t))))
-                   (indirect (make-indirect-buffer base "foo[indirect]" nil
-                                                   inhibit)))
-              (unwind-protect
-                  (progn
-                    (with-current-buffer indirect
-                      (add-hook 'kill-buffer-query-functions flag nil t))
-                    (kill-buffer indirect)
-                    (if inhibit
-                        (should-not flag*)
-                      (should flag*)))
-                (let (kill-buffer-query-functions)
+          (let (indirect)
+            (setq base (generate-new-buffer " base" inhibit-base))
+            (dolist (inhibit-indirect '(nil t))
+              (dotimes (_ 11)
+                (unwind-protect
+                    (let ((name (generate-new-buffer-name " indirect")))
+                      (setq run-bluh nil run-kbh nil run-kbqf nil)
+                      (add-hook 'buffer-list-update-hook bluh)
+                      (with-current-buffer
+                          (setq indirect (make-indirect-buffer
+                                          base name nil inhibit-indirect))
+                        (add-hook 'kill-buffer-hook kbh nil t)
+                        (add-hook 'kill-buffer-query-functions kbqf nil t)
+                        (kill-buffer))
+                      (should (xor inhibit-indirect run-bluh))
+                      (should (xor inhibit-indirect run-kbh))
+                      (should (xor inhibit-indirect run-kbqf)))
+                  (remove-hook 'buffer-list-update-hook bluh)
                   (when (buffer-live-p indirect)
                     (kill-buffer indirect))))))
-        (let (kill-buffer-query-functions)
-          (when (buffer-live-p base)
-            (kill-buffer base)))))))
+        (when (buffer-live-p base)
+          (kill-buffer base))))))
 
 (ert-deftest zero-length-overlays-and-not ()
   (with-temp-buffer

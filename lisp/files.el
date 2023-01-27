@@ -5059,7 +5059,8 @@ This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
 we do not remove backup version numbers, only true file version numbers.
-See also `file-name-version-regexp'."
+See `file-name-version-regexp' for what constitutes backup versions
+and version strings."
   (let ((handler (find-file-name-handler name 'file-name-sans-versions)))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
@@ -5111,9 +5112,12 @@ the group would be preserved too."
 			       (file-attribute-group-id attributes)))))))))))
 
 (defun file-name-sans-extension (filename)
-  "Return FILENAME sans final \"extension\".
+  "Return FILENAME sans final \"extension\" and any backup version strings.
 The extension, in a file name, is the part that begins with the last `.',
-except that a leading `.' of the file name, if there is one, doesn't count."
+except that a leading `.' of the file name, if there is one, doesn't count.
+Any extensions that indicate backup versions and version strings are
+removed by calling `file-name-sans-versions', which see, before looking
+for the \"real\" file extension."
   (save-match-data
     (let ((file (file-name-sans-versions (file-name-nondirectory filename)))
 	  directory)
@@ -5127,12 +5131,14 @@ except that a leading `.' of the file name, if there is one, doesn't count."
 	filename))))
 
 (defun file-name-extension (filename &optional period)
-  "Return FILENAME's final \"extension\".
+  "Return FILENAME's final \"extension\" sans any backup version strings.
 The extension, in a file name, is the part that begins with the last `.',
-excluding version numbers and backup suffixes, except that a leading `.'
-of the file name, if there is one, doesn't count.
+except that a leading `.' of the file name, if there is one, doesn't count.
+This function calls `file-name-sans-versions', which see, to remove from
+the extension it returns any parts that indicate backup versions and
+version strings.
 Return nil for extensionless file names such as `foo'.
-Return the empty string for file names such as `foo.'.
+Return the empty string for file names such as `foo.' that end in a period.
 
 By default, the returned value excludes the period that starts the
 extension, but if the optional argument PERIOD is non-nil, the period
@@ -6336,6 +6342,12 @@ RECURSIVE if DIRECTORY is nonempty."
 		  directory-exists))
 	(files--force recursive #'delete-directory-internal directory))))))
 
+(defcustom remote-file-name-inhibit-delete-by-moving-to-trash nil
+  "Whether remote files shall be moved to the Trash.
+This overrules any setting of `delete-by-moving-to-trash'."
+  :version "30.1"
+  :type 'boolean)
+
 (defun file-equal-p (file1 file2)
   "Return non-nil if files FILE1 and FILE2 name the same file.
 If FILE1 or FILE2 does not exist, the return value is unspecified."
@@ -7088,10 +7100,11 @@ specifies the list of buffers to kill, asking for approval for each one."
     (setq list (cdr list))))
 
 (defun kill-matching-buffers (regexp &optional internal-too no-ask)
-  "Kill buffers whose name matches the specified REGEXP.
-Ignores buffers whose name starts with a space, unless optional
-prefix argument INTERNAL-TOO is non-nil.  Asks before killing
-each buffer, unless NO-ASK is non-nil."
+  "Kill buffers whose names match the regular expression REGEXP.
+Interactively, prompt for REGEXP.
+Ignores buffers whose names start with a space, unless optional
+prefix argument INTERNAL-TOO(interactively, the prefix argument)
+is non-nil.  Asks before killing each buffer, unless NO-ASK is non-nil."
   (interactive "sKill buffers matching this regular expression: \nP")
   (dolist (buffer (buffer-list))
     (let ((name (buffer-name buffer)))
@@ -7099,6 +7112,17 @@ each buffer, unless NO-ASK is non-nil."
                  (or internal-too (/= (aref name 0) ?\s))
                  (string-match regexp name))
         (funcall (if no-ask 'kill-buffer 'kill-buffer-ask) buffer)))))
+
+(defun kill-matching-buffers-no-ask (regexp &optional internal-too)
+  "Kill buffers whose names match the regular expression REGEXP.
+Interactively, prompt for REGEXP.
+Like `kill-matching-buffers', but doesn't ask for confirmation
+before killing each buffer.
+Ignores buffers whose names start with a space, unless the
+optional argument INTERNAL-TOO (interactively, the prefix argument)
+is non-nil."
+  (interactive "sKill buffers matching this regular expression: \nP")
+  (kill-matching-buffers regexp internal-too t))
 
 
 (defun rename-auto-save-file ()
@@ -7669,9 +7693,12 @@ regardless of the language.")
 (defvar insert-directory-ls-version 'unknown)
 
 (defun insert-directory-wildcard-in-dir-p (dir)
-  "Return non-nil if DIR contents a shell wildcard in the directory part.
-The return value is a cons (DIR . WILDCARDS); DIR is the
-`default-directory' in the Dired buffer, and WILDCARDS are the wildcards.
+  "Return non-nil if DIR contains shell wildcards in its parent directory part.
+The return value is a cons (DIRECTORY . WILDCARD), where DIRECTORY is the
+part of DIR up to and excluding the first component that includes
+wildcard characters, and WILDCARD is the rest of DIR's components.  The
+DIRECTORY part of the value includes the trailing slash, to indicate that
+it is a directory.
 
 Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
   (let ((wildcards "[?*"))

@@ -1575,7 +1575,7 @@ extra args."
 	 "`%s' called with %d args to fill %d format field(s)" (car form)
 	 nargs nfields)))))
 
-(dolist (elt '(format message error))
+(dolist (elt '(format message format-message error))
   (put elt 'byte-compile-format-like t))
 
 (defun byte-compile--suspicious-defcustom-choice (type)
@@ -1772,10 +1772,16 @@ It is too wide if it has any lines longer than the largest of
            kind name col))
         ;; There's a "naked" ' character before a symbol/list, so it
         ;; should probably be quoted with \=.
-        (when (string-match-p "\\( [\"#]\\|[ \t]\\|^\\)'[a-z(]" docs)
+        (when (string-match-p (rx (| (in " \t") bol)
+                                  (? (in "\"#"))
+                                  "'"
+                                  (in "A-Za-z" "("))
+                              docs)
           (byte-compile-warn-x
-           name "%s%sdocstring has wrong usage of unescaped single quotes (use \\= or different quoting)"
-           kind name))
+           name
+           (concat "%s%sdocstring has wrong usage of unescaped single quotes"
+                   " (use \\=%c or different quoting such as %c...%c)")
+           kind name ?' ?` ?'))
         ;; There's a "Unicode quote" in the string -- it should probably
         ;; be an ASCII one instead.
         (when (byte-compile-warning-enabled-p 'docstrings-non-ascii-quotes)

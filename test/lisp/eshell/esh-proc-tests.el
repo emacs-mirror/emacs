@@ -19,6 +19,7 @@
 
 ;;; Code:
 
+(require 'tramp)
 (require 'ert)
 (require 'esh-mode)
 (require 'eshell)
@@ -84,6 +85,18 @@
       (format "%s &> #<%s>" esh-proc-test--output-cmd bufname)
       "\\`\\'"))
     (should (equal (buffer-string) "stdout\nstderr\n"))))
+
+(ert-deftest esh-var-test/output/remote-redirect ()
+  "Check that redirecting stdout for a remote process works."
+  (skip-unless (and (eshell-tests-remote-accessible-p)
+                    (executable-find "echo")))
+  (let ((default-directory ert-remote-temporary-file-directory))
+    (eshell-with-temp-buffer bufname "old"
+      (with-temp-eshell
+       (eshell-match-command-output
+        (format "*echo hello > #<%s>" bufname)
+        "\\`\\'"))
+      (should (equal (buffer-string) "hello\n")))))
 
 
 ;; Exit status

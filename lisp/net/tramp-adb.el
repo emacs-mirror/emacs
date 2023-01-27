@@ -153,6 +153,7 @@ It is used for TCP/IP devices."
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-adb-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-adb-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -424,14 +425,10 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (setq filename (expand-file-name filename))
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (tramp-adb-barf-unless-okay
-       v (format "rm %s" (tramp-shell-quote-argument localname))
-       "Couldn't delete %s" filename))))
+  (tramp-skeleton-delete-file filename trash
+    (tramp-adb-barf-unless-okay
+     v (format "rm %s" (tramp-shell-quote-argument localname))
+     "Couldn't delete %s" filename)))
 
 (defun tramp-adb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
@@ -1082,11 +1079,12 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 	      (format "%s:%s" host port))
 	     ;; An empty host name shall be mapped as well, when there
 	     ;; is exactly one entry in `devices'.
-	     ((and (zerop (length host)) (= (length devices) 1))
+	     ((and (tramp-string-empty-or-nil-p host)
+		   (tramp-compat-length= devices 1))
 	      (car devices))
 	     ;; Try to connect device.
 	     ((and tramp-adb-connect-if-not-connected
-		   (not (zerop (length host)))
+		   (tramp-compat-length> host 0)
 		   (tramp-adb-execute-adb-command
                     vec "connect"
                     (tramp-compat-string-replace
@@ -1103,7 +1101,7 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
   "Execute an adb command.
 Insert the result into the connection buffer.  Return nil on
 error and non-nil on success."
-  (when (and (> (length (tramp-file-name-host vec)) 0)
+  (when (and (tramp-compat-length> (tramp-file-name-host vec) 0)
 	     ;; The -s switch is only available for ADB device commands.
 	     (not (member (car args) '("connect" "disconnect"))))
     (setq args (append (list "-s" (tramp-adb-get-device vec)) args)))
@@ -1230,7 +1228,7 @@ connection if a previous connection has died for some reason."
     (unless (process-live-p p)
       (save-match-data
 	(when (and p (processp p)) (delete-process p))
-	(if (zerop (length device))
+	(if (tramp-string-empty-or-nil-p device)
 	    (tramp-error vec 'file-error "Device %s not connected" host))
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	  (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?

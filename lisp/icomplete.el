@@ -252,7 +252,7 @@ the default otherwise."
   "Step forward completions by one entry.
 Second entry becomes the first and can be selected with
 `icomplete-force-complete-and-exit'.
-Return non-nil iff something was stepped."
+Return non-nil if something was stepped."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
@@ -270,7 +270,7 @@ Return non-nil iff something was stepped."
   "Step backward completions by one entry.
 Last entry becomes the first and can be selected with
 `icomplete-force-complete-and-exit'.
-Return non-nil iff something was stepped."
+Return non-nil if something was stepped."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))

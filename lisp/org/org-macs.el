@@ -372,18 +372,23 @@ be set to a buffer or a buffer name.  `shell-command' then uses
 it for output."
   (let* ((base-name (file-name-base source))
 	 (full-name (file-truename source))
-	 (out-dir (or (file-name-directory source) "./"))
+         (relative-name (file-relative-name source))
+	 (out-dir (if (file-name-directory source)
+                      ;; Expand "~".  Shell expansion will be disabled
+                      ;; in the shell command call.
+                      (file-name-directory full-name)
+                    "./"))
 	 (output (expand-file-name (concat base-name "." ext) out-dir))
 	 (time (file-attribute-modification-time (file-attributes output)))
 	 (err-msg (if (stringp err-msg) (concat ".  " err-msg) "")))
     (save-window-excursion
       (pcase process
-	((pred functionp) (funcall process (shell-quote-argument source)))
+	((pred functionp) (funcall process (shell-quote-argument relative-name)))
 	((pred consp)
 	 (let ((log-buf (and log-buf (get-buffer-create log-buf)))
 	       (spec (append spec
 			     `((?b . ,(shell-quote-argument base-name))
-			       (?f . ,(shell-quote-argument source))
+			       (?f . ,(shell-quote-argument relative-name))
 			       (?F . ,(shell-quote-argument full-name))
 			       (?o . ,(shell-quote-argument out-dir))
 			       (?O . ,(shell-quote-argument output))))))

@@ -114,6 +114,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-sudoedit-handle-file-system-info)
     (file-truename . tramp-sudoedit-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-sudoedit-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -347,17 +348,14 @@ absolute file names."
 
 (defun tramp-sudoedit-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-flush-file-properties v localname)
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (unless (tramp-sudoedit-send-command
-	       v "rm" "-f" (file-name-unquote localname))
-	;; Propagate the error.
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (goto-char (point-min))
-	  (tramp-error-with-buffer
-	   nil v 'file-error "Couldn't delete %s" filename))))))
+  (tramp-skeleton-delete-file filename trash
+    (unless (tramp-sudoedit-send-command
+	     v "rm" "-f" (file-name-unquote localname))
+      ;; Propagate the error.
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(goto-char (point-min))
+	(tramp-error-with-buffer
+	 nil v 'file-error "Couldn't delete %s" filename)))))
 
 (defun tramp-sudoedit-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files.
@@ -366,7 +364,8 @@ the result will be a local, non-Tramp, file name."
   ;; If DIR is not given, use `default-directory' or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
@@ -377,7 +376,7 @@ the result will be a local, non-Tramp, file name."
       ;; Tilde expansion if necessary.  We cannot accept "~/", because
       ;; under sudo "~/" is expanded to the local user home directory
       ;; but to the root home directory.
-      (when (zerop (length localname))
+      (when (tramp-string-empty-or-nil-p localname)
 	(setq localname "~"))
       (unless (file-name-absolute-p localname)
 	(setq localname (format "~%s/%s" user localname)))
@@ -386,7 +385,7 @@ the result will be a local, non-Tramp, file name."
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
-	  (when (zerop (length uname))
+	  (when (tramp-string-empty-or-nil-p uname)
 	    (setq uname user))
 	  (when (setq hname (tramp-get-home-directory v uname))
 	    (setq localname (concat hname fname)))))
@@ -474,7 +473,7 @@ the result will be a local, non-Tramp, file name."
      (with-tramp-file-property v localname "file-name-all-completions"
        (tramp-sudoedit-send-command
 	v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
-	(if (zerop (length localname))
+	(if (tramp-string-empty-or-nil-p localname)
 	    "" (file-name-unquote localname)))
        (mapcar
 	(lambda (f)
@@ -569,33 +568,9 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  ;; Preserve trailing "/".
-  (funcall
-   (if (directory-name-p filename) #'file-name-as-directory #'identity)
-   ;; Quote properly.
-   (funcall
-    (if (file-name-quoted-p filename) #'file-name-quote #'identity)
-    (with-parsed-tramp-file-name
-	(file-name-unquote (expand-file-name filename)) nil
-      (tramp-make-tramp-file-name
-       v
-       (with-tramp-file-property v localname "file-truename"
-	 (let (result)
-	   (tramp-message v 4 "Finding true name for `%s'" filename)
-	   (setq result (tramp-sudoedit-send-command-string
-			 v "readlink" "--canonicalize-missing" localname))
-	   ;; Detect cycle.
-	   (when (and (file-symlink-p filename)
-		      (string-equal result localname))
-	     (tramp-error
-	      v 'file-error
-	      "Apparent cycle of symbolic links for %s" filename))
-	   ;; If the resulting localname looks remote, we must quote it
-	   ;; for security reasons.
-	   (when (file-remote-p result)
-	     (setq result (file-name-quote result 'top)))
-	   (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	   result)))))))
+  (tramp-skeleton-file-truename filename
+    (tramp-sudoedit-send-command-string
+     v "readlink" "--canonicalize-missing" localname)))
 
 (defun tramp-sudoedit-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -623,41 +598,12 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-make-symbolic-link
     (target linkname &optional ok-if-already-exists)
-  "Like `make-symbolic-link' for Tramp files.
-If TARGET is a non-Tramp file, it is used verbatim as the target
-of the symlink.  If TARGET is a Tramp file, only the localname
-component is used as the target of the symlink."
-  (with-parsed-tramp-file-name (expand-file-name linkname) nil
-    ;; If TARGET is a Tramp name, use just the localname component.
-    ;; Don't check for a proper method.
-    (let ((non-essential t))
-      (when (and (tramp-tramp-file-p target)
-		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	(setq target (tramp-file-local-name (expand-file-name target)))))
-
-    ;; If TARGET is still remote, quote it.
-    (if (tramp-tramp-file-p target)
-	(make-symbolic-link
-	 (file-name-quote target 'top) linkname ok-if-already-exists)
-
-      ;; Do the 'confirm if exists' thing.
-      (when (file-exists-p linkname)
-	;; What to do?
-	(if (or (null ok-if-already-exists) ; not allowed to exist
-		(and (numberp ok-if-already-exists)
-		     (not
-		      (yes-or-no-p
-		       (format
-			"File %s already exists; make it a link anyway?"
-			localname)))))
-	    (tramp-error v 'file-already-exists localname)
-	  (delete-file linkname)))
-
-      (tramp-flush-file-properties v localname)
-      (tramp-sudoedit-send-command
-       v "ln" "-sf"
-       (file-name-unquote target)
-       (file-name-unquote localname)))))
+  "Like `make-symbolic-link' for Tramp files."
+  (tramp-skeleton-handle-make-symbolic-link target linkname ok-if-already-exists
+    (tramp-sudoedit-send-command
+     v "ln" "-sf"
+     (file-name-unquote target)
+     (file-name-unquote localname))))
 
 (defun tramp-sudoedit-handle-rename-file
   (filename newname &optional ok-if-already-exists)

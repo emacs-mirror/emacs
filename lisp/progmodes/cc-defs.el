@@ -1361,6 +1361,28 @@ nil; point is then left undefined."
        (search-forward-regexp "\\(\n\\|.\\)")	; to set the match-data.
        (point))))
 
+(defmacro c-search-forward-non-nil-char-property (property &optional limit)
+  "Search forward for a text-property PROPERTY value non-nil.
+LIMIT bounds the search.
+
+Leave point just after the character.  The match data remain
+unchanged.  Return the value of PROPERTY.  If a non-nil value
+isn't found, return nil; point is then left undefined."
+  (declare (debug t))
+  `(let* ((-limit- (or ,limit (point-max)))
+	  (value (c-get-char-property (point) ,property)))
+     (cond
+      ((>= (point) -limit-)
+       nil)
+      (value
+       (forward-char)
+       value)
+      (t (let ((place (c-next-single-property-change
+		       (point) ,property nil -limit-)))
+	   (when place
+	     (goto-char (1+ place))
+	     (c-get-char-property place ,property)))))))
+
 (defmacro c-search-backward-char-property (property value &optional limit)
   "Search backward for a text-property PROPERTY having value VALUE.
 LIMIT bounds the search.  The comparison is done with `equal'.

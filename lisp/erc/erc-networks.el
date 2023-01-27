@@ -1366,6 +1366,11 @@ ANNOUNCED is the server's reported host name."
                erc-server-connected t
                erc-networks--id nid))))))
 
+(defvar erc-networks--copy-server-buffer-functions nil
+  "Abnormal hook run in new server buffers when deduping.
+Passed the existing buffer to be killed, whose contents have
+already been copied over to the current, replacement buffer.")
+
 (defun erc-networks--copy-over-server-buffer-contents (existing name)
   "Kill off existing server buffer after copying its contents.
 Must be called from the replacement buffer."
@@ -1386,6 +1391,7 @@ Must be called from the replacement buffer."
         erc-kill-server-hook
         erc-kill-buffer-hook)
     (erc-networks--insert-transplanted-content text)
+    (run-hook-with-args 'erc-networks--copy-server-buffer-functions existing)
     (kill-buffer name)))
 
 ;; This stands alone for testing purposes

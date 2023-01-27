@@ -1139,6 +1139,7 @@ AS_IF([test $gl_gcc_warnings = no],
 
   # clang is unduly picky about some things.
   if test "$emacs_cv_clang" = yes; then
+    gl_WARN_ADD([-Wno-bitwise-instead-of-logical])
     gl_WARN_ADD([-Wno-missing-braces])
     gl_WARN_ADD([-Wno-null-pointer-arithmetic])
     gl_WARN_ADD([-Wno-implicit-const-int-float-conversion])
@@ -6361,7 +6362,7 @@ fi
 # it temporarily reverts them to their pre-pkg-config values,
 # because gnulib needs to work with both src (which uses the
 # pkg-config stuff) and lib-src (which does not).  For example, gnulib
-# may need to determine whether LIB_CLOCK_GETTIME should contain -lrt,
+# may need to determine whether CLOCK_TIME_LIB should contain -lrt,
 # and it therefore needs to run in an environment where LIBS does not
 # already contain -lrt merely because 'pkg-config --libs' printed '-lrt'
 # for some package unrelated to lib-src.
@@ -6553,7 +6554,9 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 
 if test $USE_ACL -ne 0; then
-  ACL_SUMMARY="yes $LIB_ACL"
+  ACL_SUMMARY="yes"
+  test "$LIB_ACL" && ACL_SUMMARY="$ACL_SUMMARY $LIB_ACL"
+  test "$LIB_XATTR" && ACL_SUMMARY="$ACL_SUMMARY $LIB_XATTR"
 else
   ACL_SUMMARY=no
 fi

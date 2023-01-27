@@ -2062,12 +2062,11 @@ connection."
                 (next-single-property-change (point) 'hard)
                 (forward-char 1)
                 (throw 'exit nil))))
+          (goto-char (line-beginning-position))
           (set-marker-insertion-type rcirc-prompt-start-marker t)
           (set-marker-insertion-type rcirc-prompt-end-marker t)
 
           ;; run markup functions
-          (unless (bolp)
-            (newline))
           (save-excursion
             (save-restriction
               (narrow-to-region (point) (point))

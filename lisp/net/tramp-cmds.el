@@ -127,7 +127,7 @@ When called interactively, a Tramp connection has to be selected."
 		 (or (not keep-processes)
 		     (eq key (tramp-get-process vec))))
 	(tramp-flush-connection-properties key)
-	(delete-process key)))
+	(ignore-errors (delete-process key))))
 
     ;; Remove buffers.
     (dolist

@@ -177,7 +177,9 @@ using GNU findutils (on macOS and *BSD systems), see instead the
 man page for \"find\"."
   (interactive (list (read-directory-name "Run find in directory: " nil "" t)
 		     (read-string "Run find (with args): " find-args
-				  '(find-args-history . 1))))
+				  (if find-args
+                                      '(find-args-history . 1)
+                                    'find-args-history))))
   (setq find-args args                ; save for next interactive call
 	args (concat find-program " . "
 		     (if (string= args "")
@@ -209,7 +211,7 @@ it finishes, type \\[kill-find]."
                                     " . \\(  \\) "
                                     (find-dired--escaped-ls-option))
                             (+ 1 (length find-program) (length " . \\( ")))
-		      find-command-history)))
+		      'find-command-history)))
   (let ((dired-buffers dired-buffers))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.

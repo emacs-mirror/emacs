@@ -685,6 +685,7 @@ This tests also `access-file', `file-readable-p' and `file-regular-p'."
 	  ;; Symlink.
 	  (should (file-exists-p tmp-name2))
 	  (should (file-symlink-p tmp-name2))
+	  (should (file-regular-p tmp-name2))
 	  (setq attr (file-attributes tmp-name2))
 	  (should (string-equal (car attr) (file-name-nondirectory tmp-name1)))
 
@@ -775,12 +776,14 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
     (unwind-protect
 	(progn
 	  (should (file-exists-p tmp-name1))
+	  (should (file-regular-p tmp-name1))
 	  (should (string-equal tmp-name1 (file-truename tmp-name1)))
 	  ;; `make-symbolic-link' is not implemented.
 	  (should-error
 	   (make-symbolic-link tmp-name1 tmp-name2)
 	   :type 'file-error)
 	  (should (file-symlink-p tmp-name2))
+	  (should (file-regular-p tmp-name2))
 	  (should
 	   (string-equal
 	    ;; This is "/foo.txt".
@@ -872,13 +875,24 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (let ((fsi (file-system-info tramp-archive-test-archive)))
     (skip-unless fsi)
     (should (and (consp fsi)
-		 (= (length fsi) 3)
+		 (tramp-compat-length= fsi 3)
 		 (numberp (nth 0 fsi))
 		 ;; FREE and AVAIL are always 0.
 		 (zerop (nth 1 fsi))
 		 (zerop (nth 2 fsi))))))
 
-(ert-deftest tramp-archive-test47-auto-load ()
+;; `file-user-uid' was introduced in Emacs 30.1.
+(ert-deftest tramp-archive-test44-file-user-uid ()
+  "Check that `file-user-uid' returns proper values."
+  (skip-unless tramp-archive-enabled)
+  (skip-unless (fboundp 'file-user-uid))
+
+  (let ((default-directory tramp-archive-test-archive))
+    ;; `file-user-uid' exists since Emacs 30.1.  We don't want to see
+    ;; compiler warnings for older Emacsen.
+    (should (integerp (with-no-warnings (file-user-uid))))))
+
+(ert-deftest tramp-archive-test48-auto-load ()
   "Check that `tramp-archive' autoloads properly."
   :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
@@ -923,7 +937,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	       (format "(setq tramp-archive-enabled %s)" enabled))
 	      (shell-quote-argument (format code file)))))))))))
 
-(ert-deftest tramp-archive-test47-delay-load ()
+(ert-deftest tramp-archive-test48-delay-load ()
   "Check that `tramp-archive' is loaded lazily, only when needed."
   :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)

@@ -458,12 +458,13 @@ Assumes the caller has bound `macroexpand-all-environment'."
                  (let ((arg (nth funarg form)))
                    (when (and (eq 'quote (car-safe arg))
                               (eq 'lambda (car-safe (cadr arg))))
-                     (setcar (nthcdr funarg form)
-                             (macroexp-warn-and-return
-                              (format "%S quoted with ' rather than with #'"
-                                      (let ((f (cadr arg)))
-                                        (if (symbolp f) f `(lambda ,(nth 1 f) ...))))
-                              arg nil nil (cadr arg))))))
+                     (setcar
+                      (nthcdr funarg form)
+                      (macroexp-warn-and-return
+                       (format
+                        "(lambda %s ...) quoted with ' rather than with #'"
+                        (or (nth 1 (cadr arg)) "()"))
+                       arg nil nil (cadr arg))))))
                ;; Macro expand compiler macros.  This cannot be delayed to
                ;; byte-optimize-form because the output of the compiler-macro can
                ;; use macros.

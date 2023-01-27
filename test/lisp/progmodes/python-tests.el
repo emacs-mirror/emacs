@@ -4520,6 +4520,16 @@ def foo():
                      (python-tests-look-at "\"\"\""))
                     "# -*- coding: utf-8 -*-\n\nif True:\n    a = 1\n    b = 2\n\n"))))
 
+(ert-deftest python-shell-buffer-substring-18 ()
+  "Check substring from the part of the first line."
+  (python-tests-with-temp-buffer
+   "s = 'test'
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "'test'")
+                     (pos-eol))
+                    "'test'"))))
+
 
 
 ;;; Shell completion

@@ -5,6 +5,7 @@
 ;; Author: Perry Smith <pedz@easesoftware.com>
 ;; Created: December 2022
 ;; Keywords: ruby languages tree-sitter
+;; Version: 0.2
 
 ;; This file is part of GNU Emacs.
 
@@ -50,11 +51,11 @@
 
 ;; Currently tree treesit-font-lock-feature-list is set with the
 ;; following levels:
-;;   1: comment method-definition
+;;   1: comment method-definition parameter-definition
 ;;   2: keyword regexp string type
-;;   3: builtin-variable builtin-constant constant
+;;   3: builtin-variable builtin-constant builtin-function
 ;;      delimiter escape-sequence
-;;      global instance
+;;      constant global instance
 ;;      interpolation literal symbol assignment
 ;;   4: bracket error function operator punctuation
 
@@ -71,6 +72,8 @@
 ;; ruby-ts-mode tries to adhere to the indentation related user
 ;; options from ruby-mode, such as ruby-indent-level,
 ;; ruby-indent-tabs-mode, and so on.
+;;
+;; Type 'M-x customize-group RET ruby RET' to see the options.
 
 ;; * IMenu
 ;; * Navigation
@@ -82,6 +85,16 @@
 (require 'ruby-mode)
 
 (declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-next-sibling "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-string "treesit.c")
 
 (defgroup ruby-ts nil
   "Major mode for editing Ruby code."
@@ -104,20 +117,29 @@
   "Ruby's punctuation characters.")
 
 (defvar ruby-ts--predefined-constants
-  (rx (or "ARGF" "ARGV" "DATA" "ENV" "RUBY_COPYRIGHT"
+  (rx string-start
+      (or "ARGF" "ARGV" "DATA" "ENV" "RUBY_COPYRIGHT"
           "RUBY_DESCRIPTION" "RUBY_ENGINE" "RUBY_ENGINE_VERSION"
           "RUBY_PATCHLEVEL" "RUBY_PLATFORM" "RUBY_RELEASE_DATE"
           "RUBY_REVISION" "RUBY_VERSION" "STDERR" "STDIN" "STDOUT"
-          "TOPLEVEL_BINDING"))
+          "TOPLEVEL_BINDING")
+      string-end)
   "Ruby predefined global constants.")
 
 (defvar ruby-ts--predefined-variables
-  (rx (or "$!" "$@" "$~" "$&" "$‘" "$‘" "$+" "$=" "$/" "$\\" "$," "$;"
+  (rx string-start
+      (or "$!" "$@" "$~" "$&" "$`" "$'" "$+" "$=" "$/" "$\\" "$," "$;"
           "$." "$<" "$>" "$_" "$*" "$$" "$?" "$:" "$LOAD_PATH"
           "$LOADED_FEATURES" "$DEBUG" "$FILENAME" "$stderr" "$stdin"
           "$stdout" "$VERBOSE" "$-a" "$-i" "$-l" "$-p"
-          (seq "$" (+ digit))))
+          "$0" "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9")
+      string-end)
   "Ruby predefined global variables.")
+
+(defvar ruby-ts--builtin-methods
+  (format "\\`%s\\'" (regexp-opt (append ruby-builtin-methods-no-reqs
+                                         ruby-builtin-methods-with-reqs)))
+  "Ruby built-in methods.")
 
 (defconst ruby-ts--class-or-module-regex
   (rx string-start
@@ -142,7 +164,6 @@
           "then"
           "ensure"
           "body_statement"
-          "parenthesized_statements"
           "interpolation")
       string-end)
   "Regular expression of the nodes that can contain statements.")
@@ -188,6 +209,9 @@ values of OVERRIDE"
     (treesit-fontify-with-override (max plus-1 start) (min node-end end)
                                    font-lock-comment-face override)))
 
+(defun ruby-ts--builtin-method-p (node)
+  (string-match-p ruby-ts--builtin-methods (treesit-node-text node t)))
+
 (defun ruby-ts--font-lock-settings (language)
   "Tree-sitter font-lock settings for Ruby."
   (treesit-font-lock-rules
@@ -211,9 +235,9 @@ values of OVERRIDE"
 
    :language language
    :feature 'constant
-   '((true) @font-lock-doc-markup-face
-     (false) @font-lock-doc-markup-face
-     (nil) @font-lock-doc-markup-face)
+   '((true) @font-lock-constant-face
+     (false) @font-lock-constant-face
+     (nil) @font-lock-constant-face)
 
    ;; Before 'operator so (unary) works.
    :language language
@@ -304,9 +328,19 @@ values of OVERRIDE"
      (array_pattern
       (identifier) @font-lock-variable-name-face)
      (keyword_pattern
-      key: (hash_key_symbol) @font-lock-variable-name-face)
+      value: (identifier) @font-lock-variable-name-face)
+     (keyword_pattern
+      key: (hash_key_symbol) @font-lock-variable-name-face
+      !value)
+     (as_pattern
+      name: (identifier) @font-lock-variable-name-face)
      (in_clause
       pattern: (identifier) @font-lock-variable-name-face))
+
+   :language language
+   :feature 'builtin-function
+   `((((identifier) @font-lock-builtin-face)
+      (:pred ruby-ts--builtin-method-p @font-lock-builtin-face)))
 
    ;; Yuan recommends also putting method definitions into the
    ;; 'function' category (thus keeping it in both).  I've opted to
@@ -497,10 +531,6 @@ array or hash."
          (first-child (ruby-ts--first-non-comment-child parent)))
     (= (ruby-ts--lineno open-brace) (ruby-ts--lineno first-child))))
 
-(defun ruby-ts--assignment-ancestor (node &rest _)
-  "Return the assignment ancestor of NODE if any."
-  (treesit-parent-until node (ruby-ts--type-pred "\\`assignment\\'")))
-
 (defun ruby-ts--statement-ancestor (node &rest _)
   "Return the statement ancestor of NODE if any.
 A statement is defined as a child of a statement container where
@@ -516,26 +546,6 @@ a statement container is a node that matches
             parent (treesit-node-parent parent)))
     statement))
 
-(defun ruby-ts--is-in-condition (node &rest _)
-  "Return the condition node if NODE is within a condition."
-  (while (and node
-              (not (equal "condition" (treesit-node-field-name node)))
-              (not (string-match-p ruby-ts--statement-container-regexp
-                                   (treesit-node-type node))))
-    (setq node (treesit-node-parent node)))
-  (and (equal "condition" (treesit-node-field-name node)) node))
-
-(defun ruby-ts--endless-method (node &rest _)
-  "Return the expression node if NODE is in an endless method.
-i.e. expr of def foo(args) = expr is returned."
-  (let* ((method node))
-    (while (and method
-                (not (string-match-p ruby-ts--method-regex (treesit-node-type method))))
-      (setq method (treesit-node-parent method)))
-    (when method
-      (if (equal "=" (treesit-node-type (treesit-node-child method 3 nil)))
-          (treesit-node-child method 4 nil)))))
-
 ;;
 ;; end of functions that can be used for queries
 ;;
@@ -545,7 +555,7 @@ i.e. expr of def foo(args) = expr is returned."
   (let ((common
          `(
            ;; Slam all top level nodes to the left margin
-           ((parent-is "program") parent 0)
+           ((parent-is "program") point-min 0)
 
            ;; Do not indent here docs or the end.  Not sure why it
            ;; takes the grand-parent but ok fine.
@@ -555,6 +565,12 @@ i.e. expr of def foo(args) = expr is returned."
            ;; Do not indent multiline regexp
            ((n-p-gp nil nil "regex") no-indent 0)
            ((parent-is "regex") no-indent 0)
+
+           ;; Incomplete buffer state, better not reindent (bug#61017).
+           ((and (parent-is "ERROR")
+                 (or (node-is ,ruby-ts--class-or-module-regex)
+                     (node-is "\\`def\\'")))
+            no-indent 0)
 
            ;; if then else elseif notes:
            ;;
@@ -572,11 +588,11 @@ i.e. expr of def foo(args) = expr is returned."
            ;;
            ;; I'm using very restrictive patterns hoping to reduce rules
            ;; triggering unintentionally.
-           ((match "else" "if")
+           ((match "else" "if\\|unless")
             (ruby-ts--align-keywords ruby-ts--parent-node) 0)
            ((match "elsif" "if")
             (ruby-ts--align-keywords ruby-ts--parent-node) 0)
-           ((match "end" "if")
+           ((match "end" "if\\|unless")
             (ruby-ts--align-keywords ruby-ts--parent-node) 0)
            ((n-p-gp nil "then\\|else\\|elsif" "if\\|unless")
             (ruby-ts--align-keywords ruby-ts--grand-parent-node) ruby-indent-level)
@@ -649,10 +665,14 @@ i.e. expr of def foo(args) = expr is returned."
            ;; else the second query aligns
            ;; `ruby-indent-level' spaces in from the parent.
            ((and ruby-ts--align-chain-p (match "\\." "call")) ruby-ts--align-chain 0)
+           ;; Obery ruby-method-call-indent, whether the dot is on
+           ;; this line or the previous line.
+           ((and (not ruby-ts--method-call-indent-p)
+                 (or
+                  (match "\\." "call")
+                  (query "(call \".\" (identifier) @indent)")))
+            (ruby-ts--bol ruby-ts--statement-ancestor) ruby-indent-level)
            ((match "\\." "call") parent ruby-indent-level)
-
-           ;; ruby-indent-after-block-in-continued-expression
-           ((match "begin" "assignment") parent ruby-indent-level)
 
            ;; method parameters -- four styles:
            ;; 1) With paren, first arg on same line:
@@ -682,31 +702,36 @@ i.e. expr of def foo(args) = expr is returned."
            ;; 2) With paren, 1st arg on next line
            ((and (query "(argument_list \"(\" _ @indent)")
                  (node-is ")"))
-            (ruby-ts--bol ruby-ts--grand-parent-node) 0)
-           ((query "(argument_list \"(\" _ @indent)")
-            (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
+            ruby-ts--parent-call-or-bol 0)
+           ((or (query "(argument_list \"(\" _ @indent)")
+                ;; No arguments yet; NODE is nil in that case.
+                (match "\\`\\'" "argument_list"))
+            ruby-ts--parent-call-or-bol ruby-indent-level)
            ;; 3) No paren, ruby-parenless-call-arguments-indent is t
            ((and ruby-ts--parenless-call-arguments-indent-p (parent-is "argument_list"))
             first-sibling 0)
            ;; 4) No paren, ruby-parenless-call-arguments-indent is nil
-           ((parent-is "argument_list") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
+           ((parent-is "argument_list")
+            (ruby-ts--bol ruby-ts--statement-ancestor) ruby-indent-level)
 
            ;; Old... probably too simple
            ((parent-is "block_parameters") first-sibling 1)
 
-           ((and (parent-is "binary")
-                 (or ruby-ts--assignment-ancestor
-                     ruby-ts--is-in-condition
-                     ruby-ts--endless-method))
-            first-sibling 0)
+           ((and (not ruby-ts--after-op-indent-p)
+                 (parent-is "binary\\|conditional"))
+            (ruby-ts--bol ruby-ts--statement-ancestor) ruby-indent-level)
+
+           ((parent-is "binary")
+            ruby-ts--binary-indent-anchor 0)
+
+           ((parent-is "conditional") parent ruby-indent-level)
 
            ;; ruby-mode does not touch these...
            ((match "bare_string" "string_array") no-indent 0)
 
-           ;; hash and array other than assignments.  Note that the
-           ;; first sibling is the "{" or "[".  There is a special
-           ;; case where the hash is an argument to a method.  These
-           ;; need to be processed first.
+           ;; hash and array.  Note that the first sibling is the "{"
+           ;; or "[".  There is a special case where the hash is an
+           ;; argument to a method.  These need to be processed first.
 
            ((and ruby-ts--same-line-hash-array-p (match "}" "hash"))
             first-sibling 0)
@@ -717,37 +742,15 @@ i.e. expr of def foo(args) = expr is returned."
            ((and ruby-ts--same-line-hash-array-p (parent-is "array"))
             (nth-sibling 0 ruby-ts--true) 0)
 
-           ;; NOTE to folks trying to understand my insanity...
-           ;; I having trouble understanding the "logic" of why things
-           ;; are indented like they are so I am adding special cases
-           ;; hoping at some point I will be struck by lightning.
-           ((and (n-p-gp "}" "hash" "pair")
-                 (not ruby-ts--same-line-hash-array-p))
-            grand-parent 0)
-           ((and (n-p-gp "pair" "hash" "pair")
-                 (not ruby-ts--same-line-hash-array-p))
-            grand-parent ruby-indent-level)
-           ((and (n-p-gp "}" "hash" "method")
-                 (not ruby-ts--same-line-hash-array-p))
-            grand-parent 0)
-           ((and (n-p-gp "pair" "hash" "method")
-                 (not ruby-ts--same-line-hash-array-p))
-            grand-parent ruby-indent-level)
+           ((match "}" "hash")  ruby-ts--parent-call-or-bol 0)
+           ((parent-is "hash")  ruby-ts--parent-call-or-bol ruby-indent-level)
+           ((match "]" "array") ruby-ts--parent-call-or-bol 0)
+           ((parent-is "array") ruby-ts--parent-call-or-bol ruby-indent-level)
 
-           ((n-p-gp "}" "hash" "assignment")  (ruby-ts--bol ruby-ts--grand-parent-node) 0)
-           ((n-p-gp nil "hash" "assignment")  (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((n-p-gp "]" "array" "assignment") (ruby-ts--bol ruby-ts--grand-parent-node) 0)
-           ((n-p-gp nil "array" "assignment") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
+           ((parent-is "pair") ruby-ts--parent-call-or-bol 0)
 
-           ((n-p-gp "}" "hash" "argument_list")  first-sibling 0)
-           ((n-p-gp nil "hash" "argument_list")  first-sibling ruby-indent-level)
-           ((n-p-gp "]" "array" "argument_list") first-sibling 0)
-           ((n-p-gp nil "array" "argument_list") first-sibling ruby-indent-level)
-
-           ((match "}" "hash")  first-sibling 0)
-           ((parent-is "hash")  first-sibling ruby-indent-level)
-           ((match "]" "array") first-sibling 0)
-           ((parent-is "array") first-sibling ruby-indent-level)
+           ((match ")" "parenthesized_statements") parent-bol 0)
+           ((parent-is "parenthesized_statements") parent-bol ruby-indent-level)
 
            ;; If the previous method isn't finished yet, this will get
            ;; the next method indented properly.
@@ -765,12 +768,20 @@ i.e. expr of def foo(args) = expr is returned."
            ;; but with node set to the statement and parent set to
            ;; body_statement for all others. ... Fine.  Be that way.
            ;; Ditto for "block" and "block_body"
-           ((node-is "body_statement") parent-bol ruby-indent-level)
-           ((parent-is "body_statement") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((match "end" "do_block") parent-bol 0)
-           ((n-p-gp "block_body" "block" nil) parent-bol ruby-indent-level)
-           ((n-p-gp nil "block_body" "block") (ruby-ts--bol ruby-ts--grand-parent-node) ruby-indent-level)
-           ((match "}" "block") parent-bol 0)
+           ((node-is "body_statement")
+            (ruby-ts--block-indent-anchor ruby-ts--parent-node)
+            ruby-indent-level)
+           ((parent-is "body_statement")
+            (ruby-ts--block-indent-anchor ruby-ts--grand-parent-node)
+            ruby-indent-level)
+           ((match "end" "do_block") (ruby-ts--block-indent-anchor ruby-ts--parent-node) 0)
+           ((n-p-gp "block_body" "block" nil)
+            (ruby-ts--block-indent-anchor ruby-ts--parent-node)
+            ruby-indent-level)
+           ((n-p-gp nil "block_body" "block")
+            (ruby-ts--block-indent-anchor ruby-ts--grand-parent-node)
+            ruby-indent-level)
+           ((match "}" "block") (ruby-ts--block-indent-anchor ruby-ts--parent-node) 0)
 
            ;; Chained strings
            ((match "string" "chained_string") first-sibling 0)
@@ -778,6 +789,78 @@ i.e. expr of def foo(args) = expr is returned."
            ;; Try and indent two spaces when all else fails.
            (catch-all parent-bol ruby-indent-level))))
     `((ruby . ,common))))
+
+(defun ruby-ts--block-indent-anchor (block-node-getter)
+  (lambda (node parent _bol &rest _rest)
+    (let ((block-node (funcall block-node-getter node parent)))
+      (save-excursion
+        (goto-char
+         (treesit-node-start
+          (if ruby-block-indent
+              (ruby-ts--statement-ancestor block-node)
+            block-node)))
+        (back-to-indentation)
+        (point)))))
+
+(defun ruby-ts--binary-indent-anchor (_node parent _bol &rest _)
+  (save-excursion
+    (goto-char (treesit-node-start parent))
+    (when (string-match-p ruby-ts--statement-container-regexp
+                          (treesit-node-type (treesit-node-parent parent)))
+      ;; Hack alert: it's not the proper place to alter the offset.
+      ;; Redoing the analysis in the OFFSET form seems annoying,
+      ;; though. (**)
+      (forward-char ruby-indent-level))
+    (point)))
+
+(defun ruby-ts--parent-call-or-bol (_not parent _bol &rest _)
+  (let* ((parent-bol (save-excursion
+                       (goto-char (treesit-node-start parent))
+                       (back-to-indentation)
+                       (point)))
+         (found
+          (treesit-parent-until
+           parent
+           (lambda (node)
+             (or (< (treesit-node-start node) parent-bol)
+                 (string-match-p "\\`array\\|hash\\'" (treesit-node-type node))
+                 ;; Method call on same line.
+                 (equal (treesit-node-type node) "argument_list"))))))
+    (cond
+     ((null found)
+      parent-bol)
+     ;; No paren/curly/brace found on the same line.
+     ((< (treesit-node-start found) parent-bol)
+      parent-bol)
+     ;; Hash or array opener on the same line.
+     ((string-match-p "\\`array\\|hash\\'" (treesit-node-type found))
+      (save-excursion
+        (goto-char (treesit-node-start (treesit-node-child found 1)))
+        (point)))
+     ;; Parenless call found: indent to stmt with offset.
+     ((not ruby-parenless-call-arguments-indent)
+      (save-excursion
+        (goto-char (treesit-node-start
+                    (ruby-ts--statement-ancestor found)))
+        ;; (**) Same.
+        (+ (point) ruby-indent-level)))
+     ;; Call with parens -- ident to first arg.
+     ((equal (treesit-node-type (treesit-node-child found 0))
+             "(")
+      (save-excursion
+        (goto-char (treesit-node-start (treesit-node-child found 1)))
+        (point)))
+     ;; Indent to the parenless call args beginning.
+     (t
+      (save-excursion
+        (goto-char (treesit-node-start found))
+        (point))))))
+
+(defun ruby-ts--after-op-indent-p (&rest _)
+  ruby-after-operator-indent)
+
+(defun ruby-ts--method-call-indent-p (&rest _)
+  ruby-method-call-indent)
 
 (defun ruby-ts--class-or-module-p (node)
   "Predicate if NODE is a class or module."
@@ -949,6 +1032,20 @@ leading double colon is not added."
   ;; Navigation.
   (setq-local treesit-defun-type-regexp ruby-ts--method-regex)
 
+  (setq-local treesit-sexp-type-regexp
+              (regexp-opt '("class"
+                            "module"
+                            "method"
+                            "argument_list"
+                            "array"
+                            "hash"
+                            "parenthesized_statements"
+                            "if"
+                            "case"
+                            "block"
+                            "do_block"
+                            "begin")))
+
   ;; AFAIK, Ruby can not nest methods
   (setq-local treesit-defun-prefer-top-level nil)
 
@@ -963,13 +1060,27 @@ leading double colon is not added."
   (setq-local treesit-font-lock-feature-list
               '(( comment method-definition parameter-definition)
                 ( keyword regexp string type)
-                ( builtin-variable builtin-constant constant
+                ( builtin-variable builtin-constant builtin-function
                   delimiter escape-sequence
-                  global instance
+                  constant global instance
                   interpolation literal symbol assignment)
                 ( bracket error function operator punctuation)))
 
   (treesit-major-mode-setup))
+
+(if (treesit-ready-p 'ruby)
+    ;; Copied from ruby-mode.el.
+    (add-to-list 'auto-mode-alist
+                 (cons (concat "\\(?:\\.\\(?:"
+                               "rbw?\\|ru\\|rake\\|thor"
+                               "\\|jbuilder\\|rabl\\|gemspec\\|podspec"
+                               "\\)"
+                               "\\|/"
+                               "\\(?:Gem\\|Rake\\|Cap\\|Thor"
+                               "\\|Puppet\\|Berks\\|Brew"
+                               "\\|Vagrant\\|Guard\\|Pod\\)file"
+                               "\\)\\'")
+                       'ruby-ts-mode)))
 
 (provide 'ruby-ts-mode)
 

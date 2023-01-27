@@ -4926,8 +4926,7 @@ the current line to @var{matcher}; if it returns non-@code{nil}, this
 rule is applicable.  Then Emacs passes the node to @var{anchor}, which
 returns a buffer position.  Emacs takes the column number of that
 position, adds @var{offset} to it, and the result is the indentation
-column for the current line.  @var{offset} can be an integer or a
-variable whose value is an integer.
+column for the current line.
 
 The @var{matcher} and @var{anchor} are functions, and Emacs provides
 convenient defaults for them.
@@ -4936,17 +4935,20 @@ Each @var{matcher} or @var{anchor} is a function that takes three
 arguments: @var{node}, @var{parent}, and @var{bol}.  The argument
 @var{bol} is the buffer position whose indentation is required: the
 position of the first non-whitespace character after the beginning of
-the line.  The argument @var{node} is the largest (highest-in-tree)
-node that starts at that position; and @var{parent} is the parent of
-@var{node}.  However, when that position is in a whitespace or inside
-a multi-line string, no node can start at that position, so
+the line.  The argument @var{node} is the largest node that starts at
+that position (and is not a root node); and @var{parent} is the parent
+of @var{node}.  However, when that position is in a whitespace or
+inside a multi-line string, no node can start at that position, so
 @var{node} is @code{nil}.  In that case, @var{parent} would be the
 smallest node that spans that position.
 
-Emacs finds @var{bol}, @var{node} and @var{parent} and
-passes them to each @var{matcher} and @var{anchor}.  @var{matcher}
-should return non-@code{nil} if the rule is applicable, and
-@var{anchor} should return a buffer position.
+@var{matcher} should return non-@code{nil} if the rule is applicable,
+and @var{anchor} should return a buffer position.
+
+@var{offset} can be an integer, a variable whose value is an integer,
+or a function that returns an integer.  If it is a function, it is
+passed @var{node}, @var{parent}, and @var{bol}, like matchers and
+anchors.
 @end defvar
 
 @defvar treesit-simple-indent-presets

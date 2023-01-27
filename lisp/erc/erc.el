@@ -61,7 +61,6 @@
 (load "erc-loaddefs" 'noerror 'nomessage)
 
 (require 'erc-networks)
-(require 'erc-goodies)
 (require 'erc-backend)
 (require 'cl-lib)
 (require 'format-spec)
@@ -323,7 +322,8 @@ A typical value would be \((\"Libera.Chat\" \"MODE\")
   \(\"OFTC\" \"JOIN\" \"QUIT\"))."
   :version "25.1"
   :group 'erc-ignore
-  :type 'erc-message-type)
+  :type '(alist :key-type string :value-type erc-message-type
+                :options ("Libera.Chat")))
 
 (defcustom erc-channel-hide-list nil
   "A list of IRC channels to hide message types from.
@@ -331,7 +331,8 @@ A typical value would be \((\"#emacs\" \"QUIT\" \"JOIN\")
   \(\"#erc\" \"NICK\")."
   :version "25.1"
   :group 'erc-ignore
-  :type 'erc-message-type)
+  :type '(alist :key-type string :value-type erc-message-type
+                :options ("#emacs")))
 
 (defcustom erc-disconnected-hook nil
   "Run this hook with arguments (NICK IP REASON) when disconnected.
@@ -1303,6 +1304,14 @@ See also `erc-show-my-nick'."
 
 (defvar-local erc-dbuf nil)
 
+;; See comments in `erc-scenarios-base-local-modules' explaining why
+;; this is insufficient as a public interface.
+
+(defvar erc--target-priors nil
+  "Analogous to `erc--server-reconnecting' but for target buffers.
+Bound to local variables from an existing (logical) session's
+buffer during local-module setup and `erc-mode-hook' activation.")
+
 (defun erc--target-from-string (string)
   "Construct an `erc--target' variant from STRING."
   (funcall (if (erc-channel-p string)
@@ -1948,7 +1957,8 @@ nil."
       (let ((out (list (reverse new-modes))))
         (pcase-dolist (`(,k . ,v) old-vars)
           (when (and (string-prefix-p "erc-" (symbol-name k))
-                     (string-suffix-p "-mode" (symbol-name k)))
+                     (string-suffix-p "-mode" (symbol-name k))
+                     (get k 'erc-module))
             (if v
                 (cl-pushnew k (car out))
               (setf (car out) (delq k (car out)))
@@ -1983,7 +1993,9 @@ Returns the buffer for the given server or channel."
   (let* ((target (and channel (erc--target-from-string channel)))
          (buffer (erc-get-buffer-create server port nil target id))
          (old-buffer (current-buffer))
-         (old-vars (and target (buffer-local-variables)))
+         (erc--target-priors (and target ; buf from prior session
+                                  (buffer-local-value 'erc--target buffer)
+                                  (buffer-local-variables buffer)))
          (old-recon-count erc-server-reconnect-count)
          (old-point nil)
          (delayed-modules nil)
@@ -1996,7 +2008,8 @@ Returns the buffer for the given server or channel."
     (setq old-point (point))
     (setq delayed-modules
           (erc--merge-local-modes (erc--update-modules)
-                                  (or erc--server-reconnecting old-vars)))
+                                  (or erc--server-reconnecting
+                                      erc--target-priors)))
 
     (delay-mode-hooks (erc-mode))
 
@@ -2069,9 +2082,7 @@ Returns the buffer for the given server or channel."
 
     (erc-determine-parameters server port nick full-name user passwd)
 
-    (save-excursion (run-mode-hooks))
-    (dolist (mod (car delayed-modules)) (funcall mod +1))
-    (dolist (var (cdr delayed-modules)) (set var nil))
+    ;; FIXME consolidate this prompt-setup logic with the pass above.
 
     ;; set up prompt
     (unless continued-session
@@ -2083,6 +2094,10 @@ Returns the buffer for the given server or channel."
       (set-marker erc-insert-marker (point))
       (erc-display-prompt)
       (goto-char (point-max)))
+
+    (save-excursion (run-mode-hooks)
+                    (dolist (mod (car delayed-modules)) (funcall mod +1))
+                    (dolist (var (cdr delayed-modules)) (set var nil)))
 
     ;; Saving log file on exit
     (run-hook-with-args 'erc-connect-pre-hook buffer)
@@ -7370,4 +7385,6 @@ Customize `erc-url-connect-function' to override this."
 
 (provide 'erc)
 
+;; FIXME this is a temporary stopgap for Emacs 29.
+(require 'erc-goodies)
 ;;; erc.el ends here

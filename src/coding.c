@@ -651,6 +651,12 @@ growable_destination (struct coding_system *coding)
     consumed_chars++;					\
   } while (0)
 
+/* Suppress clang warnings about consumed_chars never being used.
+   Although correct, the warnings are too much trouble to code around.  */
+#if 13 <= __clang_major__ - defined __apple_build_version__
+# pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#endif
+
 /* Safely get two bytes from the source text pointed by SRC which ends
    at SRC_END, and set C1 and C2 to those bytes while skipping the
    heading multibyte characters.  If there are not enough bytes in the
@@ -1431,7 +1437,7 @@ encode_coding_utf_8 (struct coding_system *coding)
   ptrdiff_t produced_chars = 0;
   int c;
 
-  if (CODING_UTF_8_BOM (coding) == utf_with_bom)
+  if (CODING_UTF_8_BOM (coding) != utf_without_bom)
     {
       ASSURE_DESTINATION (3);
       EMIT_THREE_BYTES (UTF_8_BOM_1, UTF_8_BOM_2, UTF_8_BOM_3);

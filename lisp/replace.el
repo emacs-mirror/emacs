@@ -824,11 +824,11 @@ by this function to the end of values available via
 
 (defvar-keymap read-regexp-map
   :parent minibuffer-local-map
-  "M-c" #'read-regexp-toggle-case-folding)
+  "M-s c" #'read-regexp-toggle-case-fold)
 
 (defvar read-regexp--case-fold nil)
 
-(defun read-regexp-toggle-case-folding ()
+(defun read-regexp-toggle-case-fold ()
   (interactive)
   (setq read-regexp--case-fold
         (if (or (eq read-regexp--case-fold 'fold)
@@ -875,7 +875,7 @@ in \":\", followed by optional whitespace), DEFAULT is added to the prompt.
 The optional argument HISTORY is a symbol to use for the history list.
 If nil, use `regexp-history'.
 
-If the user has used the \\<read-regexp-map>\\[read-regexp-toggle-case-folding] command to specify case
+If the user has used the \\<read-regexp-map>\\[read-regexp-toggle-case-fold] command to specify case
 sensitivity, the returned string will have a text property named
 `case-fold' that has a value of either `fold' or
 `inhibit-fold'.  (It's up to the caller of `read-regexp' to

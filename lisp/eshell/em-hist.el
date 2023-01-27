@@ -555,7 +555,7 @@ See also `eshell-read-history'."
 (defun eshell-hist-parse-arguments (&optional b e)
   "Parse current command arguments in a history-code-friendly way."
   (let ((end (or e (point)))
-	(begin (or b (save-excursion (eshell-bol) (point))))
+	(begin (or b (save-excursion (beginning-of-line) (point))))
 	(posb (list t))
 	(pose (list t))
 	(textargs (list t))
@@ -913,7 +913,7 @@ If N is negative, search forwards for the -Nth following match."
 				eshell-next-matching-input-from-input)))
       ;; Starting a new search
       (setq eshell-matching-input-from-input-string
-	    (buffer-substring (save-excursion (eshell-bol) (point))
+	    (buffer-substring (save-excursion (beginning-of-line) (point))
 			      (point))
 	    eshell-history-index nil))
   (eshell-previous-matching-input
@@ -933,7 +933,7 @@ If N is negative, search backwards for the -Nth previous match."
   (if (get-text-property (point) 'history)
       (progn (beginning-of-line) t)
     (let ((before (point)))
-      (eshell-bol)
+      (beginning-of-line)
       (if (and (not (bolp))
 	       (<= (point) before))
 	  t

@@ -10509,10 +10509,13 @@ init_ntproc (int dumping)
   }
 }
 
-/*
-        shutdown_handler ensures that buffers' autosave files are
-	up to date when the user logs off, or the system shuts down.
-*/
+/* shutdown_handler ensures that buffers' autosave files are up to
+   date when the user logs off, or the system shuts down.  It also
+   shuts down Emacs when we get killed by another Emacs process, in
+   which case we get the CTRL_CLOSE_EVENT.  */
+
+extern DWORD dwMainThreadId;
+
 static BOOL WINAPI
 shutdown_handler (DWORD type)
 {
@@ -10521,15 +10524,31 @@ shutdown_handler (DWORD type)
       || type == CTRL_LOGOFF_EVENT    /* User logs off.  */
       || type == CTRL_SHUTDOWN_EVENT) /* User shutsdown.  */
     {
-      /* If we are being shut down in noninteractive mode, we don't
-	 care about the message stack, so clear it to avoid abort in
-	 shut_down_emacs.  This happens when an noninteractive Emacs
-	 is invoked as a subprocess of Emacs, and the parent wants to
-	 kill us, e.g. because it's about to exit.  */
-      if (noninteractive)
-	clear_message_stack ();
-      /* Shut down cleanly, making sure autosave files are up to date.  */
-      shut_down_emacs (0, Qnil);
+      if (GetCurrentThreadId () == dwMainThreadId)
+	{
+	  /* If we are being shut down in noninteractive mode, we don't
+	     care about the message stack, so clear it to avoid abort in
+	     shut_down_emacs.  This happens when an noninteractive Emacs
+	     is invoked as a subprocess of Emacs, and the parent wants to
+	     kill us, e.g. because it's about to exit.  */
+	  if (noninteractive)
+	    clear_message_stack ();
+	  /* Shut down cleanly, making sure autosave files are up to date.  */
+	  shut_down_emacs (0, Qnil);
+	}
+      else
+	{
+	  /* This handler is run in a thread different from the main
+	     thread.  (This is the normal situation when we are killed
+	     by Emacs, for example, which sends us the WM_CLOSE
+	     message).  We cannot possibly call functions like
+	     shut_down_emacs or clear_message_stack in that case,
+	     since the main (a.k.a. "Lisp") thread could be in the
+	     middle of some Lisp program.  So instead we arrange for
+	     maybe_quit to kill Emacs.  */
+	  Vquit_flag = Qkill_emacs;
+	  Vinhibit_quit = Qnil;
+	}
     }
 
   /* Allow other handlers to handle this signal.  */

@@ -34,15 +34,13 @@
 (defun tramp-fuse-handle-delete-directory
     (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name directory) nil
-    (tramp-flush-directory-properties v localname)
+  (tramp-skeleton-delete-directory directory recursive trash
     (delete-directory (tramp-fuse-local-file-name directory) recursive trash)))
 
 (defun tramp-fuse-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (delete-file (tramp-fuse-local-file-name filename) trash)
-    (tramp-flush-file-properties v localname)))
+  (tramp-skeleton-delete-file filename trash
+    (delete-file (tramp-fuse-local-file-name filename) trash)))
 
 (defvar tramp-fuse-remove-hidden-files nil
   "Remove hidden files from directory listings.")

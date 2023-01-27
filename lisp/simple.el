@@ -2207,15 +2207,39 @@ to get different commands to edit and resubmit."
   "Predicate to use to determine which commands to include when completing.
 If it's nil, include all the commands.
 If it's a function, it will be called with two parameters: the
-symbol of the command and a buffer.  The predicate should return
-non-nil if the command should be present when doing \\`M-x TAB'
-in that buffer."
+symbol of the command and the current buffer.  The predicate should
+return non-nil if the command should be considered as a completion
+candidate for \\`M-x' in that buffer.
+
+Several predicate functions suitable for various optional behaviors
+are available:
+
+  `command-completion-default-include-p'
+         This excludes from completion candidates those commands
+         which have been marked specific to modes other than the
+         current buffer's mode.  Commands that are not specific
+         to any mode are included.
+
+  `command-completion-using-modes-p'
+         This includes in completion candidates only commands
+         marked as specific to the current buffer's mode.
+
+  `command-completion-using-modes-and-keymaps-p'
+         This includes commands marked as specific to the current
+         buffer's modes and commands that have keybindings in the
+         current buffer's active local keymaps.  It also includes
+         several commands, like Customize commands, which should
+         always be available."
   :version "28.1"
   :group 'completion
   :type '(choice (const :tag "Don't exclude any commands" nil)
                  (const :tag "Exclude commands irrelevant to current buffer's mode"
                         command-completion-default-include-p)
-                 (function :tag "Other function")))
+                 (const :tag "Include only commands relevant to current buffer's mode"
+                        command-completion-using-modes-p)
+                 (const :tag "Commands relevant to current buffer's mode or bound in its keymaps"
+                        command-completion-using-modes-and-keymaps-p)
+                 (function :tag "Other predicate function")))
 
 (defun execute-extended-command-cycle ()
   "Choose the next version of the extended command predicates.
@@ -2401,6 +2425,35 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
                         #'eq)
       (seq-intersection modes global-minor-modes #'eq)))
 
+(defun command-completion-using-modes-and-keymaps-p (symbol buffer)
+  "Return non-nil if SYMBOL is marked for BUFFER's mode or bound in its keymaps."
+  (with-current-buffer buffer
+      (let ((keymaps
+             ;; The major mode's keymap and any active minor modes.
+             (nconc
+              (and (current-local-map) (list (current-local-map)))
+              (mapcar
+               #'cdr
+               (seq-filter
+                (lambda (elem)
+                  (symbol-value (car elem)))
+                minor-mode-map-alist)))))
+        (or (command-completion-using-modes-p symbol buffer)
+            ;; Include commands that are bound in a keymap in the
+            ;; current buffer.
+            (and (where-is-internal symbol keymaps)
+                 ;; But not if they have a command predicate that
+                 ;; says that they shouldn't.  (This is the case
+                 ;; for `ignore' and `undefined' and similar
+                 ;; commands commonly found in keymaps.)
+                 (or (null (get symbol 'completion-predicate))
+                     (funcall (get symbol 'completion-predicate)
+                              symbol buffer)))
+            ;; Include customize-* commands (do we need a list of such
+            ;; "always available" commands? customizable?)
+            (string-match-p "customize-" (symbol-name symbol))))))
+
+
 (defun command-completion-button-p (category buffer)
   "Return non-nil if there's a button of CATEGORY at point in BUFFER."
   (with-current-buffer buffer
@@ -2502,7 +2555,11 @@ Also see `suggest-key-bindings'."
 (defun execute-extended-command (prefixarg &optional command-name typed)
   "Read a command name, then read the arguments and call the command.
 To pass a prefix argument to the command you are
-invoking, give a prefix argument to `execute-extended-command'."
+invoking, give a prefix argument to `execute-extended-command'.
+
+This command provides completion when reading the command name.
+Which completion candidates are shown can be controlled by
+customizing `read-extended-command-predicate'."
   (declare (interactive-only command-execute))
   ;; FIXME: Remember the actual text typed by the user before completion,
   ;; so that we don't later on suggest the same shortening.
@@ -2652,7 +2709,16 @@ function as needed."
        (let ((doc (car body)))
 	 (when (funcall docstring-p doc)
            doc)))
-      (_ (signal 'invalid-function (list function))))))
+      ((pred symbolp)
+       (let ((f (indirect-function function)))
+         (if f (function-documentation f)
+           (signal 'void-function (list function)))))
+      (`(macro . ,f) (function-documentation f))
+      (_
+       (let ((doc (internal-subr-documentation function)))
+         (if (eq t doc)
+             (signal 'invalid-function (list function))
+           doc))))))
 
 (cl-defmethod function-documentation ((function accessor))
   (oclosure--accessor-docstring function)) ;; FIXME: η-reduce!
@@ -4663,6 +4729,18 @@ Also see the `async-shell-command-buffer' variable."
              (format "A command is running in the default buffer.  %s? "
                      action))
       (user-error "Shell command in progress"))))
+
+(defun file-user-uid ()
+  "Return the connection-local effective uid.
+This is similar to `user-uid', but may invoke a file name handler
+based on `default-directory'.  See Info node `(elisp)Magic File
+Names'.
+
+If a file name handler is unable to retrieve the effective uid,
+this function will instead return -1."
+  (if-let ((handler (find-file-name-handler default-directory 'file-user-uid)))
+      (funcall handler 'file-user-uid)
+    (user-uid)))
 
 (defun max-mini-window-lines (&optional frame)
   "Compute maximum number of lines for echo area in FRAME.
@@ -8436,37 +8514,39 @@ are interchanged."
   (interactive "*p")
   (transpose-subr 'forward-word arg))
 
-(defvar transpose-sexps-function
-  (lambda (arg)
-    ;; Here we should try to simulate the behavior of
-    ;; (cons (progn (forward-sexp x) (point))
-    ;;       (progn (forward-sexp (- x)) (point)))
-    ;; Except that we don't want to rely on the second forward-sexp
-    ;; putting us back to where we want to be, since forward-sexp-function
-    ;; might do funny things like infix-precedence.
-    (if (if (> arg 0)
-	    (looking-at "\\sw\\|\\s_")
-	  (and (not (bobp))
-	       (save-excursion
-                 (forward-char -1)
-                 (looking-at "\\sw\\|\\s_"))))
-        ;; Jumping over a symbol.  We might be inside it, mind you.
-	(progn (funcall (if (> arg 0)
-			    #'skip-syntax-backward #'skip-syntax-forward)
-			"w_")
-	       (cons (save-excursion (forward-sexp arg) (point)) (point)))
-      ;; Otherwise, we're between sexps.  Take a step back before jumping
-      ;; to make sure we'll obey the same precedence no matter which
-      ;; direction we're going.
-      (funcall (if (> arg 0) #'skip-syntax-backward #'skip-syntax-forward)
-               " .")
-      (cons (save-excursion (forward-sexp arg) (point))
-	    (progn (while (or (forward-comment (if (> arg 0) 1 -1))
-			      (not (zerop (funcall (if (> arg 0)
-						       #'skip-syntax-forward
-						     #'skip-syntax-backward)
-						   ".")))))
-		   (point)))))
+(defun transpose-sexps-default-function (arg)
+  "Default method to locate a pair of points for transpose-sexps."
+  ;; Here we should try to simulate the behavior of
+  ;; (cons (progn (forward-sexp x) (point))
+  ;;       (progn (forward-sexp (- x)) (point)))
+  ;; Except that we don't want to rely on the second forward-sexp
+  ;; putting us back to where we want to be, since forward-sexp-function
+  ;; might do funny things like infix-precedence.
+  (if (if (> arg 0)
+	  (looking-at "\\sw\\|\\s_")
+	(and (not (bobp))
+	     (save-excursion
+               (forward-char -1)
+               (looking-at "\\sw\\|\\s_"))))
+      ;; Jumping over a symbol.  We might be inside it, mind you.
+      (progn (funcall (if (> arg 0)
+			  #'skip-syntax-backward #'skip-syntax-forward)
+		      "w_")
+	     (cons (save-excursion (forward-sexp arg) (point)) (point)))
+    ;; Otherwise, we're between sexps.  Take a step back before jumping
+    ;; to make sure we'll obey the same precedence no matter which
+    ;; direction we're going.
+    (funcall (if (> arg 0) #'skip-syntax-backward #'skip-syntax-forward)
+             " .")
+    (cons (save-excursion (forward-sexp arg) (point))
+	  (progn (while (or (forward-comment (if (> arg 0) 1 -1))
+			    (not (zerop (funcall (if (> arg 0)
+						     #'skip-syntax-forward
+						   #'skip-syntax-backward)
+						 ".")))))
+		 (point)))))
+
+(defvar transpose-sexps-function #'transpose-sexps-default-function
   "If non-nil, `transpose-sexps' delegates to this function.
 
 This function takes one argument ARG, a number.  Its expected
@@ -9673,7 +9753,11 @@ the completions is popped up and down."
   "Move to the first item in the completion list."
   (interactive)
   (goto-char (point-min))
-  (unless (get-text-property (point) 'mouse-face)
+  (if (get-text-property (point) 'mouse-face)
+      (unless (get-text-property (point) 'first-completion)
+        (let ((inhibit-read-only t))
+          (add-text-properties (point) (min (1+ (point)) (point-max))
+                               '(first-completion t))))
     (when-let ((pos (next-single-property-change (point) 'mouse-face)))
       (goto-char pos))))
 
@@ -9706,6 +9790,14 @@ Also see the `completion-auto-wrap' variable."
   (let ((tabcommand (member (this-command-keys) '("\t" [backtab])))
         pos)
     (catch 'bound
+      (when (and (bobp)
+                 (> n 0)
+                 (get-text-property (point) 'mouse-face)
+                 (not (get-text-property (point) 'first-completion)))
+        (let ((inhibit-read-only t))
+          (add-text-properties (point) (1+ (point)) '(first-completion t)))
+        (setq n (1- n)))
+
       (while (> n 0)
         (setq pos (point))
         ;; If in a completion, move to the end of it.
@@ -10324,7 +10416,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
        (if (if (eq normal-erase-is-backspace 'maybe)
                (and (not noninteractive)
                     (or (memq system-type '(ms-dos windows-nt))
-			(memq window-system '(w32 ns pgtk))
+			(memq window-system '(w32 ns pgtk haiku))
                         (and (eq window-system 'x)
                              (fboundp 'x-backspace-delete-keys-p)
                              (x-backspace-delete-keys-p))

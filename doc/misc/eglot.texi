@@ -1104,7 +1104,7 @@ troubleshoot Eglot problems.  It also provides guidelines for
 reporting Eglot bugs in a way that facilitates their resolution.
 
 When you encounter problems with Eglot, try first using the commands
-@kbd{M-x eglot-events-server} and @kbd{M-x eglot-stderr-buffer}.  They
+@kbd{M-x eglot-events-buffer} and @kbd{M-x eglot-stderr-buffer}.  They
 pop up special buffers that can be used to inspect the communications
 between the Eglot and language server.  In many cases, this will
 indicate the problems or at least provide a hint.

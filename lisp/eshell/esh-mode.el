@@ -155,7 +155,8 @@ number, if the function `eshell-truncate-buffer' is on
     eshell-watch-for-password-prompt)
   "Functions to call before output is displayed.
 These functions are only called for output that is displayed
-interactively, and not for output which is redirected."
+interactively (see `eshell-interactive-filter'), and not for
+output which is redirected."
   :type 'hook)
 
 (defcustom eshell-preoutput-filter-functions nil
@@ -174,6 +175,8 @@ This is used by `eshell-watch-for-password-prompt'."
 (defcustom eshell-skip-prompt-function nil
   "A function called from beginning of line to skip the prompt."
   :type '(choice (const nil) function))
+
+(make-obsolete-variable 'eshell-skip-prompt-function nil "30.1")
 
 (defcustom eshell-status-in-mode-line t
   "If non-nil, let the user know a command is running in the mode line."
@@ -261,14 +264,13 @@ This is used by `eshell-watch-for-password-prompt'."
   "C-c"   'eshell-command-map
   "RET"   #'eshell-send-input
   "M-RET" #'eshell-queue-input
-  "C-M-l" #'eshell-show-output
-  "C-a"   #'eshell-bol)
+  "C-M-l" #'eshell-show-output)
 
 (defvar-keymap eshell-command-map
   :prefix 'eshell-command-map
   "M-o" #'eshell-mark-output
   "M-d" #'eshell-toggle-direct-send
-  "C-a" #'eshell-bol
+  "C-a" #'move-beginning-of-line
   "C-b" #'eshell-backward-argument
   "C-e" #'eshell-show-maximum-output
   "C-f" #'eshell-forward-argument
@@ -471,7 +473,7 @@ and the hook `eshell-exit-hook'."
 (defun eshell-move-argument (limit func property arg)
   "Move forward ARG arguments."
   (catch 'eshell-incomplete
-    (eshell-parse-arguments (save-excursion (eshell-bol) (point))
+    (eshell-parse-arguments (save-excursion (beginning-of-line) (point))
 			    (line-end-position)))
   (let ((pos (save-excursion
 	       (funcall func 1)
@@ -504,12 +506,7 @@ and the hook `eshell-exit-hook'."
     (kill-ring-save begin (point))
     (yank)))
 
-(defun eshell-bol ()
-  "Go to the beginning of line, then skip past the prompt, if any."
-  (interactive)
-  (beginning-of-line)
-  (and eshell-skip-prompt-function
-       (funcall eshell-skip-prompt-function)))
+(define-obsolete-function-alias 'eshell-bol #'beginning-of-line "30.1")
 
 (defsubst eshell-push-command-mark ()
   "Push a mark at the end of the last input text."
@@ -525,9 +522,13 @@ Putting this function on `eshell-pre-command-hook' will mimic Plan 9's
 
 (custom-add-option 'eshell-pre-command-hook #'eshell-goto-input-start)
 
-(defsubst eshell-interactive-print (string)
+(defun eshell-interactive-print (string)
   "Print STRING to the eshell display buffer."
-  (eshell-output-filter nil string))
+  (when string
+    (add-text-properties 0 (length string)
+                         '(field command-output rear-nonsticky (field))
+                         string)
+    (eshell-interactive-filter nil string)))
 
 (defsubst eshell-begin-on-new-line ()
   "This function outputs a newline if not at beginning of line."
@@ -687,14 +688,14 @@ newline."
 
 (custom-add-option 'eshell-input-filter-functions 'eshell-kill-new)
 
-(defun eshell-output-filter (process string)
-  "Send the output from PROCESS (STRING) to the interactive display.
+(defun eshell-interactive-filter (buffer string)
+  "Send output (STRING) to the interactive display, using BUFFER.
 This is done after all necessary filtering has been done."
-  (let ((oprocbuf (if process (process-buffer process)
-                    (current-buffer)))
-        (inhibit-modification-hooks t))
-    (when (and string oprocbuf (buffer-name oprocbuf))
-      (with-current-buffer oprocbuf
+  (unless buffer
+    (setq buffer (current-buffer)))
+  (when (and string (buffer-live-p buffer))
+    (let ((inhibit-modification-hooks t))
+      (with-current-buffer buffer
         (let ((functions eshell-preoutput-filter-functions))
           (while (and functions string)
             (setq string (funcall (car functions) string))
@@ -851,7 +852,7 @@ With a prefix argument, narrows region to last command output."
   (if (> (point) eshell-last-output-end)
       (kill-region eshell-last-output-end (point))
     (let ((here (point)))
-      (eshell-bol)
+      (beginning-of-line)
       (kill-region (point) here))))
 
 (defun eshell-show-maximum-output (&optional interactive)
@@ -879,17 +880,18 @@ If SCROLLBACK is non-nil, clear the scrollback contents."
     (erase-buffer)))
 
 (defun eshell-get-old-input (&optional use-current-region)
-  "Return the command input on the current line."
+  "Return the command input on the current line.
+If USE-CURRENT-REGION is non-nil, return the current region."
   (if use-current-region
       (buffer-substring (min (point) (mark))
 			(max (point) (mark)))
     (save-excursion
-      (beginning-of-line)
-      (and eshell-skip-prompt-function
-	   (funcall eshell-skip-prompt-function))
-      (let ((beg (point)))
-	(end-of-line)
-	(buffer-substring beg (point))))))
+      (let ((inhibit-field-text-motion t))
+        (end-of-line))
+      (let ((inhibit-field-text-motion)
+            (end (point)))
+        (beginning-of-line)
+        (buffer-substring (point) end)))))
 
 (defun eshell-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited."

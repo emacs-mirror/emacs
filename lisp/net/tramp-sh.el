@@ -1086,6 +1086,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-sh-handle-file-system-info)
     (file-truename . tramp-sh-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-sh-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -1131,119 +1132,55 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 
 (defun tramp-sh-handle-make-symbolic-link
     (target linkname &optional ok-if-already-exists)
-  "Like `make-symbolic-link' for Tramp files.
-If TARGET is a non-Tramp file, it is used verbatim as the target
-of the symlink.  If TARGET is a Tramp file, only the localname
-component is used as the target of the symlink."
-  (with-parsed-tramp-file-name (expand-file-name linkname) nil
-    ;; If TARGET is a Tramp name, use just the localname component.
-    ;; Don't check for a proper method.
-    (let ((non-essential t))
-      (when (and (tramp-tramp-file-p target)
-		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	(setq target (tramp-file-local-name (expand-file-name target))))
-      ;; There could be a cyclic link.
-      (tramp-flush-file-properties
-       v (expand-file-name target (tramp-file-local-name default-directory))))
+  "Like `make-symbolic-link' for Tramp files."
+  (let ((v (tramp-dissect-file-name (expand-file-name linkname))))
+    (unless (tramp-get-remote-ln v)
+      (tramp-error
+       v 'file-error
+       (concat "Making a symbolic link. "
+	       "ln(1) does not exist on the remote host."))))
 
-    ;; If TARGET is still remote, quote it.
-    (if (tramp-tramp-file-p target)
-	(make-symbolic-link
-	 (file-name-quote target 'top) linkname ok-if-already-exists)
-
-      (let ((ln (tramp-get-remote-ln v))
-	    (cwd (tramp-run-real-handler
-		  #'file-name-directory (list localname))))
-	(unless ln
-	  (tramp-error
-	   v 'file-error
-	   (concat "Making a symbolic link. "
-		   "ln(1) does not exist on the remote host.")))
-
-	;; Do the 'confirm if exists' thing.
-	(when (file-exists-p linkname)
-	  ;; What to do?
-	  (if (or (null ok-if-already-exists) ; not allowed to exist
-		  (and (numberp ok-if-already-exists)
-		       (not
-			(yes-or-no-p
-			 (format
-			  "File %s already exists; make it a link anyway?"
-			  localname)))))
-	      (tramp-error v 'file-already-exists localname)
-	    (delete-file linkname)))
-
-	(tramp-flush-file-properties v localname)
-
-	;; Right, they are on the same host, regardless of user,
-	;; method, etc.  We now make the link on the remote machine.
-	;; This will occur as the user that TARGET belongs to.
-	(and (tramp-send-command-and-check
-	      v (format "cd %s" (tramp-shell-quote-argument cwd)))
-             (tramp-send-command-and-check
-	      v (format
-		 "%s -sf %s %s" ln
-		 (tramp-shell-quote-argument target)
-		 ;; The command could exceed PATH_MAX, so we use
-		 ;; relative file names.  However, relative file names
-		 ;; could start with "-".
-		 ;; `tramp-shell-quote-argument' does not handle this,
-		 ;; we must do it ourselves.
-		 (tramp-shell-quote-argument
-                  (concat "./" (file-name-nondirectory localname))))))))))
+  (tramp-skeleton-handle-make-symbolic-link target linkname ok-if-already-exists
+    (and (tramp-send-command-and-check
+	  v (format
+	     "cd %s"
+	     (tramp-shell-quote-argument (file-name-directory localname))))
+         (tramp-send-command-and-check
+	  v (format
+	     "%s -sf %s %s" (tramp-get-remote-ln v)
+	     (tramp-shell-quote-argument target)
+	     ;; The command could exceed PATH_MAX, so we use relative
+	     ;; file names.
+	     (tramp-shell-quote-argument
+              (concat "./" (file-name-nondirectory localname))))))))
 
 (defun tramp-sh-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  ;; Preserve trailing "/".
-  (funcall
-   (if (directory-name-p filename) #'file-name-as-directory #'identity)
-   ;; Quote properly.
-   (funcall
-    (if (file-name-quoted-p filename) #'file-name-quote #'identity)
-    (with-parsed-tramp-file-name
-	(file-name-unquote (expand-file-name filename)) nil
-      (tramp-make-tramp-file-name
-       v
-       (with-tramp-file-property v localname "file-truename"
-	 (tramp-message v 4 "Finding true name for `%s'" filename)
-	 (let ((result
-		(cond
-		 ;; Use GNU readlink --canonicalize-missing where available.
-		 ((tramp-get-remote-readlink v)
-		  (tramp-send-command-and-check
-		   v (format "%s --canonicalize-missing %s"
-			     (tramp-get-remote-readlink v)
-			     (tramp-shell-quote-argument localname)))
-		  (with-current-buffer (tramp-get-connection-buffer v)
-		    (goto-char (point-min))
-		    (buffer-substring (point-min) (line-end-position))))
+  (tramp-skeleton-file-truename filename
+    (cond
+     ;; Use GNU readlink --canonicalize-missing where available.
+     ((tramp-get-remote-readlink v)
+      (tramp-send-command-and-check
+       v (format "%s --canonicalize-missing %s"
+		 (tramp-get-remote-readlink v)
+		 (tramp-shell-quote-argument localname)))
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(goto-char (point-min))
+	(buffer-substring (point-min) (line-end-position))))
 
-		 ;; Use Perl implementation.
-		 ((and (tramp-get-remote-perl v)
-		       (tramp-get-connection-property v "perl-file-spec")
-		       (tramp-get-connection-property v "perl-cwd-realpath"))
-		  (tramp-maybe-send-script
-		   v tramp-perl-file-truename "tramp_perl_file_truename")
-		  (tramp-send-command-and-read
-		   v (format "tramp_perl_file_truename %s"
-			     (tramp-shell-quote-argument localname))))
+     ;; Use Perl implementation.
+     ((and (tramp-get-remote-perl v)
+	   (tramp-get-connection-property v "perl-file-spec")
+	   (tramp-get-connection-property v "perl-cwd-realpath"))
+      (tramp-maybe-send-script
+       v tramp-perl-file-truename "tramp_perl_file_truename")
+      (tramp-send-command-and-read
+       v (format "tramp_perl_file_truename %s"
+		 (tramp-shell-quote-argument localname))))
 
-		 ;; Do it yourself.
-		 (t (tramp-file-local-name
-		     (tramp-handle-file-truename filename))))))
-
-	   ;; Detect cycle.
-	   (when (and (file-symlink-p filename)
-		      (string-equal result localname))
-	     (tramp-error
-	      v 'file-error
-	      "Apparent cycle of symbolic links for %s" filename))
-	   ;; If the resulting localname looks remote, we must quote it
-	   ;; for security reasons.
-	   (when (file-remote-p result)
-	     (setq result (file-name-quote result 'top)))
-	   (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	   result)))))))
+     ;; Do it yourself.
+     (t (tramp-file-local-name
+	 (tramp-handle-file-truename filename))))))
 
 ;; Basic functions.
 
@@ -1736,7 +1673,7 @@ ID-FORMAT valid values are `string' and `integer'."
     ;; Sometimes, when a connection is not established yet, it is
     ;; desirable to return t immediately for "/method:foo:".  It can
     ;; be expected that this is always a directory.
-    (or (zerop (length localname))
+    (or (tramp-string-empty-or-nil-p localname)
 	(with-tramp-file-property v localname "file-directory-p"
 	  (if-let
 	      ((truename (tramp-get-file-property v localname "file-truename"))
@@ -2349,7 +2286,7 @@ The method used must be an out-of-band method."
 	 copy-program copy-args copy-env copy-keep-date listener spec
 	 options source target remote-copy-program remote-copy-args p)
 
-    (if (and v1 v2 (zerop (length (tramp-scp-direct-remote-copying v1 v2))))
+    (if (and v1 v2 (string-empty-p (tramp-scp-direct-remote-copying v1 v2)))
 
 	;; Both are Tramp files.  We cannot use direct remote copying.
 	(let* ((dir-flag (file-directory-p filename))
@@ -2567,14 +2504,10 @@ The method used must be an out-of-band method."
 
 (defun tramp-sh-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (setq filename (expand-file-name (expand-file-name filename)))
-  (with-parsed-tramp-file-name filename nil
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (tramp-barf-unless-okay
-       v (format "rm -f %s" (tramp-shell-quote-argument localname))
-       "Couldn't delete %s" filename))
-    (tramp-flush-file-properties v localname)))
+  (tramp-skeleton-delete-file filename trash
+    (tramp-barf-unless-okay
+     v (format "rm -f %s" (tramp-shell-quote-argument localname))
+       "Couldn't delete %s" filename)))
 
 ;; Dired.
 
@@ -2688,9 +2621,9 @@ The method used must be an out-of-band method."
 		   (tramp-get-ls-command v)
 		   switches
 		   (if (or wildcard
-			   (zerop (length
-				   (tramp-run-real-handler
-				    #'file-name-nondirectory (list localname)))))
+			   (tramp-string-empty-or-nil-p
+			    (tramp-run-real-handler
+			     #'file-name-nondirectory (list localname))))
 		       ""
 		     (tramp-shell-quote-argument
 		      (tramp-run-real-handler
@@ -2807,7 +2740,8 @@ the result will be a local, non-Tramp, file name."
   ;; If DIR is not given, use `default-directory' or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; On MS Windows, some special file names are not returned properly
   ;; by `file-name-absolute-p'.  If `tramp-syntax' is `simplified',
   ;; there could be the false positive "/:".
@@ -2842,7 +2776,7 @@ the result will be a local, non-Tramp, file name."
 	    ;; the default user name for tilde expansion is not
 	    ;; appropriate either, because ssh and companions might
 	    ;; use a user name from the config file.
-	    (when (and (zerop (length uname))
+	    (when (and (tramp-string-empty-or-nil-p uname)
 		       (string-match-p (rx bos "su" (? "do") eos) method))
 	      (setq uname user))
 	    (when (setq hname (tramp-get-home-directory v uname))
@@ -2943,7 +2877,7 @@ implementation will be used."
 		 (heredoc (and (not (bufferp stderr))
 			       (stringp program)
 			       (string-match-p (rx "sh" eol) program)
-			       (= (length args) 2)
+			       (tramp-compat-length= args 2)
 			       (string-equal "-c" (car args))
 			       ;; Don't if there is a quoted string.
 			       (not
@@ -2953,7 +2887,7 @@ implementation will be used."
 		 ;; When PROGRAM is nil, we just provide a tty.
 		 (args (if (not heredoc) args
 			 (let ((i 250))
-			   (while (and (< i (length (cadr args)))
+			   (while (and (not (tramp-compat-length< (cadr args) i))
 				       (string-match " " (cadr args) i))
 			     (setcdr
 			      args
@@ -3935,7 +3869,7 @@ Fall back to normal file name handler if no Tramp handler exists."
     ;; Save rest of the string.
     (while (string-match (rx bol "\n") string)
       (setq string (replace-match "" nil nil string)))
-    (when (zerop (length string)) (setq string nil))
+    (when (string-empty-p string) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
     (process-put proc 'rest-string string)))
 
@@ -4180,7 +4114,7 @@ variable PATH."
             'noerror)))
 	tmpfile chunk chunksize)
     (tramp-message vec 5 "Setting $PATH environment variable")
-    (if (< (length command) pipe-buf)
+    (if (tramp-compat-length< command pipe-buf)
 	(tramp-send-command vec command)
       ;; Use a temporary file.  We cannot use `write-region' because
       ;; setting the remote path happens in the early connection
@@ -4569,7 +4503,7 @@ process to set up.  VEC specifies the connection."
 
     ;; Set `remote-tty' process property.
     (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"" 'noerror)))
-      (unless (zerop (length tty))
+      (unless (string-empty-p tty)
 	(process-put proc 'remote-tty tty)
 	(tramp-set-connection-property proc "remote-tty" tty)))
 
@@ -5142,7 +5076,7 @@ connection if a previous connection has died for some reason."
 	(unless (process-live-p p)
 	  (with-tramp-progress-reporter
 	      vec 3
-	      (if (zerop (length (tramp-file-name-user vec)))
+	      (if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
 		  (format "Opening connection %s for %s using %s"
 			  process-name
 			  (tramp-file-name-host vec)
@@ -5515,7 +5449,7 @@ raises an error."
     (cond
      ((tramp-get-method-parameter vec 'tramp-remote-copy-program)
       localname)
-     ((zerop (length user)) (format "%s:%s" host localname))
+     ((tramp-string-empty-or-nil-p user) (format "%s:%s" host localname))
      (t (format "%s@%s:%s" user host localname)))))
 
 (defun tramp-method-out-of-band-p (vec size)

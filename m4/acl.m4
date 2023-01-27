@@ -1,5 +1,5 @@
 # acl.m4 - check for access control list (ACL) primitives
-# serial 25
+# serial 27
 
 # Copyright (C) 2002, 2004-2023 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
@@ -17,7 +17,7 @@ AC_DEFUN([gl_FUNC_ACL_ARG],
 ])
 
 
-AC_DEFUN([gl_FUNC_ACL],
+AC_DEFUN_ONCE([gl_FUNC_ACL],
 [
   AC_REQUIRE([gl_FUNC_ACL_ARG])
   AC_CHECK_FUNCS_ONCE([fchmod])
@@ -141,7 +141,6 @@ int type = ACL_TYPE_EXTENDED;]])],
   fi
   if test -n "$gl_need_lib_has_acl"; then
     FILE_HAS_ACL_LIB=$LIB_ACL
-    LIB_HAS_ACL="$FILE_HAS_ACL_LIB"
   fi
   AC_SUBST([LIB_ACL])
   AC_DEFINE_UNQUOTED([USE_ACL], [$use_acl],
@@ -211,7 +210,4 @@ AC_DEFUN([gl_FILE_HAS_ACL],
     FILE_HAS_ACL_LIB=$LIB_ACL
   fi
   AC_SUBST([FILE_HAS_ACL_LIB])
-  dnl For backward compatibility (e.g. coreutils still uses LIB_HAS_ACL).
-  LIB_HAS_ACL="$FILE_HAS_ACL_LIB"
-  AC_SUBST([LIB_HAS_ACL])
 ])

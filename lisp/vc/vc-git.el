@@ -1289,6 +1289,7 @@ If PROMPT is non-nil, prompt for the Git command to run."
                           (lambda (_name-of-mode) buffer)
                           nil))))
     (vc-set-async-update buffer)
+    ;; Return the process for `vc-pull-and-push'
     proc))
 
 (defun vc-git-pull (prompt)
@@ -1302,25 +1303,6 @@ for the Git command to run."
 Normally, this runs \"git push\".  If PROMPT is non-nil, prompt
 for the Git command to run."
   (vc-git--pushpull "push" prompt nil))
-
-(defun vc-git-pull-and-push (prompt)
-  "Pull changes into the current Git branch, and then push.
-The push will only be performed if the pull was successful.
-
-Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
-for the Git command to run."
-  (let ((proc (vc-git--pushpull "pull" prompt '("--stat"))))
-    (when (process-buffer proc)
-      (with-current-buffer (process-buffer proc)
-        (if (and (eq (process-status proc) 'exit)
-                 (zerop (process-exit-status proc)))
-            (let ((vc--inhibit-async-window t))
-              (vc-git-push nil))
-          (vc-exec-after
-           (lambda ()
-             (let ((vc--inhibit-async-window t))
-               (vc-git-push nil)))
-           proc))))))
 
 (defun vc-git-merge-branch ()
   "Merge changes into the current Git branch.

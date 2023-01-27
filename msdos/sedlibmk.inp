@@ -270,7 +270,6 @@ s/@PACKAGE@/emacs/
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LD_FIRSTFLAG *=/s/@[^@\n]*@//
 /^LIB_PTHREAD *=/s/@[^@\n]*@//
-/^LIB_PTHREAD_SIGMASK *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
 /^MAKEINFO *=/s/@MAKEINFO@/makeinfo/
 # MKDIR_P lines are edited further below
@@ -323,7 +322,7 @@ s/@PACKAGE@/emacs/
 /^REPLACE_MKTIME *=/s/@[^@\n]*@/1/
 # We don't want any other gnulib replacement functions
 /^REPLACE_[^ =]* *= *@/s/@[^@\n]*@/0/
-/^LIB_GETRANDOM[^ =]* *= *@/s/@[^@\n]*@//
+/^GETRANDOM_LIB[^ =]* *= *@/s/@[^@\n]*@//
 /^SIG_ATOMIC_T_SUFFIX *=/s/@SIG_ATOMIC_T_SUFFIX@//
 /^SIZE_T_SUFFIX *=/s/@SIZE_T_SUFFIX@/u/
 /^ASSERT_H *=/s/@[^@\n]*@/assert.h/

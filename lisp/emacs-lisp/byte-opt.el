@@ -1380,6 +1380,9 @@ See Info node `(elisp) Integer Basics'."
            ;; (apply F ... (list X Y ...)) -> (funcall F ... X Y ...)
            ((eq (car-safe last) 'list)
             `(funcall ,fn ,@(butlast (cddr form)) ,@(cdr last)))
+           ;; (apply F ... (cons X Y)) -> (apply F ... X Y)
+           ((eq (car-safe last) 'cons)
+            (append (butlast form) (cdr last)))
            (t form)))
       form)))
 

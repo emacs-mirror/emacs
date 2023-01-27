@@ -798,6 +798,7 @@ It has been changed in GVFS 1.14.")
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-gvfs-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
+    (file-user-uid . tramp-handle-file-user-uid)
     (file-writable-p . tramp-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
@@ -1139,25 +1140,23 @@ file names."
 
 (defun tramp-gvfs-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-flush-file-properties v localname)
-    (if (and delete-by-moving-to-trash trash)
-	(move-file-to-trash filename)
-      (unless (and (tramp-gvfs-send-command
-		    v "gvfs-rm" (tramp-gvfs-url-file-name filename))
-		   (not (tramp-gvfs-info filename)))
-	;; Propagate the error.
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (goto-char (point-min))
-	  (tramp-error-with-buffer
-	   nil v 'file-error "Couldn't delete %s" filename))))))
+  (tramp-skeleton-delete-file filename trash
+    (unless (and (tramp-gvfs-send-command
+		  v "gvfs-rm" (tramp-gvfs-url-file-name filename))
+		 (not (tramp-gvfs-info filename)))
+      ;; Propagate the error.
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(goto-char (point-min))
+	(tramp-error-with-buffer
+	 nil v 'file-error "Couldn't delete %s" filename)))))
 
 (defun tramp-gvfs-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
   ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
   (setq dir (or dir default-directory "/"))
   ;; Handle empty NAME.
-  (when (zerop (length name)) (setq name "."))
+  (when (string-empty-p name)
+    (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (tramp-compat-file-name-concat dir name)))
@@ -1172,7 +1171,7 @@ file names."
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
-	  (when (zerop (length uname))
+	  (when (tramp-string-empty-or-nil-p uname)
 	    (setq uname user))
 	  (when (setq hname (tramp-get-home-directory v uname))
 	    (setq localname (concat hname fname)))))
@@ -1533,7 +1532,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
            'file-notify-callback (list proc action file file1)))))
 
     ;; Save rest of the string.
-    (when (zerop (length string)) (setq string nil))
+    (when (string-empty-p string) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
     (process-put proc 'rest-string string)))
 
@@ -1614,7 +1613,7 @@ VEC or USER, or if there is no home directory, return nil."
   (let ((localname (tramp-get-connection-property vec "default-location"))
 	result)
     (cond
-     ((zerop (length localname))
+     ((tramp-string-empty-or-nil-p localname)
       (tramp-get-connection-property (tramp-get-process vec) "share"))
      ;; Google-drive.
      ((not (string-prefix-p "/" localname))
@@ -1746,11 +1745,11 @@ a downcased host name only."
 
     (condition-case nil
 	(with-parsed-tramp-file-name filename l
-	  (when (and (zerop (length user))
+	  (when (and (tramp-string-empty-or-nil-p user)
 		     (not
 		      (zerop (logand flags tramp-gvfs-password-need-username))))
 	    (setq user (read-string "User name: ")))
-	  (when (and (zerop (length domain))
+	  (when (and (tramp-string-empty-or-nil-p domain)
 		     (not
 		      (zerop (logand flags tramp-gvfs-password-need-domain))))
 	    (setq domain (read-string "Domain name: ")))
@@ -2187,7 +2186,7 @@ connection if a previous connection has died for some reason."
 
       (with-tramp-progress-reporter
 	  vec 3
-	  (if (zerop (length user))
+	  (if (tramp-string-empty-or-nil-p user)
 	      (format "Opening connection for %s using %s" host method)
 	    (format "Opening connection for %s@%s using %s" user host method))
 
@@ -2237,7 +2236,7 @@ connection if a previous connection has died for some reason."
 	(with-timeout
 	    ((or (tramp-get-method-parameter vec 'tramp-connection-timeout)
 		 tramp-connection-timeout)
-	     (if (zerop (length (tramp-file-name-user vec)))
+	     (if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
 		 (tramp-error
 		  vec 'file-error
 		  "Timeout reached mounting %s using %s" host method)
@@ -2416,7 +2415,7 @@ VEC is used only for traces."
     ;; Adapt default host name, supporting /mtp:: when possible.
     (setq tramp-default-host-alist
 	  (append
-	   `(("mtp" nil ,(if (= (length devices) 1) (car devices) "")))
+	   `(("mtp" nil ,(if (tramp-compat-length= devices 1) (car devices) "")))
 	   (delete
 	    (assoc "mtp" tramp-default-host-alist)
 	    tramp-default-host-alist)))))
