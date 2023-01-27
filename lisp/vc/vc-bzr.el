@@ -381,7 +381,9 @@ If PROMPT is non-nil, prompt for the Bzr command to run."
           (setq-local compile-command
                       (concat vc-bzr-program " " command " "
                               (if args (mapconcat #'identity args " ") "")))))
-      (vc-set-async-update buf))))
+      (vc-set-async-update buf)
+      ;; Return the process for `vc-pull-and-push'
+      (get-buffer-process buf))))
 
 (defun vc-bzr-pull (prompt)
   "Pull changes into the current Bzr branch.

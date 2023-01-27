@@ -1,4 +1,4 @@
-;;; erc-scenarios-local-modules.el --- Local modules tests for ERC -*- lexical-binding: t -*-
+;;; erc-scenarios-base-local-modules.el --- Local-module tests for ERC -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
@@ -22,14 +22,15 @@
 ;; A local module doubles as a minor mode whose mode variable and
 ;; associated local data can withstand service disruptions.
 ;; Unfortunately, the current implementation is too unwieldy to be
-;; made public because it doesn't perform any of the boiler plate
-;; needed to save and restore buffer-local and "network-local" copies
-;; of user options.  Ultimately, a user-friendly framework must fill
-;; this void if third-party local modules are ever to become
+;; promoted publicly because it doesn't perform any of the boiler
+;; plate needed to save and restore buffer-local and "network-local"
+;; copies of user options.  Ultimately, a user-friendly framework must
+;; fill this void if third-party local modules are ever to become
 ;; practical.
 ;;
 ;; The following tests all use `sasl' because, as of ERC 5.5, it's the
-;; only local module.
+;; only connection-oriented local module.  A fictitious
+;; target-oriented module is defined below for testing purposes.
 
 ;;; Code:
 
@@ -325,4 +326,4 @@
         (funcall expect 10 "User modes for tester")
         (should (eql erc-scenarios-base-local-modules--local-var 1))))))
 
-;;; erc-scenarios-local-modules.el ends here
+;;; erc-scenarios-base-local-modules.el ends here

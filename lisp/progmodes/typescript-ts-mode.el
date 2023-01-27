@@ -132,26 +132,21 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 Argument LANGUAGE is either `typescript' or `tsx'."
   (treesit-font-lock-rules
    :language language
-   :override t
    :feature 'comment
    `((comment) @font-lock-comment-face)
 
    :language language
-   :override t
    :feature 'constant
    `(((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
-
      [(true) (false) (null)] @font-lock-constant-face)
 
    :language language
-   :override t
    :feature 'keyword
    `([,@typescript-ts-mode--keywords] @font-lock-keyword-face
      [(this) (super)] @font-lock-keyword-face)
 
    :language language
-   :override t
    :feature 'string
    `((regex pattern: (regex_pattern)) @font-lock-regexp-face
      (string) @font-lock-string-face
@@ -159,7 +154,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      (template_substitution ["${" "}"] @font-lock-misc-punctuation-face))
 
    :language language
-   :override t
+   :override t ;; for functions assigned to variables
    :feature 'declaration
    `((function
       name: (identifier) @font-lock-function-name-face)
@@ -173,6 +168,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       name: (property_identifier) @font-lock-function-name-face)
      (required_parameter (identifier) @font-lock-variable-name-face)
      (optional_parameter (identifier) @font-lock-variable-name-face)
+
+     (variable_declarator
+      name: (identifier) @font-lock-function-name-face
+      value: [(function) (arrow_function)])
 
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
@@ -189,10 +188,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       parameter: (identifier) @font-lock-variable-name-face)
 
      (variable_declarator
-      name: (identifier) @font-lock-function-name-face
-      value: [(function) (arrow_function)])
-
-     (variable_declarator
       name: (array_pattern
              (identifier)
              (identifier) @font-lock-function-name-face)
@@ -205,7 +200,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      (import_clause (named_imports (import_specifier (identifier)) @font-lock-variable-name-face)))
 
    :language language
-   :override t
    :feature 'identifier
    `((nested_type_identifier
       module: (identifier) @font-lock-type-face)
@@ -234,7 +228,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
        (_ (_ (_ (identifier) @font-lock-variable-name-face)))]))
 
    :language language
-   :override t
    :feature 'property
    `((property_signature
       name: (property_identifier) @font-lock-property-face)
@@ -249,7 +242,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
       @font-lock-property-face))
 
    :language language
-   :override t
    :feature 'expression
    '((assignment_expression
       left: [(identifier) @font-lock-function-name-face
@@ -266,7 +258,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
         property: (property_identifier) @font-lock-function-name-face)]))
 
    :language language
-   :override t
    :feature 'pattern
    `((pair_pattern
       key: (property_identifier) @font-lock-property-face)
@@ -274,7 +265,6 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      (array_pattern (identifier) @font-lock-variable-name-face))
 
    :language language
-   :override t
    :feature 'jsx
    `((jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]

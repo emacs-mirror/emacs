@@ -296,8 +296,13 @@ Used only on systems which do not support async subprocesses.")
                                                      'unix))))
     (cond
      ((fboundp 'make-process)
-      (unless (equal (car (aref eshell-current-handles eshell-output-handle))
-                     (car (aref eshell-current-handles eshell-error-handle)))
+      (unless (or ;; FIXME: It's not currently possible to use a
+                  ;; stderr process for remote files.
+                  (file-remote-p default-directory)
+                  (equal (car (aref eshell-current-handles
+                                    eshell-output-handle))
+                         (car (aref eshell-current-handles
+                                    eshell-error-handle))))
         (eshell-protect-handles eshell-current-handles)
         (setq stderr-proc
               (make-pipe-process

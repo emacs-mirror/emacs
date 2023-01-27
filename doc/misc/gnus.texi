@@ -12106,17 +12106,6 @@ if they were public groups, you can add the name of that group to the
 
 Also @pxref{Misc Article} for @code{gnus-inhibit-images}.
 
-@item gnus-html-cache-directory
-@vindex gnus-html-cache-directory
-Gnus will download and cache images according to how
-@code{gnus-blocked-images} is set.  These images will be stored in
-this directory.
-
-@item gnus-html-cache-size
-@vindex gnus-html-cache-size
-When @code{gnus-html-cache-size} bytes have been used in that
-directory, the oldest files will be deleted.  The default is 500MB.
-
 @item gnus-html-frame-width
 @vindex gnus-html-frame-width
 The width to use when rendering HTML@.  The default is 70.

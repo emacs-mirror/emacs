@@ -1289,6 +1289,7 @@ If PROMPT is non-nil, prompt for the Git command to run."
                           (lambda (_name-of-mode) buffer)
                           nil))))
     (vc-set-async-update buffer)
+    ;; Return the process for `vc-pull-and-push'
     proc))
 
 (defun vc-git-pull (prompt)

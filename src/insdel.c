@@ -1175,9 +1175,20 @@ insert_from_buffer (struct buffer *buf,
 {
   ptrdiff_t opoint = PT;
 
+#ifdef HAVE_TREE_SITTER
+  ptrdiff_t obyte = PT_BYTE;
+#endif
+
   insert_from_buffer_1 (buf, charpos, nchars, inherit);
   signal_after_change (opoint, 0, PT - opoint);
   update_compositions (opoint, PT, CHECK_BORDER);
+
+#ifdef HAVE_TREE_SITTER
+  eassert (PT_BYTE >= BEG_BYTE);
+  eassert (obyte >= BEG_BYTE);
+  eassert (PT_BYTE >= obyte);
+  treesit_record_change (obyte, obyte, PT_BYTE);
+#endif
 }
 
 static void
@@ -1304,12 +1315,6 @@ insert_from_buffer_1 (struct buffer *buf,
 
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, PT, nchars, current_buffer, inherit);
-
-#ifdef HAVE_TREE_SITTER
-  eassert (outgoing_nbytes >= 0);
-  eassert (PT_BYTE >= 0);
-  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + outgoing_nbytes);
-#endif
 
   adjust_point (nchars, outgoing_nbytes);
 }
