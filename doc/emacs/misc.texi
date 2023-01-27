@@ -751,6 +751,8 @@ Command Output*"} (@code{shell-command-buffer-name}) buffer (if the
 output is long).  The variables @code{resize-mini-windows} and
 @code{max-mini-window-height} (@pxref{Minibuffer Edit}) control when
 Emacs should consider the output to be too long for the echo area.
+Note that customizing @code{shell-command-dont-erase-buffer},
+described below, can affect what is displayed in the echo area.
 
   For instance, one way to decompress a file named @file{foo.gz} is to
 type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
@@ -866,6 +868,10 @@ end of the output buffer.
 Restores the position of point as it was before inserting the
 shell-command output.
 @end table
+
+Note that if this option is non-@code{nil}, the output shown in the
+echo area could be from more than just the last command, since the
+echo area just displays a portion of the output buffer.
 
 In case the output buffer is not the current buffer, shell command
 output is appended at the end of this buffer.
