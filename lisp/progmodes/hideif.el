@@ -555,8 +555,8 @@ that form should be displayed.")
 (defconst hif-line-concat     "\\\\[ \t]*[\n\r]")
 ;; If `hif-white-regexp' is modified, `hif-tokenize' might need to be modified
 ;; accordingly.
-(defconst hif-white-regexp    (concat "\\(?:\\(?:[ \t]\\|/\\*.*\\*/\\)*"
-                                      "\\(?:" hif-line-concat "\\)?\\)*"))
+(defconst hif-white-regexp    (concat "\\(?:[ \t]\\|/\\*.*?\\*/"
+                                      "\\|\\(?:" hif-line-concat "\\)\\)*"))
 (defconst hif-define-regexp   (concat hif-cpp-prefix "\\(define\\|undef\\)"))
 (defconst hif-id-regexp       (concat "[[:alpha:]_][[:alnum:]_]*"))
 (defconst hif-etc-regexp      "\\.\\.\\.")
@@ -946,8 +946,8 @@ Assuming we've just performed a `hif-token-regexp' lookup."
   (let ((token-list nil)
         ;; Similar to `hif-white-regexp' but keep the spaces if there are
         (white-regexp (concat "\\(?:"
-                              "\\(?:\\([ \t]+\\)\\|\\(?:/\\*.*\\*/\\)?\\)*"
-                              "\\(?:" hif-line-concat "\\)?"
+                              "\\([ \t]+\\)\\|/\\*.*?\\*/"
+                              "\\|\\(?:" hif-line-concat "\\)"
                               "\\)*"))
         token)
     (setq hif-simple-token-only t)
