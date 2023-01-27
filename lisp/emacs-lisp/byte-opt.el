@@ -2227,18 +2227,12 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	 ;;
 	 ;; goto   ... --> goto   <delete until TAG or end>
 	 ;; return ... --> return <delete until TAG or end>
-	 ;; (unless a jump-table is being used, where deleting may affect
-         ;; other valid case bodies)
          ;;
 	 ((and (memq (car lap0) '(byte-goto byte-return))
-	       (not (memq (car lap1) '(TAG nil)))
-               ;; FIXME: Instead of deferring simply when jump-tables are
-               ;; being used, keep a list of tags used for switch tags and
-               ;; use them instead (see `byte-compile-inline-lapcode').
-               (not byte-compile-jump-tables))
+	       (not (memq (car lap1) '(TAG nil))))
 	  (setq tmp rest)
 	  (let ((i 0)
-		(opt-p (memq byte-optimize-log '(t lap)))
+		(opt-p (memq byte-optimize-log '(t byte)))
 		str deleted)
 	    (while (and (setq tmp (cdr tmp))
 			(not (eq 'TAG (car (car tmp)))))
