@@ -83,6 +83,7 @@
 #include <stdio.h>      /* snprintf(), sprintf() */
 #include <stdlib.h>     /* abort(), malloc(), realloc(), free() */
 #include <string.h>     /* memcpy(), strlen() */
+#include <wchar.h>      /* mbstate_t, mbrtowc(), mbrlen(), wcrtomb() */
 #include <errno.h>      /* errno */
 #include <limits.h>     /* CHAR_BIT */
 #include <float.h>      /* DBL_MAX_EXP, LDBL_MAX_EXP */

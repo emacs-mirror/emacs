@@ -20,8 +20,22 @@
 /* Define two obsolescent C11 macros, assuming alignas and alignof are
    either keywords or alignasof-defined macros.  */
 
-#ifndef _GL_STDALIGN_H
-#define _GL_STDALIGN_H
+#ifndef _@GUARD_PREFIX@_STDALIGN_H
+
+#if __GNUC__ >= 3
+@PRAGMA_SYSTEM_HEADER@
+#endif
+@PRAGMA_COLUMNS@
+
+/* We need to include the system's <stdalign.h> when it exists, because it might
+   define 'alignof' as a macro when it's not a keyword or compiler built-in.  */
+#if @HAVE_STDALIGN_H@
+/* The include_next requires a split double-inclusion guard.  */
+# @INCLUDE_NEXT@ @NEXT_STDALIGN_H@
+#endif
+
+#ifndef _@GUARD_PREFIX@_STDALIGN_H
+#define _@GUARD_PREFIX@_STDALIGN_H
 
 #if (defined alignas \
      || (defined __STDC_VERSION__ && 202311 <= __STDC_VERSION__) \
@@ -31,4 +45,5 @@
 
 #define __alignof_is_defined 1
 
-#endif /* _GL_STDALIGN_H */
+#endif /* _@GUARD_PREFIX@_STDALIGN_H */
+#endif /* _@GUARD_PREFIX@_STDALIGN_H */
