@@ -48,6 +48,8 @@
                                                      &optional _ignored)
   "Set up the window system.  WINDOW-SYSTEM must be ANDROID.
 DISPLAY is ignored on Android."
+  ;; Create the default fontset.
+  (create-default-fontset)
   ;; Just make sure the window system was initialized at startup.
   (android-get-connection))
 
