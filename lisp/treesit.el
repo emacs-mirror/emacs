@@ -554,7 +554,25 @@ omitted, default END to BEG."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
-(defvar-local treesit-font-lock-level 3
+(defun treesit--font-lock-level-setter (sym val)
+  "Custom setter for `treesit-font-lock-level'."
+  (set-default sym val)
+  (named-let loop ((res nil)
+                   (buffers (buffer-list)))
+    (if (null buffers)
+        (mapc (lambda (b)
+                (with-current-buffer b
+                  (setq-local treesit-font-lock-level val)
+                  (treesit-font-lock-recompute-features)
+                  (treesit-font-lock-fontify-region (point-min) (point-max))))
+              res)
+      (let ((buffer (car buffers)))
+        (with-current-buffer buffer
+          (if (treesit-parser-list)
+              (loop (append res (list buffer)) (cdr buffers))
+            (loop res (cdr buffers))))))))
+
+(defcustom treesit-font-lock-level 3
   "Decoration level to be used by tree-sitter fontifications.
 
 Major modes categorize their fontification features into levels,
@@ -571,7 +589,10 @@ operators, brackets, all functions and variables, etc.
 In addition to the decoration level, individual features can be
 turned on/off by calling `treesit-font-lock-recompute-features'.
 Changing the decoration level requires calling
-`treesit-font-lock-recompute-features' to have an effect.")
+`treesit-font-lock-recompute-features' to have an effect."
+  :type 'integer
+  :set #'treesit--font-lock-level-setter
+  :version "29.1")
 
 (defvar-local treesit--font-lock-query-expand-range (cons 0 0)
   "The amount to expand the start and end of the region when fontifying.
