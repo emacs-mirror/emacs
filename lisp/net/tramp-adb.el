@@ -55,7 +55,7 @@ It is used for TCP/IP devices."
 (defconst tramp-adb-method "adb"
   "When this method name is used, forward all calls to Android Debug Bridge.")
 
-(defcustom tramp-adb-prompt (rx bol (* (not (any "#$\n\r"))) (any "#$") blank)
+(defcustom tramp-adb-prompt (rx bol (* (not (any "#$\r\n"))) (any "#$") blank)
   "Regexp used as prompt in almquist shell."
   :type 'regexp
   :version "28.1"
@@ -1005,17 +1005,19 @@ implementation will be used."
 			    ;; file will exist until the process is
 			    ;; deleted.
 			    (when (bufferp stderr)
-			      (with-current-buffer stderr
-			        (insert-file-contents-literally
-			         remote-tmpstderr 'visit))
+			      (ignore-errors
+				(with-current-buffer stderr
+			          (insert-file-contents-literally
+			           remote-tmpstderr 'visit)))
 			      ;; Delete tmpstderr file.
 			      (add-function
 			       :after (process-sentinel p)
 			       (lambda (_proc _msg)
-			         (with-current-buffer stderr
-				   (insert-file-contents-literally
-				    remote-tmpstderr 'visit nil nil 'replace))
-			         (delete-file remote-tmpstderr))))
+				 (ignore-errors
+			           (with-current-buffer stderr
+				     (insert-file-contents-literally
+				      remote-tmpstderr 'visit nil nil 'replace))
+			           (delete-file remote-tmpstderr)))))
 			    ;; Return process.
 			    p))))
 
