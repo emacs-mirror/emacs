@@ -2948,7 +2948,14 @@ killed.  */
 #ifndef WINDOWSNT
   /* Do some checking before shutting down Emacs, because errors
      can't be meaningfully reported afterwards.  */
-  if (!NILP (restart))
+  if (!NILP (restart)
+      /* Don't perform the following checks when Emacs is running as
+	 an Android GUI application, because there the system is
+	 relied on to restart Emacs.  */
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+      && !android_init_gui
+#endif
+      )
     {
       /* This is very unlikely, but it's possible to execute a binary
 	 (on some systems) with no argv.  */
@@ -3010,6 +3017,13 @@ killed.  */
   if (!NILP (restart))
     {
       turn_on_atimers (false);
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+      /* Re-executing the Emacs process created by the system doesn't
+	 work.  Instead, schedule a restart for a few hundered
+	 milliseconds and exit Emacs.  */
+      if (android_init_gui)
+	android_restart_emacs ();
+#endif
 #ifdef WINDOWSNT
       if (w32_reexec_emacs (initial_cmdline, initial_wd) < 0)
 #else

@@ -97,6 +97,7 @@ struct android_emacs_service
   jmethodID name_keysym;
   jmethodID sync;
   jmethodID browse_url;
+  jmethodID restart_emacs;
 };
 
 struct android_emacs_pixmap
@@ -1659,6 +1660,7 @@ android_init_emacs_service (void)
   FIND_METHOD (sync, "sync", "()V");
   FIND_METHOD (browse_url, "browseUrl", "(Ljava/lang/String;)"
 	       "Ljava/lang/String;");
+  FIND_METHOD (restart_emacs, "restartEmacs", "()V");
 #undef FIND_METHOD
 }
 
@@ -4985,6 +4987,23 @@ android_browse_url (Lisp_Object url)
   /* And return it.  */
   ANDROID_DELETE_LOCAL_REF (value);
   return tem;
+}
+
+/* Tell the system to restart Emacs in a short amount of time, and
+   then kill Emacs.  Never return.  This is used to implement
+   `restart-emacs'.  */
+
+_Noreturn void
+android_restart_emacs (void)
+{
+  /* Try to call the Java side function.  Normally, this should call
+     System.exit to terminate this process.  */
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       emacs_service,
+				       service_class.restart_emacs);
+
+  /* Exit anyway, in case EmacsService did not do so.  */
+  exit (0);
 }
 
 

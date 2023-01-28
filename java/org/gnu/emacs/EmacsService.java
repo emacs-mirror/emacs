@@ -611,4 +611,16 @@ public class EmacsService extends Service
 
     return manager.thing;
   }
+
+  public void
+  restartEmacs ()
+  {
+    Intent intent;
+
+    intent = new Intent (this, EmacsActivity.class);
+    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
+		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+    startActivity (intent);
+    System.exit (0);
+  }
 };
