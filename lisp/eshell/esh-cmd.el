@@ -745,9 +745,9 @@ if none)."
 ;;   `condition-case', `if', `let', `prog1', `progn', `quote', `setq',
 ;;   `unwind-protect', and `while'.
 ;;
-;; @ When using `if' or `while', first let-bind `eshell-test-body' and
+;; @ When using `while', first let-bind `eshell-test-body' and
 ;;   `eshell-command-body' to '(nil).  Eshell uses these variables to
-;;   handle conditional evaluation.
+;;   handle evaluating its subforms multiple times.
 ;;
 ;; @ The two `special' variables are `eshell-current-handles' and
 ;;   `eshell-current-subjob-p'.  Bind them locally with a `let' if you
@@ -1031,9 +1031,7 @@ produced by `eshell-parse-command'."
       ;; We can just stick the new command at the end of the current
       ;; one, and everything will happen as it should.
       (setcdr (last (cdr eshell-current-command))
-              (list `(let ((here (and (eobp) (point)))
-                           (eshell-command-body '(nil))
-                           (eshell-test-body '(nil)))
+              (list `(let ((here (and (eobp) (point))))
                        ,(and input
                              `(insert-and-inherit ,(concat input "\n")))
                        (if here
@@ -1149,23 +1147,17 @@ have been replaced by constants."
           (setcar eshell-test-body (copy-tree (car args))))
 	(setcar eshell-command-body nil))
        ((eq (car form) 'if)
-        ;; `copy-tree' is needed here so that the test argument
-	;; doesn't get modified and thus always yield the same result.
-	(if (car eshell-command-body)
-	    (progn
-	      (cl-assert (not synchronous-p))
-	      (eshell-do-eval (car eshell-command-body)))
-	  (unless (car eshell-test-body)
-            (setcar eshell-test-body (copy-tree (car args))))
-	  (setcar eshell-command-body
-                  (copy-tree
-                   (if (cadr (eshell-do-eval (car eshell-test-body)
-                                             synchronous-p))
-                       (cadr args)
-                     (car (cddr args)))))
-	  (eshell-do-eval (car eshell-command-body) synchronous-p))
-	(setcar eshell-command-body nil)
-	(setcar eshell-test-body nil))
+        (eshell-manipulate "evaluating if condition"
+          (setcar args (eshell-do-eval (car args) synchronous-p)))
+        (eshell-do-eval
+         (cond
+          ((eval (car args))            ; COND is non-nil
+           (cadr args))
+          ((cdddr args)                 ; Multiple ELSE forms
+           `(progn ,@(cddr args)))
+          (t                            ; Zero or one ELSE forms
+           (caddr args)))
+         synchronous-p))
        ((eq (car form) 'setcar)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eval form))
