@@ -1062,6 +1062,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-xml2=$with_xml2"
   passthrough="$passthrough --with-sqlite3=$with_sqlite3"
   passthrough="$passthrough --with-gnutls=$with_gnutls"
+  passthrough="$passthrough --with-tiff=$with_tiff"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1120,7 +1121,6 @@ if test "$ANDROID" = "yes"; then
   # disabled, both within the recursive invocation of configure and
   # outside.
   with_xpm=no
-  with_tiff=no
 
   # Some of these dependencies are now supported within Android, so
   # they can be enabled.
@@ -1133,6 +1133,7 @@ if test "$ANDROID" = "yes"; then
     with_xml2=no
     with_sqlite3=no
     with_gnutls=no
+    with_tiff=no
   fi
 
   with_rsvg=no
@@ -5028,6 +5029,7 @@ AC_SUBST([PNG_CFLAGS])
 ### mingw32 doesn't use -ltiff, since it loads the library dynamically.
 HAVE_TIFF=no
 LIBTIFF=
+TIFF_CFLAGS=
 if test "${opsys}" = "mingw32"; then
   if test "${with_tiff}" != "no"; then
     AC_CHECK_HEADER([tiffio.h], [HAVE_TIFF=yes], [HAVE_TIFF=no])
@@ -5038,24 +5040,37 @@ if test "${opsys}" = "mingw32"; then
   fi
 elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
      || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes" \
-     || test "$window_system" = "pgtk"; then
+     || test "$window_system" = "pgtk" \
+     || test "${REALLY_ANDROID}" = "yes"; then
   if test "${with_tiff}" != "no"; then
-    AC_CHECK_HEADER([tiffio.h],
-      [tifflibs="-lz -lm"
-      # At least one tiff package requires the jpeg library.
-      if test "${HAVE_JPEG}" = yes; then tifflibs="-ljpeg $tifflibs"; fi
-      AC_CHECK_LIB([tiff], [TIFFGetVersion], [HAVE_TIFF=yes], [],
-	[$tifflibs])])
+    if test "${REALLY_ANDROID}" != "yes"; then
+      AC_CHECK_HEADER([tiffio.h],
+	[tifflibs="-lz -lm"
+	# At least one tiff package requires the jpeg library.
+	if test "${HAVE_JPEG}" = yes; then tifflibs="-ljpeg $tifflibs"; fi
+	AC_CHECK_LIB([tiff], [TIFFGetVersion], [HAVE_TIFF=yes], [],
+	  [$tifflibs])])
+    else
+      ndk_SEARCH_MODULE([libtiff], [TIFF], [HAVE_TIFF=yes])
+
+      if test "$HAVE_TIFF" = "yes"; then
+        LIBTIFF="$TIFF_LIBS"
+      fi
+    fi
   fi
 
   if test "${HAVE_TIFF}" = "yes"; then
     AC_DEFINE([HAVE_TIFF], [1],
       [Define to 1 if you have the tiff library (-ltiff).])
-    dnl FIXME -lz -lm, as per libpng?
-    LIBTIFF=-ltiff
+
+    if test "$REALLY_ANDROID" != "yes"; then
+      dnl FIXME -lz -lm, as per libpng?
+      LIBTIFF=-ltiff
+    fi
   fi
 fi
 AC_SUBST([LIBTIFF])
+AC_SUBST([TIFF_CFLAGS])
 
 ### Use -lgif or -lungif if available, unless '--with-gif=no'.
 ### mingw32 doesn't use -lgif/-lungif, since it loads the library dynamically.

@@ -48,7 +48,7 @@ else
 NDK_A_NAME = lib$(1).a
 endif
 
-ifeq ($$(NDK_A_NAMES:$$(NDK_A_NAME)=),$$(NDK_A_NAMES))
+ifeq ($$(findstring $$(NDK_A_NAME),$$(NDK_A_NAMES)),)
 NDK_A_NAMES := $$(NDK_A_NAMES) $$(NDK_A_NAME)
 
 # Now recurse over this module's dependencies.

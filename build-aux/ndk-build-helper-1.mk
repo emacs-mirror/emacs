@@ -59,7 +59,7 @@ else
 NDK_SO_NAME = lib$(1)_emacs.so
 endif
 
-ifeq ($$(NDK_SO_NAMES:$$(NDK_SO_NAME)=),$$(NDK_SO_NAMES))
+ifeq ($$(findstring $$(NDK_SO_NAME),$$(NDK_SO_NAMES)),)
 NDK_SO_NAMES := $$(NDK_SO_NAMES) $$(NDK_SO_NAME)
 
 # Now recurse over this module's dependencies.

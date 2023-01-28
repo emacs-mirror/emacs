@@ -187,6 +187,8 @@ Android systems:
 
   gnutls, gmp	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
     (Please see the section GNUTLS near the end of this file.)
+  libtiff    	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Extract and point ``--with-ndk-path'' to tiff-4.5.0-emacs.tar.gz.)
 
 We anticipate that most untested non-trivial ndk-build dependencies
 will need adjustments in Emacs to work, as the Emacs build system
@@ -535,8 +537,16 @@ They have only been tested on arm64 Android systems running Android
 5.0 or later, so your mileage may vary, especially if you are trying
 to build Emacs for another kind of machine.
 
-To build Emacs with GnuTLS, you must unpack each tar archive in that
-site, and add the resulting folder to ``--with-ndk-path''.
+To build Emacs with GnuTLS, you must unpack each of the following tar
+archives in that site:
+
+  gmp-6.2.1-emacs.tgz
+  gnutls-3.7.8-emacs.tar.gz
+  libtasn1-4.19.0-emacs.tar.gz
+  p11-kit-0.24.1-emacs.tar.gz
+  nettle-3.8-emacs.tar.gz
+
+and add the resulting folders to ``--with-ndk-path''.
 
 
 
