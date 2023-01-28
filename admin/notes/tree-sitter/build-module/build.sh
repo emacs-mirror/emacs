@@ -3,12 +3,17 @@
 lang=$1
 topdir="$PWD"
 
-if [ $(uname) == "Darwin" ]
-then
-    soext="dylib"
-else
-    soext="so"
-fi
+case $(uname) in
+    "Darwin")
+        soext="dylib"
+        ;;
+    *"MINGW"*)
+        soext="dll"
+        ;;
+    *)
+        soext="so"
+        ;;
+esac
 
 echo "Building ${lang}"
 

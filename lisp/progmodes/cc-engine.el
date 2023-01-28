@@ -7357,7 +7357,7 @@ multi-line strings (but not C++, for example)."
 	     (cons (match-beginning 1)
 		   (cons (match-end 1) (match-beginning 2))))
       (goto-char here))))
-	
+
 (defun c-ml-string-opener-intersects-region (&optional start finish)
   ;; If any part of the region [START FINISH] is inside an ml-string opener,
   ;; return a dotted list of the start, end and double-quote position of that
@@ -9232,7 +9232,7 @@ multi-line strings (but not C++, for example)."
       ;; known type match only is a prefix of another name.
 
       (setq id-end (match-end 1))
-      
+
       (when (and c-record-type-identifiers
 		 (or c-promote-possible-types (eq res t)))
 	(c-record-type-id (cons (match-beginning 1) (match-end 1))))
@@ -9375,7 +9375,7 @@ multi-line strings (but not C++, for example)."
 		     (c-forward-syntactic-ws)
 		     (setq subres (c-forward-type nil t))
 		     (setq pos (point))))
-	      
+
 	      (progn
 		;; If either operand certainly is a type then both are, but we
 		;; don't let the existence of the operator itself promote two

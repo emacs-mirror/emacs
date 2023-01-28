@@ -1126,6 +1126,12 @@ buffer, and you can use 'RET' to cycle outline visibility.  When
 the value is 'in-margins', Outline Minor Mode uses the window margins
 for buttons that hide/show outlines.
 
++++
+*** Buttons and headings now have their own keymaps.
+'outline-button-icon-map', 'outline-overlay-button-map', and
+'outline-inserted-button-map' are now available as defined keymaps
+instead of being anonymous keymaps.
+
 ** Windows
 
 +++
@@ -1680,6 +1686,14 @@ command is installed.
 ---
 *** C++ Mode now supports most of the new features in the C++20 Standard.
 
+---
+*** In Objective-C Mode, no extra types are recognized by default.
+The default value of 'objc-font-lock-extra-types' has been changed to
+nil, since too many identifiers were getting misfontified as types.
+This may cause some actual types not to get fontified.  To get the old
+behavior back, customize the user option to the value suggested in its
+doc string.
+
 ** Cperl Mode
 
 ---
@@ -2072,7 +2086,7 @@ This is in addition to the old keybindings 'C-c C-n' and 'C-c C-p'.
 ---
 *** New command 'vc-pull-and-push'.
 This commands first does a "pull" command, and if that is successful,
-does a "push" command afterwards.
+does a "push" command afterwards.  Currently supported in Git and Bzr.
 
 +++
 *** 'C-x v b' prefix key is used now for branch commands.
@@ -2716,6 +2730,13 @@ some commands and user options are no longer needed and are now obsolete:
 'image-dired-display-window-width-correction',
 'image-dired-temp-image-file'.
 
+** Exif
+
+---
+*** New function 'exif-field'.
+This is a convenience function to extract the field data from
+'exif-parse-file' and 'exif-parse-buffer'.
+
 ** Bookmarks
 
 ---
@@ -2736,13 +2757,6 @@ It is bound to the new command 'bookmark-edit-annotation-cancel'.
 *** New user option 'bookmark-fringe-mark'.
 This option controls the bitmap used to indicate bookmarks in the
 fringe (or nil to disable showing this marker).
-
-** Exif
-
----
-*** New function 'exif-field'.
-This is a convenience function to extract the field data from
-'exif-parse-file' and 'exif-parse-buffer'.
 
 ** Xwidget
 
@@ -4262,6 +4276,24 @@ The new 'key' type can be used for options that should be a valid key
 according to 'key-valid-p'.  The type 'key-sequence' is now obsolete.
 
 +++
+** New function 'define-keymap'.
+This function allows defining a number of keystrokes with one form.
+
++++
+** New macro 'defvar-keymap'.
+This macro allows defining keymap variables more conveniently.
+
+** 'defvar-keymap' can specify 'repeat-mode' behavior for the keymap.
+Use ':repeat t' to have all bindings be repeatable or for more
+advanced usage:
+
+    :repeat (:enter (commands ...) :exit (commands ...))
+
+---
+** 'kbd' can now be used in built-in, preloaded libraries.
+It no longer depends on edmacro.el and cl-lib.el.
+
++++
 ** New substitution in docstrings and 'substitute-command-keys'.
 Use \\`KEYSEQ' to insert a literal key sequence "KEYSEQ" (for example
 \\`C-k') in a docstring or when calling 'substitute-command-keys',
@@ -4269,6 +4301,18 @@ which will use the same face as a command substitution.  This should
 be used only when a key sequence has no corresponding command, for
 example when it is read directly with 'read-key-sequence'.  It must be
 a valid key sequence according to 'key-valid-p'.
+
+---
+** 'lookup-key' is more permissive when searching for extended menu items.
+In Emacs 28.1, the behavior of 'lookup-key' was changed: when looking
+for a menu item '[menu-bar Foo-Bar]', first try to find an exact
+match, then look for the lowercased '[menu-bar foo-bar]'.
+
+This has been extended, so that when looking for a menu item with a
+symbol containing spaces, as in '[menu-bar Foo\ Bar]', first look for
+an exact match, then the lowercased '[menu-bar foo\ bar]' and finally
+'[menu-bar foo-bar]'.  This further improves backwards-compatibility
+when converting menus to use 'easy-menu-define'.
 
 +++
 ** New function 'file-name-split'.
@@ -4470,24 +4514,6 @@ permanent local variables.
 An explicit nil always meant the empty string, now it can be left out.
 
 +++
-** New function 'define-keymap'.
-This function allows defining a number of keystrokes with one form.
-
-+++
-** New macro 'defvar-keymap'.
-This macro allows defining keymap variables more conveniently.
-
-** 'defvar-keymap' can specify 'repeat-mode' behavior for the keymap.
-Use ':repeat t' to have all bindings be repeatable or for more
-advanced usage:
-
-    :repeat (:enter (commands ...) :exit (commands ...))
-
----
-** 'kbd' can now be used in built-in, preloaded libraries.
-It no longer depends on edmacro.el and cl-lib.el.
-
-+++
 ** New function 'image-at-point-p'.
 This function returns t if point is on a valid image, and nil
 otherwise.
@@ -4509,18 +4535,6 @@ This function splits a string into a list of strings representing
 separate glyphs.  This takes into account combining characters and
 grapheme clusters, by treating each sequence of characters composed on
 display as a single unit.
-
----
-** 'lookup-key' is more permissive when searching for extended menu items.
-In Emacs 28.1, the behavior of 'lookup-key' was changed: when looking
-for a menu item '[menu-bar Foo-Bar]', first try to find an exact
-match, then look for the lowercased '[menu-bar foo-bar]'.
-
-This has been extended, so that when looking for a menu item with a
-symbol containing spaces, as in '[menu-bar Foo\ Bar]', first look for
-an exact match, then the lowercased '[menu-bar foo\ bar]' and finally
-'[menu-bar foo-bar]'.  This further improves backwards-compatibility
-when converting menus to use 'easy-menu-define'.
 
 ** Xwidget
 

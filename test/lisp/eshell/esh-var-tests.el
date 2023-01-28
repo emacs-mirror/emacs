@@ -72,15 +72,114 @@
     (eshell-command-result-equal "echo a$'eshell-test-value'z"
                                  '("a1" 2 "3z"))))
 
-(ert-deftest esh-var-test/interp-var-indices ()
-  "Interpolate list variable with indices"
-  (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
+(defun esh-var-test/interp-var-indices (function &optional range-function)
+  "Test interpolation of an indexable value with indices.
+FUNCTION is a function that takes a list of elements and returns
+the object to test.
+
+RANGE-FUNCTION is a function that takes a list of elements and
+returns the expected result of an index range for the object; if
+nil, use FUNCTION instead."
+  (let ((eshell-test-value
+         (funcall function '("zero" "one" "two" "three" "four")))
+        (range-function (or range-function function)))
+    ;; Positive indices
     (eshell-command-result-equal "echo $eshell-test-value[0]"
                                  "zero")
     (eshell-command-result-equal "echo $eshell-test-value[0 2]"
                                  '("zero" "two"))
     (eshell-command-result-equal "echo $eshell-test-value[0 2 4]"
-                                 '("zero" "two" "four"))))
+                                 '("zero" "two" "four"))
+    ;; Negative indices
+    (eshell-command-result-equal "echo $eshell-test-value[-1]"
+                                 "four")
+    (eshell-command-result-equal "echo $eshell-test-value[-1 -3]"
+                                 '("four" "two"))
+    ;; Index ranges
+    (eshell-command-result-equal
+     "echo $eshell-test-value[1..4]"
+     (funcall range-function '("one" "two" "three")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[..2]"
+     (funcall range-function '("zero" "one")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[-2..]"
+     (funcall range-function '("three" "four")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[..]"
+     (funcall range-function '("zero" "one" "two" "three" "four")))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[1..4 -2..]"
+     (list (funcall range-function '("one" "two" "three"))
+           (funcall range-function '("three" "four"))))))
+
+(ert-deftest esh-var-test/interp-var-indices/list ()
+  "Interpolate list variable with indices."
+  (esh-var-test/interp-var-indices #'identity))
+
+(ert-deftest esh-var-test/interp-var-indices/vector ()
+  "Interpolate vector variable with indices."
+  (esh-var-test/interp-var-indices #'vconcat))
+
+(ert-deftest esh-var-test/interp-var-indices/ring ()
+  "Interpolate ring variable with indices."
+  (esh-var-test/interp-var-indices #'ring-convert-sequence-to-ring))
+
+(ert-deftest esh-var-test/interp-var-indices/split ()
+  "Interpolate string variable with indices."
+  (esh-var-test/interp-var-indices
+   (lambda (values) (string-join values " "))
+   #'identity))
+
+(ert-deftest esh-var-test/interp-var-string-split-indices ()
+  "Interpolate string variable with string splitter and indices."
+  ;; Test using punctuation as a delimiter.
+  (let ((eshell-test-value "zero:one:two:three:four"))
+    (eshell-command-result-equal "echo $eshell-test-value[: 0]"
+                                 "zero")
+    (eshell-command-result-equal "echo $eshell-test-value[: 0 2]"
+                                 '("zero" "two")))
+  ;; Test using a letter as a delimiter.
+  (let ((eshell-test-value "zeroXoneXtwoXthreeXfour"))
+    (eshell-command-result-equal "echo $eshell-test-value[X 0]"
+                                 "zero")
+    (eshell-command-result-equal "echo $eshell-test-value[X 0 2]"
+                                 '("zero" "two")))
+  ;; Test using a number as a delimiter.
+  (let ((eshell-test-value "zero0one0two0three0four"))
+    (eshell-command-result-equal "echo $eshell-test-value[\"0\" 0]"
+                                 "zero")
+    (eshell-command-result-equal "echo $eshell-test-value[\"0\" 0 2]"
+                                 '("zero" "two"))))
+
+(ert-deftest esh-var-test/interp-var-regexp-split-indices ()
+  "Interpolate string variable with regexp splitter and indices."
+  ;; Test using a regexp as a delimiter.
+  (let ((eshell-test-value "zero:one!two:three!four"))
+    (eshell-command-result-equal "echo $eshell-test-value['[:!]' 0]"
+                                 "zero")
+    (eshell-command-result-equal "echo $eshell-test-value['[:!]' 0 2]"
+                                 '("zero" "two"))
+    (eshell-command-result-equal "echo $eshell-test-value[\"[:!]\" 0]"
+                                 "zero")
+    (eshell-command-result-equal "echo $eshell-test-value[\"[:!]\" 0 2]"
+                                 '("zero" "two")))
+  ;; Test using a regexp that looks like range syntax as a delimiter.
+  (let ((eshell-test-value "zero0..0one0..0two0..0three0..0four"))
+    (eshell-command-result-equal "echo $eshell-test-value[\"0..0\" 0]"
+                                 "zero")
+    (eshell-command-result-equal "echo $eshell-test-value[\"0..0\" 0 2]"
+                                 '("zero" "two"))))
+
+(ert-deftest esh-var-test/interp-var-assoc ()
+  "Interpolate alist variable with index."
+  (let ((eshell-test-value '(("foo" . 1) (bar . 2) ("3" . "three"))))
+    (eshell-command-result-equal "echo $eshell-test-value[foo]"
+                                 1)
+    (eshell-command-result-equal "echo $eshell-test-value[#'bar]"
+                                 2)
+    (eshell-command-result-equal "echo $eshell-test-value[\"3\"]"
+                                 "three")))
 
 (ert-deftest esh-var-test/interp-var-indices-subcommand ()
   "Interpolate list variable with subcommand expansion for indices."
@@ -92,49 +191,6 @@
     (eshell-command-result-equal
      "echo $eshell-test-value[${*echo 0} ${*echo 2}]"
      '("zero" "two"))))
-
-(ert-deftest esh-var-test/interp-var-split-indices ()
-  "Interpolate string variable with indices."
-  (let ((eshell-test-value "zero one two three four"))
-    (eshell-command-result-equal "echo $eshell-test-value[0]"
-                                 "zero")
-    (eshell-command-result-equal "echo $eshell-test-value[0 2]"
-                                 '("zero" "two"))
-    (eshell-command-result-equal "echo $eshell-test-value[0 2 4]"
-                                 '("zero" "two" "four"))))
-
-(ert-deftest esh-var-test/interp-var-string-split-indices ()
-  "Interpolate string variable with string splitter and indices."
-  (let ((eshell-test-value "zero:one:two:three:four"))
-    (eshell-command-result-equal "echo $eshell-test-value[: 0]"
-                                 "zero")
-    (eshell-command-result-equal "echo $eshell-test-value[: 0 2]"
-                                 '("zero" "two")))
-  (let ((eshell-test-value "zeroXoneXtwoXthreeXfour"))
-    (eshell-command-result-equal "echo $eshell-test-value[X 0]"
-                                 "zero")
-    (eshell-command-result-equal "echo $eshell-test-value[X 0 2]"
-                                 '("zero" "two"))))
-
-(ert-deftest esh-var-test/interp-var-regexp-split-indices ()
-  "Interpolate string variable with regexp splitter and indices."
-  (let ((eshell-test-value "zero:one!two:three!four"))
-    (eshell-command-result-equal "echo $eshell-test-value['[:!]' 0]"
-                                 "zero")
-    (eshell-command-result-equal "echo $eshell-test-value['[:!]' 0 2]"
-                                 '("zero" "two"))
-    (eshell-command-result-equal "echo $eshell-test-value[\"[:!]\" 0]"
-                                 "zero")
-    (eshell-command-result-equal "echo $eshell-test-value[\"[:!]\" 0 2]"
-                                 '("zero" "two"))))
-
-(ert-deftest esh-var-test/interp-var-assoc ()
-  "Interpolate alist variable with index."
-  (let ((eshell-test-value '(("foo" . 1) (bar . 2))))
-    (eshell-command-result-equal "echo $eshell-test-value[foo]"
-                                 1)
-    (eshell-command-result-equal "echo $eshell-test-value[#'bar]"
-                                 2)))
 
 (ert-deftest esh-var-test/interp-var-length-list ()
   "Interpolate length of list variable."

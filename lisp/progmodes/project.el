@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
-;; Version: 0.9.5
+;; Version: 0.9.6
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -530,7 +530,10 @@ project backend implementation of `project-external-roots'.")
                dir
                (lambda (d)
                  ;; Maybe limit count to 100 when we can drop Emacs < 28.
-                 (setq last-matches (directory-files d nil marker-re t)))))
+                 (setq last-matches
+                       (condition-case nil
+                           (directory-files d nil marker-re t)
+                         (file-missing nil))))))
              (backend
               (cl-find-if
                (lambda (b)

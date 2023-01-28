@@ -105,6 +105,58 @@ main (int   argc,
 }
 =-=-=
 
+Name: Bracket-less Block-Statement (GNU Style) (bug#61026)
+
+=-=
+int main() {
+  while (true)
+    if (true)
+      {
+        puts ("Hello");
+      }
+  for (int i=0; i<5; i++)
+    if (true)
+      {
+        puts ("Hello");
+      }
+  do
+    if (true)
+      {
+        puts ("Hello");
+      }
+  while (true);
+  if (true)
+    if (true)
+      {
+        puts ("Hello");
+      }
+}
+=-=-=
+
+Name: Bracket-less Block-Statement (Linux Style) (bug#61026)
+
+=-=-=
+int main() {
+  while (true)
+    if (true) {
+      puts ("Hello");
+    }
+  for (int i=0; i<5; i++)
+    if (true) {
+      puts ("Hello");
+    }
+  do
+    if (true) {
+      puts ("Hello");
+    }
+  while (true);
+  if (true)
+    if (true) {
+      puts ("Hello");
+    }
+}
+=-=-=
+
 Name: Multiline Parameter List (bug#60398)
 
 =-=

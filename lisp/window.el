@@ -5670,9 +5670,11 @@ the original point in both windows."
 
 (defun split-window-below (&optional size window-to-split)
   "Split WINDOW-TO-SPLIT into two windows, one above the other.
-WINDOW-TO-SPLIT defaults to the selected window and and will be above
-the other window after splitting.  The newly split-off window is
-below and displays the same buffer.  Return the new window.
+WINDOW-TO-SPLIT defaults to the selected window if omitted or nil.
+The newly created window will be below WINDOW-TO-SPLIT and will show
+the same buffer as WINDOW-TO-SPLIT, if it is a live window, else the
+buffer shown in the WINDOW-TO-SPLIT's frame's selected window.
+Return the new window.
 
 If optional argument SIZE is omitted or nil, both windows get the
 same height, or close to it.  If SIZE is positive, the upper
@@ -5735,9 +5737,11 @@ handled as in `split-window-below'."
 
 (defun split-window-right (&optional size window-to-split)
   "Split WINDOW-TO-SPLIT into two side-by-side windows.
-WINDOW-TO-SPLIT defaults to the selected window and and will be on the
-left after splitting.  The newly split-off window is on the right and
-displays the same buffer.  Return the new window.
+WINDOW-TO-SPLIT defaults to the selected window if omitted or nil.
+The newly created window will be to the right of WINDOW-TO-SPLIT and
+will show the same buffer as WINDOW-TO-SPLIT, if it is a live window,
+else the buffer shown in the WINDOW-TO-SPLIT's frame's selected window.
+Return the new window.
 
 If optional argument SIZE is omitted or nil, both windows get the
 same width, or close to it.  If SIZE is positive, the left-hand

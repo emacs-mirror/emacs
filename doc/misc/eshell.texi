@@ -1059,7 +1059,9 @@ remote connection.
 This refers to the last argument of the last command.  With a
 subscript, you can access any argument of the last command.  For
 example, @samp{$_[1]} refers to the second argument of the last
-command (excluding the command name itself).
+command (excluding the command name itself).  To get all arguments of
+the last command, you can use an index range like @samp{$_[..]}
+(@pxref{Dollars Expansion}).
 
 @vindex $$
 @item $$
@@ -1370,11 +1372,24 @@ index.  The exact behavior depends on the type of @var{expr}'s value:
 @item a sequence
 Expands to the element at the (zero-based) index @var{i} of the
 sequence (@pxref{Sequences Arrays Vectors, Sequences, , elisp, The
-Emacs Lisp Reference Manual}).
+Emacs Lisp Reference Manual}).  If @var{i} is negative, @var{i} counts
+from the end, so -1 refers to the last element of the sequence.
+
+If @var{i} is a range like @code{@var{start}..@var{end}}, this expands
+to a subsequence from the indices @var{start} to @var{end}, where
+@var{end} is excluded@footnote{This behavior is different from ranges
+in Bash (where both the start and end are included in the range), but
+matches the behavior of similar Emacs Lisp functions, like
+@code{substring} (@pxref{Creating Strings, , , elisp, The Emacs Lisp
+Reference Manual}).}.  @var{start} and/or @var{end} can also be
+omitted, which is equivalent to the start and/or end of the entire
+list.  For example, @samp{$@var{expr}[-2..]} expands to the last two
+values of @var{expr}.
 
 @item a string
 Split the string at whitespace, and then expand to the @var{i}th
-element of the resulting sequence.
+element of the resulting sequence.  As above, @var{i} can be a range
+like @code{@var{start}..@var{end}}.
 
 @item an alist
 If @var{i} is a non-numeric value, expand to the value associated with
@@ -2441,13 +2456,6 @@ current being used.
 @item Make a customizable syntax table for redirects
 
 This way, the user could change it to use rc syntax: @samp{>[2=1]}.
-
-@item Allow @samp{$_[-1]}, which would indicate the last element of the array
-
-@item Make @samp{$x[*]} equal to listing out the full contents of @samp{x}
-
-Return them as a list, so that @samp{$_[*]} is all the arguments of the
-last command.
 
 @item Copy ANSI code handling from @file{term.el} into @file{em-term.el}
 

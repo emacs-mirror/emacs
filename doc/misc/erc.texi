@@ -539,36 +539,55 @@ so demands special precautions to avoid degrading the user experience.
 At present, the only such module is @code{networks}, whose library ERC
 always loads anyway.
 
+@anchor{Local Modules}
 @subheading Local Modules
 @cindex local modules
 
 All modules operate as minor modes under the hood, and some newer ones
 may be defined as buffer-local.  These so-called ``local modules'' are
 a work in progress and their behavior and interface are subject to
-change.  As of ERC 5.5, the only practical differences are
+change.  As of ERC 5.5, the only practical differences are as follows:
 
 @enumerate
 @item
-``Control variables,'' like @code{erc-sasl-mode}, are stateful across
-IRC sessions and override @code{erc-module} membership when influencing
-module activation in new sessions.
+``Control variables,'' like @code{erc-sasl-mode}, retain their values
+across IRC sessions and override @code{erc-module} membership when
+influencing module activation.
 @item
 Removing a local module from @code{erc-modules} via Customize not only
 disables its mode but also kills its control variable in all ERC
 buffers.
 @item
-``Mode toggles,'' like @code{erc-sasl-mode} and
-@code{erc-sasl-enable}, behave differently relative to each other and
-to their global counterparts.  (More on this just below.)
+``Mode toggles,'' like @code{erc-sasl-mode} and the complementary
+@code{erc-sasl-enable}/@code{erc-sasl-disable} pairing, behave
+differently than their global counterparts.
 @end enumerate
 
-By default, all local-mode toggles, like @code{erc-sasl-mode}, only
-affect the current buffer, but their ``non-mode'' variants, such as
-@code{erc-sasl-enable}, operate on all buffers belonging to a
-connection when called interactively.  Keep in mind that whether
-enabled or not, a module may effectively be ``inert'' in certain types
-of buffers, such as queries and channels.  Whatever the case, a local
-toggle never mutates @code{erc-modules}.
+In target buffers, a local module's activation state survives
+``reassociation'' by default, but modules themselves always have the
+final say.  For example, a module may reset all instances of itself in
+its network context upon reconnecting.  Moreover, the value of a mode
+variable may be meaningless in buffers that its module has no interest
+in.  For example, the value of @code{erc-sasl-mode} doesn't matter in
+target buffers and may even remain non-@code{nil} after SASL has been
+disabled for the current connection (and vice versa).
+
+When it comes to server buffers, a module's activation state only
+persists for sessions revived via the automatic reconnection mechanism
+or a manual @samp{/reconnect} issued at the prompt.  In other words,
+this doesn't apply to sessions revived by an entry-point command, such
+as @code{erc-tls}, because such commands always ensure a clean slate
+by looking only to @code{erc-modules}.  Although a session revived in
+this manner may indeed harvest other information from a previous
+server buffer, it simply doesn't care which modules might have been
+active during that connection.
+
+Lastly, a local mode's toggle command, like @code{erc-sasl-mode}, only
+affects the current buffer, but its ``non-mode'' cousins, like
+@code{erc-sasl-enable} and @code{erc-sasl-disable}, operate on all
+buffers belonging to their connection (when called interactively).
+And unlike global toggles, none of these ever mutates
+@code{erc-modules}.
 
 
 @c PRE5_4: Document every option of every module in its own subnode

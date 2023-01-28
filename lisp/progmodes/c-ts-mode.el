@@ -279,6 +279,19 @@ NODE should be a labeled_statement."
           "enumerator_list"))
   "Regexp matching types of block nodes (i.e., {} blocks).")
 
+(defvar c-ts-mode--statement-offset-post-processr nil
+  "A functions that makes adjustments to `c-ts-mode--statement-offset'.
+
+This is a function that takes two arguments, the current indent
+level and the current node, and returns a new level.
+
+When `c-ts-mode--statement-offset' runs and go up the parse tree,
+it increments the indent level when some condition are met in
+each level.  At each level, after (possibly) incrementing the
+offset, it calls this function, passing it the current indent
+level and the current node, and use the return value as the new
+indent level.")
+
 (defun c-ts-mode--statement-offset (node parent &rest _)
   "This anchor is used for children of a statement inside a block.
 
@@ -306,7 +319,7 @@ PARENT is NODE's parent."
         (save-excursion
           (goto-char (treesit-node-start node))
           ;; Add an extra level if the opening bracket is on its own
-          ;; line, except (1) it's at top-level, or (2) it's immedate
+          ;; line, except (1) it's at top-level, or (2) it's immediate
           ;; parent is another block.
           (cond ((bolp) nil) ; Case (1).
                 ((let ((parent-type (treesit-node-type
@@ -319,8 +332,23 @@ PARENT is NODE's parent."
                 ;; Add a level.
                 ((looking-back (rx bol (* whitespace))
                                (line-beginning-position))
-                 (cl-incf level))))))
+                 (cl-incf level)))))
+      (when c-ts-mode--statement-offset-post-processr
+        (setq level (funcall c-ts-mode--statement-offset-post-processr
+                             level node))))
     (* level c-ts-mode-indent-offset)))
+
+(defun c-ts-mode--fix-bracketless-indent (level node)
+  "Takes LEVEL and NODE and returns adjusted LEVEL.
+This fixes indentation for cases shown in bug#61026.  Basically
+in C/C++, constructs like if, for, while sometimes don't have
+bracket."
+  (if (and (not (equal (treesit-node-type node) "compound_statement"))
+           (member (treesit-node-type (treesit-node-parent node))
+                   '("if_statement" "while_statement" "do_statement"
+                     "for_statement")))
+      (1+ level)
+    level))
 
 (defun c-ts-mode--close-bracket-offset (node parent &rest _)
   "Offset for the closing bracket, NODE.
@@ -789,6 +817,8 @@ the semicolon.  This function skips the semicolon."
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
+  (setq-local c-ts-mode--statement-offset-post-processr
+              #'c-ts-mode--fix-bracketless-indent)
 
   ;; Comment
   (c-ts-common-comment-setup)

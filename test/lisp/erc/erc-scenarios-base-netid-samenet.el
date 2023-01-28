@@ -1,4 +1,4 @@
-;;; erc-scenarios-base-network-id-samenet.el --- netid-id samenet scenarios -*- lexical-binding: t -*-
+;;; erc-scenarios-base-netid-samenet.el --- One-network net-ID scenarios -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
 
@@ -148,4 +148,4 @@
          :server "foonet/chester"
          :chan "#chan@foonet/chester")))
 
-;;; erc-scenarios-base-network-id-samenet.el ends here
+;;; erc-scenarios-base-netid-samenet.el ends here
