@@ -927,7 +927,7 @@ sfntfont_read_cmap (struct sfnt_font_desc *desc,
 
   if (!font)
     {
-      close (fd);
+      emacs_close (fd);
       return;
     }
 
@@ -937,7 +937,7 @@ sfntfont_read_cmap (struct sfnt_font_desc *desc,
 
   if (!table)
     {
-      close (fd);
+      emacs_close (fd);
       return;
     }
 
@@ -957,6 +957,7 @@ sfntfont_read_cmap (struct sfnt_font_desc *desc,
   xfree (data);
   xfree (subtables);
   xfree (table);
+  emacs_close (fd);
 }
 
 /* Look up a character CHARACTER in the font description DESC.  Cache
@@ -2026,6 +2027,9 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   /* Calculate the xfld name.  */
   font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
 
+  /* Close the font file descriptor.  */
+  emacs_close (fd);
+
   /* All done.  */
   unblock_input ();
   return font_object;
@@ -2058,7 +2062,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
  bail2:
   xfree (subtable);
  bail1:
-  close (fd);
+  emacs_close (fd);
  bail:
   unblock_input ();
   return Qnil;
