@@ -12542,7 +12542,7 @@ syms_of_image (void)
   DEFVAR_LISP ("image-types", Vimage_types,
     doc: /* List of potentially supported image types.
 Each element of the list is a symbol for an image type, like `jpeg' or `png'.
- check whether it is really supported, use `image-type-available-p'.  */);
+To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 
   DEFVAR_LISP ("max-image-size", Vmax_image_size,
