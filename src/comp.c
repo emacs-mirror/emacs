@@ -5912,6 +5912,3 @@ file -> CU.  */);
 
   defsubr (&Snative_comp_available_p);
 }
-/* Local Variables: */
-/* c-file-offsets: ((arglist-intro . +)) */
-/* End: */
