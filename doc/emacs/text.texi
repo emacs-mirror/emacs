@@ -1017,14 +1017,16 @@ this variable is @code{insert}, the buttons are inserted directly into
 the buffer text, so @key{RET} on the button will also toggle display
 of the section, like a mouse click does.  If the value is
 @code{in-margins}, Outline minor mode will use the window margins to
-indicate that a section is hidden.
+indicate that a section is hidden.  The buttons are customizable as icons
+(@pxref{Icons}).
 
 @vindex outline-minor-mode-cycle
   If the @code{outline-minor-mode-cycle} user option is
-non-@code{nil}, the @kbd{TAB} and @kbd{S-@key{TAB}} keys are enabled on the
-outline heading lines.  @kbd{TAB} cycles hiding, showing the
-sub-heading, and showing all for the current section.  @kbd{S-@key{TAB}}
-does the same for the entire buffer.
+non-@code{nil}, the @kbd{TAB} and @kbd{S-@key{TAB}} keys that cycle
+the visibility are enabled on the outline heading lines
+(@pxref{Outline Visibility, outline-cycle}).  @kbd{TAB} cycles hiding,
+showing the sub-heading, and showing all for the current section.
+@kbd{S-@key{TAB}} does the same for the entire buffer.
 
 @node Outline Format
 @subsection Format of Outlines
