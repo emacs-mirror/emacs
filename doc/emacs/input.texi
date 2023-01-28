@@ -46,6 +46,9 @@ References}), then Emacs will follow the link instead.
 or down, will result in Emacs scrolling the window contents in the
 direction where the tool moves.
 
+  If the tool is moved left or right, Emacs additionally scrolls the
+window horizontally to follow (@pxref{Horizontal Scrolling}.)
+
 @item
 @cindex dragging, touchscreens
   ``Dragging'', meaning to place a tool on the display and leave it

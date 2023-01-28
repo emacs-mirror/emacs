@@ -116,6 +116,11 @@ public class EmacsPreferencesActivity extends Activity
 
 	  if (file.exists ())
 	    file.delete ();
+
+	  /* Make sure to clear EmacsApplication.dumpFileName, or
+	     starting Emacs without restarting this program will
+	     make Emacs try to load a nonexistent dump file.  */
+	  EmacsApplication.dumpFileName = null;
 	}
       });
     layout.addView (textView);

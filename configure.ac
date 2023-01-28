@@ -1061,6 +1061,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-jpeg=$with_jpeg"
   passthrough="$passthrough --with-xml2=$with_xml2"
   passthrough="$passthrough --with-sqlite3=$with_sqlite3"
+  passthrough="$passthrough --with-gnutls=$with_gnutls"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1131,6 +1132,7 @@ if test "$ANDROID" = "yes"; then
     with_jpeg=no
     with_xml2=no
     with_sqlite3=no
+    with_gnutls=no
   fi
 
   with_rsvg=no
@@ -1146,7 +1148,6 @@ if test "$ANDROID" = "yes"; then
   with_dbus=no
   with_gsettings=no
   with_selinux=no
-  with_gnutls=no
   with_modules=no
   with_threads=no
 
@@ -7028,6 +7029,38 @@ gl_EEMALLOC
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
+
+# Set up libgmp on Android.  Make sure to override what gnulib has
+# found.
+LIBGMP_CFLAGS=
+if test "$REALLY_ANDROID" == "yes" && test "$with_libgmp" != "no"; then
+  HAVE_LIBGMP=no
+  ndk_SEARCH_MODULE([libgmp], [LIBGMP], [HAVE_LIBGMP=yes])
+
+  if test "$HAVE_LIBGMP" = "yes"; then
+    SAVE_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS $LIBGMP_CFLAGS"
+    unset ac_cv_header_gmp_h
+    unset ac_cv_header_gmp_gmp_h
+    AC_CHECK_HEADERS([gmp.h gmp/gmp.h], [break])
+    CFLAGS="$SAVE_CFLAGS"
+    GL_GENERATE_GMP_H=
+    GL_GENERATE_GMP_H_CONDITION=
+    GL_GENERATE_GMP_GMP_H=
+    GL_GENERATE_GMP_GMP_H_CONDITION=
+    GL_GENERATE_MINI_GMP_H=
+    GL_GENERATE_MINI_GMP_H_CONDITION=
+
+    if test "$ac_cv_header_gmp_h" != "no" \
+       || test "$ac_cv_header_gmp_gmp_h" != "no"; then
+       HAVE_LIBGMP=yes
+       GL_GENERATE_GMP_H=false
+       LIBGMP="$LIBGMP_LIBS"
+       GMP_H=
+    fi
+  fi
+fi
+AC_SUBST([LIBGMP_CFLAGS])
 
 # timer_getoverrun needs the same library as timer_settime
 OLD_LIBS=$LIBS

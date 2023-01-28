@@ -46,6 +46,12 @@ else
 NDK_SO_NAMES = $(LOCAL_MODULE_FILENAME).so
 endif
 
+define add-so-name-1
+# Now recurse over this module's dependencies.
+$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARIES)),$$(eval $$(call add-so-name,$$(module))))
+$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_STATIC_LIBRARIES)),$$(eval $$(call add-so-name-1,$$(module))))
+endef
+
 define add-so-name
 ifeq ($(findstring lib,$(1)),lib)
 NDK_SO_NAME = $(1)_emacs.so
@@ -58,6 +64,9 @@ NDK_SO_NAMES := $$(NDK_SO_NAMES) $$(NDK_SO_NAME)
 
 # Now recurse over this module's dependencies.
 $$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARIES)),$$(eval $$(call add-so-name,$$(module))))
+
+# Recurse over static library dependencies of this shared library.
+$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_STATIC_LIBRARIES) $$(NDK_$(1)_WHOLE_LIBRARIES)),$$(eval $$(call add-so-name-1,$$(module))))
 endif
 endef
 
@@ -69,6 +78,13 @@ ifeq ($$(findstring $$(NDK_$(1)_EXPORT_INCLUDES),$$(NDK_INCLUDES)),)
 NDK_INCLUDES += $$(NDK_$(1)_EXPORT_INCLUDES)
 
 $$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARIES)) $$(NDK_$(1)_STATIC_LIBRARIES),$$(eval $$(call add-includes,$$(module))))
+
+# Recurse over shared library dependencies of this static library.
+$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARIES)),$$(eval $$(call add-so-name,$$(module))))
+
+# Recurse over static or shared library dependencies of this static
+# library.
+$$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_STATIC_LIBRARIES)),$$(eval $$(call add-so-name-1,$$(module))))
 endif
 endef
 
@@ -80,7 +96,7 @@ endef
 SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ log liblog android libandroid
 
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES)),$(eval $(call add-so-name,$(module))))
-$(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES) $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_LIBRARIES)),$(eval $(call add-includes,$(module))))
+$(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES) $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES)),$(eval $(call add-includes,$(module))))
 
 $(info $(foreach dir,$(NDK_INCLUDES),-I$(dir)))
 $(info $(LOCAL_EXPORT_CFLAGS))

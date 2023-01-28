@@ -35,7 +35,7 @@ define single-object-target
 ifeq (x$(suffix $(1)),x.c)
 
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
-	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE))
+	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(call LOCAL_C_ADDITIONAL_FLAGS,$(1))
 
 else
 ifeq (x$(suffix $(1)),x.$(or $(LOCAL_CPP_EXTENSION),cpp))
@@ -53,6 +53,13 @@ else
 ifneq (x$(suffix $(1)),x.asm)
 $$(error Unsupported suffix: $(suffix $(1)))
 else
+ifneq (x$(LOCAL_ASM_RULE_DEFINED),x)
+# Call this function to define a rule that will generate $(1) from
+# $(2), a ``.asm'' file.  This is an Emacs extension.
+
+$(call LOCAL_ASM_RULE,$(call objname,$(LOCAL_MODULE),$(basename $(1))),$(LOCAL_PATH)/$(strip $(1)))
+
+else
 ifeq ($(findstring x86,$(NDK_BUILD_ARCH)),)
 $$(error Trying to build nasm file on non-Intel platform!)
 else
@@ -60,6 +67,7 @@ else
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
 	$(NDK_BUILD_NASM) -o $$@ -i $(LOCAL_PATH) -i $$(dir $$<) $(NDK_ASFLAGS_$(LOCAL_MODULE)) $$<
 
+endif
 endif
 endif
 endif
@@ -125,11 +133,11 @@ $(foreach source,$(ALL_SOURCE_FILES),$(eval $(call single-object-target,$(source
 
 # Now define the rule to build the shared library.  Shared libraries
 # link with all of the archive files from the static libraries on
-# which they depend.
+# which they depend, and also any shared libraries they depend on.
 
 define define-module-rule
-$(LOCAL_MODULE_FILENAME): $(ALL_OBJECT_FILES$(LOCAL_MODULE)) $(NDK_LOCAL_A_NAMES_$(LOCAL_MODULE)) $(NDK_WHOLE_A_NAMES_$(LOCAL_MODULE))
-	$(NDK_BUILD_CC) $(1) $(2) -o $$@ -shared $(NDK_LDFLAGS$(LOCAL_MODULE)) $(NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE)) $(NDK_SO_DEFAULT_LDFLAGS)
+$(LOCAL_MODULE_FILENAME): $(ALL_OBJECT_FILES$(LOCAL_MODULE)) $(NDK_LOCAL_A_NAMES_$(LOCAL_MODULE)) $(NDK_WHOLE_A_NAMES_$(LOCAL_MODULE)) $(NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE))
+	$(NDK_BUILD_CC) $(1) $(2) -o $$@ -shared $(NDK_LDFLAGS_$(LOCAL_MODULE)) $(NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE)) $(NDK_SO_DEFAULT_LDFLAGS) $(foreach so,$(NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE)),-L $(abspath $(CURDIR)) -l:$(so))
 endef
 
 NDK_WHOLE_ARCHIVE_PREFIX = -Wl,--whole-archive

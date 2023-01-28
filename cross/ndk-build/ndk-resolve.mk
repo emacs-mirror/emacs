@@ -19,6 +19,9 @@
 # variables, and then having those Makefiles include another makefile
 # which actually builds targets.
 
+# List of system libraries to ignore.
+NDK_SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ log liblog android libandroid
+
 # Save information.
 NDK_LOCAL_PATH_$(LOCAL_MODULE) := $(LOCAL_PATH)
 NDK_LOCAL_STATIC_LIBRARIES_$(LOCAL_MODULE) := $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES)
@@ -28,6 +31,7 @@ NDK_LOCAL_EXPORT_CFLAGS_$(LOCAL_MODULE) := $(LOCAL_EXPORT_CFLAGS)
 NDK_LOCAL_EXPORT_C_INCLUDES_$(LOCAL_MODULE) := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_EXPORT_C_INCLUDE_DIRS)
 NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) :=
 NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) :=
+NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) :=
 NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) :=
 
 # List of all dependencies resolved for this module thus far.
@@ -85,6 +89,14 @@ endif
 
 ifeq ($(strip $(1)),android)
 NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -landroid
+endif
+
+ifeq ($(findstring $(1),$(NDK_SYSTEM_LIBRARIES))$(2)$(3),)
+ifneq ($(findstring lib,$(1)),)
+NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) += $(1)_emacs.so
+else
+NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) += lib$(1)_emacs.so
+endif
 endif
 
 ifneq ($(2),)

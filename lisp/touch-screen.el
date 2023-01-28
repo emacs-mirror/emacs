@@ -30,14 +30,14 @@
 
 (defvar touch-screen-current-tool nil
   "The touch point currently being tracked, or nil.
-If non-nil, this is a list of six elements: the ID of the touch
+If non-nil, this is a list of nine elements: the ID of the touch
 point being tracked, the window where the touch began, a cons
 containing the last known position of the touch point, relative
 to that window, a field used to store data while tracking the
 touch point, the initial position of the touchpoint, and another
-field to used store data while tracking the touch point.  See
-`touch-screen-handle-point-update' for the meanings of the fourth
-element.")
+four fields to used store data while tracking the touch point.
+See `touch-screen-handle-point-update' for the meanings of the
+fourth element.")
 
 (defvar touch-screen-set-point-commands '(mouse-set-point)
   "List of commands known to set the point.
@@ -92,8 +92,11 @@ to the frame that they belong in."
               (- (cdr xy) (cadr edges)))))))
 
 (defun touch-screen-handle-scroll (dx dy)
-  "Scroll the display assuming that a touch point has moved by DX and DY."
-  (ignore dx)
+  "Scroll the display assuming that a touch point has moved by DX and DY.
+Perform vertical scrolling by DY, using `pixel-scroll-precision'
+if `touch-screen-precision-scroll' is enabled.  Next, perform
+horizontal scrolling according to the movement in DX."
+  ;; Perform vertical scrolling first.
   (if touch-screen-precision-scroll
       (if (> dy 0)
           (pixel-scroll-precision-scroll-down-page dy)
@@ -102,7 +105,8 @@ to the frame that they belong in."
     ;; in which the scrolling is taking place.  Load the accumulator
     ;; value.
     (let ((accumulator (or (nth 5 touch-screen-current-tool) 0))
-          (window (cadr touch-screen-current-tool)))
+          (window (cadr touch-screen-current-tool))
+          (lines-vscrolled (or (nth 7 touch-screen-current-tool) 0)))
       (setq accumulator (+ accumulator dy)) ; Add dy.
       ;; Figure out how much it has scrolled and how much remains on
       ;; the top or bottom of the window.
@@ -113,6 +117,7 @@ to the frame that they belong in."
                      (progn
                        (setq accumulator (+ accumulator line-height))
                        (scroll-down 1)
+                       (setq lines-vscrolled (1+ lines-vscrolled))
                        (when (not (zerop accumulator))
                          ;; If there is still an outstanding amount to
                          ;; scroll, do this again.
@@ -120,15 +125,58 @@ to the frame that they belong in."
                    (when (and (> accumulator 0)
                               (>= accumulator line-height))
                      (setq accumulator (- accumulator line-height))
-                       (scroll-up 1)
+                     (scroll-up 1)
+                     (setq lines-vscrolled (1+ lines-vscrolled))
+                     (when (not (zerop accumulator))
+                       ;; If there is still an outstanding amount to
+                       ;; scroll, do this again.
+                       (throw 'again t)))))
+               ;; Scrolling is done.  Move the accumulator back to
+               ;; touch-screen-current-tool and break out of the loop.
+               (setcar (nthcdr 5 touch-screen-current-tool) accumulator)
+               (setcar (nthcdr 7 touch-screen-current-tool)
+                       lines-vscrolled)
+               nil))))
+
+  ;; Perform horizontal scrolling by DX, as this does not signal at
+  ;; the beginning of the buffer.
+  (let ((accumulator (or (nth 6 touch-screen-current-tool) 0))
+        (window (cadr touch-screen-current-tool))
+        (lines-vscrolled (or (nth 7 touch-screen-current-tool) 0))
+        (lines-hscrolled (or (nth 8 touch-screen-current-tool) 0)))
+    (setq accumulator (+ accumulator dx)) ; Add dx;
+    ;; Figure out how much it has scrolled and how much remains on the
+    ;; left or right of the window.  If a line has already been
+    ;; vscrolled but no hscrolling has happened, don't hscroll, as
+    ;; otherwise it is too easy to hscroll by accident.
+    (if (or (> lines-hscrolled 0)
+            (< lines-vscrolled 1))
+        (while (catch 'again
+                 (let* ((column-width (frame-char-width (window-frame window))))
+                   (if (and (< accumulator 0)
+                            (>= (- accumulator) column-width))
+                       (progn
+                         (setq accumulator (+ accumulator column-width))
+                         (scroll-right 1)
+                         (setq lines-hscrolled (1+ lines-hscrolled))
+                         (when (not (zerop accumulator))
+                           ;; If there is still an outstanding amount to
+                           ;; scroll, do this again.
+                           (throw 'again t)))
+                     (when (and (> accumulator 0)
+                                (>= accumulator column-width))
+                       (setq accumulator (- accumulator column-width))
+                       (scroll-left 1)
+                       (setq lines-hscrolled (1+ lines-hscrolled))
                        (when (not (zerop accumulator))
                          ;; If there is still an outstanding amount to
                          ;; scroll, do this again.
                          (throw 'again t)))))
-               ;; Scrolling is done.  Move the accumulator back to
-               ;; touch-screen-current-tool and break out of the loop.
-               (setcar (nthcdr 5 touch-screen-current-tool) accumulator)
-               nil)))))
+                 ;; Scrolling is done.  Move the accumulator back to
+                 ;; touch-screen-current-tool and break out of the loop.
+                 (setcar (nthcdr 6 touch-screen-current-tool) accumulator)
+                 (setcar (nthcdr 8 touch-screen-current-tool) lines-hscrolled)
+                 nil)))))
 
 (defun touch-screen-handle-timeout (arg)
   "Start the touch screen timeout or handle it depending on ARG.
@@ -377,7 +425,8 @@ touchscreen-end event."
                                            (list touchpoint
                                                  (posn-window position)
                                                  (posn-x-y position)
-                                                 nil position nil)))
+                                                 nil position nil nil
+                                                 nil nil)))
       ;; Start the long-press timer.
       (touch-screen-handle-timeout nil)))
    ((eq (car event) 'touchscreen-update)

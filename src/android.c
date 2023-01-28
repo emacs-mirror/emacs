@@ -334,11 +334,10 @@ android_run_select_thread (void *data)
          the event queue lock, because android_select will always
          wait for this to complete before returning.  */
       android_pselect_completed = true;
-      pthread_cond_signal (&event_queue.read_var);
+      pthread_cond_broadcast (&event_queue.read_var);
 
       /* Read a single byte from the select pipe.  */
       read (select_pipe[0], &byte, 1);
-
 
       /* Signal the Emacs thread that pselect is done.  If read_var
 	 was signaled by android_write_event, event_queue.mutex could
@@ -378,7 +377,7 @@ android_run_select_thread (void *data)
          the event queue lock, because android_select will always
          wait for this to complete before returning.  */
       android_pselect_completed = true;
-      pthread_cond_signal (&event_queue.read_var);
+      pthread_cond_broadcast (&event_queue.read_var);
 
       if (rc != -1 || errno != EINTR)
 	/* Now, wait for SIGUSR1, unless pselect was interrupted and
@@ -559,7 +558,7 @@ android_write_event (union android_event *event)
   container->last->next = container;
   container->event = *event;
   event_queue.num_events++;
-  pthread_cond_signal (&event_queue.read_var);
+  pthread_cond_broadcast (&event_queue.read_var);
   pthread_mutex_unlock (&event_queue.mutex);
 
   /* Now set pending_signals to true.  This allows C-g to be handled

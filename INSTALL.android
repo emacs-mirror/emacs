@@ -182,6 +182,12 @@ themselves:
      its Android.mk includes $(BUILD_SHARED_LIBRARY), then copy
      android/jansson_config.h to android/jansson_private_config.h.)
 
+And Emacs developers have ported the following dependencies to arm64
+Android systems:
+
+  gnutls, gmp	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section GNUTLS near the end of this file.)
+
 We anticipate that most untested non-trivial ndk-build dependencies
 will need adjustments in Emacs to work, as the Emacs build system
 which emulates ndk-build is in an extremely early state.
@@ -518,6 +524,19 @@ to build.
 As a result, all three dependencies will be built and linked to Emacs,
 instead of just the single ``webpdemux'' dependency that was
 specified.
+
+GNUTLS
+
+Modified copies of GnuTLS and its dependencies (such as libgmp,
+libtasn1, p11-kit) which can be built with the ndk-build system can be
+found at https://sourceforge.net/projects/android-ports-for-gnu-emacs.
+
+They have only been tested on arm64 Android systems running Android
+5.0 or later, so your mileage may vary, especially if you are trying
+to build Emacs for another kind of machine.
+
+To build Emacs with GnuTLS, you must unpack each tar archive in that
+site, and add the resulting folder to ``--with-ndk-path''.
 
 
 

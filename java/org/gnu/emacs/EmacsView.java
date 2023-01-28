@@ -22,12 +22,16 @@ package org.gnu.emacs;
 import android.content.Context;
 import android.content.res.ColorStateList;
 
+import android.text.InputType;
+
 import android.view.ContextMenu;
 import android.view.View;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 
 import android.graphics.Bitmap;
@@ -566,6 +570,8 @@ public class EmacsView extends ViewGroup
 	/* Collect the bitmap storage; it could be large.  */
 	Runtime.getRuntime ().gc ();
       }
+
+    super.onDetachedFromWindow ();
   }
 
   @Override
@@ -581,6 +587,8 @@ public class EmacsView extends ViewGroup
     /* Now expose the view contents again.  */
     EmacsNative.sendExpose (this.window.handle, 0, 0,
 			    measuredWidth, measuredHeight);
+
+    super.onAttachedToWindow ();
   }
 
   public void
@@ -614,5 +622,18 @@ public class EmacsView extends ViewGroup
 
 	drawingFinished = null;
       }
+  }
+
+  @Override
+  public InputConnection
+  onCreateInputConnection (EditorInfo info)
+  {
+    /* Make sure the input method never displays a full screen input
+       box that obscures Emacs.  */
+    info.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN;
+
+    /* But don't return an InputConnection, in order to force the on
+       screen keyboard to work correctly.  */
+    return null;
   }
 };

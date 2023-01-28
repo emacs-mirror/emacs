@@ -1237,6 +1237,8 @@ does not return to the calling function until the search is completed.
 To behave this way it enters a recursive edit and exits it when done
 isearching.
 
+Also display the on-screen keyboard if necessary.
+
 The arg REGEXP-FUNCTION, if non-nil, should be a function.  It is
 used to set the value of `isearch-regexp-function'."
 
@@ -1331,6 +1333,14 @@ used to set the value of `isearch-regexp-function'."
   (add-hook 'post-command-hook 'isearch-post-command-hook)
   (add-hook 'mouse-leave-buffer-hook 'isearch-mouse-leave-buffer)
   (add-hook 'kbd-macro-termination-hook 'isearch-done)
+
+  ;; If the keyboard is not up and the last event did not come from
+  ;; a keyboard, bring it up so that the user can type.
+  (when (or (not last-event-frame)
+            (not (eq (device-class last-event-frame
+                                   last-event-device)
+                     'keyboard)))
+    (frame-toggle-on-screen-keyboard (selected-frame) nil))
 
   ;; isearch-mode can be made modal (in the sense of not returning to
   ;; the calling function until searching is completed) by entering

@@ -134,6 +134,10 @@ public class EmacsActivity extends Activity
     layout.addView (window.view);
     child.setConsumer (this);
 
+    /* If the window isn't no-focus-on-map, focus its view.  */
+    if (!child.getDontFocusOnMap ())
+      window.view.requestFocus ();
+
     /* If the activity is iconified, send that to the window.  */
     if (isPaused)
       window.noticeIconified ();
@@ -233,7 +237,7 @@ public class EmacsActivity extends Activity
     isPaused = true;
 
     EmacsWindowAttachmentManager.MANAGER.noticeIconified (this);
-    super.onResume ();
+    super.onPause ();
   }
 
   @Override

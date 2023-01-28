@@ -10,7 +10,7 @@
   if (imports && ++imports > 2)
     {
       if (!match ($0, /^End Imports$/))
-	makefile_imports = makefile_imports " " $1
+	makefile_imports = makefile_imports " " $0
     }
   else if (!match ($0, /^End$/) && !match ($0, /^Building.+$/))
     {
