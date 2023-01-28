@@ -975,6 +975,43 @@ for speeding up processing.")
    (t ;; Moving the constant to the end can enable some lapcode optimizations.
     (list (car form) (nth 2 form) (nth 1 form)))))
 
+(defun byte-opt--nary-comparison (form)
+  "Optimise n-ary comparisons such as `=', `<' etc."
+  (let ((nargs (length (cdr form))))
+    (cond
+     ((= nargs 1)
+      `(progn (cadr form) t))
+     ((>= nargs 3)
+      ;; At least 3 arguments: transform to N-1 binary comparisons,
+      ;; since those have their own byte-ops which are particularly
+      ;; fast for fixnums.
+      (let* ((op (car form))
+             (bindings nil)
+             (rev-args nil))
+        (if (memq nil (mapcar #'macroexp-copyable-p (cddr form)))
+            ;; At least one arg beyond the first is non-constant non-variable:
+            ;; create temporaries for all args to guard against side-effects.
+            ;; The optimiser will eliminate trivial bindings later.
+            (let ((i 1))
+              (dolist (arg (cdr form))
+                (let ((var (make-symbol (format "arg%d" i))))
+                  (push var rev-args)
+                  (push (list var arg) bindings)
+                  (setq i (1+ i)))))
+          ;; All args beyond the first are copyable: no temporary variables
+          ;; required.
+          (setq rev-args (reverse (cdr form))))
+        (let ((prev (car rev-args))
+              (exprs nil))
+          (dolist (arg (cdr rev-args))
+            (push (list op arg prev) exprs)
+            (setq prev arg))
+          (let ((and-expr (cons 'and exprs)))
+            (if bindings
+                (list 'let (nreverse bindings) and-expr)
+              and-expr)))))
+     (t form))))
+
 (defun byte-optimize-constant-args (form)
   (let ((ok t)
 	(rest (cdr form)))
@@ -1130,12 +1167,17 @@ See Info node `(elisp) Integer Basics'."
 (put 'max 'byte-optimizer #'byte-optimize-min-max)
 (put 'min 'byte-optimizer #'byte-optimize-min-max)
 
-(put '=   'byte-optimizer #'byte-optimize-binary-predicate)
 (put 'eq  'byte-optimizer #'byte-optimize-eq)
 (put 'eql   'byte-optimizer #'byte-optimize-equal)
 (put 'equal 'byte-optimizer #'byte-optimize-equal)
 (put 'string= 'byte-optimizer #'byte-optimize-binary-predicate)
 (put 'string-equal 'byte-optimizer #'byte-optimize-binary-predicate)
+
+(put '=  'byte-optimizer #'byte-opt--nary-comparison)
+(put '<  'byte-optimizer #'byte-opt--nary-comparison)
+(put '<= 'byte-optimizer #'byte-opt--nary-comparison)
+(put '>  'byte-optimizer #'byte-opt--nary-comparison)
+(put '>= 'byte-optimizer #'byte-opt--nary-comparison)
 
 (put 'string-greaterp 'byte-optimizer #'byte-optimize-string-greaterp)
 (put 'string> 'byte-optimizer #'byte-optimize-string-greaterp)
