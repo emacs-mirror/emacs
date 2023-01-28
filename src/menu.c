@@ -48,7 +48,7 @@ static bool
 have_boxes (void)
 {
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) || defined (HAVE_NS) \
-  || defined (HAVE_HAIKU)
+  || defined (HAVE_HAIKU) || defined (HAVE_ANDROID)
   if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame)))
     return 1;
 #endif

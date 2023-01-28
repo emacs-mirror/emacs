@@ -292,15 +292,15 @@ public class EmacsFrobinicator
   }
 }
 
-Java arrays are similar to C arrays in that they can not grow.	But
+Java arrays are similar to C arrays in that they can not grow.  But
 they are very much unlike C arrays in that they are always references
-(as opposed to decaying into pointers in various situations), and
+(as opposed to decaying into pointers in only some situations), and
 contain information about their length.
 
 If another function named ``frobinicate1'' takes an array as an
 argument, then it need not take the length of the array.
 
-Instead, it simply iterates over the array like so:
+Instead, it may simply iterate over the array like so:
 
 int i, k;
 
@@ -339,9 +339,64 @@ struct emacs_array_container
 
 or, possibly even better,
 
-typedef int my_array[10];
+typedef int emacs_array_container[10];
 
 Alas, Java has no equivalent of `typedef'.
+
+Like in C, Java string literals are delimited by double quotes.
+Unlike C, however, strings are not NULL-terminated arrays of
+characters, but a distinct type named ``String''.  They store their
+own length, characters in Java's 16-bit ``char'' type, and are capable
+of holding NULL bytes.
+
+Instead of writing:
+
+wchar_t character;
+extern char *s;
+size_t s;
+
+  for (/* determine n, s in a loop.  */)
+    s += mbstowc (&character, s, n);
+
+or:
+
+const char *byte;
+
+for (byte = my_string; *byte; ++byte)
+  /* do something with *byte.  */;
+
+or perhaps even:
+
+size_t length, i;
+char foo;
+
+length = strlen (my_string);
+
+for (i = 0; i < length; ++i)
+  foo = my_string[i];
+
+you write:
+
+char foo;
+int i;
+
+for (i = 0; i < myString.length (); ++i)
+  foo = myString.charAt (0);
+
+Java also has stricter rules on what can be used as a truth value in a
+conditional.  While in C, any non-zero value is true, Java requires
+that every truth value be of the boolean type ``boolean''.
+
+What this means is that instead of simply writing:
+
+  if (foo || bar)
+
+where foo can either be 1 or 0, and bar can either be NULL or a
+pointer to something, you must explicitly write:
+
+  if (foo != 0 || bar != null)
+
+in Java.
 
 JAVA NATIVE INTERFACE
 

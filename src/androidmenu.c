@@ -98,7 +98,7 @@ android_init_emacs_context_menu (void)
   FIND_METHOD_STATIC (create_context_menu, "createContextMenu",
 		      "(Ljava/lang/String;)Lorg/gnu/emacs/EmacsContextMenu;");
 
-  FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;Z)V");
+  FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;ZZZ)V");
   FIND_METHOD (add_submenu, "addSubmenu", "(Ljava/lang/String;"
 	       "Ljava/lang/String;)Lorg/gnu/emacs/EmacsContextMenu;");
   FIND_METHOD (add_pane, "addPane", "(Ljava/lang/String;)V");
@@ -241,7 +241,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   Lisp_Object pane_name, prefix;
   const char *pane_string;
   specpdl_ref count, count1;
-  Lisp_Object item_name, enable, def, tem, entry;
+  Lisp_Object item_name, enable, def, tem, entry, type, selected;
   jmethodID method;
   jobject store;
   bool rc;
@@ -250,6 +250,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   struct android_dismiss_menu_data data;
   struct android_menu_subprefix *subprefix, *temp_subprefix;
   struct android_menu_subprefix *subprefix_1;
+  bool checkmark;
 
   count = SPECPDL_INDEX ();
 
@@ -351,6 +352,8 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
 	  def = AREF (menu_items, i + MENU_ITEMS_ITEM_DEFINITION);
+	  type = AREF (menu_items, i + MENU_ITEMS_ITEM_TYPE);
+	  selected = AREF (menu_items, i + MENU_ITEMS_ITEM_SELECTED);
 
 	  /* This is an actual menu item (or submenu).  Add it to the
 	     menu.  */
@@ -392,12 +395,20 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	      title_string = (!NILP (item_name)
 			      ? android_build_string (item_name)
 			      : NULL);
+
+	      /* Determine whether or not to display a check box.  */
+
+	      checkmark = (EQ (type, QCtoggle)
+			   || EQ (type, QCradio));
+
 	      (*android_java_env)->CallVoidMethod (android_java_env,
 						   current_context_menu,
 						   menu_class.add_item,
 						   (jint) item_id,
 						   title_string,
-						   (jboolean) !NILP (enable));
+						   (jboolean) !NILP (enable),
+						   (jboolean) checkmark,
+						   (jboolean) !NILP (selected));
 	      android_exception_check ();
 
 	      if (title_string)

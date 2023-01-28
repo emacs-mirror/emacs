@@ -177,17 +177,27 @@ makes the system more secure.  Unfortunately, it also means that Emacs
 cannot access files in those directories, despite holding the
 necessary permissions.  Thankfully, the Open Handset Alliance's
 version of Android allows this restriction to be disabled on a
-per-program basis; the corresponding option in the system settings
-panel is:
+per-program basis; on Android 10, the corresponding option in the
+system settings panel is:
 
 @indentedblock
 System -> Developer Options -> App Compatibility Changes -> Emacs ->
 DEFAULT_SCOPED_STORAGE
 @end indentedblock
 
-  After you disable this setting and grant Emacs the ``Files and
-Media'' permission, it will be able to access files under
-@file{/sdcard} as usual.
+  And on Android 11 and later, the corresponding option in the systems
+settings panel is:
+
+@indentedblock
+System -> Apps -> Special App Access -> All files access -> Emacs
+@end indentedblock
+
+  After you disable or enable this setting as appropriate and grant
+Emacs the ``Files and Media'' permission, it will be able to access
+files under @file{/sdcard} as usual.
+
+  These settings are not present on many proprietary versions of
+Android.
 
 @node Android Environment
 @section Running Emacs under Android

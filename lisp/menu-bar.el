@@ -472,6 +472,11 @@
 (defvar menu-bar-edit-menu
   (let ((menu (make-sparse-keymap "Edit")))
 
+    (bindings--define-key menu [execute-extended-command]
+      '(menu-item "Execute Command" execute-extended-command
+                  :enable t
+                  :help "Read a command name, its arguments, then call it."))
+
     ;; ns-win.el said: Add spell for platform consistency.
     (if (featurep 'ns)
         (bindings--define-key menu [spell]

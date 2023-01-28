@@ -99,6 +99,12 @@ public class EmacsCopyArea
     if (src_y + height > srcBitmap.getHeight ())
       height = srcBitmap.getHeight () - src_y;
 
+    /* If width and height are empty or negative, then skip the entire
+       CopyArea operation lest createBitmap throw an exception.  */
+
+    if (width <= 0 || height <= 0)
+      return;
+
     rect = new Rect (dest_x, dest_y, dest_x + width,
 		     dest_y + height);
 

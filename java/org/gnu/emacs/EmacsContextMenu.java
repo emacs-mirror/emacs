@@ -56,7 +56,7 @@ public class EmacsContextMenu
     public int itemID;
     public String itemName;
     public EmacsContextMenu subMenu;
-    public boolean isEnabled;
+    public boolean isEnabled, isCheckable, isChecked;
 
     @Override
     public boolean
@@ -108,10 +108,15 @@ public class EmacsContextMenu
 
   /* Add a normal menu item to the context menu with the id ITEMID and
      the name ITEMNAME.  Enable it if ISENABLED, else keep it
-     disabled.  */
+     disabled.
+
+     If this is not a submenu and ISCHECKABLE is set, make the item
+     checkable.  Likewise, if ISCHECKED is set, make the item
+     checked.  */
 
   public void
-  addItem (int itemID, String itemName, boolean isEnabled)
+  addItem (int itemID, String itemName, boolean isEnabled,
+	   boolean isCheckable, boolean isChecked)
   {
     Item item;
 
@@ -119,6 +124,8 @@ public class EmacsContextMenu
     item.itemID = itemID;
     item.itemName = itemName;
     item.isEnabled = isEnabled;
+    item.isCheckable = isCheckable;
+    item.isChecked = isChecked;
 
     menuItems.add (item);
   }
@@ -198,6 +205,15 @@ public class EmacsContextMenu
 	    /* If the item ID is zero, then disable the item.  */
 	    if (item.itemID == 0 || !item.isEnabled)
 	      menuItem.setEnabled (false);
+
+	    /* Now make the menu item display a checkmark as
+	       appropriate.  */
+
+	    if (item.isCheckable)
+	      menuItem.setCheckable (true);
+
+	    if (item.isChecked)
+	      menuItem.setChecked (true);
 	  }
       }
   }

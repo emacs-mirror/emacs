@@ -52,6 +52,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-permission android:name="android.permission.CAMERA" />
 
+  <!-- This is required on Android 11 or later to access /sdcard.  -->
+
+  <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+
   <uses-sdk android:minSdkVersion="@ANDROID_MIN_SDK@"
 	    android:targetSdkVersion="33"/>
 
