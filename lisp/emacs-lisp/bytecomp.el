@@ -4063,9 +4063,15 @@ This function is never called when `lexical-binding' is nil."
      (byte-compile-constant 1)
      (byte-compile-out (get '* 'byte-opcode) 0))
     (3
-     (byte-compile-form (nth 1 form))
-     (byte-compile-form (nth 2 form))
-     (byte-compile-out (get (car form) 'byte-opcode) 0))
+     (let ((arg1 (nth 1 form))
+           (arg2 (nth 2 form)))
+       (when (and (memq (car form) '(+ *))
+                  (macroexp-const-p arg1))
+         ;; Put constant argument last for better LAP optimisation.
+         (cl-rotatef arg1 arg2))
+       (byte-compile-form arg1)
+       (byte-compile-form arg2)
+       (byte-compile-out (get (car form) 'byte-opcode) 0)))
     (_
      ;; >2 args: compile as a single function call.
      (byte-compile-normal-call form))))
