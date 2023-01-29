@@ -63,11 +63,6 @@
 ;; will set up Emacs to use the C/C++ modes defined here for other
 ;; files, provided that you have the corresponding parser grammar
 ;; libraries installed.
-;;
-;; - Use variable `c-ts-mode-indent-block-type-regexp' with indent
-;;   offset c-ts-mode--statement-offset for indenting statements.
-;;   Again, see `c-ts-mode--indent-styles' for example.
-;;
 
 ;;; Code:
 
@@ -228,7 +223,7 @@ MODE is either `c' or `cpp'."
            ;; Labels.
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement")
-            point-min c-ts-mode--statement-offset)
+            point-min c-ts-common-statement-offset)
 
            ((match "preproc_ifdef" "compound_statement") point-min 0)
            ((match "#endif" "preproc_ifdef") point-min 0)
@@ -236,15 +231,6 @@ MODE is either `c' or `cpp'."
            ((match "#endif" "preproc_if") point-min 0)
            ((match "preproc_function_def" "compound_statement") point-min 0)
            ((match "preproc_call" "compound_statement") point-min 0)
-
-           ;; {} blocks.
-           ((node-is "}") point-min c-ts-mode--close-bracket-offset)
-           ((parent-is "compound_statement")
-            point-min c-ts-mode--statement-offset)
-           ((parent-is "enumerator_list")
-            point-min c-ts-mode--statement-offset)
-           ((parent-is "field_declaration_list")
-            point-min c-ts-mode--statement-offset)
 
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "conditional_expression") first-sibling 0)
@@ -266,13 +252,16 @@ MODE is either `c' or `cpp'."
                  ;; Indent the body of namespace definitions.
                  ((parent-is "declaration_list") parent-bol c-ts-mode-indent-offset)))
 
+           ;; int[5] a = { 0, 0, 0, 0 };
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "if_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "for_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "while_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "switch_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "case_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "do_statement") parent-bol c-ts-mode-indent-offset)
+           ((parent-is "enumerator_list") point-min c-ts-common-statement-offset)
+           ((parent-is "field_declaration_list") point-min c-ts-common-statement-offset)
+
+           ;; {} blocks.
+           ((node-is "}") point-min c-ts-mode--close-bracket-offset)
+           ((parent-is "compound_statement") point-min c-ts-common-statement-offset)
+           ((node-is "compound_statement") point-min c-ts-common-statement-offset)
+
            ,@(when (eq mode 'cpp)
                `(((node-is "field_initializer_list") parent-bol ,(* c-ts-mode-indent-offset 2)))))))
     `((gnu
@@ -310,90 +299,6 @@ NODE should be a labeled_statement."
     (and (equal (treesit-node-type node)
                 "labeled_statement")
          (not (treesit-node-top-level func "compound_statement")))))
-
-(defvar c-ts-mode-indent-block-type-regexp
-  (rx (or "compound_statement"
-          "field_declaration_list"
-          "enumerator_list"))
-  "Regexp matching types of block nodes (i.e., {} blocks).")
-
-(defvar c-ts-mode--statement-offset-post-processr nil
-  "A functions that makes adjustments to `c-ts-mode--statement-offset'.
-
-This is a function that takes two arguments, the current indent
-level and the current node, and returns a new level.
-
-When `c-ts-mode--statement-offset' runs and go up the parse tree,
-it increments the indent level when some condition are met in
-each level.  At each level, after (possibly) incrementing the
-offset, it calls this function, passing it the current indent
-level and the current node, and use the return value as the new
-indent level.")
-
-(defun c-ts-mode--statement-offset (node parent &rest _)
-  "This anchor is used for children of a statement inside a block.
-
-This function basically counts the number of block nodes (defined
-by `c-ts-mode--indent-block-type-regexp') between NODE and the
-root node (not counting NODE itself), and multiply that by
-`c-ts-mode-indent-offset'.
-
-To support GNU style, on each block level, this function also
-checks whether the opening bracket { is on its own line, if so,
-it adds an extra level, except for the top-level.
-
-PARENT is NODE's parent."
-  (let ((level 0))
-    ;; If point is on an empty line, NODE would be nil, but we pretend
-    ;; there is a statement node.
-    (when (null node)
-      (setq node t))
-    (while (if (eq node t)
-               (setq node parent)
-             (setq node (treesit-node-parent node)))
-      (when (string-match-p c-ts-mode-indent-block-type-regexp
-                            (treesit-node-type node))
-        (cl-incf level)
-        (save-excursion
-          (goto-char (treesit-node-start node))
-          ;; Add an extra level if the opening bracket is on its own
-          ;; line, except (1) it's at top-level, or (2) it's immediate
-          ;; parent is another block.
-          (cond ((bolp) nil) ; Case (1).
-                ((let ((parent-type (treesit-node-type
-                                     (treesit-node-parent node))))
-                   ;; Case (2).
-                   (and parent-type
-                        (string-match-p c-ts-mode-indent-block-type-regexp
-                                        parent-type)))
-                 nil)
-                ;; Add a level.
-                ((looking-back (rx bol (* whitespace))
-                               (line-beginning-position))
-                 (cl-incf level)))))
-      (when c-ts-mode--statement-offset-post-processr
-        (setq level (funcall c-ts-mode--statement-offset-post-processr
-                             level node))))
-    (* level c-ts-mode-indent-offset)))
-
-(defun c-ts-mode--fix-bracketless-indent (level node)
-  "Takes LEVEL and NODE and returns adjusted LEVEL.
-This fixes indentation for cases shown in bug#61026.  Basically
-in C/C++, constructs like if, for, while sometimes don't have
-bracket."
-  (if (and (not (equal (treesit-node-type node) "compound_statement"))
-           (member (treesit-node-type (treesit-node-parent node))
-                   '("if_statement" "while_statement" "do_statement"
-                     "for_statement")))
-      (1+ level)
-    level))
-
-(defun c-ts-mode--close-bracket-offset (node parent &rest _)
-  "Offset for the closing bracket, NODE.
-It's basically one level less that the statements in the block.
-PARENT is NODE's parent."
-  (- (c-ts-mode--statement-offset node parent)
-     c-ts-mode-indent-offset))
 
 ;;; Font-lock
 
@@ -824,8 +729,14 @@ the semicolon.  This function skips the semicolon."
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
-  (setq-local c-ts-mode--statement-offset-post-processr
-              #'c-ts-mode--fix-bracketless-indent)
+  (setq-local c-ts-common-indent-offset 'c-ts-mode-indent-offset)
+  (setq-local c-ts-common-indent-block-type-regexp
+              (rx (or "compound_statement"
+                      "field_declaration_list"
+                      "enumerator_list")))
+  (setq-local c-ts-common-indent-bracketless-type-regexp
+              (rx (or "if_statement" "do_statement"
+                      "for_statement" "while_statement")))
 
   ;; Comment
   (c-ts-common-comment-setup)
