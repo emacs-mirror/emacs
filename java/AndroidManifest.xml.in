@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	  package="org.gnu.emacs"
 	  android:targetSandboxVersion="1"
 	  android:installLocation="auto"
+	  android:versionCode="@emacs_major_version@"
 	  android:versionName="@version@">
 
   <!-- Paste in every permission in existence so Emacs can do

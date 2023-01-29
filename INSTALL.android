@@ -34,7 +34,8 @@ script like so:
 Replacing the paths in the command line above with:
 
   - the path to the `android.jar' headers which come with the Android
-    SDK.  They must correspond to Android version 13 or later.
+    SDK.  They must correspond to Android version 13 (API level 33) or
+    later.
 
   - the path to the C compiler in the Android NDK, for the machine you
     are building Emacs to run on.
@@ -154,6 +155,8 @@ work, along with what has to be patched to make them work:
 
   libpng	- https://android.googlesource.com/platform/external/libpng
   libwebp	- https://android.googlesource.com/platform/external/webp
+     (You must apply the patch at the end of this file for the resulting
+      binary to work on armv7 devices.)
   giflib	- https://android.googlesource.com/platform/external/giflib
      (You must add LOCAL_EXPORT_CFLAGS := -I$(LOCAL_PATH) before
       its Android.mk includes $(BUILD_STATIC_LIBRARY))
@@ -639,3 +642,24 @@ index bf277d2..36734d9 100644
  LOCAL_MODULE:= libsqlite_static_minimal
  LOCAL_SDK_VERSION := 23
  include $(BUILD_STATIC_LIBRARY)
+
+PATCH FOR WEBP
+
+diff --git a/Android.mk b/Android.mk
+index c7bcb0f5..d4da1704 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -28,9 +28,10 @@ ifneq ($(findstring armeabi-v7a, $(TARGET_ARCH_ABI)),)
+   # Setting LOCAL_ARM_NEON will enable -mfpu=neon which may cause illegal
+   # instructions to be generated for armv7a code. Instead target the neon code
+   # specifically.
+-  NEON := c.neon
+-  USE_CPUFEATURES := yes
+-  WEBP_CFLAGS += -DHAVE_CPU_FEATURES_H
++  # NEON := c.neon
++  # USE_CPUFEATURES := yes
++  # WEBP_CFLAGS += -DHAVE_CPU_FEATURES_H
++  NEON := c
+ else
+   NEON := c
+ endif

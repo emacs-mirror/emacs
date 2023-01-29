@@ -42,7 +42,7 @@ $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_ASFLAGS_$(LOCAL_MODULE))
 
 else
-ifneq (x$(suffix $(1)),x.asm)
+ifneq (x.$(suffix $(1)),x.asm)
 $$(error Unsupported suffix: $(suffix $(1)))
 else
 ifneq (x$(LOCAL_ASM_RULE_DEFINED),x)
@@ -113,7 +113,12 @@ LOCAL_MODULE_FILENAME := $(LOCAL_MODULE_FILENAME).a
 include ndk-resolve.mk
 
 # Then define rules to build all objects.
-ALL_SOURCE_FILES = $(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES_$(NDK_BUILD_ARCH))
+ALL_SOURCE_FILES := $(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES_$(NDK_BUILD_ARCH))
+
+# Now filter out code that is only built on systems with neon.
+ifeq ($(NDK_BUILD_ABI),armeabi-v7a)
+ALL_SOURCE_FILES := $(filter-out %.neon,$(ALL_SOURCE_FILES))
+endif
 
 # This defines all dependencies.
 ALL_OBJECT_FILES$(LOCAL_MODULE) =
