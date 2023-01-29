@@ -93,7 +93,9 @@
   :group 'c)
 
 (defun c-ts-mode--indent-style-setter (sym val)
-  "Custom setter for `c-ts-mode-set-style'."
+  "Custom setter for `c-ts-mode-set-style'.
+Apart from setting the default value of SYM to VAL, also change
+the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL."
   (set-default sym val)
   (named-let loop ((res nil)
                    (buffers (buffer-list)))
@@ -107,6 +109,7 @@
               res)
       (let ((buffer (car buffers)))
         (with-current-buffer buffer
+          ;; FIXME: Should we use `derived-mode-p' here?
           (if (or (eq major-mode 'c-ts-mode) (eq major-mode 'c++-ts-mode))
               (loop (append res (list buffer)) (cdr buffers))
             (loop res (cdr buffers))))))))
