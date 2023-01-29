@@ -114,15 +114,6 @@ the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL."
               (loop (append res (list buffer)) (cdr buffers))
             (loop res (cdr buffers))))))))
 
-(defun c-ts-mode--get-indent-style (mode)
-  "Helper function to set indentation style.
-MODE is either `c' or `cpp'."
-  (let ((style
-         (if (functionp c-ts-mode-indent-style)
-             (funcall c-ts-mode-indent-style)
-           (alist-get c-ts-mode-indent-style (c-ts-mode--indent-styles mode)))))
-    `((,mode ,@style))))
-
 (defcustom c-ts-mode-indent-style 'gnu
   "Style used for indentation.
 
@@ -139,13 +130,28 @@ follows the form of `treesit-simple-indent-rules'."
   :set #'c-ts-mode--indent-style-setter
   :group 'c)
 
+(defun c-ts-mode--get-indent-style (mode)
+  "Helper function to set indentation style.
+MODE is either `c' or `cpp'."
+  (let ((style
+         (if (functionp c-ts-mode-indent-style)
+             (funcall c-ts-mode-indent-style)
+           (alist-get c-ts-mode-indent-style (c-ts-mode--indent-styles mode)))))
+    `((,mode ,@style))))
+
 (defun c-ts-mode-set-style ()
+  "Set the indent style of C/C++ modes globally.
+
+This changes the current indent style of every C/C++ buffer and
+the default C/C++ indent style in this Emacs session."
   (interactive)
+  ;; FIXME: Should we use `derived-mode-p' here?
   (or (eq major-mode 'c-ts-mode) (eq major-mode 'c++-ts-mode)
       (error "Buffer %s is not a c-ts-mode (c-ts-mode-set-style)"
              (buffer-name)))
   (c-ts-mode--indent-style-setter
    'c-ts-mode-indent-style
+   ;; NOTE: We can probably use the interactive form for this.
    (intern
     (completing-read
      "Select style: "
