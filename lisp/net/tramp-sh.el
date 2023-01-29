@@ -3877,7 +3877,7 @@ Fall back to normal file name handler if no Tramp handler exists."
   "Read output from \"inotifywait\" and add corresponding `file-notify' events."
   (let ((events (process-get proc 'events)))
     (tramp-message proc 6 "%S\n%s" proc string)
-    (dolist (line (split-string string "[\n\r]+" 'omit))
+    (dolist (line (split-string string (rx (+ (any "\r\n"))) 'omit))
       ;; Check, whether there is a problem.
       (unless (string-match
 	       (rx bol (+ (not blank)) (+ blank) (group (+ (not blank)))

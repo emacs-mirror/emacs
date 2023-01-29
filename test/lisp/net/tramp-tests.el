@@ -7488,7 +7488,7 @@ process sentinels.  They shall not disturb each other."
 	  ert-remote-temporary-file-directory)))
     (should
      (string-match-p
-      (rx "Tramp loaded: t" (+ (any "\n\r")))
+      (rx "Tramp loaded: t" (+ (any "\r\n")))
       (shell-command-to-string
        (format
 	"%s -batch -Q -L %s --eval %s"
@@ -7516,9 +7516,9 @@ process sentinels.  They shall not disturb each other."
       (should
        (string-match-p
 	(rx
-	 "Tramp loaded: nil" (+ (any "\n\r"))
-	 "Tramp loaded: nil" (+ (any "\n\r"))
-	 "Tramp loaded: " (literal (symbol-name tm)) (+ (any "\n\r")))
+	 "Tramp loaded: nil" (+ (any "\r\n"))
+	 "Tramp loaded: nil" (+ (any "\r\n"))
+	 "Tramp loaded: " (literal (symbol-name tm)) (+ (any "\r\n")))
 	(shell-command-to-string
 	 (format
 	  "%s -batch -Q -L %s --eval %s"

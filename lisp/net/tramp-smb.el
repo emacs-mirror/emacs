@@ -1878,7 +1878,7 @@ If ARGUMENT is non-nil, use it as argument for
 	  (setq tramp-smb-version (shell-command-to-string command))
 	  (tramp-message vec 6 command)
 	  (tramp-message vec 6 "\n%s" tramp-smb-version)
-	  (if (string-match (rx (+ (any " \t\n\r")) eos) tramp-smb-version)
+	  (if (string-match (rx (+ (any " \t\r\n")) eos) tramp-smb-version)
 	      (setq tramp-smb-version
 		    (replace-match "" nil nil tramp-smb-version))))
 
