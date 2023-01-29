@@ -1353,6 +1353,18 @@ dragged.
 Customize this option to limit the number of entries in the menu
 "Edit → Paste from Kill Menu".  The default is 60.
 
+---
+** New user option 'copy-region-blink-predicate'.
+By default, when copying a region with 'kill-ring-save', Emacs only
+blinks point and mark when the region is not denoted visually, that
+is, when either the region is inactive, or the 'region' face is
+indistinguishable from the 'default' face.
+
+Users who would rather enable blinking unconditionally can now set
+this user option to 'always'.  To disable blinking unconditionally,
+either set this option to 'ignore', or set 'copy-region-blink-delay'
+to 0.
+
 +++
 ** Performing a pinch gesture on a touchpad now increases the text scale.
 

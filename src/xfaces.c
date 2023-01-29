@@ -2780,8 +2780,7 @@ merge_face_ref (struct window *w,
 	      else if (EQ (keyword, QCstipple))
 		{
 #if defined (HAVE_WINDOW_SYSTEM)
-		  Lisp_Object pixmap_p = Fbitmap_spec_p (value);
-		  if (!NILP (pixmap_p))
+		  if (NILP (value) || !NILP (Fbitmap_spec_p (value)))
 		    to[LFACE_STIPPLE_INDEX] = value;
 		  else
 		    err = true;
