@@ -470,11 +470,7 @@ documents.  It provides features such as slicing, zooming, and
 searching inside documents.  It works by converting the document to a
 set of images using the @command{gs} (GhostScript) or
 @command{pdfdraw}/@command{mutool draw} (MuPDF) commands and other
-external tools @footnote{PostScript files require GhostScript, DVI
-files require @code{dvipdf} or @code{dvipdfm}, OpenDocument and
-Microsoft Office documents require the @code{unoconv} tool, and EPUB,
-CBZ, FB2, XPS and OXPS files require @code{mutool} to be available.},
-and displaying those images.
+external tools, and then displays those converted images.
 
 @findex doc-view-toggle-display
 @findex doc-view-minor-mode
