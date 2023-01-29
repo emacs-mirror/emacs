@@ -927,14 +927,6 @@ This is not a general optimization and should be RARELY needed!
 See comments in `treesit-font-lock-fontify-region' for more
 detail.")
 
-(defvar-local treesit--font-lock-fast-mode-grace-count 5
-  "Grace counts before we turn on the fast mode.
-
-When query takes abnormally long time to execute, we turn on the
-\"fast mode\", but just to be on the safe side, we only turn on
-the fast mode after this number of offenses.  See bug#60691,
-bug#60223.")
-
 ;; Some details worth explaining:
 ;;
 ;; 1. When we apply face to a node, we clip the face into the
