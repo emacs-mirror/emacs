@@ -2972,10 +2972,10 @@ function signals an error."
    :no-value (treesit-parser-set-included-ranges parser '((1 . 4) (5 . 8))))
   (treesit-parser-included-ranges
    :no-eval (treesit-parser-included-ranges parser)
-   :eg-result '((1 . 4) (5 . 8)))
+   :eg-result ((1 . 4) (5 . 8)))
   (treesit-query-range
    :no-eval (treesit-query-range node '((script_element) @cap))
-   :eg-result-string '((1 . 4) (5 . 8)))
+   :eg-result ((1 . 4) (5 . 8)))
 
 
   "Retrieving a node"
@@ -3121,7 +3121,12 @@ function signals an error."
    :eg-result-string "#<treesit-node (translation_unit) in 1-11>")
   (treesit-query-string
    :no-eval (treesit-query-string "int c = 0;" '((identifier) @id) 'c)
-   :eg-result-string "((id . #<treesit-node (identifier) in 5-6>))"))
+   :eg-result-string "((id . #<treesit-node (identifier) in 5-6>))")
+
+  "Misc"
+  (treesit-subtree-stat
+   :no-eval (treesit-subtree-stat node)
+   :eg-result (6 33 487)))
 
 (provide 'treesit)
 

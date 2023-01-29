@@ -3312,6 +3312,68 @@ a regexp.  */)
     return parent;
 }
 
+DEFUN ("treesit-subtree-stat",
+       Ftreesit_subtree_stat,
+       Streesit_subtree_stat, 1, 1, 0,
+       doc: /* Return information about the subtree of NODE.
+
+Return a list (MAX-DEPTH MAX-WIDTH COUNT), where MAX-DEPTH is the
+maximum depth of the subtree, MAX-WIDTH is the maximum number of
+direct children of nodes in the subtree, and COUNT is the number of
+nodes in the subtree, including NODE.  */)
+  (Lisp_Object node)
+{
+  /* Having a limit on the depth to traverse doesn't have much impact
+     on the time it takes, so I left that out.  */
+  CHECK_TS_NODE (node);
+
+  treesit_initialize ();
+
+  TSTreeCursor cursor = ts_tree_cursor_new (XTS_NODE (node)->node);
+  ptrdiff_t max_depth = 1;
+  ptrdiff_t max_width = 0;
+  ptrdiff_t count = 0;
+  ptrdiff_t current_depth = 0;
+
+  /* Traverse the subtree depth-first.  */
+  while (true)
+    {
+      count++;
+
+      /* Go down depth-first.  */
+      while (ts_tree_cursor_goto_first_child (&cursor))
+	{
+	  current_depth++;
+	  count++;
+	  /* While we're at here, measure the number of siblings.  */
+	  ptrdiff_t width_count = 1;
+	  while (ts_tree_cursor_goto_next_sibling (&cursor))
+	    width_count++;
+	  max_width = max (max_width, width_count);
+	  /* Go back to the first sibling.  */
+	  treesit_assume_true (ts_tree_cursor_goto_parent (&cursor));
+	  treesit_assume_true (ts_tree_cursor_goto_first_child (&cursor));
+	}
+      max_depth = max (max_depth, current_depth);
+
+      /* Go to next sibling.  If there is no next sibling, go to
+         parent's next sibling, and so on.  If there is no more
+         parent, we've traversed the whole subtree, stop.  */
+      while (!ts_tree_cursor_goto_next_sibling (&cursor))
+	{
+	  if (ts_tree_cursor_goto_parent (&cursor))
+	    current_depth--;
+	  else
+	    {
+	      ts_tree_cursor_delete (&cursor);
+	      return list3 (make_fixnum (max_depth),
+			    make_fixnum (max_width),
+			    make_fixnum (count));
+	    }
+	}
+    }
+}
+
 #endif	/* HAVE_TREE_SITTER */
 
 DEFUN ("treesit-available-p", Ftreesit_available_p,
@@ -3511,6 +3573,7 @@ then in the system default locations for dynamic libraries, in that order.  */);
   defsubr (&Streesit_search_subtree);
   defsubr (&Streesit_search_forward);
   defsubr (&Streesit_induce_sparse_tree);
+  defsubr (&Streesit_subtree_stat);
 #endif /* HAVE_TREE_SITTER */
   defsubr (&Streesit_available_p);
 }
