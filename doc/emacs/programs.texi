@@ -254,6 +254,17 @@ they do their standard jobs in a way better fitting a particular
 language.  Other major modes may replace any or all of these key
 bindings for that purpose.
 
+@cindex nested defuns
+@vindex treesit-defun-tactic
+  Some programming languages supported @dfn{nested defuns}, whereby a
+defun (such as a function or a method or a class) can be defined
+inside (i.e., as part of the body) of another defun.  The commands
+described above by default find the beginning and the end of the
+@emph{innermost} defun around point.  Major modes based on the
+tree-sitter library provide control of this behavior: if the variable
+@code{treesit-defun-tactic} is set to the value @code{top-level}, the
+defun commands will find the @emph{outermost} defuns instead.
+
 @node Imenu
 @subsection Imenu
 @cindex index of buffer definitions
@@ -520,15 +531,19 @@ then indent it like this:
 @item C-c C-q
 @kindex C-c C-q @r{(C mode)}
 @findex c-indent-defun
+@findex c-ts-mode-indent-defun
 Reindent the current top-level function definition or aggregate type
-declaration (@code{c-indent-defun}).
+declaration (@code{c-indent-defun} in CC mode,
+@code{c-ts-mode-indent-defun} in @code{c-ts-mode} based on tree-sitter).
 
 @item C-M-q
 @kindex C-M-q @r{(C mode)}
 @findex c-indent-exp
-Reindent each line in the balanced expression that follows point
-(@code{c-indent-exp}).  A prefix argument inhibits warning messages
-about invalid syntax.
+@findex prog-indent-sexp
+Reindent each line in the balanced expression that follows point.  In
+CC mode, this invokes @code{c-indent-exp}; in tree-sitter based
+@code{c-ts-mode} this invokes a more general @code{prog-indent-sexp}.
+A prefix argument inhibits warning messages about invalid syntax.
 
 @item @key{TAB}
 @findex c-indent-line-or-region
@@ -568,7 +583,8 @@ onto the indentation of the @dfn{anchor statement}.
 
 @table @kbd
 @item C-c . @var{style} @key{RET}
-Select a predefined style @var{style} (@code{c-set-style}).
+Select a predefined style @var{style} (@code{c-set-style} in CC mode,
+@code{c-ts-mode-set-style} in @code{c-ts-mode} based on tree-sitter).
 @end table
 
   A @dfn{style} is a named collection of customizations that can be
@@ -584,6 +600,7 @@ typing @kbd{C-M-q} at the start of a function definition.
 
 @kindex C-c . @r{(C mode)}
 @findex c-set-style
+@findex c-ts-mode-set-style
   To choose a style for the current buffer, use the command @w{@kbd{C-c
 .}}.  Specify a style name as an argument (case is not significant).
 This command affects the current buffer only, and it affects only
@@ -592,11 +609,11 @@ the code already in the buffer.  To reindent the whole buffer in the
 new style, you can type @kbd{C-x h C-M-\}.
 
 @vindex c-default-style
-  You can also set the variable @code{c-default-style} to specify the
-default style for various major modes.  Its value should be either the
-style's name (a string) or an alist, in which each element specifies
-one major mode and which indentation style to use for it.  For
-example,
+  When using CC mode, you can also set the variable
+@code{c-default-style} to specify the default style for various major
+modes.  Its value should be either the style's name (a string) or an
+alist, in which each element specifies one major mode and which
+indentation style to use for it.  For example,
 
 @example
 (setq c-default-style
@@ -612,6 +629,11 @@ actually the defaults.)  This variable takes effect when you select
 one of the C-like major modes; thus, if you specify a new default
 style for Java mode, you can make it take effect in an existing Java
 mode buffer by typing @kbd{M-x java-mode} there.
+
+@vindex c-ts-mode-indent-style
+  When using the tree-sitter based @code{c-ts-mode}, you can set the
+default indentation style by customizing the variable
+@code{c-ts-mode-indent-style}.
 
   The @code{gnu} style specifies the formatting recommended by the GNU
 Project for C; it is the default, so as to encourage use of our

@@ -580,16 +580,21 @@ from 1 which is the absolute minimum, to 4 that yields the maximum
 fontifications.
 
 Level 1 usually contains only comments and definitions.
-Level 2 usually adds keywords, strings, constants, types, etc.
-Level 3 usually represents a full-blown fontification, including
-assignment, constants, numbers, properties, etc.
+Level 2 usually adds keywords, strings, data types, etc.
+Level 3 usually represents full-blown fontifications, including
+assignments, constants, numbers and literals, properties, etc.
 Level 4 adds everything else that can be fontified: delimiters,
-operators, brackets, all functions and variables, etc.
+operators, brackets, punctuation, all functions and variables, etc.
 
 In addition to the decoration level, individual features can be
 turned on/off by calling `treesit-font-lock-recompute-features'.
 Changing the decoration level requires calling
-`treesit-font-lock-recompute-features' to have an effect."
+`treesit-font-lock-recompute-features' to have an effect, unless
+done via `customize-variable'.
+
+To see which syntactical categories are fontified by each level
+in a particular major mode, examine the buffer-local value of the
+variable `treesit-font-lock-feature-list'."
   :type 'integer
   :set #'treesit--font-lock-level-setter
   :version "29.1")

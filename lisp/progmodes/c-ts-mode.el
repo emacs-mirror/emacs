@@ -700,7 +700,8 @@ the semicolon.  This function skips the semicolon."
 (defvar-keymap c-ts-mode-map
   :doc "Keymap for the C language with tree-sitter"
   :parent prog-mode-map
-  "C-c C-q" #'c-ts-mode-indent-defun)
+  "C-c C-q" #'c-ts-mode-indent-defun
+  "C-c ." #'c-ts-mode-set-style)
 
 ;;;###autoload
 (define-derived-mode c-ts-base-mode prog-mode "C"
