@@ -43,6 +43,8 @@ enum sfnt_table
     SFNT_TABLE_MAXP,
     SFNT_TABLE_NAME,
     SFNT_TABLE_META,
+    SFNT_TABLE_CVT ,
+    SFNT_TABLE_FPGM,
   };
 
 #define SFNT_ENDOF(type, field, type1)			\

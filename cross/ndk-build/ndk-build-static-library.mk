@@ -42,7 +42,7 @@ $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_ASFLAGS_$(LOCAL_MODULE))
 
 else
-ifneq (x.$(suffix $(1)),x.asm)
+ifneq (x$(suffix $(1)),x.asm)
 $$(error Unsupported suffix: $(suffix $(1)))
 else
 ifneq (x$(LOCAL_ASM_RULE_DEFINED),x)

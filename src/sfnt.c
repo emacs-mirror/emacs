@@ -33,6 +33,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <setjmp.h>
 
 #if defined __GNUC__ && !defined __clang__
 #pragma GCC diagnostic ignored "-Wstringop-overflow"
@@ -64,6 +65,9 @@ xfree (void *ptr)
 /* Use this for functions that are static while building in test mode,
    but are used outside as well.  */
 #define TEST_STATIC static
+
+/* Needed for tests.  */
+#define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
 
 #else
 #define TEST_STATIC
@@ -105,6 +109,8 @@ static uint32_t sfnt_table_names[] =
     [SFNT_TABLE_MAXP] = 0x6d617870,
     [SFNT_TABLE_NAME] = 0x6e616d65,
     [SFNT_TABLE_META] = 0x6d657461,
+    [SFNT_TABLE_CVT ] = 0x63767420,
+    [SFNT_TABLE_FPGM] = 0x6670676d,
   };
 
 /* Swap values from TrueType to system byte order.  */
@@ -2410,14 +2416,14 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	  if (!(component->flags & 01)) /* ARG_1_AND_2_ARE_WORDS */
 	    {
 	      /* X and Y are signed bytes.  */
-	      x = component->argument1.b << 16;
-	      y = component->argument2.b << 16;
+	      x = component->argument1.b * 65536;
+	      y = component->argument2.b * 65536;
 	    }
 	  else
 	    {
 	      /* X and Y are signed words.  */
-	      x = component->argument1.d << 16;
-	      y = component->argument2.d << 16;
+	      x = component->argument1.d * 65536;
+	      y = component->argument2.d * 65536;
 	    }
 
 	  /* If there is some kind of scale and component offsets are
@@ -2478,8 +2484,8 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	  /* Get the points and use them to compute the offsets.  */
 	  xtemp = context->x_coordinates[point];
 	  ytemp = context->y_coordinates[point];
-	  x = (xtemp - subglyph->simple->x_coordinates[point2]) << 16;
-	  y = (ytemp - subglyph->simple->y_coordinates[point2]) << 16;
+	  x = (xtemp - subglyph->simple->x_coordinates[point2]) * 65536;
+	  y = (ytemp - subglyph->simple->y_coordinates[point2]) * 65536;
 	}
 
       /* Record the size of the point array before expansion.  This
@@ -2523,9 +2529,9 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 
 	      for (i = 0; i <= last_point; ++i)
 		{
-		  x_base[i] = ((subglyph->simple->x_coordinates[i] << 16)
+		  x_base[i] = ((subglyph->simple->x_coordinates[i] * 65536)
 			       + off_x + x);
-		  y_base[i] = ((subglyph->simple->y_coordinates[i] << 16)
+		  y_base[i] = ((subglyph->simple->y_coordinates[i] * 65536)
 			       + off_y + y);
 		  flags_base[i] = subglyph->simple->flags[i];
 		}
@@ -2636,8 +2642,8 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 	  last = glyph->simple->end_pts_of_contours[n];
 
 	  /* Move to the start.  */
-	  pen.x = glyph->simple->x_coordinates[here] << 16U;
-	  pen.y = glyph->simple->y_coordinates[here] << 16U;
+	  pen.x = glyph->simple->x_coordinates[here] * 65536;
+	  pen.y = glyph->simple->y_coordinates[here] * 65536;
 	  move_to (pen, dcontext);
 
 	  /* Record start so the contour can be closed.  */
@@ -2667,17 +2673,17 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 
 	      if (glyph->simple->flags[here] & 01) /* On Curve */
 		{
-		  pen.x = glyph->simple->x_coordinates[here] << 16U;
-		  pen.y = glyph->simple->y_coordinates[here] << 16U;
+		  pen.x = glyph->simple->x_coordinates[here] * 65536;
+		  pen.y = glyph->simple->y_coordinates[here] * 65536;
 
 		  /* See if the last point was on the curve.  If it
 		     wasn't, then curve from there to here.  */
 		  if (!(glyph->simple->flags[here - 1] & 01))
 		    {
 		      control1.x
-			= glyph->simple->x_coordinates[here - 1] << 16U;
+			= glyph->simple->x_coordinates[here - 1] * 65536;
 		      control1.y
-			= glyph->simple->y_coordinates[here - 1] << 16U;
+			= glyph->simple->y_coordinates[here - 1] * 65536;
 		      curve_to (control1, pen, dcontext);
 		    }
 		  else
@@ -2697,10 +2703,10 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 		  /* Otherwise, interpolate the point halfway between
 		     the last and current points and make that point
 		     the pen.  */
-		  control1.x = glyph->simple->x_coordinates[here - 1] << 16U;
-		  control1.y = glyph->simple->y_coordinates[here - 1] << 16U;
-		  control2.x = glyph->simple->x_coordinates[here] << 16U;
-		  control2.y = glyph->simple->y_coordinates[here] << 16U;
+		  control1.x = glyph->simple->x_coordinates[here - 1] * 65536;
+		  control1.y = glyph->simple->y_coordinates[here - 1] * 65536;
+		  control2.x = glyph->simple->x_coordinates[here] * 65536;
+		  control2.y = glyph->simple->y_coordinates[here] * 65536;
 		  sfnt_lerp_half (&control1, &control2, &pen);
 		  curve_to (control1, pen, dcontext);
 		}
@@ -2715,8 +2721,8 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 
 	      if (glyph->simple->flags[start] & 01) /* On Curve */
 		{
-		  pen.x = glyph->simple->x_coordinates[start] << 16U;
-		  pen.y = glyph->simple->y_coordinates[start] << 16U;
+		  pen.x = glyph->simple->x_coordinates[start] * 65536;
+		  pen.y = glyph->simple->y_coordinates[start] * 65536;
 
 		  /* See if the last point (in this case, `here') was
 		     on the curve.  If it wasn't, then curve from
@@ -2724,9 +2730,9 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 		  if (!(glyph->simple->flags[here] & 01))
 		    {
 		      control1.x
-			= glyph->simple->x_coordinates[here] << 16U;
+			= glyph->simple->x_coordinates[here] * 65536;
 		      control1.y
-			= glyph->simple->y_coordinates[here] << 16U;
+			= glyph->simple->y_coordinates[here] * 65536;
 		      curve_to (control1, pen, dcontext);
 		    }
 		  else
@@ -2968,6 +2974,138 @@ sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
   return outline;
 }
 
+#ifndef INT64_MAX
+
+/* 64 bit integer type.  */
+
+struct sfnt_large_integer
+{
+  unsigned int high, low;
+};
+
+/* Calculate (A * B), placing the result in *VALUE.  */
+
+static void
+sfnt_multiply_divide_1 (unsigned int a, unsigned int b,
+			struct sfnt_large_integer *value)
+{
+  unsigned int lo1, hi1, lo2, hi2, lo, hi, i1, i2;
+
+  lo1 = a & 0x0000ffffu;
+  hi1 = a >> 16;
+  lo2 = b & 0x0000ffffu;
+  hi2 = b >> 16;
+
+  lo = lo1 * lo2;
+  i1 = lo1 * hi2;
+  i2 = lo2 * hi1;
+  hi = hi1 * hi2;
+
+  /* Check carry overflow of i1 + i2.  */
+  i1 += i2;
+  hi += (unsigned int) (i1 < i2) << 16;
+
+  hi += i1 >> 16;
+  i1  = i1 << 16;
+
+  /* Check carry overflow of i1 + lo.  */
+  lo += i1;
+  hi += (lo < i1);
+
+  value->low = lo;
+  value->high = hi;
+}
+
+/* Count the number of most significant zero bits in N.  */
+
+static unsigned int
+sfnt_count_leading_zero_bits (unsigned int n)
+{
+  int shift;
+
+  shift = 0;
+
+  if (n & 0xffff0000ul)
+    {
+      n >>= 16;
+      shift += 16;
+    }
+
+  if (n & 0x0000ff00ul)
+    {
+      n >>= 8;
+      shift += 8;
+    }
+
+  if (n & 0x000000f0ul)
+    {
+      n >>= 4;
+      shift += 4;
+    }
+
+  if (n & 0x0000000cul)
+    {
+      n >>= 2;
+      shift += 2;
+    }
+
+  if (n & 0x00000002ul)
+    shift += 1;
+
+  return shift;
+}
+
+/* Calculate AB / C.  Value is a 32 bit unsigned integer.  */
+
+static unsigned int
+sfnt_multiply_divide_2 (struct sfnt_large_integer *ab,
+			unsigned int c)
+{
+  unsigned int hi, lo;
+  int i;
+  unsigned int r, q; /* Remainder and quotient.  */
+
+  hi = ab->high;
+  lo = ab->low;
+
+  i = 31 - sfnt_count_leading_zero_bits (hi);
+  r = (hi << i) | (lo >> (32 - i));
+  lo <<= i;
+  q = r / c;
+  r -= q * c;
+  i = 32 - i;
+
+  do
+    {
+      q <<= 1;
+      r = (r << 1) | (lo >> 31);
+      lo <<= 1;
+
+      if (r >= c)
+	{
+	  r -= c;
+	  q |= 1;
+	}
+    }
+  while (--i);
+
+  return q;
+}
+
+/* Calculate (A * B) / C on systems that do not have 64 bit scalar
+   types.  Return the result.  */
+
+static unsigned int
+sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
+{
+  struct sfnt_large_integer temp;
+
+  sfnt_multiply_divide_1 (a, b, &temp);
+  return sfnt_multiply_divide_2 (&temp, c);
+}
+
+#endif
+
 /* Multiply the two 16.16 fixed point numbers X and Y.  Return the
    result regardless of overflow.  */
 
@@ -2980,24 +3118,20 @@ sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
   product = (int64_t) x * (int64_t) y;
 
   /* This can be done quickly with int64_t.  */
-  return product >> 16;
+  return product / 65536;
 #else
-  int a, b, c, d, product_high;
-  unsigned int carry, product_low;
+  int sign;
 
-  a = (x >> 16);
-  c = (y >> 16);
-  b = (x & 0xffff);
-  d = (y & 0xffff);
+  sign = 1;
 
-  product_high = a * c + ((a * d + c * b) >> 16);
-  carry = (a * d + c * b) << 16;
-  product_low = b * d + carry;
+  if (x < 0)
+    sign = -sign;
 
-  if (product_low < b * d)
-    product_high++;
+  if (y < 0)
+    sign = -sign;
 
-  return (product_high << 16) | (product_low >> 16);
+  return sfnt_multiply_divide (abs (x), abs (y),
+			       65536) * sign;
 #endif
 }
 
@@ -3044,21 +3178,25 @@ sfnt_div_fixed (sfnt_fixed x, sfnt_fixed y)
 #ifdef INT64_MAX
   int64_t result;
 
-  result = ((int64_t) x << 16) / y;
+  result = ((int64_t) x * 65536) / y;
 
   return result;
 #else
-  unsigned int reciprocal;
-  int product;
+  int sign;
+  unsigned int a, b;
 
-  reciprocal = 1U << 31;
-  reciprocal = reciprocal / y;
+  sign = 1;
 
-  product = x * reciprocal;
+  if (x < 0)
+    sign = -sign;
 
-  /* This loses one bit at the end.  Now to see if anyone runs across
-     this...  */
-  return product << 1;
+  if (y < 0)
+    sign = -sign;
+
+  a = abs (x);
+  b = abs (y);
+
+  return sfnt_multiply_divide (a, 65536, b) * sign;
 #endif
 }
 
@@ -3067,10 +3205,7 @@ sfnt_div_fixed (sfnt_fixed x, sfnt_fixed y)
 static sfnt_fixed
 sfnt_ceil_fixed (sfnt_fixed x)
 {
-  if (!(x & 0177777))
-    return x;
-
-  return (x + 0200000) & 037777600000;
+  return (x + 0177777) & 037777600000;
 }
 
 /* Return the floor value of the specified fixed point number X.  */
@@ -3223,8 +3358,8 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
      It would be nice to get rid of this floating point arithmetic at
      some point.  */
   build_outline_context.factor
-    = sfnt_div_fixed (pixel_size << 16,
-		      head->units_per_em << 16);
+    = sfnt_div_fixed (pixel_size * 65536,
+		      head->units_per_em * 65536);
 
   /* Decompose the outline.  */
   rc = sfnt_decompose_glyph (glyph, sfnt_move_to_and_build,
@@ -4051,7 +4186,7 @@ sfnt_find_name (struct sfnt_name_table *name,
   return NULL;
 }
 
-/* Read the meta table from the give font FD, using the table
+/* Read the meta table from the given font FD, using the table
    directory specified as SUBTABLE.  Perform validation on the offsets
    in each metadata record.  Return NULL upon failure, else the meta
    table.  */
@@ -4306,6 +4441,2711 @@ sfnt_read_ttc_header (int fd)
 
 
 #ifdef TEST
+#define SFNT_ENABLE_HINTING
+#endif
+
+#ifdef SFNT_ENABLE_HINTING
+
+/* TrueType hinting support.
+
+   If you do not read the code in this section in conjunction with
+   Apple's TrueType Reference Manual, you will get very confused!
+
+   TrueType fonts don't provide simple hinting meta data, unlike Type
+   2 or CFF fonts.
+
+   Instead, they come with a ``font program'', a bytecode program
+   which is executed upon loading the font, a ``control value
+   program'', executed upon font metrics changing, and then a ``glyph
+   program'' for each glyph, which is run to fit its glyph after
+   scaling.
+
+   The virtual machine which runs this bytecode is arranged as such:
+
+   Firstly, there is a set of registers known as the ``graphics
+   state''.  Each time the point size of a font changes, the ``control
+   value program'' is run to establish the default values of the
+   ``graphics state''.  Then, before each glyph program is run, the
+   ``graphics state'' is set back to the default values.
+
+   Secondly, there is an address space which contains all instructions
+   being run for the current program, which is addressed by the
+   interpreter through its program counter and also by the
+   instructions which push data on to the stack.
+
+   Thirdly, there is a single stack, from which most instructions take
+   their operands and store data.
+
+   Then, there is some memory set aside for each font, the ``storage
+   area'', which is addressed through the RS[] and WS[] instructions,
+   and a ``control value table'', which is the `cvt ' table of the
+   font.
+
+   And finally, there is a ``glyph zone'' which holds points from a
+   scaled glyph outline, and a ``twilight zone'', which holds points
+   used by the font program itself.  Both are addressed indirectly
+   through one of three ``zone pointer'' registers, and are accessible
+   only when a program is being run on behalf of a glyph.  */
+
+/* Structure definitions for tables used by the TrueType
+   interpreter.  */
+
+struct sfnt_cvt_table
+{
+  /* Number of elements in the control value table.  */
+  size_t num_elements;
+
+  /* Pointer to elements in the control value table.  */
+  uint32_t *values;
+};
+
+struct sfnt_fpgm_table
+{
+  /* Number of instructions in the font program table.  */
+  size_t num_instructions;
+
+  /* Pointer to elements in the font program table.  */
+  unsigned char *instructions;
+};
+
+
+
+/* Functions for reading tables used by the TrueType interpreter.  */
+
+/* Read the cvt table (control value table) from the given font FD,
+   using the table directory specified as SUBTABLE.  Swap all values
+   in the control value table.  Return NULL upon failure, else the cvt
+   table.  */
+
+static struct sfnt_cvt_table *
+sfnt_read_cvt_table (int fd, struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_table_directory *directory;
+  size_t required, i;
+  ssize_t rc;
+  struct sfnt_cvt_table *cvt;
+
+  /* Find the table in the directory.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_CVT );
+
+  if (!directory)
+    return NULL;
+
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
+
+  /* Figure out the minimum amount that has to be read.  */
+  if (INT_ADD_WRAPV (sizeof *cvt, directory->length, &required))
+    return NULL;
+
+  /* Allocate enough for that much data.  */
+  cvt = xmalloc (required);
+
+  /* Now set cvt->num_elements as appropriate, and make cvt->values
+     point into the values.  */
+  cvt->num_elements = directory->length / 4;
+  cvt->values = (uint32_t *) (cvt + 1);
+
+  /* Read into cvt.  */
+  rc = read (fd, cvt->values, directory->length);
+  if (rc != directory->length)
+    {
+      xfree (cvt);
+      return NULL;
+    }
+
+  /* Swap each element in the control value table.  */
+  for (i = 0; i < cvt->num_elements; ++i)
+    sfnt_swap32 (&cvt->values[i]);
+
+  /* All done.  */
+  return cvt;
+}
+
+/* Read the fpgm table from the given font FD, using the table
+   directory specified as SUBTABLE.  Value is NULL upon failure, else
+   the fpgm table.  */
+
+static struct sfnt_fpgm_table *
+sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_table_directory *directory;
+  size_t required;
+  ssize_t rc;
+  struct sfnt_fpgm_table *fpgm;
+
+  /* Find the table in the directory.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_FPGM);
+
+  if (!directory)
+    return NULL;
+
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
+
+  /* Figure out the minimum amount that has to be read.  */
+  if (INT_ADD_WRAPV (sizeof *fpgm, directory->length, &required))
+    return NULL;
+
+  /* Allocate enough for that much data.  */
+  fpgm = xmalloc (sizeof *fpgm);
+
+  /* Now set fpgm->num_instructions as appropriate, and make
+     fpgm->instructions point to the right place.  */
+
+  fpgm->num_instructions = directory->length;
+  fpgm->instructions = (unsigned char *) (fpgm + 1);
+
+  /* Read into fpgm.  */
+  rc = read (fd, fpgm->instructions, directory->length);
+  if (rc != directory->length)
+    {
+      xfree (fpgm);
+      return NULL;
+    }
+
+  /* All done.  */
+  return fpgm;
+}
+
+
+
+/* Interpreter execution environment.  */
+
+/* 26.6 fixed point type used within the interpreter.  */
+typedef int32_t sfnt_f26dot6;
+
+/* 2.14 fixed point type used to represent unit vectors.  */
+typedef int16_t sfnt_f2dot14;
+
+struct sfnt_unit_vector
+{
+  /* X and Y versors of the 2d unit vector.  */
+  sfnt_f2dot14 x, y;
+};
+
+struct sfnt_interpreter_definition
+{
+  /* The opcode of this instruction or function.  */
+  uint16_t opcode;
+
+  /* The number of instructions.  */
+  uint16_t instruction_count;
+
+  /* Pointer to instructions belonging to the definition.  This
+     pointer points directly into the control value or font program.
+     Make sure both programs are kept around as long as the
+     interpreter continues to exist.  */
+  unsigned char *instructions;
+};
+
+/* This is needed because `round' below needs an interpreter
+   argument.  */
+struct sfnt_interpreter;
+
+struct sfnt_interpreter_graphics_state
+{
+  /* Pointer to the function used for rounding.  This function is
+     asymmetric, so -0.5 rounds up to 0, not -1.  It is up to the
+     caller to handle negative values.
+
+     Value is undefined unless sfnt_validate_gs has been called, and
+     the second argument may be used to provide detailed rounding
+     information (``super rounding state''.)  */
+  sfnt_f26dot6 (*round) (sfnt_f26dot6, struct sfnt_interpreter *);
+
+  /* Controls whether the sign of control value table entries will be
+     changed to match the sign of the actual distance measurement with
+     which it is compared.  Setting auto flip to TRUE makes it
+     possible to control distances measured with or against the
+     projection vector with a single control value table entry. When
+     auto flip is set to FALSE, distances must be measured with the
+     projection vector.  */
+  bool auto_flip;
+
+  /* Limits the regularizing effects of control value table entries to
+     cases where the difference between the table value and the
+     measurement taken from the original outline is sufficiently
+     small.  */
+  sfnt_f26dot6 cvt_cut_in;
+
+  /* Establishes the base value used to calculate the range of point
+     sizes to which a given DELTAC[] or DELTAP[] instruction will
+     apply.  The formulas given below are used to calculate the range
+     of the various DELTA instructions.
+
+     DELTAC1 DELTAP1 (delta_base) through (delta_base + 15)
+     DELTAC2 DELTAP2 (delta_base + 16) through (delta_base + 31)
+     DELTAC3 DELTAP3 (delta_base + 32) through (delta_base + 47)
+
+     Please keep this documentation in sync with the TrueType
+     reference manual.  */
+  unsigned short delta_base;
+
+  /* Determines the range of movement and smallest magnitude of
+     movement (the step) in a DELTAC[] or DELTAP[] instruction.
+     Changing the value of the delta shift makes it possible to trade
+     off fine control of point movement for range of movement.  A low
+     delta shift favors range of movement over fine control.  A high
+     delta shift favors fine control over range of movement.  The step
+     has the value 1/2 to the power delta shift.  The range of
+     movement is calculated by taking the number of steps allowed (16)
+     and multiplying it by the step.
+
+     The legal range for delta shift is zero through six.  Negative
+     values are illegal.  */
+  unsigned short delta_shift;
+
+  /* A second projection vector set to a line defined by the original
+     outline location of two points.  The dual projection vector is
+     used when it is necessary to measure distances from the scaled
+     outline before any instructions were executed.  */
+  struct sfnt_unit_vector dual_projection_vector;
+
+  /* A unit vector that establishes an axis along which points can
+     move.  */
+  struct sfnt_unit_vector freedom_vector;
+
+  /* Makes it possible to turn off instructions under some
+     circumstances.  When set to 1, no instructions will be
+     executed.  */
+  unsigned char instruct_control;
+
+  /* Makes it possible to repeat certain instructions a designated
+     number of times.  The default value of one assures that unless
+     the value of loop is altered, these instructions will execute one
+     time.  */
+  unsigned short loop;
+
+  /* Establishes the smallest possible value to which a distance will
+     be rounded.  */
+  sfnt_f26dot6 minimum_distance;
+
+  /* A unit vector whose direction establishes an axis along which
+     distances are measured.  */
+  struct sfnt_unit_vector projection_vector;
+
+  /* Determines the manner in which values are rounded. Can be set to
+     a number of predefined states or to a customized state with the
+     SROUND or S45ROUND instructions.  */
+  int round_state;
+
+  /* Reference points.  These reference point numbers, which together
+     with a zone designation, specify a point in either the glyph zone
+     or the twilight zone.  */
+  uint16_t rp0, rp1, rp2;
+
+  /* Determines whether the interpreter will activate dropout control
+     for the current glyph.  */
+  bool scan_control;
+
+  /* The distance difference below which the interpreter will replace
+     a CVT distance or an actual distance in favor of the single width
+     value.  */
+  sfnt_f26dot6 sw_cut_in;
+
+  /* The value used in place of the control value table distance or
+     the actual distance value when the difference between that
+     distance and the single width value is less than the single width
+     cut-in.  */
+  sfnt_f26dot6 single_width_value;
+
+  /* Zone pointers, which reference a zone.  */
+  int zp0, zp1, zp2;
+};
+
+struct sfnt_interpreter
+{
+  /* The number of elements in the stack.  */
+  uint16_t max_stack_elements;
+
+  /* The number of instructions in INSTRUCTIONS.  */
+  uint16_t num_instructions;
+
+  /* Size of the storage area.  */
+  uint16_t storage_size;
+
+  /* Size of the function definition area.  */
+  uint16_t function_defs_size;
+
+  /* Size of the instruction definition area.  */
+  uint16_t instruction_defs_size;
+
+  /* Size of the twilight zone.  */
+  uint16_t twilight_zone_size;
+
+  /* The instruction pointer.  This points to the instruction
+     currently being executed.  */
+  int IP;
+
+  /* The current scale.  */
+  sfnt_f26dot6 scale;
+
+  /* The current ppem and point size.  */
+  int ppem, point_size;
+
+  /* The execution stack.  This has at most max_stack_elements
+     elements.  */
+  uint32_t *stack;
+
+  /* Pointer past the top of the stack.  */
+  uint32_t *SP;
+
+  /* The size of the control value table.  */
+  size_t cvt_size;
+
+  /* Pointer to instructions currently being executed.  */
+  unsigned char *instructions;
+
+  /* The twilight zone.  May not be NULL.  */
+  sfnt_f26dot6 *twilight_x, *twilight_y;
+
+  /* The scaled outlines being manipulated.  May be NULL.  */
+  sfnt_f26dot6 *outline_x, *outline_y;
+
+  /* The glyph advance width.  Value is undefined unless OUTLINE_X is
+     set.  */
+  sfnt_f26dot6 advance_width;
+
+  /* The storage area.  */
+  uint32_t *storage;
+
+  /* Control value table values.  */
+  sfnt_f26dot6 *cvt;
+
+  /* Function definitions.  */
+  struct sfnt_interpreter_definition *function_defs;
+
+  /* Instruction definitions.  */
+  struct sfnt_interpreter_definition *instruction_defs;
+
+  /* Interpreter registers.  */
+  struct sfnt_interpreter_graphics_state state;
+
+  /* Detailed rounding state used when state.round_state indicates
+     that fine grained rounding should be used.
+
+     PERIOD says how often a round value occurs, for numbers
+     increasing from PHASE to infinity.
+
+     THRESHOLD says when to round a value between two increasing
+     periods towards the larger period.  */
+  sfnt_f26dot6 period, phase, threshold;
+
+  /* The depth of any ongoing calls.  */
+  int call_depth;
+
+  /* Jump buffer for traps.  */
+  jmp_buf trap;
+
+  /* What was the trap.  */
+  const char *trap_reason;
+};
+
+/* Divide the specified two 26.6 fixed point numbers X and Y.
+   Return the result.  */
+
+static sfnt_f26dot6
+sfnt_div_f26dot6 (sfnt_f26dot6 x, sfnt_f26dot6 y)
+{
+#ifdef INT64_MAX
+  int64_t result;
+
+  result = ((int64_t) x * 64) / y;
+
+  return result;
+#else
+  int sign;
+  unsigned int a, b;
+
+  sign = 1;
+
+  if (x < 0)
+    sign = -sign;
+
+  if (y < 0)
+    sign = -sign;
+
+  a = abs (x);
+  b = abs (y);
+
+  return sfnt_multiply_divide (a, 64, b) * sign;
+#endif
+}
+
+/* Multiply-round the specified two 26.6 fixed point numbers A and B.
+   Return the result, or an undefined value upon overflow.  */
+
+static sfnt_f26dot6
+sfnt_mul_f26dot6 (sfnt_f26dot6 a, sfnt_f26dot6 b)
+{
+#ifdef INT64_MAX
+  return (sfnt_f26dot6) (((int64_t) a * b + (1 << 5)) / (1 << 6));
+#else
+  int sign;
+  unsigned short al, bl, ah, bh;
+  unsigned int lowlong, midlong, hilong;
+  unsigned int result;
+
+  sign = 1;
+
+  /* Compensate for complement and determine if the result will be
+     negative.  */
+
+  if (a < 0)
+    {
+      a = -a;
+      sign = -sign;
+    }
+
+  if (b < 0)
+    {
+      b = -b;
+      sign = -sign;
+    }
+
+  /* Load low and high words from A and B.  */
+  al = a & 0xffff;
+  bl = b & 0xffff;
+  ah = a >> 16;
+  bh = b >> 16;
+
+  /* Multiply the various bits separately.  */
+  midlong = ((unsigned int) al * bh) + (unsigned int) ah * bl;
+  hilong = (((unsigned int) ah * bh) + (midlong & 0xffff0000)) >> 16;
+
+  /* Scale midlong up to 32 bits.  */
+  midlong = midlong << 16;
+  midlong += 1 << 5;
+
+  /* Add remaining lower bits.  */
+  lowlong = ((unsigned int) al * bl) + midlong;
+
+  /* Carry.  */
+  if (lowlong < midlong)
+    hilong++;
+
+  result = lowlong >> 6 | hilong << 26;
+
+  return result * sign;
+#endif
+}
+
+/* Return the floor of the specified 26.6 fixed point value X.  */
+
+static sfnt_f26dot6
+sfnt_floor_f26dot6 (sfnt_f26dot6 x)
+{
+  return x & 037777777700;
+}
+
+/* Return the ceiling of the specified 26.6 fixed point value X.  */
+
+static sfnt_f26dot6
+sfnt_ceil_f26dot6 (sfnt_f26dot6 x)
+{
+  return (x + 077) & ~077;
+}
+
+/* Return the 26.6 fixed point value X rounded to the nearest integer
+   value.  */
+
+static sfnt_f26dot6
+sfnt_round_f26dot6 (sfnt_f26dot6 x)
+{
+  /* Add 0.5.  */
+  x += 040;
+
+  /* Remove the fractional.  */
+  return x & ~077;
+}
+
+/* Needed by sfnt_init_graphics_state.  */
+
+static void sfnt_validate_gs (struct sfnt_interpreter_graphics_state *);
+
+/* Set up default values for the interpreter graphics state.  Return
+   them in STATE.  */
+
+static void
+sfnt_init_graphics_state (struct sfnt_interpreter_graphics_state *state)
+{
+  state->auto_flip = true;
+  state->cvt_cut_in = 0104;
+  state->delta_base = 9;
+  state->delta_shift = 3;
+  state->dual_projection_vector.x = 040000; /* 1.0 */
+  state->dual_projection_vector.y = 0;
+  state->freedom_vector.x = 040000; /* 1.0 */
+  state->freedom_vector.y = 0;
+  state->instruct_control = 0;
+  state->loop = 1;
+  state->minimum_distance = 0100;
+  state->projection_vector.x = 040000; /* 1.0 */
+  state->projection_vector.y = 0;
+  state->round_state = 1;
+  state->rp0 = 0;
+  state->rp1 = 0;
+  state->rp2 = 0;
+  state->scan_control = false;
+  state->sw_cut_in = 0;
+  state->single_width_value = 0;
+  state->zp0 = 1;
+  state->zp1 = 1;
+  state->zp2 = 1;
+
+  /* Validate the graphics state.  */
+  sfnt_validate_gs (state);
+}
+
+/* Set up an interpreter to be used with a font.  Use the resource
+   limits specified in the MAXP table, the values specified in the CVT
+   and HEAD tables, the pixel size PIXEL_SIZE, and the point size
+   POINT_SIZE.
+
+   POINT_SIZE should be PIXEL_SIZE, converted to 1/72ths of an inch.
+
+   Value is the interpreter, with all state initialized to default
+   values, or NULL upon failure.  */
+
+static struct sfnt_interpreter *
+sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
+		       struct sfnt_cvt_table *cvt,
+		       struct sfnt_head_table *head,
+		       int pixel_size, int point_size)
+{
+  size_t size, temp, i, storage_size, pad;
+  struct sfnt_interpreter *interpreter;
+
+  /* Detect CFF maxp tables.  */
+  if (maxp->version != 0x00010000)
+    return NULL;
+
+  /* Use the contents of the MAXP table to determine the size of the
+     interpreter structure.  */
+  size = sizeof (*interpreter);
+
+  /* Add program stack.  */
+  if (INT_ADD_WRAPV ((maxp->max_stack_elements
+		      * sizeof *interpreter->stack),
+		     size, &size))
+    return NULL;
+
+  /* Add twilight zone.  */
+
+  if (INT_ADD_WRAPV ((maxp->max_twilight_points
+		      * sizeof *interpreter->twilight_x),
+		     size, &size))
+    return NULL;
+
+  if (INT_ADD_WRAPV ((maxp->max_twilight_points
+		      * sizeof *interpreter->twilight_y),
+		     size, &size))
+    return NULL;
+
+  /* Add the storage area.  */
+  storage_size = maxp->max_storage * sizeof *interpreter->storage;
+  if (INT_ADD_WRAPV (storage_size, size, &size))
+    return NULL;
+
+  /* Add padding for the storage area.  */
+  pad = alignof (struct sfnt_interpreter_definition);
+  pad -= size & (pad - 1);
+  if (INT_ADD_WRAPV (pad, size, &size))
+    return NULL;
+
+  /* Add function and instruction definitions.  */
+  if (INT_ADD_WRAPV ((((int) maxp->max_instruction_defs
+		       + maxp->max_function_defs)
+		      * sizeof *interpreter->function_defs),
+		     size, &size))
+    return NULL;
+
+  /* Add control value table.  */
+  if (INT_MULTIPLY_WRAPV (cvt->num_elements,
+			  sizeof *interpreter->cvt,
+			  &temp)
+      || INT_ADD_WRAPV (temp, size, &size))
+    return NULL;
+
+  /* Allocate the interpreter.  */
+  interpreter = xmalloc (size);
+
+  /* Fill in pointers and default values.  */
+  interpreter->max_stack_elements = maxp->max_stack_elements;
+  interpreter->num_instructions = 0;
+  interpreter->IP = 0;
+  interpreter->storage_size = maxp->max_storage;
+  interpreter->function_defs_size = maxp->max_function_defs;
+  interpreter->instruction_defs_size = maxp->max_instruction_defs;
+  interpreter->twilight_zone_size = maxp->max_twilight_points;
+  interpreter->scale = 0; /* This should be set later.  */
+
+  interpreter->stack = (uint32_t *) (interpreter + 1);
+  interpreter->SP = interpreter->stack;
+  interpreter->instructions = NULL;
+  interpreter->twilight_x
+    = (sfnt_f26dot6 *) (interpreter->stack
+			+ maxp->max_stack_elements);
+  interpreter->twilight_y = (interpreter->twilight_x
+			     + maxp->max_twilight_points);
+  interpreter->outline_x = NULL;
+  interpreter->outline_y = NULL;
+  interpreter->advance_width = 0;
+  interpreter->storage
+    = (uint32_t *) (interpreter->twilight_y
+		    + maxp->max_twilight_points);
+  interpreter->function_defs
+    = (struct sfnt_interpreter_definition *) (interpreter->storage
+					      + maxp->max_storage);
+  interpreter->function_defs
+    = ((struct sfnt_interpreter_definition *)
+       ((unsigned char *) interpreter->function_defs + pad));
+  interpreter->instruction_defs = (interpreter->function_defs
+				   + maxp->max_function_defs);
+  interpreter->cvt
+    = (sfnt_f26dot6 *) (interpreter->instruction_defs
+			+ maxp->max_instruction_defs);
+  interpreter->cvt_size = cvt->num_elements;
+
+  /* Now compute the scale.  Then, scale up the control value table
+     values.  */
+  interpreter->scale
+    = sfnt_div_f26dot6 (pixel_size * 64,
+			head->units_per_em * 64);
+
+  /* Set the PPEM.  */
+  interpreter->ppem = pixel_size;
+  interpreter->point_size = point_size;
+
+  /* Zero out the interpreter state from the stack to the end of the
+     instruction definitions.  */
+  memset (interpreter->stack, 0, size - sizeof *interpreter);
+
+  /* Initialize the interpreter graphics state.  */
+  sfnt_init_graphics_state (&interpreter->state);
+
+  /* Load the control value table.  */
+  for (i = 0; i < interpreter->cvt_size; ++i)
+    interpreter->cvt[i] = ((int32_t) cvt->values[i]
+			   * interpreter->scale);
+
+  /* Fill in the default values for phase, period and threshold.  */
+  interpreter->period = 64;
+  interpreter->phase = 0;
+  interpreter->threshold = 0;
+
+  /* Fill in the current call depth.  */
+  interpreter->call_depth = 0;
+
+  /* Return the interpreter.  */
+  return interpreter;
+}
+
+/* These enums are used to determine why the interpreter is being
+   run.  They have the following meanings:
+
+     - The interpreter is being run to interpret a font program.
+     - The interpreter is being run to interpret the control
+       value program.
+     - The interpreter is being run to fit a glyph.
+     - The interpreter is being run as part of an automated test.  */
+
+enum sfnt_interpreter_run_context
+  {
+    SFNT_RUN_CONTEXT_FONT_PROGRAM,
+    SFNT_RUN_CONTEXT_CONTROL_VALUE_PROGRAM,
+    SFNT_RUN_CONTEXT_GLYPH_PROGRAM,
+#ifdef TEST
+    SFNT_RUN_CONTEXT_TEST,
+#endif
+  };
+
+/* Cancel execution of the program in INTERPRETER with the specified
+   error REASON.
+
+   After this is called, it is probably okay to reuse INTERPRETER.
+   However, instructions must always be reloaded.  */
+
+static void
+sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
+		     const char *reason)
+{
+  interpreter->trap_reason = reason;
+  interpreter->call_depth = 0;
+  longjmp (interpreter->trap, 1);
+}
+
+#define STACKSIZE()				\
+  (interpreter->SP - interpreter->stack)
+
+#define TRAP(why)				\
+  sfnt_interpret_trap (interpreter, (why))
+
+#define MOVE(a, b, n)				\
+  memmove (a, b, (n) * sizeof (uint32_t))
+
+
+
+/* Register, alu and logic instructions.  */
+
+#define POP()					\
+  (interpreter->SP == interpreter->stack	\
+   ? (TRAP ("stack underflow"), 0)		\
+   : (*(--interpreter->SP)))
+
+#define LOOK()					\
+  (interpreter->SP == interpreter->stack	\
+   ? (TRAP ("stack underflow"), 0)		\
+   : *(interpreter->SP - 1))
+
+#define PUSH(value)				\
+  {						\
+    if ((char *) (interpreter->SP + 1)		\
+	> (char *) interpreter->twilight_x)	\
+      TRAP ("stack overflow");			\
+						\
+    *interpreter->SP = value;			\
+    interpreter->SP++;				\
+  }
+
+#define PUSH2(high, low)			\
+  {						\
+    PUSH ((int16_t) ((int8_t) high) << 8	\
+	  | low);				\
+  }						\
+
+#define SRP0()					\
+  {						\
+    uint32_t p;					\
+						\
+    p = POP ();					\
+    interpreter->state.rp0 = p;			\
+  }
+
+#define SRP1()					\
+  {						\
+    uint32_t p;					\
+						\
+    p = POP ();					\
+    interpreter->state.rp1 = p;			\
+  }
+
+#define SRP2()					\
+  {						\
+    uint32_t p;					\
+						\
+    p = POP ();					\
+    interpreter->state.rp2 = p;			\
+  }
+
+#define SZP0()					\
+  {						\
+    uint32_t zone;				\
+						\
+    zone = POP ();				\
+						\
+    if (zone > 1)				\
+      TRAP ("invalid zone");			\
+						\
+    interpreter->state.zp0 = zone;		\
+  }
+
+#define SZP1()					\
+  {						\
+    uint32_t zone;				\
+						\
+    zone = POP ();				\
+						\
+    if (zone > 1)				\
+      TRAP ("invalid zone");			\
+						\
+    interpreter->state.zp1 = zone;		\
+  }
+
+#define SZP2()					\
+  {						\
+    uint32_t zone;				\
+						\
+    zone = POP ();				\
+						\
+    if (zone > 1)				\
+      TRAP ("invalid zone");			\
+						\
+    interpreter->state.zp2 = zone;		\
+  }
+
+#define SZPS()					\
+  {						\
+    uint32_t zone;				\
+						\
+    zone = POP ();				\
+						\
+    if (zone > 1)				\
+      TRAP ("invalid zone");			\
+						\
+    interpreter->state.zp0 = zone;		\
+    interpreter->state.zp1 = zone;		\
+    interpreter->state.zp2 = zone;		\
+  }
+
+#define SLOOP()					\
+  {						\
+    uint32_t loop;				\
+						\
+    loop = POP ();				\
+						\
+    if (!loop)					\
+      TRAP ("loop set to 0");			\
+						\
+    interpreter->state.loop = loop;		\
+  }
+
+#define SMD()					\
+  {						\
+    sfnt_f26dot6 md;				\
+						\
+    md = POP ();				\
+						\
+    interpreter->state.minimum_distance = md;	\
+  }
+
+#define ELSE()					\
+  {						\
+    sfnt_interpret_else (interpreter);		\
+    goto skip_step;				\
+  }
+
+#define JMPR()					\
+  {						\
+    int32_t offset;				\
+						\
+    offset = POP ();				\
+						\
+    if (interpreter->IP + offset < 0		\
+	|| (interpreter->IP + offset		\
+	    > interpreter->num_instructions))	\
+      TRAP ("JMPR out of bounds");		\
+						\
+    interpreter->IP += offset;			\
+    goto skip_step;				\
+  }
+
+#define SCVTCI()				\
+  {						\
+    sfnt_f26dot6 cutin;				\
+						\
+    cutin = POP ();				\
+						\
+    interpreter->state.cvt_cut_in = cutin;	\
+  }
+
+#define SSWCI()					\
+  {						\
+    sfnt_f26dot6 cutin;				\
+						\
+    cutin = POP ();				\
+						\
+    interpreter->state.sw_cut_in = cutin;	\
+  }
+
+#define SSW()					\
+  {						\
+    int32_t single_width;			\
+						\
+    single_width = POP ();			\
+						\
+    interpreter->state.single_width_value	\
+      = interpreter->scale * single_width;	\
+  }
+
+#define DUP()					\
+  {						\
+    uint32_t value;				\
+						\
+    value = LOOK ();				\
+    PUSH (value);				\
+  }
+
+#define CLEAR()					\
+  {						\
+    interpreter->SP = interpreter->stack;	\
+  }
+
+#define SWAP()					\
+  {						\
+    uint32_t a, b;				\
+						\
+    a = POP ();					\
+    b = POP ();					\
+						\
+    PUSH (a);					\
+    PUSH (b);					\
+  }
+
+#define DEPTH()					\
+  {						\
+    ptrdiff_t diff;				\
+						\
+    diff = (interpreter->SP			\
+	    - interpreter->stack);		\
+    PUSH (diff);				\
+  }
+
+#define CINDEX()				\
+  {						\
+    int32_t index;				\
+						\
+    index = POP ();				\
+						\
+    if (index <= 0 || index > STACKSIZE ())	\
+      TRAP ("stack overflow");			\
+						\
+    PUSH (*(interpreter->SP - index));		\
+  }
+
+#define MINDEX()				\
+  {						\
+    int32_t index, what;			\
+						\
+    index = POP ();				\
+						\
+    if (index <= 0 || index > STACKSIZE ())	\
+      TRAP ("stack overflow");			\
+						\
+    what = *(interpreter->SP - index);		\
+    MOVE (interpreter->SP - index,		\
+	  interpreter->SP - index + 1,		\
+	  index - 1);				\
+    *(interpreter->SP - 1) = what;		\
+  }
+
+#define RAW()					\
+  {						\
+    if (!interpreter->outline_x)		\
+      TRAP ("Read Advance Width without loaded"	\
+	    " glyph");				\
+    PUSH (interpreter->advance_width);		\
+  }
+
+#define CALL()					\
+  {						\
+    uint32_t id, i;				\
+    struct sfnt_interpreter_definition *def;	\
+						\
+    id = POP ();				\
+						\
+    for (i = 0;					\
+	 i < interpreter->function_defs_size;	\
+	 ++i)					\
+      {						\
+	def = &interpreter->function_defs[i];	\
+						\
+	if (!def->instructions)			\
+	  TRAP ("invalid function");		\
+						\
+	if (def->opcode == id)			\
+	  sfnt_interpret_call (def,		\
+			       interpreter,	\
+			       why);		\
+	if (def->opcode == id)			\
+	  break;				\
+      }						\
+						\
+    if (i == interpreter->function_defs_size)	\
+      TRAP ("invalid function");		\
+  }
+
+#define LOOPCALL()				\
+  {						\
+    uint32_t id, i;				\
+    int32_t n;					\
+    struct sfnt_interpreter_definition *def;	\
+						\
+    id = POP ();				\
+    n = POP ();					\
+						\
+    if (n > 65535)				\
+      TRAP ("invalid LOOPCALL count");		\
+						\
+    for (i = 0;					\
+	 i < interpreter->function_defs_size;	\
+	 ++i)					\
+      {						\
+	def = &interpreter->function_defs[i];	\
+						\
+	if (!def->instructions)			\
+	  TRAP ("invalid function");		\
+						\
+	if (def->opcode == id)			\
+	  break;				\
+      }						\
+						\
+    if (i == interpreter->function_defs_size)	\
+      TRAP ("invalid function");		\
+						\
+  loopcall_begin:				\
+    if (n-- <= 0)				\
+      break;					\
+						\
+    sfnt_interpret_call (def, interpreter,	\
+			 why);			\
+    goto loopcall_begin;			\
+  }
+
+#define FDEF()					\
+  {						\
+    if (why == SFNT_RUN_CONTEXT_GLYPH_PROGRAM)	\
+      TRAP ("FDEF inside glyph program");	\
+						\
+    sfnt_interpret_fdef (interpreter, POP ());	\
+    goto skip_step;				\
+  }
+
+#define ENDF()					\
+  {						\
+    TRAP ("stray ENDF");			\
+  }
+
+#define NPUSHB()				\
+  {						\
+    int b, nbytes, IP;				\
+						\
+    if ((IP = interpreter->IP + 1)		\
+	>= interpreter->num_instructions)	\
+      TRAP ("Missing arg to NPUSHB");		\
+						\
+    nbytes					\
+      = interpreter->instructions[IP];		\
+						\
+    if (IP + 1 + nbytes				\
+	> interpreter->num_instructions)	\
+      TRAP ("args to NPUSHB lie outside IS");	\
+						\
+    for (b = IP + 1; b < IP + 1 + nbytes; ++b)	\
+      PUSH (interpreter->instructions[b]);	\
+						\
+    interpreter->IP += nbytes + 1;		\
+  }
+
+#define NPUSHW()				\
+  {						\
+    int b, nbytes, IP;				\
+						\
+    if ((IP = interpreter->IP + 1)		\
+	>= interpreter->num_instructions)	\
+      TRAP ("Missing arg to NPUSHW");		\
+						\
+    nbytes					\
+      = interpreter->instructions[IP] * 2;	\
+						\
+    if (IP + 1 + nbytes				\
+	> interpreter->num_instructions)	\
+      TRAP ("args to NPUSHW lie outside IS");	\
+						\
+    for (b = IP + 1; b < IP + 1 + nbytes;	\
+	 b += 2)				\
+      PUSH2 (interpreter->instructions[b],	\
+	     interpreter->instructions[b + 1]);	\
+						\
+    interpreter->IP += nbytes + 1;		\
+  }
+
+#define WS()					\
+  {						\
+    uint32_t address, value;			\
+						\
+    value = POP ();				\
+    address = POP ();				\
+						\
+    if (address >= interpreter->storage_size)	\
+      TRAP ("invalid WS");			\
+						\
+    interpreter->storage[address] = value;	\
+  }
+
+#define RS()					\
+  {						\
+    uint32_t address;				\
+						\
+    address = POP ();				\
+						\
+    if (address >= interpreter->storage_size)	\
+      TRAP ("invalid RS");			\
+						\
+    PUSH (interpreter->storage[address]);	\
+  }
+
+#define WCVTP()					\
+  {						\
+    sfnt_f26dot6 value;				\
+    uint32_t location;				\
+						\
+    value = POP ();				\
+    location = POP ();				\
+						\
+    if (location >= interpreter->cvt_size)	\
+      TRAP ("WCVTP out of bounds");		\
+						\
+    interpreter->cvt[location] = value;		\
+  }
+
+#define RCVT()					\
+  {						\
+    sfnt_f26dot6 value;				\
+    uint32_t location;				\
+						\
+    location = POP ();				\
+						\
+    if (location >= interpreter->cvt_size)	\
+      TRAP ("out of bounds RCVT");		\
+						\
+    value = interpreter->cvt[location];		\
+    PUSH (value);				\
+  }
+
+#define MPPEM()					\
+  {						\
+    PUSH (interpreter->ppem);			\
+  }
+
+#define MPS()					\
+  {						\
+    PUSH (interpreter->point_size);		\
+  }
+
+#define FLIPON()				\
+  {						\
+    interpreter->state.auto_flip = true;	\
+  }
+
+#define FLIPOFF()				\
+  {						\
+    interpreter->state.auto_flip = false;	\
+  }
+
+#define DEBUG()					\
+  {						\
+    POP (); /* Value is ignored.  */		\
+  }
+
+#define LT()					\
+  {						\
+    int32_t e1, e2;				\
+						\
+    e2 = POP ();				\
+    e1 = POP ();				\
+						\
+    PUSH (e1 < e2 ? 1 : 0);			\
+  }
+
+#define LTEQ()					\
+  {						\
+    int32_t e1, e2;				\
+						\
+    e2 = POP ();				\
+    e1 = POP ();				\
+						\
+    PUSH (e1 <= e2 ? 1 : 0);			\
+  }
+
+#define GT()					\
+  {						\
+    int32_t e1, e2;				\
+						\
+    e2 = POP ();				\
+    e1 = POP ();				\
+						\
+    PUSH (e1 > e2 ? 1 : 0);			\
+  }
+
+#define GTEQ()					\
+  {						\
+    int32_t e1, e2;				\
+						\
+    e2 = POP ();				\
+    e1 = POP ();				\
+						\
+    PUSH (e1 >= e2 ? 1 : 0);			\
+  }
+
+#define EQ()					\
+  {						\
+    uint32_t e1, e2;				\
+						\
+    e1 = POP ();				\
+    e2 = POP ();				\
+						\
+    PUSH (e1 == e2 ? 1 : 0);			\
+  }
+
+#define NEQ()					\
+  {						\
+    uint32_t e1, e2;				\
+						\
+    e1 = POP ();				\
+    e2 = POP ();				\
+						\
+    PUSH (e1 != e2 ? 1 : 0);			\
+  }
+
+#define ODD()					\
+  {						\
+    sfnt_f26dot6 e1, result;			\
+						\
+    e1 = POP ();				\
+    result = abs (e1);				\
+						\
+    result					\
+      = interpreter->state.round (result,	\
+				  interpreter);	\
+    PUSH (((result & 127) == 64) ? 1 : 0);	\
+  }
+
+#define EVEN()					\
+  {						\
+    sfnt_f26dot6 e1, result;			\
+						\
+    e1 = POP ();				\
+    result = abs (e1);				\
+						\
+    result					\
+      = interpreter->state.round (result,	\
+				  interpreter);	\
+    PUSH (((result & 127) == 64) ? 0 : 1);	\
+  }
+
+#define IF()					\
+  {						\
+    uint32_t condition;				\
+						\
+    condition = POP ();				\
+    sfnt_interpret_if (interpreter, condition);	\
+    goto skip_step;				\
+  }
+
+#define EIF()					\
+  {						\
+						\
+  }
+
+#define AND()					\
+  {						\
+    uint32_t e1, e2;				\
+						\
+    e1 = POP ();				\
+    e2 = POP ();				\
+						\
+    PUSH (e1 && e2 ? 1 : 0);			\
+  }
+
+#define OR()					\
+  {						\
+    uint32_t e1, e2;				\
+						\
+    e1 = POP ();				\
+    e2 = POP ();				\
+						\
+    PUSH (e1 || e2 ? 1 : 0);			\
+  }
+
+#define NOT()					\
+  {						\
+    uint32_t e1;				\
+						\
+    e1 = POP ();				\
+						\
+    PUSH (!e1 ? 1 : 0);				\
+  }
+
+#define SDB()					\
+  {						\
+    uint32_t base;				\
+						\
+    base = POP ();				\
+						\
+    interpreter->state.delta_base = base;	\
+  }
+
+#define SDS()					\
+  {						\
+    uint32_t shift;				\
+						\
+    shift = POP ();				\
+						\
+    interpreter->state.delta_shift = shift;	\
+  }
+
+#define ADD()					\
+  {						\
+    sfnt_f26dot6 n1, n2;			\
+						\
+    n1 = POP ();				\
+    n2 = POP ();				\
+						\
+    PUSH (n1 + n2);				\
+  }
+
+#define SUB()					\
+  {						\
+    sfnt_f26dot6 n2, n1;			\
+						\
+    n2 = POP ();				\
+    n1 = POP ();				\
+						\
+    PUSH (n2 - n1);				\
+  }
+
+#define DIV()					\
+  {						\
+    sfnt_f26dot6 n2, n1;			\
+						\
+    n2 = POP ();				\
+    n1 = POP ();				\
+						\
+    if (!n2)					\
+      TRAP ("DIV by 0");			\
+						\
+    PUSH (sfnt_div_f26dot6 (n1, n2));		\
+  }
+
+#define MUL()					\
+  {						\
+    sfnt_f26dot6 n2, n1;			\
+						\
+    n2 = POP ();				\
+    n1 = POP ();				\
+						\
+    PUSH (sfnt_mul_f26dot6 (n2, n1));		\
+  }
+
+#define ABS()					\
+  {						\
+    sfnt_f26dot6 n;				\
+						\
+    n = POP ();					\
+    PUSH (abs (n));				\
+  }
+
+#define NEG()					\
+  {						\
+    sfnt_f26dot6 n;				\
+						\
+    n = POP ();					\
+    PUSH (-n);					\
+  }
+
+#define FLOOR()					\
+  {						\
+    sfnt_f26dot6 n;				\
+						\
+    n = POP ();					\
+    PUSH (sfnt_floor_f26dot6 (n));		\
+  }
+
+#define CEILING()				\
+  {						\
+    sfnt_f26dot6 n;				\
+						\
+    n = POP ();					\
+    PUSH (sfnt_ceil_f26dot6 (n));		\
+  }
+
+#define WCVTF()					\
+  {						\
+    uint32_t value;				\
+    uint32_t location;				\
+						\
+    value = POP ();				\
+    location = POP ();				\
+						\
+    if (location >= interpreter->cvt_size)	\
+      TRAP ("WCVTF out of bounds");		\
+						\
+    interpreter->cvt[location]			\
+      = interpreter->scale * value;		\
+  }
+
+#define IDEF()					\
+  {						\
+    if (why == SFNT_RUN_CONTEXT_GLYPH_PROGRAM)	\
+      TRAP ("IDEF inside glyph program");	\
+						\
+    sfnt_interpret_idef (interpreter, POP ());	\
+    goto skip_step;				\
+  }
+
+#define ROLL()					\
+  {						\
+    uint32_t a, b, c;				\
+						\
+    a = POP ();					\
+    b = POP ();					\
+    c = POP ();					\
+						\
+    PUSH (b);					\
+    PUSH (a);					\
+    PUSH (c);					\
+  }
+
+#define _MAX()					\
+  {						\
+    int32_t e1, e2;				\
+						\
+    e1 = POP ();				\
+    e2 = POP ();				\
+						\
+    PUSH (MAX (e1, e2));			\
+  }
+
+#define _MIN()					\
+  {						\
+    int32_t e1, e2;				\
+						\
+    e1 = POP ();				\
+    e2 = POP ();				\
+						\
+    PUSH (MIN (e1, e2));			\
+  }
+
+#define PUSHB()					\
+  {						\
+    int b, nbytes, IP;				\
+						\
+    IP = interpreter->IP;			\
+    nbytes = opcode - 0xb0 + 1;			\
+						\
+    if (IP + nbytes + 1				\
+	> interpreter->num_instructions)	\
+      TRAP ("args to PUSHB lie outside IS");	\
+						\
+    for (b = IP + 1; b < IP + nbytes + 1; ++b)	\
+      PUSH (interpreter->instructions[b]);	\
+						\
+    interpreter->IP += nbytes;			\
+  }
+
+#define PUSHW()					\
+  {						\
+    int b, nbytes, IP;				\
+						\
+    IP = interpreter->IP;			\
+    nbytes = (opcode - 0xb8 + 1) * 2;		\
+						\
+    if (IP + 1 + nbytes				\
+	> interpreter->num_instructions)	\
+      TRAP ("args to PUSHW lie outside IS");	\
+						\
+    for (b = IP + 1; b < IP + nbytes + 1;	\
+	 b += 2)				\
+      PUSH2 (interpreter->instructions[b],	\
+	     interpreter->instructions[b + 1]);	\
+						\
+    interpreter->IP += nbytes;			\
+  }
+
+
+
+/* Rounding instructions.  */
+
+#define ROUND()					\
+  {						\
+    sfnt_f26dot6 n, result;			\
+						\
+    n = POP ();					\
+    result = abs (n);				\
+						\
+    result					\
+      = interpreter->state.round (result,	\
+				  interpreter);	\
+    PUSH (n < 0 ? -result : result);		\
+  }
+
+#define NROUND()				\
+  {						\
+    sfnt_f26dot6 n;				\
+						\
+    n = POP ();					\
+    PUSH (n);					\
+  }
+
+#define ROFF()					\
+  {						\
+    interpreter->state.round_state = 5;		\
+    sfnt_validate_gs (&interpreter->state);	\
+  }
+
+#define RUTG()					\
+  {						\
+    interpreter->state.round_state = 4;		\
+    sfnt_validate_gs (&interpreter->state);	\
+  }
+
+#define RDTG()					\
+  {						\
+    interpreter->state.round_state = 3;		\
+    sfnt_validate_gs (&interpreter->state);	\
+  }
+
+#define RTG()					\
+  {						\
+    interpreter->state.round_state = 1;		\
+    sfnt_validate_gs (&interpreter->state);	\
+  }
+
+#define RTHG()					\
+  {						\
+    interpreter->state.round_state = 0;		\
+    sfnt_validate_gs (&interpreter->state);	\
+  }
+
+#define RTDG()					\
+  {						\
+    interpreter->state.round_state = 2;		\
+    sfnt_validate_gs (&interpreter->state);	\
+  }
+
+#define SROUND()				\
+  {						\
+    uint32_t operand;				\
+						\
+    operand = POP ();				\
+    sfnt_set_srounding_state (interpreter,	\
+			      operand,		\
+			      0x4000);		\
+    interpreter->state.round_state = 6;		\
+    sfnt_validate_gs (&interpreter->state);	\
+  }
+
+#define S45ROUND()				\
+  {						\
+    uint32_t operand;				\
+						\
+    operand = POP ();				\
+    sfnt_set_srounding_state (interpreter,	\
+			      operand,		\
+			      0x2d41);		\
+    interpreter->state.round_state = 6;		\
+    sfnt_validate_gs (&interpreter->state);	\
+  }
+
+
+
+#define NOT_IMPLEMENTED()			\
+  sfnt_interpret_unimplemented (interpreter,	\
+				opcode, why)
+
+
+
+/* Needed by sfnt_interpret_call.  */
+static void sfnt_interpret_run (struct sfnt_interpreter *,
+				enum sfnt_interpreter_run_context);
+
+/* Call DEFINITION inside INTERPRETER.
+
+   Save INTERPRETER->IP, INTERPRETER->instructions, and
+   INTERPRETER->num_instructions onto the C stack.
+
+   Then, load the instructions in DEFINITION, and run the interpreter
+   again with the context CONTEXT.
+
+   Finally, restore all values.  */
+
+static void
+sfnt_interpret_call (struct sfnt_interpreter_definition *definition,
+		     struct sfnt_interpreter *interpreter,
+		     enum sfnt_interpreter_run_context context)
+{
+  uint16_t num_instructions;
+  int IP;
+  unsigned char *instructions;
+
+  /* Check that no recursion is going on.  */
+  if (interpreter->call_depth++ >= 64)
+    TRAP ("CALL called CALL more than 63 times");
+
+  /* Save the old IP, instructions and number of instructions.  */
+  num_instructions = interpreter->num_instructions;
+  IP = interpreter->IP;
+  instructions = interpreter->instructions;
+
+  /* Load and run the definition.  */
+  interpreter->num_instructions = definition->instruction_count;
+  interpreter->instructions = definition->instructions;
+  interpreter->IP = 0;
+  sfnt_interpret_run (interpreter, context);
+
+  /* Restore the old values.  */
+  interpreter->num_instructions = num_instructions;
+  interpreter->IP = IP;
+  interpreter->instructions = instructions;
+}
+
+/* Set the detailed rounding state in interpreter, on behalf of either
+   an SROUND or S45ROUND instruction that has been given the operand
+   OPERAND.
+
+   Use the specified GRID_PERIOD to determine the period.  It is is a
+   2.14 fixed point number, but the rounding state set will be a 26.6
+   fixed point number.  */
+
+static void
+sfnt_set_srounding_state (struct sfnt_interpreter *interpreter,
+			  uint32_t operand, sfnt_f2dot14 grid_period)
+{
+  sfnt_f2dot14 period, phase, threshold;
+
+  /* The most significant 2 bits in the 8 bit OPERAND determine the
+     period.  */
+
+  switch ((operand & 0xc0) >> 6)
+    {
+    case 0:
+      period = grid_period / 2;
+      break;
+
+    case 1:
+      period = grid_period;
+      break;
+
+    case 2:
+      period = grid_period * 2;
+      break;
+
+    case 3:
+    default:
+      TRAP ("reserved period given to SROUND");
+    }
+
+  /* The next two bits determine the phase.  */
+
+  switch ((operand & 0x30) >> 4)
+    {
+    case 0:
+      phase = 0;
+      break;
+
+    case 1:
+      phase = period / 4;
+      break;
+
+    case 2:
+      phase = period / 2;
+      break;
+
+    case 3:
+    default:
+      phase = period * 3 / 2;
+      break;
+    }
+
+  /* And the least significant 4 bits determine the period.  */
+
+  if (operand & 0x0f)
+    threshold = (((int) (operand & 0x0f) - 4)
+		 * period / 8);
+  else
+    threshold = period - 1;
+
+  /* Now extend these values to 26.6 format and set them.  */
+  interpreter->period = period >> 8;
+  interpreter->phase = phase >> 8;
+  interpreter->threshold = threshold >> 8;
+}
+
+/* Move to the next opcode in INTERPRETER's instruction stream.
+   Value is the opcode originally at INTERPRETER->IP.  */
+
+static unsigned char
+sfnt_skip_code (struct sfnt_interpreter *interpreter)
+{
+  unsigned char opcode;
+  int nbytes;
+
+  if (interpreter->IP == interpreter->num_instructions)
+    TRAP ("IP at end of instruction stream");
+
+  /* Load opcode at IP.  */
+  opcode = interpreter->instructions[interpreter->IP];
+
+  if (opcode == 0x40 || opcode == 0x41)
+    {
+      if (interpreter->IP + 1 >= interpreter->num_instructions)
+	TRAP ("Missing arg to NPUSHB or NPUSHW");
+
+      /* Figure out how many bytes or words to push.  */
+
+      nbytes = interpreter->instructions[interpreter->IP + 1];
+
+      if (opcode == 0x41)
+	nbytes *= 2;
+
+      if (interpreter->IP + 2 + nbytes > interpreter->num_instructions)
+	TRAP ("args to NPUSH instruction lie outside IS");
+
+      /* Increment IP by so much.  */
+      interpreter->IP += 2 + nbytes;
+    }
+  else if (opcode >= 0xb0 && opcode <= 0xb7)
+    {
+      nbytes = opcode - 0xb0 + 1;
+
+      if (interpreter->IP + 1 + nbytes > interpreter->num_instructions)
+	TRAP ("args to PUSHB instruction lie outide IS");
+
+      interpreter->IP += 1 + nbytes;
+    }
+  else if (opcode >= 0xb8 && opcode <= 0xbf)
+    {
+      nbytes = (opcode - 0xb8 + 1) * 2;
+
+      if (interpreter->IP + 1 + nbytes > interpreter->num_instructions)
+	TRAP ("args to PUSHW instruction lie outide IS");
+
+      interpreter->IP += 1 + nbytes;
+    }
+  else
+    interpreter->IP++;
+
+  return opcode;
+}
+
+/* Interpret the unimplemented operation OPCODE using INTERPRETER, and
+   the context WHY.  If there is no instruction definition named
+   OPCODE, trap.  */
+
+static void
+sfnt_interpret_unimplemented (struct sfnt_interpreter *interpreter,
+			      enum sfnt_interpreter_run_context why,
+			      unsigned char opcode)
+{
+  uint32_t i;
+  struct sfnt_interpreter_definition *def;
+
+  for (i = 0; i < interpreter->instruction_defs_size; ++i)
+    {
+      def = &interpreter->instruction_defs[i];
+
+      if (!def->instructions)
+	TRAP ("invalid instruction");
+
+      if (def->opcode == opcode)
+	{
+	  sfnt_interpret_call (def, interpreter, why);
+	  return;
+	}
+    }
+
+  TRAP ("invalid instruction");
+}
+
+/* Start a function definition in INTERPRETER, with the function
+   opcode OPCODE.  */
+
+static void
+sfnt_interpret_fdef (struct sfnt_interpreter *interpreter,
+		     uint32_t opcode)
+{
+  size_t i, num_fdefs;
+  int IP;
+  unsigned char instruction;
+
+  IP = interpreter->IP + 1;
+  num_fdefs = 0;
+
+  /* Now find an ENDF.  */
+
+  while ((instruction = sfnt_skip_code (interpreter)) != 0x2d)
+    {
+      if (interpreter->IP >= interpreter->num_instructions)
+	TRAP ("missing ENDF");
+
+      /* If this is an FDEF or IDEF instruction, increment num_fdefs.
+	 Prohibit nested FDEFs or IDEFS.  */
+      if (instruction == 0x2c || instruction == 0x89)
+	++num_fdefs;
+
+      if (num_fdefs > 1)
+	TRAP ("IDEF or FDEF before ENDF");
+    }
+
+  /* ENDF has been found.  Now save the function definition.  Try to
+     find an existing function definition with this opcode.  If that
+     fails, make i the first available function definition.  */
+
+  for (i = 0; i < interpreter->function_defs_size; ++i)
+    {
+      if (interpreter->function_defs[i].opcode == opcode
+	  || !interpreter->function_defs[i].instructions)
+	break;
+    }
+
+  if (i == interpreter->function_defs_size)
+    TRAP ("number of fdefs exceeded maxp->max_function_defs");
+
+  /* Save the opcode of this function definition.  */
+  interpreter->function_defs[i].opcode = opcode;
+
+  /* Make sure to ignore the trailing ENDF instruction.  */
+  interpreter->function_defs[i].instruction_count
+    = interpreter->IP - IP - 1;
+
+  /* Now save a pointer to the instructions.  */
+  interpreter->function_defs[i].instructions = interpreter->instructions + IP;
+}
+
+/* Start an instruction definition in INTERPRETER, with the
+   instruction opcode OPCODE.  */
+
+static void
+sfnt_interpret_idef (struct sfnt_interpreter *interpreter,
+		     uint32_t opcode)
+{
+  size_t i, num_fdefs;
+  int IP;
+  unsigned char instruction;
+
+  IP = interpreter->IP + 1;
+  num_fdefs = 0;
+
+  /* Now find an ENDF.  */
+
+  while ((instruction = sfnt_skip_code (interpreter)) != 0x2d)
+    {
+      if (interpreter->IP >= interpreter->num_instructions)
+	TRAP ("missing ENDF");
+
+      /* If this is an FDEF or IDEF instruction, increment num_fdefs.
+	 Prohibit nested FDEFs or IDEFS.  */
+      if (instruction == 0x2c || instruction == 0x89)
+	++num_fdefs;
+
+      if (num_fdefs > 1)
+	TRAP ("IDEF or FDEF before ENDF");
+    }
+
+  /* ENDF has been found.  Now save the instruction definition.  Try to
+     find an existing instruction definition with this opcode.  If that
+     fails, make i the first available instruction definition.  */
+
+  for (i = 0; i < interpreter->instruction_defs_size; ++i)
+    {
+      if (interpreter->instruction_defs[i].opcode == opcode
+	  || !interpreter->instruction_defs[i].instructions)
+	break;
+    }
+
+  if (i == interpreter->instruction_defs_size)
+    TRAP ("number of defs exceeded maxp->max_instruction_defs");
+
+  /* Save the opcode of this instruction definition.  */
+  interpreter->instruction_defs[i].opcode = opcode;
+
+  /* Make sure to ignore the trailing ENDF instruction.  */
+  interpreter->instruction_defs[i].instruction_count
+    = interpreter->IP - IP - 1;
+
+  /* Now save a pointer to the instructions.  */
+  interpreter->instruction_defs[i].instructions
+    = interpreter->instructions + IP;
+}
+
+/* Interpret the specified conditional at INTERPRETER->IP.
+   If CONDITION, evaluate this branch up until the next ELSE or ENDIF.
+   Else, evaluate the branch from a matching ELSE condition, if
+   one exists.  */
+
+static void
+sfnt_interpret_if (struct sfnt_interpreter *interpreter,
+		   bool condition)
+{
+  int nifs;
+  bool need_break;
+  unsigned char opcode;
+
+  if (condition)
+    {
+      interpreter->IP++;
+      return;
+    }
+
+  /* Number of ifs.  */
+  nifs = 0;
+  need_break = true;
+
+  /* Break past the matching else condition.  */
+  do
+    {
+      /* Load the current opcode, then increase IP.  */
+      opcode = sfnt_skip_code (interpreter);
+
+      if (interpreter->IP >= interpreter->num_instructions)
+	break;
+
+      switch (opcode)
+	{
+	case 0x58: /* IF */
+	  nifs++;
+	  break;
+
+	case 0x1B: /* ELSE */
+	  if (nifs == 1)
+	    need_break = true;
+
+	  break;
+
+	case 0x59: /* EIF */
+	  nifs--;
+	  if (nifs == 0)
+	    need_break = true;
+
+	  break;
+	}
+    }
+  while (!need_break);
+}
+
+/* Interpret the specified ELSE branch at INTERPRETER->IP.
+   Evaluate starting from a matching ENDIF instruction.
+
+   If IF has set INTERPRETER->IP to a code within an ELSE branch, this
+   will not be called.  */
+
+static void
+sfnt_interpret_else (struct sfnt_interpreter *interpreter)
+{
+  int nifs;
+  unsigned char opcode;
+
+  /* Number of ifs.  */
+  nifs = 1;
+
+  /* Break past the matching ENDIF condition.  */
+  do
+    {
+      /* Load the current opcode, then increase IP.  */
+      opcode = sfnt_skip_code (interpreter);
+
+      if (interpreter->IP >= interpreter->num_instructions)
+	break;
+
+      switch (opcode)
+	{
+	case 0x58: /* IF */
+	  nifs++;
+	  break;
+
+	case 0x59: /* EIF */
+	  nifs--;
+
+	  break;
+	}
+    }
+  while (nifs > 0);
+}
+
+/* ``Add engine compensation to X''.  Since engine compensation is not
+   implemented here, this simply returns X.  INTERPRETER is
+   unused.  */
+
+static sfnt_f26dot6
+sfnt_round_none (sfnt_f26dot6 x, struct sfnt_interpreter *interpreter)
+{
+  return x;
+}
+
+/* Round X to the grid after adding engine compensation.  Return the
+   result.  INTERPRETER is unused.  */
+
+static sfnt_f26dot6
+sfnt_round_to_grid (sfnt_f26dot6 x, struct sfnt_interpreter *interpreter)
+{
+  return sfnt_round_f26dot6 (x);
+}
+
+/* Round X to the nearest half integer or integer and return the
+   result.  INTERPRETER is unused.  */
+
+static sfnt_f26dot6
+sfnt_round_to_double_grid (sfnt_f26dot6 x,
+			   struct sfnt_interpreter *interpreter)
+{
+  return (x + 020) & ~037;
+}
+
+/* Take the floor of X and return the result.  INTERPRETER is
+   unused.  */
+
+static sfnt_f26dot6
+sfnt_round_down_to_grid (sfnt_f26dot6 x,
+			 struct sfnt_interpreter *interpreter)
+{
+  return sfnt_floor_f26dot6 (x);
+}
+
+/* Take the ceiling of X and return the result.  INTERPRETER is
+   unused.  */
+
+static sfnt_f26dot6
+sfnt_round_up_to_grid (sfnt_f26dot6 x,
+		       struct sfnt_interpreter *interpreter)
+{
+  return sfnt_ceil_f26dot6 (x);
+}
+
+/* Round X to only the nearest half integer and return the result.
+   INTERPRETER is unused.  */
+
+static sfnt_f26dot6
+sfnt_round_to_half_grid (sfnt_f26dot6 x,
+			 struct sfnt_interpreter *interpreter)
+{
+  return sfnt_floor_f26dot6 (x) + 32;
+}
+
+/* Round X using the detailed rounding information ``super rounding
+   state'' in INTERPRETER.  Value is the result.  */
+
+static sfnt_f26dot6
+sfnt_round_super (sfnt_f26dot6 x,
+		  struct sfnt_interpreter *interpreter)
+{
+  sfnt_f26dot6 greater, smaller;
+
+  /* Get greater and smaller values around x.  */
+  smaller = x & -(interpreter->period);
+  greater = smaller + interpreter->period;
+
+  /* Decide what to use based on the threshold.  */
+  if (x - smaller >= interpreter->threshold)
+    return greater;
+
+  return smaller;
+}
+
+/* Validate the graphics state GS.
+   Establish function pointers for rounding, et cetera.
+   If something invalid is found, trap.  */
+
+static void
+sfnt_validate_gs (struct sfnt_interpreter_graphics_state *gs)
+{
+  /* Establish the function used for rounding based on the round
+     state.  */
+
+  switch (gs->round_state)
+    {
+    case 5: /* Rounding off.  */
+      gs->round = sfnt_round_none;
+      break;
+
+    case 0: /* Round to half grid.  */
+      gs->round = sfnt_round_to_half_grid;
+      break;
+
+    case 1: /* Round to grid.  */
+      gs->round = sfnt_round_to_grid;
+      break;
+
+    case 2: /* Round to double grid.  */
+      gs->round = sfnt_round_to_double_grid;
+      break;
+
+    case 4: /* Round up to grid.  */
+      gs->round = sfnt_round_up_to_grid;
+      break;
+
+    case 3: /* Round down to grid.  */
+      gs->round = sfnt_round_down_to_grid;
+      break;
+
+    case 6: /* Fine grained rounding.  */
+    case 7: /* Fine grained rounding 45 degree variant.  */
+      gs->round = sfnt_round_super;
+      break;
+    }
+}
+
+/* Execute the program now loaded into INTERPRETER.
+   WHY specifies why the interpreter is being run, and is used to
+   control the behavior of instructions such IDEF[] and FDEF[].
+
+   Control may be transferred to INTERPRETER->trap if interpretation
+   fails.  */
+
+static void
+sfnt_interpret_run (struct sfnt_interpreter *interpreter,
+		    enum sfnt_interpreter_run_context why)
+{
+  unsigned char opcode;
+
+  while (interpreter->IP < interpreter->num_instructions)
+    {
+      opcode = interpreter->instructions[interpreter->IP];
+
+      switch (opcode)
+	{
+        case 0x00:  /* SVTCA y  */
+        case 0x01:  /* SVTCA x  */
+        case 0x02:  /* SPvTCA y */
+        case 0x03:  /* SPvTCA x */
+        case 0x04:  /* SFvTCA y */
+        case 0x05:  /* SFvTCA x */
+	  NOT_IMPLEMENTED ();
+	  break;
+
+	case 0x06:
+	case 0x07:
+	  /* Not implemented.  */
+	  NOT_IMPLEMENTED ();
+	  break;
+
+	case 0x08:  /* SFvTL // */
+        case 0x09:  /* SFvTL +  */
+	  NOT_IMPLEMENTED ();
+	  break;
+
+	case 0x0A:  /* SPvFS */
+	  NOT_IMPLEMENTED ();
+	  break;
+
+	case 0x0B:
+	  NOT_IMPLEMENTED ();
+	  break;
+
+	case 0x0C:
+	  NOT_IMPLEMENTED ();
+	  break;
+
+	case 0x0D:  /* GFv */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x0E:  /* SFvTPv */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x0F:  /* ISECT  */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x10:  /* SRP0 */
+          SRP0 ();
+          break;
+
+        case 0x11:  /* SRP1 */
+	  SRP1 ();
+          break;
+
+        case 0x12:  /* SRP2 */
+	  SRP2 ();
+          break;
+
+        case 0x13:  /* SZP0 */
+	  SZP0 ();
+          break;
+
+        case 0x14:  /* SZP1 */
+	  SZP1 ();
+          break;
+
+        case 0x15:  /* SZP2 */
+	  SZP2 ();
+          break;
+
+        case 0x16:  /* SZPS */
+	  SZPS ();
+          break;
+
+        case 0x17:  /* SLOOP */
+	  SLOOP ();
+          break;
+
+        case 0x18:  /* RTG */
+	  RTG ();
+          break;
+
+        case 0x19:  /* RTHG */
+          RTHG ();
+          break;
+
+        case 0x1A:  /* SMD */
+          SMD ();
+          break;
+
+        case 0x1B:  /* ELSE */
+	  ELSE ();
+          break;
+
+        case 0x1C:  /* JMPR */
+          JMPR ();
+          break;
+
+        case 0x1D:  /* SCVTCI */
+          SCVTCI ();
+          break;
+
+        case 0x1E:  /* SSWCI */
+	  SSWCI ();
+          break;
+
+        case 0x1F:  /* SSW */
+	  SSW ();
+          break;
+
+        case 0x20:  /* DUP */
+          DUP ();
+          break;
+
+        case 0x21:  /* POP */
+	  POP ();
+          break;
+
+        case 0x22:  /* CLEAR */
+	  CLEAR ();
+          break;
+
+        case 0x23:  /* SWAP */
+	  SWAP ();
+          break;
+
+        case 0x24:  /* DEPTH */
+	  DEPTH ();
+          break;
+
+        case 0x25:  /* CINDEX */
+          CINDEX ();
+          break;
+
+        case 0x26:  /* MINDEX */
+	  MINDEX ();
+          break;
+
+        case 0x27:  /* ALIGNPTS */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x28:  /* RAW */
+	  RAW ();
+          break;
+
+        case 0x29:  /* UTP */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x2A:  /* LOOPCALL */
+	  LOOPCALL ();
+          break;
+
+        case 0x2B:  /* CALL */
+	  CALL ();
+          break;
+
+        case 0x2C:  /* FDEF */
+	  FDEF ();
+          break;
+
+        case 0x2D:  /* ENDF */
+          ENDF ();
+          break;
+
+        case 0x2E:  /* MDAP */
+        case 0x2F:  /* MDAP */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x30:  /* IUP */
+        case 0x31:  /* IUP */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x32:  /* SHP */
+        case 0x33:  /* SHP */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x34:  /* SHC */
+        case 0x35:  /* SHC */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x36:  /* SHZ */
+        case 0x37:  /* SHZ */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x38:  /* SHPIX */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x39:  /* IP    */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x3A:  /* MSIRP */
+        case 0x3B:  /* MSIRP */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x3C:  /* AlignRP */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x3D:  /* RTDG */
+	  RTDG ();
+          break;
+
+        case 0x3E:  /* MIAP */
+        case 0x3F:  /* MIAP */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x40:  /* NPUSHB */
+	  NPUSHB ();
+          break;
+
+        case 0x41:  /* NPUSHW */
+	  NPUSHW ();
+          break;
+
+        case 0x42:  /* WS */
+          WS ();
+          break;
+
+        case 0x43:  /* RS */
+	  RS ();
+          break;
+
+        case 0x44:  /* WCVTP */
+	  WCVTP ();
+          break;
+
+        case 0x45:  /* RCVT */
+	  RCVT ();
+          break;
+
+        case 0x46:  /* GC */
+        case 0x47:  /* GC */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x48:  /* SCFS */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x49:  /* MD */
+        case 0x4A:  /* MD */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x4B:  /* MPPEM */
+	  MPPEM ();
+          break;
+
+        case 0x4C:  /* MPS */
+	  MPS ();
+          break;
+
+        case 0x4D:  /* FLIPON */
+	  FLIPON ();
+          break;
+
+        case 0x4E:  /* FLIPOFF */
+	  FLIPOFF ();
+          break;
+
+        case 0x4F:  /* DEBUG */
+	  DEBUG ();
+          break;
+
+        case 0x50:  /* LT */
+	  LT ();
+          break;
+
+        case 0x51:  /* LTEQ */
+	  LTEQ ();
+          break;
+
+        case 0x52:  /* GT */
+	  GT ();
+          break;
+
+        case 0x53:  /* GTEQ */
+	  GTEQ ();
+          break;
+
+        case 0x54:  /* EQ */
+	  EQ ();
+          break;
+
+        case 0x55:  /* NEQ */
+	  NEQ ();
+          break;
+
+        case 0x56:  /* ODD */
+	  ODD ();
+          break;
+
+        case 0x57:  /* EVEN */
+	  EVEN ();
+          break;
+
+        case 0x58:  /* IF */
+	  IF ();
+          break;
+
+        case 0x59:  /* EIF */
+          EIF ();
+          break;
+
+        case 0x5A:  /* AND */
+	  AND ();
+          break;
+
+        case 0x5B:  /* OR */
+	  OR ();
+          break;
+
+        case 0x5C:  /* NOT */
+	  NOT ();
+          break;
+
+        case 0x5D:  /* DELTAP1 */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x5E:  /* SDB */
+          SDB ();
+          break;
+
+        case 0x5F:  /* SDS */
+	  SDS ();
+          break;
+
+        case 0x60:  /* ADD */
+	  ADD ();
+          break;
+
+        case 0x61:  /* SUB */
+	  SUB ();
+          break;
+
+        case 0x62:  /* DIV */
+	  DIV ();
+          break;
+
+        case 0x63:  /* MUL */
+	  MUL ();
+          break;
+
+        case 0x64:  /* ABS */
+	  ABS ();
+          break;
+
+        case 0x65:  /* NEG */
+	  NEG ();
+          break;
+
+        case 0x66:  /* FLOOR */
+	  FLOOR ();
+          break;
+
+        case 0x67:  /* CEILING */
+	  CEILING ();
+          break;
+
+        case 0x68:  /* ROUND */
+        case 0x69:  /* ROUND */
+        case 0x6A:  /* ROUND */
+        case 0x6B:  /* ROUND */
+	  ROUND ();
+          break;
+
+        case 0x6C:  /* NROUND */
+        case 0x6D:  /* NROUND */
+        case 0x6E:  /* NRRUND */
+        case 0x6F:  /* NROUND */
+	  NROUND ();
+          break;
+
+        case 0x70:  /* WCVTF */
+	  WCVTF ();
+          break;
+
+        case 0x71:  /* DELTAP2 */
+        case 0x72:  /* DELTAP3 */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x73:  /* DELTAC0 */
+        case 0x74:  /* DELTAC1 */
+        case 0x75:  /* DELTAC2 */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x76:  /* SROUND */
+	  SROUND ();
+          break;
+
+        case 0x77:  /* S45Round */
+	  S45ROUND ();
+          break;
+
+        case 0x78:  /* JROT */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x79:  /* JROF */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x7A:  /* ROFF */
+	  ROFF ();
+          break;
+
+        case 0x7B:  /* ???? */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x7C:  /* RUTG */
+	  RUTG ();
+          break;
+
+        case 0x7D:  /* RDTG */
+	  RDTG ();
+          break;
+
+        case 0x7E:  /* SANGW */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x7F:  /* AA */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x80:  /* FLIPPT */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x81:  /* FLIPRGON */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x82:  /* FLIPRGOFF */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x83:  /* UNKNOWN */
+        case 0x84:  /* UNKNOWN */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x85:  /* SCANCTRL */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x86:  /* SDPvTL */
+        case 0x87:  /* SDPvTL */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x88:  /* GETINFO */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x89:  /* IDEF */
+	  IDEF ();
+          break;
+
+        case 0x8A:  /* ROLL */
+	  ROLL ();
+          break;
+
+        case 0x8B:  /* MAX */
+	  _MAX ();
+          break;
+
+        case 0x8C:  /* MIN */
+	  _MIN ();
+          break;
+
+        case 0x8D:  /* SCANTYPE */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x8E:  /* INSTCTRL */
+          NOT_IMPLEMENTED ();
+          break;
+
+        case 0x8F:  /* ADJUST */
+        case 0x90:  /* ADJUST */
+          NOT_IMPLEMENTED ();
+          break;
+
+        default:
+          if (opcode >= 0xE0) /* MIRP */
+            NOT_IMPLEMENTED ();
+          else if (opcode >= 0xC0) /* MDRP */
+            NOT_IMPLEMENTED ();
+          else if (opcode >= 0xB8) /* PUSHW */
+	    {
+	      PUSHW ();
+	    }
+          else if (opcode >= 0xB0) /* PUSHB */
+	    {
+	      PUSHB ();
+	    }
+          else
+            NOT_IMPLEMENTED ();
+	}
+
+      /* In the case of an NPUSHB or NPUSHW instruction,
+	 interpreter->IP has only been increased to skip over the
+	 extra bytes, and not the byte containing the instruction
+	 itself.  */
+      interpreter->IP++;
+
+      /* This label is used by instructions to continue without
+         incrementing IP.  It is used by instructions which set IP
+         themselves, such as ELSE, IF, FDEF, IDEF and JMPR.  */
+    skip_step:
+      continue;
+    }
+}
+
+/* Execute the font program FPGM using INTERPRETER.
+   This must only be called once per interpreter, else behavior is
+   undefined.
+
+   Value is NULL upon success, else it is a string describing the
+   reason for failure.  */
+
+static const char *
+sfnt_interpret_font_program (struct sfnt_interpreter *interpreter,
+			     struct sfnt_fpgm_table *fpgm)
+{
+  if (setjmp (interpreter->trap))
+    return interpreter->trap_reason;
+
+  /* Set up the interpreter to evaluate the font program.  */
+  interpreter->IP = 0;
+  interpreter->SP = interpreter->stack;
+  interpreter->instructions = fpgm->instructions;
+  interpreter->num_instructions = fpgm->num_instructions;
+
+  sfnt_interpret_run (interpreter, SFNT_RUN_CONTEXT_FONT_PROGRAM);
+  return NULL;
+}
+
+#endif /* SFNT_ENABLE_HINTING */
+
+
+
+#ifdef TEST
 
 struct sfnt_test_dcontext
 {
@@ -4465,6 +7305,1438 @@ sfnt_test_raster (struct sfnt_raster *raster)
     }
 }
 
+
+
+/* Instruction execution tests.  */
+
+static struct sfnt_maxp_table test_interpreter_profile =
+  {
+    0x00010000,
+    650,
+    100,
+    100,
+    100,
+    100,
+    2,
+    100,
+    255,
+    12,
+    12,
+    100,
+    5000,
+    100,
+    1,
+  };
+
+static uint32_t test_cvt_values[] =
+  {
+    100, 100, -100, -100, 50, 50, 50, 50, 0, 0,
+  };
+
+static struct sfnt_cvt_table test_interpreter_cvt =
+  {
+    10,
+    test_cvt_values,
+  };
+
+static struct sfnt_head_table test_interpreter_head =
+  {
+    0x00010000,
+    0x00010000,
+    0,
+    0x5f0f3cf5,
+    0,
+    800,
+    0,
+    0,
+    0,
+    0,
+    -312,
+    -555,
+    1315,
+    2163,
+    0,
+    12,
+    0,
+    0,
+    0,
+  };
+
+static struct sfnt_interpreter *
+sfnt_make_test_interpreter (void)
+{
+  return sfnt_make_interpreter (&test_interpreter_profile,
+				&test_interpreter_cvt,
+				&test_interpreter_head,
+				17, 17);
+}
+
+struct sfnt_interpreter_test
+{
+  const char *name;
+  unsigned char *instructions;
+  int num_instructions;
+  void *arg;
+  void (*check) (struct sfnt_interpreter *, void *, bool);
+};
+
+static void
+sfnt_run_interpreter_test (struct sfnt_interpreter_test *test,
+			   struct sfnt_interpreter *interpreter)
+{
+  fprintf (stderr, "Testing %s: ", test->name);
+
+  if (setjmp (interpreter->trap))
+    test->check (interpreter, test->arg, true);
+  else
+    {
+      interpreter->IP = 0;
+      interpreter->SP = interpreter->stack;
+      interpreter->instructions = test->instructions;
+      interpreter->num_instructions = test->num_instructions;
+
+      sfnt_interpret_run (interpreter, SFNT_RUN_CONTEXT_TEST);
+      test->check (interpreter, test->arg, false);
+    }
+}
+
+struct sfnt_generic_test_args
+{
+  uint32_t *expected_stack;
+  int expected_stack_elements;
+  bool expected_trap;
+  int expected_IP;
+};
+
+static void
+sfnt_generic_check (struct sfnt_interpreter *interpreter,
+		    void *arg, bool trap)
+{
+  struct sfnt_generic_test_args *args;
+  int i;
+
+  args = arg;
+
+  if (((interpreter->SP - interpreter->stack)
+       != args->expected_stack_elements))
+    {
+      fprintf (stderr,
+	       "failed at IP %d:%d (expected %d stack elements,"
+	       " got %td); last trap string: %s\n",
+	       interpreter->call_depth, interpreter->IP,
+	       args->expected_stack_elements,
+	       interpreter->SP - interpreter->stack,
+	       ((trap && interpreter->trap_reason)
+		? interpreter->trap_reason
+		: "NULL"));
+
+      for (i = 0; i < interpreter->SP - interpreter->stack; ++i)
+	fprintf (stderr, "%8x ", interpreter->stack[i]);
+      fprintf (stderr, "\n");
+      return;
+    }
+
+  if (memcmp (interpreter->stack, args->expected_stack,
+	      ((char *) interpreter->SP
+	       - (char *) interpreter->stack)))
+    {
+      fprintf (stderr, "failed (inconsistent stack elements)\n"
+	       "machine stack ------------------------->\n");
+
+      for (i = 0; i < args->expected_stack_elements; ++i)
+	fprintf (stderr, "%8x ", interpreter->stack[i]);
+
+      fprintf (stderr,
+	       "\nexpected stack ------------------------>\n");
+
+      for (i = 0; i < args->expected_stack_elements; ++i)
+	fprintf (stderr, "%8x ", args->expected_stack[i]);
+
+      fprintf (stderr, "\n");
+      return;
+    }
+
+  if (args->expected_IP != -1
+      && interpreter->IP != args->expected_IP)
+    {
+      fprintf (stderr, "failed (IP is %d, not %d)\n",
+	       interpreter->IP, args->expected_IP);
+      return;
+    }
+
+  if (trap)
+    {
+      if (args->expected_trap)
+	fprintf (stderr, "passed (with trap %s)\n",
+		 interpreter->trap_reason);
+      else
+	fprintf (stderr, "failed (unexpected trap %s)\n",
+		 interpreter->trap_reason);
+
+      return;
+    }
+
+  if (args->expected_trap)
+    fprintf (stderr, "failed, trap not encountered\n");
+  else
+    fprintf (stderr, "passed\n");
+
+  return;
+}
+
+static void
+sfnt_check_srp0 (struct sfnt_interpreter *interpreter,
+		 void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed (unexpected trap %s)\n",
+	       interpreter->trap_reason);
+      return;
+    }
+
+  if (interpreter->state.rp0 != 0)
+    {
+      fprintf (stderr, "failed, rp0 is not 0, but %d\n",
+	       interpreter->state.rp0);
+      return;
+    }
+
+  if (interpreter->state.rp1 != 1)
+    {
+      fprintf (stderr, "failed, rp1 is not 1, but %d\n",
+	       interpreter->state.rp1);
+      return;
+    }
+
+  if (interpreter->state.rp2 != 2)
+    {
+      fprintf (stderr, "failed, rp2 is not 2, but %d\n",
+	       interpreter->state.rp2);
+      return;
+    }
+
+  if (interpreter->SP != interpreter->stack)
+    {
+      fprintf (stderr, "failed, stack not empty\n");
+      return;
+    }
+
+  fprintf (stderr, "passed\n");
+  return;
+}
+
+static void
+sfnt_check_szp0 (struct sfnt_interpreter *interpreter,
+		 void *arg, bool trap)
+{
+  if (!trap)
+    {
+      fprintf (stderr, "failed, expected trap\n");
+      return;
+    }
+
+  if (interpreter->state.zp0 != 1
+      || interpreter->state.zp1 != 1
+      || interpreter->state.zp2 != 0)
+    {
+      fprintf (stderr,
+	       "failed, unexpected values of zone pointers: %d %d %d\n",
+	       interpreter->state.zp0, interpreter->state.zp1,
+	       interpreter->state.zp2);
+      return;
+    }
+
+  if (interpreter->SP != interpreter->stack)
+    {
+      fprintf (stderr, "failed, stack not empty\n");
+      return;
+    }
+
+  fprintf (stderr, "passed with expected trap %s\n",
+	   interpreter->trap_reason);
+  return;
+}
+
+static void
+sfnt_check_sloop (struct sfnt_interpreter *interpreter,
+		  void *arg, bool trap)
+{
+  if (interpreter->state.loop != 2)
+    {
+      fprintf (stderr, "failed, GS->loop should be 2, not %d\n",
+	       interpreter->state.loop);
+      return;
+    }
+
+  if (!trap)
+    {
+      fprintf (stderr, "failed, expected trap\n");
+      return;
+    }
+
+  if (interpreter->SP != interpreter->stack)
+    {
+      fprintf (stderr, "failed, stack not empty\n");
+      return;
+    }
+
+  fprintf (stderr, "passed with expected trap %s\n",
+	   interpreter->trap_reason);
+  return;
+}
+
+struct sfnt_rounding_test_args
+{
+  sfnt_f26dot6 value;
+};
+
+static void
+sfnt_check_rounding (struct sfnt_interpreter *interpreter,
+		     void *arg, bool trap)
+{
+  sfnt_f26dot6 value;
+  struct sfnt_rounding_test_args *args;
+
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap: %s\n",
+	       interpreter->trap_reason);
+      return;
+    }
+
+  if (interpreter->SP == interpreter->stack)
+    {
+      fprintf (stderr, "failed, empty stack\n");
+      return;
+    }
+
+  value = *(interpreter->SP - 1);
+  args = arg;
+
+  if (value != args->value)
+    {
+      fprintf (stderr, "failed.  value is: %d %d, but wanted: %d %d\n",
+	       value >> 6, value & 63, args->value >> 6,
+	       args->value & 63);
+      return;
+    }
+
+  fprintf (stderr, "passed, expected value %d\n", value);
+  return;
+}
+
+static void
+sfnt_check_smd (struct sfnt_interpreter *interpreter,
+		void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap\n");
+      return;
+    }
+
+  if (interpreter->state.minimum_distance != 32)
+    {
+      fprintf (stderr, "failed, expected minimum distance"
+	       " of 32, got %d\n",
+	       interpreter->state.minimum_distance);
+      return;
+    }
+
+  fprintf (stderr, "passed\n");
+  return;
+}
+
+static void
+sfnt_check_scvtci (struct sfnt_interpreter *interpreter,
+		   void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap\n");
+      return;
+    }
+
+  if (interpreter->state.cvt_cut_in != 128)
+    {
+      fprintf (stderr, "failed, expected 128, got %d\n",
+	       interpreter->state.cvt_cut_in);
+      return;
+    }
+
+  fprintf (stderr, "passed\n");
+  return;
+}
+
+static void
+sfnt_check_sswci (struct sfnt_interpreter *interpreter,
+		  void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap\n");
+      return;
+    }
+
+  if (interpreter->state.sw_cut_in != 512)
+    {
+      fprintf (stderr, "failed, expected 512, got %d\n",
+	       interpreter->state.sw_cut_in);
+      return;
+    }
+
+  fprintf (stderr, "passed\n");
+  return;
+}
+
+static void
+sfnt_check_ssw (struct sfnt_interpreter *interpreter,
+		void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap\n");
+      return;
+    }
+
+  if (interpreter->state.single_width_value
+      != sfnt_mul_f26dot6 (-64, interpreter->scale))
+    {
+      fprintf (stderr, "failed, got %d at scale %d\n",
+	       interpreter->state.single_width_value,
+	       interpreter->scale);
+      return;
+    }
+
+  fprintf (stderr, "passed\n");
+  return;
+}
+
+static void
+sfnt_check_flipon (struct sfnt_interpreter *interpreter,
+		   void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap\n");
+      return;
+    }
+
+  if (!interpreter->state.auto_flip)
+    fprintf (stderr, "failed, auto flip not enabled\n");
+  else
+    fprintf (stderr, "pass\n");
+
+  return;
+}
+
+static void
+sfnt_check_flipoff (struct sfnt_interpreter *interpreter,
+		    void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap\n");
+      return;
+    }
+
+  if (interpreter->state.auto_flip)
+    fprintf (stderr, "failed, auto flip not disabled\n");
+  else
+    fprintf (stderr, "pass\n");
+
+  return;
+}
+
+static struct sfnt_generic_test_args npushb_test_args =
+  {
+    (uint32_t []) { 1U, 2U, 3U, 4U, },
+    4,
+    true,
+    6,
+  };
+
+static struct sfnt_generic_test_args npushw_test_args =
+  {
+    (uint32_t []) { 0x101U, 0x202U, 0x303U, 0x404U, },
+    4,
+    true,
+    10,
+  };
+
+static struct sfnt_generic_test_args pushb_test_args =
+  {
+    (uint32_t []) { 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U,
+		   1U, },
+    9,
+    true,
+    11,
+  };
+
+static struct sfnt_generic_test_args pushw_test_args =
+  {
+    (uint32_t []) { 0x203U, 0x204U, 0x205U, 0x206U, 0x207U, 0x208U,
+		   0x909U, 0x909U, (uint32_t) -1, },
+    9,
+    true,
+    20,
+  };
+
+static struct sfnt_generic_test_args stack_overflow_test_args =
+  {
+    (uint32_t[100]) { },
+    100,
+    true,
+    0,
+  };
+
+static struct sfnt_generic_test_args stack_underflow_test_args =
+  {
+    /* GCC BUG, this should be []! */
+    (uint32_t []) { },
+    0,
+    true,
+    4,
+  };
+
+static struct sfnt_rounding_test_args rtg_test_args =
+  {
+    64,
+  };
+
+static struct sfnt_rounding_test_args rtg_symmetric_test_args =
+  {
+    -64,
+  };
+
+static struct sfnt_rounding_test_args rtg_1_test_args =
+  {
+    0,
+  };
+
+static struct sfnt_rounding_test_args rtg_1_symmetric_test_args =
+  {
+    0,
+  };
+
+static struct sfnt_rounding_test_args rthg_test_args =
+  {
+    32,
+  };
+
+static struct sfnt_rounding_test_args rthg_1_test_args =
+  {
+    96,
+  };
+
+static struct sfnt_rounding_test_args rtdg_test_args =
+  {
+    32,
+  };
+
+static struct sfnt_rounding_test_args rtdg_1_test_args =
+  {
+    0,
+  };
+
+static struct sfnt_rounding_test_args rtdg_2_test_args =
+  {
+    32,
+  };
+
+static struct sfnt_rounding_test_args rtdg_3_test_args =
+  {
+    64,
+  };
+
+static struct sfnt_generic_test_args else_test_args =
+  {
+    (uint32_t []) { 77U, 90U, 83U, },
+    3,
+    false,
+    40,
+  };
+
+static struct sfnt_generic_test_args jmpr_test_args =
+  {
+    /* What ends up on the stack?
+
+       First, there are the three words that the first PUSHW[2]
+       instruction has pushed:
+
+         0, 0xb2, -3
+
+       After those three words are pushed, JMPR[] is called, and pops an
+       offset:
+
+         -3
+
+       so now the stack is:
+
+         0, 0xb2
+
+       as a result of the relative jump, IP is now at the least
+       significant byte of the word inside what was originally a
+       PUSHW[2] instruction, 0xb2, which itself is PUSHB[2]!
+
+       As a result of that instruction, three more bytes, including
+       JMPR[] itself are pushed onto the stack, making it:
+
+         0, 0xb2, 255, 253, 0x1c
+
+       Then, execution continues as usual.  4 is pushed on to the
+       stack, making it:
+
+         0, 0xb2, 255, 253, 0x1c, 4
+
+       Another JMPR[] pops:
+
+         4
+
+       making the stack:
+
+         0, 0xb2, 255, 253, 0x1c
+
+       And skips the next three padding bytes, finally reaching a
+       PUSHW[0] instruction which pushes -30 onto the stack:
+
+         0, 0xb2, 255, 253, 0x1c, -30
+
+       and a JMPR[] instruction, which pops:
+
+         -30
+
+       making:
+
+         0, 0xb2, 255, 253,
+
+       and subsequently traps, as -30 would underflow the instruction
+       stream.  */
+    (uint32_t []) { 0, 0xb2, 255, 253, 0x1c, },
+    5,
+    true,
+    17,
+  };
+
+static struct sfnt_generic_test_args dup_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    true,
+    5,
+  };
+
+static struct sfnt_generic_test_args pop_test_args =
+  {
+    (uint32_t []) { 70, 70, },
+    2,
+    false,
+    5,
+  };
+
+static struct sfnt_generic_test_args clear_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    false,
+    10,
+  };
+
+static struct sfnt_generic_test_args swap_test_args =
+  {
+    (uint32_t []) { 2, 1, },
+    2,
+    false,
+    4,
+  };
+
+static struct sfnt_generic_test_args depth_test_args =
+  {
+    (uint32_t []) { 3, 3, 3, 3, },
+    4,
+    false,
+    5,
+  };
+
+static struct sfnt_generic_test_args cindex_test_args =
+  {
+    (uint32_t []) { 0, 3, 3, 4, 0, },
+    5,
+    true,
+    10,
+  };
+
+static struct sfnt_generic_test_args mindex_test_args =
+  {
+    (uint32_t []) { 0, 3, 7, 4, 4, },
+    5,
+    false,
+    10,
+  };
+
+static struct sfnt_generic_test_args raw_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    true,
+    0,
+  };
+
+static struct sfnt_generic_test_args loopcall_test_args =
+  {
+    (uint32_t []) { 10, },
+    1,
+    false,
+    12,
+  };
+
+static struct sfnt_generic_test_args call_test_args =
+  {
+    (uint32_t []) { 11, },
+    1,
+    true,
+    2,
+  };
+
+static struct sfnt_generic_test_args fdef_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    true,
+    4,
+  };
+
+static struct sfnt_generic_test_args fdef_1_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    true,
+    9,
+  };
+
+static struct sfnt_generic_test_args endf_test_args =
+  {
+    (uint32_t []) {  },
+    0,
+    true,
+    0,
+  };
+
+static struct sfnt_generic_test_args ws_test_args =
+  {
+    (uint32_t []) { 40, },
+    1,
+    true,
+    10,
+  };
+
+static struct sfnt_generic_test_args rs_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    true,
+    2,
+  };
+
+static struct sfnt_generic_test_args wcvtp_test_args =
+  {
+    (uint32_t []) { 32, },
+    1,
+    true,
+    10,
+  };
+
+static struct sfnt_generic_test_args rcvt_test_args =
+  {
+    (uint32_t []) { 100, },
+    1,
+    true,
+    5,
+  };
+
+static struct sfnt_generic_test_args mppem_test_args =
+  {
+    (uint32_t []) { 17, },
+    1,
+    false,
+    1,
+  };
+
+static struct sfnt_generic_test_args mps_test_args =
+  {
+    (uint32_t []) { 17, },
+    1,
+    false,
+    1,
+  };
+
+static struct sfnt_generic_test_args debug_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    false,
+    3,
+  };
+
+static struct sfnt_generic_test_args lt_test_args =
+  {
+    (uint32_t []) { 1, 0, },
+    2,
+    false,
+    8,
+  };
+
+static struct sfnt_interpreter_test all_tests[] =
+  {
+    {
+      "NPUSHB",
+      /* NPUSHB[] 4 1 2 3 4
+	 NPUSHB[] 5 1 2 3 4 */
+      (unsigned char []) { 0x40, 4, 1, 2, 3, 4,
+			   0x40, 5, 1, 2, 3, 4, },
+      10,
+      &npushb_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "NPUSHW",
+      /* NPUSHW[] 4 0x101 0x202 0x303 0x404
+         NPUSHW[] 4 0x101 0x202 0x303 0x4?? */
+      (unsigned char []) { 0x41, 4, 1, 1, 2, 2, 3, 3, 4, 4,
+			   0x41, 4, 1, 1, 2, 2, 3, 3, 4, },
+      19,
+      &npushw_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "PUSHB",
+      /* PUSHB[7] 1 2 3 4 5 6 7 8
+         PUSHB[0] 1
+         PUSHB[5] 1 2 3 4 5 ? */
+      (unsigned char []) { 0xb7, 1, 2, 3, 4, 5, 6, 7, 8,
+			   0xb0, 1,
+			   0xb5, 1, 2, 3, 4, 5, },
+      17,
+      &pushb_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "PUSHW",
+      /* PUSHW[7] 2 3 2 4 2 5 2 6 2 7 2 8 9 9 9 9
+	 PUSHW[0] 255 255 -- this should get sign-extended
+	 PUSHW[5] 1 1 2 2 3 3 4 4 5 5 6 ? */
+      (unsigned char []) { 0xbf, 2, 3, 2, 4, 2, 5, 2, 6, 2, 7, 2, 8, 9, 9, 9, 9,
+			   0xb8, 255, 255,
+			   0xbc, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, },
+      28,
+      &pushw_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "that stack overflow is handled correctly",
+      /* NPUSHB[] 101 0... */
+      (unsigned char [103]) { 0x40, 101, },
+      103,
+      &stack_overflow_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "that stack underflow is handled correctly",
+      /* PUSHW[0] 100 100
+         POP[]
+         POP[] */
+      (unsigned char []) { 0xb8, 100, 100,
+			   0x21,
+			   0x21, },
+      5,
+      &stack_underflow_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SRP0, SRP1, SRP2",
+      /* PUSHB[0] 0
+	 SRP0[]
+	 PUSHB[0] 1
+	 SRP1[]
+	 PUSHB[0] 2
+	 SRP2[] */
+      (unsigned char []) { 0xb0, 0,
+			   0x10,
+			   0xb0, 1,
+			   0x11,
+			   0xb0, 2,
+			   0x12, },
+      9,
+      NULL,
+      sfnt_check_srp0,
+    },
+    {
+      "SZP0, SZP1, SZP2, SZPS",
+      /* PUSHB[0] 1
+         SZP0[]
+         PUSHB[0] 1
+         SZP1[]
+         PUSHB[0] 0
+         SZP2[]
+         PUSHB[0] 5
+         SZPS[]  */
+      (unsigned char []) { 0xb0, 1,
+			   0x13,
+			   0xb0, 1,
+			   0x14,
+			   0xb0, 0,
+			   0x15,
+			   0xb0, 5,
+			   0x16, },
+      12,
+      NULL,
+      sfnt_check_szp0,
+    },
+    {
+      "SLOOP",
+      /* PUSHB[0] 2
+	 SLOOP[]
+	 PUSHB[0] 0
+	 SLOOP[] */
+      (unsigned char []) { 0xb0, 2,
+			   0x17,
+			   0xb0, 0,
+			   0x17, },
+      6,
+      NULL,
+      sfnt_check_sloop,
+    },
+    {
+      "RTG",
+      /* RTG[]
+	 PUSHB[0] 32
+	 ROUND[] */
+      (unsigned char []) { 0x18,
+			   0xb0, 32,
+			   0x68, },
+      4,
+      &rtg_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "rounding symmetry",
+      /* RTG[]
+	 PUSHW[0] 255 -32
+	 ROUND[] */
+      (unsigned char []) { 0x18,
+			   0xb8, 255, - (signed char) 32,
+			   0x68, },
+      5,
+      &rtg_symmetric_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "RTG to 0",
+      /* RTG[]
+	 PUSHB[0] 31
+	 ROUND[] */
+      (unsigned char []) { 0x18,
+			   0xb0, 31,
+			   0x68, },
+      4,
+      &rtg_1_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "rounding symmetry to 0",
+      /* RTG[]
+	 PUSHB[0] 255 -31
+	 ROUND[] */
+      (unsigned char []) { 0x18,
+			   0xb8, 255, - (signed char) 31,
+			   0x68, },
+      5,
+      &rtg_1_symmetric_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "RTHG",
+      /* RTHG[]
+	 PUSHB[0] 0
+	 ROUND[] */
+      (unsigned char []) { 0x19,
+			   0xb0, 0,
+			   0x68, },
+      4,
+      &rthg_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "RTHG to 96",
+      /* RTHG[]
+	 PUSHB[0] 64
+	 ROUND[] */
+      (unsigned char []) { 0x19,
+			   0xb0, 64,
+			   0x68, },
+      4,
+      &rthg_1_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "SMD",
+      /* PUSHB[0] 32
+         SMD[] */
+      (unsigned char []) { 0xb0, 32,
+			   0x1a, },
+      3,
+      NULL,
+      sfnt_check_smd,
+    },
+    {
+      "ELSE",
+      /* ELSE[]
+	 ;; Lots of variable length instructions
+	 ;; which will not be executed, like:
+         NPUSHW[] 3 11 22 33 44 55 66
+         NPUSHB[] 1 3
+         PUSHW[2] 1 1 2 2 3 3
+         PUSHB[2] 1 2 3
+	 ;; Also test nested ifs.
+	 PUSHW[0] 1 1
+	 IF[]
+	 PUSHW[0] 1 1
+	 ELSE[]
+	 PUSHW[0] 1 1
+	 EIF[]
+         EIF[]
+	 PUSHW[0] 1 1
+	 ;; the actual contents of the stack.
+         PUSHB[2] 77 90 83*/
+      (unsigned char []) { 0x1b,
+			   0x41, 3, 11, 22, 33, 44, 55, 66,
+			   0x40, 1, 3,
+			   0xba, 1, 1, 2, 2, 3, 3,
+			   0xb2, 1, 2, 3,
+			   0xb8, 1, 1,
+			   0x58,
+			   0xb8, 1, 1,
+			   0x1b,
+			   0xb8, 1, 1,
+			   0x59,
+			   0x59,
+			   0xb2, 77, 90, 83, },
+      40,
+      &else_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "JMPR",
+      /* PUSHW[2] 00 00 00 PUSHB[2] 255 253 JMPR[]
+         PUSHB[0] 4
+	 JMPR[]
+         255 255 255
+	 PUSHW[0] 255 -30
+         JMPR[] */
+      (unsigned char []) { 0xba, 00, 00, 00, 0xb2, 255, 253, 0x1c,
+			   0xb0, 4,
+			   0x1c,
+			   255, 255, 255,
+			   0xb8, 255, -30,
+			   0x1c, },
+      18,
+      &jmpr_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SCVTCI",
+      /* PUSHB[0] 128
+	 SCVTCI[] */
+      (unsigned char []) { 0xb0, 128,
+			   0x1d, },
+      3,
+      NULL,
+      sfnt_check_scvtci,
+    },
+    {
+      "SSWCI",
+      /* PUSHW[0] 2 0 ;; 512
+         SSWCI[] */
+      (unsigned char []) { 0xb8, 2, 0,
+			   0x1e, },
+      4,
+      NULL,
+      sfnt_check_sswci,
+    },
+    {
+      "SSW",
+      /* PUSHW[0] 255 255 ; -1
+	 SSW[] ; this should be converted to device-space */
+      (unsigned char []) { 0xb8, 255, 255,
+			   0x1f, },
+      4,
+      NULL,
+      sfnt_check_ssw,
+    },
+    {
+      "DUP",
+      /* PUSHB[0] 70
+         DUP[]
+         POP[]
+         POP[]
+         DUP[] */
+      (unsigned char []) { 0xb0, 70,
+			   0x20,
+			   0x21,
+			   0x21,
+			   0x70, },
+      6,
+      &dup_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "POP",
+      /* PUSHB[0] 70
+	 DUP[]
+	 DUP[]
+	 POP[] */
+      (unsigned char []) { 0xb0, 70,
+			   0x20,
+			   0x20,
+			   0x21, },
+      5,
+      &pop_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "CLEAR",
+      /* PUSHB[7] 1 2 3 4 5 6 7 8
+	 CLEAR[] */
+      (unsigned char []) { 0xb7, 1, 2, 3, 4, 5, 6, 7, 8,
+			   0x22, },
+      10,
+      &clear_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SWAP",
+      /* PUSHB[1] 1 2
+	 SWAP[] */
+      (unsigned char []) { 0xb1, 1, 2,
+			   0x23, },
+      4,
+      &swap_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "DEPTH",
+      /* PUSHB[2] 3 3 3
+	 DEPTH[] */
+      (unsigned char []) { 0xb2, 3, 3, 3,
+			   0x24, },
+      5,
+      &depth_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "CINDEX",
+      /* PUSHB[4] 0 3 3 4 1
+	 CINDEX[] ; pops 1, indices 4
+         CINDEX[] ; pops 4, indices 0
+         PUSHB[0] 6
+         CINDEX[] ; pops 6, trap */
+      (unsigned char []) { 0xb4, 0, 3, 3, 4, 1,
+			   0x25,
+			   0x25,
+			   0xb0, 6,
+			   0x25, },
+      11,
+      &cindex_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "MINDEX",
+      /* PUSHB[6] 0 3 4 7 3 4 2
+         MINDEX[] ; pops 2, array becomes 0 3 4 7 4 3
+         MINDEX[] ; pops 3, array becomes 0 3 7 4 4 */
+      (unsigned char []) { 0xb6, 0, 3, 4, 7, 3, 4, 2,
+			   0x26,
+			   0x26, },
+      10,
+      &mindex_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "RAW",
+      /* RAW[] */
+      (unsigned char []) { 0x28, },
+      1,
+      &raw_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "LOOPCALL",
+      /* PUSHB[1] 0 2
+         FDEF[]
+         PUSHB[0] 1
+         ADD[]
+         ENDF[]
+         PUSHB[1] 10 2
+         LOOPCALL[]  */
+      (unsigned char []) { 0xb1, 0, 2,
+			   0x2c,
+			   0xb0, 1,
+			   0x60,
+			   0x2d,
+			   0xb1, 10, 2,
+			   0x2a, },
+      12,
+      &loopcall_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "CALL",
+      /* PUSHB[1] 7 2
+         FDEF[]
+         PUSHB[0] 1
+         ADD[]
+         ENDF[]
+         PUSHB[0] 2
+         CALL[]
+         PUSHB[0] 3
+         ADD[]
+	 ;; Test that infinite recursion fails.
+         PUSHB[0] 3
+         FDEF[]
+         PUSHB[0] 3
+	 CALL[]
+         ENDF[]
+	 PUSHB[0] 3
+         CALL[] */
+      (unsigned char []) { 0xb1, 7, 2,
+			   0x2c,
+			   0xb0, 1,
+			   0x60,
+			   0x2d,
+			   0xb0, 2,
+			   0x2b,
+			   0xb0, 3,
+			   0x60,
+			   0xb0, 3,
+			   0x2c,
+			   0xb0, 3,
+			   0x2b,
+			   0x2d,
+			   0xb0, 3,
+			   0x2b, },
+      24,
+      &call_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "that FDEF traps inside nested definitions",
+      /* PUSHB[0] 1
+	 FDEF[]
+         FDEF[]
+         ENDF[]
+	 ENDF[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x2c,
+			   0x2c,
+			   0x2d,
+			   0x2d, },
+      6,
+      &fdef_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "that FDEF traps upon missing ENDF",
+      /* PUSHB[0] 1
+         FDEF[]
+         PUSHB[3] 1 2 3 4
+         POP[]  */
+      (unsigned char []) { 0xb0, 1,
+			   0x2c,
+			   0xb3, 1, 2, 3, 4,
+			   0x21, },
+      9,
+      &fdef_1_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "ENDF",
+      /* ENDF[] */
+      (unsigned char []) { 0x2d, },
+      1,
+      &endf_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "RTDG",
+      /* RTDG[]
+         PUSHB[0] 16
+         ROUND[] */
+      (unsigned char []) { 0x3d,
+                           0xb0, 16,
+			   0x68, },
+      4,
+      &rtdg_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "RTDG down to 0",
+      /* RTDG[]
+         PUSHB[0] 15
+         ROUND[] */
+      (unsigned char []) { 0x3d,
+                           0xb0, 15,
+			   0x68, },
+      4,
+      &rtdg_1_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "RTDG down to 32",
+      /* RTDG[]
+         PUSHB[0] 47
+         ROUND[] */
+      (unsigned char []) { 0x3d,
+                           0xb0, 47,
+			   0x68, },
+      4,
+      &rtdg_2_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "RTDG up to 64",
+      /* RTDG[]
+         PUSHB[0] 48
+         ROUND[] */
+      (unsigned char []) { 0x3d,
+                           0xb0, 48,
+			   0x68, },
+      4,
+      &rtdg_3_test_args,
+      sfnt_check_rounding,
+    },
+    {
+      "WS",
+      /* PUSHB[1] 240 40
+         WS[]
+         PUSHB[0] 240
+         RS[]
+         PUSHB[1] 255 40
+         WS[] */
+      (unsigned char []) { 0xb1, 240, 40,
+			   0x42,
+			   0xb0, 240,
+			   0x43,
+			   0xb1, 255, 40,
+			   0x42, },
+      11,
+      &ws_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "RS",
+      /* PUSHB[0] 255
+         RS[] */
+      (unsigned char []) { 0xb0, 255,
+			   0x43, },
+      3,
+      &rs_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "WCVTP",
+      /* PUSHB[1] 9 32
+         WCVTP[]
+         PUSHB[0] 9
+         RCVT[]
+         PUSHB[1] 10 10
+         WCVTP[] */
+      (unsigned char []) { 0xb1, 9, 32,
+			   0x44,
+			   0xb0, 9,
+			   0x45,
+			   0xb1, 10, 10,
+			   0x44, },
+      11,
+      &wcvtp_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "RCVT",
+      /* PUSHB[0] 1
+         RCVT[]
+         PUSHB[0] 10
+         RCVT[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x45,
+			   0xb0, 10,
+			   0x45, },
+      6,
+      &rcvt_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "MPPEM",
+      /* MPPEM[] */
+      (unsigned char []) { 0x4b, },
+      1,
+      &mppem_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "MPS",
+      /* MPS[] */
+      (unsigned char []) { 0x4c, },
+      1,
+      &mps_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "FLIPON",
+      /* FLIPON[] */
+      (unsigned char []) { 0x4d, },
+      1,
+      NULL,
+      sfnt_check_flipon,
+    },
+    {
+      "FLIPOFF",
+      /* FLIPOFF[] */
+      (unsigned char []) { 0x4e, },
+      1,
+      NULL,
+      sfnt_check_flipoff,
+    },
+    {
+      "DEBUG",
+      /* PUSHB[0] 1
+	 DEBUG[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x4f, },
+      3,
+      &debug_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "LT",
+      /* PUSHB[1] 47 48
+         LT[]
+         PUSHB[1] 48 47
+         LT[] */
+      (unsigned char []) { 0xb1, 47, 48,
+			   0x50,
+			   0xb1, 48, 47,
+			   0x50, },
+      8,
+      &lt_test_args,
+      sfnt_generic_check,
+    },
+  };
+
+
+
+/* Main entry point.  */
+
 /* Simple tests that were used while developing this file.  By the
    time you are reading this, they probably no longer work.
 
@@ -4520,9 +8792,20 @@ main (int argc, char **argv)
   struct sfnt_name_record record;
   struct sfnt_meta_table *meta;
   struct sfnt_ttc_header *ttc;
+  struct sfnt_interpreter *interpreter;
 
   if (argc != 2)
     return 1;
+
+  if (!strcmp (argv[1], "--check-interpreter"))
+    {
+      interpreter = sfnt_make_test_interpreter ();
+
+      for (i = 0; i < ARRAYELTS (all_tests); ++i)
+	sfnt_run_interpreter_test (&all_tests[i], interpreter);
+
+      exit (0);
+    }
 
   fd = open (argv[1], O_RDONLY);
 
