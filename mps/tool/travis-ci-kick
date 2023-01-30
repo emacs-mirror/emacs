@@ -34,7 +34,7 @@ usage() {
     exit 1
 }    
 
-while getopts c:b:r:t: flag; do
+while getopts o:r:b:c:t: flag; do
     case "${flag}" in
 	c) commit="${OPTARG}";;
 	b) branch="${OPTARG}";;

@@ -43,8 +43,9 @@ CLANG_REMOTE=https://github.com/kripken/emscripten-fastcomp-clang
 
 # Directory to put everything in
 TESTDIR="$PWD/.test"
-mkdir -p -- "$TESTDIR"
-cd -- "$TESTDIR"
+mkdir -p -- "$TESTDIR" &&
+    cd -- "$TESTDIR" ||
+	exit 1
 
 
 # 3. UTILITIES
@@ -61,7 +62,7 @@ checkout () {
         git clone --recursive -- "$REMOTE" "$REPO"
     fi
     (
-        cd -- "$REPO"
+        cd -- "$REPO" &&
         git pull
     )
 }
@@ -76,15 +77,15 @@ checkout emscripten "$EMSCRIPTEN_REMOTE"
 
 checkout emscripten-fastcomp "$FASTCOMP_REMOTE"
 (
-    cd emscripten-fastcomp
+    cd emscripten-fastcomp &&
     (
-        cd tools
+        cd tools &&
         checkout clang "$CLANG_REMOTE";
     )
     mkdir -p build
     (
-        cd build
-        ../configure --enable-optimized --disable-assertions --enable-targets=host,js
+        cd build &&
+        ../configure --enable-optimized --disable-assertions --enable-targets=host,js &&
         make;
     )
 )
