@@ -351,6 +351,7 @@ Formerly supported compiler toolchains:
 ``eg``  Experimental GNU Compiler System (EGCS)  ``MPS_BUILD_EG``
 ``gp``  GCC with profiling                       ``MPS_BUILD_GP``
 ``lc``  LCC                                      ``MPS_BUILD_LC``
+``m9``  Microsoft Visual C/C++ 9.0 [3]_          ``MPS_BUILD_M9``
 ``mw``  Metrowerks CodeWarrior                   ``MPS_BUILD_MW``
 ``pc``  Pelles C                                 ``MPS_BUILD_PC``
 ``sc``  SunPro C                                 ``MPS_BUILD_SC``
@@ -363,6 +364,9 @@ Formerly supported compiler toolchains:
 
     .. [2] This was the MIPSpro C compiler on IRIX; and the Digital C
            Compiler on OSF/1.
+
+    .. [3] Obsolete: the MPS used to make a distinction between
+           version 9.0 of Microsoft Visual C/C++ and older versions.
 
 
 .. index::
@@ -403,7 +407,7 @@ Platform    Status
 ``sos9sc``  *Not supported*
 ``sus8gc``  *Not supported*
 ``w3almv``  *Not supported*
-``w3i3m9``  *Not supported*
+``w3i3m9``  Corrected to ``w3i3mv``
 ``w3i3mv``  Supported
 ``w3i3pc``  *Not supported*
 ``w3i6mv``  Supported

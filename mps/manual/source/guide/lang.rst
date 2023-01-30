@@ -293,7 +293,7 @@ alignment is hard to do portably, because it depends on the target
 architecture and on the way the compiler lays out its structures in
 memory. Here are some things you might try:
 
-#. Some modern compilers support the :c:func:`alignof` operator::
+#. Some modern compilers support the ``alignof`` operator::
 
         #define ALIGNMENT alignof(obj_s)
 
@@ -575,8 +575,7 @@ following code must be added to :c:func:`obj_scan` and
     design of the forwarding object. In the toy Scheme interpreter,
     this happens on some 64-bit platforms, where a pointer is 8 bytes
     long, and a :c:type:`character_s` object (which consists of a
-    4-byte :c:type:`int` and a 1-byte :c:type:`char`) is also 8 bytes
-    long.
+    4-byte ``int`` and a 1-byte ``char``) is also 8 bytes long.
 
     There are a couple of solutions to this problem:
 

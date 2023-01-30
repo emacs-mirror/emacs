@@ -518,8 +518,8 @@ for the following two functions::
        return (i>>5) + (i&31);
     }
 
-``ACT_ON_RANGE(Index base, Index limit, single_action, bits_action, word_action)``
-``ACT_ON_RANGE_HIGH(Index base, Index limit, single_action, bits_action, word_action)``
+``ACT_ON_RANGE(base, limit, single_action, bits_action, word_action)``
+``ACT_ON_RANGE_HIGH(base, limit, single_action, bits_action, word_action)``
 
 _`.iteration`: Many of the following functions involve iteration over
 ranges in a Bit Table. This is performed on whole words rather than

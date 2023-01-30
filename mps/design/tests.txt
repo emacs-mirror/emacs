@@ -179,9 +179,9 @@ _`.runner.req.output.fail`: However, if a test case fails then the
 test runner must preserve the output from the failing test, including
 the random seed (see `.randomize.seed`_), so that this can be analyzed
 and the test repeated. Moreover, it must print the output from the
-failing test, so that if the test is being run on a continuous
-integration system like Travis, then the output of the failing tests
-is included in the failure report. (See job003489_.)
+failing test, so that if the test is being run on a `continuous
+integration`_ system (see `.ci`_), then the output of the failing
+tests is included in the failure report. (See job003489_.)
 
 .. _job003489: https://www.ravenbrook.com/project/mps/issue/job003489/
 
@@ -276,32 +276,115 @@ case to the "Automated test cases" section.
 Continuous integration
 ----------------------
 
-_`.ci`: The MPS uses the following systems for continuous integration:
+[This section might need to become a document in its own right.  CI
+has grown in importance and complexity.  RB 2023-01-15]
 
-_`.ci.travis`: The commercial Travis_ continuous integration service
-runs ``./configure && make install && make test`` (which exercises the
-``testci`` target for platforms lii6gc, lii6ll, xci6ll, and
-``testansi`` and ``testpollnone`` for platforms anangc and ananll)
-whenever there is a commit to the `mps GitHub repository`_. See the
-`Ravenbrook/mps`_ project on Travis for a build history.
+_`.ci`: Ravenbrook uses both `GitHub CI`_ and `Travis CI`_ for
+continuous integration of the MPS via GitHub.
 
-.. _mps GitHub repository: https://github.com/ravenbrook/mps
-.. _Travis: https://travis-ci.com/
-.. _Ravenbrook/mps: https://travis-ci.com/Ravenbrook/mps
+.. _Travis CI: https://travis-ci.com/
 
-_`.ci.travis.config`: Travis is configured using the .travis.yml file
-at top level of the project.
+.. _GitHub CI: https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration
 
-_`.ci.jenkins`: An instance of Jenkins_ running on "gannet" (a Windows
-PC at the Ravenbrook office) runs the ``testci`` target on platforms
-w3i3mv and w3i6mv whenever there is a commit to the `mps GitHub
-repository`_.
+[This section needs: definition of CI goals and requirements, what we
+need CI to do and why, how the testci target meets those
+requirements.  'taint really a design without this.  Mention how CI
+supports the pull request merge procedure (except that exists on a
+separate branch at the moment).  RB 2023-01-15]
 
-.. _Jenkins: https://jenkins.io
+[Need to discuss compilers and toolchains.  RB 2023-01-15]
 
-_`.ci.jenkins.config`: There are instructions for installing and
-configuring Jenkins in [GDR_2016-04-14]_, [GDR_2016-04-15]_ and
-[GDR_2016-04-20]_.
+_`.ci.run.posix`: On Posix systems where we have autoconf, the CI
+services run commands equivalent to::
+
+  ./configure
+  make install
+  make test
+
+which execises the testci target, as defined by `Makefile.in
+<../Makefile.in>`_ in the root of the MPS tree.
+
+_`.ci.run.windows`: On Windows the CI services run commands that do at
+least::
+
+  make /f w3i6mv.nmk all testci
+
+as defined by the `.ci.github.config`_.
+
+_`.ci.run.other.targets`: On some platforms we arrange to run the testansi,
+testpollnone, testratio, and testscheme targets.  [Need to explain
+why, where, etc.  RB 2023-01-15]
+
+_`.ci.run.other.checks`: We could also run various non-build checks
+using CI to check:
+
+- document formatting
+- shell script syntax
+
+[In the branch of writing, these do not yet exist.  They are the
+subject of `GitHub pull request #113
+<https://github.com/Ravenbrook/mps/pull/112>`_ of
+branch/2023-01-13/rst-check.  When merged, they can be linked.  RB
+2023-01-15]
+
+_`.ci.when:`: CI is triggered on the `mps GitHub repo`_ by:
+
+- commits (pushes)
+- new pull requests
+- manually, using tools (see `.ci.tools`_)
+
+.. _mps GitHub repo: https://github.com/ravenbrook/mps
+
+_`.ci.results`: CI results are visible via the GitHub web interface:
+
+- in pull requests, under "Checks",
+
+- on the `branches page <https://github.com/Ravenbrook/mps/branches>`_
+  as green ticks or red crosses that link to details.
+
+as well as in logs specific to the type of CI.
+
+_`.ci.results.travis`: Results from Travis CI can be found at the
+`Travis CI build history for the MPS GitHub repo
+<https://app.travis-ci.com/github/Ravenbrook/mps/builds>`_.
+
+_`.ci.results.github`: Results from GitHub CI can be found at `build
+and test actions on the Actions tab at the Ravenbrook GitHub repo
+<https://github.com/Ravenbrook/mps/actions/workflows/build-and-test.yml>`_.
+
+_`.ci.github`: [Insert overview of GitHub CI here.  RB 2023-01-15]
+
+_`.ci.github.platforms`: GitHub provides runners_ for Linux, Windows,
+and macOS, but only on x86_64.  See `.ci.travis.platforms`_ for ARM64
+and FreeBSD.
+
+.. _runners: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+
+_`.ci.github.config`: GitHub CI is configured using the
+`build-and-test.yml <../.github/workflows/build-and-test.yml>`_ file
+in the .github/workflows directory of the MPS tree.
+
+_`.ci.travis`: [Insert overview of Travis CI here.  RB 2023-01-15]
+
+_`.ci.travis.platforms`: Where possible, we use `GitHub CI`_ for
+platforms, because `Travis CI is slow and expensive`_.  However
+`GitHub CI`_ does not provide ARM64 or FreeBSD, so we use `Travis CI`_
+for those.
+
+.. _Travis CI is slow and expensive: https://github.com/Ravenbrook/mps/issues/109
+
+_`.ci.travis.config`: Travis is configured using the `.travis.yml
+<../.travis.yml>`_ file at top level of the MPS tree.
+
+_`.ci.tools`: The MPS tree contains some simple tools for managing CI
+without the need to install whole packages such as the GitHub CLI or
+Travis CI's Ruby gem.
+
+_`.ci.tools.kick`: `tool/github-ci-kick <../tool/github-ci-kick>`_ and
+`tool/travis-ci-kick <../tool/travis-ci-kick>`_ both trigger CI builds
+without the need to push a change or make a pull request in the `mps
+GitHub repo`_.  In particular, they are useful for applying CI to work
+that was pushed while CI was disabled, for whatever reason.
 
 
 MMQA tests
@@ -341,21 +424,6 @@ References
    Melvin E. Conway; *Datamation* 14:5, pp. 28–31; April 1968;
    <http://www.melconway.com/Home/Committees_Paper.html>
 
-.. [GDR_2016-04-14]
-   "Jenkins setup and configuration procedure";
-   Gareth Rees; Ravenbrook Limited; 2016-04-14;
-   <https://info.ravenbrook.com/mail/2016/04/14/17-19-08/0/>.
-
-.. [GDR_2016-04-15]
-   "Re: Jenkins setup and configuration procedure";
-   Gareth Rees; Ravenbrook Limited; 2016-04-15;
-   <https://info.ravenbrook.com/mail/2016/04/15/09-03-53/0/>.
-
-.. [GDR_2016-04-20]
-   "Re: Jenkins setup and configuration procedure";
-   Gareth Rees; Ravenbrook Limited; 2016-04-20;
-   <https://info.ravenbrook.com/mail/2016/04/20/13-26-33/0/>.
-
 
 Document History
 ----------------
@@ -371,6 +439,9 @@ Document History
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
 - 2018-06-15 GDR_ Procedure for adding a new smoke test.
+
+- 2023-01-15 RB_ Bringing CI section up to date with Travis
+  configuration.  Removing obsolete Jenkins info.  Adding GitHub CI.
 
 .. _RB: https://www.ravenbrook.com/consultants/rb/
 .. _GDR: https://www.ravenbrook.com/consultants/gdr/
@@ -403,3 +474,5 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+.. end

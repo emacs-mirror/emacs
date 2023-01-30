@@ -401,7 +401,7 @@ specification to place the new allocation immediately above/below a
 given tract; if that is not possible, it returns ``ResFAIL`` (this
 will make it useful for reallocation functionality).
 
-``ArenaSetTotalLoci(Arena arena, Size nLoci, Size nZoneGroups)``
+``void ArenaSetTotalLoci(Arena arena, Size nLoci, Size nZoneGroups)``
 
 _`.function.set-total`: A function to tell the arena the expected
 number of (non-miscible client) loci, and of zone groups.
