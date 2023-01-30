@@ -87,6 +87,7 @@
 (declare-function treesit-search-subtree "treesit.c")
 (declare-function treesit-search-forward "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-subtree-stat "treesit.c")
 
 (declare-function treesit-available-p "treesit.c")
 
@@ -557,20 +558,22 @@ omitted, default END to BEG."
 (defun treesit--font-lock-level-setter (sym val)
   "Custom setter for `treesit-font-lock-level'."
   (set-default sym val)
-  (named-let loop ((res nil)
-                   (buffers (buffer-list)))
-    (if (null buffers)
-        (mapc (lambda (b)
-                (with-current-buffer b
-                  (setq-local treesit-font-lock-level val)
-                  (treesit-font-lock-recompute-features)
-                  (treesit-font-lock-fontify-region (point-min) (point-max))))
-              res)
-      (let ((buffer (car buffers)))
-        (with-current-buffer buffer
-          (if (treesit-parser-list)
-              (loop (append res (list buffer)) (cdr buffers))
-            (loop res (cdr buffers))))))))
+  (and (treesit-available-p)
+       (named-let loop ((res nil)
+                        (buffers (buffer-list)))
+         (if (null buffers)
+             (mapc (lambda (b)
+                     (with-current-buffer b
+                       (setq-local treesit-font-lock-level val)
+                       (treesit-font-lock-recompute-features)
+                       (treesit-font-lock-fontify-region (point-min)
+                                                         (point-max))))
+                   res)
+           (let ((buffer (car buffers)))
+             (with-current-buffer buffer
+               (if (treesit-parser-list)
+                   (loop (append res (list buffer)) (cdr buffers))
+                 (loop res (cdr buffers)))))))))
 
 (defcustom treesit-font-lock-level 3
   "Decoration level to be used by tree-sitter fontifications.
