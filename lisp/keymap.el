@@ -76,12 +76,9 @@ Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
 that you make with this function."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
-  (interactive
-   (let* ((menu-prompting nil)
-          (key (read-key-sequence "Set key globally: " nil t)))
-     (list key
-           (read-command (format "Set key %s to command: "
-                                 (key-description key))))))
+  (interactive "KSet key globally:\nCSet key %s globally to command: ")
+  (unless (stringp key)
+    (setq key (key-description key)))
   (keymap-set (current-global-map) key command))
 
 (defun keymap-local-set (key command)
@@ -94,10 +91,12 @@ KEY is a string that satisfies `key-valid-p'.
 The binding goes in the current buffer's local map, which in most
 cases is shared with all other buffers in the same major mode."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
-  (interactive "KSet key locally: \nCSet key %s locally to command: ")
+  (interactive "KSet key locally:\nCSet key %s locally to command: ")
   (let ((map (current-local-map)))
     (unless map
       (use-local-map (setq map (make-sparse-keymap))))
+    (unless (stringp key)
+      (setq key (key-description key)))
     (keymap-set map key command)))
 
 (defun keymap-global-unset (key &optional remove)
