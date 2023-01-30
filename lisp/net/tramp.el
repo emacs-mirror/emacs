@@ -643,7 +643,7 @@ This regexp must match both `tramp-initial-end-of-output' and
   (tramp-compat-rx
    bol (* nonl)
    (group (regexp (regexp-opt password-word-equivalents)))
-   (* nonl) ":" (? "\^@") (* blank))
+   (* nonl) (any ":：៖") (? "\^@") (* blank))
   "Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
@@ -653,7 +653,7 @@ usually more convenient to add new passphrases to that variable
 instead of altering this variable.
 
 The `sudo' program appears to insert a `^@' character into the prompt."
-  :version "24.4"
+  :version "29.1"
   :type 'regexp)
 
 (defcustom tramp-wrong-passwd-regexp
