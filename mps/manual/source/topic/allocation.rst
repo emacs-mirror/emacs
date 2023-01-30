@@ -293,11 +293,11 @@ is thus::
         :c:func:`mps_reserve` is implemented as a macro for speed. It
         may evaluate its arguments multiple times.
 
-        There is an alternative, :c:func:`MPS_RESERVE_BLOCK`, which
+        There is an alternative, :c:macro:`MPS_RESERVE_BLOCK`, which
         may generate faster code on some compilers.
 
 
-.. c:function:: MPS_RESERVE_BLOCK(mps_res_t res_v, mps_addr_t *p_v, mps_ap_t ap, size_t size)
+.. c:macro:: MPS_RESERVE_BLOCK(res_v, p_v, ap, size)
 
     An alternative to :c:func:`mps_reserve`. On compilers that do not
     perform common-subexpression elimination, it may generate faster
