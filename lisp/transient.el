@@ -6,7 +6,7 @@
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
 
-;; Package-Version: 0.3.7
+;; Package-Version: 0.3.7.50
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
@@ -798,8 +798,8 @@ They become the value of this argument.")
 (defclass transient-columns (transient-group) ()
   "Group class that displays elements organized in columns.
 Direct elements have to be groups whose elements have to be
-commands or string.  Each subgroup represents a column.  This
-class takes care of inserting the subgroups' elements.")
+commands or strings.  Each subgroup represents a column.
+This class takes care of inserting the subgroups' elements.")
 
 (defclass transient-subgroups (transient-group) ()
   "Group class that wraps other groups.
@@ -860,7 +860,7 @@ to the setup function:
            (indent defun)
            (doc-string 3))
   (pcase-let ((`(,class ,slots ,suffixes ,docstr ,body)
-               (transient--expand-define-args args)))
+               (transient--expand-define-args args arglist)))
     `(progn
        (defalias ',name
          ,(if body
@@ -913,7 +913,7 @@ ARGLIST.  The infix arguments are usually accessed by using
            (indent defun)
            (doc-string 3))
   (pcase-let ((`(,class ,slots ,_ ,docstr ,body)
-               (transient--expand-define-args args)))
+               (transient--expand-define-args args arglist)))
     `(progn
        (defalias ',name (lambda ,arglist ,@body))
        (put ',name 'interactive-only t)
@@ -921,7 +921,7 @@ ARGLIST.  The infix arguments are usually accessed by using
        (put ',name 'transient--suffix
             (,(or class 'transient-suffix) :command ',name ,@slots)))))
 
-(defmacro transient-define-infix (name _arglist &rest args)
+(defmacro transient-define-infix (name arglist &rest args)
   "Define NAME as a transient infix command.
 
 ARGLIST is always ignored and reserved for future use.
@@ -962,7 +962,7 @@ keyword.
            (indent defun)
            (doc-string 3))
   (pcase-let ((`(,class ,slots ,_ ,docstr ,_)
-               (transient--expand-define-args args)))
+               (transient--expand-define-args args arglist)))
     `(progn
        (defalias ',name ,(transient--default-infix-command))
        (put ',name 'interactive-only t)
@@ -980,7 +980,9 @@ example, sets a variable use `transient-define-infix' instead.
 
 \(fn NAME ARGLIST [DOCSTRING] [KEYWORD VALUE]...)")
 
-(defun transient--expand-define-args (args)
+(defun transient--expand-define-args (args &optional arglist)
+  (unless (listp arglist)
+    (error "Mandatory ARGLIST is missing"))
   (let (class keys suffixes docstr)
     (when (stringp (car args))
       (setq docstr (pop args)))
@@ -1150,7 +1152,7 @@ example, sets a variable use `transient-define-infix' instead.
 PREFIX is a prefix command, a symbol.
 SUFFIX is a suffix command or a group specification (of
   the same forms as expected by `transient-define-prefix').
-Intended for use in PREFIX's `:setup-children' function."
+Intended for use in a group's `:setup-children' function."
   (eval (car (transient--parse-child prefix suffix))))
 
 (defun transient-parse-suffixes (prefix suffixes)
@@ -1158,7 +1160,7 @@ Intended for use in PREFIX's `:setup-children' function."
 PREFIX is a prefix command, a symbol.
 SUFFIXES is a list of suffix command or a group specification
   (of the same forms as expected by `transient-define-prefix').
-Intended for use in PREFIX's `:setup-children' function."
+Intended for use in a group's `:setup-children' function."
   (mapcar (apply-partially #'transient-parse-suffix prefix) suffixes))
 
 ;;; Edit
@@ -1469,14 +1471,24 @@ probably use this instead:
     (cl-check-type command command))
   (if (or transient--prefix
           transient-current-prefix)
-      (cl-find-if (lambda (obj)
-                    (eq (transient--suffix-command obj)
+      (let ((suffixes
+             (cl-remove-if-not
+              (lambda (obj)
+                (eq (transient--suffix-command obj)
+                    (or command
                         ;; When `this-command' is `transient-set-level',
                         ;; its reader needs to know what command is being
                         ;; configured.
-                        (or command this-original-command)))
-                  (or transient--suffixes
-                      transient-current-suffixes))
+                        this-original-command)))
+              (or transient--suffixes
+                  transient-current-suffixes))))
+        (or (and (cdr suffixes)
+                 (cl-find-if
+                  (lambda (obj)
+                    (equal (listify-key-sequence (transient--kbd (oref obj key)))
+                           (listify-key-sequence (this-command-keys))))
+                  suffixes))
+            (car suffixes)))
     (when-let* ((obj (get (or command this-command) 'transient--suffix))
                 (obj (clone obj)))
       ;; Cannot use and-let* because of debbugs#31840.
@@ -2203,7 +2215,7 @@ value.  Otherwise return CHILDREN as is."
     (unless abort-only
       (setq post-command
             (lambda () "@transient--delay-post-command"
-              (let ((act (and (not (eq (this-command-keys-vector) []))
+              (let ((act (and (not (equal (this-command-keys-vector) []))
                               (or (eq this-command command)
                                   ;; `execute-extended-command' was
                                   ;; used to call another command
@@ -2236,7 +2248,7 @@ value.  Otherwise return CHILDREN as is."
   (transient--debug 'post-command)
   (transient--with-emergency-exit
     (cond
-     ((and (eq (this-command-keys-vector) [])
+     ((and (equal (this-command-keys-vector) [])
            (= (minibuffer-depth)
               (1+ transient--minibuffer-depth)))
       (transient--suspend-override)
@@ -2406,6 +2418,10 @@ If there is no parent prefix, then behave like `transient--do-exit'."
   (transient--export)
   (transient--stack-zap)
   transient--exit)
+
+(defun transient--do-leave ()
+  "Call the command without exporting variables and exit the transient."
+  transient--stay)
 
 (defun transient--do-push-button ()
   "Call the command represented by the activated button.
@@ -3376,7 +3392,7 @@ have a history of their own.")
                     (insert ?\n)
                   (insert (propertize " " 'display
                                       `(space :align-to (,(nth (1+ c) cc)))))))
-            (insert (make-string (- (nth c cc) (current-column)) ?\s))
+            (insert (make-string (max 1 (- (nth c cc) (current-column))) ?\s))
             (when-let ((cell (nth r (nth c columns))))
               (insert cell))
             (when (= c (1- cs))
@@ -4119,7 +4135,10 @@ we stop there."
               'face 'transient-value))
 
 (cl-defmethod transient-prompt ((obj transient-lisp-variable))
-  (format "Set %s: " (oref obj variable)))
+  (if (and (slot-boundp obj 'prompt)
+           (oref obj prompt))
+      (cl-call-next-method obj)
+    (format "Set %s: " (oref obj variable))))
 
 (defun transient-lisp-variable--reader (prompt initial-input _history)
   (read--expression prompt initial-input))

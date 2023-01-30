@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.3.7
+@subtitle for version 0.3.7.50
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -64,8 +64,17 @@ reading a new value in the minibuffer.
 Calling a suffix command usually causes the transient to be exited
 but suffix commands can also be configured to not exit the transient.
 
+@quotation
+The second part of this manual, which describes how to modify existing
+transients and create new transients from scratch, can be hard to
+digest if you are just getting started.  A useful resource to get over
+that hurdle is Psionic K's interactive tutorial, available at
+@uref{https://github.com/positron-solutions/transient-showcase}.
+
+@end quotation
+
 @noindent
-This manual is for Transient version 0.3.7.
+This manual is for Transient version 0.3.7.50.
 
 @insertcopying
 @end ifnottex
@@ -447,10 +456,10 @@ session.
 Save the value of the active transient persistently across Emacs
 sessions.
 
-@item @kbd{C-x C-k} (@code{transient-save})
+@item @kbd{C-x C-k} (@code{transient-reset})
 @kindex C-x C-k
-@findex transient-save
-Clear the set and saved value of the active transient.
+@findex transient-reset
+Clear the set and saved values of the active transient.
 @end table
 
 @defopt transient-values-file
@@ -893,7 +902,16 @@ same customization.
 
 To an extent, transients can be customized interactively, see
 @ref{Enabling and Disabling Suffixes}.  This section explains how existing
-transients can be further modified non-interactively.
+transients can be further modified non-interactively.  Let's begin
+with an example:
+
+@lisp
+(transient-append-suffix 'magit-patch-apply "-3"
+  '("-R" "Apply in reverse" "--reverse"))
+@end lisp
+
+This inserts a new infix argument to toggle the @code{--reverse} argument
+after the infix argument that toggles @code{-3} in @code{magit-patch-apply}.
 
 The following functions share a few arguments:
 
@@ -910,7 +928,6 @@ means the former.  @xref{Suffix Specifications}.
 
 @var{SUFFIX} may also be a group in the same form as expected by
 @code{transient-define-prefix}.  @xref{Group Specifications}.
-
 
 @item
 @var{LOC} is a command, a key vector, a key description (a string as
@@ -1044,6 +1061,18 @@ For example, the scope of the @code{magit-branch-configure} transient is
 the branch whose variables are being configured.
 @end defmac
 
+It is possible to define one or more groups independently of a prefix
+definition, which is useful when those groups are to be used by more
+than just one prefix command.
+
+@defmac transient-define-groups name group...
+This macro defines one or more groups of infix and suffix commands
+and stores them in a property of the symbol @var{NAME}.  @var{GROUP} has the
+same form as for @code{transient-define-prefix}.  Subsequently @var{NAME} can
+be used in a @var{GROUP} of @code{transient-define-prefix}, as described in the
+next section.
+@end defmac
+
 @node Binding Suffix and Infix Commands
 @section Binding Suffix and Infix Commands
 
@@ -1139,11 +1168,17 @@ suffixes, which assumes that a predicate like this is used:
 
 @item
 The value of @code{:setup-children}, if non-@code{nil}, is a function that takes
-two arguments the group object itself and a list of children.
-The children are given as a (potentially empty) list consisting
-of either group or suffix specifications.  It can make arbitrary
-changes to the children including constructing new children from
-scratch.  Also see @code{transient-setup-children}.
+one argument, a potentially list of children, and must return a list
+of children or an empty list.  This can either be used to somehow
+transform the group's children that were defined the normal way, or
+to dynamically create the children from scratch.
+
+The returned children must have the same form as stored in the
+prefix's @code{transient--layout} property, but it is often more convenient
+to use the same form as understood by @code{transient-define-prefix},
+described below.  If you use the latter approach, you can use the
+@code{transient-parse-child} and @code{transient-parse-children} functions to
+transform them from the convenient to the expected form.
 
 @item
 The boolean @code{:pad-keys} argument controls whether keys of all suffixes
@@ -1151,23 +1186,35 @@ contained in a group are right padded, effectively aligning the
 descriptions.
 @end itemize
 
-The @var{ELEMENT}s are either all subgroups (vectors), or all suffixes
-(lists) and strings.  (At least currently no group type exists that
-would allow mixing subgroups with commands at the same level, though
-in principle there is nothing that prevents that.)
+The @var{ELEMENT}s are either all subgroups, or all suffixes and strings.
+(At least currently no group type exists that would allow mixing
+subgroups with commands at the same level, though in principle there
+is nothing that prevents that.)
 
 If the @var{ELEMENT}s are not subgroups, then they can be a mixture of lists
-that specify commands and strings.  Strings are inserted verbatim.
-The empty string can be used to insert gaps between suffixes, which is
-particularly useful if the suffixes are outlined as a table.
+that specify commands and strings.  Strings are inserted verbatim into
+the buffer.  The empty string can be used to insert gaps between
+suffixes, which is particularly useful if the suffixes are outlined as
+a table.
 
-Variables are supported inside group specifications.  For example in
-place of a direct subgroup specification, a variable can be used whose
-value is a vector that qualifies as a group specification.  Likewise,
-a variable can be used where a suffix specification is expected.
-Lists of group or suffix specifications are also supported.  Indirect
-specifications are resolved when the transient prefix is being
-defined.
+Inside group specifications, including inside contained suffix
+specifications, nothing has to be quoted and quoting anyway is
+invalid.
+
+How symbols are treated, depends on context.  Inside suffix
+specifications they often name functions.  However if they appear in
+a place where a group is expected, then they are treated as indirect
+group specifications. Such a symbol must have an associated group
+specification, created using @code{transient-define-groups}.
+
+Likewise a symbol can appear in a place where a suffix specification
+is expected.  The value of the @code{transient--layout} property of that
+symbol must be a single suffix specification or a list of such
+specifications.  Currently no macro exist that would create such a
+symbol, and this feature should usually not be used.
+
+The value following a keyword, can be explicitly unquoted using @code{,}.
+This feature is experimental and should be avoided as well.
 
 The form of suffix specifications is documented in the next node.
 
@@ -1232,7 +1279,7 @@ Any command will do; it does not need to have an object associated
 with it (as would be the case if @code{transient-define-suffix} or
 @code{transient-define-infix} were used to define it).
 
-Anonymous, dynamically defined suffix commands are also support.
+Anonymous, dynamically defined suffix commands are also supported.
 See information about the @code{:setup-children} function in @ref{Group Specifications}.
 
 As mentioned above, the object that is associated with a command can
@@ -1515,7 +1562,18 @@ Call the command without exporting variables and stay transient.
 @anchor{Pre-commands for Suffixes}
 @subheading Pre-commands for Suffixes
 
-The default for suffixes is @code{transient--do-exit}.
+By default, invoking a suffix causes the transient to be exited.
+
+If you want a different default behavior for a certain transient
+prefix command, then set its @code{:transient-suffix} slot.  The value can be
+a boolean, answering the question "does the transient stay active,
+when a suffix command is invoked?"  @code{t} means that the transient stays
+active, while @code{nil} means that invoking a suffix exits the transient.
+In either case, the exact behavior depends on whether the suffix is
+itself a prefix (i.e., a sub-prefix), an infix or a regular suffix.
+
+The behavior for an individual suffix command can be changed by
+setting its @code{transient} slot to one of the following pre-commands.
 
 @defun transient--do-exit
 Call the command after exporting variables and exit the transient.
@@ -1566,21 +1624,32 @@ be added to @code{transient-predicate-map}.
 @anchor{Pre-commands for Non-Suffixes}
 @subheading Pre-commands for Non-Suffixes
 
-The default for non-suffixes, i.e., commands that are bound in other
-keymaps beside the transient keymap, is @code{transient--do-warn}.  Silently
-ignoring the user-error is also an option, though probably not a good
-one.
+By default, non-suffixes (commands that are bound in other keymaps
+beside the transient keymap) cannot be invoked.  Trying to invoke
+such a command results in a warning and the transient stays active.
 
-If you want to let the user invoke non-suffix commands, then use
-@code{transient--do-stay} as the value of the prefix's @code{transient-non-suffix}
-slot.
+If you want a different behavior, then set the @code{:transient-non-suffix}
+slot of the transient prefix command.  The value can be a boolean,
+answering the question, "is it allowed to invoke non-suffix commands?"
+
+If the value is @code{t} or @code{transient--do-stay}, then non-suffixes can be
+invoked, when it is @code{nil} or @code{transient--do-warn} (the default) then they
+cannot be invoked.
+
+The only other recommended value is @code{transient--do-leave}.  If that is
+used, then non-suffixes can be invoked, but if one is invoked, then
+that exits the transient.
 
 @defun transient--do-warn
 Call @code{transient-undefined} and stay transient.
 @end defun
 
-@defun transient--do-noop
-Call @code{transient-noop} and stay transient.
+@defun transient--do-stay
+Call the command without exporting variables and stay transient.
+@end defun
+
+@defun transient--do-leave
+Call the command without exporting variables and exit the transient.
 @end defun
 
 @anchor{Special Pre-Commands}
@@ -1810,7 +1879,7 @@ indicates that all remaining arguments are files.
 
 @item
 Classes used for infix commands that represent variables should
-derived from the abstract @code{transient-variables} class.
+derived from the abstract @code{transient-variable} class.
 @end itemize
 
 Magit defines additional classes, which can serve as examples for the
@@ -2045,7 +2114,7 @@ called with no argument and returns a string.
 
 @item
 @code{show-help} A function used to display help for the suffix.  If
-unspecified, the prefix controls how hlep is displayed for its
+unspecified, the prefix controls how help is displayed for its
 suffixes.
 @end itemize
 
