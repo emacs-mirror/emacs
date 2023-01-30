@@ -26,14 +26,14 @@ case "$ARCH-$OS" in
     *-Darwin)
         CONFIGURATION=Debug
         (
-            cd -- "$CODE"
-            xcrun xcodebuild -config "$CONFIGURATION" clean
+            cd -- "$CODE" &&
+            xcrun xcodebuild -config "$CONFIGURATION" clean &&
             xcrun xcodebuild -config "$CONFIGURATION" -target testrun \
                 GCC_GENERATE_TEST_COVERAGE_FILES=YES \
                 GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES
         )
         (
-            cd -- "$CODE/xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/$ARCH"
+            cd -- "$CODE/xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/$ARCH" &&
             xcrun gcov mps.c 2> /dev/null
         ) | "$TOOL/gcovfmt"
         ;;
