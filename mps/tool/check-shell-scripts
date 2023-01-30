@@ -9,11 +9,19 @@
 # It can be invoked from the command line of from Continuous
 # Integration scripts.
 #
-# The script excludes .git because it contains default Git Hooks
-# installed by git that trigger shellcheck.
+# Usage (in the root directory of the MPS tree)::
 #
-# The script ignores tool/autoconf because those scripts are part of
-# GNU autoconf and not under our control.
+#    tool/check-shell-scripts
+#
+# This script excludes some directories from checking:
+#
+# - It excludes .git because Git installs shell scripts (the default
+#   "Git Hooks") that provoke warnings from shellcheck, and we can't
+#   fix them.
+#
+# - It excludes tool/autoconf because those scripts are part of GNU
+#   autoconf, provoke warnings from shellcheck, and we can't fix them.
+#
 
 find . -path './.git' -prune -o \
      -path './tool/autoconf' -prune -o \
@@ -33,7 +41,9 @@ find . -path './.git' -prune -o \
 
 # A. REFERENCES
 #
-# [None]
+# [Shellcheck] "shellcheck - Shell script analysis tool" version
+#   0.8.0; Vidar Holen and contributors;
+#   <https://github.com/koalaman/shellcheck/blob/e5ad4cf420a7f7b8e5eaac872b14a1619051cf10/shellcheck.1.md>.
 #
 #
 # B. DOCUMENT HISTORY
