@@ -50,6 +50,7 @@
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
 
 ;;; Comment indentation and filling
 

@@ -37,6 +37,7 @@
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
 
 (defcustom rust-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `rust-ts-mode'."
