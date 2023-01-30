@@ -2019,66 +2019,38 @@ at the end of the command are excluded.  This allows input like this:
 Eshell provides a facility for defining extension modules so that they
 can be disabled and enabled without having to unload and reload them,
 and to provide a common parent Customize group for the
-modules.@footnote{ERC provides a similar module facility.}  An Eshell
-module is defined the same as any other library but one requirement: the
-module must define a Customize@footnote{@xref{Customization, , ,
-elisp, The Emacs Lisp Reference Manual}.}
-group using @code{eshell-defgroup} (in place of @code{defgroup}) with
-@code{eshell-module} as the parent group.@footnote{If the module has
-no user-customizable options, then there is no need to define it as an
-Eshell module.}  You also need to load the following as shown:
-
-@example
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'esh-mode)
-  (require 'eshell))
-
-(require 'esh-util)
-@end example
+modules.@footnote{ERC provides a similar module facility.}
 
 @menu
+* Optional modules::
 * Writing a module::
-* Module testing::
-* Directory handling::
-* Key rebinding::
-* Smart scrolling::
-* Terminal emulation::
-* Electric forward slash::
 @end menu
 
-@node Writing a module
-@section Writing a module
+@node Optional modules
+@section Optional modules
 
 This section is not yet written.
 
-@node Module testing
-@section Module testing
-
-This section is not yet written.
-
-@node Directory handling
-@section Directory handling
-
-This section is not yet written.
+@menu
+* Key rebinding::
+* Smart scrolling::
+* Electric forward slash::
+* Tramp extensions::
+* Extra built-in commands::
+@end menu
 
 @node Key rebinding
-@section Key rebinding
+@subsection Key rebinding
 
 This section is not yet written.
 
 @node Smart scrolling
-@section Smart scrolling
-
-This section is not yet written.
-
-@node Terminal emulation
-@section Terminal emulation
+@subsection Smart scrolling
 
 This section is not yet written.
 
 @node Electric forward slash
-@section Electric forward slash
+@subsection Electric forward slash
 
 To help with supplying absolute file name arguments to remote
 commands, you can add the @code{eshell-elecslash} module to
@@ -2131,6 +2103,36 @@ very beginning of input is a Lisp function or external program.  Thus
 when chaining commands with the operators @code{&&}, @code{||},
 @code{|} and @code{;}, the electric forward slash is active only
 within the first command.
+
+@node Tramp extensions
+@subsection Tramp extensions
+
+This section is not yet written.
+
+@node Extra built-in functions
+@subsection Extra built-in functions
+
+This section is not yet written.
+
+@node Writing a module
+@section Writing a module
+
+An Eshell module is defined the same as any other library but one requirement: the
+module must define a Customize@footnote{@xref{Customization, , ,
+elisp, The Emacs Lisp Reference Manual}.}
+group using @code{eshell-defgroup} (in place of @code{defgroup}) with
+@code{eshell-module} as the parent group.@footnote{If the module has
+no user-customizable options, then there is no need to define it as an
+Eshell module.}  You also need to load the following as shown:
+
+@example
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'esh-mode)
+  (require 'eshell))
+
+(require 'esh-util)
+@end example
 
 @node Bugs and ideas
 @chapter Bugs and ideas
