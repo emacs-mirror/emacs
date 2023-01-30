@@ -6715,8 +6715,8 @@ implementations: `python-mode' and `python-ts-mode'."
     (when python-indent-guess-indent-offset
       (python-indent-guess-indent-offset))
 
-    (add-to-list 'auto-mode-alist
-                 '("\\.py[iw]?\\'\\|python[0-9.]*" . python-ts-mode))))
+    (add-to-list 'auto-mode-alist '("\\.py[iw]?\\'" . python-ts-mode))
+    (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code

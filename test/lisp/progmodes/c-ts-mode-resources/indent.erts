@@ -114,7 +114,9 @@ int main() {
       {
         puts ("Hello");
       }
-  for (int i=0; i<5; i++)
+  for (int i=0;
+       i<5;
+       i++)
     if (true)
       {
         puts ("Hello");
@@ -141,7 +143,9 @@ int main() {
     if (true) {
       puts ("Hello");
     }
-  for (int i=0; i<5; i++)
+  for (int i=0;
+       i<5;
+       i++)
     if (true) {
       puts ("Hello");
     }

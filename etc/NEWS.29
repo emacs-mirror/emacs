@@ -1018,6 +1018,8 @@ quotes removed.
 
 ---
 *** 'M-x apropos-variable' output now includes values of variables.
+Such apropos buffer is more easily viewed with outlining after
+enabling 'outline-minor-mode' in 'apropos-mode'.
 
 +++
 *** New docstring syntax to indicate that symbols shouldn't be links.
@@ -2479,6 +2481,10 @@ matches.
 
 ---
 *** New function 'xref-show-xrefs'.
+
+*** 'outline-minor-mode' is supported in Xref buffers.
+You can enable outlining by adding 'outline-minor-mode' to
+'xref-after-update-hook'.
 
 ** File Notifications
 

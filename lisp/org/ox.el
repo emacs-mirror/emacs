@@ -6600,14 +6600,14 @@ see.
 Optional argument POST-PROCESS is a function which should accept
 no argument.  It is always called within the current process,
 from BUFFER, with point at its beginning.  Export back-ends can
-use it to set a major mode there, e.g,
+use it to set a major mode there, e.g.,
 
   (defun org-latex-export-as-latex
     (&optional async subtreep visible-only body-only ext-plist)
     (interactive)
     (org-export-to-buffer \\='latex \"*Org LATEX Export*\"
       async subtreep visible-only body-only ext-plist
-      #'LaTeX-mode))
+      #\\='LaTeX-mode))
 
 When expressed as an anonymous function, using `lambda',
 POST-PROCESS needs to be quoted.

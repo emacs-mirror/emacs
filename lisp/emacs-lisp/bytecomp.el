@@ -3748,7 +3748,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 				      '((0 . byte-compile-no-args)
 					(1 . byte-compile-one-arg)
 					(2 . byte-compile-two-args)
-					(2-and . byte-compile-and-folded)
+                                        (2-cmp . byte-compile-cmp)
 					(3 . byte-compile-three-args)
 					(0-1 . byte-compile-zero-or-one-arg)
 					(1-2 . byte-compile-one-or-two-args)
@@ -3827,11 +3827,11 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler cons		2)
 (byte-defop-compiler aref		2)
 (byte-defop-compiler set		2)
-(byte-defop-compiler (= byte-eqlsign)	2-and)
-(byte-defop-compiler (< byte-lss)	2-and)
-(byte-defop-compiler (> byte-gtr)	2-and)
-(byte-defop-compiler (<= byte-leq)	2-and)
-(byte-defop-compiler (>= byte-geq)	2-and)
+(byte-defop-compiler (= byte-eqlsign)	2-cmp)
+(byte-defop-compiler (< byte-lss)	2-cmp)
+(byte-defop-compiler (> byte-gtr)	2-cmp)
+(byte-defop-compiler (<= byte-leq)	2-cmp)
+(byte-defop-compiler (>= byte-geq)	2-cmp)
 (byte-defop-compiler get		2)
 (byte-defop-compiler nth		2)
 (byte-defop-compiler substring		1-3)
@@ -3895,18 +3895,20 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
     (byte-compile-form (nth 2 form))
     (byte-compile-out (get (car form) 'byte-opcode) 0)))
 
-(defun byte-compile-and-folded (form)
-  "Compile calls to functions like `<='.
-These implicitly `and' together a bunch of two-arg bytecodes."
-  (let ((l (length form)))
-    (cond
-     ((< l 3) (byte-compile-form `(progn ,(nth 1 form) t)))
-     ((= l 3) (byte-compile-two-args form))
-     ;; Don't use `cl-every' here (see comment where we require cl-lib).
-     ((not (memq nil (mapcar #'macroexp-copyable-p (nthcdr 2 form))))
-      (byte-compile-form `(and (,(car form) ,(nth 1 form) ,(nth 2 form))
-			       (,(car form) ,@(nthcdr 2 form)))))
-     (t (byte-compile-normal-call form)))))
+(defun byte-compile-cmp (form)
+  "Compile calls to numeric comparisons such as `<', `=' etc."
+  ;; Lisp-level transforms should already have reduced valid calls to 2 args.
+  (if (not (= (length form) 3))
+      (byte-compile-subr-wrong-args form "1 or more")
+    (byte-compile-two-args
+     (if (macroexp-const-p (nth 1 form))
+         ;; First argument is constant: flip it so that the constant
+         ;; is last, which may allow more lapcode optimisations.
+         (let* ((op (car form))
+                (flipped-op (cdr (assq op '((< . >) (<= . >=)
+                                            (> . <) (>= . <=) (= . =))))))
+           (list flipped-op (nth 2 form) (nth 1 form)))
+       form))))
 
 (defun byte-compile-three-args (form)
   (if (not (= (length form) 4))
@@ -4061,9 +4063,15 @@ This function is never called when `lexical-binding' is nil."
      (byte-compile-constant 1)
      (byte-compile-out (get '* 'byte-opcode) 0))
     (3
-     (byte-compile-form (nth 1 form))
-     (byte-compile-form (nth 2 form))
-     (byte-compile-out (get (car form) 'byte-opcode) 0))
+     (let ((arg1 (nth 1 form))
+           (arg2 (nth 2 form)))
+       (when (and (memq (car form) '(+ *))
+                  (macroexp-const-p arg1))
+         ;; Put constant argument last for better LAP optimisation.
+         (cl-rotatef arg1 arg2))
+       (byte-compile-form arg1)
+       (byte-compile-form arg2)
+       (byte-compile-out (get (car form) 'byte-opcode) 0)))
     (_
      ;; >2 args: compile as a single function call.
      (byte-compile-normal-call form))))

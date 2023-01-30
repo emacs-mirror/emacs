@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
-;; Author     : 付禹安 (Yuan Fu) <casouri@gmail.com>
+;; Maintainer : 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Keywords   : c c++ java javascript rust languages tree-sitter
 
 ;; This file is part of GNU Emacs.
@@ -22,7 +22,10 @@
 
 ;;; Commentary:
 ;;
-;; For C-like language major modes:
+;; This file contains functions that can be shared by C-like language
+;; major modes, like indenting and filling "/* */" block comments.
+;;
+;; For indenting and filling comments:
 ;;
 ;; - Use `c-ts-common-comment-setup' to setup comment variables and
 ;;   filling.
@@ -30,6 +33,14 @@
 ;; - Use simple-indent matcher `c-ts-common-looking-at-star' and
 ;;   anchor `c-ts-common-comment-start-after-first-star' for indenting
 ;;   block comments.  See `c-ts-mode--indent-styles' for example.
+;;
+;; For indenting statements:
+;;
+;; - Set `c-ts-common-indent-offset',
+;;   `c-ts-common-indent-block-type-regexp', and
+;;   `c-ts-common-indent-bracketless-type-regexp', then use simple-indent
+;;   offset `c-ts-common-statement-offset' in
+;;   `treesit-simple-indent-rules'.
 
 ;;; Code:
 
@@ -39,6 +50,8 @@
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+
+;;; Comment indentation and filling
 
 (defun c-ts-common-looking-at-star (_n _p bol &rest _)
   "A tree-sitter simple indent matcher.
@@ -241,6 +254,107 @@ Set up:
                       "\f")))
   (setq-local paragraph-separate paragraph-start)
   (setq-local fill-paragraph-function #'c-ts-common--fill-paragraph))
+
+;;; Statement indent
+
+(defvar c-ts-common-indent-offset nil
+  "Indent offset used by `c-ts-common' indent functions.
+
+This should be the symbol of the indent offset variable for the
+particular major mode.  This cannot be nil for `c-ts-common'
+statement indent functions to work.")
+
+(defvar c-ts-common-indent-block-type-regexp nil
+  "Regexp matching types of block nodes (i.e., {} blocks).
+
+This cannot be nil for `c-ts-common' statement indent functions
+to work.")
+
+(defvar c-ts-common-indent-bracketless-type-regexp nil
+  "A regexp matching types of bracketless constructs.
+
+These constructs include if, while, do-while, for statements.  In
+these statements, the body can omit the bracket, which requires
+special handling from our bracket-counting indent algorithm.
+
+This can be nil, meaning such special handling is not needed.")
+
+(defun c-ts-common-statement-offset (node parent &rest _)
+  "This anchor is used for children of a statement inside a block.
+
+This function basically counts the number of block nodes (i.e.,
+brackets) (defined by `c-ts-mode--indent-block-type-regexp')
+between NODE and the root node (not counting NODE itself), and
+multiply that by `c-ts-common-indent-offset'.
+
+To support GNU style, on each block level, this function also
+checks whether the opening bracket { is on its own line, if so,
+it adds an extra level, except for the top-level.
+
+PARENT is NODE's parent."
+  (let ((level 0))
+    ;; If point is on an empty line, NODE would be nil, but we pretend
+    ;; there is a statement node.
+    (when (null node)
+      (setq node t))
+    ;; If NODE is a opening bracket on its own line, take off one
+    ;; level because the code below assumes NODE is a statement
+    ;; _inside_ a {} block.
+    (when (string-match-p c-ts-common-indent-block-type-regexp
+                          (treesit-node-type node))
+      (cl-decf level))
+    ;; Go up the tree and compute indent level.
+    (while (if (eq node t)
+               (setq node parent)
+             node)
+      (when (string-match-p c-ts-common-indent-block-type-regexp
+                            (treesit-node-type node))
+        (cl-incf level)
+        (save-excursion
+          (goto-char (treesit-node-start node))
+          ;; Add an extra level if the opening bracket is on its own
+          ;; line, except (1) it's at top-level, or (2) it's immediate
+          ;; parent is another block.
+          (cond ((bolp) nil) ; Case (1).
+                ((let ((parent-type (treesit-node-type
+                                     (treesit-node-parent node))))
+                   ;; Case (2).
+                   (and parent-type
+                        (or (string-match-p
+                             c-ts-common-indent-block-type-regexp
+                             parent-type))))
+                 nil)
+                ;; Add a level.
+                ((looking-back (rx bol (* whitespace))
+                               (line-beginning-position))
+                 (cl-incf level)))))
+      (setq level (c-ts-mode--fix-bracketless-indent level node))
+      ;; Go up the tree.
+      (setq node (treesit-node-parent node)))
+    (* level (symbol-value c-ts-common-indent-offset))))
+
+(defun c-ts-mode--fix-bracketless-indent (level node)
+  "Takes LEVEL and NODE and return adjusted LEVEL.
+This fixes indentation for cases shown in bug#61026.  Basically
+in C-like syntax, statements like if, for, while sometimes omit
+the bracket in the body."
+  (let ((block-re c-ts-common-indent-block-type-regexp)
+        (statement-re
+         c-ts-common-indent-bracketless-type-regexp)
+        (node-type (treesit-node-type node))
+        (parent-type (treesit-node-type (treesit-node-parent node))))
+    (if (and block-re statement-re node-type parent-type
+             (not (string-match-p block-re node-type))
+             (string-match-p statement-re parent-type))
+        (1+ level)
+      level)))
+
+(defun c-ts-mode--close-bracket-offset (node parent &rest _)
+  "Offset for the closing bracket, NODE.
+It's basically one level less that the statements in the block.
+PARENT is NODE's parent."
+  (- (c-ts-common-statement-offset node parent)
+     (symbol-value c-ts-common-indent-offset)))
 
 (provide 'c-ts-common)
 

@@ -89,6 +89,7 @@
      ((query "(method_declaration (block (_) @indent))") parent-bol java-ts-mode-indent-offset)
      ((parent-is "local_variable_declaration") parent-bol java-ts-mode-indent-offset)
      ((parent-is "expression_statement") parent-bol java-ts-mode-indent-offset)
+     ((match "type_identifier" "field_declaration") parent-bol 0)
      ((parent-is "field_declaration") parent-bol java-ts-mode-indent-offset)
      ((parent-is "return_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "variable_declarator") parent-bol java-ts-mode-indent-offset)

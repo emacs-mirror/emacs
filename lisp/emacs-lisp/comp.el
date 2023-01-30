@@ -4112,13 +4112,16 @@ the deferred compilation mechanism."
                 (native-elisp-load data)))
           ;; We may have created a temporary file when we're being
           ;; called with something other than a file as the argument.
-          ;; Delete it.
+          ;; Delete it if we can.
           (when (and (not (stringp function-or-file))
                      (not output)
                      comp-ctxt
                      (comp-ctxt-output comp-ctxt)
                      (file-exists-p (comp-ctxt-output comp-ctxt)))
-            (delete-file (comp-ctxt-output comp-ctxt))))))))
+            (cond ((eq 'windows-nt system-type)
+                   ;; We may still be using the temporary .eln file.
+                   (ignore-errors (delete-file (comp-ctxt-output comp-ctxt))))
+                  (t (delete-file (comp-ctxt-output comp-ctxt))))))))))
 
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.
