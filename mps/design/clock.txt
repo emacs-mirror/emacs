@@ -60,13 +60,13 @@ macro must assign a timestamp to ``lvalue`` with the value ``(high
 _`.if.get`: Assign an ``EventClock`` timestamp for the current time to
 ``lvalue``, which is an lvalue with type ``EventClock``.
 
-``EVENT_CLOCK_PRINT(FILE *stream, EventClock clock)``
+``EVENT_CLOCK_PRINT(stream, clock)``
 
 _`.if.print`: Write the value of ``clock`` to the standard C output
 file handle ``stream`` as 16 hexadecimal digits (with leading zeros,
 and capital letters A to F).
 
-``EVENT_CLOCK_WRITE(mps_lib_FILE *stream, EventClock clock)``
+``EVENT_CLOCK_WRITE(stream, clock)``
 
 _`.if.write`: Write the value of ``clock`` to the output stream
 ``stream`` as 16 hexadecimal digits (with leading zeros, and capital

@@ -1,34 +1,52 @@
 # .travis.yml -- Travis CI configuration for the MPS
-# $Id$
+#
+# Copyright (c) 2013-2023 Ravenbrook Limited. See end of file for license.
+#
+# See design.mps.test.ci.
 
 # Some branches don't need builds.  Add them here to avoid using build
 # resources and unnecessary build messages.  See
 # <https://docs.travis-ci.com/user/conditions-v1>.
-if: NOT branch IN (branch/2023-01-07/pull-request-merge-procedure)
+if: NOT branch IN (branch/2023-01-11/github-ci)
 
-# The main build matrix for POSIX-like systems.
 language: c # see <https://docs.travis-ci.com/user/languages/c/>.
+
+# The build matrix for Travis CI
+#
+# See design.mps.tests.ci.travis.platforms.
+#
+# Most x86_64/amd64 builds are in GitHub CI, configured by
+# .github/workflows/build-and-test.yml.
+
 os:
   - freebsd
   - linux
-  - osx
-  # See "include" section for Windows
 arch:
-  - amd64
   - arm64
 compiler:
   - clang
   - gcc
-script:
+
+script: # see design.mps.test.ci.run.posix
 - ./configure --prefix=$PWD/prefix && make install && make test
 
 matrix:
+
   # Extra build jobs to add to the matrix
   include:
-    - os: windows
+
+    # GitHub CI does not provide FreeBSD
+    # <https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources>
+    # on any architecture, so we add it here for amd64.  See also
+    # design.mps.tests.ci.travis.platforms.
+
+    - os: freebsd
       arch: amd64
-      compiler: clang # This is a lie since we invoke MV (Microsoft C)
-      script: MSYS2_ARG_CONV_EXCL='*' cmd /c 'code\w3i6mv.bat'
+      compiler: clang
+    - os: freebsd
+      arch: amd64
+      compiler: gcc
+
   # Specific combinations to exclude from the matrix
   exclude:
     - os: osx
@@ -42,3 +60,44 @@ notifications:
 #before_install:
 #  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get -qq update; fi
 #  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get install -y gcc-4.7; fi
+
+
+# A. REFERENCES
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2013-05-19 RB Created.
+# 2023-01-15 RB Added licence and (note) document history.
+#
+#
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2013-2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$

@@ -51,7 +51,7 @@ Interface
 client structures: clients must not depend on its implementation
 details.
 
-``ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)``
+``void ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)``
 
 Initialize the queue ``abq``. The parameter ``arena`` is the arena
 whose control pool should be used to allocate the memory for the

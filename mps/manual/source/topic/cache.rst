@@ -33,9 +33,9 @@ cache as follows::
         error("failed to create allocation cache");
 
 Allocations through the cache (using :c:func:`mps_sac_alloc` or
-:c:func:`MPS_SAC_ALLOC_FAST`) are serviced from the cache if possible,
+:c:macro:`MPS_SAC_ALLOC_FAST`) are serviced from the cache if possible,
 otherwise from the pool. Similarly, deallocations through the cache
-(using :c:func:`mps_sac_free` or :c:func:`MPS_SAC_FREE_FAST`) return
+(using :c:func:`mps_sac_free` or :c:macro:`MPS_SAC_FREE_FAST`) return
 the block to the appopriate free list for its size. For example::
 
     Foo *foo;
@@ -51,8 +51,8 @@ the block to the appopriate free list for its size. For example::
 
     mps_sac_free(sac, p, sizeof *foo);
 
-The macros :c:func:`MPS_SAC_ALLOC_FAST` and
-:c:func:`MPS_SAC_FREE_FAST` allow allocation and deallocation to be
+The macros :c:macro:`MPS_SAC_ALLOC_FAST` and
+:c:macro:`MPS_SAC_FREE_FAST` allow allocation and deallocation to be
 inlined in the calling functions, in the case where a free block is
 found in the cache.
 
@@ -285,7 +285,7 @@ Allocation interface
 
     .. note::
 
-        1. There's also a macro :c:func:`MPS_SAC_ALLOC_FAST` that does
+        1. There's also a macro :c:macro:`MPS_SAC_ALLOC_FAST` that does
            the same thing. The macro is faster, but generates more
            code and does less checking.
 
@@ -315,7 +315,7 @@ Allocation interface
            :ref:`topic-interface-pun` for more details.
 
 
-.. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t unused)
+.. c:macro:: MPS_SAC_ALLOC_FAST(res_v, p_v, sac, size, unused)
 
     A macro alternative to :c:func:`mps_sac_alloc`. It is faster than
     the function, but generates more code, does less checking.
@@ -327,7 +327,7 @@ Allocation interface
 
     .. note::
 
-        :c:func:`MPS_SAC_ALLOC_FAST` may evaluate its arguments
+        :c:macro:`MPS_SAC_ALLOC_FAST` may evaluate its arguments
         multiple times.
 
 
@@ -359,7 +359,7 @@ Allocation interface
 
     .. note::
 
-        There's also a macro :c:func:`MPS_SAC_FREE_FAST` that does the
+        There's also a macro :c:macro:`MPS_SAC_FREE_FAST` that does the
         same thing. The macro is faster, but generates more code and
         does no checking.
 
@@ -373,7 +373,7 @@ Allocation interface
         obscured symptoms.
 
 
-.. c:function:: MPS_SAC_FREE_FAST(mps_sac_t sac, mps_addr_t p, size_t size)
+.. c:macro:: MPS_SAC_FREE_FAST(sac, p, size)
 
     A macro alternative to :c:func:`mps_sac_free` that is faster than
     the function but does no checking. The arguments are identical to

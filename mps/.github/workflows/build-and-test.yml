@@ -1,0 +1,113 @@
+# .github/workflows/build-and-test.yml -- GitHub CI build and test configuration for the MPS
+#
+# Copyright (c) 2019-2022 `GitHub contributors`_ (MIT License).
+# Copyright (c) 2023 Ravenbrook Limited. See end of file for license.
+#
+# See design.mps.test.ci.
+#
+# TODO: Exclude certain branches.
+#
+# TODO: Regular builds of version branches.  See
+# <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onschedule>.
+
+name: build and test
+
+on:
+  - push
+  - pull_request
+  # Also run when triggered manually, e.g. by tool/github-ci-kick
+  # <https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow>
+  - workflow_dispatch
+
+jobs:
+
+  posix:
+
+    # The build matrix for GitHub CI on Posix platforms
+    #
+    # See design.mps.tests.ci.github.platforms.
+    #
+    # FreeBSD and ARM64 targets are in Travis CI, configured by
+    # .travis.yml.
+    #
+    # See <https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#using-a-matrix-strategy>.
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        compiler: [clang, gcc]
+        exclude:
+          - os: macos-latest
+            compiler: gcc
+
+    runs-on: ${{ matrix.os }}
+
+    # See design.mps.tests.ci.run.posix.
+    steps:
+    - uses: actions/checkout@v3
+    - run: CC=${{ matrix.compiler }} ./configure
+    - run: make
+    - run: make test
+
+  windows:
+
+    runs-on: windows-latest
+
+    # See design.mps.tests.ci.run.windows.
+    #
+    # The path to Visual Studio is documented at
+    # <https://github.com/actions/runner-images/blob/e6fcf60b8e6c0f80a065327eaefe836881c28b68/images/win/Windows2022-Readme.md?plain=1#L215>.
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: |
+         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+         cd code
+         nmake /f w3i6mv.nmk all testci testansi testpollnone
+      shell: cmd
+
+
+# A. REFERENCES
+#
+# [GitHub CI] "About continuous integration"; <https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration>.
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2023-01-11 RB Adapted from <https://github.com/actions/starter-workflows/blob/9f245d9aba830ad16a097a45c78331a05114d815/ci/c-cpp.yml>.
+# 2023-01-15 RB Added licence and document history.
+#
+#
+# C. COPYRIGHT AND LICENSE
+#
+# NOTE: This is the `MIT Licence <https://opensource.org/licenses/MIT>`_
+# inherited from
+# <https://github.com/actions/starter-workflows/blob/9f245d9aba830ad16a097a45c78331a05114d815/ci/c-cpp.yml> and not the usual licence for the MPS.
+#
+# Copyright (c) 2019-2022 `GitHub contributors`_.
+# Copyright (c) 2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation files
+# (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# .. _GitHub contributors: https://github.com/actions/starter-workflows/commits/1d9d6d7fb0a8a27ef98efbbfa9689cd14c906383/ci/c-cpp.yml
+#
+#
+# $Id$
