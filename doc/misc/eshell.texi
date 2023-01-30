@@ -2227,8 +2227,6 @@ for running shells.
 
 @item Implement @samp{-r}, @samp{-n} and @samp{-s} switches for @command{cp}
 
-@item Make @kbd{M-5 M-x eshell} switch to ``*eshell<5>*'', creating if need be
-
 @item @samp{mv @var{dir} @var{file}.tar} does not remove directories
 
 This is because the tar option --remove-files doesn't do so.  Should it
