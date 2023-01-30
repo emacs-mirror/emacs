@@ -697,8 +697,8 @@ the semicolon.  This function skips the semicolon."
 
 ;;; Modes
 
-(defvar-keymap c-ts-mode-map
-  :doc "Keymap for the C language with tree-sitter"
+(defvar-keymap c-ts-base-mode-map
+  :doc "Keymap for C and C-like languages with tree-sitter"
   :parent prog-mode-map
   "C-c C-q" #'c-ts-mode-indent-defun
   "C-c ." #'c-ts-mode-set-style)
@@ -707,7 +707,7 @@ the semicolon.  This function skips the semicolon."
 (define-derived-mode c-ts-base-mode prog-mode "C"
   "Major mode for editing C, powered by tree-sitter.
 
-\\{c-ts-mode-map}"
+\\{c-ts-base-mode-map}"
   :syntax-table c-ts-mode--syntax-table
 
   ;; Navigation.
