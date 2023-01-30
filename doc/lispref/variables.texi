@@ -2023,6 +2023,7 @@ file-local variables stored in @code{file-local-variables-alist}.
 @end defvar
 
 @cindex safe local variable
+@cindex @code{safe-local-variable}, property of variable
   You can specify safe values for a variable with a
 @code{safe-local-variable} property.  The property has to be a
 function of one argument; any value is safe if the function returns

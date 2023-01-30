@@ -383,6 +383,10 @@ Controlling the Display
 * Visual Line Mode::       Word wrap and screen line-based editing.
 * Display Custom::         Information on variables for customizing display.
 
+Font Lock
+* Traditional Font Lock::  Font Lock based on regexps and syntax tables.
+* Parser-based Font Lock:: Font Lock based on external parser.
+
 Searching and Replacement
 
 * Incremental Search::     Search happens as you type the string.

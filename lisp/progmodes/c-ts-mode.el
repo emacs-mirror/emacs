@@ -63,11 +63,6 @@
 ;; will set up Emacs to use the C/C++ modes defined here for other
 ;; files, provided that you have the corresponding parser grammar
 ;; libraries installed.
-;;
-;; - Use variable `c-ts-mode-indent-block-type-regexp' with indent
-;;   offset c-ts-mode--statement-offset for indenting statements.
-;;   Again, see `c-ts-mode--indent-styles' for example.
-;;
 
 ;;; Code:
 
@@ -92,6 +87,28 @@
   :safe 'integerp
   :group 'c)
 
+(defun c-ts-mode--indent-style-setter (sym val)
+  "Custom setter for `c-ts-mode-set-style'.
+Apart from setting the default value of SYM to VAL, also change
+the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL."
+  (set-default sym val)
+  (named-let loop ((res nil)
+                   (buffers (buffer-list)))
+    (if (null buffers)
+        (mapc (lambda (b)
+                (with-current-buffer b
+                  (setq-local treesit-simple-indent-rules
+                              (treesit--indent-rules-optimize
+                               (c-ts-mode--get-indent-style
+                                (if (eq major-mode 'c-ts-mode) 'c 'cpp))))))
+              res)
+      (let ((buffer (car buffers)))
+        (with-current-buffer buffer
+          ;; FIXME: Should we use `derived-mode-p' here?
+          (if (or (eq major-mode 'c-ts-mode) (eq major-mode 'c++-ts-mode))
+              (loop (append res (list buffer)) (cdr buffers))
+            (loop res (cdr buffers))))))))
+
 (defcustom c-ts-mode-indent-style 'gnu
   "Style used for indentation.
 
@@ -100,12 +117,41 @@ one of the supplied styles doesn't suffice a function could be
 set instead.  This function is expected return a list that
 follows the form of `treesit-simple-indent-rules'."
   :version "29.1"
-  :type '(choice (symbol :tag "Gnu" 'gnu)
-                 (symbol :tag "K&R" 'k&r)
-                 (symbol :tag "Linux" 'linux)
-                 (symbol :tag "BSD" 'bsd)
+  :type '(choice (symbol :tag "Gnu" gnu)
+                 (symbol :tag "K&R" k&r)
+                 (symbol :tag "Linux" linux)
+                 (symbol :tag "BSD" bsd)
                  (function :tag "A function for user customized style" ignore))
+  :set #'c-ts-mode--indent-style-setter
   :group 'c)
+
+(defun c-ts-mode--get-indent-style (mode)
+  "Helper function to set indentation style.
+MODE is either `c' or `cpp'."
+  (let ((style
+         (if (functionp c-ts-mode-indent-style)
+             (funcall c-ts-mode-indent-style)
+           (alist-get c-ts-mode-indent-style (c-ts-mode--indent-styles mode)))))
+    `((,mode ,@style))))
+
+(defun c-ts-mode-set-style ()
+  "Set the indent style of C/C++ modes globally.
+
+This changes the current indent style of every C/C++ buffer and
+the default C/C++ indent style in this Emacs session."
+  (interactive)
+  ;; FIXME: Should we use `derived-mode-p' here?
+  (or (eq major-mode 'c-ts-mode) (eq major-mode 'c++-ts-mode)
+      (error "Buffer %s is not a c-ts-mode (c-ts-mode-set-style)"
+             (buffer-name)))
+  (c-ts-mode--indent-style-setter
+   'c-ts-mode-indent-style
+   ;; NOTE: We can probably use the interactive form for this.
+   (intern
+    (completing-read
+     "Select style: "
+     (mapcar #'car (c-ts-mode--indent-styles (if (eq major-mode 'c-ts-mode) 'c 'cpp)))
+     nil t nil nil "gnu"))))
 
 ;;; Syntax table
 
@@ -177,7 +223,7 @@ MODE is either `c' or `cpp'."
            ;; Labels.
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement")
-            point-min c-ts-mode--statement-offset)
+            point-min c-ts-common-statement-offset)
 
            ((match "preproc_ifdef" "compound_statement") point-min 0)
            ((match "#endif" "preproc_ifdef") point-min 0)
@@ -185,15 +231,6 @@ MODE is either `c' or `cpp'."
            ((match "#endif" "preproc_if") point-min 0)
            ((match "preproc_function_def" "compound_statement") point-min 0)
            ((match "preproc_call" "compound_statement") point-min 0)
-
-           ;; {} blocks.
-           ((node-is "}") point-min c-ts-mode--close-bracket-offset)
-           ((parent-is "compound_statement")
-            point-min c-ts-mode--statement-offset)
-           ((parent-is "enumerator_list")
-            point-min c-ts-mode--statement-offset)
-           ((parent-is "field_declaration_list")
-            point-min c-ts-mode--statement-offset)
 
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "conditional_expression") first-sibling 0)
@@ -215,13 +252,16 @@ MODE is either `c' or `cpp'."
                  ;; Indent the body of namespace definitions.
                  ((parent-is "declaration_list") parent-bol c-ts-mode-indent-offset)))
 
+           ;; int[5] a = { 0, 0, 0, 0 };
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "if_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "for_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "while_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "switch_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "case_statement") parent-bol c-ts-mode-indent-offset)
-           ((parent-is "do_statement") parent-bol c-ts-mode-indent-offset)
+           ((parent-is "enumerator_list") point-min c-ts-common-statement-offset)
+           ((parent-is "field_declaration_list") point-min c-ts-common-statement-offset)
+
+           ;; {} blocks.
+           ((node-is "}") point-min c-ts-mode--close-bracket-offset)
+           ((parent-is "compound_statement") point-min c-ts-common-statement-offset)
+           ((node-is "compound_statement") point-min c-ts-common-statement-offset)
+
            ,@(when (eq mode 'cpp)
                `(((node-is "field_initializer_list") parent-bol ,(* c-ts-mode-indent-offset 2)))))))
     `((gnu
@@ -249,19 +289,6 @@ MODE is either `c' or `cpp'."
        ((parent-is "do_statement") parent-bol 0)
        ,@common))))
 
-(defun c-ts-mode--set-indent-style (mode)
-  "Helper function to set indentation style.
-MODE is either `c' or `cpp'."
-  (let ((style
-         (if (functionp c-ts-mode-indent-style)
-             (funcall c-ts-mode-indent-style)
-           (pcase c-ts-mode-indent-style
-             ('gnu   (alist-get 'gnu (c-ts-mode--indent-styles mode)))
-             ('k&r   (alist-get 'k&r (c-ts-mode--indent-styles mode)))
-             ('bsd   (alist-get 'bsd (c-ts-mode--indent-styles mode)))
-             ('linux (alist-get 'linux (c-ts-mode--indent-styles mode)))))))
-    `((,mode ,@style))))
-
 (defun c-ts-mode--top-level-label-matcher (node &rest _)
   "A matcher that matches a top-level label.
 NODE should be a labeled_statement."
@@ -272,90 +299,6 @@ NODE should be a labeled_statement."
     (and (equal (treesit-node-type node)
                 "labeled_statement")
          (not (treesit-node-top-level func "compound_statement")))))
-
-(defvar c-ts-mode-indent-block-type-regexp
-  (rx (or "compound_statement"
-          "field_declaration_list"
-          "enumerator_list"))
-  "Regexp matching types of block nodes (i.e., {} blocks).")
-
-(defvar c-ts-mode--statement-offset-post-processr nil
-  "A functions that makes adjustments to `c-ts-mode--statement-offset'.
-
-This is a function that takes two arguments, the current indent
-level and the current node, and returns a new level.
-
-When `c-ts-mode--statement-offset' runs and go up the parse tree,
-it increments the indent level when some condition are met in
-each level.  At each level, after (possibly) incrementing the
-offset, it calls this function, passing it the current indent
-level and the current node, and use the return value as the new
-indent level.")
-
-(defun c-ts-mode--statement-offset (node parent &rest _)
-  "This anchor is used for children of a statement inside a block.
-
-This function basically counts the number of block nodes (defined
-by `c-ts-mode--indent-block-type-regexp') between NODE and the
-root node (not counting NODE itself), and multiply that by
-`c-ts-mode-indent-offset'.
-
-To support GNU style, on each block level, this function also
-checks whether the opening bracket { is on its own line, if so,
-it adds an extra level, except for the top-level.
-
-PARENT is NODE's parent."
-  (let ((level 0))
-    ;; If point is on an empty line, NODE would be nil, but we pretend
-    ;; there is a statement node.
-    (when (null node)
-      (setq node t))
-    (while (if (eq node t)
-               (setq node parent)
-             (setq node (treesit-node-parent node)))
-      (when (string-match-p c-ts-mode-indent-block-type-regexp
-                            (treesit-node-type node))
-        (cl-incf level)
-        (save-excursion
-          (goto-char (treesit-node-start node))
-          ;; Add an extra level if the opening bracket is on its own
-          ;; line, except (1) it's at top-level, or (2) it's immediate
-          ;; parent is another block.
-          (cond ((bolp) nil) ; Case (1).
-                ((let ((parent-type (treesit-node-type
-                                     (treesit-node-parent node))))
-                   ;; Case (2).
-                   (and parent-type
-                        (string-match-p c-ts-mode-indent-block-type-regexp
-                                        parent-type)))
-                 nil)
-                ;; Add a level.
-                ((looking-back (rx bol (* whitespace))
-                               (line-beginning-position))
-                 (cl-incf level)))))
-      (when c-ts-mode--statement-offset-post-processr
-        (setq level (funcall c-ts-mode--statement-offset-post-processr
-                             level node))))
-    (* level c-ts-mode-indent-offset)))
-
-(defun c-ts-mode--fix-bracketless-indent (level node)
-  "Takes LEVEL and NODE and returns adjusted LEVEL.
-This fixes indentation for cases shown in bug#61026.  Basically
-in C/C++, constructs like if, for, while sometimes don't have
-bracket."
-  (if (and (not (equal (treesit-node-type node) "compound_statement"))
-           (member (treesit-node-type (treesit-node-parent node))
-                   '("if_statement" "while_statement" "do_statement"
-                     "for_statement")))
-      (1+ level)
-    level))
-
-(defun c-ts-mode--close-bracket-offset (node parent &rest _)
-  "Offset for the closing bracket, NODE.
-It's basically one level less that the statements in the block.
-PARENT is NODE's parent."
-  (- (c-ts-mode--statement-offset node parent)
-     c-ts-mode-indent-offset))
 
 ;;; Font-lock
 
@@ -757,7 +700,8 @@ the semicolon.  This function skips the semicolon."
 (defvar-keymap c-ts-mode-map
   :doc "Keymap for the C language with tree-sitter"
   :parent prog-mode-map
-  "C-c C-q" #'c-ts-mode-indent-defun)
+  "C-c C-q" #'c-ts-mode-indent-defun
+  "C-c ." #'c-ts-mode-set-style)
 
 ;;;###autoload
 (define-derived-mode c-ts-base-mode prog-mode "C"
@@ -817,8 +761,14 @@ the semicolon.  This function skips the semicolon."
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
-  (setq-local c-ts-mode--statement-offset-post-processr
-              #'c-ts-mode--fix-bracketless-indent)
+  (setq-local c-ts-common-indent-offset 'c-ts-mode-indent-offset)
+  (setq-local c-ts-common-indent-block-type-regexp
+              (rx (or "compound_statement"
+                      "field_declaration_list"
+                      "enumerator_list")))
+  (setq-local c-ts-common-indent-bracketless-type-regexp
+              (rx (or "if_statement" "do_statement"
+                      "for_statement" "while_statement")))
 
   ;; Comment
   (c-ts-common-comment-setup)
@@ -871,7 +821,7 @@ in your configuration."
     (setq-local comment-end " */")
     ;; Indent.
     (setq-local treesit-simple-indent-rules
-                (c-ts-mode--set-indent-style 'c))
+                (c-ts-mode--get-indent-style 'c))
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
     (treesit-major-mode-setup)))
@@ -907,7 +857,7 @@ in your configuration."
 
     ;; Indent.
     (setq-local treesit-simple-indent-rules
-                (c-ts-mode--set-indent-style 'cpp))
+                (c-ts-mode--get-indent-style 'cpp))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
