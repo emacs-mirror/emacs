@@ -1994,7 +1994,7 @@ when it's needed.  The default is the current language taken from
 	    ;; doesn't occur in any word in LIST.  Append it to all
 	    ;; the alternatives where we want to add \>.  Run through
 	    ;; `regexp-opt' and then replace it with \>.
-	    (let ((unique "") pos)
+	    (let ((unique "") (list1 (copy-tree list)) pos)
 	      (while (let (found)
 		       (setq unique (concat unique "@")
 			     pos list)
@@ -2005,13 +2005,12 @@ when it's needed.  The default is the current language taken from
 				     t))
 			 (setq pos (cdr pos)))
 		       found))
-	      (setq pos (copy-tree list)
-		    )
+	      (setq pos list1)
 	      (while pos
 		(if (string-match "\\w\\'" (car pos))
 		    (setcar pos (concat (car pos) unique)))
 		(setq pos (cdr pos)))
-	      (setq re (regexp-opt list))
+	      (setq re (regexp-opt list1))
 	      (setq pos 0)
 	      (while (string-match unique re pos)
 		(setq pos (+ (match-beginning 0) 2)
