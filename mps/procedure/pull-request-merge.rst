@@ -308,7 +308,7 @@ working repo before that point.
    on GitHub`_.  This should trigger CI to build and testing on all
    target platforms. ::
 
-     git push github merge/2023-01-06/speed-hax
+     git push github HEAD:merge/2023-01-06/speed-hax
 
    You will need to wait for results from CI.  Look for a build
    results in the `Travis CI build history for the repo`_ and in the
