@@ -62,12 +62,22 @@ you should probably read section "`6. Rationale`_".
 3. Pre-merge checklist
 ----------------------
 
-The answers to these questions should be "yes".  If the answer to a
-question isn't "yes", record that, and why, in response to the pull
-request (and maybe suggest what to do about it).  Include a permalink
-to the revision of this procedure that you are following.  When you
-finish the checklist, decide whether to start `the merging procedure`_
-by considering `2. Purpose`_.
+Start by making a record for the merge.  Make a comment on the pull
+request with a permalink to the procedure you're following (this one),
+like::
+
+  Executing [proc.merge.pull-request](https://github.com/Ravenbrook/mps/blob/973fc087c9abff01a957b85bd17c4a2be434ae73/procedure/pull-request-merge.rst)
+
+The answers to the checklist questions should be "yes".  If the answer
+to a question isn't "yes", record that, and why (and maybe suggest
+what to do about it).  For example::
+
+  2. An automated test case isn't feasible as it would mean
+     introducing broken shell scripts to GitHub and watching for CI
+     errors.
+
+When you finish the checklist, decide whether to start
+`the merging procedure`_ by considering `2. Purpose`_.
 
 #. Is there a permanent visible document (issue, job), referenced by
    the branch, recording the problem that is solved by the changes in
@@ -506,6 +516,7 @@ B. Document History
 2023-01-14  RB_    Updates after `second (successful) execution`_.
 2023-01-23  RB_    Adding measurements.
 2023-01-25  RB_    Responding to mini-review_.
+2023-01-31  RB_    Adding instructions for recording the merge.
 ==========  =====  ==================================================
 
 .. _RB: mailto:rb@ravenbrook.com
