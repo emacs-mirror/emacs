@@ -3790,7 +3790,7 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
   ptrdiff_t protosize = PVSIZE (protofun);
   struct Lisp_Vector *v = allocate_vectorlike (protosize, false);
   v->header = XVECTOR (protofun)->header;
-#if HAVE_STATIC_LISP_GLOBALS
+#if USE_COMP_STATIC_LISP_OBJECTS
   /* We might be copying from a vector statically allocated during
      native compilation, be sure to unset the mark flag.  */
   v->header.size &= ~ARRAY_MARK_FLAG;
@@ -4295,7 +4295,7 @@ set_interval_marked (INTERVAL i)
     i->gcmarkbit = true;
 }
 
-#ifdef HAVE_STATIC_LISP_GLOBALS
+#ifdef USE_COMP_STATIC_LISP_OBJECTS
 /* Certain self-evaluating Lisp objects in natively compiled code are
    emitted as permanently marked. When called **outside of GC**,
    static_comp_object_p returns whether the passed argument is one
@@ -5608,7 +5608,7 @@ valid_lisp_object_p (Lisp_Object obj)
       if (SUBRP (obj) || STRINGP (obj) || CONSP (obj))
 	return 1;
 
-#ifdef HAVE_STATIC_LISP_GLOBALS
+#ifdef USE_COMP_STATIC_LISP_OBJECTS
       return static_comp_object_p (obj);
 #else
       return 0;
@@ -6286,7 +6286,7 @@ visit_vectorlike_root (struct gc_root_visitor visitor,
 
   if (size & PSEUDOVECTOR_FLAG)
     size &= PSEUDOVECTOR_SIZE_MASK;
-#if HAVE_STATIC_LISP_GLOBALS
+#if USE_COMP_STATIC_LISP_OBJECTS
   size &= ~ARRAY_MARK_FLAG;
 #endif
   for (i = 0; i < size; i++)
@@ -6866,7 +6866,7 @@ mark_native_comp_unit (struct Lisp_Vector *ptr)
   set_vector_marked (ptr);
   mark_stack_push_values (ptr->contents, size);
 
-#ifdef HAVE_STATIC_LISP_GLOBALS
+#ifdef USE_COMP_STATIC_LISP_OBJECTS
   if (comp_u->have_static_lisp_data)
     {
       eassert (NILP (comp_u->lambda_gc_guard_h));

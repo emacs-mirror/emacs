@@ -23,14 +23,33 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <dynlib.h>
 
 #ifdef HAVE_NATIVE_COMP
-#include <libgccjit.h>
-#if defined (LIBGCCJIT_HAVE_REFLECTION)                           \
-  && defined (LIBGCCJIT_HAVE_CTORS)                               \
-  && defined (LIBGCCJIT_HAVE_gcc_jit_type_get_aligned)            \
-  && defined (LIBGCCJIT_HAVE_ALIGNMENT) && USE_STACK_LISP_OBJECTS \
-  && !GC_CHECK_MARKED_OBJECTS
-#define HAVE_STATIC_LISP_GLOBALS 1
-#endif
+# include <libgccjit.h>
+/* If USE_COMP_STATIC_LISP_OBJECTS, allow the AOT native compiler to
+   compile self evaluating Lisp forms as static consts in the
+   generated eln.  Just like USE_STACK_LISP_OBJECTS, these objects
+   have better performance, and can significantly reduce heap usage.
+   Such objects are perma-marked, which means that data structures
+   that store the mark bit as a bitfield need to unset it in functions
+   that make use of the field in which it's stored (ASIZE for
+   Lisp_Vectors, SCHARS for Lisp_Strings, etc).  A good way to think
+   about them is as every eln file having its own purespace for
+   storing self-evaluating forms.
+
+   Just like objects in purespace, these objects are emitted as
+   consts, so modifying them is illegal. To enforce that, we add an
+   additional check to CHECK_IMPURE that checks if the object being
+   modified is emitted statically by comp, exploiting their
+   "perma-marked" nature (see static_comp_object_p in alloc.c).
+
+   To make debugging a little easier, this is only enabled alongside
+   USE_STACK_LISP_OBJECTS, and when GC runtime checks are disabled. */
+# if defined(LIBGCCJIT_HAVE_REFLECTION)                           \
+   && defined(LIBGCCJIT_HAVE_CTORS)                               \
+   && defined(LIBGCCJIT_HAVE_gcc_jit_type_get_aligned)            \
+   && defined(LIBGCCJIT_HAVE_ALIGNMENT) && USE_STACK_LISP_OBJECTS \
+   && !GC_CHECK_MARKED_OBJECTS
+#  define USE_COMP_STATIC_LISP_OBJECTS 1
+# endif
 #endif
 
 struct Lisp_Native_Comp_Unit
@@ -62,7 +81,7 @@ struct Lisp_Native_Comp_Unit
   dynlib_handle_ptr handle;
   bool have_static_lisp_data;
 
-#ifdef HAVE_STATIC_LISP_GLOBALS
+#ifdef USE_COMP_STATIC_LISP_OBJECTS
   /* vector of dynamically allocated lisp objects, marked manually on GC.  */
   Lisp_Object staticpro;
   /* vector of ephemeral objects that need to be marked only during
