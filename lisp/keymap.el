@@ -107,7 +107,7 @@ If REMOVE (interactively, the prefix arg), remove the binding
 instead of unsetting it.  See `keymap-unset' for details."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
-   (list (key-description (read-key-sequence "Set key locally: "))
+   (list (key-description (read-key-sequence "Unset key globally: "))
          current-prefix-arg))
   (keymap-unset (current-global-map) key remove))
 
