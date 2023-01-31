@@ -72,34 +72,40 @@
 (require 'macroexp)
 (eval-when-compile (require 'subr-x))
 
+(defun bytecomp--log-lap-arg (arg)
+  ;; Convert an argument that may be a LAP operation to something printable.
+  (cond
+   ;; Symbols are just stripped of their -byte prefix if any.
+   ((symbolp arg)
+    (intern (string-remove-prefix "byte-" (symbol-name arg))))
+   ;; Conses are assumed to be LAP ops or tags.
+   ((and (consp arg) (symbolp (car arg)))
+    (let* ((head (car arg))
+           (tail (cdr arg))
+           (op (intern (string-remove-prefix "byte-" (symbol-name head)))))
+      (cond
+       ((eq head 'TAG)
+        (format "%d:" (car tail)))
+       ((memq head byte-goto-ops)
+        (format "(%s %d)" op (cadr tail)))
+       ((memq head byte-constref-ops)
+        (format "(%s %s)"
+                (if (eq op 'constant) 'const op)
+                (if (numberp tail)
+                    (format "<V%d>" tail)     ; closure var reference
+                  (format "%S" (car tail))))) ; actual constant
+       ;; Ops with an immediate argument.
+       ((memq op '( stack-ref stack-set call unbind
+                    listN concatN insertN discardN discardN-preserve-tos))
+        (format "(%s %S)" op tail))
+       ;; Without immediate, print just the symbol.
+       (t op))))
+   ;; Anything else is printed as-is.
+   (t arg)))
+
 (defun byte-compile-log-lap-1 (format &rest args)
   (byte-compile-log-1
-   (apply #'format-message format
-     (let (c a)
-       (mapcar (lambda (arg)
-		  (if (not (consp arg))
-		      (if (and (symbolp arg)
-			       (string-match "^byte-" (symbol-name arg)))
-			  (intern (substring (symbol-name arg) 5))
-			arg)
-		    (if (integerp (setq c (car arg)))
-                        (error "Non-symbolic byte-op %s" c))
-		    (if (eq c 'TAG)
-			(setq c arg)
-		      (setq a (cond ((memq c byte-goto-ops)
-				     (car (cdr (cdr arg))))
-				    ((memq c byte-constref-ops)
-				     (car (cdr arg)))
-				    (t (cdr arg))))
-		      (setq c (symbol-name c))
-		      (if (string-match "^byte-." c)
-			  (setq c (intern (substring c 5)))))
-		    (if (eq c 'constant) (setq c 'const))
-		    (if (and (eq (cdr arg) 0)
-			     (not (memq c '(unbind call const))))
-			c
-		      (format "(%s %s)" c a))))
-	       args)))))
+   (apply #'format-message format (mapcar #'bytecomp--log-lap-arg args))))
 
 (defmacro byte-compile-log-lap (format-string &rest args)
   `(and (memq byte-optimize-log '(t byte))
@@ -2073,10 +2079,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		 (setcar lap0 (setq tmp 'byte-discard))
 		 (setcdr lap0 0))
 		((error "Depth conflict at tag %d" (nth 2 lap0))))
-	  (and (memq byte-optimize-log '(t byte))
-	       (byte-compile-log "  (goto %s) %s:\t-->\t%s %s:"
-				 (nth 1 lap1) (nth 1 lap1)
-				 tmp (nth 1 lap1)))
+	  (byte-compile-log-lap "  %s %s\t-->\t%s %s"
+	                        lap0 lap1 tmp lap1)
 	  (setq keep-going t))
 	 ;;
 	 ;; varset-X varref-X  -->  dup varset-X
@@ -2165,7 +2169,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (eq (cdr lap0) lap2))                           ; TAG X
 	  (let ((inverse (if (eq 'byte-goto-if-nil (car lap0))
 			     'byte-goto-if-not-nil 'byte-goto-if-nil)))
-	    (byte-compile-log-lap "  %s %s %s:\t-->\t%s %s:"
+	    (byte-compile-log-lap "  %s %s %s\t-->\t%s %s"
 				  lap0 lap1 lap2
 				  (cons inverse (cdr lap1)) lap2)
 	    (setq lap (delq lap0 lap))
@@ -2238,9 +2242,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	 ;;
 	 ((and (eq (car lap0) 'TAG)
 	       (eq (car lap1) 'TAG))
-	  (and (memq byte-optimize-log '(t byte))
-	       (byte-compile-log "  adjacent tags %d and %d merged"
-				 (nth 1 lap1) (nth 1 lap0)))
+	  (byte-compile-log-lap "  adjacent tags %d and %d merged"
+				(nth 1 lap1) (nth 1 lap0))
 	  (setq tmp3 lap)
 	  (while (setq tmp2 (rassq lap0 tmp3))
 	    (setcdr tmp2 lap1)
@@ -2262,8 +2265,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                (cl-loop for table in byte-compile-jump-tables
                         when (member lap0 (hash-table-values table))
                         return nil finally return t))
-	  (and (memq byte-optimize-log '(t byte))
-	       (byte-compile-log "  unused tag %d removed" (nth 1 lap0)))
+	  (byte-compile-log-lap "  unused tag %d removed" (nth 1 lap0))
 	  (setq lap (delq lap0 lap)
 		keep-going t))
 	 ;;
@@ -2459,12 +2461,10 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (memq (car (car tmp))
 		     '(byte-goto byte-goto-if-nil byte-goto-if-not-nil
 		       byte-goto-if-nil-else-pop)))
-	  ;;	       (byte-compile-log-lap "  %s %s, %s %s  --> moved conditional"
-	  ;;				     lap0 lap1 (cdr lap0) (car tmp))
 	  (let ((newtag (byte-compile-make-tag)))
 	    (byte-compile-log-lap
-	     "%s %s: ... %s: %s\t-->\t%s ... %s:"
-	     lap0 (nth 1 lap1) (nth 1 (cdr lap0)) (car tmp)
+	     "  %s %s ... %s %s\t-->\t%s ... %s"
+	     lap0 lap1 (cdr lap0) (car tmp)
 	     (cons (cdr (assq (car (car tmp))
 			      '((byte-goto-if-nil . byte-goto-if-not-nil)
 				(byte-goto-if-not-nil . byte-goto-if-nil)
@@ -2474,8 +2474,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 				                               byte-goto-if-nil-else-pop))))
 		   newtag)
 
-	     (nth 1 newtag)
-	     )
+	     newtag)
 	    (setcdr tmp (cons (setcdr lap0 newtag) (cdr tmp)))
 	    (if (eq (car (car tmp)) 'byte-goto-if-nil-else-pop)
 		;; We can handle this case but not the -if-not-nil case,
