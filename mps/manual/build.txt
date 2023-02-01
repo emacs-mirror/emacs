@@ -1,3 +1,6 @@
+.. mode: -*- rst -*-
+
+===============================
 Building the Memory Pool System
 ===============================
 
@@ -271,3 +274,5 @@ this program, you need to install the SQLite3 development resources.
 
       nmake /f w3i3mv.nmk mpseventsql.exe         (32-bit)
       nmake /f w3i6mv.nmk mpseventsql.exe         (64-bit)
+
+.. end
