@@ -68,38 +68,86 @@ representing names.  For instance:
 (defvar emoji--all-bases nil)
 (defvar emoji--derived nil)
 (defvar emoji--names (make-hash-table :test #'equal))
-(defvar emoji--done-derived nil)
 (define-multisession-variable emoji--recent (list "😀" "😖"))
 (defvar emoji--insert-buffer)
 
-;;;###autoload
-(defun emoji-insert ()
+;;;###autoload (autoload 'emoji-insert "emoji" nil t)
+(transient-define-prefix emoji-insert ()
   "Choose and insert an emoji glyph."
+  :variable-pitch t
+  [:class transient-columns
+   :setup-children emoji--setup-suffixes
+   :description emoji--group-description]
   (interactive "*")
   (emoji--init)
-  (unless (fboundp 'emoji--command-Emoji)
-    (emoji--define-transient))
-  (funcall (intern "emoji--command-Emoji")))
+  (emoji--setup-prefix 'emoji-insert "Emoji" nil
+                       `(("Recent" ,@(multisession-value emoji--recent))
+                         ,@emoji--labels)))
 
-;;;###autoload
-(defun emoji-recent ()
+;;;###autoload (autoload 'emoji-recent "emoji" nil t)
+(transient-define-prefix emoji-recent ()
   "Choose and insert one of the recently-used emoji glyphs."
+  :variable-pitch t
+  [:class transient-columns
+   :setup-children emoji--setup-suffixes
+   :description emoji--group-description]
   (interactive "*")
   (emoji--init)
-  (unless (fboundp 'emoji--command-Emoji)
-    (emoji--define-transient))
-  (funcall (emoji--define-transient
-            (cons "Recent" (multisession-value emoji--recent)) t)))
+  (emoji--setup-prefix 'emoji-recent "Recent" t
+                       (multisession-value emoji--recent)))
 
-;;;###autoload
-(defun emoji-search ()
+;;;###autoload (autoload 'emoji-search "emoji" nil t)
+(transient-define-prefix emoji-search ()
   "Choose and insert an emoji glyph by typing its Unicode name.
 This command prompts for an emoji name, with completion, and
 inserts it.  It recognizes the Unicode Standard names of emoji,
 and also consults the `emoji-alternate-names' alist."
+  :variable-pitch t
+  [:class transient-columns
+   :setup-children emoji--setup-suffixes
+   :description emoji--group-description]
   (interactive "*")
   (emoji--init)
-  (emoji--choose-emoji))
+  (pcase-let ((`(,glyph . ,derived) (emoji--read-emoji)))
+    (if derived
+        (emoji--setup-prefix 'emoji-search "Choose Emoji"
+                             (list glyph)
+                             (cons glyph derived))
+      (emoji--add-recent glyph)
+      (insert glyph))))
+
+(defun emoji--setup-prefix (command title done-derived spec)
+  (transient-setup
+   command nil nil
+   :scope (if (eq transient-current-command command)
+              (cons (oref (transient-suffix-object) title)
+                    (oref (transient-suffix-object) done-derived))
+            (cons title done-derived))
+   :value (if (eq transient-current-command command)
+              (oref (transient-suffix-object) children)
+            spec)))
+
+(defun emoji--setup-suffixes (_)
+  (transient-parse-suffixes
+   (oref transient--prefix command)
+   (pcase-let ((`(,title . ,done-derived) (oref transient--prefix scope)))
+     (emoji--layout (oref transient--prefix command) title
+                    (oref transient--prefix value) done-derived))))
+
+(defun emoji--group-description ()
+  (car (oref transient--prefix scope)))
+
+(defclass emoji--narrow (transient-suffix)
+  ((title :initarg :title)
+   (done-derived :initarg :done-derived)
+   (children :initarg :children)))
+
+(transient-define-suffix emoji-insert-glyph ()
+  "Insert the emoji you selected."
+  (interactive nil not-a-mode)
+  (let ((glyph (oref (transient-suffix-object) description)))
+    (emoji--add-recent glyph)
+    (insert glyph)))
 
 ;;;###autoload
 (defun emoji-list ()
@@ -179,11 +227,10 @@ the name is not known."
                  'help-echo (emoji--name glyph))))
       (insert "\n\n"))))
 
-(defun emoji--fontify-glyph (glyph &optional inhibit-derived)
+(defun emoji--fontify-glyph (glyph &optional done-derived)
   (propertize glyph 'face
-              (if (and (not inhibit-derived)
-                       (or (null emoji--done-derived)
-                           (not (gethash glyph emoji--done-derived)))
+              (if (and (not (or (eq done-derived t)
+                                (member glyph done-derived)))
                        (gethash glyph emoji--derived))
                   ;; If this emoji has derivations, use a special face
                   ;; to tell the user.
@@ -206,33 +253,30 @@ the name is not known."
   :interactive nil
   (setq-local truncate-lines t))
 
-(defun emoji-list-select (event)
+;;;###autoload (autoload 'emoji-list-select "emoji" nil t)
+(transient-define-prefix emoji-list-select (event)
   "Select the emoji under point."
+  :variable-pitch t
+  [:class transient-columns
+   :setup-children emoji--setup-suffixes
+   :description emoji--group-description]
   (interactive (list last-nonmenu-event) emoji-list-mode)
   (mouse-set-point event)
   (let ((glyph (get-text-property (point) 'emoji-glyph)))
     (unless glyph
       (error "No emoji under point"))
-    (let ((derived (gethash glyph emoji--derived))
-          (end-func
-           (lambda ()
-             (let ((buf emoji--insert-buffer))
-               (quit-window)
-               (if (buffer-live-p buf)
-                   (switch-to-buffer buf)
-                 (error "Buffer disappeared"))))))
-      (if (not derived)
-          ;; Glyph without derivations.
-          (progn
-            (emoji--add-recent glyph)
-            (funcall end-func)
-            (insert glyph))
-        ;; Pop up a transient to choose between derivations.
-        (let ((emoji--done-derived (make-hash-table :test #'equal)))
-          (setf (gethash glyph emoji--done-derived) t)
-          (funcall
-           (emoji--define-transient (cons "Choose Emoji" (cons glyph derived))
-                                    nil end-func)))))))
+    (let ((buf emoji--insert-buffer))
+      (quit-window)
+      (if (buffer-live-p buf)
+          (switch-to-buffer buf)
+        (error "Buffer disappeared")))
+    (let ((derived (gethash glyph emoji--derived)))
+      (if derived
+          (emoji--setup-prefix 'emoji-list-select "Choose Emoji"
+                               (list glyph)
+                               (cons glyph derived))
+        (emoji--add-recent glyph)
+        (insert glyph)))))
 
 (defun emoji-list-help ()
   "Display the name of the emoji at point."
@@ -476,97 +520,51 @@ the name is not known."
         (setq parent elem))
       (nconc elem (list glyph)))))
 
-(defun emoji--define-transient (&optional alist inhibit-derived
-                                          end-function)
-  (unless alist
-    (setq alist (cons "Emoji" emoji--labels)))
-  (let* ((mname (pop alist))
-         (name (intern (format "emoji--command-%s" mname)))
-         (emoji--done-derived (or emoji--done-derived
-                                  (make-hash-table :test #'equal)))
-         (has-subs (consp (cadr alist)))
-         (layout
-          (if has-subs
-              ;; Define sub-maps.
-              (cl-loop for entry in
-                       (emoji--compute-prefix
-                        (if (equal mname "Emoji")
-                            (cons (list "Recent") alist)
-                          alist))
-                       collect (list
-                                (car entry)
-                                (emoji--compute-name (cdr entry))
-                                (if (equal (cadr entry) "Recent")
-                                    (emoji--recent-transient end-function)
-                                  (emoji--define-transient
-                                   (cons (concat mname " > " (cadr entry))
-                                         (cddr entry))))))
-            ;; Insert an emoji.
-            (cl-loop for glyph in alist
-                     for i in (append (number-sequence ?a ?z)
-                                      (number-sequence ?A ?Z)
-                                      (number-sequence ?0 ?9)
-                                      (number-sequence ?! ?/))
-                     collect (let ((this-glyph glyph))
-                               (list
-                                (string i)
-                                (emoji--fontify-glyph
-                                 glyph inhibit-derived)
-                                (let ((derived
-                                       (and (not inhibit-derived)
-                                            (not (gethash glyph
-                                                          emoji--done-derived))
-                                            (gethash glyph emoji--derived))))
-                                  (if derived
-                                      ;; We have a derived glyph, so add
-                                      ;; another level.
-                                      (progn
-                                        (setf (gethash glyph
-                                                       emoji--done-derived)
-                                              t)
-                                        (emoji--define-transient
-                                         (cons (concat mname " " glyph)
-                                               (cons glyph derived))
-                                         t end-function))
-                                    ;; Insert the emoji.
-                                    (lambda ()
-                                      (interactive nil not-a-mode)
-                                      ;; Allow switching to the correct
-                                      ;; buffer.
-                                      (when end-function
-                                        (funcall end-function))
-                                      (emoji--add-recent this-glyph)
-                                      (insert this-glyph)))))))))
-         (args (apply #'vector mname
-                      (emoji--columnize layout
-                                        (if has-subs 2 8)))))
-    ;; There's probably a better way to do this...
-    (setf (symbol-function name)
-          (lambda ()
-            (interactive nil not-a-mode)
-            (transient-setup name)))
-    (pcase-let ((`(,class ,slots ,suffixes ,docstr ,_body)
-                 (transient--expand-define-args (list args))))
-       (put name 'interactive-only t)
-       (put name 'function-documentation docstr)
-       (put name 'transient--prefix
-            (apply (or class 'transient-prefix) :command name
-                   (cons :variable-pitch (cons t slots))))
-       (put name 'transient--layout
-            (transient-parse-suffixes name suffixes)))
-    name))
+(defun emoji--layout (command title spec done-derived)
+  (let ((has-subs (consp (cadr spec))))
+    (emoji--columnize
+     (if has-subs
+         (cl-loop for (key desc . glyphs) in (emoji--compute-prefix spec)
+                  collect
+                  (list key
+                        (emoji--compute-name (cons desc glyphs))
+                        command
+                        :class 'emoji--narrow
+                        :title (concat title " > " desc)
+                        :done-derived (or (string-suffix-p "Recent" desc)
+                                          done-derived)
+                        :children glyphs))
+       (cl-loop for glyph in spec
+                for char in (emoji--char-sequence)
+                for key = (string char)
+                for derived = (and (not (or (eq done-derived t)
+                                            (member glyph done-derived)))
+                                   (gethash glyph emoji--derived))
+                collect
+                (if derived
+                    (list key
+                          (emoji--fontify-glyph glyph done-derived)
+                          command
+                          :class 'emoji--narrow
+                          :title (concat title " " glyph)
+                          :done-derived (or (eq done-derived t)
+                                            (cons glyph done-derived))
+                          :children (cons glyph derived))
+                  (list key
+                        (emoji--fontify-glyph glyph done-derived)
+                        'emoji-insert-glyph))))
+     (if has-subs 2 8))))
 
-(defun emoji--recent-transient (end-function)
-  "Create a function to display a dynamically generated menu."
-  (lambda ()
-    (interactive)
-    (funcall (emoji--define-transient
-              (cons "Recent" (multisession-value emoji--recent))
-              t end-function))))
+(defun emoji--char-sequence ()
+  (append (number-sequence ?a ?z)
+          (number-sequence ?A ?Z)
+          (number-sequence ?0 ?9)
+          (number-sequence ?! ?/)))
 
 (defun emoji--add-recent (glyph)
   "Add GLYPH to the set of recently used emojis."
   (let ((recent (multisession-value emoji--recent)))
+    (set-text-properties 0 (length glyph) nil glyph)
     (setq recent (delete glyph recent))
     (push glyph recent)
     ;; Shorten the list.
@@ -683,20 +681,6 @@ We prefer the earliest unique letter."
                        (cadr (split-string name "\t"))
                      (gethash name emoji--all-bases))))
         (cons glyph (gethash glyph emoji--derived))))))
-
-(defun emoji--choose-emoji ()
-  (pcase-let ((`(,glyph . ,derived) (emoji--read-emoji)))
-    (if (not derived)
-        ;; Simple glyph with no derivations.
-        (progn
-          (emoji--add-recent glyph)
-          (insert glyph))
-      ;; Choose a derived version.
-      (let ((emoji--done-derived (make-hash-table :test #'equal)))
-        (setf (gethash glyph emoji--done-derived) t)
-        (funcall
-         (emoji--define-transient
-          (cons "Choose Emoji" (cons glyph derived))))))))
 
 (defvar-keymap emoji-zoom-map
   "+" #'emoji-zoom-increase
