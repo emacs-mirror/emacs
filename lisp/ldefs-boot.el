@@ -2919,12 +2919,17 @@ and corresponding effects.
 (register-definition-prefixes "semantic/bovine/c" '("semantic"))
 
 
+;;; Generated autoloads from progmodes/c-ts-common.el
+
+(register-definition-prefixes "c-ts-common" '("c-ts-"))
+
+
 ;;; Generated autoloads from progmodes/c-ts-mode.el
 
 (autoload 'c-ts-base-mode "c-ts-mode" "\
 Major mode for editing C, powered by tree-sitter.
 
-\\{c-ts-mode-map}
+\\{c-ts-base-mode-map}
 
 (fn)" t)
 (autoload 'c-ts-mode "c-ts-mode" "\
@@ -2932,7 +2937,16 @@ Major mode for editing C, powered by tree-sitter.
 
 This mode is independent from the classic cc-mode.el based
 `c-mode', so configuration variables of that mode, like
-`c-basic-offset', don't affect this mode.
+`c-basic-offset', doesn't affect this mode.
+
+To use tree-sitter C/C++ modes by default, evaluate
+
+    (add-to-list \\='major-mode-remap-alist \\='(c-mode . c-ts-mode))
+    (add-to-list \\='major-mode-remap-alist \\='(c++-mode . c++-ts-mode))
+    (add-to-list \\='major-mode-remap-alist
+                 \\='(c-or-c++-mode . c-or-c++-ts-mode))
+
+in your configuration.
 
 (fn)" t)
 (autoload 'c++-ts-mode "c-ts-mode" "\
@@ -2942,8 +2956,28 @@ This mode is independent from the classic cc-mode.el based
 `c++-mode', so configuration variables of that mode, like
 `c-basic-offset', don't affect this mode.
 
+To use tree-sitter C/C++ modes by default, evaluate
+
+    (add-to-list \\='major-mode-remap-alist \\='(c-mode . c-ts-mode))
+    (add-to-list \\='major-mode-remap-alist \\='(c++-mode . c++-ts-mode))
+    (add-to-list \\='major-mode-remap-alist
+                 \\='(c-or-c++-mode . c-or-c++-ts-mode))
+
+in your configuration.
+
 (fn)" t)
-(register-definition-prefixes "c-ts-mode" '("c-ts-mode-"))
+(autoload 'c-or-c++-ts-mode "c-ts-mode" "\
+Analyze buffer and enable either C or C++ mode.
+
+Some people and projects use .h extension for C++ header files
+which is also the one used for C header files.  This makes
+matching on file name insufficient for detecting major mode that
+should be used.
+
+This function attempts to use file contents to determine whether
+the code is C or C++ and based on that chooses whether to enable
+`c-ts-mode' or `c++-ts-mode'." t)
+(register-definition-prefixes "c-ts-mode" '("c-ts-"))
 
 
 ;;; Generated autoloads from calendar/cal-bahai.el
@@ -4656,7 +4690,6 @@ For use inside Lisp programs, see also `c-macro-expansion'.
 
 ;;; Generated autoloads from progmodes/cmake-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode))
 (autoload 'cmake-ts-mode "cmake-ts-mode" "\
 Major mode for editing CMake files, powered by tree-sitter.
 
@@ -5639,7 +5672,6 @@ with empty strings removed.
 
 ;;; Generated autoloads from progmodes/csharp-mode.el
 
-(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 (autoload 'csharp-mode "csharp-mode" "\
 Major mode for editing Csharp code.
@@ -8015,7 +8047,6 @@ it is disabled.
 
 ;;; Generated autoloads from progmodes/dockerfile-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-ts-mode))
 (autoload 'dockerfile-ts-mode "dockerfile-ts-mode" "\
 Major mode for editing Dockerfiles, powered by tree-sitter.
 
@@ -9159,7 +9190,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push (purecopy '(eglot 1 10)) package--builtin-versions)
+(push (purecopy '(eglot 1 11)) package--builtin-versions)
 (autoload 'eglot "eglot" "\
 Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
 
@@ -9197,7 +9228,7 @@ described in `eglot-server-programs', which see.
 LANGUAGE-ID is the language ID string to send to the server for
 MANAGED-MAJOR-MODE, which matters to a minority of servers.
 
-INTERACTIVE is t if called interactively.
+INTERACTIVE is ignored and provided for backward compatibility.
 
 (fn MANAGED-MAJOR-MODE PROJECT CLASS CONTACT LANGUAGE-ID &optional INTERACTIVE)" t)
 (autoload 'eglot-ensure "eglot" "\
@@ -14368,12 +14399,10 @@ Add the window configuration CONF to `gnus-buffer-configuration'.
 
 ;;; Generated autoloads from progmodes/go-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (autoload 'go-ts-mode "go-ts-mode" "\
 Major mode for editing Go, powered by tree-sitter.
 
 (fn)" t)
-(add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
 (autoload 'go-mod-ts-mode "go-ts-mode" "\
 Major mode for editing go.mod files, powered by tree-sitter.
 
@@ -25116,7 +25145,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 9 4)) package--builtin-versions)
+(push (purecopy '(project 0 9 6)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -27357,6 +27386,7 @@ Major mode for editing Ruby code.
 
 ;;; Generated autoloads from progmodes/ruby-ts-mode.el
 
+(push (purecopy '(ruby-ts-mode 0 2)) package--builtin-versions)
 (autoload 'ruby-ts-mode "ruby-ts-mode" "\
 Major mode for editing Ruby, powered by tree-sitter.
 
@@ -27392,7 +27422,6 @@ it is disabled.
 
 ;;; Generated autoloads from progmodes/rust-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
 (autoload 'rust-ts-mode "rust-ts-mode" "\
 Major mode for editing Rust, powered by tree-sitter.
 
@@ -33074,8 +33103,6 @@ FRAC should be the inverse of the fractional value; for example, a value of
 
 ;;; Generated autoloads from progmodes/typescript-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
 (autoload 'typescript-ts-base-mode "typescript-ts-mode" "\
 Major mode for editing TypeScript.
 
@@ -33816,7 +33843,7 @@ is \"www.fsf.co.uk\".
 
 ;;; Generated autoloads from use-package/use-package.el
 
-(push (purecopy '(use-package 2 4 4)) package--builtin-versions)
+(push (purecopy '(use-package 2 4 5)) package--builtin-versions)
 
 
 ;;; Generated autoloads from use-package/use-package-bind-key.el
@@ -34423,7 +34450,8 @@ On a distributed version control system, this runs a \"pull\"
 operation on the current branch, prompting for the precise
 command if required.  Optional prefix ARG non-nil forces a prompt
 for the VCS command to run.  If this is successful, a \"push\"
-operation will then be done.
+operation will then be done.  This is supported only in backends
+where the pull operation returns a process.
 
 On a non-distributed version control system, this signals an error.
 It also signals an error in a Bazaar bound branch.
@@ -37001,7 +37029,6 @@ a new xwidget-webkit session, otherwise use an existing session.
 
 ;;; Generated autoloads from textmodes/yaml-ts-mode.el
 
-(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
 (autoload 'yaml-ts-mode "yaml-ts-mode" "\
 Major mode for editing YAML, powered by tree-sitter.
 
