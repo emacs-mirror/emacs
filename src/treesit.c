@@ -2720,8 +2720,10 @@ the query.  */)
      every for loop and nconc it to RESULT every time.  That is indeed
      the initial implementation in which Yoav found nconc being the
      bottleneck (98.4% of the running time spent on nconc).  */
+  uint32_t patterns_count = ts_query_pattern_count (treesit_query);
   Lisp_Object result = Qnil;
   Lisp_Object prev_result = result;
+  Lisp_Object predicates_table = make_vector (patterns_count, Qt);
   while (ts_query_cursor_next_match (cursor, &match))
     {
       /* Record the checkpoint that we may roll back to.  */
@@ -2750,9 +2752,13 @@ the query.  */)
 	  result = Fcons (cap, result);
 	}
       /* Get predicates.  */
-      Lisp_Object predicates
-	= treesit_predicates_for_pattern (treesit_query,
-					  match.pattern_index);
+      Lisp_Object predicates = AREF (predicates_table, match.pattern_index);
+      if (EQ (predicates, Qt))
+	{
+	  predicates = treesit_predicates_for_pattern (treesit_query,
+						       match.pattern_index);
+	  ASET (predicates_table, match.pattern_index, predicates);
+	}
 
       /* captures_lisp = Fnreverse (captures_lisp); */
       struct capture_range captures_range = { result, prev_result };
