@@ -3003,13 +3003,21 @@ implementation will be used."
 			      (process-put p 'remote-pid pid)
 			      (tramp-set-connection-property
 			       p "remote-pid" pid))
-			    ;; Disable carriage return to newline
-			    ;; translation.  This does not work on
-			    ;; macOS, see Bug#50748.
-			    (when (and (memq connection-type '(nil pipe))
-				       (not
-					(tramp-check-remote-uname v "Darwin")))
-			      (tramp-send-command v "stty -icrnl"))
+			    (when (memq connection-type '(nil pipe))
+			      ;; Disable carriage return to newline
+			      ;; translation.  This does not work on
+			      ;; macOS, see Bug#50748.
+			      ;; We must also disable buffering,
+			      ;; otherwise strings larger than 4096
+			      ;; bytes, sent by the process, could
+			      ;; block, see termios(3) and
+			      ;; <https://github.com/emacs-lsp/lsp-mode/issues/2375#issuecomment-1407272718>.
+			      ;; FIXME: Shall we rather use "stty raw"?
+			      (if (tramp-check-remote-uname v "Darwin")
+				  (tramp-send-command
+				   v "stty -icanon min 1 time 0")
+				(tramp-send-command
+				 v "stty -icrnl -icanon min 1 time 0")))
 			    ;; `tramp-maybe-open-connection' and
 			    ;; `tramp-send-command-and-read' could
 			    ;; have trashed the connection buffer.
