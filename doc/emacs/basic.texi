@@ -887,6 +887,7 @@ z z z}.  The first @kbd{C-x z} repeats the command once, and each
 subsequent @kbd{z} repeats it once again.
 
 @findex repeat-mode
+@findex describe-repeat-maps
 @vindex repeat-exit-key
 @vindex repeat-exit-timeout
   Also you can activate @code{repeat-mode} that temporarily enables a
@@ -895,11 +896,11 @@ Currently supported shorter key sequences are @kbd{C-x u u} instead of
 @kbd{C-x u C-x u} to undo many changes, @kbd{C-x o o} instead of
 @kbd{C-x o C-x o} to switch several windows, @kbd{C-x @{ @{ @} @} ^ ^
 v v} to resize the selected window interactively, @kbd{M-g n n p p} to
-navigate @code{next-error} matches, and @kbd{C-x ] ] [ [} to navigate
-through pages.  Any other key exits transient mode and then is
-executed normally.  The user option @code{repeat-exit-key} defines an
-additional key to exit this transient mode.  Also it's possible to
-break the repetition chain automatically after some idle time by
-customizing the user option @code{repeat-exit-timeout} to specify the
-idle time in seconds after which this transient mode will be turned
-off.
+navigate @code{next-error} matches, @kbd{C-x ] ] [ [} to navigate
+through pages, and other keys listed by @code{describe-repeat-maps}.
+Any other key exits transient mode and then is executed normally.  The
+user option @code{repeat-exit-key} defines an additional key to exit
+this transient mode.  Also it's possible to break the repetition chain
+automatically after some idle time by customizing the user option
+@code{repeat-exit-timeout} to specify the idle time in seconds after
+which this transient mode will be turned off.

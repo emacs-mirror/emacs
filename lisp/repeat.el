@@ -597,7 +597,8 @@ This function can be used to force exit of repetition while it's active."
 
 (defun describe-repeat-maps ()
   "Describe mappings of commands repeatable by symbol property `repeat-map'.
-Used in `repeat-mode'."
+If `repeat-mode' is enabled, these keymaps determine which single key
+can be used to repeat a command invoked via a full key sequence."
   (interactive)
   (require 'help-fns)
   (let ((help-buffer-under-preparation t))
