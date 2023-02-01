@@ -2755,7 +2755,8 @@ the query.  */)
       Lisp_Object predicates = AREF (predicates_table, match.pattern_index);
       if (EQ (predicates, Qt))
 	{
-	  predicates = treesit_predicates_for_pattern (treesit_query, 0);
+	  predicates = treesit_predicates_for_pattern (treesit_query,
+						       match.pattern_index);
 	  ASET (predicates_table, match.pattern_index, predicates);
 	}
 
