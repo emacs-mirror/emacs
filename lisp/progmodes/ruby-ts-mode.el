@@ -1042,9 +1042,12 @@ leading double colon is not added."
                             "parenthesized_statements"
                             "if"
                             "case"
+                            "when"
                             "block"
                             "do_block"
-                            "begin")))
+                            "begin"
+                            "binary"
+                            "assignment")))
 
   ;; AFAIK, Ruby can not nest methods
   (setq-local treesit-defun-prefer-top-level nil)
