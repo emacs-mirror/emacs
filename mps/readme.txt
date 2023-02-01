@@ -78,6 +78,8 @@ The MPS is currently supported for deployment on:
 
 - macOS 10.4 or later, on x86-64, using Clang/LLVM.
 
+.. TODO: Reformat the above as a table.  RB 2023-02-01.
+
 The MPS is highly portable and has run on many other processors and
 operating systems in the past (see `Building the MPS
 <manual/guide/build.html>`__). Most of the MPS is written in very pure
