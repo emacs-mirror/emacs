@@ -90,6 +90,7 @@ extern void android_wait_event (void);
 extern void android_toggle_on_screen_keyboard (android_window, bool);
 extern void android_window_updated (android_window, unsigned long);
 extern _Noreturn void android_restart_emacs (void);
+extern int android_get_current_api_level (void);
 
 
 

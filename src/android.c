@@ -5006,6 +5006,19 @@ android_restart_emacs (void)
   exit (0);
 }
 
+/* Return a number from 1 to 33 describing the version of Android
+   Emacs is running on.
+
+   This is different from __ANDROID_API__, as that describes the
+   minimum version of Android this build of Emacs will run on, and in
+   turn which APIs Emacs can safely use.  */
+
+int
+android_get_current_api_level (void)
+{
+  return android_api_level;
+}
+
 
 
 #else /* ANDROID_STUBIFY */

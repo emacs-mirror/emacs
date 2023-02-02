@@ -734,8 +734,7 @@ init_sfntfont_android (void)
 
   /* Make sure to pick the right Sans Serif font depending on what
      version of Android the device is running.  */
-#if HAVE_DECL_ANDROID_GET_DEVICE_API_LEVEL
-  if (android_get_device_api_level () >= 15)
+  if (android_get_current_api_level () >= 15)
     Vsfnt_default_family_alist
       = list3 (Fcons (build_string ("Monospace"),
 		      build_string ("Droid Sans Mono")),
@@ -746,7 +745,6 @@ init_sfntfont_android (void)
 	       Fcons (build_string ("Sans Serif"),
 		      build_string ("Roboto")));
   else
-#endif
     Vsfnt_default_family_alist
       = list3 (Fcons (build_string ("Monospace"),
 		      build_string ("Droid Sans Mono")),
