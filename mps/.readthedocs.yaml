@@ -4,7 +4,8 @@
 
 version: 2
 
-formats: all
+formats:
+  - html
 
 build:
   os: ubuntu-22.04
