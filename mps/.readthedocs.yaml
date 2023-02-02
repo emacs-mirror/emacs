@@ -1,0 +1,16 @@
+# .readthedocs.yaml -- Build configuration for MPS manual on Read The Docs
+#
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html
+
+version: 2
+
+formats: all
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: 3
+
+python:
+  install:
+    - requirements: manual/requirements.pip

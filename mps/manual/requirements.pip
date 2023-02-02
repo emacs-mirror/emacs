@@ -1,0 +1,4 @@
+# manual/requirements.txt -- MPS manual build requirements for pip
+
+# Layout breaks in Sphinx >= 5.  See <https://github.com/Ravenbrook/mps/issues/121>.
+sphinx >= 4, < 5
