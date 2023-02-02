@@ -1009,7 +1009,7 @@ if `inhibit-field-text-motion' is non-nil."
 ;; no idea whereas to bind it.  Any suggestion welcome.  -stef
 ;; (define-key ctl-x-map "U" 'undo-only)
 (defvar-keymap undo-repeat-map
-  :doc "Keymap to repeat undo key sequences \\`C-x u u'.  Used in `repeat-mode'."
+  :doc "Keymap to repeat `undo' commands.  Used in `repeat-mode'."
   :repeat t
   "u" #'undo)
 
@@ -1106,7 +1106,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "`" 'next-error)
 
 (defvar-keymap next-error-repeat-map
-  :doc "Keymap to repeat `next-error' key sequences.  Used in `repeat-mode'."
+  :doc "Keymap to repeat `next-error' and `previous-error'.  Used in `repeat-mode'."
   :repeat t
   "n"   #'next-error
   "M-n" #'next-error
@@ -1468,7 +1468,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "]" 'forward-page)
 
 (defvar-keymap page-navigation-repeat-map
-  :doc "Keymap to repeat page navigation key sequences.  Used in `repeat-mode'."
+  :doc "Keymap to repeat `forward-page' and `backward-page'.  Used in `repeat-mode'."
   :repeat t
   "]" #'forward-page
   "[" #'backward-page)
