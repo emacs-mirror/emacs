@@ -4,9 +4,6 @@
 
 version: 2
 
-formats:
-  - html
-
 build:
   os: ubuntu-22.04
   tools:
