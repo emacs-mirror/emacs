@@ -72,6 +72,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_query_cursor_set_byte_range
 #undef ts_query_delete
 #undef ts_query_new
+#undef ts_query_pattern_count
 #undef ts_query_predicates_for_pattern
 #undef ts_query_string_value_for_id
 #undef ts_set_allocator
@@ -135,6 +136,7 @@ DEF_DLL_FN (void, ts_query_cursor_set_byte_range,
 DEF_DLL_FN (void, ts_query_delete, (TSQuery *));
 DEF_DLL_FN (TSQuery *, ts_query_new,
 	    (const TSLanguage *, const char *, uint32_t, uint32_t *, TSQueryError *));
+DEF_DLL_FN (uint32_t, ts_query_pattern_count, (const TSQuery *));
 DEF_DLL_FN (const TSQueryPredicateStep *, ts_query_predicates_for_pattern,
 	    ( const TSQuery *, uint32_t, uint32_t *));
 DEF_DLL_FN (const char *, ts_query_string_value_for_id,
@@ -200,6 +202,7 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_query_cursor_set_byte_range);
   LOAD_DLL_FN (library, ts_query_delete);
   LOAD_DLL_FN (library, ts_query_new);
+  LOAD_DLL_FN (library, ts_query_pattern_count);
   LOAD_DLL_FN (library, ts_query_predicates_for_pattern);
   LOAD_DLL_FN (library, ts_query_string_value_for_id);
   LOAD_DLL_FN (library, ts_set_allocator);
@@ -256,6 +259,7 @@ init_treesit_functions (void)
 #define ts_query_cursor_set_byte_range fn_ts_query_cursor_set_byte_range
 #define ts_query_delete fn_ts_query_delete
 #define ts_query_new fn_ts_query_new
+#define ts_query_pattern_count fn_ts_query_pattern_count
 #define ts_query_predicates_for_pattern fn_ts_query_predicates_for_pattern
 #define ts_query_string_value_for_id fn_ts_query_string_value_for_id
 #define ts_set_allocator fn_ts_set_allocator
