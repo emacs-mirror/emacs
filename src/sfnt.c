@@ -3210,7 +3210,7 @@ sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
 /* The same as sfnt_multiply_divide, but handle signed values
    instead.  */
 
-static int
+static MAYBE_UNUSED int
 sfnt_multiply_divide_signed (int a, int b, int c)
 {
   int sign;
