@@ -41,8 +41,10 @@ Getting started
 
 The MPS Kit is a complete set of sources and documentation to enable
 you to use, modify, and adapt the MPS: source code, manuals,
-procedures, design documentation, and so on. See
-`<manual/html/index.html>`_ for an index.
+procedures, design documentation, and so on.  See the manual_ for an
+index.
+
+.. _manual: https://memory-pool-system.readthedocs.io/
 
 The MPS Kit is distributed in source form.  You need to build it before
 using it.  The basic case is straightforward on supported platforms
@@ -60,7 +62,7 @@ For an example of using the MPS, see the `Scheme interpreter
 example <example/scheme/>`_.
 
 Then, to program and integrate the MPS you'll definitely need to read
-the `manual <manual/html/index.html>`_.
+the manual_.
 
 
 Supported target platforms
@@ -133,6 +135,7 @@ Document History
 2014-07-04  GDR_   Link to hotfix for WOW64 bug.
 2016-03-24  RB_    Adding support for FreeBSD with Clang/LLVM.
 2020-05-22  PNJ_   Changed to BSD 2-clause licence.
+2023-02-02  RB_    Migrating from Ravenbrook Perforce to GitHub.
 ==========  =====  ======================================================
 
 .. _PNJ: mailto:pnj@ravenbrook.com
