@@ -183,6 +183,31 @@ See <lisp/eshell/esh-var.el>."
    (should (equal (eshell-insert-and-complete "echo $system-nam")
                   "echo $system-name "))))
 
+(ert-deftest em-cmpl-test/quoted-variable-ref-completion ()
+  "Test completion of variable references like \"$'var'\".
+See <lisp/eshell/esh-var.el>."
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo $'system-nam")
+                  "echo $'system-name' ")))
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo $\"system-nam")
+                  "echo $\"system-name\" "))))
+
+(ert-deftest em-cmpl-test/variable-ref-completion/directory ()
+  "Test completion of variable references that expand to directories.
+See <lisp/eshell/esh-var.el>."
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo $PW")
+                  "echo $PWD/")))
+  (with-temp-eshell
+   (let ((minibuffer-message-timeout 0)
+         (inhibit-message t))
+     (should (equal (eshell-insert-and-complete "echo $PWD")
+                    "echo $PWD/"))))
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo $'PW")
+                  "echo $'PWD'/"))))
+
 (ert-deftest em-cmpl-test/variable-assign-completion ()
   "Test completion of variable assignments like \"var=value\".
 See <lisp/eshell/esh-var.el>."
