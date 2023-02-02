@@ -793,6 +793,8 @@ in your configuration."
                 (c-ts-mode--get-indent-style 'c))
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
+    ;; Navigation.
+    (setq-local treesit-defun-tactic 'top-level)
     (treesit-major-mode-setup)))
 
 ;;;###autoload
