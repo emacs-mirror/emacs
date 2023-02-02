@@ -294,16 +294,17 @@ it adds an extra level, except for the top-level.
 
 PARENT is NODE's parent."
   (let ((level 0))
+    ;; If NODE is a opening/closing bracket on its own line, take off
+    ;; one level because the code below assumes NODE is a statement
+    ;; _inside_ a {} block.
+    (when (and node
+               (string-match-p c-ts-common-indent-block-type-regexp
+                               (treesit-node-type node)))
+      (cl-decf level))
     ;; If point is on an empty line, NODE would be nil, but we pretend
     ;; there is a statement node.
     (when (null node)
       (setq node t))
-    ;; If NODE is a opening bracket on its own line, take off one
-    ;; level because the code below assumes NODE is a statement
-    ;; _inside_ a {} block.
-    (when (string-match-p c-ts-common-indent-block-type-regexp
-                          (treesit-node-type node))
-      (cl-decf level))
     ;; Go up the tree and compute indent level.
     (while (if (eq node t)
                (setq node parent)
