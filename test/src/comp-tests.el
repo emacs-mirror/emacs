@@ -760,6 +760,34 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
                  '(1 2))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Tests for statically compiled literals. ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(when (featurep 'comp--static-lisp-consts)
+  (comp-deftest static-lisp-consts ()
+   "Verify the compilation of self evaluating forms."
+   (let ((cases `((
+                   (setcar comp-test-literal-list nil)
+                   . ,comp-test-literal-list)
+                 ((aset comp-test-literal-vector 2 nil)
+                  . ,comp-test-literal-vector)
+                 ((aset comp-test-literal-record 2 nil)
+                  . ,comp-test-literal-record)
+                 ((aset comp-test-literal-string 1 ?c)
+                  . ,comp-test-literal-string)
+                 ((comp-test-modify-const-list)
+                  . ,comp-test-literal-list))))
+     (dolist (pair cases)
+       (let* ((form (car pair))
+             (obj (cdr pair))
+             (desc (should-error (eval form) :type 'error)))
+         (should (= (length desc) 3))
+         (should (eq (nth 0 desc) 'error))
+         (should (equal (nth 1 desc) "Attempt to modify read-only object"))
+         (should (eq (nth 2 desc) obj)))))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Middle-end specific tests. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

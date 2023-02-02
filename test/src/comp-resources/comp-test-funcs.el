@@ -708,6 +708,14 @@
   (when (= x 1.0e+INF)
     x))
 
+(defvar comp-test-literal-list '(1 2 3 4))
+(defvar comp-test-literal-vector [1 2 3 4])
+(defvar comp-test-literal-record #s(type 1 2 3 4))
+(defvar comp-test-literal-string "Foo")
+
+(defun comp-test-modify-const-list ()
+  (setcar comp-test-literal-list nil))
+
 (provide 'comp-test-funcs)
 
 ;;; comp-test-funcs.el ends here
