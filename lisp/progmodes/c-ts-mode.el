@@ -254,12 +254,16 @@ MODE is either `c' or `cpp'."
 
            ;; int[5] a = { 0, 0, 0, 0 };
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
+           ;; Statement in enum.
            ((parent-is "enumerator_list") point-min c-ts-common-statement-offset)
+           ;; Statement in struct and union.
            ((parent-is "field_declaration_list") point-min c-ts-common-statement-offset)
 
-           ;; {} blocks.
-           ((node-is "}") point-min c-ts-mode--close-bracket-offset)
+           ;; Statement in {} blocks.
            ((parent-is "compound_statement") point-min c-ts-common-statement-offset)
+           ;; Closing bracket.
+           ((node-is "}") point-min c-ts-common-statement-offset)
+           ;; Opening bracket.
            ((node-is "compound_statement") point-min c-ts-common-statement-offset)
 
            ,@(when (eq mode 'cpp)
