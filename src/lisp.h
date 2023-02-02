@@ -4802,6 +4802,9 @@ extern ptrdiff_t find_newline_no_quit (ptrdiff_t, ptrdiff_t,
 				       ptrdiff_t, ptrdiff_t *);
 extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t,
 					   ptrdiff_t, ptrdiff_t *);
+extern EMACS_INT search_buffer (Lisp_Object, ptrdiff_t, ptrdiff_t,
+				ptrdiff_t, ptrdiff_t, EMACS_INT,
+				int, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_search (void);
 extern void clear_regexp_cache (void);
 

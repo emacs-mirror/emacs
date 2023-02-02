@@ -68,9 +68,6 @@ static EMACS_INT simple_search (EMACS_INT, unsigned char *, ptrdiff_t,
 static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, ptrdiff_t,
                               Lisp_Object, Lisp_Object, ptrdiff_t,
                               ptrdiff_t, int);
-static EMACS_INT search_buffer (Lisp_Object, ptrdiff_t, ptrdiff_t,
-                                ptrdiff_t, ptrdiff_t, EMACS_INT, int,
-                                Lisp_Object, Lisp_Object, bool);
 
 Lisp_Object re_match_object;
 
@@ -1510,7 +1507,7 @@ search_buffer_non_re (Lisp_Object string, ptrdiff_t pos,
   return result;
 }
 
-static EMACS_INT
+EMACS_INT
 search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	       ptrdiff_t lim, ptrdiff_t lim_byte, EMACS_INT n,
 	       int RE, Lisp_Object trt, Lisp_Object inverse_trt, bool posix)
