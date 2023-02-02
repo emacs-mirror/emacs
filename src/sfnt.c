@@ -47,13 +47,27 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 static void *
 xmalloc (size_t size)
 {
-  return malloc (size);
+  void *ptr;
+
+  ptr = malloc (size);
+
+  if (!ptr)
+    abort ();
+
+  return ptr;
 }
 
 static void *
 xrealloc (void *ptr, size_t size)
 {
-  return realloc (ptr, size);
+  void *new_ptr;
+
+  new_ptr = realloc (ptr, size);
+
+  if (!new_ptr)
+    abort ();
+
+  return new_ptr;
 }
 
 static void
@@ -111,6 +125,7 @@ static uint32_t sfnt_table_names[] =
     [SFNT_TABLE_META] = 0x6d657461,
     [SFNT_TABLE_CVT ] = 0x63767420,
     [SFNT_TABLE_FPGM] = 0x6670676d,
+    [SFNT_TABLE_PREP] = 0x70726570,
   };
 
 /* Swap values from TrueType to system byte order.  */
@@ -2191,12 +2206,20 @@ sfnt_free_glyph (struct sfnt_glyph *glyph)
 /* Glyph outline decomposition.  */
 
 /* Apply the transform in the compound glyph component COMPONENT to
-   the array of points of length NUM_COORDINATES given as X and Y.  */
+   the array of points of length NUM_COORDINATES given as X and Y.
+
+   Also, apply the fixed point offsets X_OFF and Y_OFF to each X and Y
+   coordinate.
+
+   See sfnt_decompose_compound_glyph for an explanation of why offsets
+   might be applied here, and not while reading the subglyph
+   itself.  */
 
 static void
 sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 			    sfnt_fixed *restrict x, sfnt_fixed *restrict y,
-			    size_t num_coordinates)
+			    size_t num_coordinates,
+			    sfnt_fixed x_off, sfnt_fixed y_off)
 {
   double m1, m2, m3;
   double m4, m5, m6;
@@ -2208,6 +2231,8 @@ sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 	{
 	  x[i] *= component->u.scale / 16384.0;
 	  y[i] *= component->u.scale / 16384.0;
+	  x[i] += x_off;
+	  y[i] += y_off;
 	}
     }
   else if (component->flags & 0100) /* WE_HAVE_AN_X_AND_Y_SCALE */
@@ -2216,6 +2241,8 @@ sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 	{
 	  x[i] *= component->u.a.xscale / 16384.0;
 	  y[i] *= component->u.a.yscale / 16384.0;
+	  x[i] += x_off;
+	  y[i] += y_off;
 	}
     }
   else if (component->flags & 0200) /* WE_HAVE_A_TWO_BY_TWO */
@@ -2231,11 +2258,11 @@ sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 	   M1*X + M2*Y + M3*1 = X1
 	   M4*X + M5*Y + M6*1 = Y1
 
-         (In most transforms, there is another row at the bottom for
-          mathematical reasons.  Since Z1 is always 1.0, the row is
-          simply implied to be 0 0 1, because 0 * x + 0 * y + 1 * 1 =
-          1.0.  See the definition of matrix3x3 in image.c for some
-          more explanations about this.) */
+	 (In most transforms, there is another row at the bottom for
+	  mathematical reasons.  Since Z1 is always 1.0, the row is
+	  simply implied to be 0 0 1, because 0 * x + 0 * y + 1 * 1 =
+	  1.0.  See the definition of matrix3x3 in image.c for some
+	  more explanations about this.) */
       m1 = component->u.b.xscale / 16384.0;
       m2 = component->u.b.scale01 / 16384.0;
       m3 = 0;
@@ -2247,6 +2274,8 @@ sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 	{
 	  x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
 	  y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
+	  x[i] += x_off;
+	  y[i] += y_off;
 	}
     }
 }
@@ -2364,8 +2393,10 @@ sfnt_round_fixed (int32_t number)
 }
 
 /* Decompose GLYPH, a compound glyph, into an array of points and
-   contours.  CONTEXT should be zeroed and put on the stack.  OFF_X
-   and OFF_Y should be zero, as should RECURSION_COUNT.  GET_GLYPH and
+   contours.
+
+   CONTEXT should be zeroed and put on the stack.  OFF_X and OFF_Y
+   should be zero, as should RECURSION_COUNT.  GET_GLYPH and
    FREE_GLYPH, along with DCONTEXT, mean the same as in
    sfnt_decompose_glyph.  */
 
@@ -2389,13 +2420,21 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
   ptrdiff_t *contour_base;
   unsigned char *flags_base;
   ptrdiff_t base_index, contour_start;
+  bool defer_offsets;
+
+  /* Set up the base index.  This is the index from where on point
+     renumbering starts.
+
+     In other words, point 0 in this glyph will be 0 + base_index,
+     point 1 will be 1 + base_index, and so on.  */
+  base_index = context->num_points;
 
   /* Prevent infinite loops.  */
   if (recursion_count > 12)
     return 1;
 
-  /* Set up the base index.  */
-  base_index = context->num_points;
+  /* Don't defer offsets.  */
+  defer_offsets = false;
 
   for (j = 0; j < glyph->compound->num_components; ++j)
     {
@@ -2406,6 +2445,11 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 
       if (!subglyph)
 	return -1;
+
+      /* Record the size of the point array before expansion.  This
+	 will be the base to apply to all points coming from this
+	 subglyph.  */
+      contour_start = context->num_points;
 
       /* Compute the offset for the component.  */
       if (component->flags & 02) /* ARGS_ARE_XY_VALUES */
@@ -2429,7 +2473,8 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	  /* If there is some kind of scale and component offsets are
 	     scaled, then apply the transform to the offset.  */
 	  if (component->flags & 04000) /* SCALED_COMPONENT_OFFSET */
-	    sfnt_transform_coordinates (component, &x, &y, 1);
+	    sfnt_transform_coordinates (component, &x, &y, 1,
+					0, 0);
 
 	  if (component->flags & 04) /* ROUND_XY_TO_GRID */
 	    {
@@ -2458,11 +2503,10 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	      point2 = component->argument2.c;
 	    }
 
-	  /* If subglyph is itself a compound glyph, how is Emacs
-	     supposed to compute the offset of its children correctly,
-	     when said offset depends on itself? */
+	  /* Now, check that the anchor point specified lies inside
+	     the glyph.  */
 
-	  if (subglyph->compound)
+	  if (point >= contour_start)
 	    {
 	      if (need_free)
 		free_glyph (subglyph, dcontext);
@@ -2470,28 +2514,36 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	      return 1;
 	    }
 
-	  /* Check that POINT and POINT2 are valid.  */
-	  if (point >= context->num_points
-	      || (subglyph->simple->y_coordinates + point2
-		  >= subglyph->simple->y_coordinates_end))
+	  if (!subglyph->compound)
 	    {
-	      if (need_free)
-		free_glyph (subglyph, dcontext);
+	      if (point2 >= subglyph->simple->number_of_points)
+		{
+		  if (need_free)
+		    free_glyph (subglyph, dcontext);
 
-	      return 1;
+		  return 1;
+		}
+
+	      /* Get the points and use them to compute the offsets.  */
+	      xtemp = context->x_coordinates[point];
+	      ytemp = context->y_coordinates[point];
+	      x = (xtemp - subglyph->simple->x_coordinates[point2]) * 65536;
+	      y = (ytemp - subglyph->simple->y_coordinates[point2]) * 65536;
 	    }
+	  else
+	    {
+	      /* First, set offsets to 0, because it is not yet
+		 possible to determine the position of the anchor
+		 point in the child.  */
+	      x = 0;
+	      y = 0;
 
-	  /* Get the points and use them to compute the offsets.  */
-	  xtemp = context->x_coordinates[point];
-	  ytemp = context->y_coordinates[point];
-	  x = (xtemp - subglyph->simple->x_coordinates[point2]) * 65536;
-	  y = (ytemp - subglyph->simple->y_coordinates[point2]) * 65536;
+	      /* Set a flag which indicates that offsets must be
+		 resolved from the child glyph after it is loaded, but
+		 before it is incorporated into the parent glyph.  */
+	      defer_offsets = true;
+	    }
 	}
-
-      /* Record the size of the point array before expansion.  This
-	 will be the base to apply to all points coming from this
-	 subglyph.  */
-      contour_start = context->num_points;
 
       if (subglyph->simple)
 	{
@@ -2538,7 +2590,7 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 
 	      /* Apply the transform to the points.  */
 	      sfnt_transform_coordinates (component, x_base, y_base,
-					  last_point + 1);
+					  last_point + 1, 0, 0);
 
 	      /* Copy over the contours.  */
 	      for (i = 0; i < number_of_contours; ++i)
@@ -2567,10 +2619,52 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	      return 1;
 	    }
 
+	  /* When an anchor point is being used to translate the
+	     glyph, and the subglyph in question is actually a
+	     compound glyph, it is impossible to know which offset to
+	     use until the compound subglyph has actually been
+	     loaded.
+
+	     As a result, the offset is calculated here, using the
+	     points in the loaded child compound glyph.  But first, X
+	     and Y must be reset to 0, as otherwise the translation
+	     might be applied twice if defer_offsets is not set.  */
+
+	  x = 0;
+	  y = 0;
+
+	  if (defer_offsets)
+	    {
+	      /* Renumber the non renumbered point2 to point into the
+		 decomposed component.  */
+	      point2 += contour_start;
+
+	      /* Next, check that the non-renumbered point being
+		 anchored lies inside the glyph data that was
+		 decomposed.  */
+
+	      if (point2 >= context->num_points)
+		{
+		  if (need_free)
+		    free_glyph (subglyph, dcontext);
+
+		  return 1;
+		}
+
+	      /* Get the points and use them to compute the
+		 offsets.  */
+
+	      xtemp = context->x_coordinates[point];
+	      ytemp = context->y_coordinates[point];
+	      x = (xtemp - context->x_coordinates[point2]);
+	      y = (ytemp - context->y_coordinates[point2]);
+	    }
+
 	  sfnt_transform_coordinates (component,
 				      context->x_coordinates + contour_start,
 				      context->y_coordinates + contour_start,
-				      contour_start - context->num_points);
+				      contour_start - context->num_points,
+				      x, y);
 	}
 
       if (need_free)
@@ -3092,19 +3186,49 @@ sfnt_multiply_divide_2 (struct sfnt_large_integer *ab,
   return q;
 }
 
-/* Calculate (A * B) / C on systems that do not have 64 bit scalar
-   types.  Return the result.  */
+#endif
+
+/* Calculate (A * B) / C with no rounding and return the result, using
+   a 64 bit integer if necessary.  */
 
 static unsigned int
 sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
 {
+#ifndef INT64_MAX
   struct sfnt_large_integer temp;
 
   sfnt_multiply_divide_1 (a, b, &temp);
   return sfnt_multiply_divide_2 (&temp, c);
+#else
+  uint64_t temp;
+
+  temp = (uint64_t) a * (uint64_t) b;
+  return temp / c;
+#endif
 }
 
-#endif
+/* The same as sfnt_multiply_divide, but handle signed values
+   instead.  */
+
+static int
+sfnt_multiply_divide_signed (int a, int b, int c)
+{
+  int sign;
+
+  sign = 1;
+
+  if (a < 0)
+    sign = -sign;
+
+  if (b < 0)
+    sign = -sign;
+
+  if (c < 0)
+    sign = -sign;
+
+  return (sfnt_multiply_divide (abs (a), abs (b), abs (c))
+	  * sign);
+}
 
 /* Multiply the two 16.16 fixed point numbers X and Y.  Return the
    result regardless of overflow.  */
@@ -3118,7 +3242,7 @@ sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
   product = (int64_t) x * (int64_t) y;
 
   /* This can be done quickly with int64_t.  */
-  return product / 65536;
+  return product / (int64_t) 65536;
 #else
   int sign;
 
@@ -3265,7 +3389,7 @@ sfnt_curve_to_and_build_1 (struct sfnt_point control0,
   else
     {
       /* Calculate new control points.
-         Maybe apply a recursion limit here? */
+	 Maybe apply a recursion limit here? */
       sfnt_lerp_half (&control0, &control1, &ab);
       sfnt_lerp_half (&control1, &endpoint, &bc);
       sfnt_lerp_half (&ab, &bc, &abbc);
@@ -3353,10 +3477,8 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
 
      which means:
 
-       PIXEL = UNIT * PPEM / UPEM
+       PIXEL = UNIT * PPEM / UPEM  */
 
-     It would be nice to get rid of this floating point arithmetic at
-     some point.  */
   build_outline_context.factor
     = sfnt_div_fixed (pixel_size * 65536,
 		      head->units_per_em * 65536);
@@ -3503,7 +3625,7 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 	edges[edge].winding = 1;
       else
 	/* Moving clockwise.  Winding is thus -1.  */
-        edges[edge].winding = -1;
+	edges[edge].winding = -1;
 
       /* Figure out the top and bottom values of this edge.  If the
 	 next edge is below, top is here and bot is the edge below.
@@ -3960,6 +4082,9 @@ sfnt_read_hmtx_table (int fd, struct sfnt_offset_subtable *subtable,
    specified PIXEL_SIZE.  Return 0 and the metrics in *METRICS if
    metrics could be found, else 1.
 
+   If PIXEL_SIZE is -1, do not perform any scaling on the glyph
+   metrics.
+
    HMTX, HHEA, HEAD and MAXP should be the hmtx, hhea, head, and maxp
    tables of the font respectively.  */
 
@@ -3994,6 +4119,14 @@ sfnt_lookup_glyph_metrics (sfnt_glyph glyph, int pixel_size,
   else
     /* No entry corresponds to the glyph.  */
     return 1;
+
+  if (pixel_size == -1)
+    {
+      /* Return unscaled metrics in this case.  */
+      metrics->lbearing = lbearing;
+      metrics->advance = advance;
+      return 1;
+    }
 
   /* Now scale lbearing and advance up to the pixel size.  */
   factor = sfnt_div_fixed (pixel_size << 16,
@@ -4496,7 +4629,7 @@ struct sfnt_cvt_table
   size_t num_elements;
 
   /* Pointer to elements in the control value table.  */
-  uint32_t *values;
+  sfnt_fword *values;
 };
 
 struct sfnt_fpgm_table
@@ -4505,6 +4638,16 @@ struct sfnt_fpgm_table
   size_t num_instructions;
 
   /* Pointer to elements in the font program table.  */
+  unsigned char *instructions;
+};
+
+struct sfnt_prep_table
+{
+  /* Number of instructions in the control value program (pre-program)
+     table.  */
+  size_t num_instructions;
+
+  /* Pointer to elements in the preprogram table.  */
   unsigned char *instructions;
 };
 
@@ -4545,8 +4688,8 @@ sfnt_read_cvt_table (int fd, struct sfnt_offset_subtable *subtable)
 
   /* Now set cvt->num_elements as appropriate, and make cvt->values
      point into the values.  */
-  cvt->num_elements = directory->length / 4;
-  cvt->values = (uint32_t *) (cvt + 1);
+  cvt->num_elements = directory->length / 2;
+  cvt->values = (sfnt_fword *) (cvt + 1);
 
   /* Read into cvt.  */
   rc = read (fd, cvt->values, directory->length);
@@ -4558,7 +4701,7 @@ sfnt_read_cvt_table (int fd, struct sfnt_offset_subtable *subtable)
 
   /* Swap each element in the control value table.  */
   for (i = 0; i < cvt->num_elements; ++i)
-    sfnt_swap32 (&cvt->values[i]);
+    sfnt_swap16 (&cvt->values[i]);
 
   /* All done.  */
   return cvt;
@@ -4592,7 +4735,7 @@ sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Allocate enough for that much data.  */
-  fpgm = xmalloc (sizeof *fpgm);
+  fpgm = xmalloc (sizeof *fpgm + directory->length);
 
   /* Now set fpgm->num_instructions as appropriate, and make
      fpgm->instructions point to the right place.  */
@@ -4612,6 +4755,54 @@ sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
   return fpgm;
 }
 
+/* Read the prep table from the given font FD, using the table
+   directory specified as SUBTABLE.  Value is NULL upon failure, else
+   the prep table.  */
+
+static struct sfnt_prep_table *
+sfnt_read_prep_table (int fd, struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_table_directory *directory;
+  size_t required;
+  ssize_t rc;
+  struct sfnt_prep_table *prep;
+
+  /* Find the table in the directory.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_PREP);
+
+  if (!directory)
+    return NULL;
+
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
+
+  /* Figure out the minimum amount that has to be read.  */
+  if (INT_ADD_WRAPV (sizeof *prep, directory->length, &required))
+    return NULL;
+
+  /* Allocate enough for that much data.  */
+  prep = xmalloc (sizeof *prep + directory->length);
+
+  /* Now set prep->num_instructions as appropriate, and make
+     prep->instructions point to the right place.  */
+
+  prep->num_instructions = directory->length;
+  prep->instructions = (unsigned char *) (prep + 1);
+
+  /* Read into prep.  */
+  rc = read (fd, prep->instructions, directory->length);
+  if (rc != directory->length)
+    {
+      xfree (prep);
+      return NULL;
+    }
+
+  /* All done.  */
+  return prep;
+}
+
 
 
 /* Interpreter execution environment.  */
@@ -4619,8 +4810,12 @@ sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
 /* 26.6 fixed point type used within the interpreter.  */
 typedef int32_t sfnt_f26dot6;
 
-/* 2.14 fixed point type used to represent unit vectors.  */
+/* 2.14 fixed point type used to represent versors of unit
+   vectors.  */
 typedef int16_t sfnt_f2dot14;
+
+/* 18.14 fixed point type used to calculate rounding details.  */
+typedef int32_t sfnt_f18dot14;
 
 struct sfnt_unit_vector
 {
@@ -4643,11 +4838,67 @@ struct sfnt_interpreter_definition
   unsigned char *instructions;
 };
 
+/* This structure represents a ``struct sfnt_glyph'' that has been
+   scaled to a given pixel size.
+
+   It can either contain a simple glyph, or a decomposed compound
+   glyph; instructions are interpreted for both simple glyphs, simple
+   glyph components inside a compound glyph, and compound glyphs as a
+   whole.
+
+   In addition to the glyph data itself, it also records various
+   information for the instruction interpretation process:
+
+     - ``current'' point coordinates, which have been modified
+       by the instructing process.
+
+     - two phantom points at the origin and the advance of the
+       glyph.  */
+
+struct sfnt_interpreter_zone
+{
+  /* The number of points in this zone, including the two phantom
+     points at the end.  */
+  size_t num_points;
+
+  /* The number of contours in this zone.  */
+  size_t num_contours;
+
+  /* The end points of each contour.  */
+  size_t *contour_end_points;
+
+  /* Pointer to the X axis point data.  */
+  sfnt_f26dot6 *restrict x_points;
+
+  /* Pointer to the Y axis point data.  */
+  sfnt_f26dot6 *restrict y_points;
+
+  /* Pointer to the X axis current point data.  */
+  sfnt_f26dot6 *restrict x_current;
+
+  /* Pointer to the Y axis current point data.  */
+  sfnt_f26dot6 *restrict y_current;
+
+  /* Pointer to the flags associated with this data.  */
+  unsigned char *flags;
+};
+
+enum
+  {
+    /* Bits 7 and 6 of a glyph point's flags is reserved.  This scaler
+       uses it to mean that the point has been touched in one axis or
+       another.  */
+    SFNT_POINT_TOUCHED_X = (1 << 7),
+    SFNT_POINT_TOUCHED_Y = (1 << 6),
+    SFNT_POINT_TOUCHED_BOTH = (SFNT_POINT_TOUCHED_X
+			       | SFNT_POINT_TOUCHED_Y),
+  };
+
 /* This is needed because `round' below needs an interpreter
    argument.  */
 struct sfnt_interpreter;
 
-struct sfnt_interpreter_graphics_state
+struct sfnt_graphics_state
 {
   /* Pointer to the function used for rounding.  This function is
      asymmetric, so -0.5 rounds up to 0, not -1.  It is up to the
@@ -4657,6 +4908,22 @@ struct sfnt_interpreter_graphics_state
      the second argument may be used to provide detailed rounding
      information (``super rounding state''.)  */
   sfnt_f26dot6 (*round) (sfnt_f26dot6, struct sfnt_interpreter *);
+
+  /* Pointer to the function used to project euclidean vectors onto
+     the projection vector.  Value is the magnitude of the projected
+     vector.  */
+  sfnt_f26dot6 (*project) (sfnt_f26dot6, sfnt_f26dot6,
+			   struct sfnt_interpreter *);
+
+  /* Pointer to the function used to move a specified point
+     along the freedom vector by a distance specified in terms
+     of the projection vector.  */
+  void (*move) (sfnt_f26dot6 *, sfnt_f26dot6 *,
+		struct sfnt_interpreter *,
+		sfnt_f26dot6, unsigned char *);
+
+  /* Dot product between the freedom and the projection vectors.  */
+  sfnt_f2dot14 vector_dot_product;
 
   /* Controls whether the sign of control value table entries will be
      changed to match the sign of the actual distance measurement with
@@ -4711,8 +4978,9 @@ struct sfnt_interpreter_graphics_state
   struct sfnt_unit_vector freedom_vector;
 
   /* Makes it possible to turn off instructions under some
-     circumstances.  When set to 1, no instructions will be
-     executed.  */
+     circumstances.  When flag 1 is set, changes to the graphics state
+     made in the control value program will be ignored.  When flag is
+     1, grid fitting instructions will be ignored.  */
   unsigned char instruct_control;
 
   /* Makes it possible to repeat certain instructions a designated
@@ -4739,9 +5007,9 @@ struct sfnt_interpreter_graphics_state
      or the twilight zone.  */
   uint16_t rp0, rp1, rp2;
 
-  /* Determines whether the interpreter will activate dropout control
-     for the current glyph.  */
-  bool scan_control;
+  /* Flags which determine whether the interpreter will activate
+     dropout control for the current glyph.  */
+  int scan_control;
 
   /* The distance difference below which the interpreter will replace
      a CVT distance or an actual distance in favor of the single width
@@ -4783,7 +5051,7 @@ struct sfnt_interpreter
   int IP;
 
   /* The current scale.  */
-  sfnt_f26dot6 scale;
+  sfnt_fixed scale;
 
   /* The current ppem and point size.  */
   int ppem, point_size;
@@ -4805,9 +5073,9 @@ struct sfnt_interpreter
   sfnt_f26dot6 *twilight_x, *twilight_y;
 
   /* The scaled outlines being manipulated.  May be NULL.  */
-  sfnt_f26dot6 *outline_x, *outline_y;
+  struct sfnt_interpreter_zone *glyph_zone;
 
-  /* The glyph advance width.  Value is undefined unless OUTLINE_X is
+  /* The glyph advance width.  Value is undefined unless GLYPH_ZONE is
      set.  */
   sfnt_f26dot6 advance_width;
 
@@ -4824,7 +5092,7 @@ struct sfnt_interpreter
   struct sfnt_interpreter_definition *instruction_defs;
 
   /* Interpreter registers.  */
-  struct sfnt_interpreter_graphics_state state;
+  struct sfnt_graphics_state state;
 
   /* Detailed rounding state used when state.round_state indicates
      that fine grained rounding should be used.
@@ -4884,55 +5152,41 @@ static sfnt_f26dot6
 sfnt_mul_f26dot6 (sfnt_f26dot6 a, sfnt_f26dot6 b)
 {
 #ifdef INT64_MAX
-  return (sfnt_f26dot6) (((int64_t) a * b + (1 << 5)) / (1 << 6));
+  int64_t product;
+
+  product = (int64_t) a * (int64_t) b;
+
+  /* This can be done quickly with int64_t.  */
+  return product / (int64_t) 64;
 #else
   int sign;
-  unsigned short al, bl, ah, bh;
-  unsigned int lowlong, midlong, hilong;
-  unsigned int result;
 
   sign = 1;
 
-  /* Compensate for complement and determine if the result will be
-     negative.  */
-
   if (a < 0)
-    {
-      a = -a;
-      sign = -sign;
-    }
+    sign = -sign;
 
   if (b < 0)
-    {
-      b = -b;
-      sign = -sign;
-    }
+    sign = -sign;
 
-  /* Load low and high words from A and B.  */
-  al = a & 0xffff;
-  bl = b & 0xffff;
-  ah = a >> 16;
-  bh = b >> 16;
-
-  /* Multiply the various bits separately.  */
-  midlong = ((unsigned int) al * bh) + (unsigned int) ah * bl;
-  hilong = (((unsigned int) ah * bh) + (midlong & 0xffff0000)) >> 16;
-
-  /* Scale midlong up to 32 bits.  */
-  midlong = midlong << 16;
-  midlong += 1 << 5;
-
-  /* Add remaining lower bits.  */
-  lowlong = ((unsigned int) al * bl) + midlong;
-
-  /* Carry.  */
-  if (lowlong < midlong)
-    hilong++;
-
-  result = lowlong >> 6 | hilong << 26;
-
-  return result * sign;
+  return sfnt_multiply_divide (abs (a), abs (b),
+			       64) * sign;
 #endif
+}
+
+/* Multiply the specified 26.6 fixed point number X by the specified
+   16.16 fixed point number Y.
+
+   The 26.6 fixed point number must fit inside -32768 to 32767.ffff.
+   Value is otherwise undefined.  */
+
+static sfnt_f26dot6
+sfnt_mul_f26dot6_fixed (sfnt_f26dot6 x, sfnt_fixed y)
+{
+  sfnt_fixed result;
+
+  result = sfnt_mul_fixed (y, x);
+  return result;
 }
 
 /* Return the floor of the specified 26.6 fixed point value X.  */
@@ -4966,13 +5220,13 @@ sfnt_round_f26dot6 (sfnt_f26dot6 x)
 
 /* Needed by sfnt_init_graphics_state.  */
 
-static void sfnt_validate_gs (struct sfnt_interpreter_graphics_state *);
+static void sfnt_validate_gs (struct sfnt_graphics_state *);
 
 /* Set up default values for the interpreter graphics state.  Return
    them in STATE.  */
 
 static void
-sfnt_init_graphics_state (struct sfnt_interpreter_graphics_state *state)
+sfnt_init_graphics_state (struct sfnt_graphics_state *state)
 {
   state->auto_flip = true;
   state->cvt_cut_in = 0104;
@@ -4991,7 +5245,7 @@ sfnt_init_graphics_state (struct sfnt_interpreter_graphics_state *state)
   state->rp0 = 0;
   state->rp1 = 0;
   state->rp2 = 0;
-  state->scan_control = false;
+  state->scan_control = 0;
   state->sw_cut_in = 0;
   state->single_width_value = 0;
   state->zp0 = 1;
@@ -5005,7 +5259,8 @@ sfnt_init_graphics_state (struct sfnt_interpreter_graphics_state *state)
 /* Set up an interpreter to be used with a font.  Use the resource
    limits specified in the MAXP table, the values specified in the CVT
    and HEAD tables, the pixel size PIXEL_SIZE, and the point size
-   POINT_SIZE.
+   POINT_SIZE.  CVT may be NULL, in which case the interpreter will
+   not have access to a control value table.
 
    POINT_SIZE should be PIXEL_SIZE, converted to 1/72ths of an inch.
 
@@ -5066,11 +5321,15 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
     return NULL;
 
   /* Add control value table.  */
-  if (INT_MULTIPLY_WRAPV (cvt->num_elements,
-			  sizeof *interpreter->cvt,
-			  &temp)
-      || INT_ADD_WRAPV (temp, size, &size))
-    return NULL;
+
+  if (cvt)
+    {
+      if (INT_MULTIPLY_WRAPV (cvt->num_elements,
+			      sizeof *interpreter->cvt,
+			      &temp)
+	  || INT_ADD_WRAPV (temp, size, &size))
+	return NULL;
+    }
 
   /* Allocate the interpreter.  */
   interpreter = xmalloc (size);
@@ -5093,8 +5352,7 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
 			+ maxp->max_stack_elements);
   interpreter->twilight_y = (interpreter->twilight_x
 			     + maxp->max_twilight_points);
-  interpreter->outline_x = NULL;
-  interpreter->outline_y = NULL;
+  interpreter->glyph_zone = NULL;
   interpreter->advance_width = 0;
   interpreter->storage
     = (uint32_t *) (interpreter->twilight_y
@@ -5110,13 +5368,17 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
   interpreter->cvt
     = (sfnt_f26dot6 *) (interpreter->instruction_defs
 			+ maxp->max_instruction_defs);
-  interpreter->cvt_size = cvt->num_elements;
+
+  if (cvt)
+    interpreter->cvt_size = cvt->num_elements;
+  else
+    interpreter->cvt_size = 0;
 
   /* Now compute the scale.  Then, scale up the control value table
      values.  */
   interpreter->scale
-    = sfnt_div_f26dot6 (pixel_size * 64,
-			head->units_per_em * 64);
+    = sfnt_div_fixed (pixel_size * 64,
+		      head->units_per_em * 64);
 
   /* Set the PPEM.  */
   interpreter->ppem = pixel_size;
@@ -5131,8 +5393,9 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
 
   /* Load the control value table.  */
   for (i = 0; i < interpreter->cvt_size; ++i)
-    interpreter->cvt[i] = ((int32_t) cvt->values[i]
-			   * interpreter->scale);
+    interpreter->cvt[i]
+      = sfnt_mul_f26dot6_fixed (cvt->values[i] * 64,
+				interpreter->scale);
 
   /* Fill in the default values for phase, period and threshold.  */
   interpreter->period = 64;
@@ -5188,6 +5451,20 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 
 #define MOVE(a, b, n)				\
   memmove (a, b, (n) * sizeof (uint32_t))
+
+#define CHECK_PREP()				\
+  if (!is_prep)					\
+    TRAP ("instruction executed not valid"	\
+	  " outside control value program")	\
+
+#define sfnt_add(a, b)				\
+  ((int) ((unsigned int) (a) + (unsigned int) (b)))
+
+#define sfnt_sub(a, b)				\
+  ((int) ((unsigned int) (a) - (unsigned int) (b)))
+
+#define sfnt_mul(a, b)				\
+  ((int) ((unsigned int) (a) * (unsigned int) (b)))
 
 
 
@@ -5360,7 +5637,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     single_width = POP ();			\
 						\
     interpreter->state.single_width_value	\
-      = interpreter->scale * single_width;	\
+      = (interpreter->scale * single_width	\
+	 / 1024);				\
   }
 
 #define DUP()					\
@@ -5426,7 +5704,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 
 #define RAW()					\
   {						\
-    if (!interpreter->outline_x)		\
+    if (why != SFNT_RUN_CONTEXT_GLYPH_PROGRAM)	\
       TRAP ("Read Advance Width without loaded"	\
 	    " glyph");				\
     PUSH (interpreter->advance_width);		\
@@ -5777,6 +6055,9 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 						\
     shift = POP ();				\
 						\
+    if (shift > 6)				\
+      TRAP ("invalid delta shift");		\
+						\
     interpreter->state.delta_shift = shift;	\
   }
 
@@ -5787,7 +6068,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     n1 = POP ();				\
     n2 = POP ();				\
 						\
-    PUSH (n1 + n2);				\
+    PUSH (sfnt_add (n1, n2));			\
   }
 
 #define SUB()					\
@@ -5797,7 +6078,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     n2 = POP ();				\
     n1 = POP ();				\
 						\
-    PUSH (n2 - n1);				\
+    PUSH (sfnt_sub (n1, n2));			\
   }
 
 #define DIV()					\
@@ -5828,7 +6109,11 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     sfnt_f26dot6 n;				\
 						\
     n = POP ();					\
-    PUSH (abs (n));				\
+						\
+    if (n == INT_MIN)				\
+      PUSH (0)					\
+    else					\
+      PUSH (n < 0 ? -n : n)			\
   }
 
 #define NEG()					\
@@ -5836,7 +6121,11 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     sfnt_f26dot6 n;				\
 						\
     n = POP ();					\
-    PUSH (-n);					\
+						\
+    if (n == INT_MIN)				\
+      PUSH (0)					\
+    else					\
+      PUSH (-n)					\
   }
 
 #define FLOOR()					\
@@ -5857,7 +6146,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 
 #define WCVTF()					\
   {						\
-    uint32_t value;				\
+    int32_t value;				\
     uint32_t location;				\
 						\
     value = POP ();				\
@@ -5867,7 +6156,28 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
       TRAP ("WCVTF out of bounds");		\
 						\
     interpreter->cvt[location]			\
-      = interpreter->scale * value;		\
+      = (interpreter->scale * value		\
+	 / 1024);				\
+  }
+
+#define SCANCTRL()				\
+  {						\
+    uint32_t value;				\
+						\
+    value = POP ();				\
+    interpreter->state.scan_control = value;	\
+  }
+
+#define GETINFO()				\
+  {						\
+    uint32_t selector;				\
+						\
+    selector = POP ();				\
+						\
+    if (selector & 1)				\
+      PUSH (2)					\
+    else					\
+      PUSH (0)					\
   }
 
 #define IDEF()					\
@@ -5910,6 +6220,30 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e2 = POP ();				\
 						\
     PUSH (MIN (e1, e2));			\
+  }
+
+#define SCANTYPE()				\
+  {						\
+    POP ();					\
+  }
+
+#define INSTCTRL()				\
+  {						\
+    uint32_t s, v;				\
+						\
+    CHECK_PREP ();				\
+    s = POP ();					\
+    v = POP ();					\
+						\
+    if (!s || s > 2)				\
+      break;					\
+						\
+    interpreter->state.instruct_control		\
+      &= ~(1 << s);				\
+						\
+    if (v)					\
+      interpreter->state.instruct_control	\
+	|= (1 << s);				\
   }
 
 #define PUSHB()					\
@@ -6028,9 +6362,235 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     operand = POP ();				\
     sfnt_set_srounding_state (interpreter,	\
 			      operand,		\
-			      0x2d41);		\
-    interpreter->state.round_state = 6;		\
+			      0x5a82);		\
+    interpreter->state.round_state = 7;		\
     sfnt_validate_gs (&interpreter->state);	\
+  }
+
+
+
+/* CVT delta exception instructions.
+
+   ``Exceptions'' can be placed directly inside the control value
+   table, as it is reloaded every time the point size changes.  */
+
+#define DELTAC1()				\
+  {						\
+    uint32_t operand1, operand2, n;		\
+						\
+    n = POP ();					\
+						\
+  deltac1_start:				\
+    if (!n)					\
+      break;					\
+						\
+    operand1 = POP ();				\
+    operand2 = POP ();				\
+    sfnt_deltac (1, interpreter, operand1,	\
+		 operand2);			\
+    n--;					\
+    goto deltac1_start;				\
+  }
+
+#define DELTAC2()				\
+  {						\
+    uint32_t operand1, operand2, n;		\
+						\
+    n = POP ();					\
+						\
+  deltac2_start:				\
+    if (!n)					\
+      break;					\
+						\
+    operand1 = POP ();				\
+    operand2 = POP ();				\
+    sfnt_deltac (2, interpreter, operand1,	\
+		 operand2);			\
+    n--;					\
+    goto deltac2_start;				\
+  }
+
+#define DELTAC3()				\
+  {						\
+    uint32_t operand1, operand2, n;		\
+						\
+    n = POP ();					\
+						\
+  deltac3_start:				\
+    if (!n)					\
+      break;					\
+						\
+    operand1 = POP ();				\
+    operand2 = POP ();				\
+    sfnt_deltac (3, interpreter, operand1,	\
+		 operand2);			\
+    n--;					\
+    goto deltac3_start;				\
+  }
+
+
+
+/* Anachronistic angle instructions.  */
+
+#define AA()					\
+  {						\
+    POP ();					\
+  }
+
+#define SANGW()					\
+  {						\
+    POP ();					\
+  }
+
+
+
+/* Projection and freedom vector operations.  */
+
+#define SVTCAy()				\
+  {						\
+    sfnt_set_freedom_vector (interpreter,	\
+			     040000, 0);	\
+    sfnt_set_projection_vector (interpreter,	\
+				040000, 0);	\
+  }
+
+#define SVTCAx()				\
+  {						\
+    sfnt_set_freedom_vector (interpreter, 0,	\
+			     040000);		\
+    sfnt_set_projection_vector (interpreter, 0,	\
+				040000);	\
+  }
+
+#define SPvTCAy()				\
+  {						\
+    sfnt_set_projection_vector (interpreter,	\
+				040000, 0);	\
+  }
+
+#define SPvTCAx()				\
+  {						\
+    sfnt_set_projection_vector (interpreter, 0,	\
+				040000);	\
+  }
+
+#define SFvTCAy()				\
+  {						\
+    sfnt_set_freedom_vector (interpreter,	\
+			     040000, 0);	\
+  }
+
+#define SFvTCAx()				\
+  {						\
+    sfnt_set_freedom_vector (interpreter, 0,	\
+			     040000);		\
+  }
+
+#define SPVTL()					\
+  {						\
+    struct sfnt_unit_vector vector;		\
+    uint32_t p2, p1;				\
+						\
+    p2 = POP ();				\
+    p1 = POP ();				\
+						\
+    sfnt_line_to_vector (interpreter,		\
+			 p2, p1, &vector,	\
+			 opcode == 0x07);	\
+						\
+    sfnt_save_projection_vector (interpreter,	\
+				 &vector);	\
+  }
+
+#define SFVTL()					\
+  {						\
+    struct sfnt_unit_vector vector;		\
+    uint32_t p2, p1;				\
+						\
+    p2 = POP ();				\
+    p1 = POP ();				\
+						\
+    sfnt_line_to_vector (interpreter,		\
+			 p2, p1, &vector,	\
+			 opcode == 0x09);	\
+						\
+    sfnt_save_freedom_vector (interpreter,	\
+			      &vector);		\
+  }
+
+#define SPVFS()					\
+  {						\
+    uint32_t y, x;				\
+						\
+    y = POP ();					\
+    x = POP ();					\
+						\
+    sfnt_set_projection_vector (interpreter, x,	\
+				y);		\
+  }
+
+#define SFVFS()					\
+  {						\
+    uint16_t y, x;				\
+						\
+    y = POP ();					\
+    x = POP ();					\
+						\
+    sfnt_set_freedom_vector (interpreter, x,	\
+			     y);		\
+  }
+
+#define GPV()					\
+  {						\
+    struct sfnt_unit_vector vector;		\
+						\
+    vector					\
+      = interpreter->state.projection_vector;	\
+						\
+    PUSH ((uint16_t) vector.x);			\
+    PUSH ((uint16_t) vector.y);			\
+  }
+
+#define GFV()					\
+  {						\
+    struct sfnt_unit_vector vector;		\
+						\
+    vector					\
+      = interpreter->state.freedom_vector;	\
+						\
+    PUSH ((uint16_t) vector.x);			\
+    PUSH ((uint16_t) vector.y);			\
+  }
+
+#define SFVTPV()				\
+  {						\
+    interpreter->state.freedom_vector		\
+      = interpreter->state.projection_vector;	\
+  }
+
+#define ISECT()					\
+  {						\
+    uint32_t a0, a1, b0, b1, p;			\
+						\
+    a0 = POP ();				\
+    a1 = POP ();				\
+    b0 = POP ();				\
+    b1 = POP ();				\
+    p = POP ();					\
+						\
+    sfnt_interpret_isect (interpreter,		\
+			  a0, a1, b0, b1, p);	\
+  }
+
+#define ALIGNPTS()				\
+  {						\
+    uint32_t p1, p2;				\
+						\
+    p1 = POP ();				\
+    p2 = POP ();				\
+						\
+    sfnt_interpret_alignpts (interpreter, p1,	\
+			     p2);		\
   }
 
 
@@ -6040,6 +6600,663 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 				opcode, why)
 
 
+
+/* Save the specified unit VECTOR into INTERPRETER's graphics
+   state.  */
+
+static void
+sfnt_save_projection_vector (struct sfnt_interpreter *interpreter,
+			     struct sfnt_unit_vector *vector)
+{
+  interpreter->state.projection_vector = *vector;
+
+  sfnt_validate_gs (&interpreter->state);
+}
+
+/* Save the specified unit VECTOR into INTERPRETER's graphics
+   state.  */
+
+static void
+sfnt_save_freedom_vector (struct sfnt_interpreter *interpreter,
+			  struct sfnt_unit_vector *vector)
+{
+  interpreter->state.freedom_vector = *vector;
+
+  sfnt_validate_gs (&interpreter->state);
+}
+
+/* Return the values of the point NUMBER in the zone pointed to by
+   INTERPRETER's ZP2 register.
+
+   Trap if NUMBER is out of bounds or the zone is inaccessible.  */
+
+static void
+sfnt_address_zp2 (struct sfnt_interpreter *interpreter,
+		  uint32_t number,
+		  sfnt_f26dot6 *x, sfnt_f26dot6 *y)
+{
+  if (!interpreter->state.zp2)
+    {
+      /* Address the twilight zone.  */
+      if (number >= interpreter->twilight_zone_size)
+	TRAP ("address to ZP2 (twilight zone) out of bounds");
+
+      *x = interpreter->twilight_x[number];
+      *y = interpreter->twilight_y[number];
+      return;
+    }
+
+  /* Address the glyph zone.  */
+  if (!interpreter->glyph_zone)
+    TRAP ("address to ZP2 (glyph zone) points into unset"
+	  " zone");
+
+  if (number >= interpreter->glyph_zone->num_points)
+    TRAP ("address to ZP2 (glyph zone) out of bounds");
+
+  *x = interpreter->glyph_zone->x_current[number];
+  *y = interpreter->glyph_zone->y_current[number];
+}
+
+/* Return the values of the point NUMBER in the zone pointed to by
+   INTERPRETER's ZP1 register.
+
+   Trap if NUMBER is out of bounds or the zone is inaccessible.  */
+
+static void
+sfnt_address_zp1 (struct sfnt_interpreter *interpreter,
+		  uint32_t number,
+		  sfnt_f26dot6 *x, sfnt_f26dot6 *y)
+{
+  if (!interpreter->state.zp1)
+    {
+      /* Address the twilight zone.  */
+      if (number >= interpreter->twilight_zone_size)
+	TRAP ("address to ZP1 (twilight zone) out of bounds");
+
+      *x = interpreter->twilight_x[number];
+      *y = interpreter->twilight_y[number];
+      return;
+    }
+
+  /* Address the glyph zone.  */
+  if (!interpreter->glyph_zone)
+    TRAP ("address to ZP1 (glyph zone) points into unset"
+	  " zone");
+
+  if (number >= interpreter->glyph_zone->num_points)
+    TRAP ("address to ZP1 (glyph zone) out of bounds");
+
+  *x = interpreter->glyph_zone->x_current[number];
+  *y = interpreter->glyph_zone->y_current[number];
+}
+
+/* Return the values of the point NUMBER in the zone pointed to by
+   INTERPRETER's ZP0 register.
+
+   Trap if NUMBER is out of bounds or the zone is inaccessible.  */
+
+static void
+sfnt_address_zp0 (struct sfnt_interpreter *interpreter,
+		  uint32_t number,
+		  sfnt_f26dot6 *x, sfnt_f26dot6 *y)
+{
+  if (!interpreter->state.zp0)
+    {
+      /* Address the twilight zone.  */
+      if (number >= interpreter->twilight_zone_size)
+	TRAP ("address to ZP0 (twilight zone) out of bounds");
+
+      *x = interpreter->twilight_x[number];
+      *y = interpreter->twilight_y[number];
+      return;
+    }
+
+  /* Address the glyph zone.  */
+  if (!interpreter->glyph_zone)
+    TRAP ("address to ZP0 (glyph zone) points into unset"
+	  " zone");
+
+  if (number >= interpreter->glyph_zone->num_points)
+    TRAP ("address to ZP0 (glyph zone) out of bounds");
+
+  *x = interpreter->glyph_zone->x_current[number];
+  *y = interpreter->glyph_zone->y_current[number];
+}
+
+/* Set the point NUMBER in the zone referenced by INTERPRETER's ZP2
+   register to the specified X and Y.
+
+   Apply FLAGS to NUMBER's flags in that zone.  Trap if NUMBER is out
+   of bounds.  */
+
+static void
+sfnt_store_zp2 (struct sfnt_interpreter *interpreter,
+		uint32_t number, sfnt_f26dot6 x, sfnt_f26dot6 y,
+		int flags)
+{
+  if (!interpreter->state.zp2)
+    {
+      /* Address the twilight zone.  */
+      if (number >= interpreter->twilight_zone_size)
+	TRAP ("address to ZP2 (twilight zone) out of bounds");
+
+      interpreter->twilight_x[number] = x;
+      interpreter->twilight_y[number] = y;
+      return;
+    }
+
+  /* Address the glyph zone.  */
+  if (!interpreter->glyph_zone)
+    TRAP ("address to ZP0 (glyph zone) points into unset"
+	  " zone");
+
+  if (number >= interpreter->glyph_zone->num_points)
+    TRAP ("address to ZP0 (glyph zone) out of bounds");
+
+  interpreter->glyph_zone->x_current[number] = x;
+  interpreter->glyph_zone->y_current[number] = y;
+  interpreter->glyph_zone->flags[number] |= flags;
+}
+
+#if 0
+
+/* Convert the line between the points X1, Y1 and X2, Y2 to standard
+   form.
+
+   Return the two coefficients in *A0 and *B0, and the constant in
+   *C.  */
+
+static void
+sfnt_line_to_standard_form (sfnt_f26dot6 x1, sfnt_f26dot6 y1,
+			    sfnt_f26dot6 x2, sfnt_f26dot6 y2,
+			    sfnt_f26dot6 *a, sfnt_f26dot6 *b,
+			    sfnt_f26dot6 *c)
+{
+  sfnt_f26dot6 a_temp, b_temp, c_temp;
+
+  a_temp = sfnt_sub (y2, y1);
+  b_temp = sfnt_sub (x1, x2);
+  c_temp = sfnt_sub (sfnt_mul_f26dot6 (x1, y2),
+		     sfnt_mul_f26dot6 (x2, y1));
+
+  *a = a_temp;
+  *b = b_temp;
+  *c = c_temp;
+}
+
+#endif
+
+/* Move the specified POINT in the zone addressed by INTERPRETER's ZP0
+   register by the given DISTANCE along the freedom vector.
+
+   No checking is done to ensure that POINT lies inside the zone, or
+   even that the zone exists at all.  */
+
+static void
+sfnt_move_zp0 (struct sfnt_interpreter *interpreter, uint32_t point,
+	       sfnt_f26dot6 distance)
+{
+  if (!interpreter->state.zp0)
+    interpreter->state.move (&interpreter->twilight_x[point],
+			     &interpreter->twilight_y[point],
+			     interpreter, distance, NULL);
+  else
+    interpreter->state.move (&interpreter->glyph_zone->x_current[point],
+			     &interpreter->glyph_zone->y_current[point],
+			     interpreter, distance,
+			     &interpreter->glyph_zone->flags[point]);
+}
+
+/* Move the specified POINT in the zone addressed by INTERPRETER's ZP1
+   register by the given DISTANCE along the freedom vector.
+
+   No checking is done to ensure that POINT lies inside the zone, or
+   even that the zone exists at all.  */
+
+static void
+sfnt_move_zp1 (struct sfnt_interpreter *interpreter, uint32_t point,
+	       sfnt_f26dot6 distance)
+{
+  if (!interpreter->state.zp1)
+    interpreter->state.move (&interpreter->twilight_x[point],
+			     &interpreter->twilight_y[point],
+			     interpreter, distance, NULL);
+  else
+    interpreter->state.move (&interpreter->glyph_zone->x_current[point],
+			     &interpreter->glyph_zone->y_current[point],
+			     interpreter, distance,
+			     &interpreter->glyph_zone->flags[point]);
+}
+
+/* Project the vector VX, VY onto INTERPRETER's projection vector.
+   Return the magnitude of the projection.  */
+
+static sfnt_f26dot6
+sfnt_project_vector (struct sfnt_interpreter *interpreter,
+		     sfnt_f26dot6 vx, sfnt_f26dot6 vy)
+{
+  return interpreter->state.project (vx, vy, interpreter);
+}
+
+/* Align the two points P1 and P2 relative to the projection vector.
+   P1 is addressed relative to ZP0, and P2 is addressed relative to
+   ZP1.
+
+   Move both points along the freedom vector by half the magnitude of
+   the the projection of a vector formed by P1.x - P2.x, P1.y - P2.y,
+   upon the projection vector.  */
+
+static void
+sfnt_interpret_alignpts (struct sfnt_interpreter *interpreter,
+			 uint32_t p1, uint32_t p2)
+{
+  sfnt_f26dot6 p1x, p1y, p2x, p2y;
+  sfnt_f26dot6 magnitude;
+
+  sfnt_address_zp0 (interpreter, p1, &p1x, &p1y);
+  sfnt_address_zp1 (interpreter, p2, &p2x, &p2y);
+
+  magnitude = sfnt_project_vector (interpreter,
+				   sfnt_sub (p1x, p2x),
+				   sfnt_sub (p1y, p2y));
+  magnitude = magnitude / 2;
+
+  /* Now move both points along the freedom vector.  */
+  sfnt_move_zp0 (interpreter, p1, magnitude);
+  sfnt_move_zp1 (interpreter, p2, -magnitude);
+}
+
+/* Set the point P in the zone referenced in INTERPRETER's ZP2
+   register to the intersection between the line formed by the points
+   POINT_A0 to POINT_A1 in ZP0 and another line formed by POINT_B0 to
+   POINT_B1 in ZP1.
+
+   Touch the point P.  */
+
+static void
+sfnt_interpret_isect (struct sfnt_interpreter *interpreter,
+		      uint32_t point_a0, uint32_t point_a1,
+		      uint32_t point_b0, uint32_t point_b1,
+		      uint32_t p)
+{
+  sfnt_f26dot6 a0x, a0y, a1x, a1y;
+  sfnt_f26dot6 b0x, b0y, b1x, b1y;
+#if 0
+  sfnt_f26dot6 determinant, dx, dy;
+  sfnt_f26dot6 a0, b0, a1, b1;
+  sfnt_f26dot6 c0, c1, px, py;
+#else
+  sfnt_f26dot6 dx, dy, dax, day, dbx, dby;
+  sfnt_f26dot6 discriminant, val, dot_product;
+  sfnt_f26dot6 px, py;
+#endif
+
+  /* Load points.  */
+  sfnt_address_zp0 (interpreter, point_a0, &a0x, &a0y);
+  sfnt_address_zp0 (interpreter, point_a1, &a1x, &a1y);
+  sfnt_address_zp1 (interpreter, point_b0, &b0x, &b0y);
+  sfnt_address_zp1 (interpreter, point_b1, &b1x, &b1y);
+
+#if 0
+  /* The system is determined from the standard form (look this up) of
+     both lines.
+
+     (the variables below have no relation to C identifiers
+      unless otherwise specified.)
+
+       a0*x + b0*y = c0
+       a1*x + b1*y = c1
+
+     The coefficient matrix is thus
+
+       [ a0 b0
+         a1 b1 ]
+
+     the vector of constants (also just dubbed the ``column vector''
+     by some people)
+
+       [ c0
+         c1 ]
+
+     and the solution vector becomes
+
+       [ x
+         y ]
+
+     Since there are exactly two equations and two unknowns, Cramer's
+     rule applies, and there is no need for any Gaussian elimination.
+
+     The determinant for the coefficient matrix is:
+
+       D = a0*b1 - b0*a1
+
+     the first and second determinants are:
+
+       Dx = c0*b1 - a0*c1
+       Dy = a1*c1 - c0*b1
+
+     and x = Dx / D, y = Dy / D.
+
+     If the system is indeterminate, D will be 0.  */
+
+  sfnt_line_to_standard_form (a0x, a0y, a1x, a1y,
+			      &a0, &b0, &c0);
+  sfnt_line_to_standard_form (b0x, b0y, b1x, b1y,
+			      &a1, &b1, &c1);
+
+
+  /* Compute determinants.  */
+  determinant = sfnt_sub (sfnt_mul_fixed (a0, b1),
+			  sfnt_mul_fixed (b0, a1));
+  dx = sfnt_sub (sfnt_mul_fixed (c0, b1),
+		 sfnt_mul_fixed (a1, c1));
+  dy = sfnt_sub (sfnt_mul_fixed (a0, c1),
+		 sfnt_mul_fixed (c0, b0));
+
+  /* Detect degenerate cases.  */
+
+  if (determinant == 0)
+    goto degenerate_case;
+#else
+  /* The algorithm above would work with floating point, but overflows
+     too easily with fixed point numbers.
+
+     Instead, use the modified vector projection algorithm found in
+     FreeType.  */
+
+  dbx = sfnt_sub (b1x, b0x);
+  dby = sfnt_sub (b1y, b0y);
+  dax = sfnt_sub (a1x, a0x);
+  day = sfnt_sub (a1y, a0y);
+
+  /* Compute vector cross product.  */
+  discriminant = sfnt_add (sfnt_mul_f26dot6 (dax, -dby),
+			   sfnt_mul_f26dot6 (day, dbx));
+  dot_product = sfnt_add (sfnt_mul_f26dot6 (dax, dbx),
+			  sfnt_mul_f26dot6 (day, dby));
+
+  /* Reject any non-intersections and grazing intersections.  */
+  if (!(sfnt_mul (19, abs (discriminant)) > abs (dot_product)))
+    return;
+
+  /* Reject any non-intersections.  */
+  if (!discriminant)
+    goto degenerate_case;
+
+  dx = sfnt_sub (b0x, a0x);
+  dy = sfnt_sub (b0y, a0y);
+  val = sfnt_add (sfnt_mul_f26dot6 (dx, -dby),
+		  sfnt_mul_f26dot6 (dy, dbx));
+
+  /* Project according to these values.  */
+  dx = sfnt_add (a0x, sfnt_multiply_divide_signed (val, dax,
+						   discriminant));
+  dy = sfnt_add (a0y, sfnt_multiply_divide_signed (val, day,
+						   discriminant));
+#endif
+
+  sfnt_store_zp2 (interpreter, p,
+#if 0
+		  sfnt_div_fixed (dx, determinant),
+		  sfnt_div_fixed (dy, determinant),
+#else
+		  dx, dy,
+#endif
+		  SFNT_POINT_TOUCHED_BOTH);
+  return;
+
+ degenerate_case:
+
+  /* Apple says that in this case:
+
+     Px = (a0x + a1x) / 2 + (b0x + b1x) / 2
+          ---------------------------------
+	                  2
+     Py = (a0y + a1y) / 2 + (b0y + b1y) / 2
+          ---------------------------------
+	                  2  */
+
+  px = (sfnt_add (a0x, a1x) / 2 + sfnt_add (b0x, b1x) / 2) / 2;
+  py = (sfnt_add (a0y, a1y) / 2 + sfnt_add (b0y, b1y) / 2) / 2;
+  sfnt_store_zp2 (interpreter, p, px, py,
+		  SFNT_POINT_TOUCHED_BOTH);
+}
+
+/* Compute the square root of the 16.16 fixed point number N.  */
+
+static sfnt_fixed
+sfnt_sqrt_fixed (sfnt_fixed n)
+{
+  int count;
+  unsigned int root, rem_hi, rem_lo, possible;
+
+  root = 0;
+
+  if (n > 0)
+    {
+      rem_hi = 0;
+      rem_lo = n;
+      count = 24;
+
+      do
+	{
+	  rem_hi = (rem_hi << 2) | (rem_lo >> 30);
+	  rem_lo <<= 2;
+	  root <<= 1;
+	  possible = (root << 1) + 1;
+
+	  if (rem_hi >= possible)
+	    {
+	      rem_hi -= possible;
+	      root += 1;
+	    }
+	}
+      while (--count);
+    }
+
+  return root;
+}
+
+/* Compute a unit vector describing a vector VX, VY.  Return the value
+   in *VECTOR.  */
+
+static void
+sfnt_normalize_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
+		       struct sfnt_unit_vector *vector)
+{
+  sfnt_f26dot6 x_squared, y_squared;
+  sfnt_fixed n, magnitude;
+
+  if (!vx && !vy)
+    {
+      /* The MS scaler seems to do this.  */
+      vector->x = 04000;
+      vector->y = 0;
+      return;
+    }
+
+  /* Compute the magnitude of this vector.  */
+  x_squared = sfnt_mul_f26dot6 (vx, vx);
+  y_squared = sfnt_mul_f26dot6 (vy, vy);
+
+  /* Convert to 16.16 for greater precision.  */
+  n = sfnt_add (x_squared, y_squared) * 1024;
+
+  /* Get hypotenuse of the triangle from vx, 0, to 0, vy.  */
+  magnitude = sfnt_sqrt_fixed (n);
+
+  /* Long division.. eek! */
+  vector->x = (sfnt_div_fixed (vx * 1024, magnitude) >> 2);
+  vector->y = (sfnt_div_fixed (vy * 1024, magnitude) >> 2);
+}
+
+/* Compute a unit vector describing the direction of a line from the
+   point P2 to the point P1.  Save the result in *VECTOR.
+
+   P2 is the address of a point in the zone specified in the ZP2
+   register.  P1 is the address of a point in the zone specified in
+   the ZP1 register.  Take the values of both registers from the
+   specified INTERPRETER's graphics state.
+
+   If PERPENDICULAR, then *VECTOR will be rotated 90 degrees
+   counter-clockwise.  Else, *VECTOR will be parallel to the line.  */
+
+static void
+sfnt_line_to_vector (struct sfnt_interpreter *interpreter,
+		     uint32_t p2, uint32_t p1,
+		     struct sfnt_unit_vector *vector,
+		     bool perpendicular)
+{
+  sfnt_f26dot6 x2, y2;
+  sfnt_f26dot6 x1, y1;
+  sfnt_f26dot6 a, b, temp;
+
+  sfnt_address_zp2 (interpreter, p2, &x2, &y2);
+  sfnt_address_zp1 (interpreter, p1, &x1, &y1);
+
+  /* Calculate the vector between X2, Y2, and X1, Y1.  */
+  a = sfnt_sub (x1, x2);
+  b = sfnt_sub (y1, y2);
+
+  /* Rotate counterclockwise if necessary.  */
+
+  if (perpendicular)
+    {
+      temp = b;
+      b = a;
+      a = -temp;
+    }
+
+  /* Normalize this vector, turning it into a unit vector.  */
+  sfnt_normalize_vector (a, b, vector);
+}
+
+/* Apply the delta specified by OPERAND to the control value table
+   entry at INDEX currently loaded inside INTERPRETER.
+
+   Trap if INDEX is out of bounds.
+
+   NUMBER is the number of the specific DELTAC instruction this
+   instruction is being applied on behalf of.  It must be between 1
+   and 3.  */
+
+static void
+sfnt_deltac (int number, struct sfnt_interpreter *interpreter,
+	     unsigned char operand, unsigned int index)
+{
+  int ppem, delta;
+
+  /* Make sure INDEX is a valid cvt entry.  */
+
+  if (index >= interpreter->cvt_size)
+    TRAP ("DELTACn instruction out of bounds");
+
+  /* operand is an 8 bit number.  The most significant 4 bits
+     represent a specific PPEM size at which to apply the delta
+     specified in the low 4 bits, summed with an instruction specific
+     delta, and the current delta base.  */
+
+  ppem = (operand >> 4) + interpreter->state.delta_base;
+
+  switch (number)
+    {
+    case 1:
+      break;
+
+    case 2:
+      ppem += 16;
+      break;
+
+    case 3:
+      ppem += 32;
+      break;
+    }
+
+  /* Don't apply the delta if the ppem size doesn't match.  */
+
+  if (interpreter->ppem != ppem)
+    return;
+
+  /* Now, determine the delta using the low 4 bits.  The low 4 bits
+     actually specify a ``magnitude'' to apply to the delta, and do
+     not have an encoding for the delta 0.  */
+
+  switch (operand & 0xf)
+    {
+    case 0:
+      delta = -8;
+      break;
+
+    case 1:
+      delta = -7;
+      break;
+
+    case 2:
+      delta = -6;
+      break;
+
+    case 3:
+      delta = -5;
+      break;
+
+    case 4:
+      delta = -4;
+      break;
+
+    case 5:
+      delta = -3;
+      break;
+
+    case 6:
+      delta = -2;
+      break;
+
+    case 7:
+      delta = -1;
+      break;
+
+    case 8:
+      delta = 1;
+      break;
+
+    case 9:
+      delta = 2;
+      break;
+
+    case 10:
+      delta = 3;
+      break;
+
+    case 11:
+      delta = 4;
+      break;
+
+    case 12:
+      delta = 5;
+      break;
+
+    case 13:
+      delta = 6;
+      break;
+
+    case 14:
+      delta = 7;
+      break;
+
+    case 15:
+      delta = 8;
+      break;
+    }
+
+  /* Now, scale up the delta by the step size, which is determined by
+     the delta shift.  */
+  delta *= 1l << (6 - interpreter->state.delta_shift);
+
+  /* Finally, apply the delta to the CVT entry.  */
+  interpreter->cvt[index] = sfnt_add (interpreter->cvt[index],
+				      delta);
+}
 
 /* Needed by sfnt_interpret_call.  */
 static void sfnt_interpret_run (struct sfnt_interpreter *,
@@ -6090,14 +7307,14 @@ sfnt_interpret_call (struct sfnt_interpreter_definition *definition,
    OPERAND.
 
    Use the specified GRID_PERIOD to determine the period.  It is is a
-   2.14 fixed point number, but the rounding state set will be a 26.6
+   18.14 fixed point number, but the rounding state set will be a 26.6
    fixed point number.  */
 
 static void
 sfnt_set_srounding_state (struct sfnt_interpreter *interpreter,
-			  uint32_t operand, sfnt_f2dot14 grid_period)
+			  uint32_t operand, sfnt_f18dot14 grid_period)
 {
-  sfnt_f2dot14 period, phase, threshold;
+  sfnt_f18dot14 period, phase, threshold;
 
   /* The most significant 2 bits in the 8 bit OPERAND determine the
      period.  */
@@ -6143,7 +7360,7 @@ sfnt_set_srounding_state (struct sfnt_interpreter *interpreter,
       break;
     }
 
-  /* And the least significant 4 bits determine the period.  */
+  /* And the least significant 4 bits determine the threshold.  */
 
   if (operand & 0x0f)
     threshold = (((int) (operand & 0x0f) - 4)
@@ -6220,8 +7437,8 @@ sfnt_skip_code (struct sfnt_interpreter *interpreter)
 
 static void
 sfnt_interpret_unimplemented (struct sfnt_interpreter *interpreter,
-			      enum sfnt_interpreter_run_context why,
-			      unsigned char opcode)
+			      unsigned char opcode,
+			      enum sfnt_interpreter_run_context why)
 {
   uint32_t i;
   struct sfnt_interpreter_definition *def;
@@ -6230,11 +7447,12 @@ sfnt_interpret_unimplemented (struct sfnt_interpreter *interpreter,
     {
       def = &interpreter->instruction_defs[i];
 
-      if (!def->instructions)
-	TRAP ("invalid instruction");
-
       if (def->opcode == opcode)
 	{
+	  if (!def->instructions)
+	    TRAP ("** ERROR ** malformed internal instruction"
+		  " definition");
+
 	  sfnt_interpret_call (def, interpreter, why);
 	  return;
 	}
@@ -6375,7 +7593,7 @@ sfnt_interpret_if (struct sfnt_interpreter *interpreter,
 
   /* Number of ifs.  */
   nifs = 0;
-  need_break = true;
+  need_break = false;
 
   /* Break past the matching else condition.  */
   do
@@ -6514,25 +7732,209 @@ static sfnt_f26dot6
 sfnt_round_super (sfnt_f26dot6 x,
 		  struct sfnt_interpreter *interpreter)
 {
-  sfnt_f26dot6 greater, smaller;
+  sfnt_f26dot6 value;
 
-  /* Get greater and smaller values around x.  */
-  smaller = x & -(interpreter->period);
-  greater = smaller + interpreter->period;
+  /* Compute the rounded value.  */
+  value = sfnt_add ((interpreter->threshold
+		     - interpreter->phase), x);
+  value = sfnt_add (value & -interpreter->period,
+		    interpreter->phase);
 
-  /* Decide what to use based on the threshold.  */
-  if (x - smaller >= interpreter->threshold)
-    return greater;
+  /* Remember that since the phase is specified by font instructions,
+     it is possible for the sign to be changed.  In that case, return
+     the phase itself.  */
 
-  return smaller;
+  return value < 0 ? interpreter->phase : value;
+}
+
+/* Round X using the detailed rounding information ``super rounding
+   state'' in INTERPRETER, but suitably for values that are multiples
+   of the sqrt of 2.  Value is the result.  */
+
+static sfnt_f26dot6
+sfnt_round_super45 (sfnt_f26dot6 x,
+		    struct sfnt_interpreter *interpreter)
+{
+  sfnt_f26dot6 value;
+
+  /* Compute the rounded value.  */
+
+  value = ((sfnt_add (x, (interpreter->threshold
+			  - interpreter->phase))
+	    / interpreter->period)
+	   * interpreter->period);
+  value = sfnt_add (value, interpreter->phase);
+
+  /* Remember that since the phase is specified by font instructions,
+     it is possible for the sign to be changed.  In that case, return
+     the phase itself.  */
+
+  return value < 0 ? interpreter->phase : value;
+}
+
+/* Project the specified vector VX and VY onto the unit vector that is
+   INTERPRETER's projection vector, assuming that INTERPRETER's
+   projection vector is on the X axis.
+
+   Value is the magnitude of the projected vector.  */
+
+static sfnt_f26dot6
+sfnt_project_onto_x_axis_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
+				 struct sfnt_interpreter *interpreter)
+{
+  return vx;
+}
+
+/* Project the specified vector VX and VY onto the unit vector that is
+   INTERPRETER's projection vector, assuming that INTERPRETER's
+   projection vector is on the Y axis.
+
+   Value is the magnitude of the projected vector.  */
+
+static sfnt_f26dot6
+sfnt_project_onto_y_axis_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
+				 struct sfnt_interpreter *interpreter)
+{
+  return vy;
+}
+
+/* Calculate AX * BX + AY * BY divided by 16384.  */
+
+static int32_t
+sfnt_dot_fix_14 (int32_t ax, int32_t ay, int bx, int by)
+{
+  int32_t m, s, hi1, hi2, hi;
+  uint32_t l, lo1, lo2, lo;
+
+
+  /* Compute ax*bx as 64-bit value.  */
+  l = (uint32_t) ((ax & 0xffffu) * bx);
+  m = (ax >> 16) * bx;
+
+  lo1 = l + ((uint32_t) m << 16);
+  hi1 = (m >> 16) + ((int32_t) l >> 31) + (lo1 < l);
+
+  /* Compute ay*by as 64-bit value.  */
+  l = (uint32_t) ((ay & 0xffffu) * by);
+  m = (ay >> 16) * by;
+
+  lo2 = l + ((uint32_t) m << 16);
+  hi2 = (m >> 16) + ((int32_t) l >> 31) + (lo2 < l);
+
+  /* add them */
+  lo = lo1 + lo2;
+  hi = hi1 + hi2 + (lo < lo1);
+
+  /* divide the result by 2^14 with rounding */
+  s   = hi >> 31;
+  l   = lo + (uint32_t) s;
+  hi += s + (l < lo);
+  lo  = l;
+
+  l   = lo + 0x2000u;
+  hi += (l < lo);
+
+  return (int32_t) (((uint32_t) hi << 18) | (l >> 14));
+}
+
+/* Project the specified vector VX and VY onto the unit vector that is
+   INTERPRETER's projection vector, making only the assumption that the
+   projection vector is a valid unit vector.
+
+   Value is the magnitude of the projected vector.  */
+
+static sfnt_f26dot6
+sfnt_project_onto_any_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
+			      struct sfnt_interpreter *interpreter)
+{
+  return sfnt_dot_fix_14 (vx, vy,
+			  interpreter->state.projection_vector.x,
+			  interpreter->state.projection_vector.y);
+}
+
+/* Move the point at *X, *Y by DISTANCE along INTERPRETER's freedom
+   vector.  Set *FLAGS where appropriate and when non-NULL.
+
+   Assume both vectors are aligned to the X axis.  */
+
+static void
+sfnt_move_x (sfnt_f26dot6 *x, sfnt_f26dot6 *y,
+	     struct sfnt_interpreter *interpreter,
+	     sfnt_f26dot6 distance, unsigned char *flags)
+{
+  *x = sfnt_add (*x, distance);
+
+  if (flags)
+    *flags |= SFNT_POINT_TOUCHED_X;
+}
+
+/* Move the point at *X, *Y by DISTANCE along INTERPRETER's freedom
+   vector.  Set *FLAGS where appropriate and when non-NULL.
+
+   Assume both vectors are aligned to the Y axis.  */
+
+static void
+sfnt_move_y (sfnt_f26dot6 *x, sfnt_f26dot6 *y,
+	     struct sfnt_interpreter *interpreter,
+	     sfnt_f26dot6 distance, unsigned char *flags)
+{
+  *y = sfnt_add (*y, distance);
+
+  if (flags)
+    *flags |= SFNT_POINT_TOUCHED_Y;
+}
+
+/* Move the point at *X, *Y by DISTANCE along INTERPRETER's freedom
+   vector.  Set *FLAGS where appropriate and when non-NULL.  */
+
+static void
+sfnt_move (sfnt_f26dot6 *x, sfnt_f26dot6 *y,
+	   struct sfnt_interpreter *interpreter,
+	   sfnt_f26dot6 distance, unsigned char *flags)
+{
+  sfnt_f26dot6 versor;
+  sfnt_f2dot14 dot_product;
+
+  dot_product = interpreter->state.vector_dot_product;
+
+  /* Not actually 26.6, but the multiply-divisions below cancel each
+     other out, so the result is 26.6.  */
+  versor = interpreter->state.freedom_vector.x;
+
+  if (versor)
+    {
+      /* Move along X axis, converting the distance to the freedom
+	 vector.  */
+      *x = sfnt_add (*x, sfnt_multiply_divide_signed (distance,
+						      versor,
+						      dot_product));
+
+      if (flags)
+	*flags |= SFNT_POINT_TOUCHED_X;
+    }
+
+  versor = interpreter->state.freedom_vector.y;
+
+  if (versor)
+    {
+      /* Move along X axis, converting the distance to the freedom
+	 vector.  */
+      *y = sfnt_add (*y, sfnt_multiply_divide_signed (distance,
+						      versor,
+						      dot_product));
+
+      if (flags)
+	*flags |= SFNT_POINT_TOUCHED_Y;
+    }
 }
 
 /* Validate the graphics state GS.
-   Establish function pointers for rounding, et cetera.
-   If something invalid is found, trap.  */
+   Establish function pointers for rounding and projection.
+   Establish dot product used to convert vector distances between
+   each other.  */
 
 static void
-sfnt_validate_gs (struct sfnt_interpreter_graphics_state *gs)
+sfnt_validate_gs (struct sfnt_graphics_state *gs)
 {
   /* Establish the function used for rounding based on the round
      state.  */
@@ -6564,10 +7966,81 @@ sfnt_validate_gs (struct sfnt_interpreter_graphics_state *gs)
       break;
 
     case 6: /* Fine grained rounding.  */
-    case 7: /* Fine grained rounding 45 degree variant.  */
       gs->round = sfnt_round_super;
       break;
+
+    case 7: /* Fine grained rounding 45 degree variant.  */
+      gs->round = sfnt_round_super45;
+      break;
     }
+
+  /* Establish the function used for vector projection.
+     When the projection vector is an axis vector, a fast
+     version can be used.  */
+
+  if (gs->projection_vector.x == 040000)
+    gs->project = sfnt_project_onto_x_axis_vector;
+  else if (gs->projection_vector.y == 0x40000)
+    gs->project = sfnt_project_onto_y_axis_vector;
+  else
+    gs->project = sfnt_project_onto_any_vector;
+
+  /* Compute dot product of the freedom and projection vectors.
+     Handle the common case where the freedom vector is aligned
+     to an axis.  */
+
+  if (gs->freedom_vector.x == 040000)
+    gs->vector_dot_product = gs->projection_vector.x;
+  else if (gs->freedom_vector.y == 040000)
+    gs->vector_dot_product = gs->projection_vector.y;
+  else
+    /* Actually calculate the dot product.  */
+    gs->vector_dot_product = ((((long) gs->projection_vector.x
+				* gs->freedom_vector.x)
+			       + ((long) gs->projection_vector.y
+				  * gs->freedom_vector.y))
+			      / 16384);
+
+  /* Now figure out which function to use to move distances.  Handle
+     the common case where both the freedom and projection vectors are
+     aligned to an axis.  */
+
+  if (gs->freedom_vector.x == 040000
+      && gs->projection_vector.y == 040000)
+    gs->move = sfnt_move_x;
+  else if (gs->freedom_vector.y == 040000
+	   && gs->projection_vector.y == 040000)
+    gs->move = sfnt_move_y;
+  else
+    gs->move = sfnt_move;
+}
+
+/* Set the X and Y versors of the freedom vector of INTERPRETER's
+   graphics state to the specified X and Y, in 2.14 fixed point
+   format.  */
+
+static void
+sfnt_set_freedom_vector (struct sfnt_interpreter *interpreter,
+			 sfnt_f2dot14 x, sfnt_f2dot14 y)
+{
+  interpreter->state.freedom_vector.x = x;
+  interpreter->state.freedom_vector.y = y;
+
+  sfnt_validate_gs (&interpreter->state);
+}
+
+/* Set the X and Y versors of the projection vector of INTERPRETER's
+   graphics state to the specified X and Y, in 2.14 fixed point
+   format.  */
+
+static void
+sfnt_set_projection_vector (struct sfnt_interpreter *interpreter,
+			    sfnt_f2dot14 x, sfnt_f2dot14 y)
+{
+  interpreter->state.projection_vector.x = x;
+  interpreter->state.projection_vector.y = y;
+
+  sfnt_validate_gs (&interpreter->state);
 }
 
 /* Execute the program now loaded into INTERPRETER.
@@ -6582,6 +8055,16 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 		    enum sfnt_interpreter_run_context why)
 {
   unsigned char opcode;
+  bool is_prep;
+
+  /* Determine whether or not this is the control value program.  */
+  is_prep = (why == SFNT_RUN_CONTEXT_CONTROL_VALUE_PROGRAM);
+
+#ifdef TEST
+  /* Allow testing control value program instructions as well.  */
+  if (why == SFNT_RUN_CONTEXT_TEST)
+    is_prep = true;
+#endif
 
   while (interpreter->IP < interpreter->num_instructions)
     {
@@ -6589,518 +8072,541 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 
       switch (opcode)
 	{
-        case 0x00:  /* SVTCA y  */
-        case 0x01:  /* SVTCA x  */
-        case 0x02:  /* SPvTCA y */
-        case 0x03:  /* SPvTCA x */
-        case 0x04:  /* SFvTCA y */
-        case 0x05:  /* SFvTCA x */
-	  NOT_IMPLEMENTED ();
+	case 0x00:  /* SVTCA y  */
+	  SVTCAy ();
 	  break;
 
-	case 0x06:
-	case 0x07:
-	  /* Not implemented.  */
-	  NOT_IMPLEMENTED ();
+	case 0x01:  /* SVTCA x  */
+	  SVTCAx ();
+	  break;
+
+	case 0x02:  /* SPvTCA y */
+	  SPvTCAy ();
+	  break;
+
+	case 0x03:  /* SPvTCA x */
+	  SPvTCAx ();
+	  break;
+
+	case 0x04:  /* SFvTCA y */
+	  SFvTCAy ();
+	  break;
+
+	case 0x05:  /* SFvTCA x */
+	  SFvTCAx ();
+	  break;
+
+	case 0x06: /* SPvTL // */
+	case 0x07: /* SPvTL +  */
+	  SPVTL ();
 	  break;
 
 	case 0x08:  /* SFvTL // */
-        case 0x09:  /* SFvTL +  */
-	  NOT_IMPLEMENTED ();
+	case 0x09:  /* SFvTL +  */
+	  SFVTL ();
 	  break;
 
 	case 0x0A:  /* SPvFS */
-	  NOT_IMPLEMENTED ();
+	  SPVFS ();
 	  break;
 
-	case 0x0B:
-	  NOT_IMPLEMENTED ();
+	case 0x0B:  /* SFvFS */
+	  SFVFS ();
 	  break;
 
-	case 0x0C:
-	  NOT_IMPLEMENTED ();
+	case 0x0C:  /* GPv */
+	  GPV ();
 	  break;
 
 	case 0x0D:  /* GFv */
-          NOT_IMPLEMENTED ();
-          break;
+	  GFV ();
+	  break;
 
-        case 0x0E:  /* SFvTPv */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x0E:  /* SFvTPv */
+	  SFVTPV ();
+	  break;
 
-        case 0x0F:  /* ISECT  */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x0F:  /* ISECT  */
+	  ISECT ();
+	  break;
 
-        case 0x10:  /* SRP0 */
-          SRP0 ();
-          break;
+	case 0x10:  /* SRP0 */
+	  SRP0 ();
+	  break;
 
-        case 0x11:  /* SRP1 */
+	case 0x11:  /* SRP1 */
 	  SRP1 ();
-          break;
+	  break;
 
-        case 0x12:  /* SRP2 */
+	case 0x12:  /* SRP2 */
 	  SRP2 ();
-          break;
+	  break;
 
-        case 0x13:  /* SZP0 */
+	case 0x13:  /* SZP0 */
 	  SZP0 ();
-          break;
+	  break;
 
-        case 0x14:  /* SZP1 */
+	case 0x14:  /* SZP1 */
 	  SZP1 ();
-          break;
+	  break;
 
-        case 0x15:  /* SZP2 */
+	case 0x15:  /* SZP2 */
 	  SZP2 ();
-          break;
+	  break;
 
-        case 0x16:  /* SZPS */
+	case 0x16:  /* SZPS */
 	  SZPS ();
-          break;
+	  break;
 
-        case 0x17:  /* SLOOP */
+	case 0x17:  /* SLOOP */
 	  SLOOP ();
-          break;
+	  break;
 
-        case 0x18:  /* RTG */
+	case 0x18:  /* RTG */
 	  RTG ();
-          break;
+	  break;
 
-        case 0x19:  /* RTHG */
-          RTHG ();
-          break;
+	case 0x19:  /* RTHG */
+	  RTHG ();
+	  break;
 
-        case 0x1A:  /* SMD */
-          SMD ();
-          break;
+	case 0x1A:  /* SMD */
+	  SMD ();
+	  break;
 
-        case 0x1B:  /* ELSE */
+	case 0x1B:  /* ELSE */
 	  ELSE ();
-          break;
+	  break;
 
-        case 0x1C:  /* JMPR */
-          JMPR ();
-          break;
+	case 0x1C:  /* JMPR */
+	  JMPR ();
+	  break;
 
-        case 0x1D:  /* SCVTCI */
-          SCVTCI ();
-          break;
+	case 0x1D:  /* SCVTCI */
+	  SCVTCI ();
+	  break;
 
-        case 0x1E:  /* SSWCI */
+	case 0x1E:  /* SSWCI */
 	  SSWCI ();
-          break;
+	  break;
 
-        case 0x1F:  /* SSW */
+	case 0x1F:  /* SSW */
 	  SSW ();
-          break;
+	  break;
 
-        case 0x20:  /* DUP */
-          DUP ();
-          break;
+	case 0x20:  /* DUP */
+	  DUP ();
+	  break;
 
-        case 0x21:  /* POP */
+	case 0x21:  /* POP */
 	  POP ();
-          break;
+	  break;
 
-        case 0x22:  /* CLEAR */
+	case 0x22:  /* CLEAR */
 	  CLEAR ();
-          break;
+	  break;
 
-        case 0x23:  /* SWAP */
+	case 0x23:  /* SWAP */
 	  SWAP ();
-          break;
+	  break;
 
-        case 0x24:  /* DEPTH */
+	case 0x24:  /* DEPTH */
 	  DEPTH ();
-          break;
+	  break;
 
-        case 0x25:  /* CINDEX */
-          CINDEX ();
-          break;
+	case 0x25:  /* CINDEX */
+	  CINDEX ();
+	  break;
 
-        case 0x26:  /* MINDEX */
+	case 0x26:  /* MINDEX */
 	  MINDEX ();
-          break;
+	  break;
 
-        case 0x27:  /* ALIGNPTS */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x27:  /* ALIGNPTS */
+	  ALIGNPTS ();
+	  break;
 
-        case 0x28:  /* RAW */
+	case 0x28:  /* RAW */
 	  RAW ();
-          break;
+	  break;
 
-        case 0x29:  /* UTP */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x29:  /* UTP */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x2A:  /* LOOPCALL */
+	case 0x2A:  /* LOOPCALL */
 	  LOOPCALL ();
-          break;
+	  break;
 
-        case 0x2B:  /* CALL */
+	case 0x2B:  /* CALL */
 	  CALL ();
-          break;
+	  break;
 
-        case 0x2C:  /* FDEF */
+	case 0x2C:  /* FDEF */
 	  FDEF ();
-          break;
+	  break;
 
-        case 0x2D:  /* ENDF */
-          ENDF ();
-          break;
+	case 0x2D:  /* ENDF */
+	  ENDF ();
+	  break;
 
-        case 0x2E:  /* MDAP */
-        case 0x2F:  /* MDAP */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x2E:  /* MDAP */
+	case 0x2F:  /* MDAP */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x30:  /* IUP */
-        case 0x31:  /* IUP */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x30:  /* IUP */
+	case 0x31:  /* IUP */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x32:  /* SHP */
-        case 0x33:  /* SHP */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x32:  /* SHP */
+	case 0x33:  /* SHP */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x34:  /* SHC */
-        case 0x35:  /* SHC */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x34:  /* SHC */
+	case 0x35:  /* SHC */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x36:  /* SHZ */
-        case 0x37:  /* SHZ */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x36:  /* SHZ */
+	case 0x37:  /* SHZ */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x38:  /* SHPIX */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x38:  /* SHPIX */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x39:  /* IP    */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x39:  /* IP    */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x3A:  /* MSIRP */
-        case 0x3B:  /* MSIRP */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x3A:  /* MSIRP */
+	case 0x3B:  /* MSIRP */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x3C:  /* AlignRP */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x3C:  /* AlignRP */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x3D:  /* RTDG */
+	case 0x3D:  /* RTDG */
 	  RTDG ();
-          break;
+	  break;
 
-        case 0x3E:  /* MIAP */
-        case 0x3F:  /* MIAP */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x3E:  /* MIAP */
+	case 0x3F:  /* MIAP */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x40:  /* NPUSHB */
+	case 0x40:  /* NPUSHB */
 	  NPUSHB ();
-          break;
+	  break;
 
-        case 0x41:  /* NPUSHW */
+	case 0x41:  /* NPUSHW */
 	  NPUSHW ();
-          break;
+	  break;
 
-        case 0x42:  /* WS */
-          WS ();
-          break;
+	case 0x42:  /* WS */
+	  WS ();
+	  break;
 
-        case 0x43:  /* RS */
+	case 0x43:  /* RS */
 	  RS ();
-          break;
+	  break;
 
-        case 0x44:  /* WCVTP */
+	case 0x44:  /* WCVTP */
 	  WCVTP ();
-          break;
+	  break;
 
-        case 0x45:  /* RCVT */
+	case 0x45:  /* RCVT */
 	  RCVT ();
-          break;
+	  break;
 
-        case 0x46:  /* GC */
-        case 0x47:  /* GC */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x46:  /* GC */
+	case 0x47:  /* GC */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x48:  /* SCFS */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x48:  /* SCFS */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x49:  /* MD */
-        case 0x4A:  /* MD */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x49:  /* MD */
+	case 0x4A:  /* MD */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x4B:  /* MPPEM */
+	case 0x4B:  /* MPPEM */
 	  MPPEM ();
-          break;
+	  break;
 
-        case 0x4C:  /* MPS */
+	case 0x4C:  /* MPS */
 	  MPS ();
-          break;
+	  break;
 
-        case 0x4D:  /* FLIPON */
+	case 0x4D:  /* FLIPON */
 	  FLIPON ();
-          break;
+	  break;
 
-        case 0x4E:  /* FLIPOFF */
+	case 0x4E:  /* FLIPOFF */
 	  FLIPOFF ();
-          break;
+	  break;
 
-        case 0x4F:  /* DEBUG */
+	case 0x4F:  /* DEBUG */
 	  DEBUG ();
-          break;
+	  break;
 
-        case 0x50:  /* LT */
+	case 0x50:  /* LT */
 	  LT ();
-          break;
+	  break;
 
-        case 0x51:  /* LTEQ */
+	case 0x51:  /* LTEQ */
 	  LTEQ ();
-          break;
+	  break;
 
-        case 0x52:  /* GT */
+	case 0x52:  /* GT */
 	  GT ();
-          break;
+	  break;
 
-        case 0x53:  /* GTEQ */
+	case 0x53:  /* GTEQ */
 	  GTEQ ();
-          break;
+	  break;
 
-        case 0x54:  /* EQ */
+	case 0x54:  /* EQ */
 	  EQ ();
-          break;
+	  break;
 
-        case 0x55:  /* NEQ */
+	case 0x55:  /* NEQ */
 	  NEQ ();
-          break;
+	  break;
 
-        case 0x56:  /* ODD */
+	case 0x56:  /* ODD */
 	  ODD ();
-          break;
+	  break;
 
-        case 0x57:  /* EVEN */
+	case 0x57:  /* EVEN */
 	  EVEN ();
-          break;
+	  break;
 
-        case 0x58:  /* IF */
+	case 0x58:  /* IF */
 	  IF ();
-          break;
+	  break;
 
-        case 0x59:  /* EIF */
-          EIF ();
-          break;
+	case 0x59:  /* EIF */
+	  EIF ();
+	  break;
 
-        case 0x5A:  /* AND */
+	case 0x5A:  /* AND */
 	  AND ();
-          break;
+	  break;
 
-        case 0x5B:  /* OR */
+	case 0x5B:  /* OR */
 	  OR ();
-          break;
+	  break;
 
-        case 0x5C:  /* NOT */
+	case 0x5C:  /* NOT */
 	  NOT ();
-          break;
+	  break;
 
-        case 0x5D:  /* DELTAP1 */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x5D:  /* DELTAP1 */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x5E:  /* SDB */
-          SDB ();
-          break;
+	case 0x5E:  /* SDB */
+	  SDB ();
+	  break;
 
-        case 0x5F:  /* SDS */
+	case 0x5F:  /* SDS */
 	  SDS ();
-          break;
+	  break;
 
-        case 0x60:  /* ADD */
+	case 0x60:  /* ADD */
 	  ADD ();
-          break;
+	  break;
 
-        case 0x61:  /* SUB */
+	case 0x61:  /* SUB */
 	  SUB ();
-          break;
+	  break;
 
-        case 0x62:  /* DIV */
+	case 0x62:  /* DIV */
 	  DIV ();
-          break;
+	  break;
 
-        case 0x63:  /* MUL */
+	case 0x63:  /* MUL */
 	  MUL ();
-          break;
+	  break;
 
-        case 0x64:  /* ABS */
+	case 0x64:  /* ABS */
 	  ABS ();
-          break;
+	  break;
 
-        case 0x65:  /* NEG */
+	case 0x65:  /* NEG */
 	  NEG ();
-          break;
+	  break;
 
-        case 0x66:  /* FLOOR */
+	case 0x66:  /* FLOOR */
 	  FLOOR ();
-          break;
+	  break;
 
-        case 0x67:  /* CEILING */
+	case 0x67:  /* CEILING */
 	  CEILING ();
-          break;
+	  break;
 
-        case 0x68:  /* ROUND */
-        case 0x69:  /* ROUND */
-        case 0x6A:  /* ROUND */
-        case 0x6B:  /* ROUND */
+	case 0x68:  /* ROUND */
+	case 0x69:  /* ROUND */
+	case 0x6A:  /* ROUND */
+	case 0x6B:  /* ROUND */
 	  ROUND ();
-          break;
+	  break;
 
-        case 0x6C:  /* NROUND */
-        case 0x6D:  /* NROUND */
-        case 0x6E:  /* NRRUND */
-        case 0x6F:  /* NROUND */
+	case 0x6C:  /* NROUND */
+	case 0x6D:  /* NROUND */
+	case 0x6E:  /* NRRUND */
+	case 0x6F:  /* NROUND */
 	  NROUND ();
-          break;
+	  break;
 
-        case 0x70:  /* WCVTF */
+	case 0x70:  /* WCVTF */
 	  WCVTF ();
-          break;
+	  break;
 
-        case 0x71:  /* DELTAP2 */
-        case 0x72:  /* DELTAP3 */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x71:  /* DELTAP2 */
+	case 0x72:  /* DELTAP3 */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x73:  /* DELTAC0 */
-        case 0x74:  /* DELTAC1 */
-        case 0x75:  /* DELTAC2 */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x73:  /* DELTAC1 */
+	  DELTAC1 ();
+	  break;
 
-        case 0x76:  /* SROUND */
+	case 0x74:  /* DELTAC2 */
+	  DELTAC2 ();
+	  break;
+
+	case 0x75:  /* DELTAC3 */
+	  DELTAC3 ();
+	  break;
+
+	case 0x76:  /* SROUND */
 	  SROUND ();
-          break;
+	  break;
 
-        case 0x77:  /* S45Round */
+	case 0x77:  /* S45Round */
 	  S45ROUND ();
-          break;
+	  break;
 
-        case 0x78:  /* JROT */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x78:  /* JROT */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x79:  /* JROF */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x79:  /* JROF */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x7A:  /* ROFF */
+	case 0x7A:  /* ROFF */
 	  ROFF ();
-          break;
+	  break;
 
-        case 0x7B:  /* ???? */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x7B:  /* ???? */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x7C:  /* RUTG */
+	case 0x7C:  /* RUTG */
 	  RUTG ();
-          break;
+	  break;
 
-        case 0x7D:  /* RDTG */
+	case 0x7D:  /* RDTG */
 	  RDTG ();
-          break;
+	  break;
 
-        case 0x7E:  /* SANGW */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x7E:  /* SANGW */
+	  SANGW ();
+	  break;
 
-        case 0x7F:  /* AA */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x7F:  /* AA */
+	  AA ();
+	  break;
 
-        case 0x80:  /* FLIPPT */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x80:  /* FLIPPT */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x81:  /* FLIPRGON */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x81:  /* FLIPRGON */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x82:  /* FLIPRGOFF */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x82:  /* FLIPRGOFF */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x83:  /* UNKNOWN */
-        case 0x84:  /* UNKNOWN */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x83:  /* UNKNOWN */
+	case 0x84:  /* UNKNOWN */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x85:  /* SCANCTRL */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x85:  /* SCANCTRL */
+	  SCANCTRL ();
+	  break;
 
-        case 0x86:  /* SDPvTL */
-        case 0x87:  /* SDPvTL */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x86:  /* SDPvTL */
+	case 0x87:  /* SDPvTL */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        case 0x88:  /* GETINFO */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x88:  /* GETINFO */
+	  GETINFO ();
+	  break;
 
-        case 0x89:  /* IDEF */
+	case 0x89:  /* IDEF */
 	  IDEF ();
-          break;
+	  break;
 
-        case 0x8A:  /* ROLL */
+	case 0x8A:  /* ROLL */
 	  ROLL ();
-          break;
+	  break;
 
-        case 0x8B:  /* MAX */
+	case 0x8B:  /* MAX */
 	  _MAX ();
-          break;
+	  break;
 
-        case 0x8C:  /* MIN */
+	case 0x8C:  /* MIN */
 	  _MIN ();
-          break;
+	  break;
 
-        case 0x8D:  /* SCANTYPE */
-          NOT_IMPLEMENTED ();
-          break;
+	  /* Scan or dropout control is not implemented.  Instead, 256
+	     grays are used to display pixels which are partially
+	     turned on.  */
+	case 0x8D:  /* SCANTYPE */
+	  SCANTYPE ();
+	  break;
 
-        case 0x8E:  /* INSTCTRL */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x8E:  /* INSTCTRL */
+	  INSTCTRL ();
+	  break;
 
-        case 0x8F:  /* ADJUST */
-        case 0x90:  /* ADJUST */
-          NOT_IMPLEMENTED ();
-          break;
+	case 0x8F:  /* ADJUST */
+	case 0x90:  /* ADJUST */
+	  NOT_IMPLEMENTED ();
+	  break;
 
-        default:
-          if (opcode >= 0xE0) /* MIRP */
-            NOT_IMPLEMENTED ();
-          else if (opcode >= 0xC0) /* MDRP */
-            NOT_IMPLEMENTED ();
-          else if (opcode >= 0xB8) /* PUSHW */
+	default:
+	  if (opcode >= 0xE0) /* MIRP */
+	    NOT_IMPLEMENTED ();
+	  else if (opcode >= 0xC0) /* MDRP */
+	    NOT_IMPLEMENTED ();
+	  else if (opcode >= 0xB8) /* PUSHW */
 	    {
 	      PUSHW ();
 	    }
-          else if (opcode >= 0xB0) /* PUSHB */
+	  else if (opcode >= 0xB0) /* PUSHB */
 	    {
 	      PUSHB ();
 	    }
-          else
-            NOT_IMPLEMENTED ();
+	  else
+	    NOT_IMPLEMENTED ();
 	}
 
       /* In the case of an NPUSHB or NPUSHW instruction,
@@ -7110,8 +8616,8 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
       interpreter->IP++;
 
       /* This label is used by instructions to continue without
-         incrementing IP.  It is used by instructions which set IP
-         themselves, such as ELSE, IF, FDEF, IDEF and JMPR.  */
+	 incrementing IP.  It is used by instructions which set IP
+	 themselves, such as ELSE, IF, FDEF, IDEF and JMPR.  */
     skip_step:
       continue;
     }
@@ -7138,6 +8644,279 @@ sfnt_interpret_font_program (struct sfnt_interpreter *interpreter,
   interpreter->num_instructions = fpgm->num_instructions;
 
   sfnt_interpret_run (interpreter, SFNT_RUN_CONTEXT_FONT_PROGRAM);
+  return NULL;
+}
+
+/* Execute the control value program PREP using INTERPRETER.
+
+   Return NULL and the graphics state after the execution of the
+   program in *STATE, or a string describing the reason for a failure
+   to interpret the program.  */
+
+static const char *
+sfnt_interpret_control_value_program (struct sfnt_interpreter *interpreter,
+				      struct sfnt_prep_table *prep,
+				      struct sfnt_graphics_state *state)
+{
+  if (setjmp (interpreter->trap))
+    return interpreter->trap_reason;
+
+  /* Set up the interpreter to evaluate the control value program.  */
+  interpreter->IP = 0;
+  interpreter->SP = interpreter->stack;
+  interpreter->instructions = prep->instructions;
+  interpreter->num_instructions = prep->num_instructions;
+
+  sfnt_interpret_run (interpreter,
+		      SFNT_RUN_CONTEXT_CONTROL_VALUE_PROGRAM);
+
+  /* If instruct_control & 4, then changes to the graphics state made
+     in this program should be reverted.  */
+
+  if (interpreter->state.instruct_control & 4)
+    sfnt_init_graphics_state (&interpreter->state);
+
+  /* Save the graphics state upon success.  */
+  memcpy (state, &interpreter->state, sizeof *state);
+  return NULL;
+}
+
+
+
+/* Glyph hinting.  The routines here perform hinting on simple and
+   compound glyphs.
+
+   In order to keep the hinting mechanism separate from the rest of
+   the code, the routines here perform outline decomposition and
+   scaling separately.  It might be nice to fix that in the
+   future.  */
+
+/* Structure describing a single scaled and fitted outline.  */
+
+struct sfnt_scaled_outline
+{
+  /* The number of points in this contour, including the two phantom
+     points at the end.  */
+  size_t num_points;
+
+  /* The number of contours in this outline.  */
+  size_t num_contours;
+
+  /* The end points of each contour.  */
+  size_t *contour_end_points;
+
+  /* The points of each contour, with two additional phantom points at
+     the end.  */
+  sfnt_f26dot6 *restrict x_points, *restrict y_points;
+};
+
+
+
+/* Compute phantom points for the specified glyph GLYPH.  Use the
+   unscaled metrics specified in METRICS, and the 16.16 fixed point
+   scale SCALE.
+
+   Place the X and Y coordinates of the first phantom point in *X1 and
+   *Y1, and those of the second phantom point in *X2 and *Y2.  */
+
+static void
+sfnt_compute_phantom_points (struct sfnt_glyph *glyph,
+			     struct sfnt_glyph_metrics *metrics,
+			     sfnt_fixed scale,
+			     sfnt_f26dot6 *x1, sfnt_f26dot6 *y1,
+			     sfnt_f26dot6 *x2, sfnt_f26dot6 *y2)
+{
+  sfnt_fword f1, f2;
+
+  /* Two ``phantom points'' are appended to each outline by the scaler
+     prior to instruction interpretation.  One of these points
+     represents the left-side bearing distance from xmin, while the
+     other represents the advance width.  Both are then used after the
+     hinting process to ensure that the reported glyph metrics are
+     consistent with the hinted outline.  */
+
+  /* First compute both values in fwords.  */
+  f1 = glyph->xmin - metrics->lbearing;
+  f2 = f1 + metrics->advance;
+
+  /* Next, scale both up.  */
+  *x1 = sfnt_mul_f26dot6_fixed (f1 * 64, scale);
+  *x2 = sfnt_mul_f26dot6_fixed (f2 * 64, scale);
+
+  /* Clear y1 and y2.  */
+  *y1 = 0;
+  *y2 = 0;
+}
+
+/* Load the simple glyph GLYPH into the specified INTERPRETER, scaling
+   it up by INTERPRETER's scale, and run its glyph program if
+   present.  Use the unscaled metrics specified in METRICS.
+
+   Upon success, return NULL and the resulting points and contours in
+   *VALUE.  Else, value is the reason interpretation failed.  */
+
+static const char *
+sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
+			     struct sfnt_interpreter *interpreter,
+			     struct sfnt_glyph_metrics *metrics,
+			     struct sfnt_scaled_outline **value)
+{
+  size_t zone_size, temp, outline_size, i;
+  struct sfnt_interpreter_zone *zone;
+  sfnt_f26dot6 phantom_point_1_x;
+  sfnt_f26dot6 phantom_point_1_y;
+  sfnt_f26dot6 phantom_point_2_x;
+  sfnt_f26dot6 phantom_point_2_y;
+  sfnt_f26dot6 tem;
+  bool zone_was_allocated;
+  struct sfnt_scaled_outline *outline;
+
+  zone_size = 0;
+  zone_was_allocated = false;
+
+  /* Calculate the size of the zone structure.
+
+     This should include four longs for each point (including two
+     phantom points at the end), and then one size_t and one char for
+     each point, once again including the phantom points, and finally
+     the size of the zone structure.  */
+
+  if (INT_MULTIPLY_WRAPV (glyph->simple->number_of_points + 2,
+			  sizeof *zone->x_points * 4,
+			  &temp)
+      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
+      || INT_MULTIPLY_WRAPV (glyph->simple->number_of_points + 2,
+			     sizeof *zone->contour_end_points,
+			     &temp)
+      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
+      || INT_MULTIPLY_WRAPV (glyph->simple->number_of_points + 2,
+			     sizeof *zone->flags,
+			     &temp)
+      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
+      || INT_ADD_WRAPV (sizeof (*zone), zone_size, &zone_size))
+    return "Glyph exceeded maximum permissible size";
+
+  /* Don't use malloc if possible.  */
+
+  if (zone_size <= 1024 * 16)
+    zone = alloca (zone_size);
+  else
+    {
+      zone = xmalloc (zone_size);
+      zone_was_allocated = true;
+    }
+
+  /* Now load the zone with data.  */
+  zone->num_points = glyph->simple->number_of_points + 2;
+  zone->num_contours = glyph->number_of_contours;
+  zone->contour_end_points = (size_t *) (glyph + 1);
+  zone->x_points = (sfnt_f26dot6 *) (zone->contour_end_points
+				     + zone->num_points);
+  zone->y_points = zone->x_points + zone->num_points;
+  zone->x_current = zone->y_points + zone->num_points;
+  zone->y_current = zone->x_current + zone->num_points;
+  zone->flags = (unsigned char *) (zone->y_current
+				   + zone->num_points);
+
+  /* Load x_points and x_current.  */
+  for (i = 0; i < glyph->simple->number_of_points; ++i)
+    {
+      /* Load the fword.  */
+      tem = glyph->simple->x_coordinates[i];
+
+      /* Scale that fword.  */
+      tem = sfnt_mul_f26dot6_fixed (tem * 64, interpreter->scale);
+
+      /* Set x_points and x_current.  */
+      zone->x_points[i] = tem;
+      zone->x_current[i] = tem;
+    }
+
+  /* Compute phantom points.  */
+  sfnt_compute_phantom_points (glyph, metrics, interpreter->scale,
+			       &phantom_point_1_x, &phantom_point_1_y,
+			       &phantom_point_2_x, &phantom_point_2_y);
+
+  /* Load phantom points.  */
+  zone->x_points[i] = phantom_point_1_x;
+  zone->x_points[i + 1] = phantom_point_2_x;
+
+  /* Load y_points and y_current, along with flags.  */
+  for (i = 0; i < glyph->simple->number_of_points; ++i)
+    {
+      /* Load the fword.  */
+      tem = glyph->simple->y_coordinates[i];
+
+      /* Scale that fword.  */
+      tem = sfnt_mul_f26dot6_fixed (tem * 64, interpreter->scale);
+
+      /* Set y_points and y_current.  */
+      zone->y_points[i] = tem;
+      zone->y_current[i] = tem;
+
+      /* Set flags.  */
+      zone->flags[i] = (glyph->simple->flags[i]
+			& ~SFNT_POINT_TOUCHED_BOTH);
+    }
+
+  /* Load phantom points.  */
+  zone->y_points[i] = phantom_point_1_y;
+  zone->y_points[i + 1] = phantom_point_2_y;
+
+  /* Load contour end points.  */
+  for (i = 0; i < zone->num_contours; ++i)
+    zone->contour_end_points[i]
+      = glyph->simple->end_pts_of_contours[i];
+
+  /* Load the glyph program.  */
+  interpreter->IP = 0;
+  interpreter->SP = interpreter->stack;
+  interpreter->instructions = glyph->simple->instructions;
+  interpreter->num_instructions = glyph->simple->instruction_length;
+  interpreter->glyph_zone = zone;
+
+  if (setjmp (interpreter->trap))
+    {
+      if (zone_was_allocated)
+	xfree (zone);
+
+      interpreter->glyph_zone = NULL;
+      return interpreter->trap_reason;
+    }
+
+  sfnt_interpret_run (interpreter, SFNT_RUN_CONTEXT_GLYPH_PROGRAM);
+
+  /* Now that the program has been run, build the scaled outline.  */
+
+  outline_size = sizeof (*outline);
+  outline_size += (zone->num_contours
+		   * sizeof *outline->contour_end_points);
+  outline_size += (zone->num_points
+		   * sizeof *outline->x_points * 2);
+
+  /* Allocate the outline.  */
+  outline = xmalloc (outline_size);
+  outline->num_points = zone->num_points;
+  outline->num_contours = zone->num_contours;
+  outline->contour_end_points = (size_t *) (outline + 1);
+  outline->x_points = (sfnt_f26dot6 *) (outline->contour_end_points
+					+ outline->num_contours);
+  outline->y_points = outline->x_points + outline->num_points;
+
+  /* Copy over the contour endpoints and points.  */
+  memcpy (outline->contour_end_points, zone->contour_end_points,
+	  zone->num_contours * sizeof *outline->contour_end_points);
+  memcpy (outline->x_points, zone->x_current,
+	  zone->num_points * sizeof *outline->x_points);
+  memcpy (outline->y_points, zone->y_current,
+	  zone->num_points * sizeof *outline->y_points);
+
+  /* Free the zone if necessary.  */
+  if (zone_was_allocated)
+    xfree (zone);
+
+  /* Return the outline and NULL.  */
+  *value = outline;
   return NULL;
 }
 
@@ -7328,7 +9107,7 @@ static struct sfnt_maxp_table test_interpreter_profile =
     1,
   };
 
-static uint32_t test_cvt_values[] =
+static sfnt_fword test_cvt_values[] =
   {
     100, 100, -100, -100, 50, 50, 50, 50, 0, 0,
   };
@@ -7431,7 +9210,7 @@ sfnt_generic_check (struct sfnt_interpreter *interpreter,
 		: "NULL"));
 
       for (i = 0; i < interpreter->SP - interpreter->stack; ++i)
-	fprintf (stderr, "%8x ", interpreter->stack[i]);
+	fprintf (stderr, "%8d ", (int) interpreter->stack[i]);
       fprintf (stderr, "\n");
       return;
     }
@@ -7444,13 +9223,13 @@ sfnt_generic_check (struct sfnt_interpreter *interpreter,
 	       "machine stack ------------------------->\n");
 
       for (i = 0; i < args->expected_stack_elements; ++i)
-	fprintf (stderr, "%8x ", interpreter->stack[i]);
+	fprintf (stderr, "%8d ", (int) interpreter->stack[i]);
 
       fprintf (stderr,
 	       "\nexpected stack ------------------------>\n");
 
       for (i = 0; i < args->expected_stack_elements; ++i)
-	fprintf (stderr, "%8x ", args->expected_stack[i]);
+	fprintf (stderr, "%8d ", (int) args->expected_stack[i]);
 
       fprintf (stderr, "\n");
       return;
@@ -7701,11 +9480,13 @@ sfnt_check_ssw (struct sfnt_interpreter *interpreter,
     }
 
   if (interpreter->state.single_width_value
-      != sfnt_mul_f26dot6 (-64, interpreter->scale))
+      != sfnt_mul_f26dot6_fixed (-64, interpreter->scale))
     {
-      fprintf (stderr, "failed, got %d at scale %d\n",
+      fprintf (stderr, "failed, got %d at scale %d,"
+	       " expected %d\n",
 	       interpreter->state.single_width_value,
-	       interpreter->scale);
+	       interpreter->scale,
+	       sfnt_mul_f26dot6_fixed (-64, interpreter->scale));
       return;
     }
 
@@ -7743,6 +9524,98 @@ sfnt_check_flipoff (struct sfnt_interpreter *interpreter,
 
   if (interpreter->state.auto_flip)
     fprintf (stderr, "failed, auto flip not disabled\n");
+  else
+    fprintf (stderr, "pass\n");
+
+  return;
+}
+
+static void
+sfnt_check_sdb (struct sfnt_interpreter *interpreter,
+		void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap %s\n",
+	       interpreter->trap_reason);
+      return;
+    }
+
+  if (interpreter->state.delta_base != 8)
+    fprintf (stderr, "failed, delta base is %d, not 8\n",
+	     interpreter->state.delta_base);
+  else
+    fprintf (stderr, "pass\n");
+
+  return;
+}
+
+static void
+sfnt_check_sds (struct sfnt_interpreter *interpreter,
+		void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap %s\n",
+	       interpreter->trap_reason);
+      return;
+    }
+
+  if (interpreter->state.delta_shift != 1)
+    fprintf (stderr, "failed, delta shift is %d, not 1\n",
+	     interpreter->state.delta_shift);
+  else
+    fprintf (stderr, "pass\n");
+
+  return;
+}
+
+static void
+sfnt_check_scanctrl (struct sfnt_interpreter *interpreter,
+		     void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap %s\n",
+	       interpreter->trap_reason);
+      return;
+    }
+
+  if (interpreter->SP != interpreter->stack)
+    {
+      fprintf (stderr, "failed, expected empty stack\n");
+      return;
+    }
+
+  if (interpreter->state.scan_control != 1)
+    fprintf (stderr, "failed, scan control is %d, not 1\n",
+	     interpreter->state.scan_control);
+  else
+    fprintf (stderr, "pass\n");
+
+  return;
+}
+
+static void
+sfnt_check_instctrl (struct sfnt_interpreter *interpreter,
+		     void *arg, bool trap)
+{
+  if (trap)
+    {
+      fprintf (stderr, "failed, unexpected trap %s\n",
+	       interpreter->trap_reason);
+      return;
+    }
+
+  if (interpreter->SP != interpreter->stack)
+    {
+      fprintf (stderr, "failed, expected empty stack\n");
+      return;
+    }
+
+  if (interpreter->state.instruct_control != 2)
+    fprintf (stderr, "failed, inst control is %d, not 2\n",
+	     interpreter->state.instruct_control);
   else
     fprintf (stderr, "pass\n");
 
@@ -7865,16 +9738,16 @@ static struct sfnt_generic_test_args jmpr_test_args =
        First, there are the three words that the first PUSHW[2]
        instruction has pushed:
 
-         0, 0xb2, -3
+	 0, 0xb2, -3
 
        After those three words are pushed, JMPR[] is called, and pops an
        offset:
 
-         -3
+	 -3
 
        so now the stack is:
 
-         0, 0xb2
+	 0, 0xb2
 
        as a result of the relative jump, IP is now at the least
        significant byte of the word inside what was originally a
@@ -7883,33 +9756,33 @@ static struct sfnt_generic_test_args jmpr_test_args =
        As a result of that instruction, three more bytes, including
        JMPR[] itself are pushed onto the stack, making it:
 
-         0, 0xb2, 255, 253, 0x1c
+	 0, 0xb2, 255, 253, 0x1c
 
        Then, execution continues as usual.  4 is pushed on to the
        stack, making it:
 
-         0, 0xb2, 255, 253, 0x1c, 4
+	 0, 0xb2, 255, 253, 0x1c, 4
 
        Another JMPR[] pops:
 
-         4
+	 4
 
        making the stack:
 
-         0, 0xb2, 255, 253, 0x1c
+	 0, 0xb2, 255, 253, 0x1c
 
        And skips the next three padding bytes, finally reaching a
        PUSHW[0] instruction which pushes -30 onto the stack:
 
-         0, 0xb2, 255, 253, 0x1c, -30
+	 0, 0xb2, 255, 253, 0x1c, -30
 
        and a JMPR[] instruction, which pops:
 
-         -30
+	 -30
 
        making:
 
-         0, 0xb2, 255, 253,
+	 0, 0xb2, 255, 253,
 
        and subsequently traps, as -30 would underflow the instruction
        stream.  */
@@ -8049,7 +9922,7 @@ static struct sfnt_generic_test_args wcvtp_test_args =
 
 static struct sfnt_generic_test_args rcvt_test_args =
   {
-    (uint32_t []) { 100, },
+    (uint32_t []) { 135, },
     1,
     true,
     5,
@@ -8081,10 +9954,415 @@ static struct sfnt_generic_test_args debug_test_args =
 
 static struct sfnt_generic_test_args lt_test_args =
   {
+    (uint32_t []) { 1, 0, 0, },
+    3,
+    false,
+    12,
+  };
+
+static struct sfnt_generic_test_args lteq_test_args =
+  {
+    (uint32_t []) { 1, 0, 1, },
+    3,
+    false,
+    12,
+  };
+
+static struct sfnt_generic_test_args gt_test_args =
+  {
+    (uint32_t []) { 0, 1, 0, },
+    3,
+    false,
+    12,
+  };
+
+static struct sfnt_generic_test_args gteq_test_args =
+  {
+    (uint32_t []) { 0, 1, 1, },
+    3,
+    false,
+    12,
+  };
+
+static struct sfnt_generic_test_args eq_test_args =
+  {
+    (uint32_t []) { 0, 1, 0, },
+    3,
+    false,
+    18,
+  };
+
+static struct sfnt_generic_test_args neq_test_args =
+  {
+    (uint32_t []) { 1, 0, 1, },
+    3,
+    false,
+    18,
+  };
+
+static struct sfnt_generic_test_args odd_test_args =
+  {
     (uint32_t []) { 1, 0, },
     2,
     false,
-    8,
+    9,
+  };
+
+static struct sfnt_generic_test_args even_test_args =
+  {
+    (uint32_t []) { 0, 1, },
+    2,
+    false,
+    9,
+  };
+
+static struct sfnt_generic_test_args if_test_args =
+  {
+    (uint32_t []) { 17, 24, 1, 2, 3, 4, 5, -1, -1,
+		    88, 1, 3, },
+    12,
+    false,
+    185,
+  };
+
+static struct sfnt_generic_test_args eif_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    false,
+    3,
+  };
+
+static struct sfnt_generic_test_args and_test_args =
+  {
+    (uint32_t []) { 0, 0, 1, 0, },
+    4,
+    false,
+    16,
+  };
+
+static struct sfnt_generic_test_args or_test_args =
+  {
+    (uint32_t []) { 1, 1, 1, 0, },
+    4,
+    false,
+    16,
+  };
+
+static struct sfnt_generic_test_args not_test_args =
+  {
+    (uint32_t []) { 0, 1, },
+    2,
+    false,
+    6,
+  };
+
+static struct sfnt_generic_test_args sds_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    true,
+    5,
+  };
+
+static struct sfnt_generic_test_args add_test_args =
+  {
+    (uint32_t []) { 96, -1, },
+    2,
+    false,
+    10,
+  };
+
+static struct sfnt_generic_test_args sub_test_args =
+  {
+    (uint32_t []) { 64, -64, 431, },
+    3,
+    false,
+    14,
+  };
+
+static struct sfnt_generic_test_args div_test_args =
+  {
+    (uint32_t []) { 32, -64, },
+    2,
+    true,
+    15,
+  };
+
+static struct sfnt_generic_test_args mul_test_args =
+  {
+    (uint32_t []) { 255, -255, 255, },
+    3,
+    false,
+    16,
+  };
+
+static struct sfnt_generic_test_args abs_test_args =
+  {
+    (uint32_t []) { 1, 1, },
+    2,
+    false,
+    7,
+  };
+
+static struct sfnt_generic_test_args neg_test_args =
+  {
+    (uint32_t []) { 1, -1, },
+    2,
+    false,
+    7,
+  };
+
+static struct sfnt_generic_test_args floor_test_args =
+  {
+    (uint32_t []) { -128, -64, 0, 64, 128, },
+    5,
+    false,
+    17,
+  };
+
+static struct sfnt_generic_test_args ceiling_test_args =
+  {
+    (uint32_t []) { -128, -128, -64, 0, 64, 128, 128, },
+    7,
+    false,
+    25,
+  };
+
+static struct sfnt_generic_test_args round_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    true,
+    0,
+  };
+
+static struct sfnt_generic_test_args nround_test_args =
+  {
+    (uint32_t []) { 63, },
+    1,
+    false,
+    3,
+  };
+
+static struct sfnt_generic_test_args wcvtf_test_args =
+  {
+    (uint32_t []) { (63 * 17 * 65535 / 800) >> 10, },
+    1,
+    false,
+    7,
+  };
+
+static struct sfnt_generic_test_args deltac1_test_args =
+  {
+    (uint32_t []) { ((50 * 17 * 65535 / 800) >> 10) + 8,
+		    ((50 * 17 * 65535 / 800) >> 10) + 8, },
+    2,
+    false,
+    22,
+  };
+
+static struct sfnt_generic_test_args deltac2_test_args =
+  {
+    (uint32_t []) { ((50 * 17 * 65535 / 800) >> 10) + 8,
+		    ((50 * 17 * 65535 / 800) >> 10) + 8, },
+    2,
+    false,
+    22,
+  };
+
+static struct sfnt_generic_test_args deltac3_test_args =
+  {
+    (uint32_t []) { ((50 * 17 * 65535 / 800) >> 10) + 8,
+		    ((50 * 17 * 65535 / 800) >> 10) + 8, },
+    2,
+    false,
+    22,
+  };
+
+/* Macros and instructions for detailed rounding tests.  */
+
+/* PUSHB[0] period:phase:threshold
+   SROUND[] */
+#define SFNT_ROUNDING_OPERAND(period, phase, threshold)	\
+  0xb0, (((unsigned char) period << 6)			\
+	 | ((unsigned char) phase & 3) << 4		\
+	 | ((unsigned char) threshold & 15)), 0x76
+
+/* PUSHB[0] period:phase:threshold
+   S45ROUND[] */
+#define SFNT_ROUNDING_OPERAND_45(period, phase, threshold)	\
+  0xb0, (((unsigned char) period << 6)				\
+	 | ((unsigned char) phase & 3) << 4			\
+	 | ((unsigned char) threshold & 15)), 0x77
+
+/* PUSHB[0] value
+   ROUND[] */
+#define SFNT_ROUND_VALUE(value) 0xb0, value, 0x68
+
+static unsigned char sfnt_sround_instructions[] =
+  {
+    SFNT_ROUNDING_OPERAND (0, 0, 8),
+    SFNT_ROUND_VALUE (15),
+    SFNT_ROUND_VALUE (17),
+    SFNT_ROUNDING_OPERAND (1, 0, 8),
+    SFNT_ROUND_VALUE (32),
+    SFNT_ROUND_VALUE (16),
+    SFNT_ROUNDING_OPERAND (2, 0, 8),
+    SFNT_ROUND_VALUE (64),
+    SFNT_ROUND_VALUE (63),
+    SFNT_ROUNDING_OPERAND (0, 1, 8),
+    SFNT_ROUND_VALUE (16),
+    SFNT_ROUND_VALUE (24),
+    SFNT_ROUNDING_OPERAND (0, 2, 8),
+    SFNT_ROUND_VALUE (20),
+    SFNT_ROUND_VALUE (48),
+    SFNT_ROUNDING_OPERAND (0, 3, 8),
+    SFNT_ROUND_VALUE (7),
+    SFNT_ROUND_VALUE (70),
+  };
+
+static uint32_t sfnt_sround_values[] =
+  {
+    /* 0, 0, 8 = RTDG; 15 rounded to the double grid and becomes 0, 17
+       is 32.  */
+    0, 32,
+    /* 1, 0, 8 = RTG; 32 rounded to the grid is 64, 16 is 0.  */
+    64, 0,
+    /* 2, 0, 8 = round to a grid separated by 128s.  64 is 128, 63 is
+       0.  */
+    128, 0,
+    /* 0, 1, 8 = round to a double grid with a phase of 8.  16 rounds
+       down to 8, 24 rounds up to 40.  */
+    8, 40,
+    /* 0, 2, 8 = round to a double grid with a phase of 16.  20 rounds
+       down to 16, 40 rounds up to 48.  */
+    16, 48,
+    /* 0, 3, 8 = round to a double grid with a phase of 48.  7 rounds
+       up to 16, 70 rounds up to 80.  */
+    16, 80,
+  };
+
+static struct sfnt_generic_test_args sround_test_args =
+  {
+    sfnt_sround_values,
+    ARRAYELTS (sfnt_sround_values),
+    false,
+    ARRAYELTS (sfnt_sround_instructions),
+  };
+
+static unsigned char sfnt_s45round_instructions[] =
+  {
+    SFNT_ROUNDING_OPERAND_45 (0, 0, 0),
+    SFNT_ROUND_VALUE (1),
+    SFNT_ROUND_VALUE (45),
+  };
+
+static uint32_t sfnt_s45round_values[] =
+  {
+    /* 0, 0, 0: 1 rounded to the double cubic grid becomes 45, and 46
+       rounded to the double cubic grid becomes 90.  */
+    45, 90,
+  };
+
+static struct sfnt_generic_test_args s45round_test_args =
+  {
+    sfnt_s45round_values,
+    ARRAYELTS (sfnt_s45round_values),
+    false,
+    ARRAYELTS (sfnt_s45round_instructions),
+  };
+
+static struct sfnt_generic_test_args rutg_test_args =
+  {
+    (uint32_t []) { 64, 64, 0, },
+    3,
+    false,
+    10,
+  };
+
+static struct sfnt_generic_test_args rdtg_test_args =
+  {
+    (uint32_t []) { 0, 0, 64, },
+    3,
+    false,
+    10,
+  };
+
+static struct sfnt_generic_test_args sangw_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    false,
+    3,
+  };
+
+static struct sfnt_generic_test_args aa_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    false,
+    3,
+  };
+
+static struct sfnt_generic_test_args getinfo_test_args =
+  {
+    /* Pretend to be the Macintosh System 7 scaler.
+
+       This lets the interpreter get away with only two phantom
+       points, as specified in Apple's TrueType reference manual.  */
+    (uint32_t []) { 2, 0, },
+    2,
+    false,
+    6,
+  };
+
+static struct sfnt_generic_test_args idef_test_args =
+  {
+    (uint32_t []) { 1, 2, 3, },
+    3,
+    false,
+    11,
+  };
+
+static struct sfnt_generic_test_args roll_test_args =
+  {
+    (uint32_t []) { 1, 2, 4, 5, 3, },
+    5,
+    false,
+    7,
+  };
+
+static struct sfnt_generic_test_args roll_1_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    true,
+    3,
+  };
+
+static struct sfnt_generic_test_args max_test_args =
+  {
+    (uint32_t []) { 70, },
+    1,
+    false,
+    6,
+  };
+
+static struct sfnt_generic_test_args min_test_args =
+  {
+    (uint32_t []) { -70, },
+    1,
+    false,
+    6,
+  };
+
+static struct sfnt_generic_test_args scantype_test_args =
+  {
+    (uint32_t []) { },
+    0,
+    false,
+    3,
   };
 
 static struct sfnt_interpreter_test all_tests[] =
@@ -8102,7 +10380,7 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "NPUSHW",
       /* NPUSHW[] 4 0x101 0x202 0x303 0x404
-         NPUSHW[] 4 0x101 0x202 0x303 0x4?? */
+	 NPUSHW[] 4 0x101 0x202 0x303 0x4?? */
       (unsigned char []) { 0x41, 4, 1, 1, 2, 2, 3, 3, 4, 4,
 			   0x41, 4, 1, 1, 2, 2, 3, 3, 4, },
       19,
@@ -8112,8 +10390,8 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "PUSHB",
       /* PUSHB[7] 1 2 3 4 5 6 7 8
-         PUSHB[0] 1
-         PUSHB[5] 1 2 3 4 5 ? */
+	 PUSHB[0] 1
+	 PUSHB[5] 1 2 3 4 5 ? */
       (unsigned char []) { 0xb7, 1, 2, 3, 4, 5, 6, 7, 8,
 			   0xb0, 1,
 			   0xb5, 1, 2, 3, 4, 5, },
@@ -8144,8 +10422,8 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "that stack underflow is handled correctly",
       /* PUSHW[0] 100 100
-         POP[]
-         POP[] */
+	 POP[]
+	 POP[] */
       (unsigned char []) { 0xb8, 100, 100,
 			   0x21,
 			   0x21, },
@@ -8174,13 +10452,13 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "SZP0, SZP1, SZP2, SZPS",
       /* PUSHB[0] 1
-         SZP0[]
-         PUSHB[0] 1
-         SZP1[]
-         PUSHB[0] 0
-         SZP2[]
-         PUSHB[0] 5
-         SZPS[]  */
+	 SZP0[]
+	 PUSHB[0] 1
+	 SZP1[]
+	 PUSHB[0] 0
+	 SZP2[]
+	 PUSHB[0] 5
+	 SZPS[]  */
       (unsigned char []) { 0xb0, 1,
 			   0x13,
 			   0xb0, 1,
@@ -8282,7 +10560,7 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "SMD",
       /* PUSHB[0] 32
-         SMD[] */
+	 SMD[] */
       (unsigned char []) { 0xb0, 32,
 			   0x1a, },
       3,
@@ -8294,10 +10572,10 @@ static struct sfnt_interpreter_test all_tests[] =
       /* ELSE[]
 	 ;; Lots of variable length instructions
 	 ;; which will not be executed, like:
-         NPUSHW[] 3 11 22 33 44 55 66
-         NPUSHB[] 1 3
-         PUSHW[2] 1 1 2 2 3 3
-         PUSHB[2] 1 2 3
+	 NPUSHW[] 3 11 22 33 44 55 66
+	 NPUSHB[] 1 3
+	 PUSHW[2] 1 1 2 2 3 3
+	 PUSHB[2] 1 2 3
 	 ;; Also test nested ifs.
 	 PUSHW[0] 1 1
 	 IF[]
@@ -8305,10 +10583,10 @@ static struct sfnt_interpreter_test all_tests[] =
 	 ELSE[]
 	 PUSHW[0] 1 1
 	 EIF[]
-         EIF[]
+	 EIF[]
 	 PUSHW[0] 1 1
 	 ;; the actual contents of the stack.
-         PUSHB[2] 77 90 83*/
+	 PUSHB[2] 77 90 83 */
       (unsigned char []) { 0x1b,
 			   0x41, 3, 11, 22, 33, 44, 55, 66,
 			   0x40, 1, 3,
@@ -8329,11 +10607,11 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "JMPR",
       /* PUSHW[2] 00 00 00 PUSHB[2] 255 253 JMPR[]
-         PUSHB[0] 4
+	 PUSHB[0] 4
 	 JMPR[]
-         255 255 255
+	 255 255 255
 	 PUSHW[0] 255 -30
-         JMPR[] */
+	 JMPR[] */
       (unsigned char []) { 0xba, 00, 00, 00, 0xb2, 255, 253, 0x1c,
 			   0xb0, 4,
 			   0x1c,
@@ -8357,7 +10635,7 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "SSWCI",
       /* PUSHW[0] 2 0 ;; 512
-         SSWCI[] */
+	 SSWCI[] */
       (unsigned char []) { 0xb8, 2, 0,
 			   0x1e, },
       4,
@@ -8377,10 +10655,10 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "DUP",
       /* PUSHB[0] 70
-         DUP[]
-         POP[]
-         POP[]
-         DUP[] */
+	 DUP[]
+	 POP[]
+	 POP[]
+	 DUP[] */
       (unsigned char []) { 0xb0, 70,
 			   0x20,
 			   0x21,
@@ -8438,9 +10716,9 @@ static struct sfnt_interpreter_test all_tests[] =
       "CINDEX",
       /* PUSHB[4] 0 3 3 4 1
 	 CINDEX[] ; pops 1, indices 4
-         CINDEX[] ; pops 4, indices 0
-         PUSHB[0] 6
-         CINDEX[] ; pops 6, trap */
+	 CINDEX[] ; pops 4, indices 0
+	 PUSHB[0] 6
+	 CINDEX[] ; pops 6, trap */
       (unsigned char []) { 0xb4, 0, 3, 3, 4, 1,
 			   0x25,
 			   0x25,
@@ -8453,8 +10731,8 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "MINDEX",
       /* PUSHB[6] 0 3 4 7 3 4 2
-         MINDEX[] ; pops 2, array becomes 0 3 4 7 4 3
-         MINDEX[] ; pops 3, array becomes 0 3 7 4 4 */
+	 MINDEX[] ; pops 2, array becomes 0 3 4 7 4 3
+	 MINDEX[] ; pops 3, array becomes 0 3 7 4 4 */
       (unsigned char []) { 0xb6, 0, 3, 4, 7, 3, 4, 2,
 			   0x26,
 			   0x26, },
@@ -8473,12 +10751,12 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "LOOPCALL",
       /* PUSHB[1] 0 2
-         FDEF[]
-         PUSHB[0] 1
-         ADD[]
-         ENDF[]
-         PUSHB[1] 10 2
-         LOOPCALL[]  */
+	 FDEF[]
+	 PUSHB[0] 1
+	 ADD[]
+	 ENDF[]
+	 PUSHB[1] 10 2
+	 LOOPCALL[]  */
       (unsigned char []) { 0xb1, 0, 2,
 			   0x2c,
 			   0xb0, 1,
@@ -8493,22 +10771,22 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "CALL",
       /* PUSHB[1] 7 2
-         FDEF[]
-         PUSHB[0] 1
-         ADD[]
-         ENDF[]
-         PUSHB[0] 2
-         CALL[]
-         PUSHB[0] 3
-         ADD[]
-	 ;; Test that infinite recursion fails.
-         PUSHB[0] 3
-         FDEF[]
-         PUSHB[0] 3
+	 FDEF[]
+	 PUSHB[0] 1
+	 ADD[]
+	 ENDF[]
+	 PUSHB[0] 2
 	 CALL[]
-         ENDF[]
 	 PUSHB[0] 3
-         CALL[] */
+	 ADD[]
+	 ;; Test that infinite recursion fails.
+	 PUSHB[0] 3
+	 FDEF[]
+	 PUSHB[0] 3
+	 CALL[]
+	 ENDF[]
+	 PUSHB[0] 3
+	 CALL[] */
       (unsigned char []) { 0xb1, 7, 2,
 			   0x2c,
 			   0xb0, 1,
@@ -8533,8 +10811,8 @@ static struct sfnt_interpreter_test all_tests[] =
       "that FDEF traps inside nested definitions",
       /* PUSHB[0] 1
 	 FDEF[]
-         FDEF[]
-         ENDF[]
+	 FDEF[]
+	 ENDF[]
 	 ENDF[] */
       (unsigned char []) { 0xb0, 1,
 			   0x2c,
@@ -8548,9 +10826,9 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "that FDEF traps upon missing ENDF",
       /* PUSHB[0] 1
-         FDEF[]
-         PUSHB[3] 1 2 3 4
-         POP[]  */
+	 FDEF[]
+	 PUSHB[3] 1 2 3 4
+	 POP[]  */
       (unsigned char []) { 0xb0, 1,
 			   0x2c,
 			   0xb3, 1, 2, 3, 4,
@@ -8570,10 +10848,10 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "RTDG",
       /* RTDG[]
-         PUSHB[0] 16
-         ROUND[] */
+	 PUSHB[0] 16
+	 ROUND[] */
       (unsigned char []) { 0x3d,
-                           0xb0, 16,
+			   0xb0, 16,
 			   0x68, },
       4,
       &rtdg_test_args,
@@ -8582,10 +10860,10 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "RTDG down to 0",
       /* RTDG[]
-         PUSHB[0] 15
-         ROUND[] */
+	 PUSHB[0] 15
+	 ROUND[] */
       (unsigned char []) { 0x3d,
-                           0xb0, 15,
+			   0xb0, 15,
 			   0x68, },
       4,
       &rtdg_1_test_args,
@@ -8594,10 +10872,10 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "RTDG down to 32",
       /* RTDG[]
-         PUSHB[0] 47
-         ROUND[] */
+	 PUSHB[0] 47
+	 ROUND[] */
       (unsigned char []) { 0x3d,
-                           0xb0, 47,
+			   0xb0, 47,
 			   0x68, },
       4,
       &rtdg_2_test_args,
@@ -8606,10 +10884,10 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "RTDG up to 64",
       /* RTDG[]
-         PUSHB[0] 48
-         ROUND[] */
+	 PUSHB[0] 48
+	 ROUND[] */
       (unsigned char []) { 0x3d,
-                           0xb0, 48,
+			   0xb0, 48,
 			   0x68, },
       4,
       &rtdg_3_test_args,
@@ -8618,11 +10896,11 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "WS",
       /* PUSHB[1] 240 40
-         WS[]
-         PUSHB[0] 240
-         RS[]
-         PUSHB[1] 255 40
-         WS[] */
+	 WS[]
+	 PUSHB[0] 240
+	 RS[]
+	 PUSHB[1] 255 40
+	 WS[] */
       (unsigned char []) { 0xb1, 240, 40,
 			   0x42,
 			   0xb0, 240,
@@ -8636,7 +10914,7 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "RS",
       /* PUSHB[0] 255
-         RS[] */
+	 RS[] */
       (unsigned char []) { 0xb0, 255,
 			   0x43, },
       3,
@@ -8646,11 +10924,11 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "WCVTP",
       /* PUSHB[1] 9 32
-         WCVTP[]
-         PUSHB[0] 9
-         RCVT[]
-         PUSHB[1] 10 10
-         WCVTP[] */
+	 WCVTP[]
+	 PUSHB[0] 9
+	 RCVT[]
+	 PUSHB[1] 10 10
+	 WCVTP[] */
       (unsigned char []) { 0xb1, 9, 32,
 			   0x44,
 			   0xb0, 9,
@@ -8664,9 +10942,9 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "RCVT",
       /* PUSHB[0] 1
-         RCVT[]
-         PUSHB[0] 10
-         RCVT[] */
+	 RCVT[]
+	 PUSHB[0] 10
+	 RCVT[] */
       (unsigned char []) { 0xb0, 1,
 			   0x45,
 			   0xb0, 10,
@@ -8720,16 +10998,804 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "LT",
       /* PUSHB[1] 47 48
-         LT[]
-         PUSHB[1] 48 47
-         LT[] */
+	 LT[]
+	 PUSHB[1] 48 47
+	 LT[]
+	 PUSHB[1] 47 47
+	 LT[] */
       (unsigned char []) { 0xb1, 47, 48,
 			   0x50,
 			   0xb1, 48, 47,
+			   0x50,
+			   0xb1, 47, 47,
 			   0x50, },
-      8,
+      12,
       &lt_test_args,
       sfnt_generic_check,
+    },
+    {
+      "LTEQ",
+      /* PUSHB[1] 47 48
+	 LTEQ[]
+	 PUSHB[1] 48 47
+	 LTEQ[]
+	 PUSHB[1] 47 47
+	 LTEQ[] */
+      (unsigned char []) { 0xb1, 47, 48,
+			   0x51,
+			   0xb1, 48, 47,
+			   0x51,
+			   0xb1, 47, 47,
+			   0x51, },
+      12,
+      &lteq_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "GT",
+      /* PUSHB[1] 47 48
+	 GT[]
+	 PUSHB[1] 48 47
+	 GT[]
+	 GT[1] 47 47
+	 LTEQ[] */
+      (unsigned char []) { 0xb1, 47, 48,
+			   0x52,
+			   0xb1, 48, 47,
+			   0x52,
+			   0xb1, 47, 47,
+			   0x52, },
+      12,
+      &gt_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "GTEQ",
+      /* PUSHB[1] 47 48
+	 GTEQ[]
+	 PUSHB[1] 48 47
+	 GTEQ[]
+	 GTEQ[1] 47 47
+	 LTEQ[] */
+      (unsigned char []) { 0xb1, 47, 48,
+			   0x53,
+			   0xb1, 48, 47,
+			   0x53,
+			   0xb1, 47, 47,
+			   0x53, },
+      12,
+      &gteq_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "EQ",
+      /* PUSHW[1] 255 253 255 255
+	 EQ[]
+	 PUSHW[1] 27 27 27 27
+	 EQ[]
+	 PUSHB[0] 3
+	 PUSHW[0] 255 254
+	 EQ[] */
+      (unsigned char []) { 0xb9, 255, 253, 255, 255,
+			   0x54,
+			   0xb9, 27, 27, 27, 27,
+			   0x54,
+			   0xb0, 3,
+			   0xb8, 255, 254,
+			   0x54, },
+      18,
+      &eq_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "NEQ",
+      /* PUSHW[1] 255 253 255 255
+	 NEQ[]
+	 PUSHW[1] 27 27 27 27
+	 NEQ[]
+	 PUSHB[0] 3
+	 PUSHW[0] 255 254
+	 NEQ[] */
+      (unsigned char []) { 0xb9, 255, 253, 255, 255,
+			   0x55,
+			   0xb9, 27, 27, 27, 27,
+			   0x55,
+			   0xb0, 3,
+			   0xb8, 255, 254,
+			   0x55, },
+      18,
+      &neq_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "ODD",
+      /* RTG[]
+	 PUSHW[1] 255 224 ;; -32
+	 ODD[] ;; Rounds symmetrically to -64, which is odd.
+	 PUSHW[1] 255 159 ;; -96
+	 ODD[] ;; Rounds symmetrically to -128, which is even.  */
+      (unsigned char []) { 0x18,
+			   0xb8, 255, 224,
+			   0x56,
+			   0xb8, 255, 159,
+			   0x56, },
+      9,
+      &odd_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "EVEN",
+      /* RTG[]
+	 PUSHW[1] 255 224 ;; -32
+	 EVEN[] ;; Rounds symmetrically to -64, which is odd.
+	 PUSHW[1] 255 159 ;; -96
+	 EVEN[] ;; Rounds symmetrically to -128, which is even.  */
+      (unsigned char []) { 0x18,
+			   0xb8, 255, 224,
+			   0x57,
+			   0xb8, 255, 159,
+			   0x57, },
+      9,
+      &even_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "IF",
+      /* NPUSHB[] 1 0
+	 IF[]
+	 PUSHW[0] 1 1
+	 PUSHW[1] 1 1 2 2
+	 PUSHW[2] 1 1 2 2 3 3
+	 PUSHW[3] 1 1 2 2 3 3 4 4
+	 PUSHW[4] 1 1 2 2 3 3 4 4 5 5
+	 PUSHW[5] 1 1 2 2 3 3 4 4 5 5 6 6
+	 PUSHW[6] 1 1 2 2 3 3 4 4 5 5 6 6 7 7
+	 PUSHW[7] 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8
+	 PUSHB[0] 1
+	 PUSHB[1] 2 1
+	 PUSHB[2] 3 2 1
+	 PUSHB[3] 4 3 2 1
+	 PUSHB[4] 5 4 3 2 1
+	 PUSHB[5] 6 5 4 3 2 1
+	 PUSHB[6] 7 6 5 4 3 2 1
+	 PUSHB[7] 8 7 6 5 4 3 2 1
+	 DEBUG[]
+	 IF[]
+	 PUSHB[7] 12 12 12 12 12 12 12 12
+	 ELSE[]
+	 EIF[]
+	 ELSE[]
+	 PUSHB[1] 17 24
+	 NPUSHB[] 5 1 2 3 4 5
+	 NPUSHW[] 2 255 255 255 255
+	 EIF[]
+
+	 PUSHB[0] 1
+	 IF[]
+	 NPUSHB[] 2 43 43
+	 IF[]
+	 PUSHB[0] 45
+	 ELSE[]
+	 PUSHB[0] 14
+	 EIF[]
+	 ADD[]
+	 ELSE[]
+	 NPUSHB[] 4 3 2 1 0
+	 EIF[]
+	 PUSHB[1] 1 3 */
+      (unsigned char []) { 0x40, 1, 0,
+			   0x58,
+			   0xb8, 1, 1,
+			   0xb9, 1, 1, 2, 2,
+			   0xba, 1, 1, 2, 2, 3, 3,
+			   0xbb, 1, 1, 2, 2, 3, 3, 4, 4,
+			   0xbc, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5,
+			   0xbd, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
+			   0xbe, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7,
+			   0xbf, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,
+			   0xb0, 1,
+			   0xb1, 2, 1,
+			   0xb2, 3, 2, 1,
+			   0xb3, 4, 3, 2, 1,
+			   0xb4, 5, 4, 3, 2, 1,
+			   0xb5, 6, 5, 4, 3, 2, 1,
+			   0xb6, 7, 6, 5, 4, 3, 2, 1,
+			   0xb7, 8, 7, 6, 5, 4, 3, 2, 1,
+			   0x4f,
+			   0x58,
+			   0xb7, 12, 12, 12, 12, 12, 12, 12, 12,
+			   0x1b,
+			   0x59,
+			   0x1b,
+			   0xb1, 17, 24,
+			   0x40, 5, 1, 2, 3, 4, 5,
+			   0x41, 2, 255, 255, 255, 255,
+			   0x59,
+			   0xb0, 1,
+			   0x58,
+			   0x40, 2, 43, 43,
+			   0x58,
+			   0xb0, 45,
+			   0x1b,
+			   0xb0, 14,
+			   0x59,
+			   0x60,
+			   0x1b,
+			   0x40, 4, 3, 2, 1, 0,
+			   0x59,
+			   0xb1, 1, 3, },
+      185,
+      &if_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "EIF",
+      /* PUSHB[0] 1
+	 IF[]
+	 EIF[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x58,
+			   0x59, },
+      3,
+      &eif_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "AND",
+      /* PUSHB[1] 0 1
+	 AND[]
+	 PUSHB[1] 37 0
+	 AND[]
+	 PUSHB[1] 40 1
+	 AND[]
+	 PUSHB[1] 0 0
+	 AND[] */
+      (unsigned char []) { 0xb1, 0, 1,
+			   0x5a,
+			   0xb1, 37, 0,
+			   0x5a,
+			   0xb1, 40, 1,
+			   0x5a,
+			   0xb1, 0, 0,
+			   0x5a, },
+      16,
+      &and_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "OR",
+      /* PUSHB[1] 0 1
+	 OR[]
+	 PUSHB[1] 37 0
+	 OR[]
+	 PUSHB[1] 40 1
+	 OR[]
+	 PUSHB[1] 0 0
+	 OR[] */
+      (unsigned char []) { 0xb1, 0, 1,
+			   0x5b,
+			   0xb1, 37, 0,
+			   0x5b,
+			   0xb1, 40, 1,
+			   0x5b,
+			   0xb1, 0, 0,
+			   0x5b, },
+      16,
+      &or_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "NOT",
+      /* PUSHB[0] 1
+	 NOT[]
+	 PUSHB[0] 0
+	 NOT[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x5c,
+			   0xb0, 0,
+			   0x5c, },
+      6,
+      &not_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SDB",
+      /* PUSHB[0] 8
+	 SDB[] */
+      (unsigned char []) { 0xb0, 8,
+			   0x5e, },
+      3,
+      NULL,
+      sfnt_check_sdb,
+    },
+    {
+      "SDS",
+      /* PUSHB[0] 1
+	 SDS[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x5f, },
+      3,
+      NULL,
+      sfnt_check_sds,
+    },
+    {
+      "that SDS rejects invalid values",
+      /* PUSHB[0] 1,
+	 SDS[]
+	 PUSHB[0] 7
+	 SDS[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x5f,
+			   0xb0, 7,
+			   0x5f, },
+      6,
+      &sds_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "ADD",
+      /* PUSHB[1] 64 32
+	 ADD[]
+	 PUSHW[1] 255 40 0 215 ;; -216 + 215
+	 ADD[] */
+      (unsigned char []) { 0xb1, 64, 32,
+			   0x60,
+			   0xb9, 255, 40, 0, 215,
+			   0x60, },
+      10,
+      &add_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SUB",
+      /* PUSHB[1] 96 32
+	 SUB[]
+	 PUSHB[1] 32 96
+	 SUB[]
+	 PUSHW[1] 0 215 255 40 ;; 215 - -216
+	 SUB[] */
+      (unsigned char []) { 0xb1, 96, 32,
+			   0x61,
+			   0xb1, 32, 96,
+			   0x61,
+			   0xb9, 0, 215, 255, 40,
+			   0x61, },
+      14,
+      &sub_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "DIV",
+      /* PUSHB[1] 64 128
+	 DIV[] ; 1 / 2 = 0.5
+	 PUSHW[1] 0 32 255 224
+	 DIV[] ; 0.5 / -0.5 = -1.0
+	 PUSHW[1] 255 255 0 0
+	 DIV[] ; -1 / 0 = trap */
+      (unsigned char []) { 0xb1, 64, 128,
+			   0x62,
+			   0xb9, 0, 32, 255, 224,
+			   0x62,
+			   0xb9, 255, 255, 0, 0,
+			   0x62, },
+      16,
+      &div_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "MUL",
+      /* PUSHB[1] 255 64
+	 MUL[] ; 255 * 1 = 255
+	 PUSHW[1] 0 255 255 192
+	 MUL[] ; 255 * -1 = -255
+	 PUSHW[1] 255 1 255 192
+	 MUL[] ; -255 * -1 = 255 */
+      (unsigned char []) { 0xb1, 255, 64,
+			   0x63,
+			   0xb9, 0, 255, 255, 192,
+			   0x63,
+			   0xb9, 255, 1, 255, 192,
+			   0x63, },
+      16,
+      &mul_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "ABS",
+      /* PUSHW[0] 255 255
+	 ABS[] ;; abs (-1) == 1
+	 PUSHB[0] 1
+	 ABS[] ;; abs (1) == 1 */
+      (unsigned char []) { 0xb8, 255, 255,
+			   0x64,
+			   0xb0, 1,
+			   0x64, },
+      7,
+      &abs_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "NEG",
+      /* PUSHW[0] 255 255
+	 NEG[] ;; neg (-1) == 1
+	 PUSHB[0] 1
+	 NEG[] ;; neg (1) == -1 */
+      (unsigned char []) { 0xb8, 255, 255,
+			   0x65,
+			   0xb0, 1,
+			   0x65, },
+      7,
+      &neg_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "FLOOR",
+      /* PUSHW[0] 255 129 ; -127
+	 FLOOR[] ; floor (-127) == -128
+	 PUSHW[0] 255 193 ; -63
+	 FLOOR[] ; floor (-63) == -64
+	 PUSHB[0] 63
+	 FLOOR[] ; floor (63) == 0
+	 PUSHB[0] 127
+	 FLOOR[] ; floor (127) == 64
+	 PUSHB[0] 191
+	 FLOOR[] ; floor (191) == 128 */
+      (unsigned char []) { 0xb8, 255, 129,
+			   0x66,
+			   0xb8, 255, 193,
+			   0x66,
+			   0xb0, 63,
+			   0x66,
+			   0xb0, 127,
+			   0x66,
+			   0xb0, 191,
+			   0x66, },
+      17,
+      &floor_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "CEILING",
+      /* PUSHW[0] 255 128 ; -128
+	 CEILING[] ; ceiling (-128) == -128
+	 PUSHW[0] 255 127 ; -129
+	 CEILING[] ; ceiling (-129) == -128
+	 PUSHW[0] 255 191 ; -65
+	 CEILING[] ; ceiling (-65) == -64
+	 PUSHW[0] 255 255 ; -1
+	 CEILING[] ; ceiling (-1) == 0
+	 PUSHB[0] 63
+	 CEILING[] ; ceiling (63) == 64
+	 PUSHB[0] 65
+	 CEILING[] ; ceiling (65) == 128
+	 PUSHB[0] 128
+	 CEILING[] ; ceiling (128) == 128 */
+      (unsigned char []) { 0xb8, 255, 128,
+			   0x67,
+			   0xb8, 255, 127,
+			   0x67,
+			   0xb8, 255, 191,
+			   0x67,
+			   0xb8, 255, 255,
+			   0x67,
+			   0xb0, 63,
+			   0x67,
+			   0xb0, 65,
+			   0x67,
+			   0xb0, 128,
+			   0x67, },
+      25,
+      &ceiling_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "ROUND",
+      /* ROUND[] */
+      (unsigned char []) { 0x68, },
+      1,
+      &round_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "NROUND",
+      /* PUSHB[0] 63
+	 NROUND[] */
+      (unsigned char []) { 0xb0, 63,
+			   0x6c, },
+      3,
+      &nround_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "WCVTF",
+      /* PUSHB[1] 1 63
+         WCVTF[]
+         PUSHB[0] 1
+         RCVT[] */
+      (unsigned char []) { 0xb1, 1, 63,
+			   0x70,
+			   0xb0, 1,
+			   0x45, },
+      7,
+      &wcvtf_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "DELTAC1",
+      /* PUSHB[0] 2
+	 SDB[] ; delta base now 2
+	 PUSHB[0] 6
+	 SDS[] ; delta shift now 6
+	 PUSHB[2] 1 0xff 1 ; CVT index 5, ppem 15 + 2, magnitude 15
+         DELTAC1[]
+	 PUSHB[0] 1
+         RCVT[] ; CVT index 5 should now be greater by 8 / 64
+
+         PUSHB[2] 1 0xef 1 ; CVT index 5, ppem 14 + 2, magnitude 15
+         DELTAC1[]
+         PUSHB[0] 1
+         RCVT[] ; CVT index 5 should be unchanged */
+      (unsigned char []) { 0xb0, 2,
+			   0x5e,
+			   0xb0, 6,
+			   0x5f,
+			   0xb2, 5, 255, 1,
+			   0x73,
+			   0xb0, 5,
+			   0x45,
+			   0xb2, 5, 239, 1,
+			   0x73,
+			   0xb0, 5,
+			   0x45, },
+      22,
+      &deltac1_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "DELTAC2",
+      /* PUSHB[0] 2
+	 SDB[] ; delta base now 2
+	 PUSHB[0] 6
+	 SDS[] ; delta shift now 6
+	 PUSHB[2] 1 0xff 1 ; CVT index 5, ppem 15 + 2 + 16, magnitude 15
+         DELTAC2[]
+	 PUSHB[0] 1
+         RCVT[] ; CVT index 5 should be unchanged
+
+         PUSHB[2] 1 0xef 1 ; CVT index 5, ppem 14 + 2 + 16, magnitude 15
+         DELTAC2[]
+         PUSHB[0] 1
+         RCVT[] ; CVT index 5 should be unchanged */
+      (unsigned char []) { 0xb0, 2,
+			   0x5e,
+			   0xb0, 6,
+			   0x5f,
+			   0xb2, 5, 255, 1,
+			   0x74,
+			   0xb0, 5,
+			   0x45,
+			   0xb2, 5, 239, 1,
+			   0x74,
+			   0xb0, 5,
+			   0x45, },
+      22,
+      &deltac2_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "DELTAC3",
+      /* PUSHB[0] 2
+	 SDB[] ; delta base now 2
+	 PUSHB[0] 6
+	 SDS[] ; delta shift now 6
+	 PUSHB[2] 1 0xff 1 ; CVT index 5, ppem 15 + 2 + 32, magnitude 15
+         DELTAC3[]
+	 PUSHB[0] 1
+         RCVT[] ; CVT index 5 should be unchanged
+
+         PUSHB[2] 1 0xef 1 ; CVT index 5, ppem 14 + 2 + 32, magnitude 15
+         DELTAC3[]
+         PUSHB[0] 1
+         RCVT[] ; CVT index 5 should be unchanged */
+      (unsigned char []) { 0xb0, 2,
+			   0x5e,
+			   0xb0, 6,
+			   0x5f,
+			   0xb2, 5, 255, 1,
+			   0x75,
+			   0xb0, 5,
+			   0x45,
+			   0xb2, 5, 239, 1,
+			   0x75,
+			   0xb0, 5,
+			   0x45, },
+      22,
+      &deltac3_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SROUND",
+      sfnt_sround_instructions,
+      ARRAYELTS (sfnt_sround_instructions),
+      &sround_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "S45ROUND",
+      sfnt_s45round_instructions,
+      ARRAYELTS (sfnt_s45round_instructions),
+      &s45round_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "RUTG",
+      /* RUTG[]
+	 PUSHB[0] 1
+	 ROUND[]
+	 PUSHB[0] 64
+	 ROUND[]
+	 PUSHB[0] 0
+	 ROUND[] */
+      (unsigned char []) { 0x7c,
+			   0xb0, 1,
+			   0x68,
+			   0xb0, 64,
+			   0x68,
+			   0xb0, 0,
+			   0x68, },
+      10,
+      &rutg_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "RDTG",
+      /* RUTG[]
+	 PUSHB[0] 1
+	 ROUND[]
+	 PUSHB[0] 63
+	 ROUND[]
+	 PUSHB[0] 64
+	 ROUND[] */
+      (unsigned char []) { 0x7d,
+			   0xb0, 1,
+			   0x68,
+			   0xb0, 63,
+			   0x68,
+			   0xb0, 64,
+			   0x68, },
+      10,
+      &rdtg_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SANGW",
+      /* PUSHB[0] 3
+	 SANGW[] */
+      (unsigned char []) { 0xb0, 3,
+			   0x7e, },
+      3,
+      &sangw_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "AA",
+      /* PUSHB[0] 3
+	 AA[] */
+      (unsigned char []) { 0xb0, 3,
+			   0x7f, },
+      3,
+      &aa_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SCANCTRL",
+      /* PUSHB[0] 1
+	 SCANCTRL[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x85, },
+      3,
+      NULL,
+      sfnt_check_scanctrl,
+    },
+    {
+      "GETINFO",
+      /* PUSHB[0] 1
+         GETINFO[]
+         PUSHB[0] 6
+         GETINFO[] */
+      (unsigned char []) { 0xb0, 1,
+			   0x88,
+			   0xb0, 6,
+			   0x88, },
+      6,
+      &getinfo_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "IDEF",
+      /* PUSHB[0] 247
+	 IDEF[]
+	 PUSHB[3] 1 2 3 4
+	 POP[]
+	 ENDF[]
+	 247 */
+      (unsigned char []) { 0xb0, 247,
+			   0x89,
+			   0xb3, 1, 2, 3, 4,
+			   0x21,
+			   0x2d,
+			   247, },
+      11,
+      &idef_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "ROLL",
+      /* PUSHB[4] 1 2 3 4 5
+         ROLL[] ; this should become 1 2 4 5 3 */
+      (unsigned char []) { 0xb4, 1, 2, 3, 4, 5,
+			   0x8a, },
+      7,
+      &roll_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "that ROLL correctly handles underflow",
+      /* PUSHB[1] 1 2
+         ROLL[] */
+      (unsigned char []) { 0xb1, 1, 2,
+			   0x8a, },
+      4,
+      &roll_1_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "MAX",
+      /* PUSHW[1] 0 70 255 186 ; 70, -70
+         MAX[] */
+      (unsigned char []) { 0xb9, 0, 70, 255, 186,
+			   0x8b, },
+      6,
+      &max_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "MIN",
+      /* PUSHW[1] 0 70 255 186 ; 70, -70
+         MIN[] */
+      (unsigned char []) { 0xb9, 0, 70, 255, 186,
+			   0x8c, },
+      6,
+      &min_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "SCANTYPE",
+      /* PUSHB[0] 0
+         SCANTYPE[] */
+      (unsigned char []) { 0xb0, 0,
+			   0x8d, },
+      3,
+      &scantype_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "INSTCTRL",
+      /* PUSHB[1] 1 1
+	 INSTCTRL[] ; (1 << 1) should now be set
+         PUSHB[1] 2 1
+	 INSTCTRL[] ; (1 << 2) should now be set
+         PUSHB[1] 2 0
+	 INSTCTRL[] ; (1 << 2) should no longer be set */
+      (unsigned char []) { 0xb1, 1, 1,
+			   0x8e,
+			   0xb1, 2, 1,
+			   0x8e,
+			   0xb1, 2, 0,
+			   0x8e, },
+      12,
+      NULL,
+      sfnt_check_instctrl,
     },
   };
 
@@ -8793,6 +11859,11 @@ main (int argc, char **argv)
   struct sfnt_meta_table *meta;
   struct sfnt_ttc_header *ttc;
   struct sfnt_interpreter *interpreter;
+  struct sfnt_cvt_table *cvt;
+  struct sfnt_fpgm_table *fpgm;
+  const char *trap;
+  struct sfnt_prep_table *prep;
+  struct sfnt_graphics_state state;
 
   if (argc != 2)
     return 1;
@@ -8878,13 +11949,58 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
+  interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
   hhea = sfnt_read_hhea_table (fd, font);
   glyf = sfnt_read_glyf_table (fd, font);
   maxp = sfnt_read_maxp_table (fd, font);
   name = sfnt_read_name_table (fd, font);
   meta = sfnt_read_meta_table (fd, font);
+  cvt  = sfnt_read_cvt_table (fd, font);
+  fpgm = sfnt_read_fpgm_table (fd, font);
+  prep = sfnt_read_prep_table (fd, font);
   hmtx = NULL;
+
+  if (head && maxp && maxp->version >= 0x00010000)
+    {
+      fprintf (stderr, "creating interpreter\n"
+	       "the size of the stack is %"PRIu16"\n"
+	       "the size of the twilight zone is %"PRIu16"\n"
+	       "the size of the storage area is %"PRIu16"\n"
+	       "there are at most %"PRIu16" idefs\n"
+	       "there are at most %"PRIu16" fdefs\n"
+	       "the cvt is %zu fwords in length\n",
+	       maxp->max_stack_elements,
+	       maxp->max_twilight_points,
+	       maxp->max_storage,
+	       maxp->max_instruction_defs,
+	       maxp->max_function_defs,
+	       cvt ? cvt->num_elements : 0ul);
+
+      interpreter = sfnt_make_interpreter (maxp, cvt, head,
+					   17, 17);
+
+      if (fpgm)
+	{
+	  fprintf (stderr, "interpreting the font program, with"
+		   " %zu instructions\n", fpgm->num_instructions);
+	  trap = sfnt_interpret_font_program (interpreter, fpgm);
+
+	  if (trap)
+	    fprintf (stderr, "**TRAP**: %s\n", trap);
+	}
+
+      if (prep)
+	{
+	  fprintf (stderr, "interpreting the control value program, with"
+		   " %zu instructions\n", prep->num_instructions);
+	  trap = sfnt_interpret_control_value_program (interpreter, prep,
+						       &state);
+
+	  if (trap)
+	    fprintf (stderr, "**TRAP**: %s\n", trap);
+	}
+    }
 
   if (hhea && maxp)
     hmtx = sfnt_read_hmtx_table (fd, font, hhea, maxp);
@@ -9029,7 +12145,7 @@ main (int argc, char **argv)
 	      if (sfnt_decompose_glyph (glyph, sfnt_test_move_to,
 					sfnt_test_line_to,
 					sfnt_test_curve_to,
-				        sfnt_test_get_glyph,
+					sfnt_test_get_glyph,
 					sfnt_test_free_glyph,
 					&dcontext))
 		printf ("decomposition failure\n");
@@ -9145,6 +12261,10 @@ main (int argc, char **argv)
   xfree (name);
   xfree (meta);
   xfree (ttc);
+  xfree (cvt);
+  xfree (fpgm);
+  xfree (interpreter);
+  xfree (prep);
 
   return 0;
 }

@@ -45,6 +45,7 @@ enum sfnt_table
     SFNT_TABLE_META,
     SFNT_TABLE_CVT ,
     SFNT_TABLE_FPGM,
+    SFNT_TABLE_PREP,
   };
 
 #define SFNT_ENDOF(type, field, type1)			\
@@ -758,10 +759,16 @@ struct sfnt_hmtx_table
 struct sfnt_glyph_metrics
 {
   /* Distance between origin and left edge of raster.  Positive
-     changes move rightwards.  */
+     changes move rightwards.
+
+     If sfnt_lookup_glyph_metrics is given a pixel size of -1,
+     this is actually a sign extended fword.  */
   sfnt_fixed lbearing;
 
-  /* Advance to next glyph's origin.  */
+  /* Advance to next glyph's origin.
+
+     If sfnt_lookup_glyph_metrics is given a pixel size of -1, this is
+     actually a sign extended fword.  */
   sfnt_fixed advance;
 };
 
