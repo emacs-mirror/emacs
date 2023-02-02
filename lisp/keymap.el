@@ -65,7 +65,7 @@ DEFINITION is anything that can be a key's definition:
     (setq definition (key-parse definition)))
   (define-key keymap (key-parse key) definition))
 
-(defun keymap-global-set (key command)
+(defun keymap-global-set (key command &optional interactive)
   "Give KEY a global binding as COMMAND.
 COMMAND is the command definition to use; usually it is
 a symbol naming an interactively-callable function.
@@ -75,13 +75,14 @@ KEY is a string that satisfies `key-valid-p'.
 Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
 that you make with this function."
-  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
-  (interactive "KSet key globally:\nCSet key %s globally to command: ")
-  (unless (stringp key)
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form))
+           (advertised-calling-convention (key command) "29.1"))
+  (interactive "KSet key globally: \nCSet key %s globally to command: \np")
+  (when interactive
     (setq key (key-description key)))
   (keymap-set (current-global-map) key command))
 
-(defun keymap-local-set (key command)
+(defun keymap-local-set (key command &optional interactive)
   "Give KEY a local binding as COMMAND.
 COMMAND is the command definition to use; usually it is
 a symbol naming an interactively-callable function.
@@ -90,12 +91,13 @@ KEY is a string that satisfies `key-valid-p'.
 
 The binding goes in the current buffer's local map, which in most
 cases is shared with all other buffers in the same major mode."
-  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
-  (interactive "KSet key locally:\nCSet key %s locally to command: ")
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form))
+           (advertised-calling-convention (key command) "29.1"))
+  (interactive "KSet key locally: \nCSet key %s locally to command: \np")
   (let ((map (current-local-map)))
     (unless map
       (use-local-map (setq map (make-sparse-keymap))))
-    (unless (stringp key)
+    (when interactive
       (setq key (key-description key)))
     (keymap-set map key command)))
 
