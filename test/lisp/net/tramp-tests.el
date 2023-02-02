@@ -4923,6 +4923,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(should (processp proc))
 		(should (equal (process-status proc) 'run))
 		(should (equal (process-get proc 'remote-command) command))
+		;; Give the pipe process a chance to start.
+		(when (memq process-connection-type '(nil pipe))
+		  (sit-for 0.1 'nodisp))
 		(process-send-string proc "foo\r\n")
 		(process-send-eof proc)
 		;; Read output.
@@ -5194,7 +5197,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	  ;; `process-connection-type' is taken when
 	  ;; `:connection-type' is nil.
 	  (dolist (process-connection-type
-		   (unless connection-type '(nil pipe t pty)))
+		   (if connection-type '(nil pipe t pty) '(nil)))
 	    (unwind-protect
 		(with-temp-buffer
 		  (setq command '("hexdump" "-v" "-e" "/1 \"%02X\n\"")
@@ -5210,6 +5213,10 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		  (should (processp proc))
 		  (should (equal (process-status proc) 'run))
 		  (should (equal (process-get proc 'remote-command) command))
+		  ;; Give the pipe process a chance to start.
+		  (when (or (eq connection-type 'pipe)
+			    (memq process-connection-type '(nil pipe)))
+		    (sit-for 0.1 'nodisp))
 		  (process-send-string proc "foo\r\n")
 		  (process-send-eof proc)
 		  ;; Read output.

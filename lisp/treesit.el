@@ -86,7 +86,6 @@
 
 (declare-function treesit-search-subtree "treesit.c")
 (declare-function treesit-search-forward "treesit.c")
-(declare-function treesit-subtree-stat "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-subtree-stat "treesit.c")
 
@@ -267,14 +266,12 @@ If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
 Use the first parser in the parser list if LANGUAGE is omitted.
 If LANGUAGE is non-nil, use the first parser for LANGUAGE in the
 parser list, or create one if none exists."
-  ;; Otherwise the incremental build is broken without tree-sitter.
-  (when (treesit-available-p)
-    (if-let ((parser
-              (if language
-                  (treesit-parser-create language)
-                (or (car (treesit-parser-list))
-                    (signal 'treesit-no-parser (list (current-buffer)))))))
-        (treesit-parser-root-node parser))))
+  (if-let ((parser
+            (if language
+                (treesit-parser-create language)
+              (or (car (treesit-parser-list))
+                  (signal 'treesit-no-parser (list (current-buffer)))))))
+      (treesit-parser-root-node parser)))
 
 (defun treesit-filter-child (node pred &optional named)
   "Return children of NODE that satisfies predicate PRED.

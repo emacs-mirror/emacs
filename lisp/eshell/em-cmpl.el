@@ -306,6 +306,12 @@ to writing a completion function."
     (insert-and-inherit "\t")
     (throw 'pcompleted t)))
 
+(defun eshell-complete--eval-argument-form (arg)
+  "Evaluate a single Eshell argument form ARG for the purposes of completion."
+  (let ((result (eshell-do-eval `(eshell-commands ,arg) t)))
+    (cl-assert (eq (car result) 'quote))
+    (cadr result)))
+
 (defun eshell-complete-parse-arguments ()
   "Parse the command line arguments for `pcomplete-argument'."
   (when (and eshell-no-completion-during-jobs
@@ -344,11 +350,6 @@ to writing a completion function."
     (cl-assert (= (length args) (length posns)))
     (let ((a args) (i 0) new-start)
       (while a
-        ;; Remove any top-level `eshell-splice-args' sigils.  These
-        ;; are meant to be rewritten and can't actually be called.
-        (when (and (consp (car a))
-                   (eq (caar a) 'eshell-splice-args))
-          (setcar a (cadar a)))
         ;; If there's an unreplaced `eshell-operator' sigil, consider
         ;; the token after it the new start of our arguments.
         (when (and (consp (car a))
@@ -364,23 +365,40 @@ to writing a completion function."
 	       (not (eq (char-before (1- end)) ?\\)))
       (nconc args (list ""))
       (nconc posns (list (point))))
+    ;; Evaluate and expand Eshell forms.
+    (let (evaled-args evaled-posns)
+      (cl-mapc
+       (lambda (arg posn)
+         (pcase arg
+           (`(eshell-splice-args ,val)
+            (dolist (subarg (eshell-complete--eval-argument-form val))
+              (push subarg evaled-args)
+              (push posn evaled-posns)))
+           ((pred listp)
+            (push (eshell-complete--eval-argument-form arg) evaled-args)
+            (push posn evaled-posns))
+           (_
+            (push arg evaled-args)
+            (push posn evaled-posns))))
+       args posns)
+      (setq args (nreverse evaled-args)
+            posns (nreverse evaled-posns)))
+    ;; Convert arguments to forms that Pcomplete can understand.
     (cons (mapcar
            (lambda (arg)
-             (let ((val
-                    (if (listp arg)
-                        (let ((result
-                               (eshell-do-eval
-                                (list 'eshell-commands arg) t)))
-                          (cl-assert (eq (car result) 'quote))
-                          (cadr result))
-                      arg)))
-               (cond ((numberp val)
-                      (setq val (number-to-string val)))
-                     ;; expand .../ etc that only eshell understands to
-                     ;; standard ../../
-                     ((and (stringp val)) (string-match "\\.\\.\\.+/" val)
-                      (setq val (eshell-expand-multiple-dots val))))
-               (or val "")))
+             (pcase arg
+               ;; Expand ".../" etc that only Eshell understands to
+               ;; the standard "../../".
+               ((rx ".." (+ ".") "/")
+                (propertize (eshell-expand-multiple-dots arg)
+                            'pcomplete-arg-value arg))
+               ((pred stringp)
+                arg)
+               ('nil
+                (propertize "" 'pcomplete-arg-value arg))
+               (_
+                (propertize (eshell-stringify arg)
+                            'pcomplete-arg-value arg))))
 	   args)
 	  posns)))
 

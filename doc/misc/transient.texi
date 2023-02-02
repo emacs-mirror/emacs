@@ -64,6 +64,15 @@ reading a new value in the minibuffer.
 Calling a suffix command usually causes the transient to be exited
 but suffix commands can also be configured to not exit the transient.
 
+@quotation
+The second part of this manual, which describes how to modify existing
+transients and create new transients from scratch, can be hard to
+digest if you are just getting started.  A useful resource to get over
+that hurdle is Psionic K's interactive tutorial, available at
+@uref{https://github.com/positron-solutions/transient-showcase}.
+
+@end quotation
+
 @noindent
 This manual is for Transient version 0.3.7.50.
 
@@ -893,7 +902,16 @@ same customization.
 
 To an extent, transients can be customized interactively, see
 @ref{Enabling and Disabling Suffixes}.  This section explains how existing
-transients can be further modified non-interactively.
+transients can be further modified non-interactively.  Let's begin
+with an example:
+
+@lisp
+(transient-append-suffix 'magit-patch-apply "-3"
+  '("-R" "Apply in reverse" "--reverse"))
+@end lisp
+
+This inserts a new infix argument to toggle the @code{--reverse} argument
+after the infix argument that toggles @code{-3} in @code{magit-patch-apply}.
 
 The following functions share a few arguments:
 
