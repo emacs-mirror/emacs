@@ -378,31 +378,6 @@ to writing a completion function."
 	   args)
 	  posns)))
 
-(defun eshell--pcomplete-executables ()
-  "Complete amongst a list of directories and executables.
-
-Wrapper for `pcomplete-executables' or `pcomplete-dirs-or-entries',
-depending on the value of `eshell-force-execution'.
-
-Adds path prefix to candidates independent of `action' value."
-  ;; `pcomplete-entries' returns filenames without path on `action' to
-  ;; use current string directory as done in `completion-file-name-table'
-  ;; when `action' is nil to construct executable candidates.
-  (let ((table (if eshell-force-execution
-                   (pcomplete-dirs-or-entries nil #'file-readable-p)
-                 (pcomplete-executables))))
-    (lambda (string pred action)
-      (let ((cands (funcall table string pred action)))
-        (if (eq action t)
-            (let ((specdir (file-name-directory string)))
-              (mapcar
-               (lambda (cand)
-                 (if (stringp cand)
-                     (file-name-concat specdir cand)
-                   cand))
-               cands))
-          cands)))))
-
 (defun eshell--complete-commands-list ()
   "Generate list of applicable, visible commands."
   ;; Building the commands list can take quite a while, especially over Tramp
@@ -413,11 +388,19 @@ Adds path prefix to candidates independent of `action' value."
          ;; we complete.  Adjust `pcomplete-stub' accordingly!
 	 (if (and (> (length pcomplete-stub) 0)
 	          (eq (aref pcomplete-stub 0) eshell-explicit-command-char))
-	     (setq pcomplete-stub (substring pcomplete-stub 1)))))
-    (completion-table-dynamic
-     (lambda (filename)
-       (if (file-name-directory filename)
-           (eshell--pcomplete-executables)
+             (setq pcomplete-stub (substring pcomplete-stub 1))))
+        (filename (pcomplete-arg)))
+    ;; Do not use `completion-table-dynamic' when completing a command file
+    ;; name since it doesn't know about boundaries and would end up doing silly
+    ;; things like adding a SPC char when completing to "/usr/sbin/".
+    ;;
+    ;; If you work on this function, be careful not to reintroduce bug#48995.
+    (if (file-name-directory filename)
+        (if eshell-force-execution
+            (pcomplete-dirs-or-entries nil #'file-readable-p)
+          (pcomplete-executables))
+      (completion-table-dynamic
+       (lambda (filename)
 	 (let* ((paths (eshell-get-path))
 		(cwd (file-name-as-directory
 		      (expand-file-name default-directory)))
