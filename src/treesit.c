@@ -2483,8 +2483,8 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
   uint32_t end_byte_offset = ts_node_end_byte (treesit_node);
   ptrdiff_t start_byte = visible_beg + start_byte_offset;
   ptrdiff_t end_byte = visible_beg + end_byte_offset;
-  ptrdiff_t start_pos = buf_bytepos_to_charpos (buffer, start_byte);
-  ptrdiff_t end_pos = buf_bytepos_to_charpos (buffer, end_byte);
+  ptrdiff_t start_pos = BYTE_TO_CHAR (start_byte);
+  ptrdiff_t end_pos = BYTE_TO_CHAR (end_byte);
   ptrdiff_t old_begv = BEGV;
   ptrdiff_t old_begv_byte = BEGV_BYTE;
   ptrdiff_t old_zv = ZV;
@@ -2495,8 +2495,8 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
   ZV = end_pos;
   ZV_BYTE = end_byte;
 
-  ptrdiff_t val = search_buffer (regexp, start_pos, start_byte, end_pos, end_byte,
-				 1, 1, Qnil, Qnil, false);
+  ptrdiff_t val = search_buffer (regexp, start_pos, start_byte,
+				 end_pos, end_byte, 1, 1, Qnil, Qnil, false);
 
   BEGV = old_begv;
   BEGV_BYTE = old_begv_byte;
@@ -2505,10 +2505,7 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 
   set_buffer_internal (old_buffer);
 
-  if (val > 0)
-    return true;
-  else
-    return false;
+  return (val > 0);
 }
 
 /* Handles predicate (#pred FN ARG...).  Return true if FN returns
