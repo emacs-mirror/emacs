@@ -62,6 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
   <application android:name="org.gnu.emacs.EmacsApplication"
 	       android:label="Emacs"
+	       android:icon="@drawable/emacs"
 	       android:hardwareAccelerated="true"
 	       android:supportsRtl="true"
 	       android:theme="@android:style/Theme"

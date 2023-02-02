@@ -2,6 +2,11 @@ This directory holds the Java sources of the port of GNU Emacs to
 Android-like systems, along with files needed to create an application
 package out of them.
 
+The ``org/gnu/emacs'' subdirectory contains the Java sources under the
+``org.gnu.emacs'' package identifier.
+
+The ``res'' directory contains resources, mainly the Emacs icon.
+
 `emacs.keystore' is the signing key used to build Emacs.  It is kept
 here, and we encourage all people redistributing Emacs to use this
 key.  It holds no security value, and otherwise it will be impossible
