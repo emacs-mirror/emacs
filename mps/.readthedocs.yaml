@@ -24,6 +24,9 @@ python:
   install:
     - requirements: manual/requirements.pip
 
+sphinx:
+  configuration: manual/source/conf.py
+
 # A. REFERENCES
 #
 # [Readthedocs] "Read the Docs: Documentation Simplified";
