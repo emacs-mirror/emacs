@@ -218,15 +218,14 @@ See <lisp/eshell/esh-var.el>."
                     "VAR=file.txt ")))))
 
 (ert-deftest em-cmpl-test/user-ref-completion ()
-  "Test completeion of user references like \"~user\".
+  "Test completion of user references like \"~user\".
 See <lisp/eshell/em-dirs.el>."
   (unwind-protect
       (with-temp-eshell
        (cl-letf (((symbol-function 'eshell-read-user-names)
                   (lambda () (setq eshell-user-names '((1234 . "user"))))))
-         ;; FIXME: Should this really add a space at the end?
          (should (equal (eshell-insert-and-complete "echo ~us")
-                        "echo ~user/ "))))
+                        "echo ~user/"))))
     ;; Clear the cached user names we set above.
     (setq eshell-user-names nil)))
 
