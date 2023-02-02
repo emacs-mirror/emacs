@@ -681,7 +681,7 @@ This means an exit code of 0."
 	       (not (eq (char-after (1+ (point))) ?\}))))
       (let ((end (eshell-find-delimiter ?\{ ?\})))
 	(if (not end)
-	    (throw 'eshell-incomplete ?\{)
+            (throw 'eshell-incomplete "{")
 	  (when (eshell-arg-delimiter (1+ end))
 	    (prog1
 		`(eshell-as-subcommand
@@ -698,7 +698,7 @@ This means an exit code of 0."
 	      (condition-case nil
 		  (read (current-buffer))
 		(end-of-file
-		 (throw 'eshell-incomplete ?\()))))
+                 (throw 'eshell-incomplete "(")))))
 	(if (eshell-arg-delimiter)
 	    `(eshell-command-to-value
               (eshell-lisp-command (quote ,obj)))

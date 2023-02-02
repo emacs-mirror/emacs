@@ -330,10 +330,10 @@ to writing a completion function."
 	      (catch 'eshell-incomplete
 		(ignore
 		 (setq args (eshell-parse-arguments begin end)))))
-	(cond ((memq (car delim) '(?\{ ?\<))
+        (cond ((member (car delim) '("{" "${" "$<"))
 	       (setq begin (1+ (cadr delim))
 		     args (eshell-parse-arguments begin end)))
-	      ((eq (car delim) ?\()
+              ((member (car delim) '("(" "$("))
 	       (throw 'pcompleted (elisp-completion-at-point)))
 	      (t
 	       (eshell--pcomplete-insert-tab))))

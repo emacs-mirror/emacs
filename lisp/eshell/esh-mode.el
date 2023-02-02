@@ -580,7 +580,7 @@ will return the parsed command."
 		 (setq command (eshell-parse-command (cons beg end)
 						     args t)))))
 	(ignore
-	 (message "Expecting completion of delimiter %c ..."
+         (message "Expecting completion of delimiter %s ..."
 		  (if (listp delim)
 		      (car delim)
 		    delim)))

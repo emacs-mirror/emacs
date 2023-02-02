@@ -503,7 +503,7 @@ Possible variable references are:
    ((eq (char-after) ?{)
     (let ((end (eshell-find-delimiter ?\{ ?\})))
       (if (not end)
-          (throw 'eshell-incomplete ?\{)
+          (throw 'eshell-incomplete "${")
         (forward-char)
         (prog1
             `(eshell-apply-indices
@@ -527,7 +527,7 @@ Possible variable references are:
    ((eq (char-after) ?\<)
     (let ((end (eshell-find-delimiter ?\< ?\>)))
       (if (not end)
-          (throw 'eshell-incomplete ?\<)
+          (throw 'eshell-incomplete "$<")
         (let* ((temp (make-temp-file temporary-file-directory))
                (cmd (concat (buffer-substring (1+ (point)) end)
                             " > " temp)))
@@ -560,15 +560,19 @@ Possible variable references are:
                         (current-buffer)))))
           indices ,eshell-current-quoted)
       (end-of-file
-       (throw 'eshell-incomplete ?\())))
+       (throw 'eshell-incomplete "$("))))
    ((looking-at (rx-to-string
                  `(or "'" ,(if eshell-current-quoted "\\\"" "\""))))
     (eshell-with-temp-command
         (or (eshell-unescape-inner-double-quote (point-max))
             (cons (point) (point-max)))
-      (let ((name (if (eq (char-after) ?\')
-                      (eshell-parse-literal-quote)
-                    (eshell-parse-double-quote))))
+      (let (name)
+        (when-let ((delim
+                    (catch 'eshell-incomplete
+                      (ignore (setq name (if (eq (char-after) ?\')
+                                             (eshell-parse-literal-quote)
+                                           (eshell-parse-double-quote)))))))
+          (throw 'eshell-incomplete (concat "$" delim)))
         (when name
           `(eshell-get-variable ,(eval name) indices ,eshell-current-quoted)))))
    ((assoc (char-to-string (char-after))
@@ -597,7 +601,7 @@ For example, \"[0 1][2]\" becomes:
     (while (eq (char-after) ?\[)
       (let ((end (eshell-find-delimiter ?\[ ?\])))
 	(if (not end)
-	    (throw 'eshell-incomplete ?\[)
+            (throw 'eshell-incomplete "[")
 	  (forward-char)
           (eshell-with-temp-command (or (eshell-unescape-inner-double-quote end)
                                         (cons (point) end))
