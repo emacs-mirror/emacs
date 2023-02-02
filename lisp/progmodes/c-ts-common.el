@@ -194,7 +194,8 @@ comment."
       (when end-marker
         (goto-char end-marker)
         (delete-region (point) (+ end-len (point)))
-        (insert (make-string end-len ?\s))))))
+        (insert (make-string end-len ?\s)))
+      (goto-char orig-point))))
 
 (defun c-ts-common-comment-setup ()
   "Set up local variables for C-like comment.
