@@ -42,3 +42,12 @@ if (x) {
   return;
 }
 =-=-=
+
+Name: Field declaration without access modifier (bug#61115)
+
+=-=
+public class T {
+  @Autowired
+  String a;
+}
+=-=-=
