@@ -399,7 +399,7 @@ row_to_value (sqlite3_stmt *stmt)
   int len = sqlite3_column_count (stmt);
   Lisp_Object values = Qnil;
 
-  for (int i = 0; i < len; ++i)
+  for (int i = len - 1; i >= 0; i--)
     {
       Lisp_Object v = Qnil;
 
@@ -434,7 +434,7 @@ row_to_value (sqlite3_stmt *stmt)
       values = Fcons (v, values);
     }
 
-  return Fnreverse (values);
+  return values;
 }
 
 static Lisp_Object
@@ -718,10 +718,14 @@ Only modules on Emacs' list of allowed modules can be loaded.  */)
 #endif /* HAVE_SQLITE3_LOAD_EXTENSION */
 
 DEFUN ("sqlite-next", Fsqlite_next, Ssqlite_next, 1, 1, 0,
-       doc: /* Return the next result set from SET.  */)
+       doc: /* Return the next result set from SET.
+Return nil when the statement has finished executing successfully.  */)
   (Lisp_Object set)
 {
   check_sqlite (set, true);
+
+  if (XSQLITE (set)->eof)
+    return Qnil;
 
   int ret = sqlite3_step (XSQLITE (set)->stmt);
   if (ret != SQLITE_ROW && ret != SQLITE_OK && ret != SQLITE_DONE)

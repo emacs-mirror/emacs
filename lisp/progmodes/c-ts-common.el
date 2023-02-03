@@ -194,7 +194,8 @@ comment."
       (when end-marker
         (goto-char end-marker)
         (delete-region (point) (+ end-len (point)))
-        (insert (make-string end-len ?\s))))))
+        (insert (make-string end-len ?\s)))
+      (goto-char orig-point))))
 
 (defun c-ts-common-comment-setup ()
   "Set up local variables for C-like comment.
@@ -280,7 +281,7 @@ special handling from our bracket-counting indent algorithm.
 
 This can be nil, meaning such special handling is not needed.")
 
-(defun c-ts-common-statement-offset (node parent &rest _)
+(defun c-ts-common-statement-offset (node parent bol &rest _)
   "This anchor is used for children of a statement inside a block.
 
 This function basically counts the number of block nodes (i.e.,
@@ -292,18 +293,21 @@ To support GNU style, on each block level, this function also
 checks whether the opening bracket { is on its own line, if so,
 it adds an extra level, except for the top-level.
 
-PARENT is NODE's parent."
+PARENT is NODE's parent, BOL is the beginning of non-whitespace
+characters on the current line."
   (let ((level 0))
+    ;; If NODE is a opening/closing bracket on its own line, take off
+    ;; one level because the code below assumes NODE is a statement
+    ;; _inside_ a {} block.
+    (when (and node
+               (or (string-match-p c-ts-common-indent-block-type-regexp
+                                   (treesit-node-type node))
+                   (save-excursion (goto-char bol) (looking-at-p "}"))))
+      (cl-decf level))
     ;; If point is on an empty line, NODE would be nil, but we pretend
     ;; there is a statement node.
     (when (null node)
       (setq node t))
-    ;; If NODE is a opening bracket on its own line, take off one
-    ;; level because the code below assumes NODE is a statement
-    ;; _inside_ a {} block.
-    (when (string-match-p c-ts-common-indent-block-type-regexp
-                          (treesit-node-type node))
-      (cl-decf level))
     ;; Go up the tree and compute indent level.
     (while (if (eq node t)
                (setq node parent)
@@ -321,9 +325,9 @@ PARENT is NODE's parent."
                                      (treesit-node-parent node))))
                    ;; Case (2).
                    (and parent-type
-                        (or (string-match-p
-                             c-ts-common-indent-block-type-regexp
-                             parent-type))))
+                        (string-match-p
+                         c-ts-common-indent-block-type-regexp
+                         parent-type)))
                  nil)
                 ;; Add a level.
                 ((looking-back (rx bol (* whitespace))
@@ -349,13 +353,6 @@ the bracket in the body."
              (string-match-p statement-re parent-type))
         (1+ level)
       level)))
-
-(defun c-ts-mode--close-bracket-offset (node parent &rest _)
-  "Offset for the closing bracket, NODE.
-It's basically one level less that the statements in the block.
-PARENT is NODE's parent."
-  (- (c-ts-common-statement-offset node parent)
-     (symbol-value c-ts-common-indent-offset)))
 
 (provide 'c-ts-common)
 

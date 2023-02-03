@@ -1101,6 +1101,10 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   eassert (NILP (BVAR (current_buffer, enable_multibyte_characters))
            ? nchars == nbytes : nchars <= nbytes);
 
+#ifdef HAVE_TREE_SITTER
+  ptrdiff_t ins_bytepos = GPT_BYTE;
+#endif
+
   GAP_SIZE -= nbytes;
   if (! text_at_gap_tail)
     {
@@ -1115,6 +1119,12 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   /* Put an anchor to ensure multi-byte form ends at gap.  */
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0;
   eassert (GPT <= GPT_BYTE);
+
+#ifdef HAVE_TREE_SITTER
+  eassert (nbytes >= 0);
+  eassert (ins_bytepos >= 0);
+  treesit_record_change (ins_bytepos, ins_bytepos, ins_bytepos + nbytes);
+#endif
 }
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
@@ -1150,12 +1160,6 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 				   current_buffer, 0);
     }
 
-#ifdef HAVE_TREE_SITTER
-  eassert (nbytes >= 0);
-  eassert (ins_bytepos >= 0);
-  treesit_record_change (ins_bytepos, ins_bytepos, ins_bytepos + nbytes);
-#endif
-
   if (ins_charpos < PT)
     adjust_point (nchars, nbytes);
 
@@ -1190,6 +1194,9 @@ insert_from_buffer (struct buffer *buf,
   treesit_record_change (obyte, obyte, PT_BYTE);
 #endif
 }
+
+/* NOTE: If we ever make insert_from_buffer_1 public, make sure to
+   move the call to treesit_record_change into it.  */
 
 static void
 insert_from_buffer_1 (struct buffer *buf,

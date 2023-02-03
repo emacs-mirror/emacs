@@ -10567,8 +10567,7 @@ displaying that processes's buffer."
 (define-key ctl-x-4-map "4" 'other-window-prefix)
 
 (defvar-keymap other-window-repeat-map
-  :doc "Keymap to repeat `other-window' key sequences.
-Used in `repeat-mode'."
+  :doc "Keymap to repeat `other-window'.  Used in `repeat-mode'."
   :repeat t
   "o" #'other-window
   "O" (lambda ()
@@ -10578,6 +10577,8 @@ Used in `repeat-mode'."
 
 (defvar-keymap resize-window-repeat-map
   :doc "Keymap to repeat window resizing commands.
+Repeatable commands are `enlarge-window' and `shrink-window',
+and also `enlarge-window-horizontally' and `shrink-window-horizontally'.
 Used in `repeat-mode'."
   :repeat t
   ;; Standard keys:

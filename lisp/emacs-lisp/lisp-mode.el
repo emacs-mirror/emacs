@@ -182,6 +182,7 @@ to a package-local <package>-loaddefs.el file.")
 ;; CL
 (put 'defconstant 'doc-string-elt 3)
 (put 'defparameter 'doc-string-elt 3)
+(put 'defstruct 'doc-string-elt 2)
 
 (defvar lisp-doc-string-elt-property 'doc-string-elt
   "The symbol property that holds the docstring position info.")

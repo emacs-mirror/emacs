@@ -2470,13 +2470,42 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 	      build_string ("The second argument to `match' should "
 		            "be a capture name, not a string"));
 
-  Lisp_Object text = treesit_predicate_capture_name_to_text (capture_name,
+  Lisp_Object node = treesit_predicate_capture_name_to_node (capture_name,
 							     captures);
 
-  if (fast_string_match (regexp, text) >= 0)
-    return true;
-  else
-    return false;
+  struct buffer *old_buffer = current_buffer;
+  struct buffer *buffer = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
+  set_buffer_internal (buffer);
+
+  TSNode treesit_node = XTS_NODE (node)->node;
+  ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
+  uint32_t start_byte_offset = ts_node_start_byte (treesit_node);
+  uint32_t end_byte_offset = ts_node_end_byte (treesit_node);
+  ptrdiff_t start_byte = visible_beg + start_byte_offset;
+  ptrdiff_t end_byte = visible_beg + end_byte_offset;
+  ptrdiff_t start_pos = BYTE_TO_CHAR (start_byte);
+  ptrdiff_t end_pos = BYTE_TO_CHAR (end_byte);
+  ptrdiff_t old_begv = BEGV;
+  ptrdiff_t old_begv_byte = BEGV_BYTE;
+  ptrdiff_t old_zv = ZV;
+  ptrdiff_t old_zv_byte = ZV_BYTE;
+
+  BEGV = start_pos;
+  BEGV_BYTE = start_byte;
+  ZV = end_pos;
+  ZV_BYTE = end_byte;
+
+  ptrdiff_t val = search_buffer (regexp, start_pos, start_byte,
+				 end_pos, end_byte, 1, 1, Qnil, Qnil, false);
+
+  BEGV = old_begv;
+  BEGV_BYTE = old_begv_byte;
+  ZV = old_zv;
+  ZV_BYTE = old_zv_byte;
+
+  set_buffer_internal (old_buffer);
+
+  return (val > 0);
 }
 
 /* Handles predicate (#pred FN ARG...).  Return true if FN returns

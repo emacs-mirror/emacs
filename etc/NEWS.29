@@ -563,6 +563,20 @@ The variable 'font-lock-support-mode' is occasionally useful for
 debugging purposes.  It is now a regular variable (instead of a user
 option) and can be set to nil to disable Just-in-time Lock mode.
 
++++
+** The 'utf-8-auto' coding-system now produces BOM on encoding.
+This is actually a bugfix, since this is how 'utf-8-auto' was
+documented from day one; it just didn't behave according to
+documentation.  It turns out some Lisp programs were using this
+coding-system on the wrong assumption that the "auto" part means some
+automagic handling of the end-of-line (EOL) format conversion; those
+program will now start to fail, because BOM signature in UTF-8 encoded
+text is rarely expected.  That is the reason we mention this bugfix
+here.
+
+In general, this coding-system should probably never be used for
+encoding, only for decoding.
+
 
 * Changes in Emacs 29.1
 
@@ -1338,6 +1352,18 @@ dragged.
 ** New user option 'yank-menu-max-items'.
 Customize this option to limit the number of entries in the menu
 "Edit → Paste from Kill Menu".  The default is 60.
+
+---
+** New user option 'copy-region-blink-predicate'.
+By default, when copying a region with 'kill-ring-save', Emacs only
+blinks point and mark when the region is not denoted visually, that
+is, when either the region is inactive, or the 'region' face is
+indistinguishable from the 'default' face.
+
+Users who would rather enable blinking unconditionally can now set
+this user option to 'always'.  To disable blinking unconditionally,
+either set this option to 'ignore', or set 'copy-region-blink-delay'
+to 0.
 
 +++
 ** Performing a pinch gesture on a touchpad now increases the text scale.
