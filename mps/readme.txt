@@ -42,7 +42,8 @@ Getting started
 The MPS Kit is a complete set of sources and documentation to enable
 you to use, modify, and adapt the MPS: source code, manuals,
 procedures, design documentation, and so on.  See the manual_ for an
-index.
+index.  (If for some reason the manual_ isn't available, you can build
+it.  See below.)
 
 .. _manual: https://memory-pool-system.readthedocs.io/
 
@@ -55,8 +56,9 @@ using it.  The basic case is straightforward on supported platforms
     cl /O2 /c mps.c     Windows (with Microsoft SDK or Visual Studio 2010)
 
 This will produce an object file you can link with your project.  For
-details of how to configure the MPS, build libraries and tests, use
-IDEs, autoconf, etc. see `Building the MPS <manual/build.txt>`__.
+details of how to configure the MPS, build the manual, libraries and
+tests, use IDEs, autoconf, etc. see `Building the MPS
+<manual/build.txt>`__.
 
 For an example of using the MPS, see the `Scheme interpreter
 example <example/scheme/>`_.
