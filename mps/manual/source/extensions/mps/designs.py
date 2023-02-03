@@ -159,14 +159,14 @@ logger = logging.getLogger(__name__)
 # Mini-make
 def convert_updated(app):
     logger.info(bold('converting MPS design documents'))
-    for design in glob.iglob('../../design/*.txt', root_dir=app.srcdir):
+    for design in glob.iglob(os.path.join(app.srcdir, '../../design/*.txt')):
         name = os.path.splitext(os.path.basename(design))[0]
         if name == 'index': continue
         converted = os.path.join(app.srcdir, 'design/%s.rst' % name)
         if newer(design, converted):
             logger.info('converting design %s' % name)
             convert_file(name, design, converted)
-    diagrams = chain(*[glob.iglob('../../design/*.' + ext, root_dir=app.srcdir)
+    diagrams = chain(*[glob.iglob(os.path.join(app.srcdir, '../../design/*.' + ext))
                        for ext in 'png svg'.split()])
     for diagram in diagrams:
         target = os.path.join(app.srcdir, 'design/', os.path.basename(diagram))
