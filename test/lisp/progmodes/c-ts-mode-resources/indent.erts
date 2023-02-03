@@ -1,9 +1,9 @@
 Code:
   (lambda ()
-    (setq indent-tabs-mode nil)
-    (setq c-ts-mode-indent-offset 2)
-    (setq c-ts-mode-indent-style 'gnu)
     (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 2)
+    (c-ts-mode-set-local-style 'gnu)
     (indent-region (point-min) (point-max)))
 
 Point-Char: |
@@ -219,10 +219,10 @@ line 2
 
 Code:
   (lambda ()
-    (setq indent-tabs-mode nil)
-    (setq c-ts-mode-indent-offset 8)
-    (setq c-ts-mode-indent-style 'linux)
     (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 8)
+    (c-ts-mode-set-local-style 'linux)
     (indent-region (point-min) (point-max)))
 
 Name: Labels (Linux Style)
