@@ -5,7 +5,7 @@ buffer, lest tree-sitter's parse tree would be corrupted/out of sync.
 
 All buffer changes in Emacs are made through functions in insdel.c
 (and casefiddle.c), I augmented functions in those files with calls to
-treesit_record_change.  Below is a manifest of all the relavent
+treesit_record_change.  Below is a manifest of all the relevant
 functions in insdel.c as of Emacs 29:
 
 Function                          Calls

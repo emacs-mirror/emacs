@@ -164,7 +164,7 @@ Also see `header-line-indent'.")
 ;;;###autoload
 (define-minor-mode header-line-indent-mode
   "Minor mode to help with alignment of header line when line numbers are shown.
-This minor mode should be turned on in buffers which dispay header-line
+This minor mode should be turned on in buffers which display header-line
 that needs to be aligned with buffer text when `display-line-numbers-mode'
 is turned on in the buffer.
 
