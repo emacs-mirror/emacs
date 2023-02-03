@@ -3946,9 +3946,11 @@ This argument can be used to override values of print-related settings.
 
 +++
 ** New minor mode 'header-line-indent-mode'.
-This is meant to be used in modes that have a header line that should
-be kept aligned with the buffer contents when the user switches
-'display-line-numbers-mode' on or off.
+This is meant to be used by Lisp programs that show a header line
+which should be kept aligned with the buffer contents when the user
+switches 'display-line-numbers-mode' on or off, and when the width of
+line-number display changes.  See the "(elisp) Header Lines" node in
+the Emacs Lisp Reference manual for more information.
 
 +++
 ** New global minor mode 'lost-selection-mode'.
