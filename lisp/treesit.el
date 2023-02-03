@@ -555,8 +555,12 @@ omitted, default END to BEG."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
+(defvar treesit-font-lock-settings)
 (defun treesit--font-lock-level-setter (sym val)
-  "Custom setter for `treesit-font-lock-level'."
+  "Custom setter for `treesit-font-lock-level'.
+Set the default value of SYM to VAL, recompute fontification
+features and refontify for every buffer where tree-sitter-based
+fontification is enabled."
   (set-default sym val)
   (and (treesit-available-p)
        (named-let loop ((res nil)
@@ -571,7 +575,7 @@ omitted, default END to BEG."
                    res)
            (let ((buffer (car buffers)))
              (with-current-buffer buffer
-               (if (treesit-parser-list)
+               (if treesit-font-lock-settings
                    (loop (append res (list buffer)) (cdr buffers))
                  (loop res (cdr buffers)))))))))
 
