@@ -67,12 +67,11 @@ Note that any value other than nil or `external' likely requires
 
 (defcustom erc-sasl-user :user
   "Account username to send when authenticating.
-This is also referred to as the authentication identity or
+This option specifies the SASL authentication identity, or
 \"authcid\".  A value of `:user' or `:nick' indicates that the
-corresponding connection parameter on file should be used.  These
-are most often derived from arguments provided to the `erc' and
-`erc-tls' entry points.  In the case of `:nick', a downcased
-version is used."
+corresponding connection parameter on file should be used.  ERC
+typically obtains these from arguments given to its entry-point
+commands, `erc' and `erc-tls'."
   :type '(choice string (const :user) (const :nick)))
 
 (defcustom erc-sasl-password :password
@@ -129,7 +128,7 @@ integration."
 (defun erc-sasl--get-user ()
   (pcase (alist-get 'user erc-sasl--options)
     (:user erc-session-username)
-    (:nick (erc-downcase (erc-current-nick)))
+    (:nick (erc-current-nick))
     (v v)))
 
 (defun erc-sasl-auth-source-password-as-host (&rest plist)
