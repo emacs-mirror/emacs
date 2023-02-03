@@ -9,7 +9,7 @@ Introduction
 ------------
 
 This document describes the various ways in which you can build the MPS,
-its libraries, and the tests and tools that come with it.
+its manual, its libraries, and the tests and tools that come with it.
 
 You may be building the MPS for a number of different purposes.
 
@@ -92,6 +92,30 @@ You can base this on the ANSI plinth in ``mpsliban.c``.
 
 If you want to do anything beyond these simple cases, use the MPS build
 as described in the section "Building the MPS for development" below.
+
+
+Building the MPS manual
+-----------------------
+
+Builds of the MPS manual from the main MPS repo should be available at
+`<https://memory-pool-system.readthedocs.io/>`_.
+
+If that's not available, or if you have a variant of the MPS Kit, or
+are making modifications to the MPS itself, then you should build the
+manual for yourself.  This uses Sphinx
+`<https://www.sphinx-doc.org/>`_.
+
+On Unix-like platforms (including macOS), the Makefile in the manual
+directory can fetch and install a local copy of Sphinx and build the
+manual, like this::
+
+  cd manual
+  make html
+
+On Windows platforms, follow the `Sphinx installation instructions
+<https://www.sphinx-doc.org/en/master/usage/installation.html>`_ for
+Windows, then invoke Sphinx as shown in the Makefile in the manual
+directory.
 
 
 Building the MPS for development
