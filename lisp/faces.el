@@ -304,7 +304,16 @@ If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (let ((attrs
-	 (delq :inherit (mapcar 'car face-attribute-name-alist)))
+         ;; The _value_ of :inherit teaches us nothing about how FACE
+         ;; looks compared to the default face.  Instead, we will ask
+         ;; `face-attribute' to take inheritance into account when
+         ;; examining other attributes.
+         (delq :inherit
+               ;; A difference in extension past EOL only matters when
+               ;; relevant attributes (such as :background) also
+               ;; differ from the default; otherwise this difference
+               ;; is a false positive.
+               (delq :extend (mapcar 'car face-attribute-name-alist))))
 	(differs nil))
     (while (and attrs (not differs))
       (let* ((attr (pop attrs))

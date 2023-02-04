@@ -72,6 +72,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_query_cursor_set_byte_range
 #undef ts_query_delete
 #undef ts_query_new
+#undef ts_query_pattern_count
 #undef ts_query_predicates_for_pattern
 #undef ts_query_string_value_for_id
 #undef ts_set_allocator
@@ -135,6 +136,7 @@ DEF_DLL_FN (void, ts_query_cursor_set_byte_range,
 DEF_DLL_FN (void, ts_query_delete, (TSQuery *));
 DEF_DLL_FN (TSQuery *, ts_query_new,
 	    (const TSLanguage *, const char *, uint32_t, uint32_t *, TSQueryError *));
+DEF_DLL_FN (uint32_t, ts_query_pattern_count, (const TSQuery *));
 DEF_DLL_FN (const TSQueryPredicateStep *, ts_query_predicates_for_pattern,
 	    ( const TSQuery *, uint32_t, uint32_t *));
 DEF_DLL_FN (const char *, ts_query_string_value_for_id,
@@ -200,6 +202,7 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_query_cursor_set_byte_range);
   LOAD_DLL_FN (library, ts_query_delete);
   LOAD_DLL_FN (library, ts_query_new);
+  LOAD_DLL_FN (library, ts_query_pattern_count);
   LOAD_DLL_FN (library, ts_query_predicates_for_pattern);
   LOAD_DLL_FN (library, ts_query_string_value_for_id);
   LOAD_DLL_FN (library, ts_set_allocator);
@@ -256,6 +259,7 @@ init_treesit_functions (void)
 #define ts_query_cursor_set_byte_range fn_ts_query_cursor_set_byte_range
 #define ts_query_delete fn_ts_query_delete
 #define ts_query_new fn_ts_query_new
+#define ts_query_pattern_count fn_ts_query_pattern_count
 #define ts_query_predicates_for_pattern fn_ts_query_predicates_for_pattern
 #define ts_query_string_value_for_id fn_ts_query_string_value_for_id
 #define ts_set_allocator fn_ts_set_allocator
@@ -2466,13 +2470,42 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 	      build_string ("The second argument to `match' should "
 		            "be a capture name, not a string"));
 
-  Lisp_Object text = treesit_predicate_capture_name_to_text (capture_name,
+  Lisp_Object node = treesit_predicate_capture_name_to_node (capture_name,
 							     captures);
 
-  if (fast_string_match (regexp, text) >= 0)
-    return true;
-  else
-    return false;
+  struct buffer *old_buffer = current_buffer;
+  struct buffer *buffer = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
+  set_buffer_internal (buffer);
+
+  TSNode treesit_node = XTS_NODE (node)->node;
+  ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
+  uint32_t start_byte_offset = ts_node_start_byte (treesit_node);
+  uint32_t end_byte_offset = ts_node_end_byte (treesit_node);
+  ptrdiff_t start_byte = visible_beg + start_byte_offset;
+  ptrdiff_t end_byte = visible_beg + end_byte_offset;
+  ptrdiff_t start_pos = BYTE_TO_CHAR (start_byte);
+  ptrdiff_t end_pos = BYTE_TO_CHAR (end_byte);
+  ptrdiff_t old_begv = BEGV;
+  ptrdiff_t old_begv_byte = BEGV_BYTE;
+  ptrdiff_t old_zv = ZV;
+  ptrdiff_t old_zv_byte = ZV_BYTE;
+
+  BEGV = start_pos;
+  BEGV_BYTE = start_byte;
+  ZV = end_pos;
+  ZV_BYTE = end_byte;
+
+  ptrdiff_t val = search_buffer (regexp, start_pos, start_byte,
+				 end_pos, end_byte, 1, 1, Qnil, Qnil, false);
+
+  BEGV = old_begv;
+  BEGV_BYTE = old_begv_byte;
+  ZV = old_zv;
+  ZV_BYTE = old_zv_byte;
+
+  set_buffer_internal (old_buffer);
+
+  return (val > 0);
 }
 
 /* Handles predicate (#pred FN ARG...).  Return true if FN returns

@@ -256,10 +256,14 @@ This has effect only if `search-invisible' is set to `open'."
 (defvar hs-special-modes-alist
   (mapcar #'purecopy
   '((c-mode "{" "}" "/[*/]" nil nil)
+    (c-ts-mode "{" "}" "/[*/]" nil nil)
     (c++-mode "{" "}" "/[*/]" nil nil)
+    (c++-ts-mode "{" "}" "/[*/]" nil nil)
     (bibtex-mode ("@\\S(*\\(\\s(\\)" 1))
     (java-mode "{" "}" "/[*/]" nil nil)
+    (java-ts-mode "{" "}" "/[*/]" nil nil)
     (js-mode "{" "}" "/[*/]" nil)
+    (js-ts-mode "{" "}" "/[*/]" nil)
     (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil)
     ;; Add more support here.
     ))

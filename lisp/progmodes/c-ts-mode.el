@@ -100,12 +100,11 @@ the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL."
                   (setq-local treesit-simple-indent-rules
                               (treesit--indent-rules-optimize
                                (c-ts-mode--get-indent-style
-                                (if (eq major-mode 'c-ts-mode) 'c 'cpp))))))
+                                (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))))
               res)
       (let ((buffer (car buffers)))
         (with-current-buffer buffer
-          ;; FIXME: Should we use `derived-mode-p' here?
-          (if (or (eq major-mode 'c-ts-mode) (eq major-mode 'c++-ts-mode))
+          (if (derived-mode-p 'c-ts-mode 'c++-ts-mode)
               (loop (append res (list buffer)) (cdr buffers))
             (loop res (cdr buffers))))))))
 
@@ -134,24 +133,33 @@ MODE is either `c' or `cpp'."
            (alist-get c-ts-mode-indent-style (c-ts-mode--indent-styles mode)))))
     `((,mode ,@style))))
 
-(defun c-ts-mode-set-style ()
-  "Set the indent style of C/C++ modes globally.
+(defun c-ts-mode--prompt-for-style ()
+  "Prompt for a indent style and return the symbol for it."
+  (let ((mode (if (derived-mode-p 'c-ts-mode) 'c 'c++)))
+    (intern
+     (completing-read
+      "Style: "
+      (mapcar #'car (c-ts-mode--indent-styles mode))
+      nil t nil nil "gnu"))))
+
+(defun c-ts-mode-set-style (style)
+  "Set the indent style of C/C++ modes globally to STYLE.
 
 This changes the current indent style of every C/C++ buffer and
 the default C/C++ indent style in this Emacs session."
-  (interactive)
-  ;; FIXME: Should we use `derived-mode-p' here?
-  (or (eq major-mode 'c-ts-mode) (eq major-mode 'c++-ts-mode)
-      (error "Buffer %s is not a c-ts-mode (c-ts-mode-set-style)"
-             (buffer-name)))
-  (c-ts-mode--indent-style-setter
-   'c-ts-mode-indent-style
-   ;; NOTE: We can probably use the interactive form for this.
-   (intern
-    (completing-read
-     "Select style: "
-     (mapcar #'car (c-ts-mode--indent-styles (if (eq major-mode 'c-ts-mode) 'c 'cpp)))
-     nil t nil nil "gnu"))))
+  (interactive (list (c-ts-mode--prompt-for-style)))
+  (c-ts-mode--indent-style-setter 'c-ts-mode-indent-style style))
+
+(defun c-ts-mode-set-local-style (style)
+  "Set the C/C++ indent style of the current buffer to STYLE."
+  (interactive (list (c-ts-mode--prompt-for-style)))
+  (if (not (derived-mode-p 'c-ts-mode 'c++-ts-mode))
+      (user-error "The current buffer is not in `c-ts-mode' nor `c++-ts-mode'")
+    (setq-local c-ts-mode-indent-style style)
+    (setq treesit-simple-indent-rules
+          (treesit--indent-rules-optimize
+           (c-ts-mode--get-indent-style
+            (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))))
 
 ;;; Syntax table
 
@@ -254,12 +262,16 @@ MODE is either `c' or `cpp'."
 
            ;; int[5] a = { 0, 0, 0, 0 };
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
+           ;; Statement in enum.
            ((parent-is "enumerator_list") point-min c-ts-common-statement-offset)
+           ;; Statement in struct and union.
            ((parent-is "field_declaration_list") point-min c-ts-common-statement-offset)
 
-           ;; {} blocks.
-           ((node-is "}") point-min c-ts-mode--close-bracket-offset)
+           ;; Statement in {} blocks.
            ((parent-is "compound_statement") point-min c-ts-common-statement-offset)
+           ;; Closing bracket.
+           ((node-is "}") point-min c-ts-common-statement-offset)
+           ;; Opening bracket.
            ((node-is "compound_statement") point-min c-ts-common-statement-offset)
 
            ,@(when (eq mode 'cpp)
@@ -824,6 +836,8 @@ in your configuration."
                 (c-ts-mode--get-indent-style 'c))
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
+    ;; Navigation.
+    (setq-local treesit-defun-tactic 'top-level)
     (treesit-major-mode-setup)))
 
 ;;;###autoload

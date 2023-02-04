@@ -1,9 +1,9 @@
 Code:
   (lambda ()
-    (setq indent-tabs-mode nil)
-    (setq c-ts-mode-indent-offset 2)
-    (setq c-ts-mode-indent-style 'gnu)
     (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 2)
+    (c-ts-mode-set-local-style 'gnu)
     (indent-region (point-min) (point-max)))
 
 Point-Char: |
@@ -135,32 +135,6 @@ int main() {
 }
 =-=-=
 
-Name: Bracket-less Block-Statement (Linux Style) (bug#61026)
-
-=-=-=
-int main() {
-  while (true)
-    if (true) {
-      puts ("Hello");
-    }
-  for (int i=0;
-       i<5;
-       i++)
-    if (true) {
-      puts ("Hello");
-    }
-  do
-    if (true) {
-      puts ("Hello");
-    }
-  while (true);
-  if (true)
-    if (true) {
-      puts ("Hello");
-    }
-}
-=-=-=
-
 Name: Multiline Parameter List (bug#60398)
 
 =-=
@@ -219,10 +193,10 @@ line 2
 
 Code:
   (lambda ()
-    (setq indent-tabs-mode nil)
-    (setq c-ts-mode-indent-offset 8)
-    (setq c-ts-mode-indent-style 'linux)
     (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 8)
+    (c-ts-mode-set-local-style 'linux)
     (indent-region (point-min) (point-max)))
 
 Name: Labels (Linux Style)
@@ -242,5 +216,31 @@ label:
                         return 0;
                 }
         }
+}
+=-=-=
+
+Name: Bracket-less Block-Statement (Linux Style) (bug#61026)
+
+=-=-=
+int main() {
+  while (true)
+    if (true) {
+      puts ("Hello");
+    }
+  for (int i=0;
+       i<5;
+       i++)
+    if (true) {
+      puts ("Hello");
+    }
+  do
+    if (true) {
+      puts ("Hello");
+    }
+  while (true);
+  if (true)
+    if (true) {
+      puts ("Hello");
+    }
 }
 =-=-=
