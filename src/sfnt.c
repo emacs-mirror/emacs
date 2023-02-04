@@ -3210,7 +3210,7 @@ sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
 /* The same as sfnt_multiply_divide, but handle signed values
    instead.  */
 
-static MAYBE_UNUSED int
+MAYBE_UNUSED static int
 sfnt_multiply_divide_signed (int a, int b, int c)
 {
   int sign;
@@ -4870,11 +4870,11 @@ struct sfnt_interpreter_zone
   /* Pointer to the X axis point data.  */
   sfnt_f26dot6 *restrict x_points;
 
-  /* Pointer to the Y axis point data.  */
-  sfnt_f26dot6 *restrict y_points;
-
   /* Pointer to the X axis current point data.  */
   sfnt_f26dot6 *restrict x_current;
+
+  /* Pointer to the Y axis point data.  */
+  sfnt_f26dot6 *restrict y_points;
 
   /* Pointer to the Y axis current point data.  */
   sfnt_f26dot6 *restrict y_current;
@@ -4915,10 +4915,11 @@ struct sfnt_graphics_state
   sfnt_f26dot6 (*project) (sfnt_f26dot6, sfnt_f26dot6,
 			   struct sfnt_interpreter *);
 
-  /* Pointer to the function used to move a specified point
+  /* Pointer to the function used to move specified points
      along the freedom vector by a distance specified in terms
      of the projection vector.  */
-  void (*move) (sfnt_f26dot6 *, sfnt_f26dot6 *,
+  void (*move) (sfnt_f26dot6 *restrict,
+		sfnt_f26dot6 *restrict, size_t,
 		struct sfnt_interpreter *,
 		sfnt_f26dot6, unsigned char *);
 
@@ -5067,10 +5068,10 @@ struct sfnt_interpreter
   size_t cvt_size;
 
   /* Pointer to instructions currently being executed.  */
-  unsigned char *instructions;
+  unsigned char *restrict instructions;
 
   /* The twilight zone.  May not be NULL.  */
-  sfnt_f26dot6 *twilight_x, *twilight_y;
+  sfnt_f26dot6 *restrict twilight_x, *restrict twilight_y;
 
   /* The scaled outlines being manipulated.  May be NULL.  */
   struct sfnt_interpreter_zone *glyph_zone;
@@ -5171,6 +5172,34 @@ sfnt_mul_f26dot6 (sfnt_f26dot6 a, sfnt_f26dot6 b)
 
   return sfnt_multiply_divide (abs (a), abs (b),
 			       64) * sign;
+#endif
+}
+
+/* Multiply the specified 2.14 number with another signed 32 bit
+   number.  Return the result as a signed 32 bit number.  */
+
+static int32_t
+sfnt_mul_f2dot14 (sfnt_f2dot14 a, int32_t b)
+{
+#ifdef INT64_MAX
+  int64_t product;
+
+  product = (int64_t) a * (int64_t) b;
+
+  return product / (int64_t) 16384;
+#else
+  int sign;
+
+  sign = 1;
+
+  if (a < 0)
+    sign = -sign;
+
+  if (b < 0)
+    sign = -sign;
+
+  return sfnt_multiply_divide (abs (a), abs (b),
+			       16384) * sign;
 #endif
 }
 
@@ -5429,17 +5458,18 @@ enum sfnt_interpreter_run_context
   };
 
 /* Cancel execution of the program in INTERPRETER with the specified
-   error REASON.
+   error REASON and reset the loop counter to 1.
 
    After this is called, it is probably okay to reuse INTERPRETER.
    However, instructions must always be reloaded.  */
 
-static void
+_Noreturn static void
 sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 		     const char *reason)
 {
   interpreter->trap_reason = reason;
   interpreter->call_depth = 0;
+  interpreter->state.loop = 1;
   longjmp (interpreter->trap, 1);
 }
 
@@ -6160,6 +6190,51 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 	 / 1024);				\
   }
 
+#define JROT()					\
+  {						\
+    uint32_t e;					\
+    int32_t offset;				\
+						\
+    e = POP ();					\
+    offset = POP ();				\
+						\
+    if (!e)					\
+      break;					\
+						\
+    if (interpreter->IP + offset < 0		\
+	|| (interpreter->IP + offset		\
+	    > interpreter->num_instructions))	\
+      TRAP ("JMPR out of bounds");		\
+						\
+    interpreter->IP += offset;			\
+    goto skip_step;				\
+  }
+
+#define JROF()					\
+  {						\
+    uint32_t e;					\
+    int32_t offset;				\
+						\
+    e = POP ();					\
+    offset = POP ();				\
+						\
+    if (e)					\
+      break;					\
+						\
+    if (interpreter->IP + offset < 0		\
+	|| (interpreter->IP + offset		\
+	    > interpreter->num_instructions))	\
+      TRAP ("JMPR out of bounds");		\
+						\
+    interpreter->IP += offset;			\
+    goto skip_step;				\
+  }
+
+#define ILLEGAL_INSTRUCTION()			\
+  {						\
+    TRAP ("MS reserved illegal instruction");	\
+  }
+
 #define SCANCTRL()				\
   {						\
     uint32_t value;				\
@@ -6593,6 +6668,76 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 			     p2);		\
   }
 
+#define UTP()					\
+  {						\
+    uint32_t p;					\
+						\
+    p = POP ();					\
+    sfnt_interpret_utp (interpreter, p);	\
+  }
+
+#define MDAP()					\
+  {						\
+    uint32_t p;					\
+						\
+    p = POP ();					\
+    sfnt_interpret_mdap (interpreter, p,	\
+			 opcode);		\
+  }
+
+#define IUP()					\
+  {						\
+    sfnt_interpret_iup (interpreter, opcode);	\
+  }
+
+#define SHP()					\
+  {						\
+    sfnt_interpret_shp (interpreter, opcode);	\
+  }
+
+#define SHC()					\
+  {						\
+    uint32_t contour;				\
+						\
+    contour = POP ();				\
+						\
+    sfnt_interpret_shc (interpreter, contour,	\
+			opcode);		\
+  }
+
+#define SHZ()					\
+  {						\
+    uint32_t e;					\
+						\
+    e = POP ();					\
+						\
+    if (e > 1)					\
+      TRAP ("invalid zone!");			\
+						\
+    sfnt_interpret_shz (interpreter, e,		\
+			opcode);		\
+  }
+
+#define SHPIX()					\
+  {						\
+    sfnt_f26dot6 pixels, dx, dy;		\
+    uint32_t p;					\
+						\
+    pixels = POP ();				\
+    sfnt_scale_by_freedom_vector (interpreter,	\
+				  pixels, &dx,	\
+				  &dy);		\
+						\
+    while (interpreter->state.loop--)		\
+      {						\
+	p = POP ();				\
+	sfnt_direct_move_zp2 (interpreter,	\
+			      p, dx, dy);	\
+      }						\
+						\
+    interpreter->state.loop = 1;		\
+  }
+
 
 
 #define NOT_IMPLEMENTED()			\
@@ -6600,6 +6745,47 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 				opcode, why)
 
 
+
+/* Multiply the specified MAGNITUDE by the contents of INTERPRETER's
+   freedom vector and return the result in *DX and *DY.  */
+
+static void
+sfnt_scale_by_freedom_vector (struct sfnt_interpreter *interpreter,
+			      sfnt_f26dot6 magnitude, sfnt_f26dot6 *dx,
+			      sfnt_f26dot6 *dy)
+{
+  struct sfnt_unit_vector *vector;
+
+  vector = &interpreter->state.freedom_vector;
+  *dx = sfnt_mul_f2dot14 (vector->x, magnitude);
+  *dy = sfnt_mul_f2dot14 (vector->y, magnitude);
+}
+
+/* Interpret a UTP instruction with the point P in INTERPRETER.
+   Unset any ``touched'' flag inside the point P, relative to the
+   zone in INTERPRETER's ZP0 register.
+
+   Trap upon encountering an out of bounds point.  */
+
+static void
+sfnt_interpret_utp (struct sfnt_interpreter *interpreter,
+		    uint32_t p)
+{
+  if (!interpreter->state.zp0)
+    {
+      if (p >= interpreter->twilight_zone_size)
+	TRAP ("UTP[] p lies outside twilight zone");
+
+      /* There are no flags in the twilight zone.  */
+      return;
+    }
+
+  if (!interpreter->glyph_zone
+      || p >= interpreter->glyph_zone->num_points)
+    TRAP ("UTP[] p lies outside glyph zone");
+
+  interpreter->glyph_zone->flags[p] &= ~SFNT_POINT_TOUCHED_X;
+}
 
 /* Save the specified unit VECTOR into INTERPRETER's graphics
    state.  */
@@ -6628,12 +6814,16 @@ sfnt_save_freedom_vector (struct sfnt_interpreter *interpreter,
 /* Return the values of the point NUMBER in the zone pointed to by
    INTERPRETER's ZP2 register.
 
+   If X_ORG and Y_ORG are set, return the original values (prior to
+   any instruction interpretations) in those two locations.
+
    Trap if NUMBER is out of bounds or the zone is inaccessible.  */
 
 static void
 sfnt_address_zp2 (struct sfnt_interpreter *interpreter,
 		  uint32_t number,
-		  sfnt_f26dot6 *x, sfnt_f26dot6 *y)
+		  sfnt_f26dot6 *x, sfnt_f26dot6 *y,
+		  sfnt_f26dot6 *x_org, sfnt_f26dot6 *y_org)
 {
   if (!interpreter->state.zp2)
     {
@@ -6643,6 +6833,13 @@ sfnt_address_zp2 (struct sfnt_interpreter *interpreter,
 
       *x = interpreter->twilight_x[number];
       *y = interpreter->twilight_y[number];
+
+      if (!x_org || !y_org)
+	return;
+
+      /* The twilight zone is initially all zero.  */
+      *x_org = 0;
+      *y_org = 0;
       return;
     }
 
@@ -6656,6 +6853,12 @@ sfnt_address_zp2 (struct sfnt_interpreter *interpreter,
 
   *x = interpreter->glyph_zone->x_current[number];
   *y = interpreter->glyph_zone->y_current[number];
+
+  if (x_org && y_org)
+    {
+      *x_org = interpreter->glyph_zone->x_points[number];
+      *y_org = interpreter->glyph_zone->y_points[number];
+    }
 }
 
 /* Return the values of the point NUMBER in the zone pointed to by
@@ -6666,7 +6869,8 @@ sfnt_address_zp2 (struct sfnt_interpreter *interpreter,
 static void
 sfnt_address_zp1 (struct sfnt_interpreter *interpreter,
 		  uint32_t number,
-		  sfnt_f26dot6 *x, sfnt_f26dot6 *y)
+		  sfnt_f26dot6 *x, sfnt_f26dot6 *y,
+		  sfnt_f26dot6 *x_org, sfnt_f26dot6 *y_org)
 {
   if (!interpreter->state.zp1)
     {
@@ -6676,6 +6880,13 @@ sfnt_address_zp1 (struct sfnt_interpreter *interpreter,
 
       *x = interpreter->twilight_x[number];
       *y = interpreter->twilight_y[number];
+
+      if (!x_org || !y_org)
+	return;
+
+      /* The twilight zone is initially all zero.  */
+      *x_org = 0;
+      *y_org = 0;
       return;
     }
 
@@ -6689,6 +6900,12 @@ sfnt_address_zp1 (struct sfnt_interpreter *interpreter,
 
   *x = interpreter->glyph_zone->x_current[number];
   *y = interpreter->glyph_zone->y_current[number];
+
+  if (x_org && y_org)
+    {
+      *x_org = interpreter->glyph_zone->x_points[number];
+      *y_org = interpreter->glyph_zone->y_points[number];
+    }
 }
 
 /* Return the values of the point NUMBER in the zone pointed to by
@@ -6699,7 +6916,8 @@ sfnt_address_zp1 (struct sfnt_interpreter *interpreter,
 static void
 sfnt_address_zp0 (struct sfnt_interpreter *interpreter,
 		  uint32_t number,
-		  sfnt_f26dot6 *x, sfnt_f26dot6 *y)
+		  sfnt_f26dot6 *x, sfnt_f26dot6 *y,
+		  sfnt_f26dot6 *x_org, sfnt_f26dot6 *y_org)
 {
   if (!interpreter->state.zp0)
     {
@@ -6709,6 +6927,13 @@ sfnt_address_zp0 (struct sfnt_interpreter *interpreter,
 
       *x = interpreter->twilight_x[number];
       *y = interpreter->twilight_y[number];
+
+      if (!x_org || !y_org)
+	return;
+
+      /* The twilight zone is initially all zero.  */
+      *x_org = 0;
+      *y_org = 0;
       return;
     }
 
@@ -6722,6 +6947,12 @@ sfnt_address_zp0 (struct sfnt_interpreter *interpreter,
 
   *x = interpreter->glyph_zone->x_current[number];
   *y = interpreter->glyph_zone->y_current[number];
+
+  if (x_org && y_org)
+    {
+      *x_org = interpreter->glyph_zone->x_points[number];
+      *y_org = interpreter->glyph_zone->y_points[number];
+    }
 }
 
 /* Set the point NUMBER in the zone referenced by INTERPRETER's ZP2
@@ -6787,46 +7018,151 @@ sfnt_line_to_standard_form (sfnt_f26dot6 x1, sfnt_f26dot6 y1,
 
 #endif
 
-/* Move the specified POINT in the zone addressed by INTERPRETER's ZP0
-   register by the given DISTANCE along the freedom vector.
+/* Check that the specified POINT lies within the zone addressed by
+   INTERPRETER's ZP2 register.  Trap if it does not.  */
+
+static void
+sfnt_check_zp2 (struct sfnt_interpreter *interpreter, uint32_t point)
+{
+  if (!interpreter->state.zp2)
+    {
+      if (point >= interpreter->twilight_zone_size)
+	TRAP ("point lies outside twilight zone (ZP2)");
+    }
+  else if (!interpreter->glyph_zone
+	   || point >= interpreter->glyph_zone->num_points)
+    TRAP ("point lies outside glyph zone (ZP2)");
+}
+
+/* Move N points starting from the specified POINT in the zone
+   addressed by INTERPRETER's ZP0 register by the given DISTANCE along
+   the freedom vector.
 
    No checking is done to ensure that POINT lies inside the zone, or
    even that the zone exists at all.  */
 
 static void
 sfnt_move_zp0 (struct sfnt_interpreter *interpreter, uint32_t point,
-	       sfnt_f26dot6 distance)
+	       size_t n, sfnt_f26dot6 distance)
 {
   if (!interpreter->state.zp0)
     interpreter->state.move (&interpreter->twilight_x[point],
 			     &interpreter->twilight_y[point],
-			     interpreter, distance, NULL);
+			     n, interpreter, distance, NULL);
   else
     interpreter->state.move (&interpreter->glyph_zone->x_current[point],
 			     &interpreter->glyph_zone->y_current[point],
-			     interpreter, distance,
+			     n, interpreter, distance,
 			     &interpreter->glyph_zone->flags[point]);
 }
 
-/* Move the specified POINT in the zone addressed by INTERPRETER's ZP1
-   register by the given DISTANCE along the freedom vector.
+/* Move N points starting from the specified POINT in the zone
+   addressed by INTERPRETER's ZP1 register by the given DISTANCE along
+   the freedom vector.
 
    No checking is done to ensure that POINT lies inside the zone, or
    even that the zone exists at all.  */
 
 static void
 sfnt_move_zp1 (struct sfnt_interpreter *interpreter, uint32_t point,
-	       sfnt_f26dot6 distance)
+	       size_t n, sfnt_f26dot6 distance)
 {
   if (!interpreter->state.zp1)
     interpreter->state.move (&interpreter->twilight_x[point],
 			     &interpreter->twilight_y[point],
-			     interpreter, distance, NULL);
+			     n, interpreter, distance, NULL);
   else
     interpreter->state.move (&interpreter->glyph_zone->x_current[point],
 			     &interpreter->glyph_zone->y_current[point],
-			     interpreter, distance,
+			     n, interpreter, distance,
 			     &interpreter->glyph_zone->flags[point]);
+}
+
+/* Move N points starting from the specified POINT in the zone
+   addressed by INTERPRETER's ZP1 register by the given DISTANCE along
+   the freedom vector.
+
+   No checking is done to ensure that POINT lies inside the zone, or
+   even that the zone exists at all.  */
+
+static void
+sfnt_move_zp2 (struct sfnt_interpreter *interpreter, uint32_t point,
+	       size_t n, sfnt_f26dot6 distance)
+{
+  if (!interpreter->state.zp2)
+    interpreter->state.move (&interpreter->twilight_x[point],
+			     &interpreter->twilight_y[point],
+			     n, interpreter, distance, NULL);
+  else
+    interpreter->state.move (&interpreter->glyph_zone->x_current[point],
+			     &interpreter->glyph_zone->y_current[point],
+			     n, interpreter, distance,
+			     &interpreter->glyph_zone->flags[point]);
+}
+
+/* Move N points from the specified POINT in INTERPRETER's glyph zone
+   by the given DISTANCE along the freedom vector.
+
+   No checking is done to ensure that POINT lies inside the zone, or
+   even that the zone exists at all.  */
+
+static void
+sfnt_move_glyph_zone (struct sfnt_interpreter *interpreter, uint32_t point,
+		      size_t n, sfnt_f26dot6 distance)
+{
+  interpreter->state.move (&interpreter->glyph_zone->x_current[point],
+			   &interpreter->glyph_zone->y_current[point],
+			   n, interpreter, distance,
+			   &interpreter->glyph_zone->flags[point]);
+}
+
+/* Move N points from the specified POINT in INTERPRETER's twilight
+   zone by the given DISTANCE along the freedom vector.
+
+   No checking is done to ensure that POINT lies inside the zone, or
+   even that the zone exists at all.  */
+
+static void
+sfnt_move_twilight_zone (struct sfnt_interpreter *interpreter, uint32_t point,
+			 size_t n, sfnt_f26dot6 distance)
+{
+  interpreter->state.move (&interpreter->twilight_x[point],
+			   &interpreter->twilight_y[point],
+			   n, interpreter, distance, NULL);
+}
+
+/* Move the point P in the zone pointed to by the ZP2 register in
+   INTERPRETER's graphics state by DX, and DY.
+
+   Check that P is valid; if not, trap.  Else, perform the move
+   directly without converting it from the projection vector or to the
+   freedom vector.  */
+
+static void
+sfnt_direct_move_zp2 (struct sfnt_interpreter *interpreter, uint32_t p,
+		      sfnt_f26dot6 dx, sfnt_f26dot6 dy)
+{
+  if (!interpreter->state.zp2)
+    {
+      if (p >= interpreter->twilight_zone_size)
+	TRAP ("point out of bounds");
+
+      interpreter->twilight_x[p]
+	= sfnt_add (interpreter->twilight_x[p], dx);
+      interpreter->twilight_y[p]
+	= sfnt_add (interpreter->twilight_y[p], dy);
+    }
+  else
+    {
+      if (!interpreter->glyph_zone
+	  || p >= interpreter->glyph_zone->num_points)
+	TRAP ("point out of bounds");
+
+      interpreter->glyph_zone->x_current[p]
+	= sfnt_add (interpreter->glyph_zone->x_current[p], dx);
+      interpreter->glyph_zone->y_current[p]
+	= sfnt_add (interpreter->glyph_zone->y_current[p], dy);
+    }
 }
 
 /* Project the vector VX, VY onto INTERPRETER's projection vector.
@@ -6854,8 +7190,8 @@ sfnt_interpret_alignpts (struct sfnt_interpreter *interpreter,
   sfnt_f26dot6 p1x, p1y, p2x, p2y;
   sfnt_f26dot6 magnitude;
 
-  sfnt_address_zp0 (interpreter, p1, &p1x, &p1y);
-  sfnt_address_zp1 (interpreter, p2, &p2x, &p2y);
+  sfnt_address_zp0 (interpreter, p1, &p1x, &p1y, NULL, NULL);
+  sfnt_address_zp1 (interpreter, p2, &p2x, &p2y, NULL, NULL);
 
   magnitude = sfnt_project_vector (interpreter,
 				   sfnt_sub (p1x, p2x),
@@ -6863,8 +7199,8 @@ sfnt_interpret_alignpts (struct sfnt_interpreter *interpreter,
   magnitude = magnitude / 2;
 
   /* Now move both points along the freedom vector.  */
-  sfnt_move_zp0 (interpreter, p1, magnitude);
-  sfnt_move_zp1 (interpreter, p2, -magnitude);
+  sfnt_move_zp0 (interpreter, p1, 1, magnitude);
+  sfnt_move_zp1 (interpreter, p2, 1, -magnitude);
 }
 
 /* Set the point P in the zone referenced in INTERPRETER's ZP2
@@ -6893,10 +7229,10 @@ sfnt_interpret_isect (struct sfnt_interpreter *interpreter,
 #endif
 
   /* Load points.  */
-  sfnt_address_zp0 (interpreter, point_a0, &a0x, &a0y);
-  sfnt_address_zp0 (interpreter, point_a1, &a1x, &a1y);
-  sfnt_address_zp1 (interpreter, point_b0, &b0x, &b0y);
-  sfnt_address_zp1 (interpreter, point_b1, &b1x, &b1y);
+  sfnt_address_zp0 (interpreter, point_a0, &a0x, &a0y, NULL, NULL);
+  sfnt_address_zp0 (interpreter, point_a1, &a1x, &a1y, NULL, NULL);
+  sfnt_address_zp1 (interpreter, point_b0, &b0x, &b0y, NULL, NULL);
+  sfnt_address_zp1 (interpreter, point_b1, &b1x, &b1y, NULL, NULL);
 
 #if 0
   /* The system is determined from the standard form (look this up) of
@@ -7112,8 +7448,8 @@ sfnt_line_to_vector (struct sfnt_interpreter *interpreter,
   sfnt_f26dot6 x1, y1;
   sfnt_f26dot6 a, b, temp;
 
-  sfnt_address_zp2 (interpreter, p2, &x2, &y2);
-  sfnt_address_zp1 (interpreter, p1, &x1, &y1);
+  sfnt_address_zp2 (interpreter, p2, &x2, &y2, NULL, NULL);
+  sfnt_address_zp1 (interpreter, p1, &x1, &y1, NULL, NULL);
 
   /* Calculate the vector between X2, Y2, and X1, Y1.  */
   a = sfnt_sub (x1, x2);
@@ -7247,6 +7583,10 @@ sfnt_deltac (int number, struct sfnt_interpreter *interpreter,
     case 15:
       delta = 8;
       break;
+
+      /* To pacify -fanalyzer.  */
+    default:
+      abort ();
     }
 
   /* Now, scale up the delta by the step size, which is determined by
@@ -7256,6 +7596,42 @@ sfnt_deltac (int number, struct sfnt_interpreter *interpreter,
   /* Finally, apply the delta to the CVT entry.  */
   interpreter->cvt[index] = sfnt_add (interpreter->cvt[index],
 				      delta);
+}
+
+/* Interpret an MDAP (Move Direct Absolute Point) instruction with the
+   opcode OPCODE and the operand P in INTERPRETER.
+
+   Touch the point P (within the zone specified in zp0) in the
+   directions specified in the freedom vector.  Then, if OPCODE is
+   0x7f, round the point and move it the rounded distance along the
+   freedom vector.
+
+   Finally, set the RP0 and RP1 registers to P.  */
+
+static void
+sfnt_interpret_mdap (struct sfnt_interpreter *interpreter,
+		     uint32_t p, uint32_t opcode)
+{
+  sfnt_f26dot6 distance, px, py;
+
+  sfnt_address_zp0 (interpreter, p, &px, &py, NULL, NULL);
+
+  if (opcode == 0x7f)
+    {
+      /* Measure distance, round, then move by distance.  */
+      distance = sfnt_project_vector (interpreter, px, py);
+      distance = sfnt_sub (interpreter->state.round (distance,
+						     interpreter),
+			   distance);
+    }
+  else
+    /* Don't move.  Just touch the point.  */
+    distance = 0;
+
+  sfnt_move_zp0 (interpreter, p, 1, distance);
+
+  interpreter->state.rp0 = p;
+  interpreter->state.rp1 = p;
 }
 
 /* Needed by sfnt_interpret_call.  */
@@ -7293,6 +7669,7 @@ sfnt_interpret_call (struct sfnt_interpreter_definition *definition,
   /* Load and run the definition.  */
   interpreter->num_instructions = definition->instruction_count;
   interpreter->instructions = definition->instructions;
+  interpreter->glyph_zone = NULL;
   interpreter->IP = 0;
   sfnt_interpret_run (interpreter, context);
 
@@ -7803,6 +8180,7 @@ sfnt_project_onto_y_axis_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
 static int32_t
 sfnt_dot_fix_14 (int32_t ax, int32_t ay, int bx, int by)
 {
+#ifndef INT64_MAX
   int32_t m, s, hi1, hi2, hi;
   uint32_t l, lo1, lo2, lo;
 
@@ -7821,20 +8199,32 @@ sfnt_dot_fix_14 (int32_t ax, int32_t ay, int bx, int by)
   lo2 = l + ((uint32_t) m << 16);
   hi2 = (m >> 16) + ((int32_t) l >> 31) + (lo2 < l);
 
-  /* add them */
+  /* Add them.  */
   lo = lo1 + lo2;
   hi = hi1 + hi2 + (lo < lo1);
 
-  /* divide the result by 2^14 with rounding */
-  s   = hi >> 31;
-  l   = lo + (uint32_t) s;
+  /* Divide the result by 2^14 with rounding.  */
+  s = hi >> 31;
+  l = lo + (uint32_t) s;
   hi += s + (l < lo);
-  lo  = l;
+  lo = l;
 
-  l   = lo + 0x2000u;
+  l = lo + 0x2000u;
   hi += (l < lo);
 
   return (int32_t) (((uint32_t) hi << 18) | (l >> 14));
+#else
+  int64_t xx, yy;
+
+  xx = (int64_t) ax * bx;
+  yy = (int64_t) ay * by;
+
+  xx += yy;
+  yy = xx >> 63;
+  xx += 0x2000 + yy;
+
+  return (int32_t) (yy / (2 << 14));
+#endif
 }
 
 /* Project the specified vector VX and VY onto the unit vector that is
@@ -7852,48 +8242,51 @@ sfnt_project_onto_any_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
 			  interpreter->state.projection_vector.y);
 }
 
-/* Move the point at *X, *Y by DISTANCE along INTERPRETER's freedom
+/* Move N points at *X, *Y by DISTANCE along INTERPRETER's freedom
    vector.  Set *FLAGS where appropriate and when non-NULL.
 
    Assume both vectors are aligned to the X axis.  */
 
 static void
-sfnt_move_x (sfnt_f26dot6 *x, sfnt_f26dot6 *y,
-	     struct sfnt_interpreter *interpreter,
+sfnt_move_x (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
+	     size_t n, struct sfnt_interpreter *interpreter,
 	     sfnt_f26dot6 distance, unsigned char *flags)
 {
-  *x = sfnt_add (*x, distance);
+  while (n--)
+    *x = sfnt_add (*x, distance);
 
   if (flags)
     *flags |= SFNT_POINT_TOUCHED_X;
 }
 
-/* Move the point at *X, *Y by DISTANCE along INTERPRETER's freedom
+/* Move N points at *X, *Y by DISTANCE along INTERPRETER's freedom
    vector.  Set *FLAGS where appropriate and when non-NULL.
 
    Assume both vectors are aligned to the Y axis.  */
 
 static void
-sfnt_move_y (sfnt_f26dot6 *x, sfnt_f26dot6 *y,
-	     struct sfnt_interpreter *interpreter,
+sfnt_move_y (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
+	     size_t n, struct sfnt_interpreter *interpreter,
 	     sfnt_f26dot6 distance, unsigned char *flags)
 {
-  *y = sfnt_add (*y, distance);
+  while (n--)
+    *y = sfnt_add (*y, distance);
 
   if (flags)
     *flags |= SFNT_POINT_TOUCHED_Y;
 }
 
-/* Move the point at *X, *Y by DISTANCE along INTERPRETER's freedom
+/* Move N points at *X, *Y by DISTANCE along INTERPRETER's freedom
    vector.  Set *FLAGS where appropriate and when non-NULL.  */
 
 static void
-sfnt_move (sfnt_f26dot6 *x, sfnt_f26dot6 *y,
-	   struct sfnt_interpreter *interpreter,
+sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
+	   size_t n, struct sfnt_interpreter *interpreter,
 	   sfnt_f26dot6 distance, unsigned char *flags)
 {
   sfnt_f26dot6 versor;
   sfnt_f2dot14 dot_product;
+  size_t num;
 
   dot_product = interpreter->state.vector_dot_product;
 
@@ -7905,9 +8298,15 @@ sfnt_move (sfnt_f26dot6 *x, sfnt_f26dot6 *y,
     {
       /* Move along X axis, converting the distance to the freedom
 	 vector.  */
-      *x = sfnt_add (*x, sfnt_multiply_divide_signed (distance,
-						      versor,
-						      dot_product));
+      num = n;
+
+      while (num--)
+	{
+	  *x = sfnt_add (*x, sfnt_multiply_divide_signed (distance,
+							  versor,
+							  dot_product));
+	  x++;
+	}
 
       if (flags)
 	*flags |= SFNT_POINT_TOUCHED_X;
@@ -7919,9 +8318,15 @@ sfnt_move (sfnt_f26dot6 *x, sfnt_f26dot6 *y,
     {
       /* Move along X axis, converting the distance to the freedom
 	 vector.  */
-      *y = sfnt_add (*y, sfnt_multiply_divide_signed (distance,
-						      versor,
-						      dot_product));
+      num = n;
+
+      while (num--)
+	{
+	  *y = sfnt_add (*y, sfnt_multiply_divide_signed (distance,
+							  versor,
+							  dot_product));
+	  y++;
+	}
 
       if (flags)
 	*flags |= SFNT_POINT_TOUCHED_Y;
@@ -7980,7 +8385,7 @@ sfnt_validate_gs (struct sfnt_graphics_state *gs)
 
   if (gs->projection_vector.x == 040000)
     gs->project = sfnt_project_onto_x_axis_vector;
-  else if (gs->projection_vector.y == 0x40000)
+  else if (gs->projection_vector.y == 040000)
     gs->project = sfnt_project_onto_y_axis_vector;
   else
     gs->project = sfnt_project_onto_any_vector;
@@ -8043,12 +8448,368 @@ sfnt_set_projection_vector (struct sfnt_interpreter *interpreter,
   sfnt_validate_gs (&interpreter->state);
 }
 
+/* Interpret an SHZ instruction with the specified OPCODE.  Like
+   sfnt_interpret_shc, but do the move for each point in the entire
+   specified ZONE.  */
+
+static void
+sfnt_interpret_shz (struct sfnt_interpreter *interpreter,
+		    uint32_t zone, unsigned int opcode)
+{
+  sfnt_f26dot6 x, y, original_x, original_y;
+  sfnt_f26dot6 magnitude;
+
+  if (zone != 0 && !interpreter->glyph_zone)
+    /* There are no points in the glyph zone.  */
+    return;
+
+  if (opcode == 0x37)
+    sfnt_address_zp0 (interpreter, interpreter->state.rp1,
+		      &x, &y, &original_x, &original_y);
+  else
+    sfnt_address_zp1 (interpreter, interpreter->state.rp2,
+		      &x, &y, &original_x, &original_y);
+
+  magnitude = sfnt_project_vector (interpreter,
+				   sfnt_sub (x, original_x),
+				   sfnt_sub (y, original_y));
+
+  if (zone == 0)
+    sfnt_move_twilight_zone (interpreter, 0,
+			     interpreter->twilight_zone_size,
+			     magnitude);
+  else
+    sfnt_move_glyph_zone (interpreter, 0,
+			  interpreter->glyph_zone->num_points,
+			  magnitude);
+}
+
+/* Interpret an SHC instruction with the specified OPCODE and CONTOUR.
+   Like sfnt_interpret_shp, but do the move for each point in the
+   specified contour.  */
+
+static void
+sfnt_interpret_shc (struct sfnt_interpreter *interpreter,
+		    uint32_t contour, unsigned int opcode)
+{
+  sfnt_f26dot6 x, y, original_x, original_y;
+  sfnt_f26dot6 magnitude;
+  size_t start, end, n;
+
+  if (!interpreter->glyph_zone)
+    TRAP ("SHC without glyph zone");
+
+  /* Check that the contour is within bounds.  */
+  if (contour >= interpreter->glyph_zone->num_contours)
+    TRAP ("contour out of bounds");
+
+  /* Figure out the magnitude of the change, measured from the
+     projection vector.  */
+
+  if (opcode == 0x35)
+    sfnt_address_zp0 (interpreter, interpreter->state.rp1,
+		      &x, &y, &original_x, &original_y);
+  else
+    sfnt_address_zp1 (interpreter, interpreter->state.rp2,
+		      &x, &y, &original_x, &original_y);
+
+  magnitude = sfnt_project_vector (interpreter,
+				   sfnt_sub (x, original_x),
+				   sfnt_sub (y, original_y));
+
+  /* Now obtain the start and end of the contour.
+     Verify that both are valid.  */
+
+  if (contour)
+    start = interpreter->glyph_zone->contour_end_points[contour - 1];
+  else
+    start = 0;
+
+  end = interpreter->glyph_zone->contour_end_points[contour];
+
+  if (start > end || end >= interpreter->glyph_zone->num_points)
+    TRAP ("invalid contour data in glyph");
+
+  /* Compute the number of points to move.  */
+  n = end - start + 1;
+
+  /* Move that many points.  */
+  sfnt_move_glyph_zone (interpreter, start, n, magnitude);
+}
+
+/* Interpret an SHP instruction with the specified OPCODE.  Move a
+   popped point in ZP2 along the freedom vector by the distance
+   between a specified point from its original position, which is RP1
+   in ZP0 if OPCODE is 0x33, and RP2 in ZP1 if OPCODE is 0x32.
+
+   Repeat for the number of iterations specified by a prior SLOOP
+   instruction.  */
+
+static void
+sfnt_interpret_shp (struct sfnt_interpreter *interpreter,
+		    unsigned int opcode)
+{
+  sfnt_f26dot6 x, y, original_x, original_y;
+  sfnt_f26dot6 magnitude;
+  uint32_t point;
+
+  /* Figure out the magnitude of the change, measured from the
+     projection vector.  */
+
+  if (opcode == 0x33)
+    sfnt_address_zp0 (interpreter, interpreter->state.rp1,
+		      &x, &y, &original_x, &original_y);
+  else
+    sfnt_address_zp1 (interpreter, interpreter->state.rp2,
+		      &x, &y, &original_x, &original_y);
+
+  magnitude = sfnt_project_vector (interpreter,
+				   sfnt_sub (x, original_x),
+				   sfnt_sub (y, original_y));
+
+  /* Now project it onto the freedom vector and move the point that
+     much for loop variable times.  */
+
+  while (interpreter->state.loop--)
+    {
+      point = POP ();
+
+      sfnt_move_zp2 (interpreter, point, 1, magnitude);
+      sfnt_check_zp2 (interpreter, point);
+    }
+
+  /* Restore interpreter->state.loop to 1.  */
+  interpreter->state.loop = 1;
+}
+
+/* Interpolate untouched points in the contour between and including
+   START and END inside INTERPRETER's glyph zone according to the
+   rules specified for an IUP instruction.  Perform interpolation on
+   the axis specified by OPCODE and MASK.  */
+
+static void
+sfnt_interpret_iup_1 (struct sfnt_interpreter *interpreter,
+		      size_t start, size_t end,
+		      unsigned char opcode, int mask)
+{
+  size_t point;
+  size_t touch_start, touch_end;
+  size_t first_point;
+  size_t point_min, point_max, i;
+  sfnt_f26dot6 position, min_pos, max_pos, delta;
+  sfnt_f26dot6 original_max_pos;
+  sfnt_f26dot6 original_min_pos;
+
+#define load_point(p)				\
+  (opcode == 0x31				\
+   ? interpreter->glyph_zone->x_current[p]	\
+   : interpreter->glyph_zone->x_current[p])
+
+#define store_point(p, val)				\
+  (opcode == 0x31					\
+   ? (interpreter->glyph_zone->x_current[p] = (val))	\
+   : (interpreter->glyph_zone->y_current[p] = (val)))
+
+#define load_original(p)			\
+  (opcode == 0x31				\
+   ? interpreter->glyph_zone->x_points[p]	\
+   : interpreter->glyph_zone->y_points[p])
+
+  /* Find the first touched point.  If none is found, simply
+     return.  */
+
+  for (point = start; point <= end; ++point)
+    {
+      if (interpreter->glyph_zone->flags[point] & mask)
+	goto touched;
+    }
+
+  goto untouched;
+
+ touched:
+
+  point = start;
+
+  while (true)
+    {
+      /* first_point says when to stop looking for a closing
+	 point.  */
+      first_point = point;
+
+      /* Find the next untouched point.  */
+      while (interpreter->glyph_zone->flags[point] & mask)
+	{
+	  point++;
+
+	  /* Move back to start if point has gone past the end of the
+	     contour.  */
+	  if (point > end)
+	    point = start;
+
+	  if (point == first_point)
+	    /* There are no more untouched points.  */
+	    goto untouched;
+	}
+
+      /* touch_start is now the first untouched point.  */
+      touch_start = point;
+
+      /* Find the next touched point.  */
+      while (!(interpreter->glyph_zone->flags[point] & mask))
+	{
+	  point++;
+
+	  /* Move back to start if point has gone past the end of the
+	     contour.  */
+	  if (point > end)
+	    point = start;
+
+	  if (point == touch_start)
+	    /* There are no more touched points.  */
+	    goto untouched;
+	}
+
+      /* touch_end is now the next touched point.  */
+      touch_end = point;
+
+      /* Now make touch_start the first point before, i.e. the first
+	 touched point in this pair.  */
+
+      if (touch_start == start)
+	touch_start = end;
+      else
+	touch_start = touch_start - 1;
+
+      /* Set point_min and point_max based on which glyph is at a
+	 lower value.  */
+
+      if (load_original (touch_start) < touch_end)
+	{
+	  point_min = touch_start;
+	  point_max = touch_end;
+	}
+      else
+	{
+	  point_max = touch_start;
+	  point_min = touch_end;
+	}
+
+      min_pos = load_point (point_min);
+      max_pos = load_point (point_max);
+
+      /* This is needed for interpolation.  */
+      original_max_pos = load_original (max_pos);
+      original_min_pos = load_original (min_pos);
+
+      /* Now process points between touch_start and touch_end.  */
+
+      i = touch_start;
+
+      do
+	{
+	  ++i;
+
+	  if (i == end)
+	    i = start;
+
+	  /* Movement is always relative to the original position of
+	     the point.  */
+	  position = load_original (i);
+
+	  /* If i is in between touch_start and touch_end...  */
+	  if (position >= original_min_pos
+	      && position <= original_max_pos)
+	    {
+	      /* ... linearly interpolate i between min_pos and
+		 max_pos...  */
+	      delta = sfnt_sub (max_pos, min_pos) / 2;
+	      store_point (i, sfnt_add (max_pos, delta));
+	    }
+	  else
+	    {
+	      /* ... otherwise, move i by how much the nearest touched
+		 point moved.  */
+
+	      if (position >= original_max_pos)
+		delta = sfnt_sub (max_pos, original_max_pos);
+	      else
+		delta = sfnt_sub (min_pos, original_min_pos);
+
+	      store_point (i, position + delta);
+	    }
+	}
+      while (i != touch_end);
+
+      /* Handle the degenerate case where the first and last points of
+	 the entire contour are touched, and as a result the loop
+	 continues forever.  */
+      if (touch_start == touch_end)
+	goto untouched;
+    }
+
+#undef load_point
+#undef store_point
+#undef load_original
+
+ untouched:
+  /* No points were touched or all points have been considered, so
+     return immediately.  */
+  return;
+}
+
+/* Interpret an IUP (``interpolate untouched points'') instruction.
+   INTERPRETER is the interpreter, and OPCODE is the instruction
+   number.  See the TrueType Reference Manual for more details.  */
+
+static void
+sfnt_interpret_iup (struct sfnt_interpreter *interpreter,
+		    unsigned char opcode)
+{
+  int mask;
+  size_t i, point, end, first_point;
+
+  /* Check that the zone is the glyph zone.  */
+
+  if (!interpreter->state.zp2)
+    TRAP ("trying to iup in twilight zone");
+
+  if (!interpreter->glyph_zone)
+    TRAP ("iup without loaded glyph!");
+
+  /* Figure out what axis to interpolate in based on the opcode.  */
+  if (opcode == 0x31)
+    mask = SFNT_POINT_TOUCHED_Y;
+  else
+    mask = SFNT_POINT_TOUCHED_X;
+
+  /* Now, for each contour, interpolate untouched points.  */
+  point = 0;
+  for (i = 0; i < interpreter->glyph_zone->num_contours; ++i)
+    {
+      first_point = point;
+      end = interpreter->glyph_zone->contour_end_points[i];
+
+      if (point >= interpreter->glyph_zone->num_points
+	  || end >= interpreter->glyph_zone->num_points)
+	TRAP ("glyph contains out of bounds contour end point"
+	      " data!");
+
+      sfnt_interpret_iup_1 (interpreter, first_point, end,
+			    opcode, mask);
+      point = end + 1;
+    }
+}
+
 /* Execute the program now loaded into INTERPRETER.
    WHY specifies why the interpreter is being run, and is used to
    control the behavior of instructions such IDEF[] and FDEF[].
 
-   Control may be transferred to INTERPRETER->trap if interpretation
-   fails.  */
+   Transfer control to INTERPRETER->trap if interpretation is aborted
+   due to an error, and set INTERPRETER->trap_reason to a string
+   describing the error.
+
+   INTERPRETER->glyph_zone should be cleared before calling this
+   function.  */
 
 static void
 sfnt_interpret_run (struct sfnt_interpreter *interpreter,
@@ -8231,7 +8992,7 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 	  break;
 
 	case 0x29:  /* UTP */
-	  NOT_IMPLEMENTED ();
+	  UTP ();
 	  break;
 
 	case 0x2A:  /* LOOPCALL */
@@ -8252,31 +9013,31 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 
 	case 0x2E:  /* MDAP */
 	case 0x2F:  /* MDAP */
-	  NOT_IMPLEMENTED ();
+	  MDAP ();
 	  break;
 
 	case 0x30:  /* IUP */
 	case 0x31:  /* IUP */
-	  NOT_IMPLEMENTED ();
+	  IUP ();
 	  break;
 
 	case 0x32:  /* SHP */
 	case 0x33:  /* SHP */
-	  NOT_IMPLEMENTED ();
+	  SHP ();
 	  break;
 
 	case 0x34:  /* SHC */
 	case 0x35:  /* SHC */
-	  NOT_IMPLEMENTED ();
+	  SHC ();
 	  break;
 
 	case 0x36:  /* SHZ */
 	case 0x37:  /* SHZ */
-	  NOT_IMPLEMENTED ();
+	  SHZ ();
 	  break;
 
 	case 0x38:  /* SHPIX */
-	  NOT_IMPLEMENTED ();
+	  SHPIX ();
 	  break;
 
 	case 0x39:  /* IP    */
@@ -8499,19 +9260,19 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 	  break;
 
 	case 0x78:  /* JROT */
-	  NOT_IMPLEMENTED ();
+	  JROT ();
 	  break;
 
 	case 0x79:  /* JROF */
-	  NOT_IMPLEMENTED ();
+	  JROF ();
 	  break;
 
 	case 0x7A:  /* ROFF */
 	  ROFF ();
 	  break;
 
-	case 0x7B:  /* ???? */
-	  NOT_IMPLEMENTED ();
+	case 0x7B:  /* ILLEGAL_INSTRUCTION */
+	  ILLEGAL_INSTRUCTION ();
 	  break;
 
 	case 0x7C:  /* RUTG */
@@ -8642,6 +9403,7 @@ sfnt_interpret_font_program (struct sfnt_interpreter *interpreter,
   interpreter->SP = interpreter->stack;
   interpreter->instructions = fpgm->instructions;
   interpreter->num_instructions = fpgm->num_instructions;
+  interpreter->glyph_zone = NULL;
 
   sfnt_interpret_run (interpreter, SFNT_RUN_CONTEXT_FONT_PROGRAM);
   return NULL;
@@ -8666,6 +9428,7 @@ sfnt_interpret_control_value_program (struct sfnt_interpreter *interpreter,
   interpreter->SP = interpreter->stack;
   interpreter->instructions = prep->instructions;
   interpreter->num_instructions = prep->num_instructions;
+  interpreter->glyph_zone = NULL;
 
   sfnt_interpret_run (interpreter,
 		      SFNT_RUN_CONTEXT_CONTROL_VALUE_PROGRAM);
@@ -8812,9 +9575,9 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
   zone->contour_end_points = (size_t *) (glyph + 1);
   zone->x_points = (sfnt_f26dot6 *) (zone->contour_end_points
 				     + zone->num_points);
-  zone->y_points = zone->x_points + zone->num_points;
-  zone->x_current = zone->y_points + zone->num_points;
-  zone->y_current = zone->x_current + zone->num_points;
+  zone->x_current = zone->x_points + zone->num_points;
+  zone->y_points = zone->x_current + zone->num_points;
+  zone->y_current = zone->y_points + zone->num_points;
   zone->flags = (unsigned char *) (zone->y_current
 				   + zone->num_points);
 
@@ -8840,6 +9603,8 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
   /* Load phantom points.  */
   zone->x_points[i] = phantom_point_1_x;
   zone->x_points[i + 1] = phantom_point_2_x;
+  zone->x_current[i] = phantom_point_1_x;
+  zone->x_current[i + 1] = phantom_point_2_x;
 
   /* Load y_points and y_current, along with flags.  */
   for (i = 0; i < glyph->simple->number_of_points; ++i)
@@ -8862,6 +9627,8 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
   /* Load phantom points.  */
   zone->y_points[i] = phantom_point_1_y;
   zone->y_points[i + 1] = phantom_point_2_y;
+  zone->y_current[i] = phantom_point_1_x;
+  zone->y_current[i + 1] = phantom_point_2_x;
 
   /* Load contour end points.  */
   for (i = 0; i < zone->num_contours; ++i)
@@ -10151,6 +10918,22 @@ static struct sfnt_generic_test_args wcvtf_test_args =
     1,
     false,
     7,
+  };
+
+static struct sfnt_generic_test_args jrot_test_args =
+  {
+    (uint32_t []) { 40, 40, },
+    2,
+    false,
+    13,
+  };
+
+static struct sfnt_generic_test_args jrof_test_args =
+  {
+    (uint32_t []) { 4, },
+    1,
+    false,
+    13,
   };
 
 static struct sfnt_generic_test_args deltac1_test_args =
@@ -11521,6 +12304,42 @@ static struct sfnt_interpreter_test all_tests[] =
       sfnt_generic_check,
     },
     {
+      "JROT",
+      /* PUSHB[1] 4 0
+	 JROT[] ; this should not skip past the next instruction
+	 PUSHB[1] 40 40
+	 PUSHB[1] 3 1
+	 JROT[] ; this should skip past the next instruction
+	 PUSHB[0] 4 */
+      (unsigned char []) { 0xb1, 4, 0,
+			   0x78,
+			   0xb1, 40, 40,
+			   0xb1, 3, 1,
+			   0x78,
+			   0xb0, 4, },
+      13,
+      &jrot_test_args,
+      sfnt_generic_check,
+    },
+    {
+      "JROF",
+      /* PUSHB[1] 4 0
+	 JROF[] ; this should skip past the next instruction
+	 PUSHB[1] 40 40
+	 PUSHB[1] 3 1
+	 JROF[] ; this should not skip past the next instruction
+	 PUSHB[0] 4 */
+      (unsigned char []) { 0xb1, 4, 0,
+			   0x79,
+			   0xb1, 40, 40,
+			   0xb1, 3, 1,
+			   0x79,
+			   0xb0, 4, },
+      13,
+      &jrof_test_args,
+      sfnt_generic_check,
+    },
+    {
       "DELTAC1",
       /* PUSHB[0] 2
 	 SDB[] ; delta base now 2
@@ -11871,6 +12690,9 @@ main (int argc, char **argv)
   if (!strcmp (argv[1], "--check-interpreter"))
     {
       interpreter = sfnt_make_test_interpreter ();
+
+      if (!interpreter)
+	abort ();
 
       for (i = 0; i < ARRAYELTS (all_tests); ++i)
 	sfnt_run_interpreter_test (&all_tests[i], interpreter);
