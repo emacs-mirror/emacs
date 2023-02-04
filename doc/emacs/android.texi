@@ -288,6 +288,8 @@ permissions it has requested upon being installed:
 @item
 @code{android.permission.ACCESS_COARSE_LOCATION}
 @item
+@code{android.permission.ACCESS_NETWORK_STATE}
+@item
 @code{android.permission.INTERNET}
 @item
 @code{android.permission.SET_WALLPAPER}
@@ -336,6 +338,8 @@ permissions upon installation:
 @itemize @minus
 @item
 @code{android.permission.VIBRATE}
+@item
+@code{android.permission.ACCESS_NETWORK_STATE}
 @item
 @code{android.permission.INTERNET}
 @item
