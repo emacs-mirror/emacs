@@ -23,7 +23,7 @@
 
 # written by Paul Eggert
 
-GNULIB_URL=git://git.savannah.gnu.org/gnulib.git
+GNULIB_URL=https://git.savannah.gnu.org/git/gnulib.git
 
 GNULIB_MODULES='
   alloca-opt binary-io byteswap c-ctype c-strcase

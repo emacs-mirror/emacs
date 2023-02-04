@@ -361,7 +361,7 @@ Another way is to follow the terminal session below:
 @example
 @group
 $ cd ~/emacs
-$ git clone git://git.savannah.gnu.org/tramp.git
+$ git clone https://git.savannah.gnu.org/git/tramp.git
 @end group
 @end example
 
