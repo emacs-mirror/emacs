@@ -1026,7 +1026,7 @@ leading double colon is not added."
                              ;; Backtick method redefinition.
                              ((operator "`" @backtick))
                              ;; TODO: Stop at interpolations.
-                             ((regex "/" @regex-slash))
+                             ((regex "/" @regex_slash))
                              ;; =begin...=end
                              ((comment) @comm
                               (:match "\\`=" @comm))
@@ -1037,10 +1037,16 @@ leading double colon is not added."
 (defun ruby-ts--syntax-propertize (beg end)
   (let ((captures (treesit-query-capture 'ruby ruby-ts--s-p-query beg end)))
     (pcase-dolist (`(,name . ,node) captures)
-      (pcase name
+      (pcase-exhaustive name
         ('regex_slash
-         (put-text-property (treesit-node-start node) (treesit-node-end node)
-                            'syntax-table (string-to-syntax "\"/")))
+         ;; N.B.: A regexp literal with modifiers actually includes them in
+         ;; the trailing "/" node.
+         (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
+                            'syntax-table
+                            ;; Differentiate the %r{...} literals.
+                            (if (eq ?/ (char-after (treesit-node-start node)))
+                                (string-to-syntax "\"/")
+                              (string-to-syntax "|"))))
         ('ident
          (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
                             'syntax-table (string-to-syntax "_")))
@@ -1050,10 +1056,11 @@ leading double colon is not added."
         ('heredoc
          (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
                             'syntax-table (string-to-syntax "\""))
-         (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
+         (put-text-property (treesit-node-end node) (1+ (treesit-node-end node))
                             'syntax-table (string-to-syntax "\"")))
         ('percent
-         (put-text-property (1+ (treesit-node-start node)) (+ 2 (treesit-node-start node))
+         ;; TODO: Put the first one on the first paren in both %Q{} and %().
+         (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
                             'syntax-table (string-to-syntax "|"))
          (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
                             'syntax-table (string-to-syntax "|")))
