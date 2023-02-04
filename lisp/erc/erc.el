@@ -1839,9 +1839,9 @@ buffer rather than a server buffer.")
   ;; each item is in the format '(old . new)
   (delete-dups (mapcar #'erc--normalize-module-symbol mods)))
 
-(defcustom erc-modules '(netsplit fill button match track completion readonly
-                                  networks ring autojoin noncommands irccontrols
-                                  move-to-prompt stamp menu list)
+(defcustom erc-modules '( autojoin button completion fill irccontrols
+                          list match menu move-to-prompt netsplit
+                          networks noncommands readonly ring stamp track)
   "A list of modules which ERC should enable.
 If you set the value of this without using `customize' remember to call
 \(erc-update-modules) after you change it.  When using `customize', modules
@@ -1849,12 +1849,20 @@ removed from the list will be disabled."
   :get (lambda (sym)
          ;; replace outdated names with their newer equivalents
          (erc-migrate-modules (symbol-value sym)))
-  :initialize #'custom-initialize-default
+  ;; Expect every built-in module to have the symbol property
+  ;; `erc--module' set to its canonical symbol (often itself).
+  :initialize (lambda (symbol exp)
+                ;; Use `cdddr' because (set :greedy t . ,entries)
+                (dolist (entry (cdddr (get 'erc-modules 'custom-type)))
+                  (when-let* (((eq (car entry) 'const))
+                              (s (cadddr entry))) ; (const :tag "..." ,s)
+                    (put s 'erc--module s)))
+                (custom-initialize-reset symbol exp))
   :set (lambda (sym val)
          ;; disable modules which have just been removed
          (when (and (boundp 'erc-modules) erc-modules val)
            (dolist (module erc-modules)
-             (unless (member module val)
+             (unless (memq module val)
                (let ((f (intern-soft (format "erc-%s-mode" module))))
                  (when (and (fboundp f) (boundp f))
                    (when (symbol-value f)
@@ -1866,7 +1874,15 @@ removed from the list will be disabled."
                                           (when (symbol-value f)
                                             (funcall f 0))
                                           (kill-local-variable f)))))))))
-         (set sym val)
+         (let (built-in third-party)
+           (dolist (v val)
+             (setq v (erc--normalize-module-symbol v))
+             (if (get v 'erc--module)
+                 (push v built-in)
+               (push v third-party)))
+           ;; Calling `set-default-toplevel-value' complicates testing
+           (set sym (append (sort built-in #'string-lessp)
+                            (nreverse third-party))))
          ;; this test is for the case where erc hasn't been loaded yet
          (when (fboundp 'erc-update-modules)
            (erc-update-modules)))
@@ -1880,7 +1896,6 @@ removed from the list will be disabled."
            capab-identify)
     (const :tag "completion: Complete nicknames and commands (programmable)"
            completion)
-    (const :tag "hecomplete: Complete nicknames and commands (obsolete, use \"completion\")" hecomplete)
     (const :tag "dcc: Provide Direct Client-to-Client support" dcc)
     (const :tag "fill: Wrap long lines" fill)
     (const :tag "identd: Launch an identd server on port 8113" identd)
@@ -1897,11 +1912,11 @@ removed from the list will be disabled."
     (const :tag "networks: Provide data about IRC networks" networks)
     (const :tag "noncommands: Don't display non-IRC commands after evaluation"
            noncommands)
+    (const :tag "notifications: Desktop alerts on PRIVMSG or mentions"
+           notifications)
     (const :tag
            "notify: Notify when the online status of certain users changes"
            notify)
-    (const :tag "notifications: Send notifications on PRIVMSG or nickname mentions"
-           notifications)
     (const :tag "page: Process CTCP PAGE requests from IRC" page)
     (const :tag "readonly: Make displayed lines read-only" readonly)
     (const :tag "replace: Replace text in messages" replace)
@@ -1914,8 +1929,8 @@ removed from the list will be disabled."
     (const :tag "smiley: Convert smileys to pretty icons" smiley)
     (const :tag "sound: Play sounds when you receive CTCP SOUND requests"
            sound)
-    (const :tag "stamp: Add timestamps to messages" stamp)
     (const :tag "spelling: Check spelling" spelling)
+    (const :tag "stamp: Add timestamps to messages" stamp)
     (const :tag "track: Track channel activity in the mode-line" track)
     (const :tag "truncate: Truncate buffers to a certain size" truncate)
     (const :tag "unmorse: Translate morse code in messages" unmorse)
@@ -1929,18 +1944,28 @@ Except ignore all local modules, which were introduced in ERC 5.5."
   (erc--update-modules)
   nil)
 
+(defun erc--find-mode (sym)
+  (setq sym (erc--normalize-module-symbol sym))
+  (if-let* ((mode (intern-soft (concat "erc-" (symbol-name sym) "-mode")))
+            ((or (boundp mode)
+                 (and (fboundp mode)
+                      (autoload-do-load (symbol-function mode) mode)))))
+      mode
+    (and (require (or (get sym 'erc--feature)
+                      (intern (concat "erc-" (symbol-name sym))))
+                  nil 'noerror)
+         (setq mode (intern-soft (concat "erc-" (symbol-name sym) "-mode")))
+         (fboundp mode)
+         mode)))
+
 (defun erc--update-modules ()
   (let (local-modes)
     (dolist (module erc-modules local-modes)
-      (require (or (alist-get module erc--modules-to-features)
-                   (intern (concat "erc-" (symbol-name module))))
-               nil 'noerror) ; some modules don't have a corresponding feature
-      (let ((mode (intern-soft (concat "erc-" (symbol-name module) "-mode"))))
-        (unless (and mode (fboundp mode))
-          (error "`%s' is not a known ERC module" module))
-        (if (custom-variable-p mode)
-            (funcall mode 1)
-          (push mode local-modes))))))
+      (if-let ((mode (erc--find-mode module)))
+          (if (custom-variable-p mode)
+              (funcall mode 1)
+            (push mode local-modes))
+        (error "`%s' is not a known ERC module" module)))))
 
 (defun erc-setup-buffer (buffer)
   "Consults `erc-join-buffer' to find out how to display `BUFFER'."

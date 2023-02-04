@@ -85,40 +85,13 @@
   (contents "" :type string)
   (tags '() :type list))
 
-;; TODO move goodies modules here after 29 is released.
-(defconst erc--features-to-modules
-  '((erc-pcomplete completion pcomplete)
-    (erc-capab capab-identify)
-    (erc-join autojoin)
-    (erc-page page ctcp-page)
-    (erc-sound sound ctcp-sound)
-    (erc-stamp stamp timestamp)
-    (erc-services services nickserv))
-  "Migration alist mapping a library feature to module names.
-Keys need not be unique: a library may define more than one
-module.  Sometimes a module's downcased alias will be its
-canonical name.")
-
-(defconst erc--modules-to-features
-  (let (pairs)
-    (pcase-dolist (`(,feature . ,names) erc--features-to-modules)
-      (dolist (name names)
-        (push (cons name feature) pairs)))
-    (nreverse pairs))
-  "Migration alist mapping a module's name to its home library feature.")
-
-(defconst erc--module-name-migrations
-  (let (pairs)
-    (pcase-dolist (`(,_ ,canonical . ,rest) erc--features-to-modules)
-      (dolist (obsolete rest)
-        (push (cons obsolete canonical) pairs)))
-    pairs)
-  "Association list of obsolete module names to canonical names.")
-
+;; After dropping 28, we can use prefixed "erc-autoload" cookies.
 (defun erc--normalize-module-symbol (symbol)
-  "Return preferred SYMBOL for `erc-modules'."
-  (setq symbol (intern (downcase (symbol-name symbol))))
-  (or (cdr (assq symbol erc--module-name-migrations)) symbol))
+  "Return preferred SYMBOL for `erc--modules'."
+  (while-let ((canonical (get symbol 'erc--module))
+              ((not (eq canonical symbol))))
+    (setq symbol canonical))
+  symbol)
 
 (defun erc--assemble-toggle (localp name ablsym mode val body)
   (let ((arg (make-symbol "arg")))

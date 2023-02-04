@@ -147,6 +147,10 @@ from entering them and instead jump over them."
   "ERC timestamp face."
   :group 'erc-faces)
 
+;; New libraries should only autoload the minor mode for a module's
+;; preferred name (rather than its alias).
+
+;;;###autoload(put 'timestamp 'erc--module 'stamp)
 ;;;###autoload(autoload 'erc-timestamp-mode "erc-stamp" nil t)
 (define-erc-module stamp timestamp
   "This mode timestamps messages in the channel buffers."

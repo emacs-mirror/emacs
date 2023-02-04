@@ -47,6 +47,7 @@
 
 (require 'erc)
 
+;;;###autoload(put 'ctcp-sound 'erc--module 'sound)
 ;;;###autoload(autoload 'erc-sound-mode "erc-sound")
 (define-erc-module sound ctcp-sound
   "In ERC sound mode, the client will respond to CTCP SOUND requests

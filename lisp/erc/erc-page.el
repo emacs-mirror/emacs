@@ -34,6 +34,7 @@
   "React to CTCP PAGE messages."
   :group 'erc)
 
+;;;###autoload(put 'ctcp-page 'erc--module 'page)
 ;;;###autoload(autoload 'erc-page-mode "erc-page")
 (define-erc-module page ctcp-page
   "Process CTCP PAGE requests from IRC."

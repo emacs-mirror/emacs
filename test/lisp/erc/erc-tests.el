@@ -1224,6 +1224,85 @@
     (kill-buffer "baznet")
     (kill-buffer "#chan")))
 
+(defconst erc-tests--modules
+  '( autoaway autojoin button capab-identify completion dcc fill identd
+     irccontrols keep-place list log match menu move-to-prompt netsplit
+     networks noncommands notifications notify page readonly
+     replace ring sasl scrolltobottom services smiley sound
+     spelling stamp track truncate unmorse xdcc))
+
+;; Ensure that `:initialize' doesn't change the ordering of the
+;; members because otherwise the widget's state is "edited".
+
+(ert-deftest erc-modules--initialize ()
+  ;; This is `custom--standard-value' from Emacs 28.
+  (should (equal (eval (car (get 'erc-modules 'standard-value)) t)
+                 erc-modules)))
+
+;; Ensure the `:initialize' function for `erc-modules' successfully
+;; tags all built-in modules with the internal property `erc--module'.
+
+(ert-deftest erc-modules--internal-property ()
+  (let (ours)
+    (mapatoms (lambda (s)
+                (when-let ((v (get s 'erc--module))
+                           ((eq v s)))
+                  (push s ours))))
+    (should (equal (sort ours #'string-lessp) erc-tests--modules))))
+
+(ert-deftest erc--normalize-module-symbol ()
+  (dolist (mod erc-tests--modules)
+    (should (eq (erc--normalize-module-symbol mod) mod)))
+  (should (eq (erc--normalize-module-symbol 'pcomplete) 'completion))
+  (should (eq (erc--normalize-module-symbol 'Completion) 'completion))
+  (should (eq (erc--normalize-module-symbol 'ctcp-page) 'page))
+  (should (eq (erc--normalize-module-symbol 'ctcp-sound) 'sound))
+  (should (eq (erc--normalize-module-symbol 'timestamp) 'stamp))
+  (should (eq (erc--normalize-module-symbol 'nickserv) 'services)))
+
+;; Worrying about which library a module comes from is mostly not
+;; worth the hassle so long as ERC can find its minor mode.  However,
+;; bugs involving multiple modules living in the same library may slip
+;; by because a module's loading problems may remain hidden on account
+;; of its place in the default ordering.
+
+(ert-deftest erc--find-mode ()
+  (let* ((package (if-let* ((found (getenv "ERC_PACKAGE_NAME"))
+                            ((string-prefix-p "erc-" found)))
+                      (intern found)
+                    'erc))
+         (prog
+          `(,@(and (featurep 'compat)
+                   `((progn
+                       (require 'package)
+                       (let ((package-load-list '((compat t) (,package t))))
+                         (package-initialize)))))
+            (require 'erc)
+            (let ((mods (mapcar #'cadddr
+                                (cdddr (get 'erc-modules 'custom-type))))
+                  moded)
+              (setq mods
+                    (sort mods (lambda (a b) (if (zerop (random 2)) a b))))
+              (dolist (mod mods)
+                (unless (keywordp mod)
+                  (push (if-let ((mode (erc--find-mode mod)))
+                            mod
+                          (list :missing mod))
+                        moded)))
+              (message "%S"
+                       (sort moded
+                             (lambda (a b)
+                               (string< (symbol-name a) (symbol-name b))))))))
+         (proc (start-process "erc--module-mode-autoloads"
+                              (current-buffer)
+                              (concat invocation-directory invocation-name)
+                              "-batch" "-Q"
+                              "-eval" (format "%S" (cons 'progn prog)))))
+    (set-process-query-on-exit-flag proc t)
+    (while (accept-process-output proc 10))
+    (goto-char (point-min))
+    (should (equal (read (current-buffer)) erc-tests--modules))))
+
 (ert-deftest erc-migrate-modules ()
   (should (equal (erc-migrate-modules '(autojoin timestamp button))
                  '(autojoin stamp button)))
@@ -1234,17 +1313,28 @@
   (let (calls
         erc-modules
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+
+    ;; This `lbaz' module is unknown, so ERC looks for it via the
+    ;; symbol proerty `erc--feature' and, failing that, by
+    ;; `require'ing its "erc-" prefixed symbol.
+    (should-not (intern-soft "erc-lbaz-mode"))
+
     (cl-letf (((symbol-function 'require)
-               (lambda (s &rest _) (push s calls)))
+               (lambda (s &rest _)
+                 (when (eq s 'erc--lbaz-feature)
+                   (fset (intern "erc-lbaz-mode") ; local module
+                         (lambda (n) (push (cons 'lbaz n) calls))))
+                 (push s calls)))
 
               ;; Local modules
-              ((symbol-function 'erc-fake-bar-mode)
-               (lambda (n) (push (cons 'fake-bar n) calls)))
+              ((symbol-function 'erc-lbar-mode)
+               (lambda (n) (push (cons 'lbar n) calls)))
+              ((get 'lbaz 'erc--feature) 'erc--lbaz-feature)
 
               ;; Global modules
-              ((symbol-function 'erc-fake-foo-mode)
-               (lambda (n) (push (cons 'fake-foo n) calls)))
-              ((get 'erc-fake-foo-mode 'standard-value) 'ignore)
+              ((symbol-function 'erc-gfoo-mode)
+               (lambda (n) (push (cons 'gfoo n) calls)))
+              ((get 'erc-gfoo-mode 'standard-value) 'ignore)
               ((symbol-function 'erc-autojoin-mode)
                (lambda (n) (push (cons 'autojoin n) calls)))
               ((get 'erc-autojoin-mode 'standard-value) 'ignore)
@@ -1255,20 +1345,28 @@
                (lambda (n) (push (cons 'completion n) calls)))
               ((get 'erc-completion-mode 'standard-value) 'ignore))
 
+      (ert-info ("Unknown module")
+        (setq erc-modules '(lfoo))
+        (should-error (erc--update-modules))
+        (should (equal (pop calls) 'erc-lfoo))
+        (should-not calls))
+
       (ert-info ("Local modules")
-        (setq erc-modules '(fake-foo fake-bar))
-        (should (equal (erc--update-modules) '(erc-fake-bar-mode)))
-        ;; Bar the feature is still required but the mode is not activated
-        (should (equal (nreverse calls)
-                       '(erc-fake-foo (fake-foo . 1) erc-fake-bar)))
+        (setq erc-modules '(gfoo lbar lbaz))
+        ;; Don't expose the mode here
+        (should (equal (mapcar #'symbol-name (erc--update-modules))
+                       '("erc-lbaz-mode" "erc-lbar-mode")))
+        ;; Lbaz required because unknown.
+        (should (equal (nreverse calls) '((gfoo . 1) erc--lbaz-feature)))
+        (fmakunbound (intern "erc-lbaz-mode"))
+        (unintern (intern "erc-lbaz-mode") obarray)
         (setq calls nil))
 
-      (ert-info ("Module name overrides")
-        (setq erc-modules '(completion autojoin networks))
+      (ert-info ("Global modules") ; `pcomplete' resolved to `completion'
+        (setq erc-modules '(pcomplete autojoin networks))
         (should-not (erc--update-modules)) ; no locals
-        (should (equal (nreverse calls) '( erc-pcomplete (completion . 1)
-                                           erc-join (autojoin . 1)
-                                           erc-networks (networks . 1))))
+        (should (equal (nreverse calls)
+                       '((completion . 1) (autojoin . 1) (networks . 1))))
         (setq calls nil)))))
 
 (ert-deftest erc--merge-local-modes ()
