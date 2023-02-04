@@ -2,7 +2,7 @@
 
 # Copyright (C) 2000-2001, 2003-2007, 2009-2023 Free Software Foundation, Inc.
 
-# serial 20
+# serial 21
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -170,6 +170,7 @@ AC_DEFUN([gl_TIME_H_DEFAULTS],
   REPLACE_NANOSLEEP=GNULIB_PORTCHECK;    AC_SUBST([REPLACE_NANOSLEEP])
   REPLACE_STRFTIME=GNULIB_PORTCHECK;     AC_SUBST([REPLACE_STRFTIME])
   REPLACE_TIMEGM=GNULIB_PORTCHECK;       AC_SUBST([REPLACE_TIMEGM])
+  REPLACE_TIMESPEC_GET=GNULIB_PORTCHECK; AC_SUBST([REPLACE_TIMESPEC_GET])
   REPLACE_TZSET=GNULIB_PORTCHECK;        AC_SUBST([REPLACE_TZSET])
 
   dnl Hack so that the time module doesn't depend on the sys_time module.
