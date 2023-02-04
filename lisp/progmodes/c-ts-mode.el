@@ -440,11 +440,10 @@ MODE is either `c' or `cpp'."
       declarator: (_) @c-ts-mode--fontify-declarator)
 
      (function_definition
-      declarator: (_) @c-ts-mode--fontify-declarator))
+      declarator: (_) @c-ts-mode--fontify-declarator)
 
-   ;; Should we highlight identifiers in the parameter list?
-   ;; (parameter_declaration
-   ;;  declarator: (_) @c-ts-mode--fontify-declarator))
+     (parameter_declaration
+      declarator: (_) @c-ts-mode--fontify-declarator))
 
    :language mode
    :feature 'assignment
@@ -552,9 +551,10 @@ For NODE, OVERRIDE, START, END, and ARGS, see
                                               identifier)))
                  ("function_declarator" 'font-lock-function-name-face)
                  (_ 'font-lock-variable-name-face))))
-    (treesit-fontify-with-override
-     (treesit-node-start identifier) (treesit-node-end identifier)
-     face override start end)))
+    (when identifier
+      (treesit-fontify-with-override
+       (treesit-node-start identifier) (treesit-node-end identifier)
+       face override start end))))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
   "Fontify an identifier node if it is a variable.
