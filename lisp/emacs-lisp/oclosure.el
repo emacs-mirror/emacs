@@ -568,7 +568,7 @@ This has 2 uses:
 (defun cconv--interactive-helper (fun if)
   "Add interactive \"form\" IF to FUN.
 Returns a new command that otherwise behaves like FUN.
-IF should actually not be a form but a function of no arguments."
+IF can be an ELisp form to be interpreted or a function of no arguments."
   (oclosure-lambda (cconv--interactive-helper (fun fun) (if if))
       (&rest args)
     (apply (if (called-interactively-p 'any)
