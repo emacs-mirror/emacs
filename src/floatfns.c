@@ -27,18 +27,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    frexp, ldexp, log, log10 [via (log X 10)], *modf, pow, sin, *sinh,
    sqrt, tan, *tanh.
 
-   C99 and C11 require the following math.h functions in addition to
+   C99, C11 and C17 require the following math.h functions in addition to
    the C89 functions.  Of these, Emacs currently exports only the
    starred ones to Lisp, since we haven't found a use for the others.
    Also, it uses the ones marked "+" internally:
    acosh, atanh, cbrt, copysign (implemented by signbit), erf, erfc,
    exp2, expm1, fdim, fma, fmax, fmin, fpclassify, hypot, +ilogb,
-   isfinite, isgreater, isgreaterequal, isinf, isless, islessequal,
+   +isfinite, isgreater, isgreaterequal, +isinf, isless, islessequal,
    islessgreater, *isnan, isnormal, isunordered, lgamma, log1p, *log2
    [via (log X 2)], logb (approximately; implemented by frexp),
    +lrint/llrint, +lround/llround, nan, nearbyint, nextafter,
    nexttoward, remainder, remquo, *rint, round, scalbln, +scalbn,
    +signbit, tgamma, *trunc.
+
+   C23 requires many more math.h functions.  Emacs does not yet export
+   or use them.
 
    The C standard also requires functions for float and long double
    that are not listed above.  Of these functions, Emacs uses only the
