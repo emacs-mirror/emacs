@@ -89,18 +89,19 @@
 
 (defun c-ts-mode--indent-style-setter (sym val)
   "Custom setter for `c-ts-mode-set-style'.
+
 Apart from setting the default value of SYM to VAL, also change
-the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL."
+the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL.
+
+SYM should be `c-ts-mode-indent-style', and VAL should be a style
+symbol."
   (set-default sym val)
   (named-let loop ((res nil)
                    (buffers (buffer-list)))
     (if (null buffers)
         (mapc (lambda (b)
                 (with-current-buffer b
-                  (setq-local treesit-simple-indent-rules
-                              (treesit--indent-rules-optimize
-                               (c-ts-mode--get-indent-style
-                                (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))))
+                  (c-ts-mode-set-style val)))
               res)
       (let ((buffer (car buffers)))
         (with-current-buffer buffer
@@ -112,8 +113,8 @@ the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL."
   "Style used for indentation.
 
 The selected style could be one of GNU, K&R, LINUX or BSD.  If
-one of the supplied styles doesn't suffice a function could be
-set instead.  This function is expected return a list that
+one of the supplied styles doesn't suffice, a function could be
+set instead.  This function is expected to return a list that
 follows the form of `treesit-simple-indent-rules'."
   :version "29.1"
   :type '(choice (symbol :tag "Gnu" gnu)
@@ -134,7 +135,7 @@ MODE is either `c' or `cpp'."
     `((,mode ,@style))))
 
 (defun c-ts-mode--prompt-for-style ()
-  "Prompt for a indent style and return the symbol for it."
+  "Prompt for an indent style and return the symbol for it."
   (let ((mode (if (derived-mode-p 'c-ts-mode) 'c 'c++)))
     (intern
      (completing-read
@@ -142,16 +143,20 @@ MODE is either `c' or `cpp'."
       (mapcar #'car (c-ts-mode--indent-styles mode))
       nil t nil nil "gnu"))))
 
-(defun c-ts-mode-set-style (style)
+(defun c-ts-mode-set-global-style (style)
   "Set the indent style of C/C++ modes globally to STYLE.
 
 This changes the current indent style of every C/C++ buffer and
-the default C/C++ indent style in this Emacs session."
+the default C/C++ indent style for `c-ts-mode' and `c++-ts-mode'
+in this Emacs session."
   (interactive (list (c-ts-mode--prompt-for-style)))
   (c-ts-mode--indent-style-setter 'c-ts-mode-indent-style style))
 
-(defun c-ts-mode-set-local-style (style)
-  "Set the C/C++ indent style of the current buffer to STYLE."
+(defun c-ts-mode-set-style (style)
+  "Set the C/C++ indent style of the current buffer to STYLE.
+
+To set the default indent style globally, use
+`c-ts-mode-set-global-style'."
   (interactive (list (c-ts-mode--prompt-for-style)))
   (if (not (derived-mode-p 'c-ts-mode 'c++-ts-mode))
       (user-error "The current buffer is not in `c-ts-mode' nor `c++-ts-mode'")

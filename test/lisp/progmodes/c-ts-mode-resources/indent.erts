@@ -3,7 +3,7 @@ Code:
     (c-ts-mode)
     (setq-local indent-tabs-mode nil)
     (setq-local c-ts-mode-indent-offset 2)
-    (c-ts-mode-set-local-style 'gnu)
+    (c-ts-mode-set-style 'gnu)
     (indent-region (point-min) (point-max)))
 
 Point-Char: |
@@ -196,7 +196,7 @@ Code:
     (c-ts-mode)
     (setq-local indent-tabs-mode nil)
     (setq-local c-ts-mode-indent-offset 8)
-    (c-ts-mode-set-local-style 'linux)
+    (c-ts-mode-set-style 'linux)
     (indent-region (point-min) (point-max)))
 
 Name: Labels (Linux Style)
