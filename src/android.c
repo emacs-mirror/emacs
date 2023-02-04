@@ -1369,6 +1369,27 @@ android_get_home_directory (void)
   return android_files_dir;
 }
 
+/* Return the name of the file behind a file descriptor FD by reading
+   /proc/self/fd/.  Place the name in BUFFER, which should be able to
+   hold size bytes.  Value is 0 upon success, and 1 upon failure.  */
+
+static int
+android_proc_name (int fd, char *buffer, size_t size)
+{
+  char format[sizeof "/proc/self/fd/"
+	      + INT_STRLEN_BOUND (int)];
+  ssize_t read;
+
+  sprintf (format, "/proc/self/fd/%d", fd);
+  read = readlink (format, buffer, size - 1);
+
+  if (read == -1)
+    return 1;
+
+  buffer[read] = '\0';
+  return 0;
+}
+
 
 
 /* JNI functions called by Java.  */
@@ -1596,6 +1617,29 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 
   /* OK, setup is now complete.  The caller may start the Emacs thread
      now.  */
+}
+
+JNIEXPORT jobject JNICALL
+NATIVE_NAME (getProcName) (JNIEnv *env, jobject object, jint fd)
+{
+  char buffer[PATH_MAX + 1];
+  size_t length;
+  jbyteArray array;
+
+  if (android_proc_name (fd, buffer, PATH_MAX + 1))
+    return NULL;
+
+  /* Return a byte array, as Java strings cannot always encode file
+     names.  */
+  length = strlen (buffer);
+  array = (*env)->NewByteArray (env, length);
+  if (!array)
+    return NULL;
+
+  (*env)->SetByteArrayRegion (env, array, 0, length,
+			      (jbyte *) buffer);
+
+  return array;
 }
 
 /* Initialize service_class, aborting if something goes wrong.  */

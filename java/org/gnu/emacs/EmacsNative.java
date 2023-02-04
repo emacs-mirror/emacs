@@ -153,6 +153,10 @@ public class EmacsNative
   public static native long sendExpose (short window, int x, int y,
 					int width, int height);
 
+  /* Return the file name associated with the specified file
+     descriptor, or NULL if there is none.  */
+  public static native byte[] getProcName (int fd);
+
   static
   {
     System.loadLibrary ("emacs");

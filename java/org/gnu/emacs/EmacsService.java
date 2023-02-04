@@ -152,7 +152,6 @@ public class EmacsService extends Service
       }
   }
 
-  @TargetApi (Build.VERSION_CODES.GINGERBREAD)
   private String
   getLibraryDirectory ()
   {
