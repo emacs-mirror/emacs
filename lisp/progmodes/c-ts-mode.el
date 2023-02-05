@@ -285,6 +285,8 @@ MODE is either `c' or `cpp'."
            ((node-is "}") point-min c-ts-common-statement-offset)
            ;; Opening bracket.
            ((node-is "compound_statement") point-min c-ts-common-statement-offset)
+           ;; Bug#61291.
+           ((match "expression_statement" nil "body") point-min c-ts-common-statement-offset)
 
            ,@(when (eq mode 'cpp)
                `(((node-is "field_initializer_list") parent-bol ,(* c-ts-mode-indent-offset 2)))))))

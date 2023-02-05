@@ -144,6 +144,17 @@ int f2(int x,
 };
 =-=-=
 
+Name: Semi-colon in While Loop (bug#61291)
+
+=-=
+while (true)
+  ;
+for (int i = 0;
+     i < 5;
+     i++)
+  ;
+=-=-=
+
 Name: Multiline Block Comments 1 (bug#60270)
 
 =-=
