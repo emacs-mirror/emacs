@@ -156,6 +156,16 @@
    '((["," "." ";" ":" "::"]) @font-lock-delimiter-face)
 
    :language 'rust
+   :feature 'definition
+   '((function_item name: (identifier) @font-lock-function-name-face)
+     (macro_definition "macro_rules!" @font-lock-constant-face)
+     (macro_definition (identifier) @font-lock-preprocessor-face)
+     (field_declaration name: (field_identifier) @font-lock-property-face)
+     (parameter pattern: (identifier) @font-lock-variable-name-face)
+     (parameter
+      pattern: (reference_pattern (identifier) @font-lock-variable-name-face)))
+
+   :language 'rust
    :feature 'function
    '((call_expression
       function:
@@ -164,15 +174,12 @@
         field: (field_identifier) @font-lock-function-name-face)
        (scoped_identifier
         name: (identifier) @font-lock-function-name-face)])
-     (function_item (identifier) @font-lock-function-name-face)
      (generic_function
       function: [(identifier) @font-lock-function-name-face
                  (field_expression
                   field: (field_identifier) @font-lock-function-name-face)
                  (scoped_identifier
                   name: (identifier) @font-lock-function-name-face)])
-     (macro_definition "macro_rules!" @font-lock-constant-face)
-     (macro_definition (identifier) @font-lock-preprocessor-face)
      (macro_invocation macro: (identifier) @font-lock-preprocessor-face))
 
    :language 'rust
@@ -208,20 +215,20 @@
      (mod_item name: (identifier) @font-lock-constant-face)
      (primitive_type) @font-lock-type-face
      (type_identifier) @font-lock-type-face
-     (scoped_identifier name: (identifier) @font-lock-type-face)
-     (scoped_identifier path: (identifier) @font-lock-constant-face)
-     (scoped_identifier
-      (scoped_identifier
-       path: (identifier) @font-lock-constant-face))
+     ((scoped_identifier name: (identifier) @font-lock-type-face)
+      (:match "^[A-Z]" @font-lock-type-face))
+     ((scoped_identifier path: (identifier) @font-lock-type-face)
+      (:match "^[A-Z]" @font-lock-type-face))
+     ((scoped_identifier
+        (scoped_identifier
+         path: (identifier) @font-lock-type-face))
+      (:match "^[A-Z]" @font-lock-type-face))
      ((scoped_identifier
        path: [(identifier) @font-lock-type-face
               (scoped_identifier
                name: (identifier) @font-lock-type-face)])
       (:match "^[A-Z]" @font-lock-type-face))
      (scoped_type_identifier path: (identifier) @font-lock-constant-face)
-     (scoped_use_list
-      path: [(identifier) @font-lock-constant-face
-             (scoped_identifier (identifier) @font-lock-constant-face)])
      (type_identifier) @font-lock-type-face
      (use_as_clause alias: (identifier) @font-lock-type-face)
      (use_list (identifier) @font-lock-type-face))
@@ -317,11 +324,11 @@ delimiters < and >'s."
     ;; Font-lock.
     (setq-local treesit-font-lock-settings rust-ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( comment)
+                '(( comment definition)
                   ( keyword string)
                   ( attribute builtin constant escape-sequence
-                    function number property type variable)
-                  ( bracket delimiter error operator)))
+                    number type)
+                  ( bracket delimiter error function operator property variable)))
 
     ;; Imenu.
     (setq-local treesit-simple-imenu-settings

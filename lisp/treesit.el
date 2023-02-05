@@ -612,9 +612,10 @@ fontifications.
 Level 1 usually contains only comments and definitions.
 Level 2 usually adds keywords, strings, data types, etc.
 Level 3 usually represents full-blown fontifications, including
-assignments, constants, numbers and literals, properties, etc.
+assignments, constants, numbers and literals, etc.
 Level 4 adds everything else that can be fontified: delimiters,
-operators, brackets, punctuation, all functions and variables, etc.
+operators, brackets, punctuation, all functions, properties,
+variables, etc.
 
 In addition to the decoration level, individual features can be
 turned on/off by calling `treesit-font-lock-recompute-features'.

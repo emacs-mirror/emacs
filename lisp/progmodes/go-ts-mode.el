@@ -124,16 +124,25 @@
    '((["," "." ";" ":"]) @font-lock-delimiter-face)
 
    :language 'go
+   :feature 'definition
+   '((function_declaration
+      name: (identifier) @font-lock-function-name-face)
+     (method_declaration
+      name: (field_identifier) @font-lock-function-name-face)
+     (method_spec
+      name: (field_identifier) @font-lock-function-name-face)
+     (field_declaration
+      name: (field_identifier) @font-lock-property-face)
+     (parameter_declaration
+      name: (identifier) @font-lock-variable-name-face))
+
+   :language 'go
    :feature 'function
    '((call_expression
       function: (identifier) @font-lock-function-name-face)
      (call_expression
       function: (selector_expression
-                 field: (field_identifier) @font-lock-function-name-face))
-     (function_declaration
-      name: (identifier) @font-lock-function-name-face)
-     (method_declaration
-      name: (field_identifier) @font-lock-function-name-face))
+                 field: (field_identifier) @font-lock-function-name-face)))
 
    :language 'go
    :feature 'keyword
@@ -221,11 +230,10 @@
     ;; Font-lock.
     (setq-local treesit-font-lock-settings go-ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( comment)
+                '(( comment definition)
                   ( keyword string type)
-                  ( constant escape-sequence function label number
-                    property variable)
-                  ( bracket delimiter error operator)))
+                  ( constant escape-sequence label number)
+                  ( bracket delimiter error function operator property variable)))
 
     (treesit-major-mode-setup)))
 

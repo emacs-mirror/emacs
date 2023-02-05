@@ -779,8 +779,8 @@ the semicolon.  This function skips the semicolon."
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
                 ( keyword preprocessor string type)
-                ( assignment constant escape-sequence label literal property )
-                ( bracket delimiter error function operator variable))))
+                ( assignment constant escape-sequence label literal)
+                ( bracket delimiter error function operator property variable))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-base-mode "C"
