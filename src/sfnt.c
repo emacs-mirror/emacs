@@ -1,4 +1,4 @@
-/* sfnt format font support for GNU Emacs.
+/* TrueType format font support for GNU Emacs.
 
 Copyright (C) 2023 Free Software Foundation, Inc.
 
@@ -106,7 +106,21 @@ xfree (void *ptr)
 
    Try not to keep this file too dependent on Emacs.  Everything Lisp
    related goes in sfntfont.c.  The author wants to keep using it for
-   some other (free) software.  */
+   some other (free) software.
+
+   The source of reference is the TrueType Reference Manual, published
+   by Apple Computer, which is currently found at:
+
+     https://developer.apple.com/fonts/TrueType-Reference-Manual/
+
+   Apple's TrueType implementation is notably missing features
+   provided by Microsoft's extended OpenType scaler, such as the two
+   additional phantom points on the Y axis, and also behaves
+   differently, especially when it comes to considering phantom points
+   as anchors in compound glyphs.
+
+   As a result, do not expect this scaler to work well with Microsoft
+   fonts such as Arial.  */
 
 
 
@@ -4915,6 +4929,12 @@ struct sfnt_graphics_state
   sfnt_f26dot6 (*project) (sfnt_f26dot6, sfnt_f26dot6,
 			   struct sfnt_interpreter *);
 
+  /* Pointer to the function used to project euclidean vectors onto
+     the dual projection vector.  Value is the magnitude of the
+     projected vector.  */
+  sfnt_f26dot6 (*dual_project) (sfnt_f26dot6, sfnt_f26dot6,
+				struct sfnt_interpreter *);
+
   /* Pointer to the function used to move specified points
      along the freedom vector by a distance specified in terms
      of the projection vector.  */
@@ -5776,6 +5796,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 						\
     id = POP ();				\
     n = POP ();					\
+    def = NULL; /* Pacify -fanalyzer.  */	\
 						\
     if (n > 65535)				\
       TRAP ("invalid LOOPCALL count");		\
@@ -6444,7 +6465,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 
 
 
-/* CVT delta exception instructions.
+/* CVT and point delta exception instructions.
 
    ``Exceptions'' can be placed directly inside the control value
    table, as it is reloaded every time the point size changes.  */
@@ -6503,6 +6524,54 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     goto deltac3_start;				\
   }
 
+#define DELTAP1()				\
+  {						\
+    uint32_t n, argn, pn;			\
+						\
+    n = POP ();					\
+						\
+  deltap1_start:				\
+    if (!n)					\
+      break;					\
+						\
+    argn = POP ();				\
+    pn = POP ();				\
+    sfnt_deltap (1, interpreter, argn, pn);	\
+    goto deltap1_start;				\
+  }
+
+#define DELTAP2()				\
+  {						\
+    uint32_t n, argn, pn;			\
+						\
+    n = POP ();					\
+						\
+  deltap2_start:				\
+    if (!n)					\
+      break;					\
+						\
+    argn = POP ();				\
+    pn = POP ();				\
+    sfnt_deltap (2, interpreter, argn, pn);	\
+    goto deltap2_start;				\
+  }
+
+#define DELTAP3()				\
+  {						\
+    uint32_t n, argn, pn;			\
+						\
+    n = POP ();					\
+						\
+  deltap3_start:				\
+    if (!n)					\
+      break;					\
+						\
+    argn = POP ();				\
+    pn = POP ();				\
+    sfnt_deltap (3, interpreter, argn, pn);	\
+    goto deltap3_start;				\
+  }
+
 
 
 /* Anachronistic angle instructions.  */
@@ -6520,6 +6589,12 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 
 
 /* Projection and freedom vector operations.  */
+
+#define PROJECT(x, y)				\
+  sfnt_project_vector (interpreter, x, y)
+
+#define DUAL_PROJECT(x, y)			\
+  sfnt_dual_project_vector (interpreter, x, y)
 
 #define SVTCAy()				\
   {						\
@@ -6738,6 +6813,85 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     interpreter->state.loop = 1;		\
   }
 
+#define IP()					\
+  {						\
+    sfnt_interpret_ip (interpreter);		\
+  }
+
+#define MSIRP()					\
+  {						\
+    sfnt_f26dot6 d;				\
+    uint32_t p;					\
+						\
+    d = POP ();					\
+    p = POP ();					\
+						\
+    sfnt_interpret_msirp (interpreter, d, p,	\
+			  opcode);		\
+  }
+
+#define ALIGNRP()				\
+  {						\
+    sfnt_interpret_alignrp (interpreter);	\
+  }
+
+#define MIAP()					\
+  {						\
+    uint32_t cvt;				\
+    uint32_t p;					\
+						\
+    cvt = POP ();				\
+    p = POP ();					\
+						\
+    sfnt_interpret_miap (interpreter, cvt, p,	\
+			 opcode);		\
+  }
+
+#define GC()					\
+  {						\
+    uint32_t p;					\
+    sfnt_f26dot6 x, y, value;			\
+    sfnt_f26dot6 org_x, org_y;			\
+						\
+    p = POP ();					\
+						\
+    sfnt_address_zp2 (interpreter, p, &x, &y,	\
+		      &org_x, &org_y);		\
+						\
+    if (opcode == 0x47)				\
+      value = DUAL_PROJECT (org_x, org_y);	\
+    else					\
+      value = PROJECT (x, y);			\
+						\
+    PUSH (value);				\
+  }
+
+#define SCFS()					\
+  {						\
+    uint32_t p;					\
+    sfnt_f26dot6 c;				\
+						\
+    c = POP ();					\
+    p = POP ();					\
+						\
+    sfnt_interpret_scfs (interpreter, c, p);	\
+  }
+
+#define MD()					\
+  {						\
+    uint32_t p1, p2;				\
+    sfnt_f26dot6 distance;			\
+						\
+    p1 = POP ();				\
+    p2 = POP ();				\
+						\
+    distance					\
+      = sfnt_measure_distance (interpreter,	\
+			       p1, p2,		\
+			       opcode);		\
+    PUSH (distance);				\
+  }
+
 
 
 #define NOT_IMPLEMENTED()			\
@@ -6787,14 +6941,15 @@ sfnt_interpret_utp (struct sfnt_interpreter *interpreter,
   interpreter->glyph_zone->flags[p] &= ~SFNT_POINT_TOUCHED_X;
 }
 
-/* Save the specified unit VECTOR into INTERPRETER's graphics
-   state.  */
+/* Save the specified unit VECTOR into INTERPRETER's graphics state as
+   both the projection and the dual projection vectors.  */
 
 static void
 sfnt_save_projection_vector (struct sfnt_interpreter *interpreter,
 			     struct sfnt_unit_vector *vector)
 {
   interpreter->state.projection_vector = *vector;
+  interpreter->state.dual_projection_vector = *vector;
 
   sfnt_validate_gs (&interpreter->state);
 }
@@ -7034,6 +7189,22 @@ sfnt_check_zp2 (struct sfnt_interpreter *interpreter, uint32_t point)
     TRAP ("point lies outside glyph zone (ZP2)");
 }
 
+/* Check that the specified POINT lies within the zone addressed by
+   INTERPRETER's ZP0 register.  Trap if it does not.  */
+
+static void
+sfnt_check_zp0 (struct sfnt_interpreter *interpreter, uint32_t point)
+{
+  if (!interpreter->state.zp0)
+    {
+      if (point >= interpreter->twilight_zone_size)
+	TRAP ("point lies outside twilight zone (ZP0)");
+    }
+  else if (!interpreter->glyph_zone
+	   || point >= interpreter->glyph_zone->num_points)
+    TRAP ("point lies outside glyph zone (ZP0)");
+}
+
 /* Move N points starting from the specified POINT in the zone
    addressed by INTERPRETER's ZP0 register by the given DISTANCE along
    the freedom vector.
@@ -7173,6 +7344,147 @@ sfnt_project_vector (struct sfnt_interpreter *interpreter,
 		     sfnt_f26dot6 vx, sfnt_f26dot6 vy)
 {
   return interpreter->state.project (vx, vy, interpreter);
+}
+
+/* Project the vector VX, VY onto INTERPRETER's dual projection
+   vector.  Return the magnitude of the projection.  */
+
+static sfnt_f26dot6
+sfnt_dual_project_vector (struct sfnt_interpreter *interpreter,
+			  sfnt_f26dot6 vx, sfnt_f26dot6 vy)
+{
+  return interpreter->state.dual_project (vx, vy, interpreter);
+}
+
+/* Interpret an SCFS instruction.
+   Move P in ZP2 along the freedom vector until its projection is
+   equal to C.  */
+
+static void
+sfnt_interpret_scfs (struct sfnt_interpreter *interpreter,
+		     uint32_t p, sfnt_f26dot6 c)
+{
+  sfnt_f26dot6 x, y, distance;
+
+  sfnt_address_zp2 (interpreter, p, &x, &y, NULL, NULL);
+  distance = PROJECT (x, y);
+  sfnt_move_zp2 (interpreter, p, 1, sfnt_sub (c, distance));
+}
+
+/* Symmetrically round the 26.6 fixed point value X using the rounding
+   mode in INTERPRETER.  Return the result.  */
+
+static sfnt_f26dot6
+sfnt_round_symmetric (struct sfnt_interpreter *interpreter, sfnt_f26dot6 x)
+{
+  int sign;
+
+  sign = 1;
+
+  if (x < 0)
+    {
+      sign = -1;
+      x = -x;
+    }
+
+  return interpreter->state.round (x, interpreter) * sign;
+}
+
+/* Interpret an MIAP (``Move Indirect Absolute Point'') instruction
+   using INTERPRETER.
+
+   Move P in ZP0 along the freedom vector until its projection on the
+   projection vector is equal to CVT units in the projection vector.
+
+   Finally, set RP0 and RP1 to P.
+
+   If OPCODE is 0x3f, then in addition check the CVT value against the
+   control value cut-in, and round the magnitudes of the movement.  */
+
+static void
+sfnt_interpret_miap (struct sfnt_interpreter *interpreter,
+		     uint32_t cvt, uint32_t p, unsigned char opcode)
+{
+  sfnt_f26dot6 x, y, distance, value, delta;
+
+  sfnt_address_zp0 (interpreter, p, &x, &y, NULL, NULL);
+
+  /* Read the cvt value.  */
+
+  if (cvt >= interpreter->cvt_size)
+    TRAP ("out of bounds read to cvt");
+
+  value = interpreter->cvt[cvt];
+
+  /* Obtain the original distance.  */
+  distance = sfnt_project_vector (interpreter, x, y);
+
+  /* Round the distance and apply the cvt cut in if necessary.  */
+
+  if (opcode == 0x3f)
+    {
+      delta = sfnt_sub (value, distance);
+
+      if (delta < 0)
+	delta = -delta;
+
+      /* If delta is more than the cvt cut in (more aptly named ``cut
+	 out''), use the original distance.  */
+
+      if (delta > interpreter->state.cvt_cut_in)
+	value = distance;
+
+      /* Round value.  */
+      value = sfnt_round_symmetric (interpreter, value);
+    }
+
+  /* Move the point by the distance.  */
+  sfnt_move_zp0 (interpreter, p, 1, sfnt_sub (value, distance));
+
+  /* Set reference points.  */
+  interpreter->state.rp0 = p;
+  interpreter->state.rp1 = p;
+}
+
+/* Perform a single iteration of sfnt_interpret_alignrp.  RP0X and
+   RP0Y should be the position of the reference point RP0 in ZP0.  */
+
+static void
+sfnt_interpret_alignrp_1 (struct sfnt_interpreter *interpreter,
+			  sfnt_f26dot6 rp0x, sfnt_f26dot6 rp0y)
+{
+  sfnt_f26dot6 distance, x, y;
+  uint32_t point;
+
+  point = POP ();
+
+  /* Load this point.  */
+  sfnt_address_zp1 (interpreter, point, &x, &y, NULL, NULL);
+
+  /* Measure the distance from here to rp0.  */
+  distance = sfnt_project_vector (interpreter, sfnt_sub (x, rp0x),
+				  sfnt_sub (y, rp0y));
+
+  /* Move by the opposite.  */
+  sfnt_move_zp1 (interpreter, point, 1, -distance);
+}
+
+/* For loop times, pop a point in ZP1 and align it to RP0 in ZP0 by
+   moving it along the freedom vector until its projected distance
+   from RP0 becomes 0.  */
+
+static void
+sfnt_interpret_alignrp (struct sfnt_interpreter *interpreter)
+{
+  sfnt_f26dot6 rp0x, rp0y;
+
+  sfnt_address_zp0 (interpreter, interpreter->state.rp0,
+		    &rp0x, &rp0y, NULL, NULL);
+
+  while (interpreter->state.loop--)
+    sfnt_interpret_alignrp_1 (interpreter, rp0x, rp0y);
+
+  interpreter->state.loop = 1;
 }
 
 /* Align the two points P1 and P2 relative to the projection vector.
@@ -7468,14 +7780,184 @@ sfnt_line_to_vector (struct sfnt_interpreter *interpreter,
   sfnt_normalize_vector (a, b, vector);
 }
 
+/* Measure the distance between P1 in ZP0 and P2 in ZP1,
+   relative to the projection or dual projection vector.
+
+   Return the distance of P1 and P2 relative to their original
+   un-instructed positions should OPCODE be 0x49, and to their
+   instructed positions should OPCODE be 0x4A.  */
+
+static sfnt_f26dot6
+sfnt_measure_distance (struct sfnt_interpreter *interpreter,
+		       uint32_t p1, uint32_t p2,
+		       unsigned char opcode)
+{
+  sfnt_f26dot6 p1x, p1y, p1_original_x, p1_original_y;
+  sfnt_f26dot6 p2x, p2y, p2_original_x, p2_original_y;
+
+  /* P1 is relative to ZP0 and P2 is relative to ZP1.
+     Apple's manual says this, Microsoft's does not.  */
+
+  sfnt_address_zp0 (interpreter, p1, &p1x, &p1y,
+		    &p1_original_x, &p1_original_y);
+  sfnt_address_zp1 (interpreter, p2, &p2x, &p2y,
+		    &p2_original_x, &p2_original_y);
+
+  if (opcode == 0x49)
+    {
+      /* When measuring in the glyph zone, measure the distance using
+	 the dual projection vector, relative to the ``original
+	 original outlines''.
+
+	 This is not written down anywhere, leading you to believe
+         that the distance is measured using the scaled outline prior
+         to instructing.  */
+
+      if (interpreter->state.zp0 == 1
+	  && interpreter->state.zp1 == 1)
+	return sfnt_div_fixed (DUAL_PROJECT (sfnt_sub (p1x, p2x),
+					     sfnt_sub (p1y, p2y)),
+			       interpreter->scale);
+
+      return DUAL_PROJECT (sfnt_sub (p1x, p2x),
+			   sfnt_sub (p1y, p2y));
+    }
+
+  return PROJECT (sfnt_sub (p1x, p2x),
+		  sfnt_sub (p1y, p2y));
+}
+
+/* Interpret an MSIRP instruction in INTERPRETER.
+   Take a point P, and make the distance between P in ZP1 and the
+   current position of RP0 in ZP0 equal to D.
+
+   Then, if OPCODE is equal to 0x3b, make P RP0.  */
+
+static void
+sfnt_interpret_msirp (struct sfnt_interpreter *interpreter,
+		      uint32_t p, sfnt_f26dot6 d, unsigned char opcode)
+{
+  sfnt_f26dot6 rp0x, rp0y;
+  sfnt_f26dot6 x, y;
+  sfnt_f26dot6 old_distance;
+
+  sfnt_address_zp0 (interpreter, interpreter->state.rp0,
+		    &rp0x, &rp0y, NULL, NULL);
+  sfnt_address_zp1 (interpreter, p, &x, &y, NULL, NULL);
+
+  /* Compute the original distance.  */
+  old_distance = sfnt_project_vector (interpreter,
+				      sfnt_sub (x, rp0x),
+				      sfnt_sub (y, rp0y));
+
+  /* Move the point.  */
+  sfnt_move_zp1 (interpreter, p, 1, sfnt_sub (d, old_distance));
+
+  /* Nothing in the TrueType reference manual says directly that this
+     instruction should change rp1 and rp2.  However, it says this
+     instruction is ``very similar to the MIRP[] instruction
+     except...'', and FreeType seems to do this, so do it as well.  */
+
+  interpreter->state.rp1 = interpreter->state.rp0;
+  interpreter->state.rp2 = p;
+
+  if (opcode == 0x3b)
+    interpreter->state.rp0 = p;
+}
+
+/* Interpret an IP instruction in INTERPRETER.  For loop times, pop a
+   single point in ZP2, and interpolate it so that its original
+   relationship to the points RP1 in ZP0 and RP2 in ZP1 as measured
+   along the dual projection vector continues to hold true.  */
+
+static void
+sfnt_interpret_ip (struct sfnt_interpreter *interpreter)
+{
+  sfnt_f26dot6 rp1x, rp1y, rp1_original_x, rp1_original_y;
+  sfnt_f26dot6 rp2x, rp2y, rp2_original_x, rp2_original_y;
+  sfnt_f26dot6 range, new_range, org_distance, cur_distance;
+  sfnt_f26dot6 new_distance;
+  uint32_t p;
+  sfnt_f26dot6 x, y, original_x, original_y;
+
+  /* First load both reference points.  */
+  sfnt_address_zp0 (interpreter, interpreter->state.rp1,
+		    &rp1x, &rp1y, &rp1_original_x,
+		    &rp1_original_y);
+  sfnt_address_zp1 (interpreter, interpreter->state.rp2,
+		    &rp2x, &rp2y, &rp2_original_x,
+		    &rp2_original_y);
+
+  /* Get the original distance between of RP1 and RP2 measured
+     relative to the dual projection vector.  */
+  range = sfnt_dual_project_vector (interpreter,
+				    sfnt_sub (rp2_original_x,
+					      rp2_original_y),
+				    sfnt_sub (rp1_original_x,
+					      rp1_original_y));
+
+  /* Get the new distance.  */
+  new_range = sfnt_dual_project_vector (interpreter,
+					sfnt_sub (rp2x, rp2y),
+					sfnt_sub (rp1x, rp1y));
+
+  while (interpreter->state.loop--)
+    {
+      p = POP ();
+
+      /* Load this point relative to zp2.  */
+      sfnt_address_zp2 (interpreter, p, &x, &y, &original_x,
+			&original_y);
+
+      /* Now compute the old distance from this point to rp1.  */
+      org_distance
+	= sfnt_dual_project_vector (interpreter,
+				    sfnt_sub (original_x,
+					      rp1_original_x),
+				    sfnt_sub (original_y,
+					      rp1_original_y));
+
+      /* And the current distance from this point to rp1, so
+         how much to move can be determined.  */
+      cur_distance
+	= sfnt_dual_project_vector (interpreter,
+				    sfnt_sub (x, rp1x),
+				    sfnt_sub (y, rp1y));
+
+      /* Finally, apply the ratio of the new distance between RP1 and
+	 RP2 to that of the old distance between the two reference
+	 points to org_distance, making new_distance.
+
+         If both reference points occupy the same position on the dual
+         projection vector, then simply use the old distance.  */
+
+      if (org_distance)
+	{
+	  if (range)
+	    new_distance = sfnt_multiply_divide (org_distance, new_range,
+						 range);
+	  else
+	    new_distance = org_distance;
+	}
+      else
+	new_distance = 0;
+
+      /* And move the point along the freedom vector to reflect the
+	 change in distance.  */
+      sfnt_move_zp2 (interpreter, p, 1,
+		     sfnt_sub (new_distance, cur_distance));
+    }
+
+  interpreter->state.loop = 1;
+}
+
 /* Apply the delta specified by OPERAND to the control value table
    entry at INDEX currently loaded inside INTERPRETER.
 
    Trap if INDEX is out of bounds.
 
-   NUMBER is the number of the specific DELTAC instruction this
-   instruction is being applied on behalf of.  It must be between 1
-   and 3.  */
+   NUMBER is the number of the specific DELTAC instruction this delta
+   is being applied on behalf of.  It must be between 1 and 3.  */
 
 static void
 sfnt_deltac (int number, struct sfnt_interpreter *interpreter,
@@ -7612,17 +8094,19 @@ static void
 sfnt_interpret_mdap (struct sfnt_interpreter *interpreter,
 		     uint32_t p, uint32_t opcode)
 {
-  sfnt_f26dot6 distance, px, py;
+  sfnt_f26dot6 here, distance, px, py;
 
   sfnt_address_zp0 (interpreter, p, &px, &py, NULL, NULL);
 
+  /* Measure the current distance.  */
+  here = sfnt_project_vector (interpreter, px, py);
+
   if (opcode == 0x7f)
     {
-      /* Measure distance, round, then move by distance.  */
+      /* Measure distance, round, then move to the distance.  */
       distance = sfnt_project_vector (interpreter, px, py);
-      distance = sfnt_sub (interpreter->state.round (distance,
-						     interpreter),
-			   distance);
+      distance = sfnt_round_symmetric (interpreter, distance);
+      distance = sfnt_sub (distance, here);
     }
   else
     /* Don't move.  Just touch the point.  */
@@ -7632,6 +8116,127 @@ sfnt_interpret_mdap (struct sfnt_interpreter *interpreter,
 
   interpreter->state.rp0 = p;
   interpreter->state.rp1 = p;
+}
+
+/* Apply the delta specified by OPERAND to the point P in ZP0
+   currently loaded inside INTERPRETER.
+
+   Trap if P is out of bounds.
+
+   NUMBER is the number of the specific DELTAP instruction this delta
+   is being applied on behalf of.  It must be between 1 and 3.  */
+
+static void
+sfnt_deltap (int number, struct sfnt_interpreter *interpreter,
+	     unsigned char operand, unsigned int index)
+{
+  int ppem, delta;
+
+  /* Extract the ppem from OPERAND.  The format is the same as in
+     sfnt_deltac.  */
+
+  ppem = (operand >> 4) + interpreter->state.delta_base;
+
+  switch (number)
+    {
+    case 1:
+      break;
+
+    case 2:
+      ppem += 16;
+      break;
+
+    case 3:
+      ppem += 32;
+      break;
+    }
+
+  /* Don't apply the delta if the ppem size doesn't match.  */
+
+  if (interpreter->ppem != ppem)
+    return;
+
+  /* Now, determine the magnitude of the movement and find the
+     delta.  */
+
+  switch (operand & 0xf)
+    {
+    case 0:
+      delta = -8;
+      break;
+
+    case 1:
+      delta = -7;
+      break;
+
+    case 2:
+      delta = -6;
+      break;
+
+    case 3:
+      delta = -5;
+      break;
+
+    case 4:
+      delta = -4;
+      break;
+
+    case 5:
+      delta = -3;
+      break;
+
+    case 6:
+      delta = -2;
+      break;
+
+    case 7:
+      delta = -1;
+      break;
+
+    case 8:
+      delta = 1;
+      break;
+
+    case 9:
+      delta = 2;
+      break;
+
+    case 10:
+      delta = 3;
+      break;
+
+    case 11:
+      delta = 4;
+      break;
+
+    case 12:
+      delta = 5;
+      break;
+
+    case 13:
+      delta = 6;
+      break;
+
+    case 14:
+      delta = 7;
+      break;
+
+    case 15:
+      delta = 8;
+      break;
+
+      /* To pacify -fanalyzer.  */
+    default:
+      abort ();
+    }
+
+  /* Now, scale up the delta by the step size, which is determined by
+     the delta shift.  */
+  delta *= 1l << (6 - interpreter->state.delta_shift);
+
+  /* Move the point.  */
+  sfnt_check_zp0 (interpreter, index);
+  sfnt_move_zp0 (interpreter, index, 1, delta);
 }
 
 /* Needed by sfnt_interpret_call.  */
@@ -8242,6 +8847,25 @@ sfnt_project_onto_any_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
 			  interpreter->state.projection_vector.y);
 }
 
+/* Project the specified vector VX and VY onto the unit vector that is
+   INTERPRETER's dual projection vector, making only the assumption
+   that the dual projection vector is a valid unit vector.
+
+   The dual projection vector is a vector that is normally the
+   projection vector, but can be set using the original unscaled
+   coordinates of two points as well.
+
+   Value is the magnitude of the projected vector.  */
+
+static sfnt_f26dot6
+sfnt_dual_project_onto_any_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
+				   struct sfnt_interpreter *interpreter)
+{
+  return sfnt_dot_fix_14 (vx, vy,
+			  interpreter->state.dual_projection_vector.x,
+			  interpreter->state.dual_projection_vector.y);
+}
+
 /* Move N points at *X, *Y by DISTANCE along INTERPRETER's freedom
    vector.  Set *FLAGS where appropriate and when non-NULL.
 
@@ -8390,6 +9014,15 @@ sfnt_validate_gs (struct sfnt_graphics_state *gs)
   else
     gs->project = sfnt_project_onto_any_vector;
 
+  /* Do the same for the dual projection vector.  */
+
+  if (gs->dual_projection_vector.x == 040000)
+    gs->dual_project = sfnt_project_onto_x_axis_vector;
+  else if (gs->dual_projection_vector.y == 040000)
+    gs->dual_project = sfnt_project_onto_y_axis_vector;
+  else
+    gs->dual_project = sfnt_dual_project_onto_any_vector;
+
   /* Compute dot product of the freedom and projection vectors.
      Handle the common case where the freedom vector is aligned
      to an axis.  */
@@ -8444,6 +9077,8 @@ sfnt_set_projection_vector (struct sfnt_interpreter *interpreter,
 {
   interpreter->state.projection_vector.x = x;
   interpreter->state.projection_vector.y = y;
+  interpreter->state.dual_projection_vector.x = x;
+  interpreter->state.dual_projection_vector.y = y;
 
   sfnt_validate_gs (&interpreter->state);
 }
@@ -8574,8 +9209,8 @@ sfnt_interpret_shp (struct sfnt_interpreter *interpreter,
     {
       point = POP ();
 
-      sfnt_move_zp2 (interpreter, point, 1, magnitude);
       sfnt_check_zp2 (interpreter, point);
+      sfnt_move_zp2 (interpreter, point, 1, magnitude);
     }
 
   /* Restore interpreter->state.loop to 1.  */
@@ -9041,16 +9676,16 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 	  break;
 
 	case 0x39:  /* IP    */
-	  NOT_IMPLEMENTED ();
+	  IP ();
 	  break;
 
 	case 0x3A:  /* MSIRP */
 	case 0x3B:  /* MSIRP */
-	  NOT_IMPLEMENTED ();
+	  MSIRP ();
 	  break;
 
-	case 0x3C:  /* AlignRP */
-	  NOT_IMPLEMENTED ();
+	case 0x3C:  /* ALIGNRP */
+	  ALIGNRP ();
 	  break;
 
 	case 0x3D:  /* RTDG */
@@ -9059,7 +9694,7 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 
 	case 0x3E:  /* MIAP */
 	case 0x3F:  /* MIAP */
-	  NOT_IMPLEMENTED ();
+	  MIAP ();
 	  break;
 
 	case 0x40:  /* NPUSHB */
@@ -9088,16 +9723,16 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 
 	case 0x46:  /* GC */
 	case 0x47:  /* GC */
-	  NOT_IMPLEMENTED ();
+	  GC ();
 	  break;
 
 	case 0x48:  /* SCFS */
-	  NOT_IMPLEMENTED ();
+	  SCFS ();
 	  break;
 
 	case 0x49:  /* MD */
 	case 0x4A:  /* MD */
-	  NOT_IMPLEMENTED ();
+	  MD ();
 	  break;
 
 	case 0x4B:  /* MPPEM */
@@ -9173,7 +9808,7 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 	  break;
 
 	case 0x5D:  /* DELTAP1 */
-	  NOT_IMPLEMENTED ();
+	  DELTAP1 ();
 	  break;
 
 	case 0x5E:  /* SDB */
@@ -9235,8 +9870,11 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 	  break;
 
 	case 0x71:  /* DELTAP2 */
+	  DELTAP2 ();
+	  break;
+
 	case 0x72:  /* DELTAP3 */
-	  NOT_IMPLEMENTED ();
+	  DELTAP3 ();
 	  break;
 
 	case 0x73:  /* DELTAC1 */
@@ -10108,9 +10746,10 @@ static void
 sfnt_check_sloop (struct sfnt_interpreter *interpreter,
 		  void *arg, bool trap)
 {
-  if (interpreter->state.loop != 2)
+  if (interpreter->state.loop != 1)
     {
-      fprintf (stderr, "failed, GS->loop should be 2, not %d\n",
+      /* The trap should've restored GS->loop to 1.  */
+      fprintf (stderr, "failed, GS->loop should be 1, not %d\n",
 	       interpreter->state.loop);
       return;
     }
@@ -12764,7 +13403,7 @@ main (int argc, char **argv)
   for (i = 0; i < table->num_subtables; ++i)
     {
       fprintf (stderr, "Found cmap table %"PRIu32": %p\n",
-	       subtables[i].offset, data[i]);
+	       subtables[i].offset, (void *) data[i]);
 
       if (data[i])
 	fprintf (stderr, "  format: %"PRIu16"\n",
