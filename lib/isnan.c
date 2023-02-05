@@ -82,9 +82,10 @@ typedef union { DOUBLE value; unsigned int word[NWORDS]; } memory_double;
 /* Most hosts nowadays use IEEE floating point, so they use IEC 60559
    representations, have infinities and NaNs, and do not trap on
    exceptions.  Define IEEE_FLOATING_POINT if this host is one of the
-   typical ones.  The C11 macro __STDC_IEC_559__ is close to what is
+   typical ones.  The C23 macro __STDC_IEC_60559_BFP__ macro (or its cousin,
+   the now-obsolescent C11 macro __STDC_IEC_559__) is close to what is
    wanted here, but is not quite right because this file does not require
-   all the features of C11 Annex F (and does not require C11 at all,
+   all the features of C23 Annex F (and works even with pre-C11 platforms,
    for that matter).  */
 
 #define IEEE_FLOATING_POINT (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \

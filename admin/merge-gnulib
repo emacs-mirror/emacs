@@ -145,4 +145,5 @@ rm -rf "$src"cross/lib
 cp -r "$src"lib "$src"cross
 
 # Remove unnecessary files.
-rm -f "$src"cross/lib/*.mk.in "$src"cross/lib/Makefile.in
+rm -f "$src"cross/lib/*.mk.in "$src"cross/lib/Makefile.in \
+   "$src"cross/lib/Makefile

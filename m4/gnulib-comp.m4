@@ -1123,12 +1123,9 @@ AC_DEFUN([gl_INIT],
   if test $HAVE_FUTIMENS = 0 || test $REPLACE_FUTIMENS = 1; then
     func_gl_gnulib_m4code_utimens
   fi
-<<<<<<< HEAD
   if test $REPLACE_GETLINE = 1; then
     func_gl_gnulib_m4code_getdelim
   fi
-=======
->>>>>>> origin/master
   if case $host_os in mingw*) false;; *) test $HAVE_GETLOADAVG = 0 || test $REPLACE_GETLOADAVG = 1;; esac; then
     func_gl_gnulib_m4code_open
   fi

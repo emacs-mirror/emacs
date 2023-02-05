@@ -222,7 +222,21 @@ template <int w>
 
 /* _GL_STATIC_ASSERT_H is defined if this code is copied into assert.h.  */
 #ifdef _GL_STATIC_ASSERT_H
-# if !defined _GL_HAVE__STATIC_ASSERT1 && !defined _Static_assert
+/* Define _Static_assert if needed.  */
+/* With clang ≥ 3.8.0 in C++ mode, _Static_assert already works and accepts
+   1 or 2 arguments.  We better don't override it, because clang's standard
+   C++ library uses static_assert inside classes in several places, and our
+   replacement via _GL_VERIFY does not work in these contexts.  */
+# if (defined __cplusplus && defined __clang__ \
+      && (4 <= __clang_major__ + (8 <= __clang_minor__)))
+#  if 5 <= __clang_major__
+/* Avoid "warning: 'static_assert' with no message is a C++17 extension".  */
+#   pragma clang diagnostic ignored "-Wc++17-extensions"
+#  else
+/* Avoid "warning: static_assert with no message is a C++1z extension".  */
+#   pragma clang diagnostic ignored "-Wc++1z-extensions"
+#  endif
+# elif !defined _GL_HAVE__STATIC_ASSERT1 && !defined _Static_assert
 #  if !defined _MSC_VER || defined __clang__
 #   define _Static_assert(...) \
       _GL_VERIFY (__VA_ARGS__, "static assertion failed", -)
@@ -233,6 +247,7 @@ template <int w>
       _GL_VERIFY ((R), "static assertion failed", -)
 #  endif
 # endif
+/* Define static_assert if needed.  */
 # if (!defined static_assert \
       && __STDC_VERSION__ < 202311 \
       && (!defined __cplusplus \
@@ -250,6 +265,8 @@ template <int w>
 #   define _GL_SA3 static_assert
 #   define _GL_SA_PICK(x1,x2,x3,x4,...) x4
 #   define static_assert(...) _GL_EXPAND(_GL_SA_PICK(__VA_ARGS__,_GL_SA3,_GL_SA2,_GL_SA1)) (__VA_ARGS__)
+/* Avoid "fatal error C1189: #error:  The C++ Standard Library forbids macroizing keywords."  */
+#   define _ALLOW_KEYWORD_MACROS 1
 #  else
 #   define static_assert _Static_assert /* C11 requires this #define. */
 #  endif
