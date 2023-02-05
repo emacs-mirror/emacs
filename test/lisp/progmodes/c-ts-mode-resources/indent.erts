@@ -244,3 +244,48 @@ int main() {
     }
 }
 =-=-=
+
+Name: Complicated mixed bracket matching indentation (bug#61142)
+
+=-=
+void foo(
+         int foo) {
+  for (;;)
+    return 5;
+
+  if (a == 0
+      && b == 1
+      && foo)
+    {
+      return 0;
+    }
+  else if (a == 1)
+    {
+      return 1;
+    }
+  else if (true)
+    return 5;
+  else
+    {
+      if (a == 0
+          && b == 1
+          && foo)
+        for (
+             int i = 0;
+             i < 5;
+             i++)
+          if (true)
+            do
+              i = 5;
+            while (true);
+          else if (false)
+            {
+              return 6;
+            }
+          else
+            if (true
+                && false)
+              return 6;
+    }
+}
+=-=-=

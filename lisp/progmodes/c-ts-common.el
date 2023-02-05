@@ -281,11 +281,22 @@ special handling from our bracket-counting indent algorithm.
 
 This can be nil, meaning such special handling is not needed.")
 
+(defvar c-ts-common-if-statement-regexp "if_statement"
+  "Regexp used to select an if statement in a C like language.
+
+This can be set to a different regexp if needed.")
+
+(defvar c-ts-common-nestable-if-statement-p t
+  "Does the current parser nest if-else statements?
+
+t if the current tree-sitter grammar nests the else if
+statements, nil otherwise.")
+
 (defun c-ts-common-statement-offset (node parent bol &rest _)
   "This anchor is used for children of a statement inside a block.
 
 This function basically counts the number of block nodes (i.e.,
-brackets) (defined by `c-ts-mode--indent-block-type-regexp')
+brackets) (defined by `c-ts-common-indent-block-type-regexp')
 between NODE and the root node (not counting NODE itself), and
 multiply that by `c-ts-common-indent-offset'.
 
@@ -312,6 +323,9 @@ characters on the current line."
     (while (if (eq node t)
                (setq node parent)
              node)
+      ;; Subtract one indent level if the language nests
+      ;; if-statements and node is if_statement.
+      (setq level (c-ts-common--fix-nestable-if-statement level node))
       (when (string-match-p c-ts-common-indent-block-type-regexp
                             (treesit-node-type node))
         (cl-incf level)
@@ -353,6 +367,24 @@ the bracket in the body."
              (string-match-p statement-re parent-type))
         (1+ level)
       level)))
+
+(defun c-ts-common--fix-nestable-if-statement (level node)
+  "Takes LEVEL and NODE and return adjusted LEVEL.
+Look at the type of NODE, when it is an if-statement node, as
+defined by `c-ts-common-if-statement-regexp' and its parent is
+also an if-statement node, subtract one level.  Otherwise return
+the value unchanged.  Whether or not if-statements are nestable
+is controlled by `c-ts-common-nestable-if-statement-p'."
+  ;; This fixes indentation for cases shown in bug#61142.
+  (or (and node
+           (equal (treesit-node-type (treesit-node-prev-sibling node)) "else")
+           (treesit-node-parent node)
+           c-ts-common-nestable-if-statement-p
+           (equal (treesit-node-type node) c-ts-common-if-statement-regexp)
+           (equal (treesit-node-type (treesit-node-parent node))
+                  c-ts-common-if-statement-regexp)
+           (cl-decf level))
+      level))
 
 (provide 'c-ts-common)
 

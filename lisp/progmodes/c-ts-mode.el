@@ -238,6 +238,13 @@ MODE is either `c' or `cpp'."
            ((parent-is "labeled_statement")
             point-min c-ts-common-statement-offset)
 
+           ;; Bracketless statement matchers.
+           ((match nil "while_statement" "condition") parent-bol c-ts-mode-indent-offset)
+           ((match nil "if_statement" "consequence") parent-bol c-ts-mode-indent-offset)
+           ((match nil "if_statement" "alternative") parent-bol c-ts-mode-indent-offset)
+           ((match nil "do_statement" "body") parent-bol c-ts-mode-indent-offset)
+           ((match nil "for_statement" "body") parent-bol c-ts-mode-indent-offset)
+
            ((match "preproc_ifdef" "compound_statement") point-min 0)
            ((match "#endif" "preproc_ifdef") point-min 0)
            ((match "preproc_if" "compound_statement") point-min 0)
