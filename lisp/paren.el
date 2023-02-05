@@ -166,8 +166,8 @@ use `show-paren-local-mode'."
   (cond
    ((eq show-paren-mode (default-value 'show-paren-mode))
     (unless show-paren-mode
-      (show-paren--delete-overlays))
-    (kill-local-variable 'show-paren-mode))
+      (show-paren--delete-overlays)
+      (kill-local-variable 'show-paren-mode)))
    ((not (default-value 'show-paren-mode))
     ;; Locally enabled, but globally disabled.
     (show-paren-mode 1)                ; Setup the timer.
