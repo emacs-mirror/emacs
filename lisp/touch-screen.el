@@ -96,47 +96,54 @@ to the frame that they belong in."
 Perform vertical scrolling by DY, using `pixel-scroll-precision'
 if `touch-screen-precision-scroll' is enabled.  Next, perform
 horizontal scrolling according to the movement in DX."
-  ;; Perform vertical scrolling first.
-  (if touch-screen-precision-scroll
-      (if (> dy 0)
-          (pixel-scroll-precision-scroll-down-page dy)
-        (pixel-scroll-precision-scroll-up-page (- dy)))
-    ;; Start conventional scrolling.  First, determine the direction
-    ;; in which the scrolling is taking place.  Load the accumulator
-    ;; value.
-    (let ((accumulator (or (nth 5 touch-screen-current-tool) 0))
-          (window (cadr touch-screen-current-tool))
-          (lines-vscrolled (or (nth 7 touch-screen-current-tool) 0)))
-      (setq accumulator (+ accumulator dy)) ; Add dy.
-      ;; Figure out how much it has scrolled and how much remains on
-      ;; the top or bottom of the window.
-      (while (catch 'again
-               (let* ((line-height (window-default-line-height window)))
-                 (if (and (< accumulator 0)
-                          (>= (- accumulator) line-height))
-                     (progn
-                       (setq accumulator (+ accumulator line-height))
-                       (scroll-down 1)
-                       (setq lines-vscrolled (1+ lines-vscrolled))
-                       (when (not (zerop accumulator))
-                         ;; If there is still an outstanding amount to
-                         ;; scroll, do this again.
-                         (throw 'again t)))
-                   (when (and (> accumulator 0)
-                              (>= accumulator line-height))
-                     (setq accumulator (- accumulator line-height))
-                     (scroll-up 1)
-                     (setq lines-vscrolled (1+ lines-vscrolled))
-                     (when (not (zerop accumulator))
-                       ;; If there is still an outstanding amount to
-                       ;; scroll, do this again.
-                       (throw 'again t)))))
-               ;; Scrolling is done.  Move the accumulator back to
-               ;; touch-screen-current-tool and break out of the loop.
-               (setcar (nthcdr 5 touch-screen-current-tool) accumulator)
-               (setcar (nthcdr 7 touch-screen-current-tool)
-                       lines-vscrolled)
-               nil))))
+  ;; Perform vertical scrolling first.  Do not ding at buffer limits.
+  ;; Show a message instead.
+  (condition-case nil
+      (if touch-screen-precision-scroll
+          (if (> dy 0)
+              (pixel-scroll-precision-scroll-down-page dy)
+            (pixel-scroll-precision-scroll-up-page (- dy)))
+        ;; Start conventional scrolling.  First, determine the
+        ;; direction in which the scrolling is taking place.  Load the
+        ;; accumulator value.
+        (let ((accumulator (or (nth 5 touch-screen-current-tool) 0))
+              (window (cadr touch-screen-current-tool))
+              (lines-vscrolled (or (nth 7 touch-screen-current-tool) 0)))
+          (setq accumulator (+ accumulator dy)) ; Add dy.
+          ;; Figure out how much it has scrolled and how much remains
+          ;; on the top or bottom of the window.
+          (while (catch 'again
+                   (let* ((line-height (window-default-line-height window)))
+                     (if (and (< accumulator 0)
+                              (>= (- accumulator) line-height))
+                         (progn
+                           (setq accumulator (+ accumulator line-height))
+                           (scroll-down 1)
+                           (setq lines-vscrolled (1+ lines-vscrolled))
+                           (when (not (zerop accumulator))
+                             ;; If there is still an outstanding
+                             ;; amount to scroll, do this again.
+                             (throw 'again t)))
+                       (when (and (> accumulator 0)
+                                  (>= accumulator line-height))
+                         (setq accumulator (- accumulator line-height))
+                         (scroll-up 1)
+                         (setq lines-vscrolled (1+ lines-vscrolled))
+                         (when (not (zerop accumulator))
+                           ;; If there is still an outstanding amount
+                           ;; to scroll, do this again.
+                           (throw 'again t)))))
+                   ;; Scrolling is done.  Move the accumulator back to
+                   ;; touch-screen-current-tool and break out of the
+                   ;; loop.
+                   (setcar (nthcdr 5 touch-screen-current-tool) accumulator)
+                   (setcar (nthcdr 7 touch-screen-current-tool)
+                           lines-vscrolled)
+                   nil))))
+    (beginning-of-buffer
+     (message (error-message-string '(beginning-of-buffer))))
+    (end-of-buffer
+     (message (error-message-string '(end-of-buffer)))))
 
   ;; Perform horizontal scrolling by DX, as this does not signal at
   ;; the beginning of the buffer.

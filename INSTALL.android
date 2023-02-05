@@ -171,6 +171,13 @@ work, along with what has to be patched to make them work:
   sqlite3	- https://android.googlesource.com/platform/external/sqlite/
      (You must apply the patch at the end of this file, and add the `dist'
       directory to ``--with-ndk-path''.)
+  libselinux	- https://android.googlesource.com/platform/external/libselinux
+     (You must apply the patches at the end of the file, and obtain
+      the following three dependencies.)
+  libpackagelistparser
+    https://android.googlesource.com/platform/system/core/+/refs/heads/nougat-mr1-dev/libpackagelistparser/
+  libpcre	- https://android.googlesource.com/platform/external/pcre
+  libcrypto	- https://android.googlesource.com/platform/external/boringssl
 
 Many of these dependencies have been migrated over to the
 ``Android.bp'' build system now used to build Android itself.
@@ -663,3 +670,66 @@ index c7bcb0f5..d4da1704 100644
  else
    NEON := c
  endif
+
+PATCHES FOR SELINUX
+
+diff --git a/Android.mk b/Android.mk
+index 659232e..1e64fd6 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -116,3 +116,7 @@ LOCAL_STATIC_LIBRARIES := libselinux
+ LOCAL_WHOLE_STATIC_LIBRARIES := libpcre
+ LOCAL_C_INCLUDES := external/pcre
+ include $(BUILD_HOST_EXECUTABLE)
++
++$(call import-module,libpcre)
++$(call import-module,libpackagelistparser)
++$(call import-module,libcrypto)
+
+diff --git a/src/android.c b/src/android.c
+index 5206a9f..b351ffc 100644
+--- a/src/android.c
++++ b/src/android.c
+@@ -21,8 +21,7 @@
+ #include <selinux/label.h>
+ #include <selinux/avc.h>
+ #include <openssl/sha.h>
+-#include <private/android_filesystem_config.h>
+-#include <log/log.h>
++#include <android/log.h>
+ #include "policy.h"
+ #include "callbacks.h"
+ #include "selinux_internal.h"
+@@ -686,6 +685,7 @@ static int seapp_context_lookup(enum seapp_kind kind,
+ 		seinfo = parsedseinfo;
+ 	}
+ 
++#if 0
+ 	userid = uid / AID_USER;
+ 	isOwner = (userid == 0);
+ 	appid = uid % AID_USER;
+@@ -702,9 +702,13 @@ static int seapp_context_lookup(enum seapp_kind kind,
+ 		username = "_app";
+ 		appid -= AID_APP;
+ 	} else {
++#endif
+ 		username = "_isolated";
++		appid = 0;
++#if 0
+ 		appid -= AID_ISOLATED_START;
+ 	}
++#endif
+ 
+ 	if (appid >= CAT_MAPPING_MAX_ID || userid >= CAT_MAPPING_MAX_ID)
+ 		goto err;
+@@ -1662,8 +1666,10 @@ int selinux_log_callback(int type, const char *fmt, ...)
+ 
+     va_start(ap, fmt);
+     if (vasprintf(&strp, fmt, ap) != -1) {
++#if 0
+         LOG_PRI(priority, "SELinux", "%s", strp);
+         LOG_EVENT_STRING(AUDITD_LOG_TAG, strp);
++#endif
+         free(strp);
+     }
+     va_end(ap);

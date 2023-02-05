@@ -106,6 +106,10 @@ public class EmacsView extends ViewGroup
   /* Whether or not this view is attached to a window.  */
   public boolean isAttachedToWindow;
 
+  /* Whether or not this view should have the on screen keyboard
+     displayed whenever possible.  */
+  public boolean isCurrentlyTextEditor;
+
   public
   EmacsView (EmacsWindow window)
   {
@@ -597,6 +601,7 @@ public class EmacsView extends ViewGroup
     /* Specifying no flags at all tells the system the user asked for
        the input method to be displayed.  */
     imManager.showSoftInput (this, 0);
+    isCurrentlyTextEditor = true;
   }
 
   public void
@@ -604,6 +609,7 @@ public class EmacsView extends ViewGroup
   {
     imManager.hideSoftInputFromWindow (this.getWindowToken (),
 				       0);
+    isCurrentlyTextEditor = false;
   }
 
   public void
@@ -635,5 +641,14 @@ public class EmacsView extends ViewGroup
     /* But don't return an InputConnection, in order to force the on
        screen keyboard to work correctly.  */
     return null;
+  }
+
+  @Override
+  public boolean
+  onCheckIsTextEditor ()
+  {
+    /* If value is true, then the system will display the on screen
+       keyboard.  */
+    return isCurrentlyTextEditor;
   }
 };

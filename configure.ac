@@ -1063,6 +1063,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-sqlite3=$with_sqlite3"
   passthrough="$passthrough --with-gnutls=$with_gnutls"
   passthrough="$passthrough --with-tiff=$with_tiff"
+  passthrough="$passthrough --with-selinux=$with_selinux"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1134,6 +1135,7 @@ if test "$ANDROID" = "yes"; then
     with_sqlite3=no
     with_gnutls=no
     with_tiff=no
+    with_selinux=no
   fi
 
   with_rsvg=no
@@ -1148,7 +1150,6 @@ if test "$ANDROID" = "yes"; then
   with_gpm=no
   with_dbus=no
   with_gsettings=no
-  with_selinux=no
   with_modules=no
   with_threads=no
 
@@ -3709,19 +3710,29 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 AC_SUBST([USE_STARTUP_NOTIFICATION])
 
-dnl SELinux is available for GNU/Linux only.
+dnl SELinux is available for Linux kernel based systems only.
+dnl These include GNU/Linux and Android.
 HAVE_LIBSELINUX=no
 LIBSELINUX_LIBS=
+LIBSELINUX_CFLAGS=
 if test "${with_selinux}" = "yes"; then
-   AC_CHECK_LIB([selinux], [lgetfilecon],
-     [HAVE_LIBSELINUX=yes],
-     [HAVE_LIBSELINUX=no])
+   if test "$REALLY_ANDROID" = "yes"; then
+     ndk_SEARCH_MODULE([libselinux], [LIBSELINUX],
+       [HAVE_LIBSELINUX=yes])
+   else
+     AC_CHECK_LIB([selinux], [lgetfilecon],
+       [HAVE_LIBSELINUX=yes],
+       [HAVE_LIBSELINUX=no])
+   fi
    if test "$HAVE_LIBSELINUX" = yes; then
       AC_DEFINE([HAVE_LIBSELINUX], [1], [Define to 1 if using SELinux.])
-      LIBSELINUX_LIBS=-lselinux
+      if test "$REALLY_ANDROID" != "yes"; then
+        LIBSELINUX_LIBS=-lselinux
+      fi
    fi
 fi
 AC_SUBST([LIBSELINUX_LIBS])
+AC_SUBST([LIBSELINUX_CFLAGS])
 
 HAVE_GNUTLS=no
 if test "${with_gnutls}" != "no" ; then

@@ -90,6 +90,8 @@ ndk_replace_pkg_config_package () {
   done
 }
 
+# ndk_parse_pkg_config_string PKG_CONFIG_STRING
+# ---------------------------------------------
 # Parse a pkg-config style list of modules.  Place the resulting list
 # in ndk_modules.
 
@@ -109,8 +111,10 @@ ndk_parse_pkg_config_string () {
   done
 }
 
-# Resolve $1, a single import.  Prepend its makefile to ndk_MAKEFILES
-# if found.  Also, prepend all includes to the variable
+# ndk_resolve_import_module MODULE
+# --------------------------------
+# Resolve MODULE, a single import.  Prepend its makefile to
+# ndk_MAKEFILES if found.  Also, prepend all includes to the variable
 # ndk_import_includes.
 
 ndk_resolve_import_module () {

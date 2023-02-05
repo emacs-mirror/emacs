@@ -51,7 +51,14 @@ $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
 
 else
 ifneq (x$(suffix $(1)),x.asm)
+ifeq (x$(suffix $(1)),x.cc)
+
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
+
+else
 $$(error Unsupported suffix: $(suffix $(1)))
+endif
 else
 ifneq (x$(LOCAL_ASM_RULE_DEFINED),x)
 # Call this function to define a rule that will generate $(1) from
@@ -82,7 +89,7 @@ endef
 # $(LOCAL_PATH).
 NDK_CFLAGS_$(LOCAL_MODULE)	 := $(addprefix -I,$(LOCAL_C_INCLUDES))
 NDK_CFLAGS_$(LOCAL_MODULE)	 += -fPIC -iquote $(LOCAL_PATH) $(LOCAL_EXPORT_CFLAGS) $(LOCAL_CFLAGS) $(LOCAL_CFLAGS_$(NDK_BUILD_ARCH))
-NDK_ASFLAGS_$(LOCAL_MODULE) := $(LOCAL_ASFLAGS) $(LOCAL_ASFLAGS_$(NDK_BUILD_ARCH))
+NDK_ASFLAGS_$(LOCAL_MODULE) := $(LOCAL_ASFLAGS) $(LOCAL_ASFLAGS_$(NDK_BUILD_ARCH)) $(and $(findstring clang,$(NDK_BUILD_CC)),$(LOCAL_CLANG_ASFLAGS_$(NDK_BUILD_ARCH)))
 NDK_LDFLAGS_$(LOCAL_MODULE) := $(LOCAL_LDLIBS) $(LOCAL_LDFLAGS)
 NDK_CXXFLAGS_$(LOCAL_MODULE) := $(LOCAL_CPPFLAGS) $(LOCAL_RTTI_FLAG)
 
