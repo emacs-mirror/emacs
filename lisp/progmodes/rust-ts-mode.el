@@ -206,10 +206,7 @@
 
    :language 'rust
    :feature 'type
-   `((call_expression
-      function: (scoped_identifier
-                 path: (identifier) @font-lock-type-face))
-     (enum_variant name: (identifier) @font-lock-type-face)
+   `((enum_variant name: (identifier) @font-lock-type-face)
      (match_arm
       pattern: (match_pattern (_ type: (identifier) @font-lock-type-face)))
      (match_arm
