@@ -161,8 +161,9 @@ use `show-paren-local-mode'."
 ;;;###autoload
 (define-minor-mode show-paren-local-mode
   "Toggle `show-paren-mode' only in this buffer."
-  :variable ( show-paren-mode .
-              (lambda (val) (setq-local show-paren-mode val)))
+  :variable ((show-paren--enabled-p)
+             .
+             (lambda (val) (setq-local show-paren-mode val)))
   (cond
    ((eq show-paren-mode (default-value 'show-paren-mode))
     (unless show-paren-mode
@@ -428,14 +429,17 @@ It is the default value of `show-paren-data-function'."
 ;; `show-paren-delay'.
 (defvar-local show-paren--last-pos nil)
 
+(defun show-paren--enabled-p ()
+  (and show-paren-mode
+       ;; If we're using `show-paren-local-mode', then
+       ;; always heed the value.
+       (or (local-variable-p 'show-paren-mode)
+           ;; If not, check that the predicate matches.
+           (buffer-match-p show-paren-predicate (current-buffer)))))
+
 (defun show-paren-function ()
   "Highlight the parentheses until the next input arrives."
-  (let ((data (and show-paren-mode
-                   ;; If we're using `show-paren-local-mode', then
-                   ;; always heed the value.
-                   (or (local-variable-p 'show-paren-mode)
-                       ;; If not, check that the predicate matches.
-                       (buffer-match-p show-paren-predicate (current-buffer)))
+  (let ((data (and (show-paren--enabled-p)
                    (funcall show-paren-data-function))))
     (if (not data)
         (progn
