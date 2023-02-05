@@ -122,7 +122,8 @@ On non-graphical frames, the context is shown in the echo area."
   "Whether to use `show-paren-mode' in a buffer.
 The default is to enable the mode in all buffers that don't
 derive from `special-mode', which means that it's on (by default)
-in all editing buffers."
+in all editing buffers.
+The predicate is passed as argument to `buffer-match-p', which see."
   :type 'buffer-predicate
   :safe #'booleanp
   :version "29.1")
