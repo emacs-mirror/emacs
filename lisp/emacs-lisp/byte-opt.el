@@ -2145,7 +2145,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      (setq keep-going t)
               (setcdr prev (cdr rest))          ; remove dup
               (setcdr (cdr rest) (cdddr rest))  ; remove discard
-              (setq prev (cdr rest))  ; FIXME: temporary compat hack
               (cond ((not (eq (car lap1) 'byte-stack-set))
 	             (byte-compile-log-lap "  %s %s %s\t-->\t%s"
                                            lap0 lap1 lap2 lap1))
@@ -2218,9 +2217,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		     (byte-compile-log-lap "  %s %s\t-->\t%s %s"
                                            lap0 lap1
                                            lap0 (cons 'byte-goto (cdr lap1)))
-		     (setcar lap1 'byte-goto)
-                     (setq prev (cdr prev))  ; FIXME: temporary compat hack
-                     ))
+		     (setcar lap1 'byte-goto)))
               (setq keep-going t))
 	     ;;
 	     ;; varref-X varref-X  -->  varref-X dup
@@ -2321,7 +2318,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		         lap0 i (if (= i 1) "" "s")
 		         tagstr lap0 tagstr))))
 	        (setcdr rest tmp)
-                (setq prev rest)              ; FIXME: temporary compat hack
 	        (setq keep-going t)))
 	     ;;
 	     ;; <safe-op> unbind --> unbind <safe-op>
@@ -2378,7 +2374,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	                (when (eq (car tmp) 'byte-return)
 	                  (setcar lap0 'byte-return))
 	                (setcdr lap0 (cdr tmp))
-                        (setq prev (cdr prev))  ; FIXME: temporary compat hack
 	                (setq keep-going t)
                         t)))))
 
@@ -2447,7 +2442,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 				                (car lap0) tmp2 (nth 1 tmp3))
 	                  (setcar lap0 (nth 1 tmp3))
 	                  (setcdr lap0 (nth 1 tmp)))
-                        (setq prev (cdr prev))  ; FIXME: temporary compat hack
 	                (setq keep-going t)
                         t)))))
 	     ;;
@@ -2588,9 +2582,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                                   (+ (cdr lap0) (cdr lap1)))))
                 (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 new-op)
                 (setcar rest new-op)
-                (setcdr rest (cddr rest))
-                (setq prev rest)            ; FIXME: temporary compat hack
-                ))
+                (setcdr rest (cddr rest))))
 
 	     ;;
 	     ;; stack-set-M [discard/discardN ...]  -->  discardN-preserve-tos
@@ -2627,7 +2619,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	                (setcdr (cdr rest) tmp)
 	                (byte-compile-log-lap
                          "  %s [discard/discardN]...\t-->\t%s" lap0 lap1)
-                        ;; FIXME: shouldn't we do (setq keep-going t) here?
+                        (setq keep-going t)
                         t
                         )))))
 
@@ -2694,9 +2686,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	        (byte-compile-log-lap
 	         "  %s %s\t-->\t%s %s" lap0 lap1 newdiscard lap0)
 	        (setf (car rest) newdiscard)
-	        (setf (cadr rest) lap0))
-              (setq prev (cdr prev))        ; FIXME: temporary compat hack
-              )
+	        (setf (cadr rest) lap0)))
              (t
               ;; If no rule matched, advance and try again.
               (setq prev (cdr prev))))))))
