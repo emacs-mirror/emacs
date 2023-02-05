@@ -69,6 +69,7 @@
 
 (defvar rust-ts-mode--indent-rules
   `((rust
+     ((parent-is "source_file") point-min 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is "}") (and parent parent-bol) 0)
