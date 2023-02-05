@@ -555,7 +555,30 @@ omitted, default END to BEG."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
-(defvar treesit-font-lock-settings)
+(defvar-local treesit-font-lock-settings nil
+  "A list of SETTINGs for treesit-based fontification.
+
+The exact format of each SETTING is considered internal.  Use
+`treesit-font-lock-rules' to set this variable.
+
+Each SETTING has the form:
+
+    (QUERY ENABLE FEATURE OVERRIDE)
+
+QUERY must be a compiled query.  See Info node `(elisp)Pattern
+Matching' for how to write a query and compile it.
+
+For SETTING to be activated for font-lock, ENABLE must be t.  To
+disable this SETTING, set ENABLE to nil.
+
+FEATURE is the \"feature name\" of the query.  Users can control
+which features are enabled with `treesit-font-lock-level' and
+`treesit-font-lock-feature-list'.
+
+OVERRIDE is the override flag for this query.  Its value can be
+t, nil, append, prepend, keep.  See more in
+`treesit-font-lock-rules'.")
+
 (defun treesit--font-lock-level-setter (sym val)
   "Custom setter for `treesit-font-lock-level'.
 Set the default value of SYM to VAL, recompute fontification
@@ -637,30 +660,6 @@ See the manual for more explanations on some of the features.
 
 For changes to this variable to take effect, run
 `treesit-font-lock-recompute-features'.")
-
-(defvar-local treesit-font-lock-settings nil
-  "A list of SETTINGs for treesit-based fontification.
-
-The exact format of each SETTING is considered internal.  Use
-`treesit-font-lock-rules' to set this variable.
-
-Each SETTING has the form:
-
-    (QUERY ENABLE FEATURE OVERRIDE)
-
-QUERY must be a compiled query.  See Info node `(elisp)Pattern
-Matching' for how to write a query and compile it.
-
-For SETTING to be activated for font-lock, ENABLE must be t.  To
-disable this SETTING, set ENABLE to nil.
-
-FEATURE is the \"feature name\" of the query.  Users can control
-which features are enabled with `treesit-font-lock-level' and
-`treesit-font-lock-feature-list'.
-
-OVERRIDE is the override flag for this query.  Its value can be
-t, nil, append, prepend, keep.  See more in
-`treesit-font-lock-rules'.")
 
 (defun treesit-font-lock-rules (&rest query-specs)
   "Return a value suitable for `treesit-font-lock-settings'.
