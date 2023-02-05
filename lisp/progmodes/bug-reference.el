@@ -599,12 +599,7 @@ and set it if applicable."
      (erc-format-target)
      (erc-network-name))))
 
-(defvar bug-reference-auto-setup-functions
-  (list #'bug-reference-try-setup-from-vc
-        #'bug-reference-try-setup-from-gnus
-        #'bug-reference-try-setup-from-rmail
-        #'bug-reference-try-setup-from-rcirc
-        #'bug-reference-try-setup-from-erc)
+(defvar bug-reference-auto-setup-functions nil
   "Functions trying to auto-setup `bug-reference-mode'.
 These functions are run after `bug-reference-mode' has been
 activated in a buffer and try to guess suitable values for
@@ -617,6 +612,21 @@ guesswork is based on these variables:
   mail group names or mail header values.
 - `bug-reference-setup-from-irc-alist' for guessing based on IRC
   channel or network names.")
+
+;; Add the default auto-setup functions.  We don't have them as
+;; init value of bug-reference-auto-setup-functions because then
+;; they wouldn't be added if some package uses
+;;
+;;   (add-hook 'bug-reference-auto-setup-functions
+;;             #'my-pkg--bug-reference-try-setup-from-my-pkg)
+;;
+;; before bug-reference.el is loaded.
+(dolist (fn (list #'bug-reference-try-setup-from-vc
+                  #'bug-reference-try-setup-from-gnus
+                  #'bug-reference-try-setup-from-rmail
+                  #'bug-reference-try-setup-from-rcirc
+                  #'bug-reference-try-setup-from-erc))
+  (add-hook 'bug-reference-auto-setup-functions fn))
 
 (defun bug-reference--run-auto-setup ()
   (when (or bug-reference-mode
