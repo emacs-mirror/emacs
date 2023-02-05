@@ -66,6 +66,7 @@
 
 (defvar go-ts-mode--indent-rules
   `((go
+     ((parent-is "source_file") point-min 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is "}") parent-bol 0)
