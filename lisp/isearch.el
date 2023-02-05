@@ -2773,7 +2773,7 @@ With argument, add COUNT copies of the character."
 	       isearch-new-message (concat isearch-message
 					   (mapconcat 'isearch-text-char-description
 						      string ""))))))))
-
+(autoload 'emoji--read-emoji "emoji")
 (defun isearch-emoji-by-name (&optional count)
   "Read an Emoji name and add it to the search string COUNT times.
 COUNT (interactively, the prefix argument) defaults to 1.
