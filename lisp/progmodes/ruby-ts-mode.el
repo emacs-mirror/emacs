@@ -1059,7 +1059,8 @@ leading double colon is not added."
          (put-text-property (treesit-node-end node) (1+ (treesit-node-end node))
                             'syntax-table (string-to-syntax "\"")))
         ('percent
-         ;; TODO: Put the first one on the first paren in both %Q{} and %().
+         ;; FIXME: Put the first one on the first paren in both %Q{} and %().
+         ;; That would stop electric-pair-mode from pairing, though.  Hmm.
          (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
                             'syntax-table (string-to-syntax "|"))
          (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
