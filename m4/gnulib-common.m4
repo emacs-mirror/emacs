@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # gnulib-common.m4 serial 78
+=======
+# gnulib-common.m4 serial 80
+>>>>>>> origin/master
 dnl Copyright (C) 2007-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -351,9 +355,21 @@ AC_DEFUN([gl_COMMON_BODY], [
    in C++ also: class.  */
 /* In C++ and C23, this is spelled [[__maybe_unused__]].
    GCC's syntax is __attribute__ ((__unused__)).
+<<<<<<< HEAD
    clang supports both syntaxes.  */
 #ifndef _GL_ATTRIBUTE_MAYBE_UNUSED
 # ifdef __has_c_attribute
+=======
+   clang supports both syntaxes.  Except that with clang ≥ 6, < 10, in C++ mode,
+   __has_c_attribute (__maybe_unused__) yields true but the use of
+   [[__maybe_unused__]] nevertheless produces a warning.  */
+#ifndef _GL_ATTRIBUTE_MAYBE_UNUSED
+# if defined __clang__ && defined __cplusplus
+#  if __clang_major__ >= 10
+#   define _GL_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
+#  endif
+# elif defined __has_c_attribute
+>>>>>>> origin/master
 #  if __has_c_attribute (__maybe_unused__)
 #   define _GL_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
 #  endif
@@ -373,7 +389,20 @@ AC_DEFUN([gl_COMMON_BODY], [
    the return value, unless the caller uses something like ignore_value.  */
 /* Applies to: function, enumeration, class.  */
 #ifndef _GL_ATTRIBUTE_NODISCARD
+<<<<<<< HEAD
 # ifdef __has_c_attribute
+=======
+# if defined __clang__ && defined __cplusplus
+  /* With clang up to 15.0.6 (at least), in C++ mode, [[__nodiscard__]] produces
+     a warning.
+     The 1000 below means a yet unknown threshold.  When clang++ version X
+     starts supporting [[__nodiscard__]] without warning about it, you can
+     replace the 1000 with X.  */
+#  if __clang_major__ >= 1000
+#   define _GL_ATTRIBUTE_NODISCARD [[__nodiscard__]]
+#  endif
+# elif defined __has_c_attribute
+>>>>>>> origin/master
 #  if __has_c_attribute (__nodiscard__)
 #   define _GL_ATTRIBUTE_NODISCARD [[__nodiscard__]]
 #  endif

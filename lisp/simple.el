@@ -2738,7 +2738,8 @@ instead."
   nil)
 
 (cl-defmethod oclosure-interactive-form ((f cconv--interactive-helper))
-  `(interactive (funcall ',(cconv--interactive-helper--if f))))
+  (let ((if (cconv--interactive-helper--if f)))
+    `(interactive ,(if (functionp if) `(funcall ',if) if))))
 
 (defun command-execute (cmd &optional record-flag keys special)
   ;; BEWARE: Called directly from the C code.

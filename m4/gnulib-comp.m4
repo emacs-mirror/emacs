@@ -188,7 +188,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module ssize_t:
   # Code from module stat-time:
   # Code from module std-gnu11:
-  # Code from module stdalign:
   # Code from module stdbool:
   # Code from module stdckdint:
   # Code from module stddef:
@@ -564,9 +563,6 @@ AC_DEFUN([gl_INIT],
   gt_TYPE_SSIZE_T
   gl_STAT_TIME
   gl_STAT_BIRTHTIME
-  gl_STDALIGN_H
-  gl_CONDITIONAL_HEADER([stdalign.h])
-  AC_PROG_MKDIR_P
   gl_C_BOOL
   AC_CHECK_HEADERS_ONCE([stdckdint.h])
   if test $ac_cv_header_stdckdint_h = yes; then
@@ -1127,9 +1123,12 @@ AC_DEFUN([gl_INIT],
   if test $HAVE_FUTIMENS = 0 || test $REPLACE_FUTIMENS = 1; then
     func_gl_gnulib_m4code_utimens
   fi
+<<<<<<< HEAD
   if test $REPLACE_GETLINE = 1; then
     func_gl_gnulib_m4code_getdelim
   fi
+=======
+>>>>>>> origin/master
   if case $host_os in mingw*) false;; *) test $HAVE_GETLOADAVG = 0 || test $REPLACE_GETLOADAVG = 1;; esac; then
     func_gl_gnulib_m4code_open
   fi
@@ -1582,7 +1581,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/size_max.h
   lib/stat-time.c
   lib/stat-time.h
-  lib/stdalign.in.h
   lib/stdckdint.in.h
   lib/stddef.in.h
   lib/stdint.in.h
