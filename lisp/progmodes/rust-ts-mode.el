@@ -235,6 +235,11 @@
      (use_list (identifier) @font-lock-type-face))
 
    :language 'rust
+   :feature 'property
+   '((field_identifier) @font-lock-property-face
+     (shorthand_field_initializer (identifier) @font-lock-property-face))
+
+   :language 'rust
    :feature 'variable
    '((identifier) @font-lock-variable-name-face
      ;; Everything in a token_tree is an identifier.
@@ -244,12 +249,6 @@
    :feature 'escape-sequence
    :override t
    '((escape_sequence) @font-lock-escape-face)
-
-   :language 'rust
-   :feature 'property
-   :override t
-   '((field_identifier) @font-lock-property-face
-     (shorthand_field_initializer (identifier) @font-lock-property-face))
 
    :language 'rust
    :feature 'error
