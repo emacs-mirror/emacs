@@ -685,7 +685,7 @@ We prefer the earliest unique letter."
         (cons glyph (gethash glyph emoji--derived))))))
 
 (defun emoji--choose-emoji ()
-  (pcase-let ((`(,glyph ,derived) (emoji--read-emoji)))
+  (pcase-let ((`(,glyph . ,derived) (emoji--read-emoji)))
     (if (not derived)
         ;; Simple glyph with no derivations.
         (progn
