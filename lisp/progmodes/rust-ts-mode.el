@@ -161,9 +161,7 @@
      (macro_definition "macro_rules!" @font-lock-constant-face)
      (macro_definition (identifier) @font-lock-preprocessor-face)
      (field_declaration name: (field_identifier) @font-lock-property-face)
-     (parameter pattern: (identifier) @font-lock-variable-name-face)
-     (parameter
-      pattern: (reference_pattern (identifier) @font-lock-variable-name-face)))
+     (parameter) @rust-ts-mode--fontify-parameter)
 
    :language 'rust
    :feature 'function
@@ -255,6 +253,18 @@
    :override t
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `rust-ts-mode'.")
+
+(defalias 'rust-ts-mode--fontify-parameter
+  (and
+   (treesit-available-p)
+   `(lambda (node override start end &rest _)
+      (let ((captures (treesit-query-capture
+                       (treesit-node-child-by-field-name node "pattern")
+                       ,(treesit-query-compile 'rust '((identifier) @id)))))
+        (pcase-dolist (`(_name . ,id) captures)
+          (treesit-fontify-with-override
+           (treesit-node-start id) (treesit-node-end id)
+           'font-lock-variable-name-face override start end))))))
 
 (defun rust-ts-mode--defun-name (node)
   "Return the defun name of NODE.
