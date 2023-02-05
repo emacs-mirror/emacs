@@ -488,7 +488,7 @@ places where they originally did not directly appear."
             (_ (pcase cif
                  ('nil nil)
                  (`#',f
-                  (setf (cadr (car bf)) (if wrapped (nth 2 f) f))
+                  (setf (cadr (car bf)) (if wrapped (nth 2 f) cif))
                   (setq cif nil))
                  ;; The interactive form needs special treatment, so the form
                  ;; inside the `interactive' won't be used any further.
