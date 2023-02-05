@@ -2884,7 +2884,17 @@ function signals an error."
           ;; Copy out.
           (unless (file-exists-p out-dir)
             (make-directory out-dir t))
-          (copy-file lib-name (file-name-as-directory out-dir) t t)
+          (let* ((library-fname (expand-file-name lib-name out-dir))
+                 (old-fname (concat library-fname ".old")))
+            ;; Rename the existing shared library, if any, then
+            ;; install the new one, and try deleting the old one.
+            ;; This is for Windows systems, where we cannot simply
+            ;; overwrite a DLL that is being used.
+            (if (file-exists-p library-fname)
+                (rename-file library-fname old-fname t))
+            (copy-file lib-name (file-name-as-directory out-dir) t t)
+            ;; Ignore errors, in case the old version is still used.
+            (ignore-errors (delete-file old-fname)))
           (message "Library installed to %s/%s" out-dir lib-name))
       (when (file-exists-p workdir)
         (delete-directory workdir t)))))
