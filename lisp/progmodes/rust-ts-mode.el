@@ -162,7 +162,11 @@
      (macro_definition "macro_rules!" @font-lock-constant-face)
      (macro_definition (identifier) @font-lock-preprocessor-face)
      (field_declaration name: (field_identifier) @font-lock-property-face)
-     (parameter) @rust-ts-mode--fontify-parameter)
+     (parameter) @rust-ts-mode--fontify-pattern
+     (let_declaration) @rust-ts-mode--fontify-pattern
+     (for_expression) @rust-ts-mode--fontify-pattern
+     (let_condition) @rust-ts-mode--fontify-pattern
+     (match_arm) @rust-ts-mode--fontify-pattern)
 
    :language 'rust
    :feature 'function
@@ -227,7 +231,7 @@
               (scoped_identifier
                name: (identifier) @font-lock-type-face)])
       (:match "^[A-Z]" @font-lock-type-face))
-     (scoped_type_identifier path: (identifier) @font-lock-constant-face)
+     (scoped_type_identifier path: (identifier) @font-lock-type-face)
      (type_identifier) @font-lock-type-face
      (use_as_clause alias: (identifier) @font-lock-type-face)
      (use_list (identifier) @font-lock-type-face))
@@ -255,17 +259,21 @@
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `rust-ts-mode'.")
 
-(defalias 'rust-ts-mode--fontify-parameter
+(defalias 'rust-ts-mode--fontify-pattern
   (and
    (treesit-available-p)
    `(lambda (node override start end &rest _)
       (let ((captures (treesit-query-capture
                        (treesit-node-child-by-field-name node "pattern")
-                       ,(treesit-query-compile 'rust '((identifier) @id)))))
+                       ,(treesit-query-compile 'rust '((identifier) @id
+                                                       (shorthand_field_identifier) @id)))))
         (pcase-dolist (`(_name . ,id) captures)
-          (treesit-fontify-with-override
-           (treesit-node-start id) (treesit-node-end id)
-           'font-lock-variable-name-face override start end))))))
+          (unless (string-match-p "\\`scoped_\\(?:type_\\)?identifier\\'"
+                                  (treesit-node-type
+                                   (treesit-node-parent id)))
+            (treesit-fontify-with-override
+             (treesit-node-start id) (treesit-node-end id)
+             'font-lock-variable-name-face override start end)))))))
 
 (defun rust-ts-mode--defun-name (node)
   "Return the defun name of NODE.
