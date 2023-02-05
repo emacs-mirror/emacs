@@ -2368,9 +2368,11 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		          (eq (car tmp) 'byte-goto))
                       (not (eq (cdr tmp) (cdr lap0)))
                       (progn
-                        ;; FIXME: inaccurate log message when lap0 = goto-if-*
 	                (byte-compile-log-lap "  %s [%s]\t-->\t%s"
-                                              (car lap0) tmp tmp)
+                                              (car lap0) tmp
+                                              (if (eq (car tmp) 'byte-return)
+                                                  tmp
+                                                (cons (car lap0) (cdr tmp))))
 	                (when (eq (car tmp) 'byte-return)
 	                  (setcar lap0 'byte-return))
 	                (setcdr lap0 (cdr tmp))
