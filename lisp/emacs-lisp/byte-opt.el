@@ -1955,8 +1955,8 @@ See Info node `(elisp) Integer Basics'."
     byte-goto-if-not-nil-else-pop))
 
 (defconst byte-after-unbind-ops
-  ;; FIXME: add discardN, discardN-preserve-tos
    '(byte-constant byte-dup byte-stack-ref byte-stack-set byte-discard
+     byte-discardN byte-discardN-preserve-tos
      byte-symbolp byte-consp byte-stringp byte-listp byte-numberp byte-integerp
      byte-eq byte-not
      byte-cons byte-list1 byte-list2 byte-list3 byte-list4 byte-listN
