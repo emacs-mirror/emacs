@@ -1914,6 +1914,11 @@ properties.  Every symbol possesses a list of properties, used to
 record miscellaneous information about the symbol; these properties
 are stored in the form of a property list.  @xref{Symbol Properties}.
 
+@defun plistp object
+This predicate function returns non-@code{nil} if @var{object} is a
+valid property list.
+@end defun
+
 @menu
 * Plists and Alists::           Comparison of the advantages of property
                                   lists and association lists.
