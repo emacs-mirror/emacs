@@ -5915,19 +5915,21 @@ comment at the start of cc-engine.el for more info."
 	(cond
 	 ((> pos start)			; Nothing but literals
 	  base)
-	 ((> base (point-min))
+	 ((and
+	   (> base (point-min))
+	   (> (- base try-size) (point-min))) ; prevent infinite recursion.
 	  (c-determine-limit how-far-back base (* 2 try-size) org-start))
 	 (t base)))
        ((>= count how-far-back)
 	(c-determine-limit-no-macro
-	(+ (car elt) (- count how-far-back))
-	org-start))
+	 (+ (car elt) (- count how-far-back))
+	 org-start))
        ((eq base (point-min))
 	(point-min))
        ((> base (- start try-size)) ; Can only happen if we hit point-min.
 	(c-determine-limit-no-macro
-	(car elt)
-	org-start))
+	 (car elt)
+	 org-start))
        (t
 	(c-determine-limit (- how-far-back count) base (* 2 try-size)
 			   org-start))))))
