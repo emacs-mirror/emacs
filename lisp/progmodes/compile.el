@@ -653,19 +653,31 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
     ;; Typescript compilation prior to tsc version 2.7, "plain" format:
     ;; greeter.ts(30,12): error TS2339: Property 'foo' does not exist.
     (typescript-tsc-plain
-     ,(concat
-      "^[[:blank:]]*"
-      "\\([^(\r\n)]+\\)(\\([0-9]+\\),\\([0-9]+\\)):[[:blank:]]+"
-      "error [[:alnum:]]+: [^\r\n]+$")
+     ,(rx bol
+          (group (not (in " \t\n()"))   ; 1: file
+                 (* (not (in "\n()"))))
+          "("
+          (group (+ (in "0-9")))        ; 2: line
+          ","
+          (group (+ (in "0-9")))        ; 3: column
+          "): error "
+          (+ (in "0-9A-Z"))             ; error code
+          ": ")
      1 2 3 2)
 
     ;; Typescript compilation after tsc version 2.7, "pretty" format:
     ;; src/resources/document.ts:140:22 - error TS2362: something.
     (typescript-tsc-pretty
-     ,(concat
-       "^[[:blank:]]*"
-       "\\([^(\r\n)]+\\):\\([0-9]+\\):\\([0-9]+\\) - [[:blank:]]*"
-       "error [[:alnum:]]+: [^\r\n]+$")
+     ,(rx bol
+          (group (not (in " \t\n()"))   ; 1: file
+                 (* (not (in "\n()"))))
+          ":"
+          (group (+ (in "0-9")))        ; 2: line
+          ":"
+          (group (+ (in "0-9")))        ; 3: column
+          " - error "
+          (+ (in "0-9A-Z"))             ; error code
+          ": ")
      1 2 3 2)
     ))
   "Alist of values for `compilation-error-regexp-alist'.")
