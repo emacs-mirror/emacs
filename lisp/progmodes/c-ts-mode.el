@@ -470,7 +470,9 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'function
    '((call_expression
-      function: (identifier) @font-lock-function-name-face))
+      function:
+      [(identifier) @font-lock-function-name-face
+       (field_expression field: (field_identifier) @font-lock-function-name-face)]))
 
    :language mode
    :feature 'variable
