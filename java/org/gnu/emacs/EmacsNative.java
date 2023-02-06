@@ -159,6 +159,158 @@ public class EmacsNative
 
   static
   {
+    /* Older versions of Android cannot link correctly with shared
+       libraries that link with other shared libraries built along
+       Emacs unless all requisite shared libraries are explicitly
+       loaded from Java.
+
+       Every time you add a new shared library dependency to Emacs,
+       please add it here as well.  */
+
+    try
+      {
+	System.loadLibrary ("png_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("selinux_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("crypto_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("pcre_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("packagelistparser_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("gnutls_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("gmp_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("nettle_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("p11-kit_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("tasn1_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("hogweed_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("jansson_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("jpeg_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("tiff_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("xml2_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
+    try
+      {
+	System.loadLibrary ("icuuc_emacs");
+      }
+    catch (UnsatisfiedLinkError exception)
+      {
+	/* Ignore this exception.  */
+      }
+
     System.loadLibrary ("emacs");
   };
 };

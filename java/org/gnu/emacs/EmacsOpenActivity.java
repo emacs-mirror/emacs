@@ -125,6 +125,16 @@ public class EmacsOpenActivity extends Activity
     int rc;
     String what;
 
+    /* Because the ProcessBuilder functions necessary to redirect
+       process output are not implemented on Android 7 and earlier,
+       print a generic error message.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+      return ("This is likely because the Emacs server"
+	      + " is not running, or because you did"
+	      + " not grant Emacs permission to access"
+	      + " external storage.");
+
     cache = getCacheDir ();
     file = new File (cache, "emacsclient.log");
     what = "";
@@ -199,7 +209,8 @@ public class EmacsOpenActivity extends Activity
 
      Use TITLE as the title of the dialog.  If TEXT is non-NULL,
      display that text in the dialog.  Otherwise, use the contents of
-     emacsclient.log in the cache directory instead.  */
+     emacsclient.log in the cache directory instead, or describe why
+     that file cannot be read.  */
 
   public void
   finishFailure (final String title, final String text)
@@ -240,20 +251,26 @@ public class EmacsOpenActivity extends Activity
     EmacsClientThread thread;
     File file;
 
-    file = new File (getCacheDir (), "emacsclient.log");
-
     libDir = getLibraryDirectory ();
     builder = new ProcessBuilder (libDir + "/libemacsclient.so",
 				  fileName, "--reuse-frame",
 				  "--timeout=10", "--no-wait");
 
-    /* Redirect standard error to a file so that errors can be
-       meaningfully reported.  */
+    /* Redirection is unfortunately not possible in Android 7 and
+       earlier.  */
 
-    if (file.exists ())
-      file.delete ();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      {
+	file = new File (getCacheDir (), "emacsclient.log");
 
-    builder.redirectError (file);
+	/* Redirect standard error to a file so that errors can be
+	   meaningfully reported.  */
+
+	if (file.exists ())
+	  file.delete ();
+
+	builder.redirectError (file);
+      }
 
     /* Track process output in a new thread, since this is the UI
        thread and doing so here can cause deadlocks when EmacsService
