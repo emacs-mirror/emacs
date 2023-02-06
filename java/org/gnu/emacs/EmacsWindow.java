@@ -794,7 +794,10 @@ public class EmacsWindow extends EmacsHandleObject
 
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
-	/* Touch up event.  */
+      case MotionEvent.ACTION_CANCEL:
+	/* Touch up event.  Android documentation says ACTION_CANCEL
+	   should be treated as more or less equivalent to ACTION_UP,
+	   so that is what is done here.  */
 	EmacsNative.sendTouchUp (this.handle, (int) event.getX (index),
 				 (int) event.getY (index),
 				 event.getEventTime (), pointerID);

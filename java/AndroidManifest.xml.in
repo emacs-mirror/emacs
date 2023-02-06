@@ -72,7 +72,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	       android:extractNativeLibs="true">
 
     <activity android:name="org.gnu.emacs.EmacsActivity"
-	      android:launchMode="singleTop"
+	      android:launchMode="singleInstance"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
@@ -84,6 +84,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
     </activity>
 
     <activity android:name="org.gnu.emacs.EmacsOpenActivity"
+	      android:taskAffinity="open.dialog"
+	      android:excludeFromRecents="true"
 	      android:exported="true">
 
       <!-- Allow Emacs to open all kinds of files known to Android.  -->
@@ -137,6 +139,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	<data android:mimeType="image/t38"/>
 	<data android:mimeType="image/tiff"/>
 	<data android:mimeType="image/tiff-fx"/>
+	<data android:mimeType="image/xpm"/>
 	<data android:mimeType="text/*"/>
         <data android:mimeType="application/*xml"/>
         <data android:mimeType="application/atom+xml"/>
