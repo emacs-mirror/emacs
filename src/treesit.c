@@ -1475,6 +1475,15 @@ This symbol is the one used to create the parser.  */)
   return XTS_PARSER (parser)->language_symbol;
 }
 
+/* Return true if PARSER is not deleted and its buffer is live.  */
+static bool
+treesit_parser_live_p (Lisp_Object parser)
+{
+  CHECK_TS_PARSER (parser);
+  return ((!XTS_PARSER (parser)->deleted) &&
+	  (!NILP (Fbuffer_live_p (XTS_PARSER (parser)->buffer))));
+}
+
 /*** Parser API */
 
 DEFUN ("treesit-parser-root-node",
@@ -1908,7 +1917,8 @@ DEFUN ("treesit-node-check",
        Ftreesit_node_check, Streesit_node_check, 2, 2, 0,
        doc: /* Return non-nil if NODE has PROPERTY, nil otherwise.
 
-PROPERTY could be `named', `missing', `extra', `outdated', or `has-error'.
+PROPERTY could be `named', `missing', `extra', `outdated',
+`has-error', or `live'.
 
 Named nodes correspond to named rules in the language definition,
 whereas "anonymous" nodes correspond to string literals in the
@@ -1924,7 +1934,10 @@ A node is "outdated" if the parser has reparsed at least once after
 the node was created.
 
 A node "has error" if itself is a syntax error or contains any syntax
-errors.  */)
+errors.
+
+A node is "live" if its parser is not deleted and its buffer is
+live.  */)
   (Lisp_Object node, Lisp_Object property)
 {
   if (NILP (node)) return Qnil;
@@ -1947,9 +1960,11 @@ errors.  */)
     result = ts_node_is_extra (treesit_node);
   else if (EQ (property, Qhas_error))
     result = ts_node_has_error (treesit_node);
+  else if (EQ (property, Qlive))
+    result = treesit_parser_live_p (XTS_NODE (node)->parser);
   else
     signal_error ("Expecting `named', `missing', `extra', "
-		  "`outdated', or `has-error', but got",
+                  "`outdated', `has-error', or `live', but got",
 		  property);
   return result ? Qt : Qnil;
 }
@@ -3448,6 +3463,7 @@ syms_of_treesit (void)
   DEFSYM (Qextra, "extra");
   DEFSYM (Qoutdated, "outdated");
   DEFSYM (Qhas_error, "has-error");
+  DEFSYM (Qlive, "live");
 
   DEFSYM (QCanchor, ":anchor");
   DEFSYM (QCequal, ":equal");
