@@ -287,6 +287,12 @@ MODE is either `c' or `cpp'."
            ((node-is "compound_statement") point-min c-ts-common-statement-offset)
            ;; Bug#61291.
            ((match "expression_statement" nil "body") point-min c-ts-common-statement-offset)
+           ;; These rules are for cases where the body is bracketless.
+           ;; Tested by the "Bracketless Simple Statement" test.
+           ((parent-is "if_statement") point-min c-ts-common-statement-offset)
+           ((parent-is "for_statement") point-min c-ts-common-statement-offset)
+           ((parent-is "while_statement") point-min c-ts-common-statement-offset)
+           ((parent-is "do_statement") point-min c-ts-common-statement-offset)
 
            ,@(when (eq mode 'cpp)
                `(((node-is "field_initializer_list") parent-bol ,(* c-ts-mode-indent-offset 2)))))))

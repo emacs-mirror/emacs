@@ -155,6 +155,20 @@ for (int i = 0;
   ;
 =-=-=
 
+Name: Bracketless Simple Statement
+
+=-=
+for (int i = 0; i < 5; i++)
+  continue;
+
+while (true)
+  return 1;
+
+do
+  i++;
+while (true)
+=-=-=
+
 Name: Multiline Block Comments 1 (bug#60270)
 
 =-=
