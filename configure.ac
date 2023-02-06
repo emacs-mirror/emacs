@@ -169,8 +169,11 @@ AC_CANONICAL_BUILD
 if test "$XCONFIGURE" = "android"; then
   # Initialize the Android NDK build system.  Make sure to use the
   # passed through NDK path.
+  # Make sure to pass through the CFLAGS, as older versions of the
+  # NDK require them to be able to find system includes.
   with_ndk_path="$android_ndk_path"
-  ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build])
+  ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],\
+           [$ANDROID_CFLAGS])
 fi
 
 case $host in

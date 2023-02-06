@@ -27,13 +27,13 @@ define single-object-target
 ifeq (x$(suffix $(1)),x.c)
 
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
-	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(call LOCAL_C_ADDITIONAL_FLAGS,$(1))
+	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_BUILD_CFLAGS) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(call LOCAL_C_ADDITIONAL_FLAGS,$(1))
 
 else
 ifeq (x$(suffix $(1)),x.$(or $(LOCAL_CPP_EXTENSION),cpp))
 
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
-	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
+	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_BUILD_CFLAGS) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
 
 else
 ifneq ($(or $(call eq,x$(suffix $(1)),x.s),$(call eq,x$(suffix $(1)),x.S)),)
@@ -46,7 +46,7 @@ ifneq (x$(suffix $(1)),x.asm)
 ifeq (x$(suffix $(1)),x.cc)
 
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
-	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
+	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_BUILD_CFLAGS) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
 
 else
 $$(error Unsupported suffix: $(suffix $(1)))

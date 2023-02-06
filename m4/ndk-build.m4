@@ -25,10 +25,11 @@ AC_ARG_WITH([ndk_cxx_shared],
   [AS_HELP_STRING([--with-ndk-cxx-shared],
     [name of the C++ standard library included with the NDK])])
 
-# ndk_INIT(ABI, API, DIR)
-# --------
+# ndk_INIT(ABI, API, DIR, CFLAGS)
+# -------------------------------
 # Initialize the Android NDK.  ABI is the ABI being built for.
 # API is the API version being built for.
+# CFLAGS is a list of compiler flags.
 # As a side effect, set the variable ndk_INITIALIZED to true.
 # DIR should be a directory containing the Makefile.in actually
 # implementing the Android NDK build system.
@@ -50,6 +51,7 @@ ndk_INITIALIZED=yes
 ndk_API=$2
 ndk_DIR=$3
 ndk_ANY_CXX=
+ndk_BUILD_CFLAGS="$4"
 
 case "$ndk_ABI" in
  *arm64* )
@@ -370,6 +372,7 @@ AC_DEFUN_ONCE([ndk_CONFIG_FILES],
     NDK_BUILD_MODULES="$ndk_MODULES"
     NDK_BUILD_CXX_SHARED="$ndk_CXX_SHARED"
     NDK_BUILD_ANY_CXX_MODULE=$ndk_ANY_CXX
+    NDK_BUILD_CFLAGS="$ndk_BUILD_CFLAGS"
 
     AC_SUBST([NDK_BUILD_ANDROID_MK])
     AC_SUBST([NDK_BUILD_ARCH])
@@ -381,6 +384,7 @@ AC_DEFUN_ONCE([ndk_CONFIG_FILES],
     AC_SUBST([NDK_BUILD_MODULES])
     AC_SUBST([NDK_BUILD_CXX_SHARED])
     AC_SUBST([NDK_BUILD_ANY_CXX_MODULE])
+    AC_SUBST([NDK_BUILD_CFLAGS])
 
     AC_CONFIG_FILES([$ndk_DIR/Makefile])
     AC_CONFIG_FILES([$ndk_DIR/ndk-build.mk])
