@@ -731,6 +731,7 @@ enum
     SFNT_POLY_MASK   = (SFNT_POLY_SAMPLE - 1),
     SFNT_POLY_STEP   = (0x10000 >> SFNT_POLY_SHIFT),
     SFNT_POLY_START  = (SFNT_POLY_STEP >> 1),
+    SFNT_POLY_ROUND  = ((1 << (16 - SFNT_POLY_SHIFT)) / 2) - 1,
   };
 
 
