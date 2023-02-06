@@ -765,14 +765,16 @@ the semicolon.  This function skips the semicolon."
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
   (setq-local c-ts-common-indent-offset 'c-ts-mode-indent-offset)
-  (setq-local c-ts-common-indent-block-type-regexp
-              (rx (or "compound_statement"
-                      "field_declaration_list"
-                      "enumerator_list")))
-  (setq-local c-ts-common-indent-bracketless-type-regexp
-              (rx (or "if_statement" "do_statement"
-                      "for_statement" "while_statement")))
-
+  (setq-local c-ts-common-indent-type-regexp-alist
+              `((block . ,(rx (or "compound_statement"
+                                  "field_declaration_list"
+                                  "enumerator_list")))
+                (if . "if_statement")
+                (else . ("if_statement" . "alternative"))
+                (do . "do_statement")
+                (while . "while_statement")
+                (for . "for_statement")
+                (close-bracket . "}")))
   ;; Comment
   (c-ts-common-comment-setup)
 

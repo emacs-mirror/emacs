@@ -169,6 +169,19 @@ do
 while (true)
 =-=-=
 
+Name: Nested If-Else
+
+=-=
+if (true)
+  return 0;
+else if (false)
+  return 1;
+else if (true)
+  return 2;
+else if (false)
+  return 3;
+=-=-=
+
 Name: Multiline Block Comments 1 (bug#60270)
 
 =-=
