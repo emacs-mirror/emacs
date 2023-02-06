@@ -611,7 +611,21 @@ guesswork is based on these variables:
 - `bug-reference-setup-from-mail-alist' for guessing based on
   mail group names or mail header values.
 - `bug-reference-setup-from-irc-alist' for guessing based on IRC
-  channel or network names.")
+  channel or network names.
+
+Note: This variable's purpose is to allow packages to provide
+bug-reference auto-setup support in buffers managed by this
+package.  Therefore, such auto-setup function should check if the
+current buffer is \"their\" buffer and only act if that's the
+case, e.g., in terms of `derived-mode-p'.
+
+The variable is not intended for users.  Those are advised to set
+`bug-reference-bug-regexp' and `bug-reference-url-format' using
+other means such as file-local variable sections, a
+`.dir-locals.el' file, or compute and set their values in
+`bug-reference-mode-hook' or `bug-reference-prog-mode-hook'.  If
+the bug regexp and URL format are already set after those hooks
+have been run, the auto-setup is inhibited.")
 
 ;; Add the default auto-setup functions.  We don't have them as
 ;; init value of bug-reference-auto-setup-functions because then
