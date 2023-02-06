@@ -170,6 +170,11 @@
    '([(package_identifier) (type_identifier)] @font-lock-type-face)
 
    :language 'go
+   :feature 'property
+   '((field_identifier) @font-lock-property-face
+     (keyed_element (_ (identifier) @font-lock-property-face)))
+
+   :language 'go
    :feature 'variable
    '((identifier) @font-lock-variable-name-face)
 
@@ -177,12 +182,6 @@
    :feature 'escape-sequence
    :override t
    '((escape_sequence) @font-lock-escape-face)
-
-   :language 'go
-   :feature 'property
-   :override t
-   '((field_identifier) @font-lock-property-face
-     (keyed_element (_ (identifier) @font-lock-property-face)))
 
    :language 'go
    :feature 'error
