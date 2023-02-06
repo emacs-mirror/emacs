@@ -54,8 +54,8 @@
      (should (equal last-input "echo hello\n"))
      (should (equal-including-properties
               last-output
-              (propertize "hello\n" 'rear-nonsticky '(field)
-                          'field 'command-output))))))
+              (apply #'propertize "hello\n"
+                     eshell-command-output-properties))))))
 
 (ert-deftest em-prompt-test/field-properties/no-highlight ()
   "Check that field properties are properly set on Eshell output/prompts.
@@ -77,8 +77,8 @@ This tests the case when `eshell-highlight-prompt' is nil."
        (should (equal last-input "echo hello\n"))
        (should (equal-including-properties
                 last-output
-                (propertize "hello\n" 'rear-nonsticky '(field)
-                            'field 'command-output)))))))
+                (apply #'propertize "hello\n"
+                       eshell-command-output-properties)))))))
 
 (ert-deftest em-prompt-test/next-previous-prompt ()
   "Check that navigating forward/backward through old prompts works correctly."

@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'esh-io)
+(require 'esh-util)
 
 (defgroup eshell-proc nil
   "When Eshell invokes external commands, it always does so
@@ -411,9 +412,7 @@ Used only on systems which do not support async subprocesses.")
   "Send the output from PROCESS (STRING) to the interactive display.
 This is done after all necessary filtering has been done."
   (when string
-    (add-text-properties 0 (length string)
-                         '(field command-output rear-nonsticky (field))
-                         string)
+    (eshell--mark-as-output 0 (length string) string)
     (require 'esh-mode)
     (declare-function eshell-interactive-filter "esh-mode" (buffer string))
     (eshell-interactive-filter (if process (process-buffer process)
