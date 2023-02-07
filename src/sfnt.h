@@ -698,6 +698,13 @@ struct sfnt_raster
   unsigned short refcount;
 };
 
+/* Bresenham's algorithm.
+   This rasterizer uses Bresenham's algorithm, with the minor
+   detail being that it does not use device pixels, but rather
+   pixels in a sample grid defined by SFNT_POLY_SHIFT, which is
+   normally set to 4x oversampling.  See sfnt_poly_edges for
+   an explanation of how Bresenham's algorithm works.  */
+
 struct sfnt_edge
 {
   /* Next edge in this chain.  */
@@ -709,15 +716,14 @@ struct sfnt_edge
   /* X position, top and bottom of edges.  */
   sfnt_fixed x, top, bottom;
 
-  /* step_x is how many pixels to move for each increase in Y by
-     SFNT_POLY_STEP.  */
+  /* Slope error.  */
   sfnt_fixed step_x;
 
-#ifdef TEST
-  /* Value of x before initial adjustment of bottom to match the
-     grid.  */
-  sfnt_fixed source_x;
-#endif
+  /* SFNT_POLY_STEP times the direction of movement.  */
+  sfnt_fixed signed_step;
+
+  /* Slope error accumulator.  */
+  sfnt_fixed error;
 };
 
 
@@ -731,7 +737,6 @@ enum
     SFNT_POLY_MASK   = (SFNT_POLY_SAMPLE - 1),
     SFNT_POLY_STEP   = (0x10000 >> SFNT_POLY_SHIFT),
     SFNT_POLY_START  = (SFNT_POLY_STEP >> 1),
-    SFNT_POLY_ROUND  = ((1 << (16 - SFNT_POLY_SHIFT)) / 2) - 1,
   };
 
 

@@ -178,6 +178,8 @@ work, along with what has to be patched to make them work:
     https://android.googlesource.com/platform/system/core/+/refs/heads/nougat-mr1-dev/libpackagelistparser/
   libpcre	- https://android.googlesource.com/platform/external/pcre
   libcrypto	- https://android.googlesource.com/platform/external/boringssl
+     (You must apply the patch at the end of this file when building for
+      ARM systems.)
 
 Many of these dependencies have been migrated over to the
 ``Android.bp'' build system now used to build Android itself.
@@ -650,6 +652,20 @@ index bf277d2..36734d9 100644
  LOCAL_SDK_VERSION := 23
  include $(BUILD_STATIC_LIBRARY)
 
+diff --git a/dist/sqlite3.c b/dist/sqlite3.c
+index b0536a4..8fa1ee9 100644
+--- a/dist/sqlite3.c
++++ b/dist/sqlite3.c
+@@ -26474,7 +26474,7 @@ SQLITE_PRIVATE const char *sqlite3OpcodeName(int i){
+ */
+ #if !defined(HAVE_POSIX_FALLOCATE) \
+       && (_XOPEN_SOURCE >= 600 || _POSIX_C_SOURCE >= 200112L)
+-# define HAVE_POSIX_FALLOCATE 1
++/* # define HAVE_POSIX_FALLOCATE 1 */
+ #endif
+ 
+ /*
+
 PATCH FOR WEBP
 
 diff --git a/Android.mk b/Android.mk
@@ -733,3 +749,59 @@ index 5206a9f..b351ffc 100644
          free(strp);
      }
      va_end(ap);
+
+PATCH FOR BORINGSSL
+
+diff --git a/Android.mk b/Android.mk
+index 3e3ef2a..277d4a9 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -27,7 +27,9 @@ LOCAL_MODULE := libcrypto
+ LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/src/include
+ LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk $(LOCAL_PATH)/crypto-sources.mk
+ LOCAL_CFLAGS += -fvisibility=hidden -DBORINGSSL_SHARED_LIBRARY -DBORINGSSL_IMPLEMENTATION -DOPENSSL_SMALL -Wno-unused-parameter
++LOCAL_CFLAGS_arm = -DOPENSSL_STATIC_ARMCAP -DOPENSSL_NO_ASM
+ LOCAL_SDK_VERSION := 9
++LOCAL_LDFLAGS = --no-undefined
+ # sha256-armv4.S does not compile with clang.
+ LOCAL_CLANG_ASFLAGS_arm += -no-integrated-as
+ LOCAL_CLANG_ASFLAGS_arm64 += -march=armv8-a+crypto
+diff --git a/sources.mk b/sources.mk
+index e82f3d5..be3a3c4 100644
+--- a/sources.mk
++++ b/sources.mk
+@@ -337,20 +337,20 @@ linux_aarch64_sources := \
+   linux-aarch64/crypto/sha/sha256-armv8.S\
+   linux-aarch64/crypto/sha/sha512-armv8.S\
+ 
+-linux_arm_sources := \
+-  linux-arm/crypto/aes/aes-armv4.S\
+-  linux-arm/crypto/aes/aesv8-armx32.S\
+-  linux-arm/crypto/aes/bsaes-armv7.S\
+-  linux-arm/crypto/bn/armv4-mont.S\
+-  linux-arm/crypto/modes/ghash-armv4.S\
+-  linux-arm/crypto/modes/ghashv8-armx32.S\
+-  linux-arm/crypto/sha/sha1-armv4-large.S\
+-  linux-arm/crypto/sha/sha256-armv4.S\
+-  linux-arm/crypto/sha/sha512-armv4.S\
+-  src/crypto/chacha/chacha_vec_arm.S\
+-  src/crypto/cpu-arm-asm.S\
+-  src/crypto/curve25519/asm/x25519-asm-arm.S\
+-  src/crypto/poly1305/poly1305_arm_asm.S\
++# linux_arm_sources := \
++#   linux-arm/crypto/aes/aes-armv4.S\
++#   linux-arm/crypto/aes/aesv8-armx32.S\
++#   linux-arm/crypto/aes/bsaes-armv7.S\
++#   linux-arm/crypto/bn/armv4-mont.S\
++#   linux-arm/crypto/modes/ghash-armv4.S\
++#   linux-arm/crypto/modes/ghashv8-armx32.S\
++#   linux-arm/crypto/sha/sha1-armv4-large.S\
++#   linux-arm/crypto/sha/sha256-armv4.S\
++#   linux-arm/crypto/sha/sha512-armv4.S\
++#   src/crypto/chacha/chacha_vec_arm.S\
++#   src/crypto/cpu-arm-asm.S\
++#   src/crypto/curve25519/asm/x25519-asm-arm.S\
++#   src/crypto/poly1305/poly1305_arm_asm.S\
+ 
+ linux_x86_sources := \
+   linux-x86/crypto/aes/aes-586.S\

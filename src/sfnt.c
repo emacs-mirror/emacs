@@ -47,6 +47,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 
 #include <X11/Xlib.h>
+#include <X11/extensions/Xrender.h>
 
 static void *
 xmalloc (size_t size)
@@ -3489,8 +3490,7 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
        PIXEL = UNIT * PPEM / UPEM  */
 
   build_outline_context.factor
-    = sfnt_div_fixed (pixel_size * 65536,
-		      head->units_per_em * 65536);
+    = sfnt_div_fixed (pixel_size, head->units_per_em);
 
   /* Decompose the outline.  */
   rc = sfnt_decompose_glyph (glyph, sfnt_move_to_and_build,
@@ -3566,10 +3566,8 @@ sfnt_prepare_raster (struct sfnt_raster *raster,
 		     + (SFNT_POLY_ALIGNMENT - 1))
 		    & ~(SFNT_POLY_ALIGNMENT - 1));
 
-  raster->offx
-    = sfnt_floor_fixed (outline->xmin) >> 16;
-  raster->offy
-    = sfnt_floor_fixed (outline->ymin) >> 16;
+  raster->offx = sfnt_round_fixed (outline->xmin) >> 16;
+  raster->offy = sfnt_floor_fixed (outline->ymin) >> 16;
 }
 
 typedef void (*sfnt_edge_proc) (struct sfnt_edge *, size_t,
@@ -3582,15 +3580,41 @@ typedef void (*sfnt_span_proc) (struct sfnt_edge *, sfnt_fixed, void *);
 static void
 sfnt_step_edge (struct sfnt_edge *edge)
 {
-  /* Step edge.  */
-  edge->x += edge->step_x;
+  /* Add error accumulator.  */
+  edge->error += edge->step_x;
+
+  while (edge->error > 0)
+    {
+      /* Subtract error and add 1.  */
+      edge->x += edge->signed_step;
+      edge->error -= 65536;
+    }
 }
 
-/* Build a list of edges for each contour in OUTLINE, applying
-   OUTLINE->xmin and floor (OUTLINE->ymin) as the offset to each edge.
-   Call EDGE_PROC with DCONTEXT and the resulting edges as arguments.
-   It is OK to modify the edges given to EDGE_PROC.  Align all edges
-   to the sub-pixel grid.  */
+/* Move EDGE->x forward, assuming that the scanline has moved upwards
+   by N, and that N is less than or equal to SFNT_POLY_STEP.  */
+
+static void
+sfnt_step_edge_n (struct sfnt_edge *edge, sfnt_fixed n)
+{
+  /* Add error accumulator.  */
+  edge->error += sfnt_mul_fixed (edge->step_x, n);
+
+  /* See if error is more than 0, and bring the line back to where it
+     should be.  */
+
+  while (edge->error > 0)
+    {
+      /* Subtract error and add 1.  */
+      edge->x += edge->signed_step;
+      edge->error -= 65536;
+    }
+}
+
+/* Build a list of edges for each contour in OUTLINE, applying xmin
+   and ymin as the offset to each edge.  Call EDGE_PROC with DCONTEXT
+   and the resulting edges as arguments.  It is OK to modify the edges
+   given to EDGE_PROC.  Align all edges to the sub-pixel grid.  */
 
 static void
 sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
@@ -3606,9 +3630,10 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
   edge = 0;
 
   /* ymin and xmin must be the same as the offset used to set offy and
-     offx in rasters.  */
+     offx in rasters.  However, xmin is not floored; otherwise, glyphs
+     like ``e'' look bad at certain ppem.  */
   ymin = sfnt_floor_fixed (outline->ymin);
-  xmin = sfnt_floor_fixed (outline->xmin);
+  xmin = outline->xmin;
 
   for (i = 0; i < outline->outline_used; ++i)
     {
@@ -3666,9 +3691,21 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
       dy = abs (outline->outline[top].y
 		- outline->outline[bottom].y);
 
-#ifdef TEST
-      edges[edge].source_x = edges[edge].x;
-#endif
+      /* Step to first grid point.  */
+      y = sfnt_poly_grid_ceil (bot);
+
+      /* If rounding would make the edge not cover any area, skip this
+	 edge.  */
+      if (y >= edges[edge].top)
+	continue;
+
+      /* Compute the slope error.  This is how much X changes for each
+	 increase in Y.  */
+
+      if (dx >= 0)
+	step_x = sfnt_div_fixed (dx, dy);
+      else
+	step_x = sfnt_div_fixed (-dx, dy);
 
       /* Compute the increment.  This is which direction X moves in
 	 for each increase in Y.  */
@@ -3676,30 +3713,19 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
       if (dx >= 0)
 	inc_x = 1;
       else
-	{
-	  inc_x = -1;
-	  dx = -dx;
-	}
+	inc_x = -1;
 
-      /* Compute the step X.  This is how much X changes for each
-	 increase in Y.  */
-      step_x = inc_x * sfnt_div_fixed (dx, dy);
-
-      /* Step to first grid point.  */
-      y = sfnt_poly_grid_ceil (bot);
-
-      /* If rounding would make the edge not cover any area, skip this
-	 edge.  */
-      if (y > edges[edge].top)
-	continue;
-
-      edges[edge].x += sfnt_mul_fixed (step_x, bot - y);
-      edges[edge].bottom = y;
+      edges[edge].signed_step = SFNT_POLY_STEP * inc_x;
       edges[edge].next = NULL;
 
-      /* Compute the step X scaled to the poly step.  */
-      edges[edge].step_x
-	= sfnt_mul_fixed (step_x, SFNT_POLY_STEP);
+      /* Set the initial Bresenham terms.  */
+      edges[edge].error = step_x - 65536;
+      edges[edge].step_x = step_x;
+
+      sfnt_step_edge_n (&edges[edge], bot - y);
+
+      /* Set the bottom position.  */
+      edges[edge].bottom = y;
 
       edge++;
     }
@@ -3741,7 +3767,16 @@ sfnt_compare_edges (const void *a, const void *b)
    coordinates, and incrementing the Y axis by SFNT_POLY_STEP instead
    of 1.  SFNT_POLY_STEP is chosen to always keep Y aligned to a grid
    placed such that there are always 1 << SFNT_POLY_SHIFT positions
-   available for each integral pixel coordinate.  */
+   available for each integral pixel coordinate.
+
+   Moving upwards is performed using Bresenham's algorithm.  Prior to
+   an edge being created, a single slope error is computed.  This is
+   how much X should increase for each increase in Y.
+
+   Upon each increase in Y, X initially does not move.  Instead, the
+   ``slope error'' is accumulated; once it exceeds the sample size,
+   one sample is subtracted from the accumulator, and X is increased
+   by one step.  */
 
 static void
 sfnt_poly_edges (struct sfnt_edge *edges, size_t size,
@@ -3822,13 +3857,16 @@ sfnt_poly_edges (struct sfnt_edge *edges, size_t size,
     }
 }
 
-/* Saturate-convert the given unsigned short value X to an unsigned
-   char.  */
+/* Saturate and convert the given unsigned short value X to an
+   unsigned char.  */
 
 static unsigned char
 sfnt_saturate_short (unsigned short x)
 {
-  return (unsigned char) ((x) | (0 - ((x) >> 8)));
+  if (x > 255)
+    return 255;
+
+  return x;
 }
 
 /* Fill a single span of pixels between X0 and X1 at Y, a raster
@@ -3855,11 +3893,6 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   if (x1 <= x0)
     return;
 
-  /* Round Y, X0 and X1.  */
-  y += SFNT_POLY_ROUND;
-  x0 += SFNT_POLY_ROUND;
-  x1 += SFNT_POLY_ROUND;
-
   /* Figure out coverage based on Y axis fractional.  */
   coverage = sfnt_poly_coverage[(y >> (16 - SFNT_POLY_SHIFT))
 				& SFNT_POLY_MASK];
@@ -3882,11 +3915,11 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 #endif
   start += left >> SFNT_POLY_SHIFT;
 
+  w = 0;
+
   /* Compute coverage for first pixel, then poly.  */
   if (left & SFNT_POLY_MASK)
     {
-      w = 0;
-
       /* Note that col is an index into the columns of the coverage
 	 map, unlike row which indexes the raster.  */
       col = 0;
@@ -3941,24 +3974,47 @@ sfnt_poly_span (struct sfnt_edge *start, sfnt_fixed y,
 {
   struct sfnt_edge *edge;
   int winding;
-  sfnt_fixed x0;
+  sfnt_fixed x0, x1;
+
+  /* Pacify -Wmaybe-uninitialized; x1 and x0 are only used when edge
+     != start, at which point x0 has already been set.  */
+  x0 = x1 = 0;
 
   /* Generate the X axis coverage map.  Then poly it onto RASTER.
      winding on each edge determines the winding direction: when it is
-     positive, winding is 1.  When it is negative, winding is -1.  */
+     positive, winding is 1.  When it is negative, winding is -1.
+
+     Fill each consecutive stretch of spans that are inside the glyph;
+     otherwise, coverage will overlap for some spans, but not
+     others.
+
+     The spans must be terminated with an edge that causes an
+     off-transition, or some spans will not be filled.  */
 
   winding = 0;
 
   for (edge = start; edge; edge = edge->next)
     {
       if (!winding)
-	x0 = edge->x;
+	{
+	  if (edge != start && x0 != x1)
+	    /* Draw this section of spans that are on.  */
+	    sfnt_fill_span (raster, (raster->height << 16) - y,
+			    x0, x1);
+
+	  x0 = x1 = edge->x;
+	}
       else
-	sfnt_fill_span (raster, (raster->height << 16) - y,
-			x0, edge->x);
+	x1 = edge->x;
 
       winding += edge->winding;
     }
+
+  /* Draw the last span following the last off-transition.  */
+
+  if (!winding && edge != start && x0 != x1)
+    sfnt_fill_span (raster, (raster->height << 16) - y,
+		    x0, x1);
 }
 
 
@@ -4143,8 +4199,7 @@ sfnt_lookup_glyph_metrics (sfnt_glyph glyph, int pixel_size,
     }
 
   /* Now scale lbearing and advance up to the pixel size.  */
-  factor = sfnt_div_fixed (pixel_size << 16,
-			   head->units_per_em << 16);
+  factor = sfnt_div_fixed (pixel_size, head->units_per_em);
 
   /* Save them.  */
   metrics->lbearing = sfnt_mul_fixed (lbearing << 16, factor);
@@ -5148,6 +5203,14 @@ struct sfnt_interpreter
   /* If non-NULL, function called before each instruction is
      executed.  */
   void (*run_hook) (struct sfnt_interpreter *);
+
+  /* If non-NULL, function called before each stack element is
+     pushed.  */
+  void (*push_hook) (struct sfnt_interpreter *, uint32_t);
+
+  /* If non-NULL, function called before each stack element is
+     popped.  */
+  void (*pop_hook) (struct sfnt_interpreter *, uint32_t);
 #endif
 };
 
@@ -5239,8 +5302,28 @@ sfnt_mul_f2dot14 (sfnt_f2dot14 a, int32_t b)
 #endif
 }
 
+#ifndef INT64_MAX
+
+/* Add the specified unsigned 32-bit N to the large integer
+   INTEGER.  */
+
+static void
+sfnt_large_integer_add (struct sfnt_large_integer *integer,
+			uint32_t n)
+{
+  struct sfnt_large_integer number;
+
+  number.low = integer->low + n;
+  number.high = integer->high + (number.low
+				 < integer->low);
+
+  *integer = number;
+}
+
+#endif
+
 /* Multiply the specified 26.6 fixed point number X by the specified
-   16.16 fixed point number Y.
+   16.16 fixed point number Y with symmetric rounding.
 
    The 26.6 fixed point number must fit inside -32768 to 32767.ffff.
    Value is otherwise undefined.  */
@@ -5248,10 +5331,44 @@ sfnt_mul_f2dot14 (sfnt_f2dot14 a, int32_t b)
 static sfnt_f26dot6
 sfnt_mul_f26dot6_fixed (sfnt_f26dot6 x, sfnt_fixed y)
 {
-  sfnt_fixed result;
+#ifdef INT64_MAX
+  uint64_t product;
+  int sign;
 
-  result = sfnt_mul_fixed (y, x);
-  return result;
+  sign = 1;
+
+  if (x < 0)
+    {
+      x = -x;
+      sign = -sign;
+    }
+
+  if (y < 0)
+    {
+      y = -y;
+      sign = -sign;
+    }
+
+  product = (uint64_t) y * (uint64_t) x;
+
+  /* This can be done quickly with int64_t.  */
+  return ((int64_t) (product + 32676) / (int64_t) 65536) * sign;
+#else
+  struct sfnt_large_integer temp;
+  int sign;
+
+  sign = 1;
+
+  if (x < 0)
+    sign = -sign;
+
+  if (y < 0)
+    sign = -sign;
+
+  sfnt_multiply_divide_1 (abs (x), abs (y), &temp);
+  sfnt_large_integer_add (&temp, 32676);
+  return sfnt_multiply_divide_2 (&temp, 65536) * sign;
+#endif
 }
 
 /* Return the floor of the specified 26.6 fixed point value X.  */
@@ -5411,6 +5528,8 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
 
 #ifdef TEST
   interpreter->run_hook = NULL;
+  interpreter->push_hook = NULL;
+  interpreter->pop_hook = NULL;
 #endif
 
   /* Fill in pointers and default values.  */
@@ -5461,8 +5580,7 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
   /* Now compute the scale.  Then, scale up the control value table
      values.  */
   interpreter->scale
-    = sfnt_div_fixed (pixel_size * 64,
-		      head->units_per_em * 64);
+    = sfnt_div_fixed (pixel_size, head->units_per_em);
 
   /* Set the PPEM.  */
   interpreter->ppem = pixel_size;
@@ -5537,6 +5655,13 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 #define MOVE(a, b, n)				\
   memmove (a, b, (n) * sizeof (uint32_t))
 
+#define CHECK_STACK_ELEMENTS(n)			\
+  {						\
+    if ((interpreter->SP			\
+	 - interpreter->stack) < n)		\
+      TRAP ("stack underflow");			\
+  }
+
 #define CHECK_PREP()				\
   if (!is_prep)					\
     TRAP ("instruction executed not valid"	\
@@ -5555,15 +5680,43 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 
 /* Register, alu and logic instructions.  */
 
+#ifndef TEST
+
 #define POP()					\
   (interpreter->SP == interpreter->stack	\
    ? (TRAP ("stack underflow"), 0)		\
    : (*(--interpreter->SP)))
 
+#define POP_UNCHECKED() (*(--interpreter->SP))
+
+#else
+
+#define POP()					\
+  (interpreter->SP == interpreter->stack	\
+   ? (TRAP ("stack underflow"), 0)		\
+   : ({uint32_t _value;				\
+       _value = *(--interpreter->SP);		\
+       if (interpreter->pop_hook)		\
+	 interpreter->pop_hook (interpreter,	\
+				_value);	\
+       _value;}))
+
+#define POP_UNCHECKED()				\
+  ({uint32_t _value;				\
+    _value = *(--interpreter->SP);		\
+    if (interpreter->pop_hook)			\
+      interpreter->pop_hook (interpreter,	\
+			     _value);		\
+    _value;})
+
+#endif
+
 #define LOOK()					\
   (interpreter->SP == interpreter->stack	\
    ? (TRAP ("stack underflow"), 0)		\
    : *(interpreter->SP - 1))
+
+#ifndef TEST
 
 #define PUSH(value)				\
   {						\
@@ -5571,9 +5724,43 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 	> (char *) interpreter->twilight_x)	\
       TRAP ("stack overflow");			\
 						\
+    *interpreter->SP = (value);			\
+    interpreter->SP++;				\
+  }
+
+#define PUSH_UNCHECKED(value)			\
+  {						\
+    *interpreter->SP = (value);			\
+    interpreter->SP++;				\
+  }
+
+#else
+
+#define PUSH(value)				\
+  {						\
+    if ((char *) (interpreter->SP + 1)		\
+	> (char *) interpreter->twilight_x)	\
+      TRAP ("stack overflow");			\
+						\
+    if (interpreter->push_hook)			\
+      interpreter->push_hook (interpreter,	\
+			      value);		\
+						\
     *interpreter->SP = value;			\
     interpreter->SP++;				\
   }
+
+#define PUSH_UNCHECKED(value)			\
+  {						\
+    if (interpreter->push_hook)			\
+      interpreter->push_hook (interpreter,	\
+			      value);		\
+						\
+    *interpreter->SP = value;			\
+    interpreter->SP++;				\
+  }
+
+#endif
 
 #define PUSH2(high, low)			\
   {						\
@@ -5746,8 +5933,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     a = POP ();					\
     b = POP ();					\
 						\
-    PUSH (a);					\
-    PUSH (b);					\
+    PUSH_UNCHECKED (a);				\
+    PUSH_UNCHECKED (b);				\
   }
 
 #define DEPTH()					\
@@ -5768,7 +5955,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     if (index <= 0 || index > STACKSIZE ())	\
       TRAP ("stack overflow");			\
 						\
-    PUSH (*(interpreter->SP - index));		\
+    PUSH_UNCHECKED (*(interpreter->SP		\
+		      - index));		\
   }
 
 #define MINDEX()				\
@@ -5934,14 +6122,15 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 
 #define RS()					\
   {						\
-    uint32_t address;				\
+    uint32_t address, value;			\
 						\
     address = POP ();				\
 						\
     if (address >= interpreter->storage_size)	\
       TRAP ("invalid RS");			\
 						\
-    PUSH (interpreter->storage[address]);	\
+    value = interpreter->storage[address];	\
+    PUSH_UNCHECKED (value);			\
   }
 
 #define WCVTP()					\
@@ -5969,7 +6158,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
       TRAP ("out of bounds RCVT");		\
 						\
     value = interpreter->cvt[location];		\
-    PUSH (value);				\
+    PUSH_UNCHECKED (value);			\
   }
 
 #define MPPEM()					\
@@ -6004,7 +6193,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e2 = POP ();				\
     e1 = POP ();				\
 						\
-    PUSH (e1 < e2 ? 1 : 0);			\
+    PUSH_UNCHECKED (e1 < e2 ? 1 : 0);		\
   }
 
 #define LTEQ()					\
@@ -6014,7 +6203,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e2 = POP ();				\
     e1 = POP ();				\
 						\
-    PUSH (e1 <= e2 ? 1 : 0);			\
+    PUSH_UNCHECKED (e1 <= e2 ? 1 : 0);		\
   }
 
 #define GT()					\
@@ -6024,7 +6213,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e2 = POP ();				\
     e1 = POP ();				\
 						\
-    PUSH (e1 > e2 ? 1 : 0);			\
+    PUSH_UNCHECKED (e1 > e2 ? 1 : 0);		\
   }
 
 #define GTEQ()					\
@@ -6034,7 +6223,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e2 = POP ();				\
     e1 = POP ();				\
 						\
-    PUSH (e1 >= e2 ? 1 : 0);			\
+    PUSH_UNCHECKED (e1 >= e2 ? 1 : 0);		\
   }
 
 #define EQ()					\
@@ -6044,7 +6233,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e1 = POP ();				\
     e2 = POP ();				\
 						\
-    PUSH (e1 == e2 ? 1 : 0);			\
+    PUSH_UNCHECKED (e1 == e2 ? 1 : 0);		\
   }
 
 #define NEQ()					\
@@ -6054,7 +6243,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e1 = POP ();				\
     e2 = POP ();				\
 						\
-    PUSH (e1 != e2 ? 1 : 0);			\
+    PUSH_UNCHECKED (e1 != e2 ? 1 : 0);		\
   }
 
 #define ODD()					\
@@ -6073,6 +6262,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 #define EVEN()					\
   {						\
     sfnt_f26dot6 e1, result;			\
+    uint32_t value;				\
 						\
     e1 = POP ();				\
     result = abs (e1);				\
@@ -6080,7 +6270,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     result					\
       = interpreter->state.round (result,	\
 				  interpreter);	\
-    PUSH (((result & 127) == 64) ? 0 : 1);	\
+    value = ((result & 127) == 64) ? 0 : 1;	\
+    PUSH_UNCHECKED (value);			\
   }
 
 #define IF()					\
@@ -6104,7 +6295,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e1 = POP ();				\
     e2 = POP ();				\
 						\
-    PUSH (e1 && e2 ? 1 : 0);			\
+    PUSH_UNCHECKED (e1 && e2 ? 1 : 0);		\
   }
 
 #define OR()					\
@@ -6114,7 +6305,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e1 = POP ();				\
     e2 = POP ();				\
 						\
-    PUSH (e1 || e2 ? 1 : 0);			\
+    PUSH_UNCHECKED (e1 || e2 ? 1 : 0);		\
   }
 
 #define NOT()					\
@@ -6123,7 +6314,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 						\
     e1 = POP ();				\
 						\
-    PUSH (!e1 ? 1 : 0);				\
+    PUSH_UNCHECKED (!e1 ? 1 : 0);		\
   }
 
 #define SDB()					\
@@ -6154,7 +6345,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     n1 = POP ();				\
     n2 = POP ();				\
 						\
-    PUSH (sfnt_add (n1, n2));			\
+    PUSH_UNCHECKED (sfnt_add (n1, n2));		\
   }
 
 #define SUB()					\
@@ -6164,7 +6355,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     n2 = POP ();				\
     n1 = POP ();				\
 						\
-    PUSH (sfnt_sub (n1, n2));			\
+    PUSH_UNCHECKED (sfnt_sub (n1, n2));		\
   }
 
 #define DIV()					\
@@ -6177,7 +6368,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     if (!n2)					\
       TRAP ("DIV by 0");			\
 						\
-    PUSH (sfnt_div_f26dot6 (n1, n2));		\
+    PUSH_UNCHECKED (sfnt_div_f26dot6 (n1, n2));	\
   }
 
 #define MUL()					\
@@ -6187,7 +6378,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     n2 = POP ();				\
     n1 = POP ();				\
 						\
-    PUSH (sfnt_mul_f26dot6 (n2, n1));		\
+    PUSH_UNCHECKED (sfnt_mul_f26dot6 (n2, n1));	\
   }
 
 #define ABS()					\
@@ -6196,10 +6387,10 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 						\
     n = POP ();					\
 						\
-    if (n == INT_MIN)				\
-      PUSH (0)					\
+    if (n == INT32_MIN)				\
+      PUSH_UNCHECKED (0)			\
     else					\
-      PUSH (n < 0 ? -n : n)			\
+      PUSH_UNCHECKED (n < 0 ? -n : n)		\
   }
 
 #define NEG()					\
@@ -6208,10 +6399,10 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 						\
     n = POP ();					\
 						\
-    if (n == INT_MIN)				\
-      PUSH (0)					\
+    if (n == INT32_MIN)				\
+      PUSH_UNCHECKED (0)			\
     else					\
-      PUSH (-n)					\
+      PUSH_UNCHECKED (-n)			\
   }
 
 #define FLOOR()					\
@@ -6219,7 +6410,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     sfnt_f26dot6 n;				\
 						\
     n = POP ();					\
-    PUSH (sfnt_floor_f26dot6 (n));		\
+    PUSH_UNCHECKED (sfnt_floor_f26dot6 (n));	\
   }
 
 #define CEILING()				\
@@ -6227,7 +6418,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     sfnt_f26dot6 n;				\
 						\
     n = POP ();					\
-    PUSH (sfnt_ceil_f26dot6 (n));		\
+    PUSH_UNCHECKED (sfnt_ceil_f26dot6 (n));	\
   }
 
 #define WCVTF()					\
@@ -6306,9 +6497,9 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     selector = POP ();				\
 						\
     if (selector & 1)				\
-      PUSH (2)					\
+      PUSH_UNCHECKED (2)			\
     else					\
-      PUSH (0)					\
+      PUSH_UNCHECKED (0)			\
   }
 
 #define IDEF()					\
@@ -6324,13 +6515,15 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
   {						\
     uint32_t a, b, c;				\
 						\
-    a = POP ();					\
-    b = POP ();					\
-    c = POP ();					\
+    CHECK_STACK_ELEMENTS (3);			\
 						\
-    PUSH (b);					\
-    PUSH (a);					\
-    PUSH (c);					\
+    a = POP_UNCHECKED ();			\
+    b = POP_UNCHECKED ();			\
+    c = POP_UNCHECKED ();			\
+						\
+    PUSH_UNCHECKED (b);				\
+    PUSH_UNCHECKED (a);				\
+    PUSH_UNCHECKED (c);				\
   }
 
 #define _MAX()					\
@@ -6340,7 +6533,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e1 = POP ();				\
     e2 = POP ();				\
 						\
-    PUSH (MAX (e1, e2));			\
+    PUSH_UNCHECKED (MAX (e1, e2));		\
   }
 
 #define _MIN()					\
@@ -6350,7 +6543,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     e1 = POP ();				\
     e2 = POP ();				\
 						\
-    PUSH (MIN (e1, e2));			\
+    PUSH_UNCHECKED (MIN (e1, e2));		\
   }
 
 #define SCANTYPE()				\
@@ -6427,7 +6620,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     result					\
       = interpreter->state.round (result,	\
 				  interpreter);	\
-    PUSH (n < 0 ? -result : result);		\
+    PUSH_UNCHECKED (n < 0 ? -result : result);	\
   }
 
 #define NROUND()				\
@@ -6435,7 +6628,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     sfnt_f26dot6 n;				\
 						\
     n = POP ();					\
-    PUSH (n);					\
+    PUSH_UNCHECKED (n);				\
   }
 
 #define ROFF()					\
@@ -6904,7 +7097,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     else					\
       value = PROJECT (x, y);			\
 						\
-    PUSH (value);				\
+    PUSH_UNCHECKED (value);			\
   }
 
 #define SCFS()					\
@@ -6923,14 +7116,14 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     uint32_t p1, p2;				\
     sfnt_f26dot6 distance;			\
 						\
-    p1 = POP ();				\
     p2 = POP ();				\
+    p1 = POP ();				\
 						\
     distance					\
       = sfnt_measure_distance (interpreter,	\
 			       p1, p2,		\
 			       opcode);		\
-    PUSH (distance);				\
+    PUSH_UNCHECKED (distance);			\
   }
 
 #define FLIPPT()				\
@@ -7405,6 +7598,8 @@ sfnt_move_zp2 (struct sfnt_interpreter *interpreter, uint32_t point,
 /* Move N points from the specified POINT in INTERPRETER's glyph zone
    by the given DISTANCE along the freedom vector.
 
+   Do not touch the points that are moved.
+
    No checking is done to ensure that POINT lies inside the zone, or
    even that the zone exists at all.  */
 
@@ -7414,12 +7609,13 @@ sfnt_move_glyph_zone (struct sfnt_interpreter *interpreter, uint32_t point,
 {
   interpreter->state.move (&interpreter->glyph_zone->x_current[point],
 			   &interpreter->glyph_zone->y_current[point],
-			   n, interpreter, distance,
-			   &interpreter->glyph_zone->flags[point]);
+			   n, interpreter, distance, NULL);
 }
 
 /* Move N points from the specified POINT in INTERPRETER's twilight
    zone by the given DISTANCE along the freedom vector.
+
+   Do not touch the points that are moved.
 
    No checking is done to ensure that POINT lies inside the zone, or
    even that the zone exists at all.  */
@@ -7435,6 +7631,8 @@ sfnt_move_twilight_zone (struct sfnt_interpreter *interpreter, uint32_t point,
 
 /* Move the point P in the zone pointed to by the ZP2 register in
    INTERPRETER's graphics state by DX, and DY.
+
+   Touch the point P in the directions of the movement.
 
    Check that P is valid; if not, trap.  Else, perform the move
    directly without converting it from the projection vector or to the
@@ -7464,6 +7662,12 @@ sfnt_direct_move_zp2 (struct sfnt_interpreter *interpreter, uint32_t p,
 	= sfnt_add (interpreter->glyph_zone->x_current[p], dx);
       interpreter->glyph_zone->y_current[p]
 	= sfnt_add (interpreter->glyph_zone->y_current[p], dy);
+
+      if (dx)
+	interpreter->glyph_zone->flags[p] |= SFNT_POINT_TOUCHED_X;
+
+      if (dy)
+	interpreter->glyph_zone->flags[p] |= SFNT_POINT_TOUCHED_Y;
     }
 }
 
@@ -7578,10 +7782,8 @@ sfnt_interpret_scfs (struct sfnt_interpreter *interpreter,
 
   if (!interpreter->state.zp2)
     {
-      interpreter->twilight_original_x[p]
-	= interpreter->twilight_x[p];
-      interpreter->twilight_original_y[p]
-	= interpreter->twilight_y[p];
+      interpreter->twilight_original_x[p] = interpreter->twilight_x[p];
+      interpreter->twilight_original_y[p] = interpreter->twilight_y[p];
     }
 }
 
@@ -10974,8 +11176,9 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
       /* Load the fword.  */
       tem = glyph->simple->y_coordinates[i];
 
-      /* Scale that fword.  */
-      tem = sfnt_mul_f26dot6_fixed (tem * 64, interpreter->scale);
+      /* Scale that fword.  Make sure not to round Y, as this could
+	 lead to Y spilling over to the next line.  */
+      tem = sfnt_mul_fixed (tem * 64, interpreter->scale);
 
       /* Set y_points and y_current.  */
       zone->y_points[i] = tem;
@@ -11124,19 +11327,20 @@ static void
 sfnt_test_span (struct sfnt_edge *edge, sfnt_fixed y,
 		void *dcontext)
 {
-#if 0
+#if 1
   printf ("/* span at %g */\n", sfnt_coerce_fixed (y));
   for (; edge; edge = edge->next)
     {
       if (y >= edge->bottom && y < edge->top)
 	printf ("ctx.fillRect (%g, %g, 1, 1); "
-		"/* %g top: %g bot: %g stepx: %g */\n",
+		"/* %g top: %g bot: %g stepx: %g winding: %d */\n",
 		sfnt_coerce_fixed (edge->x),
 		sfnt_coerce_fixed (sfnt_test_max - y),
 		sfnt_coerce_fixed (y),
 		sfnt_coerce_fixed (edge->bottom),
 		sfnt_coerce_fixed (edge->top),
-		sfnt_coerce_fixed (edge->step_x));
+		sfnt_coerce_fixed (edge->step_x),
+		edge->winding);
     }
 #elif 0
   int winding;
@@ -11171,6 +11375,74 @@ sfnt_test_edge_ignore (struct sfnt_edge *edges, size_t num_edges,
 
 }
 
+/* The same debugger stuff is used here.  */
+static void sfnt_setup_debugger (void);
+
+/* The debugger's X display.  */
+static Display *display;
+
+/* The debugger window.  */
+static Window window;
+
+/* The GC.  */
+static GC point_gc, background_gc;
+
+static void
+sfnt_test_edges (struct sfnt_edge *edges, size_t num_edges)
+{
+  static sfnt_fixed y;
+  size_t i;
+
+  for (i = 0; i < num_edges; ++i)
+    {
+      if (y >= edges[i].bottom && y < edges[i].top)
+	{
+	  XDrawPoint (display, window, point_gc,
+		      edges[i].x / 65536, 100 - (y / 65536));
+	  printf ("sfnt_test_edges: %d %d\n",
+		  edges[i].x / 65536, 100 - (y / 65536));
+	}
+    }
+
+  y += SFNT_POLY_STEP;
+
+  for (i = 0; i < num_edges; ++i)
+    sfnt_step_edge (&edges[i]);
+}
+
+static void
+sfnt_debug_edges (struct sfnt_edge *edges, size_t num_edges)
+{
+  XEvent event;
+
+  sfnt_setup_debugger ();
+
+  while (true)
+    {
+      XNextEvent (display, &event);
+
+      switch (event.type)
+	{
+	case KeyPress:
+	  XDestroyWindow (display, window);
+	  XCloseDisplay (display);
+	  exit (0);
+	  break;
+
+	case Expose:
+
+	  while (true)
+	    {
+	      sfnt_test_edges (edges, num_edges);
+	      XFlush (display);
+	      usleep (50000);
+	    }
+
+	  break;
+	}
+    }
+}
+
 static void
 sfnt_test_edge (struct sfnt_edge *edges, size_t num_edges,
 		void *dcontext)
@@ -11182,14 +11454,13 @@ sfnt_test_edge (struct sfnt_edge *edges, size_t num_edges,
   for (i = 0; i < num_edges; ++i)
     {
       printf ("/* edge x, top, bot: %g, %g - %g.  winding: %d */\n"
-	      "/* edge step_x: %g, source_x: %g (%d) */\n",
+	      "/* edge step_x: %g, sign: %d */\n",
 	      sfnt_coerce_fixed (edges[i].x),
 	      sfnt_coerce_fixed (edges[i].top),
 	      sfnt_coerce_fixed (edges[i].bottom),
 	      edges[i].winding,
 	      sfnt_coerce_fixed (edges[i].step_x),
-	      sfnt_coerce_fixed (edges[i].source_x),
-	      edges[i].source_x);
+	      edges[i].signed_step);
 #ifdef TEST_VERTEX
       printf ("ctx.fillRect (%g, %g, 1, 1);\n",
 	      sfnt_coerce_fixed (edges[i].x),
@@ -11203,9 +11474,131 @@ sfnt_test_edge (struct sfnt_edge *edges, size_t num_edges,
 #endif
     }
 
+  if (getenv ("SFNT_DEBUG_STEP"))
+    {
+      if (!fork ())
+	sfnt_debug_edges (edges, num_edges);
+    }
+
   printf ("==end of edges==\n");
 
   sfnt_poly_edges (edges, num_edges, sfnt_test_span, NULL);
+}
+
+static void
+sfnt_x_raster (struct sfnt_raster *raster)
+{
+  Display *display;
+  Window window;
+  Pixmap pixmap;
+  Picture glyph, drawable, solid;
+  int event_base, error_base;
+  int major, minor, *depths, count;
+  XRenderPictFormat *format, *glyph_format;
+  Visual *visual;
+  XImage image;
+  GC gc;
+  XGCValues gcvalues;
+  XEvent event;
+  XRenderColor white, black;
+  int i;
+
+  display = XOpenDisplay (NULL);
+
+  if (!display)
+    exit (0);
+
+  if (!XRenderQueryExtension (display, &event_base, &error_base)
+      || !XRenderQueryVersion (display, &major, &minor))
+    exit (0);
+
+  if (major == 0 && minor < 10)
+    exit (0);
+
+  window = XCreateSimpleWindow (display, DefaultRootWindow (display),
+				0, 0, 40, 40, 0, 0,
+				WhitePixel (display,
+					    DefaultScreen (display)));
+  XSelectInput (display, window, ExposureMask);
+  XMapWindow (display, window);
+
+  visual = DefaultVisual (display, DefaultScreen (display));
+  format = XRenderFindVisualFormat (display, visual);
+
+  if (!format)
+    exit (0);
+
+  glyph_format = XRenderFindStandardFormat (display, PictStandardA8);
+  depths = XListDepths (display, DefaultScreen (display), &count);
+
+  for (i = 0; i < count; ++i)
+    {
+      if (depths[i] == 8)
+	goto depth_found;
+    }
+
+  exit (0);
+
+ depth_found:
+
+  XFree (depths);
+  pixmap = XCreatePixmap (display, DefaultRootWindow (display),
+			  raster->width, raster->height, 8);
+
+  /* Upload the raster.  */
+  image.width = raster->width;
+  image.height = raster->height;
+  image.xoffset = 0;
+  image.format = ZPixmap;
+  image.data = (char *) raster->cells;
+  image.byte_order = MSBFirst;
+  image.bitmap_unit = 8;
+  image.bitmap_bit_order = LSBFirst;
+  image.bitmap_pad = SFNT_POLY_ALIGNMENT * 8;
+  image.depth = 8;
+  image.bytes_per_line = raster->stride;
+  image.bits_per_pixel = 8;
+  image.red_mask = 0;
+  image.green_mask = 0;
+  image.blue_mask = 0;
+
+  if (!XInitImage (&image))
+    abort ();
+
+  gc = XCreateGC (display, pixmap, 0, &gcvalues);
+  XPutImage (display, pixmap, gc, &image,
+	     0, 0, 0, 0, image.width, image.height);
+
+  drawable = XRenderCreatePicture (display, window, format,
+				   0, NULL);
+  glyph = XRenderCreatePicture (display, pixmap, glyph_format,
+				0, NULL);
+  memset (&black, 0, sizeof black);
+  black.alpha = 65535;
+
+  solid = XRenderCreateSolidFill (display, &black);
+
+  while (true)
+    {
+      XNextEvent (display, &event);
+
+      if (event.type == Expose)
+	{
+	  white.red = 65535;
+	  white.green = 65535;
+	  white.blue = 65535;
+	  white.alpha = 65535;
+
+	  /* Clear the background.  */
+	  XRenderFillRectangle (display, PictOpSrc, drawable,
+				&white, 0, 0, 65535, 65535);
+
+	  /* Draw the solid fill with the glyph as clip mask.  */
+	  XRenderComposite (display, PictOpOver, solid, glyph,
+			    drawable, 0, 0, 0, 0, 0, 0,
+			    raster->width, raster->height);
+	}
+    }
 }
 
 static void
@@ -11218,6 +11611,12 @@ sfnt_test_raster (struct sfnt_raster *raster)
       for (x = 0; x < raster->width; ++x)
 	printf ("%3d ", (int) raster->cells[y * raster->stride + x]);
       puts ("");
+    }
+
+  if (getenv ("SFNT_X"))
+    {
+      if (!fork ())
+	sfnt_x_raster (raster);
     }
 }
 
@@ -12060,7 +12459,7 @@ static struct sfnt_generic_test_args wcvtp_test_args =
 
 static struct sfnt_generic_test_args rcvt_test_args =
   {
-    (uint32_t []) { 135, },
+    (uint32_t []) { 136, },
     1,
     true,
     5,
@@ -12309,8 +12708,8 @@ static struct sfnt_generic_test_args jrof_test_args =
 
 static struct sfnt_generic_test_args deltac1_test_args =
   {
-    (uint32_t []) { ((50 * 17 * 65535 / 800) >> 10) + 8,
-		    ((50 * 17 * 65535 / 800) >> 10) + 8, },
+    (uint32_t []) { ((((50 * 17 * 65535) + 32767) / 800) >> 10) + 8,
+		    ((((50 * 17 * 65535) + 32767) / 800) >> 10) + 8, },
     2,
     false,
     22,
@@ -12318,8 +12717,8 @@ static struct sfnt_generic_test_args deltac1_test_args =
 
 static struct sfnt_generic_test_args deltac2_test_args =
   {
-    (uint32_t []) { ((50 * 17 * 65535 / 800) >> 10) + 8,
-		    ((50 * 17 * 65535 / 800) >> 10) + 8, },
+    (uint32_t []) { ((((50 * 17 * 65535) + 32767) / 800) >> 10) + 8,
+		    ((((50 * 17 * 65535) + 32767) / 800) >> 10) + 8, },
     2,
     false,
     22,
@@ -12327,8 +12726,8 @@ static struct sfnt_generic_test_args deltac2_test_args =
 
 static struct sfnt_generic_test_args deltac3_test_args =
   {
-    (uint32_t []) { ((50 * 17 * 65535 / 800) >> 10) + 8,
-		    ((50 * 17 * 65535 / 800) >> 10) + 8, },
+    (uint32_t []) { ((((50 * 17 * 65535) + 32767) / 800) >> 10) + 8,
+		    ((((50 * 17 * 65535) + 32767) / 800) >> 10) + 8, },
     2,
     false,
     22,
@@ -12489,8 +12888,8 @@ static struct sfnt_generic_test_args roll_test_args =
 
 static struct sfnt_generic_test_args roll_1_test_args =
   {
-    (uint32_t []) { },
-    0,
+    (uint32_t []) { 1, 2, },
+    2,
     true,
     3,
   };
@@ -13993,15 +14392,6 @@ static struct sfnt_interpreter_test all_tests[] =
 
 /* Instruction debugger.  */
 
-/* The debugger's X display.  */
-static Display *display;
-
-/* The debugger window.  */
-static Window window;
-
-/* The GC.  */
-static GC point_gc, background_gc;
-
 static void
 sfnt_setup_debugger (void)
 {
@@ -14383,6 +14773,13 @@ sfnt_run_hook (struct sfnt_interpreter *interpreter)
   pid_t pid;
   XEvent event;
 
+#ifdef TEST_BREAK_AFTER
+  static unsigned int instructions;
+
+  if (++instructions < TEST_BREAK_AFTER)
+    return;
+#endif
+
   pid = fork ();
 
   if (pid == 0)
@@ -14414,6 +14811,41 @@ sfnt_run_hook (struct sfnt_interpreter *interpreter)
     }
 }
 
+static struct sfnt_prep_table *exec_prep;
+static struct sfnt_fpgm_table *exec_fpgm;
+
+static const char *
+sfnt_identify_instruction (struct sfnt_interpreter *interpreter)
+{
+  static char buffer[256];
+  unsigned char *where;
+
+  where = interpreter->instructions + interpreter->IP;
+
+  if (exec_prep
+      && where >= exec_prep->instructions
+      && where < (exec_prep->instructions
+		  + exec_prep->num_instructions))
+    {
+      sprintf (buffer, "prep+%td",
+	       where - exec_prep->instructions);
+      return buffer;
+    }
+
+  if (exec_fpgm->instructions
+      && where >= exec_fpgm->instructions
+      && where < (exec_fpgm->instructions
+		  + exec_fpgm->num_instructions))
+    {
+      sprintf (buffer, "fpgm+%td",
+	       where - exec_fpgm->instructions);
+      return buffer;
+    }
+
+  sprintf (buffer, "IP+%td", where - interpreter->instructions);
+  return buffer;
+}
+
 static void
 sfnt_verbose (struct sfnt_interpreter *interpreter)
 {
@@ -14421,6 +14853,8 @@ sfnt_verbose (struct sfnt_interpreter *interpreter)
   struct sfnt_glyph_outline *outline;
   struct sfnt_raster *raster;
   unsigned char opcode;
+  const char *name;
+  static unsigned int instructions;
 
   /* Build a temporary outline containing the values of the
      interpreter's glyph zone.  */
@@ -14444,7 +14878,43 @@ sfnt_verbose (struct sfnt_interpreter *interpreter)
   xfree (raster);
 
   opcode = interpreter->instructions[interpreter->IP];
-  printf ("opcode: %s\n", sfnt_name_instruction (opcode));
+  printf ("opcode, number of instructions: %s %u\n",
+	  sfnt_name_instruction (opcode), instructions++);
+  printf ("instruction: %s\n",
+	  sfnt_identify_instruction (interpreter));
+
+  if (interpreter->state.project
+      == sfnt_project_onto_x_axis_vector)
+    name = "X axis";
+  else if (interpreter->state.project
+	   == sfnt_project_onto_y_axis_vector)
+    name = "Y axis";
+  else
+    name = "Any";
+
+  printf ("projection function: %s\n", name);
+}
+
+static void
+sfnt_push_hook (struct sfnt_interpreter *interpreter,
+		uint32_t value)
+{
+  int32_t alternate;
+
+  alternate = value;
+
+  fprintf (stderr, "--> %"PRIi32"\n", alternate);
+}
+
+static void
+sfnt_pop_hook (struct sfnt_interpreter *interpreter,
+	       uint32_t value)
+{
+  int32_t alternate;
+
+  alternate = value;
+
+  fprintf (stderr, "<<- %"PRIi32"\n", alternate);
 }
 
 
@@ -14473,7 +14943,7 @@ sfnt_verbose (struct sfnt_interpreter *interpreter)
     -Wno-missing-field-initializers -Wno-override-init
     -Wno-sign-compare -Wno-type-limits -Wno-unused-parameter
     -Wno-format-nonliteral -Wno-bidi-chars -g3 -O0 -DTEST sfnt.c -o
-    sfnt ../lib/libgnu.a -lX11
+    sfnt ../lib/libgnu.a -lX11 -lXrender
 
    after gnulib has been built.  Then, run ./sfnt
    /path/to/font.ttf.  */
@@ -14496,7 +14966,7 @@ main (int argc, char **argv)
   sfnt_glyph code;
   struct sfnt_test_dcontext dcontext;
   struct sfnt_glyph_outline *outline;
-  struct timespec start, end, sub, sub1, sub2;
+  struct timespec start, end, sub, sub1, sub2, sub3;
   static struct sfnt_maxp_table *maxp;
   struct sfnt_raster *raster;
   struct sfnt_hmtx_table *hmtx;
@@ -14613,6 +15083,9 @@ main (int argc, char **argv)
   prep = sfnt_read_prep_table (fd, font);
   hmtx = NULL;
 
+  exec_prep = prep;
+  exec_fpgm = fpgm;
+
   if (head && maxp && maxp->version >= 0x00010000)
     {
       fprintf (stderr, "creating interpreter\n"
@@ -14696,7 +15169,7 @@ main (int argc, char **argv)
 	       "checksum_adjustment: \t\t%"PRIu32"\n"
 	       "magic: \t\t\t\t%"PRIx32"\n"
 	       "flags: \t\t\t\t%"PRIx16"\n"
-	       "units_per_em: \t\t\t%"PRIx16"\n"
+	       "units_per_em: \t\t\t%"PRIu16"\n"
 	       "xmin, ymin, xmax, ymax: \t%d, %d, %d, %d\n"
 	       "mac_style: \t\t\t%"PRIx16"\n"
 	       "lowest_rec_ppem: \t\t%"PRIu16"\n"
@@ -14848,7 +15321,7 @@ main (int argc, char **argv)
 
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 
-		  for (i = 0; i < 400; ++i)
+		  for (i = 0; i < 1; ++i)
 		    {
 		      xfree (raster);
 		      raster = sfnt_raster_glyph_outline (outline);
@@ -14886,7 +15359,11 @@ main (int argc, char **argv)
 		      if (getenv ("SFNT_DEBUG"))
 			interpreter->run_hook = sfnt_run_hook;
 		      else if (getenv ("SFNT_VERBOSE"))
-			interpreter->run_hook = sfnt_verbose;
+			{
+			  interpreter->run_hook = sfnt_verbose;
+			  interpreter->push_hook = sfnt_push_hook;
+			  interpreter->pop_hook = sfnt_pop_hook;
+			}
 
 		      if (glyph->simple
 			  && sfnt_lookup_glyph_metrics (code, -1,
@@ -14896,8 +15373,11 @@ main (int argc, char **argv)
 			{
 			  printf ("interpreting glyph\n");
 			  interpreter->state = state;
+			  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 			  trap = sfnt_interpret_simple_glyph (glyph, interpreter,
 							      &metrics, &value);
+			  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &end);
+			  sub3 = timespec_sub (end, start);
 
 			  if (trap)
 			    printf ("**TRAP**: %s\n", trap);
@@ -14920,6 +15400,9 @@ main (int argc, char **argv)
 				    }
 				}
 			    }
+
+			  fprintf (stderr, "execution time: %lld sec %ld nsec\n",
+				   (long long) sub3.tv_sec, sub3.tv_nsec);
 			}
 
 		      interpreter->run_hook = NULL;
@@ -14931,7 +15414,7 @@ main (int argc, char **argv)
 	      printf ("time spent building edges: %lld sec %ld nsec\n",
 		      (long long) sub1.tv_sec, sub1.tv_nsec);
 	      printf ("time spent rasterizing: %lld sec %ld nsec\n",
-		      (long long) sub2.tv_sec / 400, sub2.tv_nsec / 400);
+		      (long long) sub2.tv_sec / 1, sub2.tv_nsec / 1);
 
 	      xfree (outline);
 	    }
