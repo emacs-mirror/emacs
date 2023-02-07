@@ -303,20 +303,22 @@ Return nil if there is no name or if NODE is not a defun node."
   (c-ts-common-comment-setup)
 
   ;; Indent.
-  (setq-local c-ts-common-indent-block-type-regexp
-              (regexp-opt '("class_body"
-                            "array_initializer"
-                            "constructor_body"
-                            "annotation_type_body"
-                            "interface_body"
-                            "enum_body"
-                            "switch_block"
-                            "record_declaration_body"
-                            "block")))
-  (setq-local c-ts-common-indent-bracketless-type-regexp
-              (regexp-opt '("if_statement"
-                            "for_statement"
-                            "while_statement")))
+  (setq-local c-ts-common-indent-type-regexp-alist
+              `((block . ,(rx (or "class_body"
+                                  "array_initializer"
+                                  "constructor_body"
+                                  "annotation_type_body"
+                                  "interface_body"
+                                  "enum_body"
+                                  "switch_block"
+                                  "record_declaration_body"
+                                  "block")))
+                (close-bracket . "}")
+                (if . "if_statement")
+                (else . ("if_statement" . "alternative"))
+                (for . "for_statement")
+                (while . "while_statement")
+                (do . "do_statement")))
   (setq-local c-ts-common-indent-offset 'java-ts-mode-indent-offset)
   (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)
 
