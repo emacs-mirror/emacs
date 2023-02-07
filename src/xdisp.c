@@ -12448,7 +12448,7 @@ display_echo_area (struct window *w)
      reset the echo_area_buffer in question to nil at the end because
      with_echo_area_buffer will set it to an empty buffer.  */
   bool i = display_last_displayed_message_p;
-  /* According to the C99, C11 and C++11 standards, the integral value
+  /* According to the C standard, the integral value
      of a "bool" is always 0 or 1, so this array access is safe here,
      if oddly typed. */
   no_message_p = NILP (echo_area_buffer[i]);

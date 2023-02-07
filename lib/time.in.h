@@ -112,12 +112,24 @@ struct __time_t_must_be_integral {
 /* Set *TS to the current time, and return BASE.
    Upon failure, return 0.  */
 # if @GNULIB_TIMESPEC_GET@
-#  if ! @HAVE_TIMESPEC_GET@
+#  if @REPLACE_TIMESPEC_GET@
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef timespec_get
+#    define timespec_get rpl_timespec_get
+#   endif
+_GL_FUNCDECL_RPL (timespec_get, int, (struct timespec *ts, int base)
+                                     _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (timespec_get, int, (struct timespec *ts, int base));
+#  else
+#   if !@HAVE_TIMESPEC_GET@
 _GL_FUNCDECL_SYS (timespec_get, int, (struct timespec *ts, int base)
                                      _GL_ARG_NONNULL ((1)));
-#  endif
+#   endif
 _GL_CXXALIAS_SYS (timespec_get, int, (struct timespec *ts, int base));
+#  endif
+#  if __GLIBC__ >= 2
 _GL_CXXALIASWARN (timespec_get);
+#  endif
 # endif
 
 /* Set *TS to the current time resolution, and return BASE.
@@ -423,7 +435,9 @@ _GL_FUNCDECL_SYS (timegm, time_t, (struct tm *__tm) _GL_ARG_NONNULL ((1)));
 #   endif
 _GL_CXXALIAS_SYS (timegm, time_t, (struct tm *__tm));
 #  endif
+#  if __GLIBC__ >= 2
 _GL_CXXALIASWARN (timegm);
+#  endif
 # endif
 
 /* Encourage applications to avoid unsafe functions that can overrun

@@ -3546,9 +3546,18 @@ This function is intended for use in `after-change-functions'."
              (identifier)
              @font-lock-function-name-face)
       value: (array (number) (function)))
+     ;; full module imports
      (import_clause (identifier) @font-lock-variable-name-face)
-     (import_clause (named_imports (import_specifier (identifier))
-                                   @font-lock-variable-name-face)))
+     ;; named imports with aliasing
+     (import_clause (named_imports (import_specifier
+                                    alias: (identifier) @font-lock-variable-name-face)))
+     ;; named imports without aliasing
+     (import_clause (named_imports (import_specifier
+                                    !alias
+                                    name: (identifier) @font-lock-variable-name-face)))
+
+     ;; full namespace import (* as alias)
+     (import_clause (namespace_import (identifier) @font-lock-variable-name-face)))
 
    :language 'javascript
    :feature 'property

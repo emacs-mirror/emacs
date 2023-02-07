@@ -477,7 +477,7 @@ the result will be a local, non-Tramp, file name."
 	    "" (file-name-unquote localname)))
        (mapcar
 	(lambda (f)
-	  (if (file-directory-p (expand-file-name f directory))
+	  (if (ignore-errors (file-directory-p (expand-file-name f directory)))
 	      (file-name-as-directory f)
 	    f))
 	(delq

@@ -1,4 +1,4 @@
-# stpcpy.m4 serial 9
+# stpcpy.m4 serial 11
 dnl Copyright (C) 2002, 2007, 2009-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -13,9 +13,12 @@ AC_DEFUN([gl_FUNC_STPCPY],
   AC_REQUIRE([AC_C_RESTRICT])
 
   AC_REQUIRE([gl_STRING_H_DEFAULTS])
-  AC_CHECK_FUNCS([stpcpy])
+  gl_CHECK_FUNCS_ANDROID([stpcpy], [[#include <string.h>]])
   if test $ac_cv_func_stpcpy = no; then
     HAVE_STPCPY=0
+    case "$gl_cv_onwards_func_stpcpy" in
+      future*) REPLACE_STPCPY=1 ;;
+    esac
   fi
 ])
 

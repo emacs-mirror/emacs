@@ -213,8 +213,16 @@ function being an around advice."
     (should (equal (cl-prin1-to-string (car x))
                    "#f(advice first :before #f(advice car :after cdr))"))))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
+(ert-deftest advice-test-bug61179 ()
+  (let* ((magic 42)
+         (ad (lambda (&rest _)
+               (interactive (lambda (is)
+                              (cons magic (advice-eval-interactive-spec is))))
+               nil))
+         (sym (make-symbol "adtest")))
+    (defalias sym (lambda (&rest args) (interactive (list 'main)) args))
+    (should (equal (call-interactively sym) '(main)))
+    (advice-add sym :before ad)
+    (should (equal (call-interactively sym) '(42 main)))))
 
 ;;; nadvice-tests.el ends here

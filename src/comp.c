@@ -614,7 +614,7 @@ load_gccjit_if_necessary (bool mandatory)
 #define SETJMP_NAME SETJMP
 
 /* Max number function importable by native compiled code.  */
-#define F_RELOC_MAX_SIZE 1500
+#define F_RELOC_MAX_SIZE 1600
 
 typedef struct {
   void *link_table[F_RELOC_MAX_SIZE];
@@ -8636,6 +8636,3 @@ file -> CU.  */);
 
   defsubr (&Snative_comp_available_p);
 }
-/* Local Variables: */
-/* c-file-offsets: ((arglist-intro . +)) */
-/* End: */

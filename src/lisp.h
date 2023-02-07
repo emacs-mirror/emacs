@@ -274,7 +274,7 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
    emacs_align_type union in alloc.c.
 
    Although these macros are reasonably portable, they are not
-   guaranteed on non-GCC platforms, as C11 does not require support
+   guaranteed on non-GCC platforms, as the C standard does not require support
    for alignment to GCALIGNMENT and older compilers may ignore
    alignment requests.  For any type T where garbage collection
    requires alignment, use verify (GCALIGNED (T)) to verify the
@@ -3015,9 +3015,10 @@ XFLOAT_DATA (Lisp_Object f)
 /* Most hosts nowadays use IEEE floating point, so they use IEC 60559
    representations, have infinities and NaNs, and do not trap on
    exceptions.  Define IEEE_FLOATING_POINT to 1 if this host is one of the
-   typical ones.  The C11 macro __STDC_IEC_559__ is close to what is
+   typical ones.  The C23 macro __STDC_IEC_60559_BFP__ (or its
+   obsolescent C11 counterpart __STDC_IEC_559__) is close to what is
    wanted here, but is not quite right because Emacs does not require
-   all the features of C11 Annex F (and does not require C11 at all,
+   all the features of C23 Annex F (and does not require C11 or later,
    for that matter).  */
 
 #define IEEE_FLOATING_POINT (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
@@ -4875,6 +4876,9 @@ extern ptrdiff_t find_newline_no_quit (ptrdiff_t, ptrdiff_t,
 				       ptrdiff_t, ptrdiff_t *);
 extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t,
 					   ptrdiff_t, ptrdiff_t *);
+extern EMACS_INT search_buffer (Lisp_Object, ptrdiff_t, ptrdiff_t,
+				ptrdiff_t, ptrdiff_t, EMACS_INT,
+				int, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_search (void);
 extern void clear_regexp_cache (void);
 

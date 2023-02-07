@@ -76,12 +76,9 @@ Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
 that you make with this function."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
-  (interactive
-   (let* ((menu-prompting nil)
-          (key (read-key-sequence "Set key globally: " nil t)))
-     (list key
-           (read-command (format "Set key %s to command: "
-                                 (key-description key))))))
+  (interactive "KSet key globally:\nCSet key %s globally to command: ")
+  (unless (stringp key)
+    (setq key (key-description key)))
   (keymap-set (current-global-map) key command))
 
 (defun keymap-local-set (key command)
@@ -94,10 +91,12 @@ KEY is a string that satisfies `key-valid-p'.
 The binding goes in the current buffer's local map, which in most
 cases is shared with all other buffers in the same major mode."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
-  (interactive "KSet key locally: \nCSet key %s locally to command: ")
+  (interactive "KSet key locally:\nCSet key %s locally to command: ")
   (let ((map (current-local-map)))
     (unless map
       (use-local-map (setq map (make-sparse-keymap))))
+    (unless (stringp key)
+      (setq key (key-description key)))
     (keymap-set map key command)))
 
 (defun keymap-global-unset (key &optional remove)
@@ -108,7 +107,7 @@ If REMOVE (interactively, the prefix arg), remove the binding
 instead of unsetting it.  See `keymap-unset' for details."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
-   (list (key-description (read-key-sequence "Set key locally: "))
+   (list (key-description (read-key-sequence "Unset key globally: "))
          current-prefix-arg))
   (keymap-unset (current-global-map) key remove))
 
@@ -291,26 +290,26 @@ See `kbd' for a descripion of KEYS."
       res)))
 
 (defun key-valid-p (keys)
-  "Say whether KEYS is a valid key.
-A key is a string consisting of one or more key strokes.
-The key strokes are separated by single space characters.
+  "Return non-nil if KEYS, a string, is a valid key sequence.
+KEYS should be a string consisting of one or more key strokes,
+with a single space character separating one key stroke from another.
 
 Each key stroke is either a single character, or the name of an
-event, surrounded by angle brackets.  In addition, any key stroke
-may be preceded by one or more modifier keys.  Finally, a limited
-number of characters have a special shorthand syntax.
+event, surrounded by angle brackets <like-this>.  In addition, any
+key stroke may be preceded by one or more modifier keys.  Finally,
+a limited number of characters have a special shorthand syntax.
 
-Here's some example key sequences.
+Here are some example of valid key sequences.
 
   \"f\"           (the key `f')
-  \"S o m\"       (a three key sequence of the keys `S', `o' and `m')
-  \"C-c o\"       (a two key sequence of the keys `c' with the control modifier
-                 and then the key `o')
-  \"H-<left>\"    (the key named \"left\" with the hyper modifier)
+  \"S o m\"       (a three-key sequence of the keys `S', `o' and `m')
+  \"C-c o\"       (a two-key sequence: the key `c' with the control modifier
+                 followed by the key `o')
+  \"H-<left>\"    (the function key named \"left\" with the hyper modifier)
   \"M-RET\"       (the \"return\" key with a meta modifier)
   \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)
 
-These are the characters that have shorthand syntax:
+These are the characters that have special shorthand syntax:
 NUL, RET, TAB, LFD, ESC, SPC, DEL.
 
 Modifiers have to be specified in this order:
@@ -359,7 +358,7 @@ which is
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it.
 
-Both KEY and TO are strings that satisfy `key-valid-p'."
+Both KEY and TO should be specified by strings that satisfy `key-valid-p'."
   (declare (compiler-macro
             (lambda (form) (keymap--compile-check from to) form)))
   (keymap--check from)
@@ -370,7 +369,7 @@ Both KEY and TO are strings that satisfy `key-valid-p'."
   (aset keyboard-translate-table (key-parse from) (key-parse to)))
 
 (defun keymap-lookup (keymap key &optional accept-default no-remap position)
-  "Return the binding for command KEY.
+  "Return the binding for command KEY in KEYMAP.
 KEY is a string that satisfies `key-valid-p'.
 
 If KEYMAP is nil, look up in the current keymaps.  If non-nil, it
@@ -392,15 +391,15 @@ in the current keymaps.  However, if the optional third argument
 NO-REMAP is non-nil, `keymap-lookup' returns the unmapped
 command.
 
-If KEY is a key sequence initiated with the mouse, the used keymaps
-will depend on the clicked mouse position with regard to the buffer
-and possible local keymaps on strings.
+If KEY is a mouse gesture, the keymaps used depend on the clicked
+mouse position with regards to the buffer, and local keymaps, if any,
+on display and overlay strings.
 
 If the optional argument POSITION is non-nil, it specifies a mouse
 position as returned by `event-start' and `event-end', and the lookup
 occurs in the keymaps associated with it instead of KEY.  It can also
 be a number or marker, in which case the keymap properties at the
-specified buffer position instead of point are used."
+specified buffer position are used instead of point."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (when (and keymap position)
@@ -476,7 +475,7 @@ If MESSAGE (and interactively), message the result."
 
 (defun define-keymap (&rest definitions)
   "Create a new keymap and define KEY/DEFINITION pairs as key bindings.
-The new keymap is returned.
+Return the new keymap.
 
 Options can be given as keywords before the KEY/DEFINITION
 pairs.  Available keywords are:

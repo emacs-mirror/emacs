@@ -18,7 +18,7 @@ To configure Git for Emacs development, you can run the following:
 
 The following shell commands then build and run Emacs from scratch:
 
-	git clone git://git.sv.gnu.org/emacs.git
+	git clone https://git.savannah.gnu.org/git/emacs.git
 	cd emacs
 	./autogen.sh
 	./configure

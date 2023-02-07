@@ -94,13 +94,6 @@ a non-nil value, will be passed strings, not numbers, even when an
 argument matches `eshell-number-regexp'."
   :type 'boolean)
 
-(defcustom eshell-number-regexp "-?\\([0-9]*\\.\\)?[0-9]+\\(e[-0-9.]+\\)?"
-  "Regular expression used to match numeric arguments.
-If `eshell-convert-numeric-arguments' is non-nil, and an argument
-matches this regexp, it will be converted to a Lisp number, using the
-function `string-to-number'."
-  :type 'regexp)
-
 (defcustom eshell-ange-ls-uids nil
   "List of user/host/id strings, used to determine remote ownership."
   :type '(repeat (cons :tag "Host for User/UID map"
@@ -110,6 +103,22 @@ function `string-to-number'."
 				     (repeat :tag "UIDs" string))))))
 
 ;;; Internal Variables:
+
+(defvar eshell-number-regexp
+  (rx (? "-")
+      (or (seq (+ digit) (? "." (* digit)))
+          (seq (* digit) "." (+ digit)))
+      ;; Optional exponent
+      (? (or "e" "E")
+         (or "+INF" "+NaN"
+             (seq (? (or "+" "-")) (+ digit)))))
+  "Regular expression used to match numeric arguments.
+If `eshell-convert-numeric-arguments' is non-nil, and an argument
+matches this regexp, it will be converted to a Lisp number, using the
+function `string-to-number'.")
+
+(defvar eshell-integer-regexp (rx (? "-") (+ digit))
+  "Regular expression used to match integer arguments.")
 
 (defvar eshell-group-names nil
   "A cache to hold the names of groups.")

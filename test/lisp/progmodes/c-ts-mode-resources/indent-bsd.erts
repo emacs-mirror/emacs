@@ -1,9 +1,9 @@
 Code:
   (lambda ()
-    (setq indent-tabs-mode nil)
-    (setq c-ts-mode-indent-offset 2)
-    (setq c-ts-mode-indent-style 'bsd)
     (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 2)
+    (c-ts-mode-set-local-style 'bsd)
     (indent-region (point-min) (point-max)))
 
 Point-Char: |

@@ -44,6 +44,7 @@ AC_DEFUN([gl_EARLY],
 
   # Code from module absolute-header:
   # Code from module acl-permissions:
+  # Code from module alignasof:
   # Code from module alloca-opt:
   # Code from module allocator:
   # Code from module assert-h:
@@ -170,7 +171,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module ssize_t:
   # Code from module stat-time:
   # Code from module std-gnu11:
-  # Code from module stdalign:
   # Code from module stdbool:
   # Code from module stdckdint:
   # Code from module stddef:
@@ -231,6 +231,7 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
   gl_source_base_prefix=
   gl_FUNC_ACL
+  gl_ALIGNASOF
   gl_FUNC_ALLOCA
   gl_CONDITIONAL_HEADER([alloca.h])
   AC_PROG_MKDIR_P
@@ -248,7 +249,7 @@ AC_DEFUN([gl_INIT],
   gl_STDLIB_MODULE_INDICATOR([canonicalize_file_name])
   gl_STDLIB_MODULE_INDICATOR([realpath])
   AC_REQUIRE([AC_C_RESTRICT])
-  AC_CHECK_FUNCS_ONCE([readlinkat])
+  gl_CHECK_FUNCS_ANDROID([readlinkat], [[#include <unistd.h>]])
   gl_CLOCK_TIME
   gl_MODULE_INDICATOR([close-stream])
   gl_FUNC_COPY_FILE_RANGE
@@ -344,7 +345,8 @@ AC_DEFUN([gl_INIT],
   gl_SYS_STAT_MODULE_INDICATOR([futimens])
   AC_REQUIRE([AC_CANONICAL_HOST])
   gl_GETLOADAVG
-  gl_CONDITIONAL([GL_COND_OBJ_GETLOADAVG], [test $HAVE_GETLOADAVG = 0])
+  gl_CONDITIONAL([GL_COND_OBJ_GETLOADAVG],
+                 [test $HAVE_GETLOADAVG = 0 || test $REPLACE_GETLOADAVG = 1])
   AM_COND_IF([GL_COND_OBJ_GETLOADAVG], [
     gl_PREREQ_GETLOADAVG
   ])
@@ -404,7 +406,8 @@ AC_DEFUN([gl_INIT],
   fi
   gl_STRING_MODULE_INDICATOR([memmem])
   gl_FUNC_MEMPCPY
-  gl_CONDITIONAL([GL_COND_OBJ_MEMPCPY], [test $HAVE_MEMPCPY = 0])
+  gl_CONDITIONAL([GL_COND_OBJ_MEMPCPY],
+                 [test $HAVE_MEMPCPY = 0 || test $REPLACE_MEMPCPY = 1])
   AM_COND_IF([GL_COND_OBJ_MEMPCPY], [
     gl_PREREQ_MEMPCPY
   ])
@@ -423,7 +426,8 @@ AC_DEFUN([gl_INIT],
   gl_STRING_MODULE_INDICATOR([memset_explicit])
   gl_MINMAX
   gl_FUNC_MKOSTEMP
-  gl_CONDITIONAL([GL_COND_OBJ_MKOSTEMP], [test $HAVE_MKOSTEMP = 0])
+  gl_CONDITIONAL([GL_COND_OBJ_MKOSTEMP],
+                 [test $HAVE_MKOSTEMP = 0 || test $REPLACE_MKOSTEMP = 1])
   AM_COND_IF([GL_COND_OBJ_MKOSTEMP], [
     gl_PREREQ_MKOSTEMP
   ])
@@ -495,9 +499,6 @@ AC_DEFUN([gl_INIT],
   gt_TYPE_SSIZE_T
   gl_STAT_TIME
   gl_STAT_BIRTHTIME
-  gl_STDALIGN_H
-  gl_CONDITIONAL_HEADER([stdalign.h])
-  AC_PROG_MKDIR_P
   gl_C_BOOL
   AC_CHECK_HEADERS_ONCE([stdckdint.h])
   if test $ac_cv_header_stdckdint_h = yes; then
@@ -548,7 +549,8 @@ AC_DEFUN([gl_INIT],
   gl_STDLIB_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
   gl_FUNC_STPCPY
-  gl_CONDITIONAL([GL_COND_OBJ_STPCPY], [test $HAVE_STPCPY = 0])
+  gl_CONDITIONAL([GL_COND_OBJ_STPCPY],
+                 [test $HAVE_STPCPY = 0 || test $REPLACE_STPCPY = 1])
   AM_COND_IF([GL_COND_OBJ_STPCPY], [
     gl_PREREQ_STPCPY
   ])
@@ -973,7 +975,7 @@ AC_DEFUN([gl_INIT],
   if test $HAVE_FUTIMENS = 0 || test $REPLACE_FUTIMENS = 1; then
     func_gl_gnulib_m4code_utimens
   fi
-  if case $host_os in mingw*) false;; *) test $HAVE_GETLOADAVG = 0;; esac; then
+  if case $host_os in mingw*) false;; *) test $HAVE_GETLOADAVG = 0 || test $REPLACE_GETLOADAVG = 1;; esac; then
     func_gl_gnulib_m4code_open
   fi
   if test $REPLACE_GETOPT = 1; then
@@ -1371,7 +1373,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/signal.in.h
   lib/stat-time.c
   lib/stat-time.h
-  lib/stdalign.in.h
   lib/stdckdint.in.h
   lib/stddef.in.h
   lib/stdint.in.h

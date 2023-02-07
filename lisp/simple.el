@@ -2738,7 +2738,8 @@ instead."
   nil)
 
 (cl-defmethod oclosure-interactive-form ((f cconv--interactive-helper))
-  `(interactive (funcall ',(cconv--interactive-helper--if f))))
+  (let ((if (cconv--interactive-helper--if f)))
+    `(interactive ,(if (functionp if) `(funcall ',if) if))))
 
 (defun command-execute (cmd &optional record-flag keys special)
   ;; BEWARE: Called directly from the C code.
@@ -4554,6 +4555,9 @@ If the output is short enough to display in the echo area
 \(determined by the variable `max-mini-window-height' if
 `resize-mini-windows' is non-nil), it is shown there.
 Otherwise, the buffer containing the output is displayed.
+Note that if `shell-command-dont-erase-buffer' is non-nil,
+the echo area could display more than just the output of the
+last command.
 
 If there is output and an error, and you did not specify \"insert it
 in the current buffer\", a message about the error goes at the end
@@ -4848,6 +4852,9 @@ If the output is short enough to display in the echo area
 `resize-mini-windows' is non-nil), it is shown there.
 Otherwise it is displayed in the buffer named by `shell-command-buffer-name'.
 The output is available in that buffer in both cases.
+Note that if `shell-command-dont-erase-buffer' is non-nil,
+the echo area could display more than just the output of the
+last command.
 
 If there is output and an error, a message about the error
 appears at the end of the output.
@@ -5865,6 +5872,25 @@ The value 0 disables blinking."
   :group 'killing
   :version "28.1")
 
+(defcustom copy-region-blink-predicate #'region-indistinguishable-p
+  "Whether the cursor must be blinked after a copy.
+When this condition holds, and the copied region fits in the
+current window, `kill-ring-save' will blink the cursor between
+point and mark for `copy-region-blink-delay' seconds."
+  :type '(radio (function-item region-indistinguishable-p)
+                (function-item :doc "Always blink point and mark." always)
+                (function-item :doc "Never blink point and mark." ignore)
+                (function :tag "Other predicate function"))
+  :group 'killing
+  :version "29.1")
+
+(defun region-indistinguishable-p ()
+  "Whether the current region is not denoted visually.
+This holds when the region is inactive, or when the `region' face
+cannot be distinguished from the `default' face."
+  (not (and (region-active-p)
+            (face-differs-from-default-p 'region))))
+
 (defun indicate-copied-region (&optional message-len)
   "Indicate that the region text has been copied interactively.
 If the mark is visible in the selected window, blink the cursor between
@@ -5885,8 +5911,7 @@ of this sample text; it defaults to 40."
 	;; was selected.  Don't do it if the region is highlighted.
 	(when (and (numberp copy-region-blink-delay)
 		   (> copy-region-blink-delay 0)
-		   (or (not (region-active-p))
-		       (not (face-background 'region nil t))))
+		   (funcall copy-region-blink-predicate))
 	  ;; Swap point and mark.
 	  (set-marker (mark-marker) (point) (current-buffer))
 	  (goto-char mark)

@@ -1330,9 +1330,10 @@ elements are present."
 		      (1- nyear)
 		    nyear))
 	  (setq dmonth 1))))
-    (format-time-string
-     "%e-%b-%Y"
-     (encode-time 0 0 0 dday dmonth dyear))))
+    (with-locale-environment "C"
+     (format-time-string
+      "%e-%b-%Y"
+      (encode-time 0 0 0 dday dmonth dyear)))))
 
 (cl-defmethod gnus-search-imap-handle-string ((engine gnus-search-imap)
 					      (str string))

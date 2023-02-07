@@ -37,6 +37,7 @@
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
 
 (defcustom rust-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `rust-ts-mode'."
@@ -275,6 +276,28 @@ Return nil if there is no name or if NODE is not a defun node."
      (treesit-node-text
       (treesit-node-child-by-field-name node "name") t))))
 
+(defun rust-ts-mode--syntax-propertize (beg end)
+  "Apply syntax text property to template delimiters between BEG and END.
+
+< and > are usually punctuation, e.g., as greater/less-than.  But
+when used for types, they should be considered pairs.
+
+This function checks for < and > in the changed RANGES and apply
+appropriate text property to alter the syntax of template
+delimiters < and >'s."
+  (goto-char beg)
+  (while (re-search-forward (rx (or "<" ">")) end t)
+    (pcase (treesit-node-type
+            (treesit-node-parent
+             (treesit-node-at (match-beginning 0))))
+      ("type_arguments"
+       (put-text-property (match-beginning 0)
+                          (match-end 0)
+                          'syntax-table
+                          (pcase (char-before)
+                            (?< '(4 . ?>))
+                            (?> '(5 . ?<))))))))
+
 ;;;###autoload
 (define-derived-mode rust-ts-mode prog-mode "Rust"
   "Major mode for editing Rust, powered by tree-sitter."
@@ -283,6 +306,10 @@ Return nil if there is no name or if NODE is not a defun node."
 
   (when (treesit-ready-p 'rust)
     (treesit-parser-create 'rust)
+
+    ;; Syntax.
+    (setq-local syntax-propertize-function
+                #'rust-ts-mode--syntax-propertize)
 
     ;; Comments.
     (c-ts-common-comment-setup)

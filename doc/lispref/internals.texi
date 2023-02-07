@@ -732,14 +732,15 @@ Emacs session.
 @section C Dialect
 @cindex C programming language
 
-The C part of Emacs is portable to C99 or later: C11-specific features such
-as @samp{<stdalign.h>} and @samp{_Noreturn} are not used without a check,
+The C part of Emacs is portable to C99 or later: later C features such
+as @samp{<stdckdint.h>} and @samp{[[noreturn]]} are not used without a check,
 typically at configuration time, and the Emacs build procedure
-provides a substitute implementation if necessary.  Some C11 features,
+provides a substitute implementation if necessary.  Some later features,
 such as anonymous structures and unions, are too difficult to emulate,
 so they are avoided entirely.
 
-At some point in the future the base C dialect will no doubt change to C11.
+At some point in the future the base C dialect will no doubt change to
+something later than C99.
 
 @node Writing Emacs Primitives
 @section Writing Emacs Primitives
@@ -894,15 +895,17 @@ Currently, only the following attributes are recognized:
 @table @code
 @item noreturn
 Declares the C function as one that never returns.  This corresponds
-to the C11 keyword @code{_Noreturn} and to @w{@code{__attribute__
-((__noreturn__))}} attribute of GCC (@pxref{Function Attributes,,,
-gcc, Using the GNU Compiler Collection}).
+to C23's @code{[[noreturn]]}, to C11's @code{_Noreturn}, and to GCC's
+@w{@code{__attribute__ ((__noreturn__))}} (@pxref{Function
+Attributes,,, gcc, Using the GNU Compiler Collection}).  (Internally,
+Emacs's own C code uses @code{_Noreturn} as it can be defined as a
+macro on C platforms that do not support it.)
 
 @item const
 Declares that the function does not examine any values except its
 arguments, and has no effects except the return value.  This
-corresponds to @w{@code{__attribute__ ((__const__))}} attribute of
-GCC.
+corresponds to C23's @code{[[unsequenced]]} and to GCC's
+@w{@code{__attribute__ ((__const__))}}.
 
 @item noinline
 This corresponds to @w{@code{__attribute__ ((__noinline__))}}

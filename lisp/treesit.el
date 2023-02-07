@@ -87,6 +87,7 @@
 (declare-function treesit-search-subtree "treesit.c")
 (declare-function treesit-search-forward "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-subtree-stat "treesit.c")
 
 (declare-function treesit-available-p "treesit.c")
 
@@ -554,7 +555,27 @@ omitted, default END to BEG."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
-(defvar-local treesit-font-lock-level 3
+(defun treesit--font-lock-level-setter (sym val)
+  "Custom setter for `treesit-font-lock-level'."
+  (set-default sym val)
+  (and (treesit-available-p)
+       (named-let loop ((res nil)
+                        (buffers (buffer-list)))
+         (if (null buffers)
+             (mapc (lambda (b)
+                     (with-current-buffer b
+                       (setq-local treesit-font-lock-level val)
+                       (treesit-font-lock-recompute-features)
+                       (treesit-font-lock-fontify-region (point-min)
+                                                         (point-max))))
+                   res)
+           (let ((buffer (car buffers)))
+             (with-current-buffer buffer
+               (if (treesit-parser-list)
+                   (loop (append res (list buffer)) (cdr buffers))
+                 (loop res (cdr buffers)))))))))
+
+(defcustom treesit-font-lock-level 3
   "Decoration level to be used by tree-sitter fontifications.
 
 Major modes categorize their fontification features into levels,
@@ -562,16 +583,24 @@ from 1 which is the absolute minimum, to 4 that yields the maximum
 fontifications.
 
 Level 1 usually contains only comments and definitions.
-Level 2 usually adds keywords, strings, constants, types, etc.
-Level 3 usually represents a full-blown fontification, including
-assignment, constants, numbers, properties, etc.
+Level 2 usually adds keywords, strings, data types, etc.
+Level 3 usually represents full-blown fontifications, including
+assignments, constants, numbers and literals, properties, etc.
 Level 4 adds everything else that can be fontified: delimiters,
-operators, brackets, all functions and variables, etc.
+operators, brackets, punctuation, all functions and variables, etc.
 
 In addition to the decoration level, individual features can be
 turned on/off by calling `treesit-font-lock-recompute-features'.
 Changing the decoration level requires calling
-`treesit-font-lock-recompute-features' to have an effect.")
+`treesit-font-lock-recompute-features' to have an effect, unless
+done via `customize-variable'.
+
+To see which syntactical categories are fontified by each level
+in a particular major mode, examine the buffer-local value of the
+variable `treesit-font-lock-feature-list'."
+  :type 'integer
+  :set #'treesit--font-lock-level-setter
+  :version "29.1")
 
 (defvar-local treesit--font-lock-query-expand-range (cons 0 0)
   "The amount to expand the start and end of the region when fontifying.
@@ -892,26 +921,19 @@ LIMIT is the recursion limit, which defaults to 100."
             (push r result))
         (push child result))
       (setq child (treesit-node-next-sibling child)))
-    ;; If NODE has no child, keep NODE.
-    (or result (list node))))
+    ;; If NODE has no child, keep NODE.  If LIMIT is exceeded, return
+    ;; nil.
+    (or result (and (> limit 0) (list node)))))
 
 (defsubst treesit--node-length (node)
   "Return the length of the text of NODE."
   (- (treesit-node-end node) (treesit-node-start node)))
 
-(defvar-local treesit--font-lock-fast-mode nil
+(defvar-local treesit--font-lock-fast-mode 'unspecified
   "If this variable is t, change the way we query so it's faster.
 This is not a general optimization and should be RARELY needed!
 See comments in `treesit-font-lock-fontify-region' for more
 detail.")
-
-(defvar-local treesit--font-lock-fast-mode-grace-count 5
-  "Grace counts before we turn on the fast mode.
-
-When query takes abnormally long time to execute, we turn on the
-\"fast mode\", but just to be on the safe side, we only turn on
-the fast mode after this number of offenses.  See bug#60691,
-bug#60223.")
 
 ;; Some details worth explaining:
 ;;
@@ -964,36 +986,34 @@ If LOUDLY is non-nil, display some debugging information."
            (enable (nth 1 setting))
            (override (nth 3 setting))
            (language (treesit-query-language query)))
-      (when-let ((nodes (list (treesit-buffer-root-node language)))
-                 ;; Only activate if ENABLE flag is t.
-                 (activate (eq t enable)))
-        (ignore activate)
 
-        ;; If we run into problematic files, use the "fast mode" to
-        ;; try to recover.  See comment #2 above for more explanation.
-        (when treesit--font-lock-fast-mode
-          (setq nodes (treesit--children-covering-range-recurse
-                       (car nodes) start end (* 4 jit-lock-chunk-size))))
+      ;; Use deterministic way to decide whether to turn on "fast
+      ;; mode". (See bug#60691, bug#60223.)
+      (when (eq treesit--font-lock-fast-mode 'unspecified)
+        (pcase-let ((`(,max-depth ,max-width)
+                     (treesit-subtree-stat
+                      (treesit-buffer-root-node language))))
+          (if (or (> max-depth 100) (> max-width 4000))
+              (setq treesit--font-lock-fast-mode t)
+            (setq treesit--font-lock-fast-mode nil))))
+
+      (when-let* ((root (treesit-buffer-root-node language))
+                  (nodes (if (eq t treesit--font-lock-fast-mode)
+                             (treesit--children-covering-range-recurse
+                              root start end (* 4 jit-lock-chunk-size))
+                           (list (treesit-buffer-root-node language))))
+                  ;; Only activate if ENABLE flag is t.
+                  (activate (eq t enable)))
+        (ignore activate)
 
         ;; Query each node.
         (dolist (sub-node nodes)
           (let* ((delta-start (car treesit--font-lock-query-expand-range))
                  (delta-end (cdr treesit--font-lock-query-expand-range))
-                 (start-time (current-time))
                  (captures (treesit-query-capture
                             sub-node query
                             (max (- start delta-start) (point-min))
-                            (min (+ end delta-end) (point-max))))
-                 (end-time (current-time)))
-            ;; If for any query the query time is strangely long,
-            ;; switch to fast mode (see comments above).
-            (when (and (null treesit--font-lock-fast-mode)
-                       (> (time-to-seconds
-                           (time-subtract end-time start-time))
-                          0.01))
-              (if (> treesit--font-lock-fast-mode-grace-count 0)
-                  (cl-decf treesit--font-lock-fast-mode-grace-count)
-                (setq-local treesit--font-lock-fast-mode t)))
+                            (min (+ end delta-end) (point-max)))))
 
             ;; For each captured node, fontify that node.
             (with-silent-modifications
@@ -1002,12 +1022,14 @@ If LOUDLY is non-nil, display some debugging information."
                        (node (cdr capture))
                        (node-start (treesit-node-start node))
                        (node-end (treesit-node-end node)))
+
                   ;; If node is not in the region, take them out.  See
                   ;; comment #3 above for more detail.
                   (if (and (facep face)
                            (or (>= start node-end) (>= node-start end)))
                       (when (or loudly treesit--font-lock-verbose)
                         (message "Captured node %s(%s-%s) but it is outside of fontifing region" node node-start node-end))
+
                     (cond
                      ((facep face)
                       (treesit-fontify-with-override
@@ -1015,6 +1037,7 @@ If LOUDLY is non-nil, display some debugging information."
                        face override))
                      ((functionp face)
                       (funcall face node override start end)))
+
                     ;; Don't raise an error if FACE is neither a face nor
                     ;; a function.  This is to allow intermediate capture
                     ;; names used for #match and #eq.
@@ -3033,10 +3056,10 @@ function signals an error."
    :no-value (treesit-parser-set-included-ranges parser '((1 . 4) (5 . 8))))
   (treesit-parser-included-ranges
    :no-eval (treesit-parser-included-ranges parser)
-   :eg-result '((1 . 4) (5 . 8)))
+   :eg-result ((1 . 4) (5 . 8)))
   (treesit-query-range
    :no-eval (treesit-query-range node '((script_element) @cap))
-   :eg-result-string '((1 . 4) (5 . 8)))
+   :eg-result ((1 . 4) (5 . 8)))
 
 
   "Retrieving a node"
@@ -3182,7 +3205,12 @@ function signals an error."
    :eg-result-string "#<treesit-node (translation_unit) in 1-11>")
   (treesit-query-string
    :no-eval (treesit-query-string "int c = 0;" '((identifier) @id) 'c)
-   :eg-result-string "((id . #<treesit-node (identifier) in 5-6>))"))
+   :eg-result-string "((id . #<treesit-node (identifier) in 5-6>))")
+
+  "Misc"
+  (treesit-subtree-stat
+   :no-eval (treesit-subtree-stat node)
+   :eg-result (6 33 487)))
 
 (provide 'treesit)
 

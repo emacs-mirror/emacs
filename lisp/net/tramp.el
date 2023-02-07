@@ -82,6 +82,7 @@
 (progn
   (defvar tramp--startup-hook nil
     "Forms to be executed at the end of tramp.el.")
+
   (put 'tramp--startup-hook 'tramp-suppress-trace t)
 
   (defmacro tramp--with-startup (&rest body)
@@ -641,7 +642,7 @@ This regexp must match both `tramp-initial-end-of-output' and
   (rx
    bol (* nonl)
    (group (regexp (regexp-opt password-word-equivalents)))
-   (* nonl) ":" (? "\^@") (* blank))
+   (* nonl) (any ":：៖") (? "\^@") (* blank))
   "Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
@@ -651,20 +652,19 @@ usually more convenient to add new passphrases to that variable
 instead of altering this variable.
 
 The `sudo' program appears to insert a `^@' character into the prompt."
-  :version "24.4"
+  :version "29.1"
   :type 'regexp)
 
 (defcustom tramp-wrong-passwd-regexp
   (rx bol (* nonl)
       (| "Permission denied"
-	 (: "Login " (| "Incorrect" "incorrect"))
-	 "Connection refused"
-	 "Connection closed"
 	 "Timeout, server not responding."
 	 "Sorry, try again."
 	 "Name or service not known"
 	 "Host key verification failed."
 	 "No supported authentication methods left to try!"
+	 (: "Login " (| "Incorrect" "incorrect"))
+	 (: "Connection " (| "refused" "closed"))
 	 (: "Received signal " (+ digit)))
       (* nonl))
   "Regexp matching a `login failed' message.
@@ -787,6 +787,7 @@ It shall be used in combination with `generate-new-buffer-name'.")
 (defvar tramp-temp-buffer-file-name nil
   "File name of a persistent local temporary file.
 Useful for \"rsync\" like methods.")
+
 (make-variable-buffer-local 'tramp-temp-buffer-file-name)
 (put 'tramp-temp-buffer-file-name 'permanent-local t)
 
@@ -1404,6 +1405,7 @@ the (optional) timestamp of last activity on this connection.")
   "Password save function.
 Will be called once the password has been verified by successful
 authentication.")
+
 (put 'tramp-password-save-function 'tramp-suppress-trace t)
 
 (defvar tramp-password-prompt-not-unique nil
@@ -2299,12 +2301,12 @@ the resulting error message."
          (progn ,@body)
        (error (tramp-message ,vec-or-proc 3 ,format ,err) nil))))
 
-;; This macro shall optimize the cases where an `file-exists-p' call
-;; is invoked first.  Often, the file exists, so the remote command is
+;; This macro shall optimize the cases where a `file-exists-p' call is
+;; invoked first.  Often, the file exists, so the remote command is
 ;; superfluous.
 (defmacro tramp-barf-if-file-missing (vec filename &rest body)
   "Execute BODY and return the result.
-In case if an error, raise a `file-missing' error if FILENAME
+In case of an error, raise a `file-missing' error if FILENAME
 does not exist, otherwise propagate the error."
   (declare (indent 2) (debug (symbolp form body)))
   (let ((err (make-symbol "err")))
@@ -2456,13 +2458,14 @@ Example:
 	(setcdr v (delete (car v) (cdr v))))
       ;; Check for function and file or registry key.
       (unless (and (functionp (nth 0 (car v)))
+		   (stringp (nth 1 (car v)))
 		   (cond
 		    ;; Windows registry.
 		    ((string-prefix-p "HKEY_CURRENT_USER" (nth 1 (car v)))
 		     (and (memq system-type '(cygwin windows-nt))
 			  (zerop
 			   (tramp-call-process
-			    v "reg" nil nil nil "query" (nth 1 (car v))))))
+			    nil "reg" nil nil nil "query" (nth 1 (car v))))))
 		    ;; DNS-SD service type.
 		    ((string-match-p
 		      tramp-dns-sd-service-regexp (nth 1 (car v))))
@@ -3935,9 +3938,10 @@ Let-bind it when necessary.")
 (defun tramp-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
   ;; `file-truename' could raise an error, for example due to a cyclic
-  ;; symlink.
-  (ignore-errors
-    (eq (file-attribute-type (file-attributes (file-truename filename))) t)))
+  ;; symlink.  We don't protect this despite it, because other errors
+  ;; might be worth to be visible, for example impossibility to mount
+  ;; in tramp-gvfs.el.
+  (eq (file-attribute-type (file-attributes (file-truename filename))) t))
 
 (defun tramp-handle-file-equal-p (filename1 filename2)
   "Like `file-equalp-p' for Tramp files."
@@ -4938,7 +4942,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 		:command (append `(,login-program) login-args command)
 		:coding coding :noquery noquery :connection-type connection-type
 		:sentinel sentinel :stderr stderr))
-	    ;; Set filter.  Prior Emacs 29.1, it doesn't work reliable
+	    ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably
 	    ;; to provide it as `make-process' argument when filter is
 	    ;; t.  See Bug#51177.
 	    (when filter
@@ -5152,17 +5156,19 @@ support symbolic links."
 		  (add-function
 		   :after (process-sentinel p)
 		   (lambda (_proc _string)
-		     (with-current-buffer error-buffer
-		       (insert-file-contents-literally
-			error-file nil nil nil 'replace))
-		     (delete-file error-file))))
+		     (ignore-errors
+		       (with-current-buffer error-buffer
+			 (insert-file-contents-literally
+			  error-file nil nil nil 'replace))
+		       (delete-file error-file)))))
 		(display-buffer output-buffer '(nil (allow-no-window . t)))))
 
 	    ;; Insert error messages if they were separated.
 	    (when (and error-file (not (process-live-p p)))
-	      (with-current-buffer error-buffer
-		(insert-file-contents-literally error-file))
-	      (delete-file error-file))))
+	      (ignore-errors
+		(with-current-buffer error-buffer
+		  (insert-file-contents-literally error-file))
+		(delete-file error-file)))))
 
       ;; Synchronous case.
       (prog1
@@ -5170,9 +5176,10 @@ support symbolic links."
 	  (process-file-shell-command command nil buffer)
 	;; Insert error messages if they were separated.
 	(when error-file
-	  (with-current-buffer error-buffer
-	    (insert-file-contents-literally error-file))
-	  (delete-file error-file))
+	  (ignore-errors
+	    (with-current-buffer error-buffer
+	      (insert-file-contents-literally error-file))
+	    (delete-file error-file)))
 	(if current-buffer-p
 	    ;; This is like exchange-point-and-mark, but doesn't
 	    ;; activate the mark.  It is cleaner to avoid activation,

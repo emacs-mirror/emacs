@@ -46,7 +46,7 @@
   ;; `org-git-version' check because the generated Org version strings
   ;; will not match.
   `(unless (equal (org-release) ,(org-release))
-     (warn "Org version mismatch.  Make sure that correct `load-path' is set early in init.el
+     (warn "Org version mismatch.  Org loading aborted.
 This warning usually appears when a built-in Org version is loaded
 prior to the more recent Org version.
 

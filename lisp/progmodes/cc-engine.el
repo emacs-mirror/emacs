@@ -5915,19 +5915,21 @@ comment at the start of cc-engine.el for more info."
 	(cond
 	 ((> pos start)			; Nothing but literals
 	  base)
-	 ((> base (point-min))
+	 ((and
+	   (> base (point-min))
+	   (> (- base try-size) (point-min))) ; prevent infinite recursion.
 	  (c-determine-limit how-far-back base (* 2 try-size) org-start))
 	 (t base)))
        ((>= count how-far-back)
 	(c-determine-limit-no-macro
-	(+ (car elt) (- count how-far-back))
-	org-start))
+	 (+ (car elt) (- count how-far-back))
+	 org-start))
        ((eq base (point-min))
 	(point-min))
        ((> base (- start try-size)) ; Can only happen if we hit point-min.
 	(c-determine-limit-no-macro
-	(car elt)
-	org-start))
+	 (car elt)
+	 org-start))
        (t
 	(c-determine-limit (- how-far-back count) base (* 2 try-size)
 			   org-start))))))
@@ -10146,6 +10148,24 @@ This function might do hidden buffer changes."
 	;; This identifier is bound only in the inner let.
 	'(setq start id-start))))
 
+(defmacro c-fdoc-assymetric-space-about-asterisk ()
+  ;; We've got a "*" at `id-start' between two identifiers, the first at
+  ;; `type-start'.  Return non-nil when there is either whitespace between the
+  ;; first id and the "*" or between the "*" and the second id, but not both.
+  `(let ((space-before-id
+	 (save-excursion
+	   (goto-char id-start)		; Position of "*".
+	   (and (> (skip-chars-forward "* \t\n\r") 0)
+		(memq (char-before) '(?\  ?\t ?\n ?\r)))))
+	(space-after-type
+	 (save-excursion
+	   (goto-char type-start)
+	   (and (c-forward-type nil t)
+		(or (eolp)
+		    (memq (char-after) '(?\  ?\t)))))))
+     (not (eq (not space-before-id)
+	      (not space-after-type)))))
+
 (defun c-forward-decl-or-cast-1 (preceding-token-end context last-cast-end
 						     &optional inside-macro)
   ;; Move forward over a declaration or a cast if at the start of one.
@@ -11166,19 +11186,25 @@ This function might do hidden buffer changes."
 	       ;; CASE 16
 	       (when (and got-prefix-before-parens
 			  at-type
-			  (or at-decl-end (looking-at "=[^=]"))
 			  (memq context '(nil top))
 			  (or (not got-suffix)
 			      at-decl-start))
 		 ;; Got something like "foo * bar;".  Since we're not inside
 		 ;; an arglist it would be a meaningless expression because
 		 ;; the result isn't used.  We therefore choose to recognize
-		 ;; it as a declaration.  We only allow a suffix (which makes
-		 ;; the construct look like a function call) when
-		 ;; `at-decl-start' provides additional evidence that we do
-		 ;; have a declaration.
+		 ;; it as a declaration when there's "symmetrical WS" around
+		 ;; the "*" or the flag `c-assymetry-fontification-flag' is
+		 ;; not set.  We only allow a suffix (which makes the
+		 ;; construct look like a function call) when `at-decl-start'
+		 ;; provides additional evidence that we do have a
+		 ;; declaration.
 		 (setq maybe-expression t)
-		 (throw 'at-decl-or-cast t))
+		 (when (or (not c-asymmetry-fontification-flag)
+			   (looking-at "=[^=]")
+			   (c-fdoc-assymetric-space-about-asterisk))
+		   (when (eq at-type 'maybe)
+		     (setq unsafe-maybe t))
+		   (throw 'at-decl-or-cast t)))
 
 	       ;; CASE 17
 	       (when (and (or got-suffix-after-parens
@@ -11197,24 +11223,12 @@ This function might do hidden buffer changes."
 			  got-prefix-before-parens
 			  at-type
 			  (or (not got-suffix)
-			      at-decl-start))
-		 (let ((space-before-id
-			(save-excursion
-			  (goto-char id-start) ; Position of "*".
-			  (and (> (skip-chars-forward "* \t\n\r") 0)
-			       (memq (char-before) '(?\  ?\t ?\n ?\r)))))
-		       (space-after-type
-			(save-excursion
-			  (goto-char type-start)
-			  (and (c-forward-type nil t)
-			       (or (eolp)
-				   (memq (char-after) '(?\  ?\t)))))))
-		   (when (not (eq (not space-before-id)
-				  (not space-after-type)))
-		     (when (eq at-type 'maybe)
-		       (setq unsafe-maybe t))
-		     (setq maybe-expression t)
-		     (throw 'at-decl-or-cast t)))))
+			      at-decl-start)
+			  (c-fdoc-assymetric-space-about-asterisk))
+		 (when (eq at-type 'maybe)
+		   (setq unsafe-maybe t))
+		 (setq maybe-expression t)
+		 (throw 'at-decl-or-cast t)))
 
 	   ;; CASE 18
 	   (when (and at-decl-end
