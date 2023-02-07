@@ -3580,35 +3580,8 @@ typedef void (*sfnt_span_proc) (struct sfnt_edge *, sfnt_fixed, void *);
 static void
 sfnt_step_edge (struct sfnt_edge *edge)
 {
-  /* Add error accumulator.  */
-  edge->error += edge->step_x;
-
-  while (edge->error > 0)
-    {
-      /* Subtract error and add 1.  */
-      edge->x += edge->signed_step;
-      edge->error -= 65536;
-    }
-}
-
-/* Move EDGE->x forward, assuming that the scanline has moved upwards
-   by N, and that N is less than or equal to SFNT_POLY_STEP.  */
-
-static void
-sfnt_step_edge_n (struct sfnt_edge *edge, sfnt_fixed n)
-{
-  /* Add error accumulator.  */
-  edge->error += sfnt_mul_fixed (edge->step_x, n);
-
-  /* See if error is more than 0, and bring the line back to where it
-     should be.  */
-
-  while (edge->error > 0)
-    {
-      /* Subtract error and add 1.  */
-      edge->x += edge->signed_step;
-      edge->error -= 65536;
-    }
+  /* Add step.  */
+  edge->x += edge->step_x;
 }
 
 /* Build a list of edges for each contour in OUTLINE, applying xmin
@@ -3623,7 +3596,6 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
   struct sfnt_edge *edges;
   size_t i, edge, next_vertex;
   sfnt_fixed dx, dy, bot, step_x, ymin, xmin;
-  int inc_x;
   size_t top, bottom, y;
 
   edges = alloca (outline->outline_used * sizeof *edges);
@@ -3699,30 +3671,18 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
       if (y >= edges[edge].top)
 	continue;
 
-      /* Compute the slope error.  This is how much X changes for each
+      /* Compute the step X.  This is how much X changes for each
 	 increase in Y.  */
 
-      if (dx >= 0)
-	step_x = sfnt_div_fixed (dx, dy);
-      else
-	step_x = sfnt_div_fixed (-dx, dy);
-
-      /* Compute the increment.  This is which direction X moves in
-	 for each increase in Y.  */
-
-      if (dx >= 0)
-	inc_x = 1;
-      else
-	inc_x = -1;
-
-      edges[edge].signed_step = SFNT_POLY_STEP * inc_x;
+      step_x = sfnt_div_fixed (dx, dy);
       edges[edge].next = NULL;
 
-      /* Set the initial Bresenham terms.  */
-      edges[edge].error = step_x - 65536;
-      edges[edge].step_x = step_x;
+      /* Compute the step X scaled to the poly step.  */
+      edges[edge].step_x
+	= sfnt_mul_fixed (step_x, SFNT_POLY_STEP);
 
-      sfnt_step_edge_n (&edges[edge], bot - y);
+      /* Step to the grid point.  */
+      edges[edge].x += sfnt_mul_fixed (step_x, bot - y);
 
       /* Set the bottom position.  */
       edges[edge].bottom = y;
@@ -11454,13 +11414,12 @@ sfnt_test_edge (struct sfnt_edge *edges, size_t num_edges,
   for (i = 0; i < num_edges; ++i)
     {
       printf ("/* edge x, top, bot: %g, %g - %g.  winding: %d */\n"
-	      "/* edge step_x: %g, sign: %d */\n",
+	      "/* edge step_x: %g */\n",
 	      sfnt_coerce_fixed (edges[i].x),
 	      sfnt_coerce_fixed (edges[i].top),
 	      sfnt_coerce_fixed (edges[i].bottom),
 	      edges[i].winding,
-	      sfnt_coerce_fixed (edges[i].step_x),
-	      edges[i].signed_step);
+	      sfnt_coerce_fixed (edges[i].step_x));
 #ifdef TEST_VERTEX
       printf ("ctx.fillRect (%g, %g, 1, 1);\n",
 	      sfnt_coerce_fixed (edges[i].x),
@@ -15103,7 +15062,7 @@ main (int argc, char **argv)
 	       cvt ? cvt->num_elements : 0ul);
 
       interpreter = sfnt_make_interpreter (maxp, cvt, head,
-					   12, 12);
+					   20, 20);
       state = interpreter->state;
 
       if (fpgm)
@@ -15279,7 +15238,7 @@ main (int argc, char **argv)
 	      /* Time this important bit.  */
 	      clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 	      outline = sfnt_build_glyph_outline (glyph, head,
-						  12,
+						  20,
 						  sfnt_test_get_glyph,
 						  sfnt_test_free_glyph,
 						  &dcontext);
@@ -15321,7 +15280,7 @@ main (int argc, char **argv)
 
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 
-		  for (i = 0; i < 1; ++i)
+		  for (i = 0; i < 400; ++i)
 		    {
 		      xfree (raster);
 		      raster = sfnt_raster_glyph_outline (outline);
@@ -15346,7 +15305,7 @@ main (int argc, char **argv)
 
 	      if (hmtx && head)
 		{
-		  if (!sfnt_lookup_glyph_metrics (code, 12,
+		  if (!sfnt_lookup_glyph_metrics (code, 20,
 						  &metrics,
 						  hmtx, hhea,
 						  head, maxp))
@@ -15414,7 +15373,7 @@ main (int argc, char **argv)
 	      printf ("time spent building edges: %lld sec %ld nsec\n",
 		      (long long) sub1.tv_sec, sub1.tv_nsec);
 	      printf ("time spent rasterizing: %lld sec %ld nsec\n",
-		      (long long) sub2.tv_sec / 1, sub2.tv_nsec / 1);
+		      (long long) sub2.tv_sec / 400, sub2.tv_nsec / 400);
 
 	      xfree (outline);
 	    }
