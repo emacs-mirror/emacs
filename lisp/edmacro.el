@@ -156,9 +156,9 @@ With a prefix argument, format the macro in a more concise way."
 	     (setq mac cmd)
 	     (setq cmd nil)))
       (when (kmacro-p mac)
-	(setq mac (kmacro--keys mac)
-	      mac-counter (kmacro--counter mac)
-	      mac-format (kmacro--format mac)))
+	(setq mac-counter (kmacro--counter mac)
+	      mac-format (kmacro--format mac)
+              mac (kmacro--keys mac)))
       (unless (arrayp mac)
 	(error "Key sequence %s is not a keyboard macro"
 	       (key-description keys)))
