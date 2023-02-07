@@ -2773,7 +2773,7 @@ Fall back to normal file name handler if no Tramp file name handler exists."
   "Invoke Tramp file name completion handler for OPERATION and ARGS.
 Falls back to normal file name handler if no Tramp file name handler exists."
   (if-let
-      ((fn (and tramp-mode
+      ((fn (and tramp-mode minibuffer-completing-file-name
 		(assoc operation tramp-completion-file-name-handler-alist))))
       (save-match-data (apply (cdr fn) args))
     (tramp-run-real-handler operation args)))
