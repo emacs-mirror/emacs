@@ -14546,13 +14546,8 @@ sfnt_name_instruction (unsigned char opcode)
     "7 INS_$8F",
 
     "7 INS_$90",
-#ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
-    "6 GETVAR",
-    "7 GETDATA",
-#else
     "7 INS_$91",
     "7 INS_$92",
-#endif
     "7 INS_$93",
     "7 INS_$94",
     "7 INS_$95",
