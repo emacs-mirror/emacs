@@ -1087,11 +1087,7 @@ and DOC describes the way this style of completion works.")
 The available styles are listed in `completion-styles-alist'.
 
 Note that `completion-category-overrides' may override these
-styles for specific categories, such as files, buffers, etc.
-
-Note that Tramp host name completion (e.g., \"/ssh:ho<TAB>\")
-currently doesn't work if this list doesn't contain at least one
-of `basic', `emacs22' or `emacs21'."
+styles for specific categories, such as files, buffers, etc."
   :type completion--styles-type
   :version "23.1")
 

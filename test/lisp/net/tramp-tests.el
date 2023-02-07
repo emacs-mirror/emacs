@@ -4529,24 +4529,22 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(setq host (match-string 1 host)))
 
       (unwind-protect
-          (dolist
-	      (syntax
-	       (if (tramp--test-expensive-test-p)
-		   (tramp-syntax-values) `(,orig-syntax)))
+          (dolist (syntax (if (tramp--test-expensive-test-p)
+		              (tramp-syntax-values) `(,orig-syntax)))
             (tramp-change-syntax syntax)
 	    ;; This has cleaned up all connection data, which are used
 	    ;; for completion.  We must refill the cache.
 	    (tramp-set-connection-property tramp-test-vec "property" nil)
 
-            (let ;; This is needed for the `separate' syntax.
-                ((prefix-format (substring tramp-prefix-format 1))
-		 ;; This is needed for the IPv6 host name syntax.
-		 (ipv6-prefix
-		  (and (string-match-p tramp-ipv6-regexp host)
-		       tramp-prefix-ipv6-format))
-		 (ipv6-postfix
-		  (and (string-match-p tramp-ipv6-regexp host)
-		       tramp-postfix-ipv6-format)))
+            (let (;; This is needed for the `separate' syntax.
+                  (prefix-format (substring tramp-prefix-format 1))
+		  ;; This is needed for the IPv6 host name syntax.
+		  (ipv6-prefix
+		   (and (string-match-p tramp-ipv6-regexp host)
+		        tramp-prefix-ipv6-format))
+		  (ipv6-postfix
+		   (and (string-match-p tramp-ipv6-regexp host)
+		        tramp-postfix-ipv6-format)))
               ;; Complete method name.
 	      (unless (or (tramp-string-empty-or-nil-p method)
                           (string-empty-p tramp-method-regexp))
@@ -4636,6 +4634,132 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-directory tmp-name 'recursive)))))))
+
+;; This test is inspired by Bug#51386, Bug#52758, Bug#53513, Bug#54042
+;; and Bug#60505.
+;; TODO: Add tests for user names and multi-hop file names.
+(ert-deftest tramp-test26-interactive-file-name-completion ()
+  "Check interactive completion with different `completion-styles'."
+  ;; Method and host name in completion mode.  This kind of completion
+  ;; does not work on MS Windows.
+  (unless (memq system-type '(cygwin windows-nt))
+    (let ((method (file-remote-p ert-remote-temporary-file-directory 'method))
+	  (host (file-remote-p ert-remote-temporary-file-directory 'host))
+          (orig-syntax tramp-syntax)
+          (non-essential t))
+      (when (and (stringp host) (string-match tramp-host-with-port-regexp host))
+	(setq host (match-string 1 host)))
+
+      (unwind-protect
+          (dolist (syntax (if (tramp--test-expensive-test-p)
+		              (tramp-syntax-values) `(,orig-syntax)))
+            (tramp-change-syntax syntax)
+	    ;; This has cleaned up all connection data, which are used
+	    ;; for completion.  We must refill the cache.
+	    (tramp-set-connection-property tramp-test-vec "property" nil)
+
+            (dolist
+                (style
+                 (if (tramp--test-expensive-test-p)
+                     ;; It doesn't work for `initials' and `shorthand'
+                     ;; completion styles.  Should it?
+                     '(emacs21 emacs22 basic partial-completion substring flex)
+		   '(basic)))
+
+              (let (;; Force the real minibuffer in batch mode.
+                    (executing-kbd-macro t)
+                    (completion-styles `(,style))
+                    (completions-format 'one-column)
+                    completion-category-defaults
+                    completion-category-overrides
+                    ;; This is needed for the `simplified' syntax,
+                    (tramp-default-method method)
+                    (method-string
+                     (unless (string-empty-p tramp-method-regexp)
+                       (concat method tramp-postfix-method-format)))
+		    ;; This is needed for the IPv6 host name syntax.
+		    (ipv6-prefix
+		     (and (string-match-p tramp-ipv6-regexp host)
+		          tramp-prefix-ipv6-format))
+		    (ipv6-postfix
+		     (and (string-match-p tramp-ipv6-regexp host)
+		          tramp-postfix-ipv6-format))
+                    test result completions)
+
+                ;; Complete method name.
+	        (unless (string-empty-p tramp-method-regexp)
+                  (ignore-errors (kill-buffer "*Completions*"))
+                  (discard-input)
+                  (setq test (concat
+                              tramp-prefix-format
+                              (substring-no-properties method 0 2))
+                        unread-command-events
+                        (mapcar #'identity (concat test "\t\n"))
+                        completions nil
+                        result (read-file-name "Prompt: "))
+                  (if (not (get-buffer "*Completions*"))
+                      (progn
+                        (tramp--test-message
+                         "syntax: %s style: %s test: %s result: %s"
+                         syntax style test result)
+                        (should
+                         (string-prefix-p
+                          (concat tramp-prefix-format method-string)
+                          result)))
+                    (with-current-buffer "*Completions*"
+	              (re-search-forward
+                       (rx bol (1+ nonl) "possible completions:" eol))
+		      (forward-line 1)
+                      (setq completions
+                            (split-string
+                             (buffer-substring-no-properties (point) (point-max))
+                             (rx (any "\r\n")) 'omit)))
+                    (tramp--test-message
+                     "syntax: %s style: %s test: %s result: %s completions: %S"
+                     syntax style test result completions)
+                    (should (member method-string completions))))
+
+                ;; Complete host name.
+	        (unless (or (tramp-string-empty-or-nil-p host)
+	                    (tramp--test-gvfs-p method))
+                  (ignore-errors (kill-buffer "*Completions*"))
+                  (discard-input)
+                  (setq test (concat
+                              tramp-prefix-format method-string
+                              (substring-no-properties host 0 2))
+                        unread-command-events
+                        (mapcar #'identity (concat test "\t\n"))
+                        completions nil
+                        result (read-file-name "Prompt: "))
+                  (if (not (get-buffer "*Completions*"))
+                      (progn
+                        (tramp--test-message
+                         "syntax: %s style: %s test: %s result: %s"
+                         syntax style test result)
+                        (should
+                         (string-equal
+                          (concat
+                           tramp-prefix-format method-string
+	                   ipv6-prefix host ipv6-postfix tramp-postfix-host-format)
+                          result)))
+                    (with-current-buffer "*Completions*"
+	              (re-search-forward
+                       (rx bol (1+ nonl) "possible completions:" eol))
+		      (forward-line 1)
+                      (setq completions
+                            (split-string
+                             (buffer-substring-no-properties (point) (point-max))
+                             (rx (any "\r\n")) 'omit)))
+                    (tramp--test-message
+                     "syntax: %s style: %s test: %s result: %s completions: %S"
+                     syntax style test result completions)
+                    (should
+	             (member
+	              (concat host tramp-postfix-host-format)
+                      completions)))))))
+
+	;; Cleanup.
+        (tramp-change-syntax orig-syntax)))))
 
 (ert-deftest tramp-test27-load ()
   "Check `load'."

@@ -3469,12 +3469,7 @@ much more appropriate.
 
 @value{tramp} can complete the following @value{tramp} file name
 components: method names, user names, host names, and file names
-located on remote hosts.  User name and host name completion is
-activated only, if file name completion has one of the styles
-@code{basic}, @code{emacs21}, or @code{emacs22}.
-@ifinfo
-@xref{Completion Styles, , , emacs}.
-@end ifinfo
+located on remote hosts.
 
 For example, type @kbd{C-x C-f @value{prefixwithspace} s @key{TAB}},
 @value{tramp} completion choices show up as
@@ -3508,10 +3503,7 @@ directory @file{/sbin} on your local host.
 Type @kbd{s h @value{postfixhop}} for the minibuffer completion to
 @samp{@value{prefix}ssh@value{postfixhop}}.  Typing @kbd{@key{TAB}}
 shows host names @value{tramp} extracts from @file{~/.ssh/config}
-@c bug#50387
-file, for example@footnote{Some completion styles, like
-@code{substring} or @code{flex}, require to type at least one
-character after the trailing @samp{@value{postfixhop}}.}.
+file, for example:
 
 @example
 @group

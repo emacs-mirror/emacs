@@ -4017,6 +4017,7 @@ major-mode."
 	  (forward-line 1)
 	  (let ((startpos (point))
 	        endpos
+                (selective-p (eq selective-display t))
 	        (thisbuf (current-buffer)))
 	    (save-excursion
 	      (unless (let ((case-fold-search t))
@@ -4033,7 +4034,8 @@ major-mode."
 	    (with-temp-buffer
 	      (insert-buffer-substring thisbuf startpos endpos)
 	      (goto-char (point-min))
-	      (subst-char-in-region (point) (point-max) ?\^m ?\n)
+              (if selective-p
+	          (subst-char-in-region (point) (point-max) ?\r ?\n))
 	      (while (not (eobp))
 	        ;; Discard the prefix.
 	        (if (looking-at prefix)
