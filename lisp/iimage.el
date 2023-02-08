@@ -118,8 +118,8 @@ Examples of image filename patterns to match:
 	file)
     (with-silent-modifications
       (save-excursion
-        (goto-char (point-min))
         (dolist (pair iimage-mode-image-regex-alist)
+          (goto-char (point-min))
           (while (re-search-forward (car pair) nil t)
             (when (and (setq file (match-string (cdr pair)))
                        (setq file (locate-file file image-path)))
