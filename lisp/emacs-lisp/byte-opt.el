@@ -1132,21 +1132,31 @@ See Info node `(elisp) Integer Basics'."
     form))
 
 (defun byte-optimize-concat (form)
-  "Merge adjacent constant arguments to `concat'."
+  "Merge adjacent constant arguments to `concat' and flatten nested forms."
   (let ((args (cdr form))
         (newargs nil))
     (while args
-      (let ((strings nil)
-            val)
-        (while (and args (macroexp-const-p (car args))
-                    (progn
-                      (setq val (byteopt--eval-const (car args)))
-                      (and (or (stringp val)
-                               (and (or (listp val) (vectorp val))
-                                    (not (memq nil
-                                               (mapcar #'characterp val))))))))
-          (push val strings)
-          (setq args (cdr args)))
+      (let ((strings nil))
+        (while
+            (and args
+                 (let ((arg (car args)))
+                   (pcase arg
+                     ;; Merge consecutive constant arguments.
+                     ((pred macroexp-const-p)
+                      (let ((val (byteopt--eval-const arg)))
+                        (and (or (stringp val)
+                                 (and (or (listp val) (vectorp val))
+                                      (not (memq nil
+                                                 (mapcar #'characterp val)))))
+                             (progn
+                               (push val strings)
+                               (setq args (cdr args))
+                               t))))
+                     ;; Flatten nested `concat' form.
+                     (`(concat . ,nested-args)
+                      (setq args (append nested-args (cdr args)))
+                      t)))))
+
         (when strings
           (let ((s (apply #'concat (nreverse strings))))
             (when (not (zerop (length s)))
