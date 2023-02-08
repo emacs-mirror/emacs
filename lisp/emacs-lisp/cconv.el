@@ -483,7 +483,7 @@ places where they originally did not directly appear."
             (bf (if (stringp (car body)) (cdr body) body))
             (if (when (eq 'interactive (car-safe (car bf)))
                   (gethash form cconv--interactive-form-funs)))
-            (wrapped (pcase if (`#'(lambda (_cconv--dummy) .,_) t) (_ nil)))
+            (wrapped (pcase if (`#'(lambda (&rest _cconv--dummy) .,_) t) (_ nil)))
             (cif (when if (cconv-convert if env extend)))
             (_ (pcase cif
                  ('nil nil)
@@ -747,7 +747,7 @@ This function does not return anything but instead fills the
          (let ((if (cadr (car bf))))
            (unless (macroexp-const-p if) ;Optimize this common case.
              (let ((f (if (eq 'function (car-safe if)) if
-                        `#'(lambda (_cconv--dummy) ,if))))
+                        `#'(lambda (&rest _cconv--dummy) ,if))))
                (setf (gethash form cconv--interactive-form-funs) f)
                (cconv-analyze-form f env))))))
      (cconv--analyze-function vrs body-forms env form))

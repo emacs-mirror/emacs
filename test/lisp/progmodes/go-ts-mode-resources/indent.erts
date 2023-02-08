@@ -1,0 +1,47 @@
+Code:
+  (lambda ()
+    (go-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Basic
+
+=-=
+package main
+
+func main() {
+}
+=-=-=
+
+Name: Switch and Select
+
+=-=
+package main
+
+func main() {
+	var x any
+	switch x {
+	case 1:
+		println("one")
+	default:
+		println("default case")
+	}
+
+	switch x.(type) {
+	case int:
+		println("integer")
+	default:
+		println("don't know the type")
+	}
+
+	var c chan int
+	select {
+	case x := <-c:
+		println(x)
+	default:
+		println("no communication")
+	}
+}
+
+=-=-=

@@ -79,7 +79,10 @@ circular or dotted.  If a program doesn't look far enough down the
 list to see the @sc{cdr} of the final cons cell, it won't care.
 However, some functions that operate on lists demand proper lists and
 signal errors if given a dotted list.  Most functions that try to find
-the end of a list enter infinite loops if given a circular list.
+the end of a list enter infinite loops if given a circular list.  You
+can use the function @code{proper-list-p}, described in the next
+section (@pxref{List-related Predicates, proper-list-p}), to determine
+whether a list is a proper one.
 
 @cindex list structure
   Because most cons cells are used as part of lists, we refer to any
@@ -1913,6 +1916,11 @@ Properties}.
 properties.  Every symbol possesses a list of properties, used to
 record miscellaneous information about the symbol; these properties
 are stored in the form of a property list.  @xref{Symbol Properties}.
+
+@defun plistp object
+This predicate function returns non-@code{nil} if @var{object} is a
+valid property list.
+@end defun
 
 @menu
 * Plists and Alists::           Comparison of the advantages of property

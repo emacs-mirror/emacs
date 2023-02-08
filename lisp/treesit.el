@@ -555,8 +555,35 @@ omitted, default END to BEG."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
+(defvar-local treesit-font-lock-settings nil
+  "A list of SETTINGs for treesit-based fontification.
+
+The exact format of each SETTING is considered internal.  Use
+`treesit-font-lock-rules' to set this variable.
+
+Each SETTING has the form:
+
+    (QUERY ENABLE FEATURE OVERRIDE)
+
+QUERY must be a compiled query.  See Info node `(elisp)Pattern
+Matching' for how to write a query and compile it.
+
+For SETTING to be activated for font-lock, ENABLE must be t.  To
+disable this SETTING, set ENABLE to nil.
+
+FEATURE is the \"feature name\" of the query.  Users can control
+which features are enabled with `treesit-font-lock-level' and
+`treesit-font-lock-feature-list'.
+
+OVERRIDE is the override flag for this query.  Its value can be
+t, nil, append, prepend, keep.  See more in
+`treesit-font-lock-rules'.")
+
 (defun treesit--font-lock-level-setter (sym val)
-  "Custom setter for `treesit-font-lock-level'."
+  "Custom setter for `treesit-font-lock-level'.
+Set the default value of SYM to VAL, recompute fontification
+features and refontify for every buffer where tree-sitter-based
+fontification is enabled."
   (set-default sym val)
   (and (treesit-available-p)
        (named-let loop ((res nil)
@@ -571,7 +598,7 @@ omitted, default END to BEG."
                    res)
            (let ((buffer (car buffers)))
              (with-current-buffer buffer
-               (if (treesit-parser-list)
+               (if treesit-font-lock-settings
                    (loop (append res (list buffer)) (cdr buffers))
                  (loop res (cdr buffers)))))))))
 
@@ -585,9 +612,10 @@ fontifications.
 Level 1 usually contains only comments and definitions.
 Level 2 usually adds keywords, strings, data types, etc.
 Level 3 usually represents full-blown fontifications, including
-assignments, constants, numbers and literals, properties, etc.
+assignments, constants, numbers and literals, etc.
 Level 4 adds everything else that can be fontified: delimiters,
-operators, brackets, punctuation, all functions and variables, etc.
+operators, brackets, punctuation, all functions, properties,
+variables, etc.
 
 In addition to the decoration level, individual features can be
 turned on/off by calling `treesit-font-lock-recompute-features'.
@@ -633,30 +661,6 @@ See the manual for more explanations on some of the features.
 
 For changes to this variable to take effect, run
 `treesit-font-lock-recompute-features'.")
-
-(defvar-local treesit-font-lock-settings nil
-  "A list of SETTINGs for treesit-based fontification.
-
-The exact format of each SETTING is considered internal.  Use
-`treesit-font-lock-rules' to set this variable.
-
-Each SETTING has the form:
-
-    (QUERY ENABLE FEATURE OVERRIDE)
-
-QUERY must be a compiled query.  See Info node `(elisp)Pattern
-Matching' for how to write a query and compile it.
-
-For SETTING to be activated for font-lock, ENABLE must be t.  To
-disable this SETTING, set ENABLE to nil.
-
-FEATURE is the \"feature name\" of the query.  Users can control
-which features are enabled with `treesit-font-lock-level' and
-`treesit-font-lock-feature-list'.
-
-OVERRIDE is the override flag for this query.  Its value can be
-t, nil, append, prepend, keep.  See more in
-`treesit-font-lock-rules'.")
 
 (defun treesit-font-lock-rules (&rest query-specs)
   "Return a value suitable for `treesit-font-lock-settings'.
@@ -2963,7 +2967,17 @@ function signals an error."
           ;; Copy out.
           (unless (file-exists-p out-dir)
             (make-directory out-dir t))
-          (copy-file lib-name (file-name-as-directory out-dir) t t)
+          (let* ((library-fname (expand-file-name lib-name out-dir))
+                 (old-fname (concat library-fname ".old")))
+            ;; Rename the existing shared library, if any, then
+            ;; install the new one, and try deleting the old one.
+            ;; This is for Windows systems, where we cannot simply
+            ;; overwrite a DLL that is being used.
+            (if (file-exists-p library-fname)
+                (rename-file library-fname old-fname t))
+            (copy-file lib-name (file-name-as-directory out-dir) t t)
+            ;; Ignore errors, in case the old version is still used.
+            (ignore-errors (delete-file old-fname)))
           (message "Library installed to %s/%s" out-dir lib-name))
       (when (file-exists-p workdir)
         (delete-directory workdir t)))))
@@ -3031,7 +3045,7 @@ function signals an error."
 
   "Parsers"
   (treesit-parser-create
-   :no-eval (treesit-parser-create)
+   :no-eval (treesit-parser-create 'c)
    :eg-result-string "#<treesit-parser for c>")
   (treesit-parser-delete
    :no-value (treesit-parser-delete parser))

@@ -3300,12 +3300,15 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
      it belongs to a sequence of WS characters preceding a newline
      or a TAB or a paragraph separator.  */
   if ((bidi_it->orig_type == NEUTRAL_WS
-       || bidi_it->orig_type == WEAK_BN
+       || (bidi_it->orig_type == WEAK_BN
+	   /* If this BN character is already at base level, we don't
+	      need to consider resetting it, since I1 and I2 below
+	      will not change the level, so avoid the potentially
+	      costly loop below.  */
+	   && level != bidi_it->level_stack[0].level)
        || bidi_isolate_fmt_char (bidi_it->orig_type))
-      && bidi_it->next_for_ws.charpos < bidi_it->charpos
-      /* If this character is already at base level, we don't need to
-	 reset it, so avoid the potentially costly loop below.  */
-      && level != bidi_it->level_stack[0].level)
+      /* This means the informaition about WS resolution is not valid.  */
+      && bidi_it->next_for_ws.charpos < bidi_it->charpos)
     {
       int ch;
       ptrdiff_t clen = bidi_it->ch_len;
@@ -3340,7 +3343,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       || bidi_it->orig_type == NEUTRAL_S
       || bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB
       || ((bidi_it->orig_type == NEUTRAL_WS
-	   || bidi_it->orig_type == WEAK_BN
+	   || bidi_it->orig_type == WEAK_BN /* L1/Retaining */
 	   || bidi_isolate_fmt_char (bidi_it->orig_type)
 	   || bidi_explicit_dir_char (bidi_it->ch))
 	  && (bidi_it->next_for_ws.type == NEUTRAL_B

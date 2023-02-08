@@ -220,6 +220,9 @@ the subtrees."
     (setq-local treesit-font-lock-feature-list
                 '((comment)
                   (keyword string)
+                  ;; 'function' and 'variable' here play slightly
+                  ;; different roles than in other ts modes, so we
+                  ;; kept them at level 3.
                   (builtin constant escape-sequence function number variable)
                   (bracket error misc-punctuation)))
 

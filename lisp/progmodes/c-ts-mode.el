@@ -89,18 +89,19 @@
 
 (defun c-ts-mode--indent-style-setter (sym val)
   "Custom setter for `c-ts-mode-set-style'.
+
 Apart from setting the default value of SYM to VAL, also change
-the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL."
+the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL.
+
+SYM should be `c-ts-mode-indent-style', and VAL should be a style
+symbol."
   (set-default sym val)
   (named-let loop ((res nil)
                    (buffers (buffer-list)))
     (if (null buffers)
         (mapc (lambda (b)
                 (with-current-buffer b
-                  (setq-local treesit-simple-indent-rules
-                              (treesit--indent-rules-optimize
-                               (c-ts-mode--get-indent-style
-                                (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))))
+                  (c-ts-mode-set-style val)))
               res)
       (let ((buffer (car buffers)))
         (with-current-buffer buffer
@@ -112,8 +113,8 @@ the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL."
   "Style used for indentation.
 
 The selected style could be one of GNU, K&R, LINUX or BSD.  If
-one of the supplied styles doesn't suffice a function could be
-set instead.  This function is expected return a list that
+one of the supplied styles doesn't suffice, a function could be
+set instead.  This function is expected to return a list that
 follows the form of `treesit-simple-indent-rules'."
   :version "29.1"
   :type '(choice (symbol :tag "Gnu" gnu)
@@ -134,7 +135,7 @@ MODE is either `c' or `cpp'."
     `((,mode ,@style))))
 
 (defun c-ts-mode--prompt-for-style ()
-  "Prompt for a indent style and return the symbol for it."
+  "Prompt for an indent style and return the symbol for it."
   (let ((mode (if (derived-mode-p 'c-ts-mode) 'c 'c++)))
     (intern
      (completing-read
@@ -142,16 +143,20 @@ MODE is either `c' or `cpp'."
       (mapcar #'car (c-ts-mode--indent-styles mode))
       nil t nil nil "gnu"))))
 
-(defun c-ts-mode-set-style (style)
+(defun c-ts-mode-set-global-style (style)
   "Set the indent style of C/C++ modes globally to STYLE.
 
 This changes the current indent style of every C/C++ buffer and
-the default C/C++ indent style in this Emacs session."
+the default C/C++ indent style for `c-ts-mode' and `c++-ts-mode'
+in this Emacs session."
   (interactive (list (c-ts-mode--prompt-for-style)))
   (c-ts-mode--indent-style-setter 'c-ts-mode-indent-style style))
 
-(defun c-ts-mode-set-local-style (style)
-  "Set the C/C++ indent style of the current buffer to STYLE."
+(defun c-ts-mode-set-style (style)
+  "Set the C/C++ indent style of the current buffer to STYLE.
+
+To set the default indent style globally, use
+`c-ts-mode-set-global-style'."
   (interactive (list (c-ts-mode--prompt-for-style)))
   (if (not (derived-mode-p 'c-ts-mode 'c++-ts-mode))
       (user-error "The current buffer is not in `c-ts-mode' nor `c++-ts-mode'")
@@ -233,6 +238,13 @@ MODE is either `c' or `cpp'."
            ((parent-is "labeled_statement")
             point-min c-ts-common-statement-offset)
 
+           ;; Bracketless statement matchers.
+           ((match nil "while_statement" "condition") parent-bol c-ts-mode-indent-offset)
+           ((match nil "if_statement" "consequence") parent-bol c-ts-mode-indent-offset)
+           ((match nil "if_statement" "alternative") parent-bol c-ts-mode-indent-offset)
+           ((match nil "do_statement" "body") parent-bol c-ts-mode-indent-offset)
+           ((match nil "for_statement" "body") parent-bol c-ts-mode-indent-offset)
+
            ((match "preproc_ifdef" "compound_statement") point-min 0)
            ((match "#endif" "preproc_ifdef") point-min 0)
            ((match "preproc_if" "compound_statement") point-min 0)
@@ -273,6 +285,14 @@ MODE is either `c' or `cpp'."
            ((node-is "}") point-min c-ts-common-statement-offset)
            ;; Opening bracket.
            ((node-is "compound_statement") point-min c-ts-common-statement-offset)
+           ;; Bug#61291.
+           ((match "expression_statement" nil "body") point-min c-ts-common-statement-offset)
+           ;; These rules are for cases where the body is bracketless.
+           ;; Tested by the "Bracketless Simple Statement" test.
+           ((parent-is "if_statement") point-min c-ts-common-statement-offset)
+           ((parent-is "for_statement") point-min c-ts-common-statement-offset)
+           ((parent-is "while_statement") point-min c-ts-common-statement-offset)
+           ((parent-is "do_statement") point-min c-ts-common-statement-offset)
 
            ,@(when (eq mode 'cpp)
                `(((node-is "field_initializer_list") parent-bol ,(* c-ts-mode-indent-offset 2)))))))
@@ -440,11 +460,10 @@ MODE is either `c' or `cpp'."
       declarator: (_) @c-ts-mode--fontify-declarator)
 
      (function_definition
-      declarator: (_) @c-ts-mode--fontify-declarator))
+      declarator: (_) @c-ts-mode--fontify-declarator)
 
-   ;; Should we highlight identifiers in the parameter list?
-   ;; (parameter_declaration
-   ;;  declarator: (_) @c-ts-mode--fontify-declarator))
+     (parameter_declaration
+      declarator: (_) @c-ts-mode--fontify-declarator))
 
    :language mode
    :feature 'assignment
@@ -466,7 +485,9 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'function
    '((call_expression
-      function: (identifier) @font-lock-function-name-face))
+      function:
+      [(identifier) @font-lock-function-name-face
+       (field_expression field: (field_identifier) @font-lock-function-name-face)]))
 
    :language mode
    :feature 'variable
@@ -552,9 +573,10 @@ For NODE, OVERRIDE, START, END, and ARGS, see
                                               identifier)))
                  ("function_declarator" 'font-lock-function-name-face)
                  (_ 'font-lock-variable-name-face))))
-    (treesit-fontify-with-override
-     (treesit-node-start identifier) (treesit-node-end identifier)
-     face override start end)))
+    (when identifier
+      (treesit-fontify-with-override
+       (treesit-node-start identifier) (treesit-node-end identifier)
+       face override start end))))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
   "Fontify an identifier node if it is a variable.
@@ -774,14 +796,16 @@ the semicolon.  This function skips the semicolon."
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
   (setq-local c-ts-common-indent-offset 'c-ts-mode-indent-offset)
-  (setq-local c-ts-common-indent-block-type-regexp
-              (rx (or "compound_statement"
-                      "field_declaration_list"
-                      "enumerator_list")))
-  (setq-local c-ts-common-indent-bracketless-type-regexp
-              (rx (or "if_statement" "do_statement"
-                      "for_statement" "while_statement")))
-
+  (setq-local c-ts-common-indent-type-regexp-alist
+              `((block . ,(rx (or "compound_statement"
+                                  "field_declaration_list"
+                                  "enumerator_list")))
+                (if . "if_statement")
+                (else . ("if_statement" . "alternative"))
+                (do . "do_statement")
+                (while . "while_statement")
+                (for . "for_statement")
+                (close-bracket . "}")))
   ;; Comment
   (c-ts-common-comment-setup)
 
@@ -805,8 +829,8 @@ the semicolon.  This function skips the semicolon."
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
                 ( keyword preprocessor string type)
-                ( assignment constant escape-sequence label literal property )
-                ( bracket delimiter error function operator variable))))
+                ( assignment constant escape-sequence label literal)
+                ( bracket delimiter error function operator property variable))))
 
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-base-mode "C"

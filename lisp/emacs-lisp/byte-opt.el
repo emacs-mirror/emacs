@@ -1019,16 +1019,14 @@ for speeding up processing.")
      (t form))))
 
 (defun byte-optimize-constant-args (form)
-  (let ((ok t)
-	(rest (cdr form)))
-    (while (and rest ok)
-      (setq ok (macroexp-const-p (car rest))
-	    rest (cdr rest)))
-    (if ok
-	(condition-case ()
-	    (list 'quote (eval form))
-	  (error form))
-	form)))
+  (let ((rest (cdr form)))
+    (while (and rest (macroexp-const-p (car rest)))
+      (setq rest (cdr rest)))
+    (if rest
+	form
+      (condition-case ()
+	  (list 'quote (eval form t))
+	(error form)))))
 
 (defun byte-optimize-identity (form)
   (if (and (cdr form) (null (cdr (cdr form))))
@@ -1036,8 +1034,19 @@ for speeding up processing.")
     form))
 
 (defun byte-optimize--constant-symbol-p (expr)
-  "Whether EXPR is a constant symbol."
-  (and (macroexp-const-p expr) (symbolp (eval expr))))
+  "Whether EXPR is a constant symbol, like (quote hello), nil, t, or :keyword."
+  (if (consp expr)
+      (and (memq (car expr) '(quote function))
+           (symbolp (cadr expr)))
+    (or (memq expr '(nil t))
+        (keywordp expr))))
+
+(defsubst byteopt--eval-const (expr)
+  "Evaluate EXPR which must be a constant (quoted or self-evaluating).
+Ie, (macroexp-const-p EXPR) must be true."
+  (if (consp expr)
+      (cadr expr)                   ; assumed to be 'VALUE or #'SYMBOL
+    expr))
 
 (defun byte-optimize--fixnump (o)
   "Return whether O is guaranteed to be a fixnum in all Emacsen.
@@ -1074,7 +1083,7 @@ See Info node `(elisp) Integer Basics'."
         (byte-optimize--fixnump (nth 1 form))
         (let ((arg2 (nth 2 form)))
           (and (macroexp-const-p arg2)
-               (let ((listval (eval arg2)))
+               (let ((listval (byteopt--eval-const arg2)))
                  (and (listp listval)
                       (not (memq nil (mapcar
                                       (lambda (o)
@@ -1123,21 +1132,31 @@ See Info node `(elisp) Integer Basics'."
     form))
 
 (defun byte-optimize-concat (form)
-  "Merge adjacent constant arguments to `concat'."
+  "Merge adjacent constant arguments to `concat' and flatten nested forms."
   (let ((args (cdr form))
         (newargs nil))
     (while args
-      (let ((strings nil)
-            val)
-        (while (and args (macroexp-const-p (car args))
-                    (progn
-                      (setq val (eval (car args)))
-                      (and (or (stringp val)
-                               (and (or (listp val) (vectorp val))
-                                    (not (memq nil
-                                               (mapcar #'characterp val))))))))
-          (push val strings)
-          (setq args (cdr args)))
+      (let ((strings nil))
+        (while
+            (and args
+                 (let ((arg (car args)))
+                   (pcase arg
+                     ;; Merge consecutive constant arguments.
+                     ((pred macroexp-const-p)
+                      (let ((val (byteopt--eval-const arg)))
+                        (and (or (stringp val)
+                                 (and (or (listp val) (vectorp val))
+                                      (not (memq nil
+                                                 (mapcar #'characterp val)))))
+                             (progn
+                               (push val strings)
+                               (setq args (cdr args))
+                               t))))
+                     ;; Flatten nested `concat' form.
+                     (`(concat . ,nested-args)
+                      (setq args (append nested-args (cdr args)))
+                      t)))))
+
         (when strings
           (let ((s (apply #'concat (nreverse strings))))
             (when (not (zerop (length s)))
@@ -1528,7 +1547,7 @@ See Info node `(elisp) Integer Basics'."
              (cond
               ((macroexp-const-p arg)
                ;; constant arg
-               (let ((val (eval arg)))
+               (let ((val (byteopt--eval-const arg)))
                  (cond
                   ;; Elide empty arguments (nil, empty string, etc).
                   ((zerop (length val))
@@ -1538,7 +1557,7 @@ See Info node `(elisp) Integer Basics'."
                    (loop (cdr args)
                          (cons
                           (list 'quote
-                                (append (eval prev) val nil))
+                                (append (byteopt--eval-const prev) val nil))
                           (cdr newargs))))
                   (t (loop (cdr args) (cons arg newargs))))))
 

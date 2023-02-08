@@ -2348,6 +2348,8 @@ it defines a macro.  */)
 }
 
 
+static Lisp_Object list_of_t;  /* Never-modified constant containing (t).  */
+
 DEFUN ("eval", Feval, Seval, 1, 2, 0,
        doc: /* Evaluate FORM and return its value.
 If LEXICAL is t, evaluate using lexical scoping.
@@ -2357,7 +2359,7 @@ alist mapping symbols to their value.  */)
 {
   specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
-	    CONSP (lexical) || NILP (lexical) ? lexical : list1 (Qt));
+	    CONSP (lexical) || NILP (lexical) ? lexical : list_of_t);
   return unbind_to (count, eval_sub (form));
 }
 
@@ -4391,6 +4393,9 @@ alist of active lexical bindings.  */);
      cons cell as error data, so use an uninterned symbol instead.  */
   Qcatch_all_memory_full
     = Fmake_symbol (build_pure_c_string ("catch-all-memory-full"));
+
+  staticpro (&list_of_t);
+  list_of_t = list1 (Qt);
 
   defsubr (&Sor);
   defsubr (&Sand);

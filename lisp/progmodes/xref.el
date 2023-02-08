@@ -1126,7 +1126,7 @@ GROUP is a string for decoration purposes and XREF is an
                                    maximize (xref-location-line
                                              (xref-item-location xref)))
            for line-format = (and max-line
-                                  (format "%%%dd: " (1+ (floor (log max-line 10)))))
+                                  (format "%%%dd:" (1+ (floor (log max-line 10)))))
            with item-text-props = (list 'mouse-face 'highlight
                                         'keymap xref--button-map
                                         'help-echo

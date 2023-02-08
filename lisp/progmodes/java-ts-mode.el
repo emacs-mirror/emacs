@@ -70,21 +70,25 @@
 (defvar java-ts-mode--indent-rules
   `((java
      ((parent-is "program") point-min 0)
-     ((node-is "}") (and parent parent-bol) 0)
+     ((match "}" "element_value_array_initializer")
+      parent-bol 0)
+     ((node-is "}") point-min c-ts-common-statement-offset)
      ((node-is ")") parent-bol 0)
+     ((node-is "else") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((and (parent-is "comment") c-ts-common-looking-at-star)
       c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
      ((parent-is "text_block") no-indent)
-     ((parent-is "class_body") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "annotation_type_body") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "interface_body") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "constructor_body") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "class_body") point-min c-ts-common-statement-offset)
+     ((parent-is "array_initializer") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "annotation_type_body") point-min c-ts-common-statement-offset)
+     ((parent-is "interface_body") point-min c-ts-common-statement-offset)
+     ((parent-is "constructor_body") point-min c-ts-common-statement-offset)
      ((parent-is "enum_body_declarations") parent-bol 0)
-     ((parent-is "enum_body") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "switch_block") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "record_declaration_body") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "enum_body") point-min c-ts-common-statement-offset)
+     ((parent-is "switch_block") point-min c-ts-common-statement-offset)
+     ((parent-is "record_declaration_body") point-min c-ts-common-statement-offset)
      ((query "(method_declaration (block _ @indent))") parent-bol java-ts-mode-indent-offset)
      ((query "(method_declaration (block (_) @indent))") parent-bol java-ts-mode-indent-offset)
      ((parent-is "local_variable_declaration") parent-bol java-ts-mode-indent-offset)
@@ -117,7 +121,7 @@
      ((parent-is "case_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "labeled_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "do_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "block") (and parent parent-bol) java-ts-mode-indent-offset)))
+     ((parent-is "block") point-min c-ts-common-statement-offset)))
   "Tree-sitter indent rules.")
 
 (defvar java-ts-mode--keywords
@@ -304,6 +308,23 @@ Return nil if there is no name or if NODE is not a defun node."
                             "text_block")))
 
   ;; Indent.
+  (setq-local c-ts-common-indent-type-regexp-alist
+              `((block . ,(rx (or "class_body"
+                                  "array_initializer"
+                                  "constructor_body"
+                                  "annotation_type_body"
+                                  "interface_body"
+                                  "enum_body"
+                                  "switch_block"
+                                  "record_declaration_body"
+                                  "block")))
+                (close-bracket . "}")
+                (if . "if_statement")
+                (else . ("if_statement" . "alternative"))
+                (for . "for_statement")
+                (while . "while_statement")
+                (do . "do_statement")))
+  (setq-local c-ts-common-indent-offset 'java-ts-mode-indent-offset)
   (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)
 
   ;; Electric
