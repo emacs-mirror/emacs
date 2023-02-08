@@ -110,16 +110,17 @@ the Emacs files directory can be erased through the same preferences
 screen.
 
 @cindex emacsclient wrapper, android
-  Since there is no other way to start the @cmd{emacsclient} program
-(@pxref{Emacs Server}) from another Android program, Emacs provides a
-wrapper around the @cmd{emacsclient} program, which is registered with
-the system as an application that can open all text files.
+  Since there is no other way to start the @command{emacsclient}
+program (@pxref{Emacs Server}) from another Android program, Emacs
+provides a wrapper around the @command{emacsclient} program, which is
+registered with the system as an application that can open all text
+files.
 
   When that wrapper is selected as the program with which to open a
-file, it invokes @cmd{emacsclient} with the options
-@cmd{--reuse-frame}, @cmd{--timeout=10}, @cmd{--no-wait}, and the name
-of the file being opened.  Then, upon success, the focus is
-transferred to any open Emacs frame.
+file, it invokes @command{emacsclient} with the options
+@command{--reuse-frame}, @command{--timeout=10}, @command{--no-wait},
+and the name of the file being opened.  Then, upon success, the focus
+is transferred to any open Emacs frame.
 
 It is sadly impossible to open certain kinds of files which are
 provided by a ``content provider''.  When that is the case, a dialog

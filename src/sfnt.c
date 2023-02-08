@@ -7887,7 +7887,7 @@ sfnt_measure_distance (struct sfnt_interpreter *interpreter,
 
 static void
 sfnt_interpret_msirp (struct sfnt_interpreter *interpreter,
-		      uint32_t p, sfnt_f26dot6 d, unsigned char opcode)
+		      sfnt_f26dot6 d, uint32_t p, unsigned char opcode)
 {
   sfnt_f26dot6 rp0x, rp0y, rp0_original_x, rp0_original_y;
   sfnt_f26dot6 x, y;
@@ -14718,8 +14718,8 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
-#define FANCY_PPEM 30
-#define EASY_PPEM  30
+#define FANCY_PPEM 20
+#define EASY_PPEM  20
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
