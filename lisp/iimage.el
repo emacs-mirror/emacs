@@ -64,9 +64,15 @@
   `((,(concat "\\(`?file://\\|\\[\\[\\|<\\|`\\)?"
 	      "\\(" iimage-mode-image-filename-regex "\\)"
 	      "\\(\\]\\]\\|>\\|'\\)?") . 2))
-  "Alist of filename REGEXP vs NUM.
-Each element looks like (REGEXP . NUM).
-NUM specifies which parenthesized expression in the regexp.
+  "Alist that specifies how to detect filenames of images to be displayed inline.
+The value should be an alist whose elements have the form
+
+      (REGEXP . NUM)
+
+where REGEXP is a regular expression to search buffer text for what
+might be a specification of an inline image, and NUM is the number
+of a parenthesized sub-expression of REGEXP which gives the name of
+the image file to look up.
 
 Examples of image filename patterns to match:
     file://foo.png
@@ -93,7 +99,7 @@ Examples of image filename patterns to match:
   (iimage-mode 0))
 
 (defun iimage-modification-hook (beg end)
-  "Remove display property if a display region is modified."
+  "Remove display property if a display region BEG..END is modified."
   ;;(debug-print "ii1 begin %d, end %d\n" beg end)
   (let ((inhibit-modification-hooks t)
         (beg (previous-single-property-change end 'display
