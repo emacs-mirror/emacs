@@ -255,9 +255,10 @@
 (if (treesit-ready-p 'go)
     (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode)))
 
-(defun go-ts-mode--defun-name (node)
+(defun go-ts-mode--defun-name (node &optional skip-prefix)
   "Return the defun name of NODE.
-Return nil if there is no name or if NODE is not a defun node."
+Return nil if there is no name or if NODE is not a defun node.
+Methods are prefixed with the receiver name, unless SKIP-PREFIX is t."
   (pcase (treesit-node-type node)
     ("function_declaration"
      (treesit-node-text
@@ -266,11 +267,10 @@ Return nil if there is no name or if NODE is not a defun node."
       t))
     ("method_declaration"
      (let* ((receiver-node (treesit-node-child-by-field-name node "receiver"))
-            (type-node (treesit-search-subtree receiver-node "type_identifier"))
-            (name-node (treesit-node-child-by-field-name node "name")))
-       (concat
-        "(" (treesit-node-text type-node) ")."
-        (treesit-node-text name-node))))
+            (receiver (treesit-node-text (treesit-search-subtree receiver-node "type_identifier")))
+            (method (treesit-node-text (treesit-node-child-by-field-name node "name"))))
+       (if skip-prefix method
+         (concat "(" receiver ")." method))))
     ("type_declaration"
      (treesit-node-text
       (treesit-node-child-by-field-name
@@ -314,7 +314,7 @@ comment already exists, jump to it."
         ;; go to top comment line
         (while (go-ts-mode--comment-on-previous-line-p)
           (forward-line -1))
-      (insert "// " (treesit-defun-name defun-node))
+      (insert "// " (go-ts-mode--defun-name defun-node t))
       (newline)
       (backward-char))))
 
