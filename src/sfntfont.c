@@ -2277,9 +2277,8 @@ sfntfont_measure_instructed_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
   /* Scale the metrics by the interpreter's scale.  */
   sfnt_scale_metrics (&metrics, font->interpreter->scale);
 
-  /* How to round lbearing and rbearing? */
   pcm->lbearing = metrics.lbearing >> 16;
-  pcm->rbearing = outline->xmax >> 16;
+  pcm->rbearing = SFNT_CEIL_FIXED (outline->xmax) >> 16;
 
   /* Round the advance, ascent and descent upwards.  */
   pcm->width = SFNT_CEIL_FIXED (metrics.advance) >> 16;
@@ -2324,7 +2323,7 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
 
   /* How to round lbearing and rbearing? */
   pcm->lbearing = metrics.lbearing >> 16;
-  pcm->rbearing = outline->xmax >> 16;
+  pcm->rbearing = SFNT_CEIL_FIXED (outline->xmax) >> 16;
 
   /* Round the advance, ascent and descent upwards.  */
   pcm->width = SFNT_CEIL_FIXED (metrics.advance) >> 16;
