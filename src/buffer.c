@@ -5081,8 +5081,8 @@ the mode line appears at the bottom.  */);
 The header line appears, optionally, at the top of a window; the mode
 line appears at the bottom.
 
-Also see `header-line-indent-mode' if `display-line-number-mode' is
-used.  */);
+Also see `header-line-indent-mode' if `display-line-numbers-mode' is
+turned on and header-line text should be aligned with buffer text.  */);
 
   DEFVAR_PER_BUFFER ("mode-line-format", &BVAR (current_buffer, mode_line_format),
 		     Qnil,

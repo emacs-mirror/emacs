@@ -3,7 +3,7 @@ Code:
     (c-ts-mode)
     (setq-local indent-tabs-mode nil)
     (setq-local c-ts-mode-indent-offset 2)
-    (c-ts-mode-set-local-style 'bsd)
+    (c-ts-mode-set-style 'bsd)
     (indent-region (point-min) (point-max)))
 
 Point-Char: |

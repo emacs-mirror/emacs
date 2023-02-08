@@ -245,6 +245,7 @@ the name is not known."
           (error "Emoji name is unknown")
         (message "%s" name)))))
 
+;;;###autoload
 (defun emoji--init (&optional force inhibit-adjust)
   (when (or (not emoji--labels)
             force)
@@ -638,7 +639,7 @@ We prefer the earliest unique letter."
                          collect (cons (concat (string prefix) "-group")
                                        (seq-take bit 77))))))))
 
-(defun emoji--choose-emoji ()
+(defun emoji--read-emoji ()
   ;; Use the list of names.
   (let* ((table
           (if (not emoji-alternate-names)
@@ -678,21 +679,24 @@ We prefer the earliest unique letter."
 	       (complete-with-action action table string pred)))
            nil t)))
     (when (cl-plusp (length name))
-      (let* ((glyph (if emoji-alternate-names
-                        (cadr (split-string name "\t"))
-                      (gethash name emoji--all-bases)))
-             (derived (gethash glyph emoji--derived)))
-        (if (not derived)
-            ;; Simple glyph with no derivations.
-            (progn
-              (emoji--add-recent glyph)
-              (insert glyph))
-          ;; Choose a derived version.
-          (let ((emoji--done-derived (make-hash-table :test #'equal)))
-            (setf (gethash glyph emoji--done-derived) t)
-            (funcall
-             (emoji--define-transient
-              (cons "Choose Emoji" (cons glyph derived))))))))))
+      (let ((glyph (if emoji-alternate-names
+                       (cadr (split-string name "\t"))
+                     (gethash name emoji--all-bases))))
+        (cons glyph (gethash glyph emoji--derived))))))
+
+(defun emoji--choose-emoji ()
+  (pcase-let ((`(,glyph . ,derived) (emoji--read-emoji)))
+    (if (not derived)
+        ;; Simple glyph with no derivations.
+        (progn
+          (emoji--add-recent glyph)
+          (insert glyph))
+      ;; Choose a derived version.
+      (let ((emoji--done-derived (make-hash-table :test #'equal)))
+        (setf (gethash glyph emoji--done-derived) t)
+        (funcall
+         (emoji--define-transient
+          (cons "Choose Emoji" (cons glyph derived))))))))
 
 (defvar-keymap emoji-zoom-map
   "+" #'emoji-zoom-increase

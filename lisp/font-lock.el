@@ -1154,6 +1154,8 @@ Put first the functions more likely to cause a change and cheaper to compute.")
   "Fontify the text between BEG and END.
 If LOUDLY is non-nil, print status messages while fontifying.
 This function is the default `font-lock-fontify-region-function'."
+  (or (<= end (point-max))
+      (setq end (point-max)))
   (with-silent-modifications
    ;; Use the fontification syntax table, if any.
    (with-syntax-table (or font-lock-syntax-table (syntax-table))

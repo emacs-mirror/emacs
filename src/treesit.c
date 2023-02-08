@@ -620,7 +620,7 @@ treesit_load_language (Lisp_Object language_symbol,
   char *c_name = xstrdup (SSDATA (base_name));
   treesit_symbol_to_c_name (c_name);
   if (found_override)
-    c_name = SSDATA (override_c_name);
+    c_name = xstrdup (SSDATA (override_c_name));
   langfn = dynlib_sym (handle, c_name);
   xfree (c_name);
   error = dynlib_error ();

@@ -2774,25 +2774,22 @@ With argument, add COUNT copies of the character."
 					   (mapconcat 'isearch-text-char-description
 						      string ""))))))))
 
-(defvar emoji--derived)
+(autoload 'emoji--read-emoji "emoji")
 (defun isearch-emoji-by-name (&optional count)
   "Read an Emoji name and add it to the search string COUNT times.
 COUNT (interactively, the prefix argument) defaults to 1.
 The command accepts Unicode names like \"smiling face\" or
 \"heart with arrow\", and completion is available."
   (interactive "p")
+  (emoji--init)
   (with-isearch-suspended
-   (let ((emoji (with-temp-buffer
-                  ;; Derived emoji not supported yet (bug#60740).
-                  ;; So first load `emoji--labels', then `emoji--init'
-                  ;; will not fill `emoji--derived' that is set
-                  ;; to an empty hash table below.
-                  (ignore-errors (require 'emoji-labels))
-                  (let ((emoji--derived (make-hash-table :test #'equal)))
-                    (emoji-search))
-                  (if (and (integerp count) (> count 1))
-                      (apply 'concat (make-list count (buffer-string)))
-                    (buffer-string)))))
+   (pcase-let* ((`(,glyph . ,derived) (emoji--read-emoji))
+                (emoji (if derived
+                           (completing-read "Select derivation: "
+                                            (cons glyph derived) nil t)
+                         glyph)))
+     (when (and (integerp count) (> count 1))
+       (setq emoji (apply 'concat (make-list count emoji))))
      (when emoji
        (setq isearch-new-string (concat isearch-string emoji)
              isearch-new-message (concat isearch-message

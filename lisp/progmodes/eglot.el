@@ -2873,7 +2873,10 @@ for which LSP on-type-formatting should be requested."
          (when-let* ((lsp-item (get-text-property 0 'eglot--lsp-item proxy))
                      (kind (alist-get (plist-get lsp-item :kind)
                                       eglot--kind-names)))
-           (intern (downcase kind))))
+           (pcase kind
+             ("EnumMember" 'enum-member)
+             ("TypeParameter" 'type-parameter)
+             (_ (intern (downcase kind))))))
        :company-deprecated
        (lambda (proxy)
          (when-let ((lsp-item (get-text-property 0 'eglot--lsp-item proxy)))

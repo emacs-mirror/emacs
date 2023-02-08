@@ -1159,11 +1159,11 @@ function definitions.
 This level adds fontification of keywords, strings, and data types.
 @item Level 3
 This is the default level; it adds fontification of assignments,
-numbers, properties, etc.
+numbers, etc.
 @item Level 4
 This level adds everything else that can be fontified: operators,
 delimiters, brackets, other punctuation, function names in function
-calls, variables, etc.
+calls, property look ups, variables, etc.
 @end table
 
 @vindex treesit-font-lock-feature-list
