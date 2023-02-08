@@ -6707,7 +6707,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     c = POP ();					\
     p = POP ();					\
 						\
-    sfnt_interpret_scfs (interpreter, c, p);	\
+    sfnt_interpret_scfs (interpreter, p, c);	\
   }
 
 #define MD()					\
@@ -7761,15 +7761,35 @@ sfnt_normalize_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
 
   if (!vx && !vy)
     {
-      /* The MS scaler seems to do this.  */
+      /* If vx and vy are both zero, then just project
+	 horizontally.  */
+
       vector->x = 04000;
       vector->y = 0;
       return;
     }
 
+  /* Scale vx and vy up if they won't at least make 1.  */
+
+  while (!(vx < -32 || vx > 32) && !(vy < -32 || vy > 32))
+    {
+      vx = vx * 2;
+      vy = vy * 2;
+    }
+
   /* Compute the magnitude of this vector.  */
   x_squared = sfnt_mul_f26dot6 (vx, vx);
   y_squared = sfnt_mul_f26dot6 (vy, vy);
+
+  /* x_squared and y_squared can end up too large to fit in a 16.16
+     fixed.  Scale both values down until they fit.  */
+
+  while (x_squared > 0x200000 || y_squared > 0x200000
+	 || x_squared < -0x200000 || y_squared < -0x200000)
+    {
+      x_squared /= 2;
+      y_squared /= 2;
+    }
 
   /* Convert to 16.16 for greater precision.  */
   n = sfnt_add (x_squared, y_squared) * 1024;
@@ -8987,6 +9007,11 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
   size_t num;
 
   dot_product = interpreter->state.vector_dot_product;
+
+  /* If the vectors are orthogonal, it is impossible to move anywhere,
+     so simply return.  */
+  if (!dot_product)
+    return;
 
   /* Not actually 26.6, but the multiply-divisions below cancel each
      other out, so the result is 26.6.  */
@@ -14718,8 +14743,8 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
-#define FANCY_PPEM 20
-#define EASY_PPEM  20
+#define FANCY_PPEM 12
+#define EASY_PPEM  12
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
