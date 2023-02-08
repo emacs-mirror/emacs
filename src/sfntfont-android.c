@@ -454,7 +454,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
     {
       text.x1 = x_coords[0] + rasters[0]->offx;
       text.x2 = text.x1 + rasters[0]->width;
-      text.y1 = y - (rasters[0]->height + rasters[0]->offy);
+      text.y1 = y - rasters[0]->height - rasters[0]->offy;
       text.y2 = y - rasters[0]->offy;
     }
   else
@@ -469,7 +469,7 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
 
       character.x1 = x_coords[i] + rasters[i]->offx;
       character.x2 = character.x1 + rasters[i]->width;
-      character.y1 = y - (rasters[i]->height + rasters[i]->offy);
+      character.y1 = y - rasters[i]->height - rasters[i]->offy;
       character.y2 = y - rasters[i]->offy;
 
       sfntfont_android_union_boxes (text, character, &text);

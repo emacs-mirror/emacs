@@ -1456,6 +1456,9 @@ sfntfont_dereference_outline (struct sfnt_glyph_outline *outline)
    Use the offset information in the long or short loca tables
    LOCA_LONG and LOCA_SHORT, whichever is set.
 
+   If INTERPRETER is non-NULL, then possibly use the unscaled glyph
+   metrics in METRICS when instructing the glyph.
+
    Return the outline with an incremented reference count and enter
    the generated outline into CACHE upon success, possibly discarding
    any older outlines, or NULL on failure.  */
@@ -1467,12 +1470,16 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 			    struct sfnt_glyf_table *glyf,
 			    struct sfnt_head_table *head,
 			    struct sfnt_loca_table_short *loca_short,
-			    struct sfnt_loca_table_long *loca_long)
+			    struct sfnt_loca_table_long *loca_long,
+			    struct sfnt_interpreter *interpreter,
+			    struct sfnt_glyph_metrics *metrics)
 {
   struct sfnt_outline_cache *start;
   struct sfnt_glyph_outline *outline;
   struct sfnt_glyph *glyph;
   struct sfntfont_get_glyph_outline_dcontext dcontext;
+  struct sfnt_instructed_outline *value;
+  const char *error;
 
   start = cache->next;
 
@@ -1504,14 +1511,32 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   if (!glyph)
     return NULL;
 
+  /* Try to instruct the glyph if INTERPRETER is specified.
+     TODO: support compound glyphs.  */
+
+  outline = NULL;
+
+  if (interpreter && glyph->simple)
+    {
+      error = sfnt_interpret_simple_glyph (glyph, interpreter,
+					   metrics, &value);
+
+      if (!error)
+	{
+	  outline = sfnt_build_instructed_outline (value);
+	  xfree (value);
+	}
+    }
+
   dcontext.loca_long = loca_long;
   dcontext.loca_short = loca_short;
   dcontext.glyf = glyf;
 
-  outline = sfnt_build_glyph_outline (glyph, head, pixel_size,
-				      sfntfont_get_glyph,
-				      sfntfont_free_glyph,
-				      &dcontext);
+  if (!outline)
+    outline = sfnt_build_glyph_outline (glyph, head, pixel_size,
+					sfntfont_get_glyph,
+					sfntfont_free_glyph,
+					&dcontext);
   xfree (glyph);
 
   if (!outline)
@@ -1709,6 +1734,9 @@ struct sfnt_font_info
   struct sfnt_glyf_table *glyf;
   struct sfnt_loca_table_short *loca_short;
   struct sfnt_loca_table_long *loca_long;
+  struct sfnt_prep_table *prep;
+  struct sfnt_fpgm_table *fpgm;
+  struct sfnt_cvt_table *cvt;
 
   /* The selected character map.  */
   struct sfnt_cmap_encoding_subtable_data *cmap_data;
@@ -1727,6 +1755,13 @@ struct sfnt_font_info
 
   /* Number of elements in the raster cache.  */
   int raster_cache_size;
+
+  /* Interpreter for grid fitting (if enabled).  */
+  struct sfnt_interpreter *interpreter;
+
+  /* Graphics state after the execution of the font and control value
+     programs.  */
+  struct sfnt_graphics_state state;
 };
 
 /* Look up the glyph corresponding to the character C in FONT.  Return
@@ -1813,6 +1848,106 @@ sfntfont_probe_widths (struct sfnt_font_info *font_info)
     font_info->font.average_width = total_width / num_characters;
 }
 
+/* Initialize the instruction interpreter for INFO, whose file and
+   offset subtable should be respectively FD and SUBTABLE.  Load the
+   font and preprogram for the pixel size in INFO and its
+   corresponding point size POINT_SIZE.
+
+   The font tables in INFO must already have been initialized.
+
+   Set INFO->interpreter, INFO->cvt, INFO->prep, INFO->fpgm and
+   INFO->state upon success, and leave those fields intact
+   otherwise.  */
+
+static void
+sfntfont_setup_interpreter (int fd, struct sfnt_font_info *info,
+			    struct sfnt_offset_subtable *subtable,
+			    int point_size)
+{
+  struct sfnt_cvt_table *cvt;
+  struct sfnt_fpgm_table *fpgm;
+  struct sfnt_prep_table *prep;
+  struct sfnt_interpreter *interpreter;
+  const char *error;
+  struct sfnt_graphics_state state;
+
+  /* Try to read the control value program, cvt, and font program
+     tables.  */
+
+  cvt = sfnt_read_cvt_table (fd, subtable);
+  fpgm = sfnt_read_fpgm_table (fd, subtable);
+  prep = sfnt_read_prep_table (fd, subtable);
+
+  /* If both fpgm and prep are NULL, this font likely has no
+     instructions, so don't bother setting up the interpreter.  */
+
+  if (!fpgm && !prep)
+    goto bail;
+
+  /* Now, create the interpreter using the limits in info->maxp and
+     info->head.  CVT can be NULL.  */
+  interpreter = sfnt_make_interpreter (info->maxp, cvt, info->head,
+				       info->font.pixel_size,
+				       point_size);
+
+  /* Bail if the interpreter couldn't be created.  */
+  if (!interpreter)
+    goto bail;
+
+  if (fpgm)
+    {
+      /* Otherwise, evaluate the font and cvt programs.
+
+	 FIXME: make sure infinite loops inside these programs
+	 cannot lock up Emacs.  */
+
+      error = sfnt_interpret_font_program (interpreter, fpgm);
+
+      if (error)
+	{
+	  /* If an error occurs, log it to the *Messages* buffer.  */
+	  message_with_string ("While interpreting font program: %s",
+			       build_string (error), true);
+	  goto bail1;
+	}
+
+      /* Save the graphics state.  */
+      state = interpreter->state;
+    }
+
+  if (prep)
+    {
+      /* This will overwrite state if the instruction control is set
+	 appropriately.  */
+      error = sfnt_interpret_control_value_program (interpreter, prep,
+						    &state);
+
+      if (error)
+	{
+	  /* If an error occurs, log it to the *Messages* buffer.  */
+	  message_with_string ("While interpreting preprogram: %s",
+			       build_string (error), true);
+	  goto bail1;
+	}
+    }
+
+  /* The interpreter has been properly set up.  */
+  info->fpgm = fpgm;
+  info->prep = prep;
+  info->cvt = cvt;
+  info->state = state;
+  info->interpreter = interpreter;
+
+  return;
+
+ bail1:
+  xfree (interpreter);
+ bail:
+  xfree (cvt);
+  xfree (fpgm);
+  xfree (prep);
+}
+
 /* Open the font corresponding to the font-entity FONT_ENTITY.  Return
    nil upon failure, else the opened font-object.  */
 
@@ -1829,6 +1964,8 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   struct sfnt_cmap_encoding_subtable *subtables;
   struct sfnt_cmap_encoding_subtable_data **data;
   struct charset *charset;
+  int point_size;
+  Display_Info *dpyinfo;
 
   if (XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX)) != 0)
     pixel_size = XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX));
@@ -1868,6 +2005,9 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->loca_short = NULL;
   font_info->loca_long = NULL;
   font_info->cmap_data = NULL;
+  font_info->prep = NULL;
+  font_info->fpgm = NULL;
+  font_info->cvt = NULL;
 
   font_info->outline_cache.next = &font_info->outline_cache;
   font_info->outline_cache.last = &font_info->outline_cache;
@@ -1875,6 +2015,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->raster_cache.next = &font_info->raster_cache;
   font_info->raster_cache.last = &font_info->raster_cache;
   font_info->raster_cache_size = 0;
+  font_info->interpreter = NULL;
 
   /* Open the font.  */
   fd = emacs_open (desc->path, O_RDONLY, 0);
@@ -2027,8 +2168,19 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   /* Calculate the xfld name.  */
   font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
 
+  /* Now try to set up grid fitting for this font.  */
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+  point_size = PIXEL_TO_POINT (pixel_size, (dpyinfo->resx
+					    * dpyinfo->resy
+					    / 2));
+  sfntfont_setup_interpreter (fd, font_info, subtable,
+			      point_size);
+
   /* Close the font file descriptor.  */
   emacs_close (fd);
+
+  /* Free the offset subtable.  */
+  xfree (subtable);
 
   /* All done.  */
   unblock_input ();
@@ -2091,6 +2243,54 @@ sfntfont_encode_char (struct font *font, int c)
 }
 
 /* Measure the single glyph GLYPH in the font FONT and return its
+   metrics in *PCM.
+
+   Instruct the glyph if possible.
+
+   Value is 0 upon success, 1 otherwise.  */
+
+static int
+sfntfont_measure_instructed_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
+				 struct font_metrics *pcm)
+{
+  struct sfnt_glyph_metrics metrics;
+  struct sfnt_glyph_outline *outline;
+
+  /* Ask for unscaled metrics.  */
+  if (sfnt_lookup_glyph_metrics (glyph, -1, &metrics, font->hmtx,
+				 font->hhea, font->head, font->maxp))
+    return 1;
+
+  /* Now get the glyph outline, which is required to obtain the rsb,
+     ascent and descent.  */
+  outline = sfntfont_get_glyph_outline (glyph, &font->outline_cache,
+					font->font.pixel_size,
+					&font->outline_cache_size,
+					font->glyf, font->head,
+					font->loca_short,
+					font->loca_long,
+					font->interpreter, &metrics);
+
+  if (!outline)
+    return 1;
+
+  /* Scale the metrics by the interpreter's scale.  */
+  sfnt_scale_metrics (&metrics, font->interpreter->scale);
+
+  /* How to round lbearing and rbearing? */
+  pcm->lbearing = metrics.lbearing >> 16;
+  pcm->rbearing = outline->xmax >> 16;
+
+  /* Round the advance, ascent and descent upwards.  */
+  pcm->width = SFNT_CEIL_FIXED (metrics.advance) >> 16;
+  pcm->ascent = SFNT_CEIL_FIXED (outline->ymax) >> 16;
+  pcm->descent = SFNT_CEIL_FIXED (-outline->ymin) >> 16;
+
+  sfntfont_dereference_outline (outline);
+  return 0;
+}
+
+/* Measure the single glyph GLYPH in the font FONT and return its
    metrics in *PCM.  Value is 0 upon success, 1 otherwise.  */
 
 static int
@@ -2099,6 +2299,10 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
 {
   struct sfnt_glyph_metrics metrics;
   struct sfnt_glyph_outline *outline;
+
+  if (font->interpreter)
+    /* Use a function which instructs the glyph.  */
+    return sfntfont_measure_instructed_pcm (font, glyph, pcm);
 
   /* Get the glyph metrics first.  */
   if (sfnt_lookup_glyph_metrics (glyph, font->font.pixel_size,
@@ -2113,7 +2317,7 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
 					&font->outline_cache_size,
 					font->glyf, font->head,
 					font->loca_short,
-					font->loca_long);
+					font->loca_long, NULL, NULL);
 
   if (!outline)
     return 1;
@@ -2192,6 +2396,10 @@ sfntfont_close (struct font *font)
   xfree (info->loca_short);
   xfree (info->loca_long);
   xfree (info->cmap_data);
+  xfree (info->prep);
+  xfree (info->fpgm);
+  xfree (info->cvt);
+  xfree (info->interpreter);
 
   sfntfont_free_outline_cache (&info->outline_cache);
   sfntfont_free_raster_cache (&info->raster_cache);
@@ -2221,10 +2429,15 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
   struct font *font;
   struct sfnt_font_info *info;
   struct sfnt_glyph_metrics metrics;
+  int pixel_size;
 
   length = to - from;
   font = s->font;
   info = (struct sfnt_font_info *) font;
+  pixel_size = font->pixel_size;
+
+  if (info->interpreter)
+    pixel_size = -1;
 
   rasters = alloca (length * sizeof *rasters);
   x_coords = alloca (length * sizeof *x_coords);
@@ -2233,8 +2446,9 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
   /* Get rasters and outlines for them.  */
   for (i = from; i < to; ++i)
     {
-      /* Look up the metrics for this glyph.  */
-      if (sfnt_lookup_glyph_metrics (s->char2b[i], font->pixel_size,
+      /* Look up the metrics for this glyph.  The metrics are unscaled
+	 if INFO->interpreter is set.  */
+      if (sfnt_lookup_glyph_metrics (s->char2b[i], pixel_size,
 				     &metrics, info->hmtx, info->hhea,
 				     info->head, info->maxp))
 	{
@@ -2250,7 +2464,9 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
 					    &info->outline_cache_size,
 					    info->glyf, info->head,
 					    info->loca_short,
-					    info->loca_long);
+					    info->loca_long,
+					    info->interpreter,
+					    &metrics);
       x_coords[i - from] = 0;
 
       if (!outline)
@@ -2258,6 +2474,10 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
 	  rasters[i - from] = NULL;
 	  continue;
 	}
+
+      /* Scale the metrics if info->interpreter is set.  */
+      if (info->interpreter)
+	sfnt_scale_metrics (&metrics, info->interpreter->scale);
 
       /* Rasterize the outline.  */
       rasters[i - from] = sfntfont_get_glyph_raster (s->char2b[i],

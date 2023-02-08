@@ -23,6 +23,11 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #include <stdint.h>
 #include <stddef.h>
+#include <setjmp.h>
+
+#if defined emacs || defined TEST
+#define SFNT_ENABLE_HINTING
+#endif
 
 
 
@@ -719,7 +724,7 @@ struct sfnt_edge
 
 enum
   {
-    SFNT_POLY_SHIFT  = 2,
+    SFNT_POLY_SHIFT  = 3,
     SFNT_POLY_SAMPLE = (1 << SFNT_POLY_SHIFT),
     SFNT_POLY_MASK   = (SFNT_POLY_SAMPLE - 1),
     SFNT_POLY_STEP   = (0x10000 >> SFNT_POLY_SHIFT),
@@ -984,6 +989,9 @@ extern int sfnt_lookup_glyph_metrics (sfnt_glyph, int,
 				      struct sfnt_head_table *,
 				      struct sfnt_maxp_table *);
 
+extern void sfnt_scale_metrics (struct sfnt_glyph_metrics *,
+				sfnt_fixed);
+
 #define PROTOTYPE int, struct sfnt_offset_subtable *
 extern struct sfnt_name_table *sfnt_read_name_table (PROTOTYPE);
 #undef PROTOTYPE
@@ -1003,4 +1011,477 @@ extern char *sfnt_find_metadata (struct sfnt_meta_table *,
 extern struct sfnt_ttc_header *sfnt_read_ttc_header (int);
 
 #endif /* TEST */
+
+
+
+/* TrueType hinting support.  */
+
+#ifdef SFNT_ENABLE_HINTING
+
+/* Structure definitions for tables used by the TrueType
+   interpreter.  */
+
+struct sfnt_cvt_table
+{
+  /* Number of elements in the control value table.  */
+  size_t num_elements;
+
+  /* Pointer to elements in the control value table.  */
+  sfnt_fword *values;
+};
+
+struct sfnt_fpgm_table
+{
+  /* Number of instructions in the font program table.  */
+  size_t num_instructions;
+
+  /* Pointer to elements in the font program table.  */
+  unsigned char *instructions;
+};
+
+struct sfnt_prep_table
+{
+  /* Number of instructions in the control value program (pre-program)
+     table.  */
+  size_t num_instructions;
+
+  /* Pointer to elements in the preprogram table.  */
+  unsigned char *instructions;
+};
+
+
+
+/* Fixed point types used by the TrueType interpreter.  */
+
+/* 26.6 fixed point type used within the interpreter.  */
+typedef int32_t sfnt_f26dot6;
+
+/* 2.14 fixed point type used to represent versors of unit
+   vectors.  */
+typedef int16_t sfnt_f2dot14;
+
+/* 18.14 fixed point type used to calculate rounding details.  */
+typedef int32_t sfnt_f18dot14;
+
+
+
+/* Interpreter execution environment.  */
+
+struct sfnt_unit_vector
+{
+  /* X and Y versors of the 2d unit vector.  */
+  sfnt_f2dot14 x, y;
+};
+
+struct sfnt_interpreter_definition
+{
+  /* The opcode of this instruction or function.  */
+  uint16_t opcode;
+
+  /* The number of instructions.  */
+  uint16_t instruction_count;
+
+  /* Pointer to instructions belonging to the definition.  This
+     pointer points directly into the control value or font program.
+     Make sure both programs are kept around as long as the
+     interpreter continues to exist.  */
+  unsigned char *instructions;
+};
+
+/* This structure represents a ``struct sfnt_glyph'' that has been
+   scaled to a given pixel size.
+
+   It can either contain a simple glyph, or a decomposed compound
+   glyph; instructions are interpreted for both simple glyphs, simple
+   glyph components inside a compound glyph, and compound glyphs as a
+   whole.
+
+   In addition to the glyph data itself, it also records various
+   information for the instruction interpretation process:
+
+     - ``current'' point coordinates, which have been modified
+       by the instructing process.
+
+     - two phantom points at the origin and the advance of the
+       glyph.  */
+
+struct sfnt_interpreter_zone
+{
+  /* The number of points in this zone, including the two phantom
+     points at the end.  */
+  size_t num_points;
+
+  /* The number of contours in this zone.  */
+  size_t num_contours;
+
+  /* The end points of each contour.  */
+  size_t *contour_end_points;
+
+  /* Pointer to the X axis point data.  */
+  sfnt_f26dot6 *restrict x_points;
+
+  /* Pointer to the X axis current point data.  */
+  sfnt_f26dot6 *restrict x_current;
+
+  /* Pointer to the Y axis point data.  */
+  sfnt_f26dot6 *restrict y_points;
+
+  /* Pointer to the Y axis current point data.  */
+  sfnt_f26dot6 *restrict y_current;
+
+  /* Pointer to the flags associated with this data.  */
+  unsigned char *flags;
+};
+
+enum
+  {
+    /* Bits 7 and 6 of a glyph point's flags is reserved.  This scaler
+       uses it to mean that the point has been touched in one axis or
+       another.  */
+    SFNT_POINT_TOUCHED_X = (1 << 7),
+    SFNT_POINT_TOUCHED_Y = (1 << 6),
+    SFNT_POINT_TOUCHED_BOTH = (SFNT_POINT_TOUCHED_X
+			       | SFNT_POINT_TOUCHED_Y),
+  };
+
+/* This is needed because `round' below needs an interpreter
+   argument.  */
+struct sfnt_interpreter;
+
+struct sfnt_graphics_state
+{
+  /* Pointer to the function used for rounding.  This function is
+     asymmetric, so -0.5 rounds up to 0, not -1.  It is up to the
+     caller to handle negative values.
+
+     Value is undefined unless sfnt_validate_gs has been called, and
+     the second argument may be used to provide detailed rounding
+     information (``super rounding state''.)  */
+  sfnt_f26dot6 (*round) (sfnt_f26dot6, struct sfnt_interpreter *);
+
+  /* Pointer to the function used to project euclidean vectors onto
+     the projection vector.  Value is the magnitude of the projected
+     vector.  */
+  sfnt_f26dot6 (*project) (sfnt_f26dot6, sfnt_f26dot6,
+			   struct sfnt_interpreter *);
+
+  /* Pointer to the function used to project euclidean vectors onto
+     the dual projection vector.  Value is the magnitude of the
+     projected vector.  */
+  sfnt_f26dot6 (*dual_project) (sfnt_f26dot6, sfnt_f26dot6,
+				struct sfnt_interpreter *);
+
+  /* Pointer to the function used to move specified points
+     along the freedom vector by a distance specified in terms
+     of the projection vector.  */
+  void (*move) (sfnt_f26dot6 *restrict,
+		sfnt_f26dot6 *restrict, size_t,
+		struct sfnt_interpreter *,
+		sfnt_f26dot6, unsigned char *);
+
+  /* Dot product between the freedom and the projection vectors.  */
+  sfnt_f2dot14 vector_dot_product;
+
+  /* Controls whether the sign of control value table entries will be
+     changed to match the sign of the actual distance measurement with
+     which it is compared.  Setting auto flip to TRUE makes it
+     possible to control distances measured with or against the
+     projection vector with a single control value table entry. When
+     auto flip is set to FALSE, distances must be measured with the
+     projection vector.  */
+  bool auto_flip;
+
+  /* Limits the regularizing effects of control value table entries to
+     cases where the difference between the table value and the
+     measurement taken from the original outline is sufficiently
+     small.  */
+  sfnt_f26dot6 cvt_cut_in;
+
+  /* Establishes the base value used to calculate the range of point
+     sizes to which a given DELTAC[] or DELTAP[] instruction will
+     apply.  The formulas given below are used to calculate the range
+     of the various DELTA instructions.
+
+     DELTAC1 DELTAP1 (delta_base) through (delta_base + 15)
+     DELTAC2 DELTAP2 (delta_base + 16) through (delta_base + 31)
+     DELTAC3 DELTAP3 (delta_base + 32) through (delta_base + 47)
+
+     Please keep this documentation in sync with the TrueType
+     reference manual.  */
+  unsigned short delta_base;
+
+  /* Determines the range of movement and smallest magnitude of
+     movement (the step) in a DELTAC[] or DELTAP[] instruction.
+     Changing the value of the delta shift makes it possible to trade
+     off fine control of point movement for range of movement.  A low
+     delta shift favors range of movement over fine control.  A high
+     delta shift favors fine control over range of movement.  The step
+     has the value 1/2 to the power delta shift.  The range of
+     movement is calculated by taking the number of steps allowed (16)
+     and multiplying it by the step.
+
+     The legal range for delta shift is zero through six.  Negative
+     values are illegal.  */
+  unsigned short delta_shift;
+
+  /* A second projection vector set to a line defined by the original
+     outline location of two points.  The dual projection vector is
+     used when it is necessary to measure distances from the scaled
+     outline before any instructions were executed.  */
+  struct sfnt_unit_vector dual_projection_vector;
+
+  /* A unit vector that establishes an axis along which points can
+     move.  */
+  struct sfnt_unit_vector freedom_vector;
+
+  /* Makes it possible to turn off instructions under some
+     circumstances.  When flag 1 is set, changes to the graphics state
+     made in the control value program will be ignored.  When flag is
+     1, grid fitting instructions will be ignored.  */
+  unsigned char instruct_control;
+
+  /* Makes it possible to repeat certain instructions a designated
+     number of times.  The default value of one assures that unless
+     the value of loop is altered, these instructions will execute one
+     time.  */
+  unsigned short loop;
+
+  /* Establishes the smallest possible value to which a distance will
+     be rounded.  */
+  sfnt_f26dot6 minimum_distance;
+
+  /* A unit vector whose direction establishes an axis along which
+     distances are measured.  */
+  struct sfnt_unit_vector projection_vector;
+
+  /* Determines the manner in which values are rounded. Can be set to
+     a number of predefined states or to a customized state with the
+     SROUND or S45ROUND instructions.  */
+  int round_state;
+
+  /* Reference points.  These reference point numbers, which together
+     with a zone designation, specify a point in either the glyph zone
+     or the twilight zone.  */
+  uint16_t rp0, rp1, rp2;
+
+  /* Flags which determine whether the interpreter will activate
+     dropout control for the current glyph.  */
+  int scan_control;
+
+  /* The distance difference below which the interpreter will replace
+     a CVT distance or an actual distance in favor of the single width
+     value.  */
+  sfnt_f26dot6 sw_cut_in;
+
+  /* The value used in place of the control value table distance or
+     the actual distance value when the difference between that
+     distance and the single width value is less than the single width
+     cut-in.  */
+  sfnt_f26dot6 single_width_value;
+
+  /* Zone pointers, which reference a zone.  */
+  int zp0, zp1, zp2;
+};
+
+struct sfnt_interpreter
+{
+  /* The number of elements in the stack.  */
+  uint16_t max_stack_elements;
+
+  /* The number of instructions in INSTRUCTIONS.  */
+  uint16_t num_instructions;
+
+  /* Size of the storage area.  */
+  uint16_t storage_size;
+
+  /* Size of the function definition area.  */
+  uint16_t function_defs_size;
+
+  /* Size of the instruction definition area.  */
+  uint16_t instruction_defs_size;
+
+  /* Size of the twilight zone.  */
+  uint16_t twilight_zone_size;
+
+  /* The instruction pointer.  This points to the instruction
+     currently being executed.  */
+  int IP;
+
+  /* The current scale.  */
+  sfnt_fixed scale;
+
+  /* The current ppem and point size.  */
+  int ppem, point_size;
+
+  /* The execution stack.  This has at most max_stack_elements
+     elements.  */
+  uint32_t *stack;
+
+  /* Pointer past the top of the stack.  */
+  uint32_t *SP;
+
+  /* The size of the control value table.  */
+  size_t cvt_size;
+
+  /* Pointer to instructions currently being executed.  */
+  unsigned char *restrict instructions;
+
+  /* The twilight zone.  May not be NULL.  */
+  sfnt_f26dot6 *restrict twilight_x, *restrict twilight_y;
+
+  /* The original X positions of points in the twilight zone.  */
+  sfnt_f26dot6 *restrict twilight_original_x;
+
+  /* The original Y positions of points in the twilight zone.
+
+     Apple does not directly say whether or not points in the twilight
+     zone can have their original positions changed.  But this is
+     implied by ``create points in the twilight zone''.  */
+  sfnt_f26dot6 *restrict twilight_original_y;
+
+  /* The scaled outlines being manipulated.  May be NULL.  */
+  struct sfnt_interpreter_zone *glyph_zone;
+
+  /* The glyph advance width.  Value is undefined unless GLYPH_ZONE is
+     set.  */
+  sfnt_f26dot6 advance_width;
+
+  /* The storage area.  */
+  uint32_t *storage;
+
+  /* Control value table values.  */
+  sfnt_f26dot6 *cvt;
+
+  /* Function definitions.  */
+  struct sfnt_interpreter_definition *function_defs;
+
+  /* Instruction definitions.  */
+  struct sfnt_interpreter_definition *instruction_defs;
+
+  /* Interpreter registers.  */
+  struct sfnt_graphics_state state;
+
+  /* Detailed rounding state used when state.round_state indicates
+     that fine grained rounding should be used.
+
+     PERIOD says how often a round value occurs, for numbers
+     increasing from PHASE to infinity.
+
+     THRESHOLD says when to round a value between two increasing
+     periods towards the larger period.  */
+  sfnt_f26dot6 period, phase, threshold;
+
+  /* The depth of any ongoing calls.  */
+  int call_depth;
+
+  /* Jump buffer for traps.  */
+  jmp_buf trap;
+
+  /* What was the trap.  */
+  const char *trap_reason;
+
+#ifdef TEST
+  /* If non-NULL, function called before each instruction is
+     executed.  */
+  void (*run_hook) (struct sfnt_interpreter *);
+
+  /* If non-NULL, function called before each stack element is
+     pushed.  */
+  void (*push_hook) (struct sfnt_interpreter *, uint32_t);
+
+  /* If non-NULL, function called before each stack element is
+     popped.  */
+  void (*pop_hook) (struct sfnt_interpreter *, uint32_t);
+#endif
+};
+
+
+
+/* Glyph hinting.  */
+
+/* Structure describing a single scaled and fitted outline.  */
+
+struct sfnt_instructed_outline
+{
+  /* The number of points in this contour, including the two phantom
+     points at the end.  */
+  size_t num_points;
+
+  /* The number of contours in this outline.  */
+  size_t num_contours;
+
+  /* The end points of each contour.  */
+  size_t *contour_end_points;
+
+  /* The points of each contour, with two additional phantom points at
+     the end.  */
+  sfnt_f26dot6 *restrict x_points, *restrict y_points;
+
+  /* The flags of each point.  */
+  unsigned char *flags;
+};
+
+
+
+/* Functions used to read tables used by the TrueType interpreter.  */
+
+#ifndef TEST
+
+#define PROTOTYPE int, struct sfnt_offset_subtable *
+
+extern struct sfnt_cvt_table *sfnt_read_cvt_table (PROTOTYPE);
+extern struct sfnt_fpgm_table *sfnt_read_fpgm_table (PROTOTYPE);
+extern struct sfnt_prep_table *sfnt_read_prep_table (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#define PROTOTYPE				\
+  struct sfnt_maxp_table *,			\
+  struct sfnt_cvt_table *,			\
+  struct sfnt_head_table *,			\
+  int, int
+
+extern struct sfnt_interpreter *sfnt_make_interpreter (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#define PROTOTYPE				\
+  struct sfnt_interpreter *,			\
+  struct sfnt_fpgm_table *
+
+extern const char *sfnt_interpret_font_program (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#define PROTOTYPE				\
+  struct sfnt_interpreter *,			\
+  struct sfnt_prep_table *,			\
+  struct sfnt_graphics_state *
+
+extern const char *sfnt_interpret_control_value_program (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#define PROTOTYPE struct sfnt_instructed_outline *
+
+extern struct sfnt_glyph_outline *sfnt_build_instructed_outline (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#define PROTOTYPE				\
+  struct sfnt_glyph *,				\
+  struct sfnt_interpreter *,			\
+  struct sfnt_glyph_metrics *,	       		\
+  struct sfnt_instructed_outline **
+
+extern const char *sfnt_interpret_simple_glyph (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#endif /* TEST */
+
+
+
+#endif /* SFNT_ENABLE_HINTING */
+
 #endif /* _SFNT_H_ */

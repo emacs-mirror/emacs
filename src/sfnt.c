@@ -3459,6 +3459,8 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
   struct sfnt_glyph_outline *outline;
   int rc;
 
+  memset (&build_outline_context, 0, sizeof build_outline_context);
+
   /* Allocate the outline now with enough for 44 words at the end.  */
   outline = xmalloc (sizeof *outline + 40 * sizeof (*outline->outline));
   outline->outline_size = 40;
@@ -3521,12 +3523,16 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
 /* Coverage table.  This is a four dimensional array indiced by the Y,
    then X axis fractional, shifted down to 2 bits.  */
 
-static unsigned char sfnt_poly_coverage[4][4] =
+static const unsigned char sfnt_poly_coverage[8][9] =
   {
-    { 0x10, 0x10, 0x10, 0x10 },
-    { 0x10, 0x10, 0x10, 0x10 },
-    { 0x0f, 0x10, 0x10, 0x10 },
-    { 0x10, 0x10, 0x10, 0x10 },
+    { 0, 4, 8, 12, 16, 20, 24, 28, 32, },
+    { 0, 4, 8, 12, 16, 20, 24, 28, 32, },
+    { 0, 4, 8, 12, 16, 20, 24, 28, 32, },
+    { 0, 3, 7, 11, 15, 19, 23, 27, 31, },
+    { 0, 4, 8, 12, 16, 20, 24, 28, 32, },
+    { 0, 4, 8, 12, 16, 20, 24, 28, 32, },
+    { 0, 4, 8, 12, 16, 20, 24, 28, 32, },
+    { 0, 4, 8, 12, 16, 20, 24, 28, 32, },
   };
 
 /* Return the nearest coordinate on the sample grid no less than
@@ -3566,7 +3572,7 @@ sfnt_prepare_raster (struct sfnt_raster *raster,
 		     + (SFNT_POLY_ALIGNMENT - 1))
 		    & ~(SFNT_POLY_ALIGNMENT - 1));
 
-  raster->offx = sfnt_round_fixed (outline->xmin) >> 16;
+  raster->offx = sfnt_floor_fixed (outline->xmin) >> 16;
   raster->offy = sfnt_floor_fixed (outline->ymin) >> 16;
 }
 
@@ -3602,10 +3608,9 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
   edge = 0;
 
   /* ymin and xmin must be the same as the offset used to set offy and
-     offx in rasters.  However, xmin is not floored; otherwise, glyphs
-     like ``e'' look bad at certain ppem.  */
+     offx in rasters.  */
   ymin = sfnt_floor_fixed (outline->ymin);
-  xmin = outline->xmin;
+  xmin = sfnt_floor_fixed (outline->xmin);
 
   for (i = 0; i < outline->outline_used; ++i)
     {
@@ -3694,15 +3699,31 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
     edge_proc (edges, edge, dcontext);
 }
 
-static int
-sfnt_compare_edges (const void *a, const void *b)
+/* Sort an array of SIZE edges to increase by bottom Y position, in
+   preparation for building spans.
+
+   Insertion sort is used because there are usually not very many
+   edges, and anything larger would bloat up the code.  */
+
+static void
+sfnt_edge_sort (struct sfnt_edge *edges, size_t size)
 {
-  const struct sfnt_edge *first, *second;
+  ssize_t i, j;
+  struct sfnt_edge edge;
 
-  first = a;
-  second = b;
+  for (i = 1; i < size; ++i)
+    {
+      edge = edges[i];
+      j = i - 1;
 
-  return (int) (first->bottom - second->bottom);
+      while (j >= 0 && (edges[j].bottom > edge.bottom))
+	{
+	  edges[j + 1] = edges[j];
+	  j--;
+	}
+
+      edges[j + 1] = edge;
+    }
 }
 
 /* Draw EDGES, an unsorted array of polygon edges of size SIZE.  For
@@ -3751,7 +3772,7 @@ sfnt_poly_edges (struct sfnt_edge *edges, size_t size,
 
   /* Sort edges to ascend by Y-order.  Once again, remember: cartesian
      coordinates.  */
-  qsort (edges, size, sizeof *edges, sfnt_compare_edges);
+  sfnt_edge_sort (edges, size);
 
   /* Step down line by line.  Find active edges.  */
 
@@ -3837,10 +3858,10 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 		sfnt_fixed x0, sfnt_fixed x1)
 {
   unsigned char *start;
-  unsigned char *coverage;
+  const unsigned char *coverage;
   sfnt_fixed left, right, end;
   unsigned short w, a;
-  int row, col;
+  int row;
 
   /* Clip bounds to pixmap.  */
   if (x0 < 0)
@@ -3863,16 +3884,10 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
     return;
 
   /* Set start, then start filling according to coverage.  left and
-     right are now 16.2.  */
-  left = sfnt_poly_grid_ceil (x0) >> (16 - SFNT_POLY_SHIFT);
-  right = sfnt_poly_grid_ceil (x1) >> (16 - SFNT_POLY_SHIFT);
-#if 7 > __GNUC__
+     right are now .3.  */
+  left = x0 >> (16 - SFNT_POLY_SHIFT);
+  right = x1 >> (16 - SFNT_POLY_SHIFT);
   start = raster->cells + row * raster->stride;
-#else
-  start = __builtin_assume_aligned ((raster->cells
-				     + row * raster->stride),
-				    SFNT_POLY_ALIGNMENT);
-#endif
   start += left >> SFNT_POLY_SHIFT;
 
   w = 0;
@@ -3880,25 +3895,25 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   /* Compute coverage for first pixel, then poly.  */
   if (left & SFNT_POLY_MASK)
     {
-      /* Note that col is an index into the columns of the coverage
-	 map, unlike row which indexes the raster.  */
-      col = 0;
+      /* Compute the coverage for the first pixel, and move left past
+	 it.  The coverage is a number from 1 to 7 describing how
+	 ``partially'' covered this pixel is.  */
 
-      /* Precompute this to allow for better optimizations.  */
-      end = ((left + SFNT_POLY_SAMPLE - 1) & ~SFNT_POLY_MASK);
+      end = (left + SFNT_POLY_SAMPLE - 1) & ~SFNT_POLY_MASK;
+      end = MIN (right, end);
 
-      while (left < right && left < end)
-	left++, w += coverage[col++];
-
+      w = coverage[end - left];
       a = *start + w;
+
+      /* Now move left past.  */
+      left = end;
+
       *start++ = sfnt_saturate_short (a);
     }
 
   /* Clear coverage info for first pixel.  Compute coverage for center
      pixels.  */
-  w = 0;
-  for (col = 0; col < SFNT_POLY_SAMPLE; ++col)
-    w += coverage[col];
+  w = coverage[SFNT_POLY_MASK];
 
   /* Fill pixels between left and right.  */
   while (left + SFNT_POLY_MASK < right)
@@ -3912,10 +3927,7 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
      part.)  */
   if (right & SFNT_POLY_MASK)
     {
-      w = 0;
-      col = 0;
-      while (left < right)
-	left++, w += coverage[col++];
+      w = coverage[right - left];
       a = *start + w;
       *start = sfnt_saturate_short (a);
     }
@@ -4155,18 +4167,32 @@ sfnt_lookup_glyph_metrics (sfnt_glyph glyph, int pixel_size,
       /* Return unscaled metrics in this case.  */
       metrics->lbearing = lbearing;
       metrics->advance = advance;
-      return 1;
+      return 0;
     }
 
   /* Now scale lbearing and advance up to the pixel size.  */
   factor = sfnt_div_fixed (pixel_size, head->units_per_em);
 
   /* Save them.  */
-  metrics->lbearing = sfnt_mul_fixed (lbearing << 16, factor);
-  metrics->advance = sfnt_mul_fixed (advance << 16, factor);
+  metrics->lbearing = sfnt_mul_fixed (lbearing * 65536, factor);
+  metrics->advance = sfnt_mul_fixed (advance * 65536, factor);
 
   /* All done.  */
   return 0;
+}
+
+/* Scale the specified glyph metrics by FACTOR.
+   Set METRICS->lbearing and METRICS->advance to their current
+   values times factor.  */
+
+MAYBE_UNUSED TEST_STATIC void
+sfnt_scale_metrics (struct sfnt_glyph_metrics *metrics,
+		    sfnt_fixed factor)
+{
+  metrics->lbearing
+    = sfnt_mul_fixed (metrics->lbearing * 65536, factor);
+  metrics->advance
+    = sfnt_mul_fixed (metrics->advance * 65536, factor);
 }
 
 
@@ -4602,10 +4628,6 @@ sfnt_read_ttc_header (int fd)
 
 
 
-#ifdef TEST
-#define SFNT_ENABLE_HINTING
-#endif
-
 #ifdef SFNT_ENABLE_HINTING
 
 /* TrueType hinting support.
@@ -4649,37 +4671,6 @@ sfnt_read_ttc_header (int fd)
    through one of three ``zone pointer'' registers, and are accessible
    only when a program is being run on behalf of a glyph.  */
 
-/* Structure definitions for tables used by the TrueType
-   interpreter.  */
-
-struct sfnt_cvt_table
-{
-  /* Number of elements in the control value table.  */
-  size_t num_elements;
-
-  /* Pointer to elements in the control value table.  */
-  sfnt_fword *values;
-};
-
-struct sfnt_fpgm_table
-{
-  /* Number of instructions in the font program table.  */
-  size_t num_instructions;
-
-  /* Pointer to elements in the font program table.  */
-  unsigned char *instructions;
-};
-
-struct sfnt_prep_table
-{
-  /* Number of instructions in the control value program (pre-program)
-     table.  */
-  size_t num_instructions;
-
-  /* Pointer to elements in the preprogram table.  */
-  unsigned char *instructions;
-};
-
 
 
 /* Functions for reading tables used by the TrueType interpreter.  */
@@ -4689,7 +4680,7 @@ struct sfnt_prep_table
    in the control value table.  Return NULL upon failure, else the cvt
    table.  */
 
-static struct sfnt_cvt_table *
+TEST_STATIC struct sfnt_cvt_table *
 sfnt_read_cvt_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -4740,7 +4731,7 @@ sfnt_read_cvt_table (int fd, struct sfnt_offset_subtable *subtable)
    directory specified as SUBTABLE.  Value is NULL upon failure, else
    the fpgm table.  */
 
-static struct sfnt_fpgm_table *
+TEST_STATIC struct sfnt_fpgm_table *
 sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -4788,7 +4779,7 @@ sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
    directory specified as SUBTABLE.  Value is NULL upon failure, else
    the prep table.  */
 
-static struct sfnt_prep_table *
+TEST_STATIC struct sfnt_prep_table *
 sfnt_read_prep_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -4835,344 +4826,6 @@ sfnt_read_prep_table (int fd, struct sfnt_offset_subtable *subtable)
 
 
 /* Interpreter execution environment.  */
-
-/* 26.6 fixed point type used within the interpreter.  */
-typedef int32_t sfnt_f26dot6;
-
-/* 2.14 fixed point type used to represent versors of unit
-   vectors.  */
-typedef int16_t sfnt_f2dot14;
-
-/* 18.14 fixed point type used to calculate rounding details.  */
-typedef int32_t sfnt_f18dot14;
-
-struct sfnt_unit_vector
-{
-  /* X and Y versors of the 2d unit vector.  */
-  sfnt_f2dot14 x, y;
-};
-
-struct sfnt_interpreter_definition
-{
-  /* The opcode of this instruction or function.  */
-  uint16_t opcode;
-
-  /* The number of instructions.  */
-  uint16_t instruction_count;
-
-  /* Pointer to instructions belonging to the definition.  This
-     pointer points directly into the control value or font program.
-     Make sure both programs are kept around as long as the
-     interpreter continues to exist.  */
-  unsigned char *instructions;
-};
-
-/* This structure represents a ``struct sfnt_glyph'' that has been
-   scaled to a given pixel size.
-
-   It can either contain a simple glyph, or a decomposed compound
-   glyph; instructions are interpreted for both simple glyphs, simple
-   glyph components inside a compound glyph, and compound glyphs as a
-   whole.
-
-   In addition to the glyph data itself, it also records various
-   information for the instruction interpretation process:
-
-     - ``current'' point coordinates, which have been modified
-       by the instructing process.
-
-     - two phantom points at the origin and the advance of the
-       glyph.  */
-
-struct sfnt_interpreter_zone
-{
-  /* The number of points in this zone, including the two phantom
-     points at the end.  */
-  size_t num_points;
-
-  /* The number of contours in this zone.  */
-  size_t num_contours;
-
-  /* The end points of each contour.  */
-  size_t *contour_end_points;
-
-  /* Pointer to the X axis point data.  */
-  sfnt_f26dot6 *restrict x_points;
-
-  /* Pointer to the X axis current point data.  */
-  sfnt_f26dot6 *restrict x_current;
-
-  /* Pointer to the Y axis point data.  */
-  sfnt_f26dot6 *restrict y_points;
-
-  /* Pointer to the Y axis current point data.  */
-  sfnt_f26dot6 *restrict y_current;
-
-  /* Pointer to the flags associated with this data.  */
-  unsigned char *flags;
-};
-
-enum
-  {
-    /* Bits 7 and 6 of a glyph point's flags is reserved.  This scaler
-       uses it to mean that the point has been touched in one axis or
-       another.  */
-    SFNT_POINT_TOUCHED_X = (1 << 7),
-    SFNT_POINT_TOUCHED_Y = (1 << 6),
-    SFNT_POINT_TOUCHED_BOTH = (SFNT_POINT_TOUCHED_X
-			       | SFNT_POINT_TOUCHED_Y),
-  };
-
-/* This is needed because `round' below needs an interpreter
-   argument.  */
-struct sfnt_interpreter;
-
-struct sfnt_graphics_state
-{
-  /* Pointer to the function used for rounding.  This function is
-     asymmetric, so -0.5 rounds up to 0, not -1.  It is up to the
-     caller to handle negative values.
-
-     Value is undefined unless sfnt_validate_gs has been called, and
-     the second argument may be used to provide detailed rounding
-     information (``super rounding state''.)  */
-  sfnt_f26dot6 (*round) (sfnt_f26dot6, struct sfnt_interpreter *);
-
-  /* Pointer to the function used to project euclidean vectors onto
-     the projection vector.  Value is the magnitude of the projected
-     vector.  */
-  sfnt_f26dot6 (*project) (sfnt_f26dot6, sfnt_f26dot6,
-			   struct sfnt_interpreter *);
-
-  /* Pointer to the function used to project euclidean vectors onto
-     the dual projection vector.  Value is the magnitude of the
-     projected vector.  */
-  sfnt_f26dot6 (*dual_project) (sfnt_f26dot6, sfnt_f26dot6,
-				struct sfnt_interpreter *);
-
-  /* Pointer to the function used to move specified points
-     along the freedom vector by a distance specified in terms
-     of the projection vector.  */
-  void (*move) (sfnt_f26dot6 *restrict,
-		sfnt_f26dot6 *restrict, size_t,
-		struct sfnt_interpreter *,
-		sfnt_f26dot6, unsigned char *);
-
-  /* Dot product between the freedom and the projection vectors.  */
-  sfnt_f2dot14 vector_dot_product;
-
-  /* Controls whether the sign of control value table entries will be
-     changed to match the sign of the actual distance measurement with
-     which it is compared.  Setting auto flip to TRUE makes it
-     possible to control distances measured with or against the
-     projection vector with a single control value table entry. When
-     auto flip is set to FALSE, distances must be measured with the
-     projection vector.  */
-  bool auto_flip;
-
-  /* Limits the regularizing effects of control value table entries to
-     cases where the difference between the table value and the
-     measurement taken from the original outline is sufficiently
-     small.  */
-  sfnt_f26dot6 cvt_cut_in;
-
-  /* Establishes the base value used to calculate the range of point
-     sizes to which a given DELTAC[] or DELTAP[] instruction will
-     apply.  The formulas given below are used to calculate the range
-     of the various DELTA instructions.
-
-     DELTAC1 DELTAP1 (delta_base) through (delta_base + 15)
-     DELTAC2 DELTAP2 (delta_base + 16) through (delta_base + 31)
-     DELTAC3 DELTAP3 (delta_base + 32) through (delta_base + 47)
-
-     Please keep this documentation in sync with the TrueType
-     reference manual.  */
-  unsigned short delta_base;
-
-  /* Determines the range of movement and smallest magnitude of
-     movement (the step) in a DELTAC[] or DELTAP[] instruction.
-     Changing the value of the delta shift makes it possible to trade
-     off fine control of point movement for range of movement.  A low
-     delta shift favors range of movement over fine control.  A high
-     delta shift favors fine control over range of movement.  The step
-     has the value 1/2 to the power delta shift.  The range of
-     movement is calculated by taking the number of steps allowed (16)
-     and multiplying it by the step.
-
-     The legal range for delta shift is zero through six.  Negative
-     values are illegal.  */
-  unsigned short delta_shift;
-
-  /* A second projection vector set to a line defined by the original
-     outline location of two points.  The dual projection vector is
-     used when it is necessary to measure distances from the scaled
-     outline before any instructions were executed.  */
-  struct sfnt_unit_vector dual_projection_vector;
-
-  /* A unit vector that establishes an axis along which points can
-     move.  */
-  struct sfnt_unit_vector freedom_vector;
-
-  /* Makes it possible to turn off instructions under some
-     circumstances.  When flag 1 is set, changes to the graphics state
-     made in the control value program will be ignored.  When flag is
-     1, grid fitting instructions will be ignored.  */
-  unsigned char instruct_control;
-
-  /* Makes it possible to repeat certain instructions a designated
-     number of times.  The default value of one assures that unless
-     the value of loop is altered, these instructions will execute one
-     time.  */
-  unsigned short loop;
-
-  /* Establishes the smallest possible value to which a distance will
-     be rounded.  */
-  sfnt_f26dot6 minimum_distance;
-
-  /* A unit vector whose direction establishes an axis along which
-     distances are measured.  */
-  struct sfnt_unit_vector projection_vector;
-
-  /* Determines the manner in which values are rounded. Can be set to
-     a number of predefined states or to a customized state with the
-     SROUND or S45ROUND instructions.  */
-  int round_state;
-
-  /* Reference points.  These reference point numbers, which together
-     with a zone designation, specify a point in either the glyph zone
-     or the twilight zone.  */
-  uint16_t rp0, rp1, rp2;
-
-  /* Flags which determine whether the interpreter will activate
-     dropout control for the current glyph.  */
-  int scan_control;
-
-  /* The distance difference below which the interpreter will replace
-     a CVT distance or an actual distance in favor of the single width
-     value.  */
-  sfnt_f26dot6 sw_cut_in;
-
-  /* The value used in place of the control value table distance or
-     the actual distance value when the difference between that
-     distance and the single width value is less than the single width
-     cut-in.  */
-  sfnt_f26dot6 single_width_value;
-
-  /* Zone pointers, which reference a zone.  */
-  int zp0, zp1, zp2;
-};
-
-struct sfnt_interpreter
-{
-  /* The number of elements in the stack.  */
-  uint16_t max_stack_elements;
-
-  /* The number of instructions in INSTRUCTIONS.  */
-  uint16_t num_instructions;
-
-  /* Size of the storage area.  */
-  uint16_t storage_size;
-
-  /* Size of the function definition area.  */
-  uint16_t function_defs_size;
-
-  /* Size of the instruction definition area.  */
-  uint16_t instruction_defs_size;
-
-  /* Size of the twilight zone.  */
-  uint16_t twilight_zone_size;
-
-  /* The instruction pointer.  This points to the instruction
-     currently being executed.  */
-  int IP;
-
-  /* The current scale.  */
-  sfnt_fixed scale;
-
-  /* The current ppem and point size.  */
-  int ppem, point_size;
-
-  /* The execution stack.  This has at most max_stack_elements
-     elements.  */
-  uint32_t *stack;
-
-  /* Pointer past the top of the stack.  */
-  uint32_t *SP;
-
-  /* The size of the control value table.  */
-  size_t cvt_size;
-
-  /* Pointer to instructions currently being executed.  */
-  unsigned char *restrict instructions;
-
-  /* The twilight zone.  May not be NULL.  */
-  sfnt_f26dot6 *restrict twilight_x, *restrict twilight_y;
-
-  /* The original X positions of points in the twilight zone.  */
-  sfnt_f26dot6 *restrict twilight_original_x;
-
-  /* The original Y positions of points in the twilight zone.
-
-     Apple does not directly say whether or not points in the twilight
-     zone can have their original positions changed.  But this is
-     implied by ``create points in the twilight zone''.  */
-  sfnt_f26dot6 *restrict twilight_original_y;
-
-  /* The scaled outlines being manipulated.  May be NULL.  */
-  struct sfnt_interpreter_zone *glyph_zone;
-
-  /* The glyph advance width.  Value is undefined unless GLYPH_ZONE is
-     set.  */
-  sfnt_f26dot6 advance_width;
-
-  /* The storage area.  */
-  uint32_t *storage;
-
-  /* Control value table values.  */
-  sfnt_f26dot6 *cvt;
-
-  /* Function definitions.  */
-  struct sfnt_interpreter_definition *function_defs;
-
-  /* Instruction definitions.  */
-  struct sfnt_interpreter_definition *instruction_defs;
-
-  /* Interpreter registers.  */
-  struct sfnt_graphics_state state;
-
-  /* Detailed rounding state used when state.round_state indicates
-     that fine grained rounding should be used.
-
-     PERIOD says how often a round value occurs, for numbers
-     increasing from PHASE to infinity.
-
-     THRESHOLD says when to round a value between two increasing
-     periods towards the larger period.  */
-  sfnt_f26dot6 period, phase, threshold;
-
-  /* The depth of any ongoing calls.  */
-  int call_depth;
-
-  /* Jump buffer for traps.  */
-  jmp_buf trap;
-
-  /* What was the trap.  */
-  const char *trap_reason;
-
-#ifdef TEST
-  /* If non-NULL, function called before each instruction is
-     executed.  */
-  void (*run_hook) (struct sfnt_interpreter *);
-
-  /* If non-NULL, function called before each stack element is
-     pushed.  */
-  void (*push_hook) (struct sfnt_interpreter *, uint32_t);
-
-  /* If non-NULL, function called before each stack element is
-     popped.  */
-  void (*pop_hook) (struct sfnt_interpreter *, uint32_t);
-#endif
-};
 
 /* Divide the specified two 26.6 fixed point numbers X and Y.
    Return the result.  */
@@ -5409,7 +5062,7 @@ sfnt_init_graphics_state (struct sfnt_graphics_state *state)
    Value is the interpreter, with all state initialized to default
    values, or NULL upon failure.  */
 
-static struct sfnt_interpreter *
+TEST_STATIC struct sfnt_interpreter *
 sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
 		       struct sfnt_cvt_table *cvt,
 		       struct sfnt_head_table *head,
@@ -5661,13 +5314,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 				_value);	\
        _value;}))
 
-#define POP_UNCHECKED()				\
-  ({uint32_t _value;				\
-    _value = *(--interpreter->SP);		\
-    if (interpreter->pop_hook)			\
-      interpreter->pop_hook (interpreter,	\
-			     _value);		\
-    _value;})
+#define POP_UNCHECKED()	POP ()
 
 #endif
 
@@ -5710,15 +5357,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     interpreter->SP++;				\
   }
 
-#define PUSH_UNCHECKED(value)			\
-  {						\
-    if (interpreter->push_hook)			\
-      interpreter->push_hook (interpreter,	\
-			      value);		\
-						\
-    *interpreter->SP = value;			\
-    interpreter->SP++;				\
-  }
+#define PUSH_UNCHECKED(value) PUSH (value)
 
 #endif
 
@@ -6722,8 +6361,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     if (!n)					\
       break;					\
 						\
-    argn = POP ();				\
     pn = POP ();				\
+    argn = POP ();				\
     sfnt_deltap (1, interpreter, argn, pn);	\
     n--;					\
     goto deltap1_start;				\
@@ -6739,8 +6378,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     if (!n)					\
       break;					\
 						\
-    argn = POP ();				\
     pn = POP ();				\
+    argn = POP ();				\
     sfnt_deltap (2, interpreter, argn, pn);	\
     n--;					\
     goto deltap2_start;				\
@@ -6756,8 +6395,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     if (!n)					\
       break;					\
 						\
-    argn = POP ();				\
     pn = POP ();				\
+    argn = POP ();				\
     sfnt_deltap (3, interpreter, argn, pn);	\
     n--;					\
     goto deltap3_start;				\
@@ -8394,7 +8033,7 @@ sfnt_interpret_ip (struct sfnt_interpreter *interpreter)
 
 static void
 sfnt_deltac (int number, struct sfnt_interpreter *interpreter,
-	     unsigned char operand, unsigned int index)
+	     unsigned int index, unsigned char operand)
 {
   int ppem, delta;
 
@@ -8564,6 +8203,8 @@ sfnt_deltap (int number, struct sfnt_interpreter *interpreter,
 	     unsigned char operand, unsigned int index)
 {
   int ppem, delta;
+
+  return;
 
   /* Extract the ppem from OPERAND.  The format is the same as in
      sfnt_deltac.  */
@@ -9699,26 +9340,31 @@ sfnt_interpret_shp (struct sfnt_interpreter *interpreter,
 									\
   i = touch_start + 1;							\
 									\
-  for (; i <= end; ++i)							\
+  while (i != touch_end)						\
     {									\
-      if (i > end)							\
-	i = start;							\
-									\
       /* Movement is always relative to the original position of	\
 	 the point.  */							\
       position = load_original (i);					\
 									\
       /* If i is in between touch_start and touch_end...  */		\
       if (position >= original_min_pos					\
-	  && position <= original_max_pos				\
-	  && original_min_pos != original_max_pos)			\
+	  && position <= original_max_pos)				\
 	{								\
-	  /* ... preserve the ratio of i between min_pos and		\
-	     max_pos...  */						\
-	  ratio = sfnt_div_fixed (sfnt_sub (position,			\
-					    original_min_pos) * 1024,	\
-				  sfnt_sub (original_max_pos,		\
-					    original_min_pos) * 1024);	\
+	  /* Handle the degenerate case where original_min_pos and	\
+	     original_max_pos have not changed by placing the point in	\
+	     the middle.  */						\
+	  if (original_min_pos == original_max_pos)			\
+	    ratio = 077777;						\
+	  else								\
+	    /* ... preserve the ratio of i between min_pos and		\
+	       max_pos...  */						\
+	    ratio = sfnt_div_fixed ((sfnt_sub (position,		\
+					       original_min_pos)	\
+				     * 1024),				\
+				    (sfnt_sub (original_max_pos,	\
+					       original_min_pos)	\
+				     * 1024));				\
+									\
 	  delta = sfnt_sub (max_pos, min_pos);				\
 	  delta = sfnt_mul_fixed (ratio, delta);			\
 	  store_point (i, sfnt_add (min_pos, delta));			\
@@ -9735,6 +9381,9 @@ sfnt_interpret_shp (struct sfnt_interpreter *interpreter,
 									\
 	  store_point (i, sfnt_add (position, delta));			\
 	}								\
+									\
+      if (++i > end)							\
+	i = start;							\
     }									\
 
 /* Interpolate untouched points in the contour between and including
@@ -10711,9 +10360,12 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
    undefined.
 
    Value is NULL upon success, else it is a string describing the
-   reason for failure.  */
+   reason for failure.
 
-static const char *
+   The caller must save the graphics state after interpreting the font
+   program and restore it prior to instructing each glyph.  */
+
+TEST_STATIC const char *
 sfnt_interpret_font_program (struct sfnt_interpreter *interpreter,
 			     struct sfnt_fpgm_table *fpgm)
 {
@@ -10735,9 +10387,13 @@ sfnt_interpret_font_program (struct sfnt_interpreter *interpreter,
 
    Return NULL and the graphics state after the execution of the
    program in *STATE, or a string describing the reason for a failure
-   to interpret the program.  */
+   to interpret the program.
 
-static const char *
+   The caller must save the graphics state after interpreting the
+   control value program and restore it prior to instructing each
+   glyph.  */
+
+TEST_STATIC const char *
 sfnt_interpret_control_value_program (struct sfnt_interpreter *interpreter,
 				      struct sfnt_prep_table *prep,
 				      struct sfnt_graphics_state *state)
@@ -10775,30 +10431,6 @@ sfnt_interpret_control_value_program (struct sfnt_interpreter *interpreter,
    the code, the routines here perform outline decomposition and
    scaling separately.  It might be nice to fix that in the
    future.  */
-
-/* Structure describing a single scaled and fitted outline.  */
-
-struct sfnt_instructed_outline
-{
-  /* The number of points in this contour, including the two phantom
-     points at the end.  */
-  size_t num_points;
-
-  /* The number of contours in this outline.  */
-  size_t num_contours;
-
-  /* The end points of each contour.  */
-  size_t *contour_end_points;
-
-  /* The points of each contour, with two additional phantom points at
-     the end.  */
-  sfnt_f26dot6 *restrict x_points, *restrict y_points;
-
-  /* The flags of each point.  */
-  unsigned char *flags;
-};
-
-
 
 /* Instructed glyph outline decomposition.  This is separate from
    sfnt_decompose_glyph because this file should be able to be built
@@ -10958,11 +10590,13 @@ sfnt_decompose_instructed_outline (struct sfnt_instructed_outline *outline,
 
    This function is not reentrant.  */
 
-static struct sfnt_glyph_outline *
+TEST_STATIC struct sfnt_glyph_outline *
 sfnt_build_instructed_outline (struct sfnt_instructed_outline *instructed)
 {
   struct sfnt_glyph_outline *outline;
   int rc;
+
+  memset (&build_outline_context, 0, sizeof build_outline_context);
 
   /* Allocate the outline now with enough for 44 words at the end.  */
   outline = xmalloc (sizeof *outline + 40 * sizeof (*outline->outline));
@@ -11047,7 +10681,7 @@ sfnt_compute_phantom_points (struct sfnt_glyph *glyph,
    Upon success, return NULL and the resulting points and contours in
    *VALUE.  Else, value is the reason interpretation failed.  */
 
-static const char *
+TEST_STATIC const char *
 sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
 			     struct sfnt_interpreter *interpreter,
 			     struct sfnt_glyph_metrics *metrics,
@@ -11445,12 +11079,16 @@ sfnt_test_edge (struct sfnt_edge *edges, size_t num_edges,
 }
 
 static void
-sfnt_x_raster (struct sfnt_raster *raster)
+sfnt_x_raster (struct sfnt_raster **rasters,
+	       int *advances,
+	       int nrasters,
+	       struct sfnt_hhea_table *hhea,
+	       sfnt_fixed scale)
 {
   Display *display;
   Window window;
-  Pixmap pixmap;
-  Picture glyph, drawable, solid;
+  Pixmap *pixmaps;
+  Picture *glyphs, drawable, solid;
   int event_base, error_base;
   int major, minor, *depths, count;
   XRenderPictFormat *format, *glyph_format;
@@ -11460,7 +11098,11 @@ sfnt_x_raster (struct sfnt_raster *raster)
   XGCValues gcvalues;
   XEvent event;
   XRenderColor white, black;
-  int i;
+  int i, ascent, origin, x, y;
+  Font font;
+
+  if (!nrasters)
+    exit (0);
 
   display = XOpenDisplay (NULL);
 
@@ -11475,7 +11117,7 @@ sfnt_x_raster (struct sfnt_raster *raster)
     exit (0);
 
   window = XCreateSimpleWindow (display, DefaultRootWindow (display),
-				0, 0, 40, 40, 0, 0,
+				0, 0, 100, 150, 0, 0,
 				WhitePixel (display,
 					    DefaultScreen (display)));
   XSelectInput (display, window, ExposureMask);
@@ -11501,37 +11143,57 @@ sfnt_x_raster (struct sfnt_raster *raster)
  depth_found:
 
   XFree (depths);
-  pixmap = XCreatePixmap (display, DefaultRootWindow (display),
-			  raster->width, raster->height, 8);
+  pixmaps = alloca (sizeof *pixmaps * nrasters);
+  glyphs = alloca (sizeof *glyphs * nrasters);
+  gc = None;
 
-  /* Upload the raster.  */
-  image.width = raster->width;
-  image.height = raster->height;
-  image.xoffset = 0;
-  image.format = ZPixmap;
-  image.data = (char *) raster->cells;
-  image.byte_order = MSBFirst;
-  image.bitmap_unit = 8;
-  image.bitmap_bit_order = LSBFirst;
-  image.bitmap_pad = SFNT_POLY_ALIGNMENT * 8;
-  image.depth = 8;
-  image.bytes_per_line = raster->stride;
-  image.bits_per_pixel = 8;
-  image.red_mask = 0;
-  image.green_mask = 0;
-  image.blue_mask = 0;
+  for (i = 0; i < nrasters; ++i)
+    {
+      pixmaps[i] = XCreatePixmap (display, DefaultRootWindow (display),
+				  rasters[i]->width, rasters[i]->height, 8);
+      if (!gc)
+	gc = XCreateGC (display, pixmaps[i], 0, &gcvalues);
 
-  if (!XInitImage (&image))
-    abort ();
+      /* Upload the raster.  */
+      image.width = rasters[i]->width;
+      image.height = rasters[i]->height;
+      image.xoffset = 0;
+      image.format = ZPixmap;
+      image.data = (char *) rasters[i]->cells;
+      image.byte_order = MSBFirst;
+      image.bitmap_unit = 8;
+      image.bitmap_bit_order = LSBFirst;
+      image.bitmap_pad = SFNT_POLY_ALIGNMENT * 8;
+      image.depth = 8;
+      image.bytes_per_line = rasters[i]->stride;
+      image.bits_per_pixel = 8;
+      image.red_mask = 0;
+      image.green_mask = 0;
+      image.blue_mask = 0;
 
-  gc = XCreateGC (display, pixmap, 0, &gcvalues);
-  XPutImage (display, pixmap, gc, &image,
-	     0, 0, 0, 0, image.width, image.height);
+      if (!XInitImage (&image))
+	abort ();
+
+      XPutImage (display, pixmaps[i], gc, &image,
+		 0, 0, 0, 0, image.width, image.height);
+
+      glyphs[i] = XRenderCreatePicture (display, pixmaps[i],
+					glyph_format, 0, NULL);
+    }
+
+  XFreeGC (display, gc);
+
+  font = XLoadFont (display, "6x13");
+
+  if (!font)
+    exit (1);
+
+  gcvalues.font = font;
+  gcvalues.foreground = BlackPixel (display, DefaultScreen (display));
+  gc = XCreateGC (display, window, GCForeground | GCFont, &gcvalues);
 
   drawable = XRenderCreatePicture (display, window, format,
 				   0, NULL);
-  glyph = XRenderCreatePicture (display, pixmap, glyph_format,
-				0, NULL);
   memset (&black, 0, sizeof black);
   black.alpha = 65535;
 
@@ -11552,18 +11214,35 @@ sfnt_x_raster (struct sfnt_raster *raster)
 	  XRenderFillRectangle (display, PictOpSrc, drawable,
 				&white, 0, 0, 65535, 65535);
 
-	  /* Draw the solid fill with the glyph as clip mask.  */
-	  XRenderComposite (display, PictOpOver, solid, glyph,
-			    drawable, 0, 0, 0, 0, 0, 0,
-			    raster->width, raster->height);
+	  /* Compute ascent line.  */
+	  ascent = sfnt_mul_fixed (hhea->ascent * 65536,
+				   scale) / 65536;
+
+	  origin = 0;
+
+	  for (i = 0; i < nrasters; ++i)
+	    {
+	      /* Compute the base position.  */
+	      x = origin + rasters[i]->offx;
+	      y = ascent - rasters[i]->height - rasters[i]->offy;
+
+	      /* Draw the solid fill with the glyph as clip mask.  */
+	      XRenderComposite (display, PictOpOver, solid, glyphs[i],
+				drawable, 0, 0, 0, 0, x, y,
+				rasters[i]->width, rasters[i]->height);
+
+	      origin += advances[i];
+	    }
 	}
     }
 }
 
 static void
-sfnt_test_raster (struct sfnt_raster *raster)
+sfnt_test_raster (struct sfnt_raster *raster,
+		  struct sfnt_hhea_table *hhea,
+		  sfnt_fixed scale)
 {
-  int x, y;
+  int x, y, i;
 
   for (y = 0; y < raster->height; ++y)
     {
@@ -11572,10 +11251,12 @@ sfnt_test_raster (struct sfnt_raster *raster)
       puts ("");
     }
 
-  if (getenv ("SFNT_X"))
+  if (hhea && getenv ("SFNT_X"))
     {
+      i = 0;
+
       if (!fork ())
-	sfnt_x_raster (raster);
+	sfnt_x_raster (&raster, &i, 1, hhea, scale);
     }
 }
 
@@ -14074,12 +13755,12 @@ static struct sfnt_interpreter_test all_tests[] =
 	 SDB[] ; delta base now 2
 	 PUSHB[0] 6
 	 SDS[] ; delta shift now 6
-	 PUSHB[2] 1 0xff 1 ; CVT index 5, ppem 15 + 2, magnitude 15
+	 PUSHB[2] 0xff 5 1 ; CVT index 5, ppem 15 + 2, magnitude 15
          DELTAC1[]
 	 PUSHB[0] 1
          RCVT[] ; CVT index 5 should now be greater by 8 / 64
 
-         PUSHB[2] 1 0xef 1 ; CVT index 5, ppem 14 + 2, magnitude 15
+         PUSHB[2] 0xef 5 1 ; CVT index 5, ppem 14 + 2, magnitude 15
          DELTAC1[]
          PUSHB[0] 1
          RCVT[] ; CVT index 5 should be unchanged */
@@ -14087,11 +13768,11 @@ static struct sfnt_interpreter_test all_tests[] =
 			   0x5e,
 			   0xb0, 6,
 			   0x5f,
-			   0xb2, 5, 255, 1,
+			   0xb2, 255, 5, 1,
 			   0x73,
 			   0xb0, 5,
 			   0x45,
-			   0xb2, 5, 239, 1,
+			   0xb2, 239, 5, 1,
 			   0x73,
 			   0xb0, 5,
 			   0x45, },
@@ -14105,12 +13786,12 @@ static struct sfnt_interpreter_test all_tests[] =
 	 SDB[] ; delta base now 2
 	 PUSHB[0] 6
 	 SDS[] ; delta shift now 6
-	 PUSHB[2] 1 0xff 1 ; CVT index 5, ppem 15 + 2 + 16, magnitude 15
+	 PUSHB[2] 0xff 5 1 ; CVT index 5, ppem 15 + 2 + 16, magnitude 15
          DELTAC2[]
 	 PUSHB[0] 1
          RCVT[] ; CVT index 5 should be unchanged
 
-         PUSHB[2] 1 0xef 1 ; CVT index 5, ppem 14 + 2 + 16, magnitude 15
+         PUSHB[2] 0xef 5 1 ; CVT index 5, ppem 14 + 2 + 16, magnitude 15
          DELTAC2[]
          PUSHB[0] 1
          RCVT[] ; CVT index 5 should be unchanged */
@@ -14118,11 +13799,11 @@ static struct sfnt_interpreter_test all_tests[] =
 			   0x5e,
 			   0xb0, 6,
 			   0x5f,
-			   0xb2, 5, 255, 1,
+			   0xb2, 255, 5, 1,
 			   0x74,
 			   0xb0, 5,
 			   0x45,
-			   0xb2, 5, 239, 1,
+			   0xb2, 239, 5, 1,
 			   0x74,
 			   0xb0, 5,
 			   0x45, },
@@ -14136,12 +13817,12 @@ static struct sfnt_interpreter_test all_tests[] =
 	 SDB[] ; delta base now 2
 	 PUSHB[0] 6
 	 SDS[] ; delta shift now 6
-	 PUSHB[2] 1 0xff 1 ; CVT index 5, ppem 15 + 2 + 32, magnitude 15
+	 PUSHB[2] 0xff 5 1 ; CVT index 5, ppem 15 + 2 + 32, magnitude 15
          DELTAC3[]
 	 PUSHB[0] 1
          RCVT[] ; CVT index 5 should be unchanged
 
-         PUSHB[2] 1 0xef 1 ; CVT index 5, ppem 14 + 2 + 32, magnitude 15
+         PUSHB[2] 0xef 5 1 ; CVT index 5, ppem 14 + 2 + 32, magnitude 15
          DELTAC3[]
          PUSHB[0] 1
          RCVT[] ; CVT index 5 should be unchanged */
@@ -14149,11 +13830,11 @@ static struct sfnt_interpreter_test all_tests[] =
 			   0x5e,
 			   0xb0, 6,
 			   0x5f,
-			   0xb2, 5, 255, 1,
+			   0xb2, 255, 5, 1,
 			   0x75,
 			   0xb0, 5,
 			   0x45,
-			   0xb2, 5, 239, 1,
+			   0xb2, 239, 5, 1,
 			   0x75,
 			   0xb0, 5,
 			   0x45, },
@@ -14818,15 +14499,22 @@ sfnt_verbose (struct sfnt_interpreter *interpreter)
   temp.x_points = interpreter->glyph_zone->x_current;
   temp.y_points = interpreter->glyph_zone->y_current;
   temp.flags = interpreter->glyph_zone->flags;
+
   outline = sfnt_build_instructed_outline (&temp);
 
   if (!outline)
     return;
 
+  printf ("outline bounds: %g %g, %g %g\n",
+	  sfnt_coerce_fixed (outline->xmin),
+	  sfnt_coerce_fixed (outline->ymin),
+	  sfnt_coerce_fixed (outline->xmax),
+	  sfnt_coerce_fixed (outline->ymax));
+
   raster = sfnt_raster_glyph_outline (outline);
 
   if (raster)
-    sfnt_test_raster (raster);
+    sfnt_test_raster (raster, NULL, 0);
 
   xfree (outline);
   xfree (raster);
@@ -14937,6 +14625,11 @@ main (int argc, char **argv)
   struct sfnt_prep_table *prep;
   struct sfnt_graphics_state state;
   struct sfnt_instructed_outline *value;
+  sfnt_fixed scale;
+  char *fancy;
+  int *advances;
+  struct sfnt_raster **rasters;
+  size_t length;
 
   if (argc != 2)
     return 1;
@@ -15025,6 +14718,9 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
+#define FANCY_PPEM 30
+#define EASY_PPEM  30
+
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
   hhea = sfnt_read_hhea_table (fd, font);
@@ -15039,6 +14735,123 @@ main (int argc, char **argv)
 
   exec_prep = prep;
   exec_fpgm = fpgm;
+
+  if (getenv ("SFNT_FANCY_TEST"))
+    {
+      loca_long = NULL;
+      loca_short = NULL;
+      fancy = getenv ("SFNT_FANCY_TEST");
+      length = strlen (fancy);
+      scale = sfnt_div_fixed (FANCY_PPEM, head->units_per_em);
+
+      if (hhea && maxp)
+	hmtx = sfnt_read_hmtx_table (fd, font, hhea, maxp);
+
+      if (!maxp || !head || !prep || !hmtx || !hhea
+	  || table->num_subtables < 1)
+	exit (1);
+
+      if (head->index_to_loc_format)
+	{
+	  loca_long = sfnt_read_loca_table_long (fd, font);
+	  if (!loca_long)
+	    return 1;
+
+	  fprintf (stderr, "long loca table has %zu glyphs\n",
+		   loca_long->num_offsets);
+	}
+      else
+	{
+	  loca_short = sfnt_read_loca_table_short (fd, font);
+	  if (!loca_short)
+	    return 1;
+
+	  fprintf (stderr, "short loca table has %zu glyphs\n",
+		   loca_short->num_offsets);
+	}
+
+      interpreter = sfnt_make_interpreter (maxp, cvt, head,
+					   FANCY_PPEM, FANCY_PPEM);
+
+      if (!interpreter)
+	exit (1);
+
+      if (fpgm)
+	{
+	  fprintf (stderr, "interpreting the font program, with"
+		   " %zu instructions\n", fpgm->num_instructions);
+	  trap = sfnt_interpret_font_program (interpreter, fpgm);
+
+	  if (trap)
+	    fprintf (stderr, "**TRAP**: %s\n", trap);
+	}
+
+      if (prep)
+	{
+	  fprintf (stderr, "interpreting the control value program, with"
+		   " %zu instructions\n", prep->num_instructions);
+	  trap = sfnt_interpret_control_value_program (interpreter, prep,
+						       &state);
+
+	  if (trap)
+	    fprintf (stderr, "**TRAP**: %s\n", trap);
+	}
+
+      state = interpreter->state;
+
+      advances = alloca (sizeof *advances * length);
+      rasters = alloca (sizeof *rasters * length);
+
+      for (i = 0; i < length; ++i)
+	{
+	  code = sfnt_lookup_glyph (fancy[i], data[0]);
+
+	  if (!code)
+	    exit (2);
+
+	  glyph = sfnt_read_glyph (code, glyf, loca_short,
+				   loca_long);
+
+	  if (!glyph || !glyph->simple)
+	    exit (3);
+
+	  if (sfnt_lookup_glyph_metrics (code, -1,
+					 &metrics,
+					 hmtx, hhea,
+					 head, maxp))
+	    exit (4);
+
+	  interpreter->state = state;
+	  trap = sfnt_interpret_simple_glyph (glyph, interpreter,
+					      &metrics, &value);
+
+	  if (trap)
+	    {
+	      fprintf (stderr, "*TRAP*: %s\n", trap);
+	      exit (5);
+	    }
+
+	  outline = sfnt_build_instructed_outline (value);
+
+	  if (!outline)
+	    exit (6);
+
+	  xfree (value);
+
+	  raster = sfnt_raster_glyph_outline (outline);
+
+	  if (!raster)
+	    exit (7);
+
+	  xfree (outline);
+
+	  rasters[i] = raster;
+	  advances[i] = sfnt_mul_fixed (metrics.advance, scale);
+	}
+
+      sfnt_x_raster (rasters, advances, length, hhea, scale);
+      exit (0);
+    }
 
   if (head && maxp && maxp->version >= 0x00010000)
     {
@@ -15057,7 +14870,8 @@ main (int argc, char **argv)
 	       cvt ? cvt->num_elements : 0ul);
 
       interpreter = sfnt_make_interpreter (maxp, cvt, head,
-					   20, 20);
+					   FANCY_PPEM,
+					   FANCY_PPEM);
       state = interpreter->state;
 
       if (fpgm)
@@ -15210,6 +15024,7 @@ main (int argc, char **argv)
 
       if ((loca_long || loca_short) && glyf)
 	{
+	  scale = sfnt_div_fixed (EASY_PPEM, head->units_per_em);
 	  glyph = sfnt_read_glyph (code, glyf, loca_short,
 				   loca_long);
 
@@ -15233,7 +15048,7 @@ main (int argc, char **argv)
 	      /* Time this important bit.  */
 	      clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 	      outline = sfnt_build_glyph_outline (glyph, head,
-						  20,
+						  EASY_PPEM,
 						  sfnt_test_get_glyph,
 						  sfnt_test_free_glyph,
 						  &dcontext);
@@ -15275,7 +15090,7 @@ main (int argc, char **argv)
 
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 
-		  for (i = 0; i < 400; ++i)
+		  for (i = 0; i < 120; ++i)
 		    {
 		      xfree (raster);
 		      raster = sfnt_raster_glyph_outline (outline);
@@ -15285,7 +15100,7 @@ main (int argc, char **argv)
 		  sub2 = timespec_sub (end, start);
 
 		  /* Print out the raster.  */
-		  sfnt_test_raster (raster);
+		  sfnt_test_raster (raster, hhea, scale);
 		  printf ("raster offsets: %d, %d\n",
 			  raster->offx, raster->offy);
 
@@ -15300,7 +15115,7 @@ main (int argc, char **argv)
 
 	      if (hmtx && head)
 		{
-		  if (!sfnt_lookup_glyph_metrics (code, 20,
+		  if (!sfnt_lookup_glyph_metrics (code, EASY_PPEM,
 						  &metrics,
 						  hmtx, hhea,
 						  head, maxp))
@@ -15320,10 +15135,10 @@ main (int argc, char **argv)
 			}
 
 		      if (glyph->simple
-			  && sfnt_lookup_glyph_metrics (code, -1,
-							&metrics,
-						        hmtx, hhea,
-							head, maxp))
+			  && !sfnt_lookup_glyph_metrics (code, -1,
+							 &metrics,
+							 hmtx, hhea,
+							 head, maxp))
 			{
 			  printf ("interpreting glyph\n");
 			  interpreter->state = state;
@@ -15349,7 +15164,9 @@ main (int argc, char **argv)
 
 				  if (raster)
 				    {
-				      sfnt_test_raster (raster);
+				      sfnt_test_raster (raster, hhea, scale);
+				      printf ("raster offsets: %d, %d\n",
+					      raster->offx, raster->offy);
 				      xfree (raster);
 				    }
 				}
@@ -15368,7 +15185,7 @@ main (int argc, char **argv)
 	      printf ("time spent building edges: %lld sec %ld nsec\n",
 		      (long long) sub1.tv_sec, sub1.tv_nsec);
 	      printf ("time spent rasterizing: %lld sec %ld nsec\n",
-		      (long long) sub2.tv_sec / 400, sub2.tv_nsec / 400);
+		      (long long) sub2.tv_sec / 120, sub2.tv_nsec / 120);
 
 	      xfree (outline);
 	    }
