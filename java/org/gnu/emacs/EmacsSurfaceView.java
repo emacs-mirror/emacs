@@ -45,14 +45,11 @@ public class EmacsSurfaceView extends SurfaceView
     surfaceChanged (SurfaceHolder holder, int format,
 		    int width, int height)
     {
-      Log.d (TAG, "surfaceChanged: " + view + ", " + view.pendingConfigure);
+      Canvas canvas;
 
-      /* Make sure not to swap buffers if there is pending
-	 configuration, because otherwise the redraw callback will not
-	 run correctly.  */
+      Log.d (TAG, "surfaceChanged: " + view + ", ");
 
-      if (view.pendingConfigure == 0)
-	view.swapBuffers ();
+      view.swapBuffers (true);
     }
 
     @Override
@@ -67,7 +64,7 @@ public class EmacsSurfaceView extends SurfaceView
 
       /* Drop the lock when doing this, or a deadlock can
 	 result.  */
-      view.swapBuffers ();
+      view.swapBuffers (true);
     }
 
     @Override
@@ -82,44 +79,6 @@ public class EmacsSurfaceView extends SurfaceView
     }
   }
 
-  /* And this is the callback used on Android 26 and later.  It is
-     used because it can tell the system when drawing completes.  */
-
-  private class Callback2 extends Callback implements SurfaceHolder.Callback2
-  {
-    @Override
-    public void
-    surfaceRedrawNeeded (SurfaceHolder holder)
-    {
-      /* This version is not supported.  */
-      return;
-    }
-
-    @Override
-    public void
-    surfaceRedrawNeededAsync (SurfaceHolder holder,
-			      Runnable drawingFinished)
-    {
-      Runnable old;
-
-      Log.d (TAG, "surfaceRedrawNeededAsync: " + view.pendingConfigure);
-
-      /* The system calls this function when it wants to know whether
-	 or not Emacs is still configuring itself in response to a
-	 resize.
-
-         If the view did not send an outstanding ConfigureNotify
-         event, then call drawingFinish immediately.  Else, give it to
-         the view to execute after drawing completes.  */
-
-      if (view.pendingConfigure == 0)
-	drawingFinished.run ();
-      else
-	/* And set this runnable to run once drawing completes.  */
-	view.drawingFinished = drawingFinished;
-    }
-  }
-
   public
   EmacsSurfaceView (final EmacsView view)
   {
@@ -128,10 +87,7 @@ public class EmacsSurfaceView extends SurfaceView
     this.surfaceChangeLock = new Object ();
     this.view = view;
 
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-      getHolder ().addCallback (new Callback ());
-    else
-      getHolder ().addCallback (new Callback2 ());
+    getHolder ().addCallback (new Callback ());
   }
 
   public boolean

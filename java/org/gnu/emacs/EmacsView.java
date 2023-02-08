@@ -96,19 +96,20 @@ public class EmacsView extends ViewGroup
   /* The InputMethodManager for this view's context.  */
   private InputMethodManager imManager;
 
-  /* Runnable that will run once drawing completes.  */
-  public Runnable drawingFinished;
-
-  /* Serial of the last ConfigureNotify event sent that Emacs has not
-     yet responded to.  0 if there is no such outstanding event.  */
-  public long pendingConfigure;
-
   /* Whether or not this view is attached to a window.  */
   public boolean isAttachedToWindow;
 
   /* Whether or not this view should have the on screen keyboard
      displayed whenever possible.  */
   public boolean isCurrentlyTextEditor;
+
+  /* An empty rectangle.  */
+  public static final Rect emptyRect;
+
+  static
+  {
+    emptyRect = new Rect ();
+  };
 
   public
   EmacsView (EmacsWindow window)
@@ -286,15 +287,9 @@ public class EmacsView extends ViewGroup
     int count, i;
     View child;
     Rect windowRect;
+    int wantedWidth, wantedHeight;
 
     count = getChildCount ();
-
-    if (changed || mustReportLayout)
-      {
-	mustReportLayout = false;
-	pendingConfigure
-	  = window.viewLayout (left, top, right, bottom);
-      }
 
     measuredWidth = right - left;
     measuredHeight = bottom - top;
@@ -311,8 +306,6 @@ public class EmacsView extends ViewGroup
 	Log.d (TAG, "onLayout: " + child);
 
 	if (child == surfaceView)
-	  /* The child is the surface view, so give it the entire
-	     view.  */
 	  child.layout (0, 0, right - left, bottom - top);
 	else if (child.getVisibility () != GONE)
 	  {
@@ -325,6 +318,14 @@ public class EmacsView extends ViewGroup
 	    child.layout (windowRect.left, windowRect.top,
 			  windowRect.right, windowRect.bottom);
 	  }
+      }
+
+    /* Now report the layout change to the window.  */
+
+    if (changed || mustReportLayout)
+      {
+	mustReportLayout = false;
+	window.viewLayout (left, top, right, bottom);
       }
   }
 
@@ -352,7 +353,7 @@ public class EmacsView extends ViewGroup
 
     synchronized (damageRegion)
       {
-	if (damageRegion.isEmpty ())
+	if (!force && damageRegion.isEmpty ())
 	  return;
 
 	bitmap = getBitmap ();
@@ -363,7 +364,10 @@ public class EmacsView extends ViewGroup
 
 	synchronized (surfaceView.surfaceChangeLock)
 	  {
-	    damageRect = damageRegion.getBounds ();
+	    if (!force)
+	      damageRect = damageRegion.getBounds ();
+	    else
+	      damageRect = emptyRect;
 
 	    if (!surfaceView.isCreated ())
 	      return;
@@ -610,24 +614,6 @@ public class EmacsView extends ViewGroup
     imManager.hideSoftInputFromWindow (this.getWindowToken (),
 				       0);
     isCurrentlyTextEditor = false;
-  }
-
-  public void
-  windowUpdated (long serial)
-  {
-    Log.d (TAG, "windowUpdated: serial is " + serial);
-
-    if (pendingConfigure <= serial
-	/* Detect wraparound.  */
-	|| pendingConfigure - serial >= 0x7fffffff)
-      {
-	pendingConfigure = 0;
-
-	if (drawingFinished != null)
-	  drawingFinished.run ();
-
-	drawingFinished = null;
-      }
   }
 
   @Override

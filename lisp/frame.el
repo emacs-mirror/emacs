@@ -2564,11 +2564,16 @@ On systems with an on-screen keyboard, display the on screen
 keyboard on behalf of the frame FRAME if HIDE is nil.  Else, hide
 the on screen keyboard.
 
+Return whether or not the on screen keyboard may have been
+displayed; that is, return t on systems with an on screen
+keyboard, and nil on those without.
+
 FRAME must already have the input focus for this to work
  reliably."
   (let ((frame-type (framep-on-display frame)))
     (cond ((eq frame-type 'android)
-           (android-toggle-on-screen-keyboard frame hide)))))
+           (android-toggle-on-screen-keyboard frame hide) t)
+          (t nil))))
 
 
 ;;;; Frame geometry values

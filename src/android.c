@@ -125,7 +125,6 @@ struct android_emacs_window
   jclass class;
   jmethodID swap_buffers;
   jmethodID toggle_on_screen_keyboard;
-  jmethodID window_updated;
 };
 
 /* The API level of the current device.  */
@@ -1830,7 +1829,6 @@ android_init_emacs_window (void)
   FIND_METHOD (swap_buffers, "swapBuffers", "()V");
   FIND_METHOD (toggle_on_screen_keyboard,
 	       "toggleOnScreenKeyboard", "(Z)V");
-  FIND_METHOD (window_updated, "windowUpdated", "(J)V");
 #undef FIND_METHOD
 }
 
@@ -4322,25 +4320,6 @@ android_toggle_on_screen_keyboard (android_window window, bool show)
 				       method, (jboolean) show);
 
   /* Check for out of memory errors.  */
-  android_exception_check ();
-}
-
-/* Tell the window system that all configure events sent to WINDOW
-   have been fully processed, and that it is now okay to display its
-   new contents.  SERIAL is the serial of the last configure event
-   processed.  */
-
-void
-android_window_updated (android_window window, unsigned long serial)
-{
-  jobject object;
-  jmethodID method;
-
-  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
-  method = window_class.window_updated;
-
-  (*android_java_env)->CallVoidMethod (android_java_env, object,
-				       method, (jlong) serial);
   android_exception_check ();
 }
 

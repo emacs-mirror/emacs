@@ -4577,20 +4577,49 @@ is included in the return value."
 ;; Try to display the on screen keyboard whenever entering the
 ;; mini-buffer, and hide it whenever leaving.
 
+(defvar minibuffer-on-screen-keyboard-timer nil
+  "Timer run upon exiting the minibuffer.
+It will hide the on screen keyboard when necessary.")
+
+(defvar minibuffer-on-screen-keyboard-displayed nil
+  "Whether or not the on-screen keyboard has been displayed.
+Set inside `minibuffer-setup-on-screen-keyboard'.")
+
 (defun minibuffer-setup-on-screen-keyboard ()
   "Maybe display the on-screen keyboard in the current frame.
 Display the on-screen keyboard in the current frame if the
 last device to have sent an input event is not a keyboard.
 This is run upon minibuffer setup."
+  ;; Don't hide the on screen keyboard later on.
+  (when minibuffer-on-screen-keyboard-timer
+    (cancel-timer minibuffer-on-screen-keyboard-timer)
+    (setq minibuffer-on-screen-keyboard-timer nil))
+  (setq minibuffer-on-screen-keyboard-displayed nil)
   (when (not (memq (device-class last-event-frame
                                last-event-device)
                    '(keyboard core-keyboard)))
-    (frame-toggle-on-screen-keyboard (selected-frame) nil)))
+    (setq minibuffer-on-screen-keyboard-displayed
+          (frame-toggle-on-screen-keyboard (selected-frame) nil))))
 
 (defun minibuffer-exit-on-screen-keyboard ()
   "Hide the on-screen keyboard if it was displayed.
-This is run upon minibuffer exit."
-  (frame-toggle-on-screen-keyboard (selected-frame) t))
+Hide the on-screen keyboard in a timer set to run in 0.1 seconds.
+It will be cancelled if the minibuffer is displayed again within
+that timeframe.
+
+Do not hide the on screen keyboard inside a recursive edit.
+Likewise, do not hide the on screen keyboard if point in the
+window that will be selected after exiting the minibuffer is not
+on read-only text.
+
+The latter is implemented in `touch-screen.el'."
+  (unless (or (not minibuffer-on-screen-keyboard-displayed)
+              (> (recursion-depth) 1))
+    (when minibuffer-on-screen-keyboard-timer
+      (cancel-timer minibuffer-on-screen-keyboard-timer))
+    (setq minibuffer-on-screen-keyboard-timer
+          (run-with-timer 0.1 nil #'frame-toggle-on-screen-keyboard
+                          (selected-frame) t))))
 
 (add-hook 'minibuffer-setup-hook #'minibuffer-setup-on-screen-keyboard)
 (add-hook 'minibuffer-exit-hook #'minibuffer-exit-on-screen-keyboard)

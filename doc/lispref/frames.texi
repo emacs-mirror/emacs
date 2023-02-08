@@ -3828,6 +3828,10 @@ This function displays or hides the on-screen keyboard on behalf of
 the frame @var{frame}.  If @var{hide} is non-@code{nil}, then the
 on-screen keyboard is hidden; otherwise, it is displayed.
 
+It returns whether or not the on screen keyboard @strong{may} have
+been displayed, which should be used to determine whether or not to
+hide the on-screen keyboard later.
+
 This has no effect if the system automatically detects when to display
 the on-screen keyboard, or when it does not provide any on-screen
 keyboard.
